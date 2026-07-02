@@ -200,6 +200,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       handleImagePaste,
       hasImages,
       clearAttachedImages,
+      promptPolish,
     } = useInputArea({
       placeholder,
       sessionId: propSessionId,
@@ -209,7 +210,8 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       customMentionOptions: mergedCustomMentionOptions,
     });
 
-    const currentInputEmpty = isInputEmpty() && !hasImages;
+    const currentTextEmpty = isInputEmpty();
+    const currentInputEmpty = currentTextEmpty && !hasImages;
     const stopSuppressedForEmptyInput =
       disableStopWhenEmpty && currentInputEmpty && !isWpGeneWorking;
     const mentionTreePosition = chatPanelPosition === "left" ? "right" : "left";
@@ -506,6 +508,8 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
                 isSessionTerminal={isSessionTerminal}
                 voiceFeatureEnabled={voiceFeatureEnabled}
                 dropTargetId={dropTargetId}
+                promptPolish={promptPolish}
+                promptPolishDisabled={currentTextEmpty}
                 submitDisabled={submitDisabled}
               />
             )}

@@ -58,6 +58,11 @@ export const validation = {
     .output(schemas.validation.KeyInfoSchema.nullable())
     .build(),
 
+  promptPolish: defineProcedure("prompt_polish")
+    .input(schemas.validation.PromptPolishInput)
+    .output(schemas.validation.PromptPolishResponseSchema)
+    .build(),
+
   getEnvForAgent: defineProcedure("get_env_for_agent")
     .input(schemas.validation.GetEnvForAgentInput)
     .output(z.record(z.string(), z.string()))
