@@ -545,7 +545,29 @@ impl Tool for AgentTool {
                     ToolError::InvalidParams("kill requires 'handle' (worker session ID)".into())
                 })?;
             return match job_registry::kill_subagent(handle) {
-                Ok(()) => Ok(format!("Worker '{handle}' killed.")),
+                Ok(()) => {
+                    // Preserve partial progress: surface the worker's last
+                    // persisted narration alongside the kill confirmation so
+                    // its work so far isn't silently discarded (mirrors the
+                    // reference harness extracting a partial result on kill).
+                    let partial = {
+                        let sid = handle.to_string();
+                        tokio::task::block_in_place(|| {
+                            crate::session::persistence::load_llm_history(&sid)
+                                .ok()
+                                .and_then(|msgs| {
+                                    crate::turn_executor::last_assistant_text(&msgs)
+                                })
+                        })
+                    };
+                    Ok(match partial {
+                        Some(text) if !text.trim().is_empty() => format!(
+                            "Worker '{handle}' killed.\n\n[partial progress before kill]\n{}",
+                            crate::utils::safe_truncate_chars_to_string(&text, 4000)
+                        ),
+                        _ => format!("Worker '{handle}' killed."),
+                    })
+                }
                 Err(msg) => Err(ToolError::ExecutionFailed(msg)),
             };
         }
@@ -1131,7 +1153,6 @@ impl Tool for AgentTool {
                 }
                 None => (Arc::clone(&effective_registry_arc), None),
             };
-        let final_registry = final_registry_arc.as_ref();
 
         // ── Background mode: spawn and return handle immediately ─────
         if is_background {
@@ -1159,46 +1180,28 @@ impl Tool for AgentTool {
             ));
         }
 
-        // ── Foreground mode: block until subagent completes ──────────
+        // ── Foreground mode: wait with fg→bg transition deadline ─────
         // Registration inside `run_foreground_subagent` takes over the
         // handle (it also emits terminal status on completion/failure).
+        // Worktree cleanup is owned by the worker task itself so it also
+        // runs when the wait converts to a background handle.
         provisional_guard.disarm();
-        let fg_session_id = subagent_session_id.clone();
-        let result = self
-            .run_foreground_subagent(foreground::ForegroundRunArgs {
-                agent: &agent,
-                messages,
-                turn_config,
-                effective_registry: final_registry,
-                effective_policy,
-                subagent_session_id,
-                parent_session_id,
-                subagent_type_label: subagent_type_wire,
-                handler,
-                instance_number,
-                model,
-                provider: subagent_provider,
-            })
-            .await;
-
-        // Clean up the isolation worktree after foreground subagent exits
-        // (success or failure). Best-effort: a failed cleanup is logged and
-        // the startup pruner will handle the orphan on next launch.
-        if let Some(workspace_root) = isolation_workspace_root {
-            let session_id_for_log = fg_session_id.clone();
-            let wt_result = tokio::task::spawn_blocking(move || {
-                git::worktree::remove_session_worktree(&workspace_root, &fg_session_id, true)
-            })
-            .await;
-            if let Ok(Err(err)) = wt_result {
-                warn!(
-                    "[agent] failed to remove isolation worktree for '{}' after foreground completion: {}",
-                    session_id_for_log, err
-                );
-            }
-        }
-
-        result
+        self.run_foreground_subagent(foreground::ForegroundRunArgs {
+            agent: agent.clone(),
+            messages,
+            turn_config,
+            effective_registry: Arc::clone(&final_registry_arc),
+            effective_policy,
+            subagent_session_id,
+            parent_session_id,
+            subagent_type_label: subagent_type_wire,
+            handler,
+            instance_number,
+            model,
+            provider: subagent_provider,
+            worktree_workspace_root: isolation_workspace_root,
+        })
+        .await
     }
 
     async fn set_active_repo(&self, repo_path: &str) {

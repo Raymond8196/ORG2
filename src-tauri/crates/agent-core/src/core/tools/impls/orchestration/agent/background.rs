@@ -190,6 +190,12 @@ impl AgentTool {
                             )
                         }
                     });
+                    // Soft-stop labelling — same rule as the foreground path.
+                    let resp = if result.hit_max_iterations {
+                        format!("[worker hit iteration limit; partial result]\n{}", resp)
+                    } else {
+                        resp
+                    };
                     broadcasting_handler.broadcast_complete();
                     job_registry::set_final_result(&bg_session_id, resp.clone());
                     job_registry::mark_exited(&bg_session_id, job_registry::JobStatus::Completed);

@@ -64,6 +64,49 @@ fn build_multimodal_content(text: &str, image_refs: &[String]) -> serde_json::Va
     serde_json::Value::Array(parts)
 }
 
+/// Turns elapsed since the given tool was last called in this session,
+/// derived by scanning the persisted transcript tail (capped at
+/// `scan_limit` rows). Counts user messages (≈ turns) after the most
+/// recent `tool` row whose `tool_name` matches.
+///
+/// Returns at least 1 and at most `scan_limit` when the tool never appears
+/// in the scanned tail — callers treat the cap as "long enough ago". This
+/// replaces process-local reminder counters so throttling survives app
+/// restarts and session resumes (transcript-derived, like the reference
+/// harness).
+pub fn turns_since_last_tool_call(
+    session_id: &str,
+    tool_name: &str,
+    scan_limit: u32,
+) -> rusqlite::Result<u32> {
+    let conn = database::db::get_connection()?;
+    let mut stmt = conn.prepare(
+        "SELECT role, tool_name FROM agent_messages
+         WHERE session_id = ?1
+         ORDER BY sequence DESC
+         LIMIT ?2",
+    )?;
+    let rows = stmt.query_map(rusqlite::params![session_id, scan_limit], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, Option<String>>(1)?,
+        ))
+    })?;
+
+    let mut turns: u32 = 0;
+    for row in rows {
+        let (role, row_tool) = row?;
+        if role == super::super::message_role::TOOL_CALL && row_tool.as_deref() == Some(tool_name)
+        {
+            return Ok(turns);
+        }
+        if role == super::super::message_role::USER {
+            turns = turns.saturating_add(1);
+        }
+    }
+    Ok(turns.max(1).min(scan_limit))
+}
+
 /// Load conversation history in the format expected by LLM providers.
 ///
 /// Returns messages in OpenAI-compatible format including tool calls:

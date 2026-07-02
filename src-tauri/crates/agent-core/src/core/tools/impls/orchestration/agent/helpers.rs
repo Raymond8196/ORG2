@@ -419,7 +419,21 @@ pub fn resolve_subagent_model(
 
     let primary = match agent.selected_model_id.as_deref() {
         Some(p) if !p.is_empty() => p,
-        _ => return (parent_model.to_string(), None),
+        _ => {
+            // One-shot research workers (Explore) inherit the parent model but
+            // drop its reasoning/thinking suffix (e.g. `-high`): their output
+            // is a distilled report and thinking is pure overhead at high call
+            // volume (mirrors the reference harness forcing thinking off for
+            // subagents). Explicit `model` params and definition-pinned models
+            // above stay untouched.
+            if ONE_SHOT_AGENT_IDS.contains(&agent.id.as_str()) {
+                let parsed = crate::providers::thinking_mode::parse_model_variant(parent_model);
+                if parsed.level.is_some() || parsed.thinking {
+                    return (parsed.base_model, None);
+                }
+            }
+            return (parent_model.to_string(), None);
+        }
     };
 
     let mut reliability = agent.reliability.clone().unwrap_or_default();
@@ -522,5 +536,29 @@ mod resolve_subagent_model_tests {
 
         assert_eq!(model, "claude-opus-4");
         assert!(reliability.is_none());
+    }
+
+    /// Explore (one-shot) workers inheriting the parent model drop the
+    /// reasoning suffix; other agents and explicit params keep it.
+    #[test]
+    fn explore_inheriting_parent_model_strips_reasoning_suffix() {
+        let mut agent = make_agent_with_model(None, None);
+        agent.id = crate::definitions::builtin::EXPLORE_AGENT_ID.to_string();
+
+        let (model, _) = resolve_subagent_model(&agent, None, "gpt-5.4-high");
+        assert_eq!(model, "gpt-5.4", "explore must strip the reasoning suffix");
+
+        // Suffix-free parent model passes through unchanged.
+        let (model, _) = resolve_subagent_model(&agent, None, "claude-fable-5");
+        assert_eq!(model, "claude-fable-5");
+
+        // Explicit param model is respected even for explore.
+        let (model, _) = resolve_subagent_model(&agent, Some("gpt-5.4-high"), "claude-fable-5");
+        assert_eq!(model, "gpt-5.4-high");
+
+        // Non-one-shot agents inherit the parent model verbatim.
+        let general = make_agent_with_model(None, None);
+        let (model, _) = resolve_subagent_model(&general, None, "gpt-5.4-high");
+        assert_eq!(model, "gpt-5.4-high");
     }
 }

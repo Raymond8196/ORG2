@@ -1001,8 +1001,10 @@ pub async fn execute_turn(
         }
     }
 
+    let mut hit_max_iterations = false;
     if let Some(max) = config.max_iterations {
         if final_content.is_none() && iteration >= max {
+            hit_max_iterations = true;
             warn!(
                 "[agent-core] Hit max iterations ({}) for session {}",
                 max, session_id
@@ -1056,6 +1058,7 @@ pub async fn execute_turn(
         content: final_content,
         messages: messages.clone(),
         is_stream_error: final_is_stream_error,
+        hit_max_iterations,
         prompt_tokens: usage.prompt,
         completion_tokens: usage.completion,
         total_tokens: usage.total,

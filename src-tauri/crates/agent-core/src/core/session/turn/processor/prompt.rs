@@ -249,7 +249,9 @@ impl UnifiedMessageProcessor {
         // user-visible transcript is clean.
         const NAG_THRESHOLD: u32 = 10;
         {
-            let rounds = *self.rounds_since_todo.lock().await;
+            let rounds = self
+                .rounds_since_tool(&self.rounds_since_todo, crate::tools::names::MANAGE_TODO, session_id)
+                .await;
             if rounds >= NAG_THRESHOLD {
                 let todo_snapshot = tokio::task::block_in_place(|| {
                     crate::persistence::db_helpers::todos::get_todos(session_id).unwrap_or_default()
@@ -295,7 +297,13 @@ impl UnifiedMessageProcessor {
             };
             let is_worker_session = session_id.starts_with(SUBAGENT_SESSION_PREFIX)
                 || session_id.starts_with(SHADOW_SUBAGENT_SESSION_PREFIX);
-            let rounds = *self.rounds_since_subagent_reminder.lock().await;
+            let rounds = self
+                .rounds_since_tool(
+                    &self.rounds_since_subagent_reminder,
+                    crate::tools::names::AGENT,
+                    session_id,
+                )
+                .await;
             if !is_worker_session && rounds >= SUBAGENT_REMINDER_THRESHOLD {
                 let effective_policy = self.effective_tool_policy();
                 let has_agent_tool = self
@@ -332,7 +340,7 @@ impl UnifiedMessageProcessor {
                              work.</system-reminder>",
                             ids.join(", ")
                         ));
-                        *self.rounds_since_subagent_reminder.lock().await = 0;
+                        *self.rounds_since_subagent_reminder.lock().await = Some(0);
                         info!(
                             "[unified_processor] Subagent reminder injected ({} turns since last, session={})",
                             rounds, session_id
@@ -343,6 +351,33 @@ impl UnifiedMessageProcessor {
         }
 
         dynamic_sections
+    }
+
+    /// Read a lazy transcript-backed reminder counter. `None` (fresh
+    /// processor — app restart or session just loaded) rebuilds from the
+    /// persisted transcript via `turns_since_last_tool_call` so throttling
+    /// state survives restarts; afterwards the in-memory value is the fast
+    /// path, maintained by the post-turn increment/reset in `mod.rs`.
+    async fn rounds_since_tool(
+        &self,
+        counter: &tokio::sync::Mutex<Option<u32>>,
+        tool_name: &'static str,
+        session_id: &str,
+    ) -> u32 {
+        let mut guard = counter.lock().await;
+        if let Some(rounds) = *guard {
+            return rounds;
+        }
+        // Scan cap = 4x threshold: enough tail to prove "recently used",
+        // saturates to the cap when the tool is absent (treated as stale).
+        const SCAN_LIMIT: u32 = 40;
+        let sid = session_id.to_string();
+        let rebuilt = tokio::task::block_in_place(|| {
+            crate::persistence::db_helpers::turns_since_last_tool_call(&sid, tool_name, SCAN_LIMIT)
+                .unwrap_or(0)
+        });
+        *guard = Some(rebuilt);
+        rebuilt
     }
 
     /// Build tool summaries from the same policy-filtered schema payload sent to the provider.
