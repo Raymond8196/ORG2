@@ -197,6 +197,20 @@ impl AgentTool {
                         resp
                     };
                     broadcasting_handler.broadcast_complete();
+                    // broadcast_complete stamps the child row `completed`;
+                    // a cooperative kill must read `cancelled` instead, or
+                    // the monitoring UI shows a killed worker as succeeded.
+                    if was_cancelled {
+                        if let Err(err) = crate::session::persistence::update_status(
+                            &bg_session_id,
+                            crate::session::SessionStatus::Cancelled,
+                        ) {
+                            warn!(
+                                "[agent:bg] failed to mark killed child session '{}' cancelled: {}",
+                                bg_session_id, err
+                            );
+                        }
+                    }
                     job_registry::set_final_result(&bg_session_id, resp.clone());
                     job_registry::mark_exited(&bg_session_id, job_registry::JobStatus::Completed);
                     info!(

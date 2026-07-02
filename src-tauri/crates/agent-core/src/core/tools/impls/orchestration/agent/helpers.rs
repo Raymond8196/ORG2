@@ -62,11 +62,28 @@ impl Drop for FinalizeGuard {
         if self.armed {
             tracing::warn!(
                 "[agent] subagent worker '{}' exited without writing a terminal \
-                 status (likely a panic in the turn loop); emitting Failed so the \
-                 job registry and UI release the row",
+                 status (panic or hard-abort after kill); emitting a terminal \
+                 verdict so the job registry, UI, and child-session row release",
                 self.handle
             );
+            // Killed-sticky: if kill_subagent already stamped Killed, this
+            // Failed write is ignored; otherwise (panic) Failed is correct.
             job_registry::mark_exited(&self.handle, job_registry::JobStatus::Failed);
+            // Also close the durable `agent_sessions` row. broadcast_complete/
+            // broadcast_error normally do this, but a hard-aborted task (kill
+            // watchdog) or a panic never reaches them — leaving the child row
+            // `running` forever, which keeps the monitoring pin-bar clip open
+            // (endedAt=null → frontend renders an eternally-running card).
+            if let Err(err) = crate::session::persistence::update_status(
+                &self.handle,
+                crate::session::SessionStatus::Cancelled,
+            ) {
+                tracing::warn!(
+                    "[agent] FinalizeGuard failed to close child session row '{}': {}",
+                    self.handle,
+                    err
+                );
+            }
         }
     }
 }

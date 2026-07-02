@@ -192,6 +192,20 @@ impl AgentTool {
                         super::helpers::count_tool_uses(&result.messages),
                     );
                     handler.broadcast_complete();
+                    // broadcast_complete stamps the child row `completed`;
+                    // a cooperative kill must read `cancelled` instead, or
+                    // the monitoring UI shows a killed worker as succeeded.
+                    if was_cancelled {
+                        if let Err(err) = crate::session::persistence::update_status(
+                            &task_session_id,
+                            crate::session::SessionStatus::Cancelled,
+                        ) {
+                            warn!(
+                                "[agent] failed to mark killed child session '{}' cancelled: {}",
+                                task_session_id, err
+                            );
+                        }
+                    }
                     // completed-first invariant (gh-20236 class): terminal
                     // status is written BEFORE final-result storage, wake,
                     // and LinkedSession writes, so anything blocking on
