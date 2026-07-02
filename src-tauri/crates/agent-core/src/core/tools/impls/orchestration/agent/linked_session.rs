@@ -113,37 +113,9 @@ impl AgentTool {
         }
     }
 
-    pub(super) async fn update_linked_session(
-        &self,
-        subagent_session_id: &str,
-        status: LinkedSessionStatus,
-        tokens: i64,
-        preview: &str,
-    ) {
-        let wid = match &self.config.work_item_id {
-            Some(wid) => wid.clone(),
-            None => return,
-        };
-
-        let sid = subagent_session_id.to_string();
-        let preview = preview.to_string();
-
-        let join_result = tokio::task::spawn_blocking(move || {
-            apply_linked_session_update(&wid, &sid, status, tokens, &preview);
-        })
-        .await;
-
-        if let Err(err) = join_result {
-            warn!(
-                "[agent] Failed to update LinkedSession for {}: {}",
-                subagent_session_id, err
-            );
-        }
-    }
-
-    /// Synchronous version used from the background-task `tokio::spawn`
-    /// closure, where we are already inside a spawned task and re-wrapping
-    /// with `spawn_blocking` would be pointless.
+    /// Synchronous version used from worker `tokio::spawn` closures (both
+    /// launch modes' finalizers), where we are already inside a spawned task
+    /// and re-wrapping with `spawn_blocking` would be pointless.
     pub(super) fn update_linked_session_sync(
         wid: &str,
         subagent_session_id: &str,
