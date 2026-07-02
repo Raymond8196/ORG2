@@ -141,10 +141,15 @@ pub struct UnifiedMessageProcessor {
     sm_config: SessionMemoryConfig,
     sm_compact_config: SessionMemoryCompactConfig,
     replacement_state: tokio::sync::Mutex<ReplacementState>,
-    rounds_since_todo: tokio::sync::Mutex<u32>,
+    /// Turns since the last `manage_todo` call. `None` until first use —
+    /// lazily rebuilt from the persisted transcript
+    /// (`turns_since_last_tool_call`) so throttling survives app restarts
+    /// instead of resetting to 0 and re-arming immediately.
+    rounds_since_todo: tokio::sync::Mutex<Option<u32>>,
     /// Turns since the last `agent` tool call OR last subagent reminder.
     /// Drives the periodic delegation nudge in `build_dynamic_sections`.
-    rounds_since_subagent_reminder: tokio::sync::Mutex<u32>,
+    /// Same lazy-rebuild semantics as `rounds_since_todo`.
+    rounds_since_subagent_reminder: tokio::sync::Mutex<Option<u32>>,
     turn_prefetch_hook: tokio::sync::Mutex<Option<Arc<TurnPrefetchHook>>>,
 }
 
@@ -231,8 +236,8 @@ impl UnifiedMessageProcessor {
             sm_config: SessionMemoryConfig::default(),
             sm_compact_config: SessionMemoryCompactConfig::default(),
             replacement_state: tokio::sync::Mutex::new(ReplacementState::new()),
-            rounds_since_todo: tokio::sync::Mutex::new(0),
-            rounds_since_subagent_reminder: tokio::sync::Mutex::new(0),
+            rounds_since_todo: tokio::sync::Mutex::new(None),
+            rounds_since_subagent_reminder: tokio::sync::Mutex::new(None),
             turn_prefetch_hook: tokio::sync::Mutex::new(None),
         }
     }
@@ -751,7 +756,9 @@ impl UnifiedMessageProcessor {
 
         // 6c. Volatile context reminder — the per-turn system-prompt body
         // (environment/IDE/presence/mode suffix) plus the dynamic sections,
-        // appended AFTER the history as a `<system-reminder>` user message.
+        // appended AFTER the history as a `<system-reminder>` user message
+        // (or folded into a trailing tool result — see
+        // `attach_volatile_context_reminder` for the shape guard).
         // Anything placed before the history would change every turn and
         // invalidate the provider prompt-cache prefix for the whole
         // conversation; at the tail it sits after the sliding cache
@@ -763,10 +770,9 @@ impl UnifiedMessageProcessor {
             }
             volatile_parts.extend(dynamic_sections);
             if !volatile_parts.is_empty() {
-                messages.push(
-                    crate::session::prompt::cache::volatile_context_reminder_message(
-                        &volatile_parts.join("\n\n"),
-                    ),
+                crate::session::prompt::cache::attach_volatile_context_reminder(
+                    &mut messages,
+                    &volatile_parts.join("\n\n"),
                 );
             }
         }
@@ -791,12 +797,14 @@ impl UnifiedMessageProcessor {
 
         // Update nag-reminder counter based on whether manage_todo was called
         // during this turn. Reset to 0 on any todo call; increment otherwise.
+        // (An uninitialized counter stays None — the read path lazily rebuilds
+        // it from the transcript, which already includes this turn's rows.)
         {
             let mut rounds = self.rounds_since_todo.lock().await;
             if handler.todo_was_called() {
-                *rounds = 0;
-            } else {
-                *rounds = rounds.saturating_add(1);
+                *rounds = Some(0);
+            } else if let Some(r) = rounds.as_mut() {
+                *r = r.saturating_add(1);
             }
         }
 
@@ -805,9 +813,9 @@ impl UnifiedMessageProcessor {
         {
             let mut rounds = self.rounds_since_subagent_reminder.lock().await;
             if handler.agent_was_called() {
-                *rounds = 0;
-            } else {
-                *rounds = rounds.saturating_add(1);
+                *rounds = Some(0);
+            } else if let Some(r) = rounds.as_mut() {
+                *r = r.saturating_add(1);
             }
         }
 

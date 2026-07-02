@@ -197,7 +197,13 @@ pub(super) fn llm_description(allowed_subagents: Option<&Vec<String>>) -> Option
          When NOT to use this tool:\n\
          - Reading a specific known file path — use read_file directly.\n\
          - Looking up one specific symbol/class/function — a single code_search is faster.\n\
-         - Listing one directory — use list_dir.\n\n\
+         - Listing one directory — use list_dir.\n\
+         - Understanding code you are about to modify — that is YOUR job. Delegate fact-gathering, \
+           never delegate understanding or decisions.\n\n\
+         Worker results: the worker's report is your only source of truth about what it did — never \
+         attribute findings or changes to a worker that its report does not state. The user CANNOT \
+         see worker output; you must relay key findings/conclusions in your own reply instead of \
+         just saying the worker finished.\n\n\
          Example (parallel research — one message, multiple agent calls):\n\
          user: How do sessions, permissions, and caching interact in this codebase?\n\
          assistant: [in ONE message] agent(agent_id: 'builtin:explore', prompt: 'How does session \
@@ -252,7 +258,10 @@ pub(super) fn parameters() -> Value {
             "background": {
                 "type": "boolean",
                 "description": "When true, run the worker in background and return a handle immediately. \
-                Do NOT poll it with await_output — proceed with other work; the system \
+                Choose foreground (default) when you need the result before your next step. \
+                Choose background when the work is independent of your next actions, or likely \
+                to take more than ~1 minute while you have other work to do meanwhile. \
+                Do NOT poll a background worker with await_output — proceed with other work; the system \
                 notifies you automatically when it finishes. Default: false."
             },
             "isolation": {

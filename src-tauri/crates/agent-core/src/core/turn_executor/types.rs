@@ -161,6 +161,11 @@ pub struct TurnResult {
     /// cause it to be replayed as a real assistant turn on the next call,
     /// wasting context-window tokens and potentially confusing the LLM.
     pub is_stream_error: bool,
+    /// True when the turn ended because it hit `max_iterations` rather than
+    /// the model finishing naturally. Subagent callers use this to label the
+    /// result as partial (soft-stop, mirrors the reference harness) instead
+    /// of presenting a truncated run as a completed one.
+    pub hit_max_iterations: bool,
     /// Accumulated prompt tokens across all LLM calls in this turn.
     pub prompt_tokens: i64,
     /// Accumulated completion tokens across all LLM calls in this turn.
@@ -399,6 +404,7 @@ mod tests {
         let result = TurnResult {
             content: None,
             is_stream_error: false,
+            hit_max_iterations: false,
             prompt_tokens: 100,
             completion_tokens: 50,
             total_tokens: 150,
@@ -418,6 +424,7 @@ mod tests {
         let result = TurnResult {
             content: Some("hello".into()),
             is_stream_error: false,
+            hit_max_iterations: false,
             prompt_tokens: 1000,
             completion_tokens: 200,
             total_tokens: 1200,
