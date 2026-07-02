@@ -224,11 +224,15 @@ const ActivitySimulator: React.FC = memo(() => {
   // grid blank.  When it is selected we also have to replace displayEvent with
   // the raw currentEvent because useSimulatorDisplayState returns null for
   // displayEvent when selectedApp=BACKGROUND_TASKS (no matching events exist).
+  // taskThreads is also neutralized: the PIP bottom strip already renders one
+  // cell per subagent, so letting the TOP pane enter multi-task grid mode
+  // duplicates the same monitoring row twice (stacked "two rows" look).
   const isBgTasksSelected = effectiveSelectedApp === AppType.BACKGROUND_TASKS;
   const splitGridProps = {
     ...gridProps,
     forceAppType: isBgTasksSelected ? null : effectiveSelectedApp,
     currentEvent: isBgTasksSelected ? currentEvent : displayEvent,
+    taskThreads: [],
   };
   const showFloatingInputOverlay =
     showDock && !chatVisible && hasSession && !simulatorInputCollapsed;

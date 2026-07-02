@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   type ChildSessionRecord,
+  SUBAGENT_ACTIVE_LEAD_MS,
   type SubagentSession,
   isActiveAtTimestamp,
   mapChildSessionRecord,
@@ -111,8 +112,14 @@ describe("isActiveAtTimestamp", () => {
     ),
   };
 
-  it("is inactive before the clip starts", () => {
-    expect(isActiveAtTimestamp(closedClip, T0 - 1)).toBe(false);
+  it("is inactive before the lead window starts", () => {
+    expect(
+      isActiveAtTimestamp(closedClip, T0 - SUBAGENT_ACTIVE_LEAD_MS - 1)
+    ).toBe(false);
+  });
+
+  it("is active during the pre-start lead window", () => {
+    expect(isActiveAtTimestamp(closedClip, T0 - 1)).toBe(true);
   });
 
   it("is active inside the clip window", () => {
