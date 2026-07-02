@@ -25,6 +25,7 @@ import type {
   KeyInfo,
   ModelContextLengths,
   ModelType,
+  PromptPolishResponse,
   ProviderProtocol,
   QuotaInfo,
   SaveKeyRequest,
@@ -48,6 +49,8 @@ export type {
   KeyInfo,
   ModelContextLengths,
   ProviderProtocol,
+  PromptPolishRequest,
+  PromptPolishResponse,
   QuotaInfo,
   SaveKeyRequest,
   UsageItem,
@@ -311,6 +314,20 @@ export async function updateKeyHealth(
     enabledModels: enabledModels ?? null,
     quotaInfo: quotaInfo ?? null,
     modelContextLengths: modelContextLengths ?? null,
+  });
+}
+
+/** Polish a chat draft through the configured local MiniCPM vLLM account. */
+export async function promptPolish(
+  text: string,
+  options: { accountId?: string; model?: string } = {}
+): Promise<PromptPolishResponse> {
+  return rpc.validation.promptPolish({
+    request: {
+      text,
+      accountId: cleanOptionalString(options.accountId),
+      model: cleanOptionalString(options.model),
+    },
   });
 }
 

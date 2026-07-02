@@ -482,6 +482,22 @@ export const UpdateKeyHealthInput = z.object({
   modelContextLengths: ModelContextLengthsSchema.nullable().optional(),
 });
 
+export const PromptPolishRequestSchema = z.object({
+  text: z.string(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const PromptPolishInput = z.object({
+  request: PromptPolishRequestSchema,
+});
+
+export const PromptPolishResponseSchema = z.object({
+  polishedText: z.string(),
+  model: z.string(),
+  accountId: z.string(),
+});
+
 export const GetEnvForAgentInput = z.object({
   agentType: ModelTypeSchema,
   keyId: z.string().nullable().optional(),
@@ -663,6 +679,8 @@ export type ModelVariantInfo = z.infer<typeof ModelVariantInfoSchema>;
 export type DefaultVariantInfo = z.infer<typeof DefaultVariantInfoSchema>;
 export type DetectedQuotaInfo = z.infer<typeof DetectedQuotaInfoSchema>;
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
+export type PromptPolishRequest = z.infer<typeof PromptPolishRequestSchema>;
+export type PromptPolishResponse = z.infer<typeof PromptPolishResponseSchema>;
 export type CursorNativeOauthStartResponse = z.infer<
   typeof CursorNativeOauthStartResponseSchema
 >;

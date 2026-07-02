@@ -75,6 +75,7 @@ import { useImageAttachment } from "./useImageAttachment";
 import { useInputAreaEffects } from "./useInputAreaEffects";
 import { useInputAreaRefs } from "./useInputAreaRefs";
 import { useInputAreaState } from "./useInputAreaState";
+import { usePromptPolish } from "./usePromptPolish";
 import { useSlashCommand } from "./useSlashCommand";
 import { useSubmitMessage } from "./useSubmitMessage";
 import { useUploadContext } from "./useUploadContext";
@@ -443,6 +444,15 @@ export function useInputArea(
     composerInputRef: refs.composerInputRef,
   });
 
+  const promptPolish = usePromptPolish({
+    refs,
+    draftSessionId,
+    setDraft,
+    handleSessInputChange,
+    withProgrammaticInputMutation,
+  });
+  const handlePromptPolishContentChange = promptPolish.handleContentChange;
+
   // ============================================
   // Effects
   // ============================================
@@ -485,6 +495,8 @@ export function useInputArea(
         return;
       }
 
+      handlePromptPolishContentChange();
+
       // Mirror the latest text onto the session row (debounced). Skip
       // when we don't have an active session id — the composer is only
       // mounted once we've resolved one in practice, but the ref form
@@ -494,7 +506,13 @@ export function useInputArea(
         setDraft(draftText);
       }
     },
-    [draftSessionId, handleSessInputChange, refs, setDraft]
+    [
+      draftSessionId,
+      handlePromptPolishContentChange,
+      handleSessInputChange,
+      refs,
+      setDraft,
+    ]
   );
 
   // Restore the persisted draft into the editor on session switch.
@@ -635,6 +653,7 @@ export function useInputArea(
     handleAtMention: atMention.handleAtMention,
     handleAtMentionClose: atMention.handleAtMentionClose,
     isInputEmpty,
+    promptPolish,
 
     // @ Mention
     showContextMenu: state.showContextMenu,
