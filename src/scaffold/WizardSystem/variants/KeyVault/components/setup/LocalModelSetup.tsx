@@ -15,7 +15,13 @@ import {
 
 import type { AgentSetupProps } from "./types";
 
-type LocalRuntime = "ollama" | "lm_studio" | "vllm" | "llamacpp" | "custom";
+type LocalRuntime =
+  | "ollama"
+  | "lm_studio"
+  | "vllm"
+  | "sglang_minicpm"
+  | "llamacpp"
+  | "custom";
 
 type LocalPreset = {
   runtime: LocalRuntime;
@@ -44,6 +50,12 @@ const LOCAL_PRESETS: Record<LocalRuntime, LocalPreset> = {
     baseUrl: "http://localhost:8000/v1",
     apiKey: "vllm-local",
     models: ["meta-llama/Llama-3.1-8B-Instruct"],
+  },
+  sglang_minicpm: {
+    runtime: "sglang_minicpm",
+    baseUrl: "http://127.0.0.1:30000/v1",
+    apiKey: "sglang-local",
+    models: ["openbmb/MiniCPM5-1B"],
   },
   llamacpp: {
     runtime: "llamacpp",
