@@ -441,6 +441,7 @@ key_vault::codex_oauth_list_models,
 key_vault::gemini_oauth_list_models,
 key_vault::refresh_oauth_token,
 key_vault::prompt_polish,
+key_vault::session_step_explain,
 // Key storage commands (CRUD for ~/.orgii/credentials.json)
 key_vault::list_keys,
 key_vault::get_key,
