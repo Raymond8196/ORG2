@@ -498,6 +498,32 @@ export const PromptPolishResponseSchema = z.object({
   accountId: z.string(),
 });
 
+export const SessionStepExplainRequestSchema = z.object({
+  eventId: z.string(),
+  functionName: z.string().nullable().optional(),
+  actionType: z.string().nullable().optional(),
+  displayText: z.string().nullable().optional(),
+  displayStatus: z.string().nullable().optional(),
+  displayVariant: z.string().nullable().optional(),
+  source: z.string().nullable().optional(),
+  filePath: z.string().nullable().optional(),
+  command: z.string().nullable().optional(),
+  args: z.unknown().nullable().optional(),
+  result: z.unknown().nullable().optional(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const SessionStepExplainInput = z.object({
+  request: SessionStepExplainRequestSchema,
+});
+
+export const SessionStepExplainResponseSchema = z.object({
+  explanation: z.string(),
+  model: z.string(),
+  accountId: z.string(),
+});
+
 export const GetEnvForAgentInput = z.object({
   agentType: ModelTypeSchema,
   keyId: z.string().nullable().optional(),
@@ -681,6 +707,12 @@ export type DetectedQuotaInfo = z.infer<typeof DetectedQuotaInfoSchema>;
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 export type PromptPolishRequest = z.infer<typeof PromptPolishRequestSchema>;
 export type PromptPolishResponse = z.infer<typeof PromptPolishResponseSchema>;
+export type SessionStepExplainRequest = z.infer<
+  typeof SessionStepExplainRequestSchema
+>;
+export type SessionStepExplainResponse = z.infer<
+  typeof SessionStepExplainResponseSchema
+>;
 export type CursorNativeOauthStartResponse = z.infer<
   typeof CursorNativeOauthStartResponseSchema
 >;

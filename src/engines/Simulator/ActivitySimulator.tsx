@@ -42,6 +42,7 @@ import {
   StationDockChrome,
   getAppById,
 } from "./components/Dock";
+import MiniCPMStepExplanationPanel from "./components/MiniCPMStepExplanationPanel";
 import MusicPlayerReplayBar from "./components/MusicPlayerReplayBar";
 import SimulatorFloatingInput from "./components/SimulatorFloatingInput";
 import { SubagentPipCard } from "./components/SubagentPipCard";
@@ -284,6 +285,7 @@ const ActivitySimulator: React.FC = memo(() => {
             {/* ── Dock (replay bar + app icons) ── */}
             {showDock && (
               <div className="flex shrink-0 flex-col overflow-visible">
+                {showReplayBar && <MiniCPMStepExplanationPanel />}
                 {showReplayBar && (
                   <div className="overflow-visible border-t border-border-2">
                     <MusicPlayerReplayBar />

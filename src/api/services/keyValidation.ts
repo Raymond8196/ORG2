@@ -29,6 +29,8 @@ import type {
   ProviderProtocol,
   QuotaInfo,
   SaveKeyRequest,
+  SessionStepExplainRequest,
+  SessionStepExplainResponse,
   ValidationResult,
 } from "@src/api/tauri/rpc/schemas/validation";
 
@@ -53,6 +55,8 @@ export type {
   PromptPolishResponse,
   QuotaInfo,
   SaveKeyRequest,
+  SessionStepExplainRequest,
+  SessionStepExplainResponse,
   UsageItem,
   ValidationResult,
 } from "@src/api/tauri/rpc/schemas/validation";
@@ -327,6 +331,20 @@ export async function promptPolish(
       text,
       accountId: cleanOptionalString(options.accountId),
       model: cleanOptionalString(options.model),
+    },
+  });
+}
+
+/** Explain a replay step through the configured local MiniCPM vLLM account. */
+export async function sessionStepExplain(
+  request: SessionStepExplainRequest,
+  options: { accountId?: string; model?: string } = {}
+): Promise<SessionStepExplainResponse> {
+  return rpc.validation.sessionStepExplain({
+    request: {
+      ...request,
+      accountId: cleanOptionalString(options.accountId ?? request.accountId),
+      model: cleanOptionalString(options.model ?? request.model),
     },
   });
 }

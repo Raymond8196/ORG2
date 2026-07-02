@@ -63,6 +63,11 @@ export const validation = {
     .output(schemas.validation.PromptPolishResponseSchema)
     .build(),
 
+  sessionStepExplain: defineProcedure("session_step_explain")
+    .input(schemas.validation.SessionStepExplainInput)
+    .output(schemas.validation.SessionStepExplainResponseSchema)
+    .build(),
+
   getEnvForAgent: defineProcedure("get_env_for_agent")
     .input(schemas.validation.GetEnvForAgentInput)
     .output(z.record(z.string(), z.string()))
