@@ -41,16 +41,27 @@ pub(super) fn is_listable_cursor_session(
     if row.name.trim().is_empty() {
         return Ok(false);
     }
-    // Check only bubble headers (type + id), not full content or blobs.
-    // A session is listable when it has at least one user bubble — that is
-    // enough to know it contains a real conversation worth surfacing.
-    // The previous implementation loaded every blob and ran Myers diff
-    // for every session on every sidebar page request (~542% CPU hot path).
-    use super::io::load_bubble_order;
-    let order = load_bubble_order(conn, &row.id)?;
-    Ok(order
-        .iter()
-        .any(|h| h.bubble_type == CURSOR_BUBBLE_TYPE_USER))
+    // Fast path: single EXISTS query on cursorDiskKV.
+    // We only need to know whether the session has at least one user bubble
+    // (bubble_type == 1). Parsing the JSON value is enough — no blob reads,
+    // no diff, no full order reconstruction.
+    // load_bubble_order/load_complete_bubble_order fetches all rows AND
+    // deserialises every bubble value; that was the ~542% CPU hot path.
+    let prefix = format!("bubbleId:{}:", row.id);
+    let upper_bound = format!("bubbleId:{};", row.id);
+    let found: bool = conn
+        .query_row(
+            "SELECT EXISTS(
+                SELECT 1 FROM cursorDiskKV
+                WHERE key >= ?1 AND key < ?2
+                  AND json_extract(value, '$.type') = ?3
+                LIMIT 1
+             )",
+            rusqlite::params![prefix, upper_bound, CURSOR_BUBBLE_TYPE_USER],
+            |r| r.get(0),
+        )
+        .unwrap_or(false);
+    Ok(found)
 }
 
 /// Convert a cache row to the sidebar-ready session shape.
