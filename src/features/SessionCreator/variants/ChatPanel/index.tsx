@@ -47,10 +47,12 @@ import { PresenceMenuButton } from "@src/scaffold/NavigationSidebar/blocks/Sideb
 import { gitDependencyInstalledAtom } from "@src/store/platform/gitDependencyAtom";
 import { REPO_KIND } from "@src/store/repo/types";
 import {
+  CLI_LAUNCH_MODE,
   SESSION_TARGET_KIND,
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
+  cliLaunchModeAtom,
   dispatchCategoryAtom,
   selectedAgentDefinitionIdAtom,
   selectedAgentOrgIdAtom,
@@ -150,6 +152,8 @@ const SessionCreatorChatPanelSingle: React.FC<
   // Read atoms needed before useSessionCreator so we can pass derived values in.
   const dispatchCategory = useAtomValue(dispatchCategoryAtom);
   const cliAgentType = useAtomValue(cliAgentTypeAtom);
+  const cliLaunchMode = useAtomValue(cliLaunchModeAtom);
+  const setCliLaunchMode = useSetAtom(cliLaunchModeAtom);
 
   const selectedCliAgent = useMemo(
     () =>
@@ -158,6 +162,9 @@ const SessionCreatorChatPanelSingle: React.FC<
         : undefined,
     [dispatchCategory, cliAgentType, cliAgentList]
   );
+  const selectedCliAgentSupportsGui = selectedCliAgent?.supportsGui === true;
+  const cliComposerEnabled =
+    cliLaunchMode === CLI_LAUNCH_MODE.GUI && selectedCliAgentSupportsGui;
 
   const {
     repos: reposList,
@@ -245,7 +252,7 @@ const SessionCreatorChatPanelSingle: React.FC<
       attachedWorkItemContext ?? workItemContext ?? chatPanelLaunchContext,
     resolveWorkItemContext,
     onLaunchSuccess: handleSessionStart,
-    cliAgentSupportsGui: selectedCliAgent?.supportsGui ?? false,
+    cliAgentSupportsGui: cliComposerEnabled,
   });
 
   const setCreatorState = useSetAtom(sessionCreatorStateAtom);
@@ -277,7 +284,7 @@ const SessionCreatorChatPanelSingle: React.FC<
   const isWingmanMode = isRustMode && agentVariant === "wingman";
   const isCliMode = dispatchCategory === "cli_agent";
   const isCursorIdeMode = dispatchCategory === "cursor_ide";
-  const isCliTuiMode = isCliMode && !selectedCliAgent?.supportsGui;
+  const isCliTuiMode = isCliMode && !cliComposerEnabled;
 
   const [isCategorySelectorOpen, setIsCategorySelectorOpen] = useState(false);
   const openCategoryPickerSignal = useAtomValue(openCategoryPickerSignalAtom);
@@ -415,6 +422,15 @@ const SessionCreatorChatPanelSingle: React.FC<
   const handleLaunch = useCallback(async () => {
     return originalHandleLaunch();
   }, [originalHandleLaunch]);
+
+  const handleSetCliGuiMode = useCallback(() => {
+    if (!selectedCliAgentSupportsGui) return;
+    setCliLaunchMode(CLI_LAUNCH_MODE.GUI);
+  }, [selectedCliAgentSupportsGui, setCliLaunchMode]);
+
+  const handleSetCliTuiMode = useCallback(() => {
+    setCliLaunchMode(CLI_LAUNCH_MODE.TUI);
+  }, [setCliLaunchMode]);
 
   useEffect(() => {
     if (!selectedRepoId) return;
@@ -650,6 +666,34 @@ const SessionCreatorChatPanelSingle: React.FC<
     </div>
   );
 
+  const cliLaunchModeSwitch = isCliMode && (
+    <div className="inline-flex h-[28px] items-center rounded-full bg-fill-2 p-0.5 text-[12px] font-medium">
+      <button
+        type="button"
+        className={`h-6 rounded-full px-2.5 py-0 transition-colors ${
+          cliComposerEnabled ? "bg-bg-2 text-text-1 shadow-sm" : "text-text-3"
+        } ${selectedCliAgentSupportsGui ? "hover:text-text-1" : "cursor-not-allowed opacity-50"}`}
+        disabled={!selectedCliAgentSupportsGui}
+        aria-pressed={cliComposerEnabled}
+        onClick={handleSetCliGuiMode}
+      >
+        GUI
+      </button>
+      <button
+        type="button"
+        className={`h-6 rounded-full px-2.5 py-0 transition-colors ${
+          isCliTuiMode
+            ? "bg-bg-2 text-text-1 shadow-sm"
+            : "text-text-3 hover:text-text-1"
+        }`}
+        aria-pressed={isCliTuiMode}
+        onClick={handleSetCliTuiMode}
+      >
+        TUI
+      </button>
+    </div>
+  );
+
   const compactHeader = headerLayout === "compact" && (
     <div className="session-creator-chat-panel-compact-header flex w-full items-center justify-between gap-2 bg-bg-2 px-1 pb-2 pt-1">
       <SelectorPill
@@ -765,33 +809,6 @@ const SessionCreatorChatPanelSingle: React.FC<
           className={`flex w-full flex-col items-stretch gap-3 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
         >
           {isCliTuiMode ? (
-            <div className="bg-surface-1 flex w-full flex-col overflow-hidden rounded-2xl">
-              {headerLayout !== "compact" && (
-                <div className="p-3 pb-0">
-                  <SessionCreatorAgentHero
-                    ref={agentHeroRef}
-                    name={heroContent.name}
-                    description={heroContent.description}
-                    avatarIcon={heroIcon}
-                    active={isCategorySelectorOpen}
-                    danger={heroContent.danger}
-                    onClick={() => setIsCategorySelectorOpen(true)}
-                  />
-                </div>
-              )}
-              <div className="p-3">
-                <button
-                  type="button"
-                  onClick={handleLaunch}
-                  disabled={!canLaunch || isLoading}
-                  className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {t("creator.start")}
-                </button>
-                <div className="px-1 pb-2 pt-3">{repoPills}</div>
-              </div>
-            </div>
-          ) : (
             <>
               {headerLayout !== "compact" && (
                 <SessionCreatorAgentHero
@@ -803,6 +820,47 @@ const SessionCreatorChatPanelSingle: React.FC<
                   danger={heroContent.danger}
                   onClick={() => setIsCategorySelectorOpen(true)}
                 />
+              )}
+
+              <div
+                className={`session-creator-chat-panel-fullscreen-composer w-full ${
+                  headerLayout === "compact"
+                    ? "session-creator-chat-panel-fullscreen-composer-compact"
+                    : ""
+                }`}
+              >
+                {compactHeader}
+                <div className="rounded-xl bg-chat-container p-3">
+                  <button
+                    type="button"
+                    onClick={handleLaunch}
+                    disabled={!canLaunch || isLoading}
+                    className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {t("creator.start")}
+                  </button>
+                </div>
+                {!hideRepoLine && headerLayout !== "compact" && (
+                  <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
+                    {repoPills}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {headerLayout !== "compact" && (
+                <>
+                  <SessionCreatorAgentHero
+                    ref={agentHeroRef}
+                    name={heroContent.name}
+                    description={heroContent.description}
+                    avatarIcon={heroIcon}
+                    active={isCategorySelectorOpen}
+                    danger={heroContent.danger}
+                    onClick={() => setIsCategorySelectorOpen(true)}
+                  />
+                </>
               )}
 
               {isWingmanMode && (
@@ -859,6 +917,13 @@ const SessionCreatorChatPanelSingle: React.FC<
                 <>
                   {browserElementRowContent}
                   {leadingActionSlot}
+                  {cliLaunchModeSwitch}
+                  {cliLaunchModeSwitch && (
+                    <div
+                      aria-hidden
+                      className="mx-1 h-4 w-px shrink-0 bg-border-2"
+                    />
+                  )}
                   <WorkItemAttachmentControl
                     currentWorkItemContext={attachedWorkItemContext}
                     panelHostRef={workItemPanelHostRef}
@@ -941,6 +1006,7 @@ const SessionCreatorChatPanelSingle: React.FC<
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
           currentCliAgentType={cliAgentType ?? undefined}
+          cliOnly={isCliMode}
           anchorRef={agentHeroRef}
         />
       ) : (
@@ -952,6 +1018,7 @@ const SessionCreatorChatPanelSingle: React.FC<
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
           currentCliAgentType={cliAgentType ?? undefined}
+          cliOnly={isCliMode}
         />
       )}
 
