@@ -321,7 +321,11 @@ impl DebounceManager {
         );
     }
 
-    /// Schedule a flush attempt with retry logic
+    /// Schedule a flush attempt with retry logic.
+    ///
+    /// Uses `tokio::spawn` + `tokio::time::sleep` so the debounce delay does
+    /// not occupy an OS thread. The actual git status refresh runs in
+    /// `tokio::task::spawn_blocking` because it calls blocking libgit2 APIs.
     fn schedule_flush(
         repo_id: String,
         delay_ms: u64,
@@ -331,8 +335,8 @@ impl DebounceManager {
         event_emitter: Arc<EventEmitter>,
         config: DebounceConfig,
     ) {
-        std::thread::spawn(move || {
-            std::thread::sleep(Duration::from_millis(delay_ms));
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(delay_ms)).await;
 
             // Check if event still exists and should be flushed
             let (should_flush, should_retry, _retry_count) = {
@@ -361,13 +365,17 @@ impl DebounceManager {
             };
 
             if should_flush {
-                Self::flush_event(
-                    &repo_id,
-                    pending_events,
-                    last_flush_times,
-                    state_store,
-                    event_emitter,
-                );
+                // Run the blocking git status refresh on the blocking thread pool
+                // so the tokio async worker threads are not stalled.
+                tokio::task::spawn_blocking(move || {
+                    Self::flush_event(
+                        &repo_id,
+                        pending_events,
+                        last_flush_times,
+                        state_store,
+                        event_emitter,
+                    );
+                });
             } else if should_retry {
                 // CRITICAL FIX: Reschedule instead of just clearing the flag
                 // This prevents events from being lost during rapid changes
@@ -446,9 +454,9 @@ impl DebounceManager {
     // Event Flushing
     // ============================================
 
-    /// Flush pending event (run git status and emit updates)
-    /// Synchronous version - called from std::thread
-    /// Uses global concurrency limit to prevent file descriptor exhaustion
+    /// Flush pending event (run git status and emit updates).
+    /// Blocking — called via `tokio::task::spawn_blocking`.
+    /// Uses global concurrency limit to prevent file descriptor exhaustion.
     fn flush_event(
         repo_id: &str,
         pending_events: Arc<RwLock<HashMap<String, PendingEvent>>>,
