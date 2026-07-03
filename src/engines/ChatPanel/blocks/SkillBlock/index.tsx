@@ -48,10 +48,10 @@ const SkillBlock: React.FC<SkillBlockProps> = React.memo(
     } = useBlockHeader({ eventId });
 
     const title = isLoading
-      ? t("tools.skillLoading")
+      ? t("tools.readFileSkillRunning")
       : isFailed
-        ? t("tools.skillFailed")
-        : t("tools.skillLoaded");
+        ? t("tools.readFileSkillFailed")
+        : t("tools.readFileSkillDone");
 
     return (
       <div
