@@ -403,14 +403,14 @@ const AgentOrgsPage: React.FC = () => {
 
   if (wizardContent) {
     return (
-      <div className="settings-page absolute inset-0 overflow-hidden">
+      <div className="settings-page absolute inset-0 flex flex-col overflow-hidden">
         {wizardContent}
       </div>
     );
   }
 
   return (
-    <div className="settings-page absolute inset-0 overflow-hidden">
+    <div className="settings-page absolute inset-0 flex flex-col overflow-hidden">
       <InternalHeader
         noPanelHeader
         contentPadding

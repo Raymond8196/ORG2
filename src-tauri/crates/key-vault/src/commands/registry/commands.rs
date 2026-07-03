@@ -152,6 +152,8 @@ pub async fn get_available_agents() -> Result<Vec<AvailableAgent>, String> {
             paired_api_provider: entry.paired_api_provider.map(String::from),
             supports_rust_agents: entry.supports_rust_agents,
             supports_orgii_pool: false,
+            command: entry.binary.to_string(),
+            supports_gui: entry.supports_gui,
         });
     }
 

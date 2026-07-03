@@ -15,11 +15,11 @@ import type { ModelType } from "@src/api/types/keys";
 // SVG Icon Imports (from agentIcons - React components with unique gradient IDs)
 // ============================================
 import {
+  InfinityAgentIcon,
   AWSIcon,
   AiderIcon,
   ClaudeCodeIcon,
   ClaudeIcon,
-  ClineIcon,
   CodexIcon,
   CopilotIcon,
   CursorIcon,
@@ -31,26 +31,40 @@ import {
   OpenCodeIcon,
   OrgiiIcon,
 } from "@src/assets/modelIcons/agentIcons";
+import AmpIcon from "@src/assets/modelIcons/amp.svg";
+import AntigravityIcon from "@src/assets/modelIcons/antigravity.svg";
+import AugmentIcon from "@src/assets/modelIcons/augment.svg";
 // Static SVG imports (for providers without React components)
 import AzureIcon from "@src/assets/modelIcons/azure.svg";
 import BaichuanIcon from "@src/assets/modelIcons/baichuan.svg";
 import ByteDanceIcon from "@src/assets/modelIcons/bytedance.svg";
+import ClineStaticIcon from "@src/assets/modelIcons/cline.svg";
 import CohereIcon from "@src/assets/modelIcons/cohere.svg";
+import ContinueIcon from "@src/assets/modelIcons/continue.svg";
 import DeepSeekIcon from "@src/assets/modelIcons/deepseek.svg";
+import DevinIcon from "@src/assets/modelIcons/devin.svg";
 import DoubaoIcon from "@src/assets/modelIcons/doubao.svg";
+import DroidIcon from "@src/assets/modelIcons/droid.svg";
 import GrokIcon from "@src/assets/modelIcons/grok.svg";
 import GroqIcon from "@src/assets/modelIcons/groq.svg";
+import HermesIcon from "@src/assets/modelIcons/hermes.svg";
 import HunyuanIcon from "@src/assets/modelIcons/hunyuan.svg";
+import InflectionIcon from "@src/assets/modelIcons/inflection.svg";
+import KiloIcon from "@src/assets/modelIcons/kilo.svg";
 import LlamaCppIcon from "@src/assets/modelIcons/llama-cpp.svg";
 import LmStudioIcon from "@src/assets/modelIcons/lmstudio.svg";
+import LongCatIcon from "@src/assets/modelIcons/longcat.svg";
 import MetaIcon from "@src/assets/modelIcons/meta.svg";
 import MinimaxIcon from "@src/assets/modelIcons/minimax.svg";
 import MistralIcon from "@src/assets/modelIcons/mistral.svg";
 import NvidiaIcon from "@src/assets/modelIcons/nvidia.svg";
 import OllamaIcon from "@src/assets/modelIcons/ollama.svg";
+import OmpIcon from "@src/assets/modelIcons/omp.svg";
+import OpenClawIcon from "@src/assets/modelIcons/openclaw.svg";
 import OpenRouterIcon from "@src/assets/modelIcons/openrouter.svg";
 import PerplexityIcon from "@src/assets/modelIcons/perplexity.svg";
 import QwenIcon from "@src/assets/modelIcons/qwen.svg";
+import RovoIcon from "@src/assets/modelIcons/rovo.svg";
 import VllmIcon from "@src/assets/modelIcons/vllm.svg";
 import VolcengineIcon from "@src/assets/modelIcons/volcengine.svg";
 import XiaomiIcon from "@src/assets/modelIcons/xiaomi.svg";
@@ -77,6 +91,27 @@ export type IconProvider =
   | "claude_code"
   | "copilot"
   | "cursor"
+  | "openclaude"
+  | "amp"
+  | "devin"
+  | "rovo"
+  | "hermes"
+  | "openclaw"
+  | "crush"
+  | "aug"
+  | "codebuff"
+  | "command_code"
+  | "qwen_code"
+  | "mimo_code"
+  | "antigravity"
+  | "continue_cli"
+  | "droid"
+  | "mistral_vibe"
+  | "ante"
+  | "autohand"
+  | "omp"
+  | "pi"
+  | "kilo"
   | "gemini"
   | "grok"
   | "groq"
@@ -100,6 +135,7 @@ export type IconProvider =
   | "zhipu"
   | "baichuan"
   | "minimax"
+  | "longcat"
   | "doubao"
   | "openrouter"
   | "zenmux"
@@ -158,6 +194,7 @@ export const ICON_MAP: Record<
   zhipu: ZhipuIcon,
   baichuan: BaichuanIcon,
   minimax: MinimaxIcon,
+  longcat: LongCatIcon,
   doubao: DoubaoIcon,
   openrouter: OpenRouterIcon,
   zenmux: ZenMuxIcon,
@@ -166,8 +203,30 @@ export const ICON_MAP: Record<
   opencode: OpenCodeIcon,
   // Inactive agents (kept for future use)
   aider: AiderIcon,
-  cline: ClineIcon,
+  cline: ClineStaticIcon,
   goose: GooseIcon,
+  // Extended CLI agents — lobehub icons where available, infinity fallback otherwise
+  openclaude: InfinityAgentIcon,
+  amp: AmpIcon,
+  devin: DevinIcon,
+  rovo: RovoIcon,
+  hermes: HermesIcon,
+  openclaw: OpenClawIcon,
+  crush: InfinityAgentIcon,
+  aug: AugmentIcon,
+  codebuff: InfinityAgentIcon,
+  command_code: InfinityAgentIcon,
+  qwen_code: QwenIcon,
+  mimo_code: XiaomiIcon,
+  antigravity: AntigravityIcon,
+  continue_cli: ContinueIcon,
+  droid: DroidIcon,
+  mistral_vibe: MistralIcon,
+  ante: InfinityAgentIcon,
+  autohand: InfinityAgentIcon,
+  omp: OmpIcon,
+  pi: InflectionIcon,
+  kilo: KiloIcon,
   // Fallback
   unknown: undefined,
 };
@@ -205,6 +264,7 @@ export const SELECTABLE_ICON_PROVIDERS: IconProvider[] = [
   "zhipu",
   "baichuan",
   "minimax",
+  "longcat",
   "doubao",
   "openrouter",
   "zenmux",
@@ -252,6 +312,32 @@ const MODEL_TYPE_TO_ICON: Record<ModelType, IconProvider> = {
   kiro: "kiro",
   kimi_cli: "kimi",
   opencode: "opencode",
+  // Extended CLI agents
+  openclaude: "openclaude",
+  aider: "aider",
+  goose: "goose",
+  amp: "amp",
+  cline: "cline",
+  kilo: "kilo",
+  grok_cli: "grok",
+  devin: "devin",
+  rovo: "rovo",
+  hermes: "hermes",
+  openclaw: "openclaw",
+  crush: "crush",
+  aug: "aug",
+  codebuff: "codebuff",
+  command_code: "command_code",
+  qwen_code: "qwen_code",
+  mimo_code: "mimo_code",
+  antigravity: "antigravity",
+  continue_cli: "continue_cli",
+  droid: "droid",
+  mistral_vibe: "mistral_vibe",
+  ante: "ante",
+  autohand: "autohand",
+  omp: "omp",
+  pi: "pi",
   // API key providers
   anthropic_api: "claude",
   openai_api: "openai",
@@ -262,6 +348,7 @@ const MODEL_TYPE_TO_ICON: Record<ModelType, IconProvider> = {
   zhipu_api: "zhipu",
   dashscope_api: "qwen",
   minimax_api: "minimax",
+  longcat_api: "longcat",
   moonshot_api: "kimi",
   openrouter_api: "openrouter",
   zenmux_api: "zenmux",
@@ -460,6 +547,11 @@ export function getIconProviderFromModelName(
     return "minimax";
   }
 
+  // LongCat models
+  if (lower.includes("longcat") || lower.startsWith("meituan/")) {
+    return "longcat";
+  }
+
   return "unknown";
 }
 
@@ -493,4 +585,26 @@ export const THEMEABLE_ICONS = new Set<IconProvider>([
   "cline",
   "opencode",
   "kimi",
+  // Extended CLI agents using the generic infinity icon (stroke currentColor)
+  "openclaude",
+  "amp",
+  "devin",
+  "rovo",
+  "hermes",
+  "openclaw",
+  "crush",
+  "aug",
+  "codebuff",
+  "command_code",
+  "qwen_code",
+  "mimo_code",
+  "antigravity",
+  "continue_cli",
+  "droid",
+  "mistral_vibe",
+  "ante",
+  "autohand",
+  "omp",
+  "pi",
+  "kilo",
 ]);

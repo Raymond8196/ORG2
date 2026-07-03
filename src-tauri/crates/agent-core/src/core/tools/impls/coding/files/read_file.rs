@@ -157,8 +157,11 @@ impl Tool for ReadFileTool {
         100_000
     }
 
-    fn persist_threshold(&self) -> usize {
-        usize::MAX
+    /// Never stub a file read to disk — telling the model "the content is in
+    /// a file on disk" in response to it reading a file is circular. Oversized
+    /// reads fall back to plain tail truncation.
+    fn allow_persisted_output(&self) -> bool {
+        false
     }
 
     fn description(&self) -> &str {
@@ -191,11 +194,13 @@ impl Tool for ReadFileTool {
                 .join(", ")
         };
         Some(format!(
-            "Read a file in {workspace}. Supports text, PDF (text extraction), \
+            "Read a file in {workspace}. ALWAYS use this tool to read files — NEVER invoke `cat`, `head`, \
+             `tail`, or `sed -n` through the shell tool. Supports text, PDF (text extraction), \
              images (JPEG/PNG/GIF/WebP — inline for vision models), \
              and Jupyter notebooks (.ipynb). \
              Optional line-range with offset/limit. Default: up to 2000 lines. \
-             Files over 256 KB require offset/limit. Use absolute paths for files outside the primary working directory.\n\
+             Files over 256 KB require offset/limit. Use absolute paths for files outside the primary working directory. \
+             You MUST read a file before editing it. When you intend to read multiple files, issue the reads in parallel.\n\
              Output format: each line is prefixed with a right-aligned line number and │ separator, \
              e.g. \"     1│first line\". This prefix is metadata — never include it in old_string \
              when editing."

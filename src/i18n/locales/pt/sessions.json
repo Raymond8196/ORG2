@@ -711,6 +711,9 @@
       "newSession": {
         "title": "Nova sessão"
       },
+      "cliSession": {
+        "title": "Nova sessão (TUI)"
+      },
       "newWorkItem": {
         "title": "Novo work item"
       },
@@ -799,6 +802,14 @@
     "hideWorkstation": "Ocultar Workstation",
     "restoreSplitView": "Mostrar Workstation",
     "shrinkToWorkstation": "Reduzir painel de chat (mostrar Workstation)",
+    "tuiModeOn": "Modo TUI (clique para desativar)",
+    "tuiModeOff": "Ativar modo TUI",
+    "tabs": {
+      "newTerminal": "Novo Terminal",
+      "newTab": "Nova aba",
+      "terminals": "Terminais",
+      "newTuiSession": "Nova sessão (TUI)"
+    },
     "collapseAll": "Recolher tudo",
     "copyEventJson": "Copiar JSON de eventos",
     "copyEventJsonCopied": "Copiado!",
@@ -950,7 +961,8 @@
         "byMe": "Por mim",
         "mentioned": "Mencionadas"
       }
-    }
+    },
+    "readOnly": "Somente leitura"
   },
   "chatStatus": {
     "approved": "Aprovado",

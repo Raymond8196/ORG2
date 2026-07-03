@@ -81,6 +81,8 @@ export interface TerminalViewProps {
   envOverride?: Record<string, string>;
   /** User-assigned display name for this terminal */
   nameOverride?: string;
+  /** Overrides the xterm surface background for embedded contexts. */
+  backgroundColor?: string;
   /** Shell integration event callbacks (OSC 633) */
   shellIntegration?: ShellIntegrationEvents;
 }

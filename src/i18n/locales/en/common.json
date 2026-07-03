@@ -2267,7 +2267,8 @@
       "noActivePage": "No active page to capture"
     },
     "selectedElement": {
-      "sentToChat": "Element attached to chat"
+      "sentToChat": "Element attached to chat",
+      "addElement": "Add element"
     },
     "openedInBrowser": "Opened in Browser",
     "goToBrowser": "Go to Browser"

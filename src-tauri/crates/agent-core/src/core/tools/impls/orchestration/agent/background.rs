@@ -33,7 +33,6 @@ pub(super) struct BackgroundSpawnArgs<'a> {
     /// `None` means inherit the parent's (Paths A/shadow).
     pub fresh_registry: Option<ToolRegistry>,
     pub parent_registry: Arc<ToolRegistry>,
-    pub workspace: PathBuf,
     pub subagent_session_id: String,
     pub parent_session_id: String,
     pub subagent_type_label: String,
@@ -64,7 +63,6 @@ impl AgentTool {
             effective_policy,
             fresh_registry,
             parent_registry,
-            workspace,
             subagent_session_id,
             parent_session_id,
             subagent_type_label,
@@ -88,7 +86,6 @@ impl AgentTool {
         };
         let bg_policy = effective_policy;
         let bg_turn_config = turn_config;
-        let bg_workspace = workspace;
         let bg_work_item_id = work_item_id;
         let bg_cancel_flag = parent_cancel_flag;
 
@@ -133,7 +130,6 @@ impl AgentTool {
                 &broadcasting_handler,
                 None,
                 Some(&turn_cancel_flag),
-                Some(bg_workspace.as_path()),
                 None,
             )
             .await;
@@ -194,7 +190,27 @@ impl AgentTool {
                             )
                         }
                     });
+                    // Soft-stop labelling — same rule as the foreground path.
+                    let resp = if result.hit_max_iterations {
+                        format!("[worker hit iteration limit; partial result]\n{}", resp)
+                    } else {
+                        resp
+                    };
                     broadcasting_handler.broadcast_complete();
+                    // broadcast_complete stamps the child row `completed`;
+                    // a cooperative kill must read `cancelled` instead, or
+                    // the monitoring UI shows a killed worker as succeeded.
+                    if was_cancelled {
+                        if let Err(err) = crate::session::persistence::update_status(
+                            &bg_session_id,
+                            crate::session::SessionStatus::Cancelled,
+                        ) {
+                            warn!(
+                                "[agent:bg] failed to mark killed child session '{}' cancelled: {}",
+                                bg_session_id, err
+                            );
+                        }
+                    }
                     job_registry::set_final_result(&bg_session_id, resp.clone());
                     job_registry::mark_exited(&bg_session_id, job_registry::JobStatus::Completed);
                     info!(

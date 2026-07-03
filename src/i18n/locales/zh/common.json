@@ -2190,7 +2190,8 @@
       "noActivePage": "没有可截取的活动页面"
     },
     "selectedElement": {
-      "sentToChat": "元素已添加到聊天"
+      "sentToChat": "元素已添加到聊天",
+      "addElement": "添加元素"
     },
     "openedInBrowser": "已在浏览器中打开",
     "goToBrowser": "前往浏览器"

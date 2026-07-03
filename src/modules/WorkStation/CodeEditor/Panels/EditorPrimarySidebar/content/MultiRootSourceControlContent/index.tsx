@@ -36,11 +36,6 @@ import {
   type UsePerRepoSourceControlResult,
   usePerRepoSourceControl,
 } from "../../hooks/usePerRepoSourceControl";
-import {
-  type SourceControlTarget,
-  fileWithSourceControlTarget,
-  filesWithSourceControlTarget,
-} from "../../tabs/sourceControlScopePickerHelpers";
 import SourceControlContent from "../SourceControlContent";
 import {
   WorktreeActionsMenu,
@@ -80,6 +75,13 @@ export interface MultiRootSourceControlContentHandle {
 
 export interface FolderSectionHandle {
   refresh: () => Promise<void>;
+}
+
+function toAbsoluteFolderFile(file: GitFile, folderPath: string): GitFile {
+  const absolutePath = file.path.startsWith("/")
+    ? file.path
+    : `${folderPath}/${file.path}`;
+  return { ...file, path: absolutePath, repoRoot: folderPath };
 }
 
 function normalizeFsPath(path: string | undefined): string {
@@ -262,22 +264,11 @@ const FolderSectionContent = React.forwardRef<
     },
     ref
   ) => {
-    const sourceControlTarget = useMemo<SourceControlTarget>(
-      () => ({
-        kind: "folder",
-        repoId: folder.id,
-        repoPath: folder.path,
-      }),
-      [folder.id, folder.path]
-    );
-
     const handleGitFileSelect = useCallback(
       (file: GitFile) => {
-        onGitFileSelect?.(
-          fileWithSourceControlTarget(file, sourceControlTarget)
-        );
+        onGitFileSelect?.(toAbsoluteFolderFile(file, folder.path));
       },
-      [onGitFileSelect, sourceControlTarget]
+      [folder.path, onGitFileSelect]
     );
 
     const { state, refresh, loading }: UsePerRepoSourceControlResult =
@@ -288,8 +279,8 @@ const FolderSectionContent = React.forwardRef<
       });
 
     const absoluteFiles = useMemo(
-      () => filesWithSourceControlTarget(state.files, sourceControlTarget),
-      [sourceControlTarget, state.files]
+      () => state.files.map((file) => toAbsoluteFolderFile(file, folder.path)),
+      [folder.path, state.files]
     );
 
     useEffect(() => {

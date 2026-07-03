@@ -14,7 +14,10 @@
  */
 import { useCallback, useEffect, useRef } from "react";
 
-import type { TerminalSession } from "@src/engines/TerminalCore/types";
+import {
+  TERMINAL_AGENT_STATUS,
+  type TerminalSession,
+} from "@src/engines/TerminalCore/types";
 import { invokeTauri, isTauriReady } from "@src/util/platform/tauri/init";
 import { toBackendPtySessionId } from "@src/util/ui/terminal/ptySessionId";
 
@@ -30,8 +33,34 @@ interface UseTerminalProcessPollerOptions {
   activeSession: TerminalSession | undefined;
   updateSessionInfo: (
     sessionId: string,
-    info: Partial<Pick<TerminalSession, "processName" | "liveCwd">>
+    info: Partial<
+      Pick<TerminalSession, "processName" | "liveCwd" | "agentStatus">
+    >
   ) => void;
+}
+
+function normalizeProcessName(value: string | undefined): string {
+  return (value ?? "").replace(/\.(exe|cmd)$/i, "").toLowerCase();
+}
+
+function deriveAgentStatus(
+  session: TerminalSession,
+  processName: string | undefined
+): TerminalSession["agentStatus"] | undefined {
+  if (!session.expectedProcess) return undefined;
+  if (!processName) return session.agentStatus;
+
+  const normalizedProcess = normalizeProcessName(processName);
+  const normalizedExpected = normalizeProcessName(session.expectedProcess);
+  if (
+    normalizedProcess === normalizedExpected ||
+    normalizedProcess.includes(normalizedExpected) ||
+    normalizedExpected.includes(normalizedProcess)
+  ) {
+    return TERMINAL_AGENT_STATUS.RUNNING;
+  }
+
+  return TERMINAL_AGENT_STATUS.WAITING;
 }
 
 export function useTerminalProcessPoller({
@@ -40,6 +69,9 @@ export function useTerminalProcessPoller({
 }: UseTerminalProcessPollerOptions): void {
   const prevProcessNameRef = useRef<string | undefined>(undefined);
   const prevLiveCwdRef = useRef<string | undefined>(undefined);
+  const prevAgentStatusRef = useRef<TerminalSession["agentStatus"] | undefined>(
+    undefined
+  );
 
   const sessionId = activeSession?.id;
   const sessionPid = activeSession?.pid;
@@ -60,24 +92,36 @@ export function useTerminalProcessPoller({
 
       const processName = info.process_name ?? undefined;
       const liveCwd = info.cwd ?? undefined;
+      const agentStatus = activeSession
+        ? deriveAgentStatus(activeSession, processName)
+        : undefined;
 
       const nameChanged = processName !== prevProcessNameRef.current;
       const cwdChanged = liveCwd !== prevLiveCwdRef.current;
+      const agentStatusChanged = agentStatus !== prevAgentStatusRef.current;
 
-      if (nameChanged || cwdChanged) {
+      if (nameChanged || cwdChanged || agentStatusChanged) {
         prevProcessNameRef.current = processName;
         prevLiveCwdRef.current = liveCwd;
-        updateSessionInfo(sessionId, { processName, liveCwd });
+        prevAgentStatusRef.current = agentStatus;
+        updateSessionInfo(sessionId, { processName, liveCwd, agentStatus });
       }
     } catch {
       // Session may have been closed between poll scheduling and execution
     }
-  }, [sessionId, sessionPid, sessionReadOnly, updateSessionInfo]);
+  }, [
+    activeSession,
+    sessionId,
+    sessionPid,
+    sessionReadOnly,
+    updateSessionInfo,
+  ]);
 
   useEffect(() => {
     if (!sessionPid || sessionReadOnly) {
       prevProcessNameRef.current = undefined;
       prevLiveCwdRef.current = undefined;
+      prevAgentStatusRef.current = undefined;
       return;
     }
 

@@ -297,6 +297,7 @@ fn spec_for_model_type(model_type: &ModelType) -> Option<&'static ProviderSpec> 
         ModelType::ZhipuApi => provider_id::ZHIPU,
         ModelType::DashscopeApi => provider_id::DASHSCOPE,
         ModelType::MinimaxApi => provider_id::MINIMAX,
+        ModelType::LongcatApi => provider_id::LONGCAT,
         ModelType::OpenrouterApi => provider_id::OPENROUTER,
         ModelType::ZenmuxApi => provider_id::ZENMUX,
         ModelType::VllmApi => provider_id::VLLM,
@@ -307,7 +308,32 @@ fn spec_for_model_type(model_type: &ModelType) -> Option<&'static ProviderSpec> 
         | ModelType::Copilot
         | ModelType::Kiro
         | ModelType::KimiCli
-        | ModelType::OrgiiOrchestrator => return None,
+        | ModelType::OrgiiOrchestrator
+        | ModelType::OpenClaude
+        | ModelType::Aider
+        | ModelType::Goose
+        | ModelType::Amp
+        | ModelType::Cline
+        | ModelType::Kilo
+        | ModelType::Grok
+        | ModelType::Devin
+        | ModelType::Rovo
+        | ModelType::Hermes
+        | ModelType::OpenClaw
+        | ModelType::Crush
+        | ModelType::Aug
+        | ModelType::Codebuff
+        | ModelType::CommandCode
+        | ModelType::QwenCode
+        | ModelType::MimoCode
+        | ModelType::Antigravity
+        | ModelType::Continue
+        | ModelType::Droid
+        | ModelType::MistralVibe
+        | ModelType::Ante
+        | ModelType::Autohand
+        | ModelType::Omp
+        | ModelType::Pi => return None,
     };
     registry::find_by_name(provider_name)
 }
@@ -817,6 +843,7 @@ fn find_api_key_for_provider(
         provider_id::ZHIPU => Some(ModelType::ZhipuApi),
         provider_id::DASHSCOPE => Some(ModelType::DashscopeApi),
         provider_id::MINIMAX => Some(ModelType::MinimaxApi),
+        provider_id::LONGCAT => Some(ModelType::LongcatApi),
         provider_id::MOONSHOT => Some(ModelType::MoonshotApi),
         provider_id::OPENROUTER => Some(ModelType::OpenrouterApi),
         provider_id::ZENMUX => Some(ModelType::ZenmuxApi),

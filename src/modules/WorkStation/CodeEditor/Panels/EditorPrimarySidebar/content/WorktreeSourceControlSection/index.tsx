@@ -6,7 +6,7 @@
  *   - SourceControlTab   (single-repo + worktrees layout)
  *   - MultiRootSourceControlContent  (multi-root layout)
  */
-import {
+import React, {
   forwardRef,
   useCallback,
   useEffect,
@@ -20,11 +20,6 @@ import {
   type UsePerRepoSourceControlResult,
   usePerRepoSourceControl,
 } from "../../hooks/usePerRepoSourceControl";
-import {
-  type SourceControlTarget,
-  fileWithSourceControlTarget,
-  filesWithSourceControlTarget,
-} from "../../tabs/sourceControlScopePickerHelpers";
 import SourceControlContent from "../SourceControlContent";
 
 export interface WorktreeSourceControlSectionProps {
@@ -53,6 +48,16 @@ export interface WorktreeSourceControlSectionHandle {
   refresh: () => Promise<void>;
 }
 
+const toAbsoluteWorktreeFile = (
+  file: GitFile,
+  worktreePath: string
+): GitFile => {
+  const absolutePath = file.path.startsWith("/")
+    ? file.path
+    : `${worktreePath}/${file.path}`;
+  return { ...file, path: absolutePath, repoRoot: worktreePath };
+};
+
 export const WorktreeSourceControlSection = forwardRef<
   WorktreeSourceControlSectionHandle,
   WorktreeSourceControlSectionProps
@@ -72,21 +77,12 @@ export const WorktreeSourceControlSection = forwardRef<
     },
     ref
   ) => {
-    const sourceControlTarget = useMemo<SourceControlTarget>(
-      () => ({
-        kind: "worktree",
-        repoId: hostRepoId,
-        repoPath: worktreePath,
-      }),
-      [hostRepoId, worktreePath]
-    );
-
     const handleGitFileSelect = useCallback(
       (file: GitFile) => {
         if (!onGitFileSelect) return;
-        onGitFileSelect(fileWithSourceControlTarget(file, sourceControlTarget));
+        onGitFileSelect(toAbsoluteWorktreeFile(file, worktreePath));
       },
-      [onGitFileSelect, sourceControlTarget]
+      [onGitFileSelect, worktreePath]
     );
 
     const { state, refresh, loading }: UsePerRepoSourceControlResult =
@@ -105,8 +101,9 @@ export const WorktreeSourceControlSection = forwardRef<
     );
 
     const absoluteFiles = useMemo(
-      () => filesWithSourceControlTarget(state.files, sourceControlTarget),
-      [sourceControlTarget, state.files]
+      () =>
+        state.files.map((file) => toAbsoluteWorktreeFile(file, worktreePath)),
+      [state.files, worktreePath]
     );
 
     useEffect(() => {

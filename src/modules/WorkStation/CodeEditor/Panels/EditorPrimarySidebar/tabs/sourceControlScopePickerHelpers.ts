@@ -1,5 +1,4 @@
 import type { GitWorktreeDiffSummary } from "@src/api/http/git/types";
-import type { GitFile } from "@src/types/git/types";
 import {
   formatRepoPathForDisplay,
   normalizeDisplayPath,
@@ -20,67 +19,6 @@ export interface ScopePickerWorktreeEntry {
   path: string;
   branch: string;
   diff_summary?: GitWorktreeDiffSummary | null;
-}
-
-export type SourceControlTarget =
-  | { kind: "main"; repoId: string; repoPath: string }
-  | { kind: "worktree"; repoId: string; repoPath: string; branch?: string }
-  | { kind: "folder"; repoId: string; repoPath: string };
-
-export function sourceControlTargetKey(target: SourceControlTarget): string {
-  return `${target.kind}:${normalizeScopePath(target.repoPath)}`;
-}
-
-export function sourceControlTargetRepoRoot(
-  target: SourceControlTarget
-): string {
-  return target.repoPath;
-}
-
-export function sourceControlTargetRepoId(target: SourceControlTarget): string {
-  return target.repoId;
-}
-
-export function sourceControlTargetBranch(
-  target: SourceControlTarget
-): string | undefined {
-  return target.kind === "worktree" ? target.branch : undefined;
-}
-
-export function fileWithSourceControlTarget(
-  file: GitFile,
-  target: SourceControlTarget
-): GitFile {
-  const repoRoot = sourceControlTargetRepoRoot(target);
-  const path = file.path.startsWith("/")
-    ? file.path
-    : `${repoRoot}/${file.path}`;
-  return { ...file, path, repoRoot };
-}
-
-export function filesWithSourceControlTarget(
-  files: GitFile[],
-  target: SourceControlTarget
-): GitFile[] {
-  return files.map((file) => fileWithSourceControlTarget(file, target));
-}
-
-export function sourceControlTargetFromScope(options: {
-  scope: SourceControlScope;
-  repoId: string;
-  repoPath: string;
-  selectedWorktree?: Pick<ScopePickerWorktreeEntry, "path" | "branch">;
-}): SourceControlTarget {
-  const { scope, repoId, repoPath, selectedWorktree } = options;
-  if (scope.kind === "worktree") {
-    return {
-      kind: "worktree",
-      repoId,
-      repoPath: selectedWorktree?.path ?? scope.path,
-      branch: selectedWorktree?.branch,
-    };
-  }
-  return { kind: "main", repoId, repoPath };
 }
 
 export function diffStatsFromSummary(
@@ -141,7 +79,7 @@ export function formatScopeDiffStatsTooltip(
 
 /** Single-line label for a scope picker row (avoids stacked title + subtitle). */
 export function scopePickerRowLabel(
-  _kind: "main" | "worktree",
+  kind: "main" | "worktree",
   name: string,
   branch: string
 ): string {
@@ -304,14 +242,6 @@ export function mainScopeMatchesQuery(
 
 export function shouldShowScopePickerSearch(worktreeCount: number): boolean {
   return worktreeCount >= 5;
-}
-
-/** True when the droplist has at least one row to show for the current query. */
-export function scopePickerHasVisibleResults(
-  showMainScope: boolean,
-  filteredWorktreeCount: number
-): boolean {
-  return showMainScope || filteredWorktreeCount > 0;
 }
 
 export function extractMainWorktreeDiffSummary(

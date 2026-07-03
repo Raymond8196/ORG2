@@ -6,6 +6,7 @@
 use std::fs;
 
 use app_paths as paths;
+use core_types::session::CLI_SESSION_PREFIX;
 
 /// Fetch every session_id currently present in both the `agent_sessions`
 /// table (Rust-native agents) and the `code_sessions` table (CLI agents).
@@ -107,6 +108,114 @@ pub(super) fn evict_orphan_session_dirs(
     if removed > 0 {
         tracing::info!(
             "[housekeeping] evicted {} orphan session dir(s) under {}",
+            removed,
+            root.display()
+        );
+    }
+
+    Ok(removed)
+}
+
+/// Evict hosted Claude Code per-session profile dirs (`cliagent-*`) whose
+/// backing CLI session no longer exists. Account-scoped BYOK profile dirs are
+/// intentionally retained.
+pub(super) fn evict_orphan_cli_session_profiles(
+    root: std::path::PathBuf,
+    known_session_ids: &std::collections::HashSet<String>,
+) -> std::io::Result<usize> {
+    if !root.exists() {
+        return Ok(0);
+    }
+
+    let mut removed = 0;
+    for entry in fs::read_dir(&root)? {
+        let entry = entry?;
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        if !name.starts_with(CLI_SESSION_PREFIX) || known_session_ids.contains(name) {
+            continue;
+        }
+        if let Err(err) = fs::remove_dir_all(&path) {
+            tracing::warn!(
+                "[housekeeping] failed to evict orphan CLI session profile {}: {}",
+                path.display(),
+                err
+            );
+            continue;
+        }
+        removed += 1;
+    }
+
+    if removed > 0 {
+        tracing::info!(
+            "[housekeeping] evicted {} orphan CLI session profile dir(s) under {}",
+            removed,
+            root.display()
+        );
+    }
+
+    Ok(removed)
+}
+
+/// Evict hosted Kiro proxy HOME dirs keyed by CLI session id.
+pub(super) fn evict_orphan_kiro_proxy_homes(
+    known_session_ids: &std::collections::HashSet<String>,
+) -> std::io::Result<usize> {
+    evict_orphan_session_dirs(paths::kiro_proxy_home_root(), known_session_ids)
+}
+
+/// Walk `/tmp/orgii-{uid}/{workspace}/{session_id}/` and remove session temp
+/// dirs whose session id no longer exists in the durable session tables.
+pub(super) fn evict_orphan_scratchpads(
+    known_session_ids: &std::collections::HashSet<String>,
+) -> std::io::Result<usize> {
+    let root = paths::orgii_temp_root();
+    if !root.exists() {
+        return Ok(0);
+    }
+
+    let mut removed = 0;
+    for workspace_entry in fs::read_dir(&root)? {
+        let workspace_entry = workspace_entry?;
+        let workspace_path = workspace_entry.path();
+        if !workspace_path.is_dir() {
+            continue;
+        }
+        for session_entry in fs::read_dir(&workspace_path)? {
+            let session_entry = session_entry?;
+            let session_path = session_entry.path();
+            if !session_path.is_dir() {
+                continue;
+            }
+            let Some(name) = session_path.file_name().and_then(|n| n.to_str()) else {
+                continue;
+            };
+            if known_session_ids.contains(name) {
+                continue;
+            }
+            if let Err(err) = fs::remove_dir_all(&session_path) {
+                tracing::warn!(
+                    "[housekeeping] failed to evict orphan scratchpad {}: {}",
+                    session_path.display(),
+                    err
+                );
+                continue;
+            }
+            removed += 1;
+        }
+        if fs::read_dir(&workspace_path)?.next().is_none() {
+            let _ = fs::remove_dir(&workspace_path);
+        }
+    }
+
+    if removed > 0 {
+        tracing::info!(
+            "[housekeeping] evicted {} orphan scratchpad dir(s) under {}",
             removed,
             root.display()
         );

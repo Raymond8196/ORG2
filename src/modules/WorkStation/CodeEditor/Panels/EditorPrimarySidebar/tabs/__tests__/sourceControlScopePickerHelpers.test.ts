@@ -5,8 +5,6 @@ import type { GitWorktreeDiffSummary } from "@src/api/http/git/types";
 import {
   diffStatsFromSummary,
   extractMainWorktreeDiffSummary,
-  fileWithSourceControlTarget,
-  filesWithSourceControlTarget,
   filterScopePickerWorktrees,
   formatScopePickerPath,
   mainScopeMatchesQuery,
@@ -15,17 +13,11 @@ import {
   resolveScopeBranchLabel,
   resolveScopeBreadcrumbSegments,
   resolveScopeRepoRoot,
-  scopePickerHasVisibleResults,
   scopePickerRowLabel,
   scopePickerRowTitle,
   shouldShowScopePickerSearch,
   sortWorktreesByDiffActivity,
   sourceControlScopeStorageKey,
-  sourceControlTargetBranch,
-  sourceControlTargetFromScope,
-  sourceControlTargetKey,
-  sourceControlTargetRepoId,
-  sourceControlTargetRepoRoot,
   truncateScopeBreadcrumbLabel,
   worktreeFolderName,
 } from "../sourceControlScopePickerHelpers";
@@ -194,74 +186,6 @@ describe("resolveScopeRepoRoot", () => {
     expect(
       resolveScopeRepoRoot({ kind: "worktree", path: "/tmp/wt" }, "/tmp/repo")
     ).toBe("/tmp/wt");
-  });
-});
-
-describe("source control target helpers", () => {
-  it("resolves a local scope to the main checkout target", () => {
-    const target = sourceControlTargetFromScope({
-      scope: { kind: "local" },
-      repoId: "repo-1",
-      repoPath: "/tmp/repo",
-    });
-
-    expect(target).toEqual({
-      kind: "main",
-      repoId: "repo-1",
-      repoPath: "/tmp/repo",
-    });
-    expect(sourceControlTargetKey(target)).toBe("main:/tmp/repo");
-    expect(sourceControlTargetRepoId(target)).toBe("repo-1");
-    expect(sourceControlTargetRepoRoot(target)).toBe("/tmp/repo");
-    expect(sourceControlTargetBranch(target)).toBeUndefined();
-  });
-
-  it("resolves a worktree scope to the selected worktree target", () => {
-    const target = sourceControlTargetFromScope({
-      scope: { kind: "worktree", path: "/tmp/wt/" },
-      repoId: "repo-1",
-      repoPath: "/tmp/repo",
-      selectedWorktree: { path: "/tmp/wt", branch: "fix/worktree" },
-    });
-
-    expect(target).toEqual({
-      kind: "worktree",
-      repoId: "repo-1",
-      repoPath: "/tmp/wt",
-      branch: "fix/worktree",
-    });
-    expect(sourceControlTargetKey(target)).toBe("worktree:/tmp/wt");
-    expect(sourceControlTargetBranch(target)).toBe("fix/worktree");
-  });
-
-  it("maps relative git files onto a target root", () => {
-    const file = {
-      id: "1",
-      path: "src/index.ts",
-      status: "modified" as const,
-      additions: 3,
-      deletions: 1,
-      staged: false,
-    };
-
-    expect(
-      fileWithSourceControlTarget(file, {
-        kind: "folder",
-        repoId: "folder-1",
-        repoPath: "/workspace/pkg",
-      })
-    ).toMatchObject({
-      path: "/workspace/pkg/src/index.ts",
-      repoRoot: "/workspace/pkg",
-    });
-
-    expect(
-      filesWithSourceControlTarget([file], {
-        kind: "worktree",
-        repoId: "repo-1",
-        repoPath: "/workspace/wt",
-      })
-    ).toHaveLength(1);
   });
 });
 
@@ -438,19 +362,5 @@ describe("scope picker search helpers", () => {
     expect(
       mainScopeMatchesQuery("ORGII", "fix/issue-10", "/tmp/orgii", "missing")
     ).toBe(false);
-  });
-});
-
-describe("scopePickerHasVisibleResults", () => {
-  it("returns true when main scope matches the query", () => {
-    expect(scopePickerHasVisibleResults(true, 0)).toBe(true);
-  });
-
-  it("returns true when filtered worktrees remain", () => {
-    expect(scopePickerHasVisibleResults(false, 2)).toBe(true);
-  });
-
-  it("returns false when neither main nor worktrees match", () => {
-    expect(scopePickerHasVisibleResults(false, 0)).toBe(false);
   });
 });

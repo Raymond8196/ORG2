@@ -27,4 +27,4 @@ pub use builders::{
     save_tool_result_msg, save_user_msg,
 };
 pub use cleanup::{clear_messages, truncate_messages_from_sequence};
-pub use load_llm::{compact_cutoff_sequence, load_llm_history};
+pub use load_llm::{compact_cutoff_sequence, load_llm_history, turns_since_last_tool_call};

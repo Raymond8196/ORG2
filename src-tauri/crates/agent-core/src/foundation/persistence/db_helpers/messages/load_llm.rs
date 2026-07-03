@@ -64,6 +64,49 @@ fn build_multimodal_content(text: &str, image_refs: &[String]) -> serde_json::Va
     serde_json::Value::Array(parts)
 }
 
+/// Turns elapsed since the given tool was last called in this session,
+/// derived by scanning the persisted transcript tail (capped at
+/// `scan_limit` rows). Counts user messages (≈ turns) after the most
+/// recent `tool` row whose `tool_name` matches.
+///
+/// Returns at least 1 and at most `scan_limit` when the tool never appears
+/// in the scanned tail — callers treat the cap as "long enough ago". This
+/// replaces process-local reminder counters so throttling survives app
+/// restarts and session resumes (transcript-derived, like the reference
+/// harness).
+pub fn turns_since_last_tool_call(
+    session_id: &str,
+    tool_name: &str,
+    scan_limit: u32,
+) -> rusqlite::Result<u32> {
+    let conn = database::db::get_connection()?;
+    let mut stmt = conn.prepare(
+        "SELECT role, tool_name FROM agent_messages
+         WHERE session_id = ?1
+         ORDER BY sequence DESC
+         LIMIT ?2",
+    )?;
+    let rows = stmt.query_map(rusqlite::params![session_id, scan_limit], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, Option<String>>(1)?,
+        ))
+    })?;
+
+    let mut turns: u32 = 0;
+    for row in rows {
+        let (role, row_tool) = row?;
+        if role == super::super::message_role::TOOL_CALL && row_tool.as_deref() == Some(tool_name)
+        {
+            return Ok(turns);
+        }
+        if role == super::super::message_role::USER {
+            turns = turns.saturating_add(1);
+        }
+    }
+    Ok(turns.max(1).min(scan_limit))
+}
+
 /// Load conversation history in the format expected by LLM providers.
 ///
 /// Returns messages in OpenAI-compatible format including tool calls:
@@ -247,10 +290,12 @@ pub fn compact_cutoff_sequence(
 ///
 /// Returns the rows that form the current LLM view: when a boundary row
 /// (`compact_from_sequence IS NOT NULL`) exists, the view is the boundary
-/// row itself (rendered as a system summary) followed by every
-/// non-boundary row with `sequence >= compact_from_sequence`. Without a
-/// boundary, all rows pass through unchanged. Boundary rows other than
-/// the latest are always skipped.
+/// row itself (rendered as a **user** summary message — models weigh user
+/// messages far more than system background, matching the in-memory
+/// compactors) followed by every non-boundary row with
+/// `sequence >= compact_from_sequence`. Without a boundary, all rows pass
+/// through unchanged. Boundary rows other than the latest are always
+/// skipped. The DB row keeps its `system` role — only the LLM view remaps.
 fn visible_rows(messages: &[AgentMessageRow]) -> Vec<AgentMessageRow> {
     let latest_boundary = messages
         .iter()
@@ -264,8 +309,11 @@ fn visible_rows(messages: &[AgentMessageRow]) -> Vec<AgentMessageRow> {
         .compact_from_sequence
         .expect("filtered on is_some above");
 
+    let mut summary_row = boundary.clone();
+    summary_row.role = message_role::USER.to_string();
+
     let mut visible = Vec::with_capacity(messages.len());
-    visible.push(boundary.clone());
+    visible.push(summary_row);
     visible.extend(
         messages
             .iter()
@@ -305,24 +353,20 @@ fn reconstruct(messages: &[AgentMessageRow]) -> Vec<serde_json::Value> {
     // payloads are large and can exceed gateway/body limits quickly. Preserve
     // multimodal content for the most recent image-bearing user message, and
     // render older image messages as text-only history.
-    let last_image_msg_index = messages
-        .iter()
-        .enumerate()
-        .rev()
-        .find_map(|(idx, msg)| {
-            if msg.role == message_role::USER
-                && msg
-                    .images
-                    .as_deref()
-                    .and_then(|s| serde_json::from_str::<Vec<String>>(s).ok())
-                    .map(|refs| !refs.is_empty())
-                    .unwrap_or(false)
-            {
-                Some(idx)
-            } else {
-                None
-            }
-        });
+    let last_image_msg_index = messages.iter().enumerate().rev().find_map(|(idx, msg)| {
+        if msg.role == message_role::USER
+            && msg
+                .images
+                .as_deref()
+                .and_then(|s| serde_json::from_str::<Vec<String>>(s).ok())
+                .map(|refs| !refs.is_empty())
+                .unwrap_or(false)
+        {
+            Some(idx)
+        } else {
+            None
+        }
+    });
 
     for (msg_idx, msg) in messages.iter().enumerate() {
         match msg.role.as_str() {
@@ -348,14 +392,14 @@ fn reconstruct(messages: &[AgentMessageRow]) -> Vec<serde_json::Value> {
                     if let Some(images_json) = &msg.images {
                         if let Ok(image_refs) = serde_json::from_str::<Vec<String>>(images_json) {
                             if !image_refs.is_empty() {
-                            result.push(serde_json::json!({
-                                "role": message_role::USER,
-                                "content": build_multimodal_content(&msg.content, &image_refs),
-                            }));
-                            continue;
+                                result.push(serde_json::json!({
+                                    "role": message_role::USER,
+                                    "content": build_multimodal_content(&msg.content, &image_refs),
+                                }));
+                                continue;
+                            }
                         }
                     }
-                }
                 }
                 result.push(serde_json::json!({
                     "role": message_role::USER,
@@ -935,7 +979,8 @@ mod tests {
 
         let history = load_llm_history(DB_PREFIX, sid).expect("load");
         assert_eq!(history.len(), 2);
-        assert_eq!(history[0]["role"], "system");
+        // Stored as `system`, rendered as `user` in the LLM view.
+        assert_eq!(history[0]["role"], "user");
         assert_eq!(history[0]["content"], "summary");
         assert_eq!(history[1]["content"], "recent");
     }

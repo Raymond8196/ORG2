@@ -730,6 +730,9 @@
       "newSession": {
         "title": "新建会话"
       },
+      "cliSession": {
+        "title": "新建会话 (TUI)"
+      },
       "newWorkItem": {
         "title": "新建工作项"
       },
@@ -818,6 +821,14 @@
     "hideWorkstation": "隐藏工作站",
     "restoreSplitView": "显示工作站",
     "shrinkToWorkstation": "缩小聊天面板（显示工作站）",
+    "tuiModeOn": "TUI 模式（点击关闭）",
+    "tuiModeOff": "启用 TUI 模式",
+    "tabs": {
+      "newTerminal": "新终端",
+      "newTab": "新标签页",
+      "terminals": "终端",
+      "newTuiSession": "新会话（TUI）"
+    },
     "collapseAll": "全部折叠",
     "copyEventJson": "复制事件 JSON",
     "copyEventJsonCopied": "复制！",
@@ -969,7 +980,8 @@
         "byMe": "由我创建",
         "mentioned": "提及我"
       }
-    }
+    },
+    "readOnly": "只读"
   },
   "chatStatus": {
     "approved": "已批准",
@@ -2612,11 +2624,14 @@
     "openExternal": "在浏览器中打开",
     "openUrlTitle": "未内嵌预览",
     "openUrlDescription": "外部 URL 不再嵌入聊天里，避免 iframe 占用大量内存。",
+    "reactDisabledTitle": "React 预览在 Simulator 中运行",
+    "reactDisabledDescription": "聊天里不执行 Agent 生成的 JavaScript；可在 Simulator 中打开沙箱 React 预览。",
     "expand": "展开",
     "shrink": "收起",
     "close": "关闭",
     "summarize": "让 Agent 总结",
     "waiting": "等待内容中…",
-    "empty": "无内容"
+    "empty": "无内容",
+    "viewInSimulator": "在 Simulator 中查看"
   }
 }

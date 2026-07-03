@@ -36,11 +36,13 @@ import { useSourceControlState } from "../hooks/useSourceControlState";
 import {
   type SourceControlScope,
   normalizeScopePath,
-  sourceControlTargetFromScope,
-  sourceControlTargetKey,
-  sourceControlTargetRepoRoot,
+  resolveScopeRepoRoot,
 } from "./sourceControlScopePickerHelpers";
-import { useSourceControlScopeSwitchState } from "./sourceControlScopeSwitchHelpers";
+import {
+  isScopeIdentityChanging,
+  scopeIdentityKey,
+  shouldShowScopePaneLoading,
+} from "./sourceControlScopeSwitchHelpers";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -491,21 +493,19 @@ export const SourceControlWithWorktrees = forwardRef<
     const pendingWorktreeScope =
       scope.kind === "worktree" && !selectedWorktree && worktreesLoading;
 
-    const activeTarget = sourceControlTargetFromScope({
-      scope,
-      repoId,
-      repoPath,
-      selectedWorktree,
-    });
-    const scopeKey = sourceControlTargetKey(activeTarget);
-    const activeScopeRepoRoot = sourceControlTargetRepoRoot(activeTarget);
-    const {
-      showScopePaneLoading,
-      onPaneLoadingChange: handlePaneLoadingChange,
-    } = useSourceControlScopeSwitchState({
-      scopeKey,
-      pendingWorktreeScope,
-    });
+    const scopeKey = scopeIdentityKey(scope);
+    const [trackedScopeKey, setTrackedScopeKey] = useState(scopeKey);
+    const scopeIdentityChanging = isScopeIdentityChanging(
+      trackedScopeKey,
+      scopeKey
+    );
+    const [paneLoading, setPaneLoading] = useState(true);
+    const activeScopeRepoRoot = resolveScopeRepoRoot(scope, repoPath);
+
+    if (scopeIdentityChanging) {
+      setTrackedScopeKey(scopeKey);
+      setPaneLoading(true);
+    }
 
     const previousScopeKeyForClearRef = useRef(scopeKey);
     useLayoutEffect(() => {
@@ -515,6 +515,16 @@ export const SourceControlWithWorktrees = forwardRef<
       previousScopeKeyForClearRef.current = scopeKey;
       onGitFilesChange?.([], activeScopeRepoRoot);
     }, [activeScopeRepoRoot, onGitFilesChange, scopeKey]);
+
+    const handlePaneLoadingChange = useCallback((loading: boolean) => {
+      setPaneLoading(loading);
+    }, []);
+
+    const showScopePaneLoading = shouldShowScopePaneLoading({
+      pendingWorktreeScope,
+      scopeIdentityChanging,
+      paneLoading,
+    });
 
     const mainRef = useRef<SourceControlContentHandle>(null);
     const worktreeRef = useRef<WorktreeSourceControlSectionHandle>(null);
