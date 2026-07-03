@@ -182,6 +182,11 @@ pub fn code_map_root() -> PathBuf {
     orgii_root().join("code-map")
 }
 
+/// Local embedding/model downloads: `~/.orgii/models/`.
+pub fn models_dir() -> PathBuf {
+    orgii_root().join("models")
+}
+
 /// Semantic-search USearch index: `~/.orgii/semantic_index/`.
 pub fn semantic_index_dir() -> PathBuf {
     orgii_root().join("semantic_index")
@@ -632,6 +637,10 @@ pub fn ensure_scratchpad(session_id: &str, workspace_path: &Path) -> std::io::Re
 /// `/private/tmp/orgii-501/` on macOS)
 /// Windows: `{TEMP}\orgii\`  (TEMP is already per-user)
 pub fn orgii_temp_root() -> PathBuf {
+    if let Ok(override_path) = std::env::var("ORGII_TEMP_ROOT") {
+        return PathBuf::from(override_path);
+    }
+
     let base = std::env::temp_dir();
     let resolved = std::fs::canonicalize(&base).unwrap_or(base);
 
@@ -681,6 +690,16 @@ pub fn cleanup_scratchpad_by_session_id(session_id: &str) {
             let _ = std::fs::remove_dir_all(&session_dir);
         }
     }
+}
+
+/// Hosted Kiro proxy HOME root: `/tmp/orgii-{uid}/kiro-proxy/`.
+pub fn kiro_proxy_home_root() -> PathBuf {
+    orgii_temp_root().join("kiro-proxy")
+}
+
+/// Hosted Kiro proxy HOME dir for one CLI session.
+pub fn kiro_proxy_home(session_id: &str) -> PathBuf {
+    kiro_proxy_home_root().join(sanitize_path_segment(session_id))
 }
 
 fn sanitize_workspace_path(workspace_path: &Path) -> String {
@@ -845,6 +864,16 @@ pub fn opencode_cli_profile_root() -> PathBuf {
 /// Account-scoped OpenCode CLI HOME dir.
 pub fn opencode_cli_profile_dir(account_id: &str) -> PathBuf {
     opencode_cli_profile_root().join(sanitize_path_segment(account_id))
+}
+
+/// Oversized tool result spill root: `~/.orgii/tool-results/`.
+pub fn tool_results_root() -> PathBuf {
+    orgii_root().join("tool-results")
+}
+
+/// Oversized tool result spill dir for one session.
+pub fn tool_results_dir(session_id: &str) -> PathBuf {
+    tool_results_root().join(session_id)
 }
 
 /// Agent worktrees root: `~/.orgii/agent-worktrees/`.

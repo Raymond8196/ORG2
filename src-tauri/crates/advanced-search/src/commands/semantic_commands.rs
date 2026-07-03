@@ -75,7 +75,7 @@ fn get_lang_from_extension(path: &Path) -> Option<String> {
 
 #[cfg(feature = "semantic-search")]
 fn default_model_dir() -> PathBuf {
-    app_paths::orgii_root().join("models")
+    app_paths::models_dir()
 }
 
 #[cfg(feature = "semantic-search")]

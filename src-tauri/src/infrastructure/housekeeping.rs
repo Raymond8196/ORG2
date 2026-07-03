@@ -10,13 +10,16 @@
 //! - File-history per-session cap enforcement (100 manifests)
 //! - Log file TTL prune (30 days, mtime-based)
 //! - Browser automation screenshot TTL prune (7 days, mtime-based)
+//! - Oversized tool-result spill TTL prune (7 days, mtime-based, recursive)
 //! - Plan-mode plan file TTL prune (30 days, mtime-based, recursive)
 //! - Merkle snapshot TTL prune (30 days, mtime-based — stale snapshots
 //!   auto-rebuild on next access)
-//! - Orphan `cursor-config/<session_id>/` and `gemini-cli-home/<session_id>/`
-//!   eviction (session no longer present in `agent_sessions` DB)
+//! - Orphan `cursor-config/<session_id>/`, hosted Claude Code profile,
+//!   Gemini home, and Kiro proxy home eviction (session no longer present
+//!   in `agent_sessions` DB)
 //! - Orphan `agent-worktrees/<repo_hash>/<session_id>/` eviction (session
 //!   no longer present in `agent_sessions` DB)
+//! - Orphan temp scratchpad eviction under `/tmp/orgii-{uid}/.../<session_id>/`
 //! - Orphan `session-images/<hash>.{ext}` eviction (hash no longer
 //!   referenced by any message's `images` column)
 //! - Orphan `gateway_bindings` row prune (target session no longer
@@ -47,6 +50,11 @@ pub const LOG_TTL_DAYS: u64 = 30;
 /// screenshots are purely diagnostic — they are never consulted after
 /// the tool round they belong to has landed in the event log.
 pub const SCREENSHOTS_TTL_DAYS: u64 = 7;
+
+/// Retention window for oversized tool-result spill files in
+/// `~/.orgii/tool-results/<session_id>/`. These are retrieval aids for
+/// recent large outputs, not durable user artifacts.
+pub const TOOL_RESULTS_TTL_DAYS: u64 = 7;
 
 /// Retention window for Plan-mode plan markdown under
 /// `~/.orgii/plans/<agent_id>/*.plan.md`. Plans are per-session scratchpads
@@ -85,12 +93,20 @@ pub struct HousekeepingStats {
     /// Per-session directories removed from `~/.orgii/cursor-config/` because
     /// their owning session was no longer present in `agent_sessions`.
     pub cursor_configs_evicted: usize,
+    /// Hosted per-session Claude Code profile dirs removed from
+    /// `~/.orgii/claude-code-cli-profiles/` because their owning CLI
+    /// session was gone. Account-scoped BYOK profiles are retained.
+    pub claude_code_session_profiles_evicted: usize,
     /// Per-session directories removed from `~/.orgii/gemini-cli-home/`
     /// because their owning session was no longer present in
     /// `agent_sessions`.
     pub gemini_homes_evicted: usize,
+    /// Hosted Kiro proxy HOME dirs removed from `/tmp/orgii-{uid}/kiro-proxy/`.
+    pub kiro_proxy_homes_evicted: usize,
     /// Screenshot files removed from `~/.orgii/screenshots/` via TTL sweep.
     pub screenshots_removed: usize,
+    /// Oversized tool-result spill files removed from `~/.orgii/tool-results/`.
+    pub tool_results_removed: usize,
     /// Plan markdown files removed recursively under `~/.orgii/plans/` via
     /// TTL sweep.
     pub plans_removed: usize,
@@ -100,6 +116,8 @@ pub struct HousekeepingStats {
     /// because their owning session was no longer present in
     /// `agent_sessions`.
     pub agent_worktrees_evicted: usize,
+    /// Per-session temp scratchpad dirs removed from `/tmp/orgii-{uid}/.../`.
+    pub scratchpads_evicted: usize,
     /// Session-image files deleted from `~/.orgii/session-images/` because
     /// no surviving message row still referenced their filename.
     pub session_images_evicted: usize,
@@ -154,10 +172,24 @@ pub fn run_deferred_cleanup() -> HousekeepingStats {
                     tracing::warn!("[housekeeping] cursor-config orphan sweep failed: {}", err)
                 }
             }
+            match evict_orphan_cli_session_profiles(paths::claude_code_cli_profile_root(), &known) {
+                Ok(n) => stats.claude_code_session_profiles_evicted = n,
+                Err(err) => tracing::warn!(
+                    "[housekeeping] claude-code hosted profile orphan sweep failed: {}",
+                    err
+                ),
+            }
             match evict_orphan_session_dirs(paths::gemini_cli_home_root(), &known) {
                 Ok(n) => stats.gemini_homes_evicted = n,
                 Err(err) => tracing::warn!(
                     "[housekeeping] gemini-cli-home orphan sweep failed: {}",
+                    err
+                ),
+            }
+            match evict_orphan_kiro_proxy_homes(&known) {
+                Ok(n) => stats.kiro_proxy_homes_evicted = n,
+                Err(err) => tracing::warn!(
+                    "[housekeeping] kiro proxy home orphan sweep failed: {}",
                     err
                 ),
             }
@@ -167,6 +199,12 @@ pub fn run_deferred_cleanup() -> HousekeepingStats {
                     "[housekeeping] agent-worktrees orphan sweep failed: {}",
                     err
                 ),
+            }
+            match evict_orphan_scratchpads(&known) {
+                Ok(n) => stats.scratchpads_evicted = n,
+                Err(err) => {
+                    tracing::warn!("[housekeeping] scratchpad orphan sweep failed: {}", err)
+                }
             }
             match evict_orphan_gateway_bindings(&known) {
                 Ok(n) => stats.gateway_bindings_evicted = n,
@@ -190,26 +228,32 @@ pub fn run_deferred_cleanup() -> HousekeepingStats {
         Err(err) => tracing::warn!("[housekeeping] screenshots prune failed: {}", err),
     }
 
-    // Step 6: Plan-mode plan markdown TTL (recursive — nested per-agent dirs).
+    // Step 6: oversized tool-result spill TTL (recursive per-session dirs).
+    match prune_old_files_recursive(paths::tool_results_root(), TOOL_RESULTS_TTL_DAYS) {
+        Ok(n) => stats.tool_results_removed = n,
+        Err(err) => tracing::warn!("[housekeeping] tool-results prune failed: {}", err),
+    }
+
+    // Step 7: Plan-mode plan markdown TTL (recursive — nested per-agent dirs).
     match prune_old_files_recursive(paths::orgii_root().join("plans"), PLANS_TTL_DAYS) {
         Ok(n) => stats.plans_removed = n,
         Err(err) => tracing::warn!("[housekeeping] plans prune failed: {}", err),
     }
 
-    // Step 7: Merkle snapshot TTL — pruned snapshots auto-rebuild on next access.
+    // Step 8: Merkle snapshot TTL — pruned snapshots auto-rebuild on next access.
     match prune_old_files_in_dir(paths::merkle_root(), MERKLE_TTL_DAYS) {
         Ok(n) => stats.merkle_snapshots_removed = n,
         Err(err) => tracing::warn!("[housekeeping] merkle prune failed: {}", err),
     }
 
-    // Step 8: session-image orphan eviction — files whose filename no
+    // Step 9: session-image orphan eviction — files whose filename no
     // longer appears in any surviving message's `images` JSON array.
     match evict_orphan_session_images() {
         Ok(n) => stats.session_images_evicted = n,
         Err(err) => tracing::warn!("[housekeeping] session-images orphan sweep failed: {}", err),
     }
 
-    // Step 9: session-cache TTL — drops `sessions`/`events` rows older
+    // Step 10: session-cache TTL — drops `sessions`/`events` rows older
     // than SESSION_CACHE_TTL_DAYS. `agent_snapshots` is cascaded by
     // `clear_old_sessions` as a side-effect.
     match session_persistence::clear_old_sessions(
@@ -220,7 +264,7 @@ pub fn run_deferred_cleanup() -> HousekeepingStats {
     }
 
     tracing::info!(
-        "[housekeeping] pass finished: file_history(sessions={}, rows={}), capped(sessions={}, manifests={}, blobs={}), logs_removed={}, cursor_configs_evicted={}, gemini_homes_evicted={}, agent_worktrees_evicted={}, screenshots_removed={}, plans_removed={}, merkle_snapshots_removed={}, session_images_evicted={}, gateway_bindings_evicted={}, session_cache_rows_evicted={}",
+        "[housekeeping] pass finished: file_history(sessions={}, rows={}), capped(sessions={}, manifests={}, blobs={}), logs_removed={}, cursor_configs_evicted={}, claude_code_session_profiles_evicted={}, gemini_homes_evicted={}, kiro_proxy_homes_evicted={}, agent_worktrees_evicted={}, scratchpads_evicted={}, screenshots_removed={}, tool_results_removed={}, plans_removed={}, merkle_snapshots_removed={}, session_images_evicted={}, gateway_bindings_evicted={}, session_cache_rows_evicted={}",
         stats.file_history.sessions_removed,
         stats.file_history.db_rows_removed,
         stats.sessions_capped,
@@ -228,9 +272,13 @@ pub fn run_deferred_cleanup() -> HousekeepingStats {
         stats.blobs_capped,
         stats.log_files_removed,
         stats.cursor_configs_evicted,
+        stats.claude_code_session_profiles_evicted,
         stats.gemini_homes_evicted,
+        stats.kiro_proxy_homes_evicted,
         stats.agent_worktrees_evicted,
+        stats.scratchpads_evicted,
         stats.screenshots_removed,
+        stats.tool_results_removed,
         stats.plans_removed,
         stats.merkle_snapshots_removed,
         stats.session_images_evicted,
@@ -324,6 +372,32 @@ mod tests {
     }
 
     #[test]
+    fn prune_tool_results_drops_aged_spills_and_empty_session_dirs() {
+        with_sandbox(|_| {
+            let live_dir = paths::tool_results_dir("sid-live");
+            let dead_dir = paths::tool_results_dir("sid-dead");
+            std::fs::create_dir_all(&live_dir).unwrap();
+            std::fs::create_dir_all(&dead_dir).unwrap();
+
+            let fresh = live_dir.join("fresh.txt");
+            let aged = dead_dir.join("aged.txt");
+            std::fs::write(&fresh, b"fresh").unwrap();
+            std::fs::write(&aged, b"aged").unwrap();
+            set_mtime_days_ago(&aged, TOOL_RESULTS_TTL_DAYS + 1).unwrap();
+
+            let removed =
+                prune_old_files_recursive(paths::tool_results_root(), TOOL_RESULTS_TTL_DAYS)
+                    .unwrap();
+
+            assert_eq!(removed, 1);
+            assert!(fresh.exists(), "fresh spill kept");
+            assert!(!aged.exists(), "aged spill removed");
+            assert!(live_dir.exists(), "non-empty session dir kept");
+            assert!(!dead_dir.exists(), "empty session dir pruned");
+        });
+    }
+
+    #[test]
     fn evict_orphan_agent_worktrees_prunes_only_unknown_sids() {
         with_sandbox(|_| {
             let root = paths::agent_worktrees_root();
@@ -349,6 +423,92 @@ mod tests {
                 repo.exists(),
                 "repo-hash parent kept even when a child is evicted"
             );
+        });
+    }
+
+    #[test]
+    fn evict_orphan_scratchpads_prunes_unknown_session_dirs() {
+        with_sandbox(|root| {
+            let previous_temp_root = std::env::var("ORGII_TEMP_ROOT").ok();
+            let temp_root = root.join("tmp");
+            std::env::set_var("ORGII_TEMP_ROOT", &temp_root);
+
+            let workspace = paths::workspace_temp_dir(Path::new("/Users/me/project"));
+            let live_dir = workspace.join("sid-live").join("scratchpad");
+            let dead_dir = workspace.join("sid-dead").join("scratchpad");
+            std::fs::create_dir_all(&live_dir).unwrap();
+            std::fs::create_dir_all(&dead_dir).unwrap();
+            std::fs::write(live_dir.join("keep.txt"), b"live").unwrap();
+            std::fs::write(dead_dir.join("drop.txt"), b"dead").unwrap();
+
+            let mut known = std::collections::HashSet::new();
+            known.insert("sid-live".to_string());
+
+            let removed = evict_orphan_scratchpads(&known).unwrap();
+
+            assert_eq!(removed, 1);
+            assert!(workspace.join("sid-live").exists(), "live scratchpad kept");
+            assert!(
+                !workspace.join("sid-dead").exists(),
+                "dead scratchpad removed"
+            );
+            match previous_temp_root {
+                Some(value) => std::env::set_var("ORGII_TEMP_ROOT", value),
+                None => std::env::remove_var("ORGII_TEMP_ROOT"),
+            }
+        });
+    }
+
+    #[test]
+    fn evict_orphan_cli_session_profiles_keeps_account_profiles() {
+        with_sandbox(|_| {
+            let root = paths::claude_code_cli_profile_root();
+            let live_sid = "cliagent-live";
+            let dead_sid = "cliagent-dead";
+            let account_id = "acct-user-profile";
+            std::fs::create_dir_all(root.join(live_sid)).unwrap();
+            std::fs::create_dir_all(root.join(dead_sid)).unwrap();
+            std::fs::create_dir_all(root.join(account_id)).unwrap();
+
+            let mut known = std::collections::HashSet::new();
+            known.insert(live_sid.to_string());
+
+            let removed = evict_orphan_cli_session_profiles(root.clone(), &known).unwrap();
+
+            assert_eq!(removed, 1);
+            assert!(root.join(live_sid).exists(), "live session profile kept");
+            assert!(
+                !root.join(dead_sid).exists(),
+                "dead session profile removed"
+            );
+            assert!(root.join(account_id).exists(), "account profile retained");
+        });
+    }
+
+    #[test]
+    fn evict_orphan_kiro_proxy_homes_prunes_unknown_sessions() {
+        with_sandbox(|root| {
+            let previous_temp_root = std::env::var("ORGII_TEMP_ROOT").ok();
+            let temp_root = root.join("tmp-kiro");
+            std::env::set_var("ORGII_TEMP_ROOT", &temp_root);
+
+            let live_sid = "cliagent-live";
+            let dead_sid = "cliagent-dead";
+            std::fs::create_dir_all(paths::kiro_proxy_home(live_sid)).unwrap();
+            std::fs::create_dir_all(paths::kiro_proxy_home(dead_sid)).unwrap();
+
+            let mut known = std::collections::HashSet::new();
+            known.insert(live_sid.to_string());
+
+            let removed = evict_orphan_kiro_proxy_homes(&known).unwrap();
+
+            assert_eq!(removed, 1);
+            assert!(paths::kiro_proxy_home(live_sid).exists());
+            assert!(!paths::kiro_proxy_home(dead_sid).exists());
+            match previous_temp_root {
+                Some(value) => std::env::set_var("ORGII_TEMP_ROOT", value),
+                None => std::env::remove_var("ORGII_TEMP_ROOT"),
+            }
         });
     }
 

@@ -142,11 +142,7 @@ pub fn setup_proxy_auth_db(
     region: &str,
     session_id: &str,
 ) -> Result<PathBuf, String> {
-    let safe_id = session_id.replace(
-        |char_value: char| !char_value.is_alphanumeric() && char_value != '-',
-        "_",
-    );
-    let temp_home = std::env::temp_dir().join(format!("kiro-proxy-{}", safe_id));
+    let temp_home = app_paths::kiro_proxy_home(session_id);
     let db_path = temp_home.join(kiro_sqlite_relative_path());
 
     use base64::Engine;
