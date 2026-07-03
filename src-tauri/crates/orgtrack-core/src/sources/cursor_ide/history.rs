@@ -33,7 +33,8 @@ use super::db as cursor_db;
 
 use super::helpers::{
     bubbles_to_chunks, build_fallback_user_chunk, build_unloaded_turn_placeholder_chunk,
-    cache_row_to_session_row, composer_source_updated_at, is_listable_cursor_session,
+    cache_row_to_session_row, composer_source_updated_at, cursor_ide_session_detail,
+    is_listable_cursor_session,
 };
 use super::io::{
     load_bubbles_by_id, load_complete_bubble_order, load_composer_for_order, open_cursor_db,
@@ -117,6 +118,21 @@ pub struct CursorIdeSessionRow {
     pub branch: Option<String>,
 }
 
+/// Hover-card detail for a single Cursor IDE session.
+///
+/// Fetched on demand when the user hovers a sidebar row — never during list
+/// pagination. Contains the fields that require opening Cursor's `state.vscdb`.
+#[derive(Debug, Clone, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct CursorIdeSessionDetail {
+    pub repo_path: Option<String>,
+    pub repo_name: Option<String>,
+    pub branch: Option<String>,
+    pub touched_files: Vec<String>,
+}
+
+pub use super::helpers::cursor_ide_session_detail;
+
 /// Paginated response for the sidebar's Cursor IDE history loader.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -172,6 +188,9 @@ pub fn list_cursor_ide_sessions_paginated(
     limit: usize,
     offset: usize,
 ) -> Result<CursorIdeSessionPage, String> {
+    // Open Cursor's DB once for `is_listable_cursor_session` (bubble-type header
+    // check only — no blob reads, no diff). `cache_row_to_session_row` no longer
+    // needs it: hover-only fields are deferred to `cursor_ide_session_detail`.
     let cursor_conn = open_cursor_db();
     let (rows, has_more) =
         cursor_db::list_for_sidebar_filtered(cache_conn, limit, offset, |row| {
@@ -179,7 +198,7 @@ pub fn list_cursor_ide_sessions_paginated(
         })?;
     let sessions = rows
         .into_iter()
-        .map(|row| cache_row_to_session_row(row, cursor_conn.as_ref()))
+        .map(cache_row_to_session_row)
         .collect::<Result<Vec<_>, _>>()?;
     Ok(CursorIdeSessionPage { sessions, has_more })
 }

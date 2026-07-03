@@ -28,9 +28,11 @@ import { useTranslation } from "react-i18next";
 
 import ExpandOverlay from "@src/components/ExpandOverlay";
 import {
+  hasTuiSequences,
   processAnsiContent,
   stripAnsiCodes,
 } from "@src/components/TerminalDisplay/utils/ansiProcessor";
+import XtermOutput from "@src/components/XtermOutput";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import type { PayloadRef } from "@src/engines/SessionCore/core/types";
 import {
@@ -101,6 +103,12 @@ export interface BlockOutputProps {
   collapsedMaxHeight?: number;
   defaultScrollToBottom?: boolean;
   expandLineThreshold?: number;
+  /**
+   * Force xterm.js TUI rendering regardless of auto-detection.
+   * Auto-detects by default when the output contains VT100 cursor/erase
+   * sequences (spinners, progress bars, box-drawing TUI output).
+   */
+  tuiRendering?: boolean;
 }
 
 /**
@@ -127,6 +135,7 @@ const BlockOutput: React.FC<BlockOutputProps> = memo(
     collapsedMaxHeight = COLLAPSED_MAX_HEIGHT,
     defaultScrollToBottom = false,
     expandLineThreshold,
+    tuiRendering,
   }) => {
     const { t } = useTranslation();
     const [isOutputExpanded, setIsOutputExpanded] = useState(false);
@@ -150,9 +159,16 @@ const BlockOutput: React.FC<BlockOutputProps> = memo(
       fullPayload !== null &&
       fullPayload.length <= RENDER_FULL_PAYLOAD_MAX_CHARS;
     const displayOutput = shouldRenderFullPayload ? fullPayload : output;
+
+    const useTuiRenderer = useMemo(
+      () => tuiRendering ?? hasTuiSequences(displayOutput),
+      [tuiRendering, displayOutput]
+    );
+
     const processedOutput = useMemo(
-      () => processAnsiContent(displayOutput),
-      [displayOutput]
+      () =>
+        useTuiRenderer ? displayOutput : processAnsiContent(displayOutput),
+      [useTuiRenderer, displayOutput]
     );
     const outputLines = useMemo(
       () => processedOutput.split("\n"),
@@ -306,7 +322,12 @@ const BlockOutput: React.FC<BlockOutputProps> = memo(
       >
         {useTopCollapsedOverlay ? expandOverlay : null}
         <div ref={contentRef}>
-          {highlightLang && highlightedHtml ? (
+          {useTuiRenderer ? (
+            <XtermOutput
+              content={processedOutput}
+              className={EVENT_SNIPPET_INNER_PADDING_CLASS}
+            />
+          ) : highlightLang && highlightedHtml ? (
             <div
               className={`${preClassesShared} [&_pre.shiki]:!m-0 [&_pre.shiki]:!bg-transparent [&_pre.shiki]:!p-0 [&_pre.shiki]:!shadow-none`}
               // eslint-disable-next-line react/no-danger

@@ -1,12 +1,12 @@
 import { useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { stripAnsiCodes } from "@src/components/TerminalDisplay/utils/ansiProcessor";
 import { eventsAtom } from "@src/engines/SessionCore/core/atoms";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { isShellTool } from "@src/engines/SessionCore/sync/adapters/shared";
-import { useTerminalSurfaceStyle } from "@src/hooks/terminal/useTerminalSurfaceStyle";
 import { listenTauri } from "@src/util/platform/tauri/init";
+
+import XtermOutput from "../XtermOutput";
 
 interface TerminalReadOnlyProps {
   agentSessionId: string;
@@ -21,7 +21,7 @@ interface PtyOutputPayload {
 const PTY_SESSION_ID = "osagent-pty-main";
 const MAX_WRITTEN_IDS = 500;
 const RETAINED_WRITTEN_IDS = 200;
-const MAX_OUTPUT_CHARS = 30_000;
+const MAX_OUTPUT_CHARS = 500_000;
 function safeStr(value: unknown): string | undefined {
   if (!value) return undefined;
   if (typeof value === "string") return value;
@@ -83,14 +83,10 @@ function extractShellFromEvent(event: SessionEvent): {
   return { command, output: shellOutput, exitCode };
 }
 
-function normalizeTerminalText(text: string): string {
-  return stripAnsiCodes(text).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-}
-
-function formatPlainLine(text: string): string {
-  const normalized = normalizeTerminalText(text).trim();
-  if (!normalized) return "";
-  return `${normalized}\n`;
+function formatSystemLine(text: string): string {
+  const trimmed = text.replace(/\r\n/g, "\r\n").trim();
+  if (!trimmed) return "";
+  return `${trimmed}\r\n`;
 }
 
 function trimOutput(text: string): string {
@@ -101,13 +97,10 @@ function trimOutput(text: string): string {
 const TerminalReadOnly: React.FC<TerminalReadOnlyProps> = ({
   agentSessionId,
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const surfaceStyle = useTerminalSurfaceStyle();
   const agentSessionIdRef = useRef(agentSessionId);
   const eventsAtomRef = useRef<SessionEvent[]>([]);
   const streamingReceivedIdsRef = useRef<Set<string>>(new Set());
   const historyWrittenIdsRef = useRef<Set<string>>(new Set());
-  const followFrameRef = useRef<number | null>(null);
   const [output, setOutput] = useState("");
 
   const events = useAtomValue(eventsAtom);
@@ -123,40 +116,9 @@ const TerminalReadOnly: React.FC<TerminalReadOnlyProps> = ({
     queueMicrotask(() => setOutput(""));
   }, [agentSessionId]);
 
-  const scrollToBottom = useCallback(() => {
-    const element = scrollRef.current;
-    if (!element) return;
-    element.scrollTop = element.scrollHeight;
-  }, []);
-
-  const scheduleScrollToBottom = useCallback(() => {
-    if (followFrameRef.current !== null) {
-      cancelAnimationFrame(followFrameRef.current);
-    }
-
-    followFrameRef.current = requestAnimationFrame(() => {
-      followFrameRef.current = null;
-      scrollToBottom();
-    });
-  }, [scrollToBottom]);
-
   const appendOutput = useCallback((text: string) => {
-    const normalized = normalizeTerminalText(text);
-    if (!normalized) return;
-
-    setOutput((previous) => trimOutput(previous + normalized));
-  }, []);
-
-  useEffect(() => {
-    scheduleScrollToBottom();
-  }, [output, scheduleScrollToBottom]);
-
-  useEffect(() => {
-    return () => {
-      if (followFrameRef.current !== null) {
-        cancelAnimationFrame(followFrameRef.current);
-      }
-    };
+    if (!text) return;
+    setOutput((previous) => trimOutput(previous + text));
   }, []);
 
   useEffect(() => {
@@ -173,7 +135,7 @@ const TerminalReadOnly: React.FC<TerminalReadOnlyProps> = ({
 
       appendOutput(
         detail.stream === "system"
-          ? formatPlainLine(detail.chunk)
+          ? formatSystemLine(detail.chunk)
           : detail.chunk
       );
 
@@ -248,18 +210,18 @@ const TerminalReadOnly: React.FC<TerminalReadOnlyProps> = ({
       let replayOutput = "";
 
       if (command) {
-        replayOutput += formatPlainLine(`$ ${command}`);
+        replayOutput += formatSystemLine(`$ ${command}`);
       }
 
       if (eventOutput) {
-        replayOutput += normalizeTerminalText(eventOutput);
-        if (!replayOutput.endsWith("\n")) {
-          replayOutput += "\n";
+        replayOutput += eventOutput;
+        if (!replayOutput.endsWith("\n") && !replayOutput.endsWith("\r\n")) {
+          replayOutput += "\r\n";
         }
       }
 
       if (exitCode !== undefined) {
-        replayOutput += formatPlainLine(`[exit code: ${exitCode}]`);
+        replayOutput += formatSystemLine(`[exit code: ${exitCode}]`);
       }
 
       replayBatch += replayOutput;
@@ -282,17 +244,8 @@ const TerminalReadOnly: React.FC<TerminalReadOnlyProps> = ({
   }, [appendOutput, events]);
 
   return (
-    <div
-      className="h-full w-full overflow-hidden"
-      style={{ backgroundColor: surfaceStyle.background }}
-    >
-      <div
-        ref={scrollRef}
-        className="scrollbar-overlay h-full w-full overflow-y-auto whitespace-pre-wrap break-words px-3 py-2"
-        style={{ ...surfaceStyle.typography, color: surfaceStyle.foreground }}
-      >
-        {output}
-      </div>
+    <div className="h-full w-full overflow-hidden">
+      <XtermOutput content={output} className="h-full w-full" />
     </div>
   );
 };

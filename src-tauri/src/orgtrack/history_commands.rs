@@ -132,6 +132,17 @@ pub async fn cursor_ide_list_sessions(
 }
 
 #[tauri::command]
+pub async fn cursor_ide_session_detail(
+    session_id: String,
+) -> Result<cursor_db_history::CursorIdeSessionDetail, String> {
+    tokio::task::spawn_blocking(move || {
+        cursor_db_history::cursor_ide_session_detail(&session_id)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
 pub async fn codex_app_chunks(
     session_id: String,
 ) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
