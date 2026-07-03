@@ -39,13 +39,16 @@ import BaichuanIcon from "@src/assets/modelIcons/baichuan.svg";
 import ByteDanceIcon from "@src/assets/modelIcons/bytedance.svg";
 import ClineStaticIcon from "@src/assets/modelIcons/cline.svg";
 import CohereIcon from "@src/assets/modelIcons/cohere.svg";
+import ContinueIcon from "@src/assets/modelIcons/continue.svg";
 import DeepSeekIcon from "@src/assets/modelIcons/deepseek.svg";
 import DevinIcon from "@src/assets/modelIcons/devin.svg";
 import DoubaoIcon from "@src/assets/modelIcons/doubao.svg";
 import GrokIcon from "@src/assets/modelIcons/grok.svg";
 import GroqIcon from "@src/assets/modelIcons/groq.svg";
+import HermesIcon from "@src/assets/modelIcons/hermes.svg";
 import HunyuanIcon from "@src/assets/modelIcons/hunyuan.svg";
 import InflectionIcon from "@src/assets/modelIcons/inflection.svg";
+import KiloIcon from "@src/assets/modelIcons/kilo.svg";
 import LlamaCppIcon from "@src/assets/modelIcons/llama-cpp.svg";
 import LmStudioIcon from "@src/assets/modelIcons/lmstudio.svg";
 import LongCatIcon from "@src/assets/modelIcons/longcat.svg";
@@ -61,7 +64,6 @@ import QwenIcon from "@src/assets/modelIcons/qwen.svg";
 import VllmIcon from "@src/assets/modelIcons/vllm.svg";
 import VolcengineIcon from "@src/assets/modelIcons/volcengine.svg";
 import XiaomiIcon from "@src/assets/modelIcons/xiaomi.svg";
-import XiaomiMiMoIcon from "@src/assets/modelIcons/xiaomimimo.svg";
 import YiIcon from "@src/assets/modelIcons/yi.svg";
 import ZenMuxIcon from "@src/assets/modelIcons/zenmux.svg";
 import ZhipuIcon from "@src/assets/modelIcons/zhipu.svg";
@@ -204,23 +206,23 @@ export const ICON_MAP: Record<
   amp: AmpIcon,
   devin: DevinIcon,
   rovo: InfinityAgentIcon,
-  hermes: InfinityAgentIcon,
+  hermes: HermesIcon,
   openclaw: OpenClawIcon,
   crush: InfinityAgentIcon,
   aug: InfinityAgentIcon,
   codebuff: InfinityAgentIcon,
   command_code: InfinityAgentIcon,
   qwen_code: QwenIcon,
-  mimo_code: XiaomiMiMoIcon,
+  mimo_code: XiaomiIcon,
   antigravity: AntigravityIcon,
-  continue_cli: InfinityAgentIcon,
+  continue_cli: ContinueIcon,
   droid: InfinityAgentIcon,
   mistral_vibe: MistralIcon,
   ante: InfinityAgentIcon,
   autohand: InfinityAgentIcon,
   omp: InfinityAgentIcon,
   pi: InflectionIcon,
-  kilo: InfinityAgentIcon,
+  kilo: KiloIcon,
   // Fallback
   unknown: undefined,
 };
