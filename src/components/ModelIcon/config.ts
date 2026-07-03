@@ -33,6 +33,7 @@ import {
 } from "@src/assets/modelIcons/agentIcons";
 import AmpIcon from "@src/assets/modelIcons/amp.svg";
 import AntigravityIcon from "@src/assets/modelIcons/antigravity.svg";
+import AugmentIcon from "@src/assets/modelIcons/augment.svg";
 // Static SVG imports (for providers without React components)
 import AzureIcon from "@src/assets/modelIcons/azure.svg";
 import BaichuanIcon from "@src/assets/modelIcons/baichuan.svg";
@@ -43,6 +44,7 @@ import ContinueIcon from "@src/assets/modelIcons/continue.svg";
 import DeepSeekIcon from "@src/assets/modelIcons/deepseek.svg";
 import DevinIcon from "@src/assets/modelIcons/devin.svg";
 import DoubaoIcon from "@src/assets/modelIcons/doubao.svg";
+import DroidIcon from "@src/assets/modelIcons/droid.svg";
 import GrokIcon from "@src/assets/modelIcons/grok.svg";
 import GroqIcon from "@src/assets/modelIcons/groq.svg";
 import HermesIcon from "@src/assets/modelIcons/hermes.svg";
@@ -57,10 +59,12 @@ import MinimaxIcon from "@src/assets/modelIcons/minimax.svg";
 import MistralIcon from "@src/assets/modelIcons/mistral.svg";
 import NvidiaIcon from "@src/assets/modelIcons/nvidia.svg";
 import OllamaIcon from "@src/assets/modelIcons/ollama.svg";
+import OmpIcon from "@src/assets/modelIcons/omp.svg";
 import OpenClawIcon from "@src/assets/modelIcons/openclaw.svg";
 import OpenRouterIcon from "@src/assets/modelIcons/openrouter.svg";
 import PerplexityIcon from "@src/assets/modelIcons/perplexity.svg";
 import QwenIcon from "@src/assets/modelIcons/qwen.svg";
+import RovoIcon from "@src/assets/modelIcons/rovo.svg";
 import VllmIcon from "@src/assets/modelIcons/vllm.svg";
 import VolcengineIcon from "@src/assets/modelIcons/volcengine.svg";
 import XiaomiIcon from "@src/assets/modelIcons/xiaomi.svg";
@@ -202,25 +206,25 @@ export const ICON_MAP: Record<
   cline: ClineStaticIcon,
   goose: GooseIcon,
   // Extended CLI agents — lobehub icons where available, infinity fallback otherwise
-  openclaude: ClaudeIcon,
+  openclaude: InfinityAgentIcon,
   amp: AmpIcon,
   devin: DevinIcon,
-  rovo: InfinityAgentIcon,
+  rovo: RovoIcon,
   hermes: HermesIcon,
   openclaw: OpenClawIcon,
   crush: InfinityAgentIcon,
-  aug: InfinityAgentIcon,
+  aug: AugmentIcon,
   codebuff: InfinityAgentIcon,
   command_code: InfinityAgentIcon,
   qwen_code: QwenIcon,
   mimo_code: XiaomiIcon,
   antigravity: AntigravityIcon,
   continue_cli: ContinueIcon,
-  droid: InfinityAgentIcon,
+  droid: DroidIcon,
   mistral_vibe: MistralIcon,
   ante: InfinityAgentIcon,
   autohand: InfinityAgentIcon,
-  omp: InfinityAgentIcon,
+  omp: OmpIcon,
   pi: InflectionIcon,
   kilo: KiloIcon,
   // Fallback
