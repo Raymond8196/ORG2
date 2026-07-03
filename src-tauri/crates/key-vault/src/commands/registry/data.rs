@@ -635,7 +635,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: Some("codex"),
             popular: true,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "anthropic_api",
@@ -647,7 +646,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: Some("claude_code"),
             popular: true,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "gemini_api",
@@ -659,7 +657,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: Some("gemini_cli"),
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "deepseek_api",
@@ -671,7 +668,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "groq_api",
@@ -683,7 +679,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "xai_api",
@@ -695,7 +690,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "zhipu_api",
@@ -707,7 +701,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "dashscope_api",
@@ -719,7 +712,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "moonshot_api",
@@ -731,7 +723,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: Some("kimi_cli"),
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "openrouter_api",
@@ -743,7 +734,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "zenmux_api",
@@ -756,7 +746,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "minimax_api",
@@ -768,7 +757,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "longcat_api",
@@ -780,7 +768,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "vllm_api",
@@ -792,7 +779,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "azure_openai_api",
@@ -804,7 +790,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
         ApiProviderEntry {
             name: "azure_anthropic_api",
@@ -816,7 +801,6 @@ pub(super) fn api_provider_registry() -> Vec<ApiProviderEntry> {
             paired_cli_agent: None,
             popular: false,
             supports_rust_agents: true,
-            supports_gui: false,
         },
     ]
 }
