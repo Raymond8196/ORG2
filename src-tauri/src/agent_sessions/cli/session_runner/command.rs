@@ -18,6 +18,31 @@ pub(super) fn resolve_cli_agent_command(agent: &ModelType) -> String {
         ModelType::Copilot => CliBinaryId::Copilot,
         ModelType::OpenCode => CliBinaryId::OpenCode,
         ModelType::KimiCli => CliBinaryId::KimiCli,
+        ModelType::OpenClaude => CliBinaryId::OpenClaude,
+        ModelType::Aider => CliBinaryId::Aider,
+        ModelType::Goose => CliBinaryId::Goose,
+        ModelType::Amp => CliBinaryId::Amp,
+        ModelType::Cline => CliBinaryId::Cline,
+        ModelType::Kilo => CliBinaryId::Kilo,
+        ModelType::Grok => CliBinaryId::Grok,
+        ModelType::Devin => CliBinaryId::Devin,
+        ModelType::Rovo => CliBinaryId::Rovo,
+        ModelType::Hermes => CliBinaryId::Hermes,
+        ModelType::OpenClaw => CliBinaryId::OpenClaw,
+        ModelType::Crush => CliBinaryId::Crush,
+        ModelType::Aug => CliBinaryId::Aug,
+        ModelType::Codebuff => CliBinaryId::Codebuff,
+        ModelType::CommandCode => CliBinaryId::CommandCode,
+        ModelType::QwenCode => CliBinaryId::QwenCode,
+        ModelType::MimoCode => CliBinaryId::MimoCode,
+        ModelType::Antigravity => CliBinaryId::Antigravity,
+        ModelType::Continue => CliBinaryId::Continue,
+        ModelType::Droid => CliBinaryId::Droid,
+        ModelType::MistralVibe => CliBinaryId::MistralVibe,
+        ModelType::Ante => CliBinaryId::Ante,
+        ModelType::Autohand => CliBinaryId::Autohand,
+        ModelType::Omp => CliBinaryId::Omp,
+        ModelType::Pi => CliBinaryId::Pi,
         other => panic!(
             "ModelType::{:?} is not a CLI agent — cannot resolve command",
             other
@@ -195,6 +220,40 @@ pub(super) fn build_command(
             cmd
         }
         ModelType::OpenCode => vec![resolve_cli_agent_command(agent), "acp".into()],
+        // Extended CLI agents: pass the task as a positional argument.
+        // These agents use TUI-style invocation; ORGII surfaces their raw PTY
+        // output rather than parsing structured JSON events.
+        ModelType::OpenClaude
+        | ModelType::Aider
+        | ModelType::Goose
+        | ModelType::Amp
+        | ModelType::Cline
+        | ModelType::Kilo
+        | ModelType::Grok
+        | ModelType::Devin
+        | ModelType::Rovo
+        | ModelType::Hermes
+        | ModelType::OpenClaw
+        | ModelType::Crush
+        | ModelType::Aug
+        | ModelType::Codebuff
+        | ModelType::CommandCode
+        | ModelType::QwenCode
+        | ModelType::MimoCode
+        | ModelType::Antigravity
+        | ModelType::Continue
+        | ModelType::Droid
+        | ModelType::MistralVibe
+        | ModelType::Ante
+        | ModelType::Autohand
+        | ModelType::Omp
+        | ModelType::Pi => {
+            let mut cmd = vec![resolve_cli_agent_command(agent)];
+            if !task.is_empty() {
+                cmd.push(task.into());
+            }
+            cmd
+        }
         other => {
             panic!(
                 "ModelType::{:?} is not a CLI agent — cannot build command",
