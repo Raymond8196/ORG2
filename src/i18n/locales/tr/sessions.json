@@ -706,7 +706,7 @@
         "title": "Yeni oturum"
       },
       "cliSession": {
-        "title": "CLI Agent kullan"
+        "title": "Yeni oturum (TUI)"
       },
       "newWorkItem": {
         "title": "Yeni work item"
@@ -799,7 +799,10 @@
     "tuiModeOn": "TUI modu (devre dışı bırakmak için tıklayın)",
     "tuiModeOff": "TUI modunu etkinleştir",
     "tabs": {
-      "newTerminal": "Yeni Terminal"
+      "newTerminal": "Yeni Terminal",
+      "newTab": "Yeni sekme",
+      "terminals": "Terminaller",
+      "newTuiSession": "Yeni oturum (TUI)"
     },
     "collapseAll": "Tümünü daralt",
     "copyEventJson": "Olay JSON'unu kopyala",

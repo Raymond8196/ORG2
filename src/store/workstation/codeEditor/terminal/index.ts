@@ -19,6 +19,7 @@ import { getSettingsDefaults } from "@src/config/settingsSchema";
 import { createLogger } from "@src/hooks/logger";
 import { settingsAtom } from "@src/store/settings/settingsAtom";
 import { invokeTauri, isTauriReady } from "@src/util/platform/tauri/init";
+import { isChatPanelTerminalId } from "@src/util/ui/terminal/chatPanelSessionId";
 import {
   notifyTerminalCreationCooldown,
   tryBeginTerminalCreation,
@@ -83,17 +84,21 @@ function loadPersistedState(): {
         Array.isArray(parsed.initializedSessionIds)
       ) {
         const sessions = parsed.sessions.filter(
-          (session: TerminalSession) => !isAgentPtySessionId(session.id)
+          (session: TerminalSession) =>
+            !isAgentPtySessionId(session.id) &&
+            !isChatPanelTerminalId(session.id)
         );
         if (sessions.length === 0) return null;
-        const activeSessionId = isAgentPtySessionId(parsed.activeSessionId)
+        const isEphemeral = (id: string) =>
+          isAgentPtySessionId(id) || isChatPanelTerminalId(id);
+        const activeSessionId = isEphemeral(parsed.activeSessionId)
           ? sessions[0].id
           : parsed.activeSessionId;
         return {
           sessions,
           activeSessionId,
           initializedSessionIds: parsed.initializedSessionIds.filter(
-            (sessionId: string) => !isAgentPtySessionId(sessionId)
+            (sessionId: string) => !isEphemeral(sessionId)
           ),
         };
       }

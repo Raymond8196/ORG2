@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -29,6 +29,15 @@ import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewCon
 import { VerticalResizeHandle } from "@src/scaffold/Resize";
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials";
 import {
+  activeChatPanelTabAtom,
+  addChatPanelSessionTabAtom,
+  addChatPanelTerminalTabAtom,
+  chatPanelTabsAtom,
+  setChatPanelTabSessionIdAtom,
+  setChatPanelTabTitleAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
+import { createChatPanelTerminalAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
+import {
   collabConnectionStatesAtom,
   collabMembersAtom,
   collabOrgsAtom,
@@ -44,6 +53,9 @@ import {
   sessionCreatorStateAtom,
   workstationActiveSessionIdAtom,
 } from "@src/store/session";
+import { dispatchCategoryAtom } from "@src/store/session/creatorStateAtom";
+import { openCategoryPickerSignalAtom } from "@src/store/session/openCategoryPickerAtom";
+import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
   CHAT_PANEL_SURFACE_KIND,
@@ -79,6 +91,8 @@ import { useReloadSession } from "./ChatHistory/hooks/useReloadSession";
 import { ChatPanelContent } from "./ChatPanelContent";
 import { ChatPanelEmptyContent } from "./ChatPanelEmptyContent";
 import { ChatPanelHeader } from "./ChatPanelHeader";
+import { ChatPanelPlusMenu, ChatPanelTabBar } from "./ChatPanelTabBar";
+import { ChatPanelTerminalContent } from "./ChatPanelTerminalContent";
 import {
   ChatPanelHeaderBreadcrumb,
   ChatPanelSurfaceHeaderPublisher,
@@ -143,6 +157,28 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const activeSession = currentSession ?? undefined;
     const handleReloadSession = useReloadSession(currentSessionId ?? null);
 
+    // Sync active session ID + derived title into the active session tab
+    const setTabSessionId = useSetAtom(setChatPanelTabSessionIdAtom);
+    const setTabTitle = useSetAtom(setChatPanelTabTitleAtom);
+    const activeTabForSync = useAtomValue(activeChatPanelTabAtom);
+    useEffect(() => {
+      if (!activeTabForSync || activeTabForSync.type !== "session") return;
+      if (activeTabForSync.sessionId !== (currentSessionId ?? null)) {
+        setTabSessionId({
+          tabId: activeTabForSync.id,
+          sessionId: currentSessionId ?? null,
+        });
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTabForSync?.id, currentSessionId, setTabSessionId]);
+    useEffect(() => {
+      if (!activeTabForSync || activeTabForSync.type !== "session") return;
+      if (panelTitle && panelTitle !== activeTabForSync.title) {
+        setTabTitle({ tabId: activeTabForSync.id, title: panelTitle });
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTabForSync?.id, panelTitle, setTabTitle]);
+
     const [contentMode, setContentMode] = useAtom(chatPanelContentModeAtom);
     const [createTarget, setCreateTarget] = useAtom(chatPanelCreateTargetAtom);
     const [startPageOpen, setStartPageOpen] = useAtom(
@@ -197,6 +233,13 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       toggleChatFocus();
     }, [toggleChatFocus]);
 
+    const isCliAgentSession = currentSession?.category === "cli_agent";
+    const [tuiMode, setTuiMode] = useAtom(tuiModeAtom(currentSessionId ?? ""));
+    const showTuiModeToggle = Boolean(currentSessionId) && isCliAgentSession;
+    const handleTuiModeToggle = useCallback(() => {
+      setTuiMode((prev) => !prev);
+    }, [setTuiMode]);
+
     const openSearchRef = React.useRef<(() => void) | null>(null);
     const {
       isOpen: isHeaderActionsOpen,
@@ -241,6 +284,61 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const setSelectedWorkItem = useSetAtom(chatPanelSelectedWorkItemAtom);
     const setSelectedProject = useSetAtom(chatPanelSelectedProjectAtom);
     const dispatchClearSession = useSetAtom(clearSessionAtom);
+    const setDispatchCategory = useSetAtom(dispatchCategoryAtom);
+    const bumpOpenCategoryPicker = useSetAtom(openCategoryPickerSignalAtom);
+
+    // ── Multi-tab system ───────────────────────────────────────────────────
+    const activeTab = useAtomValue(activeChatPanelTabAtom);
+    const allTabs = useAtomValue(chatPanelTabsAtom).tabs;
+    const addSessionTab = useSetAtom(addChatPanelSessionTabAtom);
+    const addTerminalTab = useSetAtom(addChatPanelTerminalTabAtom);
+    const createTerminalSession = useSetAtom(createChatPanelTerminalAtom);
+
+    const handleNewTerminalTab = useCallback(() => {
+      const terminalSessionId = createTerminalSession("Terminal");
+      addTerminalTab(terminalSessionId);
+    }, [createTerminalSession, addTerminalTab]);
+
+    // Opens a new session in a new tab (called from the tab bar + menu)
+    const handleNewSessionTab = useCallback(() => {
+      addSessionTab();
+      setStartPageOpen(false);
+      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+      dispatchClearSession();
+      setWorkstationActiveSessionId(null);
+      setActiveSessionId(null);
+    }, [
+      addSessionTab,
+      dispatchClearSession,
+      navigateChatPanel,
+      setActiveSessionId,
+      setStartPageOpen,
+      setWorkstationActiveSessionId,
+    ]);
+
+    // Opens a new session tab pre-set to CLI agent category → opens the picker
+    const handleCliSessionTab = useCallback(() => {
+      addSessionTab();
+      setStartPageOpen(false);
+      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+      dispatchClearSession();
+      setWorkstationActiveSessionId(null);
+      setActiveSessionId(null);
+      setDispatchCategory("cli_agent");
+      bumpOpenCategoryPicker((prev) => prev + 1);
+    }, [
+      addSessionTab,
+      bumpOpenCategoryPicker,
+      dispatchClearSession,
+      navigateChatPanel,
+      setActiveSessionId,
+      setDispatchCategory,
+      setStartPageOpen,
+      setWorkstationActiveSessionId,
+    ]);
+
+    const isTerminalTabActive = activeTab?.type === "terminal";
+
     const creatorState = useAtomValue(sessionCreatorStateAtom);
     const setCreatorState = useSetAtom(sessionCreatorStateAtom);
     const bumpProjectListRefresh = useSetAtom(projectListRefreshAtom);
@@ -313,6 +411,24 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       dispatchClearSession,
       navigateChatPanel,
       setActiveSessionId,
+      setStartPageOpen,
+      setWorkstationActiveSessionId,
+    ]);
+
+    const handleStartPageCliSession = useCallback(() => {
+      setStartPageOpen(false);
+      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+      dispatchClearSession();
+      setWorkstationActiveSessionId(null);
+      setActiveSessionId(null);
+      setDispatchCategory("cli_agent");
+      bumpOpenCategoryPicker((prev) => prev + 1);
+    }, [
+      bumpOpenCategoryPicker,
+      dispatchClearSession,
+      navigateChatPanel,
+      setActiveSessionId,
+      setDispatchCategory,
       setStartPageOpen,
       setWorkstationActiveSessionId,
     ]);
@@ -643,6 +759,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleChatPanelWorkItemCreated={handleChatPanelWorkItemCreated}
         handleRegionNoticeChange={handleRegionNoticeChange}
         handleStartPageAddApiKey={handleStartPageAddApiKey}
+        handleStartPageCliSession={handleStartPageCliSession}
         handleStartPageExploreRepos={handleStartPageExploreRepos}
         handleStartPageManageIssues={handleStartPageManageIssues}
         handleStartPageNewSession={handleNewSession}
@@ -666,6 +783,22 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       contentState.showWorkspaceDashboardContent ||
       contentState.showCollabOrgContent ||
       contentState.showWorkspaceOverviewContent;
+
+    const tabStrip = (
+      <ChatPanelTabBar
+        onNewSession={handleNewSessionTab}
+        onNewTerminal={handleNewTerminalTab}
+        containerRef={panelRef}
+      />
+    );
+
+    const tabStripPlus = (
+      <ChatPanelPlusMenu
+        onNewSession={handleNewSessionTab}
+        onNewTerminal={handleNewTerminalTab}
+        onCliSession={handleCliSessionTab}
+      />
+    );
 
     const headerSection = (
       <>
@@ -745,6 +878,11 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           showSessionContent={contentState.showSessionContent}
           showStartPage={startPageOpen}
           showWorkItemAgentCreator={showWorkItemAgentCreator}
+          showTuiModeToggle={showTuiModeToggle}
+          tuiMode={tuiMode}
+          handleTuiModeToggle={handleTuiModeToggle}
+          tabStrip={tabStrip}
+          tabStripPlus={tabStripPlus}
           showWorkItemAgentSwitchInHeader={
             contentState.showWorkItemAgentSwitchInHeader
           }
@@ -791,6 +929,13 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       />
     );
 
+    // All terminal tabs are kept mounted simultaneously — only the active one
+    // is visible. display:none keeps the PTY connection and xterm's internal
+    // state alive across tab switches (mirrors Orca's TerminalPane.tsx approach).
+    const terminalTabs = allTabs.filter(
+      (tab) => tab.type === "terminal" && tab.terminalSessionId
+    );
+
     const mainPanel = (
       <div
         key="chat-panel-main"
@@ -813,8 +958,31 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           ...chatPanelOpacityStyle,
         }}
       >
+        {/* Header always visible across all tab types */}
         {headerSection}
-        {chatColumn}
+        {/* Session tab content — hidden when a terminal tab is active */}
+        <div style={{ display: isTerminalTabActive ? "none" : "contents" }}>
+          {chatColumn}
+        </div>
+        {/* Terminal tab contents — all kept mounted; only active tab is visible */}
+        {terminalTabs.map((tab) => {
+          const isActive = !isTerminalTabActive
+            ? false
+            : tab.id === activeTab?.id;
+          return (
+            <div
+              key={tab.id}
+              style={{ display: isActive ? "flex" : "none" }}
+              className="min-h-0 flex-1 flex-col"
+            >
+              <ChatPanelTerminalContent
+                tabId={tab.id}
+                terminalSessionId={tab.terminalSessionId!}
+                cliCommand={tab.cliCommand}
+              />
+            </div>
+          );
+        })}
       </div>
     );
 

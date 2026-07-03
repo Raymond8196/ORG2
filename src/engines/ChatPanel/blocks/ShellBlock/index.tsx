@@ -89,6 +89,8 @@ export type ShellBlockProps = UniversalEventProps & {
    * Same triple as `title` — the adapter passes `labels.failed`.
    */
   failedLabel: string;
+  /** When true, renders output through xterm.js instead of ansi-to-react. */
+  tuiRendering?: boolean;
 };
 
 interface KillVariantProps {
@@ -272,6 +274,7 @@ const RunShellView: React.FC<ShellBlockProps> = (props) => {
       processStatus={shellProcessStatus}
       onStop={handleStop}
       toolUsage={props.toolUsage}
+      tuiRendering={props.tuiRendering}
     />
   );
 };

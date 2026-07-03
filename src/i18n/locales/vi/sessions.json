@@ -706,7 +706,7 @@
         "title": "Phiên mới"
       },
       "cliSession": {
-        "title": "Dùng CLI Agent"
+        "title": "Phiên mới (TUI)"
       },
       "newWorkItem": {
         "title": "Work item mới"
@@ -799,7 +799,10 @@
     "tuiModeOn": "Chế độ TUI (nhấp để tắt)",
     "tuiModeOff": "Bật chế độ TUI",
     "tabs": {
-      "newTerminal": "Terminal Mới"
+      "newTerminal": "Terminal Mới",
+      "newTab": "Tab mới",
+      "terminals": "Terminal",
+      "newTuiSession": "Phiên mới (TUI)"
     },
     "collapseAll": "Thu gọn tất cả",
     "copyEventJson": "Sao chép JSON sự kiện",

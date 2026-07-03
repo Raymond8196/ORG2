@@ -59,8 +59,11 @@ import {
   sessionTargetKindAtom,
 } from "@src/store/session";
 import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
+import { creatorDefaultTuiModeAtom } from "@src/store/session/creatorDefaultTuiModeAtom";
+import { openCategoryPickerSignalAtom } from "@src/store/session/openCategoryPickerAtom";
 import { runningLocationAtom } from "@src/store/session/runningLocationAtom";
 import { selectedWorktreePathAtom } from "@src/store/session/selectedWorktreePathAtom";
+import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import {
   type ChatImageAttachment,
   chatImageAttachmentsAtom,
@@ -170,12 +173,18 @@ const SessionCreatorChatPanelSingle: React.FC<
       }),
     [selectedProjectContext, selectedProjectOrgContext, selectedWorkItemContext]
   );
+  const defaultTuiMode = useAtomValue(creatorDefaultTuiModeAtom);
+  const store = useStore();
+
   const handleSessionStart = useCallback(
     (info: SessionLaunchSuccessInfo) => {
       setAttachedWorkItemContext(null);
+      if (defaultTuiMode) {
+        store.set(tuiModeAtom(info.sessionId), true);
+      }
       onSessionStart?.(info);
     },
-    [onSessionStart]
+    [onSessionStart, defaultTuiMode, store]
   );
 
   const {
@@ -259,6 +268,16 @@ const SessionCreatorChatPanelSingle: React.FC<
   const isCursorIdeMode = dispatchCategory === "cursor_ide";
 
   const [isCategorySelectorOpen, setIsCategorySelectorOpen] = useState(false);
+  const openCategoryPickerSignal = useAtomValue(openCategoryPickerSignalAtom);
+  const prevOpenCategoryPickerSignalRef = useRef(openCategoryPickerSignal);
+  useEffect(() => {
+    if (openCategoryPickerSignal !== prevOpenCategoryPickerSignalRef.current) {
+      prevOpenCategoryPickerSignalRef.current = openCategoryPickerSignal;
+      // Defer out of the effect body to avoid synchronous setState cascades
+      queueMicrotask(() => setIsCategorySelectorOpen(true));
+    }
+  }, [openCategoryPickerSignal]);
+
   const agentHeroRef = useRef<HTMLButtonElement>(null);
   const workItemPanelHostRef = useRef<HTMLDivElement>(null);
   const setSessionSource = useSetAtom(sessionSourceAtom);
@@ -322,7 +341,6 @@ const SessionCreatorChatPanelSingle: React.FC<
 
   // ── Restore text ──────────────────────────────────────────────────────────
 
-  const store = useStore();
   const restoreToInput = useAtomValue(restoreToInputAtom);
   const setImageAttachments = useSetAtom(chatImageAttachmentsAtom);
   const [initialRestoreText] = useState<string>(() => {
@@ -734,46 +752,77 @@ const SessionCreatorChatPanelSingle: React.FC<
         <div
           className={`flex w-full flex-col items-stretch gap-3 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
         >
-          {headerLayout !== "compact" && (
-            <SessionCreatorAgentHero
-              ref={agentHeroRef}
-              name={heroContent.name}
-              description={heroContent.description}
-              avatarIcon={heroIcon}
-              active={isCategorySelectorOpen}
-              danger={heroContent.danger}
-              onClick={() => setIsCategorySelectorOpen(true)}
-            />
-          )}
-
-          {isWingmanMode && (
-            <button
-              type="button"
-              className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
-              onClick={() => {
-                handleShareScreenClick().catch(log.error);
-              }}
-            >
-              <Airplay size={13} strokeWidth={1.75} />
-              {t("chat.shareScreen")}
-            </button>
-          )}
-
-          <div
-            className={`session-creator-chat-panel-fullscreen-composer w-full ${
-              headerLayout === "compact"
-                ? "session-creator-chat-panel-fullscreen-composer-compact"
-                : ""
-            }`}
-          >
-            {compactHeader}
-            {editorArea}
-            {!hideRepoLine && headerLayout !== "compact" && (
-              <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
-                {repoPills}
+          {isCliMode ? (
+            <div className="bg-surface-1 flex w-full flex-col overflow-hidden rounded-2xl">
+              {headerLayout !== "compact" && (
+                <div className="p-3 pb-0">
+                  <SessionCreatorAgentHero
+                    ref={agentHeroRef}
+                    name={heroContent.name}
+                    description={heroContent.description}
+                    avatarIcon={heroIcon}
+                    active={isCategorySelectorOpen}
+                    danger={heroContent.danger}
+                    onClick={() => setIsCategorySelectorOpen(true)}
+                  />
+                </div>
+              )}
+              <div className="p-3">
+                <button
+                  type="button"
+                  onClick={handleLaunch}
+                  disabled={!canLaunch || isLoading}
+                  className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {t("creator.start")}
+                </button>
+                <div className="px-1 pb-2 pt-3">{repoPills}</div>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <>
+              {headerLayout !== "compact" && (
+                <SessionCreatorAgentHero
+                  ref={agentHeroRef}
+                  name={heroContent.name}
+                  description={heroContent.description}
+                  avatarIcon={heroIcon}
+                  active={isCategorySelectorOpen}
+                  danger={heroContent.danger}
+                  onClick={() => setIsCategorySelectorOpen(true)}
+                />
+              )}
+
+              {isWingmanMode && (
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
+                  onClick={() => {
+                    handleShareScreenClick().catch(log.error);
+                  }}
+                >
+                  <Airplay size={13} strokeWidth={1.75} />
+                  {t("chat.shareScreen")}
+                </button>
+              )}
+
+              <div
+                className={`session-creator-chat-panel-fullscreen-composer w-full ${
+                  headerLayout === "compact"
+                    ? "session-creator-chat-panel-fullscreen-composer-compact"
+                    : ""
+                }`}
+              >
+                {compactHeader}
+                {editorArea}
+                {!hideRepoLine && headerLayout !== "compact" && (
+                  <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
+                    {repoPills}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           {showMissingGitAlert && (
             <div
@@ -891,6 +940,7 @@ const SessionCreatorChatPanelSingle: React.FC<
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
           currentCliAgentType={cliAgentType ?? undefined}
+          cliOnly={isCliMode}
         />
       )}
 

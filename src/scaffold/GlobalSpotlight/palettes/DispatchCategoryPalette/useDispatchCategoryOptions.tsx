@@ -65,6 +65,8 @@ export interface DispatchCategoryOptionGroup {
 export interface UseDispatchCategoryOptionsArgs {
   isOpen: boolean;
   hideOrgs: boolean;
+  /** When true, only CLI agent entries are included (Rust-native agents and orgs are hidden). */
+  cliOnly?: boolean;
   currentCategory: DispatchCategory;
   currentAgentDefinitionId?: string;
   currentAgentOrgId?: string;
@@ -133,6 +135,7 @@ export function useDispatchCategoryOptions(
   const {
     isOpen,
     hideOrgs,
+    cliOnly = false,
     currentCategory,
     currentAgentDefinitionId,
     currentAgentOrgId,
@@ -314,14 +317,18 @@ export function useDispatchCategoryOptions(
   }, []);
 
   const allOptions = useMemo(
-    () => [
-      ...builtInRustOptions,
-      ...cliOptions,
-      ...externalIdeOptions,
-      ...customAgentOptions,
-      ...(hideOrgs ? [] : orgOptions),
-    ],
+    () =>
+      cliOnly
+        ? [...cliOptions]
+        : [
+            ...builtInRustOptions,
+            ...cliOptions,
+            ...externalIdeOptions,
+            ...customAgentOptions,
+            ...(hideOrgs ? [] : orgOptions),
+          ],
     [
+      cliOnly,
       builtInRustOptions,
       cliOptions,
       externalIdeOptions,
@@ -341,19 +348,28 @@ export function useDispatchCategoryOptions(
       if (options.length === 0) return;
       result.push({ headerId, headerLabel, options });
     };
-    push("__header_builtin__", t("creator.builtInAgents"), builtInRustOptions);
+    if (!cliOnly) {
+      push(
+        "__header_builtin__",
+        t("creator.builtInAgents"),
+        builtInRustOptions
+      );
+    }
     push("__header_cli__", t("creator.cliAgents"), cliOptions);
-    push(
-      "__header_external_ide__",
-      t("creator.externalIdes"),
-      externalIdeOptions
-    );
-    push("__header_custom__", t("creator.customAgents"), customAgentOptions);
-    if (!hideOrgs) {
-      push("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+    if (!cliOnly) {
+      push(
+        "__header_external_ide__",
+        t("creator.externalIdes"),
+        externalIdeOptions
+      );
+      push("__header_custom__", t("creator.customAgents"), customAgentOptions);
+      if (!hideOrgs) {
+        push("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+      }
     }
     return result;
   }, [
+    cliOnly,
     builtInRustOptions,
     cliOptions,
     externalIdeOptions,

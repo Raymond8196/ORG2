@@ -706,7 +706,7 @@
         "title": "新しいセッション"
       },
       "cliSession": {
-        "title": "CLI Agent を使用"
+        "title": "新規セッション (TUI)"
       },
       "newWorkItem": {
         "title": "新しい work item"
@@ -799,7 +799,10 @@
     "tuiModeOn": "TUI モード（クリックで無効化）",
     "tuiModeOff": "TUI モードを有効にする",
     "tabs": {
-      "newTerminal": "新しいターミナル"
+      "newTerminal": "新しいターミナル",
+      "newTab": "新しいタブ",
+      "terminals": "ターミナル",
+      "newTuiSession": "新しいセッション (TUI)"
     },
     "collapseAll": "すべて折りたたむ",
     "copyEventJson": "イベント JSON をコピー",

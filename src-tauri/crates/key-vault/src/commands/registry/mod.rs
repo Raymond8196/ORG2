@@ -76,6 +76,9 @@ pub struct AvailableAgent {
     /// Whether this agent can use ORGII Pool (Token Market) billing.
     /// Only Rust-native agents support ORGII Pool; all CLI agents are false.
     pub supports_orgii_pool: bool,
+    /// Bare binary name used to launch the agent in a PTY shell (e.g. "claude", "gemini").
+    /// Matches the `command` field in `CLI_BINARY_METADATA` / `CliAgentEntry.binary`.
+    pub command: String,
 }
 
 /// API provider info — single source of truth for API key provider metadata.

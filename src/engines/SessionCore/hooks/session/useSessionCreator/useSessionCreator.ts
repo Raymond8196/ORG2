@@ -412,7 +412,7 @@ export function useSessionCreator(
   const isContentEmpty = !editorContent || !editorContent.trim();
 
   const canLaunch = useMemo(() => {
-    if (isContentEmpty) return false;
+    if (isContentEmpty && dispatchCategory !== "cli_agent") return false;
     if (
       dispatchCategory === "rust_agent" &&
       !isOSMode &&
