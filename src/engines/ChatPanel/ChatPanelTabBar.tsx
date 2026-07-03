@@ -37,6 +37,7 @@ import {
 import SessionHoverCard from "@src/components/SessionHoverCard";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { TERMINAL_AGENT_STATUS } from "@src/engines/TerminalCore/types";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared/TabBar/components/TabBarTrailingIconButton";
 import { TabLabelRowScrim } from "@src/modules/WorkStation/shared/TabBar/components/TabLabelRowScrim";
 import { TabPillCloseButton } from "@src/modules/WorkStation/shared/TabBar/components/TabPillCloseButton";
@@ -50,6 +51,7 @@ import {
   nextChatPanelTabAtom,
   prevChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
+import { terminalSessionsAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
 import { sessionByIdAtom } from "@src/store/session";
 import { isWindows } from "@src/util/platform/tauri";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
@@ -57,6 +59,13 @@ import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const isMac = !isWindows();
+
+const TERMINAL_AGENT_STATUS_DOT_CLASS = {
+  [TERMINAL_AGENT_STATUS.STARTING]: "bg-warning-6",
+  [TERMINAL_AGENT_STATUS.RUNNING]: "bg-success-6",
+  [TERMINAL_AGENT_STATUS.WAITING]: "bg-warning-6",
+  [TERMINAL_AGENT_STATUS.DONE]: "bg-fill-4",
+} as const;
 
 // ─── TabPill ──────────────────────────────────────────────────────────────────
 
@@ -79,6 +88,14 @@ const TabPill = memo(function TabPill({
 
   // Read session data for icon + hover card (session tabs only)
   const session = useAtomValue(sessionByIdAtom(tab.sessionId ?? ""));
+  const terminalSessions = useAtomValue(terminalSessionsAtom);
+  const terminalSession =
+    tab.type === "terminal"
+      ? terminalSessions.find(
+          (candidate) => candidate.id === tab.terminalSessionId
+        )
+      : undefined;
+  const agentStatus = terminalSession?.agentStatus;
 
   const iconColorClass = isActive ? "text-primary-6" : "text-text-2";
 
@@ -135,6 +152,12 @@ const TabPill = memo(function TabPill({
         >
           {tab.title}
         </span>
+        {agentStatus && (
+          <span
+            aria-hidden="true"
+            className={`ml-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${TERMINAL_AGENT_STATUS_DOT_CLASS[agentStatus]}`}
+          />
+        )}
         <TabLabelRowScrim visible={showCloseSlot} />
       </div>
       {tab.closable && (
@@ -159,7 +182,7 @@ const TabPill = memo(function TabPill({
   // Session tabs with an active session get the hover card
   if (tab.type === "session" && tab.sessionId) {
     return (
-      <SessionHoverCard sessionId={tab.sessionId} position="bottom">
+      <SessionHoverCard sessionId={tab.sessionId} position="bottom-start">
         {pill}
       </SessionHoverCard>
     );
@@ -209,7 +232,7 @@ function PlusMenuContent({
     {
       id: "terminal",
       icon: <TerminalSquare size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("chat.tabs.newTuiSession"),
+      label: t("chat.tabs.newTerminal"),
       onClick: onTerminal,
     },
   ] as const;

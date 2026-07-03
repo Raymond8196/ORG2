@@ -108,7 +108,11 @@ import { useChatPanelSessionModals } from "./hooks/useChatPanelSessionModals";
 import { usePanelTitle } from "./hooks/usePanelTitle";
 import { useProjectWorkItemHandlers } from "./hooks/useProjectWorkItemHandlers";
 import { useViewportWidth } from "./hooks/useViewportWidth";
-import type { ChatPanelProps, ChatPanelRegionNotice } from "./types";
+import type {
+  ChatPanelCliTerminalLaunchOptions,
+  ChatPanelProps,
+  ChatPanelRegionNotice,
+} from "./types";
 
 const COLLAB_HEADER_STATUS_COLOR: Record<CollabConnectionStatus, string> = {
   [COLLAB_CONNECTION_STATUS.CONNECTED]: "bg-success-6",
@@ -301,6 +305,31 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       const terminalSessionId = createTerminalSession("Terminal");
       addTerminalTab(terminalSessionId);
     }, [createTerminalSession, addTerminalTab]);
+
+    const handleOpenCliTerminal = useCallback(
+      (options: ChatPanelCliTerminalLaunchOptions) => {
+        const terminalSessionId = createTerminalSession({
+          name: options.title,
+          cwd: options.cwd,
+          cliAgentType: options.cliAgentType,
+          agentCommand: options.command,
+          expectedProcess: options.expectedProcess,
+        });
+        addTerminalTab({
+          terminalSessionId,
+          title: options.title,
+          cliCommand: options.command,
+        });
+        setStartPageOpen(false);
+        navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+      },
+      [
+        addTerminalTab,
+        createTerminalSession,
+        navigateChatPanel,
+        setStartPageOpen,
+      ]
+    );
 
     // Opens a new session in a new tab (called from the tab bar + menu)
     const handleNewSessionTab = useCallback(() => {
@@ -760,6 +789,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleChatPanelProjectCreated={handleChatPanelProjectCreated}
         handleChatPanelCollabOrgCreated={handleChatPanelCollabOrgCreated}
         handleChatPanelWorkItemCreated={handleChatPanelWorkItemCreated}
+        handleOpenCliTerminal={handleOpenCliTerminal}
         handleRegionNoticeChange={handleRegionNoticeChange}
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageCliSession={handleStartPageCliSession}
@@ -976,12 +1006,13 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
             <div
               key={tab.id}
               style={{ display: isActive ? "flex" : "none" }}
-              className="min-h-0 flex-1 flex-col"
+              className="min-h-0 w-full flex-1 flex-col overflow-hidden"
             >
               <ChatPanelTerminalContent
                 tabId={tab.id}
                 terminalSessionId={tab.terminalSessionId!}
                 cliCommand={tab.cliCommand}
+                visible={isActive}
               />
             </div>
           );

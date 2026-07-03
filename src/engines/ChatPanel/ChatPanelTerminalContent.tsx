@@ -21,12 +21,19 @@
  *     panel — no additional polling is introduced here.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { TerminalCore } from "@src/engines/TerminalCore";
-import type {
-  AddSessionOptions,
-  UseTerminalStateReturn,
+import {
+  type AddSessionOptions,
+  TERMINAL_AGENT_STATUS,
+  type UseTerminalStateReturn,
 } from "@src/engines/TerminalCore/types";
 import { createLogger } from "@src/hooks/logger";
 import {
@@ -39,7 +46,7 @@ import {
   terminalSessionsAtom,
   updateTerminalSessionInfoAtom,
 } from "@src/store/chatPanel/chatPanelTerminalAtom";
-import { invokeTauri } from "@src/util/platform/tauri/init";
+import { invokeTauri, listenTauri } from "@src/util/platform/tauri/init";
 import { toBackendPtySessionId } from "@src/util/ui/terminal/ptySessionId";
 
 const logger = createLogger("ChatPanelTerminalContent");
@@ -57,6 +64,7 @@ interface ChatPanelTerminalContentProps {
    */
   cliCommand?: string;
   className?: string;
+  visible?: boolean;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────
@@ -66,6 +74,7 @@ export function ChatPanelTerminalContent({
   terminalSessionId,
   cliCommand,
   className = "",
+  visible = true,
 }: ChatPanelTerminalContentProps): React.ReactNode {
   const allSessions = useAtomValue(terminalSessionsAtom);
   const initializedIds = useAtomValue(initializedTerminalIdsAtom);
@@ -86,6 +95,22 @@ export function ChatPanelTerminalContent({
       setTabTitle({ tabId, title: session.name });
     }
   }, [session?.name, tabId, setTabTitle]);
+
+  useEffect(() => {
+    if (!session?.agentCommand) return;
+
+    const ptySessionId = toBackendPtySessionId(terminalSessionId);
+    const unlistenPromise = listenTauri(`pty-exit-${ptySessionId}`, () => {
+      dispatchUpdateInfo({
+        sessionId: terminalSessionId,
+        info: { agentStatus: TERMINAL_AGENT_STATUS.DONE },
+      });
+    });
+
+    return () => {
+      unlistenPromise.then((unlisten) => unlisten()).catch(() => undefined);
+    };
+  }, [session?.agentCommand, terminalSessionId, dispatchUpdateInfo]);
 
   // Track whether we've already injected the CLI command to avoid double-write
   const injectedRef = useRef(false);
@@ -183,6 +208,20 @@ export function ChatPanelTerminalContent({
     ]
   );
 
+  // Resolve the *visible* chat-pane background at runtime so xterm's opaque
+  // WebGL fill matches whatever the chat-pane surface looks like right now.
+  // We read the parent's computed `background-color` (an already-resolved
+  // rgb/rgba value) so any wallpaper tint via page-opacity is captured too.
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [resolvedBg, setResolvedBg] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const node = wrapperRef.current;
+    if (!node) return;
+    const computed = getComputedStyle(node).backgroundColor;
+    if (computed && computed !== "rgba(0, 0, 0, 0)") setResolvedBg(computed);
+  }, [visible]);
+
   if (!session) {
     return (
       <div
@@ -194,9 +233,16 @@ export function ChatPanelTerminalContent({
   }
 
   return (
-    <TerminalCore
-      terminalState={terminalState}
-      className={`terminal-core min-h-0 flex-1 ${className}`}
-    />
+    <div
+      ref={wrapperRef}
+      className={`chat-panel-terminal-wrapper flex min-h-0 w-full flex-1 flex-col bg-chat-pane ${className}`}
+    >
+      <TerminalCore
+        terminalState={terminalState}
+        className="terminal-core chat-panel-terminal-core min-h-0 flex-1 bg-chat-pane"
+        backgroundColor={resolvedBg ?? "var(--color-chat-pane-base)"}
+        visible={visible}
+      />
+    </div>
   );
 }
