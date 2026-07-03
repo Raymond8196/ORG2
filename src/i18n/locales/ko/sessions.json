@@ -705,6 +705,9 @@
       "newSession": {
         "title": "새 세션"
       },
+      "cliSession": {
+        "title": "새 세션 (TUI)"
+      },
       "newWorkItem": {
         "title": "새 work item"
       },
@@ -793,6 +796,14 @@
     "hideWorkstation": "Workstation 숨기기",
     "restoreSplitView": "Workstation 표시",
     "shrinkToWorkstation": "Chat 패널 축소 (Workstation 표시)",
+    "tuiModeOn": "TUI 모드 (클릭하여 비활성화)",
+    "tuiModeOff": "TUI 모드 활성화",
+    "tabs": {
+      "newTerminal": "새 터미널",
+      "newTab": "새 탭",
+      "terminals": "터미널",
+      "newTuiSession": "새 세션 (TUI)"
+    },
     "collapseAll": "모두 접기",
     "copyEventJson": "이벤트 JSON 복사",
     "copyEventJsonCopied": "복사됨!",
@@ -944,7 +955,8 @@
         "byMe": "내가 작성",
         "mentioned": "멘션됨"
       }
-    }
+    },
+    "readOnly": "읽기 전용"
   },
   "chatStatus": {
     "approved": "승인됨",
@@ -1201,6 +1213,9 @@
     "askUserSkipped": "건너뜀",
     "askUserQuestionsAnswered": "질문에 답변함",
     "askUserQuestionsSkipped": "질문 건너뜀",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "프로세스 종료 중",
     "killProcessDone": "프로세스 종료됨",
     "killProcessFailed": "프로세스 종료 실패",

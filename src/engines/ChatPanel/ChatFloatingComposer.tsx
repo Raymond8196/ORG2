@@ -10,7 +10,6 @@ import {
   toChatRetryKind,
 } from "@src/engines/ChatPanel/components/ChatStatusBanners";
 import type { PendingPlanApproval } from "@src/store/session/planApprovalAtom";
-import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 
 import type { ScrollNavState } from "./ChatHistory";
 import InputArea from "./InputArea";
@@ -26,7 +25,6 @@ import CompactFileChanges, {
   type FileChangeVisibleStats,
   type FileChangesResult,
 } from "./InputArea/components/CompactFileChanges";
-import CursorIdeFocusPoller from "./InputArea/components/CursorIdeFocusPoller";
 import QueueEditModeCard from "./InputArea/components/QueueEditModeCard";
 import QueuedMessages from "./InputArea/components/QueuedMessages";
 import { createFileInlineSection } from "./InputArea/hooks/useComposerSections";
@@ -296,7 +294,6 @@ const ChatFloatingComposer: React.FC<ChatFloatingComposerProps> = memo(
           />
 
           <QueueEditModeCard />
-
           {groupChatPendingMessage && groupChatViewActive && (
             <div
               data-testid="agent-org-group-chat-pending"
@@ -362,9 +359,6 @@ const ChatFloatingComposer: React.FC<ChatFloatingComposerProps> = memo(
             bottomAnchored
             {...queueEditProps}
           />
-          {isCursorIdeSession(sessionId) && (
-            <CursorIdeFocusPoller sessionId={sessionId} />
-          )}
         </div>
       </div>
     );

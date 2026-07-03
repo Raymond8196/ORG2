@@ -705,6 +705,9 @@
       "newSession": {
         "title": "Neue Sitzung"
       },
+      "cliSession": {
+        "title": "Neue Sitzung (TUI)"
+      },
       "newWorkItem": {
         "title": "Neues work item"
       },
@@ -793,6 +796,14 @@
     "hideWorkstation": "Workstation ausblenden",
     "restoreSplitView": "Workstation anzeigen",
     "shrinkToWorkstation": "Chat-Panel verkleinern (Workstation anzeigen)",
+    "tuiModeOn": "TUI-Modus (zum Deaktivieren klicken)",
+    "tuiModeOff": "TUI-Modus aktivieren",
+    "tabs": {
+      "newTerminal": "Neues Terminal",
+      "newTab": "Neuer Tab",
+      "terminals": "Terminals",
+      "newTuiSession": "Neue Sitzung (TUI)"
+    },
     "collapseAll": "Alle einklappen",
     "copyEventJson": "Event-JSON kopieren",
     "copyEventJsonCopied": "Kopiert!",
@@ -944,7 +955,8 @@
         "byMe": "Von mir",
         "mentioned": "Erwähnt"
       }
-    }
+    },
+    "readOnly": "Schreibgeschützt"
   },
   "chatStatus": {
     "approved": "Genehmigt",
@@ -1201,6 +1213,9 @@
     "askUserSkipped": "Übersprungen",
     "askUserQuestionsAnswered": "Fragen beantwortet",
     "askUserQuestionsSkipped": "Fragen übersprungen",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "Prozess wird beendet",
     "killProcessDone": "Prozess beendet",
     "killProcessFailed": "Prozess konnte nicht beendet werden",

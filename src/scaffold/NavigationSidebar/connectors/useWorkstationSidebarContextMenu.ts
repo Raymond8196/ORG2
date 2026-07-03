@@ -27,6 +27,7 @@ interface UseWorkstationSidebarContextMenuParams {
   handleDeleteSession: (sessionId: string) => Promise<void>;
   handleDeleteDraft: (draftId: string) => void;
   handleExportMarkdown: (sessionId: string) => Promise<void>;
+  handleOpenInNewTab: (sessionId: string) => void;
   handleTogglePin: (sessionId: string) => Promise<void>;
   tCommon: (key: string, defaultValue?: string) => string;
 }
@@ -37,6 +38,7 @@ export function useWorkstationSidebarContextMenu({
   handleDeleteSession,
   handleDeleteDraft,
   handleExportMarkdown,
+  handleOpenInNewTab,
   handleTogglePin,
   tCommon,
 }: UseWorkstationSidebarContextMenuParams): (
@@ -63,12 +65,22 @@ export function useWorkstationSidebarContextMenu({
 
       if (!sessionMap.has(item.id)) return;
 
-      if (isCursorIdeSession(item.id)) return;
-
+      const isCursorIde = isCursorIdeSession(item.id);
       const session = sessionMap.get(item.id);
       const isCliSessionItem = isCliSession(item.id);
 
       try {
+        const openInNewTabItem = await MenuItem.new({
+          text: tCommon("actions.openInNewTab", "Open in New Tab"),
+          action: () => handleOpenInNewTab(item.id),
+        });
+
+        if (isCursorIde) {
+          const menu = await TauriMenu.new({ items: [openInNewTabItem] });
+          await menu.popup();
+          return;
+        }
+
         const renameItem = await MenuItem.new({
           text: tCommon("actions.rename"),
           action: () => rename.open(item.id, sessionMap),
@@ -91,7 +103,7 @@ export function useWorkstationSidebarContextMenu({
         const menuSeparator = await PredefinedMenuItem.new({
           item: "Separator",
         });
-        const primaryItems = [renameItem, exportItem];
+        const primaryItems = [openInNewTabItem, renameItem, exportItem];
         const menuItems = isCliSessionItem
           ? [...primaryItems, menuSeparator, deleteItem]
           : [...primaryItems, pinItem, menuSeparator, deleteItem];
@@ -108,6 +120,7 @@ export function useWorkstationSidebarContextMenu({
       handleDeleteSession,
       handleDeleteDraft,
       handleExportMarkdown,
+      handleOpenInNewTab,
       handleTogglePin,
     ]
   );

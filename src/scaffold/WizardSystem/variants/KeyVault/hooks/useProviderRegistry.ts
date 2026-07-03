@@ -337,9 +337,12 @@ function buildUnifiedProviders(
     });
   }
 
-  // Third pass: Add standalone CLI agents
+  // Third pass: Add standalone CLI agents that have something to configure
+  // (subscription plan OR an API key env var). Agents with neither have no
+  // credentials to store in the key vault and should not appear here.
   for (const cli of agents) {
     if (usedAgents.has(cli.name)) continue;
+    if (!cli.hasSubscriptionPlan && !cli.envConfig?.apiKeyEnvVar) continue;
 
     providers.push({
       key: cli.name,

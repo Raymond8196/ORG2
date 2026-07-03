@@ -29,6 +29,21 @@ import type { DispatchCategory } from "@src/api/tauri/session";
 // ============================================
 
 /**
+ * Lifecycle hooks for IDE session types that require a persistent backend
+ * watch (e.g. a CDP WebSocket to a running IDE renderer). Both callbacks
+ * receive the full `sessionId` (e.g. `cursoride-<uuid>`).
+ *
+ * Reserved for future live-watch IDE integrations (Trae, Windsurf, etc.).
+ * Currently no session type registers a live watch.
+ */
+export interface SessionLiveWatchHooks {
+  /** Start the backend watch for this session. Called once on mount. */
+  startWatch: (sessionId: string) => Promise<void>;
+  /** Stop the backend watch. Called on unmount (navigation away). */
+  stopWatch: (sessionId: string) => Promise<void>;
+}
+
+/**
  * Session prefix configuration.
  * When adding a new agent type, add an entry here — all detection functions
  * will automatically recognize it.

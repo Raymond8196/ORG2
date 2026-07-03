@@ -709,6 +709,9 @@
       "newSession": {
         "title": "新建會話"
       },
+      "cliSession": {
+        "title": "新建會話 (TUI)"
+      },
       "newWorkItem": {
         "title": "新建工作項目"
       },
@@ -797,6 +800,14 @@
     "hideWorkstation": "隱藏工作站",
     "restoreSplitView": "顯示工作站",
     "shrinkToWorkstation": "縮小聊天面板（顯示工作站）",
+    "tuiModeOn": "TUI 模式（點擊關閉）",
+    "tuiModeOff": "啟用 TUI 模式",
+    "tabs": {
+      "newTerminal": "新終端",
+      "newTab": "新分頁",
+      "terminals": "終端機",
+      "newTuiSession": "新工作階段（TUI）"
+    },
     "collapseAll": "全部摺疊",
     "copyEventJson": "複製事件 JSON",
     "copyEventJsonCopied": "複製！",
@@ -948,7 +959,8 @@
         "byMe": "由我建立",
         "mentioned": "提及我"
       }
-    }
+    },
+    "readOnly": "唯讀"
   },
   "chatStatus": {
     "approved": "已批准",
@@ -1209,6 +1221,9 @@
     "askUserSkipped": "跳過",
     "askUserQuestionsAnswered": "回答問題",
     "askUserQuestionsSkipped": "跳過問題",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "正在終止進程",
     "killProcessDone": "終止進程",
     "killProcessFailed": "終止進程失敗",
