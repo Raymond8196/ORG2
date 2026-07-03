@@ -379,6 +379,9 @@ export const AvailableAgentSchema = z.object({
   supportsRustAgents: z.boolean(),
   /** Whether this agent can use ORGII Pool (Token Market) billing. Always false for CLI agents. */
   supportsOrgiiPool: z.boolean(),
+  /** Whether this CLI agent accepts an initial prompt from ORGII's GUI composer.
+   *  When false the session creator shows a Start button (pure-TUI mode). */
+  supportsGui: z.boolean(),
 });
 
 /** Matches `AvailableApiProvider` in `src-tauri/.../discovery.rs` (camelCase JSON). */

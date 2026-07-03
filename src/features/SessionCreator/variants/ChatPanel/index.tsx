@@ -147,6 +147,18 @@ const SessionCreatorChatPanelSingle: React.FC<
   const { orgs } = useAgentOrgs();
   const { agents: cliAgentList } = useCliAgents({ enabled: true });
 
+  // Read atoms needed before useSessionCreator so we can pass derived values in.
+  const dispatchCategory = useAtomValue(dispatchCategoryAtom);
+  const cliAgentType = useAtomValue(cliAgentTypeAtom);
+
+  const selectedCliAgent = useMemo(
+    () =>
+      dispatchCategory === "cli_agent" && cliAgentType
+        ? cliAgentList.find((agent) => agent.name === cliAgentType)
+        : undefined,
+    [dispatchCategory, cliAgentType, cliAgentList]
+  );
+
   const {
     repos: reposList,
     selectedRepoId,
@@ -233,18 +245,17 @@ const SessionCreatorChatPanelSingle: React.FC<
       attachedWorkItemContext ?? workItemContext ?? chatPanelLaunchContext,
     resolveWorkItemContext,
     onLaunchSuccess: handleSessionStart,
+    cliAgentSupportsGui: selectedCliAgent?.supportsGui ?? false,
   });
 
   const setCreatorState = useSetAtom(sessionCreatorStateAtom);
   const gitInstalled = useAtomValue(gitDependencyInstalledAtom);
   const showMissingGitAlert = gitInstalled === false;
-  const dispatchCategory = useAtomValue(dispatchCategoryAtom);
   const targetKind = useAtomValue(sessionTargetKindAtom);
   const selectedAgentDefId = useAtomValue(selectedAgentDefinitionIdAtom);
   const selectedAgentOrgId = useAtomValue(selectedAgentOrgIdAtom);
   const agentName = useAtomValue(agentNameAtom);
   const agentIconId = useAtomValue(agentIconIdAtom);
-  const cliAgentType = useAtomValue(cliAgentTypeAtom);
   const { builtInAgents, agents: customAgents } = useAgentDefinitions();
 
   const runningLocation = useAtomValue(runningLocationAtom);
@@ -266,6 +277,7 @@ const SessionCreatorChatPanelSingle: React.FC<
   const isWingmanMode = isRustMode && agentVariant === "wingman";
   const isCliMode = dispatchCategory === "cli_agent";
   const isCursorIdeMode = dispatchCategory === "cursor_ide";
+  const isCliTuiMode = isCliMode && !selectedCliAgent?.supportsGui;
 
   const [isCategorySelectorOpen, setIsCategorySelectorOpen] = useState(false);
   const openCategoryPickerSignal = useAtomValue(openCategoryPickerSignalAtom);
@@ -752,7 +764,7 @@ const SessionCreatorChatPanelSingle: React.FC<
         <div
           className={`flex w-full flex-col items-stretch gap-3 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
         >
-          {isCliMode ? (
+          {isCliTuiMode ? (
             <div className="bg-surface-1 flex w-full flex-col overflow-hidden rounded-2xl">
               {headerLayout !== "compact" && (
                 <div className="p-3 pb-0">
