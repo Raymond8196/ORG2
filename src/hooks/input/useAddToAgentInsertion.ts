@@ -54,7 +54,7 @@ export function useAddToAgentInsertion(
         });
       } else if (stableRequest.type === "terminal") {
         const capped = capPillText(stableRequest.text);
-        const lineCount = capped.split("\n").length;
+        const lineCount = capped.trimEnd().split("\n").length;
         const pillPath = `terminal://selection/${Date.now()}`;
         const label =
           stableRequest.displayName ??

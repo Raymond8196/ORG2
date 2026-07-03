@@ -84,7 +84,7 @@ export const gitCreateBranchFromCommit = defineZodAction(
       repo_path: repo.repoPath,
       name: branchName,
       start_point: commitSha,
-      checkout,
+      checkout: false,
     });
 
     if (!created.success) {
@@ -92,6 +92,20 @@ export const gitCreateBranchFromCommit = defineZodAction(
         success: false,
         message: created.error || "Failed to create branch from commit",
       };
+    }
+
+    if (checkout) {
+      const checkoutResult =
+        await GitOperationsService.checkoutWithDialog(branchName);
+      if (!checkoutResult.success) {
+        return {
+          success: false,
+          message:
+            checkoutResult.message ||
+            `Branch "${branchName}" created but checkout failed`,
+          data: { branchName, commitSha, checkout: false },
+        };
+      }
     }
 
     return {
