@@ -25,6 +25,7 @@ import ManageAgentDefBlock, {
   type ManageAgentDefAction,
 } from "../../blocks/ManageAgentDefBlock";
 import ManageCodeMapBlock from "../../blocks/ManageCodeMapBlock";
+import SkillBlock from "../../blocks/SkillBlock";
 import ToolCallBlock from "../../blocks/ToolCallBlock";
 import WorktreeListBlock, {
   buildWorktreeRows,
@@ -35,6 +36,10 @@ const MCP_ICON = getEventIcon("mcp_tool");
 
 function isWorktreeTool(toolName: string): boolean {
   return stripMcpPrefix(toolName) === "worktree";
+}
+
+function isSkillTool(toolName: string): boolean {
+  return stripMcpPrefix(toolName) === "skill";
 }
 
 // ============================================
@@ -162,6 +167,22 @@ export const FallbackAdapter: React.FC<UniversalEventProps> = (props) => {
         eventId={props.eventId}
         sessionId={props.sessionId}
         payloadRefs={props.payloadRefs}
+        toolUsage={props.toolUsage}
+      />
+    );
+  }
+
+  if (isSkillTool(displayToolName)) {
+    const skillName =
+      typeof props.args?.skill === "string" ? props.args.skill : undefined;
+    return (
+      <SkillBlock
+        skillName={skillName}
+        isLoading={
+          props.status === "running" && props.showActiveEventPainting === true
+        }
+        isFailed={state === "failed"}
+        eventId={props.eventId}
         toolUsage={props.toolUsage}
       />
     );
