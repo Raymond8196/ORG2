@@ -206,21 +206,23 @@ impl RepoWatcher {
         let last_poll_attempt = self.last_poll_attempt.clone();
         let poll_wake = self.poll_wake.clone();
 
-        std::thread::Builder::new()
-            .name("git-status-poller".to_string())
-            .spawn(move || {
-                // Small initial delay to let watchers initialize
-                std::thread::sleep(Duration::from_secs(2));
-                let mut seen_wake_generation = 0;
+        tokio::spawn(async move {
+            // Small initial delay to let watchers initialize
+            tokio::time::sleep(Duration::from_secs(2)).await;
+            let mut seen_wake_generation = 0;
 
-                loop {
-                    // Calculate adaptive polling interval with health awareness
-                    let is_focused = *window_focused.read();
-                    let states = state_store.get_all_states();
+            loop {
+                // Calculate adaptive polling interval with health awareness
+                let is_focused = *window_focused.read();
+                let states = state_store.get_all_states();
 
-                    let watched_state_count = states.values().filter(|state| state.watch_enabled).count();
-                    if watched_state_count == 0 {
-                        let (lock, condvar) = &*poll_wake;
+                let watched_state_count = states.values().filter(|state| state.watch_enabled).count();
+                if watched_state_count == 0 {
+                    // Park until a repo is registered. Use spawn_blocking so the
+                    // condvar wait does not block the tokio executor thread pool.
+                    let poll_wake_clone = poll_wake.clone();
+                    let new_generation = tokio::task::spawn_blocking(move || {
+                        let (lock, condvar) = &*poll_wake_clone;
                         let mut wake_generation =
                             lock.lock().expect("RepoWatch poll wake mutex poisoned");
                         while *wake_generation == seen_wake_generation {
@@ -228,72 +230,76 @@ impl RepoWatcher {
                                 .wait(wake_generation)
                                 .expect("RepoWatch poll wake mutex poisoned");
                         }
-                        seen_wake_generation = *wake_generation;
+                        *wake_generation
+                    })
+                    .await
+                    .unwrap_or(seen_wake_generation);
+                    seen_wake_generation = new_generation;
+                    continue;
+                }
+
+                // Check if any watched repo is unhealthy
+                let any_unhealthy = states
+                    .values()
+                    .filter(|state| state.watch_enabled)
+                    .any(|state| state.consecutive_failures > 0);
+                let max_failures = states
+                    .values()
+                    .filter(|state| state.watch_enabled)
+                    .map(|state| state.consecutive_failures)
+                    .max()
+                    .unwrap_or(0);
+
+                let poll_interval_ms =
+                    Self::calculate_poll_interval_with_health(is_focused, any_unhealthy, max_failures);
+
+                tokio::time::sleep(Duration::from_millis(poll_interval_ms)).await;
+
+                let now = Instant::now();
+                for (repo_id, state) in states.iter() {
+                    // Skip if watch is disabled
+                    if !state.watch_enabled {
                         continue;
                     }
 
-                    // Check if any watched repo is unhealthy
-                    let any_unhealthy = states
-                        .values()
-                        .filter(|state| state.watch_enabled)
-                        .any(|state| state.consecutive_failures > 0);
-                    let max_failures = states
-                        .values()
-                        .filter(|state| state.watch_enabled)
-                        .map(|state| state.consecutive_failures)
-                        .max()
-                        .unwrap_or(0);
+                    // HEALTH CHECK: Skip polling if repo is severely degraded
+                    if state.consecutive_failures >= 3 {
+                        log::debug!(
+                            "[RepoWatch] Skipping poll for degraded repo {} ({} failures)",
+                            repo_id,
+                            state.consecutive_failures
+                        );
+                        continue;
+                    }
 
-                    let poll_interval_ms =
-                        Self::calculate_poll_interval_with_health(is_focused, any_unhealthy, max_failures);
-
-                    std::thread::sleep(Duration::from_millis(poll_interval_ms));
-
-                    let now = Instant::now();
-                    for (repo_id, state) in states.iter() {
-                        // Skip if watch is disabled
-                        if !state.watch_enabled {
-                            continue;
-                        }
-
-                        // HEALTH CHECK: Skip polling if repo is severely degraded
-                        if state.consecutive_failures >= 3 {
-                            log::debug!(
-                                "[RepoWatch] Skipping poll for degraded repo {} ({} failures)",
-                                repo_id,
-                                state.consecutive_failures
-                            );
-                            continue;
-                        }
-
-                        // ANTI-STACKING: Skip if last poll was too recent (within MIN_FLUSH_INTERVAL)
-                        {
-                            let last_attempts = last_poll_attempt.read();
-                            if let Some(last_attempt) = last_attempts.get(repo_id) {
-                                if last_attempt.elapsed() < Duration::from_millis(5000) {
-                                    log::debug!(
-                                        "[RepoWatch] Skipping poll - last attempt {}ms ago (too recent)",
-                                        last_attempt.elapsed().as_millis()
-                                    );
-                                    continue;
-                                }
+                    // ANTI-STACKING: Skip if last poll was too recent (within MIN_FLUSH_INTERVAL)
+                    {
+                        let last_attempts = last_poll_attempt.read();
+                        if let Some(last_attempt) = last_attempts.get(repo_id) {
+                            if last_attempt.elapsed() < Duration::from_millis(5000) {
+                                log::debug!(
+                                    "[RepoWatch] Skipping poll - last attempt {}ms ago (too recent)",
+                                    last_attempt.elapsed().as_millis()
+                                );
+                                continue;
                             }
                         }
-
-                        // Record poll attempt
-                        last_poll_attempt.write().insert(repo_id.clone(), now);
-
-                        // Simply trigger git status check
-                        // The debouncer will handle deduplication if nothing changed
-                        debounce_manager.trigger_event(
-                            repo_id.clone(),
-                            RepoChangeType::GitMeta,
-                            1,
-                        );
                     }
+
+                    // Record poll attempt
+                    last_poll_attempt.write().insert(repo_id.clone(), now);
+
+                    // Trigger git status check via the debounce manager.
+                    // trigger_event is a lightweight sync call (channel send + mutex),
+                    // so it does not need spawn_blocking.
+                    debounce_manager.trigger_event(
+                        repo_id.clone(),
+                        RepoChangeType::GitMeta,
+                        1,
+                    );
                 }
-            })
-            .expect("Failed to spawn git status poller thread");
+            }
+        });
     }
 
     /// Calculate adaptive polling interval based on window focus and health.
