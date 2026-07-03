@@ -178,12 +178,16 @@ function registerSelectionHandlers({
     selectionDebounce = setTimeout(() => {
       const selectedText = terminal.getSelection();
       if (selectedText && selectedText.trim().length > 0) {
+        const selectionPos = terminal.getSelectionPosition();
         onSelectionChange?.({
           text: selectedText.trim(),
           position: {
             x: lastMousePosition.x / getUiScaleFromCssVar() + 10,
             y: lastMousePosition.y / getUiScaleFromCssVar() + 10,
           },
+          // xterm buffer rows are 0-based; convert to 1-based for display
+          lineStart: selectionPos ? selectionPos.start.y + 1 : undefined,
+          lineEnd: selectionPos ? selectionPos.end.y + 1 : undefined,
         });
       } else {
         onSelectionChange?.(null);
