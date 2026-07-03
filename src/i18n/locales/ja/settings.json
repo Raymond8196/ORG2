@@ -792,8 +792,6 @@
     "breakdownFileCache": "バックエンドファイルキャッシュ",
     "resourceUsage": "リソース使用状況",
     "performanceMonitor": "パフォーマンスモニター",
-    "cpu": "CPU",
-    "perCoreUsage": "コアごとの使用率",
     "memory": "RAM",
     "backendRss": "Backend RSS 合計",
     "attributionHintsGroup": "帰属の手がかり",

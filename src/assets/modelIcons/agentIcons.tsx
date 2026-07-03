@@ -459,6 +459,28 @@ export const GeminiIcon: React.FC<IconProps> = (props) => {
 // ORGII Orchestrator (App logo)
 // ============================================
 
+// ============================================
+// Generic CLI Agent (infinity symbol — no brand asset)
+// ============================================
+
+export const InfinityAgentIcon: React.FC<IconProps> = (props) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path d="M12 12c-2-2.5-4-4-6-4a4 4 0 0 0 0 8c2 0 4-1.5 6-4z" />
+    <path d="M12 12c2 2.5 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.5-6 4z" />
+  </svg>
+);
+
+// ============================================
+
 export const OrgiiIcon: React.FC<IconProps> = (props) => (
   <svg
     viewBox="0 0 496 608"

@@ -24,6 +24,7 @@ interface CreateTerminalInstanceParams {
   terminalFontSize: number;
   terminalLetterSpacing: number;
   codeFontFamily: string;
+  backgroundColor?: string;
   shellIntegration?: TerminalViewProps["shellIntegration"];
 }
 
@@ -42,10 +43,11 @@ export function createTerminalInstance({
   terminalFontSize,
   terminalLetterSpacing,
   codeFontFamily,
+  backgroundColor,
   shellIntegration,
 }: CreateTerminalInstanceParams) {
   const terminal = new Terminal({
-    theme: getXTermTheme(terminalTheme),
+    theme: getXTermTheme(terminalTheme, backgroundColor),
     fontSize: terminalFontSize,
     fontFamily: codeFontFamily,
     fontWeight: "400",

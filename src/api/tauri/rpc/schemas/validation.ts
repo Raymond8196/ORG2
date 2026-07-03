@@ -20,6 +20,31 @@ export const CLI_AGENT = {
   KIRO: "kiro",
   KIMI: "kimi_cli",
   OPENCODE: "opencode",
+  OPENCLAUDE: "openclaude",
+  AIDER: "aider",
+  GOOSE: "goose",
+  AMP: "amp",
+  CLINE: "cline",
+  KILO: "kilo",
+  GROK: "grok_cli",
+  DEVIN: "devin",
+  ROVO: "rovo",
+  HERMES: "hermes",
+  OPENCLAW: "openclaw",
+  CRUSH: "crush",
+  AUG: "aug",
+  CODEBUFF: "codebuff",
+  COMMAND_CODE: "command_code",
+  QWEN_CODE: "qwen_code",
+  MIMO_CODE: "mimo_code",
+  ANTIGRAVITY: "antigravity",
+  CONTINUE: "continue_cli",
+  DROID: "droid",
+  MISTRAL_VIBE: "mistral_vibe",
+  ANTE: "ante",
+  AUTOHAND: "autohand",
+  OMP: "omp",
+  PI: "pi",
 } as const;
 
 /** CLI-based coding agents (external processes managed by the app). */
@@ -32,6 +57,31 @@ export const CliAgentTypeSchema = z.union([
   z.literal("kiro"),
   z.literal("kimi_cli"),
   z.literal("opencode"),
+  z.literal("openclaude"),
+  z.literal("aider"),
+  z.literal("goose"),
+  z.literal("amp"),
+  z.literal("cline"),
+  z.literal("kilo"),
+  z.literal("grok_cli"),
+  z.literal("devin"),
+  z.literal("rovo"),
+  z.literal("hermes"),
+  z.literal("openclaw"),
+  z.literal("crush"),
+  z.literal("aug"),
+  z.literal("codebuff"),
+  z.literal("command_code"),
+  z.literal("qwen_code"),
+  z.literal("mimo_code"),
+  z.literal("antigravity"),
+  z.literal("continue_cli"),
+  z.literal("droid"),
+  z.literal("mistral_vibe"),
+  z.literal("ante"),
+  z.literal("autohand"),
+  z.literal("omp"),
+  z.literal("pi"),
 ]);
 
 /** Direct API key providers (REST API, no child process). */
@@ -323,10 +373,15 @@ export const AvailableAgentSchema = z.object({
   iconProvider: z.string(),
   /** Paired API provider for brand grouping (e.g., "anthropic_api" for claude_code) */
   pairedApiProvider: z.string().optional(),
+  /** Bare binary name to launch in a PTY shell (e.g. "claude", "gemini"). Source of truth from Rust registry. */
+  command: z.string(),
   /** Whether ORGII Rust agents can use this CLI's credentials */
   supportsRustAgents: z.boolean(),
   /** Whether this agent can use ORGII Pool (Token Market) billing. Always false for CLI agents. */
   supportsOrgiiPool: z.boolean(),
+  /** Whether this CLI agent accepts an initial prompt from ORGII's GUI composer.
+   *  When false the session creator shows a Start button (pure-TUI mode). */
+  supportsGui: z.boolean(),
 });
 
 /** Matches `AvailableApiProvider` in `src-tauri/.../discovery.rs` (camelCase JSON). */

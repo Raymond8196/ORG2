@@ -705,6 +705,9 @@
       "newSession": {
         "title": "Nouvelle session"
       },
+      "cliSession": {
+        "title": "Nouvelle session (TUI)"
+      },
       "newWorkItem": {
         "title": "Nouveau work item"
       },
@@ -793,6 +796,14 @@
     "hideWorkstation": "Masquer le Workstation",
     "restoreSplitView": "Afficher le Workstation",
     "shrinkToWorkstation": "Réduire le chat (afficher le Workstation)",
+    "tuiModeOn": "Mode TUI (cliquer pour désactiver)",
+    "tuiModeOff": "Activer le mode TUI",
+    "tabs": {
+      "newTerminal": "Nouveau Terminal",
+      "newTab": "Nouvel onglet",
+      "terminals": "Terminaux",
+      "newTuiSession": "Nouvelle session (TUI)"
+    },
     "collapseAll": "Tout réduire",
     "copyEventJson": "Copier le JSON des événements",
     "copyEventJsonCopied": "Copié !",
@@ -944,7 +955,8 @@
         "byMe": "Par moi",
         "mentioned": "Mentionnés"
       }
-    }
+    },
+    "readOnly": "Lecture seule"
   },
   "chatStatus": {
     "approved": "Approuvé",
@@ -1201,6 +1213,9 @@
     "askUserSkipped": "Ignoré",
     "askUserQuestionsAnswered": "Questions répondues",
     "askUserQuestionsSkipped": "Questions ignorées",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "Arrêt du processus",
     "killProcessDone": "Processus arrêté",
     "killProcessFailed": "Échec de l'arrêt du processus",

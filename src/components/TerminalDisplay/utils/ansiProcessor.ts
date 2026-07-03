@@ -55,3 +55,34 @@ export function hasAnsiCodes(content: string): boolean {
   // eslint-disable-next-line no-control-regex
   return /\u001b\[[0-9;]*[a-zA-Z]/.test(content);
 }
+
+/**
+ * Detect TUI-style terminal output that requires a real VT100 renderer.
+ *
+ * Returns true when the content contains escape sequences that ansi-to-react
+ * cannot handle correctly: cursor movement, erase sequences, alternate screen,
+ * or carriage-return-based in-place rewrites (spinners, progress bars).
+ *
+ * These are the heuristics:
+ *   - ESC[H / ESC[f  — cursor absolute position (TUI screen layout)
+ *   - ESC[A/B/C/D    — cursor movement (progress bars, spinners)
+ *   - ESC[J / ESC[K  — erase in screen / line (redraw)
+ *   - ESC[?47h / ESC[?1049h  — alternate screen (full TUI apps)
+ *   - \r (CR without LF)  — carriage-return rewrite (spinner, progress bar)
+ *   - ESC[?25l / ESC[?25h   — cursor hide/show (TUI frame coalescing)
+ */
+export function hasTuiSequences(content: string): boolean {
+  if (!content || typeof content !== "string") return false;
+
+  // eslint-disable-next-line no-control-regex
+  if (/\u001b\[[\d;]*[ABCDEFGHJ KM]/.test(content)) return true;
+  // Alternate screen switch
+  // eslint-disable-next-line no-control-regex
+  if (/\u001b\[\?(?:47|1047|1048|1049)[hl]/.test(content)) return true;
+  // Cursor show/hide
+  // eslint-disable-next-line no-control-regex
+  if (/\u001b\[\?25[lh]/.test(content)) return true;
+  // CR-based rewrite (spinner / progress bar) — \r not followed by \n
+  if (/\r(?!\n)/.test(content)) return true;
+  return false;
+}

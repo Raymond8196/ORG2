@@ -93,6 +93,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       argsOverride,
       envOverride,
       nameOverride,
+      backgroundColor,
       shellIntegration,
     },
     ref
@@ -230,6 +231,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
           terminalFontSize,
           terminalLetterSpacing,
           codeFontFamily,
+          backgroundColor,
           shellIntegration,
         });
 
@@ -309,10 +311,15 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       terminalFontSize,
       terminalLetterSpacing,
       codeFontFamily,
+      backgroundColor,
     });
 
+    const terminalViewStyle = backgroundColor
+      ? ({ "--cm-editor-background": backgroundColor } as React.CSSProperties)
+      : undefined;
+
     return (
-      <div className="xterm-terminal-view">
+      <div className="xterm-terminal-view" style={terminalViewStyle}>
         <div ref={containerRef} className="xterm-terminal-container" />
       </div>
     );

@@ -82,6 +82,8 @@ export type CheckoutErrorType =
   | "branch_not_found" // Branch doesn't exist
   | "merge_in_progress" // Need to complete/abort merge first
   | "rebase_in_progress" // Need to complete/abort rebase first
+  | "cherry_pick_in_progress" // Need to complete/abort cherry-pick first
+  | "worktree_branch_in_use" // Branch is already checked out in another worktree
   | "other"; // Generic error
 
 /**
@@ -136,6 +138,19 @@ function parseCheckoutError(errorMessage: string): {
     };
   }
 
+  // Branch is already checked out in another worktree
+  if (
+    (msg.includes("already checked out") && msg.includes("worktree")) ||
+    msg.includes("is already used by worktree") ||
+    msg.includes("is already checked out at")
+  ) {
+    return {
+      message:
+        "This branch is already checked out in another worktree. Switch to that worktree or choose a different branch.",
+      type: "worktree_branch_in_use",
+    };
+  }
+
   // Merge in progress
   if (msg.includes("merge") && msg.includes("in progress")) {
     return {
@@ -153,11 +168,11 @@ function parseCheckoutError(errorMessage: string): {
   }
 
   // Cherry-pick in progress
-  if (msg.includes("cherry-pick")) {
+  if (msg.includes("cherry-pick") || msg.includes("cherry_pick")) {
     return {
       message:
         "A cherry-pick is in progress. Please complete or abort it first.",
-      type: "other",
+      type: "cherry_pick_in_progress",
     };
   }
 

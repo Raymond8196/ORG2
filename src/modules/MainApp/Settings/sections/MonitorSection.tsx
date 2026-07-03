@@ -255,7 +255,6 @@ const MonitorSection: React.FC<MonitorSectionProps> = ({
     return "bg-green-500";
   }
 
-  const cpuPercent = processMetrics?.cpu_percent || 0;
   const systemDesc = systemInfo
     ? systemInfo.os_name +
       " " +
@@ -286,17 +285,6 @@ const MonitorSection: React.FC<MonitorSectionProps> = ({
             />
             <SectionRow label="" indent showHeader={false}>
               <div className="space-y-3">
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-text-2">
-                      {t("monitor.cpu")} {cpuPercent.toFixed(1)}%
-                    </span>
-                    <span className="text-xs text-text-2">
-                      {t("monitor.perCoreUsage")}
-                    </span>
-                  </div>
-                  <ProgressBar percent={cpuPercent} color="bg-primary-6" />
-                </div>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-text-2">

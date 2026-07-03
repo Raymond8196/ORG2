@@ -90,6 +90,11 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
    */
   hideOrgs?: boolean;
   /**
+   * When true only CLI agent entries are shown. Used by the CLI launch bar
+   * so users see only installable CLI tools, not Rust-native agents.
+   */
+  cliOnly?: boolean;
+  /**
    * Optional context pill rendered above the input — used by callers that
    * pre-select a target (e.g. an org member row clicking its agent pill)
    * so the palette title reflects what is being chosen for.
@@ -162,6 +167,7 @@ export const DispatchCategoryPalette: React.FC<
   currentAgentOrgId,
   currentCliAgentType,
   hideOrgs = false,
+  cliOnly = false,
   titleLabel,
   titleIcon,
   placeholderLabel,
@@ -363,14 +369,18 @@ export const DispatchCategoryPalette: React.FC<
   }, []);
 
   const allOptions = useMemo(
-    () => [
-      ...builtInRustOptions,
-      ...cliOptions,
-      ...externalIdeOptions,
-      ...customAgentOptions,
-      ...(hideOrgs ? [] : orgOptions),
-    ],
+    () =>
+      cliOnly
+        ? [...cliOptions]
+        : [
+            ...builtInRustOptions,
+            ...cliOptions,
+            ...externalIdeOptions,
+            ...customAgentOptions,
+            ...(hideOrgs ? [] : orgOptions),
+          ],
     [
+      cliOnly,
       builtInRustOptions,
       cliOptions,
       externalIdeOptions,
@@ -485,29 +495,34 @@ export const DispatchCategoryPalette: React.FC<
       }
     };
 
-    pushGroup(
-      "__header_builtin__",
-      t("creator.builtInAgents"),
-      builtInRustOptions
-    );
+    if (!cliOnly) {
+      pushGroup(
+        "__header_builtin__",
+        t("creator.builtInAgents"),
+        builtInRustOptions
+      );
+    }
     pushGroup("__header_cli__", t("creator.cliAgents"), cliOptions);
-    pushGroup(
-      "__header_external_ide__",
-      t("creator.externalIdes"),
-      externalIdeOptions
-    );
-    pushGroup(
-      "__header_custom__",
-      t("creator.customAgents"),
-      customAgentOptions
-    );
-    if (!hideOrgs) {
-      pushGroup("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+    if (!cliOnly) {
+      pushGroup(
+        "__header_external_ide__",
+        t("creator.externalIdes"),
+        externalIdeOptions
+      );
+      pushGroup(
+        "__header_custom__",
+        t("creator.customAgents"),
+        customAgentOptions
+      );
+      if (!hideOrgs) {
+        pushGroup("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+      }
     }
 
     return result;
   }, [
     isSearching,
+    cliOnly,
     filteredOptions,
     builtInRustOptions,
     cliOptions,

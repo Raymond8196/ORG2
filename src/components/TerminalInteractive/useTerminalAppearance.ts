@@ -16,6 +16,7 @@ interface UseTerminalAppearanceOptions {
   terminalFontSize: number;
   terminalLetterSpacing: number;
   codeFontFamily: string;
+  backgroundColor?: string;
 }
 
 export function useTerminalAppearance({
@@ -27,6 +28,7 @@ export function useTerminalAppearance({
   terminalFontSize,
   terminalLetterSpacing,
   codeFontFamily,
+  backgroundColor,
 }: UseTerminalAppearanceOptions): void {
   // Handle theme changes (both terminal theme and app theme).
   // Patches the live xterm instance — same approach as VSCode: swap the
@@ -35,7 +37,7 @@ export function useTerminalAppearance({
   useEffect(() => {
     if (terminalRef.current && isReady) {
       const terminal = terminalRef.current;
-      terminal.options.theme = getXTermTheme(terminalTheme);
+      terminal.options.theme = getXTermTheme(terminalTheme, backgroundColor);
       terminal.options.cursorStyle = "bar";
       terminal.options.cursorBlink = true;
       terminal.options.cursorInactiveStyle = "outline";
@@ -45,7 +47,14 @@ export function useTerminalAppearance({
         fitTerminal();
       });
     }
-  }, [terminalTheme, isDarkTheme, isReady, fitTerminal, terminalRef]);
+  }, [
+    terminalTheme,
+    backgroundColor,
+    isDarkTheme,
+    isReady,
+    fitTerminal,
+    terminalRef,
+  ]);
 
   // Handle font size changes
   useEffect(() => {
