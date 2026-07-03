@@ -217,9 +217,13 @@ fn delta_sync(cache_conn: &mut Connection) -> Result<(), String> {
 
     if let Ok(guard) = LAST_SYNC.lock() {
         if let Some(last) = *guard {
-            if now.duration_since(last.synced_at) < SYNC_COOLDOWN
-                && last.cursor_db_modified_at == cursor_db_modified_at
-            {
+            // Skip if the cooldown window has not expired yet.
+            // The mtime check is NOT used to bypass the cooldown — when Cursor
+            // is actively running its WAL flushes change mtime on every write,
+            // which would cause discover_cursor_composers (a full table scan +
+            // serde_json parse of every composerData row) to run on every
+            // sidebar poll, burning 60-80% CPU.
+            if now.duration_since(last.synced_at) < SYNC_COOLDOWN {
                 return Ok(());
             }
         }
