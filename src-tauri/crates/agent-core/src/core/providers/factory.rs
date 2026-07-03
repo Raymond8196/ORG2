@@ -308,7 +308,32 @@ fn spec_for_model_type(model_type: &ModelType) -> Option<&'static ProviderSpec> 
         | ModelType::Copilot
         | ModelType::Kiro
         | ModelType::KimiCli
-        | ModelType::OrgiiOrchestrator => return None,
+        | ModelType::OrgiiOrchestrator
+        | ModelType::OpenClaude
+        | ModelType::Aider
+        | ModelType::Goose
+        | ModelType::Amp
+        | ModelType::Cline
+        | ModelType::Kilo
+        | ModelType::Grok
+        | ModelType::Devin
+        | ModelType::Rovo
+        | ModelType::Hermes
+        | ModelType::OpenClaw
+        | ModelType::Crush
+        | ModelType::Aug
+        | ModelType::Codebuff
+        | ModelType::CommandCode
+        | ModelType::QwenCode
+        | ModelType::MimoCode
+        | ModelType::Antigravity
+        | ModelType::Continue
+        | ModelType::Droid
+        | ModelType::MistralVibe
+        | ModelType::Ante
+        | ModelType::Autohand
+        | ModelType::Omp
+        | ModelType::Pi => return None,
     };
     registry::find_by_name(provider_name)
 }

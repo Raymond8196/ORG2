@@ -30,6 +30,7 @@ import {
   EVENT_LOADING_SHIMMER_TEXT_CLASSES,
   EventBlockHeader,
   EventBlockHeaderIcon,
+  EventBlockHeaderSubtitle,
   EventBlockHeaderTitle,
   getEventBlockContainerClasses,
 } from "../primitives";
@@ -49,6 +50,8 @@ export interface TerminalBlockProps {
   isError?: boolean;
   defaultCollapsed?: boolean;
   title?: string;
+  /** Optional secondary detail shown after the title, truncated to preserve space for command symbols. */
+  subtitle?: string;
   headerIcon?: React.ReactNode;
   runningStatusText?: string;
   runningStatusIcon?: React.ReactNode;
@@ -83,6 +86,7 @@ const TerminalBlock: React.FC<TerminalBlockProps> = memo(
     isError = false,
     defaultCollapsed,
     title,
+    subtitle,
     headerIcon,
     runningStatusText,
     runningStatusIcon,
@@ -287,6 +291,14 @@ const TerminalBlock: React.FC<TerminalBlockProps> = memo(
             <EventBlockHeaderTitle isLoading={isStillRunning}>
               {displayTitle}
             </EventBlockHeaderTitle>
+            {subtitle && (
+              <EventBlockHeaderSubtitle
+                isLoading={isStillRunning}
+                title={subtitle}
+              >
+                {subtitle}
+              </EventBlockHeaderSubtitle>
+            )}
             {commandSymbols.length > 0 ? (
               <span
                 className={`shrink-0 ${isStillRunning ? `font-bold ${EVENT_LOADING_SHIMMER_TEXT_CLASSES}` : "text-text-1"}`}
