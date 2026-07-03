@@ -502,6 +502,12 @@ const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
         }
       };
       const handleDropEvent = (event: DragEvent) => {
+        // Always prevent browser default drop behavior on the contenteditable
+        // host. OS file drops are handled by GlobalDragDrop → droppedFilesAtom
+        // → useDroppedFilesConsumer which inserts a pill; letting the browser
+        // also insert the file name/path as raw text would corrupt the editor
+        // and, in certain timing windows, produce an empty conversation round.
+        event.preventDefault();
         ops.markHistoryBoundary();
         if (handleDrop(event)) {
           ops.commitHistoryBoundary();
