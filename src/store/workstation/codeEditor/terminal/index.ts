@@ -485,6 +485,7 @@ export const updateTerminalSessionInfoAtom = atom(
           | "liveCwd"
           | "isDefaultSession"
           | "hasUserInput"
+          | "agentStatus"
         >
       >;
     }

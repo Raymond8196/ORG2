@@ -90,6 +90,11 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
    */
   hideOrgs?: boolean;
   /**
+   * When true only CLI agent entries are shown. Used by the CLI launch bar
+   * so users see only installable CLI tools, not Rust-native agents.
+   */
+  cliOnly?: boolean;
+  /**
    * Optional context pill rendered above the input — used by callers that
    * pre-select a target (e.g. an org member row clicking its agent pill)
    * so the palette title reflects what is being chosen for.

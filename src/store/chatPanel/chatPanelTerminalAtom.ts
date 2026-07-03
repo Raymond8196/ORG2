@@ -17,7 +17,10 @@
 import { atom } from "jotai";
 
 import { clearTerminalBufferCache } from "@src/components/TerminalInteractive/bufferCache";
-import type { TerminalSession } from "@src/engines/TerminalCore/types";
+import {
+  TERMINAL_AGENT_STATUS,
+  type TerminalSession,
+} from "@src/engines/TerminalCore/types";
 import {
   initializedTerminalIdsAtom,
   markTerminalInitializedAtom,
@@ -48,6 +51,9 @@ interface CreateChatPanelTerminalOptions {
   name?: string;
   /** Initial working directory forwarded to create_pty */
   cwd?: string;
+  cliAgentType?: TerminalSession["cliAgentType"];
+  agentCommand?: string;
+  expectedProcess?: string;
 }
 
 export const createChatPanelTerminalAtom = atom(
@@ -57,14 +63,23 @@ export const createChatPanelTerminalAtom = atom(
     set,
     options: CreateChatPanelTerminalOptions | string = {}
   ): string => {
-    const { name = "Terminal", cwd } =
-      typeof options === "string" ? { name: options } : options;
+    const {
+      name = "Terminal",
+      cwd,
+      cliAgentType,
+      agentCommand,
+      expectedProcess,
+    } = typeof options === "string" ? { name: options } : options;
     const newId = `${CHAT_PANEL_TERMINAL_PREFIX}${crypto.randomUUID()}`;
     const newSession: TerminalSession = {
       id: newId,
       name,
       isActive: false, // does not affect Workstation active state
       cwd,
+      cliAgentType,
+      agentCommand,
+      expectedProcess,
+      agentStatus: agentCommand ? TERMINAL_AGENT_STATUS.STARTING : undefined,
     };
     set(terminalSessionsAtom, (prev) => [...prev, newSession]);
     set(terminalPersistAtom);

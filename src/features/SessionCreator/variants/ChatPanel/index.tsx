@@ -10,6 +10,7 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import type { ModelType } from "@src/api/tauri/rpc/schemas/validation";
+import type { CliAgentType } from "@src/api/types/keys";
 import Button from "@src/components/Button";
 import type { ComposerInputRef } from "@src/components/ComposerInput";
 import InlineAlert from "@src/components/InlineAlert";
@@ -22,7 +23,10 @@ import type { ScrollNavState } from "@src/engines/ChatPanel/ChatHistory";
 import CollapsedInlineRow from "@src/engines/ChatPanel/InputArea/components/CollapsedInlineRow";
 import PinnedActionsBar from "@src/engines/ChatPanel/InputArea/components/PinnedActionsBar";
 import { useBrowserAddToConversationAction } from "@src/engines/ChatPanel/hooks/useBrowserAddToConversationAction";
-import type { ChatPanelRegionNotice } from "@src/engines/ChatPanel/types";
+import type {
+  ChatPanelCliTerminalLaunchOptions,
+  ChatPanelRegionNotice,
+} from "@src/engines/ChatPanel/types";
 import { useSessionCreator } from "@src/engines/SessionCore/hooks/session/useSessionCreator";
 import type {
   SessionLaunchSuccessInfo,
@@ -93,6 +97,17 @@ import { useSessionCreatorChatPanelHandlers } from "./useSessionCreatorChatPanel
 
 const log = createLogger("ChatPanel");
 
+function deriveExpectedProcess(command: string): string | undefined {
+  const [binary] = command.trim().split(/\s+/);
+  return binary || undefined;
+}
+
+function isCliAgentType(
+  value: string | null | undefined
+): value is CliAgentType {
+  return Boolean(value);
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type SessionCreatorChatPanelVariant = "default" | "fullScreen";
@@ -109,6 +124,7 @@ export interface SessionCreatorChatPanelProps {
   hideRepoLine?: boolean;
   initialContent?: string;
   dropdownDirection?: DropdownDirection;
+  onOpenCliTerminal?: (options: ChatPanelCliTerminalLaunchOptions) => void;
   onRegionNoticeChange?: (notice: ChatPanelRegionNotice | null) => void;
   onSessionStart?: (info: SessionLaunchSuccessInfo) => void;
   variant?: SessionCreatorChatPanelVariant;
@@ -135,6 +151,7 @@ const SessionCreatorChatPanelSingle: React.FC<
   hideRepoLine = false,
   initialContent,
   dropdownDirection = "down",
+  onOpenCliTerminal,
   onRegionNoticeChange,
   onSessionStart,
   hidePresenceButton = false,
@@ -420,8 +437,35 @@ const SessionCreatorChatPanelSingle: React.FC<
   // ── Launch ────────────────────────────────────────────────────────────────
 
   const handleLaunch = useCallback(async () => {
+    if (
+      isCliTuiMode &&
+      onOpenCliTerminal &&
+      selectedCliAgent &&
+      isCliAgentType(cliAgentType)
+    ) {
+      const command = selectedCliAgent.command.trim();
+      if (command.length > 0) {
+        onOpenCliTerminal({
+          cliAgentType,
+          command,
+          title: selectedCliAgent.displayName,
+          cwd: effectiveSource?.repoPath,
+          expectedProcess: deriveExpectedProcess(command),
+        });
+        setAttachedWorkItemContext(null);
+        return;
+      }
+    }
+
     return originalHandleLaunch();
-  }, [originalHandleLaunch]);
+  }, [
+    cliAgentType,
+    effectiveSource?.repoPath,
+    isCliTuiMode,
+    onOpenCliTerminal,
+    originalHandleLaunch,
+    selectedCliAgent,
+  ]);
 
   const handleSetCliGuiMode = useCallback(() => {
     if (!selectedCliAgentSupportsGui) return;

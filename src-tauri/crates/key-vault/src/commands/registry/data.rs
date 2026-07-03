@@ -190,7 +190,7 @@ pub(super) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "opencode",
             paired_api_provider: None,
             supports_rust_agents: true,
-            supports_gui: false,
+            supports_gui: true,
         },
         // ── Extended CLI agents ──
         CliAgentEntry {

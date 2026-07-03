@@ -202,6 +202,29 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
         ),
       },
       {
+        key: "gui",
+        label: "GUI",
+        width: "120px",
+        sorter: (agentA, agentB) =>
+          Number(agentB.supportsGui) - Number(agentA.supportsGui),
+        renderCell: (agent) => (
+          <StatusDot
+            color={agent.supportsGui ? "bg-success-6" : "bg-fill-3"}
+            size="inline"
+            labelClassName={
+              agent.supportsGui
+                ? "text-[12px] text-text-2"
+                : "text-[12px] text-text-3"
+            }
+            label={
+              agent.supportsGui
+                ? tIntegrations("common:status.supported")
+                : tIntegrations("common:status.notSupported")
+            }
+          />
+        ),
+      },
+      {
         key: "subscriptions",
         label: tIntegrations("cliPreview.subscriptions"),
         width: "130px",
