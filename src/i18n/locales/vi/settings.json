@@ -792,8 +792,6 @@
     "breakdownFileCache": "Bộ nhớ đệm tệp backend",
     "resourceUsage": "Sử dụng tài nguyên",
     "performanceMonitor": "Giám sát hiệu suất",
-    "cpu": "CPU",
-    "perCoreUsage": "Sử dụng mỗi lõi",
     "memory": "RAM",
     "backendRss": "Tổng Backend RSS",
     "attributionHintsGroup": "Gợi ý quy kết",

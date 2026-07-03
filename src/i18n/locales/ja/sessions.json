@@ -705,6 +705,9 @@
       "newSession": {
         "title": "新しいセッション"
       },
+      "cliSession": {
+        "title": "CLI Agent を使用"
+      },
       "newWorkItem": {
         "title": "新しい work item"
       },
@@ -793,6 +796,11 @@
     "hideWorkstation": "Workstation を非表示",
     "restoreSplitView": "Workstation を表示",
     "shrinkToWorkstation": "Chat パネルを縮小（Workstation を表示）",
+    "tuiModeOn": "TUI モード（クリックで無効化）",
+    "tuiModeOff": "TUI モードを有効にする",
+    "tabs": {
+      "newTerminal": "新しいターミナル"
+    },
     "collapseAll": "すべて折りたたむ",
     "copyEventJson": "イベント JSON をコピー",
     "copyEventJsonCopied": "コピーしました！",
@@ -944,7 +952,8 @@
         "byMe": "自分が作成",
         "mentioned": "メンション"
       }
-    }
+    },
+    "readOnly": "読み取り専用"
   },
   "chatStatus": {
     "approved": "承認済み",

@@ -792,8 +792,6 @@
     "breakdownFileCache": "后端文件缓存",
     "resourceUsage": "资源使用",
     "performanceMonitor": "性能监控",
-    "cpu": "CPU",
-    "perCoreUsage": "单核使用率",
     "memory": "RAM",
     "backendRss": "Backend RSS 总量",
     "attributionHintsGroup": "归因线索",

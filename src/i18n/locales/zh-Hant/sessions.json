@@ -709,6 +709,9 @@
       "newSession": {
         "title": "新建會話"
       },
+      "cliSession": {
+        "title": "使用 CLI Agent"
+      },
       "newWorkItem": {
         "title": "新建工作項目"
       },
@@ -797,6 +800,11 @@
     "hideWorkstation": "隱藏工作站",
     "restoreSplitView": "顯示工作站",
     "shrinkToWorkstation": "縮小聊天面板（顯示工作站）",
+    "tuiModeOn": "TUI 模式（點擊關閉）",
+    "tuiModeOff": "啟用 TUI 模式",
+    "tabs": {
+      "newTerminal": "新終端"
+    },
     "collapseAll": "全部摺疊",
     "copyEventJson": "複製事件 JSON",
     "copyEventJsonCopied": "複製！",
@@ -948,7 +956,8 @@
         "byMe": "由我建立",
         "mentioned": "提及我"
       }
-    }
+    },
+    "readOnly": "唯讀"
   },
   "chatStatus": {
     "approved": "已批准",

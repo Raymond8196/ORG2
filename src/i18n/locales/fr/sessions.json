@@ -705,6 +705,9 @@
       "newSession": {
         "title": "Nouvelle session"
       },
+      "cliSession": {
+        "title": "Utiliser un agent CLI"
+      },
       "newWorkItem": {
         "title": "Nouveau work item"
       },
@@ -793,6 +796,11 @@
     "hideWorkstation": "Masquer le Workstation",
     "restoreSplitView": "Afficher le Workstation",
     "shrinkToWorkstation": "Réduire le chat (afficher le Workstation)",
+    "tuiModeOn": "Mode TUI (cliquer pour désactiver)",
+    "tuiModeOff": "Activer le mode TUI",
+    "tabs": {
+      "newTerminal": "Nouveau Terminal"
+    },
     "collapseAll": "Tout réduire",
     "copyEventJson": "Copier le JSON des événements",
     "copyEventJsonCopied": "Copié !",
@@ -944,7 +952,8 @@
         "byMe": "Par moi",
         "mentioned": "Mentionnés"
       }
-    }
+    },
+    "readOnly": "Lecture seule"
   },
   "chatStatus": {
     "approved": "Approuvé",

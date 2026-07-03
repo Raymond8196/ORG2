@@ -705,6 +705,9 @@
       "newSession": {
         "title": "Neue Sitzung"
       },
+      "cliSession": {
+        "title": "CLI Agent verwenden"
+      },
       "newWorkItem": {
         "title": "Neues work item"
       },
@@ -793,6 +796,11 @@
     "hideWorkstation": "Workstation ausblenden",
     "restoreSplitView": "Workstation anzeigen",
     "shrinkToWorkstation": "Chat-Panel verkleinern (Workstation anzeigen)",
+    "tuiModeOn": "TUI-Modus (zum Deaktivieren klicken)",
+    "tuiModeOff": "TUI-Modus aktivieren",
+    "tabs": {
+      "newTerminal": "Neues Terminal"
+    },
     "collapseAll": "Alle einklappen",
     "copyEventJson": "Event-JSON kopieren",
     "copyEventJsonCopied": "Kopiert!",
@@ -944,7 +952,8 @@
         "byMe": "Von mir",
         "mentioned": "Erwähnt"
       }
-    }
+    },
+    "readOnly": "Schreibgeschützt"
   },
   "chatStatus": {
     "approved": "Genehmigt",
