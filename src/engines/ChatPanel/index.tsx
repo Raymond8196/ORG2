@@ -53,8 +53,11 @@ import {
   sessionCreatorStateAtom,
   workstationActiveSessionIdAtom,
 } from "@src/store/session";
-import { dispatchCategoryAtom } from "@src/store/session/creatorStateAtom";
-import { openCategoryPickerSignalAtom } from "@src/store/session/openCategoryPickerAtom";
+import {
+  CLI_LAUNCH_MODE,
+  cliLaunchModeAtom,
+  dispatchCategoryAtom,
+} from "@src/store/session/creatorStateAtom";
 import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
@@ -285,7 +288,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const setSelectedProject = useSetAtom(chatPanelSelectedProjectAtom);
     const dispatchClearSession = useSetAtom(clearSessionAtom);
     const setDispatchCategory = useSetAtom(dispatchCategoryAtom);
-    const bumpOpenCategoryPicker = useSetAtom(openCategoryPickerSignalAtom);
+    const setCliLaunchMode = useSetAtom(cliLaunchModeAtom);
 
     // ── Multi-tab system ───────────────────────────────────────────────────
     const activeTab = useAtomValue(activeChatPanelTabAtom);
@@ -316,7 +319,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       setWorkstationActiveSessionId,
     ]);
 
-    // Opens a new session tab pre-set to CLI agent category → opens the picker
+    // Opens a new session tab pre-set to CLI agent category (TUI layout shown immediately).
     const handleCliSessionTab = useCallback(() => {
       addSessionTab();
       setStartPageOpen(false);
@@ -325,13 +328,13 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       setWorkstationActiveSessionId(null);
       setActiveSessionId(null);
       setDispatchCategory("cli_agent");
-      bumpOpenCategoryPicker((prev) => prev + 1);
+      setCliLaunchMode(CLI_LAUNCH_MODE.TUI);
     }, [
       addSessionTab,
-      bumpOpenCategoryPicker,
       dispatchClearSession,
       navigateChatPanel,
       setActiveSessionId,
+      setCliLaunchMode,
       setDispatchCategory,
       setStartPageOpen,
       setWorkstationActiveSessionId,
@@ -422,12 +425,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       setWorkstationActiveSessionId(null);
       setActiveSessionId(null);
       setDispatchCategory("cli_agent");
-      bumpOpenCategoryPicker((prev) => prev + 1);
+      setCliLaunchMode(CLI_LAUNCH_MODE.TUI);
     }, [
-      bumpOpenCategoryPicker,
       dispatchClearSession,
       navigateChatPanel,
       setActiveSessionId,
+      setCliLaunchMode,
       setDispatchCategory,
       setStartPageOpen,
       setWorkstationActiveSessionId,
