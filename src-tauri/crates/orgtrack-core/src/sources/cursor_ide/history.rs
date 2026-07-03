@@ -33,8 +33,7 @@ use super::db as cursor_db;
 
 use super::helpers::{
     bubbles_to_chunks, build_fallback_user_chunk, build_unloaded_turn_placeholder_chunk,
-    cache_row_to_session_row, composer_source_updated_at, cursor_ide_session_detail,
-    is_listable_cursor_session,
+    cache_row_to_session_row, composer_source_updated_at, is_listable_cursor_session,
 };
 use super::io::{
     load_bubbles_by_id, load_complete_bubble_order, load_composer_for_order, open_cursor_db,
