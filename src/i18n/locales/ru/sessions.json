@@ -708,7 +708,7 @@
         "title": "Новая сессия"
       },
       "cliSession": {
-        "title": "Использовать CLI Agent"
+        "title": "Новая сессия (TUI)"
       },
       "newWorkItem": {
         "title": "Новый work item"
@@ -801,7 +801,10 @@
     "tuiModeOn": "Режим TUI (нажмите, чтобы отключить)",
     "tuiModeOff": "Включить режим TUI",
     "tabs": {
-      "newTerminal": "Новый Терминал"
+      "newTerminal": "Новый Терминал",
+      "newTab": "Новая вкладка",
+      "terminals": "Терминалы",
+      "newTuiSession": "Новая сессия (TUI)"
     },
     "collapseAll": "Свернуть все",
     "copyEventJson": "Скопировать JSON событий",

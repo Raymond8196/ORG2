@@ -75,6 +75,8 @@ export interface TerminalBlockProps {
   onStop?: (pid: number) => void;
   /** Token/context attribution metadata for this shell call. */
   toolUsage?: ToolUsageMetadata;
+  /** When true, renders output through xterm.js instead of ansi-to-react. */
+  tuiRendering?: boolean;
 }
 
 const TerminalBlock: React.FC<TerminalBlockProps> = memo(
@@ -99,6 +101,7 @@ const TerminalBlock: React.FC<TerminalBlockProps> = memo(
     processStatus,
     onStop,
     toolUsage,
+    tuiRendering,
   }) => {
     const isErrorExit = exitCode !== undefined && exitCode !== 0;
     const isBackground = processStatus === "background";
@@ -389,6 +392,7 @@ const TerminalBlock: React.FC<TerminalBlockProps> = memo(
                   collapsedMaxHeight={TERMINAL_OUTPUT_PREVIEW_MAX_HEIGHT}
                   defaultScrollToBottom
                   expandLineThreshold={TERMINAL_OUTPUT_EXPAND_LINE_THRESHOLD}
+                  tuiRendering={tuiRendering}
                 />
               )}
             </div>

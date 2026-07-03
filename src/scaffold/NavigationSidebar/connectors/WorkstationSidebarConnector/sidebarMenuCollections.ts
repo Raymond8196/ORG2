@@ -1,4 +1,6 @@
 import type { TFunction } from "i18next";
+import { useAtomValue } from "jotai";
+import { TerminalSquare } from "lucide-react";
 import { type MouseEvent, useMemo } from "react";
 
 import type { WorkspaceRecord } from "@src/api/tauri/workspace";
@@ -11,9 +13,11 @@ import type {
   OrgMember,
 } from "@src/modules/MainApp/AgentOrgs/types";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
+import { chatPanelTabsAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import type { Repo } from "@src/store/repo";
 import type { SessionCreatorDraft } from "@src/store/session";
 
+import { separator } from "../useSessionMenuItems/menuItemBuilders";
 import {
   buildDraftMenuItems,
   buildFoldersPinnedMenuItems,
@@ -108,10 +112,44 @@ export function useSessionSidebarMenuItems({
       }),
     [sessionCreatorDrafts, t]
   );
-  return useMemo(
-    () => [...draftMenuItems, ...menuItems],
-    [draftMenuItems, menuItems]
+
+  const tabsState = useAtomValue(chatPanelTabsAtom);
+
+  const terminalTabs = useMemo(
+    () => tabsState.tabs.filter((tab) => tab.type === "terminal"),
+    [tabsState.tabs]
   );
+
+  const terminalMenuItems = useMemo<NavigationMenuItem[]>(() => {
+    if (terminalTabs.length === 0) return [];
+    const terminalsLabel = t("labels.terminals");
+    const items: NavigationMenuItem[] = [
+      separator("terminals", terminalsLabel),
+    ];
+    for (const tab of terminalTabs) {
+      items.push({
+        id: `chat-terminal-${tab.id}`,
+        key: `chat-terminal-${tab.id}`,
+        label: tab.title || "Terminal",
+        icon: TerminalSquare,
+      });
+    }
+    return items;
+  }, [terminalTabs, t]);
+
+  return useMemo(
+    () => [...draftMenuItems, ...terminalMenuItems, ...menuItems],
+    [draftMenuItems, terminalMenuItems, menuItems]
+  );
+}
+
+/** Returns the handler for terminal sidebar items — consumed by the connector's click handler */
+export function isChatTerminalSidebarItem(id: string): boolean {
+  return id.startsWith("chat-terminal-");
+}
+
+export function getChatTerminalTabId(id: string): string {
+  return id.replace("chat-terminal-", "");
 }
 
 interface UseFoldersSidebarMenuItemsParams {

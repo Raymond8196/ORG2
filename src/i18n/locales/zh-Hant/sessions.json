@@ -710,7 +710,7 @@
         "title": "新建會話"
       },
       "cliSession": {
-        "title": "使用 CLI Agent"
+        "title": "新建會話 (TUI)"
       },
       "newWorkItem": {
         "title": "新建工作項目"
@@ -803,7 +803,10 @@
     "tuiModeOn": "TUI 模式（點擊關閉）",
     "tuiModeOff": "啟用 TUI 模式",
     "tabs": {
-      "newTerminal": "新終端"
+      "newTerminal": "新終端",
+      "newTab": "新分頁",
+      "terminals": "終端機",
+      "newTuiSession": "新工作階段（TUI）"
     },
     "collapseAll": "全部摺疊",
     "copyEventJson": "複製事件 JSON",

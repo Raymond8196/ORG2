@@ -706,7 +706,7 @@
         "title": "Nueva sesión"
       },
       "cliSession": {
-        "title": "Usar agente CLI"
+        "title": "Nueva sesión (TUI)"
       },
       "newWorkItem": {
         "title": "Nuevo work item"
@@ -799,7 +799,10 @@
     "tuiModeOn": "Modo TUI (clic para desactivar)",
     "tuiModeOff": "Activar modo TUI",
     "tabs": {
-      "newTerminal": "Nueva Terminal"
+      "newTerminal": "Nueva Terminal",
+      "newTab": "Nueva pestaña",
+      "terminals": "Terminales",
+      "newTuiSession": "Nueva sesión (TUI)"
     },
     "collapseAll": "Contraer todo",
     "copyEventJson": "Copiar JSON de eventos",

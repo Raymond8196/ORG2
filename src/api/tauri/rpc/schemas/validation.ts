@@ -373,6 +373,8 @@ export const AvailableAgentSchema = z.object({
   iconProvider: z.string(),
   /** Paired API provider for brand grouping (e.g., "anthropic_api" for claude_code) */
   pairedApiProvider: z.string().optional(),
+  /** Bare binary name to launch in a PTY shell (e.g. "claude", "gemini"). Source of truth from Rust registry. */
+  command: z.string(),
   /** Whether ORGII Rust agents can use this CLI's credentials */
   supportsRustAgents: z.boolean(),
   /** Whether this agent can use ORGII Pool (Token Market) billing. Always false for CLI agents. */

@@ -162,6 +162,7 @@ export const DispatchCategoryPalette: React.FC<
   currentAgentOrgId,
   currentCliAgentType,
   hideOrgs = false,
+  cliOnly = false,
   titleLabel,
   titleIcon,
   placeholderLabel,
@@ -363,14 +364,18 @@ export const DispatchCategoryPalette: React.FC<
   }, []);
 
   const allOptions = useMemo(
-    () => [
-      ...builtInRustOptions,
-      ...cliOptions,
-      ...externalIdeOptions,
-      ...customAgentOptions,
-      ...(hideOrgs ? [] : orgOptions),
-    ],
+    () =>
+      cliOnly
+        ? [...cliOptions]
+        : [
+            ...builtInRustOptions,
+            ...cliOptions,
+            ...externalIdeOptions,
+            ...customAgentOptions,
+            ...(hideOrgs ? [] : orgOptions),
+          ],
     [
+      cliOnly,
       builtInRustOptions,
       cliOptions,
       externalIdeOptions,
@@ -485,29 +490,34 @@ export const DispatchCategoryPalette: React.FC<
       }
     };
 
-    pushGroup(
-      "__header_builtin__",
-      t("creator.builtInAgents"),
-      builtInRustOptions
-    );
+    if (!cliOnly) {
+      pushGroup(
+        "__header_builtin__",
+        t("creator.builtInAgents"),
+        builtInRustOptions
+      );
+    }
     pushGroup("__header_cli__", t("creator.cliAgents"), cliOptions);
-    pushGroup(
-      "__header_external_ide__",
-      t("creator.externalIdes"),
-      externalIdeOptions
-    );
-    pushGroup(
-      "__header_custom__",
-      t("creator.customAgents"),
-      customAgentOptions
-    );
-    if (!hideOrgs) {
-      pushGroup("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+    if (!cliOnly) {
+      pushGroup(
+        "__header_external_ide__",
+        t("creator.externalIdes"),
+        externalIdeOptions
+      );
+      pushGroup(
+        "__header_custom__",
+        t("creator.customAgents"),
+        customAgentOptions
+      );
+      if (!hideOrgs) {
+        pushGroup("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+      }
     }
 
     return result;
   }, [
     isSearching,
+    cliOnly,
     filteredOptions,
     builtInRustOptions,
     cliOptions,

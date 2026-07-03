@@ -714,7 +714,7 @@
         "title": "Nowa sesja"
       },
       "cliSession": {
-        "title": "Użyj agenta CLI"
+        "title": "Nowa sesja (TUI)"
       },
       "newWorkItem": {
         "title": "Nowy work item"
@@ -807,7 +807,10 @@
     "tuiModeOn": "Tryb TUI (kliknij, aby wyłączyć)",
     "tuiModeOff": "Włącz tryb TUI",
     "tabs": {
-      "newTerminal": "Nowy Terminal"
+      "newTerminal": "Nowy Terminal",
+      "newTab": "Nowa karta",
+      "terminals": "Terminale",
+      "newTuiSession": "Nowa sesja (TUI)"
     },
     "collapseAll": "Zwiń wszystko",
     "copyEventJson": "Kopiuj JSON zdarzeń",

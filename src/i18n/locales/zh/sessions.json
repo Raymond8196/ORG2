@@ -731,7 +731,7 @@
         "title": "新建会话"
       },
       "cliSession": {
-        "title": "使用 CLI Agent"
+        "title": "新建会话 (TUI)"
       },
       "newWorkItem": {
         "title": "新建工作项"
@@ -824,7 +824,10 @@
     "tuiModeOn": "TUI 模式（点击关闭）",
     "tuiModeOff": "启用 TUI 模式",
     "tabs": {
-      "newTerminal": "新终端"
+      "newTerminal": "新终端",
+      "newTab": "新标签页",
+      "terminals": "终端",
+      "newTuiSession": "新会话（TUI）"
     },
     "collapseAll": "全部折叠",
     "copyEventJson": "复制事件 JSON",
