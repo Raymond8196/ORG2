@@ -707,6 +707,9 @@
       "newSession": {
         "title": "Новая сессия"
       },
+      "cliSession": {
+        "title": "Новая сессия (TUI)"
+      },
       "newWorkItem": {
         "title": "Новый work item"
       },
@@ -795,6 +798,14 @@
     "hideWorkstation": "Скрыть Workstation",
     "restoreSplitView": "Показать Workstation",
     "shrinkToWorkstation": "Свернуть панель чата (показать Workstation)",
+    "tuiModeOn": "Режим TUI (нажмите, чтобы отключить)",
+    "tuiModeOff": "Включить режим TUI",
+    "tabs": {
+      "newTerminal": "Новый Терминал",
+      "newTab": "Новая вкладка",
+      "terminals": "Терминалы",
+      "newTuiSession": "Новая сессия (TUI)"
+    },
     "collapseAll": "Свернуть все",
     "copyEventJson": "Скопировать JSON событий",
     "copyEventJsonCopied": "Скопировано!",
@@ -952,7 +963,8 @@
         "byMe": "Созданы мной",
         "mentioned": "Упоминания"
       }
-    }
+    },
+    "readOnly": "Только чтение"
   },
   "chatStatus": {
     "approved": "Одобрено",

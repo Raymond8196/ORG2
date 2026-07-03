@@ -1,5 +1,3 @@
-import { useCallback, useState } from "react";
-
 import {
   type SourceControlScope,
   normalizeScopePath,
@@ -27,44 +25,4 @@ export function shouldShowScopePaneLoading(options: {
   if (options.pendingWorktreeScope) return true;
   if (options.scopeIdentityChanging) return true;
   return options.paneLoading;
-}
-
-export interface SourceControlScopeSwitchState {
-  scopeIdentityChanging: boolean;
-  paneLoading: boolean;
-  showScopePaneLoading: boolean;
-  onPaneLoadingChange: (loading: boolean) => void;
-}
-
-export function useSourceControlScopeSwitchState(options: {
-  scopeKey: string;
-  pendingWorktreeScope: boolean;
-}): SourceControlScopeSwitchState {
-  const { scopeKey, pendingWorktreeScope } = options;
-  const [trackedScopeKey, setTrackedScopeKey] = useState(scopeKey);
-  const [paneLoading, setPaneLoading] = useState(true);
-  const scopeIdentityChanging = isScopeIdentityChanging(
-    trackedScopeKey,
-    scopeKey
-  );
-
-  if (scopeIdentityChanging) {
-    setTrackedScopeKey(scopeKey);
-    setPaneLoading(true);
-  }
-
-  const onPaneLoadingChange = useCallback((loading: boolean) => {
-    setPaneLoading(loading);
-  }, []);
-
-  return {
-    scopeIdentityChanging,
-    paneLoading,
-    showScopePaneLoading: shouldShowScopePaneLoading({
-      pendingWorktreeScope,
-      scopeIdentityChanging,
-      paneLoading,
-    }),
-    onPaneLoadingChange,
-  };
 }

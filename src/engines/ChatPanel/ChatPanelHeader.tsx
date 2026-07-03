@@ -9,10 +9,12 @@ import {
   ListChevronsDownUp,
   ListChevronsUpDown,
   Maximize2,
+  MonitorPlay,
   MoreHorizontal,
   Plus,
   RefreshCw,
   Search,
+  TerminalSquare,
 } from "lucide-react";
 import React from "react";
 import { createPortal } from "react-dom";
@@ -121,6 +123,13 @@ interface ChatPanelHeaderProps {
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
   toggleHeaderActionsMenu: () => void;
   visibleRegionNotice: ChatPanelRegionNotice | null;
+  showTuiModeToggle: boolean;
+  tuiMode: boolean;
+  handleTuiModeToggle: () => void;
+  /** When provided, replaces the title/drag-spacer area with the tab strip */
+  tabStrip?: React.ReactNode;
+  /** When provided, rendered before the ... button (tab-strip + menu replacement) */
+  tabStripPlus?: React.ReactNode;
 }
 
 export function ChatPanelHeader({
@@ -184,6 +193,11 @@ export function ChatPanelHeader({
   t,
   toggleHeaderActionsMenu,
   visibleRegionNotice,
+  showTuiModeToggle,
+  tuiMode,
+  handleTuiModeToggle,
+  tabStrip,
+  tabStripPlus,
 }: ChatPanelHeaderProps): React.ReactNode {
   const publishedHeaderSlots = useAtomValue(chatPanelHeaderSlotsAtom);
   const windowsHost = isWindows();
@@ -216,12 +230,50 @@ export function ChatPanelHeader({
     defaultValue: "Agent",
   });
 
+  const tuiModeLabel = tuiMode ? t("chat.tuiModeOn") : t("chat.tuiModeOff");
+
   const headerToolbar = (
     <div
       className="flex h-9 flex-shrink-0 items-center gap-px"
       style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
     >
-      {showSessionContent && (
+      {showTuiModeToggle && (
+        <Tooltip
+          content={
+            <KeyboardShortcutTooltipContent label={tuiModeLabel} noShortcut />
+          }
+          position="bottom-end"
+          mouseEnterDelay={200}
+          framedPanel
+        >
+          <span className="inline-flex">
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              size="small"
+              iconOnly
+              onClick={handleTuiModeToggle}
+              aria-label={tuiModeLabel}
+              aria-pressed={tuiMode}
+              className={tuiMode ? "!text-primary-6" : ""}
+              icon={
+                tuiMode ? (
+                  <MonitorPlay
+                    size={CHAT_PANEL_HEADER_ICON_SIZE}
+                    strokeWidth={2}
+                  />
+                ) : (
+                  <TerminalSquare
+                    size={CHAT_PANEL_HEADER_ICON_SIZE}
+                    strokeWidth={2}
+                  />
+                )
+              }
+            />
+          </span>
+        </Tooltip>
+      )}
+      {!tabStrip && showSessionContent && (
         <Tooltip
           content={
             <KeyboardShortcutTooltipContent label={collapseToggleLabel} />
@@ -262,6 +314,7 @@ export function ChatPanelHeader({
           alertClassName="!border-border-2 !bg-chat-container !text-text-1 shadow-lg"
         />
       )}
+      {tabStripPlus}
       {showSessionContent && (
         <Tooltip
           content={
@@ -325,7 +378,7 @@ export function ChatPanelHeader({
           </span>
         </Tooltip>
       )}
-      {showNewSessionButton && (
+      {!tabStrip && showNewSessionButton && (
         <Tooltip
           content={
             <KeyboardShortcutTooltipContent
@@ -518,7 +571,9 @@ export function ChatPanelHeader({
           </span>
         </Tooltip>
       ) : null}
-      {showNonSessionContent &&
+      {tabStrip ?? null}
+      {!tabStrip &&
+        showNonSessionContent &&
         !showStartPage &&
         !selectedWorkItemVisible &&
         !selectedProjectVisible && (
@@ -583,77 +638,80 @@ export function ChatPanelHeader({
             )}
           </div>
         )}
-      {publishedHeaderSlots ? (
-        <div className="flex h-9 min-w-0 flex-1 items-center">
-          <ChatPanelHeaderSlotsView slots={publishedHeaderSlots} />
-        </div>
-      ) : showBenchmarkSessionGroupContent ||
-        showSessionContent ||
-        selectedWorkItemVisible ||
-        selectedProjectVisible ||
-        headerTitleContent ? (
-        <>
-          <div
-            className="flex h-9 min-w-0 shrink items-center"
-            style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
-          >
-            {showBenchmarkSessionGroupContent ? (
-              <ChatPanelHeaderTitlePill>{headerTitle}</ChatPanelHeaderTitlePill>
-            ) : headerTitleContent ? (
-              <span
-                className="flex min-w-0 max-w-full items-center gap-2"
-                data-testid="chat-panel-header-title"
-              >
-                {headerTitleContent}
-                {showExploreAgentSwitchInHeader ? (
-                  <>
-                    <div
-                      className="h-4 w-px shrink-0 bg-border-2"
-                      role="separator"
-                      aria-hidden
-                    />
-                    <ChatPanelHeaderAgentSwitch
-                      checked={exploreAgentSearchEnabled}
-                      label={agentSwitchLabel}
-                      onChange={handleExploreAgentSearchToggle}
-                      dataTestId="chat-panel-explore-agent-search-switch"
-                    />
-                  </>
-                ) : null}
-              </span>
-            ) : showSessionContent ||
-              (selectedWorkItemVisible && currentSessionId) ? (
-              <SessionHoverCard sessionId={currentSessionId}>
+      {!tabStrip &&
+        (publishedHeaderSlots ? (
+          <div className="flex h-9 min-w-0 flex-1 items-center">
+            <ChatPanelHeaderSlotsView slots={publishedHeaderSlots} />
+          </div>
+        ) : showBenchmarkSessionGroupContent ||
+          showSessionContent ||
+          selectedWorkItemVisible ||
+          selectedProjectVisible ||
+          headerTitleContent ? (
+          <>
+            <div
+              className="flex h-9 min-w-0 shrink items-center"
+              style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
+            >
+              {showBenchmarkSessionGroupContent ? (
                 <ChatPanelHeaderTitlePill>
                   {headerTitle}
                 </ChatPanelHeaderTitlePill>
-              </SessionHoverCard>
-            ) : selectedProjectVisible ? (
-              <Input
-                type="text"
-                value={headerTitle}
-                onChange={handleProjectTitleChange}
-                fieldVariant="ghost"
-                size="small"
-                data-testid="chat-panel-header-title-input"
-              />
-            ) : (
-              <Input
-                type="text"
-                value={headerTitle}
-                onChange={handleWorkItemTitleChange}
-                readOnly={!selectedWorkItemVisible}
-                fieldVariant="ghost"
-                size="small"
-                data-testid="chat-panel-header-title-input"
-              />
-            )}
-          </div>
+              ) : headerTitleContent ? (
+                <span
+                  className="flex min-w-0 max-w-full items-center gap-2"
+                  data-testid="chat-panel-header-title"
+                >
+                  {headerTitleContent}
+                  {showExploreAgentSwitchInHeader ? (
+                    <>
+                      <div
+                        className="h-4 w-px shrink-0 bg-border-2"
+                        role="separator"
+                        aria-hidden
+                      />
+                      <ChatPanelHeaderAgentSwitch
+                        checked={exploreAgentSearchEnabled}
+                        label={agentSwitchLabel}
+                        onChange={handleExploreAgentSearchToggle}
+                        dataTestId="chat-panel-explore-agent-search-switch"
+                      />
+                    </>
+                  ) : null}
+                </span>
+              ) : showSessionContent ||
+                (selectedWorkItemVisible && currentSessionId) ? (
+                <SessionHoverCard sessionId={currentSessionId}>
+                  <ChatPanelHeaderTitlePill>
+                    {headerTitle}
+                  </ChatPanelHeaderTitlePill>
+                </SessionHoverCard>
+              ) : selectedProjectVisible ? (
+                <Input
+                  type="text"
+                  value={headerTitle}
+                  onChange={handleProjectTitleChange}
+                  fieldVariant="ghost"
+                  size="small"
+                  data-testid="chat-panel-header-title-input"
+                />
+              ) : (
+                <Input
+                  type="text"
+                  value={headerTitle}
+                  onChange={handleWorkItemTitleChange}
+                  readOnly={!selectedWorkItemVisible}
+                  fieldVariant="ghost"
+                  size="small"
+                  data-testid="chat-panel-header-title-input"
+                />
+              )}
+            </div>
+            <ChatPanelHeaderDragSpacer />
+          </>
+        ) : (
           <ChatPanelHeaderDragSpacer />
-        </>
-      ) : (
-        <ChatPanelHeaderDragSpacer />
-      )}
+        ))}
       {headerToolbar}
     </div>
   );

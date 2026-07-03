@@ -792,8 +792,6 @@
     "breakdownFileCache": "Cache de arquivos do backend",
     "resourceUsage": "Uso de Recursos",
     "performanceMonitor": "Monitor de Desempenho",
-    "cpu": "CPU",
-    "perCoreUsage": "Uso por núcleo",
     "memory": "RAM",
     "backendRss": "RSS total do backend",
     "attributionHintsGroup": "Pistas de atribuição",

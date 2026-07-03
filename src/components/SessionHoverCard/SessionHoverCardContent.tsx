@@ -12,6 +12,10 @@ import React, { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  type CursorIdeSessionDetail,
+  cursorIdeSessionDetail,
+} from "@src/api/tauri/cursorIde";
+import {
   type CoreSessionSummary,
   getOrgtrackSessionSummary,
 } from "@src/api/tauri/lineage";
@@ -107,7 +111,34 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
     const creatorDefaultLastModel = useValidatedLastPair();
     const turnOverview: SessionTurnOverview | null =
       useSessionTurnOverview(sessionId);
-    const repoPath = session?.repoPath;
+    const isCursorIde = getDispatchCategory(sessionId) === "cursor_ide";
+
+    // cursor_ide sessions omit hover-only fields from the list response to
+    // keep sidebar pagination fast. Fetch them on demand when the card opens.
+    const [cursorIdeDetail, setCursorIdeDetail] =
+      useState<CursorIdeSessionDetail | null>(null);
+
+    useEffect(() => {
+      if (!isCursorIde) return;
+      let cancelled = false;
+      cursorIdeSessionDetail(sessionId)
+        .then((detail) => {
+          if (!cancelled) setCursorIdeDetail(detail);
+        })
+        .catch((error: unknown) => {
+          logger.warn("failed to load cursor IDE session detail", {
+            error,
+            sessionId,
+          });
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, [sessionId, isCursorIde]);
+
+    const repoPath =
+      (isCursorIde ? cursorIdeDetail?.repoPath : session?.repoPath) ??
+      session?.repoPath;
     const [orgtrackSummary, setOrgtrackSummary] =
       useState<CoreSessionSummary | null>(null);
 
@@ -209,24 +240,32 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
             (filesChanged * committedRatePercent) / 100
           ),
           committedRatePercent,
-          touchedFiles: session.touchedFiles,
+          touchedFiles: isCursorIde
+            ? (cursorIdeDetail?.touchedFiles ?? [])
+            : session.touchedFiles,
         },
       };
-    }, [orgtrackSummary, session]);
+    }, [orgtrackSummary, session, isCursorIde, cursorIdeDetail]);
 
     if (!session) return null;
 
-    const repoName = session.repo_name || (repoPath ? basename(repoPath) : "");
+    const effectiveRepoName =
+      (isCursorIde ? cursorIdeDetail?.repoName : session.repo_name) ??
+      session.repo_name;
+    const repoName = effectiveRepoName || (repoPath ? basename(repoPath) : "");
     const worktreePath = session.worktreePath;
     const normalizedRepoPath = repoPath ? normalizePath(repoPath) : undefined;
     const workspaceGitStatus = normalizedRepoPath
       ? workspaceGitStatusMap.get(normalizedRepoPath)
       : undefined;
     const worktreePathLabel = worktreePath ? basename(worktreePath) : "";
+    const effectiveBranch = isCursorIde
+      ? cursorIdeDetail?.branch
+      : session.branch;
     const branchLabel =
       formatBranchLabel(session.worktreeBranch) ||
       (worktreePath ? worktreePathLabel : "") ||
-      formatBranchLabel(session.branch) ||
+      formatBranchLabel(effectiveBranch) ||
       formatBranchLabel(session.baseBranch) ||
       formatBranchLabel(workspaceGitStatus?.current_branch);
     const modelIconName =

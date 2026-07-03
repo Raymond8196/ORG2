@@ -3,7 +3,18 @@
  *
  * Core types for terminal sessions and state management.
  */
+import type { CliAgentType } from "@src/api/types/keys";
 import type { ShellKind } from "@src/types/terminal";
+
+export const TERMINAL_AGENT_STATUS = {
+  STARTING: "starting",
+  RUNNING: "running",
+  WAITING: "waiting",
+  DONE: "done",
+} as const;
+
+export type TerminalAgentStatus =
+  (typeof TERMINAL_AGENT_STATUS)[keyof typeof TERMINAL_AGENT_STATUS];
 
 export interface TerminalSession {
   id: string;
@@ -31,6 +42,14 @@ export interface TerminalSession {
   isDefaultSession?: boolean;
   /** True after direct user input has been sent to the PTY. */
   hasUserInput?: boolean;
+  /** CLI agent hosted in this terminal, when launched from the chat panel. */
+  cliAgentType?: CliAgentType;
+  /** Command injected to start the CLI agent. */
+  agentCommand?: string;
+  /** Foreground process name expected while the CLI agent is active. */
+  expectedProcess?: string;
+  /** Derived lifecycle state for chat-panel TUI agent tracking. */
+  agentStatus?: TerminalAgentStatus;
 }
 
 /** Resolved display title for a terminal session, by priority. */
@@ -91,6 +110,7 @@ export interface UseTerminalStateReturn {
         | "liveCwd"
         | "isDefaultSession"
         | "hasUserInput"
+        | "agentStatus"
       >
     >
   ) => void;

@@ -705,6 +705,9 @@
       "newSession": {
         "title": "Phiên mới"
       },
+      "cliSession": {
+        "title": "Phiên mới (TUI)"
+      },
       "newWorkItem": {
         "title": "Work item mới"
       },
@@ -793,6 +796,14 @@
     "hideWorkstation": "Ẩn Workstation",
     "restoreSplitView": "Hiện Workstation",
     "shrinkToWorkstation": "Thu nhỏ bảng chat (hiện Workstation)",
+    "tuiModeOn": "Chế độ TUI (nhấp để tắt)",
+    "tuiModeOff": "Bật chế độ TUI",
+    "tabs": {
+      "newTerminal": "Terminal Mới",
+      "newTab": "Tab mới",
+      "terminals": "Terminal",
+      "newTuiSession": "Phiên mới (TUI)"
+    },
     "collapseAll": "Thu gọn tất cả",
     "copyEventJson": "Sao chép JSON sự kiện",
     "copyEventJsonCopied": "Đã sao chép!",
@@ -944,7 +955,8 @@
         "byMe": "Bởi tôi",
         "mentioned": "Được nhắc đến"
       }
-    }
+    },
+    "readOnly": "Chỉ đọc"
   },
   "chatStatus": {
     "approved": "Đã phê duyệt",

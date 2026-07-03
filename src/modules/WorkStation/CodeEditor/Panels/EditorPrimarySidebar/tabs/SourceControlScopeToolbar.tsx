@@ -1,4 +1,4 @@
-import { ChevronRight, Trash2 } from "lucide-react";
+import { ChevronRight, Search, Trash2 } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -6,7 +6,6 @@ import type { GitWorktreeDiffSummary } from "@src/api/http/git/types";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import Dropdown from "@src/components/Dropdown";
 import DropdownItem from "@src/components/Dropdown/DropdownItem";
-import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -29,7 +28,6 @@ import {
   mainScopeMatchesQuery,
   resolveScopeBranchLabel,
   resolveScopeBreadcrumbSegments,
-  scopePickerHasVisibleResults,
   scopePickerRowLabel,
   scopePickerRowTitle,
   shouldShowScopePickerSearch,
@@ -44,6 +42,9 @@ const BREADCRUMB_TONE_CLASS = {
   primary: "text-[12px] font-medium text-text-1",
   secondary: "text-[11px] text-text-2",
 } as const;
+
+const SCOPE_SECTION_LABEL =
+  "px-1.5 pb-0.5 pt-2 text-[11px] font-medium text-text-4 first:pt-1";
 
 const SCOPE_PICKER_REMOVE_BUTTON = [
   "absolute right-1 top-1/2 z-[1] -translate-y-1/2 bg-surface-hover",
@@ -83,9 +84,7 @@ function ScopePickerDiffStats({
 }
 
 function ScopePickerSectionLabel({ label }: { label: string }) {
-  return (
-    <div className={`${DROPDOWN_CLASSES.sectionLabel} first:pt-1`}>{label}</div>
-  );
+  return <div className={SCOPE_SECTION_LABEL}>{label}</div>;
 }
 
 function ScopePickerItem({
@@ -189,11 +188,6 @@ export function SourceControlScopeToolbar({
     searchQuery
   );
   const showSearch = shouldShowScopePickerSearch(worktrees.length);
-  const hasVisibleResults = scopePickerHasVisibleResults(
-    showMainScope,
-    filteredWorktrees.length
-  );
-  const searchPlaceholder = t("sourceControl.scope.searchPlaceholder");
 
   const selectedWorktree =
     scope.kind === "worktree"
@@ -239,13 +233,20 @@ export function SourceControlScopeToolbar({
       onMouseDown={(event) => event.stopPropagation()}
     >
       {showSearch ? (
-        <DropdownSearch
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder={searchPlaceholder}
-          ariaLabel={searchPlaceholder}
-          autoFocus
-        />
+        <div className={DROPDOWN_CLASSES.searchContainer}>
+          <Search
+            size={DROPDOWN_ITEM.iconSize}
+            className="shrink-0 text-text-3"
+          />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder={t("sourceControl.scope.searchPlaceholder")}
+            className={DROPDOWN_CLASSES.searchInput}
+            aria-label={t("sourceControl.scope.searchPlaceholder")}
+          />
+        </div>
       ) : null}
       <div className={DROPDOWN_CLASSES.optionsContainerScrollbar}>
         {showMainScope ? (
@@ -294,7 +295,7 @@ export function SourceControlScopeToolbar({
             ))}
           </>
         ) : null}
-        {!hasVisibleResults ? (
+        {!showMainScope && filteredWorktrees.length === 0 ? (
           <div className={DROPDOWN_CLASSES.listMessage}>
             {t("placeholders.noResults", "No results")}
           </div>

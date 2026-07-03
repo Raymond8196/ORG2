@@ -26,7 +26,7 @@ const KeyVaultWizard: React.FC<KeyVaultWizardProps> = ({
   initialAgentType,
   title,
   initialData,
-  primaryProvidersOnly = false,
+  primaryProvidersOnly = true,
   existingAccountNames,
 }) => {
   const { t } = useTranslation("integrations");

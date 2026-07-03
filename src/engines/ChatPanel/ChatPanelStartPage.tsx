@@ -9,6 +9,7 @@ import {
   ListTodo,
   MessageSquarePlus,
   Search,
+  TerminalSquare,
 } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -48,6 +49,7 @@ interface StartPageHint {
 interface ChatPanelStartPageProps {
   className?: string;
   onAddApiKey: () => void;
+  onCliSession: () => void;
   onExploreRepos: () => void;
   onManageIssues: () => void;
   onNewSession: () => void;
@@ -320,6 +322,7 @@ function StartPageHintLine({
 export function ChatPanelStartPage({
   className,
   onAddApiKey,
+  onCliSession,
   onExploreRepos,
   onManageIssues,
   onNewSession,
@@ -339,12 +342,23 @@ export function ChatPanelStartPage({
     ],
     [t]
   );
+
+  const handleTabChange = useCallback((key: string) => {
+    setActiveTab(key as StartPageTabKey);
+  }, []);
+
   const workActions: ChatPanelStartPageAction[] = [
     {
       id: "new-session",
       title: t("chat.startPage.newSession.title"),
       icon: <MessageSquarePlus size={13} strokeWidth={1.8} />,
       onClick: onNewSession,
+    },
+    {
+      id: "cli-session",
+      title: t("chat.startPage.cliSession.title"),
+      icon: <TerminalSquare size={13} strokeWidth={1.8} />,
+      onClick: onCliSession,
     },
     {
       id: "new-work-item",
@@ -405,7 +419,7 @@ export function ChatPanelStartPage({
             fillWidth={false}
             tabs={tabs}
             activeTab={activeTab}
-            onChange={(key) => setActiveTab(key as StartPageTabKey)}
+            onChange={handleTabChange}
           />
         </div>
         {activeTab === START_PAGE_TAB.HEATMAP ? (

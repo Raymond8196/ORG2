@@ -106,7 +106,6 @@ fn apply_linux_webkit_cpu_guards() {}
 pub mod agent_sessions; // Agent session management (CLI, event pipeline, persistence, aggregation)
 pub mod api;
 pub mod benchmark;
-pub mod cursor_ide_watch; // cursor_ide streaming delta watch commands
 pub mod infrastructure; // In-tree-only cross-cutting infrastructure (paths, platform, archive, index_manager, jsonrpc, housekeeping). Leaf pieces live in their own workspace crates.
 pub mod orgtrack;
 pub(crate) mod setup;
@@ -451,10 +450,7 @@ pub fn run() {
             }
 
             git::watch::RepoWatchManager::initialize(app.handle().clone());
-            tracing::info!("[RepoWatch] Event-driven repository watch manager initialized");
-
-            git::repos::hydrate_repos_into_watcher();
-            tracing::info!("[RepoWatch] Persisted repos loaded from DB");
+            tracing::info!("[RepoWatch] Repository watch manager initialized for on-demand active workspaces");
 
             // Start L3 offline consolidation tick (60s interval, fires on
             // idle/forced triggers). Non-blocking, runs on its own thread +
@@ -767,10 +763,6 @@ pub fn run() {
 
             // Load skill env vars from ~/.orgii/skill-env.json into the process
             agent_core::skills::loader::load_and_apply_skill_env();
-
-            // Initialize cursor_ide streaming delta watch state
-            app.manage(cursor_ide_watch::WatchHandlesState::new());
-            tracing::info!("[CursorIdeWatch] Watch handles state initialized");
 
             // Initialize MCP state
             app.manage(agent_core::mcp::commands::McpState::new());

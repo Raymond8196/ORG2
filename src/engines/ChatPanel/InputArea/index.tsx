@@ -30,6 +30,7 @@ import {
 } from "./components/InputComposerBars";
 import ModePill from "./components/ModePill";
 import ModelPill from "./components/ModelPill";
+import SessionReadOnlyBar from "./components/SessionReadOnlyBar";
 import { useContainerDrag } from "./hooks/useContainerDrag";
 import { useEditMode } from "./hooks/useEditMode";
 import { useEditorExpansion } from "./hooks/useEditorExpansion";
@@ -70,7 +71,38 @@ interface InputAreaProps {
   bottomAnchored?: boolean;
 }
 
-const InputArea: React.FC<InputAreaProps> = memo(
+/**
+ * Gateway: resolves the session ID, then either renders the read-only bar
+ * (cursor IDE) or delegates to `InputAreaInteractive` for all other sessions.
+ * Keeping the split here means `InputAreaInteractive` never mounts its heavy
+ * hooks for read-only sessions.
+ */
+const InputArea: React.FC<InputAreaProps> = memo((props) => {
+  const { sessionId: propSessionId, isEditMode = false } = props;
+
+  useSessionDiscovery({ autoLoad: true });
+  const { sessionId } = useSessionId({ propSessionId });
+  const isCursorIde = sessionId ? isCursorIdeSession(sessionId) : false;
+
+  if (isCursorIde && !isEditMode && sessionId) {
+    return (
+      <SessionReadOnlyBar
+        pills={
+          <>
+            <CursorModelPill sessionId={sessionId} />
+            <CursorModePill sessionId={sessionId} />
+          </>
+        }
+      />
+    );
+  }
+
+  return <InputAreaInteractive {...props} />;
+});
+
+InputArea.displayName = "InputArea";
+
+const InputAreaInteractive: React.FC<InputAreaProps> = memo(
   ({
     placeholder,
     isEditMode = false,
@@ -101,10 +133,9 @@ const InputArea: React.FC<InputAreaProps> = memo(
   }) => {
     const { t } = useTranslation("sessions");
 
-    useSessionDiscovery({ autoLoad: true });
-
     const { sessionId } = useSessionId({ propSessionId });
     const isCursorIde = sessionId ? isCursorIdeSession(sessionId) : false;
+
     const openedTabMentionOptions = useAtomValue(openedTabMentionOptionsAtom);
     const mergedCustomMentionOptions = useMemo(
       () => [...openedTabMentionOptions, ...(customMentionOptions ?? [])],
@@ -528,6 +559,6 @@ const InputArea: React.FC<InputAreaProps> = memo(
   }
 );
 
-InputArea.displayName = "InputArea";
+InputAreaInteractive.displayName = "InputAreaInteractive";
 
 export default InputArea;

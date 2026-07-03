@@ -2,25 +2,20 @@
  * Cursor IDE Session Adapter
  *
  * Surfaces Cursor IDE chat history (read from `~/.../state.vscdb`) as
- * sessions in our app **and** lets the user send new prompts back into
- * the live Cursor probe instance through {@link sendMessage}.
+ * read-only sessions in our app.
  *
  * - `loadHistory` reads bubbles from Cursor's DB via `cursor_ide_chunks`
  *   and pipes them through the same Rust normalizer (`processChunksRust`)
  *   that CLI sessions use, so `ChatHistory` and the simulator render them
  *   without any UI-layer changes.
  * - `createEventHandler` handles `code_session.activity` delta events
- *   delivered via the long-lived CDP watch established by `sendMessage`.
- *   Each `assistant_delta` chunk with `is_delta: true` is accumulated
- *   locally for the typewriter effect. The polling hook
- *   `useCursorIdeFocusPoll` continues to run as fallback for tool-call
- *   bubbles and final state replacement.
+ *   from the existing IPC channel (no CDP watch is started by ORGII).
  * - `sendMessage` runs the probe flow: `ensureRunning` →
  *   optional `setModel` → optional `setMode` → headless `send`
- *   (composer-targeted, no UI route) → start CDP watch via
- *   `cursorBridgeWatchComposer` → forced reload of the EventStore.
- * - `stopSession` cancels the CDP watch via `cursorBridgeUnwatchComposer`
- *   (no ORGII-side process to stop; Cursor turn cancellation is Cursor's own).
+ *   (composer-targeted, no UI route) → forced reload of the EventStore.
+ *   No CDP streaming watch is started; the forced reload surfaces the
+ *   submitted prompt and any pre-stream bubbles immediately.
+ * - `stopSession` is a no-op (no CDP watch to cancel).
  */
 import {
   cursorBridgeComposerLastUpdatedAt,
@@ -28,8 +23,6 @@ import {
   cursorBridgeSend,
   cursorBridgeSetMode,
   cursorBridgeSetModel,
-  cursorBridgeUnwatchComposer,
-  cursorBridgeWatchComposer,
 } from "@src/api/tauri/cursorBridge";
 import { promptRestartCursorWithDebugPort } from "@src/api/tauri/cursorBridge/restartDialog";
 import {
@@ -64,12 +57,9 @@ const CURSOR_IDE_CATEGORY = "cursor_ide";
 const CURSOR_IDE_INITIAL_RECENT_BUBBLE_LIMIT = 100;
 
 /**
- * In-flight `sendMessage` calls keyed by sessionId. A second prompt for the
- * same Cursor composer must not race the first: both would tear down and
- * replace each other's CDP watch (`cursorBridgeWatchComposer` "replaces any
- * existing watch automatically"), orphaning the first prompt's delta stream.
- * The guard serializes per-session sends so each prompt's watch outlives
- * its own dispatch.
+ * In-flight `sendMessage` calls keyed by sessionId. Serializes concurrent
+ * sends to the same Cursor composer so each prompt completes before the next
+ * one begins.
  */
 const _inFlightSends = new Map<string, Promise<void>>();
 
@@ -309,9 +299,7 @@ export const cursorIdeAdapter: SessionAdapter = {
     // NOTE: this adapter deliberately does NOT drive `onStatusChange`.
     // The CDP delta stream has no terminal "answer finished" event — the
     // deltas simply stop — so the adapter cannot emit a balanced
-    // running → completed pair. Cursor IDE session runtime status is
-    // owned by the polling fallback (`useCursorIdeFocusPoll`), which reads
-    // the authoritative final state from Cursor's own DB.
+    // running → completed pair.
 
     function clearMessageStream(): void {
       msgContent = "";
@@ -416,12 +404,9 @@ export const cursorIdeAdapter: SessionAdapter = {
     }
   },
 
-  async stopSession(sessionId: string): Promise<void> {
-    // Cancel the long-lived CDP watch for this session (if any).
+  async stopSession(_sessionId: string): Promise<void> {
+    // Cursor IDE sessions are read-only; no CDP watch to cancel.
     // Cursor turn cancellation is owned by Cursor itself.
-    cursorBridgeUnwatchComposer({ sessionId }).catch((err: unknown) => {
-      logger.warn("cursorBridgeUnwatchComposer failed:", err);
-    });
   },
 };
 
@@ -488,28 +473,7 @@ async function runCursorIdeSend(input: AdapterSendInput): Promise<void> {
 
   await cursorBridgeSend({ text, targetAgentId: composerId ?? undefined });
 
-  // Start streaming delta watch BEFORE the force-reload. The watch injects
-  // a MutationObserver into the Cursor renderer and forwards each token
-  // delta to `createEventHandler` via the `code_session.activity` event.
-  // Any existing watch for this session is replaced automatically.
-  //
-  // This is awaited (unlike the historical fire-and-forget version) so the
-  // observer is guaranteed live before the reload completes — otherwise the
-  // first deltas race the reload and the typewriter effect skips them.
-  if (composerId) {
-    try {
-      await cursorBridgeWatchComposer({ sessionId, composerId });
-    } catch (watchErr: unknown) {
-      // Non-fatal: the polling fallback (`useCursorIdeFocusPoll`) still
-      // surfaces the final state. Log so the missing typewriter is traceable.
-      logger.warn(
-        `cursorBridgeWatchComposer failed for ${sessionId}; falling back to poll:`,
-        watchErr
-      );
-    }
-  }
-
   // Force-reload the EventStore so the user message and any pre-stream
-  // bubbles surface immediately without waiting for the next poll tick.
+  // bubbles surface immediately.
   await ensureCursorIdeEventsInStore(sessionId, { forceReload: true });
 }

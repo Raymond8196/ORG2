@@ -11,7 +11,7 @@
 | 119  | `<button>` scope row     | keep with reason   | Multi-slot row (label + diff badge + selected check) with an absolutely positioned delete overlay; matches droplist-mode patterns in `InlineDropdown` and spotlight palettes where DS `Button`/`DropdownItem` cannot host the overlay layout     | —                                                                    |
 | 242  | `<input type="search">`  | keep with reason   | Custom droplist mode (not `options` mode); same raw search input pattern as `InlineDropdown`, `ContributorFilter`, and `DropdownOptionsContent`. `DropdownSearch` is available but does not yet wire `onMouseDown` portal-bubble guard used here | Consider `DropdownSearch` once it absorbs the mousedown/portal guard |
 | 331  | `<button>` scope trigger | **fixed** (Pass 4) | Replaced with `SelectGhostTrigger` — reuses `Select` ghost/small SCSS to match `SourceControlFilterHeader` filter pill (height, padding, hover, chevron rotation)                                                                                | —                                                                    |
-| 85   | `<div>` section label    | **fixed** (Pass 6) | Replaced local `SCOPE_SECTION_LABEL` string with `DROPDOWN_CLASSES.sectionLabel` + `first:pt-1` (matches `MenuRows`, `PinActionsPanel`)                                                                                                          | —                                                                    |
+| 85   | `<div>` section label    | keep with reason   | Non-interactive section header; uses shared `DROPDOWN_CLASSES` section-label typography                                                                                                                                                          | —                                                                    |
 | 131  | `IconButton` delete      | keep with reason   | Correct DS component for icon-only destructive action                                                                                                                                                                                            | —                                                                    |
 | 72   | `DiffStatsBadge`         | keep with reason   | Reuses existing diff badge primitive with compact variant                                                                                                                                                                                        | —                                                                    |
 
@@ -93,7 +93,7 @@ Delete overlay does **not** require the inner `<button>`; `DropdownItem` + `rela
 </div>
 ```
 
-Use `DROPDOWN_CLASSES.sectionLabel` + `first:pt-1` for section headers (applied Pass 6).
+Use `DropdownItemGroup` + `DROPDOWN_CLASSES.sectionLabel` for section headers to replace raw `ScopePickerSectionLabel` div (optional second fix).
 
 ## Summary
 
