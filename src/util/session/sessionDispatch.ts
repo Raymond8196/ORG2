@@ -33,14 +33,8 @@ import type { DispatchCategory } from "@src/api/tauri/session";
  * watch (e.g. a CDP WebSocket to a running IDE renderer). Both callbacks
  * receive the full `sessionId` (e.g. `cursoride-<uuid>`).
  *
- * Registered in `src/engines/SessionCore/sync/externalIdeWatchRegistry.ts`
- * (kept separate so this utils file stays free of Tauri API imports).
- * The unified `useExternalIdeSessionWatch` hook reads the registry to call
- * `startWatch` on mount and `stopWatch` on unmount (navigation away).
- *
- * Adding a new live-watch IDE (Trae, Windsurf, etc.) requires only a new
- * entry in `externalIdeWatchRegistry.ts` — no changes to ChatView or any
- * other mount site.
+ * Reserved for future live-watch IDE integrations (Trae, Windsurf, etc.).
+ * Currently no session type registers a live watch.
  */
 export interface SessionLiveWatchHooks {
   /** Start the backend watch for this session. Called once on mount. */

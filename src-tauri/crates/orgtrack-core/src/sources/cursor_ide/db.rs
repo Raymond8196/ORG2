@@ -7,7 +7,7 @@
 
 use std::collections::HashSet;
 use std::sync::Mutex;
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Duration, Instant};
 
 use chrono::TimeZone;
 use rusqlite::{params, Connection, OptionalExtension};
@@ -36,7 +36,6 @@ const SOURCE_RECORD_KEY_PREFIX: &str = "cursorDiskKV:";
 #[derive(Debug, Clone, Copy)]
 struct SyncSnapshot {
     synced_at: Instant,
-    cursor_db_modified_at: Option<SystemTime>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -210,11 +209,6 @@ fn delta_sync(cache_conn: &mut Connection) -> Result<(), String> {
         Some(path) => path,
         None => return Ok(()),
     };
-    let cursor_db_modified_at = cursor_path
-        .metadata()
-        .and_then(|metadata| metadata.modified())
-        .ok();
-
     if let Ok(guard) = LAST_SYNC.lock() {
         if let Some(last) = *guard {
             // Skip if the cooldown window has not expired yet.
@@ -252,17 +246,14 @@ fn delta_sync(cache_conn: &mut Connection) -> Result<(), String> {
         .collect::<Result<Vec<_>, _>>()?;
 
     source_cache::sync_source_cache_from_conn(cache_conn, SOURCE_CURSOR_IDE, live_ids, inputs)?;
-    update_sync_snapshot(now, cursor_db_modified_at);
+    update_sync_snapshot(now);
 
     Ok(())
 }
 
-fn update_sync_snapshot(synced_at: Instant, cursor_db_modified_at: Option<SystemTime>) {
+fn update_sync_snapshot(synced_at: Instant) {
     if let Ok(mut guard) = LAST_SYNC.lock() {
-        *guard = Some(SyncSnapshot {
-            synced_at,
-            cursor_db_modified_at,
-        });
+        *guard = Some(SyncSnapshot { synced_at });
     }
 }
 

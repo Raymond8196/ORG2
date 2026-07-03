@@ -792,8 +792,6 @@
     "breakdownFileCache": "백엔드 파일 캐시",
     "resourceUsage": "리소스 사용량",
     "performanceMonitor": "성능 모니터",
-    "cpu": "CPU",
-    "perCoreUsage": "코어별 사용량",
     "memory": "RAM",
     "backendRss": "Backend RSS total",
     "attributionHintsGroup": "귀속 단서",

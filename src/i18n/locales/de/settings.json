@@ -792,8 +792,6 @@
     "breakdownFileCache": "Backend-Dateicache",
     "resourceUsage": "Ressourcennutzung",
     "performanceMonitor": "Leistungsmonitor",
-    "cpu": "CPU",
-    "perCoreUsage": "Nutzung pro Kern",
     "memory": "RAM",
     "backendRss": "Backend-RSS gesamt",
     "attributionHintsGroup": "Attributionshinweise",

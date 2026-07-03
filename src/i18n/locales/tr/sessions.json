@@ -705,6 +705,9 @@
       "newSession": {
         "title": "Yeni oturum"
       },
+      "cliSession": {
+        "title": "CLI Agent kullan"
+      },
       "newWorkItem": {
         "title": "Yeni work item"
       },
@@ -793,6 +796,11 @@
     "hideWorkstation": "Workstation'i gizle",
     "restoreSplitView": "Workstation'i göster",
     "shrinkToWorkstation": "Chat panelini küçült (Workstation'i göster)",
+    "tuiModeOn": "TUI modu (devre dışı bırakmak için tıklayın)",
+    "tuiModeOff": "TUI modunu etkinleştir",
+    "tabs": {
+      "newTerminal": "Yeni Terminal"
+    },
     "collapseAll": "Tümünü daralt",
     "copyEventJson": "Olay JSON'unu kopyala",
     "copyEventJsonCopied": "Kopyalandı!",
@@ -944,7 +952,8 @@
         "byMe": "Benim tarafımdan",
         "mentioned": "Bahsedilenler"
       }
-    }
+    },
+    "readOnly": "Salt okunur"
   },
   "chatStatus": {
     "approved": "Onaylandı",

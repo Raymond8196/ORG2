@@ -47,7 +47,6 @@ import { replayModeAtom } from "@src/engines/SessionCore";
 import { derivedSnapshotAtom } from "@src/engines/SessionCore/core/atoms/events";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { derivePlanApprovalViewState } from "@src/engines/SessionCore/derived/planDisplayEvents";
-import { useExternalIdeSessionWatch } from "@src/engines/SessionCore/sync/useExternalIdeSessionWatch";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
 import { useFileReviewSync } from "@src/hooks/fileReview";
 import { createLogger } from "@src/hooks/logger";
@@ -273,10 +272,6 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const isCursorIde = isCursorIdeSession(sessionId);
     const isExternalHistory = isExternalHistorySession(sessionId);
 
-    // Start/stop the backend watch (e.g. Cursor CDP WebSocket) whenever
-    // this chat panel opens or navigates away from a live-watch IDE session.
-    // No-op for session types without a registered live watch.
-    useExternalIdeSessionWatch(sessionId);
     const isReadOnlySurface = readOnly || isExternalHistory;
     const currentSession = useAtomValue(sessionByIdAtom(sessionId));
     const [orgtrackSummary, setOrgtrackSummary] =

@@ -48,8 +48,6 @@ import { useEffect, useRef } from "react";
 import { parseRawSessionEvent } from "@src/engines/SessionCore/core/schemas";
 import { createLogger } from "@src/hooks/logger";
 
-import { getLiveWatchHooks } from "./externalIdeWatchRegistry";
-
 const log = createLogger("useSessionChannel");
 
 export function validateSessionChannelMessage(message: string): string {
@@ -210,11 +208,7 @@ export function useSessionChannel(
   }, [onEvent]);
 
   useEffect(() => {
-    // Sessions with a registered live watch (e.g. cursoride-*) receive events
-    // via their own backend channel (CDP WebSocket, etc.), not through the
-    // Rust IPC ChannelRegistry. Subscribing them here would open a dead
-    // channel that never receives anything and wastes Rust registry slots.
-    if (!sessionId || getLiveWatchHooks(sessionId) !== null) return;
+    if (!sessionId) return;
 
     const channel = new Channel<string>();
     const lifecycle = new SessionChannelLifecycle(

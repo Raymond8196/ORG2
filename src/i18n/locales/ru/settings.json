@@ -792,8 +792,6 @@
     "breakdownFileCache": "Файловый кеш бэкенда",
     "resourceUsage": "Использование ресурсов",
     "performanceMonitor": "Монитор производительности",
-    "cpu": "CPU",
-    "perCoreUsage": "Использование по ядрам",
     "memory": "RAM",
     "backendRss": "Общий RSS backend",
     "attributionHintsGroup": "Подсказки атрибуции",

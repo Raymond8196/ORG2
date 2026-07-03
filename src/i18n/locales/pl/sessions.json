@@ -713,6 +713,9 @@
       "newSession": {
         "title": "Nowa sesja"
       },
+      "cliSession": {
+        "title": "Użyj agenta CLI"
+      },
       "newWorkItem": {
         "title": "Nowy work item"
       },
@@ -801,6 +804,11 @@
     "hideWorkstation": "Ukryj Workstation",
     "restoreSplitView": "Pokaż Workstation",
     "shrinkToWorkstation": "Zmniejsz panel czatu (pokaż Workstation)",
+    "tuiModeOn": "Tryb TUI (kliknij, aby wyłączyć)",
+    "tuiModeOff": "Włącz tryb TUI",
+    "tabs": {
+      "newTerminal": "Nowy Terminal"
+    },
     "collapseAll": "Zwiń wszystko",
     "copyEventJson": "Kopiuj JSON zdarzeń",
     "copyEventJsonCopied": "Skopiowano!",
@@ -958,7 +966,8 @@
         "byMe": "Moje",
         "mentioned": "Wspomniane"
       }
-    }
+    },
+    "readOnly": "Tylko do odczytu"
   },
   "chatStatus": {
     "approved": "Zatwierdzone",

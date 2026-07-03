@@ -1001,10 +1001,6 @@ cursor_bridge_app::cursor_bridge_set_mode,
 // Open a fresh composer + seed first prompt — backs the session
 // creator's "Cursor IDE" agent option.
 cursor_bridge_app::cursor_bridge_new_composer,
-// cursor_ide streaming delta watch — long-lived CDP connection that
-// forwards Runtime.bindingCalled events to the frontend IPC channel.
-cursor_ide_watch::cursor_bridge_watch_composer,
-cursor_ide_watch::cursor_bridge_unwatch_composer,
 // Remote SQL client commands (PostgreSQL + MySQL via sqlx).
 // Crate: src-tauri/crates/db-clients. Owns the `sqlx` dep tree privately
 // so it never enters `cargo check -p org2`. See the crate's Cargo.toml
