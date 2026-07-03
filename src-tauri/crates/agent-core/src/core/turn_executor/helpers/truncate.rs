@@ -70,9 +70,7 @@ pub fn truncate_output(output: &str, budget: Option<usize>) -> String {
 
 /// Directory where oversized tool results are persisted for a session.
 pub fn tool_results_dir(session_id: &str) -> std::path::PathBuf {
-    app_paths::orgii_root()
-        .join("tool-results")
-        .join(session_id)
+    app_paths::tool_results_dir(session_id)
 }
 
 /// Like [`truncate_output`], but when the output exceeds the budget the FULL
