@@ -895,7 +895,15 @@
     "addKey": "キーを追加",
     "compatibleKeys": "互換性のある Keys",
     "keysTab": "Keys",
-    "plansTab": "プラン"
+    "plansTab": "プラン",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "すべてのインストール状態",

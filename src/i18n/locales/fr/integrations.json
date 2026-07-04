@@ -895,7 +895,15 @@
     "addKey": "Ajouter une clé",
     "compatibleKeys": "Keys compatibles",
     "keysTab": "Keys",
-    "plansTab": "Plans"
+    "plansTab": "Plans",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "Tous les statuts d'installation",
