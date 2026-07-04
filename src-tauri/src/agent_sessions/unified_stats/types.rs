@@ -28,6 +28,9 @@ pub struct SessionAggregateRecord {
     /// Repository path (CLI sessions)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_path: Option<String>,
+    /// Path to the file or directory where this session's persisted data lives.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub storage_path: Option<String>,
     /// Repository name (derived from path)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_name: Option<String>,

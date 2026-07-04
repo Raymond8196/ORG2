@@ -110,6 +110,7 @@ pub(super) fn cache_row_to_session_row(
         background: false,
         is_active: false,
         repo_path: None,
+        storage_path: Some(row.source_path),
         repo_name: None,
         branch: None,
     })
@@ -125,9 +126,15 @@ pub fn cursor_ide_session_detail(session_id: &str) -> Result<CursorIdeSessionDet
         .strip_prefix(CURSORIDE_SESSION_PREFIX)
         .ok_or_else(|| format!("not a cursoride session: {session_id}"))?;
 
+    let storage_path = super::io::cursor_db_path().map(|path| path.to_string_lossy().to_string());
     let conn = match super::io::open_cursor_db() {
         Some(c) => c,
-        None => return Ok(CursorIdeSessionDetail::default()),
+        None => {
+            return Ok(CursorIdeSessionDetail {
+                storage_path,
+                ..CursorIdeSessionDetail::default()
+            })
+        }
     };
 
     let composer = load_composer_for_order(&conn, composer_id)?;
@@ -137,6 +144,7 @@ pub fn cursor_ide_session_detail(session_id: &str) -> Result<CursorIdeSessionDet
 
     Ok(CursorIdeSessionDetail {
         repo_path: metadata.repo_path,
+        storage_path,
         repo_name,
         branch: metadata.branch,
         touched_files,

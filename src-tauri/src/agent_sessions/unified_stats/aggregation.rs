@@ -601,6 +601,7 @@ mod tests {
             category,
             user_input: None,
             repo_path: None,
+            storage_path: None,
             repo_name: None,
             branch: None,
             model: Some("gpt-4".to_string()),

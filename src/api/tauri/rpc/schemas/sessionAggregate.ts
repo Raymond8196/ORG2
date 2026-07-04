@@ -154,6 +154,7 @@ export const SessionAggregateRecordSchema = z.object({
   category: WireCategorySchema,
   userInput: z.string().optional(),
   repoPath: z.string().optional(),
+  storagePath: z.string().optional(),
   repoName: z.string().optional(),
   branch: z.string().optional(),
   model: z.string().optional(),

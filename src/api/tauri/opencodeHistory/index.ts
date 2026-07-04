@@ -15,6 +15,7 @@ export interface OpenCodeHistorySessionRow {
   background: boolean;
   isActive: boolean;
   repoPath?: string;
+  storagePath?: string;
   repoName?: string;
   branch?: string;
   filesChanged: number;

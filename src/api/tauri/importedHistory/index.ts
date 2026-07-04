@@ -60,6 +60,7 @@ export interface ImportedHistorySessionRow {
   background: boolean;
   isActive: boolean;
   repoPath?: string;
+  storagePath?: string;
   repoName?: string;
   branch?: string;
   filesChanged: number;
