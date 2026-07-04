@@ -36,6 +36,7 @@ import {
 } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import type { OrgMember } from "@src/modules/MainApp/AgentOrgs/types";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
+import { CLI_LAUNCH_MODE, type CliLaunchMode } from "@src/store/session";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 import {
   SESSION_TARGET_KIND,
@@ -49,6 +50,7 @@ import type { BasePaletteProps } from "../../shared";
 import { PaletteBody, ShellFooterAction, SpotlightShell } from "../../shell";
 import type { PathSegment, SpotlightItem } from "../../types";
 import { useSelectorKernel } from "../core";
+import { CliAgentListFilterSwitch } from "./CliAgentListFilterSwitch";
 
 // ============ TYPES ============
 
@@ -90,8 +92,7 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
    */
   hideOrgs?: boolean;
   /**
-   * When true only CLI agent entries are shown. Used by the CLI launch bar
-   * so users see only installable CLI tools, not Rust-native agents.
+   * When true only CLI agent entries are shown. Used by CLI-only picker surfaces.
    */
   cliOnly?: boolean;
   /**
@@ -104,8 +105,6 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
   titleIcon?: React.ComponentType<Record<string, unknown>>;
   /** Optional placeholder override for contextual picker copy. */
   placeholderLabel?: string;
-  /** Optional content shown before the search input instead of the title pill. */
-  inputLeadingSlot?: React.ReactNode;
 }
 
 // ============ HELPERS ============
@@ -173,16 +172,22 @@ export const DispatchCategoryPalette: React.FC<
   titleLabel,
   titleIcon,
   placeholderLabel,
-  inputLeadingSlot,
 }) => {
   const { t } = useTranslation("sessions");
   const { t: tCommon } = useTranslation("common");
   const [searchQuery, setSearchQuery] = useState("");
+  const [cliAgentListFilterMode, setCliAgentListFilterMode] =
+    useState<CliLaunchMode>(CLI_LAUNCH_MODE.GUI);
   const [allOrgs, setAllOrgs] = useState<OrgMember[]>([]);
   const { agents: cliAgentList } = useCliAgents({ enabled: isOpen });
   const { accounts } = useKeyVault({ autoLoad: true });
   const { registry } = useAgentCompatibility();
   const setAgentRegistry = useSetAtom(agentRegistryAtom);
+
+  const shouldShowCliOnly =
+    cliOnly || cliAgentListFilterMode === CLI_LAUNCH_MODE.TUI;
+  const shouldFilterCliToGuiSupport =
+    cliAgentListFilterMode === CLI_LAUNCH_MODE.GUI;
 
   // Ensure agent definitions are loaded into global atoms (no-op if already loaded)
   useEnsureAgentDefs();
@@ -274,6 +279,7 @@ export const DispatchCategoryPalette: React.FC<
 
   const cliOptions = useMemo((): AgentOption[] => {
     return installedCliAgents.flatMap((agent) => {
+      if (shouldFilterCliToGuiSupport && agent.supportsGui !== true) return [];
       // `agent.name` is a wire-format string; reject any value that isn't
       // in the canonical CLI agent set rather than smuggling it through
       // a `as CliAgentType` cast (which used to crash downstream consumers
@@ -303,7 +309,7 @@ export const DispatchCategoryPalette: React.FC<
         },
       ];
     });
-  }, [installedCliAgents, accounts, registry]);
+  }, [installedCliAgents, shouldFilterCliToGuiSupport, accounts, registry]);
 
   const customAgentOptions = useMemo((): AgentOption[] => {
     const rustBadge = buildCredentialBadge(rustCompatibleAccounts);
@@ -373,7 +379,7 @@ export const DispatchCategoryPalette: React.FC<
 
   const allOptions = useMemo(
     () =>
-      cliOnly
+      shouldShowCliOnly
         ? [...cliOptions]
         : [
             ...builtInRustOptions,
@@ -383,7 +389,7 @@ export const DispatchCategoryPalette: React.FC<
             ...(hideOrgs ? [] : orgOptions),
           ],
     [
-      cliOnly,
+      shouldShowCliOnly,
       builtInRustOptions,
       cliOptions,
       externalIdeOptions,
@@ -498,7 +504,7 @@ export const DispatchCategoryPalette: React.FC<
       }
     };
 
-    if (!cliOnly) {
+    if (!shouldShowCliOnly) {
       pushGroup(
         "__header_builtin__",
         t("creator.builtInAgents"),
@@ -506,7 +512,7 @@ export const DispatchCategoryPalette: React.FC<
       );
     }
     pushGroup("__header_cli__", t("creator.cliAgents"), cliOptions);
-    if (!cliOnly) {
+    if (!shouldShowCliOnly) {
       pushGroup(
         "__header_external_ide__",
         t("creator.externalIdes"),
@@ -525,7 +531,7 @@ export const DispatchCategoryPalette: React.FC<
     return result;
   }, [
     isSearching,
-    cliOnly,
+    shouldShowCliOnly,
     filteredOptions,
     builtInRustOptions,
     cliOptions,
@@ -606,6 +612,12 @@ export const DispatchCategoryPalette: React.FC<
   });
 
   const footerAction = <ManageModelsFooterAction onClose={onClose} />;
+  const inputLeadingSlot = (
+    <CliAgentListFilterSwitch
+      mode={cliAgentListFilterMode}
+      onModeChange={setCliAgentListFilterMode}
+    />
+  );
 
   // When the caller pre-selects a target (e.g. an org member row), surface
   const path = useMemo<PathSegment[]>(() => {

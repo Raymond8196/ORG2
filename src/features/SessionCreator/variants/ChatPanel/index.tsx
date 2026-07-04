@@ -85,7 +85,6 @@ import { getBigThreeRegionModelTypeForSession } from "@src/util/session/regionAl
 import { getRustAgentType } from "@src/util/session/sessionDispatch";
 
 import {
-  CliAgentListFilterSwitch,
   CliLaunchModeSwitch,
   EditorArea,
   SessionInfoLine,
@@ -728,13 +727,6 @@ const SessionCreatorChatPanelSingle: React.FC<
     />
   );
 
-  const cliAgentListFilterSwitch = isCliMode && (
-    <CliAgentListFilterSwitch
-      mode={cliLaunchMode}
-      onModeChange={handleCliLaunchModeChange}
-    />
-  );
-
   const compactHeader = headerLayout === "compact" && (
     <div className="session-creator-chat-panel-compact-header flex w-full items-center justify-between gap-2 bg-bg-2 px-1 pb-2 pt-1">
       <SelectorPill
@@ -1047,7 +1039,6 @@ const SessionCreatorChatPanelSingle: React.FC<
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
           currentCliAgentType={cliAgentType ?? undefined}
-          cliOnly={isCliTuiMode}
           anchorRef={agentHeroRef}
         />
       ) : (
@@ -1059,8 +1050,6 @@ const SessionCreatorChatPanelSingle: React.FC<
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
           currentCliAgentType={cliAgentType ?? undefined}
-          cliOnly={isCliTuiMode}
-          inputLeadingSlot={isCliMode ? cliAgentListFilterSwitch : undefined}
         />
       )}
 
