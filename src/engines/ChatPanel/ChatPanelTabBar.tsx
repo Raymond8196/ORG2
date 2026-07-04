@@ -28,7 +28,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { InfinityAgentIcon } from "@src/assets/modelIcons/agentIcons";
+import InfinityAgentIcon from "@src/assets/modelIcons/infinity-agent.svg";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,

@@ -11,46 +11,37 @@
 import type { FC, SVGProps } from "react";
 
 import type { ModelType } from "@src/api/types/keys";
-// ============================================
-// SVG Icon Imports (from agentIcons - React components with unique gradient IDs)
-// ============================================
-import {
-  InfinityAgentIcon,
-  AWSIcon,
-  AiderIcon,
-  ClaudeCodeIcon,
-  ClaudeIcon,
-  CodexIcon,
-  CopilotIcon,
-  CursorIcon,
-  GeminiIcon,
-  GooseIcon,
-  KimiIcon,
-  KiroIcon,
-  OpenAIIcon,
-  OpenCodeIcon,
-  OrgiiIcon,
-} from "@src/assets/modelIcons/agentIcons";
+import AiderIcon from "@src/assets/modelIcons/aider.svg";
 import AmpIcon from "@src/assets/modelIcons/amp.svg";
 import AntigravityIcon from "@src/assets/modelIcons/antigravity.svg";
 import AugmentIcon from "@src/assets/modelIcons/augment.svg";
-// Static SVG imports (for providers without React components)
+import AutoHandIcon from "@src/assets/modelIcons/autohand.svg";
+import AWSIcon from "@src/assets/modelIcons/aws.svg";
 import AzureIcon from "@src/assets/modelIcons/azure.svg";
 import BaichuanIcon from "@src/assets/modelIcons/baichuan.svg";
 import ByteDanceIcon from "@src/assets/modelIcons/bytedance.svg";
-import ClineStaticIcon from "@src/assets/modelIcons/cline.svg";
+import ClaudeCodeIcon from "@src/assets/modelIcons/claude-code.svg";
+import ClaudeIcon from "@src/assets/modelIcons/claude.svg";
+import ClineIcon from "@src/assets/modelIcons/cline.svg";
+import CodexIcon from "@src/assets/modelIcons/codex.svg";
 import CohereIcon from "@src/assets/modelIcons/cohere.svg";
 import ContinueIcon from "@src/assets/modelIcons/continue.svg";
+import CopilotIcon from "@src/assets/modelIcons/copilot.svg";
+import CursorIcon from "@src/assets/modelIcons/cursor.svg";
 import DeepSeekIcon from "@src/assets/modelIcons/deepseek.svg";
 import DevinIcon from "@src/assets/modelIcons/devin.svg";
 import DoubaoIcon from "@src/assets/modelIcons/doubao.svg";
 import DroidIcon from "@src/assets/modelIcons/droid.svg";
+import GeminiIcon from "@src/assets/modelIcons/gemini.svg";
+import GooseIcon from "@src/assets/modelIcons/goose.svg";
 import GrokIcon from "@src/assets/modelIcons/grok.svg";
 import GroqIcon from "@src/assets/modelIcons/groq.svg";
 import HermesIcon from "@src/assets/modelIcons/hermes.svg";
 import HunyuanIcon from "@src/assets/modelIcons/hunyuan.svg";
-import InflectionIcon from "@src/assets/modelIcons/inflection.svg";
+import InfinityAgentIcon from "@src/assets/modelIcons/infinity-agent.svg";
 import KiloIcon from "@src/assets/modelIcons/kilo.svg";
+import KimiIcon from "@src/assets/modelIcons/kimi.svg";
+import KiroIcon from "@src/assets/modelIcons/kiro.svg";
 import LlamaCppIcon from "@src/assets/modelIcons/llama-cpp.svg";
 import LmStudioIcon from "@src/assets/modelIcons/lmstudio.svg";
 import LongCatIcon from "@src/assets/modelIcons/longcat.svg";
@@ -60,15 +51,22 @@ import MistralIcon from "@src/assets/modelIcons/mistral.svg";
 import NvidiaIcon from "@src/assets/modelIcons/nvidia.svg";
 import OllamaIcon from "@src/assets/modelIcons/ollama.svg";
 import OmpIcon from "@src/assets/modelIcons/omp.svg";
+import OpenAIIcon from "@src/assets/modelIcons/openai.svg";
 import OpenClawIcon from "@src/assets/modelIcons/openclaw.svg";
+import OpenCodeIcon from "@src/assets/modelIcons/opencode.svg";
 import OpenRouterIcon from "@src/assets/modelIcons/openrouter.svg";
+import OrgiiIcon from "@src/assets/modelIcons/orgii.svg";
 import PerplexityIcon from "@src/assets/modelIcons/perplexity.svg";
+import PiIcon from "@src/assets/modelIcons/pi.svg";
 import QwenIcon from "@src/assets/modelIcons/qwen.svg";
 import RovoIcon from "@src/assets/modelIcons/rovo.svg";
 import VllmIcon from "@src/assets/modelIcons/vllm.svg";
 import VolcengineIcon from "@src/assets/modelIcons/volcengine.svg";
+import WorkBuddyIcon from "@src/assets/modelIcons/workbuddy.svg";
+import XaiIcon from "@src/assets/modelIcons/xai.svg";
 import XiaomiIcon from "@src/assets/modelIcons/xiaomi.svg";
 import YiIcon from "@src/assets/modelIcons/yi.svg";
+import ZcodeIcon from "@src/assets/modelIcons/zcode.svg";
 import ZenMuxIcon from "@src/assets/modelIcons/zenmux.svg";
 import ZhipuIcon from "@src/assets/modelIcons/zhipu.svg";
 
@@ -91,6 +89,7 @@ export type IconProvider =
   | "claude_code"
   | "copilot"
   | "cursor"
+  | "workbuddy"
   | "openclaude"
   | "amp"
   | "devin"
@@ -114,6 +113,7 @@ export type IconProvider =
   | "kilo"
   | "gemini"
   | "grok"
+  | "xai"
   | "groq"
   | "cohere"
   | "deepseek"
@@ -133,6 +133,7 @@ export type IconProvider =
   | "xiaomi"
   | "yi"
   | "zhipu"
+  | "zcode"
   | "baichuan"
   | "minimax"
   | "longcat"
@@ -159,6 +160,7 @@ export const ICON_MAP: Record<
 > = {
   // CLI agents (active)
   cursor: CursorIcon,
+  workbuddy: WorkBuddyIcon,
   claude_code: ClaudeCodeIcon,
   copilot: CopilotIcon,
   gemini: GeminiIcon,
@@ -176,6 +178,7 @@ export const ICON_MAP: Record<
   cohere: CohereIcon,
   deepseek: DeepSeekIcon,
   grok: GrokIcon,
+  xai: XaiIcon,
   groq: GroqIcon,
   mistral: MistralIcon,
   qwen: QwenIcon,
@@ -192,6 +195,7 @@ export const ICON_MAP: Record<
   xiaomi: XiaomiIcon,
   yi: YiIcon,
   zhipu: ZhipuIcon,
+  zcode: ZcodeIcon,
   baichuan: BaichuanIcon,
   minimax: MinimaxIcon,
   longcat: LongCatIcon,
@@ -203,7 +207,7 @@ export const ICON_MAP: Record<
   opencode: OpenCodeIcon,
   // Inactive agents (kept for future use)
   aider: AiderIcon,
-  cline: ClineStaticIcon,
+  cline: ClineIcon,
   goose: GooseIcon,
   // Extended CLI agents — lobehub icons where available, infinity fallback otherwise
   openclaude: InfinityAgentIcon,
@@ -223,9 +227,9 @@ export const ICON_MAP: Record<
   droid: DroidIcon,
   mistral_vibe: MistralIcon,
   ante: InfinityAgentIcon,
-  autohand: InfinityAgentIcon,
+  autohand: AutoHandIcon,
   omp: OmpIcon,
-  pi: InflectionIcon,
+  pi: PiIcon,
   kilo: KiloIcon,
   // Fallback
   unknown: undefined,
@@ -262,6 +266,7 @@ export const SELECTABLE_ICON_PROVIDERS: IconProvider[] = [
   "xiaomi",
   "yi",
   "zhipu",
+  "zcode",
   "baichuan",
   "minimax",
   "longcat",
@@ -368,6 +373,21 @@ const MODEL_TYPE_TO_ICON: Record<ModelType, IconProvider> = {
  */
 export function getIconProvider(modelType: ModelType): IconProvider {
   return MODEL_TYPE_TO_ICON[modelType] || "unknown";
+}
+
+export function getIconProviderFromType(value: string): IconProvider {
+  if (isIconProvider(value)) return value;
+  return MODEL_TYPE_TO_ICON[value as ModelType] || "unknown";
+}
+
+export function isIconProvider(value: string): value is IconProvider {
+  return Object.prototype.hasOwnProperty.call(ICON_MAP, value);
+}
+
+export function getIconComponent(
+  provider: IconProvider
+): FC<SVGProps<SVGSVGElement>> | undefined {
+  return ICON_MAP[provider];
 }
 
 /**
@@ -528,6 +548,11 @@ export function getIconProviderFromModelName(
     return "yi";
   }
 
+  // ZCode IDE / Z.ai coding workspace
+  if (lower.includes("zcode")) {
+    return "zcode";
+  }
+
   // Zhipu/GLM models
   if (
     lower.includes("zhipu") ||
@@ -574,37 +599,28 @@ export const THEMEABLE_ICONS = new Set<IconProvider>([
   "unknown",
   "aws",
   "cursor",
+  "copilot",
   "grok",
+  "xai",
   "groq",
   "openrouter",
   "zenmux",
   "yi",
+  "zcode",
   "orgii",
   // Inactive agents that use currentColor
   "goose",
   "cline",
   "opencode",
   "kimi",
-  // Extended CLI agents using the generic infinity icon (stroke currentColor)
+  // Extended CLI agents using monochrome/currentColor icons.
   "openclaude",
-  "amp",
-  "devin",
-  "rovo",
-  "hermes",
-  "openclaw",
   "crush",
-  "aug",
   "codebuff",
   "command_code",
   "qwen_code",
   "mimo_code",
-  "antigravity",
-  "continue_cli",
-  "droid",
   "mistral_vibe",
   "ante",
   "autohand",
-  "omp",
-  "pi",
-  "kilo",
 ]);
