@@ -85,6 +85,7 @@ import { getBigThreeRegionModelTypeForSession } from "@src/util/session/regionAl
 import { getRustAgentType } from "@src/util/session/sessionDispatch";
 
 import {
+  CliAgentListFilterSwitch,
   CliLaunchModeSwitch,
   EditorArea,
   SessionInfoLine,
@@ -720,7 +721,16 @@ const SessionCreatorChatPanelSingle: React.FC<
   const cliLaunchModeSwitch = isCliMode && (
     <CliLaunchModeSwitch
       mode={cliLaunchMode}
-      supportsGui
+      supportsGui={
+        !selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui
+      }
+      onModeChange={handleCliLaunchModeChange}
+    />
+  );
+
+  const cliAgentListFilterSwitch = isCliMode && (
+    <CliAgentListFilterSwitch
+      mode={cliLaunchMode}
       onModeChange={handleCliLaunchModeChange}
     />
   );
@@ -1050,7 +1060,7 @@ const SessionCreatorChatPanelSingle: React.FC<
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
           currentCliAgentType={cliAgentType ?? undefined}
           cliOnly={isCliTuiMode}
-          inputLeadingSlot={isCliMode ? cliLaunchModeSwitch : undefined}
+          inputLeadingSlot={isCliMode ? cliAgentListFilterSwitch : undefined}
         />
       )}
 
