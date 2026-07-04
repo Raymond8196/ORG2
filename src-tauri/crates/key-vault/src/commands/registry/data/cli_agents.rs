@@ -1,6 +1,6 @@
 //! Static CLI agent registry entries.
 
-use super::types::CliAgentEntry;
+use super::types::{AcpSupport, CliAgentEntry};
 
 pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
     vec![
@@ -19,6 +19,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "cursor",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: true,
         },
         CliAgentEntry {
@@ -41,6 +42,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "claude_code",
             paired_api_provider: Some("anthropic_api"),
             supports_rust_agents: true,
+            acp_support: AcpSupport::AdapterBacked,
             supports_gui: true,
         },
         CliAgentEntry {
@@ -58,6 +60,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "openai",
             paired_api_provider: Some("openai_api"),
             supports_rust_agents: true,
+            acp_support: AcpSupport::AdapterBacked,
             supports_gui: true,
         },
         CliAgentEntry {
@@ -75,6 +78,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "gemini",
             paired_api_provider: Some("gemini_api"),
             supports_rust_agents: true,
+            acp_support: AcpSupport::Native,
             supports_gui: true,
         },
         CliAgentEntry {
@@ -92,6 +96,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "kiro",
             paired_api_provider: None,
             supports_rust_agents: true,
+            acp_support: AcpSupport::Native,
             supports_gui: true,
         },
         CliAgentEntry {
@@ -110,6 +115,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "copilot",
             paired_api_provider: None,
             supports_rust_agents: true,
+            acp_support: AcpSupport::Native,
             supports_gui: true,
         },
         CliAgentEntry {
@@ -127,6 +133,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "kimi",
             paired_api_provider: Some("moonshot_api"),
             supports_rust_agents: true,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -144,6 +151,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "opencode",
             paired_api_provider: None,
             supports_rust_agents: true,
+            acp_support: AcpSupport::Native,
             supports_gui: true,
         },
         // ── Extended CLI agents ──
@@ -162,6 +170,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "openclaude",
             paired_api_provider: Some("anthropic_api"),
             supports_rust_agents: false,
+            acp_support: AcpSupport::Unavailable,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -179,6 +188,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "aider",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Planned,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -196,6 +206,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "goose",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -214,6 +225,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "amp",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::AdapterBacked,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -231,6 +243,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "cline",
             paired_api_provider: Some("anthropic_api"),
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -248,6 +261,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "kilo",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -265,6 +279,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "grok",
             paired_api_provider: Some("xai_api"),
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -282,6 +297,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "devin",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -299,6 +315,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "rovo",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Partial,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -316,6 +333,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "hermes",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -333,6 +351,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "openclaw",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -350,6 +369,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "crush",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -368,6 +388,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "aug",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -385,6 +406,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "codebuff",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Unavailable,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -402,6 +424,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "command_code",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Unavailable,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -419,6 +442,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "qwen_code",
             paired_api_provider: Some("dashscope_api"),
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -436,6 +460,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "mimo_code",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -453,6 +478,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "antigravity",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::AdapterBacked,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -470,6 +496,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "continue_cli",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Unavailable,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -487,6 +514,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "droid",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -504,6 +532,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "mistral_vibe",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -521,6 +550,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "ante",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Unavailable,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -538,6 +568,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "autohand",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -555,6 +586,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "omp",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
         CliAgentEntry {
@@ -572,6 +604,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "pi",
             paired_api_provider: None,
             supports_rust_agents: false,
+            acp_support: AcpSupport::Native,
             supports_gui: false,
         },
     ]

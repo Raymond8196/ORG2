@@ -14,3 +14,4 @@ pub(super) use cli_agents::cli_agent_registry;
 pub(super) use env_config::cli_env_config;
 pub(crate) use install_methods::infer_install_method;
 pub(super) use install_methods::{cli_install_methods, cli_uninstall_methods};
+pub(super) use types::AcpSupport;

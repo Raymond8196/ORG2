@@ -895,7 +895,15 @@
     "addKey": "Thêm khóa",
     "compatibleKeys": "Keys tương thích",
     "keysTab": "Keys",
-    "plansTab": "Gói"
+    "plansTab": "Gói",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "Tất cả trạng thái cài đặt",
