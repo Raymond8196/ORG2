@@ -661,12 +661,32 @@ pub fn build_agent_org_context_section(
     );
     lines.push(String::new());
     lines.push(
+        "For worker tasks, choose exactly one dispatch mode: (1) set `owner_member_id` for direct assignment to one specific member, or (2) leave `owner_member_id` unset and set `eligible_member_ids` to the exact worker member_ids allowed to self-claim. `eligible_member_ids` is the hard claim whitelist. `required_role` is only a human-readable hint and never authorizes a member by itself. Never create worker tasks with neither `owner_member_id` nor `eligible_member_ids`."
+            .to_string(),
+    );
+    lines.push(String::new());
+    lines.push(
+        "When choosing `eligible_member_ids`, use the roster member's role/name, not the member_id prefix alone. For example, planner members are for planning, decomposition, coordination, checklists, and synthesis. Implementer members are for implementation, writing deliverables, and production artifacts. Reviewer members are for review and quality gates. Tester members are for test execution, verification, and reproduction."
+            .to_string(),
+    );
+    lines.push(String::new());
+    lines.push(
         "Task assignment wakes idle members through their normal member-session runtime and queues work for running members without starting a second concurrent turn. Keep task state in the task board; use plain org messages for discussion, clarifications, and status notes that are not task-state transitions."
             .to_string(),
     );
     lines.push(String::new());
     lines.push(
-        "Before creating a task, compare against the snapshot below and call `task_list` when uncertain. If a task already exists, update it instead of creating a duplicate. Members may set their own unowned task to `in_progress` to self-claim it; the coordinator must assign an owner explicitly or leave the task `pending`."
+        "Members must set `status=completed` when a task is done. If work is not done and the member is waiting for more context or another turn, leave the task owned and `in_progress`; do not move it back to `pending` just because a turn ended. Stale `in_progress` work is surfaced to the coordinator by the watchdog for explicit retry, reassign, release, or pause/report decisions."
+            .to_string(),
+    );
+    lines.push(String::new());
+    lines.push(
+        "When you receive a `MemberIdle` notice with `reason=failed`, read its failure_reason for requeued tasks and recovery guidance. If the error looks temporary, use `org_send_message` to ask the same member to retry. If another eligible member is available, use `task_update owner_member_id` to assign directly. If a task is unowned and missing `eligible_member_ids`, repair it with `task_update eligible_member_ids` before expecting autonomous claim. Never assign or allow claim outside `eligible_member_ids`, and do not ask one member to inspect another member's private failed context. A watchdog stale notice is not permission to assign outside the eligible list; repair the task or explicitly choose a valid owner. If no recovery is possible, pause and report to the user."
+            .to_string(),
+    );
+    lines.push(String::new());
+    lines.push(
+        "Before creating a task, compare against the snapshot below and call `task_list` when uncertain. If a task already exists, update it instead of creating a duplicate. Ownerless tasks are claimed through the autonomous claim path only when the task is `pending`, dependencies are resolved, and the caller's member_id is listed in `eligible_member_ids`. Do not manually claim arbitrary ownerless work by setting `status=in_progress`; use `owner_member_id` for direct assignment or repair `eligible_member_ids` first."
             .to_string(),
     );
     lines.push(String::new());
