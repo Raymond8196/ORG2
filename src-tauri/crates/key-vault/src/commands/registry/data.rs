@@ -104,7 +104,7 @@ pub(super) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "openai",
             paired_api_provider: Some("openai_api"),
             supports_rust_agents: true,
-            supports_gui: false,
+            supports_gui: true,
         },
         CliAgentEntry {
             name: "gemini_cli",
@@ -121,7 +121,7 @@ pub(super) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "gemini",
             paired_api_provider: Some("gemini_api"),
             supports_rust_agents: true,
-            supports_gui: false,
+            supports_gui: true,
         },
         CliAgentEntry {
             name: "kiro",
@@ -138,7 +138,7 @@ pub(super) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "kiro",
             paired_api_provider: None,
             supports_rust_agents: true,
-            supports_gui: false,
+            supports_gui: true,
         },
         CliAgentEntry {
             name: "copilot",
@@ -156,7 +156,7 @@ pub(super) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             icon_provider: "copilot",
             paired_api_provider: None,
             supports_rust_agents: true,
-            supports_gui: false,
+            supports_gui: true,
         },
         CliAgentEntry {
             name: "kimi_cli",
