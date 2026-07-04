@@ -17,7 +17,14 @@
  *   Cmd+T  — new terminal tab (via global "create-chat-tab" event)
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { MessageSquarePlus, Plus, TerminalSquare } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  KeyRound,
+  ListTodo,
+  MessageSquarePlus,
+  Plus,
+  TerminalSquare,
+} from "lucide-react";
 import React, {
   Fragment,
   memo,
@@ -28,7 +35,6 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import InfinityAgentIcon from "@src/assets/modelIcons/infinity-agent.svg";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,
@@ -201,15 +207,17 @@ const TabPill = memo(function TabPill({
 
 interface PlusMenuContentProps {
   onNewSession: () => void;
-  onCliSession: () => void;
-  onTerminal: () => void;
+  onNewWorkItem: () => void;
+  onManageIssues: () => void;
+  onAddApiKey: () => void;
   onClose: () => void;
 }
 
 function PlusMenuContent({
   onNewSession,
-  onCliSession,
-  onTerminal,
+  onNewWorkItem,
+  onManageIssues,
+  onAddApiKey,
   onClose,
 }: PlusMenuContentProps) {
   const { t } = useTranslation("sessions");
@@ -224,22 +232,22 @@ function PlusMenuContent({
       onClick: onNewSession,
     },
     {
-      id: "cli-session",
-      icon: (
-        <InfinityAgentIcon
-          width={HEADER_ICON_SIZE.sm}
-          height={HEADER_ICON_SIZE.sm}
-          strokeWidth={1.8}
-        />
-      ),
-      label: t("chat.startPage.cliSession.title"),
-      onClick: onCliSession,
+      id: "new-work-item",
+      icon: <BriefcaseBusiness size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("chat.startPage.newWorkItem.title"),
+      onClick: onNewWorkItem,
     },
     {
-      id: "terminal",
-      icon: <TerminalSquare size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("chat.tabs.newTerminal"),
-      onClick: onTerminal,
+      id: "manage-issues",
+      icon: <ListTodo size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("chat.startPage.manageIssues.title"),
+      onClick: onManageIssues,
+    },
+    {
+      id: "add-api-key",
+      icon: <KeyRound size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("chat.startPage.addApiKey.title"),
+      onClick: onAddApiKey,
     },
   ] as const;
 
@@ -279,14 +287,16 @@ function PlusMenuContent({
 
 export interface ChatPanelPlusMenuProps {
   onNewSession: () => void;
-  onNewTerminal: () => void;
-  onCliSession: () => void;
+  onNewWorkItem: () => void;
+  onManageIssues: () => void;
+  onAddApiKey: () => void;
 }
 
 export function ChatPanelPlusMenu({
   onNewSession,
-  onNewTerminal,
-  onCliSession,
+  onNewWorkItem,
+  onManageIssues,
+  onAddApiKey,
 }: ChatPanelPlusMenuProps): React.ReactNode {
   const { t } = useTranslation("sessions");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -298,8 +308,9 @@ export function ChatPanelPlusMenu({
       droplist={
         <PlusMenuContent
           onNewSession={onNewSession}
-          onCliSession={onCliSession}
-          onTerminal={onNewTerminal}
+          onNewWorkItem={onNewWorkItem}
+          onManageIssues={onManageIssues}
+          onAddApiKey={onAddApiKey}
           onClose={closeMenu}
         />
       }

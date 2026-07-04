@@ -37,6 +37,8 @@ export interface SpotlightSearchBarProps {
   hideActionClose?: boolean;
   /** Whether to hide the trailing text input after path pills */
   hideInput?: boolean;
+  /** Shown inside the search row before the input, replacing path pills. */
+  leadingSlot?: React.ReactNode;
   /** Shown inside the search row on the right */
   trailingSlot?: React.ReactNode;
 }
@@ -55,11 +57,13 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
   onRemoveSegment,
   hideActionClose = false,
   hideInput = false,
+  leadingSlot,
   trailingSlot,
 }) => {
   const { t } = useTranslation();
 
   const hasPills = path.length > 0;
+  const hasLeadingSlot = Boolean(leadingSlot);
   const displayIcon = ICONS.search;
   const IconComponent = typeof displayIcon === "string" ? null : displayIcon;
 
@@ -114,7 +118,9 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
   return (
     <div>
       <div className="spotlight-search-bar flex h-[56px] min-h-[56px] items-center gap-2 px-4">
-        {!hasPills && (
+        {hasLeadingSlot ? (
+          <div className="flex flex-shrink-0 items-center">{leadingSlot}</div>
+        ) : !hasPills ? (
           <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
             {IconComponent ? (
               <IconComponent
@@ -132,9 +138,9 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
               />
             )}
           </div>
-        )}
+        ) : null}
 
-        {hasPills && (
+        {!hasLeadingSlot && hasPills && (
           <div
             className={`flex min-w-0 flex-shrink-0 items-center gap-2 ${SPOTLIGHT_TOKENS.inputFontSize} text-text-1`}
           >

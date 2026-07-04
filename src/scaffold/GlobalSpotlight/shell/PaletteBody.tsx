@@ -40,6 +40,8 @@ export interface PaletteBodyProps {
   // simple variant
   inputIcon?: React.ComponentType<{ size?: number; className?: string }>;
   inputIconElement?: React.ReactNode;
+  /** Shown inside the search row before the input (searchBar variant only). */
+  inputLeadingSlot?: React.ReactNode;
   /** Shown inside the search row on the right (simple variant only) */
   inputTrailingSlot?: React.ReactNode;
 
@@ -66,6 +68,7 @@ export const PaletteBody: React.FC<PaletteBodyProps> = ({
   onRemoveSegment,
   inputIcon,
   inputIconElement,
+  inputLeadingSlot,
   inputTrailingSlot,
   isLoading = false,
   containerHeight = 350,
@@ -101,6 +104,7 @@ export const PaletteBody: React.FC<PaletteBodyProps> = ({
           isLoading={isLoading}
           isCountingDown={false}
           hideActionClose={hideActionClose}
+          leadingSlot={inputLeadingSlot}
           trailingSlot={inputTrailingSlot}
           path={path}
           onRemoveSegment={onRemoveSegment}

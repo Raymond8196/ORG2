@@ -709,9 +709,6 @@
       "newSession": {
         "title": "新建會話"
       },
-      "cliSession": {
-        "title": "新建會話 (TUI)"
-      },
       "newWorkItem": {
         "title": "新建工作項目"
       },
@@ -805,8 +802,7 @@
     "tabs": {
       "newTerminal": "新終端",
       "newTab": "新分頁",
-      "terminals": "終端機",
-      "newTuiSession": "新工作階段（TUI）"
+      "terminals": "終端機"
     },
     "collapseAll": "全部摺疊",
     "copyEventJson": "複製事件 JSON",
