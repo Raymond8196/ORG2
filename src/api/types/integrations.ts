@@ -8,6 +8,7 @@
 export const CATEGORY_KEYS = [
   "models",
   "myRoles",
+  "housekeeper",
   "connections",
   "git",
   "tools",

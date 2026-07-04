@@ -29,6 +29,7 @@ export function getHasIntegrationsFullPageDetail(
     case "tools":
     case "computerUse":
     case "myRoles":
+    case "housekeeper":
       return false;
     case "externalSkillsets":
       return (

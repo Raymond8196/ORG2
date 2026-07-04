@@ -258,6 +258,7 @@ export function useIntegrationsPage() {
           loading: accountsHook.loading,
         };
       case "myRoles":
+      case "housekeeper":
         return {};
       case "databases":
         return {
@@ -344,6 +345,7 @@ export function useIntegrationsPage() {
         accountsHook.handleAccountSelect("");
         break;
       case "myRoles":
+      case "housekeeper":
         break;
       case "connections":
       case "git":

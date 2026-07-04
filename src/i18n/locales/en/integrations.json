@@ -1034,7 +1034,8 @@
     "devtools": "Dev Tools",
     "tools": "Built-in tools",
     "computerUse": "Computer Use",
-    "externalSkillsets": "Skills, MCPs & Plugins"
+    "externalSkillsets": "Skills, MCPs & Plugins",
+    "housekeeper": "MiniCPM Housekeeper"
   },
   "projectConnections": {
     "linear": "Linear",
@@ -2534,6 +2535,59 @@
       "cpu_offload": "CPU offload",
       "cpu_only": "CPU only",
       "no_fit": "Not recommended"
+    }
+  },
+  "housekeeper": {
+    "eyebrow": "MiniCPM Resident Housekeeper",
+    "title": "Resident Housekeeper",
+    "description": "Local MiniCPM handles prompt polishing, short step explanations, and lightweight UI control. Coding tasks and complex ADE setup still use the main agent model.",
+    "addAccount": "Add MiniCPM vLLM account",
+    "autoAccount": "Auto-select MiniCPM vLLM account",
+    "tiles": {
+      "model": "Model",
+      "endpoint": "Endpoint",
+      "safeContext": "Safe Context"
+    },
+    "settings": {
+      "enabled": {
+        "title": "Enable housekeeper",
+        "description": "When disabled, prompt polishing, step explanations, and lightweight UI control will not use MiniCPM."
+      },
+      "account": {
+        "title": "vLLM MiniCPM account",
+        "description": "Reuses an existing KeyVault vllm_api account; no separate credential store is created."
+      },
+      "model": {
+        "title": "Model ID",
+        "description": "Docker vLLM MiniCPM5-1B defaults to openbmb/MiniCPM5-1B."
+      },
+      "context": {
+        "title": "Safe context budget",
+        "description": "Use a conservative 10000 token budget on 4GB GPUs instead of trusting the theoretical 32k limit."
+      }
+    },
+    "features": {
+      "promptPolish": {
+        "title": "Prompt polishing",
+        "description": "Manually polish the input before sending it to the stronger coding model."
+      },
+      "stepExplain": {
+        "title": "Agent step explanations",
+        "description": "Generate one or two short Chinese explanations for session replay steps."
+      },
+      "uiControl": {
+        "title": "Lightweight ADE/UI control",
+        "description": "MiniCPM may only classify requests into a strict local action whitelist."
+      }
+    },
+    "health": {
+      "title": "Health check",
+      "idle": "Checks /v1/models and sends one small chat request.",
+      "checking": "Checking local vLLM MiniCPM service...",
+      "checkButton": "Check connection",
+      "configureFirst": "Configure a vLLM MiniCPM account first.",
+      "connectedTo": "Connected to {{baseUrl}}",
+      "failed": "MiniCPM health check failed."
     }
   }
 }

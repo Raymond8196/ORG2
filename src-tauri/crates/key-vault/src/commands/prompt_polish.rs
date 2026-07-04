@@ -1,4 +1,7 @@
-use std::time::Duration;
+use std::{
+    collections::HashSet,
+    time::{Duration, Instant},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -62,12 +65,86 @@ const PROMPT_POLISH_SYSTEM_PROMPT: &str = r#"你是一个发给代码智能体�
 错误输出：可能是代码逻辑或环境配置有问题。
 错误原因：这是猜测原因，不是用于排查问题的结构化请求。"#;
 
-const MAX_POLISH_INPUT_CHARS: usize = 20_000;
+const COMPACT_PROMPT_POLISH_SYSTEM_PROMPT: &str = r#"你是 ORG2 的本地 MiniCPM 常驻管家，只负责把用户草稿润色成更适合发给强代码模型的任务说明。
+规则：
+1. 只输出润色后的用户请求，不要回答用户问题。
+2. 不输出 <think>、analysis、reasoning、标题或 Markdown 包装。
+3. 保留文件名、路径、命令、代码片段、URL、模型名和占位符。
+4. 用户用中文就输出中文，用户用英文就输出英文。
+5. 输入很短时，补成可执行的任务说明，可包含目标、步骤、验收方式和交付物。
+"#;
+
+const COMPACT_SESSION_STEP_EXPLAIN_SYSTEM_PROMPT: &str = r#"你是 ORG2 的本地 MiniCPM 常驻管家，只负责解释 session replay 的当前一步。
+规则：
+1. 只解释当前步骤做了什么，以及它对当前任务有什么意义。
+2. 不预测下一步，不给修复方案，不编造文件内容或执行结果。
+3. 输出 1 到 2 句中文，控制在 120 字以内。
+4. 不输出 <think>、analysis、reasoning、标题或 Markdown。
+"#;
+
+const HOUSEKEEPER_UI_INTENT_SYSTEM_PROMPT: &str = r#"你是 ORG2 的本地 MiniCPM 常驻管家，只做轻量 UI 意图识别。
+你不能执行工具，不能编造动作，只能从允许的 actionId 中选择一个。
+如果用户请求不属于允许动作，返回 actionId 为 null。
+只输出严格 JSON，不要输出 <think>、解释、Markdown 或额外文字。
+JSON 格式：
+{"actionId":"theme.setDark","params":{},"confidence":0.92,"reason":"用户明确要求切换到黑色主题"}
+"#;
+
+const HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT: u32 = 10_000;
+const HOUSEKEEPER_REQUEST_TIMEOUT_SECONDS: u64 = 30;
+const HEALTH_CHECK_MAX_TOKENS: u32 = 32;
+const HOUSEKEEPER_BENCHMARK_MAX_TOKENS: u32 = 160;
+const UI_INTENT_MAX_INPUT_CHARS: usize = 800;
+const UI_INTENT_MAX_TOKENS: u32 = 128;
+const MAX_POLISH_INPUT_CHARS: usize = 6_000;
 const POLISH_REQUEST_TIMEOUT_SECONDS: u64 = 60;
-const POLISH_MAX_TOKENS: u32 = 2048;
-const STEP_EXPLAIN_MAX_TOKENS: u32 = 384;
-const STEP_EXPLAIN_FIELD_MAX_CHARS: usize = 900;
+const POLISH_MAX_TOKENS: u32 = 768;
+const STEP_EXPLAIN_MAX_TOKENS: u32 = 256;
+const STEP_EXPLAIN_FIELD_MAX_CHARS: usize = 500;
 const SHORT_ANSWER_MAX_CHARS: usize = 24;
+const HOUSEKEEPER_ALLOWED_ACTION_IDS: &[&str] = &[
+    "theme.setSystem",
+    "theme.setLight",
+    "theme.setDark",
+    "theme.setHighContrast",
+    "app.goToModelKeys",
+    "app.goToIntegrations",
+    "app.goToHousekeeper",
+    "app.openAddModelApi",
+    "spotlight.open",
+    "spotlight.openAgentControl",
+    "spotlight.openSessionCreator",
+];
+
+const HOUSEKEEPER_POLISH_SYSTEM_PROMPT: &str = r#"你是 ORG2 的本地 MiniCPM 常驻管家。
+你的唯一任务：把用户草稿改写成一条更适合发送给强代码 Agent 的任务请求。
+
+硬性规则：
+1. 只输出最终润色后的请求，不要回答用户，不要解释规则，不要寒暄。
+2. 用户用中文就输出中文，用户用英文就输出英文。
+3. 必须保留用户原文中的关键名词、文件名、路径、命令、代码片段、URL、模型名和 [[ORGII_PILL_0]] 这类占位符。
+4. 不输出 <think>、analysis、reasoning、Markdown 代码块或“以下是改写后”这类包装文字。
+5. 如果原文很短、口语化或只说了一个现象，必须扩写成可执行任务，覆盖目标、排查/实现范围、验证方式和交付说明。
+6. 不要编造不存在的事实；不确定的信息写成“请根据当前上下文确认”。
+"#;
+
+const HOUSEKEEPER_STEP_EXPLAIN_SYSTEM_PROMPT: &str = r#"You are ORG2's local MiniCPM resident housekeeper.
+Your only job is to explain the current session replay step in Chinese.
+Rules:
+1. Explain only what this current step did and why it matters to the current task.
+2. Do not predict the next step, propose a fix, or invent file contents or command results.
+3. Return one or two short Chinese sentences, within 120 Chinese characters.
+4. Do not output <think>, analysis, reasoning, headings, Markdown, or extra labels.
+"#;
+
+const HOUSEKEEPER_INTENT_SYSTEM_PROMPT: &str = r#"You are ORG2's local MiniCPM resident housekeeper.
+Your only job is lightweight UI intent classification.
+You cannot execute tools. You cannot invent actions. You must choose one actionId only from the allowed action list.
+If the user request is not clearly one of the allowed actions, return actionId as null.
+Return strict JSON only, with no <think>, Markdown, explanation, or extra text.
+JSON shape:
+{"actionId":"theme.setDark","params":{},"confidence":0.92,"reason":"The user clearly asked to switch to dark theme"}
+"#;
 
 const SESSION_STEP_EXPLAIN_SYSTEM_PROMPT: &str = r#"你是 session replay 的步骤解释器。
 你的唯一任务：根据一个结构化 session event，用中文解释当前这一步发生了什么。
@@ -79,6 +156,15 @@ const SESSION_STEP_EXPLAIN_SYSTEM_PROMPT: &str = r#"你是 session replay 的步
 4. 说明“做了什么”和“这一步对当前任务有什么意义”。
 5. 如果信息有限，就诚实说明只能判断为某类操作，不要编造文件内容或执行结果。
 6. 只返回解释文本。"#;
+
+#[allow(dead_code)]
+const _LEGACY_PROMPT_REFERENCES: &[&str] = &[
+    PROMPT_POLISH_SYSTEM_PROMPT,
+    COMPACT_PROMPT_POLISH_SYSTEM_PROMPT,
+    COMPACT_SESSION_STEP_EXPLAIN_SYSTEM_PROMPT,
+    HOUSEKEEPER_UI_INTENT_SYSTEM_PROMPT,
+    SESSION_STEP_EXPLAIN_SYSTEM_PROMPT,
+];
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -122,6 +208,76 @@ pub struct SessionStepExplainResponse {
     pub account_id: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HousekeeperHealthCheckRequest {
+    pub account_id: Option<String>,
+    pub model: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HousekeeperHealthCheckResponse {
+    pub ok: bool,
+    pub account_id: Option<String>,
+    pub model: Option<String>,
+    pub base_url: Option<String>,
+    pub max_model_len: Option<u32>,
+    pub context_limit_tokens: u32,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HousekeeperTokenBenchmarkRequest {
+    pub account_id: Option<String>,
+    pub model: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HousekeeperTokenBenchmarkResponse {
+    pub account_id: String,
+    pub model: String,
+    pub base_url: String,
+    pub elapsed_ms: u64,
+    pub prompt_tokens: Option<u32>,
+    pub completion_tokens: u32,
+    pub total_tokens: Option<u32>,
+    pub tokens_per_second: f64,
+    pub sample_text: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct HousekeeperUiContext {
+    pub route: Option<String>,
+    pub active_panel: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HousekeeperUiIntentRequest {
+    pub text: String,
+    pub account_id: Option<String>,
+    pub model: Option<String>,
+    #[serde(default)]
+    pub allowed_action_ids: Vec<String>,
+    #[serde(default)]
+    pub ui_context: Option<HousekeeperUiContext>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HousekeeperUiIntentResponse {
+    pub action_id: Option<String>,
+    pub params: serde_json::Value,
+    pub confidence: f64,
+    pub reason: Option<String>,
+    pub model: String,
+    pub account_id: String,
+}
+
 #[derive(Debug)]
 struct PromptPolishSelection {
     key: ModelKey,
@@ -135,12 +291,25 @@ struct ChatCompletionRequest<'a> {
     temperature: f32,
     max_tokens: u32,
     stream: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chat_template_kwargs: Option<ChatTemplateKwargs>,
 }
 
 #[derive(Debug, Serialize)]
 struct ChatCompletionMessage<'a> {
     role: &'a str,
     content: &'a str,
+}
+
+#[derive(Debug, Serialize)]
+struct ChatTemplateKwargs {
+    enable_thinking: bool,
+}
+
+fn minicpm_no_think_kwargs() -> Option<ChatTemplateKwargs> {
+    Some(ChatTemplateKwargs {
+        enable_thinking: false,
+    })
 }
 
 #[derive(Debug, Deserialize)]
@@ -158,6 +327,20 @@ struct ChatCompletionChoice {
 #[derive(Debug, Deserialize)]
 struct ChatCompletionResponseMessage {
     content: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ChatCompletionBenchmarkResponse {
+    #[serde(default)]
+    choices: Vec<ChatCompletionChoice>,
+    usage: Option<ChatCompletionUsage>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ChatCompletionUsage {
+    prompt_tokens: Option<u32>,
+    completion_tokens: Option<u32>,
+    total_tokens: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -282,6 +465,45 @@ fn chat_completions_url(base_url: &str) -> Result<String, String> {
         return Ok(format!("{trimmed}/chat/completions"));
     }
     Ok(format!("{trimmed}/v1/chat/completions"))
+}
+
+fn models_url(base_url: &str) -> Result<String, String> {
+    let trimmed = base_url.trim().trim_end_matches('/');
+    if trimmed.is_empty() {
+        return Err("MiniCPM account has no base URL".to_string());
+    }
+
+    if trimmed.ends_with("/models") {
+        return Ok(trimmed.to_string());
+    }
+    if trimmed.ends_with("/v1") {
+        return Ok(format!("{trimmed}/models"));
+    }
+    Ok(format!("{trimmed}/v1/models"))
+}
+
+fn key_base_url(key: &ModelKey) -> Result<&str, String> {
+    key.base_url
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| "MiniCPM account has no base URL".to_string())
+}
+
+fn with_optional_bearer(
+    request: reqwest::RequestBuilder,
+    key: &ModelKey,
+) -> reqwest::RequestBuilder {
+    if let Some(api_key) = key
+        .api_key
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        request.bearer_auth(api_key)
+    } else {
+        request
+    }
 }
 
 fn content_value_to_string(value: serde_json::Value) -> Option<String> {
@@ -444,7 +666,30 @@ fn is_repeated_error_request(text: &str) -> bool {
             || normalized.contains("频繁"))
 }
 
+fn is_prompt_polish_quality_request(text: &str) -> bool {
+    let normalized = normalized_task_input(text);
+    (normalized.contains("润色") || normalized.contains("改写") || normalized.contains("polish"))
+        && (normalized.contains("出错")
+            || normalized.contains("报错")
+            || normalized.contains("错误")
+            || normalized.contains("失败")
+            || normalized.contains("不好")
+            || normalized.contains("不行")
+            || normalized.contains("很差")
+            || normalized.contains("太差")
+            || normalized.contains("效果差")
+            || normalized.contains("质量差")
+            || normalized.contains("老是"))
+}
+
 fn known_task_expansion_fallback(original_text: &str) -> Option<String> {
+    if is_prompt_polish_quality_request(original_text) {
+        return Some(
+            r#"请排查并优化 ORG2 的输入/输出润色功能质量问题。请先根据当前上下文确认润色按钮的前端调用链、常驻管家配置、prompt_polish RPC、MiniCPM/vLLM 请求体、返回内容清洗和本地质量兜底逻辑；重点判断问题是模型输出过短、误回答用户、返回 Markdown/解释包装、没有保留原文关键词，还是兜底策略过于泛化。请在不引入完整 Agent 上下文、不发送 tools、不扩大 MiniCPM 请求负担的前提下，优化润色 prompt、质量判定和兜底策略，让短口语输入也能被改写成清晰、具体、可执行的代码 Agent 指令。完成后请用典型输入验证效果，并说明改动点、验证结果以及 MiniCPM 1B 仍然存在的能力边界。"#
+                .to_string(),
+        );
+    }
+
     if is_backend_optimization_request(original_text) {
         return Some(
             r#"对现有后端系统进行全面优化，具体执行以下任务：
@@ -505,6 +750,58 @@ fn contains_request_signal(text: &str) -> bool {
     ]
     .iter()
     .any(|signal| lower.contains(signal))
+}
+
+fn looks_like_chatty_polish_output(polished_text: &str) -> bool {
+    let text = polished_text.trim();
+    let lower = text.to_lowercase();
+    [
+        "当然可以",
+        "以下是",
+        "改写后",
+        "原句",
+        "这样改写",
+        "希望这能帮到你",
+        "it looks like",
+        "could you please",
+        "please provide",
+        "provide more context",
+        "i don't see",
+        "i apologize",
+        "i'm here to help",
+        "not sure what you're asking",
+    ]
+    .iter()
+    .any(|phrase| lower.contains(phrase))
+        || text.contains("---")
+        || text.contains("**")
+}
+
+fn looks_like_underexpanded_generic_task(original_text: &str, polished_text: &str) -> bool {
+    if !is_short_text(original_text) {
+        return false;
+    }
+
+    let cleaned = polished_text.trim();
+    let char_count = cleaned.chars().count();
+    if char_count >= 80 {
+        return false;
+    }
+
+    let lower = cleaned.to_lowercase();
+    [
+        "请帮我修复",
+        "请修复",
+        "请检查并修复",
+        "请优化",
+        "请改进",
+        "please fix",
+        "please improve",
+        "fix the issue",
+    ]
+    .iter()
+    .any(|phrase| lower.contains(phrase))
+        || char_count < 40
 }
 
 fn looks_like_direct_answer(original_text: &str, polished_text: &str) -> bool {
@@ -601,7 +898,7 @@ fn fallback_polish_for_short_answer(original_text: &str) -> String {
     }
 
     format!(
-        "请基于“{}”将我的意图改写成一条更清晰、可直接发送给大模型的请求。",
+        "请根据当前上下文围绕“{}”完成一次清晰的任务处理：先确认目标和现象，梳理相关模块、文件、配置或交互流程，定位需要调整的实现或说明，完成必要修改后进行验证，并在结果中说明改动点、验证方式和仍需我确认的信息。",
         original_text.trim()
     )
 }
@@ -615,6 +912,8 @@ fn sanitize_polished_text(original_text: &str, polished_text: &str) -> Result<St
     if looks_like_direct_answer(original_text, &cleaned)
         || looks_like_prompt_meta_output(original_text, &cleaned)
         || looks_like_underexpanded_known_task(original_text, &cleaned)
+        || looks_like_chatty_polish_output(&cleaned)
+        || looks_like_underexpanded_generic_task(original_text, &cleaned)
     {
         return Ok(fallback_polish_for_short_answer(original_text));
     }
@@ -624,17 +923,23 @@ fn sanitize_polished_text(original_text: &str, polished_text: &str) -> Result<St
 
 fn build_polish_user_prompt(text: &str) -> String {
     format!(
-        r#"请把下面这段【用户原始输入】扩写并润色成一条将发送给另一个大模型的用户请求。
-要求：
-1. 输出要比原始输入更具体、更可执行，必要时拆成编号任务。
-2. 不要回答原始输入，不要解释，不要输出思考过程。
-3. 不要只做同义改写；如果原始输入过短，要补充合理的执行维度、验收标准和交付物。
+        r#"请把下面这段【用户原始输入】润色成一条将发送给强代码 Agent 的任务请求。
+
+质量标准：
+1. 只输出最终请求，不要解释，不要回答用户，不要写“以下是”。
+2. 必须保留原文里的关键名词和问题现象。
+3. 不要只做同义改写；如果原文很短，要补充目标、排查/实现范围、验证方式和交付说明。
+4. 输出应当能直接发给代码 Agent 执行。
+
+合格示例：
+用户原始输入：为什么 Docker 一直重连
+润色输出：请排查 Docker 服务一直重连的问题，先确认 Docker Desktop、WSL 和相关容器的运行状态，再查看日志中是否存在端口占用、镜像启动失败、GPU/CUDA 或网络连接错误；定位根因后完成修复，并说明修改内容、验证命令和仍需用户确认的环境信息。
 
 【用户原始输入】
 {text}
 
 【输出】
-只输出扩写润色后的用户请求："#
+只输出润色后的最终请求："#
     )
 }
 
@@ -726,6 +1031,205 @@ fn sanitize_step_explanation(explanation: &str) -> Result<String, String> {
     Ok(text_excerpt(&cleaned, 220))
 }
 
+fn requested_housekeeper_actions(requested: &[String]) -> Vec<String> {
+    let requested = requested
+        .iter()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .collect::<HashSet<_>>();
+
+    HOUSEKEEPER_ALLOWED_ACTION_IDS
+        .iter()
+        .copied()
+        .filter(|action_id| requested.is_empty() || requested.contains(action_id))
+        .map(ToOwned::to_owned)
+        .collect()
+}
+
+fn is_allowed_housekeeper_action(action_id: &str, allowed_action_ids: &[String]) -> bool {
+    HOUSEKEEPER_ALLOWED_ACTION_IDS.contains(&action_id)
+        && allowed_action_ids
+            .iter()
+            .any(|allowed_action_id| allowed_action_id == action_id)
+}
+
+fn build_ui_intent_user_prompt(
+    text: &str,
+    allowed_action_ids: &[String],
+    ui_context: Option<&HousekeeperUiContext>,
+) -> String {
+    let route = ui_context
+        .and_then(|context| context.route.as_deref())
+        .map(|value| text_excerpt(value, 160))
+        .unwrap_or_else(|| "unknown".to_string());
+    let active_panel = ui_context
+        .and_then(|context| context.active_panel.as_deref())
+        .map(|value| text_excerpt(value, 120))
+        .unwrap_or_else(|| "unknown".to_string());
+    let actions = allowed_action_ids
+        .iter()
+        .map(|action_id| format!("- {action_id}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    format!(
+        r#"Allowed actionId values:
+{actions}
+
+Current UI:
+- route: {route}
+- activePanel: {active_panel}
+
+User request:
+{text}
+
+Return strict JSON only. Use {{"actionId":null,"params":{{}},"confidence":0,"reason":"not an allowed lightweight UI action"}} when no allowed action matches."#
+    )
+}
+
+fn extract_first_json_object(text: &str) -> Option<&str> {
+    let bytes = text.as_bytes();
+    let mut start = None;
+    let mut depth: i32 = 0;
+    let mut in_string = false;
+    let mut escaped = false;
+
+    for (index, byte) in bytes.iter().enumerate() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if *byte == b'\\' {
+                escaped = true;
+            } else if *byte == b'"' {
+                in_string = false;
+            }
+            continue;
+        }
+
+        match *byte {
+            b'"' => in_string = true,
+            b'{' => {
+                if depth == 0 {
+                    start = Some(index);
+                }
+                depth += 1;
+            }
+            b'}' => {
+                if depth > 0 {
+                    depth -= 1;
+                    if depth == 0 {
+                        if let Some(start) = start {
+                            return text.get(start..=index);
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    None
+}
+
+fn chat_response_text(
+    response: ChatCompletionResponse,
+    empty_message: &str,
+) -> Result<String, String> {
+    chat_choices_text(response.choices, empty_message)
+}
+
+fn chat_choices_text(
+    choices: Vec<ChatCompletionChoice>,
+    empty_message: &str,
+) -> Result<String, String> {
+    choices
+        .into_iter()
+        .find_map(|choice| {
+            choice
+                .message
+                .and_then(|message| message.content)
+                .and_then(content_value_to_string)
+                .or(choice.text)
+        })
+        .map(|text| text.trim().to_string())
+        .filter(|text| !text.is_empty())
+        .ok_or_else(|| empty_message.to_string())
+}
+
+fn parse_ui_intent_response(
+    response: ChatCompletionResponse,
+    allowed_action_ids: &[String],
+    model: &str,
+    account_id: &str,
+) -> Result<HousekeeperUiIntentResponse, String> {
+    let content = chat_response_text(response, "MiniCPM returned an empty UI intent result")?;
+    let cleaned = strip_reasoning_artifacts(&content);
+    let json_text = extract_first_json_object(&cleaned)
+        .ok_or_else(|| "MiniCPM UI intent did not return JSON".to_string())?;
+    let value = serde_json::from_str::<serde_json::Value>(json_text)
+        .map_err(|err| format!("Failed to parse MiniCPM UI intent JSON: {err}"))?;
+    let object = value
+        .as_object()
+        .ok_or_else(|| "MiniCPM UI intent JSON must be an object".to_string())?;
+
+    let action_id = object
+        .get("actionId")
+        .or_else(|| object.get("action_id"))
+        .and_then(|value| value.as_str())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned);
+
+    if let Some(action_id) = action_id.as_deref() {
+        if !is_allowed_housekeeper_action(action_id, allowed_action_ids) {
+            return Err(format!(
+                "MiniCPM requested disallowed UI action: {action_id}"
+            ));
+        }
+    }
+
+    let confidence = object
+        .get("confidence")
+        .and_then(|value| value.as_f64())
+        .unwrap_or(0.0)
+        .clamp(0.0, 1.0);
+    let reason = object
+        .get("reason")
+        .and_then(|value| value.as_str())
+        .map(|value| text_excerpt(value, 240));
+
+    Ok(HousekeeperUiIntentResponse {
+        action_id,
+        params: serde_json::json!({}),
+        confidence,
+        reason,
+        model: model.to_string(),
+        account_id: account_id.to_string(),
+    })
+}
+
+fn extract_model_max_len(models_response_body: &str, model: &str) -> Result<Option<u32>, String> {
+    let value = serde_json::from_str::<serde_json::Value>(models_response_body)
+        .map_err(|err| format!("Failed to parse vLLM models response: {err}"))?;
+    let data = value
+        .get("data")
+        .and_then(|value| value.as_array())
+        .ok_or_else(|| "vLLM models response has no data array".to_string())?;
+    let selected = data
+        .iter()
+        .find(|item| item.get("id").and_then(|value| value.as_str()) == Some(model))
+        .or_else(|| if data.len() == 1 { data.first() } else { None })
+        .ok_or_else(|| format!("Model not found in vLLM /v1/models: {model}"))?;
+
+    Ok(selected
+        .get("max_model_len")
+        .or_else(|| selected.get("maxModelLen"))
+        .or_else(|| selected.get("context_length"))
+        .or_else(|| selected.get("contextLength"))
+        .and_then(|value| value.as_u64())
+        .and_then(|value| u32::try_from(value).ok()))
+}
+
 fn extract_polished_text(
     response: ChatCompletionResponse,
     original_text: &str,
@@ -791,12 +1295,7 @@ fn provider_error_message(status: reqwest::StatusCode, body: &str) -> String {
 }
 
 async fn request_prompt_polish(key: &ModelKey, model: &str, text: &str) -> Result<String, String> {
-    let base_url = key
-        .base_url
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .ok_or_else(|| "MiniCPM account has no base URL".to_string())?;
+    let base_url = key_base_url(key)?;
     let endpoint = chat_completions_url(base_url)?;
 
     let user_prompt = build_polish_user_prompt(text);
@@ -805,7 +1304,7 @@ async fn request_prompt_polish(key: &ModelKey, model: &str, text: &str) -> Resul
         messages: vec![
             ChatCompletionMessage {
                 role: "system",
-                content: PROMPT_POLISH_SYSTEM_PROMPT,
+                content: HOUSEKEEPER_POLISH_SYSTEM_PROMPT,
             },
             ChatCompletionMessage {
                 role: "user",
@@ -815,6 +1314,7 @@ async fn request_prompt_polish(key: &ModelKey, model: &str, text: &str) -> Resul
         temperature: 0.2,
         max_tokens: POLISH_MAX_TOKENS,
         stream: false,
+        chat_template_kwargs: minicpm_no_think_kwargs(),
     };
 
     let client = reqwest::Client::builder()
@@ -822,15 +1322,7 @@ async fn request_prompt_polish(key: &ModelKey, model: &str, text: &str) -> Resul
         .build()
         .map_err(|err| format!("Failed to create MiniCPM HTTP client: {err}"))?;
 
-    let mut request = client.post(endpoint).json(&body);
-    if let Some(api_key) = key
-        .api_key
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-    {
-        request = request.bearer_auth(api_key);
-    }
+    let request = with_optional_bearer(client.post(endpoint).json(&body), key);
 
     let response = request
         .send()
@@ -856,12 +1348,7 @@ async fn request_session_step_explain(
     model: &str,
     explain_request: &SessionStepExplainRequest,
 ) -> Result<String, String> {
-    let base_url = key
-        .base_url
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .ok_or_else(|| "MiniCPM account has no base URL".to_string())?;
+    let base_url = key_base_url(key)?;
     let endpoint = chat_completions_url(base_url)?;
 
     let user_prompt = build_step_explain_user_prompt(explain_request);
@@ -870,7 +1357,7 @@ async fn request_session_step_explain(
         messages: vec![
             ChatCompletionMessage {
                 role: "system",
-                content: SESSION_STEP_EXPLAIN_SYSTEM_PROMPT,
+                content: HOUSEKEEPER_STEP_EXPLAIN_SYSTEM_PROMPT,
             },
             ChatCompletionMessage {
                 role: "user",
@@ -880,6 +1367,7 @@ async fn request_session_step_explain(
         temperature: 0.15,
         max_tokens: STEP_EXPLAIN_MAX_TOKENS,
         stream: false,
+        chat_template_kwargs: minicpm_no_think_kwargs(),
     };
 
     let client = reqwest::Client::builder()
@@ -887,15 +1375,7 @@ async fn request_session_step_explain(
         .build()
         .map_err(|err| format!("Failed to create MiniCPM HTTP client: {err}"))?;
 
-    let mut request = client.post(endpoint).json(&body);
-    if let Some(api_key) = key
-        .api_key
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-    {
-        request = request.bearer_auth(api_key);
-    }
+    let request = with_optional_bearer(client.post(endpoint).json(&body), key);
 
     let response = request
         .send()
@@ -914,6 +1394,330 @@ async fn request_session_step_explain(
     let parsed = serde_json::from_str::<ChatCompletionResponse>(&response_body)
         .map_err(|err| format!("Failed to parse MiniCPM response: {err}"))?;
     extract_step_explanation(parsed)
+}
+
+async fn request_housekeeper_health_check(
+    key: &ModelKey,
+    model: &str,
+) -> HousekeeperHealthCheckResponse {
+    let account_id = Some(key.id.clone());
+    let model_value = Some(model.to_string());
+    let base_url = match key_base_url(key) {
+        Ok(value) => value.to_string(),
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: None,
+                max_model_len: None,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(error),
+            };
+        }
+    };
+
+    let client = match reqwest::Client::builder()
+        .timeout(Duration::from_secs(HOUSEKEEPER_REQUEST_TIMEOUT_SECONDS))
+        .build()
+    {
+        Ok(client) => client,
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: Some(base_url),
+                max_model_len: None,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(format!("Failed to create MiniCPM HTTP client: {error}")),
+            };
+        }
+    };
+
+    let models_endpoint = match models_url(&base_url) {
+        Ok(endpoint) => endpoint,
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: Some(base_url),
+                max_model_len: None,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(error),
+            };
+        }
+    };
+
+    let models_response = match with_optional_bearer(client.get(models_endpoint), key)
+        .send()
+        .await
+    {
+        Ok(response) => response,
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: Some(base_url),
+                max_model_len: None,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(format!("MiniCPM models check failed: {error}")),
+            };
+        }
+    };
+    let models_status = models_response.status();
+    let models_body = match models_response.text().await {
+        Ok(body) => body,
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: Some(base_url),
+                max_model_len: None,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(format!("Failed to read MiniCPM models response: {error}")),
+            };
+        }
+    };
+    if !models_status.is_success() {
+        return HousekeeperHealthCheckResponse {
+            ok: false,
+            account_id,
+            model: model_value,
+            base_url: Some(base_url),
+            max_model_len: None,
+            context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+            error: Some(provider_error_message(models_status, &models_body)),
+        };
+    }
+    let max_model_len = match extract_model_max_len(&models_body, model) {
+        Ok(value) => value,
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: Some(base_url),
+                max_model_len: None,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(error),
+            };
+        }
+    };
+
+    let chat_endpoint = match chat_completions_url(&base_url) {
+        Ok(endpoint) => endpoint,
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: Some(base_url),
+                max_model_len,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(error),
+            };
+        }
+    };
+    let health_user_prompt = "你好";
+    let body = ChatCompletionRequest {
+        model,
+        messages: vec![
+            ChatCompletionMessage {
+                role: "system",
+                content: "Reply briefly. Do not use tools.",
+            },
+            ChatCompletionMessage {
+                role: "user",
+                content: health_user_prompt,
+            },
+        ],
+        temperature: 0.0,
+        max_tokens: HEALTH_CHECK_MAX_TOKENS,
+        stream: false,
+        chat_template_kwargs: minicpm_no_think_kwargs(),
+    };
+    let chat_response = match with_optional_bearer(client.post(chat_endpoint).json(&body), key)
+        .send()
+        .await
+    {
+        Ok(response) => response,
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: Some(base_url),
+                max_model_len,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(format!("MiniCPM chat check failed: {error}")),
+            };
+        }
+    };
+    let chat_status = chat_response.status();
+    let chat_body = match chat_response.text().await {
+        Ok(body) => body,
+        Err(error) => {
+            return HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id,
+                model: model_value,
+                base_url: Some(base_url),
+                max_model_len,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(format!("Failed to read MiniCPM chat response: {error}")),
+            };
+        }
+    };
+    if !chat_status.is_success() {
+        return HousekeeperHealthCheckResponse {
+            ok: false,
+            account_id,
+            model: model_value,
+            base_url: Some(base_url),
+            max_model_len,
+            context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+            error: Some(provider_error_message(chat_status, &chat_body)),
+        };
+    }
+
+    HousekeeperHealthCheckResponse {
+        ok: true,
+        account_id,
+        model: model_value,
+        base_url: Some(base_url),
+        max_model_len,
+        context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+        error: None,
+    }
+}
+
+async fn request_housekeeper_token_benchmark(
+    key: &ModelKey,
+    model: &str,
+) -> Result<HousekeeperTokenBenchmarkResponse, String> {
+    let base_url = key_base_url(key)?.to_string();
+    let endpoint = chat_completions_url(&base_url)?;
+    let body = ChatCompletionRequest {
+        model,
+        messages: vec![
+            ChatCompletionMessage {
+                role: "system",
+                content: "You are a local benchmark responder. Output concise Chinese text only. Do not use tools.",
+            },
+            ChatCompletionMessage {
+                role: "user",
+                content: "请用中文连续写一段约120字的说明，介绍本地 MiniCPM 常驻管家可以用于输入润色、步骤解释和轻量 UI 意图识别。直接输出正文。",
+            },
+        ],
+        temperature: 0.0,
+        max_tokens: HOUSEKEEPER_BENCHMARK_MAX_TOKENS,
+        stream: false,
+        chat_template_kwargs: minicpm_no_think_kwargs(),
+    };
+
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(HOUSEKEEPER_REQUEST_TIMEOUT_SECONDS))
+        .build()
+        .map_err(|err| format!("Failed to create MiniCPM HTTP client: {err}"))?;
+
+    let start = Instant::now();
+    let response = with_optional_bearer(client.post(endpoint).json(&body), key)
+        .send()
+        .await
+        .map_err(|err| format!("MiniCPM benchmark request failed: {err}"))?;
+    let elapsed = start.elapsed();
+    let status = response.status();
+    let response_body = response
+        .text()
+        .await
+        .map_err(|err| format!("Failed to read MiniCPM benchmark response: {err}"))?;
+
+    if !status.is_success() {
+        return Err(provider_error_message(status, &response_body));
+    }
+
+    let parsed = serde_json::from_str::<ChatCompletionBenchmarkResponse>(&response_body)
+        .map_err(|err| format!("Failed to parse MiniCPM benchmark response: {err}"))?;
+    let sample_text = strip_reasoning_artifacts(&chat_choices_text(
+        parsed.choices,
+        "MiniCPM benchmark returned empty text",
+    )?);
+    let usage = parsed.usage;
+    let completion_tokens = usage
+        .as_ref()
+        .and_then(|usage| usage.completion_tokens)
+        .unwrap_or_else(|| sample_text.chars().count().max(1) as u32);
+    let elapsed_ms = elapsed.as_millis().max(1) as u64;
+    let tokens_per_second = completion_tokens as f64 / (elapsed_ms as f64 / 1000.0);
+
+    Ok(HousekeeperTokenBenchmarkResponse {
+        account_id: key.id.clone(),
+        model: model.to_string(),
+        base_url,
+        elapsed_ms,
+        prompt_tokens: usage.as_ref().and_then(|usage| usage.prompt_tokens),
+        completion_tokens,
+        total_tokens: usage.as_ref().and_then(|usage| usage.total_tokens),
+        tokens_per_second,
+        sample_text: text_excerpt(&sample_text, 180),
+    })
+}
+
+async fn request_housekeeper_ui_intent(
+    key: &ModelKey,
+    model: &str,
+    request: &HousekeeperUiIntentRequest,
+    allowed_action_ids: &[String],
+) -> Result<HousekeeperUiIntentResponse, String> {
+    let base_url = key_base_url(key)?;
+    let endpoint = chat_completions_url(base_url)?;
+    let text = text_excerpt(request.text.trim(), UI_INTENT_MAX_INPUT_CHARS);
+    let user_prompt =
+        build_ui_intent_user_prompt(&text, allowed_action_ids, request.ui_context.as_ref());
+    let body = ChatCompletionRequest {
+        model,
+        messages: vec![
+            ChatCompletionMessage {
+                role: "system",
+                content: HOUSEKEEPER_INTENT_SYSTEM_PROMPT,
+            },
+            ChatCompletionMessage {
+                role: "user",
+                content: &user_prompt,
+            },
+        ],
+        temperature: 0.0,
+        max_tokens: UI_INTENT_MAX_TOKENS,
+        stream: false,
+        chat_template_kwargs: minicpm_no_think_kwargs(),
+    };
+
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(HOUSEKEEPER_REQUEST_TIMEOUT_SECONDS))
+        .build()
+        .map_err(|err| format!("Failed to create MiniCPM HTTP client: {err}"))?;
+
+    let response = with_optional_bearer(client.post(endpoint).json(&body), key)
+        .send()
+        .await
+        .map_err(|err| format!("MiniCPM request failed: {err}"))?;
+    let status = response.status();
+    let response_body = response
+        .text()
+        .await
+        .map_err(|err| format!("Failed to read MiniCPM response: {err}"))?;
+
+    if !status.is_success() {
+        return Err(provider_error_message(status, &response_body));
+    }
+
+    let parsed = serde_json::from_str::<ChatCompletionResponse>(&response_body)
+        .map_err(|err| format!("Failed to parse MiniCPM response: {err}"))?;
+    parse_ui_intent_response(parsed, allowed_action_ids, model, &key.id)
 }
 
 #[tauri::command]
@@ -967,6 +1771,82 @@ pub async fn session_step_explain(
         model: selection.model,
         account_id: selection.key.id,
     })
+}
+
+#[tauri::command]
+pub async fn housekeeper_health_check(
+    request: HousekeeperHealthCheckRequest,
+) -> Result<HousekeeperHealthCheckResponse, String> {
+    let account_id = request.account_id.clone();
+    let model = request.model.clone();
+    let selection_result = tokio::task::spawn_blocking(move || {
+        select_prompt_polish_account(account_id.as_deref(), model.as_deref())
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?;
+
+    let selection = match selection_result {
+        Ok(selection) => selection,
+        Err(error) => {
+            return Ok(HousekeeperHealthCheckResponse {
+                ok: false,
+                account_id: request.account_id,
+                model: request.model,
+                base_url: None,
+                max_model_len: None,
+                context_limit_tokens: HOUSEKEEPER_CONTEXT_LIMIT_TOKENS_DEFAULT,
+                error: Some(error),
+            });
+        }
+    };
+
+    Ok(request_housekeeper_health_check(&selection.key, &selection.model).await)
+}
+
+#[tauri::command]
+pub async fn housekeeper_token_benchmark(
+    request: HousekeeperTokenBenchmarkRequest,
+) -> Result<HousekeeperTokenBenchmarkResponse, String> {
+    let account_id = request.account_id.clone();
+    let model = request.model.clone();
+    let selection = tokio::task::spawn_blocking(move || {
+        select_prompt_polish_account(account_id.as_deref(), model.as_deref())
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))??;
+
+    request_housekeeper_token_benchmark(&selection.key, &selection.model).await
+}
+
+#[tauri::command]
+pub async fn housekeeper_ui_intent(
+    request: HousekeeperUiIntentRequest,
+) -> Result<HousekeeperUiIntentResponse, String> {
+    let text = request.text.trim();
+    if text.is_empty() {
+        return Err("No UI instruction to classify".to_string());
+    }
+
+    let allowed_action_ids = requested_housekeeper_actions(&request.allowed_action_ids);
+    if allowed_action_ids.is_empty() {
+        return Err("No allowed MiniCPM housekeeper UI actions".to_string());
+    }
+
+    let account_id = request.account_id.clone();
+    let model = request.model.clone();
+    let selection = tokio::task::spawn_blocking(move || {
+        select_prompt_polish_account(account_id.as_deref(), model.as_deref())
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))??;
+
+    request_housekeeper_ui_intent(
+        &selection.key,
+        &selection.model,
+        &request,
+        &allowed_action_ids,
+    )
+    .await
 }
 
 #[cfg(test)]
@@ -1049,6 +1929,28 @@ mod tests {
         assert_eq!(
             chat_completions_url("http://127.0.0.1:8000/v1/chat/completions").unwrap(),
             "http://127.0.0.1:8000/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn serializes_minicpm_no_think_chat_template_kwargs() {
+        let body = ChatCompletionRequest {
+            model: "openbmb/MiniCPM5-1B",
+            messages: vec![ChatCompletionMessage {
+                role: "user",
+                content: "hello",
+            }],
+            temperature: 0.0,
+            max_tokens: 16,
+            stream: false,
+            chat_template_kwargs: minicpm_no_think_kwargs(),
+        };
+
+        let value = serde_json::to_value(&body).unwrap();
+
+        assert_eq!(
+            value["chat_template_kwargs"]["enable_thinking"],
+            serde_json::Value::Bool(false)
         );
     }
 
@@ -1239,6 +2141,67 @@ mod tests {
     }
 
     #[test]
+    fn expands_underdeveloped_prompt_polish_quality_request() {
+        let response = ChatCompletionResponse {
+            choices: vec![ChatCompletionChoice {
+                message: Some(ChatCompletionResponseMessage {
+                    content: Some(serde_json::Value::String(
+                        "请帮我检查并修复这段代码中的错误。".to_string(),
+                    )),
+                }),
+                text: None,
+            }],
+        };
+
+        let polished = extract_polished_text(response, "给我修一下这个润色老是出错").unwrap();
+
+        assert!(polished.contains("润色功能质量问题"));
+        assert!(polished.contains("prompt_polish RPC"));
+        assert!(polished.contains("MiniCPM/vLLM 请求体"));
+        assert!(polished.contains("不发送 tools"));
+        assert!(polished.contains("能力边界"));
+    }
+
+    #[test]
+    fn falls_back_when_model_returns_chatty_polish_wrapper() {
+        let response = ChatCompletionResponse {
+            choices: vec![ChatCompletionChoice {
+                message: Some(ChatCompletionResponseMessage {
+                    content: Some(serde_json::Value::String(
+                        "当然可以！以下是改写后的句子：\n\n**原句：** 给我修一下这个润色老是出错。\n\n**改写后：** 修一下这个润色，老是出错。".to_string(),
+                    )),
+                }),
+                text: None,
+            }],
+        };
+
+        let polished = extract_polished_text(response, "给我修一下这个润色老是出错").unwrap();
+
+        assert!(!polished.contains("当然可以"));
+        assert!(!polished.contains("改写后"));
+        assert!(polished.contains("润色功能质量问题"));
+        assert!(polished.contains("质量判定和兜底策略"));
+    }
+
+    #[test]
+    fn generic_short_fallback_preserves_original_intent() {
+        let response = ChatCompletionResponse {
+            choices: vec![ChatCompletionChoice {
+                message: Some(ChatCompletionResponseMessage {
+                    content: Some(serde_json::Value::String("请修复这个问题。".to_string())),
+                }),
+                text: None,
+            }],
+        };
+
+        let polished = extract_polished_text(response, "这个按钮不好用").unwrap();
+
+        assert!(polished.contains("这个按钮不好用"));
+        assert!(polished.contains("相关模块"));
+        assert!(polished.contains("验证方式"));
+    }
+
+    #[test]
     fn strips_think_blocks_from_step_explanation() {
         let response = ChatCompletionResponse {
             choices: vec![ChatCompletionChoice {
@@ -1286,5 +2249,98 @@ mod tests {
         assert!(prompt.contains("xxx"));
         assert!(prompt.contains("..."));
         assert!(prompt.len() < STEP_EXPLAIN_FIELD_MAX_CHARS + 1_500);
+    }
+
+    fn ui_intent_response(content: &str) -> ChatCompletionResponse {
+        ChatCompletionResponse {
+            choices: vec![ChatCompletionChoice {
+                message: Some(ChatCompletionResponseMessage {
+                    content: Some(serde_json::Value::String(content.to_string())),
+                }),
+                text: None,
+            }],
+        }
+    }
+
+    #[test]
+    fn parses_allowed_ui_intent_json() {
+        let allowed = vec!["theme.setDark".to_string()];
+        let parsed = parse_ui_intent_response(
+            ui_intent_response(
+                r#"{"actionId":"theme.setDark","params":{},"confidence":0.92,"reason":"dark theme"}"#,
+            ),
+            &allowed,
+            "openbmb/MiniCPM5-1B",
+            "local-1",
+        )
+        .unwrap();
+
+        assert_eq!(parsed.action_id.as_deref(), Some("theme.setDark"));
+        assert_eq!(parsed.confidence, 0.92);
+        assert_eq!(parsed.model, "openbmb/MiniCPM5-1B");
+        assert_eq!(parsed.account_id, "local-1");
+    }
+
+    #[test]
+    fn rejects_non_json_ui_intent_response() {
+        let allowed = vec!["theme.setDark".to_string()];
+        let error = parse_ui_intent_response(
+            ui_intent_response("I should switch to dark theme."),
+            &allowed,
+            "openbmb/MiniCPM5-1B",
+            "local-1",
+        )
+        .unwrap_err();
+
+        assert!(error.contains("did not return JSON"));
+    }
+
+    #[test]
+    fn rejects_ui_intent_action_not_requested_by_frontend() {
+        let allowed = vec!["theme.setDark".to_string()];
+        let error = parse_ui_intent_response(
+            ui_intent_response(
+                r#"{"actionId":"app.openAddModelApi","params":{},"confidence":0.9}"#,
+            ),
+            &allowed,
+            "openbmb/MiniCPM5-1B",
+            "local-1",
+        )
+        .unwrap_err();
+
+        assert!(error.contains("disallowed UI action"));
+    }
+
+    #[test]
+    fn rejects_ui_intent_action_outside_backend_hard_whitelist() {
+        let allowed = vec!["terminal.exec".to_string()];
+        let error = parse_ui_intent_response(
+            ui_intent_response(
+                r#"{"actionId":"terminal.exec","params":{"command":"rm -rf ."},"confidence":0.99}"#,
+            ),
+            &allowed,
+            "openbmb/MiniCPM5-1B",
+            "local-1",
+        )
+        .unwrap_err();
+
+        assert!(error.contains("disallowed UI action"));
+    }
+
+    #[test]
+    fn accepts_null_ui_intent_action() {
+        let allowed = vec!["theme.setDark".to_string()];
+        let parsed = parse_ui_intent_response(
+            ui_intent_response(
+                r#"{"actionId":null,"params":{},"confidence":0.2,"reason":"unclear"}"#,
+            ),
+            &allowed,
+            "openbmb/MiniCPM5-1B",
+            "local-1",
+        )
+        .unwrap();
+
+        assert!(parsed.action_id.is_none());
+        assert_eq!(parsed.confidence, 0.2);
     }
 }

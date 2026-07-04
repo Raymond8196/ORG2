@@ -22,6 +22,10 @@ import type {
   GeminiOauthExchangeResponse,
   GeminiOauthStartResponse,
   HealthStatus,
+  HousekeeperHealthCheckResponse,
+  HousekeeperTokenBenchmarkResponse,
+  HousekeeperUiContext,
+  HousekeeperUiIntentResponse,
   KeyInfo,
   ModelContextLengths,
   ModelType,
@@ -48,6 +52,13 @@ export type {
   GeminiOauthExchangeResponse,
   GeminiOauthStartResponse,
   HealthStatus,
+  HousekeeperHealthCheckRequest,
+  HousekeeperHealthCheckResponse,
+  HousekeeperTokenBenchmarkRequest,
+  HousekeeperTokenBenchmarkResponse,
+  HousekeeperUiContext,
+  HousekeeperUiIntentRequest,
+  HousekeeperUiIntentResponse,
   KeyInfo,
   ModelContextLengths,
   ProviderProtocol,
@@ -63,7 +74,7 @@ export type {
 
 export type { ModelAliasInfo } from "@src/api/types/keys";
 
-function cleanOptionalString(value?: string): string | null {
+function cleanOptionalString(value?: string | null): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
 }
@@ -345,6 +356,57 @@ export async function sessionStepExplain(
       ...request,
       accountId: cleanOptionalString(options.accountId ?? request.accountId),
       model: cleanOptionalString(options.model ?? request.model),
+    },
+  });
+}
+
+/** Check the configured MiniCPM housekeeper vLLM endpoint. */
+export async function housekeeperHealthCheck(
+  options: {
+    accountId?: string;
+    model?: string;
+  } = {}
+): Promise<HousekeeperHealthCheckResponse> {
+  return rpc.validation.housekeeperHealthCheck({
+    request: {
+      accountId: cleanOptionalString(options.accountId),
+      model: cleanOptionalString(options.model),
+    },
+  });
+}
+
+/** Measure MiniCPM output throughput through the configured vLLM endpoint. */
+export async function housekeeperTokenBenchmark(
+  options: {
+    accountId?: string;
+    model?: string;
+  } = {}
+): Promise<HousekeeperTokenBenchmarkResponse> {
+  return rpc.validation.housekeeperTokenBenchmark({
+    request: {
+      accountId: cleanOptionalString(options.accountId),
+      model: cleanOptionalString(options.model),
+    },
+  });
+}
+
+/** Ask MiniCPM to classify a lightweight UI instruction into a safe action. */
+export async function housekeeperUiIntent(
+  text: string,
+  options: {
+    accountId?: string;
+    model?: string;
+    allowedActionIds?: string[];
+    uiContext?: HousekeeperUiContext | null;
+  } = {}
+): Promise<HousekeeperUiIntentResponse> {
+  return rpc.validation.housekeeperUiIntent({
+    request: {
+      text,
+      accountId: cleanOptionalString(options.accountId),
+      model: cleanOptionalString(options.model),
+      allowedActionIds: options.allowedActionIds ?? [],
+      uiContext: options.uiContext ?? null,
     },
   });
 }

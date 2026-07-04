@@ -29,6 +29,7 @@ import {
   simulatorFollowAppLockAtom,
   simulatorInlineChatInputCollapsedAtom,
   simulatorLayoutAtom,
+  simulatorMiniCPMStepExplanationVisibleAtom,
   simulatorSelectedAppAtom,
   simulatorShowDockAtom,
 } from "@src/store/ui/simulatorAtom";
@@ -61,6 +62,9 @@ const ActivitySimulator: React.FC = memo(() => {
   const chatVisible = useAtomValue(chatVisibleAtom);
   const simulatorInputCollapsed = useAtomValue(
     simulatorInlineChatInputCollapsedAtom
+  );
+  const [showMiniCPMStepExplanation, setShowMiniCPMStepExplanation] = useAtom(
+    simulatorMiniCPMStepExplanationVisibleAtom
   );
   const [selectedApp, setSelectedApp] = useAtom(simulatorSelectedAppAtom);
   const replayMode = useAtomValue(replayModeAtom);
@@ -279,13 +283,20 @@ const ActivitySimulator: React.FC = memo(() => {
                     <SimulatorFloatingInput />
                   </div>
                 )}
+
+                {showReplayBar && showMiniCPMStepExplanation && (
+                  <div className="pointer-events-none absolute bottom-16 left-3 right-3 z-[26] flex justify-center sm:left-6 sm:right-6">
+                    <MiniCPMStepExplanationPanel
+                      onClose={() => setShowMiniCPMStepExplanation(false)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
             {/* ── Dock (replay bar + app icons) ── */}
             {showDock && (
               <div className="flex shrink-0 flex-col overflow-visible">
-                {showReplayBar && <MiniCPMStepExplanationPanel />}
                 {showReplayBar && (
                   <div className="overflow-visible border-t border-border-2">
                     <MusicPlayerReplayBar />
