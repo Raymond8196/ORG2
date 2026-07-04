@@ -1,5 +1,6 @@
 import type { CliAgentType } from "@src/api/tauri/rpc/schemas/validation";
 import type { DispatchCategory } from "@src/api/tauri/session";
+import type { CliLaunchMode } from "@src/store/session";
 import type { SessionTargetKind } from "@src/store/session/creatorStateAtom";
 
 import type { BasePaletteProps } from "../../shared";
@@ -10,6 +11,7 @@ export interface AgentSelection {
   agentDefinitionId?: string;
   agentOrgId?: string;
   cliAgentType?: CliAgentType;
+  cliLaunchMode?: CliLaunchMode;
   agentName: string;
   agentIconId?: string;
 }

@@ -45,7 +45,10 @@ import { useAgentCompatibility } from "@src/hooks/models/useAgentCompatibility";
 import { useAgentDefinitions } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentDefinitions";
 import { useAgentOrgs } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentOrgs";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
-import { DispatchCategoryPalette } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
+import {
+  type AgentSelection,
+  DispatchCategoryPalette,
+} from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
 import { DispatchCategoryDropdown } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette/DispatchCategoryDropdown";
 import { PresenceMenuButton } from "@src/scaffold/NavigationSidebar/blocks/SidebarBottomBar";
 import { gitDependencyInstalledAtom } from "@src/store/platform/gitDependencyAtom";
@@ -353,6 +356,17 @@ const SessionCreatorChatPanelSingle: React.FC<
     selectRepo,
     forceRefreshRepos,
   });
+
+  const handleAgentPickerSelect = useCallback(
+    (selection: AgentSelection) => {
+      if (selection.cliAgentType && selection.cliLaunchMode) {
+        setCliLaunchMode(selection.cliLaunchMode);
+        setDefaultTuiMode(selection.cliLaunchMode === CLI_LAUNCH_MODE.TUI);
+      }
+      handleCategorySelect(selection);
+    },
+    [handleCategorySelect, setCliLaunchMode, setDefaultTuiMode]
+  );
 
   const handleAdvancedConfigChange = useCallback(
     (config: typeof advancedConfig) => {
@@ -1034,7 +1048,7 @@ const SessionCreatorChatPanelSingle: React.FC<
         <DispatchCategoryDropdown
           isOpen={isCategorySelectorOpen}
           onClose={() => setIsCategorySelectorOpen(false)}
-          onSelect={handleCategorySelect}
+          onSelect={handleAgentPickerSelect}
           currentCategory={dispatchCategory}
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
@@ -1045,7 +1059,7 @@ const SessionCreatorChatPanelSingle: React.FC<
         <DispatchCategoryPalette
           isOpen={isCategorySelectorOpen}
           onClose={() => setIsCategorySelectorOpen(false)}
-          onSelect={handleCategorySelect}
+          onSelect={handleAgentPickerSelect}
           currentCategory={dispatchCategory}
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
