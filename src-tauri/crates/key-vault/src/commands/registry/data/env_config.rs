@@ -44,11 +44,11 @@ pub(crate) fn cli_env_config(name: &str) -> Option<AgentEnvConfig> {
             Some("https://geminicode.net"),
         )),
         "copilot" => Some(cfg(
-            "GH_TOKEN",
-            None,
-            false,
+            "OPENAI_API_KEY",
+            Some("OPENAI_BASE_URL"),
+            true,
             "codeAccounts.apiKeyPlaceholder.copilot",
-            None,
+            Some("https://api.example.com/v1"),
         )),
         "kiro" => Some(cfg(
             "KIRO_API_KEY",
@@ -105,13 +105,6 @@ pub(crate) fn cli_env_config(name: &str) -> Option<AgentEnvConfig> {
             true,
             "codeAccounts.apiKeyPlaceholder.qwen_code",
             Some("https://dashscope.aliyuncs.com/compatible-mode/v1"),
-        )),
-        "antigravity" => Some(cfg(
-            "OPENAI_API_KEY",
-            Some("OPENAI_BASE_URL"),
-            true,
-            "codeAccounts.apiKeyPlaceholder.antigravity",
-            Some("https://api.example.com/v1"),
         )),
         "continue_cli" => Some(cfg(
             "OPENAI_API_KEY",
@@ -191,10 +184,11 @@ pub(crate) fn cli_env_config(name: &str) -> Option<AgentEnvConfig> {
             // MiMo's hosted Anthropic-compatible endpoint.
             Some("https://api.xiaomimimo.com/anthropic"),
         )),
-        // Subscription-only agents: no API key env var supported.
-        // aug uses an OAuth session token (AUGMENT_SESSION_AUTH), not a
-        // plain API key, so the standard env-config path does not apply.
-        "aug" | "droid" | "ante" | "autohand" | "omp" | "pi" | "open_claw" | "openclaw" => None,
+        // Agents without a single universal API-key env var for ORGII to inject.
+        // Some are subscription-token based, while others require provider-specific
+        // config files or auth stores instead of one standard env-config path.
+        "aug" | "droid" | "ante" | "autohand" | "omp" | "pi" | "open_claw" | "openclaw"
+        | "antigravity" => None,
         // The caller iterates `cli_agent_registry()` entries, so a CLI
         // agent that ships in the registry but has no env config here
         // would silently let the API-key dialog render with no env-var
