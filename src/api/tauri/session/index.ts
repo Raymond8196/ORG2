@@ -121,6 +121,7 @@ export function toFrontendSession(record: SessionAggregateRecord): Session {
     tier: record.tier,
     pid: record.pid ?? null,
     repoPath: record.repoPath,
+    storagePath: record.storagePath,
     worktreePath: record.worktreePath,
     worktreeBranch: record.worktreeBranch,
     baseBranch: record.baseBranch,

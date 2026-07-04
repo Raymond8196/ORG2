@@ -31,6 +31,7 @@ export interface CursorIdeSessionRow {
   background: boolean;
   isActive: boolean;
   repoPath?: string;
+  storagePath?: string;
   repoName?: string;
   branch?: string;
 }
@@ -146,6 +147,7 @@ export async function cursorIdeTurnWindow(args: {
  */
 export interface CursorIdeSessionDetail {
   repoPath?: string;
+  storagePath?: string;
   repoName?: string;
   branch?: string;
   touchedFiles: string[];

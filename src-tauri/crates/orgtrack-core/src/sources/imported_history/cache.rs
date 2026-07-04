@@ -51,6 +51,7 @@ impl ImportedHistoryCachedSession {
             input_tokens: self.input_tokens,
             output_tokens: self.output_tokens,
             repo_path: self.repo_path.clone(),
+            storage_path: Some(self.source_path.clone()),
             branch: self.branch.clone(),
             files_changed: self.impact.files_changed,
             lines_added: self.impact.lines_added,
