@@ -339,26 +339,27 @@ pub async fn execute_turn(
 
         let cancel_for_stream = cancel_flag.cloned();
         let cancel_ref = cancel_flag.as_ref().map(|f| f.as_ref());
-        let stream_result = if retry_budgets.non_streaming_fallback {
-            // Non-streaming fallback: the SSE path failed repeatedly with no
-            // partial output — request the whole response in one shot. No
-            // live deltas for this attempt; the assembled response flows
-            // through the normal completion path.
-            info!(
-                "[agent-core] Using non-streaming request for this attempt (session={})",
-                session_id
-            );
-            provider
-                .chat(
-                    &llm_messages,
-                    Some(&tool_defs),
-                    &config.model,
-                    effective_max_tokens,
-                    config.temperature,
-                )
-                .await
-        } else {
-            provider
+        let stream_result =
+            if retry_budgets.non_streaming_fallback {
+                // Non-streaming fallback: the SSE path failed repeatedly with no
+                // partial output — request the whole response in one shot. No
+                // live deltas for this attempt; the assembled response flows
+                // through the normal completion path.
+                info!(
+                    "[agent-core] Using non-streaming request for this attempt (session={})",
+                    session_id
+                );
+                provider
+                    .chat(
+                        &llm_messages,
+                        Some(&tool_defs),
+                        &config.model,
+                        effective_max_tokens,
+                        config.temperature,
+                    )
+                    .await
+            } else {
+                provider
                 .chat_streaming(
                 &llm_messages,
                 Some(&tool_defs),
@@ -415,7 +416,7 @@ pub async fn execute_turn(
                 cancel_ref,
             )
             .await
-        };
+            };
 
         let response = match stream_result {
             Ok(resp) => resp,
@@ -833,8 +834,7 @@ pub async fn execute_turn(
             if !cancel_flag
                 .map(|flag| flag.load(Ordering::SeqCst))
                 .unwrap_or(false)
-                && drain_steering_queue(&config.steering_queue, session_id, messages, handler)
-                    .await
+                && drain_steering_queue(&config.steering_queue, session_id, messages, handler).await
             {
                 if let Some(ref text) = response.content {
                     if !text.trim().is_empty() {
@@ -926,8 +926,8 @@ pub async fn execute_turn(
                 let context_percent = context_usage_snapshot
                     .as_ref()
                     .and_then(|snapshot| snapshot.percent_used);
-                let last_progress_tokens = auto_continue_completion_baseline
-                    .map(|baseline| usage.completion - baseline);
+                let last_progress_tokens =
+                    auto_continue_completion_baseline.map(|baseline| usage.completion - baseline);
                 if should_auto_continue(
                     config.auto_continue,
                     auto_continuations,
