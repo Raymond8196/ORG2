@@ -76,6 +76,7 @@ export interface AgentSelection {
   agentDefinitionId?: string;
   agentOrgId?: string;
   cliAgentType?: CliAgentType;
+  cliLaunchMode?: CliLaunchMode;
   agentName: string;
   agentIconId?: string;
 }
@@ -460,6 +461,7 @@ export const DispatchCategoryPalette: React.FC<
             agentDefinitionId: option.agentDefinitionId,
             agentOrgId: option.agentOrgId,
             cliAgentType: option.cliAgentType,
+            cliLaunchMode: option.isCli ? cliAgentListFilterMode : undefined,
             agentName: option.name,
             agentIconId: option.iconId,
           });
@@ -472,6 +474,7 @@ export const DispatchCategoryPalette: React.FC<
       currentAgentDefinitionId,
       currentAgentOrgId,
       currentCliAgentType,
+      cliAgentListFilterMode,
       onSelect,
       onClose,
     ]
