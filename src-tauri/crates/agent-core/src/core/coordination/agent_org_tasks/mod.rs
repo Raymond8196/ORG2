@@ -21,6 +21,31 @@ pub use store::AgentOrgTaskStore;
 mod tests;
 
 pub const TASK_DEPENDENCY_CYCLE_ERROR: &str = "task_dependency_cycle";
+pub const TASK_METADATA_ELIGIBLE_MEMBER_IDS: &str = "eligible_member_ids";
+pub const TASK_METADATA_REQUIRED_ROLE: &str = "required_role";
+
+pub fn eligible_member_ids(task: &Task) -> Vec<String> {
+    task.metadata
+        .as_ref()
+        .and_then(|metadata| metadata.get(TASK_METADATA_ELIGIBLE_MEMBER_IDS))
+        .and_then(serde_json::Value::as_array)
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(serde_json::Value::as_str)
+                .map(str::trim)
+                .filter(|member_id| !member_id.is_empty())
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+pub fn is_task_eligible_for_member(task: &Task, member_id: &str) -> bool {
+    eligible_member_ids(task)
+        .iter()
+        .any(|eligible_member_id| eligible_member_id == member_id)
+}
 
 pub(super) const TASK_EVENT_CREATED: &str = "created";
 pub(super) const TASK_EVENT_UPDATED: &str = "updated";
@@ -153,6 +178,9 @@ pub enum ClaimError {
     /// Only emitted when `ClaimOptions::check_member_busy = true` and
     /// claimant already owns another non-completed task.
     MemberBusy { busy_with: String },
+    /// Ownerless task has an eligibility list that does not include the claimant,
+    /// or no eligibility list at all.
+    NotEligible,
     /// SQL or serialization failure. Bubbled as a string so callers can
     /// surface it without needing to re-implement formatting.
     Storage(String),
@@ -174,6 +202,7 @@ impl std::fmt::Display for ClaimError {
             ClaimError::MemberBusy { busy_with } => {
                 write!(fmt, "member_busy (current_task={busy_with})")
             }
+            ClaimError::NotEligible => write!(fmt, "not_eligible"),
             ClaimError::Storage(msg) => write!(fmt, "storage: {msg}"),
         }
     }

@@ -588,6 +588,9 @@ pub fn run() {
             );
             tracing::info!("[MemberIdle] Member idle hook installed");
 
+            agent_core::coordination::agent_org_watchdog::spawn(app.handle().clone());
+            tracing::info!("[AgentOrgWatchdog] Agent Org watchdog started");
+
             // Install the production `SubagentCompletionWakeHook` so a
             // background subagent that finishes while its parent is idle
             // resumes the parent's turn loop (which then consumes the result
