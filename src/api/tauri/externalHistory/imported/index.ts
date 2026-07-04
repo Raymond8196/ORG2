@@ -1,41 +1,44 @@
 import type { ActivityChunk } from "@src/types/session/session";
 
+import type { DispatchCategory } from "../../session";
+import type { ExternalCliSourceProbe } from "../detection";
 import {
   claudeCodeHistoryChunks,
   claudeCodeHistoryListSessions,
-} from "../claudeCodeHistory";
+} from "../sources/claudeCode";
 import type {
   ClaudeCodeHistorySessionPage,
   ClaudeCodeHistorySessionRow,
-} from "../claudeCodeHistory";
-import { codexAppChunks, codexAppListSessions } from "../codexApp";
-import type { CodexAppSessionPage, CodexAppSessionRow } from "../codexApp";
-import type { ExternalCliSourceProbe } from "../externalHistory";
+} from "../sources/claudeCode";
+import { codexAppChunks, codexAppListSessions } from "../sources/codexApp";
+import type {
+  CodexAppSessionPage,
+  CodexAppSessionRow,
+} from "../sources/codexApp";
 import {
   opencodeHistoryChunks,
   opencodeHistoryListSessions,
-} from "../opencodeHistory";
+} from "../sources/opencode";
 import type {
   OpenCodeHistorySessionPage,
   OpenCodeHistorySessionRow,
-} from "../opencodeHistory";
-import type { DispatchCategory } from "../session";
+} from "../sources/opencode";
 import {
   windsurfHistoryChunks,
   windsurfHistoryListSessions,
-} from "../windsurfHistory";
+} from "../sources/windsurf";
 import type {
   WindsurfHistorySessionPage,
   WindsurfHistorySessionRow,
-} from "../windsurfHistory";
+} from "../sources/windsurf";
 import {
   workBuddyHistoryChunks,
   workBuddyHistoryListSessions,
-} from "../workbuddyHistory";
+} from "../sources/workbuddy";
 import type {
   WorkBuddyHistorySessionPage,
   WorkBuddyHistorySessionRow,
-} from "../workbuddyHistory";
+} from "../sources/workbuddy";
 
 export type ImportedHistorySourceId =
   | "codex_app"

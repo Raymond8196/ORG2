@@ -28,7 +28,7 @@ import { promptRestartCursorWithDebugPort } from "@src/api/tauri/cursorBridge/re
 import {
   cursorIdeFullRefresh,
   cursorIdeInitialWindow,
-} from "@src/api/tauri/cursorIde";
+} from "@src/api/tauri/externalHistory";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge";

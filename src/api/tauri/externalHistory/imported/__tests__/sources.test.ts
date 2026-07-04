@@ -5,7 +5,7 @@ import {
   getImportedHistorySourceByListCategory,
   getImportedHistorySourceBySessionId,
   isImportedHistoryListCategory,
-} from "@src/api/tauri/importedHistory";
+} from "@src/api/tauri/externalHistory";
 
 describe("imported history source registry", () => {
   it("registers source-specific external history providers", () => {

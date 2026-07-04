@@ -1,7 +1,7 @@
 import {
   getImportedHistorySourceByListCategory,
   isImportedHistoryListCategory,
-} from "@src/api/tauri/importedHistory";
+} from "@src/api/tauri/externalHistory";
 import type { SessionGroupKey } from "@src/config/sessionAgentGroups";
 import type { SessionListCategory } from "@src/store/session";
 

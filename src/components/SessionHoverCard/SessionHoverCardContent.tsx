@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import {
   type CursorIdeSessionDetail,
   cursorIdeSessionDetail,
-} from "@src/api/tauri/cursorIde";
+} from "@src/api/tauri/externalHistory";
 import {
   type CoreSessionSummary,
   getOrgtrackSessionSummary,

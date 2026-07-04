@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/importedHistory";
+import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/externalHistory";
 
 import {
   SESSION_LIST_CATEGORIES,

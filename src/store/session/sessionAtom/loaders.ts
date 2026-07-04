@@ -15,7 +15,7 @@
 import {
   type CursorIdeSessionRow,
   cursorIdeListSessions,
-} from "@src/api/tauri/cursorIde";
+} from "@src/api/tauri/externalHistory";
 import {
   IMPORTED_HISTORY_SOURCES,
   type ImportedHistorySessionRow,
@@ -23,7 +23,7 @@ import {
   getImportedHistorySourceByListCategory,
   isImportedHistoryListCategory,
   isImportedHistorySourceSession,
-} from "@src/api/tauri/importedHistory";
+} from "@src/api/tauri/externalHistory";
 import {
   type SessionFilter,
   type SessionListResponse,

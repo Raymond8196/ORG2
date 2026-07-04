@@ -34,6 +34,8 @@ export interface ChatPanelTab {
   type: ChatPanelTabType;
   /** Display label */
   title: string;
+  createdAt?: string;
+  updatedAt?: string;
   /** Set to true for the initial default session tab so Cmd+W skips it */
   isPrimary?: boolean;
   /** true means the × button is hidden */
@@ -130,12 +132,15 @@ const debouncedStorage = {
 const PRIMARY_TAB_ID = "chat-primary";
 
 function buildInitialState(): ChatPanelTabsState {
+  const now = new Date().toISOString();
   return {
     tabs: [
       {
         id: PRIMARY_TAB_ID,
         type: "session",
         title: "Chat",
+        createdAt: now,
+        updatedAt: now,
         isPrimary: true,
         closable: false,
         sessionId: null,
@@ -193,6 +198,7 @@ activateChatPanelTabAtom.debugLabel = "activateChatPanelTab";
 /** Add a new session tab and activate it */
 export const addChatPanelSessionTabAtom = atom(null, (_get, set) => {
   const id = `chat-${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
   set(chatPanelTabsAtom, (prev) => ({
     tabs: [
       ...prev.tabs,
@@ -200,6 +206,8 @@ export const addChatPanelSessionTabAtom = atom(null, (_get, set) => {
         id,
         type: "session" as const,
         title: "Chat",
+        createdAt: now,
+        updatedAt: now,
         closable: true,
         sessionId: null,
       },
@@ -219,6 +227,7 @@ export const openSessionInNewChatTabAtom = atom(
   null,
   (_get, set, sessionId: string) => {
     const id = `chat-${crypto.randomUUID()}`;
+    const now = new Date().toISOString();
     set(chatPanelTabsAtom, (prev) => ({
       tabs: [
         ...prev.tabs,
@@ -226,6 +235,8 @@ export const openSessionInNewChatTabAtom = atom(
           id,
           type: "session" as const,
           title: "Chat",
+          createdAt: now,
+          updatedAt: now,
           closable: true,
           sessionId,
         },
@@ -256,6 +267,7 @@ export const addChatPanelTerminalTabAtom = atom(
       ? { terminalSessionId: optionsOrId }
       : optionsOrId;
     const id = `terminal-${crypto.randomUUID()}`;
+    const now = new Date().toISOString();
     set(chatPanelTabsAtom, (prev) => ({
       tabs: [
         ...prev.tabs,
@@ -263,6 +275,8 @@ export const addChatPanelTerminalTabAtom = atom(
           id,
           type: "terminal" as const,
           title,
+          createdAt: now,
+          updatedAt: now,
           closable: true,
           terminalSessionId,
           cliCommand,
@@ -299,10 +313,13 @@ export const closeChatPanelTabAtom = atom(null, (_get, set, tabId: string) => {
     const nextTabs = prev.tabs.filter((t) => t.id !== tabId);
     if (nextTabs.length === 0) {
       // Re-create primary tab if we just closed the last one
+      const now = new Date().toISOString();
       const primary: ChatPanelTab = {
         id: PRIMARY_TAB_ID,
         type: "session",
         title: "Chat",
+        createdAt: now,
+        updatedAt: now,
         isPrimary: true,
         closable: false,
         sessionId: null,
@@ -361,10 +378,11 @@ export const setChatPanelTabSessionIdAtom = atom(
 export const setChatPanelTabTitleAtom = atom(
   null,
   (_get, set, { tabId, title }: { tabId: string; title: string }) => {
+    const now = new Date().toISOString();
     set(chatPanelTabsAtom, (prev) => ({
       ...prev,
       tabs: prev.tabs.map((tab) =>
-        tab.id === tabId ? { ...tab, title } : tab
+        tab.id === tabId ? { ...tab, title, updatedAt: now } : tab
       ),
     }));
   }
