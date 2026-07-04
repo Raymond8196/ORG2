@@ -135,11 +135,9 @@ pub async fn cursor_ide_list_sessions(
 pub async fn cursor_ide_session_detail(
     session_id: String,
 ) -> Result<cursor_db_history::CursorIdeSessionDetail, String> {
-    tokio::task::spawn_blocking(move || {
-        cursor_db_history::cursor_ide_session_detail(&session_id)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
+    tokio::task::spawn_blocking(move || cursor_db_history::cursor_ide_session_detail(&session_id))
+        .await
+        .map_err(|err| format!("Task join error: {err}"))?
 }
 
 #[tauri::command]

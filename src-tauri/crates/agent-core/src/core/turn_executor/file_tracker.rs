@@ -558,8 +558,7 @@ mod content_hash_tests {
     #[test]
     fn create_mode_new_file_passes_gate() {
         let tracker = FileTimeTracker::new();
-        let args =
-            serde_json::json!({ "file_path": "/nonexistent/brand/new.txt", "content": "x" });
+        let args = serde_json::json!({ "file_path": "/nonexistent/brand/new.txt", "content": "x" });
         assert!(tracker
             .assert_read_before_edit(tool_names::EDIT_FILE, &args)
             .is_ok());

@@ -64,7 +64,6 @@ pub(super) fn cursor_db_path() -> Option<PathBuf> {
     }
 }
 
-
 pub(super) fn load_complete_bubble_order(
     conn: &Connection,
     composer_id: &str,

@@ -234,8 +234,7 @@ impl UnifiedMessageProcessor {
             if !jobs.is_empty() {
                 dynamic_sections
                     .push(super::super::background_reminder::build_background_jobs_reminder(&jobs));
-                let inlined =
-                    super::super::background_reminder::inlined_result_handles(&jobs);
+                let inlined = super::super::background_reminder::inlined_result_handles(&jobs);
                 if !inlined.is_empty() {
                     crate::tools::impls::coding::exec::registry::acknowledge_outputs(&inlined);
                 }
@@ -250,7 +249,11 @@ impl UnifiedMessageProcessor {
         const NAG_THRESHOLD: u32 = 10;
         {
             let rounds = self
-                .rounds_since_tool(&self.rounds_since_todo, crate::tools::names::MANAGE_TODO, session_id)
+                .rounds_since_tool(
+                    &self.rounds_since_todo,
+                    crate::tools::names::MANAGE_TODO,
+                    session_id,
+                )
                 .await;
             if rounds >= NAG_THRESHOLD {
                 let todo_snapshot = tokio::task::block_in_place(|| {
@@ -267,10 +270,8 @@ impl UnifiedMessageProcessor {
                 } else {
                     reminder.push_str("\nCurrent todo list:\n");
                     for (idx, todo) in todo_snapshot.iter().enumerate() {
-                        reminder.push_str(&format!(
-                            "{}. [{}] {}\n",
-                            idx, todo.status, todo.content
-                        ));
+                        reminder
+                            .push_str(&format!("{}. [{}] {}\n", idx, todo.status, todo.content));
                     }
                 }
                 reminder.push_str("</system-reminder>");
@@ -315,19 +316,19 @@ impl UnifiedMessageProcessor {
                 if has_agent_tool {
                     // Same allowlist source the `agent` tool schema uses —
                     // agent list changes propagate to both surfaces.
-                    let allowed: Option<Vec<String>> = if self.runtime.resolved.sub_agents.is_empty()
-                    {
-                        None
-                    } else {
-                        Some(
-                            self.runtime
-                                .resolved
-                                .sub_agents
-                                .iter()
-                                .map(|s| s.agent_id.clone())
-                                .collect(),
-                        )
-                    };
+                    let allowed: Option<Vec<String>> =
+                        if self.runtime.resolved.sub_agents.is_empty() {
+                            None
+                        } else {
+                            Some(
+                                self.runtime
+                                    .resolved
+                                    .sub_agents
+                                    .iter()
+                                    .map(|s| s.agent_id.clone())
+                                    .collect(),
+                            )
+                        };
                     let ids = crate::tools::impls::orchestration::agent::llm_visible_agent_ids(
                         allowed.as_ref(),
                     );

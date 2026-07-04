@@ -118,8 +118,8 @@ impl UnifiedMessageProcessor {
             .resolved
             .compaction
             .effective_budget(context_window);
-        if let Some(actual) = provider_error
-            .and_then(ContextCompactor::parse_actual_tokens_from_error)
+        if let Some(actual) =
+            provider_error.and_then(ContextCompactor::parse_actual_tokens_from_error)
         {
             let estimated = ContextCompactor::estimate_messages_tokens(messages);
             let calibrated = ContextCompactor::calibrate_budget(budget_tokens, estimated, actual);
