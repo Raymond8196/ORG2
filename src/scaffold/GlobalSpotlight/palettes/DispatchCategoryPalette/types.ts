@@ -26,8 +26,7 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
    */
   hideOrgs?: boolean;
   /**
-   * When true only CLI agent entries are shown. Used by the CLI launch bar
-   * so users see only installable CLI tools, not Rust-native agents.
+   * When true only CLI agent entries are shown. Used by CLI-only picker surfaces.
    */
   cliOnly?: boolean;
   /**
