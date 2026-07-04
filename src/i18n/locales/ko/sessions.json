@@ -705,9 +705,6 @@
       "newSession": {
         "title": "새 세션"
       },
-      "cliSession": {
-        "title": "새 세션 (TUI)"
-      },
       "newWorkItem": {
         "title": "새 work item"
       },
@@ -801,8 +798,7 @@
     "tabs": {
       "newTerminal": "새 터미널",
       "newTab": "새 탭",
-      "terminals": "터미널",
-      "newTuiSession": "새 세션 (TUI)"
+      "terminals": "터미널"
     },
     "collapseAll": "모두 접기",
     "copyEventJson": "이벤트 JSON 복사",

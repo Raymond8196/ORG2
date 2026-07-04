@@ -214,7 +214,8 @@ export const sessionCreatorStateAtom = atomWithStorage<SessionCreatorState>(
     removeItem: (key) => {
       localStorage.removeItem(key);
     },
-  }
+  },
+  { getOnInit: true }
 );
 
 /**

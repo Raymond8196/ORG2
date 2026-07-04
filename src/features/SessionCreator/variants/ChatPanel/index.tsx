@@ -84,7 +84,11 @@ import { draftHasContentAtom } from "@src/store/ui/draftAtom";
 import { getBigThreeRegionModelTypeForSession } from "@src/util/session/regionAlertModel";
 import { getRustAgentType } from "@src/util/session/sessionDispatch";
 
-import { EditorArea, SessionInfoLine } from "../../components";
+import {
+  CliLaunchModeSwitch,
+  EditorArea,
+  SessionInfoLine,
+} from "../../components";
 import type { DropdownDirection } from "../../components/ControlButtons";
 import ScreenPickerModal from "./ScreenPickerModal";
 import SessionCreatorAgentHero from "./SessionCreatorAgentHero";
@@ -180,8 +184,10 @@ const SessionCreatorChatPanelSingle: React.FC<
     [dispatchCategory, cliAgentType, cliAgentList]
   );
   const selectedCliAgentSupportsGui = selectedCliAgent?.supportsGui === true;
+  const selectedCliAgentGuiSupportKnown = Boolean(selectedCliAgent);
   const cliComposerEnabled =
-    cliLaunchMode === CLI_LAUNCH_MODE.GUI && selectedCliAgentSupportsGui;
+    cliLaunchMode === CLI_LAUNCH_MODE.GUI &&
+    (!selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui);
 
   const {
     repos: reposList,
@@ -210,6 +216,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     [selectedProjectContext, selectedProjectOrgContext, selectedWorkItemContext]
   );
   const defaultTuiMode = useAtomValue(creatorDefaultTuiModeAtom);
+  const setDefaultTuiMode = useSetAtom(creatorDefaultTuiModeAtom);
   const store = useStore();
 
   const handleSessionStart = useCallback(
@@ -467,14 +474,14 @@ const SessionCreatorChatPanelSingle: React.FC<
     selectedCliAgent,
   ]);
 
-  const handleSetCliGuiMode = useCallback(() => {
-    if (!selectedCliAgentSupportsGui) return;
-    setCliLaunchMode(CLI_LAUNCH_MODE.GUI);
-  }, [selectedCliAgentSupportsGui, setCliLaunchMode]);
-
-  const handleSetCliTuiMode = useCallback(() => {
-    setCliLaunchMode(CLI_LAUNCH_MODE.TUI);
-  }, [setCliLaunchMode]);
+  const handleCliLaunchModeChange = useCallback(
+    (mode: typeof cliLaunchMode) => {
+      if (mode === CLI_LAUNCH_MODE.GUI && !selectedCliAgentSupportsGui) return;
+      setCliLaunchMode(mode);
+      setDefaultTuiMode(mode === CLI_LAUNCH_MODE.TUI);
+    },
+    [selectedCliAgentSupportsGui, setCliLaunchMode, setDefaultTuiMode]
+  );
 
   useEffect(() => {
     if (!selectedRepoId) return;
@@ -711,31 +718,13 @@ const SessionCreatorChatPanelSingle: React.FC<
   );
 
   const cliLaunchModeSwitch = isCliMode && (
-    <div className="inline-flex h-[28px] items-center rounded-full bg-fill-2 p-0.5 text-[12px] font-medium">
-      <button
-        type="button"
-        className={`h-6 rounded-full px-2.5 py-0 transition-colors ${
-          cliComposerEnabled ? "bg-bg-2 text-text-1 shadow-sm" : "text-text-3"
-        } ${selectedCliAgentSupportsGui ? "hover:text-text-1" : "cursor-not-allowed opacity-50"}`}
-        disabled={!selectedCliAgentSupportsGui}
-        aria-pressed={cliComposerEnabled}
-        onClick={handleSetCliGuiMode}
-      >
-        GUI
-      </button>
-      <button
-        type="button"
-        className={`h-6 rounded-full px-2.5 py-0 transition-colors ${
-          isCliTuiMode
-            ? "bg-bg-2 text-text-1 shadow-sm"
-            : "text-text-3 hover:text-text-1"
-        }`}
-        aria-pressed={isCliTuiMode}
-        onClick={handleSetCliTuiMode}
-      >
-        TUI
-      </button>
-    </div>
+    <CliLaunchModeSwitch
+      mode={cliLaunchMode}
+      supportsGui={
+        !selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui
+      }
+      onModeChange={handleCliLaunchModeChange}
+    />
   );
 
   const compactHeader = headerLayout === "compact" && (
@@ -1050,7 +1039,7 @@ const SessionCreatorChatPanelSingle: React.FC<
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
           currentCliAgentType={cliAgentType ?? undefined}
-          cliOnly={isCliMode}
+          cliOnly={isCliTuiMode}
           anchorRef={agentHeroRef}
         />
       ) : (
@@ -1062,7 +1051,8 @@ const SessionCreatorChatPanelSingle: React.FC<
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
           currentCliAgentType={cliAgentType ?? undefined}
-          cliOnly={isCliMode}
+          cliOnly={isCliTuiMode}
+          inputLeadingSlot={isCliMode ? cliLaunchModeSwitch : undefined}
         />
       )}
 

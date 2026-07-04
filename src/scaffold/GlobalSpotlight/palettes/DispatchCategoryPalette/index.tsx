@@ -104,6 +104,8 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
   titleIcon?: React.ComponentType<Record<string, unknown>>;
   /** Optional placeholder override for contextual picker copy. */
   placeholderLabel?: string;
+  /** Optional content shown before the search input instead of the title pill. */
+  inputLeadingSlot?: React.ReactNode;
 }
 
 // ============ HELPERS ============
@@ -171,6 +173,7 @@ export const DispatchCategoryPalette: React.FC<
   titleLabel,
   titleIcon,
   placeholderLabel,
+  inputLeadingSlot,
 }) => {
   const { t } = useTranslation("sessions");
   const { t: tCommon } = useTranslation("common");
@@ -625,8 +628,11 @@ export const DispatchCategoryPalette: React.FC<
         kernel={kernel}
         items={items}
         placeholder={placeholderLabel ?? tCommon("filters.searchAgentOrOrg")}
-        path={path}
-        onRemoveSegment={onGoBackToParent ?? onClose}
+        path={inputLeadingSlot ? [] : path}
+        onRemoveSegment={
+          inputLeadingSlot ? undefined : (onGoBackToParent ?? onClose)
+        }
+        inputLeadingSlot={inputLeadingSlot}
         containerHeight={containerHeight}
         afterListSlot={afterListSlot}
       />
