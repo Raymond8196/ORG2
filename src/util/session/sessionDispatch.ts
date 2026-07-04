@@ -2,7 +2,7 @@ import {
   RUST_AGENT_TYPE,
   type RustAgentType,
 } from "@src/api/tauri/agent/types";
-import type { ImportedHistorySourceId } from "@src/api/tauri/importedHistory";
+import type { ImportedHistorySourceId } from "@src/api/tauri/externalHistory";
 import type { DispatchCategory } from "@src/api/tauri/session";
 
 /**
@@ -107,8 +107,8 @@ export const SESSION_PREFIX_REGISTRY: readonly SessionPrefixConfig[] = [
     variant: undefined,
     // Use the Cursor brand mark — these rows surface chat history captured
     // by the Cursor IDE itself, so the brand icon is the most honest
-    // affordance. Resolved via `resolveAgentIcon("cursor")` →
-    // `CursorBrandIcon` adapter (see `src/config/agentIcons.tsx`).
+    // affordance. Resolved via `resolveAgentIcon("cursor")` to the
+    // canonical Cursor brand adapter.
     iconId: "cursor",
   },
   {
