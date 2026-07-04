@@ -13,12 +13,13 @@ import {
   IMPORTED_HISTORY_SOURCES,
   type ImportedHistoryListCategory,
   getImportedHistorySourceBySessionId,
-} from "@src/api/tauri/importedHistory";
+} from "@src/api/tauri/externalHistory";
 import {
   getRustAgentType,
   isCliSession,
   isCursorIdeSession,
 } from "@src/util/session/sessionDispatch";
+import { isChatPanelTuiSessionId } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
 export type SessionGroupKey =
   | RustAgentType
@@ -30,7 +31,8 @@ export function getSessionGroupKey(sessionId: string): SessionGroupKey {
   if (isCursorIdeSession(sessionId)) return "cursor_ide";
   const importedSource = getImportedHistorySourceBySessionId(sessionId);
   if (importedSource) return importedSource.listCategory;
-  if (isCliSession(sessionId)) return "cli";
+  if (isCliSession(sessionId) || isChatPanelTuiSessionId(sessionId))
+    return "cli";
   return getRustAgentType(sessionId);
 }
 

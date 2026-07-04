@@ -12,7 +12,7 @@ import { atom } from "jotai";
 import {
   IMPORTED_HISTORY_SOURCES,
   type ImportedHistoryListCategory,
-} from "@src/api/tauri/importedHistory";
+} from "@src/api/tauri/externalHistory";
 
 export type BaseSessionListCategory = "cli_agent" | "rust_agent" | "cursor_ide";
 

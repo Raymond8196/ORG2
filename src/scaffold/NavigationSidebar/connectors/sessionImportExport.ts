@@ -2,7 +2,7 @@ import { invoke as tauriInvoke } from "@tauri-apps/api/core";
 import type { TFunction } from "i18next";
 import { z } from "zod/v4";
 
-import { cursorIdeFullRefresh } from "@src/api/tauri/cursorIde";
+import { cursorIdeFullRefresh } from "@src/api/tauri/externalHistory";
 import type { DispatchCategory } from "@src/api/tauri/session";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge";

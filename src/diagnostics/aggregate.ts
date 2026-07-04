@@ -1,6 +1,6 @@
 import { getVersion } from "@tauri-apps/api/app";
 
-import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/importedHistory";
+import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/externalHistory";
 import {
   detectLocalModelHardware,
   getProcessMetrics,

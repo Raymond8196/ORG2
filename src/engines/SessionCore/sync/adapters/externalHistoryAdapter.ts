@@ -1,4 +1,4 @@
-import { getImportedHistorySourceBySessionId } from "@src/api/tauri/importedHistory";
+import { getImportedHistorySourceBySessionId } from "@src/api/tauri/externalHistory";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge";
 import { createLogger } from "@src/hooks/logger";

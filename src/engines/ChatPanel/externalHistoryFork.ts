@@ -1,4 +1,4 @@
-import { codexAppChunks } from "@src/api/tauri/codexApp";
+import { codexAppChunks } from "@src/api/tauri/externalHistory";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
 import type { Session } from "@src/store/session";
 import type { ActivityChunk } from "@src/types/session/session";

@@ -5,7 +5,7 @@
  * round label and a HH:MM start/end clock range.
  * Ranges shorter than one minute render as a single HH:MM timestamp.
  */
-import type { CursorIdeTurnSummary } from "@src/api/tauri/cursorIde";
+import type { CursorIdeTurnSummary } from "@src/api/tauri/externalHistory";
 import { PILL_TYPE_LIST } from "@src/config/pillTokens";
 
 import type { ChatGroupMeta } from "../hooks/useChatGroups";
