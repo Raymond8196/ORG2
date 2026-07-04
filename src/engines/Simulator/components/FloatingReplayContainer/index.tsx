@@ -5,7 +5,7 @@
  * The progress slider is now handled by MusicPlayerReplayBar on the dock border.
  */
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Keyboard } from "lucide-react";
+import { Bot, Keyboard } from "lucide-react";
 import React, { memo, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +21,7 @@ import { chatVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import {
   type SimulatorPlaybackSpeed,
   simulatorInlineChatInputCollapsedAtom,
+  simulatorMiniCPMStepExplanationVisibleAtom,
   simulatorPlaybackSpeedAtom,
   simulatorSessionPlaybackPlayingAtom,
 } from "@src/store/ui/simulatorAtom";
@@ -51,6 +52,12 @@ const FloatingReplayContainer: React.FC = memo(() => {
   const currentIndex = useAtomValue(currentSimulatorEventIndexAtom);
   const eventCount = useAtomValue(simulatorEventCountAtom);
   const chatVisible = useAtomValue(chatVisibleAtom);
+  const miniCPMStepExplanationVisible = useAtomValue(
+    simulatorMiniCPMStepExplanationVisibleAtom
+  );
+  const showMiniCPMStepExplanation = useSetAtom(
+    simulatorMiniCPMStepExplanationVisibleAtom
+  );
   const simulatorInputCollapsed = useAtomValue(
     simulatorInlineChatInputCollapsedAtom
   );
@@ -165,6 +172,21 @@ const FloatingReplayContainer: React.FC = memo(() => {
           playbackSpeed={playbackSpeed}
           onPlaybackSpeedChange={setPlaybackSpeed}
         />
+        {!miniCPMStepExplanationVisible ? (
+          <Button
+            variant="secondary"
+            size="default"
+            shape="circle"
+            iconOnly
+            icon={
+              <Bot size={16} strokeWidth={1.75} className="text-primary-6" />
+            }
+            className="shadow-md"
+            onClick={() => showMiniCPMStepExplanation(true)}
+            aria-label="显示 MiniCPM 步骤解析"
+            title="显示 MiniCPM 步骤解析"
+          />
+        ) : null}
         {!chatVisible ? (
           <Button
             variant="secondary"

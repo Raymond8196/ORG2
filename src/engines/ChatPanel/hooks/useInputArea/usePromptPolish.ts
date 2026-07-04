@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { promptPolish as requestPromptPolish } from "@src/api/services/keyValidation";
 import type { ComposerSnapshot } from "@src/components/ComposerInput/types";
 import Message from "@src/components/Message";
+import { useHousekeeperConfig } from "@src/hooks/housekeeper";
 
 import {
   polishedTextToSnapshot,
@@ -55,6 +56,7 @@ export function usePromptPolish({
   });
   const restoreStateRef = useRef<PromptPolishRestoreState | null>(null);
   const draftSessionIdRef = useRef(draftSessionId);
+  const housekeeper = useHousekeeperConfig();
 
   useEffect(() => {
     draftSessionIdRef.current = draftSessionId;
@@ -139,7 +141,16 @@ export function usePromptPolish({
     setStatus("polishing");
 
     try {
-      const result = await requestPromptPolish(polishInput.text);
+      if (!housekeeper.enabled || !housekeeper.features.promptPolish) {
+        reset();
+        Message.warning("MiniCPM 常驻管家的输入润色已关闭");
+        return;
+      }
+
+      const result = await requestPromptPolish(polishInput.text, {
+        accountId: housekeeper.resolvedAccountId ?? undefined,
+        model: housekeeper.resolvedModel,
+      });
       if (draftSessionIdRef.current !== requestSessionId) {
         setState({ sessionId: requestSessionId, status: "idle" });
         return;
@@ -173,7 +184,18 @@ export function usePromptPolish({
       reset();
       Message.error(`润色失败：${formatPromptPolishError(error)}`);
     }
-  }, [applyComposerContent, draftSessionId, refs, reset, setStatus, status]);
+  }, [
+    applyComposerContent,
+    draftSessionId,
+    housekeeper.enabled,
+    housekeeper.features.promptPolish,
+    housekeeper.resolvedAccountId,
+    housekeeper.resolvedModel,
+    refs,
+    reset,
+    setStatus,
+    status,
+  ]);
 
   return useMemo(
     () => ({
