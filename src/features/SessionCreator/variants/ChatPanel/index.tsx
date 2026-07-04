@@ -720,9 +720,7 @@ const SessionCreatorChatPanelSingle: React.FC<
   const cliLaunchModeSwitch = isCliMode && (
     <CliLaunchModeSwitch
       mode={cliLaunchMode}
-      supportsGui={
-        !selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui
-      }
+      supportsGui
       onModeChange={handleCliLaunchModeChange}
     />
   );
