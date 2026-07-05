@@ -492,6 +492,7 @@ pub mod order {
     pub const ENVIRONMENT: i32 = 30;
     pub const MODEL_IDENTITY: i32 = 40;
     pub const AVAILABLE_TOOLS: i32 = 50;
+    pub const MCP_INSTRUCTIONS: i32 = 55;
     pub const BEHAVIORAL_RULES: i32 = 60;
     pub const PROJECT_CONVENTIONS: i32 = 70;
     pub const RULES: i32 = 80;
@@ -530,6 +531,7 @@ pub fn registry() -> Vec<&'static dyn PromptSection> {
         &EnvironmentSection,
         &ModelIdentitySection,
         &AvailableToolsSection,
+        &McpInstructionsSection,
         &BehavioralRulesSection,
         &ProjectConventionsSection,
         &RulesSection,
@@ -573,17 +575,21 @@ mod tests {
     fn cache_policy_matrix_matches_conversation_snapshot_audit() {
         for section in registry() {
             let expected = match section.id() {
-                "environment" | "agent_org_context" | "ide_context" | "user_profile"
-                | "user_presence" | "agent_mode_suffix" | "flow_awareness" => {
-                    PromptCachePolicy::Volatile
-                }
+                "environment"
+                | "agent_org_context"
+                | "ide_context"
+                | "user_profile"
+                | "user_presence"
+                | "agent_mode_suffix"
+                | "flow_awareness"
+                | "project_conventions"
+                | "mcp_instructions" => PromptCachePolicy::Volatile,
                 "learnings" => PromptCachePolicy::RevisionKeyed,
                 "identity"
                 | "system_meta"
                 | "model_identity"
                 | "available_tools"
                 | "behavioral_rules"
-                | "project_conventions"
                 | "rules"
                 | "always_skills"
                 | "messaging"
@@ -620,6 +626,7 @@ mod tests {
                 "environment",
                 "model_identity",
                 "available_tools",
+                "mcp_instructions",
                 "behavioral_rules",
                 "project_conventions",
                 "rules",
@@ -670,6 +677,7 @@ mod tests {
                 ("environment", order::ENVIRONMENT),
                 ("model_identity", order::MODEL_IDENTITY),
                 ("available_tools", order::AVAILABLE_TOOLS),
+                ("mcp_instructions", order::MCP_INSTRUCTIONS),
                 ("behavioral_rules", order::BEHAVIORAL_RULES),
                 ("project_conventions", order::PROJECT_CONVENTIONS),
                 ("rules", order::RULES),
@@ -930,6 +938,34 @@ mod tests {
         let (build_suffix, _traces) = assemble_with_cache(&ctx, Some(&mut cache), None);
         assert_ne!(plan_suffix, build_suffix);
         assert!(build_suffix.contains("Build Mode"));
+    }
+
+    #[test]
+    fn project_conventions_reloads_changed_files_between_turns() {
+        let workspace = tempfile::tempdir().expect("workspace tempdir");
+        let orgii = workspace.path().join(".orgii");
+        std::fs::create_dir_all(&orgii).expect("create .orgii");
+        let rules = orgii.join("agent-rules.md");
+        std::fs::write(&rules, "first marker").expect("write first rules");
+
+        let mut cfg = sde_config();
+        cfg.workspace = Some(crate::session::SessionWorkspace::new(
+            workspace.path().to_path_buf(),
+        ));
+        let mut cache = SessionPromptCache::default();
+
+        let first = {
+            let ctx = PromptCtx::new("sess-conventions", &cfg, &[]);
+            let (prompt, _traces) = assemble_with_cache(&ctx, Some(&mut cache), None);
+            prompt
+        };
+        assert!(first.contains("first marker"));
+
+        std::fs::write(&rules, "second marker").expect("write second rules");
+        let ctx = PromptCtx::new("sess-conventions", &cfg, &[]);
+        let (second, _traces) = assemble_with_cache(&ctx, Some(&mut cache), None);
+        assert!(second.contains("second marker"));
+        assert!(!second.contains("first marker"));
     }
 
     #[test]
