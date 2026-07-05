@@ -8,10 +8,8 @@ import { type MouseEvent, useCallback } from "react";
 import { createLogger } from "@src/hooks/logger";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { Session } from "@src/store/session";
-import {
-  isCliSession,
-  isCursorIdeSession,
-} from "@src/util/session/sessionDispatch";
+import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
+import { isChatPanelTuiSessionId } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
 import {
   getDraftIdFromMenuItemId,
@@ -67,16 +65,36 @@ export function useWorkstationSidebarContextMenu({
 
       const isCursorIde = isCursorIdeSession(item.id);
       const session = sessionMap.get(item.id);
-      const isCliSessionItem = isCliSession(item.id);
 
       try {
         const openInNewTabItem = await MenuItem.new({
           text: tCommon("actions.openInNewTab", "Open in New Tab"),
           action: () => handleOpenInNewTab(item.id),
         });
+        const pinLabel = session?.pinned
+          ? tCommon("sessions:chat.unpinSession", "Unpin")
+          : tCommon("sessions:chat.pinSession", "Pin");
+        const pinItem = await MenuItem.new({
+          text: pinLabel,
+          action: () => handleTogglePin(item.id),
+        });
 
         if (isCursorIde) {
-          const menu = await TauriMenu.new({ items: [openInNewTabItem] });
+          const menu = await TauriMenu.new({
+            items: [openInNewTabItem, pinItem],
+          });
+          await menu.popup();
+          return;
+        }
+
+        if (isChatPanelTuiSessionId(item.id)) {
+          const deleteItem = await MenuItem.new({
+            text: tCommon("actions.delete"),
+            action: () => handleDeleteSession(item.id),
+          });
+          const menu = await TauriMenu.new({
+            items: [openInNewTabItem, pinItem, deleteItem],
+          });
           await menu.popup();
           return;
         }
@@ -89,13 +107,6 @@ export function useWorkstationSidebarContextMenu({
           text: tCommon("sessions:chat.exportAsMarkdown", "Export as Markdown"),
           action: () => handleExportMarkdown(item.id),
         });
-        const pinLabel = session?.pinned
-          ? tCommon("sessions:chat.unpinSession", "Unpin")
-          : tCommon("sessions:chat.pinSession", "Pin");
-        const pinItem = await MenuItem.new({
-          text: pinLabel,
-          action: () => handleTogglePin(item.id),
-        });
         const deleteItem = await MenuItem.new({
           text: tCommon("actions.delete"),
           action: () => handleDeleteSession(item.id),
@@ -103,11 +114,15 @@ export function useWorkstationSidebarContextMenu({
         const menuSeparator = await PredefinedMenuItem.new({
           item: "Separator",
         });
-        const primaryItems = [openInNewTabItem, renameItem, exportItem];
-        const menuItems = isCliSessionItem
-          ? [...primaryItems, menuSeparator, deleteItem]
-          : [...primaryItems, pinItem, menuSeparator, deleteItem];
-        const menu = await TauriMenu.new({ items: menuItems });
+        const primaryItems = [
+          openInNewTabItem,
+          renameItem,
+          exportItem,
+          pinItem,
+        ];
+        const menu = await TauriMenu.new({
+          items: [...primaryItems, menuSeparator, deleteItem],
+        });
         await menu.popup();
       } catch (error) {
         log.error("[WorkstationSidebar] Context menu failed:", error);

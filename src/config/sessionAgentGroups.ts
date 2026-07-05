@@ -13,24 +13,23 @@ import {
   IMPORTED_HISTORY_SOURCES,
   type ImportedHistoryListCategory,
   getImportedHistorySourceBySessionId,
-} from "@src/api/tauri/importedHistory";
+} from "@src/api/tauri/externalHistory";
 import {
   getRustAgentType,
   isCliSession,
-  isCursorIdeSession,
 } from "@src/util/session/sessionDispatch";
+import { isChatPanelTuiSessionId } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
 export type SessionGroupKey =
   | RustAgentType
   | "cli"
-  | "cursor_ide"
   | ImportedHistoryListCategory;
 
 export function getSessionGroupKey(sessionId: string): SessionGroupKey {
-  if (isCursorIdeSession(sessionId)) return "cursor_ide";
   const importedSource = getImportedHistorySourceBySessionId(sessionId);
   if (importedSource) return importedSource.listCategory;
-  if (isCliSession(sessionId)) return "cli";
+  if (isCliSession(sessionId) || isChatPanelTuiSessionId(sessionId))
+    return "cli";
   return getRustAgentType(sessionId);
 }
 
@@ -39,7 +38,6 @@ export const SESSION_GROUP_ORDER: readonly SessionGroupKey[] = [
   RUST_AGENT_TYPE.SDE,
   RUST_AGENT_TYPE.WINGMAN,
   "cli",
-  "cursor_ide",
   ...IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory),
 ];
 
@@ -57,6 +55,5 @@ export const SESSION_GROUP_LABELS: Record<SessionGroupKey, string> = {
   [RUST_AGENT_TYPE.WINGMAN]: "Wingman Agent",
   [RUST_AGENT_TYPE.CUSTOM]: "Custom Agent",
   cli: "CLI Agent",
-  cursor_ide: "Cursor History",
   ...IMPORTED_HISTORY_LABELS,
 };

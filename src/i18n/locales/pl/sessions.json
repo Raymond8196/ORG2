@@ -713,9 +713,6 @@
       "newSession": {
         "title": "Nowa sesja"
       },
-      "cliSession": {
-        "title": "Nowa sesja (TUI)"
-      },
       "newWorkItem": {
         "title": "Nowy work item"
       },
@@ -809,8 +806,7 @@
     "tabs": {
       "newTerminal": "Nowy Terminal",
       "newTab": "Nowa karta",
-      "terminals": "Terminale",
-      "newTuiSession": "Nowa sesja (TUI)"
+      "terminals": "Terminale"
     },
     "collapseAll": "Zwiń wszystko",
     "copyEventJson": "Kopiuj JSON zdarzeń",

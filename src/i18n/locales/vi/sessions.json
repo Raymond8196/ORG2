@@ -705,9 +705,6 @@
       "newSession": {
         "title": "Phiên mới"
       },
-      "cliSession": {
-        "title": "Phiên mới (TUI)"
-      },
       "newWorkItem": {
         "title": "Work item mới"
       },
@@ -801,8 +798,7 @@
     "tabs": {
       "newTerminal": "Terminal Mới",
       "newTab": "Tab mới",
-      "terminals": "Terminal",
-      "newTuiSession": "Phiên mới (TUI)"
+      "terminals": "Terminal"
     },
     "collapseAll": "Thu gọn tất cả",
     "copyEventJson": "Sao chép JSON sự kiện",

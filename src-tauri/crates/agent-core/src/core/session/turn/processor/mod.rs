@@ -782,7 +782,12 @@ impl UnifiedMessageProcessor {
         // only (never history) so escalation stays per-turn.
         let reasoning_trigger = crate::providers::thinking_mode::detect_reasoning_trigger(content);
         let turn_result = self
-            .execute_turn_with_reactive_retry(session_id, &turn_id, &mut messages, reasoning_trigger)
+            .execute_turn_with_reactive_retry(
+                session_id,
+                &turn_id,
+                &mut messages,
+                reasoning_trigger,
+            )
             .await;
         if let Some(prefetch_hook) = self.turn_prefetch_hook.lock().await.take() {
             prefetch_hook.abort_pending();

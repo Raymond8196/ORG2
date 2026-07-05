@@ -6,12 +6,10 @@
  */
 import React from "react";
 
-import {
-  ClaudeIcon,
-  CursorIcon,
-  GeminiIcon,
-  OpenAIIcon,
-} from "@src/assets/modelIcons/agentIcons";
+import ClaudeIcon from "@src/assets/modelIcons/claude.svg";
+import CursorIcon from "@src/assets/modelIcons/cursor.svg";
+import GeminiIcon from "@src/assets/modelIcons/gemini.svg";
+import OpenAIIcon from "@src/assets/modelIcons/openai.svg";
 import AiderIcon from "@src/assets/softwareIcons/aider.svg";
 import AndroidStudioIcon from "@src/assets/softwareIcons/android-studio.svg";
 import AtomIcon from "@src/assets/softwareIcons/atom.svg";
@@ -109,7 +107,7 @@ export const SOFTWARE_ICON_MAP: Partial<Record<SoftwareType, SvgComponent>> = {
   kiro: KiroIcon,
   claude: ClaudeIcon,
   codex: OpenAIIcon,
-  "gemini-cli": GeminiIcon as unknown as SvgComponent,
+  "gemini-cli": GeminiIcon,
 };
 
 /**

@@ -113,6 +113,7 @@ pub struct CursorIdeSessionRow {
     pub background: bool,
     pub is_active: bool,
     pub repo_path: Option<String>,
+    pub storage_path: Option<String>,
     pub repo_name: Option<String>,
     pub branch: Option<String>,
 }
@@ -125,6 +126,7 @@ pub struct CursorIdeSessionRow {
 #[serde(rename_all = "camelCase")]
 pub struct CursorIdeSessionDetail {
     pub repo_path: Option<String>,
+    pub storage_path: Option<String>,
     pub repo_name: Option<String>,
     pub branch: Option<String>,
     pub touched_files: Vec<String>,

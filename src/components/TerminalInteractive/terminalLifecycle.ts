@@ -1,14 +1,5 @@
 import type { MutableRefObject } from "react";
 
-export function clearInitTimeout(
-  initTimeoutRef: MutableRefObject<NodeJS.Timeout | null>
-) {
-  if (initTimeoutRef.current) {
-    clearTimeout(initTimeoutRef.current);
-    initTimeoutRef.current = null;
-  }
-}
-
 export function cleanupPtyListeners({
   unlistenOutputRef,
   unlistenExitRef,

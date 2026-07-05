@@ -13,7 +13,7 @@ import type {
   AddSessionOptions,
   TerminalSession,
 } from "@/src/engines/TerminalCore/types";
-import { atom } from "jotai";
+import { type Getter, type Setter, atom } from "jotai";
 
 import { getSettingsDefaults } from "@src/config/settingsSchema";
 import { createLogger } from "@src/hooks/logger";
@@ -213,6 +213,54 @@ terminalPersistAtom.debugLabel = "terminalPersistAtom";
 // Action Atoms (write-only, encapsulate logic)
 // ============================================
 
+function removeTerminalSessionLocalOnly(
+  get: Getter,
+  set: Setter,
+  sessionId: string
+): void {
+  const sessions = get(terminalSessionsAtom);
+  const activeId = get(activeTerminalIdAtom);
+
+  if (sessions.length === 1) {
+    const newId = Date.now().toString();
+    const defaultBase = defaultTerminalLabelBaseFromSettings(get(settingsAtom));
+    const newSession: TerminalSession = {
+      id: newId,
+      name: generateUniqueLabelFromBase(defaultBase, []),
+      isActive: true,
+      isDefaultSession: true,
+    };
+    set(terminalSessionsAtom, [newSession]);
+    set(activeTerminalIdAtom, newId);
+    set(initializedTerminalIdsAtom, new Set([newId]));
+    set(terminalPersistAtom);
+    return;
+  }
+
+  const filtered = sessions.filter((session) => session.id !== sessionId);
+
+  if (sessionId === activeId && filtered.length > 0) {
+    const newActiveId = filtered[0].id;
+    set(
+      terminalSessionsAtom,
+      filtered.map((session) => ({
+        ...session,
+        isActive: session.id === newActiveId,
+      }))
+    );
+    set(activeTerminalIdAtom, newActiveId);
+  } else {
+    set(terminalSessionsAtom, filtered);
+  }
+
+  set(initializedTerminalIdsAtom, (prev) => {
+    const next = new Set(prev);
+    next.delete(sessionId);
+    return next;
+  });
+  set(terminalPersistAtom);
+}
+
 /** Add a new terminal session (editor bottom panel).
  *
  * Accepts optional `AddSessionOptions` to specify a shell profile,
@@ -262,57 +310,19 @@ editorAddTerminalSessionAtom.debugLabel = "editorAddTerminalSessionAtom";
 export const closeTerminalSessionAtom = atom(
   null,
   async (get, set, sessionId: string) => {
-    // Kill PTY first
     await killPty(sessionId);
-
-    const sessions = get(terminalSessionsAtom);
-    const activeId = get(activeTerminalIdAtom);
-
-    if (sessions.length === 1) {
-      // Create new default session when closing the last one
-      const newId = Date.now().toString();
-      const defaultBase = defaultTerminalLabelBaseFromSettings(
-        get(settingsAtom)
-      );
-      const newSession: TerminalSession = {
-        id: newId,
-        name: generateUniqueLabelFromBase(defaultBase, []),
-        isActive: true,
-        isDefaultSession: true,
-      };
-      set(terminalSessionsAtom, [newSession]);
-      set(activeTerminalIdAtom, newId);
-      set(initializedTerminalIdsAtom, new Set([newId]));
-    } else {
-      const filtered = sessions.filter((session) => session.id !== sessionId);
-
-      // If closing active session, activate the first remaining
-      if (sessionId === activeId && filtered.length > 0) {
-        const newActiveId = filtered[0].id;
-        set(
-          terminalSessionsAtom,
-          filtered.map((session) => ({
-            ...session,
-            isActive: session.id === newActiveId,
-          }))
-        );
-        set(activeTerminalIdAtom, newActiveId);
-      } else {
-        set(terminalSessionsAtom, filtered);
-      }
-
-      set(initializedTerminalIdsAtom, (prev) => {
-        const next = new Set(prev);
-        next.delete(sessionId);
-        return next;
-      });
-    }
-
-    // Persist
-    set(terminalPersistAtom);
+    removeTerminalSessionLocalOnly(get, set, sessionId);
   }
 );
 closeTerminalSessionAtom.debugLabel = "closeTerminalSessionAtom";
+
+export const removeStaleTerminalSessionAtom = atom(
+  null,
+  (get, set, sessionId: string) => {
+    removeTerminalSessionLocalOnly(get, set, sessionId);
+  }
+);
+removeStaleTerminalSessionAtom.debugLabel = "removeStaleTerminalSessionAtom";
 
 /** Set the active terminal session */
 export const setActiveTerminalAtom = atom(

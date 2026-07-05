@@ -17,7 +17,14 @@
  *   Cmd+T  — new terminal tab (via global "create-chat-tab" event)
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { MessageSquarePlus, Plus, TerminalSquare } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  KeyRound,
+  ListTodo,
+  MessageSquarePlus,
+  Plus,
+  TerminalSquare,
+} from "lucide-react";
 import React, {
   Fragment,
   memo,
@@ -28,7 +35,6 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { InfinityAgentIcon } from "@src/assets/modelIcons/agentIcons";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,
@@ -55,6 +61,11 @@ import { terminalSessionsAtom } from "@src/store/chatPanel/chatPanelTerminalAtom
 import { sessionByIdAtom } from "@src/store/session";
 import { isWindows } from "@src/util/platform/tauri";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
+
+import {
+  CHAT_PANEL_HEADER_DRAG_STYLE,
+  CHAT_PANEL_HEADER_NO_DRAG_STYLE,
+} from "./header";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -142,6 +153,7 @@ const TabPill = memo(function TabPill({
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
     >
       <div className="flex shrink-0 items-center justify-center">{icon}</div>
       <div className="relative flex min-w-0 flex-1 items-center overflow-hidden">
@@ -195,15 +207,17 @@ const TabPill = memo(function TabPill({
 
 interface PlusMenuContentProps {
   onNewSession: () => void;
-  onCliSession: () => void;
-  onTerminal: () => void;
+  onNewWorkItem: () => void;
+  onManageIssues: () => void;
+  onAddApiKey: () => void;
   onClose: () => void;
 }
 
 function PlusMenuContent({
   onNewSession,
-  onCliSession,
-  onTerminal,
+  onNewWorkItem,
+  onManageIssues,
+  onAddApiKey,
   onClose,
 }: PlusMenuContentProps) {
   const { t } = useTranslation("sessions");
@@ -218,22 +232,22 @@ function PlusMenuContent({
       onClick: onNewSession,
     },
     {
-      id: "cli-session",
-      icon: (
-        <InfinityAgentIcon
-          width={HEADER_ICON_SIZE.sm}
-          height={HEADER_ICON_SIZE.sm}
-          strokeWidth={1.8}
-        />
-      ),
-      label: t("chat.startPage.cliSession.title"),
-      onClick: onCliSession,
+      id: "new-work-item",
+      icon: <BriefcaseBusiness size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("chat.startPage.newWorkItem.title"),
+      onClick: onNewWorkItem,
     },
     {
-      id: "terminal",
-      icon: <TerminalSquare size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("chat.tabs.newTerminal"),
-      onClick: onTerminal,
+      id: "manage-issues",
+      icon: <ListTodo size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("chat.startPage.manageIssues.title"),
+      onClick: onManageIssues,
+    },
+    {
+      id: "add-api-key",
+      icon: <KeyRound size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("chat.startPage.addApiKey.title"),
+      onClick: onAddApiKey,
     },
   ] as const;
 
@@ -273,14 +287,16 @@ function PlusMenuContent({
 
 export interface ChatPanelPlusMenuProps {
   onNewSession: () => void;
-  onNewTerminal: () => void;
-  onCliSession: () => void;
+  onNewWorkItem: () => void;
+  onManageIssues: () => void;
+  onAddApiKey: () => void;
 }
 
 export function ChatPanelPlusMenu({
   onNewSession,
-  onNewTerminal,
-  onCliSession,
+  onNewWorkItem,
+  onManageIssues,
+  onAddApiKey,
 }: ChatPanelPlusMenuProps): React.ReactNode {
   const { t } = useTranslation("sessions");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -292,8 +308,9 @@ export function ChatPanelPlusMenu({
       droplist={
         <PlusMenuContent
           onNewSession={onNewSession}
-          onCliSession={onCliSession}
-          onTerminal={onNewTerminal}
+          onNewWorkItem={onNewWorkItem}
+          onManageIssues={onManageIssues}
+          onAddApiKey={onAddApiKey}
           onClose={closeMenu}
         />
       }
@@ -304,7 +321,10 @@ export function ChatPanelPlusMenu({
       getPopupContainer={() => document.body}
       avoidViewportOverflow
     >
-      <span className="inline-flex shrink-0">
+      <span
+        className="inline-flex shrink-0"
+        style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
+      >
         <TabBarTrailingIconButton title={plusLabel} active={menuOpen}>
           <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
         </TabBarTrailingIconButton>
@@ -391,10 +411,16 @@ export function ChatPanelTabBar({
 
   // Inline strip — no outer wrapper, fills the flex row in the header
   return (
-    <div className="flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden scrollbar-hide">
+    <div
+      className="flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden scrollbar-hide"
+      data-tauri-drag-region
+      style={CHAT_PANEL_HEADER_DRAG_STYLE}
+    >
       <span
         className={`${TAB_PAIR_SEPARATOR_SLOT_CLASS} bg-transparent`}
         aria-hidden
+        data-tauri-drag-region
+        style={CHAT_PANEL_HEADER_DRAG_STYLE}
       />
 
       {state.tabs.map((tab, i) => {
@@ -417,6 +443,8 @@ export function ChatPanelTabBar({
                   separatorVisible ? "bg-border-2" : "bg-transparent"
                 }`}
                 aria-hidden
+                data-tauri-drag-region
+                style={CHAT_PANEL_HEADER_DRAG_STYLE}
               />
             )}
           </Fragment>

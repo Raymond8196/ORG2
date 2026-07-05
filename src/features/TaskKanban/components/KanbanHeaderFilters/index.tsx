@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   IMPORTED_HISTORY_SOURCES,
   type ImportedHistorySourceId,
-} from "@src/api/tauri/importedHistory";
+} from "@src/api/tauri/externalHistory";
 import { DISPATCH_CATEGORY } from "@src/api/tauri/session";
 import { CLI_AGENT, type CliAgentType } from "@src/api/types/keys";
 import { formatAgentType } from "@src/assets/providers";

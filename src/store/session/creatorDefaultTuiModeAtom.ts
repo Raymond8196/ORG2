@@ -12,5 +12,7 @@ import { atomWithStorage } from "jotai/utils";
 
 export const creatorDefaultTuiModeAtom = atomWithStorage<boolean>(
   "orgii:tuiMode:default",
-  false
+  false,
+  undefined,
+  { getOnInit: true }
 );

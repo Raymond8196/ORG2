@@ -197,6 +197,17 @@ pub async fn set_window_focus(focused: bool) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+pub async fn set_active_git_polling_repo(repo_id: Option<String>) -> Result<(), String> {
+    let manager_lock = REPO_WATCH_MANAGER.read();
+    let manager = manager_lock
+        .as_ref()
+        .ok_or_else(|| "Repo watch manager not initialized".to_string())?;
+
+    manager.watcher.set_active_polling_repo(repo_id);
+    Ok(())
+}
+
 // ============================================
 // Utility Types
 // ============================================

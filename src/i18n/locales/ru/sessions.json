@@ -707,9 +707,6 @@
       "newSession": {
         "title": "Новая сессия"
       },
-      "cliSession": {
-        "title": "Новая сессия (TUI)"
-      },
       "newWorkItem": {
         "title": "Новый work item"
       },
@@ -803,8 +800,7 @@
     "tabs": {
       "newTerminal": "Новый Терминал",
       "newTab": "Новая вкладка",
-      "terminals": "Терминалы",
-      "newTuiSession": "Новая сессия (TUI)"
+      "terminals": "Терминалы"
     },
     "collapseAll": "Свернуть все",
     "copyEventJson": "Скопировать JSON событий",

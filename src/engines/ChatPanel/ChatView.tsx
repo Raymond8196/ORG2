@@ -327,11 +327,8 @@ const ChatView: React.FC<ChatViewProps> = memo(
       enabled: !isReadOnlySurface && !secondary && !isCursorIde && isLiveStatus,
     });
 
-    // Cursor IDE sessions used to swap the composer for a read-only
-    // banner; they're now writable through the regular `InputArea`
-    // (the model pill swaps to a Cursor-aware variant inside that
-    // component, and `cursorIdeAdapter.sendMessage` runs the probe
-    // dispatch).
+    // Cursor IDE history rows use the regular external-history read-only
+    // rendering path; source-specific fork composers are handled below.
 
     const showInteractArea = useShowInteractArea();
     const showExternalHistoryForkComposer =

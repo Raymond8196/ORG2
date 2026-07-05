@@ -114,8 +114,7 @@ impl AgentTool {
             // past the result `match` below, the guard's Drop emits a
             // terminal Failed so the registry/UI never get stuck on a ghost
             // "running" row. Disarmed once the real verdict is written.
-            let mut finalize_guard =
-                super::helpers::FinalizeGuard::new(task_session_id.clone());
+            let mut finalize_guard = super::helpers::FinalizeGuard::new(task_session_id.clone());
 
             let turn_result = turn_executor::execute_turn(
                 &mut messages,
@@ -211,10 +210,7 @@ impl AgentTool {
                     // and LinkedSession writes, so anything blocking on
                     // "is it still running?" can never deadlock against
                     // slow post-processing.
-                    job_registry::mark_exited(
-                        &task_session_id,
-                        job_registry::JobStatus::Completed,
-                    );
+                    job_registry::mark_exited(&task_session_id, job_registry::JobStatus::Completed);
                     // Store the final result so a transitioned parent reads
                     // it from the Background Jobs reminder exactly like a
                     // native background worker.
@@ -303,7 +299,10 @@ impl AgentTool {
                     "[agent] '{}' #{} done (model={}): {} tokens",
                     agent_name, instance_number, model, tokens
                 ),
-                Err(err) => warn!("[agent] '{}' #{} failed: {}", agent_name, instance_number, err),
+                Err(err) => warn!(
+                    "[agent] '{}' #{} failed: {}",
+                    agent_name, instance_number, err
+                ),
             }
 
             // Hand the result to the waiting parent. If the parent already
@@ -349,8 +348,7 @@ impl AgentTool {
         // Poll-select: mirror parent-Stop into the job flag while waiting,
         // deliver the result inline when it arrives before the deadline,
         // otherwise convert to a background handle.
-        let deadline = std::time::Instant::now()
-            + Duration::from_secs(FG_TO_BG_TRANSITION_SECS);
+        let deadline = std::time::Instant::now() + Duration::from_secs(FG_TO_BG_TRANSITION_SECS);
         const PARENT_FLAG_MIRROR_INTERVAL: Duration = Duration::from_millis(200);
         loop {
             match result_rx.try_recv() {

@@ -555,9 +555,7 @@ impl Tool for AgentTool {
                         tokio::task::block_in_place(|| {
                             crate::session::persistence::load_llm_history(&sid)
                                 .ok()
-                                .and_then(|msgs| {
-                                    crate::turn_executor::last_assistant_text(&msgs)
-                                })
+                                .and_then(|msgs| crate::turn_executor::last_assistant_text(&msgs))
                         })
                     };
                     Ok(match partial {
@@ -1076,25 +1074,45 @@ impl Tool for AgentTool {
         .await;
 
         let workspace = self.resolve_repo_path().await;
-        let (final_registry_arc, isolation_workspace_root) =
-            match effective_isolation {
-                Some(SubAgentIsolation::Worktree) => {
-                    let (isolated_workspace, worktree_info) = match self
-                        .create_worktree_workspace(&subagent_session_id, workspace.clone())
-                        .await
-                    {
-                        Ok(result) => result,
-                        Err(err) => {
-                            let _ = crate::session::persistence::update_status(
-                                &subagent_session_id,
-                                crate::session::SessionStatus::Failed,
-                            );
-                            return Err(err);
-                        }
-                    };
-                    if let Err(err) = crate::session::persistence::save_workspace(
+        let (final_registry_arc, isolation_workspace_root) = match effective_isolation {
+            Some(SubAgentIsolation::Worktree) => {
+                let (isolated_workspace, worktree_info) = match self
+                    .create_worktree_workspace(&subagent_session_id, workspace.clone())
+                    .await
+                {
+                    Ok(result) => result,
+                    Err(err) => {
+                        let _ = crate::session::persistence::update_status(
+                            &subagent_session_id,
+                            crate::session::SessionStatus::Failed,
+                        );
+                        return Err(err);
+                    }
+                };
+                if let Err(err) = crate::session::persistence::save_workspace(
+                    &subagent_session_id,
+                    &isolated_workspace,
+                ) {
+                    let workspace_root = isolated_workspace.workspace_root.clone();
+                    let session_id = subagent_session_id.clone();
+                    let _ = tokio::task::spawn_blocking(move || {
+                        git::worktree::remove_session_worktree(&workspace_root, &session_id, true)
+                    })
+                    .await;
+                    let _ = crate::session::persistence::update_status(
                         &subagent_session_id,
-                        &isolated_workspace,
+                        crate::session::SessionStatus::Failed,
+                    );
+                    return Err(ToolError::ExecutionFailed(format!(
+                        "failed to persist subagent worktree workspace: {err}"
+                    )));
+                }
+                if let Some(base_branch) = worktree_info.base_branch.as_deref() {
+                    if let Err(err) = crate::session::persistence::save_worktree_metadata(
+                        &subagent_session_id,
+                        &worktree_info.branch,
+                        base_branch,
+                        git::worktree::WorktreeMergeStatus::Pending,
                     ) {
                         let workspace_root = isolated_workspace.workspace_root.clone();
                         let session_id = subagent_session_id.clone();
@@ -1106,53 +1124,28 @@ impl Tool for AgentTool {
                             )
                         })
                         .await;
+                        let _ = crate::session::persistence::clear_worktree_metadata(
+                            &subagent_session_id,
+                        );
                         let _ = crate::session::persistence::update_status(
                             &subagent_session_id,
                             crate::session::SessionStatus::Failed,
                         );
                         return Err(ToolError::ExecutionFailed(format!(
-                            "failed to persist subagent worktree workspace: {err}"
+                            "failed to persist subagent worktree metadata: {err}"
                         )));
                     }
-                    if let Some(base_branch) = worktree_info.base_branch.as_deref() {
-                        if let Err(err) = crate::session::persistence::save_worktree_metadata(
-                            &subagent_session_id,
-                            &worktree_info.branch,
-                            base_branch,
-                            git::worktree::WorktreeMergeStatus::Pending,
-                        ) {
-                            let workspace_root = isolated_workspace.workspace_root.clone();
-                            let session_id = subagent_session_id.clone();
-                            let _ = tokio::task::spawn_blocking(move || {
-                                git::worktree::remove_session_worktree(
-                                    &workspace_root,
-                                    &session_id,
-                                    true,
-                                )
-                            })
-                            .await;
-                            let _ = crate::session::persistence::clear_worktree_metadata(
-                                &subagent_session_id,
-                            );
-                            let _ = crate::session::persistence::update_status(
-                                &subagent_session_id,
-                                crate::session::SessionStatus::Failed,
-                            );
-                            return Err(ToolError::ExecutionFailed(format!(
-                                "failed to persist subagent worktree metadata: {err}"
-                            )));
-                        }
-                    }
-                    let workspace_root = isolated_workspace.workspace_root.clone();
-                    let registry = self.with_workspace_coding_overlay(
-                        Arc::clone(&effective_registry_arc),
-                        isolated_workspace.clone(),
-                        &subagent_session_id,
-                    );
-                    (registry, Some(workspace_root))
                 }
-                None => (Arc::clone(&effective_registry_arc), None),
-            };
+                let workspace_root = isolated_workspace.workspace_root.clone();
+                let registry = self.with_workspace_coding_overlay(
+                    Arc::clone(&effective_registry_arc),
+                    isolated_workspace.clone(),
+                    &subagent_session_id,
+                );
+                (registry, Some(workspace_root))
+            }
+            None => (Arc::clone(&effective_registry_arc), None),
+        };
 
         // ── Background mode: spawn and return handle immediately ─────
         if is_background {
