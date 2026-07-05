@@ -290,6 +290,9 @@ pub struct SessionFilter {
     /// Include imported external history rows when loading CLI-category sessions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_external_history: Option<bool>,
+    /// Include aggregate stats in the response. Defaults to true for existing callers.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_stats: Option<bool>,
     /// Filter imported external history rows by source subtype.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub external_history_source: Option<String>,
@@ -315,7 +318,8 @@ pub struct SessionFilter {
 #[serde(rename_all = "camelCase")]
 pub struct SessionListResponse {
     pub sessions: Vec<SessionAggregateRecord>,
-    pub stats: SessionStats,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stats: Option<SessionStats>,
 }
 
 // ============================================================================

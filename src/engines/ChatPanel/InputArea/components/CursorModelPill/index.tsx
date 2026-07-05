@@ -11,25 +11,17 @@
  * Differences from `ModelPill`:
  *  - No source segment. Cursor IDE chats only have one "source" — the
  *    probe Cursor — so the second pill would be redundant.
- *  - Picks are local to the draft. Selection is *not* fired into Cursor
- *    on click; we let `cursorIdeAdapter.sendMessage` apply the model
- *    composer-targeted right before submitting the prompt. That way
- *    flipping through models doesn't churn through CDP eval round-trips.
+ *  - Picks are local to the draft and only update the visible pill state.
+ *    Cursor history rows are external-history sessions, so in-session model
+ *    selection is informational rather than a submit-time override.
  *  - Lazy model list. `listModels()` only fires the first time the
  *    dropdown is opened — at rest we just show whatever the composer
  *    last used (read from `state.vscdb` once on mount).
- *
- * The pill writes the user's pick into a session-scoped atom so
- * `InputArea`'s send handler can pull it out at submit time and pass
- * it as the `model` override to `SessionService.sendMessage`.
  */
-import { useAtom } from "jotai";
 import React, { memo } from "react";
 
-import { cursorModelOverrideAtomFamily } from "@src/store/session/cursorModelOverrideAtom";
 import { composerIdFromSessionId } from "@src/util/session/sessionDispatch";
 
-import { usePillOverrideSync } from "../usePillOverrideSync";
 import CursorModelPillView from "./CursorModelPillView";
 import { useCursorModels } from "./useCursorModels";
 
@@ -42,13 +34,6 @@ const CursorModelPill: React.FC<CursorModelPillProps> = memo(
   ({ sessionId }) => {
     const composerId = composerIdFromSessionId(sessionId);
     const cursorModels = useCursorModels(composerId);
-
-    // Mirror the picked model into a session-scoped atom so
-    // `InputArea`'s send pipeline can read it at submit time without
-    // having to reach back into this component. Cleared on unmount so
-    // stale picks from a closed pill don't bleed into the next session.
-    const [, setOverride] = useAtom(cursorModelOverrideAtomFamily(sessionId));
-    usePillOverrideSync(cursorModels.pickedModel, setOverride);
 
     const {
       effectiveModel,

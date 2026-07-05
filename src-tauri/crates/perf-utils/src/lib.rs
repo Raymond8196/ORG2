@@ -15,7 +15,6 @@ pub mod image_luminance;
 pub mod json_fast;
 pub mod local_model_hardware;
 pub mod process_metrics;
-pub mod ram_history;
 
 // Re-export all commands
 pub use binary_detection::*;
@@ -25,7 +24,6 @@ pub use image_luminance::*;
 pub use json_fast::*;
 pub use local_model_hardware::*;
 pub use process_metrics::*;
-pub use ram_history::*;
 
 #[cfg(test)]
 mod tests;

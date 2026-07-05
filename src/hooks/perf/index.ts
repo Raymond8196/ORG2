@@ -8,7 +8,6 @@
 
 export { useDebouncedCallback, DEBOUNCE_DELAYS } from "./useDebouncedCallback";
 export { useNetworkMonitor } from "./useNetworkMonitor";
-export { useRamHistory } from "./useRamHistory";
 export {
   formatRuntimeBytes,
   useRuntimeRamStats,
@@ -22,11 +21,6 @@ export {
   type WebViewRuntimeDiagnostics,
 } from "./runtimeMemoryStats";
 export { useSidebarMemoryEntry } from "./useSidebarMemoryEntry";
-export type {
-  RamHistoryStats,
-  RamSample,
-  UseRamHistoryResult,
-} from "./useRamHistory";
 export type {
   ConnectionStatus,
   GeoInfo,
