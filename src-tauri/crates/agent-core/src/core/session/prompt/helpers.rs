@@ -33,7 +33,11 @@ const MEMORY_FILE_MAX_IMPORTS: usize = 8;
 ///
 /// `@path` import lines inside CLAUDE.md-style files are expanded inline
 /// (single level, bounded), matching the reference implementation.
-pub(super) fn load_conventions(workspace_path: &Path) -> Option<String> {
+///
+/// `pub(crate)` (not `pub(super)`): the subagent prompt assembly
+/// (`orchestration::agent::system_prompt`) reuses this loader so
+/// write-capable workers see the same project conventions as the parent.
+pub(crate) fn load_conventions(workspace_path: &Path) -> Option<String> {
     let mut sections: Vec<String> = Vec::new();
 
     let conventions_path = workspace_path.join(".orgii").join("agent-rules.md");

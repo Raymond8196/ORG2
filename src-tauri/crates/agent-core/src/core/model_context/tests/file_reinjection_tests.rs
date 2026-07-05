@@ -133,6 +133,47 @@ fn build_skips_files_already_present_in_preserved_tail() {
 }
 
 #[test]
+fn build_excludes_memory_and_plan_files() {
+    // Conventions/memory files are re-read into the system prompt every
+    // turn and plans are preserved by plan_preservation — re-injecting
+    // them here would duplicate content.
+    let dir = tempfile::tempdir().expect("tempdir");
+    let mut paths = Vec::new();
+    for name in [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "agent-rules.md",
+        "refactor.plan.md",
+        "normal.rs",
+    ] {
+        let path = dir.path().join(name);
+        std::fs::write(&path, format!("content of {name}")).expect("write");
+        paths.push(path.to_string_lossy().to_string());
+    }
+
+    let messages = build_file_reinjection_messages_with_preserved_tail(&paths, &[]);
+    assert_eq!(messages.len(), 1, "expected one re-injection message");
+    let text = messages[0]["content"].as_str().expect("content string");
+    assert!(
+        text.contains("normal.rs"),
+        "regular file must be re-injected"
+    );
+    for excluded in [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "CLAUDE.local.md",
+        "agent-rules.md",
+        "refactor.plan.md",
+    ] {
+        assert!(
+            !text.contains(&format!("content of {excluded}")),
+            "{excluded} must not be re-injected"
+        );
+    }
+}
+
+#[test]
 fn build_respects_total_reinjection_budget() {
     let dir = tempfile::tempdir().expect("tempdir");
     let mut paths = Vec::new();

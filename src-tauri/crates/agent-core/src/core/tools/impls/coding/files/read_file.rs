@@ -291,7 +291,20 @@ impl Tool for ReadFileTool {
         let resolved_path = result.resolved_path.clone();
         let mut output = result.content;
 
-        if result.truncated || result.lines_read < result.total_lines {
+        if result.lines_read == 0 {
+            // Silent empty output makes the model loop or hallucinate —
+            // say explicitly why there is nothing to show.
+            output = if total_lines == 0 {
+                "Warning: the file exists but the contents are empty.".to_string()
+            } else {
+                format!(
+                    "Warning: the file has only {} lines, which is fewer than \
+                     the requested offset ({}).",
+                    total_lines,
+                    offset.unwrap_or_default(),
+                )
+            };
+        } else if result.truncated || result.lines_read < result.total_lines {
             output.push_str(&format!(
                 "\n\n[Showing lines {}-{} of {} total ({:.1} KB). \
                  Use offset and limit to read other sections.]",
@@ -303,7 +316,15 @@ impl Tool for ReadFileTool {
         }
 
         let action = classify_read_action(&raw_path, &output);
-        let output = format!("[action: {}]\n{}", action, output);
+        let mut output = format!("[action: {}]\n{}", action, output);
+        // The model asked for the file, so the beginning (imports, structure)
+        // is the useful part of an oversized read — the executor's generic
+        // fallback would keep the tail. Head-truncate here with re-read
+        // guidance instead. Image markers are exempt (cut base64 corrupts;
+        // the executor replaces oversized image results wholesale).
+        if output.len() > self.output_budget() && !output.contains("[image:") {
+            output = head_truncate_with_guidance(&output, self.output_budget());
+        }
         self.read_cache.lock().await.insert(
             ReadCacheKey {
                 resolved_path,
@@ -321,6 +342,32 @@ impl Tool for ReadFileTool {
         );
         Ok(output)
     }
+}
+
+/// Head-keep truncation for oversized reads, sized to fit under `budget`
+/// (including the guidance trailer) so the executor's tail-keep fallback
+/// never fires on top of it.
+fn head_truncate_with_guidance(output: &str, budget: usize) -> String {
+    const GUIDANCE_HEADROOM: usize = 400;
+    let keep = budget.saturating_sub(GUIDANCE_HEADROOM);
+    let mut end = keep.min(output.len());
+    while end > 0 && !output.is_char_boundary(end) {
+        end -= 1;
+    }
+    let head = &output[..end];
+    // Cut on a line boundary so the output never ends mid-line.
+    let head = match head.rfind('\n') {
+        Some(idx) => &head[..idx],
+        None => head,
+    };
+    format!(
+        "{}\n\n[output truncated: showing the FIRST ~{}K of {}K chars. \
+         Re-read with offset/limit to view later sections, or use code_search \
+         (action: grep) to locate specific content.]",
+        head,
+        keep / 1000,
+        output.len() / 1000,
+    )
 }
 
 fn format_file_unchanged_stub(path: &str, entry: &ReadCacheEntry) -> String {
@@ -596,6 +643,103 @@ mod tests {
             "output was: {}",
             second
         );
+    }
+
+    #[tokio::test]
+    async fn empty_file_returns_explicit_warning() {
+        let repo = TempDir::new().unwrap();
+        std::fs::write(repo.path().join("empty.txt"), "").unwrap();
+
+        let tool = ReadFileTool::new(Some(repo.path().to_path_buf()));
+        let output = tool
+            .execute(
+                serde_json::json!({ "path": "empty.txt" }),
+                &crate::tools::call_context::CallContext::default(),
+            )
+            .await
+            .unwrap();
+
+        assert!(
+            output.contains("Warning: the file exists but the contents are empty."),
+            "output was: {output}"
+        );
+    }
+
+    #[tokio::test]
+    async fn offset_past_eof_returns_explicit_warning() {
+        let repo = TempDir::new().unwrap();
+        std::fs::write(repo.path().join("short.txt"), "one\ntwo\nthree").unwrap();
+
+        let tool = ReadFileTool::new(Some(repo.path().to_path_buf()));
+        let output = tool
+            .execute(
+                serde_json::json!({ "path": "short.txt", "offset": 100 }),
+                &crate::tools::call_context::CallContext::default(),
+            )
+            .await
+            .unwrap();
+
+        assert!(
+            output.contains("Warning: the file has only 3 lines"),
+            "output was: {output}"
+        );
+        assert!(
+            output.contains("requested offset (100)"),
+            "output was: {output}"
+        );
+    }
+
+    #[tokio::test]
+    async fn oversized_read_keeps_head_with_reread_guidance() {
+        let repo = TempDir::new().unwrap();
+        // 100 lines x ~1.5KB = ~150KB: under the 256KB no-range gate but
+        // over the 100K output budget, so head truncation must fire.
+        let line = "z".repeat(1_500);
+        let content = (1..=100)
+            .map(|idx| format!("L{idx} {line}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        std::fs::write(repo.path().join("wide.txt"), &content).unwrap();
+
+        let tool = ReadFileTool::new(Some(repo.path().to_path_buf()));
+        let output = tool
+            .execute(
+                serde_json::json!({ "path": "wide.txt" }),
+                &crate::tools::call_context::CallContext::default(),
+            )
+            .await
+            .unwrap();
+
+        assert!(output.len() <= tool.output_budget(), "len={}", output.len());
+        assert!(output.contains("L1 "), "head (first line) must survive");
+        assert!(
+            !output.contains("L100 "),
+            "tail must be truncated, not kept"
+        );
+        assert!(
+            output.contains("showing the FIRST"),
+            "output was missing guidance trailer: {}",
+            &output[output.len().saturating_sub(400)..]
+        );
+        assert!(output.contains("Re-read with offset/limit"));
+    }
+
+    #[test]
+    fn head_truncate_with_guidance_cuts_on_line_boundary() {
+        let content = (1..=50)
+            .map(|idx| format!("line {idx} {}", "y".repeat(100)))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let out = head_truncate_with_guidance(&content, 2_000);
+        assert!(out.len() <= 2_000);
+        assert!(out.starts_with("line 1 "));
+        let body = out.split("\n\n[output truncated").next().unwrap();
+        assert!(
+            body.ends_with('y'),
+            "body should end with a complete line, got: ...{}",
+            &body[body.len().saturating_sub(20)..]
+        );
+        assert!(out.contains("code_search"));
     }
 
     #[test]

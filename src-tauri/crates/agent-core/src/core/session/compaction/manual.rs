@@ -183,6 +183,23 @@ pub async fn run_manual_compact(
             .context_window_configured
             .then_some(runtime.resolved.context_window),
     );
+    // PreCompaction hook — awaited so backup hooks run against the
+    // pre-compaction transcript. Trigger "manual" mirrors the reference
+    // harness's manual-/compact distinction.
+    let hook_executor = std::sync::Arc::new(
+        crate::specialization::hooks::HookExecutor::load_with_workspace_scope(
+            runtime.workspace_state.read().working_dir(),
+            runtime.resolved.load_workspace_resources,
+        ),
+    );
+    crate::specialization::hooks::dispatch::fire_pre_compaction(
+        Some(&hook_executor),
+        session_id,
+        "manual",
+        messages_before,
+    )
+    .await;
+
     let (compacted, outcome) = {
         let mut compaction_state = session.compaction.lock().await;
         ContextCompactor::compact(
@@ -214,6 +231,14 @@ pub async fn run_manual_compact(
 
     let messages_after = compacted.len();
     let tokens_after = ContextCompactor::estimate_messages_tokens(&compacted);
+
+    crate::specialization::hooks::dispatch::fire_post_compaction(
+        Some(&hook_executor),
+        session_id,
+        "manual",
+        messages_before,
+        messages_after,
+    );
 
     // 5. Fork: persist to new session id + rebind + archive old.
     let fork_outcome = attempt_fork(ForkInputs {

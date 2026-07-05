@@ -593,6 +593,10 @@ async fn ensure_session_initialized(
         resolved.sovereign_prompt,
     );
 
+    // Captured before `resolved` moves into AssembleParams below; needed
+    // for the SessionStart hook fired after runtime install.
+    let load_workspace_resources = resolved.load_workspace_resources;
+
     let runtime = runtime_assemble::install_runtime(
         &session_handle,
         runtime_assemble::AssembleParams {
@@ -620,6 +624,16 @@ async fn ensure_session_initialized(
     runtime_assemble::mark_running_for_gateway(state, cap_flags.has_gateway, &account_id).await;
     runtime_assemble::register_in_file_registry(session_id, &log_prefix, &model, &workspace_root);
     runtime_assemble::log_init_complete(session_id, &model, &workspace_root);
+
+    // Fire HookEvent::SessionStart — the slow path only runs when a runtime
+    // is (re)built (fresh session or resume after restart), so this fires
+    // once per session bring-up, never per turn (fast path returns above).
+    crate::specialization::hooks::dispatch::fire_session_start(
+        &workspace_root,
+        load_workspace_resources,
+        session_id,
+        &model,
+    );
 
     Ok(runtime)
 }

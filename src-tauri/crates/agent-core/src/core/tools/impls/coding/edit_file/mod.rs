@@ -24,6 +24,12 @@ pub(crate) mod strategies;
 
 use strategies::replace;
 
+fn is_notebook_path(path: &std::path::Path) -> bool {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("ipynb"))
+}
+
 /// Parameters for the edit_file tool.
 ///
 /// Two modes of operation:
@@ -178,6 +184,16 @@ impl Tool for EditTool {
                 ToolError::ExecutionFailed(err)
             }
         })?;
+
+        // String-replacement edits on notebooks are unsafe: read_file renders
+        // notebook cells as text while the file on disk is JSON, so
+        // old_string can never match reliably. Full-content writes are fine —
+        // they don't depend on the rendered view.
+        if is_notebook_path(&resolved) && content.is_none() {
+            return Err(ToolError::InvalidParams(
+                "edit_file cannot do string-replacement edits on .ipynb notebooks: read_file renders notebook cells as text while the file on disk is JSON, so old_string will not match the raw file. Either rewrite the whole notebook by calling edit_file with the full JSON in `content`, or use run_shell (e.g. python/jq) for cell-level edits.".to_string(),
+            ));
+        }
 
         // Mode 1: Create/Overwrite
         if let Some(content) = content {

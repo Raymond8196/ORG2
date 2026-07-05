@@ -8,6 +8,8 @@
 pub mod db_helpers;
 pub mod images;
 pub mod session_snapshots;
+#[cfg(test)]
+pub(crate) mod test_schema;
 
 // `AgentResponse` is re-exported flat because state-layer command modules
 // import it as `crate::persistence::AgentResponse`. Every other
