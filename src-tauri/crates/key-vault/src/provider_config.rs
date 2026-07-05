@@ -86,7 +86,12 @@ pub fn get_provider_config(model_type: &str) -> ProviderConfig {
             true,
             Some("https://api.moonshot.cn/v1"),
         ),
-        "opencode" => ProviderConfig::new("OPENCODE_API_KEY", None, false, None),
+        "opencode" => ProviderConfig::new(
+            "OPENCODE_API_KEY",
+            Some("OPENCODE_BASE_URL"),
+            true,
+            Some("https://opencode.ai/zen/v1"),
+        ),
         "anthropic_api" => ProviderConfig::with_protocols(
             "ANTHROPIC_API_KEY",
             None,
@@ -346,7 +351,14 @@ mod tests {
 
         let opencode = get_provider_config("opencode");
         assert_eq!(opencode.api_key_env_var, "OPENCODE_API_KEY");
-        assert!(!opencode.supports_base_url);
-        assert!(opencode.default_base_url.is_none());
+        assert_eq!(
+            opencode.base_url_env_var,
+            Some("OPENCODE_BASE_URL".to_string())
+        );
+        assert!(opencode.supports_base_url);
+        assert_eq!(
+            opencode.default_base_url,
+            Some("https://opencode.ai/zen/v1".to_string())
+        );
     }
 }

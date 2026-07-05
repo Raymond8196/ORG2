@@ -40,6 +40,32 @@ import type { AgentSetupProps } from "./types";
 
 type SetupMethod = "autodetect" | "enter_key" | "extract";
 type BaseUrlMode = "official" | "custom";
+type OpenCodeEndpoint = "zen" | "go";
+
+const OPENCODE_ZEN_BASE_URL = "https://opencode.ai/zen/v1";
+const OPENCODE_GO_BASE_URL = "https://opencode.ai/zen/go/v1";
+
+const OPENCODE_ENDPOINT_OPTIONS: SelectionGridOption<OpenCodeEndpoint>[] = [
+  {
+    key: "zen",
+    label: "OpenCode Zen",
+    badge: "Recommended",
+    description: "Use Zen subscription models such as Claude Sonnet.",
+  },
+  {
+    key: "go",
+    label: "OpenCode Go",
+    description: "Use the OpenCode Go endpoint and model list.",
+  },
+];
+
+function getOpenCodeEndpointFromBaseUrl(baseUrl?: string): OpenCodeEndpoint {
+  return baseUrl === OPENCODE_GO_BASE_URL ? "go" : "zen";
+}
+
+function getOpenCodeBaseUrl(endpoint: OpenCodeEndpoint): string {
+  return endpoint === "go" ? OPENCODE_GO_BASE_URL : OPENCODE_ZEN_BASE_URL;
+}
 
 const GenericSetup: FC<AgentSetupProps> = ({
   data,
@@ -83,6 +109,10 @@ const GenericSetup: FC<AgentSetupProps> = ({
   // Check if API key was auto-detected (non-OAuth)
   const isApiKeyDetected =
     !isOAuthConfigured && data.validated && !!data.raw_key_input;
+  const isOpenCode = data.agent_type === "opencode";
+  const selectedOpenCodeEndpoint = getOpenCodeEndpointFromBaseUrl(
+    data.extracted_base_url
+  );
 
   // Single flat setup method — no nested selection
   const [setupMethod, setSetupMethod] = useState<SetupMethod>("autodetect");
@@ -105,7 +135,19 @@ const GenericSetup: FC<AgentSetupProps> = ({
 
   // Sync official URL to data when in official mode (for validation)
   useEffect(() => {
+    if (isOpenCode && !data.extracted_base_url) {
+      onChange({
+        extracted_base_url: OPENCODE_ZEN_BASE_URL,
+        validated: false,
+        available_models: [],
+        model_context_lengths: {},
+        enabled_models: [],
+      });
+      return;
+    }
+
     if (
+      !isOpenCode &&
       setupMethod === "enter_key" &&
       envConfig?.supportsBaseUrl &&
       baseUrlMode === "official" &&
@@ -116,6 +158,7 @@ const GenericSetup: FC<AgentSetupProps> = ({
     }
   }, [
     setupMethod,
+    isOpenCode,
     envConfig,
     baseUrlMode,
     officialBaseUrl,
@@ -191,6 +234,33 @@ const GenericSetup: FC<AgentSetupProps> = ({
           />
         </SectionRow>
       </SectionContainer>
+
+      {isOpenCode && (
+        <SectionContainer>
+          <SectionRow
+            label="OpenCode endpoint"
+            description="Choose whether this key should load and run OpenCode Zen or Go models."
+            layout="vertical"
+          >
+            <SelectionGrid
+              options={OPENCODE_ENDPOINT_OPTIONS}
+              selected={selectedOpenCodeEndpoint}
+              onSelect={(endpoint) => {
+                onChange({
+                  extracted_base_url: getOpenCodeBaseUrl(endpoint),
+                  validated: false,
+                  available_models: [],
+                  model_context_lengths: {},
+                  enabled_models: [],
+                });
+              }}
+              columns={2}
+              cardVariant="subtle"
+              compactCards
+            />
+          </SectionRow>
+        </SectionContainer>
+      )}
 
       {/* ======================== */}
       {/* Autodetect Section       */}
@@ -298,7 +368,7 @@ const GenericSetup: FC<AgentSetupProps> = ({
             </SectionRow>
           )}
 
-          {envConfig.supportsBaseUrl && (
+          {envConfig.supportsBaseUrl && !isOpenCode && (
             <SectionRow
               label={t("keyVault.baseUrlLabel")}
               description={t("keyVault.baseUrlDesc")}
@@ -348,7 +418,8 @@ const GenericSetup: FC<AgentSetupProps> = ({
             </SectionRow>
           )}
 
-          {envConfig.supportsBaseUrl &&
+          {!isOpenCode &&
+            envConfig.supportsBaseUrl &&
             baseUrlMode === "custom" &&
             !baseUrlWarningDismissed && (
               <InlineAlert
