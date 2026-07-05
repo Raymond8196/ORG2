@@ -172,6 +172,24 @@ pub async fn resolve_pending(
         }
     }
 
+    // Feed the Plan-mode re-entry note: remember where the resolved plan
+    // lives so a later return to Plan mode points the model at it.
+    // Superseded plans are replaced by a live pending revision and
+    // orphaned plan files are gone — neither warrants a note.
+    if matches!(
+        resolution,
+        PlanResolution::Approved { .. } | PlanResolution::Rejected
+    ) {
+        crate::session::plan_mode::record_last_resolved_plan(
+            &snapshot.session_id,
+            crate::session::plan_mode::LastResolvedPlan {
+                plan_path: snapshot.plan_path.clone(),
+                plan_title: snapshot.plan_title.clone(),
+                approved: matches!(resolution, PlanResolution::Approved { .. }),
+            },
+        );
+    }
+
     let app_handle = manager
         .and_then(|manager| {
             manager
@@ -377,6 +395,10 @@ impl PlanApprovalManager {
 
         *guard = Some(snapshot.clone());
         drop(guard);
+
+        // A live pending plan supersedes the Plan-mode re-entry note that
+        // a previously resolved plan may have left behind.
+        crate::session::plan_mode::clear_last_resolved_plan(session_id);
 
         self.push_plan_approval_event(&snapshot, "create_plan", PlanApprovalCardStatus::Pending);
 

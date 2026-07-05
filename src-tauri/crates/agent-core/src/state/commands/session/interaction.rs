@@ -483,6 +483,27 @@ pub(crate) async fn plan_approval_response_impl(
     }
 
     if rejected {
+        // CC parity (PLAN_REJECTION_PREFIX): without an LLM-visible record
+        // the durable transcript still ends with create_plan's
+        // "submitted_for_review" result, and the Build prompt's Post-Plan
+        // Continuation section would read the next turn as an approved-plan
+        // handoff — executing the very plan the user just rejected. Persist
+        // a user row so the next turn's reloaded history carries the
+        // rejection. FE-side no event is pushed: the plan card already
+        // renders the "cancelled" state from `resolve_pending`.
+        let rejection_note = format!(
+            "<system-reminder>The user rejected the proposed plan \"{}\". Do NOT implement it. \
+             Await further instructions or a revised request; if the user asks for changes, \
+             treat their next message as feedback for a new plan.</system-reminder>",
+            snapshot.plan_title
+        );
+        if let Err(err) = session_persistence::save_user_msg(&session_id, &rejection_note, None) {
+            tracing::warn!(
+                "[plan_approval] Failed to persist plan-rejection note for {}: {}",
+                session_id,
+                err
+            );
+        }
         return Ok(());
     }
 
@@ -501,8 +522,11 @@ pub(crate) async fn plan_approval_response_impl(
          Execute the approved plan directly. Use the available coding tools to make the requested changes. \
          If the plan is genuinely complex, you may use `manage_todo` with its schema to track execution, \
          but do not create another plan.\n\n\
+         The plan file is saved at {plan_path} — re-read it with `read_file` if you need to \
+         re-check details during implementation.\n\n\
          ## Approved plan\n\n{plan_body}",
         edited_marker = if edited { " (edited)" } else { "" },
+        plan_path = snapshot.plan_path,
     );
 
     // Prefer the FE-supplied identity (model / account_id / workspace_path)
