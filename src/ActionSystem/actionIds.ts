@@ -28,6 +28,8 @@ export const ACTION_ID = {
   APP_GO_TO_INTEGRATIONS: "app.goToIntegrations",
   APP_GO_TO_CONNECTIONS: "app.goToConnections",
   APP_GO_TO_MODEL_KEYS: "app.goToModelKeys",
+  APP_GO_TO_HOUSEKEEPER: "app.goToHousekeeper",
+  APP_OPEN_ADD_MODEL_API: "app.openAddModelApi",
   APP_GO_TO_SESSION: "app.goToSession",
   APP_ZOOM_IN: "app.zoomIn",
   APP_ZOOM_OUT: "app.zoomOut",

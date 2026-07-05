@@ -29,6 +29,7 @@ import type {
 import type { DevToolsTab } from "./DevTools/DevToolsCategoryView";
 import { ExternalSkillsetsCategoryView } from "./ExternalSkillsets/ExternalSkillsetsCategoryView";
 import { GitCategoryView } from "./Git/GitCategoryView";
+import { HousekeeperCategoryView } from "./Housekeeper/HousekeeperCategoryView";
 import { AccountCategoryView } from "./KeyVault/AccountCategoryView";
 import MyRolesSection, {
   MY_ROLES_TAB,
@@ -173,6 +174,9 @@ const IntegrationsDetailPanel: React.FC<IntegrationsDetailPanelProps> = ({
           </ScrollFadeContainer>
         </DetailPanelContainer>
       );
+
+    case "housekeeper":
+      return <HousekeeperCategoryView />;
 
     case "devtools":
       return (

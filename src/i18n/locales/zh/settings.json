@@ -63,7 +63,8 @@
       "connections": "连接",
       "git": "Git",
       "databases": "数据库",
-      "externalSkillsets": "Skills、MCPs、Plugins"
+      "externalSkillsets": "Skills、MCPs、Plugins",
+      "housekeeper": "常驻管家"
     }
   },
   "myRoles": {

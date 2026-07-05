@@ -1044,7 +1044,8 @@
     "tools": "内置工具",
     "computerUse": "Computer Use",
     "rulesMemoryEvolution": "规则、记忆 & 进化",
-    "externalSkillsets": "Skills, MCPs & Plugins"
+    "externalSkillsets": "Skills, MCPs & Plugins",
+    "housekeeper": "常驻管家"
   },
   "projectConnections": {
     "linear": "Linear",
@@ -2541,6 +2542,59 @@
       "cpu_offload": "CPU 卸载",
       "cpu_only": "仅 CPU",
       "no_fit": "不推荐"
+    }
+  },
+  "housekeeper": {
+    "eyebrow": "MiniCPM 常驻管家",
+    "title": "常驻管家",
+    "description": "本地 MiniCPM 只处理输入润色、短步骤解释和轻量 UI 控制；编码任务和复杂 ADE 配置仍然交给主 Agent 模型。",
+    "addAccount": "添加 MiniCPM vLLM 账号",
+    "autoAccount": "自动选择 MiniCPM vLLM 账号",
+    "tiles": {
+      "model": "模型",
+      "endpoint": "端点",
+      "safeContext": "安全上下文"
+    },
+    "settings": {
+      "enabled": {
+        "title": "启用常驻管家",
+        "description": "关闭后，输入润色、步骤解释和轻量 UI 控制都不会使用 MiniCPM。"
+      },
+      "account": {
+        "title": "vLLM MiniCPM 账号",
+        "description": "复用 KeyVault 里的 vllm_api 账号，不单独创建 credential store。"
+      },
+      "model": {
+        "title": "模型 ID",
+        "description": "Docker vLLM MiniCPM5-1B 默认使用 openbmb/MiniCPM5-1B。"
+      },
+      "context": {
+        "title": "上下文安全预算",
+        "description": "4GB GPU 按 10000 token 保守预算处理，不相信理论 32k 上限。"
+      }
+    },
+    "features": {
+      "promptPolish": {
+        "title": "输入内容润色",
+        "description": "手动点击输入框润色按钮时，先用 MiniCPM 整理要发给强代码模型的指令。"
+      },
+      "stepExplain": {
+        "title": "Agent 步骤解释",
+        "description": "在 session replay 里，为当前步骤生成 1-2 句简短中文解释。"
+      },
+      "uiControl": {
+        "title": "轻量 ADE/UI 控制",
+        "description": "MiniCPM 只能把请求识别成严格白名单里的本地 action。"
+      }
+    },
+    "health": {
+      "title": "健康检查",
+      "idle": "检测 /v1/models，并发送一次小型 chat 请求。",
+      "checking": "正在检查本地 vLLM MiniCPM 服务...",
+      "checkButton": "检查连接",
+      "configureFirst": "需要先配置一个 vLLM MiniCPM 账号。",
+      "connectedTo": "已连接到 {{baseUrl}}",
+      "failed": "MiniCPM 健康检查失败。"
     }
   }
 }

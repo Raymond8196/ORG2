@@ -491,6 +491,114 @@ export const UpdateKeyHealthInput = z.object({
   modelContextLengths: ModelContextLengthsSchema.nullable().optional(),
 });
 
+export const PromptPolishRequestSchema = z.object({
+  text: z.string(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const PromptPolishInput = z.object({
+  request: PromptPolishRequestSchema,
+});
+
+export const PromptPolishResponseSchema = z.object({
+  polishedText: z.string(),
+  model: z.string(),
+  accountId: z.string(),
+});
+
+export const SessionStepExplainRequestSchema = z.object({
+  eventId: z.string(),
+  functionName: z.string().nullable().optional(),
+  actionType: z.string().nullable().optional(),
+  displayText: z.string().nullable().optional(),
+  displayStatus: z.string().nullable().optional(),
+  displayVariant: z.string().nullable().optional(),
+  source: z.string().nullable().optional(),
+  filePath: z.string().nullable().optional(),
+  command: z.string().nullable().optional(),
+  args: z.unknown().nullable().optional(),
+  result: z.unknown().nullable().optional(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const SessionStepExplainInput = z.object({
+  request: SessionStepExplainRequestSchema,
+});
+
+export const SessionStepExplainResponseSchema = z.object({
+  explanation: z.string(),
+  model: z.string(),
+  accountId: z.string(),
+});
+
+export const HousekeeperHealthCheckRequestSchema = z.object({
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const HousekeeperHealthCheckInput = z.object({
+  request: HousekeeperHealthCheckRequestSchema,
+});
+
+export const HousekeeperHealthCheckResponseSchema = z.object({
+  ok: z.boolean(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  baseUrl: z.string().nullable().optional(),
+  maxModelLen: z.number().int().positive().nullable().optional(),
+  contextLimitTokens: z.number().int().positive(),
+  error: z.string().nullable().optional(),
+});
+
+export const HousekeeperTokenBenchmarkRequestSchema = z.object({
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const HousekeeperTokenBenchmarkInput = z.object({
+  request: HousekeeperTokenBenchmarkRequestSchema,
+});
+
+export const HousekeeperTokenBenchmarkResponseSchema = z.object({
+  accountId: z.string(),
+  model: z.string(),
+  baseUrl: z.string(),
+  elapsedMs: z.number().int().nonnegative(),
+  promptTokens: z.number().int().nonnegative().nullable().optional(),
+  completionTokens: z.number().int().nonnegative(),
+  totalTokens: z.number().int().nonnegative().nullable().optional(),
+  tokensPerSecond: z.number(),
+  sampleText: z.string(),
+});
+
+export const HousekeeperUiContextSchema = z.object({
+  route: z.string().nullable().optional(),
+  activePanel: z.string().nullable().optional(),
+});
+
+export const HousekeeperUiIntentRequestSchema = z.object({
+  text: z.string(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  allowedActionIds: z.array(z.string()).default([]),
+  uiContext: HousekeeperUiContextSchema.nullable().optional(),
+});
+
+export const HousekeeperUiIntentInput = z.object({
+  request: HousekeeperUiIntentRequestSchema,
+});
+
+export const HousekeeperUiIntentResponseSchema = z.object({
+  actionId: z.string().nullable(),
+  params: z.record(z.string(), z.unknown()),
+  confidence: z.number(),
+  reason: z.string().nullable().optional(),
+  model: z.string(),
+  accountId: z.string(),
+});
+
 export const GetEnvForAgentInput = z.object({
   agentType: ModelTypeSchema,
   keyId: z.string().nullable().optional(),
@@ -672,6 +780,33 @@ export type ModelVariantInfo = z.infer<typeof ModelVariantInfoSchema>;
 export type DefaultVariantInfo = z.infer<typeof DefaultVariantInfoSchema>;
 export type DetectedQuotaInfo = z.infer<typeof DetectedQuotaInfoSchema>;
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
+export type PromptPolishRequest = z.infer<typeof PromptPolishRequestSchema>;
+export type PromptPolishResponse = z.infer<typeof PromptPolishResponseSchema>;
+export type SessionStepExplainRequest = z.infer<
+  typeof SessionStepExplainRequestSchema
+>;
+export type SessionStepExplainResponse = z.infer<
+  typeof SessionStepExplainResponseSchema
+>;
+export type HousekeeperHealthCheckRequest = z.infer<
+  typeof HousekeeperHealthCheckRequestSchema
+>;
+export type HousekeeperHealthCheckResponse = z.infer<
+  typeof HousekeeperHealthCheckResponseSchema
+>;
+export type HousekeeperTokenBenchmarkRequest = z.infer<
+  typeof HousekeeperTokenBenchmarkRequestSchema
+>;
+export type HousekeeperTokenBenchmarkResponse = z.infer<
+  typeof HousekeeperTokenBenchmarkResponseSchema
+>;
+export type HousekeeperUiContext = z.infer<typeof HousekeeperUiContextSchema>;
+export type HousekeeperUiIntentRequest = z.infer<
+  typeof HousekeeperUiIntentRequestSchema
+>;
+export type HousekeeperUiIntentResponse = z.infer<
+  typeof HousekeeperUiIntentResponseSchema
+>;
 export type CursorNativeOauthStartResponse = z.infer<
   typeof CursorNativeOauthStartResponseSchema
 >;
