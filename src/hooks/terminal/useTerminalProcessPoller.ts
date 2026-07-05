@@ -1,13 +1,16 @@
 /**
  * useTerminalProcessPoller
  *
- * Polls the Rust backend for the foreground process and live CWD
- * of the currently active terminal session. Updates are written
- * to the terminal session atoms so the sidebar, tab title, and
- * breadcrumb can reflect what's actually running.
+ * Refreshes the foreground process and live CWD for the currently active
+ * terminal session. Updates are written to the terminal session atoms so the
+ * sidebar, tab title, and breadcrumb can reflect what's actually running.
  *
- * Only polls the *active* terminal to keep IPC overhead minimal.
- * Polling is paused when:
+ * This is intentionally event-driven, not interval-based. Foreground process
+ * inspection is display metadata only and should run when terminal activity or
+ * visibility changes, not as a global heartbeat.
+ *
+ * Refreshing is paused when:
+ * - The terminal tree is hidden
  * - No sessions exist
  * - The active session is read-only (agent terminal)
  * - The active session doesn't have a PID yet
@@ -21,7 +24,7 @@ import {
 import { invokeTauri, isTauriReady } from "@src/util/platform/tauri/init";
 import { toBackendPtySessionId } from "@src/util/ui/terminal/ptySessionId";
 
-const POLL_INTERVAL_MS = 2000;
+const ACTIVITY_REFRESH_DELAY_MS = 350;
 
 interface ForegroundProcessInfo {
   process_name: string | null;
@@ -31,6 +34,8 @@ interface ForegroundProcessInfo {
 
 interface UseTerminalProcessPollerOptions {
   activeSession: TerminalSession | undefined;
+  enabled: boolean;
+  refreshSignal: number;
   updateSessionInfo: (
     sessionId: string,
     info: Partial<
@@ -65,6 +70,8 @@ function deriveAgentStatus(
 
 export function useTerminalProcessPoller({
   activeSession,
+  enabled,
+  refreshSignal,
   updateSessionInfo,
 }: UseTerminalProcessPollerOptions): void {
   const prevProcessNameRef = useRef<string | undefined>(undefined);
@@ -78,7 +85,13 @@ export function useTerminalProcessPoller({
   const sessionReadOnly = activeSession?.readOnly;
 
   const poll = useCallback(async () => {
-    if (!isTauriReady() || !sessionPid || sessionReadOnly || !sessionId) {
+    if (
+      !enabled ||
+      !isTauriReady() ||
+      !sessionPid ||
+      sessionReadOnly ||
+      !sessionId
+    ) {
       return;
     }
 
@@ -111,6 +124,7 @@ export function useTerminalProcessPoller({
     }
   }, [
     activeSession,
+    enabled,
     sessionId,
     sessionPid,
     sessionReadOnly,
@@ -118,18 +132,16 @@ export function useTerminalProcessPoller({
   ]);
 
   useEffect(() => {
-    if (!sessionPid || sessionReadOnly) {
+    if (!enabled || !sessionPid || sessionReadOnly) {
       prevProcessNameRef.current = undefined;
       prevLiveCwdRef.current = undefined;
       prevAgentStatusRef.current = undefined;
       return;
     }
 
-    poll();
-    const interval = setInterval(poll, POLL_INTERVAL_MS);
-
+    const timeoutId = window.setTimeout(poll, ACTIVITY_REFRESH_DELAY_MS);
     return () => {
-      clearInterval(interval);
+      window.clearTimeout(timeoutId);
     };
-  }, [sessionPid, sessionReadOnly, poll]);
+  }, [enabled, sessionId, sessionPid, sessionReadOnly, refreshSignal, poll]);
 }

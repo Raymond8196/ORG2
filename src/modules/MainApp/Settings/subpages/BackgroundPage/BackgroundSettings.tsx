@@ -26,7 +26,7 @@ import {
   MIN_SIDEBAR_OPACITY,
 } from "@src/store/ui/backgroundConfigAtom";
 
-import { AnimationSection, ColorSection, ImageSection } from "./components";
+import { ColorSection, ImageSection } from "./components";
 import { useBackgroundSettings } from "./hooks";
 import {
   BACKGROUND_CONTENT_SOURCE,
@@ -48,7 +48,6 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
     appearanceModeOptions,
     globalThemeId,
     themeOptions,
-    isDarkTheme,
     isOptimizing,
     images,
     storageInfo,
@@ -57,8 +56,6 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
     handleBack,
     handleImageSelect,
     handleColorSelect,
-    handleAnimationSelect,
-    handleAnimationClear,
     handleSelectCustomPaletteHex,
     handleAddCustomPaletteHex,
     handleRemoveCustomPaletteHex,
@@ -69,7 +66,6 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
     handleDeleteCustomImage,
     handleAppearanceModeChange,
     handleThemePresetChange,
-    handleMatrixCharSetChange,
   } = useBackgroundSettings();
 
   const initialBackgroundSource: BackgroundContentSource =
@@ -85,12 +81,9 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
   const handleBackgroundSourceChange = useCallback(
     (value: string | number | (string | number)[]) => {
       const next = String(value) as BackgroundContentSource;
-      if (next === BACKGROUND_CONTENT_SOURCE.IMAGES) {
-        handleAnimationClear();
-      }
       setBackgroundContentSource(next);
     },
-    [handleAnimationClear]
+    []
   );
 
   const showAppearanceChrome = !embedded;
@@ -142,24 +135,14 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
         </SectionRow>
 
         {backgroundContentSource === BACKGROUND_CONTENT_SOURCE.COLORS && (
-          <>
-            <ColorSection
-              config={config}
-              translationNamespace={translationNamespace}
-              onColorSelect={handleColorSelect}
-              onSelectCustomHex={handleSelectCustomPaletteHex}
-              onAddCustomHex={handleAddCustomPaletteHex}
-              onRemoveCustomHex={handleRemoveCustomPaletteHex}
-            />
-            <AnimationSection
-              config={config}
-              isDarkTheme={isDarkTheme}
-              translationNamespace={translationNamespace}
-              onAnimationSelect={handleAnimationSelect}
-              onAnimationClear={handleAnimationClear}
-              onMatrixCharSetChange={handleMatrixCharSetChange}
-            />
-          </>
+          <ColorSection
+            config={config}
+            translationNamespace={translationNamespace}
+            onColorSelect={handleColorSelect}
+            onSelectCustomHex={handleSelectCustomPaletteHex}
+            onAddCustomHex={handleAddCustomPaletteHex}
+            onRemoveCustomHex={handleRemoveCustomPaletteHex}
+          />
         )}
 
         {backgroundContentSource === BACKGROUND_CONTENT_SOURCE.IMAGES && (

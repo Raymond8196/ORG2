@@ -50,7 +50,7 @@ import { swapThemeCss } from "@src/util/ui/theme/swapThemeCss";
 import { showThemeTransitionCover } from "@src/util/ui/theme/themeTransitionCover";
 
 import { MAX_CUSTOM_BACKGROUND_COLORS } from "../config";
-import type { MatrixCharSet, StorageInfo } from "../types";
+import type { StorageInfo } from "../types";
 import { normalizeHexColor } from "../utils";
 import { useBackgroundImageHandlers } from "./useBackgroundImageHandlers";
 
@@ -72,8 +72,6 @@ export interface UseBackgroundSettingsReturn {
   handleBack: () => void;
   handleImageSelect: (imageUrl: string, imageId?: string) => void;
   handleColorSelect: (presetId: string) => void;
-  handleAnimationSelect: (animationId: string) => void;
-  handleAnimationClear: () => void;
   handleSelectCustomPaletteHex: (hex: string) => void;
   handleAddCustomPaletteHex: (hex: string) => void;
   handleRemoveCustomPaletteHex: (hex: string, event: React.MouseEvent) => void;
@@ -91,7 +89,6 @@ export interface UseBackgroundSettingsReturn {
   handleThemePresetChange: (
     value: string | number | (string | number)[]
   ) => void;
-  handleMatrixCharSetChange: (charSet: MatrixCharSet) => void;
 }
 
 export function useBackgroundSettings(): UseBackgroundSettingsReturn {
@@ -283,27 +280,6 @@ export function useBackgroundSettings(): UseBackgroundSettingsReturn {
     [config, setConfigWithUndo]
   );
 
-  const handleAnimationSelect = useCallback(
-    (animationId: string) => {
-      const newAnimation =
-        config.animation === animationId ? undefined : animationId;
-      setConfigWithUndo({
-        ...config,
-        animation: newAnimation,
-        glass: undefined,
-      });
-    },
-    [config, setConfigWithUndo]
-  );
-
-  const handleAnimationClear = useCallback(() => {
-    if (!config.animation) return;
-    setConfigWithUndo({
-      ...config,
-      animation: undefined,
-    });
-  }, [config, setConfigWithUndo]);
-
   const handleSelectCustomPaletteHex = useCallback(
     (hex: string) => {
       const normalized = normalizeHexColor(hex);
@@ -458,16 +434,6 @@ export function useBackgroundSettings(): UseBackgroundSettingsReturn {
     [applyThemeChange]
   );
 
-  const handleMatrixCharSetChange = useCallback(
-    (charSet: MatrixCharSet) => {
-      setConfigWithUndo({
-        ...config,
-        matrixCharSet: charSet,
-      });
-    },
-    [config, setConfigWithUndo]
-  );
-
   return {
     // State
     config,
@@ -484,8 +450,6 @@ export function useBackgroundSettings(): UseBackgroundSettingsReturn {
     handleBack,
     handleImageSelect,
     handleColorSelect,
-    handleAnimationSelect,
-    handleAnimationClear,
     handleSelectCustomPaletteHex,
     handleAddCustomPaletteHex,
     handleRemoveCustomPaletteHex,
@@ -496,6 +460,5 @@ export function useBackgroundSettings(): UseBackgroundSettingsReturn {
     handleDeleteCustomImage,
     handleAppearanceModeChange,
     handleThemePresetChange,
-    handleMatrixCharSetChange,
   };
 }

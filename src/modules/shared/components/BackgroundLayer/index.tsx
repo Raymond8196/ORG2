@@ -1,7 +1,7 @@
 /**
  * Background Layer Component
  *
- * Renders the background image with blur effects and optional animation overlays
+ * Renders the background image with blur effects
  * Extracted from index.tsx background rendering logic
  *
  * Features:
@@ -9,7 +9,6 @@
  * - Smooth transitions for blur and transform changes
  * - Trusts cached images immediately (no redundant Image() preload)
  * - Only preloads truly new/uncached images (e.g., user just selected a new background)
- * - Supports animation overlays (Matrix, Particles, etc.)
  */
 import React, { useEffect, useRef, useState } from "react";
 
@@ -20,15 +19,12 @@ import {
 } from "@src/util/core/init/backgroundInit";
 import { isWindows } from "@src/util/platform/tauri";
 
-import { AnimationComponents } from "./animations";
-
 const log = createLogger("BackgroundLayer");
 
 interface BackgroundLayerProps {
   image: string | null;
   blurAmount: number;
   backgroundColor?: string;
-  animation?: string;
   glass?: "regular" | "medium" | "thick";
 }
 
@@ -36,7 +32,6 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
   image,
   blurAmount,
   backgroundColor,
-  animation,
   glass,
 }) => {
   const [displayedImage, setDisplayedImage] = useState<string | null>(() => {
@@ -80,9 +75,6 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
 
   // If backgroundColor is set and no image, use solid color
   const useColorBackground = backgroundColor && !displayedImage;
-
-  // Get animation component if animation is selected
-  const AnimationComponent = animation ? AnimationComponents[animation] : null;
 
   if (isWindows()) {
     return (
@@ -129,8 +121,6 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
           willChange: "transform",
         }}
       />
-      {/* Animation overlay layer */}
-      {AnimationComponent && <AnimationComponent />}
     </>
   );
 };
