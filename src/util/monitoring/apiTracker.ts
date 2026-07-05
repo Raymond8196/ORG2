@@ -349,7 +349,7 @@ function recordTimerFire(
   delayMs: number | undefined,
   source: ReturnType<typeof captureTimerSource>
 ): void {
-  if (!trackingEnabled) return;
+  if (!trackingEnabled || !source.fileInfo.filePath) return;
 
   addTimerEvent({
     id,

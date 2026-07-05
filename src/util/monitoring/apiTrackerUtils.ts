@@ -53,6 +53,7 @@ export const INTERNAL_FUNCTIONS = new Set([
   "useAtom",
   "useSetAtom",
   "renderWithHooks",
+  "react_stack_bottom_frame",
   "mountIndeterminateComponent",
   "beginWork$1",
   "performUnitOfWork",
