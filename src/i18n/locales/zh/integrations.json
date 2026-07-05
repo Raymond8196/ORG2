@@ -2548,7 +2548,7 @@
     "eyebrow": "MiniCPM 常驻管家",
     "title": "常驻管家",
     "description": "本地 MiniCPM 只处理输入润色、短步骤解释和轻量 UI 控制；编码任务和复杂 ADE 配置仍然交给主 Agent 模型。",
-    "addAccount": "添加 MiniCPM vLLM 账号",
+    "addModel": "添加模型",
     "autoAccount": "自动选择 MiniCPM vLLM 账号",
     "tiles": {
       "model": "模型",
@@ -2594,7 +2594,24 @@
       "checkButton": "检查连接",
       "configureFirst": "需要先配置一个 vLLM MiniCPM 账号。",
       "connectedTo": "已连接到 {{baseUrl}}",
-      "failed": "MiniCPM 健康检查失败。"
+      "failed": "MiniCPM 健康检查失败。",
+      "status": "尚未检查"
+    },
+    "sections": {
+      "configuration": "配置",
+      "features": "功能",
+      "diagnostics": "诊断"
+    },
+    "benchmark": {
+      "title": "MiniCPM 输出速度",
+      "idle": "发送一段轻量测试文本，按实际完成耗时计算输出 token/s。",
+      "running": "正在请求本地 vLLM MiniCPM 并统计输出速度...",
+      "ready": "输出 {{tokens}} tokens，用时 {{seconds}}s",
+      "status": "尚未测试",
+      "checkButton": "测试速度",
+      "tokensPerSecond": "输出速度：{{value}} tokens/s",
+      "completionTokens": "输出 tokens：{{value}}",
+      "elapsed": "总耗时：{{value}}s"
     }
   }
 }

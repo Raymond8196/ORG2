@@ -258,7 +258,6 @@ export function useIntegrationsPage() {
           loading: accountsHook.loading,
         };
       case "myRoles":
-      case "housekeeper":
         return {};
       case "databases":
         return {

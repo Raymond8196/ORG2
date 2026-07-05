@@ -2538,5 +2538,27 @@
       "cpu_only": "CPU 전용",
       "no_fit": "권장하지 않음"
     }
+  },
+  "housekeeper": {
+    "addModel": "모델 추가",
+    "sections": {
+      "configuration": "Configuration",
+      "features": "Features",
+      "diagnostics": "Diagnostics"
+    },
+    "health": {
+      "status": "Not checked"
+    },
+    "benchmark": {
+      "title": "MiniCPM output speed",
+      "idle": "Sends a lightweight test prompt and calculates output token/s from the actual completion time.",
+      "running": "Requesting local vLLM MiniCPM and measuring output speed...",
+      "ready": "Output {{tokens}} tokens in {{seconds}}s",
+      "status": "Not tested",
+      "checkButton": "Test speed",
+      "tokensPerSecond": "Output speed: {{value}} tokens/s",
+      "completionTokens": "Output tokens: {{value}}",
+      "elapsed": "Total time: {{value}}s"
+    }
   }
 }

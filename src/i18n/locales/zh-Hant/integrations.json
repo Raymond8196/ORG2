@@ -2544,7 +2544,7 @@
     "eyebrow": "MiniCPM 常駐管家",
     "title": "常駐管家",
     "description": "本機 MiniCPM 只處理輸入潤飾、短步驟解釋和輕量 UI 控制；編碼任務和複雜 ADE 配置仍然交給主 Agent 模型。",
-    "addAccount": "新增 MiniCPM vLLM 帳號",
+    "addModel": "添加模型",
     "autoAccount": "自動選擇 MiniCPM vLLM 帳號",
     "tiles": {
       "model": "模型",
@@ -2590,7 +2590,24 @@
       "checkButton": "檢查連線",
       "configureFirst": "需要先配置一個 vLLM MiniCPM 帳號。",
       "connectedTo": "已連線到 {{baseUrl}}",
-      "failed": "MiniCPM 健康檢查失敗。"
+      "failed": "MiniCPM 健康檢查失敗。",
+      "status": "尚未檢查"
+    },
+    "sections": {
+      "configuration": "配置",
+      "features": "功能",
+      "diagnostics": "診斷"
+    },
+    "benchmark": {
+      "title": "MiniCPM 輸出速度",
+      "idle": "發送一段輕量測試文本，按實際完成耗時計算輸出 token/s。",
+      "running": "正在請求本機 vLLM MiniCPM 並統計輸出速度...",
+      "ready": "輸出 {{tokens}} tokens，用時 {{seconds}}s",
+      "status": "尚未測試",
+      "checkButton": "測試速度",
+      "tokensPerSecond": "輸出速度：{{value}} tokens/s",
+      "completionTokens": "輸出 tokens：{{value}}",
+      "elapsed": "總耗時：{{value}}s"
     }
   }
 }

@@ -1,16 +1,3 @@
-import {
-  Activity,
-  Bot,
-  CheckCircle2,
-  Clock3,
-  ExternalLink,
-  Gauge,
-  Plus,
-  RefreshCcw,
-  ShieldCheck,
-  Sparkles,
-  XCircle,
-} from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +12,7 @@ import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select/types";
 import Switch from "@src/components/Switch";
+import TabPill from "@src/components/TabPill";
 import {
   WIZARD_IDS,
   buildIntegrationsPath,
@@ -35,6 +23,15 @@ import {
   HOUSEKEEPER_DEFAULT_MODEL,
   useHousekeeperConfig,
 } from "@src/hooks/housekeeper";
+import {
+  SECTION_ACTION_GAP_CLASSES,
+  SECTION_CONTROL_STYLE,
+  SECTION_VALUE_SMALL_MUTED_CLASSES,
+  SECTION_VALUE_SMALL_SECONDARY_CLASSES,
+  SECTION_VALUE_TEXT_CLASSES,
+  SectionContainer,
+  SectionRow,
+} from "@src/modules/shared/layouts/SectionLayout";
 import {
   DETAIL_PANEL_TOKENS,
   DetailPanelContainer,
@@ -58,45 +55,27 @@ type BenchmarkState =
   | { status: "ready"; result: HousekeeperTokenBenchmarkResponse }
   | { status: "error"; detail: string };
 
-function SettingRow({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
+function SummaryValue({ value }: { value: React.ReactNode }) {
   return (
-    <div className="flex min-h-12 items-center justify-between gap-4 border-b border-border-2 py-3 last:border-b-0">
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-text-1">{title}</div>
-        <div className="mt-1 text-xs leading-5 text-text-3">{description}</div>
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
+    <span className={`${SECTION_VALUE_TEXT_CLASSES} min-w-0 truncate`}>
+      {value}
+    </span>
   );
 }
 
-function InfoTile({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-}) {
+function StatusValue({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-w-0 rounded-md border border-border-2 bg-fill-1 px-3 py-3">
-      <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-text-3">
-        {icon}
-        {label}
-      </div>
-      <div className="truncate text-sm font-medium text-text-1">{value}</div>
-    </div>
+    <span className={`${SECTION_VALUE_SMALL_SECONDARY_CLASSES} min-w-0`}>
+      {children}
+    </span>
   );
 }
+
+function formatDescription(value: string): string {
+  return value.replace(/[.。]+$/u, "");
+}
+
+const HOUSEKEEPER_TAB = "housekeeper";
 
 export const HousekeeperCategoryView: React.FC = () => {
   const { t } = useTranslation("integrations");
@@ -106,6 +85,15 @@ export const HousekeeperCategoryView: React.FC = () => {
   const [benchmark, setBenchmark] = useState<BenchmarkState>({
     status: "idle",
   });
+  const tabs = useMemo(
+    () => [
+      {
+        key: HOUSEKEEPER_TAB,
+        label: t("settings:coreSidebar.items.housekeeper"),
+      },
+    ],
+    [t]
+  );
 
   const accountOptions = useMemo<SelectOption[]>(
     () => [
@@ -168,7 +156,7 @@ export const HousekeeperCategoryView: React.FC = () => {
     if (!config.resolvedAccountId) {
       setBenchmark({
         status: "error",
-        detail: "需要先配置一个 vLLM MiniCPM 账号。",
+        detail: t("housekeeper.health.configureFirst"),
       });
       return;
     }
@@ -188,38 +176,236 @@ export const HousekeeperCategoryView: React.FC = () => {
     }
   };
 
-  const healthIcon =
-    health.status === "checking" ? (
-      <RefreshCcw size={14} className="animate-spin text-primary-6" />
-    ) : health.status === "ready" ? (
-      <CheckCircle2 size={14} className="text-success-6" />
-    ) : health.status === "error" ? (
-      <XCircle size={14} className="text-danger-6" />
-    ) : (
-      <Activity size={14} className="text-text-3" />
-    );
   const checkedHealth =
     health.status === "ready" || health.status === "error" ? health : null;
-  const benchmarkIcon =
-    benchmark.status === "running" ? (
-      <RefreshCcw size={14} className="animate-spin text-primary-6" />
-    ) : benchmark.status === "ready" ? (
-      <Gauge size={14} className="text-success-6" />
-    ) : benchmark.status === "error" ? (
-      <XCircle size={14} className="text-danger-6" />
-    ) : (
-      <Gauge size={14} className="text-text-3" />
-    );
   const benchmarkSummary =
     benchmark.status === "idle"
-      ? "发送一段轻量测试文本，按实际完成耗时计算输出 token/s。"
+      ? t("housekeeper.benchmark.idle")
       : benchmark.status === "running"
-        ? "正在请求本地 vLLM MiniCPM 并统计输出速度..."
+        ? t("housekeeper.benchmark.running")
         : benchmark.status === "ready"
-          ? `输出 ${benchmark.result.completionTokens.toLocaleString()} tokens，用时 ${(
-              benchmark.result.elapsedMs / 1000
-            ).toFixed(2)}s`
+          ? t("housekeeper.benchmark.ready", {
+              tokens: benchmark.result.completionTokens.toLocaleString(),
+              seconds: (benchmark.result.elapsedMs / 1000).toFixed(2),
+            })
           : benchmark.detail;
+
+  const content = (
+    <>
+      <SectionContainer>
+        <SectionRow
+          label={t("housekeeper.title")}
+          description={formatDescription(t("housekeeper.description"))}
+          align="start"
+        >
+          <Button variant="secondary" onClick={openAddMiniCPMAccount}>
+            {t("housekeeper.addModel")}
+          </Button>
+        </SectionRow>
+        <SectionRow label={t("housekeeper.tiles.model")} indent>
+          <SummaryValue
+            value={config.resolvedModel || HOUSEKEEPER_DEFAULT_MODEL}
+          />
+        </SectionRow>
+        <SectionRow label={t("housekeeper.tiles.endpoint")} indent>
+          <SummaryValue
+            value={
+              config.resolvedAccount?.baseUrl ?? HOUSEKEEPER_DEFAULT_BASE_URL
+            }
+          />
+        </SectionRow>
+        <SectionRow label={t("housekeeper.tiles.safeContext")} indent>
+          <SummaryValue
+            value={`${config.contextLimitTokens.toLocaleString()} tokens`}
+          />
+        </SectionRow>
+      </SectionContainer>
+
+      <SectionContainer title={t("housekeeper.sections.configuration")}>
+        <SectionRow
+          label={t("housekeeper.settings.enabled.title")}
+          description={formatDescription(
+            t("housekeeper.settings.enabled.description")
+          )}
+        >
+          <Switch
+            checked={config.enabled}
+            onChange={(checked) => config.setEnabled(checked)}
+          />
+        </SectionRow>
+        <SectionRow
+          label={t("housekeeper.settings.account.title")}
+          description={formatDescription(
+            t("housekeeper.settings.account.description")
+          )}
+        >
+          <Select
+            value={config.accountId ?? "__auto__"}
+            options={accountOptions}
+            size="default"
+            style={SECTION_CONTROL_STYLE}
+            dropdownMinWidth={280}
+            onChange={(value) =>
+              config.setAccountId(value === "__auto__" ? null : String(value))
+            }
+          />
+        </SectionRow>
+        <SectionRow
+          label={t("housekeeper.settings.model.title")}
+          description={formatDescription(
+            t("housekeeper.settings.model.description")
+          )}
+        >
+          <Input
+            value={config.model}
+            size="default"
+            style={SECTION_CONTROL_STYLE}
+            placeholder={HOUSEKEEPER_DEFAULT_MODEL}
+            onChange={(value) =>
+              config.setModel(value.trim() || HOUSEKEEPER_DEFAULT_MODEL)
+            }
+          />
+        </SectionRow>
+        <SectionRow
+          label={t("housekeeper.settings.context.title")}
+          description={formatDescription(
+            t("housekeeper.settings.context.description")
+          )}
+        >
+          <Input
+            type="number"
+            value={String(config.contextLimitTokens)}
+            size="default"
+            style={SECTION_CONTROL_STYLE}
+            min={1024}
+            max={32768}
+            onChange={(value) => {
+              const next = Number(value);
+              if (Number.isFinite(next)) {
+                config.setContextLimitTokens(next);
+              }
+            }}
+          />
+        </SectionRow>
+      </SectionContainer>
+
+      <SectionContainer title={t("housekeeper.sections.features")}>
+        <SectionRow
+          label={t("housekeeper.features.promptPolish.title")}
+          description={formatDescription(
+            t("housekeeper.features.promptPolish.description")
+          )}
+        >
+          <Switch
+            checked={config.features.promptPolish}
+            disabled={!config.enabled}
+            onChange={(checked) => config.setFeatures.promptPolish(checked)}
+          />
+        </SectionRow>
+        <SectionRow
+          label={t("housekeeper.features.stepExplain.title")}
+          description={formatDescription(
+            t("housekeeper.features.stepExplain.description")
+          )}
+        >
+          <Switch
+            checked={config.features.stepExplain}
+            disabled={!config.enabled}
+            onChange={(checked) => config.setFeatures.stepExplain(checked)}
+          />
+        </SectionRow>
+        <SectionRow
+          label={t("housekeeper.features.uiControl.title")}
+          description={formatDescription(
+            t("housekeeper.features.uiControl.description")
+          )}
+        >
+          <Switch
+            checked={config.features.uiControl}
+            disabled={!config.enabled}
+            onChange={(checked) => config.setFeatures.uiControl(checked)}
+          />
+        </SectionRow>
+      </SectionContainer>
+
+      <SectionContainer title={t("housekeeper.sections.diagnostics")}>
+        <SectionRow
+          label={t("housekeeper.health.title")}
+          description={
+            health.status === "idle"
+              ? formatDescription(t("housekeeper.health.idle"))
+              : health.status === "checking"
+                ? formatDescription(t("housekeeper.health.checking"))
+                : formatDescription(health.detail)
+          }
+          align="start"
+        >
+          <div className={SECTION_ACTION_GAP_CLASSES}>
+            <StatusValue>
+              {checkedHealth?.maxModelLen
+                ? `max_model_len=${checkedHealth.maxModelLen.toLocaleString()}`
+                : t("housekeeper.health.status")}
+            </StatusValue>
+            <Button
+              variant="secondary"
+              loading={health.status === "checking"}
+              onClick={runHealthCheck}
+            >
+              {t("housekeeper.health.checkButton")}
+            </Button>
+          </div>
+        </SectionRow>
+        <SectionRow
+          label={t("housekeeper.benchmark.title")}
+          description={formatDescription(benchmarkSummary)}
+          align="start"
+        >
+          <div className={SECTION_ACTION_GAP_CLASSES}>
+            <StatusValue>
+              {benchmark.status === "ready"
+                ? `${benchmark.result.tokensPerSecond.toFixed(1)} tokens/s`
+                : t("housekeeper.benchmark.status")}
+            </StatusValue>
+            <Button
+              variant="secondary"
+              loading={benchmark.status === "running"}
+              onClick={runTokenBenchmark}
+            >
+              {t("housekeeper.benchmark.checkButton")}
+            </Button>
+          </div>
+        </SectionRow>
+        {benchmark.status === "ready" ? (
+          <SectionRow indent showHeader={false}>
+            <div className="grid gap-2 @[640px]:grid-cols-3">
+              <div className={SECTION_VALUE_SMALL_SECONDARY_CLASSES}>
+                {t("housekeeper.benchmark.tokensPerSecond", {
+                  value: benchmark.result.tokensPerSecond.toFixed(1),
+                })}
+              </div>
+              <div className={SECTION_VALUE_SMALL_SECONDARY_CLASSES}>
+                {t("housekeeper.benchmark.completionTokens", {
+                  value: benchmark.result.completionTokens.toLocaleString(),
+                })}
+              </div>
+              <div className={SECTION_VALUE_SMALL_SECONDARY_CLASSES}>
+                {t("housekeeper.benchmark.elapsed", {
+                  value: (benchmark.result.elapsedMs / 1000).toFixed(2),
+                })}
+              </div>
+            </div>
+          </SectionRow>
+        ) : null}
+        {benchmark.status === "ready" && benchmark.result.sampleText ? (
+          <SectionRow indent showHeader={false}>
+            <div className={SECTION_VALUE_SMALL_MUTED_CLASSES}>
+              {benchmark.result.sampleText}
+            </div>
+          </SectionRow>
+        ) : null}
+      </SectionContainer>
+    </>
+  );
 
   return (
     <DetailPanelContainer>
@@ -227,240 +413,22 @@ export const HousekeeperCategoryView: React.FC = () => {
         noPanelHeader
         contentPadding
         className={DETAIL_PANEL_TOKENS.headerWidth}
+        tabs={
+          <TabPill
+            tabs={tabs}
+            activeTab={HOUSEKEEPER_TAB}
+            onChange={() => undefined}
+            variant="simple"
+            fillWidth={false}
+            size="large"
+          />
+        }
       />
       <ScrollFadeContainer
         className={`scroll-fade-at-top ${DETAIL_PANEL_TOKENS.scrollContentNoTop}`}
       >
         <div className={DETAIL_PANEL_TOKENS.contentWidthWithPaddingNoTop}>
-          <div className="flex flex-col gap-4">
-            <section className="border-b border-border-2 pb-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="mb-2 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-primary-6">
-                    <Sparkles size={13} />
-                    {t("housekeeper.eyebrow")}
-                  </div>
-                  <h2 className="text-xl font-semibold leading-7 text-text-1">
-                    {t("housekeeper.title")}
-                  </h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-text-3">
-                    {t("housekeeper.description")}
-                  </p>
-                </div>
-                <Button
-                  variant="primary"
-                  icon={<Plus size={15} />}
-                  onClick={openAddMiniCPMAccount}
-                >
-                  {t("housekeeper.addAccount")}
-                </Button>
-              </div>
-            </section>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              <InfoTile
-                icon={<Bot size={13} />}
-                label={t("housekeeper.tiles.model")}
-                value={config.resolvedModel || HOUSEKEEPER_DEFAULT_MODEL}
-              />
-              <InfoTile
-                icon={<ExternalLink size={13} />}
-                label={t("housekeeper.tiles.endpoint")}
-                value={
-                  config.resolvedAccount?.baseUrl ??
-                  HOUSEKEEPER_DEFAULT_BASE_URL
-                }
-              />
-              <InfoTile
-                icon={<ShieldCheck size={13} />}
-                label={t("housekeeper.tiles.safeContext")}
-                value={`${config.contextLimitTokens.toLocaleString()} tokens`}
-              />
-            </div>
-
-            <section className="bg-fill-0 rounded-md border border-border-2 px-4">
-              <SettingRow
-                title={t("housekeeper.settings.enabled.title")}
-                description={t("housekeeper.settings.enabled.description")}
-              >
-                <Switch
-                  checked={config.enabled}
-                  onChange={(checked) => config.setEnabled(checked)}
-                />
-              </SettingRow>
-
-              <SettingRow
-                title={t("housekeeper.settings.account.title")}
-                description={t("housekeeper.settings.account.description")}
-              >
-                <Select
-                  value={config.accountId ?? "__auto__"}
-                  options={accountOptions}
-                  size="small"
-                  dropdownMinWidth={280}
-                  onChange={(value) =>
-                    config.setAccountId(
-                      value === "__auto__" ? null : String(value)
-                    )
-                  }
-                />
-              </SettingRow>
-
-              <SettingRow
-                title={t("housekeeper.settings.model.title")}
-                description={t("housekeeper.settings.model.description")}
-              >
-                <Input
-                  value={config.model}
-                  size="small"
-                  className="w-72"
-                  placeholder={HOUSEKEEPER_DEFAULT_MODEL}
-                  onChange={(value) =>
-                    config.setModel(value.trim() || HOUSEKEEPER_DEFAULT_MODEL)
-                  }
-                />
-              </SettingRow>
-
-              <SettingRow
-                title={t("housekeeper.settings.context.title")}
-                description={t("housekeeper.settings.context.description")}
-              >
-                <Input
-                  type="number"
-                  value={String(config.contextLimitTokens)}
-                  size="small"
-                  className="w-32"
-                  min={1024}
-                  max={32768}
-                  onChange={(value) => {
-                    const next = Number(value);
-                    if (Number.isFinite(next)) {
-                      config.setContextLimitTokens(next);
-                    }
-                  }}
-                />
-              </SettingRow>
-            </section>
-
-            <section className="bg-fill-0 rounded-md border border-border-2 px-4">
-              <SettingRow
-                title={t("housekeeper.features.promptPolish.title")}
-                description={t("housekeeper.features.promptPolish.description")}
-              >
-                <Switch
-                  checked={config.features.promptPolish}
-                  disabled={!config.enabled}
-                  onChange={(checked) =>
-                    config.setFeatures.promptPolish(checked)
-                  }
-                />
-              </SettingRow>
-              <SettingRow
-                title={t("housekeeper.features.stepExplain.title")}
-                description={t("housekeeper.features.stepExplain.description")}
-              >
-                <Switch
-                  checked={config.features.stepExplain}
-                  disabled={!config.enabled}
-                  onChange={(checked) =>
-                    config.setFeatures.stepExplain(checked)
-                  }
-                />
-              </SettingRow>
-              <SettingRow
-                title={t("housekeeper.features.uiControl.title")}
-                description={t("housekeeper.features.uiControl.description")}
-              >
-                <Switch
-                  checked={config.features.uiControl}
-                  disabled={!config.enabled}
-                  onChange={(checked) => config.setFeatures.uiControl(checked)}
-                />
-              </SettingRow>
-            </section>
-
-            <section className="bg-fill-0 rounded-md border border-border-2 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-sm font-medium text-text-1">
-                    {healthIcon}
-                    {t("housekeeper.health.title")}
-                  </div>
-                  <div className="mt-1 text-xs leading-5 text-text-3">
-                    {health.status === "idle"
-                      ? t("housekeeper.health.idle")
-                      : health.status === "checking"
-                        ? t("housekeeper.health.checking")
-                        : health.detail}
-                    {checkedHealth?.maxModelLen ? (
-                      <span className="ml-2">
-                        max_model_len=
-                        {checkedHealth.maxModelLen.toLocaleString()}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-                <Button
-                  variant="secondary"
-                  icon={<RefreshCcw size={15} />}
-                  loading={health.status === "checking"}
-                  onClick={runHealthCheck}
-                >
-                  {t("housekeeper.health.checkButton")}
-                </Button>
-              </div>
-            </section>
-
-            <section className="bg-fill-0 rounded-md border border-border-2 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-sm font-medium text-text-1">
-                    {benchmarkIcon}
-                    MiniCPM 输出速度
-                  </div>
-                  <div className="mt-1 text-xs leading-5 text-text-3">
-                    {benchmarkSummary}
-                  </div>
-                </div>
-                <Button
-                  variant="secondary"
-                  icon={<Gauge size={15} />}
-                  loading={benchmark.status === "running"}
-                  onClick={runTokenBenchmark}
-                >
-                  测试速度
-                </Button>
-              </div>
-
-              {benchmark.status === "ready" ? (
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
-                  <InfoTile
-                    icon={<Gauge size={13} />}
-                    label="输出速度"
-                    value={`${benchmark.result.tokensPerSecond.toFixed(
-                      1
-                    )} tokens/s`}
-                  />
-                  <InfoTile
-                    icon={<Activity size={13} />}
-                    label="输出 tokens"
-                    value={benchmark.result.completionTokens.toLocaleString()}
-                  />
-                  <InfoTile
-                    icon={<Clock3 size={13} />}
-                    label="总耗时"
-                    value={`${(benchmark.result.elapsedMs / 1000).toFixed(2)}s`}
-                  />
-                </div>
-              ) : null}
-
-              {benchmark.status === "ready" && benchmark.result.sampleText ? (
-                <div className="mt-3 rounded-md bg-fill-1 px-3 py-2 text-xs leading-5 text-text-3">
-                  {benchmark.result.sampleText}
-                </div>
-              ) : null}
-            </section>
-          </div>
+          <div className="flex flex-col gap-3">{content}</div>
         </div>
       </ScrollFadeContainer>
     </DetailPanelContainer>

@@ -175,9 +175,6 @@ const IntegrationsDetailPanel: React.FC<IntegrationsDetailPanelProps> = ({
         </DetailPanelContainer>
       );
 
-    case "housekeeper":
-      return <HousekeeperCategoryView />;
-
     case "devtools":
       return (
         <Suspense
@@ -227,6 +224,9 @@ const IntegrationsDetailPanel: React.FC<IntegrationsDetailPanelProps> = ({
           onClosePreview={onClosePreview}
         />
       );
+
+    case "housekeeper":
+      return <HousekeeperCategoryView />;
 
     case "connections":
       return (

@@ -2541,5 +2541,27 @@
       "cpu_only": "Chỉ CPU",
       "no_fit": "Không khuyến nghị"
     }
+  },
+  "housekeeper": {
+    "addModel": "Thêm mô hình",
+    "sections": {
+      "configuration": "Cấu hình",
+      "features": "Tính năng",
+      "diagnostics": "Chẩn đoán"
+    },
+    "health": {
+      "status": "Chưa kiểm tra"
+    },
+    "benchmark": {
+      "title": "Tốc độ đầu ra MiniCPM",
+      "idle": "Gửi một prompt thử nghiệm nhẹ và tính token/s đầu ra theo thời gian hoàn thành thực tế.",
+      "running": "Đang gọi vLLM MiniCPM cục bộ và đo tốc độ đầu ra...",
+      "ready": "Xuất {{tokens}} tokens trong {{seconds}}s",
+      "status": "Chưa thử nghiệm",
+      "checkButton": "Kiểm tra tốc độ",
+      "tokensPerSecond": "Tốc độ đầu ra: {{value}} tokens/s",
+      "completionTokens": "Tokens đầu ra: {{value}}",
+      "elapsed": "Tổng thời gian: {{value}}s"
+    }
   }
 }

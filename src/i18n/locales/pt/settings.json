@@ -63,6 +63,7 @@
       "connections": "Conexões",
       "git": "Git",
       "databases": "Bancos de dados",
+      "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
   },

@@ -2541,5 +2541,27 @@
       "cpu_only": "Только CPU",
       "no_fit": "Не рекомендуется"
     }
+  },
+  "housekeeper": {
+    "addModel": "Добавить модель",
+    "sections": {
+      "configuration": "Конфигурация",
+      "features": "Функции",
+      "diagnostics": "Диагностика"
+    },
+    "health": {
+      "status": "Не проверено"
+    },
+    "benchmark": {
+      "title": "Скорость вывода MiniCPM",
+      "idle": "Отправляет легкий тестовый prompt и вычисляет выходные token/s по фактическому времени.",
+      "running": "Запрос к локальному vLLM MiniCPM и измерение скорости вывода...",
+      "ready": "Выведено {{tokens}} tokens за {{seconds}}s",
+      "status": "Не тестировалось",
+      "checkButton": "Проверить скорость",
+      "tokensPerSecond": "Скорость вывода: {{value}} tokens/s",
+      "completionTokens": "Выходные tokens: {{value}}",
+      "elapsed": "Общее время: {{value}}s"
+    }
   }
 }

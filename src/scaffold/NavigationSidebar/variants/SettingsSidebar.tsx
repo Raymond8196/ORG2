@@ -94,7 +94,6 @@ function isAgentOrgsRoute(pathname: string): boolean {
 const SETTINGS_ROOT_INTEGRATION_KEYS: readonly IntegrationsCategorySegment[] = [
   "models",
   "myRoles",
-  "housekeeper",
   "rulesMemoryEvolution",
   "routines",
   "tools",
@@ -104,6 +103,7 @@ const SETTINGS_ROOT_INTEGRATION_KEYS: readonly IntegrationsCategorySegment[] = [
   "connections",
   "git",
   "databases",
+  "housekeeper",
 ];
 
 const SETTINGS_ROOT_LIST_SECTIONS: SettingsRootSectionConfig[] = [
@@ -114,7 +114,6 @@ const SETTINGS_ROOT_LIST_SECTIONS: SettingsRootSectionConfig[] = [
       AGENT_ORG_ROW_KEY,
       "models",
       "myRoles",
-      "housekeeper",
       "rulesMemoryEvolution",
       "routines",
     ],
@@ -127,7 +126,7 @@ const SETTINGS_ROOT_LIST_SECTIONS: SettingsRootSectionConfig[] = [
   {
     id: "connections",
     labelKey: "coreSidebar.groups.connections",
-    itemIds: ["connections", "git", "databases"],
+    itemIds: ["connections", "git", "databases", "housekeeper"],
   },
 ];
 
@@ -232,7 +231,6 @@ const SettingsRootBody: React.FC = () => {
               dataTestId: "settings-core-item-agent-orgs",
             };
           }
-
           const icon = getSegmentIcon(id);
           if (!icon) {
             throw new Error(

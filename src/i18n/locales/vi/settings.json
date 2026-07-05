@@ -63,6 +63,7 @@
       "connections": "Kết nối",
       "git": "Git",
       "databases": "Cơ sở dữ liệu",
+      "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
   },
