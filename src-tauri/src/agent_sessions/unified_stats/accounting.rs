@@ -237,6 +237,7 @@ pub fn query_session_heatmap(
         category: filter.and_then(|filter| filter.category.clone()),
         key_source: filter.and_then(|filter| filter.key_source.clone()),
         include_external_history: Some(false),
+        include_stats: Some(false),
         created_after_ms: Some(window_start_ms),
         created_before_ms: Some(window_end_ms),
         skip_orgtrack_upsert: true,
