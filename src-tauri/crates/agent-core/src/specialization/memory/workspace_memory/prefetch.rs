@@ -18,7 +18,10 @@ use tracing::{info, warn};
 
 use serde_json::Value;
 
-use super::prompt_sections::{MEMORY_DRIFT_CAVEAT, TRUSTING_RECALL, WHEN_TO_ACCESS};
+use super::prompt_sections::{
+    how_to_save_section, MEMORY_DRIFT_CAVEAT, SAVE_ON_EXPLICIT_REQUEST, TRUSTING_RECALL,
+    TYPES_SECTION, WHAT_NOT_TO_SAVE, WHEN_TO_ACCESS,
+};
 use super::{MemoryHeader, ENTRYPOINT_NAME};
 use crate::core::side_query::{self, SideQueryConfig};
 use crate::providers::traits::LLMProvider;
@@ -377,12 +380,19 @@ fn truncate_memory_to_file_budget(content: String) -> String {
 /// Build the workspace memory section for the system prompt.
 ///
 /// Includes:
-/// - The MEMORY.md index (if present)
+/// - The MEMORY.md index (or an explicit "currently empty" note)
 /// - Selected memory file contents
 /// - Freshness caveats for stale memories
 /// - WHEN_TO_ACCESS and TRUSTING_RECALL guidance sections
+/// - The save protocol (types, exclusions, two-step save) so the MAIN agent
+///   can honor "remember this" in-turn instead of depending on the gated
+///   post-turn extractor, and a fresh workspace can bootstrap memory at all
 ///
-/// Returns `None` if there are no memories and no MEMORY.md.
+/// Always returns `Some`: callers gate on workspace-memory enablement, not
+/// on content (mirrors Claude Code, which renders the full protocol even
+/// when MEMORY.md is empty). The output is byte-stable across turns for
+/// unchanged inputs — no counts or timestamps — to preserve provider
+/// prompt caches.
 pub fn build_memory_prompt_section(
     workspace: &Path,
     memories: &[RelevantMemory],
@@ -390,25 +400,33 @@ pub fn build_memory_prompt_section(
     let mem_dir = super::memory_dir(workspace);
     let index = super::load_memory_index(&mem_dir);
 
-    if index.is_empty() && memories.is_empty() {
-        return None;
-    }
-
     let mut sections = Vec::new();
 
     sections.push("# Workspace Memory".to_string());
     sections.push(String::new());
+    sections.push(format!(
+        "You have a persistent, file-based memory system at `{}`.",
+        mem_dir.display()
+    ));
+    sections.push(String::new());
     sections.push(MEMORY_DRIFT_CAVEAT.to_string());
 
-    // MEMORY.md index
-    if !index.is_empty() {
-        sections.push(String::new());
+    // MEMORY.md index. An empty index renders an explicit note (not an
+    // omitted section) so the agent knows the memory system exists and can
+    // bootstrap it via the save protocol below.
+    sections.push(String::new());
+    sections.push(format!(
+        "## Memory Index ({}/{})",
+        ENTRYPOINT_NAME,
+        mem_dir.display()
+    ));
+    sections.push(String::new());
+    if index.is_empty() {
         sections.push(format!(
-            "## Memory Index ({}/{})",
-            ENTRYPOINT_NAME,
-            mem_dir.display()
+            "Your {} is currently empty. When you save new memories, they will appear here.",
+            ENTRYPOINT_NAME
         ));
-        sections.push(String::new());
+    } else {
         sections.push(index);
     }
 
@@ -436,6 +454,17 @@ pub fn build_memory_prompt_section(
     sections.push(WHEN_TO_ACCESS.to_string());
     sections.push(String::new());
     sections.push(TRUSTING_RECALL.to_string());
+
+    // Save protocol — same shared pieces the extraction subagent uses, so
+    // the main agent saves in the identical on-disk format.
+    sections.push(String::new());
+    sections.push(SAVE_ON_EXPLICIT_REQUEST.to_string());
+    sections.push(String::new());
+    sections.push(TYPES_SECTION.to_string());
+    sections.push(String::new());
+    sections.push(WHAT_NOT_TO_SAVE.to_string());
+    sections.push(String::new());
+    sections.push(how_to_save_section());
 
     Some(sections.join("\n"))
 }
@@ -476,10 +505,30 @@ mod tests {
     }
 
     #[test]
-    fn test_build_memory_prompt_section_empty() {
+    fn test_build_memory_prompt_section_empty_still_renders_bootstrap() {
+        // No memory dir, no MEMORY.md, no selected memories: the section
+        // must still render (with an explicit empty-index note and the save
+        // protocol) so a fresh workspace can bootstrap memory in-turn.
         let tmp = TempDir::new().unwrap();
         let result = build_memory_prompt_section(tmp.path(), &[]);
-        assert!(result.is_none());
+        let section = result.expect("memory section must render even when empty");
+        assert!(section.contains("# Workspace Memory"));
+        assert!(section.contains("is currently empty"));
+        assert!(!section.contains("Loaded Memories"));
+        assert!(section.contains(SAVE_ON_EXPLICIT_REQUEST));
+        assert!(section.contains("## Types of memory"));
+        assert!(section.contains("## What NOT to save"));
+        assert!(section.contains("## How to save memories"));
+    }
+
+    #[test]
+    fn test_build_memory_prompt_section_byte_stable_across_calls() {
+        // Same on-disk state + same selection → byte-identical section, so
+        // the injected system message does not bust provider prompt caches.
+        let tmp = TempDir::new().unwrap();
+        let first = build_memory_prompt_section(tmp.path(), &[]).unwrap();
+        let second = build_memory_prompt_section(tmp.path(), &[]).unwrap();
+        assert_eq!(first, second);
     }
 
     #[test]
@@ -509,6 +558,10 @@ mod tests {
         assert!(section.contains("prefer tabs"));
         assert!(section.contains("When to access memories"));
         assert!(section.contains("Before recommending from memory"));
+        // Save protocol is always present so the main agent can honor
+        // "remember this" without the post-turn extractor.
+        assert!(section.contains("## How to save memories"));
+        assert!(!section.contains("is currently empty"));
     }
 
     #[test]
