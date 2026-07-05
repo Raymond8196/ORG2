@@ -16,7 +16,6 @@ import {
 } from "react";
 
 import { createLogger } from "@src/hooks/logger";
-import { useRamHistory } from "@src/hooks/perf";
 import {
   monitorActiveTabAtom,
   monitorRefreshTriggerAtom,
@@ -104,7 +103,6 @@ export interface UseMonitorMetricsReturn {
   memoryBreakdown: MemoryBreakdown | null;
   childProcesses: ChildProcessInfo[];
   systemInfo: SystemInfo | null;
-  ramHistory: ReturnType<typeof useRamHistory>["stats"];
   containerRef: RefObject<HTMLDivElement | null>;
 }
 
@@ -126,62 +124,39 @@ export function useMonitorMetrics(activeTab: string): UseMonitorMetricsReturn {
   const setStorageTrigger = useSetAtom(storageRefreshTriggerAtom);
   const monitorRefreshTrigger = useAtomValue(monitorRefreshTriggerAtom);
 
-  const { stats: ramHistory, recordSample: recordRamSample } = useRamHistory();
-
   const containerRef = useRef<HTMLDivElement>(null);
   const cheapIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const expensiveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null
   );
   const lastExpensiveFetchAtRef = useRef(0);
-  const processMetricsRef = useRef<ProcessMetrics | null>(null);
-  const childProcessesRef = useRef<ChildProcessInfo[]>([]);
   const isVisibleRef = useRef(false);
 
   useEffect(() => {
     setMonitorActiveTab(activeTab);
   }, [activeTab, setMonitorActiveTab]);
 
-  const recordRamHistorySample = useCallback(
-    (process: ProcessMetrics | null, children: ChildProcessInfo[]) => {
-      if (!process) return;
+  const fetchExpensiveMetrics = useCallback(async (force = false) => {
+    if (document.visibilityState !== "visible" || !isVisibleRef.current) return;
 
-      const appRamTotal =
-        (process.memory_rss_mb ?? 0) +
-        children.reduce((sum, child) => sum + child.memory_mb, 0);
-      recordRamSample(appRamTotal);
-    },
-    [recordRamSample]
-  );
+    const now = Date.now();
+    if (
+      !force &&
+      now - lastExpensiveFetchAtRef.current < EXPENSIVE_METRICS_POLL_INTERVAL_MS
+    ) {
+      return;
+    }
+    lastExpensiveFetchAtRef.current = now;
 
-  const fetchExpensiveMetrics = useCallback(
-    async (force = false) => {
-      if (document.visibilityState !== "visible" || !isVisibleRef.current)
-        return;
-
-      const now = Date.now();
-      if (
-        !force &&
-        now - lastExpensiveFetchAtRef.current <
-          EXPENSIVE_METRICS_POLL_INTERVAL_MS
-      ) {
-        return;
-      }
-      lastExpensiveFetchAtRef.current = now;
-
-      try {
-        const children = await invoke<ChildProcessInfo[]>(
-          "get_child_processes_memory"
-        ).catch(() => []);
-        childProcessesRef.current = children;
-        setChildProcesses(children);
-        recordRamHistorySample(processMetricsRef.current, children);
-      } catch (error) {
-        log.error("failed to fetch expensive monitor metrics:", error);
-      }
-    },
-    [recordRamHistorySample]
-  );
+    try {
+      const children = await invoke<ChildProcessInfo[]>(
+        "get_child_processes_memory"
+      ).catch(() => []);
+      setChildProcesses(children);
+    } catch (error) {
+      log.error("failed to fetch expensive monitor metrics:", error);
+    }
+  }, []);
 
   const fetchCheapMetrics = useCallback(async () => {
     if (document.visibilityState !== "visible" || !isVisibleRef.current) return;
@@ -193,17 +168,14 @@ export function useMonitorMetrics(activeTab: string): UseMonitorMetricsReturn {
         invoke<MemoryBreakdown>("get_memory_breakdown").catch(() => null),
         invoke<SystemInfo>("get_system_info").catch(() => null),
       ]);
-      processMetricsRef.current = process;
       setProcessMetrics(process);
       setSystemMemory(system);
       setMemoryBreakdown(breakdown);
       if (sysInfo) setSystemInfo(sysInfo);
-      recordRamHistorySample(process, childProcessesRef.current);
     } catch (error) {
       log.error("failed to fetch monitor metrics:", error);
     }
-  }, [recordRamHistorySample]);
-
+  }, []);
   const fetchMetrics = useCallback(
     async (forceExpensive = false) => {
       await Promise.all([
@@ -313,7 +285,6 @@ export function useMonitorMetrics(activeTab: string): UseMonitorMetricsReturn {
     memoryBreakdown,
     childProcesses,
     systemInfo,
-    ramHistory,
     containerRef,
   };
 }
