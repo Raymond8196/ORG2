@@ -9,7 +9,7 @@
 use std::path::Path;
 
 use super::cache::PromptCachePolicy;
-use super::helpers::{cap_text, load_conventions};
+use super::helpers::load_conventions;
 use super::registry::{order, AppliesDecision, PromptCtx, PromptSection, PromptSource};
 use super::section_builders::*;
 
@@ -213,6 +213,50 @@ impl PromptSection for AvailableToolsSection {
 }
 
 // ---------------------------------------------------------------------
+// 55. MCP server instructions — from InitializeResult.instructions
+// ---------------------------------------------------------------------
+
+/// Usage guidance published by connected MCP servers during the initialize
+/// handshake. Reads the process-global snapshot maintained by `McpManager`
+/// (see `specialization::mcp::instructions`); per-session visibility is
+/// enforced by only rendering servers with a `mcp__<server>__*` tool
+/// registered in this session.
+pub struct McpInstructionsSection;
+
+impl PromptSection for McpInstructionsSection {
+    fn id(&self) -> &'static str {
+        "mcp_instructions"
+    }
+    fn order_hint(&self) -> i32 {
+        order::MCP_INSTRUCTIONS
+    }
+    fn applies(&self, ctx: &PromptCtx) -> AppliesDecision {
+        if ctx.tool_names.iter().any(|name| name.starts_with("mcp__")) {
+            AppliesDecision::Apply {
+                reason: "mcp_tools_present",
+            }
+        } else {
+            AppliesDecision::Skip {
+                reason: "no_mcp_tools",
+            }
+        }
+    }
+    fn source(&self) -> PromptSource {
+        PromptSource::Computed {
+            upstream: "specialization::mcp::instructions",
+        }
+    }
+    fn cache_policy(&self) -> PromptCachePolicy {
+        // Servers reconnect (and can change instructions) mid-session.
+        PromptCachePolicy::Volatile
+    }
+    fn render(&self, ctx: &PromptCtx) -> Option<String> {
+        let entries = crate::specialization::mcp::instructions::snapshot();
+        build_mcp_instructions_section(&entries, &ctx.tool_names)
+    }
+}
+
+// ---------------------------------------------------------------------
 // 60. Behavioral rules — channel vs SDE
 // ---------------------------------------------------------------------
 
@@ -288,14 +332,14 @@ impl PromptSection for ProjectConventionsSection {
         }
     }
     fn cache_policy(&self) -> PromptCachePolicy {
-        PromptCachePolicy::StableUntilClear
+        PromptCachePolicy::Volatile
     }
     fn render(&self, ctx: &PromptCtx) -> Option<String> {
         let ws = ctx.config.workspace.as_ref()?;
+        // Single authoritative cap: `load_conventions` already enforces its
+        // 40KB budget; a second cap here would silently halve it.
         let conventions = load_conventions(ws.working_dir())?;
-        const MAX_CONVENTIONS_BYTES: usize = 20_000;
-        let capped = cap_text(&conventions, MAX_CONVENTIONS_BYTES, "conventions");
-        Some(format!("## Project Conventions\n\n{}", capped))
+        Some(format!("## Project Conventions\n\n{}", conventions))
     }
 }
 
@@ -906,10 +950,32 @@ impl PromptSection for AgentModeSuffixSection {
         let mode = ctx.config.agent_mode.as_ref()?;
         let suffix = mode.system_prompt_suffix();
         if suffix.is_empty() {
-            None
-        } else {
-            Some(suffix.to_string())
+            return None;
         }
+        let mut rendered = suffix.to_string();
+        // Plan-mode re-entry note (CC `plan_mode_reentry` parity): when this
+        // session already resolved a plan and no newer plan is pending
+        // (`mark_ready` clears the marker), point the model at the prior
+        // plan file so iterative planning reconciles with it instead of
+        // producing a duplicate or contradictory plan.
+        if matches!(mode, crate::session::AgentExecMode::Plan) {
+            if let Some(prior) = crate::session::plan_mode::last_resolved_plan(ctx._session_id) {
+                let outcome = if prior.approved {
+                    "an approved"
+                } else {
+                    "a rejected"
+                };
+                rendered.push_str(&format!(
+                    "\n### Prior plan on file\n\
+                     This session already has {outcome} plan: \"{title}\" at `{path}`. \
+                     Read it first and decide whether to write a fresh plan or extend/revise it — \
+                     do not duplicate or contradict it unknowingly.\n",
+                    title = prior.plan_title,
+                    path = prior.plan_path,
+                ));
+            }
+        }
+        Some(rendered)
     }
 }
 

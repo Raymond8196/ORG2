@@ -259,23 +259,14 @@ impl UnifiedMessageProcessor {
                 let todo_snapshot = tokio::task::block_in_place(|| {
                     crate::persistence::db_helpers::todos::get_todos(session_id).unwrap_or_default()
                 });
-                let mut reminder = String::from(
-                    "<system-reminder>If you are working on a multi-step task, \
-                     remember to use the manage_todo tool to keep the task list \
-                     up to date. Mark the current task in_progress and completed \
-                     as you proceed.",
+                dynamic_sections.push(
+                    crate::tools::impls::coding::manage_todo::stale_todo_reminder(&todo_snapshot),
                 );
-                if todo_snapshot.is_empty() {
-                    reminder.push_str(" The todo list is currently empty.");
-                } else {
-                    reminder.push_str("\nCurrent todo list:\n");
-                    for (idx, todo) in todo_snapshot.iter().enumerate() {
-                        reminder
-                            .push_str(&format!("{}. [{}] {}\n", idx, todo.status, todo.content));
-                    }
-                }
-                reminder.push_str("</system-reminder>");
-                dynamic_sections.push(reminder);
+                // Reset so the nag re-arms instead of re-firing every turn in
+                // a stalled session — the counter now means "rounds since the
+                // last todo call OR the last nag", mirroring the reference
+                // harness's reminder-to-reminder throttle.
+                *self.rounds_since_todo.lock().await = Some(0);
                 info!(
                     "[unified_processor] Nag reminder injected ({} turns since last todo call, {} todos attached, session={})",
                     rounds,
