@@ -221,6 +221,61 @@ fn test_fresh_registry_management_tools_require_management_capability() {
     ));
 }
 
+// ── Parent exec-mode overlay on worker policies ─────────────────────
+//
+// The worker policy is built from the parent's BASE policy (captured at
+// init, no per-turn exec-mode layer). `overlay_parent_exec_mode` must
+// re-apply the parent's CURRENT mode so a Plan-mode parent cannot
+// escape its read-only guarantee through `builtin:general`.
+
+#[test]
+fn plan_mode_parent_overlay_makes_worker_policy_read_only() {
+    use super::AgentTool;
+    use crate::session::AgentExecMode;
+    use crate::tools::policy::ResolvedToolPolicy;
+
+    let overlaid = AgentTool::overlay_parent_exec_mode(
+        ResolvedToolPolicy::permissive(),
+        Some(AgentExecMode::Plan),
+    );
+    for denied in ["edit_file", "run_shell", "apply_patch", "delete_file"] {
+        assert!(
+            !overlaid.is_allowed(denied),
+            "Plan-mode parent must deny {denied} for workers"
+        );
+    }
+    assert!(
+        !overlaid.is_allowed("mcp__github__create_issue"),
+        "Plan-mode parent must deny side-effecting MCP tools for workers"
+    );
+    assert!(
+        overlaid.is_allowed("read_file"),
+        "read tools must survive the overlay"
+    );
+}
+
+#[test]
+fn build_or_absent_parent_mode_leaves_worker_policy_untouched() {
+    use super::AgentTool;
+    use crate::session::AgentExecMode;
+    use crate::tools::policy::ResolvedToolPolicy;
+
+    let build = AgentTool::overlay_parent_exec_mode(
+        ResolvedToolPolicy::permissive(),
+        Some(AgentExecMode::Build),
+    );
+    assert!(
+        build.is_allowed("edit_file"),
+        "Build-mode parent keeps write tools for workers"
+    );
+
+    let absent = AgentTool::overlay_parent_exec_mode(ResolvedToolPolicy::permissive(), None);
+    assert!(
+        absent.is_allowed("edit_file"),
+        "no parent mode => no overlay"
+    );
+}
+
 // ── Default sub_agents on root agents ───────────────────────────────
 
 #[test]
