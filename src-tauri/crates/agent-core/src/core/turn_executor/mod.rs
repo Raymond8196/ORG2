@@ -45,7 +45,7 @@ pub(crate) use backoff::MAX_TOOL_OUTPUT_CHARS;
 
 use backoff::{MAX_CONSECUTIVE_ERRORS, MAX_CONTEXT_RESCUE_ATTEMPTS, MAX_REPEAT_STREAK};
 pub(crate) use context_accounting::ContextUsageSnapshot;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use serde_json::Value;
@@ -63,7 +63,7 @@ use crate::model_context::microcompact;
 use length_recovery::{maybe_recover_from_length, LengthRecoveryOutcome};
 use screenshot::resolve_screenshot_markers;
 use stream_error_recovery::{handle_stream_error, RetryBudgets, StreamErrorOutcome};
-use tool_execution::{execute_tool_calls, ToolBatchOutcome};
+use tool_execution::{execute_tool_calls, is_cancelled, ToolBatchOutcome};
 use usage_accumulator::UsageTotals;
 use usage_telemetry::UsageTelemetryCollector;
 
@@ -91,6 +91,25 @@ const AUTO_CONTINUE_MIN_PROGRESS_TOKENS: i64 = 500;
 /// `context_accounting::ContextUsageSnapshot::warning_level` — at ≥90% the
 /// model closing out the turn is the *correct* behavior.
 const AUTO_CONTINUE_MAX_CONTEXT_PERCENT: f64 = 90.0;
+
+/// Iterations without a `manage_todo` call before the mid-turn stale-todo
+/// reminder fires, and the minimum spacing between two reminders. Both
+/// thresholds mirror the reference harness (10 assistant messages since the
+/// last TodoWrite, 10 since the previous reminder).
+const STALE_TODO_ITERATIONS: u32 = 10;
+
+/// Anti-rush reassurance thresholds: only large-window models (≥1M tokens)
+/// past this fill percentage get the "no need to rush" reminder — smaller
+/// windows go through the normal budget-nudge path instead.
+const ANTI_RUSH_MIN_WINDOW: i64 = 1_000_000;
+const ANTI_RUSH_MIN_PERCENT: f64 = 25.0;
+
+/// Dual-counter gate for the mid-turn stale-todo reminder: enough silence
+/// since the last `manage_todo` call AND enough spacing since the previous
+/// reminder. Pure so the trigger arithmetic is unit-testable.
+fn should_inject_todo_reminder(since_todo_use: u32, since_reminder: u32) -> bool {
+    since_todo_use >= STALE_TODO_ITERATIONS && since_reminder >= STALE_TODO_ITERATIONS
+}
 
 /// Decide whether the turn loop should inject an auto-continue nudge instead
 /// of letting the model end the turn with plain text.
@@ -205,6 +224,19 @@ pub async fn execute_turn(
     // tool_result rows.
     let mut budget_nudge_sent = false;
     let mut pending_budget_nudge: Option<String> = None;
+    // One-shot anti-rush reassurance for large-window models (≥1M): fired
+    // past 25% fill so the model doesn't self-truncate long tasks.
+    let mut anti_rush_sent = false;
+
+    // In-loop stale-todo reminder (mirrors the reference harness): after
+    // `STALE_TODO_ITERATIONS` LLM iterations without a `manage_todo` call —
+    // throttled to at most one reminder per `STALE_TODO_ITERATIONS` — the
+    // open todo list is re-surfaced mid-turn. The turn-start nag in
+    // `processor/prompt.rs` only fires between user dispatches, which never
+    // helps a single long agentic run (the observed "created 0/5, finished
+    // the work, never updated" failure).
+    let mut iterations_since_todo_use: u32 = 0;
+    let mut iterations_since_todo_reminder: u32 = 0;
 
     let mut file_tracker = file_tracker::FileTimeTracker::new();
     // Read-before-edit is session-scoped: seed the fresh per-turn tracker
@@ -226,10 +258,7 @@ pub async fn execute_turn(
                 break;
             }
         }
-        if cancel_flag
-            .as_ref()
-            .is_some_and(|f| f.load(Ordering::Relaxed))
-        {
+        if is_cancelled(cancel_flag) {
             info!("[agent-core] Cancelled by user (session={})", session_id);
             if config.persist_cancel_marker {
                 crate::core::session::persistence::mark_turn_cancelled(session_id);
@@ -269,7 +298,7 @@ pub async fn execute_turn(
             messages.push(serde_json::json!({
                 "role": "user",
                 "content": format!(
-                    "<system-reminder>\nThe following file(s) were modified externally (by the user or another process) since you read them:\n{}\nRe-read any of these files before editing them — your remembered content is stale.\n</system-reminder>",
+                    "<system-reminder>\nThe following file(s) were modified externally (by the user or another process) since you read them:\n{}\nRe-read any of these files before editing them — your remembered content is stale. Treat the external changes as intentional: take them into account and do NOT revert them unless the user asks you to.\n</system-reminder>",
                     externally_changed
                         .iter()
                         .map(|path| format!("- {path}"))
@@ -279,6 +308,34 @@ pub async fn execute_turn(
             }));
         }
 
+        // Stale-todo reminder: same injection point as the other mid-turn
+        // reminders above, so it never lands between an assistant tool_use
+        // and its tool_result rows.
+        iterations_since_todo_use = iterations_since_todo_use.saturating_add(1);
+        iterations_since_todo_reminder = iterations_since_todo_reminder.saturating_add(1);
+        if should_inject_todo_reminder(iterations_since_todo_use, iterations_since_todo_reminder) {
+            // Throttle even when the list turns out to be empty/completed —
+            // re-checking the DB every iteration afterwards buys nothing.
+            iterations_since_todo_reminder = 0;
+            let todos = tokio::task::block_in_place(|| {
+                crate::persistence::db_helpers::todos::get_todos(session_id).unwrap_or_default()
+            });
+            let has_open_todos = todos
+                .iter()
+                .any(|todo| todo.status != "completed" && todo.status != "cancelled");
+            if has_open_todos {
+                info!(
+                    "[agent-core] stale-todo reminder injected mid-turn ({} iterations since last manage_todo, session={})",
+                    iterations_since_todo_use, session_id
+                );
+                messages.push(serde_json::json!({
+                    "role": "user",
+                    "content":
+                        crate::tools::impls::coding::manage_todo::stale_todo_reminder(&todos),
+                }));
+            }
+        }
+
         let limit_display = config
             .max_iterations
             .map_or("∞".to_string(), |m| m.to_string());
@@ -286,6 +343,18 @@ pub async fn execute_turn(
             "[agent-core] iteration {}/{} (session={})",
             iteration, limit_display, session_id
         );
+
+        // Full-history pairing normalization before every provider call
+        // (reference parity): the dispatch-time pass in `processor` cannot
+        // see mid-turn corruption, so re-run it each iteration — orphan or
+        // duplicate tool rows would otherwise 400 every subsequent request
+        // in the session.
+        if crate::session::recovery::ensure_tool_result_pairing(messages) {
+            warn!(
+                "[agent-core] tool-pairing normalization repaired history mid-turn (session={})",
+                session_id
+            );
+        }
 
         // Microcompact: clear old tool results when the prompt cache has expired
         microcompact::microcompact_messages(messages, &mc_config);
@@ -367,10 +436,8 @@ pub async fn execute_turn(
                 effective_max_tokens,
                 config.temperature,
                 &move |delta: StreamDelta| {
-                    if let Some(ref flag) = cancel_for_stream {
-                        if flag.load(Ordering::Relaxed) {
-                            return;
-                        }
+                    if is_cancelled(cancel_for_stream.as_ref()) {
+                        return;
                     }
                     let normalized_events = match stream_normalizer_for_cb.lock() {
                         Ok(mut normalizer) => normalizer.ingest_delta(delta),
@@ -540,14 +607,34 @@ pub async fn execute_turn(
             Err(err) => return Err(format!("LLM error: {}", err)),
         };
 
-        if cancel_flag
-            .as_ref()
-            .is_some_and(|f| f.load(Ordering::Relaxed))
-        {
+        if is_cancelled(cancel_flag) {
             info!(
                 "[agent-core] Cancelled after streaming (session={})",
                 session_id
             );
+            // The response is fully assembled at this point — keep what the
+            // model already said in the transcript (mirrors the reference
+            // harness). Dropping it leaves the next turn's model unaware of
+            // its own partial answer and the user staring at a vanished
+            // message.
+            if let Some(partial) = response
+                .content
+                .as_deref()
+                .filter(|text| !text.trim().is_empty())
+            {
+                add_assistant_message(
+                    messages,
+                    Some(partial),
+                    None,
+                    response.reasoning_content.as_deref(),
+                );
+                handler.on_assistant_iteration_complete(
+                    session_id,
+                    Some(partial),
+                    false,
+                    &config.model,
+                );
+            }
             if config.persist_cancel_marker {
                 crate::core::session::persistence::mark_turn_cancelled(session_id);
             }
@@ -601,6 +688,22 @@ pub async fn execute_turn(
                         "[agent-core] Queued context-budget nudge ({level}, {percent:.1}% used, session={session_id})"
                     );
                 }
+            }
+
+            // Anti-rush reassurance for large-window models (mirrors the
+            // reference harness): past 25% on a ≥1M window, models start
+            // wrapping up prematurely even though compaction makes the
+            // conversation effectively unbounded. Once per turn; mutually
+            // exclusive with the budget nudge above (which supersedes it).
+            if !anti_rush_sent
+                && !budget_nudge_sent
+                && context_window >= ANTI_RUSH_MIN_WINDOW
+                && snapshot.percent_used.unwrap_or(0.0) >= ANTI_RUSH_MIN_PERCENT
+            {
+                anti_rush_sent = true;
+                pending_budget_nudge = Some(
+                    "<system-reminder>\nNote: automatic compaction is enabled — older messages will be summarized when the context window fills, so the conversation is not limited by it. There is no need to rush or wrap up early; continue working at full quality.\n</system-reminder>".to_string()
+                );
             }
 
             context_usage_snapshot = Some(snapshot);
@@ -739,6 +842,16 @@ pub async fn execute_turn(
                 &config.model,
             );
 
+            // The tool_use itself proves the model is engaging with the todo
+            // list — count from here, like the reference harness does.
+            if response
+                .tool_calls
+                .iter()
+                .any(|tc| tc.name == crate::tools::names::MANAGE_TODO)
+            {
+                iterations_since_todo_use = 0;
+            }
+
             let (_count, tool_execution_usage, outcome) = execute_tool_calls(
                 messages,
                 &response.tool_calls,
@@ -831,9 +944,7 @@ pub async fn execute_turn(
             // Final steering drain: a user message that arrived during the
             // last LLM call must not be silently deferred to a turn that may
             // never come — inject it and give the model another iteration.
-            if !cancel_flag
-                .map(|flag| flag.load(Ordering::SeqCst))
-                .unwrap_or(false)
+            if !is_cancelled(cancel_flag)
                 && drain_steering_queue(&config.steering_queue, session_id, messages, handler).await
             {
                 if let Some(ref text) = response.content {
@@ -868,11 +979,7 @@ pub async fn execute_turn(
             // MAX_STOP_HOOK_BLOCKS to prevent a death spiral. Stream-error
             // endings never reach this arm (they break earlier), so API
             // failures cannot be blocked into a retry loop.
-            if stop_hook_blocks < MAX_STOP_HOOK_BLOCKS
-                && !cancel_flag
-                    .map(|flag| flag.load(Ordering::SeqCst))
-                    .unwrap_or(false)
-            {
+            if stop_hook_blocks < MAX_STOP_HOOK_BLOCKS && !is_cancelled(cancel_flag) {
                 if let Some(feedback) = handler.on_turn_stop_check(session_id).await {
                     stop_hook_blocks += 1;
                     warn!(
@@ -919,10 +1026,7 @@ pub async fn execute_turn(
             // (per-turn cap + diminishing-returns check); cancelled turns
             // never continue, and stream-error / length endings never reach
             // this arm (they break earlier).
-            if !cancel_flag
-                .map(|flag| flag.load(Ordering::SeqCst))
-                .unwrap_or(false)
-            {
+            if !is_cancelled(cancel_flag) {
                 let context_percent = context_usage_snapshot
                     .as_ref()
                     .and_then(|snapshot| snapshot.percent_used);
@@ -1139,7 +1243,7 @@ async fn drain_steering_queue(
     messages.push(serde_json::json!({
         "role": "user",
         "content": format!(
-            "<system-reminder>\nThe user sent the following message(s) while you were working. Adjust course accordingly — this may change or refine the current task:\n\n{}\n</system-reminder>",
+            "<system-reminder>\nThe user sent the following message(s) while you were working. Adjust course accordingly — this may change or refine the current task:\n\n{}\n\nIMPORTANT: After completing your current step, you MUST address the user's message(s) above. Do not ignore them.\n</system-reminder>",
             bodies.join("\n\n---\n\n")
         ),
     }));
@@ -1176,6 +1280,44 @@ mod media_strip_tests {
     fn no_media_returns_zero() {
         let mut messages = vec![json!({"role": "user", "content": "plain text"})];
         assert_eq!(strip_historical_media_blocks(&mut messages), 0);
+    }
+}
+
+#[cfg(test)]
+mod stale_todo_reminder_tests {
+    use super::{should_inject_todo_reminder, STALE_TODO_ITERATIONS};
+
+    #[test]
+    fn fires_only_after_both_counters_reach_threshold() {
+        // Fresh turn: nothing due.
+        assert!(!should_inject_todo_reminder(0, 0));
+        // Silence since last call, but a reminder fired recently → throttled.
+        assert!(!should_inject_todo_reminder(STALE_TODO_ITERATIONS + 5, 3));
+        // Reminder spacing satisfied, but the model used manage_todo recently.
+        assert!(!should_inject_todo_reminder(2, STALE_TODO_ITERATIONS + 5));
+        // Both thresholds met → due.
+        assert!(should_inject_todo_reminder(
+            STALE_TODO_ITERATIONS,
+            STALE_TODO_ITERATIONS
+        ));
+    }
+
+    #[test]
+    fn long_run_naggs_roughly_every_threshold_iterations() {
+        // Simulate a 30-iteration run that never touches manage_todo:
+        // reminders land at iterations 10, 20, 30 — CC's observed cadence.
+        let mut since_use = 0u32;
+        let mut since_reminder = 0u32;
+        let mut fired_at = Vec::new();
+        for iteration in 1..=30u32 {
+            since_use += 1;
+            since_reminder += 1;
+            if should_inject_todo_reminder(since_use, since_reminder) {
+                since_reminder = 0;
+                fired_at.push(iteration);
+            }
+        }
+        assert_eq!(fired_at, vec![10, 20, 30]);
     }
 }
 

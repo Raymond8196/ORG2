@@ -180,9 +180,15 @@ pub(super) fn llm_description(allowed_subagents: Option<&Vec<String>>) -> Option
          Each unit should be self-contained, mergeable without sibling results, and roughly uniform in size. \
          Launch background Delegate/Shadow workers in the same assistant message when possible so independent work starts together. \
          The parent agent's max tool-use concurrency setting is the hard runtime cap, so excess parallel calls are queued.\n\n\
-         Each worker prompt must be fully self-contained: include the overall goal, that unit's exact scope, \
-         relevant codebase conventions, expected verification steps, and the required final summary format. \
-         Ask the user for an end-to-end verification path before spawning workers if the correct path is unclear.\n\n\
+         Use `builtin:explore` for broad read-only research. Use `builtin:general` or `shadow` workers for \
+         scoped implementation work when write sets can be isolated (for example: independent files, independent \
+         packages/crates, or independent test failures). The parent agent owns architecture choices, final review, \
+         and integration; workers may implement clearly bounded patches.\n\n\
+         Each worker prompt must be fully self-contained: include the overall goal, that unit's exact scope and \
+         expected write set, relevant codebase conventions, expected verification steps, and the required final \
+         summary format. For implementation workers, explicitly require read-before-edit, state whether edits are \
+         allowed, and tell the worker to report changed files and test results. Ask the user for an end-to-end \
+         verification path before spawning workers if the correct path is unclear.\n\n\
          Set `background: true` to run in background and return a handle immediately. \
          Do NOT poll a background worker with repeated await_output calls — proceed with other work; \
          the system notifies you automatically when it finishes.\n\
@@ -198,8 +204,9 @@ pub(super) fn llm_description(allowed_subagents: Option<&Vec<String>>) -> Option
          - Reading a specific known file path — use read_file directly.\n\
          - Looking up one specific symbol/class/function — a single code_search is faster.\n\
          - Listing one directory — use list_dir.\n\
-         - Understanding code you are about to modify — that is YOUR job. Delegate fact-gathering, \
-           never delegate understanding or decisions.\n\n\
+         - Understanding code you are about to modify is the parent agent's responsibility: read the relevant \
+         files yourself before deciding architecture or integration. You may still delegate scoped implementation \
+         to workers when the write set and acceptance criteria are clear, but the parent must review the result.\n\n\
          Worker results: the worker's report is your only source of truth about what it did — never \
          attribute findings or changes to a worker that its report does not state. The user CANNOT \
          see worker output; you must relay key findings/conclusions in your own reply instead of \

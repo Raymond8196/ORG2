@@ -63,10 +63,17 @@ pub struct SkillInfo {
     pub bundled_files: Vec<String>,
 }
 
+/// One entry of the per-request skill listing. Kept as structured fields
+/// (not a pre-rendered line) so the render step can apply per-entry and
+/// total character budgets to descriptions without corrupting the markup.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SkillListingEntry {
     pub name: String,
-    pub line: String,
+    /// Source label ("workspace", "builtin", "external-source", ...).
+    pub source: String,
+    /// Raw description; caps are applied at render time.
+    pub description: String,
+    pub available: bool,
 }
 
 /// Intermediate result from parsing SKILL.md frontmatter.

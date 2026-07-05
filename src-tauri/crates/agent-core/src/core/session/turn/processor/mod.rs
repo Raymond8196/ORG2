@@ -634,6 +634,16 @@ impl UnifiedMessageProcessor {
             }
         } else if !previous_turn_cancelled
             && !suppress_crash_repair
+            // With a fresh user prompt at the tail, pairing is restored by
+            // `ensure_tool_result_pairing` below, and the "continue from
+            // where you left off" nudge would land AFTER the fresh prompt —
+            // misdirecting the model to resume stale work instead of
+            // answering the user. Only run crash repair when the history
+            // actually ends mid-turn.
+            && messages
+                .last()
+                .map(crate::turn_executor::msg_role)
+                != Some("user")
             && super::super::recovery::repair_interrupted_history(&mut messages)
         {
             info!(

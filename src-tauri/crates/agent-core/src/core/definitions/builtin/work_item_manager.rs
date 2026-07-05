@@ -45,7 +45,6 @@ pub fn work_item_manager_agent() -> AgentDefinition {
             mode: SessionMode::PerSession,
             compaction: Some(CompactionConfig {
                 enabled: true,
-                trigger_ratio: 0.8,
                 keep_ratio: 0.5,
                 ..CompactionConfig::default()
             }),

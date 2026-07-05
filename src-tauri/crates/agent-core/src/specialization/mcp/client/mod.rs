@@ -128,6 +128,10 @@ pub(crate) struct ServerCapabilities {
 pub struct McpClient {
     pub(super) name: String,
     pub(super) config: McpServerConfig,
+    /// Usage guidance from `InitializeResult.instructions`, trimmed and
+    /// capped at connect time (see `instructions::normalize`). Immutable
+    /// for the life of the connection — a reconnect builds a new client.
+    pub(super) instructions: Option<String>,
     pub(super) service: Mutex<Option<RunningService<RoleClient, AgentClientHandler>>>,
     pub(super) tools: Mutex<Vec<McpToolDef>>,
     pub(super) last_error: Mutex<Option<String>>,

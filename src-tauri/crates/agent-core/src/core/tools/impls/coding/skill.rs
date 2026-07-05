@@ -72,10 +72,13 @@ impl Tool for SkillTool {
         true
     }
 
-    /// SKILL.md bodies can be large and the FULL text is the point of the
-    /// call — never stub it to disk, and give it generous headroom.
+    /// SKILL.md bodies are load-bearing — the model must follow the FULL
+    /// text, so persistence stays off (a disk stub would hide the
+    /// instructions). 100K chars (~25K tokens) is still generous headroom;
+    /// skills larger than that should point the model at files to read
+    /// with offset/limit rather than inlining everything.
     fn output_budget(&self) -> usize {
-        200_000
+        100_000
     }
 
     fn allow_persisted_output(&self) -> bool {
@@ -111,12 +114,22 @@ impl Tool for SkillTool {
         }
 
         let loader = self.build_loader();
-        match loader.load_skill(name) {
-            Some(content) => Ok(format!(
-                "## Skill: {name}\n\n{content}\n\n\
-                 Apply these instructions to the current task now. They take precedence over \
-                 your default approach for the areas they cover."
-            )),
+        match loader.load_skill_with_path(name) {
+            Some((content, skill_md_path)) => {
+                // Skills reference bundled files (scripts/, references/, assets/)
+                // relative to their own directory; without the base dir the model
+                // cannot resolve them. Binary-embedded builtins have no dir.
+                let base_dir_line = skill_md_path
+                    .as_deref()
+                    .and_then(std::path::Path::parent)
+                    .map(|dir| format!("Base directory for this skill: {}\n\n", dir.display()))
+                    .unwrap_or_default();
+                Ok(format!(
+                    "## Skill: {name}\n\n{base_dir_line}{content}\n\n\
+                     Apply these instructions to the current task now. They take precedence over \
+                     your default approach for the areas they cover."
+                ))
+            }
             None => {
                 let available = loader
                     .build_skill_listing_entries(&[], None)

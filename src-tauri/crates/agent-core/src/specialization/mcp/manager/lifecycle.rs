@@ -86,6 +86,7 @@ impl McpManager {
             Ok(client) => {
                 let client = Arc::new(client);
                 self.spawn_notification_listener(&client).await;
+                crate::specialization::mcp::instructions::publish(name, client.instructions());
                 self.clients.lock().await.insert(name.to_string(), client);
                 self.connection_errors.lock().await.remove(name);
                 self.needs_auth.lock().await.remove(name);
@@ -146,6 +147,7 @@ impl McpManager {
             Ok(client) => {
                 let client = Arc::new(client);
                 self.spawn_notification_listener(&client).await;
+                crate::specialization::mcp::instructions::publish(name, client.instructions());
                 self.clients.lock().await.insert(name.to_string(), client);
                 self.connection_errors.lock().await.remove(name);
                 self.needs_auth.lock().await.remove(name);
@@ -178,6 +180,7 @@ impl McpManager {
         let mut clients = self.clients.lock().await;
         if let Some(client) = clients.remove(name) {
             client.shutdown().await;
+            crate::specialization::mcp::instructions::retract(name);
             info!("[mcp:manager] Disconnected '{}'", name);
         }
         self.prompts_cache.lock().await.remove(name);
@@ -326,6 +329,7 @@ impl McpManager {
         let mut clients = self.clients.lock().await;
         for (name, client) in clients.drain() {
             client.shutdown().await;
+            crate::specialization::mcp::instructions::retract(&name);
             info!("[mcp:manager] Shut down '{}'", name);
         }
         self.connection_errors.lock().await.clear();
