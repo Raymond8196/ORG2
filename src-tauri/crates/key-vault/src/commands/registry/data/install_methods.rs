@@ -88,9 +88,6 @@ pub(crate) fn cli_install_methods(name: &str) -> Vec<CliInstallMethod> {
             ),
             m("uv", "uv", "uv tool install --python 3.13 kimi-cli"),
         ],
-        "openclaude" => vec![
-            m("npm", "npm", "npm install -g openclaude"),
-        ],
         "aider" => vec![
             m("pip", "pip / pipx", "pip install aider-chat"),
             m("brew", "Homebrew", "brew install aider"),
@@ -99,40 +96,53 @@ pub(crate) fn cli_install_methods(name: &str) -> Vec<CliInstallMethod> {
             m(
                 "curl",
                 "curl",
-                "curl -fsSL https://github.com/block/goose/releases/latest/download/install.sh | bash",
+                "curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | bash",
             ),
-            m("pip", "pipx", "pipx install goose-ai"),
+            m("homebrew", "Homebrew", "brew install block-goose-cli"),
         ],
         "amp" => vec![
-            m("npm", "npm", "npm install -g @sourcegraph/amp"),
+            m("npm", "npm", "npm install -g @ampcode/cli"),
         ],
         "cline" => vec![
             m("npm", "npm", "npm install -g cline"),
         ],
         "kilo" => vec![
-            m("npm", "npm", "npm install -g kilocode"),
+            m("npm", "npm", "npm install -g @kilocode/cli"),
         ],
-        "grok" => vec![
+        "grok_cli" => vec![
             m(
                 "curl",
                 "curl",
                 "curl -fsSL https://raw.githubusercontent.com/xai-org/grok-cli/main/install.sh | bash",
             ),
-            m("npm", "npm", "npm install -g @xai/grok-cli"),
+            m("npm", "npm", "npm install -g grok-cli"),
         ],
         "devin" => vec![
             m(
                 "curl",
                 "curl",
-                "curl -fsSL https://github.com/cognition-ai/devin/releases/latest/download/install.sh | bash",
+                "curl -fsSL https://cli.devin.ai/install.sh | bash",
             ),
+            m("homebrew", "Homebrew", "brew install --cask devin-cli"),
         ],
         "rovo" => vec![
-            m("npm", "npm", "npm install -g @atlassian/rovo"),
+            m(
+                "curl",
+                "curl",
+                "arch=$(uname -m); case \"$arch\" in arm64|aarch64) acli_arch=arm64 ;; x86_64|amd64) acli_arch=amd64 ;; *) echo \"Unsupported architecture: $arch\" >&2; exit 1 ;; esac; os=$(uname -s | tr '[:upper:]' '[:lower:]'); mkdir -p ~/.local/bin && curl -fsSL \"https://acli.atlassian.com/${os}/latest/acli_${os}_${acli_arch}/acli\" -o ~/.local/bin/acli && chmod +x ~/.local/bin/acli",
+            ),
         ],
         "hermes" => vec![
-            m("pip", "pipx", "pipx install hermes-ai"),
-            m("npm", "npm", "npm install -g @hermes-ai/cli"),
+            m(
+                "curl",
+                "curl",
+                "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash",
+            ),
+            m(
+                "powershell",
+                "PowerShell",
+                "iex (irm https://hermes-agent.nousresearch.com/install.ps1)",
+            ),
         ],
         "openclaw" => vec![
             m("npm", "npm", "npm install -g openclaw"),
@@ -157,33 +167,61 @@ pub(crate) fn cli_install_methods(name: &str) -> Vec<CliInstallMethod> {
             m("npm", "npm", "npm install -g qwen-code"),
         ],
         "mimo_code" => vec![
-            m("npm", "npm", "npm install -g mimo-code"),
+            m(
+                "curl",
+                "curl",
+                "curl -fsSL https://mimo.xiaomi.com/install | bash",
+            ),
+            m("npm", "npm", "npm install -g @mimo-ai/cli"),
         ],
         "antigravity" => vec![
-            m("pip", "pipx", "pipx install antigravity"),
-            m("pip", "pip", "pip install antigravity"),
+            m(
+                "curl",
+                "curl",
+                "curl -fsSL https://antigravity.google/cli/install.sh | bash",
+            ),
+            m(
+                "powershell",
+                "PowerShell",
+                "irm https://antigravity.google/cli/install.ps1 | iex",
+            ),
         ],
         "continue_cli" => vec![
-            m("npm", "npm", "npm install -g @continuedev/continue"),
+            m("npm", "npm", "npm install -g @continuedev/cli"),
         ],
         "droid" => vec![
-            m("npm", "npm", "npm install -g droid-ai"),
+            m("npm", "npm", "npm install -g droid"),
         ],
         "mistral_vibe" => vec![
-            m("pip", "pipx", "pipx install mistral-vibe"),
+            m(
+                "curl",
+                "curl",
+                "curl -LsSf https://mistral.ai/vibe/install.sh | bash",
+            ),
+            m("uv", "uv", "uv tool install mistral-vibe"),
             m("pip", "pip", "pip install mistral-vibe"),
         ],
         "ante" => vec![
-            m("npm", "npm", "npm install -g ante-ai"),
+            m(
+                "curl",
+                "curl",
+                "curl -fsSL https://ante.run/install.sh | bash",
+            ),
         ],
         "autohand" => vec![
-            m("npm", "npm", "npm install -g autohand"),
+            m("npm", "npm", "npm install -g autohand-cli"),
         ],
         "omp" => vec![
-            m("npm", "npm", "npm install -g omp-ai"),
+            m(
+                "curl",
+                "curl",
+                "curl -fsSL https://omp.sh/install | sh",
+            ),
+            m("bun", "Bun", "bun install -g @oh-my-pi/pi-coding-agent"),
+            m("npm", "npm", "npm install -g @oh-my-pi/pi-coding-agent"),
         ],
         "pi" => vec![
-            m("npm", "npm", "npm install -g pi-ai-cli"),
+            m("npm", "npm", "npm install -g @earendil-works/pi-coding-agent"),
         ],
         // The caller iterates `cli_agent_registry()` entries, so any
         // CLI agent that ships in the registry but has no install_methods
@@ -235,43 +273,50 @@ pub(crate) fn cli_uninstall_methods(name: &str) -> Vec<CliInstallMethod> {
         ],
         "gemini_cli" => vec![m("npm", "npm", "npm uninstall -g @google/gemini-cli")],
         "kimi_cli" => vec![m("uv", "uv", "uv tool uninstall kimi-cli")],
-        "openclaude" => vec![m("npm", "npm", "npm uninstall -g openclaude")],
         "aider" => vec![
             m("pip", "pip", "pip uninstall aider-chat"),
             m("brew", "Homebrew", "brew uninstall aider"),
         ],
-        "goose" => vec![m("pip", "pipx", "pipx uninstall goose-ai")],
-        "amp" => vec![m("npm", "npm", "npm uninstall -g @sourcegraph/amp")],
+        "goose" => vec![m("homebrew", "Homebrew", "brew uninstall block-goose-cli")],
+        "amp" => vec![m("npm", "npm", "npm uninstall -g @ampcode/cli")],
         "cline" => vec![m("npm", "npm", "npm uninstall -g cline")],
-        "kilo" => vec![m("npm", "npm", "npm uninstall -g kilocode")],
-        "grok" => vec![m("npm", "npm", "npm uninstall -g @xai/grok-cli")],
+        "kilo" => vec![m("npm", "npm", "npm uninstall -g @kilocode/cli")],
+        "grok_cli" => vec![m("npm", "npm", "npm uninstall -g grok-cli")],
         "devin" => vec![m("native", "Native", "devin uninstall")],
-        "rovo" => vec![m("npm", "npm", "npm uninstall -g @atlassian/rovo")],
-        "hermes" => vec![
-            m("pip", "pipx", "pipx uninstall hermes-ai"),
-            m("npm", "npm", "npm uninstall -g @hermes-ai/cli"),
-        ],
+        "rovo" => vec![m("native", "Native", "rm -f ~/.local/bin/acli")],
+        "hermes" => vec![m("native", "Native", "rm -f ~/.local/bin/hermes")],
         "openclaw" => vec![m("npm", "npm", "npm uninstall -g openclaw")],
         "crush" => vec![m("native", "Native", "rm -f $(which crush)")],
         "aug" => vec![m("npm", "npm", "npm uninstall -g @augmentcode/auggie")],
         "codebuff" => vec![m("npm", "npm", "npm uninstall -g codebuff")],
         "command_code" => vec![m("npm", "npm", "npm uninstall -g command-code")],
         "qwen_code" => vec![m("npm", "npm", "npm uninstall -g qwen-code")],
-        "mimo_code" => vec![m("npm", "npm", "npm uninstall -g mimo-code")],
-        "antigravity" => vec![
-            m("pip", "pipx", "pipx uninstall antigravity"),
-            m("pip", "pip", "pip uninstall antigravity"),
+        "mimo_code" => vec![
+            m(
+                "native",
+                "Native",
+                "rm -f ~/.mimocode/bin/mimo ~/.local/bin/mimo",
+            ),
+            m("npm", "npm", "npm uninstall -g @mimo-ai/cli"),
         ],
-        "continue_cli" => vec![m("npm", "npm", "npm uninstall -g @continuedev/continue")],
-        "droid" => vec![m("npm", "npm", "npm uninstall -g droid-ai")],
+        "antigravity" => vec![m("native", "Native", "rm -f ~/.local/bin/agy")],
+        "continue_cli" => vec![m("npm", "npm", "npm uninstall -g @continuedev/cli")],
+        "droid" => vec![m("npm", "npm", "npm uninstall -g droid")],
         "mistral_vibe" => vec![
-            m("pip", "pipx", "pipx uninstall mistral-vibe"),
+            m("uv", "uv", "uv tool uninstall mistral-vibe"),
             m("pip", "pip", "pip uninstall mistral-vibe"),
         ],
-        "ante" => vec![m("npm", "npm", "npm uninstall -g ante-ai")],
-        "autohand" => vec![m("npm", "npm", "npm uninstall -g autohand")],
-        "omp" => vec![m("npm", "npm", "npm uninstall -g omp-ai")],
-        "pi" => vec![m("npm", "npm", "npm uninstall -g pi-ai-cli")],
+        "ante" => vec![m("native", "Native", "rm -f ~/.ante/bin/ante")],
+        "autohand" => vec![m("npm", "npm", "npm uninstall -g autohand-cli")],
+        "omp" => vec![
+            m("bun", "Bun", "bun remove -g @oh-my-pi/pi-coding-agent"),
+            m("npm", "npm", "npm uninstall -g @oh-my-pi/pi-coding-agent"),
+        ],
+        "pi" => vec![m(
+            "npm",
+            "npm",
+            "npm uninstall -g @earendil-works/pi-coding-agent",
+        )],
         // Same fail-loud principle as `cli_install_methods` above.
         other => {
             tracing::warn!(

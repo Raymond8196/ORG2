@@ -90,7 +90,6 @@ export type IconProvider =
   | "copilot"
   | "cursor"
   | "workbuddy"
-  | "openclaude"
   | "amp"
   | "devin"
   | "rovo"
@@ -210,7 +209,6 @@ export const ICON_MAP: Record<
   cline: ClineIcon,
   goose: GooseIcon,
   // Extended CLI agents — lobehub icons where available, infinity fallback otherwise
-  openclaude: InfinityAgentIcon,
   amp: AmpIcon,
   devin: DevinIcon,
   rovo: RovoIcon,
@@ -318,7 +316,6 @@ const MODEL_TYPE_TO_ICON: Record<ModelType, IconProvider> = {
   kimi_cli: "kimi",
   opencode: "opencode",
   // Extended CLI agents
-  openclaude: "openclaude",
   aider: "aider",
   goose: "goose",
   amp: "amp",
@@ -614,7 +611,6 @@ export const THEMEABLE_ICONS = new Set<IconProvider>([
   "opencode",
   "kimi",
   // Extended CLI agents using monochrome/currentColor icons.
-  "openclaude",
   "crush",
   "codebuff",
   "command_code",

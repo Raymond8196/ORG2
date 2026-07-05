@@ -309,7 +309,6 @@ fn spec_for_model_type(model_type: &ModelType) -> Option<&'static ProviderSpec> 
         | ModelType::Kiro
         | ModelType::KimiCli
         | ModelType::OrgiiOrchestrator
-        | ModelType::OpenClaude
         | ModelType::Aider
         | ModelType::Goose
         | ModelType::Amp

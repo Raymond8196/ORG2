@@ -18,6 +18,7 @@ import type { AvailableAgent } from "@src/config/cliAgents";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 import { useRefreshSpin } from "@src/hooks/ui";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import { openAgentConfigInWorkStation } from "@src/util/ui/openAgentConfigInWorkStation";
 
 import CliClientInlineExpandedCard, {
   CLI_CLIENT_INLINE_TAB,
@@ -138,8 +139,13 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
   }, []);
 
   const handleViewAgent = useCallback((agent: AvailableAgent) => {
-    setExpandedAgentKeys([agent.name]);
-    setActiveInlineTab(CLI_CLIENT_INLINE_TAB.STATUS);
+    openAgentConfigInWorkStation({
+      variant: "cli",
+      entityId: agent.name,
+      displayName: agent.displayName,
+      entitySnapshot: agent,
+      cliAgentType: agent.name,
+    });
   }, []);
 
   const cliSelectFilters = useMemo<SettingsTableSelectFilter[]>(

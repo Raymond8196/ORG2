@@ -1664,7 +1664,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Anahtar",
-      "addedTime": "Eklendi"
+      "addedTime": "Eklendi",
+      "secretBearingConfig": "API key veya Token içerebilir",
+      "revealConfigFile": "Dosya yöneticisinde göster"
     },
     "codexConfig": {
       "sectionTitle": "Yapılandırma",

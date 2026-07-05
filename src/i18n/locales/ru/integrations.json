@@ -1667,7 +1667,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Ключ",
-      "addedTime": "Добавлено"
+      "addedTime": "Добавлено",
+      "secretBearingConfig": "Может содержать API-ключи или Token",
+      "revealConfigFile": "Показать в файловом менеджере"
     },
     "codexConfig": {
       "sectionTitle": "Конфигурация",

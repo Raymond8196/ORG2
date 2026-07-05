@@ -917,7 +917,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     // All terminal tabs are kept mounted simultaneously — only the active one
     // is visible. display:none keeps the PTY connection and xterm's internal
-    // state alive across tab switches (mirrors Orca's TerminalPane.tsx approach).
+    // state alive across tab switches.
     const terminalTabs = allTabs.filter(
       (tab) => tab.type === "terminal" && tab.terminalSessionId
     );

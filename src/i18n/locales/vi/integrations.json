@@ -1667,7 +1667,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Khóa",
-      "addedTime": "Đã thêm"
+      "addedTime": "Đã thêm",
+      "secretBearingConfig": "Có thể chứa API key hoặc Token",
+      "revealConfigFile": "Hiển thị trong trình quản lý tệp"
     },
     "codexConfig": {
       "sectionTitle": "Cấu hình",

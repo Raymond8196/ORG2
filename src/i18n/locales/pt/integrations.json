@@ -1667,7 +1667,9 @@
       "typePlan": "Plano",
       "typeApiKey": "Chave de API",
       "keyPreview": "Chave",
-      "addedTime": "Adicionado"
+      "addedTime": "Adicionado",
+      "secretBearingConfig": "Pode conter API keys ou tokens",
+      "revealConfigFile": "Mostrar no gerenciador de arquivos"
     },
     "codexConfig": {
       "sectionTitle": "Configuração",

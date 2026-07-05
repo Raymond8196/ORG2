@@ -1667,7 +1667,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "キー",
-      "addedTime": "追加日"
+      "addedTime": "追加日",
+      "secretBearingConfig": "API key または Token が含まれる可能性があります",
+      "revealConfigFile": "ファイルマネージャーで表示"
     },
     "codexConfig": {
       "sectionTitle": "設定",

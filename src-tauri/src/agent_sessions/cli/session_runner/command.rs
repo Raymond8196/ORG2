@@ -18,7 +18,6 @@ pub(super) fn resolve_cli_agent_command(agent: &ModelType) -> String {
         ModelType::Copilot => CliBinaryId::Copilot,
         ModelType::OpenCode => CliBinaryId::OpenCode,
         ModelType::KimiCli => CliBinaryId::KimiCli,
-        ModelType::OpenClaude => CliBinaryId::OpenClaude,
         ModelType::Aider => CliBinaryId::Aider,
         ModelType::Goose => CliBinaryId::Goose,
         ModelType::Amp => CliBinaryId::Amp,
@@ -223,8 +222,7 @@ pub(super) fn build_command(
         // Extended CLI agents: pass the task as a positional argument.
         // These agents use TUI-style invocation; ORGII surfaces their raw PTY
         // output rather than parsing structured JSON events.
-        ModelType::OpenClaude
-        | ModelType::Aider
+        ModelType::Aider
         | ModelType::Goose
         | ModelType::Amp
         | ModelType::Cline
