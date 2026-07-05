@@ -32,6 +32,11 @@ function countMembers(org: OrgMember): number {
   return count;
 }
 
+const ORGS_TABLE_COL_WIDTH = {
+  members: SETTINGS_TABLE_COL.valueMd,
+  actions: "132px",
+} as const;
+
 const OrgsTable: React.FC<OrgsTableProps> = ({
   orgs,
   loading,
@@ -76,7 +81,7 @@ const OrgsTable: React.FC<OrgsTableProps> = ({
       {
         key: "members",
         label: t("agentOrgs.orgMembers", { defaultValue: "Members" }),
-        width: SETTINGS_TABLE_COL.valueMd,
+        width: ORGS_TABLE_COL_WIDTH.members,
         sorter: (rowA, rowB) => countMembers(rowA) - countMembers(rowB),
         renderCell: (row) => (
           <span className={SETTINGS_TABLE_CELL.value}>{countMembers(row)}</span>
@@ -87,7 +92,10 @@ const OrgsTable: React.FC<OrgsTableProps> = ({
         label: t("common:labels.description", { defaultValue: "Description" }),
         width: SETTINGS_TABLE_COL.fill,
         renderCell: (row) => (
-          <span className={SETTINGS_TABLE_CELL.muted}>
+          <span
+            className={`${SETTINGS_TABLE_CELL.muted} block w-0 min-w-full max-w-full truncate`}
+            title={row.description ?? undefined}
+          >
             {row.description ?? ""}
           </span>
         ),
@@ -99,7 +107,7 @@ const OrgsTable: React.FC<OrgsTableProps> = ({
             {t("common:labels.actions", { defaultValue: "Actions" })}
           </span>
         ),
-        width: SETTINGS_TABLE_COL.hug,
+        width: ORGS_TABLE_COL_WIDTH.actions,
         align: "right",
         renderCell: (row) => (
           <div
@@ -159,6 +167,7 @@ const OrgsTable: React.FC<OrgsTableProps> = ({
       rowDataTestId={(row) => `agent-orgs-org-row-${row.id}`}
       onRowClick={handleView}
       headerHeight="tall"
+      className="table-layout-fixed"
       searchBar={{
         searchValue: searchQuery,
         onSearchChange: setSearchQuery,
