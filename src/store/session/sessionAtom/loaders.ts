@@ -418,7 +418,8 @@ export const loadMoreCategory = async (
       current.loaded,
       pageSize
     );
-    store.set(sessionsAtom, (prev) => mergeSessions(prev, sessions));
+    const primarySessions = sessions.filter(isPrimarySessionListSession);
+    store.set(sessionsAtom, (prev) => mergeSessions(prev, primarySessions));
     setPaginationFor(category, {
       loaded: current.loaded + sessions.length,
       hasMore,
