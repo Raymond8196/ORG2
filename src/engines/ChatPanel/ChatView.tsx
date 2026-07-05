@@ -47,6 +47,7 @@ import { replayModeAtom } from "@src/engines/SessionCore";
 import { derivedSnapshotAtom } from "@src/engines/SessionCore/core/atoms/events";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { derivePlanApprovalViewState } from "@src/engines/SessionCore/derived/planDisplayEvents";
+import { useTodoSync } from "@src/engines/SessionCore/hooks/session/useTodoSync";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
 import { useFileReviewSync } from "@src/hooks/fileReview";
 import { createLogger } from "@src/hooks/logger";
@@ -121,6 +122,15 @@ const logger = createLogger("ChatView");
 
 const CHAT_FLOATING_COMPOSER_FALLBACK_INSET_PX = 72;
 const EMPTY_CHAT_EVENTS: SessionEvent[] = [];
+
+function formatPlanPillLabel(
+  autoApproveAt: number | null | undefined,
+  nowMs = Date.now()
+): string {
+  if (!autoApproveAt) return "Plan";
+  const seconds = Math.max(0, Math.ceil((autoApproveAt - nowMs) / 1000));
+  return `Plan · ${seconds}s`;
+}
 
 function impactFileChanges(input: {
   filesChanged?: number;
@@ -262,6 +272,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
       };
     }, [sessionId, setActiveSessionId, isReadOnlySurface, secondary, store]);
 
+    useTodoSync(isReadOnlySurface ? undefined : sessionId);
     useFileReviewSync(sessionId, !isReadOnlySurface && !secondary);
     const currentSession = useAtomValue(sessionByIdAtom(sessionId));
     const [orgtrackSummary, setOrgtrackSummary] =
@@ -315,11 +326,8 @@ const ChatView: React.FC<ChatViewProps> = memo(
       enabled: !isReadOnlySurface && !secondary && !isCursorIde && isLiveStatus,
     });
 
-    // Cursor IDE sessions used to swap the composer for a read-only
-    // banner; they're now writable through the regular `InputArea`
-    // (the model pill swaps to a Cursor-aware variant inside that
-    // component, and `cursorIdeAdapter.sendMessage` runs the probe
-    // dispatch).
+    // Cursor IDE history rows use the regular external-history read-only
+    // rendering path; source-specific fork composers are handled below.
 
     const showInteractArea = useShowInteractArea();
     const showExternalHistoryForkComposer =
@@ -621,6 +629,24 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const hasPlan = Boolean(
       currentPlanApproval && shouldShowCurrentPlanSurface
     );
+    const [planPillNowMs, setPlanPillNowMs] = useState(() => Date.now());
+    const currentPlanAutoApproveAt = currentPlanApproval?.autoApproveAt ?? null;
+    useEffect(() => {
+      if (!hasPlan || !currentPlanAutoApproveAt) return;
+      const timer = window.setInterval(
+        () => setPlanPillNowMs(Date.now()),
+        1000
+      );
+      return () => window.clearInterval(timer);
+    }, [currentPlanAutoApproveAt, hasPlan]);
+    const planPillLabel = useMemo(
+      () =>
+        formatPlanPillLabel(
+          hasPlan ? currentPlanAutoApproveAt : null,
+          planPillNowMs
+        ),
+      [currentPlanAutoApproveAt, hasPlan, planPillNowMs]
+    );
     const setStationMode = useSetAtom(stationModeAtom);
     const setSelectedSimulatorApp = useSetAtom(simulatorSelectedAppAtom);
     const setReplayMode = useSetAtom(replayModeAtom);
@@ -712,6 +738,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
       hasPermission,
       hasModeSwitch,
       hasPlan,
+      planPillLabel,
       gitArtifactStats,
       onFilesExpand: openAgentStationDiff,
       filesMenu,

@@ -895,7 +895,15 @@
     "addKey": "Adicionar chave",
     "compatibleKeys": "Keys compatíveis",
     "keysTab": "Keys",
-    "plansTab": "Planos"
+    "plansTab": "Planos",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "Todos os status de instalação",
@@ -2532,6 +2540,28 @@
       "cpu_offload": "Offload para CPU",
       "cpu_only": "Somente CPU",
       "no_fit": "Não recomendado"
+    }
+  },
+  "housekeeper": {
+    "addModel": "Adicionar modelo",
+    "sections": {
+      "configuration": "Configuração",
+      "features": "Recursos",
+      "diagnostics": "Diagnóstico"
+    },
+    "health": {
+      "status": "Não verificado"
+    },
+    "benchmark": {
+      "title": "Velocidade de saída do MiniCPM",
+      "idle": "Envia um prompt de teste leve e calcula token/s de saída pelo tempo real.",
+      "running": "Solicitando MiniCPM vLLM local e medindo a velocidade de saída...",
+      "ready": "Saída de {{tokens}} tokens em {{seconds}}s",
+      "status": "Não testado",
+      "checkButton": "Testar velocidade",
+      "tokensPerSecond": "Velocidade de saída: {{value}} tokens/s",
+      "completionTokens": "Tokens de saída: {{value}}",
+      "elapsed": "Tempo total: {{value}}s"
     }
   }
 }

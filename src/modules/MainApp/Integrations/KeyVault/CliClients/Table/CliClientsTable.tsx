@@ -13,6 +13,7 @@ import SettingsTable, {
   type SettingsTableSelectFilter,
 } from "@src/components/SettingsTable";
 import StatusDot from "@src/components/StatusDot";
+import Tag from "@src/components/Tag";
 import type { AvailableAgent } from "@src/config/cliAgents";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 import { useRefreshSpin } from "@src/hooks/ui";
@@ -174,31 +175,18 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
             className={`${SETTINGS_TABLE_CELL.primary} inline-flex items-center gap-2`}
           >
             <ModelIcon agentType={agent.name as ModelType} size={16} />
-            {agent.displayName}
+            <span>{agent.displayName}</span>
+            {agent.installed && (
+              <Tag size="mini" color="success" pill className="shrink-0">
+                {t("cliConfig.installed")}
+              </Tag>
+            )}
+            {agent.supportsGui && (
+              <Tag size="mini" color="primary" pill className="shrink-0">
+                GUI
+              </Tag>
+            )}
           </span>
-        ),
-      },
-      {
-        key: "installedStatus",
-        label: t("cliConfig.tableInstalled"),
-        width: "110px",
-        sorter: (agentA, agentB) =>
-          Number(agentB.installed) - Number(agentA.installed),
-        renderCell: (agent) => (
-          <StatusDot
-            color={agent.installed ? "bg-success-6" : "bg-fill-3"}
-            size="inline"
-            labelClassName={
-              agent.installed
-                ? "text-[12px] text-text-2"
-                : "text-[12px] text-text-3"
-            }
-            label={
-              agent.installed
-                ? t("cliConfig.installed")
-                : t("cliConfig.statusNotInstalled")
-            }
-          />
         ),
       },
       {

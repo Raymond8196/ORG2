@@ -192,6 +192,28 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
   );
   const isAnyExpanded = expandedSessionId !== null || gridExpanded;
 
+  // Sticky-state reset: gridExpanded / expandedSessionId survive re-renders
+  // by design, but when the SET of monitored sessions changes (a batch
+  // finished, a new turn spawned different workers) a stale 2x2 grid or a
+  // fullscreen cell from the previous batch is disorienting — the banner
+  // appears "stuck as two rows". Reset to the plain strip on set change.
+  const sessionKeySignature = useMemo(
+    () =>
+      activeSessions
+        .map((sub) => sub.key)
+        .sort()
+        .join(","),
+    [activeSessions]
+  );
+  const prevSignatureRef = useRef(sessionKeySignature);
+  useEffect(() => {
+    if (prevSignatureRef.current === sessionKeySignature) return;
+    prevSignatureRef.current = sessionKeySignature;
+    setGridExpanded(false);
+    setExpandedSessionId(null);
+    setPageIndex(0);
+  }, [sessionKeySignature]);
+
   const expandBannerImmediately = useCallback(() => {
     const bannerPane = bannerPaneRef.current;
     if (bannerPane) {

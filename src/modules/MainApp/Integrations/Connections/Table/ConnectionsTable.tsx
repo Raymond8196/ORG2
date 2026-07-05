@@ -36,6 +36,18 @@ import { CHANNEL_TYPES, type ChannelInstance } from "../Channels";
 import GatewayAgentCard from "../Channels/GatewayAgentCard";
 import { STATUS_DOT_COLOR } from "../Channels/types";
 
+const CONNECTIONS_TAB = {
+  CONNECTIONS: "connections",
+  GATEWAY: "gateway",
+  DISCOVER: "discover",
+} as const;
+
+type ConnectionsTab = (typeof CONNECTIONS_TAB)[keyof typeof CONNECTIONS_TAB];
+
+function isConnectionsTab(value: string | null): value is ConnectionsTab {
+  return Object.values(CONNECTIONS_TAB).includes(value as ConnectionsTab);
+}
+
 interface ConnectionRow {
   id: string;
   name: string;
@@ -177,20 +189,26 @@ export const ConnectionsTable: React.FC<ConnectionsTableProps> = ({
   const connectionsTabs = useMemo(
     () => [
       {
-        key: "connections",
+        key: CONNECTIONS_TAB.CONNECTIONS,
         label: t("connectionsTabs.connections"),
       },
       {
-        key: "gateway",
+        key: CONNECTIONS_TAB.GATEWAY,
         label: t("connectionsTabs.gateway"),
       },
-      { key: "discover", label: t("connectionsTabs.discover") },
+      { key: CONNECTIONS_TAB.DISCOVER, label: t("connectionsTabs.discover") },
     ],
     [t]
   );
 
-  const [connectionsActiveTab, setConnectionsActiveTab] =
-    useState("connections");
+  const [connectionsActiveTab, setConnectionsActiveTabState] =
+    useState<ConnectionsTab>(CONNECTIONS_TAB.CONNECTIONS);
+
+  const setConnectionsActiveTab = useCallback((tab: string) => {
+    setConnectionsActiveTabState(
+      isConnectionsTab(tab) ? tab : CONNECTIONS_TAB.CONNECTIONS
+    );
+  }, []);
 
   const columns = useMemo<SettingsTableColumn<ConnectionRow>[]>(
     () => [
@@ -275,9 +293,9 @@ export const ConnectionsTable: React.FC<ConnectionsTableProps> = ({
       <ScrollPreservation className={DETAIL_PANEL_TOKENS.scrollContentNoTop}>
         <div className={DETAIL_PANEL_TOKENS.contentWidthWithPaddingNoTop}>
           <div className="flex flex-col gap-3">
-            {connectionsActiveTab === "gateway" ? (
+            {connectionsActiveTab === CONNECTIONS_TAB.GATEWAY ? (
               <GatewayAgentCard />
-            ) : connectionsActiveTab === "discover" ? (
+            ) : connectionsActiveTab === CONNECTIONS_TAB.DISCOVER ? (
               <Placeholder
                 variant="empty"
                 placement="detail-panel"
@@ -343,7 +361,9 @@ export const ConnectionsTable: React.FC<ConnectionsTableProps> = ({
                 }}
               />
             )}
-            {connectionsActiveTab === "connections" && <ThirdPartyDisclaimer />}
+            {connectionsActiveTab === CONNECTIONS_TAB.CONNECTIONS && (
+              <ThirdPartyDisclaimer />
+            )}
           </div>
         </div>
       </ScrollPreservation>

@@ -89,6 +89,8 @@ export type ShellBlockProps = UniversalEventProps & {
    * Same triple as `title` — the adapter passes `labels.failed`.
    */
   failedLabel: string;
+  /** When true, renders output through xterm.js instead of ansi-to-react. */
+  tuiRendering?: boolean;
 };
 
 interface KillVariantProps {
@@ -237,16 +239,14 @@ const RunShellView: React.FC<ShellBlockProps> = (props) => {
     );
   }
 
-  // Prefer the agent-provided description (a human summary of the
-  // command) over the canonical lifecycle label when present — the
-  // lifecycle label (`props.title`) is the fallback header when there
-  // is no description to show. Both strings are already translated so
-  // this is domain logic, not an i18n fallback.
+  // Show the lifecycle label as the fixed title and the agent-provided
+  // description (human summary) as a truncatable subtitle — so the
+  // command symbols (npm, git, …) always remain visible in the header.
   const trimmedDescription = description?.trim();
-  const headerTitle =
+  const headerSubtitle =
     trimmedDescription && trimmedDescription.length > 0
       ? trimmedDescription
-      : props.title;
+      : undefined;
   const runningStatusText = runtimeDisplayState.isLongForegroundWait
     ? t("tools.terminalWaitRunning")
     : undefined;
@@ -256,7 +256,8 @@ const RunShellView: React.FC<ShellBlockProps> = (props) => {
   return (
     <TerminalBlock
       command={command}
-      title={headerTitle}
+      title={props.title}
+      subtitle={headerSubtitle}
       runningStatusText={runningStatusText}
       runningStatusIcon={runningStatusIcon}
       output={isLoading ? undefined : unescapedOutput}
@@ -273,6 +274,7 @@ const RunShellView: React.FC<ShellBlockProps> = (props) => {
       processStatus={shellProcessStatus}
       onStop={handleStop}
       toolUsage={props.toolUsage}
+      tuiRendering={props.tuiRendering}
     />
   );
 };

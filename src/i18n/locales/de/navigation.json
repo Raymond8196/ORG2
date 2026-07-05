@@ -46,7 +46,8 @@
     "projectManager": "Project Manager",
     "diff": "Diff",
     "opsControl": "Ops Control",
-    "colleagues": "Kolleg:innen"
+    "colleagues": "Kolleg:innen",
+    "terminals": "Terminals"
   },
   "trajectoryPanel": {
     "title": "Trajektorie",

@@ -493,7 +493,31 @@ impl Tool for AgentTool {
         crate::tools::categories::ORCHESTRATION
     }
 
-    fn persist_threshold(&self) -> usize {
+    /// Launching a subagent mutates state (new session, worker process), so
+    /// this is NOT read-only — but each worker runs in its own isolated
+    /// session, so multiple `agent` calls in one LLM response are safe to run
+    /// concurrently. Without this, N parallel launches would serialize and
+    /// each foreground delegate would block the next.
+    fn is_concurrency_safe(&self) -> bool {
+        true
+    }
+
+    /// Surface `agent` first in the provider tool list (schema position is
+    /// an attention signal — mirrors Claude Code putting its Task tool at
+    /// the top of the tool array).
+    fn schema_priority(&self) -> i8 {
+        -10
+    }
+
+    /// Subagent results are parsed by the frontend (result cards, trailer
+    /// lines) and consumed inline by the parent — a `<persisted-output>`
+    /// stub breaks both. Oversized results fall back to tail truncation.
+    fn allow_persisted_output(&self) -> bool {
+        false
+    }
+
+    /// Subagent final reports deserve more headroom than shell dumps.
+    fn output_budget(&self) -> usize {
         100_000
     }
 
@@ -521,7 +545,27 @@ impl Tool for AgentTool {
                     ToolError::InvalidParams("kill requires 'handle' (worker session ID)".into())
                 })?;
             return match job_registry::kill_subagent(handle) {
-                Ok(()) => Ok(format!("Worker '{handle}' killed.")),
+                Ok(()) => {
+                    // Preserve partial progress: surface the worker's last
+                    // persisted narration alongside the kill confirmation so
+                    // its work so far isn't silently discarded (mirrors the
+                    // reference harness extracting a partial result on kill).
+                    let partial = {
+                        let sid = handle.to_string();
+                        tokio::task::block_in_place(|| {
+                            crate::session::persistence::load_llm_history(&sid)
+                                .ok()
+                                .and_then(|msgs| crate::turn_executor::last_assistant_text(&msgs))
+                        })
+                    };
+                    Ok(match partial {
+                        Some(text) if !text.trim().is_empty() => format!(
+                            "Worker '{handle}' killed.\n\n[partial progress before kill]\n{}",
+                            crate::utils::safe_truncate_chars_to_string(&text, 4000)
+                        ),
+                        _ => format!("Worker '{handle}' killed."),
+                    })
+                }
                 Err(msg) => Err(ToolError::ExecutionFailed(msg)),
             };
         }
@@ -679,6 +723,44 @@ impl Tool for AgentTool {
         // 3. Instance numbering — also enforces the max-instances cap.
         let instance_number = self.next_instance_number(&agent_id).await?;
 
+        // 3b. Mint the subagent session id and announce a provisional
+        // "running" job IMMEDIATELY — before the slow init below (provider
+        // preflight, registry build, worktree creation) which can take
+        // seconds. The frontend's live-subagent signal (planning footer +
+        // Stop affordance) is driven by this broadcast; announcing only at
+        // real registration left the whole creation window looking hung.
+        // Real registration re-broadcasts "running" for the same handle
+        // (idempotent on the FE job map); init failures broadcast "failed"
+        // via the guard's Drop.
+        //
+        // Prefix constants live in `agent_core::core::definitions::prefix_lookup`
+        // so the session-id parser (`looks_like_valid_subagent_session_id`)
+        // and any future routing logic share a single source of truth.
+        use crate::definitions::prefix_lookup::{
+            SHADOW_SUBAGENT_SESSION_PREFIX, SUBAGENT_SESSION_PREFIX,
+        };
+        let id_prefix = if is_shadow {
+            SHADOW_SUBAGENT_SESSION_PREFIX
+        } else {
+            SUBAGENT_SESSION_PREFIX
+        };
+        let subagent_session_id = resume_session_id.clone().unwrap_or_else(|| {
+            // `id_prefix` already ends with `-` (constant); avoid double-dash.
+            format!("{}{}-{}", id_prefix, agent_id, uuid::Uuid::new_v4())
+        });
+        let subagent_type_wire = if is_shadow {
+            helpers::subagent_type::SHADOW.to_string()
+        } else {
+            subagent_type_label(&agent_id)
+        };
+        let parent_session_id = self.parent_session_id.lock().await.clone();
+        let mut provisional_guard = helpers::ProvisionalJobGuard::announce(
+            &parent_session_id,
+            &subagent_session_id,
+            &agent.name,
+            &subagent_type_wire,
+        );
+
         // 4. Resolve model + reliability for THIS sub-agent.
         //
         // Sub-agents do not inherit the parent's model or fallback chain
@@ -697,7 +779,6 @@ impl Tool for AgentTool {
         let (model, sub_reliability_opt) =
             helpers::resolve_subagent_model(&agent, explicit_param_model, &parent_model);
 
-        let parent_session_id = self.parent_session_id.lock().await.clone();
         let parent_account_id_for_provider: Option<String> =
             self.config.session_account_id.clone().or_else(|| {
                 crate::session::persistence::get_session(&parent_session_id)
@@ -849,31 +930,14 @@ impl Tool for AgentTool {
             screenshot_store: None,
             iteration_hook: None,
             persist_cancel_marker: false,
+            steering_queue: None,
+            // Subagents never auto-continue (CC parity: the feature is
+            // main-session only — a subagent that stops is done).
+            auto_continue: false,
         };
 
-        // 9. Create subagent session ID (reuse for resume, new for fresh).
-        // Prefix constants live in `agent_core::core::definitions::prefix_lookup`
-        // (re-exported as `crate::definitions::prefix_lookup` here) so the
-        // session-id parser (`looks_like_valid_subagent_session_id`) and any
-        // future routing logic share a single source of truth.
-        use crate::definitions::prefix_lookup::{
-            SHADOW_SUBAGENT_SESSION_PREFIX, SUBAGENT_SESSION_PREFIX,
-        };
-        let id_prefix = if is_shadow {
-            SHADOW_SUBAGENT_SESSION_PREFIX
-        } else {
-            SUBAGENT_SESSION_PREFIX
-        };
-        let subagent_session_id = resume_session_id.unwrap_or_else(|| {
-            // `id_prefix` already ends with `-` (constant); avoid double-dash.
-            format!("{}{}-{}", id_prefix, agent_id, uuid::Uuid::new_v4())
-        });
-
-        let subagent_type_wire = if is_shadow {
-            helpers::subagent_type::SHADOW.to_string()
-        } else {
-            subagent_type_label(&agent_id)
-        };
+        // 9. Session id + type label were minted at step 3b (so the
+        // provisional job announcement could precede the slow init above).
 
         // The parent↔child linkage — stamping `subagentSessionId` + `action: "delegate"`
         // onto the parent's still-running `agent` tool_call event — happens inside
@@ -1010,25 +1074,45 @@ impl Tool for AgentTool {
         .await;
 
         let workspace = self.resolve_repo_path().await;
-        let (run_workspace, final_registry_arc, isolation_workspace_root) =
-            match effective_isolation {
-                Some(SubAgentIsolation::Worktree) => {
-                    let (isolated_workspace, worktree_info) = match self
-                        .create_worktree_workspace(&subagent_session_id, workspace.clone())
-                        .await
-                    {
-                        Ok(result) => result,
-                        Err(err) => {
-                            let _ = crate::session::persistence::update_status(
-                                &subagent_session_id,
-                                crate::session::SessionStatus::Failed,
-                            );
-                            return Err(err);
-                        }
-                    };
-                    if let Err(err) = crate::session::persistence::save_workspace(
+        let (final_registry_arc, isolation_workspace_root) = match effective_isolation {
+            Some(SubAgentIsolation::Worktree) => {
+                let (isolated_workspace, worktree_info) = match self
+                    .create_worktree_workspace(&subagent_session_id, workspace.clone())
+                    .await
+                {
+                    Ok(result) => result,
+                    Err(err) => {
+                        let _ = crate::session::persistence::update_status(
+                            &subagent_session_id,
+                            crate::session::SessionStatus::Failed,
+                        );
+                        return Err(err);
+                    }
+                };
+                if let Err(err) = crate::session::persistence::save_workspace(
+                    &subagent_session_id,
+                    &isolated_workspace,
+                ) {
+                    let workspace_root = isolated_workspace.workspace_root.clone();
+                    let session_id = subagent_session_id.clone();
+                    let _ = tokio::task::spawn_blocking(move || {
+                        git::worktree::remove_session_worktree(&workspace_root, &session_id, true)
+                    })
+                    .await;
+                    let _ = crate::session::persistence::update_status(
                         &subagent_session_id,
-                        &isolated_workspace,
+                        crate::session::SessionStatus::Failed,
+                    );
+                    return Err(ToolError::ExecutionFailed(format!(
+                        "failed to persist subagent worktree workspace: {err}"
+                    )));
+                }
+                if let Some(base_branch) = worktree_info.base_branch.as_deref() {
+                    if let Err(err) = crate::session::persistence::save_worktree_metadata(
+                        &subagent_session_id,
+                        &worktree_info.branch,
+                        base_branch,
+                        git::worktree::WorktreeMergeStatus::Pending,
                     ) {
                         let workspace_root = isolated_workspace.workspace_root.clone();
                         let session_id = subagent_session_id.clone();
@@ -1040,61 +1124,34 @@ impl Tool for AgentTool {
                             )
                         })
                         .await;
+                        let _ = crate::session::persistence::clear_worktree_metadata(
+                            &subagent_session_id,
+                        );
                         let _ = crate::session::persistence::update_status(
                             &subagent_session_id,
                             crate::session::SessionStatus::Failed,
                         );
                         return Err(ToolError::ExecutionFailed(format!(
-                            "failed to persist subagent worktree workspace: {err}"
+                            "failed to persist subagent worktree metadata: {err}"
                         )));
                     }
-                    if let Some(base_branch) = worktree_info.base_branch.as_deref() {
-                        if let Err(err) = crate::session::persistence::save_worktree_metadata(
-                            &subagent_session_id,
-                            &worktree_info.branch,
-                            base_branch,
-                            git::worktree::WorktreeMergeStatus::Pending,
-                        ) {
-                            let workspace_root = isolated_workspace.workspace_root.clone();
-                            let session_id = subagent_session_id.clone();
-                            let _ = tokio::task::spawn_blocking(move || {
-                                git::worktree::remove_session_worktree(
-                                    &workspace_root,
-                                    &session_id,
-                                    true,
-                                )
-                            })
-                            .await;
-                            let _ = crate::session::persistence::clear_worktree_metadata(
-                                &subagent_session_id,
-                            );
-                            let _ = crate::session::persistence::update_status(
-                                &subagent_session_id,
-                                crate::session::SessionStatus::Failed,
-                            );
-                            return Err(ToolError::ExecutionFailed(format!(
-                                "failed to persist subagent worktree metadata: {err}"
-                            )));
-                        }
-                    }
-                    let workspace_root = isolated_workspace.workspace_root.clone();
-                    let registry = self.with_workspace_coding_overlay(
-                        Arc::clone(&effective_registry_arc),
-                        isolated_workspace.clone(),
-                        &subagent_session_id,
-                    );
-                    (
-                        isolated_workspace.working_dir().to_path_buf(),
-                        registry,
-                        Some(workspace_root),
-                    )
                 }
-                None => (workspace, Arc::clone(&effective_registry_arc), None),
-            };
-        let final_registry = final_registry_arc.as_ref();
+                let workspace_root = isolated_workspace.workspace_root.clone();
+                let registry = self.with_workspace_coding_overlay(
+                    Arc::clone(&effective_registry_arc),
+                    isolated_workspace.clone(),
+                    &subagent_session_id,
+                );
+                (registry, Some(workspace_root))
+            }
+            None => (Arc::clone(&effective_registry_arc), None),
+        };
 
         // ── Background mode: spawn and return handle immediately ─────
         if is_background {
+            // Real registration inside the spawn re-broadcasts "running"
+            // for this handle; the provisional announcement is superseded.
+            provisional_guard.disarm();
             return Ok(Self::spawn_background_subagent(
                 background::BackgroundSpawnArgs {
                     agent: &agent,
@@ -1103,7 +1160,6 @@ impl Tool for AgentTool {
                     effective_policy,
                     fresh_registry: None,
                     parent_registry: Arc::clone(&final_registry_arc),
-                    workspace: run_workspace,
                     subagent_session_id,
                     parent_session_id,
                     subagent_type_label: subagent_type_wire,
@@ -1117,44 +1173,28 @@ impl Tool for AgentTool {
             ));
         }
 
-        // ── Foreground mode: block until subagent completes ──────────
-        let fg_session_id = subagent_session_id.clone();
-        let result = self
-            .run_foreground_subagent(foreground::ForegroundRunArgs {
-                agent: &agent,
-                messages,
-                turn_config,
-                effective_registry: final_registry,
-                effective_policy,
-                workspace: run_workspace.as_path(),
-                subagent_session_id,
-                parent_session_id,
-                subagent_type_label: subagent_type_wire,
-                handler,
-                instance_number,
-                model,
-                provider: subagent_provider,
-            })
-            .await;
-
-        // Clean up the isolation worktree after foreground subagent exits
-        // (success or failure). Best-effort: a failed cleanup is logged and
-        // the startup pruner will handle the orphan on next launch.
-        if let Some(workspace_root) = isolation_workspace_root {
-            let session_id_for_log = fg_session_id.clone();
-            let wt_result = tokio::task::spawn_blocking(move || {
-                git::worktree::remove_session_worktree(&workspace_root, &fg_session_id, true)
-            })
-            .await;
-            if let Ok(Err(err)) = wt_result {
-                warn!(
-                    "[agent] failed to remove isolation worktree for '{}' after foreground completion: {}",
-                    session_id_for_log, err
-                );
-            }
-        }
-
-        result
+        // ── Foreground mode: wait with fg→bg transition deadline ─────
+        // Registration inside `run_foreground_subagent` takes over the
+        // handle (it also emits terminal status on completion/failure).
+        // Worktree cleanup is owned by the worker task itself so it also
+        // runs when the wait converts to a background handle.
+        provisional_guard.disarm();
+        self.run_foreground_subagent(foreground::ForegroundRunArgs {
+            agent: agent.clone(),
+            messages,
+            turn_config,
+            effective_registry: Arc::clone(&final_registry_arc),
+            effective_policy,
+            subagent_session_id,
+            parent_session_id,
+            subagent_type_label: subagent_type_wire,
+            handler,
+            instance_number,
+            model,
+            provider: subagent_provider,
+            worktree_workspace_root: isolation_workspace_root,
+        })
+        .await
     }
 
     async fn set_active_repo(&self, repo_path: &str) {

@@ -9,6 +9,11 @@ import { fetchRustApi, gitRepoUrl } from "./client";
 
 const log = createLogger("GitAPI");
 
+export interface GitBranchMutationResult {
+  success: boolean;
+  error?: string;
+}
+
 /**
  * Create a new branch
  * Uses Rust HTTP server
@@ -19,7 +24,7 @@ export const gitCreateBranch = async (params: {
   name: string;
   start_point?: string | null;
   checkout?: boolean;
-}): Promise<boolean> => {
+}): Promise<GitBranchMutationResult> => {
   const queryParams = new URLSearchParams();
   if (params.repo_path) queryParams.append("path", params.repo_path);
 
@@ -35,10 +40,11 @@ export const gitCreateBranch = async (params: {
         }),
       }
     );
-    return true;
+    return { success: true };
   } catch (error) {
-    log.error("[GitAPI] Failed to create branch:", error);
-    return false;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log.error("[GitAPI] Failed to create branch:", errorMessage);
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -51,7 +57,7 @@ export const gitDeleteBranch = async (params: {
   repo_path?: string;
   branch_name: string;
   force?: boolean;
-}): Promise<boolean> => {
+}): Promise<GitBranchMutationResult> => {
   const queryParams = new URLSearchParams();
   if (params.repo_path) queryParams.append("path", params.repo_path);
 
@@ -60,10 +66,11 @@ export const gitDeleteBranch = async (params: {
       `${gitRepoUrl(params.repo_id)}/branch/${encodeURIComponent(params.branch_name)}${queryParams.toString() ? `?${queryParams.toString()}` : ""}`,
       { method: "DELETE" }
     );
-    return true;
+    return { success: true };
   } catch (error) {
-    log.error("[GitAPI] Failed to delete branch:", error);
-    return false;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log.error("[GitAPI] Failed to delete branch:", errorMessage);
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -75,6 +82,8 @@ export type CheckoutErrorType =
   | "branch_not_found" // Branch doesn't exist
   | "merge_in_progress" // Need to complete/abort merge first
   | "rebase_in_progress" // Need to complete/abort rebase first
+  | "cherry_pick_in_progress" // Need to complete/abort cherry-pick first
+  | "worktree_branch_in_use" // Branch is already checked out in another worktree
   | "other"; // Generic error
 
 /**
@@ -129,6 +138,19 @@ function parseCheckoutError(errorMessage: string): {
     };
   }
 
+  // Branch is already checked out in another worktree
+  if (
+    (msg.includes("already checked out") && msg.includes("worktree")) ||
+    msg.includes("is already used by worktree") ||
+    msg.includes("is already checked out at")
+  ) {
+    return {
+      message:
+        "This branch is already checked out in another worktree. Switch to that worktree or choose a different branch.",
+      type: "worktree_branch_in_use",
+    };
+  }
+
   // Merge in progress
   if (msg.includes("merge") && msg.includes("in progress")) {
     return {
@@ -146,11 +168,11 @@ function parseCheckoutError(errorMessage: string): {
   }
 
   // Cherry-pick in progress
-  if (msg.includes("cherry-pick")) {
+  if (msg.includes("cherry-pick") || msg.includes("cherry_pick")) {
     return {
       message:
         "A cherry-pick is in progress. Please complete or abort it first.",
-      type: "other",
+      type: "cherry_pick_in_progress",
     };
   }
 

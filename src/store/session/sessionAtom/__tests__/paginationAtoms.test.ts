@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/importedHistory";
+import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/externalHistory";
 
 import {
   SESSION_LIST_CATEGORIES,
@@ -16,7 +16,6 @@ describe("session pagination categories", () => {
     expect(SESSION_LIST_CATEGORIES).toEqual([
       "cli_agent",
       "rust_agent",
-      "cursor_ide",
       ...importedCategories,
     ]);
   });

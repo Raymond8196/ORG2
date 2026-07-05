@@ -16,6 +16,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { SessionEvent } from "@src/engines/SessionCore";
+import { replayModeAtom } from "@src/engines/SessionCore";
 import {
   focusedSubagentCellAtom,
   simulatorSubagentSessionsAtom,
@@ -109,10 +110,25 @@ export function useSimulatorSubagents({
 }: UseSimulatorSubagentsOptions): UseSimulatorSubagentsReturn {
   const panelRevealRequest = useAtomValue(subagentPanelRevealRequestAtom);
   const focusedCellId = useAtomValue(focusedSubagentCellAtom);
+  const setFocusedCellId = useSetAtom(focusedSubagentCellAtom);
+  const replayMode = useAtomValue(replayModeAtom);
   const [dismissedSnapshot, setDismissedSnapshot] = useState<{
     keys: string;
     reveal: number;
   } | null>(null);
+
+  // Focus lifecycle: the locate arrow (SubagentAdapter.handleNavigate) seeks
+  // the main cursor into the subagent's clip window and pins the cell via
+  // focusedSubagentCellAtom — that pin is only meant for the free-browse
+  // (replay) session it started. Returning to "Following Agent" means the
+  // user is done inspecting history, so release the pin; otherwise the
+  // focused cell is force-prepended forever and never retires with the
+  // timeline. (No other code path clears this atom.)
+  useEffect(() => {
+    if (replayMode === "follow" && focusedCellId !== null) {
+      setFocusedCellId(null);
+    }
+  }, [replayMode, focusedCellId, setFocusedCellId]);
 
   // DB query — re-triggered by eventStoreVersion (bumped on every EventStore
   // mutation, including args patches like stamp_subagent_session_id_on_parent).
@@ -148,14 +164,18 @@ export function useSimulatorSubagents({
     };
   }, [allSubagentSessions, setSimulatorSubagentSessions]);
 
-  // Filter to sessions whose time-window covers the current replay cursor.
-  // When no clip covers the cursor, fall back to clips that are still OPEN
-  // (endedAtMs === null, i.e. running right now) so a freshly spawned
-  // subagent is visible even while the main cursor lags behind its
-  // startedAtMs (the spawning tool_call is filtered from the slider).
-  // Closed clips deliberately do NOT resurface here — once the cursor
-  // passes a clip's end, its cell retires from the monitor. The old
-  // fall-back-to-everything behavior is what made cells accumulate.
+  // Filter to sessions whose time-window covers the current replay cursor,
+  // then UNION with clips that are still OPEN (endedAtMs === null, i.e.
+  // running right now). The union fixes two gaps:
+  //   - a freshly spawned subagent is visible even while the main cursor
+  //     lags behind its startedAtMs (the spawning tool_call is filtered
+  //     from the slider);
+  //   - in live-follow, a running worker stays visible even after a fast
+  //     sibling finished and pulled the parent cursor past its own window.
+  // Closed clips deliberately do NOT resurface — once the cursor passes a
+  // clip's end AND it is no longer open, its cell retires from the monitor.
+  // (The old fall-back-to-everything behavior is what made cells
+  // accumulate; a union of cursor-active + still-open keeps that fix.)
   const cursorActiveSubagents = useActiveSubagentsAtCursor(
     allSubagentSessions,
     currentEvent
@@ -195,12 +215,25 @@ export function useSimulatorSubagents({
         : null,
     [allSubagentSessions, focusedCellId]
   );
-  const baseSubagents =
-    cursorActiveSubagents.length > 0
-      ? cursorActiveSubagents
-      : openSubagents.length > 0
-        ? openSubagents
-        : currentEventCompletedSubagent;
+  const baseSubagents = useMemo(() => {
+    const byId = new Map<string, SubagentSession>();
+
+    for (const sub of cursorActiveSubagents) {
+      byId.set(sub.sessionId, sub);
+    }
+    for (const sub of openSubagents) {
+      if (!byId.has(sub.sessionId)) {
+        byId.set(sub.sessionId, sub);
+      }
+    }
+    for (const sub of currentEventCompletedSubagent) {
+      if (!byId.has(sub.sessionId)) {
+        byId.set(sub.sessionId, sub);
+      }
+    }
+
+    return Array.from(byId.values());
+  }, [cursorActiveSubagents, openSubagents, currentEventCompletedSubagent]);
   const cursorOrAllSubagents = useMemo(() => {
     if (!focusedSubagent) return baseSubagents;
     if (

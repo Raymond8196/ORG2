@@ -73,6 +73,12 @@ interface ChildSessionRecord {
  */
 const ZOMBIE_ROW_FUSE_MS = 24 * 60 * 60 * 1000;
 
+// The spawning tool_call is filtered out of the main slider, so the last
+// visible main-agent event before a subagent starts can be up to ~60 s
+// earlier than the subagent's startedAtMs. Treat that short lead window as
+// active so even very fast workers can be inspected during replay.
+export const SUBAGENT_ACTIVE_LEAD_MS = 90_000;
+
 /**
  * Coarse display status for sorting/labels only. Clip-window semantics
  * (open/closed) come exclusively from `isTerminal` / `endedAt`.
@@ -164,7 +170,7 @@ export function isActiveAtTimestamp(
   sub: SubagentSession,
   cursorMs: number
 ): boolean {
-  if (cursorMs < sub.startedAtMs) return false;
+  if (cursorMs < sub.startedAtMs - SUBAGENT_ACTIVE_LEAD_MS) return false;
   if (sub.endedAtMs === null) return true;
   return cursorMs <= sub.endedAtMs;
 }
@@ -258,26 +264,17 @@ export function useSubagentSessions(
         })
         .map((record) => mapChildSessionRecord(record, Date.now()));
 
-      // Stable sort: subagents that have actually started (any non-pending
-      // status) come first so the bottom strip / grid always shows
-      // populated cells before empty / not-yet-started ones. Within each
-      // group, preserve insertion order so cells don't reshuffle as the
-      // backend updates a single status field.
-      const indexById = new Map(
-        mapped.map((session, index) => [session.sessionId, index])
-      );
-      const isReady = (status: SubagentSession["status"]): boolean =>
-        status !== "pending";
+      // Sort for the monitor strip: running (open clip) first, then
+      // finished; within each group NEWEST first, so a freshly spawned
+      // worker always lands on page 1 of the strip instead of hiding
+      // behind the pagination. Sort keys (status group + startedAtMs) only
+      // change on real lifecycle transitions, so cells don't reshuffle as
+      // the backend updates unrelated fields.
       mapped.sort((left, right) => {
-        const leftReady = isReady(left.status);
-        const rightReady = isReady(right.status);
-        if (leftReady === rightReady) {
-          return (
-            (indexById.get(left.sessionId) ?? 0) -
-            (indexById.get(right.sessionId) ?? 0)
-          );
-        }
-        return leftReady ? -1 : 1;
+        const leftOpen = left.endedAtMs === null;
+        const rightOpen = right.endedAtMs === null;
+        if (leftOpen !== rightOpen) return leftOpen ? -1 : 1;
+        return right.startedAtMs - left.startedAtMs;
       });
       return mapped;
     },

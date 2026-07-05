@@ -39,6 +39,8 @@ import {
 export interface UseChatPanelResizeOptions {
   /** Whether using external width control */
   useExternalWidth?: boolean;
+  /** Whether the panel is rendered inside another app surface */
+  embedded?: boolean;
   /** Panel position: left or right */
   position?: "left" | "right";
 }

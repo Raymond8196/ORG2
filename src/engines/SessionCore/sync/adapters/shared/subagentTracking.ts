@@ -35,7 +35,8 @@ export const SPAWNING_TOOLS_ARRAY = [
   "subagent",
 ];
 
-export const SPAWNED_SESSION_RE = /(?:agentsession|subagent)-[a-f0-9-]+/;
+export const SPAWNED_SESSION_RE =
+  /(?:agentsession|subagent|agent-[A-Za-z0-9:_-]+)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/;
 
 /**
  * Find the most recent subagent-spawning tool_call that hasn't received

@@ -46,7 +46,8 @@
     "projects": "Projects",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control"
+    "opsControl": "Ops Control",
+    "terminals": "Terminals"
   },
   "workstation": {
     "dockFilter": {

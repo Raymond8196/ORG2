@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 
 import { LOCAL_MODEL_PROVIDER } from "@src/api/types/keys";
 import Button from "@src/components/Button";
@@ -15,7 +16,14 @@ import {
 
 import type { AgentSetupProps } from "./types";
 
-type LocalRuntime = "ollama" | "lm_studio" | "vllm" | "llamacpp" | "custom";
+type LocalRuntime =
+  | "ollama"
+  | "lm_studio"
+  | "vllm"
+  | "vllm_minicpm"
+  | "sglang_minicpm"
+  | "llamacpp"
+  | "custom";
 
 type LocalPreset = {
   runtime: LocalRuntime;
@@ -45,6 +53,18 @@ const LOCAL_PRESETS: Record<LocalRuntime, LocalPreset> = {
     apiKey: "vllm-local",
     models: ["meta-llama/Llama-3.1-8B-Instruct"],
   },
+  vllm_minicpm: {
+    runtime: "vllm_minicpm",
+    baseUrl: "http://127.0.0.1:8000/v1",
+    apiKey: "vllm-local",
+    models: ["openbmb/MiniCPM5-1B"],
+  },
+  sglang_minicpm: {
+    runtime: "sglang_minicpm",
+    baseUrl: "http://127.0.0.1:30000/v1",
+    apiKey: "sglang-local",
+    models: ["openbmb/MiniCPM5-1B"],
+  },
   llamacpp: {
     runtime: "llamacpp",
     baseUrl: "http://localhost:8080/v1",
@@ -67,8 +87,10 @@ function mergeUniqueModels(existingModels: string[], presetModels: string[]) {
   return merged;
 }
 
-function isLocalRuntime(value: string | undefined): value is LocalRuntime {
-  return !!value && value in LOCAL_PRESETS;
+function isLocalRuntime(
+  value: string | null | undefined
+): value is LocalRuntime {
+  return Boolean(value && value in LOCAL_PRESETS);
 }
 
 const LocalModelSetup: React.FC<AgentSetupProps> = ({
@@ -79,16 +101,19 @@ const LocalModelSetup: React.FC<AgentSetupProps> = ({
   validateKey,
 }) => {
   const { t } = useTranslation("integrations");
+  const [searchParams] = useSearchParams();
+  const requestedRuntime = searchParams.get("localRuntime");
   const [cookbookDismissed, setCookbookDismissed] = useState(false);
 
   const selectedRuntime = useMemo<LocalRuntime>(() => {
+    if (isLocalRuntime(requestedRuntime)) return requestedRuntime;
     if (isLocalRuntime(data.setup_method)) return data.setup_method;
     const currentUrl = data.extracted_base_url;
     const match = Object.values(LOCAL_PRESETS).find(
       (preset) => preset.baseUrl === currentUrl
     );
     return match?.runtime ?? "ollama";
-  }, [data.extracted_base_url, data.setup_method]);
+  }, [data.extracted_base_url, data.setup_method, requestedRuntime]);
   const selectedPreset = LOCAL_PRESETS[selectedRuntime];
   const effectiveBaseUrl = data.extracted_base_url || selectedPreset.baseUrl;
 
@@ -98,10 +123,12 @@ const LocalModelSetup: React.FC<AgentSetupProps> = ({
   }, [data.agent_type, data.name, onChange]);
 
   useEffect(() => {
-    if (!isLocalRuntime(data.setup_method)) return;
+    if (!isLocalRuntime(data.setup_method) && !isLocalRuntime(requestedRuntime))
+      return;
     if (data.extracted_base_url) return;
-    const preset = LOCAL_PRESETS[data.setup_method];
+    const preset = LOCAL_PRESETS[selectedRuntime];
     onChange({
+      raw_key_input: data.raw_key_input.trim() || preset.apiKey,
       extracted_base_url: preset.baseUrl,
       custom_models: mergeUniqueModels(data.custom_models ?? [], preset.models),
       enabled_models: mergeUniqueModels(
@@ -114,8 +141,11 @@ const LocalModelSetup: React.FC<AgentSetupProps> = ({
     data.custom_models,
     data.enabled_models,
     data.extracted_base_url,
+    data.raw_key_input,
     data.setup_method,
     onChange,
+    requestedRuntime,
+    selectedRuntime,
   ]);
 
   const modelQuickAddOptions = useMemo(

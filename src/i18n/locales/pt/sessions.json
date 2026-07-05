@@ -799,6 +799,13 @@
     "hideWorkstation": "Ocultar Workstation",
     "restoreSplitView": "Mostrar Workstation",
     "shrinkToWorkstation": "Reduzir painel de chat (mostrar Workstation)",
+    "tuiModeOn": "Modo TUI (clique para desativar)",
+    "tuiModeOff": "Ativar modo TUI",
+    "tabs": {
+      "newTerminal": "Novo Terminal",
+      "newTab": "Nova aba",
+      "terminals": "Terminais"
+    },
     "collapseAll": "Recolher tudo",
     "copyEventJson": "Copiar JSON de eventos",
     "copyEventJsonCopied": "Copiado!",
@@ -950,7 +957,8 @@
         "byMe": "Por mim",
         "mentioned": "Mencionadas"
       }
-    }
+    },
+    "readOnly": "Somente leitura"
   },
   "chatStatus": {
     "approved": "Aprovado",
@@ -1237,6 +1245,9 @@
     "awaitOutputKilled": "Encerrado",
     "awaitOutputNotFound": "Tarefa em segundo plano não rastreada",
     "awaitOutputExitCode": "saída {{exitCode}}",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "Encerrando processo",
     "killProcessDone": "Processo encerrado",
     "killProcessFailed": "Falha ao encerrar processo",

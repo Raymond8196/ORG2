@@ -84,14 +84,30 @@ export const gitCreateBranchFromCommit = defineZodAction(
       repo_path: repo.repoPath,
       name: branchName,
       start_point: commitSha,
-      checkout,
+      checkout: false,
     });
 
-    if (!created) {
+    if (!created.success) {
       return {
         success: false,
-        message: "Failed to create branch from commit",
+        message: created.error || "Failed to create branch from commit",
       };
+    }
+
+    if (checkout) {
+      const checkoutResult = await GitOperationsService.checkoutWithDialog(
+        branchName,
+        false
+      );
+      if (!checkoutResult.success) {
+        return {
+          success: false,
+          message:
+            checkoutResult.message ||
+            `Created branch ${branchName}, but checkout was blocked`,
+          data: { branchName, commitSha, checkout, branchCreated: true },
+        };
+      }
     }
 
     return {

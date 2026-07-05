@@ -59,6 +59,8 @@ export interface Session {
    * the `repo_path` column on `agent_sessions` / `code_sessions`.
    */
   repoPath?: string;
+  /** Path to the file or directory where this session's persisted data lives. */
+  storagePath?: string;
   /** Worktree path for isolated parallel sessions */
   worktreePath?: string;
   /** Branch name inside the worktree (e.g. `agent/abc123`) */

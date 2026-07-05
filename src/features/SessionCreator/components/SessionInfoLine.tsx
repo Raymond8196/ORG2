@@ -25,6 +25,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { gitApi, removeGitWorktree } from "@src/api/http/git";
+import { CheckoutBlockedDialog } from "@src/components/GitDialogs/CheckoutBlockedDialog";
 import { CheckoutConflictDialog } from "@src/components/GitDialogs/CheckoutConflictDialog";
 import PillGroup, { type PillGroupVariant } from "@src/components/PillGroup";
 import RunningLocationDropdownPanel from "@src/components/RunningLocationDropdownPanel";
@@ -249,7 +250,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
       if (!repoId || !repoPath || repoKind === REPO_KIND.FOLDER) {
         onBranchChange?.(branch);
         setIsBranchSelectorOpen(false);
-        return;
+        return true;
       }
 
       const result = await runGuardedCheckout({
@@ -257,6 +258,12 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
         repoPath,
         ref: branch,
         onConflict: (name) => CheckoutConflictDialog.open({ branchName: name }),
+        onBlocked: ({ branch: name, errorType, message }) =>
+          CheckoutBlockedDialog.open({
+            branchName: name,
+            errorType,
+            message,
+          }),
       });
 
       if (result.success) {
@@ -265,30 +272,44 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
           showGitActionDialogSafely(result.message, "info");
         }
         setIsBranchSelectorOpen(false);
-        return;
+        return true;
       }
 
-      if (result.outcome !== "cancelled") {
+      if (result.outcome !== "cancelled" && !result.blocked) {
         showGitActionDialogSafely(
           result.message || `Failed to checkout branch "${branch}"`,
           "error"
         );
       }
+      return false;
     },
     [onBranchChange, repoId, repoKind, repoPath]
+  );
+
+  const handleBranchPaletteSelect = useCallback(
+    async (branch: string) => {
+      await handleBranchSelect(branch);
+    },
+    [handleBranchSelect]
   );
 
   const handleCreateBranch = useCallback(
     async (branch: string, startPoint?: string) => {
       if (!repoId || !repoPath) return;
-      const success = await gitApi.gitCreateBranch({
+      const result = await gitApi.gitCreateBranch({
         repo_id: repoId,
         repo_path: repoPath,
         name: branch,
         start_point: startPoint ?? null,
         checkout: false,
       });
-      if (!success) return;
+      if (!result.success) {
+        showGitActionDialogSafely(
+          result.error || `Failed to create branch "${branch}"`,
+          "error"
+        );
+        return;
+      }
       await handleBranchSelect(branch);
     },
     [handleBranchSelect, repoId, repoPath]
@@ -307,14 +328,14 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
         return { success: false, message };
       }
 
-      const success = await gitApi.gitDeleteBranch({
+      const result = await gitApi.gitDeleteBranch({
         repo_id: repoId,
         repo_path: repoPath,
         branch_name: branch,
       });
 
-      if (!success) {
-        const message = `Failed to delete branch "${branch}"`;
+      if (!result.success) {
+        const message = result.error || `Failed to delete branch "${branch}"`;
         if (!options?.silent) {
           showGitActionDialogSafely(message, "error");
         }
@@ -568,7 +589,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
           <BranchPalette
             isOpen={isBranchSelectorOpen}
             onClose={handleBranchClose}
-            onSelect={handleBranchSelect}
+            onSelect={handleBranchPaletteSelect}
             repoId={repoId}
             repoPath={repoPath}
             currentBranchName={branchName}

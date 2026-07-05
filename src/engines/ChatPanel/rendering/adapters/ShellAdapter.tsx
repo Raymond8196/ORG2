@@ -6,6 +6,7 @@
  * `await_output` is a separate chat_block (`TitleOnly`) and never reaches
  * this adapter; it's rendered by `TitleOnlyAdapter` directly.
  */
+import { useAtomValue } from "jotai";
 import React from "react";
 
 import {
@@ -13,6 +14,7 @@ import {
   useLifecycleLabels,
 } from "@src/engines/SessionCore/rendering/registry";
 import type { UniversalEventProps } from "@src/engines/SessionCore/rendering/types/universalProps";
+import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 
 import { ShellBlock } from "../../blocks/ShellBlock";
 
@@ -23,6 +25,7 @@ export const ShellAdapter: React.FC<UniversalEventProps> = (props) => {
   const state = statusToLifecycle(props.status);
 
   const toolName = props.eventType || props.functionName;
+  const tuiMode = useAtomValue(tuiModeAtom(props.sessionId ?? ""));
 
   return (
     <div data-tool-call-event-id={props.eventId} data-tool-call-name={toolName}>
@@ -31,6 +34,7 @@ export const ShellAdapter: React.FC<UniversalEventProps> = (props) => {
         title={runLabels[state]}
         killTitle={killLabels[state]}
         failedLabel={runLabels.failed}
+        tuiRendering={tuiMode}
       />
     </div>
   );
