@@ -155,6 +155,44 @@ type: {{user, feedback, workspace, reference}}
 
 {{memory content — for feedback/workspace types, structure as: rule/fact, then **Why:** and **How to apply:** lines}}";
 
+/// Explicit-request save/forget directive.
+///
+/// Shared by the main-agent memory section and the extraction subagent
+/// prompt: an in-turn "remember this" must be honored immediately by
+/// whichever agent sees it, not deferred to the gated post-turn extractor.
+pub const SAVE_ON_EXPLICIT_REQUEST: &str = "\
+If the user explicitly asks you to remember something, save it immediately as whichever type \
+fits best. If they ask you to forget something, find and remove the relevant entry.";
+
+/// Two-step save protocol (file + MEMORY.md index pointer).
+///
+/// Shared by the main-agent memory section and the extraction subagent
+/// prompt so both describe the identical on-disk format. A function (not a
+/// const) because it interpolates [`MEMORY_FRONTMATTER_EXAMPLE`] and the
+/// entrypoint limits; the output is fully static, so callers may embed it
+/// in byte-stable prompt sections.
+pub fn how_to_save_section() -> String {
+    format!(
+        "## How to save memories
+
+Saving a memory is a two-step process:
+
+**Step 1** — write the memory to its own file (e.g., `user_role.md`, `feedback_testing.md`) using this frontmatter format:
+
+{frontmatter}
+
+**Step 2** — add a pointer to that file in `{entrypoint}`. `{entrypoint}` is an index, not a memory — each entry should be one line, under ~150 characters: `- [Title](file.md) — one-line hook`. It has no frontmatter. Never write memory content directly into `{entrypoint}`.
+
+- `{entrypoint}` is always loaded into your system prompt — lines after {max_lines} will be truncated, so keep the index concise
+- Organize memory semantically by topic, not chronologically
+- Update or remove memories that turn out to be wrong or outdated
+- Do not write duplicate memories. First check if there is an existing memory you can update before writing a new one.",
+        frontmatter = MEMORY_FRONTMATTER_EXAMPLE,
+        entrypoint = super::ENTRYPOINT_NAME,
+        max_lines = super::MAX_ENTRYPOINT_LINES,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -226,6 +264,27 @@ mod tests {
             WHEN_TO_ACCESS.contains("trust what you observe now"),
             "drift caveat missing from WHEN_TO_ACCESS"
         );
+    }
+
+    #[test]
+    fn test_save_on_explicit_request_covers_save_and_forget() {
+        // CC-parity line: an in-turn "remember this" is saved immediately,
+        // and "forget X" removes the entry — no deferral to the extractor.
+        assert!(SAVE_ON_EXPLICIT_REQUEST.contains("save it immediately"));
+        assert!(SAVE_ON_EXPLICIT_REQUEST.contains("forget"));
+    }
+
+    #[test]
+    fn test_how_to_save_section_is_static_and_complete() {
+        let section = how_to_save_section();
+        // Two-step protocol with the frontmatter template embedded.
+        assert!(section.starts_with("## How to save memories"));
+        assert!(section.contains("**Step 1**"));
+        assert!(section.contains("**Step 2**"));
+        assert!(section.contains(MEMORY_FRONTMATTER_EXAMPLE));
+        assert!(section.contains(super::super::ENTRYPOINT_NAME));
+        // Fully static output: safe to embed in byte-stable prompt sections.
+        assert_eq!(section, how_to_save_section());
     }
 
     #[test]

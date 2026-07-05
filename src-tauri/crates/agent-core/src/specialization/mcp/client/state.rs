@@ -22,6 +22,12 @@ impl McpClient {
         &self.config
     }
 
+    /// Server-provided usage guidance from the initialize handshake
+    /// (already trimmed + capped). `None` when the server sent none.
+    pub fn instructions(&self) -> Option<&str> {
+        self.instructions.as_deref()
+    }
+
     pub fn is_alive(&self) -> bool {
         self.alive.load(Ordering::SeqCst)
             && self.service.try_lock().map(|g| g.is_some()).unwrap_or(true)
