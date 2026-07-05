@@ -170,6 +170,69 @@ fn short_retry_after_rate_limit_can_retry() {
 }
 
 #[test]
+fn moderate_retry_after_rate_limit_is_waited_out() {
+    // A 60s window is a routine PAYG rate-limit that the server directive
+    // asks us to ride out — it must NOT fail fast. Only multi-minute
+    // quota/capacity windows (>10min ceiling) do.
+    assert!(!ReliableProvider::should_fail_fast_rate_limit(
+        &ProviderError::RateLimited {
+            message: "slow down".into(),
+            retry_after_secs: Some(60),
+        }
+    ));
+    assert!(!ReliableProvider::should_fail_fast_rate_limit(
+        &ProviderError::RateLimited {
+            message: "slow down".into(),
+            retry_after_secs: Some(600),
+        }
+    ));
+    assert!(ReliableProvider::should_fail_fast_rate_limit(
+        &ProviderError::RateLimited {
+            message: "quota exhausted".into(),
+            retry_after_secs: Some(601),
+        }
+    ));
+}
+
+#[test]
+fn x_should_retry_false_suppresses_retry_of_retryable_error() {
+    assert!(ReliableProvider::is_non_retryable(
+        &ProviderError::RequestFailed(format!(
+            "HTTP 500: internal error {X_SHOULD_RETRY_FALSE_MARKER}"
+        ))
+    ));
+    assert!(ReliableProvider::is_non_retryable(
+        &ProviderError::Overloaded {
+            message: format!("overloaded {X_SHOULD_RETRY_FALSE_MARKER}"),
+            retry_after_secs: None,
+        }
+    ));
+}
+
+#[test]
+fn x_should_retry_true_allows_retry_of_non_retryable_error() {
+    assert!(!ReliableProvider::is_non_retryable(
+        &ProviderError::AuthError(format!("token flaked {X_SHOULD_RETRY_TRUE_MARKER}"))
+    ));
+    // Even a connection-error-shaped message obeys the explicit directive.
+    assert!(!ReliableProvider::is_non_retryable(
+        &ProviderError::RequestFailed(format!(
+            "HTTP 400: invalid model {X_SHOULD_RETRY_TRUE_MARKER}"
+        ))
+    ));
+}
+
+#[test]
+fn no_directive_keeps_status_heuristics() {
+    assert!(ReliableProvider::is_non_retryable(
+        &ProviderError::AuthError("bad key".into())
+    ));
+    assert!(!ReliableProvider::is_non_retryable(
+        &ProviderError::RequestFailed("HTTP 500: internal error".into())
+    ));
+}
+
+#[test]
 fn rate_limited_is_retryable() {
     assert!(!ReliableProvider::is_non_retryable(
         &ProviderError::RateLimited {
