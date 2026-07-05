@@ -393,13 +393,14 @@ fn truncate_memory_to_file_budget(content: String) -> String {
 /// when MEMORY.md is empty). The output is byte-stable across turns for
 /// unchanged inputs — no counts or timestamps — to preserve provider
 /// prompt caches.
-pub fn build_memory_prompt_section(
-    workspace: &Path,
-    memories: &[RelevantMemory],
-) -> Option<String> {
+/// Static half of the workspace-memory prompt surface: where the memory
+/// lives, when to access it, and the full save protocol. Registered as a
+/// stable prompt section (`memory_protocol`) so it is in EVERY request —
+/// the recall section below rides an async per-turn prefetch that a
+/// zero-tool conversational turn never waits for, and "remember this"
+/// requests arrive precisely on such turns.
+pub fn build_memory_protocol_section(workspace: &Path) -> String {
     let mem_dir = super::memory_dir(workspace);
-    let index = super::load_memory_index(&mem_dir);
-
     let mut sections = Vec::new();
 
     sections.push("# Workspace Memory".to_string());
@@ -410,10 +411,39 @@ pub fn build_memory_prompt_section(
     ));
     sections.push(String::new());
     sections.push(MEMORY_DRIFT_CAVEAT.to_string());
+    sections.push(String::new());
+    sections.push(WHEN_TO_ACCESS.to_string());
+    sections.push(String::new());
+    sections.push(TRUSTING_RECALL.to_string());
+    sections.push(String::new());
+    sections.push(SAVE_ON_EXPLICIT_REQUEST.to_string());
+    sections.push(String::new());
+    sections.push(TYPES_SECTION.to_string());
+    sections.push(String::new());
+    sections.push(WHAT_NOT_TO_SAVE.to_string());
+    sections.push(String::new());
+    sections.push(how_to_save_section());
 
-    // MEMORY.md index. An empty index renders an explicit note (not an
-    // omitted section) so the agent knows the memory system exists and can
-    // bootstrap it via the save protocol below.
+    sections.join("\n")
+}
+
+/// Dynamic half: MEMORY.md index + prefetch-selected memory contents.
+/// Returns `None` when there is nothing recalled AND the index is empty —
+/// the always-present protocol section above owns the bootstrap story, so
+/// an empty recall section would be pure noise.
+pub fn build_memory_prompt_section(
+    workspace: &Path,
+    memories: &[RelevantMemory],
+) -> Option<String> {
+    let mem_dir = super::memory_dir(workspace);
+    let index = super::load_memory_index(&mem_dir);
+    if index.is_empty() && memories.is_empty() {
+        return None;
+    }
+
+    let mut sections = Vec::new();
+
+    sections.push("# Workspace Memory — Recall".to_string());
     sections.push(String::new());
     sections.push(format!(
         "## Memory Index ({}/{})",
@@ -448,23 +478,6 @@ pub fn build_memory_prompt_section(
             sections.push(mem.content.clone());
         }
     }
-
-    // Access guidance
-    sections.push(String::new());
-    sections.push(WHEN_TO_ACCESS.to_string());
-    sections.push(String::new());
-    sections.push(TRUSTING_RECALL.to_string());
-
-    // Save protocol — same shared pieces the extraction subagent uses, so
-    // the main agent saves in the identical on-disk format.
-    sections.push(String::new());
-    sections.push(SAVE_ON_EXPLICIT_REQUEST.to_string());
-    sections.push(String::new());
-    sections.push(TYPES_SECTION.to_string());
-    sections.push(String::new());
-    sections.push(WHAT_NOT_TO_SAVE.to_string());
-    sections.push(String::new());
-    sections.push(how_to_save_section());
 
     Some(sections.join("\n"))
 }
@@ -505,30 +518,29 @@ mod tests {
     }
 
     #[test]
-    fn test_build_memory_prompt_section_empty_still_renders_bootstrap() {
-        // No memory dir, no MEMORY.md, no selected memories: the section
-        // must still render (with an explicit empty-index note and the save
-        // protocol) so a fresh workspace can bootstrap memory in-turn.
+    fn test_recall_section_empty_returns_none_protocol_owns_bootstrap() {
+        // No MEMORY.md, no selected memories: the RECALL section stays out
+        // of the prompt. The bootstrap story (location + save protocol)
+        // lives in the always-present static section below, which a
+        // zero-tool conversational turn gets without waiting for the
+        // async prefetch.
         let tmp = TempDir::new().unwrap();
-        let result = build_memory_prompt_section(tmp.path(), &[]);
-        let section = result.expect("memory section must render even when empty");
+        assert!(build_memory_prompt_section(tmp.path(), &[]).is_none());
+    }
+
+    #[test]
+    fn test_protocol_section_carries_full_save_contract() {
+        let tmp = TempDir::new().unwrap();
+        let section = build_memory_protocol_section(tmp.path());
         assert!(section.contains("# Workspace Memory"));
-        assert!(section.contains("is currently empty"));
-        assert!(!section.contains("Loaded Memories"));
         assert!(section.contains(SAVE_ON_EXPLICIT_REQUEST));
         assert!(section.contains("## Types of memory"));
         assert!(section.contains("## What NOT to save"));
         assert!(section.contains("## How to save memories"));
-    }
-
-    #[test]
-    fn test_build_memory_prompt_section_byte_stable_across_calls() {
-        // Same on-disk state + same selection → byte-identical section, so
-        // the injected system message does not bust provider prompt caches.
-        let tmp = TempDir::new().unwrap();
-        let first = build_memory_prompt_section(tmp.path(), &[]).unwrap();
-        let second = build_memory_prompt_section(tmp.path(), &[]).unwrap();
-        assert_eq!(first, second);
+        assert!(section.contains("When to access memories"));
+        // Byte-stable across calls: registered as StableUntilClear, and the
+        // text must not depend on anything but the workspace path.
+        assert_eq!(section, build_memory_protocol_section(tmp.path()));
     }
 
     #[test]
@@ -552,15 +564,13 @@ mod tests {
         let result = build_memory_prompt_section(tmp.path(), &memories);
         assert!(result.is_some());
         let section = result.unwrap();
-        assert!(section.contains("# Workspace Memory"));
+        assert!(section.contains("# Workspace Memory — Recall"));
         assert!(section.contains("Memory Index"));
         assert!(section.contains("Loaded Memories"));
         assert!(section.contains("prefer tabs"));
-        assert!(section.contains("When to access memories"));
-        assert!(section.contains("Before recommending from memory"));
-        // Save protocol is always present so the main agent can honor
-        // "remember this" without the post-turn extractor.
-        assert!(section.contains("## How to save memories"));
+        // Access guidance and the save protocol live in the static
+        // protocol section, not the per-turn recall surface.
+        assert!(!section.contains("## How to save memories"));
         assert!(!section.contains("is currently empty"));
     }
 

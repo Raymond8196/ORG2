@@ -498,6 +498,7 @@ pub mod order {
     pub const RULES: i32 = 80;
     pub const ALWAYS_SKILLS: i32 = 90;
     pub const LEARNINGS: i32 = 100;
+    pub const MEMORY_PROTOCOL: i32 = 105;
     pub const MESSAGING: i32 = 110;
     pub const SILENT_REPLIES: i32 = 120;
     pub const ATC: i32 = 130;
@@ -537,6 +538,7 @@ pub fn registry() -> Vec<&'static dyn PromptSection> {
         &RulesSection,
         &AlwaysSkillsSection,
         &LearningsSection,
+        &WorkspaceMemoryProtocolSection,
         &MessagingSection,
         &SilentRepliesSection,
         &AtcSection,
@@ -586,6 +588,7 @@ mod tests {
                 | "mcp_instructions" => PromptCachePolicy::Volatile,
                 "learnings" => PromptCachePolicy::RevisionKeyed,
                 "identity"
+                | "memory_protocol"
                 | "system_meta"
                 | "model_identity"
                 | "available_tools"
@@ -632,6 +635,7 @@ mod tests {
                 "rules",
                 "always_skills",
                 "learnings",
+                "memory_protocol",
                 "messaging",
                 "silent_replies",
                 "atc",
@@ -683,6 +687,7 @@ mod tests {
                 ("rules", order::RULES),
                 ("always_skills", order::ALWAYS_SKILLS),
                 ("learnings", order::LEARNINGS),
+                ("memory_protocol", order::MEMORY_PROTOCOL),
                 ("messaging", order::MESSAGING),
                 ("silent_replies", order::SILENT_REPLIES),
                 ("atc", order::ATC),

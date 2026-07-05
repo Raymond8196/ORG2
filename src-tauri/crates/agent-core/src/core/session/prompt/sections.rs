@@ -525,6 +525,56 @@ impl PromptSection for LearningsSection {
 }
 
 // ---------------------------------------------------------------------
+// 105. Workspace memory protocol (location + save/access contract)
+// ---------------------------------------------------------------------
+
+pub struct WorkspaceMemoryProtocolSection;
+
+impl PromptSection for WorkspaceMemoryProtocolSection {
+    fn id(&self) -> &'static str {
+        "memory_protocol"
+    }
+    fn order_hint(&self) -> i32 {
+        order::MEMORY_PROTOCOL
+    }
+    fn applies(&self, ctx: &PromptCtx) -> AppliesDecision {
+        if ctx.config.workspace.is_some() {
+            AppliesDecision::Apply {
+                reason: "workspace_session",
+            }
+        } else {
+            AppliesDecision::Skip {
+                reason: "no_workspace",
+            }
+        }
+    }
+    fn sovereign_safe(&self) -> bool {
+        true
+    }
+    fn source(&self) -> PromptSource {
+        PromptSource::Computed {
+            upstream: "memory::workspace_memory",
+        }
+    }
+    fn cache_policy(&self) -> PromptCachePolicy {
+        // Static text keyed only by the workspace path — the recall half
+        // (index + selected memories) rides the per-turn prefetch surface
+        // instead. Keeping the protocol here means a zero-tool
+        // conversational turn ("remember this…") still has the save
+        // contract in context, which the async prefetch cannot guarantee.
+        PromptCachePolicy::StableUntilClear
+    }
+    fn render(&self, ctx: &PromptCtx) -> Option<String> {
+        let ws = ctx.config.workspace.as_ref()?;
+        Some(
+            crate::memory::workspace_memory::prefetch::build_memory_protocol_section(
+                ws.working_dir(),
+            ),
+        )
+    }
+}
+
+// ---------------------------------------------------------------------
 // 110. Messaging (when send_message tool is available)
 // ---------------------------------------------------------------------
 
