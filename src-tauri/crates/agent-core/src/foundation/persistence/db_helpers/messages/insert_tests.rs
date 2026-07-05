@@ -26,15 +26,9 @@ const PREFIX: &str = "agent";
 fn seed_session(session_id: &str) {
     let conn = get_connection().expect("get_connection in seed_session");
 
+    crate::persistence::test_schema::ensure_agent_sessions_schema(&conn);
     conn.execute_batch(
-        "CREATE TABLE IF NOT EXISTS agent_sessions (
-            session_id   TEXT PRIMARY KEY,
-            session_type TEXT NOT NULL DEFAULT 'agent',
-            status       TEXT NOT NULL DEFAULT 'running',
-            created_at   TEXT NOT NULL,
-            updated_at   TEXT NOT NULL
-         );
-         CREATE TABLE IF NOT EXISTS agent_messages (
+        "CREATE TABLE IF NOT EXISTS agent_messages (
             id           TEXT PRIMARY KEY,
             session_id   TEXT NOT NULL,
             role         TEXT NOT NULL,
