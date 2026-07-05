@@ -15,10 +15,9 @@ import {
   terminalSessionsAtom,
 } from "@src/store/workstation/codeEditor/terminal";
 import { invokeTauri } from "@src/util/platform/tauri/init";
-import {
-  isAgentPtySessionId,
-  toBackendPtySessionId,
-} from "@src/util/ui/terminal/ptySessionId";
+import { toBackendPtySessionId } from "@src/util/ui/terminal/ptySessionId";
+
+import { selectRepoSyncTargets } from "./repoSyncTargets";
 
 const log = createLogger("TerminalRepoSync");
 
@@ -50,10 +49,7 @@ export function useTerminalRepoSync(): void {
 
     const cdCmd = `cd ${shellEscapePath(repoPath)}\n`;
 
-    for (const session of sessions) {
-      if (session.readOnly || isAgentPtySessionId(session.id)) continue;
-      if (!initialized.has(session.id)) continue;
-
+    for (const session of selectRepoSyncTargets(sessions, initialized)) {
       const ptyId = toBackendPtySessionId(session.id);
       invokeTauri("write_pty", { sessionId: ptyId, data: cdCmd }).catch(
         (err) => {
