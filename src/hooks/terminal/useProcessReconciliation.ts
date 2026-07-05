@@ -2,11 +2,8 @@
  * useProcessReconciliation
  *
  * Reseeds in-memory process state from Rust's authoritative process tables.
- * Runs on mount, then periodically and on window focus/visibility so a single
- * dropped live event (e.g. a missed `agent:subagent_job_changed` terminal
- * frame) self-heals within one interval instead of pinning a ghost "running"
- * row until the next app restart. Also fixes the "blank after hot reload"
- * problem for both agent shell processes and Code Editor PTY sessions.
+ * Runs on mount and when the window regains focus/visibility so stale process
+ * rows self-heal when the user returns without adding idle polling work.
  *
  * Agent shells:
  *   Calls `agent_list_running_shell_jobs` → seeds `shellProcessMapAtom`
@@ -31,7 +28,7 @@ import {
   updateSubagentJobAtom,
 } from "@src/store/session/subagentJobAtom";
 import {
-  closeTerminalSessionAtom,
+  removeStaleTerminalSessionAtom,
   terminalSessionsAtom,
   updateTerminalSessionInfoAtom,
 } from "@src/store/workstation/codeEditor/terminal";
@@ -95,7 +92,7 @@ export function useProcessReconciliation(): void {
   const dispatchUpdateSubagentJob = useSetAtom(updateSubagentJobAtom);
   const dispatchPruneSubagentJobs = useSetAtom(pruneSubagentJobsAtom);
   const dispatchUpdateTerminalInfo = useSetAtom(updateTerminalSessionInfoAtom);
-  const dispatchCloseSession = useSetAtom(closeTerminalSessionAtom);
+  const dispatchRemoveStaleSession = useSetAtom(removeStaleTerminalSessionAtom);
 
   // Mirror the latest values into refs so the one-shot startup effect always
   // sees the current atom state even if it was still initializing on mount.
@@ -105,7 +102,7 @@ export function useProcessReconciliation(): void {
   const dispatchUpdateSubagentJobRef = useRef(dispatchUpdateSubagentJob);
   const dispatchPruneSubagentJobsRef = useRef(dispatchPruneSubagentJobs);
   const dispatchUpdateTerminalInfoRef = useRef(dispatchUpdateTerminalInfo);
-  const dispatchCloseSessionRef = useRef(dispatchCloseSession);
+  const dispatchRemoveStaleSessionRef = useRef(dispatchRemoveStaleSession);
 
   useEffect(() => {
     shellProcessMapRef.current = shellProcessMap;
@@ -114,131 +111,138 @@ export function useProcessReconciliation(): void {
     dispatchUpdateSubagentJobRef.current = dispatchUpdateSubagentJob;
     dispatchPruneSubagentJobsRef.current = dispatchPruneSubagentJobs;
     dispatchUpdateTerminalInfoRef.current = dispatchUpdateTerminalInfo;
-    dispatchCloseSessionRef.current = dispatchCloseSession;
+    dispatchRemoveStaleSessionRef.current = dispatchRemoveStaleSession;
   });
 
   useEffect(() => {
     let cancelled = false;
+    let inFlight = false;
+    let lastReconcileStartedAt = 0;
+    const MIN_RECONCILE_GAP_MS = 1_000;
 
     async function reconcile() {
-      if (cancelled) return;
-      // --- Agent shell processes ---
+      if (cancelled || inFlight) return;
+
+      const now = Date.now();
+      if (now - lastReconcileStartedAt < MIN_RECONCILE_GAP_MS) return;
+
+      inFlight = true;
+      lastReconcileStartedAt = now;
+
       try {
-        const runningJobs = await invokeTauri<RunningShellJob[]>(
-          "agent_list_running_shell_jobs"
-        );
-        if (cancelled) return;
+        // --- Agent shell processes ---
+        try {
+          const runningJobs = await invokeTauri<RunningShellJob[]>(
+            "agent_list_running_shell_jobs"
+          );
+          if (cancelled) return;
 
-        for (const process of findStaleShellProcesses(
-          shellProcessMapRef.current,
-          runningJobs
-        )) {
-          dispatchUpdateShellProcessRef.current({
-            type: "exit",
-            sessionId: process.sessionId,
-            pid: process.pid,
-            killed: false,
-          });
-        }
-
-        for (const job of runningJobs) {
-          const existing = shellProcessMapRef.current
-            .get(job.session_id)
-            ?.get(job.pid);
-          if (
-            !existing ||
-            existing.status === "exited" ||
-            existing.status === "killed"
-          ) {
+          for (const process of findStaleShellProcesses(
+            shellProcessMapRef.current,
+            runningJobs
+          )) {
             dispatchUpdateShellProcessRef.current({
-              type: "start",
-              sessionId: job.session_id,
-              pid: job.pid,
-              command: job.command,
-              logPath: job.log_path ?? undefined,
+              type: "exit",
+              sessionId: process.sessionId,
+              pid: process.pid,
+              killed: false,
             });
           }
-        }
-      } catch (err) {
-        log.error("[ProcessReconciliation] agent jobs:", err);
-      }
 
-      // --- Background subagent workers ---
-      try {
-        const runningSubagents = await invokeTauri<RunningSubagentJob[]>(
-          "agent_list_running_subagent_jobs"
-        );
-        if (cancelled) return;
-
-        // Prune ghost rows: any "running" row whose handle is no longer in the
-        // authoritative live set (broadcast lost, registry GC'd, app restart)
-        // is stale and must be dropped so it can't linger unkillable.
-        dispatchPruneSubagentJobsRef.current({
-          liveHandles: new Set(runningSubagents.map((job) => job.handle)),
-        });
-
-        for (const job of runningSubagents) {
-          dispatchUpdateSubagentJobRef.current({
-            sessionId: job.sessionId,
-            handle: job.handle,
-            agentName: job.agentName,
-            subagentType: job.subagentType,
-            status: "running",
-            startedAtOverride: Date.now() - job.ageMs,
-          });
-        }
-      } catch (err) {
-        log.error("[ProcessReconciliation] subagent jobs:", err);
-      }
-
-      // --- PTY sessions ---
-      try {
-        const livePtySessions =
-          await invokeTauri<PtySessionInfo[]>("list_pty_sessions");
-        if (cancelled) return;
-
-        const livePtyIds = new Set(livePtySessions.map((s) => s.session_id));
-
-        for (const session of terminalSessionsRef.current) {
-          if (session.readOnly) continue;
-
-          const ptyId = toBackendPtySessionId(session.id);
-          if (!livePtyIds.has(ptyId)) {
-            dispatchCloseSessionRef.current(session.id);
-          } else {
-            const info = livePtySessions.find((s) => s.session_id === ptyId);
-            if (info) {
-              dispatchUpdateTerminalInfoRef.current({
-                sessionId: session.id,
-                info: {
-                  pid: info.pid ?? undefined,
-                  shell: info.shell,
-                  shellKind: info.shell_kind,
-                  cwd: info.cwd ?? undefined,
-                },
+          for (const job of runningJobs) {
+            const existing = shellProcessMapRef.current
+              .get(job.session_id)
+              ?.get(job.pid);
+            if (
+              !existing ||
+              existing.status === "exited" ||
+              existing.status === "killed"
+            ) {
+              dispatchUpdateShellProcessRef.current({
+                type: "start",
+                sessionId: job.session_id,
+                pid: job.pid,
+                command: job.command,
+                logPath: job.log_path ?? undefined,
               });
             }
           }
+        } catch (err) {
+          log.error("[ProcessReconciliation] agent jobs:", err);
         }
-      } catch (err) {
-        log.error("[ProcessReconciliation] pty sessions:", err);
+
+        // --- Background subagent workers ---
+        try {
+          const runningSubagents = await invokeTauri<RunningSubagentJob[]>(
+            "agent_list_running_subagent_jobs"
+          );
+          if (cancelled) return;
+
+          // Prune ghost rows: any "running" row whose handle is no longer in the
+          // authoritative live set (broadcast lost, registry GC'd, app restart)
+          // is stale and must be dropped so it can't linger unkillable.
+          dispatchPruneSubagentJobsRef.current({
+            liveHandles: new Set(runningSubagents.map((job) => job.handle)),
+          });
+
+          for (const job of runningSubagents) {
+            dispatchUpdateSubagentJobRef.current({
+              sessionId: job.sessionId,
+              handle: job.handle,
+              agentName: job.agentName,
+              subagentType: job.subagentType,
+              status: "running",
+              startedAtOverride: Date.now() - job.ageMs,
+            });
+          }
+        } catch (err) {
+          log.error("[ProcessReconciliation] subagent jobs:", err);
+        }
+
+        // --- PTY sessions ---
+        try {
+          const livePtySessions =
+            await invokeTauri<PtySessionInfo[]>("list_pty_sessions");
+          if (cancelled) return;
+
+          const livePtyIds = new Set(livePtySessions.map((s) => s.session_id));
+
+          for (const session of terminalSessionsRef.current) {
+            if (session.readOnly) continue;
+
+            const ptyId = toBackendPtySessionId(session.id);
+            if (!livePtyIds.has(ptyId)) {
+              dispatchRemoveStaleSessionRef.current(session.id);
+            } else {
+              const info = livePtySessions.find((s) => s.session_id === ptyId);
+              if (info) {
+                dispatchUpdateTerminalInfoRef.current({
+                  sessionId: session.id,
+                  info: {
+                    pid: info.pid ?? undefined,
+                    shell: info.shell,
+                    shellKind: info.shell_kind,
+                    cwd: info.cwd ?? undefined,
+                  },
+                });
+              }
+            }
+          }
+        } catch (err) {
+          log.error("[ProcessReconciliation] pty sessions:", err);
+        }
+      } finally {
+        inFlight = false;
       }
     }
 
-    // Run immediately on mount, then keep reconciling. The job registry in
-    // Rust is the authoritative source of truth for which subagents/shells are
-    // still alive; the live event stream (`agent:subagent_job_changed`) is only
-    // a fast path. A single dropped terminal event would otherwise leave a
-    // ghost "running" row pinned until the next app restart. Periodic + focus
-    // reconciliation makes that self-heal within one interval.
+    // Run immediately on mount, then only reconcile when the user returns to
+    // the app. Live process events remain the fast path while the app is open;
+    // this path repairs stale state after reloads, missed events, or time away.
     reconcile();
 
-    const RECONCILE_INTERVAL_MS = 15_000;
-    const intervalId = setInterval(reconcile, RECONCILE_INTERVAL_MS);
-
     // Re-reconcile when the window regains focus / becomes visible so a
-    // returning user sees an accurate process list without waiting a full
-    // interval.
+    // returning user sees an accurate process list without idle polling.
     const onFocus = () => {
       reconcile();
     };
@@ -250,10 +254,9 @@ export function useProcessReconciliation(): void {
 
     return () => {
       cancelled = true;
-      clearInterval(intervalId);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, []); // Reconciliation loop set up once; live values accessed via refs
-  // updated on every render above. Interval + focus listeners drive re-runs.
+  }, []); // Reconciliation listeners set up once; live values accessed via refs
+  // updated on every render above. Startup, focus, and visibility drive re-runs.
 }

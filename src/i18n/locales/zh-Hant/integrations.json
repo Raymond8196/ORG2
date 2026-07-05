@@ -892,7 +892,15 @@
     "addKey": "添加密鑰",
     "compatibleKeys": "相容的 Keys",
     "keysTab": "Keys",
-    "plansTab": "方案"
+    "plansTab": "方案",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "所有安裝狀態",

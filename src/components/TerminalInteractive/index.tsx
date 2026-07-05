@@ -52,7 +52,7 @@ import {
 import { clearTerminalBufferCache } from "./bufferCache";
 import "./index.scss";
 import { registerTerminalEventHandlers } from "./terminalHandlers";
-import { cleanupPtyListeners, clearInitTimeout } from "./terminalLifecycle";
+import { cleanupPtyListeners } from "./terminalLifecycle";
 import { initPtyConnection } from "./terminalPty";
 import {
   createTerminalInstance,
@@ -108,8 +108,6 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     const unlistenOutputRef = useRef<(() => void) | null>(null);
     const unlistenExitRef = useRef<(() => void) | null>(null);
     const initialThemeRef = useRef<TerminalThemeName | null>(null);
-    const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
     const repoPathRef = useRef(repoPath);
     repoPathRef.current = repoPath;
     const workingDirectoryRef = useRef(workingDirectory);
@@ -242,9 +240,8 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       searchAddonRef.current = searchAddon;
       serializeAddonRef.current = serializeAddon;
 
-      initializeWhenContainerVisible({
+      const cleanupContainerVisibilityInit = initializeWhenContainerVisible({
         containerRef,
-        initTimeoutRef,
         terminal,
         fitTerminal,
         initPty: initPTY,
@@ -267,7 +264,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       });
 
       return () => {
-        clearInitTimeout(initTimeoutRef);
+        cleanupContainerVisibilityInit();
         cleanupTerminalHandlers();
 
         if (webglAddonRef.current) {

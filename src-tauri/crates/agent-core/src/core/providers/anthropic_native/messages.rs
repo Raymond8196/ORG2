@@ -179,7 +179,10 @@ pub(super) fn extract_system(messages: &[Value]) -> (Option<Value>, Vec<Value>) 
                 // when the per-turn reminder was folded into this tool result)
                 // onto the block, so `stamp_trailing_cache_control` skips it —
                 // its bytes change every turn. Stripped before wire.
-                if msg.get(ORGII_SYSTEM_CACHE_SCOPE_KEY).and_then(Value::as_str) == Some("volatile")
+                if msg
+                    .get(ORGII_SYSTEM_CACHE_SCOPE_KEY)
+                    .and_then(Value::as_str)
+                    == Some("volatile")
                 {
                     tool_result_block[ORGII_SYSTEM_CACHE_SCOPE_KEY] =
                         Value::String("volatile".to_string());

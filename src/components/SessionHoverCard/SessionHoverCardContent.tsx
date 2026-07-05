@@ -1,3 +1,4 @@
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useAtomValue } from "jotai";
 import {
   Clock,
@@ -6,6 +7,7 @@ import {
   GitBranch,
   GitCommitVertical,
   Grip,
+  Save,
   Timer,
 } from "lucide-react";
 import React, { memo, useEffect, useMemo, useState } from "react";
@@ -14,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import {
   type CursorIdeSessionDetail,
   cursorIdeSessionDetail,
-} from "@src/api/tauri/cursorIde";
+} from "@src/api/tauri/externalHistory";
 import {
   type CoreSessionSummary,
   getOrgtrackSessionSummary,
@@ -62,12 +64,37 @@ interface SessionHoverCardContentProps {
   sessionId: string;
 }
 
+const PATH_ROW_CLASS_NAME =
+  "block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-text-2 underline-offset-2 transition-colors hover:text-accent-9 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-8";
+const COMPACT_PATH_MAX_CHARS = 44;
+
 function formatCompactPath(path: string): string {
-  return path.replace(/^\/Users\/[^/]+/u, "~");
+  const compactPath = path.replace(/^\/Users\/[^/]+/u, "~");
+  if (compactPath.length <= COMPACT_PATH_MAX_CHARS) return compactPath;
+
+  const parts = compactPath.split("/").filter(Boolean);
+  if (parts.length <= 3) return compactPath;
+
+  const prefix = compactPath.startsWith("~/") ? "~/" : "/";
+  const start = compactPath.startsWith("~/")
+    ? parts[0]
+    : parts.slice(0, 2).join("/");
+  const endParts = parts.slice(-2);
+  const end = endParts.join("/");
+  const candidate = `${prefix}${start === "~" ? "" : `${start}/`}.../${end}`;
+
+  if (candidate.length <= COMPACT_PATH_MAX_CHARS) return candidate;
+  return `${prefix}.../${parts.at(-1) ?? compactPath}`;
 }
 
 function normalizePath(path: string): string {
   return path.replace(/\/+$/u, "");
+}
+
+function handleRevealPath(path: string): void {
+  void revealItemInDir(path).catch((error: unknown) => {
+    logger.warn("failed to reveal session path", { error, path });
+  });
 }
 
 function getAgentSessionInfo(session: {
@@ -139,6 +166,9 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
     const repoPath =
       (isCursorIde ? cursorIdeDetail?.repoPath : session?.repoPath) ??
       session?.repoPath;
+    const storagePath =
+      (isCursorIde ? cursorIdeDetail?.storagePath : session?.storagePath) ??
+      session?.storagePath;
     const [orgtrackSummary, setOrgtrackSummary] =
       useState<CoreSessionSummary | null>(null);
 
@@ -339,9 +369,26 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         )}
         {repoPath && (
           <HoverCardRow icon={<Folder size={13} strokeWidth={1.75} />}>
-            <div className="truncate text-text-2">
+            <button
+              type="button"
+              className={PATH_ROW_CLASS_NAME}
+              title={repoPath}
+              onClick={() => handleRevealPath(repoPath)}
+            >
               {formatCompactPath(repoPath)}
-            </div>
+            </button>
+          </HoverCardRow>
+        )}
+        {storagePath && (
+          <HoverCardRow icon={<Save size={13} strokeWidth={1.75} />}>
+            <button
+              type="button"
+              className={PATH_ROW_CLASS_NAME}
+              title={storagePath}
+              onClick={() => handleRevealPath(storagePath)}
+            >
+              {formatCompactPath(storagePath)}
+            </button>
           </HoverCardRow>
         )}
         {impactTask && (

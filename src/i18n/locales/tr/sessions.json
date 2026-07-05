@@ -705,9 +705,6 @@
       "newSession": {
         "title": "Yeni oturum"
       },
-      "cliSession": {
-        "title": "Yeni oturum (TUI)"
-      },
       "newWorkItem": {
         "title": "Yeni work item"
       },
@@ -801,8 +798,7 @@
     "tabs": {
       "newTerminal": "Yeni Terminal",
       "newTab": "Yeni sekme",
-      "terminals": "Terminaller",
-      "newTuiSession": "Yeni oturum (TUI)"
+      "terminals": "Terminaller"
     },
     "collapseAll": "Tümünü daralt",
     "copyEventJson": "Olay JSON'unu kopyala",

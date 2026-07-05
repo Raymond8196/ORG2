@@ -13,10 +13,8 @@
  *
  * - `"cli_agent"` — CLI agent session (external CLI process spawned by us)
  * - `"rust_agent"` — Rust-native agent session (OS Agent, SDE Agent, Custom)
- * - `"cursor_ide"` — Cursor IDE chat surfaced as a ORGII session. We don't
- *   own the data store (it lives in Cursor's `state.vscdb`) but we *do*
- *   support sending new prompts back into the live probe Cursor instance
- *   via `cursorIdeAdapter.sendMessage`. Read history; write follow-ups.
+ * - `"cursor_ide"` — Cursor IDE composer launch flow. Imported Cursor
+ *   history rows are normalized to `"external_history"` once listed.
  * - `"external_history"` — Imported read-only history owned by an external
  *   agent CLI database/log (Codex first, Claude Code / Windsurf later).
  */

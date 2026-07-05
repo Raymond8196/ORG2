@@ -32,8 +32,8 @@ import {
   ICON_MAP,
   type IconProvider,
   THEMEABLE_ICONS,
-  getIconProvider,
   getIconProviderFromModelName,
+  getIconProviderFromType,
 } from "./config";
 
 // Re-export types and functions
@@ -115,7 +115,7 @@ const ModelIcon: React.FC<ModelIconProps> = memo(
       }
 
       if (agentType) {
-        return getIconProvider(agentType as ModelType);
+        return getIconProviderFromType(agentType);
       }
 
       return "unknown";

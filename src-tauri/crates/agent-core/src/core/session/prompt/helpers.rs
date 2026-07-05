@@ -81,7 +81,11 @@ pub(super) fn load_conventions(workspace_path: &Path) -> Option<String> {
         return None;
     }
     let merged = sections.join("\n\n");
-    Some(cap_text(&merged, MEMORY_FILE_MAX_BYTES, "project conventions"))
+    Some(cap_text(
+        &merged,
+        MEMORY_FILE_MAX_BYTES,
+        "project conventions",
+    ))
 }
 
 /// Expand `@path` import lines (CLAUDE.md convention): a line consisting of
@@ -93,9 +97,8 @@ fn expand_memory_imports(content: &str, base_dir: &Path) -> String {
     let mut out: Vec<String> = Vec::with_capacity(content.lines().count());
     for line in content.lines() {
         let trimmed = line.trim();
-        let is_import = trimmed.starts_with('@')
-            && !trimmed.contains(char::is_whitespace)
-            && trimmed.len() > 1;
+        let is_import =
+            trimmed.starts_with('@') && !trimmed.contains(char::is_whitespace) && trimmed.len() > 1;
         if !is_import || expanded_count >= MEMORY_FILE_MAX_IMPORTS {
             out.push(line.to_string());
             continue;

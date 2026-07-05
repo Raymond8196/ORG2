@@ -34,6 +34,7 @@ import {
   type AddSessionOptions,
   TERMINAL_AGENT_STATUS,
   type UseTerminalStateReturn,
+  getTerminalDisplayTitle,
 } from "@src/engines/TerminalCore/types";
 import { createLogger } from "@src/hooks/logger";
 import {
@@ -89,12 +90,19 @@ export function ChatPanelTerminalContent({
     [allSessions, terminalSessionId]
   );
 
-  // Sync terminal title → tab title whenever the session name changes
+  // Sync terminal title → tab title whenever process / OSC title metadata changes.
   useEffect(() => {
-    if (session?.name) {
-      setTabTitle({ tabId, title: session.name });
-    }
-  }, [session?.name, tabId, setTabTitle]);
+    if (!session) return;
+    setTabTitle({ tabId, title: getTerminalDisplayTitle(session) });
+  }, [
+    session,
+    session?.name,
+    session?.processName,
+    session?.sequenceTitle,
+    session?.userTitle,
+    tabId,
+    setTabTitle,
+  ]);
 
   useEffect(() => {
     if (!session?.agentCommand) return;

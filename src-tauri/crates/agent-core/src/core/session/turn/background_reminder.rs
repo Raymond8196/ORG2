@@ -246,7 +246,10 @@ mod tests {
 
     #[test]
     fn subagent_result_is_inlined() {
-        let jobs = vec![make_completed_subagent("agent-x", "Found 3 call sites in foo.rs")];
+        let jobs = vec![make_completed_subagent(
+            "agent-x",
+            "Found 3 call sites in foo.rs",
+        )];
         let result = build_background_jobs_reminder(&jobs);
         assert!(result.contains("<result>"), "got: {result}");
         assert!(result.contains("Found 3 call sites in foo.rs"));

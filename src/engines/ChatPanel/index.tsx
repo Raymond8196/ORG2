@@ -53,11 +53,6 @@ import {
   sessionCreatorStateAtom,
   workstationActiveSessionIdAtom,
 } from "@src/store/session";
-import {
-  CLI_LAUNCH_MODE,
-  cliLaunchModeAtom,
-  dispatchCategoryAtom,
-} from "@src/store/session/creatorStateAtom";
 import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
@@ -291,9 +286,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const setSelectedWorkItem = useSetAtom(chatPanelSelectedWorkItemAtom);
     const setSelectedProject = useSetAtom(chatPanelSelectedProjectAtom);
     const dispatchClearSession = useSetAtom(clearSessionAtom);
-    const setDispatchCategory = useSetAtom(dispatchCategoryAtom);
-    const setCliLaunchMode = useSetAtom(cliLaunchModeAtom);
-
     // ── Multi-tab system ───────────────────────────────────────────────────
     const activeTab = useAtomValue(activeChatPanelTabAtom);
     const allTabs = useAtomValue(chatPanelTabsAtom).tabs;
@@ -344,27 +336,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       dispatchClearSession,
       navigateChatPanel,
       setActiveSessionId,
-      setStartPageOpen,
-      setWorkstationActiveSessionId,
-    ]);
-
-    // Opens a new session tab pre-set to CLI agent category (TUI layout shown immediately).
-    const handleCliSessionTab = useCallback(() => {
-      addSessionTab();
-      setStartPageOpen(false);
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
-      setDispatchCategory("cli_agent");
-      setCliLaunchMode(CLI_LAUNCH_MODE.TUI);
-    }, [
-      addSessionTab,
-      dispatchClearSession,
-      navigateChatPanel,
-      setActiveSessionId,
-      setCliLaunchMode,
-      setDispatchCategory,
       setStartPageOpen,
       setWorkstationActiveSessionId,
     ]);
@@ -443,24 +414,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       dispatchClearSession,
       navigateChatPanel,
       setActiveSessionId,
-      setStartPageOpen,
-      setWorkstationActiveSessionId,
-    ]);
-
-    const handleStartPageCliSession = useCallback(() => {
-      setStartPageOpen(false);
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
-      setDispatchCategory("cli_agent");
-      setCliLaunchMode(CLI_LAUNCH_MODE.TUI);
-    }, [
-      dispatchClearSession,
-      navigateChatPanel,
-      setActiveSessionId,
-      setCliLaunchMode,
-      setDispatchCategory,
       setStartPageOpen,
       setWorkstationActiveSessionId,
     ]);
@@ -792,7 +745,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleOpenCliTerminal={handleOpenCliTerminal}
         handleRegionNoticeChange={handleRegionNoticeChange}
         handleStartPageAddApiKey={handleStartPageAddApiKey}
-        handleStartPageCliSession={handleStartPageCliSession}
         handleStartPageExploreRepos={handleStartPageExploreRepos}
         handleStartPageManageIssues={handleStartPageManageIssues}
         handleStartPageNewSession={handleNewSession}
@@ -828,8 +780,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const tabStripPlus = (
       <ChatPanelPlusMenu
         onNewSession={handleNewSessionTab}
-        onNewTerminal={handleNewTerminalTab}
-        onCliSession={handleCliSessionTab}
+        onNewWorkItem={handleStartPageNewWorkItem}
+        onManageIssues={handleStartPageManageIssues}
+        onAddApiKey={handleStartPageAddApiKey}
       />
     );
 

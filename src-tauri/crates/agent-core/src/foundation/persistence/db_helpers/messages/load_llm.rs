@@ -87,17 +87,13 @@ pub fn turns_since_last_tool_call(
          LIMIT ?2",
     )?;
     let rows = stmt.query_map(rusqlite::params![session_id, scan_limit], |row| {
-        Ok((
-            row.get::<_, String>(0)?,
-            row.get::<_, Option<String>>(1)?,
-        ))
+        Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?))
     })?;
 
     let mut turns: u32 = 0;
     for row in rows {
         let (role, row_tool) = row?;
-        if role == super::super::message_role::TOOL_CALL && row_tool.as_deref() == Some(tool_name)
-        {
+        if role == super::super::message_role::TOOL_CALL && row_tool.as_deref() == Some(tool_name) {
             return Ok(turns);
         }
         if role == super::super::message_role::USER {

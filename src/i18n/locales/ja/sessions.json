@@ -705,9 +705,6 @@
       "newSession": {
         "title": "新しいセッション"
       },
-      "cliSession": {
-        "title": "新規セッション (TUI)"
-      },
       "newWorkItem": {
         "title": "新しい work item"
       },
@@ -801,8 +798,7 @@
     "tabs": {
       "newTerminal": "新しいターミナル",
       "newTab": "新しいタブ",
-      "terminals": "ターミナル",
-      "newTuiSession": "新しいセッション (TUI)"
+      "terminals": "ターミナル"
     },
     "collapseAll": "すべて折りたたむ",
     "copyEventJson": "イベント JSON をコピー",

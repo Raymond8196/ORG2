@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atomFamily } from "jotai-family";
 
-import type { CursorIdeTurnSummary } from "@src/api/tauri/cursorIde";
+import type { CursorIdeTurnSummary } from "@src/api/tauri/externalHistory";
 
 export const cursorIdeTurnSummariesAtomFamily = atomFamily(
   (sessionId: string) => {

@@ -653,7 +653,9 @@ mod tests {
         assert!(body.len() <= MAX_MEMORY_FILE_BYTES);
         assert!(body.ends_with(&line));
         // Marker is byte-stable: no dynamic numbers.
-        assert!(!MEMORY_FILE_TRUNCATION_NOTICE.chars().any(|c| c.is_ascii_digit()));
+        assert!(!MEMORY_FILE_TRUNCATION_NOTICE
+            .chars()
+            .any(|c| c.is_ascii_digit()));
     }
 
     #[test]
@@ -669,9 +671,7 @@ mod tests {
 
         assert!(std::str::from_utf8(result.as_bytes()).is_ok());
         assert!(result.ends_with(MEMORY_FILE_TRUNCATION_NOTICE));
-        let body = result
-            .strip_suffix(MEMORY_FILE_TRUNCATION_NOTICE)
-            .unwrap();
+        let body = result.strip_suffix(MEMORY_FILE_TRUNCATION_NOTICE).unwrap();
         assert!(body.len() <= MAX_MEMORY_FILE_BYTES);
         assert!(body.is_char_boundary(body.len()));
     }
@@ -758,8 +758,7 @@ mod tests {
 
         let one = build_memory_prompt_section(tmp.path(), &[mem("/tmp/a.md")]).unwrap();
         let two =
-            build_memory_prompt_section(tmp.path(), &[mem("/tmp/a.md"), mem("/tmp/b.md")])
-                .unwrap();
+            build_memory_prompt_section(tmp.path(), &[mem("/tmp/a.md"), mem("/tmp/b.md")]).unwrap();
 
         // Header carries no file count: identical regardless of how many
         // memories were selected.

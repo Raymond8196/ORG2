@@ -351,6 +351,14 @@ export const AgentEnvConfigSchema = z.object({
   baseUrlPlaceholder: z.string().optional(),
 });
 
+export const AcpSupportSchema = z.enum([
+  "native",
+  "adapter_backed",
+  "planned",
+  "partial",
+  "unavailable",
+]);
+
 /** Matches `AvailableAgent` in `src-tauri/.../discovery.rs` (camelCase JSON). */
 export const AvailableAgentSchema = z.object({
   name: z.string(),
@@ -377,6 +385,7 @@ export const AvailableAgentSchema = z.object({
   command: z.string(),
   /** Whether ORGII Rust agents can use this CLI's credentials */
   supportsRustAgents: z.boolean(),
+  acpSupport: AcpSupportSchema,
   /** Whether this agent can use ORGII Pool (Token Market) billing. Always false for CLI agents. */
   supportsOrgiiPool: z.boolean(),
   /** Whether this CLI agent accepts an initial prompt from ORGII's GUI composer.

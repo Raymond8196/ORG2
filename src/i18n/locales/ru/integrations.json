@@ -895,7 +895,15 @@
     "addKey": "Добавить ключ",
     "compatibleKeys": "Совместимые Keys",
     "keysTab": "Keys",
-    "plansTab": "Планы"
+    "plansTab": "Планы",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "Все статусы установки",

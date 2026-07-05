@@ -698,8 +698,14 @@ fn calibrate_budget_unchanged_when_estimate_covers_actual() {
         ContextCompactor::calibrate_budget(750_000, 1_000_000, 900_000),
         750_000
     );
-    assert_eq!(ContextCompactor::calibrate_budget(750_000, 0, 900_000), 750_000);
-    assert_eq!(ContextCompactor::calibrate_budget(750_000, 800_000, 0), 750_000);
+    assert_eq!(
+        ContextCompactor::calibrate_budget(750_000, 0, 900_000),
+        750_000
+    );
+    assert_eq!(
+        ContextCompactor::calibrate_budget(750_000, 800_000, 0),
+        750_000
+    );
 }
 
 // -- needs_compaction_observed --
@@ -794,7 +800,12 @@ async fn compact_does_not_skip_between_trigger_and_full_budget() {
     let provider = SummaryProvider;
 
     let (_, outcome) = ContextCompactor::compact(
-        &history, budget, &config, &mut state, &provider, "test-model",
+        &history,
+        budget,
+        &config,
+        &mut state,
+        &provider,
+        "test-model",
     )
     .await;
 

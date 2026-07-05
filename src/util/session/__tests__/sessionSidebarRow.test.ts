@@ -1,6 +1,10 @@
 import { FlaskConical } from "lucide-react";
 import { describe, expect, it } from "vitest";
 
+import {
+  getIconProvider,
+  getIconProviderFromType,
+} from "@src/components/ModelIcon/config";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 
@@ -14,6 +18,18 @@ describe("resolveSessionRowIcon", () => {
     ).toBe(resolveAgentIcon("opencode"));
   });
 
+  it("uses the canonical Grok brand icon for Grok CLI", () => {
+    expect(getIconProvider("grok_cli")).toBe("grok");
+    expect(getIconProviderFromType("grok")).toBe("grok");
+    expect(resolveAgentIcon("grok_cli")).toBe(resolveAgentIcon("grok"));
+    expect(
+      resolveSessionRowIcon({
+        session_id: "cliagent-grok",
+        cliAgentType: "grok_cli",
+      })
+    ).toBe(resolveAgentIcon("grok"));
+  });
+
   it("uses cliAgentType before stale agentIconId for CLI sessions", () => {
     expect(
       resolveSessionRowIcon({
@@ -22,6 +38,12 @@ describe("resolveSessionRowIcon", () => {
         agentIconId: "codex",
       })
     ).toBe(resolveAgentIcon("opencode"));
+  });
+
+  it("uses the canonical WorkBuddy brand icon for imported WorkBuddy sessions", () => {
+    expect(resolveSessionRowIcon("workbuddyapp-example")).toBe(
+      resolveAgentIcon("workbuddy")
+    );
   });
 
   it("uses agentIconId for non-CLI agent sessions", () => {
