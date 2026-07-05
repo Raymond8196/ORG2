@@ -18,8 +18,11 @@ use crate::tools::impls::coding::exec::registry::{JobSnapshot, JobStatus};
 
 /// Cap on an inlined subagent result inside the reminder. Full text remains
 /// available via `await_output(monitor)` before acknowledgement and in the
-/// subagent transcript afterwards.
-const INLINE_RESULT_MAX_CHARS: usize = 8_000;
+/// subagent transcript afterwards. Public so the agent tool's completion
+/// path knows when to persist the full report to disk and prepend a
+/// `read_file` pointer that survives this head-truncation
+/// (`agent::helpers::with_full_result_pointer`).
+pub const INLINE_RESULT_MAX_CHARS: usize = 8_000;
 
 /// Handles whose final result the reminder inlines — the caller must
 /// acknowledge exactly these so results are delivered once.

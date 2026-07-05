@@ -153,6 +153,30 @@ impl AgentTool {
             // `execute_turn` return Ok with no content — classify as
             // Cancelled, not Completed (same rule as the background path).
             let was_cancelled = task_cancel_flag.load(std::sync::atomic::Ordering::SeqCst);
+
+            // Worktree disposition BEFORE result assembly, so a kept
+            // worktree's location rides inside the final result text (and
+            // survives the Background Jobs reminder's head-truncation).
+            // Owned by the task so it also runs after a fg→bg transition.
+            let kept_worktree = match worktree_workspace_root {
+                Some(workspace_root) => {
+                    let base_branch = crate::session::persistence::get_session(&task_session_id)
+                        .ok()
+                        .flatten()
+                        .and_then(|record| record.base_branch);
+                    super::helpers::dispose_worktree_after_run(
+                        super::helpers::WorktreeCleanup {
+                            workspace_root,
+                            base_branch,
+                        },
+                        &task_session_id,
+                        "agent",
+                    )
+                    .await
+                }
+                None => None,
+            };
+
             let (final_status, tokens, response) = match turn_result {
                 Ok(result) => {
                     let resp = result.content.or_else(|| {
@@ -189,6 +213,10 @@ impl AgentTool {
                         &task_session_id,
                         result.total_tokens,
                         super::helpers::count_tool_uses(&result.messages),
+                    );
+                    let resp = super::helpers::with_full_result_pointer(
+                        &task_session_id,
+                        super::helpers::prepend_worktree_note(resp, kept_worktree.as_ref()),
                     );
                     handler.broadcast_complete();
                     // broadcast_complete stamps the child row `completed`;
@@ -249,6 +277,7 @@ impl AgentTool {
                          resume_session_id=\"{}\" to continue from it.",
                         task_session_id
                     ));
+                    let msg = super::helpers::prepend_worktree_note(msg, kept_worktree.as_ref());
                     handler.broadcast_error();
                     job_registry::mark_exited(&task_session_id, job_registry::JobStatus::Failed);
                     job_registry::set_final_result(&task_session_id, msg.clone());
@@ -276,22 +305,6 @@ impl AgentTool {
                     tokens,
                     &result_preview,
                 );
-            }
-
-            // Clean up worktree isolation after the run (owned by the task
-            // so it also happens after a fg→bg transition).
-            if let Some(workspace_root) = worktree_workspace_root {
-                let wt_session_id = task_session_id.clone();
-                let wt_result = tokio::task::spawn_blocking(move || {
-                    git::worktree::remove_session_worktree(&workspace_root, &wt_session_id, true)
-                })
-                .await;
-                if let Ok(Err(err)) = wt_result {
-                    warn!(
-                        "[agent] failed to remove isolation worktree for '{}': {}",
-                        task_session_id, err
-                    );
-                }
             }
 
             match &response {
