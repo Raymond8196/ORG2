@@ -38,8 +38,14 @@ use crate::redaction::append_redacted_bounded;
 // Constants
 // ============================================
 
-/// Maximum output size before truncation (10KB).
-const MAX_OUTPUT_CHARS: usize = 10_000;
+/// Runaway guard on a single stream's formatted output (200K chars).
+///
+/// Deliberately far above the exec tool's 30K per-result budget: the turn
+/// executor's truncate-or-persist layer governs what the model sees (and
+/// persists the full result to disk retrievably). This cap only bounds
+/// pathological output (e.g. a process spewing gigabytes) before it reaches
+/// that layer.
+const MAX_OUTPUT_CHARS: usize = 200_000;
 const MAX_REDACTED_SNAPSHOT_CHARS: usize = 80_000;
 
 /// Default PTY dimensions for agent sessions (no visible terminal yet).

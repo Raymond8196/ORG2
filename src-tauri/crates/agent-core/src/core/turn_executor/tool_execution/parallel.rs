@@ -16,7 +16,7 @@ use crate::tools::registry::ToolRegistry;
 use super::super::file_tracker::{extract_file_paths, FileTimeTracker, FILE_READ_TOOLS};
 use super::super::helpers::{
     add_tool_result, add_tool_result_rich_with_timestamp, add_tool_result_with_timestamp,
-    check_permission, truncate_or_persist_output, truncate_output,
+    check_permission, truncate_output,
 };
 use super::super::types::{PermissionProvider, TurnEventHandler};
 use super::super::usage_telemetry::{serialized_value_bytes, string_bytes, ToolExecutionUsage};
@@ -26,6 +26,7 @@ use super::is_cancelled;
 use super::is_error_text;
 use super::normalize_tool_use_concurrency;
 use super::ToolBatchOutcome;
+use super::ToolResultAggregateBudget;
 
 pub(super) enum ParallelResult {
     Continue(usize, Vec<ToolExecutionUsage>),
@@ -50,6 +51,7 @@ pub(super) async fn execute_parallel_group(
     consecutive_errors: &mut u32,
     policy_context_activator: Option<&SessionScopedContextActivator>,
     max_tool_use_concurrency: usize,
+    aggregate_budget: &mut ToolResultAggregateBudget,
 ) -> ParallelResult {
     info!(
         "[agent-core] Executing {} concurrency-safe tools concurrently",
@@ -302,21 +304,26 @@ pub(super) async fn execute_parallel_group(
         let tool_ref = tools.get(&call.name);
         let budget = tool_ref.map(|t| t.output_budget());
         let allow_persist = tool_ref.map(|t| t.allow_persisted_output()).unwrap_or(true);
-        let mut truncated = if allow_persist {
-            truncate_or_persist_output(&raw_text, budget, session_id, &call.name)
-        } else {
-            truncate_output(&raw_text, budget)
-        };
+        let mut truncated = aggregate_budget.inline_result(
+            &raw_text,
+            budget,
+            allow_persist,
+            session_id,
+            &call.name,
+        );
 
         if truncated.trim().is_empty() {
             truncated = "[No output]".to_string();
         }
 
+        // Hook/policy appends happen after budget accounting, so cap them —
+        // an uncapped hook would bypass both the per-tool and aggregate
+        // budgets. Mirrors the sequential path in `single.rs`.
         if let Some(extra) = handler
             .post_tool_hook(&call.name, &exec_result.effective_args, &truncated)
             .await
         {
-            truncated.push_str(&extra);
+            truncated.push_str(&truncate_output(&extra, Some(super::HOOK_APPEND_MAX_CHARS)));
         }
 
         if FILE_READ_TOOLS.contains(&call.name.as_str()) && !is_error {
@@ -324,7 +331,7 @@ pub(super) async fn execute_parallel_group(
             if let Some(extra) = policy_context_activator
                 .and_then(|activator| activator.augment_for_read_paths(&paths))
             {
-                truncated.push_str(&extra);
+                truncated.push_str(&truncate_output(&extra, Some(super::HOOK_APPEND_MAX_CHARS)));
             }
         }
 
