@@ -19,7 +19,6 @@ import SettingsTable, {
 } from "@src/components/SettingsTable";
 
 import NetworkSection from "./NetworkSection";
-import RamHistoryChart from "./RamHistoryChart";
 import StorageSection from "./StorageSection";
 import {
   type BreakdownRow,
@@ -52,7 +51,6 @@ const MonitorSection: React.FC<MonitorSectionProps> = ({
     memoryBreakdown,
     childProcesses,
     systemInfo,
-    ramHistory,
     containerRef,
   } = useMonitorMetrics(activeTab);
 
@@ -300,17 +298,6 @@ const MonitorSection: React.FC<MonitorSectionProps> = ({
               </div>
             </SectionRow>
           </SectionContainer>
-
-          <SectionContainer>
-            <SectionRow
-              label={t("monitor.ramHistory")}
-              description={t("monitor.ramHistoryDesc")}
-            />
-            <SectionRow label="" indent showHeader={false}>
-              <RamHistoryChart stats={ramHistory} />
-            </SectionRow>
-          </SectionContainer>
-
           <SectionContainer>
             <SectionRow
               label={t("monitor.memoryBreakdown")}

@@ -11,19 +11,13 @@
  *    Falls back to the global default (see below) when the per-
  *    composer row has no `modelConfig` recorded yet.
  * 2. **Picked model** — what the user explicitly chose during the
- *    current draft. Layered on top of the seed when present; mid-
- *    draft selection is local until they hit send.
+ *    current draft. Layered on top of the seed when present.
  * 3. **Available models** — `listModels()` is heavier (live CDP path
  *    plus disk fallback) so the result is cached app-wide via
  *    `cursorModelCache` — every pill instance shares the same in-
  *    memory snapshot. First mount triggers the fetch; subsequent
  *    mounts hit the cache instantly. The footer Refresh button
  *    bypasses the cache via `force: true`.
- *
- * The actual `setModel` CDP call is *not* fired on selection — we
- * let the adapter's `sendMessage` do it (composer-targeted) right
- * before the prompt is submitted. That way picking a model and then
- * changing your mind doesn't churn through CDP eval round-trips.
  */
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 

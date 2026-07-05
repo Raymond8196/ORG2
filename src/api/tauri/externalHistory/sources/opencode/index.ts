@@ -2,48 +2,11 @@ import { invoke } from "@tauri-apps/api/core";
 
 import type { ActivityChunk } from "@src/types/session/session";
 
-export interface OpenCodeHistorySessionRow {
-  sessionId: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  category: "external_history";
-  readOnly: true;
-  model?: string;
-  totalTokens: number;
-  background: boolean;
-  isActive: boolean;
-  repoPath?: string;
-  storagePath?: string;
-  repoName?: string;
-  branch?: string;
-  filesChanged: number;
-  linesAdded: number;
-  linesRemoved: number;
-  touchedFiles: string[];
-}
-
-export interface OpenCodeHistorySessionPage {
-  sessions: OpenCodeHistorySessionRow[];
-  hasMore: boolean;
-}
-
 export interface OpenCodeRecentPath {
   path: string;
   name?: string;
   lastUsedAt: string;
   sessionCount: number;
-}
-
-export async function opencodeHistoryListSessions(args?: {
-  limit?: number;
-  offset?: number;
-}): Promise<OpenCodeHistorySessionPage> {
-  return invoke<OpenCodeHistorySessionPage>("opencode_history_list_sessions", {
-    limit: args?.limit,
-    offset: args?.offset,
-  });
 }
 
 export async function opencodeRecentPaths(args?: {

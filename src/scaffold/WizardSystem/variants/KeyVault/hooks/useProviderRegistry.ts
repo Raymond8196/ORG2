@@ -135,6 +135,7 @@ const PRIMARY_PROVIDER_KEYS = new Set([
   "copilot",
   "kiro",
   "kimi_cli",
+  "opencode",
   // API providers
   "openai_api",
   "anthropic_api",
@@ -148,6 +149,10 @@ const PRIMARY_PROVIDER_KEYS = new Set([
   "moonshot_api",
   "minimax_api",
   "longcat_api",
+  "dashscope_api",
+  "zhipu_api",
+  "azure_openai_api",
+  "azure_anthropic_api",
 ]);
 
 /**

@@ -16,7 +16,6 @@ describe("session pagination categories", () => {
     expect(SESSION_LIST_CATEGORIES).toEqual([
       "cli_agent",
       "rust_agent",
-      "cursor_ide",
       ...importedCategories,
     ]);
   });

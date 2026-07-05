@@ -17,10 +17,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   clearApiCalls,
+  disableApiTracking,
   enableApiTracking,
+  getApiCallHotspots,
   getApiCalls,
+  getTimerHotspots,
 } from "@src/util/monitoring/apiTracker";
-import type { ApiCall } from "@src/util/monitoring/apiTracker";
+import type {
+  ApiCall,
+  ApiCallHotspot,
+  TimerHotspot,
+} from "@src/util/monitoring/apiTracker";
 
 // ============================================
 // Type Definitions
@@ -29,6 +36,8 @@ import type { ApiCall } from "@src/util/monitoring/apiTracker";
 export interface UseAPICallPanelProviderReturn {
   visible: boolean;
   apiCalls: ApiCall[];
+  hotspots: ApiCallHotspot[];
+  timerHotspots: TimerHotspot[];
   handleClose: () => void;
   handleClear: () => void;
 }
@@ -41,6 +50,8 @@ export function useAPICallPanelProvider(): UseAPICallPanelProviderReturn {
   // State
   const [visible, setVisible] = useState(false);
   const [apiCalls, setApiCalls] = useState<ApiCall[]>([]);
+  const [hotspots, setHotspots] = useState<ApiCallHotspot[]>([]);
+  const [timerHotspots, setTimerHotspots] = useState<TimerHotspot[]>([]);
 
   // Avoid updating panel state unless the panel is actually visible.
   // Without this, devtools tracking can cause heavy re-render work (and even visible UI "flash")
@@ -62,20 +73,36 @@ export function useAPICallPanelProvider(): UseAPICallPanelProviderReturn {
   const updateApiCalls = useCallback(() => {
     const calls = getApiCalls();
     setApiCalls(calls);
+    setHotspots(getApiCallHotspots());
+    setTimerHotspots(getTimerHotspots());
+  }, []);
+
+  const openPanel = useCallback(() => {
+    clearApiCalls();
+    setApiCalls([]);
+    setHotspots([]);
+    setTimerHotspots([]);
+    enableApiTracking();
+    visibleRef.current = true;
+    setVisible(true);
+  }, []);
+
+  const closePanel = useCallback(() => {
+    disableApiTracking();
+    visibleRef.current = false;
+    setVisible(false);
   }, []);
 
   /**
    * Toggle panel visibility
    */
   const togglePanel = useCallback(() => {
-    setVisible((prev) => {
-      const newState = !prev;
-      if (newState) {
-        updateApiCalls();
-      }
-      return newState;
-    });
-  }, [updateApiCalls]);
+    if (visibleRef.current) {
+      closePanel();
+      return;
+    }
+    openPanel();
+  }, [closePanel, openPanel]);
 
   /**
    * Handle clear all operations
@@ -83,24 +110,23 @@ export function useAPICallPanelProvider(): UseAPICallPanelProviderReturn {
   const handleClear = useCallback(() => {
     clearApiCalls();
     setApiCalls([]);
+    setHotspots([]);
+    setTimerHotspots([]);
   }, []);
 
   /**
    * Handle close panel
    */
   const handleClose = useCallback(() => {
-    setVisible(false);
-  }, []);
+    closePanel();
+  }, [closePanel]);
 
   // ============================================
   // Effects
   // ============================================
 
-  // Initialize tracking and event listeners
+  // Initialize event listeners
   useEffect(() => {
-    // Enable tracking on mount so API calls are captured before the panel is opened.
-    enableApiTracking();
-
     // Listen for toggle event
     const handleToggle = () => {
       togglePanel();
@@ -117,6 +143,7 @@ export function useAPICallPanelProvider(): UseAPICallPanelProviderReturn {
     return () => {
       window.removeEventListener("toggle-panel-api-call", handleToggle);
       window.removeEventListener("api-call-updated", handleApiCallUpdated);
+      disableApiTracking();
     };
   }, [togglePanel, updateApiCalls]);
 
@@ -128,10 +155,10 @@ export function useAPICallPanelProvider(): UseAPICallPanelProviderReturn {
         updateApiCalls();
       }, 0);
 
-      // Set up polling for updates while visible
+      // Keep the visible panel fresh without adding a high-frequency devtools loop.
       const interval = setInterval(() => {
         updateApiCalls();
-      }, 500);
+      }, 1000);
 
       return () => {
         clearTimeout(timeoutId);
@@ -143,6 +170,8 @@ export function useAPICallPanelProvider(): UseAPICallPanelProviderReturn {
   return {
     visible,
     apiCalls,
+    hotspots,
+    timerHotspots,
     handleClose,
     handleClear,
   };

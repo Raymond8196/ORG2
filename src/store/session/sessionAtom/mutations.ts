@@ -30,7 +30,11 @@
  */
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
-import { sessionLastLoadedAtom, sessionsAtom } from "./atoms";
+import {
+  sessionFlatListLastLoadedBySignatureAtom,
+  sessionLastLoadedAtom,
+  sessionsAtom,
+} from "./atoms";
 import type { Session, SessionStatus } from "./types";
 
 const getStore = () => getInstrumentedStore();
@@ -155,6 +159,7 @@ export const updateSessionStatus = (
 export const resetSessionStore = () => {
   const store = getStore();
   store.set(sessionLastLoadedAtom, null);
+  store.set(sessionFlatListLastLoadedBySignatureAtom, {});
 };
 
 /**
@@ -164,4 +169,5 @@ export const clearSessions = () => {
   const store = getStore();
   store.set(sessionsAtom, []);
   store.set(sessionLastLoadedAtom, null);
+  store.set(sessionFlatListLastLoadedBySignatureAtom, {});
 };

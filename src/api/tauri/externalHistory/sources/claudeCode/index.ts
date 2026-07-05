@@ -2,51 +2,11 @@ import { invoke } from "@tauri-apps/api/core";
 
 import type { ActivityChunk } from "@src/types/session/session";
 
-export interface ClaudeCodeHistorySessionRow {
-  sessionId: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  category: "external_history";
-  readOnly: true;
-  model?: string;
-  totalTokens: number;
-  background: boolean;
-  isActive: boolean;
-  repoPath?: string;
-  storagePath?: string;
-  repoName?: string;
-  branch?: string;
-  filesChanged: number;
-  linesAdded: number;
-  linesRemoved: number;
-  touchedFiles: string[];
-}
-
-export interface ClaudeCodeHistorySessionPage {
-  sessions: ClaudeCodeHistorySessionRow[];
-  hasMore: boolean;
-}
-
 export interface ClaudeCodeRecentPath {
   path: string;
   name?: string;
   lastUsedAt: string;
   sessionCount: number;
-}
-
-export async function claudeCodeHistoryListSessions(args?: {
-  limit?: number;
-  offset?: number;
-}): Promise<ClaudeCodeHistorySessionPage> {
-  return invoke<ClaudeCodeHistorySessionPage>(
-    "claude_code_history_list_sessions",
-    {
-      limit: args?.limit,
-      offset: args?.offset,
-    }
-  );
 }
 
 export async function claudeCodeRecentPaths(args?: {

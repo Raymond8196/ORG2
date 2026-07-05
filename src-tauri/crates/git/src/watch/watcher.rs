@@ -153,6 +153,8 @@ pub struct RepoWatcher {
     last_git_change: Arc<RwLock<HashMap<String, Instant>>>,
     /// Window focus state (polling is more aggressive when focused)
     window_focused: Arc<RwLock<bool>>,
+    /// Repo currently allowed to use periodic working-directory polling.
+    active_poll_repo_id: Arc<RwLock<Option<String>>>,
     /// Last poll attempt per repo (prevents stacking of slow polls)
     last_poll_attempt: Arc<RwLock<HashMap<String, Instant>>>,
     /// Wakes the poller when the watch scope transitions from empty to active.
@@ -175,7 +177,8 @@ impl RepoWatcher {
             event_tx,
             event_rx,
             last_git_change: Arc::new(RwLock::new(HashMap::new())),
-            window_focused: Arc::new(RwLock::new(true)), // Assume focused initially
+            window_focused: Arc::new(RwLock::new(true)),
+            active_poll_repo_id: Arc::new(RwLock::new(None)),
             last_poll_attempt: Arc::new(RwLock::new(HashMap::new())),
             poll_wake: Arc::new((Mutex::new(0), Condvar::new())),
         };
@@ -203,6 +206,7 @@ impl RepoWatcher {
         let state_store = self.state_store.clone();
         let debounce_manager = self.debounce_manager.clone();
         let window_focused = self.window_focused.clone();
+        let active_poll_repo_id = self.active_poll_repo_id.clone();
         let last_poll_attempt = self.last_poll_attempt.clone();
         let poll_wake = self.poll_wake.clone();
 
@@ -217,9 +221,9 @@ impl RepoWatcher {
                     // Calculate adaptive polling interval with health awareness
                     let is_focused = *window_focused.read();
                     let states = state_store.get_all_states();
+                    let active_repo_id = active_poll_repo_id.read().clone();
 
-                    let watched_state_count = states.values().filter(|state| state.watch_enabled).count();
-                    if watched_state_count == 0 {
+                    if active_repo_id.is_none() {
                         let (lock, condvar) = &*poll_wake;
                         let mut wake_generation =
                             lock.lock().expect("RepoWatch poll wake mutex poisoned");
@@ -232,65 +236,76 @@ impl RepoWatcher {
                         continue;
                     }
 
-                    // Check if any watched repo is unhealthy
-                    let any_unhealthy = states
-                        .values()
-                        .filter(|state| state.watch_enabled)
-                        .any(|state| state.consecutive_failures > 0);
-                    let max_failures = states
-                        .values()
-                        .filter(|state| state.watch_enabled)
-                        .map(|state| state.consecutive_failures)
-                        .max()
-                        .unwrap_or(0);
+                    let active_repo_id = active_repo_id.expect("checked active repo id above");
+                    let active_state = states.get(&active_repo_id);
+                    let active_watch_enabled = active_state
+                        .map(|state| state.watch_enabled)
+                        .unwrap_or(false);
+                    if !active_watch_enabled {
+                        let (lock, condvar) = &*poll_wake;
+                        let mut wake_generation =
+                            lock.lock().expect("RepoWatch poll wake mutex poisoned");
+                        while *wake_generation == seen_wake_generation {
+                            wake_generation = condvar
+                                .wait(wake_generation)
+                                .expect("RepoWatch poll wake mutex poisoned");
+                        }
+                        seen_wake_generation = *wake_generation;
+                        continue;
+                    }
 
-                    let poll_interval_ms =
-                        Self::calculate_poll_interval_with_health(is_focused, any_unhealthy, max_failures);
+                    let active_consecutive_failures = active_state
+                        .map(|state| state.consecutive_failures)
+                        .unwrap_or(0);
+                    let any_unhealthy = active_consecutive_failures > 0;
+
+                    let poll_interval_ms = Self::calculate_poll_interval_with_health(
+                        is_focused,
+                        any_unhealthy,
+                        active_consecutive_failures,
+                    );
 
                     std::thread::sleep(Duration::from_millis(poll_interval_ms));
 
-                    let now = Instant::now();
-                    for (repo_id, state) in states.iter() {
-                        // Skip if watch is disabled
-                        if !state.watch_enabled {
-                            continue;
-                        }
+                    let Some(active_repo_id) = active_poll_repo_id.read().clone() else {
+                        continue;
+                    };
+                    let states = state_store.get_all_states();
+                    let Some(state) = states.get(&active_repo_id) else {
+                        continue;
+                    };
 
-                        // HEALTH CHECK: Skip polling if repo is severely degraded
-                        if state.consecutive_failures >= 3 {
-                            log::debug!(
-                                "[RepoWatch] Skipping poll for degraded repo {} ({} failures)",
-                                repo_id,
-                                state.consecutive_failures
-                            );
-                            continue;
-                        }
+                    if !state.watch_enabled {
+                        continue;
+                    }
 
-                        // ANTI-STACKING: Skip if last poll was too recent (within MIN_FLUSH_INTERVAL)
-                        {
-                            let last_attempts = last_poll_attempt.read();
-                            if let Some(last_attempt) = last_attempts.get(repo_id) {
-                                if last_attempt.elapsed() < Duration::from_millis(5000) {
-                                    log::debug!(
-                                        "[RepoWatch] Skipping poll - last attempt {}ms ago (too recent)",
-                                        last_attempt.elapsed().as_millis()
-                                    );
-                                    continue;
-                                }
+                    if state.consecutive_failures >= 3 {
+                        log::debug!(
+                            "[RepoWatch] Skipping poll for degraded repo {} ({} failures)",
+                            active_repo_id,
+                            state.consecutive_failures
+                        );
+                        continue;
+                    }
+
+                    {
+                        let last_attempts = last_poll_attempt.read();
+                        if let Some(last_attempt) = last_attempts.get(&active_repo_id) {
+                            if last_attempt.elapsed() < Duration::from_millis(5000) {
+                                log::debug!(
+                                    "[RepoWatch] Skipping poll - last attempt {}ms ago (too recent)",
+                                    last_attempt.elapsed().as_millis()
+                                );
+                                continue;
                             }
                         }
-
-                        // Record poll attempt
-                        last_poll_attempt.write().insert(repo_id.clone(), now);
-
-                        // Simply trigger git status check
-                        // The debouncer will handle deduplication if nothing changed
-                        debounce_manager.trigger_event(
-                            repo_id.clone(),
-                            RepoChangeType::GitMeta,
-                            1,
-                        );
                     }
+
+                    last_poll_attempt
+                        .write()
+                        .insert(active_repo_id.clone(), Instant::now());
+
+                    debounce_manager.trigger_event(active_repo_id, RepoChangeType::GitMeta, 1);
                 }
             })
             .expect("Failed to spawn git status poller thread");
@@ -322,6 +337,14 @@ impl RepoWatcher {
     /// Update window focus state (called from frontend via Tauri command)
     pub fn set_window_focused(&self, focused: bool) {
         *self.window_focused.write() = focused;
+    }
+
+    pub fn set_active_polling_repo(&self, repo_id: Option<String>) {
+        *self.active_poll_repo_id.write() = repo_id;
+        let (lock, condvar) = &*self.poll_wake;
+        let mut wake_generation = lock.lock().expect("RepoWatch poll wake mutex poisoned");
+        *wake_generation = wake_generation.wrapping_add(1);
+        condvar.notify_one();
     }
 
     /// Mark that a git change was detected for a repo (for adaptive polling)
