@@ -113,7 +113,6 @@ pub fn ade_manager() -> AgentDefinition {
             mode: SessionMode::Singleton,
             compaction: Some(CompactionConfig {
                 enabled: true,
-                trigger_ratio: 0.8,
                 keep_ratio: 0.5,
                 ..CompactionConfig::default()
             }),
