@@ -42,6 +42,20 @@ import CodexConfigSection from "./CodexConfigSection";
 import CursorCliConfigSection from "./CursorCliConfigSection";
 
 type StructuredCliConfigSurface = "cursor" | "claudeCode" | "codex";
+type CliAgentDetailTab = "core" | "config";
+type CliAgentConfigViewMode = "ui" | "raw";
+
+interface CliAgentDetailState {
+  activeTab: CliAgentDetailTab;
+  viewMode: CliAgentConfigViewMode;
+  activeConfigFileId: string | null;
+}
+
+const cliAgentDetailState: CliAgentDetailState = {
+  activeTab: "core",
+  viewMode: "raw",
+  activeConfigFileId: null,
+};
 
 function getStructuredCliConfigSurface(
   agentName: string
@@ -96,11 +110,15 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
   const docsUrl = agent.docsUrl;
 
   const [detecting, setDetecting] = useState(false);
-  const [activeTab, setActiveTab] = useState("core");
-  const [viewMode, setViewMode] = useState<"ui" | "raw">("raw");
-  const [activeConfigFileId, setActiveConfigFileId] = useState<string | null>(
-    null
+  const [activeTab, setActiveTabState] = useState<CliAgentDetailTab>(
+    cliAgentDetailState.activeTab
   );
+  const [viewMode, setViewModeState] = useState<CliAgentConfigViewMode>(
+    cliAgentDetailState.viewMode
+  );
+  const [activeConfigFileId, setActiveConfigFileIdState] = useState<
+    string | null
+  >(cliAgentDetailState.activeConfigFileId);
 
   const structuredConfigSurface = getStructuredCliConfigSurface(agent.name);
   const hasStructuredConfig = structuredConfigSurface !== null;
@@ -110,11 +128,56 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
     null;
   const hasConfig = agent.configFiles.length > 0;
 
+  const setActiveTab = useCallback((nextActiveTab: string) => {
+    const normalizedTab: CliAgentDetailTab =
+      nextActiveTab === "config" ? "config" : "core";
+    cliAgentDetailState.activeTab = normalizedTab;
+    setActiveTabState(normalizedTab);
+  }, []);
+
+  const setViewMode = useCallback((nextViewMode: CliAgentConfigViewMode) => {
+    cliAgentDetailState.viewMode = nextViewMode;
+    setViewModeState(nextViewMode);
+  }, []);
+
+  const setActiveConfigFileId = useCallback((nextFileId: string | null) => {
+    cliAgentDetailState.activeConfigFileId = nextFileId;
+    setActiveConfigFileIdState(nextFileId);
+  }, []);
+
   useEffect(() => {
-    setActiveTab("core");
-    setViewMode("raw");
-    setActiveConfigFileId(agent.configFiles[0]?.id ?? null);
-  }, [agent.name, agent.configFiles]);
+    if (activeTab === "config" && !hasConfig) {
+      cliAgentDetailState.activeTab = "core";
+      setActiveTabState("core");
+    }
+
+    if (viewMode === "ui" && !hasStructuredConfig) {
+      cliAgentDetailState.viewMode = "raw";
+      setViewModeState("raw");
+    }
+
+    if (!hasConfig) {
+      cliAgentDetailState.activeConfigFileId = null;
+      setActiveConfigFileIdState(null);
+      return;
+    }
+
+    const hasSelectedFile = agent.configFiles.some(
+      (file) => file.id === activeConfigFileId
+    );
+    if (!hasSelectedFile) {
+      const fallbackFileId = agent.configFiles[0]?.id ?? null;
+      cliAgentDetailState.activeConfigFileId = fallbackFileId;
+      setActiveConfigFileIdState(fallbackFileId);
+    }
+  }, [
+    activeConfigFileId,
+    activeTab,
+    agent.configFiles,
+    hasConfig,
+    hasStructuredConfig,
+    viewMode,
+  ]);
 
   const tabs = useMemo(() => {
     const items = [
@@ -281,7 +344,7 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
                   { key: "raw", label: "Raw" },
                 ]}
                 activeTab={viewMode}
-                onChange={(key) => setViewMode(key as "ui" | "raw")}
+                onChange={(key) => setViewMode(key === "ui" ? "ui" : "raw")}
                 variant="pill"
                 fillWidth={false}
                 size="small"
