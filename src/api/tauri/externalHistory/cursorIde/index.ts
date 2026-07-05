@@ -20,7 +20,7 @@ export interface CursorIdeSessionRow {
   status: string;
   createdAt: string;
   updatedAt: string;
-  category: "cursor_ide";
+  category: "external_history";
   readOnly: true;
   model?: string;
   totalTokens: number;

@@ -48,6 +48,7 @@ export const SessionFilterInput = z.object({
   sortBy: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
   includeExternalHistory: z.boolean().optional(),
+  externalHistorySource: z.string().optional(),
   activeOnly: z.boolean().optional(),
 });
 
@@ -152,6 +153,7 @@ export const SessionAggregateRecordSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   category: WireCategorySchema,
+  externalHistorySource: z.string().optional(),
   userInput: z.string().optional(),
   repoPath: z.string().optional(),
   storagePath: z.string().optional(),

@@ -13,14 +13,10 @@
  *    long tail just to render the most-recent rows.
  */
 import {
-  type CursorIdeSessionRow,
-  cursorIdeListSessions,
-} from "@src/api/tauri/externalHistory";
-import {
   IMPORTED_HISTORY_SOURCES,
-  type ImportedHistorySessionRow,
   type ImportedHistorySource,
   getImportedHistorySourceByListCategory,
+  getImportedHistorySourceBySessionId,
   isImportedHistoryListCategory,
   isImportedHistorySourceSession,
 } from "@src/api/tauri/externalHistory";
@@ -32,7 +28,6 @@ import {
 } from "@src/api/tauri/session";
 import { createLogger } from "@src/hooks/logger";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
-import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility";
 
 import {
@@ -42,6 +37,7 @@ import {
   sessionsAtom,
 } from "./atoms";
 import {
+  BASE_SESSION_LIST_CATEGORIES,
   SESSION_LIST_CATEGORIES,
   SESSION_SIDEBAR_PAGE_SIZE,
   type SessionListCategory,
@@ -54,67 +50,9 @@ import type { Session, SessionStatus } from "./types";
 
 const log = createLogger("SessionAtom");
 
-function normalizeCursorIdeStatus(isActive: boolean): SessionStatus {
-  return isActive ? "running" : "completed";
-}
-
-function cursorIdeRowToSession(row: CursorIdeSessionRow): Session {
-  return {
-    session_id: row.sessionId,
-    status: normalizeCursorIdeStatus(row.isActive),
-    created_at: row.createdAt,
-    updated_at: row.updatedAt,
-    created_time: row.createdAt,
-    updated_time: row.updatedAt,
-    name: row.name,
-    is_active: row.isActive,
-    category: row.category,
-    model: row.model,
-    background: row.background,
-    repoPath: row.repoPath,
-    storagePath: row.storagePath,
-    repo_name: row.repoName || "",
-    branch: row.branch || "",
-    filesChanged: row.filesChanged,
-    linesAdded: row.linesAdded,
-    linesRemoved: row.linesRemoved,
-    touchedFiles: row.touchedFiles,
-    agentIconId: "cursor",
-  };
-}
-
-function importedHistoryRowToSession(
-  row: ImportedHistorySessionRow,
-  source: ImportedHistorySource
-): Session {
-  return {
-    session_id: row.sessionId,
-    status: row.status || "completed",
-    created_at: row.createdAt,
-    updated_at: row.updatedAt,
-    created_time: row.createdAt,
-    updated_time: row.updatedAt,
-    name: row.name,
-    is_active: row.isActive,
-    category: row.category,
-    model: row.model,
-    background: row.background,
-    repoPath: row.repoPath,
-    storagePath: row.storagePath,
-    repo_name: row.repoName || "",
-    branch: row.branch || "",
-    filesChanged: row.filesChanged,
-    linesAdded: row.linesAdded,
-    linesRemoved: row.linesRemoved,
-    touchedFiles: row.touchedFiles,
-    agentIconId: source.iconId,
-    agentDisplayName: source.displayName,
-  };
-}
-
 const getStore = () => getInstrumentedStore();
-const CURSOR_IDE_SIDEBAR_PAGE_SIZE = 50;
 const BULK_CACHE_DURATION_MS = 5 * 60 * 1000;
+const DEFAULT_FLAT_LIST_PAGE_SIZE = 200;
 
 function mergeSessions(
   prev: readonly Session[],
@@ -149,13 +87,6 @@ function replaceImportedFirstPage(
   return mergeSessions(retained, incoming);
 }
 
-function replaceCursorIdeFirstPage(
-  prev: readonly Session[],
-  incoming: readonly Session[]
-): Session[] {
-  return replaceImportedFirstPage(prev, incoming, isCursorIdeSession);
-}
-
 function replaceExternalHistorySourceFirstPage(
   prev: readonly Session[],
   incoming: readonly Session[],
@@ -182,17 +113,24 @@ async function loadImportedHistorySourcePage(
   offset: number,
   pageSize: number
 ): Promise<FetchPageResult> {
-  const page = await source.listSessions({
-    limit: source.sidebarPageSize
-      ? Math.max(pageSize, source.sidebarPageSize)
-      : pageSize,
+  const effectivePageSize = source.sidebarPageSize
+    ? Math.max(pageSize, source.sidebarPageSize)
+    : pageSize;
+  const response = await sessionAggregateList({
+    category: "external_history",
+    externalHistorySource: source.sourceId,
+    includeExternalHistory: true,
+    limit: effectivePageSize + 1,
     offset,
+    sortBy: "updated_at",
+    sortOrder: "desc",
   });
+  const sessions = toFrontendSessions(response.sessions)
+    .filter(isPrimarySessionListSession)
+    .slice(0, effectivePageSize);
   return {
-    sessions: page.sessions.map((row) =>
-      importedHistoryRowToSession(row, source)
-    ),
-    hasMore: page.hasMore,
+    sessions,
+    hasMore: response.sessions.length > effectivePageSize,
   };
 }
 
@@ -243,52 +181,17 @@ export const loadSessions = async (options?: {
           }
         : undefined;
 
-    const importedPagePromises = IMPORTED_HISTORY_SOURCES.map((source) =>
-      source.listSessions({}).then(
-        (page) => ({ status: "fulfilled" as const, source, value: page }),
-        (reason: unknown) => ({ status: "rejected" as const, source, reason })
-      )
-    );
-
-    const [response, cursorPageResult, ...importedPageResults] =
-      await Promise.all([
-        sessionAggregateList(filter),
-        cursorIdeListSessions({}).then(
-          (page) => ({ status: "fulfilled" as const, value: page }),
-          (reason: unknown) => ({ status: "rejected" as const, reason })
-        ),
-        ...importedPagePromises,
-      ]);
+    const response = await sessionAggregateList({
+      ...filter,
+      limit: filter?.limit ?? DEFAULT_FLAT_LIST_PAGE_SIZE,
+      includeExternalHistory: true,
+      sortBy: filter?.sortBy ?? "updated_at",
+      sortOrder: filter?.sortOrder ?? "desc",
+    });
 
     const fetched: Session[] = toFrontendSessions(
       (response as SessionListResponse).sessions
     );
-
-    if (cursorPageResult.status === "fulfilled") {
-      fetched.push(
-        ...cursorPageResult.value.sessions.map(cursorIdeRowToSession)
-      );
-    } else {
-      log.warn(
-        "[SessionAtom] Cursor IDE history load failed (continuing without it):",
-        cursorPageResult.reason
-      );
-    }
-
-    for (const result of importedPageResults) {
-      if (result.status === "fulfilled") {
-        fetched.push(
-          ...result.value.sessions.map((row) =>
-            importedHistoryRowToSession(row, result.source)
-          )
-        );
-      } else {
-        log.warn(
-          `[SessionAtom] ${result.source.displayName} event load failed (continuing without it):`,
-          result.reason
-        );
-      }
-    }
 
     fetched.sort((sessionA, sessionB) =>
       (sessionB.updated_at || "").localeCompare(sessionA.updated_at || "")
@@ -320,32 +223,39 @@ async function fetchAggregatePage(
 ): Promise<FetchPageResult> {
   const response = await sessionAggregateList({
     category: wireCategory,
+    includeExternalHistory: false,
     limit: pageSize + 1,
     offset,
     sortBy: "updated_at",
     sortOrder: "desc",
   });
-  const primarySessions = toFrontendSessions(response.sessions).filter(
-    isPrimarySessionListSession
-  );
+  const primarySessions = toFrontendSessions(response.sessions)
+    .filter(isPrimarySessionListSession)
+    .slice(0, pageSize);
   return {
     sessions: primarySessions,
     hasMore: response.sessions.length > pageSize,
   };
 }
 
-async function fetchCursorIdePage(
+async function fetchExternalHistoryPage(
   offset: number,
   pageSize: number
 ): Promise<FetchPageResult> {
-  const effectivePageSize = Math.max(pageSize, CURSOR_IDE_SIDEBAR_PAGE_SIZE);
-  const page = await cursorIdeListSessions({
-    limit: effectivePageSize,
+  const response = await sessionAggregateList({
+    category: "external_history",
+    includeExternalHistory: true,
+    limit: pageSize + 1,
     offset,
+    sortBy: "updated_at",
+    sortOrder: "desc",
   });
+  const sessions = toFrontendSessions(response.sessions)
+    .filter(isPrimarySessionListSession)
+    .slice(0, pageSize);
   return {
-    sessions: page.sessions.map(cursorIdeRowToSession),
-    hasMore: page.hasMore,
+    sessions,
+    hasMore: response.sessions.length > pageSize,
   };
 }
 
@@ -365,8 +275,6 @@ async function loadCategoryPage(
       return fetchAggregatePage("cli", offset, pageSize);
     case "rust_agent":
       return fetchAggregatePage("agent", offset, pageSize);
-    case "cursor_ide":
-      return fetchCursorIdePage(offset, pageSize);
   }
 }
 
@@ -375,9 +283,6 @@ function replaceFirstPageForCategory(
   prev: readonly Session[],
   incoming: readonly Session[]
 ): Session[] {
-  if (category === "cursor_ide") {
-    return replaceCursorIdeFirstPage(prev, incoming);
-  }
   if (isImportedHistoryListCategory(category)) {
     const source = getImportedHistorySourceByListCategory(category);
     return source
@@ -415,7 +320,7 @@ export const loadSidebarSessions = async (options?: {
   }
 
   await Promise.allSettled(
-    SESSION_LIST_CATEGORIES.map(async (category) => {
+    BASE_SESSION_LIST_CATEGORIES.map(async (category) => {
       try {
         const { sessions, hasMore } = await loadCategoryPage(
           category,
@@ -437,45 +342,39 @@ export const loadSidebarSessions = async (options?: {
     })
   );
 
+  try {
+    const { sessions: externalSessions, hasMore: externalHasMore } =
+      await fetchExternalHistoryPage(0, pageSize);
+    store.set(sessionsAtom, (prev) => mergeSessions(prev, externalSessions));
+
+    const sessionsBySource = new Map<ImportedHistorySource, Session[]>();
+    for (const session of externalSessions) {
+      const source = getImportedHistorySourceBySessionId(session.session_id);
+      if (!source) continue;
+      const sourceSessions = sessionsBySource.get(source) ?? [];
+      sourceSessions.push(session);
+      sessionsBySource.set(source, sourceSessions);
+    }
+
+    for (const source of IMPORTED_HISTORY_SOURCES) {
+      const sourceSessions = sessionsBySource.get(source) ?? [];
+      setPaginationFor(source.listCategory, {
+        loaded: sourceSessions.length,
+        hasMore: externalHasMore || sourceSessions.length >= pageSize,
+        loading: false,
+      });
+    }
+  } catch (error) {
+    log.warn("[SessionAtom] external history initial page failed:", error);
+    for (const source of IMPORTED_HISTORY_SOURCES) {
+      setPaginationFor(source.listCategory, { loading: false });
+    }
+  }
+
   const merged = store.get(sessionsAtom);
   persistSessions(merged);
   store.set(sessionLastLoadedAtom, now);
   store.set(sessionLoadingAtom, false);
-};
-
-export const refreshCursorIdeSidebarSessions = async (
-  pageSize: number = SESSION_SIDEBAR_PAGE_SIZE
-) => {
-  const store = getStore();
-  const category: SessionListCategory = "cursor_ide";
-  const current = store.get(sessionPaginationAtom)[category];
-  if (current.loading) return;
-
-  setPaginationFor(category, { loading: true });
-
-  try {
-    const refreshPageSize = Math.max(pageSize, current.loaded);
-    const { sessions, hasMore } = await loadCategoryPage(
-      category,
-      0,
-      refreshPageSize
-    );
-    store.set(sessionsAtom, (prev) =>
-      replaceCursorIdeFirstPage(prev, sessions)
-    );
-    const loaded =
-      current.loaded > sessions.length ? current.loaded : sessions.length;
-    setPaginationFor(category, {
-      loaded,
-      hasMore:
-        current.loaded > sessions.length ? current.hasMore || hasMore : hasMore,
-      loading: false,
-    });
-    persistSessions(store.get(sessionsAtom));
-  } catch (error) {
-    log.warn("[SessionAtom] Cursor IDE refresh failed:", error);
-    setPaginationFor(category, { loading: false });
-  }
 };
 
 export const loadMoreCategory = async (

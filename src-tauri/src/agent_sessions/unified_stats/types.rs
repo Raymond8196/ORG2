@@ -22,6 +22,9 @@ pub struct SessionAggregateRecord {
     pub updated_at: String,
     /// Session category: "cli", "agent" (Coding), or "os"
     pub category: SessionCategory,
+    /// Imported external-history source subtype, when this row comes from an external DB.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub external_history_source: Option<String>,
     /// User input / task description
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_input: Option<String>,
@@ -287,6 +290,9 @@ pub struct SessionFilter {
     /// Include imported external history rows when loading CLI-category sessions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_external_history: Option<bool>,
+    /// Filter imported external history rows by source subtype.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub external_history_source: Option<String>,
     /// Only include sessions created at or after this epoch millisecond.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_after_ms: Option<i64>,
