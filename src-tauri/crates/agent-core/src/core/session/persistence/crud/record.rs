@@ -279,13 +279,24 @@ pub(super) fn row_to_record(row: &rusqlite::Row) -> rusqlite::Result<UnifiedSess
 mod tests {
     use super::*;
 
+    // Column layout MUST mirror `UNIFIED_SESSION_SELECT` (34 columns) —
+    // these fixtures drift silently when production columns are added.
     const VALID_ROW_SELECT: &str = r#"
         SELECT
             'sid', 'name', 'running', 'model', 'acct', NULL,
             0, '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z', 'sde',
-            NULL, NULL, '/tmp/project', NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                    'builtin:sde', NULL, NULL, NULL, '{}', 'own_key', NULL, NULL, NULL, NULL,
-                    0
+            NULL, NULL, '/tmp/project', NULL, NULL, NULL,
+            NULL, NULL, NULL,
+            NULL, NULL, NULL,
+            NULL, 'builtin:sde', NULL,
+            NULL, NULL,
+            '{}',
+            'own_key',
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            0
     "#;
 
     #[test]
@@ -310,9 +321,17 @@ mod tests {
                 SELECT
                     'sid', 'name', 'running', 'model', 'acct', NULL,
                     0, '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z', 'sde',
-                    NULL, NULL, '/tmp/project', NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                    'builtin:sde', NULL, NULL, NULL, '{}', 'hosted_key', 'plan',
-                    NULL, 'half-typed reply', 'evt-42',
+                    NULL, NULL, '/tmp/project', NULL, NULL, NULL,
+                    NULL, NULL, NULL,
+                    NULL, NULL, NULL,
+                    NULL, 'builtin:sde', NULL,
+                    NULL, NULL,
+                    '{}',
+                    'hosted_key',
+                    'plan',
+                    NULL,
+                    'half-typed reply',
+                    'evt-42',
                     0
                 "#,
                 [],
@@ -364,8 +383,17 @@ mod tests {
                 SELECT
                     'sid', 'name', 'running', 'model', 'acct', NULL,
                     0, '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z', 'sde',
-                    NULL, NULL, '/tmp/project', NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                    'builtin:sde', NULL, NULL, NULL, '{}', 'market', NULL, NULL, NULL, NULL,
+                    NULL, NULL, '/tmp/project', NULL, NULL, NULL,
+                    NULL, NULL, NULL,
+                    NULL, NULL, NULL,
+                    NULL, 'builtin:sde', NULL,
+                    NULL, NULL,
+                    '{}',
+                    'market',
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
                     0
                 "#,
                 [],
@@ -388,8 +416,18 @@ mod tests {
                 SELECT
                     'sid', 'name', 'running', 'model', 'acct', NULL,
                     0, '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z', 'sde',
-                    NULL, NULL, zeroblob(1), NULL, NULL, NULL, NULL,
-                    'builtin:sde', NULL, NULL, NULL, '{}', 'own_key', NULL, NULL, NULL, NULL
+                    NULL, NULL, zeroblob(1), NULL, NULL, NULL,
+                    NULL, NULL, NULL,
+                    NULL, NULL, NULL,
+                    NULL, 'builtin:sde', NULL,
+                    NULL, NULL,
+                    '{}',
+                    'own_key',
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
+                    0
                 "#,
                 [],
                 row_to_record,

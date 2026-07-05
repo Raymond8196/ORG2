@@ -84,58 +84,7 @@ fn filter_status_round_trips_through_session_status_as_str() {
 
 fn ensure_test_schema() {
     let conn = database::db::get_connection().expect("test sqlite connection");
-    conn.execute_batch(
-        r#"
-        CREATE TABLE IF NOT EXISTS agent_sessions (
-            session_id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            status TEXT NOT NULL,
-            model TEXT,
-            account_id TEXT,
-            user_input TEXT,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            session_type TEXT NOT NULL DEFAULT 'agent',
-            channel TEXT,
-            chat_id TEXT,
-            workspace_path TEXT,
-            work_item_id TEXT,
-            agent_role TEXT,
-            worktree_path TEXT,
-            worktree_branch TEXT,
-            base_branch TEXT,
-            merge_status TEXT,
-            project_slug TEXT,
-            agent_definition_id TEXT,
-            org_member_id TEXT,
-            parent_session_id TEXT,
-            parent_event_id TEXT,
-            workspace_additional_json TEXT NOT NULL DEFAULT '{}',
-            key_source TEXT NOT NULL DEFAULT 'own_key',
-            agent_exec_mode TEXT,
-            native_harness_type TEXT,
-            draft_text TEXT,
-            reply_target_event_id TEXT,
-            pinned INTEGER NOT NULL DEFAULT 0
-        );
-        CREATE TABLE IF NOT EXISTS session_token_usage (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            session_id TEXT NOT NULL,
-            session_type TEXT NOT NULL DEFAULT 'sde',
-            model TEXT,
-            account_id TEXT,
-            input_tokens INTEGER NOT NULL DEFAULT 0,
-            output_tokens INTEGER NOT NULL DEFAULT 0,
-            cache_read_tokens INTEGER NOT NULL DEFAULT 0,
-            cache_write_tokens INTEGER NOT NULL DEFAULT 0,
-            total_tokens INTEGER NOT NULL DEFAULT 0,
-            context_tokens INTEGER NOT NULL DEFAULT 0,
-            context_usage_json TEXT,
-            created_at TEXT NOT NULL DEFAULT ''
-        );
-        "#,
-    )
-    .expect("agent sessions test schema");
+    crate::persistence::test_schema::ensure_agent_sessions_schema(&conn);
     persistence::init(&conn).expect("session persistence migrations");
 }
 
