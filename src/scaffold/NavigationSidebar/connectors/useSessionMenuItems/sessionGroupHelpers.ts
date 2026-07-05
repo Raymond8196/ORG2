@@ -8,7 +8,6 @@ import type { SessionListCategory } from "@src/store/session";
 export function groupKeyToWireCategory(
   groupKey: SessionGroupKey
 ): SessionListCategory {
-  if (groupKey === "cursor_ide") return "cursor_ide";
   if (isImportedHistoryListCategory(groupKey)) {
     return (
       getImportedHistorySourceByListCategory(groupKey)?.listCategory ?? groupKey
