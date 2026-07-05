@@ -3,6 +3,7 @@
  *
  * TypeScript wrappers for cross-system session list Rust commands (CLI + SDE + OS).
  */
+import { IMPORTED_HISTORY_SOURCE_DESCRIPTORS } from "@src/api/tauri/externalHistory/imported/descriptors";
 import { rpc } from "@src/api/tauri/rpc";
 import type {
   AggregateStats,
@@ -15,10 +16,6 @@ import type {
 } from "@src/api/tauri/rpc/schemas/sessionAggregate";
 import { normalizeAgentExecMode } from "@src/config/sessionCreatorConfig";
 import type { Session } from "@src/store/session/sessionAtom/types";
-import {
-  isImportedHistorySession,
-  resolveSessionIconId,
-} from "@src/util/session/sessionDispatch";
 
 import type { DispatchCategory, KeySource } from "./dispatchTypes";
 
@@ -104,19 +101,26 @@ export async function sessionHeatmap(
 // Helper Functions
 // ============================================================================
 
+function importedHistoryDescriptorForSession(sessionId: string) {
+  return IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find((source) =>
+    sessionId.startsWith(source.prefix)
+  );
+}
+
 function getFrontendDispatchCategory(
   record: SessionAggregateRecord
 ): DispatchCategory {
-  if (isImportedHistorySession(record.sessionId)) return "external_history";
+  if (importedHistoryDescriptorForSession(record.sessionId)) {
+    return "external_history";
+  }
   return record.category;
 }
 
 export function toFrontendSession(record: SessionAggregateRecord): Session {
   const category = getFrontendDispatchCategory(record);
-  const importedIconId =
-    category === "external_history"
-      ? resolveSessionIconId(record.sessionId)
-      : undefined;
+  const importedIconId = importedHistoryDescriptorForSession(
+    record.sessionId
+  )?.iconId;
 
   return {
     session_id: record.sessionId,

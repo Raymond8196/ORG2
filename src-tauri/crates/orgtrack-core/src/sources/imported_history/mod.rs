@@ -45,6 +45,7 @@ pub struct ImportedHistorySessionRow {
     pub lines_added: i64,
     pub lines_removed: i64,
     pub touched_files: Vec<String>,
+    pub parent_session_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -78,6 +79,7 @@ pub struct ImportedHistoryRowInput {
     pub lines_added: i64,
     pub lines_removed: i64,
     pub touched_files: Vec<String>,
+    pub parent_session_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -131,6 +133,7 @@ pub fn row_from_input(input: ImportedHistoryRowInput) -> ImportedHistorySessionR
         lines_added: input.lines_added,
         lines_removed: input.lines_removed,
         touched_files: input.touched_files,
+        parent_session_id: input.parent_session_id,
     }
 }
 
