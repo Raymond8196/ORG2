@@ -399,10 +399,6 @@ pub fn run() {
                     tracing::info!("[Transport] Transport layer initialized");
                 }
             }
-
-            perf_utils::ram_history::start_sampler();
-            tracing::info!("[RamHistory] Background RAM sampler started");
-
             match agent_sessions::cli::persistence::sweep_stale_sessions() {
                 Ok(orphans) if !orphans.is_empty() => {
                     tracing::info!(

@@ -44,7 +44,11 @@ pub async fn session_aggregate_list(
 pub async fn session_check_health(session_id: String) -> Result<SessionHealthStatus, String> {
     tokio::task::spawn_blocking(move || {
         // Load all sessions and find the one we want
-        let response = list_all_sessions(None)?;
+        let filter = SessionFilter {
+            include_stats: Some(false),
+            ..SessionFilter::default()
+        };
+        let response = list_all_sessions(Some(&filter))?;
         let session = response
             .sessions
             .into_iter()
@@ -68,6 +72,7 @@ pub async fn session_get_aggregate_stats(
     tokio::task::spawn_blocking(move || {
         let filter = SessionFilter {
             key_source,
+            include_stats: Some(false),
             ..SessionFilter::default()
         };
 
@@ -102,6 +107,7 @@ pub async fn session_get_history(
         let filter = SessionFilter {
             repo_path: repo_id,
             limit,
+            include_stats: Some(false),
             ..Default::default()
         };
 

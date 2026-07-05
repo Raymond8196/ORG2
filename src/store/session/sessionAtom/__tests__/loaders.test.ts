@@ -83,7 +83,6 @@ describe("replaceExternalHistorySourceFirstPage", () => {
     iconId: "codex",
     displayName: "Codex",
     groupLabel: "Codex App",
-    listSessions: async () => ({ sessions: [], hasMore: false }),
     loadChunks: async () => [],
   } as const;
 

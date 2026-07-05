@@ -81,9 +81,17 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
 }) => {
   const { sessions, activeSessionId, initializedSessions, updateSessionInfo } =
     terminalState;
+  const [processRefreshSignal, setProcessRefreshSignal] = useState(0);
+
+  const requestProcessRefresh = useCallback(() => {
+    if (!visible) return;
+    setProcessRefreshSignal((signal) => signal + 1);
+  }, [visible]);
 
   useTerminalProcessPoller({
     activeSession: terminalState.activeSession,
+    enabled: visible,
+    refreshSignal: processRefreshSignal,
     updateSessionInfo,
   });
 
@@ -316,6 +324,7 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
                 backgroundColor={bgColor}
                 shellOverride={session.shell}
                 onUserInput={() => {
+                  requestProcessRefresh();
                   if (!session.hasUserInput) {
                     updateSessionInfo(session.id, { hasUserInput: true });
                   }
@@ -332,15 +341,19 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
                     shell: info.shell,
                     cwd: info.cwd,
                   });
+                  requestProcessRefresh();
                 }}
                 shellIntegration={{
                   onPromptStart: () => dispatchPromptStart(session.id),
-                  onCommandExecuted: (commandLine) =>
+                  onCommandExecuted: (commandLine) => {
+                    requestProcessRefresh();
                     dispatchCommandExecuted({
                       sessionId: session.id,
                       commandLine,
-                    }),
+                    });
+                  },
                   onCommandFinished: (exitCode) => {
+                    requestProcessRefresh();
                     dispatchCommandFinished({
                       sessionId: session.id,
                       exitCode,

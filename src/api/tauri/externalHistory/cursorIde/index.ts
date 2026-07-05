@@ -10,44 +10,6 @@ import { invoke } from "@tauri-apps/api/core";
 
 import type { ActivityChunk } from "@src/types/session/session";
 
-/**
- * One Cursor IDE composer surfaced as a frontend-ready session row.
- * Mirrors the Rust `CursorIdeSessionRow` (camelCase via serde).
- */
-export interface CursorIdeSessionRow {
-  sessionId: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  category: "cursor_ide";
-  readOnly: true;
-  model?: string;
-  totalTokens: number;
-  linesAdded: number;
-  linesRemoved: number;
-  filesChanged: number;
-  touchedFiles: string[];
-  background: boolean;
-  isActive: boolean;
-  repoPath?: string;
-  storagePath?: string;
-  repoName?: string;
-  branch?: string;
-}
-
-/**
- * Page returned from `cursor_ide_list_sessions`.
- *
- * `hasMore` reflects whether a follow-up `(limit, offset + sessions.length)`
- * call would surface more rows. The sidebar's per-category pagination uses
- * this signal to decide whether to render a "Load more" row.
- */
-export interface CursorIdeSessionPage {
-  sessions: CursorIdeSessionRow[];
-  hasMore: boolean;
-}
-
 export interface CursorIdeTurnSummary {
   turnId: string;
   nextTurnId: string | null;
@@ -81,24 +43,6 @@ export interface CursorIdeTurnWindow {
   userBubbleId: string;
   nextUserBubbleId: string | null;
   loadedBubbleCount: number;
-}
-
-/**
- * Paginated list of Cursor IDE composers, ordered most-recent-first.
- *
- * Defaults: `limit = 200`, `offset = 0` — large enough to cover the
- * previous "fetch everything" behaviour for typical users while bounded
- * for power users with thousands of composers. Pass smaller `limit`
- * values (e.g. 10) for the sidebar's per-category paginated loader.
- */
-export async function cursorIdeListSessions(args?: {
-  limit?: number;
-  offset?: number;
-}): Promise<CursorIdeSessionPage> {
-  return invoke<CursorIdeSessionPage>("cursor_ide_list_sessions", {
-    limit: args?.limit,
-    offset: args?.offset,
-  });
 }
 
 /**

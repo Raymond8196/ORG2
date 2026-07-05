@@ -90,6 +90,7 @@ export function useSourceControlSetup({
 
   const { isGitInitialized } = useRepoGitInitialization(repoPath);
   const resolvedRepoId = repoId ?? repoPath;
+  const isSourceControlActive = activeTab?.type === "source-control";
   const {
     worktrees,
     mainDiffSummary,
@@ -99,7 +100,7 @@ export function useSourceControlSetup({
   } = useGitWorktrees({
     repoId: resolvedRepoId,
     repoPath,
-    enabled: isGitInitialized === true,
+    enabled: isGitInitialized === true && isSourceControlActive,
   });
   const { scope, setScope } = useSourceControlScope({
     repoPath,

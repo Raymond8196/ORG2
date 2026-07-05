@@ -39,7 +39,6 @@ interface BackgroundConfig {
   /** Preset color ID (matches `BackgroundConfig` in uiAtom). */
   backgroundColorId?: string;
   backgroundColor?: string;
-  animation?: string;
 }
 
 // Extend Window type for our HMR-persistent cache

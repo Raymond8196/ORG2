@@ -4,10 +4,15 @@
 import React, { useMemo } from "react";
 
 import Table, { type TableColumn } from "@src/components/Table";
-import type { ApiCall } from "@src/util/monitoring/apiTracker";
+import type {
+  ApiCall,
+  ApiCallHotspot,
+  TimerHotspot,
+} from "@src/util/monitoring/apiTracker";
 
 import {
   formatApiUrl,
+  formatDuration,
   formatTime,
   getStatusInfo,
   getTriggerLabel,
@@ -21,6 +26,8 @@ import EmptyState from "./EmptyState";
 
 export interface PanelContentProps {
   apiCalls: ApiCall[];
+  hotspots: ApiCallHotspot[];
+  timerHotspots: TimerHotspot[];
   expandedCall: string | null;
   onToggleExpand: (id: string) => void;
   onExpandedChange: (id: string | null) => void;
@@ -30,8 +37,170 @@ export interface PanelContentProps {
 // Component
 // ============================================
 
+function getHotspotSource(hotspot: ApiCallHotspot | TimerHotspot): string {
+  if (hotspot.filePath) {
+    const fileName = hotspot.filePath.split("/").pop() ?? hotspot.filePath;
+    return `${fileName}${hotspot.lineNumber ? `:${hotspot.lineNumber}` : ""}`;
+  }
+  return hotspot.componentName || hotspot.functionName || "unknown source";
+}
+
+function formatCallsPerMinute(callsPerMinute: number): string {
+  if (callsPerMinute >= 10) return callsPerMinute.toFixed(0);
+  return callsPerMinute.toFixed(1);
+}
+
+function getTimerLabel(hotspot: TimerHotspot): string {
+  if (hotspot.kind === "raf") return "requestAnimationFrame";
+  return `${hotspot.kind === "interval" ? "setInterval" : "setTimeout"}(${hotspot.delayMs ?? "?"}ms)`;
+}
+
+const HotspotSummary: React.FC<{ hotspots: ApiCallHotspot[] }> = ({
+  hotspots,
+}) => {
+  const topHotspots = hotspots.slice(0, 6);
+  if (topHotspots.length === 0) return null;
+
+  return (
+    <div className="border-b border-border-2 bg-bg-1/70 px-4 py-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[12px] font-semibold text-text-1">
+            Polling / call hotspots
+          </div>
+          <div className="text-[11px] text-text-3">
+            Grouped by target and source over the last 2 minutes
+          </div>
+        </div>
+        <div className="text-[11px] text-text-3">
+          {hotspots.filter((hotspot) => hotspot.isLikelyPolling).length} likely
+          polling
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3">
+        {topHotspots.map((hotspot) => (
+          <div
+            key={hotspot.key}
+            className={`rounded-lg border p-2.5 ${
+              hotspot.isLikelyPolling
+                ? "border-warning-6/40 bg-warning-6/10"
+                : "border-border-2 bg-bg-2"
+            }`}
+          >
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-text-3">
+                {hotspot.backend === "rust" ? "Rust" : "HTTP"} ·{" "}
+                {hotspot.method}
+              </span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                  hotspot.isLikelyPolling
+                    ? "bg-warning-6/15 text-warning-6"
+                    : "bg-fill-2 text-text-3"
+                }`}
+              >
+                {formatCallsPerMinute(hotspot.callsPerMinute)}/min
+              </span>
+            </div>
+            <div
+              className="truncate text-[11px] font-medium text-primary-6"
+              title={hotspot.target}
+            >
+              {hotspot.target}
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-2 text-[10px] text-text-3">
+              <span
+                className="truncate"
+                title={hotspot.stack || hotspot.filePath || undefined}
+              >
+                {getHotspotSource(hotspot)}
+              </span>
+              <span>
+                {hotspot.count} calls
+                {hotspot.averageDurationMs
+                  ? ` · ${formatDuration(hotspot.averageDurationMs)}`
+                  : ""}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const TimerHotspotSummary: React.FC<{ hotspots: TimerHotspot[] }> = ({
+  hotspots,
+}) => {
+  const topHotspots = hotspots.slice(0, 6);
+  if (topHotspots.length === 0) return null;
+
+  return (
+    <div className="border-b border-border-2 bg-bg-1/70 px-4 py-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[12px] font-semibold text-text-1">
+            Timer / RAF hotspots
+          </div>
+          <div className="text-[11px] text-text-3">
+            Captures frontend-only loops over the last 2 minutes
+          </div>
+        </div>
+        <div className="text-[11px] text-text-3">
+          {hotspots.filter((hotspot) => hotspot.isLikelyLoop).length} likely
+          loops
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3">
+        {topHotspots.map((hotspot) => (
+          <div
+            key={hotspot.key}
+            className={`rounded-lg border p-2.5 ${
+              hotspot.isLikelyLoop
+                ? "border-danger-6/40 bg-danger-6/10"
+                : "border-border-2 bg-bg-2"
+            }`}
+          >
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-text-3">
+                Frontend · {hotspot.kind.toUpperCase()}
+              </span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                  hotspot.isLikelyLoop
+                    ? "bg-danger-6/15 text-danger-6"
+                    : "bg-fill-2 text-text-3"
+                }`}
+              >
+                {formatCallsPerMinute(hotspot.firesPerMinute)}/min
+              </span>
+            </div>
+            <div
+              className="truncate text-[11px] font-medium text-primary-6"
+              title={getTimerLabel(hotspot)}
+            >
+              {getTimerLabel(hotspot)}
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-2 text-[10px] text-text-3">
+              <span
+                className="truncate"
+                title={hotspot.stack || hotspot.filePath || undefined}
+              >
+                {getHotspotSource(hotspot)}
+              </span>
+              <span>{hotspot.count} fires</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const PanelContent: React.FC<PanelContentProps> = ({
   apiCalls,
+  hotspots,
+  timerHotspots,
   expandedCall,
   onToggleExpand,
   onExpandedChange,
@@ -195,26 +364,38 @@ const PanelContent: React.FC<PanelContentProps> = ({
     [expandedCall, onExpandedChange]
   );
 
-  if (apiCalls.length === 0) {
+  if (apiCalls.length === 0 && timerHotspots.length === 0) {
     return <EmptyState />;
   }
 
   return (
-    <Table<ApiCall>
-      columns={columns}
-      data={apiCalls}
-      rowKey="id"
-      pagination={false}
-      hover
-      stripe={false}
-      border={false}
-      size="small"
-      className="!border-0"
-      expandable={expandable}
-      rowClassName={(call, index) =>
-        index === 0 ? "!bg-primary-6/10 hover:!bg-fill-1" : "hover:!bg-fill-1"
-      }
-    />
+    <div className="flex min-h-0 flex-col">
+      <TimerHotspotSummary hotspots={timerHotspots} />
+      <HotspotSummary hotspots={hotspots} />
+      {apiCalls.length > 0 ? (
+        <Table<ApiCall>
+          columns={columns}
+          data={apiCalls}
+          rowKey="id"
+          pagination={false}
+          hover
+          stripe={false}
+          border={false}
+          size="small"
+          className="!border-0"
+          expandable={expandable}
+          rowClassName={(call, index) =>
+            index === 0
+              ? "!bg-primary-6/10 hover:!bg-fill-1"
+              : "hover:!bg-fill-1"
+          }
+        />
+      ) : (
+        <div className="px-4 py-8 text-center text-[12px] text-text-3">
+          No API calls captured yet. Timer activity is shown above.
+        </div>
+      )}
+    </div>
   );
 };
 

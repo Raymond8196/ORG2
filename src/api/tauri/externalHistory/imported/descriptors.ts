@@ -1,0 +1,94 @@
+export type ImportedHistorySourceId =
+  | "cursor_ide"
+  | "codex_app"
+  | "claude_code"
+  | "opencode"
+  | "windsurf"
+  | "workbuddy";
+
+export type ImportedHistoryListCategory =
+  `external_history:${ImportedHistorySourceId}`;
+
+export interface ImportedHistorySourceDescriptor {
+  sourceId: ImportedHistorySourceId;
+  listCategory: ImportedHistoryListCategory;
+  prefix: string;
+  iconId: string;
+  displayName: string;
+  groupLabel: string;
+  sidebarPageSize?: number;
+  listable: true;
+  replayable: true;
+  supportsWindowedReplay: boolean;
+}
+
+export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySourceDescriptor[] =
+  [
+    {
+      sourceId: "cursor_ide",
+      listCategory: "external_history:cursor_ide",
+      prefix: "cursoride-",
+      iconId: "cursor",
+      displayName: "Cursor",
+      groupLabel: "Cursor History",
+      sidebarPageSize: 50,
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: true,
+    },
+    {
+      sourceId: "codex_app",
+      listCategory: "external_history:codex_app",
+      prefix: "codexapp-",
+      iconId: "codex",
+      displayName: "Codex",
+      groupLabel: "Codex App",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "claude_code",
+      listCategory: "external_history:claude_code",
+      prefix: "claudecodeapp-",
+      iconId: "claude_code",
+      displayName: "Claude Code",
+      groupLabel: "Claude Code",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "opencode",
+      listCategory: "external_history:opencode",
+      prefix: "opencodeapp-",
+      iconId: "opencode",
+      displayName: "OpenCode",
+      groupLabel: "OpenCode",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "windsurf",
+      listCategory: "external_history:windsurf",
+      prefix: "windsurfapp-",
+      iconId: "windsurf",
+      displayName: "Windsurf",
+      groupLabel: "Windsurf",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "workbuddy",
+      listCategory: "external_history:workbuddy",
+      prefix: "workbuddyapp-",
+      iconId: "workbuddy",
+      displayName: "WorkBuddy",
+      groupLabel: "WorkBuddy",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+  ];

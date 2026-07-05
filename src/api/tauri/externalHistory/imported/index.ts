@@ -1,173 +1,82 @@
 import type { ActivityChunk } from "@src/types/session/session";
 
 import type { DispatchCategory } from "../../session";
+import { cursorIdeInitialWindow } from "../cursorIde";
 import type { ExternalCliSourceProbe } from "../detection";
+import { claudeCodeHistoryChunks } from "../sources/claudeCode";
+import { codexAppChunks } from "../sources/codexApp";
+import { opencodeHistoryChunks } from "../sources/opencode";
+import { windsurfHistoryChunks } from "../sources/windsurf";
+import { workBuddyHistoryChunks } from "../sources/workbuddy";
 import {
-  claudeCodeHistoryChunks,
-  claudeCodeHistoryListSessions,
-} from "../sources/claudeCode";
-import type {
-  ClaudeCodeHistorySessionPage,
-  ClaudeCodeHistorySessionRow,
-} from "../sources/claudeCode";
-import { codexAppChunks, codexAppListSessions } from "../sources/codexApp";
-import type {
-  CodexAppSessionPage,
-  CodexAppSessionRow,
-} from "../sources/codexApp";
-import {
-  opencodeHistoryChunks,
-  opencodeHistoryListSessions,
-} from "../sources/opencode";
-import type {
-  OpenCodeHistorySessionPage,
-  OpenCodeHistorySessionRow,
-} from "../sources/opencode";
-import {
-  windsurfHistoryChunks,
-  windsurfHistoryListSessions,
-} from "../sources/windsurf";
-import type {
-  WindsurfHistorySessionPage,
-  WindsurfHistorySessionRow,
-} from "../sources/windsurf";
-import {
-  workBuddyHistoryChunks,
-  workBuddyHistoryListSessions,
-} from "../sources/workbuddy";
-import type {
-  WorkBuddyHistorySessionPage,
-  WorkBuddyHistorySessionRow,
-} from "../sources/workbuddy";
+  IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
+  type ImportedHistoryListCategory,
+  type ImportedHistorySourceDescriptor,
+  type ImportedHistorySourceId,
+} from "./descriptors";
 
-export type ImportedHistorySourceId =
-  | "codex_app"
-  | "claude_code"
-  | "opencode"
-  | "windsurf"
-  | "workbuddy";
+export type {
+  ImportedHistoryListCategory,
+  ImportedHistorySourceDescriptor,
+  ImportedHistorySourceId,
+};
+export { IMPORTED_HISTORY_SOURCE_DESCRIPTORS };
 
-export type ImportedHistoryListCategory =
-  `external_history:${ImportedHistorySourceId}`;
-
-export interface ImportedHistorySessionRow {
-  sessionId: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  category: "external_history";
-  readOnly: true;
-  model?: string;
-  totalTokens: number;
-  background: boolean;
-  isActive: boolean;
-  repoPath?: string;
-  storagePath?: string;
-  repoName?: string;
-  branch?: string;
-  filesChanged: number;
-  linesAdded: number;
-  linesRemoved: number;
-  touchedFiles: string[];
-}
-
-export interface ImportedHistorySessionPage {
-  sessions: ImportedHistorySessionRow[];
-  hasMore: boolean;
-}
-
-export interface ImportedHistorySource {
-  sourceId: ImportedHistorySourceId;
-  listCategory: ImportedHistoryListCategory;
+export interface ImportedHistorySource extends ImportedHistorySourceDescriptor {
   dispatchCategory: Extract<DispatchCategory, "external_history">;
-  prefix: string;
-  iconId: string;
-  displayName: string;
-  groupLabel: string;
-  sidebarPageSize?: number;
-  listSessions(args?: {
-    limit?: number;
-    offset?: number;
-  }): Promise<ImportedHistorySessionPage>;
   loadChunks(sessionId: string): Promise<ActivityChunk[]>;
 }
 
-function asImportedPage(
-  page:
-    | CodexAppSessionPage
-    | ClaudeCodeHistorySessionPage
-    | OpenCodeHistorySessionPage
-    | WindsurfHistorySessionPage
-    | WorkBuddyHistorySessionPage
-): ImportedHistorySessionPage {
-  return page;
+const CURSOR_IDE_INITIAL_RECENT_BUBBLE_LIMIT = 100;
+
+function descriptorFor(
+  sourceId: ImportedHistorySourceId
+): ImportedHistorySourceDescriptor {
+  const descriptor = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find(
+    (entry) => entry.sourceId === sourceId
+  );
+  if (!descriptor) {
+    throw new Error(`Missing imported history source descriptor: ${sourceId}`);
+  }
+  return descriptor;
 }
 
 export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
   {
-    sourceId: "codex_app",
-    listCategory: "external_history:codex_app",
+    ...descriptorFor("cursor_ide"),
     dispatchCategory: "external_history",
-    prefix: "codexapp-",
-    iconId: "codex",
-    displayName: "Codex",
-    groupLabel: "Codex App",
-    async listSessions(args) {
-      return asImportedPage(await codexAppListSessions(args));
+    async loadChunks(sessionId) {
+      return (
+        await cursorIdeInitialWindow({
+          sessionId,
+          recentLimit: CURSOR_IDE_INITIAL_RECENT_BUBBLE_LIMIT,
+        })
+      ).chunks;
     },
+  },
+  {
+    ...descriptorFor("codex_app"),
+    dispatchCategory: "external_history",
     loadChunks: codexAppChunks,
   },
   {
-    sourceId: "claude_code",
-    listCategory: "external_history:claude_code",
+    ...descriptorFor("claude_code"),
     dispatchCategory: "external_history",
-    prefix: "claudecodeapp-",
-    iconId: "claude_code",
-    displayName: "Claude Code",
-    groupLabel: "Claude Code",
-    async listSessions(args) {
-      return asImportedPage(await claudeCodeHistoryListSessions(args));
-    },
     loadChunks: claudeCodeHistoryChunks,
   },
   {
-    sourceId: "opencode",
-    listCategory: "external_history:opencode",
+    ...descriptorFor("opencode"),
     dispatchCategory: "external_history",
-    prefix: "opencodeapp-",
-    iconId: "opencode",
-    displayName: "OpenCode",
-    groupLabel: "OpenCode",
-    async listSessions(args) {
-      return asImportedPage(await opencodeHistoryListSessions(args));
-    },
     loadChunks: opencodeHistoryChunks,
   },
   {
-    sourceId: "windsurf",
-    listCategory: "external_history:windsurf",
+    ...descriptorFor("windsurf"),
     dispatchCategory: "external_history",
-    prefix: "windsurfapp-",
-    iconId: "windsurf",
-    displayName: "Windsurf",
-    groupLabel: "Windsurf",
-    async listSessions(args) {
-      return asImportedPage(await windsurfHistoryListSessions(args));
-    },
     loadChunks: windsurfHistoryChunks,
   },
   {
-    sourceId: "workbuddy",
-    listCategory: "external_history:workbuddy",
+    ...descriptorFor("workbuddy"),
     dispatchCategory: "external_history",
-    prefix: "workbuddyapp-",
-    iconId: "workbuddy",
-    displayName: "WorkBuddy",
-    groupLabel: "WorkBuddy",
-    async listSessions(args) {
-      return asImportedPage(await workBuddyHistoryListSessions(args));
-    },
     loadChunks: workBuddyHistoryChunks,
   },
 ];
@@ -220,11 +129,3 @@ export function getDetectedExternalCliSourcesWithoutReplay(
     (probe) => !isImportedHistoryReplayableSourceId(probe.sourceId)
   );
 }
-
-export type {
-  CodexAppSessionRow,
-  ClaudeCodeHistorySessionRow,
-  OpenCodeHistorySessionRow,
-  WindsurfHistorySessionRow,
-  WorkBuddyHistorySessionRow,
-};

@@ -11,6 +11,7 @@ import type {
 } from "../types";
 
 const logger = createLogger("ExternalHistoryAdapter");
+const EXTERNAL_HISTORY_INITIAL_CHUNK_LIMIT = 200;
 
 function createNoopEventHandler(): SessionEventHandler {
   return {
@@ -36,7 +37,8 @@ async function loadExternalHistory(
   if (signal.aborted || !Array.isArray(chunks) || chunks.length === 0) {
     return [];
   }
-  const events = await processChunksRust(chunks, sessionId);
+  const initialWindow = chunks.slice(-EXTERNAL_HISTORY_INITIAL_CHUNK_LIMIT);
+  const events = await processChunksRust(initialWindow, sessionId);
   if (signal.aborted) return [];
   return events;
 }
