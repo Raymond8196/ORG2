@@ -8,12 +8,16 @@ use database::db::get_connection;
 
 use super::accounting::{session_usage_summary_with_fallback, usage_source_for};
 use super::aggregation::list_all_sessions;
-use super::types::{UsageFilter, UsageRecord};
+use super::types::{SessionFilter, UsageFilter, UsageRecord};
 
 pub fn query_usage_list(filter: Option<&UsageFilter>) -> Result<Vec<UsageRecord>, String> {
     let conn = get_connection().map_err(|err| format!("DB error: {err}"))?;
     let provider = filter.and_then(|filter| filter.provider.as_deref());
-    let response = list_all_sessions(None)?;
+    let session_filter = SessionFilter {
+        include_stats: Some(false),
+        ..SessionFilter::default()
+    };
+    let response = list_all_sessions(Some(&session_filter))?;
     let mut results = Vec::new();
 
     for session in response.sessions {

@@ -42,6 +42,12 @@ sessionErrorAtom.debugLabel = "sessionErrorAtom";
 export const sessionLastLoadedAtom = atom<number | null>(null);
 sessionLastLoadedAtom.debugLabel = "sessionLastLoadedAtom";
 
+export const sessionFlatListLastLoadedBySignatureAtom = atom<
+  Record<string, number>
+>({});
+sessionFlatListLastLoadedBySignatureAtom.debugLabel =
+  "sessionFlatListLastLoadedBySignatureAtom";
+
 // ============================================
 // Derived Atoms
 // ============================================

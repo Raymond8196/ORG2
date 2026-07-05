@@ -334,7 +334,10 @@ pub fn list_all_sessions(filter: Option<&SessionFilter>) -> Result<SessionListRe
     }
 
     // Compute statistics (before applying limit/offset)
-    let stats = compute_stats(&all_sessions);
+    let stats = filter
+        .and_then(|filter| filter.include_stats)
+        .unwrap_or(true)
+        .then(|| compute_stats(&all_sessions));
 
     // Apply sorting
     apply_sorting(&mut all_sessions, filter);
