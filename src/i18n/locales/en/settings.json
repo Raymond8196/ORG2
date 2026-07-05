@@ -63,7 +63,8 @@
       "devtools": "Dev Tools",
       "connections": "Connections",
       "git": "Git",
-      "databases": "Databases"
+      "databases": "Databases",
+      "housekeeper": "MiniCPM Housekeeper"
     }
   },
   "myRoles": {

@@ -87,6 +87,10 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
     labelKey: "integrations:categories.myRoles",
     icon: UserRoundCog,
   },
+  housekeeper: {
+    labelKey: "integrations:categories.housekeeper",
+    icon: Sparkles,
+  },
   tools: { labelKey: "integrations:categories.tools", icon: Hammer },
   computerUse: {
     labelKey: "integrations:categories.computerUse",
