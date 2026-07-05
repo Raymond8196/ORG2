@@ -5,7 +5,7 @@ import type { SettingDefinition } from "@src/config/settingsSchema/types";
 export const HOUSEKEEPER_SETTINGS_REGISTRY = {
   "housekeeper.enabled": {
     schema: z.boolean(),
-    default: true,
+    default: false,
     description:
       "Enable the local MiniCPM resident housekeeper for lightweight tasks",
     category: "housekeeper",

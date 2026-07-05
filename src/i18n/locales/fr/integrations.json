@@ -2541,5 +2541,27 @@
       "cpu_only": "CPU uniquement",
       "no_fit": "Non recommandé"
     }
+  },
+  "housekeeper": {
+    "addModel": "Ajouter un modèle",
+    "sections": {
+      "configuration": "Configuration",
+      "features": "Fonctionnalités",
+      "diagnostics": "Diagnostics"
+    },
+    "health": {
+      "status": "Non vérifié"
+    },
+    "benchmark": {
+      "title": "Vitesse de sortie MiniCPM",
+      "idle": "Envoie une invite de test légère et calcule les token/s de sortie à partir du temps réel.",
+      "running": "Requête vers MiniCPM vLLM local et mesure de la vitesse de sortie...",
+      "ready": "{{tokens}} tokens générés en {{seconds}}s",
+      "status": "Non testé",
+      "checkButton": "Tester la vitesse",
+      "tokensPerSecond": "Vitesse de sortie : {{value}} tokens/s",
+      "completionTokens": "Tokens de sortie : {{value}}",
+      "elapsed": "Durée totale : {{value}}s"
+    }
   }
 }

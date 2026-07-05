@@ -2538,5 +2538,27 @@
       "cpu_only": "Yalnızca CPU",
       "no_fit": "Önerilmez"
     }
+  },
+  "housekeeper": {
+    "addModel": "Model Ekle",
+    "sections": {
+      "configuration": "Yapılandırma",
+      "features": "Özellikler",
+      "diagnostics": "Tanılama"
+    },
+    "health": {
+      "status": "Kontrol edilmedi"
+    },
+    "benchmark": {
+      "title": "MiniCPM çıktı hızı",
+      "idle": "Hafif bir test prompt’u gönderir ve gerçek tamamlanma süresinden çıktı token/s değerini hesaplar.",
+      "running": "Yerel vLLM MiniCPM isteniyor ve çıktı hızı ölçülüyor...",
+      "ready": "{{seconds}}s içinde {{tokens}} tokens çıktı",
+      "status": "Test edilmedi",
+      "checkButton": "Hızı test et",
+      "tokensPerSecond": "Çıktı hızı: {{value}} tokens/s",
+      "completionTokens": "Çıktı tokens: {{value}}",
+      "elapsed": "Toplam süre: {{value}}s"
+    }
   }
 }

@@ -2549,12 +2549,17 @@
     "eyebrow": "MiniCPM Resident Housekeeper",
     "title": "Resident Housekeeper",
     "description": "Local MiniCPM handles prompt polishing, short step explanations, and lightweight UI control. Coding tasks and complex ADE setup still use the main agent model.",
-    "addAccount": "Add MiniCPM vLLM account",
+    "addModel": "Add model",
     "autoAccount": "Auto-select MiniCPM vLLM account",
     "tiles": {
       "model": "Model",
       "endpoint": "Endpoint",
       "safeContext": "Safe Context"
+    },
+    "sections": {
+      "configuration": "Configuration",
+      "features": "Features",
+      "diagnostics": "Diagnostics"
     },
     "settings": {
       "enabled": {
@@ -2595,7 +2600,19 @@
       "checkButton": "Check connection",
       "configureFirst": "Configure a vLLM MiniCPM account first.",
       "connectedTo": "Connected to {{baseUrl}}",
-      "failed": "MiniCPM health check failed."
+      "failed": "MiniCPM health check failed.",
+      "status": "Not checked"
+    },
+    "benchmark": {
+      "title": "MiniCPM output speed",
+      "idle": "Sends a lightweight test prompt and calculates output token/s from the actual completion time.",
+      "running": "Requesting local vLLM MiniCPM and measuring output speed...",
+      "ready": "Output {{tokens}} tokens in {{seconds}}s",
+      "status": "Not tested",
+      "checkButton": "Test speed",
+      "tokensPerSecond": "Output speed: {{value}} tokens/s",
+      "completionTokens": "Output tokens: {{value}}",
+      "elapsed": "Total time: {{value}}s"
     }
   }
 }

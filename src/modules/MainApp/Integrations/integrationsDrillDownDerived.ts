@@ -51,7 +51,6 @@ export function buildIntegrationsDrillDownItems(
     case "tools":
     case "computerUse":
     case "myRoles":
-    case "housekeeper":
       return [];
     case "externalSkillsets": {
       const kind = extensionKindForSkillsetTab(
@@ -134,7 +133,6 @@ export function getIntegrationsDrillDownSelectedId(
     case "tools":
     case "computerUse":
     case "myRoles":
-    case "housekeeper":
       return null;
     case "externalSkillsets": {
       const kind = extensionKindForSkillsetTab(
@@ -182,7 +180,6 @@ export function getIntegrationsDrillDownLoading(
     case "tools":
     case "computerUse":
     case "myRoles":
-    case "housekeeper":
       return false;
     case "externalSkillsets": {
       const kind = extensionKindForSkillsetTab(

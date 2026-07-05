@@ -63,6 +63,7 @@
       "connections": "Bağlantılar",
       "git": "Git",
       "databases": "Veritabanları",
+      "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
   },
