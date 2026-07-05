@@ -19,7 +19,6 @@ import { eventsAtom } from "@src/engines/SessionCore/core/atoms";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
 import { creatorDefaultModelSelectionAtom } from "@src/store/session/creatorDefaultModelAtom";
-import { cursorModeOverrideAtomFamily } from "@src/store/session/cursorModeOverrideAtom";
 import { sessionByIdAtom, upsertSession } from "@src/store/session/sessionAtom";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
@@ -124,8 +123,6 @@ async function switchCursorIdeMode(
   await markModeSwitchEventResolved(eventId, sessionId, "switched", targetMode);
   if (!composerId) return;
 
-  const store = getInstrumentedStore();
-  store.set(cursorModeOverrideAtomFamily(sessionId), targetMode);
   await cursorBridgeSetMode({ agentId: composerId, modeId: targetMode });
 
   const lastUserText = getLastUserText(sessionId);

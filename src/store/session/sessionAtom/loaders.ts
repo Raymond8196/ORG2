@@ -32,6 +32,7 @@ import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility
 
 import {
   sessionErrorAtom,
+  sessionFlatListLastLoadedBySignatureAtom,
   sessionLastLoadedAtom,
   sessionLoadingAtom,
   sessionsAtom,
@@ -53,6 +54,29 @@ const log = createLogger("SessionAtom");
 const getStore = () => getInstrumentedStore();
 const BULK_CACHE_DURATION_MS = 5 * 60 * 1000;
 const DEFAULT_FLAT_LIST_PAGE_SIZE = 200;
+
+interface LoadSessionsOptions {
+  repoPath?: string;
+  orgId?: string;
+  projectSlug?: string;
+  workItemId?: string;
+  status?: SessionStatus;
+  limit?: number;
+  offset?: number;
+  forceRefresh?: boolean;
+}
+
+function loadSessionsCacheSignature(options?: LoadSessionsOptions): string {
+  return [
+    options?.repoPath ?? "",
+    options?.orgId ?? "",
+    options?.projectSlug ?? "",
+    options?.workItemId ?? "",
+    options?.status ?? "",
+    options?.limit ?? "",
+    options?.offset ?? "",
+  ].join("\u001f");
+}
 
 function mergeSessions(
   prev: readonly Session[],
@@ -120,6 +144,7 @@ async function loadImportedHistorySourcePage(
     category: "external_history",
     externalHistorySource: source.sourceId,
     includeExternalHistory: true,
+    includeStats: false,
     limit: effectivePageSize + 1,
     offset,
     sortBy: "updated_at",
@@ -134,20 +159,14 @@ async function loadImportedHistorySourcePage(
   };
 }
 
-export const loadSessions = async (options?: {
-  repoPath?: string;
-  orgId?: string;
-  projectSlug?: string;
-  workItemId?: string;
-  status?: SessionStatus;
-  limit?: number;
-  offset?: number;
-  forceRefresh?: boolean;
-}) => {
+export const loadSessions = async (options?: LoadSessionsOptions) => {
   const store = getStore();
   const { forceRefresh = false } = options || {};
+  const cacheSignature = loadSessionsCacheSignature(options);
 
-  const lastLoaded = store.get(sessionLastLoadedAtom);
+  const lastLoaded = store.get(sessionFlatListLastLoadedBySignatureAtom)[
+    cacheSignature
+  ];
   const now = Date.now();
 
   if (
@@ -185,6 +204,7 @@ export const loadSessions = async (options?: {
       ...filter,
       limit: filter?.limit ?? DEFAULT_FLAT_LIST_PAGE_SIZE,
       includeExternalHistory: true,
+      includeStats: false,
       sortBy: filter?.sortBy ?? "updated_at",
       sortOrder: filter?.sortOrder ?? "desc",
     });
@@ -199,7 +219,10 @@ export const loadSessions = async (options?: {
 
     store.set(sessionsAtom, fetched);
     persistSessions(fetched);
-    store.set(sessionLastLoadedAtom, now);
+    store.set(sessionFlatListLastLoadedBySignatureAtom, (prev) => ({
+      ...prev,
+      [cacheSignature]: now,
+    }));
   } catch (error) {
     log.error("[SessionAtom] Failed to load sessions:", error);
     store.set(
@@ -224,6 +247,7 @@ async function fetchAggregatePage(
   const response = await sessionAggregateList({
     category: wireCategory,
     includeExternalHistory: false,
+    includeStats: false,
     limit: pageSize + 1,
     offset,
     sortBy: "updated_at",
@@ -245,6 +269,7 @@ async function fetchExternalHistoryPage(
   const response = await sessionAggregateList({
     category: "external_history",
     includeExternalHistory: true,
+    includeStats: false,
     limit: pageSize + 1,
     offset,
     sortBy: "updated_at",

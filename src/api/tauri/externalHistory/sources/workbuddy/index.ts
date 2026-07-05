@@ -2,51 +2,11 @@ import { invoke } from "@tauri-apps/api/core";
 
 import type { ActivityChunk } from "@src/types/session/session";
 
-export interface WorkBuddyHistorySessionRow {
-  sessionId: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  category: "external_history";
-  readOnly: true;
-  model?: string;
-  totalTokens: number;
-  background: boolean;
-  isActive: boolean;
-  repoPath?: string;
-  storagePath?: string;
-  repoName?: string;
-  branch?: string;
-  filesChanged: number;
-  linesAdded: number;
-  linesRemoved: number;
-  touchedFiles: string[];
-}
-
-export interface WorkBuddyHistorySessionPage {
-  sessions: WorkBuddyHistorySessionRow[];
-  hasMore: boolean;
-}
-
 export interface WorkBuddyRecentPath {
   path: string;
   name?: string;
   lastUsedAt: string;
   sessionCount: number;
-}
-
-export async function workBuddyHistoryListSessions(args?: {
-  limit?: number;
-  offset?: number;
-}): Promise<WorkBuddyHistorySessionPage> {
-  return invoke<WorkBuddyHistorySessionPage>(
-    "workbuddy_history_list_sessions",
-    {
-      limit: args?.limit,
-      offset: args?.offset,
-    }
-  );
 }
 
 export async function workBuddyRecentPaths(args?: {
