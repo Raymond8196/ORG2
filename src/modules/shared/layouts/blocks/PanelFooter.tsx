@@ -63,6 +63,8 @@ export interface PanelFooterAction {
   onClick?: () => void;
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
+  iconOnly?: boolean;
+  title?: string;
   disabled?: boolean;
   loading?: boolean;
   /** Importance / semantic role. */
@@ -102,6 +104,8 @@ const PrimaryActionButton: React.FC<{
     size={size}
     icon={action.icon}
     iconPosition={action.iconPosition}
+    iconOnly={action.iconOnly}
+    title={action.title}
     disabled={action.disabled}
     loading={action.loading}
     htmlType={action.htmlType}
@@ -141,6 +145,8 @@ const PanelFooter: React.FC<PanelFooterProps> = ({
           size={secondaryButtonSize}
           icon={action.icon}
           iconPosition={action.iconPosition}
+          iconOnly={action.iconOnly}
+          title={action.title}
           disabled={action.disabled}
           loading={action.loading}
           htmlType={action.htmlType}

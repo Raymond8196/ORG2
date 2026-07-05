@@ -73,7 +73,6 @@ pub fn normalize_tool_name(agent: CliAgentType, raw_name: &str) -> String {
         | CliAgentType::Kiro
         | CliAgentType::KimiCli
         | CliAgentType::OpenCode
-        | CliAgentType::OpenClaude
         | CliAgentType::Aider
         | CliAgentType::Goose
         | CliAgentType::Amp

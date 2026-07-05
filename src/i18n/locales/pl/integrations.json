@@ -1664,7 +1664,9 @@
       "typePlan": "Plan",
       "typeApiKey": "Klucz API",
       "keyPreview": "Klucz",
-      "addedTime": "Dodano"
+      "addedTime": "Dodano",
+      "secretBearingConfig": "Może zawierać API keys lub tokeny",
+      "revealConfigFile": "Pokaż w menedżerze plików"
     },
     "codexConfig": {
       "sectionTitle": "Konfiguracja",

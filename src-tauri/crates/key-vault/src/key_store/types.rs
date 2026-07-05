@@ -86,7 +86,6 @@ pub enum ModelType {
     KimiCli,
     OpenCode,
     // Extended CLI agents
-    OpenClaude,
     Aider,
     Goose,
     Amp,
@@ -147,7 +146,6 @@ impl ModelType {
             ModelType::Kiro => "kiro",
             ModelType::KimiCli => "kimi_cli",
             ModelType::OpenCode => "opencode",
-            ModelType::OpenClaude => "openclaude",
             ModelType::Aider => "aider",
             ModelType::Goose => "goose",
             ModelType::Amp => "amp",
@@ -205,7 +203,6 @@ impl ModelType {
             "kiro" | "amazon_kiro" => Some(ModelType::Kiro),
             "kimi_cli" | "kimi_code" => Some(ModelType::KimiCli),
             "opencode" | "opencode_cli" => Some(ModelType::OpenCode),
-            "openclaude" => Some(ModelType::OpenClaude),
             "aider" => Some(ModelType::Aider),
             "goose" => Some(ModelType::Goose),
             "amp" => Some(ModelType::Amp),
@@ -269,7 +266,6 @@ impl ModelType {
                 | ModelType::Kiro
                 | ModelType::KimiCli
                 | ModelType::OpenCode
-                | ModelType::OpenClaude
                 | ModelType::Aider
                 | ModelType::Goose
                 | ModelType::Amp

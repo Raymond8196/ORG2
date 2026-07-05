@@ -1685,7 +1685,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Key",
-      "addedTime": "Added"
+      "addedTime": "Added",
+      "secretBearingConfig": "May contain API keys or tokens",
+      "revealConfigFile": "Reveal in file manager"
     },
     "codexConfig": {
       "sectionTitle": "Configuration",

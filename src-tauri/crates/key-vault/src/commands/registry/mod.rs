@@ -9,7 +9,7 @@
 mod commands;
 mod data;
 
-use data::AcpSupport;
+use data::{AcpSupport, CliConfigFormat};
 
 // Re-export Tauri commands
 pub use commands::*;
@@ -43,6 +43,17 @@ pub struct AgentEnvConfig {
     pub base_url_placeholder: Option<String>,
 }
 
+/// Documented user-editable config file for a CLI agent.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CliConfigFile {
+    pub id: String,
+    pub label: String,
+    pub path: String,
+    pub format: CliConfigFormat,
+    pub secret_bearing: bool,
+}
+
 /// Agent availability info — single source of truth for CLI agent metadata.
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,6 +70,7 @@ pub struct AvailableAgent {
     pub docs_url: Option<String>,
     pub has_subscription_plan: bool,
     pub compatible_api_providers: Vec<String>,
+    pub config_files: Vec<CliConfigFile>,
     pub install_methods: Vec<CliInstallMethod>,
     pub uninstall_methods: Vec<CliInstallMethod>,
     #[serde(skip_serializing_if = "Option::is_none")]

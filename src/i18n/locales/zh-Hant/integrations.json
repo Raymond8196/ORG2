@@ -1665,7 +1665,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "密鑰",
-      "addedTime": "添加時間"
+      "addedTime": "添加時間",
+      "secretBearingConfig": "可能包含 API key 或 Token",
+      "revealConfigFile": "在檔案管理器中顯示"
     },
     "codexConfig": {
       "sectionTitle": "配置",

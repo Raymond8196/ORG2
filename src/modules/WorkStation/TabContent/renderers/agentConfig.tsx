@@ -106,11 +106,9 @@ const AgentConfigInner: React.FC<AgentConfigInnerProps> = ({ data }) => {
   const [cliAgents, setCliAgents] = useState<AvailableCliAgent[]>([]);
   const fetchCliAgents = useCallback(async () => {
     const result = await rpc.agentOrgs.availableCliAgents();
-    return result
-      .filter((agent) => agent.installed)
-      .sort((agentA, agentB) =>
-        agentA.displayName.localeCompare(agentB.displayName)
-      );
+    return result.sort((agentA, agentB) =>
+      agentA.displayName.localeCompare(agentB.displayName)
+    );
   }, []);
 
   const refreshCliAgents = useCallback(async () => {

@@ -6,6 +6,8 @@
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
+use integrations::cli_binary_resolver::resolve_cli_binary_for_registry_name;
+
 use crate::key_store::KEY_SERVICE;
 use crate::provider_config::{
     get_all_provider_configs as get_all_configs_impl, get_provider_config as get_config_impl,
@@ -14,11 +16,69 @@ use crate::provider_config::{
 
 use super::data::{
     api_provider_registry, cli_agent_registry, cli_env_config, cli_install_methods,
-    cli_uninstall_methods, infer_install_method,
+    cli_uninstall_methods, infer_install_method, CliConfigPathKind,
 };
-use super::{AvailableAgent, AvailableApiProvider};
+use super::{AvailableAgent, AvailableApiProvider, CliConfigFile};
 
 const AVAILABLE_AGENTS_CACHE_TTL: Duration = Duration::from_secs(60);
+
+async fn detect_cli_installation(
+    agent_name: &str,
+    binary: &str,
+    current_path: &str,
+) -> (bool, Option<String>, String) {
+    let which_cmd = if cfg!(windows) { "where" } else { "which" };
+    let mut which_command = tokio::process::Command::new(which_cmd);
+    which_command.arg(binary).env("PATH", current_path);
+    #[cfg(windows)]
+    which_command.creation_flags(app_platform::CREATE_NO_WINDOW);
+
+    if let Ok(output) = which_command.output().await {
+        if output.status.success() {
+            let first_path = String::from_utf8_lossy(&output.stdout)
+                .lines()
+                .next()
+                .unwrap_or("")
+                .trim()
+                .to_string();
+            let installed_via = if first_path.is_empty() {
+                None
+            } else {
+                infer_install_method(&first_path)
+            };
+            return (true, installed_via, binary.to_string());
+        }
+    }
+
+    if let Some(resolution) = resolve_cli_binary_for_registry_name(agent_name) {
+        if resolution.installed() {
+            return (
+                true,
+                infer_install_method(&resolution.command),
+                resolution.metadata.command.to_string(),
+            );
+        }
+    }
+
+    (false, None, binary.to_string())
+}
+
+fn resolve_cli_config_path(kind: CliConfigPathKind, relative_path: &str) -> String {
+    let base = match kind {
+        CliConfigPathKind::HomeRelative => app_paths::home_dir(),
+        CliConfigPathKind::XdgConfigRelative => std::env::var_os("XDG_CONFIG_HOME")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| app_paths::home_dir().join(".config")),
+        CliConfigPathKind::AppDataRelative => std::env::var_os("APPDATA")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| app_paths::home_dir().join(".config")),
+        CliConfigPathKind::LocalAppDataRelative => std::env::var_os("LOCALAPPDATA")
+            .map(std::path::PathBuf::from)
+            .or_else(|| std::env::var_os("XDG_CONFIG_HOME").map(std::path::PathBuf::from))
+            .unwrap_or_else(|| app_paths::home_dir().join(".config")),
+    };
+    base.join(relative_path).to_string_lossy().to_string()
+}
 
 #[derive(Clone)]
 struct AvailableAgentsCacheEntry {
@@ -67,8 +127,6 @@ pub async fn get_available_agents() -> Result<Vec<AvailableAgent>, String> {
     let registry = cli_agent_registry();
     let stored_keys = KEY_SERVICE.list_keys();
 
-    let which_cmd = if cfg!(windows) { "where" } else { "which" };
-
     // Explicitly pass the current PATH so the augmented login-shell PATH
     // (set by app_paths::augment_path_from_shell at startup) is visible even
     // if the async tokio runtime was initialised before the env was updated.
@@ -86,35 +144,15 @@ pub async fn get_available_agents() -> Result<Vec<AvailableAgent>, String> {
 
     let mut results = Vec::new();
     for entry in &registry {
-        let mut which_command = tokio::process::Command::new(which_cmd);
-        which_command.arg(entry.binary).env("PATH", &current_path);
-        // Suppress the console window each `where`/`which` probe would flash on
-        // Windows — this loops over every registered agent, so it's a burst.
-        #[cfg(windows)]
-        which_command.creation_flags(app_platform::CREATE_NO_WINDOW);
-        let output = which_command.output().await.ok();
-
-        let installed = output.as_ref().map(|o| o.status.success()).unwrap_or(false);
+        let (installed, installed_via, resolved_command) =
+            detect_cli_installation(entry.name, entry.binary, &current_path).await;
         tracing::debug!(
-            "[get_available_agents] {} ({}) → installed={}",
+            "[get_available_agents] {} ({}) → installed={} resolved_command={}",
             entry.display_name,
             entry.binary,
-            installed
+            installed,
+            resolved_command
         );
-
-        let installed_via = if installed {
-            output.as_ref().and_then(|o| {
-                let path = String::from_utf8_lossy(&o.stdout);
-                let first_line = path.lines().next().unwrap_or("").trim();
-                if first_line.is_empty() {
-                    None
-                } else {
-                    infer_install_method(first_line)
-                }
-            })
-        } else {
-            None
-        };
 
         // A CLI agent is considered "configured" if the vault holds either:
         //   (a) a key whose model_type matches the agent's own name, OR
@@ -142,6 +180,17 @@ pub async fn get_available_agents() -> Result<Vec<AvailableAgent>, String> {
                 .iter()
                 .map(|s| s.to_string())
                 .collect(),
+            config_files: entry
+                .config_files
+                .iter()
+                .map(|config| CliConfigFile {
+                    id: config.id.to_string(),
+                    label: config.label.to_string(),
+                    path: resolve_cli_config_path(config.path_kind, config.relative_path),
+                    format: config.format,
+                    secret_bearing: config.secret_bearing,
+                })
+                .collect(),
             install_methods: cli_install_methods(entry.name),
             uninstall_methods: cli_uninstall_methods(entry.name),
             env_config: cli_env_config(entry.name),
@@ -153,7 +202,7 @@ pub async fn get_available_agents() -> Result<Vec<AvailableAgent>, String> {
             supports_rust_agents: entry.supports_rust_agents,
             acp_support: entry.acp_support,
             supports_orgii_pool: false,
-            command: entry.binary.to_string(),
+            command: resolved_command,
             supports_gui: entry.supports_gui,
         });
     }

@@ -1664,7 +1664,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "키",
-      "addedTime": "추가됨"
+      "addedTime": "추가됨",
+      "secretBearingConfig": "API key 또는 Token이 포함될 수 있습니다",
+      "revealConfigFile": "파일 관리자에서 표시"
     },
     "codexConfig": {
       "sectionTitle": "설정",

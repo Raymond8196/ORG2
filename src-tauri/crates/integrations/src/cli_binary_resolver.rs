@@ -20,7 +20,6 @@ pub enum CliBinaryId {
     OpenCode,
     KimiCli,
     // Extended CLI agents
-    OpenClaude,
     Amp,
     Kilo,
     Grok,
@@ -164,13 +163,6 @@ const CLI_BINARY_METADATA: &[CliBinaryMetadata] = &[
         launchable: true,
     },
     CliBinaryMetadata {
-        id: CliBinaryId::OpenClaude,
-        row_id: "openclaude",
-        display_name: "OpenClaude",
-        command: "openclaude",
-        launchable: true,
-    },
-    CliBinaryMetadata {
         id: CliBinaryId::Amp,
         row_id: "amp",
         display_name: "Amp",
@@ -202,7 +194,7 @@ const CLI_BINARY_METADATA: &[CliBinaryMetadata] = &[
         id: CliBinaryId::Rovo,
         row_id: "rovo",
         display_name: "Rovo Dev",
-        command: "rovo",
+        command: "acli",
         launchable: false,
     },
     CliBinaryMetadata {
@@ -342,6 +334,48 @@ pub fn metadata_for_id(id: CliBinaryId) -> &'static CliBinaryMetadata {
         .expect("missing CLI binary metadata")
 }
 
+pub fn id_for_registry_name(name: &str) -> Option<CliBinaryId> {
+    match name {
+        "cursor_cli" => Some(CliBinaryId::CursorCli),
+        "claude_code" => Some(CliBinaryId::ClaudeCode),
+        "codex" => Some(CliBinaryId::Codex),
+        "aider" => Some(CliBinaryId::Aider),
+        "gemini_cli" => Some(CliBinaryId::GeminiCli),
+        "kiro" => Some(CliBinaryId::Kiro),
+        "copilot" => Some(CliBinaryId::Copilot),
+        "cline" => Some(CliBinaryId::Cline),
+        "goose" => Some(CliBinaryId::Goose),
+        "opencode" => Some(CliBinaryId::OpenCode),
+        "kimi_cli" => Some(CliBinaryId::KimiCli),
+        "amp" => Some(CliBinaryId::Amp),
+        "kilo" => Some(CliBinaryId::Kilo),
+        "grok_cli" => Some(CliBinaryId::Grok),
+        "devin" => Some(CliBinaryId::Devin),
+        "rovo" => Some(CliBinaryId::Rovo),
+        "hermes" => Some(CliBinaryId::Hermes),
+        "openclaw" => Some(CliBinaryId::OpenClaw),
+        "crush" => Some(CliBinaryId::Crush),
+        "aug" => Some(CliBinaryId::Aug),
+        "codebuff" => Some(CliBinaryId::Codebuff),
+        "command_code" => Some(CliBinaryId::CommandCode),
+        "qwen_code" => Some(CliBinaryId::QwenCode),
+        "mimo_code" => Some(CliBinaryId::MimoCode),
+        "antigravity" => Some(CliBinaryId::Antigravity),
+        "continue_cli" => Some(CliBinaryId::Continue),
+        "droid" => Some(CliBinaryId::Droid),
+        "mistral_vibe" => Some(CliBinaryId::MistralVibe),
+        "ante" => Some(CliBinaryId::Ante),
+        "autohand" => Some(CliBinaryId::Autohand),
+        "omp" => Some(CliBinaryId::Omp),
+        "pi" => Some(CliBinaryId::Pi),
+        _ => None,
+    }
+}
+
+pub fn resolve_cli_binary_for_registry_name(name: &str) -> Option<CliBinaryResolution> {
+    id_for_registry_name(name).map(resolve_cli_binary)
+}
+
 pub fn resolve_cli_binary(id: CliBinaryId) -> CliBinaryResolution {
     resolve_cli_binary_with_options(id, &ResolveOptions::default())
 }
@@ -436,14 +470,30 @@ fn find_on_process_path(command: &str, path_env: Option<&OsString>) -> Option<Pa
 }
 
 fn known_locations_for(id: CliBinaryId, options: &ResolveOptions) -> Vec<PathBuf> {
+    let Some(home) = options.home_dir.as_ref() else {
+        return Vec::new();
+    };
+
+    let command = metadata_for_id(id).command;
+    let mut locations = vec![
+        home.join(".local/bin").join(command),
+        home.join(".bun/bin").join(command),
+        home.join(".cargo/bin").join(command),
+        home.join("Library/Python/3.11/bin").join(command),
+        home.join("Library/Python/3.12/bin").join(command),
+        home.join("Library/Python/3.13/bin").join(command),
+    ];
+
     match id {
-        CliBinaryId::CursorCli => options
-            .home_dir
-            .as_ref()
-            .map(|home| vec![home.join(".local/bin/cursor-agent")])
-            .unwrap_or_default(),
-        _ => Vec::new(),
+        CliBinaryId::CursorCli => locations.push(home.join(".local/bin/cursor-agent")),
+        CliBinaryId::KimiCli => locations.push(home.join(".kimi-code/bin/kimi")),
+        CliBinaryId::Hermes => locations.push(home.join(".hermes/hermes-agent/venv/bin/hermes")),
+        CliBinaryId::MimoCode => locations.push(home.join(".mimocode/bin/mimo")),
+        CliBinaryId::Ante => locations.push(home.join(".ante/bin/ante")),
+        _ => {}
     }
+
+    locations
 }
 
 #[cfg(unix)]

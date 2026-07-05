@@ -64,13 +64,6 @@ pub(crate) fn cli_env_config(name: &str) -> Option<AgentEnvConfig> {
             "codeAccounts.apiKeyPlaceholder.kimi_cli",
             Some("https://api.moonshot.cn/v1"),
         )),
-        "openclaude" => Some(cfg(
-            "ANTHROPIC_API_KEY",
-            Some("ANTHROPIC_BASE_URL"),
-            true,
-            "codeAccounts.apiKeyPlaceholder.openclaude",
-            Some("https://api.example.com"),
-        )),
         "aider" => Some(cfg(
             "OPENAI_API_KEY",
             Some("OPENAI_API_BASE"),
@@ -85,7 +78,7 @@ pub(crate) fn cli_env_config(name: &str) -> Option<AgentEnvConfig> {
             "codeAccounts.apiKeyPlaceholder.goose",
             Some("https://api.example.com/v1"),
         )),
-        "grok" => Some(cfg(
+        "grok_cli" => Some(cfg(
             "XAI_API_KEY",
             None,
             false,

@@ -37,11 +37,26 @@ import { openExternalLink } from "@src/util/platform/ipcRenderer";
 import type { AvailableCliAgent } from "../types";
 import AgentDetailHeader from "./AgentDetailHeader";
 import ClaudeCodeConfigSection from "./ClaudeCodeConfigSection";
-import ClaudeCodeJsonEditor from "./ClaudeCodeJsonEditor";
+import CliRawConfigFileEditor from "./CliRawConfigFileEditor";
 import CodexConfigSection from "./CodexConfigSection";
-import CodexTomlEditor from "./CodexTomlEditor";
 import CursorCliConfigSection from "./CursorCliConfigSection";
-import CursorJsonEditor from "./CursorJsonEditor";
+
+type StructuredCliConfigSurface = "cursor" | "claudeCode" | "codex";
+
+function getStructuredCliConfigSurface(
+  agentName: string
+): StructuredCliConfigSurface | null {
+  switch (agentName) {
+    case CLI_AGENT.CURSOR:
+      return "cursor";
+    case CLI_AGENT.CLAUDE_CODE:
+      return "claudeCode";
+    case CLI_AGENT.CODEX:
+      return "codex";
+    default:
+      return null;
+  }
+}
 
 // ── Compatibility indicator ──
 
@@ -82,15 +97,24 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
 
   const [detecting, setDetecting] = useState(false);
   const [activeTab, setActiveTab] = useState("core");
-  const [viewMode, setViewMode] = useState<"ui" | "raw">("ui");
+  const [viewMode, setViewMode] = useState<"ui" | "raw">("raw");
+  const [activeConfigFileId, setActiveConfigFileId] = useState<string | null>(
+    null
+  );
 
-  const hasConfig = agent.isComplexSetup || agent.envConfig != null;
-  const rawEditorLabel = agent.name === "codex" ? "TOML" : "JSON";
+  const structuredConfigSurface = getStructuredCliConfigSurface(agent.name);
+  const hasStructuredConfig = structuredConfigSurface !== null;
+  const selectedConfigFile =
+    agent.configFiles.find((file) => file.id === activeConfigFileId) ??
+    agent.configFiles[0] ??
+    null;
+  const hasConfig = agent.configFiles.length > 0;
 
   useEffect(() => {
     setActiveTab("core");
-    setViewMode("ui");
-  }, [agent.name]);
+    setViewMode("raw");
+    setActiveConfigFileId(agent.configFiles[0]?.id ?? null);
+  }, [agent.name, agent.configFiles]);
 
   const tabs = useMemo(() => {
     const items = [
@@ -234,11 +258,27 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
         onTabChange={setActiveTab}
         actions={
           <>
-            {hasConfig && activeTab === "config" && (
+            {hasConfig &&
+              activeTab === "config" &&
+              viewMode === "raw" &&
+              agent.configFiles.length > 1 && (
+                <TabPill
+                  tabs={agent.configFiles.map((file) => ({
+                    key: file.id,
+                    label: file.label,
+                  }))}
+                  activeTab={selectedConfigFile?.id ?? agent.configFiles[0].id}
+                  onChange={setActiveConfigFileId}
+                  variant="pill"
+                  fillWidth={false}
+                  size="small"
+                />
+              )}
+            {hasConfig && activeTab === "config" && hasStructuredConfig && (
               <TabPill
                 tabs={[
                   { key: "ui", label: "UI" },
-                  { key: "raw", label: rawEditorLabel },
+                  { key: "raw", label: "Raw" },
                 ]}
                 activeTab={viewMode}
                 onChange={(key) => setViewMode(key as "ui" | "raw")}
@@ -277,14 +317,11 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
         }
       />
 
-      {activeTab === "config" && viewMode === "raw" && hasConfig ? (
-        agent.name === CLI_AGENT.CODEX ? (
-          <CodexTomlEditor />
-        ) : agent.name === CLI_AGENT.CLAUDE_CODE ? (
-          <ClaudeCodeJsonEditor />
-        ) : (
-          <CursorJsonEditor />
-        )
+      {activeTab === "config" && viewMode === "raw" && selectedConfigFile ? (
+        <CliRawConfigFileEditor
+          agentName={agent.name}
+          configFile={selectedConfigFile}
+        />
       ) : (
         <div className={DETAIL_PANEL_TOKENS.scrollContentNoTop}>
           <div
@@ -302,10 +339,14 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
                     label={t("agentOrgs.cliAgentDetail.installStatus")}
                   >
                     <StatusDot
-                      color="bg-success-6"
+                      color={agent.installed ? "bg-success-6" : "bg-fill-3"}
                       size="inline"
                       labelClassName="text-sm text-text-1"
-                      label={t("agentOrgs.cliAgentDetail.installed")}
+                      label={t(
+                        agent.installed
+                          ? "agentOrgs.cliAgentDetail.installed"
+                          : "agentOrgs.cliAgentDetail.notInstalled"
+                      )}
                     />
                   </SectionRow>
                   <SectionRow label={t("agentOrgs.cliAgentDetail.keyStatus")}>
@@ -388,13 +429,13 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
 
             {activeTab === "config" &&
               viewMode === "ui" &&
-              hasConfig &&
-              (agent.name === CLI_AGENT.CODEX ? (
-                <CodexConfigSection />
-              ) : agent.name === CLI_AGENT.CLAUDE_CODE ? (
+              structuredConfigSurface &&
+              (structuredConfigSurface === "cursor" ? (
+                <CursorCliConfigSection />
+              ) : structuredConfigSurface === "claudeCode" ? (
                 <ClaudeCodeConfigSection />
               ) : (
-                <CursorCliConfigSection />
+                <CodexConfigSection />
               ))}
           </div>
         </div>

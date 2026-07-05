@@ -20,7 +20,6 @@ export const CLI_AGENT = {
   KIRO: "kiro",
   KIMI: "kimi_cli",
   OPENCODE: "opencode",
-  OPENCLAUDE: "openclaude",
   AIDER: "aider",
   GOOSE: "goose",
   AMP: "amp",
@@ -57,7 +56,6 @@ export const CliAgentTypeSchema = z.union([
   z.literal("kiro"),
   z.literal("kimi_cli"),
   z.literal("opencode"),
-  z.literal("openclaude"),
   z.literal("aider"),
   z.literal("goose"),
   z.literal("amp"),
@@ -359,6 +357,22 @@ export const AcpSupportSchema = z.enum([
   "unavailable",
 ]);
 
+export const CliConfigFileFormatSchema = z.enum([
+  "json",
+  "jsonc",
+  "toml",
+  "yaml",
+  "text",
+]);
+
+export const CliConfigFileSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  path: z.string(),
+  format: CliConfigFileFormatSchema,
+  secretBearing: z.boolean(),
+});
+
 /** Matches `AvailableAgent` in `src-tauri/.../discovery.rs` (camelCase JSON). */
 export const AvailableAgentSchema = z.object({
   name: z.string(),
@@ -371,6 +385,7 @@ export const AvailableAgentSchema = z.object({
   docsUrl: z.string().optional(),
   hasSubscriptionPlan: z.boolean(),
   compatibleApiProviders: z.array(z.string()),
+  configFiles: z.array(CliConfigFileSchema),
   installMethods: z.array(CliInstallMethodSchema),
   uninstallMethods: z.array(CliInstallMethodSchema),
   envConfig: AgentEnvConfigSchema.optional(),

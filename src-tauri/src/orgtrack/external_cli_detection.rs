@@ -66,17 +66,6 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[".claude", ".claude/projects"],
     ),
     source(
-        "openclaude",
-        "OpenClaude",
-        "claude_code",
-        "openclaude",
-        &[],
-        "openclaude",
-        "openclaude",
-        false,
-        &[],
-    ),
-    source(
         "codex_app",
         "Codex",
         "codex",
