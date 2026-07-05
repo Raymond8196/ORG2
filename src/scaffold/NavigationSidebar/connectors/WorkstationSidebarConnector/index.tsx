@@ -20,6 +20,12 @@ import { useLaunchpadAgentCatalog } from "@src/modules/shared/launchpad/hooks";
 import { openWorkspaceSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { benchmarkAgentBatchStatusAtom } from "@src/store/benchmark";
+import {
+  activateChatPanelTabAtom,
+  activeChatPanelTabAtom,
+  closeAndDestroyChatPanelTabAtom,
+  openSessionInNewChatTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { collabOrgsAtom } from "@src/store/collaboration/collabOrgsAtom";
 import type { Repo } from "@src/store/repo";
 import { repoMapAtom, reposAtom } from "@src/store/repo";
@@ -60,6 +66,11 @@ import {
   opsControlFocusedTabAtom,
   opsControlPeekHostAtom,
 } from "@src/store/workstation";
+import {
+  getChatPanelTabIdFromTuiSessionId,
+  isChatPanelTuiSessionId,
+  toChatPanelTuiSessionId,
+} from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
 import { SidebarBottomBar } from "../../blocks";
 import NavigationSidebar from "../../variants/NavigationSidebar";
@@ -97,6 +108,9 @@ import { useSessionEntryActions } from "./sessionEntryActions";
 import { useDecorateSessionRowActions } from "./sessionRowActions";
 import { useWorkstationSidebarMemory } from "./sidebarMemory";
 import {
+  getChatTerminalTabId,
+  isChatTerminalSidebarItem,
+  useChatPanelTuiSidebarSessions,
   useFoldersSidebarMenuItems,
   usePinnedMenuItems,
   useSessionSidebarMenuItems,
@@ -159,6 +173,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const setStationMode = useSetAtom(stationModeAtom);
   const setOpsControlPeekHost = useSetAtom(opsControlPeekHostAtom);
   const setOpsControlFocusedTab = useSetAtom(opsControlFocusedTabAtom);
+  const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
+  const activateChatPanelTab = useSetAtom(activateChatPanelTabAtom);
+  const closeAndDestroyChatPanelTab = useSetAtom(
+    closeAndDestroyChatPanelTabAtom
+  );
   const { openSession } = useSessionView();
   const { goToStartPage, goToNewSession, navigateTo } = useAppNavigation();
   const [activeSidebarKey, setActiveSidebarKey] =
@@ -227,9 +246,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
 
   useSidebarSessionRefreshEffects();
 
+  const chatPanelTuiSessions = useChatPanelTuiSidebarSessions();
   const sortedSessions = useMemo(
-    () => sortSessionsByActivity(sessions),
-    [sessions]
+    () => sortSessionsByActivity([...chatPanelTuiSessions, ...sessions]),
+    [chatPanelTuiSessions, sessions]
   );
   const repoMap = useAtomValue(repoMapAtom);
   const repos = useAtomValue(reposAtom);
@@ -358,12 +378,19 @@ export const WorkstationSidebarConnector: React.FC = () => {
 
   const rename = useRenameSessionModal();
   const activeSessionId = useAtomValue(workstationActiveSessionIdAtom) ?? "";
+  const activeChatPanelTab = useAtomValue(activeChatPanelTabAtom);
   const benchmarkBatchStatus = useAtomValue(benchmarkAgentBatchStatusAtom);
-  const highlightedSessionId = benchmarkBatchStatus?.items.some(
-    (item) => item.sessionId === activeSessionId
-  )
-    ? benchmarkBatchStatus.masterSessionId
-    : activeSessionId;
+  const activeChatPanelTuiSessionId =
+    activeChatPanelTab?.type === "terminal"
+      ? toChatPanelTuiSessionId(activeChatPanelTab.id)
+      : "";
+  const highlightedSessionId = activeChatPanelTuiSessionId
+    ? activeChatPanelTuiSessionId
+    : benchmarkBatchStatus?.items.some(
+          (item) => item.sessionId === activeSessionId
+        )
+      ? benchmarkBatchStatus.masterSessionId
+      : activeSessionId;
 
   const { pinnedMenuItems } = usePinnedMenuItems({
     activeSidebarKey,
@@ -578,13 +605,28 @@ export const WorkstationSidebarConnector: React.FC = () => {
     promoteActiveSessionCreatorDraft,
     setGroupVisibleCounts,
     tCommon,
+    onOpenChatPanelTab: activateChatPanelTab,
+    onCloseChatPanelTab: closeAndDestroyChatPanelTab,
   });
+  const handleOpenInNewTab = useCallback(
+    (sessionId: string) => {
+      if (isChatPanelTuiSessionId(sessionId)) {
+        const tabId = getChatPanelTabIdFromTuiSessionId(sessionId);
+        if (tabId) activateChatPanelTab(tabId);
+        return;
+      }
+      openSessionInNewChatTab(sessionId);
+    },
+    [activateChatPanelTab, openSessionInNewChatTab]
+  );
+
   const handleMenuItemContextMenu = useWorkstationSidebarContextMenu({
     sessionMap,
     rename,
     handleDeleteSession,
     handleDeleteDraft: deleteSessionCreatorDraft,
     handleExportMarkdown,
+    handleOpenInNewTab,
     handleTogglePin,
     tCommon,
   });
@@ -656,12 +698,23 @@ export const WorkstationSidebarConnector: React.FC = () => {
     projectsWorkItemMap,
   });
 
+  const handleSessionMenuItemClick = useCallback(
+    (key: string, item: NavigationMenuItem) => {
+      if (isChatTerminalSidebarItem(item.id)) {
+        activateChatPanelTab(getChatTerminalTabId(item.id));
+        return;
+      }
+      handleMenuItemClick(key, item);
+    },
+    [activateChatPanelTab, handleMenuItemClick]
+  );
+
   const resolvedMenuItemClick =
     activeSidebarKey === "projects"
       ? handleProjectsMenuItemClick
       : activeSidebarKey === "folders"
         ? handleFoldersMenuItemClick
-        : handleMenuItemClick;
+        : handleSessionMenuItemClick;
 
   const handleFoldersMenuItemContextMenu = useCallback(
     (event: React.MouseEvent, _key: string, item: NavigationMenuItem) => {

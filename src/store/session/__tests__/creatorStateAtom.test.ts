@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CLI_LAUNCH_MODE,
   SESSION_TARGET_KIND,
   type SessionCreatorState,
   normalizeSessionCreatorState,
@@ -15,6 +16,7 @@ const defaultAgentOrgState: SessionCreatorState = {
   agentName: "Default Agent Team",
   agentIconId: "network",
   cliAgentType: null,
+  cliLaunchMode: CLI_LAUNCH_MODE.GUI,
 };
 
 describe("normalizeSessionCreatorState", () => {

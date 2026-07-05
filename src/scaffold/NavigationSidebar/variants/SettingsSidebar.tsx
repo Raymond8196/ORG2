@@ -103,6 +103,7 @@ const SETTINGS_ROOT_INTEGRATION_KEYS: readonly IntegrationsCategorySegment[] = [
   "connections",
   "git",
   "databases",
+  "housekeeper",
 ];
 
 const SETTINGS_ROOT_LIST_SECTIONS: SettingsRootSectionConfig[] = [
@@ -125,7 +126,7 @@ const SETTINGS_ROOT_LIST_SECTIONS: SettingsRootSectionConfig[] = [
   {
     id: "connections",
     labelKey: "coreSidebar.groups.connections",
-    itemIds: ["connections", "git", "databases"],
+    itemIds: ["connections", "git", "databases", "housekeeper"],
   },
 ];
 
@@ -230,7 +231,6 @@ const SettingsRootBody: React.FC = () => {
               dataTestId: "settings-core-item-agent-orgs",
             };
           }
-
           const icon = getSegmentIcon(id);
           if (!icon) {
             throw new Error(

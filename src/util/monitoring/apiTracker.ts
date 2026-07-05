@@ -6,12 +6,21 @@ import {
   getApiStack,
   getComponentInfo,
   getTauriStack,
+  getTimerStack,
 } from "./apiTrackerUtils";
 
 // Extended axios config with tracking properties
 interface TrackedAxiosConfig extends InternalAxiosRequestConfig {
   __requestId?: string;
   __captureId?: string;
+}
+
+interface TauriInternals {
+  invoke?: (cmd: string, args?: unknown) => Promise<unknown>;
+}
+
+interface WindowWithTauriInternals extends Window {
+  __TAURI_INTERNALS__?: TauriInternals;
 }
 
 export type InteractionType =
@@ -46,6 +55,7 @@ export interface ApiCall {
   componentName?: string;
   functionName?: string;
   lineNumber?: number;
+  stack?: string;
   tauriCommand?: string;
   tauriArgs?: unknown;
 }
@@ -54,7 +64,40 @@ let apiCalls: ApiCall[] = [];
 let trackingEnabled = false;
 let tracingModeEnabled = false;
 const requestStartTimes = new Map<string, number>();
-const MAX_API_CALLS = 100;
+const MAX_API_CALLS = 300;
+const MAX_TIMER_EVENTS = 500;
+
+export type TimerKind = "interval" | "timeout" | "raf";
+
+export interface TimerFireEvent {
+  id: string;
+  kind: TimerKind;
+  delayMs?: number;
+  timestamp: string;
+  filePath?: string;
+  componentName?: string;
+  functionName?: string;
+  lineNumber?: number;
+  stack?: string;
+}
+
+export interface TimerHotspot {
+  key: string;
+  kind: TimerKind;
+  delayMs?: number;
+  count: number;
+  firesPerMinute: number;
+  lastTimestamp: string;
+  firstTimestamp: string;
+  componentName?: string;
+  functionName?: string;
+  filePath?: string;
+  lineNumber?: number;
+  stack?: string;
+  isLikelyLoop: boolean;
+}
+
+const timerEvents: TimerFireEvent[] = [];
 
 // Track recent user interactions to determine interaction type
 let recentInteraction: {
@@ -163,7 +206,8 @@ export const initializeApiTracking = (): (() => void) | undefined => {
 
       // Get component info at request time (fallback)
       const componentInfo = preCaptured?.componentInfo || getComponentInfo();
-      const fileInfo = preCaptured?.fileInfo || {};
+      const stack = preCaptured?.stack || getApiStack();
+      const fileInfo = preCaptured?.fileInfo || extractFileInfo(stack);
 
       const apiCall: ApiCall = {
         id: requestId,
@@ -184,6 +228,7 @@ export const initializeApiTracking = (): (() => void) | undefined => {
         componentName: fileInfo.componentName,
         functionName: fileInfo.functionName,
         lineNumber: fileInfo.lineNumber,
+        stack,
       };
 
       // Add to calls list
@@ -283,13 +328,245 @@ export const initializeApiTracking = (): (() => void) | undefined => {
   };
 };
 
+let timerTrackingPatched = false;
+
+function addTimerEvent(event: TimerFireEvent): void {
+  timerEvents.push(event);
+  if (timerEvents.length > MAX_TIMER_EVENTS) {
+    timerEvents.splice(0, timerEvents.length - MAX_TIMER_EVENTS);
+  }
+}
+
+function captureTimerSource() {
+  const stack = getTimerStack();
+  const fileInfo = extractFileInfo(stack);
+  return { stack, fileInfo };
+}
+
+function recordTimerFire(
+  id: string,
+  kind: TimerKind,
+  delayMs: number | undefined,
+  source: ReturnType<typeof captureTimerSource>
+): void {
+  if (!trackingEnabled || !source.fileInfo.filePath) return;
+
+  addTimerEvent({
+    id,
+    kind,
+    delayMs,
+    timestamp: new Date().toISOString(),
+    filePath: source.fileInfo.filePath,
+    componentName: source.fileInfo.componentName,
+    functionName: source.fileInfo.functionName,
+    lineNumber: source.fileInfo.lineNumber,
+    stack: source.stack,
+  });
+}
+
+type TimerFunctionName = "setInterval" | "setTimeout" | "requestAnimationFrame";
+
+type TimerPatchRecord = {
+  name: TimerFunctionName;
+  ownDescriptor?: PropertyDescriptor;
+};
+
+function setWindowTimerFunction(
+  name: TimerFunctionName,
+  value: Window[TimerFunctionName]
+): TimerPatchRecord | undefined {
+  const ownDescriptor = Object.getOwnPropertyDescriptor(window, name);
+  try {
+    Object.defineProperty(window, name, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+    return { name, ownDescriptor };
+  } catch {
+    return undefined;
+  }
+}
+
+function restoreWindowTimerFunction(record: TimerPatchRecord): void {
+  try {
+    if (record.ownDescriptor) {
+      Object.defineProperty(window, record.name, record.ownDescriptor);
+      return;
+    }
+    delete window[record.name];
+  } catch {
+    // Timer instrumentation must never take down the app during cleanup.
+  }
+}
+
+function installTimerTracking(): (() => void) | undefined {
+  if (timerTrackingPatched || typeof window === "undefined") return undefined;
+
+  const originalSetInterval = window.setInterval.bind(window);
+  const originalSetTimeout = window.setTimeout.bind(window);
+  const originalRequestAnimationFrame =
+    window.requestAnimationFrame.bind(window);
+
+  const patchedSetInterval: typeof window.setInterval = (
+    handler,
+    timeout,
+    ...args
+  ) => {
+    const timerId = `interval-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    const source = captureTimerSource();
+    const delayMs = typeof timeout === "number" ? timeout : undefined;
+    const wrappedCallback = (...callbackArgs: unknown[]) => {
+      recordTimerFire(timerId, "interval", delayMs, source);
+      if (typeof handler === "function") {
+        handler(...callbackArgs);
+        return;
+      }
+      return Function(handler)();
+    };
+    return originalSetInterval(wrappedCallback, timeout, ...args);
+  };
+
+  const patchedSetTimeout: typeof window.setTimeout = (
+    handler,
+    timeout,
+    ...args
+  ) => {
+    const timerId = `timeout-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    const source = captureTimerSource();
+    const delayMs = typeof timeout === "number" ? timeout : undefined;
+    const wrappedCallback = (...callbackArgs: unknown[]) => {
+      recordTimerFire(timerId, "timeout", delayMs, source);
+      if (typeof handler === "function") {
+        handler(...callbackArgs);
+        return;
+      }
+      return Function(handler)();
+    };
+    return originalSetTimeout(wrappedCallback, timeout, ...args);
+  };
+
+  const patchedRequestAnimationFrame: typeof window.requestAnimationFrame = (
+    callback
+  ) => {
+    const frameId = `raf-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    const source = captureTimerSource();
+    return originalRequestAnimationFrame((timestamp) => {
+      recordTimerFire(frameId, "raf", undefined, source);
+      callback(timestamp);
+    });
+  };
+
+  const patchRecords = [
+    setWindowTimerFunction("setInterval", patchedSetInterval),
+    setWindowTimerFunction("setTimeout", patchedSetTimeout),
+    setWindowTimerFunction(
+      "requestAnimationFrame",
+      patchedRequestAnimationFrame
+    ),
+  ];
+
+  if (patchRecords.some((record) => !record)) {
+    for (const record of patchRecords) {
+      if (record) restoreWindowTimerFunction(record);
+    }
+    return undefined;
+  }
+
+  timerTrackingPatched = true;
+
+  return () => {
+    for (const record of patchRecords) {
+      if (record) restoreWindowTimerFunction(record);
+    }
+    timerTrackingPatched = false;
+  };
+}
+
+let directTauriInvokePatched = false;
+let directTauriInvokeSuppressionDepth = 0;
+
+export async function withDirectTauriInvokeTrackingSuppressed<T>(
+  operation: () => Promise<T>
+): Promise<T> {
+  directTauriInvokeSuppressionDepth += 1;
+  try {
+    return await operation();
+  } finally {
+    directTauriInvokeSuppressionDepth -= 1;
+  }
+}
+
+function installDirectTauriInvokeTracking(): (() => void) | undefined {
+  if (directTauriInvokePatched || typeof window === "undefined")
+    return undefined;
+
+  const tauriInternals = (window as WindowWithTauriInternals)
+    .__TAURI_INTERNALS__;
+  const originalInvoke = tauriInternals?.invoke;
+  if (!tauriInternals || !originalInvoke) return undefined;
+
+  const patchedTauriInvoke = async (
+    cmd: string,
+    args?: unknown
+  ): Promise<unknown> => {
+    if (!trackingEnabled || directTauriInvokeSuppressionDepth > 0) {
+      return originalInvoke(cmd, args);
+    }
+
+    const requestId = `tauri-direct-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    trackTauriInvoke(cmd, args, requestId);
+    try {
+      const result = await originalInvoke(cmd, args);
+      trackTauriInvokeResult(requestId, result);
+      return result;
+    } catch (error) {
+      trackTauriInvokeResult(requestId, undefined, error);
+      throw error;
+    }
+  };
+
+  const originalDescriptor = Object.getOwnPropertyDescriptor(
+    tauriInternals,
+    "invoke"
+  );
+
+  try {
+    Object.defineProperty(tauriInternals, "invoke", {
+      configurable: true,
+      value: patchedTauriInvoke,
+      writable: true,
+    });
+  } catch {
+    return undefined;
+  }
+
+  directTauriInvokePatched = true;
+
+  return () => {
+    try {
+      if (originalDescriptor) {
+        Object.defineProperty(tauriInternals, "invoke", originalDescriptor);
+      } else {
+        delete tauriInternals.invoke;
+      }
+    } finally {
+      directTauriInvokePatched = false;
+    }
+  };
+}
+
 // Holds the cleanup returned by initializeApiTracking so interceptors can be
 // ejected when tracking is disabled (previously the return value was discarded).
 let cleanupInterceptors: (() => void) | undefined;
+let cleanupDirectTauriInvokeTracking: (() => void) | undefined;
+let cleanupTimerTracking: (() => void) | undefined;
 
 export const enableApiTracking = () => {
   trackingEnabled = true;
   cleanupInterceptors = initializeApiTracking();
+  cleanupDirectTauriInvokeTracking = installDirectTauriInvokeTracking();
+  cleanupTimerTracking = installTimerTracking();
   if (typeof window !== "undefined") {
     document.addEventListener("click", trackClick, true);
     document.addEventListener("mouseover", trackHover, true);
@@ -302,6 +579,10 @@ export const disableApiTracking = () => {
   trackingEnabled = false;
   cleanupInterceptors?.();
   cleanupInterceptors = undefined;
+  cleanupDirectTauriInvokeTracking?.();
+  cleanupDirectTauriInvokeTracking = undefined;
+  cleanupTimerTracking?.();
+  cleanupTimerTracking = undefined;
   cleanupInteractionTracking();
   // Drop in-flight timing/capture state since the result-side counterparts
   // early-return while disabled and would otherwise leak entries forever.
@@ -312,9 +593,176 @@ export const disableApiTracking = () => {
 
 export const isApiTrackingEnabled = () => trackingEnabled;
 
+export interface ApiCallHotspot {
+  key: string;
+  backend: BackendType;
+  method: string;
+  target: string;
+  count: number;
+  callsPerMinute: number;
+  averageDurationMs?: number;
+  lastTimestamp: string;
+  firstTimestamp: string;
+  interactionType?: InteractionType;
+  componentName?: string;
+  functionName?: string;
+  filePath?: string;
+  lineNumber?: number;
+  stack?: string;
+  isLikelyPolling: boolean;
+}
+
+function getCallTarget(call: ApiCall): string {
+  return call.backend === "rust" ? call.tauriCommand || call.url : call.fullUrl;
+}
+
+function getHotspotKey(call: ApiCall): string {
+  const source = call.filePath
+    ? `${call.filePath}:${call.lineNumber ?? 0}`
+    : call.componentName || call.functionName || "unknown-source";
+  return `${call.backend}:${call.method}:${getCallTarget(call)}:${source}`;
+}
+
 export const getApiCalls = (): ApiCall[] => {
   return [...apiCalls];
 };
+
+export function getApiCallHotspots(windowMs = 120_000): ApiCallHotspot[] {
+  const now = Date.now();
+  const recentCalls = apiCalls.filter((call) => {
+    const timestamp = new Date(call.timestamp).getTime();
+    return Number.isFinite(timestamp) && now - timestamp <= windowMs;
+  });
+
+  const grouped = new Map<string, ApiCall[]>();
+  for (const call of recentCalls) {
+    const key = getHotspotKey(call);
+    const group = grouped.get(key);
+    if (group) group.push(call);
+    else grouped.set(key, [call]);
+  }
+
+  return Array.from(grouped.entries())
+    .map(([key, calls]) => {
+      const sortedCalls = [...calls].sort(
+        (callA, callB) =>
+          new Date(callB.timestamp).getTime() -
+          new Date(callA.timestamp).getTime()
+      );
+      const latestCall = sortedCalls[0];
+      const timestamps = calls.map((call) =>
+        new Date(call.timestamp).getTime()
+      );
+      const firstMs = Math.min(...timestamps);
+      const lastMs = Math.max(...timestamps);
+      const elapsedMs = Math.max(lastMs - firstMs, 1);
+      const completedDurations = calls
+        .map((call) => call.duration)
+        .filter((duration): duration is number => typeof duration === "number");
+      const averageDurationMs = completedDurations.length
+        ? completedDurations.reduce((sum, duration) => sum + duration, 0) /
+          completedDurations.length
+        : undefined;
+      const callsPerMinute =
+        calls.length === 1
+          ? 60_000 / windowMs
+          : (calls.length - 1) / (elapsedMs / 60_000);
+
+      return {
+        key,
+        backend: latestCall.backend,
+        method: latestCall.method,
+        target: getCallTarget(latestCall),
+        count: calls.length,
+        callsPerMinute,
+        averageDurationMs,
+        lastTimestamp: latestCall.timestamp,
+        firstTimestamp: new Date(firstMs).toISOString(),
+        interactionType: latestCall.interactionType,
+        componentName: latestCall.componentName,
+        functionName: latestCall.functionName,
+        filePath: latestCall.filePath,
+        lineNumber: latestCall.lineNumber,
+        stack: latestCall.stack,
+        isLikelyPolling:
+          calls.length >= 3 && latestCall.interactionType === "auto",
+      } satisfies ApiCallHotspot;
+    })
+    .sort((hotspotA, hotspotB) => {
+      if (hotspotA.isLikelyPolling !== hotspotB.isLikelyPolling) {
+        return hotspotA.isLikelyPolling ? -1 : 1;
+      }
+      return hotspotB.callsPerMinute - hotspotA.callsPerMinute;
+    });
+}
+
+function getTimerHotspotKey(event: TimerFireEvent): string {
+  const source = event.filePath
+    ? `${event.filePath}:${event.lineNumber ?? 0}`
+    : event.componentName || event.functionName || "unknown-source";
+  return `${event.kind}:${event.delayMs ?? "frame"}:${source}`;
+}
+
+export const getTimerEvents = (): TimerFireEvent[] => [...timerEvents];
+
+export function getTimerHotspots(windowMs = 120_000): TimerHotspot[] {
+  const now = Date.now();
+  const recentEvents = timerEvents.filter((event) => {
+    const timestamp = new Date(event.timestamp).getTime();
+    return Number.isFinite(timestamp) && now - timestamp <= windowMs;
+  });
+
+  const grouped = new Map<string, TimerFireEvent[]>();
+  for (const event of recentEvents) {
+    const key = getTimerHotspotKey(event);
+    const group = grouped.get(key);
+    if (group) group.push(event);
+    else grouped.set(key, [event]);
+  }
+
+  return Array.from(grouped.entries())
+    .map(([key, events]) => {
+      const sortedEvents = [...events].sort(
+        (eventA, eventB) =>
+          new Date(eventB.timestamp).getTime() -
+          new Date(eventA.timestamp).getTime()
+      );
+      const latestEvent = sortedEvents[0];
+      const timestamps = events.map((event) =>
+        new Date(event.timestamp).getTime()
+      );
+      const firstMs = Math.min(...timestamps);
+      const lastMs = Math.max(...timestamps);
+      const elapsedMs = Math.max(lastMs - firstMs, 1);
+      const firesPerMinute =
+        events.length === 1
+          ? 60_000 / windowMs
+          : (events.length - 1) / (elapsedMs / 60_000);
+
+      return {
+        key,
+        kind: latestEvent.kind,
+        delayMs: latestEvent.delayMs,
+        count: events.length,
+        firesPerMinute,
+        lastTimestamp: latestEvent.timestamp,
+        firstTimestamp: new Date(firstMs).toISOString(),
+        componentName: latestEvent.componentName,
+        functionName: latestEvent.functionName,
+        filePath: latestEvent.filePath,
+        lineNumber: latestEvent.lineNumber,
+        stack: latestEvent.stack,
+        isLikelyLoop:
+          latestEvent.kind === "raf" ? events.length >= 10 : events.length >= 3,
+      } satisfies TimerHotspot;
+    })
+    .sort((hotspotA, hotspotB) => {
+      if (hotspotA.isLikelyLoop !== hotspotB.isLikelyLoop) {
+        return hotspotA.isLikelyLoop ? -1 : 1;
+      }
+      return hotspotB.firesPerMinute - hotspotA.firesPerMinute;
+    });
+}
 
 export const getApiCallsForComponent = (
   componentSelector?: string
@@ -327,6 +775,7 @@ export const getApiCallsForComponent = (
 
 export const clearApiCalls = () => {
   apiCalls = [];
+  timerEvents.splice(0, timerEvents.length);
   requestStartTimes.clear();
 
   // Dispatch event for UI update
@@ -403,6 +852,7 @@ export function trackTauriInvoke(
     componentName: fileInfo.componentName,
     functionName: fileInfo.functionName,
     lineNumber: fileInfo.lineNumber,
+    stack,
   };
 
   apiCalls.unshift(apiCall);

@@ -793,6 +793,13 @@
     "hideWorkstation": "Workstation'i gizle",
     "restoreSplitView": "Workstation'i göster",
     "shrinkToWorkstation": "Chat panelini küçült (Workstation'i göster)",
+    "tuiModeOn": "TUI modu (devre dışı bırakmak için tıklayın)",
+    "tuiModeOff": "TUI modunu etkinleştir",
+    "tabs": {
+      "newTerminal": "Yeni Terminal",
+      "newTab": "Yeni sekme",
+      "terminals": "Terminaller"
+    },
     "collapseAll": "Tümünü daralt",
     "copyEventJson": "Olay JSON'unu kopyala",
     "copyEventJsonCopied": "Kopyalandı!",
@@ -944,7 +951,8 @@
         "byMe": "Benim tarafımdan",
         "mentioned": "Bahsedilenler"
       }
-    }
+    },
+    "readOnly": "Salt okunur"
   },
   "chatStatus": {
     "approved": "Onaylandı",
@@ -1201,6 +1209,9 @@
     "awaitOutputKilled": "Sonlandırıldı",
     "awaitOutputNotFound": "Arka plan görevi izlenmiyor",
     "awaitOutputExitCode": "exit {{exitCode}}",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "İşlem sonlandırılıyor",
     "killProcessDone": "İşlem sonlandırıldı",
     "killProcessFailed": "İşlem sonlandırılamadı",

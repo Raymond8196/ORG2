@@ -6,6 +6,8 @@ use core_types::providers::KIMI_CODE_URL_FRAGMENT;
 
 const ZENMUX_OPENAI_BASE_URL: &str = "https://zenmux.ai/api/v1";
 const ZENMUX_ANTHROPIC_BASE_URL: &str = "https://zenmux.ai/api/anthropic";
+const LONGCAT_OPENAI_BASE_URL: &str = "https://api.longcat.chat/openai";
+const LONGCAT_ANTHROPIC_BASE_URL: &str = "https://api.longcat.chat/anthropic";
 
 impl KeyService {
     /// Get environment variables for running an agent
@@ -85,6 +87,11 @@ impl KeyService {
                     env.insert(
                         "ANTHROPIC_BASE_URL".to_string(),
                         ZENMUX_ANTHROPIC_BASE_URL.to_string(),
+                    );
+                } else if entry.model_type == ModelType::LongcatApi {
+                    env.insert(
+                        "ANTHROPIC_BASE_URL".to_string(),
+                        LONGCAT_ANTHROPIC_BASE_URL.to_string(),
                     );
                 }
                 // When using a compatible provider key (e.g. moonshot_api), Claude Code's
@@ -166,6 +173,11 @@ impl KeyService {
                     env.insert(
                         "OPENAI_BASE_URL".to_string(),
                         ZENMUX_OPENAI_BASE_URL.to_string(),
+                    );
+                } else if entry.model_type == ModelType::LongcatApi {
+                    env.insert(
+                        "OPENAI_BASE_URL".to_string(),
+                        LONGCAT_OPENAI_BASE_URL.to_string(),
                     );
                 }
             }
@@ -307,6 +319,36 @@ impl KeyService {
                     env.insert("OPENCODE_BASE_URL".to_string(), url.clone());
                 }
             }
+            // Extended CLI agents — api_key available under ORGII_API_KEY if set.
+            ModelType::OpenClaude
+            | ModelType::Aider
+            | ModelType::Goose
+            | ModelType::Amp
+            | ModelType::Cline
+            | ModelType::Kilo
+            | ModelType::Grok
+            | ModelType::Devin
+            | ModelType::Rovo
+            | ModelType::Hermes
+            | ModelType::OpenClaw
+            | ModelType::Crush
+            | ModelType::Aug
+            | ModelType::Codebuff
+            | ModelType::CommandCode
+            | ModelType::QwenCode
+            | ModelType::MimoCode
+            | ModelType::Antigravity
+            | ModelType::Continue
+            | ModelType::Droid
+            | ModelType::MistralVibe
+            | ModelType::Ante
+            | ModelType::Autohand
+            | ModelType::Omp
+            | ModelType::Pi => {
+                if let Some(ref key) = entry.api_key {
+                    env.insert("ORGII_API_KEY".to_string(), key.clone());
+                }
+            }
             // API key providers: store api_key under the provider's env var name
             ModelType::AnthropicApi
             | ModelType::OpenaiApi
@@ -318,6 +360,7 @@ impl KeyService {
             | ModelType::DashscopeApi
             | ModelType::MoonshotApi
             | ModelType::MinimaxApi
+            | ModelType::LongcatApi
             | ModelType::OpenrouterApi
             | ModelType::ZenmuxApi
             | ModelType::VllmApi
@@ -343,6 +386,7 @@ impl KeyService {
                     ModelType::DashscopeApi => "DASHSCOPE_API_KEY",
                     ModelType::MoonshotApi => "MOONSHOT_API_KEY",
                     ModelType::MinimaxApi => "MINIMAX_API_KEY",
+                    ModelType::LongcatApi => "LONGCAT_API_KEY",
                     ModelType::OpenrouterApi => "OPENROUTER_API_KEY",
                     ModelType::ZenmuxApi => "ZENMUX_API_KEY",
                     ModelType::VllmApi => "VLLM_API_KEY",
@@ -441,6 +485,34 @@ impl KeyService {
                 // OpenCode uses its own config for provider credentials.
                 // Proxy token is available via ORGII_PROXY_TOKEN (set above).
             }
+            // Extended CLI agents — proxy token available via ORGII_PROXY_TOKEN.
+            ModelType::OpenClaude
+            | ModelType::Aider
+            | ModelType::Goose
+            | ModelType::Amp
+            | ModelType::Cline
+            | ModelType::Kilo
+            | ModelType::Grok
+            | ModelType::Devin
+            | ModelType::Rovo
+            | ModelType::Hermes
+            | ModelType::OpenClaw
+            | ModelType::Crush
+            | ModelType::Aug
+            | ModelType::Codebuff
+            | ModelType::CommandCode
+            | ModelType::QwenCode
+            | ModelType::MimoCode
+            | ModelType::Antigravity
+            | ModelType::Continue
+            | ModelType::Droid
+            | ModelType::MistralVibe
+            | ModelType::Ante
+            | ModelType::Autohand
+            | ModelType::Omp
+            | ModelType::Pi => {
+                // Token available via ORGII_PROXY_TOKEN (set above).
+            }
             // API key providers — must mirror the list in get_env_for_agent
             ModelType::AnthropicApi
             | ModelType::OpenaiApi
@@ -452,6 +524,7 @@ impl KeyService {
             | ModelType::DashscopeApi
             | ModelType::MoonshotApi
             | ModelType::MinimaxApi
+            | ModelType::LongcatApi
             | ModelType::OpenrouterApi
             | ModelType::ZenmuxApi
             | ModelType::VllmApi
@@ -476,6 +549,7 @@ impl KeyService {
                     ModelType::DashscopeApi => "DASHSCOPE_API_KEY",
                     ModelType::MoonshotApi => "MOONSHOT_API_KEY",
                     ModelType::MinimaxApi => "MINIMAX_API_KEY",
+                    ModelType::LongcatApi => "LONGCAT_API_KEY",
                     ModelType::OpenrouterApi => "OPENROUTER_API_KEY",
                     ModelType::ZenmuxApi => "ZENMUX_API_KEY",
                     ModelType::VllmApi => "VLLM_API_KEY",

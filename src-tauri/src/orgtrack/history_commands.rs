@@ -10,6 +10,8 @@ use orgtrack_core::sources::opencode::history as opencode_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
 
+use super::external_cli_detection::{self, ExternalCliSourceProbe};
+
 fn open_cache_conn() -> Result<rusqlite::Connection, String> {
     get_connection().map_err(|err| format!("Failed to open orgtrack source cache DB: {err}"))
 }
@@ -26,25 +28,6 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
         &mut conn, 0,
     )?);
     Ok(imported_history::recent_paths_from_paths(&paths))
-}
-
-fn has_live_opencode_child_session(
-    conn: &rusqlite::Connection,
-    session_id: &str,
-) -> Result<bool, String> {
-    conn.query_row(
-        "SELECT EXISTS(
-            SELECT 1 FROM code_sessions
-            WHERE session_id = ?1
-              AND cli_agent_type = 'opencode'
-              AND parent_session_id IS NOT NULL
-              AND parent_session_id != ''
-        )",
-        [session_id],
-        |row| row.get::<_, i64>(0),
-    )
-    .map(|count| count != 0)
-    .map_err(|err| format!("Failed to check live OpenCode child session: {err}"))
 }
 
 #[tauri::command]
@@ -134,18 +117,12 @@ pub async fn cursor_ide_turn_window(
 }
 
 #[tauri::command]
-pub async fn cursor_ide_list_sessions(
-    limit: Option<usize>,
-    offset: Option<usize>,
-) -> Result<cursor_db_history::CursorIdeSessionPage, String> {
-    let limit = limit.unwrap_or(200);
-    let offset = offset.unwrap_or(0);
-    tokio::task::spawn_blocking(move || {
-        let mut conn = open_cache_conn()?;
-        cursor_db_history::list_cursor_ide_sessions_paginated(&mut conn, limit, offset)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
+pub async fn cursor_ide_session_detail(
+    session_id: String,
+) -> Result<cursor_db_history::CursorIdeSessionDetail, String> {
+    tokio::task::spawn_blocking(move || cursor_db_history::cursor_ide_session_detail(&session_id))
+        .await
+        .map_err(|err| format!("Task join error: {err}"))?
 }
 
 #[tauri::command]
@@ -155,21 +132,6 @@ pub async fn codex_app_chunks(
     tokio::task::spawn_blocking(move || {
         let conn = open_cache_conn()?;
         codex_app::load_codex_app_for_session(&conn, &session_id)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command]
-pub async fn codex_app_list_sessions(
-    limit: Option<usize>,
-    offset: Option<usize>,
-) -> Result<codex_app::CodexAppSessionPage, String> {
-    let limit = limit.unwrap_or(200);
-    let offset = offset.unwrap_or(0);
-    tokio::task::spawn_blocking(move || {
-        let mut conn = open_cache_conn()?;
-        codex_app::list_codex_app_sessions_paginated(&mut conn, limit, offset)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -186,6 +148,22 @@ pub async fn codex_app_recent_paths(
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn external_cli_sources_detect() -> Result<Vec<ExternalCliSourceProbe>, String> {
+    tokio::task::spawn_blocking(external_cli_detection::detect_sources)
+        .await
+        .map_err(|err| format!("Task join error: {err}"))
+}
+
+#[tauri::command]
+pub async fn external_cli_source_probe(
+    source_id: String,
+) -> Result<Option<ExternalCliSourceProbe>, String> {
+    tokio::task::spawn_blocking(move || external_cli_detection::probe_source_id(&source_id))
+        .await
+        .map_err(|err| format!("Task join error: {err}"))
 }
 
 #[tauri::command]
@@ -221,21 +199,6 @@ pub async fn claude_code_history_chunks(
 }
 
 #[tauri::command]
-pub async fn claude_code_history_list_sessions(
-    limit: Option<usize>,
-    offset: Option<usize>,
-) -> Result<claude_code_history::ClaudeCodeHistorySessionPage, String> {
-    let limit = limit.unwrap_or(200);
-    let offset = offset.unwrap_or(0);
-    tokio::task::spawn_blocking(move || {
-        let mut conn = open_cache_conn()?;
-        claude_code_history::list_claude_code_history_sessions_paginated(&mut conn, limit, offset)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command]
 pub async fn claude_code_recent_paths(
     limit: Option<usize>,
 ) -> Result<Vec<claude_code_history::ClaudeCodeRecentPath>, String> {
@@ -254,26 +217,6 @@ pub async fn opencode_history_chunks(
 ) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
     tokio::task::spawn_blocking(move || {
         opencode_history::load_opencode_history_for_session(&session_id)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command]
-pub async fn opencode_history_list_sessions(
-    limit: Option<usize>,
-    offset: Option<usize>,
-) -> Result<opencode_history::OpenCodeHistorySessionPage, String> {
-    let limit = limit.unwrap_or(200);
-    let offset = offset.unwrap_or(0);
-    tokio::task::spawn_blocking(move || {
-        let mut conn = open_cache_conn()?;
-        let mut page =
-            opencode_history::list_opencode_history_sessions_paginated(&mut conn, limit, offset)?;
-        page.sessions.retain(|session| {
-            !has_live_opencode_child_session(&conn, &session.session_id).unwrap_or(false)
-        });
-        Ok(page)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -304,21 +247,6 @@ pub async fn windsurf_history_chunks(
 }
 
 #[tauri::command]
-pub async fn windsurf_history_list_sessions(
-    limit: Option<usize>,
-    offset: Option<usize>,
-) -> Result<windsurf_history::WindsurfHistorySessionPage, String> {
-    let limit = limit.unwrap_or(200);
-    let offset = offset.unwrap_or(0);
-    tokio::task::spawn_blocking(move || {
-        let mut conn = open_cache_conn()?;
-        windsurf_history::list_windsurf_history_sessions_paginated(&mut conn, limit, offset)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command]
 pub async fn windsurf_recent_paths(
     limit: Option<usize>,
 ) -> Result<Vec<windsurf_history::WindsurfRecentPath>, String> {
@@ -338,21 +266,6 @@ pub async fn workbuddy_history_chunks(
     tokio::task::spawn_blocking(move || {
         let conn = open_cache_conn()?;
         workbuddy_history::load_workbuddy_history_for_session(&conn, &session_id)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command]
-pub async fn workbuddy_history_list_sessions(
-    limit: Option<usize>,
-    offset: Option<usize>,
-) -> Result<workbuddy_history::WorkBuddyHistorySessionPage, String> {
-    let limit = limit.unwrap_or(200);
-    let offset = offset.unwrap_or(0);
-    tokio::task::spawn_blocking(move || {
-        let mut conn = open_cache_conn()?;
-        workbuddy_history::list_workbuddy_history_sessions_paginated(&mut conn, limit, offset)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

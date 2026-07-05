@@ -4,19 +4,10 @@
 
 export type { BackgroundColorPreset } from "@src/config/appearance/backgroundColors";
 
-export type ThemeMode = "dark" | "light" | "both";
-
 export interface ImagePreset {
   label: string;
   value: string;
   thumbnail: string;
-}
-
-export interface AnimationPreset {
-  id: string;
-  label: string;
-  description: string;
-  themeMode: ThemeMode;
 }
 
 export type GlassLevel = "regular" | "medium" | "thick";
@@ -30,9 +21,7 @@ export interface BackgroundConfig {
   customImages?: string[];
   /** DIY solid hex colors persisted with background config */
   customColors?: string[];
-  animation?: string;
   blurAmount?: number;
-  matrixCharSet?: "binary" | "latin" | "symbols" | "katakana";
   /**
    * When set, the background renders as a Glass overlay at the
    * given thickness instead of using `imageUrl` / `backgroundColor`.
@@ -81,5 +70,3 @@ export interface StorageInfo {
   used: number;
   limit: number;
 }
-
-export type MatrixCharSet = "binary" | "latin" | "symbols" | "katakana";

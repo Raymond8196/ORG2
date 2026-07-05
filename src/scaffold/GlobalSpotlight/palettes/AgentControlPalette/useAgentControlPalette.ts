@@ -21,6 +21,7 @@ import {
 import { chatEventsForSessionAtomFamily } from "@src/engines/SessionCore/derived/sessionScopedChatEvents";
 import type { PendingSessionProposal } from "@src/engines/SessionCore/hooks/useAgentADEActions";
 import type { AdvancedConfig } from "@src/features/SessionCreator/types";
+import { useHousekeeperUiControl } from "@src/hooks/housekeeper";
 import { useValidatedLastPair } from "@src/hooks/models/useValidatedLastPair";
 import type { SpotlightItem } from "@src/scaffold/GlobalSpotlight/types";
 import { collectAdeContext } from "@src/services/context/collectors";
@@ -86,6 +87,7 @@ export function useAgentControlPalette({
   const setCreatorDefaultModel = useSetAtom(creatorDefaultModelSelectionAtom);
   const setAdeManagerEnabled = useSetAtom(adeManagerEnabledAtom);
   const setSelectorState = useSetAtom(modelSelectorAtom);
+  const { tryRunHousekeeperUiControl } = useHousekeeperUiControl();
 
   // Persistent palette state — survives palette open/close cycles
   const paletteState = useAtomValue(adeManagerPaletteAtom);
@@ -168,15 +170,22 @@ export function useAgentControlPalette({
     const text = draftText.trim();
     if (!text || sendingRef.current) return;
 
-    setAdeManagerEnabled(true);
-    const prompt = buildControlPrompt(text);
-    const modelConfig = resolveControlModel(creatorDefaultLastModel);
-    const adeContext = collectAdeContext({ expectedRepoPath: null });
     sendingRef.current = true;
     setRunStatus("sending");
 
     void (async () => {
       try {
+        const handledByHousekeeper = await tryRunHousekeeperUiControl(text);
+        if (handledByHousekeeper) {
+          setDraftText("");
+          setRunStatus("idle");
+          return;
+        }
+
+        setAdeManagerEnabled(true);
+        const prompt = buildControlPrompt(text);
+        const modelConfig = resolveControlModel(creatorDefaultLastModel);
+        const adeContext = collectAdeContext({ expectedRepoPath: null });
         const existingSessionId = controlSessionIdRef.current;
         if (existingSessionId) {
           // Raw invoke bypasses useMessageDispatch — if the control session
@@ -238,6 +247,7 @@ export function useAgentControlPalette({
     setDraftText,
     setAdeManagerEnabled,
     setRunStatus,
+    tryRunHousekeeperUiControl,
   ]);
 
   const handleExternalKeyDown = useCallback(

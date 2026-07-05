@@ -63,6 +63,8 @@ export interface TerminalCoreProps {
   repoPath?: string;
   /** Opens file references detected in terminal output */
   onOpenFileLink?: (target: TerminalFileLinkTarget) => void;
+  /** True when this terminal tree is visible after tab switching. */
+  visible?: boolean;
 }
 
 // ============================================
@@ -75,12 +77,21 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
   backgroundColor,
   repoPath,
   onOpenFileLink,
+  visible = true,
 }) => {
   const { sessions, activeSessionId, initializedSessions, updateSessionInfo } =
     terminalState;
+  const [processRefreshSignal, setProcessRefreshSignal] = useState(0);
+
+  const requestProcessRefresh = useCallback(() => {
+    if (!visible) return;
+    setProcessRefreshSignal((signal) => signal + 1);
+  }, [visible]);
 
   useTerminalProcessPoller({
     activeSession: terminalState.activeSession,
+    enabled: visible,
+    refreshSignal: processRefreshSignal,
     updateSessionInfo,
   });
 
@@ -110,10 +121,21 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
   }, [activeSessionId]);
 
   useEffect(() => {
-    if (!activeSessionId) return;
+    if (!activeSessionId || !visible) return;
     const handle = terminalRefs.current.get(activeSessionId);
     handle?.redrawAfterShow();
-  }, [activeSessionId]);
+    const firstFrameId = window.requestAnimationFrame(() => {
+      handle?.redrawAfterShow();
+    });
+    const settleTimerId = window.setTimeout(() => {
+      handle?.redrawAfterShow();
+    }, 120);
+
+    return () => {
+      window.cancelAnimationFrame(firstFrameId);
+      window.clearTimeout(settleTimerId);
+    };
+  }, [activeSessionId, visible]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -299,8 +321,10 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
                 repoPath={session.cwd || repoPath}
                 workingDirectory={session.liveCwd || session.cwd}
                 onOpenFileLink={onOpenFileLink}
+                backgroundColor={bgColor}
                 shellOverride={session.shell}
                 onUserInput={() => {
+                  requestProcessRefresh();
                   if (!session.hasUserInput) {
                     updateSessionInfo(session.id, { hasUserInput: true });
                   }
@@ -317,15 +341,19 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
                     shell: info.shell,
                     cwd: info.cwd,
                   });
+                  requestProcessRefresh();
                 }}
                 shellIntegration={{
                   onPromptStart: () => dispatchPromptStart(session.id),
-                  onCommandExecuted: (commandLine) =>
+                  onCommandExecuted: (commandLine) => {
+                    requestProcessRefresh();
                     dispatchCommandExecuted({
                       sessionId: session.id,
                       commandLine,
-                    }),
+                    });
+                  },
                   onCommandFinished: (exitCode) => {
+                    requestProcessRefresh();
                     dispatchCommandFinished({
                       sessionId: session.id,
                       exitCode,

@@ -30,6 +30,14 @@ export const SESSION_TARGET_KIND = {
 export type SessionTargetKind =
   (typeof SESSION_TARGET_KIND)[keyof typeof SESSION_TARGET_KIND];
 
+export const CLI_LAUNCH_MODE = {
+  GUI: "gui",
+  TUI: "tui",
+} as const;
+
+export type CliLaunchMode =
+  (typeof CLI_LAUNCH_MODE)[keyof typeof CLI_LAUNCH_MODE];
+
 export const SESSION_SOURCE_TYPE = {
   LOCAL: "local",
   GITHUB: "github",
@@ -112,6 +120,8 @@ export interface SessionCreatorState {
   agentIconId: string | null;
   /** CLI agent type — only set when dispatchCategory is "cli_agent" */
   cliAgentType: CliAgentType | null;
+  /** How CLI sessions launch from the creator: prompt composer (GUI) or direct terminal UI (TUI). */
+  cliLaunchMode: CliLaunchMode;
 }
 
 // ============================================
@@ -131,6 +141,7 @@ const DEFAULT_STATE: SessionCreatorState = {
   agentName: DEFAULT_AGENT_NAME,
   agentIconId: DEFAULT_AGENT_ICON_ID,
   cliAgentType: null,
+  cliLaunchMode: CLI_LAUNCH_MODE.GUI,
 };
 
 function withDefaultSdeAgent(state: SessionCreatorState): SessionCreatorState {
@@ -143,6 +154,7 @@ function withDefaultSdeAgent(state: SessionCreatorState): SessionCreatorState {
     agentName: DEFAULT_AGENT_NAME,
     agentIconId: DEFAULT_AGENT_ICON_ID,
     cliAgentType: null,
+    cliLaunchMode: CLI_LAUNCH_MODE.GUI,
   };
 }
 
@@ -202,7 +214,8 @@ export const sessionCreatorStateAtom = atomWithStorage<SessionCreatorState>(
     removeItem: (key) => {
       localStorage.removeItem(key);
     },
-  }
+  },
+  { getOnInit: true }
 );
 
 /**
@@ -309,4 +322,17 @@ export const agentIconIdAtom = atom(
  */
 export const cliAgentTypeAtom = atom(
   (get) => get(sessionCreatorStateAtom).cliAgentType
+);
+
+/**
+ * Derived atom for the selected CLI launch mode.
+ */
+export const cliLaunchModeAtom = atom(
+  (get) => get(sessionCreatorStateAtom).cliLaunchMode,
+  (get, set, cliLaunchMode: CliLaunchMode) => {
+    set(sessionCreatorStateAtom, {
+      ...get(sessionCreatorStateAtom),
+      cliLaunchMode,
+    });
+  }
 );

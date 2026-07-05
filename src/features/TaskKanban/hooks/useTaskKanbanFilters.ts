@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 
-import type { ImportedHistorySourceId } from "@src/api/tauri/importedHistory";
+import type { ImportedHistorySourceId } from "@src/api/tauri/externalHistory";
 import { DISPATCH_CATEGORY } from "@src/api/tauri/session";
 import type { KanbanTask } from "@src/features/KanbanBoard";
 import { type Session, sessionMapAtom } from "@src/store/session";

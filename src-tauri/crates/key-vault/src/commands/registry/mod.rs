@@ -9,6 +9,8 @@
 mod commands;
 mod data;
 
+use data::AcpSupport;
+
 // Re-export Tauri commands
 pub use commands::*;
 // Re-export for crate-internal consumers (tests)
@@ -73,9 +75,17 @@ pub struct AvailableAgent {
     /// Whether ORGII Rust agents (OS Agent, SDE Agent) can use this CLI's credentials.
     /// True for all CLI agents except Cursor (which uses gRPC, not OpenAI-compatible REST).
     pub supports_rust_agents: bool,
+    pub acp_support: AcpSupport,
     /// Whether this agent can use ORGII Pool (Token Market) billing.
     /// Only Rust-native agents support ORGII Pool; all CLI agents are false.
     pub supports_orgii_pool: bool,
+    /// Bare binary name used to launch the agent in a PTY shell (e.g. "claude", "gemini").
+    /// Matches the `command` field in `CLI_BINARY_METADATA` / `CliAgentEntry.binary`.
+    pub command: String,
+    /// Whether this CLI agent accepts an initial prompt from ORGII's GUI composer
+    /// (e.g. via --prompt flag or stdin injection). When false the session creator
+    /// shows a Start button instead of the text composer (pure-TUI mode).
+    pub supports_gui: bool,
 }
 
 /// API provider info — single source of truth for API key provider metadata.

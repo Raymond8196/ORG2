@@ -7,6 +7,7 @@ import type {
 } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { Session } from "@src/store/session";
 import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
+import { isChatPanelTuiSessionId } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
 import { getDraftIdFromMenuItemId } from "../sidebarConnectorUtils";
 
@@ -61,15 +62,16 @@ export function useDecorateSessionRowActions({
 
         const session = sessionMap.get(item.id);
         if (!session) return item;
-        const rowActions: NavigationMenuRowAction[] = [
-          {
+        const rowActions: NavigationMenuRowAction[] = [];
+        if (!isChatPanelTuiSessionId(item.id)) {
+          rowActions.push({
             icon: session.pinned ? PinOff : Pin,
             label: session.pinned ? unpinLabel : pinLabel,
             onClick: () => {
               void handleTogglePin(item.id);
             },
-          },
-        ];
+          });
+        }
         if (!isCursorIdeSession(item.id)) {
           rowActions.push({
             icon: MoreHorizontal,

@@ -834,6 +834,13 @@
     "hideWorkstation": "Hide Workstation",
     "restoreSplitView": "Show Workstation",
     "shrinkToWorkstation": "Shrink Chat Panel (Show Workstation)",
+    "tuiModeOn": "TUI mode (click to disable)",
+    "tuiModeOff": "Enable TUI mode",
+    "tabs": {
+      "newTerminal": "New Terminal",
+      "newTab": "New tab",
+      "terminals": "Terminals"
+    },
     "collapseAll": "Collapse all",
     "copyEventJson": "Copy event JSON",
     "copyEventJsonCopied": "Copied!",
@@ -975,7 +982,8 @@
         "byMe": "By me",
         "mentioned": "Mentioned"
       }
-    }
+    },
+    "readOnly": "Read-only"
   },
   "chatStatus": {
     "approved": "Approved",
@@ -2380,8 +2388,8 @@
       "filterUnstaged": "Unstaged",
       "filterStaged": "Staged",
       "filterStashed": "Stashed",
-      "filterCountLabel_one": "{{count}} {{label}} change",
-      "filterCountLabel_other": "{{count}} {{label}} changes",
+      "filterCountLabel_one": "{{count}} {{label}}",
+      "filterCountLabel_other": "{{count}} {{label}}",
       "failedToLoad": "Failed to load git status",
       "noBranchChanges": "No unpushed commits",
       "unknownAuthor": "Unknown"
@@ -2615,6 +2623,8 @@
     "summarize": "Summarize with Agent",
     "waiting": "Waiting for content…",
     "empty": "No content",
+    "reactDisabledTitle": "React preview runs in Simulator",
+    "reactDisabledDescription": "Agent JavaScript is not executed inside chat. Open it in Simulator to run the sandboxed React preview.",
     "viewInSimulator": "View in Simulator"
   },
   "canvasApp": {

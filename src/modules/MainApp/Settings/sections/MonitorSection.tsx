@@ -19,7 +19,6 @@ import SettingsTable, {
 } from "@src/components/SettingsTable";
 
 import NetworkSection from "./NetworkSection";
-import RamHistoryChart from "./RamHistoryChart";
 import StorageSection from "./StorageSection";
 import {
   type BreakdownRow,
@@ -52,7 +51,6 @@ const MonitorSection: React.FC<MonitorSectionProps> = ({
     memoryBreakdown,
     childProcesses,
     systemInfo,
-    ramHistory,
     containerRef,
   } = useMonitorMetrics(activeTab);
 
@@ -255,7 +253,6 @@ const MonitorSection: React.FC<MonitorSectionProps> = ({
     return "bg-green-500";
   }
 
-  const cpuPercent = processMetrics?.cpu_percent || 0;
   const systemDesc = systemInfo
     ? systemInfo.os_name +
       " " +
@@ -289,17 +286,6 @@ const MonitorSection: React.FC<MonitorSectionProps> = ({
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-text-2">
-                      {t("monitor.cpu")} {cpuPercent.toFixed(1)}%
-                    </span>
-                    <span className="text-xs text-text-2">
-                      {t("monitor.perCoreUsage")}
-                    </span>
-                  </div>
-                  <ProgressBar percent={cpuPercent} color="bg-primary-6" />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-text-2">
                       {t("monitor.memory")} {totalMemoryPercent.toFixed(1)}%
                     </span>
                     <span className="text-xs text-text-2">{memoryLabel}</span>
@@ -312,17 +298,6 @@ const MonitorSection: React.FC<MonitorSectionProps> = ({
               </div>
             </SectionRow>
           </SectionContainer>
-
-          <SectionContainer>
-            <SectionRow
-              label={t("monitor.ramHistory")}
-              description={t("monitor.ramHistoryDesc")}
-            />
-            <SectionRow label="" indent showHeader={false}>
-              <RamHistoryChart stats={ramHistory} />
-            </SectionRow>
-          </SectionContainer>
-
           <SectionContainer>
             <SectionRow
               label={t("monitor.memoryBreakdown")}

@@ -11,9 +11,12 @@
 use std::path::{Path, PathBuf};
 
 use app_paths::{
-    agent_worktrees_root, claude_code_cli_profile_root, codex_cli_profile_root, cursor_config_root,
-    extensions_dir, file_history_root, gemini_cli_home_root, logs_dir, lsp_bin_dir, orgii_root,
-    personal_workspace, screenshots_dir, session_images_dir, sessions_db,
+    agent_worktrees_root, claude_code_cli_profile_root, code_map_root, codex_cli_profile_root,
+    cursor_cli_profile_root, cursor_config_root, diagnostics_dir, extensions_dir,
+    file_history_root, gemini_cli_home_root, gemini_cli_profile_root, kiro_cli_profile_root,
+    logs_dir, lsp_bin_dir, models_dir, opencode_cli_profile_root, orgii_root, personal_workspace,
+    screenshots_dir, semantic_index_dir, session_images_dir, sessions_db, sidecar_bin_dir,
+    tool_results_root,
 };
 
 /// Tauri command: path where agent memory (KG) is stored: `~/.orgii/sessions.db`.
@@ -92,6 +95,11 @@ pub fn get_disk_usage() -> DiskUsageReport {
         ),
         ("cursorConfig", "Session CLI Configs", cursor_config_root()),
         (
+            "cursorCliProfiles",
+            "Cursor CLI Profiles",
+            cursor_cli_profile_root(),
+        ),
+        (
             "claudeCodeCliProfiles",
             "Claude Code CLI Profiles",
             claude_code_cli_profile_root(),
@@ -102,15 +110,44 @@ pub fn get_disk_usage() -> DiskUsageReport {
             codex_cli_profile_root(),
         ),
         ("geminiCliHome", "Gemini CLI Homes", gemini_cli_home_root()),
+        (
+            "geminiCliProfiles",
+            "Gemini CLI Profiles",
+            gemini_cli_profile_root(),
+        ),
+        (
+            "kiroCliProfiles",
+            "Kiro CLI Profiles",
+            kiro_cli_profile_root(),
+        ),
+        (
+            "opencodeCliProfiles",
+            "OpenCode CLI Profiles",
+            opencode_cli_profile_root(),
+        ),
         ("extensions", "Extensions", extensions_dir()),
         ("sessionImages", "Chat Images", session_images_dir()),
         ("screenshots", "Browser Screenshots", screenshots_dir()),
+        ("toolResults", "Oversized Tool Results", tool_results_root()),
+        ("diagnostics", "Diagnostics Queue", diagnostics_dir()),
+        ("models", "Downloaded Models", models_dir()),
+        ("codeMap", "Code Map Indexes", code_map_root()),
+        (
+            "semanticIndex",
+            "Semantic Search Index",
+            semantic_index_dir(),
+        ),
         (
             "agentWorktrees",
             "Agent Session Worktrees",
             agent_worktrees_root(),
         ),
         ("lspBin", "LSP Server Binaries", lsp_bin_dir()),
+        (
+            "sidecarBin",
+            "Downloaded Sidecar Binaries",
+            sidecar_bin_dir(),
+        ),
     ];
 
     let categories: Vec<StorageCategory> = categories_spec
@@ -145,13 +182,24 @@ fn category_path(key: &str) -> Option<PathBuf> {
         "fileHistory" => Some(file_history_root()),
         "personalWorkspace" => Some(personal_workspace()),
         "cursorConfig" => Some(cursor_config_root()),
+        "cursorCliProfiles" => Some(cursor_cli_profile_root()),
         "claudeCodeCliProfiles" => Some(claude_code_cli_profile_root()),
         "codexCliProfiles" => Some(codex_cli_profile_root()),
         "geminiCliHome" => Some(gemini_cli_home_root()),
+        "geminiCliProfiles" => Some(gemini_cli_profile_root()),
+        "kiroCliProfiles" => Some(kiro_cli_profile_root()),
+        "opencodeCliProfiles" => Some(opencode_cli_profile_root()),
         "extensions" => Some(extensions_dir()),
+        "sessionImages" => Some(session_images_dir()),
         "agentWorktrees" => Some(agent_worktrees_root()),
         "screenshots" => Some(screenshots_dir()),
+        "toolResults" => Some(tool_results_root()),
+        "diagnostics" => Some(diagnostics_dir()),
+        "models" => Some(models_dir()),
+        "codeMap" => Some(code_map_root()),
+        "semanticIndex" => Some(semantic_index_dir()),
         "lspBin" => Some(lsp_bin_dir()),
+        "sidecarBin" => Some(sidecar_bin_dir()),
         _ => None,
     }
 }
@@ -189,4 +237,49 @@ pub fn clear_storage_category(key: String) -> Result<u64, String> {
     }
 
     Ok(freed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn disk_usage_categories_have_clear_paths_except_protected_files() {
+        let report = get_disk_usage();
+        for category in report.categories {
+            if PROTECTED_CATEGORIES.contains(&category.key.as_str()) {
+                continue;
+            }
+            assert!(
+                category_path(&category.key).is_some(),
+                "{} should be clearable or explicitly protected",
+                category.key
+            );
+        }
+    }
+
+    #[test]
+    fn new_storage_roots_are_reported() {
+        let report = get_disk_usage();
+        let keys: std::collections::HashSet<_> = report
+            .categories
+            .iter()
+            .map(|category| category.key.as_str())
+            .collect();
+
+        for expected in [
+            "toolResults",
+            "diagnostics",
+            "models",
+            "codeMap",
+            "semanticIndex",
+            "cursorCliProfiles",
+            "geminiCliProfiles",
+            "kiroCliProfiles",
+            "opencodeCliProfiles",
+            "sidecarBin",
+        ] {
+            assert!(keys.contains(expected), "missing {expected}");
+        }
+    }
 }

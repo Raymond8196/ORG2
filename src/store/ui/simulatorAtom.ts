@@ -364,6 +364,14 @@ simulatorInlineChatInputCollapsedAtom.debugLabel =
   "simulatorInlineChatInputCollapsedAtom";
 
 /**
+ * Whether the MiniCPM step explanation card is visible above replay controls.
+ * The floating replay controls can reveal it again after the user closes it.
+ */
+export const simulatorMiniCPMStepExplanationVisibleAtom = atom<boolean>(true);
+simulatorMiniCPMStepExplanationVisibleAtom.debugLabel =
+  "simulatorMiniCPMStepExplanationVisibleAtom";
+
+/**
  * Whether the caption bar — which surfaces the latest agent text message
  * of the current turn in Agent Station chrome — is enabled. Persisted via
  * localStorage so the choice survives reloads.

@@ -135,6 +135,7 @@ const PRIMARY_PROVIDER_KEYS = new Set([
   "copilot",
   "kiro",
   "kimi_cli",
+  "opencode",
   // API providers
   "openai_api",
   "anthropic_api",
@@ -147,6 +148,11 @@ const PRIMARY_PROVIDER_KEYS = new Set([
   "xai_api",
   "moonshot_api",
   "minimax_api",
+  "longcat_api",
+  "dashscope_api",
+  "zhipu_api",
+  "azure_openai_api",
+  "azure_anthropic_api",
 ]);
 
 /**
@@ -336,9 +342,12 @@ function buildUnifiedProviders(
     });
   }
 
-  // Third pass: Add standalone CLI agents
+  // Third pass: Add standalone CLI agents that have something to configure
+  // (subscription plan OR an API key env var). Agents with neither have no
+  // credentials to store in the key vault and should not appear here.
   for (const cli of agents) {
     if (usedAgents.has(cli.name)) continue;
+    if (!cli.hasSubscriptionPlan && !cli.envConfig?.apiKeyEnvVar) continue;
 
     providers.push({
       key: cli.name,

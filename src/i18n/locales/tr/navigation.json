@@ -46,7 +46,8 @@
     "projectManager": "Project Manager",
     "diff": "Diff",
     "opsControl": "Ops Control",
-    "colleagues": "Ekip arkadaşları"
+    "colleagues": "Ekip arkadaşları",
+    "terminals": "Terminaller"
   },
   "trajectoryPanel": {
     "title": "Yörünge",

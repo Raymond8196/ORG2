@@ -82,6 +82,9 @@ interface ChatPanelEmptyContentProps {
   handleChatPanelProjectCreated: (options?: { keepOpen?: boolean }) => void;
   handleChatPanelCollabOrgCreated: (result: CreatedOrgResult) => void;
   handleChatPanelWorkItemCreated: (result?: CreatedWorkItemResult) => void;
+  handleOpenCliTerminal: NonNullable<
+    React.ComponentProps<SessionCreatorSlot>["onOpenCliTerminal"]
+  >;
   handleRegionNoticeChange: (notice: ChatPanelRegionNotice | null) => void;
   handleStartPageAddApiKey: () => void;
   handleStartPageExploreRepos: () => void;
@@ -113,6 +116,7 @@ export function ChatPanelEmptyContent({
   handleChatPanelProjectCreated,
   handleChatPanelCollabOrgCreated,
   handleChatPanelWorkItemCreated,
+  handleOpenCliTerminal,
   handleRegionNoticeChange,
   handleStartPageAddApiKey,
   handleStartPageExploreRepos,
@@ -152,6 +156,7 @@ export function ChatPanelEmptyContent({
           centerFullScreenContent
           hidePresenceButton
           launchMode={SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND}
+          onOpenCliTerminal={handleOpenCliTerminal}
           onRegionNoticeChange={handleRegionNoticeChange}
         />
       ) : null;
@@ -225,6 +230,7 @@ export function ChatPanelEmptyContent({
           centerFullScreenContent
           hidePresenceButton
           launchMode={SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND}
+          onOpenCliTerminal={handleOpenCliTerminal}
           onRegionNoticeChange={handleRegionNoticeChange}
           onSessionStart={handleAiWorkItemSessionStart}
           resolveWorkItemContext={resolveAiWorkItemContext}
@@ -312,6 +318,7 @@ export function ChatPanelEmptyContent({
         variant={creatorVariant}
         centerFullScreenContent
         hidePresenceButton
+        onOpenCliTerminal={handleOpenCliTerminal}
         onRegionNoticeChange={handleRegionNoticeChange}
       />
     );

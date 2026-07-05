@@ -484,6 +484,70 @@ pub struct PromptCacheBreakTracker {
     breaks: u64,
 }
 
+/// Build the per-turn volatile context reminder message.
+///
+/// A `user`-role message wrapping the volatile system-prompt body + dynamic
+/// sections in `<system-reminder>` tags. Appended AFTER the conversation
+/// history so the ever-changing content sits past the sliding prompt-cache
+/// breakpoint instead of invalidating the prefix. The content block carries
+/// a `volatile` cache-scope marker so providers can (a) skip it when
+/// placing the trailing cache breakpoint and (b) strip the marker before
+/// the wire.
+pub fn volatile_context_reminder_message(text: &str) -> Value {
+    serde_json::json!({
+        "role": "user",
+        "content": [{
+            "type": "text",
+            "text": format!(
+                "<system-reminder>\nThe following is per-turn session context (environment, IDE state, mode, reminders). It is not a message from the user — do not respond to it directly; apply it to the user's actual request.\n\n{}\n</system-reminder>",
+                text
+            ),
+            (ORGII_SYSTEM_CACHE_SCOPE_KEY): RenderedSystemBlockScope::Volatile.as_str(),
+        }],
+    })
+}
+
+/// Attach the per-turn volatile context reminder to the message list.
+///
+/// Normal case: appended as a trailing `<system-reminder>` user message
+/// (see [`volatile_context_reminder_message`]).
+///
+/// Shape guard: when the history ends with a `role:"tool"` result (turn
+/// resumed after a cancel, force-send behind tool results, …), a synthetic
+/// user message directly after a tool result creates a "tool_result followed
+/// by a lone Human turn" shape that teaches the model to stop prematurely
+/// (reference harness folds reminder siblings into the tool_result for the
+/// same reason — their #21049 A/B). In that case the reminder text is folded
+/// into the trailing tool result's content instead. In-memory only — the
+/// persisted transcript never contains the reminder either way.
+pub fn attach_volatile_context_reminder(messages: &mut Vec<Value>, text: &str) {
+    let last_is_tool_result = messages
+        .last()
+        .and_then(|m| m.get("role"))
+        .and_then(Value::as_str)
+        == Some("tool");
+
+    if last_is_tool_result {
+        if let Some(last) = messages.last_mut() {
+            if let Some(existing) = last.get("content").and_then(Value::as_str) {
+                let folded = format!(
+                    "{}\n\n<system-reminder>\nThe following is per-turn session context (environment, IDE state, mode, reminders). It is not part of the tool result above and not a message from the user — apply it to the user's actual request.\n\n{}\n</system-reminder>",
+                    existing, text
+                );
+                last["content"] = Value::String(folded);
+                // The fold rewrites this message's bytes every turn — mark it
+                // volatile so the provider's sliding cache breakpoint (BP3)
+                // never lands on it (providers strip the marker before wire).
+                last[ORGII_SYSTEM_CACHE_SCOPE_KEY] =
+                    Value::String(RenderedSystemBlockScope::Volatile.as_str().to_string());
+                return;
+            }
+        }
+    }
+
+    messages.push(volatile_context_reminder_message(text));
+}
+
 pub fn rendered_system_blocks_from_messages(messages: &[Value]) -> Vec<RenderedSystemBlock> {
     let mut blocks = Vec::new();
     for message in messages {
@@ -684,8 +748,9 @@ impl LearningsPromptCache {
 #[cfg(test)]
 mod tests {
     use super::{
-        rendered_system_blocks_from_messages, PromptCacheBreakTracker, RenderedSystemBlockScope,
-        SkillListingCache, SkillListingCacheKey, ORGII_SYSTEM_CACHE_SCOPE_KEY,
+        attach_volatile_context_reminder, rendered_system_blocks_from_messages,
+        PromptCacheBreakTracker, RenderedSystemBlockScope, SkillListingCache, SkillListingCacheKey,
+        ORGII_SYSTEM_CACHE_SCOPE_KEY,
     };
     use crate::skills::loader::SkillListingEntry;
     use std::path::Path;
@@ -812,5 +877,50 @@ mod tests {
         let second = tracker.record(&blocks, Some(&tools), "model", 100, 0, 90);
         assert!(second.broke_cache);
         assert_eq!(tracker.stats().breaks, 1);
+    }
+
+    /// Shape guard: trailing tool result absorbs the reminder (no synthetic
+    /// Human turn after a tool_result), gets the volatile marker, and the
+    /// message count stays unchanged.
+    #[test]
+    fn volatile_reminder_folds_into_trailing_tool_result() {
+        let mut messages = vec![
+            serde_json::json!({"role": "assistant", "content": "calling tool"}),
+            serde_json::json!({
+                "role": "tool",
+                "tool_call_id": "call_1",
+                "name": "run_shell",
+                "content": "tool output here"
+            }),
+        ];
+        attach_volatile_context_reminder(&mut messages, "## Environment\nfoo");
+
+        assert_eq!(messages.len(), 2, "must not append a new message");
+        let last = &messages[1];
+        assert_eq!(last["role"], "tool");
+        let content = last["content"].as_str().unwrap();
+        assert!(content.starts_with("tool output here"));
+        assert!(content.contains("<system-reminder>"));
+        assert!(content.contains("## Environment\nfoo"));
+        assert_eq!(
+            last[ORGII_SYSTEM_CACHE_SCOPE_KEY], "volatile",
+            "folded tool message must be excluded from the sliding cache breakpoint"
+        );
+    }
+
+    #[test]
+    fn volatile_reminder_appends_user_message_when_history_ends_with_user_or_assistant() {
+        for tail in [
+            serde_json::json!({"role": "user", "content": "hi"}),
+            serde_json::json!({"role": "assistant", "content": "done"}),
+        ] {
+            let mut messages = vec![tail];
+            attach_volatile_context_reminder(&mut messages, "ctx");
+            assert_eq!(messages.len(), 2, "must append a reminder message");
+            assert_eq!(messages[1]["role"], "user");
+            let text = messages[1]["content"][0]["text"].as_str().unwrap();
+            assert!(text.contains("<system-reminder>"));
+            assert!(text.contains("ctx"));
+        }
     }
 }

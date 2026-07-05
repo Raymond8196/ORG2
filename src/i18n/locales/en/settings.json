@@ -63,7 +63,8 @@
       "devtools": "Dev Tools",
       "connections": "Connections",
       "git": "Git",
-      "databases": "Databases"
+      "databases": "Databases",
+      "housekeeper": "MiniCPM Housekeeper"
     }
   },
   "myRoles": {
@@ -792,8 +793,6 @@
     "breakdownFileCache": "Backend file cache",
     "resourceUsage": "Resource Usage",
     "performanceMonitor": "Performance Monitor",
-    "cpu": "CPU",
-    "perCoreUsage": "Per-core usage",
     "memory": "RAM",
     "backendRss": "Backend RSS total",
     "attributionHintsGroup": "Attribution hints",
@@ -887,13 +886,6 @@
     "diskCategory_extensions": "Extensions",
     "diskNotScanned": "Not yet scanned",
     "diskScanning": "Scanning...",
-    "ramHistory": "RAM History",
-    "ramHistoryDesc": "Last 30 minutes of memory usage",
-    "ramCurrent": "Current",
-    "ramMin": "Min",
-    "ramMax": "Max",
-    "ramAvg": "Avg",
-    "collectingData": "Collecting data…",
     "httpVersion": "HTTP Version",
     "httpVersionDesc": "HTTP protocol for LLM connections and requests",
     "timeNow": "now",
@@ -909,8 +901,18 @@
     "diskCategory_codexCliProfiles": "Codex CLI Profiles",
     "diskCategory_sessionImages": "Chat Images",
     "diskCategory_screenshots": "Browser Screenshots",
+    "diskCategory_toolResults": "Oversized Tool Results",
+    "diskCategory_diagnostics": "Diagnostics Queue",
+    "diskCategory_models": "Downloaded Models",
+    "diskCategory_codeMap": "Code Map Indexes",
+    "diskCategory_semanticIndex": "Semantic Search Index",
+    "diskCategory_cursorCliProfiles": "Cursor CLI Profiles",
+    "diskCategory_geminiCliProfiles": "Gemini CLI Profiles",
+    "diskCategory_kiroCliProfiles": "Kiro CLI Profiles",
+    "diskCategory_opencodeCliProfiles": "OpenCode CLI Profiles",
     "diskCategory_agentWorktrees": "Agent Session Worktrees",
     "diskCategory_lspBin": "LSP Server Binaries",
+    "diskCategory_sidecarBin": "Downloaded Sidecar Binaries",
     "loadZeroRows": "Click to load {{count}} more"
   },
   "dependencies": {

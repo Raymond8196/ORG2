@@ -53,7 +53,8 @@ pub(crate) fn prepare_loaded_events(
     session_id: &str,
     events: Vec<SessionEvent>,
 ) -> Vec<SessionEvent> {
-    let mut events = event_conversion::dedup_by_call_id(events);
+    let events = event_conversion::dedup_by_call_id(events);
+    let mut events = event_conversion::dedup_stream_transcript_chunk_pairs(events);
     event_conversion::backfill_tool_inputs_from_messages(session_id, &mut events);
     event_conversion::backfill_subagent_links(session_id, &mut events);
     backfill_provider_subagent_prompts(&mut events);

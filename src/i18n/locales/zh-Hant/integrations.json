@@ -892,7 +892,15 @@
     "addKey": "添加密鑰",
     "compatibleKeys": "相容的 Keys",
     "keysTab": "Keys",
-    "plansTab": "方案"
+    "plansTab": "方案",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "所有安裝狀態",
@@ -1016,7 +1024,8 @@
     "tools": "內置工具",
     "computerUse": "Computer Use",
     "rulesMemoryEvolution": "規則、記憶 & 進化",
-    "externalSkillsets": "Skills, MCPs & Plugins"
+    "externalSkillsets": "Skills, MCPs & Plugins",
+    "housekeeper": "常駐管家"
   },
   "projectConnections": {
     "linear": "Linear",
@@ -2529,6 +2538,76 @@
       "cpu_offload": "CPU 卸載",
       "cpu_only": "僅 CPU",
       "no_fit": "不建議"
+    }
+  },
+  "housekeeper": {
+    "eyebrow": "MiniCPM 常駐管家",
+    "title": "常駐管家",
+    "description": "本機 MiniCPM 只處理輸入潤飾、短步驟解釋和輕量 UI 控制；編碼任務和複雜 ADE 配置仍然交給主 Agent 模型。",
+    "addModel": "添加模型",
+    "autoAccount": "自動選擇 MiniCPM vLLM 帳號",
+    "tiles": {
+      "model": "模型",
+      "endpoint": "端點",
+      "safeContext": "安全上下文"
+    },
+    "settings": {
+      "enabled": {
+        "title": "啟用常駐管家",
+        "description": "關閉後，輸入潤飾、步驟解釋和輕量 UI 控制都不會使用 MiniCPM。"
+      },
+      "account": {
+        "title": "vLLM MiniCPM 帳號",
+        "description": "複用 KeyVault 裡的 vllm_api 帳號，不單獨建立 credential store。"
+      },
+      "model": {
+        "title": "模型 ID",
+        "description": "Docker vLLM MiniCPM5-1B 預設使用 openbmb/MiniCPM5-1B。"
+      },
+      "context": {
+        "title": "上下文安全預算",
+        "description": "4GB GPU 按 10000 token 保守預算處理，不相信理論 32k 上限。"
+      }
+    },
+    "features": {
+      "promptPolish": {
+        "title": "輸入內容潤飾",
+        "description": "手動點擊輸入框潤飾按鈕時，先用 MiniCPM 整理要發給強代碼模型的指令。"
+      },
+      "stepExplain": {
+        "title": "Agent 步驟解釋",
+        "description": "在 session replay 裡，為當前步驟生成 1-2 句簡短中文解釋。"
+      },
+      "uiControl": {
+        "title": "輕量 ADE/UI 控制",
+        "description": "MiniCPM 只能把請求識別成嚴格白名單裡的本地 action。"
+      }
+    },
+    "health": {
+      "title": "健康檢查",
+      "idle": "檢測 /v1/models，並發送一次小型 chat 請求。",
+      "checking": "正在檢查本機 vLLM MiniCPM 服務...",
+      "checkButton": "檢查連線",
+      "configureFirst": "需要先配置一個 vLLM MiniCPM 帳號。",
+      "connectedTo": "已連線到 {{baseUrl}}",
+      "failed": "MiniCPM 健康檢查失敗。",
+      "status": "尚未檢查"
+    },
+    "sections": {
+      "configuration": "配置",
+      "features": "功能",
+      "diagnostics": "診斷"
+    },
+    "benchmark": {
+      "title": "MiniCPM 輸出速度",
+      "idle": "發送一段輕量測試文本，按實際完成耗時計算輸出 token/s。",
+      "running": "正在請求本機 vLLM MiniCPM 並統計輸出速度...",
+      "ready": "輸出 {{tokens}} tokens，用時 {{seconds}}s",
+      "status": "尚未測試",
+      "checkButton": "測試速度",
+      "tokensPerSecond": "輸出速度：{{value}} tokens/s",
+      "completionTokens": "輸出 tokens：{{value}}",
+      "elapsed": "總耗時：{{value}}s"
     }
   }
 }

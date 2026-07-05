@@ -344,6 +344,7 @@ export function useIntegrationsPage() {
         accountsHook.handleAccountSelect("");
         break;
       case "myRoles":
+      case "housekeeper":
         break;
       case "connections":
       case "git":

@@ -35,6 +35,7 @@ export const TOOL_NAMES = {
   ASK_USER_QUESTIONS: "ask_user_questions",
   ASK_USER_PERMISSIONS: "ask_user_permissions",
   SUGGEST_MODE_SWITCH: "suggest_mode_switch",
+  SKILL: "skill",
 
   // ── Plan Mode ───────────────────────────────────────────────────────
   CREATE_PLAN: "create_plan",
