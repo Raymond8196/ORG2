@@ -163,6 +163,33 @@ fn build_codex_basic() {
 }
 
 #[test]
+fn build_codex_reasoning_variant_maps_to_config_override() {
+    let cmd = build_command!(
+        ModelType::Codex,
+        task = "write tests",
+        model = Some("gpt-5.5-high"),
+    );
+    let model_idx = cmd.iter().position(|arg| arg == "-m").unwrap();
+    assert_eq!(cmd[model_idx + 1], "gpt-5.5");
+    assert!(cmd.contains(&"-c".to_string()));
+    assert!(cmd.contains(&"model_reasoning_effort=\"high\"".to_string()));
+    assert!(!cmd.contains(&"gpt-5.5-high".to_string()));
+}
+
+#[test]
+fn build_codex_fast_variant_maps_to_priority_service_tier() {
+    let cmd = build_command!(
+        ModelType::Codex,
+        task = "write tests",
+        model = Some("gpt-5.4-medium-fast"),
+    );
+    let model_idx = cmd.iter().position(|arg| arg == "-m").unwrap();
+    assert_eq!(cmd[model_idx + 1], "gpt-5.4");
+    assert!(cmd.contains(&"model_reasoning_effort=\"medium\"".to_string()));
+    assert!(cmd.contains(&"service_tier=\"priority\"".to_string()));
+}
+
+#[test]
 fn build_codex_with_resume() {
     let cmd = build_command!(
         ModelType::Codex,
