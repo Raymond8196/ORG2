@@ -69,6 +69,7 @@ pub(super) fn prepare_request(
     let outcome = build_thinking_params(
         &resolved_model,
         parsed.level,
+        parsed.thinking,
         directive,
         &caps,
         max_tokens,
@@ -354,7 +355,7 @@ mod tests {
         assert!(model_uses_effort_beta("claude-fable-5", "anthropic"));
         assert!(model_uses_effort_beta("claude-sonnet-4-6", "anthropic"));
         assert!(!model_uses_effort_beta("claude-haiku-4-5", "anthropic"));
-        assert!(!model_uses_effort_beta("claude-sonnet-5", "anthropic"));
+        assert!(model_uses_effort_beta("claude-sonnet-5", "anthropic"));
         assert!(!model_uses_effort_beta("gpt-5.4", "openai"));
     }
 

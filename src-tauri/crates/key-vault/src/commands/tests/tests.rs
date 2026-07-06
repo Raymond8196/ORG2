@@ -189,6 +189,7 @@ fn claude_native_key_info_exposes_output_config_effort_variants() {
     key.session_token = Some("access-token".to_string());
     key.available_models = vec![
         "claude-opus-4-8".to_string(),
+        "claude-fable-5".to_string(),
         "claude-haiku-4-5".to_string(),
     ];
     key.model_variants = vec![ModelVariant {
@@ -206,19 +207,19 @@ fn claude_native_key_info_exposes_output_config_effort_variants() {
         .filter(|variant| variant.base_model == "claude-opus-4-8")
         .collect();
 
-    // Stored record row (always_on, carries the context window) + synthesized
-    // low/medium/high/max. The baseline rung collides with the record row's
-    // model id and is skipped; no separate xhigh rung (wire-identical to max).
-    assert_eq!(opus_variants.len(), 5);
+    assert_eq!(opus_variants.len(), 11);
     assert!(opus_variants
         .iter()
         .any(|variant| variant.model == "claude-opus-4-8-high"));
     assert!(opus_variants
         .iter()
-        .any(|variant| variant.model == "claude-opus-4-8-max"));
+        .any(|variant| variant.model == "claude-opus-4-8-thinking-high"));
     assert!(opus_variants
         .iter()
-        .all(|variant| variant.model != "claude-opus-4-8-xhigh"));
+        .any(|variant| variant.model == "claude-opus-4-8-xhigh"));
+    assert!(opus_variants
+        .iter()
+        .any(|variant| variant.model == "claude-opus-4-8-thinking-max"));
     let record_row = opus_variants
         .iter()
         .find(|variant| variant.model == "claude-opus-4-8")
@@ -229,6 +230,34 @@ fn claude_native_key_info_exposes_output_config_effort_variants() {
         .model_variants
         .iter()
         .all(|variant| variant.base_model != "claude-haiku-4-5"));
+    assert!(info.default_variants.iter().any(|variant| {
+        variant.base_model == "claude-opus-4-8" && variant.model == "claude-opus-4-8-high"
+    }));
+
+    let fable_variants: Vec<_> = info
+        .model_variants
+        .iter()
+        .filter(|variant| variant.base_model == "claude-fable-5")
+        .collect();
+    let fable_model_ids: Vec<_> = fable_variants
+        .iter()
+        .map(|variant| variant.model.as_str())
+        .collect();
+    assert_eq!(fable_model_ids.len(), 6);
+    assert_eq!(
+        fable_model_ids,
+        vec![
+            "claude-fable-5-low",
+            "claude-fable-5-medium",
+            "claude-fable-5-high",
+            "claude-fable-5-xhigh",
+            "claude-fable-5-max",
+            "claude-fable-5-ultracode",
+        ]
+    );
+    assert!(info.default_variants.iter().any(|variant| {
+        variant.base_model == "claude-fable-5" && variant.model == "claude-fable-5-high"
+    }));
 }
 
 #[test]
@@ -341,8 +370,6 @@ fn sonnet_ladders_follow_reference_effort_limits() {
     ];
 
     let info = KeyInfo::from(key);
-    // sonnet-4-6 supports effort but not `max` (Opus-4.6-only per the
-    // reference harness).
     assert!(info
         .model_variants
         .iter()
@@ -350,11 +377,13 @@ fn sonnet_ladders_follow_reference_effort_limits() {
     assert!(info
         .model_variants
         .iter()
-        .all(|variant| variant.model != "claude-sonnet-4-6-max"));
-    // sonnet-5 is not effort-capable (agent_core classifies it as legacy
-    // budget thinking): no synthesized ladder at all.
+        .any(|variant| variant.model == "claude-sonnet-4-6-thinking-high"));
     assert!(info
         .model_variants
         .iter()
-        .all(|variant| variant.base_model != "claude-sonnet-5"));
+        .any(|variant| variant.model == "claude-sonnet-4-6-max"));
+    assert!(info
+        .model_variants
+        .iter()
+        .any(|variant| variant.model == "claude-sonnet-5-thinking-extra"));
 }

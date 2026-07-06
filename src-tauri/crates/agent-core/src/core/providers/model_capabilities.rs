@@ -162,6 +162,11 @@ const FAMILY_RULES: &[FamilyRule] = &[
         context_window: 200_000,
         thinking: ThinkingSupport::Optional,
     },
+    FamilyRule {
+        pattern: "claude-sonnet-5",
+        context_window: 1_000_000,
+        thinking: ThinkingSupport::Optional,
+    },
     // claude-sonnet-4.5: 200K. Must come BEFORE claude-sonnet-4 so the more
     // specific pattern wins.
     FamilyRule {

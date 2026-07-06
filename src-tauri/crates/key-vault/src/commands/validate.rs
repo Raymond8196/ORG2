@@ -35,6 +35,17 @@ pub struct CodexOauthListModelsRequest {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct OAuthModelCatalogRequest {
+    pub agent_type: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OAuthModelCatalogResponse {
+    pub models: Vec<String>,
+    pub default_enabled_models: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
 struct OpenCodeModelsResponse {
     #[serde(default)]
     data: Vec<OpenCodeModelInfo>,
@@ -583,6 +594,16 @@ async fn claude_code_oauth_list_models_from_url(
     parse_claude_code_oauth_models_response(&body)
 }
 
+fn merge_default_catalog(mut models: Vec<String>, defaults: &[&str]) -> Vec<String> {
+    for model in defaults {
+        let model = (*model).to_string();
+        if !models.contains(&model) {
+            models.push(model);
+        }
+    }
+    models
+}
+
 fn parse_claude_code_oauth_models_response(body: &str) -> Result<Vec<String>, String> {
     let parsed: ClaudeCodeOauthModelsResponse = serde_json::from_str(body)
         .map_err(|err| format!("Claude Code OAuth model discovery parse failed: {err}"))?;
@@ -596,11 +617,44 @@ fn parse_claude_code_oauth_models_response(body: &str) -> Result<Vec<String>, St
 }
 
 #[tauri::command]
+pub fn oauth_model_catalog(
+    request: OAuthModelCatalogRequest,
+) -> Result<OAuthModelCatalogResponse, String> {
+    match request.agent_type.as_str() {
+        "claude_code" => Ok(OAuthModelCatalogResponse {
+            models: super::crud::CLAUDE_CODE_OAUTH_MODELS
+                .iter()
+                .map(|model| (*model).to_string())
+                .collect(),
+            default_enabled_models: super::crud::CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS
+                .iter()
+                .map(|model| (*model).to_string())
+                .collect(),
+        }),
+        "codex" => Ok(OAuthModelCatalogResponse {
+            models: super::crud::CODEX_OAUTH_MODELS
+                .iter()
+                .map(|model| (*model).to_string())
+                .collect(),
+            default_enabled_models: super::crud::CODEX_OAUTH_DEFAULT_ENABLED_MODELS
+                .iter()
+                .map(|model| (*model).to_string())
+                .collect(),
+        }),
+        other => Err(format!(
+            "Unsupported OAuth model catalog agent type: {other}"
+        )),
+    }
+}
+
+#[tauri::command]
 pub async fn claude_code_oauth_list_models(access_token: String) -> Result<Vec<String>, String> {
     use log::info;
     info!("[claude_code_oauth_list_models] Fetching models via Anthropic OAuth...");
-    let models =
-        claude_code_oauth_list_models_from_url(&access_token, CLAUDE_CODE_OAUTH_MODELS_URL).await?;
+    let models = merge_default_catalog(
+        claude_code_oauth_list_models_from_url(&access_token, CLAUDE_CODE_OAUTH_MODELS_URL).await?,
+        super::crud::CLAUDE_CODE_OAUTH_MODELS,
+    );
     info!(
         "[claude_code_oauth_list_models] Got {} models from Anthropic OAuth",
         models.len()
@@ -615,9 +669,12 @@ pub async fn codex_oauth_list_models(
     use log::info;
     info!("[codex_oauth_list_models] Fetching models via Codex native backend...");
     let validator = CodexValidator::new();
-    let models = validator
-        .list_models(&request.access_token, request.id_token.as_deref())
-        .await?;
+    let models = merge_default_catalog(
+        validator
+            .list_models(&request.access_token, request.id_token.as_deref())
+            .await?,
+        super::crud::CODEX_OAUTH_MODELS,
+    );
     info!(
         "[codex_oauth_list_models] Got {} models from Codex native backend",
         models.len()
