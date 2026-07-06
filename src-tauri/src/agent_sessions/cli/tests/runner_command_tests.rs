@@ -1,6 +1,51 @@
-use super::command::{build_command, map_claude_model};
+use super::command::{build_command_with_launch_profile, map_claude_model, CliCommandBuildRequest};
+use super::launch_profiles::{
+    bare_command_for_agent, default_args_for_mode, default_env_for_mode, defaults_for_agent,
+    CliPermissionMode, ResolvedCliLaunchProfile,
+};
 use key_vault::key_store::ModelType;
 use std::path::Path;
+
+struct TestCommandBuildOptions<'a> {
+    agent: &'a ModelType,
+    model: Option<&'a str>,
+    task: &'a str,
+    resume_id: Option<&'a str>,
+    api_key: Option<&'a str>,
+    endpoint: Option<&'a str>,
+    mode: Option<&'a str>,
+    repo_path: Option<&'a str>,
+    additional_dirs: &'a [String],
+}
+
+impl<'a> TestCommandBuildOptions<'a> {
+    fn new(agent: &'a ModelType, task: &'a str) -> Self {
+        Self {
+            agent,
+            model: None,
+            task,
+            resume_id: None,
+            api_key: None,
+            endpoint: None,
+            mode: None,
+            repo_path: None,
+            additional_dirs: &[],
+        }
+    }
+}
+
+macro_rules! build_command {
+    ($agent:expr, task = $task:expr $(,)?) => {{
+        build_command_from_options(TestCommandBuildOptions::new(&$agent, $task))
+    }};
+    ($agent:expr, task = $task:expr, $($field:ident = $value:expr),+ $(,)?) => {{
+        let mut options = TestCommandBuildOptions::new(&$agent, $task);
+        $(
+            options.$field = $value;
+        )+
+        build_command_from_options(options)
+    }};
+}
 
 fn command_name(command: &str) -> &str {
     Path::new(command)
@@ -9,23 +54,39 @@ fn command_name(command: &str) -> &str {
         .unwrap_or(command)
 }
 
-// ============================================
-// build_command — CursorCli
-// ============================================
+fn build_command_from_options(options: TestCommandBuildOptions<'_>) -> Vec<String> {
+    let defaults = defaults_for_agent(options.agent).unwrap_or_else(|| {
+        panic!(
+            "ModelType::{:?} is not a CLI agent — cannot build command",
+            options.agent
+        )
+    });
+    let launch_profile = ResolvedCliLaunchProfile {
+        permission_mode: CliPermissionMode::FullPermission,
+        command: bare_command_for_agent(options.agent)
+            .expect("CLI bare command")
+            .to_string(),
+        args: default_args_for_mode(defaults, CliPermissionMode::FullPermission),
+        env: default_env_for_mode(defaults, CliPermissionMode::FullPermission),
+    };
+
+    build_command_with_launch_profile(CliCommandBuildRequest {
+        agent: options.agent,
+        launch_profile: &launch_profile,
+        model: options.model,
+        task: options.task,
+        resume_id: options.resume_id,
+        api_key: options.api_key,
+        endpoint: options.endpoint,
+        mode: options.mode,
+        repo_path: options.repo_path,
+        additional_dirs: options.additional_dirs,
+    })
+}
 
 #[test]
 fn build_cursor_cli_basic() {
-    let cmd = build_command(
-        &ModelType::CursorCli,
-        None,
-        "fix the login bug",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
-    );
+    let cmd = build_command!(ModelType::CursorCli, task = "fix the login bug");
     assert_eq!(command_name(&cmd[0]), "cursor-agent");
     assert!(cmd.contains(&"agent".to_string()));
     assert!(cmd.contains(&"--output-format".to_string()));
@@ -37,16 +98,15 @@ fn build_cursor_cli_basic() {
 
 #[test]
 fn build_cursor_cli_with_all_options() {
-    let cmd = build_command(
-        &ModelType::CursorCli,
-        Some("claude-sonnet-4"),
-        "task",
-        Some("resume-123"),
-        Some("sk-key"),
-        Some("https://api.example.com"),
-        Some("plan"),
-        Some("/workspace"),
-        &[],
+    let cmd = build_command!(
+        ModelType::CursorCli,
+        task = "task",
+        model = Some("claude-sonnet-4"),
+        resume_id = Some("resume-123"),
+        api_key = Some("sk-key"),
+        endpoint = Some("https://api.example.com"),
+        mode = Some("plan"),
+        repo_path = Some("/workspace"),
     );
     assert!(cmd.contains(&"--api-key".to_string()));
     assert!(cmd.contains(&"sk-key".to_string()));
@@ -64,37 +124,13 @@ fn build_cursor_cli_with_all_options() {
 
 #[test]
 fn build_cursor_cli_ignores_unknown_mode() {
-    let cmd = build_command(
-        &ModelType::CursorCli,
-        None,
-        "task",
-        None,
-        None,
-        None,
-        Some("yolo"),
-        None,
-        &[],
-    );
+    let cmd = build_command!(ModelType::CursorCli, task = "task", mode = Some("yolo"));
     assert!(!cmd.contains(&"--mode".to_string()));
 }
 
-// ============================================
-// build_command — ClaudeCode
-// ============================================
-
 #[test]
 fn build_claude_code_basic() {
-    let cmd = build_command(
-        &ModelType::ClaudeCode,
-        None,
-        "implement feature",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
-    );
+    let cmd = build_command!(ModelType::ClaudeCode, task = "implement feature");
     assert_eq!(command_name(&cmd[0]), "claude");
     assert!(cmd.contains(&"--output-format".to_string()));
     assert!(cmd.contains(&"--verbose".to_string()));
@@ -105,39 +141,19 @@ fn build_claude_code_basic() {
 
 #[test]
 fn build_claude_code_with_model_maps_shorthand() {
-    let cmd = build_command(
-        &ModelType::ClaudeCode,
-        Some("sonnet-4"),
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
+    let cmd = build_command!(
+        ModelType::ClaudeCode,
+        task = "task",
+        model = Some("sonnet-4"),
     );
     assert!(cmd.contains(&"--model".to_string()));
     let model_idx = cmd.iter().position(|c| c == "--model").unwrap();
     assert_eq!(cmd[model_idx + 1], "claude-sonnet-4");
 }
 
-// ============================================
-// build_command — Codex
-// ============================================
-
 #[test]
 fn build_codex_basic() {
-    let cmd = build_command(
-        &ModelType::Codex,
-        Some("o3"),
-        "write tests",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
-    );
+    let cmd = build_command!(ModelType::Codex, task = "write tests", model = Some("o3"));
     assert_eq!(command_name(&cmd[0]), "codex");
     assert_eq!(cmd[1], "exec");
     assert!(cmd.contains(&"--json".to_string()));
@@ -148,37 +164,21 @@ fn build_codex_basic() {
 
 #[test]
 fn build_codex_with_resume() {
-    let cmd = build_command(
-        &ModelType::Codex,
-        None,
-        "continue",
-        Some("sess-abc"),
-        None,
-        None,
-        None,
-        None,
-        &[],
+    let cmd = build_command!(
+        ModelType::Codex,
+        task = "continue",
+        resume_id = Some("sess-abc"),
     );
     assert!(cmd.contains(&"resume".to_string()));
     assert!(cmd.contains(&"sess-abc".to_string()));
 }
 
-// ============================================
-// build_command — GeminiCli
-// ============================================
-
 #[test]
 fn build_gemini_cli_basic() {
-    let cmd = build_command(
-        &ModelType::GeminiCli,
-        Some("gemini-2.5-pro"),
-        "refactor",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
+    let cmd = build_command!(
+        ModelType::GeminiCli,
+        task = "refactor",
+        model = Some("gemini-2.5-pro"),
     );
     assert_eq!(command_name(&cmd[0]), "gemini");
     assert!(cmd.contains(&"--yolo".to_string()));
@@ -186,130 +186,57 @@ fn build_gemini_cli_basic() {
     assert!(cmd.contains(&"-p".to_string()));
 }
 
-// ============================================
-// build_command — Kiro
-// ============================================
-
 #[test]
 fn build_kiro_basic() {
-    let cmd = build_command(
-        &ModelType::Kiro,
-        None,
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
-    );
+    let cmd = build_command!(ModelType::Kiro, task = "task");
     assert_eq!(command_name(&cmd[0]), "kiro-cli");
     assert_eq!(cmd[1], "acp");
 }
 
-// ============================================
-// build_command — Copilot
-// ============================================
-
 #[test]
 fn build_copilot_basic() {
-    let cmd = build_command(
-        &ModelType::Copilot,
-        None,
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
-    );
+    let cmd = build_command!(ModelType::Copilot, task = "task");
     assert_eq!(command_name(&cmd[0]), "copilot");
     assert!(cmd.contains(&"--acp".to_string()));
     assert!(cmd.contains(&"--allow-all-tools".to_string()));
     assert!(cmd.contains(&"--no-ask-user".to_string()));
-    // Copilot serves ACP over stdio only; there is no `--stdio` flag.
     assert!(!cmd.contains(&"--stdio".to_string()));
 }
 
 #[test]
 fn build_copilot_resume_and_model_passthrough() {
-    let cmd = build_command(
-        &ModelType::Copilot,
-        Some("gpt-5.4"),
-        "task",
-        Some("resume-123"),
-        None,
-        None,
-        None,
-        None,
-        &[],
+    let cmd = build_command!(
+        ModelType::Copilot,
+        task = "task",
+        model = Some("gpt-5.4"),
+        resume_id = Some("resume-123"),
     );
     assert!(cmd.contains(&"--resume".to_string()));
     assert!(cmd.contains(&"resume-123".to_string()));
     assert!(cmd.contains(&"--model".to_string()));
-    // Model id is passed through unchanged (Copilot is multi-vendor).
     assert!(cmd.contains(&"gpt-5.4".to_string()));
 }
 
-// ============================================
-// build_command — OpenCode
-// ============================================
-
 #[test]
 fn build_opencode_basic() {
-    let cmd = build_command(
-        &ModelType::OpenCode,
-        None,
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
-    );
+    let cmd = build_command!(ModelType::OpenCode, task = "task");
     assert_eq!(command_name(&cmd[0]), "opencode");
     assert_eq!(cmd[1], "acp");
 }
 
-// ============================================
-// build_command — API providers panic
-// ============================================
-
 #[test]
 #[should_panic(expected = "is not a CLI agent")]
 fn build_command_panics_for_api_provider() {
-    build_command(
-        &ModelType::AnthropicApi,
-        None,
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &[],
-    );
+    build_command!(ModelType::AnthropicApi, task = "task");
 }
-
-// ============================================
-// build_command — additional_dirs (--add-dir)
-// ============================================
 
 #[test]
 fn build_claude_code_with_additional_dirs() {
     let extras = vec!["/repo/backend".to_string(), "/repo/shared".to_string()];
-    let cmd = build_command(
-        &ModelType::ClaudeCode,
-        None,
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &extras,
+    let cmd = build_command!(
+        ModelType::ClaudeCode,
+        task = "task",
+        additional_dirs = &extras,
     );
     let mut add_dirs = Vec::new();
     let mut iter = cmd.iter();
@@ -327,16 +254,11 @@ fn build_claude_code_with_additional_dirs() {
 #[test]
 fn build_codex_with_additional_dirs() {
     let extras = vec!["/repo/web".to_string()];
-    let cmd = build_command(
-        &ModelType::Codex,
-        Some("o3"),
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &extras,
+    let cmd = build_command!(
+        ModelType::Codex,
+        task = "task",
+        model = Some("o3"),
+        additional_dirs = &extras,
     );
     let mut iter = cmd.iter();
     let mut found = false;
@@ -351,19 +273,11 @@ fn build_codex_with_additional_dirs() {
 
 #[test]
 fn build_cursor_cli_ignores_additional_dirs() {
-    // Cursor uses --workspace (single root) and does not accept --add-dir;
-    // the slice must be silently dropped, not turned into bogus flags.
     let extras = vec!["/repo/extra".to_string()];
-    let cmd = build_command(
-        &ModelType::CursorCli,
-        None,
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &extras,
+    let cmd = build_command!(
+        ModelType::CursorCli,
+        task = "task",
+        additional_dirs = &extras,
     );
     assert!(!cmd.contains(&"--add-dir".to_string()));
     assert!(!cmd.contains(&"/repo/extra".to_string()));
@@ -372,25 +286,15 @@ fn build_cursor_cli_ignores_additional_dirs() {
 #[test]
 fn build_claude_code_skips_empty_dirs() {
     let extras = vec!["".to_string(), "/repo/x".to_string(), "".to_string()];
-    let cmd = build_command(
-        &ModelType::ClaudeCode,
-        None,
-        "task",
-        None,
-        None,
-        None,
-        None,
-        None,
-        &extras,
+    let cmd = build_command!(
+        ModelType::ClaudeCode,
+        task = "task",
+        additional_dirs = &extras,
     );
-    let count = cmd.iter().filter(|a| *a == "--add-dir").count();
+    let count = cmd.iter().filter(|arg| *arg == "--add-dir").count();
     assert_eq!(count, 1);
     assert!(cmd.contains(&"/repo/x".to_string()));
 }
-
-// ============================================
-// map_claude_model
-// ============================================
 
 #[test]
 fn map_claude_model_adds_prefix_to_shorthand() {
@@ -417,7 +321,6 @@ fn map_claude_model_strips_date_suffix() {
         "claude-sonnet-4-5"
     );
     assert_eq!(map_claude_model("claude-opus-4-20250101"), "claude-opus-4");
-    // Non-8-digit suffix must pass through unchanged
     assert_eq!(map_claude_model("claude-sonnet-4-5"), "claude-sonnet-4-5");
 }
 

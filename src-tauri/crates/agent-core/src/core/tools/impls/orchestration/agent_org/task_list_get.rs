@@ -212,6 +212,7 @@ pub fn claim_error_message(error: &ClaimError) -> String {
         ClaimError::MemberBusy { busy_with } => {
             format!("member_busy (current_task={busy_with})")
         }
+        ClaimError::NotEligible => "not_eligible".into(),
         ClaimError::Storage(msg) => format!("storage_error: {msg}"),
     }
 }

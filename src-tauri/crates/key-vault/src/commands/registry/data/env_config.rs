@@ -148,25 +148,11 @@ pub(crate) fn cli_env_config(name: &str) -> Option<AgentEnvConfig> {
             "codeAccounts.apiKeyPlaceholder.rovo",
             None,
         )),
-        "crush" => Some(cfg(
-            "ANTHROPIC_API_KEY",
-            Some("ANTHROPIC_BASE_URL"),
-            true,
-            "codeAccounts.apiKeyPlaceholder.crush",
-            Some("https://api.example.com"),
-        )),
         "codebuff" => Some(cfg(
             "CODEBUFF_API_KEY",
             None,
             false,
             "codeAccounts.apiKeyPlaceholder.codebuff",
-            None,
-        )),
-        "command_code" => Some(cfg(
-            "COMMAND_CODE_API_KEY",
-            None,
-            false,
-            "codeAccounts.apiKeyPlaceholder.command_code",
             None,
         )),
         "mimo_code" => Some(cfg(
@@ -180,8 +166,9 @@ pub(crate) fn cli_env_config(name: &str) -> Option<AgentEnvConfig> {
         // Agents without a single universal API-key env var for ORGII to inject.
         // Some are subscription-token based, while others require provider-specific
         // config files or auth stores instead of one standard env-config path.
-        "aug" | "droid" | "ante" | "autohand" | "omp" | "pi" | "open_claw" | "openclaw"
-        | "antigravity" => None,
+        "aug" | "droid" | "autohand" | "omp" | "pi" | "open_claw" | "openclaw" | "antigravity" => {
+            None
+        }
         // The caller iterates `cli_agent_registry()` entries, so a CLI
         // agent that ships in the registry but has no env config here
         // would silently let the API-key dialog render with no env-var

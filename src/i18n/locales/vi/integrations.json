@@ -2565,5 +2565,17 @@
       "completionTokens": "Tokens đầu ra: {{value}}",
       "elapsed": "Tổng thời gian: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Hồ sơ khởi chạy",
+    "fullPermission": "Toàn quyền",
+    "manual": "Thủ công",
+    "command": "Lệnh",
+    "environment": "Môi trường",
+    "envPlaceholder": "KEY=value, mỗi dòng một mục",
+    "loading": "Đang tải hồ sơ khởi chạy...",
+    "unavailable": "Hồ sơ khởi chạy không khả dụng",
+    "saved": "Đã lưu hồ sơ khởi chạy",
+    "resetDone": "Đã đặt lại hồ sơ khởi chạy"
   }
 }

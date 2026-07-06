@@ -24,6 +24,7 @@ import {
   InlineCardTabs,
 } from "../../shared/InlineCardPrimitives";
 import { CliClientSection } from "../Preview/CliClientSection";
+import { CliLaunchProfileSection } from "../Preview/CliLaunchProfileSection";
 
 export const CLI_CLIENT_INLINE_TAB = {
   STATUS: "status",
@@ -172,69 +173,75 @@ const CliClientInlineExpandedCard: React.FC<
       case CLI_CLIENT_INLINE_TAB.STATUS:
       default:
         return (
-          <InlineCardSplit
-            equalColumns
-            left={
-              <InlineCardColumnStack>
-                <InfoRow label={t("cliPreview.installed")}>
-                  <StatusValue active={agent.installed}>
-                    {agent.installed
-                      ? t("common:status.yes")
-                      : t("common:status.no")}
-                  </StatusValue>
-                </InfoRow>
-                <InfoRow label={t("cliPreview.keys")}>
-                  <StatusValue active={agent.hasKeys}>
-                    {agent.hasKeys
-                      ? t("cliPreview.configured")
-                      : t("cliPreview.notConfigured")}
-                  </StatusValue>
-                </InfoRow>
-                {agent.installed ? (
-                  <InfoRow label={t("cliPreview.installedVia")}>
-                    <span
-                      className={`text-[12px] font-medium ${agent.installedVia ? "text-text-1" : "text-text-3"}`}
-                    >
-                      {agent.installedVia
-                        ? (METHOD_DISPLAY_LABELS[agent.installedVia] ??
-                          agent.installedVia)
-                        : t("common:status.na")}
-                    </span>
+          <InlineCardColumnStack>
+            <CliLaunchProfileSection agentName={agent.name} />
+            <div className="border-t border-border-2 pt-3" />
+            <InlineCardSplit
+              equalColumns
+              left={
+                <InlineCardColumnStack>
+                  <InfoRow label={t("cliPreview.installed")}>
+                    <StatusValue active={agent.installed}>
+                      {agent.installed
+                        ? t("common:status.yes")
+                        : t("common:status.no")}
+                    </StatusValue>
                   </InfoRow>
-                ) : null}
-              </InlineCardColumnStack>
-            }
-            right={
-              <InlineCardColumnStack>
-                <InfoRow label={t("cliPreview.acpSupport")}>
-                  <StatusDot
-                    color={ACP_SUPPORT_DOT_COLOR[agent.acpSupport]}
-                    size="inline"
-                    label={t(`cliPreview.acpSupportLabels.${agent.acpSupport}`)}
-                  />
-                </InfoRow>
-                <InfoRow label={t("keyVault.info.compatibleApis")}>
-                  <StatusDot
-                    color={
-                      agent.compatibleApiProviders.length > 0
-                        ? "bg-success-6"
-                        : "bg-text-4"
-                    }
-                    size="inline"
-                    className="min-w-0"
-                    labelClassName="min-w-0 truncate text-[12px] text-text-1"
-                    label={
-                      agent.compatibleApiProviders.length > 0
-                        ? agent.compatibleApiProviders
-                            .map((provider) => formatAgentType(provider))
-                            .join(", ")
-                        : t("common:status.na")
-                    }
-                  />
-                </InfoRow>
-              </InlineCardColumnStack>
-            }
-          />
+                  <InfoRow label={t("cliPreview.keys")}>
+                    <StatusValue active={agent.hasKeys}>
+                      {agent.hasKeys
+                        ? t("cliPreview.configured")
+                        : t("cliPreview.notConfigured")}
+                    </StatusValue>
+                  </InfoRow>
+                  {agent.installed ? (
+                    <InfoRow label={t("cliPreview.installedVia")}>
+                      <span
+                        className={`text-[12px] font-medium ${agent.installedVia ? "text-text-1" : "text-text-3"}`}
+                      >
+                        {agent.installedVia
+                          ? (METHOD_DISPLAY_LABELS[agent.installedVia] ??
+                            agent.installedVia)
+                          : t("common:status.na")}
+                      </span>
+                    </InfoRow>
+                  ) : null}
+                </InlineCardColumnStack>
+              }
+              right={
+                <InlineCardColumnStack>
+                  <InfoRow label={t("cliPreview.acpSupport")}>
+                    <StatusDot
+                      color={ACP_SUPPORT_DOT_COLOR[agent.acpSupport]}
+                      size="inline"
+                      label={t(
+                        `cliPreview.acpSupportLabels.${agent.acpSupport}`
+                      )}
+                    />
+                  </InfoRow>
+                  <InfoRow label={t("keyVault.info.compatibleApis")}>
+                    <StatusDot
+                      color={
+                        agent.compatibleApiProviders.length > 0
+                          ? "bg-success-6"
+                          : "bg-text-4"
+                      }
+                      size="inline"
+                      className="min-w-0"
+                      labelClassName="min-w-0 truncate text-[12px] text-text-1"
+                      label={
+                        agent.compatibleApiProviders.length > 0
+                          ? agent.compatibleApiProviders
+                              .map((provider) => formatAgentType(provider))
+                              .join(", ")
+                          : t("common:status.na")
+                      }
+                    />
+                  </InfoRow>
+                </InlineCardColumnStack>
+              }
+            />
+          </InlineCardColumnStack>
         );
     }
   })();

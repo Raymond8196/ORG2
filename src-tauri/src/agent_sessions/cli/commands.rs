@@ -1,7 +1,11 @@
 //! Tauri commands for CLI agent session management.
 
+use super::launch_profile_store;
 use super::persistence::{self, CliHistoryMutation, CodeSession, CreateCodeSessionParams};
 use super::session_runner;
+use super::session_runner::launch_profiles::{
+    CliLaunchProfileUpdate, CliLaunchProfileView, CliPermissionMode,
+};
 use super::types::{KeySource, SessionStatus};
 use agent_core::session::IdeContext;
 use agent_core::state::control_flow::CancelReason;
@@ -10,8 +14,36 @@ use core_types::session::CLI_SESSION_PREFIX;
 use core_types::worktree::{MergeStrategy, WorktreeMergeResult};
 use git::worktree;
 use settings;
+use std::collections::HashMap;
 
 const WORKTREE_MAX_COUNT_SETTING: &str = "git.worktree.maxCount";
+
+#[tauri::command]
+pub fn cli_launch_profile_get(agent_name: String) -> Result<CliLaunchProfileView, String> {
+    launch_profile_store::cli_launch_profile_get(agent_name)
+}
+
+#[tauri::command]
+pub fn cli_launch_profile_update(
+    agent_name: String,
+    permission_mode: CliPermissionMode,
+    command_override: Option<String>,
+    args_override: Option<Vec<String>>,
+    env_override: Option<HashMap<String, String>>,
+) -> Result<CliLaunchProfileView, String> {
+    launch_profile_store::cli_launch_profile_update(CliLaunchProfileUpdate {
+        agent_name,
+        permission_mode,
+        command_override,
+        args_override,
+        env_override,
+    })
+}
+
+#[tauri::command]
+pub fn cli_launch_profile_reset(agent_name: String) -> Result<CliLaunchProfileView, String> {
+    launch_profile_store::cli_launch_profile_reset(agent_name)
+}
 
 /// Prepend IDE context (open files, git status, etc.) to the user prompt
 /// so external CLI agents are aware of the user's IDE state.

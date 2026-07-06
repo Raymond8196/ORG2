@@ -36,7 +36,12 @@ import {
 } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import type { OrgMember } from "@src/modules/MainApp/AgentOrgs/types";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
-import { CLI_LAUNCH_MODE, type CliLaunchMode } from "@src/store/session";
+import {
+  CLI_LAUNCH_MODE,
+  type CliLaunchMode,
+  cliAgentVisibilityOverridesAtom,
+  isCliAgentEnabled,
+} from "@src/store/session";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 import {
   SESSION_TARGET_KIND,
@@ -44,7 +49,7 @@ import {
 } from "@src/store/session/creatorStateAtom";
 import { invokeTauri } from "@src/util/platform/tauri/init";
 
-import { ManageModelsFooterAction } from "../../components";
+import { ManageAgentsFooterAction } from "../../components";
 import { useAccountFooterForHovered } from "../../hooks";
 import type { BasePaletteProps } from "../../shared";
 import { PaletteBody, ShellFooterAction, SpotlightShell } from "../../shell";
@@ -181,6 +186,7 @@ export const DispatchCategoryPalette: React.FC<
     useState<CliLaunchMode>(CLI_LAUNCH_MODE.GUI);
   const [allOrgs, setAllOrgs] = useState<OrgMember[]>([]);
   const { agents: cliAgentList } = useCliAgents({ enabled: isOpen });
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
   const { accounts } = useKeyVault({ autoLoad: true });
   const { registry } = useAgentCompatibility();
   const setAgentRegistry = useSetAtom(agentRegistryAtom);
@@ -232,8 +238,13 @@ export const DispatchCategoryPalette: React.FC<
   }, [isOpen, hideOrgs, setAgentRegistry]);
 
   const installedCliAgents = useMemo(
-    () => cliAgentList.filter((agent) => agent.installed),
-    [cliAgentList]
+    () =>
+      cliAgentList.filter(
+        (agent) =>
+          agent.installed &&
+          isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
   );
 
   useEffect(() => {
@@ -614,7 +625,7 @@ export const DispatchCategoryPalette: React.FC<
     ),
   });
 
-  const footerAction = <ManageModelsFooterAction onClose={onClose} />;
+  const footerAction = <ManageAgentsFooterAction onClose={onClose} />;
   const inputLeadingSlot = (
     <CliAgentListFilterSwitch
       mode={cliAgentListFilterMode}

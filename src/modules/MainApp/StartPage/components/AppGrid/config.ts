@@ -15,6 +15,7 @@ import {
   ListTodo,
   Network,
   Play,
+  Puzzle,
   Radar,
   Rocket,
   Settings,
@@ -23,6 +24,7 @@ import type { LucideIcon } from "lucide-react";
 
 import {
   buildAgentOrgsPath,
+  buildExternalSkillsetsPath,
   buildIntegrationsPath,
 } from "@src/config/mainAppPaths";
 import {
@@ -44,6 +46,7 @@ export const ICON_CONFIG = {
   integrations: ChevronsLeftRightEllipsis,
   launchpad: Rocket,
   agentOrgs: Network,
+  plugins: Puzzle,
   browser: Globe,
   editor: Code2,
   settings: Settings,
@@ -115,6 +118,14 @@ export const APP_GRID_ITEMS: AppItem[] = [
     iconName: "chevrons-left-right-ellipsis",
     action: "integrations",
     routePath: buildIntegrationsPath({ category: "models" }),
+  },
+  {
+    id: "plugins",
+    labelKey: "Plugin",
+    icon: ICON_CONFIG.plugins,
+    iconName: "puzzle",
+    action: "plugins",
+    routePath: buildExternalSkillsetsPath({ tab: "skills" }),
   },
   {
     id: "ops-control",

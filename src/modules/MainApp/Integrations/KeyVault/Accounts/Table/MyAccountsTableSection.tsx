@@ -217,7 +217,7 @@ export default function MyAccountsTableSection({
       {
         key: "enabled",
         label: <span className="sr-only">{t("common:labels.status")}</span>,
-        width: SETTINGS_TABLE_COL.hug,
+        width: 128,
         align: "right",
         sorter: (rowA, rowB) =>
           Number(isAccountEnabled(rowA)) - Number(isAccountEnabled(rowB)),
@@ -341,11 +341,12 @@ export default function MyAccountsTableSection({
       variant="secondary"
       size="default"
       icon={<Plus size={14} />}
+      iconOnly
       onClick={onAdd}
+      aria-label={t("keyVault.addAccount")}
+      title={t("keyVault.addAccount")}
       data-testid="key-vault-add-account-button"
-    >
-      {t("keyVault.addAccount")}
-    </Button>
+    />
   );
 
   return (

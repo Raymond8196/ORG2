@@ -580,7 +580,7 @@ fn should_wake_member_for_progress(
     member_id: &str,
     has_unread: bool,
     tasks: &[Task],
-    has_available_unowned_task: bool,
+    has_available_unowned_task_for_member: bool,
 ) -> Option<AgentOrgWakeReason> {
     if has_unread {
         return Some(AgentOrgWakeReason::UnreadInbox);
@@ -591,7 +591,7 @@ fn should_wake_member_for_progress(
     if has_open_task {
         return Some(AgentOrgWakeReason::OwnedOpenTask);
     }
-    if member_id != COORDINATOR_MEMBER_ID && has_available_unowned_task {
+    if member_id != COORDINATOR_MEMBER_ID && has_available_unowned_task_for_member {
         return Some(AgentOrgWakeReason::ClaimableUnownedTask);
     }
     None
@@ -602,15 +602,16 @@ fn collect_run_progress_wake_targets(
     member_ids: &[String],
 ) -> Result<Vec<AgentOrgWakeTarget>, String> {
     let tasks = AgentOrgTaskStore::list(run_id)?;
-    let has_available_unowned_task = AgentOrgTaskStore::find_available(run_id)?.is_some();
     let mut targets = Vec::new();
     for member_id in member_ids {
         let has_unread = !AgentInboxStore::list_unread_for_member(member_id, run_id)?.is_empty();
+        let has_available_unowned_task_for_member = member_id != COORDINATOR_MEMBER_ID
+            && AgentOrgTaskStore::find_available_for_member(run_id, member_id)?.is_some();
         if let Some(reason) = should_wake_member_for_progress(
             member_id,
             has_unread,
             &tasks,
-            has_available_unowned_task,
+            has_available_unowned_task_for_member,
         ) {
             targets.push(AgentOrgWakeTarget {
                 member_id: member_id.clone(),
