@@ -89,7 +89,11 @@ const CliClientInlineExpandedCard: React.FC<
   const hasClientActions =
     (!agent.installed && agent.installMethods.length > 0) ||
     (agent.installed && agent.uninstallMethods.length > 0);
-
+  const compatibleApiLabels = useMemo(
+    () =>
+      agent.compatibleApiProviders.map((provider) => formatAgentType(provider)),
+    [agent.compatibleApiProviders]
+  );
   const tabs = useMemo(
     () => [
       {
@@ -114,28 +118,66 @@ const CliClientInlineExpandedCard: React.FC<
     return match?.key ?? CLI_CLIENT_INLINE_TAB.STATUS;
   }, [activeTab, tabs]);
 
-  const subscriptionsContent =
-    subscriptionAccounts.length > 0 ? (
-      <InlineCardColumnStack gap="compact">
-        {subscriptionAccounts.map((account) => (
-          <div
-            key={account.id}
-            className="flex h-9 min-h-9 items-center justify-between gap-3 rounded-md px-3 text-xs hover:bg-fill-1"
-          >
-            <div className="flex min-w-0 flex-1 items-center">
-              <AccountSourceBreadcrumb
-                modelType={account.modelType}
-                accountName={account.name}
-              />
-            </div>
-          </div>
-        ))}
-      </InlineCardColumnStack>
-    ) : (
-      <span className="px-1 text-xs text-text-3">
-        {t("cliPreview.noSubscriptions")}
-      </span>
-    );
+  const subscriptionsContent = (
+    <InlineCardColumnStack>
+      {agent.nativeSubscriptionLabels.length > 0 ? (
+        <InfoRow label={t("cliPreview.nativeSubscription")} layout="vertical">
+          <InlineCardColumnStack gap="compact">
+            {agent.nativeSubscriptionLabels.map((label) => (
+              <span key={label} className="text-[12px] text-text-1">
+                {label}
+              </span>
+            ))}
+          </InlineCardColumnStack>
+        </InfoRow>
+      ) : null}
+      <InfoRow label={t("cliPreview.compatibleApis")} layout="vertical">
+        {compatibleApiLabels.length > 0 ? (
+          <span className="text-[12px] text-text-1">
+            {compatibleApiLabels.join(", ")}
+          </span>
+        ) : (
+          <span className="text-[12px] text-text-3">
+            {t("common:status.na")}
+          </span>
+        )}
+      </InfoRow>
+      <InfoRow label={t("cliPreview.supportedProtocols")} layout="vertical">
+        {agent.supportedProtocols.length > 0 ? (
+          <span className="text-[12px] text-text-1">
+            {agent.supportedProtocols.join(", ")}
+          </span>
+        ) : (
+          <span className="text-[12px] text-text-3">
+            {t("common:status.na")}
+          </span>
+        )}
+      </InfoRow>
+      <InfoRow label={t("cliPreview.addedSubscriptions")} layout="vertical">
+        {subscriptionAccounts.length > 0 ? (
+          <InlineCardColumnStack gap="compact">
+            {subscriptionAccounts.map((account) => (
+              <div
+                key={account.id}
+                className="flex h-9 min-h-9 items-center justify-between gap-3 rounded-md px-3 text-xs hover:bg-fill-1"
+              >
+                <div className="flex min-w-0 flex-1 items-center">
+                  <AccountSourceBreadcrumb
+                    modelType={account.modelType}
+                    accountName={account.name}
+                  />
+                </div>
+              </div>
+            ))}
+          </InlineCardColumnStack>
+        ) : (
+          <span className="text-[12px] text-text-3">
+            {t("cliPreview.noSubscriptions")}
+          </span>
+        )}
+      </InfoRow>
+    </InlineCardColumnStack>
+  );
 
   const clientContent = hasClientActions ? (
     <CliClientSection
@@ -217,25 +259,6 @@ const CliClientInlineExpandedCard: React.FC<
                       label={t(
                         `cliPreview.acpSupportLabels.${agent.acpSupport}`
                       )}
-                    />
-                  </InfoRow>
-                  <InfoRow label={t("keyVault.info.compatibleApis")}>
-                    <StatusDot
-                      color={
-                        agent.compatibleApiProviders.length > 0
-                          ? "bg-success-6"
-                          : "bg-text-4"
-                      }
-                      size="inline"
-                      className="min-w-0"
-                      labelClassName="min-w-0 truncate text-[12px] text-text-1"
-                      label={
-                        agent.compatibleApiProviders.length > 0
-                          ? agent.compatibleApiProviders
-                              .map((provider) => formatAgentType(provider))
-                              .join(", ")
-                          : t("common:status.na")
-                      }
                     />
                   </InfoRow>
                 </InlineCardColumnStack>
