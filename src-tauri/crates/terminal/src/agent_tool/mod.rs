@@ -19,13 +19,13 @@ use std::{
     collections::HashMap,
     io::{BufRead, BufReader, Write},
     sync::{
-        atomic::{AtomicUsize, Ordering},
+        atomic::{AtomicU32, AtomicUsize, Ordering},
         Arc, Mutex,
     },
     time::Duration,
 };
 use tauri::{async_runtime::Mutex as AsyncMutex, AppHandle, Emitter};
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, Notify};
 use tokio::task;
 use tracing::warn;
 
@@ -86,12 +86,14 @@ const NPM_LEAKED_ENV_VARS: &[&str] = &[
 /// When unacknowledged bytes exceed this, pause the reader loop.
 /// Raised from 100 KB to 512 KB to prevent the reader from sleeping too
 /// aggressively during agent TUI floods (e.g. htop, cargo build progress bars).
-const HIGH_WATERMARK: usize = 512_000;
+pub(crate) const HIGH_WATERMARK: usize = 512_000;
 /// Resume reading when unacknowledged bytes drop below this.
 /// Raised from 5 KB to 64 KB so recovery is less jerky after a pause.
-const LOW_WATERMARK: usize = 64_000;
-/// How long the reader sleeps each tick while back-pressured.
-const BACKPRESSURE_SLEEP_MS: u64 = 10;
+/// Exported so ack_pty_data can decide whether to notify the waker.
+pub(crate) const LOW_WATERMARK: usize = 64_000;
+/// Maximum time to wait for an ACK before re-checking session existence.
+/// Replaces the busy-poll BACKPRESSURE_SLEEP_MS loop.
+const BACKPRESSURE_TIMEOUT_MS: u64 = 200;
 /// Grace period before dropping a session in `close_session` to let
 /// the reader flush remaining output.
 const CLOSE_FLUSH_MS: u64 = 250;
@@ -311,6 +313,8 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
         .map_err(|err| format!("Failed to take PTY writer: {}", err))?;
 
     let unacked_bytes = Arc::new(AtomicUsize::new(0));
+    let ack_notify = Arc::new(Notify::new());
+    let frontend_render_ms = Arc::new(AtomicU32::new(0));
     let last_output_at = Arc::new(Mutex::new(None));
     let redacted_output = Arc::new(Mutex::new(String::new()));
 
@@ -325,6 +329,8 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
         name,
         output_tap: output_tap.clone(),
         unacked_bytes: unacked_bytes.clone(),
+        ack_notify: ack_notify.clone(),
+        frontend_render_ms: frontend_render_ms.clone(),
         created_at: Utc::now(),
         last_output_at: last_output_at.clone(),
         redacted_output: redacted_output.clone(),
@@ -353,11 +359,28 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
         let mut empty_reads: u32 = 0;
 
         loop {
-            // Backpressure with hysteresis: pause when unacked bytes hit
-            // HIGH_WATERMARK, resume only after they drop below LOW_WATERMARK.
+            // Backpressure state machine with proper async waker.
+            //
+            // Old approach: busy-poll with tokio::time::sleep(10ms) — wastes a
+            // Tokio thread and adds up to 10ms latency after each ACK.
+            //
+            // New approach: suspend on `ack_notify.notified()` so the task is
+            // parked with zero CPU until ack_pty_data() fires notify_one().
+            // A BACKPRESSURE_TIMEOUT_MS timeout lets us check session liveness
+            // without holding a lock continuously.
             if unacked_bytes.load(Ordering::Relaxed) >= HIGH_WATERMARK {
-                while unacked_bytes.load(Ordering::Relaxed) >= LOW_WATERMARK {
-                    tokio::time::sleep(Duration::from_millis(BACKPRESSURE_SLEEP_MS)).await;
+                loop {
+                    if unacked_bytes.load(Ordering::Relaxed) < LOW_WATERMARK {
+                        break;
+                    }
+
+                    // Wait for an ACK (notify_one) or timeout after 200ms.
+                    tokio::select! {
+                        _ = ack_notify.notified() => {}
+                        _ = tokio::time::sleep(Duration::from_millis(BACKPRESSURE_TIMEOUT_MS)) => {}
+                    }
+
+                    // Check session still exists (under lock, but we hold it briefly).
                     let exists = {
                         let map = sessions_clone.lock().await;
                         map.contains_key(&event_session_id)
@@ -395,7 +418,23 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
                         // chunk with `from_utf8_lossy` would permanently turn split box-drawing
                         // chars (e.g. `─` = E2 94 80) into U+FFFD. The xterm UI decodes this
                         // byte stream incrementally with `TextDecoder`, matching VS Code/Cursor.
-                        let data_bytes = data.to_vec();
+                        //
+                        // Adaptive emit cap: when the frontend reports slow render times
+                        // (render_ms > 8), limit the bytes we consume per read so the
+                        // frontend scheduler's adaptive chunk sizing has room to work.
+                        // At render_ms == 0 (no telemetry yet) we use the full buffer.
+                        let render_ms = frontend_render_ms.load(Ordering::Relaxed);
+                        let emit_cap = if render_ms > 8 {
+                            // Slow renderer — cap at 16 KB per PTY read
+                            16 * 1024
+                        } else if render_ms > 4 {
+                            // Medium load — cap at 64 KB
+                            64 * 1024
+                        } else {
+                            // Fast renderer or no telemetry — no cap (use full buffer)
+                            usize::MAX
+                        };
+                        let data_bytes = data[..data.len().min(emit_cap)].to_vec();
                         let data_len = data_bytes.len();
 
                         // Track unacknowledged output for backpressure

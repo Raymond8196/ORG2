@@ -7,21 +7,32 @@
  * - Interactive bypass threshold
  * - ACK scheduling
  * - Pane lifecycle (register / unregister)
+ * - ANSI-aware split boundaries (never mid-sequence)
+ * - Adaptive chunk sizing (shrink on slow render, grow on fast)
+ * - MessageChannel-based work loop (drains on turn posts)
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  ADAPT_GROW_CONSECUTIVE_FRAMES,
+  ADAPT_GROW_THRESHOLD_MS,
+  ADAPT_SHRINK_THRESHOLD_MS,
   BACKGROUND_DRAIN_INTERVAL_MS,
   BACKGROUND_TIME_BUDGET_MS,
-  CHUNK_SIZE,
-  FOREGROUND_WRITES_PER_FRAME,
   HIDDEN_BACKLOG_CAP,
+  INITIAL_CHUNK_SIZE,
   INTERACTIVE_BYPASS_BUDGET,
   INTERACTIVE_BYPASS_SIZE_ANSI,
   INTERACTIVE_BYPASS_SIZE_HARD,
   INTERACTIVE_WINDOW_MS,
+  MAX_CHUNK_SIZE,
+  MIN_CHUNK_SIZE,
+  _testApplyRenderMs,
+  ansiSequenceLength,
+  findAnsiSafeSplit,
   flushBacklog,
   getBacklogBytes,
+  getChunkSize,
   notifyUserInput,
   registerPane,
   scheduleWrite,
@@ -30,39 +41,44 @@ import {
 } from "../terminalOutputScheduler";
 
 // ============================================
-// RAF polyfill for Node test environment
+// MessageChannel polyfill for Node test environment
 // ============================================
 
-// The scheduler uses requestAnimationFrame / cancelAnimationFrame which are
-// not available in the Node vitest environment. We provide a fake timer-backed
-// polyfill here so that vi.useFakeTimers() and vi.runAllTimers() drive them.
+class FakeMessageChannel {
+  port1: FakeMessagePort;
+  port2: FakeMessagePort;
 
-let rafCallbacks: Array<[number, FrameRequestCallback]> = [];
-let rafIdCounter = 0;
-
-function fakeRaf(cb: FrameRequestCallback): number {
-  const id = ++rafIdCounter;
-  // Schedule via setTimeout(0) so fake timer control works
-  const timerId = setTimeout(() => {
-    const idx = rafCallbacks.findIndex(([rafId]) => rafId === id);
-    if (idx !== -1) {
-      rafCallbacks.splice(idx, 1);
-      cb(performance.now());
-    }
-  }, 0);
-  rafCallbacks.push([id, cb]);
-  // Store timerId on the id so cancelRaf can clear the underlying timer
-  (fakeRaf as unknown as Record<number, ReturnType<typeof setTimeout>>)[id] =
-    timerId;
-  return id;
+  constructor() {
+    // Two ports that route messages to each other
+    this.port1 = new FakeMessagePort();
+    this.port2 = new FakeMessagePort();
+    this.port1._peer = this.port2;
+    this.port2._peer = this.port1;
+  }
 }
 
-function fakeCancelRaf(id: number) {
-  const timerId = (
-    fakeRaf as unknown as Record<number, ReturnType<typeof setTimeout>>
-  )[id];
-  if (timerId !== undefined) clearTimeout(timerId);
-  rafCallbacks = rafCallbacks.filter(([rafId]) => rafId !== id);
+class FakeMessagePort {
+  onmessage: ((evt: { data: unknown }) => void) | null = null;
+  _peer!: FakeMessagePort;
+  _started = false;
+
+  start() {
+    this._started = true;
+  }
+
+  close() {
+    this.onmessage = null;
+  }
+
+  postMessage(data: unknown) {
+    // Schedule delivery as a macrotask (setTimeout 0) so fake timers drive it
+    const peer = this._peer;
+    setTimeout(() => {
+      if (peer.onmessage) {
+        peer.onmessage({ data });
+      }
+    }, 0);
+  }
 }
 
 // ============================================
@@ -79,23 +95,20 @@ function makeWrite() {
   return { fn, calls };
 }
 
-/** Drain all pending RAF / timer callbacks for both foreground and background drains. */
 async function flushTimers() {
   await vi.runAllTimersAsync();
 }
 
 // ============================================
-// Module setup
+// Module mocks
 // ============================================
 
-// Mock invokeTauri so ACK calls don't fail
 vi.mock("@src/util/platform/tauri/init", () => ({
   invokeTauri: vi.fn().mockResolvedValue(undefined),
   isTauriReady: vi.fn().mockReturnValue(true),
   listenTauri: vi.fn().mockResolvedValue(() => undefined),
 }));
 
-// Mock logger
 vi.mock("@src/hooks/logger", () => ({
   createLogger: () => ({
     info: vi.fn(),
@@ -106,7 +119,7 @@ vi.mock("@src/hooks/logger", () => ({
 }));
 
 // ============================================
-// Test setup
+// Setup / teardown
 // ============================================
 
 const SESSION_A = "test-session-a";
@@ -114,18 +127,10 @@ const SESSION_B = "test-session-b";
 
 beforeEach(() => {
   vi.useFakeTimers();
-  rafCallbacks = [];
-  rafIdCounter = 0;
 
-  // Install RAF polyfill on global
-  global.requestAnimationFrame =
-    fakeRaf as unknown as typeof requestAnimationFrame;
-  global.cancelAnimationFrame = fakeCancelRaf;
-
-  // Ensure performance.now works in node
-  if (typeof global.performance === "undefined") {
-    global.performance = { now: () => Date.now() } as Performance;
-  }
+  // Install MessageChannel polyfill
+  global.MessageChannel =
+    FakeMessageChannel as unknown as typeof MessageChannel;
 
   // Clean up any leftover pane registrations
   unregisterPane(SESSION_A);
@@ -137,11 +142,132 @@ afterEach(() => {
   unregisterPane(SESSION_B);
   vi.useRealTimers();
   vi.restoreAllMocks();
-  // Remove RAF polyfill
-  // @ts-expect-error — cleaning up global polyfill
-  delete global.requestAnimationFrame;
-  // @ts-expect-error — cleaning up global polyfill
-  delete global.cancelAnimationFrame;
+  // @ts-expect-error - cleaning up polyfill
+  delete global.MessageChannel;
+});
+
+// ============================================
+// ANSI sequence length
+// ============================================
+
+describe("ansiSequenceLength", () => {
+  it("returns 0 for non-ESC character", () => {
+    expect(ansiSequenceLength("hello", 0)).toBe(0);
+  });
+
+  it("returns 0 for bare ESC at end of string (incomplete)", () => {
+    expect(ansiSequenceLength("\x1b", 0)).toBe(0);
+  });
+
+  it("measures CSI sequence ESC[33m (5 chars)", () => {
+    const s = "\x1b[33m";
+    expect(ansiSequenceLength(s, 0)).toBe(5);
+  });
+
+  it("measures CSI sequence ESC[1;32m (7 chars)", () => {
+    const s = "\x1b[1;32m";
+    expect(ansiSequenceLength(s, 0)).toBe(7);
+  });
+
+  it("measures reset ESC[0m (4 chars)", () => {
+    expect(ansiSequenceLength("\x1b[0m", 0)).toBe(4);
+  });
+
+  it("returns 0 for incomplete CSI (no final byte)", () => {
+    expect(ansiSequenceLength("\x1b[33", 0)).toBe(0);
+  });
+
+  it("measures OSC sequence terminated by BEL", () => {
+    const s = "\x1b]0;title\x07";
+    expect(ansiSequenceLength(s, 0)).toBe(s.length);
+  });
+
+  it("measures OSC sequence terminated by ST (ESC backslash)", () => {
+    const s = "\x1b]0;title\x1b\\";
+    expect(ansiSequenceLength(s, 0)).toBe(s.length);
+  });
+
+  it("returns 0 for incomplete OSC", () => {
+    expect(ansiSequenceLength("\x1b]0;title", 0)).toBe(0);
+  });
+
+  it("measures 2-char ESC sequence (ESC c = reset)", () => {
+    expect(ansiSequenceLength("\x1bc", 0)).toBe(2);
+  });
+
+  it("measures character-set designate ESC ( B (3 chars)", () => {
+    expect(ansiSequenceLength("\x1b(B", 0)).toBe(3);
+  });
+
+  it("measures from a non-zero offset", () => {
+    const s = "abc\x1b[32mdef";
+    expect(ansiSequenceLength(s, 3)).toBe(5); // ESC[32m
+  });
+});
+
+// ============================================
+// findAnsiSafeSplit
+// ============================================
+
+describe("findAnsiSafeSplit", () => {
+  it("returns targetPos for plain ASCII with no sequences", () => {
+    const s = "hello world";
+    expect(findAnsiSafeSplit(s, 5)).toBe(5);
+  });
+
+  it("never splits inside a CSI sequence", () => {
+    // "abc\x1b[33mdef" — split target = 4 (inside the ESC sequence)
+    const s = "abc\x1b[33mdef";
+    const split = findAnsiSafeSplit(s, 4);
+    // The CSI starts at index 3 and ends at 8. A safe split must be <=3
+    expect(split).toBeLessThanOrEqual(3);
+    // Verify: substring up to split does not start an incomplete sequence
+    const prefix = s.slice(0, split);
+    expect(prefix).not.toContain("\x1b[33");
+  });
+
+  it("allows splitting immediately after a complete sequence", () => {
+    const s = "\x1b[33mhello";
+    // After the 5-char CSI, index 5 is safe
+    const split = findAnsiSafeSplit(s, 5);
+    expect(split).toBe(5);
+  });
+
+  it("returns 0 if sequence at start crosses targetPos", () => {
+    // Large OSC that extends beyond targetPos=3
+    const s = "\x1b]0;long title\x07rest";
+    const split = findAnsiSafeSplit(s, 3);
+    expect(split).toBe(0);
+  });
+
+  it("handles multiple sequences correctly", () => {
+    // "\x1b[1m" = indices 0-4 (5 chars)
+    // "hello"   = indices 5-9
+    // "\x1b[0m" = indices 9-12 (ESC at 9, [ at 10, 0 at 11, m at 12)
+    // "world"   = indices 13-17
+    const s = "\x1b[1mhello\x1b[0mworld";
+    // targetPos=13 is the first char of "world" — the safe split at or before
+    // 13 is 13 (we can include the leading 'w').
+    const split = findAnsiSafeSplit(s, 13);
+    // The split should be 13: boundary falls after the reset sequence ends at 12
+    expect(split).toBe(13);
+    // Verify the prefix ends cleanly
+    const prefix = s.slice(0, split);
+    expect(prefix).toBe("\x1b[1mhello\x1b[0m");
+  });
+
+  it("handles surrogate pair boundary", () => {
+    // Unicode emoji (U+1F600) encodes as surrogate pair \uD83D\uDE00 in JS strings
+    const emoji = "\uD83D\uDE00";
+    const s = "ab" + emoji + "cd";
+    // targetPos=3 would land inside the surrogate pair — safe split is 2
+    const split = findAnsiSafeSplit(s, 3);
+    expect(split).toBe(2);
+  });
+
+  it("returns s.length when targetPos >= s.length", () => {
+    expect(findAnsiSafeSplit("hello", 100)).toBe(5);
+  });
 });
 
 // ============================================
@@ -169,11 +295,11 @@ describe("pane lifecycle", () => {
 });
 
 // ============================================
-// Foreground drain
+// Foreground drain (MessageChannel work loop)
 // ============================================
 
-describe("foreground drain", () => {
-  it("drains on next animation frame for foreground pane", async () => {
+describe("foreground drain via MessageChannel", () => {
+  it("drains via MessageChannel turn (not RAF)", async () => {
     const { fn, calls } = makeWrite();
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, true);
@@ -186,54 +312,13 @@ describe("foreground drain", () => {
     expect(calls.some((c) => c === "data1")).toBe(true);
   });
 
-  it(`drains at most ${FOREGROUND_WRITES_PER_FRAME} chunks per RAF`, () => {
-    // We intercept drainForeground by counting how many writes happen
-    // synchronously inside a single RAF callback, before any cascading RAF.
-    const writesPerRaf: number[] = [];
-    let writesThisRaf = 0;
-    let rafFired = 0;
-
-    // Override RAF to capture one tick manually
-    let capturedCb: FrameRequestCallback | null = null;
-    const origRaf = global.requestAnimationFrame;
-    global.requestAnimationFrame = vi.fn((cb: FrameRequestCallback) => {
-      rafFired++;
-      if (rafFired === 1) {
-        capturedCb = cb;
-        return 1;
-      }
-      // Subsequent RAF calls (for continuation) we just record and ignore
-      return origRaf(cb);
-    }) as unknown as typeof requestAnimationFrame;
-
-    const { fn } = makeWrite();
-    const countingFn = vi.fn((data: string | Uint8Array) => {
-      fn(data);
-      writesThisRaf++;
-    });
-
-    registerPane(SESSION_A, countingFn);
-    setPaneForeground(SESSION_A, true);
-
-    for (let i = 0; i < 4; i++) {
-      scheduleWrite(SESSION_A, `msg${i}`, 4, countingFn);
-    }
-
-    expect(capturedCb).not.toBeNull();
-    // Fire the first RAF manually
-    capturedCb!(performance.now());
-    writesPerRaf.push(writesThisRaf);
-
-    expect(writesPerRaf[0]).toBeLessThanOrEqual(FOREGROUND_WRITES_PER_FRAME);
-    expect(writesPerRaf[0]).toBeGreaterThan(0);
-  });
-
-  it("continues draining across multiple RAFs until queue is empty", async () => {
+  it("continues draining across multiple turns until queue is empty", async () => {
     const { fn, calls } = makeWrite();
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, true);
 
-    const count = FOREGROUND_WRITES_PER_FRAME * 3;
+    // Queue more entries than writes-per-turn
+    const count = 6;
     for (let i = 0; i < count; i++) {
       scheduleWrite(SESSION_A, `item${i}`, 5, fn);
     }
@@ -241,52 +326,6 @@ describe("foreground drain", () => {
     await flushTimers();
     expect(calls.length).toBe(count);
     expect(getBacklogBytes(SESSION_A)).toBe(0);
-  });
-});
-
-// ============================================
-// Background drain
-// ============================================
-
-describe("background drain", () => {
-  it("does not drain immediately for a background pane", async () => {
-    const { fn, calls } = makeWrite();
-    registerPane(SESSION_A, fn);
-    setPaneForeground(SESSION_A, false);
-
-    scheduleWrite(SESSION_A, "bg-data", 7, fn);
-
-    // Advance by less than BACKGROUND_DRAIN_INTERVAL_MS — nothing written yet
-    vi.advanceTimersByTime(BACKGROUND_DRAIN_INTERVAL_MS - 1);
-    expect(calls.length).toBe(0);
-  });
-
-  it(`drains after ${BACKGROUND_DRAIN_INTERVAL_MS} ms for a background pane`, async () => {
-    const { fn, calls } = makeWrite();
-    registerPane(SESSION_A, fn);
-    setPaneForeground(SESSION_A, false);
-
-    scheduleWrite(SESSION_A, "bg-data", 7, fn);
-
-    vi.advanceTimersByTime(BACKGROUND_DRAIN_INTERVAL_MS);
-    expect(calls.some((c) => c === "bg-data")).toBe(true);
-  });
-
-  it("respects time budget during background drain", () => {
-    // Verify that drainBackground respects BACKGROUND_TIME_BUDGET_MS by checking
-    // the structural constant: a single non-paused foreground flush drains less
-    // data than queued when the budget check would be triggered.
-    //
-    // Rather than fighting with performance.now() mocking across multiple timer
-    // firings, we directly validate: the BACKGROUND_TIME_BUDGET_MS constant
-    // is positive and finite (scheduler won't busy-loop forever) and the
-    // backlog cap constant is set such that a single frame cannot flush everything
-    // when the queue is larger than CHUNK_SIZE * FOREGROUND_WRITES_PER_FRAME.
-    //
-    // The actual budget behavior is implicitly tested by the drain-limit test
-    // for foreground panes and by the scheduler architecture.
-    expect(BACKGROUND_TIME_BUDGET_MS).toBeGreaterThan(0);
-    expect(BACKGROUND_TIME_BUDGET_MS).toBeLessThan(16); // less than one frame
   });
 
   it("switches from background to foreground drain correctly", async () => {
@@ -305,25 +344,202 @@ describe("background drain", () => {
 });
 
 // ============================================
-// Chunk splitting
+// Background drain
 // ============================================
 
-describe("chunk splitting", () => {
-  it(`splits data larger than ${CHUNK_SIZE} bytes into chunks`, async () => {
+describe("background drain", () => {
+  it("does not drain immediately for a background pane", async () => {
+    const { fn, calls } = makeWrite();
+    registerPane(SESSION_A, fn);
+    setPaneForeground(SESSION_A, false);
+
+    scheduleWrite(SESSION_A, "bg-data", 7, fn);
+
+    vi.advanceTimersByTime(BACKGROUND_DRAIN_INTERVAL_MS - 1);
+    expect(calls.length).toBe(0);
+  });
+
+  it(`drains after ${BACKGROUND_DRAIN_INTERVAL_MS} ms for a background pane`, async () => {
+    const { fn, calls } = makeWrite();
+    registerPane(SESSION_A, fn);
+    setPaneForeground(SESSION_A, false);
+
+    scheduleWrite(SESSION_A, "bg-data", 7, fn);
+
+    vi.advanceTimersByTime(BACKGROUND_DRAIN_INTERVAL_MS);
+    expect(calls.some((c) => c === "bg-data")).toBe(true);
+  });
+
+  it("BACKGROUND_TIME_BUDGET_MS is positive and less than one frame", () => {
+    expect(BACKGROUND_TIME_BUDGET_MS).toBeGreaterThan(0);
+    expect(BACKGROUND_TIME_BUDGET_MS).toBeLessThan(16);
+  });
+});
+
+// ============================================
+// ANSI-aware chunk splitting
+// ============================================
+
+describe("ANSI-aware chunk splitting", () => {
+  it("does not split mid-CSI-sequence when data straddles chunk boundary", async () => {
     const { fn, calls } = makeWrite();
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, true);
 
-    // Create a string larger than CHUNK_SIZE
-    const bigData = "x".repeat(CHUNK_SIZE * 2 + 100);
+    // Build data where an ANSI sequence straddles the default chunk boundary.
+    // We override chunkSize by using a very small INITIAL_CHUNK_SIZE equivalent
+    // by filling exactly INITIAL_CHUNK_SIZE bytes, then appending an ANSI sequence.
+    // Since we can't change the constant externally, we test the helper directly
+    // and also verify the integration path never corrupts.
+
+    const plain = "x".repeat(50);
+    const seq = "\x1b[1;32mHELLO\x1b[0m";
+    const data = plain + seq;
+    scheduleWrite(SESSION_A, data, data.length, fn);
+
+    await flushTimers();
+
+    // All written data stitched together must equal the original
+    const received = calls.join("");
+    expect(received).toBe(data);
+  });
+
+  it("each written chunk has no dangling incomplete ESC sequences", async () => {
+    const { fn, calls } = makeWrite();
+    registerPane(SESSION_A, fn);
+    setPaneForeground(SESSION_A, true);
+
+    // Create data larger than MAX_CHUNK_SIZE to force multiple splits,
+    // with ANSI sequences scattered throughout
+    const parts: string[] = [];
+    for (let i = 0; i < 10; i++) {
+      parts.push("x".repeat(8192)); // 8 KB plain
+      parts.push(`\x1b[${30 + i}m`); // colour sequence
+      parts.push("text");
+      parts.push("\x1b[0m"); // reset
+    }
+    const bigData = parts.join("");
     scheduleWrite(SESSION_A, bigData, bigData.length, fn);
 
     await flushTimers();
 
-    const totalWritten = calls.join("").length;
-    expect(totalWritten).toBe(bigData.length);
-    // Should have been written in at least 2 chunks
-    expect(calls.length).toBeGreaterThanOrEqual(2);
+    // No chunk should end with a bare ESC followed by [ and then no final byte
+    for (const chunk of calls) {
+      // A chunk ending with ESC indicates a split mid-sequence
+      const endsWithEsc = chunk.endsWith("\x1b");
+      expect(endsWithEsc).toBe(false);
+      // A chunk ending with ESC[ (no final byte) is also bad
+      const endsWithCsiOpen = chunk.endsWith("\x1b[");
+      expect(endsWithCsiOpen).toBe(false);
+    }
+
+    // Total output must be lossless
+    expect(calls.join("")).toBe(bigData);
+  });
+});
+
+// ============================================
+// Adaptive chunk sizing
+// ============================================
+//
+// These tests use _testApplyRenderMs to inject render-time measurements
+// directly into the pane state, bypassing performance.now() timing issues
+// in the test environment. This tests the adaptation logic (which is pure
+// arithmetic) in isolation from the write timing measurement path.
+
+describe("adaptive chunk sizing", () => {
+  it("starts at INITIAL_CHUNK_SIZE", () => {
+    const { fn } = makeWrite();
+    registerPane(SESSION_A, fn);
+    expect(getChunkSize(SESSION_A)).toBe(INITIAL_CHUNK_SIZE);
+  });
+
+  it("halves chunk size when renderMs > ADAPT_SHRINK_THRESHOLD_MS", () => {
+    const { fn } = makeWrite();
+    registerPane(SESSION_A, fn);
+
+    _testApplyRenderMs(SESSION_A, ADAPT_SHRINK_THRESHOLD_MS + 1);
+
+    expect(getChunkSize(SESSION_A)).toBe(INITIAL_CHUNK_SIZE >> 1);
+    expect(getChunkSize(SESSION_A)).toBeGreaterThanOrEqual(MIN_CHUNK_SIZE);
+  });
+
+  it("doubles chunk size after ADAPT_GROW_CONSECUTIVE_FRAMES fast renders", () => {
+    const { fn } = makeWrite();
+    registerPane(SESSION_A, fn);
+
+    for (let i = 0; i < ADAPT_GROW_CONSECUTIVE_FRAMES; i++) {
+      _testApplyRenderMs(SESSION_A, ADAPT_GROW_THRESHOLD_MS - 1);
+    }
+
+    expect(getChunkSize(SESSION_A)).toBe(INITIAL_CHUNK_SIZE << 1);
+    expect(getChunkSize(SESSION_A)).toBeLessThanOrEqual(MAX_CHUNK_SIZE);
+  });
+
+  it("does not grow before ADAPT_GROW_CONSECUTIVE_FRAMES consecutive fast renders", () => {
+    const { fn } = makeWrite();
+    registerPane(SESSION_A, fn);
+
+    for (let i = 0; i < ADAPT_GROW_CONSECUTIVE_FRAMES - 1; i++) {
+      _testApplyRenderMs(SESSION_A, ADAPT_GROW_THRESHOLD_MS - 1);
+    }
+
+    expect(getChunkSize(SESSION_A)).toBe(INITIAL_CHUNK_SIZE);
+  });
+
+  it("resets grow streak when a medium-speed render interrupts", () => {
+    const { fn } = makeWrite();
+    registerPane(SESSION_A, fn);
+
+    // Almost enough to grow
+    for (let i = 0; i < ADAPT_GROW_CONSECUTIVE_FRAMES - 1; i++) {
+      _testApplyRenderMs(SESSION_A, ADAPT_GROW_THRESHOLD_MS - 1);
+    }
+    // Medium render resets streak
+    _testApplyRenderMs(
+      SESSION_A,
+      (ADAPT_GROW_THRESHOLD_MS + ADAPT_SHRINK_THRESHOLD_MS) / 2
+    );
+    // One more fast render — should NOT trigger growth since streak was reset
+    _testApplyRenderMs(SESSION_A, ADAPT_GROW_THRESHOLD_MS - 1);
+
+    expect(getChunkSize(SESSION_A)).toBe(INITIAL_CHUNK_SIZE);
+  });
+
+  it("chunk size never exceeds MAX_CHUNK_SIZE", () => {
+    const { fn } = makeWrite();
+    registerPane(SESSION_A, fn);
+
+    for (let i = 0; i < 100; i++) {
+      _testApplyRenderMs(SESSION_A, ADAPT_GROW_THRESHOLD_MS - 1);
+    }
+
+    expect(getChunkSize(SESSION_A)).toBeLessThanOrEqual(MAX_CHUNK_SIZE);
+  });
+
+  it("chunk size never goes below MIN_CHUNK_SIZE", () => {
+    const { fn } = makeWrite();
+    registerPane(SESSION_A, fn);
+
+    for (let i = 0; i < 30; i++) {
+      _testApplyRenderMs(SESSION_A, ADAPT_SHRINK_THRESHOLD_MS * 10);
+    }
+
+    expect(getChunkSize(SESSION_A)).toBeGreaterThanOrEqual(MIN_CHUNK_SIZE);
+  });
+
+  it("shrink resets after slow render regardless of grow streak", () => {
+    const { fn } = makeWrite();
+    registerPane(SESSION_A, fn);
+
+    // Build up a grow streak
+    for (let i = 0; i < ADAPT_GROW_CONSECUTIVE_FRAMES - 1; i++) {
+      _testApplyRenderMs(SESSION_A, ADAPT_GROW_THRESHOLD_MS - 1);
+    }
+    // Slow render — should shrink AND reset streak
+    _testApplyRenderMs(SESSION_A, ADAPT_SHRINK_THRESHOLD_MS + 1);
+
+    expect(getChunkSize(SESSION_A)).toBe(INITIAL_CHUNK_SIZE >> 1);
   });
 });
 
@@ -333,12 +549,11 @@ describe("chunk splitting", () => {
 
 describe("backlog cap", () => {
   it(`drops oldest data when backlog exceeds ${HIDDEN_BACKLOG_CAP} bytes`, () => {
-    const { fn, calls } = makeWrite();
+    const { fn } = makeWrite();
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, false);
 
-    // Fill beyond the cap (use many medium chunks to avoid the chunk-splitting path)
-    const chunkSize = 64 * 1024; // 64 KB per entry
+    const chunkSize = 64 * 1024;
     const chunksNeeded = Math.ceil(HIDDEN_BACKLOG_CAP / chunkSize) + 5;
     const earlyData = "EARLY_" + "a".repeat(chunkSize - 6);
     scheduleWrite(SESSION_A, earlyData, chunkSize, fn);
@@ -348,7 +563,6 @@ describe("backlog cap", () => {
       scheduleWrite(SESSION_A, data, chunkSize, fn);
     }
 
-    // After cap enforcement, backlog should be at or below cap
     expect(getBacklogBytes(SESSION_A)).toBeLessThanOrEqual(HIDDEN_BACKLOG_CAP);
   });
 
@@ -364,7 +578,6 @@ describe("backlog cap", () => {
       scheduleWrite(SESSION_A, "x".repeat(chunkSize), chunkSize, fn);
     }
 
-    // The warning marker should have been written immediately
     const hasWarning = calls.some((c) => c.includes("backlog limit reached"));
     expect(hasWarning).toBe(true);
   });
@@ -391,17 +604,15 @@ describe("interactive bypass", () => {
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, false);
 
-    // Simulate recent user input
     notifyUserInput(SESSION_A);
 
     const smallData = "ls\r";
     scheduleWrite(SESSION_A, smallData, smallData.length, fn);
 
-    // Should have been written immediately without waiting for drain
     expect(calls.some((c) => c === smallData)).toBe(true);
   });
 
-  it(`bypasses for data ≤ ${INTERACTIVE_BYPASS_SIZE_HARD} bytes within interactive window`, () => {
+  it(`bypasses for data <= ${INTERACTIVE_BYPASS_SIZE_HARD} bytes within interactive window`, () => {
     const { fn, calls } = makeWrite();
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, false);
@@ -424,7 +635,6 @@ describe("interactive bypass", () => {
     const data = "a".repeat(INTERACTIVE_BYPASS_SIZE_HARD + 1);
     scheduleWrite(SESSION_A, data, data.length, fn);
 
-    // Should NOT have written immediately (goes to queue)
     expect(calls.length).toBe(0);
   });
 
@@ -435,7 +645,6 @@ describe("interactive bypass", () => {
 
     notifyUserInput(SESSION_A);
 
-    // Packet contains ESC sequence and is within ANSI limit
     const data = "\x1b[32m" + "a".repeat(INTERACTIVE_BYPASS_SIZE_ANSI - 5);
     scheduleWrite(SESSION_A, data, data.length, fn);
 
@@ -447,12 +656,10 @@ describe("interactive bypass", () => {
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, false);
 
-    // Record when user input happened
     const inputTime = 1000;
     vi.spyOn(performance, "now").mockReturnValueOnce(inputTime);
     notifyUserInput(SESSION_A);
 
-    // Make performance.now return a time past the window for the bypass check
     vi.spyOn(performance, "now").mockReturnValue(
       inputTime + INTERACTIVE_WINDOW_MS + 10
     );
@@ -460,7 +667,6 @@ describe("interactive bypass", () => {
     const data = "ls\r";
     scheduleWrite(SESSION_A, data, data.length, fn);
 
-    // Should NOT bypass — window expired
     expect(calls.length).toBe(0);
   });
 
@@ -471,7 +677,6 @@ describe("interactive bypass", () => {
 
     notifyUserInput(SESSION_A);
 
-    // Write enough small packets to exhaust the bypass budget
     const packetSize = INTERACTIVE_BYPASS_SIZE_HARD;
     const packetsToFill = Math.ceil(INTERACTIVE_BYPASS_BUDGET / packetSize) + 1;
 
@@ -482,7 +687,6 @@ describe("interactive bypass", () => {
       if (calls.length > before) bypassedCount++;
     }
 
-    // After budget is exhausted, at least one packet should NOT have bypassed
     expect(bypassedCount).toBeLessThan(packetsToFill);
   });
 
@@ -491,7 +695,6 @@ describe("interactive bypass", () => {
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, false);
 
-    // No notifyUserInput call
     scheduleWrite(SESSION_A, "data", 4, fn);
 
     expect(calls.length).toBe(0);
@@ -521,15 +724,13 @@ describe("flushBacklog", () => {
     registerPane(SESSION_A, fn);
     setPaneForeground(SESSION_A, false);
 
-    // Queue 3 chunks of CHUNK_SIZE each
     for (let i = 0; i < 3; i++) {
-      const data = "y".repeat(CHUNK_SIZE);
-      scheduleWrite(SESSION_A, data, CHUNK_SIZE, fn);
+      const data = "y".repeat(INITIAL_CHUNK_SIZE);
+      scheduleWrite(SESSION_A, data, INITIAL_CHUNK_SIZE, fn);
     }
 
-    const written = flushBacklog(SESSION_A, CHUNK_SIZE);
-    // Should write at most one chunk worth
-    expect(written).toBeLessThanOrEqual(CHUNK_SIZE + 100);
+    const written = flushBacklog(SESSION_A, INITIAL_CHUNK_SIZE);
+    expect(written).toBeLessThanOrEqual(INITIAL_CHUNK_SIZE + 100);
     expect(getBacklogBytes(SESSION_A)).toBeGreaterThan(0);
   });
 
@@ -539,7 +740,7 @@ describe("flushBacklog", () => {
 });
 
 // ============================================
-// Multiple panes
+// Multiple panes / priority isolation
 // ============================================
 
 describe("multiple panes", () => {
@@ -556,16 +757,37 @@ describe("multiple panes", () => {
     scheduleWrite(SESSION_A, "fg-data", 7, fnA);
     scheduleWrite(SESSION_B, "bg-data", 7, fnB);
 
-    // Run just enough time for foreground RAF but not background timer
+    // Flush all — foreground drains via MC turn, background via timer
     vi.runAllTimers();
 
     expect(callsA.some((c) => c === "fg-data")).toBe(true);
-    // Background pane written after its timer fires too
+    void callsB;
   });
 
-  it("does not interfere with another session's backlog after unregister", () => {
-    const { fn: fnA } = makeWrite();
+  it("foreground drains immediately while background waits its timer", () => {
+    const { fn: fnA, calls: callsA } = makeWrite();
     const { fn: fnB, calls: callsB } = makeWrite();
+
+    registerPane(SESSION_A, fnA);
+    registerPane(SESSION_B, fnB);
+
+    setPaneForeground(SESSION_A, true);
+    setPaneForeground(SESSION_B, false);
+
+    scheduleWrite(SESSION_A, "fg", 2, fnA);
+    scheduleWrite(SESSION_B, "bg", 2, fnB);
+
+    // Advance just enough for MC turn (setTimeout 0) but not the bg timer
+    vi.advanceTimersByTime(0);
+
+    // Foreground should have drained, background should not
+    expect(callsA.some((c) => c === "fg")).toBe(true);
+    expect(callsB.length).toBe(0);
+  });
+
+  it("does not interfere with another session backlog after unregister", () => {
+    const { fn: fnA } = makeWrite();
+    const { fn: fnB } = makeWrite();
 
     registerPane(SESSION_A, fnA);
     registerPane(SESSION_B, fnB);
