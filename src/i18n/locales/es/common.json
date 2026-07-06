@@ -1421,8 +1421,9 @@
       "planSupport": "Plan",
       "byokSupport": "Keys",
       "incompatible": "Incompatible",
-      "manageModels": "Añadir / Gestionar modelos",
-      "manageKeys": "Añadir / Gestionar claves"
+      "manageModels": "Gestionar modelos",
+      "manageKeys": "Gestionar claves",
+      "manageAgents": "Gestionar Agents"
     },
     "editorSpotlight": {
       "searchPlaceholder": "Buscar comandos...",

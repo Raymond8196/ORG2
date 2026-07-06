@@ -1,3 +1,4 @@
+import { useAtomValue, useSetAtom } from "jotai";
 import { Plus, RefreshCw } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -5,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import type { ModelType } from "@src/api/types/keys";
 import Button from "@src/components/Button";
 import ModelIcon from "@src/components/ModelIcon";
+import { MODEL_TABLE_SWITCH_SIZE } from "@src/components/ModelTable/types";
 import type { SelectOption } from "@src/components/Select";
 import SettingsTable, {
   SETTINGS_TABLE_CELL,
@@ -13,11 +15,17 @@ import SettingsTable, {
   type SettingsTableSelectFilter,
 } from "@src/components/SettingsTable";
 import StatusDot from "@src/components/StatusDot";
+import Switch from "@src/components/Switch";
 import Tag from "@src/components/Tag";
 import type { AvailableAgent } from "@src/config/cliAgents";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 import { useRefreshSpin } from "@src/hooks/ui";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import {
+  cliAgentVisibilityOverridesAtom,
+  isCliAgentEnabled,
+  setCliAgentEnabledAtom,
+} from "@src/store/session";
 import { openAgentConfigInWorkStation } from "@src/util/ui/openAgentConfigInWorkStation";
 
 import CliClientInlineExpandedCard, {
@@ -78,6 +86,8 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
     INSTALL_FILTER.ALL
   );
   const [readyFilter, setReadyFilter] = useState<ReadyFilter>(READY_FILTER.ALL);
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
+  const setCliAgentEnabled = useSetAtom(setCliAgentEnabledAtom);
   const { spinClass, handleClick: handleRefreshClick } = useRefreshSpin(
     fetchAgents ?? (() => undefined),
     loading
@@ -147,6 +157,13 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
       cliAgentType: agent.name,
     });
   }, []);
+
+  const handleEnabledChange = useCallback(
+    (agent: AvailableAgent, enabled: boolean) => {
+      setCliAgentEnabled(agent.name, enabled, agent.installed);
+    },
+    [setCliAgentEnabled]
+  );
 
   const cliSelectFilters = useMemo<SettingsTableSelectFilter[]>(
     () => [
@@ -228,30 +245,71 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
         },
       },
       {
-        key: "actions",
+        key: "enabled",
         label: (
           <span className="sr-only">
-            {tIntegrations("common:labels.actions", {
-              defaultValue: "Actions",
+            {tIntegrations("common:labels.status", {
+              defaultValue: "Status",
             })}
           </span>
         ),
         width: SETTINGS_TABLE_COL.hug,
         align: "right",
-        renderCell: (agent) => (
-          <div onClick={(event) => event.stopPropagation()}>
-            <Button
-              variant="secondary"
-              size="small"
-              onClick={() => handleViewAgent(agent)}
+        sorter: (agentA, agentB) => {
+          const enabledA = isCliAgentEnabled(
+            agentA.name,
+            agentA.installed,
+            cliVisibilityOverrides
+          );
+          const enabledB = isCliAgentEnabled(
+            agentB.name,
+            agentB.installed,
+            cliVisibilityOverrides
+          );
+          return Number(enabledA) - Number(enabledB);
+        },
+        renderCell: (agent) => {
+          const enabled = isCliAgentEnabled(
+            agent.name,
+            agent.installed,
+            cliVisibilityOverrides
+          );
+          return (
+            <div
+              className="flex items-center justify-end gap-2 whitespace-nowrap"
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
             >
-              {tIntegrations("common:actions.view", { defaultValue: "View" })}
-            </Button>
-          </div>
-        ),
+              <Switch
+                size={MODEL_TABLE_SWITCH_SIZE}
+                checked={enabled}
+                onChange={(nextEnabled) =>
+                  handleEnabledChange(agent, nextEnabled)
+                }
+                ariaLabel={tIntegrations("common:labels.enabled", {
+                  defaultValue: "Enabled",
+                })}
+              />
+              <Button
+                variant="secondary"
+                size="small"
+                onClick={() => handleViewAgent(agent)}
+              >
+                {tIntegrations("common:actions.view", { defaultValue: "View" })}
+              </Button>
+            </div>
+          );
+        },
       },
     ],
-    [t, tIntegrations, subscriptionsByAgent, handleViewAgent]
+    [
+      t,
+      tIntegrations,
+      subscriptionsByAgent,
+      cliVisibilityOverrides,
+      handleEnabledChange,
+      handleViewAgent,
+    ]
   );
 
   const renderExpandedAgentCard = useCallback(

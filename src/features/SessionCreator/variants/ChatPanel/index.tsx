@@ -59,8 +59,10 @@ import {
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
+  cliAgentVisibilityOverridesAtom,
   cliLaunchModeAtom,
   dispatchCategoryAtom,
+  isCliAgentEnabled,
   selectedAgentDefinitionIdAtom,
   selectedAgentOrgIdAtom,
   sessionCreatorStateAtom,
@@ -172,6 +174,14 @@ const SessionCreatorChatPanelSingle: React.FC<
   const { registry } = useAgentCompatibility();
   const { orgs } = useAgentOrgs();
   const { agents: cliAgentList } = useCliAgents({ enabled: true });
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
+  const enabledCliAgentList = useMemo(
+    () =>
+      cliAgentList.filter((agent) =>
+        isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
+  );
 
   // Read atoms needed before useSessionCreator so we can pass derived values in.
   const dispatchCategory = useAtomValue(dispatchCategoryAtom);
@@ -182,9 +192,9 @@ const SessionCreatorChatPanelSingle: React.FC<
   const selectedCliAgent = useMemo(
     () =>
       dispatchCategory === "cli_agent" && cliAgentType
-        ? cliAgentList.find((agent) => agent.name === cliAgentType)
+        ? enabledCliAgentList.find((agent) => agent.name === cliAgentType)
         : undefined,
-    [dispatchCategory, cliAgentType, cliAgentList]
+    [dispatchCategory, cliAgentType, enabledCliAgentList]
   );
   const selectedCliAgentSupportsGui = selectedCliAgent?.supportsGui === true;
   const selectedCliAgentGuiSupportKnown = Boolean(selectedCliAgent);
@@ -1016,7 +1026,7 @@ const SessionCreatorChatPanelSingle: React.FC<
                 advancedConfig={advancedConfig}
                 onAdvancedConfigChange={handleAdvancedConfigChange}
                 allAgents={allAgentDefinitions}
-                cliAgents={cliAgentList}
+                cliAgents={enabledCliAgentList}
               />
             </div>
           )}

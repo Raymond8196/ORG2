@@ -301,7 +301,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             binary: "goose",
             description: "Block's open-source AI coding agent",
             brand_color: "#2563EB",
-            docs_url: "https://block.github.io/goose/docs/installation",
+            docs_url: "https://goose-docs.ai/docs/category/getting-started/",
             has_subscription_plan: false,
             compatible_api_providers: &[
                 "openai_api",
