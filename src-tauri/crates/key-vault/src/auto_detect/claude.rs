@@ -250,11 +250,7 @@ async fn detect_claude_code_oauth() -> Option<DetectedKey> {
         return None;
     }
 
-    let mut credential = create_detected_key(
-        "claude_code_oauth_local",
-        "Claude Code OAuth (Local Login)",
-        "oauth",
-    );
+    let mut credential = create_detected_key("claude_code_oauth_local", "Anthropic", "oauth");
     credential.session_token = Some(access_token.clone());
 
     let mut env_vars = HashMap::new();
@@ -502,15 +498,8 @@ fn normalize_metadata_field(value: Option<String>) -> Option<String> {
         .filter(|field| !field.is_empty())
 }
 
-fn claude_code_account_name(identity: &ClaudeCodeAccountIdentity) -> String {
-    match (&identity.email, &identity.organization_name) {
-        (Some(email), Some(organization_name)) => {
-            format!("Claude Code ({email} · {organization_name})")
-        }
-        (Some(email), None) => format!("Claude Code ({email})"),
-        (None, Some(organization_name)) => format!("Claude Code ({organization_name})"),
-        (None, None) => "Claude Code OAuth (Local Login)".to_string(),
-    }
+fn claude_code_account_name(_identity: &ClaudeCodeAccountIdentity) -> String {
+    "Anthropic".to_string()
 }
 
 fn claude_code_account_metadata(identity: ClaudeCodeAccountIdentity) -> HashMap<String, String> {

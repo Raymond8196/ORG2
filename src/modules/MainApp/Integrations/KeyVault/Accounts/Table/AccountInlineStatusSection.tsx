@@ -118,18 +118,10 @@ export const AccountInlineStatusSection: React.FC<
     (account.marketHealthStatus === "invalid" ||
       account.marketHealthStatus === "degraded");
 
-  const authMethodValue = (() => {
-    if (account.authMethod === "oauth") {
-      return account.modelType === CLI_AGENT.CURSOR
-        ? t("keyVault.info.oauthSessionCapture")
-        : account.modelType === CLI_AGENT.COPILOT
-          ? t("keyVault.info.oauthGithubPat")
-          : account.modelType === CLI_AGENT.KIRO
-            ? t("keyVault.info.oauthAwsSso")
-            : t("keyVault.info.oauthLogin");
-    }
-    return t("keyVault.info.apiKey");
-  })();
+  const authMethodValue =
+    account.authMethod === "oauth"
+      ? t("keyVault.info.oauthLogin")
+      : t("keyVault.info.apiKey");
 
   const quotaSummary = useMemo(() => {
     if (!showQuota || !account.quotaInfo) return null;

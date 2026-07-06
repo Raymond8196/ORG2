@@ -68,7 +68,7 @@
       "title": "Hesap Bilgileri",
       "enable": "Etkinleştir",
       "authMethod": "Kimlik Doğrulama Yöntemi",
-      "oauthLogin": "OAuth (ChatGPT Giriş)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
