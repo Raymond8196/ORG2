@@ -202,7 +202,7 @@ pub async fn run_validate_key(
             Ok(validator.validate(&api_key, base_url.as_deref(), test_model.as_deref()).await)
         }
 
-        // Amazon Kiro - OAuth token (JSON or access_token)
+        // Kiro CLI - OAuth token (JSON or access_token)
         "kiro" => {
             let validator = KiroValidator::new();
             Ok(validator.validate(&api_key).await)

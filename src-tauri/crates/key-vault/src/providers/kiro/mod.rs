@@ -1,4 +1,4 @@
-//! Amazon Kiro OAuth Token Validation
+//! Kiro CLI OAuth Token Validation
 //!
 //! Validates Kiro OAuth tokens stored in:
 //! - macOS: Keychain (service="kirocli:odic:token") or ~/Library/Application Support/kiro-cli/data.sqlite3
