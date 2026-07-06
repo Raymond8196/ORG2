@@ -1,11 +1,7 @@
 export { default as AgentDetailHeader } from "./AgentDetailHeader";
 export { default as AutomationWorkflowStep } from "./AutomationWorkflowStep";
 export { BuiltInAgentDetailView } from "./BuiltInAgentDetailViews";
-export { default as ClaudeCodeConfigSection } from "./ClaudeCodeConfigSection";
-export { default as ClaudeCodeJsonEditor } from "./ClaudeCodeJsonEditor";
 export { default as CliAgentDetailView } from "./CliAgentDetailView";
-export { default as CodexConfigSection } from "./CodexConfigSection";
-export { default as CodexTomlEditor } from "./CodexTomlEditor";
 export { default as CommandCard } from "./CommandCard";
 export type {
   ActionVariable,
@@ -19,8 +15,6 @@ export type {
   SpotlightData,
   VariableCategory,
 } from "./CommandCard/types";
-export { default as CursorCliConfigSection } from "./CursorCliConfigSection";
-export { default as CursorJsonEditor } from "./CursorJsonEditor";
 export { default as CustomAgentDetailView } from "./CustomAgentDetailView";
 export type { CustomAgentExtraTab } from "./CustomAgentDetailView";
 export { EmptyWorkflowState } from "./EmptyWorkflowState";

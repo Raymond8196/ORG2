@@ -1672,7 +1672,11 @@
       "keyPreview": "Anahtar",
       "addedTime": "Eklendi",
       "secretBearingConfig": "API key veya Token içerebilir",
-      "revealConfigFile": "Dosya yöneticisinde göster"
+      "revealConfigFile": "Dosya yöneticisinde göster",
+      "configFiles": "Yapılandırma dosyaları",
+      "configFile": "Yapılandırma dosyası",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Yapılandırma içeriği yok"
     },
     "codexConfig": {
       "sectionTitle": "Yapılandırma",
