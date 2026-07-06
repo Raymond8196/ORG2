@@ -65,9 +65,10 @@ export function isLiveRuntimeResourceEvent(event: SessionEvent): boolean {
  * correctly. Modelling it once removes that latent conflict.
  *
  * - `idle` — no live runtime resource in the latest turn.
- * - `selfIndicating` — a running `await_output wait_for`: it renders its own
- *   live "Waiting {countdown} for …" title, which IS the activity indicator,
- *   so the planning footer would be a redundant second one.
+ * - `selfIndicating` — a running `await_output` (any command): it renders its
+ *   own live shimmer title ("Waiting {countdown} for …" for `wait_for`,
+ *   "Checking …" for `monitor`), which IS the activity indicator, so the
+ *   planning footer would be a redundant second row alongside it.
  * - `liveSilent` — a running resource (shell, etc.) with no self-evident
  *   indicator of its own; the planning footer is the thing that conveys "still
  *   alive", so it should stay.
@@ -88,13 +89,13 @@ export function classifyLatestTurnActivity(
     const event = events[i];
     if (event.source === "user") break;
     if (!isLiveRuntimeResourceEvent(event)) continue;
-    if (isAwaitOutputEvent(event) && isAwaitWaitForCommand(event.args)) {
-      // A running wait_for dominates: it self-indicates regardless of any
-      // sibling silent resource, so we can stop scanning.
+    if (isAwaitOutputEvent(event)) {
+      // Any running await_output (wait_for or monitor) renders its own
+      // loading title in TitleOnlyBlock. A second planning footer alongside
+      // it would appear as a duplicate activity indicator to the user.
       return "selfIndicating";
     }
-    // A running resource without its own indicator (incl. a non-wait_for
-    // await_output like `monitor`, which is a quick snapshot, or a shell).
+    // A running resource without its own indicator (shell, etc.).
     sawLiveSilent = true;
   }
   return sawLiveSilent ? "liveSilent" : "idle";
@@ -105,9 +106,9 @@ export function classifyLatestTurnActivity(
  * planning-indicator watchdog so it does not force-complete a session that is
  * genuinely still working (a long `wait_for`, a running shell, …).
  *
- * Unlike the pre-unification version, this now INCLUDES a running `wait_for`:
- * a blocked wait is genuine activity, so the watchdog should not kill it. The
- * footer is suppressed during a wait_for via `hasRunningAwaitWaitForInLatestTurn`
+ * Includes running `await_output` events: a blocked wait is genuine activity,
+ * so the watchdog should not kill it. The footer is suppressed during any
+ * running `await_output` via `hasRunningAwaitWaitForInLatestTurn`
  * (the `selfIndicating` case), not by pretending no resource is live.
  */
 export function hasLiveRuntimeResourceInLatestTurn(
@@ -125,43 +126,15 @@ function isAwaitOutputEvent(event: SessionEvent): boolean {
 
 /**
  * True when the latest turn's activity is self-indicating — i.e. a still-running
- * `await_output wait_for` whose own "Waiting {countdown} for …" title already
- * conveys "the agent is alive and blocked on a job". Callers suppress the
- * planning footer in this window so the user does not see two stacked waiting
- * indicators for the same wait. `monitor`/`list` are non-blocking snapshots and
- * never self-indicate, so the footer still shows for them.
+ * `await_output` (any command) whose own shimmer title ("Waiting … for …" for
+ * `wait_for`, "Checking …" for `monitor`) already conveys "the agent is alive".
+ * Callers suppress the planning footer in this window so the user does not see
+ * a duplicate activity indicator alongside the running TitleOnlyBlock.
  */
 export function hasRunningAwaitWaitForInLatestTurn(
   events: readonly SessionEvent[]
 ): boolean {
   return classifyLatestTurnActivity(events) === "selfIndicating";
-}
-
-/**
- * Resolve whether an `await_output` event is a blocking `wait_for` call.
- * Mirrors the adapter's `resolveAwaitCommand` inference: explicit `command`
- * wins; otherwise a present `pattern`/`wait_mode` implies `wait_for`.
- */
-function isAwaitWaitForCommand(args: unknown): boolean {
-  const parsed: Record<string, unknown> | undefined =
-    typeof args === "string"
-      ? (() => {
-          try {
-            return JSON.parse(args) as Record<string, unknown>;
-          } catch {
-            return undefined;
-          }
-        })()
-      : (args as Record<string, unknown> | undefined);
-  if (!parsed) return false;
-  const command = parsed.command;
-  if (typeof command === "string" && command.length > 0) {
-    return command === "wait_for";
-  }
-  const hasPattern = parsed.pattern !== undefined && parsed.pattern !== null;
-  const hasWaitMode =
-    parsed.wait_mode !== undefined && parsed.wait_mode !== null;
-  return hasPattern || hasWaitMode;
 }
 
 export function isTurnBlockingRuntimeEvent(event: SessionEvent): boolean {

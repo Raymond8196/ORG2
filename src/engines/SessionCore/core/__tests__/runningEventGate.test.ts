@@ -221,16 +221,16 @@ describe("classifyLatestTurnActivity (single source of truth)", () => {
     ).toBe("liveSilent");
   });
 
-  it("liveSilent for a non-blocking monitor await (no countdown of its own)", () => {
+  it("selfIndicating for a running monitor await (its own loading title is the indicator)", () => {
     expect(
       classifyLatestTurnActivity([
         userEvent("u1"),
         awaitOutputEvent("running", "monitor"),
       ])
-    ).toBe("liveSilent");
+    ).toBe("selfIndicating");
   });
 
-  it("a running wait_for dominates a sibling silent resource", () => {
+  it("a running await_output dominates a sibling silent resource", () => {
     expect(
       classifyLatestTurnActivity([
         userEvent("u1"),
