@@ -56,6 +56,8 @@ export interface TerminalFileLinkTarget {
 
 export interface TerminalViewProps {
   sessionKey: string;
+  /** Whether this terminal pane is currently visible/active. Controls scheduler priority. */
+  isForeground?: boolean;
   /** Callback when text is selected in the terminal */
   onSelectionChange?: (selection: TerminalSelectionInfo | null) => void;
   /** Callback when terminal receives output */

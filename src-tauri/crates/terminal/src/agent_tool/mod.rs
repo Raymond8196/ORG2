@@ -84,9 +84,12 @@ const NPM_LEAKED_ENV_VARS: &[&str] = &[
 ];
 
 /// When unacknowledged bytes exceed this, pause the reader loop.
-const HIGH_WATERMARK: usize = 100_000;
+/// Raised from 100 KB to 512 KB to prevent the reader from sleeping too
+/// aggressively during agent TUI floods (e.g. htop, cargo build progress bars).
+const HIGH_WATERMARK: usize = 512_000;
 /// Resume reading when unacknowledged bytes drop below this.
-const LOW_WATERMARK: usize = 5_000;
+/// Raised from 5 KB to 64 KB so recovery is less jerky after a pause.
+const LOW_WATERMARK: usize = 64_000;
 /// How long the reader sleeps each tick while back-pressured.
 const BACKPRESSURE_SLEEP_MS: u64 = 10;
 /// Grace period before dropping a session in `close_session` to let

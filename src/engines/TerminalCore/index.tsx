@@ -356,6 +356,7 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
                   }
                 }}
                 sessionKey={session.id}
+                isForeground={session.id === activeSessionId}
                 onSelectionChange={handleSelectionChange}
                 repoPath={session.cwd || repoPath}
                 workingDirectory={session.liveCwd || session.cwd}

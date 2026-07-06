@@ -10,6 +10,12 @@ import {
 } from "@src/util/platform/tauri/init";
 
 import { deleteTerminalBuffer, getTerminalBuffer } from "./bufferCache";
+import {
+  notifyUserInput,
+  registerPane,
+  scheduleWrite,
+  unregisterPane,
+} from "./terminalOutputScheduler";
 import type { TerminalViewProps } from "./types";
 import { writeBrowserModeMessage } from "./utils";
 
@@ -40,6 +46,14 @@ interface InitPtyConnectionParams {
   onSessionInfoReady?: TerminalViewProps["onSessionInfoReady"];
   setIsBrowserMode: (value: boolean) => void;
   setIsConnecting: (value: boolean) => void;
+}
+
+/**
+ * Notify the output scheduler that the user typed into the given session.
+ * Must be called from the terminal's onData handler to enable interactive bypass.
+ */
+export function notifyPtyUserInput(sessionId: string): void {
+  notifyUserInput(sessionId);
 }
 
 function resolvePtyLaunchOptions({
@@ -246,18 +260,10 @@ export async function initPtyConnection({
     if (!terminal) return;
 
     const utf8Decoder = new TextDecoder("utf-8", { fatal: false });
-    let ackPendingBytes = 0;
-    let ackScheduled = false;
-    const flushAck = () => {
-      if (ackPendingBytes > 0 && isTauriReady()) {
-        invokeTauri("ack_pty_data", {
-          sessionId,
-          byteCount: ackPendingBytes,
-        }).catch(() => undefined);
-        ackPendingBytes = 0;
-      }
-      ackScheduled = false;
-    };
+
+    // Register this pane with the output scheduler. ACK is handled by the
+    // scheduler after it drains chunks — we no longer call ack directly here.
+    registerPane(sessionId, (data) => terminal.write(data));
 
     const unlistenOutput = await listenTauri<PtyOutputPayload>(
       `pty-output-${sessionId}`,
@@ -269,19 +275,14 @@ export async function initPtyConnection({
             stream: true,
           });
           if (decoded) {
-            terminal.write(decoded);
+            const resolvedByteCount = byteCount ?? bytes.length;
+            scheduleWrite(sessionId, decoded, resolvedByteCount, (d) =>
+              terminal.write(d)
+            );
           }
-          ackPendingBytes += byteCount ?? bytes.length;
         } else if (data) {
-          terminal.write(data);
-          ackPendingBytes += new TextEncoder().encode(data).length;
-        } else {
-          return;
-        }
-
-        if (!ackScheduled) {
-          ackScheduled = true;
-          requestAnimationFrame(flushAck);
+          const encodedLen = new TextEncoder().encode(data).length;
+          scheduleWrite(sessionId, data, encodedLen, (d) => terminal.write(d));
         }
       }
     );
@@ -293,6 +294,7 @@ export async function initPtyConnection({
         terminal.write(trailingOutput);
       }
       terminal.writeln("\r\n\x1b[33m[Session ended]\x1b[0m");
+      unregisterPane(sessionId);
     });
     unlistenExitRef.current = unlistenExit;
 
