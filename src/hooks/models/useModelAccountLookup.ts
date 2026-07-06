@@ -35,7 +35,7 @@ export function accountHasModel(
  * from `modelVariants` (deduped). The variant ids must enter the model
  * universe or `groupByModel` family expansion can never offer them.
  */
-function accountModelIds(account: KeyVaultAccount): string[] {
+export function accountModelIds(account: KeyVaultAccount): string[] {
   const ids = new Set(account.availableModels ?? []);
   for (const variant of account.modelVariants ?? []) {
     if (variant.model) ids.add(variant.model);

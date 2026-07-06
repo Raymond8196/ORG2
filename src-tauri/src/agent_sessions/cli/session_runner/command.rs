@@ -122,8 +122,13 @@ pub(super) fn build_command_with_launch_profile(
                 cmd.push(ws.into());
             }
             if let Some(m) = model {
+                let codex_model = map_codex_model_variant(m);
                 cmd.push("-m".into());
-                cmd.push(m.into());
+                cmd.push(codex_model.base_model);
+                for config in codex_model.config_overrides {
+                    cmd.push("-c".into());
+                    cmd.push(config);
+                }
             }
             if let Some(rid) = resume_id {
                 cmd.push("resume".into());
@@ -205,6 +210,52 @@ pub(super) fn build_command_with_launch_profile(
 
 pub(super) fn launch_profile_env(profile: &ResolvedCliLaunchProfile) -> HashMap<String, String> {
     profile.env.clone()
+}
+
+struct CodexModelLaunchConfig {
+    base_model: String,
+    config_overrides: Vec<String>,
+}
+
+fn map_codex_model_variant(model: &str) -> CodexModelLaunchConfig {
+    const CODEX_VARIANT_BASES: [&str; 5] = [
+        "gpt-5.5",
+        "gpt-5.4",
+        "gpt-5.4-mini",
+        "gpt-5.3-codex",
+        "gpt-5.2",
+    ];
+    const CODEX_REASONING_LEVELS: [&str; 4] = ["low", "medium", "high", "xhigh"];
+
+    for base_model in CODEX_VARIANT_BASES {
+        let Some(suffix) = model.strip_prefix(base_model) else {
+            continue;
+        };
+        let Some(suffix) = suffix.strip_prefix('-') else {
+            continue;
+        };
+        let suffix_parts: Vec<&str> = suffix.split('-').collect();
+        let Some(reasoning) = suffix_parts.first().copied() else {
+            continue;
+        };
+        if !CODEX_REASONING_LEVELS.contains(&reasoning) {
+            continue;
+        }
+
+        let mut config_overrides = vec![format!("model_reasoning_effort=\"{reasoning}\"")];
+        if suffix_parts.get(1).copied() == Some("fast") {
+            config_overrides.push("service_tier=\"priority\"".to_string());
+        }
+        return CodexModelLaunchConfig {
+            base_model: base_model.to_string(),
+            config_overrides,
+        };
+    }
+
+    CodexModelLaunchConfig {
+        base_model: model.to_string(),
+        config_overrides: Vec::new(),
+    }
 }
 
 /// Map market shorthand model names to full CLI model names.

@@ -346,6 +346,79 @@ fn effort_variants_for_base_model(
         .collect()
 }
 
+fn codex_model_supports_variants(model: &str) -> bool {
+    matches!(
+        model,
+        "gpt-5.5" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.2"
+    )
+}
+
+fn codex_model_supports_fast_tier(model: &str) -> bool {
+    matches!(model, "gpt-5.5" | "gpt-5.4")
+}
+
+fn codex_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInfo> {
+    let mut out = Vec::new();
+    let supports_fast = codex_model_supports_fast_tier(base_model);
+    for effort in ["low", "medium", "high", "xhigh"] {
+        out.push(ModelVariantInfo {
+            model: format!("{base_model}-{effort}"),
+            base_model: base_model.to_string(),
+            reasoning: Some(effort.to_string()),
+            fast: false,
+            context_window: None,
+        });
+        if supports_fast {
+            out.push(ModelVariantInfo {
+                model: format!("{base_model}-{effort}-fast"),
+                base_model: base_model.to_string(),
+                reasoning: Some(effort.to_string()),
+                fast: true,
+                context_window: None,
+            });
+        }
+    }
+    out
+}
+
+fn append_missing_variants(out: &mut Vec<ModelVariantInfo>, variants: Vec<ModelVariantInfo>) {
+    for synthesized in variants {
+        if out.iter().any(|variant| variant.model == synthesized.model) {
+            continue;
+        }
+        out.push(synthesized);
+    }
+}
+
+fn default_variants_for_key(entry: &ModelKey) -> Vec<DefaultVariantInfo> {
+    let mut out: Vec<DefaultVariantInfo> = entry
+        .default_variants
+        .iter()
+        .map(|variant| DefaultVariantInfo {
+            base_model: variant.base_model.clone(),
+            model: variant.model.clone(),
+        })
+        .collect();
+
+    if matches!(entry.model_type, ModelType::Codex) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| codex_model_supports_variants(model))
+        {
+            if out.iter().any(|variant| variant.base_model == *model) {
+                continue;
+            }
+            out.push(DefaultVariantInfo {
+                base_model: model.clone(),
+                model: format!("{model}-medium"),
+            });
+        }
+    }
+
+    out
+}
+
 fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
     // Every stored variant passes through untouched, for every account type:
     // bare record rows (`model == base_model`) carry provider-reported
@@ -361,6 +434,16 @@ fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
             context_window: variant.context_window.filter(|ctx| *ctx > 0),
         })
         .collect();
+
+    if matches!(entry.model_type, ModelType::Codex) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| codex_model_supports_variants(model))
+        {
+            append_missing_variants(&mut out, codex_effort_variants_for_base_model(model));
+        }
+    }
 
     if !account_uses_anthropic_native_messages(entry) {
         return out;
@@ -386,14 +469,10 @@ fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
             .find(|variant| variant.base_model == *model || variant.model == *model)
             .and_then(|variant| variant.context_window)
             .filter(|ctx| *ctx > 0);
-        for synthesized in effort_variants_for_base_model(model, context_window) {
-            // The baseline rung shares its id with a stored record row —
-            // keep the stored row (it may carry an observed context window).
-            if out.iter().any(|variant| variant.model == synthesized.model) {
-                continue;
-            }
-            out.push(synthesized);
-        }
+        append_missing_variants(
+            &mut out,
+            effort_variants_for_base_model(model, context_window),
+        );
     }
     out
 }
@@ -453,14 +532,7 @@ impl From<ModelKey> for KeyInfo {
                 })
                 .collect(),
             model_variants: model_variants_for_key(&entry),
-            default_variants: entry
-                .default_variants
-                .iter()
-                .map(|variant| DefaultVariantInfo {
-                    base_model: variant.base_model.clone(),
-                    model: variant.model.clone(),
-                })
-                .collect(),
+            default_variants: default_variants_for_key(&entry),
             quota_info: entry.quota_info.clone(),
             has_local_key: entry.has_local_key,
             is_listed: entry.is_listed,
