@@ -10,7 +10,8 @@ use crate::tools::names as tool_names;
 use crate::tools::traits::{params_schema, parse_params, CallContext, Tool, ToolError};
 
 use super::{
-    map_task_write_error, parse_status, task_dependencies_resolved, task_to_json, TaskToolsContext,
+    map_task_write_error, merge_task_metadata, parse_status, task_dependencies_resolved,
+    task_to_json, TaskToolsContext,
 };
 
 /// Params for `task_update`. Every mutable field is optional; only
@@ -41,6 +42,10 @@ pub struct TaskUpdateParams {
     pub blocked_by: Option<Vec<String>>,
     #[serde(default)]
     pub metadata: Option<Value>,
+    #[serde(default)]
+    pub eligible_member_ids: Option<Vec<String>>,
+    #[serde(default)]
+    pub required_role: Option<String>,
 }
 
 pub struct TaskUpdateTool {
@@ -64,16 +69,21 @@ impl Tool for TaskUpdateTool {
             "Update a task on the org run's task board. Only the fields you set are ",
             "written; missing fields keep their current value. ",
             "Special semantics:\n",
-            "  - `owner_member_id=null` unassigns the task (puts it back into the ",
-            "    unclaimed pool).\n",
+            "  - `owner_member_id=null` unassigns the task. If the task should be ",
+            "    autonomously claimed after unassignment, set or preserve ",
+            "    `eligible_member_ids`; ownerless tasks without `eligible_member_ids` ",
+            "    stay pending for coordinator repair.\n",
             "  - `owner_member_id=\"coordinator\"` or `owner_member_id=\"<member_id>\"` ",
             "    reassigns the task and posts a `task_assigned` inbox row to a pending ",
             "    member owner. Agent IDs and display names are not accepted.\n",
+            "  - `eligible_member_ids` sets or repairs the hard claim whitelist for ",
+            "    ownerless tasks. Only listed worker member_ids may autonomously claim; ",
+            "    `required_role` is display/prompt context only and does not grant eligibility.\n",
             "  - `status=\"deleted\"` removes the row from the board (sentinel value — \n",
             "    `deleted` is not stored; the row is deleted instead).\n",
-            "Use this tool to reassign work mid-run, mark progress, or retire a task. ",
-            "Status `in_progress` is automatically set by the autonomous-claim path; ",
-            "the LLM normally only flips between `pending`, `completed`, and `deleted`."
+            "Completed tasks cannot be reopened by setting `status=\"in_progress\"`; ",
+            "create a follow-up task instead. Use this tool to reassign work mid-run, ",
+            "mark progress, or retire a task."
         )
     }
 
@@ -83,7 +93,7 @@ impl Tool for TaskUpdateTool {
 
     fn llm_description(&self) -> Option<String> {
         Some(format!(
-            "{}\n\nAllowed owner_member_id values for this Agent Org run: {}\nUse only `owner_member_id`; do not pass agent_id or display name as ownership.",
+            "{}\n\nAllowed owner_member_id values for this Agent Org run: {}\nUse only `owner_member_id`; do not pass agent_id or display name as ownership. For `eligible_member_ids`, use only worker member_ids from the same catalog except `coordinator`; do not use display names or agent_definition_id.",
             self.description(),
             self.ctx.owner_member_id_catalog()
         ))
@@ -182,12 +192,30 @@ impl Tool for TaskUpdateTool {
             })?;
         let prior_owner = prior.owner.clone();
         let prior_status = prior.status;
+        if params.eligible_member_ids.is_some() || params.required_role.is_some() {
+            let eligible_member_ids = params
+                .eligible_member_ids
+                .map(|member_ids| self.ctx.resolve_eligible_member_ids(member_ids))
+                .transpose()
+                .map_err(ToolError::InvalidParams)?;
+            let base_metadata = patch.metadata.take().flatten().or(prior.metadata.clone());
+            patch.metadata = Some(merge_task_metadata(
+                base_metadata,
+                eligible_member_ids,
+                params.required_role,
+            ));
+        }
         let prior_tasks =
             AgentOrgTaskStore::list(&org_run_id).map_err(ToolError::ExecutionFailed)?;
         let prior_ready = prior.owner.is_some()
             && prior.status == TaskStatus::Pending
             && task_dependencies_resolved(&prior_tasks, &prior);
         if patch.status == Some(TaskStatus::InProgress) {
+            if prior.status == TaskStatus::Completed {
+                return Err(ToolError::InvalidParams(
+                    "task_update status=in_progress cannot reopen a completed task; create a new follow-up task or explicitly assign new pending work".to_string(),
+                ));
+            }
             let caller_member_id = self.ctx.caller_owner_member_id();
             let target_owner = patch
                 .owner
@@ -224,9 +252,27 @@ impl Tool for TaskUpdateTool {
         let task_assigned_dispatched = updated_ready
             && (owner_changed || !prior_ready)
             && self.ctx.dispatch_task_assigned(&updated);
-        let unblocked_task_assigned_ids = if completed_now {
+        let mut claimable_wake_member_ids = if task_assigned_dispatched {
+            Vec::new()
+        } else {
             self.ctx
-                .dispatch_ready_assigned_tasks_unblocked_by(&updated.id)
+                .wake_eligible_members_for_claimable_work(&updated_tasks)
+        };
+        let unblocked_task_assigned_ids = if completed_now {
+            let dispatched = self
+                .ctx
+                .dispatch_ready_assigned_tasks_unblocked_by(&updated.id);
+            let refreshed_tasks = AgentOrgTaskStore::list(&self.ctx.org_context.run_id)
+                .map_err(ToolError::ExecutionFailed)?;
+            for member_id in self
+                .ctx
+                .wake_eligible_members_for_claimable_work(&refreshed_tasks)
+            {
+                if !claimable_wake_member_ids.contains(&member_id) {
+                    claimable_wake_member_ids.push(member_id);
+                }
+            }
+            dispatched
         } else {
             Vec::new()
         };
@@ -236,6 +282,7 @@ impl Tool for TaskUpdateTool {
             "owner_changed": owner_changed,
             "status_changed": status_changed,
             "task_assigned_dispatched": task_assigned_dispatched,
+            "claimable_wake_member_ids": claimable_wake_member_ids,
             "unblocked_task_assigned_ids": unblocked_task_assigned_ids,
         });
         serde_json::to_string(&body).map_err(|err| {

@@ -83,17 +83,14 @@ pub fn normalize_tool_name(agent: CliAgentType, raw_name: &str) -> String {
         | CliAgentType::Rovo
         | CliAgentType::Hermes
         | CliAgentType::OpenClaw
-        | CliAgentType::Crush
         | CliAgentType::Aug
         | CliAgentType::Codebuff
-        | CliAgentType::CommandCode
         | CliAgentType::QwenCode
         | CliAgentType::MimoCode
         | CliAgentType::Antigravity
         | CliAgentType::Continue
         | CliAgentType::Droid
         | CliAgentType::MistralVibe
-        | CliAgentType::Ante
         | CliAgentType::Autohand
         | CliAgentType::Omp
         | CliAgentType::Pi => return raw_name.to_string(),

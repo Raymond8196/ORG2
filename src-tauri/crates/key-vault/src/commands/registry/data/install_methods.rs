@@ -147,21 +147,11 @@ pub(crate) fn cli_install_methods(name: &str) -> Vec<CliInstallMethod> {
         "openclaw" => vec![
             m("npm", "npm", "npm install -g openclaw"),
         ],
-        "crush" => vec![
-            m(
-                "curl",
-                "curl",
-                "curl -fsSL https://raw.githubusercontent.com/charmbracelet/crush/main/install/install.sh | bash",
-            ),
-        ],
         "aug" => vec![
             m("npm", "npm", "npm install -g @augmentcode/auggie"),
         ],
         "codebuff" => vec![
             m("npm", "npm", "npm install -g codebuff"),
-        ],
-        "command_code" => vec![
-            m("npm", "npm", "npm install -g command-code"),
         ],
         "qwen_code" => vec![
             m("npm", "npm", "npm install -g qwen-code"),
@@ -200,13 +190,6 @@ pub(crate) fn cli_install_methods(name: &str) -> Vec<CliInstallMethod> {
             ),
             m("uv", "uv", "uv tool install mistral-vibe"),
             m("pip", "pip", "pip install mistral-vibe"),
-        ],
-        "ante" => vec![
-            m(
-                "curl",
-                "curl",
-                "curl -fsSL https://ante.run/install.sh | bash",
-            ),
         ],
         "autohand" => vec![
             m("npm", "npm", "npm install -g autohand-cli"),
@@ -286,10 +269,8 @@ pub(crate) fn cli_uninstall_methods(name: &str) -> Vec<CliInstallMethod> {
         "rovo" => vec![m("native", "Native", "rm -f ~/.local/bin/acli")],
         "hermes" => vec![m("native", "Native", "rm -f ~/.local/bin/hermes")],
         "openclaw" => vec![m("npm", "npm", "npm uninstall -g openclaw")],
-        "crush" => vec![m("native", "Native", "rm -f $(which crush)")],
         "aug" => vec![m("npm", "npm", "npm uninstall -g @augmentcode/auggie")],
         "codebuff" => vec![m("npm", "npm", "npm uninstall -g codebuff")],
-        "command_code" => vec![m("npm", "npm", "npm uninstall -g command-code")],
         "qwen_code" => vec![m("npm", "npm", "npm uninstall -g qwen-code")],
         "mimo_code" => vec![
             m(
@@ -306,7 +287,6 @@ pub(crate) fn cli_uninstall_methods(name: &str) -> Vec<CliInstallMethod> {
             m("uv", "uv", "uv tool uninstall mistral-vibe"),
             m("pip", "pip", "pip uninstall mistral-vibe"),
         ],
-        "ante" => vec![m("native", "Native", "rm -f ~/.ante/bin/ante")],
         "autohand" => vec![m("npm", "npm", "npm uninstall -g autohand-cli")],
         "omp" => vec![
             m("bun", "Bun", "bun remove -g @oh-my-pi/pi-coding-agent"),

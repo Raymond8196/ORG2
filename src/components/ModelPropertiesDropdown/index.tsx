@@ -559,7 +559,7 @@ const EffortSlider: React.FC<EffortSliderProps> = ({
           {selectedLevel ? formatReasoningLevel(selectedLevel) : "—"}
         </div>
       </div>
-      <div className="px-2 pb-1 pt-2">
+      <div className="pb-1 pt-2">
         <div className="relative">
           <Slider
             value={safeSelectedIndex}

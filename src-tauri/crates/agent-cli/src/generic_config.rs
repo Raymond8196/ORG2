@@ -18,7 +18,6 @@ enum ConfigBase {
     Home,
     XdgConfig,
     AppData,
-    LocalAppData,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -354,14 +353,6 @@ fn app_data_home() -> PathBuf {
         .map(PathBuf::from)
         .unwrap_or_else(|| paths::home_dir().join(".config"))
 }
-
-fn local_app_data_home() -> PathBuf {
-    std::env::var_os("LOCALAPPDATA")
-        .map(PathBuf::from)
-        .or_else(|| std::env::var_os("XDG_CONFIG_HOME").map(PathBuf::from))
-        .unwrap_or_else(|| paths::home_dir().join(".config"))
-}
-
 fn safe_join(base: PathBuf, relative_path: &str) -> Result<PathBuf, String> {
     let relative = Path::new(relative_path);
     if relative.is_absolute() {
@@ -388,7 +379,6 @@ fn resolve_config(
         ConfigBase::Home => paths::home_dir(),
         ConfigBase::XdgConfig => xdg_config_home(),
         ConfigBase::AppData => app_data_home(),
-        ConfigBase::LocalAppData => local_app_data_home(),
     };
     Ok((safe_join(base, config.relative_path)?, config.format))
 }

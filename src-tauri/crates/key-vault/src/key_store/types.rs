@@ -96,17 +96,14 @@ pub enum ModelType {
     Rovo,
     Hermes,
     OpenClaw,
-    Crush,
     Aug,
     Codebuff,
-    CommandCode,
     QwenCode,
     MimoCode,
     Antigravity,
     Continue,
     Droid,
     MistralVibe,
-    Ante,
     Autohand,
     Omp,
     Pi,
@@ -156,17 +153,14 @@ impl ModelType {
             ModelType::Rovo => "rovo",
             ModelType::Hermes => "hermes",
             ModelType::OpenClaw => "openclaw",
-            ModelType::Crush => "crush",
             ModelType::Aug => "aug",
             ModelType::Codebuff => "codebuff",
-            ModelType::CommandCode => "command_code",
             ModelType::QwenCode => "qwen_code",
             ModelType::MimoCode => "mimo_code",
             ModelType::Antigravity => "antigravity",
             ModelType::Continue => "continue_cli",
             ModelType::Droid => "droid",
             ModelType::MistralVibe => "mistral_vibe",
-            ModelType::Ante => "ante",
             ModelType::Autohand => "autohand",
             ModelType::Omp => "omp",
             ModelType::Pi => "pi",
@@ -213,17 +207,14 @@ impl ModelType {
             "rovo" => Some(ModelType::Rovo),
             "hermes" => Some(ModelType::Hermes),
             "openclaw" => Some(ModelType::OpenClaw),
-            "crush" => Some(ModelType::Crush),
             "aug" => Some(ModelType::Aug),
             "codebuff" => Some(ModelType::Codebuff),
-            "command_code" => Some(ModelType::CommandCode),
             "qwen_code" => Some(ModelType::QwenCode),
             "mimo_code" => Some(ModelType::MimoCode),
             "antigravity" => Some(ModelType::Antigravity),
             "continue_cli" => Some(ModelType::Continue),
             "droid" => Some(ModelType::Droid),
             "mistral_vibe" => Some(ModelType::MistralVibe),
-            "ante" => Some(ModelType::Ante),
             "autohand" => Some(ModelType::Autohand),
             "omp" => Some(ModelType::Omp),
             "pi" => Some(ModelType::Pi),
@@ -276,17 +267,14 @@ impl ModelType {
                 | ModelType::Rovo
                 | ModelType::Hermes
                 | ModelType::OpenClaw
-                | ModelType::Crush
                 | ModelType::Aug
                 | ModelType::Codebuff
-                | ModelType::CommandCode
                 | ModelType::QwenCode
                 | ModelType::MimoCode
                 | ModelType::Antigravity
                 | ModelType::Continue
                 | ModelType::Droid
                 | ModelType::MistralVibe
-                | ModelType::Ante
                 | ModelType::Autohand
                 | ModelType::Omp
                 | ModelType::Pi

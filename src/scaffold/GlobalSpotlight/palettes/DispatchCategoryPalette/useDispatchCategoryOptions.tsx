@@ -33,6 +33,10 @@ import {
 } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import type { OrgMember } from "@src/modules/MainApp/AgentOrgs/types";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
+import {
+  cliAgentVisibilityOverridesAtom,
+  isCliAgentEnabled,
+} from "@src/store/session";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 import { SESSION_TARGET_KIND } from "@src/store/session/creatorStateAtom";
 import { invokeTauri } from "@src/util/platform/tauri/init";
@@ -147,6 +151,7 @@ export function useDispatchCategoryOptions(
   const { t } = useTranslation("sessions");
   const [allOrgs, setAllOrgs] = useState<OrgMember[]>([]);
   const { agents: cliAgentList } = useCliAgents({ enabled: isOpen });
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
   const { accounts } = useKeyVault({ autoLoad: true });
   const { registry } = useAgentCompatibility();
   const setAgentRegistry = useSetAtom(agentRegistryAtom);
@@ -191,8 +196,13 @@ export function useDispatchCategoryOptions(
   }, [isOpen, hideOrgs, setAgentRegistry]);
 
   const installedCliAgents = useMemo(
-    () => cliAgentList.filter((agent) => agent.installed),
-    [cliAgentList]
+    () =>
+      cliAgentList.filter(
+        (agent) =>
+          agent.installed &&
+          isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
   );
 
   useEffect(() => {

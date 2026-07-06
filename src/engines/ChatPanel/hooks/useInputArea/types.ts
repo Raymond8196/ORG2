@@ -143,6 +143,7 @@ export type PromptPolishStatus = "idle" | "polishing" | "polished";
 
 export interface PromptPolishControl {
   status: PromptPolishStatus;
+  isAvailable: boolean;
   isPolishing: boolean;
   isPolished: boolean;
   toggle: () => Promise<void>;

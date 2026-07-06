@@ -2611,5 +2611,17 @@
       "completionTokens": "輸出 tokens：{{value}}",
       "elapsed": "總耗時：{{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "啟動設定",
+    "fullPermission": "完整權限",
+    "manual": "手動",
+    "command": "命令",
+    "environment": "環境變數",
+    "envPlaceholder": "KEY=value，每行一個",
+    "loading": "正在載入啟動設定...",
+    "unavailable": "啟動設定無法使用",
+    "saved": "啟動設定已儲存",
+    "resetDone": "啟動設定已重設"
   }
 }

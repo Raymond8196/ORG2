@@ -25,7 +25,6 @@ pub(crate) enum CliConfigPathKind {
     HomeRelative,
     XdgConfigRelative,
     AppDataRelative,
-    LocalAppDataRelative,
 }
 
 #[derive(Debug, Clone, Copy)]

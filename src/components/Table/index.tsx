@@ -52,6 +52,7 @@ import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 import { PaginationFooter } from "./PaginationFooter";
 import { TableBody } from "./TableBody";
+import { TableColGroup } from "./TableColGroup";
 import { TableHeader } from "./TableHeader";
 import "./index.scss";
 import type { TableProps } from "./types";
@@ -403,6 +404,11 @@ function TableComponent<T = unknown>(
         {showFixedSettingsHeader && (
           <div className="table-fixed-header" ref={headerScrollRef}>
             <table className="table">
+              <TableColGroup
+                headerGroups={tableHeaderGroups}
+                hasExpandable={!!expandable}
+                columnWidths={settingsHeaderColumnWidths}
+              />
               <TableHeader
                 headerGroups={tableHeaderGroups}
                 hasExpandable={!!expandable}
@@ -418,6 +424,10 @@ function TableComponent<T = unknown>(
           onScroll={showFixedSettingsHeader ? handleBodyScroll : undefined}
         >
           <table className="table" ref={bodyTableRef}>
+            <TableColGroup
+              headerGroups={tableHeaderGroups}
+              hasExpandable={!!expandable}
+            />
             {showHeader && !showFixedSettingsHeader && (
               <TableHeader
                 headerGroups={tableHeaderGroups}

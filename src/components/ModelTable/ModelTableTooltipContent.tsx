@@ -9,8 +9,8 @@ export default function ModelTableTooltipContent({
 }: ModelTableTooltipContentProps) {
   return (
     <span className="flex min-w-0 items-center gap-1.5">
-      <ModelIcon modelName={model} size="small" monochrome />
-      <span className="truncate text-white">{model}</span>
+      <ModelIcon modelName={model} size="small" />
+      <span className="truncate text-text-1">{model}</span>
     </span>
   );
 }
