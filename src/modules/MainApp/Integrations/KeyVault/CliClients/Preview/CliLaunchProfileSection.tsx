@@ -10,7 +10,7 @@ import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Message from "@src/components/Message";
 import TabPill from "@src/components/TabPill";
-import Textarea from "@src/components/TextArea";
+import Textarea from "@src/components/Textarea";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import { InlineCardColumnStack } from "../../shared/InlineCardPrimitives";
