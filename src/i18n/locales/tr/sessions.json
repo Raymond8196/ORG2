@@ -2060,7 +2060,11 @@
       "testResultPending": "Test sonucu bekleniyor",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills ve araçlar"
+    "skillsAndTools": "Skills ve araçlar",
+    "agentSpotlightViewMode": "Agent görünüm modu",
+    "agentSpotlightListView": "Liste görünümü",
+    "agentSpotlightCardView": "Kart görünümü",
+    "agentSpotlightCardHint": "Agent değiştirmek için ←/→ veya ↑/↓ kullanın. Seçmek için Enter’a basın."
   },
   "planner": {
     "tabs": {
