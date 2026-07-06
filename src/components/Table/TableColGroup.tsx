@@ -22,8 +22,9 @@ export function TableColGroup<T>({
       {hasExpandable && <col style={{ width: TABLE_EXPAND_COL_WIDTH }} />}
       {headers.map((header, index) => {
         const meta = header.column.columnDef.meta as ColumnMeta | undefined;
-        const width = columnWidths?.[index] ?? meta?.width ?? header.getSize();
-        return <col key={header.id} style={{ width }} />;
+        const measuredWidth = columnWidths?.[index];
+        const width = measuredWidth ?? meta?.width;
+        return <col key={header.id} style={width ? { width } : undefined} />;
       })}
     </colgroup>
   );
