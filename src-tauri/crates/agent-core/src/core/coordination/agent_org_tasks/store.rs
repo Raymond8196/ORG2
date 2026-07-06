@@ -10,9 +10,9 @@ use super::helpers::{
     now_rfc3339, row_to_task, row_to_task_history_event, SELECT_COLUMNS,
 };
 use super::{
-    ClaimError, ClaimOptions, CreateTaskParams, Task, TaskHistoryEvent, TaskStatus,
-    UpdateTaskPatch, TASK_EVENT_CLAIMED, TASK_EVENT_CREATED, TASK_EVENT_RELEASED,
-    TASK_EVENT_UPDATED,
+    is_task_eligible_for_member, ClaimError, ClaimOptions, CreateTaskParams, Task,
+    TaskHistoryEvent, TaskStatus, UpdateTaskPatch, TASK_EVENT_CLAIMED, TASK_EVENT_CREATED,
+    TASK_EVENT_RELEASED, TASK_EVENT_UPDATED,
 };
 
 pub struct AgentOrgTaskStore;
@@ -273,6 +273,32 @@ impl AgentOrgTaskStore {
     }
 
     /// Return the first task in the run that is `pending`, `owner IS
+    /// NULL`, whose `blocked_by` are all `completed`, and whose eligibility
+    /// metadata includes `member_id`. Ordered by `created_at ASC`.
+    pub fn find_available_for_member(
+        org_run_id: &str,
+        member_id: &str,
+    ) -> Result<Option<Task>, String> {
+        let pending = Self::list(org_run_id)?;
+        for task in &pending {
+            if task.owner.is_some() {
+                continue;
+            }
+            if task.status != TaskStatus::Pending {
+                continue;
+            }
+            if !is_task_eligible_for_member(task, member_id) {
+                continue;
+            }
+            if !blockers_resolved(&pending, &task.blocked_by) {
+                continue;
+            }
+            return Ok(Some(task.clone()));
+        }
+        Ok(None)
+    }
+
+    /// Return the first task in the run that is `pending`, `owner IS
     /// NULL`, and whose `blocked_by` are all `completed`. Ordered by
     /// `created_at ASC` (insertion order).
     pub fn find_available(org_run_id: &str) -> Result<Option<Task>, String> {
@@ -363,6 +389,8 @@ impl AgentOrgTaskStore {
                     current_owner: owner.clone(),
                 });
             }
+        } else if !is_task_eligible_for_member(&task, claimant_member_id) {
+            return Err(ClaimError::NotEligible);
         }
 
         let all_in_run = {
