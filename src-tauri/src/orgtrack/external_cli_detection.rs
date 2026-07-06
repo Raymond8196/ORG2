@@ -88,17 +88,6 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[],
     ),
     source(
-        "ante",
-        "Ante",
-        "terminal",
-        "ante",
-        &[],
-        "ante",
-        "ante",
-        false,
-        &[],
-    ),
-    source(
         "opencode",
         "OpenCode",
         "opencode",
@@ -210,17 +199,6 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[".kiro"],
     ),
     source(
-        "crush",
-        "Crush",
-        "terminal",
-        "crush",
-        &[],
-        "crush",
-        "crush",
-        false,
-        &[".config/crush"],
-    ),
-    source(
         "aug",
         "Auggie",
         "terminal",
@@ -252,17 +230,6 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "codebuff",
         false,
         &[".codebuff"],
-    ),
-    source(
-        "command_code",
-        "Command Code",
-        "terminal",
-        "command-code",
-        &[],
-        "command-code --trust",
-        "command-code",
-        false,
-        &[".command-code"],
     ),
     source(
         "continue",
@@ -671,16 +638,6 @@ mod tests {
             assert!(seen.insert(source.source_id), "duplicate source id");
         }
     }
-
-    #[test]
-    fn command_code_uses_full_binary_name() {
-        let source = EXTERNAL_CLI_SOURCES
-            .iter()
-            .find(|source| source.source_id == "command_code")
-            .expect("command-code source exists");
-        assert_eq!(source.detect_cmd, "command-code");
-    }
-
     #[test]
     fn probe_unknown_source_returns_none() {
         assert!(probe_source_id("missing-agent").is_none());

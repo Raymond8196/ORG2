@@ -72,10 +72,6 @@ fn resolve_cli_config_path(kind: CliConfigPathKind, relative_path: &str) -> Stri
         CliConfigPathKind::AppDataRelative => std::env::var_os("APPDATA")
             .map(std::path::PathBuf::from)
             .unwrap_or_else(|| app_paths::home_dir().join(".config")),
-        CliConfigPathKind::LocalAppDataRelative => std::env::var_os("LOCALAPPDATA")
-            .map(std::path::PathBuf::from)
-            .or_else(|| std::env::var_os("XDG_CONFIG_HOME").map(std::path::PathBuf::from))
-            .unwrap_or_else(|| app_paths::home_dir().join(".config")),
     };
     base.join(relative_path).to_string_lossy().to_string()
 }

@@ -28,17 +28,14 @@ pub(super) fn resolve_cli_agent_command(agent: &ModelType) -> String {
         ModelType::Rovo => CliBinaryId::Rovo,
         ModelType::Hermes => CliBinaryId::Hermes,
         ModelType::OpenClaw => CliBinaryId::OpenClaw,
-        ModelType::Crush => CliBinaryId::Crush,
         ModelType::Aug => CliBinaryId::Aug,
         ModelType::Codebuff => CliBinaryId::Codebuff,
-        ModelType::CommandCode => CliBinaryId::CommandCode,
         ModelType::QwenCode => CliBinaryId::QwenCode,
         ModelType::MimoCode => CliBinaryId::MimoCode,
         ModelType::Antigravity => CliBinaryId::Antigravity,
         ModelType::Continue => CliBinaryId::Continue,
         ModelType::Droid => CliBinaryId::Droid,
         ModelType::MistralVibe => CliBinaryId::MistralVibe,
-        ModelType::Ante => CliBinaryId::Ante,
         ModelType::Autohand => CliBinaryId::Autohand,
         ModelType::Omp => CliBinaryId::Omp,
         ModelType::Pi => CliBinaryId::Pi,
@@ -232,17 +229,14 @@ pub(super) fn build_command(
         | ModelType::Rovo
         | ModelType::Hermes
         | ModelType::OpenClaw
-        | ModelType::Crush
         | ModelType::Aug
         | ModelType::Codebuff
-        | ModelType::CommandCode
         | ModelType::QwenCode
         | ModelType::MimoCode
         | ModelType::Antigravity
         | ModelType::Continue
         | ModelType::Droid
         | ModelType::MistralVibe
-        | ModelType::Ante
         | ModelType::Autohand
         | ModelType::Omp
         | ModelType::Pi => {

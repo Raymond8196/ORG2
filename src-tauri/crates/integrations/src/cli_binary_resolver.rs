@@ -27,17 +27,14 @@ pub enum CliBinaryId {
     Rovo,
     Hermes,
     OpenClaw,
-    Crush,
     Aug,
     Codebuff,
-    CommandCode,
     QwenCode,
     MimoCode,
     Antigravity,
     Continue,
     Droid,
     MistralVibe,
-    Ante,
     Autohand,
     Omp,
     Pi,
@@ -212,13 +209,6 @@ const CLI_BINARY_METADATA: &[CliBinaryMetadata] = &[
         launchable: false,
     },
     CliBinaryMetadata {
-        id: CliBinaryId::Crush,
-        row_id: "crush",
-        display_name: "Crush",
-        command: "crush",
-        launchable: false,
-    },
-    CliBinaryMetadata {
         id: CliBinaryId::Aug,
         row_id: "aug",
         display_name: "Augment Code",
@@ -232,14 +222,6 @@ const CLI_BINARY_METADATA: &[CliBinaryMetadata] = &[
         display_name: "Codebuff",
         command: "codebuff",
         launchable: false,
-    },
-    CliBinaryMetadata {
-        id: CliBinaryId::CommandCode,
-        row_id: "command-code",
-        display_name: "Command Code",
-        // The full `command-code` name avoids collision with Windows' `cmd.exe`.
-        command: "command-code",
-        launchable: true,
     },
     CliBinaryMetadata {
         id: CliBinaryId::QwenCode,
@@ -285,13 +267,6 @@ const CLI_BINARY_METADATA: &[CliBinaryMetadata] = &[
         display_name: "Mistral Vibe",
         // Mistral's installer exposes `vibe` as the binary name.
         command: "vibe",
-        launchable: false,
-    },
-    CliBinaryMetadata {
-        id: CliBinaryId::Ante,
-        row_id: "ante",
-        display_name: "Ante",
-        command: "ante",
         launchable: false,
     },
     CliBinaryMetadata {
@@ -354,17 +329,14 @@ pub fn id_for_registry_name(name: &str) -> Option<CliBinaryId> {
         "rovo" => Some(CliBinaryId::Rovo),
         "hermes" => Some(CliBinaryId::Hermes),
         "openclaw" => Some(CliBinaryId::OpenClaw),
-        "crush" => Some(CliBinaryId::Crush),
         "aug" => Some(CliBinaryId::Aug),
         "codebuff" => Some(CliBinaryId::Codebuff),
-        "command_code" => Some(CliBinaryId::CommandCode),
         "qwen_code" => Some(CliBinaryId::QwenCode),
         "mimo_code" => Some(CliBinaryId::MimoCode),
         "antigravity" => Some(CliBinaryId::Antigravity),
         "continue_cli" => Some(CliBinaryId::Continue),
         "droid" => Some(CliBinaryId::Droid),
         "mistral_vibe" => Some(CliBinaryId::MistralVibe),
-        "ante" => Some(CliBinaryId::Ante),
         "autohand" => Some(CliBinaryId::Autohand),
         "omp" => Some(CliBinaryId::Omp),
         "pi" => Some(CliBinaryId::Pi),
@@ -489,7 +461,6 @@ fn known_locations_for(id: CliBinaryId, options: &ResolveOptions) -> Vec<PathBuf
         CliBinaryId::KimiCli => locations.push(home.join(".kimi-code/bin/kimi")),
         CliBinaryId::Hermes => locations.push(home.join(".hermes/hermes-agent/venv/bin/hermes")),
         CliBinaryId::MimoCode => locations.push(home.join(".mimocode/bin/mimo")),
-        CliBinaryId::Ante => locations.push(home.join(".ante/bin/ante")),
         _ => {}
     }
 
