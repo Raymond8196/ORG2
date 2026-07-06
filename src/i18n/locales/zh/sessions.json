@@ -2086,7 +2086,11 @@
       "testResultPending": "测试结果待定",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills 与工具"
+    "skillsAndTools": "Skills 与工具",
+    "agentSpotlightViewMode": "Agent 视图模式",
+    "agentSpotlightListView": "列表视图",
+    "agentSpotlightCardView": "卡片视图",
+    "agentSpotlightCardHint": "使用 ←/→ 或 ↑/↓ 切换 Agent。按 Enter 选择。"
   },
   "planner": {
     "tabs": {

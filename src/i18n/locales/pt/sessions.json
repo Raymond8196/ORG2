@@ -2081,7 +2081,11 @@
       "testResultPending": "Resultado do teste pendente",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills e ferramentas"
+    "skillsAndTools": "Skills e ferramentas",
+    "agentSpotlightViewMode": "Modo de visualização de Agent",
+    "agentSpotlightListView": "Visualização em lista",
+    "agentSpotlightCardView": "Visualização em cartão",
+    "agentSpotlightCardHint": "Use ←/→ ou ↑/↓ para alternar Agents. Pressione Enter para selecionar."
   },
   "planner": {
     "tabs": {
