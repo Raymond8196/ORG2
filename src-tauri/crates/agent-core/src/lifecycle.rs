@@ -874,21 +874,27 @@ mod tests {
         let run_id = seed_run("builtin:sde");
         seed_in_progress_task(&run_id, "active-task");
 
-        assert!(crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
-            &run_id,
-            "member-worker"
-        ));
-        assert!(!crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
-            &run_id,
-            "member-worker"
-        ));
+        assert!(
+            crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
+                &run_id,
+                "member-worker"
+            )
+        );
+        assert!(
+            !crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
+                &run_id,
+                "member-worker"
+            )
+        );
 
         let ok = Ok("done with this turn".to_string());
         finalize_agent_org_member_turn(None, "member-session", &ok);
-        assert!(crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
-            &run_id,
-            "member-worker"
-        ));
+        assert!(
+            crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
+                &run_id,
+                "member-worker"
+            )
+        );
 
         let task = AgentOrgTaskStore::get(&run_id, "active-task")
             .unwrap()
@@ -900,7 +906,10 @@ mod tests {
             &run_id,
         )
         .expect("list member inbox");
-        assert!(inbox.is_empty(), "success finalize must not self-assign the same task");
+        assert!(
+            inbox.is_empty(),
+            "success finalize must not self-assign the same task"
+        );
         let release_events = AgentOrgTaskStore::list_history(&run_id)
             .unwrap()
             .into_iter()
