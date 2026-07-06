@@ -68,7 +68,7 @@
       "title": "アカウント情報",
       "enable": "有効",
       "authMethod": "認証方法",
-      "oauthLogin": "OAuth（ChatGPT ログイン）",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",

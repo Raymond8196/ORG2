@@ -68,7 +68,7 @@
       "title": "賬戶信息",
       "enable": "啓用",
       "authMethod": "認證方式",
-      "oauthLogin": "OAuth（ChatGPT 登錄）",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",

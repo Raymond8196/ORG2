@@ -68,7 +68,7 @@
       "title": "계정 정보",
       "enable": "활성화",
       "authMethod": "인증 방법",
-      "oauthLogin": "OAuth (ChatGPT 로그인)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",

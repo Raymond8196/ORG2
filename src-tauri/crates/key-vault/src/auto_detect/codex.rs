@@ -89,8 +89,7 @@ async fn read_codex_auth_config(path: &std::path::PathBuf) -> Vec<DetectedKey> {
     if let Some(tokens) = &config.tokens {
         if let Some(access_token) = &tokens.access_token {
             if !access_token.is_empty() {
-                let mut cred =
-                    create_detected_key("codex_oauth", "Codex CLI OAuth (ChatGPT Login)", "oauth");
+                let mut cred = create_detected_key("codex_oauth", "OpenAI", "oauth");
 
                 // session_token = access_token (used for API calls)
                 cred.session_token = Some(access_token.clone());

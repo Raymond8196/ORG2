@@ -69,7 +69,7 @@
       "title": "账户信息",
       "enable": "启用",
       "authMethod": "认证方式",
-      "oauthLogin": "OAuth（ChatGPT 登录）",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",

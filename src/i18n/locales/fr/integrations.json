@@ -68,7 +68,7 @@
       "title": "Informations du compte",
       "enable": "Activer",
       "authMethod": "Méthode d'authentification",
-      "oauthLogin": "OAuth (ChatGPT Login)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
