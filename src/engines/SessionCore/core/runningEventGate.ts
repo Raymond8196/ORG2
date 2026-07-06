@@ -27,6 +27,7 @@ export function shellProcessStatusFromArgs(args: unknown): string | undefined {
     return (args as { shellProcessStatus?: string }).shellProcessStatus;
   }
   if (typeof args !== "string") return undefined;
+  if (!args.includes("shellProcessStatus")) return undefined;
   try {
     const parsed = JSON.parse(args) as { shellProcessStatus?: string };
     return parsed.shellProcessStatus;
@@ -65,10 +66,9 @@ export function isLiveRuntimeResourceEvent(event: SessionEvent): boolean {
  * correctly. Modelling it once removes that latent conflict.
  *
  * - `idle` — no live runtime resource in the latest turn.
- * - `selfIndicating` — a running `await_output` (any command): it renders its
- *   own live shimmer title ("Waiting {countdown} for …" for `wait_for`,
- *   "Checking …" for `monitor`), which IS the activity indicator, so the
- *   planning footer would be a redundant second row alongside it.
+ * - `selfIndicating` — any running `await_output` (both `wait_for` and
+ *   `monitor`): each renders its own shimmer UI, which IS the activity
+ *   indicator, so the planning footer would be a redundant second one.
  * - `liveSilent` — a running resource (shell, etc.) with no self-evident
  *   indicator of its own; the planning footer is the thing that conveys "still
  *   alive", so it should stay.
@@ -90,12 +90,12 @@ export function classifyLatestTurnActivity(
     if (event.source === "user") break;
     if (!isLiveRuntimeResourceEvent(event)) continue;
     if (isAwaitOutputEvent(event)) {
-      // Any running await_output (wait_for or monitor) renders its own
-      // loading title in TitleOnlyBlock. A second planning footer alongside
-      // it would appear as a duplicate activity indicator to the user.
+      // Any running await_output (wait_for or monitor) self-indicates: it
+      // renders its own shimmer UI, so the planning footer would be a
+      // redundant second indicator. Stop scanning — self-indicating dominates.
       return "selfIndicating";
     }
-    // A running resource without its own indicator (shell, etc.).
+    // A running resource without its own indicator (e.g. a shell).
     sawLiveSilent = true;
   }
   return sawLiveSilent ? "liveSilent" : "idle";
@@ -106,9 +106,9 @@ export function classifyLatestTurnActivity(
  * planning-indicator watchdog so it does not force-complete a session that is
  * genuinely still working (a long `wait_for`, a running shell, …).
  *
- * Includes running `await_output` events: a blocked wait is genuine activity,
- * so the watchdog should not kill it. The footer is suppressed during any
- * running `await_output` via `hasRunningAwaitWaitForInLatestTurn`
+ * Unlike the pre-unification version, this now INCLUDES a running `wait_for`:
+ * a blocked wait is genuine activity, so the watchdog should not kill it. The
+ * footer is suppressed during a wait_for via `hasRunningAwaitWaitForInLatestTurn`
  * (the `selfIndicating` case), not by pretending no resource is live.
  */
 export function hasLiveRuntimeResourceInLatestTurn(
@@ -126,10 +126,9 @@ function isAwaitOutputEvent(event: SessionEvent): boolean {
 
 /**
  * True when the latest turn's activity is self-indicating — i.e. a still-running
- * `await_output` (any command) whose own shimmer title ("Waiting … for …" for
- * `wait_for`, "Checking …" for `monitor`) already conveys "the agent is alive".
- * Callers suppress the planning footer in this window so the user does not see
- * a duplicate activity indicator alongside the running TitleOnlyBlock.
+ * `await_output` (either `wait_for` or `monitor`) whose own shimmer UI already
+ * conveys "the agent is alive". Callers suppress the planning footer in this
+ * window so the user does not see two stacked waiting indicators.
  */
 export function hasRunningAwaitWaitForInLatestTurn(
   events: readonly SessionEvent[]
@@ -150,10 +149,11 @@ export function isTurnBlockingRuntimeEvent(event: SessionEvent): boolean {
 export function isComposerStopBlockingEvent(event: SessionEvent): boolean {
   if (!isTurnBlockingRuntimeEvent(event)) return false;
 
-  const shellProcessStatus = shellProcessStatusFromArgs(event.args);
-  if (shellProcessStatus) {
-    return TURN_BLOCKING_SHELL_PROCESS_STATUSES.has(shellProcessStatus);
-  }
+  // isTurnBlockingRuntimeEvent already validated the shell process status; if
+  // shellProcessStatus is present the event is a turn-blocking shell — it is
+  // always stop-blocking. Only fall through to the tool_call check for events
+  // whose blocking status comes from displayStatus / result.status instead.
+  if (shellProcessStatusFromArgs(event.args)) return true;
 
   return (
     event.actionType === "tool_call" || event.displayVariant === "tool_call"
