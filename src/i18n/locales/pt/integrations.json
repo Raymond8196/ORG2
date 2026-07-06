@@ -2565,5 +2565,17 @@
       "completionTokens": "Tokens de saída: {{value}}",
       "elapsed": "Tempo total: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Perfil de inicialização",
+    "fullPermission": "Permissão total",
+    "manual": "Manual",
+    "command": "Comando",
+    "environment": "Ambiente",
+    "envPlaceholder": "KEY=value, um por linha",
+    "loading": "Carregando perfil de inicialização...",
+    "unavailable": "Perfil de inicialização indisponível",
+    "saved": "Perfil de inicialização salvo",
+    "resetDone": "Perfil de inicialização redefinido"
   }
 }

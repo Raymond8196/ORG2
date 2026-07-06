@@ -2565,5 +2565,17 @@
       "completionTokens": "Ausgabe-tokens: {{value}}",
       "elapsed": "Gesamtzeit: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Startprofil",
+    "fullPermission": "Voller Zugriff",
+    "manual": "Manuell",
+    "command": "Befehl",
+    "environment": "Umgebung",
+    "envPlaceholder": "KEY=value, eins pro Zeile",
+    "loading": "Startprofil wird geladen...",
+    "unavailable": "Startprofil nicht verfügbar",
+    "saved": "Startprofil gespeichert",
+    "resetDone": "Startprofil zurückgesetzt"
   }
 }

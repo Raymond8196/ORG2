@@ -2562,5 +2562,17 @@
       "completionTokens": "Wyjściowe tokens: {{value}}",
       "elapsed": "Łączny czas: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Profil uruchomienia",
+    "fullPermission": "Pełne uprawnienia",
+    "manual": "Ręcznie",
+    "command": "Polecenie",
+    "environment": "Środowisko",
+    "envPlaceholder": "KEY=value, po jednym w wierszu",
+    "loading": "Ładowanie profilu uruchomienia...",
+    "unavailable": "Profil uruchomienia niedostępny",
+    "saved": "Profil uruchomienia zapisany",
+    "resetDone": "Profil uruchomienia zresetowany"
   }
 }

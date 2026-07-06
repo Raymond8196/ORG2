@@ -2615,5 +2615,17 @@
       "completionTokens": "输出 tokens：{{value}}",
       "elapsed": "总耗时：{{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "启动配置",
+    "fullPermission": "完全权限",
+    "manual": "手动",
+    "command": "命令",
+    "environment": "环境变量",
+    "envPlaceholder": "KEY=value，每行一个",
+    "loading": "正在加载启动配置...",
+    "unavailable": "启动配置不可用",
+    "saved": "启动配置已保存",
+    "resetDone": "启动配置已重置"
   }
 }

@@ -159,6 +159,10 @@ agent_sessions::cli::platform_adapters::kiro::kiro_auth::cancel_kiro_login,
 agent_sessions::cli::platform_adapters::kiro::kiro_auth::read_kiro_tokens,
 agent_sessions::cli::platform_adapters::kiro::kiro_auth::create_kiro_auth_webview,
 agent_sessions::cli::platform_adapters::kiro::kiro_auth::close_kiro_auth_webview,
+// CLI launch profile settings
+agent_sessions::cli::commands::cli_launch_profile_get,
+agent_sessions::cli::commands::cli_launch_profile_update,
+agent_sessions::cli::commands::cli_launch_profile_reset,
 // Kiro ACP session listing
 agent_sessions::cli::parsers::kiro::list_kiro_sessions_cmd,
 // GitHub local API commands

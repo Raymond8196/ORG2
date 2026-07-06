@@ -2616,5 +2616,17 @@
       "completionTokens": "Output tokens: {{value}}",
       "elapsed": "Total time: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Launch profile",
+    "fullPermission": "Full permission",
+    "manual": "Manual",
+    "command": "Command",
+    "environment": "Environment",
+    "envPlaceholder": "KEY=value, one per line",
+    "loading": "Loading launch profile...",
+    "unavailable": "Launch profile unavailable",
+    "saved": "Launch profile saved",
+    "resetDone": "Launch profile reset"
   }
 }
