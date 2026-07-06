@@ -53,6 +53,7 @@ import { clearTerminalBufferCache } from "./bufferCache";
 import "./index.scss";
 import { registerTerminalEventHandlers } from "./terminalHandlers";
 import { cleanupPtyListeners } from "./terminalLifecycle";
+import { flushBacklog, setPaneForeground } from "./terminalOutputScheduler";
 import { initPtyConnection } from "./terminalPty";
 import {
   createTerminalInstance,
@@ -66,6 +67,7 @@ import {
 import type { TerminalViewHandle, TerminalViewProps } from "./types";
 import { useTerminalAppearance } from "./useTerminalAppearance";
 import { useTerminalResizeListeners } from "./useTerminalResizeListeners";
+import { releaseWebglSlot } from "./webglContextManager";
 
 // Re-export types for consumers
 export type {
@@ -81,6 +83,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
   function TerminalView(
     {
       sessionKey,
+      isForeground = true,
       onSelectionChange,
       onOutput,
       onUserInput,
@@ -270,6 +273,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
         if (webglAddonRef.current) {
           webglAddonRef.current.dispose();
           webglAddonRef.current = null;
+          releaseWebglSlot();
         }
         terminal.dispose();
         terminalRef.current = null;
@@ -287,9 +291,24 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
         cleanupPtyListeners({
           unlistenOutputRef,
           unlistenExitRef,
+          sessionIdRef,
         });
       };
     }, []);
+
+    // Scheduler foreground/background priority and tab-show backlog flush.
+    // The sessionId is set during initPtyConnection which runs after mount;
+    // we derive it the same way here rather than from the ref to keep this
+    // effect's deps clean.
+    const schedulerSessionId = `terminal-pty-${sessionKey}`;
+    useEffect(() => {
+      setPaneForeground(schedulerSessionId, isForeground);
+
+      if (isForeground) {
+        // Flush up to 256 KB of queued backlog immediately on tab show
+        flushBacklog(schedulerSessionId, 256 * 1024);
+      }
+    }, [isForeground, schedulerSessionId]);
 
     useTerminalResizeListeners({
       containerRef,
