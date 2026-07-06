@@ -4,15 +4,11 @@ import { type MutableRefObject, useCallback } from "react";
 import {
   autoDetectKey,
   getCodexOAuthModels as fetchCodexOAuthModels,
+  getOAuthModelCatalog,
 } from "@src/api/services/keyValidation";
+import { CLI_AGENT } from "@src/api/tauri/rpc/schemas/validation";
 import type { DetectedKey } from "@src/api/types/keys";
 import { createLogger } from "@src/hooks/logger";
-import {
-  getClaudeCodeOAuthDefaultEnabledModels,
-  getClaudeCodeOAuthModels,
-  getCodexOAuthDefaultEnabledModels,
-  getCodexOAuthModels,
-} from "@src/hooks/models/nativeHarnessAccountModels";
 
 import type { WizardData } from "../types";
 import { applyKey } from "./keyHelpers";
@@ -60,13 +56,15 @@ export function useApiSetupTokenDetection({
 }: UseApiSetupTokenDetectionOptions) {
   const applySelectedKey = useCallback(
     async (cred: DetectedKey) => {
-      let fallbackModels = isClaudeCode
-        ? getClaudeCodeOAuthModels()
+      const catalog = isClaudeCode
+        ? await getOAuthModelCatalog(CLI_AGENT.CLAUDE_CODE)
         : isCodex
-          ? agentModelsRef.current.length > 0
-            ? agentModelsRef.current
-            : getCodexOAuthModels()
-          : [];
+          ? await getOAuthModelCatalog(CLI_AGENT.CODEX)
+          : { models: [], defaultEnabledModels: [] };
+      let fallbackModels =
+        isCodex && agentModelsRef.current.length > 0
+          ? agentModelsRef.current
+          : catalog.models;
       if (isCodex && cred.session_token) {
         const idToken = cred.env_vars?.OPENAI_ID_TOKEN;
         try {
@@ -82,10 +80,9 @@ export function useApiSetupTokenDetection({
           );
         }
       }
-      const codexDefaultEnabledModels =
-        getCodexOAuthDefaultEnabledModels().filter((modelId) =>
-          fallbackModels.includes(modelId)
-        );
+      const defaultEnabledModels = catalog.defaultEnabledModels.filter(
+        (modelId) => fallbackModels.includes(modelId)
+      );
       applyKey(cred, {
         onChange,
         setTokenDetected,
@@ -95,11 +92,10 @@ export function useApiSetupTokenDetection({
         isCursor,
         isOAuthAgent,
         fallbackModels,
-        defaultEnabledModels: isClaudeCode
-          ? getClaudeCodeOAuthDefaultEnabledModels()
-          : isCodex
-            ? codexDefaultEnabledModels.length > 0
-              ? codexDefaultEnabledModels
+        defaultEnabledModels:
+          isClaudeCode || isCodex
+            ? defaultEnabledModels.length > 0
+              ? defaultEnabledModels
               : fallbackModels.slice(0, 1)
             : undefined,
         noValidTokenMsg: t("keyVault.noValidTokenFound"),

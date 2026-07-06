@@ -648,6 +648,17 @@ export const ClaudeCodeOauthListModelsInput = z.object({
   accessToken: z.string(),
 });
 
+export const OAuthModelCatalogInput = z.object({
+  request: z.object({
+    agent_type: z.string(),
+  }),
+});
+
+export const OAuthModelCatalogResponseSchema = z.object({
+  models: z.array(z.string()),
+  default_enabled_models: z.array(z.string()),
+});
+
 export const CodexOauthListModelsInput = z.object({
   request: z.object({
     access_token: z.string(),

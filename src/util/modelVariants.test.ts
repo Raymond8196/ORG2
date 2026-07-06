@@ -195,6 +195,14 @@ describe("parseModelVariant", () => {
       fast: false,
       rawSuffix: "max",
     });
+    expect(parseModelVariant("claude-fable-5-ultracode")).toEqual({
+      model: "claude-fable-5-ultracode",
+      baseModel: "claude-fable-5",
+      reasoning: MODEL_REASONING_LEVEL.ULTRACODE,
+      thinking: false,
+      fast: false,
+      rawSuffix: "ultracode",
+    });
   });
 
   it("parses O-series reasoning variants", () => {
