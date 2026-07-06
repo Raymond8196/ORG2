@@ -4,7 +4,6 @@
  * Manages the app's wallpaper / background state:
  *   - Image (bundled presets + user uploads)
  *   - Solid color (preset IDs + custom hex)
- *   - Animation type
  *   - Glass thickness
  *   - Adaptive colors
  *
@@ -43,8 +42,6 @@ export interface BackgroundConfig {
    * "ocean"). Absent for custom colors and image backgrounds.
    */
   backgroundColorId?: string;
-  animation?: string;
-  matrixCharSet?: "binary" | "latin" | "symbols" | "katakana";
   /** Glass thickness level. Undefined = off. */
   glass?: "regular" | "medium" | "thick";
   /**
@@ -125,6 +122,8 @@ function getStoredBackgroundConfig(): BackgroundConfig {
     const stored = localStorage.getItem(BACKGROUND_CONFIG_KEY);
     if (stored) {
       const parsed = JSON.parse(stored) as Record<string, unknown>;
+      delete parsed.animation;
+      delete parsed.matrixCharSet;
       if (!VALID_GLASS_LEVELS.has(parsed.glass as string)) {
         parsed.glass = undefined;
       }

@@ -34,7 +34,10 @@ pub struct CompactionConfig {
     #[serde(default = "default_enabled")]
     pub enabled: bool,
 
-    /// Token budget at which compaction triggers (fraction of MAX_HISTORY_TOKENS).
+    /// Fraction of the effective budget at which compaction triggers.
+    /// The effective budget already carves out the summary reserve and
+    /// safety buffer, so the default is 1.0 — trigger at the effective
+    /// budget directly. Lower values trigger earlier.
     #[serde(default = "default_trigger_ratio")]
     pub trigger_ratio: f32,
 
@@ -58,7 +61,7 @@ pub struct CompactionConfig {
     #[serde(default = "default_floor_tokens")]
     pub floor_tokens: usize,
 
-    /// Tokens reserved for the compaction summary output (default 2048).
+    /// Tokens reserved for the compaction summary output (default 20000).
     #[serde(default = "default_reserved_summary_tokens")]
     pub reserved_summary_tokens: usize,
 
@@ -70,14 +73,21 @@ pub struct CompactionConfig {
 fn default_enabled() -> bool {
     true
 }
+// 1.0: `effective_budget` already subtracts the summary reserve and safety
+// buffer, so no extra ratio margin is stacked on top. Ref: claude_code
+// autoCompact.ts triggers at effectiveWindow - AUTOCOMPACT_BUFFER_TOKENS
+// with no ratio multiplier.
 fn default_trigger_ratio() -> f32 {
-    0.8
+    1.0
 }
 fn default_keep_ratio() -> f32 {
     0.4
 }
+// Matches `reserved_summary_tokens`. Ref: claude_code
+// COMPACT_MAX_OUTPUT_TOKENS = 20_000 (p99.99 of summary output ≈ 17.4k);
+// a 4k cap truncated 9-section summaries mid-section.
 fn default_summary_max_tokens() -> u32 {
-    4096
+    20_000
 }
 fn default_min_messages() -> usize {
     8
@@ -248,11 +258,10 @@ impl ContextCompactor {
     /// Check if compaction is needed.
     ///
     /// Uses `effective_budget` (= context_window - reserved_summary -
-    /// buffer) rather than the raw context window, then multiplies it
-    /// by `trigger_ratio` so the default 0.8 fires compaction when
-    /// history exceeds 80% of the effective budget. The reserved /
-    /// buffer carve-out leaves room for the summary output and a
-    /// safety margin.
+    /// buffer) rather than the raw context window, scaled by
+    /// `trigger_ratio` (default 1.0 — the reserved / buffer carve-out
+    /// already leaves room for the summary output and a safety margin,
+    /// so no extra ratio margin is stacked on top).
     pub fn needs_compaction(
         history: &[Value],
         context_window: usize,
@@ -296,12 +305,25 @@ impl ContextCompactor {
         config: &CompactionConfig,
         observed_tokens: usize,
     ) -> bool {
-        if !config.enabled || history.len() < config.min_messages {
+        if !config.enabled {
             return false;
         }
 
         let budget = config.effective_budget(context_window);
         let trigger_threshold = (budget as f32 * config.trigger_ratio) as usize;
+
+        // A provider-measured fill above the threshold overrides the
+        // min_messages gate: a handful of enormous messages must still
+        // compact instead of eating a PTL rejection every turn.
+        if observed_tokens > trigger_threshold {
+            return true;
+        }
+
+        // Estimate-only path: keep the gate — tiny histories are noise.
+        if history.len() < config.min_messages {
+            return false;
+        }
+
         let history_tokens = Self::estimate_messages_tokens(history).max(observed_tokens);
         history_tokens > trigger_threshold
     }

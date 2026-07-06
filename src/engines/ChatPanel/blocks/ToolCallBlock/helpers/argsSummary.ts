@@ -143,10 +143,19 @@ function formatAgentSendMessageSummary(args: Record<string, unknown>): string {
   return body ? `${head} · ${body}` : head;
 }
 
+export function extractSkillName(args: Record<string, unknown>): string {
+  const skill = args.skill;
+  return typeof skill === "string" ? skill : "";
+}
+
 export function extractArgsSummary(
   toolName: string,
   args: Record<string, unknown>
 ): string {
+  if (toolName === TOOL_NAMES.SKILL) {
+    return extractSkillName(args);
+  }
+
   if (toolName === TOOL_NAMES.ORG_SEND_MESSAGE) {
     return formatAgentSendMessageSummary(args);
   }

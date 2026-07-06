@@ -895,7 +895,15 @@
     "addKey": "Thêm khóa",
     "compatibleKeys": "Keys tương thích",
     "keysTab": "Keys",
-    "plansTab": "Gói"
+    "plansTab": "Gói",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "Tất cả trạng thái cài đặt",
@@ -1659,7 +1667,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Khóa",
-      "addedTime": "Đã thêm"
+      "addedTime": "Đã thêm",
+      "secretBearingConfig": "Có thể chứa API key hoặc Token",
+      "revealConfigFile": "Hiển thị trong trình quản lý tệp"
     },
     "codexConfig": {
       "sectionTitle": "Cấu hình",
@@ -2532,6 +2542,28 @@
       "cpu_offload": "CPU offload",
       "cpu_only": "Chỉ CPU",
       "no_fit": "Không khuyến nghị"
+    }
+  },
+  "housekeeper": {
+    "addModel": "Thêm mô hình",
+    "sections": {
+      "configuration": "Cấu hình",
+      "features": "Tính năng",
+      "diagnostics": "Chẩn đoán"
+    },
+    "health": {
+      "status": "Chưa kiểm tra"
+    },
+    "benchmark": {
+      "title": "Tốc độ đầu ra MiniCPM",
+      "idle": "Gửi một prompt thử nghiệm nhẹ và tính token/s đầu ra theo thời gian hoàn thành thực tế.",
+      "running": "Đang gọi vLLM MiniCPM cục bộ và đo tốc độ đầu ra...",
+      "ready": "Xuất {{tokens}} tokens trong {{seconds}}s",
+      "status": "Chưa thử nghiệm",
+      "checkButton": "Kiểm tra tốc độ",
+      "tokensPerSecond": "Tốc độ đầu ra: {{value}} tokens/s",
+      "completionTokens": "Tokens đầu ra: {{value}}",
+      "elapsed": "Tổng thời gian: {{value}}s"
     }
   }
 }

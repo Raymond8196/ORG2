@@ -23,6 +23,7 @@ export type SettingsCategory =
   | "git"
   | "agent"
   | "agentBrowser"
+  | "housekeeper"
   | "network"
   | "privacy"
   | "mobileRemote";

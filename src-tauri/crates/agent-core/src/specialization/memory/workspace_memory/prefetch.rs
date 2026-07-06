@@ -18,7 +18,10 @@ use tracing::{info, warn};
 
 use serde_json::Value;
 
-use super::prompt_sections::{MEMORY_DRIFT_CAVEAT, TRUSTING_RECALL, WHEN_TO_ACCESS};
+use super::prompt_sections::{
+    how_to_save_section, MEMORY_DRIFT_CAVEAT, SAVE_ON_EXPLICIT_REQUEST, TRUSTING_RECALL,
+    TYPES_SECTION, WHAT_NOT_TO_SAVE, WHEN_TO_ACCESS,
+};
 use super::{MemoryHeader, ENTRYPOINT_NAME};
 use crate::core::side_query::{self, SideQueryConfig};
 use crate::providers::traits::LLMProvider;
@@ -377,38 +380,83 @@ fn truncate_memory_to_file_budget(content: String) -> String {
 /// Build the workspace memory section for the system prompt.
 ///
 /// Includes:
-/// - The MEMORY.md index (if present)
+/// - The MEMORY.md index (or an explicit "currently empty" note)
 /// - Selected memory file contents
 /// - Freshness caveats for stale memories
 /// - WHEN_TO_ACCESS and TRUSTING_RECALL guidance sections
+/// - The save protocol (types, exclusions, two-step save) so the MAIN agent
+///   can honor "remember this" in-turn instead of depending on the gated
+///   post-turn extractor, and a fresh workspace can bootstrap memory at all
 ///
-/// Returns `None` if there are no memories and no MEMORY.md.
+/// Always returns `Some`: callers gate on workspace-memory enablement, not
+/// on content (mirrors Claude Code, which renders the full protocol even
+/// when MEMORY.md is empty). The output is byte-stable across turns for
+/// unchanged inputs — no counts or timestamps — to preserve provider
+/// prompt caches.
+/// Static half of the workspace-memory prompt surface: where the memory
+/// lives, when to access it, and the full save protocol. Registered as a
+/// stable prompt section (`memory_protocol`) so it is in EVERY request —
+/// the recall section below rides an async per-turn prefetch that a
+/// zero-tool conversational turn never waits for, and "remember this"
+/// requests arrive precisely on such turns.
+pub fn build_memory_protocol_section(workspace: &Path) -> String {
+    let mem_dir = super::memory_dir(workspace);
+    let mut sections = Vec::new();
+
+    sections.push("# Workspace Memory".to_string());
+    sections.push(String::new());
+    sections.push(format!(
+        "You have a persistent, file-based memory system at `{}`.",
+        mem_dir.display()
+    ));
+    sections.push(String::new());
+    sections.push(MEMORY_DRIFT_CAVEAT.to_string());
+    sections.push(String::new());
+    sections.push(WHEN_TO_ACCESS.to_string());
+    sections.push(String::new());
+    sections.push(TRUSTING_RECALL.to_string());
+    sections.push(String::new());
+    sections.push(SAVE_ON_EXPLICIT_REQUEST.to_string());
+    sections.push(String::new());
+    sections.push(TYPES_SECTION.to_string());
+    sections.push(String::new());
+    sections.push(WHAT_NOT_TO_SAVE.to_string());
+    sections.push(String::new());
+    sections.push(how_to_save_section());
+
+    sections.join("\n")
+}
+
+/// Dynamic half: MEMORY.md index + prefetch-selected memory contents.
+/// Returns `None` when there is nothing recalled AND the index is empty —
+/// the always-present protocol section above owns the bootstrap story, so
+/// an empty recall section would be pure noise.
 pub fn build_memory_prompt_section(
     workspace: &Path,
     memories: &[RelevantMemory],
 ) -> Option<String> {
     let mem_dir = super::memory_dir(workspace);
     let index = super::load_memory_index(&mem_dir);
-
     if index.is_empty() && memories.is_empty() {
         return None;
     }
 
     let mut sections = Vec::new();
 
-    sections.push("# Workspace Memory".to_string());
+    sections.push("# Workspace Memory — Recall".to_string());
     sections.push(String::new());
-    sections.push(MEMORY_DRIFT_CAVEAT.to_string());
-
-    // MEMORY.md index
-    if !index.is_empty() {
-        sections.push(String::new());
+    sections.push(format!(
+        "## Memory Index ({}/{})",
+        ENTRYPOINT_NAME,
+        mem_dir.display()
+    ));
+    sections.push(String::new());
+    if index.is_empty() {
         sections.push(format!(
-            "## Memory Index ({}/{})",
-            ENTRYPOINT_NAME,
-            mem_dir.display()
+            "Your {} is currently empty. When you save new memories, they will appear here.",
+            ENTRYPOINT_NAME
         ));
-        sections.push(String::new());
+    } else {
         sections.push(index);
     }
 
@@ -430,12 +478,6 @@ pub fn build_memory_prompt_section(
             sections.push(mem.content.clone());
         }
     }
-
-    // Access guidance
-    sections.push(String::new());
-    sections.push(WHEN_TO_ACCESS.to_string());
-    sections.push(String::new());
-    sections.push(TRUSTING_RECALL.to_string());
 
     Some(sections.join("\n"))
 }
@@ -476,10 +518,29 @@ mod tests {
     }
 
     #[test]
-    fn test_build_memory_prompt_section_empty() {
+    fn test_recall_section_empty_returns_none_protocol_owns_bootstrap() {
+        // No MEMORY.md, no selected memories: the RECALL section stays out
+        // of the prompt. The bootstrap story (location + save protocol)
+        // lives in the always-present static section below, which a
+        // zero-tool conversational turn gets without waiting for the
+        // async prefetch.
         let tmp = TempDir::new().unwrap();
-        let result = build_memory_prompt_section(tmp.path(), &[]);
-        assert!(result.is_none());
+        assert!(build_memory_prompt_section(tmp.path(), &[]).is_none());
+    }
+
+    #[test]
+    fn test_protocol_section_carries_full_save_contract() {
+        let tmp = TempDir::new().unwrap();
+        let section = build_memory_protocol_section(tmp.path());
+        assert!(section.contains("# Workspace Memory"));
+        assert!(section.contains(SAVE_ON_EXPLICIT_REQUEST));
+        assert!(section.contains("## Types of memory"));
+        assert!(section.contains("## What NOT to save"));
+        assert!(section.contains("## How to save memories"));
+        assert!(section.contains("When to access memories"));
+        // Byte-stable across calls: registered as StableUntilClear, and the
+        // text must not depend on anything but the workspace path.
+        assert_eq!(section, build_memory_protocol_section(tmp.path()));
     }
 
     #[test]
@@ -503,12 +564,14 @@ mod tests {
         let result = build_memory_prompt_section(tmp.path(), &memories);
         assert!(result.is_some());
         let section = result.unwrap();
-        assert!(section.contains("# Workspace Memory"));
+        assert!(section.contains("# Workspace Memory — Recall"));
         assert!(section.contains("Memory Index"));
         assert!(section.contains("Loaded Memories"));
         assert!(section.contains("prefer tabs"));
-        assert!(section.contains("When to access memories"));
-        assert!(section.contains("Before recommending from memory"));
+        // Access guidance and the save protocol live in the static
+        // protocol section, not the per-turn recall surface.
+        assert!(!section.contains("## How to save memories"));
+        assert!(!section.contains("is currently empty"));
     }
 
     #[test]
@@ -653,7 +716,9 @@ mod tests {
         assert!(body.len() <= MAX_MEMORY_FILE_BYTES);
         assert!(body.ends_with(&line));
         // Marker is byte-stable: no dynamic numbers.
-        assert!(!MEMORY_FILE_TRUNCATION_NOTICE.chars().any(|c| c.is_ascii_digit()));
+        assert!(!MEMORY_FILE_TRUNCATION_NOTICE
+            .chars()
+            .any(|c| c.is_ascii_digit()));
     }
 
     #[test]
@@ -669,9 +734,7 @@ mod tests {
 
         assert!(std::str::from_utf8(result.as_bytes()).is_ok());
         assert!(result.ends_with(MEMORY_FILE_TRUNCATION_NOTICE));
-        let body = result
-            .strip_suffix(MEMORY_FILE_TRUNCATION_NOTICE)
-            .unwrap();
+        let body = result.strip_suffix(MEMORY_FILE_TRUNCATION_NOTICE).unwrap();
         assert!(body.len() <= MAX_MEMORY_FILE_BYTES);
         assert!(body.is_char_boundary(body.len()));
     }
@@ -758,8 +821,7 @@ mod tests {
 
         let one = build_memory_prompt_section(tmp.path(), &[mem("/tmp/a.md")]).unwrap();
         let two =
-            build_memory_prompt_section(tmp.path(), &[mem("/tmp/a.md"), mem("/tmp/b.md")])
-                .unwrap();
+            build_memory_prompt_section(tmp.path(), &[mem("/tmp/a.md"), mem("/tmp/b.md")]).unwrap();
 
         // Header carries no file count: identical regardless of how many
         // memories were selected.

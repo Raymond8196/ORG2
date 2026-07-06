@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 
+import type { CliAgentType } from "@src/api/types/keys";
 import type {
   SessionLaunchSuccessInfo,
   SessionLaunchWorkItemContext,
@@ -10,6 +11,14 @@ export interface ChatPanelRegionNotice {
   key: string;
   title: string;
   body: string;
+}
+
+export interface ChatPanelCliTerminalLaunchOptions {
+  cliAgentType: CliAgentType;
+  command: string;
+  title: string;
+  cwd?: string;
+  expectedProcess?: string;
 }
 
 /**
@@ -52,6 +61,7 @@ export interface ChatPanelProps {
     hidePresenceButton?: boolean;
     initialContent?: string;
     launchMode?: SessionCreatorLaunchMode;
+    onOpenCliTerminal?: (options: ChatPanelCliTerminalLaunchOptions) => void;
     onSessionStart?: (info: SessionLaunchSuccessInfo) => void;
     resolveWorkItemContext?: () => Promise<SessionLaunchWorkItemContext | null>;
     workItemContext?: SessionLaunchWorkItemContext;

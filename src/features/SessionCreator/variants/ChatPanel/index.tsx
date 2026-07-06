@@ -10,6 +10,7 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import type { ModelType } from "@src/api/tauri/rpc/schemas/validation";
+import type { CliAgentType } from "@src/api/types/keys";
 import Button from "@src/components/Button";
 import type { ComposerInputRef } from "@src/components/ComposerInput";
 import InlineAlert from "@src/components/InlineAlert";
@@ -22,7 +23,10 @@ import type { ScrollNavState } from "@src/engines/ChatPanel/ChatHistory";
 import CollapsedInlineRow from "@src/engines/ChatPanel/InputArea/components/CollapsedInlineRow";
 import PinnedActionsBar from "@src/engines/ChatPanel/InputArea/components/PinnedActionsBar";
 import { useBrowserAddToConversationAction } from "@src/engines/ChatPanel/hooks/useBrowserAddToConversationAction";
-import type { ChatPanelRegionNotice } from "@src/engines/ChatPanel/types";
+import type {
+  ChatPanelCliTerminalLaunchOptions,
+  ChatPanelRegionNotice,
+} from "@src/engines/ChatPanel/types";
 import { useSessionCreator } from "@src/engines/SessionCore/hooks/session/useSessionCreator";
 import type {
   SessionLaunchSuccessInfo,
@@ -41,17 +45,24 @@ import { useAgentCompatibility } from "@src/hooks/models/useAgentCompatibility";
 import { useAgentDefinitions } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentDefinitions";
 import { useAgentOrgs } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentOrgs";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
-import { DispatchCategoryPalette } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
+import {
+  type AgentSelection,
+  DispatchCategoryPalette,
+} from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
 import { DispatchCategoryDropdown } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette/DispatchCategoryDropdown";
 import { PresenceMenuButton } from "@src/scaffold/NavigationSidebar/blocks/SidebarBottomBar";
 import { gitDependencyInstalledAtom } from "@src/store/platform/gitDependencyAtom";
 import { REPO_KIND } from "@src/store/repo/types";
 import {
+  CLI_LAUNCH_MODE,
   SESSION_TARGET_KIND,
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
+  cliAgentVisibilityOverridesAtom,
+  cliLaunchModeAtom,
   dispatchCategoryAtom,
+  isCliAgentEnabled,
   selectedAgentDefinitionIdAtom,
   selectedAgentOrgIdAtom,
   sessionCreatorStateAtom,
@@ -59,8 +70,11 @@ import {
   sessionTargetKindAtom,
 } from "@src/store/session";
 import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
+import { creatorDefaultTuiModeAtom } from "@src/store/session/creatorDefaultTuiModeAtom";
+import { openCategoryPickerSignalAtom } from "@src/store/session/openCategoryPickerAtom";
 import { runningLocationAtom } from "@src/store/session/runningLocationAtom";
 import { selectedWorktreePathAtom } from "@src/store/session/selectedWorktreePathAtom";
+import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import {
   type ChatImageAttachment,
   chatImageAttachmentsAtom,
@@ -75,7 +89,11 @@ import { draftHasContentAtom } from "@src/store/ui/draftAtom";
 import { getBigThreeRegionModelTypeForSession } from "@src/util/session/regionAlertModel";
 import { getRustAgentType } from "@src/util/session/sessionDispatch";
 
-import { EditorArea, SessionInfoLine } from "../../components";
+import {
+  CliLaunchModeSwitch,
+  EditorArea,
+  SessionInfoLine,
+} from "../../components";
 import type { DropdownDirection } from "../../components/ControlButtons";
 import ScreenPickerModal from "./ScreenPickerModal";
 import SessionCreatorAgentHero from "./SessionCreatorAgentHero";
@@ -87,6 +105,17 @@ import { resolveSessionCreatorAgentHeroContent } from "./resolveSessionCreatorAg
 import { useSessionCreatorChatPanelHandlers } from "./useSessionCreatorChatPanelHandlers";
 
 const log = createLogger("ChatPanel");
+
+function deriveExpectedProcess(command: string): string | undefined {
+  const [binary] = command.trim().split(/\s+/);
+  return binary || undefined;
+}
+
+function isCliAgentType(
+  value: string | null | undefined
+): value is CliAgentType {
+  return Boolean(value);
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -104,6 +133,7 @@ export interface SessionCreatorChatPanelProps {
   hideRepoLine?: boolean;
   initialContent?: string;
   dropdownDirection?: DropdownDirection;
+  onOpenCliTerminal?: (options: ChatPanelCliTerminalLaunchOptions) => void;
   onRegionNoticeChange?: (notice: ChatPanelRegionNotice | null) => void;
   onSessionStart?: (info: SessionLaunchSuccessInfo) => void;
   variant?: SessionCreatorChatPanelVariant;
@@ -130,6 +160,7 @@ const SessionCreatorChatPanelSingle: React.FC<
   hideRepoLine = false,
   initialContent,
   dropdownDirection = "down",
+  onOpenCliTerminal,
   onRegionNoticeChange,
   onSessionStart,
   hidePresenceButton = false,
@@ -143,6 +174,33 @@ const SessionCreatorChatPanelSingle: React.FC<
   const { registry } = useAgentCompatibility();
   const { orgs } = useAgentOrgs();
   const { agents: cliAgentList } = useCliAgents({ enabled: true });
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
+  const enabledCliAgentList = useMemo(
+    () =>
+      cliAgentList.filter((agent) =>
+        isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
+  );
+
+  // Read atoms needed before useSessionCreator so we can pass derived values in.
+  const dispatchCategory = useAtomValue(dispatchCategoryAtom);
+  const cliAgentType = useAtomValue(cliAgentTypeAtom);
+  const cliLaunchMode = useAtomValue(cliLaunchModeAtom);
+  const setCliLaunchMode = useSetAtom(cliLaunchModeAtom);
+
+  const selectedCliAgent = useMemo(
+    () =>
+      dispatchCategory === "cli_agent" && cliAgentType
+        ? enabledCliAgentList.find((agent) => agent.name === cliAgentType)
+        : undefined,
+    [dispatchCategory, cliAgentType, enabledCliAgentList]
+  );
+  const selectedCliAgentSupportsGui = selectedCliAgent?.supportsGui === true;
+  const selectedCliAgentGuiSupportKnown = Boolean(selectedCliAgent);
+  const cliComposerEnabled =
+    cliLaunchMode === CLI_LAUNCH_MODE.GUI &&
+    (!selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui);
 
   const {
     repos: reposList,
@@ -170,12 +228,19 @@ const SessionCreatorChatPanelSingle: React.FC<
       }),
     [selectedProjectContext, selectedProjectOrgContext, selectedWorkItemContext]
   );
+  const defaultTuiMode = useAtomValue(creatorDefaultTuiModeAtom);
+  const setDefaultTuiMode = useSetAtom(creatorDefaultTuiModeAtom);
+  const store = useStore();
+
   const handleSessionStart = useCallback(
     (info: SessionLaunchSuccessInfo) => {
       setAttachedWorkItemContext(null);
+      if (defaultTuiMode) {
+        store.set(tuiModeAtom(info.sessionId), true);
+      }
       onSessionStart?.(info);
     },
-    [onSessionStart]
+    [onSessionStart, defaultTuiMode, store]
   );
 
   const {
@@ -224,18 +289,17 @@ const SessionCreatorChatPanelSingle: React.FC<
       attachedWorkItemContext ?? workItemContext ?? chatPanelLaunchContext,
     resolveWorkItemContext,
     onLaunchSuccess: handleSessionStart,
+    cliAgentSupportsGui: cliComposerEnabled,
   });
 
   const setCreatorState = useSetAtom(sessionCreatorStateAtom);
   const gitInstalled = useAtomValue(gitDependencyInstalledAtom);
   const showMissingGitAlert = gitInstalled === false;
-  const dispatchCategory = useAtomValue(dispatchCategoryAtom);
   const targetKind = useAtomValue(sessionTargetKindAtom);
   const selectedAgentDefId = useAtomValue(selectedAgentDefinitionIdAtom);
   const selectedAgentOrgId = useAtomValue(selectedAgentOrgIdAtom);
   const agentName = useAtomValue(agentNameAtom);
   const agentIconId = useAtomValue(agentIconIdAtom);
-  const cliAgentType = useAtomValue(cliAgentTypeAtom);
   const { builtInAgents, agents: customAgents } = useAgentDefinitions();
 
   const runningLocation = useAtomValue(runningLocationAtom);
@@ -257,8 +321,19 @@ const SessionCreatorChatPanelSingle: React.FC<
   const isWingmanMode = isRustMode && agentVariant === "wingman";
   const isCliMode = dispatchCategory === "cli_agent";
   const isCursorIdeMode = dispatchCategory === "cursor_ide";
+  const isCliTuiMode = isCliMode && !cliComposerEnabled;
 
   const [isCategorySelectorOpen, setIsCategorySelectorOpen] = useState(false);
+  const openCategoryPickerSignal = useAtomValue(openCategoryPickerSignalAtom);
+  const prevOpenCategoryPickerSignalRef = useRef(openCategoryPickerSignal);
+  useEffect(() => {
+    if (openCategoryPickerSignal !== prevOpenCategoryPickerSignalRef.current) {
+      prevOpenCategoryPickerSignalRef.current = openCategoryPickerSignal;
+      // Defer out of the effect body to avoid synchronous setState cascades
+      queueMicrotask(() => setIsCategorySelectorOpen(true));
+    }
+  }, [openCategoryPickerSignal]);
+
   const agentHeroRef = useRef<HTMLButtonElement>(null);
   const workItemPanelHostRef = useRef<HTMLDivElement>(null);
   const setSessionSource = useSetAtom(sessionSourceAtom);
@@ -292,6 +367,17 @@ const SessionCreatorChatPanelSingle: React.FC<
     forceRefreshRepos,
   });
 
+  const handleAgentPickerSelect = useCallback(
+    (selection: AgentSelection) => {
+      if (selection.cliAgentType && selection.cliLaunchMode) {
+        setCliLaunchMode(selection.cliLaunchMode);
+        setDefaultTuiMode(selection.cliLaunchMode === CLI_LAUNCH_MODE.TUI);
+      }
+      handleCategorySelect(selection);
+    },
+    [handleCategorySelect, setCliLaunchMode, setDefaultTuiMode]
+  );
+
   const handleAdvancedConfigChange = useCallback(
     (config: typeof advancedConfig) => {
       setAdvancedConfig(config);
@@ -322,7 +408,6 @@ const SessionCreatorChatPanelSingle: React.FC<
 
   // ── Restore text ──────────────────────────────────────────────────────────
 
-  const store = useStore();
   const restoreToInput = useAtomValue(restoreToInputAtom);
   const setImageAttachments = useSetAtom(chatImageAttachmentsAtom);
   const [initialRestoreText] = useState<string>(() => {
@@ -383,8 +468,44 @@ const SessionCreatorChatPanelSingle: React.FC<
   // ── Launch ────────────────────────────────────────────────────────────────
 
   const handleLaunch = useCallback(async () => {
+    if (
+      isCliTuiMode &&
+      onOpenCliTerminal &&
+      selectedCliAgent &&
+      isCliAgentType(cliAgentType)
+    ) {
+      const command = selectedCliAgent.command.trim();
+      if (command.length > 0) {
+        onOpenCliTerminal({
+          cliAgentType,
+          command,
+          title: selectedCliAgent.displayName,
+          cwd: effectiveSource?.repoPath,
+          expectedProcess: deriveExpectedProcess(command),
+        });
+        setAttachedWorkItemContext(null);
+        return;
+      }
+    }
+
     return originalHandleLaunch();
-  }, [originalHandleLaunch]);
+  }, [
+    cliAgentType,
+    effectiveSource?.repoPath,
+    isCliTuiMode,
+    onOpenCliTerminal,
+    originalHandleLaunch,
+    selectedCliAgent,
+  ]);
+
+  const handleCliLaunchModeChange = useCallback(
+    (mode: typeof cliLaunchMode) => {
+      if (mode === CLI_LAUNCH_MODE.GUI && !selectedCliAgentSupportsGui) return;
+      setCliLaunchMode(mode);
+      setDefaultTuiMode(mode === CLI_LAUNCH_MODE.TUI);
+    },
+    [selectedCliAgentSupportsGui, setCliLaunchMode, setDefaultTuiMode]
+  );
 
   useEffect(() => {
     if (!selectedRepoId) return;
@@ -620,6 +741,16 @@ const SessionCreatorChatPanelSingle: React.FC<
     </div>
   );
 
+  const cliLaunchModeSwitch = isCliMode && (
+    <CliLaunchModeSwitch
+      mode={cliLaunchMode}
+      supportsGui={
+        !selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui
+      }
+      onModeChange={handleCliLaunchModeChange}
+    />
+  );
+
   const compactHeader = headerLayout === "compact" && (
     <div className="session-creator-chat-panel-compact-header flex w-full items-center justify-between gap-2 bg-bg-2 px-1 pb-2 pt-1">
       <SelectorPill
@@ -734,46 +865,91 @@ const SessionCreatorChatPanelSingle: React.FC<
         <div
           className={`flex w-full flex-col items-stretch gap-3 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
         >
-          {headerLayout !== "compact" && (
-            <SessionCreatorAgentHero
-              ref={agentHeroRef}
-              name={heroContent.name}
-              description={heroContent.description}
-              avatarIcon={heroIcon}
-              active={isCategorySelectorOpen}
-              danger={heroContent.danger}
-              onClick={() => setIsCategorySelectorOpen(true)}
-            />
-          )}
+          {isCliTuiMode ? (
+            <>
+              {headerLayout !== "compact" && (
+                <SessionCreatorAgentHero
+                  ref={agentHeroRef}
+                  name={heroContent.name}
+                  description={heroContent.description}
+                  avatarIcon={heroIcon}
+                  active={isCategorySelectorOpen}
+                  danger={heroContent.danger}
+                  onClick={() => setIsCategorySelectorOpen(true)}
+                />
+              )}
 
-          {isWingmanMode && (
-            <button
-              type="button"
-              className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
-              onClick={() => {
-                handleShareScreenClick().catch(log.error);
-              }}
-            >
-              <Airplay size={13} strokeWidth={1.75} />
-              {t("chat.shareScreen")}
-            </button>
-          )}
-
-          <div
-            className={`session-creator-chat-panel-fullscreen-composer w-full ${
-              headerLayout === "compact"
-                ? "session-creator-chat-panel-fullscreen-composer-compact"
-                : ""
-            }`}
-          >
-            {compactHeader}
-            {editorArea}
-            {!hideRepoLine && headerLayout !== "compact" && (
-              <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
-                {repoPills}
+              <div
+                className={`session-creator-chat-panel-fullscreen-composer w-full ${
+                  headerLayout === "compact"
+                    ? "session-creator-chat-panel-fullscreen-composer-compact"
+                    : ""
+                }`}
+              >
+                {compactHeader}
+                <div className="rounded-xl bg-chat-container p-3">
+                  <button
+                    type="button"
+                    onClick={handleLaunch}
+                    disabled={!canLaunch || isLoading}
+                    className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {t("creator.start")}
+                  </button>
+                </div>
+                {!hideRepoLine && headerLayout !== "compact" && (
+                  <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
+                    {repoPills}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          ) : (
+            <>
+              {headerLayout !== "compact" && (
+                <>
+                  <SessionCreatorAgentHero
+                    ref={agentHeroRef}
+                    name={heroContent.name}
+                    description={heroContent.description}
+                    avatarIcon={heroIcon}
+                    active={isCategorySelectorOpen}
+                    danger={heroContent.danger}
+                    onClick={() => setIsCategorySelectorOpen(true)}
+                  />
+                </>
+              )}
+
+              {isWingmanMode && (
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
+                  onClick={() => {
+                    handleShareScreenClick().catch(log.error);
+                  }}
+                >
+                  <Airplay size={13} strokeWidth={1.75} />
+                  {t("chat.shareScreen")}
+                </button>
+              )}
+
+              <div
+                className={`session-creator-chat-panel-fullscreen-composer w-full ${
+                  headerLayout === "compact"
+                    ? "session-creator-chat-panel-fullscreen-composer-compact"
+                    : ""
+                }`}
+              >
+                {compactHeader}
+                {editorArea}
+                {!hideRepoLine && headerLayout !== "compact" && (
+                  <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
+                    {repoPills}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           {showMissingGitAlert && (
             <div
@@ -798,6 +974,13 @@ const SessionCreatorChatPanelSingle: React.FC<
                 <>
                   {browserElementRowContent}
                   {leadingActionSlot}
+                  {cliLaunchModeSwitch}
+                  {cliLaunchModeSwitch && (
+                    <div
+                      aria-hidden
+                      className="mx-1 h-4 w-px shrink-0 bg-border-2"
+                    />
+                  )}
                   <WorkItemAttachmentControl
                     currentWorkItemContext={attachedWorkItemContext}
                     panelHostRef={workItemPanelHostRef}
@@ -843,7 +1026,7 @@ const SessionCreatorChatPanelSingle: React.FC<
                 advancedConfig={advancedConfig}
                 onAdvancedConfigChange={handleAdvancedConfigChange}
                 allAgents={allAgentDefinitions}
-                cliAgents={cliAgentList}
+                cliAgents={enabledCliAgentList}
               />
             </div>
           )}
@@ -875,7 +1058,7 @@ const SessionCreatorChatPanelSingle: React.FC<
         <DispatchCategoryDropdown
           isOpen={isCategorySelectorOpen}
           onClose={() => setIsCategorySelectorOpen(false)}
-          onSelect={handleCategorySelect}
+          onSelect={handleAgentPickerSelect}
           currentCategory={dispatchCategory}
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}
@@ -886,7 +1069,7 @@ const SessionCreatorChatPanelSingle: React.FC<
         <DispatchCategoryPalette
           isOpen={isCategorySelectorOpen}
           onClose={() => setIsCategorySelectorOpen(false)}
-          onSelect={handleCategorySelect}
+          onSelect={handleAgentPickerSelect}
           currentCategory={dispatchCategory}
           currentAgentDefinitionId={selectedAgentDefId ?? undefined}
           currentAgentOrgId={selectedAgentOrgId ?? undefined}

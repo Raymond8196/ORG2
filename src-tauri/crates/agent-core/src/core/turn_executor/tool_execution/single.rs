@@ -18,7 +18,7 @@ use super::super::file_tracker::{
 };
 use super::super::helpers::{
     add_tool_result, add_tool_result_rich_with_timestamp, add_tool_result_with_timestamp,
-    check_permission, truncate_or_persist_output, truncate_output,
+    check_permission, truncate_output,
 };
 use super::super::types::{PermissionProvider, TurnEventHandler};
 use super::super::usage_telemetry::{serialized_value_bytes, string_bytes, ToolExecutionUsage};
@@ -28,6 +28,7 @@ use super::diff_feedback::compute_diff_feedback;
 use super::is_cancelled;
 use super::is_error_text;
 use super::ToolBatchOutcome;
+use super::ToolResultAggregateBudget;
 
 pub(super) enum SingleResult {
     Continue(ToolExecutionUsage),
@@ -48,6 +49,7 @@ pub(super) async fn execute_single_tool(
     file_tracker: &mut FileTimeTracker,
     consecutive_errors: &mut u32,
     policy_context_activator: Option<&SessionScopedContextActivator>,
+    aggregate_budget: &mut ToolResultAggregateBudget,
 ) -> SingleResult {
     let input_bytes = serialized_value_bytes(&tool_call.arguments);
     let args_preview: String =
@@ -273,11 +275,13 @@ pub(super) async fn execute_single_tool(
             let tool_ref = tools.get(&tool_call.name);
             let budget = tool_ref.map(|t| t.output_budget());
             let allow_persist = tool_ref.map(|t| t.allow_persisted_output()).unwrap_or(true);
-            let mut truncated = if allow_persist {
-                truncate_or_persist_output(&raw_result, budget, session_id, &tool_call.name)
-            } else {
-                truncate_output(&raw_result, budget)
-            };
+            let mut truncated = aggregate_budget.inline_result(
+                &raw_result,
+                budget,
+                allow_persist,
+                session_id,
+                &tool_call.name,
+            );
 
             if truncated.trim().is_empty() {
                 truncated = "[No output]".to_string();
@@ -289,11 +293,14 @@ pub(super) async fn execute_single_tool(
                 }
             }
 
+            // Hook/policy appends happen after budget accounting, so cap
+            // them — an uncapped hook would bypass both the per-tool and
+            // aggregate budgets.
             if let Some(extra) = handler
                 .post_tool_hook(&tool_call.name, &effective_args, &truncated)
                 .await
             {
-                truncated.push_str(&extra);
+                truncated.push_str(&truncate_output(&extra, Some(super::HOOK_APPEND_MAX_CHARS)));
             }
 
             if FILE_READ_TOOLS.contains(&tool_call.name.as_str()) && !is_error {
@@ -301,7 +308,8 @@ pub(super) async fn execute_single_tool(
                 if let Some(extra) = policy_context_activator
                     .and_then(|activator| activator.augment_for_read_paths(&paths))
                 {
-                    truncated.push_str(&extra);
+                    truncated
+                        .push_str(&truncate_output(&extra, Some(super::HOOK_APPEND_MAX_CHARS)));
                 }
             }
 
@@ -458,6 +466,7 @@ mod tests {
         let policy = ResolvedToolPolicy::permissive();
         let mut file_tracker = FileTimeTracker::new();
         let mut consecutive_errors = 0;
+        let mut aggregate_budget = ToolResultAggregateBudget::default();
 
         let result = execute_single_tool(
             &mut messages,
@@ -471,6 +480,7 @@ mod tests {
             &mut file_tracker,
             &mut consecutive_errors,
             None,
+            &mut aggregate_budget,
         )
         .await;
 

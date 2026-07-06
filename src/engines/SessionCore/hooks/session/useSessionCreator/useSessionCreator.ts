@@ -71,6 +71,9 @@ export interface UseSessionCreatorOptions {
   workItemContext?: SessionLaunchWorkItemContext;
   resolveWorkItemContext?: () => Promise<SessionLaunchWorkItemContext | null>;
   onLaunchSuccess?: (info: SessionLaunchSuccessInfo) => void;
+  /** When true the selected CLI agent accepts an initial prompt via the GUI
+   *  composer — canLaunch requires non-empty content (same as Rust agents). */
+  cliAgentSupportsGui?: boolean;
 }
 
 export function useSessionCreator(
@@ -86,6 +89,7 @@ export function useSessionCreator(
     workItemContext,
     resolveWorkItemContext,
     onLaunchSuccess,
+    cliAgentSupportsGui = false,
   } = options;
   // ============================================
   // Refs
@@ -412,7 +416,10 @@ export function useSessionCreator(
   const isContentEmpty = !editorContent || !editorContent.trim();
 
   const canLaunch = useMemo(() => {
-    if (isContentEmpty) return false;
+    // Pure-TUI CLI agents launch without a prompt; GUI-capable CLI agents and
+    // all other categories require non-empty content.
+    const isCliTui = dispatchCategory === "cli_agent" && !cliAgentSupportsGui;
+    if (isContentEmpty && !isCliTui) return false;
     if (
       dispatchCategory === "rust_agent" &&
       !isOSMode &&
@@ -432,6 +439,7 @@ export function useSessionCreator(
     return hasModelOrAccount;
   }, [
     isContentEmpty,
+    cliAgentSupportsGui,
     advancedConfig,
     dispatchCategory,
     effectiveSource,

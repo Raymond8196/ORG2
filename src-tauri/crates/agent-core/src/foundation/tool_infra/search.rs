@@ -15,6 +15,13 @@ use std::path::{Path, PathBuf};
 
 use super::SEARCH_TIMEOUT;
 
+/// Runaway guard on formatted search output. Deliberately far above the
+/// `code_search` tool's 20K per-result budget: the turn executor's
+/// truncate-or-persist layer stubs oversized results to disk retrievably,
+/// so this cap only bounds pathological cases (e.g. matches inside
+/// megabyte-long minified lines) before they reach that layer.
+const SEARCH_RUNAWAY_GUARD_CHARS: usize = 2_000_000;
+
 // ============================================
 // Code Search (regex via grep-searcher)
 // ============================================
@@ -102,7 +109,7 @@ pub async fn code_search_formatted(
     }
 
     let formatted = lines.join("\n");
-    Ok(truncate_output(formatted, 20_000))
+    Ok(truncate_output(formatted, SEARCH_RUNAWAY_GUARD_CHARS))
 }
 
 pub async fn code_search_multi_formatted(
@@ -130,7 +137,10 @@ pub async fn code_search_multi_formatted(
         return Ok("No matches found.".to_string());
     }
 
-    Ok(truncate_output(sections.join("\n\n"), 20_000))
+    Ok(truncate_output(
+        sections.join("\n\n"),
+        SEARCH_RUNAWAY_GUARD_CHARS,
+    ))
 }
 
 fn read_file_lines_cached(path: &str) -> Vec<String> {
@@ -249,7 +259,10 @@ pub async fn file_search_multi_formatted(
         return Ok("No files found.".to_string());
     }
 
-    Ok(truncate_output(sections.join("\n\n"), 20_000))
+    Ok(truncate_output(
+        sections.join("\n\n"),
+        SEARCH_RUNAWAY_GUARD_CHARS,
+    ))
 }
 
 // ============================================
@@ -331,7 +344,10 @@ pub async fn glob_search_multi_formatted(
         return Ok("No files matched.".to_string());
     }
 
-    Ok(truncate_output(sections.join("\n\n"), 20_000))
+    Ok(truncate_output(
+        sections.join("\n\n"),
+        SEARCH_RUNAWAY_GUARD_CHARS,
+    ))
 }
 
 // ============================================

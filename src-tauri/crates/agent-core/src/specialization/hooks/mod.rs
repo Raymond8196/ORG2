@@ -17,6 +17,7 @@
 //! - `http` — send JSON webhook to a URL
 
 pub mod config;
+pub mod dispatch;
 pub mod events;
 pub mod executor;
 

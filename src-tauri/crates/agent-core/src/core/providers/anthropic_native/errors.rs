@@ -16,6 +16,10 @@ pub(super) struct AnthropicErrorClassification {
     pub message: String,
     pub retry_after_secs: Option<u64>,
     pub mark_temporary_unavailable: bool,
+    /// Server's explicit `x-should-retry` response header (non-standard):
+    /// `Some(false)` suppresses retry, `Some(true)` allows retry of an
+    /// otherwise non-retryable status. `None` = header absent.
+    pub should_retry: Option<bool>,
 }
 
 /// True when a 400 body indicates the model rejected the `temperature`
@@ -32,6 +36,21 @@ pub(super) fn is_temperature_rejected(status: u16, body: &str) -> bool {
         .to_lowercase();
     lower.contains("temperature")
         && (lower.contains("deprecated") || lower.contains("not supported"))
+}
+
+/// True when a 403 body indicates the OAuth access token was revoked
+/// server-side (another process rotated it). Recoverable by one forced
+/// token refresh — see the retry guard in `streaming.rs`. Mirrors the
+/// reference harness's `isOAuthTokenRevokedError` (403 + "OAuth token has
+/// been revoked").
+pub(super) fn is_oauth_token_revoked(status: u16, body: &str) -> bool {
+    if status != 403 {
+        return false;
+    }
+    extract_error_message(body)
+        .unwrap_or_else(|| body.to_string())
+        .to_lowercase()
+        .contains("revoked")
 }
 
 pub(super) fn classify_error(
@@ -68,6 +87,32 @@ pub(super) fn classify_error(
         retry_after_secs: parsed_retry_after,
         mark_temporary_unavailable: matches!(status, 401 | 403 | 429 | 500..=599)
             && error_type != "extra_usage_required",
+        should_retry: headers.and_then(parse_should_retry_header),
+    }
+}
+
+fn parse_should_retry_header(headers: &HeaderMap) -> Option<bool> {
+    match headers.get("x-should-retry")?.to_str().ok()?.trim() {
+        "true" => Some(true),
+        "false" => Some(false),
+        _ => None,
+    }
+}
+
+/// Stamp the server's `x-should-retry` directive into the error message so
+/// `ReliableProvider::server_retry_directive` can obey it (the message is
+/// the only channel `ProviderError` carries).
+fn with_retry_directive(message: String, should_retry: Option<bool>) -> String {
+    match should_retry {
+        Some(true) => format!(
+            "{message} {}",
+            crate::providers::reliable::X_SHOULD_RETRY_TRUE_MARKER
+        ),
+        Some(false) => format!(
+            "{message} {}",
+            crate::providers::reliable::X_SHOULD_RETRY_FALSE_MARKER
+        ),
+        None => message,
     }
 }
 
@@ -109,10 +154,22 @@ fn parse_reset_header_secs(value: &str) -> Option<u64> {
 /// Special cases:
 /// - "prompt is too long" / "`max_tokens` exceed context limit" → `ContextTooLong`
 /// - 401 → `AuthError`
+/// - 403 with a revoked-token body → `AuthError` (fail fast when the
+///   one-shot refresh in `streaming.rs` didn't rescue it)
 /// - 404 → `ModelNotFound`
 /// - 429 → `RateLimited` (with optional `retry_after_secs` from the header)
 /// - 529 → `Overloaded` (with optional `retry_after_secs`)
-pub(super) fn parse_error(status: u16, body: &str, retry_after_secs: Option<u64>) -> ProviderError {
+///
+/// `should_retry` is the server's `x-should-retry` header directive; it is
+/// stamped into the message of status-derived errors (not the dedicated
+/// context/media rescue variants, which have their own recovery arms) so
+/// the retry layer can obey it.
+pub(super) fn parse_error(
+    status: u16,
+    body: &str,
+    retry_after_secs: Option<u64>,
+    should_retry: Option<bool>,
+) -> ProviderError {
     let classification = classify_error(status, body, None, retry_after_secs);
     let lower = classification.message.to_lowercase();
 
@@ -138,18 +195,23 @@ pub(super) fn parse_error(status: u16, body: &str, retry_after_secs: Option<u64>
         return ProviderError::MediaTooLarge(classification.message);
     }
 
+    let message = with_retry_directive(classification.message, should_retry);
     match status {
-        401 => ProviderError::AuthError(classification.message),
+        401 => ProviderError::AuthError(message),
+        // Revoked OAuth token: non-retryable with the same credentials.
+        // The one-shot refresh guard in `streaming.rs` runs before this;
+        // reaching here means the refresh was already spent or unavailable.
+        403 if is_oauth_token_revoked(status, body) => ProviderError::AuthError(message),
         429 => ProviderError::RateLimited {
-            message: classification.message,
+            message,
             retry_after_secs: classification.retry_after_secs,
         },
         529 => ProviderError::Overloaded {
-            message: classification.message,
+            message,
             retry_after_secs: classification.retry_after_secs,
         },
-        404 => ProviderError::ModelNotFound(classification.message),
-        _ => ProviderError::RequestFailed(format!("HTTP {}: {}", status, classification.message)),
+        404 => ProviderError::ModelNotFound(message),
+        _ => ProviderError::RequestFailed(format!("HTTP {}: {}", status, message)),
     }
 }
 
@@ -196,6 +258,56 @@ mod tests {
 
         assert_eq!(classification.error_type, "extra_usage_required");
         assert!(!classification.mark_temporary_unavailable);
+    }
+
+    #[test]
+    fn revoked_oauth_403_maps_to_auth_error() {
+        let body =
+            r#"{"error":{"type":"permission_error","message":"OAuth token has been revoked"}}"#;
+        assert!(is_oauth_token_revoked(403, body));
+        // Same body on another status is not the revocation case.
+        assert!(!is_oauth_token_revoked(401, body));
+        // A plain 403 stays a retryable RequestFailed.
+        let other = r#"{"error":{"type":"permission_error","message":"Access denied"}}"#;
+        assert!(!is_oauth_token_revoked(403, other));
+
+        // Revoked → AuthError so ReliableProvider fails fast instead of
+        // burning the retry budget on a dead token.
+        match parse_error(403, body, None, None) {
+            ProviderError::AuthError(msg) => assert!(msg.contains("revoked")),
+            other => panic!("expected AuthError, got {other:?}"),
+        }
+        match parse_error(403, other, None, None) {
+            ProviderError::RequestFailed(_) => {}
+            unexpected => panic!("expected RequestFailed, got {unexpected:?}"),
+        }
+    }
+
+    #[test]
+    fn should_retry_header_is_classified_and_stamped() {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-should-retry", HeaderValue::from_static("false"));
+        let body = r#"{"error":{"type":"api_error","message":"internal error"}}"#;
+
+        let classification = classify_error(500, body, Some(&headers), None);
+        assert_eq!(classification.should_retry, Some(false));
+
+        let err = parse_error(500, body, None, classification.should_retry);
+        assert!(err
+            .to_string()
+            .contains(crate::providers::reliable::X_SHOULD_RETRY_FALSE_MARKER));
+
+        // "true" direction: stamped onto otherwise non-retryable statuses.
+        let err = parse_error(401, body, None, Some(true));
+        assert!(err
+            .to_string()
+            .contains(crate::providers::reliable::X_SHOULD_RETRY_TRUE_MARKER));
+
+        // Absent header: no marker, message untouched.
+        let classification = classify_error(500, body, None, None);
+        assert_eq!(classification.should_retry, None);
+        let err = parse_error(500, body, None, None);
+        assert!(!err.to_string().contains("x-should-retry"));
     }
 
     #[test]

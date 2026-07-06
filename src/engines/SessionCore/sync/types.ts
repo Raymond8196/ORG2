@@ -21,7 +21,6 @@ import type { ContextUsageSnapshot } from "@src/store/session/cliSessionStatusAt
 import {
   isAgentSession,
   isCliSession,
-  isCursorIdeSession,
   isExternalHistorySession,
 } from "@src/util/session/sessionDispatch";
 
@@ -320,9 +319,6 @@ export function getAdapterForSession(
   }
   if (isCliSession(sessionId)) {
     return adapterRegistry.get("cli");
-  }
-  if (isCursorIdeSession(sessionId)) {
-    return adapterRegistry.get("cursor_ide");
   }
   if (isExternalHistorySession(sessionId)) {
     return adapterRegistry.get("external_history");

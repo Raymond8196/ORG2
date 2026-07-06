@@ -39,7 +39,6 @@ import { invokeTauri } from "@src/util/platform/tauri/init";
 import {
   isAgentSession,
   isCliSession,
-  isCursorIdeSession,
   isExternalHistorySession,
 } from "@src/util/session/sessionDispatch";
 
@@ -87,11 +86,6 @@ function assertSupportsManagedOperation(
   sessionId: string,
   operation: string
 ): void {
-  if (isCursorIdeSession(sessionId)) {
-    throw new Error(
-      `Operation "${operation}" is not supported for Cursor IDE sessions (${sessionId}).`
-    );
-  }
   if (isExternalHistorySession(sessionId)) {
     throw new Error(
       `Operation "${operation}" is not supported for imported external history sessions (${sessionId}).`
@@ -101,7 +95,6 @@ function assertSupportsManagedOperation(
 
 function categoryForSession(sessionId: string): SessionInfo["category"] {
   if (isCliSession(sessionId)) return "cli_agent";
-  if (isCursorIdeSession(sessionId)) return "cursor_ide";
   if (isExternalHistorySession(sessionId)) return "external_history";
   return "rust_agent";
 }

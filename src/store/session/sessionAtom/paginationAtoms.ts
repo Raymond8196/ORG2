@@ -12,16 +12,16 @@ import { atom } from "jotai";
 import {
   IMPORTED_HISTORY_SOURCES,
   type ImportedHistoryListCategory,
-} from "@src/api/tauri/importedHistory";
+} from "@src/api/tauri/externalHistory";
 
-export type BaseSessionListCategory = "cli_agent" | "rust_agent" | "cursor_ide";
+export type BaseSessionListCategory = "cli_agent" | "rust_agent";
 
 export type SessionListCategory =
   | BaseSessionListCategory
   | ImportedHistoryListCategory;
 
 export const BASE_SESSION_LIST_CATEGORIES: readonly BaseSessionListCategory[] =
-  ["cli_agent", "rust_agent", "cursor_ide"];
+  ["cli_agent", "rust_agent"];
 
 export const SESSION_LIST_CATEGORIES: readonly SessionListCategory[] = [
   ...BASE_SESSION_LIST_CATEGORIES,

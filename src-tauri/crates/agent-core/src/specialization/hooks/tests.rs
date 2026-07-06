@@ -389,13 +389,14 @@ async fn executor_timeout_reports_failure() {
 }
 
 #[tokio::test]
-async fn executor_runs_multiple_hooks_sequentially() {
+async fn executor_preserves_config_order_in_results() {
     let mut hooks = HashMap::new();
     hooks.insert(
         HookEvent::SessionStart,
         vec![
             HookEntry::Command {
-                command: "echo first".to_string(),
+                // The first hook finishes LAST — order must still hold.
+                command: "sleep 0.2; echo first".to_string(),
                 timeout_ms: 5000,
                 matcher: None,
             },
@@ -421,6 +422,76 @@ async fn executor_runs_multiple_hooks_sequentially() {
     assert!(results[0].stdout.contains("first"));
     assert!(results[1].stdout.contains("second"));
     assert!(results[2].stdout.contains("third"));
+}
+
+#[tokio::test]
+async fn executor_runs_hooks_concurrently() {
+    let mut hooks = HashMap::new();
+    hooks.insert(
+        HookEvent::SessionStart,
+        vec![
+            HookEntry::Command {
+                command: "sleep 1".to_string(),
+                timeout_ms: 5000,
+                matcher: None,
+            },
+            HookEntry::Command {
+                command: "sleep 1".to_string(),
+                timeout_ms: 5000,
+                matcher: None,
+            },
+            HookEntry::Command {
+                command: "sleep 1".to_string(),
+                timeout_ms: 5000,
+                matcher: None,
+            },
+        ],
+    );
+    let config = HooksConfig { hooks };
+    let executor = HookExecutor::with_config(config, std::path::PathBuf::from("/tmp"));
+
+    let start = std::time::Instant::now();
+    let results = executor
+        .run(HookEvent::SessionStart, &HookContext::new())
+        .await;
+    let elapsed = start.elapsed();
+
+    assert_eq!(results.len(), 3);
+    assert!(results.iter().all(|r| r.success));
+    // Sequential execution would take >= 3s; concurrent ~1s. The generous
+    // bound absorbs CI scheduling jitter while still failing a serial loop.
+    assert!(
+        elapsed < std::time::Duration::from_millis(2500),
+        "hooks did not run concurrently: took {:?}",
+        elapsed
+    );
+}
+
+#[tokio::test]
+async fn executor_matcher_skips_non_matching_tool_in_concurrent_run() {
+    let mut hooks = HashMap::new();
+    hooks.insert(
+        HookEvent::PreToolUse,
+        vec![
+            HookEntry::Command {
+                command: "echo gated".to_string(),
+                timeout_ms: 5000,
+                matcher: Some("edit_file|apply_patch".to_string()),
+            },
+            HookEntry::Command {
+                command: "echo always".to_string(),
+                timeout_ms: 5000,
+                matcher: None,
+            },
+        ],
+    );
+    let config = HooksConfig { hooks };
+    let executor = HookExecutor::with_config(config, std::path::PathBuf::from("/tmp"));
+    let ctx = HookContext::for_tool("sess-1", "read_file", "tc-1");
+
+    let results = executor.run(HookEvent::PreToolUse, &ctx).await;
+    assert_eq!(results.len(), 1);
+    assert!(results[0].stdout.contains("always"));
 }
 
 #[tokio::test]
@@ -771,4 +842,116 @@ fn parse_hook_decision_unknown_decision_with_updated_input() {
     let intervention = result.unwrap();
     assert!(!intervention.block);
     assert!(intervention.modified_params.is_some());
+}
+
+// ============================================
+// Dispatch helpers (session/compaction wiring)
+// ============================================
+
+fn single_command_executor(event: HookEvent, command: String) -> std::sync::Arc<HookExecutor> {
+    let mut hooks = HashMap::new();
+    hooks.insert(
+        event,
+        vec![HookEntry::Command {
+            command,
+            timeout_ms: 5000,
+            matcher: None,
+        }],
+    );
+    std::sync::Arc::new(HookExecutor::with_config(
+        HooksConfig { hooks },
+        std::env::temp_dir(),
+    ))
+}
+
+#[tokio::test]
+async fn fire_pre_compaction_passes_trigger_and_count_and_waits() {
+    let out = std::env::temp_dir().join(format!("orgii-pre-compaction-{}", std::process::id()));
+    let _ = std::fs::remove_file(&out);
+    let executor = single_command_executor(
+        HookEvent::PreCompaction,
+        format!(
+            "echo trigger=$ORGII_COMPACTION_TRIGGER before=$ORGII_MESSAGES_BEFORE session=$ORGII_SESSION_ID > {}",
+            out.display()
+        ),
+    );
+
+    super::dispatch::fire_pre_compaction(Some(&executor), "sess-pc", "auto", 42).await;
+
+    // Awaited dispatch: the file must exist as soon as the call returns.
+    let contents = std::fs::read_to_string(&out).expect("pre-compaction hook did not run");
+    assert!(contents.contains("trigger=auto"));
+    assert!(contents.contains("before=42"));
+    assert!(contents.contains("session=sess-pc"));
+    let _ = std::fs::remove_file(&out);
+}
+
+#[tokio::test]
+async fn fire_post_compaction_passes_before_and_after_counts() {
+    let out = std::env::temp_dir().join(format!("orgii-post-compaction-{}", std::process::id()));
+    let _ = std::fs::remove_file(&out);
+    let executor = single_command_executor(
+        HookEvent::PostCompaction,
+        format!(
+            "echo trigger=$ORGII_COMPACTION_TRIGGER before=$ORGII_MESSAGES_BEFORE after=$ORGII_MESSAGES_AFTER > {}",
+            out.display()
+        ),
+    );
+
+    super::dispatch::fire_post_compaction(Some(&executor), "sess-pc2", "manual", 100, 7);
+
+    // Fire-and-forget: poll for the spawned hook to land.
+    let mut contents = String::new();
+    for _ in 0..50 {
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        if let Ok(text) = std::fs::read_to_string(&out) {
+            contents = text;
+            break;
+        }
+    }
+    assert!(
+        contents.contains("trigger=manual"),
+        "post-compaction hook did not run: {contents:?}"
+    );
+    assert!(contents.contains("before=100"));
+    assert!(contents.contains("after=7"));
+    let _ = std::fs::remove_file(&out);
+}
+
+#[tokio::test]
+async fn fire_notification_received_passes_message_excerpt() {
+    let out = std::env::temp_dir().join(format!("orgii-notification-{}", std::process::id()));
+    let _ = std::fs::remove_file(&out);
+    let executor = single_command_executor(
+        HookEvent::NotificationReceived,
+        format!("echo msg=$ORGII_USER_MESSAGE > {}", out.display()),
+    );
+
+    super::dispatch::fire_notification_received(&executor, "sess-n1", "fix the login bug");
+
+    let mut contents = String::new();
+    for _ in 0..50 {
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        if let Ok(text) = std::fs::read_to_string(&out) {
+            contents = text;
+            break;
+        }
+    }
+    assert!(
+        contents.contains("msg=fix the login bug"),
+        "notification hook did not run: {contents:?}"
+    );
+    let _ = std::fs::remove_file(&out);
+}
+
+#[tokio::test]
+async fn compaction_dispatch_is_noop_without_matching_hooks() {
+    let executor = std::sync::Arc::new(HookExecutor::with_config(
+        HooksConfig::default(),
+        std::env::temp_dir(),
+    ));
+    // Must return immediately without panicking (None and empty-config paths).
+    super::dispatch::fire_pre_compaction(None, "sess-x", "auto", 1).await;
+    super::dispatch::fire_pre_compaction(Some(&executor), "sess-x", "auto", 1).await;
+    super::dispatch::fire_post_compaction(Some(&executor), "sess-x", "auto", 1, 1);
 }

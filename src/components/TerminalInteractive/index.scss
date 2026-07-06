@@ -119,3 +119,59 @@
     z-index: 10;
   }
 }
+
+.chat-panel-terminal-core {
+  // Match the *visible* chat-pane color (possibly tinted by the wallpaper
+  // via `color-mix()` when page opacity < 100%). The xterm WebGL fill is
+  // driven at runtime from the same computed background so the sub-cell
+  // remainder and the painted cells stay seam-free.
+  .terminal-content-area,
+  .terminal-session-wrapper,
+  .xterm-terminal-view,
+  .xterm-terminal-container,
+  .xterm,
+  .xterm-screen,
+  .xterm-viewport {
+    background: var(--color-chat-pane) !important;
+  }
+
+  // Push all padding to the outer wrapper so the WebGL canvas fills its
+  // container exactly and FitAddon measures the true text area.
+  .terminal-session-wrapper {
+    border-radius: 0;
+    padding: 8px 12px;
+    box-sizing: border-box;
+  }
+
+  .xterm-terminal-view {
+    padding: 0;
+  }
+
+  .xterm-terminal-container {
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .xterm,
+  .xterm-viewport,
+  .xterm-screen {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  // macOS reserves a scrollbar gutter on `overflow-y: auto`, which shows as a
+  // dead strip on the right of the WebGL canvas. Suppress the DOM scrollbar so
+  // FitAddon can measure the full width.
+  .xterm-viewport {
+    overflow-y: hidden !important;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+  }
+}

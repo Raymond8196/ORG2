@@ -1,4 +1,14 @@
-use crate::tools::impls::coding::edit_file::strategies::{levenshtein, replace};
+use crate::tools::impls::coding::edit_file::{
+    is_notebook_path,
+    strategies::{levenshtein, replace},
+};
+
+#[test]
+fn notebook_paths_are_rejected_by_plain_edit_tool() {
+    assert!(is_notebook_path(std::path::Path::new("analysis.ipynb")));
+    assert!(is_notebook_path(std::path::Path::new("ANALYSIS.IPYNB")));
+    assert!(!is_notebook_path(std::path::Path::new("analysis.py")));
+}
 
 #[test]
 fn test_simple_exact_match() {

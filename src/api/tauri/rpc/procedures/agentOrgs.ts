@@ -68,6 +68,23 @@ const claudeCode = {
     .build(),
 } as const;
 
+const cliConfigFiles = {
+  getPath: defineProcedure("cli_config_file_get_path")
+    .input(schemas.agentOrgs.CliConfigFileInput)
+    .output(z.string())
+    .build(),
+  readRaw: defineProcedure("cli_config_file_read_raw")
+    .input(schemas.agentOrgs.CliConfigFileInput)
+    .output(z.string())
+    .build(),
+  reveal: defineProcedure("cli_config_file_reveal")
+    .input(schemas.agentOrgs.CliConfigFileInput)
+    .build(),
+  writeRaw: defineProcedure("cli_config_file_write_raw")
+    .input(schemas.agentOrgs.CliConfigFileWriteInput)
+    .build(),
+} as const;
+
 const skills = {
   list: defineProcedure("skills_list")
     .input(schemas.agentOrgs.SkillsListInput)
@@ -110,6 +127,7 @@ export const agentOrgs = {
   cursor,
   codex,
   claudeCode,
+  cliConfigFiles,
   memory,
   orgs,
   skills,

@@ -49,7 +49,9 @@ const ALWAYS_ON_THINKING_PAD_TOKENS: u32 = 2048;
 /// The Anthropic request quad produced by [`build_thinking_params`].
 pub(super) struct ThinkingOutcome {
     pub thinking: Option<Value>,
-    /// Top-level `effort` (sibling of `thinking`) for adaptive/4.6 modes.
+    /// Effort value for adaptive/4.6 modes. The request builder nests it
+    /// into `output_config.effort` (Claude Code OAuth rejects the legacy
+    /// top-level `effort` field).
     pub effort: Option<String>,
     pub temperature: Option<f32>,
     pub max_tokens: u32,

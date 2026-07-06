@@ -46,7 +46,8 @@
     "projectManager": "Project 관리자",
     "diff": "Diff",
     "opsControl": "Ops Control",
-    "colleagues": "Colleagues"
+    "colleagues": "Colleagues",
+    "terminals": "터미널"
   },
   "trajectoryPanel": {
     "title": "트래젝터리",

@@ -834,6 +834,13 @@
     "hideWorkstation": "Hide Workstation",
     "restoreSplitView": "Show Workstation",
     "shrinkToWorkstation": "Shrink Chat Panel (Show Workstation)",
+    "tuiModeOn": "TUI mode (click to disable)",
+    "tuiModeOff": "Enable TUI mode",
+    "tabs": {
+      "newTerminal": "New Terminal",
+      "newTab": "New tab",
+      "terminals": "Terminals"
+    },
     "collapseAll": "Collapse all",
     "copyEventJson": "Copy event JSON",
     "copyEventJsonCopied": "Copied!",
@@ -975,7 +982,8 @@
         "byMe": "By me",
         "mentioned": "Mentioned"
       }
-    }
+    },
+    "readOnly": "Read-only"
   },
   "chatStatus": {
     "approved": "Approved",

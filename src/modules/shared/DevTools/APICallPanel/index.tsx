@@ -31,6 +31,8 @@ import type { APICallPanelProps } from "./types";
 const APICallPanel: React.FC<APICallPanelProps> = ({
   visible,
   apiCalls,
+  hotspots,
+  timerHotspots,
   onClose,
   onClear,
 }) => {
@@ -65,6 +67,8 @@ const APICallPanel: React.FC<APICallPanelProps> = ({
         <div className="min-h-0 flex-1 overflow-auto" ref={listRef}>
           <PanelContent
             apiCalls={apiCalls}
+            hotspots={hotspots}
+            timerHotspots={timerHotspots}
             expandedCall={expandedCall}
             onToggleExpand={toggleExpand}
             onExpandedChange={setExpandedCall}
@@ -87,13 +91,21 @@ const APICallPanel: React.FC<APICallPanelProps> = ({
  * and event listeners for the Panel API Call.
  */
 export const APICallPanelProvider: React.FC = () => {
-  const { visible, apiCalls, handleClose, handleClear } =
-    useAPICallPanelProvider();
+  const {
+    visible,
+    apiCalls,
+    hotspots,
+    timerHotspots,
+    handleClose,
+    handleClear,
+  } = useAPICallPanelProvider();
 
   return (
     <APICallPanel
       visible={visible}
       apiCalls={apiCalls}
+      hotspots={hotspots}
+      timerHotspots={timerHotspots}
       onClose={handleClose}
       onClear={handleClear}
     />

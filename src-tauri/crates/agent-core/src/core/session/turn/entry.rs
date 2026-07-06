@@ -160,6 +160,14 @@ pub async fn process_message(
         ),
     );
 
+    // Fire HookEvent::NotificationReceived — this is the single entry point
+    // for inbound user messages, matching the event's declared contract.
+    crate::specialization::hooks::dispatch::fire_notification_received(
+        &hook_executor,
+        &session.id,
+        &input.content,
+    );
+
     if let Some(plan_approval_manager) = session.plan_approval_manager.as_ref() {
         plan_approval_manager.set_app_handle(app_handle.clone());
     }
