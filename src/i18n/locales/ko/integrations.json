@@ -2562,5 +2562,17 @@
       "completionTokens": "Output tokens: {{value}}",
       "elapsed": "Total time: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "실행 프로필",
+    "fullPermission": "전체 권한",
+    "manual": "수동",
+    "command": "명령",
+    "environment": "환경 변수",
+    "envPlaceholder": "KEY=value, 한 줄에 하나",
+    "loading": "실행 프로필을 불러오는 중...",
+    "unavailable": "실행 프로필을 사용할 수 없음",
+    "saved": "실행 프로필 저장됨",
+    "resetDone": "실행 프로필 재설정됨"
   }
 }

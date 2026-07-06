@@ -2565,5 +2565,17 @@
       "completionTokens": "出力 tokens: {{value}}",
       "elapsed": "合計時間: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "起動プロファイル",
+    "fullPermission": "フル権限",
+    "manual": "手動",
+    "command": "コマンド",
+    "environment": "環境変数",
+    "envPlaceholder": "KEY=value を 1 行に 1 つ",
+    "loading": "起動プロファイルを読み込み中...",
+    "unavailable": "起動プロファイルを利用できません",
+    "saved": "起動プロファイルを保存しました",
+    "resetDone": "起動プロファイルをリセットしました"
   }
 }

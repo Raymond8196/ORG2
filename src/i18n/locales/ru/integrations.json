@@ -2565,5 +2565,17 @@
       "completionTokens": "Выходные tokens: {{value}}",
       "elapsed": "Общее время: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Профиль запуска",
+    "fullPermission": "Полные права",
+    "manual": "Вручную",
+    "command": "Команда",
+    "environment": "Окружение",
+    "envPlaceholder": "KEY=value, по одному на строку",
+    "loading": "Загрузка профиля запуска...",
+    "unavailable": "Профиль запуска недоступен",
+    "saved": "Профиль запуска сохранён",
+    "resetDone": "Профиль запуска сброшен"
   }
 }

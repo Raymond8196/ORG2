@@ -2562,5 +2562,17 @@
       "completionTokens": "Tokens de salida: {{value}}",
       "elapsed": "Tiempo total: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Perfil de lanzamiento",
+    "fullPermission": "Permiso completo",
+    "manual": "Manual",
+    "command": "Comando",
+    "environment": "Entorno",
+    "envPlaceholder": "KEY=value, uno por línea",
+    "loading": "Cargando perfil de lanzamiento...",
+    "unavailable": "Perfil de lanzamiento no disponible",
+    "saved": "Perfil de lanzamiento guardado",
+    "resetDone": "Perfil de lanzamiento restablecido"
   }
 }
