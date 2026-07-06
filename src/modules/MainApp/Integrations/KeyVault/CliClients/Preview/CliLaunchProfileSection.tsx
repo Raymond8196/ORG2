@@ -11,12 +11,17 @@ import Input from "@src/components/Input";
 import Message from "@src/components/Message";
 import TabPill from "@src/components/TabPill";
 import Textarea from "@src/components/Textarea";
+import {
+  SECTION_CONTROL_STYLE,
+  SectionRow,
+} from "@src/modules/shared/layouts/SectionLayout";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import { InlineCardColumnStack } from "../../shared/InlineCardPrimitives";
 
 interface CliLaunchProfileSectionProps {
   agentName: string;
+  variant?: "inline" | "settings";
 }
 
 interface DraftState {
@@ -96,7 +101,7 @@ function profileToDraft(profile: CliLaunchProfileView): DraftState {
 
 export const CliLaunchProfileSection: React.FC<
   CliLaunchProfileSectionProps
-> = ({ agentName }) => {
+> = ({ agentName, variant = "inline" }) => {
   const { t } = useTranslation("integrations");
   const [profile, setProfile] = useState<CliLaunchProfileView | null>(null);
   const [draft, setDraft] = useState<DraftState | null>(null);
@@ -217,6 +222,87 @@ export const CliLaunchProfileSection: React.FC<
   if (!profile || !draft) {
     return (
       <Placeholder variant="empty" title={t("cliLaunchProfiles.unavailable")} />
+    );
+  }
+
+  if (variant === "settings") {
+    return (
+      <>
+        <SectionRow label={t("cliLaunchProfiles.title")}>
+          <TabPill
+            tabs={modeTabs}
+            activeTab={draft.permissionMode}
+            onChange={handleModeChange}
+            variant="pill"
+            fillWidth={false}
+            size="small"
+          />
+        </SectionRow>
+        <SectionRow label={t("cliLaunchProfiles.command")}>
+          <Input
+            size="default"
+            value={draft.launchCommandText}
+            placeholder={buildLaunchCommandText(
+              profile.defaultCommand,
+              profile.args
+            )}
+            style={SECTION_CONTROL_STYLE}
+            onChange={(value) =>
+              setDraft((current) =>
+                current ? { ...current, launchCommandText: value } : current
+              )
+            }
+          />
+        </SectionRow>
+        <SectionRow
+          label={t("cliLaunchProfiles.environment")}
+          layout="vertical"
+        >
+          <Textarea
+            size="default"
+            rows={2}
+            resize="vertical"
+            value={draft.envText}
+            placeholder={t("cliLaunchProfiles.envPlaceholder")}
+            onChange={(value) =>
+              setDraft((current) =>
+                current ? { ...current, envText: value } : current
+              )
+            }
+          />
+        </SectionRow>
+        <SectionRow showHeader={false}>
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              variant="secondary"
+              size="default"
+              onClick={handleReset}
+              loading={resetting}
+            >
+              {t("common:actions.reset")}
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="default"
+                onClick={handleCancel}
+                disabled={!dirty}
+              >
+                {t("common:actions.cancel")}
+              </Button>
+              <Button
+                variant="primary"
+                size="default"
+                onClick={handleSave}
+                loading={saving}
+                disabled={!dirty}
+              >
+                {t("common:actions.save")}
+              </Button>
+            </div>
+          </div>
+        </SectionRow>
+      </>
     );
   }
 
