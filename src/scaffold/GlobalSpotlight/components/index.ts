@@ -45,3 +45,6 @@ export type { ManageKeysFooterActionProps } from "./ManageKeysFooterAction";
 
 export { ManageModelsFooterAction } from "./ManageModelsFooterAction";
 export type { ManageModelsFooterActionProps } from "./ManageModelsFooterAction";
+
+export { ManageAgentsFooterAction } from "./ManageAgentsFooterAction";
+export type { ManageAgentsFooterActionProps } from "./ManageAgentsFooterAction";

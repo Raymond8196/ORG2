@@ -1443,8 +1443,9 @@
       "planSupport": "Plan",
       "byokSupport": "Keys",
       "incompatible": "不兼容",
-      "manageModels": "添加 / 管理模型",
-      "manageKeys": "添加 / 管理密钥"
+      "manageModels": "管理模型",
+      "manageKeys": "管理密钥",
+      "manageAgents": "管理 Agent"
     },
     "editorSpotlight": {
       "searchPlaceholder": "搜索命令...",

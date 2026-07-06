@@ -1421,8 +1421,9 @@
       "planSupport": "Plan",
       "byokSupport": "Keys",
       "incompatible": "Несовместимые",
-      "manageModels": "Добавить / Управление моделями",
-      "manageKeys": "Добавить / Управление ключами"
+      "manageModels": "Управление моделями",
+      "manageKeys": "Управление ключами",
+      "manageAgents": "Управление Agents"
     },
     "editorSpotlight": {
       "searchPlaceholder": "Поиск команд...",
