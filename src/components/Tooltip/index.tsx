@@ -423,13 +423,14 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
 
     const isControlled = popupVisible !== undefined;
     const currentVisible = isControlled ? popupVisible : internalVisible;
+    const usesFramedSurface = framedPanel || (!panelStyle && !backgroundColor);
 
     const updatePosition = useCallback(() => {
       if (!triggerElement || !tooltipRef.current) return;
 
       const triggerRect = triggerElement.getBoundingClientRect();
       const tooltipRect = tooltipRef.current.getBoundingClientRect();
-      const gap = framedPanel ? 8 : 12;
+      const gap = usesFramedSurface ? 8 : 12;
 
       const padding = 8;
       const { width: vpWidth, height: vpHeight } = getViewportSize();
@@ -489,7 +490,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       setTooltipPosition({ top, left });
       setArrowOffset({ left: arrowLeftOffset, top: arrowTopOffset });
       setPositionReady(true);
-    }, [framedPanel, position, smartPlacement, triggerElement]);
+    }, [position, smartPlacement, triggerElement, usesFramedSurface]);
 
     useEffect(() => {
       if (currentVisible) {
@@ -682,7 +683,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       currentVisible && positionReady && "native-tooltip-visible",
       trigger === "click" && "native-tooltip-interactive",
       panelStyle && "native-tooltip-panel",
-      framedPanel && "native-tooltip-framed-panel",
+      usesFramedSurface && "native-tooltip-framed-panel",
       className,
     ]
       .filter(Boolean)
@@ -705,7 +706,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
         <div className="native-tooltip-content">
           <div className="native-tooltip-content-inner">{content}</div>
         </div>
-        {showArrow && !framedPanel && (
+        {showArrow && !usesFramedSurface && (
           <div
             className="native-tooltip-arrow"
             style={{
