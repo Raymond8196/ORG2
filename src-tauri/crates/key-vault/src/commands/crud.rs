@@ -276,13 +276,37 @@ fn account_uses_anthropic_native_messages(entry: &ModelKey) -> bool {
     }
 }
 
+pub const CLAUDE_CODE_OAUTH_MODELS: &[&str] = &[
+    "claude-sonnet-5",
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-sonnet-4-6",
+    "claude-opus-4-6",
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-4-5-20250929",
+];
+
+pub const CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &[
+    "claude-sonnet-5",
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-sonnet-4-6",
+];
+
+pub const CODEX_OAUTH_MODELS: &[&str] = &[
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.3-codex",
+    "gpt-5.2",
+    "codex-auto-review",
+];
+
+pub const CODEX_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &["gpt-5.5"];
+
 /// Claude models whose Messages requests carry `output_config.effort`.
-///
-/// MODEL LAUNCH: keep in lockstep with `agent_core`'s thinking-mode
-/// classification (`resolve_thinking_mode`: `AnthropicAdaptive` = opus 4.7+ /
-/// fable 5+, `Anthropic46` = opus/sonnet 4.6; haiku and sonnet 5 are
-/// excluded). `agent_core` has a cross-crate test asserting the two stay in
-/// sync — update both together.
 pub fn model_supports_output_config_effort(model: &str) -> bool {
     let lower = model.to_lowercase();
     if !lower.starts_with("claude-") || lower.contains("haiku") {
@@ -292,14 +316,13 @@ pub fn model_supports_output_config_effort(model: &str) -> bool {
         || lower.contains("opus-4-8")
         || lower.contains("opus-4-7")
         || lower.contains("opus-4-6")
+        || lower.contains("sonnet-5")
         || lower.contains("sonnet-4-6")
 }
 
-/// Per the reference harness, `max` effort is rejected by sonnet-4-6 (Opus
-/// 4.6 is the only 4.6-generation model that accepts it). Adaptive-generation
-/// models keep the rung — their `max` maps to the top adaptive effort value.
-fn model_supports_max_effort(model: &str) -> bool {
-    !model.to_lowercase().contains("sonnet-4-6")
+fn claude_model_has_thinking_toggle(model: &str) -> bool {
+    let lower = model.to_lowercase();
+    lower.contains("opus-4-8") || lower.contains("sonnet-")
 }
 
 /// A "real" selectable effort rung, as opposed to a bare record row
@@ -310,47 +333,71 @@ fn is_actionable_variant(variant: &ModelVariant) -> bool {
         || variant.fast
         || matches!(
             variant.reasoning.as_deref(),
-            Some("baseline" | "low" | "medium" | "high" | "extra_high" | "xhigh" | "max")
+            Some(
+                "baseline"
+                    | "low"
+                    | "medium"
+                    | "high"
+                    | "extra_high"
+                    | "xhigh"
+                    | "max"
+                    | "ultracode",
+            )
         )
 }
+
+const ANTHROPIC_EFFORT_RUNGS: &[(&str, &str)] = &[
+    ("low", "low"),
+    ("medium", "medium"),
+    ("high", "high"),
+    ("xhigh", "extra_high"),
+    ("max", "max"),
+];
+
+const FABLE_EFFORT_RUNGS: &[(&str, &str)] = &[
+    ("low", "low"),
+    ("medium", "medium"),
+    ("high", "high"),
+    ("xhigh", "extra_high"),
+    ("max", "max"),
+    ("ultracode", "ultracode"),
+];
 
 fn effort_variants_for_base_model(
     base_model: &str,
     context_window: Option<u64>,
 ) -> Vec<ModelVariantInfo> {
-    // Reference-aligned ladder: low/medium/high/max plus the bare baseline.
-    // No separate `xhigh` rung — it is wire-identical to `max` on every
-    // family (adaptive maps both to `xhigh`, 4.6 maps both to `max`).
-    let mut rungs = vec![
-        ("", "baseline"),
-        ("low", "low"),
-        ("medium", "medium"),
-        ("high", "high"),
-    ];
-    if model_supports_max_effort(base_model) {
-        rungs.push(("max", "max"));
-    }
-    rungs
-        .into_iter()
-        .map(|(suffix, reasoning)| ModelVariantInfo {
-            model: if suffix.is_empty() {
-                base_model.to_string()
-            } else {
-                format!("{base_model}-{suffix}")
-            },
+    let mut variants = Vec::new();
+    let has_thinking_toggle = claude_model_has_thinking_toggle(base_model);
+    let lower = base_model.to_lowercase();
+    let rungs = if lower.contains("fable-5") {
+        FABLE_EFFORT_RUNGS
+    } else {
+        ANTHROPIC_EFFORT_RUNGS
+    };
+    for (suffix, reasoning) in rungs {
+        variants.push(ModelVariantInfo {
+            model: format!("{base_model}-{suffix}"),
             base_model: base_model.to_string(),
-            reasoning: Some(reasoning.to_string()),
+            reasoning: Some((*reasoning).to_string()),
             fast: false,
             context_window,
-        })
-        .collect()
+        });
+        if has_thinking_toggle {
+            variants.push(ModelVariantInfo {
+                model: format!("{base_model}-thinking-{suffix}"),
+                base_model: base_model.to_string(),
+                reasoning: Some((*reasoning).to_string()),
+                fast: false,
+                context_window,
+            });
+        }
+    }
+    variants
 }
 
 fn codex_model_supports_variants(model: &str) -> bool {
-    matches!(
-        model,
-        "gpt-5.5" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.2"
-    )
+    CODEX_OAUTH_MODELS.contains(&model) && model != "codex-auto-review"
 }
 
 fn codex_model_supports_fast_tier(model: &str) -> bool {
@@ -412,6 +459,22 @@ fn default_variants_for_key(entry: &ModelKey) -> Vec<DefaultVariantInfo> {
             out.push(DefaultVariantInfo {
                 base_model: model.clone(),
                 model: format!("{model}-medium"),
+            });
+        }
+    }
+
+    if account_uses_anthropic_native_messages(entry) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| model_supports_output_config_effort(model))
+        {
+            if out.iter().any(|variant| variant.base_model == *model) {
+                continue;
+            }
+            out.push(DefaultVariantInfo {
+                base_model: model.clone(),
+                model: format!("{model}-high"),
             });
         }
     }
