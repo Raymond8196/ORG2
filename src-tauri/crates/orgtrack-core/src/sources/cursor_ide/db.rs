@@ -7,7 +7,7 @@
 
 use std::collections::HashSet;
 use std::sync::Mutex;
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Duration, Instant};
 
 use chrono::TimeZone;
 use rusqlite::{params, Connection, OptionalExtension};
@@ -36,7 +36,6 @@ const SOURCE_RECORD_KEY_PREFIX: &str = "cursorDiskKV:";
 #[derive(Debug, Clone, Copy)]
 struct SyncSnapshot {
     synced_at: Instant,
-    cursor_db_modified_at: Option<SystemTime>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -123,6 +122,7 @@ pub struct CursorSession {
     pub is_agentic: bool,
     pub mode: String,
     pub model: String,
+    pub source_path: String,
     pub lines_added: i64,
     pub lines_removed: i64,
     pub files_changed: i64,
@@ -210,16 +210,15 @@ fn delta_sync(cache_conn: &mut Connection) -> Result<(), String> {
         Some(path) => path,
         None => return Ok(()),
     };
-    let cursor_db_modified_at = cursor_path
-        .metadata()
-        .and_then(|metadata| metadata.modified())
-        .ok();
-
     if let Ok(guard) = LAST_SYNC.lock() {
         if let Some(last) = *guard {
-            if now.duration_since(last.synced_at) < SYNC_COOLDOWN
-                && last.cursor_db_modified_at == cursor_db_modified_at
-            {
+            // Skip if the cooldown window has not expired yet.
+            // The mtime check is NOT used to bypass the cooldown — when Cursor
+            // is actively running its WAL flushes change mtime on every write,
+            // which would cause discover_cursor_composers (a full table scan +
+            // serde_json parse of every composerData row) to run on every
+            // sidebar poll, burning 60-80% CPU.
+            if now.duration_since(last.synced_at) < SYNC_COOLDOWN {
                 return Ok(());
             }
         }
@@ -248,17 +247,14 @@ fn delta_sync(cache_conn: &mut Connection) -> Result<(), String> {
         .collect::<Result<Vec<_>, _>>()?;
 
     source_cache::sync_source_cache_from_conn(cache_conn, SOURCE_CURSOR_IDE, live_ids, inputs)?;
-    update_sync_snapshot(now, cursor_db_modified_at);
+    update_sync_snapshot(now);
 
     Ok(())
 }
 
-fn update_sync_snapshot(synced_at: Instant, cursor_db_modified_at: Option<SystemTime>) {
+fn update_sync_snapshot(synced_at: Instant) {
     if let Ok(mut guard) = LAST_SYNC.lock() {
-        *guard = Some(SyncSnapshot {
-            synced_at,
-            cursor_db_modified_at,
-        });
+        *guard = Some(SyncSnapshot { synced_at });
     }
 }
 
@@ -369,6 +365,7 @@ fn composer_to_cache_input(
         },
         listable: raw.subagent_info.is_none(),
         source_metadata_json: Some(source_metadata_json),
+        parent_session_id: None,
     })
 }
 
@@ -416,6 +413,7 @@ fn cursor_session_from_cached(
         is_agentic: metadata.is_agentic,
         mode: metadata.mode,
         model: row.model.unwrap_or_default(),
+        source_path: row.source_path,
         lines_added: row.impact.lines_added,
         lines_removed: row.impact.lines_removed,
         files_changed: row.impact.files_changed,

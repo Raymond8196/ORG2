@@ -3,6 +3,7 @@
  *
  * TypeScript wrappers for cross-system session list Rust commands (CLI + SDE + OS).
  */
+import { IMPORTED_HISTORY_SOURCE_DESCRIPTORS } from "@src/api/tauri/externalHistory/imported/descriptors";
 import { rpc } from "@src/api/tauri/rpc";
 import type {
   AggregateStats,
@@ -16,7 +17,7 @@ import type {
 import { normalizeAgentExecMode } from "@src/config/sessionCreatorConfig";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
-import type { KeySource } from "./dispatchTypes";
+import type { DispatchCategory, KeySource } from "./dispatchTypes";
 
 // Re-export from zero-dep module so callers keep the same import path.
 export type { DispatchCategory, KeySource } from "./dispatchTypes";
@@ -100,7 +101,27 @@ export async function sessionHeatmap(
 // Helper Functions
 // ============================================================================
 
+function importedHistoryDescriptorForSession(sessionId: string) {
+  return IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find((source) =>
+    sessionId.startsWith(source.prefix)
+  );
+}
+
+function getFrontendDispatchCategory(
+  record: SessionAggregateRecord
+): DispatchCategory {
+  if (importedHistoryDescriptorForSession(record.sessionId)) {
+    return "external_history";
+  }
+  return record.category;
+}
+
 export function toFrontendSession(record: SessionAggregateRecord): Session {
+  const category = getFrontendDispatchCategory(record);
+  const importedIconId = importedHistoryDescriptorForSession(
+    record.sessionId
+  )?.iconId;
+
   return {
     session_id: record.sessionId,
     status: record.status,
@@ -113,7 +134,7 @@ export function toFrontendSession(record: SessionAggregateRecord): Session {
     name: record.name,
     branch: record.branch || "",
     is_active: record.isActive,
-    category: record.category,
+    category,
     cliAgentType: record.cliAgentType,
     model: record.model,
     keySource: record.keySource,
@@ -121,6 +142,7 @@ export function toFrontendSession(record: SessionAggregateRecord): Session {
     tier: record.tier,
     pid: record.pid ?? null,
     repoPath: record.repoPath,
+    storagePath: record.storagePath,
     worktreePath: record.worktreePath,
     worktreeBranch: record.worktreeBranch,
     baseBranch: record.baseBranch,
@@ -137,7 +159,7 @@ export function toFrontendSession(record: SessionAggregateRecord): Session {
     agentOrgId: record.agentOrgId,
     agentOrgName: record.agentOrgName,
     agentDefinitionId: record.agentDefinitionId,
-    agentIconId: record.agentIconId,
+    agentIconId: importedIconId ?? record.agentIconId,
     agentDisplayName: record.agentDisplayName,
     agentExecMode: normalizeAgentExecMode(record.agentExecMode) ?? undefined,
     draftText: record.draftText,

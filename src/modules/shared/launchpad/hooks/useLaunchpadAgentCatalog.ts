@@ -17,6 +17,10 @@ import {
 } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import type { AgentDefinition } from "@src/modules/MainApp/AgentOrgs/types";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
+import {
+  cliAgentVisibilityOverridesAtom,
+  isCliAgentEnabled,
+} from "@src/store/session";
 import { getRustAgentType } from "@src/util/session/sessionDispatch";
 
 const DEFAULT_RUST_ORDER: readonly RustAgentType[] = [
@@ -55,6 +59,7 @@ export function useLaunchpadAgentCatalog() {
   const definitionsLoaded = useEnsureAgentDefs();
   const builtInAgents = useAtomValue(builtInAgentsAtom);
   const customAgents = useAtomValue(customAgentsAtom);
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
 
   const primaryBuiltIns = useMemo(
     () => builtInAgents.filter((agent) => agent.tier === "primary"),
@@ -62,8 +67,13 @@ export function useLaunchpadAgentCatalog() {
   );
 
   const installedCliAgents = useMemo(
-    () => cliAgentList.filter((agent) => agent.installed),
-    [cliAgentList]
+    () =>
+      cliAgentList.filter(
+        (agent) =>
+          agent.installed &&
+          isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
   );
 
   const ready = !cliLoading && definitionsLoaded;

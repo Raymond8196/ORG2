@@ -123,6 +123,17 @@ const ApiCallDetails: React.FC<ApiCallDetailsProps> = ({ call }) => {
           </code>
         </div>
       )}
+
+      {call.stack && (
+        <div className="flex items-start gap-3">
+          <span className="w-20 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-text-3">
+            Stack
+          </span>
+          <pre className="bg-bg-4 max-h-[180px] flex-1 overflow-auto whitespace-pre-wrap break-all rounded-md border border-border-2 p-2.5 text-[11px] text-text-2">
+            <code>{call.stack}</code>
+          </pre>
+        </div>
+      )}
     </div>
   );
 };

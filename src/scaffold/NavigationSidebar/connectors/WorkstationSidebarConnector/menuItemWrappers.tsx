@@ -4,6 +4,7 @@ import SessionHoverCard from "@src/components/SessionHoverCard";
 import WorkItemHoverCard from "@src/components/WorkItemHoverCard";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { Session } from "@src/store/session";
+import { isChatPanelTuiSessionId } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
 import {
   type SidebarLinearWorkItem,
@@ -17,7 +18,8 @@ export function useRenderSessionMenuItemWrapper(
 ): (item: NavigationMenuItem, node: React.ReactElement) => React.ReactElement {
   return useCallback(
     (item: NavigationMenuItem, node: React.ReactElement) => {
-      if (!sessionMap.has(item.id)) return node;
+      if (!sessionMap.has(item.id) || isChatPanelTuiSessionId(item.id))
+        return node;
       return (
         <SessionHoverCard
           key={item.key}

@@ -892,7 +892,15 @@
     "addKey": "Dodaj klucz",
     "compatibleKeys": "Zgodne Keys",
     "keysTab": "Keys",
-    "plansTab": "Plany"
+    "plansTab": "Plany",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "Dowolny status instalacji",
@@ -1656,7 +1664,9 @@
       "typePlan": "Plan",
       "typeApiKey": "Klucz API",
       "keyPreview": "Klucz",
-      "addedTime": "Dodano"
+      "addedTime": "Dodano",
+      "secretBearingConfig": "Może zawierać API keys lub tokeny",
+      "revealConfigFile": "Pokaż w menedżerze plików"
     },
     "codexConfig": {
       "sectionTitle": "Konfiguracja",
@@ -2529,6 +2539,28 @@
       "cpu_offload": "CPU offload",
       "cpu_only": "Tylko CPU",
       "no_fit": "Niezalecane"
+    }
+  },
+  "housekeeper": {
+    "addModel": "Dodaj model",
+    "sections": {
+      "configuration": "Konfiguracja",
+      "features": "Funkcje",
+      "diagnostics": "Diagnostyka"
+    },
+    "health": {
+      "status": "Nie sprawdzono"
+    },
+    "benchmark": {
+      "title": "Szybkość wyjścia MiniCPM",
+      "idle": "Wysyła lekki testowy prompt i oblicza wyjściowe token/s na podstawie rzeczywistego czasu ukończenia.",
+      "running": "Wysyłanie żądania do lokalnego vLLM MiniCPM i mierzenie szybkości wyjścia...",
+      "ready": "Wygenerowano {{tokens}} tokens w {{seconds}}s",
+      "status": "Nie testowano",
+      "checkButton": "Testuj szybkość",
+      "tokensPerSecond": "Szybkość wyjścia: {{value}} tokens/s",
+      "completionTokens": "Wyjściowe tokens: {{value}}",
+      "elapsed": "Łączny czas: {{value}}s"
     }
   }
 }

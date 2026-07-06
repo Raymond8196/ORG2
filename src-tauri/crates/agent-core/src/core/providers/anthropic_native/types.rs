@@ -24,10 +24,10 @@ pub(super) struct MessagesRequest {
     pub stream: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking: Option<Value>,
-    /// Top-level `effort` for adaptive-thinking Claude models (4.6 / 4.7+).
-    /// Sibling of `thinking`, not nested inside it.
+    /// Adaptive effort control (`output_config.effort`) for Claude models that
+    /// support the effort beta. Claude Code OAuth rejects top-level `effort`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub effort: Option<String>,
+    pub output_config: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Value>,
 }

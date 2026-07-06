@@ -50,6 +50,16 @@ interface CliClientInlineExpandedCardProps {
   cliAgents?: CliAgentsHandlers;
 }
 
+type AcpSupport = AvailableAgent["acpSupport"];
+
+const ACP_SUPPORT_DOT_COLOR: Record<AcpSupport, string> = {
+  native: "bg-success-6",
+  adapter_backed: "bg-success-6",
+  planned: "bg-warning-6",
+  partial: "bg-warning-6",
+  unavailable: "bg-text-4",
+};
+
 function StatusValue({
   active,
   children,
@@ -196,17 +206,11 @@ const CliClientInlineExpandedCard: React.FC<
             }
             right={
               <InlineCardColumnStack>
-                <InfoRow label={t("keyVault.info.orgiiAgents")}>
+                <InfoRow label={t("cliPreview.acpSupport")}>
                   <StatusDot
-                    color={
-                      agent.supportsRustAgents ? "bg-success-6" : "bg-text-4"
-                    }
+                    color={ACP_SUPPORT_DOT_COLOR[agent.acpSupport]}
                     size="inline"
-                    label={
-                      agent.supportsRustAgents
-                        ? t("common:status.supported")
-                        : t("common:status.notSupported")
-                    }
+                    label={t(`cliPreview.acpSupportLabels.${agent.acpSupport}`)}
                   />
                 </InfoRow>
                 <InfoRow label={t("keyVault.info.compatibleApis")}>

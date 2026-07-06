@@ -41,3 +41,4 @@ export * from "./mcpProgressAtom";
 export * from "./planApprovalAtom";
 export * from "./runningLocationAtom";
 export * from "./selectedWorktreePathAtom";
+export * from "./cliAgentVisibilityAtom";

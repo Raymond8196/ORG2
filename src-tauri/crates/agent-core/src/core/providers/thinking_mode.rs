@@ -306,7 +306,10 @@ mod reasoning_trigger_tests {
     fn bare_think_does_not_trigger() {
         // Ordinary prose must never escalate — and never force an explicit
         // level onto adaptive models that would have chosen dynamically.
-        assert_eq!(detect_reasoning_trigger("I think the bug is in auth.rs"), None);
+        assert_eq!(
+            detect_reasoning_trigger("I think the bug is in auth.rs"),
+            None
+        );
         assert_eq!(detect_reasoning_trigger("think about it"), None);
         assert_eq!(detect_reasoning_trigger("rethinking the approach"), None);
         assert_eq!(detect_reasoning_trigger("he thinks so"), None);

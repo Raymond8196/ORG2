@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { CursorIdeTurnSummary } from "@src/api/tauri/cursorIde";
+import type { CursorIdeTurnSummary } from "@src/api/tauri/externalHistory";
 
 import type { OptimizedChatItem } from "../chatItemPipeline/types";
 import type { ChatGroupMeta } from "./useChatGroups";

@@ -65,6 +65,82 @@ pub(crate) fn is_error_text(text: &str) -> bool {
     text.starts_with(TOOL_ERROR_PREFIX)
 }
 
+const TOOL_RESULT_AGGREGATE_BUDGET_CHARS: usize = 200_000;
+
+/// Legibility floor: even when earlier tools in a batch have consumed the
+/// aggregate budget, every result keeps at least this much room so late
+/// tools degrade to a usable stub instead of being squeezed to ~1 char.
+const MIN_RESULT_BUDGET_CHARS: usize = 2_000;
+
+/// Cap on post-truncation hook/policy text appended to a tool result
+/// (`post_tool_hook` extras, read-path policy activations). These appends
+/// happen after budget accounting, so an uncapped hook could bypass both
+/// the per-tool and aggregate budgets.
+pub(super) const HOOK_APPEND_MAX_CHARS: usize = 10_000;
+
+/// Marker prefix for inline image results (resolved to image blocks by
+/// `turn_executor/screenshot.rs`). Kept in sync with the marker emitted by
+/// `tool_infra/file/read.rs`.
+const INLINE_IMAGE_MARKER: &str = "[image:";
+
+pub(super) struct ToolResultAggregateBudget {
+    remaining: usize,
+}
+
+impl Default for ToolResultAggregateBudget {
+    fn default() -> Self {
+        Self {
+            remaining: TOOL_RESULT_AGGREGATE_BUDGET_CHARS,
+        }
+    }
+}
+
+impl ToolResultAggregateBudget {
+    pub(super) fn inline_result(
+        &mut self,
+        raw_text: &str,
+        per_tool_budget: Option<usize>,
+        allow_persist: bool,
+        session_id: &str,
+        tool_name: &str,
+    ) -> String {
+        let per_tool_limit = per_tool_budget.unwrap_or(super::MAX_TOOL_OUTPUT_CHARS);
+        let effective_budget = per_tool_limit.min(self.remaining.max(MIN_RESULT_BUDGET_CHARS));
+
+        // Char truncation must never cut an inline image marker: the
+        // resolver regex no longer matches and the model receives the
+        // budget's worth of raw base64 noise. Replace the whole result
+        // with actionable advice instead.
+        if raw_text.len() > effective_budget && raw_text.contains(INLINE_IMAGE_MARKER) {
+            let rendered = format!(
+                "[image omitted] The {} result contains an inline image encoded as {} KB of base64, \
+                 which exceeds the {} KB inline budget — truncated base64 would decode to a corrupt \
+                 image, so nothing was attached. Downscale or crop the image first (e.g. \
+                 `sips -Z 1024 <file>` on macOS or ImageMagick `convert <file> -resize 1024x1024 ...`), \
+                 then read the smaller file.",
+                tool_name,
+                raw_text.len() / 1024,
+                effective_budget / 1024,
+            );
+            self.remaining = self.remaining.saturating_sub(rendered.len());
+            return rendered;
+        }
+
+        let rendered = if allow_persist {
+            super::helpers::truncate_or_persist_output(
+                raw_text,
+                Some(effective_budget),
+                session_id,
+                tool_name,
+            )
+        } else {
+            super::helpers::truncate_output(raw_text, Some(effective_budget))
+        };
+        self.remaining = self.remaining.saturating_sub(rendered.len());
+        rendered
+    }
+}
+
 pub(crate) fn is_cancelled(cancel_flag: Option<&Arc<AtomicBool>>) -> bool {
     cancel_flag.is_some_and(|flag| flag.load(std::sync::atomic::Ordering::Relaxed))
 }
@@ -182,6 +258,7 @@ pub(crate) async fn execute_tool_calls(
     let groups = partition_tool_calls(tool_calls, tools);
     let mut executed_count = 0;
     let mut execution_usage = Vec::new();
+    let mut aggregate_budget = ToolResultAggregateBudget::default();
 
     for group in groups {
         match group {
@@ -199,6 +276,7 @@ pub(crate) async fn execute_tool_calls(
                     consecutive_errors,
                     policy_context_activator,
                     max_tool_use_concurrency,
+                    &mut aggregate_budget,
                 )
                 .await;
                 match result {
@@ -226,6 +304,7 @@ pub(crate) async fn execute_tool_calls(
                         file_tracker,
                         consecutive_errors,
                         policy_context_activator,
+                        &mut aggregate_budget,
                     )
                     .await;
                     match result {
@@ -252,6 +331,7 @@ pub(crate) async fn execute_tool_calls(
                     file_tracker,
                     consecutive_errors,
                     policy_context_activator,
+                    &mut aggregate_budget,
                 )
                 .await;
                 match result {
@@ -489,6 +569,70 @@ mod tests {
     fn normalize_tool_use_concurrency_accepts_positive_values() {
         assert_eq!(normalize_tool_use_concurrency(3), 3);
         assert_eq!(normalize_tool_use_concurrency(10), 10);
+    }
+
+    // ---- ToolResultAggregateBudget ----
+
+    #[test]
+    fn inline_result_floor_prevents_starvation_when_budget_exhausted() {
+        let mut budget = ToolResultAggregateBudget::default();
+        budget.remaining = 0;
+        let raw = "x".repeat(10_000);
+        let out = budget.inline_result(&raw, Some(50_000), false, "sess-floor", "read_file");
+        assert!(
+            out.contains("[output truncated"),
+            "expected truncation marker, got: {}",
+            &out[..out.len().min(200)]
+        );
+        // Effective budget is the 2K floor, not 1 char.
+        assert!(
+            out.len() >= MIN_RESULT_BUDGET_CHARS / 2 && out.len() <= MIN_RESULT_BUDGET_CHARS + 200,
+            "expected ~{} chars, got {}",
+            MIN_RESULT_BUDGET_CHARS,
+            out.len()
+        );
+    }
+
+    #[test]
+    fn inline_result_under_budget_passes_through() {
+        let mut budget = ToolResultAggregateBudget::default();
+        let out = budget.inline_result("small", Some(50_000), false, "sess-small", "read_file");
+        assert_eq!(out, "small");
+        assert_eq!(
+            budget.remaining,
+            TOOL_RESULT_AGGREGATE_BUDGET_CHARS - "small".len()
+        );
+    }
+
+    #[test]
+    fn inline_result_never_cuts_image_marker_mid_base64() {
+        let mut budget = ToolResultAggregateBudget::default();
+        let raw = format!(
+            "Image: shot.png (image/png, 300.0 KB)\n\n[image:image/png:{}]",
+            "A".repeat(400_000)
+        );
+        let out = budget.inline_result(&raw, Some(100_000), false, "sess-img", "read_file");
+        assert!(
+            out.starts_with("[image omitted]"),
+            "expected advice message, got: {}",
+            &out[..out.len().min(200)]
+        );
+        assert!(
+            !out.contains("[image:image/png:"),
+            "marker must not survive partially"
+        );
+        assert!(out.contains("Downscale or crop"), "got: {out}");
+    }
+
+    #[test]
+    fn inline_result_keeps_image_marker_when_under_budget() {
+        let mut budget = ToolResultAggregateBudget::default();
+        let raw = format!(
+            "Image: s.png (image/png, 1.0 KB)\n\n[image:image/png:{}]",
+            "A".repeat(1_000)
+        );
+        let out = budget.inline_result(&raw, Some(100_000), false, "sess-img-ok", "read_file");
+        assert_eq!(out, raw);
     }
 
     // ---- detect_stream_parse_error ----

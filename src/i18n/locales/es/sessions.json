@@ -793,6 +793,13 @@
     "hideWorkstation": "Ocultar Workstation",
     "restoreSplitView": "Mostrar Workstation",
     "shrinkToWorkstation": "Reducir panel de chat (mostrar Workstation)",
+    "tuiModeOn": "Modo TUI (clic para desactivar)",
+    "tuiModeOff": "Activar modo TUI",
+    "tabs": {
+      "newTerminal": "Nueva Terminal",
+      "newTab": "Nueva pestaña",
+      "terminals": "Terminales"
+    },
     "collapseAll": "Contraer todo",
     "copyEventJson": "Copiar JSON de eventos",
     "copyEventJsonCopied": "¡Copiado!",
@@ -944,7 +951,8 @@
         "byMe": "Por mí",
         "mentioned": "Mencionadas"
       }
-    }
+    },
+    "readOnly": "Solo lectura"
   },
   "chatStatus": {
     "approved": "Aprobado",
@@ -1201,6 +1209,9 @@
     "askUserSkipped": "Omitida",
     "askUserQuestionsAnswered": "Preguntas respondidas",
     "askUserQuestionsSkipped": "Preguntas omitidas",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "Terminando proceso",
     "killProcessDone": "Proceso terminado",
     "killProcessFailed": "Error al terminar proceso",

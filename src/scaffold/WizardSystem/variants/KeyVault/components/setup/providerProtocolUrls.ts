@@ -10,11 +10,13 @@ const ANTHROPIC_PROTOCOL_BASE_URLS: Partial<Record<ModelType, string>> = {
 export function getOfficialBaseUrlForProtocol(
   modelType: ModelType,
   protocol: ProviderProtocol | string,
-  defaultBaseUrl?: string
+  defaultBaseUrl?: string | null
 ): string | undefined {
   if (protocol === "anthropic") {
-    return ANTHROPIC_PROTOCOL_BASE_URLS[modelType] ?? defaultBaseUrl;
+    return (
+      ANTHROPIC_PROTOCOL_BASE_URLS[modelType] ?? defaultBaseUrl ?? undefined
+    );
   }
 
-  return defaultBaseUrl;
+  return defaultBaseUrl ?? undefined;
 }

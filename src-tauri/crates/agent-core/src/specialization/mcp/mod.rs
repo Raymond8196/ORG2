@@ -27,6 +27,7 @@ pub(crate) mod client;
 pub(crate) mod env_expansion;
 pub(crate) mod errors;
 pub(crate) mod handler;
+pub(crate) mod instructions;
 pub(crate) mod manager;
 pub(crate) mod needs_auth_cache;
 pub(crate) mod notification;

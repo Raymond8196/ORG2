@@ -85,6 +85,28 @@ pub enum ModelType {
     Kiro,
     KimiCli,
     OpenCode,
+    // Extended CLI agents
+    Aider,
+    Goose,
+    Amp,
+    Cline,
+    Kilo,
+    Grok,
+    Devin,
+    Rovo,
+    Hermes,
+    OpenClaw,
+    Aug,
+    Codebuff,
+    QwenCode,
+    MimoCode,
+    Antigravity,
+    Continue,
+    Droid,
+    MistralVibe,
+    Autohand,
+    Omp,
+    Pi,
     // Direct API key providers
     AnthropicApi,
     OpenaiApi,
@@ -121,6 +143,27 @@ impl ModelType {
             ModelType::Kiro => "kiro",
             ModelType::KimiCli => "kimi_cli",
             ModelType::OpenCode => "opencode",
+            ModelType::Aider => "aider",
+            ModelType::Goose => "goose",
+            ModelType::Amp => "amp",
+            ModelType::Cline => "cline",
+            ModelType::Kilo => "kilo",
+            ModelType::Grok => "grok_cli",
+            ModelType::Devin => "devin",
+            ModelType::Rovo => "rovo",
+            ModelType::Hermes => "hermes",
+            ModelType::OpenClaw => "openclaw",
+            ModelType::Aug => "aug",
+            ModelType::Codebuff => "codebuff",
+            ModelType::QwenCode => "qwen_code",
+            ModelType::MimoCode => "mimo_code",
+            ModelType::Antigravity => "antigravity",
+            ModelType::Continue => "continue_cli",
+            ModelType::Droid => "droid",
+            ModelType::MistralVibe => "mistral_vibe",
+            ModelType::Autohand => "autohand",
+            ModelType::Omp => "omp",
+            ModelType::Pi => "pi",
             // API key providers
             ModelType::AnthropicApi => "anthropic_api",
             ModelType::OpenaiApi => "openai_api",
@@ -154,13 +197,34 @@ impl ModelType {
             "kiro" | "amazon_kiro" => Some(ModelType::Kiro),
             "kimi_cli" | "kimi_code" => Some(ModelType::KimiCli),
             "opencode" | "opencode_cli" => Some(ModelType::OpenCode),
+            "aider" => Some(ModelType::Aider),
+            "goose" => Some(ModelType::Goose),
+            "amp" => Some(ModelType::Amp),
+            "cline" => Some(ModelType::Cline),
+            "kilo" => Some(ModelType::Kilo),
+            "grok_cli" | "grok" => Some(ModelType::Grok),
+            "devin" => Some(ModelType::Devin),
+            "rovo" => Some(ModelType::Rovo),
+            "hermes" => Some(ModelType::Hermes),
+            "openclaw" => Some(ModelType::OpenClaw),
+            "aug" => Some(ModelType::Aug),
+            "codebuff" => Some(ModelType::Codebuff),
+            "qwen_code" => Some(ModelType::QwenCode),
+            "mimo_code" => Some(ModelType::MimoCode),
+            "antigravity" => Some(ModelType::Antigravity),
+            "continue_cli" => Some(ModelType::Continue),
+            "droid" => Some(ModelType::Droid),
+            "mistral_vibe" => Some(ModelType::MistralVibe),
+            "autohand" => Some(ModelType::Autohand),
+            "omp" => Some(ModelType::Omp),
+            "pi" => Some(ModelType::Pi),
             // API key providers
             "anthropic_api" | "anthropic" => Some(ModelType::AnthropicApi),
             "openai_api" | "openai" => Some(ModelType::OpenaiApi),
             "deepseek_api" | "deepseek" => Some(ModelType::DeepseekApi),
             "gemini_api" | "gemini" | "google" => Some(ModelType::GeminiApi),
             "groq_api" | "groq" => Some(ModelType::GroqApi),
-            "xai_api" | "xai" | "grok" => Some(ModelType::XaiApi),
+            "xai_api" | "xai" => Some(ModelType::XaiApi),
             "zhipu_api" | "zhipu" => Some(ModelType::ZhipuApi),
             "dashscope_api" | "dashscope" => Some(ModelType::DashscopeApi),
             "moonshot_api" | "moonshot" => Some(ModelType::MoonshotApi),
@@ -193,6 +257,27 @@ impl ModelType {
                 | ModelType::Kiro
                 | ModelType::KimiCli
                 | ModelType::OpenCode
+                | ModelType::Aider
+                | ModelType::Goose
+                | ModelType::Amp
+                | ModelType::Cline
+                | ModelType::Kilo
+                | ModelType::Grok
+                | ModelType::Devin
+                | ModelType::Rovo
+                | ModelType::Hermes
+                | ModelType::OpenClaw
+                | ModelType::Aug
+                | ModelType::Codebuff
+                | ModelType::QwenCode
+                | ModelType::MimoCode
+                | ModelType::Antigravity
+                | ModelType::Continue
+                | ModelType::Droid
+                | ModelType::MistralVibe
+                | ModelType::Autohand
+                | ModelType::Omp
+                | ModelType::Pi
         )
     }
 

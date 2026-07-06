@@ -18,6 +18,15 @@ export const RawConfigWriteInput = z.object({
   content: z.string(),
 });
 
+export const CliConfigFileInput = z.object({
+  agentName: z.string(),
+  fileId: z.string(),
+});
+
+export const CliConfigFileWriteInput = CliConfigFileInput.extend({
+  content: z.string(),
+});
+
 export const HierarchyModeSchema = z.enum(["flat", "soft", "strict"]);
 export const OrgMemberRuntimeConfigSchema = z.object({
   keySource: z.enum(["own_key", "hosted_key"]).optional(),

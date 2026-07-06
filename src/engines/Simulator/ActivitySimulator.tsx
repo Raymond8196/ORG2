@@ -29,6 +29,7 @@ import {
   simulatorFollowAppLockAtom,
   simulatorInlineChatInputCollapsedAtom,
   simulatorLayoutAtom,
+  simulatorMiniCPMStepExplanationVisibleAtom,
   simulatorSelectedAppAtom,
   simulatorShowDockAtom,
 } from "@src/store/ui/simulatorAtom";
@@ -42,6 +43,7 @@ import {
   StationDockChrome,
   getAppById,
 } from "./components/Dock";
+import MiniCPMStepExplanationPanel from "./components/MiniCPMStepExplanationPanel";
 import MusicPlayerReplayBar from "./components/MusicPlayerReplayBar";
 import SimulatorFloatingInput from "./components/SimulatorFloatingInput";
 import { SubagentPipCard } from "./components/SubagentPipCard";
@@ -60,6 +62,9 @@ const ActivitySimulator: React.FC = memo(() => {
   const chatVisible = useAtomValue(chatVisibleAtom);
   const simulatorInputCollapsed = useAtomValue(
     simulatorInlineChatInputCollapsedAtom
+  );
+  const [showMiniCPMStepExplanation, setShowMiniCPMStepExplanation] = useAtom(
+    simulatorMiniCPMStepExplanationVisibleAtom
   );
   const [selectedApp, setSelectedApp] = useAtom(simulatorSelectedAppAtom);
   const replayMode = useAtomValue(replayModeAtom);
@@ -83,6 +88,7 @@ const ActivitySimulator: React.FC = memo(() => {
     previewById,
     specs,
     filteredEvents,
+    allEvents,
     currentEvent,
     currentEventIndex,
     eventStoreVersion,
@@ -126,6 +132,7 @@ const ActivitySimulator: React.FC = memo(() => {
     sessionId,
     eventStoreVersion,
     currentEvent,
+    allEvents,
   });
 
   // When subagents are active the layout automatically becomes a split view
@@ -276,6 +283,14 @@ const ActivitySimulator: React.FC = memo(() => {
                     className={`pointer-events-none absolute inset-0 z-[25] flex flex-col justify-end p-3 sm:p-4 ${floatingDockComposerAlignClass}`}
                   >
                     <SimulatorFloatingInput />
+                  </div>
+                )}
+
+                {showReplayBar && showMiniCPMStepExplanation && (
+                  <div className="pointer-events-none absolute bottom-16 left-3 right-3 z-[26] flex justify-center sm:left-6 sm:right-6">
+                    <MiniCPMStepExplanationPanel
+                      onClose={() => setShowMiniCPMStepExplanation(false)}
+                    />
                   </div>
                 )}
               </div>

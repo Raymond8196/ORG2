@@ -265,7 +265,6 @@ pub struct SkillListingCache {
     sent_names: BoundedMap<String, HashSet<String>>,
     stats: CacheStats,
     last_delta: SkillListingDeltaStats,
-    suppress_next_listing: bool,
 }
 
 impl Default for SkillListingCache {
@@ -275,7 +274,6 @@ impl Default for SkillListingCache {
             sent_names: BoundedMap::new(MAX_SKILL_SENT_AGENT_ENTRIES),
             stats: CacheStats::default(),
             last_delta: SkillListingDeltaStats::default(),
-            suppress_next_listing: false,
         }
     }
 }
@@ -296,53 +294,46 @@ impl SkillListingCache {
         self.stats.entries = self.entries.len();
     }
 
+    /// Return the listing entries to render for this request.
+    ///
+    /// The skill listing rides the volatile per-request dynamic sections,
+    /// which are rebuilt fresh every request and never persisted into
+    /// conversation history. An unseen-only delta on that surface makes the
+    /// catalog vanish after the first request (turn 2+ would carry no skill
+    /// names anywhere), so the FULL catalog is returned every time; the
+    /// rendered section is stable text, so the provider prompt cache absorbs
+    /// the repeat. `sent_names` is kept purely for delta stats (how many
+    /// names are new to this agent vs. already seen).
     pub fn new_entries_for_agent(
         &mut self,
         agent_key: &str,
         entries: &[SkillListingEntry],
     ) -> Vec<SkillListingEntry> {
-        if self.suppress_next_listing {
-            self.suppress_next_listing = false;
-            self.last_delta = SkillListingDeltaStats {
-                scanned_count: entries.len(),
-                new_count: 0,
-                sent_count: self
-                    .sent_names
-                    .get(&agent_key.to_string())
-                    .map(HashSet::len)
-                    .unwrap_or(0),
-                suppressed: true,
-            };
-            return Vec::new();
-        }
-
         let mut sent = self
             .sent_names
             .get(&agent_key.to_string())
             .cloned()
             .unwrap_or_default();
-        let new_entries: Vec<SkillListingEntry> = entries
+        let new_count = entries
             .iter()
-            .filter(|entry| !sent.contains(&entry.name))
-            .cloned()
-            .collect();
-        for entry in &new_entries {
-            sent.insert(entry.name.clone());
-        }
+            .filter(|entry| sent.insert(entry.name.clone()))
+            .count();
         let sent_count = sent.len();
         self.sent_names.insert(agent_key.to_string(), sent);
         self.last_delta = SkillListingDeltaStats {
             scanned_count: entries.len(),
-            new_count: new_entries.len(),
+            new_count,
             sent_count,
-            suppressed: new_entries.is_empty(),
+            suppressed: entries.is_empty(),
         };
-        new_entries
+        entries.to_vec()
     }
 
-    pub fn suppress_next_listing(&mut self) {
-        self.suppress_next_listing = true;
-    }
+    /// Historical resume hook, now a no-op: the listing surface is volatile
+    /// (never persisted into the transcript), so a resumed session has no
+    /// listing in history — suppressing the next render would blind the
+    /// model to the catalog for that request.
+    pub fn suppress_next_listing(&mut self) {}
 
     pub fn clear_catalog(&mut self) {
         self.entries.clear();
@@ -353,7 +344,6 @@ impl SkillListingCache {
     pub fn clear_all(&mut self) {
         self.entries.clear();
         self.sent_names.clear();
-        self.suppress_next_listing = false;
         self.last_delta = SkillListingDeltaStats::default();
         self.stats.entries = 0;
         self.stats.reset_counts();
@@ -801,46 +791,57 @@ mod tests {
         assert_ne!(no_filter, empty_filter);
     }
 
+    fn listing_entry(name: &str) -> SkillListingEntry {
+        SkillListingEntry {
+            name: name.to_string(),
+            source: "workspace".to_string(),
+            description: format!("{name} description"),
+            available: true,
+        }
+    }
+
     #[test]
-    fn skill_listing_cache_tracks_sent_name_delta() {
+    fn skill_listing_returns_full_catalog_every_request() {
+        // The listing rides a volatile per-request surface (never persisted
+        // into history), so every request must carry the full catalog; only
+        // the delta STATS track seen vs. unseen names.
         let key = SkillListingCacheKey::new(Path::new("/tmp/project"), &[], None, "agent-a", true);
         let mut cache = SkillListingCache::default();
-        let entries = vec![
-            SkillListingEntry {
-                name: "alpha".to_string(),
-                line: "- **alpha**".to_string(),
-            },
-            SkillListingEntry {
-                name: "beta".to_string(),
-                line: "- **beta**".to_string(),
-            },
-        ];
+        let entries = vec![listing_entry("alpha"), listing_entry("beta")];
 
         assert_eq!(cache.get(&key), None);
         cache.insert(key.clone(), entries.clone());
         assert_eq!(cache.get(&key), Some(entries.clone()));
         assert_eq!(cache.len(), 1);
+
         assert_eq!(cache.new_entries_for_agent("agent:one", &entries), entries);
+        let first = cache.last_delta_stats();
+        assert_eq!(first.new_count, 2);
+        assert_eq!(first.sent_count, 2);
+        assert!(!first.suppressed);
+
         let cached_entries = cache.get(&key).unwrap();
-        assert!(cache
-            .new_entries_for_agent("agent:one", &cached_entries)
-            .is_empty());
-        assert!(cache.last_delta_stats().suppressed);
+        assert_eq!(
+            cache.new_entries_for_agent("agent:one", &cached_entries),
+            entries,
+            "turn 2+ must still see the full listing",
+        );
+        let second = cache.last_delta_stats();
+        assert_eq!(second.new_count, 0);
+        assert_eq!(second.sent_count, 2);
+        assert!(!second.suppressed);
     }
 
     #[test]
-    fn skill_listing_cache_resume_suppresses_next_delta_once() {
+    fn skill_listing_resume_does_not_blind_the_model() {
+        // Resume used to suppress the next render on the (wrong) assumption
+        // that the listing was already in the transcript; the surface is
+        // volatile, so suppression must be a no-op.
         let mut cache = SkillListingCache::default();
-        let entries = vec![SkillListingEntry {
-            name: "alpha".to_string(),
-            line: "- **alpha**".to_string(),
-        }];
+        let entries = vec![listing_entry("alpha")];
         cache.suppress_next_listing();
-        assert!(cache
-            .new_entries_for_agent("agent:one", &entries)
-            .is_empty());
-        assert!(cache.last_delta_stats().suppressed);
         assert_eq!(cache.new_entries_for_agent("agent:one", &entries), entries);
+        assert!(!cache.last_delta_stats().suppressed);
     }
 
     #[test]

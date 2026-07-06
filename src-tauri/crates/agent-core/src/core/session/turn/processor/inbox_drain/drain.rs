@@ -247,14 +247,18 @@ fn try_autonomous_claim(
         }
     }
 
-    let candidate = match AgentOrgTaskStore::find_available(&org_context.run_id) {
+    let candidate = match AgentOrgTaskStore::find_available_for_member(
+        &org_context.run_id,
+        recipient_member_id,
+    ) {
         Ok(Some(task)) => task,
         Ok(None) => return,
         Err(err) => {
             warn!(
                 run_id = %org_context.run_id,
+                member_id = %recipient_member_id,
                 error = %err,
-                "[autonomous_claim] find_available failed; skipping claim attempt",
+                "[autonomous_claim] find_available_for_member failed; skipping claim attempt",
             );
             return;
         }
@@ -267,7 +271,9 @@ fn try_autonomous_claim(
         ClaimOptions::default(),
     ) {
         Ok(task) => task,
-        Err(ClaimError::AlreadyClaimed { .. }) | Err(ClaimError::AlreadyResolved { .. }) => {
+        Err(ClaimError::AlreadyClaimed { .. })
+        | Err(ClaimError::AlreadyResolved { .. })
+        | Err(ClaimError::NotEligible) => {
             return;
         }
         Err(err) => {

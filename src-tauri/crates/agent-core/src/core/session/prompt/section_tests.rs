@@ -100,6 +100,26 @@ fn agent_org_prompt_uses_task_board_for_roster_delegation() {
         "prompt must describe member-session reaction semantics: {section}"
     );
     assert!(
+        section.contains("eligible_member_ids` is the hard claim whitelist"),
+        "prompt must describe eligible_member_ids as hard whitelist: {section}"
+    );
+    assert!(
+        section.contains("required_role` is only a human-readable hint"),
+        "prompt must not treat required_role as authorization: {section}"
+    );
+    assert!(
+        section.contains("role/name, not the member_id prefix alone"),
+        "prompt must guide coordinator to use role/name, not member_id prefix: {section}"
+    );
+    assert!(
+        section.contains("For example, planner members are for planning"),
+        "prompt must include flexible role-selection examples: {section}"
+    );
+    assert!(
+        !section.contains("Members may set their own unowned task to `in_progress`"),
+        "prompt must not preserve old manual self-claim instruction: {section}"
+    );
+    assert!(
         !section.contains("delegate worker-sized subtasks with the `agent` tool"),
         "prompt must not preserve stale generic-agent delegation instruction: {section}"
     );
@@ -152,7 +172,8 @@ fn agent_org_prompt_snapshot_warns_before_duplicate_task_creation() {
     let section = build_agent_org_context_section(&context, "agent-coord", None);
     assert!(section.contains("No tasks currently exist on this run."));
     assert!(section.contains("update it instead of creating a duplicate"));
-    assert!(section.contains("coordinator must assign an owner explicitly"));
+    assert!(section.contains("Ownerless tasks are claimed through the autonomous claim path"));
+    assert!(section.contains("caller's member_id is listed in `eligible_member_ids`"));
 }
 
 #[test]

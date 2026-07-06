@@ -179,7 +179,7 @@ impl UnifiedMessageProcessor {
             Err(err) => return Err(err),
         };
 
-        self.session.prompt_cache_break_tracker.lock().await.record(
+        let cache_sample = self.session.prompt_cache_break_tracker.lock().await.record(
             &cache_probe_system_blocks,
             Some(&cache_probe_tools),
             &self.runtime.model,
@@ -187,6 +187,15 @@ impl UnifiedMessageProcessor {
             result.cache_read_tokens,
             result.cache_write_tokens,
         );
+        if cache_sample.broke_cache {
+            // A break with byte-identical system/tools/model means the miss
+            // came from elsewhere (TTL expiry, history edit, server-side) —
+            // exactly the regression class that must not stay invisible.
+            warn!(
+                "[unified_processor] Prompt cache break: unchanged system/tools/model prefix missed the cache (session={}, prompt_tokens={}, cache_read=0, cache_write={})",
+                session_id, cache_sample.prompt_tokens, cache_sample.cache_write_tokens
+            );
+        }
 
         // Record the provider-reported context fill so the next pre-turn
         // compaction check can correct the local token estimate (which

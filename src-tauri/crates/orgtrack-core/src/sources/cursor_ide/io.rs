@@ -64,17 +64,6 @@ pub(super) fn cursor_db_path() -> Option<PathBuf> {
     }
 }
 
-pub(super) fn load_bubble_order(
-    conn: &Connection,
-    composer_id: &str,
-) -> Result<Vec<RawComposerHeader>, String> {
-    Ok(load_complete_bubble_order(
-        conn,
-        composer_id,
-        &load_composer_for_order(conn, composer_id)?.full_conversation_headers_only,
-    )?)
-}
-
 pub(super) fn load_complete_bubble_order(
     conn: &Connection,
     composer_id: &str,

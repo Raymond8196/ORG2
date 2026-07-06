@@ -21,9 +21,22 @@ const MAX_BACKOFF_MS: u64 = 10_000;
 /// Maximum backoff duration for overloaded/529 retries (60 seconds).
 const MAX_OVERLOAD_BACKOFF_MS: u64 = 60_000;
 
-/// Server-supplied rate-limit windows longer than this are quota/capacity
-/// blockers for an interactive foreground turn, not retry delays.
-const MAX_RATE_LIMIT_RETRY_AFTER_MS: u64 = MAX_BACKOFF_MS;
+/// Server-supplied rate-limit windows up to this bound are honored as the
+/// retry delay — the retry-after header is a server directive and overrides
+/// the local backoff cap (matches the in-stream
+/// `RETRY_AFTER_SANITY_CEILING_MS` in `stream_error_recovery`). Longer
+/// windows are quota/capacity blockers (5-hour resets), not retry delays,
+/// and fail fast instead of parking a foreground turn.
+const MAX_RATE_LIMIT_RETRY_AFTER_MS: u64 = 10 * 60 * 1000;
+
+/// Message markers carrying the server's explicit `x-should-retry` response
+/// header directive (non-standard, sent by Anthropic). Provider error
+/// classifiers append these to the error message — the only channel
+/// `ProviderError` carries today — and [`ReliableProvider`] obeys them over
+/// its status-code heuristics: `false` suppresses retry of an otherwise
+/// retryable error, `true` allows retry of an otherwise non-retryable one.
+pub const X_SHOULD_RETRY_FALSE_MARKER: &str = "[x-should-retry: false]";
+pub const X_SHOULD_RETRY_TRUE_MARKER: &str = "[x-should-retry: true]";
 
 /// Minimum base backoff (50ms).
 const MIN_BASE_BACKOFF_MS: u64 = 50;
@@ -177,6 +190,13 @@ impl ReliableProvider {
     /// `_ => false` catch-all would have made any new error variant
     /// silently retryable, including ones that should fail fast.
     fn is_non_retryable(err: &ProviderError) -> bool {
+        // An explicit server directive (`x-should-retry` response header)
+        // overrides the status-code heuristics below. The >10min rate-limit
+        // fail-fast still applies afterwards: a server "true" on a
+        // multi-hour quota window must not park a foreground turn.
+        if let Some(should_retry) = Self::server_retry_directive(err) {
+            return !should_retry;
+        }
         match err {
             ProviderError::AuthError(_)
             | ProviderError::ModelNotFound(_)
@@ -210,6 +230,20 @@ impl ReliableProvider {
             | ProviderError::Overloaded { .. }
             | ProviderError::ParseError(_)
             | ProviderError::Other(_) => false,
+        }
+    }
+
+    /// Extract the server's explicit `x-should-retry` directive from an
+    /// error, if the provider's classifier stamped one into the message
+    /// (see [`X_SHOULD_RETRY_FALSE_MARKER`] / [`X_SHOULD_RETRY_TRUE_MARKER`]).
+    fn server_retry_directive(err: &ProviderError) -> Option<bool> {
+        let text = err.to_string();
+        if text.contains(X_SHOULD_RETRY_FALSE_MARKER) {
+            Some(false)
+        } else if text.contains(X_SHOULD_RETRY_TRUE_MARKER) {
+            Some(true)
+        } else {
+            None
         }
     }
 

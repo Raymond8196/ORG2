@@ -64,9 +64,20 @@ function getCursorColor(themeName: TerminalThemeName): string {
   );
 }
 
-export function getXTermTheme(themeName: TerminalThemeName): ITheme {
+function resolveColorValue(value: string, fallback: string): string {
+  const cssVarMatch = value.match(CSS_VAR_REFERENCE_PATTERN);
+  if (!cssVarMatch) return value;
+  return getDocumentColorToken(cssVarMatch[1], fallback);
+}
+
+export function getXTermTheme(
+  themeName: TerminalThemeName,
+  backgroundOverride?: string
+): ITheme {
   const theme = TERMINAL_THEMES[themeName];
-  const bg = getBgColor(themeName);
+  const bg = backgroundOverride
+    ? resolveColorValue(backgroundOverride, getBgColor(themeName))
+    : getBgColor(themeName);
   return {
     background: bg,
     foreground: theme.foreground,

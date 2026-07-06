@@ -428,7 +428,6 @@ const AppShell = () => {
             }
             blurAmount={backgroundConfig.blurAmount ?? 0}
             backgroundColor={backgroundConfig.backgroundColor}
-            animation={backgroundConfig.animation}
             glass={backgroundConfig.glass}
           />
 

@@ -1,6 +1,7 @@
 export {
   extractArgsSummary,
   extractScreenshotIds,
+  extractSkillName,
   stripScreenshotMarkers,
 } from "./argsSummary";
 

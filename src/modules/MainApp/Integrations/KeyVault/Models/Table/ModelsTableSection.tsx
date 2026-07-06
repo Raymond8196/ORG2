@@ -8,7 +8,6 @@ import GroupRowEraTag from "@src/components/ModelTable/GroupRowEraTag";
 import { MODEL_TABLE_SWITCH_SIZE } from "@src/components/ModelTable/types";
 import SettingsTable, {
   SETTINGS_TABLE_CELL,
-  SETTINGS_TABLE_COL,
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
 import Switch from "@src/components/Switch";
@@ -204,7 +203,7 @@ export default function ModelsTableSection({
       {
         key: "model",
         label: t("common:labels.model"),
-        width: SETTINGS_TABLE_COL.fill,
+        width: INTEGRATIONS_MODELS_TABLE_COL_WIDTH.model,
         sorter: (rowA, rowB) => rowA.label.localeCompare(rowB.label),
         renderCell: (group) => {
           if (group.isOrgiiGroup) {
@@ -349,7 +348,7 @@ export default function ModelsTableSection({
       expandable={expandable}
       onRowClick={setSingleExpandedGroup}
       headerHeight="tall"
-      className="table-expanded-no-hover table-settings-expanded-compact table-layout-fixed"
+      className="table-expanded-no-hover table-settings-expanded-compact"
       searchBar={{
         searchValue: modelsSearchQuery,
         onSearchChange: setModelsSearchQuery,
