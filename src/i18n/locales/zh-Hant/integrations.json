@@ -1673,7 +1673,11 @@
       "keyPreview": "密鑰",
       "addedTime": "添加時間",
       "secretBearingConfig": "可能包含 API key 或 Token",
-      "revealConfigFile": "在檔案管理器中顯示"
+      "revealConfigFile": "在檔案管理器中顯示",
+      "configFiles": "配置檔案",
+      "configFile": "配置檔案",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "沒有配置內容"
     },
     "codexConfig": {
       "sectionTitle": "配置",

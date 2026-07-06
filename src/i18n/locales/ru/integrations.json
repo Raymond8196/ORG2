@@ -1675,7 +1675,11 @@
       "keyPreview": "Ключ",
       "addedTime": "Добавлено",
       "secretBearingConfig": "Может содержать API-ключи или Token",
-      "revealConfigFile": "Показать в файловом менеджере"
+      "revealConfigFile": "Показать в файловом менеджере",
+      "configFiles": "Файлы конфигурации",
+      "configFile": "Файл конфигурации",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Нет содержимого конфигурации"
     },
     "codexConfig": {
       "sectionTitle": "Конфигурация",

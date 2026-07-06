@@ -1693,7 +1693,11 @@
       "keyPreview": "密钥",
       "addedTime": "添加时间",
       "secretBearingConfig": "可能包含 API key 或 Token",
-      "revealConfigFile": "在文件管理器中显示"
+      "revealConfigFile": "在文件管理器中显示",
+      "configFiles": "配置文件",
+      "configFile": "配置文件",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "没有配置内容"
     },
     "codexConfig": {
       "sectionTitle": "配置",

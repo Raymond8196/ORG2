@@ -1675,7 +1675,11 @@
       "keyPreview": "キー",
       "addedTime": "追加日",
       "secretBearingConfig": "API key または Token が含まれる可能性があります",
-      "revealConfigFile": "ファイルマネージャーで表示"
+      "revealConfigFile": "ファイルマネージャーで表示",
+      "configFiles": "設定ファイル",
+      "configFile": "設定ファイル",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "設定内容がありません"
     },
     "codexConfig": {
       "sectionTitle": "設定",

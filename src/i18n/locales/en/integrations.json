@@ -1693,7 +1693,11 @@
       "keyPreview": "Key",
       "addedTime": "Added",
       "secretBearingConfig": "May contain API keys or tokens",
-      "revealConfigFile": "Reveal in file manager"
+      "revealConfigFile": "Reveal in file manager",
+      "configFiles": "Config Files",
+      "configFile": "Config file",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "No config content"
     },
     "codexConfig": {
       "sectionTitle": "Configuration",

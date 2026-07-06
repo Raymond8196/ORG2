@@ -1675,7 +1675,11 @@
       "keyPreview": "Khóa",
       "addedTime": "Đã thêm",
       "secretBearingConfig": "Có thể chứa API key hoặc Token",
-      "revealConfigFile": "Hiển thị trong trình quản lý tệp"
+      "revealConfigFile": "Hiển thị trong trình quản lý tệp",
+      "configFiles": "Tệp cấu hình",
+      "configFile": "Tệp cấu hình",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Không có nội dung cấu hình"
     },
     "codexConfig": {
       "sectionTitle": "Cấu hình",

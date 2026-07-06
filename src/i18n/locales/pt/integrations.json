@@ -1675,7 +1675,11 @@
       "keyPreview": "Chave",
       "addedTime": "Adicionado",
       "secretBearingConfig": "Pode conter API keys ou tokens",
-      "revealConfigFile": "Mostrar no gerenciador de arquivos"
+      "revealConfigFile": "Mostrar no gerenciador de arquivos",
+      "configFiles": "Arquivos de configuração",
+      "configFile": "Arquivo de configuração",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Sem conteúdo de configuração"
     },
     "codexConfig": {
       "sectionTitle": "Configuração",
