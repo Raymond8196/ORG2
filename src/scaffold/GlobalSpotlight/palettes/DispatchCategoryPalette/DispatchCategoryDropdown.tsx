@@ -122,6 +122,7 @@ export const DispatchCategoryDropdown: React.FC<
   currentAgentOrgId,
   currentCliAgentType,
   hideOrgs = false,
+  cliOnly = false,
   anchorRef,
 }) => {
   const { t: tCommon } = useTranslation("common");
@@ -131,6 +132,7 @@ export const DispatchCategoryDropdown: React.FC<
   const { allOptions, groups, optionToItem } = useDispatchCategoryOptions({
     isOpen,
     hideOrgs,
+    cliOnly,
     currentCategory,
     currentAgentDefinitionId,
     currentAgentOrgId,

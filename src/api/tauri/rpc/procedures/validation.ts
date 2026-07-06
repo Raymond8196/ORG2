@@ -58,6 +58,31 @@ export const validation = {
     .output(schemas.validation.KeyInfoSchema.nullable())
     .build(),
 
+  promptPolish: defineProcedure("prompt_polish")
+    .input(schemas.validation.PromptPolishInput)
+    .output(schemas.validation.PromptPolishResponseSchema)
+    .build(),
+
+  sessionStepExplain: defineProcedure("session_step_explain")
+    .input(schemas.validation.SessionStepExplainInput)
+    .output(schemas.validation.SessionStepExplainResponseSchema)
+    .build(),
+
+  housekeeperHealthCheck: defineProcedure("housekeeper_health_check")
+    .input(schemas.validation.HousekeeperHealthCheckInput)
+    .output(schemas.validation.HousekeeperHealthCheckResponseSchema)
+    .build(),
+
+  housekeeperTokenBenchmark: defineProcedure("housekeeper_token_benchmark")
+    .input(schemas.validation.HousekeeperTokenBenchmarkInput)
+    .output(schemas.validation.HousekeeperTokenBenchmarkResponseSchema)
+    .build(),
+
+  housekeeperUiIntent: defineProcedure("housekeeper_ui_intent")
+    .input(schemas.validation.HousekeeperUiIntentInput)
+    .output(schemas.validation.HousekeeperUiIntentResponseSchema)
+    .build(),
+
   getEnvForAgent: defineProcedure("get_env_for_agent")
     .input(schemas.validation.GetEnvForAgentInput)
     .output(z.record(z.string(), z.string()))

@@ -1,7 +1,7 @@
 //! Event conversion helpers: dedup, backfill, synthetic filtering,
 //! and CachedEvent <-> SessionEvent conversion.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::agent_sessions::event_pipeline::ingestion::function_map::resolve_ui_canonical;
 use crate::agent_sessions::event_pipeline::payload_compaction::is_compacted_event;
@@ -74,7 +74,7 @@ fn merge_loser_into_winner(winner: &mut SessionEvent, loser: SessionEvent) {
 pub(crate) fn dedup_by_call_id(events: Vec<SessionEvent>) -> Vec<SessionEvent> {
     // winner_idx -> list of loser indices that should merge into it.
     let mut merges: HashMap<usize, Vec<usize>> = HashMap::new();
-    let mut drop_set: std::collections::HashSet<usize> = std::collections::HashSet::new();
+    let mut drop_set: HashSet<usize> = HashSet::new();
     let mut best_idx_by_call_id: HashMap<String, usize> = HashMap::new();
 
     // Pass 1: same call_id -> keep the tool_call identity row, merge the
@@ -195,6 +195,59 @@ pub(crate) fn dedup_by_call_id(events: Vec<SessionEvent>) -> Vec<SessionEvent> {
                 }
             },
         )
+        .collect()
+}
+
+fn is_stream_transcript_id(id: &str) -> bool {
+    id.starts_with("stream-msg-") || id.starts_with("stream-think-")
+}
+
+fn is_stream_transcript_event(event: &SessionEvent) -> bool {
+    if !is_stream_transcript_id(&event.id) {
+        return false;
+    }
+    if matches!(
+        event.display_variant,
+        EventDisplayVariant::Message | EventDisplayVariant::Thinking
+    ) {
+        return true;
+    }
+    matches!(
+        event.action_type.as_str(),
+        "assistant" | "assistant_delta" | "llm_thinking" | "thinking" | "message" | "message_delta"
+    ) || matches!(
+        event.function_name.as_str(),
+        "assistant" | "assistant_message" | "thinking" | "message" | "message_delta"
+    )
+}
+
+pub(crate) fn dedup_stream_transcript_chunk_pairs(events: Vec<SessionEvent>) -> Vec<SessionEvent> {
+    let event_by_id: HashMap<&str, &SessionEvent> = events
+        .iter()
+        .map(|event| (event.id.as_str(), event))
+        .collect();
+    let drop_ids: HashSet<String> = events
+        .iter()
+        .filter_map(|event| {
+            let base_id = event.id.strip_suffix("-chunk")?;
+            let base_event = event_by_id.get(base_id)?;
+            if !is_stream_transcript_id(base_id) {
+                return None;
+            }
+            if !is_stream_transcript_event(base_event) || !is_stream_transcript_event(event) {
+                return None;
+            }
+            Some(event.id.clone())
+        })
+        .collect();
+
+    if drop_ids.is_empty() {
+        return events;
+    }
+
+    events
+        .into_iter()
+        .filter(|event| !drop_ids.contains(&event.id))
         .collect()
 }
 
@@ -706,4 +759,151 @@ fn build_searchable_content(event: &SessionEvent) -> String {
         parts.push(truncated);
     }
     parts.join(" ")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_stream_event(id: &str, variant: EventDisplayVariant) -> SessionEvent {
+        SessionEvent {
+            id: id.to_string(),
+            chunk_id: Some(id.to_string()),
+            session_id: "test-session".to_string(),
+            created_at: "2026-07-05T00:00:00Z".to_string(),
+            function_name: match variant {
+                EventDisplayVariant::Thinking => "thinking".to_string(),
+                _ => "assistant".to_string(),
+            },
+            ui_canonical: match variant {
+                EventDisplayVariant::Thinking => "thinking".to_string(),
+                _ => "message".to_string(),
+            },
+            action_type: match variant {
+                EventDisplayVariant::Thinking => "llm_thinking".to_string(),
+                _ => "assistant".to_string(),
+            },
+            args: serde_json::json!({}),
+            result: serde_json::json!({ "content": "same transcript" }),
+            source: EventSource::Assistant,
+            display_text: "same transcript".to_string(),
+            display_status: EventDisplayStatus::Completed,
+            display_variant: variant,
+            activity_status: ActivityStatus::Processed,
+            thread_id: None,
+            process_id: None,
+            call_id: None,
+            file_path: None,
+            command: None,
+            is_delta: None,
+            repo_id: None,
+            repo_path: None,
+            extracted: None,
+            payload_refs: Vec::new(),
+            last_extract_at: None,
+        }
+    }
+
+    fn make_tool_event(id: &str) -> SessionEvent {
+        let mut event = make_stream_event(id, EventDisplayVariant::ToolCall);
+        event.function_name = "subagent".to_string();
+        event.ui_canonical = "subagent".to_string();
+        event.action_type = "tool_call".to_string();
+        event
+    }
+
+    fn ids(events: Vec<SessionEvent>) -> Vec<String> {
+        events.into_iter().map(|event| event.id).collect()
+    }
+
+    #[test]
+    fn dedup_stream_transcript_chunk_pairs_drops_observed_opencode_assistant_pair() {
+        let base = make_stream_event(
+            "stream-msg-cliagent-1783254446151-a5be-1-a4ab19579c184ade8c933c513170ba2f",
+            EventDisplayVariant::Message,
+        );
+        let chunk = make_stream_event(
+            "stream-msg-cliagent-1783254446151-a5be-1-a4ab19579c184ade8c933c513170ba2f-chunk",
+            EventDisplayVariant::Message,
+        );
+
+        assert_eq!(
+            ids(dedup_stream_transcript_chunk_pairs(vec![base, chunk])),
+            vec!["stream-msg-cliagent-1783254446151-a5be-1-a4ab19579c184ade8c933c513170ba2f"]
+        );
+    }
+
+    #[test]
+    fn dedup_stream_transcript_chunk_pairs_drops_thinking_pair() {
+        let base = make_stream_event("stream-think-session-1-abc", EventDisplayVariant::Thinking);
+        let chunk = make_stream_event(
+            "stream-think-session-1-abc-chunk",
+            EventDisplayVariant::Thinking,
+        );
+
+        assert_eq!(
+            ids(dedup_stream_transcript_chunk_pairs(vec![base, chunk])),
+            vec!["stream-think-session-1-abc"]
+        );
+    }
+
+    #[test]
+    fn dedup_stream_transcript_chunk_pairs_keeps_history_only_chunk() {
+        let chunk = make_stream_event(
+            "stream-msg-session-1-abc-chunk",
+            EventDisplayVariant::Message,
+        );
+
+        assert_eq!(
+            ids(dedup_stream_transcript_chunk_pairs(vec![chunk])),
+            vec!["stream-msg-session-1-abc-chunk"]
+        );
+    }
+
+    #[test]
+    fn dedup_stream_transcript_chunk_pairs_keeps_non_stream_chunk_pairs() {
+        let base = make_stream_event("some-event", EventDisplayVariant::Message);
+        let chunk = make_stream_event("some-event-chunk", EventDisplayVariant::Message);
+
+        assert_eq!(
+            ids(dedup_stream_transcript_chunk_pairs(vec![base, chunk])),
+            vec!["some-event", "some-event-chunk"]
+        );
+    }
+
+    #[test]
+    fn dedup_stream_transcript_chunk_pairs_keeps_tool_chunk_pairs() {
+        let base = make_tool_event("stream-msg-session-1-tool");
+        let chunk = make_tool_event("stream-msg-session-1-tool-chunk");
+
+        assert_eq!(
+            ids(dedup_stream_transcript_chunk_pairs(vec![base, chunk])),
+            vec![
+                "stream-msg-session-1-tool",
+                "stream-msg-session-1-tool-chunk"
+            ]
+        );
+    }
+
+    #[test]
+    fn dedup_stream_transcript_chunk_pairs_preserves_survivor_order() {
+        let first = make_stream_event("user-visible-before", EventDisplayVariant::Message);
+        let base = make_stream_event("stream-msg-session-1-abc", EventDisplayVariant::Message);
+        let chunk = make_stream_event(
+            "stream-msg-session-1-abc-chunk",
+            EventDisplayVariant::Message,
+        );
+        let last = make_stream_event("user-visible-after", EventDisplayVariant::Message);
+
+        assert_eq!(
+            ids(dedup_stream_transcript_chunk_pairs(vec![
+                first, base, chunk, last
+            ])),
+            vec![
+                "user-visible-before",
+                "stream-msg-session-1-abc",
+                "user-visible-after"
+            ]
+        );
+    }
 }

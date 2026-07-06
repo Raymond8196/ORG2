@@ -634,6 +634,16 @@ impl UnifiedMessageProcessor {
             }
         } else if !previous_turn_cancelled
             && !suppress_crash_repair
+            // With a fresh user prompt at the tail, pairing is restored by
+            // `ensure_tool_result_pairing` below, and the "continue from
+            // where you left off" nudge would land AFTER the fresh prompt —
+            // misdirecting the model to resume stale work instead of
+            // answering the user. Only run crash repair when the history
+            // actually ends mid-turn.
+            && messages
+                .last()
+                .map(crate::turn_executor::msg_role)
+                != Some("user")
             && super::super::recovery::repair_interrupted_history(&mut messages)
         {
             info!(
@@ -782,7 +792,12 @@ impl UnifiedMessageProcessor {
         // only (never history) so escalation stays per-turn.
         let reasoning_trigger = crate::providers::thinking_mode::detect_reasoning_trigger(content);
         let turn_result = self
-            .execute_turn_with_reactive_retry(session_id, &turn_id, &mut messages, reasoning_trigger)
+            .execute_turn_with_reactive_retry(
+                session_id,
+                &turn_id,
+                &mut messages,
+                reasoning_trigger,
+            )
             .await;
         if let Some(prefetch_hook) = self.turn_prefetch_hook.lock().await.take() {
             prefetch_hook.abort_pending();

@@ -2,7 +2,10 @@ import {
   RUST_AGENT_TYPE,
   type RustAgentType,
 } from "@src/api/tauri/agent/types";
-import type { ImportedHistorySourceId } from "@src/api/tauri/importedHistory";
+import {
+  IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
+  type ImportedHistorySourceId,
+} from "@src/api/tauri/externalHistory/imported/descriptors";
 import type { DispatchCategory } from "@src/api/tauri/session";
 
 /**
@@ -27,6 +30,21 @@ import type { DispatchCategory } from "@src/api/tauri/session";
 // ============================================
 // Session Prefixes Registry
 // ============================================
+
+/**
+ * Lifecycle hooks for IDE session types that require a persistent backend
+ * watch (e.g. a CDP WebSocket to a running IDE renderer). Both callbacks
+ * receive the full `sessionId` (e.g. `cursoride-<uuid>`).
+ *
+ * Reserved for future live-watch IDE integrations (Trae, Windsurf, etc.).
+ * Currently no session type registers a live watch.
+ */
+export interface SessionLiveWatchHooks {
+  /** Start the backend watch for this session. Called once on mount. */
+  startWatch: (sessionId: string) => Promise<void>;
+  /** Stop the backend watch. Called on unmount (navigation away). */
+  stopWatch: (sessionId: string) => Promise<void>;
+}
 
 /**
  * Session prefix configuration.
@@ -86,51 +104,15 @@ export const SESSION_PREFIX_REGISTRY: readonly SessionPrefixConfig[] = [
     variant: undefined,
     iconId: "terminal",
   },
-  {
-    prefix: "cursoride-",
-    category: "cursor_ide",
-    variant: undefined,
-    // Use the Cursor brand mark — these rows surface chat history captured
-    // by the Cursor IDE itself, so the brand icon is the most honest
-    // affordance. Resolved via `resolveAgentIcon("cursor")` →
-    // `CursorBrandIcon` adapter (see `src/config/agentIcons.tsx`).
-    iconId: "cursor",
-  },
-  {
-    prefix: "codexapp-",
-    category: "external_history",
-    variant: undefined,
-    iconId: "codex",
-    externalHistorySourceId: "codex_app",
-  },
-  {
-    prefix: "claudecodeapp-",
-    category: "external_history",
-    variant: undefined,
-    iconId: "claude_code",
-    externalHistorySourceId: "claude_code",
-  },
-  {
-    prefix: "opencodeapp-",
-    category: "external_history",
-    variant: undefined,
-    iconId: "opencode",
-    externalHistorySourceId: "opencode",
-  },
-  {
-    prefix: "windsurfapp-",
-    category: "external_history",
-    variant: undefined,
-    iconId: "windsurf",
-    externalHistorySourceId: "windsurf",
-  },
-  {
-    prefix: "workbuddyapp-",
-    category: "external_history",
-    variant: undefined,
-    iconId: "workbuddy",
-    externalHistorySourceId: "workbuddy",
-  },
+  ...IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(
+    (source): SessionPrefixConfig => ({
+      prefix: source.prefix,
+      category: "external_history",
+      variant: undefined,
+      iconId: source.iconId,
+      externalHistorySourceId: source.sourceId,
+    })
+  ),
 ] as const;
 
 // ============================================
@@ -219,7 +201,7 @@ export function isCursorIdeSession(
   sessionId: string | null | undefined
 ): boolean {
   const config = findPrefixConfig(sessionId);
-  return config?.category === "cursor_ide";
+  return config?.externalHistorySourceId === "cursor_ide";
 }
 
 /**

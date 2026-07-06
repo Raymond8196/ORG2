@@ -818,6 +818,13 @@
     "hideWorkstation": "隐藏工作站",
     "restoreSplitView": "显示工作站",
     "shrinkToWorkstation": "缩小聊天面板（显示工作站）",
+    "tuiModeOn": "TUI 模式（点击关闭）",
+    "tuiModeOff": "启用 TUI 模式",
+    "tabs": {
+      "newTerminal": "新终端",
+      "newTab": "新标签页",
+      "terminals": "终端"
+    },
     "collapseAll": "全部折叠",
     "copyEventJson": "复制事件 JSON",
     "copyEventJsonCopied": "复制！",
@@ -969,7 +976,8 @@
         "byMe": "由我创建",
         "mentioned": "提及我"
       }
-    }
+    },
+    "readOnly": "只读"
   },
   "chatStatus": {
     "approved": "已批准",
@@ -1230,6 +1238,9 @@
     "askUserSkipped": "跳过",
     "askUserQuestionsAnswered": "回答问题",
     "askUserQuestionsSkipped": "跳过问题",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "正在终止进程",
     "killProcessDone": "终止进程",
     "killProcessFailed": "终止进程失败",

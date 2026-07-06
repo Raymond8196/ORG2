@@ -95,15 +95,17 @@ export const gitCreateBranchFromCommit = defineZodAction(
     }
 
     if (checkout) {
-      const checkoutResult =
-        await GitOperationsService.checkoutWithDialog(branchName);
+      const checkoutResult = await GitOperationsService.checkoutWithDialog(
+        branchName,
+        false
+      );
       if (!checkoutResult.success) {
         return {
           success: false,
           message:
             checkoutResult.message ||
-            `Branch "${branchName}" created but checkout failed`,
-          data: { branchName, commitSha, checkout: false },
+            `Created branch ${branchName}, but checkout was blocked`,
+          data: { branchName, commitSha, checkout, branchCreated: true },
         };
       }
     }

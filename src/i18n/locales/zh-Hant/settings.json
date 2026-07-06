@@ -63,7 +63,8 @@
       "connections": "連接",
       "git": "Git",
       "databases": "數據庫",
-      "externalSkillsets": "Skills、MCPs、Plugins"
+      "externalSkillsets": "Skills、MCPs、Plugins",
+      "housekeeper": "常駐管家"
     }
   },
   "myRoles": {
@@ -792,8 +793,6 @@
     "breakdownFileCache": "後端檔案快取",
     "resourceUsage": "資源使用",
     "performanceMonitor": "性能監控",
-    "cpu": "CPU",
-    "perCoreUsage": "單核使用率",
     "memory": "RAM",
     "backendRss": "Backend RSS 總量",
     "attributionHintsGroup": "歸因線索",
@@ -886,13 +885,6 @@
     "diskCategory_extensions": "擴展",
     "diskNotScanned": "尚未掃描",
     "diskScanning": "掃描中...",
-    "ramHistory": "RAM 歷史",
-    "ramHistoryDesc": "最近 30 分鐘內存使用情況",
-    "ramCurrent": "當前",
-    "ramMin": "最小",
-    "ramMax": "最大",
-    "ramAvg": "平均",
-    "collectingData": "正在收集數據…",
     "tableDetail": "Detail",
     "httpVersion": "HTTP 版本",
     "httpVersionDesc": "LLM 連接與請求的 HTTP 協議",

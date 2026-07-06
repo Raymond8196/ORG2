@@ -47,6 +47,7 @@ import { replayModeAtom } from "@src/engines/SessionCore";
 import { derivedSnapshotAtom } from "@src/engines/SessionCore/core/atoms/events";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { derivePlanApprovalViewState } from "@src/engines/SessionCore/derived/planDisplayEvents";
+import { useTodoSync } from "@src/engines/SessionCore/hooks/session/useTodoSync";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
 import { useFileReviewSync } from "@src/hooks/fileReview";
 import { createLogger } from "@src/hooks/logger";
@@ -246,8 +247,12 @@ const ChatView: React.FC<ChatViewProps> = memo(
       []
     );
 
+    const isCursorIde = isCursorIdeSession(sessionId);
+    const isExternalHistory = isExternalHistorySession(sessionId);
+    const isReadOnlySurface = readOnly || isExternalHistory;
+
     useEffect(() => {
-      if (readOnly) return;
+      if (isReadOnlySurface) return;
       setActiveSessionId(sessionId);
 
       // Secondary surfaces (e.g. kanban detail panel) must release the
@@ -265,13 +270,10 @@ const ChatView: React.FC<ChatViewProps> = memo(
           setActiveSessionId(null);
         }
       };
-    }, [sessionId, setActiveSessionId, readOnly, secondary, store]);
+    }, [sessionId, setActiveSessionId, isReadOnlySurface, secondary, store]);
 
-    useFileReviewSync(sessionId, !readOnly && !secondary);
-
-    const isCursorIde = isCursorIdeSession(sessionId);
-    const isExternalHistory = isExternalHistorySession(sessionId);
-    const isReadOnlySurface = readOnly || isExternalHistory;
+    useTodoSync(isReadOnlySurface ? undefined : sessionId);
+    useFileReviewSync(sessionId, !isReadOnlySurface && !secondary);
     const currentSession = useAtomValue(sessionByIdAtom(sessionId));
     const [orgtrackSummary, setOrgtrackSummary] =
       useState<CoreSessionSummary | null>(null);
@@ -324,11 +326,8 @@ const ChatView: React.FC<ChatViewProps> = memo(
       enabled: !isReadOnlySurface && !secondary && !isCursorIde && isLiveStatus,
     });
 
-    // Cursor IDE sessions used to swap the composer for a read-only
-    // banner; they're now writable through the regular `InputArea`
-    // (the model pill swaps to a Cursor-aware variant inside that
-    // component, and `cursorIdeAdapter.sendMessage` runs the probe
-    // dispatch).
+    // Cursor IDE history rows use the regular external-history read-only
+    // rendering path; source-specific fork composers are handled below.
 
     const showInteractArea = useShowInteractArea();
     const showExternalHistoryForkComposer =

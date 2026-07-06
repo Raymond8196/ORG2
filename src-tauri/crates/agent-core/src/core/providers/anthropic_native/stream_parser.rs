@@ -31,6 +31,12 @@ const ANTHROPIC_STOP_TOOL_USE: &str = "tool_use";
 // never fires and a mid-thought cut is treated as a normal completion,
 // ending the turn (and flushing any queued messages) prematurely.
 const ANTHROPIC_STOP_MAX_TOKENS: &str = "max_tokens";
+// Response was truncated because it hit the model's context window — the
+// same "cut off mid-thought" situation as `max_tokens`, so it maps to
+// `finish::LENGTH` and rides the same truncation recovery. Without this
+// mapping the unknown reason falls through verbatim and the turn ends as
+// if the model finished normally, silently losing the tail of the work.
+const ANTHROPIC_STOP_CONTEXT_WINDOW_EXCEEDED: &str = "model_context_window_exceeded";
 // Model declined to respond (content-safety / refusal stop). Anthropic
 // returns an empty content body with this reason. Map to the unified
 // `finish::CONTENT_FILTER` value so the turn executor's empty-response
@@ -69,6 +75,11 @@ pub(super) struct StreamState {
     pub block_accumulators: HashMap<usize, BlockAcc>,
     pub finish_reason: String,
     pub stream_error_kind: Option<StreamErrorKind>,
+    /// Retry floor parsed from an SSE error frame (`retry_after` /
+    /// `retry_after_ms`), surfaced on `LLMResponse.retry_after_ms` so the
+    /// in-stream retry loop waits the server-requested delay instead of
+    /// its generic exponential schedule.
+    pub retry_after_ms: Option<u64>,
     pub usage: HashMap<String, i64>,
     pub unknown_frame_count: usize,
 }
@@ -81,6 +92,7 @@ impl Default for StreamState {
             block_accumulators: HashMap::new(),
             finish_reason: finish::STOP.to_string(),
             stream_error_kind: None,
+            retry_after_ms: None,
             usage: HashMap::new(),
             unknown_frame_count: 0,
         }
@@ -144,6 +156,7 @@ pub(super) fn handle_event(
                     ANTHROPIC_STOP_END_TURN => finish::STOP.to_string(),
                     ANTHROPIC_STOP_TOOL_USE => finish::TOOL_CALLS.to_string(),
                     ANTHROPIC_STOP_MAX_TOKENS => finish::LENGTH.to_string(),
+                    ANTHROPIC_STOP_CONTEXT_WINDOW_EXCEEDED => finish::LENGTH.to_string(),
                     ANTHROPIC_STOP_REFUSAL => finish::CONTENT_FILTER.to_string(),
                     other => other.to_string(),
                 };
@@ -326,6 +339,31 @@ fn bounded_value_sample(value: &Value) -> String {
     crate::utils::safe_truncate_chars_to_string(&value.to_string(), 500)
 }
 
+/// Parse a server-supplied retry hint from an SSE error frame's JSON.
+///
+/// Accepts `retry_after_ms` (already milliseconds) or `retry_after`
+/// (seconds), as a number or numeric string — the same field set the
+/// openai_compat parser honors. Returns milliseconds.
+fn parse_error_retry_after_ms(error: &Value) -> Option<u64> {
+    fn as_ms(value: &Value, scale: f64) -> Option<u64> {
+        let num = value
+            .as_f64()
+            .or_else(|| value.as_str()?.trim().parse::<f64>().ok())?;
+        (num.is_finite() && num > 0.0).then_some((num * scale) as u64)
+    }
+    for key in ["retry_after_ms", "retryAfterMs"] {
+        if let Some(ms) = error.get(key).and_then(|value| as_ms(value, 1.0)) {
+            return Some(ms);
+        }
+    }
+    for key in ["retry_after", "retryAfter"] {
+        if let Some(ms) = error.get(key).and_then(|value| as_ms(value, 1000.0)) {
+            return Some(ms);
+        }
+    }
+    None
+}
+
 fn handle_error_event(
     state: &mut StreamState,
     error: &Value,
@@ -336,9 +374,10 @@ fn handle_error_event(
         .and_then(|m| m.as_str())
         .unwrap_or("Unknown streaming error");
     let error_type = error.get("type").and_then(|t| t.as_str()).unwrap_or("");
+    let retry_after_ms = parse_error_retry_after_ms(error);
     warn!(
-        "Anthropic stream error event (model={}, type={}): {}",
-        resolved_model, error_type, msg
+        "Anthropic stream error event (model={}, type={}, retry_after_ms={:?}): {}",
+        resolved_model, error_type, retry_after_ms, msg
     );
 
     let lower_msg = msg.to_lowercase();
@@ -359,22 +398,24 @@ fn handle_error_event(
         } else {
             StreamErrorKind::ProviderError
         };
+        state.retry_after_ms = retry_after_ms;
         state.mark_stream_error(kind);
         return EventOutcome::StreamDone;
     }
 
     // No partial output: surface a typed error so the retry/cooldown layer
     // can branch on the exact class.
+    let retry_after_secs = retry_after_ms.map(|ms| ms.div_ceil(1000));
     if is_rate_limited {
         return EventOutcome::HardError(ProviderError::RateLimited {
             message: msg.to_string(),
-            retry_after_secs: None,
+            retry_after_secs,
         });
     }
     if is_overloaded {
         return EventOutcome::HardError(ProviderError::Overloaded {
             message: msg.to_string(),
-            retry_after_secs: None,
+            retry_after_secs,
         });
     }
     EventOutcome::HardError(ProviderError::RequestFailed(msg.to_string()))
@@ -491,6 +532,55 @@ mod error_event_tests {
         }
     }
 
+    #[test]
+    fn error_frame_retry_after_populates_typed_error() {
+        let mut state = StreamState::default();
+        let err =
+            json!({ "type": "rate_limit_error", "message": "Rate limited", "retry_after": 30 });
+        match handle_error_event(&mut state, &err, "claude-opus-4-8") {
+            EventOutcome::HardError(ProviderError::RateLimited {
+                retry_after_secs, ..
+            }) => assert_eq!(retry_after_secs, Some(30)),
+            other => panic!("expected RateLimited, got {:?}", debug_outcome(&other)),
+        }
+
+        let mut state = StreamState::default();
+        let err =
+            json!({ "type": "overloaded_error", "message": "Overloaded", "retry_after_ms": 4500 });
+        match handle_error_event(&mut state, &err, "claude-opus-4-8") {
+            EventOutcome::HardError(ProviderError::Overloaded {
+                retry_after_secs, ..
+            }) => assert_eq!(retry_after_secs, Some(5)),
+            other => panic!("expected Overloaded, got {:?}", debug_outcome(&other)),
+        }
+    }
+
+    #[test]
+    fn error_frame_retry_after_with_partial_lands_on_stream_state() {
+        let mut state = StreamState::default();
+        state.accumulated_content.push_str("partial answer");
+        let err =
+            json!({ "type": "overloaded_error", "message": "Overloaded", "retry_after": "12" });
+        match handle_error_event(&mut state, &err, "claude-opus-4-8") {
+            EventOutcome::StreamDone => {
+                assert_eq!(state.retry_after_ms, Some(12_000));
+            }
+            other => panic!("expected StreamDone, got {:?}", debug_outcome(&other)),
+        }
+    }
+
+    #[test]
+    fn error_frame_without_retry_hint_has_none() {
+        let mut state = StreamState::default();
+        let err = json!({ "type": "rate_limit_error", "message": "Rate limited" });
+        match handle_error_event(&mut state, &err, "claude-opus-4-8") {
+            EventOutcome::HardError(ProviderError::RateLimited {
+                retry_after_secs, ..
+            }) => assert_eq!(retry_after_secs, None),
+            other => panic!("expected RateLimited, got {:?}", debug_outcome(&other)),
+        }
+    }
+
     fn debug_outcome(outcome: &EventOutcome) -> &'static str {
         match outcome {
             EventOutcome::Continue => "Continue",
@@ -509,6 +599,18 @@ mod error_event_tests {
         };
         let _ = handle_event(event, &mut state, &noop, "claude-opus-4-8");
         assert_eq!(state.finish_reason, finish::CONTENT_FILTER);
+    }
+
+    #[test]
+    fn context_window_exceeded_stop_reason_maps_to_length() {
+        let mut state = StreamState::default();
+        let noop = |_: StreamDelta| {};
+        let event = StreamEvent::MessageDelta {
+            delta: json!({ "stop_reason": "model_context_window_exceeded" }),
+            usage: None,
+        };
+        let _ = handle_event(event, &mut state, &noop, "claude-opus-4-8");
+        assert_eq!(state.finish_reason, finish::LENGTH);
     }
 
     #[test]

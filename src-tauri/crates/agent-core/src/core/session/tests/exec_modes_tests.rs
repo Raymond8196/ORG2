@@ -217,10 +217,11 @@ fn plan_suffix_instructs_llm_to_call_create_plan_as_submission() {
     );
 }
 
-/// Plan mode is top-level only: subagents spawned from Plan mode run in Build.
-/// The prompt should steer the LLM toward `builtin:explore` for subagent
-/// research instead of letting it try to delegate plan authoring, matching
-/// the hardcoded `Build` mode in `AgentTool::execute`.
+/// Plan mode is top-level only: subagents cannot author plans, and workers
+/// spawned by a Plan-mode parent inherit its read-only policy overlay
+/// (`AgentTool::overlay_parent_exec_mode`). The prompt should steer the LLM
+/// toward `builtin:explore` for subagent research instead of letting it try
+/// to delegate plan authoring.
 #[test]
 fn plan_suffix_for_pending_feedback_requires_create_plan_before_search() {
     let suffix = AgentExecMode::Plan.system_prompt_suffix();
@@ -243,19 +244,60 @@ fn plan_suffix_for_pending_feedback_requires_create_plan_before_search() {
 }
 
 #[test]
-fn plan_suffix_tells_llm_subagents_run_in_build() {
+fn plan_suffix_tells_llm_subagents_inherit_read_only_restrictions() {
     let suffix = AgentExecMode::Plan.system_prompt_suffix();
     assert!(
         suffix.contains("subagent") || suffix.contains("subagents"),
         "Plan prompt must mention subagents at least once"
     );
     assert!(
-        suffix.contains("Build mode") || suffix.contains("run in Build"),
-        "Plan prompt must clarify subagents always run in Build mode"
+        suffix.contains("inherits your read-only restrictions"),
+        "Plan prompt must clarify subagents inherit the Plan-mode read-only overlay"
+    );
+    assert!(
+        !suffix.contains("run in Build mode"),
+        "Plan prompt must not claim workers escape into Build mode — the \
+         parent's exec-mode overlay now follows into worker policies"
     );
     assert!(
         suffix.contains("builtin:explore"),
         "Plan prompt must recommend builtin:explore for read-only subagent research"
+    );
+}
+
+// -- read-only modes gate the MCP namespace --
+//
+// MCP bridge tools (`mcp__{server}__{tool}`) expose no per-tool read-only
+// hint, so every read-only mode must deny the whole namespace via the
+// `mcp__*` suffix glob — otherwise a side-effecting MCP tool (create
+// issue, send message) executes ungated while the mode promises
+// "you do NOT implement in this mode".
+
+#[test]
+fn read_only_modes_deny_mcp_namespace() {
+    use crate::tools::policy::ResolvedToolPolicy;
+
+    for mode in [
+        AgentExecMode::Plan,
+        AgentExecMode::Ask,
+        AgentExecMode::Debug,
+        AgentExecMode::Review,
+    ] {
+        let policy = ResolvedToolPolicy::permissive().with_exec_mode(mode);
+        assert!(
+            !policy.is_allowed("mcp__linear__create_issue"),
+            "{mode:?} must deny MCP tools (no read-only hint => side-effecting)"
+        );
+        assert!(
+            policy.is_allowed("read_file"),
+            "{mode:?} must keep builtin read tools"
+        );
+    }
+
+    let build = ResolvedToolPolicy::permissive().with_exec_mode(AgentExecMode::Build);
+    assert!(
+        build.is_allowed("mcp__linear__create_issue"),
+        "Build must not gate MCP tools"
     );
 }
 

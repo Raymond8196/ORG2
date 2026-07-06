@@ -1,4 +1,4 @@
-import { cursorIdeTurnWindow } from "@src/api/tauri/cursorIde";
+import { cursorIdeTurnWindow } from "@src/api/tauri/externalHistory";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge";
 import { isCursorIdeSession } from "@src/util/session/sessionDispatch";

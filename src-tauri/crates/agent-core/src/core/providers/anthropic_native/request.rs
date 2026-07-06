@@ -96,6 +96,8 @@ pub(super) fn prepare_request(
         None
     };
 
+    let output_config = claude_output_config(effort.as_deref());
+
     let body = MessagesRequest {
         model: resolved_model.clone(),
         max_tokens: effective_max_tokens,
@@ -106,8 +108,8 @@ pub(super) fn prepare_request(
         temperature: effective_temp,
         stream,
         thinking,
-        effort,
-        metadata: claude_oauth_metadata(client.auth_mode),
+        output_config,
+        metadata: claude_oauth_metadata(client.auth_mode, &client.oauth_session_id),
     };
 
     PreparedRequest {
@@ -118,19 +120,56 @@ pub(super) fn prepare_request(
 }
 
 const PROMPT_CACHING_BETA: &str = "prompt-caching-2024-07-31";
+const CLAUDE_CODE_BETA: &str = "claude-code-20250219";
 const CLAUDE_OAUTH_BETA: &str = "oauth-2025-04-20";
+const INTERLEAVED_THINKING_BETA: &str = "interleaved-thinking-2025-05-14";
+const TOOL_STREAMING_BETA: &str = "fine-grained-tool-streaming-2025-05-14";
+const EFFORT_BETA: &str = "effort-2025-11-24";
 const CLAUDE_OAUTH_USER_AGENT: &str = "claude-cli/2.1.78 (orgii, cli)";
 
-fn claude_oauth_metadata(auth_mode: AnthropicAuthMode) -> Option<Value> {
+fn claude_output_config(effort: Option<&str>) -> Option<Value> {
+    effort.map(|effort| json!({ "effort": effort }))
+}
+
+/// Whether requests for `model` may carry `output_config.effort`, and thus
+/// need the effort beta. Mirrors the reference harness, which gates the beta
+/// per model instead of sending it unconditionally — third-party
+/// Anthropic-protocol gateways and non-effort models must not see it.
+fn model_uses_effort_beta(model: &str, provider_name: &str) -> bool {
+    use crate::providers::thinking_mode::{
+        parse_model_variant, resolve_thinking_mode, ThinkingMode,
+    };
+    let parsed = parse_model_variant(model);
+    matches!(
+        resolve_thinking_mode(&parsed.base_model, provider_name),
+        ThinkingMode::AnthropicAdaptive | ThinkingMode::Anthropic46
+    )
+}
+
+/// Join a base beta list with the optional effort beta.
+fn beta_header_value(base: &[&str], effort: bool) -> String {
+    let mut parts: Vec<&str> = base.to_vec();
+    if effort {
+        parts.push(EFFORT_BETA);
+    }
+    parts.join(",")
+}
+
+/// Process-stable device id: the reference harness sends one device id per
+/// install; a fresh random id on every request is an abuse-heuristic anomaly.
+fn stable_device_id() -> &'static str {
+    static DEVICE_ID: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    DEVICE_ID.get_or_init(|| uuid::Uuid::new_v4().simple().to_string().repeat(2))
+}
+
+fn claude_oauth_metadata(auth_mode: AnthropicAuthMode, session_id: &str) -> Option<Value> {
     if auth_mode != AnthropicAuthMode::ClaudeOauth {
         return None;
     }
 
-    let device_id = uuid::Uuid::new_v4().simple().to_string().repeat(2);
-    let session_id = uuid::Uuid::new_v4().to_string();
     Some(json!({
         "user_id": json!({
-            "device_id": device_id,
+            "device_id": stable_device_id(),
             "account_uuid": "",
             "session_id": session_id,
         })
@@ -165,31 +204,67 @@ fn claude_oauth_system(system: Option<Value>, auth_mode: AnthropicAuthMode) -> O
 /// beta/header sets.
 pub(super) fn apply_headers(
     client: &AnthropicClient,
+    resolved_model: &str,
     builder: reqwest::RequestBuilder,
 ) -> reqwest::RequestBuilder {
     let mut req = builder
         .header("anthropic-version", "2023-06-01")
         .header("Content-Type", "application/json");
 
+    // `extra_headers` (applied below) may carry a caller-supplied
+    // `anthropic-beta`; never emit our own alongside it — reqwest appends
+    // rather than replaces, and a duplicated beta header breaks requests.
+    let beta_overridden = client.config.extra_headers.contains_key("anthropic-beta");
+    let effort = model_uses_effort_beta(resolved_model, client.provider_spec.name);
+
     req = match client.auth_mode {
-        AnthropicAuthMode::ApiKey => req
-            .header("x-api-key", &client.config.api_key)
-            .header("anthropic-beta", PROMPT_CACHING_BETA),
-        AnthropicAuthMode::AzureBearer => req
-            .header(
+        AnthropicAuthMode::ApiKey => {
+            let mut req = req.header("x-api-key", &client.config.api_key);
+            if !beta_overridden {
+                req = req.header(
+                    "anthropic-beta",
+                    beta_header_value(&[PROMPT_CACHING_BETA], effort),
+                );
+            }
+            req
+        }
+        AnthropicAuthMode::AzureBearer => {
+            let mut req = req.header(
                 "Authorization",
                 format!("Bearer {}", &client.config.api_key),
-            )
-            .header("anthropic-beta", PROMPT_CACHING_BETA),
+            );
+            if !beta_overridden {
+                req = req.header(
+                    "anthropic-beta",
+                    beta_header_value(&[PROMPT_CACHING_BETA], effort),
+                );
+            }
+            req
+        }
         AnthropicAuthMode::ClaudeOauth => {
             let token = client
                 .current_access_token()
                 .unwrap_or_else(|_| client.config.api_key.clone());
-            req.header("Authorization", format!("Bearer {}", token))
-                .header("anthropic-beta", CLAUDE_OAUTH_BETA)
+            let mut req = req
+                .header("Authorization", format!("Bearer {}", token))
                 .header("accept-encoding", "identity")
                 .header("User-Agent", CLAUDE_OAUTH_USER_AGENT)
-                .header("x-app", "cli")
+                .header("x-app", "cli");
+            if !beta_overridden {
+                req = req.header(
+                    "anthropic-beta",
+                    beta_header_value(
+                        &[
+                            CLAUDE_CODE_BETA,
+                            CLAUDE_OAUTH_BETA,
+                            INTERLEAVED_THINKING_BETA,
+                            TOOL_STREAMING_BETA,
+                        ],
+                        effort,
+                    ),
+                );
+            }
+            req
         }
     };
 
@@ -205,7 +280,8 @@ mod tests {
 
     #[test]
     fn claude_oauth_metadata_matches_claude_code_shape() {
-        let metadata = claude_oauth_metadata(AnthropicAuthMode::ClaudeOauth)
+        let session_id = uuid::Uuid::new_v4().to_string();
+        let metadata = claude_oauth_metadata(AnthropicAuthMode::ClaudeOauth, &session_id)
             .expect("Claude OAuth requests include metadata");
         let user_id = metadata["user_id"]
             .as_str()
@@ -214,12 +290,21 @@ mod tests {
 
         assert_eq!(parsed["device_id"].as_str().unwrap().len(), 64);
         assert_eq!(parsed["account_uuid"], "");
-        assert!(uuid::Uuid::parse_str(parsed["session_id"].as_str().unwrap()).is_ok());
+        assert_eq!(parsed["session_id"].as_str().unwrap(), session_id);
+    }
+
+    #[test]
+    fn claude_oauth_metadata_ids_are_stable_across_requests() {
+        let first = claude_oauth_metadata(AnthropicAuthMode::ClaudeOauth, "sess-1").unwrap();
+        let second = claude_oauth_metadata(AnthropicAuthMode::ClaudeOauth, "sess-1").unwrap();
+        // Same session + same install → byte-identical metadata (the
+        // reference harness fingerprint is stable, not per-request random).
+        assert_eq!(first, second);
     }
 
     #[test]
     fn api_key_requests_do_not_include_claude_oauth_metadata() {
-        assert!(claude_oauth_metadata(AnthropicAuthMode::ApiKey).is_none());
+        assert!(claude_oauth_metadata(AnthropicAuthMode::ApiKey, "sess-1").is_none());
     }
 
     #[test]
@@ -252,6 +337,61 @@ mod tests {
         let system = claude_oauth_system(Some(original.clone()), AnthropicAuthMode::ApiKey);
 
         assert_eq!(system, Some(original));
+    }
+
+    #[test]
+    fn claude_output_config_nests_effort_for_messages_api() {
+        assert_eq!(
+            claude_output_config(Some("high")),
+            Some(json!({ "effort": "high" }))
+        );
+        assert_eq!(claude_output_config(None), None);
+    }
+
+    #[test]
+    fn effort_beta_is_gated_per_model() {
+        assert!(model_uses_effort_beta("claude-opus-4-8", "anthropic"));
+        assert!(model_uses_effort_beta("claude-fable-5", "anthropic"));
+        assert!(model_uses_effort_beta("claude-sonnet-4-6", "anthropic"));
+        assert!(!model_uses_effort_beta("claude-haiku-4-5", "anthropic"));
+        assert!(!model_uses_effort_beta("claude-sonnet-5", "anthropic"));
+        assert!(!model_uses_effort_beta("gpt-5.4", "openai"));
+    }
+
+    #[test]
+    fn beta_header_value_appends_effort_only_when_enabled() {
+        assert_eq!(
+            beta_header_value(&[PROMPT_CACHING_BETA], false),
+            PROMPT_CACHING_BETA
+        );
+        assert_eq!(
+            beta_header_value(&[PROMPT_CACHING_BETA], true),
+            format!("{PROMPT_CACHING_BETA},{EFFORT_BETA}")
+        );
+    }
+
+    /// `key_vault::model_supports_output_config_effort` (drives which effort
+    /// ladders the UI synthesizes) must agree with the wire-level effort gate
+    /// here, or the UI offers ladders the provider will not honor. Update
+    /// `key_vault`'s list and `thinking_mode`'s classification together.
+    #[test]
+    fn effort_capability_stays_in_lockstep_with_key_vault() {
+        for model in [
+            "claude-fable-5",
+            "claude-opus-4-8",
+            "claude-opus-4-7",
+            "claude-opus-4-6",
+            "claude-sonnet-4-6",
+            "claude-sonnet-5",
+            "claude-haiku-4-5",
+            "claude-opus-4-5",
+        ] {
+            assert_eq!(
+                key_vault::commands::model_supports_output_config_effort(model),
+                model_uses_effort_beta(model, "anthropic"),
+                "effort capability drift for {model}"
+            );
+        }
     }
 
     #[test]

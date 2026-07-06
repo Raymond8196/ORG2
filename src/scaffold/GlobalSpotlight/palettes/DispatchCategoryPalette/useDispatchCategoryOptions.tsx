@@ -33,6 +33,10 @@ import {
 } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import type { OrgMember } from "@src/modules/MainApp/AgentOrgs/types";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
+import {
+  cliAgentVisibilityOverridesAtom,
+  isCliAgentEnabled,
+} from "@src/store/session";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 import { SESSION_TARGET_KIND } from "@src/store/session/creatorStateAtom";
 import { invokeTauri } from "@src/util/platform/tauri/init";
@@ -65,6 +69,8 @@ export interface DispatchCategoryOptionGroup {
 export interface UseDispatchCategoryOptionsArgs {
   isOpen: boolean;
   hideOrgs: boolean;
+  /** When true, only CLI agent entries are included (Rust-native agents and orgs are hidden). */
+  cliOnly?: boolean;
   currentCategory: DispatchCategory;
   currentAgentDefinitionId?: string;
   currentAgentOrgId?: string;
@@ -133,6 +139,7 @@ export function useDispatchCategoryOptions(
   const {
     isOpen,
     hideOrgs,
+    cliOnly = false,
     currentCategory,
     currentAgentDefinitionId,
     currentAgentOrgId,
@@ -144,6 +151,7 @@ export function useDispatchCategoryOptions(
   const { t } = useTranslation("sessions");
   const [allOrgs, setAllOrgs] = useState<OrgMember[]>([]);
   const { agents: cliAgentList } = useCliAgents({ enabled: isOpen });
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
   const { accounts } = useKeyVault({ autoLoad: true });
   const { registry } = useAgentCompatibility();
   const setAgentRegistry = useSetAtom(agentRegistryAtom);
@@ -188,8 +196,13 @@ export function useDispatchCategoryOptions(
   }, [isOpen, hideOrgs, setAgentRegistry]);
 
   const installedCliAgents = useMemo(
-    () => cliAgentList.filter((agent) => agent.installed),
-    [cliAgentList]
+    () =>
+      cliAgentList.filter(
+        (agent) =>
+          agent.installed &&
+          isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
   );
 
   useEffect(() => {
@@ -314,14 +327,18 @@ export function useDispatchCategoryOptions(
   }, []);
 
   const allOptions = useMemo(
-    () => [
-      ...builtInRustOptions,
-      ...cliOptions,
-      ...externalIdeOptions,
-      ...customAgentOptions,
-      ...(hideOrgs ? [] : orgOptions),
-    ],
+    () =>
+      cliOnly
+        ? [...cliOptions]
+        : [
+            ...builtInRustOptions,
+            ...cliOptions,
+            ...externalIdeOptions,
+            ...customAgentOptions,
+            ...(hideOrgs ? [] : orgOptions),
+          ],
     [
+      cliOnly,
       builtInRustOptions,
       cliOptions,
       externalIdeOptions,
@@ -341,19 +358,28 @@ export function useDispatchCategoryOptions(
       if (options.length === 0) return;
       result.push({ headerId, headerLabel, options });
     };
-    push("__header_builtin__", t("creator.builtInAgents"), builtInRustOptions);
+    if (!cliOnly) {
+      push(
+        "__header_builtin__",
+        t("creator.builtInAgents"),
+        builtInRustOptions
+      );
+    }
     push("__header_cli__", t("creator.cliAgents"), cliOptions);
-    push(
-      "__header_external_ide__",
-      t("creator.externalIdes"),
-      externalIdeOptions
-    );
-    push("__header_custom__", t("creator.customAgents"), customAgentOptions);
-    if (!hideOrgs) {
-      push("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+    if (!cliOnly) {
+      push(
+        "__header_external_ide__",
+        t("creator.externalIdes"),
+        externalIdeOptions
+      );
+      push("__header_custom__", t("creator.customAgents"), customAgentOptions);
+      if (!hideOrgs) {
+        push("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+      }
     }
     return result;
   }, [
+    cliOnly,
     builtInRustOptions,
     cliOptions,
     externalIdeOptions,

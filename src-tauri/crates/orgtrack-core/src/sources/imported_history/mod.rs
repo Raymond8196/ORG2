@@ -38,12 +38,14 @@ pub struct ImportedHistorySessionRow {
     pub background: bool,
     pub is_active: bool,
     pub repo_path: Option<String>,
+    pub storage_path: Option<String>,
     pub repo_name: Option<String>,
     pub branch: Option<String>,
     pub files_changed: i64,
     pub lines_added: i64,
     pub lines_removed: i64,
     pub touched_files: Vec<String>,
+    pub parent_session_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -71,11 +73,13 @@ pub struct ImportedHistoryRowInput {
     pub input_tokens: i64,
     pub output_tokens: i64,
     pub repo_path: Option<String>,
+    pub storage_path: Option<String>,
     pub branch: Option<String>,
     pub files_changed: i64,
     pub lines_added: i64,
     pub lines_removed: i64,
     pub touched_files: Vec<String>,
+    pub parent_session_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -122,12 +126,14 @@ pub fn row_from_input(input: ImportedHistoryRowInput) -> ImportedHistorySessionR
         background: false,
         is_active: false,
         repo_path: input.repo_path,
+        storage_path: input.storage_path,
         repo_name,
         branch: input.branch,
         files_changed: input.files_changed,
         lines_added: input.lines_added,
         lines_removed: input.lines_removed,
         touched_files: input.touched_files,
+        parent_session_id: input.parent_session_id,
     }
 }
 

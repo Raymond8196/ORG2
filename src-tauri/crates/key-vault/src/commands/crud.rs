@@ -246,6 +246,157 @@ fn is_cursor_web_session_token(token: &str) -> bool {
     value.get("type").and_then(|value| value.as_str()) == Some("web")
 }
 
+/// Whether the account talks to an official Anthropic endpoint. A configured
+/// `base_url` means the traffic goes through a third-party relay/mirror whose
+/// gateway may reject `output_config`/effort — those accounts must behave
+/// exactly as before this feature.
+fn is_official_anthropic_endpoint(base_url: Option<&str>) -> bool {
+    match base_url.map(str::trim) {
+        None | Some("") => true,
+        Some(url) => url.starts_with("https://api.anthropic.com"),
+    }
+}
+
+fn account_uses_anthropic_native_messages(entry: &ModelKey) -> bool {
+    match entry.model_type {
+        // Azure-hosted Anthropic gateway: the Azure base URL is mandatory and
+        // first-party, not a relay.
+        ModelType::AzureAnthropicApi => true,
+        ModelType::AnthropicApi => is_official_anthropic_endpoint(entry.base_url.as_deref()),
+        ModelType::ClaudeCode => {
+            entry.auth_method == AuthMethod::Oauth
+                && has_non_empty_secret(&entry.session_token)
+                && is_official_anthropic_endpoint(entry.base_url.as_deref())
+        }
+        // Third-party providers that merely speak the Anthropic protocol
+        // (relays, Anthropic-compatible vendors) never get synthesized effort
+        // variants — effort support is only guaranteed on official endpoints.
+        _ => false,
+    }
+}
+
+/// Claude models whose Messages requests carry `output_config.effort`.
+///
+/// MODEL LAUNCH: keep in lockstep with `agent_core`'s thinking-mode
+/// classification (`resolve_thinking_mode`: `AnthropicAdaptive` = opus 4.7+ /
+/// fable 5+, `Anthropic46` = opus/sonnet 4.6; haiku and sonnet 5 are
+/// excluded). `agent_core` has a cross-crate test asserting the two stay in
+/// sync — update both together.
+pub fn model_supports_output_config_effort(model: &str) -> bool {
+    let lower = model.to_lowercase();
+    if !lower.starts_with("claude-") || lower.contains("haiku") {
+        return false;
+    }
+    lower.contains("fable-5")
+        || lower.contains("opus-4-8")
+        || lower.contains("opus-4-7")
+        || lower.contains("opus-4-6")
+        || lower.contains("sonnet-4-6")
+}
+
+/// Per the reference harness, `max` effort is rejected by sonnet-4-6 (Opus
+/// 4.6 is the only 4.6-generation model that accepts it). Adaptive-generation
+/// models keep the rung — their `max` maps to the top adaptive effort value.
+fn model_supports_max_effort(model: &str) -> bool {
+    !model.to_lowercase().contains("sonnet-4-6")
+}
+
+/// A "real" selectable effort rung, as opposed to a bare record row
+/// (`model == base_model` with no recognized reasoning level) produced by the
+/// context-window / observed-reasoning writebacks in `key_store::service`.
+fn is_actionable_variant(variant: &ModelVariant) -> bool {
+    variant.model != variant.base_model
+        || variant.fast
+        || matches!(
+            variant.reasoning.as_deref(),
+            Some("baseline" | "low" | "medium" | "high" | "extra_high" | "xhigh" | "max")
+        )
+}
+
+fn effort_variants_for_base_model(
+    base_model: &str,
+    context_window: Option<u64>,
+) -> Vec<ModelVariantInfo> {
+    // Reference-aligned ladder: low/medium/high/max plus the bare baseline.
+    // No separate `xhigh` rung — it is wire-identical to `max` on every
+    // family (adaptive maps both to `xhigh`, 4.6 maps both to `max`).
+    let mut rungs = vec![
+        ("", "baseline"),
+        ("low", "low"),
+        ("medium", "medium"),
+        ("high", "high"),
+    ];
+    if model_supports_max_effort(base_model) {
+        rungs.push(("max", "max"));
+    }
+    rungs
+        .into_iter()
+        .map(|(suffix, reasoning)| ModelVariantInfo {
+            model: if suffix.is_empty() {
+                base_model.to_string()
+            } else {
+                format!("{base_model}-{suffix}")
+            },
+            base_model: base_model.to_string(),
+            reasoning: Some(reasoning.to_string()),
+            fast: false,
+            context_window,
+        })
+        .collect()
+}
+
+fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
+    // Every stored variant passes through untouched, for every account type:
+    // bare record rows (`model == base_model`) carry provider-reported
+    // context windows that the frontend context-usage display reads.
+    let mut out: Vec<ModelVariantInfo> = entry
+        .model_variants
+        .iter()
+        .map(|variant| ModelVariantInfo {
+            model: variant.model.clone(),
+            base_model: variant.base_model.clone(),
+            reasoning: variant.reasoning.clone(),
+            fast: variant.fast,
+            context_window: variant.context_window.filter(|ctx| *ctx > 0),
+        })
+        .collect();
+
+    if !account_uses_anthropic_native_messages(entry) {
+        return out;
+    }
+
+    for model in entry
+        .available_models
+        .iter()
+        .filter(|model| model_supports_output_config_effort(model))
+    {
+        // A real effort ladder already exists (user- or sync-created) —
+        // don't synthesize a duplicate. Bare record rows don't count.
+        if entry
+            .model_variants
+            .iter()
+            .any(|variant| variant.base_model == *model && is_actionable_variant(variant))
+        {
+            continue;
+        }
+        let context_window = entry
+            .model_variants
+            .iter()
+            .find(|variant| variant.base_model == *model || variant.model == *model)
+            .and_then(|variant| variant.context_window)
+            .filter(|ctx| *ctx > 0);
+        for synthesized in effort_variants_for_base_model(model, context_window) {
+            // The baseline rung shares its id with a stored record row —
+            // keep the stored row (it may carry an observed context window).
+            if out.iter().any(|variant| variant.model == synthesized.model) {
+                continue;
+            }
+            out.push(synthesized);
+        }
+    }
+    out
+}
+
 impl From<ModelKey> for KeyInfo {
     fn from(entry: ModelKey) -> Self {
         let env_vars_masked: HashMap<String, String> = entry
@@ -299,17 +450,7 @@ impl From<ModelKey> for KeyInfo {
                     icon: a.icon.clone(),
                 })
                 .collect(),
-            model_variants: entry
-                .model_variants
-                .iter()
-                .map(|variant| ModelVariantInfo {
-                    model: variant.model.clone(),
-                    base_model: variant.base_model.clone(),
-                    reasoning: variant.reasoning.clone(),
-                    fast: variant.fast,
-                    context_window: variant.context_window.filter(|ctx| *ctx > 0),
-                })
-                .collect(),
+            model_variants: model_variants_for_key(&entry),
             default_variants: entry
                 .default_variants
                 .iter()

@@ -179,6 +179,8 @@
     "stop": "Stop",
     "find": "Find",
     "filter": "Filter",
+    "filterCommits": "Filter commits...",
+    "filterPullRequests": "Filter pull requests...",
     "loading": "Loading...",
     "replace": "Replace",
     "publish": "Publish",
@@ -826,6 +828,7 @@
     "selectToViewConfig": "Select a {{type}} to view or config",
     "selectToViewConfigSubtitle": "Choose an item from the list on the left",
     "noOptions": "No options",
+    "noResults": "No results",
     "noResultsSubtitle": "Try a different search term",
     "noResultsWithFilters": "Try a different search term or adjust filters",
     "noRows": "No rows",
@@ -1495,8 +1498,9 @@
       "planSupport": "Plan",
       "byokSupport": "Keys",
       "incompatible": "Incompatible",
-      "manageModels": "Add / Manage Models",
-      "manageKeys": "Add / Manage Keys"
+      "manageModels": "Manage Models",
+      "manageKeys": "Manage Keys",
+      "manageAgents": "Manage Agents"
     },
     "editorSpotlight": {
       "searchPlaceholder": "Search commands...",
@@ -2264,8 +2268,8 @@
       "noActivePage": "No active page to capture"
     },
     "selectedElement": {
-      "addElement": "Add element",
-      "sentToChat": "Element attached to chat"
+      "sentToChat": "Element attached to chat",
+      "addElement": "Add element"
     },
     "openedInBrowser": "Opened in Browser",
     "goToBrowser": "Go to Browser"

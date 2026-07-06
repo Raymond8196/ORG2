@@ -10,7 +10,8 @@ use crate::tools::names as tool_names;
 use crate::tools::traits::{params_schema, parse_params, CallContext, Tool, ToolError};
 
 use super::{
-    map_task_write_error, parse_status, task_dependencies_resolved, task_to_json, TaskToolsContext,
+    map_task_write_error, merge_task_metadata, parse_status, task_dependencies_resolved,
+    task_to_json, TaskToolsContext,
 };
 
 /// Params for `task_create`. `id` is optional — the store mints a
@@ -50,6 +51,13 @@ pub struct TaskCreateParams {
     /// Free-form metadata bag. Stored verbatim.
     #[serde(default)]
     pub metadata: Option<Value>,
+    /// Optional hard eligibility list for unassigned tasks. Only listed worker
+    /// member_ids may autonomously claim the task.
+    #[serde(default)]
+    pub eligible_member_ids: Option<Vec<String>>,
+    /// Optional human-readable role hint for display/prompt context only.
+    #[serde(default)]
+    pub required_role: Option<String>,
 }
 
 pub struct TaskCreateTool {
@@ -73,10 +81,14 @@ impl Tool for TaskCreateTool {
             "Create a task on the org run's task board. The board is shared by every ",
             "agent in this Agent Org run (coordinator + members), so any agent can ",
             "post tasks for any other member or for themselves. ",
-            "Set `owner_member_id` to `coordinator` or an exact roster member_id to assign ",
-            "the task on creation — a pending assignee will receive a `task_assigned` inbox ",
-            "row on their next turn. Leave `owner_member_id` unset to put the task into ",
-            "the unclaimed pool. `status` defaults to `pending`; `in_progress` requires ",
+            "Set `owner_member_id` to `coordinator` or an exact roster member_id for ",
+            "direct assignment — a pending assignee will receive a `task_assigned` inbox ",
+            "row on their next turn. If you leave `owner_member_id` unset, you are ",
+            "creating an ownerless claim-pool task and MUST provide `eligible_member_ids` ",
+            "with exact worker member_ids allowed to self-claim it. Ownerless tasks ",
+            "without `eligible_member_ids` are safe but will not be autonomously claimed. ",
+            "`required_role` is a human-readable hint only; it does not authorize claim ",
+            "by itself. `status` defaults to `pending`; `in_progress` requires ",
             "`owner_member_id` to equal the calling session's member_id."
         )
     }
@@ -87,7 +99,7 @@ impl Tool for TaskCreateTool {
 
     fn llm_description(&self) -> Option<String> {
         Some(format!(
-            "{}\n\nAllowed owner_member_id values for this Agent Org run: {}\nUse only `owner_member_id`; do not pass agent_id or display name as ownership.",
+            "{}\n\nAllowed owner_member_id values for this Agent Org run: {}\nUse only `owner_member_id`; do not pass agent_id or display name as ownership. For `eligible_member_ids`, use only worker member_ids from the same catalog except `coordinator`; do not use display names or agent_definition_id.",
             self.description(),
             self.ctx.owner_member_id_catalog()
         ))
@@ -163,6 +175,14 @@ impl Tool for TaskCreateTool {
             }
         }
 
+        let eligible_member_ids = params
+            .eligible_member_ids
+            .map(|member_ids| self.ctx.resolve_eligible_member_ids(member_ids))
+            .transpose()
+            .map_err(ToolError::InvalidParams)?;
+        let metadata =
+            merge_task_metadata(params.metadata, eligible_member_ids, params.required_role);
+
         let task = AgentOrgTaskStore::create(CreateTaskParams {
             id,
             org_run_id: self.ctx.org_context.run_id.clone(),
@@ -173,23 +193,27 @@ impl Tool for TaskCreateTool {
             status,
             blocks: params.blocks,
             blocked_by: params.blocked_by,
-            metadata: params.metadata,
+            metadata,
         })
         .map_err(map_task_write_error)?;
 
+        let tasks = AgentOrgTaskStore::list(&self.ctx.org_context.run_id)
+            .map_err(ToolError::ExecutionFailed)?;
         let task_assigned_dispatched = task.owner.is_some()
             && task.status == TaskStatus::Pending
-            && task_dependencies_resolved(
-                &AgentOrgTaskStore::list(&self.ctx.org_context.run_id)
-                    .map_err(ToolError::ExecutionFailed)?,
-                &task,
-            )
+            && task_dependencies_resolved(&tasks, &task)
             && self.ctx.dispatch_task_assigned(&task);
+        let claimable_wake_member_ids = if task_assigned_dispatched {
+            Vec::new()
+        } else {
+            self.ctx.wake_eligible_members_for_claimable_work(&tasks)
+        };
 
         let body = json!({
             "task": task_to_json(&task),
             "already_exists": false,
             "task_assigned_dispatched": task_assigned_dispatched,
+            "claimable_wake_member_ids": claimable_wake_member_ids,
         });
         serde_json::to_string(&body).map_err(|err| {
             ToolError::ExecutionFailed(format!("task_create: failed to serialize result: {err}"))

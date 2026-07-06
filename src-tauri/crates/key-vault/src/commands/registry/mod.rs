@@ -9,6 +9,8 @@
 mod commands;
 mod data;
 
+use data::{AcpSupport, CliConfigFormat};
+
 // Re-export Tauri commands
 pub use commands::*;
 // Re-export for crate-internal consumers (tests)
@@ -41,6 +43,17 @@ pub struct AgentEnvConfig {
     pub base_url_placeholder: Option<String>,
 }
 
+/// Documented user-editable config file for a CLI agent.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CliConfigFile {
+    pub id: String,
+    pub label: String,
+    pub path: String,
+    pub format: CliConfigFormat,
+    pub secret_bearing: bool,
+}
+
 /// Agent availability info — single source of truth for CLI agent metadata.
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -57,6 +70,7 @@ pub struct AvailableAgent {
     pub docs_url: Option<String>,
     pub has_subscription_plan: bool,
     pub compatible_api_providers: Vec<String>,
+    pub config_files: Vec<CliConfigFile>,
     pub install_methods: Vec<CliInstallMethod>,
     pub uninstall_methods: Vec<CliInstallMethod>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -73,9 +87,17 @@ pub struct AvailableAgent {
     /// Whether ORGII Rust agents (OS Agent, SDE Agent) can use this CLI's credentials.
     /// True for all CLI agents except Cursor (which uses gRPC, not OpenAI-compatible REST).
     pub supports_rust_agents: bool,
+    pub acp_support: AcpSupport,
     /// Whether this agent can use ORGII Pool (Token Market) billing.
     /// Only Rust-native agents support ORGII Pool; all CLI agents are false.
     pub supports_orgii_pool: bool,
+    /// Bare binary name used to launch the agent in a PTY shell (e.g. "claude", "gemini").
+    /// Matches the `command` field in `CLI_BINARY_METADATA` / `CliAgentEntry.binary`.
+    pub command: String,
+    /// Whether this CLI agent accepts an initial prompt from ORGII's GUI composer
+    /// (e.g. via --prompt flag or stdin injection). When false the session creator
+    /// shows a Start button instead of the text composer (pure-TUI mode).
+    pub supports_gui: bool,
 }
 
 /// API provider info — single source of truth for API key provider metadata.

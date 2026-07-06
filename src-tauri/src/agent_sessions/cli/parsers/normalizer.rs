@@ -72,7 +72,28 @@ pub fn normalize_tool_name(agent: CliAgentType, raw_name: &str) -> String {
         CliAgentType::Copilot
         | CliAgentType::Kiro
         | CliAgentType::KimiCli
-        | CliAgentType::OpenCode => return raw_name.to_string(),
+        | CliAgentType::OpenCode
+        | CliAgentType::Aider
+        | CliAgentType::Goose
+        | CliAgentType::Amp
+        | CliAgentType::Cline
+        | CliAgentType::Kilo
+        | CliAgentType::Grok
+        | CliAgentType::Devin
+        | CliAgentType::Rovo
+        | CliAgentType::Hermes
+        | CliAgentType::OpenClaw
+        | CliAgentType::Aug
+        | CliAgentType::Codebuff
+        | CliAgentType::QwenCode
+        | CliAgentType::MimoCode
+        | CliAgentType::Antigravity
+        | CliAgentType::Continue
+        | CliAgentType::Droid
+        | CliAgentType::MistralVibe
+        | CliAgentType::Autohand
+        | CliAgentType::Omp
+        | CliAgentType::Pi => return raw_name.to_string(),
     };
 
     map.get(raw_name)

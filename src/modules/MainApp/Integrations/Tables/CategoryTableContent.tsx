@@ -301,6 +301,7 @@ export const CategoryTableContent: React.FC<CategoryTableContentProps> = (
     case "tools":
     case "computerUse":
     case "myRoles":
+    case "housekeeper":
     case "devtools":
       return null;
   }

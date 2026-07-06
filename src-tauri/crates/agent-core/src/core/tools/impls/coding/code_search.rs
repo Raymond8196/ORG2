@@ -213,9 +213,9 @@ impl Tool for SearchTool {
                 },
                 "max_results": {
                     "type": "integer",
-                    "description": "Maximum results to return (default 20)",
+                    "description": "Maximum results to return (default 250)",
                     "minimum": 1,
-                    "maximum": 100
+                    "maximum": 1000
                 },
                 "repo_path": {
                     "type": "string",
@@ -251,10 +251,12 @@ impl Tool for SearchTool {
         _ctx: &crate::tools::traits::CallContext,
     ) -> Result<String, ToolError> {
         let action = required_string(&params, "action")?;
+        // Default matches the reference agent's grep head limit (250);
+        // oversized results are persisted retrievably by the executor.
         let max_results = optional_int(&params, "max_results")
             .map(|val| val as usize)
-            .unwrap_or(20)
-            .clamp(1, 100);
+            .unwrap_or(250)
+            .clamp(1, 1000);
         let repo_paths = self.resolve_repos(&params).await?;
         let explicit_repo_scope = has_explicit_repo_scope(&params);
 

@@ -1,11 +1,12 @@
 import { getVersion } from "@tauri-apps/api/app";
 
-import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/importedHistory";
+import { IMPORTED_HISTORY_SOURCE_DESCRIPTORS } from "@src/api/tauri/externalHistory";
 import {
   detectLocalModelHardware,
   getProcessMetrics,
 } from "@src/api/tauri/perf/metrics";
 import type { LocalModelHardwareSummary } from "@src/api/tauri/perf/types";
+import { sessionAggregateList } from "@src/api/tauri/session";
 import { listRecentWorkspaces } from "@src/services/workspace/WorkspaceService";
 import type { Session } from "@src/store/session/sessionAtom";
 import type { WorkspaceFolder } from "@src/types/workspace";
@@ -253,12 +254,14 @@ async function collectExternalToolUsage(
   periodStartMs: number,
   periodEndMs: number
 ): Promise<DiagnosticsExternalToolUsageEntry[]> {
-  const entries: DiagnosticsExternalToolUsageEntry[] = [];
-
-  await Promise.all(
-    IMPORTED_HISTORY_SOURCES.map(async (source) => {
+  const rowsBySource = await Promise.all(
+    IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(async (source) => {
       try {
-        const page = await source.listSessions({
+        const page = await sessionAggregateList({
+          category: "external_history",
+          externalHistorySource: source.sourceId,
+          includeExternalHistory: true,
+          includeStats: false,
           limit: EXTERNAL_HISTORY_LIMIT,
         });
         const periodRows = page.sessions.filter((session) =>
@@ -280,22 +283,22 @@ async function collectExternalToolUsage(
             : durations.reduce((sum, duration) => sum + duration, 0) /
               durations.length;
 
-        entries.push({
+        return {
           sourceId: source.sourceId,
           sessionCount: periodRows.length,
           durationBucket: bucketDurationMs(averageDuration),
-        });
+        } satisfies DiagnosticsExternalToolUsageEntry;
       } catch {
-        entries.push({
+        return {
           sourceId: source.sourceId,
           sessionCount: 0,
           durationBucket: "unknown",
-        });
+        } satisfies DiagnosticsExternalToolUsageEntry;
       }
     })
   );
 
-  return entries;
+  return rowsBySource;
 }
 
 async function collectSystemProfile(): Promise<{

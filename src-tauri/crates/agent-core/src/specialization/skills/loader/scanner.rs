@@ -11,6 +11,15 @@ use super::types::{DescriptionQuality, SkillInfo, SkillListingEntry, SkillMetada
 use crate::utils::swr_cache::SwrCache;
 
 const SKILL_SCAN_CACHE_TTL: Duration = Duration::from_secs(2);
+
+// Listing budget mirrors the reference harness: the listing exists for
+// discovery only (full bodies load via the `skill` tool), so verbose
+// descriptions waste first-request cache-creation tokens without improving
+// match rate. Budget is in chars (~2K tokens); applies to the entry lines,
+// not the fixed preamble.
+const SKILL_LISTING_CHAR_BUDGET: usize = 8_000;
+const SKILL_LISTING_MAX_DESC_CHARS: usize = 250;
+const SKILL_LISTING_MIN_DESC_CHARS: usize = 20;
 const DISCOVERED_SKILL_ROOT_MAX_DEPTH: usize = 4;
 const DISCOVERED_SKILL_ROOT_MAX_ENTRIES: usize = 500;
 const IGNORED_HIDDEN_SKILL_ROOTS: &[&str] = &[
@@ -332,13 +341,22 @@ impl SkillsLoader {
 
     /// Load a skill's full content by name.
     pub fn load_skill(&self, name: &str) -> Option<String> {
+        self.load_skill_with_path(name)
+            .map(|(contents, _path)| contents)
+    }
+
+    /// Load a skill's full content plus the path of its `SKILL.md`.
+    ///
+    /// The path is `None` only for binary-embedded builtin skills, which
+    /// have no on-disk directory for relative bundled-file references.
+    pub fn load_skill_with_path(&self, name: &str) -> Option<(String, Option<PathBuf>)> {
         let workspace_path = self.workspace.join("skills").join(name).join("SKILL.md");
         if self.load_workspace_resources && workspace_path.exists() {
             match fs::read_to_string(&workspace_path) {
                 Ok(contents) => {
                     let meta = self.parse_skill_metadata(&contents);
                     if self.skill_metadata_applies_to_agent(&meta) {
-                        return Some(contents);
+                        return Some((contents, Some(workspace_path)));
                     }
                     return None;
                 }
@@ -356,10 +374,10 @@ impl SkillsLoader {
 
         if self.load_workspace_resources {
             for source_dir in self.default_workspace_skill_source_dirs() {
-                if let Some(contents) =
+                if let Some((contents, path)) =
                     self.load_skill_from_source_dir(&source_dir, name, "external-source")
                 {
-                    return Some(contents);
+                    return Some((contents, Some(path)));
                 }
             }
         }
@@ -371,7 +389,7 @@ impl SkillsLoader {
                     Ok(contents) => {
                         let meta = self.parse_skill_metadata(&contents);
                         if self.skill_metadata_applies_to_agent(&meta) {
-                            return Some(contents);
+                            return Some((contents, Some(builtin_path)));
                         }
                         return None;
                     }
@@ -389,10 +407,10 @@ impl SkillsLoader {
         }
 
         for source_dir in &self.extra_source_dirs {
-            if let Some(contents) =
+            if let Some((contents, path)) =
                 self.load_skill_from_source_dir(source_dir, name, "agent-source")
             {
-                return Some(contents);
+                return Some((contents, Some(path)));
             }
         }
 
@@ -400,7 +418,7 @@ impl SkillsLoader {
         // `/create-rule`, `/create-orgii-agent`). They ship with the binary so
         // slash commands always work, even on a fresh install with an
         // empty `~/.orgii/skills/`.
-        super::super::builtin::load_builtin_skill(name).map(str::to_string)
+        super::super::builtin::load_builtin_skill(name).map(|contents| (contents.to_string(), None))
     }
 
     /// Get skills marked as "always" loaded (must also be available and enabled).
@@ -487,29 +505,21 @@ impl SkillsLoader {
             true
         };
 
-        self.list_skills()
+        let mut entries: Vec<SkillListingEntry> = self
+            .list_skills()
             .into_iter()
             .filter(|skill| skill.enabled && skill.available && is_allowed(&skill.name))
-            .map(|skill| {
-                let status = if skill.available {
-                    "available"
-                } else {
-                    "unavailable"
-                };
-                let desc = if skill.description.is_empty() {
-                    "No description".to_string()
-                } else {
-                    skill.description.clone()
-                };
-                SkillListingEntry {
-                    name: skill.name.clone(),
-                    line: format!(
-                        "- **{}** ({}): {} [{}]",
-                        skill.name, skill.source, desc, status,
-                    ),
-                }
+            .map(|skill| SkillListingEntry {
+                name: skill.name,
+                source: skill.source,
+                description: skill.description,
+                available: skill.available,
             })
-            .collect()
+            .collect();
+        // fs scan order is platform-dependent; sort so the rendered listing
+        // is byte-stable across requests (it is re-sent every request).
+        entries.sort_by(|a, b| a.name.cmp(&b.name));
+        entries
     }
 
     pub fn format_skill_listing_entries(entries: &[SkillListingEntry]) -> Option<String> {
@@ -517,7 +527,7 @@ impl SkillsLoader {
             return None;
         }
 
-        let lines: Vec<&str> = entries.iter().map(|entry| entry.line.as_str()).collect();
+        let lines = Self::render_listing_lines_within_budget(entries);
         Some(format!(
             "Skills relevant to your task:\n\
              BLOCKING REQUIREMENT: scan the skill descriptions below BEFORE generating any other response. \
@@ -531,6 +541,66 @@ impl SkillsLoader {
              {}",
             lines.join("\n")
         ))
+    }
+
+    fn listing_entry_description(entry: &SkillListingEntry) -> String {
+        let desc = if entry.description.is_empty() {
+            "No description"
+        } else {
+            entry.description.as_str()
+        };
+        truncate_listing_text(desc, SKILL_LISTING_MAX_DESC_CHARS)
+    }
+
+    fn render_listing_line(entry: &SkillListingEntry, desc: &str) -> String {
+        let status = if entry.available {
+            "available"
+        } else {
+            "unavailable"
+        };
+        format!(
+            "- **{}** ({}): {} [{}]",
+            entry.name, entry.source, desc, status,
+        )
+    }
+
+    /// Degradation ladder for the listing lines: full (per-entry capped)
+    /// descriptions if they fit the total budget, otherwise descriptions
+    /// truncated evenly, otherwise names only. Entries are never dropped —
+    /// the model must see every invocable name.
+    fn render_listing_lines_within_budget(entries: &[SkillListingEntry]) -> Vec<String> {
+        let full: Vec<String> = entries
+            .iter()
+            .map(|entry| Self::render_listing_line(entry, &Self::listing_entry_description(entry)))
+            .collect();
+        let total_chars: usize = full.iter().map(|line| line.chars().count()).sum::<usize>()
+            + full.len().saturating_sub(1);
+        if total_chars <= SKILL_LISTING_CHAR_BUDGET {
+            return full;
+        }
+
+        // Over budget: split the remaining space evenly across descriptions.
+        let overhead: usize = entries
+            .iter()
+            .map(|entry| Self::render_listing_line(entry, "").chars().count())
+            .sum::<usize>()
+            + entries.len().saturating_sub(1);
+        let available_for_descs = SKILL_LISTING_CHAR_BUDGET.saturating_sub(overhead);
+        let max_desc_chars = available_for_descs / entries.len();
+        if max_desc_chars < SKILL_LISTING_MIN_DESC_CHARS {
+            return entries
+                .iter()
+                .map(|entry| format!("- **{}**", entry.name))
+                .collect();
+        }
+        entries
+            .iter()
+            .map(|entry| {
+                let desc =
+                    truncate_listing_text(&Self::listing_entry_description(entry), max_desc_chars);
+                Self::render_listing_line(entry, &desc)
+            })
+            .collect()
     }
 
     /// Build the per-turn skill listing attachment.
@@ -675,13 +745,18 @@ impl SkillsLoader {
         });
     }
 
-    fn load_skill_from_source_dir(&self, dir: &Path, name: &str, source: &str) -> Option<String> {
+    fn load_skill_from_source_dir(
+        &self,
+        dir: &Path,
+        name: &str,
+        source: &str,
+    ) -> Option<(String, PathBuf)> {
         let source_path = self.find_skill_file_recursive(dir, name)?;
         match fs::read_to_string(&source_path) {
             Ok(contents) => {
                 let meta = self.parse_skill_metadata(&contents);
                 if self.skill_metadata_applies_to_agent(&meta) {
-                    Some(contents)
+                    Some((contents, source_path))
                 } else {
                     None
                 }
@@ -911,6 +986,16 @@ impl SkillsLoader {
         let available = missing_bins.is_empty() && missing_env.is_empty();
         (available, missing_bins, missing_env)
     }
+}
+
+/// Char-boundary-safe truncation with a trailing ellipsis; byte slicing
+/// would panic on multi-byte UTF-8.
+fn truncate_listing_text(text: &str, max_chars: usize) -> String {
+    if text.chars().count() <= max_chars {
+        return text.to_string();
+    }
+    let cut: String = text.chars().take(max_chars.saturating_sub(1)).collect();
+    format!("{cut}\u{2026}")
 }
 
 #[cfg(test)]
@@ -1238,5 +1323,171 @@ mod include_filter_tests {
             "alpha is disabled and must NOT appear; got:\n{attachment}",
         );
         assert!(attachment.contains("beta"));
+    }
+}
+
+#[cfg(test)]
+mod listing_budget_tests {
+    //! Pin the listing degradation ladder: per-entry 250-char description
+    //! cap, 8,000-char total budget with even truncation, and a names-only
+    //! floor that never drops entries.
+    use super::{SkillsLoader, SKILL_LISTING_CHAR_BUDGET, SKILL_LISTING_MAX_DESC_CHARS};
+    use crate::skills::loader::SkillListingEntry;
+
+    fn entry(name: &str, description: &str) -> SkillListingEntry {
+        SkillListingEntry {
+            name: name.to_string(),
+            source: "workspace".to_string(),
+            description: description.to_string(),
+            available: true,
+        }
+    }
+
+    fn listing_lines(rendered: &str) -> Vec<&str> {
+        rendered
+            .lines()
+            .filter(|line| line.starts_with("- **"))
+            .collect()
+    }
+
+    #[test]
+    fn per_entry_description_capped_at_250_chars() {
+        let long_desc = "x".repeat(SKILL_LISTING_MAX_DESC_CHARS + 150);
+        let entries = vec![entry("verbose", &long_desc)];
+        let rendered =
+            SkillsLoader::format_skill_listing_entries(&entries).expect("listing populated");
+        let line = listing_lines(&rendered)[0];
+        assert!(
+            line.contains('\u{2026}'),
+            "capped desc must end in ellipsis"
+        );
+        assert!(
+            !rendered.contains(&long_desc),
+            "full over-cap description must not be rendered",
+        );
+        // Desc portion is exactly the cap: strip prefix/suffix markup.
+        let desc = line
+            .strip_prefix("- **verbose** (workspace): ")
+            .and_then(|rest| rest.strip_suffix(" [available]"))
+            .expect("line keeps the standard markup");
+        assert_eq!(desc.chars().count(), SKILL_LISTING_MAX_DESC_CHARS);
+    }
+
+    #[test]
+    fn total_budget_trims_descriptions_evenly() {
+        let desc = "d".repeat(240);
+        let entries: Vec<SkillListingEntry> = (0..50)
+            .map(|i| entry(&format!("s-{i:03}"), &desc))
+            .collect();
+        let rendered =
+            SkillsLoader::format_skill_listing_entries(&entries).expect("listing populated");
+        let lines = listing_lines(&rendered);
+        assert_eq!(lines.len(), 50, "no entry may be dropped");
+        let total_chars: usize =
+            lines.iter().map(|l| l.chars().count()).sum::<usize>() + lines.len() - 1;
+        assert!(
+            total_chars <= SKILL_LISTING_CHAR_BUDGET,
+            "entry lines must fit the {SKILL_LISTING_CHAR_BUDGET}-char budget, got {total_chars}",
+        );
+        for line in &lines {
+            assert!(
+                line.ends_with(" [available]"),
+                "trimmed lines keep full markup: {line}",
+            );
+            assert!(
+                line.contains('\u{2026}'),
+                "descriptions trimmed evenly: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn names_only_floor_never_drops_entries() {
+        let desc = "d".repeat(240);
+        let entries: Vec<SkillListingEntry> = (0..400)
+            .map(|i| entry(&format!("s-{i:03}"), &desc))
+            .collect();
+        let rendered =
+            SkillsLoader::format_skill_listing_entries(&entries).expect("listing populated");
+        let lines = listing_lines(&rendered);
+        assert_eq!(lines.len(), 400, "floor keeps every invocable name");
+        for (i, line) in lines.iter().enumerate() {
+            assert_eq!(
+                *line,
+                format!("- **s-{i:03}**"),
+                "extreme pressure falls back to names only",
+            );
+        }
+    }
+
+    #[test]
+    fn under_budget_listing_keeps_full_descriptions() {
+        let entries = vec![entry("alpha", "first"), entry("beta", "second")];
+        let rendered =
+            SkillsLoader::format_skill_listing_entries(&entries).expect("listing populated");
+        assert!(rendered.contains("- **alpha** (workspace): first [available]"));
+        assert!(rendered.contains("- **beta** (workspace): second [available]"));
+    }
+}
+
+#[cfg(test)]
+mod listing_order_and_path_tests {
+    use super::SkillsLoader;
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn write_skill(workspace: &std::path::Path, name: &str, description: &str) {
+        let dir = workspace.join("skills").join(name);
+        fs::create_dir_all(&dir).expect("mkdir skill");
+        fs::write(
+            dir.join("SKILL.md"),
+            format!("---\nname: {name}\ndescription: {description}\n---\n\n# {name}\n\nbody\n"),
+        )
+        .expect("write SKILL.md");
+    }
+
+    fn temp_workspace(tag: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "orgii_skills_listing_test_{}_{}",
+            tag,
+            std::process::id(),
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).expect("mkdir workspace");
+        dir
+    }
+
+    #[test]
+    fn listing_entries_are_sorted_by_name() {
+        // fs scan order is platform-dependent; the listing is re-sent every
+        // request, so it must be byte-stable across scans.
+        let ws = temp_workspace("sorted");
+        write_skill(&ws, "zeta", "last");
+        write_skill(&ws, "alpha", "first");
+        write_skill(&ws, "mid", "middle");
+
+        let loader = SkillsLoader::new(&ws);
+        let names: Vec<String> = loader
+            .build_skill_listing_entries(&[], None)
+            .into_iter()
+            .map(|entry| entry.name)
+            .collect();
+        assert_eq!(names, vec!["alpha", "mid", "zeta"]);
+    }
+
+    #[test]
+    fn load_skill_with_path_returns_skill_md_location() {
+        let ws = temp_workspace("with_path");
+        write_skill(&ws, "pathy", "has a base dir");
+
+        let loader = SkillsLoader::new(&ws);
+        let (content, path) = loader.load_skill_with_path("pathy").expect("skill loads");
+        assert!(content.contains("# pathy"));
+        let path = path.expect("on-disk skill has a path");
+        assert_eq!(path, ws.join("skills").join("pathy").join("SKILL.md"));
+        assert_eq!(
+            path.parent().expect("SKILL.md has a parent"),
+            ws.join("skills").join("pathy"),
+        );
     }
 }

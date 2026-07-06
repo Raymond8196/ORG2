@@ -339,6 +339,11 @@ export function ChatPanelStartPage({
     ],
     [t]
   );
+
+  const handleTabChange = useCallback((key: string) => {
+    setActiveTab(key as StartPageTabKey);
+  }, []);
+
   const workActions: ChatPanelStartPageAction[] = [
     {
       id: "new-session",
@@ -405,7 +410,7 @@ export function ChatPanelStartPage({
             fillWidth={false}
             tabs={tabs}
             activeTab={activeTab}
-            onChange={(key) => setActiveTab(key as StartPageTabKey)}
+            onChange={handleTabChange}
           />
         </div>
         {activeTab === START_PAGE_TAB.HEATMAP ? (

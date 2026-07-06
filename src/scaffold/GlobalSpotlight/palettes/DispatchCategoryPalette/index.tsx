@@ -36,6 +36,12 @@ import {
 } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import type { OrgMember } from "@src/modules/MainApp/AgentOrgs/types";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
+import {
+  CLI_LAUNCH_MODE,
+  type CliLaunchMode,
+  cliAgentVisibilityOverridesAtom,
+  isCliAgentEnabled,
+} from "@src/store/session";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 import {
   SESSION_TARGET_KIND,
@@ -43,12 +49,13 @@ import {
 } from "@src/store/session/creatorStateAtom";
 import { invokeTauri } from "@src/util/platform/tauri/init";
 
-import { ManageModelsFooterAction } from "../../components";
+import { ManageAgentsFooterAction } from "../../components";
 import { useAccountFooterForHovered } from "../../hooks";
 import type { BasePaletteProps } from "../../shared";
 import { PaletteBody, ShellFooterAction, SpotlightShell } from "../../shell";
 import type { PathSegment, SpotlightItem } from "../../types";
 import { useSelectorKernel } from "../core";
+import { CliAgentListFilterSwitch } from "./CliAgentListFilterSwitch";
 
 // ============ TYPES ============
 
@@ -74,6 +81,7 @@ export interface AgentSelection {
   agentDefinitionId?: string;
   agentOrgId?: string;
   cliAgentType?: CliAgentType;
+  cliLaunchMode?: CliLaunchMode;
   agentName: string;
   agentIconId?: string;
 }
@@ -89,6 +97,10 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
    * pickers inside a team panel where selecting another team makes no sense.
    */
   hideOrgs?: boolean;
+  /**
+   * When true only CLI agent entries are shown. Used by CLI-only picker surfaces.
+   */
+  cliOnly?: boolean;
   /**
    * Optional context pill rendered above the input — used by callers that
    * pre-select a target (e.g. an org member row clicking its agent pill)
@@ -162,6 +174,7 @@ export const DispatchCategoryPalette: React.FC<
   currentAgentOrgId,
   currentCliAgentType,
   hideOrgs = false,
+  cliOnly = false,
   titleLabel,
   titleIcon,
   placeholderLabel,
@@ -169,11 +182,19 @@ export const DispatchCategoryPalette: React.FC<
   const { t } = useTranslation("sessions");
   const { t: tCommon } = useTranslation("common");
   const [searchQuery, setSearchQuery] = useState("");
+  const [cliAgentListFilterMode, setCliAgentListFilterMode] =
+    useState<CliLaunchMode>(CLI_LAUNCH_MODE.GUI);
   const [allOrgs, setAllOrgs] = useState<OrgMember[]>([]);
   const { agents: cliAgentList } = useCliAgents({ enabled: isOpen });
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
   const { accounts } = useKeyVault({ autoLoad: true });
   const { registry } = useAgentCompatibility();
   const setAgentRegistry = useSetAtom(agentRegistryAtom);
+
+  const shouldShowCliOnly =
+    cliOnly || cliAgentListFilterMode === CLI_LAUNCH_MODE.TUI;
+  const shouldFilterCliToGuiSupport =
+    cliAgentListFilterMode === CLI_LAUNCH_MODE.GUI;
 
   // Ensure agent definitions are loaded into global atoms (no-op if already loaded)
   useEnsureAgentDefs();
@@ -217,8 +238,13 @@ export const DispatchCategoryPalette: React.FC<
   }, [isOpen, hideOrgs, setAgentRegistry]);
 
   const installedCliAgents = useMemo(
-    () => cliAgentList.filter((agent) => agent.installed),
-    [cliAgentList]
+    () =>
+      cliAgentList.filter(
+        (agent) =>
+          agent.installed &&
+          isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
   );
 
   useEffect(() => {
@@ -265,6 +291,7 @@ export const DispatchCategoryPalette: React.FC<
 
   const cliOptions = useMemo((): AgentOption[] => {
     return installedCliAgents.flatMap((agent) => {
+      if (shouldFilterCliToGuiSupport && agent.supportsGui !== true) return [];
       // `agent.name` is a wire-format string; reject any value that isn't
       // in the canonical CLI agent set rather than smuggling it through
       // a `as CliAgentType` cast (which used to crash downstream consumers
@@ -294,7 +321,7 @@ export const DispatchCategoryPalette: React.FC<
         },
       ];
     });
-  }, [installedCliAgents, accounts, registry]);
+  }, [installedCliAgents, shouldFilterCliToGuiSupport, accounts, registry]);
 
   const customAgentOptions = useMemo((): AgentOption[] => {
     const rustBadge = buildCredentialBadge(rustCompatibleAccounts);
@@ -363,14 +390,18 @@ export const DispatchCategoryPalette: React.FC<
   }, []);
 
   const allOptions = useMemo(
-    () => [
-      ...builtInRustOptions,
-      ...cliOptions,
-      ...externalIdeOptions,
-      ...customAgentOptions,
-      ...(hideOrgs ? [] : orgOptions),
-    ],
+    () =>
+      shouldShowCliOnly
+        ? [...cliOptions]
+        : [
+            ...builtInRustOptions,
+            ...cliOptions,
+            ...externalIdeOptions,
+            ...customAgentOptions,
+            ...(hideOrgs ? [] : orgOptions),
+          ],
     [
+      shouldShowCliOnly,
       builtInRustOptions,
       cliOptions,
       externalIdeOptions,
@@ -441,6 +472,7 @@ export const DispatchCategoryPalette: React.FC<
             agentDefinitionId: option.agentDefinitionId,
             agentOrgId: option.agentOrgId,
             cliAgentType: option.cliAgentType,
+            cliLaunchMode: option.isCli ? cliAgentListFilterMode : undefined,
             agentName: option.name,
             agentIconId: option.iconId,
           });
@@ -453,6 +485,7 @@ export const DispatchCategoryPalette: React.FC<
       currentAgentDefinitionId,
       currentAgentOrgId,
       currentCliAgentType,
+      cliAgentListFilterMode,
       onSelect,
       onClose,
     ]
@@ -485,29 +518,34 @@ export const DispatchCategoryPalette: React.FC<
       }
     };
 
-    pushGroup(
-      "__header_builtin__",
-      t("creator.builtInAgents"),
-      builtInRustOptions
-    );
+    if (!shouldShowCliOnly) {
+      pushGroup(
+        "__header_builtin__",
+        t("creator.builtInAgents"),
+        builtInRustOptions
+      );
+    }
     pushGroup("__header_cli__", t("creator.cliAgents"), cliOptions);
-    pushGroup(
-      "__header_external_ide__",
-      t("creator.externalIdes"),
-      externalIdeOptions
-    );
-    pushGroup(
-      "__header_custom__",
-      t("creator.customAgents"),
-      customAgentOptions
-    );
-    if (!hideOrgs) {
-      pushGroup("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+    if (!shouldShowCliOnly) {
+      pushGroup(
+        "__header_external_ide__",
+        t("creator.externalIdes"),
+        externalIdeOptions
+      );
+      pushGroup(
+        "__header_custom__",
+        t("creator.customAgents"),
+        customAgentOptions
+      );
+      if (!hideOrgs) {
+        pushGroup("__header_orgs__", t("creator.agentOrgs"), orgOptions);
+      }
     }
 
     return result;
   }, [
     isSearching,
+    shouldShowCliOnly,
     filteredOptions,
     builtInRustOptions,
     cliOptions,
@@ -587,7 +625,13 @@ export const DispatchCategoryPalette: React.FC<
     ),
   });
 
-  const footerAction = <ManageModelsFooterAction onClose={onClose} />;
+  const footerAction = <ManageAgentsFooterAction onClose={onClose} />;
+  const inputLeadingSlot = (
+    <CliAgentListFilterSwitch
+      mode={cliAgentListFilterMode}
+      onModeChange={setCliAgentListFilterMode}
+    />
+  );
 
   // When the caller pre-selects a target (e.g. an org member row), surface
   const path = useMemo<PathSegment[]>(() => {
@@ -610,8 +654,11 @@ export const DispatchCategoryPalette: React.FC<
         kernel={kernel}
         items={items}
         placeholder={placeholderLabel ?? tCommon("filters.searchAgentOrOrg")}
-        path={path}
-        onRemoveSegment={onGoBackToParent ?? onClose}
+        path={inputLeadingSlot ? [] : path}
+        onRemoveSegment={
+          inputLeadingSlot ? undefined : (onGoBackToParent ?? onClose)
+        }
+        inputLeadingSlot={inputLeadingSlot}
         containerHeight={containerHeight}
         afterListSlot={afterListSlot}
       />

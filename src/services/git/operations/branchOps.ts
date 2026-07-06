@@ -4,6 +4,7 @@
 import { gitApi } from "@src/api/http/git";
 import type { CheckoutErrorType } from "@src/api/http/git/branchOps";
 import type { GitErrorType } from "@src/api/http/git/streaming";
+import { CheckoutBlockedDialog } from "@src/components/GitDialogs/CheckoutBlockedDialog";
 import { CheckoutConflictDialog } from "@src/components/GitDialogs/CheckoutConflictDialog";
 
 import { TerminalService } from "../../terminal";
@@ -33,22 +34,24 @@ export async function checkoutRaw(
   const repo = getRepoContext();
 
   if (repo) {
-    try {
-      await gitApi.gitCheckout({
-        repo_id: repo.repoId,
-        repo_path: repo.repoPath,
-        ref: branch,
-        create,
-      });
-      return { success: true, errorType: "none" };
-    } catch (error) {
-      const parsed = parseGitError(error);
-      return {
-        success: false,
-        errorType: parsed.type,
-        message: parsed.message,
-      };
-    }
+    const result = await runGuardedCheckout({
+      repoId: repo.repoId,
+      repoPath: repo.repoPath,
+      ref: branch,
+      create,
+      onConflict: (name) => CheckoutConflictDialog.open({ branchName: name }),
+      onBlocked: ({ branch: name, errorType, message }) =>
+        CheckoutBlockedDialog.open({
+          branchName: name,
+          errorType,
+          message,
+        }),
+    });
+    return {
+      success: result.success,
+      errorType: toGitErrorType(result.errorType),
+      message: result.message,
+    };
   }
 
   try {
@@ -270,6 +273,12 @@ export async function checkoutWithDialog(
     ref: branch,
     create,
     onConflict: (name) => CheckoutConflictDialog.open({ branchName: name }),
+    onBlocked: ({ branch: name, errorType, message }) =>
+      CheckoutBlockedDialog.open({
+        branchName: name,
+        errorType,
+        message,
+      }),
   });
 
   return {

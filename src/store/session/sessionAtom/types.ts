@@ -59,6 +59,8 @@ export interface Session {
    * the `repo_path` column on `agent_sessions` / `code_sessions`.
    */
   repoPath?: string;
+  /** Path to the file or directory where this session's persisted data lives. */
+  storagePath?: string;
   /** Worktree path for isolated parallel sessions */
   worktreePath?: string;
   /** Branch name inside the worktree (e.g. `agent/abc123`) */
@@ -83,6 +85,8 @@ export interface Session {
   agentRole?: AgentRole | string;
   /** Parent/root session id for child sessions such as Agent Team member sessions. */
   parentSessionId?: string;
+  /** True for imported history rows that cannot be written back. */
+  readOnly?: boolean;
   /** Agent Team roster member id for team member session rows. */
   orgMemberId?: string;
   /** Agent Team definition id for root/coordinator rows launched from a team. */

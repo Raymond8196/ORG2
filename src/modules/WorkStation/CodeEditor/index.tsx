@@ -8,6 +8,7 @@ import { useTerminalState } from "@/src/engines/TerminalCore/hooks/useTerminalSt
 import { useCodeEditorHandlers } from "@/src/hooks/workStation/editor/useCodeEditorHandlers";
 import { useGitDiffState } from "@/src/hooks/workStation/git/useGitDiffState";
 import { useCodeEditor } from "@/src/hooks/workStation/useCodeEditor";
+import { invoke } from "@tauri-apps/api/core";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -50,6 +51,8 @@ import { preloadSourceControlTabContent } from "./Panels/EditorMainPane/content"
 import { EditorPrimarySidebar } from "./Panels/EditorPrimarySidebar";
 import { useCodeEditorLocalState } from "./useCodeEditorLocalState";
 import { useSourceControlSetup } from "./useSourceControlSetup";
+
+const SET_ACTIVE_GIT_POLLING_REPO_COMMAND = "set_active_git_polling_repo";
 
 // ============================================
 // Types
@@ -392,6 +395,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
     );
 
     const isSourceControlActive = activeTab?.type === "source-control";
+    useEffect(() => {
+      const repoId = isActive && isSourceControlActive ? selectedRepoId : null;
+      void invoke(SET_ACTIVE_GIT_POLLING_REPO_COMMAND, { repoId });
+
+      return () => {
+        void invoke(SET_ACTIVE_GIT_POLLING_REPO_COMMAND, { repoId: null });
+      };
+    }, [isActive, isSourceControlActive, selectedRepoId]);
+
     const editorSourceControlScopePicker = isSourceControlActive
       ? sourceControlHeaderScopePicker
       : null;

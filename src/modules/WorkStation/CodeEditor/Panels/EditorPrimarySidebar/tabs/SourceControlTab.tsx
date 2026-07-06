@@ -235,10 +235,6 @@ export function useSourceControlTabConfig({
     hasWorktrees,
     worktreesLoading,
     refreshWorktrees,
-    hostWorktrees,
-    hostHasWorktrees,
-    hostWorktreesLoading,
-    hostRefreshWorktrees,
     t,
   ]);
 

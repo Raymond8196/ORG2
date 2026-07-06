@@ -319,6 +319,32 @@ impl KeyService {
                     env.insert("OPENCODE_BASE_URL".to_string(), url.clone());
                 }
             }
+            // Extended CLI agents — api_key available under ORGII_API_KEY if set.
+            ModelType::Aider
+            | ModelType::Goose
+            | ModelType::Amp
+            | ModelType::Cline
+            | ModelType::Kilo
+            | ModelType::Grok
+            | ModelType::Devin
+            | ModelType::Rovo
+            | ModelType::Hermes
+            | ModelType::OpenClaw
+            | ModelType::Aug
+            | ModelType::Codebuff
+            | ModelType::QwenCode
+            | ModelType::MimoCode
+            | ModelType::Antigravity
+            | ModelType::Continue
+            | ModelType::Droid
+            | ModelType::MistralVibe
+            | ModelType::Autohand
+            | ModelType::Omp
+            | ModelType::Pi => {
+                if let Some(ref key) = entry.api_key {
+                    env.insert("ORGII_API_KEY".to_string(), key.clone());
+                }
+            }
             // API key providers: store api_key under the provider's env var name
             ModelType::AnthropicApi
             | ModelType::OpenaiApi
@@ -454,6 +480,30 @@ impl KeyService {
             ModelType::OpenCode => {
                 // OpenCode uses its own config for provider credentials.
                 // Proxy token is available via ORGII_PROXY_TOKEN (set above).
+            }
+            // Extended CLI agents — proxy token available via ORGII_PROXY_TOKEN.
+            ModelType::Aider
+            | ModelType::Goose
+            | ModelType::Amp
+            | ModelType::Cline
+            | ModelType::Kilo
+            | ModelType::Grok
+            | ModelType::Devin
+            | ModelType::Rovo
+            | ModelType::Hermes
+            | ModelType::OpenClaw
+            | ModelType::Aug
+            | ModelType::Codebuff
+            | ModelType::QwenCode
+            | ModelType::MimoCode
+            | ModelType::Antigravity
+            | ModelType::Continue
+            | ModelType::Droid
+            | ModelType::MistralVibe
+            | ModelType::Autohand
+            | ModelType::Omp
+            | ModelType::Pi => {
+                // Token available via ORGII_PROXY_TOKEN (set above).
             }
             // API key providers — must mirror the list in get_env_for_agent
             ModelType::AnthropicApi

@@ -1422,8 +1422,9 @@
       "planSupport": "Plan",
       "byokSupport": "Keys",
       "incompatible": "Uyumsuz",
-      "manageModels": "Model Ekle / Yönet",
-      "manageKeys": "Anahtar Ekle / Yönet"
+      "manageModels": "Modelleri yönet",
+      "manageKeys": "Anahtarları yönet",
+      "manageAgents": "Agents yönet"
     },
     "editorSpotlight": {
       "searchPlaceholder": "Komut ara...",

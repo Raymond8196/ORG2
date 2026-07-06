@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { claudeCodeRecentPaths } from "@src/api/tauri/claudeCodeHistory";
-import { codexAppRecentPaths } from "@src/api/tauri/codexApp";
-import { opencodeRecentPaths } from "@src/api/tauri/opencodeHistory";
-import { windsurfRecentPaths } from "@src/api/tauri/windsurfHistory";
+import { claudeCodeRecentPaths } from "@src/api/tauri/externalHistory";
+import { codexAppRecentPaths } from "@src/api/tauri/externalHistory";
+import { opencodeRecentPaths } from "@src/api/tauri/externalHistory";
+import { windsurfRecentPaths } from "@src/api/tauri/externalHistory";
 import type { RepoItem } from "@src/scaffold/GlobalSpotlight/types";
 import { REPO_KIND } from "@src/store/repo";
 

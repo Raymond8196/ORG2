@@ -32,10 +32,8 @@ import { useSessionId } from "@src/engines/SessionCore/hooks/session";
 import type { AdvancedConfig } from "@src/features/SessionCreator/types";
 import { useValidatedLastPair } from "@src/hooks/models/useValidatedLastPair";
 import { useSessionModelField } from "@src/hooks/session/useSessionPatch";
-import {
-  UnifiedModelDropdown,
-  UnifiedModelPalette,
-} from "@src/scaffold/GlobalSpotlight/palettes";
+import { UnifiedModelPalette } from "@src/scaffold/GlobalSpotlight/palettes/UnifiedModelPalette";
+import { UnifiedModelDropdown } from "@src/scaffold/GlobalSpotlight/palettes/UnifiedModelPalette/UnifiedModelDropdown";
 import { sessionRuntimeStatusAtom } from "@src/store/session/cliSessionStatusAtom";
 import {
   type LastModelSelection,

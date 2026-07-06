@@ -80,6 +80,22 @@ pub fn extract_recently_read_files(messages: &[Value]) -> Vec<String> {
     files
 }
 
+/// Files that must never be re-injected after compaction: project
+/// conventions / memory files are re-read into the system prompt every
+/// turn (`prompt/helpers.rs::load_conventions`), and plan files are
+/// preserved by `plan_preservation` — restoring them here duplicates
+/// content. Ref: claude_code compact.ts shouldExcludeFromPostCompactRestore.
+fn is_excluded_from_reinjection(path: &str) -> bool {
+    let file_name = std::path::Path::new(path)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(path);
+    matches!(
+        file_name,
+        "agent-rules.md" | "CLAUDE.md" | "AGENTS.md" | "CLAUDE.local.md"
+    ) || file_name.ends_with(".plan.md")
+}
+
 fn message_text(value: &Value, output: &mut String) {
     match value {
         Value::String(text) => {
@@ -152,6 +168,13 @@ pub fn build_file_reinjection_messages_with_preserved_tail(
     for path in file_paths {
         if remaining_chars == 0 {
             break;
+        }
+        if is_excluded_from_reinjection(path) {
+            debug!(
+                "[file_reinjection] skipping {}: memory/plan file re-injected via its own channel",
+                path
+            );
+            continue;
         }
         if preserved_tail.contains(path) {
             debug!(

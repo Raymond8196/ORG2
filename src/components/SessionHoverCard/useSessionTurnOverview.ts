@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   type CursorIdeTurnSummary,
   cursorIdeInitialWindow,
-} from "@src/api/tauri/cursorIde";
+} from "@src/api/tauri/externalHistory";
 import { loadTurnIndex } from "@src/engines/SessionCore/storage/cacheAdapter";
 import type { TurnSummary } from "@src/engines/SessionCore/storage/sqliteCache";
 import { cursorIdeTurnSummariesAtomFamily } from "@src/store/session/cursorIdeTurnSummariesAtom";
