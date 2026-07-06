@@ -22,6 +22,7 @@ import {
   useAgentCompatibility,
 } from "@src/hooks/models/useAgentCompatibility";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
+import { CliLaunchProfileSection } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/Preview/CliLaunchProfileSection";
 import {
   SectionContainer,
   SectionRow,
@@ -357,6 +358,15 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
                 emptyText={t("agentOrgs.cliAgentDetail.noKeys")}
               />
             </SectionRow>
+          </SectionContainer>
+
+          <SectionContainer
+            title={t("agentOrgs.cliAgentDetail.launchConfiguration")}
+          >
+            <CliLaunchProfileSection
+              agentName={agent.name}
+              variant="settings"
+            />
           </SectionContainer>
 
           {hasConfig && agent.configFiles.length > 1 && (
