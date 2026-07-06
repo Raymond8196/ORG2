@@ -99,6 +99,8 @@ export function applyKey(
       enabled_models: modelsEnabled,
       validated: true,
       auth_method: "oauth",
+      name: cred.name,
+      account_metadata: cred.account_metadata ?? {},
       env_vars: cred.env_vars
         ? Object.entries(cred.env_vars).map(([name, value]) => ({
             name,

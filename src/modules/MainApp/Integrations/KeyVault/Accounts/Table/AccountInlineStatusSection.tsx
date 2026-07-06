@@ -212,6 +212,11 @@ export const AccountInlineStatusSection: React.FC<
       })}`
     : null;
 
+  const accountEmail = account.accountMetadata?.email;
+  const organizationName = account.accountMetadata?.organization_name;
+  const organizationUuid = account.accountMetadata?.organization_uuid;
+  const organizationLabel = organizationName ?? organizationUuid;
+
   const accountUsageRows = (
     <>
       {modelCount > 0 ? (
@@ -348,6 +353,18 @@ export const AccountInlineStatusSection: React.FC<
               <InfoRow
                 label={t("keyVault.info.connectedAt")}
                 value={connectedAtLabel}
+              />
+            ) : null}
+            {accountEmail ? (
+              <InfoRow
+                label={t("keyVault.info.accountEmail")}
+                value={accountEmail}
+              />
+            ) : null}
+            {organizationLabel ? (
+              <InfoRow
+                label={t("keyVault.info.organization")}
+                value={organizationLabel}
               />
             ) : null}
             {showSessionToken ? (

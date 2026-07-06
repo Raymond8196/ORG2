@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "Hỗ trợ CLI Agents",
       "compatibleApis": "API Tương thích",
-      "noCliAgentSupport": "Nhà cung cấp này không hỗ trợ CLI Agent"
+      "noCliAgentSupport": "Nhà cung cấp này không hỗ trợ CLI Agent",
+      "accountEmail": "Email tài khoản",
+      "organization": "Tổ chức"
     },
     "inlineDetailTabs": {
       "info": "Thông tin"
@@ -456,6 +458,10 @@
     "codexConnected": "Codex đã kết nối",
     "codexDetectErrorHint": "Đăng nhập bằng trình duyệt nhúng hoặc dán thủ công OpenAI API key",
     "codexValidationErrorHint": "Kiểm tra token hoặc API key có hợp lệ không rồi thử lại",
+    "claudeCodeAutodetectTitle": "Phát hiện phiên Claude Code",
+    "claudeCodeAutodetectDesc": "Đọc đăng nhập Claude Code cục bộ từ macOS Keychain hoặc ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code đã kết nối",
+    "claudeCodeDetectErrorHint": "Đăng nhập bằng trình duyệt nhúng hoặc chạy claude auth login rồi thử phát hiện lại",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",

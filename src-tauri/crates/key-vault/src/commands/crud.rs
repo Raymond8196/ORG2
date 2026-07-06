@@ -76,6 +76,7 @@ pub struct KeyInfo {
     pub protocol: Option<String>,
     pub env_vars: Vec<String>,
     pub env_vars_masked: HashMap<String, String>,
+    pub account_metadata: HashMap<String, String>,
     pub available_models: Vec<String>,
     pub enabled_models: Vec<String>,
     pub model_aliases: Vec<ModelAliasInfo>,
@@ -439,6 +440,7 @@ impl From<ModelKey> for KeyInfo {
             protocol: entry.protocol.map(|protocol| protocol.as_str().to_string()),
             env_vars: entry.env_vars.keys().cloned().collect(),
             env_vars_masked,
+            account_metadata: entry.account_metadata.clone(),
             available_models: entry.available_models.clone(),
             enabled_models: entry.enabled_models.clone(),
             model_aliases: entry
@@ -509,6 +511,7 @@ pub struct SaveKeyRequest {
     pub base_url: Option<String>,
     pub protocol: Option<String>,
     pub env_vars: Option<HashMap<String, String>>,
+    pub account_metadata: Option<HashMap<String, String>>,
     pub available_models: Option<Vec<String>>,
     pub enabled_models: Option<Vec<String>>,
     pub model_aliases: Option<Vec<ModelAliasInfo>>,
@@ -533,6 +536,7 @@ pub struct FullKeyResponse {
     pub base_url: Option<String>,
     pub protocol: Option<String>,
     pub env_vars: HashMap<String, String>,
+    pub account_metadata: HashMap<String, String>,
     pub available_models: Vec<String>,
     pub model_aliases: Vec<ModelAliasInfo>,
     pub model_variants: Vec<ModelVariantInfo>,
@@ -551,6 +555,7 @@ impl From<ModelKey> for FullKeyResponse {
             base_url: entry.base_url,
             protocol: entry.protocol.map(|protocol| protocol.as_str().to_string()),
             env_vars: entry.env_vars,
+            account_metadata: entry.account_metadata,
             available_models: entry.available_models,
             model_aliases: entry
                 .model_aliases
@@ -705,6 +710,9 @@ pub async fn save_key(request: SaveKeyRequest) -> Result<KeyInfo, String> {
             received_oauth_material =
                 received_oauth_material || env.values().any(|value| !value.trim().is_empty());
             entry.env_vars = env;
+        }
+        if let Some(metadata) = request.account_metadata {
+            entry.account_metadata = metadata;
         }
         if let Some(models) = request.available_models {
             entry.available_models = models;

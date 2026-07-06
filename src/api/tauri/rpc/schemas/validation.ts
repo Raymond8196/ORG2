@@ -226,6 +226,7 @@ export const KeyInfoSchema = z.object({
   protocol: ProviderProtocolSchema.nullable().optional(),
   env_vars: z.array(z.string()),
   env_vars_masked: z.record(z.string(), z.string()),
+  account_metadata: z.record(z.string(), z.string()).optional().default({}),
   available_models: z.array(z.string()),
   enabled_models: z.array(z.string()),
   model_aliases: z.array(ModelAliasInfoSchema).optional(),
@@ -264,6 +265,7 @@ export const FullKeyResponseSchema = z.object({
   base_url: z.string().nullable(),
   protocol: ProviderProtocolSchema.nullable().optional(),
   env_vars: z.record(z.string(), z.string()),
+  account_metadata: z.record(z.string(), z.string()).optional().default({}),
   available_models: z.array(z.string()),
   model_aliases: z.array(ModelAliasInfoSchema).optional(),
   model_variants: z.array(ModelVariantInfoSchema).optional(),
@@ -281,6 +283,7 @@ export const SaveKeyRequestSchema = z.object({
   base_url: z.string().optional(),
   protocol: ProviderProtocolSchema.optional(),
   env_vars: z.record(z.string(), z.string()).optional(),
+  account_metadata: z.record(z.string(), z.string()).optional(),
   available_models: z.array(z.string()).optional(),
   enabled_models: z.array(z.string()).optional(),
   model_aliases: z.array(ModelAliasInfoSchema).optional(),
@@ -316,6 +319,7 @@ export const DetectedKeySchema = z.object({
   session_token: z.string().optional(),
   base_url: z.string().optional(),
   env_vars: z.record(z.string(), z.string()).optional(),
+  account_metadata: z.record(z.string(), z.string()).optional(),
   available_models: z.array(z.string()).optional(),
   quota_info: DetectedQuotaInfoSchema.optional(),
   validated: z.boolean().optional(),
@@ -696,12 +700,21 @@ export const ClaudeCodeOauthExchangeInput = z.object({
   codeVerifier: z.string(),
 });
 
+export const ClaudeCodeAccountMetadataSchema = z.object({
+  email: z.string().nullable().optional(),
+  organizationUuid: z.string().nullable().optional(),
+  organizationName: z.string().nullable().optional(),
+  organizationType: z.string().nullable().optional(),
+  rateLimitTier: z.string().nullable().optional(),
+});
+
 export const ClaudeCodeOauthExchangeResponseSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string().nullable().optional(),
   expiresIn: z.number().nullable().optional(),
   tokenType: z.string().nullable().optional(),
   scope: z.string().nullable().optional(),
+  accountMetadata: ClaudeCodeAccountMetadataSchema.nullable().optional(),
 });
 
 export const CodexOauthStartResponseSchema = z.object({

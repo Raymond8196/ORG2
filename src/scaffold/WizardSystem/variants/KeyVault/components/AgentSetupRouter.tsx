@@ -281,7 +281,9 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
         <ClaudeCodeSetup
           {...sharedProps}
           tokenDetected={tokenDetected}
+          detectingToken={detectingToken}
           tokenError={tokenError}
+          onDetectToken={sharedProps.onAutoDetect ?? (() => {})}
           onClearTokenError={clearTokenError}
           preselectedMethod={isComplex ? setupMethod : undefined}
           onSessionCaptured={async (values: ClaudeCodeSessionValues) => {
@@ -309,6 +311,13 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
                 : claudeCodeModels.slice(0, 1);
             const expiresAt = values.expiresIn
               ? Date.now() + values.expiresIn * 1000
+              : undefined;
+            const email = values.accountMetadata?.email;
+            const organizationName = values.accountMetadata?.organization_name;
+            const accountName = email
+              ? organizationName
+                ? `Claude Code (${email} · ${organizationName})`
+                : `Claude Code (${email})`
               : undefined;
             const envVars = [
               ...(values.refreshToken
@@ -341,6 +350,8 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
               oauth_session_token: values.accessToken,
               raw_key_input: "",
               env_vars: envVars,
+              account_metadata: values.accountMetadata ?? {},
+              ...(accountName ? { name: accountName } : {}),
               available_models: claudeCodeModels,
               model_context_lengths: {},
               enabled_models: enabledModels,

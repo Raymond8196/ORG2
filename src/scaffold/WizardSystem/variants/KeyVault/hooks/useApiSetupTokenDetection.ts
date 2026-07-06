@@ -143,16 +143,21 @@ export function useApiSetupTokenDetection({
 
       if (keys.length > 1) {
         setDetectedKeys(keys);
+        const validOAuthIndex = keys.findIndex(
+          (cred) => cred.auth_method === "oauth" && cred.validated
+        );
         const validApiKeyIndex = keys.findIndex(
           (cred) => cred.auth_method === "api_key" && cred.validated
         );
         const firstValidIndex = keys.findIndex((cred) => cred.validated);
         setSelectedCredentialIndex(
-          validApiKeyIndex >= 0
-            ? validApiKeyIndex
-            : firstValidIndex >= 0
-              ? firstValidIndex
-              : 0
+          isClaudeCode && validOAuthIndex >= 0
+            ? validOAuthIndex
+            : validApiKeyIndex >= 0
+              ? validApiKeyIndex
+              : firstValidIndex >= 0
+                ? firstValidIndex
+                : 0
         );
         setShowKeySelection(true);
         return;
@@ -168,6 +173,7 @@ export function useApiSetupTokenDetection({
   }, [
     data.agent_type,
     applySelectedKey,
+    isClaudeCode,
     setDetectedKeys,
     setDetectingToken,
     setSelectedCredentialIndex,
