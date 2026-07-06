@@ -34,20 +34,16 @@ describe("imported history source helpers", () => {
   it("recognizes replayable imported-history source ids", () => {
     expect(isImportedHistoryReplayableSourceId("codex_app")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("claude_code")).toBe(true);
-    expect(isImportedHistoryReplayableSourceId("command_code")).toBe(false);
+    expect(isImportedHistoryReplayableSourceId("qwen_code")).toBe(false);
     expect(isImportedHistoryReplayableSourceId(null)).toBe(false);
   });
 
   it("filters detected external CLIs without replay support", () => {
     const filtered = getDetectedExternalCliSourcesWithoutReplay([
       probe("codex_app", true),
-      probe("command_code"),
       probe("qwen_code"),
     ]);
 
-    expect(filtered.map((item) => item.sourceId)).toEqual([
-      "command_code",
-      "qwen_code",
-    ]);
+    expect(filtered.map((item) => item.sourceId)).toEqual(["qwen_code"]);
   });
 });
