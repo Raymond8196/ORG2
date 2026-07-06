@@ -5,6 +5,7 @@ export const EXTERNAL_SKILLSETS_URL_SEGMENT = "skills-mcps-plugins";
 export type IntegrationsCategorySegment =
   | "models"
   | "myRoles"
+  | "housekeeper"
   | "tools"
   | "computerUse"
   | "externalSkillsets"
@@ -18,6 +19,7 @@ export type IntegrationsCategorySegment =
 export const INTEGRATIONS_CATEGORIES: readonly IntegrationsCategorySegment[] = [
   "models",
   "myRoles",
+  "housekeeper",
   "tools",
   "computerUse",
   "externalSkillsets",

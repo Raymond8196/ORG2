@@ -106,7 +106,6 @@ fn apply_linux_webkit_cpu_guards() {}
 pub mod agent_sessions; // Agent session management (CLI, event pipeline, persistence, aggregation)
 pub mod api;
 pub mod benchmark;
-pub mod cursor_ide_watch; // cursor_ide streaming delta watch commands
 pub mod infrastructure; // In-tree-only cross-cutting infrastructure (paths, platform, archive, index_manager, jsonrpc, housekeeping). Leaf pieces live in their own workspace crates.
 pub mod orgtrack;
 pub(crate) mod setup;
@@ -400,10 +399,6 @@ pub fn run() {
                     tracing::info!("[Transport] Transport layer initialized");
                 }
             }
-
-            perf_utils::ram_history::start_sampler();
-            tracing::info!("[RamHistory] Background RAM sampler started");
-
             match agent_sessions::cli::persistence::sweep_stale_sessions() {
                 Ok(orphans) if !orphans.is_empty() => {
                     tracing::info!(
@@ -767,10 +762,6 @@ pub fn run() {
 
             // Load skill env vars from ~/.orgii/skill-env.json into the process
             agent_core::skills::loader::load_and_apply_skill_env();
-
-            // Initialize cursor_ide streaming delta watch state
-            app.manage(cursor_ide_watch::WatchHandlesState::new());
-            tracing::info!("[CursorIdeWatch] Watch handles state initialized");
 
             // Initialize MCP state
             app.manage(agent_core::mcp::commands::McpState::new());

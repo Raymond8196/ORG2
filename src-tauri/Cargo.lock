@@ -56,6 +56,7 @@ name = "agent_cli"
 version = "0.1.0"
 dependencies = [
  "app_paths",
+ "app_platform",
  "app_utils",
  "rusqlite",
  "serde",
@@ -3774,6 +3775,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tauri",
+ "tempfile",
  "time",
  "tokio",
  "tokio-rustls",
@@ -3992,6 +3994,7 @@ dependencies = [
  "cursor_bridge_app",
  "dirs",
  "insta",
+ "integrations",
  "log",
  "nucleo-matcher",
  "regex",

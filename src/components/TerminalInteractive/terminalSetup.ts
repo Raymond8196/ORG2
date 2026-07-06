@@ -24,12 +24,12 @@ interface CreateTerminalInstanceParams {
   terminalFontSize: number;
   terminalLetterSpacing: number;
   codeFontFamily: string;
+  backgroundColor?: string;
   shellIntegration?: TerminalViewProps["shellIntegration"];
 }
 
 interface InitializeWhenContainerVisibleParams {
   containerRef: MutableRefObject<HTMLDivElement | null>;
-  initTimeoutRef: MutableRefObject<NodeJS.Timeout | null>;
   terminal: Terminal;
   fitTerminal: () => void;
   initPty: (cols: number, rows: number) => void;
@@ -42,10 +42,11 @@ export function createTerminalInstance({
   terminalFontSize,
   terminalLetterSpacing,
   codeFontFamily,
+  backgroundColor,
   shellIntegration,
 }: CreateTerminalInstanceParams) {
   const terminal = new Terminal({
-    theme: getXTermTheme(terminalTheme),
+    theme: getXTermTheme(terminalTheme, backgroundColor),
     fontSize: terminalFontSize,
     fontFamily: codeFontFamily,
     fontWeight: "400",
@@ -125,39 +126,54 @@ export function loadTerminalWebgl(
 
 export function initializeWhenContainerVisible({
   containerRef,
-  initTimeoutRef,
   terminal,
   fitTerminal,
   initPty,
   loadWebGL,
   setIsReady,
-}: InitializeWhenContainerVisibleParams) {
-  const checkAndInit = () => {
-    if (!containerRef.current) return;
+}: InitializeWhenContainerVisibleParams): () => void {
+  let initialized = false;
+  let cancelled = false;
+  let frameId: number | null = null;
+  let resizeObserver: ResizeObserver | null = null;
 
-    const rect = containerRef.current.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) {
-      const doInit = () => {
-        if (!containerRef.current) return;
-        loadWebGL();
-        fitTerminal();
-        setIsReady(true);
-        initPty(terminal.cols, terminal.rows);
-        setTimeout(fitTerminal, 150);
-        setTimeout(fitTerminal, 300);
-      };
-
-      if (typeof document.fonts?.ready === "undefined") {
-        doInit();
-      } else {
-        document.fonts.ready.then(doInit);
-      }
-    } else {
-      initTimeoutRef.current = setTimeout(checkAndInit, 50);
-    }
+  const doInit = () => {
+    if (cancelled || initialized || !containerRef.current) return;
+    initialized = true;
+    resizeObserver?.disconnect();
+    resizeObserver = null;
+    loadWebGL();
+    fitTerminal();
+    setIsReady(true);
+    initPty(terminal.cols, terminal.rows);
+    setTimeout(fitTerminal, 150);
+    setTimeout(fitTerminal, 300);
   };
 
-  requestAnimationFrame(() => {
-    checkAndInit();
-  });
+  const tryInit = () => {
+    if (cancelled || initialized || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    if (typeof document.fonts?.ready === "undefined") {
+      doInit();
+      return;
+    }
+
+    document.fonts.ready.then(doInit);
+  };
+
+  frameId = requestAnimationFrame(tryInit);
+
+  if (containerRef.current) {
+    resizeObserver = new ResizeObserver(tryInit);
+    resizeObserver.observe(containerRef.current);
+  }
+
+  return () => {
+    cancelled = true;
+    if (frameId !== null) cancelAnimationFrame(frameId);
+    resizeObserver?.disconnect();
+  };
 }

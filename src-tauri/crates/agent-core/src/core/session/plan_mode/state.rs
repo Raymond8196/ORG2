@@ -146,6 +146,52 @@ impl RequestedExecModeCache {
     }
 }
 
+/// Most recently RESOLVED (approved or rejected) plan for a session.
+///
+/// Feeds the Plan-mode re-entry note: when a session returns to Plan mode
+/// after a resolution, the prompt suffix points the model at the prior
+/// plan file so iterative planning extends it instead of duplicating or
+/// contradicting it (CC `plan_mode_reentry` parity).
+#[derive(Debug, Clone)]
+pub struct LastResolvedPlan {
+    pub plan_path: String,
+    pub plan_title: String,
+    pub approved: bool,
+}
+
+/// Process-global store, keyed by session id.
+///
+/// Global (not a session-object field like the caches above) because the
+/// reader is a prompt section that only carries a session id. Written by
+/// `interaction::plan_approval::resolve_pending` (the single resolution
+/// chokepoint), cleared by `mark_ready` when a new pending plan supersedes
+/// the note. In-memory only — the hint is best-effort and need not survive
+/// a restart.
+fn last_resolved_plans() -> &'static Mutex<HashMap<String, LastResolvedPlan>> {
+    static STORE: std::sync::OnceLock<Mutex<HashMap<String, LastResolvedPlan>>> =
+        std::sync::OnceLock::new();
+    STORE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+pub fn record_last_resolved_plan(session_id: &str, plan: LastResolvedPlan) {
+    if let Ok(mut guard) = last_resolved_plans().lock() {
+        guard.insert(session_id.to_string(), plan);
+    }
+}
+
+pub fn last_resolved_plan(session_id: &str) -> Option<LastResolvedPlan> {
+    last_resolved_plans()
+        .lock()
+        .ok()
+        .and_then(|guard| guard.get(session_id).cloned())
+}
+
+pub fn clear_last_resolved_plan(session_id: &str) {
+    if let Ok(mut guard) = last_resolved_plans().lock() {
+        guard.remove(session_id);
+    }
+}
+
 /// Tracks the most recent non-Plan `AgentExecMode` observed per session.
 ///
 /// This is written every turn the user is in a non-Plan mode and read

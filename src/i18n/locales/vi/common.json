@@ -1422,8 +1422,9 @@
       "planSupport": "Plan",
       "byokSupport": "Keys",
       "incompatible": "Không tương thích",
-      "manageModels": "Thêm / Quản lý mô hình",
-      "manageKeys": "Thêm / Quản lý khóa"
+      "manageModels": "Quản lý mô hình",
+      "manageKeys": "Quản lý khóa",
+      "manageAgents": "Quản lý Agents"
     },
     "editorSpotlight": {
       "searchPlaceholder": "Tìm lệnh...",

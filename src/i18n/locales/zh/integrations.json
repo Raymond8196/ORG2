@@ -896,7 +896,15 @@
     "addKey": "添加密钥",
     "compatibleKeys": "兼容的 Keys",
     "keysTab": "Keys",
-    "plansTab": "方案"
+    "plansTab": "方案",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "所有安装状态",
@@ -1036,7 +1044,8 @@
     "tools": "内置工具",
     "computerUse": "Computer Use",
     "rulesMemoryEvolution": "规则、记忆 & 进化",
-    "externalSkillsets": "Skills, MCPs & Plugins"
+    "externalSkillsets": "Skills, MCPs & Plugins",
+    "housekeeper": "常驻管家"
   },
   "projectConnections": {
     "linear": "Linear",
@@ -1676,7 +1685,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "密钥",
-      "addedTime": "添加时间"
+      "addedTime": "添加时间",
+      "secretBearingConfig": "可能包含 API key 或 Token",
+      "revealConfigFile": "在文件管理器中显示"
     },
     "codexConfig": {
       "sectionTitle": "配置",
@@ -2533,6 +2544,76 @@
       "cpu_offload": "CPU 卸载",
       "cpu_only": "仅 CPU",
       "no_fit": "不推荐"
+    }
+  },
+  "housekeeper": {
+    "eyebrow": "MiniCPM 常驻管家",
+    "title": "常驻管家",
+    "description": "本地 MiniCPM 只处理输入润色、短步骤解释和轻量 UI 控制；编码任务和复杂 ADE 配置仍然交给主 Agent 模型。",
+    "addModel": "添加模型",
+    "autoAccount": "自动选择 MiniCPM vLLM 账号",
+    "tiles": {
+      "model": "模型",
+      "endpoint": "端点",
+      "safeContext": "安全上下文"
+    },
+    "settings": {
+      "enabled": {
+        "title": "启用常驻管家",
+        "description": "关闭后，输入润色、步骤解释和轻量 UI 控制都不会使用 MiniCPM。"
+      },
+      "account": {
+        "title": "vLLM MiniCPM 账号",
+        "description": "复用 KeyVault 里的 vllm_api 账号，不单独创建 credential store。"
+      },
+      "model": {
+        "title": "模型 ID",
+        "description": "Docker vLLM MiniCPM5-1B 默认使用 openbmb/MiniCPM5-1B。"
+      },
+      "context": {
+        "title": "上下文安全预算",
+        "description": "4GB GPU 按 10000 token 保守预算处理，不相信理论 32k 上限。"
+      }
+    },
+    "features": {
+      "promptPolish": {
+        "title": "输入内容润色",
+        "description": "手动点击输入框润色按钮时，先用 MiniCPM 整理要发给强代码模型的指令。"
+      },
+      "stepExplain": {
+        "title": "Agent 步骤解释",
+        "description": "在 session replay 里，为当前步骤生成 1-2 句简短中文解释。"
+      },
+      "uiControl": {
+        "title": "轻量 ADE/UI 控制",
+        "description": "MiniCPM 只能把请求识别成严格白名单里的本地 action。"
+      }
+    },
+    "health": {
+      "title": "健康检查",
+      "idle": "检测 /v1/models，并发送一次小型 chat 请求。",
+      "checking": "正在检查本地 vLLM MiniCPM 服务...",
+      "checkButton": "检查连接",
+      "configureFirst": "需要先配置一个 vLLM MiniCPM 账号。",
+      "connectedTo": "已连接到 {{baseUrl}}",
+      "failed": "MiniCPM 健康检查失败。",
+      "status": "尚未检查"
+    },
+    "sections": {
+      "configuration": "配置",
+      "features": "功能",
+      "diagnostics": "诊断"
+    },
+    "benchmark": {
+      "title": "MiniCPM 输出速度",
+      "idle": "发送一段轻量测试文本，按实际完成耗时计算输出 token/s。",
+      "running": "正在请求本地 vLLM MiniCPM 并统计输出速度...",
+      "ready": "输出 {{tokens}} tokens，用时 {{seconds}}s",
+      "status": "尚未测试",
+      "checkButton": "测试速度",
+      "tokensPerSecond": "输出速度：{{value}} tokens/s",
+      "completionTokens": "输出 tokens：{{value}}",
+      "elapsed": "总耗时：{{value}}s"
     }
   }
 }

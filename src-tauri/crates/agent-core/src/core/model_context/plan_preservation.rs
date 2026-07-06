@@ -135,7 +135,10 @@ mod tests {
 
     #[test]
     fn reinjects_when_plan_compacted_away() {
-        let pre = vec![plan_kickoff(), json!({"role": "assistant", "content": "working"})];
+        let pre = vec![
+            plan_kickoff(),
+            json!({"role": "assistant", "content": "working"}),
+        ];
         let mut post = vec![
             json!({"role": "user", "content": "[Conversation summary — 2 earlier messages compacted]\n\nsummary"}),
             json!({"role": "assistant", "content": "recent"}),
@@ -168,13 +171,11 @@ mod tests {
         reinject_plan_after_compaction(&pre1, &mut post1);
 
         let pre2 = post1.clone();
-        let mut post2 = vec![json!({"role": "user", "content": "[Conversation summary — c2]\n\ns2"})];
+        let mut post2 =
+            vec![json!({"role": "user", "content": "[Conversation summary — c2]\n\ns2"})];
         reinject_plan_after_compaction(&pre2, &mut post2);
         assert_eq!(post2.len(), 2);
-        assert!(post2[1]["content"]
-            .as_str()
-            .unwrap()
-            .contains("step two"));
+        assert!(post2[1]["content"].as_str().unwrap().contains("step two"));
     }
 
     #[test]

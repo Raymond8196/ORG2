@@ -114,8 +114,7 @@ impl AgentTool {
             // past the result `match` below, the guard's Drop emits a
             // terminal Failed so the registry/UI never get stuck on a ghost
             // "running" row. Disarmed once the real verdict is written.
-            let mut finalize_guard =
-                super::helpers::FinalizeGuard::new(task_session_id.clone());
+            let mut finalize_guard = super::helpers::FinalizeGuard::new(task_session_id.clone());
 
             let turn_result = turn_executor::execute_turn(
                 &mut messages,
@@ -154,6 +153,30 @@ impl AgentTool {
             // `execute_turn` return Ok with no content — classify as
             // Cancelled, not Completed (same rule as the background path).
             let was_cancelled = task_cancel_flag.load(std::sync::atomic::Ordering::SeqCst);
+
+            // Worktree disposition BEFORE result assembly, so a kept
+            // worktree's location rides inside the final result text (and
+            // survives the Background Jobs reminder's head-truncation).
+            // Owned by the task so it also runs after a fg→bg transition.
+            let kept_worktree = match worktree_workspace_root {
+                Some(workspace_root) => {
+                    let base_branch = crate::session::persistence::get_session(&task_session_id)
+                        .ok()
+                        .flatten()
+                        .and_then(|record| record.base_branch);
+                    super::helpers::dispose_worktree_after_run(
+                        super::helpers::WorktreeCleanup {
+                            workspace_root,
+                            base_branch,
+                        },
+                        &task_session_id,
+                        "agent",
+                    )
+                    .await
+                }
+                None => None,
+            };
+
             let (final_status, tokens, response) = match turn_result {
                 Ok(result) => {
                     let resp = result.content.or_else(|| {
@@ -191,6 +214,10 @@ impl AgentTool {
                         result.total_tokens,
                         super::helpers::count_tool_uses(&result.messages),
                     );
+                    let resp = super::helpers::with_full_result_pointer(
+                        &task_session_id,
+                        super::helpers::prepend_worktree_note(resp, kept_worktree.as_ref()),
+                    );
                     handler.broadcast_complete();
                     // broadcast_complete stamps the child row `completed`;
                     // a cooperative kill must read `cancelled` instead, or
@@ -211,10 +238,7 @@ impl AgentTool {
                     // and LinkedSession writes, so anything blocking on
                     // "is it still running?" can never deadlock against
                     // slow post-processing.
-                    job_registry::mark_exited(
-                        &task_session_id,
-                        job_registry::JobStatus::Completed,
-                    );
+                    job_registry::mark_exited(&task_session_id, job_registry::JobStatus::Completed);
                     // Store the final result so a transitioned parent reads
                     // it from the Background Jobs reminder exactly like a
                     // native background worker.
@@ -253,6 +277,7 @@ impl AgentTool {
                          resume_session_id=\"{}\" to continue from it.",
                         task_session_id
                     ));
+                    let msg = super::helpers::prepend_worktree_note(msg, kept_worktree.as_ref());
                     handler.broadcast_error();
                     job_registry::mark_exited(&task_session_id, job_registry::JobStatus::Failed);
                     job_registry::set_final_result(&task_session_id, msg.clone());
@@ -282,28 +307,15 @@ impl AgentTool {
                 );
             }
 
-            // Clean up worktree isolation after the run (owned by the task
-            // so it also happens after a fg→bg transition).
-            if let Some(workspace_root) = worktree_workspace_root {
-                let wt_session_id = task_session_id.clone();
-                let wt_result = tokio::task::spawn_blocking(move || {
-                    git::worktree::remove_session_worktree(&workspace_root, &wt_session_id, true)
-                })
-                .await;
-                if let Ok(Err(err)) = wt_result {
-                    warn!(
-                        "[agent] failed to remove isolation worktree for '{}': {}",
-                        task_session_id, err
-                    );
-                }
-            }
-
             match &response {
                 Ok(_) => info!(
                     "[agent] '{}' #{} done (model={}): {} tokens",
                     agent_name, instance_number, model, tokens
                 ),
-                Err(err) => warn!("[agent] '{}' #{} failed: {}", agent_name, instance_number, err),
+                Err(err) => warn!(
+                    "[agent] '{}' #{} failed: {}",
+                    agent_name, instance_number, err
+                ),
             }
 
             // Hand the result to the waiting parent. If the parent already
@@ -349,8 +361,7 @@ impl AgentTool {
         // Poll-select: mirror parent-Stop into the job flag while waiting,
         // deliver the result inline when it arrives before the deadline,
         // otherwise convert to a background handle.
-        let deadline = std::time::Instant::now()
-            + Duration::from_secs(FG_TO_BG_TRANSITION_SECS);
+        let deadline = std::time::Instant::now() + Duration::from_secs(FG_TO_BG_TRANSITION_SECS);
         const PARENT_FLAG_MIRROR_INTERVAL: Duration = Duration::from_millis(200);
         loop {
             match result_rx.try_recv() {

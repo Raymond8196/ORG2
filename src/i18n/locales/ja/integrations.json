@@ -895,7 +895,15 @@
     "addKey": "キーを追加",
     "compatibleKeys": "互換性のある Keys",
     "keysTab": "Keys",
-    "plansTab": "プラン"
+    "plansTab": "プラン",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "すべてのインストール状態",
@@ -1659,7 +1667,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "キー",
-      "addedTime": "追加日"
+      "addedTime": "追加日",
+      "secretBearingConfig": "API key または Token が含まれる可能性があります",
+      "revealConfigFile": "ファイルマネージャーで表示"
     },
     "codexConfig": {
       "sectionTitle": "設定",
@@ -2532,6 +2542,28 @@
       "cpu_offload": "CPU オフロード",
       "cpu_only": "CPU のみ",
       "no_fit": "非推奨"
+    }
+  },
+  "housekeeper": {
+    "addModel": "モデルを追加",
+    "sections": {
+      "configuration": "設定",
+      "features": "機能",
+      "diagnostics": "診断"
+    },
+    "health": {
+      "status": "未チェック"
+    },
+    "benchmark": {
+      "title": "MiniCPM 出力速度",
+      "idle": "軽量のテスト prompt を送信し、実際の完了時間から出力 token/s を計算します。",
+      "running": "ローカル vLLM MiniCPM にリクエストし、出力速度を測定しています...",
+      "ready": "{{seconds}}s で {{tokens}} tokens を出力しました",
+      "status": "未テスト",
+      "checkButton": "速度をテスト",
+      "tokensPerSecond": "出力速度: {{value}} tokens/s",
+      "completionTokens": "出力 tokens: {{value}}",
+      "elapsed": "合計時間: {{value}}s"
     }
   }
 }

@@ -14,9 +14,13 @@ pub mod state;
 //   `PlanSlot` (flat-imported by `tools::impls::plan_mode::create_plan`)
 // - `LastNonPlanModeCache`, `PrePlanModeCache` (flat-imported by
 //   `state::session_runtime`)
+// - `LastResolvedPlan` + its accessors (written by
+//   `interaction::plan_approval`, read by the Plan-mode prompt suffix
+//   section for the re-entry note)
 // `plan_file_name` and `plans_directory` are reached only via the deeper
 // `paths::` segment, so we deliberately do not flatten them.
 pub use paths::{plan_file_path, random_hash, slugify_plan_title, PlanPathCtx};
 pub use state::{
-    LastNonPlanModeCache, PlanSlot, PlanSlotCache, PrePlanModeCache, RequestedExecModeCache,
+    clear_last_resolved_plan, last_resolved_plan, record_last_resolved_plan, LastNonPlanModeCache,
+    LastResolvedPlan, PlanSlot, PlanSlotCache, PrePlanModeCache, RequestedExecModeCache,
 };

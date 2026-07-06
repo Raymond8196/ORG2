@@ -32,6 +32,14 @@ impl AgentExecMode {
         deny.push(tool_names::CREATE_PLAN.to_string());
         // Workflow/node management is side-effectful.
         deny.push(tool_names::MANAGE_NODES.to_string());
+        // MCP bridge tools (`mcp__{server}__{tool}`) carry no per-tool
+        // read-only hint (`McpBridgeTool` keeps the default
+        // `is_read_only() == false`), so a read-only mode must treat the
+        // whole namespace as side-effecting: a "create issue"/"send
+        // message" MCP tool would otherwise execute ungated while the
+        // mode promises read-only. Suffix glob per
+        // `ToolPolicyLayer::matches_any`.
+        deny.push("mcp__*".to_string());
         deny
     }
 
@@ -205,8 +213,9 @@ impl AgentExecMode {
                 "- Call `create_plan` exactly ONCE per user turn when the plan is ready. Do not produce ",
                 "a \"draft\" call followed by a \"final\" call in the same turn — the first call already ",
                 "submits and ends the turn.\n",
-                "- Plan mode is a top-level-only mode: if you spawn subagents via the `agent` tool, ",
-                "they run in Build mode. If you need a subagent to help research, delegate specific ",
+                "- Plan mode is a top-level-only mode: subagents cannot write plans, and while you ",
+                "are in Plan mode any subagent you spawn inherits your read-only restrictions. ",
+                "If you need a subagent to help research, delegate specific ",
                 "read-only investigations to `builtin:explore` and incorporate the findings into ",
                 "*your* plan before calling `create_plan` yourself.\n",
             ),

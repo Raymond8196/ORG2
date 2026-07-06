@@ -39,16 +39,11 @@ import {
 import React, { forwardRef } from "react";
 
 import {
-  ClaudeCodeIcon,
-  CodeBuddyIcon,
-  CodexIcon,
-  CopilotIcon,
-  CursorIcon,
-  GeminiIcon,
-  KimiIcon,
-  KiroIcon,
-  OpenCodeIcon,
-} from "@src/assets/modelIcons/agentIcons";
+  type IconProvider,
+  getIconComponent,
+  getIconProviderFromType,
+  isIconProvider,
+} from "@src/components/ModelIcon/config";
 
 /**
  * Wrap a brand `<svg>` (React.FC<SVGProps>) so it satisfies the
@@ -72,20 +67,24 @@ function brandIcon(
   return Wrapped as unknown as LucideIcon;
 }
 
-// Vendor brand marks. Keys here MUST match the `IconProvider` slugs returned
-// by `getIconProvider(modelType)` in `src/components/ModelIcon/config.ts`,
-// because `resolveSessionRowIcon` looks them up by that slug for CLI sessions.
-// If a CLI agent type has no brand registered here, the resolver falls back
-// to the prefix-based generic icon (`Terminal`) which is fine.
-const CursorBrandIcon = brandIcon(CursorIcon, "CursorBrandIcon");
-const ClaudeCodeBrandIcon = brandIcon(ClaudeCodeIcon, "ClaudeCodeBrandIcon");
-const CodexBrandIcon = brandIcon(CodexIcon, "CodexBrandIcon");
-const CopilotBrandIcon = brandIcon(CopilotIcon, "CopilotBrandIcon");
-const GeminiBrandIcon = brandIcon(GeminiIcon, "GeminiBrandIcon");
-const KiroBrandIcon = brandIcon(KiroIcon, "KiroBrandIcon");
-const KimiBrandIcon = brandIcon(KimiIcon, "KimiBrandIcon");
-const OpenCodeBrandIcon = brandIcon(OpenCodeIcon, "OpenCodeBrandIcon");
-const WorkBuddyBrandIcon = brandIcon(CodeBuddyIcon, "WorkBuddyBrandIcon");
+const canonicalBrandIconCache = new Map<IconProvider, LucideIcon>();
+
+function resolveCanonicalBrandIcon(iconId: string): LucideIcon | undefined {
+  const iconProvider = isIconProvider(iconId)
+    ? iconId
+    : getIconProviderFromType(iconId);
+  if (iconProvider === "unknown") return undefined;
+
+  const cached = canonicalBrandIconCache.get(iconProvider);
+  if (cached) return cached;
+
+  const IconComponent = getIconComponent(iconProvider);
+  if (!IconComponent) return undefined;
+
+  const BrandIcon = brandIcon(IconComponent, `${iconProvider}BrandIcon`);
+  canonicalBrandIconCache.set(iconProvider, BrandIcon);
+  return BrandIcon;
+}
 
 const ICON_MAP: Record<string, LucideIcon> = {
   omega: Omega,
@@ -103,15 +102,6 @@ const ICON_MAP: Record<string, LucideIcon> = {
   sprout: Sprout,
   terminal: Terminal,
   bot: Bot,
-  cursor: CursorBrandIcon,
-  claude_code: ClaudeCodeBrandIcon,
-  codex: CodexBrandIcon,
-  copilot: CopilotBrandIcon,
-  gemini: GeminiBrandIcon,
-  kiro: KiroBrandIcon,
-  kimi: KimiBrandIcon,
-  opencode: OpenCodeBrandIcon,
-  workbuddy: WorkBuddyBrandIcon,
 };
 
 const DEFAULT_ICON: LucideIcon = Bot;
@@ -119,6 +109,10 @@ const DEFAULT_ICON: LucideIcon = Bot;
 export function resolveAgentIcon(
   iconId: string | undefined | null
 ): LucideIcon {
-  if (iconId && ICON_MAP[iconId]) return ICON_MAP[iconId];
-  return DEFAULT_ICON;
+  if (!iconId) return DEFAULT_ICON;
+
+  const canonicalBrandIcon = resolveCanonicalBrandIcon(iconId);
+  if (canonicalBrandIcon) return canonicalBrandIcon;
+
+  return ICON_MAP[iconId] ?? DEFAULT_ICON;
 }

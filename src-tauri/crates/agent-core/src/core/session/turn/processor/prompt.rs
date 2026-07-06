@@ -234,8 +234,7 @@ impl UnifiedMessageProcessor {
             if !jobs.is_empty() {
                 dynamic_sections
                     .push(super::super::background_reminder::build_background_jobs_reminder(&jobs));
-                let inlined =
-                    super::super::background_reminder::inlined_result_handles(&jobs);
+                let inlined = super::super::background_reminder::inlined_result_handles(&jobs);
                 if !inlined.is_empty() {
                     crate::tools::impls::coding::exec::registry::acknowledge_outputs(&inlined);
                 }
@@ -250,31 +249,24 @@ impl UnifiedMessageProcessor {
         const NAG_THRESHOLD: u32 = 10;
         {
             let rounds = self
-                .rounds_since_tool(&self.rounds_since_todo, crate::tools::names::MANAGE_TODO, session_id)
+                .rounds_since_tool(
+                    &self.rounds_since_todo,
+                    crate::tools::names::MANAGE_TODO,
+                    session_id,
+                )
                 .await;
             if rounds >= NAG_THRESHOLD {
                 let todo_snapshot = tokio::task::block_in_place(|| {
                     crate::persistence::db_helpers::todos::get_todos(session_id).unwrap_or_default()
                 });
-                let mut reminder = String::from(
-                    "<system-reminder>If you are working on a multi-step task, \
-                     remember to use the manage_todo tool to keep the task list \
-                     up to date. Mark the current task in_progress and completed \
-                     as you proceed.",
+                dynamic_sections.push(
+                    crate::tools::impls::coding::manage_todo::stale_todo_reminder(&todo_snapshot),
                 );
-                if todo_snapshot.is_empty() {
-                    reminder.push_str(" The todo list is currently empty.");
-                } else {
-                    reminder.push_str("\nCurrent todo list:\n");
-                    for (idx, todo) in todo_snapshot.iter().enumerate() {
-                        reminder.push_str(&format!(
-                            "{}. [{}] {}\n",
-                            idx, todo.status, todo.content
-                        ));
-                    }
-                }
-                reminder.push_str("</system-reminder>");
-                dynamic_sections.push(reminder);
+                // Reset so the nag re-arms instead of re-firing every turn in
+                // a stalled session — the counter now means "rounds since the
+                // last todo call OR the last nag", mirroring the reference
+                // harness's reminder-to-reminder throttle.
+                *self.rounds_since_todo.lock().await = Some(0);
                 info!(
                     "[unified_processor] Nag reminder injected ({} turns since last todo call, {} todos attached, session={})",
                     rounds,
@@ -315,19 +307,19 @@ impl UnifiedMessageProcessor {
                 if has_agent_tool {
                     // Same allowlist source the `agent` tool schema uses —
                     // agent list changes propagate to both surfaces.
-                    let allowed: Option<Vec<String>> = if self.runtime.resolved.sub_agents.is_empty()
-                    {
-                        None
-                    } else {
-                        Some(
-                            self.runtime
-                                .resolved
-                                .sub_agents
-                                .iter()
-                                .map(|s| s.agent_id.clone())
-                                .collect(),
-                        )
-                    };
+                    let allowed: Option<Vec<String>> =
+                        if self.runtime.resolved.sub_agents.is_empty() {
+                            None
+                        } else {
+                            Some(
+                                self.runtime
+                                    .resolved
+                                    .sub_agents
+                                    .iter()
+                                    .map(|s| s.agent_id.clone())
+                                    .collect(),
+                            )
+                        };
                     let ids = crate::tools::impls::orchestration::agent::llm_visible_agent_ids(
                         allowed.as_ref(),
                     );

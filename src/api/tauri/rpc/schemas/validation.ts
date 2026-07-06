@@ -20,6 +20,27 @@ export const CLI_AGENT = {
   KIRO: "kiro",
   KIMI: "kimi_cli",
   OPENCODE: "opencode",
+  AIDER: "aider",
+  GOOSE: "goose",
+  AMP: "amp",
+  CLINE: "cline",
+  KILO: "kilo",
+  GROK: "grok_cli",
+  DEVIN: "devin",
+  ROVO: "rovo",
+  HERMES: "hermes",
+  OPENCLAW: "openclaw",
+  AUG: "aug",
+  CODEBUFF: "codebuff",
+  QWEN_CODE: "qwen_code",
+  MIMO_CODE: "mimo_code",
+  ANTIGRAVITY: "antigravity",
+  CONTINUE: "continue_cli",
+  DROID: "droid",
+  MISTRAL_VIBE: "mistral_vibe",
+  AUTOHAND: "autohand",
+  OMP: "omp",
+  PI: "pi",
 } as const;
 
 /** CLI-based coding agents (external processes managed by the app). */
@@ -32,6 +53,27 @@ export const CliAgentTypeSchema = z.union([
   z.literal("kiro"),
   z.literal("kimi_cli"),
   z.literal("opencode"),
+  z.literal("aider"),
+  z.literal("goose"),
+  z.literal("amp"),
+  z.literal("cline"),
+  z.literal("kilo"),
+  z.literal("grok_cli"),
+  z.literal("devin"),
+  z.literal("rovo"),
+  z.literal("hermes"),
+  z.literal("openclaw"),
+  z.literal("aug"),
+  z.literal("codebuff"),
+  z.literal("qwen_code"),
+  z.literal("mimo_code"),
+  z.literal("antigravity"),
+  z.literal("continue_cli"),
+  z.literal("droid"),
+  z.literal("mistral_vibe"),
+  z.literal("autohand"),
+  z.literal("omp"),
+  z.literal("pi"),
 ]);
 
 /** Direct API key providers (REST API, no child process). */
@@ -301,6 +343,30 @@ export const AgentEnvConfigSchema = z.object({
   baseUrlPlaceholder: z.string().optional(),
 });
 
+export const AcpSupportSchema = z.enum([
+  "native",
+  "adapter_backed",
+  "planned",
+  "partial",
+  "unavailable",
+]);
+
+export const CliConfigFileFormatSchema = z.enum([
+  "json",
+  "jsonc",
+  "toml",
+  "yaml",
+  "text",
+]);
+
+export const CliConfigFileSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  path: z.string(),
+  format: CliConfigFileFormatSchema,
+  secretBearing: z.boolean(),
+});
+
 /** Matches `AvailableAgent` in `src-tauri/.../discovery.rs` (camelCase JSON). */
 export const AvailableAgentSchema = z.object({
   name: z.string(),
@@ -313,6 +379,7 @@ export const AvailableAgentSchema = z.object({
   docsUrl: z.string().optional(),
   hasSubscriptionPlan: z.boolean(),
   compatibleApiProviders: z.array(z.string()),
+  configFiles: z.array(CliConfigFileSchema),
   installMethods: z.array(CliInstallMethodSchema),
   uninstallMethods: z.array(CliInstallMethodSchema),
   envConfig: AgentEnvConfigSchema.optional(),
@@ -323,10 +390,16 @@ export const AvailableAgentSchema = z.object({
   iconProvider: z.string(),
   /** Paired API provider for brand grouping (e.g., "anthropic_api" for claude_code) */
   pairedApiProvider: z.string().optional(),
+  /** Bare binary name to launch in a PTY shell (e.g. "claude", "gemini"). Source of truth from Rust registry. */
+  command: z.string(),
   /** Whether ORGII Rust agents can use this CLI's credentials */
   supportsRustAgents: z.boolean(),
+  acpSupport: AcpSupportSchema,
   /** Whether this agent can use ORGII Pool (Token Market) billing. Always false for CLI agents. */
   supportsOrgiiPool: z.boolean(),
+  /** Whether this CLI agent accepts an initial prompt from ORGII's GUI composer.
+   *  When false the session creator shows a Start button (pure-TUI mode). */
+  supportsGui: z.boolean(),
 });
 
 /** Matches `AvailableApiProvider` in `src-tauri/.../discovery.rs` (camelCase JSON). */
@@ -425,6 +498,114 @@ export const UpdateKeyHealthInput = z.object({
   enabledModels: z.array(z.string()).nullable().optional(),
   quotaInfo: z.record(z.string(), z.unknown()).nullable().optional(),
   modelContextLengths: ModelContextLengthsSchema.nullable().optional(),
+});
+
+export const PromptPolishRequestSchema = z.object({
+  text: z.string(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const PromptPolishInput = z.object({
+  request: PromptPolishRequestSchema,
+});
+
+export const PromptPolishResponseSchema = z.object({
+  polishedText: z.string(),
+  model: z.string(),
+  accountId: z.string(),
+});
+
+export const SessionStepExplainRequestSchema = z.object({
+  eventId: z.string(),
+  functionName: z.string().nullable().optional(),
+  actionType: z.string().nullable().optional(),
+  displayText: z.string().nullable().optional(),
+  displayStatus: z.string().nullable().optional(),
+  displayVariant: z.string().nullable().optional(),
+  source: z.string().nullable().optional(),
+  filePath: z.string().nullable().optional(),
+  command: z.string().nullable().optional(),
+  args: z.unknown().nullable().optional(),
+  result: z.unknown().nullable().optional(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const SessionStepExplainInput = z.object({
+  request: SessionStepExplainRequestSchema,
+});
+
+export const SessionStepExplainResponseSchema = z.object({
+  explanation: z.string(),
+  model: z.string(),
+  accountId: z.string(),
+});
+
+export const HousekeeperHealthCheckRequestSchema = z.object({
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const HousekeeperHealthCheckInput = z.object({
+  request: HousekeeperHealthCheckRequestSchema,
+});
+
+export const HousekeeperHealthCheckResponseSchema = z.object({
+  ok: z.boolean(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  baseUrl: z.string().nullable().optional(),
+  maxModelLen: z.number().int().positive().nullable().optional(),
+  contextLimitTokens: z.number().int().positive(),
+  error: z.string().nullable().optional(),
+});
+
+export const HousekeeperTokenBenchmarkRequestSchema = z.object({
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+});
+
+export const HousekeeperTokenBenchmarkInput = z.object({
+  request: HousekeeperTokenBenchmarkRequestSchema,
+});
+
+export const HousekeeperTokenBenchmarkResponseSchema = z.object({
+  accountId: z.string(),
+  model: z.string(),
+  baseUrl: z.string(),
+  elapsedMs: z.number().int().nonnegative(),
+  promptTokens: z.number().int().nonnegative().nullable().optional(),
+  completionTokens: z.number().int().nonnegative(),
+  totalTokens: z.number().int().nonnegative().nullable().optional(),
+  tokensPerSecond: z.number(),
+  sampleText: z.string(),
+});
+
+export const HousekeeperUiContextSchema = z.object({
+  route: z.string().nullable().optional(),
+  activePanel: z.string().nullable().optional(),
+});
+
+export const HousekeeperUiIntentRequestSchema = z.object({
+  text: z.string(),
+  accountId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  allowedActionIds: z.array(z.string()).default([]),
+  uiContext: HousekeeperUiContextSchema.nullable().optional(),
+});
+
+export const HousekeeperUiIntentInput = z.object({
+  request: HousekeeperUiIntentRequestSchema,
+});
+
+export const HousekeeperUiIntentResponseSchema = z.object({
+  actionId: z.string().nullable(),
+  params: z.record(z.string(), z.unknown()),
+  confidence: z.number(),
+  reason: z.string().nullable().optional(),
+  model: z.string(),
+  accountId: z.string(),
 });
 
 export const GetEnvForAgentInput = z.object({
@@ -608,6 +789,33 @@ export type ModelVariantInfo = z.infer<typeof ModelVariantInfoSchema>;
 export type DefaultVariantInfo = z.infer<typeof DefaultVariantInfoSchema>;
 export type DetectedQuotaInfo = z.infer<typeof DetectedQuotaInfoSchema>;
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
+export type PromptPolishRequest = z.infer<typeof PromptPolishRequestSchema>;
+export type PromptPolishResponse = z.infer<typeof PromptPolishResponseSchema>;
+export type SessionStepExplainRequest = z.infer<
+  typeof SessionStepExplainRequestSchema
+>;
+export type SessionStepExplainResponse = z.infer<
+  typeof SessionStepExplainResponseSchema
+>;
+export type HousekeeperHealthCheckRequest = z.infer<
+  typeof HousekeeperHealthCheckRequestSchema
+>;
+export type HousekeeperHealthCheckResponse = z.infer<
+  typeof HousekeeperHealthCheckResponseSchema
+>;
+export type HousekeeperTokenBenchmarkRequest = z.infer<
+  typeof HousekeeperTokenBenchmarkRequestSchema
+>;
+export type HousekeeperTokenBenchmarkResponse = z.infer<
+  typeof HousekeeperTokenBenchmarkResponseSchema
+>;
+export type HousekeeperUiContext = z.infer<typeof HousekeeperUiContextSchema>;
+export type HousekeeperUiIntentRequest = z.infer<
+  typeof HousekeeperUiIntentRequestSchema
+>;
+export type HousekeeperUiIntentResponse = z.infer<
+  typeof HousekeeperUiIntentResponseSchema
+>;
 export type CursorNativeOauthStartResponse = z.infer<
   typeof CursorNativeOauthStartResponseSchema
 >;

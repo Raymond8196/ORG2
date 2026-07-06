@@ -793,6 +793,13 @@
     "hideWorkstation": "Ẩn Workstation",
     "restoreSplitView": "Hiện Workstation",
     "shrinkToWorkstation": "Thu nhỏ bảng chat (hiện Workstation)",
+    "tuiModeOn": "Chế độ TUI (nhấp để tắt)",
+    "tuiModeOff": "Bật chế độ TUI",
+    "tabs": {
+      "newTerminal": "Terminal Mới",
+      "newTab": "Tab mới",
+      "terminals": "Terminal"
+    },
     "collapseAll": "Thu gọn tất cả",
     "copyEventJson": "Sao chép JSON sự kiện",
     "copyEventJsonCopied": "Đã sao chép!",
@@ -944,7 +951,8 @@
         "byMe": "Bởi tôi",
         "mentioned": "Được nhắc đến"
       }
-    }
+    },
+    "readOnly": "Chỉ đọc"
   },
   "chatStatus": {
     "approved": "Đã phê duyệt",
@@ -1197,6 +1205,9 @@
     "awaitOutputKilled": "Đã dừng",
     "awaitOutputNotFound": "Tác vụ nền không được theo dõi",
     "awaitOutputExitCode": "exit {{exitCode}}",
+    "skillLoading": "Reading skill",
+    "skillLoaded": "Skill loaded",
+    "skillFailed": "Skill not found",
     "killProcessRunning": "Đang kết thúc tiến trình",
     "killProcessDone": "Đã kết thúc tiến trình",
     "killProcessFailed": "Không thể kết thúc tiến trình",

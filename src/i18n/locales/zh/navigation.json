@@ -46,7 +46,8 @@
     "projectManager": "项目管理器",
     "diff": "Diff",
     "opsControl": "Ops Control",
-    "colleagues": "同事"
+    "colleagues": "同事",
+    "terminals": "终端"
   },
   "trajectoryPanel": {
     "title": "轨迹",

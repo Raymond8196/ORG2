@@ -53,6 +53,7 @@ export const INTERNAL_FUNCTIONS = new Set([
   "useAtom",
   "useSetAtom",
   "renderWithHooks",
+  "react_stack_bottom_frame",
   "mountIndeterminateComponent",
   "beginWork$1",
   "performUnitOfWork",
@@ -80,6 +81,21 @@ export const TAURI_INTERNAL_FUNCTIONS = new Set([
   "invokeTauri",
   "invoke",
   "trackTauriInvoke",
+  "patchedTauriInvoke",
+  ...INTERNAL_FUNCTIONS,
+]);
+
+export const TIMER_INTERNAL_FUNCTIONS = new Set([
+  "installTimerTracking",
+  "captureTimerSource",
+  "recordTimerFire",
+  "wrappedCallback",
+  "setInterval",
+  "setTimeout",
+  "requestAnimationFrame",
+  "patchedSetInterval",
+  "patchedSetTimeout",
+  "patchedRequestAnimationFrame",
   ...INTERNAL_FUNCTIONS,
 ]);
 
@@ -87,8 +103,10 @@ export const TAURI_INTERNAL_FUNCTIONS = new Set([
 // Stack trace parsers
 // ============================================================================
 
-/** Capture and filter a stack trace for HTTP API calls. */
-export const getApiStack = (): string => {
+function getFilteredStack(
+  internalFunctions: Set<string>,
+  ignoredSubstrings: string[]
+): string {
   try {
     const stack = new Error().stack || "";
     const lines = stack.split("\n");
@@ -99,15 +117,17 @@ export const getApiStack = (): string => {
         const trimmed = line.trim();
         if (!trimmed || trimmed === "@") return false;
         if (trimmed.includes("node_modules")) return false;
-        if (trimmed.includes("apiTracker.ts")) return false;
-        if (trimmed.includes("apiConfig.ts")) return false;
-        if (trimmed.includes("axios")) return false;
+        if (
+          ignoredSubstrings.some((substring) => trimmed.includes(substring))
+        ) {
+          return false;
+        }
 
         const funcMatch = trimmed.match(/^(\w+)@/);
-        if (funcMatch && INTERNAL_FUNCTIONS.has(funcMatch[1])) return false;
+        if (funcMatch && internalFunctions.has(funcMatch[1])) return false;
 
         const chromeMatch = trimmed.match(/at\s+(\w+)\s*\(/);
-        if (chromeMatch && INTERNAL_FUNCTIONS.has(chromeMatch[1])) return false;
+        if (chromeMatch && internalFunctions.has(chromeMatch[1])) return false;
 
         return true;
       })
@@ -118,45 +138,50 @@ export const getApiStack = (): string => {
   } catch {
     return "";
   }
-};
+}
+
+/** Capture and filter a stack trace for HTTP API calls. */
+export const getApiStack = (): string =>
+  getFilteredStack(INTERNAL_FUNCTIONS, [
+    "apiTracker.ts",
+    "apiConfig.ts",
+    "axios",
+  ]);
 
 /** Capture and filter a stack trace for Tauri invoke calls. */
-export const getTauriStack = (): string => {
-  try {
-    const stack = new Error().stack || "";
-    const lines = stack.split("\n");
+export const getTauriStack = (): string =>
+  getFilteredStack(TAURI_INTERNAL_FUNCTIONS, [
+    "apiTracker.ts",
+    "tauri/init.ts",
+  ]);
 
-    const relevantLines = lines
-      .slice(2)
-      .filter((line) => {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed === "@") return false;
-        if (trimmed.includes("node_modules")) return false;
-        if (trimmed.includes("apiTracker.ts")) return false;
-        if (trimmed.includes("tauri/init.ts")) return false;
-
-        const funcMatch = trimmed.match(/^(\w+)@/);
-        if (funcMatch && TAURI_INTERNAL_FUNCTIONS.has(funcMatch[1]))
-          return false;
-
-        const chromeMatch = trimmed.match(/at\s+(\w+)\s*\(/);
-        if (chromeMatch && TAURI_INTERNAL_FUNCTIONS.has(chromeMatch[1]))
-          return false;
-
-        return true;
-      })
-      .slice(0, 5)
-      .map((line) => line.trim());
-
-    return relevantLines.join("\n");
-  } catch {
-    return "";
-  }
-};
+/** Capture and filter a stack trace for timer/RAF creation sites. */
+export const getTimerStack = (): string =>
+  getFilteredStack(TIMER_INTERNAL_FUNCTIONS, ["apiTracker.ts"]);
 
 // ============================================================================
 // File info extraction
 // ============================================================================
+
+function extractFunctionNameFromStackLine(line: string): string | undefined {
+  const safariMatch = line.match(/^(\w+)@/);
+  if (safariMatch) return safariMatch[1];
+
+  const chromeNameMatch = line.match(/at\s+(\w+)\s*\(/);
+  if (chromeNameMatch) return chromeNameMatch[1];
+
+  return undefined;
+}
+
+function extractSourceLocationFromStackLine(line: string) {
+  const pathMatch = line.match(/(?:^|[/(])((?:src|app)\/[^:)]+):(\d+):\d+/);
+  if (!pathMatch) return {};
+
+  return {
+    filePath: pathMatch[1],
+    lineNumber: parseInt(pathMatch[2], 10),
+  };
+}
 
 /** Parse file path, component name, function name, and line number from a stack trace. */
 export const extractFileInfo = (stack: string) => {
@@ -164,47 +189,20 @@ export const extractFileInfo = (stack: string) => {
     const lines = stack.split("\n");
     if (lines.length === 0) return {};
 
-    const firstLine = lines[0];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      const functionOrComponentName = extractFunctionNameFromStackLine(trimmed);
+      const { filePath, lineNumber } =
+        extractSourceLocationFromStackLine(trimmed);
 
-    let functionOrComponentName: string | undefined;
-    let filePath: string | undefined;
-    let lineNumber: number | undefined;
+      if (!functionOrComponentName && !filePath) continue;
 
-    // Safari/Firefox format: "FunctionName@http://..."
-    const safariMatch = firstLine.match(/^(\w+)@(.*)$/);
-    if (safariMatch) {
-      functionOrComponentName = safariMatch[1];
-      const urlPart = safariMatch[2];
-      if (urlPart) {
-        const pathMatch = urlPart.match(
-          /(?:https?:\/\/[^/]+\/)?(src\/[^:]+):(\d+):\d+/
-        );
-        if (pathMatch) {
-          filePath = pathMatch[1];
-          lineNumber = parseInt(pathMatch[2], 10);
-        }
+      let componentName = functionOrComponentName;
+      if (filePath) {
+        const fileNameMatch = filePath.match(/\/([^/]+?)(?:\/index)?\.tsx?$/);
+        if (fileNameMatch) componentName = fileNameMatch[1];
       }
-    } else {
-      // Chrome format
-      const chromeNameMatch = firstLine.match(/at\s+(\w+)\s*\(/);
-      if (chromeNameMatch) functionOrComponentName = chromeNameMatch[1];
 
-      const chromePathMatch = firstLine.match(
-        /(?:webpack-internal:\/\/\/\.)?(?:https?:\/\/[^/]+\/)?(src\/[^:)]+):(\d+):\d+/
-      );
-      if (chromePathMatch) {
-        filePath = chromePathMatch[1];
-        lineNumber = parseInt(chromePathMatch[2], 10);
-      }
-    }
-
-    let componentName = functionOrComponentName;
-    if (filePath) {
-      const fileNameMatch = filePath.match(/\/([^/]+?)(?:\/index)?\.tsx?$/);
-      if (fileNameMatch) componentName = fileNameMatch[1];
-    }
-
-    if (componentName || filePath) {
       return {
         filePath,
         componentName,
@@ -212,6 +210,7 @@ export const extractFileInfo = (stack: string) => {
         lineNumber,
       };
     }
+
     return {};
   } catch {
     return {};

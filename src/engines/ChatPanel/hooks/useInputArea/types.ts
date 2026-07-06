@@ -139,6 +139,16 @@ export interface DragDropHandlers {
   handleDrop: (e: DragEvent<HTMLDivElement>) => void;
 }
 
+export type PromptPolishStatus = "idle" | "polishing" | "polished";
+
+export interface PromptPolishControl {
+  status: PromptPolishStatus;
+  isPolishing: boolean;
+  isPolished: boolean;
+  toggle: () => Promise<void>;
+  reset: () => void;
+}
+
 // ============================================
 // Main Return Type
 // ============================================
@@ -167,6 +177,7 @@ export interface UseInputAreaReturn {
   handleAtMention: (query: string, position: { x: number; y: number }) => void;
   handleAtMentionClose: () => void;
   isInputEmpty: () => boolean;
+  promptPolish: PromptPolishControl;
 
   // Context Menu
   showContextMenu: boolean;

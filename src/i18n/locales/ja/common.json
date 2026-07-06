@@ -1422,8 +1422,9 @@
       "planSupport": "Plan",
       "byokSupport": "Keys",
       "incompatible": "非対応",
-      "manageModels": "モデルの追加 / 管理",
-      "manageKeys": "キーの追加 / 管理"
+      "manageModels": "モデルを管理",
+      "manageKeys": "キーを管理",
+      "manageAgents": "Agent を管理"
     },
     "editorSpotlight": {
       "searchPlaceholder": "コマンドを検索...",

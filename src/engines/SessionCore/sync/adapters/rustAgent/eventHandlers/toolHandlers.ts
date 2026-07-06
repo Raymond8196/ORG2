@@ -133,6 +133,7 @@ export async function handleToolResult(
   const resultContent = bufferedOutput || event.result || "";
 
   let trackedParentEventId: string | null = null;
+  let shouldMarkParentRunning = false;
 
   if (
     typeof resultContent === "string" &&
@@ -148,6 +149,7 @@ export async function handleToolResult(
         if (activeIdx >= 0) {
           const activeEvent = events[activeIdx];
           trackedParentEventId = activeEvent.id;
+          shouldMarkParentRunning = true;
           ctx.trackedCodingSessionsRef.current.set(
             codingSessionId,
             activeEvent.id
@@ -161,9 +163,10 @@ export async function handleToolResult(
   }
 
   // The result row itself is already in the Rust EventStore. The broadcast
-  // result is only used here for subagent-session detection above.
+  // result is only used here for subagent-session detection above; never
+  // downgrade a completed authoritative parent event back to running.
 
-  if (trackedParentEventId) {
+  if (trackedParentEventId && shouldMarkParentRunning) {
     eventStoreProxy.updateById(
       trackedParentEventId,
       {

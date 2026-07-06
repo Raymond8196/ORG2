@@ -10,52 +10,32 @@ import {
 } from "@src/config/mainAppPaths";
 import { useRouteViewMode } from "@src/config/routeViewModeConfig";
 import {
-  MIN_WIDTH as CHAT_MIN_WIDTH,
   CHAT_WIDTH_CSS_VAR,
   clampChatWidth,
   getChatMaxWidth,
 } from "@src/engines/ChatPanel/config";
-import {
-  clearSessionAtom,
-  eventCountAtom,
-  eventsAtom,
-} from "@src/engines/SessionCore/core/atoms";
 import type { CreatedOrgResult } from "@src/features/TeamCollaboration/components/CreateCollabOrgView";
-import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useShouldOffsetChatPanelHeader } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import { useIsCompactLayout } from "@src/modules/shared/layouts/useCompactLayout";
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
-import { VerticalResizeHandle } from "@src/scaffold/Resize";
-import { GUIDE_TARGETS } from "@src/scaffold/Tutorials";
 import {
   collabConnectionStatesAtom,
   collabMembersAtom,
   collabOrgsAtom,
   remoteTeammateSessionsAtom,
 } from "@src/store/collaboration/collabOrgsAtom";
-import {
-  COLLAB_CONNECTION_STATUS,
-  type CollabConnectionStatus,
-} from "@src/store/collaboration/types";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
-import {
-  activeSessionIdAtom,
-  sessionCreatorStateAtom,
-  workstationActiveSessionIdAtom,
-} from "@src/store/session";
+import { sessionCreatorStateAtom } from "@src/store/session";
+import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
-  CHAT_PANEL_SURFACE_KIND,
-  chatHistoryDisplayModeAtom,
   chatPanelContentModeAtom,
   chatPanelCreateProjectContextAtom,
   chatPanelCreateTargetAtom,
-  chatPanelExploreAgentSearchEnabledAtom,
   chatPanelExploreOpenAtom,
   chatPanelManageIssuesOpenAtom,
   chatPanelMaximizedAtom,
-  chatPanelNavigateAtom,
   chatPanelSelectedCollabOrgAtom,
   chatPanelSelectedProjectAtom,
   chatPanelSelectedProjectOrgAtom,
@@ -63,15 +43,9 @@ import {
   chatPanelSelectedWorkspaceAtom,
   chatPanelStartPageOpenAtom,
   chatPanelWorkspaceDashboardOpenAtom,
-  chatTokenUsageVisibleAtom,
-  chatTurnPaginationEnabledAtom,
   chatWidthAtom,
   toggleChatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
-import {
-  collapseAllCommandAtom,
-  setAllBlocksCollapsedAtom,
-} from "@src/store/ui/collapseStateAtom";
 import { sidebarCollapsedAtom } from "@src/store/ui/sidebarAtom";
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 
@@ -79,43 +53,22 @@ import { useReloadSession } from "./ChatHistory/hooks/useReloadSession";
 import { ChatPanelContent } from "./ChatPanelContent";
 import { ChatPanelEmptyContent } from "./ChatPanelEmptyContent";
 import { ChatPanelHeader } from "./ChatPanelHeader";
-import {
-  ChatPanelHeaderBreadcrumb,
-  ChatPanelSurfaceHeaderPublisher,
-} from "./header";
+import { ChatPanelShell } from "./ChatPanelShell";
+import { ChatPanelPlusMenu, ChatPanelTabBar } from "./ChatPanelTabBar";
+import { ChatPanelSurfaceHeaderPublisher } from "./header";
 import { useAiWorkItemCreator } from "./hooks/useAiWorkItemCreator";
 import { useChatPanelContentState } from "./hooks/useChatPanelContentState";
 import { useChatPanelCreateTarget } from "./hooks/useChatPanelCreateTarget";
+import { useChatPanelHeaderActions } from "./hooks/useChatPanelHeaderActions";
+import { useChatPanelNavigationActions } from "./hooks/useChatPanelNavigationActions";
 import { useChatPanelResize } from "./hooks/useChatPanelResize";
 import { useChatPanelSessionModals } from "./hooks/useChatPanelSessionModals";
+import { useChatPanelTabsController } from "./hooks/useChatPanelTabsController";
+import { useCollabOrgHeaderModel } from "./hooks/useCollabOrgHeaderModel";
 import { usePanelTitle } from "./hooks/usePanelTitle";
 import { useProjectWorkItemHandlers } from "./hooks/useProjectWorkItemHandlers";
 import { useViewportWidth } from "./hooks/useViewportWidth";
 import type { ChatPanelProps, ChatPanelRegionNotice } from "./types";
-
-const COLLAB_HEADER_STATUS_COLOR: Record<CollabConnectionStatus, string> = {
-  [COLLAB_CONNECTION_STATUS.CONNECTED]: "bg-success-6",
-  [COLLAB_CONNECTION_STATUS.CONNECTING]: "bg-warning-6",
-  [COLLAB_CONNECTION_STATUS.DISCONNECTED]: "bg-fill-4",
-  [COLLAB_CONNECTION_STATUS.ERROR]: "bg-danger-6",
-};
-
-function CollabHeaderStatusPill({
-  label,
-  status,
-}: {
-  label: string;
-  status: CollabConnectionStatus;
-}): React.ReactNode {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-fill-2 px-2 py-0.5 text-[11px] font-medium text-text-2">
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${COLLAB_HEADER_STATUS_COLOR[status]}`}
-      />
-      {label}
-    </span>
-  );
-}
 
 const ChatPanel: React.FC<ChatPanelProps> = memo(
   ({
@@ -138,16 +91,13 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const isCompactLayout = useIsCompactLayout();
     const navigate = useNavigate();
     const viewMode = useRouteViewMode();
-
     const { currentSessionId, panelTitle, currentSession } = usePanelTitle();
     const activeSession = currentSession ?? undefined;
     const handleReloadSession = useReloadSession(currentSessionId ?? null);
 
     const [contentMode, setContentMode] = useAtom(chatPanelContentModeAtom);
     const [createTarget, setCreateTarget] = useAtom(chatPanelCreateTargetAtom);
-    const [startPageOpen, setStartPageOpen] = useAtom(
-      chatPanelStartPageOpenAtom
-    );
+    const startPageOpen = useAtomValue(chatPanelStartPageOpenAtom);
     const [workItemCreateDraft, setWorkItemCreateDraft] =
       useState<WorkItemDraft | null>(null);
     const [showWorkItemAgentCreator, setShowWorkItemAgentCreator] = useState(
@@ -156,6 +106,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const [showProjectAgentCreator, setShowProjectAgentCreator] = useState(
       Boolean(SessionCreatorSlot)
     );
+
     const selectedWorkItem = useAtomValue(chatPanelSelectedWorkItemAtom);
     const selectedProject = useAtomValue(chatPanelSelectedProjectAtom);
     const selectedProjectOrg = useAtomValue(chatPanelSelectedProjectOrgAtom);
@@ -197,20 +148,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       toggleChatFocus();
     }, [toggleChatFocus]);
 
-    const openSearchRef = React.useRef<(() => void) | null>(null);
-    const {
-      isOpen: isHeaderActionsOpen,
-      isPositioned: isHeaderActionsPositioned,
-      toggle: toggleHeaderActionsMenu,
-      close: closeHeaderActionsMenu,
-      triggerRef: headerActionsTriggerRef,
-      panelRef: headerActionsDropdownRef,
-      panelPosition: headerActionsPosition,
-    } = useDropdownEngine<HTMLButtonElement>({
-      gap: 4,
-      align: "right",
-      placement: "bottom",
-    });
+    const isCliAgentSession = currentSession?.category === "cli_agent";
+    const [tuiMode, setTuiMode] = useAtom(tuiModeAtom(currentSessionId ?? ""));
+    const showTuiModeToggle = Boolean(currentSessionId) && isCliAgentSession;
+    const handleTuiModeToggle = useCallback(() => {
+      setTuiMode((prev) => !prev);
+    }, [setTuiMode]);
 
     const [regionNotice, setRegionNotice] =
       React.useState<ChatPanelRegionNotice | null>(null);
@@ -221,240 +164,96 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       []
     );
 
-    const [paginationEnabled, setPaginationEnabled] = useAtom(
-      chatTurnPaginationEnabledAtom
-    );
-    const [displayMode, setDisplayMode] = useAtom(chatHistoryDisplayModeAtom);
-    const [tokenUsageVisible, setTokenUsageVisible] = useAtom(
-      chatTokenUsageVisibleAtom
-    );
-    const [exploreAgentSearchEnabled, setExploreAgentSearchEnabled] = useAtom(
-      chatPanelExploreAgentSearchEnabledAtom
-    );
-    const collapseAllCommand = useAtomValue(collapseAllCommandAtom);
-    const setAllBlocksCollapsed = useSetAtom(setAllBlocksCollapsedAtom);
-    const setActiveSessionId = useSetAtom(activeSessionIdAtom);
-    const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
-    const setWorkstationActiveSessionId = useSetAtom(
-      workstationActiveSessionIdAtom
-    );
-    const setSelectedWorkItem = useSetAtom(chatPanelSelectedWorkItemAtom);
-    const setSelectedProject = useSetAtom(chatPanelSelectedProjectAtom);
-    const dispatchClearSession = useSetAtom(clearSessionAtom);
+    const {
+      dispatchClearSession,
+      openCollabOrgSurface,
+      openManageIssues,
+      openStartPage,
+      openWorkItemCreate,
+      openWorkspaceDashboard,
+      openWorkspaceExplore,
+      resetActiveSession,
+      resetToSessionSurface,
+      setActiveSessionId,
+      setStartPageOpen,
+      setWorkstationActiveSessionId,
+      showSessionSurface,
+    } = useChatPanelNavigationActions();
+
+    const {
+      activeTab,
+      handleNewSessionTab,
+      handleNewTerminalTab,
+      handleOpenCliTerminal,
+      isTerminalTabActive,
+      terminalTabs,
+    } = useChatPanelTabsController({
+      currentSessionId: currentSessionId ?? null,
+      panelTitle,
+      resetToSessionSurface,
+      showSessionSurface,
+    });
+
     const creatorState = useAtomValue(sessionCreatorStateAtom);
     const setCreatorState = useSetAtom(sessionCreatorStateAtom);
     const bumpProjectListRefresh = useSetAtom(projectListRefreshAtom);
     const allAgentDefs = useAtomValue(allAgentDefsAtom);
     const sidebarCollapsed = useAtomValue(sidebarCollapsedAtom);
 
-    const allBlocksCollapsed =
-      collapseAllCommand.epoch > 0 ? collapseAllCommand.collapsed : false;
+    const {
+      allBlocksCollapsed,
+      closeHeaderActionsMenu,
+      copyEventJsonLabel,
+      displayMode,
+      eventCount,
+      exploreAgentSearchEnabled,
+      handleCompactDisplayModeToggle,
+      handleCopyEventJson,
+      handleExploreAgentSearchToggle,
+      handleOpenSearch,
+      handlePaginationToggle,
+      handleRegisterSearchOpen,
+      handleReloadFromMenu,
+      handleToggleAllBlocksCollapsed,
+      handleTokenUsageVisibleToggle,
+      headerActionsDropdownRef,
+      headerActionsPosition,
+      headerActionsTriggerRef,
+      isHeaderActionsOpen,
+      isHeaderActionsPositioned,
+      paginationEnabled,
+      tokenUsageVisible,
+      toggleHeaderActionsMenu,
+    } = useChatPanelHeaderActions({ handleReloadSession });
+
     const collapseToggleLabel = allBlocksCollapsed
       ? t("common:actions.expandAll")
       : t("common:actions.collapseAll");
 
-    const handleToggleAllBlocksCollapsed = useCallback(() => {
-      setAllBlocksCollapsed(!allBlocksCollapsed);
-      closeHeaderActionsMenu();
-    }, [allBlocksCollapsed, closeHeaderActionsMenu, setAllBlocksCollapsed]);
-
-    const handleRegisterSearchOpen = useCallback(
-      (handler: (() => void) | null) => {
-        openSearchRef.current = handler;
-      },
-      []
-    );
-
-    const handleOpenSearch = useCallback(() => {
-      openSearchRef.current?.();
-      closeHeaderActionsMenu();
-    }, [closeHeaderActionsMenu]);
-
-    const handleReloadFromMenu = useCallback(() => {
-      handleReloadSession();
-      closeHeaderActionsMenu();
-    }, [closeHeaderActionsMenu, handleReloadSession]);
-
-    const handlePaginationToggle = useCallback(
-      (checked: boolean) => {
-        setPaginationEnabled(checked);
-      },
-      [setPaginationEnabled]
-    );
-
-    const handleExploreAgentSearchToggle = useCallback(
-      (checked: boolean) => {
-        setExploreAgentSearchEnabled(checked);
-      },
-      [setExploreAgentSearchEnabled]
-    );
-
-    const handleCompactDisplayModeToggle = useCallback(
-      (checked: boolean) => {
-        setDisplayMode(checked ? "compact" : "full");
-      },
-      [setDisplayMode]
-    );
-
-    const handleTokenUsageVisibleToggle = useCallback(
-      (checked: boolean) => {
-        setTokenUsageVisible(checked);
-      },
-      [setTokenUsageVisible]
-    );
-
-    const handleNewSession = useCallback(() => {
-      setStartPageOpen(false);
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
-    }, [
-      dispatchClearSession,
-      navigateChatPanel,
-      setActiveSessionId,
-      setStartPageOpen,
-      setWorkstationActiveSessionId,
-    ]);
-
-    const handleOpenStartPage = useCallback(() => {
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
-      setStartPageOpen(true);
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
-    }, [
-      dispatchClearSession,
-      navigateChatPanel,
-      setActiveSessionId,
-      setStartPageOpen,
-      setWorkstationActiveSessionId,
-    ]);
+    const handleNewSession = resetToSessionSurface;
+    const handleOpenStartPage = openStartPage;
+    const handleStartPageNewWorkItem = openWorkItemCreate;
+    const handleStartPageSetupRepo = openWorkspaceDashboard;
+    const handleStartPageExploreRepos = openWorkspaceExplore;
+    const handleStartPageManageIssues = openManageIssues;
 
     const handleChatPanelCollabOrgCreated = useCallback(
       (result: CreatedOrgResult) => {
         if (result.source === "supabase") {
-          navigateChatPanel({
-            kind: CHAT_PANEL_SURFACE_KIND.COLLAB_ORG,
-            collabOrg: { orgId: result.org.id },
-          });
+          openCollabOrgSurface(result.org.id);
         } else {
           bumpProjectListRefresh((previous) => previous + 1);
-          navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+          showSessionSurface();
         }
-        dispatchClearSession();
-        setWorkstationActiveSessionId(null);
-        setActiveSessionId(null);
+        resetActiveSession();
       },
       [
         bumpProjectListRefresh,
-        dispatchClearSession,
-        navigateChatPanel,
-        setActiveSessionId,
-        setWorkstationActiveSessionId,
+        openCollabOrgSurface,
+        resetActiveSession,
+        showSessionSurface,
       ]
     );
-
-    const eventCount = useAtomValue(eventCountAtom);
-    const events = useAtomValue(eventsAtom);
-    const [copyEventJsonLabel, setCopyEventJsonLabel] = React.useState<
-      "idle" | "copied" | "failed"
-    >("idle");
-    const handleCopyEventJson = useCallback(() => {
-      const json = JSON.stringify(events, null, 2);
-      navigator.clipboard
-        .writeText(json)
-        .then(() => {
-          setCopyEventJsonLabel("copied");
-          setTimeout(() => setCopyEventJsonLabel("idle"), 2000);
-        })
-        .catch(() => {
-          setCopyEventJsonLabel("failed");
-          setTimeout(() => setCopyEventJsonLabel("idle"), 2000);
-        });
-      closeHeaderActionsMenu();
-    }, [closeHeaderActionsMenu, events]);
-
-    const {
-      handleOpenExportSessionJson,
-      handleOpenLinkWorkItem,
-      sessionModals,
-    } = useChatPanelSessionModals({
-      activeSession,
-      closeHeaderActionsMenu,
-      currentSessionId: currentSessionId ?? null,
-      t,
-    });
-
-    const { createTargetOptions, handleCreateTargetChange } =
-      useChatPanelCreateTarget({
-        allAgentDefs,
-        handleNewSession,
-        sessionCreatorAvailable: Boolean(SessionCreatorSlot),
-        setCreateTarget,
-        setCreatorState,
-        setStartPageOpen,
-        setShowProjectAgentCreator,
-        setShowWorkItemAgentCreator,
-        setWorkItemCreateDraft,
-        t,
-      });
-
-    const handleStartPageNewWorkItem = useCallback(() => {
-      setStartPageOpen(false);
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM });
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
-    }, [
-      dispatchClearSession,
-      navigateChatPanel,
-      setActiveSessionId,
-      setStartPageOpen,
-      setWorkstationActiveSessionId,
-    ]);
-
-    const handleStartPageSetupRepo = useCallback(() => {
-      setStartPageOpen(false);
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD });
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
-    }, [
-      dispatchClearSession,
-      navigateChatPanel,
-      setActiveSessionId,
-      setStartPageOpen,
-      setWorkstationActiveSessionId,
-    ]);
-
-    const handleStartPageExploreRepos = useCallback(() => {
-      setStartPageOpen(false);
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE });
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
-    }, [
-      dispatchClearSession,
-      navigateChatPanel,
-      setActiveSessionId,
-      setStartPageOpen,
-      setWorkstationActiveSessionId,
-    ]);
-
-    const handleStartPageManageIssues = useCallback(() => {
-      setStartPageOpen(false);
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES });
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
-    }, [
-      dispatchClearSession,
-      navigateChatPanel,
-      setActiveSessionId,
-      setStartPageOpen,
-      setWorkstationActiveSessionId,
-    ]);
 
     const handleStartPageAddApiKey = useCallback(() => {
       const accountsPath = `${buildIntegrationsPath({ category: "models" })}?modelsTab=my-accounts`;
@@ -462,78 +261,14 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     }, [navigate]);
 
     const sessionSidebarVisible = sessionSidebarWidth > 0;
-    const collabOrgHeader = React.useMemo(() => {
-      if (!selectedCollabOrg) return null;
-      const org = collabOrgs.find(
-        (candidate) => candidate.id === selectedCollabOrg.orgId
-      );
-      const orgMembers = collabMembers.filter(
-        (member) =>
-          member.orgId === selectedCollabOrg.orgId && !member.removedAt
-      );
-      const selectedMember = selectedCollabOrg.memberId
-        ? orgMembers.find((member) => member.id === selectedCollabOrg.memberId)
-        : null;
-      const orgSessions = remoteTeammateSessions.filter(
-        (session) => session.orgId === selectedCollabOrg.orgId
-      );
-      const connectionState = collabConnectionStates.find(
-        (state) => state.orgId === selectedCollabOrg.orgId
-      );
-      const activeMemberIds = new Set(
-        orgSessions
-          .filter((session) => {
-            if (!session.lastActivityAt) return false;
-            const date = new Date(session.lastActivityAt);
-            if (Number.isNaN(date.getTime())) return false;
-            const now = new Date();
-            return (
-              date.getFullYear() === now.getFullYear() &&
-              date.getMonth() === now.getMonth() &&
-              date.getDate() === now.getDate()
-            );
-          })
-          .map((session) => session.ownerMemberId)
-      );
-      const connected =
-        connectionState?.status === COLLAB_CONNECTION_STATUS.CONNECTED;
-      const status: CollabConnectionStatus = selectedMember
-        ? activeMemberIds.has(selectedMember.id)
-          ? COLLAB_CONNECTION_STATUS.CONNECTED
-          : COLLAB_CONNECTION_STATUS.DISCONNECTED
-        : (connectionState?.status ?? COLLAB_CONNECTION_STATUS.DISCONNECTED);
-      const statusLabel = selectedMember
-        ? activeMemberIds.has(selectedMember.id)
-          ? t("navigation:collaboration.status.activeToday")
-          : t("navigation:collaboration.status.idle")
-        : connected
-          ? t("navigation:collaboration.status.connected")
-          : t("navigation:collaboration.status.offline");
-      const orgTitle = org?.name ?? t("navigation:collaboration.orgDemoTitle");
-      const title = selectedMember?.displayName ?? orgTitle;
-      const breadcrumbItems = selectedMember
-        ? [
-            { key: "org", label: orgTitle },
-            { key: "member", label: selectedMember.displayName },
-          ]
-        : [{ key: "org", label: orgTitle }];
-      const titleContent = (
-        <ChatPanelHeaderBreadcrumb
-          items={breadcrumbItems}
-          trailing={
-            <CollabHeaderStatusPill label={statusLabel} status={status} />
-          }
-        />
-      );
-      return { title, titleContent };
-    }, [
+    const collabOrgHeader = useCollabOrgHeaderModel({
       collabConnectionStates,
       collabMembers,
       collabOrgs,
       remoteTeammateSessions,
       selectedCollabOrg,
       t,
-    ]);
+    });
     const contentState = useChatPanelContentState({
       active,
       contentMode,
@@ -558,6 +293,8 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       viewMode,
     });
 
+    const setSelectedProject = useSetAtom(chatPanelSelectedProjectAtom);
+    const setSelectedWorkItem = useSetAtom(chatPanelSelectedWorkItemAtom);
     const {
       handleCancelCollabOrgCreate,
       handleCancelWorkItemCreate,
@@ -584,7 +321,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       setWorkItemCreateDraft,
       setWorkstationActiveSessionId,
     });
-
     const {
       defaultAiWorkItemAssignee,
       handleAiWorkItemSessionStart,
@@ -605,6 +341,17 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       workItemCreateDraft,
     });
 
+    const {
+      handleOpenExportSessionJson,
+      handleOpenLinkWorkItem,
+      sessionModals,
+    } = useChatPanelSessionModals({
+      activeSession,
+      closeHeaderActionsMenu,
+      currentSessionId: currentSessionId ?? null,
+      t,
+    });
+
     const showResizeHandle = !useExternalWidth;
     const borderClasses =
       embedded && !showResizeHandle
@@ -612,15 +359,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           ? "border-r border-border-1"
           : "border-l border-border-1"
         : "";
-    const dragHandle = showResizeHandle && (
-      <VerticalResizeHandle
-        key="chat-panel-resize-handle"
-        onMouseDown={handleMouseDown}
-        variant={embedded ? "border" : "transparent"}
-        noAccent={!embedded}
-      />
-    );
-
     const chatFocusLabel = isChatFocus
       ? t("chat.showWorkstation")
       : t("chat.maximizeChatPanel");
@@ -641,6 +379,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleChatPanelProjectCreated={handleChatPanelProjectCreated}
         handleChatPanelCollabOrgCreated={handleChatPanelCollabOrgCreated}
         handleChatPanelWorkItemCreated={handleChatPanelWorkItemCreated}
+        handleOpenCliTerminal={handleOpenCliTerminal}
         handleRegionNoticeChange={handleRegionNoticeChange}
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageExploreRepos={handleStartPageExploreRepos}
@@ -666,6 +405,37 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       contentState.showWorkspaceDashboardContent ||
       contentState.showCollabOrgContent ||
       contentState.showWorkspaceOverviewContent;
+
+    const tabStrip = (
+      <ChatPanelTabBar
+        onNewSession={handleNewSessionTab}
+        onNewTerminal={handleNewTerminalTab}
+        containerRef={panelRef}
+      />
+    );
+
+    const tabStripPlus = (
+      <ChatPanelPlusMenu
+        onNewSession={handleNewSessionTab}
+        onNewWorkItem={handleStartPageNewWorkItem}
+        onManageIssues={handleStartPageManageIssues}
+        onAddApiKey={handleStartPageAddApiKey}
+      />
+    );
+
+    const { createTargetOptions, handleCreateTargetChange } =
+      useChatPanelCreateTarget({
+        allAgentDefs,
+        handleNewSession,
+        sessionCreatorAvailable: Boolean(SessionCreatorSlot),
+        setCreateTarget,
+        setCreatorState,
+        setStartPageOpen,
+        setShowProjectAgentCreator,
+        setShowWorkItemAgentCreator,
+        setWorkItemCreateDraft,
+        t,
+      });
 
     const headerSection = (
       <>
@@ -745,6 +515,11 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           showSessionContent={contentState.showSessionContent}
           showStartPage={startPageOpen}
           showWorkItemAgentCreator={showWorkItemAgentCreator}
+          showTuiModeToggle={showTuiModeToggle}
+          tuiMode={tuiMode}
+          handleTuiModeToggle={handleTuiModeToggle}
+          tabStrip={tabStrip}
+          tabStripPlus={tabStripPlus}
           showWorkItemAgentSwitchInHeader={
             contentState.showWorkItemAgentSwitchInHeader
           }
@@ -791,46 +566,26 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       />
     );
 
-    const mainPanel = (
-      <div
-        key="chat-panel-main"
-        ref={panelRef}
-        data-chat-panel
-        data-testid="chat-panel"
-        data-guide-target={GUIDE_TARGETS.CHAT_PANEL}
-        className={`relative flex h-full max-w-full flex-col overflow-hidden bg-chat-pane text-sm ${
-          useExternalWidth ? "min-w-0 flex-1" : "flex-shrink-0"
-        } ${borderClasses}`}
-        style={{
-          ...(useExternalWidth
-            ? { width: "100%" }
-            : { width: chatWidthStyleValue }),
-          minWidth:
-            !useExternalWidth && chatWidth > 0 ? CHAT_MIN_WIDTH : undefined,
-          borderRadius: embedded ? 0 : "var(--radius-page)",
-          contain: isDragging ? "strict" : undefined,
-          willChange: isDragging ? "width" : undefined,
-          ...chatPanelOpacityStyle,
-        }}
-      >
-        {headerSection}
-        {chatColumn}
-      </div>
-    );
-
-    const panelChildren = isLeftPosition
-      ? [mainPanel, dragHandle]
-      : [dragHandle, mainPanel];
-
     return (
-      <>
-        <div
-          className={`relative flex h-full flex-row ${useExternalWidth ? "w-full min-w-0" : "flex-shrink-0"}`}
-        >
-          {panelChildren}
-        </div>
-        {sessionModals}
-      </>
+      <ChatPanelShell
+        activeTab={activeTab}
+        borderClasses={borderClasses}
+        chatColumn={chatColumn}
+        chatPanelOpacityStyle={chatPanelOpacityStyle}
+        chatWidth={chatWidth}
+        chatWidthStyleValue={chatWidthStyleValue}
+        embedded={embedded}
+        headerSection={headerSection}
+        isDragging={isDragging}
+        isLeftPosition={isLeftPosition}
+        isTerminalTabActive={isTerminalTabActive}
+        onResizeMouseDown={handleMouseDown}
+        panelRef={panelRef}
+        sessionModals={sessionModals}
+        showResizeHandle={showResizeHandle}
+        terminalTabs={terminalTabs}
+        useExternalWidth={useExternalWidth}
+      />
     );
   }
 );

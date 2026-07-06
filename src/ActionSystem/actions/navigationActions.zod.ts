@@ -11,7 +11,11 @@ import { z } from "zod";
 import { ACTION_ID } from "@src/ActionSystem/actionIds";
 import { defineAppActionRegistration } from "@src/ActionSystem/schema/actionRegistration";
 import { defineZodAction } from "@src/ActionSystem/schema/defineZodAction";
-import { buildIntegrationsPath } from "@src/config/mainAppPaths";
+import {
+  WIZARD_IDS,
+  buildIntegrationsPath,
+  buildWizardPath,
+} from "@src/config/mainAppPaths";
 import { ROUTES } from "@src/config/routes";
 import {
   activeSessionIdAtom,
@@ -207,6 +211,25 @@ const appGoToModelKeys = defineRouteNavigationAction(
   ["open model keys", "manage accounts", "manage keys"]
 );
 
+const appGoToHousekeeper = defineRouteNavigationAction(
+  ACTION_ID.APP_GO_TO_HOUSEKEEPER,
+  "Open the MiniCPM resident housekeeper settings",
+  buildIntegrationsPath({ category: "housekeeper" }),
+  "Opened MiniCPM housekeeper",
+  ["open housekeeper", "open minicpm housekeeper", "configure minicpm"]
+);
+
+const appOpenAddModelApi = defineRouteNavigationAction(
+  ACTION_ID.APP_OPEN_ADD_MODEL_API,
+  "Open the Add API flow for model accounts",
+  buildWizardPath(
+    `${buildIntegrationsPath({ category: "models" })}?modelsTab=my-accounts&localRuntime=vllm_minicpm`,
+    WIZARD_IDS.KEY_ADD
+  ),
+  "Opened add model API flow",
+  ["add api", "add model api", "add local model api"]
+);
+
 const appGoToSession = defineZodAction(
   {
     id: ACTION_ID.APP_GO_TO_SESSION,
@@ -257,6 +280,8 @@ export const appNavigationZodActions = [
   appGoToIntegrations,
   appGoToConnections,
   appGoToModelKeys,
+  appGoToHousekeeper,
+  appOpenAddModelApi,
   appGoToSession,
 ];
 

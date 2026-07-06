@@ -50,6 +50,11 @@ pub struct AnthropicClient {
     pub(super) default_model: String,
     pub(super) auth_mode: AnthropicAuthMode,
     pub(super) refresh_config: Option<ClaudeOAuthRefreshConfig>,
+    /// Stable per-client session id for Claude OAuth request metadata. The
+    /// reference harness sends one session id per session — a fresh random id
+    /// on every request is an anomaly signal to server-side heuristics.
+    /// Clients are constructed per session, so instance scope fits.
+    pub(super) oauth_session_id: String,
     auth_state: RwLock<AnthropicAuthState>,
 }
 
@@ -96,6 +101,7 @@ impl AnthropicClient {
             default_model,
             auth_mode,
             refresh_config,
+            oauth_session_id: uuid::Uuid::new_v4().to_string(),
             auth_state,
         }
     }

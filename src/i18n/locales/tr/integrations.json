@@ -892,7 +892,15 @@
     "addKey": "Anahtar ekle",
     "compatibleKeys": "Uyumlu Keys",
     "keysTab": "Keys",
-    "plansTab": "Planlar"
+    "plansTab": "Planlar",
+    "acpSupport": "ACP Support",
+    "acpSupportLabels": {
+      "native": "Yes, Native",
+      "adapter_backed": "Yes, adapter-backed",
+      "planned": "Planned",
+      "partial": "Partial / unverified",
+      "unavailable": "Unavailable"
+    }
   },
   "cliTable": {
     "filterAllInstall": "Tüm Kurulum Durumları",
@@ -1656,7 +1664,9 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Anahtar",
-      "addedTime": "Eklendi"
+      "addedTime": "Eklendi",
+      "secretBearingConfig": "API key veya Token içerebilir",
+      "revealConfigFile": "Dosya yöneticisinde göster"
     },
     "codexConfig": {
       "sectionTitle": "Yapılandırma",
@@ -2529,6 +2539,28 @@
       "cpu_offload": "CPU offload",
       "cpu_only": "Yalnızca CPU",
       "no_fit": "Önerilmez"
+    }
+  },
+  "housekeeper": {
+    "addModel": "Model Ekle",
+    "sections": {
+      "configuration": "Yapılandırma",
+      "features": "Özellikler",
+      "diagnostics": "Tanılama"
+    },
+    "health": {
+      "status": "Kontrol edilmedi"
+    },
+    "benchmark": {
+      "title": "MiniCPM çıktı hızı",
+      "idle": "Hafif bir test prompt’u gönderir ve gerçek tamamlanma süresinden çıktı token/s değerini hesaplar.",
+      "running": "Yerel vLLM MiniCPM isteniyor ve çıktı hızı ölçülüyor...",
+      "ready": "{{seconds}}s içinde {{tokens}} tokens çıktı",
+      "status": "Test edilmedi",
+      "checkButton": "Hızı test et",
+      "tokensPerSecond": "Çıktı hızı: {{value}} tokens/s",
+      "completionTokens": "Çıktı tokens: {{value}}",
+      "elapsed": "Toplam süre: {{value}}s"
     }
   }
 }

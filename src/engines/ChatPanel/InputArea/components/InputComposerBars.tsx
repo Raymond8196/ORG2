@@ -6,12 +6,14 @@ import Button from "@src/components/Button";
 import ComposerBar from "@src/components/ComposerBar";
 import type { ComposerInputRef } from "@src/components/ComposerInput";
 import { VoiceInputButton, VoiceRecordingBar } from "@src/components/Voice";
+import type { PromptPolishControl } from "@src/engines/ChatPanel/hooks/useInputArea/types";
 import type { UseVoiceInputResult } from "@src/hooks/voice";
 
 import CiteCodePreview from "./CiteCodePreview";
 import ImageAttachmentPreview from "./ImageAttachmentPreview";
 import InputActions from "./InputActions";
 import InputEditor from "./InputEditor";
+import PromptPolishButton from "./PromptPolishButton";
 import ReplyInfoDisplay from "./ReplyInfoDisplay";
 
 interface SharedComposerBarProps {
@@ -276,6 +278,8 @@ interface NormalComposerContentProps extends SharedComposerBarProps {
   isSessionTerminal: boolean;
   voiceFeatureEnabled: boolean;
   dropTargetId: string;
+  promptPolish: PromptPolishControl;
+  promptPolishDisabled: boolean;
   submitDisabled?: boolean;
 }
 
@@ -330,6 +334,8 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
   isSessionTerminal,
   voiceFeatureEnabled,
   dropTargetId,
+  promptPolish,
+  promptPolishDisabled,
   submitDisabled,
 }) => {
   const { t } = useTranslation("sessions");
@@ -406,6 +412,10 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
           }
           submitButton={
             <div className="flex h-7 items-center gap-0.5">
+              <PromptPolishButton
+                control={promptPolish}
+                disabled={promptPolishDisabled}
+              />
               {voiceFeatureEnabled && (
                 <VoiceInputButton
                   onPressStart={voice.start}

@@ -27,6 +27,7 @@ pub fn routes() -> Router {
 #[derive(Debug, Deserialize, Default)]
 pub struct WorktreesQuery {
     path: Option<String>,
+    include_diff_summary: Option<bool>,
 }
 
 #[utoipa::path(
@@ -35,6 +36,7 @@ pub struct WorktreesQuery {
     params(
         ("repo_id" = String, Path, description = "Repository UUID or path"),
         ("path" = Option<String>, Query, description = "Repository file system path"),
+        ("include_diff_summary" = Option<bool>, Query, description = "Include expensive worktree diff summaries"),
     ),
     responses(
         (status = 200, description = "List of git worktrees", body = WorktreeListResponse)
@@ -49,10 +51,15 @@ pub async fn get_worktrees(
     let entries =
         git::worktree::list_all_worktrees(&repo_path).map_err(GitApiError::from_git_error)?;
 
+    let include_diff_summary = query.include_diff_summary.unwrap_or(false);
     let data = entries
         .into_iter()
         .map(|entry| {
-            let diff_summary = summarize_worktree_diff(&repo_path, &entry.path, &entry.branch);
+            let diff_summary = if include_diff_summary {
+                summarize_worktree_diff(&repo_path, &entry.path, &entry.branch)
+            } else {
+                None
+            };
             WorktreeEntry {
                 path: entry.path,
                 branch: entry.branch,

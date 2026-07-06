@@ -135,7 +135,10 @@ fn parse_stop_block(stdout: &str) -> Option<String> {
     )
 }
 
-/// Fire user-defined PostToolUse hooks in the background.
+/// Fire user-defined PostToolUse / PostToolUseFailure hooks in the
+/// background. The two events are mutually exclusive (matching the
+/// reference harness): a failed call fires only `PostToolUseFailure`,
+/// a successful one only `PostToolUse`.
 #[allow(clippy::too_many_arguments)]
 pub(super) async fn dispatch_post_tool(
     hook_executor: Option<&Arc<HookExecutor>>,
@@ -145,17 +148,37 @@ pub(super) async fn dispatch_post_tool(
     error: Option<&str>,
     duration_ms: u64,
 ) {
-    if let Some(executor) = hook_executor {
-        if executor.has_hooks_for(HookEvent::PostToolUse) {
-            let ctx = HookContext::for_tool(session_id, tool_name, "")
-                .with_var("ORGII_TOOL_RESULT", &result[..result.len().min(5000)])
-                .with_var("ORGII_TOOL_DURATION_MS", duration_ms.to_string())
-                .with_var("ORGII_TOOL_ERROR", error.unwrap_or("").to_string());
-            let hook_executor = executor.clone();
-            tokio::spawn(async move {
-                hook_executor.run(HookEvent::PostToolUse, &ctx).await;
-            });
-        }
+    let Some(executor) = hook_executor else {
+        return;
+    };
+    let event = post_tool_event(error);
+    if !executor.has_hooks_for(event) {
+        return;
+    }
+    let ctx = HookContext::for_tool(session_id, tool_name, "")
+        .with_var(
+            "ORGII_TOOL_RESULT",
+            // Char-boundary-safe: byte slicing here panicked on multi-byte
+            // results longer than the cap.
+            crate::utils::safe_truncate_chars_to_string(result, 5000),
+        )
+        .with_var("ORGII_TOOL_DURATION_MS", duration_ms.to_string())
+        .with_var(
+            "ORGII_TOOL_ERROR",
+            crate::utils::safe_truncate_chars_to_string(error.unwrap_or(""), 5000),
+        );
+    let hook_executor = executor.clone();
+    tokio::spawn(async move {
+        hook_executor.run(event, &ctx).await;
+    });
+}
+
+/// Select the post-tool event: success and failure are mutually exclusive.
+fn post_tool_event(error: Option<&str>) -> HookEvent {
+    if error.is_some() {
+        HookEvent::PostToolUseFailure
+    } else {
+        HookEvent::PostToolUse
     }
 }
 
@@ -199,4 +222,19 @@ fn extract_modified_file_path(args: &Value, workspace_path: &Path) -> Option<Str
         workspace_path.join(path)
     };
     Some(absolute_path.to_string_lossy().into_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn failed_tool_call_fires_post_tool_use_failure() {
+        assert_eq!(post_tool_event(Some("boom")), HookEvent::PostToolUseFailure);
+    }
+
+    #[test]
+    fn successful_tool_call_fires_post_tool_use() {
+        assert_eq!(post_tool_event(None), HookEvent::PostToolUse);
+    }
 }

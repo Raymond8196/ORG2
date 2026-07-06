@@ -11,7 +11,9 @@ use serde_json::{json, Value};
 
 use core_types::activity::ActivityChunk;
 
-use super::history::{CursorIdeSessionRow, CURSORIDE_SESSION_PREFIX, CURSOR_IDE_CATEGORY};
+use super::history::{
+    CursorIdeSessionDetail, CursorIdeSessionRow, CURSORIDE_SESSION_PREFIX, CURSOR_IDE_CATEGORY,
+};
 use super::io::{load_composer_for_order, load_content_blob};
 use super::models::{
     CursorComposerContext, CursorWorkspaceMetadata, OrderedBubble, RawBubble, RawComposerForOrder,
@@ -39,24 +41,37 @@ pub(super) fn is_listable_cursor_session(
     if row.name.trim().is_empty() {
         return Ok(false);
     }
-    use super::io::{load_bubble_order, load_bubbles_by_id};
-    let order = load_bubble_order(conn, &row.id)?;
-    if order.is_empty() {
-        return Ok(false);
-    }
-    let bubbles = load_bubbles_by_id(conn, &row.id, &order)?;
-    Ok(!bubbles_to_chunks(
-        conn,
-        &format!("{}{}", CURSORIDE_SESSION_PREFIX, row.id),
-        &bubbles,
-        &CursorComposerContext::default(),
-    )
-    .is_empty())
+    // Fast path: single EXISTS query on cursorDiskKV.
+    // We only need to know whether the session has at least one user bubble
+    // (bubble_type == 1). Parsing the JSON value is enough — no blob reads,
+    // no diff, no full order reconstruction.
+    // load_bubble_order/load_complete_bubble_order fetches all rows AND
+    // deserialises every bubble value; that was the ~542% CPU hot path.
+    let prefix = format!("bubbleId:{}:", row.id);
+    let upper_bound = format!("bubbleId:{};", row.id);
+    let found: bool = conn
+        .query_row(
+            "SELECT EXISTS(
+                SELECT 1 FROM cursorDiskKV
+                WHERE key >= ?1 AND key < ?2
+                  AND json_extract(value, '$.type') = ?3
+                LIMIT 1
+             )",
+            rusqlite::params![prefix, upper_bound, CURSOR_BUBBLE_TYPE_USER],
+            |r| r.get(0),
+        )
+        .unwrap_or(false);
+    Ok(found)
 }
 
+/// Convert a cache row to the sidebar-ready session shape.
+///
+/// Does NOT open Cursor's `state.vscdb` — all fields come from the delta-sync
+/// cache. Hover-only fields (`repo_path`, `repo_name`, `touched_files`, `branch`)
+/// are intentionally left empty; they are fetched on demand by
+/// `cursor_ide_session_detail` when the hover card opens.
 pub(super) fn cache_row_to_session_row(
     row: super::db::CursorSession,
-    cursor_conn: Option<&Connection>,
 ) -> Result<CursorIdeSessionRow, String> {
     let session_id = format!("{}{}", CURSORIDE_SESSION_PREFIX, row.id);
     let created_iso = epoch_ms_to_iso(row.created_at);
@@ -70,19 +85,6 @@ pub(super) fn cache_row_to_session_row(
     } else {
         Some(row.model)
     };
-    let composer = match cursor_conn {
-        Some(conn) => Some(load_composer_for_order(conn, &row.id)?),
-        None => None,
-    };
-    let metadata = composer
-        .as_ref()
-        .map(cursor_workspace_metadata_from_composer)
-        .unwrap_or_default();
-    let repo_name = metadata.repo_path.as_deref().and_then(repo_name_from_path);
-    let touched_files = composer
-        .as_ref()
-        .map(cursor_touched_files_from_composer)
-        .unwrap_or_default();
     Ok(CursorIdeSessionRow {
         session_id,
         name: if row.name.is_empty() {
@@ -104,12 +106,48 @@ pub(super) fn cache_row_to_session_row(
         lines_added: row.lines_added,
         lines_removed: row.lines_removed,
         files_changed: row.files_changed,
-        touched_files,
+        touched_files: Vec::new(),
         background: false,
         is_active: false,
+        repo_path: None,
+        storage_path: Some(row.source_path),
+        repo_name: None,
+        branch: None,
+    })
+}
+
+/// Hover-card detail for a single Cursor IDE session.
+///
+/// Opens Cursor's `state.vscdb` and reads the composer's workspace metadata
+/// and touched-file list. Called only when the user hovers a sidebar row —
+/// never during list pagination.
+pub fn cursor_ide_session_detail(session_id: &str) -> Result<CursorIdeSessionDetail, String> {
+    let composer_id = session_id
+        .strip_prefix(CURSORIDE_SESSION_PREFIX)
+        .ok_or_else(|| format!("not a cursoride session: {session_id}"))?;
+
+    let storage_path = super::io::cursor_db_path().map(|path| path.to_string_lossy().to_string());
+    let conn = match super::io::open_cursor_db() {
+        Some(c) => c,
+        None => {
+            return Ok(CursorIdeSessionDetail {
+                storage_path,
+                ..CursorIdeSessionDetail::default()
+            })
+        }
+    };
+
+    let composer = load_composer_for_order(&conn, composer_id)?;
+    let metadata = cursor_workspace_metadata_from_composer(&composer);
+    let repo_name = metadata.repo_path.as_deref().and_then(repo_name_from_path);
+    let touched_files = cursor_touched_files_from_composer(&composer);
+
+    Ok(CursorIdeSessionDetail {
         repo_path: metadata.repo_path,
+        storage_path,
         repo_name,
         branch: metadata.branch,
+        touched_files,
     })
 }
 

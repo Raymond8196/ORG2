@@ -46,7 +46,8 @@
     "projectManager": "Project Manager",
     "diff": "Diff",
     "opsControl": "Ops Control",
-    "colleagues": "Đồng nghiệp"
+    "colleagues": "Đồng nghiệp",
+    "terminals": "Terminal"
   },
   "trajectoryPanel": {
     "title": "Quỹ đạo",

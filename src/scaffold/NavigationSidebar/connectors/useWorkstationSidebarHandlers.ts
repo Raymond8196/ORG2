@@ -31,6 +31,10 @@ import {
 import { invokeTauri } from "@src/util/platform/tauri/init";
 import { isCliSession } from "@src/util/session/sessionDispatch";
 import { getSessionListDisplayName } from "@src/util/session/sessionSidebarRow";
+import {
+  getChatPanelTabIdFromTuiSessionId,
+  isChatPanelTuiSessionId,
+} from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
 import {
   NEW_SESSION_MENU_ITEM_ID,
@@ -60,6 +64,8 @@ interface UseWorkstationSidebarHandlersParams {
   promoteActiveSessionCreatorDraft: () => void;
   setGroupVisibleCounts: Dispatch<SetStateAction<Map<string, number>>>;
   tCommon: (key: string, defaultValue?: string) => string;
+  onOpenChatPanelTab: (tabId: string) => void;
+  onCloseChatPanelTab: (tabId: string) => Promise<void>;
 }
 
 interface UseWorkstationSidebarHandlersResult {
@@ -82,6 +88,8 @@ export function useWorkstationSidebarHandlers({
   promoteActiveSessionCreatorDraft,
   setGroupVisibleCounts,
   tCommon,
+  onOpenChatPanelTab,
+  onCloseChatPanelTab,
 }: UseWorkstationSidebarHandlersParams): UseWorkstationSidebarHandlersResult {
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
   const setBenchmarkAgentBatchStatus = useSetAtom(
@@ -95,6 +103,11 @@ export function useWorkstationSidebarHandlers({
   const handleDeleteSession = useCallback(
     async (sessionId: string) => {
       try {
+        if (isChatPanelTuiSessionId(sessionId)) {
+          const tabId = getChatPanelTabIdFromTuiSessionId(sessionId);
+          if (tabId) await onCloseChatPanelTab(tabId);
+          return;
+        }
         if (isCliSession(sessionId)) {
           await invokeTauri("cli_agent_delete", { sessionId });
         } else {
@@ -110,7 +123,7 @@ export function useWorkstationSidebarHandlers({
         Message.error(tCommon("sessions:chat.failedToDeleteSession"));
       }
     },
-    [activeSessionId, goToNewSession, tCommon]
+    [activeSessionId, goToNewSession, onCloseChatPanelTab, tCommon]
   );
 
   const handleExportMarkdown = useCallback(
@@ -189,6 +202,15 @@ export function useWorkstationSidebarHandlers({
         return;
       }
 
+      if (isChatPanelTuiSessionId(item.id)) {
+        const tabId = getChatPanelTabIdFromTuiSessionId(item.id);
+        if (tabId) {
+          navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+          onOpenChatPanelTab(tabId);
+        }
+        return;
+      }
+
       const originalSession = sessionMap.get(item.id);
       if (!originalSession) return;
 
@@ -230,6 +252,7 @@ export function useWorkstationSidebarHandlers({
       goToNewSession,
       navigateChatPanel,
       navigateTo,
+      onOpenChatPanelTab,
       promoteActiveSessionCreatorDraft,
       selectedMenuItemId,
       sessionRouteLabel,
@@ -242,6 +265,7 @@ export function useWorkstationSidebarHandlers({
 
   const handleTogglePin = useCallback(
     async (sessionId: string) => {
+      if (isChatPanelTuiSessionId(sessionId)) return;
       const session = sessionMap.get(sessionId);
       if (!session) return;
       const newPinned = !(session.pinned ?? false);

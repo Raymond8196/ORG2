@@ -178,14 +178,23 @@ impl SessionWorkspace {
         self.working_dir != self.workspace_root
     }
 
-    /// Full allow-list for path-containment checks: workspace_root +
-    /// working_dir (if different) + every additional dir. Order is
-    /// stable (BTreeMap key order for the tail).
+    /// Full allow-list for path-containment checks: the session's writable
+    /// root (worktree `working_dir` for isolated sessions, `workspace_root`
+    /// otherwise) + every additional dir. Order is stable (BTreeMap key
+    /// order for the tail).
     pub fn effective_roots(&self) -> Vec<PathBuf> {
-        let mut out = Vec::with_capacity(2 + self.additional_directories.len());
-        out.push(self.workspace_root.clone());
+        let mut out = Vec::with_capacity(1 + self.additional_directories.len());
         if self.is_worktree() {
+            // Isolation contract: a worktree session's writable universe IS
+            // the worktree. The parent repository must NOT be in the
+            // allow-list — with it, a worker handed an absolute path from
+            // its task prompt writes straight into the primary checkout,
+            // the worktree stays clean, and post-run disposition deletes it
+            // as "no changes" (exactly the failure observed in live
+            // testing: README edited on the main branch, no worktree left).
             out.push(self.working_dir.clone());
+        } else {
+            out.push(self.workspace_root.clone());
         }
         out.extend(self.additional_directories.keys().cloned());
         out
@@ -318,13 +327,14 @@ mod tests {
     }
 
     #[test]
-    fn effective_roots_worktree_includes_both_paths() {
+    fn effective_roots_worktree_excludes_parent_repo() {
+        // Isolation contract: the parent checkout must NOT be writable from
+        // a worktree session — an allow-listed parent lets a worker with an
+        // absolute path silently edit the main branch while its worktree
+        // stays clean (and then gets deleted as "no changes").
         let mut ws = SessionWorkspace::new_worktree(pb("/proj"), pb("/shadow"));
         ws.add_directory(session_dir("/peer"));
-        assert_eq!(
-            ws.effective_roots(),
-            vec![pb("/proj"), pb("/shadow"), pb("/peer")]
-        );
+        assert_eq!(ws.effective_roots(), vec![pb("/shadow"), pb("/peer")]);
     }
 
     #[test]
@@ -589,7 +599,7 @@ mod tests {
         assert!(child.is_worktree());
         assert_eq!(
             child.effective_roots(),
-            vec![pb("/proj"), pb("/shadow"), pb("/ide"), pb("/peer")]
+            vec![pb("/shadow"), pb("/ide"), pb("/peer")]
         );
         assert_eq!(
             child

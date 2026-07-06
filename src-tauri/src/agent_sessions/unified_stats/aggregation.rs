@@ -159,27 +159,6 @@ fn append_external_history_page(
     }
 }
 
-fn load_external_history_source(
-    conn: &mut rusqlite::Connection,
-    records: &mut Vec<SessionAggregateRecord>,
-    loader: &ExternalHistorySourceLoader,
-) -> Result<(), String> {
-    let mut offset = 0;
-    loop {
-        let page = (loader.load_page)(conn, IMPORTED_HISTORY_PAGE_SIZE, offset)?;
-        let page_has_more = match &page {
-            ExternalHistoryPage::Imported(page) => page.has_more,
-            ExternalHistoryPage::CursorIde(page) => page.has_more,
-        };
-        let page_len = append_external_history_page(records, loader.source, page);
-        if !page_has_more || page_len == 0 {
-            break;
-        }
-        offset = offset.saturating_add(page_len);
-    }
-    Ok(())
-}
-
 fn cached_external_history_rows_in_range(
     source: &'static str,
     start_ms: i64,
@@ -220,13 +199,30 @@ pub fn cached_external_history_sessions_in_range(
     Ok(records)
 }
 
-fn load_imported_history_sessions() -> Result<Vec<SessionAggregateRecord>, String> {
+fn load_imported_history_sessions(
+    filter: Option<&SessionFilter>,
+) -> Result<Vec<SessionAggregateRecord>, String> {
     let mut conn =
         get_connection().map_err(|err| format!("Failed to open orgtrack cache DB: {err}"))?;
     let mut records = Vec::new();
+    let source_filter = filter.and_then(|filter| filter.external_history_source.as_deref());
+    let requested_limit = filter
+        .and_then(|filter| filter.limit)
+        .unwrap_or(IMPORTED_HISTORY_PAGE_SIZE);
+    let requested_offset = filter.and_then(|filter| filter.offset).unwrap_or(0);
+    let page_limit = requested_limit.min(IMPORTED_HISTORY_PAGE_SIZE);
+    let page_offset = if source_filter.is_some() {
+        requested_offset
+    } else {
+        0
+    };
 
     for loader in EXTERNAL_HISTORY_SOURCE_LOADERS {
-        load_external_history_source(&mut conn, &mut records, loader)?;
+        if source_filter.is_some_and(|source| source != loader.source) {
+            continue;
+        }
+        let page = (loader.load_page)(&mut conn, page_limit, page_offset)?;
+        append_external_history_page(&mut records, loader.source, page);
     }
 
     Ok(records)
@@ -246,6 +242,10 @@ pub fn list_all_sessions(filter: Option<&SessionFilter>) -> Result<SessionListRe
     };
 
     let load_cli = wants_category("cli");
+    let load_external_history = wants_category("external_history")
+        || filter
+            .and_then(|filter| filter.external_history_source.as_ref())
+            .is_some();
     let load_agent = wants_category("agent");
     let load_os = wants_category("os");
     let mut all_sessions: Vec<SessionAggregateRecord> = Vec::new();
@@ -258,16 +258,16 @@ pub fn list_all_sessions(filter: Option<&SessionFilter>) -> Result<SessionListRe
         for session in cli_sessions {
             all_sessions.push(cli_session_to_aggregate_record(session));
         }
+    }
 
-        let include_external_history = filter
-            .and_then(|filter| filter.include_external_history)
-            .unwrap_or(true);
-        if include_external_history {
-            match load_imported_history_sessions() {
-                Ok(imported_sessions) => all_sessions.extend(imported_sessions),
-                Err(err) => {
-                    tracing::warn!(error = %err, "unified_stats: failed to load orgtrack imported history sessions")
-                }
+    let include_external_history = filter
+        .and_then(|filter| filter.include_external_history)
+        .unwrap_or(true);
+    if include_external_history && (load_cli || load_external_history) {
+        match load_imported_history_sessions(filter) {
+            Ok(imported_sessions) => all_sessions.extend(imported_sessions),
+            Err(err) => {
+                tracing::warn!(error = %err, "unified_stats: failed to load orgtrack imported history sessions")
             }
         }
     }
@@ -334,14 +334,19 @@ pub fn list_all_sessions(filter: Option<&SessionFilter>) -> Result<SessionListRe
     }
 
     // Compute statistics (before applying limit/offset)
-    let stats = compute_stats(&all_sessions);
+    let stats = filter
+        .and_then(|filter| filter.include_stats)
+        .unwrap_or(true)
+        .then(|| compute_stats(&all_sessions));
 
     // Apply sorting
     apply_sorting(&mut all_sessions, filter);
 
-    // Apply offset and limit
+    // Source-specific external pages already apply their source offset at load time.
     if let Some(filter) = filter {
-        apply_pagination(&mut all_sessions, filter);
+        if filter.external_history_source.is_none() {
+            apply_pagination(&mut all_sessions, filter);
+        }
     }
 
     Ok(SessionListResponse {
@@ -369,6 +374,14 @@ fn apply_filters(
         sessions.retain(|session| {
             let cat_str = session.category.as_str();
             categories.contains(&cat_str)
+                || (categories.contains(&"external_history")
+                    && session.external_history_source.is_some())
+        });
+    }
+
+    if let Some(ref external_history_source) = filter.external_history_source {
+        sessions.retain(|session| {
+            session.external_history_source.as_deref() == Some(external_history_source.as_str())
         });
     }
 
@@ -599,8 +612,10 @@ mod tests {
             created_at: "2024-01-01T00:00:00Z".to_string(),
             updated_at: "2024-01-01T01:00:00Z".to_string(),
             category,
+            external_history_source: None,
             user_input: None,
             repo_path: None,
+            storage_path: None,
             repo_name: None,
             branch: None,
             model: Some("gpt-4".to_string()),

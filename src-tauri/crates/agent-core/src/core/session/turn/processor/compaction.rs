@@ -118,8 +118,8 @@ impl UnifiedMessageProcessor {
             .resolved
             .compaction
             .effective_budget(context_window);
-        if let Some(actual) = provider_error
-            .and_then(ContextCompactor::parse_actual_tokens_from_error)
+        if let Some(actual) =
+            provider_error.and_then(ContextCompactor::parse_actual_tokens_from_error)
         {
             let estimated = ContextCompactor::estimate_messages_tokens(messages);
             let calibrated = ContextCompactor::calibrate_budget(budget_tokens, estimated, actual);
@@ -135,6 +135,16 @@ impl UnifiedMessageProcessor {
         let prefix = messages[..prefix_len].to_vec();
         let compactable_tail = messages[prefix_len..].to_vec();
         let pre_compact_messages = messages.clone();
+
+        // PreCompaction hook — awaited so backup hooks finish before the
+        // message list is rewritten below.
+        crate::specialization::hooks::dispatch::fire_pre_compaction(
+            self.event_handler_config.hook_executor.as_ref(),
+            session_id,
+            "auto",
+            pre_compact_messages.len(),
+        )
+        .await;
 
         // SM-compact first (zero API calls).
         let sm_compacted = {
@@ -227,6 +237,14 @@ impl UnifiedMessageProcessor {
         self.session
             .last_context_tokens
             .store(0, std::sync::atomic::Ordering::SeqCst);
+
+        crate::specialization::hooks::dispatch::fire_post_compaction(
+            self.event_handler_config.hook_executor.as_ref(),
+            session_id,
+            "auto",
+            pre_compact_messages.len(),
+            messages.len(),
+        );
 
         outcome
     }
@@ -328,6 +346,16 @@ impl UnifiedMessageProcessor {
 
         let pre_compact_messages = messages.clone();
 
+        // PreCompaction hook — awaited so backup hooks finish before the
+        // message list is rewritten below.
+        crate::specialization::hooks::dispatch::fire_pre_compaction(
+            self.event_handler_config.hook_executor.as_ref(),
+            session_id,
+            "auto",
+            pre_compact_messages.len(),
+        )
+        .await;
+
         // Try SM-compact first (zero API calls)
         let sm_compacted = {
             let sm_state = self.sm_state.lock().await;
@@ -425,6 +453,16 @@ impl UnifiedMessageProcessor {
         self.session
             .last_context_tokens
             .store(0, std::sync::atomic::Ordering::SeqCst);
+
+        // Fired before the compact-fork branch: the compaction itself is
+        // done regardless of whether the session id gets redirected below.
+        crate::specialization::hooks::dispatch::fire_post_compaction(
+            self.event_handler_config.hook_executor.as_ref(),
+            session_id,
+            "auto",
+            pre_compact_messages.len(),
+            messages.len(),
+        );
 
         let durable_compacted_messages = messages[prefix_len.min(messages.len())..].to_vec();
 

@@ -54,11 +54,6 @@ vi.mock("@src/store/session/creatorDefaultModelAtom", () => ({
     __tag: "creatorDefaultModelSelectionAtom",
   },
 }));
-
-vi.mock("@src/store/session/cursorModeOverrideAtom", () => ({
-  cursorModeOverrideAtomFamily: () => ({ __tag: "cursorModeOverride" }),
-}));
-
 vi.mock("@src/store/session/sessionAtom", () => ({
   sessionByIdAtom: (id: string) => ({ __tag: "sessionByIdAtom", id }),
   upsertSession: upsertSessionSpy,

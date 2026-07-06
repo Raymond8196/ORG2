@@ -197,25 +197,12 @@ You have a limited turn budget. {edit} requires a prior {read} of the same file,
 
 You MUST only use content from the last ~{count} messages to update your persistent memories. Do not waste any turns attempting to research or verify that content further — no grepping source files, no reading code to confirm a pattern exists, no git commands.{manifest}
 
-If the user explicitly asks you to remember something, save it immediately as whichever type fits best. If they ask you to forget something, find and remove the relevant entry.
+{save_on_request}
 
 {types}
 {not_to_save}
 
-## How to save memories
-
-Saving a memory is a two-step process:
-
-**Step 1** — write the memory to its own file (e.g., `user_role.md`, `feedback_testing.md`) using this frontmatter format:
-
-{frontmatter}
-
-**Step 2** — add a pointer to that file in `MEMORY.md`. `MEMORY.md` is an index, not a memory — each entry should be one line, under ~150 characters: `- [Title](file.md) — one-line hook`. It has no frontmatter. Never write memory content directly into `MEMORY.md`.
-
-- `MEMORY.md` is always loaded into your system prompt — lines after 200 will be truncated, so keep the index concise
-- Organize memory semantically by topic, not chronologically
-- Update or remove memories that turn out to be wrong or outdated
-- Do not write duplicate memories. First check if there is an existing memory you can update before writing a new one."#,
+{how_to_save}"#,
         count = new_message_count,
         read = tool_names::READ_FILE,
         search = tool_names::CODE_SEARCH,
@@ -224,9 +211,10 @@ Saving a memory is a two-step process:
         edit = tool_names::EDIT_FILE,
         dir = mem_dir_str,
         manifest = manifest,
+        save_on_request = super::super::prompt_sections::SAVE_ON_EXPLICIT_REQUEST,
         types = super::super::prompt_sections::TYPES_SECTION,
         not_to_save = super::super::prompt_sections::WHAT_NOT_TO_SAVE,
-        frontmatter = super::super::prompt_sections::MEMORY_FRONTMATTER_EXAMPLE,
+        how_to_save = super::super::prompt_sections::how_to_save_section(),
     )
 }
 
@@ -250,6 +238,11 @@ mod tests {
         assert!(prompt.contains("## Types of memory"));
         assert!(prompt.contains("## What NOT to save"));
         assert!(prompt.contains("MEMORY.md"));
+        // Save protocol comes from the shared prompt_sections pieces — the
+        // extraction prompt and the main-agent memory section must describe
+        // the identical on-disk format.
+        assert!(prompt.contains(super::super::super::prompt_sections::SAVE_ON_EXPLICIT_REQUEST));
+        assert!(prompt.contains(&super::super::super::prompt_sections::how_to_save_section()));
     }
 
     #[test]

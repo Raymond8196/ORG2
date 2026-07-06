@@ -5,12 +5,14 @@
 mod batch;
 mod crud;
 mod install;
+mod prompt_polish;
 pub mod registry;
 mod validate;
 
 pub use batch::*;
 pub use crud::*;
 pub use install::*;
+pub use prompt_polish::*;
 pub use registry::*;
 pub use validate::*;
 
