@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use serde_json::{json, Value};
 
@@ -7,7 +7,7 @@ use crate::coordination::agent_org_runs::{
     AgentOrgContextMember, AgentOrgRunContext, COORDINATOR_MEMBER_ID,
 };
 use crate::coordination::agent_org_tasks::{AgentOrgTaskStore, TASK_DEPENDENCY_CYCLE_ERROR};
-use crate::tools::impls::orchestration::org_send_message::NoopInboxWakeHook;
+use crate::tools::impls::orchestration::org_send_message::{InboxWakeHook, NoopInboxWakeHook};
 use crate::tools::traits::{Tool, ToolError};
 use test_helpers::test_env;
 
@@ -60,6 +60,42 @@ fn ctx(caller_member_id: &str) -> Arc<TaskToolsContext> {
         caller_agent_id,
         caller_member_id: caller_member_id.to_string(),
         wake_hook: Arc::new(NoopInboxWakeHook),
+    })
+}
+
+#[derive(Default, Debug)]
+struct RecordingWakeHook {
+    calls: Mutex<Vec<(String, String)>>,
+}
+
+impl RecordingWakeHook {
+    fn snapshot(&self) -> Vec<(String, String)> {
+        self.calls.lock().unwrap().clone()
+    }
+}
+
+impl InboxWakeHook for RecordingWakeHook {
+    fn wake_member(&self, member_id: &str, org_run_id: &str) {
+        self.calls
+            .lock()
+            .unwrap()
+            .push((member_id.to_string(), org_run_id.to_string()));
+    }
+}
+
+fn ctx_with_wake(
+    caller_member_id: &str,
+    wake_hook: Arc<dyn InboxWakeHook>,
+) -> Arc<TaskToolsContext> {
+    let org_context = org_context();
+    let caller_agent_id = org_context
+        .require_participant_agent_id(caller_member_id)
+        .expect("test caller member id resolves");
+    Arc::new(TaskToolsContext {
+        org_context,
+        caller_agent_id,
+        caller_member_id: caller_member_id.to_string(),
+        wake_hook,
     })
 }
 
@@ -117,6 +153,58 @@ async fn task_create_unassigned_does_not_dispatch_inbox() {
         .unwrap()
         .unwrap();
     assert!(stored.owner.is_none());
+}
+
+#[tokio::test]
+async fn task_create_unassigned_with_eligibility_wakes_only_eligible_idle_members() {
+    let _sandbox = task_tools_sandbox();
+    let wake_hook = Arc::new(RecordingWakeHook::default());
+    let ctx = ctx_with_wake(COORDINATOR_MEMBER_ID, wake_hook.clone());
+    let tool = TaskCreateTool::new(ctx);
+
+    let res = tool
+        .execute_text(
+            json!({
+                "subject": "S1 eligible",
+                "eligible_member_ids": ["m-alice"],
+                "required_role": "engineer",
+            }),
+            &test_ctx(),
+        )
+        .await
+        .expect("task_create succeeds");
+
+    let value: Value = serde_json::from_str(&res).unwrap();
+    assert!(!value["task_assigned_dispatched"].as_bool().unwrap());
+    assert_eq!(value["claimable_wake_member_ids"], json!(["m-alice"]));
+    assert_eq!(
+        wake_hook.snapshot(),
+        vec![("m-alice".to_string(), "run-tools-1".to_string())]
+    );
+    let alice_inbox = AgentInboxStore::list_unread_for_member("m-alice", "run-tools-1").unwrap();
+    let bob_inbox = AgentInboxStore::list_unread_for_member("m-bob", "run-tools-1").unwrap();
+    assert!(alice_inbox.is_empty());
+    assert!(bob_inbox.is_empty());
+}
+
+#[tokio::test]
+async fn task_create_rejects_coordinator_in_eligible_member_ids() {
+    let _sandbox = task_tools_sandbox();
+    let tool = TaskCreateTool::new(ctx(COORDINATOR_MEMBER_ID));
+    let err = tool
+        .execute_text(
+            json!({
+                "subject": "Invalid eligibility",
+                "eligible_member_ids": ["coordinator"],
+            }),
+            &test_ctx(),
+        )
+        .await
+        .expect_err("coordinator is not a worker eligibility target");
+    match err {
+        ToolError::InvalidParams(msg) => assert!(msg.contains("eligible_member_ids")),
+        other => panic!("expected InvalidParams, got {other:?}"),
+    }
 }
 
 #[tokio::test]
@@ -587,6 +675,43 @@ async fn task_update_shared_agent_member_can_start_own_task() {
     let value: Value = serde_json::from_str(&res).unwrap();
     assert_eq!(value["task"]["status"].as_str().unwrap(), "in_progress");
     assert_eq!(value["task"]["owner"].as_str().unwrap(), "sde-planner");
+}
+
+#[tokio::test]
+async fn task_update_rejects_completed_to_in_progress_reopen() {
+    let _sandbox = task_tools_sandbox();
+    let tool = TaskCreateTool::new(ctx(COORDINATOR_MEMBER_ID));
+    tool.execute_text(
+        json!({
+            "id": "completed-reopen",
+            "subject": "Completed task",
+            "owner_member_id": "m-alice",
+        }),
+        &test_ctx(),
+    )
+    .await
+    .unwrap();
+    let alice = ctx("m-alice");
+    let update = TaskUpdateTool::new(Arc::clone(&alice));
+    update
+        .execute_text(
+            json!({ "id": "completed-reopen", "status": "completed" }),
+            &test_ctx(),
+        )
+        .await
+        .unwrap();
+
+    let err = update
+        .execute_text(
+            json!({ "id": "completed-reopen", "status": "in_progress" }),
+            &test_ctx(),
+        )
+        .await
+        .expect_err("completed tasks cannot be reopened implicitly");
+    match err {
+        ToolError::InvalidParams(msg) => assert!(msg.contains("cannot reopen")),
+        other => panic!("expected InvalidParams, got {other:?}"),
+    }
 }
 
 #[tokio::test]

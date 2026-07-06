@@ -24,12 +24,13 @@
 
 use std::sync::Arc;
 
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 
 use crate::coordination::agent_inbox::SYSTEM_SENDER_ID;
 use crate::coordination::agent_org_runs::{AgentOrgRunContext, COORDINATOR_MEMBER_ID};
 use crate::coordination::agent_org_tasks::{
-    self, AgentOrgTaskStore, Task, TaskStatus, TASK_DEPENDENCY_CYCLE_ERROR,
+    self, eligible_member_ids as task_eligible_member_ids, AgentOrgTaskStore, Task, TaskStatus,
+    TASK_DEPENDENCY_CYCLE_ERROR, TASK_METADATA_ELIGIBLE_MEMBER_IDS, TASK_METADATA_REQUIRED_ROLE,
 };
 use crate::tools::impls::orchestration::org_send_message::InboxWakeHook;
 use crate::tools::traits::ToolError;
@@ -127,6 +128,61 @@ impl TaskToolsContext {
             "owner_member_id '{owner_member_id}' is not valid for this Agent Org run; use one of: [{}, {}]",
             COORDINATOR_MEMBER_ID, known
         ))
+    }
+
+    pub(crate) fn resolve_eligible_member_ids(
+        &self,
+        raw_member_ids: Vec<String>,
+    ) -> Result<Vec<String>, String> {
+        let mut resolved = Vec::new();
+        for raw_member_id in raw_member_ids {
+            let member_id = raw_member_id.trim();
+            if member_id.is_empty() {
+                continue;
+            }
+            if member_id == COORDINATOR_MEMBER_ID {
+                return Err(
+                    "eligible_member_ids cannot include coordinator; use owner_member_id for coordinator-owned work"
+                        .to_string(),
+                );
+            }
+            let resolved_member_id = self.resolve_owner_member_id(member_id)?;
+            if !resolved
+                .iter()
+                .any(|existing| existing == &resolved_member_id)
+            {
+                resolved.push(resolved_member_id);
+            }
+        }
+        Ok(resolved)
+    }
+
+    pub(crate) fn wake_eligible_members_for_claimable_work(&self, tasks: &[Task]) -> Vec<String> {
+        let mut woken = Vec::new();
+        for task in tasks {
+            if task.owner.is_some() || task.status != TaskStatus::Pending {
+                continue;
+            }
+            if !task_dependencies_resolved(tasks, task) {
+                continue;
+            }
+            for member_id in task_eligible_member_ids(task) {
+                if woken.iter().any(|existing| existing == &member_id) {
+                    continue;
+                }
+                let has_open_task = tasks.iter().any(|candidate| {
+                    candidate.owner.as_deref() == Some(member_id.as_str())
+                        && !candidate.status.is_resolved()
+                });
+                if has_open_task {
+                    continue;
+                }
+                self.wake_hook
+                    .wake_member(&member_id, &self.org_context.run_id);
+                woken.push(member_id);
+            }
+        }
+        woken
     }
 
     fn recipient_agent_id_for_owner_member_id(
@@ -238,6 +294,42 @@ pub(crate) fn task_dependencies_resolved(all_tasks: &[Task], task: &Task) -> boo
     })
 }
 
+pub(crate) fn merge_task_metadata(
+    metadata: Option<Value>,
+    eligible_member_ids: Option<Vec<String>>,
+    required_role: Option<String>,
+) -> Option<Value> {
+    let mut object = match metadata {
+        Some(Value::Object(object)) => object,
+        Some(other) => {
+            let mut object = Map::new();
+            object.insert("value".to_string(), other);
+            object
+        }
+        None => Map::new(),
+    };
+
+    if let Some(eligible_member_ids) = eligible_member_ids {
+        object.insert(
+            TASK_METADATA_ELIGIBLE_MEMBER_IDS.to_string(),
+            json!(eligible_member_ids),
+        );
+    }
+    if let Some(required_role) = required_role {
+        let required_role = required_role.trim();
+        if required_role.is_empty() {
+            object.remove(TASK_METADATA_REQUIRED_ROLE);
+        } else {
+            object.insert(
+                TASK_METADATA_REQUIRED_ROLE.to_string(),
+                Value::String(required_role.to_string()),
+            );
+        }
+    }
+
+    (!object.is_empty()).then_some(Value::Object(object))
+}
+
 pub(crate) fn parse_status(value: &str) -> Result<TaskStatus, String> {
     TaskStatus::from_wire(value).map_err(|err| {
         format!("invalid status: {err} (expected: pending | in_progress | completed)")
@@ -253,6 +345,11 @@ pub(crate) fn map_task_write_error(err: String) -> ToolError {
 }
 
 pub(crate) fn task_to_json(task: &Task) -> Value {
+    let required_role = task
+        .metadata
+        .as_ref()
+        .and_then(|metadata| metadata.get(TASK_METADATA_REQUIRED_ROLE))
+        .and_then(Value::as_str);
     json!({
         "id": task.id,
         "subject": task.subject,
@@ -263,6 +360,8 @@ pub(crate) fn task_to_json(task: &Task) -> Value {
         "status": task.status.as_wire(),
         "blocks": task.blocks,
         "blocked_by": task.blocked_by,
+        "eligible_member_ids": task_eligible_member_ids(task),
+        "required_role": required_role,
         "metadata": task.metadata,
         "created_at": task.created_at,
         "updated_at": task.updated_at,

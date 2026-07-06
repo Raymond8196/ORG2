@@ -23,6 +23,7 @@ pub mod agent_inbox;
 pub mod agent_member_interventions;
 pub mod agent_org_runs;
 pub mod agent_org_tasks;
+pub mod agent_org_watchdog;
 pub mod routine_scheduler;
 pub mod work_item_recovery;
 pub mod work_item_scheduler;
