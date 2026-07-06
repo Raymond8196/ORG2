@@ -4,6 +4,6 @@
  */
 export const INTEGRATIONS_MODELS_TABLE_COL_WIDTH = {
   model: "",
-  sources: "clamp(200px, 24vw, 320px)",
+  sources: "180px",
   status: "88px",
 } as const;
