@@ -381,6 +381,8 @@ pub struct ModelKey {
     #[serde(default)]
     pub env_vars: HashMap<String, String>,
     #[serde(default)]
+    pub account_metadata: HashMap<String, String>,
+    #[serde(default)]
     pub auth_method: AuthMethod,
     #[serde(default)]
     pub available_models: Vec<String>,
@@ -487,6 +489,7 @@ impl ModelKey {
             base_url: None,
             protocol: None,
             env_vars: HashMap::new(),
+            account_metadata: HashMap::new(),
             auth_method: AuthMethod::ApiKey,
             available_models: Vec::new(),
             quota_info: None,

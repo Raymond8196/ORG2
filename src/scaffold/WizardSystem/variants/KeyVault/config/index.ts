@@ -40,6 +40,7 @@ export const DEFAULT_WIZARD_DATA: WizardData = {
   agent_type: "" as ModelType,
   raw_key_input: "",
   env_vars: [],
+  account_metadata: {},
   validated: false,
   available_models: [],
   model_context_lengths: {},

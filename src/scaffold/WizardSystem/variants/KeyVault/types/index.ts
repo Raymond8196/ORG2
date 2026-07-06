@@ -54,6 +54,7 @@ export interface WizardData {
   cursor_session_token?: string;
   oauth_session_token?: string;
   env_vars: EnvVar[];
+  account_metadata?: Record<string, string>;
   validated: boolean;
   /** Auto-detected models returned by the validator (e.g. /v1/models). */
   available_models: string[];

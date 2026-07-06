@@ -98,7 +98,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "支持 CLI Agents",
       "compatibleApis": "兼容 API",
-      "noCliAgentSupport": "此服务商不支持 CLI Agent"
+      "noCliAgentSupport": "此服务商不支持 CLI Agent",
+      "accountEmail": "账户邮箱",
+      "organization": "组织"
     },
     "inlineDetailTabs": {
       "info": "信息"
@@ -457,6 +459,10 @@
     "codexConnected": "Codex 已连接",
     "codexDetectErrorHint": "请使用内嵌浏览器登录，或手动粘贴 OpenAI API key",
     "codexValidationErrorHint": "检查 token 或 API key 是否有效，然后重试",
+    "claudeCodeAutodetectTitle": "检测 Claude Code 会话",
+    "claudeCodeAutodetectDesc": "从 macOS Keychain 或 ~/.claude/.credentials.json 读取本地 Claude Code 登录",
+    "claudeCodeConnected": "Claude Code 已连接",
+    "claudeCodeDetectErrorHint": "请使用内嵌浏览器登录，或运行 claude auth login 后重新检测",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",

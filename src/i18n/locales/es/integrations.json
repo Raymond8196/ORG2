@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agents",
       "supportCliAgents": "Compatible con CLI Agents",
       "compatibleApis": "APIs Compatibles",
-      "noCliAgentSupport": "Sin soporte de CLI Agent para este proveedor"
+      "noCliAgentSupport": "Sin soporte de CLI Agent para este proveedor",
+      "accountEmail": "Correo de la cuenta",
+      "organization": "Organización"
     },
     "manualModels": {
       "notice": "No se pudieron detectar automáticamente los modelos disponibles desde este proxy. Puede agregar modelos manualmente a continuación o intentar hacer clic en Validate nuevamente.",
@@ -453,6 +455,10 @@
     "codexConnected": "Codex conectado",
     "codexDetectErrorHint": "Inicia sesión con el navegador integrado o pega manualmente una API key de OpenAI",
     "codexValidationErrorHint": "Comprueba que el token o la API key sean válidos e inténtalo de nuevo",
+    "claudeCodeAutodetectTitle": "Detectar sesión de Claude Code",
+    "claudeCodeAutodetectDesc": "Lee tu inicio de sesión local de Claude Code desde macOS Keychain o ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code conectado",
+    "claudeCodeDetectErrorHint": "Inicia sesión con el navegador integrado o ejecuta claude auth login y vuelve a detectar",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
