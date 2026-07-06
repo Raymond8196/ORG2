@@ -169,7 +169,7 @@ export const DispatchCategoryDropdown: React.FC<
         action: () => {},
       });
       for (const option of group.options) {
-        result.push(optionToItem(option));
+        result.push(optionToItem(option, group.headerId));
       }
     }
     return result;

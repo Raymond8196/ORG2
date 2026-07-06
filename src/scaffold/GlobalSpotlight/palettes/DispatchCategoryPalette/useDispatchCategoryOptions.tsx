@@ -88,7 +88,7 @@ export interface UseDispatchCategoryOptionsResult {
   accounts: KeyVaultAccount[];
   rustCompatibleAccounts: KeyVaultAccount[];
   rustIncompatibleAccounts: KeyVaultAccount[];
-  optionToItem: (option: AgentOption) => SpotlightItem;
+  optionToItem: (option: AgentOption, itemIdPrefix?: string) => SpotlightItem;
 }
 
 function buildCredentialBadge(
@@ -421,7 +421,7 @@ export function useDispatchCategoryOptions(
   ]);
 
   const optionToItem = useCallback(
-    (option: AgentOption): SpotlightItem => {
+    (option: AgentOption, itemIdPrefix?: string): SpotlightItem => {
       const isCurrent = option.isOrg
         ? currentCategory === "rust_agent" &&
           option.agentOrgId === currentAgentOrgId
@@ -443,13 +443,14 @@ export function useDispatchCategoryOptions(
         : resolveAgentIcon(option.iconId);
 
       return {
-        id: option.id,
+        id: itemIdPrefix ? `${itemIdPrefix}:${option.id}` : option.id,
         label: option.name,
         desc: option.desc,
         icon,
         type: "action" as const,
         data: {
           isSelector: true,
+          optionId: option.id,
           isCurrentSelection: isCurrent,
           rightContent: option.rightContent,
           testId: option.isOrg

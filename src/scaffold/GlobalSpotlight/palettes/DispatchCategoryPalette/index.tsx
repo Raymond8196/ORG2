@@ -444,7 +444,7 @@ export const DispatchCategoryPalette: React.FC<
   const isSearching = searchQuery.trim().length > 0;
 
   const optionToItem = useCallback(
-    (option: AgentOption): SpotlightItem => {
+    (option: AgentOption, itemIdPrefix?: string): SpotlightItem => {
       const isCurrent = option.isOrg
         ? currentCategory === "rust_agent" &&
           option.agentOrgId === currentAgentOrgId
@@ -470,13 +470,14 @@ export const DispatchCategoryPalette: React.FC<
         : resolveAgentIcon(option.iconId);
 
       return {
-        id: option.id,
+        id: itemIdPrefix ? `${itemIdPrefix}:${option.id}` : option.id,
         label: option.name,
         desc: option.desc,
         icon,
         type: "action" as const,
         data: {
           isSelector: true,
+          optionId: option.id,
           isCurrentSelection: isCurrent,
           rightContent: option.rightContent,
           testId: option.isOrg
@@ -544,7 +545,7 @@ export const DispatchCategoryPalette: React.FC<
         action: () => {},
       });
       for (const option of options) {
-        result.push(optionToItem(option));
+        result.push(optionToItem(option, headerId));
       }
     };
 
@@ -639,7 +640,9 @@ export const DispatchCategoryPalette: React.FC<
     hoveredItem,
     resolve: useCallback(
       (item) => {
-        const option = allOptions.find((opt) => opt.id === item.id);
+        const itemData = item.data as Record<string, unknown> | undefined;
+        const optionId = (itemData?.optionId as string | undefined) ?? item.id;
+        const option = allOptions.find((opt) => opt.id === optionId);
         if (!option) return null;
         // Cursor IDE manages its own auth — no ORGII-side accounts
         // are relevant. Returning null keeps the footer empty.
