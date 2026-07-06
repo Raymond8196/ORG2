@@ -41,6 +41,8 @@ import {
   type CliLaunchMode,
   cliAgentVisibilityOverridesAtom,
   isCliAgentEnabled,
+  recentAgentSelectionsAtom,
+  recordRecentAgentSelectionAtom,
 } from "@src/store/session";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 import {
@@ -190,6 +192,8 @@ export const DispatchCategoryPalette: React.FC<
   const { accounts } = useKeyVault({ autoLoad: true });
   const { registry } = useAgentCompatibility();
   const setAgentRegistry = useSetAtom(agentRegistryAtom);
+  const recentAgentSelections = useAtomValue(recentAgentSelectionsAtom);
+  const recordRecentAgentSelection = useSetAtom(recordRecentAgentSelectionAtom);
 
   const shouldShowCliOnly =
     cliOnly || cliAgentListFilterMode === CLI_LAUNCH_MODE.TUI;
@@ -411,6 +415,24 @@ export const DispatchCategoryPalette: React.FC<
     ]
   );
 
+  const recentOptions = useMemo((): AgentOption[] => {
+    return recentAgentSelections.flatMap((selection) => {
+      const option = allOptions.find((candidate) => {
+        if (selection.targetKind === SESSION_TARGET_KIND.AGENT_ORG) {
+          return candidate.agentOrgId === selection.agentOrgId;
+        }
+        if (selection.category === "cli_agent") {
+          return candidate.cliAgentType === selection.cliAgentType;
+        }
+        if (selection.category === "cursor_ide") {
+          return candidate.category === "cursor_ide";
+        }
+        return candidate.agentDefinitionId === selection.agentDefinitionId;
+      });
+      return option ? [option] : [];
+    });
+  }, [allOptions, recentAgentSelections]);
+
   const { filteredItems: filteredOptions } = useFilteredItems({
     items: allOptions,
     searchQuery,
@@ -466,6 +488,13 @@ export const DispatchCategoryPalette: React.FC<
                 : undefined,
         },
         action: () => {
+          recordRecentAgentSelection({
+            category: option.category,
+            targetKind: option.targetKind,
+            agentDefinitionId: option.agentDefinitionId,
+            agentOrgId: option.agentOrgId,
+            cliAgentType: option.cliAgentType,
+          });
           onSelect({
             category: option.category,
             targetKind: option.targetKind,
@@ -486,6 +515,7 @@ export const DispatchCategoryPalette: React.FC<
       currentAgentOrgId,
       currentCliAgentType,
       cliAgentListFilterMode,
+      recordRecentAgentSelection,
       onSelect,
       onClose,
     ]
@@ -518,6 +548,11 @@ export const DispatchCategoryPalette: React.FC<
       }
     };
 
+    pushGroup(
+      "__header_recent__",
+      tCommon("selectors.labels.recent"),
+      recentOptions
+    );
     if (!shouldShowCliOnly) {
       pushGroup(
         "__header_builtin__",
@@ -547,6 +582,7 @@ export const DispatchCategoryPalette: React.FC<
     isSearching,
     shouldShowCliOnly,
     filteredOptions,
+    recentOptions,
     builtInRustOptions,
     cliOptions,
     externalIdeOptions,
@@ -555,6 +591,7 @@ export const DispatchCategoryPalette: React.FC<
     hideOrgs,
     optionToItem,
     t,
+    tCommon,
   ]);
 
   // ============ KERNEL ============
