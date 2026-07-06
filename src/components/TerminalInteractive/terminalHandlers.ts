@@ -10,6 +10,59 @@ import { setTerminalBuffer } from "./bufferCache";
 import type { TerminalViewProps } from "./types";
 import { createTerminalFileLinks } from "./utils";
 
+// ============================================
+// macOS Cmd+Arrow key forwarding
+// ============================================
+
+/**
+ * ANSI escape sequences for macOS Cmd+Arrow keys.
+ *
+ * xterm.js intentionally skips Meta (Cmd) for arrow keys so the browser can
+ * handle them for text-cursor navigation in its own UI.  Inside a terminal
+ * emulator the Meta modifier should produce the xterm modifier-key sequence
+ * (modifier byte = mod_bits + 1 = Meta(8) + 1 = 9).
+ *
+ * Cmd+Up / Cmd+Down are intentionally excluded: macOS uses them for scroll
+ * actions and they are not standard readline/shell bindings.
+ */
+const MAC_CMD_ARROW_SEQUENCES: Partial<Record<string, string>> = {
+  ArrowLeft: "\x1b[1;9D",
+  ArrowRight: "\x1b[1;9C",
+};
+
+function isMacPlatform(): boolean {
+  return navigator.platform.toUpperCase().includes("MAC");
+}
+
+/**
+ * Registers a customKeyEventHandler on the xterm Terminal so that macOS
+ * Cmd+Arrow combinations are forwarded as ANSI escape sequences to the PTY.
+ *
+ * Returns a cleanup function that removes the handler.
+ */
+function registerMacCmdArrowHandler(terminal: Terminal): () => void {
+  if (!isMacPlatform()) return () => undefined;
+
+  terminal.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+    if (!event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      return true;
+    }
+    const sequence = MAC_CMD_ARROW_SEQUENCES[event.key];
+    if (!sequence) return true;
+
+    if (event.type === "keydown") {
+      terminal.input(sequence, true);
+    }
+    return false;
+  });
+
+  return () => {
+    // xterm does not expose a way to remove a custom key handler, so we
+    // replace it with a pass-through handler that always returns true.
+    terminal.attachCustomKeyEventHandler(() => true);
+  };
+}
+
 const log = createLogger("Terminal");
 
 interface RegisterTerminalEventHandlersParams {
@@ -248,6 +301,8 @@ export function registerTerminalEventHandlers({
     onTitleChange?.(title);
   });
 
+  const cleanupCmdArrowHandler = registerMacCmdArrowHandler(terminal);
+
   const handleSnapshotRequest = () => {
     cacheSerializedTerminalBuffer(serializeAddonRef, sessionIdRef, false);
   };
@@ -256,6 +311,7 @@ export function registerTerminalEventHandlers({
   return () => {
     cleanupSelectionHandlers();
     clearResizeTimer();
+    cleanupCmdArrowHandler();
     fileLinkProvider?.dispose();
     inputHandler.dispose();
     resizeHandler.dispose();
