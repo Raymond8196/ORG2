@@ -4,9 +4,11 @@ import type { MutableRefObject } from "react";
 
 import { createLogger } from "@src/hooks/logger";
 import { getUiScaleFromCssVar } from "@src/lib/dndKit";
+import { isMacOS } from "@src/util/platform/tauri";
 import { invokeTauri, isTauriReady } from "@src/util/platform/tauri/init";
 
 import { setTerminalBuffer } from "./bufferCache";
+import { notifyPtyUserInput } from "./terminalPty";
 import type { TerminalViewProps } from "./types";
 import { createTerminalFileLinks } from "./utils";
 
@@ -25,14 +27,10 @@ import { createTerminalFileLinks } from "./utils";
  * Cmd+Up / Cmd+Down are intentionally excluded: macOS uses them for scroll
  * actions and they are not standard readline/shell bindings.
  */
-const MAC_CMD_ARROW_SEQUENCES: Partial<Record<string, string>> = {
+const MAC_CMD_ARROW_SEQUENCES: Record<string, string> = {
   ArrowLeft: "\x1b[1;9D",
   ArrowRight: "\x1b[1;9C",
 };
-
-function isMacPlatform(): boolean {
-  return navigator.platform.toUpperCase().includes("MAC");
-}
 
 /**
  * Registers a customKeyEventHandler on the xterm Terminal so that macOS
@@ -41,7 +39,7 @@ function isMacPlatform(): boolean {
  * Returns a cleanup function that removes the handler.
  */
 function registerMacCmdArrowHandler(terminal: Terminal): () => void {
-  if (!isMacPlatform()) return () => undefined;
+  if (!isMacOS()) return () => undefined;
 
   terminal.attachCustomKeyEventHandler((event: KeyboardEvent) => {
     if (!event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
@@ -128,6 +126,8 @@ function registerInputHandler({
     if (isTauriReady() && sessionIdRef.current) {
       onOutput?.();
       onUserInput?.();
+      // Mark user input so the output scheduler can grant interactive bypass
+      notifyPtyUserInput(sessionIdRef.current);
       pendingInput += data;
       if (!inputBatchScheduled) {
         inputBatchScheduled = true;
