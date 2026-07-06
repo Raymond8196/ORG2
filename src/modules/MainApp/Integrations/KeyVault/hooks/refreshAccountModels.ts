@@ -30,6 +30,7 @@ import {
   getCursorNativeModels,
   getFullKey,
   getGeminiOAuthModels,
+  getOAuthModelCatalog,
   refreshOauthToken,
   updateKeyHealth,
   validateKey,
@@ -247,16 +248,30 @@ export async function refreshAccountModels(
     );
   }
 
-  // Don't pass enabledModels — the backend preserves the user's existing
-  // selection and any newly discovered models end up in the "addable" bucket
-  // by default (this is the no-silent-enable invariant memorialised in
-  // .orgii/workspace-memory/feedback_new_resources_default_addable.md).
+  const refreshedEnabledModels = await (async () => {
+    if (!isOAuthAccount(account)) {
+      return undefined;
+    }
+    if (
+      account.modelType !== CLI_AGENT.CLAUDE_CODE &&
+      account.modelType !== CLI_AGENT.CODEX
+    ) {
+      return undefined;
+    }
+    const catalog = await getOAuthModelCatalog(account.modelType);
+    const enabled = new Set(account.enabledModels ?? []);
+    for (const modelId of catalog.defaultEnabledModels) {
+      if (fetched.models.includes(modelId)) enabled.add(modelId);
+    }
+    return [...enabled];
+  })();
+
   await updateKeyHealth(
     account.id,
     previousHealth,
     undefined,
     fetched.models,
-    undefined,
+    refreshedEnabledModels,
     undefined,
     fetched.modelContextLengths
   );

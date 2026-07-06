@@ -5,7 +5,6 @@ import { CLI_AGENT } from "@src/api/types/keys";
 import type { KeyVaultAccount } from "@src/hooks/keyVault/types";
 
 import {
-  getClaudeCodeOAuthModels,
   getMyKeyFallbackNativeModels,
   withClaudeCodeOAuthModels,
   withCursorNativeModels,
@@ -17,17 +16,6 @@ describe("native harness account models", () => {
       "composer-2",
     ]);
   });
-
-  it("uses Claude Code CLI-compatible OAuth defaults", () => {
-    expect(getClaudeCodeOAuthModels()).toEqual([
-      "claude-sonnet-4-6",
-      "claude-opus-4-7",
-      "claude-opus-4-6",
-      "claude-haiku-4-5-20251001",
-      "claude-sonnet-4-5-20250929",
-    ]);
-  });
-
   it("preserves dynamically discovered Cursor native models and forwards an empty enabled set as-is", () => {
     const account: KeyVaultAccount = {
       id: "cursor-native-test",
@@ -56,7 +44,7 @@ describe("native harness account models", () => {
     expect(enriched.enabledModels).toEqual([]);
   });
 
-  it("fills saved Claude Code OAuth accounts that were stored without models", () => {
+  it("does not inject Claude Code catalog models in TypeScript", () => {
     const account: KeyVaultAccount = {
       id: "claude-code-oauth-empty-test",
       hasLocalKey: true,
@@ -75,17 +63,11 @@ describe("native harness account models", () => {
 
     const enriched = withClaudeCodeOAuthModels(account);
 
-    expect(enriched.availableModels).toEqual([
-      "claude-sonnet-4-6",
-      "claude-opus-4-7",
-      "claude-opus-4-6",
-      "claude-haiku-4-5-20251001",
-      "claude-sonnet-4-5-20250929",
-    ]);
-    expect(enriched.enabledModels).toEqual(["claude-sonnet-4-6"]);
+    expect(enriched.availableModels).toEqual([]);
+    expect(enriched.enabledModels).toEqual([]);
   });
 
-  it("unions discovered Claude Code OAuth models with the native harness catalog", () => {
+  it("preserves discovered Claude Code OAuth models", () => {
     const account: KeyVaultAccount = {
       id: "claude-code-oauth-discovered-test",
       hasLocalKey: true,
@@ -104,13 +86,7 @@ describe("native harness account models", () => {
 
     const enriched = withClaudeCodeOAuthModels(account);
 
-    expect(enriched.availableModels).toEqual([
-      "claude-sonnet-4-6",
-      "claude-opus-4-7",
-      "claude-opus-4-6",
-      "claude-haiku-4-5-20251001",
-      "claude-sonnet-4-5-20250929",
-    ]);
+    expect(enriched.availableModels).toEqual(["claude-sonnet-4-6"]);
     expect(enriched.enabledModels).toEqual(["claude-sonnet-4-6"]);
   });
 

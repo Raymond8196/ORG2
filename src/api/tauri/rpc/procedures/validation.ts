@@ -120,6 +120,11 @@ export const validation = {
     .output(z.array(schemas.validation.CursorNativeModelSchema))
     .build(),
 
+  oauthModelCatalog: defineProcedure("oauth_model_catalog")
+    .input(schemas.validation.OAuthModelCatalogInput)
+    .output(schemas.validation.OAuthModelCatalogResponseSchema)
+    .build(),
+
   claudeCodeOauthListModels: defineProcedure("claude_code_oauth_list_models")
     .input(schemas.validation.ClaudeCodeOauthListModelsInput)
     .output(z.array(z.string()))
