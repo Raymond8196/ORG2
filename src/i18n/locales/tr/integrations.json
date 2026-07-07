@@ -221,6 +221,8 @@
     "apiKeyDesc": "Sağlayıcının API'sine istek doğrulamak için kullanılan gizli anahtar",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "API uç nokta URL'si — yalnızca proxy, özel dağıtım veya kendi sunucunuzu kullanıyorsanız değiştirin",
+    "apiProtocolLabel": "API protokolü",
+    "apiProtocolDesc": "Yerleşik Rust Agent için bağlantı protokolünü seçin",
     "officialUrl": "Resmi URL",
     "customUrl": "Özel URL",
     "customBaseUrlRiskTitle": "Özel URL Uyarısı",

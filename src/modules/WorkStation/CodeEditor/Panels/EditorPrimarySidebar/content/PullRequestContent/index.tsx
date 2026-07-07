@@ -10,7 +10,7 @@ import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { OpenPRItem } from "@src/api/tauri/github";
-import Tooltip from "@src/components/Tooltip";
+import PrHoverCard from "@src/components/PrHoverCard";
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import {
@@ -23,7 +23,6 @@ import { TYPOGRAPHY } from "@src/modules/WorkStation/shared/tokens";
 import { ReferenceDragGhost } from "@src/shared/dnd/ReferenceDragGhost";
 import { setPrDragStash } from "@src/shared/dnd/dragSideChannel";
 import { useReferencePillDrag } from "@src/shared/dnd/useReferencePillDrag";
-import { getPrStatusLabelKey } from "@src/shared/pr/prStatus";
 import {
   workstationAllOpenPrsAtom,
   workstationOpenPrsErrorAtom,
@@ -31,9 +30,8 @@ import {
   workstationPrAtom,
   workstationPrCallbackAtom,
 } from "@src/store/workstation/codeEditor/workstationPrAtom";
-import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
-import { getPrStatusVariant, truncateBranchLabel } from "./prCardHelpers";
+import { getPrStatusVariant } from "./prCardHelpers";
 
 export interface PullRequestContentProps {
   branchName?: string;
@@ -63,7 +61,6 @@ interface PrRowProps {
 
 const PrRow: React.FC<PrRowProps> = memo(
   ({ pr, depth = 1, isCurrentBranch, isSelected, onClick }) => {
-    const { t } = useTranslation("common");
     const statusKey = pr.draft ? "draft" : pr.state;
     const statusVariant = getPrStatusVariant(statusKey);
 
@@ -115,45 +112,10 @@ const PrRow: React.FC<PrRowProps> = memo(
       onPointerDown: stashPrDrag,
     });
 
-    const tooltipContent = (
-      <div className="flex flex-col gap-1 py-0.5">
-        <div className="flex items-center gap-2 text-[11px]">
-          <span className="text-text-3">{t("labels.status", "Status")}</span>
-          <span className="capitalize text-text-2">
-            {t(getPrStatusLabelKey(statusKey), statusKey)}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-[11px]">
-          <span className="text-text-3">{t("labels.number", "Number")}</span>
-          <span className="tabular-nums text-text-2">#{pr.number}</span>
-        </div>
-        {pr.head_branch && (
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className="text-text-3">{t("labels.branch", "Branch")}</span>
-            <span className="font-mono text-text-2">
-              {truncateBranchLabel(pr.head_branch, 40)}
-            </span>
-          </div>
-        )}
-        <div className="flex items-center gap-2 text-[11px]">
-          <span className="text-text-3">{t("labels.updated", "Updated")}</span>
-          <span className="text-text-2">
-            {pr.updated_at ? formatRelativeTime(pr.updated_at, "nano") : "—"}
-          </span>
-        </div>
-      </div>
-    );
-
     return (
       <>
         {dragState && <ReferenceDragGhost dragState={dragState} />}
-        <Tooltip
-          content={tooltipContent}
-          position="bottom-end"
-          smartPlacement
-          panelStyle
-          mouseEnterDelay={200}
-        >
+        <PrHoverCard pr={pr}>
           <TreeRowBase
             node={node}
             depth={depth}
@@ -174,7 +136,7 @@ const PrRow: React.FC<PrRowProps> = memo(
               </span>
             </span>
           </TreeRowBase>
-        </Tooltip>
+        </PrHoverCard>
       </>
     );
   }

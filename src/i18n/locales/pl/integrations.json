@@ -222,6 +222,8 @@
     "apiKeyDesc": "Tajny klucz używany do uwierzytelniania żądań do API dostawcy",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "URL punktu końcowego API — zmień tylko jeśli używasz proxy, własnego wdrożenia lub serwera hostowanego samodzielnie",
+    "apiProtocolLabel": "Protokół API",
+    "apiProtocolDesc": "Wybierz protokół połączenia dla wbudowanego agenta Rust",
     "officialUrl": "Oficjalny URL",
     "customUrl": "Niestandardowy URL",
     "customBaseUrlRiskTitle": "Ostrzeżenie o niestandardowym URL",

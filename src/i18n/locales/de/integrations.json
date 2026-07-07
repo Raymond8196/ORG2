@@ -224,6 +224,8 @@
     "apiKeyDesc": "Geheimer Schlüssel zur Authentifizierung von Anfragen an die API des Anbieters",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "API-Endpunkt-URL — nur ändern bei Verwendung eines Proxys, benutzerdefinierten Deployments oder selbst gehosteten Servers",
+    "apiProtocolLabel": "API-Protokoll",
+    "apiProtocolDesc": "Drahtprotokoll für den integrierten Rust-Agent wählen",
     "officialUrl": "Offizielle URL",
     "customUrl": "Benutzerdefinierte URL",
     "customBaseUrlRiskTitle": "Warnung: Benutzerdefinierte URL",

@@ -224,6 +224,8 @@
     "apiKeyDesc": "プロバイダーの API にリクエストを認証するための秘密キー",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "API エンドポイント URL — プロキシ、カスタムデプロイ、セルフホストサーバーを使用する場合のみ変更",
+    "apiProtocolLabel": "API プロトコル",
+    "apiProtocolDesc": "組み込み Rust Agent のワイヤプロトコルを選択",
     "officialUrl": "公式 URL",
     "customUrl": "カスタム URL",
     "customBaseUrlRiskTitle": "カスタム URL 警告",
