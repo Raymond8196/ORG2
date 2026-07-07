@@ -1,7 +1,14 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { CheckCircle2, ChevronDown, CircleDot } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  CircleDot,
+  GitPullRequest,
+  Link2,
+  Plus,
+} from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -12,13 +19,20 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import { getGitRemotes } from "@src/api/http/git/remotes";
-import { getGitHubGitCredentialForRemote } from "@src/api/tauri/github";
-import type { GitHubIssue } from "@src/api/tauri/github";
+import {
+  getGitHubGitCredentialForRemote,
+  listOpenPRsLocal,
+} from "@src/api/tauri/github";
+import type { GitHubIssue, OpenPRItem } from "@src/api/tauri/github";
+import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
 import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
-import TabPill from "@src/components/TabPill";
-import type { TabPillItem } from "@src/components/TabPill";
+import Input from "@src/components/Input";
+import Message from "@src/components/Message";
+import { SearchInput } from "@src/components/SearchInput";
+import Select from "@src/components/Select";
+import type { SelectOption } from "@src/components/Select";
 import {
   ChatPanelHeaderTitlePill,
   usePublishChatPanelHeader,
@@ -36,43 +50,50 @@ import {
   DetailPanelContainer,
   Placeholder,
 } from "@src/modules/shared/layouts/blocks";
+import Modal from "@src/scaffold/ModalSystem";
 import { parseGithubRepoFullName } from "@src/services/git/operations/createPullRequest";
 import {
+  createIssue,
   fetchIssueComments,
   fetchIssues,
 } from "@src/services/git/operations/githubIssues";
 import { REPO_KIND, reposAtom, selectedRepoPathAtom } from "@src/store/repo";
 import type { Repo } from "@src/store/repo/types";
+import { addToAgentAtom } from "@src/store/ui/addToAgentAtom";
 import { workstationSelectedIssueAtom } from "@src/store/workstation/codeEditor/workstationIssueAtom";
 import { createGitHubIssueDetailTab } from "@src/store/workstation/tabs";
-
-const ISSUE_TAB = {
-  RECENT: "recent",
-  ASSIGNED: "assigned",
-  BY_ME: "byMe",
-  MENTIONED: "mentioned",
-} as const;
 
 const ISSUE_REPO_FILTER = {
   ALL: "all",
   CURRENT_WORKSTATION: "currentWorkstation",
 } as const;
 
+const GITHUB_QUERY_SCOPE = {
+  ALL: "all",
+  ISSUE: "issue",
+  PR: "pr",
+} as const;
+
+const GITHUB_QUERY_STATE = {
+  ALL: "all",
+  OPEN: "open",
+  CLOSED: "closed",
+  MERGED: "merged",
+} as const;
+
+const GITHUB_ITEM_KIND = {
+  ISSUE: "issue",
+  PR: "pr",
+} as const;
+
 const ISSUE_PAGE_SIZE = 50;
+const PR_PAGE_SIZE = 50;
 
-type IssueTab = (typeof ISSUE_TAB)[keyof typeof ISSUE_TAB];
 type IssueRepoFilter = string;
-
-const ISSUE_TABS = Object.values(ISSUE_TAB) as IssueTab[];
-
-function isIssueTab(value: string): value is IssueTab {
-  return ISSUE_TABS.includes(value as IssueTab);
-}
-
-const manageIssuesActiveTabAtom = atomWithStorage<IssueTab>(
-  "orgii:chatPanelManageIssues:activeTab",
-  ISSUE_TAB.RECENT
-);
+type GitHubQueryScope =
+  (typeof GITHUB_QUERY_SCOPE)[keyof typeof GITHUB_QUERY_SCOPE];
+type GitHubQueryState =
+  (typeof GITHUB_QUERY_STATE)[keyof typeof GITHUB_QUERY_STATE];
 
 const manageIssuesSelectedRepoAtom = atomWithStorage<IssueRepoFilter>(
   "orgii:chatPanelManageIssues:selectedRepo:v2",
@@ -81,10 +102,10 @@ const manageIssuesSelectedRepoAtom = atomWithStorage<IssueRepoFilter>(
 
 type IssueState = GitHubIssue["state"];
 type IssuePageState = Extract<IssueState, "open" | "closed">;
-
 type ManagedIssueLabel = GitHubIssue["labels"][number];
 
 interface ManagedIssueItem {
+  kind: typeof GITHUB_ITEM_KIND.ISSUE;
   id: number;
   title: string;
   repo: string;
@@ -99,6 +120,24 @@ interface ManagedIssueItem {
   comments: number;
   updatedAt: string;
 }
+
+interface ManagedPrItem {
+  kind: typeof GITHUB_ITEM_KIND.PR;
+  id: number;
+  title: string;
+  repo: string;
+  repoPath: string;
+  remoteUrl: string;
+  rawPr: OpenPRItem;
+  author: string;
+  timeAgo: string;
+  state: string;
+  sourceBranch: string;
+  targetBranch: string;
+  updatedAt: string;
+}
+
+type ManagedGitHubItem = ManagedIssueItem | ManagedPrItem;
 
 interface RepoFilterOption {
   key: IssueRepoFilter;
@@ -123,6 +162,11 @@ interface RepoIssueState {
   closedNextPage: number | null;
 }
 
+interface RepoPrState {
+  prs: OpenPRItem[];
+  error: string | null;
+}
+
 interface RepoIssueLoadResult {
   source: GitHubRepoSource;
   openIssues: GitHubIssue[];
@@ -134,6 +178,12 @@ interface RepoIssueLoadResult {
   error: string | null;
 }
 
+interface RepoPrLoadResult {
+  source: GitHubRepoSource;
+  prs: OpenPRItem[];
+  error: string | null;
+}
+
 const EMPTY_REPO_ISSUES: RepoIssueState = {
   openIssues: [],
   closedIssues: [],
@@ -141,6 +191,11 @@ const EMPTY_REPO_ISSUES: RepoIssueState = {
   closedHasMore: false,
   openNextPage: null,
   closedNextPage: null,
+};
+
+const EMPTY_REPO_PRS: RepoPrState = {
+  prs: [],
+  error: null,
 };
 
 function IssueStateIcon({ state }: { state: IssueState }): React.ReactNode {
@@ -205,6 +260,7 @@ function mapIssueToManagedIssue(
   source: GitHubRepoSource
 ): ManagedIssueItem {
   return {
+    kind: GITHUB_ITEM_KIND.ISSUE,
     id: issue.number,
     title: issue.title,
     repo: source.repoFullName,
@@ -221,39 +277,256 @@ function mapIssueToManagedIssue(
   };
 }
 
-function issueMatchesTab(
-  issue: ManagedIssueItem,
-  activeTab: IssueTab
-): boolean {
-  const viewerLogin = issue.viewerLogin?.toLowerCase();
-  switch (activeTab) {
-    case ISSUE_TAB.ASSIGNED:
-      return viewerLogin
-        ? issue.rawIssue.assignees.some(
-            (assignee) => assignee.login.toLowerCase() === viewerLogin
-          )
-        : false;
-    case ISSUE_TAB.BY_ME:
-      return viewerLogin ? issue.author.toLowerCase() === viewerLogin : false;
-    case ISSUE_TAB.MENTIONED:
-      return viewerLogin
-        ? new RegExp(`(^|\\s)@${viewerLogin}(?=\\b)`, "i").test(
-            issue.rawIssue.body ?? ""
-          )
-        : false;
-    case ISSUE_TAB.RECENT:
-      return true;
-  }
+function mapPrToManagedPr(
+  pr: OpenPRItem,
+  source: GitHubRepoSource
+): ManagedPrItem {
+  return {
+    kind: GITHUB_ITEM_KIND.PR,
+    id: pr.number,
+    title: pr.title,
+    repo: source.repoFullName,
+    repoPath: source.repoPath,
+    remoteUrl: source.remoteUrl,
+    rawPr: pr,
+    author: pr.head_branch,
+    timeAgo: formatIssueTimeAgo(pr.updated_at),
+    state: pr.state,
+    sourceBranch: pr.head_branch,
+    targetBranch: pr.base_branch,
+    updatedAt: pr.updated_at,
+  };
 }
 
-function issueMatchesRepo(
-  issue: ManagedIssueItem,
+function itemMatchesRepo(
+  item: ManagedGitHubItem,
   repoFilter: IssueRepoFilter
 ): boolean {
-  return repoFilter === ISSUE_REPO_FILTER.ALL || issue.repo === repoFilter;
+  return repoFilter === ISSUE_REPO_FILTER.ALL || item.repo === repoFilter;
 }
 
-function getIssuePageStatesForTab(_activeTab: IssueTab): IssuePageState[] {
+interface GitHubSearchToken {
+  value: string;
+  raw: string;
+}
+
+interface ParsedGitHubSearchQuery {
+  scope: GitHubQueryScope;
+  state: GitHubQueryState | null;
+  labels: string[];
+  author: string | null;
+  assignee: string | null;
+  freeText: string;
+}
+
+function tokenizeGitHubSearchQuery(rawQuery: string): GitHubSearchToken[] {
+  const tokens: GitHubSearchToken[] = [];
+  let value = "";
+  let raw = "";
+  let quote: '"' | "'" | null = null;
+
+  const flush = () => {
+    if (!value && !raw) return;
+    tokens.push({ value, raw });
+    value = "";
+    raw = "";
+  };
+
+  for (const char of rawQuery) {
+    if (/\s/.test(char) && quote === null) {
+      flush();
+      continue;
+    }
+
+    raw += char;
+    if ((char === '"' || char === "'") && quote === null) {
+      quote = char;
+      continue;
+    }
+    if (char === quote) {
+      quote = null;
+      continue;
+    }
+    value += char;
+  }
+
+  flush();
+  return tokens;
+}
+
+function parseGitHubSearchQuery(rawQuery: string): ParsedGitHubSearchQuery {
+  const query: ParsedGitHubSearchQuery = {
+    scope: GITHUB_QUERY_SCOPE.ALL,
+    state: null,
+    labels: [],
+    author: null,
+    assignee: null,
+    freeText: "",
+  };
+  const freeTextTokens: string[] = [];
+  let sawIssueScope = false;
+  let sawPrScope = false;
+
+  for (const { value: token, raw } of tokenizeGitHubSearchQuery(
+    rawQuery.trim()
+  )) {
+    const normalized = token.toLowerCase();
+    if (normalized === "is:issue") {
+      sawIssueScope = true;
+      query.scope = sawPrScope
+        ? GITHUB_QUERY_SCOPE.ALL
+        : GITHUB_QUERY_SCOPE.ISSUE;
+      continue;
+    }
+    if (normalized === "is:pr" || normalized === "is:pull-request") {
+      sawPrScope = true;
+      query.scope = sawIssueScope
+        ? GITHUB_QUERY_SCOPE.ALL
+        : GITHUB_QUERY_SCOPE.PR;
+      continue;
+    }
+    if (normalized === "is:open") {
+      query.state = GITHUB_QUERY_STATE.OPEN;
+      continue;
+    }
+    if (normalized === "is:closed") {
+      query.state = GITHUB_QUERY_STATE.CLOSED;
+      continue;
+    }
+    if (normalized === "is:merged") {
+      query.scope = GITHUB_QUERY_SCOPE.PR;
+      query.state = GITHUB_QUERY_STATE.MERGED;
+      continue;
+    }
+
+    const [rawKey, ...rest] = token.split(":");
+    const qualifierValue = rest.join(":").trim();
+    const key = rawKey.toLowerCase();
+    if (!qualifierValue) {
+      freeTextTokens.push(raw);
+      continue;
+    }
+
+    if (key === "label") {
+      query.labels.push(qualifierValue);
+      continue;
+    }
+    if (key === "author") {
+      query.author = qualifierValue;
+      continue;
+    }
+    if (key === "assignee") {
+      query.assignee = qualifierValue;
+      continue;
+    }
+    if (key === "state") {
+      const normalizedValue = qualifierValue.toLowerCase();
+      if (
+        normalizedValue === GITHUB_QUERY_STATE.OPEN ||
+        normalizedValue === GITHUB_QUERY_STATE.CLOSED ||
+        normalizedValue === GITHUB_QUERY_STATE.MERGED ||
+        normalizedValue === GITHUB_QUERY_STATE.ALL
+      ) {
+        query.state = normalizedValue;
+        continue;
+      }
+    }
+
+    freeTextTokens.push(raw);
+  }
+
+  query.freeText = freeTextTokens.join(" ").trim();
+  return query;
+}
+
+function normalizedSearchParts(item: ManagedGitHubItem): string[] {
+  if (item.kind === GITHUB_ITEM_KIND.ISSUE) {
+    return [
+      item.title,
+      item.repo,
+      item.author,
+      `#${item.id}`,
+      ...item.labels.map((label) => label.name),
+    ];
+  }
+  return [
+    item.title,
+    item.repo,
+    item.sourceBranch,
+    item.targetBranch,
+    `#${item.id}`,
+    `pr #${item.id}`,
+  ];
+}
+
+function itemMatchesParsedQuery(
+  item: ManagedGitHubItem,
+  query: ParsedGitHubSearchQuery
+): boolean {
+  if (
+    query.scope === GITHUB_QUERY_SCOPE.ISSUE &&
+    item.kind !== GITHUB_ITEM_KIND.ISSUE
+  ) {
+    return false;
+  }
+  if (
+    query.scope === GITHUB_QUERY_SCOPE.PR &&
+    item.kind !== GITHUB_ITEM_KIND.PR
+  ) {
+    return false;
+  }
+  if (query.state && query.state !== GITHUB_QUERY_STATE.ALL) {
+    if (query.state === GITHUB_QUERY_STATE.MERGED) return false;
+    if (item.state !== query.state) return false;
+  }
+  if (query.author) {
+    const author =
+      item.kind === GITHUB_ITEM_KIND.ISSUE ? item.author : item.sourceBranch;
+    const expectedAuthor =
+      query.author === "@me" && item.kind === GITHUB_ITEM_KIND.ISSUE
+        ? item.viewerLogin
+        : query.author;
+    if (
+      !expectedAuthor ||
+      author.toLowerCase() !== expectedAuthor.toLowerCase()
+    ) {
+      return false;
+    }
+  }
+  if (query.assignee) {
+    if (item.kind !== GITHUB_ITEM_KIND.ISSUE) return false;
+    const expectedAssignee =
+      query.assignee === "@me" ? item.viewerLogin : query.assignee;
+    if (!expectedAssignee) return false;
+    const assigneeMatched = item.rawIssue.assignees.some(
+      (assignee) =>
+        assignee.login.toLowerCase() === expectedAssignee.toLowerCase()
+    );
+    if (!assigneeMatched) return false;
+  }
+  if (query.labels.length > 0) {
+    if (item.kind !== GITHUB_ITEM_KIND.ISSUE) return false;
+    const labelNames = new Set(
+      item.labels.map((label) => label.name.toLowerCase())
+    );
+    if (!query.labels.every((label) => labelNames.has(label.toLowerCase()))) {
+      return false;
+    }
+  }
+
+  const normalizedFreeText = query.freeText.toLowerCase();
+  if (!normalizedFreeText) return true;
+  return normalizedSearchParts(item).some((part) =>
+    part.toLowerCase().includes(normalizedFreeText)
+  );
+}
+
+function getIssuePageStatesForQuery(
+  query: ParsedGitHubSearchQuery
+): IssuePageState[] {
+  if (query.scope === GITHUB_QUERY_SCOPE.PR) return [];
+  if (query.state === GITHUB_QUERY_STATE.OPEN) return ["open"];
+  if (query.state === GITHUB_QUERY_STATE.CLOSED) return ["closed"];
   return ["open", "closed"];
 }
 
@@ -363,6 +636,24 @@ async function loadRepoIssues(
   };
 }
 
+async function loadRepoPrs(
+  source: GitHubRepoSource
+): Promise<RepoPrLoadResult> {
+  try {
+    return {
+      source,
+      prs: await listOpenPRsLocal(source.repoFullName, PR_PAGE_SIZE),
+      error: null,
+    };
+  } catch (err: unknown) {
+    return {
+      source,
+      prs: [],
+      error: String(err),
+    };
+  }
+}
+
 function RepoFilterPill({
   options,
   selectedRepo,
@@ -425,26 +716,30 @@ function RepoFilterPill({
 
 function ManagedIssueRow({
   issue,
+  addLabel,
   onOpenIssue,
+  onAddIssue,
 }: {
   issue: ManagedIssueItem;
+  addLabel: string;
   onOpenIssue: (issue: ManagedIssueItem) => void;
+  onAddIssue: (issue: ManagedIssueItem) => void;
 }): React.ReactNode {
   const stateClassName =
     issue.state === "closed" ? "text-purple-6" : "text-success-6";
 
   return (
-    <button
-      type="button"
-      className="focus-visible:ring-accent-5/50 group w-full rounded-xl px-3 py-2 text-left transition-colors hover:bg-fill-1/60 focus-visible:outline-none focus-visible:ring-2"
-      onClick={() => onOpenIssue(issue)}
-      aria-label={`Open issue #${issue.id}: ${issue.title}`}
-    >
+    <div className="focus-within:ring-accent-5/50 group w-full rounded-xl px-3 py-2 transition-colors focus-within:ring-2 hover:bg-fill-1/60">
       <div className="flex items-start gap-2.5">
         <span className={`mt-0.5 shrink-0 ${stateClassName}`}>
           <IssueStateIcon state={issue.state} />
         </span>
-        <div className="min-w-0 flex-1">
+        <button
+          type="button"
+          className="min-w-0 flex-1 text-left focus-visible:outline-none"
+          onClick={() => onOpenIssue(issue)}
+          aria-label={`Open issue #${issue.id}: ${issue.title}`}
+        >
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
             <h3 className="m-0 min-w-0 text-[13px] font-medium leading-5 text-text-1">
               {issue.title} <span className="text-text-3">#{issue.id}</span>
@@ -464,9 +759,188 @@ function ManagedIssueRow({
             <span>·</span>
             <span>{issue.timeAgo}</span>
           </div>
-        </div>
+        </button>
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          appearance="ghost"
+          size="mini"
+          icon={<Link2 size={12} />}
+          className="mt-0.5 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+          onClick={(event) => {
+            event.stopPropagation();
+            onAddIssue(issue);
+          }}
+          aria-label={`Add issue #${issue.id} to chat`}
+        >
+          {addLabel}
+        </Button>
       </div>
-    </button>
+    </div>
+  );
+}
+
+function ManagedPrRow({
+  pr,
+  addLabel,
+  onAddPr,
+}: {
+  pr: ManagedPrItem;
+  addLabel: string;
+  onAddPr: (pr: ManagedPrItem) => void;
+}): React.ReactNode {
+  return (
+    <div className="focus-within:ring-accent-5/50 group w-full rounded-xl px-3 py-2 transition-colors focus-within:ring-2 hover:bg-fill-1/60">
+      <div className="flex items-start gap-2.5">
+        <span className="mt-0.5 shrink-0 text-success-6">
+          <GitPullRequest size={14} strokeWidth={1.8} />
+        </span>
+        <a
+          className="min-w-0 flex-1 text-left focus-visible:outline-none"
+          href={pr.rawPr.url}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Open pull request #${pr.id}: ${pr.title}`}
+        >
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+            <h3 className="m-0 min-w-0 text-[13px] font-medium leading-5 text-text-1">
+              {pr.title} <span className="text-text-3">PR #{pr.id}</span>
+            </h3>
+          </div>
+          <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-text-3">
+            <span>{pr.repo}</span>
+            <span>·</span>
+            <span>{pr.sourceBranch}</span>
+            <span>→</span>
+            <span>{pr.targetBranch}</span>
+            <span>·</span>
+            <span>{pr.timeAgo}</span>
+          </div>
+        </a>
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          appearance="ghost"
+          size="mini"
+          icon={<Link2 size={12} />}
+          className="mt-0.5 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+          onClick={() => onAddPr(pr)}
+          aria-label={`Add pull request #${pr.id} to chat`}
+        >
+          {addLabel}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface CreateIssueModalProps {
+  open: boolean;
+  repoSources: GitHubRepoSource[];
+  selectedRepo: GitHubRepoSource | null;
+  creating: boolean;
+  labels: {
+    title: string;
+    issueTitlePlaceholder: string;
+    issueBodyPlaceholder: string;
+    repository: string;
+    cancel: string;
+    create: string;
+    creating: string;
+  };
+  onCreateIssue: (
+    source: GitHubRepoSource,
+    title: string,
+    body: string
+  ) => void;
+  onCancel: () => void;
+}
+
+function CreateIssueModal({
+  open,
+  repoSources,
+  selectedRepo,
+  creating,
+  labels,
+  onCreateIssue,
+  onCancel,
+}: CreateIssueModalProps): React.ReactNode {
+  const [repoKey, setRepoKey] = useState("");
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const effectiveRepoKey =
+    repoKey || selectedRepo?.repoFullName || repoSources[0]?.repoFullName || "";
+  const source =
+    repoSources.find(
+      (repoSource) => repoSource.repoFullName === effectiveRepoKey
+    ) ??
+    selectedRepo ??
+    repoSources[0] ??
+    null;
+  const repoOptions = useMemo<SelectOption[]>(
+    () =>
+      repoSources.map((repoSource) => ({
+        label: repoSource.repoFullName,
+        value: repoSource.repoFullName,
+      })),
+    [repoSources]
+  );
+
+  const handleCancel = () => {
+    setRepoKey("");
+    setTitle("");
+    setBody("");
+    onCancel();
+  };
+
+  const handleCreate = () => {
+    const trimmedTitle = title.trim();
+    if (!source || !trimmedTitle) return;
+    onCreateIssue(source, trimmedTitle, body.trim());
+    setRepoKey("");
+    setTitle("");
+    setBody("");
+  };
+
+  return (
+    <Modal
+      visible={open}
+      title={labels.title}
+      onCancel={handleCancel}
+      onOk={handleCreate}
+      okText={creating ? labels.creating : labels.create}
+      cancelText={labels.cancel}
+      okButtonProps={{ loading: creating, disabled: !source || !title.trim() }}
+      width={520}
+      bodyClassName="p-4"
+    >
+      <div className="flex flex-col gap-3">
+        <label className="flex flex-col gap-1.5 text-[12px] font-medium text-text-2">
+          {labels.repository}
+          <Select
+            value={effectiveRepoKey}
+            options={repoOptions}
+            onChange={(value) => setRepoKey(String(value))}
+            showSearch
+            size="small"
+            panelZIndex={10001}
+            dropdownWidthMode="match"
+          />
+        </label>
+        <Input
+          value={title}
+          onChange={(value) => setTitle(value)}
+          placeholder={labels.issueTitlePlaceholder}
+          size="default"
+        />
+        <textarea
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          className="bg-surface-0 focus:border-accent-5 min-h-28 w-full resize-none rounded-lg border border-border-2 px-3 py-2 text-[13px] text-text-1 outline-none placeholder:text-text-4"
+          placeholder={labels.issueBodyPlaceholder}
+        />
+      </div>
+    </Modal>
   );
 }
 
@@ -474,41 +948,30 @@ const ManageIssuesPanelView: React.FC = () => {
   const { t } = useTranslation(["sessions", "common"]);
   const repos = useAtomValue(reposAtom);
   const selectedRepoPath = useAtomValue(selectedRepoPathAtom);
-  const [activeTab, setActiveTab] = useAtom(manageIssuesActiveTabAtom);
-  const effectiveActiveTab = isIssueTab(activeTab)
-    ? activeTab
-    : ISSUE_TAB.RECENT;
   const [selectedRepo, setSelectedRepo] = useAtom(manageIssuesSelectedRepoAtom);
   const setSelectedIssue = useSetAtom(workstationSelectedIssueAtom);
+  const setAddToAgent = useSetAtom(addToAgentAtom);
   const { openTab } = useWorkStationTabs();
   const [repoSources, setRepoSources] = useState<GitHubRepoSource[]>([]);
   const [repoIssueMap, setRepoIssueMap] = useState<
     Record<string, RepoIssueState>
   >({});
+  const [repoPrMap, setRepoPrMap] = useState<Record<string, RepoPrState>>({});
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("is:issue is:open");
+  const parsedSearchQuery = useMemo(
+    () => parseGitHubSearchQuery(searchQuery),
+    [searchQuery]
+  );
+  const [createFormOpen, setCreateFormOpen] = useState(false);
+  const [creatingIssue, setCreatingIssue] = useState(false);
 
   const gitRepos = useMemo(
     () => repos.filter((repo) => repo.kind === REPO_KIND.GIT && repo.path),
     [repos]
-  );
-
-  const tabs = useMemo<TabPillItem[]>(
-    () => [
-      { key: ISSUE_TAB.RECENT, label: t("chat.manageIssues.tabs.recent") },
-      {
-        key: ISSUE_TAB.ASSIGNED,
-        label: t("chat.manageIssues.tabs.assigned"),
-      },
-      { key: ISSUE_TAB.BY_ME, label: t("chat.manageIssues.tabs.byMe") },
-      {
-        key: ISSUE_TAB.MENTIONED,
-        label: t("chat.manageIssues.tabs.mentioned"),
-      },
-    ],
-    [t]
   );
 
   useEffect(() => {
@@ -533,18 +996,29 @@ const ManageIssuesPanelView: React.FC = () => {
           ])
         )
       );
+      setRepoPrMap(
+        Object.fromEntries(
+          resolvedSources.map((source) => [
+            getRepoIssueMapKey(source),
+            EMPTY_REPO_PRS,
+          ])
+        )
+      );
 
       if (resolvedSources.length === 0) {
         setLoading(false);
         return;
       }
 
-      const results = await Promise.all(resolvedSources.map(loadRepoIssues));
+      const [issueResults, prResults] = await Promise.all([
+        Promise.all(resolvedSources.map(loadRepoIssues)),
+        Promise.all(resolvedSources.map(loadRepoPrs)),
+      ]);
       if (cancelled) return;
 
       setRepoIssueMap(
         Object.fromEntries(
-          results.map((result) => [
+          issueResults.map((result) => [
             getRepoIssueMapKey(result.source),
             {
               openIssues: result.openIssues,
@@ -557,7 +1031,22 @@ const ManageIssuesPanelView: React.FC = () => {
           ])
         )
       );
-      setLoadError(results.find((result) => result.error)?.error ?? null);
+      setRepoPrMap(
+        Object.fromEntries(
+          prResults.map((result) => [
+            getRepoIssueMapKey(result.source),
+            {
+              prs: result.prs,
+              error: result.error,
+            },
+          ])
+        )
+      );
+      setLoadError(
+        issueResults.find((result) => result.error)?.error ??
+          prResults.find((result) => result.error)?.error ??
+          null
+      );
       setLoading(false);
     })();
 
@@ -582,6 +1071,16 @@ const ManageIssuesPanelView: React.FC = () => {
         : (selectedWorkstationRepoSource?.repoFullName ??
           ISSUE_REPO_FILTER.ALL);
 
+  const selectedRepoSourceForCreate = useMemo(
+    () =>
+      effectiveSelectedRepo === ISSUE_REPO_FILTER.ALL
+        ? selectedWorkstationRepoSource
+        : (repoSources.find(
+            (source) => source.repoFullName === effectiveSelectedRepo
+          ) ?? null),
+    [effectiveSelectedRepo, repoSources, selectedWorkstationRepoSource]
+  );
+
   const repoOptions = useMemo<RepoFilterOption[]>(
     () => [
       {
@@ -598,31 +1097,46 @@ const ManageIssuesPanelView: React.FC = () => {
 
   const issues = useMemo(
     () =>
-      repoSources
-        .flatMap((source) => {
-          const sourceIssues =
-            repoIssueMap[getRepoIssueMapKey(source)] ?? EMPTY_REPO_ISSUES;
-          return [...sourceIssues.openIssues, ...sourceIssues.closedIssues].map(
-            (issue) => mapIssueToManagedIssue(issue, source)
-          );
-        })
-        .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)),
+      repoSources.flatMap((source) => {
+        const sourceIssues =
+          repoIssueMap[getRepoIssueMapKey(source)] ?? EMPTY_REPO_ISSUES;
+        return [...sourceIssues.openIssues, ...sourceIssues.closedIssues].map(
+          (issue) => mapIssueToManagedIssue(issue, source)
+        );
+      }),
     [repoIssueMap, repoSources]
   );
 
-  const filteredIssues = useMemo(
+  const pullRequests = useMemo(
     () =>
-      issues.filter(
-        (issue) =>
-          issueMatchesTab(issue, effectiveActiveTab) &&
-          issueMatchesRepo(issue, effectiveSelectedRepo)
+      repoSources.flatMap((source) => {
+        const sourcePrs =
+          repoPrMap[getRepoIssueMapKey(source)] ?? EMPTY_REPO_PRS;
+        return sourcePrs.prs.map((pr) => mapPrToManagedPr(pr, source));
+      }),
+    [repoPrMap, repoSources]
+  );
+
+  const allItems = useMemo(
+    () =>
+      [...issues, ...pullRequests].sort((left, right) =>
+        right.updatedAt.localeCompare(left.updatedAt)
       ),
-    [effectiveActiveTab, effectiveSelectedRepo, issues]
+    [issues, pullRequests]
+  );
+
+  const filteredItems = useMemo(
+    () =>
+      allItems.filter((item) => {
+        if (!itemMatchesRepo(item, effectiveSelectedRepo)) return false;
+        return itemMatchesParsedQuery(item, parsedSearchQuery);
+      }),
+    [allItems, effectiveSelectedRepo, parsedSearchQuery]
   );
 
   const pageStates = useMemo(
-    () => getIssuePageStatesForTab(effectiveActiveTab),
-    [effectiveActiveTab]
+    () => getIssuePageStatesForQuery(parsedSearchQuery),
+    [parsedSearchQuery]
   );
   const paginatedSources = useMemo(
     () =>
@@ -647,13 +1161,13 @@ const ManageIssuesPanelView: React.FC = () => {
 
   const listScrollRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual exposes imperative helpers that cannot be memoized safely.
-  const issueVirtualizer = useVirtualizer({
-    count: filteredIssues.length,
+  const itemVirtualizer = useVirtualizer({
+    count: filteredItems.length,
     getScrollElement: () => listScrollRef.current,
-    estimateSize: () => 76,
+    estimateSize: () => 82,
     overscan: 8,
   });
-  const virtualIssues = issueVirtualizer.getVirtualItems();
+  const virtualItems = itemVirtualizer.getVirtualItems();
 
   const headerContent = useMemo(
     () => (
@@ -801,12 +1315,97 @@ const ManageIssuesPanelView: React.FC = () => {
     [openTab, setSelectedIssue]
   );
 
+  const handleAddIssue = useCallback(
+    (issue: ManagedIssueItem) => {
+      setAddToAgent({
+        type: "issue",
+        issueNumber: issue.id,
+        issueTitle: issue.title,
+        issueUrl: issue.rawIssue.html_url,
+        issueState: issue.state,
+        labels: issue.labels.map((label) => label.name),
+        assignees: issue.rawIssue.assignees.map((assignee) => assignee.login),
+        comments: issue.comments,
+      });
+      Message.success(t("toasts.addedAsContext", { name: `#${issue.id}` }));
+    },
+    [setAddToAgent, t]
+  );
+
+  const handleAddPr = useCallback(
+    (pr: ManagedPrItem) => {
+      setAddToAgent({
+        type: "pr",
+        prNumber: pr.id,
+        prTitle: pr.title,
+        prUrl: pr.rawPr.url,
+        prStatus: pr.state,
+        sourceBranch: pr.sourceBranch,
+        targetBranch: pr.targetBranch,
+      });
+      Message.success(t("toasts.addedAsContext", { name: `PR #${pr.id}` }));
+    },
+    [setAddToAgent, t]
+  );
+
+  const handleCreateIssue = useCallback(
+    async (source: GitHubRepoSource, title: string, body: string) => {
+      setCreatingIssue(true);
+      const result = await createIssue({
+        remoteUrl: source.remoteUrl,
+        title,
+        body: body || undefined,
+      });
+      setCreatingIssue(false);
+
+      if (result.error || !result.data) {
+        Message.error(
+          result.error ?? t("chat.panels.manageIssues.createIssueFailed")
+        );
+        return;
+      }
+      const createdIssue = result.data;
+
+      setRepoIssueMap((current) => {
+        const key = getRepoIssueMapKey(source);
+        const currentState = current[key] ?? EMPTY_REPO_ISSUES;
+        const openIssues = mergeUniqueIssues(
+          [createdIssue],
+          currentState.openIssues
+        );
+        updateCachedOpenIssues(source.repoPath, openIssues);
+        return {
+          ...current,
+          [key]: {
+            ...currentState,
+            openIssues,
+          },
+        };
+      });
+      setCreateFormOpen(false);
+      Message.success(
+        t("toasts.addedAsContext", { name: `#${createdIssue.number}` })
+      );
+      setAddToAgent({
+        type: "issue",
+        issueNumber: createdIssue.number,
+        issueTitle: createdIssue.title,
+        issueUrl: createdIssue.html_url,
+        issueState: createdIssue.state,
+        labels: createdIssue.labels.map((label) => label.name),
+        assignees: createdIssue.assignees.map((assignee) => assignee.login),
+        comments: createdIssue.comments,
+      });
+    },
+    [setAddToAgent, t]
+  );
+
   const listContent = (() => {
-    if (loading && issues.length === 0) {
+    if (loading && allItems.length === 0) {
       return <Placeholder variant="loading" fillParentHeight />;
     }
 
-    if (loadError && issues.length === 0) {
+    if (loadError && allItems.length === 0) {
       return (
         <Placeholder
           variant="error"
@@ -821,7 +1420,7 @@ const ManageIssuesPanelView: React.FC = () => {
       return <Placeholder variant="empty" fillParentHeight />;
     }
 
-    if (filteredIssues.length === 0) {
+    if (filteredItems.length === 0) {
       return <Placeholder variant="no-results" fillParentHeight />;
     }
 
@@ -829,35 +1428,51 @@ const ManageIssuesPanelView: React.FC = () => {
       <>
         <div
           className="relative w-full"
-          style={{ height: issueVirtualizer.getTotalSize() }}
+          style={{ height: itemVirtualizer.getTotalSize() }}
         >
-          {virtualIssues.map((virtualIssue) => {
-            const issue = filteredIssues[virtualIssue.index];
+          {virtualItems.map((virtualItem) => {
+            const item = filteredItems[virtualItem.index];
             return (
               <div
-                key={`${issue.repo}-${issue.id}`}
-                ref={issueVirtualizer.measureElement}
-                data-index={virtualIssue.index}
+                key={`${item.kind}-${item.repo}-${item.id}`}
+                ref={itemVirtualizer.measureElement}
+                data-index={virtualItem.index}
                 className="absolute left-0 top-0 w-full pb-0.5"
-                style={{ transform: `translateY(${virtualIssue.start}px)` }}
+                style={{ transform: `translateY(${virtualItem.start}px)` }}
               >
-                <ManagedIssueRow issue={issue} onOpenIssue={handleOpenIssue} />
+                {item.kind === GITHUB_ITEM_KIND.ISSUE ? (
+                  <ManagedIssueRow
+                    issue={item}
+                    addLabel={t("chat.panels.manageIssues.addToChat")}
+                    onOpenIssue={handleOpenIssue}
+                    onAddIssue={handleAddIssue}
+                  />
+                ) : (
+                  <ManagedPrRow
+                    pr={item}
+                    addLabel={t("chat.panels.manageIssues.addToChat")}
+                    onAddPr={handleAddPr}
+                  />
+                )}
               </div>
             );
           })}
         </div>
         {hasMoreFilteredIssues ? (
           <div className="flex justify-center py-3">
-            <button
-              type="button"
-              className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:bg-fill-1 disabled:cursor-default disabled:opacity-60"
-              onClick={handleLoadMore}
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              appearance="ghost"
+              size="small"
+              loading={loadingMore}
               disabled={loadingMore}
+              onClick={handleLoadMore}
             >
               {loadingMore
                 ? t("common:actions.loading")
                 : t("common:actions.loadMore")}
-            </button>
+            </Button>
           </div>
         ) : null}
         <div className="h-12 shrink-0" aria-hidden />
@@ -870,18 +1485,53 @@ const ManageIssuesPanelView: React.FC = () => {
       className={`${DETAIL_PANEL_TOKENS.contentWidth} flex min-h-0 flex-1 flex-col`}
       data-testid="chat-panel-manage-issues-section"
     >
-      <div className="mb-4 flex shrink-0 items-center justify-start">
-        <TabPill
-          tabs={tabs}
-          activeTab={effectiveActiveTab}
-          onChange={(key) => {
-            if (isIssueTab(key)) setActiveTab(key);
-          }}
-          variant="simple"
-          fillWidth={false}
-          size="chatPanel"
-        />
+      <div className="mb-3 flex shrink-0 flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={t("chat.panels.manageIssues.searchPlaceholder")}
+            variant="panel"
+            surface="pane"
+            hideChevron
+            showClearButton
+            inputBoxClassName="flex-1"
+            className="min-w-0 flex-1"
+          />
+          <Button
+            htmlType="button"
+            variant="secondary"
+            appearance="outline"
+            size="small"
+            icon={<Plus size={14} />}
+            onClick={() => setCreateFormOpen(true)}
+            disabled={repoSources.length === 0}
+          >
+            {t("chat.panels.manageIssues.createIssueTrigger")}
+          </Button>
+        </div>
       </div>
+      <CreateIssueModal
+        open={createFormOpen}
+        repoSources={repoSources}
+        selectedRepo={selectedRepoSourceForCreate}
+        creating={creatingIssue}
+        labels={{
+          title: t("chat.panels.manageIssues.newIssueTitle"),
+          issueTitlePlaceholder: t(
+            "chat.panels.manageIssues.issueTitlePlaceholder"
+          ),
+          issueBodyPlaceholder: t(
+            "chat.panels.manageIssues.issueBodyPlaceholder"
+          ),
+          repository: t("chat.panels.manageIssues.repositoryLabel"),
+          cancel: t("common:actions.cancel"),
+          create: t("chat.panels.manageIssues.createIssue"),
+          creating: t("chat.panels.manageIssues.creatingIssue"),
+        }}
+        onCreateIssue={handleCreateIssue}
+        onCancel={() => setCreateFormOpen(false)}
+      />
       <div
         ref={listScrollRef}
         className="min-h-0 flex-1 overflow-y-auto scrollbar-hide"

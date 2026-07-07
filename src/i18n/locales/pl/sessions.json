@@ -966,7 +966,21 @@
         "mentioned": "Wspomniane"
       }
     },
-    "readOnly": "Tylko do odczytu"
+    "readOnly": "Tylko do odczytu",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Zatwierdzone",
