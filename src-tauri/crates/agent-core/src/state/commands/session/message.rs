@@ -174,11 +174,7 @@ pub(crate) async fn send_message_impl(
         TurnIntentBridgeSource::UserSubmit | TurnIntentBridgeSource::ForceSend
     ) && !is_resume
     {
-        crate::session::goal_loop::on_user_message(
-            &session_id,
-            &content,
-            display_text.as_deref(),
-        );
+        crate::session::goal_loop::on_user_message(&session_id, &content, display_text.as_deref());
     }
 
     let effective_model = identity.model;
