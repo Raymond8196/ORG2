@@ -6,7 +6,7 @@
  *
  * Handles all quota variants:
  * - Standard: single bar with remaining %
- * - Cursor: included requests + on-demand budget + provider messages
+ * - Cursor: Auto/Composer quota + API quota + provider messages
  * - Premium items (e.g., Copilot Business premium requests)
  * - Simple: unlimited / credit-based text only
  *

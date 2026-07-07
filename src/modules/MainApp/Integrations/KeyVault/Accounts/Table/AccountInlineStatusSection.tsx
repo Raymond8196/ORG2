@@ -38,13 +38,22 @@ function shouldShowAccountQuota(account: KeyVaultAccount): boolean {
   );
 }
 
-const CURSOR_PLAN_USAGE_TYPES = new Set<string>([
+const CURSOR_AUTO_COMPOSER_USAGE_TYPES = new Set<string>([
+  "cursor_auto_composer",
   "plan",
   "individual_overall",
   "team_pooled",
 ]);
 
-function getUsagePercentUsed(item: UsageItem): number | null {
+const CURSOR_API_USAGE_TYPES = new Set<string>(["cursor_api", "on_demand"]);
+
+function getUsagePercentUsed(
+  item: UsageItem,
+  isCursorAccount: boolean
+): number | null {
+  if (isCursorAccount) {
+    return Math.min(100, Math.max(0, 100 - item.remaining_percentage));
+  }
   if (item.limit == null || item.limit <= 0 || item.used == null) return null;
   return Math.min(100, Math.max(0, (item.used / item.limit) * 100));
 }
@@ -77,6 +86,53 @@ function hasUsageItems(
     Boolean(quotaInfo) &&
     Array.isArray((quotaInfo as { usage_items?: unknown }).usage_items)
   );
+}
+
+function getCursorLegacyUsageItems(
+  quotaInfo: NonNullable<KeyVaultAccount["quotaInfo"]>
+): UsageItem[] {
+  const legacyQuota = quotaInfo as {
+    remaining_percentage?: number;
+    used?: number | null;
+    limit?: number | null;
+    remaining?: number | null;
+    on_demand_enabled?: boolean;
+    on_demand_used?: number | null;
+    on_demand_limit?: number | null;
+    on_demand_remaining?: number | null;
+  };
+
+  const autoComposerItem: UsageItem = {
+    usage_type: "cursor_auto_composer",
+    enabled: true,
+    used: legacyQuota.used ?? null,
+    limit: legacyQuota.limit ?? null,
+    remaining: legacyQuota.remaining ?? null,
+    remaining_percentage: legacyQuota.remaining_percentage ?? 0,
+  };
+
+  if (!legacyQuota.on_demand_enabled) {
+    return [autoComposerItem];
+  }
+
+  const apiLimit = legacyQuota.on_demand_limit ?? null;
+  const apiRemaining = legacyQuota.on_demand_remaining ?? null;
+  const apiRemainingPercentage =
+    apiLimit != null && apiLimit > 0 && apiRemaining != null
+      ? Math.min(100, Math.max(0, (apiRemaining / apiLimit) * 100))
+      : 100;
+
+  return [
+    autoComposerItem,
+    {
+      usage_type: "cursor_api",
+      enabled: true,
+      used: legacyQuota.on_demand_used ?? null,
+      limit: apiLimit,
+      remaining: apiRemaining,
+      remaining_percentage: apiRemainingPercentage,
+    },
+  ];
 }
 
 export const AccountInlineStatusSection: React.FC<
@@ -145,22 +201,24 @@ export const AccountInlineStatusSection: React.FC<
   }, [account.quotaInfo, showQuota]);
 
   const quotaUsageItems = useMemo(() => {
-    if (!showQuota || !hasUsageItems(account.quotaInfo)) {
+    if (!showQuota || !account.quotaInfo) {
       return [];
     }
 
-    const items = account.quotaInfo.usage_items.filter(
-      (item: UsageItem) => item.enabled
-    );
+    const items = hasUsageItems(account.quotaInfo)
+      ? account.quotaInfo.usage_items.filter((item: UsageItem) => item.enabled)
+      : account.modelType === CLI_AGENT.CURSOR
+        ? getCursorLegacyUsageItems(account.quotaInfo)
+        : [];
 
     if (account.modelType === CLI_AGENT.CURSOR) {
-      const planItem = items.find((item: UsageItem) =>
-        CURSOR_PLAN_USAGE_TYPES.has(item.usage_type)
+      const autoComposerItem = items.find((item: UsageItem) =>
+        CURSOR_AUTO_COMPOSER_USAGE_TYPES.has(item.usage_type)
       );
-      const apiItem = items.find(
-        (item: UsageItem) => item.usage_type === "on_demand"
+      const apiItem = items.find((item: UsageItem) =>
+        CURSOR_API_USAGE_TYPES.has(item.usage_type)
       );
-      return [planItem, apiItem].filter((item): item is UsageItem =>
+      return [autoComposerItem, apiItem].filter((item): item is UsageItem =>
         Boolean(item)
       );
     }
@@ -171,7 +229,7 @@ export const AccountInlineStatusSection: React.FC<
   const getQuotaUsageLabel = useCallback(
     (usageType: string): string => {
       if (account.modelType === CLI_AGENT.CURSOR) {
-        return usageType === "on_demand"
+        return CURSOR_API_USAGE_TYPES.has(usageType)
           ? t("keyVault.quota.cursorApiUsage")
           : t("keyVault.quota.cursorIncludedRequests");
       }
@@ -243,7 +301,7 @@ export const AccountInlineStatusSection: React.FC<
           />
           {quotaUsageItems.length > 0 ? (
             quotaUsageItems.map((item) => {
-              const percentUsed = getUsagePercentUsed(item);
+              const percentUsed = getUsagePercentUsed(item, isCursorAccount);
               const remainingPercent = item.remaining_percentage;
               const barBgClass = getQuotaBgColorClass(remainingPercent);
               const textColorClass = getQuotaTextColorClass(remainingPercent);
