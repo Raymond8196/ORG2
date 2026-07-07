@@ -1,9 +1,12 @@
-import { useAtom } from "jotai";
-import { useCallback } from "react";
-
-import { canvasPreviewAtom } from "@src/store/session/canvasPreviewAtom";
-
-import type { CanvasInlinePayload } from "./useCanvasInlineStream";
+/**
+ * useCanvasPreviewForSession — thin compatibility shim over useCanvasForTurn.
+ *
+ * New code should call useCanvasForTurn directly; this wrapper preserves the
+ * existing interface so callers (ChatVariant, PinnedActionsBar) can migrate
+ * gradually without a forced simultaneous change.
+ */
+import type { CanvasInlinePayload } from "./types";
+import { useCanvasForTurn } from "./useCanvasForTurn";
 
 export function useCanvasPreviewForSession(
   sessionId: string | null | undefined
@@ -12,19 +15,6 @@ export function useCanvasPreviewForSession(
   dismiss: () => void;
   clearCanvas: () => void;
 } {
-  const [entry, setEntry] = useAtom(canvasPreviewAtom);
-  const payload =
-    entry && entry.sessionId === sessionId && !entry.cardDismissed
-      ? entry.payload
-      : null;
-
-  const dismiss = useCallback(() => {
-    setEntry((prev) => (prev ? { ...prev, cardDismissed: true } : null));
-  }, [setEntry]);
-
-  const clearCanvas = useCallback(() => {
-    setEntry(null);
-  }, [setEntry]);
-
+  const { payload, dismiss, clearCanvas } = useCanvasForTurn(sessionId);
   return { payload, dismiss, clearCanvas };
 }

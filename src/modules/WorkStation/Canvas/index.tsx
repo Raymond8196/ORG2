@@ -16,6 +16,7 @@ import { ExternalLink, Layout, Maximize2, Minimize2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import IconButton from "@src/components/IconButton";
 import CanvasPreviewSurface, {
   type CanvasPreviewSurfaceHandle,
 } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasPreviewSurface";
@@ -191,36 +192,43 @@ function CanvasApp(props: SimulatorAppProps) {
         </div>
         <div className="flex items-center gap-1">
           {state.mode === "url" && state.url && (
-            <button
+            <IconButton
               onClick={() => window.open(state.url!, "_blank")}
-              className="rounded p-1 text-text-3 hover:bg-fill-2 hover:text-text-1"
               title={t("simulator.replay.canvas.tooltipOpenInBrowser")}
+              aria-label={t("simulator.replay.canvas.tooltipOpenInBrowser")}
+              size="sm"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-            </button>
+            </IconButton>
           )}
-          <button
+          <IconButton
             onClick={handleToggleFullscreen}
-            className="rounded p-1 text-text-3 hover:bg-fill-2 hover:text-text-1"
             title={
               isFullscreen
                 ? t("simulator.replay.canvas.tooltipExitFullscreen")
                 : t("simulator.replay.canvas.tooltipFullscreen")
             }
+            aria-label={
+              isFullscreen
+                ? t("simulator.replay.canvas.tooltipExitFullscreen")
+                : t("simulator.replay.canvas.tooltipFullscreen")
+            }
+            size="sm"
           >
             {isFullscreen ? (
               <Minimize2 className="h-3.5 w-3.5" />
             ) : (
               <Maximize2 className="h-3.5 w-3.5" />
             )}
-          </button>
-          <button
+          </IconButton>
+          <IconButton
             onClick={handleClose}
-            className="rounded p-1 text-text-3 hover:bg-fill-2 hover:text-text-1"
             title={t("simulator.replay.canvas.tooltipCloseCanvas")}
+            aria-label={t("simulator.replay.canvas.tooltipCloseCanvas")}
+            size="sm"
           >
             <X className="h-3.5 w-3.5" />
-          </button>
+          </IconButton>
         </div>
       </div>
 

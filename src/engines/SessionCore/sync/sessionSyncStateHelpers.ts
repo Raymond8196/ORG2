@@ -68,6 +68,8 @@ export interface SessionEventHandlerStateActions {
   setStreamingDeltaContent: (
     update: SetStateAction<Map<string, StreamingDeltaContent>>
   ) => void;
+  /** Dismiss any existing canvas preview when a new agent turn starts. */
+  dismissCanvasAtNewTurn: (sessionId: string) => void;
 }
 
 const TERMINAL_HANDLER_STATUSES = new Set<string>([
@@ -214,6 +216,11 @@ export function createSessionEventHandlerCallbacks(
         actions.setSessionRuntimeError(null);
         eventStoreProxy.pinSession(sessionId);
         actions.setSessionRolledBack(false);
+        // Dismiss any leftover canvas from a previous round. The new round's
+        // canvas will re-populate the atom only when render_inline_canvas is
+        // called. Without this, the streaming ChatVariant briefly shows a
+        // stale canvas from a prior turn at the start of each new turn.
+        actions.dismissCanvasAtNewTurn(sessionId);
       }
     },
     onTokenUpdate: (tokens) => {
