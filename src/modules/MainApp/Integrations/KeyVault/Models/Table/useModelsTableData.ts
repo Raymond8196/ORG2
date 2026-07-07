@@ -10,6 +10,10 @@ import {
   isOrgiiTierModel,
 } from "@src/config/orgiiCategories";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
+import {
+  accountHasModel,
+  accountModelIds,
+} from "@src/hooks/models/useModelAccountLookup";
 import type { ORGIIPoolCategory } from "@src/types/model/pool";
 import {
   getModelFamily,
@@ -69,7 +73,7 @@ export function useModelsTableData(
   );
 
   const allModelNames = useMemo(
-    () => accounts.flatMap((acc) => acc.availableModels ?? []),
+    () => accounts.flatMap((account) => accountModelIds(account)),
     [accounts]
   );
 
@@ -176,16 +180,13 @@ export function useModelsTableData(
 
     for (const acc of accounts) {
       const source = formatModelAgentType(acc.modelType);
-      const enabled = acc.enabled
-        ? new Set(acc.enabledModels ?? [])
-        : new Set<string>();
-      for (const model of acc.availableModels ?? []) {
+      for (const model of accountModelIds(acc)) {
         let modelSources = sourceMap.get(model);
         if (!modelSources) {
           modelSources = new Map();
           sourceMap.set(model, modelSources);
         }
-        const isEnabled = enabled.has(model);
+        const isEnabled = accountHasModel(acc, model);
         const existing = modelSources.get(acc.modelType);
         if (existing) {
           existing.keys += 1;

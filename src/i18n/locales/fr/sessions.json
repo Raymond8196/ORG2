@@ -2060,7 +2060,11 @@
       "testResultPending": "Résultat de test en attente",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills et outils"
+    "skillsAndTools": "Skills et outils",
+    "agentSpotlightViewMode": "Mode d’affichage des Agents",
+    "agentSpotlightListView": "Vue liste",
+    "agentSpotlightCardView": "Vue carte",
+    "agentSpotlightCardHint": "Utilisez ←/→ ou ↑/↓ pour faire défiler les Agents. Appuyez sur Entrée pour sélectionner."
   },
   "planner": {
     "tabs": {

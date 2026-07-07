@@ -2104,7 +2104,11 @@
       "testResultPending": "Test result pending",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills & Tools"
+    "skillsAndTools": "Skills & Tools",
+    "agentSpotlightViewMode": "Agent view mode",
+    "agentSpotlightListView": "List view",
+    "agentSpotlightCardView": "Card view",
+    "agentSpotlightCardHint": "Use ←/→ or ↑/↓ to shuffle agents. Press Enter to select."
   },
   "planner": {
     "tabs": {

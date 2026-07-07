@@ -68,7 +68,7 @@
       "title": "賬戶信息",
       "enable": "啓用",
       "authMethod": "認證方式",
-      "oauthLogin": "OAuth（ChatGPT 登錄）",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "支援 CLI Agents",
       "compatibleApis": "兼容 API",
-      "noCliAgentSupport": "此服務商不支持 CLI Agent"
+      "noCliAgentSupport": "此服務商不支持 CLI Agent",
+      "accountEmail": "帳戶電子郵件",
+      "organization": "組織"
     },
     "manualModels": {
       "notice": "無法從此代理自動檢測可用模型。您可以在下方手動添加模型，或再次點擊 Validate 重試。",
@@ -453,6 +455,10 @@
     "codexConnected": "Codex 已連接",
     "codexDetectErrorHint": "請使用內嵌瀏覽器登入，或手動貼上 OpenAI API key",
     "codexValidationErrorHint": "檢查 token 或 API key 是否有效，然後重試",
+    "claudeCodeAutodetectTitle": "偵測 Claude Code 工作階段",
+    "claudeCodeAutodetectDesc": "從 macOS Keychain 或 ~/.claude/.credentials.json 讀取本機 Claude Code 登入",
+    "claudeCodeConnected": "Claude Code 已連接",
+    "claudeCodeDetectErrorHint": "請使用內嵌瀏覽器登入，或執行 claude auth login 後重新偵測",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -885,9 +891,12 @@
     "noApiKeys": "此 CLI 不支持自帶 API Key",
     "noApiKeysAdded": "尚未添加兼容的 API Key",
     "notSupported": "不支持",
+    "nativeSubscription": "原生訂閱",
+    "supportedProtocols": "支持的協議",
+    "addedSubscriptions": "已添加訂閱",
     "subscriptions": "訂閱",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "兼容 API",
     "docs": "文檔",
     "addKey": "添加密鑰",
     "compatibleKeys": "相容的 Keys",
@@ -1665,7 +1674,14 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "密鑰",
-      "addedTime": "添加時間"
+      "addedTime": "添加時間",
+      "secretBearingConfig": "可能包含 API key 或 Token",
+      "revealConfigFile": "在檔案管理器中顯示",
+      "launchConfiguration": "啟動配置",
+      "configFiles": "配置檔案",
+      "configFile": "配置檔案",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "沒有配置內容"
     },
     "codexConfig": {
       "sectionTitle": "配置",
@@ -2609,5 +2625,17 @@
       "completionTokens": "輸出 tokens：{{value}}",
       "elapsed": "總耗時：{{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "啟動設定",
+    "fullPermission": "完整權限",
+    "manual": "手動",
+    "command": "命令",
+    "environment": "環境變數",
+    "envPlaceholder": "KEY=value，每行一個",
+    "loading": "正在載入啟動設定...",
+    "unavailable": "啟動設定無法使用",
+    "saved": "啟動設定已儲存",
+    "resetDone": "啟動設定已重設"
   }
 }

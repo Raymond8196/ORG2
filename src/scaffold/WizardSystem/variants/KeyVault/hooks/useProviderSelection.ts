@@ -231,7 +231,14 @@ export function useProviderSelection({
       ];
     }
     if (agentType === CLI_AGENT.CLAUDE_CODE) {
-      return [{ key: "signin", label: t("keyVault.signIn"), icon: LogIn }];
+      return [
+        { key: "signin", label: t("keyVault.signIn"), icon: LogIn },
+        {
+          key: "autodetect",
+          label: t("keyVault.autodetect"),
+          icon: ScanSearch,
+        },
+      ];
     }
     if (agentType === CLI_AGENT.CODEX) {
       return [

@@ -125,14 +125,31 @@ fn clear_state(session_id: &str) {
 /// Record a real user message as the session's standing goal. Called from
 /// the user-submit dispatch path only — continuations (source `Queue`)
 /// never reset the goal, so the counter survives the loop's own messages.
-pub fn on_user_message(session_id: &str, content: &str) {
+///
+/// `display_text` is the compact human-readable form of the user's message
+/// before pill/skill references are expanded (e.g. `speckit-implement
+/// [skill:/speckit-implement]` rather than the 13 KB SKILL.md body). When
+/// present, it is preferred as the goal text so the judge receives the
+/// user's *intent* — not multi-thousand-character expanded context — and
+/// truncation does not silently drop implementation instructions.
+pub fn on_user_message(session_id: &str, content: &str, display_text: Option<&str>) {
     let trimmed = content.trim();
     if trimmed.is_empty() {
         return;
     }
+
+    // Prefer display_text when it is a shorter, more focused
+    // representation of the same intent. This prevents skill-pill expansions
+    // (e.g. a 13 KB SKILL.md body) from replacing the actual goal sentence
+    // with truncated skill instructions that the judge cannot fully evaluate.
+    let goal_source = display_text
+        .map(str::trim)
+        .filter(|d| !d.is_empty() && d.len() < trimmed.len())
+        .unwrap_or(trimmed);
+
     save_state(&GoalState {
         session_id: session_id.to_string(),
-        goal_text: crate::utils::safe_truncate_chars_to_string(&trimmed, 8_000),
+        goal_text: crate::utils::safe_truncate_chars_to_string(&goal_source, 8_000),
         turns_used: 0,
         status: "active".to_string(),
     });
@@ -529,7 +546,7 @@ mod tests {
         #[test]
         fn user_message_sets_goal_and_resets_counter() {
             let _lock = prepare();
-            on_user_message("s_goal", "fix every failing test");
+            on_user_message("s_goal", "fix every failing test", None);
             let state = load_state("s_goal").expect("state");
             assert_eq!(state.goal_text, "fix every failing test");
             assert_eq!(state.turns_used, 0);
@@ -542,7 +559,7 @@ mod tests {
                 turns_used: 5,
                 status: "paused".to_string(),
             });
-            on_user_message("s_goal", "new goal");
+            on_user_message("s_goal", "new goal", None);
             let state = load_state("s_goal").expect("state");
             assert_eq!(state.goal_text, "new goal");
             assert_eq!(state.turns_used, 0);
@@ -552,16 +569,49 @@ mod tests {
         #[test]
         fn empty_user_message_is_ignored() {
             let _lock = prepare();
-            on_user_message("s_empty", "   ");
+            on_user_message("s_empty", "   ", None);
             assert!(load_state("s_empty").is_none());
         }
 
         #[test]
         fn clear_state_removes_row() {
             let _lock = prepare();
-            on_user_message("s_clear", "goal");
+            on_user_message("s_clear", "goal", None);
             clear_state("s_clear");
             assert!(load_state("s_clear").is_none());
+        }
+
+        #[test]
+        fn display_text_preferred_over_expanded_skill_content() {
+            let _lock = prepare();
+            // Simulate a pill-expanded user message: display_text is the short
+            // form the user typed; content is the expanded SKILL.md body.
+            let short_intent = "speckit-implement [skill:/speckit-implement]";
+            let expanded_content = format!(
+                "{}\n\n---\n**Referenced content (auto-expanded):**\n\n{}",
+                short_intent,
+                "x".repeat(12_000) // simulate large SKILL.md body
+            );
+            on_user_message(
+                "s_display",
+                &expanded_content,
+                Some(short_intent),
+            );
+            let state = load_state("s_display").expect("state");
+            // Goal text must reflect the user's intent, not the expanded body.
+            assert_eq!(state.goal_text, short_intent);
+        }
+
+        #[test]
+        fn display_text_ignored_when_longer_than_content() {
+            let _lock = prepare();
+            // If display_text is somehow longer (e.g. debug paths), fall back
+            // to the raw content so the goal is never empty.
+            let content = "short";
+            let longer_display = "a very long display text that exceeds content length";
+            on_user_message("s_longer", content, Some(longer_display));
+            let state = load_state("s_longer").expect("state");
+            assert_eq!(state.goal_text, content);
         }
     }
 }

@@ -13,6 +13,10 @@ import type { ModelTableVariantInfo } from "@src/components/ModelTable/types";
 import Switch from "@src/components/Switch";
 import { isOrgiiTierModel } from "@src/config/orgiiCategories";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
+import {
+  accountHasModel,
+  accountModelIds,
+} from "@src/hooks/models/useModelAccountLookup";
 import { formatModelNameFull } from "@src/util/formatModelName";
 import { groupHasParsedModelVariants } from "@src/util/modelVariants";
 
@@ -116,8 +120,7 @@ function isModelEnabledOnAccount(
   optimisticToggles: Map<string, boolean>
 ): boolean {
   const toggleKey = getAccountModelToggleKey(account, model);
-  const serverEnabled = (account.enabledModels ?? []).includes(model);
-  return optimisticToggles.get(toggleKey) ?? serverEnabled;
+  return optimisticToggles.get(toggleKey) ?? accountHasModel(account, model);
 }
 
 function buildExpandedAccountEntries(
@@ -154,7 +157,7 @@ function buildExpandedAccountEntries(
     if (isOrgiiTierModel(row.model)) continue;
 
     for (const account of accounts) {
-      if (!(account.availableModels ?? []).includes(row.model)) continue;
+      if (!accountModelIds(account).includes(row.model)) continue;
 
       const existing = entryByAccountId.get(account.id);
       if (existing) {
@@ -238,7 +241,6 @@ const ModelInlineExpandedCard: React.FC<ModelInlineExpandedCardProps> = ({
       const next = new Map(prev);
       const resolvedKeys: string[] = [];
       for (const entry of accountEntries) {
-        const serverEnabled = new Set(entry.account.enabledModels ?? []);
         for (const model of entry.groupModels) {
           const key = getAccountModelToggleKey(entry.account, model);
           if (!pendingRef.current.has(key)) continue;
@@ -247,7 +249,7 @@ const ModelInlineExpandedCard: React.FC<ModelInlineExpandedCardProps> = ({
             resolvedKeys.push(key);
             continue;
           }
-          if (desired === serverEnabled.has(model)) {
+          if (desired === accountHasModel(entry.account, model)) {
             next.delete(key);
             resolvedKeys.push(key);
           }
@@ -260,9 +262,16 @@ const ModelInlineExpandedCard: React.FC<ModelInlineExpandedCardProps> = ({
 
   const toggleAccountModels = useCallback(
     (entry: ExpandedAccountEntry, checked: boolean) => {
+      const targetModels = [
+        ...new Set(
+          entry.groupModels.map(
+            (model) => variantsByModel.get(model)?.base_model ?? model
+          )
+        ),
+      ];
       const nextEnabledModels = applyModelGroupToEnabledSet(
         entry.account.enabledModels ?? [],
-        entry.groupModels,
+        targetModels,
         entry.account.availableModels ?? [],
         checked
       );
@@ -290,7 +299,12 @@ const ModelInlineExpandedCard: React.FC<ModelInlineExpandedCardProps> = ({
         onToggleAccount
       );
     },
-    [isAccountEnabled, onToggleAccount, onUpdateAccountEnabledModels]
+    [
+      isAccountEnabled,
+      onToggleAccount,
+      onUpdateAccountEnabledModels,
+      variantsByModel,
+    ]
   );
 
   const handleToggleKeyGroup = useCallback(

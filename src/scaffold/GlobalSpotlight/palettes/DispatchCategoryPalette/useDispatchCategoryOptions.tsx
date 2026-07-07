@@ -33,6 +33,12 @@ import {
 } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import type { OrgMember } from "@src/modules/MainApp/AgentOrgs/types";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
+import {
+  cliAgentVisibilityOverridesAtom,
+  isCliAgentEnabled,
+  recentAgentSelectionsAtom,
+  recordRecentAgentSelectionAtom,
+} from "@src/store/session";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 import { SESSION_TARGET_KIND } from "@src/store/session/creatorStateAtom";
 import { invokeTauri } from "@src/util/platform/tauri/init";
@@ -77,11 +83,12 @@ export interface UseDispatchCategoryOptionsArgs {
 
 export interface UseDispatchCategoryOptionsResult {
   allOptions: AgentOption[];
+  recentOptions: AgentOption[];
   groups: DispatchCategoryOptionGroup[];
   accounts: KeyVaultAccount[];
   rustCompatibleAccounts: KeyVaultAccount[];
   rustIncompatibleAccounts: KeyVaultAccount[];
-  optionToItem: (option: AgentOption) => SpotlightItem;
+  optionToItem: (option: AgentOption, itemIdPrefix?: string) => SpotlightItem;
 }
 
 function buildCredentialBadge(
@@ -145,11 +152,15 @@ export function useDispatchCategoryOptions(
   } = args;
 
   const { t } = useTranslation("sessions");
+  const { t: tCommon } = useTranslation("common");
   const [allOrgs, setAllOrgs] = useState<OrgMember[]>([]);
   const { agents: cliAgentList } = useCliAgents({ enabled: isOpen });
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
   const { accounts } = useKeyVault({ autoLoad: true });
   const { registry } = useAgentCompatibility();
   const setAgentRegistry = useSetAtom(agentRegistryAtom);
+  const recentAgentSelections = useAtomValue(recentAgentSelectionsAtom);
+  const recordRecentAgentSelection = useSetAtom(recordRecentAgentSelectionAtom);
 
   useEnsureAgentDefs();
   const builtInAgents = useAtomValue(builtInAgentsAtom);
@@ -191,8 +202,13 @@ export function useDispatchCategoryOptions(
   }, [isOpen, hideOrgs, setAgentRegistry]);
 
   const installedCliAgents = useMemo(
-    () => cliAgentList.filter((agent) => agent.installed),
-    [cliAgentList]
+    () =>
+      cliAgentList.filter(
+        (agent) =>
+          agent.installed &&
+          isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
   );
 
   useEffect(() => {
@@ -338,6 +354,24 @@ export function useDispatchCategoryOptions(
     ]
   );
 
+  const recentOptions = useMemo((): AgentOption[] => {
+    return recentAgentSelections.flatMap((selection) => {
+      const option = allOptions.find((candidate) => {
+        if (selection.targetKind === SESSION_TARGET_KIND.AGENT_ORG) {
+          return candidate.agentOrgId === selection.agentOrgId;
+        }
+        if (selection.category === "cli_agent") {
+          return candidate.cliAgentType === selection.cliAgentType;
+        }
+        if (selection.category === "cursor_ide") {
+          return candidate.category === "cursor_ide";
+        }
+        return candidate.agentDefinitionId === selection.agentDefinitionId;
+      });
+      return option ? [option] : [];
+    });
+  }, [allOptions, recentAgentSelections]);
+
   const groups = useMemo<DispatchCategoryOptionGroup[]>(() => {
     const result: DispatchCategoryOptionGroup[] = [];
     const push = (
@@ -348,6 +382,11 @@ export function useDispatchCategoryOptions(
       if (options.length === 0) return;
       result.push({ headerId, headerLabel, options });
     };
+    push(
+      "__header_recent__",
+      tCommon("selectors.labels.recent"),
+      recentOptions
+    );
     if (!cliOnly) {
       push(
         "__header_builtin__",
@@ -370,6 +409,7 @@ export function useDispatchCategoryOptions(
     return result;
   }, [
     cliOnly,
+    recentOptions,
     builtInRustOptions,
     cliOptions,
     externalIdeOptions,
@@ -377,10 +417,11 @@ export function useDispatchCategoryOptions(
     orgOptions,
     hideOrgs,
     t,
+    tCommon,
   ]);
 
   const optionToItem = useCallback(
-    (option: AgentOption): SpotlightItem => {
+    (option: AgentOption, itemIdPrefix?: string): SpotlightItem => {
       const isCurrent = option.isOrg
         ? currentCategory === "rust_agent" &&
           option.agentOrgId === currentAgentOrgId
@@ -402,13 +443,14 @@ export function useDispatchCategoryOptions(
         : resolveAgentIcon(option.iconId);
 
       return {
-        id: option.id,
+        id: itemIdPrefix ? `${itemIdPrefix}:${option.id}` : option.id,
         label: option.name,
         desc: option.desc,
         icon,
         type: "action" as const,
         data: {
           isSelector: true,
+          optionId: option.id,
           isCurrentSelection: isCurrent,
           rightContent: option.rightContent,
           testId: option.isOrg
@@ -420,6 +462,13 @@ export function useDispatchCategoryOptions(
                 : undefined,
         },
         action: () => {
+          recordRecentAgentSelection({
+            category: option.category,
+            targetKind: option.targetKind,
+            agentDefinitionId: option.agentDefinitionId,
+            agentOrgId: option.agentOrgId,
+            cliAgentType: option.cliAgentType,
+          });
           onSelect({
             category: option.category,
             targetKind: option.targetKind,
@@ -438,6 +487,7 @@ export function useDispatchCategoryOptions(
       currentAgentDefinitionId,
       currentAgentOrgId,
       currentCliAgentType,
+      recordRecentAgentSelection,
       onSelect,
       onClose,
     ]
@@ -445,6 +495,7 @@ export function useDispatchCategoryOptions(
 
   return {
     allOptions,
+    recentOptions,
     groups,
     accounts,
     rustCompatibleAccounts,

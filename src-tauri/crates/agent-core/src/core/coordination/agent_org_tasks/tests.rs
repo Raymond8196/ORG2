@@ -17,6 +17,19 @@ fn make_params(org_run_id: &str, id: &str, subject: &str) -> CreateTaskParams {
     }
 }
 
+fn make_eligible_params(
+    org_run_id: &str,
+    id: &str,
+    subject: &str,
+    member_ids: &[&str],
+) -> CreateTaskParams {
+    let mut params = make_params(org_run_id, id, subject);
+    params.metadata = Some(serde_json::json!({
+        TASK_METADATA_ELIGIBLE_MEMBER_IDS: member_ids,
+    }));
+    params
+}
+
 fn task_store_sandbox() -> test_helpers::test_env::SandboxGuard {
     let sandbox = test_helpers::test_env::sandbox();
     let conn = get_connection().expect("test sqlite connection");
@@ -235,10 +248,61 @@ fn delete_removes_row() {
 }
 
 #[test]
-fn try_claim_happy_path_sets_owner_and_in_progress() {
+fn try_claim_rejects_unowned_task_without_eligibility() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
     AgentOrgTaskStore::create(make_params(&run_id, "t-1", "claim me")).unwrap();
+
+    let err = AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-alpha", ClaimOptions::default())
+        .unwrap_err();
+    assert_eq!(err, ClaimError::NotEligible);
+}
+
+#[test]
+fn find_available_for_member_filters_by_eligibility() {
+    let _sandbox = task_store_sandbox();
+    let run_id = format!("run-{}", uuid::Uuid::new_v4());
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "pm-task",
+        "write PRD",
+        &["member-pm"],
+    ))
+    .unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "test-task",
+        "test feature",
+        &["member-tester"],
+    ))
+    .unwrap();
+
+    let pm_task = AgentOrgTaskStore::find_available_for_member(&run_id, "member-pm")
+        .unwrap()
+        .unwrap();
+    assert_eq!(pm_task.id, "pm-task");
+    let tester_task = AgentOrgTaskStore::find_available_for_member(&run_id, "member-tester")
+        .unwrap()
+        .unwrap();
+    assert_eq!(tester_task.id, "test-task");
+    assert!(
+        AgentOrgTaskStore::find_available_for_member(&run_id, "member-implement")
+            .unwrap()
+            .is_none()
+    );
+}
+
+#[test]
+fn try_claim_happy_path_sets_owner_and_in_progress() {
+    let _sandbox = task_store_sandbox();
+    let run_id = format!("run-{}", uuid::Uuid::new_v4());
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "t-1",
+        "claim me",
+        &["member-alpha"],
+    ))
+    .unwrap();
 
     let claimed =
         AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-alpha", ClaimOptions::default())
@@ -251,7 +315,13 @@ fn try_claim_happy_path_sets_owner_and_in_progress() {
 fn requeue_in_progress_for_owner_keeps_owner_and_releases_status() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
-    AgentOrgTaskStore::create(make_params(&run_id, "t-1", "claim me")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "t-1",
+        "claim me",
+        &["member-alpha"],
+    ))
+    .unwrap();
     AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-alpha", ClaimOptions::default()).unwrap();
 
     let requeued = AgentOrgTaskStore::requeue_in_progress_for_owner(&run_id, "member-alpha")
@@ -269,7 +339,13 @@ fn requeue_in_progress_for_owner_keeps_owner_and_releases_status() {
 fn task_history_records_create_claim_update_and_release() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
-    AgentOrgTaskStore::create(make_params(&run_id, "t-1", "history")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "t-1",
+        "history",
+        &["member-alpha"],
+    ))
+    .unwrap();
     AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-alpha", ClaimOptions::default()).unwrap();
     AgentOrgTaskStore::update(
         &run_id,
@@ -332,7 +408,13 @@ fn try_claim_returns_task_not_found() {
 fn try_claim_already_claimed_by_other_member() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
-    AgentOrgTaskStore::create(make_params(&run_id, "t-1", "claim me")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "t-1",
+        "claim me",
+        &["member-alpha"],
+    ))
+    .unwrap();
     AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-alpha", ClaimOptions::default()).unwrap();
 
     let err = AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-beta", ClaimOptions::default())
@@ -349,7 +431,13 @@ fn try_claim_already_claimed_by_other_member() {
 fn try_claim_idempotent_for_current_owner() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
-    AgentOrgTaskStore::create(make_params(&run_id, "t-1", "claim me")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "t-1",
+        "claim me",
+        &["member-alpha"],
+    ))
+    .unwrap();
     AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-alpha", ClaimOptions::default()).unwrap();
     let again =
         AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-alpha", ClaimOptions::default())
@@ -385,7 +473,7 @@ fn try_claim_blocked_lists_unresolved_blockers() {
     let mut blocker_completed = make_params(&run_id, "blocker-2", "second");
     blocker_completed.status = TaskStatus::Completed;
     AgentOrgTaskStore::create(blocker_completed).unwrap();
-    let mut dependent = make_params(&run_id, "dep", "depends");
+    let mut dependent = make_eligible_params(&run_id, "dep", "depends", &["member-alpha"]);
     dependent.blocked_by = vec!["blocker-1".into(), "blocker-2".into()];
     AgentOrgTaskStore::create(dependent).unwrap();
 
@@ -403,8 +491,20 @@ fn try_claim_blocked_lists_unresolved_blockers() {
 fn try_claim_member_busy_only_when_option_enabled() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
-    AgentOrgTaskStore::create(make_params(&run_id, "t-1", "first")).unwrap();
-    AgentOrgTaskStore::create(make_params(&run_id, "t-2", "second")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "t-1",
+        "first",
+        &["member-alpha"],
+    ))
+    .unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "t-2",
+        "second",
+        &["member-alpha"],
+    ))
+    .unwrap();
 
     AgentOrgTaskStore::try_claim(&run_id, "t-1", "member-alpha", ClaimOptions::default()).unwrap();
 
@@ -456,13 +556,25 @@ fn find_available_skips_owned_blocked_and_resolved() {
     AgentOrgTaskStore::create(done).unwrap();
 
     // Blocked by an unresolved blocker
-    AgentOrgTaskStore::create(make_params(&run_id, "blocker", "first")).unwrap();
-    let mut blocked = make_params(&run_id, "blocked", "wait");
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "blocker",
+        "first",
+        &["member-alpha"],
+    ))
+    .unwrap();
+    let mut blocked = make_eligible_params(&run_id, "blocked", "wait", &["member-alpha"]);
     blocked.blocked_by = vec!["blocker".into()];
     AgentOrgTaskStore::create(blocked).unwrap();
 
     // Available
-    AgentOrgTaskStore::create(make_params(&run_id, "free", "ready")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "free",
+        "ready",
+        &["member-alpha"],
+    ))
+    .unwrap();
 
     let picked = AgentOrgTaskStore::find_available(&run_id).unwrap().unwrap();
     // `blocker` is the first unclaimed pending in insertion order.
@@ -494,7 +606,13 @@ fn concurrent_claim_only_one_winner() {
     // serialise them; the loser must observe AlreadyClaimed.
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
-    AgentOrgTaskStore::create(make_params(&run_id, "race", "contested")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "race",
+        "contested",
+        &["member-thread", "member-main"],
+    ))
+    .unwrap();
 
     let run_id_clone = run_id.clone();
     let handle = std::thread::spawn(move || {
@@ -622,7 +740,13 @@ fn enqueue_task_assigned_self_claim_uses_system_sender() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
 
-    AgentOrgTaskStore::create(make_params(&run_id, "task-self", "Refactor")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(
+        &run_id,
+        "task-self",
+        "Refactor",
+        &["member-alice"],
+    ))
+    .unwrap();
     let claimed = AgentOrgTaskStore::try_claim(
         &run_id,
         "task-self",
@@ -655,9 +779,9 @@ fn unassign_for_owner_clears_owner_and_resets_status() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
 
-    AgentOrgTaskStore::create(make_params(&run_id, "t1", "S1")).unwrap();
-    AgentOrgTaskStore::create(make_params(&run_id, "t2", "S2")).unwrap();
-    AgentOrgTaskStore::create(make_params(&run_id, "t3", "S3")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(&run_id, "t1", "S1", &["alice"])).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(&run_id, "t2", "S2", &["alice"])).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(&run_id, "t3", "S3", &["bob"])).unwrap();
     AgentOrgTaskStore::try_claim(&run_id, "t1", "alice", ClaimOptions::default()).unwrap();
     AgentOrgTaskStore::try_claim(&run_id, "t2", "alice", ClaimOptions::default()).unwrap();
     // Mark t2 completed; unassign should leave it alone.
@@ -693,7 +817,7 @@ fn has_open_task_for_owner_excludes_completed() {
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
     assert!(!AgentOrgTaskStore::has_open_task_for_owner(&run_id, "alice").unwrap());
 
-    AgentOrgTaskStore::create(make_params(&run_id, "h1", "S1")).unwrap();
+    AgentOrgTaskStore::create(make_eligible_params(&run_id, "h1", "S1", &["alice"])).unwrap();
     AgentOrgTaskStore::try_claim(&run_id, "h1", "alice", ClaimOptions::default()).unwrap();
     assert!(AgentOrgTaskStore::has_open_task_for_owner(&run_id, "alice").unwrap());
 

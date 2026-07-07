@@ -86,7 +86,6 @@ pub enum ModelType {
     KimiCli,
     OpenCode,
     // Extended CLI agents
-    OpenClaude,
     Aider,
     Goose,
     Amp,
@@ -97,17 +96,14 @@ pub enum ModelType {
     Rovo,
     Hermes,
     OpenClaw,
-    Crush,
     Aug,
     Codebuff,
-    CommandCode,
     QwenCode,
     MimoCode,
     Antigravity,
     Continue,
     Droid,
     MistralVibe,
-    Ante,
     Autohand,
     Omp,
     Pi,
@@ -147,7 +143,6 @@ impl ModelType {
             ModelType::Kiro => "kiro",
             ModelType::KimiCli => "kimi_cli",
             ModelType::OpenCode => "opencode",
-            ModelType::OpenClaude => "openclaude",
             ModelType::Aider => "aider",
             ModelType::Goose => "goose",
             ModelType::Amp => "amp",
@@ -158,17 +153,14 @@ impl ModelType {
             ModelType::Rovo => "rovo",
             ModelType::Hermes => "hermes",
             ModelType::OpenClaw => "openclaw",
-            ModelType::Crush => "crush",
             ModelType::Aug => "aug",
             ModelType::Codebuff => "codebuff",
-            ModelType::CommandCode => "command_code",
             ModelType::QwenCode => "qwen_code",
             ModelType::MimoCode => "mimo_code",
             ModelType::Antigravity => "antigravity",
             ModelType::Continue => "continue_cli",
             ModelType::Droid => "droid",
             ModelType::MistralVibe => "mistral_vibe",
-            ModelType::Ante => "ante",
             ModelType::Autohand => "autohand",
             ModelType::Omp => "omp",
             ModelType::Pi => "pi",
@@ -205,7 +197,6 @@ impl ModelType {
             "kiro" | "amazon_kiro" => Some(ModelType::Kiro),
             "kimi_cli" | "kimi_code" => Some(ModelType::KimiCli),
             "opencode" | "opencode_cli" => Some(ModelType::OpenCode),
-            "openclaude" => Some(ModelType::OpenClaude),
             "aider" => Some(ModelType::Aider),
             "goose" => Some(ModelType::Goose),
             "amp" => Some(ModelType::Amp),
@@ -216,17 +207,14 @@ impl ModelType {
             "rovo" => Some(ModelType::Rovo),
             "hermes" => Some(ModelType::Hermes),
             "openclaw" => Some(ModelType::OpenClaw),
-            "crush" => Some(ModelType::Crush),
             "aug" => Some(ModelType::Aug),
             "codebuff" => Some(ModelType::Codebuff),
-            "command_code" => Some(ModelType::CommandCode),
             "qwen_code" => Some(ModelType::QwenCode),
             "mimo_code" => Some(ModelType::MimoCode),
             "antigravity" => Some(ModelType::Antigravity),
             "continue_cli" => Some(ModelType::Continue),
             "droid" => Some(ModelType::Droid),
             "mistral_vibe" => Some(ModelType::MistralVibe),
-            "ante" => Some(ModelType::Ante),
             "autohand" => Some(ModelType::Autohand),
             "omp" => Some(ModelType::Omp),
             "pi" => Some(ModelType::Pi),
@@ -269,7 +257,6 @@ impl ModelType {
                 | ModelType::Kiro
                 | ModelType::KimiCli
                 | ModelType::OpenCode
-                | ModelType::OpenClaude
                 | ModelType::Aider
                 | ModelType::Goose
                 | ModelType::Amp
@@ -280,17 +267,14 @@ impl ModelType {
                 | ModelType::Rovo
                 | ModelType::Hermes
                 | ModelType::OpenClaw
-                | ModelType::Crush
                 | ModelType::Aug
                 | ModelType::Codebuff
-                | ModelType::CommandCode
                 | ModelType::QwenCode
                 | ModelType::MimoCode
                 | ModelType::Antigravity
                 | ModelType::Continue
                 | ModelType::Droid
                 | ModelType::MistralVibe
-                | ModelType::Ante
                 | ModelType::Autohand
                 | ModelType::Omp
                 | ModelType::Pi
@@ -396,6 +380,8 @@ pub struct ModelKey {
     pub protocol: Option<ProviderProtocol>,
     #[serde(default)]
     pub env_vars: HashMap<String, String>,
+    #[serde(default)]
+    pub account_metadata: HashMap<String, String>,
     #[serde(default)]
     pub auth_method: AuthMethod,
     #[serde(default)]
@@ -503,6 +489,7 @@ impl ModelKey {
             base_url: None,
             protocol: None,
             env_vars: HashMap::new(),
+            account_metadata: HashMap::new(),
             auth_method: AuthMethod::ApiKey,
             available_models: Vec::new(),
             quota_info: None,

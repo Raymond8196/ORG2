@@ -320,8 +320,7 @@ impl KeyService {
                 }
             }
             // Extended CLI agents — api_key available under ORGII_API_KEY if set.
-            ModelType::OpenClaude
-            | ModelType::Aider
+            ModelType::Aider
             | ModelType::Goose
             | ModelType::Amp
             | ModelType::Cline
@@ -331,17 +330,14 @@ impl KeyService {
             | ModelType::Rovo
             | ModelType::Hermes
             | ModelType::OpenClaw
-            | ModelType::Crush
             | ModelType::Aug
             | ModelType::Codebuff
-            | ModelType::CommandCode
             | ModelType::QwenCode
             | ModelType::MimoCode
             | ModelType::Antigravity
             | ModelType::Continue
             | ModelType::Droid
             | ModelType::MistralVibe
-            | ModelType::Ante
             | ModelType::Autohand
             | ModelType::Omp
             | ModelType::Pi => {
@@ -486,8 +482,7 @@ impl KeyService {
                 // Proxy token is available via ORGII_PROXY_TOKEN (set above).
             }
             // Extended CLI agents — proxy token available via ORGII_PROXY_TOKEN.
-            ModelType::OpenClaude
-            | ModelType::Aider
+            ModelType::Aider
             | ModelType::Goose
             | ModelType::Amp
             | ModelType::Cline
@@ -497,17 +492,14 @@ impl KeyService {
             | ModelType::Rovo
             | ModelType::Hermes
             | ModelType::OpenClaw
-            | ModelType::Crush
             | ModelType::Aug
             | ModelType::Codebuff
-            | ModelType::CommandCode
             | ModelType::QwenCode
             | ModelType::MimoCode
             | ModelType::Antigravity
             | ModelType::Continue
             | ModelType::Droid
             | ModelType::MistralVibe
-            | ModelType::Ante
             | ModelType::Autohand
             | ModelType::Omp
             | ModelType::Pi => {

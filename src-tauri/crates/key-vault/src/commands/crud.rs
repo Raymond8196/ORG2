@@ -76,6 +76,7 @@ pub struct KeyInfo {
     pub protocol: Option<String>,
     pub env_vars: Vec<String>,
     pub env_vars_masked: HashMap<String, String>,
+    pub account_metadata: HashMap<String, String>,
     pub available_models: Vec<String>,
     pub enabled_models: Vec<String>,
     pub model_aliases: Vec<ModelAliasInfo>,
@@ -246,6 +247,299 @@ fn is_cursor_web_session_token(token: &str) -> bool {
     value.get("type").and_then(|value| value.as_str()) == Some("web")
 }
 
+/// Whether the account talks to an official Anthropic endpoint. A configured
+/// `base_url` means the traffic goes through a third-party relay/mirror whose
+/// gateway may reject `output_config`/effort — those accounts must behave
+/// exactly as before this feature.
+fn is_official_anthropic_endpoint(base_url: Option<&str>) -> bool {
+    match base_url.map(str::trim) {
+        None | Some("") => true,
+        Some(url) => url.starts_with("https://api.anthropic.com"),
+    }
+}
+
+fn account_uses_anthropic_native_messages(entry: &ModelKey) -> bool {
+    match entry.model_type {
+        // Azure-hosted Anthropic gateway: the Azure base URL is mandatory and
+        // first-party, not a relay.
+        ModelType::AzureAnthropicApi => true,
+        ModelType::AnthropicApi => is_official_anthropic_endpoint(entry.base_url.as_deref()),
+        ModelType::ClaudeCode => {
+            entry.auth_method == AuthMethod::Oauth
+                && has_non_empty_secret(&entry.session_token)
+                && is_official_anthropic_endpoint(entry.base_url.as_deref())
+        }
+        // Third-party providers that merely speak the Anthropic protocol
+        // (relays, Anthropic-compatible vendors) never get synthesized effort
+        // variants — effort support is only guaranteed on official endpoints.
+        _ => false,
+    }
+}
+
+pub const CLAUDE_CODE_OAUTH_MODELS: &[&str] = &[
+    "claude-sonnet-5",
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-sonnet-4-6",
+    "claude-opus-4-6",
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-4-5-20250929",
+];
+
+pub const CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &[
+    "claude-sonnet-5",
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-sonnet-4-6",
+];
+
+pub const CODEX_OAUTH_MODELS: &[&str] = &[
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.3-codex",
+    "gpt-5.2",
+    "codex-auto-review",
+];
+
+pub const CODEX_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &["gpt-5.5"];
+
+/// Claude models whose Messages requests carry `output_config.effort`.
+pub fn model_supports_output_config_effort(model: &str) -> bool {
+    let lower = model.to_lowercase();
+    if !lower.starts_with("claude-") || lower.contains("haiku") {
+        return false;
+    }
+    lower.contains("fable-5")
+        || lower.contains("opus-4-8")
+        || lower.contains("opus-4-7")
+        || lower.contains("opus-4-6")
+        || lower.contains("sonnet-5")
+        || lower.contains("sonnet-4-6")
+}
+
+fn claude_model_has_thinking_toggle(model: &str) -> bool {
+    let lower = model.to_lowercase();
+    lower.contains("opus-4-8") || lower.contains("sonnet-")
+}
+
+/// A "real" selectable effort rung, as opposed to a bare record row
+/// (`model == base_model` with no recognized reasoning level) produced by the
+/// context-window / observed-reasoning writebacks in `key_store::service`.
+fn is_actionable_variant(variant: &ModelVariant) -> bool {
+    variant.model != variant.base_model
+        || variant.fast
+        || matches!(
+            variant.reasoning.as_deref(),
+            Some(
+                "baseline"
+                    | "low"
+                    | "medium"
+                    | "high"
+                    | "extra_high"
+                    | "xhigh"
+                    | "max"
+                    | "ultracode",
+            )
+        )
+}
+
+const ANTHROPIC_EFFORT_RUNGS: &[(&str, &str)] = &[
+    ("low", "low"),
+    ("medium", "medium"),
+    ("high", "high"),
+    ("xhigh", "extra_high"),
+    ("max", "max"),
+];
+
+const FABLE_EFFORT_RUNGS: &[(&str, &str)] = &[
+    ("low", "low"),
+    ("medium", "medium"),
+    ("high", "high"),
+    ("xhigh", "extra_high"),
+    ("max", "max"),
+    ("ultracode", "ultracode"),
+];
+
+fn effort_variants_for_base_model(
+    base_model: &str,
+    context_window: Option<u64>,
+) -> Vec<ModelVariantInfo> {
+    let mut variants = Vec::new();
+    let has_thinking_toggle = claude_model_has_thinking_toggle(base_model);
+    let lower = base_model.to_lowercase();
+    let rungs = if lower.contains("fable-5") {
+        FABLE_EFFORT_RUNGS
+    } else {
+        ANTHROPIC_EFFORT_RUNGS
+    };
+    for (suffix, reasoning) in rungs {
+        variants.push(ModelVariantInfo {
+            model: format!("{base_model}-{suffix}"),
+            base_model: base_model.to_string(),
+            reasoning: Some((*reasoning).to_string()),
+            fast: false,
+            context_window,
+        });
+        if has_thinking_toggle {
+            variants.push(ModelVariantInfo {
+                model: format!("{base_model}-thinking-{suffix}"),
+                base_model: base_model.to_string(),
+                reasoning: Some((*reasoning).to_string()),
+                fast: false,
+                context_window,
+            });
+        }
+    }
+    variants
+}
+
+fn codex_model_supports_variants(model: &str) -> bool {
+    CODEX_OAUTH_MODELS.contains(&model) && model != "codex-auto-review"
+}
+
+fn codex_model_supports_fast_tier(model: &str) -> bool {
+    matches!(model, "gpt-5.5" | "gpt-5.4")
+}
+
+fn codex_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInfo> {
+    let mut out = Vec::new();
+    let supports_fast = codex_model_supports_fast_tier(base_model);
+    for effort in ["low", "medium", "high", "xhigh"] {
+        out.push(ModelVariantInfo {
+            model: format!("{base_model}-{effort}"),
+            base_model: base_model.to_string(),
+            reasoning: Some(effort.to_string()),
+            fast: false,
+            context_window: None,
+        });
+        if supports_fast {
+            out.push(ModelVariantInfo {
+                model: format!("{base_model}-{effort}-fast"),
+                base_model: base_model.to_string(),
+                reasoning: Some(effort.to_string()),
+                fast: true,
+                context_window: None,
+            });
+        }
+    }
+    out
+}
+
+fn append_missing_variants(out: &mut Vec<ModelVariantInfo>, variants: Vec<ModelVariantInfo>) {
+    for synthesized in variants {
+        if out.iter().any(|variant| variant.model == synthesized.model) {
+            continue;
+        }
+        out.push(synthesized);
+    }
+}
+
+fn default_variants_for_key(entry: &ModelKey) -> Vec<DefaultVariantInfo> {
+    let mut out: Vec<DefaultVariantInfo> = entry
+        .default_variants
+        .iter()
+        .map(|variant| DefaultVariantInfo {
+            base_model: variant.base_model.clone(),
+            model: variant.model.clone(),
+        })
+        .collect();
+
+    if matches!(entry.model_type, ModelType::Codex) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| codex_model_supports_variants(model))
+        {
+            if out.iter().any(|variant| variant.base_model == *model) {
+                continue;
+            }
+            out.push(DefaultVariantInfo {
+                base_model: model.clone(),
+                model: format!("{model}-medium"),
+            });
+        }
+    }
+
+    if account_uses_anthropic_native_messages(entry) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| model_supports_output_config_effort(model))
+        {
+            if out.iter().any(|variant| variant.base_model == *model) {
+                continue;
+            }
+            out.push(DefaultVariantInfo {
+                base_model: model.clone(),
+                model: format!("{model}-high"),
+            });
+        }
+    }
+
+    out
+}
+
+fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
+    // Every stored variant passes through untouched, for every account type:
+    // bare record rows (`model == base_model`) carry provider-reported
+    // context windows that the frontend context-usage display reads.
+    let mut out: Vec<ModelVariantInfo> = entry
+        .model_variants
+        .iter()
+        .map(|variant| ModelVariantInfo {
+            model: variant.model.clone(),
+            base_model: variant.base_model.clone(),
+            reasoning: variant.reasoning.clone(),
+            fast: variant.fast,
+            context_window: variant.context_window.filter(|ctx| *ctx > 0),
+        })
+        .collect();
+
+    if matches!(entry.model_type, ModelType::Codex) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| codex_model_supports_variants(model))
+        {
+            append_missing_variants(&mut out, codex_effort_variants_for_base_model(model));
+        }
+    }
+
+    if !account_uses_anthropic_native_messages(entry) {
+        return out;
+    }
+
+    for model in entry
+        .available_models
+        .iter()
+        .filter(|model| model_supports_output_config_effort(model))
+    {
+        // A real effort ladder already exists (user- or sync-created) —
+        // don't synthesize a duplicate. Bare record rows don't count.
+        if entry
+            .model_variants
+            .iter()
+            .any(|variant| variant.base_model == *model && is_actionable_variant(variant))
+        {
+            continue;
+        }
+        let context_window = entry
+            .model_variants
+            .iter()
+            .find(|variant| variant.base_model == *model || variant.model == *model)
+            .and_then(|variant| variant.context_window)
+            .filter(|ctx| *ctx > 0);
+        append_missing_variants(
+            &mut out,
+            effort_variants_for_base_model(model, context_window),
+        );
+    }
+    out
+}
+
 impl From<ModelKey> for KeyInfo {
     fn from(entry: ModelKey) -> Self {
         let env_vars_masked: HashMap<String, String> = entry
@@ -288,6 +582,7 @@ impl From<ModelKey> for KeyInfo {
             protocol: entry.protocol.map(|protocol| protocol.as_str().to_string()),
             env_vars: entry.env_vars.keys().cloned().collect(),
             env_vars_masked,
+            account_metadata: entry.account_metadata.clone(),
             available_models: entry.available_models.clone(),
             enabled_models: entry.enabled_models.clone(),
             model_aliases: entry
@@ -299,25 +594,8 @@ impl From<ModelKey> for KeyInfo {
                     icon: a.icon.clone(),
                 })
                 .collect(),
-            model_variants: entry
-                .model_variants
-                .iter()
-                .map(|variant| ModelVariantInfo {
-                    model: variant.model.clone(),
-                    base_model: variant.base_model.clone(),
-                    reasoning: variant.reasoning.clone(),
-                    fast: variant.fast,
-                    context_window: variant.context_window.filter(|ctx| *ctx > 0),
-                })
-                .collect(),
-            default_variants: entry
-                .default_variants
-                .iter()
-                .map(|variant| DefaultVariantInfo {
-                    base_model: variant.base_model.clone(),
-                    model: variant.model.clone(),
-                })
-                .collect(),
+            model_variants: model_variants_for_key(&entry),
+            default_variants: default_variants_for_key(&entry),
             quota_info: entry.quota_info.clone(),
             has_local_key: entry.has_local_key,
             is_listed: entry.is_listed,
@@ -368,6 +646,7 @@ pub struct SaveKeyRequest {
     pub base_url: Option<String>,
     pub protocol: Option<String>,
     pub env_vars: Option<HashMap<String, String>>,
+    pub account_metadata: Option<HashMap<String, String>>,
     pub available_models: Option<Vec<String>>,
     pub enabled_models: Option<Vec<String>>,
     pub model_aliases: Option<Vec<ModelAliasInfo>>,
@@ -392,6 +671,7 @@ pub struct FullKeyResponse {
     pub base_url: Option<String>,
     pub protocol: Option<String>,
     pub env_vars: HashMap<String, String>,
+    pub account_metadata: HashMap<String, String>,
     pub available_models: Vec<String>,
     pub model_aliases: Vec<ModelAliasInfo>,
     pub model_variants: Vec<ModelVariantInfo>,
@@ -410,6 +690,7 @@ impl From<ModelKey> for FullKeyResponse {
             base_url: entry.base_url,
             protocol: entry.protocol.map(|protocol| protocol.as_str().to_string()),
             env_vars: entry.env_vars,
+            account_metadata: entry.account_metadata,
             available_models: entry.available_models,
             model_aliases: entry
                 .model_aliases
@@ -564,6 +845,9 @@ pub async fn save_key(request: SaveKeyRequest) -> Result<KeyInfo, String> {
             received_oauth_material =
                 received_oauth_material || env.values().any(|value| !value.trim().is_empty());
             entry.env_vars = env;
+        }
+        if let Some(metadata) = request.account_metadata {
+            entry.account_metadata = metadata;
         }
         if let Some(models) = request.available_models {
             entry.available_models = models;

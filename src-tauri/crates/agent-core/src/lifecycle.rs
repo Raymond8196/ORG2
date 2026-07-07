@@ -12,7 +12,9 @@ use tauri::Emitter;
 use crate::bus::{broadcast_event, event_pipeline_bridge};
 use crate::coordination::agent_inbox::{MemberIdleReason, SYSTEM_SENDER_ID};
 use crate::coordination::agent_org_runs::{AgentOrgRunContext, AgentOrgRunStore};
-use crate::coordination::agent_org_tasks::{self, AgentOrgTaskStore};
+use crate::coordination::agent_org_tasks::{
+    self, AgentOrgTaskStore, Task, TASK_METADATA_REQUIRED_ROLE,
+};
 use crate::persistence::db_helpers::AgentSessionStatus;
 use crate::session::persistence as session_persistence;
 use crate::session::turn::streaming::classify_streaming_error_message;
@@ -257,8 +259,54 @@ struct AgentOrgMemberLifecycleSnapshot {
     context: AgentOrgRunContext,
     member_id: String,
     member_agent_id: String,
-    requeued_count: usize,
+    requeued_tasks: Vec<Task>,
     agent_exec_mode: Option<crate::session::AgentExecMode>,
+}
+
+fn task_required_role(task: &Task) -> Option<&str> {
+    task.metadata
+        .as_ref()
+        .and_then(|metadata| metadata.get(TASK_METADATA_REQUIRED_ROLE))
+        .and_then(serde_json::Value::as_str)
+        .map(str::trim)
+        .filter(|role| !role.is_empty())
+}
+
+fn member_failure_recovery_guidance(failure_reason: &str, requeued_tasks: &[Task]) -> String {
+    let mut lines = vec![
+        failure_reason.trim().to_string(),
+        String::new(),
+        "Requeued tasks from the failed member:".to_string(),
+    ];
+
+    if requeued_tasks.is_empty() {
+        lines.push("- none".to_string());
+    } else {
+        for task in requeued_tasks {
+            let eligible_member_ids = agent_org_tasks::eligible_member_ids(task);
+            let eligible = if eligible_member_ids.is_empty() {
+                "none".to_string()
+            } else {
+                eligible_member_ids.join(", ")
+            };
+            let required_role = task_required_role(task).unwrap_or("unspecified");
+            lines.push(format!("- {}: {}", task.id, task.subject));
+            lines.push(format!("  status: {}", task.status.as_wire()));
+            lines.push(format!("  eligible_member_ids: [{eligible}]"));
+            lines.push(format!("  required_role: {required_role}"));
+        }
+    }
+
+    lines.extend([
+        String::new(),
+        "Recommended recovery:".to_string(),
+        "1. If the provider/quota error looks temporary, use org_send_message to ask the same member to retry.".to_string(),
+        "2. If another eligible member is available, use task_update owner_member_id to assign it directly.".to_string(),
+        "3. If an unowned task is missing eligible_member_ids, use task_update to add them before expecting autonomous claim.".to_string(),
+        "4. Never assign or allow claim outside eligible_member_ids; if no eligible member is available, pause and report to the user.".to_string(),
+    ]);
+
+    lines.join("\n")
 }
 
 fn parse_agent_exec_mode(value: Option<&str>) -> Option<crate::session::AgentExecMode> {
@@ -267,6 +315,7 @@ fn parse_agent_exec_mode(value: Option<&str>) -> Option<crate::session::AgentExe
 
 fn requeue_agent_org_member_in_progress_work(
     session_id: &str,
+    requeue_work: bool,
     enqueue_member_wake: bool,
 ) -> Result<Option<AgentOrgMemberLifecycleSnapshot>, String> {
     let Some(record) =
@@ -285,7 +334,11 @@ fn requeue_agent_org_member_in_progress_work(
     let member_agent_id = context
         .require_participant_agent_id(&member_id)?
         .to_string();
-    let requeued = AgentOrgTaskStore::requeue_in_progress_for_owner(&context.run_id, &member_id)?;
+    let requeued = if requeue_work {
+        AgentOrgTaskStore::requeue_in_progress_for_owner(&context.run_id, &member_id)?
+    } else {
+        Vec::new()
+    };
     if enqueue_member_wake {
         for task in &requeued {
             agent_org_tasks::enqueue_task_assigned_to(
@@ -302,7 +355,7 @@ fn requeue_agent_org_member_in_progress_work(
         context,
         member_id,
         member_agent_id,
-        requeued_count: requeued.len(),
+        requeued_tasks: requeued,
         agent_exec_mode: parse_agent_exec_mode(record.agent_exec_mode.as_deref()),
     }))
 }
@@ -313,29 +366,39 @@ pub fn finalize_agent_org_member_turn(
     response: &Result<String, String>,
 ) {
     let outcome = tokio::task::block_in_place(|| {
-        requeue_agent_org_member_in_progress_work(session_id, response.is_ok())
+        requeue_agent_org_member_in_progress_work(session_id, response.is_err(), response.is_ok())
     });
 
     match outcome {
         Ok(Some(snapshot)) => {
-            if snapshot.requeued_count > 0 {
+            if !snapshot.requeued_tasks.is_empty() {
                 tracing::info!(
                     session_id = %session_id,
                     run_id = %snapshot.context.run_id,
                     member_id = %snapshot.member_id,
-                    requeued_count = snapshot.requeued_count,
+                    requeued_count = snapshot.requeued_tasks.len(),
                     enqueue_member_wake = response.is_ok(),
                     "[lifecycle] requeued unfinished Agent Org member work after turn finalize"
                 );
-                if response.is_ok() {
-                    if let Some(handle) = app_handle {
-                        AppHandleInboxWakeHook::new(handle.clone())
-                            .wake_member(&snapshot.member_id, &snapshot.context.run_id);
+                if let Some(handle) = app_handle {
+                    let wake_hook = AppHandleInboxWakeHook::new(handle.clone());
+                    if response.is_ok() {
+                        wake_hook.wake_member(&snapshot.member_id, &snapshot.context.run_id);
+                    } else {
+                        for task in &snapshot.requeued_tasks {
+                            for member_id in agent_org_tasks::eligible_member_ids(task) {
+                                wake_hook.wake_member(&member_id, &snapshot.context.run_id);
+                            }
+                        }
                     }
                 }
             }
 
             if response.is_ok() {
+                crate::coordination::agent_org_watchdog::clear_rewake_budget(
+                    &snapshot.context.run_id,
+                    &snapshot.member_id,
+                );
                 // Race-condition guard: a peer may have written an inbox row
                 // while this session was Running (which caused the
                 // `should_dispatch_wake` gate to skip the wake). Now that the
@@ -383,13 +446,15 @@ pub fn finalize_agent_org_member_turn(
             }
 
             if let Err(err) = response {
+                let failure_guidance =
+                    member_failure_recovery_guidance(err, &snapshot.requeued_tasks);
                 crate::session::turn::member_idle::maybe_emit_member_idle_with_details(
                     Some(&snapshot.context),
                     Some(&snapshot.member_id),
                     MemberIdleReason::Failed,
                     snapshot.agent_exec_mode,
-                    None,
-                    Some(err.clone()),
+                    Some("Member failed; inspect failure_reason for requeued tasks and recovery guidance.".to_string()),
+                    Some(failure_guidance),
                 );
                 tracing::warn!(
                     session_id = %session_id,
@@ -610,7 +675,10 @@ mod tests {
     use crate::coordination::agent_org_runs::{
         AgentOrgRunEntryMode, AgentOrgRunStatus, AgentOrgRunStore, CreateAgentOrgRunParams,
     };
-    use crate::coordination::agent_org_tasks::{AgentOrgTaskStore, CreateTaskParams, TaskStatus};
+    use crate::coordination::agent_org_tasks::{
+        AgentOrgTaskStore, CreateTaskParams, TaskStatus, TASK_METADATA_ELIGIBLE_MEMBER_IDS,
+        TASK_METADATA_REQUIRED_ROLE,
+    };
     use crate::definitions::orgs::{HierarchyMode, OrgDefinition, OrgMember};
     use crate::session::persistence::{session_type, UnifiedSessionRecord};
     use crate::session::turn::member_idle::{MemberIdleHook, MemberIdleHookGuard};
@@ -676,58 +744,7 @@ mod tests {
 
     fn ensure_runtime_schemas() {
         let conn = database::db::get_connection().expect("test sqlite connection");
-        conn.execute_batch(
-            r#"
-            CREATE TABLE IF NOT EXISTS agent_sessions (
-                session_id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                status TEXT NOT NULL,
-                model TEXT,
-                account_id TEXT,
-                user_input TEXT,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                session_type TEXT NOT NULL DEFAULT 'agent',
-                channel TEXT,
-                chat_id TEXT,
-                workspace_path TEXT,
-                work_item_id TEXT,
-                agent_role TEXT,
-                worktree_path TEXT,
-                worktree_branch TEXT,
-                base_branch TEXT,
-                merge_status TEXT,
-                project_slug TEXT,
-                agent_definition_id TEXT,
-                org_member_id TEXT,
-                parent_session_id TEXT,
-                parent_event_id TEXT,
-                workspace_additional_json TEXT NOT NULL DEFAULT '{}',
-                key_source TEXT NOT NULL DEFAULT 'own_key',
-                agent_exec_mode TEXT,
-                native_harness_type TEXT,
-                draft_text TEXT,
-                reply_target_event_id TEXT,
-                pinned INTEGER NOT NULL DEFAULT 0
-            );
-            CREATE TABLE IF NOT EXISTS session_token_usage (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL,
-                session_type TEXT NOT NULL DEFAULT 'sde',
-                model TEXT,
-                account_id TEXT,
-                input_tokens INTEGER NOT NULL DEFAULT 0,
-                output_tokens INTEGER NOT NULL DEFAULT 0,
-                cache_read_tokens INTEGER NOT NULL DEFAULT 0,
-                cache_write_tokens INTEGER NOT NULL DEFAULT 0,
-                total_tokens INTEGER NOT NULL DEFAULT 0,
-                context_tokens INTEGER NOT NULL DEFAULT 0,
-                context_usage_json TEXT,
-                created_at TEXT NOT NULL DEFAULT ''
-            );
-            "#,
-        )
-        .expect("agent sessions schema");
+        crate::persistence::test_schema::ensure_agent_sessions_schema(&conn);
         crate::coordination::agent_org_runs::init_schema(&conn).expect("agent org runs schema");
         crate::coordination::agent_org_tasks::init_schema(&conn).expect("agent org tasks schema");
         crate::coordination::agent_inbox::init_schema(&conn).expect("agent inbox schema");
@@ -796,6 +813,14 @@ mod tests {
     }
 
     fn seed_in_progress_task(run_id: &str, task_id: &str) {
+        seed_in_progress_task_with_metadata(run_id, task_id, None);
+    }
+
+    fn seed_in_progress_task_with_metadata(
+        run_id: &str,
+        task_id: &str,
+        metadata: Option<serde_json::Value>,
+    ) {
         AgentOrgTaskStore::create(CreateTaskParams {
             id: task_id.to_string(),
             org_run_id: run_id.to_string(),
@@ -806,7 +831,7 @@ mod tests {
             status: TaskStatus::InProgress,
             blocks: Vec::new(),
             blocked_by: Vec::new(),
-            metadata: None,
+            metadata,
         })
         .expect("create in-progress task");
     }
@@ -818,12 +843,12 @@ mod tests {
         let run_id = seed_run("claude_code");
         seed_in_progress_task(&run_id, "cli-task");
 
-        let snapshot = requeue_agent_org_member_in_progress_work("member-session", true)
+        let snapshot = requeue_agent_org_member_in_progress_work("member-session", true, true)
             .expect("requeue succeeds")
             .expect("member snapshot");
 
         assert_eq!(snapshot.member_agent_id, "claude_code");
-        assert_eq!(snapshot.requeued_count, 1);
+        assert_eq!(snapshot.requeued_tasks.len(), 1);
         let task = AgentOrgTaskStore::get(&run_id, "cli-task")
             .unwrap()
             .expect("task exists");
@@ -843,13 +868,72 @@ mod tests {
     }
 
     #[tokio::test(flavor = "multi_thread")]
-    async fn failed_member_finalize_requeues_work_without_waking_member_and_notifies_coordinator() {
+    async fn successful_member_finalize_keeps_in_progress_work_owned() {
+        let _serial = test_serial_guard();
+        let _sandbox = test_helpers::test_env::sandbox();
+        let run_id = seed_run("builtin:sde");
+        seed_in_progress_task(&run_id, "active-task");
+
+        assert!(
+            crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
+                &run_id,
+                "member-worker"
+            )
+        );
+        assert!(
+            !crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
+                &run_id,
+                "member-worker"
+            )
+        );
+
+        let ok = Ok("done with this turn".to_string());
+        finalize_agent_org_member_turn(None, "member-session", &ok);
+        assert!(
+            crate::coordination::agent_org_watchdog::test_only_mark_failed_rewake_attempt(
+                &run_id,
+                "member-worker"
+            )
+        );
+
+        let task = AgentOrgTaskStore::get(&run_id, "active-task")
+            .unwrap()
+            .expect("task exists");
+        assert_eq!(task.status, TaskStatus::InProgress);
+        assert_eq!(task.owner.as_deref(), Some("member-worker"));
+        let inbox = crate::coordination::agent_inbox::AgentInboxStore::list_unread_for_member(
+            "member-worker",
+            &run_id,
+        )
+        .expect("list member inbox");
+        assert!(
+            inbox.is_empty(),
+            "success finalize must not self-assign the same task"
+        );
+        let release_events = AgentOrgTaskStore::list_history(&run_id)
+            .unwrap()
+            .into_iter()
+            .filter(|event| event.event_type == "released")
+            .collect::<Vec<_>>();
+        assert!(release_events.is_empty());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn failed_member_finalize_requeues_work_wakes_eligible_members_and_notifies_coordinator()
+    {
         let _serial = test_serial_guard();
         let _sandbox = test_helpers::test_env::sandbox();
         let hook = Arc::new(RecordingMemberIdleHook::default());
         let _guard = MemberIdleHookGuard::install(hook.clone());
         let run_id = seed_run("builtin:sde");
-        seed_in_progress_task(&run_id, "failed-task");
+        seed_in_progress_task_with_metadata(
+            &run_id,
+            "failed-task",
+            Some(serde_json::json!({
+                TASK_METADATA_ELIGIBLE_MEMBER_IDS: ["member-worker", "member-peer"],
+                TASK_METADATA_REQUIRED_ROLE: "implement",
+            })),
+        );
 
         let error = Err("HTTP 429: rate limit exceeded".to_string());
         finalize_agent_org_member_turn(None, "member-session", &error);
@@ -859,15 +943,16 @@ mod tests {
             .expect("task exists");
         assert_eq!(task.status, TaskStatus::Pending);
         assert_eq!(task.owner.as_deref(), Some("member-worker"));
-        let member_inbox =
-            crate::coordination::agent_inbox::AgentInboxStore::list_unread_for_member(
-                "member-worker",
-                &run_id,
-            )
-            .expect("list member inbox");
-        assert!(
-            member_inbox.is_empty(),
-            "failed finalize must not auto-retry the failed member"
+        assert_eq!(
+            crate::coordination::agent_org_tasks::eligible_member_ids(&task),
+            vec!["member-worker".to_string(), "member-peer".to_string()]
+        );
+        assert_eq!(
+            task.metadata
+                .as_ref()
+                .and_then(|metadata| metadata.get(TASK_METADATA_REQUIRED_ROLE))
+                .and_then(serde_json::Value::as_str),
+            Some("implement")
         );
 
         let calls = hook.snapshot();
@@ -880,9 +965,13 @@ mod tests {
         assert_eq!(call.member_name, "Worker");
         assert_eq!(call.reason, MemberIdleReason::Failed);
         assert_eq!(call.current_mode, Some(crate::session::AgentExecMode::Ask));
-        assert_eq!(
-            call.failure_reason.as_deref(),
-            Some("HTTP 429: rate limit exceeded")
-        );
+        let failure_reason = call.failure_reason.as_deref().unwrap_or_default();
+        assert!(failure_reason.contains("HTTP 429: rate limit exceeded"));
+        assert!(failure_reason.contains("Requeued tasks from the failed member"));
+        assert!(failure_reason.contains("failed-task"));
+        assert!(failure_reason.contains("eligible_member_ids: [member-worker, member-peer]"));
+        assert!(failure_reason.contains("required_role: implement"));
+        assert!(failure_reason.contains("task_update owner_member_id"));
+        assert!(failure_reason.contains("org_send_message"));
     }
 }

@@ -18,6 +18,15 @@ export const RawConfigWriteInput = z.object({
   content: z.string(),
 });
 
+export const CliConfigFileInput = z.object({
+  agentName: z.string(),
+  fileId: z.string(),
+});
+
+export const CliConfigFileWriteInput = CliConfigFileInput.extend({
+  content: z.string(),
+});
+
 export const HierarchyModeSchema = z.enum(["flat", "soft", "strict"]);
 export const OrgMemberRuntimeConfigSchema = z.object({
   keySource: z.enum(["own_key", "hosted_key"]).optional(),
@@ -69,6 +78,41 @@ export const OrgIdInput = z.object({
 });
 
 export const AvailableCliAgentsSchema = z.array(AvailableAgentSchema);
+
+export const CliPermissionModeSchema = z.enum(["full_permission", "manual"]);
+
+export const CliLaunchProfileInput = z.object({
+  agentName: z.string(),
+});
+
+export const CliLaunchProfileUpdateInput = z.object({
+  agentName: z.string(),
+  permissionMode: CliPermissionModeSchema,
+  commandOverride: z.string().optional(),
+  argsOverride: z.array(z.string()).optional(),
+  envOverride: z.record(z.string(), z.string()).optional(),
+});
+
+export const CliLaunchProfileViewSchema = z.object({
+  agentName: z.string(),
+  permissionMode: CliPermissionModeSchema,
+  defaultCommand: z.string(),
+  command: z.string(),
+  args: z.array(z.string()),
+  env: z.record(z.string(), z.string()),
+  manualArgs: z.array(z.string()),
+  fullPermissionArgs: z.array(z.string()),
+  manualEnv: z.record(z.string(), z.string()),
+  fullPermissionEnv: z.record(z.string(), z.string()),
+  commandOverridden: z.boolean(),
+  argsOverridden: z.boolean(),
+  envOverridden: z.boolean(),
+  effectiveCommand: z.array(z.string()),
+  requiredArgs: z.array(z.string()),
+});
+
+export type CliPermissionMode = z.infer<typeof CliPermissionModeSchema>;
+export type CliLaunchProfileView = z.infer<typeof CliLaunchProfileViewSchema>;
 
 export const SkillsListInput = z.object({
   workspacePath: z.string().optional(),

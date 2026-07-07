@@ -68,7 +68,7 @@
       "title": "アカウント情報",
       "enable": "有効",
       "authMethod": "認証方法",
-      "oauthLogin": "OAuth（ChatGPT ログイン）",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "CLI Agents をサポート",
       "compatibleApis": "対応 API",
-      "noCliAgentSupport": "このプロバイダーは CLI Agent をサポートしていません"
+      "noCliAgentSupport": "このプロバイダーは CLI Agent をサポートしていません",
+      "accountEmail": "アカウントメール",
+      "organization": "組織"
     },
     "inlineDetailTabs": {
       "info": "情報"
@@ -456,6 +458,10 @@
     "codexConnected": "Codex 接続済み",
     "codexDetectErrorHint": "内蔵ブラウザでサインインするか、OpenAI API key を手動で貼り付けてください",
     "codexValidationErrorHint": "token または API key が有効か確認して、もう一度お試しください",
+    "claudeCodeAutodetectTitle": "Claude Code セッションを検出",
+    "claudeCodeAutodetectDesc": "macOS Keychain または ~/.claude/.credentials.json からローカルの Claude Code ログインを読み取ります",
+    "claudeCodeConnected": "Claude Code 接続済み",
+    "claudeCodeDetectErrorHint": "内蔵ブラウザでサインインするか、claude auth login を実行してから再検出してください",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -888,9 +894,12 @@
     "noApiKeys": "この CLI は自前の API Key に対応していません",
     "noApiKeysAdded": "互換性のある API Key がまだ追加されていません",
     "notSupported": "非対応",
+    "nativeSubscription": "ネイティブサブスクリプション",
+    "supportedProtocols": "対応プロトコル",
+    "addedSubscriptions": "追加済みサブスクリプション",
     "subscriptions": "サブスクリプション",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "互換 API",
     "docs": "ドキュメント",
     "addKey": "キーを追加",
     "compatibleKeys": "互換性のある Keys",
@@ -1667,7 +1676,14 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "キー",
-      "addedTime": "追加日"
+      "addedTime": "追加日",
+      "secretBearingConfig": "API key または Token が含まれる可能性があります",
+      "revealConfigFile": "ファイルマネージャーで表示",
+      "launchConfiguration": "起動設定",
+      "configFiles": "設定ファイル",
+      "configFile": "設定ファイル",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "設定内容がありません"
     },
     "codexConfig": {
       "sectionTitle": "設定",
@@ -2563,5 +2579,17 @@
       "completionTokens": "出力 tokens: {{value}}",
       "elapsed": "合計時間: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "起動プロファイル",
+    "fullPermission": "フル権限",
+    "manual": "手動",
+    "command": "コマンド",
+    "environment": "環境変数",
+    "envPlaceholder": "KEY=value を 1 行に 1 つ",
+    "loading": "起動プロファイルを読み込み中...",
+    "unavailable": "起動プロファイルを利用できません",
+    "saved": "起動プロファイルを保存しました",
+    "resetDone": "起動プロファイルをリセットしました"
   }
 }

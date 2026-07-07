@@ -243,6 +243,10 @@ export function useWizard(options: UseWizardOptions): UseWizardReturn {
       base_url: cleanInput(data.extracted_base_url),
       protocol: data.protocol,
       env_vars: Object.keys(envVarRecord).length > 0 ? envVarRecord : undefined,
+      account_metadata:
+        data.account_metadata && Object.keys(data.account_metadata).length > 0
+          ? data.account_metadata
+          : undefined,
       available_models:
         allAvailableModels.length > 0 ? allAvailableModels : allowedModels,
       enabled_models: allowedModels,

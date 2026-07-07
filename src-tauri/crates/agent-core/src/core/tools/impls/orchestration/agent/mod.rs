@@ -776,8 +776,15 @@ impl Tool for AgentTool {
         // can construct the provider before the persistence step).
         let parent_model = self.model.lock().await.clone();
         let explicit_param_model = params.get("model").and_then(|v| v.as_str());
-        let (model, sub_reliability_opt) =
-            helpers::resolve_subagent_model(&agent, explicit_param_model, &parent_model);
+        let (model, sub_reliability_opt) = helpers::resolve_subagent_model(
+            &agent,
+            explicit_param_model,
+            &parent_model,
+            // Shadow (fork) workers share the parent's conversation prefix —
+            // inheriting the exact model (reasoning suffix included) keeps
+            // the request prefix byte-identical for prompt-cache reuse.
+            is_shadow,
+        );
 
         let parent_account_id_for_provider: Option<String> =
             self.config.session_account_id.clone().or_else(|| {
@@ -878,15 +885,16 @@ impl Tool for AgentTool {
         } else {
             Arc::clone(&base_registry_arc)
         };
-        // Workers always run in Build mode (no exec-mode overlay). Plan mode is
-        // reserved for the parent↔user interaction; a worker calling
-        // `create_plan` would submit against the parent's PlanApprovalManager on
-        // the parent's behalf. Read-only exploration uses `builtin:explore`
-        // (allow-policy path) or Shadow mode, neither of which needs Plan.
+        // Workers do not get a Plan-mode *prompt* (plan authoring stays with
+        // the parent↔user interaction; `create_plan` is hard-denied for every
+        // worker), but they DO inherit the parent's per-turn exec-mode policy
+        // overlay — applied after the parent record is read at step 9b below.
+        // Without it a Plan/Ask parent could escape its read-only guarantee
+        // by delegating writes to `builtin:general`.
 
         // 6. Build system prompt (base soul + context + learnings + scratchpad)
         let full_system_prompt = self
-            .build_full_system_prompt(&agent, &agent_id, &delegation_config)
+            .build_full_system_prompt(&agent, &agent_id, &delegation_config, &model)
             .await?;
 
         // 7. Build initial messages (resume / fork / fresh)
@@ -1028,6 +1036,18 @@ impl Tool for AgentTool {
                 )
             }
         };
+
+        // Exec-mode overlay (see the comment above step 6): the worker's
+        // policy must reflect the parent's CURRENT mode, not the base
+        // policy snapshotted at init. A Plan-mode parent therefore spawns
+        // read-only workers (Plan's deny layer strips edit/shell/MCP
+        // write surfaces); Build/Wingman parents are unaffected.
+        let effective_policy = Self::overlay_parent_exec_mode(
+            effective_policy,
+            parent_agent_exec_mode
+                .as_deref()
+                .and_then(crate::session::AgentExecMode::parse),
+        );
 
         {
             let record = crate::session::persistence::UnifiedSessionRecord {

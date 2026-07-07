@@ -208,10 +208,7 @@ export function TableBody<T>({
               }}
             >
               {expandable && (
-                <td
-                  className="table-td table-expand-cell"
-                  style={{ width: 32 }}
-                >
+                <td className="table-td table-expand-cell">
                   <div className="flex h-full items-center justify-end">
                     {canExpand ? (
                       <button

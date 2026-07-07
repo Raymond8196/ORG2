@@ -178,3 +178,212 @@ fn test_model_variant_info_to_variant_preserves_context_window() {
     };
     assert_eq!(ModelVariant::from(zero_ctx).context_window, None);
 }
+
+#[test]
+fn claude_native_key_info_exposes_output_config_effort_variants() {
+    use crate::commands::crud::KeyInfo;
+    use crate::key_store::{AuthMethod, ModelKey, ModelType, ModelVariant};
+
+    let mut key = ModelKey::new(ModelType::ClaudeCode);
+    key.auth_method = AuthMethod::Oauth;
+    key.session_token = Some("access-token".to_string());
+    key.available_models = vec![
+        "claude-opus-4-8".to_string(),
+        "claude-fable-5".to_string(),
+        "claude-haiku-4-5".to_string(),
+    ];
+    key.model_variants = vec![ModelVariant {
+        model: "claude-opus-4-8".to_string(),
+        base_model: "claude-opus-4-8".to_string(),
+        reasoning: Some("always_on".to_string()),
+        fast: false,
+        context_window: Some(200_000),
+    }];
+
+    let info = KeyInfo::from(key);
+    let opus_variants: Vec<_> = info
+        .model_variants
+        .iter()
+        .filter(|variant| variant.base_model == "claude-opus-4-8")
+        .collect();
+
+    assert_eq!(opus_variants.len(), 11);
+    assert!(opus_variants
+        .iter()
+        .any(|variant| variant.model == "claude-opus-4-8-high"));
+    assert!(opus_variants
+        .iter()
+        .any(|variant| variant.model == "claude-opus-4-8-thinking-high"));
+    assert!(opus_variants
+        .iter()
+        .any(|variant| variant.model == "claude-opus-4-8-xhigh"));
+    assert!(opus_variants
+        .iter()
+        .any(|variant| variant.model == "claude-opus-4-8-thinking-max"));
+    let record_row = opus_variants
+        .iter()
+        .find(|variant| variant.model == "claude-opus-4-8")
+        .expect("stored record row must survive synthesis");
+    assert_eq!(record_row.reasoning.as_deref(), Some("always_on"));
+    assert_eq!(record_row.context_window, Some(200_000));
+    assert!(info
+        .model_variants
+        .iter()
+        .all(|variant| variant.base_model != "claude-haiku-4-5"));
+    assert!(info.default_variants.iter().any(|variant| {
+        variant.base_model == "claude-opus-4-8" && variant.model == "claude-opus-4-8-high"
+    }));
+
+    let fable_variants: Vec<_> = info
+        .model_variants
+        .iter()
+        .filter(|variant| variant.base_model == "claude-fable-5")
+        .collect();
+    let fable_model_ids: Vec<_> = fable_variants
+        .iter()
+        .map(|variant| variant.model.as_str())
+        .collect();
+    assert_eq!(fable_model_ids.len(), 6);
+    assert_eq!(
+        fable_model_ids,
+        vec![
+            "claude-fable-5-low",
+            "claude-fable-5-medium",
+            "claude-fable-5-high",
+            "claude-fable-5-xhigh",
+            "claude-fable-5-max",
+            "claude-fable-5-ultracode",
+        ]
+    );
+    assert!(info.default_variants.iter().any(|variant| {
+        variant.base_model == "claude-fable-5" && variant.model == "claude-fable-5-high"
+    }));
+}
+
+#[test]
+fn codex_key_info_exposes_requested_gpt_effort_and_speed_variants() {
+    use crate::commands::crud::KeyInfo;
+    use crate::key_store::{AuthMethod, ModelKey, ModelType};
+
+    let mut key = ModelKey::new(ModelType::Codex);
+    key.auth_method = AuthMethod::Oauth;
+    key.session_token = Some("access-token".to_string());
+    key.available_models = vec![
+        "gpt-5.5".to_string(),
+        "gpt-5.4".to_string(),
+        "gpt-5.4-mini".to_string(),
+        "gpt-5.3-codex".to_string(),
+        "gpt-5.2".to_string(),
+        "gpt-4.1".to_string(),
+    ];
+
+    let info = KeyInfo::from(key);
+    let gpt55_variants: Vec<_> = info
+        .model_variants
+        .iter()
+        .filter(|variant| variant.base_model == "gpt-5.5")
+        .collect();
+    assert_eq!(gpt55_variants.len(), 8);
+    assert!(gpt55_variants
+        .iter()
+        .any(|variant| variant.model == "gpt-5.5-high" && !variant.fast));
+    assert!(gpt55_variants
+        .iter()
+        .any(|variant| variant.model == "gpt-5.5-high-fast" && variant.fast));
+
+    let mini_variants: Vec<_> = info
+        .model_variants
+        .iter()
+        .filter(|variant| variant.base_model == "gpt-5.4-mini")
+        .collect();
+    assert_eq!(mini_variants.len(), 4);
+    assert!(mini_variants.iter().all(|variant| !variant.fast));
+    assert!(info
+        .model_variants
+        .iter()
+        .all(|variant| variant.base_model != "gpt-4.1"));
+    assert!(info
+        .default_variants
+        .iter()
+        .any(|variant| variant.base_model == "gpt-5.5" && variant.model == "gpt-5.5-medium"));
+}
+
+#[test]
+fn relay_claude_code_key_gets_no_synthesized_effort_variants() {
+    use crate::commands::crud::KeyInfo;
+    use crate::key_store::{AuthMethod, ModelKey, ModelType, ModelVariant};
+
+    let mut key = ModelKey::new(ModelType::ClaudeCode);
+    key.auth_method = AuthMethod::Oauth;
+    key.session_token = Some("mirror-token".to_string());
+    key.base_url = Some("https://claude-relay.example/api".to_string());
+    key.available_models = vec!["claude-opus-4-8".to_string()];
+    key.model_variants = vec![ModelVariant {
+        model: "claude-opus-4-8".to_string(),
+        base_model: "claude-opus-4-8".to_string(),
+        reasoning: None,
+        fast: false,
+        context_window: Some(128_000),
+    }];
+
+    let info = KeyInfo::from(key);
+    // Third-party relay: stored rows pass through untouched, nothing added.
+    assert_eq!(info.model_variants.len(), 1);
+    assert_eq!(info.model_variants[0].model, "claude-opus-4-8");
+    assert_eq!(info.model_variants[0].context_window, Some(128_000));
+}
+
+#[test]
+fn third_party_anthropic_protocol_key_keeps_record_rows_untouched() {
+    use crate::commands::crud::KeyInfo;
+    use crate::key_store::{ModelKey, ModelType, ModelVariant, ProviderProtocol};
+
+    let mut key = ModelKey::new(ModelType::OpenrouterApi);
+    key.protocol = Some(ProviderProtocol::Anthropic);
+    key.available_models = vec!["claude-sonnet-4-6".to_string()];
+    key.model_variants = vec![ModelVariant {
+        model: "claude-sonnet-4-6".to_string(),
+        base_model: "claude-sonnet-4-6".to_string(),
+        reasoning: None,
+        fast: false,
+        context_window: Some(131_072),
+    }];
+
+    let info = KeyInfo::from(key);
+    // Anthropic-protocol third parties are NOT native: no synthesis, and the
+    // provider-reported context window row survives for the usage display.
+    assert_eq!(info.model_variants.len(), 1);
+    assert_eq!(info.model_variants[0].context_window, Some(131_072));
+    assert_eq!(info.model_variants[0].reasoning, None);
+}
+
+#[test]
+fn sonnet_ladders_follow_reference_effort_limits() {
+    use crate::commands::crud::KeyInfo;
+    use crate::key_store::{ModelKey, ModelType};
+
+    let mut key = ModelKey::new(ModelType::AnthropicApi);
+    key.api_key = Some("sk-ant-test".to_string());
+    key.available_models = vec![
+        "claude-sonnet-4-6".to_string(),
+        "claude-sonnet-5".to_string(),
+    ];
+
+    let info = KeyInfo::from(key);
+    assert!(info
+        .model_variants
+        .iter()
+        .any(|variant| variant.model == "claude-sonnet-4-6-high"));
+    assert!(info
+        .model_variants
+        .iter()
+        .any(|variant| variant.model == "claude-sonnet-4-6-thinking-high"));
+    assert!(info
+        .model_variants
+        .iter()
+        .any(|variant| variant.model == "claude-sonnet-4-6-max"));
+    assert!(info
+        .model_variants
+        .iter()
+        .any(|variant| variant.model == "claude-sonnet-5-thinking-extra"));
+}

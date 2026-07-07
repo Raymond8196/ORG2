@@ -13,8 +13,6 @@ import { CLI_AGENT } from "@src/api/types/keys";
 import type { KeyVaultAccount } from "@src/hooks/keyVault/types";
 
 import {
-  getCodexOAuthDefaultEnabledModels,
-  getCodexOAuthModels,
   isClaudeCodeOAuthAccount,
   isCodexOAuthAccount,
   isCursorNativeAccount,
@@ -48,22 +46,11 @@ function baseAccount(
 // ---------------------------------------------------------------------------
 
 describe("withCodexOAuthModels — model list population", () => {
-  it("populates all Codex OAuth models into availableModels", () => {
+  it("does not inject hardcoded TS-side fallback models", () => {
     const account = baseAccount({ modelType: CLI_AGENT.CODEX });
     const enriched = withCodexOAuthModels(account);
-    const expected = getCodexOAuthModels();
-    for (const m of expected) {
-      expect(enriched.availableModels).toContain(m);
-    }
-  });
-
-  it("seeds enabledModels with the default when empty", () => {
-    const account = baseAccount({
-      modelType: CLI_AGENT.CODEX,
-      enabledModels: [],
-    });
-    const enriched = withCodexOAuthModels(account);
-    expect(enriched.enabledModels).toEqual(getCodexOAuthDefaultEnabledModels());
+    expect(enriched.availableModels).toEqual([]);
+    expect(enriched.enabledModels).toEqual([]);
   });
 
   it("preserves existing enabledModels when non-empty", () => {
@@ -115,7 +102,7 @@ describe("withNativeHarnessModels — dispatch category guard", () => {
     expect(result).toStrictEqual(accounts);
   });
 
-  it("enriches Codex OAuth accounts when dispatchCategory is rust_agent", () => {
+  it("does not inject TS-side Codex OAuth catalog when dispatchCategory is rust_agent", () => {
     const account = baseAccount({
       modelType: CLI_AGENT.CODEX,
       hasSessionToken: true,
@@ -125,10 +112,10 @@ describe("withNativeHarnessModels — dispatch category guard", () => {
       enabledModels: [],
     });
     const result = withNativeHarnessModels([account], "rust_agent");
-    expect(result[0]?.availableModels?.length).toBeGreaterThan(0);
+    expect(result[0]?.availableModels).toEqual([]);
   });
 
-  it("enriches Claude Code OAuth accounts when dispatchCategory is rust_agent", () => {
+  it("does not inject TS-side Claude Code OAuth catalog when dispatchCategory is rust_agent", () => {
     const account = baseAccount({
       modelType: CLI_AGENT.CLAUDE_CODE,
       hasSessionToken: true,
@@ -138,7 +125,7 @@ describe("withNativeHarnessModels — dispatch category guard", () => {
       enabledModels: [],
     });
     const result = withNativeHarnessModels([account], "rust_agent");
-    expect(result[0].availableModels).toContain("claude-sonnet-4-6");
+    expect(result[0].availableModels).toEqual([]);
   });
 
   it("enriches Cursor native accounts when dispatchCategory is rust_agent", () => {

@@ -1422,8 +1422,9 @@
       "planSupport": "Plan",
       "byokSupport": "Keys",
       "incompatible": "비호환",
-      "manageModels": "모델 추가 / 관리",
-      "manageKeys": "키 추가 / 관리"
+      "manageModels": "모델 관리",
+      "manageKeys": "키 관리",
+      "manageAgents": "Agent 관리"
     },
     "editorSpotlight": {
       "searchPlaceholder": "명령 검색...",

@@ -2060,7 +2060,11 @@
       "testResultPending": "テスト結果は保留中",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills とツール"
+    "skillsAndTools": "Skills とツール",
+    "agentSpotlightViewMode": "Agent 表示モード",
+    "agentSpotlightListView": "リスト表示",
+    "agentSpotlightCardView": "カード表示",
+    "agentSpotlightCardHint": "←/→ または ↑/↓ で Agent を切り替えます。Enter で選択します。"
   },
   "planner": {
     "tabs": {

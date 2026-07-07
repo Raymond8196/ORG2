@@ -69,7 +69,7 @@
       "title": "Informacje o koncie",
       "enable": "Włącz",
       "authMethod": "Metoda uwierzytelniania",
-      "oauthLogin": "OAuth (logowanie ChatGPT)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (przechwytywanie sesji)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -98,7 +98,9 @@
       "cliAgents": "Agenci CLI",
       "supportCliAgents": "Obsługuje CLI Agents",
       "compatibleApis": "Zgodne API",
-      "noCliAgentSupport": "Brak obsługi agentów CLI dla tego dostawcy"
+      "noCliAgentSupport": "Brak obsługi agentów CLI dla tego dostawcy",
+      "accountEmail": "E-mail konta",
+      "organization": "Organizacja"
     },
     "manualModels": {
       "notice": "Nie udało się automatycznie wykryć dostępnych modeli z tego proxy. Możesz dodać modele ręcznie poniżej lub spróbować ponownie kliknąć Waliduj.",
@@ -453,6 +455,10 @@
     "codexConnected": "Codex połączony",
     "codexDetectErrorHint": "Zaloguj się przez osadzoną przeglądarkę albo ręcznie wklej OpenAI API key",
     "codexValidationErrorHint": "Sprawdź, czy token lub API key są prawidłowe, i spróbuj ponownie",
+    "claudeCodeAutodetectTitle": "Wykryj sesję Claude Code",
+    "claudeCodeAutodetectDesc": "Odczytuje lokalne logowanie Claude Code z macOS Keychain lub ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code połączony",
+    "claudeCodeDetectErrorHint": "Zaloguj się przez osadzoną przeglądarkę albo uruchom claude auth login i spróbuj wykryć ponownie",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -885,9 +891,12 @@
     "noApiKeys": "Ten CLI nie obsługuje bring-your-own klucza API",
     "noApiKeysAdded": "Nie dodano jeszcze zgodnych kluczy API",
     "notSupported": "Nieobsługiwane",
+    "nativeSubscription": "Natywna subskrypcja",
+    "supportedProtocols": "Obsługiwane protokoły",
+    "addedSubscriptions": "Dodane subskrypcje",
     "subscriptions": "Subskrypcje",
     "cliKeys": "Subskrypcja",
-    "compatibleApis": "Obsługiwane klucze",
+    "compatibleApis": "Zgodne API",
     "docs": "Dok.",
     "addKey": "Dodaj klucz",
     "compatibleKeys": "Zgodne Keys",
@@ -1664,7 +1673,14 @@
       "typePlan": "Plan",
       "typeApiKey": "Klucz API",
       "keyPreview": "Klucz",
-      "addedTime": "Dodano"
+      "addedTime": "Dodano",
+      "secretBearingConfig": "Może zawierać API keys lub tokeny",
+      "revealConfigFile": "Pokaż w menedżerze plików",
+      "launchConfiguration": "Konfiguracja uruchamiania",
+      "configFiles": "Pliki konfiguracji",
+      "configFile": "Plik konfiguracji",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Brak treści konfiguracji"
     },
     "codexConfig": {
       "sectionTitle": "Konfiguracja",
@@ -2560,5 +2576,17 @@
       "completionTokens": "Wyjściowe tokens: {{value}}",
       "elapsed": "Łączny czas: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Profil uruchomienia",
+    "fullPermission": "Pełne uprawnienia",
+    "manual": "Ręcznie",
+    "command": "Polecenie",
+    "environment": "Środowisko",
+    "envPlaceholder": "KEY=value, po jednym w wierszu",
+    "loading": "Ładowanie profilu uruchomienia...",
+    "unavailable": "Profil uruchomienia niedostępny",
+    "saved": "Profil uruchomienia zapisany",
+    "resetDone": "Profil uruchomienia zresetowany"
   }
 }

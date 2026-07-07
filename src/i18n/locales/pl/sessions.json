@@ -2091,7 +2091,11 @@
       "testResultPending": "Wynik testu oczekuje",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills i narzędzia"
+    "skillsAndTools": "Skills i narzędzia",
+    "agentSpotlightViewMode": "Tryb widoku Agent",
+    "agentSpotlightListView": "Widok listy",
+    "agentSpotlightCardView": "Widok karty",
+    "agentSpotlightCardHint": "Użyj ←/→ lub ↑/↓, aby przełączać Agents. Naciśnij Enter, aby wybrać."
   },
   "planner": {
     "tabs": {

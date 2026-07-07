@@ -68,7 +68,7 @@
       "title": "Информация об аккаунте",
       "enable": "Включить",
       "authMethod": "Метод аутентификации",
-      "oauthLogin": "OAuth (ChatGPT Login)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "Поддерживает CLI Agents",
       "compatibleApis": "Совместимые API",
-      "noCliAgentSupport": "Этот провайдер не поддерживает CLI Agent"
+      "noCliAgentSupport": "Этот провайдер не поддерживает CLI Agent",
+      "accountEmail": "Email аккаунта",
+      "organization": "Организация"
     },
     "inlineDetailTabs": {
       "info": "Информация"
@@ -456,6 +458,10 @@
     "codexConnected": "Codex подключен",
     "codexDetectErrorHint": "Войдите через встроенный браузер или вручную вставьте API key OpenAI",
     "codexValidationErrorHint": "Проверьте, что token или API key действительны, и повторите попытку",
+    "claudeCodeAutodetectTitle": "Обнаружить сессию Claude Code",
+    "claudeCodeAutodetectDesc": "Читает локальный вход Claude Code из macOS Keychain или ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code подключен",
+    "claudeCodeDetectErrorHint": "Войдите через встроенный браузер или выполните claude auth login и повторите обнаружение",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -888,9 +894,12 @@
     "noApiKeys": "Этот CLI не поддерживает собственный API-ключ",
     "noApiKeysAdded": "Совместимые API-ключи ещё не добавлены",
     "notSupported": "Не поддерживается",
+    "nativeSubscription": "Нативная подписка",
+    "supportedProtocols": "Поддерживаемые протоколы",
+    "addedSubscriptions": "Добавленные подписки",
     "subscriptions": "Подписки",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "Совместимые API",
     "docs": "Док",
     "addKey": "Добавить ключ",
     "compatibleKeys": "Совместимые Keys",
@@ -1667,7 +1676,14 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Ключ",
-      "addedTime": "Добавлено"
+      "addedTime": "Добавлено",
+      "secretBearingConfig": "Может содержать API-ключи или Token",
+      "revealConfigFile": "Показать в файловом менеджере",
+      "launchConfiguration": "Конфигурация запуска",
+      "configFiles": "Файлы конфигурации",
+      "configFile": "Файл конфигурации",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Нет содержимого конфигурации"
     },
     "codexConfig": {
       "sectionTitle": "Конфигурация",
@@ -2563,5 +2579,17 @@
       "completionTokens": "Выходные tokens: {{value}}",
       "elapsed": "Общее время: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Профиль запуска",
+    "fullPermission": "Полные права",
+    "manual": "Вручную",
+    "command": "Команда",
+    "environment": "Окружение",
+    "envPlaceholder": "KEY=value, по одному на строку",
+    "loading": "Загрузка профиля запуска...",
+    "unavailable": "Профиль запуска недоступен",
+    "saved": "Профиль запуска сохранён",
+    "resetDone": "Профиль запуска сброшен"
   }
 }

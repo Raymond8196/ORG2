@@ -68,7 +68,7 @@
       "title": "Kontoinformationen",
       "enable": "Aktivieren",
       "authMethod": "Authsmethode",
-      "oauthLogin": "OAuth (ChatGPT Login)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agents",
       "supportCliAgents": "Unterstützt CLI Agents",
       "compatibleApis": "Kompatible APIs",
-      "noCliAgentSupport": "Keine CLI-Agent-Unterstützung für diesen Anbieter"
+      "noCliAgentSupport": "Keine CLI-Agent-Unterstützung für diesen Anbieter",
+      "accountEmail": "Konto-E-Mail",
+      "organization": "Organisation"
     },
     "inlineDetailTabs": {
       "info": "Informationen"
@@ -456,6 +458,10 @@
     "codexConnected": "Codex verbunden",
     "codexDetectErrorHint": "Melde dich mit dem eingebetteten Browser an oder füge manuell einen OpenAI API key ein",
     "codexValidationErrorHint": "Prüfe, ob token oder API key gültig ist, und versuche es erneut",
+    "claudeCodeAutodetectTitle": "Claude Code-Sitzung erkennen",
+    "claudeCodeAutodetectDesc": "Liest deine lokale Claude Code-Anmeldung aus macOS Keychain oder ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code verbunden",
+    "claudeCodeDetectErrorHint": "Melde dich mit dem eingebetteten Browser an oder führe claude auth login aus und versuche die Erkennung erneut",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -888,9 +894,12 @@
     "noApiKeys": "Dieses CLI unterstützt keine eigenen API-Keys",
     "noApiKeysAdded": "Noch keine kompatiblen API-Keys hinzugefügt",
     "notSupported": "Nicht unterstützt",
+    "nativeSubscription": "Natives Abonnement",
+    "supportedProtocols": "Unterstützte Protokolle",
+    "addedSubscriptions": "Hinzugefügte Abonnements",
     "subscriptions": "Abonnements",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "Kompatible APIs",
     "docs": "Dok",
     "addKey": "Schlüssel hinzufügen",
     "compatibleKeys": "Kompatible Keys",
@@ -1667,7 +1676,14 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Schlüssel",
-      "addedTime": "Hinzugefügt"
+      "addedTime": "Hinzugefügt",
+      "secretBearingConfig": "Kann API keys oder Token enthalten",
+      "revealConfigFile": "Im Dateimanager anzeigen",
+      "launchConfiguration": "Startkonfiguration",
+      "configFiles": "Konfigurationsdateien",
+      "configFile": "Konfigurationsdatei",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Kein Konfigurationsinhalt"
     },
     "codexConfig": {
       "sectionTitle": "Konfiguration",
@@ -2563,5 +2579,17 @@
       "completionTokens": "Ausgabe-tokens: {{value}}",
       "elapsed": "Gesamtzeit: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Startprofil",
+    "fullPermission": "Voller Zugriff",
+    "manual": "Manuell",
+    "command": "Befehl",
+    "environment": "Umgebung",
+    "envPlaceholder": "KEY=value, eins pro Zeile",
+    "loading": "Startprofil wird geladen...",
+    "unavailable": "Startprofil nicht verfügbar",
+    "saved": "Startprofil gespeichert",
+    "resetDone": "Startprofil zurückgesetzt"
   }
 }

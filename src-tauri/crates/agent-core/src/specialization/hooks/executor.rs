@@ -81,8 +81,11 @@ impl HookExecutor {
         self.config.is_empty()
     }
 
-    /// Execute all hooks for an event. Returns results in order.
-    /// Hooks run sequentially — a failing hook does NOT prevent subsequent hooks.
+    /// Execute all hooks for an event. Returns results in config order.
+    /// Matched hooks run **concurrently**, each bounded by its own timeout —
+    /// N slow hooks cost max(timeout), not sum(timeout). Result order matches
+    /// config order regardless of completion order, so first-blocking-wins
+    /// dispatchers stay deterministic. A failing hook does not affect others.
     /// Command hooks with a `matcher` are skipped when the event's tool name
     /// (ORGII_TOOL_NAME) does not match the anchored regex.
     pub async fn run(&self, event: HookEvent, context: &HookContext) -> Vec<HookResult> {
@@ -92,21 +95,19 @@ impl HookExecutor {
         }
 
         let tool_name = context.env_vars.get("ORGII_TOOL_NAME").cloned();
-        let mut results = Vec::with_capacity(hooks.len());
-        for entry in hooks {
+        let matched = hooks.iter().filter(|entry| {
             if let HookEntry::Command {
                 matcher: Some(matcher),
                 ..
             } = entry
             {
-                if !matcher_applies(matcher, tool_name.as_deref()) {
-                    continue;
-                }
+                matcher_applies(matcher, tool_name.as_deref())
+            } else {
+                true
             }
-            let result = self.execute_entry(event, entry, context).await;
-            results.push(result);
-        }
-        results
+        });
+        futures::future::join_all(matched.map(|entry| self.execute_entry(event, entry, context)))
+            .await
     }
 
     /// Collect prompt hook outputs for an event.

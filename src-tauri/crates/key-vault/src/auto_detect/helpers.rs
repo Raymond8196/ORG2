@@ -116,6 +116,7 @@ pub(crate) fn create_detected_key(id: &str, name: &str, auth_method: &str) -> De
         session_token: None,
         base_url: None,
         env_vars: None,
+        account_metadata: None,
         available_models: None,
         quota_info: None,
         validated: None,

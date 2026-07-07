@@ -2060,7 +2060,11 @@
       "testResultPending": "테스트 결과 대기 중",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills 및 도구"
+    "skillsAndTools": "Skills 및 도구",
+    "agentSpotlightViewMode": "Agent view mode",
+    "agentSpotlightListView": "List view",
+    "agentSpotlightCardView": "Card view",
+    "agentSpotlightCardHint": "Use ←/→ or ↑/↓ to shuffle Agents. Press Enter to select."
   },
   "planner": {
     "tabs": {

@@ -1,0 +1,95 @@
+import { useSetAtom } from "jotai";
+import { useCallback } from "react";
+
+import { clearSessionAtom } from "@src/engines/SessionCore/core/atoms";
+import {
+  activeSessionIdAtom,
+  workstationActiveSessionIdAtom,
+} from "@src/store/session";
+import {
+  CHAT_PANEL_SURFACE_KIND,
+  chatPanelNavigateAtom,
+  chatPanelStartPageOpenAtom,
+} from "@src/store/ui/chatPanelAtom";
+
+export function useChatPanelNavigationActions() {
+  const setStartPageOpen = useSetAtom(chatPanelStartPageOpenAtom);
+  const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
+  const dispatchClearSession = useSetAtom(clearSessionAtom);
+  const setWorkstationActiveSessionId = useSetAtom(
+    workstationActiveSessionIdAtom
+  );
+  const setActiveSessionId = useSetAtom(activeSessionIdAtom);
+
+  const resetActiveSession = useCallback(() => {
+    dispatchClearSession();
+    setWorkstationActiveSessionId(null);
+    setActiveSessionId(null);
+  }, [dispatchClearSession, setActiveSessionId, setWorkstationActiveSessionId]);
+
+  const showSessionSurface = useCallback(() => {
+    setStartPageOpen(false);
+    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+  }, [navigateChatPanel, setStartPageOpen]);
+
+  const resetToSessionSurface = useCallback(() => {
+    showSessionSurface();
+    resetActiveSession();
+  }, [resetActiveSession, showSessionSurface]);
+
+  const openStartPage = useCallback(() => {
+    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+    setStartPageOpen(true);
+    resetActiveSession();
+  }, [navigateChatPanel, resetActiveSession, setStartPageOpen]);
+
+  const openWorkItemCreate = useCallback(() => {
+    setStartPageOpen(false);
+    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM });
+    resetActiveSession();
+  }, [navigateChatPanel, resetActiveSession, setStartPageOpen]);
+
+  const openWorkspaceDashboard = useCallback(() => {
+    setStartPageOpen(false);
+    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD });
+    resetActiveSession();
+  }, [navigateChatPanel, resetActiveSession, setStartPageOpen]);
+
+  const openWorkspaceExplore = useCallback(() => {
+    setStartPageOpen(false);
+    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE });
+    resetActiveSession();
+  }, [navigateChatPanel, resetActiveSession, setStartPageOpen]);
+
+  const openManageIssues = useCallback(() => {
+    setStartPageOpen(false);
+    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES });
+    resetActiveSession();
+  }, [navigateChatPanel, resetActiveSession, setStartPageOpen]);
+
+  const openCollabOrgSurface = useCallback(
+    (orgId: string) => {
+      navigateChatPanel({
+        kind: CHAT_PANEL_SURFACE_KIND.COLLAB_ORG,
+        collabOrg: { orgId },
+      });
+    },
+    [navigateChatPanel]
+  );
+
+  return {
+    dispatchClearSession,
+    openCollabOrgSurface,
+    openManageIssues,
+    openStartPage,
+    openWorkItemCreate,
+    openWorkspaceDashboard,
+    openWorkspaceExplore,
+    resetActiveSession,
+    resetToSessionSurface,
+    setActiveSessionId,
+    setStartPageOpen,
+    setWorkstationActiveSessionId,
+    showSessionSurface,
+  };
+}
