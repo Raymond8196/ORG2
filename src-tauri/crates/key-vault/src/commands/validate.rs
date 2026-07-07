@@ -2,8 +2,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::ValidationResult;
 
+use crate::commands::crud::key_info_from_entry;
+use crate::key_store::{AuthMethod, HealthStatus, ModelType, KEY_SERVICE};
 use crate::providers::anthropic::AnthropicValidator;
 use crate::providers::azure_openai::AzureOpenAIValidator;
+use crate::providers::claude_code::ClaudeCodeQuotaFetcher;
 use crate::providers::codex::CodexValidator;
 use crate::providers::copilot::CopilotValidator;
 use crate::providers::cursor::CursorValidator;
@@ -494,6 +497,124 @@ pub async fn fetch_key_quota(
         | "orgii" => Err(format!("{} does not have a public quota API", agent_type)),
         _ => Err(format!("Unknown agent type: {}", agent_type)),
     }
+}
+
+/// Refresh quota for a stored key without exposing its token to the frontend.
+#[tauri::command]
+pub async fn refresh_key_quota(key_id: String) -> Result<Option<crate::commands::KeyInfo>, String> {
+    let key = KEY_SERVICE
+        .get_key_by_id(&key_id)
+        .ok_or_else(|| format!("Key not found: {}", key_id))?;
+
+    let quota = match fetch_quota_for_key(&key).await {
+        Ok(quota) => quota,
+        Err(first_err)
+            if key.auth_method == AuthMethod::Oauth && is_unauthorized_quota_error(&first_err) =>
+        {
+            let refreshed = refresh_oauth_key_for_quota(&key).await?;
+            fetch_quota_for_key(&refreshed).await?
+        }
+        Err(first_err) => return Err(first_err),
+    };
+
+    let quota_value = serde_json::to_value(quota)
+        .map_err(|err| format!("Failed to serialize quota info: {err}"))?;
+
+    let updated = KEY_SERVICE.update_key_health(
+        &key_id,
+        HealthStatus::Valid,
+        None,
+        None,
+        None,
+        Some(quota_value),
+        None,
+    )?;
+
+    updated.map(key_info_from_entry).transpose()
+}
+
+async fn fetch_quota_for_key(
+    key: &crate::key_store::ModelKey,
+) -> Result<crate::types::QuotaInfo, String> {
+    match key.model_type {
+        ModelType::CursorCli => {
+            let token = key
+                .session_token
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Cursor account has no session token".to_string())?;
+            CursorValidator::new().fetch_quota(token).await
+        }
+        ModelType::Copilot => {
+            let token = key
+                .api_key
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Copilot account has no API key".to_string())?;
+            CopilotValidator::new().fetch_quota(token).await
+        }
+        ModelType::ClaudeCode if key.auth_method == AuthMethod::Oauth => {
+            let token = key
+                .session_token
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Claude Code OAuth account has no access token".to_string())?;
+            ClaudeCodeQuotaFetcher::new().fetch_quota(token).await
+        }
+        ModelType::Codex if key.auth_method == AuthMethod::Oauth => {
+            let token = key
+                .session_token
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Codex OAuth account has no access token".to_string())?;
+            let refresh_token = key
+                .env_vars
+                .get(core_types::providers::CODEX_REFRESH_TOKEN_ENV_KEY)
+                .map(String::as_str);
+            let id_token = key
+                .env_vars
+                .get(core_types::providers::CODEX_ID_TOKEN_ENV_KEY)
+                .map(String::as_str);
+            CodexValidator::new()
+                .fetch_app_server_quota(token, refresh_token, id_token)
+                .await
+        }
+        ref other => Err(format!(
+            "{} does not have a quota refresh API",
+            other.as_str()
+        )),
+    }
+}
+
+async fn refresh_oauth_key_for_quota(
+    key: &crate::key_store::ModelKey,
+) -> Result<crate::key_store::ModelKey, String> {
+    let rejected_access_token = key.session_token.clone().unwrap_or_default();
+    match key.model_type {
+        ModelType::ClaudeCode => {
+            KEY_SERVICE
+                .refresh_claude_code_oauth_key(&key.id, &rejected_access_token)
+                .await
+        }
+        ModelType::Codex => {
+            KEY_SERVICE
+                .refresh_codex_oauth_key(&key.id, &rejected_access_token)
+                .await
+        }
+        ref other => Err(format!(
+            "OAuth quota refresh is not supported for {}",
+            other.as_str()
+        )),
+    }
+}
+
+fn is_unauthorized_quota_error(error_message: &str) -> bool {
+    let lower = error_message.to_lowercase();
+    lower.contains("401")
+        || lower.contains("403")
+        || lower.contains("unauthorized")
+        || lower.contains("forbidden")
+        || lower.contains("expired")
 }
 
 /// Auto-detect keys from local config files and environment variables

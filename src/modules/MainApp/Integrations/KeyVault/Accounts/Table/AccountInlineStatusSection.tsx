@@ -144,28 +144,43 @@ export const AccountInlineStatusSection: React.FC<
     };
   }, [account.quotaInfo, showQuota]);
 
-  const cursorQuotaItems = useMemo(() => {
-    if (
-      !showQuota ||
-      account.modelType !== CLI_AGENT.CURSOR ||
-      !hasUsageItems(account.quotaInfo)
-    ) {
+  const quotaUsageItems = useMemo(() => {
+    if (!showQuota || !hasUsageItems(account.quotaInfo)) {
       return [];
     }
 
     const items = account.quotaInfo.usage_items.filter(
       (item: UsageItem) => item.enabled
     );
-    const planItem = items.find((item: UsageItem) =>
-      CURSOR_PLAN_USAGE_TYPES.has(item.usage_type)
-    );
-    const apiItem = items.find(
-      (item: UsageItem) => item.usage_type === "on_demand"
-    );
-    return [planItem, apiItem].filter((item): item is UsageItem =>
-      Boolean(item)
-    );
+
+    if (account.modelType === CLI_AGENT.CURSOR) {
+      const planItem = items.find((item: UsageItem) =>
+        CURSOR_PLAN_USAGE_TYPES.has(item.usage_type)
+      );
+      const apiItem = items.find(
+        (item: UsageItem) => item.usage_type === "on_demand"
+      );
+      return [planItem, apiItem].filter((item): item is UsageItem =>
+        Boolean(item)
+      );
+    }
+
+    return items;
   }, [account.modelType, account.quotaInfo, showQuota]);
+
+  const getQuotaUsageLabel = useCallback(
+    (usageType: string): string => {
+      if (account.modelType === CLI_AGENT.CURSOR) {
+        return usageType === "on_demand"
+          ? t("keyVault.quota.cursorApiUsage")
+          : t("keyVault.quota.cursorIncludedRequests");
+      }
+      if (usageType === "session") return t("keyVault.quota.sessionUsage");
+      if (usageType === "weekly") return t("keyVault.quota.weeklyUsage");
+      return usageType.replace(/_/g, " ");
+    },
+    [account.modelType, t]
+  );
 
   const copyApiKey = useCallback(async () => {
     const cred = await getFullKey(account.modelType, account.id);
@@ -226,8 +241,8 @@ export const AccountInlineStatusSection: React.FC<
             label={t("keyVault.quota.plan")}
             value={quotaSummary.planLabel ?? "—"}
           />
-          {cursorQuotaItems.length > 0 ? (
-            cursorQuotaItems.map((item) => {
+          {quotaUsageItems.length > 0 ? (
+            quotaUsageItems.map((item) => {
               const percentUsed = getUsagePercentUsed(item);
               const remainingPercent = item.remaining_percentage;
               const barBgClass = getQuotaBgColorClass(remainingPercent);
@@ -236,11 +251,7 @@ export const AccountInlineStatusSection: React.FC<
               return (
                 <InfoRow
                   key={item.usage_type}
-                  label={
-                    item.usage_type === "on_demand"
-                      ? t("keyVault.quota.cursorApiUsage")
-                      : t("keyVault.quota.cursorIncludedRequests")
-                  }
+                  label={getQuotaUsageLabel(item.usage_type)}
                 >
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-fill-3">
@@ -252,7 +263,9 @@ export const AccountInlineStatusSection: React.FC<
                     <span className={`shrink-0 text-[12px] ${textColorClass}`}>
                       {percentUsed == null
                         ? formatUsageValue(item)
-                        : `${Math.round(percentUsed)}% used`}
+                        : t("keyVault.quota.percentUsed", {
+                            percent: Math.round(percentUsed),
+                          })}
                     </span>
                   </div>
                 </InfoRow>
@@ -278,7 +291,9 @@ export const AccountInlineStatusSection: React.FC<
                 >
                   {quotaSummary.isUnlimited
                     ? "∞"
-                    : `${Math.round(quotaSummary.remainingPercent)}% left`}
+                    : t("keyVault.quota.percentLeft", {
+                        percent: Math.round(quotaSummary.remainingPercent),
+                      })}
                 </span>
               </div>
             </InfoRow>
