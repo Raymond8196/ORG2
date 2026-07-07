@@ -68,6 +68,7 @@ pub(crate) fn quota_from_windows(
             limit: Some(100),
             remaining: Some(remaining_percent.round() as i64),
             remaining_percentage: remaining_percent,
+            reset_time: window.reset_time.clone(),
         });
     }
 

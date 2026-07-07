@@ -431,6 +431,7 @@ fn usage_item(usage_type: &str, used_percent: f64) -> UsageItem {
         limit: Some(100),
         remaining: Some((100.0 - used_percent).round() as i64),
         remaining_percentage: 100.0 - used_percent,
+        reset_time: None,
     }
 }
 

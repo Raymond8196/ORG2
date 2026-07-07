@@ -157,6 +157,7 @@ export const UsageItemSchema = z.object({
   limit: z.number().nullable(),
   remaining: z.number().nullable(),
   remaining_percentage: z.number(),
+  reset_time: z.string().nullable().optional(),
 });
 
 export const QuotaInfoSchema = z.object({
@@ -302,28 +303,32 @@ export const SaveKeyRequestSchema = z.object({
 // ============================================================================
 
 export const DetectedQuotaInfoSchema = z.object({
-  remaining_percentage: z.number().optional(),
-  used: z.number().optional(),
-  limit: z.number().optional(),
-  remaining: z.number().optional(),
-  reset_time: z.string().optional(),
-  plan_type: z.string().optional(),
-  is_unlimited: z.boolean().optional(),
+  remaining_percentage: z.number().nullable().optional(),
+  used: z.number().nullable().optional(),
+  limit: z.number().nullable().optional(),
+  remaining: z.number().nullable().optional(),
+  reset_time: z.string().nullable().optional(),
+  plan_type: z.string().nullable().optional(),
+  quota_source: z.string().nullable().optional(),
+  is_unlimited: z.boolean().nullable().optional(),
+  usage_items: z.array(UsageItemSchema).optional(),
+  auto_message: z.string().nullable().optional(),
+  named_message: z.string().nullable().optional(),
 });
 
 export const DetectedKeySchema = z.object({
   id: z.string(),
   name: z.string(),
   auth_method: AuthMethodSchema,
-  api_key: z.string().optional(),
-  session_token: z.string().optional(),
-  base_url: z.string().optional(),
-  env_vars: z.record(z.string(), z.string()).optional(),
-  account_metadata: z.record(z.string(), z.string()).optional(),
-  available_models: z.array(z.string()).optional(),
-  quota_info: DetectedQuotaInfoSchema.optional(),
-  validated: z.boolean().optional(),
-  validation_message: z.string().optional(),
+  api_key: z.string().nullable().optional(),
+  session_token: z.string().nullable().optional(),
+  base_url: z.string().nullable().optional(),
+  env_vars: z.record(z.string(), z.string()).nullable().optional(),
+  account_metadata: z.record(z.string(), z.string()).nullable().optional(),
+  available_models: z.array(z.string()).nullable().optional(),
+  quota_info: DetectedQuotaInfoSchema.nullable().optional(),
+  validated: z.boolean().nullable().optional(),
+  validation_message: z.string().nullable().optional(),
 });
 
 export const AutoDetectResultSchema = z.object({

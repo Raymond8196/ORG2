@@ -21,6 +21,9 @@ pub struct UsageItem {
     pub remaining: Option<i64>,
     /// Remaining percentage (0-100, -1 = unknown)
     pub remaining_percentage: f64,
+    /// Reset time for this specific usage window (ISO 8601 string)
+    #[serde(default)]
+    pub reset_time: Option<String>,
 }
 
 impl UsageItem {
@@ -32,6 +35,7 @@ impl UsageItem {
             limit: None,
             remaining: None,
             remaining_percentage: -1.0,
+            reset_time: None,
         }
     }
 }

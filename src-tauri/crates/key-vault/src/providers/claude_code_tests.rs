@@ -18,8 +18,16 @@ fn parses_oauth_usage_windows() {
     assert_eq!(quota.usage_items.len(), 2);
     assert_eq!(quota.usage_items[0].usage_type, SESSION_USAGE_TYPE);
     assert!((quota.usage_items[0].remaining_percentage - 57.5).abs() < 0.01);
+    assert_eq!(
+        quota.usage_items[0].reset_time.as_deref(),
+        Some("2026-07-07T10:00:00Z")
+    );
     assert_eq!(quota.usage_items[1].usage_type, WEEKLY_USAGE_TYPE);
     assert!((quota.usage_items[1].remaining_percentage - 20.0).abs() < 0.01);
+    assert_eq!(
+        quota.usage_items[1].reset_time.as_deref(),
+        Some("2026-07-13T10:00:00Z")
+    );
 }
 
 #[test]
