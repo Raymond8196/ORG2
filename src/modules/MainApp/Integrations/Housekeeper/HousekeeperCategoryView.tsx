@@ -326,6 +326,20 @@ export const HousekeeperCategoryView: React.FC = () => {
             onChange={(checked) => config.setFeatures.uiControl(checked)}
           />
         </SectionRow>
+        <SectionRow
+          label={t("housekeeper.features.silentContextCompaction.title")}
+          description={formatDescription(
+            t("housekeeper.features.silentContextCompaction.description")
+          )}
+        >
+          <Switch
+            checked={config.features.silentContextCompaction}
+            disabled={!config.enabled}
+            onChange={(checked) =>
+              config.setFeatures.silentContextCompaction(checked)
+            }
+          />
+        </SectionRow>
       </SectionContainer>
 
       <SectionContainer title={t("housekeeper.sections.diagnostics")}>

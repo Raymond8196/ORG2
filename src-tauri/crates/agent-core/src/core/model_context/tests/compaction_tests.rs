@@ -906,3 +906,78 @@ async fn compact_does_not_skip_between_trigger_and_full_budget() {
         "compact must act once the trigger threshold is crossed"
     );
 }
+
+#[tokio::test]
+async fn compact_manual_force_bypasses_automatic_trigger_threshold() {
+    use crate::model_context::compaction::CompactionOutcome;
+    use crate::providers::traits::{LLMProvider, LLMResponse, ProviderError};
+
+    struct SummaryProvider;
+
+    #[async_trait::async_trait]
+    impl LLMProvider for SummaryProvider {
+        async fn chat(
+            &self,
+            _messages: &[Value],
+            _tools: Option<&[Value]>,
+            _model: &str,
+            _max_tokens: u32,
+            _temperature: f32,
+        ) -> Result<LLMResponse, ProviderError> {
+            Ok(LLMResponse {
+                content: Some("manual summary of the older messages".to_string()),
+                tool_calls: vec![],
+                finish_reason: crate::providers::finish_reason::STOP.to_string(),
+                usage: std::collections::HashMap::new(),
+                reasoning_content: None,
+                blocks: Vec::new(),
+                stream_error_kind: None,
+                retry_after_ms: None,
+            })
+        }
+
+        fn default_model(&self) -> &str {
+            "test-model"
+        }
+
+        fn provider_name(&self) -> &str {
+            "mock"
+        }
+    }
+
+    let big = "x".repeat(400);
+    let mut history: Vec<Value> = vec![user_msg("task statement")];
+    for _ in 0..40 {
+        history.push(assistant_msg(&big));
+    }
+    let budget = ContextCompactor::estimate_messages_tokens(&history) * 2;
+    let mut config = default_config();
+    config.floor_tokens = 0;
+    let mut state = CompactionState::default();
+    let provider = SummaryProvider;
+
+    let (_, regular_outcome) = ContextCompactor::compact(
+        &history,
+        budget,
+        &config,
+        &mut state,
+        &provider,
+        "test-model",
+    )
+    .await;
+    assert_eq!(regular_outcome, CompactionOutcome::Skipped);
+
+    let mut manual_state = CompactionState::default();
+    let (compacted, manual_outcome) = ContextCompactor::compact_manual_force(
+        &history,
+        budget,
+        &config,
+        &mut manual_state,
+        &provider,
+        "test-model",
+    )
+    .await;
+
+    assert_ne!(manual_outcome, CompactionOutcome::Skipped);
+    assert!(compacted.len() < history.len());
+}

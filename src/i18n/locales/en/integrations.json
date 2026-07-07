@@ -2612,6 +2612,10 @@
       "uiControl": {
         "title": "Lightweight ADE/UI control",
         "description": "MiniCPM may only classify requests into a strict local action whitelist."
+      },
+      "silentContextCompaction": {
+        "title": "MiniCPM silent auto compaction",
+        "description": "Tidies older context in the background without interrupting the session."
       }
     },
     "health": {

@@ -4,6 +4,7 @@ import type {
   AgentExecModeConfig,
   AgentStatusInfo,
   FileResolution,
+  ManualCompactResult,
   PendingQuestion,
   RevertResult,
   SessionFileRecord,
@@ -52,6 +53,23 @@ export const SessionInfoSchema = z.object({
   agentName: z.string(),
   isSingleton: z.boolean(),
 }) as z.ZodType<SessionInfo, SessionInfo>;
+
+export const ManualCompactResultSchema = z.object({
+  status: z.enum([
+    "compacted",
+    "too_short",
+    "already_compact",
+    "busy",
+    "no_runtime",
+    "failed",
+  ]),
+  message: z.string().optional(),
+  messagesBefore: z.number().optional(),
+  messagesAfter: z.number().optional(),
+  tokensBefore: z.number().optional(),
+  tokensAfter: z.number().optional(),
+  truncated: z.boolean().optional(),
+}) as z.ZodType<ManualCompactResult, ManualCompactResult>;
 
 export const SessionMessageSchema = z
   .object({

@@ -65,6 +65,24 @@ export interface SessionInfo {
   isSingleton: boolean;
 }
 
+export type ManualCompactStatus =
+  | "compacted"
+  | "too_short"
+  | "already_compact"
+  | "busy"
+  | "no_runtime"
+  | "failed";
+
+export interface ManualCompactResult {
+  status: ManualCompactStatus;
+  message?: string;
+  messagesBefore?: number;
+  messagesAfter?: number;
+  tokensBefore?: number;
+  tokensAfter?: number;
+  truncated?: boolean;
+}
+
 export interface AgentMessageResponse {
   content: string;
   sessionId: string;
