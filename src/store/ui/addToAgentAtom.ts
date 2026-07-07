@@ -47,6 +47,25 @@ export type AddToAgentRequest =
       fileName: string;
       /** JSON text matching the DomComponentPreview schema */
       jsonText: string;
+    }
+  | {
+      type: "issue";
+      issueNumber: number;
+      issueTitle: string;
+      issueUrl: string;
+      issueState: string;
+      labels?: string[];
+      assignees?: string[];
+      comments?: number;
+    }
+  | {
+      type: "pr";
+      prNumber: number;
+      prTitle: string;
+      prUrl: string;
+      prStatus: string;
+      sourceBranch?: string;
+      targetBranch?: string;
     };
 
 export const addToAgentAtom = atom<AddToAgentRequest | null>(null);

@@ -81,6 +81,16 @@ export function useAddToAgentInsertion(
           "dom-component",
           stableRequest.fileName
         );
+      } else if (stableRequest.type === "issue") {
+        const pillPath = `issue://${stableRequest.issueNumber}`;
+        const label = `#${stableRequest.issueNumber} ${stableRequest.issueTitle}`;
+        storePillText(pillPath, capPillText(JSON.stringify(stableRequest)));
+        editor.insertFilePill(pillPath, false, "issue", label);
+      } else if (stableRequest.type === "pr") {
+        const pillPath = `pr://${stableRequest.prNumber}`;
+        const label = `PR #${stableRequest.prNumber} ${stableRequest.prTitle}`;
+        storePillText(pillPath, capPillText(JSON.stringify(stableRequest)));
+        editor.insertFilePill(pillPath, false, "pr", label);
       } else {
         editor.insertFilePill(stableRequest.filePath, false, "file");
       }
