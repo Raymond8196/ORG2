@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 use super::service::KeyService;
-use super::types::{AuthMethod, ModelType};
+use super::types::{
+    is_claude_official_oauth_token, is_official_anthropic_endpoint, AuthMethod, ModelType,
+};
 use core_types::providers::KIMI_CODE_URL_FRAGMENT;
 
 const ZENMUX_OPENAI_BASE_URL: &str = "https://zenmux.ai/api/v1";
@@ -81,7 +83,40 @@ impl KeyService {
                 } else if let Some(ref key) = entry.api_key {
                     env.insert("ANTHROPIC_API_KEY".to_string(), key.clone());
                 }
-                if let Some(ref url) = entry.base_url {
+                // Official Claude OAuth tokens (sk-ant-oat…) only authenticate
+                // at api.anthropic.com. A non-official base_url on such a row
+                // is stale relay state (issue #276) — exporting it would send
+                // the OAuth bearer to the relay, which 401s. Rows persisted
+                // before save_key started normalizing this still carry the
+                // stale URL, so the export path must guard too. Relay
+                // accounts (non-oat tokens) keep their base_url untouched.
+                let official_oauth = entry.auth_method == AuthMethod::Oauth
+                    && entry
+                        .session_token
+                        .as_deref()
+                        .is_some_and(is_claude_official_oauth_token);
+                if official_oauth
+                    && !is_official_anthropic_endpoint(
+                        env.get("ANTHROPIC_BASE_URL").map(String::as_str),
+                    )
+                {
+                    tracing::warn!(
+                        "[agent_env_builder] Claude OAuth key {} has a non-official ANTHROPIC_BASE_URL env var; \
+                         official OAuth tokens only authenticate at api.anthropic.com — dropping it",
+                        entry.id
+                    );
+                    env.remove("ANTHROPIC_BASE_URL");
+                }
+                let official_oauth_with_stale_base_url =
+                    official_oauth && !is_official_anthropic_endpoint(entry.base_url.as_deref());
+                if official_oauth_with_stale_base_url {
+                    tracing::warn!(
+                        "[agent_env_builder] Claude OAuth key {} carries non-official base_url {:?}; \
+                         official OAuth tokens only authenticate at api.anthropic.com — not exporting ANTHROPIC_BASE_URL",
+                        entry.id,
+                        entry.base_url
+                    );
+                } else if let Some(ref url) = entry.base_url {
                     env.insert("ANTHROPIC_BASE_URL".to_string(), url.clone());
                 } else if entry.model_type == ModelType::ZenmuxApi {
                     env.insert(
