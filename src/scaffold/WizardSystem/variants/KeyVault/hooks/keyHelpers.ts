@@ -113,6 +113,12 @@ export function applyKey(
       oauth_session_token: sessionToken,
       cursor_session_token: "",
       raw_key_input: "",
+      // Clear leftovers from an earlier api_key detection/extraction in the
+      // same wizard session: submit() sends extracted_base_url verbatim, and
+      // a stale relay URL saved onto an OAuth account sends the OAuth token
+      // to the relay, which rejects it with 401 (issue #276).
+      extracted_api_key: undefined,
+      extracted_base_url: undefined,
       quota_info: quotaInfo,
       available_models: modelsAvailable,
       model_context_lengths: {},
