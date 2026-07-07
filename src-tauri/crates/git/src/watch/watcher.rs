@@ -202,6 +202,9 @@ impl RepoWatcher {
     ///
     /// Note: Each git status operation spawns 4-6 git processes, so conservative intervals
     /// are needed to prevent file descriptor exhaustion
+    ///
+    /// Uses std::thread with an ad-hoc tokio runtime instead of tokio::spawn because
+    /// this runs during app setup before the global Tokio runtime is available.
     fn start_git_status_polling(&self) {
         let state_store = self.state_store.clone();
         let debounce_manager = self.debounce_manager.clone();
@@ -210,7 +213,20 @@ impl RepoWatcher {
         let last_poll_attempt = self.last_poll_attempt.clone();
         let poll_wake = self.poll_wake.clone();
 
-        tokio::spawn(async move {
+        std::thread::Builder::new()
+            .name("repo-watcher-git-status-poller".to_string())
+            .spawn(move || {
+                let rt = match tokio::runtime::Runtime::new() {
+                    Ok(rt) => rt,
+                    Err(err) => {
+                        log::error!(
+                            "[RepoWatch] Git status poller runtime init failed: {}",
+                            err
+                        );
+                        return;
+                    }
+                };
+                rt.block_on(async move {
             // Small initial delay to let watchers initialize
             tokio::time::sleep(Duration::from_secs(2)).await;
             let mut seen_wake_generation = 0;
@@ -321,7 +337,9 @@ impl RepoWatcher {
 
                 debounce_manager.trigger_event(active_repo_id, RepoChangeType::GitMeta, 1);
             }
-        });
+                });
+            })
+            .expect("Failed to spawn repo watcher git status poller thread");
     }
 
     /// Calculate adaptive polling interval based on window focus and health.
