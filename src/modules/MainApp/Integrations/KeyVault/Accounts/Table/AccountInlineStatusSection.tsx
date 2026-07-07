@@ -235,6 +235,7 @@ export const AccountInlineStatusSection: React.FC<
       }
       if (usageType === "session") return t("keyVault.quota.sessionUsage");
       if (usageType === "weekly") return t("keyVault.quota.weeklyUsage");
+      if (usageType === "monthly") return t("keyVault.quota.monthlyUsage");
       return usageType.replace(/_/g, " ");
     },
     [account.modelType, t]
@@ -432,6 +433,17 @@ export const AccountInlineStatusSection: React.FC<
                 value={organizationLabel}
               />
             ) : null}
+          </InlineCardColumnStack>
+        }
+        right={
+          <InlineCardColumnStack>
+            {accountUsageRows}
+            {account.baseUrl ? (
+              <InfoRow
+                label={t("keyVault.info.baseUrl")}
+                value={account.baseUrl}
+              />
+            ) : null}
             {showSessionToken ? (
               <InfoRow label={t("keyVault.info.cursorSessionAccess")}>
                 <StatusDot
@@ -440,12 +452,6 @@ export const AccountInlineStatusSection: React.FC<
                   label={t("keyVault.info.cursorSessionReady")}
                 />
               </InfoRow>
-            ) : null}
-            {account.baseUrl ? (
-              <InfoRow
-                label={t("keyVault.info.baseUrl")}
-                value={account.baseUrl}
-              />
             ) : null}
             {showCursorApiStatus ? (
               <InfoRow label={t("keyVault.info.cursorApiKeyAccess")}>
@@ -478,13 +484,10 @@ export const AccountInlineStatusSection: React.FC<
             ) : null}
           </InlineCardColumnStack>
         }
-        right={
-          <InlineCardColumnStack>
-            <AccountCompatibilitySection account={account} />
-            {accountUsageRows}
-          </InlineCardColumnStack>
-        }
       />
+      <div className="border-t border-border-2 pt-2">
+        <AccountCompatibilitySection account={account} />
+      </div>
       {account.description ? (
         <div className="flex min-w-0 flex-col gap-1 border-t border-border-2 pt-2">
           <span className="text-[12px] font-semibold text-text-1">

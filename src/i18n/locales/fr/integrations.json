@@ -175,6 +175,7 @@
       "cursorApiUsage": "Quota API",
       "sessionUsage": "Utilisation 5h",
       "weeklyUsage": "Utilisation hebdomadaire",
+      "monthlyUsage": "Utilisation mensuelle",
       "percentUsed": "{{percent}}% utilisé",
       "percentLeft": "{{percent}}% restant",
       "refreshUsage": "Actualiser l’utilisation",

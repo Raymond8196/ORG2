@@ -173,6 +173,7 @@
       "cursorApiUsage": "Limit API",
       "sessionUsage": "Użycie 5h",
       "weeklyUsage": "Użycie tygodniowe",
+      "monthlyUsage": "Użycie miesięczne",
       "percentUsed": "Zużyto {{percent}}%",
       "percentLeft": "Pozostało {{percent}}%",
       "refreshUsage": "Odśwież użycie",

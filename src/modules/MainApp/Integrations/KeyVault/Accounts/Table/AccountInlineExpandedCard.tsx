@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import { CLI_AGENT } from "@src/api/types/keys";
 import InlineAlert from "@src/components/InlineAlert";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 
@@ -41,6 +42,29 @@ export type AccountInlineTab =
 
 function getAccountModelToggleKey(accountId: string, model: string): string {
   return `${accountId}|${model}`;
+}
+
+const ACCOUNT_AUTH_METHOD = {
+  OAUTH: "oauth",
+} as const;
+
+function supportsQuotaRefresh(account: KeyVaultAccount): boolean {
+  switch (account.modelType) {
+    case CLI_AGENT.CURSOR:
+      return account.hasSessionToken;
+    case CLI_AGENT.COPILOT:
+      return account.hasApiKey;
+    case CLI_AGENT.CLAUDE_CODE:
+    case CLI_AGENT.CODEX:
+      return (
+        account.authMethod === ACCOUNT_AUTH_METHOD.OAUTH &&
+        account.hasSessionToken
+      );
+    case CLI_AGENT.OPENCODE:
+      return account.hasKey;
+    default:
+      return false;
+  }
 }
 
 interface AccountInlineExpandedCardProps {
@@ -164,6 +188,9 @@ const AccountInlineExpandedCard: React.FC<AccountInlineExpandedCardProps> = ({
     if (!onRefresh) return;
     await onRefresh();
   }, [onRefresh]);
+
+  const showQuotaRefresh = onRefresh && supportsQuotaRefresh(account);
+  const showModelRefresh = Boolean(onRevalidateAccount);
 
   const handleEditFormSave = useCallback(
     async (nextName: string, nextDescription: string) => {
@@ -392,12 +419,15 @@ const AccountInlineExpandedCard: React.FC<AccountInlineExpandedCardProps> = ({
           state={editState}
           onCancel={handleEditCancel}
         />
-      ) : effectiveActiveTab === ACCOUNT_INLINE_TAB.STATUS && onRefresh ? (
+      ) : effectiveActiveTab === ACCOUNT_INLINE_TAB.STATUS &&
+        (showQuotaRefresh || showModelRefresh) ? (
         <AccountInlineActionsBar
           account={account}
           refreshLabel={t("keyVault.quota.refreshUsage")}
-          onRefresh={handleRefreshUsage}
+          onRefresh={showQuotaRefresh ? handleRefreshUsage : undefined}
           refreshing={refreshing}
+          onRefreshModels={showModelRefresh ? handleRefreshModels : undefined}
+          refreshingModels={refreshing}
         />
       ) : onRevalidateAccount && showModels ? (
         <AccountInlineActionsBar

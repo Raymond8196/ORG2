@@ -175,6 +175,7 @@
       "cursorApiUsage": "API クォータ",
       "sessionUsage": "5h 使用量",
       "weeklyUsage": "週次使用量",
+      "monthlyUsage": "月次使用量",
       "percentUsed": "{{percent}}% 使用済み",
       "percentLeft": "{{percent}}% 残り",
       "refreshUsage": "使用量を更新",

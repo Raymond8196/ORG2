@@ -383,7 +383,7 @@ export function useLocalKeys(
         return true;
       } catch (err) {
         log.error(`[Refresh] Error:`, err);
-        return false;
+        throw err;
       } finally {
         pendingValidations.current.delete(validationKey);
       }

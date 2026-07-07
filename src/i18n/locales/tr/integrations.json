@@ -172,6 +172,7 @@
       "cursorApiUsage": "API kotası",
       "sessionUsage": "5h kullanımı",
       "weeklyUsage": "Haftalık kullanım",
+      "monthlyUsage": "Aylık kullanım",
       "percentUsed": "%{{percent}} kullanıldı",
       "percentLeft": "%{{percent}} kaldı",
       "refreshUsage": "Kullanımı yenile",
