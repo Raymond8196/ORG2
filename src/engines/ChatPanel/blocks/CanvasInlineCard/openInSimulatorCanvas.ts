@@ -9,7 +9,7 @@
 import { canvasPreviewAtom } from "@src/store/session/canvasPreviewAtom";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
-import type { CanvasInlinePayload } from "./useCanvasInlineStream";
+import type { CanvasInlinePayload } from "./types";
 
 export function openInSimulatorCanvas(
   sessionId: string,
