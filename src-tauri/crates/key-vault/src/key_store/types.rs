@@ -550,3 +550,46 @@ impl ModelKey {
         })
     }
 }
+
+/// Whether the account talks to an official Anthropic endpoint. A configured
+/// `base_url` means the traffic goes through a third-party relay/mirror whose
+/// gateway may reject Anthropic-native request features (`output_config`/
+/// effort, OAuth bearer auth, beta headers) — those accounts must never
+/// receive them.
+///
+/// The prefix must end at a host boundary so lookalike hosts
+/// (e.g. `api.anthropic.com.evil.example`) don't classify as official.
+///
+/// Shared with agent-core's provider factory so both crates agree on what
+/// "official endpoint" means (same lockstep discipline as
+/// `model_supports_output_config_effort`).
+pub fn is_official_anthropic_endpoint(base_url: Option<&str>) -> bool {
+    const OFFICIAL_ORIGIN: &str = "https://api.anthropic.com";
+    match base_url.map(str::trim) {
+        None | Some("") => true,
+        Some(url) => match url.strip_prefix(OFFICIAL_ORIGIN) {
+            Some(rest) => match rest.as_bytes().first() {
+                None => true,
+                Some(b'/') | Some(b'?') => true,
+                // Allow an explicit port, but only digits up to the path —
+                // `:pass@evil.example/` must not read as official.
+                Some(b':') => {
+                    let port = &rest[1..];
+                    let port = &port[..port.find(['/', '?']).unwrap_or(port.len())];
+                    !port.is_empty() && port.bytes().all(|byte| byte.is_ascii_digit())
+                }
+                Some(_) => false,
+            },
+            None => false,
+        },
+    }
+}
+
+/// Whether `token` is an official Anthropic OAuth access token (Claude Code
+/// sign-in). These carry the `sk-ant-oat` prefix and only authenticate
+/// against the official Anthropic API — presenting one to a third-party
+/// relay gets it rejected as an unknown API key. Relay-issued ClaudeCode
+/// session tokens do not have this prefix.
+pub fn is_claude_official_oauth_token(token: &str) -> bool {
+    token.trim().starts_with("sk-ant-oat")
+}
