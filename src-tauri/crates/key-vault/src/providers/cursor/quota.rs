@@ -205,6 +205,7 @@ impl CursorValidator {
                     limit: Some(plan_total),
                     remaining: Some(plan_remaining),
                     remaining_percentage: auto_remaining_pct,
+                    reset_time: None,
                 });
 
                 if let Some(remaining_percentage) = api_remaining_pct {
@@ -215,6 +216,7 @@ impl CursorValidator {
                         limit: None,
                         remaining: None,
                         remaining_percentage,
+                        reset_time: None,
                     });
                 }
             }
@@ -242,6 +244,7 @@ impl CursorValidator {
                     limit: Some(limit),
                     remaining: Some(remaining),
                     remaining_percentage: remaining_pct,
+                    reset_time: None,
                 });
             }
         }
@@ -269,6 +272,7 @@ impl CursorValidator {
                         limit: Some(limit),
                         remaining: Some(remaining),
                         remaining_percentage: remaining_pct,
+                        reset_time: None,
                     });
                 }
             }
@@ -283,6 +287,7 @@ impl CursorValidator {
                 limit: Some(0),
                 remaining: Some(0),
                 remaining_percentage: 100.0,
+                reset_time: None,
             });
         }
 

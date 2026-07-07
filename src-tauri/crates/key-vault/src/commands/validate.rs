@@ -580,7 +580,7 @@ async fn fetch_quota_for_key(
                 .get(core_types::providers::CODEX_ID_TOKEN_ENV_KEY)
                 .map(String::as_str);
             CodexValidator::new()
-                .fetch_app_server_quota(token, refresh_token, id_token)
+                .fetch_oauth_quota(token, refresh_token, id_token)
                 .await
         }
         ModelType::OpenCode => {

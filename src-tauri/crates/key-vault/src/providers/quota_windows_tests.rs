@@ -20,8 +20,16 @@ fn quota_from_windows_uses_most_constrained_window() {
     assert_eq!(quota.usage_items.len(), 2);
     assert_eq!(quota.usage_items[0].usage_type, SESSION_USAGE_TYPE);
     assert!((quota.usage_items[0].remaining_percentage - 74.6).abs() < 0.01);
+    assert_eq!(
+        quota.usage_items[0].reset_time.as_deref(),
+        Some("2026-07-07T10:00:00Z")
+    );
     assert_eq!(quota.usage_items[1].usage_type, WEEKLY_USAGE_TYPE);
     assert!((quota.usage_items[1].remaining_percentage - 27.4).abs() < 0.01);
+    assert_eq!(
+        quota.usage_items[1].reset_time.as_deref(),
+        Some("2026-07-13T10:00:00Z")
+    );
 }
 
 #[test]

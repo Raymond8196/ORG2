@@ -33,6 +33,26 @@ export interface ApplyKeyCallbacks {
   validationFailedMsg: string;
 }
 
+export function normalizeDetectedQuotaInfo(
+  quotaInfo: DetectedKey["quota_info"]
+): WizardData["quota_info"] | undefined {
+  if (!quotaInfo) return undefined;
+
+  return {
+    remaining_percentage: quotaInfo.remaining_percentage ?? undefined,
+    used: quotaInfo.used ?? undefined,
+    limit: quotaInfo.limit ?? undefined,
+    remaining: quotaInfo.remaining ?? undefined,
+    reset_time: quotaInfo.reset_time ?? undefined,
+    plan_type: quotaInfo.plan_type ?? undefined,
+    quota_source: quotaInfo.quota_source ?? undefined,
+    is_unlimited: quotaInfo.is_unlimited ?? undefined,
+    usage_items: quotaInfo.usage_items,
+    auto_message: quotaInfo.auto_message ?? undefined,
+    named_message: quotaInfo.named_message ?? undefined,
+  };
+}
+
 export function applyKey(
   cred: DetectedKey,
   callbacks: ApplyKeyCallbacks
@@ -57,7 +77,7 @@ export function applyKey(
   }
 
   const sessionToken = cred.session_token || cred.api_key;
-  const quotaInfo = cred.quota_info;
+  const quotaInfo = normalizeDetectedQuotaInfo(cred.quota_info);
   const modelsAvailable =
     cred.available_models && cred.available_models.length > 0
       ? cred.available_models
@@ -110,7 +130,7 @@ export function applyKey(
     });
   } else {
     const detectedApiKey = cred.api_key || sessionToken;
-    const detectedBaseUrl = cred.base_url;
+    const detectedBaseUrl = cred.base_url ?? undefined;
     onChange({
       raw_key_input: detectedApiKey,
       quota_info: quotaInfo,
