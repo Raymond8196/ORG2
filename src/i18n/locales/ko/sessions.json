@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "비용"
       },
+      "quota": {
+        "empty": "Quota 데이터가 아직 없습니다. Key Vault에서 사용량을 새로고침하세요.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Repos 탐색"
       },

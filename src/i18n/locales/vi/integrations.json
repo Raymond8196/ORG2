@@ -182,7 +182,9 @@
       "used": "Đã dùng",
       "limit": "Giới hạn",
       "resetDate": "Ngày đặt lại",
-      "resets": "Đặt lại vào {{date}}"
+      "resets": "Đặt lại vào {{date}}",
+      "availableNow": "Có sẵn ngay",
+      "nextUsePlusFiveHours": "Lần dùng tiếp theo +5 giờ"
     },
     "health": {
       "cloudListingInvalid": "Danh sách đám mây không hợp lệ",

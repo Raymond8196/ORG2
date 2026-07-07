@@ -183,7 +183,9 @@
       "used": "Usado",
       "limit": "Limite",
       "resetDate": "Data de reset",
-      "resets": "Reseta em {{date}}"
+      "resets": "Reseta em {{date}}",
+      "availableNow": "Disponível agora",
+      "nextUsePlusFiveHours": "Próximo uso +5 h"
     },
     "health": {
       "cloudListingInvalid": "Anúncio na nuvem inválido",

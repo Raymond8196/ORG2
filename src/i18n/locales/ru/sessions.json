@@ -731,6 +731,18 @@
         "tokens": "Tokens",
         "cost": "Стоимость"
       },
+      "quota": {
+        "empty": "Данных о квоте пока нет. Обновите использование в Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Обзор Repos"
       },

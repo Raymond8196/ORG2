@@ -182,7 +182,9 @@
       "used": "Использовано",
       "limit": "Лимит",
       "resetDate": "Дата сброса",
-      "resets": "Сброс {{date}}"
+      "resets": "Сброс {{date}}",
+      "availableNow": "Доступно сейчас",
+      "nextUsePlusFiveHours": "Следующее использование +5 ч"
     },
     "health": {
       "cloudListingInvalid": "Облачное предложение недействительно",

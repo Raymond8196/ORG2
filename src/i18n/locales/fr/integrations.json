@@ -182,7 +182,9 @@
       "used": "Utilisé",
       "limit": "Limite",
       "resetDate": "Date de réinitialisation",
-      "resets": "Réinitialisation le {{date}}"
+      "resets": "Réinitialisation le {{date}}",
+      "availableNow": "Disponible maintenant",
+      "nextUsePlusFiveHours": "Prochaine utilisation +5 h"
     },
     "health": {
       "cloudListingInvalid": "Annonce cloud invalide",

@@ -180,7 +180,9 @@
       "used": "Zużyto",
       "limit": "Limit",
       "resetDate": "Data resetu",
-      "resets": "Reset {{date}}"
+      "resets": "Reset {{date}}",
+      "availableNow": "Dostępne teraz",
+      "nextUsePlusFiveHours": "Następne użycie +5 godz."
     },
     "health": {
       "cloudListingInvalid": "Oferta w chmurze nieprawidłowa",

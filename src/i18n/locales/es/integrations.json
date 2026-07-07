@@ -179,7 +179,9 @@
       "used": "Usado",
       "limit": "Límite",
       "resetDate": "Fecha de reinicio",
-      "resets": "Se reinicia el {{date}}"
+      "resets": "Se reinicia el {{date}}",
+      "availableNow": "Disponible ahora",
+      "nextUsePlusFiveHours": "Próximo uso +5 h"
     },
     "health": {
       "cloudListingInvalid": "Listado en la nube inválido",

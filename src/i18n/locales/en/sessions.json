@@ -760,6 +760,18 @@
         "tokens": "Tokens",
         "cost": "Cost"
       },
+      "quota": {
+        "empty": "No quota data yet. Refresh usage from Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Explore repos"
       },

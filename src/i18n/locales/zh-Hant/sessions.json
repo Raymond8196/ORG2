@@ -733,6 +733,18 @@
         "tokens": "Tokens",
         "cost": "成本"
       },
+      "quota": {
+        "empty": "暫無配額資料。請在 Key Vault 中重新整理用量。",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "探索 Repos"
       },

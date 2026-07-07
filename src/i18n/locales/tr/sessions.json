@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "Maliyet"
       },
+      "quota": {
+        "empty": "Henüz quota verisi yok. Key Vault'tan kullanımı yenileyin.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7g",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Haftalık",
+          "monthly": "Aylık"
+        }
+      },
       "exploreRepos": {
         "title": "Repos keşfet"
       },
