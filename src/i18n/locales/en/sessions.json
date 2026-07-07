@@ -995,7 +995,16 @@
         "creatingIssue": "Creating…",
         "addToChat": "Add",
         "repositoryLabel": "Repository",
-        "createIssueFailed": "Failed to create issue"
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
       }
     }
   },
