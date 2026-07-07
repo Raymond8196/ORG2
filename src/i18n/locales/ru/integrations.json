@@ -175,6 +175,7 @@
       "cursorApiUsage": "Квота API",
       "sessionUsage": "Использование за 5h",
       "weeklyUsage": "Недельное использование",
+      "monthlyUsage": "Ежемесячное использование",
       "percentUsed": "Использовано {{percent}}%",
       "percentLeft": "Осталось {{percent}}%",
       "refreshUsage": "Обновить использование",

@@ -8,6 +8,7 @@ import {
   GitPullRequest,
   Link2,
   ListFilter,
+  MoreHorizontal,
   Plus,
   RefreshCw,
 } from "lucide-react";
@@ -25,7 +26,11 @@ import {
   getGitHubGitCredentialForRemote,
   listOpenPRsLocal,
 } from "@src/api/tauri/github";
-import type { GitHubIssue, OpenPRItem } from "@src/api/tauri/github";
+import type {
+  GitHubIssue,
+  GitHubIssueComment,
+  OpenPRItem,
+} from "@src/api/tauri/github";
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
@@ -43,6 +48,12 @@ import {
 import { useWorkStationTabs } from "@src/hooks/workStation/tabs";
 import WorkItemContentStack from "@src/modules/ProjectManager/WorkItems/components/WorkItemContentStack";
 import {
+  IssueDetailHeaderContent,
+  IssueDetailPanel,
+  IssueStateIcon,
+  getIssueDetailTitle,
+} from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
+import {
   getCachedIssues,
   isIssueCacheStale,
   updateCachedClosedIssues,
@@ -56,15 +67,19 @@ import {
 import Modal from "@src/scaffold/ModalSystem";
 import { parseGithubRepoFullName } from "@src/services/git/operations/createPullRequest";
 import {
+  addIssueComment,
+  closeIssue,
   createIssue,
   fetchIssueComments,
   fetchIssues,
+  reopenIssue,
 } from "@src/services/git/operations/githubIssues";
 import { REPO_KIND, reposAtom, selectedRepoPathAtom } from "@src/store/repo";
 import type { Repo } from "@src/store/repo/types";
 import { addToAgentAtom } from "@src/store/ui/addToAgentAtom";
 import { workstationSelectedIssueAtom } from "@src/store/workstation/codeEditor/workstationIssueAtom";
 import { createGitHubIssueDetailTab } from "@src/store/workstation/tabs";
+import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 const ISSUE_REPO_FILTER = {
   ALL: "all",
@@ -129,6 +144,15 @@ interface ManagedIssueItem {
   labels: ManagedIssueLabel[];
   comments: number;
   updatedAt: string;
+}
+
+interface ChatIssueDetailState {
+  source: ManagedIssueItem;
+  issue: GitHubIssue;
+  comments: GitHubIssueComment[];
+  commentsLoading: boolean;
+  submittingComment: boolean;
+  error: string | null;
 }
 
 interface ManagedPrItem {
@@ -208,7 +232,11 @@ const EMPTY_REPO_PRS: RepoPrState = {
   error: null,
 };
 
-function IssueStateIcon({ state }: { state: IssueState }): React.ReactNode {
+function ManagedIssueStateIcon({
+  state,
+}: {
+  state: IssueState;
+}): React.ReactNode {
   if (state === "closed") {
     return <CheckCircle2 size={14} strokeWidth={1.8} />;
   }
@@ -780,22 +808,58 @@ function RepoFilterPill({
 function ManagedIssueRow({
   issue,
   addLabel,
+  openInBrowserLabel,
+  openInMyStationLabel,
+  moreActionsLabel,
   onOpenIssue,
+  onOpenIssueInBrowser,
+  onOpenIssueInMyStation,
   onAddIssue,
 }: {
   issue: ManagedIssueItem;
   addLabel: string;
+  openInBrowserLabel: string;
+  openInMyStationLabel: string;
+  moreActionsLabel: string;
   onOpenIssue: (issue: ManagedIssueItem) => void;
+  onOpenIssueInBrowser: (issue: ManagedIssueItem) => void;
+  onOpenIssueInMyStation: (issue: ManagedIssueItem) => void;
   onAddIssue: (issue: ManagedIssueItem) => void;
 }): React.ReactNode {
+  const [menuVisible, setMenuVisible] = useState(false);
   const stateClassName =
     issue.state === "closed" ? "text-purple-6" : "text-success-6";
+  const closeMenu = useCallback(() => setMenuVisible(false), []);
+  const droplist = (
+    <div className={`${DROPDOWN_CLASSES.menuPanelBase} min-w-[180px]`}>
+      <button
+        type="button"
+        className={DROPDOWN_CLASSES.menuActionItem}
+        onClick={() => {
+          onOpenIssueInBrowser(issue);
+          closeMenu();
+        }}
+      >
+        <span className="min-w-0 flex-1 truncate">{openInBrowserLabel}</span>
+      </button>
+      <button
+        type="button"
+        className={DROPDOWN_CLASSES.menuActionItem}
+        onClick={() => {
+          onOpenIssueInMyStation(issue);
+          closeMenu();
+        }}
+      >
+        <span className="min-w-0 flex-1 truncate">{openInMyStationLabel}</span>
+      </button>
+    </div>
+  );
 
   return (
     <div className="focus-within:ring-accent-5/50 group w-full rounded-xl px-3 py-2 transition-colors focus-within:ring-2 hover:bg-fill-1/60">
       <div className="flex items-start gap-2.5">
         <span className={`mt-0.5 shrink-0 ${stateClassName}`}>
-          <IssueStateIcon state={issue.state} />
+          <ManagedIssueStateIcon state={issue.state} />
         </span>
         <button
           type="button"
@@ -838,6 +902,27 @@ function ManagedIssueRow({
         >
           {addLabel}
         </Button>
+        <span onClick={(event) => event.stopPropagation()}>
+          <Dropdown
+            droplist={droplist}
+            trigger="click"
+            position="bottom-end"
+            popupVisible={menuVisible}
+            onVisibleChange={setMenuVisible}
+          >
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              appearance="ghost"
+              size="mini"
+              icon={<MoreHorizontal size={13} />}
+              iconOnly
+              className="mt-0.5 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+              aria-label={moreActionsLabel}
+              aria-expanded={menuVisible}
+            />
+          </Dropdown>
+        </span>
       </div>
     </div>
   );
@@ -1031,6 +1116,8 @@ const ManageIssuesPanelView: React.FC = () => {
   );
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [creatingIssue, setCreatingIssue] = useState(false);
+  const [chatIssueDetail, setChatIssueDetail] =
+    useState<ChatIssueDetailState | null>(null);
 
   const gitRepos = useMemo(
     () => repos.filter((repo) => repo.kind === REPO_KIND.GIT && repo.path),
@@ -1330,26 +1417,54 @@ const ManageIssuesPanelView: React.FC = () => {
   });
   const virtualItems = itemVirtualizer.getVirtualItems();
 
+  const handleBackToIssueList = useCallback(() => {
+    setChatIssueDetail(null);
+  }, []);
+
+  const activeChatIssue = chatIssueDetail?.issue ?? null;
+  const activeChatIssueTitle = activeChatIssue
+    ? getIssueDetailTitle(activeChatIssue)
+    : t("chat.manageIssues.title");
+  const activeChatIssueIcon = activeChatIssue ? (
+    <IssueStateIcon
+      isOpen={activeChatIssue.state === GITHUB_QUERY_STATE.OPEN}
+    />
+  ) : (
+    <ListFilter size={14} strokeWidth={1.8} />
+  );
+
   const headerContent = useMemo(
     () => (
       <span className="flex min-w-0 max-w-full items-center gap-2">
-        <ChatPanelHeaderTitlePill>
-          {t("chat.manageIssues.title")}
-        </ChatPanelHeaderTitlePill>
-        <span className="h-4 w-px shrink-0 bg-border-2" aria-hidden />
-        <RepoFilterPill
-          options={repoOptions}
-          selectedRepo={effectiveSelectedRepo}
-          allReposLabel={t("chat.manageIssues.allRepositories")}
-          onSelectRepo={setSelectedRepo}
-        />
+        {activeChatIssue ? (
+          <IssueDetailHeaderContent issue={activeChatIssue} />
+        ) : (
+          <>
+            <ChatPanelHeaderTitlePill>
+              {t("chat.manageIssues.title")}
+            </ChatPanelHeaderTitlePill>
+            <span className="h-4 w-px shrink-0 bg-border-2" aria-hidden />
+            <RepoFilterPill
+              options={repoOptions}
+              selectedRepo={effectiveSelectedRepo}
+              allReposLabel={t("chat.manageIssues.allRepositories")}
+              onSelectRepo={setSelectedRepo}
+            />
+          </>
+        )}
       </span>
     ),
-    [effectiveSelectedRepo, repoOptions, setSelectedRepo, t]
+    [activeChatIssue, effectiveSelectedRepo, repoOptions, setSelectedRepo, t]
   );
 
   usePublishChatPanelHeader({
-    content: { content: headerContent },
+    content: {
+      content: headerContent,
+      tabTitle: activeChatIssueTitle,
+      tabIcon: activeChatIssueIcon,
+      backAction: activeChatIssue ? handleBackToIssueList : null,
+      backLabel: t("common:actions.back"),
+    },
   });
 
   const handleRefresh = useCallback(() => {
@@ -1437,7 +1552,40 @@ const ManageIssuesPanelView: React.FC = () => {
     repoIssueMap,
   ]);
 
-  const handleOpenIssue = useCallback(
+  const handleOpenIssue = useCallback((issue: ManagedIssueItem) => {
+    setChatIssueDetail({
+      source: issue,
+      issue: issue.rawIssue,
+      comments: [],
+      commentsLoading: true,
+      submittingComment: false,
+      error: null,
+    });
+
+    void (async () => {
+      const result = await fetchIssueComments({
+        remoteUrl: issue.remoteUrl,
+        issueNumber: issue.id,
+      });
+      setChatIssueDetail((current) => {
+        if (current?.issue.html_url !== issue.rawIssue.html_url) {
+          return current;
+        }
+        return {
+          ...current,
+          comments: result.data ?? [],
+          commentsLoading: false,
+          error: result.error ?? null,
+        };
+      });
+    })();
+  }, []);
+
+  const handleOpenIssueInBrowser = useCallback((issue: ManagedIssueItem) => {
+    void openExternalLink(issue.rawIssue.html_url);
+  }, []);
+
+  const handleOpenIssueInMyStation = useCallback(
     (issue: ManagedIssueItem) => {
       setSelectedIssue({
         issue: issue.rawIssue,
@@ -1462,8 +1610,9 @@ const ManageIssuesPanelView: React.FC = () => {
           issueNumber: issue.id,
         });
         setSelectedIssue((current) => {
-          if (current.issue?.html_url !== issue.rawIssue.html_url)
+          if (current.issue?.html_url !== issue.rawIssue.html_url) {
             return current;
+          }
           return {
             ...current,
             comments: result.data ?? [],
@@ -1474,6 +1623,84 @@ const ManageIssuesPanelView: React.FC = () => {
       })();
     },
     [openTab, setSelectedIssue]
+  );
+
+  const handleCloseChatIssue = useCallback(async () => {
+    const currentIssue = chatIssueDetail;
+    if (!currentIssue) return;
+    const result = await closeIssue({
+      remoteUrl: currentIssue.source.remoteUrl,
+      issueNumber: currentIssue.issue.number,
+    });
+    setChatIssueDetail((current) => {
+      if (!current || current.issue.html_url !== currentIssue.issue.html_url) {
+        return current;
+      }
+      if (result.data) {
+        return { ...current, issue: result.data, error: null };
+      }
+      return { ...current, error: result.error };
+    });
+  }, [chatIssueDetail]);
+
+  const handleReopenChatIssue = useCallback(async () => {
+    const currentIssue = chatIssueDetail;
+    if (!currentIssue) return;
+    const result = await reopenIssue({
+      remoteUrl: currentIssue.source.remoteUrl,
+      issueNumber: currentIssue.issue.number,
+    });
+    setChatIssueDetail((current) => {
+      if (!current || current.issue.html_url !== currentIssue.issue.html_url) {
+        return current;
+      }
+      if (result.data) {
+        return { ...current, issue: result.data, error: null };
+      }
+      return { ...current, error: result.error };
+    });
+  }, [chatIssueDetail]);
+
+  const handleAddChatIssueComment = useCallback(
+    async (body: string) => {
+      const currentIssue = chatIssueDetail;
+      if (!currentIssue) return;
+      setChatIssueDetail((current) =>
+        current?.issue.html_url === currentIssue.issue.html_url
+          ? { ...current, submittingComment: true }
+          : current
+      );
+      const result = await addIssueComment({
+        remoteUrl: currentIssue.source.remoteUrl,
+        issueNumber: currentIssue.issue.number,
+        body,
+      });
+      if (result.data) {
+        const comment = result.data;
+        setChatIssueDetail((current) =>
+          current?.issue.html_url === currentIssue.issue.html_url
+            ? {
+                ...current,
+                issue: {
+                  ...current.issue,
+                  comments: current.issue.comments + 1,
+                },
+                comments: [...current.comments, comment],
+                submittingComment: false,
+                error: null,
+              }
+            : current
+        );
+        return;
+      }
+      setChatIssueDetail((current) =>
+        current?.issue.html_url === currentIssue.issue.html_url
+          ? { ...current, submittingComment: false, error: result.error }
+          : current
+      );
+      throw new Error(result.error);
+    },
+    [chatIssueDetail]
   );
 
   const handleAddIssue = useCallback(
@@ -1562,7 +1789,7 @@ const ManageIssuesPanelView: React.FC = () => {
   );
 
   const listContent = (() => {
-    if (loading && allItems.length === 0) {
+    if (loading && filteredItems.length === 0) {
       return <Placeholder variant="loading" fillParentHeight />;
     }
 
@@ -1577,11 +1804,11 @@ const ManageIssuesPanelView: React.FC = () => {
       );
     }
 
-    if (repoSources.length === 0) {
+    if (!loading && repoSources.length === 0) {
       return <Placeholder variant="empty" fillParentHeight />;
     }
 
-    if (filteredItems.length === 0) {
+    if (!loading && filteredItems.length === 0) {
       return <Placeholder variant="no-results" fillParentHeight />;
     }
 
@@ -1605,7 +1832,12 @@ const ManageIssuesPanelView: React.FC = () => {
                   <ManagedIssueRow
                     issue={item}
                     addLabel={t("chat.panels.manageIssues.addToChat")}
+                    openInBrowserLabel={t("common:previews.openInBrowser")}
+                    openInMyStationLabel={t("layout.sidebar.openInMyStation")}
+                    moreActionsLabel={t("common:actions.moreActions")}
                     onOpenIssue={handleOpenIssue}
+                    onOpenIssueInBrowser={handleOpenIssueInBrowser}
+                    onOpenIssueInMyStation={handleOpenIssueInMyStation}
                     onAddIssue={handleAddIssue}
                   />
                 ) : (
@@ -1641,7 +1873,24 @@ const ManageIssuesPanelView: React.FC = () => {
     );
   })();
 
-  const descriptionContent = (
+  const issueDetailContent = chatIssueDetail ? (
+    <IssueDetailPanel
+      issue={chatIssueDetail.issue}
+      comments={chatIssueDetail.comments}
+      commentsLoading={chatIssueDetail.commentsLoading}
+      submittingComment={chatIssueDetail.submittingComment}
+      showHeader={false}
+      showBackTitleHeader
+      backLabel={t("common:actions.back")}
+      contentPadding="none"
+      onClose={handleBackToIssueList}
+      onCloseIssue={handleCloseChatIssue}
+      onReopenIssue={handleReopenChatIssue}
+      onAddComment={handleAddChatIssueComment}
+    />
+  ) : null;
+
+  const listDescriptionContent = (
     <section
       className={`${DETAIL_PANEL_TOKENS.contentWidth} flex min-h-0 flex-1 flex-col`}
       data-testid="chat-panel-manage-issues-section"
@@ -1784,7 +2033,7 @@ const ManageIssuesPanelView: React.FC = () => {
     >
       <DetailPanelContainer testId="manage-issues-panel">
         <WorkItemContentStack
-          descriptionContent={descriptionContent}
+          descriptionContent={issueDetailContent ?? listDescriptionContent}
           descriptionClassName="min-h-0 flex flex-1 flex-col px-4 pt-2"
           descriptionFlexible
         />

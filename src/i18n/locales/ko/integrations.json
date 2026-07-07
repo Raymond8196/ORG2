@@ -172,6 +172,7 @@
       "cursorApiUsage": "API 할당량",
       "sessionUsage": "5h 사용량",
       "weeklyUsage": "주간 사용량",
+      "monthlyUsage": "월간 사용량",
       "percentUsed": "{{percent}}% 사용됨",
       "percentLeft": "{{percent}}% 남음",
       "refreshUsage": "사용량 새로고침",

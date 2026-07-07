@@ -175,6 +175,7 @@
       "cursorApiUsage": "API quota",
       "sessionUsage": "5h usage",
       "weeklyUsage": "Weekly usage",
+      "monthlyUsage": "Monthly usage",
       "percentUsed": "{{percent}}% used",
       "percentLeft": "{{percent}}% left",
       "refreshUsage": "Refresh usage",

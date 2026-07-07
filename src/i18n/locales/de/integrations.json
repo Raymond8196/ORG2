@@ -175,6 +175,7 @@
       "cursorApiUsage": "API-Kontingent",
       "sessionUsage": "5h-Nutzung",
       "weeklyUsage": "Wöchentliche Nutzung",
+      "monthlyUsage": "Monatliche Nutzung",
       "percentUsed": "{{percent}}% verwendet",
       "percentLeft": "{{percent}}% übrig",
       "refreshUsage": "Nutzung aktualisieren",

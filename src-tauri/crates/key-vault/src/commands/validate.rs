@@ -13,6 +13,7 @@ use crate::providers::cursor::CursorValidator;
 use crate::providers::google::GoogleValidator;
 use crate::providers::kiro::KiroValidator;
 use crate::providers::openai::OpenAIValidator;
+use crate::providers::opencode_go::{workspace_id_override_from_key, OpenCodeGoQuotaFetcher};
 
 #[derive(Debug, Serialize)]
 pub struct TestModelResult {
@@ -467,6 +468,11 @@ pub async fn fetch_key_quota(
             let validator = CursorValidator::new();
             validator.fetch_quota(&api_key).await
         }
+        "opencode" | "opencode_cli" => {
+            OpenCodeGoQuotaFetcher::new()
+                .fetch_quota(&api_key, None)
+                .await
+        }
         // Other providers don't have public quota APIs
         "openai"
         | "anthropic"
@@ -475,8 +481,6 @@ pub async fn fetch_key_quota(
         | "codex"
         | "gemini_cli"
         | "kiro"
-        | "opencode"
-        | "opencode_cli"
         | "openai_api"
         | "anthropic_api"
         | "gemini_api"
@@ -577,6 +581,17 @@ async fn fetch_quota_for_key(
                 .map(String::as_str);
             CodexValidator::new()
                 .fetch_app_server_quota(token, refresh_token, id_token)
+                .await
+        }
+        ModelType::OpenCode => {
+            let cookie = key
+                .session_token
+                .as_deref()
+                .or(key.api_key.as_deref())
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "OpenCode account has no session cookie".to_string())?;
+            OpenCodeGoQuotaFetcher::new()
+                .fetch_quota(cookie, workspace_id_override_from_key(key))
                 .await
         }
         ref other => Err(format!(

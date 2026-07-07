@@ -176,6 +176,7 @@
       "cursorApiUsage": "API 配额",
       "sessionUsage": "5h 用量",
       "weeklyUsage": "每周用量",
+      "monthlyUsage": "每月用量",
       "percentUsed": "已使用 {{percent}}%",
       "percentLeft": "剩余 {{percent}}%",
       "refreshUsage": "刷新用量",

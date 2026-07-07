@@ -175,6 +175,7 @@
       "cursorApiUsage": "Hạn mức API",
       "sessionUsage": "Mức dùng 5h",
       "weeklyUsage": "Mức dùng hằng tuần",
+      "monthlyUsage": "Mức dùng hằng tháng",
       "percentUsed": "Đã dùng {{percent}}%",
       "percentLeft": "Còn {{percent}}%",
       "refreshUsage": "Làm mới mức dùng",

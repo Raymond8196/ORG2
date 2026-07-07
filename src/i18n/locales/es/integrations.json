@@ -172,6 +172,7 @@
       "cursorApiUsage": "Cuota API",
       "sessionUsage": "Uso de 5h",
       "weeklyUsage": "Uso semanal",
+      "monthlyUsage": "Uso mensual",
       "percentUsed": "{{percent}}% usado",
       "percentLeft": "{{percent}}% restante",
       "refreshUsage": "Actualizar uso",
