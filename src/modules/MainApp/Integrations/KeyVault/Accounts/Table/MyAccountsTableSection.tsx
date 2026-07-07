@@ -246,7 +246,7 @@ export default function MyAccountsTableSection({
       {
         key: "enabled",
         label: <span className="sr-only">{t("common:labels.status")}</span>,
-        width: 128,
+        width: "128px",
         align: "right",
         sorter: (rowA, rowB) =>
           Number(isAccountEnabled(rowA)) - Number(isAccountEnabled(rowB)),
