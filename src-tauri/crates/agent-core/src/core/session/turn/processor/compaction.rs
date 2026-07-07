@@ -530,15 +530,15 @@ impl UnifiedMessageProcessor {
         // rewriting the transcript. The durable view is `[summary] +
         // rows >= cutoff`; prior rows are never touched, so sequence and
         // created_at coordinates stay valid for truncation/replay.
-        let (summary_text, tail_len) = split_summary_and_tail(&durable_compacted_messages);
+        let compacted_for_persist = durable_compacted_messages.clone();
         let persist_result = tokio::task::spawn_blocking({
             let sid = session_id.to_string();
             move || -> Result<(), String> {
-                let cutoff = unified_persistence::compact_cutoff_sequence(&sid, tail_len)
-                    .map_err(|err| err.to_string())?;
-                unified_persistence::append_compact_boundary(&sid, &summary_text, cutoff)
-                    .map_err(|err| err.to_string())?;
-                Ok(())
+                super::super::super::compaction::persist::append_in_place_compact_boundary(
+                    &sid,
+                    &compacted_for_persist,
+                )
+                .map(|_| ())
             }
         })
         .await;
@@ -587,6 +587,7 @@ impl UnifiedMessageProcessor {
 /// `[user summary] + tail` (legacy summaries were `system`); if the leading
 /// summary is missing (e.g. truncation fallback dropped messages without
 /// summarizing), a generic marker is used and every message counts as tail.
+#[allow(dead_code)]
 fn split_summary_and_tail(durable_compacted_messages: &[Value]) -> (String, usize) {
     let is_summary_head = durable_compacted_messages.first().is_some_and(|first| {
         message_role(first) == Some("system")

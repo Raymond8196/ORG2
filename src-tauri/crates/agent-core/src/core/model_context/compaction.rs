@@ -198,6 +198,11 @@ pub(crate) const MAX_CONSECUTIVE_COMPACTION_FAILURES: u32 = 3;
 /// Minimum adaptive keep ratio (don't go below 15% recent).
 pub(crate) const MIN_KEEP_RATIO: f32 = 0.15;
 
+/// Manual desktop compaction should work on medium-sized histories too; the
+/// automatic 16k floor often keeps too much recent context for an explicit
+/// user-triggered compaction.
+pub(crate) const MANUAL_COMPACT_FLOOR_TOKENS: usize = 4_000;
+
 /// Context compactor: summarizes older messages to fit the context window.
 pub struct ContextCompactor;
 
@@ -496,6 +501,31 @@ impl ContextCompactor {
                 }
             }
         }
+    }
+
+    /// Force a user-triggered compaction without changing automatic
+    /// threshold behavior.
+    pub async fn compact_manual_force(
+        history: &[Value],
+        budget_tokens: usize,
+        config: &CompactionConfig,
+        state: &mut CompactionState,
+        provider: &dyn LLMProvider,
+        model: &str,
+    ) -> (Vec<Value>, CompactionOutcome) {
+        let mut manual_config = config.clone();
+        manual_config.trigger_ratio = 0.0;
+        manual_config.floor_tokens = manual_config.floor_tokens.min(MANUAL_COMPACT_FLOOR_TOKENS);
+
+        Self::compact(
+            history,
+            budget_tokens,
+            &manual_config,
+            state,
+            provider,
+            model,
+        )
+        .await
     }
 
     /// Snap the split index forward to the nearest "user" message.

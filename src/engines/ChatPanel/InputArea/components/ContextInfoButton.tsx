@@ -7,12 +7,20 @@
  * Data strategy:
  *   - `contextUsage` arrives from Rust after `agent:complete`.
  *   - Sections come from the final provider request payload only.
- *   - Categories with no live data are hidden — no mock/placeholder values.
+ *   - Categories with no live data are hidden, no mock/placeholder values.
  */
-import { X } from "lucide-react";
+import { useSetAtom } from "jotai";
+import { Archive, Sparkles, X } from "lucide-react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+
+import { manualCompactSession } from "@src/api/tauri/agent/session";
+import { Message } from "@src/components/Message";
+import { triggerSessionReloadAtom } from "@src/engines/SessionCore";
+import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
+import { useSessionId } from "@src/engines/SessionCore/hooks/session";
+import { useSetting } from "@src/hooks/settings/useSettings";
 
 import ContextBreakdownBar from "./ContextBreakdownBar";
 import ContextCategoryRow from "./ContextCategoryRow";
@@ -24,8 +32,8 @@ import { formatTokenCount, useContextUsageInfo } from "./useContextUsageInfo";
 export interface ContextInfoButtonProps {
   repoPath?: string;
   /**
-   * "toolbar" — icon-only button (used in the right toolbar cluster).
-   * "corner"  — icon + label pill anchored to the editor's bottom-right.
+   * "toolbar" - icon-only button (used in the right toolbar cluster).
+   * "corner"  - icon + label pill anchored to the editor's bottom-right.
    */
   variant?: "toolbar" | "corner";
   /**
@@ -38,6 +46,8 @@ export interface ContextInfoButtonProps {
 const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
   ({ variant = "toolbar", compact = false }) => {
     const { t } = useTranslation();
+    const { sessionId } = useSessionId();
+    const triggerSessionReload = useSetAtom(triggerSessionReloadAtom);
     const {
       percentage,
       tokenLabel,
@@ -51,6 +61,10 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
 
     const { panelPos, triggerRef, panelRef, toggle, close } = useContextPanel();
     const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+    const [manualCompacting, setManualCompacting] = useState(false);
+    const [miniCpmSilentEnabled, setMiniCpmSilentEnabled] = useSetting(
+      "housekeeper.features.silentContextCompaction"
+    );
 
     const ringTone = ringToneForPercentage(percentage);
     const displayPct = percentage > 100 ? 100 : percentage;
@@ -58,12 +72,11 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
       ringTone === "unused" ? "text-text-4" : "text-text-2";
     const hasCache = cacheReadTokens > 0 || cacheWriteTokens > 0;
     // Surface the cache savings as the hero line whenever there is a
-    // meaningful hit rate — this is ORGII's cost advantage over CC / Codex /
+    // meaningful hit rate. This is ORGII's cost advantage over CC / Codex /
     // Cursor and the thing the user should notice first.
     const showCacheHero = cacheHitRate > 0.05 && cacheSavedTokens > 0;
     // Keep the corner pill calm: only show the running percentage once we are
-    // actually approaching the auto-compaction zone, otherwise the gauge sits
-    // quietly without a number nagging the user.
+    // actually approaching the auto-compaction zone.
     const showCornerPercent = percentage >= 90;
 
     const categories: PanelCategory[] = useMemo(() => {
@@ -95,6 +108,70 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
       []
     );
     const handleMouseLeave = useCallback(() => setHoveredKey(null), []);
+    const toggleMiniCpmSilent = useCallback(
+      () => setMiniCpmSilentEnabled(!miniCpmSilentEnabled),
+      [miniCpmSilentEnabled, setMiniCpmSilentEnabled]
+    );
+    const runManualCompact = useCallback(async () => {
+      if (manualCompacting) return;
+      if (!sessionId) {
+        Message.info(t("contextInfo.manualCompactNoRuntime"));
+        return;
+      }
+
+      setManualCompacting(true);
+      try {
+        const result = await manualCompactSession(sessionId);
+
+        switch (result.status) {
+          case "compacted":
+            await eventStoreProxy.evictSession(sessionId);
+            triggerSessionReload(sessionId);
+            Message.success(
+              t("contextInfo.manualCompactSuccess", {
+                messagesBefore: result.messagesBefore ?? 0,
+                messagesAfter: result.messagesAfter ?? 0,
+                tokensBefore: formatTokenCount(result.tokensBefore ?? 0),
+                tokensAfter: formatTokenCount(result.tokensAfter ?? 0),
+              }),
+              { duration: 2600 }
+            );
+            break;
+          case "too_short":
+            Message.info(t("contextInfo.manualCompactTooShort"));
+            break;
+          case "already_compact":
+            Message.info(t("contextInfo.manualCompactAlreadyCompact"));
+            break;
+          case "busy":
+            Message.info(t("contextInfo.manualCompactBusy"));
+            break;
+          case "no_runtime":
+            Message.info(t("contextInfo.manualCompactNoRuntime"));
+            break;
+          case "failed":
+          default:
+            Message.error(
+              t("contextInfo.manualCompactFailed", {
+                message: result.message ?? t("common:errors.unknown"),
+              }),
+              { duration: 3200 }
+            );
+            break;
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : String(error ?? "");
+        Message.error(
+          t("contextInfo.manualCompactFailed", {
+            message: message || t("common:errors.unknown"),
+          }),
+          { duration: 3200 }
+        );
+      } finally {
+        setManualCompacting(false);
+      }
+    }, [manualCompacting, sessionId, t, triggerSessionReload]);
 
     return (
       <>
@@ -137,7 +214,6 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
               className="fixed z-[99999] w-[320px] overflow-hidden rounded-xl border border-border-2 bg-bg-2 shadow-2xl"
               style={{ bottom: panelPos.bottom, right: panelPos.right }}
             >
-              {/* Header */}
               <div className="px-4 pb-3 pt-3.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[13px] font-semibold text-text-1">
@@ -194,7 +270,6 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                 </div>
               </div>
 
-              {/* Category rows — only rendered when there is live data */}
               {categories.length > 0 && (
                 <div className="px-4 py-2">
                   <div className="flex flex-col">
@@ -214,6 +289,61 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                   </div>
                 </div>
               )}
+
+              <div className="border-t border-border-2 bg-fill-1/30 px-3.5 py-3">
+                <div className="overflow-hidden rounded-xl border border-border-2 bg-bg-2 shadow-sm">
+                  <button
+                    type="button"
+                    data-testid="context-info-manual-compact-button"
+                    onClick={runManualCompact}
+                    aria-busy={manualCompacting}
+                    className="group flex h-11 w-full items-center justify-between gap-3 px-3 text-left transition-colors hover:bg-fill-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/25 active:bg-fill-2"
+                  >
+                    <span className="flex min-w-0 items-center gap-2.5">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-fill-2 text-text-3 transition-colors group-hover:text-text-2">
+                        <Archive size={14} />
+                      </span>
+                      <span className="truncate text-[13px] font-semibold text-text-1">
+                        {manualCompacting
+                          ? t("contextInfo.manualCompactRunning")
+                          : t("contextInfo.manualCompactAction")}
+                      </span>
+                    </span>
+                  </button>
+
+                  <div className="flex h-12 items-center justify-between gap-3 border-t border-border-2 px-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-500/10 text-blue-600">
+                        <Sparkles size={14} />
+                      </div>
+                      <span className="truncate text-[13px] font-semibold text-text-1">
+                        {t("contextInfo.miniCpmSilentAutoCompact")}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={miniCpmSilentEnabled}
+                      aria-label={t("contextInfo.miniCpmSilentToggle")}
+                      data-testid="context-info-minicpm-silent-toggle"
+                      onClick={toggleMiniCpmSilent}
+                      className={
+                        miniCpmSilentEnabled
+                          ? "relative h-[18px] w-8 shrink-0 rounded-full border border-blue-500/80 bg-blue-500 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.16)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30 active:scale-[0.98]"
+                          : "relative h-[18px] w-8 shrink-0 rounded-full border border-border-2 bg-fill-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/25 active:scale-[0.98]"
+                      }
+                    >
+                      <span
+                        className={
+                          miniCpmSilentEnabled
+                            ? "absolute left-0.5 top-0.5 h-3.5 w-3.5 translate-x-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(15,23,42,0.22)] transition-transform duration-200 ease-out"
+                            : "absolute left-0.5 top-0.5 h-3.5 w-3.5 translate-x-0 rounded-full bg-white shadow-[0_1px_3px_rgba(15,23,42,0.18)] transition-transform duration-200 ease-out"
+                        }
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>,
             document.body
           )}

@@ -1999,7 +1999,17 @@
     "cacheHero": "{{pct}}% 来自缓存 · 本轮复用约 {{tokens}}",
     "cacheHeroSub": "Prompt 缓存让复用前缀的费用降到约 1/10。",
     "headroom": "还剩 {{tokens}} 空间",
-    "autoCompactNote": "即将自动总结上下文"
+    "autoCompactNote": "即将自动总结上下文",
+    "manualCompactAction": "手动压缩",
+    "manualCompactRunning": "压缩中",
+    "manualCompactSuccess": "已压缩：{{messagesBefore}} -> {{messagesAfter}} messages，{{tokensBefore}} -> {{tokensAfter}} tokens",
+    "manualCompactTooShort": "内容较少，无需压缩",
+    "manualCompactAlreadyCompact": "暂无新的可压缩内容",
+    "manualCompactBusy": "当前会话运行中，结束后再压缩",
+    "manualCompactNoRuntime": "请先发送一条消息后再压缩",
+    "manualCompactFailed": "压缩失败：{{message}}",
+    "miniCpmSilentAutoCompact": "MiniCPM 静默自动压缩",
+    "miniCpmSilentToggle": "切换 MiniCPM 静默自动压缩"
   },
   "relativeDate": {
     "today": "今天",

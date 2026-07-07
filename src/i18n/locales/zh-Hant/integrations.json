@@ -2602,6 +2602,10 @@
       "uiControl": {
         "title": "輕量 ADE/UI 控制",
         "description": "MiniCPM 只能把請求識別成嚴格白名單裡的本地 action。"
+      },
+      "silentContextCompaction": {
+        "title": "MiniCPM 靜默自動壓縮",
+        "description": "後台異步整理舊上下文，減少手動壓縮打斷。"
       }
     },
     "health": {
