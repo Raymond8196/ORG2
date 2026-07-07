@@ -5,7 +5,10 @@
  * Shell process / exec-output handlers live in shellHandlers.ts.
  */
 import { openInSimulatorCanvas } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/openInSimulatorCanvas";
-import type { CanvasInlineMode } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
+import type {
+  CanvasInlineMode,
+  CanvasInlinePayload,
+} from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { createLogger } from "@src/hooks/logger";
 import { clearMcpProgressForCallAtom } from "@src/store/session/mcpProgressAtom";
@@ -192,15 +195,6 @@ function isCanvasInlineMode(value: unknown): value is CanvasInlineMode {
   );
 }
 
-interface CanvasInlineDispatchPayload {
-  mode: CanvasInlineMode;
-  content?: string;
-  url?: string;
-  title?: string;
-  streaming?: boolean;
-  eventId?: string;
-}
-
 /**
  * Dispatch a canvas-inline-event from a `render_inline_canvas` tool_call's
  * args object. Reading from args (not the tool_result string) guarantees the
@@ -213,7 +207,7 @@ function dispatchCanvasInlineEventFromArgs(
   toolCallId: string
 ): void {
   const mode = isCanvasInlineMode(args.mode) ? args.mode : "html";
-  const payload: CanvasInlineDispatchPayload = {
+  const payload: CanvasInlinePayload = {
     mode,
     content: typeof args.content === "string" ? args.content : undefined,
     url: typeof args.url === "string" ? args.url : undefined,

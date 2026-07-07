@@ -6,10 +6,11 @@
  * the tab and restores the Canvas pill in PinnedActionsBar.
  */
 import { useAtom } from "jotai";
-import { ExternalLink, Layout } from "lucide-react";
-import React, { memo, useCallback, useMemo } from "react";
+import { ExternalLink, Layout, X } from "lucide-react";
+import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import IconButton from "@src/components/IconButton";
 import CanvasPreviewSurface from "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasPreviewSurface";
 import {
   buildHtmlDocument,
@@ -20,6 +21,15 @@ import { canvasPreviewAtom } from "@src/store/session/canvasPreviewAtom";
 import { getCanvasPreviewTabId } from "@src/store/workstation/tabs/factories/canvasPreview";
 
 import type { UnifiedTabContentProps } from "../types";
+
+function buildExternalSrcDoc(
+  mode: string,
+  content: string | undefined
+): string | undefined {
+  if (mode === "html" && content) return buildHtmlDocument(content);
+  if (mode === "react" && content) return buildReactDocument(content);
+  return undefined;
+}
 
 const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
@@ -35,30 +45,20 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
       EditorTabService.closeTab(getCanvasPreviewTabId(sessionId));
     }, [sessionId, setEntry]);
 
-    const srcDoc = useMemo(() => {
-      if (!payload) return undefined;
-      if (payload.mode === "html" && payload.content) {
-        return buildHtmlDocument(payload.content);
-      }
-      if (payload.mode === "react" && payload.content) {
-        return buildReactDocument(payload.content);
-      }
-      return undefined;
-    }, [payload]);
-
     const handleOpenExternal = useCallback(() => {
       if (!payload) return;
       if (payload.mode === "url" && payload.url) {
         window.open(payload.url, "_blank", "noopener,noreferrer");
         return;
       }
+      const srcDoc = buildExternalSrcDoc(payload.mode, payload.content);
       if (srcDoc) {
         const blob = new Blob([srcDoc], { type: "text/html" });
         const blobUrl = URL.createObjectURL(blob);
         window.open(blobUrl, "_blank", "noopener,noreferrer");
         setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
       }
-    }, [payload, srcDoc]);
+    }, [payload]);
 
     if (!payload) {
       return (
@@ -71,7 +71,6 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
 
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        {/* toolbar */}
         <div className="flex shrink-0 items-center justify-between border-b border-border-1 bg-fill-2 px-3 py-1.5">
           <div className="flex min-w-0 items-center gap-2">
             <Layout size={13} className="shrink-0 text-primary-6" />
@@ -91,26 +90,25 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
             )}
           </div>
           <div className="flex shrink-0 items-center gap-0.5">
-            <button
-              type="button"
+            <IconButton
               onClick={handleOpenExternal}
-              className="rounded p-1 text-text-4 transition-colors hover:bg-fill-3 hover:text-text-2"
               title={t("previews.openInBrowser")}
+              aria-label={t("previews.openInBrowser")}
+              size="sm"
             >
               <ExternalLink size={12} />
-            </button>
-            <button
-              type="button"
+            </IconButton>
+            <IconButton
               onClick={handleDismiss}
-              className="rounded p-1 text-sm text-text-4 transition-colors hover:bg-fill-3 hover:text-text-2"
               title={t("previews.closeCanvas")}
+              aria-label={t("previews.closeCanvas")}
+              size="sm"
             >
-              ✕
-            </button>
+              <X size={12} />
+            </IconButton>
           </div>
         </div>
 
-        {/* content */}
         <div className="relative flex-1 overflow-auto">
           <CanvasPreviewSurface
             payload={payload}
