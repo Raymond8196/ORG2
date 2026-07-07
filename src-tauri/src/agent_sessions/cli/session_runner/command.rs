@@ -5,72 +5,41 @@ use crate::agent_sessions::cli::parsers::codex::CodexParser;
 use crate::agent_sessions::cli::parsers::cursor::CursorParser;
 use crate::agent_sessions::cli::parsers::gemini::GeminiParser;
 use crate::agent_sessions::cli::parsers::CliAgentParser;
-use integrations::cli_binary_resolver::{resolve_cli_binary_command, CliBinaryId};
+use crate::agent_sessions::cli::session_runner::launch_profiles::{
+    defaults_for_agent, static_args_to_vec, ResolvedCliLaunchProfile,
+};
 use key_vault::key_store::ModelType;
+use std::collections::HashMap;
 
-pub(super) fn resolve_cli_agent_command(agent: &ModelType) -> String {
-    let binary_id = match agent {
-        ModelType::CursorCli => CliBinaryId::CursorCli,
-        ModelType::ClaudeCode => CliBinaryId::ClaudeCode,
-        ModelType::Codex => CliBinaryId::Codex,
-        ModelType::GeminiCli => CliBinaryId::GeminiCli,
-        ModelType::Kiro => CliBinaryId::Kiro,
-        ModelType::Copilot => CliBinaryId::Copilot,
-        ModelType::OpenCode => CliBinaryId::OpenCode,
-        ModelType::KimiCli => CliBinaryId::KimiCli,
-        ModelType::Aider => CliBinaryId::Aider,
-        ModelType::Goose => CliBinaryId::Goose,
-        ModelType::Amp => CliBinaryId::Amp,
-        ModelType::Cline => CliBinaryId::Cline,
-        ModelType::Kilo => CliBinaryId::Kilo,
-        ModelType::Grok => CliBinaryId::Grok,
-        ModelType::Devin => CliBinaryId::Devin,
-        ModelType::Rovo => CliBinaryId::Rovo,
-        ModelType::Hermes => CliBinaryId::Hermes,
-        ModelType::OpenClaw => CliBinaryId::OpenClaw,
-        ModelType::Aug => CliBinaryId::Aug,
-        ModelType::Codebuff => CliBinaryId::Codebuff,
-        ModelType::QwenCode => CliBinaryId::QwenCode,
-        ModelType::MimoCode => CliBinaryId::MimoCode,
-        ModelType::Antigravity => CliBinaryId::Antigravity,
-        ModelType::Continue => CliBinaryId::Continue,
-        ModelType::Droid => CliBinaryId::Droid,
-        ModelType::MistralVibe => CliBinaryId::MistralVibe,
-        ModelType::Autohand => CliBinaryId::Autohand,
-        ModelType::Omp => CliBinaryId::Omp,
-        ModelType::Pi => CliBinaryId::Pi,
-        other => panic!(
-            "ModelType::{:?} is not a CLI agent — cannot resolve command",
-            other
-        ),
-    };
-    resolve_cli_binary_command(binary_id)
+pub(super) struct CliCommandBuildRequest<'a> {
+    pub agent: &'a ModelType,
+    pub launch_profile: &'a ResolvedCliLaunchProfile,
+    pub model: Option<&'a str>,
+    pub task: &'a str,
+    pub resume_id: Option<&'a str>,
+    pub api_key: Option<&'a str>,
+    pub endpoint: Option<&'a str>,
+    pub mode: Option<&'a str>,
+    pub repo_path: Option<&'a str>,
+    pub additional_dirs: &'a [String],
 }
 
-/// Build the CLI command for a given CLI agent type.
-///
-/// Matches the market worker's `_build_agent_command()`.
-/// When `resume_id` is provided, adds the appropriate resume flag for the CLI.
-/// `api_key` is passed for agents that accept an explicit key argument (e.g. Cursor `--api-key`).
-/// `endpoint` overrides the CLI's API endpoint URL (e.g. Cursor `--endpoint`).
-/// `additional_dirs` extends the CLI's working set; only `claude_code`
-/// and `codex` accept the flag today — other CLI agents log a warning
-/// and the extra dirs are not passed through.
-#[allow(clippy::too_many_arguments)]
-pub(super) fn build_command(
-    agent: &ModelType,
-    model: Option<&str>,
-    task: &str,
-    resume_id: Option<&str>,
-    api_key: Option<&str>,
-    endpoint: Option<&str>,
-    mode: Option<&str>,
-    repo_path: Option<&str>,
-    additional_dirs: &[String],
+pub(super) fn build_command_with_launch_profile(
+    request: CliCommandBuildRequest<'_>,
 ) -> Vec<String> {
-    // Only claude_code and codex accept `--add-dir`. For every other CLI
-    // agent, extra workspace roots cannot be expressed on the command
-    // line — warn loudly instead of silently dropping the grant.
+    let CliCommandBuildRequest {
+        agent,
+        launch_profile,
+        model,
+        task,
+        resume_id,
+        api_key,
+        endpoint,
+        mode,
+        repo_path,
+        additional_dirs,
+    } = request;
+
     if !additional_dirs.is_empty() && !matches!(agent, ModelType::ClaudeCode | ModelType::Codex) {
         tracing::warn!(
             agent = ?agent,
@@ -78,14 +47,18 @@ pub(super) fn build_command(
             "[cli-runner] CLI agent does not support --add-dir; additional directories will NOT be visible to it",
         );
     }
+
+    let mut cmd = vec![launch_profile.command.clone()];
+    if let Some(defaults) = defaults_for_agent(agent) {
+        cmd.extend(static_args_to_vec(defaults.command_args));
+    }
+    cmd.extend(launch_profile.args.clone());
+
     match agent {
         ModelType::CursorCli => {
-            let mut cmd = vec![resolve_cli_agent_command(agent), "agent".into()];
             cmd.push("--output-format".into());
             cmd.push("stream-json".into());
             cmd.push("--stream-partial-output".into());
-            cmd.push("--force".into());
-            cmd.push("--approve-mcps".into());
             if let Some(key) = api_key {
                 cmd.push("--api-key".into());
                 cmd.push(key.into());
@@ -105,12 +78,9 @@ pub(super) fn build_command(
                 cmd.push(m.into());
             }
             if let Some(md) = mode {
-                match md {
-                    "plan" | "ask" => {
-                        cmd.push("--mode".into());
-                        cmd.push(md.into());
-                    }
-                    _ => {}
+                if matches!(md, "plan" | "ask") {
+                    cmd.push("--mode".into());
+                    cmd.push(md.into());
                 }
             }
             if let Some(ws) = repo_path {
@@ -122,11 +92,9 @@ pub(super) fn build_command(
             cmd
         }
         ModelType::ClaudeCode => {
-            let mut cmd = vec![resolve_cli_agent_command(agent)];
             cmd.push("--output-format".into());
             cmd.push("stream-json".into());
             cmd.push("--verbose".into());
-            cmd.push("--dangerously-skip-permissions".into());
             if let Some(rid) = resume_id {
                 cmd.push("--resume".into());
                 cmd.push(rid.into());
@@ -135,9 +103,6 @@ pub(super) fn build_command(
                 cmd.push("--model".into());
                 cmd.push(map_claude_model(m));
             }
-            // Multi-root: claude accepts space-separated paths after a single
-            // `--add-dir`; one flag per directory also works. Use one flag per
-            // dir to keep tokenisation unambiguous when paths contain spaces.
             for dir in additional_dirs {
                 if dir.is_empty() {
                     continue;
@@ -150,24 +115,25 @@ pub(super) fn build_command(
             cmd
         }
         ModelType::Codex => {
-            let mut cmd = vec![resolve_cli_agent_command(agent), "exec".into()];
             cmd.push("--json".into());
             cmd.push("--skip-git-repo-check".into());
-            cmd.push("--sandbox".into());
-            cmd.push("workspace-write".into());
             if let Some(ws) = repo_path {
                 cmd.push("--cd".into());
                 cmd.push(ws.into());
             }
             if let Some(m) = model {
+                let codex_model = map_codex_model_variant(m);
                 cmd.push("-m".into());
-                cmd.push(m.into());
+                cmd.push(codex_model.base_model);
+                for config in codex_model.config_overrides {
+                    cmd.push("-c".into());
+                    cmd.push(config);
+                }
             }
             if let Some(rid) = resume_id {
                 cmd.push("resume".into());
                 cmd.push(rid.into());
             }
-            // Codex requires one `--add-dir <path>` per extra root.
             for dir in additional_dirs {
                 if dir.is_empty() {
                     continue;
@@ -179,10 +145,8 @@ pub(super) fn build_command(
             cmd
         }
         ModelType::GeminiCli => {
-            let mut cmd = vec![resolve_cli_agent_command(agent)];
             cmd.push("--output-format".into());
             cmd.push("stream-json".into());
-            cmd.push("--yolo".into());
             if let Some(rid) = resume_id {
                 cmd.push("--resume".into());
                 cmd.push(rid.into());
@@ -195,31 +159,21 @@ pub(super) fn build_command(
             cmd.push(task.into());
             cmd
         }
-        ModelType::Kiro => vec![resolve_cli_agent_command(agent), "acp".into()],
         ModelType::Copilot => {
-            // Copilot exposes ACP over stdio only (no `--stdio`/`--port` flag).
-            // `--allow-all-tools` + `--no-ask-user` keep the agent autonomous so
-            // it never blocks on a permission or ask_user prompt.
-            let mut cmd = vec![resolve_cli_agent_command(agent), "--acp".into()];
-            cmd.push("--allow-all-tools".to_string());
-            cmd.push("--no-ask-user".to_string());
+            cmd.push("--acp".into());
             if let Some(rid) = resume_id {
                 cmd.push("--resume".into());
                 cmd.push(rid.into());
             }
-            // Copilot routes across vendors (gpt-*, claude-*, gemini-*); pass the
-            // model id through unchanged instead of Claude-specific normalization.
             if let Some(m) = model {
                 cmd.push("--model".into());
                 cmd.push(m.into());
             }
             cmd
         }
-        ModelType::OpenCode => vec![resolve_cli_agent_command(agent), "acp".into()],
-        // Extended CLI agents: pass the task as a positional argument.
-        // These agents use TUI-style invocation; ORGII surfaces their raw PTY
-        // output rather than parsing structured JSON events.
-        ModelType::Aider
+        ModelType::Kiro | ModelType::OpenCode => cmd,
+        ModelType::KimiCli
+        | ModelType::Aider
         | ModelType::Goose
         | ModelType::Amp
         | ModelType::Cline
@@ -240,7 +194,6 @@ pub(super) fn build_command(
         | ModelType::Autohand
         | ModelType::Omp
         | ModelType::Pi => {
-            let mut cmd = vec![resolve_cli_agent_command(agent)];
             if !task.is_empty() {
                 cmd.push(task.into());
             }
@@ -252,6 +205,56 @@ pub(super) fn build_command(
                 other
             );
         }
+    }
+}
+
+pub(super) fn launch_profile_env(profile: &ResolvedCliLaunchProfile) -> HashMap<String, String> {
+    profile.env.clone()
+}
+
+struct CodexModelLaunchConfig {
+    base_model: String,
+    config_overrides: Vec<String>,
+}
+
+fn map_codex_model_variant(model: &str) -> CodexModelLaunchConfig {
+    const CODEX_VARIANT_BASES: [&str; 5] = [
+        "gpt-5.5",
+        "gpt-5.4",
+        "gpt-5.4-mini",
+        "gpt-5.3-codex",
+        "gpt-5.2",
+    ];
+    const CODEX_REASONING_LEVELS: [&str; 4] = ["low", "medium", "high", "xhigh"];
+
+    for base_model in CODEX_VARIANT_BASES {
+        let Some(suffix) = model.strip_prefix(base_model) else {
+            continue;
+        };
+        let Some(suffix) = suffix.strip_prefix('-') else {
+            continue;
+        };
+        let suffix_parts: Vec<&str> = suffix.split('-').collect();
+        let Some(reasoning) = suffix_parts.first().copied() else {
+            continue;
+        };
+        if !CODEX_REASONING_LEVELS.contains(&reasoning) {
+            continue;
+        }
+
+        let mut config_overrides = vec![format!("model_reasoning_effort=\"{reasoning}\"")];
+        if suffix_parts.get(1).copied() == Some("fast") {
+            config_overrides.push("service_tier=\"priority\"".to_string());
+        }
+        return CodexModelLaunchConfig {
+            base_model: base_model.to_string(),
+            config_overrides,
+        };
+    }
+
+    CodexModelLaunchConfig {
+        base_model: model.to_string(),
+        config_overrides: Vec::new(),
     }
 }
 

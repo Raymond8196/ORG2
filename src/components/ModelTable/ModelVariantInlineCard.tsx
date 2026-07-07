@@ -32,6 +32,7 @@ const REASONING_ORDER: ModelReasoningLevel[] = [
   MODEL_REASONING_LEVEL.HIGH,
   MODEL_REASONING_LEVEL.EXTRA_HIGH,
   MODEL_REASONING_LEVEL.MAX,
+  MODEL_REASONING_LEVEL.ULTRACODE,
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -45,14 +46,22 @@ interface EffortGroup {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getRawSuffix(variant: ModelTableVariantInfo): string | undefined {
+function getRawSuffixTokens(variant: ModelTableVariantInfo): string[] {
   const { model, base_model: base } = variant;
-  if (!base) return undefined;
+  if (!base) return [];
   const modelLower = model.toLowerCase();
   const baseLower = base.toLowerCase();
-  if (!modelLower.startsWith(`${baseLower}-`)) return undefined;
-  const suffix = model.slice(base.length + 1);
-  const tokens = suffix.split("-").filter((token) => token !== "fast");
+  if (!modelLower.startsWith(`${baseLower}-`)) return [];
+  return model
+    .slice(base.length + 1)
+    .split("-")
+    .filter(Boolean);
+}
+
+function getRawSuffix(variant: ModelTableVariantInfo): string | undefined {
+  const tokens = getRawSuffixTokens(variant).filter(
+    (token) => token !== "fast" && token !== "thinking"
+  );
   if (tokens.length === 0) return undefined;
   return tokens.join("-");
 }
@@ -154,9 +163,7 @@ function groupVariantsByEffort(
 }
 
 function hasSuffixThinking(variant: ModelTableVariantInfo): boolean {
-  const rawSuffix = getRawSuffix(variant);
-  if (!rawSuffix) return false;
-  return rawSuffix.toLowerCase().split("-").includes("thinking");
+  return getRawSuffixTokens(variant).includes("thinking");
 }
 
 function isGptGroup(variants: ModelTableVariantInfo[]): boolean {

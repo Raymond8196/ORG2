@@ -21,6 +21,64 @@ use super::data::{
 use super::{AvailableAgent, AvailableApiProvider, CliConfigFile};
 
 const AVAILABLE_AGENTS_CACHE_TTL: Duration = Duration::from_secs(60);
+const PROTOCOL_ANTHROPIC_MESSAGES: &str = "Anthropic Messages";
+const PROTOCOL_ANTHROPIC_COMPATIBLE: &str = "Anthropic-compatible";
+const PROTOCOL_GEMINI: &str = "Gemini";
+const PROTOCOL_LOCAL_OPENAI_COMPATIBLE: &str = "vLLM / local OpenAI-compatible";
+const PROTOCOL_OPENAI_COMPATIBLE: &str = "OpenAI-compatible";
+const PROTOCOL_OPENROUTER: &str = "OpenRouter";
+
+fn protocol_for_api_provider(provider: &str) -> &str {
+    match provider {
+        "anthropic_api" | "azure_anthropic_api" => PROTOCOL_ANTHROPIC_MESSAGES,
+        "moonshot_api" => PROTOCOL_ANTHROPIC_COMPATIBLE,
+        "gemini_api" => PROTOCOL_GEMINI,
+        "openrouter_api" => PROTOCOL_OPENROUTER,
+        "vllm_api" => PROTOCOL_LOCAL_OPENAI_COMPATIBLE,
+        _ => PROTOCOL_OPENAI_COMPATIBLE,
+    }
+}
+
+fn supported_protocols_for_api_providers(providers: &[&str]) -> Vec<String> {
+    let mut protocols: Vec<String> = Vec::new();
+    for provider in providers {
+        let protocol = protocol_for_api_provider(provider).to_string();
+        if !protocols.contains(&protocol) {
+            protocols.push(protocol);
+        }
+    }
+    protocols
+}
+
+fn native_subscription_labels_for_agent(agent_name: &str) -> Vec<String> {
+    let labels = match agent_name {
+        "cursor_cli" => &["Cursor account / Cursor subscription"][..],
+        "claude_code" => &["Claude Pro / Max account", "Anthropic Console account"],
+        "codex" => &["ChatGPT account", "OpenAI API account"],
+        "gemini_cli" => &[
+            "Google account / Gemini Code Assist",
+            "Google AI Studio API key",
+        ],
+        "kiro" => &["Kiro account"],
+        "copilot" => &["GitHub Copilot subscription"],
+        "opencode" => &["opencode account"],
+        "amp" => &["Amp subscription / AMP_API_KEY"],
+        "cline" => &["Cline account"],
+        "grok_cli" => &["xAI account / Grok subscription"],
+        "devin" => &["Devin account"],
+        "rovo" => &["Atlassian account with Rovo entitlement"],
+        "aug" => &["Augment Code account"],
+        "codebuff" => &["Codebuff account"],
+        "continue_cli" => &["Continue Hub account"],
+        "droid" => &["Factory account / Droid subscription"],
+        "mistral_vibe" => &["Mistral account"],
+        "omp" => &["OMP account"],
+        "pi" => &["Pi account"],
+        _ => &[],
+    };
+
+    labels.iter().map(|label| label.to_string()).collect()
+}
 
 async fn detect_cli_installation(
     agent_name: &str,
@@ -171,11 +229,15 @@ pub async fn get_available_agents() -> Result<Vec<AvailableAgent>, String> {
             brand_color: entry.brand_color.to_string(),
             docs_url: Some(entry.docs_url.to_string()),
             has_subscription_plan: entry.has_subscription_plan,
+            native_subscription_labels: native_subscription_labels_for_agent(entry.name),
             compatible_api_providers: entry
                 .compatible_api_providers
                 .iter()
                 .map(|s| s.to_string())
                 .collect(),
+            supported_protocols: supported_protocols_for_api_providers(
+                entry.compatible_api_providers,
+            ),
             config_files: entry
                 .config_files
                 .iter()

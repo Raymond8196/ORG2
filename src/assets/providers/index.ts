@@ -50,7 +50,7 @@ export function formatModelAgentType(agentType: string): string {
 
 /** CLI agent types in alphabetical order by label */
 export const AGENT_TYPE_LIST: CliAgentType[] = [
-  CLI_AGENT.KIRO, // Amazon Kiro
+  CLI_AGENT.KIRO, // Kiro CLI
   CLI_AGENT.CLAUDE_CODE, // Claude Code
   CLI_AGENT.CODEX, // Codex
   CLI_AGENT.CURSOR, // Cursor

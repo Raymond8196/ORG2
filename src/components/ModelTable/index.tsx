@@ -480,7 +480,7 @@ const ModelTable: React.FC<ModelTableProps> = ({
       headerHeight="tall"
       emptyTitle={emptyTitle}
       footer={unifiedFooter}
-      className="table-expanded-no-hover table-settings-expanded-compact [&_.table-expand-cell]:pl-4"
+      className="table-expanded-no-hover table-settings-expanded-compact"
     />
   );
 };

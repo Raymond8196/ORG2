@@ -17,6 +17,7 @@ import {
   simulatorEventCountAtom,
 } from "@src/engines/SessionCore";
 import { getToolDisplayBehavior } from "@src/engines/SessionCore/rendering/registry/initToolRegistry";
+import { useHousekeeperConfig } from "@src/hooks/housekeeper";
 import { chatVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import {
   type SimulatorPlaybackSpeed,
@@ -52,6 +53,7 @@ const FloatingReplayContainer: React.FC = memo(() => {
   const currentIndex = useAtomValue(currentSimulatorEventIndexAtom);
   const eventCount = useAtomValue(simulatorEventCountAtom);
   const chatVisible = useAtomValue(chatVisibleAtom);
+  const housekeeper = useHousekeeperConfig();
   const miniCPMStepExplanationVisible = useAtomValue(
     simulatorMiniCPMStepExplanationVisibleAtom
   );
@@ -172,7 +174,9 @@ const FloatingReplayContainer: React.FC = memo(() => {
           playbackSpeed={playbackSpeed}
           onPlaybackSpeedChange={setPlaybackSpeed}
         />
-        {!miniCPMStepExplanationVisible ? (
+        {housekeeper.enabled &&
+        housekeeper.features.stepExplain &&
+        !miniCPMStepExplanationVisible ? (
           <Button
             variant="secondary"
             size="default"

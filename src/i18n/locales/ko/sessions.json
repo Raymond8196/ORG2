@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "비용"
       },
+      "quota": {
+        "empty": "Quota 데이터가 아직 없습니다. Key Vault에서 사용량을 새로고침하세요.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Repos 탐색"
       },
@@ -952,7 +964,30 @@
         "mentioned": "멘션됨"
       }
     },
-    "readOnly": "읽기 전용"
+    "readOnly": "읽기 전용",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "승인됨",
@@ -2060,7 +2095,11 @@
       "testResultPending": "테스트 결과 대기 중",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills 및 도구"
+    "skillsAndTools": "Skills 및 도구",
+    "agentSpotlightViewMode": "Agent view mode",
+    "agentSpotlightListView": "List view",
+    "agentSpotlightCardView": "Card view",
+    "agentSpotlightCardHint": "Use ←/→ or ↑/↓ to shuffle Agents. Press Enter to select."
   },
   "planner": {
     "tabs": {

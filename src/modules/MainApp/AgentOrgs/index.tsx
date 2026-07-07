@@ -17,6 +17,8 @@ import {
   type AgentOrgsTabSegment,
   WIZARD_IDS,
   buildAgentOrgsPath,
+  buildIntegrationsPath,
+  buildWizardPath,
   parseAgentOrgsPath,
 } from "@src/config/mainAppPaths";
 import { useKeyVault } from "@src/hooks/keyVault";
@@ -276,6 +278,13 @@ const AgentOrgsPage: React.FC = () => {
     openWizard(WIZARD_IDS.AGENT_ADD);
   }, [openWizard]);
 
+  const handleKeyAdd = useCallback(() => {
+    const accountsPath = `${buildIntegrationsPath({
+      category: "models",
+    })}?modelsTab=my-accounts`;
+    navigate(buildWizardPath(accountsPath, WIZARD_IDS.KEY_ADD));
+  }, [navigate]);
+
   const handleAgentImportRefresh = useCallback(async () => {
     await refreshAgentDefinitions({ forceFresh: true });
   }, [refreshAgentDefinitions]);
@@ -374,7 +383,7 @@ const AgentOrgsPage: React.FC = () => {
             loading={cliAgentControls.loading}
             error={cliAgentControls.error}
             fetchAgents={cliAgentControls.fetchAgents}
-            onAdd={handleAgentAdd}
+            onAdd={handleKeyAdd}
             cliAgents={cliAgentControls}
           />
           <CliDisclaimer />

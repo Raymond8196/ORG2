@@ -23,6 +23,7 @@ export * from "./creatorStateAtom";
 export * from "./creatorDraftAtom";
 export * from "./creatorDefaultModelAtom";
 export * from "./recentModelEntriesAtom";
+export * from "./recentAgentSelectionsAtom";
 export * from "./creatorDefaultExecModeAtom";
 
 // Session runtime (engine lifecycle, file review, shell processes)

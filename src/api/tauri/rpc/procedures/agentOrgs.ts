@@ -85,6 +85,21 @@ const cliConfigFiles = {
     .build(),
 } as const;
 
+const launchProfiles = {
+  get: defineProcedure("cli_launch_profile_get")
+    .input(schemas.agentOrgs.CliLaunchProfileInput)
+    .output(schemas.agentOrgs.CliLaunchProfileViewSchema)
+    .build(),
+  update: defineProcedure("cli_launch_profile_update")
+    .input(schemas.agentOrgs.CliLaunchProfileUpdateInput)
+    .output(schemas.agentOrgs.CliLaunchProfileViewSchema)
+    .build(),
+  reset: defineProcedure("cli_launch_profile_reset")
+    .input(schemas.agentOrgs.CliLaunchProfileInput)
+    .output(schemas.agentOrgs.CliLaunchProfileViewSchema)
+    .build(),
+} as const;
+
 const skills = {
   list: defineProcedure("skills_list")
     .input(schemas.agentOrgs.SkillsListInput)
@@ -128,6 +143,7 @@ export const agentOrgs = {
   codex,
   claudeCode,
   cliConfigFiles,
+  launchProfiles,
   memory,
   orgs,
   skills,

@@ -19,6 +19,11 @@ export const validation = {
     .output(schemas.validation.QuotaInfoSchema)
     .build(),
 
+  refreshKeyQuota: defineProcedure("refresh_key_quota")
+    .input(schemas.validation.RefreshKeyQuotaInput)
+    .output(schemas.validation.KeyInfoSchema.nullable())
+    .build(),
+
   listKeys: defineProcedure("list_keys")
     .output(z.array(schemas.validation.KeyInfoSchema))
     .build(),
@@ -118,6 +123,11 @@ export const validation = {
   cursorListModelsNative: defineProcedure("cursor_list_models_native")
     .input(schemas.validation.CursorListModelsNativeInput)
     .output(z.array(schemas.validation.CursorNativeModelSchema))
+    .build(),
+
+  oauthModelCatalog: defineProcedure("oauth_model_catalog")
+    .input(schemas.validation.OAuthModelCatalogInput)
+    .output(schemas.validation.OAuthModelCatalogResponseSchema)
     .build(),
 
   claudeCodeOauthListModels: defineProcedure("claude_code_oauth_list_models")

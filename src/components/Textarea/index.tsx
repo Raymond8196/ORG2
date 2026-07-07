@@ -2,7 +2,6 @@
  * Native Textarea Component
  *
  * Native textarea with native implementation.
- * TextArea.
  *
  * Features:
  * - Full API compatibility

@@ -69,7 +69,7 @@
       "title": "Informações da conta",
       "enable": "Ativar",
       "authMethod": "Método de autenticação",
-      "oauthLogin": "OAuth (Login ChatGPT)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Captura de sessão)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -98,7 +98,9 @@
       "cliAgents": "CLI Agents",
       "supportCliAgents": "Suporta CLI Agents",
       "compatibleApis": "APIs compatíveis",
-      "noCliAgentSupport": "Sem suporte de CLI Agent para este provedor"
+      "noCliAgentSupport": "Sem suporte de CLI Agent para este provedor",
+      "accountEmail": "Email da conta",
+      "organization": "Organização"
     },
     "inlineDetailTabs": {
       "info": "Informações"
@@ -168,14 +170,22 @@
       "plan": "Plano",
       "premiumRequests": "Solicitações premium",
       "includedRequests": "Solicitações incluídas",
-      "cursorIncludedRequests": "Cota de solicitações Auto/Composer",
+      "cursorIncludedRequests": "Cota Auto/Composer",
       "quotaUsage": "Uso da cota",
       "onDemandBudget": "Orçamento sob demanda",
-      "cursorApiUsage": "Uso API/sob demanda",
+      "cursorApiUsage": "Cota API",
+      "sessionUsage": "Uso de 5h",
+      "weeklyUsage": "Uso semanal",
+      "monthlyUsage": "Uso mensal",
+      "percentUsed": "{{percent}}% usado",
+      "percentLeft": "{{percent}}% restante",
+      "refreshUsage": "Atualizar uso",
       "used": "Usado",
       "limit": "Limite",
       "resetDate": "Data de reset",
-      "resets": "Reseta em {{date}}"
+      "resets": "Reseta em {{date}}",
+      "availableNow": "Disponível agora",
+      "nextUsePlusFiveHours": "Próximo uso +5 h"
     },
     "health": {
       "cloudListingInvalid": "Anúncio na nuvem inválido",
@@ -456,6 +466,10 @@
     "codexConnected": "Codex conectado",
     "codexDetectErrorHint": "Entre pelo navegador incorporado ou cole manualmente uma API key da OpenAI",
     "codexValidationErrorHint": "Verifique se o token ou a API key é válido e tente novamente",
+    "claudeCodeAutodetectTitle": "Detectar sessão do Claude Code",
+    "claudeCodeAutodetectDesc": "Lê seu login local do Claude Code pelo macOS Keychain ou ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code conectado",
+    "claudeCodeDetectErrorHint": "Entre pelo navegador incorporado ou execute claude auth login e tente detectar novamente",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -888,9 +902,12 @@
     "noApiKeys": "Este CLI não suporta chave de API própria",
     "noApiKeysAdded": "Nenhuma chave de API compatível adicionada ainda",
     "notSupported": "Não suportado",
+    "nativeSubscription": "Assinatura nativa",
+    "supportedProtocols": "Protocolos suportados",
+    "addedSubscriptions": "Assinaturas adicionadas",
     "subscriptions": "Assinaturas",
     "cliKeys": "Assinatura",
-    "compatibleApis": "Chaves suportadas",
+    "compatibleApis": "APIs compatíveis",
     "docs": "Documentação",
     "addKey": "Adicionar chave",
     "compatibleKeys": "Keys compatíveis",
@@ -1669,7 +1686,12 @@
       "keyPreview": "Chave",
       "addedTime": "Adicionado",
       "secretBearingConfig": "Pode conter API keys ou tokens",
-      "revealConfigFile": "Mostrar no gerenciador de arquivos"
+      "revealConfigFile": "Mostrar no gerenciador de arquivos",
+      "launchConfiguration": "Configuração de inicialização",
+      "configFiles": "Arquivos de configuração",
+      "configFile": "Arquivo de configuração",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Sem conteúdo de configuração"
     },
     "codexConfig": {
       "sectionTitle": "Configuração",
@@ -2565,5 +2587,17 @@
       "completionTokens": "Tokens de saída: {{value}}",
       "elapsed": "Tempo total: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Perfil de inicialização",
+    "fullPermission": "Permissão total",
+    "manual": "Manual",
+    "command": "Comando",
+    "environment": "Ambiente",
+    "envPlaceholder": "KEY=value, um por linha",
+    "loading": "Carregando perfil de inicialização...",
+    "unavailable": "Perfil de inicialização indisponível",
+    "saved": "Perfil de inicialização salvo",
+    "resetDone": "Perfil de inicialização redefinido"
   }
 }

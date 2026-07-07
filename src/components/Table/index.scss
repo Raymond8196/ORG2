@@ -4,6 +4,11 @@
 // Table Component Styles
 // ==========================================
 
+:root {
+  --table-expand-cell-width: 28px;
+  --table-expand-cell-leading-padding: 4px;
+}
+
 .table-wrapper {
   width: 100%;
 }
@@ -390,6 +395,7 @@
     .table-row > .table-td:last-child {
       // Avoid position:sticky;right + CSS zoom: WebKit miscalculates sticky
       // positions inside overflow-x:auto when the root has style.zoom set.
+      position: relative;
       background: var(--settings-table-surface);
 
       &::before {
@@ -442,7 +448,11 @@
   }
 
   .table-expand-cell {
-    padding-left: 4px;
+    box-sizing: border-box;
+    width: var(--table-expand-cell-width);
+    min-width: var(--table-expand-cell-width);
+    max-width: var(--table-expand-cell-width);
+    padding-left: var(--table-expand-cell-leading-padding);
     padding-right: 0;
     height: 1px; // allow child flex container to use h-full
   }

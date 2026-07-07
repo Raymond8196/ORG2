@@ -20,17 +20,18 @@ export function buildSourceOptions(
   isCliAgent: boolean
 ): SourceOption[] {
   const options: SourceOption[] = [];
-  const variantSet = new Set(modelIds);
+  const variantSet = new Set(modelIds.filter(Boolean));
 
   const readyAccounts = accounts.filter(
     (account) => account.status === "ready" && account.hasKey
   );
   for (const account of readyAccounts) {
+    const hasConcreteModelFilter = variantSet.size > 0;
     const hasAnyVariant =
       account.availableModels && account.availableModels.length > 0
         ? [...variantSet].some((modelId) => accountHasModel(account, modelId))
         : false;
-    const modelMatches = isCliAgent || hasAnyVariant;
+    const modelMatches = hasConcreteModelFilter ? hasAnyVariant : isCliAgent;
     if (modelMatches) {
       options.push({
         id: account.id,

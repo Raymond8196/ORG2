@@ -14,8 +14,8 @@
  * (`AgentOSConfigSection`, `AgentSdeConfigSection`,
  * `CustomAgentDetailView`, `WingmanDetailView`) read from this module.
  *
- * CLI agents do not use this module — their tab list ("Core | Config")
- * is fundamentally different and lives in `CliAgentDetailView`.
+ * CLI agents do not use this module — their Core-only detail layout is
+ * fundamentally different and lives in `CliAgentDetailView`.
  */
 import type { TFunction } from "i18next";
 
@@ -46,7 +46,7 @@ export const CANONICAL_TAB_ORDER: AgentDetailTabKey[] = [
 
 /**
  * Built-in agent kinds that share the per-agent tab system.
- * (CLI agents use their own simpler "Core | Config" layout.)
+ * (CLI agents use their own Core-only layout.)
  */
 export type AgentDetailKind = "os" | "sde" | "wingman" | "custom";
 

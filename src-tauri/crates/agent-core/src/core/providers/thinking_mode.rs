@@ -35,6 +35,7 @@ pub enum ReasoningLevel {
     High,
     ExtraHigh,
     Max,
+    Ultracode,
 }
 
 impl ReasoningLevel {
@@ -50,6 +51,7 @@ impl ReasoningLevel {
             "high" => Some(Self::High),
             "extra" | "extra-high" | "xhigh" => Some(Self::ExtraHigh),
             "max" => Some(Self::Max),
+            "ultracode" => Some(Self::Ultracode),
             _ => None,
         }
     }
@@ -115,6 +117,7 @@ const SUFFIX_TOKENS: &[&str] = &[
     "extra-high",
     "xhigh",
     "max",
+    "ultracode",
     "minimal",
     "thinking",
     "fast",
@@ -198,6 +201,7 @@ impl ReasoningLevel {
             Self::High => 4,
             Self::ExtraHigh => 5,
             Self::Max => 6,
+            Self::Ultracode => 7,
         }
     }
 
@@ -209,8 +213,9 @@ impl ReasoningLevel {
             Self::Low => "low",
             Self::Medium => "medium",
             Self::High => "high",
-            Self::ExtraHigh => "extra-high",
+            Self::ExtraHigh => "xhigh",
             Self::Max => "max",
+            Self::Ultracode => "ultracode",
         }
     }
 }
@@ -365,7 +370,7 @@ fn opus47_or_newer_regex() -> &'static Regex {
         // minor capped at two digits so date suffixes (e.g. -20250514) fall
         // into the trailing-suffix group rather than being read as the minor.
         Regex::new(
-            r"^(?:anthropic\.)?claude-(opus|fable)-(\d+)(?:[.-](\d{1,2}))?(?:[@\-:][\w\-:]+)?$",
+            r"^(?:anthropic\.)?claude-(opus|fable|sonnet)-(\d+)(?:[.-](\d{1,2}))?(?:[@\-:][\w\-:]+)?$",
         )
         .expect("opus47 regex")
     })
@@ -464,7 +469,9 @@ pub fn anthropic_effort(mode: ThinkingMode, level: Option<ReasoningLevel>) -> Op
         ReasoningLevel::Low => "low",
         ReasoningLevel::Medium => "medium",
         ReasoningLevel::High => "high",
-        ReasoningLevel::ExtraHigh | ReasoningLevel::Max => xhigh_target,
+        ReasoningLevel::ExtraHigh => xhigh_target,
+        ReasoningLevel::Max => "max",
+        ReasoningLevel::Ultracode => "ultracode",
         ReasoningLevel::Baseline | ReasoningLevel::None => return None,
     })
 }
@@ -514,7 +521,7 @@ fn anthropic_legacy_budget(level: Option<ReasoningLevel>, max_tokens: u32) -> u3
         Some(ReasoningLevel::Medium) => 16_384,
         Some(ReasoningLevel::High) => 24_576,
         Some(ReasoningLevel::ExtraHigh) => 28_672,
-        Some(ReasoningLevel::Max) => 32_768,
+        Some(ReasoningLevel::Max | ReasoningLevel::Ultracode) => 32_768,
         _ => (max_tokens / 2).clamp(1024, 32_768),
     }
 }
@@ -544,7 +551,7 @@ pub fn openai_effort(level: Option<ReasoningLevel>) -> Option<&'static str> {
         ReasoningLevel::Low => "low",
         ReasoningLevel::Medium => "medium",
         ReasoningLevel::High => "high",
-        ReasoningLevel::ExtraHigh | ReasoningLevel::Max => "high",
+        ReasoningLevel::ExtraHigh | ReasoningLevel::Max | ReasoningLevel::Ultracode => "high",
         ReasoningLevel::Baseline | ReasoningLevel::None => return None,
     })
 }
@@ -627,6 +634,14 @@ mod tests {
         let p = parse_model_variant("claude-opus-4-7-extra-high");
         assert_eq!(p.base_model, "claude-opus-4-7");
         assert_eq!(p.level, Some(ReasoningLevel::ExtraHigh));
+    }
+
+    #[test]
+    fn parses_fable_ultracode() {
+        let p = parse_model_variant("claude-fable-5-ultracode");
+        assert_eq!(p.base_model, "claude-fable-5");
+        assert_eq!(p.level, Some(ReasoningLevel::Ultracode));
+        assert!(!p.thinking);
     }
 
     #[test]
@@ -735,6 +750,17 @@ mod tests {
                 Some(ReasoningLevel::ExtraHigh)
             ),
             Some("xhigh")
+        );
+        assert_eq!(
+            anthropic_effort(ThinkingMode::AnthropicAdaptive, Some(ReasoningLevel::Max)),
+            Some("max")
+        );
+        assert_eq!(
+            anthropic_effort(
+                ThinkingMode::AnthropicAdaptive,
+                Some(ReasoningLevel::Ultracode)
+            ),
+            Some("ultracode")
         );
     }
 

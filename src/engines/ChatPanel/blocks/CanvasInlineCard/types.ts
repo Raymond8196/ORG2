@@ -10,6 +10,20 @@
 
 export type CanvasInlineMode = "html" | "url" | "a2ui" | "react";
 
+/**
+ * Payload emitted by a `render_inline_canvas` tool call and stored in
+ * `canvasPreviewAtom`. Shared by the streaming overlay (ChatVariant) and
+ * the Simulator canvas jump.
+ */
+export interface CanvasInlinePayload {
+  mode: CanvasInlineMode;
+  content?: string;
+  url?: string;
+  title?: string;
+  streaming?: boolean;
+  eventId?: string;
+}
+
 export interface CanvasInlineCardProps {
   /** Rendering mode — determines how `content` / `url` are used. */
   mode: CanvasInlineMode;

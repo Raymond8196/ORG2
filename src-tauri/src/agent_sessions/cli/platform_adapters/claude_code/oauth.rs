@@ -15,6 +15,9 @@ use crate::agent_sessions::cli::platform_adapters::webview_session::{
 
 const AUTHORIZE_URL: &str = "https://claude.com/cai/oauth/authorize";
 const TOKEN_URL: &str = "https://platform.claude.com/v1/oauth/token";
+const PROFILE_URL: &str = "https://api.anthropic.com/api/oauth/profile";
+const CLAUDE_CODE_OAUTH_BETA: &str = "oauth-2025-04-20";
+const CLAUDE_CODE_OAUTH_USER_AGENT: &str = "claude-cli/2.1.78 (orgii, cli)";
 const CLIENT_ID: &str = "9d1c250a-e61b-44d9-88ed-5944d1962f5e";
 const REDIRECT_URI: &str = "https://platform.claude.com/oauth/code/callback";
 const CLAUDE_CODE_SCOPES: &str = "org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload";
@@ -42,6 +45,7 @@ pub struct ClaudeCodeOauthExchangeResponse {
     pub expires_in: Option<u64>,
     pub token_type: Option<String>,
     pub scope: Option<String>,
+    pub account_metadata: Option<ClaudeCodeAccountMetadata>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -61,6 +65,35 @@ struct ClaudeCodeOauthTokenResponse {
     expires_in: Option<u64>,
     token_type: Option<String>,
     scope: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClaudeCodeAccountMetadata {
+    pub email: Option<String>,
+    pub organization_uuid: Option<String>,
+    pub organization_name: Option<String>,
+    pub organization_type: Option<String>,
+    pub rate_limit_tier: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ClaudeCodeOauthProfileResponse {
+    account: Option<ClaudeCodeOauthProfileAccount>,
+    organization: Option<ClaudeCodeOauthProfileOrganization>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ClaudeCodeOauthProfileAccount {
+    email: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ClaudeCodeOauthProfileOrganization {
+    uuid: Option<String>,
+    name: Option<String>,
+    organization_type: Option<String>,
+    rate_limit_tier: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -371,13 +404,81 @@ async fn exchange_code_for_tokens(
     let parsed: ClaudeCodeOauthTokenResponse = serde_json::from_str(&body)
         .map_err(|err| format!("Failed to parse token exchange response: {err}"))?;
 
+    let account_metadata = fetch_claude_code_oauth_profile(&client, &parsed.access_token)
+        .await
+        .map_err(|err| {
+            tracing::warn!(error = %err, "[claude-code-oauth] profile lookup failed; continuing without account metadata");
+            err
+        })
+        .ok();
+
     Ok(ClaudeCodeOauthExchangeResponse {
         access_token: parsed.access_token,
         refresh_token: parsed.refresh_token,
         expires_in: parsed.expires_in,
         token_type: parsed.token_type,
         scope: parsed.scope,
+        account_metadata,
     })
+}
+
+async fn fetch_claude_code_oauth_profile(
+    client: &reqwest::Client,
+    access_token: &str,
+) -> Result<ClaudeCodeAccountMetadata, String> {
+    let response = client
+        .get(PROFILE_URL)
+        .header("Authorization", format!("Bearer {}", access_token.trim()))
+        .header("anthropic-beta", CLAUDE_CODE_OAUTH_BETA)
+        .header("User-Agent", CLAUDE_CODE_OAUTH_USER_AGENT)
+        .send()
+        .await
+        .map_err(|err| format!("Claude Code OAuth profile request failed: {err}"))?;
+
+    let status = response.status();
+    let body = response
+        .text()
+        .await
+        .map_err(|err| format!("Failed to read Claude Code OAuth profile response: {err}"))?;
+
+    if !status.is_success() {
+        return Err(format!(
+            "Claude Code OAuth profile failed with HTTP {}: {}",
+            status.as_u16(),
+            body
+        ));
+    }
+
+    parse_claude_code_oauth_profile_response(&body)
+}
+
+fn parse_claude_code_oauth_profile_response(
+    body: &str,
+) -> Result<ClaudeCodeAccountMetadata, String> {
+    let parsed: ClaudeCodeOauthProfileResponse = serde_json::from_str(body)
+        .map_err(|err| format!("Failed to parse Claude Code OAuth profile response: {err}"))?;
+    let account = parsed.account;
+    let organization = parsed.organization;
+    Ok(ClaudeCodeAccountMetadata {
+        email: account.and_then(|account| normalize_metadata_field(account.email)),
+        organization_uuid: organization
+            .as_ref()
+            .and_then(|organization| normalize_metadata_field(organization.uuid.clone())),
+        organization_name: organization
+            .as_ref()
+            .and_then(|organization| normalize_metadata_field(organization.name.clone())),
+        organization_type: organization.as_ref().and_then(|organization| {
+            normalize_metadata_field(organization.organization_type.clone())
+        }),
+        rate_limit_tier: organization
+            .and_then(|organization| normalize_metadata_field(organization.rate_limit_tier)),
+    })
+}
+
+fn normalize_metadata_field(value: Option<String>) -> Option<String> {
+    value
+        .map(|field| field.trim().to_string())
+        .filter(|field| !field.is_empty())
 }
 
 #[cfg(test)]

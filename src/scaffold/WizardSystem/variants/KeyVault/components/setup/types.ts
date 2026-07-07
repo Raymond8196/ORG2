@@ -93,11 +93,14 @@ export interface ClaudeCodeSessionValues {
   accessToken: string;
   refreshToken?: string;
   expiresIn?: number;
+  accountMetadata?: Record<string, string>;
 }
 
 export interface ClaudeCodeSetupProps extends AgentSetupProps {
   tokenDetected: boolean;
+  detectingToken: boolean;
   tokenError: string | null;
+  onDetectToken: () => void;
   onClearTokenError?: () => void;
   onSessionCaptured?: (values: ClaudeCodeSessionValues) => void;
   preselectedMethod?: string;
