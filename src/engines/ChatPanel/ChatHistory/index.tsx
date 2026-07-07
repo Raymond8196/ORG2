@@ -158,6 +158,15 @@ const EMPTY_ORG_MEMBERS: AgentOrgRunMemberView[] = [];
 const BOTTOM_OVERLAY_FADE_PX = 32;
 const SCROLL_NAV_SHOW_THRESHOLD_PX = 48;
 
+// Static GPU-layer hints for the virtualized body wrapper — never depends on
+// state, so keep it as a module-level const to avoid a fresh object each render.
+const VIRTUALIZED_BODY_STYLE: React.CSSProperties = {
+  backfaceVisibility: "hidden",
+  contain: "layout paint",
+  transform: "translateZ(0)",
+  willChange: "transform",
+};
+
 export interface FollowAgentNavState {
   showFollowAgent: boolean;
   followAgentLabel: string;
@@ -1070,6 +1079,19 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   // Render
   // ============================================
 
+  const chatHistoryContainerStyle = useMemo<React.CSSProperties>(
+    () =>
+      ({
+        minHeight: 0,
+        fontSize: `${chatFontSize}px`,
+        lineHeight: chatLineHeight ?? 1.6,
+        "--chat-font-size": `${chatFontSize}px`,
+        "--chat-code-font-size": `${chatCodeFontSize ?? 13}px`,
+        "--chat-line-height": chatLineHeight ?? 1.6,
+      }) as React.CSSProperties,
+    [chatFontSize, chatCodeFontSize, chatLineHeight]
+  );
+
   return (
     <ChatHistoryDisplayModeProvider value={displayMode}>
       <div
@@ -1080,16 +1102,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
         data-flat-count={displayTotalFlatItems}
         data-group-counts={displayGroupCounts.join(",")}
         ref={chatContainerRef as React.RefObject<HTMLDivElement>}
-        style={
-          {
-            minHeight: 0,
-            fontSize: `${chatFontSize}px`,
-            lineHeight: chatLineHeight ?? 1.6,
-            "--chat-font-size": `${chatFontSize}px`,
-            "--chat-code-font-size": `${chatCodeFontSize ?? 13}px`,
-            "--chat-line-height": chatLineHeight ?? 1.6,
-          } as React.CSSProperties
-        }
+        style={chatHistoryContainerStyle}
       >
         <div
           className={`flex items-center justify-between ${DETAIL_PANEL_TOKENS.contentWidth}`}
@@ -1128,12 +1141,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
 
           <div
             className="relative min-h-0 flex-1"
-            style={{
-              backfaceVisibility: "hidden",
-              contain: "layout paint",
-              transform: "translateZ(0)",
-              willChange: "transform",
-            }}
+            style={VIRTUALIZED_BODY_STYLE}
             data-chat-virtualized-body-layer
           >
             {turnPageListOpen && turnPaginationReady && (
