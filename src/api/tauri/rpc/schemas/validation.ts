@@ -474,6 +474,10 @@ export const FetchKeyQuotaInput = z.object({
   apiKey: z.string(),
 });
 
+export const RefreshKeyQuotaInput = z.object({
+  keyId: z.string(),
+});
+
 export const GetKeyInput = z.object({
   agentType: ModelTypeSchema,
   keyId: z.string().nullable().optional(),

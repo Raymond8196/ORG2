@@ -160,6 +160,11 @@ const AccountInlineExpandedCard: React.FC<AccountInlineExpandedCardProps> = ({
     }
   }, [account.id, onRevalidateAccount, t]);
 
+  const handleRefreshUsage = useCallback(async () => {
+    if (!onRefresh) return;
+    await onRefresh();
+  }, [onRefresh]);
+
   const handleEditFormSave = useCallback(
     async (nextName: string, nextDescription: string) => {
       if (!onEditSave) return;
@@ -386,6 +391,13 @@ const AccountInlineExpandedCard: React.FC<AccountInlineExpandedCardProps> = ({
         <AccountInlineEditFooter
           state={editState}
           onCancel={handleEditCancel}
+        />
+      ) : effectiveActiveTab === ACCOUNT_INLINE_TAB.STATUS && onRefresh ? (
+        <AccountInlineActionsBar
+          account={account}
+          refreshLabel={t("keyVault.quota.refreshUsage")}
+          onRefresh={handleRefreshUsage}
+          refreshing={refreshing}
         />
       ) : onRevalidateAccount && showModels ? (
         <AccountInlineActionsBar

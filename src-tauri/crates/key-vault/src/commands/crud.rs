@@ -223,7 +223,7 @@ fn enrich_cursor_native_models(info: &mut KeyInfo) -> Result<(), String> {
     Ok(())
 }
 
-fn key_info_from_entry(entry: ModelKey) -> Result<KeyInfo, String> {
+pub(super) fn key_info_from_entry(entry: ModelKey) -> Result<KeyInfo, String> {
     let mut info = KeyInfo::from(entry);
     enrich_cursor_native_models(&mut info)?;
     Ok(info)
