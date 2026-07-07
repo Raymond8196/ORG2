@@ -45,7 +45,7 @@ use std::{
     collections::HashMap,
     io::{BufReader, Read, Write},
     sync::{
-        atomic::{AtomicUsize, AtomicU32, Ordering},
+        atomic::{AtomicU32, AtomicUsize, Ordering},
         Arc, Mutex,
     },
 };
