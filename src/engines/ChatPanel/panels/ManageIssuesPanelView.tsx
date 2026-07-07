@@ -3,11 +3,13 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import {
   CheckCircle2,
-  ChevronDown,
   CircleDot,
+  ExternalLink,
   GitPullRequest,
   Link2,
+  ListFilter,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 import React, {
   useCallback,
@@ -26,13 +28,14 @@ import {
 import type { GitHubIssue, OpenPRItem } from "@src/api/tauri/github";
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
-import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import Input from "@src/components/Input";
 import Message from "@src/components/Message";
 import { SearchInput } from "@src/components/SearchInput";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
+import TabPill from "@src/components/TabPill";
+import type { TabPillItem } from "@src/components/TabPill";
 import {
   ChatPanelHeaderTitlePill,
   usePublishChatPanelHeader,
@@ -72,6 +75,13 @@ const GITHUB_QUERY_SCOPE = {
   ALL: "all",
   ISSUE: "issue",
   PR: "pr",
+} as const;
+
+const GITHUB_FILTER_PRESET = {
+  OPEN: "open",
+  ASSIGNED_TO_ME: "assignedToMe",
+  BY_ME: "byMe",
+  CLOSED: "closed",
 } as const;
 
 const GITHUB_QUERY_STATE = {
@@ -352,6 +362,29 @@ function tokenizeGitHubSearchQuery(rawQuery: string): GitHubSearchToken[] {
 
   flush();
   return tokens;
+}
+
+function serializeGitHubTokenValue(value: string): string {
+  return /\s/.test(value) ? `"${value.replace(/"/g, '\\"')}"` : value;
+}
+
+function serializeGitHubSearchQuery(query: ParsedGitHubSearchQuery): string {
+  const parts: string[] = [];
+  if (query.scope === GITHUB_QUERY_SCOPE.ISSUE) parts.push("is:issue");
+  if (query.scope === GITHUB_QUERY_SCOPE.PR) parts.push("is:pr");
+  if (query.state === GITHUB_QUERY_STATE.OPEN) parts.push("is:open");
+  if (query.state === GITHUB_QUERY_STATE.CLOSED) parts.push("is:closed");
+  if (query.state === GITHUB_QUERY_STATE.MERGED) parts.push("is:merged");
+  if (query.state === GITHUB_QUERY_STATE.ALL) parts.push("state:all");
+  if (query.assignee)
+    parts.push(`assignee:${serializeGitHubTokenValue(query.assignee)}`);
+  if (query.author)
+    parts.push(`author:${serializeGitHubTokenValue(query.author)}`);
+  for (const label of query.labels) {
+    parts.push(`label:${serializeGitHubTokenValue(label)}`);
+  }
+  if (query.freeText) parts.push(query.freeText);
+  return parts.join(" ");
 }
 
 function parseGitHubSearchQuery(rawQuery: string): ParsedGitHubSearchQuery {
@@ -654,42 +687,32 @@ async function loadRepoPrs(
   }
 }
 
-function RepoFilterPill({
+function FilterMenuButton({
+  label,
   options,
-  selectedRepo,
-  allReposLabel,
-  onSelectRepo,
+  onSelect,
 }: {
+  label: string;
   options: RepoFilterOption[];
-  selectedRepo: IssueRepoFilter;
-  allReposLabel: string;
-  onSelectRepo: (repo: IssueRepoFilter) => void;
+  onSelect: (key: string) => void;
 }): React.ReactNode {
   const [menuVisible, setMenuVisible] = useState(false);
   const closeMenu = useCallback(() => setMenuVisible(false), []);
-  const selectedOption =
-    options.find((option) => option.key === selectedRepo) ?? options[0];
-  const selectedLabel = selectedOption?.label ?? allReposLabel;
-
   const droplist = (
-    <div className={`${DROPDOWN_CLASSES.menuPanelBase} min-w-[190px]`}>
-      {options.map((option) => {
-        const isSelected = option.key === selectedRepo;
-        return (
-          <button
-            key={option.key}
-            type="button"
-            className={DROPDOWN_CLASSES.menuActionItem}
-            onClick={() => {
-              onSelectRepo(option.key);
-              closeMenu();
-            }}
-          >
-            <span className="min-w-0 flex-1 truncate">{option.label}</span>
-            {isSelected ? <DropdownSelectedCheck /> : null}
-          </button>
-        );
-      })}
+    <div className={`${DROPDOWN_CLASSES.menuPanelBase} min-w-[170px]`}>
+      {options.map((option) => (
+        <button
+          key={option.key}
+          type="button"
+          className={DROPDOWN_CLASSES.menuActionItem}
+          onClick={() => {
+            onSelect(option.key);
+            closeMenu();
+          }}
+        >
+          <span className="min-w-0 flex-1 truncate">{option.label}</span>
+        </button>
+      ))}
     </div>
   );
 
@@ -701,16 +724,56 @@ function RepoFilterPill({
       popupVisible={menuVisible}
       onVisibleChange={setMenuVisible}
     >
-      <button
-        type="button"
-        className="flex h-7 min-w-0 max-w-full cursor-default items-center gap-1.5 rounded-lg px-1.5 text-[13px] font-medium text-text-1 transition-colors hover:bg-surface-hover"
-        aria-label={selectedLabel}
+      <Button
+        htmlType="button"
+        variant="secondary"
+        appearance="outline"
+        size="small"
+        icon={<ListFilter size={13} />}
+        iconOnly
+        className="h-7 w-7"
+        aria-label={label}
         aria-expanded={menuVisible}
-      >
-        <span className="max-w-40 truncate">{selectedLabel}</span>
-        <ChevronDown size={12} className="shrink-0 text-text-3" />
-      </button>
+      />
     </Dropdown>
+  );
+}
+
+function RepoFilterPill({
+  options,
+  selectedRepo,
+  allReposLabel,
+  onSelectRepo,
+}: {
+  options: RepoFilterOption[];
+  selectedRepo: IssueRepoFilter;
+  allReposLabel: string;
+  onSelectRepo: (repo: IssueRepoFilter) => void;
+}): React.ReactNode {
+  const selectOptions = useMemo<SelectOption[]>(
+    () =>
+      options.map((option) => ({
+        value: option.key,
+        label: option.label,
+        triggerLabel: option.label,
+      })),
+    [options]
+  );
+
+  return (
+    <Select
+      value={selectedRepo}
+      options={selectOptions}
+      placeholder={allReposLabel}
+      size="small"
+      showSearch
+      variant="default"
+      radius="lg"
+      dropdownWidthMode="match"
+      className="min-w-[190px] max-w-[260px]"
+      selectorClassName="h-7"
+      onChange={(value) => onSelectRepo(String(value))}
+    />
   );
 }
 
@@ -974,6 +1037,52 @@ const ManageIssuesPanelView: React.FC = () => {
     [repos]
   );
 
+  const typeSwitchOptions = useMemo<TabPillItem[]>(
+    () => [
+      {
+        key: GITHUB_QUERY_SCOPE.ISSUE,
+        label: t("chat.panels.manageIssues.sourceIssues"),
+      },
+      {
+        key: GITHUB_QUERY_SCOPE.PR,
+        label: t("chat.panels.manageIssues.sourcePrs"),
+      },
+    ],
+    [t]
+  );
+
+  const quickFilterOptions = useMemo<TabPillItem[]>(
+    () => [
+      {
+        key: GITHUB_FILTER_PRESET.OPEN,
+        label: t("chat.panels.manageIssues.stateOpen"),
+      },
+      {
+        key: GITHUB_FILTER_PRESET.ASSIGNED_TO_ME,
+        label: t("chat.panels.manageIssues.assignedToMe"),
+      },
+    ],
+    [t]
+  );
+
+  const filterMenuOptions = useMemo<RepoFilterOption[]>(
+    () => [
+      {
+        key: GITHUB_FILTER_PRESET.BY_ME,
+        label: t("chat.panels.manageIssues.createdByMe"),
+      },
+      {
+        key: GITHUB_FILTER_PRESET.CLOSED,
+        label: t("chat.panels.manageIssues.stateClosed"),
+      },
+      {
+        key: GITHUB_QUERY_STATE.ALL,
+        label: t("chat.panels.manageIssues.stateAll"),
+      },
+    ],
+    [t]
+  );
+
   useEffect(() => {
     let cancelled = false;
 
@@ -1080,6 +1189,58 @@ const ManageIssuesPanelView: React.FC = () => {
           ) ?? null),
     [effectiveSelectedRepo, repoSources, selectedWorkstationRepoSource]
   );
+
+  const updateSearchQuery = useCallback(
+    (mutate: (query: ParsedGitHubSearchQuery) => void) => {
+      const nextQuery = parseGitHubSearchQuery(searchQuery);
+      mutate(nextQuery);
+      setSearchQuery(serializeGitHubSearchQuery(nextQuery));
+    },
+    [searchQuery]
+  );
+
+  const handleTypeTabChange = useCallback(
+    (key: string) => {
+      updateSearchQuery((query) => {
+        query.scope =
+          key === GITHUB_QUERY_SCOPE.PR
+            ? GITHUB_QUERY_SCOPE.PR
+            : GITHUB_QUERY_SCOPE.ISSUE;
+      });
+    },
+    [updateSearchQuery]
+  );
+
+  const handleFilterMenuSelect = useCallback(
+    (key: string) => {
+      updateSearchQuery((query) => {
+        if (key === GITHUB_FILTER_PRESET.BY_ME) {
+          query.author = "@me";
+          return;
+        }
+        if (key === GITHUB_FILTER_PRESET.CLOSED) {
+          query.state = GITHUB_QUERY_STATE.CLOSED;
+          return;
+        }
+        if (key === GITHUB_QUERY_STATE.ALL) {
+          query.state = GITHUB_QUERY_STATE.ALL;
+        }
+      });
+    },
+    [updateSearchQuery]
+  );
+
+  const activeTypeTab =
+    parsedSearchQuery.scope === GITHUB_QUERY_SCOPE.PR
+      ? GITHUB_QUERY_SCOPE.PR
+      : GITHUB_QUERY_SCOPE.ISSUE;
+  const activeQuickFilterTabs: string[] = [];
+  if (parsedSearchQuery.state === GITHUB_QUERY_STATE.OPEN) {
+    activeQuickFilterTabs.push(GITHUB_FILTER_PRESET.OPEN);
+  }
+  if (parsedSearchQuery.assignee === "@me") {
+    activeQuickFilterTabs.push(GITHUB_FILTER_PRESET.ASSIGNED_TO_ME);
+  }
 
   const repoOptions = useMemo<RepoFilterOption[]>(
     () => [
@@ -1485,8 +1646,64 @@ const ManageIssuesPanelView: React.FC = () => {
       className={`${DETAIL_PANEL_TOKENS.contentWidth} flex min-h-0 flex-1 flex-col`}
       data-testid="chat-panel-manage-issues-section"
     >
-      <div className="mb-3 flex shrink-0 flex-col gap-2">
+      <div className="mb-3 flex shrink-0 flex-col gap-1.5 rounded-xl border border-border-1 bg-bg-1 p-2">
         <div className="flex items-center gap-2">
+          <TabPill
+            tabs={typeSwitchOptions}
+            activeTab={activeTypeTab}
+            onChange={handleTypeTabChange}
+            variant="pill"
+            fillWidth={false}
+            size="mini"
+            buttonStyle
+          />
+          <RepoFilterPill
+            options={repoOptions}
+            selectedRepo={effectiveSelectedRepo}
+            allReposLabel={t("chat.manageIssues.allRepositories")}
+            onSelectRepo={setSelectedRepo}
+          />
+          <Button
+            htmlType="button"
+            variant="secondary"
+            appearance="outline"
+            size="small"
+            icon={<ExternalLink size={13} />}
+            iconOnly
+            className="h-7 w-7"
+            aria-label={t("chat.panels.manageIssues.openInGitHub")}
+            disabled={!selectedRepoSourceForCreate}
+            href={
+              selectedRepoSourceForCreate
+                ? `https://github.com/${selectedRepoSourceForCreate.repoFullName}`
+                : undefined
+            }
+            target="_blank"
+            rel="noreferrer"
+          />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <TabPill
+            tabs={quickFilterOptions}
+            activeTabs={activeQuickFilterTabs}
+            onMultiChange={(keys) => {
+              const activeKeys = new Set(keys);
+              updateSearchQuery((query) => {
+                query.state = activeKeys.has(GITHUB_FILTER_PRESET.OPEN)
+                  ? GITHUB_QUERY_STATE.OPEN
+                  : null;
+                query.assignee = activeKeys.has(
+                  GITHUB_FILTER_PRESET.ASSIGNED_TO_ME
+                )
+                  ? "@me"
+                  : null;
+              });
+            }}
+            variant="pill"
+            fillWidth={false}
+            size="mini"
+            buttonStyle
+          />
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
@@ -1498,17 +1715,36 @@ const ManageIssuesPanelView: React.FC = () => {
             inputBoxClassName="flex-1"
             className="min-w-0 flex-1"
           />
+          <FilterMenuButton
+            label={t("chat.panels.manageIssues.filters")}
+            options={filterMenuOptions}
+            onSelect={handleFilterMenuSelect}
+          />
           <Button
             htmlType="button"
             variant="secondary"
             appearance="outline"
             size="small"
-            icon={<Plus size={14} />}
+            icon={<Plus size={13} />}
+            iconOnly
+            className="h-7 w-7"
+            aria-label={t("chat.panels.manageIssues.createIssueTrigger")}
             onClick={() => setCreateFormOpen(true)}
             disabled={repoSources.length === 0}
-          >
-            {t("chat.panels.manageIssues.createIssueTrigger")}
-          </Button>
+          />
+          <Button
+            htmlType="button"
+            variant="secondary"
+            appearance="outline"
+            size="small"
+            icon={<RefreshCw size={13} />}
+            iconOnly
+            loading={loading}
+            loadingSpinIcon
+            className="h-7 w-7"
+            aria-label={t("common:actions.refresh")}
+            onClick={handleRefresh}
+          />
         </div>
       </div>
       <CreateIssueModal
