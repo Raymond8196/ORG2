@@ -182,7 +182,9 @@
       "used": "Used",
       "limit": "Limit",
       "resetDate": "Reset Date",
-      "resets": "Resets {{date}}"
+      "resets": "Resets {{date}}",
+      "availableNow": "Available now",
+      "nextUsePlusFiveHours": "Next use +5h"
     },
     "health": {
       "cloudListingInvalid": "Cloud listing invalid",

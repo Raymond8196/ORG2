@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "Chi phí"
       },
+      "quota": {
+        "empty": "Chưa có dữ liệu quota. Hãy làm mới mức sử dụng từ Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Khám phá Repos"
       },

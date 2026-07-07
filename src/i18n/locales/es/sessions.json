@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "Costo"
       },
+      "quota": {
+        "empty": "Aún no hay datos de cuota. Actualiza el uso desde Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Semanal",
+          "monthly": "Mensual"
+        }
+      },
       "exploreRepos": {
         "title": "Explorar Repos"
       },

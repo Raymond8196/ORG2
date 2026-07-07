@@ -737,6 +737,18 @@
         "tokens": "Tokens",
         "cost": "Koszt"
       },
+      "quota": {
+        "empty": "Brak danych quota. Odśwież użycie w Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Tygodniowo",
+          "monthly": "Miesięcznie"
+        }
+      },
       "exploreRepos": {
         "title": "Eksploruj Repos"
       },

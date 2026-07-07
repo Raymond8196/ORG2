@@ -179,7 +179,9 @@
       "used": "사용됨",
       "limit": "한도",
       "resetDate": "리셋 날짜",
-      "resets": "{{date}} 리셋"
+      "resets": "{{date}} 리셋",
+      "availableNow": "지금 사용 가능",
+      "nextUsePlusFiveHours": "다음 사용 +5시간"
     },
     "health": {
       "cloudListingInvalid": "클라우드 목록 무효",

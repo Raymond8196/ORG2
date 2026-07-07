@@ -182,7 +182,9 @@
       "used": "Verwendet",
       "limit": "Limit",
       "resetDate": "Zurücksetzungsdatum",
-      "resets": "Zurücksetzung am {{date}}"
+      "resets": "Zurücksetzung am {{date}}",
+      "availableNow": "Jetzt verfügbar",
+      "nextUsePlusFiveHours": "Nächste Nutzung +5 h"
     },
     "health": {
       "cloudListingInvalid": "Cloud-Angebot ungültig",

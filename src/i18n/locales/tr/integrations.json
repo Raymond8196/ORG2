@@ -179,7 +179,9 @@
       "used": "Kullanıldı",
       "limit": "Limit",
       "resetDate": "Sıfırlama Tarihi",
-      "resets": "{{date}} tarihinde sıfırlanır"
+      "resets": "{{date}} tarihinde sıfırlanır",
+      "availableNow": "Şimdi kullanılabilir",
+      "nextUsePlusFiveHours": "Sonraki kullanım +5 sa"
     },
     "health": {
       "cloudListingInvalid": "Bulut listesi geçersiz",

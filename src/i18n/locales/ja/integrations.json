@@ -182,7 +182,9 @@
       "used": "使用済み",
       "limit": "上限",
       "resetDate": "リセット日",
-      "resets": "{{date}} にリセット"
+      "resets": "{{date}} にリセット",
+      "availableNow": "今すぐ利用可",
+      "nextUsePlusFiveHours": "次回使用 +5時間"
     },
     "health": {
       "cloudListingInvalid": "クラウドリスティング無効",

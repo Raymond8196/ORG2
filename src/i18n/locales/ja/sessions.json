@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "コスト"
       },
+      "quota": {
+        "empty": "Quota データはまだありません。Key Vault で使用量を更新してください。",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Repo を探索"
       },

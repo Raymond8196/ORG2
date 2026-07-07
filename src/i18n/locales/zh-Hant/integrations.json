@@ -179,7 +179,9 @@
       "used": "已使用",
       "limit": "限額",
       "resetDate": "重置日期",
-      "resets": "{{date}} 重置"
+      "resets": "{{date}} 重置",
+      "availableNow": "現在可用",
+      "nextUsePlusFiveHours": "下次使用 +5h"
     },
     "health": {
       "cloudListingInvalid": "雲端列表無效",
