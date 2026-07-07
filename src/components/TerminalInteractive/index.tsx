@@ -193,6 +193,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
           cols,
           rows,
           sessionKey,
+          isForeground,
           terminalRef,
           sessionIdRef,
           unlistenOutputRef,
@@ -214,6 +215,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
         sessionKey,
+        isForeground,
         customShellPath,
         shellType,
         shellOverride,

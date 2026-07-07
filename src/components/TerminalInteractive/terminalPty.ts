@@ -14,6 +14,7 @@ import {
   notifyUserInput,
   registerPane,
   scheduleWrite,
+  setPaneForeground,
   unregisterPane,
 } from "./terminalOutputScheduler";
 import type { TerminalViewProps } from "./types";
@@ -58,6 +59,7 @@ interface InitPtyConnectionParams {
   cols: number;
   rows: number;
   sessionKey: string;
+  isForeground: boolean;
   terminalRef: MutableRefObject<Terminal | null>;
   sessionIdRef: MutableRefObject<string | null>;
   unlistenOutputRef: MutableRefObject<(() => void) | null>;
@@ -252,6 +254,7 @@ export async function initPtyConnection({
   cols,
   rows,
   sessionKey,
+  isForeground,
   terminalRef,
   sessionIdRef,
   unlistenOutputRef,
@@ -294,6 +297,7 @@ export async function initPtyConnection({
     // Register this pane with the output scheduler. ACK is handled by the
     // scheduler after it drains chunks — we no longer call ack directly here.
     registerPane(sessionId, terminalWrite);
+    setPaneForeground(sessionId, isForeground);
 
     const unlistenOutput = await listenTauri<PtyOutputPayload>(
       `pty-output-${sessionId}`,
