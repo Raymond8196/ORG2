@@ -30,6 +30,10 @@ export type AddToAgentRequest =
       text: string;
       /** Display label for the pill (e.g. "Terminal (1-12)") */
       displayName?: string;
+      /** 1-based buffer row where the selection starts */
+      lineStart?: number;
+      /** 1-based buffer row where the selection ends */
+      lineEnd?: number;
     }
   | {
       type: "dom-element";
