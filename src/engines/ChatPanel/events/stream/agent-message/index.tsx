@@ -171,8 +171,16 @@ const ChatVariant: React.FC<ChatVariantProps> = ({
   llmUsage,
   eventId,
 }) => {
-  const { payload: canvasPayload, dismiss: _dismissCanvas } =
-    useCanvasPreviewForSession(sessionId);
+  // Canvas preview from the global atom is only relevant for the live
+  // streaming message. Historical (non-streaming) messages already have
+  // their canvas rendered inline via CanvasInlineAdapter in the event list.
+  // Reading the global atom unconditionally caused re-shows: any time a new
+  // round started and openInSimulatorCanvas cleared cardDismissed, every
+  // historical ChatVariant instance would briefly re-render the old canvas.
+  const { payload: streamingCanvasPayload } = useCanvasPreviewForSession(
+    isStreaming ? sessionId : null
+  );
+  const canvasPayload = isStreaming ? streamingCanvasPayload : null;
 
   if (!content && !thinkingContent && !isStreaming && !canvasPayload)
     return null;

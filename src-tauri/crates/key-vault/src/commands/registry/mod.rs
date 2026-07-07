@@ -69,7 +69,9 @@ pub struct AvailableAgent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub docs_url: Option<String>,
     pub has_subscription_plan: bool,
+    pub native_subscription_labels: Vec<String>,
     pub compatible_api_providers: Vec<String>,
+    pub supported_protocols: Vec<String>,
     pub config_files: Vec<CliConfigFile>,
     pub install_methods: Vec<CliInstallMethod>,
     pub uninstall_methods: Vec<CliInstallMethod>,

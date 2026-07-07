@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "コスト"
       },
+      "quota": {
+        "empty": "Quota データはまだありません。Key Vault で使用量を更新してください。",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Repo を探索"
       },
@@ -952,7 +964,30 @@
         "mentioned": "メンション"
       }
     },
-    "readOnly": "読み取り専用"
+    "readOnly": "読み取り専用",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "承認済み",
@@ -2060,7 +2095,11 @@
       "testResultPending": "テスト結果は保留中",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills とツール"
+    "skillsAndTools": "Skills とツール",
+    "agentSpotlightViewMode": "Agent 表示モード",
+    "agentSpotlightListView": "リスト表示",
+    "agentSpotlightCardView": "カード表示",
+    "agentSpotlightCardHint": "←/→ または ↑/↓ で Agent を切り替えます。Enter で選択します。"
   },
   "planner": {
     "tabs": {

@@ -69,7 +69,7 @@
       "title": "账户信息",
       "enable": "启用",
       "authMethod": "认证方式",
-      "oauthLogin": "OAuth（ChatGPT 登录）",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -98,7 +98,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "支持 CLI Agents",
       "compatibleApis": "兼容 API",
-      "noCliAgentSupport": "此服务商不支持 CLI Agent"
+      "noCliAgentSupport": "此服务商不支持 CLI Agent",
+      "accountEmail": "账户邮箱",
+      "organization": "组织"
     },
     "inlineDetailTabs": {
       "info": "信息"
@@ -168,14 +170,22 @@
       "plan": "套餐",
       "premiumRequests": "高级请求",
       "includedRequests": "已含请求",
-      "cursorIncludedRequests": "Auto/Composer 请求配额",
+      "cursorIncludedRequests": "Auto/Composer 配额",
       "quotaUsage": "配额使用",
       "onDemandBudget": "按需预算",
-      "cursorApiUsage": "API/按需用量",
+      "cursorApiUsage": "API 配额",
+      "sessionUsage": "5h 用量",
+      "weeklyUsage": "每周用量",
+      "monthlyUsage": "每月用量",
+      "percentUsed": "已使用 {{percent}}%",
+      "percentLeft": "剩余 {{percent}}%",
+      "refreshUsage": "刷新用量",
       "used": "已使用",
       "limit": "限额",
       "resetDate": "重置日期",
-      "resets": "{{date}} 重置"
+      "resets": "{{date}} 重置",
+      "availableNow": "现在可用",
+      "nextUsePlusFiveHours": "下次使用 +5h"
     },
     "health": {
       "cloudListingInvalid": "云端列表无效",
@@ -457,6 +467,10 @@
     "codexConnected": "Codex 已连接",
     "codexDetectErrorHint": "请使用内嵌浏览器登录，或手动粘贴 OpenAI API key",
     "codexValidationErrorHint": "检查 token 或 API key 是否有效，然后重试",
+    "claudeCodeAutodetectTitle": "检测 Claude Code 会话",
+    "claudeCodeAutodetectDesc": "从 macOS Keychain 或 ~/.claude/.credentials.json 读取本地 Claude Code 登录",
+    "claudeCodeConnected": "Claude Code 已连接",
+    "claudeCodeDetectErrorHint": "请使用内嵌浏览器登录，或运行 claude auth login 后重新检测",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -889,9 +903,12 @@
     "noApiKeys": "此 CLI 不支持自带 API Key",
     "noApiKeysAdded": "尚未添加兼容的 API Key",
     "notSupported": "不支持",
+    "nativeSubscription": "原生订阅",
+    "supportedProtocols": "支持的协议",
+    "addedSubscriptions": "已添加订阅",
     "subscriptions": "订阅",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "兼容 API",
     "docs": "文档",
     "addKey": "添加密钥",
     "compatibleKeys": "兼容的 Keys",
@@ -1687,7 +1704,12 @@
       "keyPreview": "密钥",
       "addedTime": "添加时间",
       "secretBearingConfig": "可能包含 API key 或 Token",
-      "revealConfigFile": "在文件管理器中显示"
+      "revealConfigFile": "在文件管理器中显示",
+      "launchConfiguration": "启动配置",
+      "configFiles": "配置文件",
+      "configFile": "配置文件",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "没有配置内容"
     },
     "codexConfig": {
       "sectionTitle": "配置",
@@ -2615,5 +2637,17 @@
       "completionTokens": "输出 tokens：{{value}}",
       "elapsed": "总耗时：{{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "启动配置",
+    "fullPermission": "完全权限",
+    "manual": "手动",
+    "command": "命令",
+    "environment": "环境变量",
+    "envPlaceholder": "KEY=value，每行一个",
+    "loading": "正在加载启动配置...",
+    "unavailable": "启动配置不可用",
+    "saved": "启动配置已保存",
+    "resetDone": "启动配置已重置"
   }
 }

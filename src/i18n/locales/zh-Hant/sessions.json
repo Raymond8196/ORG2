@@ -733,6 +733,18 @@
         "tokens": "Tokens",
         "cost": "成本"
       },
+      "quota": {
+        "empty": "暫無配額資料。請在 Key Vault 中重新整理用量。",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "探索 Repos"
       },
@@ -956,7 +968,30 @@
         "mentioned": "提及我"
       }
     },
-    "readOnly": "唯讀"
+    "readOnly": "唯讀",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "已批准",
@@ -2064,7 +2099,11 @@
       "testResultPending": "測試結果待定",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills 與工具"
+    "skillsAndTools": "Skills 與工具",
+    "agentSpotlightViewMode": "Agent 檢視模式",
+    "agentSpotlightListView": "列表檢視",
+    "agentSpotlightCardView": "卡片檢視",
+    "agentSpotlightCardHint": "使用 ←/→ 或 ↑/↓ 切換 Agent。按 Enter 選擇。"
   },
   "planner": {
     "tabs": {

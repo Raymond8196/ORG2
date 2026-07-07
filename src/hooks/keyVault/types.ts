@@ -96,6 +96,7 @@ export interface KeyVaultAccount {
 
   // Optional metadata
   description?: string | null;
+  accountMetadata?: Record<string, string>;
   connectedAt?: Date;
 }
 

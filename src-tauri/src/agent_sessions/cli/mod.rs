@@ -13,6 +13,7 @@
 
 pub mod agent_core_bridge;
 pub mod commands;
+pub mod launch_profile_store;
 pub mod parsers;
 pub mod persistence;
 pub mod platform_adapters;

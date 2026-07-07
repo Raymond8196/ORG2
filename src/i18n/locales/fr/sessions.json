@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "Coût"
       },
+      "quota": {
+        "empty": "Aucune donnée de quota pour le moment. Actualisez l'utilisation depuis Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7j",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Hebdo",
+          "monthly": "Mensuel"
+        }
+      },
       "exploreRepos": {
         "title": "Explorer les Repos"
       },
@@ -952,7 +964,30 @@
         "mentioned": "Mentionnés"
       }
     },
-    "readOnly": "Lecture seule"
+    "readOnly": "Lecture seule",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Approuvé",
@@ -2060,7 +2095,11 @@
       "testResultPending": "Résultat de test en attente",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills et outils"
+    "skillsAndTools": "Skills et outils",
+    "agentSpotlightViewMode": "Mode d’affichage des Agents",
+    "agentSpotlightListView": "Vue liste",
+    "agentSpotlightCardView": "Vue carte",
+    "agentSpotlightCardHint": "Utilisez ←/→ ou ↑/↓ pour faire défiler les Agents. Appuyez sur Entrée pour sélectionner."
   },
   "planner": {
     "tabs": {

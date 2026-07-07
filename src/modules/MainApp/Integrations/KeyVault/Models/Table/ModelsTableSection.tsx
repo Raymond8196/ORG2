@@ -330,11 +330,12 @@ export default function ModelsTableSection({
       variant="secondary"
       size="default"
       icon={<Plus size={14} />}
+      iconOnly
       onClick={onAdd}
+      aria-label={t("keyVault.addAccount")}
+      title={t("keyVault.addAccount")}
       data-testid="key-vault-models-add-provider-button"
-    >
-      {t("keyVault.addAccount")}
-    </Button>
+    />
   );
 
   return (

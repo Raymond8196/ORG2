@@ -55,7 +55,9 @@ fn delayed_rewake_allowed(run_id: &str, member_id: &str, status: SessionStatus) 
     }
     let now = Instant::now();
     let key = (run_id.to_string(), member_id.to_string());
-    let mut budgets = rewake_budgets().lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    let mut budgets = rewake_budgets()
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
     let entry = budgets.entry(key).or_insert_with(|| RewakeBudgetEntry {
         attempts: 0,
         next_allowed_at: now,
@@ -323,10 +325,26 @@ mod tests {
     fn delayed_rewake_budget_limits_and_clears_failed_member_retries() {
         let run_id = format!("run-{}", uuid::Uuid::new_v4());
         let member_id = "member-a";
-        assert!(delayed_rewake_allowed(run_id.as_str(), member_id, SessionStatus::Failed));
-        assert!(!delayed_rewake_allowed(run_id.as_str(), member_id, SessionStatus::Failed));
-        assert!(delayed_rewake_allowed(run_id.as_str(), member_id, SessionStatus::Idle));
+        assert!(delayed_rewake_allowed(
+            run_id.as_str(),
+            member_id,
+            SessionStatus::Failed
+        ));
+        assert!(!delayed_rewake_allowed(
+            run_id.as_str(),
+            member_id,
+            SessionStatus::Failed
+        ));
+        assert!(delayed_rewake_allowed(
+            run_id.as_str(),
+            member_id,
+            SessionStatus::Idle
+        ));
         clear_rewake_budget(run_id.as_str(), member_id);
-        assert!(delayed_rewake_allowed(run_id.as_str(), member_id, SessionStatus::Failed));
+        assert!(delayed_rewake_allowed(
+            run_id.as_str(),
+            member_id,
+            SessionStatus::Failed
+        ));
     }
 }

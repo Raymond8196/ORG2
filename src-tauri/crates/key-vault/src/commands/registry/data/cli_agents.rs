@@ -151,7 +151,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
         },
         CliAgentEntry {
             name: "kiro",
-            display_name: "Amazon Kiro",
+            display_name: "Kiro CLI",
             binary: "kiro-cli-chat",
             description: "Amazon's Bedrock-powered AI coding assistant",
             brand_color: "#9046FF",

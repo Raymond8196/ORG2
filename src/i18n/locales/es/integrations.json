@@ -68,7 +68,7 @@
       "title": "Información de la cuenta",
       "enable": "Habilitar",
       "authMethod": "Método de auth",
-      "oauthLogin": "OAuth (ChatGPT Login)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agents",
       "supportCliAgents": "Compatible con CLI Agents",
       "compatibleApis": "APIs Compatibles",
-      "noCliAgentSupport": "Sin soporte de CLI Agent para este proveedor"
+      "noCliAgentSupport": "Sin soporte de CLI Agent para este proveedor",
+      "accountEmail": "Correo de la cuenta",
+      "organization": "Organización"
     },
     "manualModels": {
       "notice": "No se pudieron detectar automáticamente los modelos disponibles desde este proxy. Puede agregar modelos manualmente a continuación o intentar hacer clic en Validate nuevamente.",
@@ -164,14 +166,22 @@
       "plan": "Plan",
       "premiumRequests": "Solicitudes Premium",
       "includedRequests": "Solicitudes incluidas",
-      "cursorIncludedRequests": "Cuota de solicitudes Auto/Composer",
+      "cursorIncludedRequests": "Cuota Auto/Composer",
       "quotaUsage": "Uso de cuota",
       "onDemandBudget": "Presupuesto bajo demanda",
-      "cursorApiUsage": "Uso API/bajo demanda",
+      "cursorApiUsage": "Cuota API",
+      "sessionUsage": "Uso de 5h",
+      "weeklyUsage": "Uso semanal",
+      "monthlyUsage": "Uso mensual",
+      "percentUsed": "{{percent}}% usado",
+      "percentLeft": "{{percent}}% restante",
+      "refreshUsage": "Actualizar uso",
       "used": "Usado",
       "limit": "Límite",
       "resetDate": "Fecha de reinicio",
-      "resets": "Se reinicia el {{date}}"
+      "resets": "Se reinicia el {{date}}",
+      "availableNow": "Disponible ahora",
+      "nextUsePlusFiveHours": "Próximo uso +5 h"
     },
     "health": {
       "cloudListingInvalid": "Listado en la nube inválido",
@@ -453,6 +463,10 @@
     "codexConnected": "Codex conectado",
     "codexDetectErrorHint": "Inicia sesión con el navegador integrado o pega manualmente una API key de OpenAI",
     "codexValidationErrorHint": "Comprueba que el token o la API key sean válidos e inténtalo de nuevo",
+    "claudeCodeAutodetectTitle": "Detectar sesión de Claude Code",
+    "claudeCodeAutodetectDesc": "Lee tu inicio de sesión local de Claude Code desde macOS Keychain o ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code conectado",
+    "claudeCodeDetectErrorHint": "Inicia sesión con el navegador integrado o ejecuta claude auth login y vuelve a detectar",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -885,9 +899,12 @@
     "noApiKeys": "Este CLI no admite API Key propia",
     "noApiKeysAdded": "Aún no se han añadido API Keys compatibles",
     "notSupported": "No soportado",
+    "nativeSubscription": "Suscripción nativa",
+    "supportedProtocols": "Protocolos soportados",
+    "addedSubscriptions": "Suscripciones añadidas",
     "subscriptions": "Suscripciones",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "API compatibles",
     "docs": "Doc",
     "addKey": "Agregar clave",
     "compatibleKeys": "Keys compatibles",
@@ -1666,7 +1683,12 @@
       "keyPreview": "Clave",
       "addedTime": "Añadido",
       "secretBearingConfig": "Puede contener claves API o tokens",
-      "revealConfigFile": "Mostrar en el gestor de archivos"
+      "revealConfigFile": "Mostrar en el gestor de archivos",
+      "launchConfiguration": "Configuración de inicio",
+      "configFiles": "Archivos de configuración",
+      "configFile": "Archivo de configuración",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Sin contenido de configuración"
     },
     "codexConfig": {
       "sectionTitle": "Configuración",
@@ -2562,5 +2584,17 @@
       "completionTokens": "Tokens de salida: {{value}}",
       "elapsed": "Tiempo total: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Perfil de lanzamiento",
+    "fullPermission": "Permiso completo",
+    "manual": "Manual",
+    "command": "Comando",
+    "environment": "Entorno",
+    "envPlaceholder": "KEY=value, uno por línea",
+    "loading": "Cargando perfil de lanzamiento...",
+    "unavailable": "Perfil de lanzamiento no disponible",
+    "saved": "Perfil de lanzamiento guardado",
+    "resetDone": "Perfil de lanzamiento restablecido"
   }
 }

@@ -737,6 +737,18 @@
         "tokens": "Tokens",
         "cost": "Koszt"
       },
+      "quota": {
+        "empty": "Brak danych quota. Odśwież użycie w Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Tygodniowo",
+          "monthly": "Miesięcznie"
+        }
+      },
       "exploreRepos": {
         "title": "Eksploruj Repos"
       },
@@ -966,7 +978,30 @@
         "mentioned": "Wspomniane"
       }
     },
-    "readOnly": "Tylko do odczytu"
+    "readOnly": "Tylko do odczytu",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Zatwierdzone",
@@ -2091,7 +2126,11 @@
       "testResultPending": "Wynik testu oczekuje",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills i narzędzia"
+    "skillsAndTools": "Skills i narzędzia",
+    "agentSpotlightViewMode": "Tryb widoku Agent",
+    "agentSpotlightListView": "Widok listy",
+    "agentSpotlightCardView": "Widok karty",
+    "agentSpotlightCardHint": "Użyj ←/→ lub ↑/↓, aby przełączać Agents. Naciśnij Enter, aby wybrać."
   },
   "planner": {
     "tabs": {

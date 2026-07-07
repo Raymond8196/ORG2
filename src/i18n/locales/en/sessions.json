@@ -760,6 +760,18 @@
         "tokens": "Tokens",
         "cost": "Cost"
       },
+      "quota": {
+        "empty": "No quota data yet. Refresh usage from Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Explore repos"
       },
@@ -983,7 +995,30 @@
         "mentioned": "Mentioned"
       }
     },
-    "readOnly": "Read-only"
+    "readOnly": "Read-only",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Approved",
@@ -2104,7 +2139,11 @@
       "testResultPending": "Test result pending",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills & Tools"
+    "skillsAndTools": "Skills & Tools",
+    "agentSpotlightViewMode": "Agent view mode",
+    "agentSpotlightListView": "List view",
+    "agentSpotlightCardView": "Card view",
+    "agentSpotlightCardHint": "Use ←/→ or ↑/↓ to shuffle agents. Press Enter to select."
   },
   "planner": {
     "tabs": {

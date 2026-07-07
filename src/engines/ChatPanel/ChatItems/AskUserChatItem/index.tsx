@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import Collapse from "@src/components/Collapse";
 import Input from "@src/components/Input";
-import TextArea from "@src/components/Textarea";
+import Textarea from "@src/components/Textarea";
 
 import "./index.scss";
 
@@ -148,7 +148,7 @@ const AskUserChatItem: React.FC<AskUserChatItemProps> = memo(
                         {/* Input field */}
                         {isPending ? (
                           field.type === "textarea" ? (
-                            <TextArea
+                            <Textarea
                               placeholder={
                                 field.placeholder || t("chat.enterYourAnswer")
                               }

@@ -8,6 +8,7 @@ import type { ModelTableVariantInfo } from "@src/components/ModelTable/types";
 import Switch from "@src/components/Switch";
 import Tooltip from "@src/components/Tooltip";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
+import { accountModelIds } from "@src/hooks/models/useModelAccountLookup";
 import {
   applyModelGroupToEnabledSet,
   getModelGroupEnableSummary,
@@ -61,10 +62,7 @@ const AccountModelsInlineSplit: React.FC<AccountModelsInlineSplitProps> = ({
     MODEL_GROUP_SORT_MODE.ENABLED_FIRST
   );
 
-  const availableModels = useMemo(
-    () => account.availableModels ?? [],
-    [account.availableModels]
-  );
+  const availableModels = useMemo(() => accountModelIds(account), [account]);
 
   const groups = useMemo(() => groupModels(availableModels), [availableModels]);
 
@@ -115,22 +113,43 @@ const AccountModelsInlineSplit: React.FC<AccountModelsInlineSplitProps> = ({
 
   const handleToggleGroup = useCallback(
     (group: ModelGroup, checked: boolean) => {
+      const targetModels = [
+        ...new Set(
+          group.models.map(
+            (model) => variantsByModel.get(model)?.base_model ?? model
+          )
+        ),
+      ];
+      const baseAvailableModels = [
+        ...new Set(
+          availableModels.map(
+            (model) => variantsByModel.get(model)?.base_model ?? model
+          )
+        ),
+      ];
       const nextEnabledModels = applyModelGroupToEnabledSet(
         enabledSet,
-        group.models,
-        availableModels,
+        targetModels,
+        baseAvailableModels,
         checked
       );
       commitEnabledModels(nextEnabledModels);
     },
-    [availableModels, commitEnabledModels, enabledSet]
+    [availableModels, commitEnabledModels, enabledSet, variantsByModel]
   );
 
   const handleToggleAllGroups = useCallback(
     (checked: boolean) => {
-      commitEnabledModels(checked ? [...availableModels] : []);
+      const baseAvailableModels = [
+        ...new Set(
+          availableModels.map(
+            (model) => variantsByModel.get(model)?.base_model ?? model
+          )
+        ),
+      ];
+      commitEnabledModels(checked ? baseAvailableModels : []);
     },
-    [availableModels, commitEnabledModels]
+    [availableModels, commitEnabledModels, variantsByModel]
   );
 
   const allModelsSummary = useMemo(

@@ -731,6 +731,18 @@
         "tokens": "Tokens",
         "cost": "Стоимость"
       },
+      "quota": {
+        "empty": "Данных о квоте пока нет. Обновите использование в Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
       "exploreRepos": {
         "title": "Обзор Repos"
       },
@@ -960,7 +972,30 @@
         "mentioned": "Упоминания"
       }
     },
-    "readOnly": "Только чтение"
+    "readOnly": "Только чтение",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Одобрено",
@@ -2073,7 +2108,11 @@
       "testResultPending": "Результат теста ожидается",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills и инструменты"
+    "skillsAndTools": "Skills и инструменты",
+    "agentSpotlightViewMode": "Режим просмотра Agent",
+    "agentSpotlightListView": "Список",
+    "agentSpotlightCardView": "Карточка",
+    "agentSpotlightCardHint": "Используйте ←/→ или ↑/↓, чтобы переключать Agent. Нажмите Enter для выбора."
   },
   "planner": {
     "tabs": {

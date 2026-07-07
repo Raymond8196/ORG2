@@ -1,6 +1,7 @@
 import {
   Check,
   CheckCircle2,
+  ChevronLeft,
   CircleDot,
   Clipboard,
   ExternalLink,
@@ -33,6 +34,9 @@ interface IssueDetailPanelProps {
   commentsLoading: boolean;
   submittingComment: boolean;
   showHeader?: boolean;
+  showBackTitleHeader?: boolean;
+  backLabel?: string;
+  contentPadding?: "default" | "none";
   onClose: () => void;
   onCloseIssue: () => void;
   onReopenIssue: () => void;
@@ -62,9 +66,75 @@ function normalizeGitHubMarkdownBody(body: string): string {
   });
 }
 
-function IssueStateIcon({ isOpen }: { isOpen: boolean }): React.ReactNode {
+export function IssueStateIcon({
+  isOpen,
+}: {
+  isOpen: boolean;
+}): React.ReactNode {
   if (isOpen) return <CircleDot size={14} strokeWidth={1.8} />;
   return <CheckCircle2 size={14} strokeWidth={1.8} />;
+}
+
+export function getIssueStateClassName(issue: GitHubIssue): string {
+  return issue.state === "open" ? "text-success-6" : "text-purple-6";
+}
+
+export function getIssueDetailTitle(issue: GitHubIssue): string {
+  return `#${issue.number} ${issue.title}`;
+}
+
+export function IssueDetailHeaderContent({
+  issue,
+  fallbackTitle,
+}: {
+  issue: GitHubIssue | null;
+  fallbackTitle?: string;
+}): React.ReactNode {
+  if (!issue) {
+    return fallbackTitle ? (
+      <span className="min-w-0 select-text truncate text-[13px] font-medium text-text-1">
+        {fallbackTitle}
+      </span>
+    ) : null;
+  }
+
+  return (
+    <span className="flex min-w-0 flex-1 items-center gap-2">
+      <span className={`shrink-0 ${getIssueStateClassName(issue)}`}>
+        <IssueStateIcon isOpen={issue.state === "open"} />
+      </span>
+      <span className="shrink-0 select-text text-[11px] text-text-3">
+        #{issue.number}
+      </span>
+      <span
+        className="min-w-0 flex-1 select-text truncate text-[13px] font-medium text-text-1"
+        title={issue.title}
+      >
+        {issue.title}
+      </span>
+    </span>
+  );
+}
+
+export function IssueDetailExternalLinkButton({
+  issue,
+  title = "Open on GitHub",
+}: {
+  issue: GitHubIssue;
+  title?: string;
+}): React.ReactNode {
+  return (
+    <Button
+      href={issue.html_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      variant="tertiary"
+      size="small"
+      iconOnly
+      icon={<ExternalLink size={HEADER_ICON_SIZE.sm} strokeWidth={2} />}
+      title={title}
+    />
+  );
 }
 
 function IssueLabelTag({
@@ -149,7 +219,7 @@ function TimelineCard({
 }): React.ReactNode {
   return (
     <span className="bg-surface-1 flex min-w-0 flex-1 flex-col rounded-xl border border-border-1 shadow-sm">
-      <span className="flex min-w-0 items-center justify-between gap-3 border-b border-border-1 px-3 py-2">
+      <span className="flex min-w-0 select-text items-center justify-between gap-3 border-b border-border-1 px-3 py-2">
         {header}
         {copyBody ? <TimelineCopyButton body={copyBody} /> : null}
       </span>
@@ -167,7 +237,7 @@ const IssueMarkdown = memo(function IssueMarkdown({
 }) {
   if (!body.trim()) {
     return (
-      <div className="text-[12px] italic leading-5 text-text-3">
+      <div className="select-text text-[12px] italic leading-5 text-text-3">
         {emptyText}
       </div>
     );
@@ -190,7 +260,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
     commentsLoading,
     submittingComment,
     showHeader = true,
-    onClose: _onClose,
+    showBackTitleHeader = false,
+    backLabel,
+    contentPadding = "default",
+    onClose,
     onCloseIssue,
     onReopenIssue,
     onAddComment,
@@ -198,9 +271,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
     const { t } = useTranslation("common");
     const [commentBody, setCommentBody] = useState("");
     const isOpen = issue.state === "open";
-    const stateClassName = isOpen ? "text-success-6" : "text-purple-6";
     const stateLabel = isOpen ? "Open" : "Closed";
     const timelineItemCount = 1 + comments.length;
+    const horizontalPaddingClass =
+      contentPadding === "default" ? "px-4" : "px-0";
 
     const handleCommentSubmit = useCallback(async () => {
       const body = commentBody.trim();
@@ -210,39 +284,36 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
     }, [commentBody, submittingComment, onAddComment]);
 
     return (
-      <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="flex h-full min-h-0 select-text flex-col overflow-hidden">
         {showHeader && (
           <div className={HEADER_CLASSES.pageHeader}>
-            <span className={`shrink-0 ${stateClassName}`}>
-              <IssueStateIcon isOpen={isOpen} />
-            </span>
-
-            <span className="shrink-0 text-[11px] text-text-3">
-              #{issue.number}
-            </span>
-
-            <span
-              className={`min-w-0 flex-1 truncate ${TYPOGRAPHY.sectionTitle} text-text-1`}
-              title={issue.title}
-            >
-              {issue.title}
-            </span>
-
-            <Button
-              href={issue.html_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              icon={<ExternalLink size={HEADER_ICON_SIZE.sm} strokeWidth={2} />}
-              title="Open on GitHub"
-            />
+            <IssueDetailHeaderContent issue={issue} />
+            <IssueDetailExternalLinkButton issue={issue} />
           </div>
         )}
 
+        {showBackTitleHeader ? (
+          <div className={`shrink-0 ${horizontalPaddingClass}`}>
+            <div className="mx-auto flex w-full max-w-[920px] items-center gap-2 border-b border-border-1 py-2">
+              <Button
+                htmlType="button"
+                variant="tertiary"
+                appearance="ghost"
+                size="mini"
+                icon={<ChevronLeft size={14} strokeWidth={2} />}
+                onClick={onClose}
+              >
+                {backLabel ?? t("actions.back")}
+              </Button>
+              <IssueDetailHeaderContent issue={issue} />
+            </div>
+          </div>
+        ) : null}
+
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
-          <div className="mx-auto flex w-full max-w-[920px] flex-col px-4 py-4">
+          <div
+            className={`mx-auto flex w-full max-w-[920px] flex-col ${horizontalPaddingClass} py-4`}
+          >
             <div className="mb-4 flex min-w-0 flex-col gap-2 border-b border-border-1 pb-4">
               <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[12px] text-text-3">
                 <span
@@ -345,7 +416,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
           </div>
         </div>
 
-        <div className="bg-surface-1 flex-shrink-0 border-t border-border-1 px-4 py-3">
+        <div
+          className={`bg-surface-1 flex-shrink-0 border-t border-border-1 ${horizontalPaddingClass} py-3`}
+        >
           <div className="mx-auto flex w-full max-w-[920px] flex-col gap-2">
             <Textarea
               value={commentBody}

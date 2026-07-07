@@ -9,15 +9,11 @@ import React from "react";
 import {
   getClaudeCodeOAuthModels as fetchClaudeCodeOAuthModels,
   getCodexOAuthModels as fetchCodexOAuthModels,
+  getOAuthModelCatalog,
 } from "@src/api/services/keyValidation";
+import { CLI_AGENT } from "@src/api/tauri/rpc/schemas/validation";
 import { LOCAL_MODEL_PROVIDER } from "@src/api/types/keys";
 import { createLogger } from "@src/hooks/logger";
-import {
-  getClaudeCodeOAuthDefaultEnabledModels,
-  getClaudeCodeOAuthModels,
-  getCodexOAuthDefaultEnabledModels,
-  getCodexOAuthModels,
-} from "@src/hooks/models/nativeHarnessAccountModels";
 
 import { ApiKeyProviderSetup } from "./setup/ApiKeyProviderSetup";
 import { ClaudeCodeSetup } from "./setup/ClaudeCodeSetup";
@@ -128,7 +124,7 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
           onClearTokenError={clearTokenError}
           preselectedMethod={isComplex ? setupMethod : undefined}
           onSessionCaptured={async (values: CodexSessionValues) => {
-            const fallbackModels = getCodexOAuthModels();
+            const catalog = await getOAuthModelCatalog(CLI_AGENT.CODEX);
             let discoveredModels: string[] = [];
             try {
               discoveredModels = await fetchCodexOAuthModels(
@@ -137,21 +133,21 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
               );
             } catch (err) {
               log.warn(
-                "[ApiSetup] Codex OAuth model discovery failed; using fallback models:",
+                "[ApiSetup] Codex OAuth model discovery failed; using Rust catalog:",
                 err
               );
             }
             const codexModels =
-              discoveredModels.length > 0 ? discoveredModels : fallbackModels;
-            const defaultEnabledModels =
-              getCodexOAuthDefaultEnabledModels().filter((modelId) =>
-                codexModels.includes(modelId)
-              );
+              discoveredModels.length > 0 ? discoveredModels : catalog.models;
+            const defaultEnabledModels = catalog.defaultEnabledModels.filter(
+              (modelId) => codexModels.includes(modelId)
+            );
             const enabledModels =
               defaultEnabledModels.length > 0
                 ? defaultEnabledModels
                 : codexModels.slice(0, 1);
             onChange({
+              name: "OpenAI",
               auth_method: "oauth",
               oauth_session_token: values.accessToken,
               raw_key_input: "",
@@ -281,11 +277,13 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
         <ClaudeCodeSetup
           {...sharedProps}
           tokenDetected={tokenDetected}
+          detectingToken={detectingToken}
           tokenError={tokenError}
+          onDetectToken={sharedProps.onAutoDetect ?? (() => {})}
           onClearTokenError={clearTokenError}
           preselectedMethod={isComplex ? setupMethod : undefined}
           onSessionCaptured={async (values: ClaudeCodeSessionValues) => {
-            const fallbackModels = getClaudeCodeOAuthModels();
+            const catalog = await getOAuthModelCatalog(CLI_AGENT.CLAUDE_CODE);
             let discoveredModels: string[] = [];
             try {
               discoveredModels = await fetchClaudeCodeOAuthModels(
@@ -293,16 +291,15 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
               );
             } catch (err) {
               log.warn(
-                "[ApiSetup] Claude Code OAuth model discovery failed; using fallback models:",
+                "[ApiSetup] Claude Code OAuth model discovery failed; using Rust catalog:",
                 err
               );
             }
             const claudeCodeModels =
-              discoveredModels.length > 0 ? discoveredModels : fallbackModels;
-            const defaultEnabledModels =
-              getClaudeCodeOAuthDefaultEnabledModels().filter((modelId) =>
-                claudeCodeModels.includes(modelId)
-              );
+              discoveredModels.length > 0 ? discoveredModels : catalog.models;
+            const defaultEnabledModels = catalog.defaultEnabledModels.filter(
+              (modelId) => claudeCodeModels.includes(modelId)
+            );
             const enabledModels =
               defaultEnabledModels.length > 0
                 ? defaultEnabledModels
@@ -310,6 +307,7 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
             const expiresAt = values.expiresIn
               ? Date.now() + values.expiresIn * 1000
               : undefined;
+            const accountName = "Anthropic";
             const envVars = [
               ...(values.refreshToken
                 ? [
@@ -341,6 +339,8 @@ export const AgentSetupRouter: React.FC<AgentSetupRouterProps> = ({
               oauth_session_token: values.accessToken,
               raw_key_input: "",
               env_vars: envVars,
+              account_metadata: values.accountMetadata ?? {},
+              ...(accountName ? { name: accountName } : {}),
               available_models: claudeCodeModels,
               model_context_lengths: {},
               enabled_models: enabledModels,

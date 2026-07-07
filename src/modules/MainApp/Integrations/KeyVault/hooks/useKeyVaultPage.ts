@@ -33,8 +33,16 @@ const log = createLogger("KeyVaultPage");
 export function useKeyVaultPage() {
   const { t } = useTranslation("integrations");
   const navigate = useNavigate();
-  const { accounts, loading, error, refresh, getAccount, saveKey, deleteKey } =
-    useKeyVault();
+  const {
+    accounts,
+    loading,
+    error,
+    refresh,
+    refreshAccount,
+    getAccount,
+    saveKey,
+    deleteKey,
+  } = useKeyVault();
   const clearStaleSelection = useSetAtom(clearStaleAccountIdAtom);
 
   // State
@@ -129,10 +137,40 @@ export function useKeyVaultPage() {
     [getAccount, refresh, t]
   );
 
+  const handleRefreshAccountUsage = useCallback(
+    async (accountId: string) => {
+      setRefreshingAccountId(accountId);
+      setRefreshLoading(true);
+      try {
+        const account = getAccount(accountId);
+        if (!account) return;
+        const name = account.name || "Account";
+
+        const refreshed = await refreshAccount(accountId, true);
+        if (!refreshed) {
+          throw new Error("Usage refresh failed");
+        }
+        Message.success(t("keyVault.toasts.refreshed", { name }), 5000);
+      } catch (err) {
+        const name = getAccount(accountId)?.name || "Account";
+        const detail = err instanceof Error ? err.message : String(err);
+        Message.error(
+          t("keyVault.toasts.refreshError", { name, error: detail }),
+          5000
+        );
+        log.error("[RefreshUsage] Error:", err);
+      } finally {
+        setRefreshingAccountId(null);
+        setRefreshLoading(false);
+      }
+    },
+    [getAccount, refreshAccount, t]
+  );
+
   const handleRefresh = useCallback(async () => {
     if (!selectedAccountId) return;
-    await handleRefreshAccount(selectedAccountId);
-  }, [handleRefreshAccount, selectedAccountId]);
+    await handleRefreshAccountUsage(selectedAccountId);
+  }, [handleRefreshAccountUsage, selectedAccountId]);
 
   // Second arg (deleteType) is ignored — OSS only deletes local keys.
   const handleDisconnect = useCallback(
@@ -221,6 +259,7 @@ export function useKeyVaultPage() {
     handleAgentTypeFilter: setAgentTypeFilter,
     handleRefresh,
     handleRefreshAccount,
+    handleRefreshAccountUsage,
     refreshingAccountId,
     handleDisconnect,
     handleAddAccount: () => {

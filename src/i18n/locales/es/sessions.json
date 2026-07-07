@@ -729,6 +729,18 @@
         "tokens": "Tokens",
         "cost": "Costo"
       },
+      "quota": {
+        "empty": "Aún no hay datos de cuota. Actualiza el uso desde Key Vault.",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Semanal",
+          "monthly": "Mensual"
+        }
+      },
       "exploreRepos": {
         "title": "Explorar Repos"
       },
@@ -952,7 +964,30 @@
         "mentioned": "Mencionadas"
       }
     },
-    "readOnly": "Solo lectura"
+    "readOnly": "Solo lectura",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Aprobado",
@@ -2060,7 +2095,11 @@
       "testResultPending": "Resultado de prueba pendiente",
       "taskBreadcrumb": "{{attempt}} > {{task}}"
     },
-    "skillsAndTools": "Skills y herramientas"
+    "skillsAndTools": "Skills y herramientas",
+    "agentSpotlightViewMode": "Modo de vista de Agent",
+    "agentSpotlightListView": "Vista de lista",
+    "agentSpotlightCardView": "Vista de tarjeta",
+    "agentSpotlightCardHint": "Usa ←/→ o ↑/↓ para cambiar de Agent. Pulsa Enter para seleccionar."
   },
   "planner": {
     "tabs": {
