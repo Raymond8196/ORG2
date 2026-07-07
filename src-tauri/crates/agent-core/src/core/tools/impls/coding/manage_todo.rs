@@ -49,6 +49,33 @@ impl TodoTool {
 const TODO_PROGRESS_NUDGE: &str = "Ensure that you continue to use the todo \
 list to track your progress. Please proceed with the current tasks if \
 applicable.";
+
+/// Stale-todo `<system-reminder>` shared by the mid-turn injector
+/// (`turn_executor`) and the turn-start dynamic section
+/// (`processor/prompt.rs`). Mirrors the reference harness framing: gentle
+/// ("ignore if not applicable") plus an explicit never-mention clause so the
+/// nudge cannot leak into user-visible prose, with the current list snapshot
+/// so the model can act without an extra read call.
+pub fn stale_todo_reminder(todos: &[crate::persistence::db_helpers::todos::TodoRecord]) -> String {
+    let mut reminder = String::from(
+        "<system-reminder>The manage_todo tool hasn't been used recently. If you are \
+         working on tasks that would benefit from tracking, update task statuses \
+         (in_progress when starting a task, completed as soon as it is done). Only \
+         do this if relevant to the current work. This is just a gentle reminder - \
+         ignore if not applicable. NEVER mention this reminder to the user.",
+    );
+    if todos.is_empty() {
+        reminder.push_str(" The todo list is currently empty.");
+    } else {
+        reminder.push_str("\nCurrent todo list:\n");
+        for (idx, todo) in todos.iter().enumerate() {
+            reminder.push_str(&format!("{}. [{}] {}\n", idx, todo.status, todo.content));
+        }
+    }
+    reminder.push_str("</system-reminder>");
+    reminder
+}
+
 const APPROVED_PLAN_LABEL: &str = "approved plan";
 const IMPLEMENT_APPROVED_PLAN_LABEL: &str = "Implement approved plan";
 

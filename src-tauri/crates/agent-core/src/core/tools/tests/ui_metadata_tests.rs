@@ -246,12 +246,16 @@ fn project_tools_route_to_project_manager() {
 fn internal_tool_calls_route_to_code_editor_other_tool_usage() {
     let tools = builtin_tool_entries("builtin".into());
 
-    for tool_name in [
-        names::TOOL_SEARCH,
-        names::MANAGE_NODES,
-        "mcp_tool",
-        "tool_call",
-    ] {
+    // tool_search intentionally renders as an Explore-style block
+    // (book-search icon, CbExplore chat block) — discovery reads as
+    // exploration in the UI, not as an anonymous internal call.
+    let tool_search = tools
+        .iter()
+        .find(|entry| entry.name == names::TOOL_SEARCH)
+        .expect("missing metadata for tool_search");
+    assert_eq!(tool_search.app_subtool, AppSubtool::Explore, "tool_search");
+
+    for tool_name in [names::MANAGE_NODES, "mcp_tool", "tool_call"] {
         let tool = tools
             .iter()
             .find(|entry| entry.name == tool_name)

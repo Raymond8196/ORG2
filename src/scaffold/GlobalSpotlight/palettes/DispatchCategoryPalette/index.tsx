@@ -36,7 +36,14 @@ import {
 } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import type { OrgMember } from "@src/modules/MainApp/AgentOrgs/types";
 import { useCliAgents } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/hooks/useCliAgents";
-import { CLI_LAUNCH_MODE, type CliLaunchMode } from "@src/store/session";
+import {
+  CLI_LAUNCH_MODE,
+  type CliLaunchMode,
+  cliAgentVisibilityOverridesAtom,
+  isCliAgentEnabled,
+  recentAgentSelectionsAtom,
+  recordRecentAgentSelectionAtom,
+} from "@src/store/session";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 import {
   SESSION_TARGET_KIND,
@@ -44,7 +51,7 @@ import {
 } from "@src/store/session/creatorStateAtom";
 import { invokeTauri } from "@src/util/platform/tauri/init";
 
-import { ManageModelsFooterAction } from "../../components";
+import { ManageAgentsFooterAction } from "../../components";
 import { useAccountFooterForHovered } from "../../hooks";
 import type { BasePaletteProps } from "../../shared";
 import { PaletteBody, ShellFooterAction, SpotlightShell } from "../../shell";
@@ -181,9 +188,12 @@ export const DispatchCategoryPalette: React.FC<
     useState<CliLaunchMode>(CLI_LAUNCH_MODE.GUI);
   const [allOrgs, setAllOrgs] = useState<OrgMember[]>([]);
   const { agents: cliAgentList } = useCliAgents({ enabled: isOpen });
+  const cliVisibilityOverrides = useAtomValue(cliAgentVisibilityOverridesAtom);
   const { accounts } = useKeyVault({ autoLoad: true });
   const { registry } = useAgentCompatibility();
   const setAgentRegistry = useSetAtom(agentRegistryAtom);
+  const recentAgentSelections = useAtomValue(recentAgentSelectionsAtom);
+  const recordRecentAgentSelection = useSetAtom(recordRecentAgentSelectionAtom);
 
   const shouldShowCliOnly =
     cliOnly || cliAgentListFilterMode === CLI_LAUNCH_MODE.TUI;
@@ -232,8 +242,13 @@ export const DispatchCategoryPalette: React.FC<
   }, [isOpen, hideOrgs, setAgentRegistry]);
 
   const installedCliAgents = useMemo(
-    () => cliAgentList.filter((agent) => agent.installed),
-    [cliAgentList]
+    () =>
+      cliAgentList.filter(
+        (agent) =>
+          agent.installed &&
+          isCliAgentEnabled(agent.name, agent.installed, cliVisibilityOverrides)
+      ),
+    [cliAgentList, cliVisibilityOverrides]
   );
 
   useEffect(() => {
@@ -400,6 +415,24 @@ export const DispatchCategoryPalette: React.FC<
     ]
   );
 
+  const recentOptions = useMemo((): AgentOption[] => {
+    return recentAgentSelections.flatMap((selection) => {
+      const option = allOptions.find((candidate) => {
+        if (selection.targetKind === SESSION_TARGET_KIND.AGENT_ORG) {
+          return candidate.agentOrgId === selection.agentOrgId;
+        }
+        if (selection.category === "cli_agent") {
+          return candidate.cliAgentType === selection.cliAgentType;
+        }
+        if (selection.category === "cursor_ide") {
+          return candidate.category === "cursor_ide";
+        }
+        return candidate.agentDefinitionId === selection.agentDefinitionId;
+      });
+      return option ? [option] : [];
+    });
+  }, [allOptions, recentAgentSelections]);
+
   const { filteredItems: filteredOptions } = useFilteredItems({
     items: allOptions,
     searchQuery,
@@ -411,7 +444,7 @@ export const DispatchCategoryPalette: React.FC<
   const isSearching = searchQuery.trim().length > 0;
 
   const optionToItem = useCallback(
-    (option: AgentOption): SpotlightItem => {
+    (option: AgentOption, itemIdPrefix?: string): SpotlightItem => {
       const isCurrent = option.isOrg
         ? currentCategory === "rust_agent" &&
           option.agentOrgId === currentAgentOrgId
@@ -437,13 +470,14 @@ export const DispatchCategoryPalette: React.FC<
         : resolveAgentIcon(option.iconId);
 
       return {
-        id: option.id,
+        id: itemIdPrefix ? `${itemIdPrefix}:${option.id}` : option.id,
         label: option.name,
         desc: option.desc,
         icon,
         type: "action" as const,
         data: {
           isSelector: true,
+          optionId: option.id,
           isCurrentSelection: isCurrent,
           rightContent: option.rightContent,
           testId: option.isOrg
@@ -455,6 +489,13 @@ export const DispatchCategoryPalette: React.FC<
                 : undefined,
         },
         action: () => {
+          recordRecentAgentSelection({
+            category: option.category,
+            targetKind: option.targetKind,
+            agentDefinitionId: option.agentDefinitionId,
+            agentOrgId: option.agentOrgId,
+            cliAgentType: option.cliAgentType,
+          });
           onSelect({
             category: option.category,
             targetKind: option.targetKind,
@@ -475,6 +516,7 @@ export const DispatchCategoryPalette: React.FC<
       currentAgentOrgId,
       currentCliAgentType,
       cliAgentListFilterMode,
+      recordRecentAgentSelection,
       onSelect,
       onClose,
     ]
@@ -482,7 +524,7 @@ export const DispatchCategoryPalette: React.FC<
 
   const items = useMemo((): SpotlightItem[] => {
     if (isSearching) {
-      return filteredOptions.map(optionToItem);
+      return filteredOptions.map((option) => optionToItem(option));
     }
 
     const result: SpotlightItem[] = [];
@@ -503,10 +545,15 @@ export const DispatchCategoryPalette: React.FC<
         action: () => {},
       });
       for (const option of options) {
-        result.push(optionToItem(option));
+        result.push(optionToItem(option, headerId));
       }
     };
 
+    pushGroup(
+      "__header_recent__",
+      tCommon("selectors.labels.recent"),
+      recentOptions
+    );
     if (!shouldShowCliOnly) {
       pushGroup(
         "__header_builtin__",
@@ -536,6 +583,7 @@ export const DispatchCategoryPalette: React.FC<
     isSearching,
     shouldShowCliOnly,
     filteredOptions,
+    recentOptions,
     builtInRustOptions,
     cliOptions,
     externalIdeOptions,
@@ -544,6 +592,7 @@ export const DispatchCategoryPalette: React.FC<
     hideOrgs,
     optionToItem,
     t,
+    tCommon,
   ]);
 
   // ============ KERNEL ============
@@ -591,7 +640,9 @@ export const DispatchCategoryPalette: React.FC<
     hoveredItem,
     resolve: useCallback(
       (item) => {
-        const option = allOptions.find((opt) => opt.id === item.id);
+        const itemData = item.data as Record<string, unknown> | undefined;
+        const optionId = (itemData?.optionId as string | undefined) ?? item.id;
+        const option = allOptions.find((opt) => opt.id === optionId);
         if (!option) return null;
         // Cursor IDE manages its own auth — no ORGII-side accounts
         // are relevant. Returning null keeps the footer empty.
@@ -614,7 +665,7 @@ export const DispatchCategoryPalette: React.FC<
     ),
   });
 
-  const footerAction = <ManageModelsFooterAction onClose={onClose} />;
+  const footerAction = <ManageAgentsFooterAction onClose={onClose} />;
   const inputLeadingSlot = (
     <CliAgentListFilterSwitch
       mode={cliAgentListFilterMode}

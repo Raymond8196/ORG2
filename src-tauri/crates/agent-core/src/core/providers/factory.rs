@@ -309,7 +309,6 @@ fn spec_for_model_type(model_type: &ModelType) -> Option<&'static ProviderSpec> 
         | ModelType::Kiro
         | ModelType::KimiCli
         | ModelType::OrgiiOrchestrator
-        | ModelType::OpenClaude
         | ModelType::Aider
         | ModelType::Goose
         | ModelType::Amp
@@ -320,17 +319,14 @@ fn spec_for_model_type(model_type: &ModelType) -> Option<&'static ProviderSpec> 
         | ModelType::Rovo
         | ModelType::Hermes
         | ModelType::OpenClaw
-        | ModelType::Crush
         | ModelType::Aug
         | ModelType::Codebuff
-        | ModelType::CommandCode
         | ModelType::QwenCode
         | ModelType::MimoCode
         | ModelType::Antigravity
         | ModelType::Continue
         | ModelType::Droid
         | ModelType::MistralVibe
-        | ModelType::Ante
         | ModelType::Autohand
         | ModelType::Omp
         | ModelType::Pi => return None,

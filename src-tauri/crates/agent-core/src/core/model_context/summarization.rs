@@ -53,10 +53,37 @@ Do NOT include pleasantries or conversational filler."#;
 // Message Formatting
 // ============================================
 
+/// Flatten message content to plain text for the summarizer.
+///
+/// Strings pass through unchanged. Block arrays (multimodal messages)
+/// have their text blocks joined and image blocks reduced to an
+/// `[image]` placeholder — the user's words in a text+image message must
+/// reach the summary. Ref: claude_code compact.ts stripImagesFromMessages.
+pub(crate) fn flatten_content_text(content: Option<&Value>) -> String {
+    match content {
+        Some(Value::String(text)) => text.clone(),
+        Some(Value::Array(blocks)) => {
+            let mut parts: Vec<&str> = Vec::new();
+            for block in blocks {
+                if let Some(text) = block.get("text").and_then(Value::as_str) {
+                    parts.push(text);
+                } else {
+                    let block_type = block.get("type").and_then(Value::as_str).unwrap_or("");
+                    if block_type == "image" || block_type == "image_url" {
+                        parts.push("[image]");
+                    }
+                }
+            }
+            parts.join("\n")
+        }
+        _ => String::new(),
+    }
+}
+
 /// Format messages (references) into a readable representation for the summarizer.
 ///
-/// User and assistant text is passed through in full (images are already
-/// excluded upstream — multimodal arrays render as empty strings here).
+/// User and assistant text is passed through in full; multimodal block
+/// arrays are flattened (text preserved, images become `[image]`).
 /// Tool results and tool-call args keep a relaxed cap so one noisy command
 /// dump cannot crowd out the rest of the history.
 pub(crate) fn format_messages_for_summary_refs(messages: &[&Value]) -> String {
@@ -67,10 +94,7 @@ pub(crate) fn format_messages_for_summary_refs(messages: &[&Value]) -> String {
             .get("role")
             .and_then(|val| val.as_str())
             .unwrap_or("unknown");
-        let content = msg
-            .get("content")
-            .and_then(|val| val.as_str())
-            .unwrap_or("");
+        let content = flatten_content_text(msg.get("content"));
 
         match role {
             "user" => {
@@ -96,7 +120,7 @@ pub(crate) fn format_messages_for_summary_refs(messages: &[&Value]) -> String {
                 parts.push(format!(
                     "**Tool result ({}):** {}",
                     tool_name,
-                    truncate_for_summary(content, TOOL_RESULT_SUMMARY_MAX_CHARS)
+                    truncate_for_summary(&content, TOOL_RESULT_SUMMARY_MAX_CHARS)
                 ));
             }
             "system" => {}
@@ -217,7 +241,7 @@ pub(crate) async fn summarize_messages(
                 "properties": {
                     "summary": {
                         "type": "string",
-                        "description": "The concise summary of the conversation"
+                        "description": "The complete, detailed multi-section summary of the conversation in markdown, following the required section structure"
                     }
                 },
                 "required": ["summary"]

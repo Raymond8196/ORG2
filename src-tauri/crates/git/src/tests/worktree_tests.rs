@@ -119,6 +119,42 @@ fn session_branch_name_sanitizes_multiple_invalid_chars() {
 }
 
 // ============================================
+// SessionWorktreeState::has_changes
+// ============================================
+
+#[test]
+fn session_worktree_state_has_changes_matrix() {
+    let base = SessionWorktreeState {
+        worktree_path: std::path::PathBuf::from("/tmp/wt"),
+        branch: "agent/abc".to_string(),
+        worktree_exists: true,
+        dirty: false,
+        commits_ahead_of_base: 0,
+    };
+    assert!(!base.has_changes(), "clean + not ahead must be removable");
+
+    let dirty = SessionWorktreeState {
+        dirty: true,
+        ..base.clone()
+    };
+    assert!(dirty.has_changes(), "dirty worktree must be kept");
+
+    let ahead = SessionWorktreeState {
+        commits_ahead_of_base: 2,
+        ..base.clone()
+    };
+    assert!(ahead.has_changes(), "committed-ahead branch must be kept");
+
+    // A pruned worktree dir with surviving commits still counts as work.
+    let pruned_but_committed = SessionWorktreeState {
+        worktree_exists: false,
+        commits_ahead_of_base: 1,
+        ..base
+    };
+    assert!(pruned_but_committed.has_changes());
+}
+
+// ============================================
 // MergeStrategy::parse
 // ============================================
 

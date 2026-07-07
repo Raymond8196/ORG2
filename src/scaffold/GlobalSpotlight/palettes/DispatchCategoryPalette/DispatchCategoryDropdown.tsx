@@ -155,7 +155,7 @@ export const DispatchCategoryDropdown: React.FC<
   // we drop headers since the grouping no longer holds.
   const items = useMemo((): SpotlightItem[] => {
     if (isSearching) {
-      return filteredOptions.map(optionToItem);
+      return filteredOptions.map((option) => optionToItem(option));
     }
     const result: SpotlightItem[] = [];
     for (const group of groups) {
@@ -169,7 +169,7 @@ export const DispatchCategoryDropdown: React.FC<
         action: () => {},
       });
       for (const option of group.options) {
-        result.push(optionToItem(option));
+        result.push(optionToItem(option, group.headerId));
       }
     }
     return result;

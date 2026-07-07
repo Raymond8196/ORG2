@@ -162,6 +162,23 @@ export async function getCursorNativeModels(
   return models.map((m) => m.modelId);
 }
 
+export interface OAuthModelCatalog {
+  models: string[];
+  defaultEnabledModels: string[];
+}
+
+export async function getOAuthModelCatalog(
+  agentType: string
+): Promise<OAuthModelCatalog> {
+  const catalog = await rpc.validation.oauthModelCatalog({
+    request: { agent_type: agentType },
+  });
+  return {
+    models: catalog.models,
+    defaultEnabledModels: catalog.default_enabled_models,
+  };
+}
+
 export async function getClaudeCodeOAuthModels(
   accessToken: string
 ): Promise<string[]> {

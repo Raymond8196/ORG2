@@ -59,6 +59,25 @@ impl AgentTool {
         ToolPolicyLayer { allow: None, deny }
     }
 
+    /// Layer the parent session's CURRENT exec mode onto a freshly-built
+    /// worker policy.
+    ///
+    /// `parent_policy` is the session's BASE policy captured at init — it
+    /// never carries the per-turn exec-mode deny overlay the parent itself
+    /// runs under (`ResolvedToolPolicy::with_exec_mode` composes that
+    /// per turn). Without re-applying it here, a Plan-mode parent could
+    /// escape its read-only guarantee by delegating writes to
+    /// `builtin:general` (which inherits edit_file/run_shell).
+    pub(super) fn overlay_parent_exec_mode(
+        policy: ResolvedToolPolicy,
+        parent_exec_mode: Option<crate::session::AgentExecMode>,
+    ) -> ResolvedToolPolicy {
+        match parent_exec_mode {
+            Some(mode) => policy.with_exec_mode(mode),
+            None => policy,
+        }
+    }
+
     pub(super) fn build_inherited_policy(&self, agent: &AgentDefinition) -> ResolvedToolPolicy {
         let extra_deny = agent.tools.excluded_tools.clone();
 

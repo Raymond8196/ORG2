@@ -118,18 +118,10 @@ export const AccountInlineStatusSection: React.FC<
     (account.marketHealthStatus === "invalid" ||
       account.marketHealthStatus === "degraded");
 
-  const authMethodValue = (() => {
-    if (account.authMethod === "oauth") {
-      return account.modelType === CLI_AGENT.CURSOR
-        ? t("keyVault.info.oauthSessionCapture")
-        : account.modelType === CLI_AGENT.COPILOT
-          ? t("keyVault.info.oauthGithubPat")
-          : account.modelType === CLI_AGENT.KIRO
-            ? t("keyVault.info.oauthAwsSso")
-            : t("keyVault.info.oauthLogin");
-    }
-    return t("keyVault.info.apiKey");
-  })();
+  const authMethodValue =
+    account.authMethod === "oauth"
+      ? t("keyVault.info.oauthLogin")
+      : t("keyVault.info.apiKey");
 
   const quotaSummary = useMemo(() => {
     if (!showQuota || !account.quotaInfo) return null;
@@ -211,6 +203,11 @@ export const AccountInlineStatusSection: React.FC<
         hour12: false,
       })}`
     : null;
+
+  const accountEmail = account.accountMetadata?.email;
+  const organizationName = account.accountMetadata?.organization_name;
+  const organizationUuid = account.accountMetadata?.organization_uuid;
+  const organizationLabel = organizationName ?? organizationUuid;
 
   const accountUsageRows = (
     <>
@@ -348,6 +345,18 @@ export const AccountInlineStatusSection: React.FC<
               <InfoRow
                 label={t("keyVault.info.connectedAt")}
                 value={connectedAtLabel}
+              />
+            ) : null}
+            {accountEmail ? (
+              <InfoRow
+                label={t("keyVault.info.accountEmail")}
+                value={accountEmail}
+              />
+            ) : null}
+            {organizationLabel ? (
+              <InfoRow
+                label={t("keyVault.info.organization")}
+                value={organizationLabel}
               />
             ) : null}
             {showSessionToken ? (

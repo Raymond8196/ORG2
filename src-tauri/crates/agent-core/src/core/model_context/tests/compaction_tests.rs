@@ -200,6 +200,38 @@ fn needs_compaction_trigger_ratio_lower_fires_earlier() {
     );
 }
 
+#[test]
+fn needs_compaction_default_triggers_at_effective_budget_not_below() {
+    // Pin the removal of the double margin: with the default config the
+    // trigger sits at the effective budget itself (window - 20k - 13k),
+    // not at 0.8× of it. Window 100k → effective budget 67k.
+    let config = default_config();
+    let below = build_history_with_target_tokens(58_000);
+    let below_total = ContextCompactor::estimate_messages_tokens(&below);
+    assert!(
+        below_total > 53_600 && below_total < 67_000,
+        "fixture must land between the old 0.8 threshold and the budget, got {}",
+        below_total
+    );
+    assert!(
+        !ContextCompactor::needs_compaction(&below, 100_000, &config),
+        "history at {} tokens (old 0.8 band) must not trigger anymore",
+        below_total
+    );
+
+    let above = build_history_with_target_tokens(75_000);
+    let above_total = ContextCompactor::estimate_messages_tokens(&above);
+    assert!(
+        above_total > 67_000,
+        "fixture must exceed the effective budget"
+    );
+    assert!(
+        ContextCompactor::needs_compaction(&above, 100_000, &config),
+        "history at {} tokens must trigger past the effective budget",
+        above_total
+    );
+}
+
 // -- is_oversized --
 
 #[test]
@@ -453,6 +485,40 @@ fn format_messages_skips_system() {
     assert!(formatted.is_empty());
 }
 
+#[test]
+fn format_messages_preserves_text_of_multimodal_user_message() {
+    // Array-content messages (text + image blocks) must keep their text
+    // in the summarizer input; images become an "[image]" placeholder.
+    let msgs = [json!({
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "fix the crash shown in this screenshot"},
+            {"type": "image_url", "image_url": {"url": "data:image/png;base64,AAAA"}}
+        ]
+    })];
+    let refs: Vec<&Value> = msgs.iter().collect();
+    let formatted = summarization::format_messages_for_summary_refs(&refs);
+    assert!(formatted.contains("fix the crash shown in this screenshot"));
+    assert!(formatted.contains("[image]"));
+    assert!(!formatted.contains("base64"));
+}
+
+#[test]
+fn format_messages_flattens_multimodal_tool_result() {
+    let msgs = [json!({
+        "role": "tool",
+        "name": "screenshot",
+        "content": [
+            {"type": "text", "text": "captured window"},
+            {"type": "image", "source": {"type": "base64", "data": "BBBB"}}
+        ]
+    })];
+    let refs: Vec<&Value> = msgs.iter().collect();
+    let formatted = summarization::format_messages_for_summary_refs(&refs);
+    assert!(formatted.contains("captured window"));
+    assert!(formatted.contains("[image]"));
+}
+
 // -- format_tool_calls --
 
 #[test]
@@ -482,9 +548,12 @@ fn format_tool_calls_no_tool_calls() {
 fn compaction_config_defaults() {
     let config = CompactionConfig::default();
     assert!(config.enabled);
-    assert!((config.trigger_ratio - 0.8).abs() < f32::EPSILON);
+    // No double margin: the effective budget already carves out the
+    // summary reserve + buffer, so the default ratio is 1.0.
+    assert!((config.trigger_ratio - 1.0).abs() < f32::EPSILON);
     assert!((config.keep_ratio - 0.4).abs() < f32::EPSILON);
-    assert_eq!(config.summary_max_tokens, 4096);
+    // Sized to the 20k summary reserve (CC parity), not 4k.
+    assert_eq!(config.summary_max_tokens, 20_000);
     assert_eq!(config.min_messages, 8);
     assert_eq!(config.floor_tokens, 16_000);
     assert_eq!(config.reserved_summary_tokens, 20_000);
@@ -718,9 +787,10 @@ fn needs_compaction_observed_triggers_on_real_usage_despite_low_estimate() {
     assert!(!ContextCompactor::needs_compaction(
         &history, 1_000_000, &config
     ));
-    // …but the provider measured the real prompt above the trigger.
+    // …but the provider measured the real prompt above the trigger
+    // (threshold = effective_budget = 1M - 20k - 13k = 967k).
     assert!(ContextCompactor::needs_compaction_observed(
-        &history, 1_000_000, &config, 950_000
+        &history, 1_000_000, &config, 980_000
     ));
 }
 
@@ -734,11 +804,29 @@ fn needs_compaction_observed_zero_falls_back_to_estimate() {
 }
 
 #[test]
-fn needs_compaction_observed_respects_min_messages() {
+fn needs_compaction_observed_bypasses_min_messages_gate() {
+    // A handful of enormous messages: provider-measured fill above the
+    // threshold must trigger even below min_messages, or every turn eats
+    // a PTL rejection instead of pre-turn compacting.
     let config = default_config();
     let history = vec![user_msg("a"), assistant_msg("b")];
+    assert!(history.len() < config.min_messages);
+    assert!(ContextCompactor::needs_compaction_observed(
+        &history, 1_000_000, &config, 980_000
+    ));
+}
+
+#[test]
+fn needs_compaction_observed_estimate_path_respects_min_messages() {
+    // Without a provider-measured fill, tiny histories stay gated even
+    // when the local estimate exceeds the threshold.
+    let mut config = default_config();
+    config.reserved_summary_tokens = 0;
+    config.buffer_tokens = 0;
+    let history = vec![user_msg(&"x".repeat(4000)), assistant_msg("b")];
+    assert!(ContextCompactor::estimate_messages_tokens(&history) > 100);
     assert!(!ContextCompactor::needs_compaction_observed(
-        &history, 1_000_000, &config, 950_000
+        &history, 100, &config, 0
     ));
 }
 
@@ -785,6 +873,8 @@ async fn compact_does_not_skip_between_trigger_and_full_budget() {
     // History estimated between 80% and 100% of the budget: the old skip
     // check (estimate <= budget) silently no-opped here even though
     // needs_compaction had fired — the exact silent-spin observed live.
+    // Uses an explicit 0.8 ratio so the trigger/full-budget band exists
+    // (the default ratio is now 1.0, which collapses the band).
     let big = "x".repeat(400);
     let mut history: Vec<Value> = vec![user_msg("task statement")];
     for _ in 0..40 {
@@ -795,7 +885,8 @@ async fn compact_does_not_skip_between_trigger_and_full_budget() {
         // estimate ≈ 90% of budget → above 80% trigger, below full budget.
         estimate * 10 / 9
     };
-    let config = default_config();
+    let mut config = default_config();
+    config.trigger_ratio = 0.8;
     let mut state = CompactionState::default();
     let provider = SummaryProvider;
 

@@ -46,6 +46,10 @@ type AgentRow = AgentDefinition & {
 };
 
 const CATEGORY_FILTER_ID = "category";
+const AGENTS_TABLE_COL_WIDTH = {
+  category: SETTINGS_TABLE_COL.valueMd,
+  actions: "132px",
+} as const;
 
 function toTabData(agent: AgentRow): AgentConfigTabData {
   return {
@@ -142,7 +146,7 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
       {
         key: "category",
         label: t("agentOrgs.agentDetail.type", { defaultValue: "Type" }),
-        width: SETTINGS_TABLE_COL.valueMd,
+        width: AGENTS_TABLE_COL_WIDTH.category,
         sorter: (rowA, rowB) => rowA.__category.localeCompare(rowB.__category),
         renderCell: (row) => (
           <span className={SETTINGS_TABLE_CELL.value}>
@@ -158,7 +162,7 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
         width: SETTINGS_TABLE_COL.fill,
         renderCell: (row) => (
           <span
-            className={`${SETTINGS_TABLE_CELL.muted} block max-w-[min(48vw,640px)] truncate`}
+            className={`${SETTINGS_TABLE_CELL.muted} block w-0 min-w-full max-w-full truncate`}
             title={row.description ?? undefined}
           >
             {row.description ?? ""}
@@ -172,7 +176,7 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
             {t("common:labels.actions", { defaultValue: "Actions" })}
           </span>
         ),
-        width: SETTINGS_TABLE_COL.hug,
+        width: AGENTS_TABLE_COL_WIDTH.actions,
         align: "right",
         renderCell: (row) => (
           <div
@@ -263,6 +267,7 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
       rowDataTestId={(row) => `agent-orgs-agent-row-${row.id}`}
       onRowClick={handleView}
       headerHeight="tall"
+      className="table-layout-fixed"
       searchBar={{
         searchValue: searchQuery,
         onSearchChange: setSearchQuery,

@@ -49,7 +49,9 @@ const ALWAYS_ON_THINKING_PAD_TOKENS: u32 = 2048;
 /// The Anthropic request quad produced by [`build_thinking_params`].
 pub(super) struct ThinkingOutcome {
     pub thinking: Option<Value>,
-    /// Top-level `effort` (sibling of `thinking`) for adaptive/4.6 modes.
+    /// Effort value for adaptive/4.6 modes. The request builder nests it
+    /// into `output_config.effort` (Claude Code OAuth rejects the legacy
+    /// top-level `effort` field).
     pub effort: Option<String>,
     pub temperature: Option<f32>,
     pub max_tokens: u32,
@@ -66,6 +68,7 @@ pub(super) struct ThinkingOutcome {
 pub(super) fn build_thinking_params(
     base_model: &str,
     level: Option<ReasoningLevel>,
+    force_thinking: bool,
     directive: ThinkingDirective,
     caps: &ModelCapabilities,
     max_tokens: u32,
@@ -106,7 +109,11 @@ pub(super) fn build_thinking_params(
             }
         }
         ThinkingDirective::Auto => {
-            let thinking = anthropic_thinking_param(mode, level, max_tokens);
+            let thinking = if force_thinking {
+                anthropic_thinking_param(mode, level, max_tokens)
+            } else {
+                None
+            };
             let effort = anthropic_effort(mode, level).map(str::to_string);
             let floor = anthropic_max_tokens_floor(mode, level, max_tokens);
             // AlwaysOn adaptive (mythos): thinking is obligatory, make sure
@@ -163,6 +170,7 @@ mod tests {
         let o = build_thinking_params(
             "claude-3-5-haiku",
             None,
+            true,
             ThinkingDirective::Auto,
             &caps(ThinkingSupport::No),
             4096,
@@ -179,6 +187,7 @@ mod tests {
         let o = build_thinking_params(
             "claude-opus-4-8",
             Some(ReasoningLevel::High),
+            true,
             ThinkingDirective::Auto,
             &caps(ThinkingSupport::Optional),
             8192,
@@ -197,10 +206,27 @@ mod tests {
     }
 
     #[test]
+    fn adaptive_effort_variant_without_thinking_omits_thinking_param() {
+        let o = build_thinking_params(
+            "claude-opus-4-8",
+            Some(ReasoningLevel::High),
+            false,
+            ThinkingDirective::Auto,
+            &caps(ThinkingSupport::Optional),
+            8192,
+            0.7,
+        );
+        assert!(o.thinking.is_none());
+        assert_eq!(o.effort.as_deref(), Some("high"));
+        assert!(o.temperature.is_none());
+    }
+
+    #[test]
     fn adaptive_baseline_sends_no_effort() {
         let o = build_thinking_params(
             "claude-opus-4-8",
             Some(ReasoningLevel::Baseline),
+            true,
             ThinkingDirective::Auto,
             &caps(ThinkingSupport::Optional),
             8192,
@@ -215,6 +241,7 @@ mod tests {
         let o = build_thinking_params(
             "claude-opus-4-6",
             Some(ReasoningLevel::ExtraHigh),
+            true,
             ThinkingDirective::Auto,
             &caps(ThinkingSupport::Optional),
             8192,
@@ -229,6 +256,7 @@ mod tests {
         let o = build_thinking_params(
             "claude-opus-4-5",
             Some(ReasoningLevel::High),
+            true,
             ThinkingDirective::Auto,
             &caps(ThinkingSupport::Optional),
             8192,
@@ -249,6 +277,7 @@ mod tests {
         let o = build_thinking_params(
             "claude-opus-4-5",
             None,
+            true,
             ThinkingDirective::Auto,
             &caps(ThinkingSupport::Optional),
             8192,
@@ -262,6 +291,7 @@ mod tests {
         let o = build_thinking_params(
             "claude-opus-4-5",
             None,
+            true,
             ThinkingDirective::PlainText,
             &caps(ThinkingSupport::Optional),
             1024,
@@ -277,6 +307,7 @@ mod tests {
         let o = build_thinking_params(
             "claude-mythos",
             None,
+            true,
             ThinkingDirective::PlainText,
             &caps(ThinkingSupport::AlwaysOn),
             1024,
@@ -294,6 +325,7 @@ mod tests {
         let o = build_thinking_params(
             "claude-opus-4-8",
             Some(ReasoningLevel::High),
+            true,
             ThinkingDirective::PlainText,
             &caps(ThinkingSupport::Optional),
             1024,

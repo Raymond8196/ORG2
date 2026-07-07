@@ -55,7 +55,7 @@ export const AppGridIcon: React.FC<AppGridIconProps> = ({
 }) => {
   const { t } = useTranslation();
   const IconComponent = app.icon;
-  const appLabel = t(app.labelKey);
+  const appLabel = app.labelKey.includes(":") ? t(app.labelKey) : app.labelKey;
 
   return (
     <motion.div

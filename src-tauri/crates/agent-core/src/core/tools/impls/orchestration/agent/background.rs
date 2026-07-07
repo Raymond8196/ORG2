@@ -20,7 +20,6 @@ use crate::tools::policy::ResolvedToolPolicy;
 use crate::tools::registry::ToolRegistry;
 use crate::turn_executor::{self, TurnConfig};
 use core_types::workflow::LinkedSessionStatus;
-use git;
 
 /// Inputs for `spawn_background_subagent`. Bundled into a struct because
 /// passing 13 individual params hits clippy's `too_many_arguments`.
@@ -170,6 +169,31 @@ impl AgentTool {
             // Cancelled, not Completed, for the LinkedSession write-back.
             // The registry status is already `Killed` (sticky in mark_exited).
             let was_cancelled = turn_cancel_flag.load(std::sync::atomic::Ordering::SeqCst);
+
+            // Worktree disposition BEFORE the result is finalized, so a kept
+            // worktree's location rides inside the stored final result (and
+            // survives the Background Jobs reminder's head-truncation). Runs
+            // before the grace-period retention loop below, so `await_output`
+            // callers see the disposition outcome too.
+            let kept_worktree = match worktree_workspace_root {
+                Some(workspace_root) => {
+                    let base_branch = crate::session::persistence::get_session(&bg_session_id)
+                        .ok()
+                        .flatten()
+                        .and_then(|record| record.base_branch);
+                    super::helpers::dispose_worktree_after_run(
+                        super::helpers::WorktreeCleanup {
+                            workspace_root,
+                            base_branch,
+                        },
+                        &bg_session_id,
+                        "agent:bg",
+                    )
+                    .await
+                }
+                None => None,
+            };
+
             match turn_result {
                 Ok(result) => {
                     let resp = result.content.or_else(|| {
@@ -196,6 +220,10 @@ impl AgentTool {
                     } else {
                         resp
                     };
+                    let resp = super::helpers::with_full_result_pointer(
+                        &bg_session_id,
+                        super::helpers::prepend_worktree_note(resp, kept_worktree.as_ref()),
+                    );
                     broadcasting_handler.broadcast_complete();
                     // broadcast_complete stamps the child row `completed`;
                     // a cooperative kill must read `cancelled` instead, or
@@ -255,6 +283,7 @@ impl AgentTool {
                          resume_session_id=\"{}\" to continue from it.",
                         bg_session_id
                     ));
+                    let msg = super::helpers::prepend_worktree_note(msg, kept_worktree.as_ref());
                     broadcasting_handler.broadcast_error();
                     job_registry::set_final_result(&bg_session_id, msg.clone());
                     job_registry::mark_exited(&bg_session_id, job_registry::JobStatus::Failed);
@@ -286,24 +315,6 @@ impl AgentTool {
             // Claude Code's task-notification → idle-queue-processor design.
             crate::tools::impls::orchestration::subagent_wake::current_subagent_completion_wake_hook()
                 .wake_parent(&bg_parent_session_id);
-
-            // Clean up worktree isolation after the task completes.
-            // Runs before the grace-period sleep so `await_output` callers
-            // see the result before the disk is cleaned up, and the worktree
-            // does not accumulate across sessions.
-            if let Some(workspace_root) = worktree_workspace_root {
-                let wt_session_id = bg_session_id.clone();
-                let wt_result = tokio::task::spawn_blocking(move || {
-                    git::worktree::remove_session_worktree(&workspace_root, &wt_session_id, true)
-                })
-                .await;
-                if let Ok(Err(err)) = wt_result {
-                    warn!(
-                        "[agent:bg] failed to remove isolation worktree for '{}' after task completion: {}",
-                        bg_session_id, err
-                    );
-                }
-            }
 
             // Remove from registry once the parent has consumed the result,
             // or after a hard cap if it never does.

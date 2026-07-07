@@ -53,7 +53,11 @@ impl LLMProvider for AnthropicClient {
         let mut auth_retry_used = false;
         let mut temp_retry_used = false;
         let body = loop {
-            let req = apply_headers(self, self.client.post(&prepared.url));
+            let req = apply_headers(
+                self,
+                &prepared.resolved_model,
+                self.client.post(&prepared.url),
+            );
             let response = req
                 .json(&prepared.body)
                 .send()
@@ -82,6 +86,20 @@ impl LLMProvider for AnthropicClient {
 
             if status != 200 {
                 let classification = classify_error(status, &body, Some(&headers), retry_after);
+
+                // 403 "OAuth token has been revoked": another process rotated
+                // the token server-side. Force one refresh and retry with the
+                // fresh token; if the refresh fails, the AuthError propagates
+                // and fails fast (no blind status-based retries).
+                if super::errors::is_oauth_token_revoked(status, &body)
+                    && self.auth_mode == super::client::AnthropicAuthMode::ClaudeOauth
+                    && !auth_retry_used
+                {
+                    warn!("[anthropic] Claude OAuth token revoked (403); refreshing and retrying once");
+                    self.refresh_auth_after_local_expiry().await?;
+                    auth_retry_used = true;
+                    continue;
+                }
 
                 // Self-healing temperature deprecation: the model rejected the
                 // `temperature` param. Record it so all future requests omit it,
@@ -114,7 +132,12 @@ impl LLMProvider for AnthropicClient {
                     prepared.url,
                     safe_truncate_utf8(&body, 500)
                 );
-                return Err(parse_error(status, &body, classification.retry_after_secs));
+                return Err(parse_error(
+                    status,
+                    &body,
+                    classification.retry_after_secs,
+                    classification.should_retry,
+                ));
             }
 
             self.clear_claude_oauth_upstream_health();
@@ -158,7 +181,11 @@ impl LLMProvider for AnthropicClient {
         let mut auth_retry_used = false;
         let mut temp_retry_used = false;
         let response = loop {
-            let req = apply_headers(self, self.client.post(&prepared.url));
+            let req = apply_headers(
+                self,
+                &prepared.resolved_model,
+                self.client.post(&prepared.url),
+            );
             let send_future = req.json(&prepared.body).send();
             let response = if let Some(flag) = cancel_flag {
                 tokio::select! {
@@ -204,6 +231,19 @@ impl LLMProvider for AnthropicClient {
                 let body = crate::utils::response_text_or_read_error(response).await;
                 let classification = classify_error(status, &body, Some(&headers), retry_after);
 
+                // 403 "OAuth token has been revoked": force one refresh and
+                // retry with the fresh token; a failed refresh propagates as
+                // AuthError and fails fast (see the non-streaming twin above).
+                if super::errors::is_oauth_token_revoked(status, &body)
+                    && self.auth_mode == super::client::AnthropicAuthMode::ClaudeOauth
+                    && !auth_retry_used
+                {
+                    warn!("[anthropic] Claude OAuth token revoked (403) before stream; refreshing and retrying once");
+                    self.refresh_auth_after_local_expiry().await?;
+                    auth_retry_used = true;
+                    continue;
+                }
+
                 // Self-healing temperature deprecation: learn it and retry this
                 // stream once without `temperature` so the user never sees a
                 // reconnect for a deterministic, fixable 400.
@@ -235,7 +275,12 @@ impl LLMProvider for AnthropicClient {
                     prepared.resolved_model,
                     safe_truncate_utf8(&body, 1000)
                 );
-                return Err(parse_error(status, &body, classification.retry_after_secs));
+                return Err(parse_error(
+                    status,
+                    &body,
+                    classification.retry_after_secs,
+                    classification.should_retry,
+                ));
             }
 
             self.clear_claude_oauth_upstream_health();
@@ -419,7 +464,9 @@ impl LLMProvider for AnthropicClient {
             },
             blocks,
             stream_error_kind: state.stream_error_kind,
-            retry_after_ms: None,
+            // Provider retry floor parsed from an SSE error frame (if any) —
+            // the in-stream retry loop honors it over its exponential default.
+            retry_after_ms: state.retry_after_ms,
         })
     }
 
@@ -498,6 +545,10 @@ fn build_non_streaming_response(parsed: MessagesResponse) -> LLMResponse {
         // Map `max_tokens` to the unified LENGTH value so the turn
         // executor's truncation recovery fires (see stream_parser.rs).
         Some("max_tokens") => finish::LENGTH,
+        // Context-window truncation is the same "response was cut off"
+        // situation as max_tokens — route it into the LENGTH recovery path
+        // instead of treating the cut as a normal completion.
+        Some("model_context_window_exceeded") => finish::LENGTH,
         // Refusal / content-safety stop: empty body. Map to CONTENT_FILTER so
         // the turn executor's empty-response fail-safe emits a visible notice.
         Some("refusal") => finish::CONTENT_FILTER,

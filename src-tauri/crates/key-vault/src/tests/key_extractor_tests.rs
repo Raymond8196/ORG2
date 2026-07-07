@@ -132,15 +132,15 @@ https://random-proxy.com/openai/v1"#;
 }
 
 #[test]
-fn test_scoring_claude_proxy_with_hongmacode() {
+fn test_scoring_claude_proxy_with_neutral_proxy() {
     let input = r#"sk_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-https://www.hongmacode.com/guide
-https://proxy.hongmacode.com/api/v1"#;
+https://docs.example-claude-proxy.test/guide
+https://api.example-claude-proxy.test/api/v1"#;
 
     let result = extract_keys(input, Some("claude_code"));
     assert_eq!(
         result.base_url,
-        Some("https://proxy.hongmacode.com/api/v1".to_string())
+        Some("https://api.example-claude-proxy.test/api/v1".to_string())
     );
 }
 
@@ -247,16 +247,16 @@ https://proxy.example.com/api/v1/mistral"#;
 }
 
 #[test]
-fn test_claude_hongmacode_input() {
-    let input = "3178873309230105891Claude Key 100刀额度/月k100刀额度卡5_7:KEY：sk_34833534254448814f824897a9098e64bec87df0b329e2868320f77f88ec4544\n教程请查看https://hongmacode.com/admin-next/api-stats；\n环境变量中配置 ANTHROPIC_BASE_URL = \"https://hongmacode.com/api\"";
+fn test_claude_neutral_proxy_input() {
+    let input = "3178873309230105891Claude Key 100 credit/month card:KEY：sk_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\n教程请查看https://example-claude-proxy.test/admin-next/api-stats；\n环境变量中配置 ANTHROPIC_BASE_URL = \"https://example-claude-proxy.test/api\"";
 
     let result = extract_keys(input, Some("claude_code"));
-    insta::assert_yaml_snapshot!("claude_hongmacode", result);
+    insta::assert_yaml_snapshot!("claude_neutral_proxy", result);
 
     let stats_score = score_url(
-        "https://hongmacode.com/admin-next/api-stats",
+        "https://example-claude-proxy.test/admin-next/api-stats",
         Some("claude_code"),
     );
-    let api_score = score_url("https://hongmacode.com/api", Some("claude_code"));
+    let api_score = score_url("https://example-claude-proxy.test/api", Some("claude_code"));
     assert!(api_score > stats_score);
 }

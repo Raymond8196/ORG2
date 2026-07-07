@@ -5,6 +5,8 @@
 export interface TerminalSelectionInfo {
   text: string;
   position: { x: number; y: number };
+  lineStart?: number;
+  lineEnd?: number;
 }
 
 /** Methods exposed via ref for terminal search */
@@ -52,6 +54,8 @@ export interface TerminalFileLinkTarget {
 
 export interface TerminalViewProps {
   sessionKey: string;
+  /** Whether this terminal is the active visible pane. */
+  isForeground?: boolean;
   /** Callback when text is selected in the terminal */
   onSelectionChange?: (selection: TerminalSelectionInfo | null) => void;
   /** Callback when terminal receives output */

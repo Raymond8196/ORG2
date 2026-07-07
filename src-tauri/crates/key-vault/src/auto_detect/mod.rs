@@ -32,6 +32,7 @@ pub struct DetectedKey {
     pub session_token: Option<String>,
     pub base_url: Option<String>,
     pub env_vars: Option<std::collections::HashMap<String, String>>,
+    pub account_metadata: Option<std::collections::HashMap<String, String>>,
     pub available_models: Option<Vec<String>>,
     pub quota_info: Option<QuotaInfo>,
     pub validated: Option<bool>,

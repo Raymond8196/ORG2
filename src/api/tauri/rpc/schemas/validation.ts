@@ -20,7 +20,6 @@ export const CLI_AGENT = {
   KIRO: "kiro",
   KIMI: "kimi_cli",
   OPENCODE: "opencode",
-  OPENCLAUDE: "openclaude",
   AIDER: "aider",
   GOOSE: "goose",
   AMP: "amp",
@@ -31,17 +30,14 @@ export const CLI_AGENT = {
   ROVO: "rovo",
   HERMES: "hermes",
   OPENCLAW: "openclaw",
-  CRUSH: "crush",
   AUG: "aug",
   CODEBUFF: "codebuff",
-  COMMAND_CODE: "command_code",
   QWEN_CODE: "qwen_code",
   MIMO_CODE: "mimo_code",
   ANTIGRAVITY: "antigravity",
   CONTINUE: "continue_cli",
   DROID: "droid",
   MISTRAL_VIBE: "mistral_vibe",
-  ANTE: "ante",
   AUTOHAND: "autohand",
   OMP: "omp",
   PI: "pi",
@@ -57,7 +53,6 @@ export const CliAgentTypeSchema = z.union([
   z.literal("kiro"),
   z.literal("kimi_cli"),
   z.literal("opencode"),
-  z.literal("openclaude"),
   z.literal("aider"),
   z.literal("goose"),
   z.literal("amp"),
@@ -68,17 +63,14 @@ export const CliAgentTypeSchema = z.union([
   z.literal("rovo"),
   z.literal("hermes"),
   z.literal("openclaw"),
-  z.literal("crush"),
   z.literal("aug"),
   z.literal("codebuff"),
-  z.literal("command_code"),
   z.literal("qwen_code"),
   z.literal("mimo_code"),
   z.literal("antigravity"),
   z.literal("continue_cli"),
   z.literal("droid"),
   z.literal("mistral_vibe"),
-  z.literal("ante"),
   z.literal("autohand"),
   z.literal("omp"),
   z.literal("pi"),
@@ -234,6 +226,7 @@ export const KeyInfoSchema = z.object({
   protocol: ProviderProtocolSchema.nullable().optional(),
   env_vars: z.array(z.string()),
   env_vars_masked: z.record(z.string(), z.string()),
+  account_metadata: z.record(z.string(), z.string()).optional().default({}),
   available_models: z.array(z.string()),
   enabled_models: z.array(z.string()),
   model_aliases: z.array(ModelAliasInfoSchema).optional(),
@@ -272,6 +265,7 @@ export const FullKeyResponseSchema = z.object({
   base_url: z.string().nullable(),
   protocol: ProviderProtocolSchema.nullable().optional(),
   env_vars: z.record(z.string(), z.string()),
+  account_metadata: z.record(z.string(), z.string()).optional().default({}),
   available_models: z.array(z.string()),
   model_aliases: z.array(ModelAliasInfoSchema).optional(),
   model_variants: z.array(ModelVariantInfoSchema).optional(),
@@ -289,6 +283,7 @@ export const SaveKeyRequestSchema = z.object({
   base_url: z.string().optional(),
   protocol: ProviderProtocolSchema.optional(),
   env_vars: z.record(z.string(), z.string()).optional(),
+  account_metadata: z.record(z.string(), z.string()).optional(),
   available_models: z.array(z.string()).optional(),
   enabled_models: z.array(z.string()).optional(),
   model_aliases: z.array(ModelAliasInfoSchema).optional(),
@@ -324,6 +319,7 @@ export const DetectedKeySchema = z.object({
   session_token: z.string().optional(),
   base_url: z.string().optional(),
   env_vars: z.record(z.string(), z.string()).optional(),
+  account_metadata: z.record(z.string(), z.string()).optional(),
   available_models: z.array(z.string()).optional(),
   quota_info: DetectedQuotaInfoSchema.optional(),
   validated: z.boolean().optional(),
@@ -359,6 +355,22 @@ export const AcpSupportSchema = z.enum([
   "unavailable",
 ]);
 
+export const CliConfigFileFormatSchema = z.enum([
+  "json",
+  "jsonc",
+  "toml",
+  "yaml",
+  "text",
+]);
+
+export const CliConfigFileSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  path: z.string(),
+  format: CliConfigFileFormatSchema,
+  secretBearing: z.boolean(),
+});
+
 /** Matches `AvailableAgent` in `src-tauri/.../discovery.rs` (camelCase JSON). */
 export const AvailableAgentSchema = z.object({
   name: z.string(),
@@ -370,7 +382,10 @@ export const AvailableAgentSchema = z.object({
   brandColor: z.string(),
   docsUrl: z.string().optional(),
   hasSubscriptionPlan: z.boolean(),
+  nativeSubscriptionLabels: z.array(z.string()),
   compatibleApiProviders: z.array(z.string()),
+  supportedProtocols: z.array(z.string()),
+  configFiles: z.array(CliConfigFileSchema),
   installMethods: z.array(CliInstallMethodSchema),
   uninstallMethods: z.array(CliInstallMethodSchema),
   envConfig: AgentEnvConfigSchema.optional(),
@@ -633,6 +648,17 @@ export const ClaudeCodeOauthListModelsInput = z.object({
   accessToken: z.string(),
 });
 
+export const OAuthModelCatalogInput = z.object({
+  request: z.object({
+    agent_type: z.string(),
+  }),
+});
+
+export const OAuthModelCatalogResponseSchema = z.object({
+  models: z.array(z.string()),
+  default_enabled_models: z.array(z.string()),
+});
+
 export const CodexOauthListModelsInput = z.object({
   request: z.object({
     access_token: z.string(),
@@ -687,12 +713,21 @@ export const ClaudeCodeOauthExchangeInput = z.object({
   codeVerifier: z.string(),
 });
 
+export const ClaudeCodeAccountMetadataSchema = z.object({
+  email: z.string().nullable().optional(),
+  organizationUuid: z.string().nullable().optional(),
+  organizationName: z.string().nullable().optional(),
+  organizationType: z.string().nullable().optional(),
+  rateLimitTier: z.string().nullable().optional(),
+});
+
 export const ClaudeCodeOauthExchangeResponseSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string().nullable().optional(),
   expiresIn: z.number().nullable().optional(),
   tokenType: z.string().nullable().optional(),
   scope: z.string().nullable().optional(),
+  accountMetadata: ClaudeCodeAccountMetadataSchema.nullable().optional(),
 });
 
 export const CodexOauthStartResponseSchema = z.object({

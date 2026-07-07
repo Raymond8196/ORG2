@@ -90,23 +90,19 @@ export type IconProvider =
   | "copilot"
   | "cursor"
   | "workbuddy"
-  | "openclaude"
   | "amp"
   | "devin"
   | "rovo"
   | "hermes"
   | "openclaw"
-  | "crush"
   | "aug"
   | "codebuff"
-  | "command_code"
   | "qwen_code"
   | "mimo_code"
   | "antigravity"
   | "continue_cli"
   | "droid"
   | "mistral_vibe"
-  | "ante"
   | "autohand"
   | "omp"
   | "pi"
@@ -210,23 +206,19 @@ export const ICON_MAP: Record<
   cline: ClineIcon,
   goose: GooseIcon,
   // Extended CLI agents — lobehub icons where available, infinity fallback otherwise
-  openclaude: InfinityAgentIcon,
   amp: AmpIcon,
   devin: DevinIcon,
   rovo: RovoIcon,
   hermes: HermesIcon,
   openclaw: OpenClawIcon,
-  crush: InfinityAgentIcon,
   aug: AugmentIcon,
   codebuff: InfinityAgentIcon,
-  command_code: InfinityAgentIcon,
   qwen_code: QwenIcon,
   mimo_code: XiaomiIcon,
   antigravity: AntigravityIcon,
   continue_cli: ContinueIcon,
   droid: DroidIcon,
   mistral_vibe: MistralIcon,
-  ante: InfinityAgentIcon,
   autohand: AutoHandIcon,
   omp: OmpIcon,
   pi: PiIcon,
@@ -318,7 +310,6 @@ const MODEL_TYPE_TO_ICON: Record<ModelType, IconProvider> = {
   kimi_cli: "kimi",
   opencode: "opencode",
   // Extended CLI agents
-  openclaude: "openclaude",
   aider: "aider",
   goose: "goose",
   amp: "amp",
@@ -329,17 +320,14 @@ const MODEL_TYPE_TO_ICON: Record<ModelType, IconProvider> = {
   rovo: "rovo",
   hermes: "hermes",
   openclaw: "openclaw",
-  crush: "crush",
   aug: "aug",
   codebuff: "codebuff",
-  command_code: "command_code",
   qwen_code: "qwen_code",
   mimo_code: "mimo_code",
   antigravity: "antigravity",
   continue_cli: "continue_cli",
   droid: "droid",
   mistral_vibe: "mistral_vibe",
-  ante: "ante",
   autohand: "autohand",
   omp: "omp",
   pi: "pi",
@@ -614,13 +602,9 @@ export const THEMEABLE_ICONS = new Set<IconProvider>([
   "opencode",
   "kimi",
   // Extended CLI agents using monochrome/currentColor icons.
-  "openclaude",
-  "crush",
   "codebuff",
-  "command_code",
   "qwen_code",
   "mimo_code",
   "mistral_vibe",
-  "ante",
   "autohand",
 ]);

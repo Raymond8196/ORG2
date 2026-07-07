@@ -68,7 +68,7 @@
       "title": "Hesap Bilgileri",
       "enable": "Etkinleştir",
       "authMethod": "Kimlik Doğrulama Yöntemi",
-      "oauthLogin": "OAuth (ChatGPT Giriş)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "CLI Agents destekler",
       "compatibleApis": "Uyumlu API'ler",
-      "noCliAgentSupport": "Bu sağlayıcı için CLI Agent desteği yok"
+      "noCliAgentSupport": "Bu sağlayıcı için CLI Agent desteği yok",
+      "accountEmail": "Hesap e-postası",
+      "organization": "Kuruluş"
     },
     "manualModels": {
       "notice": "Bu proxy üzerinden kullanılabilir modeller otomatik olarak algılanamadı. Aşağıdan manuel olarak model ekleyebilir veya tekrar Validate'e tıklayabilirsiniz.",
@@ -453,6 +455,10 @@
     "codexConnected": "Codex bağlandı",
     "codexDetectErrorHint": "Yerleşik tarayıcıyla oturum açın veya OpenAI API key'i elle yapıştırın",
     "codexValidationErrorHint": "Token veya API key'in geçerli olduğunu kontrol edip tekrar deneyin",
+    "claudeCodeAutodetectTitle": "Claude Code oturumunu algıla",
+    "claudeCodeAutodetectDesc": "Yerel Claude Code girişinizi macOS Keychain veya ~/.claude/.credentials.json üzerinden okur",
+    "claudeCodeConnected": "Claude Code bağlandı",
+    "claudeCodeDetectErrorHint": "Yerleşik tarayıcıyla oturum açın veya claude auth login çalıştırıp algılamayı tekrar deneyin",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -885,9 +891,12 @@
     "noApiKeys": "Bu CLI kendi API Key'inizi desteklemiyor",
     "noApiKeysAdded": "Henüz uyumlu API Key eklenmedi",
     "notSupported": "Desteklenmiyor",
+    "nativeSubscription": "Yerel abonelik",
+    "supportedProtocols": "Desteklenen protokoller",
+    "addedSubscriptions": "Eklenen abonelikler",
     "subscriptions": "Abonelikler",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "Uyumlu API'ler",
     "docs": "Belge",
     "addKey": "Anahtar ekle",
     "compatibleKeys": "Uyumlu Keys",
@@ -1664,7 +1673,14 @@
       "typePlan": "Plan",
       "typeApiKey": "API Key",
       "keyPreview": "Anahtar",
-      "addedTime": "Eklendi"
+      "addedTime": "Eklendi",
+      "secretBearingConfig": "API key veya Token içerebilir",
+      "revealConfigFile": "Dosya yöneticisinde göster",
+      "launchConfiguration": "Başlatma yapılandırması",
+      "configFiles": "Yapılandırma dosyaları",
+      "configFile": "Yapılandırma dosyası",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Yapılandırma içeriği yok"
     },
     "codexConfig": {
       "sectionTitle": "Yapılandırma",
@@ -2560,5 +2576,17 @@
       "completionTokens": "Çıktı tokens: {{value}}",
       "elapsed": "Toplam süre: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Başlatma profili",
+    "fullPermission": "Tam izin",
+    "manual": "Manuel",
+    "command": "Komut",
+    "environment": "Ortam",
+    "envPlaceholder": "KEY=value, her satıra bir tane",
+    "loading": "Başlatma profili yükleniyor...",
+    "unavailable": "Başlatma profili kullanılamıyor",
+    "saved": "Başlatma profili kaydedildi",
+    "resetDone": "Başlatma profili sıfırlandı"
   }
 }

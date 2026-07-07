@@ -12,6 +12,8 @@ interface PromptPolishButtonProps {
 
 const PromptPolishButton: React.FC<PromptPolishButtonProps> = memo(
   ({ control, disabled = false }) => {
+    if (!control.isAvailable) return null;
+
     const isDisabled = control.isPolishing || (disabled && !control.isPolished);
     const tooltip = control.isPolished
       ? "恢复润色前内容"

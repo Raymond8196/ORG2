@@ -49,6 +49,7 @@ import type { AgentConfigTabData } from "@src/store/workstation/tabs/types";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
 
 import type { UnifiedTabContentProps } from "../types";
+import { CliAgentHeaderSwitcher } from "./CliAgentHeaderSwitcher";
 
 const logger = createLogger("AgentConfigTab");
 const AGENT_ORGS_CHANGED_EVENT = "orgii-agent-orgs-changed";
@@ -61,21 +62,7 @@ const AgentConfigInner: React.FC<AgentConfigInnerProps> = ({ data }) => {
   const { t } = useTranslation("integrations");
   const { variant, entityId, cliAgentType } = data;
   const refreshAttemptedForEntityRef = useRef<string | null>(null);
-  const headerContent = useMemo(
-    () => (
-      <div className="flex min-w-0 items-center px-1">
-        <span className="truncate text-[13px] font-medium text-text-1">
-          {data.displayName || entityId}
-        </span>
-      </div>
-    ),
-    [data.displayName, entityId]
-  );
-
-  usePublishWorkstationTabHeader({
-    host: "code",
-    content: { content: headerContent, sidebarToggleDisabled: true },
-  });
+  const headerDisplayName = data.displayName || entityId;
 
   // ── Agent definitions (built-ins + custom) ──
   const {
@@ -106,11 +93,9 @@ const AgentConfigInner: React.FC<AgentConfigInnerProps> = ({ data }) => {
   const [cliAgents, setCliAgents] = useState<AvailableCliAgent[]>([]);
   const fetchCliAgents = useCallback(async () => {
     const result = await rpc.agentOrgs.availableCliAgents();
-    return result
-      .filter((agent) => agent.installed)
-      .sort((agentA, agentB) =>
-        agentA.displayName.localeCompare(agentB.displayName)
-      );
+    return result.sort((agentA, agentB) =>
+      agentA.displayName.localeCompare(agentB.displayName)
+    );
   }, []);
 
   const refreshCliAgents = useCallback(async () => {
@@ -128,6 +113,31 @@ const AgentConfigInner: React.FC<AgentConfigInnerProps> = ({ data }) => {
       cancelled = true;
     };
   }, [variant, fetchCliAgents]);
+
+  const headerContent = useMemo(() => {
+    if (variant === "cli") {
+      return (
+        <CliAgentHeaderSwitcher
+          activeAgentName={cliAgentType ?? entityId}
+          fallbackDisplayName={headerDisplayName}
+          cliAgents={cliAgents}
+        />
+      );
+    }
+
+    return (
+      <div className="flex min-w-0 items-center px-1">
+        <span className="truncate text-[13px] font-medium text-text-1">
+          {headerDisplayName}
+        </span>
+      </div>
+    );
+  }, [cliAgentType, cliAgents, entityId, headerDisplayName, variant]);
+
+  usePublishWorkstationTabHeader({
+    host: "code",
+    content: { content: headerContent, sidebarToggleDisabled: true },
+  });
 
   // ── Orgs (only fetched when this tab hosts an org) ──
   const entitySnapshot = data.entitySnapshot as OrgMember | undefined;

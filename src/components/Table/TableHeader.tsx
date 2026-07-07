@@ -18,7 +18,7 @@ export function TableHeader<T>({
     <thead className="table-thead">
       {headerGroups.map((headerGroup) => (
         <tr key={headerGroup.id}>
-          {hasExpandable && <th className="table-th" style={{ width: 32 }} />}
+          {hasExpandable && <th className="table-th table-expand-cell" />}
           {headerGroup.headers.map((header: Header<T, unknown>, index) => {
             const meta = header.column.columnDef.meta as ColumnMeta | undefined;
             const thHideClass = meta?.hideBelow
