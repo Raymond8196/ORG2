@@ -221,6 +221,8 @@
     "apiKeyDesc": "공급자 API에 요청을 인증하는 데 사용되는 비밀 키",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "API 엔드포인트 URL — 프록시, 커스텀 배포 또는 자체 호스팅 서버를 사용하는 경우에만 변경",
+    "apiProtocolLabel": "API 프로토콜",
+    "apiProtocolDesc": "내장 Rust Agent의 와이어 프로토콜 선택",
     "officialUrl": "공식 URL",
     "customUrl": "사용자 지정 URL",
     "customBaseUrlRiskTitle": "사용자 지정 URL 경고",

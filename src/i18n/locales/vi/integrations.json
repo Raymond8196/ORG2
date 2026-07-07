@@ -224,6 +224,8 @@
     "apiKeyDesc": "Khóa bí mật dùng để xác thực yêu cầu đến API của nhà cung cấp",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "URL điểm cuối API — chỉ thay đổi khi sử dụng proxy, triển khai tùy chỉnh hoặc máy chủ tự lưu trữ",
+    "apiProtocolLabel": "Giao thức API",
+    "apiProtocolDesc": "Chọn giao thức kết nối cho Rust Agent tích hợp",
     "officialUrl": "URL chính thức",
     "customUrl": "URL tùy chỉnh",
     "customBaseUrlRiskTitle": "Cảnh báo URL tùy chỉnh",

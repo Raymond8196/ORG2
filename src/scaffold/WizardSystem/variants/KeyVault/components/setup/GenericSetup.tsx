@@ -35,6 +35,7 @@ import {
 } from "@src/scaffold/WizardSystem/primitives";
 
 import { useProviderConfig } from "../../config";
+import { ApiProtocolSectionRow } from "./ApiProtocolSectionRow";
 import { getOfficialBaseUrlForProtocol } from "./providerProtocolUrls";
 import type { AgentSetupProps } from "./types";
 
@@ -261,41 +262,15 @@ const GenericSetup: FC<AgentSetupProps> = ({
           </SectionRow>
 
           {supportsProtocolSelection && (
-            <SectionRow
-              label="API protocol"
-              description="Choose the wire protocol for the built-in Rust agent."
-              layout="vertical"
-            >
-              <Select
-                value={selectedProtocol}
-                onChange={(val) => {
-                  const protocol = val as typeof selectedProtocol;
-                  const nextOfficialBaseUrl = getOfficialBaseUrlForProtocol(
-                    data.agent_type,
-                    protocol,
-                    envConfig.defaultBaseUrl
-                  );
-                  onChange({
-                    protocol,
-                    extracted_base_url:
-                      baseUrlMode === "official"
-                        ? nextOfficialBaseUrl || undefined
-                        : data.extracted_base_url,
-                    validated: false,
-                    available_models: [],
-                    model_context_lengths: {},
-                    enabled_models: [],
-                  });
-                }}
-                options={envConfig.supportedProtocols.map((protocol) => ({
-                  value: protocol,
-                  label: protocol === "anthropic" ? "Anthropic" : "OpenAI",
-                }))}
-                size="default"
-                dropdownWidthMode="min-match"
-                className="w-fit"
-              />
-            </SectionRow>
+            <ApiProtocolSectionRow
+              agentType={data.agent_type}
+              selectedProtocol={selectedProtocol}
+              supportedProtocols={envConfig.supportedProtocols}
+              defaultBaseUrl={envConfig.defaultBaseUrl}
+              baseUrlMode={baseUrlMode}
+              extractedBaseUrl={data.extracted_base_url}
+              onChange={onChange}
+            />
           )}
 
           {envConfig.supportsBaseUrl && (

@@ -225,6 +225,8 @@
     "apiKeyDesc": "用于向 API 服务商发送请求的密钥",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "API 端点地址 — 仅在使用代理、自定义部署或自建服务器时修改",
+    "apiProtocolLabel": "API 协议",
+    "apiProtocolDesc": "选择内置 Rust Agent 使用的线路协议",
     "officialUrl": "官方 URL",
     "customUrl": "自定义 URL",
     "customBaseUrlRiskTitle": "自定义 URL 警告",

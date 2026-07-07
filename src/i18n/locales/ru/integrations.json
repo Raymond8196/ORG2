@@ -224,6 +224,8 @@
     "apiKeyDesc": "Секретный ключ для аутентификации запросов к API провайдера",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "URL эндпоинта API — изменяйте только при использовании прокси, пользовательского развёртывания или локального сервера",
+    "apiProtocolLabel": "Протокол API",
+    "apiProtocolDesc": "Выберите протокол для встроенного Rust-агента",
     "officialUrl": "Официальный URL",
     "customUrl": "Пользовательский URL",
     "customBaseUrlRiskTitle": "Предупреждение о пользовательском URL",

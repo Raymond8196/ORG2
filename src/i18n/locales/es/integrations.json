@@ -221,6 +221,8 @@
     "apiKeyDesc": "Clave secreta para autenticar solicitudes a la API del proveedor",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "URL del endpoint de la API — cambiar solo si usa un proxy, despliegue personalizado o servidor propio",
+    "apiProtocolLabel": "Protocolo API",
+    "apiProtocolDesc": "Elegir el protocolo de conexión para el agente Rust integrado",
     "officialUrl": "URL oficial",
     "customUrl": "URL personalizada",
     "customBaseUrlRiskTitle": "Advertencia de URL personalizada",
