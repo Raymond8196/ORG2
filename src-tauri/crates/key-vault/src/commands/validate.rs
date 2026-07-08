@@ -92,8 +92,8 @@ use crate::provider_config::get_provider_config;
 const CLAUDE_CODE_OAUTH_MODELS_URL: &str = "https://api.anthropic.com/v1/models";
 const CLAUDE_CODE_OAUTH_BETA: &str = "oauth-2025-04-20";
 const CLAUDE_CODE_OAUTH_USER_AGENT: &str = "claude-cli/2.1.78 (orgii, cli)";
-const OPENCODE_ZEN_BASE_URL: &str = "https://opencode.ai/zen/v1";
-const OPENCODE_GO_BASE_URL: &str = "https://opencode.ai/zen/go/v1";
+pub const OPENCODE_ZEN_BASE_URL: &str = "https://opencode.ai/zen/v1";
+pub const OPENCODE_GO_BASE_URL: &str = "https://opencode.ai/zen/go/v1";
 
 const GEMINI_OAUTH_MODELS_URL: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -121,22 +121,19 @@ fn default_anthropic_base_url_for_provider(agent_type: &str) -> Option<String> {
     }
 }
 
+fn resolve_opencode_base_url(base_url: Option<&str>) -> &str {
+    base_url.unwrap_or(OPENCODE_ZEN_BASE_URL)
+}
+
 /// Validate an OpenCode Zen/Go key by listing models without issuing a completion request.
 pub async fn validate_opencode_key(api_key: &str, base_url: Option<&str>) -> ValidationResult {
     if api_key.is_empty() {
         return ValidationResult::failure("No API key provided");
     }
 
-    let result = fetch_opencode_models(api_key, base_url.unwrap_or(OPENCODE_GO_BASE_URL)).await;
-    match result {
+    match fetch_opencode_models(api_key, resolve_opencode_base_url(base_url)).await {
         Ok(models) => ValidationResult::success("API key valid").with_models(models),
-        Err(err) if err == "Invalid API key" || base_url.is_some() => {
-            ValidationResult::failure(&err)
-        }
-        Err(_) => match fetch_opencode_models(api_key, OPENCODE_ZEN_BASE_URL).await {
-            Ok(models) => ValidationResult::success("API key valid").with_models(models),
-            Err(err) => ValidationResult::failure(&err),
-        },
+        Err(err) => ValidationResult::failure(&err),
     }
 }
 
@@ -1163,6 +1160,19 @@ mod tests {
     fn code_assist_quota_response_rejects_invalid_json() {
         let err = parse_code_assist_quota_response("not json").unwrap_err();
         assert!(err.contains("parse failed"));
+    }
+
+    #[test]
+    fn opencode_base_url_defaults_to_zen_and_respects_selection() {
+        assert_eq!(resolve_opencode_base_url(None), OPENCODE_ZEN_BASE_URL);
+        assert_eq!(
+            resolve_opencode_base_url(Some(OPENCODE_ZEN_BASE_URL)),
+            OPENCODE_ZEN_BASE_URL
+        );
+        assert_eq!(
+            resolve_opencode_base_url(Some(OPENCODE_GO_BASE_URL)),
+            OPENCODE_GO_BASE_URL
+        );
     }
 
     // ── validate_token_format dispatch ────────────────────────────────

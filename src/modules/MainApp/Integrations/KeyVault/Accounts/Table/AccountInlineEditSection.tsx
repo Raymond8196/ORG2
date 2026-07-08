@@ -19,6 +19,10 @@ import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import Textarea from "@src/components/Textarea";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
+import {
+  SelectionGrid,
+  type SelectionGridOption,
+} from "@src/scaffold/WizardSystem/primitives";
 
 import {
   InlineCardColumnStack,
@@ -30,10 +34,45 @@ interface AccountInlineEditState {
   setName: (value: string) => void;
   description: string;
   setDescription: (value: string) => void;
+  endpoint: OpenCodeEndpoint;
+  setEndpoint: (value: OpenCodeEndpoint) => void;
   saving: boolean;
   savedAt: number | null;
   canSave: boolean;
   handleSave: () => Promise<void>;
+}
+
+type OpenCodeEndpoint = "zen" | "go";
+
+const OPENCODE_ZEN_BASE_URL = "https://opencode.ai/zen/v1";
+const OPENCODE_GO_BASE_URL = "https://opencode.ai/zen/go/v1";
+
+const OPENCODE_ENDPOINT_OPTIONS: SelectionGridOption<OpenCodeEndpoint>[] = [
+  {
+    key: "zen",
+    label: "OpenCode Zen",
+    badge: "Recommended",
+    description: "Use Zen subscription models such as Claude Sonnet.",
+  },
+  {
+    key: "go",
+    label: "OpenCode Go",
+    description: "Use the OpenCode Go endpoint and model list.",
+  },
+];
+
+function getOpenCodeEndpointFromBaseUrl(
+  baseUrl?: string | null
+): OpenCodeEndpoint {
+  return baseUrl === OPENCODE_GO_BASE_URL ? "go" : "zen";
+}
+
+function getOpenCodeBaseUrl(endpoint: OpenCodeEndpoint): string {
+  return endpoint === "go" ? OPENCODE_GO_BASE_URL : OPENCODE_ZEN_BASE_URL;
+}
+
+function isOpenCodeAccount(account: KeyVaultAccount): boolean {
+  return account.modelType === "opencode";
 }
 
 /**
@@ -42,34 +81,44 @@ interface AccountInlineEditState {
  */
 export function useAccountInlineEditState(
   account: KeyVaultAccount,
-  onSave: (name: string, description: string) => Promise<void>
+  onSave: (name: string, description: string, baseUrl?: string) => Promise<void>
 ): AccountInlineEditState {
   const [name, setName] = useState(account.name);
   const [description, setDescription] = useState(account.description ?? "");
+  const [endpoint, setEndpoint] = useState<OpenCodeEndpoint>(
+    getOpenCodeEndpointFromBaseUrl(account.baseUrl)
+  );
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
   useEffect(() => {
     setName(account.name);
     setDescription(account.description ?? "");
-  }, [account.id, account.name, account.description]);
+    setEndpoint(getOpenCodeEndpointFromBaseUrl(account.baseUrl));
+  }, [account.id, account.name, account.description, account.baseUrl]);
 
   const trimmedName = name.trim();
   const isDirty =
     trimmedName !== account.name ||
-    description.trim() !== (account.description ?? "").trim();
+    description.trim() !== (account.description ?? "").trim() ||
+    (isOpenCodeAccount(account) &&
+      endpoint !== getOpenCodeEndpointFromBaseUrl(account.baseUrl));
   const canSave = isDirty && trimmedName.length > 0 && !saving;
 
   const handleSave = useCallback(async () => {
     if (!canSave) return;
     setSaving(true);
     try {
-      await onSave(trimmedName, description.trim());
+      await onSave(
+        trimmedName,
+        description.trim(),
+        isOpenCodeAccount(account) ? getOpenCodeBaseUrl(endpoint) : undefined
+      );
       setSavedAt(Date.now());
     } finally {
       setSaving(false);
     }
-  }, [canSave, description, onSave, trimmedName]);
+  }, [account, canSave, description, endpoint, onSave, trimmedName]);
 
   useEffect(() => {
     if (savedAt == null) return;
@@ -82,6 +131,8 @@ export function useAccountInlineEditState(
     setName,
     description,
     setDescription,
+    endpoint,
+    setEndpoint,
     saving,
     savedAt,
     canSave,
@@ -90,14 +141,17 @@ export function useAccountInlineEditState(
 }
 
 interface AccountInlineEditBodyProps {
+  account: KeyVaultAccount;
   state: AccountInlineEditState;
 }
 
 export const AccountInlineEditBody: React.FC<AccountInlineEditBodyProps> = ({
+  account,
   state,
 }) => {
   const { t } = useTranslation("integrations");
-  const { name, setName, description, setDescription } = state;
+  const { name, setName, description, setDescription, endpoint, setEndpoint } =
+    state;
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -126,6 +180,21 @@ export const AccountInlineEditBody: React.FC<AccountInlineEditBodyProps> = ({
             rows={2}
           />
         </div>
+        {isOpenCodeAccount(account) ? (
+          <div className="flex min-w-0 flex-col gap-1">
+            <span className="text-[12px] font-semibold text-text-1">
+              OpenCode endpoint
+            </span>
+            <SelectionGrid
+              options={OPENCODE_ENDPOINT_OPTIONS}
+              selected={endpoint}
+              onSelect={setEndpoint}
+              columns={2}
+              cardVariant="subtle"
+              compactCards
+            />
+          </div>
+        ) : null}
       </InlineCardColumnStack>
 
       <InlineAlert type="info">{t("keyVault.edit.apiChangeHint")}</InlineAlert>

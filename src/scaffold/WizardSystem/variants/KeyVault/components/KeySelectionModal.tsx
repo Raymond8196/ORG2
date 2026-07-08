@@ -27,6 +27,12 @@ interface KeySelectionModalProps {
   onClose: () => void;
 }
 
+function getOpenCodeEndpointLabel(baseUrl?: string | null): string | null {
+  if (baseUrl === "https://opencode.ai/zen/v1") return "OpenCode Zen";
+  if (baseUrl === "https://opencode.ai/zen/go/v1") return "OpenCode Go";
+  return null;
+}
+
 const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
   keys,
   selectedIndex,
@@ -115,6 +121,11 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                           : t("keyVault.apiKeyLabel")}
                       </span>
                       {/* Validation status badge */}
+                      {getOpenCodeEndpointLabel(cred.base_url) && (
+                        <span className="rounded-full bg-fill-3 px-2 py-0.5 text-[10px] text-text-2">
+                          {getOpenCodeEndpointLabel(cred.base_url)}
+                        </span>
+                      )}
                       {cred.validated === true ? (
                         <span className="flex items-center gap-1 rounded-full bg-success-1 px-2 py-0.5 text-[10px] text-success-6">
                           <CheckCircle size={10} />

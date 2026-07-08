@@ -1,7 +1,9 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import React, { useCallback, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import Button from "@src/components/Button";
+import Message from "@src/components/Message";
 import ModelIcon from "@src/components/ModelIcon";
 import {
   getQuotaBgColorClass,
@@ -13,11 +15,19 @@ import {
   collectAccountQuotaCards,
   formatQuotaResetHint,
 } from "@src/hooks/keyVault/accountQuotaDisplay";
+import { createLogger } from "@src/hooks/logger";
+import { useRefreshSpin } from "@src/hooks/ui";
+import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
+
+const logger = createLogger("StartPageQuotaGrid");
 
 export const START_PAGE_TREND_SURFACE_CLASS =
   "rounded-lg border border-border-1 bg-chat-container/70";
 
 export const START_PAGE_HEATMAP_CONTAINER_CLASS = `${START_PAGE_TREND_SURFACE_CLASS} px-3 pt-3 pb-1`;
+
+const REFRESH_AGO_TICK_MS = 30_000;
+const QUOTA_REFRESH_GAP_MS = 1_000;
 
 function StartPageQuotaNavButton({
   label,
@@ -123,8 +133,13 @@ export function StartPageQuotaGrid({
 }: StartPageQuotaGridProps): React.ReactNode {
   const { t } = useTranslation("sessions");
   const { t: tIntegrations } = useTranslation("integrations");
-  const { accounts } = useKeyVault({ autoLoad: true });
+  const { accounts, getAccount, refresh, refreshAccount } = useKeyVault({
+    autoLoad: true,
+  });
   const [pageIndex, setPageIndex] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const pageSize = isWide ? 4 : 3;
   const gridClassName = isWide ? "grid-cols-2" : "grid-cols-3";
@@ -152,6 +167,67 @@ export function StartPageQuotaGrid({
     [pageCount]
   );
 
+  const handleRefreshAll = useCallback(async () => {
+    setRefreshing(true);
+    let refreshedCount = 0;
+    try {
+      for (let index = 0; index < entries.length; index += 1) {
+        const entry = entries[index];
+        if (index > 0) {
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, QUOTA_REFRESH_GAP_MS);
+          });
+        }
+        try {
+          const refreshed = await refreshAccount(entry.id, true);
+          if (!refreshed) {
+            throw new Error("Usage refresh failed");
+          }
+          refreshedCount += 1;
+        } catch (err) {
+          const name = getAccount(entry.id)?.name || entry.accountName;
+          const detail = err instanceof Error ? err.message : String(err);
+          Message.error(
+            tIntegrations("keyVault.toasts.refreshError", {
+              name,
+              error: detail,
+            }),
+            5000
+          );
+          logger.error("[RefreshUsage] Error:", err);
+        }
+      }
+      if (refreshedCount > 0) {
+        await refresh();
+        setLastRefreshedAt(new Date());
+        setNowMs(Date.now());
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }, [entries, getAccount, refresh, refreshAccount, tIntegrations]);
+
+  const { spinClass, handleClick: handleRefreshClick } = useRefreshSpin(
+    handleRefreshAll,
+    refreshing
+  );
+
+  useEffect(() => {
+    if (!lastRefreshedAt) return;
+
+    const intervalId = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, REFRESH_AGO_TICK_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [lastRefreshedAt]);
+
+  const lastRefreshedLabel = lastRefreshedAt
+    ? formatRelativeElapsedShort(lastRefreshedAt, new Date(nowMs))
+    : null;
+
   if (entries.length === 0) {
     return (
       <p
@@ -168,6 +244,25 @@ export function StartPageQuotaGrid({
         {visibleEntries.map((entry) => (
           <StartPageQuotaCard key={entry.id} entry={entry} />
         ))}
+      </div>
+      <div className="flex items-center justify-center gap-1.5 px-1">
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          appearance="ghost"
+          size="mini"
+          iconOnly
+          disabled={refreshing}
+          aria-label="Refresh quota"
+          title="Refresh quota"
+          onClick={handleRefreshClick}
+          icon={<RefreshCw size={13} strokeWidth={1.8} className={spinClass} />}
+        />
+        {lastRefreshedLabel ? (
+          <span className="text-[11px] tabular-nums text-text-3">
+            {lastRefreshedLabel}
+          </span>
+        ) : null}
       </div>
       {entries.length > pageSize ? (
         <div className="group flex items-center justify-center gap-1 px-1 text-center text-[13px] leading-6 text-text-3">
