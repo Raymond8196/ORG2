@@ -151,6 +151,7 @@ export function useKeyVaultPage() {
         if (!refreshed) {
           throw new Error("Usage refresh failed");
         }
+        await refresh();
         Message.success(t("keyVault.toasts.refreshed", { name }), 5000);
       } catch (err) {
         const name = getAccount(accountId)?.name || "Account";
@@ -165,7 +166,7 @@ export function useKeyVaultPage() {
         setRefreshLoading(false);
       }
     },
-    [getAccount, refreshAccount, t]
+    [getAccount, refresh, refreshAccount, t]
   );
 
   const handleRefresh = useCallback(async () => {
