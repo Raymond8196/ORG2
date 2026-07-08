@@ -11,7 +11,7 @@ use serde::Serialize;
 /// A selectable endpoint for a provider.
 ///
 /// Endpoints model the cases where one brand ships the same API behind more
-/// than one host: a regional split (Zhipu's `open.bigmodel.cn` vs `api.z.ai`),
+/// than one host: a regional split (Zhipu's `api.z.ai` vs `open.bigmodel.cn`),
 /// a product tier (OpenCode Zen vs Go), or an AWS region (Bedrock).
 ///
 /// The first entry of a provider's endpoint list is its default and supplies
@@ -59,9 +59,12 @@ impl From<&ProviderEndpointSpec> for ProviderEndpoint {
 // Endpoint tables
 // ============================================
 //
-// The first entry of each table is the provider's default endpoint. Reordering
-// a table changes `default_base_url` for that provider, which changes where
-// existing accounts validate against — keep the historical default first.
+// The first entry of each table is the provider's default endpoint. For a
+// regional split the international host goes first: ORGII's default audience is
+// outside mainland China, and a user on the China endpoint is far more likely to
+// know they need it than the reverse. Reordering a table changes
+// `default_base_url`, which changes where accounts that stored no explicit base
+// URL resolve to — see `endpoint_defaults_prefer_international`.
 
 const OPENCODE_ENDPOINTS: &[ProviderEndpointSpec] = &[
     ProviderEndpointSpec {
@@ -80,16 +83,16 @@ const OPENCODE_ENDPOINTS: &[ProviderEndpointSpec] = &[
 
 const ZHIPU_ENDPOINTS: &[ProviderEndpointSpec] = &[
     ProviderEndpointSpec {
-        id: "cn",
-        label: "China (BigModel)",
-        base_url: "https://open.bigmodel.cn/api/paas/v4",
-        anthropic_base_url: Some("https://open.bigmodel.cn/api/anthropic"),
-    },
-    ProviderEndpointSpec {
         id: "global",
         label: "Global (Z.ai)",
         base_url: "https://api.z.ai/api/paas/v4",
         anthropic_base_url: Some("https://api.z.ai/api/anthropic"),
+    },
+    ProviderEndpointSpec {
+        id: "cn",
+        label: "China (BigModel)",
+        base_url: "https://open.bigmodel.cn/api/paas/v4",
+        anthropic_base_url: Some("https://open.bigmodel.cn/api/anthropic"),
     },
 ];
 
@@ -110,46 +113,46 @@ const MINIMAX_ENDPOINTS: &[ProviderEndpointSpec] = &[
 
 const MOONSHOT_ENDPOINTS: &[ProviderEndpointSpec] = &[
     ProviderEndpointSpec {
-        id: "cn",
-        label: "China",
-        base_url: "https://api.moonshot.cn/v1",
-        anthropic_base_url: Some("https://api.moonshot.cn/anthropic"),
-    },
-    ProviderEndpointSpec {
         id: "global",
         label: "Global",
         base_url: "https://api.moonshot.ai/v1",
         anthropic_base_url: Some("https://api.moonshot.ai/anthropic"),
     },
-];
-
-const DASHSCOPE_ENDPOINTS: &[ProviderEndpointSpec] = &[
     ProviderEndpointSpec {
         id: "cn",
         label: "China",
-        base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        anthropic_base_url: None,
+        base_url: "https://api.moonshot.cn/v1",
+        anthropic_base_url: Some("https://api.moonshot.cn/anthropic"),
     },
+];
+
+const DASHSCOPE_ENDPOINTS: &[ProviderEndpointSpec] = &[
     ProviderEndpointSpec {
         id: "intl",
         label: "International",
         base_url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
         anthropic_base_url: None,
     },
-];
-
-const SILICONFLOW_ENDPOINTS: &[ProviderEndpointSpec] = &[
     ProviderEndpointSpec {
         id: "cn",
         label: "China",
-        base_url: "https://api.siliconflow.cn/v1",
-        anthropic_base_url: Some("https://api.siliconflow.cn"),
+        base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        anthropic_base_url: None,
     },
+];
+
+const SILICONFLOW_ENDPOINTS: &[ProviderEndpointSpec] = &[
     ProviderEndpointSpec {
         id: "global",
         label: "Global",
         base_url: "https://api.siliconflow.com/v1",
         anthropic_base_url: Some("https://api.siliconflow.com"),
+    },
+    ProviderEndpointSpec {
+        id: "cn",
+        label: "China",
+        base_url: "https://api.siliconflow.cn/v1",
+        anthropic_base_url: Some("https://api.siliconflow.cn"),
     },
 ];
 
@@ -649,6 +652,40 @@ mod tests {
         }
     }
 
+    /// Regional splits default to the international host; China is opt-in.
+    /// Guards against a reorder silently repointing every new account.
+    #[test]
+    fn endpoint_defaults_prefer_international() {
+        for (model_type, expected_default_id) in [
+            ("zhipu_api", "global"),
+            ("minimax_api", "global"),
+            ("siliconflow_api", "global"),
+            ("moonshot_api", "global"),
+            ("kimi_cli", "global"),
+            ("dashscope_api", "intl"),
+        ] {
+            let config = get_provider_config(model_type);
+            let first = config
+                .endpoints
+                .first()
+                .unwrap_or_else(|| panic!("{model_type} declares no endpoints"));
+            assert_eq!(
+                first.id, expected_default_id,
+                "{model_type} must default to its international endpoint"
+            );
+            assert_eq!(
+                config.default_base_url.as_deref(),
+                Some(first.base_url.as_str()),
+                "{model_type} default_base_url must track its first endpoint"
+            );
+            // The China endpoint stays reachable — this is a reorder, not a removal.
+            assert!(
+                config.endpoints.iter().any(|e| e.id == "cn"),
+                "{model_type} must still offer its China endpoint"
+            );
+        }
+    }
+
     #[test]
     fn kimi_and_opencode_cli_configs_match_setup_registry() {
         let kimi = get_provider_config("kimi_cli");
@@ -657,7 +694,7 @@ mod tests {
         assert!(kimi.supports_base_url);
         assert_eq!(
             kimi.default_base_url,
-            Some("https://api.moonshot.cn/v1".to_string())
+            Some("https://api.moonshot.ai/v1".to_string())
         );
 
         let opencode = get_provider_config("opencode");
@@ -784,17 +821,21 @@ mod tests {
             .iter()
             .map(|endpoint| endpoint.id.as_str())
             .collect();
-        assert_eq!(ids, vec!["cn", "global"]);
+        assert_eq!(ids, vec!["global", "cn"]);
         assert_eq!(
-            config.endpoints[1].base_url,
+            config.endpoints[0].base_url,
             "https://api.z.ai/api/paas/v4",
             "global Zhipu traffic goes to z.ai"
         );
-        // The historical default must stay first so existing accounts keep
-        // validating against the same host.
+        assert_eq!(
+            config.endpoints[1].base_url,
+            "https://open.bigmodel.cn/api/paas/v4",
+            "China Zhipu traffic goes to bigmodel.cn"
+        );
+        // The international host is the default; China is opt-in.
         assert_eq!(
             config.default_base_url,
-            Some("https://open.bigmodel.cn/api/paas/v4".to_string())
+            Some("https://api.z.ai/api/paas/v4".to_string())
         );
     }
 
