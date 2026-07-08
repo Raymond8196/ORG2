@@ -1234,10 +1234,7 @@ mod tests {
             .expect("Zhipu Anthropic endpoint should resolve");
 
         assert_eq!(protocol, ProviderProtocol::Anthropic);
-        assert_eq!(
-            api_base.as_deref(),
-            Some("https://open.bigmodel.cn/api/anthropic")
-        );
+        assert_eq!(api_base.as_deref(), Some("https://api.z.ai/api/anthropic"));
     }
 
     /// Picking the Global endpoint in the wizard stores `api.z.ai` on the
