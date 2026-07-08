@@ -37,7 +37,6 @@ import SessionSyncProvider from "@src/engines/SessionCore/sync/SessionSyncProvid
 import { SessionCreatorChatPanel } from "@src/features/SessionCreator/variants";
 import type { SessionCreatorChatPanelProps } from "@src/features/SessionCreator/variants/ChatPanel";
 import { dispatchWebviewLayoutChanged } from "@src/hooks/platform/useInlineWebview/webviewLayoutEvents";
-import SettingsSlot from "@src/modules/MainApp/Settings/SettingsSlot";
 import GlobalSessionSync from "@src/modules/shared/components/GlobalSessionSync";
 import { GlobalSpotlightPortal } from "@src/modules/shared/components/GlobalSpotlightPortal";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/GeneralLayoutTour";
@@ -56,6 +55,13 @@ import { GlobalModals } from "./GlobalModals";
 import { MainContentArea } from "./MainContentArea";
 
 export type ChatLayout = "inset" | "full" | "compact";
+
+const SettingsSlot = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "settings-slot" */ "@src/modules/MainApp/Settings/SettingsSlot"
+    )
+);
 
 // ============================================
 // ADE-aware session creator slot
@@ -280,11 +286,13 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
   // component differs.
   const slotInner =
     chatPanelMode === "settings" ? (
-      <SettingsSlot
-        maximized={chatPanelMaximized}
-        position={chatPosition}
-        embedded={isFull}
-      />
+      <React.Suspense fallback={<div className="h-full w-full" />}>
+        <SettingsSlot
+          maximized={chatPanelMaximized}
+          position={chatPosition}
+          embedded={isFull}
+        />
+      </React.Suspense>
     ) : (
       <ChatPanel
         embedded={isFull}
