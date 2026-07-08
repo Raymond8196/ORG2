@@ -735,6 +735,7 @@
       },
       "quota": {
         "empty": "暫無配額資料。請在 Key Vault 中重新整理用量。",
+        "refresh": "重新整理",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",

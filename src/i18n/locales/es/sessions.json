@@ -731,6 +731,7 @@
       },
       "quota": {
         "empty": "Aún no hay datos de cuota. Actualiza el uso desde Key Vault.",
+        "refresh": "Actualizar",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",

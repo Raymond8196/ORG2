@@ -33,6 +33,8 @@
     "noContent": "Không có nội dung",
     "noIssueSelected": "Chưa chọn issue",
     "selectIssueHint": "Chọn một issue trong bảng Issues ở thanh bên.",
+    "noPrSelected": "Chưa chọn Pull request",
+    "selectPrHint": "Chọn một Pull request trong bảng Pull request ở thanh bên.",
     "reload": "Tải lại",
     "urlPreviewRequiresTauri": "Xem trước URL cần Tauri",
     "openInExternalBrowser": "Hãy mở trong trình duyệt ngoài",

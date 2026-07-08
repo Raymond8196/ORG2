@@ -739,6 +739,7 @@
       },
       "quota": {
         "empty": "Brak danych quota. Odśwież użycie w Key Vault.",
+        "refresh": "Odśwież",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",

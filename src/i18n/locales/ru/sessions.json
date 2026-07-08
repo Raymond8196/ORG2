@@ -733,6 +733,7 @@
       },
       "quota": {
         "empty": "Данных о квоте пока нет. Обновите использование в Key Vault.",
+        "refresh": "Обновить",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",
