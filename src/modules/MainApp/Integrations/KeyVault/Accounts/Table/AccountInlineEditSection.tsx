@@ -11,9 +11,10 @@
  * AccountInlineActionsBar (sibling of InlineCardBody inside
  * InlineCardShell).
  */
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { ProviderEndpoint } from "@src/api/tauri/rpc/schemas/validation";
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
@@ -23,6 +24,12 @@ import {
   SelectionGrid,
   type SelectionGridOption,
 } from "@src/scaffold/WizardSystem/primitives";
+import {
+  getOfficialBaseUrl,
+  hasEndpointChoice,
+  resolveSelectedEndpoint,
+  useProviderConfig,
+} from "@src/scaffold/WizardSystem/variants/KeyVault/config";
 
 import {
   InlineCardColumnStack,
@@ -34,59 +41,46 @@ interface AccountInlineEditState {
   setName: (value: string) => void;
   description: string;
   setDescription: (value: string) => void;
-  endpoint: OpenCodeEndpoint;
-  setEndpoint: (value: OpenCodeEndpoint) => void;
+  /** Endpoints this account's provider offers; empty when there is no choice. */
+  endpoints: ProviderEndpoint[];
+  endpointId: string | undefined;
+  setEndpointId: (value: string) => void;
   saving: boolean;
   savedAt: number | null;
   canSave: boolean;
   handleSave: () => Promise<void>;
 }
 
-type OpenCodeEndpoint = "zen" | "go";
-
-const OPENCODE_ZEN_BASE_URL = "https://opencode.ai/zen/v1";
-const OPENCODE_GO_BASE_URL = "https://opencode.ai/zen/go/v1";
-
-const OPENCODE_ENDPOINT_OPTIONS: SelectionGridOption<OpenCodeEndpoint>[] = [
-  {
-    key: "zen",
-    label: "OpenCode Zen",
-    badge: "Recommended",
-    description: "Use Zen subscription models such as Claude Sonnet.",
-  },
-  {
-    key: "go",
-    label: "OpenCode Go",
-    description: "Use the OpenCode Go endpoint and model list.",
-  },
-];
-
-function getOpenCodeEndpointFromBaseUrl(
-  baseUrl?: string | null
-): OpenCodeEndpoint {
-  return baseUrl === OPENCODE_GO_BASE_URL ? "go" : "zen";
-}
-
-function getOpenCodeBaseUrl(endpoint: OpenCodeEndpoint): string {
-  return endpoint === "go" ? OPENCODE_GO_BASE_URL : OPENCODE_ZEN_BASE_URL;
-}
-
-function isOpenCodeAccount(account: KeyVaultAccount): boolean {
-  return account.modelType === "opencode";
-}
-
 /**
  * Owns the edit form state. Pair with {@link AccountInlineEditBody} and
  * {@link AccountInlineEditFooter}.
+ *
+ * Endpoint choices come from the Rust provider registry, so any provider that
+ * declares more than one endpoint (Zhipu, MiniMax, Bedrock, OpenCode…) gets a
+ * picker here without further wiring.
  */
 export function useAccountInlineEditState(
   account: KeyVaultAccount,
   onSave: (name: string, description: string, baseUrl?: string) => Promise<void>
 ): AccountInlineEditState {
+  const { config: providerConfig } = useProviderConfig(account.modelType);
+  const endpoints = useMemo(
+    () => providerConfig?.endpoints ?? [],
+    [providerConfig?.endpoints]
+  );
+  const offersEndpointChoice = hasEndpointChoice(endpoints);
+  const protocol =
+    account.protocol ?? providerConfig?.defaultProtocol ?? "openai";
+
+  const savedEndpointId = resolveSelectedEndpoint(
+    endpoints,
+    account.baseUrl
+  )?.id;
+
   const [name, setName] = useState(account.name);
   const [description, setDescription] = useState(account.description ?? "");
-  const [endpoint, setEndpoint] = useState<OpenCodeEndpoint>(
-    getOpenCodeEndpointFromBaseUrl(account.baseUrl)
+  const [endpointId, setEndpointId] = useState<string | undefined>(
+    savedEndpointId
   );
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -94,31 +88,50 @@ export function useAccountInlineEditState(
   useEffect(() => {
     setName(account.name);
     setDescription(account.description ?? "");
-    setEndpoint(getOpenCodeEndpointFromBaseUrl(account.baseUrl));
-  }, [account.id, account.name, account.description, account.baseUrl]);
+    setEndpointId(savedEndpointId);
+  }, [
+    account.id,
+    account.name,
+    account.description,
+    account.baseUrl,
+    savedEndpointId,
+  ]);
 
   const trimmedName = name.trim();
   const isDirty =
     trimmedName !== account.name ||
     description.trim() !== (account.description ?? "").trim() ||
-    (isOpenCodeAccount(account) &&
-      endpoint !== getOpenCodeEndpointFromBaseUrl(account.baseUrl));
+    (offersEndpointChoice && endpointId !== savedEndpointId);
   const canSave = isDirty && trimmedName.length > 0 && !saving;
 
   const handleSave = useCallback(async () => {
     if (!canSave) return;
     setSaving(true);
     try {
+      const selectedEndpoint = endpoints.find(
+        (entry) => entry.id === endpointId
+      );
       await onSave(
         trimmedName,
         description.trim(),
-        isOpenCodeAccount(account) ? getOpenCodeBaseUrl(endpoint) : undefined
+        offersEndpointChoice
+          ? getOfficialBaseUrl(selectedEndpoint, protocol)
+          : undefined
       );
       setSavedAt(Date.now());
     } finally {
       setSaving(false);
     }
-  }, [account, canSave, description, endpoint, onSave, trimmedName]);
+  }, [
+    canSave,
+    description,
+    endpointId,
+    endpoints,
+    offersEndpointChoice,
+    onSave,
+    protocol,
+    trimmedName,
+  ]);
 
   useEffect(() => {
     if (savedAt == null) return;
@@ -131,8 +144,9 @@ export function useAccountInlineEditState(
     setName,
     description,
     setDescription,
-    endpoint,
-    setEndpoint,
+    endpoints,
+    endpointId,
+    setEndpointId,
     saving,
     savedAt,
     canSave,
@@ -141,17 +155,26 @@ export function useAccountInlineEditState(
 }
 
 interface AccountInlineEditBodyProps {
-  account: KeyVaultAccount;
   state: AccountInlineEditState;
 }
 
 export const AccountInlineEditBody: React.FC<AccountInlineEditBodyProps> = ({
-  account,
   state,
 }) => {
   const { t } = useTranslation("integrations");
-  const { name, setName, description, setDescription, endpoint, setEndpoint } =
-    state;
+  const {
+    name,
+    setName,
+    description,
+    setDescription,
+    endpoints,
+    endpointId,
+    setEndpointId,
+  } = state;
+
+  const endpointOptions: SelectionGridOption<string>[] = endpoints.map(
+    (entry) => ({ key: entry.id, label: entry.label })
+  );
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -180,18 +203,16 @@ export const AccountInlineEditBody: React.FC<AccountInlineEditBodyProps> = ({
             rows={2}
           />
         </div>
-        {isOpenCodeAccount(account) ? (
+        {hasEndpointChoice(endpoints) ? (
           <div className="flex min-w-0 flex-col gap-1">
             <span className="text-[12px] font-semibold text-text-1">
-              OpenCode endpoint
+              {t("keyVault.endpoint")}
             </span>
             <SelectionGrid
-              options={OPENCODE_ENDPOINT_OPTIONS}
-              selected={endpoint}
-              onSelect={setEndpoint}
-              columns={2}
+              options={endpointOptions}
+              selected={endpointId ?? null}
+              onSelect={setEndpointId}
               cardVariant="subtle"
-              compactCards
             />
           </div>
         ) : null}

@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { type MutableRefObject, useCallback } from "react";
+import { type MutableRefObject, useCallback, useMemo } from "react";
 
 import {
   autoDetectKey,
@@ -8,34 +8,39 @@ import {
   validateKey,
 } from "@src/api/services/keyValidation";
 import { CLI_AGENT } from "@src/api/tauri/rpc/schemas/validation";
+import type { ProviderEndpoint } from "@src/api/tauri/rpc/schemas/validation";
 import type { DetectedKey } from "@src/api/types/keys";
 import { createLogger } from "@src/hooks/logger";
 
+import {
+  findEndpointByBaseUrl,
+  resolveSelectedEndpoint,
+} from "../config/providerEndpoints";
 import type { WizardData } from "../types";
 import { applyKey } from "./keyHelpers";
+import { useProviderConfig } from "./useProviderConfig";
 
 const log = createLogger("ApiSetup");
 
-const OPENCODE_ZEN_BASE_URL = "https://opencode.ai/zen/v1";
-const OPENCODE_GO_BASE_URL = "https://opencode.ai/zen/go/v1";
+/** Matches the `zen` entry of `OPENCODE_ENDPOINTS` in `provider_config.rs`. */
+const OPENCODE_ZEN_ENDPOINT_ID = "zen";
 
-function selectedOpenCodeBaseUrl(baseUrl?: string): string {
-  return baseUrl === OPENCODE_GO_BASE_URL
-    ? OPENCODE_GO_BASE_URL
-    : OPENCODE_ZEN_BASE_URL;
-}
-
+/**
+ * A Zen key authenticates against both OpenCode endpoints, but a Go key is
+ * workspace-scoped and Zen rejects it. A detected key's origin endpoint
+ * therefore constrains which endpoint it can be reused for.
+ */
 function canUseDetectedOpenCodeKeyForEndpoint(
+  endpoints: readonly ProviderEndpoint[],
   key: DetectedKey,
-  baseUrl: string
+  selectedEndpointId: string
 ): boolean {
-  if (baseUrl === OPENCODE_ZEN_BASE_URL) {
-    return key.base_url === OPENCODE_ZEN_BASE_URL;
+  const keyEndpoint = findEndpointByBaseUrl(endpoints, key.base_url);
+  if (!keyEndpoint) return false;
+  if (selectedEndpointId === OPENCODE_ZEN_ENDPOINT_ID) {
+    return keyEndpoint.id === OPENCODE_ZEN_ENDPOINT_ID;
   }
-  return (
-    key.base_url === OPENCODE_GO_BASE_URL ||
-    key.base_url === OPENCODE_ZEN_BASE_URL
-  );
+  return true;
 }
 
 async function validateDetectedOpenCodeKeyForEndpoint(
@@ -92,6 +97,14 @@ export function useApiSetupTokenDetection({
   setDetectedKeys,
   setSelectedCredentialIndex,
 }: UseApiSetupTokenDetectionOptions) {
+  // OpenCode's Zen/Go endpoints come from the Rust provider registry, same as
+  // every other provider's — autodetect must not re-hardcode their URLs.
+  const { config: openCodeConfig } = useProviderConfig(CLI_AGENT.OPENCODE);
+  const openCodeEndpoints = useMemo(
+    () => openCodeConfig?.endpoints ?? [],
+    [openCodeConfig?.endpoints]
+  );
+
   const applySelectedKey = useCallback(
     async (cred: DetectedKey) => {
       if (data.agent_type === "opencode" && cred.api_key) {
@@ -187,24 +200,28 @@ export function useApiSetupTokenDetection({
       }
 
       const keys = result.keys || [];
-      const candidateKeys =
-        data.agent_type === "opencode"
-          ? await Promise.all(
-              keys
-                .filter((key) =>
-                  canUseDetectedOpenCodeKeyForEndpoint(
-                    key,
-                    selectedOpenCodeBaseUrl(data.extracted_base_url)
-                  )
+      const selectedOpenCodeEndpoint =
+        data.agent_type === CLI_AGENT.OPENCODE
+          ? resolveSelectedEndpoint(openCodeEndpoints, data.extracted_base_url)
+          : undefined;
+      const candidateKeys = selectedOpenCodeEndpoint
+        ? await Promise.all(
+            keys
+              .filter((key) =>
+                canUseDetectedOpenCodeKeyForEndpoint(
+                  openCodeEndpoints,
+                  key,
+                  selectedOpenCodeEndpoint.id
                 )
-                .map((key) =>
-                  validateDetectedOpenCodeKeyForEndpoint(
-                    key,
-                    selectedOpenCodeBaseUrl(data.extracted_base_url)
-                  )
+              )
+              .map((key) =>
+                validateDetectedOpenCodeKeyForEndpoint(
+                  key,
+                  selectedOpenCodeEndpoint.base_url
                 )
-            )
-          : keys;
+              )
+          )
+        : keys;
 
       if (candidateKeys.length === 0) {
         setTokenError(t("keyVault.couldNotDetectKeys"));
@@ -245,6 +262,7 @@ export function useApiSetupTokenDetection({
   }, [
     data.agent_type,
     data.extracted_base_url,
+    openCodeEndpoints,
     applySelectedKey,
     isClaudeCode,
     setDetectedKeys,
