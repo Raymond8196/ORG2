@@ -53,12 +53,23 @@ pub(crate) fn split_summary_and_tail(durable_compacted_messages: &[Value]) -> (S
 pub(crate) fn append_in_place_compact_boundary(
     session_id: &str,
     durable_compacted_messages: &[Value],
+    token_delta: Option<(usize, usize)>,
 ) -> Result<usize, String> {
     let (summary_text, tail_len) = split_summary_and_tail(durable_compacted_messages);
     let cutoff = unified_persistence::compact_cutoff_sequence(session_id, tail_len)
         .map_err(|err| err.to_string())?;
-    unified_persistence::append_compact_boundary(session_id, &summary_text, cutoff)
-        .map_err(|err| err.to_string())?;
+    let (tokens_before, tokens_after) = match token_delta {
+        Some((before, after)) => (Some(before as i64), Some(after as i64)),
+        None => (None, None),
+    };
+    unified_persistence::append_compact_boundary(
+        session_id,
+        &summary_text,
+        cutoff,
+        tokens_before,
+        tokens_after,
+    )
+    .map_err(|err| err.to_string())?;
     Ok(tail_len)
 }
 

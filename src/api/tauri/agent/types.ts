@@ -71,6 +71,7 @@ export type ManualCompactStatus =
   | "already_compact"
   | "busy"
   | "no_runtime"
+  | "channel_attached"
   | "failed";
 
 export interface ManualCompactResult {
@@ -80,7 +81,6 @@ export interface ManualCompactResult {
   messagesAfter?: number;
   tokensBefore?: number;
   tokensAfter?: number;
-  truncated?: boolean;
 }
 
 export interface AgentMessageResponse {
@@ -112,6 +112,8 @@ export interface SessionMessage {
   toolName?: string;
   toolInput?: string;
   createdAt: string;
+  /** Non-null on compact-boundary rows: sequence the compacted tail starts at. */
+  compactFromSequence?: number | null;
 }
 
 export interface QuestionResponseParams {

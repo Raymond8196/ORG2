@@ -12,7 +12,7 @@ export const agentSession = {
     .output(schemas.agentSession.SessionInfoSchema.nullable())
     .build(),
   manualCompact: defineProcedure("agent_session_manual_compact")
-    .input(schemas.agentSession.SessionIdInput)
+    .input(schemas.agentSession.ManualCompactInput)
     .output(schemas.agentSession.ManualCompactResultSchema)
     .build(),
   cancelSession: defineProcedure("agent_session_cancel")

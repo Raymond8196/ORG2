@@ -59,8 +59,6 @@ export function useHousekeeperConfig() {
   const [uiControlEnabled, setUiControlEnabled] = useSetting(
     "housekeeper.features.uiControl"
   );
-  const [silentContextCompactionEnabled, setSilentContextCompactionEnabled] =
-    useSetting("housekeeper.features.silentContextCompaction");
   const keyVault = useKeyVault({ autoLoad: true });
 
   const vllmAccounts = useMemo(
@@ -105,13 +103,11 @@ export function useHousekeeperConfig() {
       promptPolish: promptPolishEnabled,
       stepExplain: stepExplainEnabled,
       uiControl: uiControlEnabled,
-      silentContextCompaction: silentContextCompactionEnabled,
     },
     setFeatures: {
       promptPolish: setPromptPolishEnabled,
       stepExplain: setStepExplainEnabled,
       uiControl: setUiControlEnabled,
-      silentContextCompaction: setSilentContextCompactionEnabled,
     },
     keyVault,
     vllmAccounts,
