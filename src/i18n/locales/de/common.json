@@ -33,6 +33,8 @@
     "noContent": "Kein Inhalt",
     "noIssueSelected": "Kein Issue ausgewählt",
     "selectIssueHint": "Wählen Sie ein Issue im Issues-Bereich der Seitenleiste aus.",
+    "noPrSelected": "Kein Pull request ausgewählt",
+    "selectPrHint": "Wählen Sie einen Pull request im Pull-request-Bereich der Seitenleiste aus.",
     "reload": "Neu laden",
     "urlPreviewRequiresTauri": "URL-Vorschau erfordert Tauri",
     "openInExternalBrowser": "Stattdessen im externen Browser öffnen",

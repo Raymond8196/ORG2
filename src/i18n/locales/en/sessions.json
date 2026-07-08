@@ -762,6 +762,7 @@
       },
       "quota": {
         "empty": "No quota data yet. Refresh usage from Key Vault.",
+        "refresh": "Refresh",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",
