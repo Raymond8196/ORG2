@@ -14,11 +14,20 @@ import { buildMcpToolCommand } from "@src/engines/ChatPanel/InputArea/components
 import { useSessionId } from "@src/engines/SessionCore/hooks/session/useSessionId";
 import { useSessionExecModeField } from "@src/hooks/session/useSessionPatch";
 import { creatorDefaultExecModeAtom } from "@src/store/session/creatorDefaultExecModeAtom";
-import type { SlashItem } from "@src/types/extensions";
+import { SLASH_ACTIONS, type SlashItem } from "@src/types/extensions";
 
 import { useSlashItemsCache } from "./useSlashItemsCache";
 
-const BUILTIN_SLASH_ITEMS: SlashItem[] = [];
+const BUILTIN_SLASH_ITEMS: SlashItem[] = [
+  {
+    name: SLASH_ACTIONS.COMPACT,
+    description:
+      "Summarize older context to free space. Optional: /compact <focus for the summary>",
+    category: "action",
+    source: "builtin",
+    acceptsArgs: true,
+  },
+];
 
 interface UseSlashCommandOptions {
   composerInputRef: RefObject<ComposerInputRef | null>;
@@ -148,6 +157,24 @@ export function useSlashCommand(
       if (item.category === "tool" && item.serverName) {
         composerInputRef.current.setContent(
           buildMcpToolCommand(item.serverName, item.name)
+        );
+        composerInputRef.current.focus();
+        setShowSlashMenu(false);
+        setSlashQuery("");
+        queryRef.current = "";
+        return;
+      }
+
+      // The compact command renders as a pill (like skills) so the token
+      // reads as one unit with the focus text typed after it. The submit
+      // interceptor recognizes both the pill serialization and plain
+      // "/compact" text (parseCompactSlashCommand).
+      if (item.category === "action" && item.name === SLASH_ACTIONS.COMPACT) {
+        composerInputRef.current.insertFilePill(
+          `/${SLASH_ACTIONS.COMPACT}`,
+          false,
+          "skill",
+          SLASH_ACTIONS.COMPACT
         );
         composerInputRef.current.focus();
         setShowSlashMenu(false);
