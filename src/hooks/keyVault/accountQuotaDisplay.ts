@@ -219,6 +219,34 @@ function toMetric(
   };
 }
 
+function formatQuotaResetDurationUntil(
+  resetTime: string | null | undefined,
+  now: Date = new Date()
+): { compact: string; full: string } | null {
+  if (!resetTime) return null;
+
+  const resetDate = new Date(resetTime);
+  if (Number.isNaN(resetDate.getTime())) return null;
+
+  const diffMs = resetDate.getTime() - now.getTime();
+  if (diffMs <= 0) return null;
+
+  const totalMinutes = Math.ceil(diffMs / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const compact =
+    hours > 0
+      ? minutes > 0
+        ? `${hours}h ${minutes}m`
+        : `${hours}h`
+      : `${minutes}m`;
+  const full =
+    formatQuotaResetTime(resetTime)?.full ??
+    `${compact} (${resetDate.toISOString()})`;
+
+  return { compact, full };
+}
+
 export function formatQuotaResetTime(
   resetTime: string | null | undefined
 ): { compact: string; full: string } | null {
@@ -255,8 +283,13 @@ export function formatQuotaResetHint(
   resetTime: string | null | undefined,
   tIntegrations: TFunction<"integrations">
 ): { compact: string; full?: string } | null {
-  const resetLabel = formatQuotaResetTime(resetTime);
-  if (resetLabel) return resetLabel;
+  if (usageType === "session") {
+    const sessionResetLabel = formatQuotaResetDurationUntil(resetTime);
+    if (sessionResetLabel) return sessionResetLabel;
+  } else {
+    const resetLabel = formatQuotaResetTime(resetTime);
+    if (resetLabel) return resetLabel;
+  }
 
   if (remainingPercent < 99.5) return null;
 
