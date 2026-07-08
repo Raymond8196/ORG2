@@ -25,7 +25,7 @@ import { createEditorSpotlightRequest } from "@src/scaffold/GlobalSpotlight/open
 import { FileOperationsService } from "@src/services/file/FileOperationsService";
 import { PanelService } from "@src/services/panel";
 import { TerminalService } from "@src/services/terminal";
-import { WorkStationViewService } from "@src/services/workStation";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
   spotlightInitialQueryAtom,

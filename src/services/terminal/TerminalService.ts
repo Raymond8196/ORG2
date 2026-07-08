@@ -16,7 +16,7 @@
 import { Command } from "@tauri-apps/plugin-shell";
 
 import { createLogger } from "@src/hooks/logger";
-import { WorkStationViewService } from "@src/services/workStation";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import {
   activeTerminalIdAtom,
   closeTerminalSessionAtom,
