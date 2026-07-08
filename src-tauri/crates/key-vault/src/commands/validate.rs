@@ -110,14 +110,18 @@ fn default_base_url_for_provider(agent_type: &str) -> Option<String> {
     })
 }
 
+/// Anthropic-protocol base URL to fall back on when the caller supplied none.
+///
+/// Anthropic itself is special-cased because its short aliases don't resolve
+/// through `get_provider_config`. Every other provider declares its Anthropic
+/// endpoint in the provider registry, so there is no second table to keep in
+/// sync here.
 fn default_anthropic_base_url_for_provider(agent_type: &str) -> Option<String> {
     match agent_type {
         "anthropic" | "anthropic_api" | "claude_code" => {
             Some("https://api.anthropic.com/v1".to_string())
         }
-        "zenmux_api" => Some("https://zenmux.ai/api/anthropic".to_string()),
-        "longcat_api" => Some("https://api.longcat.chat/anthropic".to_string()),
-        _ => None,
+        other => get_provider_config(other).default_anthropic_base_url(),
     }
 }
 
@@ -254,10 +258,13 @@ pub async fn run_validate_key(
                 .await)
         }
 
-        // OpenAI-compatible API providers (use OpenAI validator with provider's base URL)
+        // OpenAI-compatible API providers (use OpenAI validator with provider's base URL).
+        // Providers that also speak the Anthropic protocol declare an Anthropic
+        // endpoint in the provider registry and route through it below.
         "deepseek_api" | "groq_api" | "xai_api" | "zhipu_api" | "dashscope_api"
         | "moonshot_api" | "minimax_api" | "longcat_api" | "openrouter_api" | "zenmux_api"
-        | "vllm_api" | "orgii_orchestrator" | "orgii" => {
+        | "siliconflow_api" | "modelscope_api" | "aihubmix_api" | "cherryin_api"
+        | "bedrock_api" | "custom_api" | "vllm_api" | "orgii_orchestrator" | "orgii" => {
             if protocol_lower.as_deref() == Some("anthropic") {
                 let effective_url = base_url
                     .clone()
@@ -282,7 +289,7 @@ pub async fn run_validate_key(
         }
 
         _ => Err(format!(
-            "Unknown agent type: {}. Supported: copilot, cursor_cli, openai, anthropic, google, gemini_cli, codex, claude_code, kiro, opencode, openai_api, anthropic_api, gemini_api, deepseek_api, groq_api, xai_api, zhipu_api, dashscope_api, moonshot_api, minimax_api, longcat_api, openrouter_api, zenmux_api, vllm_api, azure_openai_api, azure_anthropic_api",
+            "Unknown agent type: {}. Supported: copilot, cursor_cli, openai, anthropic, google, gemini_cli, codex, claude_code, kiro, opencode, openai_api, anthropic_api, gemini_api, deepseek_api, groq_api, xai_api, zhipu_api, dashscope_api, moonshot_api, minimax_api, longcat_api, openrouter_api, zenmux_api, siliconflow_api, modelscope_api, aihubmix_api, cherryin_api, bedrock_api, custom_api, vllm_api, azure_openai_api, azure_anthropic_api",
             agent_type
         )),
     }
