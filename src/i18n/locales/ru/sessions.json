@@ -734,6 +734,9 @@
       "quota": {
         "empty": "Данных о квоте пока нет. Обновите использование в Key Vault.",
         "refresh": "Обновить",
+        "justNow": "только что",
+        "minutesAgo": "{{count}} мин назад",
+        "hoursAgo": "{{count}}ч назад",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",

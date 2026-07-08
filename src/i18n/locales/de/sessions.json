@@ -732,6 +732,9 @@
       "quota": {
         "empty": "Noch keine Quota-Daten. Nutzung im Key Vault aktualisieren.",
         "refresh": "Aktualisieren",
+        "justNow": "gerade eben",
+        "minutesAgo": "vor {{count}} Min.",
+        "hoursAgo": "vor {{count}}Std",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7T",

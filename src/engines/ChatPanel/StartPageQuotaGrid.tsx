@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,7 +18,6 @@ import {
 } from "@src/hooks/keyVault/accountQuotaDisplay";
 import { createLogger } from "@src/hooks/logger";
 import { useRefreshSpin } from "@src/hooks/ui";
-import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 
 const logger = createLogger("StartPageQuotaGrid");
 
@@ -28,6 +28,21 @@ export const START_PAGE_HEATMAP_CONTAINER_CLASS = `${START_PAGE_TREND_SURFACE_CL
 
 const REFRESH_AGO_TICK_MS = 30_000;
 const QUOTA_REFRESH_GAP_MS = 1_000;
+
+function formatQuotaRefreshElapsed(
+  date: Date,
+  now: Date,
+  t: TFunction<"sessions">
+): string {
+  const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffSec < 60) return t("chat.startPage.quota.justNow");
+  if (diffMin < 60) {
+    return t("chat.startPage.quota.minutesAgo", { count: diffMin });
+  }
+  return t("chat.startPage.quota.hoursAgo", { count: diffHr });
+}
 
 function StartPageQuotaNavButton({
   label,
@@ -72,11 +87,9 @@ function StartPageQuotaCard({
           <div className="truncate text-[11px] font-semibold leading-4 text-text-1">
             {entry.accountName}
           </div>
-          {entry.accountPlan ? (
-            <div className="truncate text-[10px] leading-3 text-text-3">
-              {entry.accountPlan}
-            </div>
-          ) : null}
+          <div className="truncate text-[10px] leading-3 text-text-3">
+            {entry.accountPlan ?? "-"}
+          </div>
         </div>
       </div>
       <div className="space-y-1.5">
@@ -225,7 +238,7 @@ export function StartPageQuotaGrid({
   }, [lastRefreshedAt]);
 
   const lastRefreshedLabel = lastRefreshedAt
-    ? formatRelativeElapsedShort(lastRefreshedAt, new Date(nowMs))
+    ? formatQuotaRefreshElapsed(lastRefreshedAt, new Date(nowMs), t)
     : null;
 
   if (entries.length === 0) {
@@ -245,24 +258,27 @@ export function StartPageQuotaGrid({
           <StartPageQuotaCard key={entry.id} entry={entry} />
         ))}
       </div>
-      <div className="flex items-center justify-center gap-1.5 px-1">
+      <div className="flex items-center justify-center px-1">
         <Button
           htmlType="button"
           variant="tertiary"
           appearance="ghost"
           size="mini"
-          iconOnly
+          iconOnly={!lastRefreshedLabel}
           disabled={refreshing}
-          aria-label="Refresh quota"
-          title="Refresh quota"
+          aria-label={t("chat.startPage.quota.refresh")}
+          title={
+            lastRefreshedLabel
+              ? `${t("chat.startPage.quota.refresh")} · ${lastRefreshedLabel}`
+              : t("chat.startPage.quota.refresh")
+          }
           onClick={handleRefreshClick}
           icon={<RefreshCw size={13} strokeWidth={1.8} className={spinClass} />}
-        />
-        {lastRefreshedLabel ? (
-          <span className="text-[11px] tabular-nums text-text-3">
-            {lastRefreshedLabel}
-          </span>
-        ) : null}
+        >
+          {lastRefreshedLabel ? (
+            <span className="tabular-nums">{lastRefreshedLabel}</span>
+          ) : null}
+        </Button>
       </div>
       {entries.length > pageSize ? (
         <div className="group flex items-center justify-center gap-1 px-1 text-center text-[13px] leading-6 text-text-3">

@@ -732,6 +732,9 @@
       "quota": {
         "empty": "Quota データはまだありません。Key Vault で使用量を更新してください。",
         "refresh": "更新",
+        "justNow": "たった今",
+        "minutesAgo": "{{count}}分前",
+        "hoursAgo": "{{count}}時間前",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",

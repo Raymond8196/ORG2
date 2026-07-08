@@ -146,11 +146,26 @@ function formatPlanLabel(value: string | null | undefined): string | null {
     .join(" ");
 }
 
+const GENERIC_QUOTA_PLAN_TYPES = new Set<string>([
+  CLI_AGENT.CLAUDE_CODE,
+  CLI_AGENT.CODEX,
+]);
+
+function isGenericQuotaPlanType(
+  modelType: KeyVaultAccount["modelType"],
+  planType: string | null | undefined
+): boolean {
+  const normalized = planType?.trim().toLowerCase();
+  if (!normalized) return true;
+  if (normalized === modelType.toLowerCase()) return true;
+  return GENERIC_QUOTA_PLAN_TYPES.has(normalized);
+}
+
 function getQuotaAccountIdentityLabel(account: KeyVaultAccount): string {
   return normalizeDisplayText(account.name) ?? account.modelType;
 }
 
-function getQuotaAccountPlanLabel(account: KeyVaultAccount): string | null {
+export function resolveQuotaPlanLabel(account: KeyVaultAccount): string | null {
   if (!account.quotaInfo) return null;
 
   if (account.modelType === CLI_AGENT.CLAUDE_CODE) {
@@ -158,7 +173,19 @@ function getQuotaAccountPlanLabel(account: KeyVaultAccount): string | null {
     if (tier) return tier;
   }
 
-  return formatPlanLabel(account.quotaInfo.plan_type);
+  const planFromQuota = formatPlanLabel(account.quotaInfo.plan_type);
+  if (
+    !planFromQuota ||
+    isGenericQuotaPlanType(account.modelType, account.quotaInfo.plan_type)
+  ) {
+    return null;
+  }
+
+  return planFromQuota;
+}
+
+function getQuotaAccountPlanLabel(account: KeyVaultAccount): string | null {
+  return resolveQuotaPlanLabel(account);
 }
 
 function getQuotaCardLabels(account: KeyVaultAccount): {

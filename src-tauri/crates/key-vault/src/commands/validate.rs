@@ -507,15 +507,48 @@ pub async fn refresh_key_quota(key_id: String) -> Result<Option<crate::commands:
         .get_key_by_id(&key_id)
         .ok_or_else(|| format!("Key not found: {}", key_id))?;
 
-    let quota = match fetch_quota_for_key(&key).await {
-        Ok(quota) => quota,
-        Err(first_err)
-            if key.auth_method == AuthMethod::Oauth && is_unauthorized_quota_error(&first_err) =>
-        {
-            let refreshed = refresh_oauth_key_for_quota(&key).await?;
-            fetch_quota_for_key(&refreshed).await?
+    let quota = if key.model_type == ModelType::ClaudeCode && key.auth_method == AuthMethod::Oauth {
+        let token = key
+            .session_token
+            .as_deref()
+            .filter(|token| !token.trim().is_empty())
+            .ok_or_else(|| "Claude Code OAuth account has no access token".to_string())?;
+
+        let refresh = match ClaudeCodeQuotaFetcher::new().fetch_quota_refresh(token).await {
+            Ok(refresh) => refresh,
+            Err(first_err) if is_unauthorized_quota_error(&first_err) => {
+                let refreshed = refresh_oauth_key_for_quota(&key).await?;
+                let retry_token = refreshed
+                    .session_token
+                    .as_deref()
+                    .filter(|retry_token| !retry_token.trim().is_empty())
+                    .ok_or_else(|| {
+                        "Claude Code OAuth account has no access token after refresh".to_string()
+                    })?;
+                ClaudeCodeQuotaFetcher::new()
+                    .fetch_quota_refresh(retry_token)
+                    .await?
+            }
+            Err(first_err) => return Err(first_err),
+        };
+
+        if !refresh.account_metadata.is_empty() {
+            KEY_SERVICE.merge_key_account_metadata(&key_id, refresh.account_metadata)?;
         }
-        Err(first_err) => return Err(first_err),
+
+        refresh.quota
+    } else {
+        match fetch_quota_for_key(&key).await {
+            Ok(quota) => quota,
+            Err(first_err)
+                if key.auth_method == AuthMethod::Oauth
+                    && is_unauthorized_quota_error(&first_err) =>
+            {
+                let refreshed = refresh_oauth_key_for_quota(&key).await?;
+                fetch_quota_for_key(&refreshed).await?
+            }
+            Err(first_err) => return Err(first_err),
+        }
     };
 
     let quota_value = serde_json::to_value(quota)
