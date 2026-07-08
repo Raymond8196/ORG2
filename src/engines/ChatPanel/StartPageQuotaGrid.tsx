@@ -27,6 +27,7 @@ export const START_PAGE_TREND_SURFACE_CLASS =
 export const START_PAGE_HEATMAP_CONTAINER_CLASS = `${START_PAGE_TREND_SURFACE_CLASS} px-3 pt-3 pb-1`;
 
 const REFRESH_AGO_TICK_MS = 30_000;
+const QUOTA_REFRESH_GAP_MS = 1_000;
 
 function StartPageQuotaNavButton({
   label,
@@ -132,7 +133,7 @@ export function StartPageQuotaGrid({
 }: StartPageQuotaGridProps): React.ReactNode {
   const { t } = useTranslation("sessions");
   const { t: tIntegrations } = useTranslation("integrations");
-  const { accounts, getAccount, refreshAccount } = useKeyVault({
+  const { accounts, getAccount, refresh, refreshAccount } = useKeyVault({
     autoLoad: true,
   });
   const [pageIndex, setPageIndex] = useState(0);
@@ -170,11 +171,14 @@ export function StartPageQuotaGrid({
     setRefreshing(true);
     let refreshedCount = 0;
     try {
-      for (const entry of entries) {
+      for (let index = 0; index < entries.length; index += 1) {
+        const entry = entries[index];
+        if (index > 0) {
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, QUOTA_REFRESH_GAP_MS);
+          });
+        }
         try {
-          const account = getAccount(entry.id);
-          const name = account?.name || entry.accountName;
-
           const refreshed = await refreshAccount(entry.id, true);
           if (!refreshed) {
             throw new Error("Usage refresh failed");
@@ -194,13 +198,14 @@ export function StartPageQuotaGrid({
         }
       }
       if (refreshedCount > 0) {
+        await refresh();
         setLastRefreshedAt(new Date());
         setNowMs(Date.now());
       }
     } finally {
       setRefreshing(false);
     }
-  }, [entries, getAccount, refreshAccount, tIntegrations]);
+  }, [entries, getAccount, refresh, refreshAccount, tIntegrations]);
 
   const { spinClass, handleClick: handleRefreshClick } = useRefreshSpin(
     handleRefreshAll,

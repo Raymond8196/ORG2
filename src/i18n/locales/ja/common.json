@@ -33,6 +33,8 @@
     "noContent": "コンテンツがありません",
     "noIssueSelected": "Issue が選択されていません",
     "selectIssueHint": "サイドバーの Issues パネルから Issue を選択してください。",
+    "noPrSelected": "Pull request が選択されていません",
+    "selectPrHint": "サイドバーの Pull request パネルから Pull request を選択してください。",
     "reload": "再読み込み",
     "urlPreviewRequiresTauri": "URL プレビューには Tauri が必要です",
     "openInExternalBrowser": "代わりに外部ブラウザーで開いてください",

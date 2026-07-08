@@ -33,6 +33,8 @@
     "noContent": "Нет содержимого",
     "noIssueSelected": "Issue не выбран",
     "selectIssueHint": "Выберите issue на панели Issues в боковой панели.",
+    "noPrSelected": "Pull request не выбран",
+    "selectPrHint": "Выберите Pull request на панели Pull request в боковой панели.",
     "reload": "Перезагрузить",
     "urlPreviewRequiresTauri": "Для предпросмотра URL требуется Tauri",
     "openInExternalBrowser": "Откройте во внешнем браузере",

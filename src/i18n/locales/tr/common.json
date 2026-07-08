@@ -33,6 +33,8 @@
     "noContent": "İçerik yok",
     "noIssueSelected": "Seçili sorun yok",
     "selectIssueHint": "Kenar çubuğundaki Issues panelinden bir sorun seçin.",
+    "noPrSelected": "Seçili Pull request yok",
+    "selectPrHint": "Kenar çubuğundaki Pull request panelinden bir Pull request seçin.",
     "reload": "Yeniden yükle",
     "urlPreviewRequiresTauri": "URL önizlemesi Tauri gerektirir",
     "openInExternalBrowser": "Bunun yerine harici tarayıcıda açın",

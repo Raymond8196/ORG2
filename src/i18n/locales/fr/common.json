@@ -33,6 +33,8 @@
     "noContent": "Aucun contenu",
     "noIssueSelected": "Aucun ticket sélectionné",
     "selectIssueHint": "Sélectionnez un ticket dans le panneau Issues de la barre latérale.",
+    "noPrSelected": "Aucun Pull request sélectionné",
+    "selectPrHint": "Sélectionnez un Pull request dans le panneau Pull request de la barre latérale.",
     "reload": "Recharger",
     "urlPreviewRequiresTauri": "L'aperçu d'URL nécessite Tauri",
     "openInExternalBrowser": "Ouvrez plutôt dans un navigateur externe",

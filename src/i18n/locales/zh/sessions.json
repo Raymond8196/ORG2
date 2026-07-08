@@ -756,6 +756,7 @@
       },
       "quota": {
         "empty": "暂无配额数据。请在 Key Vault 中刷新用量。",
+        "refresh": "刷新",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",
