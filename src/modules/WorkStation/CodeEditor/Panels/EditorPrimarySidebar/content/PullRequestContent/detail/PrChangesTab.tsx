@@ -110,9 +110,13 @@ export const PrChangesTab: React.FC<PrChangesTabProps> = ({
     [fileListRef]
   );
 
-  // GitHub's diff base commit SHA (falls back to the base branch ref).
+  // GitHub's diff base is the merge-base, not the current base branch tip.
   const baseSha = useMemo(
-    () => readNestedString(detail, ["base", "sha"]) ?? baseRef ?? null,
+    () =>
+      readNestedString(detail, ["merge_base_sha"]) ??
+      readNestedString(detail, ["base", "sha"]) ??
+      baseRef ??
+      null,
     [detail, baseRef]
   );
 

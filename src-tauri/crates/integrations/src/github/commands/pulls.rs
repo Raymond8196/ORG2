@@ -5,8 +5,56 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tauri::command;
 
+use super::super::client::GitHubClient;
 use super::issues::{parse_issue_user, IssueUser};
 use super::shared::make_client;
+
+const GITHUB_PAGE_SIZE: usize = 100;
+
+fn paged_path(base_path: &str, page: usize) -> String {
+    let separator = if base_path.contains('?') { '&' } else { '?' };
+    format!("{base_path}{separator}per_page={GITHUB_PAGE_SIZE}&page={page}")
+}
+
+async fn get_paginated_array(client: &GitHubClient, base_path: &str) -> Result<Vec<Value>, String> {
+    let mut page = 1;
+    let mut items = Vec::new();
+    loop {
+        let data = client.get_conditional(&paged_path(base_path, page)).await?;
+        let page_items = data
+            .as_array()
+            .ok_or_else(|| format!("GitHub API returned non-array for {base_path}"))?;
+        let page_len = page_items.len();
+        items.extend(page_items.iter().cloned());
+        if page_len < GITHUB_PAGE_SIZE {
+            break;
+        }
+        page += 1;
+    }
+    Ok(items)
+}
+
+async fn get_paginated_field_array(
+    client: &GitHubClient,
+    base_path: &str,
+    field: &str,
+) -> Result<Vec<Value>, String> {
+    let mut page = 1;
+    let mut items = Vec::new();
+    loop {
+        let data = client.get_conditional(&paged_path(base_path, page)).await?;
+        let page_items = data[field]
+            .as_array()
+            .ok_or_else(|| format!("GitHub API returned missing array field `{field}` for {base_path}"))?;
+        let page_len = page_items.len();
+        items.extend(page_items.iter().cloned());
+        if page_len < GITHUB_PAGE_SIZE {
+            break;
+        }
+        page += 1;
+    }
+    Ok(items)
+}
 
 #[derive(Debug, Deserialize)]
 pub struct CreatePRRequest {
@@ -166,9 +214,32 @@ pub async fn github_list_open_prs(
 pub async fn github_get_pr(repo_full_name: String, pr_number: u64) -> Result<Value, String> {
     log::info!("[GitHub][Cmd] get_pr repo={repo_full_name} pr={pr_number}");
     let client = make_client()?;
-    client
+    let mut detail = client
         .get_conditional(&format!("/repos/{repo_full_name}/pulls/{pr_number}"))
-        .await
+        .await?;
+
+    let base_sha = detail["base"]["sha"].as_str().map(String::from);
+    let head_sha = detail["head"]["sha"].as_str().map(String::from);
+    if let (Some(base_sha), Some(head_sha)) = (base_sha, head_sha) {
+        match client
+            .get_conditional(&format!(
+                "/repos/{repo_full_name}/compare/{base_sha}...{head_sha}"
+            ))
+            .await
+        {
+            Ok(compare) => {
+                if let Some(merge_base_sha) = compare["merge_base_commit"]["sha"].as_str() {
+                    detail["merge_base_sha"] = json!(merge_base_sha);
+                }
+            }
+            Err(err) if err.contains("GitHubReAuthRequired") => return Err(err),
+            Err(err) => {
+                log::warn!("[GitHub][Cmd] get_pr compare failed: {err}");
+            }
+        }
+    }
+
+    Ok(detail)
 }
 
 #[command]
@@ -178,22 +249,20 @@ pub async fn github_list_pr_commits(
 ) -> Result<Value, String> {
     log::info!("[GitHub][Cmd] list_pr_commits repo={repo_full_name} pr={pr_number}");
     let client = make_client()?;
-    client
-        .get_conditional(&format!(
-            "/repos/{repo_full_name}/pulls/{pr_number}/commits?per_page=100"
-        ))
-        .await
+    Ok(Value::Array(
+        get_paginated_array(&client, &format!("/repos/{repo_full_name}/pulls/{pr_number}/commits"))
+            .await?,
+    ))
 }
 
 #[command]
 pub async fn github_list_pr_files(repo_full_name: String, pr_number: u64) -> Result<Value, String> {
     log::info!("[GitHub][Cmd] list_pr_files repo={repo_full_name} pr={pr_number}");
     let client = make_client()?;
-    client
-        .get_conditional(&format!(
-            "/repos/{repo_full_name}/pulls/{pr_number}/files?per_page=300"
-        ))
-        .await
+    Ok(Value::Array(
+        get_paginated_array(&client, &format!("/repos/{repo_full_name}/pulls/{pr_number}/files"))
+            .await?,
+    ))
 }
 
 // ============================================
@@ -375,15 +444,10 @@ pub async fn github_list_pr_reviews(
 ) -> Result<Vec<GitHubPrReview>, String> {
     log::info!("[GitHub][Cmd] list_pr_reviews repo={repo_full_name} pr={pr_number}");
     let client = make_client()?;
-    let result = client
-        .get_conditional(&format!(
-            "/repos/{repo_full_name}/pulls/{pr_number}/reviews?per_page=100"
-        ))
-        .await?;
-    Ok(result
-        .as_array()
-        .map(|arr| arr.iter().map(parse_pr_review).collect())
-        .unwrap_or_default())
+    let result =
+        get_paginated_array(&client, &format!("/repos/{repo_full_name}/pulls/{pr_number}/reviews"))
+            .await?;
+    Ok(result.iter().map(parse_pr_review).collect())
 }
 
 #[command]
@@ -393,15 +457,10 @@ pub async fn github_list_pr_review_comments(
 ) -> Result<Vec<GitHubReviewComment>, String> {
     log::info!("[GitHub][Cmd] list_pr_review_comments repo={repo_full_name} pr={pr_number}");
     let client = make_client()?;
-    let result = client
-        .get_conditional(&format!(
-            "/repos/{repo_full_name}/pulls/{pr_number}/comments?per_page=100"
-        ))
-        .await?;
-    Ok(result
-        .as_array()
-        .map(|arr| arr.iter().map(parse_review_comment).collect())
-        .unwrap_or_default())
+    let result =
+        get_paginated_array(&client, &format!("/repos/{repo_full_name}/pulls/{pr_number}/comments"))
+            .await?;
+    Ok(result.iter().map(parse_review_comment).collect())
 }
 
 /// Submit a PR review. `event` is APPROVE | REQUEST_CHANGES | COMMENT.
@@ -504,16 +563,14 @@ pub async fn github_get_checks(
     log::info!("[GitHub][Cmd] get_checks repo={repo_full_name} ref={git_ref}");
     let client = make_client()?;
 
-    let check_runs = match client
-        .get_conditional(&format!(
-            "/repos/{repo_full_name}/commits/{git_ref}/check-runs?per_page=100"
-        ))
-        .await
+    let check_runs = match get_paginated_field_array(
+        &client,
+        &format!("/repos/{repo_full_name}/commits/{git_ref}/check-runs"),
+        "check_runs",
+    )
+    .await
     {
-        Ok(value) => value["check_runs"]
-            .as_array()
-            .map(|arr| arr.iter().map(parse_check_run).collect())
-            .unwrap_or_default(),
+        Ok(values) => values.iter().map(parse_check_run).collect(),
         Err(err) if err.contains("GitHubReAuthRequired") => return Err(err),
         // Some repos / refs 404 or 422 for check-runs — treat as "no runs".
         Err(err) => {
