@@ -5,6 +5,7 @@ import {
   autoDetectKey,
   getCodexOAuthModels as fetchCodexOAuthModels,
   getOAuthModelCatalog,
+  validateKey,
 } from "@src/api/services/keyValidation";
 import { CLI_AGENT } from "@src/api/tauri/rpc/schemas/validation";
 import type { DetectedKey } from "@src/api/types/keys";
@@ -14,6 +15,43 @@ import type { WizardData } from "../types";
 import { applyKey } from "./keyHelpers";
 
 const log = createLogger("ApiSetup");
+
+const OPENCODE_ZEN_BASE_URL = "https://opencode.ai/zen/v1";
+const OPENCODE_GO_BASE_URL = "https://opencode.ai/zen/go/v1";
+
+function selectedOpenCodeBaseUrl(baseUrl?: string): string {
+  return baseUrl === OPENCODE_GO_BASE_URL
+    ? OPENCODE_GO_BASE_URL
+    : OPENCODE_ZEN_BASE_URL;
+}
+
+function canUseDetectedOpenCodeKeyForEndpoint(
+  key: DetectedKey,
+  baseUrl: string
+): boolean {
+  if (baseUrl === OPENCODE_ZEN_BASE_URL) {
+    return key.base_url === OPENCODE_ZEN_BASE_URL;
+  }
+  return (
+    key.base_url === OPENCODE_GO_BASE_URL ||
+    key.base_url === OPENCODE_ZEN_BASE_URL
+  );
+}
+
+async function validateDetectedOpenCodeKeyForEndpoint(
+  key: DetectedKey,
+  baseUrl: string
+): Promise<DetectedKey> {
+  if (!key.api_key) return key;
+  const validation = await validateKey("opencode", key.api_key, baseUrl);
+  return {
+    ...key,
+    base_url: baseUrl,
+    validated: validation.valid,
+    validation_message: validation.message,
+    available_models: validation.models_available ?? [],
+  };
+}
 
 interface UseApiSetupTokenDetectionOptions {
   data: WizardData;
@@ -56,6 +94,23 @@ export function useApiSetupTokenDetection({
 }: UseApiSetupTokenDetectionOptions) {
   const applySelectedKey = useCallback(
     async (cred: DetectedKey) => {
+      if (data.agent_type === "opencode" && cred.api_key) {
+        const models = cred.available_models ?? [];
+        applyKey(cred, {
+          onChange,
+          setTokenDetected,
+          setCursorSessionToken,
+          setTokenError,
+          setShowKeySelection,
+          isCursor,
+          isOAuthAgent,
+          fallbackModels: models,
+          noValidTokenMsg: t("keyVault.noValidTokenFound"),
+          validationFailedMsg: t("keyVault.quickActions.keyValidationFailed"),
+        });
+        return;
+      }
+
       const catalog = isClaudeCode
         ? await getOAuthModelCatalog(CLI_AGENT.CLAUDE_CODE)
         : isCodex
@@ -103,6 +158,7 @@ export function useApiSetupTokenDetection({
       });
     },
     [
+      data.agent_type,
       agentModelsRef,
       isClaudeCode,
       isCodex,
@@ -131,21 +187,41 @@ export function useApiSetupTokenDetection({
       }
 
       const keys = result.keys || [];
+      const candidateKeys =
+        data.agent_type === "opencode"
+          ? await Promise.all(
+              keys
+                .filter((key) =>
+                  canUseDetectedOpenCodeKeyForEndpoint(
+                    key,
+                    selectedOpenCodeBaseUrl(data.extracted_base_url)
+                  )
+                )
+                .map((key) =>
+                  validateDetectedOpenCodeKeyForEndpoint(
+                    key,
+                    selectedOpenCodeBaseUrl(data.extracted_base_url)
+                  )
+                )
+            )
+          : keys;
 
-      if (keys.length === 0) {
+      if (candidateKeys.length === 0) {
         setTokenError(t("keyVault.couldNotDetectKeys"));
         return;
       }
 
-      if (keys.length > 1) {
-        setDetectedKeys(keys);
-        const validOAuthIndex = keys.findIndex(
+      if (candidateKeys.length > 1) {
+        setDetectedKeys(candidateKeys);
+        const validOAuthIndex = candidateKeys.findIndex(
           (cred) => cred.auth_method === "oauth" && cred.validated
         );
-        const validApiKeyIndex = keys.findIndex(
+        const validApiKeyIndex = candidateKeys.findIndex(
           (cred) => cred.auth_method === "api_key" && cred.validated
         );
-        const firstValidIndex = keys.findIndex((cred) => cred.validated);
+        const firstValidIndex = candidateKeys.findIndex(
+          (cred) => cred.validated
+        );
         setSelectedCredentialIndex(
           isClaudeCode && validOAuthIndex >= 0
             ? validOAuthIndex
@@ -159,7 +235,7 @@ export function useApiSetupTokenDetection({
         return;
       }
 
-      applySelectedKey(keys[0]);
+      applySelectedKey(candidateKeys[0]);
     } catch (err) {
       log.error("[ApiSetup] Failed to auto-detect credentials:", err);
       setTokenError(t("keyVault.failedToDetectKeys"));
@@ -168,6 +244,7 @@ export function useApiSetupTokenDetection({
     }
   }, [
     data.agent_type,
+    data.extracted_base_url,
     applySelectedKey,
     isClaudeCode,
     setDetectedKeys,

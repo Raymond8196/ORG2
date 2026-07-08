@@ -93,7 +93,7 @@ pub static PROVIDERS: &[ProviderSpec] = &[
         keywords: &[],
         litellm_prefix: None,
         skip_prefixes: &[],
-        default_api_base: Some("https://opencode.ai/zen/go/v1"),
+        default_api_base: Some("https://opencode.ai/zen/v1"),
         default_anthropic_api_base: None,
         is_local: false,
         env_key: Some("OPENCODE_API_KEY"),
