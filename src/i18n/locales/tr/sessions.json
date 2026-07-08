@@ -731,6 +731,7 @@
       },
       "quota": {
         "empty": "Henüz quota verisi yok. Key Vault'tan kullanımı yenileyin.",
+        "refresh": "Yenile",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7g",

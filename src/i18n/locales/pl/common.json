@@ -33,6 +33,8 @@
     "noContent": "Brak treści",
     "noIssueSelected": "Nie wybrano zgłoszenia",
     "selectIssueHint": "Wybierz zgłoszenie w panelu Issues na pasku bocznym.",
+    "noPrSelected": "Nie wybrano Pull request",
+    "selectPrHint": "Wybierz Pull request w panelu Pull request na pasku bocznym.",
     "reload": "Odśwież",
     "urlPreviewRequiresTauri": "Podgląd URL wymaga Tauri",
     "openInExternalBrowser": "Otwórz w zewnętrznej przeglądarce",
