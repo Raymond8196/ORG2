@@ -24,11 +24,12 @@ import { ReferenceDragGhost } from "@src/shared/dnd/ReferenceDragGhost";
 import { setPrDragStash } from "@src/shared/dnd/dragSideChannel";
 import { useReferencePillDrag } from "@src/shared/dnd/useReferencePillDrag";
 import {
-  workstationAllOpenPrsAtom,
-  workstationOpenPrsErrorAtom,
-  workstationOpenPrsLoadStateAtom,
-  workstationPrAtom,
-  workstationPrCallbackAtom,
+  workstationAllOpenPrsAtomFamily,
+  workstationOpenPrsErrorAtomFamily,
+  workstationOpenPrsLoadStateAtomFamily,
+  workstationPrAtomFamily,
+  workstationPrCallbackAtomFamily,
+  workstationRepoScopeKey,
 } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { SourceControlHistorySelection } from "@src/store/workstation/tabs";
 
@@ -39,6 +40,8 @@ export interface PullRequestContentProps {
   branchName?: string;
   filterQuery?: string;
   onHistorySelectionChange?: (selection: SourceControlHistorySelection) => void;
+  repoId?: string | null;
+  repoPath?: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -161,19 +164,26 @@ const PullRequestContent: React.FC<PullRequestContentProps> = ({
   branchName,
   filterQuery = "",
   onHistorySelectionChange,
+  repoId,
+  repoPath,
 }) => {
   const { t } = useTranslation("common");
+  const scopeKey = workstationRepoScopeKey(repoId, repoPath);
   const {
     prUrl,
     readyToCreate,
     isCreating: prCreating,
-  } = useAtomValue(workstationPrAtom);
+  } = useAtomValue(workstationPrAtomFamily(scopeKey));
   const { createPr: onCreatePr, loadOpenPrs } = useAtomValue(
-    workstationPrCallbackAtom
+    workstationPrCallbackAtomFamily(scopeKey)
   );
-  const allOpenPrs = useAtomValue(workstationAllOpenPrsAtom);
-  const openPrsLoadState = useAtomValue(workstationOpenPrsLoadStateAtom);
-  const openPrsError = useAtomValue(workstationOpenPrsErrorAtom);
+  const allOpenPrs = useAtomValue(workstationAllOpenPrsAtomFamily(scopeKey));
+  const openPrsLoadState = useAtomValue(
+    workstationOpenPrsLoadStateAtomFamily(scopeKey)
+  );
+  const openPrsError = useAtomValue(
+    workstationOpenPrsErrorAtomFamily(scopeKey)
+  );
 
   useEffect(() => {
     loadOpenPrs?.();
