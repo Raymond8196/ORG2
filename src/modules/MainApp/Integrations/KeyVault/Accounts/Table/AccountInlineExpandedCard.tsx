@@ -338,7 +338,7 @@ const AccountInlineExpandedCard: React.FC<AccountInlineExpandedCardProps> = ({
         return <AccountInlineStatusSection account={account} />;
       case ACCOUNT_INLINE_TAB.EDIT:
         if (!showEditTab) return null;
-        return <AccountInlineEditBody account={account} state={editState} />;
+        return <AccountInlineEditBody state={editState} />;
       case ACCOUNT_INLINE_TAB.MODELS:
         if (showGatewayDeployment && onRefresh) {
           return (
