@@ -309,6 +309,7 @@ pub async fn test_agent_org_launch_coordinator(
         project_slug: None,
         parent_session_id: None,
         additional_directories: Vec::new(),
+        exec_target: Default::default(),
     };
 
     info!("[agent-org-e2e] launch-coordinator calling session_launch_impl");

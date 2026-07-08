@@ -238,6 +238,9 @@ pub(super) async fn materialize_org_member_sessions(
                 project_slug: project_slug.clone(),
                 work_item_id: work_item_id.clone(),
                 agent_role: None,
+                // Org-batch launches are local-only for now (Phase 0).
+                exec_target: Default::default(),
+                workspace_target: Default::default(),
                 user_input: String::new(),
                 ide_context: None,
                 mode: agent_exec_mode.clone(),

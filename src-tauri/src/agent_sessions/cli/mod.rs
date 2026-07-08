@@ -234,6 +234,15 @@ pub fn init_cli_agent_tables(conn: &Connection) -> SqliteResult<()> {
     )
     .ok();
 
+    // SSH-remote milestone (Phase 0): where the CLI agent runs — local
+    // (default) or a remote SSH host. Stored as the serde JSON of
+    // `ExecTarget` (the string `"local"`, or `{"remote":{...}}`). NULL on
+    // legacy rows is read back as `Local`, and a payload written by a
+    // newer build carrying an unknown variant degrades to `Local` on read
+    // (§2.5-A1/A2). Additive only — no existing column is touched.
+    conn.execute("ALTER TABLE code_sessions ADD COLUMN exec_target TEXT", [])
+        .ok();
+
     Ok(())
 }
 

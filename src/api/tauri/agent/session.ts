@@ -373,6 +373,19 @@ export async function getAgentStatus(): Promise<AgentStatusInfo> {
 // Unified Session Launch
 // ============================================
 
+/**
+ * Wire form of the Rust `ExecTarget` (decides *where* a CLI agent runs).
+ * - omitted / `"local"` / `{ local: null }` → run locally (default).
+ * - `{ remote: { host, port? } }` → run on a remote SSH host. `host` is
+ *   `user@host` or a `~/.ssh/config` alias (passed verbatim to `ssh`);
+ *   `port` is optional. Auth reuses system ssh (agent / key / config) — no
+ *   credentials are stored (issue #157).
+ */
+export type ExecTargetWire =
+  | "local"
+  | { local?: null }
+  | { remote: { host: string; port?: number } };
+
 export interface SessionLaunchParams {
   category: string;
   content: string;
@@ -383,6 +396,14 @@ export interface SessionLaunchParams {
   nativeHarnessType?: NativeHarnessType;
   platform?: CliAgentType;
   branch?: string;
+  /**
+   * Where the CLI agent runs — local (default / omitted) or a remote SSH
+   * host. Remote is BYOK-only and limited to line-based CLIs
+   * (claude_code / codex / gemini_cli); enforced server-side. Wire form of
+   * the Rust `ExecTarget`. Forward-compatible: the backend degrades an
+   * unknown variant to local.
+   */
+  execTarget?: ExecTargetWire;
   hostedToken?: string;
   tier?: string;
   name?: string;

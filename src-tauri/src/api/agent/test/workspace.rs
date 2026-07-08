@@ -302,6 +302,7 @@ pub async fn test_session_launch_seed_only(
         project_slug: None,
         parent_session_id: None,
         additional_directories,
+        exec_target: Default::default(),
     };
 
     match agent_core::state::commands::session::launch::session_launch_impl(&state, None, params)

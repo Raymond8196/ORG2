@@ -18,6 +18,7 @@ import {
 import {
   cliAgentTypeAtom,
   dispatchCategoryAtom,
+  remoteTargetAtom,
   selectedAgentOrgIdAtom,
 } from "@src/store/session/creatorStateAtom";
 
@@ -64,6 +65,8 @@ interface UseAdvancedConfigResult {
 export function useAdvancedConfig(): UseAdvancedConfigResult {
   const dispatchCategory = useAtomValue(dispatchCategoryAtom);
   const atomCliAgentType = useAtomValue(cliAgentTypeAtom);
+  const atomRemoteTarget = useAtomValue(remoteTargetAtom);
+  const setRemoteTarget = useSetAtom(remoteTargetAtom);
   const { getAccount } = useKeyVault({ autoLoad: true });
 
   const lastModelSelection = useValidatedLastPair();
@@ -71,7 +74,7 @@ export function useAdvancedConfig(): UseAdvancedConfigResult {
   const setMemberDraftConfig = useSetAtom(agentOrgMemberDraftConfigAtom);
   const setLastModelSelection = useSetAtom(creatorDefaultModelSelectionAtom);
 
-  const advancedConfig = useMemo<AdvancedConfig>(() => {
+  const baseAdvancedConfig = useMemo<AdvancedConfig>(() => {
     if (!lastModelSelection) {
       return atomCliAgentType
         ? {
@@ -129,6 +132,16 @@ export function useAdvancedConfig(): UseAdvancedConfigResult {
     memberDraftConfig,
   ]);
 
+  // `remoteTarget` is backed by its own atom (it's not part of the model-pair
+  // selection). Spread it on top of the derived config so the SSH-host input
+  // in SessionCreator is editable — without this, the memo above (rebuilt
+  // from model-pair atoms) would drop remoteTarget on every keystroke and the
+  // input would appear frozen.
+  const advancedConfig = useMemo<AdvancedConfig>(
+    () => ({ ...baseAdvancedConfig, remoteTarget: atomRemoteTarget }),
+    [baseAdvancedConfig, atomRemoteTarget]
+  );
+
   const setAdvancedConfig = useCallback(
     (
       nextOrUpdater: AdvancedConfig | ((prev: AdvancedConfig) => AdvancedConfig)
@@ -144,8 +157,14 @@ export function useAdvancedConfig(): UseAdvancedConfigResult {
       });
       const pair = extractModelPair(resolved);
       setLastModelSelection(pair);
+      setRemoteTarget(resolved.remoteTarget);
     },
-    [advancedConfig, setLastModelSelection, setMemberDraftConfig]
+    [
+      advancedConfig,
+      setLastModelSelection,
+      setMemberDraftConfig,
+      setRemoteTarget,
+    ]
   );
 
   return { advancedConfig, setAdvancedConfig, setLastModelSelection };

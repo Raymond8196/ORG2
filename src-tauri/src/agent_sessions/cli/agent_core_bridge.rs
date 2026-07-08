@@ -50,6 +50,10 @@ fn run(
             project_slug: params.project_slug,
             work_item_id: params.work_item_id,
             agent_role: params.agent_role,
+            // `workspace_target` is a launch-time reservation on
+            // `CliLaunchParams` (§2.5-B9); only the brain-location axis is
+            // persisted in this milestone, so it is not forwarded here.
+            exec_target: params.exec_target,
         };
 
         let session = cli_agent_create(create_params).await?;

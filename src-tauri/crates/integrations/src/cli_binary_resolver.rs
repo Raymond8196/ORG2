@@ -356,6 +356,16 @@ pub fn resolve_cli_binary_command(id: CliBinaryId) -> String {
     resolve_cli_binary(id).command
 }
 
+/// The bare command name for a CLI binary (e.g. `"claude"`, `"codex"`),
+/// without resolving it to a local install path.
+///
+/// Used by remote execution: the remote `bash -lc` login shell resolves
+/// this name over SSH (§2.2), so we must NOT pass the locally-resolved
+/// absolute path (which doesn't exist on the remote host).
+pub fn cli_binary_bare_command(id: CliBinaryId) -> &'static str {
+    metadata_for_id(id).command
+}
+
 #[derive(Debug, Clone)]
 struct ResolveOptions {
     path_env: Option<OsString>,

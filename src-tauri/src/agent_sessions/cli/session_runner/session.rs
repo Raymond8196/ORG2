@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::Arc;
 
+use agent_core::foundation::exec_target::ExecTarget;
 use agent_core::session::AgentExecMode;
 use tokio::io::BufReader;
 use tokio::process::Command;
@@ -21,8 +22,10 @@ use super::super::launch_profile_store::resolve_cli_launch_profile;
 use super::super::persistence;
 use super::super::types::{proxy_env, KeySource, SessionStatus};
 use super::command::{
-    build_command_with_launch_profile, create_parser, launch_profile_env, CliCommandBuildRequest,
+    build_command_with_launch_profile, create_parser, launch_profile_env,
+    resolve_cli_agent_command_name, CliCommandBuildRequest,
 };
+use super::remote_spawn::{self, RemoteSpawn};
 use super::context_bridge::build_context_bridge;
 use super::cursor_usage::fetch_cursor_usage_for_session;
 use super::helpers::{
@@ -282,13 +285,34 @@ pub async fn run_session(
         }
     }
 
+    // SSH-remote milestone: where this CLI runs. Computed once here so the
+    // skill_sync block below can skip local writes for a Remote target, and
+    // reused by the spawn seam further down.
+    let exec_target = session.exec_target.clone();
+
     // Sync .orgii/agent-rules.md → agent-native rules file
     let mut synced_rule_files: Vec<std::path::PathBuf> = Vec::new();
-    if let Some(path) = repo_path {
-        let project = std::path::Path::new(path);
-        synced_rule_files.extend(super::super::skill_sync::sync_conventions_for_agent(
-            &agent, project,
-        ));
+    // skill_sync writes files into the workspace. For a Remote target the
+    // workspace is on the remote host, so a local write would pollute the
+    // local filesystem at the remote path AND have no effect remotely.
+    // Remote materialization over ssh (§2.6-a) lands in P1.4; until then
+    // skip with a prominent warning — never silently write to the wrong host.
+    if !exec_target.is_remote() {
+        if let Some(path) = repo_path {
+            let project = std::path::Path::new(path);
+            synced_rule_files.extend(super::super::skill_sync::sync_conventions_for_agent(
+                &agent, project,
+            ));
+        }
+    } else {
+        // Conventions remote materialization is not yet implemented (skills
+        // are materialized below, §2.6-a). Skip with a warning rather than
+        // writing to the local filesystem at a remote path.
+        tracing::warn!(
+            "[skill_sync] remote exec target `{}`: project conventions are NOT \
+             synced to the remote host in this build (skills are).",
+            exec_target
+        );
     }
 
     // Sync skills to agent-native rules files.
@@ -298,14 +322,46 @@ pub async fn run_session(
     // are a host-wide concern carried on the SDE definition) and read
     // `skills.enabled` + `skills.disabled` off `ResolvedAgent`.
     let skills_cfg = resolve_sde_skills();
-    if let Some(path) = repo_path {
-        let project = std::path::Path::new(path);
-        synced_rule_files.extend(super::super::skill_sync::sync_skills_for_agent(
-            &agent,
-            project,
-            skills_cfg.enabled,
-            &skills_cfg.disabled,
-        ));
+    if !exec_target.is_remote() {
+        if let Some(path) = repo_path {
+            let project = std::path::Path::new(path);
+            synced_rule_files.extend(super::super::skill_sync::sync_skills_for_agent(
+                &agent,
+                project,
+                skills_cfg.enabled,
+                &skills_cfg.disabled,
+            ));
+        }
+    } else if let Some(ssh) = exec_target.as_remote() {
+        // §2.6-a: materialize orgii skill files on the remote host over ssh
+        // so the agent picks them up. Content is piped via stdin (not argv)
+        // to avoid quoting the skill body. A write failure warns but does
+        // not abort the session — skills are an enhancement, not a gate.
+        if let Some(path) = repo_path {
+            let project = std::path::Path::new(path);
+            let files = super::super::skill_sync::skill_files_for_agent(
+                &agent,
+                project,
+                skills_cfg.enabled,
+                &skills_cfg.disabled,
+            );
+            for (target, content) in files {
+                let target_str = target.to_string_lossy().to_string();
+                match remote_spawn::remote_write_file(ssh, &target_str, content).await {
+                    Ok(()) => {
+                        tracing::info!(
+                            "[skill_sync] Wrote skills to remote {}:{}",
+                            ssh.host, target_str
+                        );
+                        synced_rule_files.push(target);
+                    }
+                    Err(e) => tracing::warn!(
+                        "[skill_sync] Failed to materialize remote skill file {}:{}: {}",
+                        ssh.host, target_str, e
+                    ),
+                }
+            }
+        }
     }
 
     // Pre-message anchor snapshot for CLI rollback support.
@@ -418,7 +474,6 @@ pub async fn run_session(
         cmd_parts.insert(insert_pos + 1, "model_provider=\"proxy\"".into());
     }
 
-    let program = &cmd_parts[0];
     let args = &cmd_parts[1..];
 
     // Log the full command for debugging (redact sensitive values)
@@ -451,19 +506,61 @@ pub async fn run_session(
         "repo_path is required — cannot run agent without a working directory".to_string()
     })?;
 
-    let working_dir = session
-        .worktree_path
-        .as_deref()
-        .filter(|p| !p.is_empty() && std::path::Path::new(p).is_dir())
-        .unwrap_or(base_working_dir);
-
-    if !std::path::Path::new(&working_dir).is_dir() {
-        return Err(format!(
-            "Working directory does not exist or is not a directory: {}",
-            working_dir
-        ));
-    }
-
+    // Resolve the program + working dir per exec target. `exec_target` was
+    // computed above (before skill_sync). Local keeps the verbatim local
+    // working-dir resolution + is_dir check; Remote uses the bare command
+    // name (the remote login shell resolves it via PATH, §2.2) and validates
+    // the binary + directory over ssh (§3-Phase1, §5.3).
+    let (program_owned, working_dir_owned): (String, String) = match &exec_target {
+        ExecTarget::Local => {
+            let working_dir = session
+                .worktree_path
+                .as_deref()
+                .filter(|p| !p.is_empty() && std::path::Path::new(p).is_dir())
+                .unwrap_or(base_working_dir);
+            if !std::path::Path::new(&working_dir).is_dir() {
+                return Err(format!(
+                    "Working directory does not exist or is not a directory: {}",
+                    working_dir
+                ));
+            }
+            (cmd_parts[0].clone(), working_dir.to_string())
+        }
+        ExecTarget::Remote(ssh) => {
+            // The locally-resolved absolute path doesn't exist on the remote
+            // host; use the bare name and let `bash -lc` find it on PATH.
+            let bare = resolve_cli_agent_command_name(&agent);
+            match remote_spawn::remote_binary_exists(ssh, bare).await {
+                Ok(true) => {}
+                Ok(false) => {
+                    return Err(format!(
+                        "`{bare}` was not found on the remote host `{host}`. Install it \
+                         there (or put it on the login-shell PATH) and retry.",
+                        host = ssh.host
+                    ));
+                }
+                Err(e) => return Err(e),
+            }
+            // worktree_path / repo_path are remote paths — never stat locally.
+            let working_dir = session
+                .worktree_path
+                .as_deref()
+                .filter(|p| !p.is_empty())
+                .unwrap_or(base_working_dir);
+            match remote_spawn::remote_dir_exists(ssh, working_dir).await {
+                Ok(true) => {}
+                Ok(false) => {
+                    return Err(format!(
+                        "Remote working directory does not exist: {working_dir}"
+                    ));
+                }
+                Err(e) => return Err(e),
+            }
+            (bare.to_string(), working_dir.to_string())
+        }
+    };
+    let program = program_owned.as_str();
+    let working_dir = working_dir_owned.as_str();
     let snapshot_working_dir = working_dir.to_string();
 
     // ── Build environment variables ──
@@ -969,23 +1066,37 @@ pub async fn run_session(
         let attempt_stderr_lines: Arc<Mutex<VecDeque<String>>> =
             Arc::new(Mutex::new(VecDeque::with_capacity(MAX_STDERR_LINES)));
         stderr_lines = Arc::clone(&attempt_stderr_lines);
-        let mut spawn_cmd = Command::new(program);
-        spawn_cmd
-            .args(args)
-            .envs(&env_vars)
-            .current_dir(working_dir)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
-        if matches!(agent, ModelType::GeminiCli) {
-            if let Some(gemini_home) = env_vars.get("GEMINI_CLI_HOME") {
-                spawn_cmd.env("HOME", gemini_home);
+        let mut spawn_cmd = match &exec_target {
+            ExecTarget::Local => {
+                let mut cmd = Command::new(program);
+                cmd.args(args).envs(&env_vars).current_dir(working_dir);
+                // Gemini-specific local env tweak — kept verbatim from the
+                // pre-refactor spawn and inside the Local arm: the HOME
+                // override is a local-only concern (the remote path
+                // forwards env over ssh, §2.3). Do not refactor this while
+                // adding remote support (§2.5-A4).
+                if matches!(agent, ModelType::GeminiCli) {
+                    if let Some(gemini_home) = env_vars.get("GEMINI_CLI_HOME") {
+                        cmd.env("HOME", gemini_home);
+                    }
+                    cmd.env("GEMINI_CLI_TRUST_WORKSPACE", "true")
+                        .env_remove("GEMINI_CLI_IDE_PID")
+                        .env_remove("GEMINI_CLI_IDE_SERVER_PORT")
+                        .env_remove("GEMINI_CLI_IDE_WORKSPACE_PATH");
+                }
+                cmd
             }
-            spawn_cmd
-                .env("GEMINI_CLI_TRUST_WORKSPACE", "true")
-                .env_remove("GEMINI_CLI_IDE_PID")
-                .env_remove("GEMINI_CLI_IDE_SERVER_PORT")
-                .env_remove("GEMINI_CLI_IDE_WORKSPACE_PATH");
-        }
+            ExecTarget::Remote(ssh) => {
+                // Phase 0 seam: route through `RemoteSpawn` so Phase 1's ssh
+                // argv lands here without restructuring the spawn again. Not
+                // yet wired — returns a clear error so no session silently
+                // runs locally (§2.2, §2.5-B6).
+                remote_spawn::SystemSsh.build(ssh, program, args, &env_vars, working_dir)?
+            }
+        };
+        // Shared spawn mechanics — apply uniformly to both the local child
+        // process and the local `ssh` client that fronts a remote target.
+        spawn_cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
         if is_acp_agent {
             spawn_cmd.stdin(Stdio::piped());
         } else {
@@ -1023,7 +1134,17 @@ pub async fn run_session(
                         if needs_mitm {
                             integrations::proxy::server::stop_session_proxy(&session_id).await;
                         }
-                        return Err(format!("Failed to spawn {}: {}", program, err));
+                        // For a Remote target the spawned process is `ssh`,
+                        // not the CLI binary — label it so the error names the
+                        // real culprit (e.g. "ssh not found" vs "claude not
+                        // found").
+                        let what = match &exec_target {
+                            ExecTarget::Remote(ssh) => {
+                                format!("ssh (remote {})", ssh.host)
+                            }
+                            ExecTarget::Local => program.to_string(),
+                        };
+                        return Err(format!("Failed to spawn {what}: {err}"));
                     }
                 }
             }
@@ -1038,10 +1159,21 @@ pub async fn run_session(
         let stderr = child.stderr.take().expect("stderr was piped");
         let stderr_session_id = session_id.clone();
         let stderr_lines_writer = Arc::clone(&attempt_stderr_lines);
+        let stderr_is_remote = exec_target.is_remote();
         tokio::spawn(async move {
             use tokio::io::AsyncBufReadExt;
             let mut reader = BufReader::new(stderr).lines();
             while let Ok(Some(line)) = reader.next_line().await {
+                // The remote spawn wrapper echoes `ORGII_RPID=$$` to stderr so
+                // the kill chain can issue an explicit remote kill (§2.2.1).
+                // Capture the pid and suppress the marker line — it must not
+                // appear as user-visible stderr.
+                if stderr_is_remote {
+                    if let Some(pid) = super::ssh::parse_remote_pid(&line) {
+                        remote_spawn::set_remote_pid(&stderr_session_id, pid);
+                        continue;
+                    }
+                }
                 tracing::warn!("[CodeSession][stderr][{}] {}", stderr_session_id, line);
                 let mut buf = stderr_lines_writer.lock().await;
                 if buf.len() >= MAX_STDERR_LINES {
@@ -1817,7 +1949,23 @@ pub async fn run_session(
 
     release_proxy_token_for_session(&session_id).await;
 
-    super::super::skill_sync::cleanup_synced_skill_files(&synced_rule_files);
+    if !exec_target.is_remote() {
+        super::super::skill_sync::cleanup_synced_skill_files(&synced_rule_files);
+    } else if let Some(ssh) = exec_target.as_remote() {
+        // §2.6-a: clean up the skill files we materialized on the remote host.
+        // Each removal is marker-guarded (remote_remove_skill_file checks the
+        // orgii marker) so a user's own rule file is never deleted. A failure
+        // warns but does not block session teardown.
+        for path in &synced_rule_files {
+            let path_str = path.to_string_lossy();
+            if let Err(e) = remote_spawn::remote_remove_skill_file(ssh, &path_str).await {
+                tracing::warn!(
+                    "[skill_sync] Failed to clean up remote skill file {}:{}: {}",
+                    ssh.host, path_str, e
+                );
+            }
+        }
+    }
 
     Ok(())
 }

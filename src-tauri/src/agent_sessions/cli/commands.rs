@@ -7,12 +7,14 @@ use super::session_runner::launch_profiles::{
     CliLaunchProfileUpdate, CliLaunchProfileView, CliPermissionMode,
 };
 use super::types::{KeySource, SessionStatus};
+use agent_core::foundation::exec_target::ExecTarget;
 use agent_core::session::IdeContext;
 use agent_core::state::control_flow::CancelReason;
 use core_types::activity::ActivityChunk;
 use core_types::session::CLI_SESSION_PREFIX;
 use core_types::worktree::{MergeStrategy, WorktreeMergeResult};
 use git::worktree;
+use key_vault::key_store::ModelType;
 use settings;
 use std::collections::HashMap;
 
@@ -63,6 +65,47 @@ fn inject_ide_context_into_prompt(user_input: &str, ide_context: Option<&IdeCont
     )
 }
 
+/// Validate that `exec_target` is compatible with the session's auth model
+/// and CLI capabilities.
+///
+/// Pure (no I/O) so it can be unit-tested without a DB. Returns
+/// `Err(human_message)` for an incompatible combination so [`cli_agent_create`]
+/// fails fast — before allocating a proxy token or spawning — instead of
+/// surfacing a confusing late error. (docs/ssh-remote-cli-mvp-plan.md
+/// §3-Phase0 guard, §2.5-B7)
+fn validate_exec_target_compat(
+    exec_target: &ExecTarget,
+    key_source: KeySource,
+    cli_agent_type: &str,
+) -> Result<(), String> {
+    if !exec_target.is_remote() {
+        return Ok(());
+    }
+    // Remote execution is BYOK-only. Hosted mode needs a localhost proxy
+    // that is unreachable from a remote host without an SSH reverse tunnel
+    // (deferred to a later milestone).
+    if key_source == KeySource::HostedKey {
+        return Err(
+            "Hosted (market) mode does not yet support remote execution. \
+             Use BYOK (own_key) for remote CLI sessions."
+                .to_string(),
+        );
+    }
+    // Remote also requires a CLI whose streaming + auth are remote-friendly
+    // (line-based stdout + base-URL/BYOK). A MITM/ACP CLI can't run remote
+    // yet; reject with the CLI name so the user knows which one.
+    if let Some(agent) = ModelType::from_str(cli_agent_type) {
+        if !(agent.is_line_based_streaming() && agent.uses_base_url_auth()) {
+            return Err(format!(
+                "Remote execution is not yet supported for `{}` — it requires \
+                 line-based streaming + base-URL/BYOK auth.",
+                cli_agent_type
+            ));
+        }
+    }
+    Ok(())
+}
+
 /// Create a new code session.
 ///
 /// When `params.isolate` is true and `repo_path` is set, creates a git worktree
@@ -92,6 +135,10 @@ pub async fn cli_agent_create(mut params: CreateCodeSessionParams) -> Result<Cod
             KeySource::parse(value).ok_or_else(|| format!("Unknown key_source: {value:?}"))?
         }
     };
+
+    // SSH-remote milestone (Phase 0): fail fast on remote targets that this
+    // build can't honour — before any proxy allocation or spawn side effect.
+    validate_exec_target_compat(&params.exec_target, key_source, &params.cli_agent_type)?;
 
     // If key_source is HostedKey, allocate proxy token internally
     if key_source == KeySource::HostedKey {
@@ -950,4 +997,64 @@ pub async fn cli_agent_worktree_discard(session_id: String) -> Result<bool, Stri
     .map_err(|e| format!("Task error: {}", e))??;
 
     Ok(true)
+}
+
+#[cfg(test)]
+mod exec_target_guard_tests {
+    //! Pin the create-time exec_target compatibility guard without a DB.
+    //! Mirrors the `create_session_input_guards` pattern: exercise the pure
+    //! validation directly so a regression in the Remote+Hosted or
+    //! Remote+non-capable-CLI rejection is caught by CI (§4.1).
+    use super::*;
+    use agent_core::foundation::exec_target::{ExecTarget, SshTarget};
+
+    fn remote() -> ExecTarget {
+        ExecTarget::Remote(SshTarget::new("user@build-host"))
+    }
+
+    #[test]
+    fn local_is_always_allowed() {
+        // Local is today's only wired target — works for any key_source / CLI.
+        for key in [KeySource::OwnKey, KeySource::HostedKey] {
+            assert!(validate_exec_target_compat(&ExecTarget::Local, key, "claude_code").is_ok());
+            assert!(validate_exec_target_compat(&ExecTarget::Local, key, "cursor_cli").is_ok());
+        }
+    }
+
+    #[test]
+    fn remote_plus_hosted_is_rejected_with_readable_message() {
+        let err = validate_exec_target_compat(&remote(), KeySource::HostedKey, "claude_code")
+            .expect_err("Remote + Hosted must be rejected");
+        assert!(err.contains("Hosted"), "message: {err}");
+        assert!(err.contains("BYOK"), "message: {err}");
+    }
+
+    #[test]
+    fn remote_plus_byok_capable_cli_passes_the_guard() {
+        // The three in-scope CLIs are line-based + base-URL → guard passes.
+        // (The spawn seam still rejects them as not-yet-wired in Phase 0;
+        // this test only pins the create-time capability gate.)
+        for cli in ["claude_code", "codex", "gemini_cli"] {
+            assert!(
+                validate_exec_target_compat(&remote(), KeySource::OwnKey, cli).is_ok(),
+                "Remote + BYOK + {cli} should pass the capability guard"
+            );
+        }
+    }
+
+    #[test]
+    fn remote_plus_mitm_cli_is_rejected() {
+        // cursor_cli needs a MITM localhost proxy — not reachable remotely.
+        let err = validate_exec_target_compat(&remote(), KeySource::OwnKey, "cursor_cli")
+            .expect_err("Remote + cursor_cli must be rejected");
+        assert!(err.contains("cursor_cli"), "message: {err}");
+    }
+
+    #[test]
+    fn remote_plus_acp_cli_is_rejected() {
+        // copilot is ACP (bidirectional stdin) — not line-based streaming.
+        let err = validate_exec_target_compat(&remote(), KeySource::OwnKey, "copilot")
+            .expect_err("Remote + copilot must be rejected");
+        assert!(err.contains("copilot"), "message: {err}");
+    }
 }

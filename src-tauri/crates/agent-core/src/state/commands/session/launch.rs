@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::definitions::orgs::{AgentOrgsStore, OrgMemberLaunchOverride};
+use crate::foundation::exec_target::ExecTarget;
 use crate::session::launch::{
     launch_rust_agent_run, AgentRunLaunchRequest, AgentRunTarget, LaunchOrgContext,
     LaunchProvenance, LaunchResourceSelection, WorkspaceLaunchTarget,
@@ -47,6 +48,12 @@ pub struct SessionLaunchParams {
     /// CLI agent type (wire name: `platform`)
     pub platform: Option<String>,
     pub branch: Option<String>,
+    /// Where the CLI agent runs — local (default) or a remote SSH host.
+    /// Remote is BYOK-only and limited to line-based CLIs (claude_code,
+    /// codex, gemini_cli); enforced server-side. Forward-compatible: an
+    /// unknown variant degrades to Local. (SSH-remote milestone §1, §2.1)
+    #[serde(default)]
+    pub exec_target: ExecTarget,
 
     // Market-specific
     pub hosted_token: Option<String>,
@@ -347,6 +354,11 @@ async fn launch_cli_agent(
         project_slug: project_slug.clone(),
         work_item_id: work_item_id.clone(),
         agent_role: agent_role.clone(),
+        // SSH-remote milestone: exec_target comes from the frontend launch
+        // payload (Phase 3 entry). workspace_target is a reserved slot that
+        // mirrors exec_target today (§2.5-B9) — not yet acted on.
+        exec_target: params.exec_target.clone(),
+        workspace_target: Default::default(),
         user_input: params.content,
         ide_context: params.ide_context,
         mode: params.mode,

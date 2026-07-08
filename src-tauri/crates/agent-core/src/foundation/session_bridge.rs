@@ -61,6 +61,18 @@ pub struct CliLaunchParams {
     pub work_item_id: Option<String>,
     pub agent_role: Option<String>,
 
+    /// Where the agent *brain* runs — local child process or remote SSH
+    /// host. Orthogonal to `cli_agent_type` (which agent). Defaults to
+    /// `Local`; the SSH-remote milestone wires `Remote` end-to-end. See
+    /// `docs/ssh-remote-cli-mvp-plan.md` §2.1.
+    pub exec_target: crate::foundation::exec_target::ExecTarget,
+    /// Where the agent's *files* live. A separate typed slot from
+    /// `exec_target` so future "remote brain + local files" / container
+    /// combos stay expressible instead of being locked behind one bool
+    /// (§2.5-B9). Not acted on in this milestone (no editor-layer remote
+    /// fs yet); today it simply mirrors `exec_target`.
+    pub workspace_target: crate::foundation::exec_target::ExecTarget,
+
     // Run-side params
     pub user_input: String,
     pub ide_context: Option<crate::session::IdeContext>,

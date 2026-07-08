@@ -336,3 +336,15 @@ export const cliLaunchModeAtom = atom(
     });
   }
 );
+
+/**
+ * Remote SSH execution target for the SSH-remote milestone (§1, §3-Phase3).
+ * Module-level (non-persisted) atom: survives SessionCreator remounts within
+ * a session, resets on full app reload. `{ host, port? }` or `undefined`
+ * (= run locally). Kept out of the persisted `SessionCreatorState` shape so
+ * a stale remote host doesn't survive an app restart, and so the persisted
+ * schema doesn't need a migration.
+ */
+export const remoteTargetAtom = atom<
+  { host: string; port?: number } | undefined
+>(undefined);

@@ -847,6 +847,19 @@ const SessionCreatorChatPanelSingle: React.FC<
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // SSH-remote milestone (§3-Phase3): offer a manual Remote SSH target entry
+  // for the line-based CLIs that support it (cursor_cli/copilot/kiro are
+  // MITM/ACP and can't run remote yet). Hosted+Remote is rejected server-side.
+  const REMOTE_CAPABLE_CLI_AGENTS: ReadonlyArray<string> = [
+    "claude_code",
+    "codex",
+    "gemini_cli",
+  ];
+  const showRemoteTargetInput =
+    isCliMode &&
+    !!cliAgentType &&
+    REMOTE_CAPABLE_CLI_AGENTS.includes(cliAgentType);
+
   return (
     <div
       className={`session-creator-chat-panel-wrapper ${className}`}
@@ -945,6 +958,49 @@ const SessionCreatorChatPanelSingle: React.FC<
                 {!hideRepoLine && headerLayout !== "compact" && (
                   <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
                     {repoPills}
+                  </div>
+                )}
+                {showRemoteTargetInput && (
+                  <div className="flex items-center gap-2 px-1 pb-1 pt-2 text-[12px] text-text-3">
+                    <span className="shrink-0">Remote SSH</span>
+                    <input
+                      type="text"
+                      spellCheck={false}
+                      autoComplete="off"
+                      data-testid="remote-ssh-host-input"
+                      className="min-w-0 flex-1 rounded border border-border-2 bg-transparent px-2 py-0.5 text-text-1 outline-none focus:border-primary-4"
+                      placeholder="user@host"
+                      value={advancedConfig.remoteTarget?.host ?? ""}
+                      onChange={(e) =>
+                        handleAdvancedConfigChange({
+                          ...advancedConfig,
+                          remoteTarget: {
+                            host: e.target.value,
+                            port: advancedConfig.remoteTarget?.port,
+                          },
+                        })
+                      }
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={65535}
+                      data-testid="remote-ssh-port-input"
+                      className="w-20 shrink-0 rounded border border-border-2 bg-transparent px-2 py-0.5 text-text-1 outline-none focus:border-primary-4"
+                      placeholder="port"
+                      value={advancedConfig.remoteTarget?.port ?? ""}
+                      onChange={(e) =>
+                        handleAdvancedConfigChange({
+                          ...advancedConfig,
+                          remoteTarget: {
+                            host: advancedConfig.remoteTarget?.host ?? "",
+                            port: e.target.value
+                              ? Number(e.target.value)
+                              : undefined,
+                          },
+                        })
+                      }
+                    />
                   </div>
                 )}
               </div>

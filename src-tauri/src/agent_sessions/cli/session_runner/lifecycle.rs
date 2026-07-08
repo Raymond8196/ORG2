@@ -67,6 +67,31 @@ pub async fn kill_running_agent(session_id: &str) -> bool {
     };
 
     if let Ok(Some(session)) = persistence::get_session(session_id) {
+        // Remote: kill the remote CLI pid FIRST (over ssh, riding the shared
+        // ControlMaster socket), THEN the local ssh client. Killing the local
+        // ssh first would tear down the master and strand the remote kill
+        // (§2.2.1). Without an explicit remote kill the remote CLI would
+        // survive as a zombie — no PTY means no SIGHUP propagation.
+        if let Some(ssh) = session.exec_target.as_remote() {
+            match super::remote_spawn::take_remote_pid(session_id) {
+                Some(pid) => {
+                    if let Err(e) = super::remote_spawn::remote_kill(ssh, pid).await {
+                        tracing::warn!(
+                            "[CodeSession] remote kill of {} pid {} failed ({}); \
+                             remote CLI may be orphaned",
+                            ssh.host,
+                            pid,
+                            e
+                        );
+                    }
+                }
+                None => tracing::warn!(
+                    "[CodeSession] no remote pid captured for {} — killing local ssh \
+                     only; remote CLI state unknown",
+                    session_id
+                ),
+            }
+        }
         if let Some(pid) = session.pid {
             terminate_process_tree(pid, session_id).await;
         }

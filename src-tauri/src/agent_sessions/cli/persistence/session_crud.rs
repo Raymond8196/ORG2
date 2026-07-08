@@ -1,6 +1,7 @@
 use chrono::Utc;
 use rusqlite::{params, OptionalExtension, Result as SqliteResult};
 
+use agent_core::foundation::exec_target::ExecTarget;
 use agent_core::session::AgentExecMode;
 use database::db::get_connection;
 
@@ -76,14 +77,19 @@ pub fn create_session(
         .filter(|v| !v.is_empty())
         .map(|v| serde_json::to_string(v).unwrap_or_else(|_| "[]".to_string()));
 
+    // Serialize `ExecTarget` as JSON text — `"local"` or `{"remote":{...}}`.
+    // Forward-compatible: an old build reads a new variant back as `Local`.
+    let exec_target_json: String =
+        serde_json::to_string(&params.exec_target).unwrap_or_else(|_| "\"local\"".to_string());
+
     conn.execute(
         "INSERT INTO code_sessions
             (session_id, name, status, flow, runner, cli_agent_type, model, tier,
              account_id, repo_path, branch, proxy_token, proxy_url, hosted_token,
              proxy_session_id, background, key_source, additional_directories,
              parent_session_id, org_member_id, org_id, project_id, project_name,
-             project_slug, work_item_id, agent_role, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28)",
+             project_slug, work_item_id, agent_role, exec_target, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29)",
         params![
             session_id, name, SessionStatus::Pending.as_ref(), flow, runner, params.cli_agent_type,
             params.model, params.tier, params.account_id,
@@ -91,7 +97,7 @@ pub fn create_session(
             params.hosted_token, params.proxy_session_id, background, key_source_str,
             additional_dirs_json, params.parent_session_id, params.org_member_id,
             org_id, params.project_id, params.project_name, params.project_slug,
-            params.work_item_id, params.agent_role, ts, ts,
+            params.work_item_id, params.agent_role, exec_target_json, ts, ts,
         ],
     )?;
 
@@ -114,7 +120,7 @@ const SESSION_COLUMNS: &str =
      cs.parent_session_id, cs.org_member_id,
      COALESCE(cs.org_id, 'personal-org'), cs.project_id, cs.project_name,
      cs.project_slug, cs.work_item_id, cs.agent_role,
-     cs.created_at, cs.updated_at";
+     cs.created_at, cs.updated_at, cs.exec_target";
 
 /// Get a session by ID.
 pub fn get_session(session_id: &str) -> SqliteResult<Option<CodeSession>> {
@@ -668,5 +674,17 @@ fn row_to_session(row: &rusqlite::Row) -> rusqlite::Result<CodeSession> {
         agent_role: row.get(38)?,
         created_at: row.get(39)?,
         updated_at: row.get(40)?,
+        // `exec_target` is nullable for legacy rows and is JSON text
+        // (`"local"` / `{"remote":{...}}`). NULL, empty, or a payload
+        // written by a newer build all degrade to `Local` rather than
+        // failing the whole session read (§2.5-A1/A2).
+        exec_target: row
+            .get::<_, Option<String>>(41)
+            .ok()
+            .flatten()
+            .as_deref()
+            .filter(|s| !s.is_empty())
+            .and_then(|s| serde_json::from_str::<ExecTarget>(s).ok())
+            .unwrap_or_default(),
     })
 }

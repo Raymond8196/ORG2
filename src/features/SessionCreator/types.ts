@@ -82,6 +82,15 @@ export interface AdvancedConfig {
    * Serialized as the `platform` key in the Rust `cli_agent_create` command.
    */
   cliAgentType?: CliAgentType;
+  /**
+   * Remote SSH execution target. When set (with a non-empty `host`), the
+   * CLI agent runs on the remote host over ssh instead of locally.
+   * BYOK-only + line-based CLIs (claude_code / codex / gemini_cli),
+   * enforced server-side. `~/.ssh/config` host-list parsing is deferred —
+   * the user types `user@host` (or an ssh-config alias) + optional port.
+   * (SSH-remote milestone §1, §3-Phase3.)
+   */
+  remoteTarget?: { host: string; port?: number };
   /** Price tier for hosted_key sessions (e.g., "standard", "premium", "vip", "basic") */
   tier?: string;
   /** Hosted listing display name (when keySource is hosted) */

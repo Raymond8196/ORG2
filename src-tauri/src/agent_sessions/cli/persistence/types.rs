@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use agent_core::foundation::exec_target::ExecTarget;
+
 use super::super::types::KeySource;
 use super::super::types::SessionStatus;
 
@@ -69,6 +71,10 @@ pub struct CodeSession {
     pub project_slug: Option<String>,
     pub work_item_id: Option<String>,
     pub agent_role: Option<String>,
+    /// Execution target (local vs remote SSH host). `Local` for every
+    /// pre-SSH-remote row; read from the `exec_target` DB column.
+    #[serde(default)]
+    pub exec_target: ExecTarget,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -124,4 +130,9 @@ pub struct CreateCodeSessionParams {
     pub project_slug: Option<String>,
     pub work_item_id: Option<String>,
     pub agent_role: Option<String>,
+    /// Where the CLI agent runs — local (default) or a remote SSH host.
+    /// Forward-compatible: a payload carrying an unknown future variant
+    /// degrades to `Local` instead of erroring (§2.5-A2).
+    #[serde(default)]
+    pub exec_target: ExecTarget,
 }

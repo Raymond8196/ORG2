@@ -52,6 +52,17 @@ pub fn proxy_dir() -> PathBuf {
     orgii_root().join("proxy")
 }
 
+/// SSH ControlMaster socket directory: `~/.orgii/ssh/`.
+///
+/// Holds the multiplexed ssh control sockets (named by ssh's `%C` connection
+/// hash) so the remote-CLI binary-check / dir-check / spawn / kill ssh calls
+/// all share one authenticated connection (§2.2). Callers create the dir on
+/// demand and should hold it at mode 0700 so other users can't attach to a
+/// control socket.
+pub fn ssh_control_dir() -> PathBuf {
+    orgii_root().join("ssh")
+}
+
 /// Main SQLite database file: `~/.orgii/sessions.db`.
 ///
 /// Hosts session events, CLI agent state, inbox, dev records, lineage,

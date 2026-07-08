@@ -45,6 +45,7 @@ mod resume_state_tests {
                 project_slug: None,
                 work_item_id: None,
                 agent_role: None,
+                exec_target: Default::default(),
             },
         )
         .expect("create test CLI session");
@@ -336,5 +337,78 @@ mod create_session_input_guards {
             SessionRunner::parse("local"),
             Some(SessionRunner::Local)
         ));
+    }
+}
+
+#[cfg(test)]
+mod exec_target_persistence_tests {
+    //! `exec_target` three-layer round-trip: CreateCodeSessionParams →
+    //! session row (INSERT) → CodeSession (SELECT + row_to_session). Pins
+    //! that Local is the default for legacy rows and that Remote survives
+    //! the JSON-text column both ways (§4.1 "三层透传 → 读回一致").
+    use super::*;
+    use crate::test_utils::test_env;
+    use agent_core::foundation::exec_target::{ExecTarget, SshTarget};
+
+    fn base_params() -> CreateCodeSessionParams {
+        CreateCodeSessionParams {
+            name: Some("exec_target test".to_string()),
+            flow: None,
+            runner: None,
+            cli_agent_type: "claude_code".to_string(),
+            model: None,
+            tier: None,
+            account_id: None,
+            repo_path: Some("/tmp".to_string()),
+            branch: None,
+            proxy_token: None,
+            proxy_url: None,
+            hosted_token: None,
+            proxy_session_id: None,
+            isolate: None,
+            background: Some(false),
+            key_source: Some("own_key".to_string()),
+            additional_directories: None,
+            parent_session_id: None,
+            org_member_id: None,
+            org_id: None,
+            project_id: None,
+            project_name: None,
+            project_slug: None,
+            work_item_id: None,
+            agent_role: None,
+            exec_target: ExecTarget::Local,
+        }
+    }
+
+    #[test]
+    fn local_round_trips_and_is_default() {
+        let _sandbox = test_env::sandbox();
+        let sid = "exec-target-local";
+        create_session(sid, &base_params()).expect("create local session");
+        let loaded = get_session(sid).expect("load").expect("session exists");
+        assert_eq!(loaded.exec_target, ExecTarget::Local);
+    }
+
+    #[test]
+    fn remote_round_trips_through_db() {
+        let _sandbox = test_env::sandbox();
+        let sid = "exec-target-remote";
+        let mut params = base_params();
+        params.exec_target = ExecTarget::Remote(SshTarget {
+            host: "deploy@10.0.0.5".to_string(),
+            port: Some(2222),
+        });
+        create_session(sid, &params).expect("create remote session");
+        let loaded = get_session(sid).expect("load").expect("session exists");
+        assert_eq!(
+            loaded.exec_target, params.exec_target,
+            "exec_target must survive the INSERT → SELECT round-trip"
+        );
+        assert!(loaded.exec_target.is_remote());
+        assert_eq!(
+            loaded.exec_target.as_remote().unwrap().port,
+            Some(2222)
+        );
     }
 }

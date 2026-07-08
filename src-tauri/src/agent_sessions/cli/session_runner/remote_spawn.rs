@@ -1,0 +1,322 @@
+//! Remote CLI spawn backends (§2.5-B6).
+//!
+//! The spawn seam in [`super::session::run_session`] routes a `Remote` exec
+//! target through this trait. Today there is one implementation —
+//! [`SystemSsh`], which shells out to the system `ssh` binary. The argv is
+//! assembled by the pure, injection-tested [`super::ssh`] helpers; this
+//! module owns the [`Command`] wrapping and the ControlMaster socket dir.
+//!
+//! Why a trait at all (and not a free function): a future `russh` backend
+//! implements [`RemoteSpawn`] and the spawn call site is unchanged. The
+//! trait is the **single** extension seam — `session.rs` never sees an
+//! `ssh` string or argv, so the ssh-quoting logic stays in exactly one
+//! tested place (§2.2.1, §6 risk table).
+//!
+//! Scope note: this trait is for *external CLI agents* spawned over SSH.
+//! The built-in Rust agent's remote execution reuses the `ExecTarget` /
+//! ssh-connection types but routes through agent-core's per-tool-call
+//! ExecutionBackend, **not** this trait (§0 constraint 2).
+
+use std::collections::HashMap;
+use std::process::Stdio;
+use std::sync::LazyLock;
+use std::time::Duration;
+
+use agent_core::foundation::exec_target::SshTarget;
+use tokio::process::Command;
+
+use super::ssh;
+
+/// In-memory map of session_id → remote CLI pid, captured from the
+/// `ORGII_RPID` marker the spawn wrapper echoes to stderr (§2.2.1). Used by
+/// the explicit-remote-kill chain in [`super::lifecycle`]. Kept separate
+/// from `RUNNING_SESSIONS` (which holds the tokio JoinHandle) to avoid
+/// perturbing that type's many call sites.
+static REMOTE_PIDS: LazyLock<std::sync::Mutex<HashMap<String, u32>>> =
+    LazyLock::new(|| std::sync::Mutex::new(HashMap::new()));
+
+/// Record the remote CLI pid for a session (called from the stderr reader
+/// when it sees the `ORGII_RPID` marker).
+pub(crate) fn set_remote_pid(session_id: &str, pid: u32) {
+    if let Ok(mut map) = REMOTE_PIDS.lock() {
+        map.insert(session_id.to_string(), pid);
+    }
+}
+
+/// Take (remove) the remote CLI pid for a session, for the kill chain.
+/// Returns `None` if no marker was ever captured (e.g. the wrapper hadn't
+/// echoed yet, or stderr parsing missed it) — the caller then falls back to
+/// "remote state unknown" (§2.2.1).
+pub(crate) fn take_remote_pid(session_id: &str) -> Option<u32> {
+    REMOTE_PIDS
+        .lock()
+        .ok()
+        .and_then(|mut map| map.remove(session_id))
+}
+
+/// Build the local process invocation that runs a CLI agent on a remote
+/// SSH host.
+///
+/// The returned [`Command`] must have the agent program, args, env, and
+/// working directory baked into the *remote* command. The caller applies
+/// stdio / process-group / retry uniformly to both local and remote
+/// spawns, so the implementation does **not** set stdio here.
+pub trait RemoteSpawn: Send + Sync {
+    fn build(
+        &self,
+        ssh: &SshTarget,
+        program: &str,
+        args: &[String],
+        env: &HashMap<String, String>,
+        working_dir: &str,
+    ) -> Result<Command, String>;
+}
+
+/// Resolve (and create) the ssh ControlMaster socket directory and return
+/// the `ControlPath` template ssh should use (`%C` = per-connection hash).
+///
+/// Shared by spawn, binary-check, dir-check, and kill so they reuse one
+/// authenticated connection (§2.2). The dir is forced to 0700 on unix so
+/// other users can't attach to a control socket.
+pub(crate) fn control_path() -> Result<String, String> {
+    let dir = app_paths::ssh_control_dir();
+    std::fs::create_dir_all(&dir)
+        .map_err(|e| format!("failed to create ssh control dir {}: {e}", dir.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700));
+    }
+    Ok(dir.join("%C").to_string_lossy().into_owned())
+}
+
+/// System `ssh` backend.
+///
+/// Inherits `~/.ssh/config` (ProxyJump, Include, Match, ControlMaster) for
+/// free — exactly what issue #157's "reuse existing SSH mechanisms"
+/// acceptance criterion requires. The argv is assembled by the pure,
+/// injection-tested [`ssh::build_remote_command_argv`]; this impl filters
+/// env (§2.3), resolves the control socket, and wraps it in a [`Command`].
+pub struct SystemSsh;
+
+impl RemoteSpawn for SystemSsh {
+    fn build(
+        &self,
+        ssh_target: &SshTarget,
+        program: &str,
+        args: &[String],
+        env: &HashMap<String, String>,
+        working_dir: &str,
+    ) -> Result<Command, String> {
+        let filtered_env = ssh::env_for_remote(env);
+        let control_path = control_path()?;
+        let argv = ssh::build_remote_command_argv(
+            ssh_target,
+            program,
+            args,
+            &filtered_env,
+            working_dir,
+            &control_path,
+        );
+        let mut cmd = Command::new("ssh");
+        cmd.args(argv);
+        Ok(cmd)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Remote pre-flight checks (binary + dir). Run before spawn so a missing
+// remote CLI or working directory produces a friendly error instead of a
+// confusing spawn-time failure (§1, §3-Phase1, §5.3). They share the spawn
+// ControlMaster socket, so they add only a cheap round-trip on an already-
+// authenticated connection.
+// ---------------------------------------------------------------------------
+
+/// ssh exits 255 on its own failures (auth rejected, host unreachable,
+/// unknown host). Remote check scripts (`command -v`, `test -d`) exit 0/1,
+/// never 255, so 255 unambiguously means "ssh couldn't connect".
+const SSH_FAILURE_EXIT: i32 = 255;
+
+/// Run a short check script on the remote host via `ssh ... bash -lc` and
+/// return its exit code. Times out after 20s so a hung ssh can't wedge the
+/// session create.
+async fn run_remote_script(ssh_target: &SshTarget, script: &str) -> Result<i32, String> {
+    let control_path = control_path()?;
+    let argv = ssh::build_remote_check_argv(ssh_target, script, &control_path);
+    let mut cmd = Command::new("ssh");
+    cmd.args(&argv)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    let child = cmd.spawn().map_err(|e| format!("failed to spawn ssh: {e}"))?;
+    let output = tokio::time::timeout(Duration::from_secs(20), child.wait_with_output())
+        .await
+        .map_err(|_| format!("ssh check to {} timed out", ssh_target.host))?
+        .map_err(|e| format!("ssh wait failed: {e}"))?;
+    Ok(output.status.code().unwrap_or(-1))
+}
+
+/// Does `bare_command` resolve on the remote host via the login-shell PATH?
+/// Mirrors the local `cli_binary_resolver` login-shell fallback over SSH
+/// (§3-Phase1). `Ok(true)` = found, `Ok(false)` = not installed remotely,
+/// `Err` = ssh couldn't connect (host/key problem).
+pub(crate) async fn remote_binary_exists(
+    ssh_target: &SshTarget,
+    bare_command: &str,
+) -> Result<bool, String> {
+    let script = format!("command -v -- {}", ssh::sh_single_quote(bare_command));
+    let code = run_remote_script(ssh_target, &script).await?;
+    if code == SSH_FAILURE_EXIT {
+        return Err(format!(
+            "ssh connection to `{}` failed — is the host reachable and key-based \
+             auth (ssh-agent / ~/.ssh) set up? (BatchMode is on, so ssh will not \
+             prompt for a password.)",
+            ssh_target.host
+        ));
+    }
+    Ok(code == 0)
+}
+
+/// Does `dir` exist on the remote host? Replaces the local `Path::is_dir`
+/// check for remote targets (§3-Phase1). Same return convention as
+/// [`remote_binary_exists`].
+pub(crate) async fn remote_dir_exists(
+    ssh_target: &SshTarget,
+    dir: &str,
+) -> Result<bool, String> {
+    let script = format!("test -d {}", ssh::sh_single_quote(dir));
+    let code = run_remote_script(ssh_target, &script).await?;
+    if code == SSH_FAILURE_EXIT {
+        return Err(format!(
+            "ssh connection to `{}` failed — is the host reachable and key-based \
+             auth (ssh-agent / ~/.ssh) set up?",
+            ssh_target.host
+        ));
+    }
+    Ok(code == 0)
+}
+
+/// Write `content` to `path` on the remote host, creating parent dirs.
+///
+/// Content is piped via ssh stdin (not baked into the argv) so the skill
+/// body — which can be large and arbitrarily-shaped — never goes through
+/// shell quoting (§2.6-a). Reuses the ControlMaster connection. Used to
+/// materialize orgii skill files on a remote workspace.
+pub(crate) async fn remote_write_file(
+    ssh_target: &SshTarget,
+    path: &str,
+    content: String,
+) -> Result<(), String> {
+    let parent = std::path::Path::new(path)
+        .parent()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let script = if parent.is_empty() {
+        format!("cat > {}", ssh::sh_single_quote(path))
+    } else {
+        format!(
+            "mkdir -p {} && cat > {}",
+            ssh::sh_single_quote(&parent),
+            ssh::sh_single_quote(path)
+        )
+    };
+    let control_path = control_path()?;
+    let argv = ssh::build_remote_check_argv(ssh_target, &script, &control_path);
+    let mut cmd = Command::new("ssh");
+    cmd.args(&argv)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped());
+    let mut child = cmd.spawn().map_err(|e| format!("failed to spawn ssh: {e}"))?;
+    // Pipe content to ssh's stdin → the remote `cat` writes it. Dropping the
+    // handle closes the pipe (EOF) so `cat` flushes and exits.
+    {
+        use tokio::io::AsyncWriteExt;
+        if let Some(mut stdin) = child.stdin.take() {
+            let _ = stdin.write_all(content.as_bytes()).await;
+        }
+    }
+    let output = tokio::time::timeout(Duration::from_secs(30), child.wait_with_output())
+        .await
+        .map_err(|_| format!("ssh write to {} timed out", ssh_target.host))?
+        .map_err(|e| format!("ssh wait failed: {e}"))?;
+    let code = output.status.code().unwrap_or(-1);
+    if code != 0 {
+        return Err(format!(
+            "ssh write to {} failed (exit {}): {}",
+            path,
+            code,
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    Ok(())
+}
+
+/// Remove a skill file from the remote host, but only if it carries the
+/// orgii marker — never delete a user's own rule file. Mirrors the Local
+/// `cleanup_synced_skill_files` marker check over ssh (§2.6-a).
+pub(crate) async fn remote_remove_skill_file(
+    ssh_target: &SshTarget,
+    path: &str,
+) -> Result<(), String> {
+    // grep -qF marker path && rm -f path:
+    //   grep matches  → file is ours → rm runs (exit 0)
+    //   grep no match → file missing or not ours → rm skipped (exit 1, ok)
+    let script = format!(
+        "grep -qF -- {} {} && rm -f {}",
+        ssh::sh_single_quote("generated by orgii"),
+        ssh::sh_single_quote(path),
+        ssh::sh_single_quote(path)
+    );
+    let code = run_remote_script(ssh_target, &script).await?;
+    if code == SSH_FAILURE_EXIT {
+        return Err(format!(
+            "ssh connection to `{}` failed while cleaning up skill file",
+            ssh_target.host
+        ));
+    }
+    // exit 0 (removed) and exit 1 (not ours / missing) are both acceptable.
+    Ok(())
+}
+
+/// Kill a remote process: SIGTERM, grace period, then SIGKILL if still
+/// alive (§2.2.1). `pid` is a `u32` captured from the `ORGII_RPID` marker,
+/// so it is digits-only and safe to interpolate into the remote command
+/// without quoting.
+///
+/// Returns `Err` only if ssh itself couldn't connect (so the caller can
+/// surface "remote state unknown"). A TERM/KILL that hits an already-exited
+/// process is not an error.
+pub(crate) async fn remote_kill(ssh_target: &SshTarget, pid: u32) -> Result<(), String> {
+    // SIGTERM first (lets the CLI flush / shut down gracefully).
+    let term = run_remote_script(ssh_target, &format!("kill -TERM {pid}")).await?;
+    if term == SSH_FAILURE_EXIT {
+        return Err(format!(
+            "ssh connection to `{}` failed sending SIGTERM to remote pid {pid}",
+            ssh_target.host
+        ));
+    }
+    // Grace period, then check if it's still alive (kill -0 exits 0 if so).
+    tokio::time::sleep(Duration::from_secs(3)).await;
+    let alive = run_remote_script(ssh_target, &format!("kill -0 {pid}")).await?;
+    if alive == SSH_FAILURE_EXIT {
+        return Err(format!(
+            "ssh connection to `{}` failed checking remote pid {pid}",
+            ssh_target.host
+        ));
+    }
+    if alive == 0 {
+        tracing::info!(
+            "[remote_spawn] remote pid {pid} on `{}` still alive after SIGTERM grace; sending SIGKILL",
+            ssh_target.host
+        );
+        let kill = run_remote_script(ssh_target, &format!("kill -KILL {pid}")).await?;
+        if kill == SSH_FAILURE_EXIT {
+            return Err(format!(
+                "ssh connection to `{}` failed sending SIGKILL to remote pid {pid}",
+                ssh_target.host
+            ));
+        }
+    }
+    Ok(())
+}

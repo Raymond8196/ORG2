@@ -205,6 +205,9 @@ export function buildSessionLaunchPayload(
     model: resolvedKeys.model,
     platform: resolvedKeys.cliAgentType,
     branch: sessionBranch,
+    ...(advancedConfig.remoteTarget && advancedConfig.remoteTarget.host.trim()
+      ? { execTarget: { remote: advancedConfig.remoteTarget } }
+      : {}),
     hostedToken: resolvedKeys.hostedToken,
     tier: resolvedKeys.tier,
     name: sessionName || undefined,

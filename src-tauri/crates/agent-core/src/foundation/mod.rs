@@ -6,6 +6,7 @@
 
 pub mod bus;
 pub mod db_bridge;
+pub mod exec_target;
 pub mod flow_awareness;
 pub mod nodes;
 pub mod persistence;

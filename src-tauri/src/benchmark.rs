@@ -1202,6 +1202,7 @@ fn benchmark_launch_params(
         project_slug: launch.project_slug.clone(),
         parent_session_id,
         additional_directories: launch.additional_directories.clone(),
+        exec_target: Default::default(),
     }
 }
 

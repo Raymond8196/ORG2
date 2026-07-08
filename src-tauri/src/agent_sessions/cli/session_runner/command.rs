@@ -8,6 +8,9 @@ use crate::agent_sessions::cli::parsers::CliAgentParser;
 use crate::agent_sessions::cli::session_runner::launch_profiles::{
     defaults_for_agent, static_args_to_vec, ResolvedCliLaunchProfile,
 };
+use integrations::cli_binary_resolver::{
+    cli_binary_bare_command, resolve_cli_binary_command, CliBinaryId,
+};
 use key_vault::key_store::ModelType;
 use std::collections::HashMap;
 
@@ -22,6 +25,55 @@ pub(super) struct CliCommandBuildRequest<'a> {
     pub mode: Option<&'a str>,
     pub repo_path: Option<&'a str>,
     pub additional_dirs: &'a [String],
+}
+
+pub(super) fn cli_binary_id_for_agent(agent: &ModelType) -> CliBinaryId {
+    match agent {
+        ModelType::CursorCli => CliBinaryId::CursorCli,
+        ModelType::ClaudeCode => CliBinaryId::ClaudeCode,
+        ModelType::Codex => CliBinaryId::Codex,
+        ModelType::GeminiCli => CliBinaryId::GeminiCli,
+        ModelType::Kiro => CliBinaryId::Kiro,
+        ModelType::Copilot => CliBinaryId::Copilot,
+        ModelType::OpenCode => CliBinaryId::OpenCode,
+        ModelType::KimiCli => CliBinaryId::KimiCli,
+        ModelType::Aider => CliBinaryId::Aider,
+        ModelType::Goose => CliBinaryId::Goose,
+        ModelType::Amp => CliBinaryId::Amp,
+        ModelType::Cline => CliBinaryId::Cline,
+        ModelType::Kilo => CliBinaryId::Kilo,
+        ModelType::Grok => CliBinaryId::Grok,
+        ModelType::Devin => CliBinaryId::Devin,
+        ModelType::Rovo => CliBinaryId::Rovo,
+        ModelType::Hermes => CliBinaryId::Hermes,
+        ModelType::OpenClaw => CliBinaryId::OpenClaw,
+        ModelType::Aug => CliBinaryId::Aug,
+        ModelType::Codebuff => CliBinaryId::Codebuff,
+        ModelType::QwenCode => CliBinaryId::QwenCode,
+        ModelType::MimoCode => CliBinaryId::MimoCode,
+        ModelType::Antigravity => CliBinaryId::Antigravity,
+        ModelType::Continue => CliBinaryId::Continue,
+        ModelType::Droid => CliBinaryId::Droid,
+        ModelType::MistralVibe => CliBinaryId::MistralVibe,
+        ModelType::Autohand => CliBinaryId::Autohand,
+        ModelType::Omp => CliBinaryId::Omp,
+        ModelType::Pi => CliBinaryId::Pi,
+        other => panic!(
+            "ModelType::{:?} is not a CLI agent — cannot resolve command",
+            other
+        ),
+    }
+}
+
+pub(super) fn resolve_cli_agent_command(agent: &ModelType) -> String {
+    resolve_cli_binary_command(cli_binary_id_for_agent(agent))
+}
+
+/// Bare command name (e.g. `"claude"`) for remote execution — the remote
+/// login shell resolves it via PATH over SSH (§2.2). Do NOT use the
+/// locally-resolved absolute path for a remote target; it won't exist there.
+pub(super) fn resolve_cli_agent_command_name(agent: &ModelType) -> &'static str {
+    cli_binary_bare_command(cli_binary_id_for_agent(agent))
 }
 
 pub(super) fn build_command_with_launch_profile(

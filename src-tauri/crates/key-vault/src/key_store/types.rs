@@ -299,6 +299,32 @@ impl ModelType {
         )
     }
 
+    /// `true` if this CLI emits a line-delimited stream (`stream-json` /
+    /// `--json`) on stdout and needs **no** bidirectional stdin JSON-RPC.
+    ///
+    /// Remote execution only has to pipe stdout back for these CLIs — the
+    /// transport is one-way, so no PTY / stdin channel is required
+    /// (`docs/ssh-remote-cli-mvp-plan.md` §0, §2.4).
+    pub fn is_line_based_streaming(&self) -> bool {
+        matches!(
+            self,
+            ModelType::ClaudeCode | ModelType::Codex | ModelType::GeminiCli
+        )
+    }
+
+    /// `true` if auth is a base-URL override or BYOK API key carried in env
+    /// — i.e. **no** MITM localhost proxy is required.
+    ///
+    /// A localhost proxy is unreachable from a remote host without an SSH
+    /// reverse tunnel, so only base-URL CLIs are remote-capable today
+    /// (§0, §1). Capability bit, not a code fork (§2.5-B7).
+    pub fn uses_base_url_auth(&self) -> bool {
+        matches!(
+            self,
+            ModelType::ClaudeCode | ModelType::Codex | ModelType::GeminiCli
+        )
+    }
+
     /// Returns `true` if this type is market-native (ORGII pool only, no user keys).
     pub fn is_market_native(&self) -> bool {
         matches!(self, ModelType::OrgiiOrchestrator)

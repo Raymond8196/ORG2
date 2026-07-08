@@ -14,6 +14,8 @@
 //! - `oauth_setup`    — OAuth auth file writing and retry detection
 //! - `plan_approval`  — plan detection and approval card registration
 //! - `token_sync`     — post-run token sync back to key vault
+//! - `remote_spawn`   — RemoteSpawn trait (ssh backend) for remote exec targets
+//! - `ssh`            — pure ssh argv/quoting/env/pid helpers (injection-tested)
 
 pub(crate) mod command;
 mod context_bridge;
@@ -24,7 +26,9 @@ mod lifecycle;
 mod oauth_setup;
 mod plan_approval;
 mod proxy_release;
+mod remote_spawn;
 mod session;
+mod ssh;
 mod token_sync;
 
 pub use helpers::{flush_cli_streams_for_session, RUNNING_SESSIONS};
