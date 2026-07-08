@@ -232,23 +232,22 @@ export function useKeyVaultPage() {
           description,
         };
 
-        if (
-          account.modelType === "opencode" &&
-          baseUrl &&
-          baseUrl !== account.baseUrl
-        ) {
+        if (baseUrl && baseUrl !== account.baseUrl) {
           const fullKey = await getFullKey(account.modelType, account.id);
           if (!fullKey?.api_key) {
-            throw new Error("OpenCode account has no API key.");
+            throw new Error("Account has no API key.");
           }
           const validation = await validateKey(
             account.modelType,
             fullKey.api_key,
-            baseUrl
+            baseUrl,
+            undefined,
+            undefined,
+            account.protocol ?? undefined
           );
           if (!validation.valid) {
             throw new Error(
-              validation.message || "OpenCode endpoint validation failed."
+              validation.message || "Endpoint validation failed."
             );
           }
           request.base_url = baseUrl;
