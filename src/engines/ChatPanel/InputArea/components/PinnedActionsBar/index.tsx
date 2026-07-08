@@ -19,7 +19,7 @@ import type { ComposerInputRef } from "@src/components/ComposerInput";
 import { FileTreeHoverPreview } from "@src/components/FileTreePreview/exports";
 import UserActionButton from "@src/engines/ChatPanel/InputArea/components/UserActionButton";
 import { useSlashItemsCache } from "@src/engines/ChatPanel/hooks/useInputArea/useSlashItemsCache";
-import { EditorTabService } from "@src/services/workStation";
+import { EditorTabService } from "@src/services/workStation/EditorTabService";
 import { canvasPreviewAtom } from "@src/store/session/canvasPreviewAtom";
 import {
   type PinnedAction,
