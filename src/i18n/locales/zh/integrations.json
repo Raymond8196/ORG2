@@ -2606,10 +2606,6 @@
       "uiControl": {
         "title": "轻量 ADE/UI 控制",
         "description": "MiniCPM 只能把请求识别成严格白名单里的本地 action。"
-      },
-      "silentContextCompaction": {
-        "title": "MiniCPM 静默自动压缩",
-        "description": "后台异步整理旧上下文，减少手动压缩打断。"
       }
     },
     "health": {

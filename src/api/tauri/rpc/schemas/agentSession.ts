@@ -21,6 +21,15 @@ export const SessionIdInput = z.object({
   sessionId: z.string(),
 });
 
+/**
+ * Input for `agent_session_manual_compact` — optional free-form user
+ * instructions steer what the summarizer should focus on.
+ */
+export const ManualCompactInput = z.object({
+  sessionId: z.string(),
+  instructions: z.string().optional(),
+});
+
 export const SessionRequestIdInput = z.object({
   sessionId: z.string(),
   requestId: z.string(),
@@ -61,6 +70,7 @@ export const ManualCompactResultSchema = z.object({
     "already_compact",
     "busy",
     "no_runtime",
+    "channel_attached",
     "failed",
   ]),
   message: z.string().optional(),
@@ -68,7 +78,6 @@ export const ManualCompactResultSchema = z.object({
   messagesAfter: z.number().optional(),
   tokensBefore: z.number().optional(),
   tokensAfter: z.number().optional(),
-  truncated: z.boolean().optional(),
 }) as z.ZodType<ManualCompactResult, ManualCompactResult>;
 
 export const SessionMessageSchema = z
@@ -79,6 +88,7 @@ export const SessionMessageSchema = z
     toolName: z.string().optional(),
     toolInput: z.string().optional(),
     createdAt: z.string(),
+    compactFromSequence: z.number().nullable().optional(),
   })
   .catchall(z.unknown()) as z.ZodType<SessionMessage, SessionMessage>;
 

@@ -28,6 +28,8 @@ pub fn save_system_msg(prefix: &str, session_id: &str, content: &str) -> SqliteR
         created_at: Utc::now().to_rfc3339(),
         images: None,
         compact_from_sequence: None,
+        compact_tokens_before: None,
+        compact_tokens_after: None,
     };
     insert_message_retry(prefix, &msg)
 }
@@ -41,6 +43,8 @@ pub fn save_compact_boundary_msg(
     session_id: &str,
     summary: &str,
     from_sequence: i64,
+    tokens_before: Option<i64>,
+    tokens_after: Option<i64>,
 ) -> SqliteResult<String> {
     let msg = AgentMessageRow {
         id: Uuid::new_v4().to_string(),
@@ -56,6 +60,8 @@ pub fn save_compact_boundary_msg(
         created_at: Utc::now().to_rfc3339(),
         images: None,
         compact_from_sequence: Some(from_sequence),
+        compact_tokens_before: tokens_before,
+        compact_tokens_after: tokens_after,
     };
     insert_message_retry(prefix, &msg)
 }
@@ -96,6 +102,8 @@ pub fn save_user_msg(
         created_at: Utc::now().to_rfc3339(),
         images: images_json,
         compact_from_sequence: None,
+        compact_tokens_before: None,
+        compact_tokens_after: None,
     };
     insert_message_retry(prefix, &msg)
 }
@@ -121,6 +129,8 @@ pub fn save_assistant_msg(
         created_at: Utc::now().to_rfc3339(),
         images: None,
         compact_from_sequence: None,
+        compact_tokens_before: None,
+        compact_tokens_after: None,
     };
     insert_message_retry(prefix, &msg)
 }
@@ -147,6 +157,8 @@ pub fn save_tool_call_msg(
         created_at: Utc::now().to_rfc3339(),
         images: None,
         compact_from_sequence: None,
+        compact_tokens_before: None,
+        compact_tokens_after: None,
     };
     insert_message_retry(prefix, &msg)
 }
@@ -174,6 +186,8 @@ pub fn save_tool_result_msg(
         created_at: Utc::now().to_rfc3339(),
         images: None,
         compact_from_sequence: None,
+        compact_tokens_before: None,
+        compact_tokens_after: None,
     };
     insert_message_retry(prefix, &msg)
 }
