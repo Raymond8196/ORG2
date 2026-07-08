@@ -732,6 +732,9 @@
       "quota": {
         "empty": "Chưa có dữ liệu quota. Hãy làm mới mức sử dụng từ Key Vault.",
         "refresh": "Làm mới",
+        "justNow": "vừa xong",
+        "minutesAgo": "{{count}} phút trước",
+        "hoursAgo": "{{count}} giờ trước",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",

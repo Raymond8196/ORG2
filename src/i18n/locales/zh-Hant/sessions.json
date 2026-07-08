@@ -736,6 +736,9 @@
       "quota": {
         "empty": "暫無配額資料。請在 Key Vault 中重新整理用量。",
         "refresh": "重新整理",
+        "justNow": "剛剛",
+        "minutesAgo": "{{count}}分鐘前",
+        "hoursAgo": "{{count}}小時前",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",
