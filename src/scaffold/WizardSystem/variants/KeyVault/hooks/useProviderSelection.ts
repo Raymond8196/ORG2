@@ -29,8 +29,6 @@ import {
 } from "../config";
 import type { ApiSetupProps } from "../types";
 
-const OPENCODE_ZEN_BASE_URL = "https://opencode.ai/zen/v1";
-
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface UseProviderSelectionOptions {
@@ -115,10 +113,6 @@ export function useProviderSelection({
         const selectedVariant = selectedProvider?.variants.find(
           (variant) => variant.modelType === agentValue
         );
-        const defaultBaseUrl =
-          typedModelType === CLI_AGENT.OPENCODE
-            ? OPENCODE_ZEN_BASE_URL
-            : undefined;
         onChange({
           agent_type: typedModelType,
           raw_key_input: "",
@@ -131,7 +125,9 @@ export function useProviderSelection({
           enabled_models: [],
           quota_info: undefined,
           extracted_api_key: undefined,
-          extracted_base_url: defaultBaseUrl,
+          // The setup step seeds the base URL from the provider's default
+          // endpoint, so nothing is hardcoded per provider here.
+          extracted_base_url: undefined,
           protocol: selectedVariant?.defaultProtocol,
           setup_method:
             localRuntime ??

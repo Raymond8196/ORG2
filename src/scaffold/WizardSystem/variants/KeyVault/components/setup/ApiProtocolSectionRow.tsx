@@ -1,21 +1,24 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { ProviderProtocol } from "@src/api/tauri/rpc/schemas/validation";
-import type { ModelType } from "@src/api/types/keys";
+import type {
+  ProviderEndpoint,
+  ProviderProtocol,
+} from "@src/api/tauri/rpc/schemas/validation";
 import Select from "@src/components/Select";
 import {
   SECTION_CONTROL_STYLE,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
 
-import { getOfficialBaseUrlForProtocol } from "./providerProtocolUrls";
+import { getOfficialBaseUrl } from "../../config/providerEndpoints";
 import type { AgentSetupProps } from "./types";
 
 type BaseUrlMode = "official" | "custom";
 
 interface ApiProtocolSectionRowProps {
-  agentType: ModelType;
+  /** Endpoint in effect — supplies the URL for whichever protocol is chosen. */
+  selectedEndpoint: ProviderEndpoint | undefined;
   selectedProtocol: ProviderProtocol;
   supportedProtocols: readonly ProviderProtocol[];
   defaultBaseUrl?: string | null;
@@ -25,7 +28,7 @@ interface ApiProtocolSectionRowProps {
 }
 
 export function ApiProtocolSectionRow({
-  agentType,
+  selectedEndpoint,
   selectedProtocol,
   supportedProtocols,
   defaultBaseUrl,
@@ -44,10 +47,14 @@ export function ApiProtocolSectionRow({
     [supportedProtocols]
   );
 
-  const handleProtocolChange = (protocol: string | number) => {
+  const handleProtocolChange = (
+    protocol: string | number | (string | number)[]
+  ) => {
+    // Single-select Select, so an array can't reach us — narrow rather than cast.
+    if (Array.isArray(protocol)) return;
     const nextProtocol = protocol as ProviderProtocol;
-    const nextOfficialBaseUrl = getOfficialBaseUrlForProtocol(
-      agentType,
+    const nextOfficialBaseUrl = getOfficialBaseUrl(
+      selectedEndpoint,
       nextProtocol,
       defaultBaseUrl
     );
