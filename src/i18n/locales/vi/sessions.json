@@ -731,6 +731,7 @@
       },
       "quota": {
         "empty": "Chưa có dữ liệu quota. Hãy làm mới mức sử dụng từ Key Vault.",
+        "refresh": "Làm mới",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",

@@ -731,6 +731,7 @@
       },
       "quota": {
         "empty": "Quota 데이터가 아직 없습니다. Key Vault에서 사용량을 새로고침하세요.",
+        "refresh": "새로고침",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",
