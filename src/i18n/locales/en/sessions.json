@@ -1922,6 +1922,7 @@
     "slashMenu": {
       "image": "Image",
       "uploadImage": "Upload image",
+      "commands": "Commands",
       "mode": "Mode",
       "models": "Models",
       "skills": "Skills",

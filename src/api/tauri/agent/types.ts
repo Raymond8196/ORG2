@@ -65,6 +65,24 @@ export interface SessionInfo {
   isSingleton: boolean;
 }
 
+export type ManualCompactStatus =
+  | "compacted"
+  | "too_short"
+  | "already_compact"
+  | "busy"
+  | "no_runtime"
+  | "channel_attached"
+  | "failed";
+
+export interface ManualCompactResult {
+  status: ManualCompactStatus;
+  message?: string;
+  messagesBefore?: number;
+  messagesAfter?: number;
+  tokensBefore?: number;
+  tokensAfter?: number;
+}
+
 export interface AgentMessageResponse {
   content: string;
   sessionId: string;
@@ -94,6 +112,8 @@ export interface SessionMessage {
   toolName?: string;
   toolInput?: string;
   createdAt: string;
+  /** Non-null on compact-boundary rows: sequence the compacted tail starts at. */
+  compactFromSequence?: number | null;
 }
 
 export interface QuestionResponseParams {
