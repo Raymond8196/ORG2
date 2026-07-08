@@ -32,7 +32,7 @@ import DeepSeekIcon from "@src/assets/modelIcons/deepseek.svg";
 import DevinIcon from "@src/assets/modelIcons/devin.svg";
 import DoubaoIcon from "@src/assets/modelIcons/doubao.svg";
 import DroidIcon from "@src/assets/modelIcons/droid.svg";
-import GeminiIcon from "@src/assets/modelIcons/gemini.svg";
+import GeminiIcon from "@src/assets/modelIcons/gemini";
 import GooseIcon from "@src/assets/modelIcons/goose.svg";
 import GrokIcon from "@src/assets/modelIcons/grok.svg";
 import GroqIcon from "@src/assets/modelIcons/groq.svg";
