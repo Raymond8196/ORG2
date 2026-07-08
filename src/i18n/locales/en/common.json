@@ -1336,6 +1336,7 @@
     "modelProperties": {
       "options": "Options",
       "effort": "Effort",
+      "default": "Default",
       "faster": "Faster",
       "smarter": "Smarter"
     },

@@ -1233,6 +1233,7 @@
     "modelProperties": {
       "options": "Opciones",
       "effort": "Esfuerzo",
+      "default": "Predeterminado",
       "faster": "Más rápido",
       "smarter": "Más inteligente"
     },
