@@ -1234,6 +1234,7 @@
     "modelProperties": {
       "options": "オプション",
       "effort": "Effort",
+      "default": "デフォルト",
       "faster": "高速",
       "smarter": "高精度"
     },

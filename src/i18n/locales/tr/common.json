@@ -1234,6 +1234,7 @@
     "modelProperties": {
       "options": "Seçenekler",
       "effort": "Çaba",
+      "default": "Varsayılan",
       "faster": "Daha hızlı",
       "smarter": "Daha akıllı"
     },

@@ -1254,6 +1254,7 @@
     "modelProperties": {
       "options": "选项",
       "effort": "Effort",
+      "default": "默认",
       "faster": "更快",
       "smarter": "更智能"
     },
