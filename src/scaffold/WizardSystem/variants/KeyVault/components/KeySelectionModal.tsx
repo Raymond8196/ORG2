@@ -15,32 +15,38 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-import type { DetectedKey } from "@src/api/types/keys";
+import type { DetectedKey, ModelType } from "@src/api/types/keys";
 import InlineAlert from "@src/components/InlineAlert";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 
+import { findEndpointByBaseUrl, useProviderConfig } from "../config";
+
 interface KeySelectionModalProps {
   keys: DetectedKey[];
+  /** Provider the detected keys belong to — supplies the endpoint labels. */
+  agentType: ModelType;
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
   onConfirm: () => void;
   onClose: () => void;
 }
 
-function getOpenCodeEndpointLabel(baseUrl?: string | null): string | null {
-  if (baseUrl === "https://opencode.ai/zen/v1") return "OpenCode Zen";
-  if (baseUrl === "https://opencode.ai/zen/go/v1") return "OpenCode Go";
-  return null;
-}
-
 const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
   keys,
+  agentType,
   selectedIndex,
   onSelectIndex,
   onConfirm,
   onClose,
 }) => {
   const { t } = useTranslation("integrations");
+  const { config: providerConfig } = useProviderConfig(agentType);
+
+  // Detected keys can come from different endpoints of the same provider
+  // (OpenCode Zen vs Go, Zhipu China vs Global). Name the one each key targets.
+  const endpointLabel = (baseUrl?: string | null): string | null =>
+    findEndpointByBaseUrl(providerConfig?.endpoints ?? [], baseUrl)?.label ??
+    null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-xl bg-bg-2 shadow-2xl">
@@ -121,9 +127,9 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                           : t("keyVault.apiKeyLabel")}
                       </span>
                       {/* Validation status badge */}
-                      {getOpenCodeEndpointLabel(cred.base_url) && (
+                      {endpointLabel(cred.base_url) && (
                         <span className="rounded-full bg-fill-3 px-2 py-0.5 text-[10px] text-text-2">
-                          {getOpenCodeEndpointLabel(cred.base_url)}
+                          {endpointLabel(cred.base_url)}
                         </span>
                       )}
                       {cred.validated === true ? (
