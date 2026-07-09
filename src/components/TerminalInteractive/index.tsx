@@ -67,6 +67,7 @@ import {
 import type { TerminalViewHandle, TerminalViewProps } from "./types";
 import { useTerminalAppearance } from "./useTerminalAppearance";
 import { useTerminalResizeListeners } from "./useTerminalResizeListeners";
+import { releaseWebglSlot } from "./webglContextManager";
 
 // Re-export types for consumers
 export type {
@@ -192,6 +193,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
           cols,
           rows,
           sessionKey,
+          isForeground,
           terminalRef,
           sessionIdRef,
           unlistenOutputRef,
@@ -213,6 +215,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
         sessionKey,
+        isForeground,
         customShellPath,
         shellType,
         shellOverride,
@@ -272,6 +275,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
         if (webglAddonRef.current) {
           webglAddonRef.current.dispose();
           webglAddonRef.current = null;
+          releaseWebglSlot();
         }
         terminal.dispose();
         terminalRef.current = null;

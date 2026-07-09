@@ -367,7 +367,7 @@ simulatorInlineChatInputCollapsedAtom.debugLabel =
  * Whether the MiniCPM step explanation card is visible above replay controls.
  * The floating replay controls can reveal it again after the user closes it.
  */
-export const simulatorMiniCPMStepExplanationVisibleAtom = atom<boolean>(true);
+export const simulatorMiniCPMStepExplanationVisibleAtom = atom<boolean>(false);
 simulatorMiniCPMStepExplanationVisibleAtom.debugLabel =
   "simulatorMiniCPMStepExplanationVisibleAtom";
 

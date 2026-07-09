@@ -168,7 +168,7 @@ pub struct CreateSessionParams {
     pub name: Option<String>,
     pub app_handle: AppHandle,
     pub sessions: Arc<AsyncMutex<HashMap<String, PtySession>>>,
-    pub output_tap: Option<broadcast::Sender<String>>,
+    pub output_tap: Option<broadcast::Sender<Arc<[u8]>>>,
 }
 
 /// Create a new PTY session and start the shell process.
@@ -424,7 +424,7 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
                         // frontend scheduler's adaptive chunk sizing has room to work.
                         // At render_ms == 0 (no telemetry yet) we use the full buffer.
                         let render_ms = frontend_render_ms.load(Ordering::Relaxed);
-                        let emit_cap = if render_ms > 8 {
+                        let emit_cap: usize = if render_ms > 8 {
                             // Slow renderer — cap at 16 KB per PTY read
                             16 * 1024
                         } else if render_ms > 4 {
@@ -434,15 +434,35 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
                             // Fast renderer or no telemetry — no cap (use full buffer)
                             usize::MAX
                         };
-                        let data_bytes = data[..data.len().min(emit_cap)].to_vec();
-                        let data_len = data_bytes.len();
+
+                        // Avoid a heap allocation when the full buffer fits
+                        // within the emit cap — the common case for a fast renderer.
+                        let emit_slice = if data.len() <= emit_cap {
+                            data
+                        } else {
+                            &data[..emit_cap]
+                        };
+                        let data_len = emit_slice.len();
 
                         // Track unacknowledged output for backpressure
                         unacked_bytes.fetch_add(data_len, Ordering::Relaxed);
                         *last_output_at
                             .lock()
                             .expect("last_output_at mutex poisoned") = Some(Utc::now());
-                        let data_text = String::from_utf8_lossy(&data_bytes);
+                        // Emit Tauri event for frontend display
+                        if let Err(err) = app_clone.emit(
+                            &output_event,
+                            serde_json::json!({ "bytes": emit_slice, "byte_count": data_len }),
+                        ) {
+                            warn!(
+                                "[terminal] Failed to emit output event {}: {}",
+                                output_event, err
+                            );
+                        }
+
+                        // from_utf8_lossy borrows for valid UTF-8 (no alloc) — used only
+                        // for the redacted snapshot and only when needed.
+                        let data_text = String::from_utf8_lossy(emit_slice);
                         append_redacted_bounded(
                             &mut redacted_output
                                 .lock()
@@ -451,22 +471,12 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
                             MAX_REDACTED_SNAPSHOT_CHARS,
                         );
 
-                        // Emit Tauri event for frontend display
-                        if let Err(err) = app_clone.emit(
-                            &output_event,
-                            serde_json::json!({ "bytes": &data_bytes, "byte_count": data_len }),
-                        ) {
-                            warn!(
-                                "[terminal] Failed to emit output event {}: {}",
-                                output_event, err
-                            );
-                        }
-
-                        // Also send to output_tap broadcast channel if present.
-                        // A `SendError` here just means no receivers are currently subscribed,
-                        // which is a valid state for a broadcast tap, so we intentionally drop it.
+                        // Send raw bytes through the tap channel. Arc<[u8]> clone is O(1);
+                        // the receiver decodes UTF-8 lazily when it needs text. A SendError
+                        // just means no receivers are currently subscribed, which is valid.
                         if let Some(ref tap) = output_tap {
-                            if tap.send(data_text.to_string()).is_err() {
+                            let chunk: Arc<[u8]> = Arc::from(emit_slice);
+                            if tap.send(chunk).is_err() {
                                 tracing::trace!("[terminal] output_tap has no subscribers");
                             }
                         }
@@ -550,7 +560,7 @@ pub async fn create_agent_session(
     cwd: Option<String>,
     app_handle: AppHandle,
     sessions: Arc<AsyncMutex<HashMap<String, PtySession>>>,
-) -> Result<broadcast::Sender<String>, String> {
+) -> Result<broadcast::Sender<Arc<[u8]>>, String> {
     let (output_tap, _) = broadcast::channel(AGENT_OUTPUT_TAP_CAPACITY);
     create_session(CreateSessionParams {
         session_id,

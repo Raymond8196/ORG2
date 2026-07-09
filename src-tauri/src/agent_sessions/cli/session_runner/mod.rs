@@ -15,10 +15,11 @@
 //! - `plan_approval`  — plan detection and approval card registration
 //! - `token_sync`     — post-run token sync back to key vault
 
-mod command;
+pub(crate) mod command;
 mod context_bridge;
 mod cursor_usage;
 mod helpers;
+pub(crate) mod launch_profiles;
 mod lifecycle;
 mod oauth_setup;
 mod plan_approval;

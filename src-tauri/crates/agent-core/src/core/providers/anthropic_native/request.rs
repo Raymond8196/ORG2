@@ -30,6 +30,11 @@ pub(super) struct PreparedRequest {
 ///
 /// `stream` is the only thing that differs between the two paths — the
 /// thinking/temperature/max_tokens triad is computed identically.
+///
+/// `skip_cache_write` suppresses all three `cache_control` breakpoints
+/// (BP1 system, BP2 tools, BP3 history tail) for one-shot requests whose
+/// prefix is never sent again — see [`crate::providers::traits::ChatOptions`].
+#[allow(clippy::too_many_arguments)]
 pub(super) fn prepare_request(
     client: &AnthropicClient,
     messages: &[Value],
@@ -38,6 +43,7 @@ pub(super) fn prepare_request(
     max_tokens: u32,
     temperature: f32,
     stream: bool,
+    skip_cache_write: bool,
 ) -> PreparedRequest {
     // Strip the reasoning-level suffix ORG2 encodes into variant ids (e.g.
     // `claude-opus-4-8-thinking-xhigh`) — providers reject the suffixed
@@ -45,7 +51,7 @@ pub(super) fn prepare_request(
     let parsed = crate::providers::thinking_mode::parse_model_variant(model);
     let resolved_model =
         crate::providers::model_hints::wire_model_name(client.provider_spec, &parsed.base_model);
-    let (system, anthropic_messages) = extract_system(messages);
+    let (system, anthropic_messages) = extract_system(messages, skip_cache_write);
 
     // Extract tool_choice override (from side_query structured output)
     // before converting tools to Anthropic format.
@@ -55,7 +61,9 @@ pub(super) fn prepare_request(
     } else {
         (None, None)
     };
-    let anthropic_tools = clean_tools.as_deref().map(convert_tools);
+    let anthropic_tools = clean_tools
+        .as_deref()
+        .map(|tools| convert_tools(tools, skip_cache_write));
 
     let caps = crate::providers::model_capabilities::resolve(&resolved_model, None);
     let directive = if tool_choice_override.is_some() || clean_tools.is_some() {
@@ -69,6 +77,7 @@ pub(super) fn prepare_request(
     let outcome = build_thinking_params(
         &resolved_model,
         parsed.level,
+        parsed.thinking,
         directive,
         &caps,
         max_tokens,
@@ -354,7 +363,7 @@ mod tests {
         assert!(model_uses_effort_beta("claude-fable-5", "anthropic"));
         assert!(model_uses_effort_beta("claude-sonnet-4-6", "anthropic"));
         assert!(!model_uses_effort_beta("claude-haiku-4-5", "anthropic"));
-        assert!(!model_uses_effort_beta("claude-sonnet-5", "anthropic"));
+        assert!(model_uses_effort_beta("claude-sonnet-5", "anthropic"));
         assert!(!model_uses_effort_beta("gpt-5.4", "openai"));
     }
 

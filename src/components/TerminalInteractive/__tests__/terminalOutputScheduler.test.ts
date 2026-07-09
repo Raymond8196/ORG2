@@ -740,6 +740,153 @@ describe("flushBacklog", () => {
 });
 
 // ============================================
+// O5: findAnsiSafeSplit fromPos parameter
+// ============================================
+
+describe("findAnsiSafeSplit — fromPos (O5)", () => {
+  it("fromPos=0 behaves identically to the no-arg form (backward compat)", () => {
+    const s = "abc\x1b[33mdef";
+    expect(findAnsiSafeSplit(s, 4, 0)).toBe(findAnsiSafeSplit(s, 4));
+  });
+
+  it("fast path: fromPos >= targetPos returns targetPos without scanning", () => {
+    // Plain ASCII — safe to split anywhere; fromPos already past target.
+    const s = "hello world";
+    expect(findAnsiSafeSplit(s, 5, 7)).toBe(5);
+  });
+
+  it("fast path: fromPos === targetPos returns targetPos", () => {
+    const s = "hello world";
+    expect(findAnsiSafeSplit(s, 5, 5)).toBe(5);
+  });
+
+  it("resumes scan correctly after a known-safe boundary", () => {
+    // "\x1b[1m" = ESC [ 1 m = 4 chars (indices 0-3)
+    // "x".repeat(10) = indices 4-13
+    // "\x1b[0m" = ESC [ 0 m = 4 chars (indices 14-17), total length 18
+    const s = "\x1b[1m" + "x".repeat(10) + "\x1b[0m";
+    expect(s.length).toBe(18);
+
+    // First split: target=10, fromPos=0 — scans ESC[1m (ends at 4), then plain
+    // chars 4..9. At i=10 <= targetPos=10, lastSafe=10. Returns 10.
+    const firstSplit = findAnsiSafeSplit(s, 10, 0);
+    expect(firstSplit).toBe(10);
+
+    // Second split: fromPos=10, target=14 — the char at index 14 is ESC which
+    // starts ESC[0m (crosses target). Last safe before it is 14's boundary = 14.
+    // Actually target=14: loop runs while i<14. Chars 10-13 are 'x', after i=14
+    // loop exits. lastSafe=14. Returns 14.
+    const secondSplit = findAnsiSafeSplit(s, 14, firstSplit);
+    expect(secondSplit).toBe(14);
+
+    // Third split: fromPos=14, target=18 (s.length) — ESC[0m is complete and
+    // ends exactly at 18. findAnsiSafeSplit returns s.length when targetPos >= s.length.
+    const thirdSplit = findAnsiSafeSplit(s, s.length, secondSplit);
+    expect(thirdSplit).toBe(s.length);
+  });
+
+  it("correctly handles fromPos exactly at an ANSI sequence boundary", () => {
+    // fromPos lands right at the end of a complete CSI sequence.
+    const seq = "\x1b[32m"; // 5 chars
+    const s = seq + "hello" + "\x1b[0m" + "world";
+    // fromPos=5 is exactly at the end of ESC[32m — a valid safe boundary.
+    const split = findAnsiSafeSplit(s, 10, 5);
+    // Range [5..10] is all plain ASCII; safe split is 10.
+    expect(split).toBe(10);
+  });
+
+  it("does not produce mid-sequence split when fromPos is within plain text", () => {
+    // fromPos in the middle of plain text, sequence comes after.
+    // "aaaaaa\x1b[33mbb" — fromPos=3, target=8 (inside sequence)
+    const s = "aaaaaa\x1b[33mbb";
+    const split = findAnsiSafeSplit(s, 8, 3);
+    // Safe boundary must be ≤ 6 (before the ESC)
+    expect(split).toBeLessThanOrEqual(6);
+    // Verify prefix integrity
+    // eslint-disable-next-line no-control-regex
+    expect(s.slice(0, split)).not.toMatch(/\x1b\[3$/);
+  });
+
+  it("returns fromPos (not 0) when no safe position found in the new window", () => {
+    // The only content between fromPos and targetPos is an incomplete sequence.
+    // "hello\x1b[33" — complete text "hello" (len 5) + incomplete CSI
+    const s = "hello\x1b[33";
+    // fromPos=5, target=8 — the ESC at 5 starts a sequence that doesn't finish
+    const split = findAnsiSafeSplit(s, 8, 5);
+    // No safe position found in [5..8]; lastSafe starts at fromPos=5
+    expect(split).toBe(5);
+  });
+});
+
+// ============================================
+// O5: lastSafeSplitEnd cache in SchedulerEntry
+// ============================================
+
+describe("O5 — lastSafeSplitEnd cache reduces rescanning", () => {
+  it("multi-chunk split of a large entry with OSC sequences: scanner resumes correctly", async () => {
+    // Verify the O5 optimization via findAnsiSafeSplit's direct behaviour:
+    // when fromPos equals the previously returned boundary, subsequent calls
+    // produce the same boundaries as full-scan calls (correctness guarantee).
+    const oscSeq = "\x1b]0;title\x07"; // 12 chars
+    const block = "x".repeat(INITIAL_CHUNK_SIZE - oscSeq.length) + oscSeq;
+    const data = block + block + block;
+
+    // Simulate the split sequence that consumeChunk would perform.
+    // Each step: full-scan result must equal incremental-scan result.
+    const chunkSize = INITIAL_CHUNK_SIZE;
+    let incrementalFromPos = 0;
+    let start = 0;
+
+    while (start < data.length) {
+      const target = Math.min(start + chunkSize, data.length);
+
+      const fullScan = findAnsiSafeSplit(data, target, 0);
+      const incrementalScan = findAnsiSafeSplit(
+        data,
+        target,
+        incrementalFromPos
+      );
+
+      expect(incrementalScan).toBe(fullScan);
+
+      const splitAt = incrementalScan <= start ? data.length : incrementalScan;
+      incrementalFromPos = splitAt;
+      start = splitAt;
+    }
+  });
+
+  it("first split of an entry starts from 0 (fromPos=0 matches no-arg)", () => {
+    // The O5 invariant: fromPos=0 must be identical to a fresh scan (no-arg).
+    const data = "x".repeat(INITIAL_CHUNK_SIZE) + "\x1b[32m" + "y".repeat(100);
+    const target = INITIAL_CHUNK_SIZE + 3; // lands inside the ESC sequence
+
+    expect(findAnsiSafeSplit(data, target, 0)).toBe(
+      findAnsiSafeSplit(data, target)
+    );
+  });
+
+  it("lossless output for large OSC-heavy burst across many chunks", async () => {
+    const { fn, calls } = makeWrite();
+    registerPane(SESSION_A, fn);
+    setPaneForeground(SESSION_A, true);
+
+    // 256 KB worth of OSC + plain text (simulates a real terminal title-update storm)
+    const parts: string[] = [];
+    const chunkCount = 16;
+    const chunkBytes = 16 * 1024;
+    for (let i = 0; i < chunkCount; i++) {
+      parts.push(`\x1b]0;session-${i}\x07`); // ~18 chars OSC
+      parts.push("y".repeat(chunkBytes - 20));
+    }
+    const data = parts.join("");
+    scheduleWrite(SESSION_A, data, data.length, fn);
+    await flushTimers();
+
+    expect(calls.join("")).toBe(data);
+  });
+});
+
+// ============================================
 // Multiple panes / priority isolation
 // ============================================
 

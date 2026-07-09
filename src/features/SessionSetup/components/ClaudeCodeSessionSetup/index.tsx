@@ -26,6 +26,7 @@ export interface ClaudeCodeSessionValues {
   accessToken: string;
   refreshToken?: string;
   expiresIn?: number;
+  accountMetadata?: Record<string, string>;
 }
 
 export interface ClaudeCodeSessionSetupProps {
@@ -36,6 +37,25 @@ export interface ClaudeCodeSessionSetupProps {
   tokenError?: string | null;
   onClearTokenError?: () => void;
   closeSignal?: number;
+}
+
+function toClaudeCodeAccountMetadata(
+  metadata: Record<string, string | null | undefined> | null | undefined
+): Record<string, string> | undefined {
+  if (!metadata) return undefined;
+  const entries: Array<[string, string | null | undefined]> = [
+    ["email", metadata.email],
+    ["organization_uuid", metadata.organizationUuid],
+    ["organization_name", metadata.organizationName],
+    ["organization_type", metadata.organizationType],
+    ["rate_limit_tier", metadata.rateLimitTier],
+  ];
+  const out = Object.fromEntries(
+    entries.filter(
+      ([, value]) => typeof value === "string" && value.trim() !== ""
+    )
+  ) as Record<string, string>;
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
@@ -74,6 +94,7 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
         accessToken: response.accessToken,
         refreshToken: response.refreshToken ?? undefined,
         expiresIn: response.expiresIn ?? undefined,
+        accountMetadata: toClaudeCodeAccountMetadata(response.accountMetadata),
       });
     },
   });

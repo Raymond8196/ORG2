@@ -7,6 +7,9 @@ use crate::key_store::{
     AuthMethod, DefaultVariant, HealthStatus, ModelKey, ModelType, ModelVariant, ProviderProtocol,
     KEY_SERVICE,
 };
+// Re-exported here so consumers keep the established
+// `key_vault::commands::` path (matching `model_supports_output_config_effort`).
+pub use crate::key_store::{is_claude_official_oauth_token, is_official_anthropic_endpoint};
 
 const CURSOR_NATIVE_FALLBACK_MODELS: &[&str] = &["composer-2"];
 
@@ -76,6 +79,7 @@ pub struct KeyInfo {
     pub protocol: Option<String>,
     pub env_vars: Vec<String>,
     pub env_vars_masked: HashMap<String, String>,
+    pub account_metadata: HashMap<String, String>,
     pub available_models: Vec<String>,
     pub enabled_models: Vec<String>,
     pub model_aliases: Vec<ModelAliasInfo>,
@@ -222,7 +226,7 @@ fn enrich_cursor_native_models(info: &mut KeyInfo) -> Result<(), String> {
     Ok(())
 }
 
-fn key_info_from_entry(entry: ModelKey) -> Result<KeyInfo, String> {
+pub(super) fn key_info_from_entry(entry: ModelKey) -> Result<KeyInfo, String> {
     let mut info = KeyInfo::from(entry);
     enrich_cursor_native_models(&mut info)?;
     Ok(info)
@@ -246,15 +250,32 @@ fn is_cursor_web_session_token(token: &str) -> bool {
     value.get("type").and_then(|value| value.as_str()) == Some("web")
 }
 
-/// Whether the account talks to an official Anthropic endpoint. A configured
-/// `base_url` means the traffic goes through a third-party relay/mirror whose
-/// gateway may reject `output_config`/effort — those accounts must behave
-/// exactly as before this feature.
-fn is_official_anthropic_endpoint(base_url: Option<&str>) -> bool {
-    match base_url.map(str::trim) {
-        None | Some("") => true,
-        Some(url) => url.starts_with("https://api.anthropic.com"),
+/// Drop stale relay routing from a ClaudeCode row that carries official
+/// Anthropic OAuth material.
+///
+/// Re-detecting Claude Code OAuth on top of an account row that was earlier
+/// configured for a third-party relay leaves the relay's `base_url` (and a
+/// possible `protocol: openai`) on the row, because `save_key` only
+/// overwrites fields present in the request. The Rust agent then sends the
+/// `sk-ant-oat…` bearer token to the relay, which 401s (issue #276). Official
+/// OAuth tokens have exactly one valid endpoint, so the relay routing state
+/// is unambiguously stale. Relay ClaudeCode accounts (non-`sk-ant-oat`
+/// tokens) are left untouched.
+fn normalize_claude_official_oauth_routing(entry: &mut ModelKey) {
+    if entry.model_type != ModelType::ClaudeCode
+        || entry.auth_method != AuthMethod::Oauth
+        || !entry
+            .session_token
+            .as_deref()
+            .is_some_and(is_claude_official_oauth_token)
+    {
+        return;
     }
+
+    if !is_official_anthropic_endpoint(entry.base_url.as_deref()) {
+        entry.base_url = None;
+    }
+    entry.protocol = None;
 }
 
 fn account_uses_anthropic_native_messages(entry: &ModelKey) -> bool {
@@ -275,13 +296,37 @@ fn account_uses_anthropic_native_messages(entry: &ModelKey) -> bool {
     }
 }
 
+pub const CLAUDE_CODE_OAUTH_MODELS: &[&str] = &[
+    "claude-sonnet-5",
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-sonnet-4-6",
+    "claude-opus-4-6",
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-4-5-20250929",
+];
+
+pub const CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &[
+    "claude-sonnet-5",
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-sonnet-4-6",
+];
+
+pub const CODEX_OAUTH_MODELS: &[&str] = &[
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.3-codex",
+    "gpt-5.2",
+    "codex-auto-review",
+];
+
+pub const CODEX_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &["gpt-5.5"];
+
 /// Claude models whose Messages requests carry `output_config.effort`.
-///
-/// MODEL LAUNCH: keep in lockstep with `agent_core`'s thinking-mode
-/// classification (`resolve_thinking_mode`: `AnthropicAdaptive` = opus 4.7+ /
-/// fable 5+, `Anthropic46` = opus/sonnet 4.6; haiku and sonnet 5 are
-/// excluded). `agent_core` has a cross-crate test asserting the two stay in
-/// sync — update both together.
 pub fn model_supports_output_config_effort(model: &str) -> bool {
     let lower = model.to_lowercase();
     if !lower.starts_with("claude-") || lower.contains("haiku") {
@@ -291,14 +336,13 @@ pub fn model_supports_output_config_effort(model: &str) -> bool {
         || lower.contains("opus-4-8")
         || lower.contains("opus-4-7")
         || lower.contains("opus-4-6")
+        || lower.contains("sonnet-5")
         || lower.contains("sonnet-4-6")
 }
 
-/// Per the reference harness, `max` effort is rejected by sonnet-4-6 (Opus
-/// 4.6 is the only 4.6-generation model that accepts it). Adaptive-generation
-/// models keep the rung — their `max` maps to the top adaptive effort value.
-fn model_supports_max_effort(model: &str) -> bool {
-    !model.to_lowercase().contains("sonnet-4-6")
+fn claude_model_has_thinking_toggle(model: &str) -> bool {
+    let lower = model.to_lowercase();
+    lower.contains("opus-4-8") || lower.contains("sonnet-")
 }
 
 /// A "real" selectable effort rung, as opposed to a bare record row
@@ -309,40 +353,153 @@ fn is_actionable_variant(variant: &ModelVariant) -> bool {
         || variant.fast
         || matches!(
             variant.reasoning.as_deref(),
-            Some("baseline" | "low" | "medium" | "high" | "extra_high" | "xhigh" | "max")
+            Some(
+                "baseline"
+                    | "low"
+                    | "medium"
+                    | "high"
+                    | "extra_high"
+                    | "xhigh"
+                    | "max"
+                    | "ultracode",
+            )
         )
 }
+
+const ANTHROPIC_EFFORT_RUNGS: &[(&str, &str)] = &[
+    ("low", "low"),
+    ("medium", "medium"),
+    ("high", "high"),
+    ("xhigh", "extra_high"),
+    ("max", "max"),
+];
+
+const FABLE_EFFORT_RUNGS: &[(&str, &str)] = &[
+    ("low", "low"),
+    ("medium", "medium"),
+    ("high", "high"),
+    ("xhigh", "extra_high"),
+    ("max", "max"),
+    ("ultracode", "ultracode"),
+];
 
 fn effort_variants_for_base_model(
     base_model: &str,
     context_window: Option<u64>,
 ) -> Vec<ModelVariantInfo> {
-    // Reference-aligned ladder: low/medium/high/max plus the bare baseline.
-    // No separate `xhigh` rung — it is wire-identical to `max` on every
-    // family (adaptive maps both to `xhigh`, 4.6 maps both to `max`).
-    let mut rungs = vec![
-        ("", "baseline"),
-        ("low", "low"),
-        ("medium", "medium"),
-        ("high", "high"),
-    ];
-    if model_supports_max_effort(base_model) {
-        rungs.push(("max", "max"));
-    }
-    rungs
-        .into_iter()
-        .map(|(suffix, reasoning)| ModelVariantInfo {
-            model: if suffix.is_empty() {
-                base_model.to_string()
-            } else {
-                format!("{base_model}-{suffix}")
-            },
+    let mut variants = Vec::new();
+    let has_thinking_toggle = claude_model_has_thinking_toggle(base_model);
+    let lower = base_model.to_lowercase();
+    let rungs = if lower.contains("fable-5") {
+        FABLE_EFFORT_RUNGS
+    } else {
+        ANTHROPIC_EFFORT_RUNGS
+    };
+    for (suffix, reasoning) in rungs {
+        variants.push(ModelVariantInfo {
+            model: format!("{base_model}-{suffix}"),
             base_model: base_model.to_string(),
-            reasoning: Some(reasoning.to_string()),
+            reasoning: Some((*reasoning).to_string()),
             fast: false,
             context_window,
+        });
+        if has_thinking_toggle {
+            variants.push(ModelVariantInfo {
+                model: format!("{base_model}-thinking-{suffix}"),
+                base_model: base_model.to_string(),
+                reasoning: Some((*reasoning).to_string()),
+                fast: false,
+                context_window,
+            });
+        }
+    }
+    variants
+}
+
+fn codex_model_supports_variants(model: &str) -> bool {
+    CODEX_OAUTH_MODELS.contains(&model) && model != "codex-auto-review"
+}
+
+fn codex_model_supports_fast_tier(model: &str) -> bool {
+    matches!(model, "gpt-5.5" | "gpt-5.4")
+}
+
+fn codex_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInfo> {
+    let mut out = Vec::new();
+    let supports_fast = codex_model_supports_fast_tier(base_model);
+    for effort in ["low", "medium", "high", "xhigh"] {
+        out.push(ModelVariantInfo {
+            model: format!("{base_model}-{effort}"),
+            base_model: base_model.to_string(),
+            reasoning: Some(effort.to_string()),
+            fast: false,
+            context_window: None,
+        });
+        if supports_fast {
+            out.push(ModelVariantInfo {
+                model: format!("{base_model}-{effort}-fast"),
+                base_model: base_model.to_string(),
+                reasoning: Some(effort.to_string()),
+                fast: true,
+                context_window: None,
+            });
+        }
+    }
+    out
+}
+
+fn append_missing_variants(out: &mut Vec<ModelVariantInfo>, variants: Vec<ModelVariantInfo>) {
+    for synthesized in variants {
+        if out.iter().any(|variant| variant.model == synthesized.model) {
+            continue;
+        }
+        out.push(synthesized);
+    }
+}
+
+fn default_variants_for_key(entry: &ModelKey) -> Vec<DefaultVariantInfo> {
+    let mut out: Vec<DefaultVariantInfo> = entry
+        .default_variants
+        .iter()
+        .map(|variant| DefaultVariantInfo {
+            base_model: variant.base_model.clone(),
+            model: variant.model.clone(),
         })
-        .collect()
+        .collect();
+
+    if matches!(entry.model_type, ModelType::Codex) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| codex_model_supports_variants(model))
+        {
+            if out.iter().any(|variant| variant.base_model == *model) {
+                continue;
+            }
+            out.push(DefaultVariantInfo {
+                base_model: model.clone(),
+                model: format!("{model}-medium"),
+            });
+        }
+    }
+
+    if account_uses_anthropic_native_messages(entry) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| model_supports_output_config_effort(model))
+        {
+            if out.iter().any(|variant| variant.base_model == *model) {
+                continue;
+            }
+            out.push(DefaultVariantInfo {
+                base_model: model.clone(),
+                model: format!("{model}-high"),
+            });
+        }
+    }
+
+    out
 }
 
 fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
@@ -360,6 +517,16 @@ fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
             context_window: variant.context_window.filter(|ctx| *ctx > 0),
         })
         .collect();
+
+    if matches!(entry.model_type, ModelType::Codex) {
+        for model in entry
+            .available_models
+            .iter()
+            .filter(|model| codex_model_supports_variants(model))
+        {
+            append_missing_variants(&mut out, codex_effort_variants_for_base_model(model));
+        }
+    }
 
     if !account_uses_anthropic_native_messages(entry) {
         return out;
@@ -385,14 +552,10 @@ fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
             .find(|variant| variant.base_model == *model || variant.model == *model)
             .and_then(|variant| variant.context_window)
             .filter(|ctx| *ctx > 0);
-        for synthesized in effort_variants_for_base_model(model, context_window) {
-            // The baseline rung shares its id with a stored record row —
-            // keep the stored row (it may carry an observed context window).
-            if out.iter().any(|variant| variant.model == synthesized.model) {
-                continue;
-            }
-            out.push(synthesized);
-        }
+        append_missing_variants(
+            &mut out,
+            effort_variants_for_base_model(model, context_window),
+        );
     }
     out
 }
@@ -439,6 +602,7 @@ impl From<ModelKey> for KeyInfo {
             protocol: entry.protocol.map(|protocol| protocol.as_str().to_string()),
             env_vars: entry.env_vars.keys().cloned().collect(),
             env_vars_masked,
+            account_metadata: entry.account_metadata.clone(),
             available_models: entry.available_models.clone(),
             enabled_models: entry.enabled_models.clone(),
             model_aliases: entry
@@ -451,14 +615,7 @@ impl From<ModelKey> for KeyInfo {
                 })
                 .collect(),
             model_variants: model_variants_for_key(&entry),
-            default_variants: entry
-                .default_variants
-                .iter()
-                .map(|variant| DefaultVariantInfo {
-                    base_model: variant.base_model.clone(),
-                    model: variant.model.clone(),
-                })
-                .collect(),
+            default_variants: default_variants_for_key(&entry),
             quota_info: entry.quota_info.clone(),
             has_local_key: entry.has_local_key,
             is_listed: entry.is_listed,
@@ -509,6 +666,7 @@ pub struct SaveKeyRequest {
     pub base_url: Option<String>,
     pub protocol: Option<String>,
     pub env_vars: Option<HashMap<String, String>>,
+    pub account_metadata: Option<HashMap<String, String>>,
     pub available_models: Option<Vec<String>>,
     pub enabled_models: Option<Vec<String>>,
     pub model_aliases: Option<Vec<ModelAliasInfo>>,
@@ -533,6 +691,7 @@ pub struct FullKeyResponse {
     pub base_url: Option<String>,
     pub protocol: Option<String>,
     pub env_vars: HashMap<String, String>,
+    pub account_metadata: HashMap<String, String>,
     pub available_models: Vec<String>,
     pub model_aliases: Vec<ModelAliasInfo>,
     pub model_variants: Vec<ModelVariantInfo>,
@@ -551,6 +710,7 @@ impl From<ModelKey> for FullKeyResponse {
             base_url: entry.base_url,
             protocol: entry.protocol.map(|protocol| protocol.as_str().to_string()),
             env_vars: entry.env_vars,
+            account_metadata: entry.account_metadata,
             available_models: entry.available_models,
             model_aliases: entry
                 .model_aliases
@@ -706,6 +866,9 @@ pub async fn save_key(request: SaveKeyRequest) -> Result<KeyInfo, String> {
                 received_oauth_material || env.values().any(|value| !value.trim().is_empty());
             entry.env_vars = env;
         }
+        if let Some(metadata) = request.account_metadata {
+            entry.account_metadata = metadata;
+        }
         if let Some(models) = request.available_models {
             entry.available_models = models;
         }
@@ -783,6 +946,8 @@ pub async fn save_key(request: SaveKeyRequest) -> Result<KeyInfo, String> {
             }
             entry.api_key = None;
         }
+
+        normalize_claude_official_oauth_routing(&mut entry);
 
         if entry.auth_method == AuthMethod::Oauth && received_oauth_material {
             entry.oauth_refresh_failure_count = 0;
@@ -924,4 +1089,122 @@ pub async fn clipboard_write_text(text: String) -> Result<(), String> {
     })
     .await
     .map_err(|err| format!("Task join error: {}", err))?
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn official_anthropic_endpoint_accepts_empty_and_official_urls() {
+        assert!(is_official_anthropic_endpoint(None));
+        assert!(is_official_anthropic_endpoint(Some("")));
+        assert!(is_official_anthropic_endpoint(Some("  ")));
+        assert!(is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com"
+        )));
+        assert!(is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com/v1"
+        )));
+        assert!(is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com:443/v1"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://relay.example.com/v1"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "http://api.anthropic.com"
+        )));
+        // Lookalike hosts must not pass the boundary check.
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com.evil.example/v1"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.community"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com@evil.example/"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com:pass@evil.example/"
+        )));
+    }
+
+    #[test]
+    fn official_claude_oauth_token_requires_oat_prefix() {
+        assert!(is_claude_official_oauth_token("sk-ant-oat01-abc"));
+        assert!(is_claude_official_oauth_token("  sk-ant-oat01-abc  "));
+        assert!(!is_claude_official_oauth_token("sk-ant-api03-abc"));
+        assert!(!is_claude_official_oauth_token("sk-relay-key"));
+        assert!(!is_claude_official_oauth_token(""));
+    }
+
+    fn claude_oauth_entry(token: &str) -> ModelKey {
+        let mut entry = ModelKey::new(ModelType::ClaudeCode);
+        entry.auth_method = AuthMethod::Oauth;
+        entry.session_token = Some(token.to_string());
+        entry
+    }
+
+    #[test]
+    fn official_oauth_save_drops_stale_relay_routing() {
+        let mut entry = claude_oauth_entry("sk-ant-oat01-abc");
+        entry.base_url = Some("https://relay.example.com/v1".to_string());
+        entry.protocol = Some(ProviderProtocol::OpenAi);
+
+        normalize_claude_official_oauth_routing(&mut entry);
+
+        assert_eq!(entry.base_url, None);
+        assert_eq!(entry.protocol, None);
+    }
+
+    #[test]
+    fn official_oauth_save_keeps_explicit_official_base_url() {
+        let mut entry = claude_oauth_entry("sk-ant-oat01-abc");
+        entry.base_url = Some("https://api.anthropic.com/v1".to_string());
+
+        normalize_claude_official_oauth_routing(&mut entry);
+
+        assert_eq!(
+            entry.base_url.as_deref(),
+            Some("https://api.anthropic.com/v1")
+        );
+    }
+
+    #[test]
+    fn relay_claude_oauth_save_keeps_relay_routing_untouched() {
+        let mut entry = claude_oauth_entry("sk-relay-issued-token");
+        entry.base_url = Some("https://relay.example.com/v1".to_string());
+        entry.protocol = Some(ProviderProtocol::OpenAi);
+
+        normalize_claude_official_oauth_routing(&mut entry);
+
+        assert_eq!(
+            entry.base_url.as_deref(),
+            Some("https://relay.example.com/v1")
+        );
+        assert_eq!(entry.protocol, Some(ProviderProtocol::OpenAi));
+    }
+
+    #[test]
+    fn non_claude_and_api_key_rows_are_never_normalized() {
+        let mut api_key_entry = ModelKey::new(ModelType::ClaudeCode);
+        api_key_entry.api_key = Some("sk-ant-oat01-misfiled".to_string());
+        api_key_entry.base_url = Some("https://relay.example.com/v1".to_string());
+        normalize_claude_official_oauth_routing(&mut api_key_entry);
+        assert_eq!(
+            api_key_entry.base_url.as_deref(),
+            Some("https://relay.example.com/v1")
+        );
+
+        let mut anthropic_entry = ModelKey::new(ModelType::AnthropicApi);
+        anthropic_entry.auth_method = AuthMethod::Oauth;
+        anthropic_entry.session_token = Some("sk-ant-oat01-abc".to_string());
+        anthropic_entry.base_url = Some("https://relay.example.com/v1".to_string());
+        normalize_claude_official_oauth_routing(&mut anthropic_entry);
+        assert_eq!(
+            anthropic_entry.base_url.as_deref(),
+            Some("https://relay.example.com/v1")
+        );
+    }
 }

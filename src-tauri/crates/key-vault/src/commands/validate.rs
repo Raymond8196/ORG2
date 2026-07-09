@@ -2,14 +2,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::ValidationResult;
 
+use crate::commands::crud::key_info_from_entry;
+use crate::key_store::{AuthMethod, HealthStatus, ModelType, KEY_SERVICE};
 use crate::providers::anthropic::AnthropicValidator;
 use crate::providers::azure_openai::AzureOpenAIValidator;
+use crate::providers::claude_code::ClaudeCodeQuotaFetcher;
 use crate::providers::codex::CodexValidator;
 use crate::providers::copilot::CopilotValidator;
 use crate::providers::cursor::CursorValidator;
 use crate::providers::google::GoogleValidator;
 use crate::providers::kiro::KiroValidator;
 use crate::providers::openai::OpenAIValidator;
+use crate::providers::opencode_go::{workspace_id_override_from_key, OpenCodeGoQuotaFetcher};
 
 #[derive(Debug, Serialize)]
 pub struct TestModelResult {
@@ -32,6 +36,17 @@ struct ClaudeCodeOauthModelInfo {
 pub struct CodexOauthListModelsRequest {
     pub access_token: String,
     pub id_token: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct OAuthModelCatalogRequest {
+    pub agent_type: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OAuthModelCatalogResponse {
+    pub models: Vec<String>,
+    pub default_enabled_models: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -77,8 +92,8 @@ use crate::provider_config::get_provider_config;
 const CLAUDE_CODE_OAUTH_MODELS_URL: &str = "https://api.anthropic.com/v1/models";
 const CLAUDE_CODE_OAUTH_BETA: &str = "oauth-2025-04-20";
 const CLAUDE_CODE_OAUTH_USER_AGENT: &str = "claude-cli/2.1.78 (orgii, cli)";
-const OPENCODE_ZEN_BASE_URL: &str = "https://opencode.ai/zen/v1";
-const OPENCODE_GO_BASE_URL: &str = "https://opencode.ai/zen/go/v1";
+pub const OPENCODE_ZEN_BASE_URL: &str = "https://opencode.ai/zen/v1";
+pub const OPENCODE_GO_BASE_URL: &str = "https://opencode.ai/zen/go/v1";
 
 const GEMINI_OAUTH_MODELS_URL: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -95,15 +110,23 @@ fn default_base_url_for_provider(agent_type: &str) -> Option<String> {
     })
 }
 
+/// Anthropic-protocol base URL to fall back on when the caller supplied none.
+///
+/// Anthropic itself is special-cased because its short aliases don't resolve
+/// through `get_provider_config`. Every other provider declares its Anthropic
+/// endpoint in the provider registry, so there is no second table to keep in
+/// sync here.
 fn default_anthropic_base_url_for_provider(agent_type: &str) -> Option<String> {
     match agent_type {
         "anthropic" | "anthropic_api" | "claude_code" => {
             Some("https://api.anthropic.com/v1".to_string())
         }
-        "zenmux_api" => Some("https://zenmux.ai/api/anthropic".to_string()),
-        "longcat_api" => Some("https://api.longcat.chat/anthropic".to_string()),
-        _ => None,
+        other => get_provider_config(other).default_anthropic_base_url(),
     }
+}
+
+fn resolve_opencode_base_url(base_url: Option<&str>) -> &str {
+    base_url.unwrap_or(OPENCODE_ZEN_BASE_URL)
 }
 
 /// Validate an OpenCode Zen/Go key by listing models without issuing a completion request.
@@ -112,16 +135,9 @@ pub async fn validate_opencode_key(api_key: &str, base_url: Option<&str>) -> Val
         return ValidationResult::failure("No API key provided");
     }
 
-    let result = fetch_opencode_models(api_key, base_url.unwrap_or(OPENCODE_GO_BASE_URL)).await;
-    match result {
+    match fetch_opencode_models(api_key, resolve_opencode_base_url(base_url)).await {
         Ok(models) => ValidationResult::success("API key valid").with_models(models),
-        Err(err) if err == "Invalid API key" || base_url.is_some() => {
-            ValidationResult::failure(&err)
-        }
-        Err(_) => match fetch_opencode_models(api_key, OPENCODE_ZEN_BASE_URL).await {
-            Ok(models) => ValidationResult::success("API key valid").with_models(models),
-            Err(err) => ValidationResult::failure(&err),
-        },
+        Err(err) => ValidationResult::failure(&err),
     }
 }
 
@@ -202,7 +218,7 @@ pub async fn run_validate_key(
             Ok(validator.validate(&api_key, base_url.as_deref(), test_model.as_deref()).await)
         }
 
-        // Amazon Kiro - OAuth token (JSON or access_token)
+        // Kiro CLI - OAuth token (JSON or access_token)
         "kiro" => {
             let validator = KiroValidator::new();
             Ok(validator.validate(&api_key).await)
@@ -242,10 +258,13 @@ pub async fn run_validate_key(
                 .await)
         }
 
-        // OpenAI-compatible API providers (use OpenAI validator with provider's base URL)
+        // OpenAI-compatible API providers (use OpenAI validator with provider's base URL).
+        // Providers that also speak the Anthropic protocol declare an Anthropic
+        // endpoint in the provider registry and route through it below.
         "deepseek_api" | "groq_api" | "xai_api" | "zhipu_api" | "dashscope_api"
         | "moonshot_api" | "minimax_api" | "longcat_api" | "openrouter_api" | "zenmux_api"
-        | "vllm_api" | "orgii_orchestrator" | "orgii" => {
+        | "siliconflow_api" | "modelscope_api" | "aihubmix_api" | "cherryin_api"
+        | "bedrock_api" | "custom_api" | "vllm_api" | "orgii_orchestrator" | "orgii" => {
             if protocol_lower.as_deref() == Some("anthropic") {
                 let effective_url = base_url
                     .clone()
@@ -270,7 +289,7 @@ pub async fn run_validate_key(
         }
 
         _ => Err(format!(
-            "Unknown agent type: {}. Supported: copilot, cursor_cli, openai, anthropic, google, gemini_cli, codex, claude_code, kiro, opencode, openai_api, anthropic_api, gemini_api, deepseek_api, groq_api, xai_api, zhipu_api, dashscope_api, moonshot_api, minimax_api, longcat_api, openrouter_api, zenmux_api, vllm_api, azure_openai_api, azure_anthropic_api",
+            "Unknown agent type: {}. Supported: copilot, cursor_cli, openai, anthropic, google, gemini_cli, codex, claude_code, kiro, opencode, openai_api, anthropic_api, gemini_api, deepseek_api, groq_api, xai_api, zhipu_api, dashscope_api, moonshot_api, minimax_api, longcat_api, openrouter_api, zenmux_api, siliconflow_api, modelscope_api, aihubmix_api, cherryin_api, bedrock_api, custom_api, vllm_api, azure_openai_api, azure_anthropic_api",
             agent_type
         )),
     }
@@ -453,6 +472,11 @@ pub async fn fetch_key_quota(
             let validator = CursorValidator::new();
             validator.fetch_quota(&api_key).await
         }
+        "opencode" | "opencode_cli" => {
+            OpenCodeGoQuotaFetcher::new()
+                .fetch_quota(&api_key, None)
+                .await
+        }
         // Other providers don't have public quota APIs
         "openai"
         | "anthropic"
@@ -461,8 +485,6 @@ pub async fn fetch_key_quota(
         | "codex"
         | "gemini_cli"
         | "kiro"
-        | "opencode"
-        | "opencode_cli"
         | "openai_api"
         | "anthropic_api"
         | "gemini_api"
@@ -483,6 +505,168 @@ pub async fn fetch_key_quota(
         | "orgii" => Err(format!("{} does not have a public quota API", agent_type)),
         _ => Err(format!("Unknown agent type: {}", agent_type)),
     }
+}
+
+/// Refresh quota for a stored key without exposing its token to the frontend.
+#[tauri::command]
+pub async fn refresh_key_quota(key_id: String) -> Result<Option<crate::commands::KeyInfo>, String> {
+    let key = KEY_SERVICE
+        .get_key_by_id(&key_id)
+        .ok_or_else(|| format!("Key not found: {}", key_id))?;
+
+    let quota = if key.model_type == ModelType::ClaudeCode && key.auth_method == AuthMethod::Oauth {
+        let token = key
+            .session_token
+            .as_deref()
+            .filter(|token| !token.trim().is_empty())
+            .ok_or_else(|| "Claude Code OAuth account has no access token".to_string())?;
+
+        let refresh = match ClaudeCodeQuotaFetcher::new().fetch_quota_refresh(token).await {
+            Ok(refresh) => refresh,
+            Err(first_err) if is_unauthorized_quota_error(&first_err) => {
+                let refreshed = refresh_oauth_key_for_quota(&key).await?;
+                let retry_token = refreshed
+                    .session_token
+                    .as_deref()
+                    .filter(|retry_token| !retry_token.trim().is_empty())
+                    .ok_or_else(|| {
+                        "Claude Code OAuth account has no access token after refresh".to_string()
+                    })?;
+                ClaudeCodeQuotaFetcher::new()
+                    .fetch_quota_refresh(retry_token)
+                    .await?
+            }
+            Err(first_err) => return Err(first_err),
+        };
+
+        if !refresh.account_metadata.is_empty() {
+            KEY_SERVICE.merge_key_account_metadata(&key_id, refresh.account_metadata)?;
+        }
+
+        refresh.quota
+    } else {
+        match fetch_quota_for_key(&key).await {
+            Ok(quota) => quota,
+            Err(first_err)
+                if key.auth_method == AuthMethod::Oauth
+                    && is_unauthorized_quota_error(&first_err) =>
+            {
+                let refreshed = refresh_oauth_key_for_quota(&key).await?;
+                fetch_quota_for_key(&refreshed).await?
+            }
+            Err(first_err) => return Err(first_err),
+        }
+    };
+
+    let quota_value = serde_json::to_value(quota)
+        .map_err(|err| format!("Failed to serialize quota info: {err}"))?;
+
+    let updated = KEY_SERVICE.update_key_health(
+        &key_id,
+        HealthStatus::Valid,
+        None,
+        None,
+        None,
+        Some(quota_value),
+        None,
+    )?;
+
+    updated.map(key_info_from_entry).transpose()
+}
+
+async fn fetch_quota_for_key(
+    key: &crate::key_store::ModelKey,
+) -> Result<crate::types::QuotaInfo, String> {
+    match key.model_type {
+        ModelType::CursorCli => {
+            let token = key
+                .session_token
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Cursor account has no session token".to_string())?;
+            CursorValidator::new().fetch_quota(token).await
+        }
+        ModelType::Copilot => {
+            let token = key
+                .api_key
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Copilot account has no API key".to_string())?;
+            CopilotValidator::new().fetch_quota(token).await
+        }
+        ModelType::ClaudeCode if key.auth_method == AuthMethod::Oauth => {
+            let token = key
+                .session_token
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Claude Code OAuth account has no access token".to_string())?;
+            ClaudeCodeQuotaFetcher::new().fetch_quota(token).await
+        }
+        ModelType::Codex if key.auth_method == AuthMethod::Oauth => {
+            let token = key
+                .session_token
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Codex OAuth account has no access token".to_string())?;
+            let refresh_token = key
+                .env_vars
+                .get(core_types::providers::CODEX_REFRESH_TOKEN_ENV_KEY)
+                .map(String::as_str);
+            let id_token = key
+                .env_vars
+                .get(core_types::providers::CODEX_ID_TOKEN_ENV_KEY)
+                .map(String::as_str);
+            CodexValidator::new()
+                .fetch_oauth_quota(token, refresh_token, id_token)
+                .await
+        }
+        ModelType::OpenCode => {
+            let cookie = key
+                .session_token
+                .as_deref()
+                .or(key.api_key.as_deref())
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "OpenCode account has no session cookie".to_string())?;
+            OpenCodeGoQuotaFetcher::new()
+                .fetch_quota(cookie, workspace_id_override_from_key(key))
+                .await
+        }
+        ref other => Err(format!(
+            "{} does not have a quota refresh API",
+            other.as_str()
+        )),
+    }
+}
+
+async fn refresh_oauth_key_for_quota(
+    key: &crate::key_store::ModelKey,
+) -> Result<crate::key_store::ModelKey, String> {
+    let rejected_access_token = key.session_token.clone().unwrap_or_default();
+    match key.model_type {
+        ModelType::ClaudeCode => {
+            KEY_SERVICE
+                .refresh_claude_code_oauth_key(&key.id, &rejected_access_token)
+                .await
+        }
+        ModelType::Codex => {
+            KEY_SERVICE
+                .refresh_codex_oauth_key(&key.id, &rejected_access_token)
+                .await
+        }
+        ref other => Err(format!(
+            "OAuth quota refresh is not supported for {}",
+            other.as_str()
+        )),
+    }
+}
+
+fn is_unauthorized_quota_error(error_message: &str) -> bool {
+    let lower = error_message.to_lowercase();
+    lower.contains("401")
+        || lower.contains("403")
+        || lower.contains("unauthorized")
+        || lower.contains("forbidden")
+        || lower.contains("expired")
 }
 
 /// Auto-detect keys from local config files and environment variables
@@ -583,6 +767,16 @@ async fn claude_code_oauth_list_models_from_url(
     parse_claude_code_oauth_models_response(&body)
 }
 
+fn merge_default_catalog(mut models: Vec<String>, defaults: &[&str]) -> Vec<String> {
+    for model in defaults {
+        let model = (*model).to_string();
+        if !models.contains(&model) {
+            models.push(model);
+        }
+    }
+    models
+}
+
 fn parse_claude_code_oauth_models_response(body: &str) -> Result<Vec<String>, String> {
     let parsed: ClaudeCodeOauthModelsResponse = serde_json::from_str(body)
         .map_err(|err| format!("Claude Code OAuth model discovery parse failed: {err}"))?;
@@ -596,11 +790,44 @@ fn parse_claude_code_oauth_models_response(body: &str) -> Result<Vec<String>, St
 }
 
 #[tauri::command]
+pub fn oauth_model_catalog(
+    request: OAuthModelCatalogRequest,
+) -> Result<OAuthModelCatalogResponse, String> {
+    match request.agent_type.as_str() {
+        "claude_code" => Ok(OAuthModelCatalogResponse {
+            models: super::crud::CLAUDE_CODE_OAUTH_MODELS
+                .iter()
+                .map(|model| (*model).to_string())
+                .collect(),
+            default_enabled_models: super::crud::CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS
+                .iter()
+                .map(|model| (*model).to_string())
+                .collect(),
+        }),
+        "codex" => Ok(OAuthModelCatalogResponse {
+            models: super::crud::CODEX_OAUTH_MODELS
+                .iter()
+                .map(|model| (*model).to_string())
+                .collect(),
+            default_enabled_models: super::crud::CODEX_OAUTH_DEFAULT_ENABLED_MODELS
+                .iter()
+                .map(|model| (*model).to_string())
+                .collect(),
+        }),
+        other => Err(format!(
+            "Unsupported OAuth model catalog agent type: {other}"
+        )),
+    }
+}
+
+#[tauri::command]
 pub async fn claude_code_oauth_list_models(access_token: String) -> Result<Vec<String>, String> {
     use log::info;
     info!("[claude_code_oauth_list_models] Fetching models via Anthropic OAuth...");
-    let models =
-        claude_code_oauth_list_models_from_url(&access_token, CLAUDE_CODE_OAUTH_MODELS_URL).await?;
+    let models = merge_default_catalog(
+        claude_code_oauth_list_models_from_url(&access_token, CLAUDE_CODE_OAUTH_MODELS_URL).await?,
+        super::crud::CLAUDE_CODE_OAUTH_MODELS,
+    );
     info!(
         "[claude_code_oauth_list_models] Got {} models from Anthropic OAuth",
         models.len()
@@ -615,9 +842,12 @@ pub async fn codex_oauth_list_models(
     use log::info;
     info!("[codex_oauth_list_models] Fetching models via Codex native backend...");
     let validator = CodexValidator::new();
-    let models = validator
-        .list_models(&request.access_token, request.id_token.as_deref())
-        .await?;
+    let models = merge_default_catalog(
+        validator
+            .list_models(&request.access_token, request.id_token.as_deref())
+            .await?,
+        super::crud::CODEX_OAUTH_MODELS,
+    );
     info!(
         "[codex_oauth_list_models] Got {} models from Codex native backend",
         models.len()
@@ -970,6 +1200,19 @@ mod tests {
     fn code_assist_quota_response_rejects_invalid_json() {
         let err = parse_code_assist_quota_response("not json").unwrap_err();
         assert!(err.contains("parse failed"));
+    }
+
+    #[test]
+    fn opencode_base_url_defaults_to_zen_and_respects_selection() {
+        assert_eq!(resolve_opencode_base_url(None), OPENCODE_ZEN_BASE_URL);
+        assert_eq!(
+            resolve_opencode_base_url(Some(OPENCODE_ZEN_BASE_URL)),
+            OPENCODE_ZEN_BASE_URL
+        );
+        assert_eq!(
+            resolve_opencode_base_url(Some(OPENCODE_GO_BASE_URL)),
+            OPENCODE_GO_BASE_URL
+        );
     }
 
     // ── validate_token_format dispatch ────────────────────────────────

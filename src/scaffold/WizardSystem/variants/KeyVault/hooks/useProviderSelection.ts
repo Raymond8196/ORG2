@@ -125,6 +125,8 @@ export function useProviderSelection({
           enabled_models: [],
           quota_info: undefined,
           extracted_api_key: undefined,
+          // The setup step seeds the base URL from the provider's default
+          // endpoint, so nothing is hardcoded per provider here.
           extracted_base_url: undefined,
           protocol: selectedVariant?.defaultProtocol,
           setup_method:
@@ -231,7 +233,14 @@ export function useProviderSelection({
       ];
     }
     if (agentType === CLI_AGENT.CLAUDE_CODE) {
-      return [{ key: "signin", label: t("keyVault.signIn"), icon: LogIn }];
+      return [
+        { key: "signin", label: t("keyVault.signIn"), icon: LogIn },
+        {
+          key: "autodetect",
+          label: t("keyVault.autodetect"),
+          icon: ScanSearch,
+        },
+      ];
     }
     if (agentType === CLI_AGENT.CODEX) {
       return [

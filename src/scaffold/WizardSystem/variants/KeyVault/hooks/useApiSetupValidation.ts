@@ -2,10 +2,6 @@ import { type MutableRefObject, useEffect } from "react";
 
 import { LOCAL_MODEL_PROVIDER } from "@src/api/types/keys";
 import { useKeyValidation } from "@src/hooks/keyVault/useKeyValidation";
-import {
-  getClaudeCodeOAuthDefaultEnabledModels,
-  getCodexOAuthDefaultEnabledModels,
-} from "@src/hooks/models/nativeHarnessAccountModels";
 import { getDefaultEnabledModels } from "@src/util/modelGrouping";
 
 import type { WizardData } from "../types";
@@ -63,19 +59,12 @@ export function useApiSetupValidation({
         }
         return mergedModels;
       })();
-      const codexDefaultEnabledModels =
-        getCodexOAuthDefaultEnabledModels().filter((modelId) =>
-          effectiveModels.includes(modelId)
-        );
       onChange({
         available_models: effectiveModels,
         model_context_lengths: modelContextLengths,
-        enabled_models: isClaudeCode
-          ? getClaudeCodeOAuthDefaultEnabledModels()
-          : isCodex
-            ? codexDefaultEnabledModels.length > 0
-              ? codexDefaultEnabledModels
-              : effectiveModels.slice(0, 1)
+        enabled_models:
+          isClaudeCode || isCodex
+            ? effectiveModels.slice(0, 1)
             : getDefaultEnabledModels(effectiveModels),
         model_aliases:
           data.agent_type === LOCAL_MODEL_PROVIDER ? data.model_aliases : [],

@@ -17,9 +17,12 @@ use crate::api::websocket_handler;
 use integrations::cli_binary_resolver::{resolve_cli_binary_command, CliBinaryId};
 use key_vault::key_store::{KeyService, ModelKey, ModelType, KEY_SERVICE};
 
+use super::super::launch_profile_store::resolve_cli_launch_profile;
 use super::super::persistence;
 use super::super::types::{proxy_env, KeySource, SessionStatus};
-use super::command::{build_command, create_parser};
+use super::command::{
+    build_command_with_launch_profile, create_parser, launch_profile_env, CliCommandBuildRequest,
+};
 use super::context_bridge::build_context_bridge;
 use super::cursor_usage::fetch_cursor_usage_for_session;
 use super::helpers::{
@@ -395,17 +398,19 @@ pub async fn run_session(
             None
         };
     let additional_dirs: &[String] = session.additional_directories.as_deref().unwrap_or(&[]);
-    let mut cmd_parts = build_command(
-        &agent,
+    let launch_profile = resolve_cli_launch_profile(&agent)?;
+    let mut cmd_parts = build_command_with_launch_profile(CliCommandBuildRequest {
+        agent: &agent,
+        launch_profile: &launch_profile,
         model,
-        &effective_input,
-        cli_resume_id.as_deref(),
-        api_key_for_cli,
-        endpoint_for_cli,
+        task: &effective_input,
+        resume_id: cli_resume_id.as_deref(),
+        api_key: api_key_for_cli,
+        endpoint: endpoint_for_cli,
         mode,
         repo_path,
         additional_dirs,
-    );
+    });
 
     if matches!(agent, ModelType::Codex) && session.key_source == KeySource::HostedKey {
         let insert_pos = cmd_parts.len() - 1;
@@ -475,6 +480,8 @@ pub async fn run_session(
     } else {
         KEY_SERVICE.get_env_for_agent(&agent, account_id)
     };
+
+    env_vars.extend(launch_profile_env(&launch_profile));
 
     if matches!(agent, ModelType::CursorCli) {
         env_vars.insert("CURSOR_CLI_COMPAT".to_string(), "1".to_string());

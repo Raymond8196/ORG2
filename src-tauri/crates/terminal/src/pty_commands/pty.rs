@@ -45,7 +45,7 @@ use std::{
     collections::HashMap,
     io::{BufReader, Read, Write},
     sync::{
-        atomic::{AtomicUsize, AtomicU32, Ordering},
+        atomic::{AtomicU32, AtomicUsize, Ordering},
         Arc, Mutex,
     },
 };
@@ -124,9 +124,10 @@ pub struct PtySession {
     pub cwd: Option<String>,
     /// User-assigned display name (e.g., "Dev Server")
     pub name: Option<String>,
-    /// Optional broadcast channel for tapping decoded PTY output (used by OS agent).
+    /// Optional broadcast channel for tapping raw PTY output bytes (used by OS agent).
     /// When present, the reader task sends output here in addition to byte-stream Tauri events.
-    pub output_tap: Option<broadcast::Sender<String>>,
+    /// Callers decode UTF-8 lazily only when they need text.
+    pub output_tap: Option<broadcast::Sender<Arc<[u8]>>>,
     /// Bytes emitted to the frontend but not yet acknowledged.
     /// Used for backpressure: reader pauses when this exceeds HIGH_WATERMARK.
     pub unacked_bytes: Arc<AtomicUsize>,

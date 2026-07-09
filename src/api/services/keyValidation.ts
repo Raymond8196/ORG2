@@ -137,6 +137,11 @@ export async function fetchKeyQuota(
   });
 }
 
+/** Refresh quota for a stored key without exposing secrets to the frontend. */
+export async function refreshKeyQuota(keyId: string): Promise<KeyInfo | null> {
+  return rpc.validation.refreshKeyQuota({ keyId });
+}
+
 /**
  * Get available models for Cursor CLI via local CLI command.
  * Used when listing on market to get real model list instead of defaults.
@@ -160,6 +165,23 @@ export async function getCursorNativeModels(
 ): Promise<string[]> {
   const models = await rpc.validation.cursorListModelsNative({ sessionToken });
   return models.map((m) => m.modelId);
+}
+
+export interface OAuthModelCatalog {
+  models: string[];
+  defaultEnabledModels: string[];
+}
+
+export async function getOAuthModelCatalog(
+  agentType: string
+): Promise<OAuthModelCatalog> {
+  const catalog = await rpc.validation.oauthModelCatalog({
+    request: { agent_type: agentType },
+  });
+  return {
+    models: catalog.models,
+    defaultEnabledModels: catalog.default_enabled_models,
+  };
 }
 
 export async function getClaudeCodeOAuthModels(
