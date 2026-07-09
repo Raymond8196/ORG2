@@ -1999,7 +1999,7 @@
     "cacheSaved": "缓存节省：读取 {{read}}，写入 {{write}}",
     "remaining": "剩余可用：{{tokens}}",
     "cacheHero": "{{pct}}% 来自缓存 · 本轮复用约 {{tokens}}",
-    "cacheHeroSub": "Prompt 缓存让复用前缀的费用降到约 1/10。",
+    "cacheHeroSub": "Prompt 缓存最多可降低约 90% 的费用",
     "headroom": "还剩 {{tokens}} 空间",
     "autoCompactNote": "即将自动总结上下文",
     "compactBoundaryTitle": "上下文已压缩",
@@ -2015,7 +2015,8 @@
     "manualCompactNoRuntime": "请先发送一条消息后再压缩",
     "manualCompactFailed": "压缩失败：{{message}}",
     "manualCompactChannelAttached": "此会话由频道托管，请在频道内使用 /compact",
-    "manualCompactInstructionsPlaceholder": "可选：本次压缩的总结重点"
+    "manualCompactInstructionsPlaceholder": "可选：本次压缩的总结重点",
+    "manualCompactSectionTitle": "手动压缩？"
   },
   "relativeDate": {
     "today": "今天",

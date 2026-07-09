@@ -2084,7 +2084,7 @@
     "cacheSaved": "Cache saved: {{read}} read, {{write}} write",
     "remaining": "Free: {{tokens}} remaining",
     "cacheHero": "{{pct}}% served from cache · ~{{tokens}} reused this turn",
-    "cacheHeroSub": "Prompt caching cuts the cost of the reused prefix to roughly 1/10.",
+    "cacheHeroSub": "Prompt caching can lower cost by up to 90%",
     "headroom": "{{tokens}} of room left",
     "autoCompactNote": "Context will be summarized soon",
     "compactBoundaryTitle": "Context compacted",
@@ -2101,7 +2101,8 @@
     "manualCompactNoRuntime": "Send a message before compacting",
     "manualCompactFailed": "Compaction failed: {{message}}",
     "manualCompactChannelAttached": "This session is managed by a channel — use /compact there",
-    "manualCompactInstructionsPlaceholder": "Optional: what to focus on when summarizing"
+    "manualCompactInstructionsPlaceholder": "Optional: what to focus on when summarizing",
+    "manualCompactSectionTitle": "Manual compaction?"
   },
   "relativeDate": {
     "today": "Today",
