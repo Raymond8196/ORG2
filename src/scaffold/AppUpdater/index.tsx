@@ -11,7 +11,10 @@ import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 const log = createLogger("AppUpdater");
 
 const STARTUP_CHECK_DELAY_MS = 10_000;
-const UPDATE_CHECK_INTERVAL_MS = 15 * 60_000;
+// Background poll is intentionally long: focus/visibilitychange checks (throttled
+// by FOREGROUND_CHECK_MIN_INTERVAL_MS) cover active users, so the timer only
+// matters for a window left focused for hours without any focus events.
+const UPDATE_CHECK_INTERVAL_MS = 2 * 60 * 60_000;
 const FOREGROUND_CHECK_MIN_INTERVAL_MS = 5 * 60_000;
 const INSTALL_PROGRESS_MESSAGE_MIN_INTERVAL_MS = 2_000;
 const UPDATE_TOAST_DURATION_MS = 5_000;
