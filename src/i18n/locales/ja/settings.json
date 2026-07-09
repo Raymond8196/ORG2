@@ -212,6 +212,9 @@
     "presenceGuidanceInvisible": "オフライン表示 — Agent への指示",
     "presenceGuidanceAway": "離席中 — Agent への指示",
     "presenceGuidancePlaceholder": "このモードでの Agent の振る舞いを指示してください…",
+    "presenceGuidanceOnlineDefault": "私はキーボードの前にいます。不明点はいつでも確認し、破壊的な操作を実行する前に必ず確認してください",
+    "presenceGuidanceInvisibleDefault": "近くにいますがオフライン表示です。基本的には自律的に進め、高リスクな操作や大きなリファクタリングのときだけ通知してください。その他の質問は一つずつではなく、まとめてください",
+    "presenceGuidanceAwayDefault": "私は席を外しています。私の返答を待たず、手元の情報で最善の判断をして、完了できることを進め、戻ったとき用に結果と未解決の質問を簡潔に残してください",
     "followSystem": "システムに従う"
   },
   "background": {
