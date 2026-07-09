@@ -19,13 +19,16 @@ const FOREGROUND_CHECK_MIN_INTERVAL_MS = 5 * 60_000;
 const INSTALL_PROGRESS_MESSAGE_MIN_INTERVAL_MS = 2_000;
 const UPDATE_TOAST_DURATION_MS = 5_000;
 
+// Reused toast slots so status updates replace in place instead of stacking.
+const CHECK_TOAST_ID = "app-update-check";
+const INSTALL_TOAST_ID = "app-update-progress";
+
 interface CheckForAppUpdatesOptions {
   notify?: boolean;
   force?: boolean;
 }
 
 const availableAppUpdateAtom = atom<Update | null>(null);
-const isAppUpdateCheckingAtom = atom(false);
 const isAppUpdateInstallingAtom = atom(false);
 
 let lastCheckStartedAt = 0;
@@ -67,6 +70,7 @@ function notifyCheckSuccess(
 
   if (update) {
     Message.info({
+      id: CHECK_TOAST_ID,
       title: "Update available",
       content: `Version ${update.version} is ready to download.`,
       duration: UPDATE_TOAST_DURATION_MS,
@@ -74,11 +78,13 @@ function notifyCheckSuccess(
     return;
   }
 
-  Message.success(
-    currentVersion
+  Message.success({
+    id: CHECK_TOAST_ID,
+    content: currentVersion
       ? `ORGII is up to date (v${currentVersion}).`
-      : "ORGII is up to date."
-  );
+      : "ORGII is up to date.",
+    duration: UPDATE_TOAST_DURATION_MS,
+  });
 }
 
 function notifyCheckFailure(error: unknown, notify: boolean): void {
@@ -87,6 +93,7 @@ function notifyCheckFailure(error: unknown, notify: boolean): void {
 
   if (!notify) return;
   Message.error({
+    id: CHECK_TOAST_ID,
     title: "Update check failed",
     content: message,
     duration: UPDATE_TOAST_DURATION_MS,
@@ -94,8 +101,15 @@ function notifyCheckFailure(error: unknown, notify: boolean): void {
 }
 
 async function runUpdateCheck(notify: boolean): Promise<Update | null> {
-  store().set(isAppUpdateCheckingAtom, true);
   lastCheckStartedAt = Date.now();
+
+  if (notify) {
+    Message.info({
+      id: CHECK_TOAST_ID,
+      content: "Checking for updates…",
+      duration: 0,
+    });
+  }
 
   try {
     const [currentVersion, update] = await Promise.all([
@@ -118,7 +132,6 @@ async function runUpdateCheck(notify: boolean): Promise<Update | null> {
     notifyCheckFailure(error, notify);
     return getCachedUpdate();
   } finally {
-    store().set(isAppUpdateCheckingAtom, false);
     pendingCheck = null;
   }
 }
@@ -146,34 +159,54 @@ export async function checkForUpdatesManually(): Promise<Update | null> {
   return checkForAppUpdates({ notify: true, force: true });
 }
 
-function formatDownloadProgress(event: DownloadEvent): string {
-  switch (event.event) {
-    case "Started":
-      return event.data.contentLength
-        ? `Downloading update (${Math.round(event.data.contentLength / 1024 / 1024)} MB)...`
-        : "Downloading update...";
-    case "Finished":
-      return "Installing update...";
-    case "Progress":
-      return "Downloading update...";
-  }
+function formatBytes(bytes: number): string {
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 1) return `${mb.toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
+// Tracks cumulative download progress so the toast reflects real percentage
+// (or downloaded size when the server omits Content-Length) instead of a
+// static string. `Started`/`Finished` always report; `Progress` is throttled.
 function createProgressReporter(): (event: DownloadEvent) => void {
   let lastReportedAt = 0;
+  let downloaded = 0;
+  let total: number | null = null;
+
+  const describe = (event: DownloadEvent): string => {
+    switch (event.event) {
+      case "Started":
+        return total
+          ? `Downloading update (${formatBytes(total)})…`
+          : "Downloading update…";
+      case "Progress": {
+        if (!total) return `Downloading update… ${formatBytes(downloaded)}`;
+        const percent = Math.min(100, Math.round((downloaded / total) * 100));
+        return `Downloading update… ${percent}%`;
+      }
+      case "Finished":
+        return "Installing update…";
+    }
+  };
 
   return (event) => {
+    if (event.event === "Started") {
+      downloaded = 0;
+      total = event.data.contentLength ?? null;
+    } else if (event.event === "Progress") {
+      downloaded += event.data.chunkLength;
+    }
+
     const now = Date.now();
     const shouldReport =
-      event.event === "Finished" ||
+      event.event !== "Progress" ||
       now - lastReportedAt >= INSTALL_PROGRESS_MESSAGE_MIN_INTERVAL_MS;
-
     if (!shouldReport) return;
 
     lastReportedAt = now;
     Message.info({
-      id: "app-update-progress",
-      content: formatDownloadProgress(event),
+      id: INSTALL_TOAST_ID,
+      content: describe(event),
       duration: event.event === "Finished" ? 1500 : 2200,
     });
   };
@@ -192,14 +225,16 @@ export async function installAvailableAppUpdate(): Promise<void> {
 
   try {
     Message.info({
+      id: INSTALL_TOAST_ID,
       title: "Installing update",
-      content: `Downloading and installing v${update.version}...`,
-      duration: 3000,
+      content: `Preparing to download v${update.version}…`,
+      duration: 0,
     });
 
     await update.downloadAndInstall(createProgressReporter());
 
     Message.success({
+      id: INSTALL_TOAST_ID,
       title: "Update installed",
       content: "Restarting ORGII to finish the update.",
       duration: 2500,
@@ -209,6 +244,7 @@ export async function installAvailableAppUpdate(): Promise<void> {
     await relaunch();
   } catch (error) {
     Message.error({
+      id: INSTALL_TOAST_ID,
       title: "Update install failed",
       content: getErrorMessage(error),
       duration: 6000,
