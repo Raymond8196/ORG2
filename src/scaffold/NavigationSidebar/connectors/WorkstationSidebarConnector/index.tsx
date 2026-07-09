@@ -277,6 +277,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const [groupVisibleCounts, setGroupVisibleCounts] = useState<
     Map<string, number>
   >(new Map());
+  const [expandedSubagentParentIds, setExpandedSubagentParentIds] = useState<
+    Set<string>
+  >(() => new Set());
   const [projectsGroupVisibleCounts, setProjectsGroupVisibleCounts] = useState<
     Map<string, number>
   >(new Map());
@@ -340,18 +343,24 @@ export const WorkstationSidebarConnector: React.FC = () => {
     [orgSelectorOptions, selectedOrgId]
   );
 
-  const { menuItems, sessionMap, isLoadMoreId, getLoadMoreGroupId } =
-    useSessionMenuItems({
-      sortedSessions,
-      visitedSessions,
-      repoPathToName,
-      groupByMode,
-      untitledSession,
-      searchQuery: sidebarSearchQueries.workstation,
-      selectedOrgId: activeOrgId,
-      includeExternal,
-      groupVisibleCounts,
-    });
+  const {
+    menuItems,
+    sessionMap,
+    subagentParentIds,
+    isLoadMoreId,
+    getLoadMoreGroupId,
+  } = useSessionMenuItems({
+    sortedSessions,
+    visitedSessions,
+    repoPathToName,
+    groupByMode,
+    untitledSession,
+    searchQuery: sidebarSearchQueries.workstation,
+    selectedOrgId: activeOrgId,
+    includeExternal,
+    groupVisibleCounts,
+    expandedSubagentParentIds,
+  });
   const {
     menuItems: projectsWorkItemMenuItems,
     projectMap: projectsProjectMap,
@@ -620,6 +629,18 @@ export const WorkstationSidebarConnector: React.FC = () => {
     [activateChatPanelTab, openSessionInNewChatTab]
   );
 
+  const handleToggleSubagentExpansion = useCallback((sessionId: string) => {
+    setExpandedSubagentParentIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      if (nextIds.has(sessionId)) {
+        nextIds.delete(sessionId);
+      } else {
+        nextIds.add(sessionId);
+      }
+      return nextIds;
+    });
+  }, []);
+
   const handleMenuItemContextMenu = useWorkstationSidebarContextMenu({
     sessionMap,
     rename,
@@ -636,9 +657,12 @@ export const WorkstationSidebarConnector: React.FC = () => {
     deleteSessionCreatorDraft,
     handleMenuItemContextMenu,
     handleTogglePin,
+    handleToggleSubagentExpansion,
+    expandedSubagentParentIds,
     pinLabel: pinFolderLabel,
     sessionMap,
     setActiveSessionMoreMenuId,
+    subagentParentIds,
     tCommon,
     unpinLabel: unpinFolderLabel,
   });

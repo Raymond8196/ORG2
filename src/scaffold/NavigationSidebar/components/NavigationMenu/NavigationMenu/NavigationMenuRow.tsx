@@ -110,7 +110,11 @@ export const NavigationMenuParentRow = React.forwardRef<
         }
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          {renderIcon(item.icon, item.iconName, iconColor, item.iconElement)}
+          {renderLeadingIcon({
+            item,
+            iconColor,
+            renderIcon,
+          })}
           {!collapsed && (
             <div className="flex min-w-0 flex-1 flex-col gap-0">
               <span
@@ -284,7 +288,11 @@ export const NavigationMenuLeafRow = React.forwardRef<
         }
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          {renderIcon(item.icon, item.iconName, iconColor, item.iconElement)}
+          {renderLeadingIcon({
+            item,
+            iconColor,
+            renderIcon,
+          })}
           {!collapsed && (
             <div className="flex min-w-0 flex-1 flex-col gap-0">
               <span
@@ -322,6 +330,52 @@ export const NavigationMenuLeafRow = React.forwardRef<
     </div>
   );
 });
+
+interface RenderLeadingIconArgs {
+  item: NavigationMenuItem;
+  iconColor: string;
+  renderIcon: NavigationMenuIconRenderer;
+}
+
+function renderLeadingIcon({
+  item,
+  iconColor,
+  renderIcon,
+}: RenderLeadingIconArgs): React.ReactNode {
+  const icon = renderIcon(
+    item.icon,
+    item.iconName,
+    iconColor,
+    item.iconElement
+  );
+  const action = item.iconAction;
+  if (!action) return icon;
+
+  const ActionIcon = action.icon ?? ChevronDown;
+
+  return (
+    <span className="relative inline-flex h-[14px] w-[14px] flex-shrink-0 items-center justify-center leading-none">
+      <span className="inline-flex items-center justify-center leading-none transition-opacity duration-150 group-focus-within:pointer-events-none group-focus-within:opacity-0 group-hover:pointer-events-none group-hover:opacity-0">
+        {icon}
+      </span>
+      <button
+        type="button"
+        aria-label={action.label}
+        title={action.label}
+        className={`pointer-events-none absolute left-1/2 top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded opacity-0 transition-[background-color,color,opacity] duration-150 hover:bg-fill-2 hover:text-text-1 focus:pointer-events-auto focus:opacity-100 focus:outline-none group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 ${
+          action.active ? "text-primary-6" : "text-text-3"
+        }`}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          action.onClick(event);
+        }}
+      >
+        <ActionIcon size={14} strokeWidth={2} />
+      </button>
+    </span>
+  );
+}
 
 interface RenderLeafRowAccessoryArgs {
   item: NavigationMenuItem;

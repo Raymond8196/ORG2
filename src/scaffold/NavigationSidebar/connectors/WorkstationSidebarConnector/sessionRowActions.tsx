@@ -1,4 +1,11 @@
-import { MoreHorizontal, Pin, PinOff, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  MoreHorizontal,
+  Pin,
+  PinOff,
+  X,
+} from "lucide-react";
 import React, { useCallback } from "react";
 
 import type {
@@ -13,6 +20,8 @@ import { getDraftIdFromMenuItemId } from "../sidebarConnectorUtils";
 
 type TCommon = (key: string, defaultValue?: string) => string;
 
+const SUBAGENT_SESSION_ID_SEGMENT = ":subagent:";
+
 interface UseSessionRowActionsParams {
   activeSessionMoreMenuId: string;
   deleteSessionCreatorDraft: (draftId: string) => void;
@@ -22,9 +31,12 @@ interface UseSessionRowActionsParams {
     item: NavigationMenuItem
   ) => Promise<void>;
   handleTogglePin: (sessionId: string) => Promise<void> | void;
+  handleToggleSubagentExpansion: (sessionId: string) => void;
+  expandedSubagentParentIds: ReadonlySet<string>;
   pinLabel: string;
   sessionMap: ReadonlyMap<string, Session>;
   setActiveSessionMoreMenuId: React.Dispatch<React.SetStateAction<string>>;
+  subagentParentIds: ReadonlySet<string>;
   tCommon: TCommon;
   unpinLabel: string;
 }
@@ -34,9 +46,12 @@ export function useDecorateSessionRowActions({
   deleteSessionCreatorDraft,
   handleMenuItemContextMenu,
   handleTogglePin,
+  handleToggleSubagentExpansion,
+  expandedSubagentParentIds,
   pinLabel,
   sessionMap,
   setActiveSessionMoreMenuId,
+  subagentParentIds,
   tCommon,
   unpinLabel,
 }: UseSessionRowActionsParams): (
@@ -63,7 +78,23 @@ export function useDecorateSessionRowActions({
         const session = sessionMap.get(item.id);
         if (!session) return item;
         const rowActions: NavigationMenuRowAction[] = [];
-        if (!isChatPanelTuiSessionId(item.id)) {
+        const isChildSession =
+          Boolean(session.parentSessionId) ||
+          item.id.includes(SUBAGENT_SESSION_ID_SEGMENT);
+        const hasSubagentChildren = subagentParentIds.has(item.id);
+        let iconAction: NavigationMenuItem["iconAction"];
+        if (hasSubagentChildren) {
+          const expanded = expandedSubagentParentIds.has(item.id);
+          iconAction = {
+            icon: expanded ? ChevronUp : ChevronDown,
+            label: expanded
+              ? tCommon("sessions:sidebar.hideSubagents", "Hide subagents")
+              : tCommon("sessions:sidebar.showSubagents", "Show subagents"),
+            active: expanded,
+            onClick: () => handleToggleSubagentExpansion(item.id),
+          };
+        }
+        if (!isChildSession && !isChatPanelTuiSessionId(item.id)) {
           rowActions.push({
             icon: session.pinned ? PinOff : Pin,
             label: session.pinned ? unpinLabel : pinLabel,
@@ -91,6 +122,7 @@ export function useDecorateSessionRowActions({
         }
         return {
           ...item,
+          iconAction,
           showMoreActions: true,
           rowActions,
         };
@@ -100,9 +132,12 @@ export function useDecorateSessionRowActions({
       deleteSessionCreatorDraft,
       handleMenuItemContextMenu,
       handleTogglePin,
+      handleToggleSubagentExpansion,
+      expandedSubagentParentIds,
       pinLabel,
       sessionMap,
       setActiveSessionMoreMenuId,
+      subagentParentIds,
       tCommon,
       unpinLabel,
     ]

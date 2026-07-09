@@ -13,6 +13,8 @@ export interface NavigationMenuRowAction {
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
+export type NavigationMenuIconAction = NavigationMenuRowAction;
+
 /**
  * Navigation menu item configuration
  * Defines structure for menu items used in sidebar navigation
@@ -33,6 +35,8 @@ export interface NavigationMenuItem {
   iconName?: string;
   /** Arbitrary rendered icon — takes precedence over `icon` when set. */
   iconElement?: ReactNode;
+  /** Optional hover/focus action that replaces the leading icon in-place. */
+  iconAction?: NavigationMenuIconAction;
   /** Optional element rendered at the far right edge of the row. */
   trailingElement?: ReactNode;
   /**
