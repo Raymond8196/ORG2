@@ -1,8 +1,6 @@
 //! Attribute listening ports to workspace folder probes.
 
-use super::types::{
-    WorkspacePortAttributionConfidence, WorkspacePortOwner, WorkspacePortProbe,
-};
+use super::types::{WorkspacePortAttributionConfidence, WorkspacePortOwner, WorkspacePortProbe};
 
 #[derive(Debug, Clone)]
 pub(crate) struct NormalizedWorkspacePortProbe {
@@ -32,7 +30,10 @@ pub(crate) fn attribute_port_to_workspaces(
         if let Some(matched) = pick_deepest_matching(folders, |candidate| {
             is_same_or_descendant(cwd_path, &candidate.normalized_path)
         }) {
-            return Some(to_owner(&matched.probe, WorkspacePortAttributionConfidence::Cwd));
+            return Some(to_owner(
+                &matched.probe,
+                WorkspacePortAttributionConfidence::Cwd,
+            ));
         }
     }
 
@@ -98,9 +99,7 @@ fn includes_path_boundary(command_line: &str, normalized_path: &str) -> bool {
         } else {
             command_line.chars().nth(index - 1)
         };
-        let after = command_line
-            .chars()
-            .nth(index + normalized_path.len());
+        let after = command_line.chars().nth(index + normalized_path.len());
         let starts_on_boundary = before
             .map(|ch| ch.is_whitespace() || matches!(ch, '"' | '\'' | '='))
             .unwrap_or(true);
@@ -122,9 +121,7 @@ pub(crate) fn normalize_comparable_path(input: &str) -> String {
         return normalize_comparable_text(trimmed);
     }
     let path = std::path::Path::new(trimmed);
-    let resolved = path
-        .canonicalize()
-        .unwrap_or_else(|_| path.to_path_buf());
+    let resolved = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
     normalize_comparable_text(&resolved.to_string_lossy())
 }
 

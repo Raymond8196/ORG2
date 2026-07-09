@@ -10,7 +10,7 @@ pub use commands::{
     workspace_ports_ingest_advertised_url, workspace_ports_kill, workspace_ports_scan,
 };
 pub use types::{
-    WorkspacePort, WorkspacePortIngestAdvertisedUrlRequest,
-    WorkspacePortIngestAdvertisedUrlResult, WorkspacePortKillRequest, WorkspacePortKillResult,
-    WorkspacePortProbe, WorkspacePortScanRequest, WorkspacePortScanResult,
+    WorkspacePort, WorkspacePortIngestAdvertisedUrlRequest, WorkspacePortIngestAdvertisedUrlResult,
+    WorkspacePortKillRequest, WorkspacePortKillResult, WorkspacePortProbe,
+    WorkspacePortScanRequest, WorkspacePortScanResult,
 };

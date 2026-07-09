@@ -5,6 +5,8 @@
 import { useAtomValue } from "jotai";
 import { useEffect, useRef } from "react";
 
+import type { WorkspacePortProbe } from "@src/api/tauri/workspacePorts";
+import type { TerminalSession } from "@src/engines/TerminalCore/types";
 import { createLogger } from "@src/hooks/logger";
 import { activeFolderIdAtom } from "@src/store/ui/workspaceFoldersAtom";
 import { terminalSessionsAtom } from "@src/store/workstation/codeEditor/terminal";
@@ -49,13 +51,58 @@ function extractOrigins(text: string): string[] {
   return origins;
 }
 
+function normalizeComparablePath(path: string): string {
+  const normalized = path.trim().replace(/\\/g, "/").replace(/\/+/g, "/");
+  return navigator.platform.toLowerCase().startsWith("win")
+    ? normalized.toLowerCase()
+    : normalized;
+}
+
+function isSameOrDescendant(candidate: string, parent: string): boolean {
+  return candidate === parent || candidate.startsWith(`${parent}/`);
+}
+
+function folderIdForPath(
+  path: string | undefined,
+  folders: WorkspacePortProbe[],
+): string | null {
+  if (!path) {
+    return null;
+  }
+  const normalizedPath = normalizeComparablePath(path);
+  let best: WorkspacePortProbe | null = null;
+  for (const folder of folders) {
+    const normalizedFolder = normalizeComparablePath(folder.path);
+    if (!isSameOrDescendant(normalizedPath, normalizedFolder)) {
+      continue;
+    }
+    if (
+      !best ||
+      normalizedFolder.length > normalizeComparablePath(best.path).length
+    ) {
+      best = folder;
+    }
+  }
+  return best?.id ?? null;
+}
+
+function folderIdForTerminalSession(
+  session: TerminalSession,
+  folders: WorkspacePortProbe[],
+  fallbackFolderId: string | null,
+): string | null {
+  return (
+    folderIdForPath(session.liveCwd ?? session.cwd, folders) ?? fallbackFolderId
+  );
+}
+
 export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
   const sessions = useAtomValue(terminalSessionsAtom);
   const folders = useAtomValue(workspacePortProbesAtom);
   const activeFolderId = useAtomValue(activeFolderIdAtom);
   const foldersRef = useRef(folders);
   const folderIdRef = useRef(activeFolderId);
-  const pendingOriginsRef = useRef<Set<string>>(new Set());
+  const pendingOriginsRef = useRef<Map<string, Set<string>>>(new Map());
   const debounceTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -68,54 +115,65 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
       return;
     }
 
-    const folderId = folderIdRef.current ?? foldersRef.current[0]?.id ?? null;
-    if (!folderId) {
+    if (foldersRef.current.length === 0) {
       return;
     }
 
     let cancelled = false;
     const unlisteners: Array<() => void> = [];
     const buffers = new Map<string, string>();
-    const pendingOrigins = pendingOriginsRef.current;
+    const pendingOriginsByFolder = pendingOriginsRef.current;
     const decoder = new TextDecoder("utf-8", { fatal: false });
 
     const flushPending = () => {
       debounceTimerRef.current = null;
-      const origins = Array.from(pendingOrigins);
-      pendingOrigins.clear();
-      const currentFolderId =
-        folderIdRef.current ?? foldersRef.current[0]?.id ?? null;
-      if (!currentFolderId || origins.length === 0) {
+      const entries = Array.from(pendingOriginsByFolder.entries()).map(
+        ([folderId, origins]) => [folderId, Array.from(origins)] as const,
+      );
+      pendingOriginsByFolder.clear();
+      if (entries.length === 0) {
         return;
       }
-      for (const origin of origins) {
-        void ingestAdvertisedUrlAndMaybeRefresh({
-          folderId: currentFolderId,
-          origin,
-          folders: foldersRef.current,
-        }).catch((error: unknown) => {
-          logger.warn("advertised URL ingest failed:", error);
-        });
+      for (const [folderId, origins] of entries) {
+        for (const origin of origins) {
+          void ingestAdvertisedUrlAndMaybeRefresh({
+            folderId,
+            origin,
+            folders: foldersRef.current,
+          }).catch((error: unknown) => {
+            logger.warn("advertised URL ingest failed:", error);
+          });
+        }
       }
     };
 
-    const queueOrigins = (origins: string[]) => {
+    const queueOrigins = (folderId: string | null, origins: string[]) => {
+      if (!folderId) {
+        return;
+      }
       if (origins.length === 0) {
         return;
       }
+      const pendingForFolder =
+        pendingOriginsByFolder.get(folderId) ?? new Set<string>();
       for (const origin of origins) {
-        pendingOrigins.add(origin);
+        pendingForFolder.add(origin);
       }
+      pendingOriginsByFolder.set(folderId, pendingForFolder);
       if (debounceTimerRef.current != null) {
         window.clearTimeout(debounceTimerRef.current);
       }
       debounceTimerRef.current = window.setTimeout(
         flushPending,
-        WORKSPACE_PORT_ADVERTISED_URL_DEBOUNCE_MS
+        WORKSPACE_PORT_ADVERTISED_URL_DEBOUNCE_MS,
       );
     };
 
-    const ingestChunk = (sessionId: string, chunk: string) => {
+    const ingestChunk = (
+      sessionId: string,
+      folderId: string | null,
+      chunk: string,
+    ) => {
       const previous = buffers.get(sessionId) ?? "";
       let next = previous + chunk;
       if (next.length > PER_SESSION_BUFFER_LIMIT) {
@@ -123,7 +181,7 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
       }
       const lastBreak = Math.max(
         next.lastIndexOf("\n"),
-        next.lastIndexOf("\r")
+        next.lastIndexOf("\r"),
       );
       if (lastBreak === -1) {
         buffers.set(sessionId, next);
@@ -131,7 +189,7 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
       }
       const finalized = next.slice(0, lastBreak + 1);
       buffers.set(sessionId, next.slice(lastBreak + 1));
-      queueOrigins(extractOrigins(finalized));
+      queueOrigins(folderId, extractOrigins(finalized));
     };
 
     void (async () => {
@@ -144,21 +202,32 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
           const unlisten = await listenTauri<PtyOutputPayload>(
             `pty-output-${backendSessionId}`,
             (event) => {
+              const fallbackFolderId =
+                folderIdRef.current ?? foldersRef.current[0]?.id ?? null;
+              const folderId = folderIdForTerminalSession(
+                session,
+                foldersRef.current,
+                fallbackFolderId,
+              );
               const { bytes, data } = event.payload;
               if (bytes && bytes.length > 0) {
                 const decoded = decoder.decode(new Uint8Array(bytes), {
                   stream: true,
                 });
                 if (decoded) {
-                  ingestChunk(backendSessionId, decoded);
+                  ingestChunk(backendSessionId, folderId, decoded);
                 }
                 return;
               }
               if (data) {
-                ingestChunk(backendSessionId, data);
+                ingestChunk(backendSessionId, folderId, data);
               }
-            }
+            },
           );
+          if (cancelled) {
+            safeUnlisten(unlisten);
+            return;
+          }
           unlisteners.push(() => safeUnlisten(unlisten));
         } catch (error) {
           logger.warn("failed to listen for pty output:", error);
@@ -172,7 +241,7 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
         window.clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = null;
       }
-      pendingOrigins.clear();
+      pendingOriginsByFolder.clear();
       for (const unlisten of unlisteners) {
         unlisten();
       }

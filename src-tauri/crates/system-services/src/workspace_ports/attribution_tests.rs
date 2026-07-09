@@ -1,7 +1,5 @@
 use super::*;
-use crate::workspace_ports::types::{
-    WorkspacePortAttributionConfidence, WorkspacePortProbe,
-};
+use crate::workspace_ports::types::{WorkspacePortAttributionConfidence, WorkspacePortProbe};
 
 #[test]
 fn attributes_by_cwd_descendant() {
@@ -11,12 +9,8 @@ fn attributes_by_cwd_descendant() {
         display_name: "app".to_string(),
         path: "/Users/dev/app".to_string(),
     }]);
-    let owner = attribute_port_to_workspaces(
-        Some("/Users/dev/app/packages/web"),
-        None,
-        &folders,
-    )
-    .expect("cwd match");
+    let owner = attribute_port_to_workspaces(Some("/Users/dev/app/packages/web"), None, &folders)
+        .expect("cwd match");
     assert_eq!(owner.folder_id, "folder-1");
     assert_eq!(owner.confidence, WorkspacePortAttributionConfidence::Cwd);
 }
@@ -35,7 +29,10 @@ fn attributes_by_command_line_path_boundary() {
         &folders,
     )
     .expect("command match");
-    assert_eq!(owner.confidence, WorkspacePortAttributionConfidence::Command);
+    assert_eq!(
+        owner.confidence,
+        WorkspacePortAttributionConfidence::Command
+    );
 }
 
 #[test]
@@ -54,12 +51,9 @@ fn prefers_deepest_matching_folder() {
             path: "/Users/dev/monorepo/apps/web".to_string(),
         },
     ]);
-    let owner = attribute_port_to_workspaces(
-        Some("/Users/dev/monorepo/apps/web/src"),
-        None,
-        &folders,
-    )
-    .expect("deepest match");
+    let owner =
+        attribute_port_to_workspaces(Some("/Users/dev/monorepo/apps/web/src"), None, &folders)
+            .expect("deepest match");
     assert_eq!(owner.folder_id, "nested");
 }
 
@@ -71,10 +65,7 @@ fn rejects_partial_path_prefix_without_boundary() {
         display_name: "app".to_string(),
         path: "/Users/dev/app".to_string(),
     }]);
-    let owner = attribute_port_to_workspaces(
-        None,
-        Some("node /Users/dev/apple/server.js"),
-        &folders,
-    );
+    let owner =
+        attribute_port_to_workspaces(None, Some("node /Users/dev/apple/server.js"), &folders);
     assert!(owner.is_none());
 }

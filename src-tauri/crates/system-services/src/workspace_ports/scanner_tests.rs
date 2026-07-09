@@ -59,3 +59,13 @@ fn detects_container_process_names() {
     };
     assert!(is_container_process(&port));
 }
+
+#[cfg(unix)]
+#[test]
+fn run_command_times_out_when_child_produces_no_output() {
+    let started = std::time::Instant::now();
+    let error = run_command("sh", &["-c", "sleep 30"]).expect_err("should time out");
+
+    assert!(error.is_timeout());
+    assert!(started.elapsed() < std::time::Duration::from_secs(10));
+}
