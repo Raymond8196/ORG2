@@ -693,7 +693,8 @@
       "empty": "未找到操作。",
       "unpinAll": "全部取消固定",
       "insert": "插入"
-    }
+    },
+    "compactArgHint": "<可选:本次总结的重点>"
   },
   "listPanel": {
     "showingOf": "显示 {{filtered}} / {{total}}",

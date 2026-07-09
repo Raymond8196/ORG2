@@ -40,13 +40,24 @@ export interface CompactSlashCommand {
 export function parseCompactSlashCommand(
   text: string
 ): CompactSlashCommand | null {
-  // Accept both the plain typed form and the composer pill serialization
-  // (`getTextWithPills` renders the compact pill as
-  // "compact [skill:/compact]" — see serializePillNode).
-  const match =
-    /^(?:\/compact|compact\s*\[skill:\/compact\])(?:\s+([\s\S]+))?$/i.exec(
-      text.trim()
-    );
+  const trimmed = text.trim();
+
+  // Pill form ("compact [skill:/compact]", see serializePillNode) counts
+  // anywhere in the draft — the pill only exists because the user picked
+  // the command, so surrounding text on either side is the summarization
+  // focus. The plain typed form stays start-anchored below (mid-sentence
+  // "/compact" is ordinary prose, mirroring Claude Code).
+  const pillMatch = /compact\s*\[skill:\/compact\]/i.exec(trimmed);
+  if (pillMatch) {
+    const instructions = (
+      trimmed.slice(0, pillMatch.index) +
+      " " +
+      trimmed.slice(pillMatch.index + pillMatch[0].length)
+    ).trim();
+    return instructions ? { instructions } : {};
+  }
+
+  const match = /^\/compact(?:\s+([\s\S]+))?$/i.exec(trimmed);
   if (!match) return null;
   const instructions = match[1]?.trim();
   return instructions ? { instructions } : {};
