@@ -82,6 +82,7 @@ const ControlButtons: React.FC<ControlButtonsProps> = memo(
         {!hideModePill && usesOrgiiExecMode && (
           <ModePill
             forceVisible
+            hideWhenDefault
             resetToDefaultOnClick
             onModeChange={handleSdeModeChange}
             placement={dropdownDirection === "up" ? "top" : "bottom"}
