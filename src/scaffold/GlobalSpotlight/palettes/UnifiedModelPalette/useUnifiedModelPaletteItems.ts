@@ -114,13 +114,7 @@ export function useUnifiedModelPaletteItems({
 
   const activeModelId = getActiveModelId(advancedConfig);
 
-  const recentEntriesExcludingCurrent = useMemo(
-    () =>
-      compatibleRecentEntries.filter(
-        (entry) => !entryMatchesActiveConfig(entry, advancedConfig)
-      ),
-    [compatibleRecentEntries, advancedConfig]
-  );
+  const MAX_RECENT_ITEMS = 3;
 
   const currentModelEntry = useMemo((): RecentModelEntry | null => {
     if (!activeModelId) return null;
@@ -176,50 +170,46 @@ export function useUnifiedModelPaletteItems({
     groupByModel,
   ]);
 
+  const recentEntriesForDisplay = useMemo((): RecentModelEntry[] => {
+    const entries: RecentModelEntry[] = [];
+    if (currentModelEntry) {
+      entries.push(currentModelEntry);
+    }
+    for (const entry of compatibleRecentEntries) {
+      if (entryMatchesActiveConfig(entry, advancedConfig)) continue;
+      entries.push(entry);
+      if (entries.length >= MAX_RECENT_ITEMS) break;
+    }
+    return entries;
+  }, [advancedConfig, compatibleRecentEntries, currentModelEntry]);
+
   const recentItems = useMemo((): SpotlightItem[] => {
-    return recentEntriesExcludingCurrent.slice(0, 3).map((entry) =>
-      buildModelSelectionSpotlightItem({
+    return recentEntriesForDisplay.map((entry, index) => {
+      const isCurrentSelection = entryMatchesActiveConfig(
+        entry,
+        advancedConfig
+      );
+      return buildModelSelectionSpotlightItem({
         entry,
         section: MODEL_SECTION.RECENT,
-        idPrefix: "recent",
-        isCurrentSelection: false,
+        idPrefix: isCurrentSelection ? "recent-current" : `recent-${index}`,
+        isCurrentSelection,
         accounts,
         groupByModel,
         onSelect: handleRecentSelect,
         persistDefaultVariantForAccount,
+        onReselectVariant: isCurrentSelection ? reselectVariant : undefined,
         modelAliasVersion,
-      })
-    );
-  }, [
-    accounts,
-    groupByModel,
-    handleRecentSelect,
-    modelAliasVersion,
-    persistDefaultVariantForAccount,
-    recentEntriesExcludingCurrent,
-  ]);
-
-  const currentModelItem = useMemo((): SpotlightItem | null => {
-    if (!currentModelEntry) return null;
-    return buildModelSelectionSpotlightItem({
-      entry: currentModelEntry,
-      section: MODEL_SECTION.CURRENT,
-      idPrefix: "current",
-      isCurrentSelection: true,
-      accounts,
-      groupByModel,
-      onSelect: handleRecentSelect,
-      persistDefaultVariantForAccount,
-      onReselectVariant: reselectVariant,
-      modelAliasVersion,
+      });
     });
   }, [
     accounts,
-    currentModelEntry,
+    advancedConfig,
     groupByModel,
     handleRecentSelect,
     modelAliasVersion,
     persistDefaultVariantForAccount,
+    recentEntriesForDisplay,
     reselectVariant,
   ]);
 
@@ -311,15 +301,6 @@ export function useUnifiedModelPaletteItems({
     ]
   );
 
-  const currentHeader = useMemo(
-    () =>
-      buildSectionHeader(
-        MODEL_SECTION.CURRENT,
-        tCommon("selectors.modelSelector.currentModel")
-      ),
-    [tCommon]
-  );
-
   const recentHeader = useMemo(
     () =>
       buildSectionHeader(
@@ -340,10 +321,6 @@ export function useUnifiedModelPaletteItems({
 
   const rawItems = useMemo((): SpotlightItem[] => {
     const items: SpotlightItem[] = [];
-    if (currentModelItem) {
-      items.push(currentHeader);
-      items.push(currentModelItem);
-    }
     if (recentItems.length > 0) {
       items.push(recentHeader);
       items.push(...recentItems);
@@ -351,21 +328,10 @@ export function useUnifiedModelPaletteItems({
     items.push(allHeader);
     items.push(...allModelItems);
     return items;
-  }, [
-    currentModelItem,
-    currentHeader,
-    recentItems,
-    allModelItems,
-    recentHeader,
-    allHeader,
-  ]);
+  }, [recentItems, allModelItems, recentHeader, allHeader]);
 
   const sideMenuRawItems = useMemo((): SpotlightItem[] => {
     const items: SpotlightItem[] = [];
-    if (currentModelItem) {
-      items.push(currentHeader);
-      items.push(currentModelItem);
-    }
     if (recentItems.length > 0) {
       items.push(recentHeader);
       items.push(...recentItems);
@@ -373,21 +339,12 @@ export function useUnifiedModelPaletteItems({
     items.push(allHeader);
     items.push(...sideMenuModelItems);
     return items;
-  }, [
-    currentModelItem,
-    currentHeader,
-    recentItems,
-    sideMenuModelItems,
-    recentHeader,
-    allHeader,
-  ]);
+  }, [recentItems, sideMenuModelItems, recentHeader, allHeader]);
 
   return {
     rawItems,
     sideMenuRawItems,
     sideMenuModelItems,
-    currentModelItem,
-    currentHeader,
     recentItems,
     allModelItems,
     recentHeader,

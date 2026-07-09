@@ -1321,7 +1321,6 @@
     },
     "modelSelector": {
       "recentModels": "Recent Models",
-      "currentModel": "Current Model",
       "allModels": "All Models",
       "noRecent": "No recent models",
       "noResults": "No matching models",

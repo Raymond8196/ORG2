@@ -1231,7 +1231,6 @@
     },
     "modelSelector": {
       "recentModels": "最近模型",
-      "currentModel": "目前模型",
       "allModels": "所有模型",
       "noRecent": "暫無最近模型",
       "noResults": "沒有相符的模型",

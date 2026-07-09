@@ -1219,7 +1219,6 @@
     },
     "modelSelector": {
       "recentModels": "최근 모델",
-      "currentModel": "현재 모델",
       "allModels": "모든 모델",
       "noRecent": "최근 모델 없음",
       "noResults": "일치하는 모델 없음",

@@ -1219,7 +1219,6 @@
     },
     "modelSelector": {
       "recentModels": "Mô hình gần đây",
-      "currentModel": "Model hiện tại",
       "allModels": "Tất cả mô hình",
       "noRecent": "Không có mô hình gần đây",
       "noResults": "Không có mô hình phù hợp",

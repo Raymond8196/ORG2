@@ -1219,7 +1219,6 @@
     },
     "modelSelector": {
       "recentModels": "最近のモデル",
-      "currentModel": "現在のモデル",
       "allModels": "すべてのモデル",
       "noRecent": "最近のモデルはありません",
       "noResults": "一致するモデルがありません",

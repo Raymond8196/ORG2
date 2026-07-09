@@ -5,7 +5,6 @@ import { groupModels } from "@src/util/modelGrouping";
 import type { SpotlightItem } from "../../types";
 
 export const MODEL_SECTION = {
-  CURRENT: "current",
   RECENT: "recent",
   ALL: "all",
 } as const;
