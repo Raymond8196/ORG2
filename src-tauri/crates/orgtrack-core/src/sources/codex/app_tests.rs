@@ -565,15 +565,25 @@ fn maps_codex_subagent_parent_thread_to_parent_session_id() {
         "orgii-codex-history-subagent-parent-test-{}",
         std::process::id()
     ));
-    let sessions_dir = temp_dir.join("sessions").join("2026").join("07").join("08");
-    std::fs::create_dir_all(&sessions_dir).expect("create sessions dir");
+    let parent_sessions_dir = temp_dir
+        .join("sessions")
+        .join("2026")
+        .join("07")
+        .join("08");
+    let child_sessions_dir = temp_dir
+        .join("sessions")
+        .join("2026")
+        .join("07")
+        .join("09");
+    std::fs::create_dir_all(&parent_sessions_dir).expect("create parent sessions dir");
+    std::fs::create_dir_all(&child_sessions_dir).expect("create child sessions dir");
 
     let parent_thread_id = "019f423a-51c2-7013-8310-2df985d06f7a";
-    let child_thread_id = "019f4249-5f02-7ec3-998c-981f6676ccb3";
+    let child_thread_id = "019f427d-8e5a-7533-baf4-2bce6a8bcdda";
     let parent_file_stem = format!("rollout-2026-07-08T22-55-46-{parent_thread_id}");
-    let child_file_stem = format!("rollout-2026-07-08T23-12-12-{child_thread_id}");
-    let parent_path = sessions_dir.join(format!("{parent_file_stem}.jsonl"));
-    let child_path = sessions_dir.join(format!("{child_file_stem}.jsonl"));
+    let child_file_stem = format!("rollout-2026-07-09T00-09-12-{child_thread_id}");
+    let parent_path = parent_sessions_dir.join(format!("{parent_file_stem}.jsonl"));
+    let child_path = child_sessions_dir.join(format!("{child_file_stem}.jsonl"));
 
     std::fs::write(
         &parent_path,
