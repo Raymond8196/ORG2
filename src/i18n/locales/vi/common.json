@@ -1234,6 +1234,7 @@
     "modelProperties": {
       "options": "Tùy chọn",
       "effort": "Effort",
+      "default": "Mặc định",
       "faster": "Nhanh hơn",
       "smarter": "Thông minh hơn"
     },
