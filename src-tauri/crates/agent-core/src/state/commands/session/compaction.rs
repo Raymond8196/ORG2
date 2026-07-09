@@ -85,12 +85,6 @@ pub async fn agent_session_manual_compact(
     session_id: String,
     instructions: Option<String>,
 ) -> Result<ManualCompactCommandResult, String> {
-    let Some(session) = state.get_session(&session_id).await else {
-        return Ok(ManualCompactCommandResult::status(
-            ManualCompactStatus::NoRuntime,
-        ));
-    };
-
     // Channel-attached sessions compact by forking (gateway `/compact`); an
     // in-place boundary would silently diverge the Hermes-side transcript
     // from what the channel participants see.
@@ -104,6 +98,64 @@ pub async fn agent_session_manual_compact(
             ManualCompactStatus::ChannelAttached,
         ));
     }
+
+    // Lazy runtime init — an old session opened after an app restart is not
+    // even registered in memory (and a registered one may have no runtime)
+    // until its first message, but compaction only needs the provider +
+    // resolved config. Initialize on demand exactly like `agent_send_message`
+    // does (idempotent fast-path when already live) instead of bouncing the
+    // user with "send a message first".
+    let needs_init = match state.get_session(&session_id).await {
+        Some(session) => session.get_runtime().await.is_none(),
+        None => true,
+    };
+    if needs_init {
+        let identity = match super::identity::resolve_session_identity(
+            state.inner(),
+            &session_id,
+            super::identity::IdentityOverrides::default(),
+        )
+        .await
+        {
+            Ok(identity) => identity,
+            Err(err) => {
+                return Ok(ManualCompactCommandResult::failed(format!(
+                    "session runtime init failed: {}",
+                    err
+                )));
+            }
+        };
+        let launch_spec = match crate::init::launch_spec::AgentLaunchSpec::from_session_sources(
+            state.inner(),
+            &session_id,
+            identity.workspace_root,
+            identity.account_id,
+            Some(identity.model),
+            identity.native_harness_type,
+        )
+        .await
+        {
+            Ok(spec) => spec,
+            Err(err) => {
+                return Ok(ManualCompactCommandResult::failed(format!(
+                    "session runtime init failed: {}",
+                    err
+                )));
+            }
+        };
+        if let Err(err) = crate::init::init_session(state.inner(), launch_spec).await {
+            return Ok(ManualCompactCommandResult::failed(format!(
+                "session runtime init failed: {}",
+                err
+            )));
+        }
+    }
+
+    let Some(session) = state.get_session(&session_id).await else {
+        return Ok(ManualCompactCommandResult::status(
+            ManualCompactStatus::NoRuntime,
+        ));
+    };
 
     if session.scheduler.is_processing() || session.scheduler.pending_count() > 0 {
         return Ok(ManualCompactCommandResult::status(
