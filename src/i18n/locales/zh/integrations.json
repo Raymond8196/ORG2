@@ -2645,7 +2645,10 @@
   },
   "cliLaunchProfiles": {
     "title": "启动配置",
+    "plain": "基础",
+    "plan": "计划",
     "fullPermission": "完全权限",
+    "autoEdit": "自动编辑",
     "manual": "手动",
     "command": "命令",
     "environment": "环境变量",

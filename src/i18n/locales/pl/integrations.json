@@ -2592,7 +2592,10 @@
   },
   "cliLaunchProfiles": {
     "title": "Profil uruchomienia",
+    "plain": "Bazowy",
+    "plan": "Plan",
     "fullPermission": "Pełne uprawnienia",
+    "autoEdit": "Autoedycja",
     "manual": "Ręcznie",
     "command": "Polecenie",
     "environment": "Środowisko",

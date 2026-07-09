@@ -2592,7 +2592,10 @@
   },
   "cliLaunchProfiles": {
     "title": "Başlatma profili",
+    "plain": "Temel",
+    "plan": "Plan",
     "fullPermission": "Tam izin",
+    "autoEdit": "Otomatik düzenleme",
     "manual": "Manuel",
     "command": "Komut",
     "environment": "Ortam",

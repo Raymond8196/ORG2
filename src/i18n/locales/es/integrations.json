@@ -2592,7 +2592,10 @@
   },
   "cliLaunchProfiles": {
     "title": "Perfil de lanzamiento",
+    "plain": "Base",
+    "plan": "Plan",
     "fullPermission": "Permiso completo",
+    "autoEdit": "Auto edición",
     "manual": "Manual",
     "command": "Comando",
     "environment": "Entorno",

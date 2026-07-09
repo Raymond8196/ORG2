@@ -2595,7 +2595,10 @@
   },
   "cliLaunchProfiles": {
     "title": "Perfil de inicialização",
+    "plain": "Base",
+    "plan": "Plano",
     "fullPermission": "Permissão total",
+    "autoEdit": "Edição automática",
     "manual": "Manual",
     "command": "Comando",
     "environment": "Ambiente",
