@@ -146,20 +146,85 @@ fn sync_opencode_history_cache(cache_conn: &mut Connection) -> Result<(), String
         source_mtime_ms,
         source_size_bytes,
     )?;
-    let container_parent_ids: HashSet<String> = metas
-        .iter()
-        .filter_map(|meta| meta.parent_id.clone())
-        .filter(|parent_id| metas.iter().any(|m| &m.source_session_id == parent_id))
-        .collect();
+    let managed_source_session_ids = managed_opencode_source_session_ids_from_conn(cache_conn)?;
+    let container_parent_ids = container_parent_ids_from_metas(&metas);
     let live_ids = metas
         .iter()
         .map(|meta| meta.source_session_id.clone())
         .collect::<Vec<_>>();
     let inputs = metas
         .into_iter()
-        .map(|meta| session_meta_to_cache_input(meta, &container_parent_ids))
+        .map(|meta| {
+            session_meta_to_cache_input(meta, &container_parent_ids, &managed_source_session_ids)
+        })
         .collect::<Vec<_>>();
     imported_cache::sync_source_cache_from_conn(cache_conn, SOURCE_OPENCODE, live_ids, inputs)
+}
+
+fn managed_opencode_source_session_ids_from_conn(
+    conn: &Connection,
+) -> Result<HashSet<String>, String> {
+    let has_code_sessions = conn
+        .query_row(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'code_sessions'",
+            [],
+            |_| Ok(()),
+        )
+        .is_ok();
+    if !has_code_sessions {
+        return Ok(HashSet::new());
+    }
+
+    let mut stmt = conn
+        .prepare(
+            "SELECT cli_session_id FROM code_sessions \
+             WHERE cli_agent_type = 'opencode' AND cli_session_id IS NOT NULL AND cli_session_id != ''",
+        )
+        .map_err(|err| format!("Failed to prepare managed OpenCode session query: {err}"))?;
+    let rows = stmt
+        .query_map([], |row| row.get::<_, String>(0))
+        .map_err(|err| format!("Failed to query managed OpenCode sessions: {err}"))?;
+
+    let mut ids = HashSet::new();
+    for row in rows {
+        let id = row
+            .map_err(|err| format!("Failed to read managed OpenCode session row: {err}"))?
+            .trim()
+            .to_string();
+        if !id.is_empty() {
+            ids.insert(id);
+        }
+    }
+    Ok(ids)
+}
+
+fn container_parent_ids_from_metas(metas: &[OpenCodeSessionMeta]) -> HashSet<String> {
+    let source_ids = metas
+        .iter()
+        .map(|meta| meta.source_session_id.as_str())
+        .collect::<HashSet<_>>();
+    let parent_by_child = metas
+        .iter()
+        .filter_map(|meta| {
+            meta.parent_id
+                .as_deref()
+                .map(|parent_id| (meta.source_session_id.as_str(), parent_id))
+        })
+        .collect::<std::collections::HashMap<_, _>>();
+
+    metas
+        .iter()
+        .filter_map(|meta| {
+            let parent_id = meta.parent_id.as_deref()?;
+            if parent_id == meta.source_session_id || !source_ids.contains(parent_id) {
+                return None;
+            }
+            if parent_by_child.get(parent_id).copied() == Some(meta.source_session_id.as_str()) {
+                return None;
+            }
+            Some(parent_id.to_string())
+        })
+        .collect()
 }
 
 fn list_all_opencode_session_meta_from_conn(
@@ -225,6 +290,7 @@ fn list_all_opencode_session_meta_from_conn(
 fn session_meta_to_cache_input(
     meta: OpenCodeSessionMeta,
     container_parent_ids: &HashSet<String>,
+    managed_source_session_ids: &HashSet<String>,
 ) -> ImportedHistoryCacheInput {
     let model = meta.model.as_deref().and_then(parse_model_name);
     let updated_at_ms = if meta.time_updated > 0 {
@@ -233,7 +299,8 @@ fn session_meta_to_cache_input(
         meta.time_created
     };
     let is_container_parent = container_parent_ids.contains(&meta.source_session_id);
-    let listable = !is_container_parent;
+    let is_managed_history_mirror = managed_source_session_ids.contains(&meta.source_session_id);
+    let listable = !is_container_parent && !is_managed_history_mirror;
     let parent_session_id = meta
         .parent_id
         .as_deref()
