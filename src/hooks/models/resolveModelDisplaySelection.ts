@@ -3,14 +3,22 @@ import type { KeyVaultAccount } from "@src/hooks/keyVault/types";
 import { accountHasModel } from "@src/hooks/models/useModelAccountLookup";
 import type { LastModelSelection } from "@src/store/session/creatorDefaultModelAtom";
 import { resolveDefaultVariant } from "@src/util/defaultModelVariant";
-import { resolveModelVariantFields } from "@src/util/modelVariants";
+import {
+  parseModelVariant,
+  resolveModelVariantFields,
+} from "@src/util/modelVariants";
 
 /**
  * Resolves the effective model id shown in chat input pills.
  *
- * For active own-key sessions, applies the selected account's persisted
+ * For active own-key sessions whose stored model is a bare base model (no
+ * user-chosen effort/variant), applies the selected account's persisted
  * default variant so the pill matches the model the next turn launches with.
- * Historical sessions keep the stored model id unchanged.
+ * When the session already carries a concrete variant (the effort the user
+ * picked in the session creator, e.g. `gpt-5.5-high` or a claude-code effort),
+ * that selection is authoritative and is kept as-is — otherwise the pill would
+ * drift back to the account/seed default. Historical sessions keep the stored
+ * model id unchanged.
  */
 export function resolveModelDisplaySelection(
   selection: LastModelSelection | null | undefined,
@@ -21,6 +29,10 @@ export function resolveModelDisplaySelection(
     return selection;
   }
   if (!isActiveSession) return selection;
+
+  // The session's stored model already encodes a user-chosen variant/effort;
+  // treat it as authoritative and do not overwrite it with the account default.
+  if (parseModelVariant(selection.model)) return selection;
 
   const selectedAccount = accounts.find((account) => {
     if (selection.selectedAccountId) {
