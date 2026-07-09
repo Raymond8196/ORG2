@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { ExternalCliSourceProbe } from "../../externalHistory";
+import type { ExternalCliSourceProbe } from "../../detection";
 import {
   getDetectedExternalCliSourcesWithoutReplay,
   isImportedHistoryReplayableSourceId,
