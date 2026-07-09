@@ -410,7 +410,6 @@
         "interactionAskQuestion": "Вопрос",
         "interactionAskPermission": "Запрос разрешения",
         "interactionModeSwitch": "Смена режима",
-        "interactionNextSteps": "Следующие шаги",
         "interactionPlanDoc": "Документ плана",
         "interactionGeneric": "Взаимодействие"
       },
@@ -1434,9 +1433,6 @@
     "toolSearchRunning": "Поиск инструментов",
     "toolSearchDone": "Инструменты найдены",
     "toolSearchFailed": "Сбой поиска инструментов",
-    "suggestNextStepsRunning": "Предлагаются следующие шаги",
-    "suggestNextStepsDone": "Предложено {{count}} следующих шагов",
-    "suggestNextStepsFailed": "Не удалось предложить следующие шаги",
     "agentSendMessageRunning": "Отправка сообщения коллеге Agent",
     "agentSendMessageDone": "Сообщение отправлено коллеге Agent",
     "agentSendMessageFailed": "Не удалось отправить сообщение коллеге Agent",

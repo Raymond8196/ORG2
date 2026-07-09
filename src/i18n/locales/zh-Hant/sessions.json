@@ -415,7 +415,6 @@
         "interactionAskQuestion": "提問",
         "interactionAskPermission": "權限請求",
         "interactionModeSwitch": "模式切換",
-        "interactionNextSteps": "下一步建議",
         "interactionPlanDoc": "Plan 文檔",
         "interactionGeneric": "交互"
       },
@@ -1430,9 +1429,6 @@
     "toolSearchRunning": "正在搜索工具",
     "toolSearchDone": "搜索工具",
     "toolSearchFailed": "工具搜索失敗",
-    "suggestNextStepsRunning": "正在生成後續步驟",
-    "suggestNextStepsDone": "生成 {{count}} 條後續步驟",
-    "suggestNextStepsFailed": "無法生成後續步驟",
     "agentSendMessageRunning": "正在向隊友 Agent 發送消息",
     "agentSendMessageDone": "向隊友 Agent 發送消息",
     "agentSendMessageFailed": "向隊友 Agent 發送消息失敗",

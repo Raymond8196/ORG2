@@ -408,7 +408,6 @@
         "interactionAskQuestion": "Pregunta",
         "interactionAskPermission": "Solicitud de permiso",
         "interactionModeSwitch": "Cambio de modo",
-        "interactionNextSteps": "Próximos pasos",
         "interactionPlanDoc": "Documento de plan",
         "interactionGeneric": "Interacción"
       },
@@ -1422,9 +1421,6 @@
     "toolSearchRunning": "Buscando herramientas",
     "toolSearchDone": "Herramientas buscadas",
     "toolSearchFailed": "Error en la búsqueda de herramientas",
-    "suggestNextStepsRunning": "Sugiriendo próximos pasos",
-    "suggestNextStepsDone": "Se sugirieron {{count}} próximos pasos",
-    "suggestNextStepsFailed": "No se pudieron sugerir próximos pasos",
     "agentSendMessageRunning": "Enviando mensaje al Agent compañero",
     "agentSendMessageDone": "Mensaje enviado al Agent compañero",
     "agentSendMessageFailed": "No se pudo enviar el mensaje al Agent compañero",

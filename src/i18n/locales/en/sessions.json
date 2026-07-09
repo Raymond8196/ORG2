@@ -441,7 +441,6 @@
         "interactionAskQuestion": "Question",
         "interactionAskPermission": "Permission request",
         "interactionModeSwitch": "Mode switch",
-        "interactionNextSteps": "Next steps",
         "interactionPlanDoc": "Plan document",
         "interactionGeneric": "Interaction"
       },
@@ -1481,9 +1480,6 @@
     "toolSearchRunning": "Searching for tools",
     "toolSearchDone": "Searched for tools",
     "toolSearchFailed": "Tool search failed",
-    "suggestNextStepsRunning": "Suggesting next steps",
-    "suggestNextStepsDone": "Suggested {{count}} next steps",
-    "suggestNextStepsFailed": "Could not suggest next steps",
     "agentSendMessageRunning": "Sending message to teammate",
     "agentSendMessageDone": "Sent message to teammate",
     "agentSendMessageFailed": "Could not send message to teammate",

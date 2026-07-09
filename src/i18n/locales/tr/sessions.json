@@ -408,7 +408,6 @@
         "interactionAskQuestion": "Soru",
         "interactionAskPermission": "İzin isteği",
         "interactionModeSwitch": "Mod değişimi",
-        "interactionNextSteps": "Sonraki adımlar",
         "interactionPlanDoc": "Plan belgesi",
         "interactionGeneric": "Etkileşim"
       },
@@ -1422,9 +1421,6 @@
     "toolSearchRunning": "Araçlar aranıyor",
     "toolSearchDone": "Araçlar arandı",
     "toolSearchFailed": "Araç araması başarısız",
-    "suggestNextStepsRunning": "Sonraki adımlar öneriliyor",
-    "suggestNextStepsDone": "{{count}} sonraki adım önerildi",
-    "suggestNextStepsFailed": "Sonraki adımlar önerilemedi",
     "agentSendMessageRunning": "Takım Agent'ına mesaj gönderiliyor",
     "agentSendMessageDone": "Takım Agent'ına mesaj gönderildi",
     "agentSendMessageFailed": "Takım Agent'ına mesaj gönderilemedi",

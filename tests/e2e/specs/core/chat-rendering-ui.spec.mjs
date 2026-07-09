@@ -33,7 +33,6 @@ const SKIP_CHAT_TOOLS = new Set([
   "create_plan",
   "manage_todo",
   "ask_user_questions",
-  "suggest_next_steps",
   "suggest_mode_switch",
   "ask_user_permissions",
   "thinking",
