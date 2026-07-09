@@ -17,6 +17,7 @@ mod opencode;
 use serde::{Deserialize, Serialize};
 
 use crate::key_store::ModelType;
+use crate::types::UsageItem;
 
 // ============================================
 // Types
@@ -32,6 +33,7 @@ pub struct DetectedKey {
     pub session_token: Option<String>,
     pub base_url: Option<String>,
     pub env_vars: Option<std::collections::HashMap<String, String>>,
+    pub account_metadata: Option<std::collections::HashMap<String, String>>,
     pub available_models: Option<Vec<String>>,
     pub quota_info: Option<QuotaInfo>,
     pub validated: Option<bool>,
@@ -47,7 +49,11 @@ pub struct QuotaInfo {
     pub remaining: Option<i64>,
     pub reset_time: Option<String>,
     pub plan_type: Option<String>,
+    pub quota_source: Option<String>,
     pub is_unlimited: Option<bool>,
+    pub usage_items: Vec<UsageItem>,
+    pub auto_message: Option<String>,
+    pub named_message: Option<String>,
 }
 
 /// Result of auto-detection

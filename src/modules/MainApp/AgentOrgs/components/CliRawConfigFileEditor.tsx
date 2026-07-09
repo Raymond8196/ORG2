@@ -1,19 +1,21 @@
-import { FolderOpen } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
+import { Copy, FolderOpen, Pencil } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { rpc } from "@src/api/tauri/rpc";
 import type { AvailableAgent } from "@src/api/tauri/rpc/schemas/validation";
+import Button from "@src/components/Button";
+import Message from "@src/components/Message";
 import { CodeMirrorEditor } from "@src/features/CodeMirror";
-import { PanelFooter } from "@src/modules/shared/layouts/blocks";
+import {
+  SECTION_ACTION_GAP_CLASSES,
+  SECTION_PATH_TEXT_CLASSES,
+  SectionContainer,
+  SectionRow,
+} from "@src/modules/shared/layouts/SectionLayout";
+import { copyText } from "@src/util/data/clipboard";
 
 type CliConfigFile = AvailableAgent["configFiles"][number];
-
-interface CliRawConfigFileEditorProps {
-  agentName: string;
-  configFile: CliConfigFile;
-  onSaved?: () => void;
-}
 
 const FORMAT_EXTENSION: Record<CliConfigFile["format"], string> = {
   json: "json",
@@ -23,17 +25,26 @@ const FORMAT_EXTENSION: Record<CliConfigFile["format"], string> = {
   text: "txt",
 };
 
+interface CliRawConfigFileEditorProps {
+  agentName: string;
+  configFile: CliConfigFile;
+  sectionTitle?: string;
+  onSaved?: () => void;
+}
+
 const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
   agentName,
   configFile,
+  sectionTitle,
   onSaved,
 }) => {
   const { t } = useTranslation("integrations");
 
-  const [content, setContent] = useState("");
+  const [value, setValue] = useState("");
   const [loading, setLoading] = useState(true);
-  const [savedContent, setSavedContent] = useState("");
+  const [savedValue, setSavedValue] = useState("");
   const [configPath, setConfigPath] = useState(configFile.path);
+  const [activeTab, setActiveTab] = useState<"edit" | "preview">("preview");
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
@@ -50,8 +61,9 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
 
       const raw = await rpc.agentOrgs.cliConfigFiles.readRaw(input);
       if (cancelled) return;
-      setContent(raw);
-      setSavedContent(raw);
+      setValue(raw);
+      setSavedValue(raw);
+      setActiveTab("preview");
       setLoading(false);
     }
 
@@ -67,12 +79,17 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
     };
   }, [agentName, configFile.id]);
 
-  const hasChanges = content !== savedContent;
+  const hasChanges = value !== savedValue;
+  const tokenCount = useMemo(() => Math.ceil(value.length / 4), [value]);
 
-  const handleChange = useCallback((value: string) => {
-    setContent(value);
+  const handleChange = useCallback((nextValue: string) => {
+    setValue(nextValue);
     setErrorMessage(null);
     setSaveStatus("idle");
+  }, []);
+
+  const handleEdit = useCallback(() => {
+    setActiveTab("edit");
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -82,23 +99,30 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
       await rpc.agentOrgs.cliConfigFiles.writeRaw({
         agentName,
         fileId: configFile.id,
-        content,
+        content: value,
       });
-      setSavedContent(content);
+      setSavedValue(value);
       setSaveStatus("saved");
+      setActiveTab("preview");
       onSaved?.();
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : String(err));
       setSaveStatus("error");
     }
-  }, [agentName, configFile.id, content, onSaved]);
+  }, [agentName, configFile.id, value, onSaved]);
 
   const handleReset = useCallback(() => {
-    setContent(savedContent);
+    setValue(savedValue);
+    setActiveTab("preview");
     setErrorMessage(null);
     setSaveStatus("idle");
-  }, [savedContent]);
+  }, [savedValue]);
+
+  const handleCopy = useCallback(async () => {
+    await copyText(value);
+    Message.success(t("common:common.copied"));
+  }, [t, value]);
 
   const handleRevealConfig = useCallback(() => {
     void rpc.agentOrgs.cliConfigFiles
@@ -114,61 +138,101 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
   const filePath = `${configFile.id}.${FORMAT_EXTENSION[configFile.format]}`;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="min-h-0 flex-1">
-        <CodeMirrorEditor
-          value={content}
-          onChange={handleChange}
-          filePath={filePath}
-          height="100%"
-        />
-      </div>
-
-      <PanelFooter
-        left={
-          <>
-            <div className="text-xs text-text-3">{configPath}</div>
-            <div className="flex items-center gap-2 text-xs">
-              {configFile.secretBearing && (
-                <span className="text-warning-6">
-                  {t("agentOrgs.cliAgentDetail.secretBearingConfig")}
-                </span>
-              )}
-              {saveStatus === "saved" && (
-                <span className="text-success-6">
-                  {t("common:status.saved", "Saved")}
-                </span>
-              )}
-              {errorMessage && (
-                <span className="max-w-[300px] truncate text-danger-6">
-                  {errorMessage}
-                </span>
-              )}
-            </div>
-          </>
-        }
-        secondaryActions={[
-          {
-            label: t("agentOrgs.cliAgentDetail.revealConfigFile"),
-            title: t("agentOrgs.cliAgentDetail.revealConfigFile"),
-            icon: <FolderOpen size={14} />,
-            iconOnly: true,
-            onClick: handleRevealConfig,
-          },
-          ...(hasChanges
-            ? [{ label: t("common:actions.cancel"), onClick: handleReset }]
-            : []),
-        ]}
-        primaryAction={{
-          label:
-            saveStatus === "saving"
-              ? t("common:actions.save") + "..."
-              : t("common:actions.save"),
-          onClick: handleSave,
-          disabled: !hasChanges || saveStatus === "saving",
-        }}
-      />
-    </div>
+    <SectionContainer title={sectionTitle}>
+      <SectionRow
+        label={configFile.label}
+        description={configPath}
+        labelAlign="start"
+      >
+        <div className={SECTION_ACTION_GAP_CLASSES}>
+          <span className={SECTION_PATH_TEXT_CLASSES}>
+            {t("agentOrgs.cliAgentDetail.tokenCount", {
+              count: tokenCount,
+            })}
+          </span>
+          {configFile.secretBearing && (
+            <span className="text-xs text-warning-6">
+              {t("agentOrgs.cliAgentDetail.secretBearingConfig")}
+            </span>
+          )}
+          {saveStatus === "saved" && (
+            <span className="text-xs text-success-6">
+              {t("common:status.saved", "Saved")}
+            </span>
+          )}
+          {errorMessage && (
+            <span className="max-w-[240px] truncate text-xs text-danger-6">
+              {errorMessage}
+            </span>
+          )}
+          {activeTab !== "edit" && (
+            <Button
+              icon={<Pencil size={14} />}
+              iconOnly
+              onClick={handleEdit}
+              aria-label={t("common:actions.edit")}
+              title={t("common:actions.edit")}
+              data-testid="agent-orgs-cli-config-edit-button"
+            />
+          )}
+          <Button
+            icon={<Copy size={14} />}
+            iconOnly
+            onClick={handleCopy}
+            disabled={!value.trim()}
+            aria-label={t("common:actions.copy")}
+            title={t("common:actions.copy")}
+          />
+          <Button
+            icon={<FolderOpen size={14} />}
+            iconOnly
+            onClick={handleRevealConfig}
+            aria-label={t("agentOrgs.cliAgentDetail.revealConfigFile")}
+            title={t("agentOrgs.cliAgentDetail.revealConfigFile")}
+          />
+          {activeTab === "edit" && (
+            <>
+              <Button
+                size="default"
+                onClick={handleReset}
+                data-testid="agent-orgs-cli-config-cancel-button"
+              >
+                {t("common:actions.cancel")}
+              </Button>
+              <Button
+                size="default"
+                variant="primary"
+                onClick={handleSave}
+                disabled={!hasChanges || saveStatus === "saving"}
+                data-testid="agent-orgs-cli-config-save-button"
+              >
+                {saveStatus === "saving"
+                  ? `${t("common:actions.save")}...`
+                  : t("common:actions.save")}
+              </Button>
+            </>
+          )}
+        </div>
+      </SectionRow>
+      <SectionRow showHeader={false} className="!pt-0">
+        <div
+          className="h-[360px] overflow-hidden rounded-lg border border-border-2"
+          data-testid="agent-orgs-cli-config-editor"
+        >
+          <CodeMirrorEditor
+            value={value}
+            onChange={handleChange}
+            filePath={filePath}
+            height="100%"
+            readOnly={activeTab !== "edit"}
+            enableMinimap={false}
+            enableDirtyDiff={false}
+            enableLinting={false}
+            registerWithService={false}
+          />
+        </div>
+      </SectionRow>
+    </SectionContainer>
   );
 };
 

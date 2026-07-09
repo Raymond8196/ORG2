@@ -87,13 +87,34 @@ type WriteCallback = (data: string | Uint8Array) => void;
 
 interface SchedulerEntry {
   data: string;
+  /** Cursor into `data` — bytes before this offset have already been consumed. */
+  start: number;
   byteLength: number;
+  /**
+   * The last position returned by `findAnsiSafeSplit` for this entry.
+   *
+   * O5 optimisation: since `findAnsiSafeSplit` always returns a position where
+   * no ANSI sequence is open, the next call can resume scanning from here
+   * instead of re-scanning from byte 0, reducing cumulative split work from
+   * O(n²) to O(n) across all chunks of a large entry.
+   *
+   * Initialised to `entry.start` when the entry is enqueued (no prior split).
+   */
+  lastSafeSplitEnd: number;
 }
 
 interface PaneScheduler {
   sessionId: string;
   write: WriteCallback;
   queue: SchedulerEntry[];
+  /**
+   * Index of the first unconsumed entry in `queue`.
+   *
+   * Using a head pointer instead of Array.shift() avoids O(n) copies on
+   * every consumed chunk. The array is compacted once it has grown past a
+   * threshold relative to the live window.
+   */
+  queueHead: number;
   queueByteLength: number;
   foreground: boolean;
   /** MessageChannel port used for foreground work-loop posts. */
@@ -218,18 +239,40 @@ export function ansiSequenceLength(s: string, pos: number): number {
  * Find a safe chunk boundary in `s` at or before `targetPos` such that no
  * ANSI escape sequence is split.
  *
- * The algorithm scans forward from the start of `s`, tracking sequence extents.
- * A candidate split point is "safe" when it falls between sequences (or between
- * plain-text characters) and does not land inside a UTF-16 surrogate pair.
+ * The algorithm scans forward from `fromPos` (default 0), tracking sequence
+ * extents. A candidate split point is "safe" when it falls between sequences
+ * (or between plain-text characters) and does not land inside a UTF-16
+ * surrogate pair.
  *
- * Returns the byte offset of the last safe split ≤ targetPos, or 0 if none found.
+ * `fromPos` optimisation (O5): if the caller already knows there are no open
+ * ANSI sequences before `fromPos` (because a previous call returned that
+ * position), scanning can resume from there. This reduces cumulative work from
+ * O(n²) to O(n) when a large entry is split into many chunks.
+ *
+ * Precondition: `fromPos` must be a position where no ANSI sequence is open
+ * (i.e., a previously returned safe split boundary). Passing an arbitrary
+ * offset is unsafe and may produce incorrect splits.
+ *
+ * Returns the byte offset of the last safe split ≤ targetPos, or `fromPos`
+ * if none found in the scanned window.
  */
-export function findAnsiSafeSplit(s: string, targetPos: number): number {
+export function findAnsiSafeSplit(
+  s: string,
+  targetPos: number,
+  fromPos: number = 0
+): number {
   if (targetPos >= s.length) return s.length;
   if (targetPos <= 0) return 0;
 
-  let i = 0;
-  let lastSafe = 0;
+  // Fast path: fromPos already covers the entire range we need to check.
+  // This happens when the cached boundary is at or beyond targetPos, meaning
+  // the range [0, targetPos] is already known to contain no open sequences.
+  if (fromPos >= targetPos) return targetPos;
+
+  // Clamp fromPos to a valid start.
+  const startPos = Math.max(0, fromPos);
+  let i = startPos;
+  let lastSafe = startPos;
 
   while (i < targetPos) {
     const c = s.charCodeAt(i);
@@ -346,6 +389,7 @@ function getOrCreate(sessionId: string, write: WriteCallback): PaneScheduler {
       sessionId,
       write,
       queue: [],
+      queueHead: 0,
       queueByteLength: 0,
       foreground: false,
       mcPort: null,
@@ -391,47 +435,95 @@ function flushAck(pane: PaneScheduler) {
 }
 
 /**
+ * Compact the queue array once the dead head segment grows too large.
+ *
+ * We only splice when the wasted prefix is ≥ 16 entries AND represents at
+ * least half the allocated slots, so the amortised cost is O(1) per push.
+ */
+const QUEUE_COMPACT_MIN_DEAD = 16;
+
+function maybeCompactQueue(pane: PaneScheduler) {
+  const dead = pane.queueHead;
+  if (dead >= QUEUE_COMPACT_MIN_DEAD && dead * 2 >= pane.queue.length) {
+    pane.queue.splice(0, dead);
+    pane.queueHead = 0;
+  }
+}
+
+/**
  * Consume up to `chunkSize` bytes from the front of the queue,
  * respecting ANSI sequence boundaries.
  *
  * Returns null if queue is empty.
+ *
+ * Perf notes:
+ * - Uses `queueHead` pointer instead of `Array.shift()` to avoid O(n)
+ *   element-copy on every consumed entry.
+ * - Tracks a `start` cursor inside each entry so partial-chunk draining
+ *   never calls `String.slice()` to mutate the stored data; the slice is
+ *   only taken once when emitting to xterm.
  */
 function consumeChunk(pane: PaneScheduler): string | null {
-  if (pane.queue.length === 0) return null;
+  if (pane.queueHead >= pane.queue.length) return null;
 
-  const entry = pane.queue[0];
+  const entry = pane.queue[pane.queueHead];
   const chunkSize = pane.chunkSize;
+  const remaining = entry.data.length - entry.start;
 
-  if (entry.data.length <= chunkSize) {
-    pane.queue.shift();
+  if (remaining <= chunkSize) {
+    // Whole entry fits — emit the remaining slice and advance head.
+    const chunk =
+      entry.start === 0 ? entry.data : entry.data.slice(entry.start);
+    pane.queueHead++;
+    maybeCompactQueue(pane);
     pane.queueByteLength -= entry.byteLength;
     pane.pendingAckBytes += entry.byteLength;
-    return entry.data;
+    return chunk;
   }
 
-  // Find a safe split point that respects ANSI sequences and surrogate pairs
-  const splitAt = findAnsiSafeSplit(entry.data, chunkSize);
+  // Find a safe split point, resuming from the last known-safe boundary so we
+  // don't re-scan bytes that were already processed in earlier splits (O5).
+  //
+  // `lastSafeSplitEnd` tracks the last position returned by findAnsiSafeSplit
+  // for this entry. We pass it as `fromPos` to skip re-scanning the prefix.
+  // The invariant holds because findAnsiSafeSplit only returns positions where
+  // no ANSI sequence is open.
+  //
+  // When entry.start has advanced (O1 head-pointer), lastSafeSplitEnd is always
+  // ≥ entry.start (we keep it updated after each split), so the fromPos is
+  // still valid for the current window.
+  const targetSplitPos = entry.start + chunkSize;
+  const fromPos = entry.lastSafeSplitEnd;
+  const splitAt = findAnsiSafeSplit(entry.data, targetSplitPos, fromPos);
 
-  if (splitAt === 0) {
-    // Edge case: the sequence starting at byte 0 is longer than chunkSize.
-    // We must emit the entire entry to avoid splitting mid-sequence. This
-    // temporarily exceeds chunk budget but is the only correct option.
-    pane.queue.shift();
+  if (splitAt <= entry.start) {
+    // Edge case: the sequence starting at the current cursor is longer than
+    // chunkSize — emit the entire remaining entry to avoid a mid-sequence
+    // split. Temporarily exceeds chunk budget but is the only correct option.
+    const chunk =
+      entry.start === 0 ? entry.data : entry.data.slice(entry.start);
+    pane.queueHead++;
+    maybeCompactQueue(pane);
     pane.queueByteLength -= entry.byteLength;
     pane.pendingAckBytes += entry.byteLength;
-    return entry.data;
+    return chunk;
   }
 
-  const chunk = entry.data.slice(0, splitAt);
-  entry.data = entry.data.slice(splitAt);
+  const chunk = entry.data.slice(entry.start, splitAt);
+  const chunkChars = splitAt - entry.start;
 
-  // Proportional byte accounting (approximate — byte length isn't chars for non-ASCII)
-  const totalChars = splitAt + entry.data.length;
+  // Proportional byte accounting (approximate — char count ≠ byte count for
+  // non-ASCII, but the scheduler treats byte_count as a flow-control hint).
+  const totalChars = entry.data.length - entry.start;
   const chunkBytes =
     totalChars > 0
-      ? Math.round((splitAt / totalChars) * entry.byteLength)
+      ? Math.round((chunkChars / totalChars) * entry.byteLength)
       : entry.byteLength;
 
+  // Advance the cursor — no string mutation, no re-allocation.
+  // Also update lastSafeSplitEnd so the next split resumes from here (O5).
+  entry.start = splitAt;
+  entry.lastSafeSplitEnd = splitAt;
   entry.byteLength -= chunkBytes;
   pane.queueByteLength -= chunkBytes;
   pane.pendingAckBytes += chunkBytes;
@@ -448,14 +540,14 @@ function writeAndMeasure(pane: PaneScheduler, chunk: string) {
   adaptChunkSize(pane, renderMs);
 }
 
-function drainForegroundTurn(pane: PaneScheduler) {
-  if (!pane.foreground || pane.queue.length === 0) return;
+function queueHasItems(pane: PaneScheduler): boolean {
+  return pane.queueHead < pane.queue.length;
+}
 
-  for (
-    let i = 0;
-    i < FOREGROUND_WRITES_PER_TURN && pane.queue.length > 0;
-    i++
-  ) {
+function drainForegroundTurn(pane: PaneScheduler) {
+  if (!pane.foreground || !queueHasItems(pane)) return;
+
+  for (let i = 0; i < FOREGROUND_WRITES_PER_TURN && queueHasItems(pane); i++) {
     const chunk = consumeChunk(pane);
     if (chunk !== null) {
       writeAndMeasure(pane, chunk);
@@ -463,17 +555,17 @@ function drainForegroundTurn(pane: PaneScheduler) {
   }
   scheduleAck(pane);
 
-  if (pane.queue.length > 0) {
+  if (queueHasItems(pane)) {
     postWorkTurn(pane); // schedule next turn
   }
 }
 
 function drainBackground(pane: PaneScheduler) {
   pane.timerId = null;
-  if (pane.queue.length === 0) return;
+  if (!queueHasItems(pane)) return;
 
   const deadline = performance.now() + BACKGROUND_TIME_BUDGET_MS;
-  while (pane.queue.length > 0 && performance.now() < deadline) {
+  while (queueHasItems(pane) && performance.now() < deadline) {
     const chunk = consumeChunk(pane);
     if (chunk !== null) {
       pane.write(chunk); // no measurement for background panes — saves CPU
@@ -481,7 +573,7 @@ function drainBackground(pane: PaneScheduler) {
   }
   scheduleAck(pane);
 
-  if (pane.queue.length > 0) {
+  if (queueHasItems(pane)) {
     pane.timerId = setTimeout(
       () => drainBackground(pane),
       BACKGROUND_DRAIN_INTERVAL_MS
@@ -493,7 +585,7 @@ function scheduleDrain(pane: PaneScheduler) {
   if (pane.foreground) {
     postWorkTurn(pane);
   } else {
-    if (pane.timerId === null) {
+    if (pane.timerId === null && queueHasItems(pane)) {
       pane.timerId = setTimeout(
         () => drainBackground(pane),
         BACKGROUND_DRAIN_INTERVAL_MS
@@ -506,11 +598,15 @@ function enforceBacklogCap(pane: PaneScheduler) {
   if (pane.queueByteLength <= HIDDEN_BACKLOG_CAP) return;
 
   let dropped = 0;
-  while (pane.queue.length > 0 && pane.queueByteLength > HIDDEN_BACKLOG_CAP) {
-    const entry = pane.queue.shift()!;
+  while (
+    pane.queueHead < pane.queue.length &&
+    pane.queueByteLength > HIDDEN_BACKLOG_CAP
+  ) {
+    const entry = pane.queue[pane.queueHead++];
     pane.queueByteLength -= entry.byteLength;
     dropped += entry.byteLength;
   }
+  maybeCompactQueue(pane);
 
   log.warn(
     `[OutputScheduler] Backlog cap exceeded for session ${pane.sessionId}: dropped ${dropped} bytes`
@@ -600,7 +696,7 @@ export function setPaneForeground(
       clearTimeout(pane.timerId);
       pane.timerId = null;
     }
-    if (pane.queue.length > 0) {
+    if (queueHasItems(pane)) {
       postWorkTurn(pane);
     }
   } else {
@@ -610,7 +706,7 @@ export function setPaneForeground(
       pane.mcPort = null;
     }
     pane.mcPending = false;
-    if (pane.queue.length > 0 && pane.timerId === null) {
+    if (queueHasItems(pane) && pane.timerId === null) {
       pane.timerId = setTimeout(
         () => drainBackground(pane),
         BACKGROUND_DRAIN_INTERVAL_MS
@@ -646,8 +742,8 @@ export function scheduleWrite(
     return;
   }
 
-  // Enqueue
-  pane.queue.push({ data, byteLength });
+  // Enqueue — lastSafeSplitEnd starts at 0 (no prior split for this entry).
+  pane.queue.push({ data, start: 0, byteLength, lastSafeSplitEnd: 0 });
   pane.queueByteLength += byteLength;
 
   enforceBacklogCap(pane);
@@ -666,7 +762,7 @@ export function flushBacklog(sessionId: string, maxBytes: number): number {
   // increments it by the stored byteLength of each entry, avoiding a
   // TextEncoder allocation per chunk.
   const bytesBeforeFlush = pane.pendingAckBytes;
-  while (pane.queue.length > 0) {
+  while (queueHasItems(pane)) {
     const written = pane.pendingAckBytes - bytesBeforeFlush;
     if (written >= maxBytes) break;
     const chunk = consumeChunk(pane);

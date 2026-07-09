@@ -68,7 +68,7 @@
       "title": "계정 정보",
       "enable": "활성화",
       "authMethod": "인증 방법",
-      "oauthLogin": "OAuth (ChatGPT 로그인)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "CLI Agents 지원",
       "compatibleApis": "호환 API",
-      "noCliAgentSupport": "이 제공자는 CLI Agent를 지원하지 않습니다"
+      "noCliAgentSupport": "이 제공자는 CLI Agent를 지원하지 않습니다",
+      "accountEmail": "계정 이메일",
+      "organization": "조직"
     },
     "manualModels": {
       "notice": "이 프록시에서 사용 가능한 모델을 자동 감지할 수 없습니다. 아래에서 수동으로 모델을 추가하거나 Validate를 다시 클릭해 보세요.",
@@ -164,14 +166,22 @@
       "plan": "플랜",
       "premiumRequests": "프리미엄 요청",
       "includedRequests": "포함된 요청",
-      "cursorIncludedRequests": "Auto/Composer 요청 할당량",
+      "cursorIncludedRequests": "Auto/Composer 할당량",
       "quotaUsage": "할당량 사용량",
       "onDemandBudget": "온디맨드 예산",
-      "cursorApiUsage": "API/온디맨드 사용량",
+      "cursorApiUsage": "API 할당량",
+      "sessionUsage": "5h 사용량",
+      "weeklyUsage": "주간 사용량",
+      "monthlyUsage": "월간 사용량",
+      "percentUsed": "{{percent}}% 사용됨",
+      "percentLeft": "{{percent}}% 남음",
+      "refreshUsage": "사용량 새로고침",
       "used": "사용됨",
       "limit": "한도",
       "resetDate": "리셋 날짜",
-      "resets": "{{date}} 리셋"
+      "resets": "{{date}} 리셋",
+      "availableNow": "지금 사용 가능",
+      "nextUsePlusFiveHours": "다음 사용 +5시간"
     },
     "health": {
       "cloudListingInvalid": "클라우드 목록 무효",
@@ -211,10 +221,12 @@
     "apiKeyDesc": "공급자 API에 요청을 인증하는 데 사용되는 비밀 키",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "API 엔드포인트 URL — 프록시, 커스텀 배포 또는 자체 호스팅 서버를 사용하는 경우에만 변경",
+    "apiProtocolLabel": "API 프로토콜",
+    "apiProtocolDesc": "내장 Rust Agent의 와이어 프로토콜 선택",
     "officialUrl": "공식 URL",
     "customUrl": "사용자 지정 URL",
-    "customBaseUrlRiskTitle": "사용자 지정 URL 경고",
-    "customBaseUrlRiskWarning": "사용자 지정 Base URL을 사용하면 API 키와 데이터가 제3자 서버에 노출될 수 있습니다. 신뢰할 수 있는 프록시, 자체 호스팅 배포 또는 알려진 안전한 엔드포인트에만 사용하세요",
+    "customBaseUrlNoteTitle": "사용자 지정 엔드포인트 안내",
+    "customBaseUrlNoteBody": "API 키와 요청 데이터는 입력한 URL로 전송됩니다. 사용자 지정 URL은 신뢰할 수 있는 프록시, 자체 호스팅 배포 또는 직접 제어하는 엔드포인트에만 사용하세요",
     "addBaseUrl": "사용자 정의 Base URL 추가 (선택)",
     "localModel": {
       "title": "로컬 모델 Cookbook",
@@ -279,6 +291,8 @@
     "signInDesc": "브라우저로 로그인하여 접근 승인",
     "setupMethod": "설정 방법",
     "setupMethodDesc": "인증 정보 제공 방법",
+    "endpoint": "엔드포인트",
+    "endpointDesc": "이 키가 연결할 엔드포인트를 선택",
     "detect": "감지",
     "detected": "감지됨",
     "reDetect": "다시 감지",
@@ -450,9 +464,13 @@
     "codexCredentialLabel": "Codex 자격 증명",
     "codexCredentialDesc": "Codex OAuth access token 또는 OpenAI API key를 붙여넣으세요",
     "codexCredentialPlaceholder": "eyJ... 또는 sk-...",
-    "codexConnected": "Codex 연결됨",
-    "codexDetectErrorHint": "내장 브라우저로 로그인하거나 OpenAI API key를 수동으로 붙여넣으세요",
-    "codexValidationErrorHint": "token 또는 API key가 유효한지 확인한 뒤 다시 시도하세요",
+    "codexConnected": "Codex connected",
+    "codexDetectErrorHint": "Sign in with the embedded browser, or paste an OpenAI API key manually",
+    "codexValidationErrorHint": "Check that the token or API key is valid and try again",
+    "claudeCodeAutodetectTitle": "Detect Claude Code session",
+    "claudeCodeAutodetectDesc": "Reads your local Claude Code login from macOS Keychain or ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code connected",
+    "claudeCodeDetectErrorHint": "Sign in with the embedded browser, or run claude auth login and try detection again",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -796,7 +814,8 @@
     "pickProviderDesc": "공급자를 선택하세요",
     "selectVariant": "연결 방법",
     "variantSubscription": "구독",
-    "variantApiKey": "API Key"
+    "variantApiKey": "API Key",
+    "providerCustom": "사용자 지정"
   },
   "modelsTable": {
     "noModels": "Keys에 모델이 없습니다",
@@ -885,9 +904,12 @@
     "noApiKeys": "이 CLI는 자체 API Key를 지원하지 않습니다",
     "noApiKeysAdded": "호환 API Key가 아직 추가되지 않았습니다",
     "notSupported": "지원되지 않음",
+    "nativeSubscription": "네이티브 구독",
+    "supportedProtocols": "지원 프로토콜",
+    "addedSubscriptions": "추가된 구독",
     "subscriptions": "구독",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "호환 API",
     "docs": "문서",
     "addKey": "키 추가",
     "compatibleKeys": "호환 Keys",
@@ -1666,7 +1688,12 @@
       "keyPreview": "키",
       "addedTime": "추가됨",
       "secretBearingConfig": "API key 또는 Token이 포함될 수 있습니다",
-      "revealConfigFile": "파일 관리자에서 표시"
+      "revealConfigFile": "파일 관리자에서 표시",
+      "launchConfiguration": "실행 구성",
+      "configFiles": "설정 파일",
+      "configFile": "설정 파일",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "설정 내용이 없습니다"
     },
     "codexConfig": {
       "sectionTitle": "설정",
@@ -2562,5 +2589,17 @@
       "completionTokens": "Output tokens: {{value}}",
       "elapsed": "Total time: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "실행 프로필",
+    "fullPermission": "전체 권한",
+    "manual": "수동",
+    "command": "명령",
+    "environment": "환경 변수",
+    "envPlaceholder": "KEY=value, 한 줄에 하나",
+    "loading": "실행 프로필을 불러오는 중...",
+    "unavailable": "실행 프로필을 사용할 수 없음",
+    "saved": "실행 프로필 저장됨",
+    "resetDone": "실행 프로필 재설정됨"
   }
 }

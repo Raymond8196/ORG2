@@ -58,6 +58,7 @@ function createActions(): SessionEventHandlerStateActions & {
     setSessionRuntimeError: vi.fn(),
     setPendingCancel: vi.fn(),
     setSessionRolledBack: vi.fn(),
+    dismissCanvasAtNewTurn: vi.fn(),
     setStreamingDeltaContent: vi.fn((update) => {
       actions.streamingMap =
         typeof update === "function" ? update(actions.streamingMap) : update;
@@ -194,6 +195,34 @@ describe("session sync state callbacks", () => {
     callbacks.onStatusChange?.("running");
 
     expect(markTurnRunning).toHaveBeenCalledWith("session-1");
+  });
+
+  it("calls dismissCanvasAtNewTurn with the session id when status is 'running'", () => {
+    const actions = createActions();
+    const callbacks = createSessionEventHandlerCallbacks(
+      "session-42",
+      actions,
+      vi.fn()
+    );
+
+    callbacks.onStatusChange?.("running");
+
+    expect(actions.dismissCanvasAtNewTurn).toHaveBeenCalledWith("session-42");
+  });
+
+  it("does not call dismissCanvasAtNewTurn for terminal statuses", () => {
+    const actions = createActions();
+    const callbacks = createSessionEventHandlerCallbacks(
+      "session-1",
+      actions,
+      vi.fn()
+    );
+
+    for (const status of ["completed", "failed", "cancelled"]) {
+      callbacks.onStatusChange?.(status);
+    }
+
+    expect(actions.dismissCanvasAtNewTurn).not.toHaveBeenCalled();
   });
 });
 

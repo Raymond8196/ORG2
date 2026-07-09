@@ -148,7 +148,7 @@ export function InlineSplitDefaultVersionHeaderRow({
         "mb-1 min-w-0 rounded-none border-0 border-b border-border-2"
       )}
     >
-      <span className="min-w-0 flex-1 truncate font-medium leading-none text-primary-6">
+      <span className="min-w-0 flex-1 truncate font-medium leading-none text-text-1">
         {label}
       </span>
       <span

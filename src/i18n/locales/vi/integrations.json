@@ -68,7 +68,7 @@
       "title": "Thông tin tài khoản",
       "enable": "Bật",
       "authMethod": "Phương thức xác thực",
-      "oauthLogin": "OAuth (ChatGPT Login)",
+      "oauthLogin": "OAuth",
       "oauthSessionCapture": "OAuth (Session Capture)",
       "oauthGithubPat": "OAuth (GitHub PAT)",
       "oauthAwsSso": "OAuth (AWS SSO)",
@@ -97,7 +97,9 @@
       "cliAgents": "CLI Agent",
       "supportCliAgents": "Hỗ trợ CLI Agents",
       "compatibleApis": "API Tương thích",
-      "noCliAgentSupport": "Nhà cung cấp này không hỗ trợ CLI Agent"
+      "noCliAgentSupport": "Nhà cung cấp này không hỗ trợ CLI Agent",
+      "accountEmail": "Email tài khoản",
+      "organization": "Tổ chức"
     },
     "inlineDetailTabs": {
       "info": "Thông tin"
@@ -167,14 +169,22 @@
       "plan": "Gói",
       "premiumRequests": "Yêu cầu Premium",
       "includedRequests": "Yêu cầu đã bao gồm",
-      "cursorIncludedRequests": "Hạn mức yêu cầu Auto/Composer",
+      "cursorIncludedRequests": "Hạn mức Auto/Composer",
       "quotaUsage": "Sử dụng hạn mức",
       "onDemandBudget": "Ngân sách theo yêu cầu",
-      "cursorApiUsage": "Mức dùng API/theo nhu cầu",
+      "cursorApiUsage": "Hạn mức API",
+      "sessionUsage": "Mức dùng 5h",
+      "weeklyUsage": "Mức dùng hằng tuần",
+      "monthlyUsage": "Mức dùng hằng tháng",
+      "percentUsed": "Đã dùng {{percent}}%",
+      "percentLeft": "Còn {{percent}}%",
+      "refreshUsage": "Làm mới mức dùng",
       "used": "Đã dùng",
       "limit": "Giới hạn",
       "resetDate": "Ngày đặt lại",
-      "resets": "Đặt lại vào {{date}}"
+      "resets": "Đặt lại vào {{date}}",
+      "availableNow": "Có sẵn ngay",
+      "nextUsePlusFiveHours": "Lần dùng tiếp theo +5 giờ"
     },
     "health": {
       "cloudListingInvalid": "Danh sách đám mây không hợp lệ",
@@ -214,10 +224,12 @@
     "apiKeyDesc": "Khóa bí mật dùng để xác thực yêu cầu đến API của nhà cung cấp",
     "baseUrlLabel": "Base URL",
     "baseUrlDesc": "URL điểm cuối API — chỉ thay đổi khi sử dụng proxy, triển khai tùy chỉnh hoặc máy chủ tự lưu trữ",
+    "apiProtocolLabel": "Giao thức API",
+    "apiProtocolDesc": "Chọn giao thức kết nối cho Rust Agent tích hợp",
     "officialUrl": "URL chính thức",
     "customUrl": "URL tùy chỉnh",
-    "customBaseUrlRiskTitle": "Cảnh báo URL tùy chỉnh",
-    "customBaseUrlRiskWarning": "Sử dụng Base URL tùy chỉnh có thể khiến khóa API và dữ liệu của bạn bị lộ cho máy chủ bên thứ ba. Chỉ sử dụng cho proxy đáng tin cậy, triển khai tự lưu trữ hoặc điểm cuối bảo mật đã biết",
+    "customBaseUrlNoteTitle": "Về điểm cuối tùy chỉnh",
+    "customBaseUrlNoteBody": "API key và dữ liệu yêu cầu được gửi đến URL bạn nhập. Chỉ dùng URL tùy chỉnh cho proxy đáng tin cậy, triển khai tự lưu trữ hoặc điểm cuối bạn kiểm soát",
     "addBaseUrl": "Thêm Base URL tùy chỉnh (Tùy chọn)",
     "localModel": {
       "title": "Cookbook mô hình cục bộ",
@@ -282,6 +294,8 @@
     "signInDesc": "Đăng nhập qua trình duyệt để ủy quyền truy cập",
     "setupMethod": "Phương thức thiết lập",
     "setupMethodDesc": "Cách cung cấp thông tin xác thực",
+    "endpoint": "Điểm cuối",
+    "endpointDesc": "Chọn điểm cuối mà khóa này kết nối",
     "detect": "Phát hiện",
     "detected": "Đã phát hiện",
     "reDetect": "Phát hiện lại",
@@ -456,6 +470,10 @@
     "codexConnected": "Codex đã kết nối",
     "codexDetectErrorHint": "Đăng nhập bằng trình duyệt nhúng hoặc dán thủ công OpenAI API key",
     "codexValidationErrorHint": "Kiểm tra token hoặc API key có hợp lệ không rồi thử lại",
+    "claudeCodeAutodetectTitle": "Phát hiện phiên Claude Code",
+    "claudeCodeAutodetectDesc": "Đọc đăng nhập Claude Code cục bộ từ macOS Keychain hoặc ~/.claude/.credentials.json",
+    "claudeCodeConnected": "Claude Code đã kết nối",
+    "claudeCodeDetectErrorHint": "Đăng nhập bằng trình duyệt nhúng hoặc chạy claude auth login rồi thử phát hiện lại",
     "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
     "geminiSignInTitle": "Gemini Sign In",
     "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
@@ -799,7 +817,8 @@
     "pickProviderDesc": "Chọn một nhà cung cấp",
     "selectVariant": "Phương thức kết nối",
     "variantSubscription": "Gói đăng ký",
-    "variantApiKey": "API Key"
+    "variantApiKey": "API Key",
+    "providerCustom": "Tùy chỉnh"
   },
   "modelsTable": {
     "noModels": "Không có mô hình từ Keys của bạn",
@@ -888,9 +907,12 @@
     "noApiKeys": "CLI này không hỗ trợ sử dụng API Key riêng",
     "noApiKeysAdded": "Chưa thêm API Key tương thích nào",
     "notSupported": "Không hỗ trợ",
+    "nativeSubscription": "Gói đăng ký gốc",
+    "supportedProtocols": "Giao thức được hỗ trợ",
+    "addedSubscriptions": "Gói đăng ký đã thêm",
     "subscriptions": "Gói đăng ký",
     "cliKeys": "Subscription",
-    "compatibleApis": "Supported Keys",
+    "compatibleApis": "API tương thích",
     "docs": "Tài liệu",
     "addKey": "Thêm khóa",
     "compatibleKeys": "Keys tương thích",
@@ -1669,7 +1691,12 @@
       "keyPreview": "Khóa",
       "addedTime": "Đã thêm",
       "secretBearingConfig": "Có thể chứa API key hoặc Token",
-      "revealConfigFile": "Hiển thị trong trình quản lý tệp"
+      "revealConfigFile": "Hiển thị trong trình quản lý tệp",
+      "launchConfiguration": "Cấu hình khởi chạy",
+      "configFiles": "Tệp cấu hình",
+      "configFile": "Tệp cấu hình",
+      "tokenCount": "~{{count}} Token",
+      "emptyConfigPreview": "Không có nội dung cấu hình"
     },
     "codexConfig": {
       "sectionTitle": "Cấu hình",
@@ -2565,5 +2592,17 @@
       "completionTokens": "Tokens đầu ra: {{value}}",
       "elapsed": "Tổng thời gian: {{value}}s"
     }
+  },
+  "cliLaunchProfiles": {
+    "title": "Hồ sơ khởi chạy",
+    "fullPermission": "Toàn quyền",
+    "manual": "Thủ công",
+    "command": "Lệnh",
+    "environment": "Môi trường",
+    "envPlaceholder": "KEY=value, mỗi dòng một mục",
+    "loading": "Đang tải hồ sơ khởi chạy...",
+    "unavailable": "Hồ sơ khởi chạy không khả dụng",
+    "saved": "Đã lưu hồ sơ khởi chạy",
+    "resetDone": "Đã đặt lại hồ sơ khởi chạy"
   }
 }

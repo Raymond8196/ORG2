@@ -30,6 +30,21 @@ export {
   type UseProviderRegistryResult,
 } from "../hooks/useProviderRegistry";
 
+export {
+  GENERIC_SETUP_METHOD,
+  GENERIC_SETUP_METHODS_DEFAULT,
+  resolveActiveSetupMethod,
+  resolveGenericSetupMethods,
+  type GenericSetupMethod,
+} from "./genericSetupMethods";
+
+export {
+  findEndpointByBaseUrl,
+  getOfficialBaseUrl,
+  hasEndpointChoice,
+  resolveSelectedEndpoint,
+} from "./providerEndpoints";
+
 // ============================================
 // Default Wizard Data
 // ============================================
@@ -40,6 +55,7 @@ export const DEFAULT_WIZARD_DATA: WizardData = {
   agent_type: "" as ModelType,
   raw_key_input: "",
   env_vars: [],
+  account_metadata: {},
   validated: false,
   available_models: [],
   model_context_lengths: {},

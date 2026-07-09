@@ -5,27 +5,6 @@ import {
 import type { NativeHarnessType } from "@src/api/types/keys";
 import type { KeyVaultAccount } from "@src/hooks/keyVault/types";
 
-const CLAUDE_CODE_OAUTH_MODELS = [
-  "claude-sonnet-4-6",
-  "claude-opus-4-7",
-  "claude-opus-4-6",
-  "claude-haiku-4-5-20251001",
-  "claude-sonnet-4-5-20250929",
-] as const;
-
-const CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS = ["claude-sonnet-4-6"] as const;
-
-const CODEX_OAUTH_MODELS = [
-  "gpt-5.5",
-  "gpt-5.4",
-  "gpt-5.4-mini",
-  "gpt-5.3-codex",
-  "gpt-5.2",
-  "codex-auto-review",
-] as const;
-
-const CODEX_OAUTH_DEFAULT_ENABLED_MODELS = ["gpt-5.5"] as const;
-
 const MY_KEY_FALLBACK_NATIVE_MODELS: Record<
   NativeHarnessType,
   readonly string[]
@@ -37,22 +16,6 @@ export function getMyKeyFallbackNativeModels(
   nativeHarnessType: NativeHarnessType
 ): string[] {
   return [...MY_KEY_FALLBACK_NATIVE_MODELS[nativeHarnessType]];
-}
-
-export function getClaudeCodeOAuthModels(): string[] {
-  return [...CLAUDE_CODE_OAUTH_MODELS];
-}
-
-export function getClaudeCodeOAuthDefaultEnabledModels(): string[] {
-  return [...CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS];
-}
-
-export function getCodexOAuthModels(): string[] {
-  return [...CODEX_OAUTH_MODELS];
-}
-
-export function getCodexOAuthDefaultEnabledModels(): string[] {
-  return [...CODEX_OAUTH_DEFAULT_ENABLED_MODELS];
 }
 
 export function isCursorNativeAccount(account: KeyVaultAccount): boolean {
@@ -113,49 +76,13 @@ export function withCursorNativeModels(
 export function withClaudeCodeOAuthModels(
   account: KeyVaultAccount
 ): KeyVaultAccount {
-  const availableModels = new Set(account.availableModels ?? []);
-  const enabledModels = new Set(account.enabledModels ?? []);
-
-  for (const modelId of getClaudeCodeOAuthModels()) {
-    availableModels.add(modelId);
-  }
-
-  if (enabledModels.size === 0) {
-    for (const modelId of CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS) {
-      if (availableModels.has(modelId)) enabledModels.add(modelId);
-    }
-  }
-
-  return {
-    ...account,
-    status: "ready",
-    availableModels: Array.from(availableModels),
-    enabledModels: Array.from(enabledModels),
-  };
+  return { ...account, status: "ready" };
 }
 
 export function withCodexOAuthModels(
   account: KeyVaultAccount
 ): KeyVaultAccount {
-  const availableModels = new Set(account.availableModels ?? []);
-  const enabledModels = new Set(account.enabledModels ?? []);
-
-  for (const modelId of getCodexOAuthModels()) {
-    availableModels.add(modelId);
-  }
-
-  if (enabledModels.size === 0) {
-    for (const modelId of CODEX_OAUTH_DEFAULT_ENABLED_MODELS) {
-      if (availableModels.has(modelId)) enabledModels.add(modelId);
-    }
-  }
-
-  return {
-    ...account,
-    status: "ready",
-    availableModels: Array.from(availableModels),
-    enabledModels: Array.from(enabledModels),
-  };
+  return { ...account, status: "ready" };
 }
 
 export function withNativeHarnessModels(

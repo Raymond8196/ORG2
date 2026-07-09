@@ -1,6 +1,7 @@
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
+import { CLI_AGENT } from "@src/api/types/keys";
 import { formatModelAgentType } from "@src/assets/providers";
 import Button from "@src/components/Button";
 import ModelIcon from "@src/components/ModelIcon";
@@ -22,6 +23,29 @@ import AccountInlineExpandedCard, {
   type AccountInlineTab,
 } from "./AccountInlineExpandedCard";
 
+const ACCOUNT_PROVIDER_LABEL_OVERRIDES: Readonly<Record<string, string>> = {
+  [CLI_AGENT.CLAUDE_CODE]: "Anthropic",
+  [CLI_AGENT.CODEX]: "OpenAI",
+  [CLI_AGENT.GEMINI]: "Gemini",
+};
+
+function formatAccountProviderLabel(modelType: string): string {
+  return (
+    ACCOUNT_PROVIDER_LABEL_OVERRIDES[modelType] ??
+    formatModelAgentType(modelType)
+  );
+}
+
+function formatAccountDisplayName(account: KeyVaultAccount): string {
+  if (account.modelType === CLI_AGENT.CLAUDE_CODE) {
+    if (account.name.startsWith("Claude Code")) return "Anthropic";
+  }
+  if (account.modelType === CLI_AGENT.CODEX) {
+    if (account.name.startsWith("Codex CLI OAuth")) return "OpenAI";
+  }
+  return account.name;
+}
+
 interface MyAccountsTableSectionProps {
   accounts: KeyVaultAccount[];
   loading: boolean;
@@ -35,6 +59,7 @@ interface MyAccountsTableSectionProps {
     deleteType?: "local" | "cloud"
   ) => void;
   onRefreshAccounts?: () => Promise<void>;
+  onRefreshAccountUsage?: (accountId: string) => Promise<void>;
   onRevalidateAccount?: (accountId: string) => Promise<void>;
   refreshingAccountId?: string | null;
   onToggleAccount: (account: KeyVaultAccount, enabled: boolean) => void;
@@ -58,7 +83,8 @@ interface MyAccountsTableSectionProps {
   onEditAccountSave?: (
     accountId: string,
     name: string,
-    description: string
+    description: string,
+    baseUrl?: string
   ) => Promise<void>;
   t: (key: string, options?: Record<string, unknown>) => string;
 }
@@ -89,6 +115,7 @@ export default function MyAccountsTableSection({
   onEditAccount,
   onDisconnectAccount,
   onRefreshAccounts,
+  onRefreshAccountUsage,
   onRevalidateAccount,
   refreshingAccountId,
   onToggleAccount,
@@ -145,17 +172,19 @@ export default function MyAccountsTableSection({
       {
         key: "provider",
         label: t("common:labels.provider"),
-        width: SETTINGS_TABLE_COL.valueMd,
+        width: SETTINGS_TABLE_COL.valueLg,
         sorter: (rowA, rowB) =>
-          formatModelAgentType(rowA.modelType).localeCompare(
-            formatModelAgentType(rowB.modelType)
+          formatAccountProviderLabel(rowA.modelType).localeCompare(
+            formatAccountProviderLabel(rowB.modelType)
           ),
         renderCell: (account) => (
           <span
-            className={`${SETTINGS_TABLE_CELL.value} inline-flex items-center gap-2`}
+            className={`${SETTINGS_TABLE_CELL.value} inline-flex min-w-0 items-center gap-2 whitespace-nowrap`}
           >
             <ModelIcon agentType={account.modelType} size="small" />
-            {formatModelAgentType(account.modelType)}
+            <span className="min-w-0 truncate">
+              {formatAccountProviderLabel(account.modelType)}
+            </span>
           </span>
         ),
       },
@@ -163,7 +192,10 @@ export default function MyAccountsTableSection({
         key: "name",
         label: t("common:labels.name"),
         width: SETTINGS_TABLE_COL.fill,
-        sorter: (rowA, rowB) => rowA.name.localeCompare(rowB.name),
+        sorter: (rowA, rowB) =>
+          formatAccountDisplayName(rowA).localeCompare(
+            formatAccountDisplayName(rowB)
+          ),
         renderCell: (account) => (
           <span
             className={`${SETTINGS_TABLE_CELL.primary} inline-flex items-center gap-1.5 font-bold`}
@@ -171,7 +203,7 @@ export default function MyAccountsTableSection({
             <span
               className={`inline-block h-2 w-2 shrink-0 rounded-full ${KEY_VAULT_STATUS_DOT[account.status] ?? "bg-fill-3"}`}
             />
-            {account.name}
+            {formatAccountDisplayName(account)}
           </span>
         ),
       },
@@ -217,7 +249,7 @@ export default function MyAccountsTableSection({
       {
         key: "enabled",
         label: <span className="sr-only">{t("common:labels.status")}</span>,
-        width: SETTINGS_TABLE_COL.hug,
+        width: "128px",
         align: "right",
         sorter: (rowA, rowB) =>
           Number(isAccountEnabled(rowA)) - Number(isAccountEnabled(rowB)),
@@ -295,7 +327,11 @@ export default function MyAccountsTableSection({
         onToggleModel={onToggleModel}
         onUpdateAccountEnabledModels={onUpdateAccountEnabledModels}
         onUpdateAccountDefaultVariant={onUpdateAccountDefaultVariant}
-        onRefresh={onRefreshAccounts}
+        onRefresh={
+          onRefreshAccountUsage
+            ? () => onRefreshAccountUsage(account.id)
+            : onRefreshAccounts
+        }
         onRevalidateAccount={onRevalidateAccount}
         refreshing={refreshingAccountId === account.id}
         onEditSave={onEditAccountSave}
@@ -310,6 +346,7 @@ export default function MyAccountsTableSection({
       handleEditCancel,
       isAccountEnabled,
       onEditAccountSave,
+      onRefreshAccountUsage,
       onRefreshAccounts,
       onRevalidateAccount,
       onToggleAccount,
@@ -341,11 +378,12 @@ export default function MyAccountsTableSection({
       variant="secondary"
       size="default"
       icon={<Plus size={14} />}
+      iconOnly
       onClick={onAdd}
+      aria-label={t("keyVault.addAccount")}
+      title={t("keyVault.addAccount")}
       data-testid="key-vault-add-account-button"
-    >
-      {t("keyVault.addAccount")}
-    </Button>
+    />
   );
 
   return (

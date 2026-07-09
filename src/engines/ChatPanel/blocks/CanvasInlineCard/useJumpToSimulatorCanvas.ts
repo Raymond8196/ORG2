@@ -18,7 +18,7 @@ import {
 } from "@src/store/ui/simulatorAtom";
 
 import { openInSimulatorCanvas } from "./openInSimulatorCanvas";
-import type { CanvasInlinePayload } from "./useCanvasInlineStream";
+import type { CanvasInlinePayload } from "./types";
 
 export function useJumpToSimulatorCanvas(
   sessionId: string | null | undefined,

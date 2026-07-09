@@ -23,5 +23,6 @@ export function cleanupPtyListeners({
 
   if (sessionIdRef.current) {
     unregisterPane(sessionIdRef.current);
+    sessionIdRef.current = null;
   }
 }

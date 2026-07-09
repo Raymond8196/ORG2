@@ -29,26 +29,6 @@
     pointer-events: auto;
   }
 
-  // Color themes
-  &.native-tooltip-dark {
-    background: rgba(0, 0, 0, 0.85);
-    color: #ffffff;
-
-    .native-tooltip-arrow {
-      background: rgba(0, 0, 0, 0.85);
-    }
-  }
-
-  &.native-tooltip-light {
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--color-text-1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-
-    .native-tooltip-arrow {
-      background: rgba(255, 255, 255, 0.95);
-    }
-  }
-
   &.native-tooltip-panel {
     background: var(--color-bg-2);
     color: var(--color-text-1);
@@ -59,17 +39,22 @@
     }
   }
 
-  // Shortcut tooltips share `SessionHoverCard`'s shadow + border surface,
-  // but keep a tighter 6px radius — the tooltip is small enough that a
-  // 12px corner looks overly soft next to the 4px key chips inside.
   &.native-tooltip-framed-panel {
     width: max-content;
     max-width: calc(100vw - 16px);
-    white-space: nowrap;
     background: var(--cm-editor-background, var(--color-bg-2));
     color: var(--color-text-1);
     border: 1px solid var(--color-border-2);
     box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.1);
+
+    .native-tooltip-content-inner {
+      max-width: min(320px, calc(100vw - 40px));
+      white-space: normal;
+    }
+
+    &.native-tooltip-framed-panel-wide .native-tooltip-content-inner {
+      max-width: min(480px, calc(100vw - 40px));
+    }
 
     kbd {
       color: var(--color-text-1);

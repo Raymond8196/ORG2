@@ -54,6 +54,7 @@ export interface WizardData {
   cursor_session_token?: string;
   oauth_session_token?: string;
   env_vars: EnvVar[];
+  account_metadata?: Record<string, string>;
   validated: boolean;
   /** Auto-detected models returned by the validator (e.g. /v1/models). */
   available_models: string[];
@@ -91,6 +92,15 @@ export interface WizardData {
     plan_type?: string;
     limit_type?: string;
     quota_source?: string;
+    usage_items?: Array<{
+      usage_type: string;
+      enabled: boolean;
+      used: number | null;
+      limit: number | null;
+      remaining: number | null;
+      remaining_percentage: number;
+      reset_time?: string | null;
+    }>;
     // Plan breakdown (Cursor-specific)
     auto_percent_used?: number;
     api_percent_used?: number;

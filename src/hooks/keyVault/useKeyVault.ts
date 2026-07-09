@@ -107,6 +107,7 @@ export function useKeyVault(
           lastUpstreamErrorType: keyInfo.last_upstream_error_type ?? undefined,
           rateLimitResetAt: keyInfo.rate_limit_reset_at ?? undefined,
           description: keyInfo.description ?? undefined,
+          accountMetadata: keyInfo.account_metadata,
           connectedAt: keyInfo.created_at
             ? new Date(keyInfo.created_at)
             : undefined,

@@ -3,11 +3,7 @@ import {
   NATIVE_HARNESS_TYPE,
 } from "@src/api/tauri/rpc/schemas/validation";
 import { LOCAL_MODEL_PROVIDER } from "@src/api/types/keys";
-import {
-  getClaudeCodeOAuthModels,
-  getCodexOAuthModels,
-  getMyKeyFallbackNativeModels,
-} from "@src/hooks/models/nativeHarnessAccountModels";
+import { getMyKeyFallbackNativeModels } from "@src/hooks/models/nativeHarnessAccountModels";
 
 import type { WizardData } from "../types";
 
@@ -96,12 +92,9 @@ export function getEffectiveValidationModels(
   agentModels: string[]
 ): string[] {
   if (models.length > 0) return models;
-  if (agentType === CLI_AGENT.CLAUDE_CODE) {
-    return getClaudeCodeOAuthModels();
-  }
-  if (agentType === CLI_AGENT.CODEX) {
-    return agentModels.length > 0 ? agentModels : getCodexOAuthModels();
-  }
+  if (agentType === CLI_AGENT.CLAUDE_CODE) return models;
+  if (agentType === CLI_AGENT.CODEX)
+    return agentModels.length > 0 ? agentModels : models;
   if (agentType !== CLI_AGENT.CURSOR) return models;
   if (agentModels.length > 0) return agentModels;
   return getMyKeyFallbackNativeModels(NATIVE_HARNESS_TYPE.CURSOR);

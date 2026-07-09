@@ -11,6 +11,7 @@ import type {
 import { useSessionDiscovery } from "@src/engines/SessionCore";
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
 import { voiceInputEnabledAtom } from "@src/store/platform/voiceInputAtom";
+import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 
 import CursorModePill from "./components/CursorModePill";
@@ -151,6 +152,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       setIsInputFocused,
       handleInputBlur,
       handleContentChange,
+      compactHintVisible,
       handleAtMention,
       handleAtMentionClose,
       isInputEmpty,
@@ -216,6 +218,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       disableStopWhenEmpty && currentInputEmpty && !isWpGeneWorking;
     const mentionTreePosition = chatPanelPosition === "left" ? "right" : "left";
     const voiceFeatureEnabled = useAtomValue(voiceInputEnabledAtom);
+    const isChatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
 
     const {
       showPlusSlashMenu,
@@ -295,12 +298,20 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
 
     const isCursorCompactRow = useMemo(
       () =>
+        isChatPanelMaximized &&
         !isEditMode &&
         !hasImages &&
         !isCiteCode &&
         !replyInfo.isReply &&
         !editorMultiline,
-      [isEditMode, hasImages, isCiteCode, replyInfo.isReply, editorMultiline]
+      [
+        isChatPanelMaximized,
+        isEditMode,
+        hasImages,
+        isCiteCode,
+        replyInfo.isReply,
+        editorMultiline,
+      ]
     );
     const compactShell = !isEditMode && isCursorCompactRow;
 
@@ -501,6 +512,9 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
                 isCursorCompactRow={isCursorCompactRow}
                 suppressToolbarHover={suppressToolbarHover}
                 placeholder={placeholder}
+                trailingHint={
+                  compactHintVisible ? t("input.compactArgHint") : undefined
+                }
                 currentInputEmpty={currentInputEmpty}
                 stopSuppressedForEmptyInput={stopSuppressedForEmptyInput}
                 isWpGeneWorking={isWpGeneWorking}

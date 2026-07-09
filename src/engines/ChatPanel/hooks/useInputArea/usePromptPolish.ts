@@ -64,6 +64,7 @@ export function usePromptPolish({
 
   const status =
     state.sessionId === draftSessionId ? state.status : ("idle" as const);
+  const isAvailable = housekeeper.enabled && housekeeper.features.promptPolish;
 
   const setStatus = useCallback(
     (nextStatus: PromptPolishStatus) => {
@@ -141,7 +142,7 @@ export function usePromptPolish({
     setStatus("polishing");
 
     try {
-      if (!housekeeper.enabled || !housekeeper.features.promptPolish) {
+      if (!isAvailable) {
         reset();
         Message.warning("MiniCPM 常驻管家的输入润色已关闭");
         return;
@@ -187,8 +188,7 @@ export function usePromptPolish({
   }, [
     applyComposerContent,
     draftSessionId,
-    housekeeper.enabled,
-    housekeeper.features.promptPolish,
+    isAvailable,
     housekeeper.resolvedAccountId,
     housekeeper.resolvedModel,
     refs,
@@ -200,12 +200,13 @@ export function usePromptPolish({
   return useMemo(
     () => ({
       status,
+      isAvailable,
       isPolishing: status === "polishing",
       isPolished: status === "polished",
       toggle,
       reset,
       handleContentChange,
     }),
-    [handleContentChange, reset, status, toggle]
+    [handleContentChange, isAvailable, reset, status, toggle]
   );
 }

@@ -327,11 +327,14 @@ const ApiSetup: React.FC<ApiSetupProps> = ({
                   </SectionRow>
                 )}
 
-                {/* Setup Method — same container for Copilot and Kiro */}
+                {/* Setup Method — same container for browser/OAuth agents */}
                 {!!data.agent_type &&
                   isComplex &&
                   complexMethodOptions.length > 0 &&
-                  (isCodex || hook.isCopilot || hook.isKiro) && (
+                  (isClaudeCode ||
+                    isCodex ||
+                    hook.isCopilot ||
+                    hook.isKiro) && (
                     <SectionRow
                       label={t("keyVault.setupMethod")}
                       layout="vertical"
@@ -501,6 +504,7 @@ const ApiSetup: React.FC<ApiSetupProps> = ({
           }
           showKeySelection={hook.showKeySelection}
           detectedKeys={hook.detectedKeys}
+          agentType={data.agent_type}
           selectedCredentialIndex={hook.selectedCredentialIndex}
           onSelectCredentialIndex={hook.setSelectedCredentialIndex}
           onConfirmKeySelection={hook.handleConfirmKeySelection}

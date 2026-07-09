@@ -129,7 +129,7 @@
     "timezoneAuto": "Tự động (Trình duyệt)",
     "timezoneSearchPlaceholder": "Tìm kiếm thành phố gần nhất",
     "sendOnEnter": "Gửi tin nhắn bằng Enter",
-    "sendOnEnterDesc": "Khi bật, Enter gửi và Shift+Enter chèn dòng mới. Khi tắt, Ctrl/Cmd+Enter gửi.",
+    "sendOnEnterDesc": "Khi bật, Enter gửi và Shift+Enter chèn dòng mới. Khi tắt, Ctrl/Cmd+Enter gửi",
     "language": "Ngôn ngữ",
     "languageSearchPlaceholder": "Tìm kiếm ngôn ngữ...",
     "languageNames": {
@@ -971,7 +971,7 @@
     "decryptEffect": "Hiệu ứng Decrypt",
     "decryptEffectDesc": "Bật hiệu ứng Decrypt cho tin nhắn Agent",
     "sendOnEnter": "Gửi tin nhắn bằng Enter",
-    "sendOnEnterDesc": "Khi bật, Enter gửi và Shift+Enter chèn dòng mới. Khi tắt, Ctrl/Cmd+Enter gửi."
+    "sendOnEnterDesc": "Khi bật, Enter gửi và Shift+Enter chèn dòng mới. Khi tắt, Ctrl/Cmd+Enter gửi"
   },
   "languageServers": {
     "languageServersDesc": "Quản lý máy chủ LSP cho tự động hoàn thành, chẩn đoán và trí tuệ mã",
