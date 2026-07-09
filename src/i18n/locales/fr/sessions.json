@@ -669,7 +669,9 @@
       "empty": "Aucune action trouvée.",
       "unpinAll": "Tout désépingler",
       "insert": "Insérer"
-    }
+    },
+    "compactArgHint": "<focus facultatif pour le résumé>",
+    "compactCommandDescription": "Résume le contexte ancien pour libérer de l'espace. Facultatif : /compact <focus du résumé>"
   },
   "listPanel": {
     "showingOf": "Affichage de {{filtered}} sur {{total}}",
@@ -1882,7 +1884,8 @@
       "models": "Modèles",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Commandes"
     },
     "diffMenu": {
       "gitActions": "Actions GIT",
@@ -2291,7 +2294,8 @@
       "Toujours en réflexion, plus long que d’habitude...",
       "En cours, plus long que d’habitude...",
       "En train de décider de la suite, plus long que d’habitude..."
-    ]
+    ],
+    "compacting": "Compactage du contexte..."
   },
   "revertConfirm": {
     "title": "Modifications de fichiers non enregistrées",

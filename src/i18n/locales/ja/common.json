@@ -1968,7 +1968,21 @@
     "warningHint": "コンテキストが埋まりつつあります。より良い結果のため、まもなく新しいセッションを開始してください。",
     "dangerHint": "コンテキストがほぼいっぱいです。詳細を失わないよう、新しいセッションを開始してください。",
     "autoCompactNote": "まもなくコンテキストを要約します",
-    "startNewSession": "新しいセッションを開始"
+    "startNewSession": "新しいセッションを開始",
+    "compactBoundaryTitle": "コンテキストを圧縮しました",
+    "compactBoundarySubtitle_other": "{{count}}件の過去メッセージを要約",
+    "compactBoundaryTokens": "{{before}} → {{after}} トークン",
+    "manualCompactAction": "圧縮",
+    "manualCompactRunning": "圧縮中",
+    "manualCompactInProgress": "コンテキストを圧縮中です — 完了までお待ちください",
+    "manualCompactSuccess": "圧縮完了: {{messagesBefore}} → {{messagesAfter}} メッセージ、{{tokensBefore}} → {{tokensAfter}} トークン",
+    "manualCompactTooShort": "内容が短いため圧縮は不要です",
+    "manualCompactAlreadyCompact": "新たに圧縮できる内容はありません",
+    "manualCompactBusy": "セッション実行中です。完了後に圧縮してください",
+    "manualCompactNoRuntime": "圧縮する前にメッセージを送信してください",
+    "manualCompactFailed": "圧縮に失敗しました: {{message}}",
+    "manualCompactChannelAttached": "このセッションはチャンネル管理です — そちらで /compact を使ってください",
+    "manualCompactInstructionsPlaceholder": "任意: 要約で重視するポイント"
   },
   "relativeDate": {
     "today": "今日",

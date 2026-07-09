@@ -669,7 +669,9 @@
       "empty": "Eylem bulunamadı.",
       "unpinAll": "Tümünün sabitlemesini kaldır",
       "insert": "Ekle"
-    }
+    },
+    "compactArgHint": "<özet için isteğe bağlı odak>",
+    "compactCommandDescription": "Eski bağlamı özetleyerek yer açar. İsteğe bağlı: /compact <özet odağı>"
   },
   "listPanel": {
     "showingOf": "{{total}} içinden {{filtered}} gösteriliyor",
@@ -1882,7 +1884,8 @@
       "models": "Modeller",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Komutlar"
     },
     "diffMenu": {
       "gitActions": "GIT eylemleri",
@@ -2292,7 +2295,8 @@
       "Hâlâ düşünülüyor, olağandan uzun sürüyor...",
       "Üzerinde çalışılıyor, olağandan uzun sürüyor...",
       "Sırada ne olacağı değerlendiriliyor, olağandan uzun sürüyor..."
-    ]
+    ],
+    "compacting": "Bağlam sıkıştırılıyor..."
   },
   "revertConfirm": {
     "title": "Kaydedilmemiş dosya değişiklikleri",

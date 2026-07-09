@@ -1965,7 +1965,22 @@
     "warningHint": "Le contexte se remplit. Démarrez bientôt une nouvelle session pour de meilleurs résultats.",
     "dangerHint": "Le contexte est presque plein. Démarrez une nouvelle session pour éviter de perdre des détails.",
     "autoCompactNote": "Le contexte sera bientôt résumé",
-    "startNewSession": "Démarrer une nouvelle session"
+    "startNewSession": "Démarrer une nouvelle session",
+    "compactBoundaryTitle": "Contexte compacté",
+    "compactBoundarySubtitle_one": "{{count}} message précédent résumé",
+    "compactBoundarySubtitle_other": "{{count}} messages précédents résumés",
+    "compactBoundaryTokens": "{{before}} → {{after}} tokens",
+    "manualCompactAction": "Compacter",
+    "manualCompactRunning": "Compactage",
+    "manualCompactInProgress": "Compactage du contexte — attendez la fin avant d'envoyer",
+    "manualCompactSuccess": "Compacté : {{messagesBefore}} → {{messagesAfter}} messages, {{tokensBefore}} → {{tokensAfter}} tokens",
+    "manualCompactTooShort": "Contenu court ; aucun compactage nécessaire",
+    "manualCompactAlreadyCompact": "Aucun nouveau contenu à compacter",
+    "manualCompactBusy": "La session est en cours. Compactez une fois terminée",
+    "manualCompactNoRuntime": "Envoyez un message avant de compacter",
+    "manualCompactFailed": "Échec du compactage : {{message}}",
+    "manualCompactChannelAttached": "Cette session est gérée par un canal — utilisez /compact là-bas",
+    "manualCompactInstructionsPlaceholder": "Facultatif : sur quoi concentrer le résumé"
   },
   "relativeDate": {
     "today": "Aujourd'hui",

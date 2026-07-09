@@ -699,7 +699,9 @@
       "empty": "No actions found.",
       "unpinAll": "Unpin all",
       "insert": "Insert"
-    }
+    },
+    "compactArgHint": "<optional focus for the summary>",
+    "compactCommandDescription": "Summarize older context to free space. Optional: /compact <focus for the summary>"
   },
   "listPanel": {
     "showingOf": "Showing {{filtered}} of {{total}}",
@@ -1062,7 +1064,8 @@
       "Still thinking, taking longer than usual...",
       "Working on it, taking longer than usual...",
       "Thinking it through, taking longer than usual..."
-    ]
+    ],
+    "compacting": "Compacting context..."
   },
   "tools": {
     "noResultsFound": "No results found",
@@ -1922,6 +1925,7 @@
     "slashMenu": {
       "image": "Image",
       "uploadImage": "Upload image",
+      "commands": "Commands",
       "mode": "Mode",
       "models": "Models",
       "skills": "Skills",
