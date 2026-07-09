@@ -1218,7 +1218,6 @@
     },
     "modelSelector": {
       "recentModels": "Недавние модели",
-      "currentModel": "Текущая модель",
       "allModels": "Все модели",
       "noRecent": "Нет недавних моделей",
       "noResults": "Нет подходящих моделей",

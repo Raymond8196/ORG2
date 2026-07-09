@@ -1218,7 +1218,6 @@
     },
     "modelSelector": {
       "recentModels": "Modèles récents",
-      "currentModel": "Modèle actuel",
       "allModels": "Tous les modèles",
       "noRecent": "Aucun modèle récent",
       "noResults": "Aucun modèle correspondant",
