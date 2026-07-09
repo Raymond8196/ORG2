@@ -136,12 +136,10 @@ function StartPageQuotaCard({
 }
 
 interface StartPageQuotaGridProps {
-  isWide: boolean;
   className?: string;
 }
 
 export function StartPageQuotaGrid({
-  isWide,
   className,
 }: StartPageQuotaGridProps): React.ReactNode {
   const { t } = useTranslation("sessions");
@@ -154,8 +152,9 @@ export function StartPageQuotaGrid({
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
-  const pageSize = isWide ? 4 : 3;
-  const gridClassName = isWide ? "grid-cols-2" : "grid-cols-3";
+  // Quota cards render as a compact 2×2 grid (4 cards per page).
+  const pageSize = 4;
+  const gridClassName = "grid-cols-2";
 
   const entries = useMemo(
     () => collectAccountQuotaCards(accounts, t, tIntegrations),
