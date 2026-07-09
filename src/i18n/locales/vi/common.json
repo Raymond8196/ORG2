@@ -1962,7 +1962,21 @@
     "warningHint": "Ngữ cảnh đang đầy dần. Hãy sớm bắt đầu phiên mới để có kết quả tốt hơn.",
     "dangerHint": "Ngữ cảnh gần đầy. Hãy bắt đầu phiên mới để tránh mất chi tiết.",
     "autoCompactNote": "Ngữ cảnh sẽ sớm được tóm tắt",
-    "startNewSession": "Bắt đầu phiên mới"
+    "startNewSession": "Bắt đầu phiên mới",
+    "compactBoundaryTitle": "Đã nén ngữ cảnh",
+    "compactBoundarySubtitle_other": "Đã tóm tắt {{count}} tin nhắn trước đó",
+    "compactBoundaryTokens": "{{before}} → {{after}} token",
+    "manualCompactAction": "Nén",
+    "manualCompactRunning": "Đang nén",
+    "manualCompactInProgress": "Đang nén ngữ cảnh — hãy đợi hoàn tất trước khi gửi",
+    "manualCompactSuccess": "Đã nén: {{messagesBefore}} → {{messagesAfter}} tin nhắn, {{tokensBefore}} → {{tokensAfter}} token",
+    "manualCompactTooShort": "Nội dung ngắn; không cần nén",
+    "manualCompactAlreadyCompact": "Không có nội dung mới để nén",
+    "manualCompactBusy": "Phiên đang chạy. Hãy nén sau khi hoàn tất",
+    "manualCompactNoRuntime": "Hãy gửi một tin nhắn trước khi nén",
+    "manualCompactFailed": "Nén thất bại: {{message}}",
+    "manualCompactChannelAttached": "Phiên này do một kênh quản lý — hãy dùng /compact ở đó",
+    "manualCompactInstructionsPlaceholder": "Tùy chọn: trọng tâm khi tóm tắt"
   },
   "relativeDate": {
     "today": "Hôm nay",

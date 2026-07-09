@@ -675,7 +675,8 @@
       "empty": "Nenhuma ação encontrada.",
       "unpinAll": "Desafixar tudo",
       "insert": "Inserir"
-    }
+    },
+    "compactArgHint": "<foco opcional do resumo>"
   },
   "listPanel": {
     "showingOf": "Mostrando {{filtered}} de {{total}}",
@@ -1037,7 +1038,8 @@
       "Ainda pensando, demorando mais que o habitual...",
       "Trabalhando nisso, demorando mais que o habitual...",
       "Refletindo, demorando mais que o habitual..."
-    ]
+    ],
+    "compacting": "Compactando contexto..."
   },
   "tools": {
     "noResultsFound": "Nenhum resultado encontrado",
@@ -1903,7 +1905,8 @@
       "models": "Modelos",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Comandos"
     },
     "diffMenu": {
       "gitActions": "Ações GIT",
