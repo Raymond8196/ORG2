@@ -105,7 +105,7 @@ function buildChildSessionMenuItem(
   const item = buildSessionRow(session);
   return {
     ...item,
-    subtitle: "Subagent",
+    showIndentGuide: true,
     visualTone: "secondary",
     dataTestId: `sidebar-subagent-session-item-${session.session_id}`,
   };

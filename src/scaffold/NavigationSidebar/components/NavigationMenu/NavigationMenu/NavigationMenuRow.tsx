@@ -236,6 +236,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
     markClicked,
     resetCursor: resetImmediateCursor,
   } = useImmediateCursorReset(isSelected, !item.disabled);
+  const showIndentGuide = Boolean(item.showIndentGuide);
 
   const handleRootMouseLeave = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -251,7 +252,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
       {...rootProps}
       {...dragHandlers}
       ref={ref}
-      className={`${rootProps.className ?? ""} ${item.dragPayload ? "cursor-grab active:cursor-grabbing" : ""}`}
+      className={`${rootProps.className ?? ""} ${showIndentGuide ? "relative pl-4" : ""} ${item.dragPayload ? "cursor-grab active:cursor-grabbing" : ""}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={handleRootMouseLeave}
       onContextMenu={(event: React.MouseEvent) =>
@@ -259,6 +260,9 @@ export const NavigationMenuLeafRow = React.forwardRef<
       }
     >
       {dragState && <ReferenceDragGhost dragState={dragState} />}
+      {showIndentGuide && (
+        <span className="pointer-events-none absolute bottom-1 left-2 top-1 w-px rounded-full bg-border-2" />
+      )}
       <div
         data-testid={item.dataTestId}
         className={`group flex ${rowHeightClass} items-center justify-between overflow-hidden rounded-lg transition-colors duration-150 ${
