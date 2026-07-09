@@ -326,7 +326,7 @@ fn render_system_blocks(
             "text": part.text,
         });
         if Some(index) == last_cacheable_index {
-            block["cache_control"] = serde_json::json!({ "type": "ephemeral" });
+            block["cache_control"] = serde_json::json!({ "type": "ephemeral", "ttl": "1h" });
         }
         blocks.push(block);
     }
@@ -358,7 +358,7 @@ fn stamp_trailing_cache_control(messages: &mut [Value]) {
             if let Some(obj) = block.as_object_mut() {
                 obj.insert(
                     "cache_control".to_string(),
-                    serde_json::json!({ "type": "ephemeral" }),
+                    serde_json::json!({ "type": "ephemeral", "ttl": "1h" }),
                 );
             }
             return;

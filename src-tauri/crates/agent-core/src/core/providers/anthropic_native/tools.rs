@@ -73,7 +73,7 @@ fn stamp_cache_control(tool: &mut Value) {
     if let Some(obj) = tool.as_object_mut() {
         obj.insert(
             "cache_control".to_string(),
-            serde_json::json!({ "type": "ephemeral" }),
+            serde_json::json!({ "type": "ephemeral", "ttl": "1h" }),
         );
     }
 }

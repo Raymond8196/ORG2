@@ -129,6 +129,9 @@ pub(super) fn prepare_request(
 }
 
 const PROMPT_CACHING_BETA: &str = "prompt-caching-2024-07-31";
+/// Required for `cache_control.ttl: "1h"` breakpoints (extended prompt
+/// cache TTL); without this beta the API rejects the ttl field.
+const EXTENDED_CACHE_TTL_BETA: &str = "extended-cache-ttl-2025-04-11";
 const CLAUDE_CODE_BETA: &str = "claude-code-20250219";
 const CLAUDE_OAUTH_BETA: &str = "oauth-2025-04-20";
 const INTERLEAVED_THINKING_BETA: &str = "interleaved-thinking-2025-05-14";
@@ -232,7 +235,7 @@ pub(super) fn apply_headers(
             if !beta_overridden {
                 req = req.header(
                     "anthropic-beta",
-                    beta_header_value(&[PROMPT_CACHING_BETA], effort),
+                    beta_header_value(&[PROMPT_CACHING_BETA, EXTENDED_CACHE_TTL_BETA], effort),
                 );
             }
             req
@@ -245,7 +248,7 @@ pub(super) fn apply_headers(
             if !beta_overridden {
                 req = req.header(
                     "anthropic-beta",
-                    beta_header_value(&[PROMPT_CACHING_BETA], effort),
+                    beta_header_value(&[PROMPT_CACHING_BETA, EXTENDED_CACHE_TTL_BETA], effort),
                 );
             }
             req
@@ -268,6 +271,7 @@ pub(super) fn apply_headers(
                             CLAUDE_OAUTH_BETA,
                             INTERLEAVED_THINKING_BETA,
                             TOOL_STREAMING_BETA,
+                            EXTENDED_CACHE_TTL_BETA,
                         ],
                         effort,
                     ),
