@@ -435,7 +435,6 @@
         "interactionAskQuestion": "提问",
         "interactionAskPermission": "权限请求",
         "interactionModeSwitch": "模式切换",
-        "interactionNextSteps": "下一步建议",
         "interactionPlanDoc": "Plan 文档",
         "interactionGeneric": "交互"
       },
@@ -1451,9 +1450,6 @@
     "toolSearchRunning": "正在搜索工具",
     "toolSearchDone": "搜索工具",
     "toolSearchFailed": "工具搜索失败",
-    "suggestNextStepsRunning": "正在生成后续步骤",
-    "suggestNextStepsDone": "生成 {{count}} 条后续步骤",
-    "suggestNextStepsFailed": "无法生成后续步骤",
     "agentSendMessageRunning": "正在向队友 Agent 发送消息",
     "agentSendMessageDone": "向队友 Agent 发送消息",
     "agentSendMessageFailed": "向队友 Agent 发送消息失败",

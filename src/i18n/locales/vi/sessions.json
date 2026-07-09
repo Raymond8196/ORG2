@@ -406,7 +406,6 @@
         "interactionAskQuestion": "Câu hỏi",
         "interactionAskPermission": "Yêu cầu quyền",
         "interactionModeSwitch": "Chuyển chế độ",
-        "interactionNextSteps": "Các bước tiếp theo",
         "interactionPlanDoc": "Tài liệu Plan",
         "interactionGeneric": "Tương tác"
       },
@@ -1420,9 +1419,6 @@
     "toolSearchRunning": "Đang tìm kiếm công cụ",
     "toolSearchDone": "Đã tìm kiếm công cụ",
     "toolSearchFailed": "Tìm kiếm công cụ thất bại",
-    "suggestNextStepsRunning": "Đang đề xuất các bước tiếp theo",
-    "suggestNextStepsDone": "Đã đề xuất {{count}} bước tiếp theo",
-    "suggestNextStepsFailed": "Không thể đề xuất các bước tiếp theo",
     "agentSendMessageRunning": "Đang gửi tin nhắn tới Agent đồng đội",
     "agentSendMessageDone": "Đã gửi tin nhắn tới Agent đồng đội",
     "agentSendMessageFailed": "Không thể gửi tin nhắn tới Agent đồng đội",

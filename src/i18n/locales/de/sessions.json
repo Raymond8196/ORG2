@@ -406,7 +406,6 @@
         "interactionAskQuestion": "Frage",
         "interactionAskPermission": "Berechtigungsanfrage",
         "interactionModeSwitch": "Moduswechsel",
-        "interactionNextSteps": "Nächste Schritte",
         "interactionPlanDoc": "Plan-Dokument",
         "interactionGeneric": "Interaktion"
       },
@@ -1420,9 +1419,6 @@
     "toolSearchRunning": "Tools werden gesucht",
     "toolSearchDone": "Tools durchsucht",
     "toolSearchFailed": "Tool-Suche fehlgeschlagen",
-    "suggestNextStepsRunning": "Nächste Schritte werden vorgeschlagen",
-    "suggestNextStepsDone": "{{count}} nächste Schritte vorgeschlagen",
-    "suggestNextStepsFailed": "Nächste Schritte konnten nicht vorgeschlagen werden",
     "agentSendMessageRunning": "Nachricht wird an Team-Agent gesendet",
     "agentSendMessageDone": "Nachricht an Team-Agent gesendet",
     "agentSendMessageFailed": "Nachricht an Team-Agent konnte nicht gesendet werden",

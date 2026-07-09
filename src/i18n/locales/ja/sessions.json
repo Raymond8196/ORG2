@@ -408,7 +408,6 @@
         "interactionAskQuestion": "質問",
         "interactionAskPermission": "権限リクエスト",
         "interactionModeSwitch": "モード切替",
-        "interactionNextSteps": "次のステップ",
         "interactionPlanDoc": "Plan ドキュメント",
         "interactionGeneric": "インタラクション"
       },
@@ -1426,9 +1425,6 @@
     "toolSearchRunning": "ツールを検索中",
     "toolSearchDone": "ツールを検索しました",
     "toolSearchFailed": "ツール検索に失敗",
-    "suggestNextStepsRunning": "次のステップを提案中",
-    "suggestNextStepsDone": "{{count}} 件の次のステップを提案しました",
-    "suggestNextStepsFailed": "次のステップを提案できませんでした",
     "agentSendMessageRunning": "チーム Agent にメッセージを送信中",
     "agentSendMessageDone": "チーム Agent にメッセージを送信しました",
     "agentSendMessageFailed": "チーム Agent へのメッセージ送信に失敗しました",
