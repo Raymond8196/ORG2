@@ -107,6 +107,7 @@
     "retry": "重试",
     "regenerate": "重新生成",
     "refresh": "刷新",
+    "rescan": "重新扫描",
     "reload": "重新加载",
     "reviewNextFile": "审查下一个文件",
     "reviewPreviousFile": "审查上一个文件",

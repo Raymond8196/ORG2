@@ -107,6 +107,7 @@
     "retry": "재시도",
     "regenerate": "다시 생성",
     "refresh": "새로고침",
+    "rescan": "다시 스캔",
     "reload": "다시 로드",
     "reviewNextFile": "다음 파일 검토",
     "reviewPreviousFile": "이전 파일 검토",
