@@ -2592,7 +2592,10 @@
   },
   "cliLaunchProfiles": {
     "title": "실행 프로필",
+    "plain": "기본",
+    "plan": "계획",
     "fullPermission": "전체 권한",
+    "autoEdit": "자동 편집",
     "manual": "수동",
     "command": "명령",
     "environment": "환경 변수",
