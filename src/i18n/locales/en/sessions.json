@@ -1062,7 +1062,8 @@
       "Still thinking, taking longer than usual...",
       "Working on it, taking longer than usual...",
       "Thinking it through, taking longer than usual..."
-    ]
+    ],
+    "compacting": "Compacting context..."
   },
   "tools": {
     "noResultsFound": "No results found",

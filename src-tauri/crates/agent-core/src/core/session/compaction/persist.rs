@@ -49,12 +49,21 @@ pub(crate) fn split_summary_and_tail(durable_compacted_messages: &[Value]) -> (S
     }
 }
 
+/// Durable identity of a freshly appended compact boundary row, so callers
+/// can push the matching chat event to the frontend without a full session
+/// reload (the load path dedups on `id`).
+pub(crate) struct AppendedCompactBoundary {
+    pub id: String,
+    pub summary: String,
+    pub created_at: String,
+}
+
 /// Appends an in-place compact boundary for an app-side session.
 pub(crate) fn append_in_place_compact_boundary(
     session_id: &str,
     durable_compacted_messages: &[Value],
     token_delta: Option<(usize, usize)>,
-) -> Result<usize, String> {
+) -> Result<AppendedCompactBoundary, String> {
     let (summary_text, tail_len) = split_summary_and_tail(durable_compacted_messages);
     let cutoff = unified_persistence::compact_cutoff_sequence(session_id, tail_len)
         .map_err(|err| err.to_string())?;
@@ -62,7 +71,7 @@ pub(crate) fn append_in_place_compact_boundary(
         Some((before, after)) => (Some(before as i64), Some(after as i64)),
         None => (None, None),
     };
-    unified_persistence::append_compact_boundary(
+    let (id, created_at) = unified_persistence::append_compact_boundary(
         session_id,
         &summary_text,
         cutoff,
@@ -70,7 +79,11 @@ pub(crate) fn append_in_place_compact_boundary(
         tokens_after,
     )
     .map_err(|err| err.to_string())?;
-    Ok(tail_len)
+    Ok(AppendedCompactBoundary {
+        id,
+        summary: summary_text,
+        created_at,
+    })
 }
 
 /// Keep session-memory content but clear its pre-compaction message index.

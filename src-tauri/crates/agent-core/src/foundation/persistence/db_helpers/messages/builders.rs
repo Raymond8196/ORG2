@@ -45,7 +45,8 @@ pub fn save_compact_boundary_msg(
     from_sequence: i64,
     tokens_before: Option<i64>,
     tokens_after: Option<i64>,
-) -> SqliteResult<String> {
+) -> SqliteResult<(String, String)> {
+    let created_at = Utc::now().to_rfc3339();
     let msg = AgentMessageRow {
         id: Uuid::new_v4().to_string(),
         session_id: session_id.to_string(),
@@ -57,13 +58,14 @@ pub fn save_compact_boundary_msg(
         tool_output: None,
         model: None,
         sequence: 0,
-        created_at: Utc::now().to_rfc3339(),
+        created_at: created_at.clone(),
         images: None,
         compact_from_sequence: Some(from_sequence),
         compact_tokens_before: tokens_before,
         compact_tokens_after: tokens_after,
     };
-    insert_message_retry(prefix, &msg)
+    let id = insert_message_retry(prefix, &msg)?;
+    Ok((id, created_at))
 }
 
 /// Save a user message, optionally with images.

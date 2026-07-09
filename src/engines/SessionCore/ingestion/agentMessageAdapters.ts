@@ -202,7 +202,7 @@ export function parseCompactBoundaryContent(
  * (`es_merge_tool_results`, event store), whose `EventDisplayVariant` serde
  * enum rejects unknown variants. Component routing happens via `uiCanonical`.
  */
-function compactBoundaryToSessionEvent(
+export function compactBoundaryToSessionEvent(
   msg: PersistedMessage,
   sessionId: string
 ): SessionEvent {

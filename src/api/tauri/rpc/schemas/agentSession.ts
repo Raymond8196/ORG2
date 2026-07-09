@@ -78,6 +78,13 @@ export const ManualCompactResultSchema = z.object({
   messagesAfter: z.number().optional(),
   tokensBefore: z.number().optional(),
   tokensAfter: z.number().optional(),
+  boundary: z
+    .object({
+      id: z.string(),
+      content: z.string(),
+      createdAt: z.string(),
+    })
+    .optional(),
 }) as z.ZodType<ManualCompactResult, ManualCompactResult>;
 
 export const SessionMessageSchema = z

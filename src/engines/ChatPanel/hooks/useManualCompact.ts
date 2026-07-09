@@ -18,6 +18,7 @@ import { manualCompactSession } from "@src/api/tauri/agent/session";
 import { Message } from "@src/components/Message";
 import { triggerSessionReloadAtom } from "@src/engines/SessionCore";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
+import { compactBoundaryToSessionEvent } from "@src/engines/SessionCore/ingestion/agentMessageAdapters";
 
 import { formatTokenCount } from "../InputArea/components/useContextUsageInfo";
 
@@ -92,8 +93,40 @@ export function useManualCompact(): UseManualCompactReturn {
 
         switch (result.status) {
           case "compacted":
-            await eventStoreProxy.evictSession(sessionId);
-            store.set(triggerSessionReloadAtom, sessionId);
+            // Append the boundary marker in place. The load path dedups on
+            // the row id, so the next full hydrate won't duplicate it. Only
+            // fall back to evict + reload (which flashes the whole history)
+            // when the backend didn't return the persisted row.
+            if (result.boundary) {
+              await eventStoreProxy.append(
+                [
+                  compactBoundaryToSessionEvent(
+                    {
+                      id: result.boundary.id,
+                      sessionId,
+                      role: "system",
+                      content: result.boundary.content,
+                      toolName: null,
+                      toolCallId: null,
+                      toolInput: null,
+                      toolOutput: null,
+                      model: null,
+                      sequence: 0,
+                      createdAt: result.boundary.createdAt,
+                      images: null,
+                      compactFromSequence: 0,
+                      compactTokensBefore: result.tokensBefore ?? null,
+                      compactTokensAfter: result.tokensAfter ?? null,
+                    },
+                    sessionId
+                  ),
+                ],
+                sessionId
+              );
+            } else {
+              await eventStoreProxy.evictSession(sessionId);
+              store.set(triggerSessionReloadAtom, sessionId);
+            }
             Message.success(
               t("contextInfo.manualCompactSuccess", {
                 messagesBefore: result.messagesBefore ?? 0,
