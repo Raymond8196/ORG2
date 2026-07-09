@@ -36,6 +36,7 @@ import { clearSessionAtom } from "@src/engines/SessionCore/core/atoms/actions";
 import {
   loadStatusAtom,
   sessionIdAtom,
+  triggerSessionReloadAtom,
 } from "@src/engines/SessionCore/core/atoms/metadata";
 import {
   registerLiveSubagentSignalAtom,
@@ -249,6 +250,7 @@ export const jumpToSessionAtom = atom(
   (get, set, payload: JumpToSessionPayload) => {
     const isRich = payload !== null && typeof payload === "object";
     const sessionId = isRich ? payload.sessionId : payload;
+    const previousPipelineSessionId = get(activeSessionIdAtom);
 
     set(clearSessionAtom);
     set(loadStatusAtom, sessionId ? "loading" : "idle");
@@ -264,6 +266,9 @@ export const jumpToSessionAtom = atom(
       repoPath: isRich ? payload.repoPath : current.repoPath,
     });
     set(activeSessionIdAtom, sessionId);
+    if (sessionId && previousPipelineSessionId === sessionId) {
+      set(triggerSessionReloadAtom, sessionId);
+    }
     if (sessionId) {
       // Clear "unread" badge: the user has now opened this session.
       markSessionVisited(sessionId);

@@ -51,6 +51,8 @@ async function loadAtoms() {
   const mod = await import("../viewAtom");
   const repoAtoms = await import("@src/store/repo/atoms");
   const repoDerived = await import("@src/store/repo/derived");
+  const sessionCoreMetadata =
+    await import("@src/engines/SessionCore/core/atoms/metadata");
   const sessionAtoms = await import("@src/store/session/sessionAtom/atoms");
   const workspaceAtoms = await import("@src/store/ui/workspaceFoldersAtom");
   return {
@@ -60,6 +62,7 @@ async function loadAtoms() {
     jumpToSessionAtom: mod.jumpToSessionAtom,
     openSessionAtom: mod.openSessionAtom,
     closeSessionAtom: mod.closeSessionAtom,
+    sessionReloadEpochMapAtom: sessionCoreMetadata.sessionReloadEpochMapAtom,
     reposAtom: repoAtoms.reposAtom,
     selectedRepoIdAtom: repoAtoms.selectedRepoIdAtom,
     lastUsedRepoAtom: repoAtoms.lastUsedRepoAtom,
@@ -142,6 +145,22 @@ describe("jumpToSessionAtom", () => {
 
     expect(store.get(workstationActiveSessionIdAtom)).toBe("osagent-target");
     expect(store.get(activeSessionIdAtom)).toBe("osagent-target");
+  });
+
+  it("bumps reload epoch when jumping to the already-active pipeline session", async () => {
+    const {
+      jumpToSessionAtom,
+      activeSessionIdAtom,
+      sessionReloadEpochMapAtom,
+    } = await loadAtoms();
+    const store = createStore();
+
+    store.set(activeSessionIdAtom, "osagent-current");
+
+    store.set(jumpToSessionAtom, "osagent-current");
+
+    expect(store.get(activeSessionIdAtom)).toBe("osagent-current");
+    expect(store.get(sessionReloadEpochMapAtom).get("osagent-current")).toBe(1);
   });
 
   it("clears both atoms when jumping to null", async () => {
