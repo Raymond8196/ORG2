@@ -146,6 +146,18 @@ function extractSubCommandExecutables(commandText: string): string[] {
         continue;
       }
       if (ch === "&") {
+        // A bare `&` backgrounds a job, but `&` also appears inside
+        // redirections (`2>&1`, `>&2`, `&>file`, `&>>file`) where it must
+        // NOT start a new sub-command — otherwise the digit after it (e.g.
+        // the `1` in `2>&1`) is mis-captured as an executable.
+        const prev = line[i - 1];
+        const next = line[i + 1];
+        const isRedirection = prev === ">" || next === ">";
+        if (isRedirection) {
+          if (expectingExecutable) currentToken += ch;
+          sawNonWhitespace = true;
+          continue;
+        }
         startNewSubCommand();
         continue;
       }
