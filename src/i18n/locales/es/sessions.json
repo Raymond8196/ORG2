@@ -669,7 +669,8 @@
       "empty": "No se encontraron acciones.",
       "unpinAll": "Desfijar todo",
       "insert": "Insertar"
-    }
+    },
+    "compactArgHint": "<enfoque opcional para el resumen>"
   },
   "listPanel": {
     "showingOf": "Mostrando {{filtered}} de {{total}}",
@@ -1882,7 +1883,8 @@
       "models": "Modelos",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Comandos"
     },
     "diffMenu": {
       "gitActions": "Acciones GIT",
@@ -2291,7 +2293,8 @@
       "Aún pensándolo, tardando más de lo habitual...",
       "Trabajando en ello, tardando más de lo habitual...",
       "Decidiendo el siguiente paso, tardando más de lo habitual..."
-    ]
+    ],
+    "compacting": "Compactando contexto..."
   },
   "revertConfirm": {
     "title": "Cambios de archivo no guardados",

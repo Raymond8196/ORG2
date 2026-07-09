@@ -1969,7 +1969,22 @@
     "warningHint": "Der Kontext füllt sich. Starten Sie bald eine neue Sitzung für bessere Ergebnisse.",
     "dangerHint": "Der Kontext ist fast voll. Starten Sie eine neue Sitzung, um Detailverlust zu vermeiden.",
     "autoCompactNote": "Kontext wird bald zusammengefasst",
-    "startNewSession": "Neue Sitzung starten"
+    "startNewSession": "Neue Sitzung starten",
+    "compactBoundaryTitle": "Kontext komprimiert",
+    "compactBoundarySubtitle_one": "{{count}} frühere Nachricht zusammengefasst",
+    "compactBoundarySubtitle_other": "{{count}} frühere Nachrichten zusammengefasst",
+    "compactBoundaryTokens": "{{before}} → {{after}} Tokens",
+    "manualCompactAction": "Komprimieren",
+    "manualCompactRunning": "Komprimiert",
+    "manualCompactInProgress": "Kontext wird komprimiert — bitte warten, bevor du sendest",
+    "manualCompactSuccess": "Komprimiert: {{messagesBefore}} → {{messagesAfter}} Nachrichten, {{tokensBefore}} → {{tokensAfter}} Tokens",
+    "manualCompactTooShort": "Inhalt ist kurz; keine Komprimierung nötig",
+    "manualCompactAlreadyCompact": "Kein neuer komprimierbarer Inhalt",
+    "manualCompactBusy": "Sitzung läuft. Komprimiere nach Abschluss",
+    "manualCompactNoRuntime": "Sende zuerst eine Nachricht, bevor du komprimierst",
+    "manualCompactFailed": "Komprimierung fehlgeschlagen: {{message}}",
+    "manualCompactChannelAttached": "Diese Sitzung wird von einem Channel verwaltet — nutze dort /compact",
+    "manualCompactInstructionsPlaceholder": "Optional: worauf die Zusammenfassung fokussieren soll"
   },
   "relativeDate": {
     "today": "Heute",

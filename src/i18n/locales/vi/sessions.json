@@ -669,7 +669,8 @@
       "empty": "Không tìm thấy hành động.",
       "unpinAll": "Bỏ ghim tất cả",
       "insert": "Chèn"
-    }
+    },
+    "compactArgHint": "<trọng tâm tóm tắt (tùy chọn)>"
   },
   "listPanel": {
     "showingOf": "Hiển thị {{filtered}} / {{total}}",
@@ -1882,7 +1883,8 @@
       "models": "Mô hình",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Lệnh"
     },
     "diffMenu": {
       "gitActions": "Hành động GIT",
@@ -2291,7 +2293,8 @@
       "Vẫn đang suy nghĩ, lâu hơn bình thường...",
       "Đang xử lý, lâu hơn bình thường...",
       "Đang cân nhắc bước tiếp theo, lâu hơn bình thường..."
-    ]
+    ],
+    "compacting": "Đang nén ngữ cảnh..."
   },
   "revertConfirm": {
     "title": "Thay đổi tệp chưa được lưu",

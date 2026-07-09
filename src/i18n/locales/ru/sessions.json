@@ -671,7 +671,8 @@
       "empty": "Действия не найдены.",
       "unpinAll": "Открепить все",
       "insert": "Вставить"
-    }
+    },
+    "compactArgHint": "<необязательный фокус резюме>"
   },
   "listPanel": {
     "showingOf": "Показано {{filtered}} из {{total}}",
@@ -1895,7 +1896,8 @@
       "models": "Модели",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Команды"
     },
     "diffMenu": {
       "gitActions": "Действия GIT",
@@ -2305,7 +2307,8 @@
       "Всё ещё обдумываем, занимает больше времени, чем обычно...",
       "Работаем над этим, занимает больше времени, чем обычно...",
       "Решаем, что делать дальше, занимает больше времени, чем обычно..."
-    ]
+    ],
+    "compacting": "Сжатие контекста..."
   },
   "revertConfirm": {
     "title": "Несохранённые изменения файлов",
