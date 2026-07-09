@@ -108,6 +108,7 @@
     "retry": "Retry",
     "regenerate": "Regenerate",
     "refresh": "Refresh",
+    "rescan": "Rescan",
     "reload": "Reload",
     "reviewNextFile": "Review Next File",
     "reviewPreviousFile": "Review Previous File",
