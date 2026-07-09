@@ -1336,6 +1336,7 @@
     "modelProperties": {
       "options": "Options",
       "effort": "Effort",
+      "default": "Default",
       "faster": "Faster",
       "smarter": "Smarter"
     },
@@ -2086,7 +2087,22 @@
     "cacheHero": "{{pct}}% served from cache · ~{{tokens}} reused this turn",
     "cacheHeroSub": "Prompt caching cuts the cost of the reused prefix to roughly 1/10.",
     "headroom": "{{tokens}} of room left",
-    "autoCompactNote": "Context will be summarized soon"
+    "autoCompactNote": "Context will be summarized soon",
+    "compactBoundaryTitle": "Context compacted",
+    "compactBoundarySubtitle_one": "{{count}} earlier message summarized",
+    "compactBoundaryTokens": "{{before}} → {{after}} tokens",
+    "compactBoundarySubtitle_other": "{{count}} earlier messages summarized",
+    "manualCompactAction": "Compact",
+    "manualCompactRunning": "Compacting",
+    "manualCompactInProgress": "Compacting context — wait for it to finish before sending",
+    "manualCompactSuccess": "Compacted: {{messagesBefore}} → {{messagesAfter}} messages, {{tokensBefore}} → {{tokensAfter}} tokens",
+    "manualCompactTooShort": "Content is short; no compaction needed",
+    "manualCompactAlreadyCompact": "No new compactable content",
+    "manualCompactBusy": "Session is running. Compact after it finishes",
+    "manualCompactNoRuntime": "Send a message before compacting",
+    "manualCompactFailed": "Compaction failed: {{message}}",
+    "manualCompactChannelAttached": "This session is managed by a channel — use /compact there",
+    "manualCompactInstructionsPlaceholder": "Optional: what to focus on when summarizing"
   },
   "relativeDate": {
     "today": "Today",
