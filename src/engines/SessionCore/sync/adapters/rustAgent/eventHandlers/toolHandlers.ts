@@ -4,8 +4,12 @@
  * Handlers for tool_call, tool_result, and interaction finalization events.
  * Shell process / exec-output handlers live in shellHandlers.ts.
  */
+import { switchModeForSession } from "@src/engines/ChatPanel/InputArea/ModeSwitchCard/useModeSwitchActions";
 import { openInSimulatorCanvas } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/openInSimulatorCanvas";
-import type { CanvasInlineMode } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
+import type {
+  CanvasInlineMode,
+  CanvasInlinePayload,
+} from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { createLogger } from "@src/hooks/logger";
 import { clearMcpProgressForCallAtom } from "@src/store/session/mcpProgressAtom";
@@ -22,6 +26,17 @@ import { clearStreamingInfo, getToolCallId } from "./streamHelpers";
 import type { EventHandlerContext } from "./types";
 
 const log = createLogger("ToolHandlers");
+
+function isAutoModeSwitchAccept(
+  tool: string | undefined,
+  resultObject: Record<string, unknown>
+): boolean {
+  return (
+    tool === "suggest_mode_switch" &&
+    resultObject.choice === "switch" &&
+    resultObject.auto === "timeout"
+  );
+}
 
 export function handleToolCall(
   event: AgentWSEvent,
@@ -192,15 +207,6 @@ function isCanvasInlineMode(value: unknown): value is CanvasInlineMode {
   );
 }
 
-interface CanvasInlineDispatchPayload {
-  mode: CanvasInlineMode;
-  content?: string;
-  url?: string;
-  title?: string;
-  streaming?: boolean;
-  eventId?: string;
-}
-
 /**
  * Dispatch a canvas-inline-event from a `render_inline_canvas` tool_call's
  * args object. Reading from args (not the tool_result string) guarantees the
@@ -213,7 +219,7 @@ function dispatchCanvasInlineEventFromArgs(
   toolCallId: string
 ): void {
   const mode = isCanvasInlineMode(args.mode) ? args.mode : "html";
-  const payload: CanvasInlineDispatchPayload = {
+  const payload: CanvasInlinePayload = {
     mode,
     content: typeof args.content === "string" ? args.content : undefined,
     url: typeof args.url === "string" ? args.url : undefined,
@@ -263,6 +269,18 @@ export async function handleInteractionFinalized(
     ...resultObject,
   };
   await eventStoreProxy.mergeEvents([resultEvent], sessionId);
+
+  if (isAutoModeSwitchAccept(event.tool, resultObject)) {
+    const targetMode =
+      typeof resultObject.targetMode === "string"
+        ? resultObject.targetMode
+        : "plan";
+    await switchModeForSession(
+      sessionId,
+      `tool-call-${toolCallId}`,
+      targetMode
+    );
+  }
 }
 
 export {

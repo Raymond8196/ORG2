@@ -21,6 +21,7 @@ import { extractFileData } from "./fileExtractors";
 
 const HUNK_HEADER_REGEX = /^@@\s+-(\d+)(?:,\d+)?\s+\+(\d+)(?:,\d+)?\s+@@/m;
 const DIFF_CODE_FENCE_REGEX = /```diff\s*\n([\s\S]*?)\n```/;
+const HUNK_MARKER_REGEX = /^@@/;
 
 interface DiffLineMeta {
   oldStartLine?: number;
@@ -47,6 +48,25 @@ function parseDiffLineMeta(diff: string | undefined): DiffLineMeta {
 // Main extractor
 // ============================================
 
+function patchTextFromArgs(
+  args: UniversalEventProps["args"]
+): string | undefined {
+  if (typeof args?.patch_text === "string") return args.patch_text;
+  if (typeof args?.patch === "string") return args.patch;
+  if (typeof args?.input === "string") return args.input;
+  return undefined;
+}
+
+function isPatchPlaceholder(edit: ExtractedEditData): boolean {
+  const filePath = edit.filePath.trim();
+  const fileName = edit.fileName.trim();
+  return (
+    !edit.applyPatchSegments?.length &&
+    (!filePath || filePath === "patch") &&
+    (!fileName || fileName === "patch")
+  );
+}
+
 export function extractEditData(props: UniversalEventProps): ExtractedEditData {
   if (props.rustExtracted?.kind === "edit") {
     const rust = props.rustExtracted;
@@ -69,7 +89,7 @@ export function extractEditData(props: UniversalEventProps): ExtractedEditData {
             isDeleted: seg.isDeleted || undefined,
           }))
         : undefined;
-    return {
+    const editData = {
       filePath: rust.filePath,
       fileName: rust.fileName,
       content: rust.content,
@@ -85,12 +105,18 @@ export function extractEditData(props: UniversalEventProps): ExtractedEditData {
       isDeleted: rust.isDeleted || undefined,
       applyPatchSegments,
     };
+    const patchText = patchTextFromArgs(props.args);
+    if (patchText && isPatchPlaceholder(editData)) {
+      return extractApplyPatchData(patchText, props.result);
+    }
+    return editData;
   }
 
   const { args, result } = props;
 
-  if (args?.patch_text && typeof args.patch_text === "string") {
-    return extractApplyPatchData(args.patch_text as string, result);
+  const patchText = patchTextFromArgs(args);
+  if (patchText) {
+    return extractApplyPatchData(patchText, result);
   }
 
   const fileData = extractFileData(props);
@@ -176,9 +202,20 @@ function extractApplyPatchData(
   const firstPath = parsed.filePaths.length > 0 ? parsed.filePaths[0] : "";
   const rawFileName = getFileName(firstPath) || "patch";
 
-  const applyPatchSegments = splitCombinedDiffIntoSegments(parsed.diff);
+  const applyPatchSegments = splitCombinedDiffIntoSegments(parsed.diff).map(
+    (segment) =>
+      parsed.hasExplicitHunkHeaders
+        ? segment
+        : {
+            ...segment,
+            oldStartLine: undefined,
+            newStartLine: undefined,
+          }
+  );
 
-  const diffMeta = parseDiffLineMeta(parsed.diff);
+  const diffMeta = parsed.hasExplicitHunkHeaders
+    ? parseDiffLineMeta(parsed.diff)
+    : {};
 
   return {
     filePath: firstPath,
@@ -194,7 +231,7 @@ function extractApplyPatchData(
     linesAdded: parsed.linesAdded,
     linesRemoved: parsed.linesRemoved,
     applyPatchSegments:
-      applyPatchSegments.length > 1 ? applyPatchSegments : undefined,
+      applyPatchSegments.length > 0 ? applyPatchSegments : undefined,
   };
 }
 
@@ -330,6 +367,7 @@ function patchSegmentToExtractedEdit(
     linesAdded: number;
     linesRemoved: number;
     isDeleted: boolean;
+    hasExplicitHunkHeader?: boolean;
   },
   resultSummary: string | undefined,
   segmentIndex: number,
@@ -353,7 +391,10 @@ function patchSegmentToExtractedEdit(
   const detectedLang = detectLanguage(rawFileName);
   const language = detectedLang === "plaintext" ? "diff" : detectedLang;
 
-  const diffMeta = parseDiffLineMeta(segment.diff);
+  const diffMeta =
+    segment.hasExplicitHunkHeader === false
+      ? {}
+      : parseDiffLineMeta(segment.diff);
 
   return {
     filePath: segment.filePath,
@@ -383,6 +424,7 @@ interface SyncPatchResult {
   filePaths: string[];
   linesAdded: number;
   linesRemoved: number;
+  hasExplicitHunkHeaders: boolean;
 }
 
 const MAX_PATCH_CACHE = 50;
@@ -403,30 +445,48 @@ function convertPatchToUnifiedDiffSync(patchText: string): SyncPatchResult {
   const filePaths: string[] = [];
   let currentFile = "";
   let isAddFile = false;
+  let isDeleteFile = false;
   let sectionLines: string[] = [];
   let totalAdded = 0;
   let totalRemoved = 0;
+  let hasExplicitHunkHeaders = false;
 
   const flushSection = () => {
-    if (!currentFile || sectionLines.length === 0) return;
-    if (isAddFile) {
+    if (!currentFile || (sectionLines.length === 0 && !isDeleteFile)) return;
+    const bodyLines = sectionLines.filter(
+      (line) => !HUNK_MARKER_REGEX.test(line)
+    );
+    const hasExplicitHunkHeader = sectionLines.some((line) =>
+      HUNK_HEADER_REGEX.test(line)
+    );
+    hasExplicitHunkHeaders ||= isAddFile || hasExplicitHunkHeader;
+    if (isDeleteFile) {
+      diffLines.push(`--- ${currentFile}`);
+      diffLines.push("+++ /dev/null");
+      diffLines.push(`@@ -1,${sectionLines.length} +0,0 @@`);
+    } else if (isAddFile) {
       diffLines.push("--- /dev/null");
       diffLines.push(`+++ ${currentFile}`);
-      diffLines.push(`@@ -0,0 +1,${sectionLines.length} @@`);
+      diffLines.push(`@@ -0,0 +1,${bodyLines.length} @@`);
     } else {
       diffLines.push(`--- ${currentFile}`);
       diffLines.push(`+++ ${currentFile}`);
-      let added = 0;
-      let removed = 0;
-      let context = 0;
-      for (const sl of sectionLines) {
-        if (sl.startsWith("+")) added++;
-        else if (sl.startsWith("-")) removed++;
-        else context++;
+      if (!hasExplicitHunkHeader) {
+        let added = 0;
+        let removed = 0;
+        let context = 0;
+        for (const sl of bodyLines) {
+          if (sl.startsWith("+")) added++;
+          else if (sl.startsWith("-")) removed++;
+          else context++;
+        }
+        diffLines.push(`@@ -1,${removed + context} +1,${added + context} @@`);
       }
-      diffLines.push(`@@ -1,${removed + context} +1,${added + context} @@`);
     }
     for (const sl of sectionLines) {
+      if (HUNK_MARKER_REGEX.test(sl) && !HUNK_HEADER_REGEX.test(sl)) {
+        continue;
+      }
       if (sl.startsWith("+")) totalAdded++;
       else if (sl.startsWith("-")) totalRemoved++;
       diffLines.push(sl);
@@ -436,14 +496,18 @@ function convertPatchToUnifiedDiffSync(patchText: string): SyncPatchResult {
 
   for (const line of lines) {
     const addMatch = line.match(/^\*\*\*\s+Add\s+File:\s+(.+)/);
-    const modifyMatch = line.match(/^\*\*\*\s+Modify\s+File:\s+(.+)/);
+    const modifyMatch = line.match(
+      /^\*\*\*\s+(?:Modify|Update)\s+File:\s+(.+)/
+    );
     const deleteMatch = line.match(/^\*\*\*\s+Delete\s+File:\s+(.+)/);
+    const moveMatch = line.match(/^\*\*\*\s+Move\s+to:\s+(.+)/);
 
     if (addMatch) {
       flushSection();
       currentFile = addMatch[1].trim();
       filePaths.push(currentFile);
       isAddFile = true;
+      isDeleteFile = false;
       continue;
     }
     if (modifyMatch) {
@@ -451,16 +515,23 @@ function convertPatchToUnifiedDiffSync(patchText: string): SyncPatchResult {
       currentFile = modifyMatch[1].trim();
       filePaths.push(currentFile);
       isAddFile = false;
+      isDeleteFile = false;
       continue;
     }
     if (deleteMatch) {
       flushSection();
-      const deletedFile = deleteMatch[1].trim();
-      filePaths.push(deletedFile);
-      diffLines.push(`--- ${deletedFile}`);
-      diffLines.push("+++ /dev/null");
-      diffLines.push("@@ -1,0 +0,0 @@ deleted");
-      currentFile = "";
+      currentFile = deleteMatch[1].trim();
+      filePaths.push(currentFile);
+      isAddFile = false;
+      isDeleteFile = true;
+      continue;
+    }
+    if (moveMatch) {
+      const movedFile = moveMatch[1].trim();
+      if (movedFile) {
+        currentFile = movedFile;
+        filePaths[filePaths.length - 1] = movedFile;
+      }
       continue;
     }
     if (
@@ -480,6 +551,7 @@ function convertPatchToUnifiedDiffSync(patchText: string): SyncPatchResult {
     filePaths,
     linesAdded: totalAdded,
     linesRemoved: totalRemoved,
+    hasExplicitHunkHeaders,
   };
   evictAndSet(patchCache, key, syncResult, MAX_PATCH_CACHE);
   return syncResult;

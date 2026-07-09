@@ -10,8 +10,11 @@ import {
   DROPDOWN_ITEM,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
-import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
-import { isIconProvider } from "@src/components/ModelIcon/config";
+import ModelIcon from "@src/components/ModelIcon";
+import {
+  type IconProvider,
+  getIconProviderFromType,
+} from "@src/components/ModelIcon/config";
 import SelectGhostTrigger from "@src/components/Select/SelectGhostTrigger";
 import type { AvailableCliAgent } from "@src/modules/MainApp/AgentOrgs/types";
 import { openAgentConfigInWorkStation } from "@src/util/ui/openAgentConfigInWorkStation";
@@ -20,14 +23,6 @@ interface CliAgentHeaderSwitcherProps {
   activeAgentName: string;
   fallbackDisplayName: string;
   cliAgents: AvailableCliAgent[];
-}
-
-function getAgentIconProvider(
-  iconProvider: string | undefined
-): IconProvider | undefined {
-  return iconProvider && isIconProvider(iconProvider)
-    ? iconProvider
-    : undefined;
 }
 
 function matchesCliQuery(agent: AvailableCliAgent, query: string): boolean {
@@ -45,6 +40,13 @@ function sortCliAgents(agents: AvailableCliAgent[]): AvailableCliAgent[] {
     }
     return agentA.displayName.localeCompare(agentB.displayName);
   });
+}
+
+function getCliAgentIconProvider(
+  agent?: AvailableCliAgent
+): IconProvider | undefined {
+  if (!agent) return undefined;
+  return getIconProviderFromType(agent.iconProvider);
 }
 
 export function CliAgentHeaderSwitcher({
@@ -116,7 +118,7 @@ export function CliAgentHeaderSwitcher({
             icon={
               <ModelIcon
                 agentType={agent.name}
-                provider={getAgentIconProvider(agent.iconProvider)}
+                provider={getCliAgentIconProvider(agent)}
                 size={DROPDOWN_ITEM.iconSize}
               />
             }
@@ -161,7 +163,7 @@ export function CliAgentHeaderSwitcher({
           <span className="flex min-w-0 items-center gap-1.5 truncate">
             <ModelIcon
               agentType={activeIconType}
-              provider={getAgentIconProvider(activeAgent?.iconProvider)}
+              provider={getCliAgentIconProvider(activeAgent)}
               size={14}
               className="shrink-0"
             />
