@@ -427,7 +427,7 @@ export function ChatPanelStartPage({
         {activeTab === START_PAGE_TAB.HEATMAP ? (
           <div className="flex flex-col gap-3">
             <StartPageHeatmap t={t} />
-            <StartPageQuotaGrid isWide={isChatPanelMaximized} />
+            <StartPageQuotaGrid />
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
