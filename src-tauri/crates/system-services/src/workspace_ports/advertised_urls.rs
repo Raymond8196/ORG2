@@ -33,9 +33,7 @@ impl AdvertisedUrlCache {
     }
 
     fn lookup(&self, folder_id: &str, port: u16) -> Option<AdvertisedUrlEntry> {
-        self.entries
-            .get(&Self::cache_key(folder_id, port))
-            .cloned()
+        self.entries.get(&Self::cache_key(folder_id, port)).cloned()
     }
 
     /// Store an advertised origin. Returns true when a new/changed entry was written.

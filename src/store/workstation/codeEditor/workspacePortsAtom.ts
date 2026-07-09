@@ -106,7 +106,7 @@ export function addressForPort(port: WorkspacePort): string {
       // Fall through to connect host.
     }
   }
-  return `${port.connectHost}:${port.port}`;
+  return `${formatHostForUrl(port.connectHost)}:${port.port}`;
 }
 
 export function browserUrlForPort(port: WorkspacePort): string {
@@ -116,7 +116,7 @@ export function browserUrlForPort(port: WorkspacePort): string {
       : `${port.advertisedUrl}/`;
   }
   const protocol = port.protocol === "https" ? "https" : "http";
-  return `${protocol}://${port.connectHost}:${port.port}/`;
+  return `${protocol}://${formatHostForUrl(port.connectHost)}:${port.port}/`;
 }
 
 export function canStopWorkspacePort(port: WorkspacePort): boolean {
@@ -126,4 +126,11 @@ export function canStopWorkspacePort(port: WorkspacePort): boolean {
     port.pid > 0 &&
     port.processName?.toLowerCase() !== "electron"
   );
+}
+
+function formatHostForUrl(host: string): string {
+  if (host.includes(":") && !host.startsWith("[") && !host.endsWith("]")) {
+    return `[${host}]`;
+  }
+  return host;
 }

@@ -11,11 +11,12 @@ use super::attribution::{
     attribute_port_to_workspaces, normalize_workspace_port_probes, NormalizedWorkspacePortProbe,
 };
 use super::types::{
-    WorkspacePort, WorkspacePortKind, WorkspacePortKillRequest, WorkspacePortKillResult,
+    WorkspacePort, WorkspacePortKillRequest, WorkspacePortKillResult, WorkspacePortKind,
     WorkspacePortProbe, WorkspacePortProtocol, WorkspacePortScanResult,
 };
 
 const COMMAND_TIMEOUT_MS: u64 = 4_000;
+const COMMAND_OUTPUT_LIMIT_BYTES: usize = 2 * 1024 * 1024;
 const MAX_PORTS: usize = 200;
 const INITIAL_TIMEOUT_BACKOFF_MS: u64 = 60_000;
 const MAX_TIMEOUT_BACKOFF_MS: u64 = 5 * 60_000;
@@ -207,9 +208,7 @@ fn terminate_process(pid: u32) -> Result<(), String> {
         let mut command = Command::new("taskkill");
         command.args(["/PID", &pid.to_string(), "/T"]);
         app_platform::hide_console(&mut command);
-        let output = command
-            .output()
-            .map_err(|error| error.to_string())?;
+        let output = command.output().map_err(|error| error.to_string())?;
         if output.status.success() {
             Ok(())
         } else {
@@ -227,20 +226,15 @@ fn make_unavailable_scan(reason: String) -> WorkspacePortScanResult {
     }
 }
 
-fn enrich_port(
-    port: RawListeningPort,
-    folders: &[NormalizedWorkspacePortProbe],
-) -> WorkspacePort {
-    let owner = attribute_port_to_workspaces(
-        port.cwd.as_deref(),
-        port.command_line.as_deref(),
-        folders,
-    );
+fn enrich_port(port: RawListeningPort, folders: &[NormalizedWorkspacePortProbe]) -> WorkspacePort {
+    let owner =
+        attribute_port_to_workspaces(port.cwd.as_deref(), port.command_line.as_deref(), folders);
     let connect_host = connect_host_for_bind_host(&port.host);
     let mut protocol = infer_protocol(port.port);
     let mut advertised_url = None;
     let kind = if let Some(ref owner) = owner {
-        if let Some(advertised) = advertised_urls::lookup_advertised_url(&owner.folder_id, port.port)
+        if let Some(advertised) =
+            advertised_urls::lookup_advertised_url(&owner.folder_id, port.port)
         {
             protocol = advertised.protocol;
             advertised_url = Some(advertised.origin);
@@ -257,7 +251,9 @@ fn enrich_port(
             "{}:{}:{}",
             port.host,
             port.port,
-            port.pid.map(|pid| pid.to_string()).unwrap_or_else(|| "unknown".to_string())
+            port.pid
+                .map(|pid| pid.to_string())
+                .unwrap_or_else(|| "unknown".to_string())
         ),
         bind_host: port.host,
         connect_host,
@@ -376,7 +372,10 @@ fn scan_platform_listening_ports() -> Result<Vec<RawListeningPort>, ScanError> {
 
 fn run_command(program: &str, args: &[&str]) -> Result<String, ScanError> {
     let mut command = Command::new(program);
-    command.args(args).stdout(Stdio::piped()).stderr(Stdio::null());
+    command
+        .args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
     app_platform::hide_console(&mut command);
 
     let mut child = command
@@ -388,48 +387,59 @@ fn run_command(program: &str, args: &[&str]) -> Result<String, ScanError> {
         .take()
         .ok_or_else(|| ScanError::new(format!("{program} stdout unavailable")))?;
 
-    let deadline = Instant::now() + Duration::from_millis(COMMAND_TIMEOUT_MS);
-    let mut output = Vec::new();
-    let mut buffer = [0u8; 8192];
-    loop {
-        if Instant::now() >= deadline {
-            let _ = child.kill();
-            let _ = child.wait();
-            return Err(ScanError::timeout(format!(
-                "{program} timed out after {COMMAND_TIMEOUT_MS}ms"
-            )));
-        }
-
-        match stdout.read(&mut buffer) {
-            Ok(0) => break,
-            Ok(count) => {
-                output.extend_from_slice(&buffer[..count]);
-                if output.len() > 2 * 1024 * 1024 {
-                    break;
+    let program_name = program.to_string();
+    let stdout_reader = std::thread::spawn(move || {
+        let mut output = Vec::new();
+        let mut buffer = [0u8; 8192];
+        loop {
+            match stdout.read(&mut buffer) {
+                Ok(0) => break,
+                Ok(count) => {
+                    let remaining = COMMAND_OUTPUT_LIMIT_BYTES.saturating_sub(output.len());
+                    if remaining > 0 {
+                        output.extend_from_slice(&buffer[..count.min(remaining)]);
+                    }
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+                Err(error) => {
+                    return Err(ScanError::new(format!(
+                        "{program_name} read failed: {error}"
+                    )));
                 }
             }
-            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
-            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
-                std::thread::sleep(Duration::from_millis(10));
-                continue;
+        }
+        Ok(output)
+    });
+
+    let deadline = Instant::now() + Duration::from_millis(COMMAND_TIMEOUT_MS);
+    loop {
+        match child
+            .try_wait()
+            .map_err(|error| ScanError::new(format!("{program} wait failed: {error}")))?
+        {
+            Some(status) => {
+                let output = stdout_reader
+                    .join()
+                    .map_err(|_| ScanError::new(format!("{program} stdout reader panicked")))??;
+                if !status.success() {
+                    return Err(ScanError::new(format!(
+                        "{program} exited with status {status}"
+                    )));
+                }
+                return Ok(String::from_utf8_lossy(&output).into_owned());
             }
-            Err(error) => {
+            None if Instant::now() >= deadline => {
                 let _ = child.kill();
                 let _ = child.wait();
-                return Err(ScanError::new(format!("{program} read failed: {error}")));
+                return Err(ScanError::timeout(format!(
+                    "{program} timed out after {COMMAND_TIMEOUT_MS}ms"
+                )));
+            }
+            None => {
+                std::thread::sleep(Duration::from_millis(10));
             }
         }
     }
-
-    let status = child
-        .wait()
-        .map_err(|error| ScanError::new(format!("{program} wait failed: {error}")))?;
-    if !status.success() {
-        return Err(ScanError::new(format!(
-            "{program} exited with status {status}"
-        )));
-    }
-    Ok(String::from_utf8_lossy(&output).into_owned())
 }
 
 #[cfg(any(target_os = "macos", test))]
@@ -474,7 +484,11 @@ pub(crate) fn parse_netstat_listening_output(output: &str) -> Vec<RawListeningPo
     let mut ports = Vec::new();
     for line in output.lines() {
         let fields: Vec<&str> = line.split_whitespace().collect();
-        if fields.first().map(|value| value.eq_ignore_ascii_case("TCP")) != Some(true) {
+        if fields
+            .first()
+            .map(|value| value.eq_ignore_ascii_case("TCP"))
+            != Some(true)
+        {
             continue;
         }
         let Some(state_index) = fields
@@ -684,7 +698,8 @@ fn load_darwin_process_metadata(pids: &HashSet<u32>) -> HashMap<u32, ProcessMeta
         }
     }
 
-    if let Ok(command_output) = run_command("ps", &["-p", &pid_list, "-o", "pid=", "-o", "command="])
+    if let Ok(command_output) =
+        run_command("ps", &["-p", &pid_list, "-o", "pid=", "-o", "command="])
     {
         for line in command_output.lines() {
             let trimmed = line.trim();
@@ -788,7 +803,10 @@ fn scan_linux_proc_ports() -> Result<Vec<RawListeningPort>, ScanError> {
                 .entry(pid)
                 .or_insert_with(|| load_linux_process_metadata(pid));
         }
-        let meta = pid.and_then(|pid| metadata.get(&pid)).cloned().unwrap_or_default();
+        let meta = pid
+            .and_then(|pid| metadata.get(&pid))
+            .cloned()
+            .unwrap_or_default();
         raw_ports.push(RawListeningPort {
             host,
             port,
