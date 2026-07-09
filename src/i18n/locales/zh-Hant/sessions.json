@@ -673,7 +673,8 @@
       "empty": "找不到操作。",
       "unpinAll": "全部取消固定",
       "insert": "插入"
-    }
+    },
+    "compactArgHint": "<可選:本次總結的重點>"
   },
   "listPanel": {
     "showingOf": "顯示 {{filtered}} / {{total}}",

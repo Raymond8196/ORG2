@@ -699,7 +699,8 @@
       "empty": "No actions found.",
       "unpinAll": "Unpin all",
       "insert": "Insert"
-    }
+    },
+    "compactArgHint": "<optional focus for the summary>"
   },
   "listPanel": {
     "showingOf": "Showing {{filtered}} of {{total}}",
