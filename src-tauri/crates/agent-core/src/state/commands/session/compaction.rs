@@ -30,6 +30,14 @@ pub enum ManualCompactStatus {
 
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ManualCompactBoundary {
+    pub id: String,
+    pub content: String,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ManualCompactCommandResult {
     pub status: ManualCompactStatus,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -42,6 +50,11 @@ pub struct ManualCompactCommandResult {
     pub tokens_before: Option<usize>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tokens_after: Option<usize>,
+    /// Set on `Compacted`: the persisted boundary row, so the frontend can
+    /// append the chat marker in place instead of evicting + reloading the
+    /// whole session (which flashes the history).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub boundary: Option<ManualCompactBoundary>,
 }
 
 impl ManualCompactCommandResult {
@@ -53,6 +66,7 @@ impl ManualCompactCommandResult {
             messages_after: None,
             tokens_before: None,
             tokens_after: None,
+            boundary: None,
         }
     }
 
@@ -64,6 +78,7 @@ impl ManualCompactCommandResult {
             messages_after: None,
             tokens_before: None,
             tokens_after: None,
+            boundary: None,
         }
     }
 }
@@ -424,7 +439,7 @@ async fn run_manual_compact_exclusive(
         let model = runtime.model.clone();
         let account_id = runtime.account_id.clone();
         let snapshot_json = serde_json::to_string(&snapshot).ok();
-        move || -> Result<(), String> {
+        move || -> Result<persist::AppendedCompactBoundary, String> {
             // Snapshot invariant: the scheduler serializes this job against
             // turns, but channel-attached turns bypass the DialogScheduler,
             // and the upfront binding guard is check-then-enqueue. Re-verify
@@ -441,7 +456,7 @@ async fn run_manual_compact_exclusive(
             }
 
             // The boundary row is the compaction — its failure is fatal.
-            persist::append_in_place_compact_boundary(
+            let boundary = persist::append_in_place_compact_boundary(
                 &sid,
                 &compacted,
                 Some((tokens_before, tokens_after)),
@@ -486,13 +501,13 @@ async fn run_manual_compact_exclusive(
                 );
             }
 
-            Ok(())
+            Ok(boundary)
         }
     })
     .await;
 
-    match persist_result {
-        Ok(Ok(())) => {}
+    let boundary = match persist_result {
+        Ok(Ok(boundary)) => boundary,
         Ok(Err(err)) => {
             warn!(
                 "[manual_compact_desktop] failed to persist compact boundary for session {}: {}",
@@ -505,7 +520,7 @@ async fn run_manual_compact_exclusive(
             warn!("[manual_compact_desktop] {}", reason);
             return ManualCompactCommandResult::failed(reason);
         }
-    }
+    };
 
     session.last_context_tokens.store(0, Ordering::SeqCst);
 
@@ -533,6 +548,11 @@ async fn run_manual_compact_exclusive(
         messages_after: Some(messages_after),
         tokens_before: Some(tokens_before),
         tokens_after: Some(tokens_after),
+        boundary: Some(ManualCompactBoundary {
+            id: boundary.id,
+            content: boundary.summary,
+            created_at: boundary.created_at,
+        }),
     }
 }
 
@@ -564,5 +584,6 @@ fn already_compact_result(
         messages_after: Some(messages_before),
         tokens_before: Some(tokens_before),
         tokens_after: Some(tokens_before),
+        boundary: None,
     }
 }

@@ -74,6 +74,12 @@ export type ManualCompactStatus =
   | "channel_attached"
   | "failed";
 
+export interface ManualCompactBoundary {
+  id: string;
+  content: string;
+  createdAt: string;
+}
+
 export interface ManualCompactResult {
   status: ManualCompactStatus;
   message?: string;
@@ -81,6 +87,8 @@ export interface ManualCompactResult {
   messagesAfter?: number;
   tokensBefore?: number;
   tokensAfter?: number;
+  /** Set on `compacted`: persisted boundary row for in-place chat append. */
+  boundary?: ManualCompactBoundary;
 }
 
 export interface AgentMessageResponse {

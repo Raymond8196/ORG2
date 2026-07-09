@@ -408,7 +408,7 @@ pub fn append_compact_boundary(
     from_sequence: i64,
     tokens_before: Option<i64>,
     tokens_after: Option<i64>,
-) -> SqliteResult<String> {
+) -> SqliteResult<(String, String)> {
     shared::save_compact_boundary_msg(
         SESSION_TABLE_PREFIX,
         session_id,
