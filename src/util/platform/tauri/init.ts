@@ -159,9 +159,10 @@ export async function invokeTauri<T = unknown>(
 
   try {
     const invokeOperation = () => tauriState.invoke!(cmd, args) as Promise<T>;
-    const result = tracking
-      ? await tracker.withDirectTauriInvokeTrackingSuppressed(invokeOperation)
-      : await invokeOperation();
+    const result =
+      tracking && tracker
+        ? await tracker.withDirectTauriInvokeTrackingSuppressed(invokeOperation)
+        : await invokeOperation();
     if (tracking && tracker) {
       tracker.trackTauriInvokeResult(requestId, result);
     }

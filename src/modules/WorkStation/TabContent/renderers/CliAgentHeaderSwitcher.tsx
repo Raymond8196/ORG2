@@ -10,7 +10,8 @@ import {
   DROPDOWN_ITEM,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
-import ModelIcon from "@src/components/ModelIcon";
+import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
+import { isIconProvider } from "@src/components/ModelIcon/config";
 import SelectGhostTrigger from "@src/components/Select/SelectGhostTrigger";
 import type { AvailableCliAgent } from "@src/modules/MainApp/AgentOrgs/types";
 import { openAgentConfigInWorkStation } from "@src/util/ui/openAgentConfigInWorkStation";
@@ -19,6 +20,14 @@ interface CliAgentHeaderSwitcherProps {
   activeAgentName: string;
   fallbackDisplayName: string;
   cliAgents: AvailableCliAgent[];
+}
+
+function getAgentIconProvider(
+  iconProvider: string | undefined
+): IconProvider | undefined {
+  return iconProvider && isIconProvider(iconProvider)
+    ? iconProvider
+    : undefined;
 }
 
 function matchesCliQuery(agent: AvailableCliAgent, query: string): boolean {
@@ -107,7 +116,7 @@ export function CliAgentHeaderSwitcher({
             icon={
               <ModelIcon
                 agentType={agent.name}
-                provider={agent.iconProvider}
+                provider={getAgentIconProvider(agent.iconProvider)}
                 size={DROPDOWN_ITEM.iconSize}
               />
             }
@@ -152,7 +161,7 @@ export function CliAgentHeaderSwitcher({
           <span className="flex min-w-0 items-center gap-1.5 truncate">
             <ModelIcon
               agentType={activeIconType}
-              provider={activeAgent?.iconProvider}
+              provider={getAgentIconProvider(activeAgent?.iconProvider)}
               size={14}
               className="shrink-0"
             />
