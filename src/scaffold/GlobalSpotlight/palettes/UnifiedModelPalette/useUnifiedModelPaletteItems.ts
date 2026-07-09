@@ -7,6 +7,7 @@ import type { KeyVaultAccount } from "@src/hooks/keyVault/types";
 import { isPairCompatible } from "@src/hooks/models/modelPairCompatibility";
 import { accountHasModel } from "@src/hooks/models/useModelAccountLookup";
 import type { RecentModelEntry } from "@src/store/session/recentModelEntriesAtom";
+import { recentEntriesEquivalent } from "@src/store/session/recentModelEntriesAtom";
 import { resolveDefaultVariant } from "@src/util/defaultModelVariant";
 import { resolveModelVariantFields } from "@src/util/modelVariants";
 
@@ -172,16 +173,25 @@ export function useUnifiedModelPaletteItems({
 
   const recentEntriesForDisplay = useMemo((): RecentModelEntry[] => {
     const entries: RecentModelEntry[] = [];
+
+    const tryAdd = (entry: RecentModelEntry) => {
+      if (
+        entries.some((existing) => recentEntriesEquivalent(existing, entry))
+      ) {
+        return;
+      }
+      entries.push(entry);
+    };
+
     if (currentModelEntry) {
-      entries.push(currentModelEntry);
+      tryAdd(currentModelEntry);
     }
     for (const entry of compatibleRecentEntries) {
-      if (entryMatchesActiveConfig(entry, advancedConfig)) continue;
-      entries.push(entry);
+      tryAdd(entry);
       if (entries.length >= MAX_RECENT_ITEMS) break;
     }
     return entries;
-  }, [advancedConfig, compatibleRecentEntries, currentModelEntry]);
+  }, [compatibleRecentEntries, currentModelEntry]);
 
   const recentItems = useMemo((): SpotlightItem[] => {
     return recentEntriesForDisplay.map((entry, index) => {
