@@ -81,6 +81,8 @@ export function useDecorateSessionRowActions({
         const isChildSession =
           Boolean(session.parentSessionId) ||
           item.id.includes(SUBAGENT_SESSION_ID_SEGMENT);
+        // Subagent rows have no pin/more-menu affordances.
+        if (isChildSession) return item;
         const hasSubagentChildren = subagentParentIds.has(item.id);
         if (hasSubagentChildren) {
           const expanded = expandedSubagentParentIds.has(item.id);
