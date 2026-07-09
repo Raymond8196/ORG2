@@ -261,7 +261,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
     >
       {dragState && <ReferenceDragGhost dragState={dragState} />}
       {showIndentGuide && (
-        <span className="pointer-events-none absolute bottom-1 left-2 top-1 w-px rounded-full bg-border-2" />
+        <span className="pointer-events-none absolute -bottom-0.5 -top-0.5 left-2 w-px bg-text-3" />
       )}
       <div
         data-testid={item.dataTestId}
