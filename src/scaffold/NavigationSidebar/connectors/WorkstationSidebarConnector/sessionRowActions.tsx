@@ -1,6 +1,6 @@
 import {
-  ChevronDown,
-  ChevronUp,
+  ChevronsDownUp,
+  ChevronsUpDown,
   MoreHorizontal,
   Pin,
   PinOff,
@@ -85,7 +85,7 @@ export function useDecorateSessionRowActions({
         if (hasSubagentChildren) {
           const expanded = expandedSubagentParentIds.has(item.id);
           rowActions.push({
-            icon: expanded ? ChevronUp : ChevronDown,
+            icon: expanded ? ChevronsDownUp : ChevronsUpDown,
             label: expanded
               ? tCommon("sessions:sidebar.hideSubagents", "Hide subagents")
               : tCommon("sessions:sidebar.showSubagents", "Show subagents"),

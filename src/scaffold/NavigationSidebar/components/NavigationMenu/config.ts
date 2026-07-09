@@ -48,6 +48,8 @@ export interface NavigationMenuItem {
   workingIndicator?: ReactNode;
   /** Shows a chevron to indicate the row opens a deeper sidebar level. */
   showDrillDownIndicator?: boolean;
+  /** Indents the row and draws a vertical guide line for inline child rows. */
+  showIndentGuide?: boolean;
   visualTone?: "default" | "secondary";
   /** Show hover-only row action buttons. */
   showMoreActions?: boolean;
