@@ -82,17 +82,16 @@ export function useDecorateSessionRowActions({
           Boolean(session.parentSessionId) ||
           item.id.includes(SUBAGENT_SESSION_ID_SEGMENT);
         const hasSubagentChildren = subagentParentIds.has(item.id);
-        let iconAction: NavigationMenuItem["iconAction"];
         if (hasSubagentChildren) {
           const expanded = expandedSubagentParentIds.has(item.id);
-          iconAction = {
+          rowActions.push({
             icon: expanded ? ChevronUp : ChevronDown,
             label: expanded
               ? tCommon("sessions:sidebar.hideSubagents", "Hide subagents")
               : tCommon("sessions:sidebar.showSubagents", "Show subagents"),
             active: expanded,
             onClick: () => handleToggleSubagentExpansion(item.id),
-          };
+          });
         }
         if (!isChildSession && !isChatPanelTuiSessionId(item.id)) {
           rowActions.push({
@@ -122,7 +121,6 @@ export function useDecorateSessionRowActions({
         }
         return {
           ...item,
-          iconAction,
           showMoreActions: true,
           rowActions,
         };
