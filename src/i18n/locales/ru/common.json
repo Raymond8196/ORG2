@@ -1233,6 +1233,7 @@
     "modelProperties": {
       "options": "Параметры",
       "effort": "Усилие",
+      "default": "По умолчанию",
       "faster": "Быстрее",
       "smarter": "Умнее"
     },
