@@ -27,7 +27,7 @@ use crate::sources::imported_history::{
 
 const CODEX_APP_SESSION_PREFIX: &str = "codexapp-";
 const CODEX_PROVIDER_SLUG: &str = "codex";
-const CODEX_APP_METADATA_PARSER_VERSION: i64 = 7;
+const CODEX_APP_METADATA_PARSER_VERSION: i64 = 8;
 
 pub type CodexAppSessionRow = ImportedHistorySessionRow;
 pub type CodexAppSessionPage = ImportedHistorySessionPage;
