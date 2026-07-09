@@ -12,6 +12,7 @@ import {
   DEFAULT_SESSION_ORG_ID,
   type Session,
   type SessionListCategory,
+  sessionLastLoadedAtom,
   sessionPaginationAtom,
   upsertSession,
 } from "@src/store/session";
@@ -152,6 +153,7 @@ export function useSessionMenuItems({
 }: UseSessionMenuItemsParams): UseSessionMenuItemsResult {
   const { t: tCommon } = useTranslation();
   const pagination = useAtomValue(sessionPaginationAtom);
+  const sessionLastLoaded = useAtomValue(sessionLastLoadedAtom);
   const benchmarkAgentBatchStatus = useAtomValue(benchmarkAgentBatchStatusAtom);
   const [benchmarkHistoryChildSessionIds, setBenchmarkHistoryChildSessionIds] =
     useState<ReadonlySet<string>>(() => new Set());
@@ -233,6 +235,10 @@ export function useSessionMenuItems({
     () => visibleSessions.map((session) => session.session_id),
     [visibleSessions]
   );
+
+  useEffect(() => {
+    setQueriedSubagentParentIds(new Set());
+  }, [sessionLastLoaded]);
 
   useEffect(() => {
     const parentIdsToQuery = visibleSessionIds.filter(
