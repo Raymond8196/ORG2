@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "自动超时",
     "questionAutoSkipTimeoutByStatus": "自动跳过提问",
     "questionAutoSkipTimeoutByStatusDesc": "超过此时间后自动跳过 Agent 提问 (0 = 禁用)",
+    "planAutoApproveTimeoutByStatus": "{{status}}自动批准计划",
+    "planAutoApproveTimeoutByStatusDesc": "在此状态下，等待指定秒数后自动批准待处理计划 (0 = 禁用)",
+    "goalMaxTurnsByStatus": "{{status}}目标续跑预算",
+    "goalMaxTurnsByStatusDesc": "Agent 通常会停止后，继续处理上一个请求的额外轮数上限 (0 = 禁用)",
+    "modeSwitchAutoPlanByStatus": "{{status}}自动切换到计划模式",
+    "modeSwitchAutoPlanByStatusDesc": "待确认的 Plan 模式切换建议倒计时结束后自动切换",
     "resourceTabs": {
       "tools": "工具",
       "mcp": "MCP",

@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "Auto-timeout",
     "questionAutoSkipTimeoutByStatus": "Auto-skip questions",
     "questionAutoSkipTimeoutByStatusDesc": "Auto-skip Agent questions after this timeout (0 = disabled)",
+    "planAutoApproveTimeoutByStatus": "{{status}} plan auto-approve",
+    "planAutoApproveTimeoutByStatusDesc": "Auto-approve a pending plan after this many seconds in this status (0 = disabled)",
+    "goalMaxTurnsByStatus": "{{status}} goal continuation budget",
+    "goalMaxTurnsByStatusDesc": "Keep working toward your last request for up to this many extra turns after the agent would normally stop (0 = disabled)",
+    "modeSwitchAutoPlanByStatus": "{{status}} mode switch auto-plan",
+    "modeSwitchAutoPlanByStatusDesc": "Auto-switch pending Plan mode suggestions when their confirmation timer expires",
     "resourceTabs": {
       "tools": "Tools",
       "mcp": "MCP",

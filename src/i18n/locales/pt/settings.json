@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "Timeout automático",
     "questionAutoSkipTimeoutByStatus": "Pular perguntas automaticamente",
     "questionAutoSkipTimeoutByStatusDesc": "Pula perguntas do Agent automaticamente após este timeout (0 = desabilitado)",
+    "planAutoApproveTimeoutByStatus": "{{status}} aprovação automática do plano",
+    "planAutoApproveTimeoutByStatusDesc": "Aprova automaticamente um plano pendente após este número de segundos neste estado (0 = desabilitado)",
+    "goalMaxTurnsByStatus": "{{status}} orçamento de continuação da meta",
+    "goalMaxTurnsByStatusDesc": "Continua a trabalhar no teu último pedido por até este número de turnos extra depois de o agente normalmente parar (0 = desabilitado)",
+    "modeSwitchAutoPlanByStatus": "{{status}} mudança automática para modo Plan",
+    "modeSwitchAutoPlanByStatusDesc": "Muda automaticamente sugestões pendentes do modo Plan quando o temporizador de confirmação expira",
     "resourceTabs": {
       "tools": "Ferramentas",
       "mcp": "MCP",

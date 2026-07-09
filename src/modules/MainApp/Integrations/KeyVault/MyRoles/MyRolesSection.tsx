@@ -298,7 +298,7 @@ const MyRolesSection: React.FC<MyRolesSectionProps> = ({
           })}
           description={t("sdeAgent.planAutoApproveTimeoutByStatusDesc", {
             defaultValue:
-              "Auto-approve a pending plan after this many seconds in this status (0 = disabled).",
+              "Auto-approve a pending plan after this many seconds in this status (0 = disabled)",
           })}
         >
           <NumberInput
@@ -319,7 +319,7 @@ const MyRolesSection: React.FC<MyRolesSectionProps> = ({
           })}
           description={t("sdeAgent.goalMaxTurnsByStatusDesc", {
             defaultValue:
-              "Keep working toward your last request for up to this many extra turns after the agent would normally stop (0 = disabled).",
+              "Keep working toward your last request for up to this many extra turns after the agent would normally stop (0 = disabled)",
           })}
         >
           <NumberInput
@@ -339,7 +339,7 @@ const MyRolesSection: React.FC<MyRolesSectionProps> = ({
           })}
           description={t("sdeAgent.modeSwitchAutoPlanByStatusDesc", {
             defaultValue:
-              "Auto-switch pending Plan mode suggestions when their confirmation timer expires.",
+              "Auto-switch pending Plan mode suggestions when their confirmation timer expires",
           })}
         >
           <Switch

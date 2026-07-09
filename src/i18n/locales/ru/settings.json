@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "Автоматический тайм-аут",
     "questionAutoSkipTimeoutByStatus": "Автопропуск вопросов",
     "questionAutoSkipTimeoutByStatusDesc": "Автоматически пропускать вопросы Agent после этого тайм-аута (0 = отключено)",
+    "planAutoApproveTimeoutByStatus": "{{status}} автоодобрение плана",
+    "planAutoApproveTimeoutByStatusDesc": "Автоматически одобряет ожидающий план через это число секунд в данном статусе (0 = отключено)",
+    "goalMaxTurnsByStatus": "{{status}} бюджет продолжения цели",
+    "goalMaxTurnsByStatusDesc": "Продолжает работу над последним запросом ещё до указанного числа ходов после обычной остановки агента (0 = отключено)",
+    "modeSwitchAutoPlanByStatus": "{{status}} автопереход в режим Plan",
+    "modeSwitchAutoPlanByStatusDesc": "Автоматически переключает ожидающие предложения режима Plan, когда истекает таймер подтверждения",
     "resourceTabs": {
       "tools": "Инструменты",
       "mcp": "MCP",
