@@ -40,6 +40,7 @@ import {
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import GitSyncStatusMenu from "./GitSyncStatusMenu";
+import { PortsStatusMenu } from "./PortsStatusMenu";
 import {
   BaseStatusBar,
   StatusBarButton,
@@ -278,6 +279,8 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
               </span>
             </StatusBarButton>
           )}
+
+          <PortsStatusMenu />
 
           {showIndexingIndicator && (
             <StatusBarSegment
