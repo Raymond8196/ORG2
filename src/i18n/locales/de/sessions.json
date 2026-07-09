@@ -670,7 +670,8 @@
       "unpinAll": "Alle lösen",
       "insert": "Einfügen"
     },
-    "compactArgHint": "<optionaler Fokus für die Zusammenfassung>"
+    "compactArgHint": "<optionaler Fokus für die Zusammenfassung>",
+    "compactCommandDescription": "Älteren Kontext zusammenfassen, um Platz freizugeben. Optional: /compact <Fokus für die Zusammenfassung>"
   },
   "listPanel": {
     "showingOf": "{{filtered}} von {{total}} angezeigt",

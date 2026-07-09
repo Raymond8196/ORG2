@@ -700,7 +700,8 @@
       "unpinAll": "Unpin all",
       "insert": "Insert"
     },
-    "compactArgHint": "<optional focus for the summary>"
+    "compactArgHint": "<optional focus for the summary>",
+    "compactCommandDescription": "Summarize older context to free space. Optional: /compact <focus for the summary>"
   },
   "listPanel": {
     "showingOf": "Showing {{filtered}} of {{total}}",

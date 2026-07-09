@@ -678,7 +678,8 @@
       "unpinAll": "Odepnij wszystkie",
       "insert": "Wstaw"
     },
-    "compactArgHint": "<opcjonalny nacisk podsumowania>"
+    "compactArgHint": "<opcjonalny nacisk podsumowania>",
+    "compactCommandDescription": "Podsumuj starszy kontekst, aby zwolnić miejsce. Opcjonalnie: /compact <nacisk podsumowania>"
   },
   "listPanel": {
     "showingOf": "Wyświetlono {{filtered}} z {{total}}",
