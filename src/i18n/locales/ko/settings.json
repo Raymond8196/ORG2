@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "자동 타임아웃",
     "questionAutoSkipTimeoutByStatus": "질문 자동 건너뛰기",
     "questionAutoSkipTimeoutByStatusDesc": "이 타임아웃 후 Agent 질문 자동 건너뛰기 (0 = 비활성)",
+    "planAutoApproveTimeoutByStatus": "{{status}} Plan 자동 승인",
+    "planAutoApproveTimeoutByStatusDesc": "이 상태에서 지정한 초가 지나면 대기 중인 Plan을 자동 승인합니다 (0 = 비활성)",
+    "goalMaxTurnsByStatus": "{{status}} 목표 계속 진행 예산",
+    "goalMaxTurnsByStatusDesc": "Agent가 보통 멈춘 뒤에도 마지막 요청을 추가로 진행할 최대 턴 수 (0 = 비활성)",
+    "modeSwitchAutoPlanByStatus": "{{status}} Plan 모드 자동 전환",
+    "modeSwitchAutoPlanByStatusDesc": "대기 중인 Plan 모드 제안은 확인 타이머가 만료되면 자동 전환",
     "resourceTabs": {
       "tools": "도구",
       "mcp": "MCP",

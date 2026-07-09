@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "Automatisches Timeout",
     "questionAutoSkipTimeoutByStatus": "Fragen automatisch überspringen",
     "questionAutoSkipTimeoutByStatusDesc": "Agent-Fragen nach diesem Timeout automatisch überspringen (0 = deaktiviert)",
+    "planAutoApproveTimeoutByStatus": "{{status}} Plan automatisch genehmigen",
+    "planAutoApproveTimeoutByStatusDesc": "Genehmigt einen ausstehenden Plan nach dieser Anzahl Sekunden in diesem Status automatisch (0 = deaktiviert)",
+    "goalMaxTurnsByStatus": "{{status}} Budget für Ziel-Fortsetzung",
+    "goalMaxTurnsByStatusDesc": "Arbeitet nach dem normalen Stopp des Agenten bis zu dieser Anzahl zusätzlicher Runden am letzten Wunsch weiter (0 = deaktiviert)",
+    "modeSwitchAutoPlanByStatus": "{{status}} Moduswechsel automatisch zu Plan",
+    "modeSwitchAutoPlanByStatusDesc": "Schaltet ausstehende Vorschläge für den Plan-Modus automatisch um, wenn ihr Bestätigungstimer abläuft",
     "resourceTabs": {
       "tools": "Werkzeuge",
       "mcp": "MCP",

@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "自動超時",
     "questionAutoSkipTimeoutByStatus": "自動跳過提問",
     "questionAutoSkipTimeoutByStatusDesc": "超過此時間後自動跳過 Agent 提問 (0 = 禁用)",
+    "planAutoApproveTimeoutByStatus": "{{status}}自動批准計畫",
+    "planAutoApproveTimeoutByStatusDesc": "在此狀態下，等待指定秒數後自動批准待處理計畫 (0 = 禁用)",
+    "goalMaxTurnsByStatus": "{{status}}目標續跑預算",
+    "goalMaxTurnsByStatusDesc": "Agent 通常會停止後，繼續處理上一個請求的額外輪數上限 (0 = 禁用)",
+    "modeSwitchAutoPlanByStatus": "{{status}}自動切換到計畫模式",
+    "modeSwitchAutoPlanByStatusDesc": "待確認的 Plan 模式切換建議倒計時結束後自動切換",
     "resourceTabs": {
       "tools": "工具",
       "mcp": "MCP",

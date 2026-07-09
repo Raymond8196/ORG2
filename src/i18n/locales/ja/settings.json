@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "自動タイムアウト",
     "questionAutoSkipTimeoutByStatus": "質問を自動スキップ",
     "questionAutoSkipTimeoutByStatusDesc": "このタイムアウト後に Agent の質問を自動スキップ (0 = 無効)",
+    "planAutoApproveTimeoutByStatus": "{{status}} Plan 自動承認",
+    "planAutoApproveTimeoutByStatusDesc": "このステータスで指定秒数が経過したら保留中の Plan を自動承認します (0 = 無効)",
+    "goalMaxTurnsByStatus": "{{status}} ゴール継続予算",
+    "goalMaxTurnsByStatusDesc": "Agent が通常停止する後も、最後の依頼に対して追加で作業する最大ターン数 (0 = 無効)",
+    "modeSwitchAutoPlanByStatus": "{{status}} Plan モード自動切り替え",
+    "modeSwitchAutoPlanByStatusDesc": "保留中の Plan モード提案は確認タイマー終了時に自動切り替え",
     "resourceTabs": {
       "tools": "ツール",
       "mcp": "MCP",

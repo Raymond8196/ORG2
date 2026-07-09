@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "Tiempo de espera automático",
     "questionAutoSkipTimeoutByStatus": "Omitir preguntas automáticamente",
     "questionAutoSkipTimeoutByStatusDesc": "Omitir automáticamente las preguntas del Agent tras este tiempo de espera (0 = desactivado)",
+    "planAutoApproveTimeoutByStatus": "{{status}} aprobación automática de plan",
+    "planAutoApproveTimeoutByStatusDesc": "Aprueba automáticamente un plan pendiente después de esta cantidad de segundos en este estado (0 = desactivado)",
+    "goalMaxTurnsByStatus": "{{status}} presupuesto de continuación de objetivo",
+    "goalMaxTurnsByStatusDesc": "Sigue trabajando en tu última solicitud hasta esta cantidad de turnos adicionales después de que el agente normalmente se detendría (0 = desactivado)",
+    "modeSwitchAutoPlanByStatus": "{{status}} cambio automático a modo Plan",
+    "modeSwitchAutoPlanByStatusDesc": "Cambia automáticamente las sugerencias pendientes de modo Plan cuando vence su temporizador de confirmación",
     "resourceTabs": {
       "tools": "Herramientas",
       "mcp": "MCP",

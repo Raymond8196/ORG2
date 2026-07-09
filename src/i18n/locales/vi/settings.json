@@ -621,6 +621,12 @@
     "autoTimeoutTitle": "Hết thời gian tự động",
     "questionAutoSkipTimeoutByStatus": "Tự động bỏ qua câu hỏi",
     "questionAutoSkipTimeoutByStatusDesc": "Tự động bỏ qua câu hỏi Agent sau thời gian này (0 = tắt)",
+    "planAutoApproveTimeoutByStatus": "{{status}} tự động phê duyệt kế hoạch",
+    "planAutoApproveTimeoutByStatusDesc": "Tự động phê duyệt kế hoạch đang chờ sau số giây này trong trạng thái này (0 = tắt)",
+    "goalMaxTurnsByStatus": "{{status}} ngân sách tiếp tục mục tiêu",
+    "goalMaxTurnsByStatusDesc": "Tiếp tục xử lý yêu cầu gần nhất của bạn tối đa số lượt bổ sung này sau khi Agent thường sẽ dừng (0 = tắt)",
+    "modeSwitchAutoPlanByStatus": "{{status}} tự động chuyển sang chế độ Plan",
+    "modeSwitchAutoPlanByStatusDesc": "Tự động chuyển các đề xuất chế độ Plan đang chờ khi bộ đếm xác nhận hết hạn",
     "resourceTabs": {
       "tools": "Công cụ",
       "mcp": "MCP",
