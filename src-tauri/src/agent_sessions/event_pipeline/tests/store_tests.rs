@@ -461,6 +461,40 @@ fn test_remove_by_id_prefix_no_match() {
 }
 
 #[test]
+fn test_remove_by_ids() {
+    let mut store = EventStore::new();
+    store.set(vec![
+        make_event("stream-msg-1", "message"),
+        make_event("normal-1", "tool_call"),
+        make_event("stream-think-1", "message"),
+    ]);
+    let removed = store.remove_by_ids(&[
+        "stream-msg-1".to_string(),
+        "stream-think-1".to_string(),
+        "nonexistent".to_string(),
+    ]);
+    assert_eq!(removed, 2);
+    assert!(store.get_by_id("stream-msg-1").is_none());
+    assert!(store.get_by_id("stream-think-1").is_none());
+    assert!(store.get_by_id("normal-1").is_some());
+
+    // Removed ids surface in delta tracking so `es:changed` subscribers drop them.
+    let (_, _, removed_ids) = store.take_delta_tracking();
+    assert!(removed_ids.contains(&"stream-msg-1".to_string()));
+    assert!(removed_ids.contains(&"stream-think-1".to_string()));
+}
+
+#[test]
+fn test_remove_by_ids_no_match_keeps_version() {
+    let mut store = EventStore::new();
+    store.set(vec![make_event("a", "message")]);
+    let v_before = store.version();
+    let removed = store.remove_by_ids(&["nonexistent".to_string()]);
+    assert_eq!(removed, 0);
+    assert_eq!(store.version(), v_before);
+}
+
+#[test]
 fn test_remove_synthetic_user_inputs_keeps_backend_user_input_ids() {
     let mut store = EventStore::new();
     let mut synthetic = make_event("user-input-synthetic", "raw");
