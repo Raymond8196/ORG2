@@ -672,7 +672,8 @@
       "unpinAll": "Открепить все",
       "insert": "Вставить"
     },
-    "compactArgHint": "<необязательный фокус резюме>"
+    "compactArgHint": "<необязательный фокус резюме>",
+    "compactCommandDescription": "Обобщить старый контекст, чтобы освободить место. Необязательно: /compact <фокус резюме>"
   },
   "listPanel": {
     "showingOf": "Показано {{filtered}} из {{total}}",

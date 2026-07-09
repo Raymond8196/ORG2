@@ -676,7 +676,8 @@
       "unpinAll": "Desafixar tudo",
       "insert": "Inserir"
     },
-    "compactArgHint": "<foco opcional do resumo>"
+    "compactArgHint": "<foco opcional do resumo>",
+    "compactCommandDescription": "Resume o contexto antigo para liberar espaço. Opcional: /compact <foco do resumo>"
   },
   "listPanel": {
     "showingOf": "Mostrando {{filtered}} de {{total}}",

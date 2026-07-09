@@ -694,7 +694,8 @@
       "unpinAll": "全部取消固定",
       "insert": "插入"
     },
-    "compactArgHint": "<可选:本次总结的重点>"
+    "compactArgHint": "<可选:本次总结的重点>",
+    "compactCommandDescription": "总结较早的上下文以释放空间。可选:/compact <本次总结的重点>"
   },
   "listPanel": {
     "showingOf": "显示 {{filtered}} / {{total}}",

@@ -6,7 +6,8 @@
  * built-in slash actions in a filterable dropdown.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { type RefObject, useCallback, useRef } from "react";
+import { type RefObject, useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { ComposerInputRef } from "@src/components/ComposerInput";
 import type { AgentExecMode } from "@src/config/sessionCreatorConfig";
@@ -17,17 +18,6 @@ import { creatorDefaultExecModeAtom } from "@src/store/session/creatorDefaultExe
 import { SLASH_ACTIONS, type SlashItem } from "@src/types/extensions";
 
 import { useSlashItemsCache } from "./useSlashItemsCache";
-
-const BUILTIN_SLASH_ITEMS: SlashItem[] = [
-  {
-    name: SLASH_ACTIONS.COMPACT,
-    description:
-      "Summarize older context to free space. Optional: /compact <focus for the summary>",
-    category: "action",
-    source: "builtin",
-    acceptsArgs: true,
-  },
-];
 
 interface UseSlashCommandOptions {
   composerInputRef: RefObject<ComposerInputRef | null>;
@@ -102,12 +92,26 @@ export function useSlashCommand(
 
   const queryRef = useRef("");
 
+  const { t } = useTranslation("sessions");
+  const builtinSlashItems = useMemo<SlashItem[]>(
+    () => [
+      {
+        name: SLASH_ACTIONS.COMPACT,
+        description: t("input.compactCommandDescription"),
+        category: "action",
+        source: "builtin",
+        acceptsArgs: true,
+      },
+    ],
+    [t]
+  );
+
   const {
     filteredItems,
     loading: slashLoading,
     prefetch,
   } = useSlashItemsCache({
-    builtinItems: BUILTIN_SLASH_ITEMS,
+    builtinItems: builtinSlashItems,
     workspacePaths,
   });
 

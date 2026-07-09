@@ -670,7 +670,8 @@
       "unpinAll": "Tümünün sabitlemesini kaldır",
       "insert": "Ekle"
     },
-    "compactArgHint": "<özet için isteğe bağlı odak>"
+    "compactArgHint": "<özet için isteğe bağlı odak>",
+    "compactCommandDescription": "Eski bağlamı özetleyerek yer açar. İsteğe bağlı: /compact <özet odağı>"
   },
   "listPanel": {
     "showingOf": "{{total}} içinden {{filtered}} gösteriliyor",
