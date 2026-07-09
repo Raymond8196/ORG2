@@ -1210,7 +1210,6 @@
     },
     "modelSelector": {
       "recentModels": "Modelos recentes",
-      "currentModel": "Modelo atual",
       "allModels": "Todos os modelos",
       "noRecent": "Nenhum modelo recente",
       "noResults": "Nenhum modelo correspondente",

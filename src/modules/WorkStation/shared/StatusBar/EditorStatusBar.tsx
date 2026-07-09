@@ -1,4 +1,4 @@
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   ArrowRightLeft,
   Braces,
@@ -30,6 +30,7 @@ import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { useRepoGitInitialization } from "@src/hooks/git";
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { sessionRepoHintAtom } from "@src/store/repo";
+import { activeFolderIdAtom } from "@src/store/workspace";
 import { activeWorkspaceRootPathAtom } from "@src/store/workspace";
 import { diagnosticHealthAtom } from "@src/store/workstation/codeEditor/diagnostics";
 import {
@@ -105,10 +106,16 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
     const { isGitInitialized } = useRepoGitInitialization(repoPath);
 
     const sessionRepoHint = useAtomValue(sessionRepoHintAtom);
+    const setActiveFolderId = useSetAtom(activeFolderIdAtom);
     const { selectRepo } = useRepoSelection({ autoLoad: false });
     const handleSwitchToSessionRepo = useCallback(() => {
-      if (sessionRepoHint) selectRepo(sessionRepoHint.repoId);
-    }, [sessionRepoHint, selectRepo]);
+      if (!sessionRepoHint) return;
+      if (sessionRepoHint.type === "folder") {
+        setActiveFolderId(sessionRepoHint.folderId);
+        return;
+      }
+      selectRepo(sessionRepoHint.repoId);
+    }, [sessionRepoHint, selectRepo, setActiveFolderId]);
     const showGitControls = isGitInitialized === true;
 
     const diagnosticHealth = useAtomValue(diagnosticHealthAtom);
@@ -252,7 +259,10 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
             <StatusBarButton
               onClick={handleSwitchToSessionRepo}
               title={t("workstation.switchToSessionRepo", {
-                name: sessionRepoHint.repoName,
+                name:
+                  sessionRepoHint.type === "folder"
+                    ? sessionRepoHint.folderName
+                    : sessionRepoHint.repoName,
               })}
               className="pl-2 text-primary-6"
               dataTestId="status-bar-switch-to-session-repo"
@@ -260,7 +270,10 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
               <ArrowRightLeft size={13} />
               <span className="font-medium">
                 {t("workstation.switchToSessionRepo", {
-                  name: sessionRepoHint.repoName,
+                  name:
+                    sessionRepoHint.type === "folder"
+                      ? sessionRepoHint.folderName
+                      : sessionRepoHint.repoName,
                 })}
               </span>
             </StatusBarButton>
