@@ -142,7 +142,9 @@
       "views": "ビュー",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "ドラフトを削除"
+      "removeDraft": "ドラフトを削除",
+      "showSubagents": "サブエージェントを表示",
+      "hideSubagents": "サブエージェントを非表示"
     },
     "resultStatus": {
       "completed": "完了",

@@ -142,7 +142,9 @@
       "views": "보기",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "초안 제거"
+      "removeDraft": "초안 제거",
+      "showSubagents": "하위 에이전트 표시",
+      "hideSubagents": "하위 에이전트 숨기기"
     },
     "resultStatus": {
       "completed": "완료",
