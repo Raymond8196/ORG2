@@ -142,7 +142,9 @@
       "views": "Vistas",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Eliminar borrador"
+      "removeDraft": "Eliminar borrador",
+      "showSubagents": "Mostrar subagentes",
+      "hideSubagents": "Ocultar subagentes"
     },
     "resultStatus": {
       "completed": "Completado",

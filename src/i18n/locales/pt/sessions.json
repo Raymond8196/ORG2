@@ -148,7 +148,9 @@
       "views": "Visualizações",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Remover rascunho"
+      "removeDraft": "Remover rascunho",
+      "showSubagents": "Mostrar subagentes",
+      "hideSubagents": "Ocultar subagentes"
     },
     "resultStatus": {
       "completed": "Concluído",

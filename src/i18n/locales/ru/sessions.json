@@ -142,7 +142,9 @@
       "views": "Представления",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Удалить черновик"
+      "removeDraft": "Удалить черновик",
+      "showSubagents": "Показать субагентов",
+      "hideSubagents": "Скрыть субагентов"
     },
     "resultStatus": {
       "completed": "Завершено",

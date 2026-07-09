@@ -142,7 +142,9 @@
       "views": "视图",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "删除草稿"
+      "removeDraft": "删除草稿",
+      "showSubagents": "显示子代理",
+      "hideSubagents": "隐藏子代理"
     },
     "resultStatus": {
       "completed": "已完成",

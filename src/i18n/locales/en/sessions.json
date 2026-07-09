@@ -148,7 +148,9 @@
       "views": "Views",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Remove draft"
+      "removeDraft": "Remove draft",
+      "showSubagents": "Show subagents",
+      "hideSubagents": "Hide subagents"
     },
     "resultStatus": {
       "completed": "Completed",
