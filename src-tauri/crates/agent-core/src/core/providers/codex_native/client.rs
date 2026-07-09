@@ -17,6 +17,7 @@ use crate::providers::traits::{ProviderConfig, ProviderError};
 use crate::utils::build_http_client;
 
 const CODEX_FAST_SERVICE_TIER: &str = "priority";
+const CODEX_PROVIDER_PREFIXES: &[&str] = &["openai/"];
 
 #[derive(Debug, Clone)]
 pub struct CodexOAuthRefreshConfig {
@@ -114,6 +115,15 @@ impl CodexNativeClient {
         matches!(model, "gpt-5.5" | "gpt-5.4")
     }
 
+    fn strip_codex_provider_prefix(model: &str) -> &str {
+        for prefix in CODEX_PROVIDER_PREFIXES {
+            if let Some(stripped) = model.strip_prefix(prefix) {
+                return stripped;
+            }
+        }
+        model
+    }
+
     /// Build a request for the ChatGPT-backed Codex endpoint.
     ///
     /// ORGII exposes reasoning/speed variants as model ids (for example
@@ -128,7 +138,9 @@ impl CodexNativeClient {
     ) -> ResponsesRequest {
         let (instructions, input) = Self::convert_messages(messages);
         let (converted_tools, tool_choice) = convert_tools_with_choice(tools);
-        let parsed = crate::providers::thinking_mode::parse_model_variant(model);
+        let parsed = crate::providers::thinking_mode::parse_model_variant(
+            Self::strip_codex_provider_prefix(model),
+        );
         let reasoning = Self::codex_reasoning_effort(parsed.level)
             .map(|effort| serde_json::json!({ "effort": effort }));
         let service_tier = (parsed.fast
@@ -263,6 +275,30 @@ mod tests {
         assert_eq!(req.model, "gpt-5.4-mini");
         assert_eq!(req.reasoning.as_ref().unwrap()["effort"], "medium");
         assert!(req.service_tier.is_none());
+    }
+
+    #[test]
+    fn build_responses_request_strips_openai_provider_prefix_for_codex_backend() {
+        let req =
+            CodexNativeClient::build_responses_request(&[], None, "openai/gpt-5.4-mini", true);
+
+        assert_eq!(req.model, "gpt-5.4-mini");
+        assert!(req.reasoning.is_none());
+        assert!(req.service_tier.is_none());
+    }
+
+    #[test]
+    fn build_responses_request_strips_prefix_before_variant_parsing() {
+        let req = CodexNativeClient::build_responses_request(
+            &[],
+            None,
+            "openai/gpt-5.5-medium-fast",
+            true,
+        );
+
+        assert_eq!(req.model, "gpt-5.5");
+        assert_eq!(req.reasoning.as_ref().unwrap()["effort"], "medium");
+        assert_eq!(req.service_tier.as_deref(), Some("priority"));
     }
 
     #[test]
