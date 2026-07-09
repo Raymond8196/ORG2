@@ -45,7 +45,8 @@ import {
   useSourceControlTabConfig,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/tabs/SourceControlTab";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared/PrimarySidebarLayout";
-import { workstationIssueCallbackAtom } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationIssueCallbackAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { SourceControlHistorySelection } from "@src/store/workstation/tabs";
 import type { GitFile } from "@src/types/git/types";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
@@ -263,7 +264,10 @@ export function useSourceControlSidebarModule({
     clear: clearIssuesFilter,
   } = useSectionFilter();
 
-  const issueCallbacks = useAtomValue(workstationIssueCallbackAtom);
+  const scopeKey = workstationRepoScopeKey(repoId, repoPath);
+  const issueCallbacks = useAtomValue(
+    workstationIssueCallbackAtomFamily(scopeKey)
+  );
   const handleIssuesRefresh = useCallback(() => {
     issueCallbacks.refreshIssues?.();
   }, [issueCallbacks]);
@@ -396,6 +400,8 @@ export function useSourceControlSidebarModule({
           branchName={branchName}
           filterQuery={prFilterQuery}
           onHistorySelectionChange={onGitHistorySelectionChange}
+          repoId={repoId}
+          repoPath={repoPath}
         />
       </div>
     ),
@@ -406,6 +412,8 @@ export function useSourceControlSidebarModule({
       clearPrFilter,
       branchName,
       onGitHistorySelectionChange,
+      repoId,
+      repoPath,
       t,
     ]
   );
