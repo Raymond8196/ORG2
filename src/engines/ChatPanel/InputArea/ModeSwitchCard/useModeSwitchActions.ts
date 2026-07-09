@@ -235,12 +235,12 @@ function isE2EModeSwitchMockEnabled(): boolean {
   );
 }
 
-export async function switchMode(
+export async function switchModeForSession(
+  sessionId: string,
   eventId: string,
   targetMode: string
 ): Promise<void> {
   const store = getInstrumentedStore();
-  const sessionId = store.get(activeSessionIdAtom);
   if (!sessionId) return;
 
   markResolved(eventId, "switched");
@@ -270,6 +270,16 @@ export async function switchMode(
   if (isAgentSession(sessionId)) {
     await switchAgentMode(eventId, sessionId, targetMode);
   }
+}
+
+export async function switchMode(
+  eventId: string,
+  targetMode: string
+): Promise<void> {
+  const store = getInstrumentedStore();
+  const sessionId = store.get(activeSessionIdAtom);
+  if (!sessionId) return;
+  await switchModeForSession(sessionId, eventId, targetMode);
 }
 
 export async function skipMode(eventId: string): Promise<void> {
