@@ -1219,7 +1219,6 @@
     },
     "modelSelector": {
       "recentModels": "Son modeller",
-      "currentModel": "Geçerli model",
       "allModels": "Tüm modeller",
       "noRecent": "Son model yok",
       "noResults": "Eşleşen model yok",
