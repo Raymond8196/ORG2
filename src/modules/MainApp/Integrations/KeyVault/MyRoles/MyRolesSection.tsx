@@ -46,6 +46,30 @@ type PresenceGuidanceKey =
   | "general.presenceGuidanceInvisible"
   | "general.presenceGuidanceAway";
 
+const PRESENCE_GUIDANCE_DEFAULT_VALUES: Record<PresenceGuidanceKey, string[]> =
+  {
+    "general.presenceGuidanceOnline": [
+      "I am at the keyboard. Feel free to ask me clarifying questions at any time and confirm any destructive actions with me before running them.",
+      "I am at the keyboard. Feel free to ask me clarifying questions at any time and confirm any destructive actions with me before running them",
+    ],
+    "general.presenceGuidanceInvisible": [
+      "I am around but appearing offline. Default to autonomous execution and only notify me for high-risk actions or significant refactoring work; batch any other questions into a single summary instead of asking one by one.",
+      "I am around but appearing offline. Default to autonomous execution and only notify me for high-risk actions or significant refactoring work; batch any other questions into a single summary instead of asking one by one",
+    ],
+    "general.presenceGuidanceAway": [
+      "I am away from the keyboard. Do not block on me — make the best decision you can with the information you have, finish what you can finish, and leave a concise summary of what happened and any open questions for when I return.",
+      "I am away from the keyboard. Do not block on me — make the best decision you can with the information you have, finish what you can finish, and leave a concise summary of what happened and any open questions for when I return",
+    ],
+  };
+
+const PRESENCE_GUIDANCE_DEFAULT_I18N_KEYS: Record<PresenceGuidanceKey, string> =
+  {
+    "general.presenceGuidanceOnline": "general.presenceGuidanceOnlineDefault",
+    "general.presenceGuidanceInvisible":
+      "general.presenceGuidanceInvisibleDefault",
+    "general.presenceGuidanceAway": "general.presenceGuidanceAwayDefault",
+  };
+
 interface MyRolesSectionProps {
   activeTab?: MyRolesTab;
 }
@@ -119,6 +143,16 @@ const MyRolesSection: React.FC<MyRolesSectionProps> = ({
     (settings["general.presenceGuidanceInvisible"] as string | undefined) ?? "";
   const presenceGuidanceAway =
     (settings["general.presenceGuidanceAway"] as string | undefined) ?? "";
+
+  const getPresenceGuidanceDisplayValue = useCallback(
+    (key: PresenceGuidanceKey, value: string) => {
+      if (PRESENCE_GUIDANCE_DEFAULT_VALUES[key].includes(value)) {
+        return t(PRESENCE_GUIDANCE_DEFAULT_I18N_KEYS[key]);
+      }
+      return value;
+    },
+    [t]
+  );
 
   const statusOptions = useMemo<SelectOption[]>(() => {
     const builtInOptions = BUILT_IN_STATUS_OPTIONS.map((option) => {
@@ -648,7 +682,10 @@ const MyRolesSection: React.FC<MyRolesSectionProps> = ({
           layout="vertical"
         >
           <Textarea
-            value={presenceGuidanceOnline}
+            value={getPresenceGuidanceDisplayValue(
+              "general.presenceGuidanceOnline",
+              presenceGuidanceOnline
+            )}
             onChange={handlePresenceGuidanceChange(
               "general.presenceGuidanceOnline"
             )}
@@ -668,7 +705,10 @@ const MyRolesSection: React.FC<MyRolesSectionProps> = ({
           layout="vertical"
         >
           <Textarea
-            value={presenceGuidanceInvisible}
+            value={getPresenceGuidanceDisplayValue(
+              "general.presenceGuidanceInvisible",
+              presenceGuidanceInvisible
+            )}
             onChange={handlePresenceGuidanceChange(
               "general.presenceGuidanceInvisible"
             )}
@@ -688,7 +728,10 @@ const MyRolesSection: React.FC<MyRolesSectionProps> = ({
           layout="vertical"
         >
           <Textarea
-            value={presenceGuidanceAway}
+            value={getPresenceGuidanceDisplayValue(
+              "general.presenceGuidanceAway",
+              presenceGuidanceAway
+            )}
             onChange={handlePresenceGuidanceChange(
               "general.presenceGuidanceAway"
             )}
