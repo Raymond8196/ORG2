@@ -21,7 +21,7 @@ use serde_json::Value;
 use tracing::{info, warn};
 
 use crate::providers::model_capabilities;
-use crate::providers::traits::{LLMProvider, LLMResponse, ProviderError};
+use crate::providers::traits::{finish_reason, LLMProvider, LLMResponse, ProviderError};
 
 /// Configuration for a side query call.
 pub struct SideQueryConfig {
@@ -91,6 +91,9 @@ pub struct SideQueryResult {
 #[derive(Debug)]
 pub enum SideQueryError {
     Provider(ProviderError),
+    /// The model hit its output token limit. Never accept this for side queries:
+    /// summaries / classifiers may be syntactically parseable but semantically truncated.
+    IncompleteOutput { finish_reason: String },
     EmptyContent,
 }
 
@@ -98,6 +101,10 @@ impl std::fmt::Display for SideQueryError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Provider(err) => write!(formatter, "Side query failed: {err}"),
+            Self::IncompleteOutput { finish_reason } => write!(
+                formatter,
+                "Side query returned incomplete output: finish_reason={finish_reason}"
+            ),
             Self::EmptyContent => write!(formatter, "Side query returned empty content"),
         }
     }
@@ -248,6 +255,13 @@ pub async fn side_query_typed(
         .await;
 
     let result = match response {
+        Ok(resp) if is_output_truncated(&resp) => {
+            warn!(
+                "[side-query] incomplete output finish_reason={} — retrying with padded max_tokens",
+                resp.finish_reason
+            );
+            None
+        }
         Ok(resp) => try_extract_result(&resp, expecting_structured, model, config),
         Err(ProviderError::RequestFailed(ref msg))
             if msg.to_lowercase().contains("http 400")
@@ -293,6 +307,12 @@ pub async fn side_query_typed(
         .await
         .map_err(SideQueryError::Provider)?;
 
+    if is_output_truncated(&retry_response) {
+        return Err(SideQueryError::IncompleteOutput {
+            finish_reason: retry_response.finish_reason.clone(),
+        });
+    }
+
     // On retry, try structured first, then fall back to primary_text
     if expecting_structured {
         if let Some(structured_val) = extract_structured_from_response(&retry_response, config) {
@@ -311,6 +331,10 @@ pub async fn side_query_typed(
             Err(SideQueryError::EmptyContent)
         }
     }
+}
+
+fn is_output_truncated(response: &LLMResponse) -> bool {
+    response.finish_reason == finish_reason::LENGTH
 }
 
 /// Attempt to extract a result from a response. Returns `None` to signal
