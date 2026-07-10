@@ -40,7 +40,7 @@ export function useChatPanelTabsController({
 
   useEffect(() => {
     if (!activeTabId || activeTabType !== "session") return;
-    if (activeTabSessionId !== currentSessionId) {
+    if (!activeTabSessionId && currentSessionId) {
       setTabSessionId({
         tabId: activeTabId,
         sessionId: currentSessionId,
