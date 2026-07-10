@@ -1103,6 +1103,16 @@
     "terminalWaitRunning": "터미널 완료 대기 중",
     "runShellDone": "명령 실행됨",
     "runShellFailed": "명령 실행 실패",
+    "runCommands": "명령 실행",
+    "terminalSummary": {
+      "command_one": "명령 {{count}}개",
+      "command_other": "명령 {{count}}개",
+      "wait_one": "대기 {{count}}회",
+      "wait_other": "대기 {{count}}회",
+      "check_one": "확인 {{count}}회",
+      "check_other": "확인 {{count}}회",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Terminal 검사 중",
     "inspectTerminalsDone": "Terminal 검사됨",
     "inspectTerminalsFailed": "Terminal 검사 실패",

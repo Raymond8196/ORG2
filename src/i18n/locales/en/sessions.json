@@ -1150,6 +1150,16 @@
     "terminalWaitRunning": "Waiting for terminal to finish",
     "runShellDone": "Ran command",
     "runShellFailed": "Command failed",
+    "runCommands": "Run commands",
+    "terminalSummary": {
+      "command_one": "{{count}} command",
+      "command_other": "{{count}} commands",
+      "wait_one": "{{count}} wait",
+      "wait_other": "{{count}} waits",
+      "check_one": "{{count}} check",
+      "check_other": "{{count}} checks",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Inspecting terminals",
     "inspectTerminalsDone": "Inspected terminals",
     "inspectTerminalsFailed": "Terminal inspection failed",

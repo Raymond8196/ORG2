@@ -1128,6 +1128,16 @@
     "terminalWaitRunning": "正在等待终端完成",
     "runShellDone": "执行命令",
     "runShellFailed": "命令执行失败",
+    "runCommands": "执行命令",
+    "terminalSummary": {
+      "command_one": "{{count}} 个命令",
+      "command_other": "{{count}} 个命令",
+      "wait_one": "{{count}} 次等待",
+      "wait_other": "{{count}} 次等待",
+      "check_one": "{{count}} 次检查",
+      "check_other": "{{count}} 次检查",
+      "separator": "、"
+    },
     "inspectTerminalsRunning": "正在检查终端",
     "inspectTerminalsDone": "检查终端",
     "inspectTerminalsFailed": "终端检查失败",

@@ -1103,6 +1103,16 @@
     "terminalWaitRunning": "En attente de la fin du terminal",
     "runShellDone": "Commande exécutée",
     "runShellFailed": "Échec de la commande",
+    "runCommands": "Exécuter des commandes",
+    "terminalSummary": {
+      "command_one": "{{count}} commande",
+      "command_other": "{{count}} commandes",
+      "wait_one": "{{count}} attente",
+      "wait_other": "{{count}} attentes",
+      "check_one": "{{count}} vérification",
+      "check_other": "{{count}} vérifications",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Inspection des terminaux",
     "inspectTerminalsDone": "Terminaux inspectés",
     "inspectTerminalsFailed": "Échec de l’inspection des terminaux",

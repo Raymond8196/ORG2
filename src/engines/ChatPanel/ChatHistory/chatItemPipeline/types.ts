@@ -52,6 +52,8 @@ export interface OptimizedChatItem {
   activityStackGroup?: {
     category: string;
     events: SessionEvent[];
+    /** True once a following non-matching event has ended this stack. */
+    closedByBoundary?: boolean;
   };
   /** For consolidated partial observations */
   consolidatedParts?: number;
@@ -85,6 +87,8 @@ export interface ChatItemPipelineOptions {
   minActionSummaryToGroup?: number;
   stackBrowserActions?: boolean;
   minBrowserActionsToStack?: number;
+  groupTerminalActivities?: boolean;
+  minTerminalActivitiesToGroup?: number;
   consolidatePartialObservations?: boolean;
   preFilterEmptyActivities?: boolean;
   minReadFilesToGroup?: number;
@@ -103,6 +107,8 @@ export const DEFAULT_PIPELINE_OPTIONS: ChatItemPipelineOptions = {
   minActionSummaryToGroup: 2,
   stackBrowserActions: true,
   minBrowserActionsToStack: 3,
+  groupTerminalActivities: true,
+  minTerminalActivitiesToGroup: 1,
   consolidatePartialObservations: true,
   preFilterEmptyActivities: true,
   minReadFilesToGroup: 2,

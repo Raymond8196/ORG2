@@ -26,6 +26,7 @@ import { createLogger } from "@src/hooks/logger";
 
 import ActionSummaryGroup from "../../ChatItems/ActionSummaryGroup";
 import ReadFileGroup from "../../ChatItems/ReadFileGroup";
+import TerminalActivityGroup from "../../ChatItems/TerminalActivityGroup";
 import ActivityChatItem from "../ActivityRouter";
 import type { OptimizedChatItem } from "../chatItemPipeline";
 import ChatItemWrap from "./ChatItemWrap";
@@ -206,6 +207,17 @@ export function renderActivityStackGroup(
 ): React.ReactElement | null {
   const stackGroup = chatItem.activityStackGroup;
   if (!stackGroup || stackGroup.events.length === 0) return null;
+
+  if (stackGroup.category === "terminal") {
+    return (
+      <ChatItemWrap key={itemKey}>
+        <TerminalActivityGroup
+          events={stackGroup.events}
+          closedByBoundary={stackGroup.closedByBoundary}
+        />
+      </ChatItemWrap>
+    );
+  }
 
   const actionCount = stackGroup.events.length;
   const countLabel = i18next.t("sessions:chat.actionCount", {
