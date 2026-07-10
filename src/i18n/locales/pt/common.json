@@ -31,10 +31,6 @@
     "closeCanvas": "Fechar canvas",
     "generatingCanvas": "Gerando canvas…",
     "noContent": "Sem conteúdo",
-    "noIssueSelected": "Nenhum issue selecionado",
-    "selectIssueHint": "Selecione um issue no painel Issues da barra lateral.",
-    "noPrSelected": "Nenhum Pull request selecionado",
-    "selectPrHint": "Selecione um Pull request no painel Pull request da barra lateral.",
     "reload": "Recarregar",
     "urlPreviewRequiresTauri": "A visualização de URL requer Tauri",
     "openInExternalBrowser": "Abra em um navegador externo",
@@ -208,8 +204,7 @@
     "skipThisVersion": "Ignorar esta versão",
     "later": "Mais tarde",
     "updateAiBlame": "Atualizar AI Blame",
-    "link": "Vincular",
-    "fetchPr": "Fetch PR"
+    "link": "Vincular"
   },
   "refreshToast": {
     "successName": "{{name}} atualizado",
@@ -966,9 +961,7 @@
     "scanningFileExtensions": "Varrendo extensões de arquivo...",
     "startBrowsingMarket": "Comece a navegar no Marketplace",
     "previewUnavailable": "Pré-visualização indisponível",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Pesquisar mensagens...",

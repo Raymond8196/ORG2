@@ -31,10 +31,6 @@
     "closeCanvas": "Tuvali kapat",
     "generatingCanvas": "Tuval oluşturuluyor…",
     "noContent": "İçerik yok",
-    "noIssueSelected": "Seçili sorun yok",
-    "selectIssueHint": "Kenar çubuğundaki Issues panelinden bir sorun seçin.",
-    "noPrSelected": "Seçili Pull request yok",
-    "selectPrHint": "Kenar çubuğundaki Pull request panelinden bir Pull request seçin.",
     "reload": "Yeniden yükle",
     "urlPreviewRequiresTauri": "URL önizlemesi Tauri gerektirir",
     "openInExternalBrowser": "Bunun yerine harici tarayıcıda açın",
@@ -208,8 +204,7 @@
     "skipThisVersion": "Bu sürümü atla",
     "later": "Daha sonra",
     "updateAiBlame": "AI Blame'i güncelle",
-    "link": "Bağla",
-    "fetchPr": "Fetch PR"
+    "link": "Bağla"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi",
@@ -966,9 +961,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Önizleme kullanılamıyor",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Mesajlarda ara...",
