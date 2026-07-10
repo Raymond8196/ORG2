@@ -6,10 +6,12 @@
  * recent model entry tracking.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { CliAgentType } from "@src/api/tauri/rpc/schemas/validation";
 import type { DispatchCategory } from "@src/api/tauri/session";
+import Message from "@src/components/Message";
 import {
   type KeyVaultAccount,
   type UseKeyVaultReturn,
@@ -22,6 +24,11 @@ import {
 } from "@src/hooks/models/useAgentCompatibility";
 import { buildAccountLookup } from "@src/hooks/models/useModelAccountLookup";
 import { useOrgiiPoolCategories } from "@src/hooks/models/useOrgiiPoolCategories";
+import {
+  formatRefreshSummary,
+  refreshAllAccountModels,
+  refreshSummaryTone,
+} from "@src/modules/MainApp/Integrations/KeyVault/hooks/refreshAccountModels";
 import {
   cliAgentTypeAtom,
   dispatchCategoryAtom,
@@ -71,6 +78,10 @@ export interface UnifiedModelPaletteData {
    * that never refreshes until the palette is reopened.
    */
   saveKey: UseKeyVaultReturn["saveKey"];
+  /** Refresh available models for every loaded account. */
+  refreshAllModels: () => Promise<void>;
+  /** True while {@link refreshAllModels} is running. */
+  refreshingAllModels: boolean;
 }
 
 export function useUnifiedModelPaletteData({
@@ -81,6 +92,7 @@ export function useUnifiedModelPaletteData({
   const creatorDispatchCategory = useAtomValue(dispatchCategoryAtom);
   const creatorCliAgentType = useAtomValue(cliAgentTypeAtom);
   const { registry } = useAgentCompatibility();
+  const { t } = useTranslation("integrations");
 
   // Prefer caller-supplied overrides (in-session model pill) over the creator
   // atom values. Without this, opening the Model palette from inside a Claude
@@ -92,7 +104,13 @@ export function useUnifiedModelPaletteData({
 
   const orgiiPoolEnabled = dispatchCategory !== "cli_agent";
 
-  const { accounts: allAccounts, saveKey } = useKeyVault({ autoLoad: isOpen });
+  const {
+    accounts: allAccounts,
+    saveKey,
+    refresh,
+  } = useKeyVault({ autoLoad: isOpen });
+
+  const [refreshingAllModels, setRefreshingAllModels] = useState(false);
 
   const accounts = useMemo(() => {
     if (dispatchCategory === "cli_agent" && cliAgentType) {
@@ -117,6 +135,27 @@ export function useUnifiedModelPaletteData({
     [setRecentEntries]
   );
 
+  const refreshAllModels = useCallback(async () => {
+    if (allAccounts.length === 0) return;
+    setRefreshingAllModels(true);
+    try {
+      const summary = await refreshAllAccountModels(allAccounts);
+      await refresh();
+      Message[refreshSummaryTone(summary)](
+        formatRefreshSummary(summary, t),
+        5000
+      );
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      Message.error(
+        t("keyVault.toasts.refreshError", { name: "Models", error: detail }),
+        5000
+      );
+    } finally {
+      setRefreshingAllModels(false);
+    }
+  }, [allAccounts, refresh, t]);
+
   return {
     accounts,
     accountLookup,
@@ -129,5 +168,7 @@ export function useUnifiedModelPaletteData({
     recentEntries,
     recordRecent,
     saveKey,
+    refreshAllModels,
+    refreshingAllModels,
   };
 }
