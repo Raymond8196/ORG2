@@ -106,6 +106,7 @@ fn apply_linux_webkit_cpu_guards() {}
 pub mod agent_sessions; // Agent session management (CLI, event pipeline, persistence, aggregation)
 pub mod api;
 pub mod benchmark;
+pub mod cli_managed_proxy;
 pub mod infrastructure; // In-tree-only cross-cutting infrastructure (paths, platform, archive, index_manager, jsonrpc, housekeeping). Leaf pieces live in their own workspace crates.
 pub mod orgtrack;
 pub(crate) mod setup;
@@ -478,6 +479,10 @@ pub fn run() {
                 }
                 Err(err) => tracing::error!(error = %err, "[IDE Server] Failed to create tokio runtime"),
             });
+
+            // Start the local CLI managed-config proxy used by Codex config
+            // switch mode. It is idle until a CLI points at 127.0.0.1:17888.
+            cli_managed_proxy::start_cli_managed_proxy_thread();
 
             // Initialize Rust EventStore state
             app.manage(agent_sessions::event_pipeline::commands::EventStoreState::new());
