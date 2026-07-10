@@ -6,6 +6,7 @@
  * - Deduplicates running/completed tool_call pairs
  * - Groups consecutive read file events
  * - Groups consecutive exploration tool calls
+ * - Groups consecutive terminal commands and follow-up waits
  * - Stacks consecutive browser actions
  * - Consolidates partial observations
  *
@@ -25,6 +26,8 @@ import {
   isBrowserEvent,
   isManageTodoEvent,
   isReadFileEvent,
+  isTerminalActivityEvent,
+  isTerminalCommandEvent,
 } from "./classifiers";
 import { buildDedupMaps } from "./dedup";
 import { willEventRenderContent } from "./filters";
@@ -114,6 +117,7 @@ export function processChatItems(
     event: SessionEvent;
   }[] = [];
   let browserBuffer: SessionEvent[] = [];
+  let terminalBuffer: SessionEvent[] = [];
   let partialBuffer: { event: SessionEvent; item: OptimizedChatItem }[] = [];
 
   // ------------------------------------------
@@ -212,6 +216,46 @@ export function processChatItems(
     browserBuffer = [];
   };
 
+  const flushTerminalBuffer = (closedByBoundary = true) => {
+    if (terminalBuffer.length === 0) return;
+
+    const minToGroup = opts.minTerminalActivitiesToGroup ?? 1;
+    const hasCommand = terminalBuffer.some(isTerminalCommandEvent);
+    if (
+      opts.groupTerminalActivities &&
+      terminalBuffer.length >= minToGroup &&
+      hasCommand
+    ) {
+      const firstTerminal = terminalBuffer[0];
+      result.push({
+        chunk_id: createActivityStackGroupId(
+          "terminal",
+          getStableActivityItemId(firstTerminal)
+        ),
+        type: "activityStackGroup",
+        activityStackGroup: {
+          category: "terminal",
+          events: [...terminalBuffer],
+          closedByBoundary,
+        },
+      });
+    } else {
+      terminalBuffer.forEach((event) => {
+        if (event.id !== "loading") {
+          if (event.result?.success === true) {
+            stats.successCount++;
+          } else if (event.result?.success === false) {
+            stats.failedCount++;
+          } else {
+            stats.pendingCount++;
+          }
+        }
+        result.push(eventToItem(event));
+      });
+    }
+    terminalBuffer = [];
+  };
+
   const flushPartialBuffer = () => {
     if (partialBuffer.length === 0) return;
 
@@ -241,6 +285,7 @@ export function processChatItems(
     flushActionSummaryBuffer();
     flushReadFileBuffer();
     flushBrowserBuffer();
+    flushTerminalBuffer();
     flushPartialBuffer();
   };
 
@@ -334,6 +379,7 @@ export function processChatItems(
       const summaryCategory = getActionSummaryCategory(event);
       if (summaryCategory && !isFailedToolCall(event)) {
         flushBrowserBuffer();
+        flushTerminalBuffer();
         flushPartialBuffer();
         flushReadFileBuffer();
         actionSummaryBuffer.push({ category: summaryCategory, event });
@@ -346,11 +392,28 @@ export function processChatItems(
     // Buffer: read file events (only when action summaries are disabled)
     if (!opts.groupActionSummaries && isReadFileEvent(event)) {
       flushBrowserBuffer();
+      flushTerminalBuffer();
       flushPartialBuffer();
       readFileBuffer.push(event);
       continue;
     } else if (!opts.groupActionSummaries) {
       flushReadFileBuffer();
+    }
+
+    // Buffer: consecutive terminal commands plus their wait/monitor/inspect
+    // follow-ups. Explicit infrastructure failures remain standalone error
+    // cards, matching the exploration-group failure policy.
+    if (
+      opts.groupTerminalActivities &&
+      isTerminalActivityEvent(event) &&
+      !isFailedToolCall(event)
+    ) {
+      flushBrowserBuffer();
+      flushPartialBuffer();
+      terminalBuffer.push(event);
+      continue;
+    } else {
+      flushTerminalBuffer();
     }
 
     // Buffer: browser actions
@@ -428,11 +491,12 @@ export function processChatItems(
     result.push(eventToItem(event));
   }
 
-  // Flush remaining buffers. A trailing action-summary buffer is still active,
-  // so keep its stack expanded until a later non-summary event closes it.
+  // Flush remaining buffers. Trailing exploration and terminal buffers are
+  // still active, so keep their stacks expanded until a later event closes them.
   flushActionSummaryBuffer(false);
   flushReadFileBuffer();
   flushBrowserBuffer();
+  flushTerminalBuffer(false);
   flushPartialBuffer();
 
   return { items: result, stats };

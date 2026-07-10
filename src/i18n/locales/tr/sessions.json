@@ -1103,6 +1103,16 @@
     "terminalWaitRunning": "Terminalin bitmesi bekleniyor",
     "runShellDone": "Komut çalıştırıldı",
     "runShellFailed": "Komut başarısız",
+    "runCommands": "Komutları çalıştır",
+    "terminalSummary": {
+      "command_one": "{{count}} komut",
+      "command_other": "{{count}} komut",
+      "wait_one": "{{count}} bekleme",
+      "wait_other": "{{count}} bekleme",
+      "check_one": "{{count}} kontrol",
+      "check_other": "{{count}} kontrol",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Terminaller inceleniyor",
     "inspectTerminalsDone": "Terminaller incelendi",
     "inspectTerminalsFailed": "Terminal incelemesi başarısız",

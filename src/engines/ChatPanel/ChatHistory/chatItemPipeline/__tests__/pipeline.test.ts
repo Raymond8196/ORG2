@@ -57,6 +57,30 @@ function makeShellItem(command: string, exitCode = 0) {
   });
 }
 
+function makeAwaitItem(jobKind: "shell" | "subagent", handle: string) {
+  return makeSessionEvent({
+    action_type: "tool_call",
+    function: "await_output",
+    uiCanonical: "await_output",
+    args: { command: "wait_for", handles: [handle] },
+    result: {
+      output: `awaitMeta::${JSON.stringify({
+        count: 1,
+        items: [{ handle, jobKind, status: "succeeded" }],
+      })}`,
+    },
+  });
+}
+
+function makeInspectTerminalsItem() {
+  return makeSessionEvent({
+    action_type: "tool_call",
+    function: "inspect_terminals",
+    args: { action: "read_output", session_id: "terminal-1" },
+    result: { success: true },
+  });
+}
+
 function makeSearchItem(query: string) {
   return makeSessionEvent({
     action_type: "tool_call",
@@ -135,6 +159,7 @@ describe("processChatItems", () => {
       const { items } = processChatItems([first, second], {
         preFilterEmptyActivities: false,
         groupActionSummaries: false,
+        groupTerminalActivities: false,
       });
       expect(items.length).toBe(2);
       expect(items[0].chunk_id).toBe(first.id);
@@ -507,6 +532,7 @@ describe("processChatItems", () => {
 
       const { items } = processChatItems([readItem, searchItem, shellItem], {
         groupActionSummaries: true,
+        groupTerminalActivities: false,
         preFilterEmptyActivities: false,
       });
 
@@ -587,6 +613,7 @@ describe("processChatItems", () => {
 
       const { items } = processChatItems([readItem, shellItem, searchItem], {
         groupActionSummaries: true,
+        groupTerminalActivities: false,
         preFilterEmptyActivities: false,
       });
 
@@ -641,6 +668,110 @@ describe("processChatItems", () => {
       });
 
       expect(result.length).toBe(2);
+    });
+  });
+
+  describe("terminal grouping", () => {
+    it("groups a single terminal command", () => {
+      const command = makeShellItem("git status");
+
+      const { items } = processChatItems([command], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].type).toBe("activityStackGroup");
+      expect(items[0].activityStackGroup?.category).toBe("terminal");
+      expect(items[0].activityStackGroup?.events).toEqual([command]);
+    });
+
+    it("groups commands, shell waits, and terminal inspections together", () => {
+      const terminalActivities = [
+        makeShellItem("git status"),
+        makeAwaitItem("shell", "48291"),
+        makeInspectTerminalsItem(),
+      ];
+
+      const { items } = processChatItems(terminalActivities, {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].type).toBe("activityStackGroup");
+      expect(items[0].activityStackGroup?.category).toBe("terminal");
+      expect(items[0].activityStackGroup?.events).toEqual(terminalActivities);
+      expect(items[0].activityStackGroup?.closedByBoundary).toBe(false);
+    });
+
+    it("keeps subagent-only waits outside terminal stacks", () => {
+      const first = makeShellItem("git status");
+      const subagentWait = makeAwaitItem(
+        "subagent",
+        "agent-builtin:explore-abc123"
+      );
+      const second = makeShellItem("git diff");
+
+      const { items } = processChatItems([first, subagentWait, second], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(3);
+      expect(items.map((item) => item.type)).toEqual([
+        "activityStackGroup",
+        "activity",
+        "activityStackGroup",
+      ]);
+      expect(items[1].event?.id).toBe(subagentWait.id);
+    });
+
+    it("does not create a terminal stack without a command anchor", () => {
+      const wait = makeAwaitItem("shell", "48291");
+      const check = makeInspectTerminalsItem();
+
+      const { items } = processChatItems([wait, check], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(2);
+      expect(items.every((item) => item.type === "activity")).toBe(true);
+    });
+
+    it("closes a terminal stack when a different event follows", () => {
+      const first = makeShellItem("git status");
+      const second = makeShellItem("git diff");
+      const search = makeSearchItem("ChatPanel");
+
+      const { items } = processChatItems([first, second, search], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(2);
+      expect(items[0].activityStackGroup?.category).toBe("terminal");
+      expect(items[0].activityStackGroup?.closedByBoundary).toBe(true);
+      expect(items[1].event?.id).toBe(search.id);
+    });
+
+    it("groups single commands but keeps kill actions standalone", () => {
+      const first = makeShellItem("npm test");
+      const kill = makeSessionEvent({
+        action_type: "tool_call",
+        function: "run_shell",
+        args: { kill_handle: "shell-1" },
+        result: { success: true },
+      });
+      const second = makeShellItem("npm run lint");
+
+      const { items } = processChatItems([first, kill, second], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(3);
+      expect(items.map((item) => item.type)).toEqual([
+        "activityStackGroup",
+        "activity",
+        "activityStackGroup",
+      ]);
+      expect(items[1].event?.id).toBe(kill.id);
     });
   });
 
@@ -715,6 +846,7 @@ describe("processChatItems", () => {
           filterManageTodo: true,
           preFilterEmptyActivities: false,
           groupActionSummaries: false,
+          groupTerminalActivities: false,
         }
       );
 
@@ -784,6 +916,7 @@ describe("processChatItems", () => {
       const { items } = processChatItems([runningShellEvent], {
         preFilterEmptyActivities: true,
         groupActionSummaries: false,
+        groupTerminalActivities: false,
       });
 
       expect(items.length).toBe(1);
@@ -812,7 +945,11 @@ describe("processChatItems", () => {
 
       const { stats } = processChatItems(
         [successEvent, failedEvent, pendingEvent],
-        { preFilterEmptyActivities: false, groupActionSummaries: false }
+        {
+          preFilterEmptyActivities: false,
+          groupActionSummaries: false,
+          groupTerminalActivities: false,
+        }
       );
 
       expect(stats.totalActivities).toBe(3);
