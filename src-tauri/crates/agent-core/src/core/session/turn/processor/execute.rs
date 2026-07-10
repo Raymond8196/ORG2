@@ -246,15 +246,25 @@ impl UnifiedMessageProcessor {
                 )
                 .await;
 
-            if let CompactionOutcome::Truncated { messages_dropped } = reactive_outcome {
+            if let CompactionOutcome::Failed { ref reason } = reactive_outcome {
+                // The provider just rejected the prompt and compaction could
+                // not shrink it — the history is unchanged, so a retry would
+                // fail identically. Surface the error instead of spinning
+                // (CC: reactive compact failure yields prompt_too_long to the
+                // user; no silent truncation).
+                warn!(
+                    "[unified_processor] Reactive compaction FAILED for session {} (attempt {}) — surfacing ContextTooLong: {}",
+                    session_id, attempt, reason
+                );
                 broadcast_agent_warning(
                     session_id,
                     &format!(
-                        "Reactive compaction fell back to truncation ({} messages dropped without summary, attempt {})",
-                        messages_dropped, attempt
+                        "Context compaction failed ({}); the conversation is too long for the model — consider /compact or starting a new session",
+                        reason
                     ),
                     "compaction",
                 );
+                return Err(last_err);
             } else if reactive_outcome == CompactionOutcome::Skipped {
                 // The provider just rejected the prompt as too long, yet the
                 // compactor's estimate judged the history within budget — the

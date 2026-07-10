@@ -206,6 +206,11 @@ impl UnifiedMessageProcessor {
             let mut sm_state = self.sm_state.lock().await;
             sm_state.last_summarized_msg_idx = None;
         } else {
+            // No fork-form here (unlike pre-turn): reactive compaction runs
+            // right after the provider REJECTED this exact prefix as too
+            // long — resending it with a summary request appended would be
+            // rejected identically. The side-query path with head-dropping
+            // PTL retries is the only viable shape mid-turn.
             let mut state = self.compaction_state.lock().await;
             let (compacted, llm_outcome) = ContextCompactor::compact(
                 &compactable_tail,
@@ -408,29 +413,64 @@ impl UnifiedMessageProcessor {
         }
 
         if need_llm_compact {
+            // Fork-form summarization inputs: the summary request rides on
+            // the main turn's EXACT wire prefix (same messages after
+            // screenshot resolution + timestamp strip, same tools, same
+            // model/max_tokens/temperature) so it reads the prompt cache
+            // written by the previous turn instead of a cold 200K+ resend.
+            // Ref: claude_code runForkedAgent CacheSafeParams.
+            let fork_tools = self
+                .runtime
+                .tool_registry
+                .get_definitions_budgeted(self.effective_tool_policy().as_ref());
+            let mut fork_messages = crate::core::turn_executor::resolve_screenshot_markers(
+                messages,
+                &self.screenshot_store,
+                &self.runtime.model,
+            );
+            crate::model_context::microcompact::strip_timestamp_metadata(&mut fork_messages);
+            let fork_inputs = crate::model_context::compaction::ForkSummaryInputs {
+                messages: &fork_messages,
+                tools: &fork_tools,
+                model: &self.runtime.model,
+                max_tokens: self.runtime.resolved.max_tokens as u32,
+                temperature: self.runtime.resolved.temperature as f32,
+            };
+
             let mut state = self.compaction_state.lock().await;
-            let (compacted, outcome) = ContextCompactor::compact(
+            let (compacted, outcome) = ContextCompactor::compact_with_fork(
                 &compactable_tail,
                 budget_tokens,
                 &self.runtime.resolved.compaction,
                 &mut state,
                 self.runtime.provider.as_ref(),
                 &self.runtime.model,
+                Some(&fork_inputs),
             )
             .await;
-            let cleaned_tail = crate::model_context::cleanup::post_compact_cleanup(compacted);
-            *messages = append_compacted_tail(&prefix, cleaned_tail);
 
-            if let CompactionOutcome::Truncated { messages_dropped } = outcome {
+            // CC semantics: a failed compaction leaves the history UNCHANGED
+            // and the turn proceeds with the original messages — no silent
+            // truncation, no boundary persist for a no-op. The failure was
+            // already counted toward the circuit breaker inside `compact`.
+            if let CompactionOutcome::Failed { reason } = outcome {
+                warn!(
+                    "[unified_processor] Pre-turn compaction failed for session {} — continuing uncompacted: {}",
+                    session_id, reason
+                );
                 broadcast_agent_warning(
                     session_id,
                     &format!(
-                        "Context compaction fell back to truncation ({} conversation messages dropped without summary)",
-                        messages_dropped
+                        "Context compaction failed ({}); continuing with the uncompacted history",
+                        reason
                     ),
                     "compaction",
                 );
+                return CompactionPhaseOutcome::Continue;
             }
+
+            let cleaned_tail = crate::model_context::cleanup::post_compact_cleanup(compacted);
+            *messages = append_compacted_tail(&prefix, cleaned_tail);
 
             let mut sm_state = self.sm_state.lock().await;
             sm_state.last_summarized_msg_idx = None;
