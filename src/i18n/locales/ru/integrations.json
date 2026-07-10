@@ -2595,7 +2595,10 @@
   },
   "cliLaunchProfiles": {
     "title": "Профиль запуска",
+    "plain": "Базовый",
+    "plan": "План",
     "fullPermission": "Полные права",
+    "autoEdit": "Автоправка",
     "manual": "Вручную",
     "command": "Команда",
     "environment": "Окружение",

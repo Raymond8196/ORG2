@@ -142,7 +142,9 @@
       "views": "檢視",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "刪除草稿"
+      "removeDraft": "刪除草稿",
+      "showSubagents": "顯示子代理",
+      "hideSubagents": "隱藏子代理"
     },
     "resultStatus": {
       "completed": "已完成",
@@ -413,7 +415,6 @@
         "interactionAskQuestion": "提問",
         "interactionAskPermission": "權限請求",
         "interactionModeSwitch": "模式切換",
-        "interactionNextSteps": "下一步建議",
         "interactionPlanDoc": "Plan 文檔",
         "interactionGeneric": "交互"
       },
@@ -673,7 +674,9 @@
       "empty": "找不到操作。",
       "unpinAll": "全部取消固定",
       "insert": "插入"
-    }
+    },
+    "compactArgHint": "<可選:本次總結的重點>",
+    "compactCommandDescription": "總結較早的上下文以釋放空間。可選:/compact <本次總結的重點>"
   },
   "listPanel": {
     "showingOf": "顯示 {{filtered}} / {{total}}",
@@ -1426,9 +1429,6 @@
     "toolSearchRunning": "正在搜索工具",
     "toolSearchDone": "搜索工具",
     "toolSearchFailed": "工具搜索失敗",
-    "suggestNextStepsRunning": "正在生成後續步驟",
-    "suggestNextStepsDone": "生成 {{count}} 條後續步驟",
-    "suggestNextStepsFailed": "無法生成後續步驟",
     "agentSendMessageRunning": "正在向隊友 Agent 發送消息",
     "agentSendMessageDone": "向隊友 Agent 發送消息",
     "agentSendMessageFailed": "向隊友 Agent 發送消息失敗",
@@ -1882,6 +1882,7 @@
     "slashMenu": {
       "image": "圖片",
       "uploadImage": "上傳圖片",
+      "commands": "指令",
       "mode": "模式",
       "models": "模型",
       "skills": "Skills",
@@ -2295,7 +2296,8 @@
       "仍在思考，比平時更久...",
       "正在處理，比平時更久...",
       "正在琢磨下一步，比平時更久..."
-    ]
+    ],
+    "compacting": "正在壓縮上下文…"
   },
   "revertConfirm": {
     "title": "文件有未保存的變更",

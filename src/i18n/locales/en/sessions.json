@@ -148,7 +148,9 @@
       "views": "Views",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Remove draft"
+      "removeDraft": "Remove draft",
+      "showSubagents": "Show subagents",
+      "hideSubagents": "Hide subagents"
     },
     "resultStatus": {
       "completed": "Completed",
@@ -439,7 +441,6 @@
         "interactionAskQuestion": "Question",
         "interactionAskPermission": "Permission request",
         "interactionModeSwitch": "Mode switch",
-        "interactionNextSteps": "Next steps",
         "interactionPlanDoc": "Plan document",
         "interactionGeneric": "Interaction"
       },
@@ -699,7 +700,9 @@
       "empty": "No actions found.",
       "unpinAll": "Unpin all",
       "insert": "Insert"
-    }
+    },
+    "compactArgHint": "<optional focus for the summary>",
+    "compactCommandDescription": "Summarize older context to free space. Optional: /compact <focus for the summary>"
   },
   "listPanel": {
     "showingOf": "Showing {{filtered}} of {{total}}",
@@ -1062,7 +1065,8 @@
       "Still thinking, taking longer than usual...",
       "Working on it, taking longer than usual...",
       "Thinking it through, taking longer than usual..."
-    ]
+    ],
+    "compacting": "Compacting context..."
   },
   "tools": {
     "noResultsFound": "No results found",
@@ -1476,9 +1480,6 @@
     "toolSearchRunning": "Searching for tools",
     "toolSearchDone": "Searched for tools",
     "toolSearchFailed": "Tool search failed",
-    "suggestNextStepsRunning": "Suggesting next steps",
-    "suggestNextStepsDone": "Suggested {{count}} next steps",
-    "suggestNextStepsFailed": "Could not suggest next steps",
     "agentSendMessageRunning": "Sending message to teammate",
     "agentSendMessageDone": "Sent message to teammate",
     "agentSendMessageFailed": "Could not send message to teammate",
@@ -1922,6 +1923,7 @@
     "slashMenu": {
       "image": "Image",
       "uploadImage": "Upload image",
+      "commands": "Commands",
       "mode": "Mode",
       "models": "Models",
       "skills": "Skills",

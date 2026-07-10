@@ -20,6 +20,13 @@ export interface DiffStatsBadgeProps {
    * of re-specifying `text-[Npx]` externally.
    */
   size?: DiffStatsBadgeSize;
+  /**
+   * Gap utility between the additions and deletions values. Defaults to
+   * `"gap-1"`. Pass `"gap-0"` (or another gap token) to override — supplied
+   * here rather than via `className` so it can't collide with the baked-in
+   * container gap and lose to Tailwind source-order.
+   */
+  gapClassName?: string;
   className?: string;
   valueClassName?: string;
   formatValue?: (value: number) => ReactNode;
@@ -30,9 +37,9 @@ export interface DiffStatsBadgeProps {
 const CONTAINER_CLASSES: Record<DiffStatsBadgeVariant, string> = {
   default: `${DIFF_STATS.container} font-mono font-medium leading-none tabular-nums`,
   compact: `${DIFF_STATS.containerCompact} font-mono font-medium leading-none tabular-nums`,
-  chat: "chat-block-xs flex shrink-0 items-center gap-1 font-mono font-medium leading-none tabular-nums",
+  chat: "chat-block-xs flex shrink-0 items-center font-mono font-medium leading-none tabular-nums",
   plain:
-    "inline-flex shrink-0 items-center gap-1 font-mono font-medium leading-none tabular-nums",
+    "inline-flex shrink-0 items-center font-mono font-medium leading-none tabular-nums",
 };
 
 const VALUE_CLASSES = "inline-flex min-w-[3ch] justify-end";
@@ -46,6 +53,7 @@ const DiffStatsBadge = memo(function DiffStatsBadge({
   deletions = 0,
   variant = "default",
   size = "inherit",
+  gapClassName = "gap-1",
   className,
   valueClassName,
   formatValue = String,
@@ -63,6 +71,7 @@ const DiffStatsBadge = memo(function DiffStatsBadge({
     <span
       className={joinClasses(
         CONTAINER_CLASSES[variant],
+        gapClassName,
         getDiffStatsSizeClass(size),
         className
       )}

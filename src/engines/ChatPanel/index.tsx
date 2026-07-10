@@ -481,6 +481,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const tabStripPlus = (
       <ChatPanelPlusMenu
+        onOpenLaunchpad={handleStartPageSetupRepo}
         onNewSession={handleNewSessionTab}
         onNewWorkItem={handleStartPageNewWorkItem}
         onManageIssues={handleStartPageManageIssues}

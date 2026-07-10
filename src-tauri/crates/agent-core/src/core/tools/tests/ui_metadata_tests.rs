@@ -48,7 +48,6 @@ fn invokable_canonical_tool_names() -> BTreeSet<&'static str> {
         names::SEND_MESSAGE,
         names::SEND_TO_INBOX,
         names::TOOL_SEARCH,
-        names::SUGGEST_NEXT_STEPS,
         names::ORG_SEND_MESSAGE,
         names::TASK_CREATE,
         names::TASK_UPDATE,
