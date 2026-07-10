@@ -201,7 +201,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
   const lastIndex = timeline.length; // description card is index -1 conceptually
 
   return (
-    <div className="flex h-full min-h-0 select-text flex-col overflow-hidden">
+    <div className="allow-select-deep flex h-full min-h-0 select-text flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
         <div className="mx-auto flex w-full max-w-[920px] flex-col px-4 py-4">
           <div className="flex flex-col">
