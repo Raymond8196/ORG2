@@ -419,6 +419,28 @@ pub fn append_compact_boundary(
     )
 }
 
+/// Update display-only token metadata on a compact-boundary row.
+pub fn update_compact_boundary_token_delta(
+    session_id: &str,
+    boundary_id: &str,
+    tokens_before: Option<i64>,
+    tokens_after: Option<i64>,
+) -> SqliteResult<()> {
+    with_sessions_writer(|| -> SqliteResult<()> {
+        let conn = get_connection()?;
+        conn.execute(
+            "UPDATE agent_messages
+             SET compact_tokens_before = ?3,
+                 compact_tokens_after = ?4
+             WHERE session_id = ?1
+               AND id = ?2
+               AND compact_from_sequence IS NOT NULL",
+            params![session_id, boundary_id, tokens_before, tokens_after],
+        )?;
+        Ok(())
+    })
+}
+
 /// Clear all messages for a session.
 pub fn clear_messages(session_id: &str) -> SqliteResult<i64> {
     shared::clear_messages(SESSION_TABLE_PREFIX, session_id)

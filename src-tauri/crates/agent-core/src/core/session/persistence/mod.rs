@@ -39,7 +39,7 @@ pub use messages::{
     save_assistant_msg, save_compact_summary_msg, save_session_memory_state, save_snapshot,
     save_subagent_transcript, save_tool_call_msg, save_tool_result_msg, save_user_msg,
     seed_session_with_messages, take_turn_cancelled, truncate_messages_from_sequence,
-    MessageAnchor,
+    update_compact_boundary_token_delta, MessageAnchor,
 };
 
 use rusqlite::{Connection, Result as SqliteResult};
