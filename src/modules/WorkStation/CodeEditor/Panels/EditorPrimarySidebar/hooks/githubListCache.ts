@@ -169,18 +169,34 @@ export function updateCachedClosedIssues(
 
 // ── Pull Requests ─────────────────────────────────────────────────────────────
 
-export function getCachedPrs(repoKey: string): CachedPrs | null {
-  return lruGet(prCache, repoKey);
+export type CachedPrState = "open" | "closed";
+
+function prCacheKey(repoKey: string, state: CachedPrState): string {
+  return state === "open" ? repoKey : `${repoKey}:closed`;
 }
 
-export function isPrCacheStale(repoKey: string): boolean {
-  const entry = prCache.get(repoKey);
+export function getCachedPrs(
+  repoKey: string,
+  state: CachedPrState = "open"
+): CachedPrs | null {
+  return lruGet(prCache, prCacheKey(repoKey, state));
+}
+
+export function isPrCacheStale(
+  repoKey: string,
+  state: CachedPrState = "open"
+): boolean {
+  const entry = prCache.get(prCacheKey(repoKey, state));
   if (!entry) return true;
   return Date.now() - entry.cachedAt > TTL_MS;
 }
 
-export function setCachedPrs(repoKey: string, prs: OpenPRItem[]) {
-  lruSet(prCache, repoKey, {
+export function setCachedPrs(
+  repoKey: string,
+  prs: OpenPRItem[],
+  state: CachedPrState = "open"
+) {
+  lruSet(prCache, prCacheKey(repoKey, state), {
     prs: prs.slice(0, MAX_PRS),
     cachedAt: Date.now(),
   });
