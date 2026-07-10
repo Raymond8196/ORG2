@@ -619,14 +619,27 @@ export const WorkstationSidebarConnector: React.FC = () => {
   });
   const handleOpenInNewTab = useCallback(
     (sessionId: string) => {
+      activateMyStationRouteForProjectTabContent();
+      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
       if (isChatPanelTuiSessionId(sessionId)) {
         const tabId = getChatPanelTabIdFromTuiSessionId(sessionId);
         if (tabId) activateChatPanelTab(tabId);
         return;
       }
-      openSessionInNewChatTab(sessionId);
+      const session = sessionMap.get(sessionId);
+      openSessionInNewChatTab({
+        sessionId,
+        sessionName: session?.name,
+        repoPath: session?.repoPath,
+      });
     },
-    [activateChatPanelTab, openSessionInNewChatTab]
+    [
+      activateChatPanelTab,
+      activateMyStationRouteForProjectTabContent,
+      navigateChatPanel,
+      openSessionInNewChatTab,
+      sessionMap,
+    ]
   );
 
   const handleToggleSubagentExpansion = useCallback((sessionId: string) => {
