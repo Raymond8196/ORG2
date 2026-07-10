@@ -1163,6 +1163,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
             {turnPageListOpen && turnPaginationReady && (
               <TurnPageList
                 surfaceBgClass={surfaceBgClass}
+                bottomInset={bottomInset}
                 pages={pages}
                 groupHeaders={groupHeaders}
                 groupMeta={groupMeta}
