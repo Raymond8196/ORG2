@@ -208,6 +208,20 @@ fn build_codex_fast_variant_maps_to_priority_service_tier() {
 }
 
 #[test]
+fn build_codex_gpt_5_6_ultra_fast_variant() {
+    let cmd = build_command!(
+        ModelType::Codex,
+        task = "write tests",
+        model = Some("gpt-5.6-sol-ultra-fast"),
+    );
+    let model_idx = cmd.iter().position(|arg| arg == "-m").unwrap();
+    assert_eq!(cmd[model_idx + 1], "gpt-5.6-sol");
+    assert!(cmd.contains(&"model_reasoning_effort=\"ultra\"".to_string()));
+    assert!(cmd.contains(&"service_tier=\"priority\"".to_string()));
+    assert!(!cmd.contains(&"gpt-5.6-sol-ultra-fast".to_string()));
+}
+
+#[test]
 fn build_codex_with_resume() {
     let cmd = build_command!(
         ModelType::Codex,

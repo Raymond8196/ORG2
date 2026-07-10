@@ -316,6 +316,9 @@ pub const CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &[
 ];
 
 pub const CODEX_OAUTH_MODELS: &[&str] = &[
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
     "gpt-5.5",
     "gpt-5.4",
     "gpt-5.4-mini",
@@ -324,7 +327,7 @@ pub const CODEX_OAUTH_MODELS: &[&str] = &[
     "codex-auto-review",
 ];
 
-pub const CODEX_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &["gpt-5.5"];
+pub const CODEX_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &["gpt-5.6-sol"];
 
 /// Claude models whose Messages requests carry `output_config.effort`.
 pub fn model_supports_output_config_effort(model: &str) -> bool {
@@ -360,6 +363,7 @@ fn is_actionable_variant(variant: &ModelVariant) -> bool {
                     | "high"
                     | "extra_high"
                     | "xhigh"
+                    | "ultra"
                     | "max"
                     | "ultracode",
             )
@@ -421,13 +425,24 @@ fn codex_model_supports_variants(model: &str) -> bool {
 }
 
 fn codex_model_supports_fast_tier(model: &str) -> bool {
-    matches!(model, "gpt-5.5" | "gpt-5.4")
+    matches!(
+        model,
+        "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.4"
+    )
+}
+
+fn codex_model_supports_ultra_tier(model: &str) -> bool {
+    matches!(model, "gpt-5.6-sol" | "gpt-5.6-terra")
 }
 
 fn codex_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInfo> {
     let mut out = Vec::new();
     let supports_fast = codex_model_supports_fast_tier(base_model);
-    for effort in ["low", "medium", "high", "xhigh"] {
+    let mut efforts = vec!["low", "medium", "high", "xhigh"];
+    if codex_model_supports_ultra_tier(base_model) {
+        efforts.push("ultra");
+    }
+    for effort in efforts {
         out.push(ModelVariantInfo {
             model: format!("{base_model}-{effort}"),
             base_model: base_model.to_string(),
