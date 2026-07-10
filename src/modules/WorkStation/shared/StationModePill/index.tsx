@@ -12,7 +12,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import SegmentedIconButton from "@src/components/SegmentedIconButton";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { ROUTES } from "@src/config/routes";
-import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/GeneralLayoutTour";
+import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
 
 import { WorkstationToolbarTooltip } from "../WorkstationToolbarTooltip";
