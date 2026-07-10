@@ -153,6 +153,32 @@ function parseClaudeVariant(model: string): ModelVariantMetadata | undefined {
   return buildVariant(model, baseSegments.join("-"), suffixTokens);
 }
 
+/**
+ * Provider-native OpenAI-compatible families (GLM/Zhipu, Grok/xAI) whose ids
+ * carry ORG2 effort suffixes directly from the provider list (e.g.
+ * `glm-5.2-high`, `grok-4.5-max`). These have no dedicated tier grammar like
+ * GPT's `codex-max`, so a straight suffix-peel — mirroring the Rust
+ * `parse_model_variant` in agent-core `thinking_mode.rs` — is correct and keeps
+ * both sides in agreement. Bare ids (`glm-5.2`) peel nothing → `undefined`.
+ */
+const SUFFIX_PARSED_FAMILY_PREFIXES = ["glm-", "grok-"] as const;
+
+function parseSuffixOnlyFamilyVariant(
+  model: string
+): ModelVariantMetadata | undefined {
+  const lower = model.toLowerCase();
+  if (
+    !SUFFIX_PARSED_FAMILY_PREFIXES.some((prefix) => lower.startsWith(prefix))
+  ) {
+    return undefined;
+  }
+  const { baseSegments, suffixTokens } = collectSuffixTokens(
+    lower.split("-"),
+    1
+  );
+  return buildVariant(model, baseSegments.join("-"), suffixTokens);
+}
+
 function parseGptVariant(model: string): ModelVariantMetadata | undefined {
   const lower = model.toLowerCase();
   const baseMatch = lower.match(GPT_BASE_PATTERN);
@@ -243,7 +269,11 @@ export function parseModelVariant(
     return parseClaudeVariant(model);
   }
 
-  return undefined;
+  // Provider-native families (GLM/Zhipu, Grok/xAI) whose effort suffixes come
+  // straight from the provider list. Mirrors the Rust `parse_model_variant`
+  // so both sides agree on base/effort splits. Other families (Gemini, etc.)
+  // intentionally stay unparsed.
+  return parseSuffixOnlyFamilyVariant(model);
 }
 
 export function parseModelVariants(models: string[]): ModelVariantMetadata[] {
