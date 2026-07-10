@@ -182,7 +182,7 @@ pub enum CompactionOutcome {
     /// history is returned UNCHANGED — never silently truncated. Ref:
     /// claude_code autoCompact.ts: a failed compaction returns
     /// `wasCompacted: false` and the turn proceeds with the original
-    /// history ("压不动就不压").
+    /// history (if it can't compact, it doesn't compact).
     Failed { reason: String },
     /// History was already within budget — no compaction needed.
     Skipped,
