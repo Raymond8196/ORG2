@@ -115,9 +115,50 @@ pub struct ResponsesUsage {
 }
 
 /// Error from the Responses API.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ResponsesError {
     pub message: Option<String>,
+    #[serde(default)]
+    pub code: Option<String>,
+    #[serde(rename = "type", default)]
+    pub error_type: Option<String>,
+    #[serde(default)]
+    pub param: Option<String>,
+}
+
+impl ResponsesError {
+    pub fn display_message(&self) -> String {
+        let mut details = Vec::new();
+        if let Some(code) = self.code.as_deref().filter(|code| !code.is_empty()) {
+            details.push(format!("code={code}"));
+        }
+        if let Some(error_type) = self
+            .error_type
+            .as_deref()
+            .filter(|error_type| !error_type.is_empty())
+        {
+            details.push(format!("type={error_type}"));
+        }
+        if let Some(param) = self.param.as_deref().filter(|param| !param.is_empty()) {
+            details.push(format!("param={param}"));
+        }
+
+        if let Some(message) = self
+            .message
+            .as_deref()
+            .filter(|message| !message.is_empty())
+        {
+            if details.is_empty() {
+                message.to_string()
+            } else {
+                format!("{message} ({})", details.join(", "))
+            }
+        } else if details.is_empty() {
+            "Responses API returned an error without details".to_string()
+        } else {
+            format!("Responses API error ({})", details.join(", "))
+        }
+    }
 }
 
 // ============================================
@@ -136,9 +177,13 @@ pub struct ResponsesError {
 pub struct StreamEvent {
     #[serde(rename = "type")]
     pub event_type: String,
-    /// Present on response.completed
+    /// Present on response.completed and response.failed.
     #[serde(default)]
     pub response: Option<ResponsesResponse>,
+    /// Present on top-level `error` events. Some Responses-compatible
+    /// backends put the error here instead of under `response.error`.
+    #[serde(default)]
+    pub error: Option<ResponsesError>,
     /// Present on text delta events
     pub delta: Option<String>,
     pub call_id: Option<String>,

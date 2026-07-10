@@ -27,6 +27,71 @@ fn is_codex_auth_error_message(message: &str) -> bool {
         || lower.contains("expired") && lower.contains("token")
 }
 
+fn classify_codex_stream_error(message: String) -> ProviderError {
+    let lower = message.to_ascii_lowercase();
+
+    if is_codex_auth_error_message(&message) {
+        ProviderError::AuthError(message)
+    } else if lower.contains("context_length_exceeded")
+        || lower.contains("context window")
+        || lower.contains("maximum context length")
+        || lower.contains("prompt is too long")
+        || lower.contains("input is too long")
+    {
+        ProviderError::ContextTooLong(message)
+    } else if lower.contains("rate_limit") || lower.contains("rate limit") {
+        ProviderError::RateLimited {
+            message,
+            retry_after_secs: None,
+        }
+    } else if lower.contains("overloaded") || lower.contains("capacity") {
+        ProviderError::Overloaded {
+            message,
+            retry_after_secs: None,
+        }
+    } else if lower.contains("model_not_found") || lower.contains("model not found") {
+        ProviderError::ModelNotFound(message)
+    } else {
+        ProviderError::RequestFailed(message)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::classify_codex_stream_error;
+    use crate::providers::traits::ProviderError;
+
+    #[test]
+    fn classifies_context_failure_as_non_retryable() {
+        let error = classify_codex_stream_error(
+            "Input rejected (code=context_length_exceeded, type=invalid_request_error)".to_string(),
+        );
+
+        assert!(matches!(error, ProviderError::ContextTooLong(_)));
+    }
+
+    #[test]
+    fn classifies_rate_limit_and_overload_failures() {
+        let rate_limit = classify_codex_stream_error(
+            "Rate limit reached (code=rate_limit_exceeded)".to_string(),
+        );
+        let overload =
+            classify_codex_stream_error("Service unavailable (type=overloaded_error)".to_string());
+
+        assert!(matches!(rate_limit, ProviderError::RateLimited { .. }));
+        assert!(matches!(overload, ProviderError::Overloaded { .. }));
+    }
+
+    #[test]
+    fn keeps_unclassified_server_failure_retryable() {
+        let error = classify_codex_stream_error(
+            "Internal failure (code=internal_error, type=server_error)".to_string(),
+        );
+
+        assert!(matches!(error, ProviderError::RequestFailed(_)));
+    }
+}
+
 #[async_trait]
 impl LLMProvider for CodexNativeClient {
     async fn chat(
@@ -320,7 +385,7 @@ impl LLMProvider for CodexNativeClient {
                                     }
                                     return Err(ProviderError::AuthError(error_msg));
                                 }
-                                return Err(ProviderError::RequestFailed(error_msg));
+                                return Err(classify_codex_stream_error(error_msg));
                             }
                             ResponsesStreamOutput::UnknownFrame { event_type, sample } => {
                                 warn!(event_type, sample, "[codex-native] unknown stream frame");
