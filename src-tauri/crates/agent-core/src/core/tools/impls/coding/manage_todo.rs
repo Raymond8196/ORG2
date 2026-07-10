@@ -136,6 +136,26 @@ fn sanitize_todo_text(value: &str) -> String {
     }
 }
 
+fn sanitize_required_todo_content(value: &str, idx: usize) -> Result<String, ToolError> {
+    let content = sanitize_todo_text(value);
+    if content.is_empty() {
+        return Err(ToolError::InvalidParams(format!(
+            "Todo {} has empty 'content'",
+            idx
+        )));
+    }
+    Ok(content)
+}
+
+fn sanitize_optional_todo_content(value: &str) -> Option<String> {
+    let content = sanitize_todo_text(value);
+    if content.is_empty() {
+        None
+    } else {
+        Some(content)
+    }
+}
+
 #[async_trait]
 impl Tool for TodoTool {
     fn name(&self) -> &str {
@@ -178,6 +198,7 @@ Skip this tool when:\n\
 ## Task Management Rules\n\
 - Exactly ONE task must be in_progress at a time (not zero, not two)\n\
 - Mark tasks completed IMMEDIATELY after finishing — don't batch completions\n\
+- When updating only status or priority, omit `content`; never pass an empty title\n\
 - ONLY mark completed when you have FULLY accomplished the task. If tests fail, implementation is partial, or errors remain, keep it in_progress and create a follow-up task describing the blocker.\n\
 - Remove tasks that are no longer relevant (status=cancelled or a full rewrite)\n\
 - Use `blockedBy` when tasks have clear sequential dependencies so you always pick up the next unblocked task\n\n\
@@ -210,6 +231,7 @@ Skip this tool when:\n\
                         "properties": {
                             "content": {
                                 "type": "string",
+                                "minLength": 1,
                                 "description": "Imperative-form title (e.g. \"Run tests\")"
                             },
                             "activeForm": {
@@ -239,7 +261,8 @@ Skip this tool when:\n\
                 },
                 "content": {
                     "type": "string",
-                    "description": "Optional for update. New imperative-form title."
+                    "minLength": 1,
+                    "description": "Optional for update. New imperative-form title. Omit to keep the existing title; never pass an empty string."
                 },
                 "activeForm": {
                     "type": "string",
@@ -334,10 +357,14 @@ impl TodoTool {
 
         let mut records: Vec<TodoRecord> = Vec::with_capacity(todos_raw.len());
         for (idx, todo) in todos_raw.iter().enumerate() {
-            let content =
-                sanitize_todo_text(todo.get("content").and_then(|v| v.as_str()).ok_or_else(
-                    || ToolError::InvalidParams(format!("Todo {} missing 'content'", idx)),
-                )?);
+            let content = sanitize_required_todo_content(
+                todo.get("content")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        ToolError::InvalidParams(format!("Todo {} missing 'content'", idx))
+                    })?,
+                idx,
+            )?;
             let active_form = todo
                 .get("activeForm")
                 .and_then(|v| v.as_str())
@@ -396,7 +423,7 @@ impl TodoTool {
             content: params
                 .get("content")
                 .and_then(|v| v.as_str())
-                .map(sanitize_todo_text),
+                .and_then(sanitize_optional_todo_content),
             // Empty string clears `activeForm` (stored as None); a missing
             // key leaves it untouched. The outer Option distinguishes the
             // two, the inner Option is the stored value.
@@ -604,7 +631,10 @@ fn broadcast_todos(session_id: &str, records: &[TodoRecord]) {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_embedded_todo_array, sanitize_todo_text};
+    use super::{
+        parse_embedded_todo_array, sanitize_optional_todo_content, sanitize_required_todo_content,
+        sanitize_todo_text,
+    };
 
     #[test]
     fn sanitize_todo_text_replaces_standalone_internal_plan_artifacts() {
@@ -627,6 +657,39 @@ mod tests {
         assert_eq!(
             sanitize_todo_text("Implement tasks from `.orgii/plans/foo.plan.md`"),
             "Implement tasks from `approved plan`"
+        );
+    }
+
+    #[test]
+    fn sanitize_required_todo_content_rejects_empty_after_trim() {
+        let err = sanitize_required_todo_content("   ", 3).unwrap_err();
+        assert!(
+            err.to_string().contains("Todo 3 has empty 'content'"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn sanitize_optional_todo_content_drops_empty_update_patch() {
+        assert_eq!(sanitize_optional_todo_content("   "), None);
+        assert_eq!(
+            sanitize_optional_todo_content(" Update docs "),
+            Some("Update docs".to_string())
+        );
+    }
+
+    #[test]
+    fn parameters_require_non_empty_todo_content_when_present() {
+        let tool = super::TodoTool::new(std::sync::Arc::new(super::TodoSessionContext::new()));
+        let parameters = crate::tools::traits::Tool::parameters(&tool);
+
+        assert_eq!(
+            parameters.pointer("/properties/todos/items/properties/content/minLength"),
+            Some(&serde_json::json!(1))
+        );
+        assert_eq!(
+            parameters.pointer("/properties/content/minLength"),
+            Some(&serde_json::json!(1))
         );
     }
 
