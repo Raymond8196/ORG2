@@ -463,6 +463,36 @@ fn codex_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInf
     out
 }
 
+/// GLM (Zhipu) models that expose a thinking-effort ladder (High / Max on top
+/// of the bare Baseline row). Only GLM 5.2 and newer 5.x lines qualify — GLM 5.1
+/// and older have no effort ladder. Distinct sub-models (e.g. `glm-5-turbo`) are
+/// excluded because their id carries a non-numeric tier segment.
+fn glm_model_supports_variants(model: &str) -> bool {
+    let lower = model.to_lowercase();
+    let Some(rest) = lower.strip_prefix("glm-5.") else {
+        return false;
+    };
+    // `rest` must be a pure minor version (e.g. "2", "3") — reject anything with
+    // a further `-tier` segment like `glm-5.2-air`.
+    rest.parse::<u32>().map(|minor| minor >= 2).unwrap_or(false)
+}
+
+/// GLM effort ladder: `High` and `Max` synthesized on top of the bare Baseline
+/// model row. Zhipu recommends `Max` for coding, which drives the default in
+/// [`default_variants_for_key`].
+fn glm_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInfo> {
+    ["high", "max"]
+        .into_iter()
+        .map(|effort| ModelVariantInfo {
+            model: format!("{base_model}-{effort}"),
+            base_model: base_model.to_string(),
+            reasoning: Some(effort.to_string()),
+            fast: false,
+            context_window: None,
+        })
+        .collect()
+}
+
 fn append_missing_variants(out: &mut Vec<ModelVariantInfo>, variants: Vec<ModelVariantInfo>) {
     for synthesized in variants {
         if out.iter().any(|variant| variant.model == synthesized.model) {
@@ -496,6 +526,21 @@ fn default_variants_for_key(entry: &ModelKey) -> Vec<DefaultVariantInfo> {
                 model: format!("{model}-medium"),
             });
         }
+    }
+
+    // GLM 5.2+ defaults to Max effort (Zhipu recommends Max for coding).
+    for model in entry
+        .available_models
+        .iter()
+        .filter(|model| glm_model_supports_variants(model))
+    {
+        if out.iter().any(|variant| variant.base_model == *model) {
+            continue;
+        }
+        out.push(DefaultVariantInfo {
+            base_model: model.clone(),
+            model: format!("{model}-max"),
+        });
     }
 
     if account_uses_anthropic_native_messages(entry) {
@@ -541,6 +586,24 @@ fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
         {
             append_missing_variants(&mut out, codex_effort_variants_for_base_model(model));
         }
+    }
+
+    // GLM (Zhipu) 5.2+ effort ladder (High / Max). Not gated on ModelType —
+    // Zhipu accounts are OpenAI-compatible API keys, matched by model id. Skip
+    // any model that already carries a real ladder from the provider/user.
+    for model in entry
+        .available_models
+        .iter()
+        .filter(|model| glm_model_supports_variants(model))
+    {
+        if entry
+            .model_variants
+            .iter()
+            .any(|variant| variant.base_model == *model && is_actionable_variant(variant))
+        {
+            continue;
+        }
+        append_missing_variants(&mut out, glm_effort_variants_for_base_model(model));
     }
 
     if !account_uses_anthropic_native_messages(entry) {
