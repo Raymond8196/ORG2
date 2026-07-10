@@ -11,8 +11,8 @@ use serde::Serialize;
 /// A selectable endpoint for a provider.
 ///
 /// Endpoints model the cases where one brand ships the same API behind more
-/// than one host: a regional split (Zhipu's `api.z.ai` vs `open.bigmodel.cn`),
-/// a product tier (OpenCode Zen vs Go), or an AWS region (Bedrock).
+/// than one route: a credential type (Zhipu API vs Coding Plan subscription),
+/// a regional split, a product tier (OpenCode Zen vs Go), or an AWS region (Bedrock).
 ///
 /// The first entry of a provider's endpoint list is its default and supplies
 /// [`ProviderConfig::default_base_url`]. A provider with two or more endpoints
@@ -84,14 +84,26 @@ const OPENCODE_ENDPOINTS: &[ProviderEndpointSpec] = &[
 const ZHIPU_ENDPOINTS: &[ProviderEndpointSpec] = &[
     ProviderEndpointSpec {
         id: "global",
-        label: "Global (Z.ai)",
+        label: "Global API",
         base_url: "https://api.z.ai/api/paas/v4",
         anthropic_base_url: Some("https://api.z.ai/api/anthropic"),
     },
     ProviderEndpointSpec {
+        id: "global-subscription",
+        label: "Global Subscription",
+        base_url: "https://api.z.ai/api/coding/paas/v4",
+        anthropic_base_url: Some("https://api.z.ai/api/anthropic"),
+    },
+    ProviderEndpointSpec {
         id: "cn",
-        label: "China (BigModel)",
+        label: "China API",
         base_url: "https://open.bigmodel.cn/api/paas/v4",
+        anthropic_base_url: Some("https://open.bigmodel.cn/api/anthropic"),
+    },
+    ProviderEndpointSpec {
+        id: "cn-subscription",
+        label: "China Subscription",
+        base_url: "https://open.bigmodel.cn/api/coding/paas/v4",
         anthropic_base_url: Some("https://open.bigmodel.cn/api/anthropic"),
     },
 ];
@@ -814,25 +826,28 @@ mod tests {
     }
 
     #[test]
-    fn zhipu_offers_china_and_global_endpoints() {
+    fn zhipu_separates_regions_and_credential_types() {
         let config = get_provider_config("zhipu_api");
-        let ids: Vec<&str> = config
+        let endpoints: Vec<(&str, &str)> = config
             .endpoints
             .iter()
-            .map(|endpoint| endpoint.id.as_str())
+            .map(|endpoint| (endpoint.id.as_str(), endpoint.base_url.as_str()))
             .collect();
-        assert_eq!(ids, vec!["global", "cn"]);
         assert_eq!(
-            config.endpoints[0].base_url,
-            "https://api.z.ai/api/paas/v4",
-            "global Zhipu traffic goes to z.ai"
+            endpoints,
+            vec![
+                ("global", "https://api.z.ai/api/paas/v4"),
+                (
+                    "global-subscription",
+                    "https://api.z.ai/api/coding/paas/v4"
+                ),
+                ("cn", "https://open.bigmodel.cn/api/paas/v4"),
+                (
+                    "cn-subscription",
+                    "https://open.bigmodel.cn/api/coding/paas/v4"
+                ),
+            ]
         );
-        assert_eq!(
-            config.endpoints[1].base_url,
-            "https://open.bigmodel.cn/api/paas/v4",
-            "China Zhipu traffic goes to bigmodel.cn"
-        );
-        // The international host is the default; China is opt-in.
         assert_eq!(
             config.default_base_url,
             Some("https://api.z.ai/api/paas/v4".to_string())
