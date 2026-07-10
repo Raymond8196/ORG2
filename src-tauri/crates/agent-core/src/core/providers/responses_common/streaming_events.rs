@@ -122,11 +122,18 @@ impl ResponsesStreamNormalizer {
                 }
             }
             ResponseStreamEventKind::Error => {
-                let message = event
-                    .response
-                    .and_then(|response| response.error)
-                    .and_then(|error| error.message)
-                    .unwrap_or_else(|| "Unknown streaming error".to_string());
+                let error = event
+                    .error
+                    .or_else(|| event.response.and_then(|response| response.error));
+                let message = error
+                    .as_ref()
+                    .map(|error| error.display_message())
+                    .unwrap_or_else(|| {
+                        format!(
+                            "Responses API returned {} without an error payload",
+                            event.event_type
+                        )
+                    });
                 outputs.push(ResponsesStreamOutput::Error(message));
             }
             ResponseStreamEventKind::Unknown(event_type) => {
@@ -275,7 +282,7 @@ impl ResponseStreamEventKind {
             "response.output_item.added" => Self::OutputItemAdded,
             "response.function_call_arguments.done" => Self::FunctionCallArgumentsDone,
             "response.completed" => Self::Completed,
-            "error" => Self::Error,
+            "error" | "response.failed" => Self::Error,
             "response.created"
             | "response.in_progress"
             | "response.output_item.done"
@@ -438,6 +445,100 @@ mod tests {
         assert!(matches!(
             completion.as_slice(),
             [ResponsesStreamOutput::ResponseCompleted(_)]
+        ));
+    }
+
+    #[test]
+    fn normalizes_top_level_error_event() {
+        let mut normalizer = ResponsesStreamNormalizer::new();
+
+        let outputs = normalizer.ingest(event(json!({
+            "type": "error",
+            "error": {
+                "type": "invalid_request_error",
+                "code": "context_length_exceeded",
+                "message": "Your input exceeds the context window."
+            }
+        })));
+
+        assert!(matches!(
+            outputs.as_slice(),
+            [ResponsesStreamOutput::Error(message)]
+                if message.starts_with("Your input exceeds the context window.")
+                    && message.contains("code=context_length_exceeded")
+                    && message.contains("type=invalid_request_error")
+        ));
+    }
+
+    #[test]
+    fn normalizes_response_failed_error_envelope() {
+        let mut normalizer = ResponsesStreamNormalizer::new();
+
+        let outputs = normalizer.ingest(event(json!({
+            "type": "response.failed",
+            "response": {
+                "output": [],
+                "usage": null,
+                "error": {
+                    "type": "server_error",
+                    "code": "internal_error",
+                    "message": "The service encountered an internal error."
+                }
+            }
+        })));
+
+        assert!(matches!(
+            outputs.as_slice(),
+            [ResponsesStreamOutput::Error(message)]
+                if message.starts_with("The service encountered an internal error.")
+                    && message.contains("code=internal_error")
+                    && message.contains("type=server_error")
+        ));
+    }
+
+    #[test]
+    fn preserves_error_code_when_message_is_missing() {
+        let mut normalizer = ResponsesStreamNormalizer::new();
+
+        let outputs = normalizer.ingest(event(json!({
+            "type": "response.failed",
+            "response": {
+                "output": [],
+                "usage": null,
+                "error": {
+                    "type": "invalid_request_error",
+                    "code": "context_length_exceeded",
+                    "param": "input"
+                }
+            }
+        })));
+
+        assert!(matches!(
+            outputs.as_slice(),
+            [ResponsesStreamOutput::Error(message)]
+                if message.contains("code=context_length_exceeded")
+                    && message.contains("type=invalid_request_error")
+                    && message.contains("param=input")
+        ));
+    }
+
+    #[test]
+    fn reports_missing_error_payload_without_claiming_unknown_streaming_failure() {
+        let mut normalizer = ResponsesStreamNormalizer::new();
+
+        let outputs = normalizer.ingest(event(json!({
+            "type": "response.failed",
+            "response": {
+                "output": [],
+                "usage": null,
+                "error": null
+            }
+        })));
+
+        assert!(matches!(
+            outputs.as_slice(),
+            [ResponsesStreamOutput::Error(message)]
+                if message == "Responses API returned response.failed without an error payload"
         ));
     }
 
