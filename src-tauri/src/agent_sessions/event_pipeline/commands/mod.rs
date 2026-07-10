@@ -274,6 +274,7 @@ fn emit_snapshot(app: &AppHandle, state: &EventStoreState, session_id: &str) {
             snapshot,
         };
         app.emit(NOTIFY_EVENT_NAME, &envelope).ok();
+        crate::infrastructure::main_runloop::wake_main_runloop();
         return;
     }
 
@@ -289,6 +290,7 @@ fn emit_snapshot(app: &AppHandle, state: &EventStoreState, session_id: &str) {
         if app.emit(NOTIFY_EVENT_NAME, &envelope).is_ok() {
             store.mark_full_snapshot_emitted();
         }
+        crate::infrastructure::main_runloop::wake_main_runloop();
         return;
     }
 
@@ -355,6 +357,7 @@ fn emit_snapshot(app: &AppHandle, state: &EventStoreState, session_id: &str) {
         snapshot,
     };
     app.emit(NOTIFY_EVENT_NAME, &envelope).ok();
+    crate::infrastructure::main_runloop::wake_main_runloop();
 }
 
 // ============================================================================
