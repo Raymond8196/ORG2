@@ -64,6 +64,7 @@ export interface UseSourceControlSetupReturn {
     surface: {
       sourceControl: {
         filterMode: SourceControlFilterMode;
+        onFilterModeChange: (mode: SourceControlFilterMode) => void;
         navigateWithoutSelecting: boolean;
       };
     };
@@ -307,6 +308,7 @@ export function useSourceControlSetup({
       surface: {
         sourceControl: {
           filterMode: sourceControlFilterMode,
+          onFilterModeChange: handleSourceControlFilterModeChange,
           navigateWithoutSelecting: isSourceControlAllChangesActive,
           worktrees,
           hasWorktrees,
@@ -316,6 +318,7 @@ export function useSourceControlSetup({
       },
     }),
     [
+      handleSourceControlFilterModeChange,
       hasWorktrees,
       isSourceControlAllChangesActive,
       refreshWorktrees,
