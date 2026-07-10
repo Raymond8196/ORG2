@@ -487,7 +487,10 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     );
   }, []);
 
-  const defaultTurnCollapsed = forceCollapseAllTurns;
+  // Completed historical turns should start collapsed. `forceCollapseAllTurns`
+  // additionally makes the live tail eligible immediately for compact
+  // read-only subagent panes.
+  const defaultTurnCollapsed = true;
 
   // --- Grouping for virtualized chat rows ---
   //
@@ -1160,6 +1163,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
             {turnPageListOpen && turnPaginationReady && (
               <TurnPageList
                 surfaceBgClass={surfaceBgClass}
+                bottomInset={bottomInset}
                 pages={pages}
                 groupHeaders={groupHeaders}
                 groupMeta={groupMeta}

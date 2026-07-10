@@ -42,6 +42,7 @@ import {
   updateCachedClosedIssues,
   updateCachedOpenIssues,
 } from "./githubListCache";
+import { filterIssuesByQuery } from "./workstationIssueHelpers";
 
 export type { IssueFilterState };
 
@@ -617,16 +618,7 @@ export function useWorkstationIssues({
   // ── Derived values ────────────────────────────────────────────────────────
 
   const applySearch = useCallback(
-    (list: GitHubIssue[]) => {
-      if (!debouncedSearch.trim()) return list;
-      const q = debouncedSearch.toLowerCase();
-      return list.filter(
-        (issue) =>
-          issue.title.toLowerCase().includes(q) ||
-          issue.labels.some((l) => l.name.toLowerCase().includes(q)) ||
-          issue.user.login.toLowerCase().includes(q)
-      );
-    },
+    (list: GitHubIssue[]) => filterIssuesByQuery(list, debouncedSearch),
     [debouncedSearch]
   );
 
