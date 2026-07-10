@@ -117,6 +117,28 @@ function flatTexts(items: OptimizedChatItem[]): string[] {
 }
 
 describe("useChatGroups collapse — terminal error survival", () => {
+  it("collapses completed historical turns by default", () => {
+    const history = [
+      userItem("first turn"),
+      toolItem(),
+      assistantItem("first reply"),
+      userItem("current turn"),
+      toolItem(),
+      assistantItem("current reply"),
+    ];
+
+    const result = useChatGroups(history);
+
+    // The prior turn defaults to the compact summary, while the live tail
+    // remains expanded until it becomes eligible after the idle delay.
+    expect(result.groupCounts).toEqual([1, 2]);
+    expect(flatTexts(result.flatItems)).toEqual([
+      "first reply",
+      "run_shell",
+      "current reply",
+    ]);
+  });
+
   it("keeps the error card when a collapsed turn has no completed assistant reply", () => {
     const history = [
       userItem("first turn"),
