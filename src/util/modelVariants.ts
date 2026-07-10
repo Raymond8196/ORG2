@@ -7,6 +7,7 @@ export const MODEL_REASONING_LEVEL = {
   MEDIUM: "medium",
   HIGH: "high",
   EXTRA_HIGH: "extra_high",
+  ULTRA: "ultra",
   MAX: "max",
   ULTRACODE: "ultracode",
 } as const;
@@ -51,6 +52,7 @@ const VARIANT_SUFFIX_TOKENS = new Set<string>([
   "extra",
   "extra-high",
   "xhigh",
+  "ultra",
   "max",
   "ultracode",
   "minimal",
@@ -71,6 +73,7 @@ function normalizeReasoning(
   if (value === MODEL_REASONING_LEVEL.HIGH) return MODEL_REASONING_LEVEL.HIGH;
   if (value === MODEL_REASONING_LEVEL.EXTRA_HIGH)
     return MODEL_REASONING_LEVEL.EXTRA_HIGH;
+  if (value === MODEL_REASONING_LEVEL.ULTRA) return MODEL_REASONING_LEVEL.ULTRA;
   if (value === MODEL_REASONING_LEVEL.MAX) return MODEL_REASONING_LEVEL.MAX;
   if (value === MODEL_REASONING_LEVEL.ULTRACODE)
     return MODEL_REASONING_LEVEL.ULTRACODE;
@@ -270,13 +273,15 @@ export function formatReasoningLevel(
     case MODEL_REASONING_LEVEL.BASELINE:
       return "Baseline";
     case MODEL_REASONING_LEVEL.LOW:
-      return "Low";
+      return "Light";
     case MODEL_REASONING_LEVEL.MEDIUM:
       return "Medium";
     case MODEL_REASONING_LEVEL.HIGH:
       return "High";
     case MODEL_REASONING_LEVEL.EXTRA_HIGH:
       return "Extra High";
+    case MODEL_REASONING_LEVEL.ULTRA:
+      return "Ultra";
     case MODEL_REASONING_LEVEL.MAX:
       return "Max";
     case MODEL_REASONING_LEVEL.ULTRACODE:

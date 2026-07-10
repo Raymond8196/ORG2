@@ -223,14 +223,17 @@ struct CodexModelLaunchConfig {
 }
 
 fn map_codex_model_variant(model: &str) -> CodexModelLaunchConfig {
-    const CODEX_VARIANT_BASES: [&str; 5] = [
+    const CODEX_VARIANT_BASES: [&str; 8] = [
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
         "gpt-5.5",
         "gpt-5.4",
         "gpt-5.4-mini",
         "gpt-5.3-codex",
         "gpt-5.2",
     ];
-    const CODEX_REASONING_LEVELS: [&str; 4] = ["low", "medium", "high", "xhigh"];
+    const CODEX_REASONING_LEVELS: [&str; 5] = ["low", "medium", "high", "xhigh", "ultra"];
 
     for base_model in CODEX_VARIANT_BASES {
         let Some(suffix) = model.strip_prefix(base_model) else {
@@ -275,6 +278,7 @@ fn map_codex_model_variant(model: &str) -> CodexModelLaunchConfig {
 /// Also strips trailing YYYYMMDD date suffixes (e.g. `claude-haiku-4-5-20251001`
 /// → `claude-haiku-4-5`). The API layer accepts these suffixes, but Claude Code
 /// CLI rejects them.
+#[cfg(test)]
 pub(super) fn map_claude_model(model: &str) -> String {
     map_claude_model_variant(model).base_model
 }
