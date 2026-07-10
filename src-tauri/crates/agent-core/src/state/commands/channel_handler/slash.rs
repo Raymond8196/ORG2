@@ -80,20 +80,14 @@ pub(super) async fn handle_command(
 
             match run_manual_compact(state, &target_sid, &reset_policy).await {
                 ManualCompactResult::Forked(s) => {
-                    let suffix = if s.truncated {
-                        "\n_(Note: compactor fell back to truncation — older context dropped without summary.)_"
-                    } else {
-                        ""
-                    };
                     format!(
-                        "🗜️ Context compacted.\nCompressed: {} → {} messages (~{} → ~{} tokens).\nContinuing in new session `{}` (previous: `{}`).{}",
+                        "🗜️ Context compacted.\nCompressed: {} → {} messages (~{} → ~{} tokens).\nContinuing in new session `{}` (previous: `{}`).",
                         s.messages_before,
                         s.messages_after,
                         s.tokens_before,
                         s.tokens_after,
                         s.new_session_id,
                         s.old_session_id,
-                        suffix,
                     )
                 }
                 ManualCompactResult::AlreadyCompact { message_count, tokens } => format!(
