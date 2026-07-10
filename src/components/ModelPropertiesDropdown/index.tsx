@@ -80,6 +80,8 @@ export interface ModelPropertiesDropdownProps {
    * without Apply (use that signal to clear any optimistic preview).
    */
   onDraftChange?: (modelId: string | undefined) => void;
+  /** Fires whenever the dropdown opens or closes. */
+  onOpenChange?: (open: boolean) => void;
   /**
    * Optional disabled flag. When `true`, the trigger should also visibly
    * convey the disabled state (callers control that styling).
@@ -110,6 +112,7 @@ export const ModelPropertiesDropdown: React.FC<
   value,
   onApply,
   onDraftChange,
+  onOpenChange,
   disabled = false,
   centerInContainer = false,
   sidePanelInContainer = false,
@@ -363,6 +366,10 @@ export const ModelPropertiesDropdown: React.FC<
       onDraftChange?.(undefined);
     }
   }, [isOpen, onDraftChange, value]);
+
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+  }, [isOpen, onOpenChange]);
 
   // Thinking row is shown only when the family contains BOTH a
   // thinking and a non-thinking variant — i.e. the toggle is

@@ -142,7 +142,9 @@
       "views": "Vues",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Supprimer le brouillon"
+      "removeDraft": "Supprimer le brouillon",
+      "showSubagents": "Afficher les sous-agents",
+      "hideSubagents": "Masquer les sous-agents"
     },
     "resultStatus": {
       "completed": "Terminé",
@@ -406,7 +408,6 @@
         "interactionAskQuestion": "Question",
         "interactionAskPermission": "Demande de permission",
         "interactionModeSwitch": "Changement de mode",
-        "interactionNextSteps": "Étapes suivantes",
         "interactionPlanDoc": "Document de plan",
         "interactionGeneric": "Interaction"
       },
@@ -669,7 +670,9 @@
       "empty": "Aucune action trouvée.",
       "unpinAll": "Tout désépingler",
       "insert": "Insérer"
-    }
+    },
+    "compactArgHint": "<focus facultatif pour le résumé>",
+    "compactCommandDescription": "Résume le contexte ancien pour libérer de l'espace. Facultatif : /compact <focus du résumé>"
   },
   "listPanel": {
     "showingOf": "Affichage de {{filtered}} sur {{total}}",
@@ -1418,9 +1421,6 @@
     "toolSearchRunning": "Recherche d'outils",
     "toolSearchDone": "Outils recherchés",
     "toolSearchFailed": "Échec de la recherche d'outils",
-    "suggestNextStepsRunning": "Suggestion des prochaines étapes",
-    "suggestNextStepsDone": "{{count}} prochaines étapes suggérées",
-    "suggestNextStepsFailed": "Impossible de suggérer les prochaines étapes",
     "agentSendMessageRunning": "Envoi d'un message à l'Agent coéquipier",
     "agentSendMessageDone": "Message envoyé à l'Agent coéquipier",
     "agentSendMessageFailed": "Impossible d'envoyer le message à l'Agent coéquipier",
@@ -1882,7 +1882,8 @@
       "models": "Modèles",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Commandes"
     },
     "diffMenu": {
       "gitActions": "Actions GIT",
@@ -2291,7 +2292,8 @@
       "Toujours en réflexion, plus long que d’habitude...",
       "En cours, plus long que d’habitude...",
       "En train de décider de la suite, plus long que d’habitude..."
-    ]
+    ],
+    "compacting": "Compactage du contexte..."
   },
   "revertConfirm": {
     "title": "Modifications de fichiers non enregistrées",

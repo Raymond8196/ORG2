@@ -142,7 +142,9 @@
       "views": "Представления",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Удалить черновик"
+      "removeDraft": "Удалить черновик",
+      "showSubagents": "Показать субагентов",
+      "hideSubagents": "Скрыть субагентов"
     },
     "resultStatus": {
       "completed": "Завершено",
@@ -408,7 +410,6 @@
         "interactionAskQuestion": "Вопрос",
         "interactionAskPermission": "Запрос разрешения",
         "interactionModeSwitch": "Смена режима",
-        "interactionNextSteps": "Следующие шаги",
         "interactionPlanDoc": "Документ плана",
         "interactionGeneric": "Взаимодействие"
       },
@@ -671,7 +672,9 @@
       "empty": "Действия не найдены.",
       "unpinAll": "Открепить все",
       "insert": "Вставить"
-    }
+    },
+    "compactArgHint": "<необязательный фокус резюме>",
+    "compactCommandDescription": "Обобщить старый контекст, чтобы освободить место. Необязательно: /compact <фокус резюме>"
   },
   "listPanel": {
     "showingOf": "Показано {{filtered}} из {{total}}",
@@ -1430,9 +1433,6 @@
     "toolSearchRunning": "Поиск инструментов",
     "toolSearchDone": "Инструменты найдены",
     "toolSearchFailed": "Сбой поиска инструментов",
-    "suggestNextStepsRunning": "Предлагаются следующие шаги",
-    "suggestNextStepsDone": "Предложено {{count}} следующих шагов",
-    "suggestNextStepsFailed": "Не удалось предложить следующие шаги",
     "agentSendMessageRunning": "Отправка сообщения коллеге Agent",
     "agentSendMessageDone": "Сообщение отправлено коллеге Agent",
     "agentSendMessageFailed": "Не удалось отправить сообщение коллеге Agent",
@@ -1895,7 +1895,8 @@
       "models": "Модели",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Команды"
     },
     "diffMenu": {
       "gitActions": "Действия GIT",
@@ -2305,7 +2306,8 @@
       "Всё ещё обдумываем, занимает больше времени, чем обычно...",
       "Работаем над этим, занимает больше времени, чем обычно...",
       "Решаем, что делать дальше, занимает больше времени, чем обычно..."
-    ]
+    ],
+    "compacting": "Сжатие контекста..."
   },
   "revertConfirm": {
     "title": "Несохранённые изменения файлов",

@@ -2595,7 +2595,10 @@
   },
   "cliLaunchProfiles": {
     "title": "起動プロファイル",
+    "plain": "ベース",
+    "plan": "計画",
     "fullPermission": "フル権限",
+    "autoEdit": "自動編集",
     "manual": "手動",
     "command": "コマンド",
     "environment": "環境変数",

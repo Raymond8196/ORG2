@@ -406,7 +406,6 @@
         "interactionAskQuestion": "Câu hỏi",
         "interactionAskPermission": "Yêu cầu quyền",
         "interactionModeSwitch": "Chuyển chế độ",
-        "interactionNextSteps": "Các bước tiếp theo",
         "interactionPlanDoc": "Tài liệu Plan",
         "interactionGeneric": "Tương tác"
       },
@@ -669,7 +668,9 @@
       "empty": "Không tìm thấy hành động.",
       "unpinAll": "Bỏ ghim tất cả",
       "insert": "Chèn"
-    }
+    },
+    "compactArgHint": "<trọng tâm tóm tắt (tùy chọn)>",
+    "compactCommandDescription": "Tóm tắt ngữ cảnh cũ để giải phóng dung lượng. Tùy chọn: /compact <trọng tâm tóm tắt>"
   },
   "listPanel": {
     "showingOf": "Hiển thị {{filtered}} / {{total}}",
@@ -1418,9 +1419,6 @@
     "toolSearchRunning": "Đang tìm kiếm công cụ",
     "toolSearchDone": "Đã tìm kiếm công cụ",
     "toolSearchFailed": "Tìm kiếm công cụ thất bại",
-    "suggestNextStepsRunning": "Đang đề xuất các bước tiếp theo",
-    "suggestNextStepsDone": "Đã đề xuất {{count}} bước tiếp theo",
-    "suggestNextStepsFailed": "Không thể đề xuất các bước tiếp theo",
     "agentSendMessageRunning": "Đang gửi tin nhắn tới Agent đồng đội",
     "agentSendMessageDone": "Đã gửi tin nhắn tới Agent đồng đội",
     "agentSendMessageFailed": "Không thể gửi tin nhắn tới Agent đồng đội",
@@ -1882,7 +1880,8 @@
       "models": "Mô hình",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Lệnh"
     },
     "diffMenu": {
       "gitActions": "Hành động GIT",
@@ -2291,7 +2290,8 @@
       "Vẫn đang suy nghĩ, lâu hơn bình thường...",
       "Đang xử lý, lâu hơn bình thường...",
       "Đang cân nhắc bước tiếp theo, lâu hơn bình thường..."
-    ]
+    ],
+    "compacting": "Đang nén ngữ cảnh..."
   },
   "revertConfirm": {
     "title": "Thay đổi tệp chưa được lưu",

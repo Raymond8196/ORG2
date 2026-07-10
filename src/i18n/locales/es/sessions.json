@@ -142,7 +142,9 @@
       "views": "Vistas",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Eliminar borrador"
+      "removeDraft": "Eliminar borrador",
+      "showSubagents": "Mostrar subagentes",
+      "hideSubagents": "Ocultar subagentes"
     },
     "resultStatus": {
       "completed": "Completado",
@@ -406,7 +408,6 @@
         "interactionAskQuestion": "Pregunta",
         "interactionAskPermission": "Solicitud de permiso",
         "interactionModeSwitch": "Cambio de modo",
-        "interactionNextSteps": "Próximos pasos",
         "interactionPlanDoc": "Documento de plan",
         "interactionGeneric": "Interacción"
       },
@@ -669,7 +670,9 @@
       "empty": "No se encontraron acciones.",
       "unpinAll": "Desfijar todo",
       "insert": "Insertar"
-    }
+    },
+    "compactArgHint": "<enfoque opcional para el resumen>",
+    "compactCommandDescription": "Resume el contexto anterior para liberar espacio. Opcional: /compact <enfoque del resumen>"
   },
   "listPanel": {
     "showingOf": "Mostrando {{filtered}} de {{total}}",
@@ -1418,9 +1421,6 @@
     "toolSearchRunning": "Buscando herramientas",
     "toolSearchDone": "Herramientas buscadas",
     "toolSearchFailed": "Error en la búsqueda de herramientas",
-    "suggestNextStepsRunning": "Sugiriendo próximos pasos",
-    "suggestNextStepsDone": "Se sugirieron {{count}} próximos pasos",
-    "suggestNextStepsFailed": "No se pudieron sugerir próximos pasos",
     "agentSendMessageRunning": "Enviando mensaje al Agent compañero",
     "agentSendMessageDone": "Mensaje enviado al Agent compañero",
     "agentSendMessageFailed": "No se pudo enviar el mensaje al Agent compañero",
@@ -1882,7 +1882,8 @@
       "models": "Modelos",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Comandos"
     },
     "diffMenu": {
       "gitActions": "Acciones GIT",
@@ -2291,7 +2292,8 @@
       "Aún pensándolo, tardando más de lo habitual...",
       "Trabajando en ello, tardando más de lo habitual...",
       "Decidiendo el siguiente paso, tardando más de lo habitual..."
-    ]
+    ],
+    "compacting": "Compactando contexto..."
   },
   "revertConfirm": {
     "title": "Cambios de archivo no guardados",

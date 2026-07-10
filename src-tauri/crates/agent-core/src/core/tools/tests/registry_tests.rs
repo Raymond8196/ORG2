@@ -953,12 +953,6 @@ fn nested_struct_tool_schemas_inline_without_refs() {
 
     let schemas: Vec<(&str, Value)> = vec![
         (
-            "suggest_next_steps",
-            params_schema::<
-                crate::tools::impls::orchestration::suggest_next_steps::SuggestNextStepsParams,
-            >(),
-        ),
-        (
             "manage_code_map",
             params_schema::<crate::tools::impls::coding::code_map::CodeMapToolParams>(),
         ),

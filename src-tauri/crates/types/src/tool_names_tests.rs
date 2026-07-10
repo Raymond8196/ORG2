@@ -85,7 +85,6 @@ fn tool_name_constants_are_stable_wire_strings() {
     // ── Meta ──
     assert_eq!(SEND_TO_INBOX, "send_to_inbox");
     assert_eq!(SUGGEST_MODE_SWITCH, "suggest_mode_switch");
-    assert_eq!(SUGGEST_NEXT_STEPS, "suggest_next_steps");
     assert_eq!(TOOL_SEARCH, "tool_search");
 
     // ── Plan Mode ──

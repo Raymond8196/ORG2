@@ -142,7 +142,9 @@
       "views": "보기",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "초안 제거"
+      "removeDraft": "초안 제거",
+      "showSubagents": "하위 에이전트 표시",
+      "hideSubagents": "하위 에이전트 숨기기"
     },
     "resultStatus": {
       "completed": "완료",
@@ -406,7 +408,6 @@
         "interactionAskQuestion": "질문",
         "interactionAskPermission": "권한 요청",
         "interactionModeSwitch": "모드 전환",
-        "interactionNextSteps": "다음 단계",
         "interactionPlanDoc": "Plan 문서",
         "interactionGeneric": "상호작용"
       },
@@ -669,7 +670,9 @@
       "empty": "작업을 찾을 수 없습니다.",
       "unpinAll": "모두 고정 해제",
       "insert": "삽입"
-    }
+    },
+    "compactArgHint": "<선택: 요약의 초점>",
+    "compactCommandDescription": "이전 컨텍스트를 요약해 공간을 확보합니다. 선택: /compact <요약의 초점>"
   },
   "listPanel": {
     "showingOf": "{{total}}개 중 {{filtered}}개 표시",
@@ -1418,9 +1421,6 @@
     "toolSearchRunning": "도구 검색 중",
     "toolSearchDone": "도구 검색 완료",
     "toolSearchFailed": "도구 검색 실패",
-    "suggestNextStepsRunning": "다음 단계 제안 중",
-    "suggestNextStepsDone": "{{count}}개의 다음 단계 제안됨",
-    "suggestNextStepsFailed": "다음 단계를 제안할 수 없음",
     "agentSendMessageRunning": "팀 Agent에게 메시지 전송 중",
     "agentSendMessageDone": "팀 Agent에게 메시지 전송됨",
     "agentSendMessageFailed": "팀 Agent에게 메시지를 전송할 수 없음",
@@ -1882,7 +1882,8 @@
       "models": "모델",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "명령어"
     },
     "diffMenu": {
       "gitActions": "GIT 작업",
@@ -2292,7 +2293,8 @@
       "여전히 생각 중, 평소보다 오래 걸리고 있습니다...",
       "작업 중, 평소보다 오래 걸리고 있습니다...",
       "다음에 무엇을 할지 고민 중, 평소보다 오래 걸리고 있습니다..."
-    ]
+    ],
+    "compacting": "컨텍스트 압축 중..."
   },
   "revertConfirm": {
     "title": "저장되지 않은 파일 변경사항",

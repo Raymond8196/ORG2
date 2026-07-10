@@ -140,7 +140,14 @@ const TerminalBlock: React.FC<TerminalBlockProps> = memo(
     const { t } = useTranslation("sessions");
     const { t: tCommon } = useTranslation();
     const displayOutput = output || streamOutput;
+    // When the agent provides a description (human summary), promote it to the
+    // primary title and drop the default lifecycle label. The parsed command
+    // symbols (git, npm, …) still render separately, so the command stays
+    // visible in the header.
+    const trimmedSubtitle = subtitle?.trim();
+    const hasDescriptionTitle = Boolean(trimmedSubtitle);
     const displayTitle =
+      trimmedSubtitle ||
       title?.trim() ||
       (isLoading ? t("tools.runCommandRunning") : t("tools.runCommandDone"));
     const commandSymbols = useMemo(
@@ -291,10 +298,13 @@ const TerminalBlock: React.FC<TerminalBlockProps> = memo(
               isLoading={isStillRunning}
               isFailed={isError}
             />
-            <EventBlockHeaderTitle isLoading={isStillRunning}>
+            <EventBlockHeaderTitle
+              isLoading={isStillRunning}
+              truncate={hasDescriptionTitle}
+            >
               {displayTitle}
             </EventBlockHeaderTitle>
-            {subtitle && (
+            {subtitle && !hasDescriptionTitle && (
               <EventBlockHeaderSubtitle
                 isLoading={isStillRunning}
                 title={subtitle}

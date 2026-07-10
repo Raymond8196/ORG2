@@ -406,7 +406,6 @@
         "interactionAskQuestion": "Frage",
         "interactionAskPermission": "Berechtigungsanfrage",
         "interactionModeSwitch": "Moduswechsel",
-        "interactionNextSteps": "Nächste Schritte",
         "interactionPlanDoc": "Plan-Dokument",
         "interactionGeneric": "Interaktion"
       },
@@ -669,7 +668,9 @@
       "empty": "Keine Aktionen gefunden.",
       "unpinAll": "Alle lösen",
       "insert": "Einfügen"
-    }
+    },
+    "compactArgHint": "<optionaler Fokus für die Zusammenfassung>",
+    "compactCommandDescription": "Älteren Kontext zusammenfassen, um Platz freizugeben. Optional: /compact <Fokus für die Zusammenfassung>"
   },
   "listPanel": {
     "showingOf": "{{filtered}} von {{total}} angezeigt",
@@ -1418,9 +1419,6 @@
     "toolSearchRunning": "Tools werden gesucht",
     "toolSearchDone": "Tools durchsucht",
     "toolSearchFailed": "Tool-Suche fehlgeschlagen",
-    "suggestNextStepsRunning": "Nächste Schritte werden vorgeschlagen",
-    "suggestNextStepsDone": "{{count}} nächste Schritte vorgeschlagen",
-    "suggestNextStepsFailed": "Nächste Schritte konnten nicht vorgeschlagen werden",
     "agentSendMessageRunning": "Nachricht wird an Team-Agent gesendet",
     "agentSendMessageDone": "Nachricht an Team-Agent gesendet",
     "agentSendMessageFailed": "Nachricht an Team-Agent konnte nicht gesendet werden",
@@ -1882,7 +1880,8 @@
       "models": "Modelle",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Befehle"
     },
     "diffMenu": {
       "gitActions": "GIT-Aktionen",
@@ -2291,7 +2290,8 @@
       "Denke noch nach, dauert länger als üblich...",
       "Arbeite daran, dauert länger als üblich...",
       "Überlege, was als Nächstes kommt, dauert länger als üblich..."
-    ]
+    ],
+    "compacting": "Kontext wird komprimiert..."
   },
   "revertConfirm": {
     "title": "Nicht gespeicherte Dateiänderungen",

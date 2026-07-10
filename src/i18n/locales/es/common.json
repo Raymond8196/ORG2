@@ -107,6 +107,7 @@
     "retry": "Reintentar",
     "regenerate": "Regenerar",
     "refresh": "Actualizar",
+    "rescan": "Volver a escanear",
     "reload": "Recargar",
     "reviewNextFile": "Revisar siguiente archivo",
     "reviewPreviousFile": "Revisar archivo anterior",
@@ -1027,6 +1028,20 @@
     "indexingProgress": "Indexando: {{processed}}/{{total}} archivos ({{percent}}%)",
     "indexingProgressWithFile": "Indexando: {{processed}}/{{total}} archivos ({{percent}}%)\nActual: {{file}}",
     "languageServices": "Language Services",
+    "ports": {
+      "workspaceSection": "Workspace",
+      "externalSection": "Externos",
+      "tooltip": "Puertos: {{workspace}} workspace, {{external}} externos",
+      "noWorkspacePorts": "No se detectaron puertos del workspace",
+      "externalLabel": "externo",
+      "unknownProcess": "Proceso desconocido",
+      "pidLabel": "PID {{pid}}",
+      "openInBrowser": "Abrir en el navegador",
+      "copyAddress": "Copiar dirección",
+      "stopProcess": "Detener proceso",
+      "searchPlaceholder": "Buscar puertos…",
+      "noSearchResults": "No hay puertos coincidentes"
+    },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
     "charsSelected": "{{count}} selected",
@@ -1218,7 +1233,6 @@
     },
     "modelSelector": {
       "recentModels": "Modelos recientes",
-      "currentModel": "Modelo actual",
       "allModels": "Todos los modelos",
       "noRecent": "Sin modelos recientes",
       "noResults": "No hay modelos coincidentes",
@@ -1233,6 +1247,7 @@
     "modelProperties": {
       "options": "Opciones",
       "effort": "Esfuerzo",
+      "default": "Predeterminado",
       "faster": "Más rápido",
       "smarter": "Más inteligente"
     },
@@ -1961,7 +1976,22 @@
     "warningHint": "El contexto se está llenando. Inicia pronto una nueva sesión para obtener mejores resultados.",
     "dangerHint": "El contexto está casi lleno. Inicia una nueva sesión para evitar perder detalles.",
     "autoCompactNote": "El contexto se resumirá pronto",
-    "startNewSession": "Iniciar nueva sesión"
+    "startNewSession": "Iniciar nueva sesión",
+    "compactBoundaryTitle": "Contexto compactado",
+    "compactBoundarySubtitle_one": "{{count}} mensaje anterior resumido",
+    "compactBoundarySubtitle_other": "{{count}} mensajes anteriores resumidos",
+    "compactBoundaryTokens": "{{before}} → {{after}} tokens",
+    "manualCompactAction": "Compactar",
+    "manualCompactRunning": "Compactando",
+    "manualCompactInProgress": "Compactando contexto — espera a que termine antes de enviar",
+    "manualCompactSuccess": "Compactado: {{messagesBefore}} → {{messagesAfter}} mensajes, {{tokensBefore}} → {{tokensAfter}} tokens",
+    "manualCompactTooShort": "El contenido es corto; no hace falta compactar",
+    "manualCompactAlreadyCompact": "No hay contenido nuevo que compactar",
+    "manualCompactBusy": "La sesión está en ejecución. Compacta cuando termine",
+    "manualCompactNoRuntime": "Envía un mensaje antes de compactar",
+    "manualCompactFailed": "Error al compactar: {{message}}",
+    "manualCompactChannelAttached": "Esta sesión la gestiona un canal — usa /compact allí",
+    "manualCompactInstructionsPlaceholder": "Opcional: en qué centrarse al resumir"
   },
   "relativeDate": {
     "today": "Hoy",

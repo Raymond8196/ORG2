@@ -365,6 +365,10 @@ git_api::commands::ai::generate_commit_message,
 // Network detection
 system_services::network::detect_vpn,
 system_services::network::fetch_geo_info,
+// Workspace listening-port detection (status bar)
+system_services::workspace_ports::commands::workspace_ports_scan,
+system_services::workspace_ports::commands::workspace_ports_kill,
+system_services::workspace_ports::commands::workspace_ports_ingest_advertised_url,
 // System dependency detection
 system_services::dependencies::detect_git_dependency,
 system_services::dependencies::detect_system_dependencies,
@@ -1128,6 +1132,7 @@ agent_core::flow_awareness::commands::flow_clear_session,
 agent_core::state::commands::agent_session_list,
 agent_core::state::commands::agent_session_cancel,
 agent_core::state::commands::agent_session_info,
+agent_core::state::commands::agent_session_manual_compact,
 agent_core::state::commands::agent_session_remove,
 agent_core::state::commands::agent_session_add_directory,
 agent_core::state::commands::agent_session_remove_directory,
