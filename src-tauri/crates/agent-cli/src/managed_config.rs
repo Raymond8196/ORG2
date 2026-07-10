@@ -1,13 +1,13 @@
 //! Managed CLI config profiles.
 //!
 //! This module owns the Default <-> ORGII Managed switch for CLI config files.
-//! The first managed agents are Codex and Claude Code because both expose
-//! stable user-level config files and can route model traffic through a local
-//! proxy without MITM interception.
+//! The first managed agents expose stable user-level config files and can route
+//! model traffic through a local proxy without MITM interception.
 
 use app_paths as paths;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -17,6 +17,11 @@ const CODEX_CONFIG_FILE_NAME: &str = "config.toml";
 const CLAUDE_CODE_AGENT: &str = "claude_code";
 const CLAUDE_CODE_CONFIG_FILE_ID: &str = "settings";
 const CLAUDE_CODE_CONFIG_FILE_NAME: &str = "settings.json";
+const GEMINI_CLI_AGENT: &str = "gemini_cli";
+const GEMINI_CLI_SETTINGS_FILE_ID: &str = "settings";
+const GEMINI_CLI_SETTINGS_FILE_NAME: &str = "settings.json";
+const GEMINI_CLI_ENV_FILE_ID: &str = "env";
+const GEMINI_CLI_ENV_FILE_NAME: &str = ".env";
 const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const ORGII_PROVIDER_ID: &str = "orgii";
 const ORGII_PROVIDER_NAME: &str = "ORGII";
@@ -108,6 +113,18 @@ fn claude_code_config_path() -> PathBuf {
     paths::home_dir()
         .join(".claude")
         .join(CLAUDE_CODE_CONFIG_FILE_NAME)
+}
+
+fn gemini_cli_settings_path() -> PathBuf {
+    paths::home_dir()
+        .join(".gemini")
+        .join(GEMINI_CLI_SETTINGS_FILE_NAME)
+}
+
+fn gemini_cli_env_path() -> PathBuf {
+    paths::home_dir()
+        .join(".gemini")
+        .join(GEMINI_CLI_ENV_FILE_NAME)
 }
 
 fn default_backup_path(agent_name: &str, file_name: &str) -> PathBuf {
@@ -213,33 +230,68 @@ fn manifest_target(agent_name: &str, file_id: &str, file_name: &str, target_path
 }
 
 fn supported_agent(agent_name: &str) -> bool {
-    matches!(agent_name, CODEX_AGENT | CLAUDE_CODE_AGENT)
+    matches!(agent_name, CODEX_AGENT | CLAUDE_CODE_AGENT | GEMINI_CLI_AGENT)
 }
 
-fn agent_target_path(agent_name: &str) -> Option<PathBuf> {
+fn agent_manifest_targets(agent_name: &str) -> Option<Vec<CliConfigTargetFileManifest>> {
     match agent_name {
-        CODEX_AGENT => Some(codex_config_path()),
-        CLAUDE_CODE_AGENT => Some(claude_code_config_path()),
-        _ => None,
-    }
-}
-
-fn agent_manifest_target(agent_name: &str, target_path: &Path) -> Option<CliConfigTargetFileManifest> {
-    match agent_name {
-        CODEX_AGENT => Some(manifest_target(
+        CODEX_AGENT => Some(vec![manifest_target(
             CODEX_AGENT,
             CODEX_CONFIG_FILE_ID,
             CODEX_CONFIG_FILE_NAME,
-            target_path,
-        )),
-        CLAUDE_CODE_AGENT => Some(manifest_target(
+            &codex_config_path(),
+        )]),
+        CLAUDE_CODE_AGENT => Some(vec![manifest_target(
             CLAUDE_CODE_AGENT,
             CLAUDE_CODE_CONFIG_FILE_ID,
             CLAUDE_CODE_CONFIG_FILE_NAME,
-            target_path,
-        )),
+            &claude_code_config_path(),
+        )]),
+        GEMINI_CLI_AGENT => Some(vec![
+            manifest_target(
+                GEMINI_CLI_AGENT,
+                GEMINI_CLI_SETTINGS_FILE_ID,
+                GEMINI_CLI_SETTINGS_FILE_NAME,
+                &gemini_cli_settings_path(),
+            ),
+            manifest_target(
+                GEMINI_CLI_AGENT,
+                GEMINI_CLI_ENV_FILE_ID,
+                GEMINI_CLI_ENV_FILE_NAME,
+                &gemini_cli_env_path(),
+            ),
+        ]),
         _ => None,
     }
+}
+
+fn targets_with_fallbacks(
+    manifest: Option<&CliConfigProfileManifest>,
+    fallback_targets: &[CliConfigTargetFileManifest],
+) -> Vec<CliConfigTargetFileManifest> {
+    let mut by_id: BTreeMap<String, CliConfigTargetFileManifest> = manifest
+        .map(|manifest| {
+            manifest
+                .target_files
+                .iter()
+                .cloned()
+                .map(|target| (target.id.clone(), target))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    for target in fallback_targets {
+        by_id.entry(target.id.clone()).or_insert_with(|| target.clone());
+    }
+
+    let mut targets = Vec::new();
+    for fallback in fallback_targets {
+        if let Some(target) = by_id.remove(&fallback.id) {
+            targets.push(target);
+        }
+    }
+    targets.extend(by_id.into_values());
+    targets
 }
 
 fn status_for(agent_name: &str) -> Result<CliConfigManagedStatus, String> {
@@ -259,20 +311,18 @@ fn status_for(agent_name: &str) -> Result<CliConfigManagedStatus, String> {
         });
     }
 
-    let target_path = agent_target_path(agent_name)
-        .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let manifest = read_manifest(agent_name)?;
-    let fallback_target = agent_manifest_target(agent_name, &target_path)
+    let fallback_targets = agent_manifest_targets(agent_name)
         .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let (mode, selected_key_id, selected_provider, selected_model, proxy_url, targets) =
-        if let Some(manifest) = manifest {
+        if let Some(manifest) = &manifest {
             (
                 manifest.mode,
-                manifest.selected_key_id,
-                manifest.selected_provider,
-                manifest.selected_model,
-                manifest.proxy_url,
-                manifest.target_files,
+                manifest.selected_key_id.clone(),
+                manifest.selected_provider.clone(),
+                manifest.selected_model.clone(),
+                manifest.proxy_url.clone(),
+                targets_with_fallbacks(Some(manifest), &fallback_targets),
             )
         } else {
             (
@@ -281,7 +331,7 @@ fn status_for(agent_name: &str) -> Result<CliConfigManagedStatus, String> {
                 None,
                 None,
                 Some(DEFAULT_PROXY_URL.to_string()),
-                vec![fallback_target],
+                fallback_targets,
             )
         };
 
@@ -367,11 +417,20 @@ fn codex_proxy_base_url(proxy_url: &str) -> String {
 fn claude_code_proxy_base_url(proxy_url: &str) -> String {
     let trimmed = proxy_url.trim().trim_end_matches('/');
     if trimmed.ends_with("/claude/v1") {
-        trimmed.to_string()
+        trimmed.trim_end_matches("/v1").to_string()
     } else if trimmed.ends_with("/claude") {
-        format!("{trimmed}/v1")
+        trimmed.to_string()
     } else {
-        format!("{trimmed}/claude/v1")
+        format!("{trimmed}/claude")
+    }
+}
+
+fn gemini_cli_proxy_base_url(proxy_url: &str) -> String {
+    let trimmed = proxy_url.trim().trim_end_matches('/');
+    if trimmed.ends_with("/gemini") {
+        trimmed.to_string()
+    } else {
+        format!("{trimmed}/gemini")
     }
 }
 
@@ -511,16 +570,171 @@ fn generate_claude_code_managed_config(
         .map_err(|err| format!("JSON serialize error: {err}"))
 }
 
-fn generate_managed_config(
-    agent_name: &str,
+fn generate_gemini_cli_settings_config(existing_content: &str) -> Result<String, String> {
+    let mut config: serde_json::Value = if existing_content.trim().is_empty() {
+        serde_json::Value::Object(serde_json::Map::new())
+    } else {
+        serde_json::from_str(existing_content)
+            .map_err(|err| format!("Invalid Gemini CLI JSON: {err}"))?
+    };
+
+    let Some(root) = config.as_object_mut() else {
+        return Err("Gemini CLI settings must be a JSON object".to_string());
+    };
+
+    if !matches!(root.get("security"), Some(serde_json::Value::Object(_))) {
+        root.insert(
+            "security".to_string(),
+            serde_json::Value::Object(serde_json::Map::new()),
+        );
+    }
+    let Some(serde_json::Value::Object(security)) = root.get_mut("security") else {
+        return Err("Failed to build Gemini CLI security object".to_string());
+    };
+
+    if !matches!(security.get("auth"), Some(serde_json::Value::Object(_))) {
+        security.insert(
+            "auth".to_string(),
+            serde_json::Value::Object(serde_json::Map::new()),
+        );
+    }
+    let Some(serde_json::Value::Object(auth)) = security.get_mut("auth") else {
+        return Err("Failed to build Gemini CLI auth object".to_string());
+    };
+
+    auth.insert(
+        "selectedType".to_string(),
+        serde_json::Value::String("gemini-api-key".to_string()),
+    );
+
+    serde_json::to_string_pretty(&config)
+        .map(|value| format!("{value}\n"))
+        .map_err(|err| format!("JSON serialize error: {err}"))
+}
+
+fn quote_env_value(value: &str) -> String {
+    let escaped = value.replace('\\', "\\\\").replace('"', "\\\"");
+    format!("\"{escaped}\"")
+}
+
+fn env_line_key(line: &str) -> Option<String> {
+    let trimmed = line.trim_start();
+    if trimmed.is_empty() || trimmed.starts_with('#') {
+        return None;
+    }
+    let trimmed = trimmed.strip_prefix("export ").unwrap_or(trimmed);
+    let (key, _) = trimmed.split_once('=')?;
+    let key = key.trim();
+    if key.is_empty()
+        || !key
+            .chars()
+            .all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
+    {
+        return None;
+    }
+    Some(key.to_string())
+}
+
+fn upsert_env_file(existing_content: &str, values: &[(&str, String)]) -> String {
+    let replacements: BTreeMap<&str, String> = values.iter().cloned().collect();
+    let mut seen = BTreeSet::new();
+    let mut lines = Vec::new();
+
+    for line in existing_content.lines() {
+        if let Some(key) = env_line_key(line) {
+            if let Some(value) = replacements.get(key.as_str()) {
+                if seen.insert(key.clone()) {
+                    lines.push(format!("{key}={}", quote_env_value(value)));
+                }
+                continue;
+            }
+        }
+        lines.push(line.to_string());
+    }
+
+    for (key, value) in values {
+        if !seen.contains(*key) {
+            lines.push(format!("{key}={}", quote_env_value(value)));
+        }
+    }
+
+    if lines.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", lines.join("\n"))
+    }
+}
+
+fn generate_gemini_cli_env_config(
     existing_content: &str,
     selected_model: Option<&str>,
     proxy_url: &str,
-) -> Result<String, String> {
+) -> String {
+    let model = selected_model_or_default(selected_model).to_string();
+    upsert_env_file(
+        existing_content,
+        &[
+            ("GEMINI_API_KEY", ORGII_PROXY_TOKEN.to_string()),
+            ("GOOGLE_API_KEY", ORGII_PROXY_TOKEN.to_string()),
+            ("GEMINI_MODEL", model),
+            (
+                "GOOGLE_GEMINI_BASE_URL",
+                gemini_cli_proxy_base_url(proxy_url),
+            ),
+        ],
+    )
+}
+
+fn generate_managed_configs(
+    agent_name: &str,
+    existing_contents: &BTreeMap<String, String>,
+    selected_model: Option<&str>,
+    proxy_url: &str,
+) -> Result<BTreeMap<String, String>, String> {
+    let content = |file_id: &str| {
+        existing_contents
+            .get(file_id)
+            .map(String::as_str)
+            .unwrap_or("")
+    };
+    let mut files = BTreeMap::new();
     match agent_name {
-        CODEX_AGENT => generate_codex_managed_config(existing_content, selected_model, proxy_url),
+        CODEX_AGENT => {
+            files.insert(
+                CODEX_CONFIG_FILE_ID.to_string(),
+                generate_codex_managed_config(
+                    content(CODEX_CONFIG_FILE_ID),
+                    selected_model,
+                    proxy_url,
+                )?,
+            );
+            Ok(files)
+        }
         CLAUDE_CODE_AGENT => {
-            generate_claude_code_managed_config(existing_content, selected_model, proxy_url)
+            files.insert(
+                CLAUDE_CODE_CONFIG_FILE_ID.to_string(),
+                generate_claude_code_managed_config(
+                    content(CLAUDE_CODE_CONFIG_FILE_ID),
+                    selected_model,
+                    proxy_url,
+                )?,
+            );
+            Ok(files)
+        }
+        GEMINI_CLI_AGENT => {
+            files.insert(
+                GEMINI_CLI_SETTINGS_FILE_ID.to_string(),
+                generate_gemini_cli_settings_config(content(GEMINI_CLI_SETTINGS_FILE_ID))?,
+            );
+            files.insert(
+                GEMINI_CLI_ENV_FILE_ID.to_string(),
+                generate_gemini_cli_env_config(
+                    content(GEMINI_CLI_ENV_FILE_ID),
+                    selected_model,
+                    proxy_url,
+                ),
+            );
+            Ok(files)
         }
         _ => Err(format!(
             "ORGII managed config is not available for {agent_name} in this build"
@@ -569,23 +783,29 @@ fn enable_agent_orgii_managed(
     proxy_url: Option<String>,
     force: bool,
 ) -> Result<CliConfigManagedStatus, String> {
-    let target_path = agent_target_path(agent_name)
+    let fallback_targets = agent_manifest_targets(agent_name)
         .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let existing_manifest = read_manifest(agent_name)?;
-    let current_content = if target_path.exists() {
-        std::fs::read_to_string(&target_path)
-            .map_err(|err| format!("Failed to read {}: {err}", target_path.display()))?
-    } else {
-        String::new()
-    };
+    let targets = targets_with_fallbacks(existing_manifest.as_ref(), &fallback_targets);
+    let mut current_contents = BTreeMap::new();
+
+    for target in &targets {
+        let target_path = PathBuf::from(&target.target_path);
+        let content = if target_path.exists() {
+            std::fs::read_to_string(&target_path)
+                .map_err(|err| format!("Failed to read {}: {err}", target_path.display()))?
+        } else {
+            String::new()
+        };
+        current_contents.insert(target.id.clone(), content);
+    }
 
     let proxy_url = proxy_url
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
         .unwrap_or_else(|| DEFAULT_PROXY_URL.to_string());
-    let managed_content =
-        generate_managed_config(agent_name, &current_content, model.as_deref(), &proxy_url)?;
-    let managed_hash = sha256_bytes(managed_content.as_bytes());
+    let managed_contents =
+        generate_managed_configs(agent_name, &current_contents, model.as_deref(), &proxy_url)?;
 
     if let Some(existing_manifest) = &existing_manifest {
         if existing_manifest.mode == CliConfigMode::OrgiiManaged && !force {
@@ -607,12 +827,10 @@ fn enable_agent_orgii_managed(
     let refresh_default_backup = existing_manifest
         .as_ref()
         .is_none_or(|manifest| manifest.mode == CliConfigMode::Default);
-    let fallback_target = agent_manifest_target(agent_name, &target_path)
-        .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let mut manifest = existing_manifest.unwrap_or_else(|| CliConfigProfileManifest {
         agent: agent_name.to_string(),
         mode: CliConfigMode::Default,
-        target_files: vec![fallback_target.clone()],
+        target_files: fallback_targets.clone(),
         selected_key_id: None,
         selected_provider: None,
         selected_model: None,
@@ -621,23 +839,27 @@ fn enable_agent_orgii_managed(
         updated_at: now.clone(),
     });
 
-    let target = manifest
-        .target_files
-        .first()
-        .cloned()
-        .unwrap_or(fallback_target);
-    let mut target = ensure_default_backup(target, refresh_default_backup)?;
+    let mut managed_targets = Vec::new();
+    for target in targets {
+        let Some(managed_content) = managed_contents.get(&target.id) else {
+            continue;
+        };
+        let mut target = ensure_default_backup(target, refresh_default_backup)?;
+        let managed_hash = sha256_bytes(managed_content.as_bytes());
+        let target_path = PathBuf::from(&target.target_path);
 
-    let managed_path = PathBuf::from(&target.managed_profile_path);
-    write_file_atomic(&managed_path, managed_content.as_bytes())?;
-    app_paths::set_sensitive_file_permissions(&managed_path).ok();
-    write_file_atomic(&target_path, managed_content.as_bytes())?;
+        let managed_path = PathBuf::from(&target.managed_profile_path);
+        write_file_atomic(&managed_path, managed_content.as_bytes())?;
+        app_paths::set_sensitive_file_permissions(&managed_path).ok();
+        write_file_atomic(&target_path, managed_content.as_bytes())?;
 
-    target.last_applied_hash = Some(managed_hash);
-    target.target_path = target_path.to_string_lossy().to_string();
+        target.last_applied_hash = Some(managed_hash);
+        target.target_path = target_path.to_string_lossy().to_string();
+        managed_targets.push(target);
+    }
 
     manifest.mode = CliConfigMode::OrgiiManaged;
-    manifest.target_files = vec![target];
+    manifest.target_files = managed_targets;
     manifest.selected_key_id = key_id;
     manifest.selected_provider = provider;
     manifest.selected_model = model;
@@ -841,7 +1063,7 @@ shell_tool = true
         assert_eq!(parsed["env"]["CUSTOM_FLAG"].as_str(), Some("keep"));
         assert_eq!(
             parsed["env"]["ANTHROPIC_BASE_URL"].as_str(),
-            Some("http://127.0.0.1:17888/claude/v1")
+            Some("http://127.0.0.1:17888/claude")
         );
         assert_eq!(
             parsed["env"]["ANTHROPIC_AUTH_TOKEN"].as_str(),
@@ -857,15 +1079,85 @@ shell_tool = true
     fn claude_code_proxy_base_url_is_idempotent() {
         assert_eq!(
             claude_code_proxy_base_url("http://127.0.0.1:17888"),
-            "http://127.0.0.1:17888/claude/v1"
+            "http://127.0.0.1:17888/claude"
         );
         assert_eq!(
             claude_code_proxy_base_url("http://127.0.0.1:17888/claude"),
-            "http://127.0.0.1:17888/claude/v1"
+            "http://127.0.0.1:17888/claude"
         );
         assert_eq!(
             claude_code_proxy_base_url("http://127.0.0.1:17888/claude/v1"),
-            "http://127.0.0.1:17888/claude/v1"
+            "http://127.0.0.1:17888/claude"
+        );
+    }
+
+    #[test]
+    fn gemini_cli_managed_config_preserves_settings_and_writes_env() {
+        let settings = r#"
+{
+  "ide": {
+    "enabled": true
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  }
+}
+"#;
+        let env = r#"
+CUSTOM_FLAG=keep
+GEMINI_API_KEY="old-key"
+export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
+"#;
+        let mut existing = BTreeMap::new();
+        existing.insert(GEMINI_CLI_SETTINGS_FILE_ID.to_string(), settings.to_string());
+        existing.insert(GEMINI_CLI_ENV_FILE_ID.to_string(), env.to_string());
+
+        let generated = generate_managed_configs(
+            GEMINI_CLI_AGENT,
+            &existing,
+            Some("gemini-2.5-pro"),
+            DEFAULT_PROXY_URL,
+        )
+        .unwrap();
+        let generated_settings: serde_json::Value =
+            serde_json::from_str(&generated[GEMINI_CLI_SETTINGS_FILE_ID]).unwrap();
+        let generated_env = &generated[GEMINI_CLI_ENV_FILE_ID];
+
+        assert_eq!(generated_settings["ide"]["enabled"].as_bool(), Some(true));
+        assert_eq!(
+            generated_settings["security"]["auth"]["selectedType"].as_str(),
+            Some("gemini-api-key")
+        );
+        assert!(generated_env.contains("CUSTOM_FLAG=keep"));
+        assert!(generated_env.contains("GEMINI_API_KEY=\"orgii-managed-proxy\""));
+        assert!(generated_env.contains("GOOGLE_API_KEY=\"orgii-managed-proxy\""));
+        assert!(generated_env.contains("GEMINI_MODEL=\"gemini-2.5-pro\""));
+        assert!(
+            generated_env.contains("GOOGLE_GEMINI_BASE_URL=\"http://127.0.0.1:17888/gemini\"")
+        );
+        assert!(!generated_env.contains("old-key"));
+        assert!(!generated_env.contains("https://old.example.com"));
+    }
+
+    #[test]
+    fn gemini_cli_manifest_tracks_settings_and_env() {
+        let targets = agent_manifest_targets(GEMINI_CLI_AGENT).unwrap();
+        let ids: Vec<_> = targets.iter().map(|target| target.id.as_str()).collect();
+
+        assert_eq!(ids, vec![GEMINI_CLI_SETTINGS_FILE_ID, GEMINI_CLI_ENV_FILE_ID]);
+    }
+
+    #[test]
+    fn gemini_cli_proxy_base_url_is_idempotent() {
+        assert_eq!(
+            gemini_cli_proxy_base_url("http://127.0.0.1:17888"),
+            "http://127.0.0.1:17888/gemini"
+        );
+        assert_eq!(
+            gemini_cli_proxy_base_url("http://127.0.0.1:17888/gemini"),
+            "http://127.0.0.1:17888/gemini"
         );
     }
 }
