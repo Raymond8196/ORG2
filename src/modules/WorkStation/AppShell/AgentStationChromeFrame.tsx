@@ -56,7 +56,7 @@ const AgentStationChromeFrame: React.FC<AgentStationChromeFrameProps> = ({
     >
       {illuminated && (
         <div
-          className={`composer-breathing pointer-events-none absolute inset-2 z-0 ${innerRadiusClass} bg-[radial-gradient(circle_at_50%_100%,color-mix(in_srgb,var(--color-primary-6)_14%,transparent),transparent_58%)]`}
+          className={`station-chrome-static-glow pointer-events-none absolute inset-2 z-0 ${innerRadiusClass} bg-[radial-gradient(circle_at_50%_100%,color-mix(in_srgb,var(--color-primary-6)_14%,transparent),transparent_58%)]`}
         />
       )}
       <div
