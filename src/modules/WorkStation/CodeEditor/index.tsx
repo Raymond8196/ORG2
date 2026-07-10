@@ -225,7 +225,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
       activeTab,
       setPrimaryPanel,
       handleGitFileSelect,
-      isMultiRoot: workspaceFolders.length > 1,
     });
 
     // === Pinned tabs (always-visible icon-only tabs) ===
