@@ -15,7 +15,7 @@ import { useCallback, useMemo, useRef } from "react";
 
 import { useUserIntentSubmit } from "@src/engines/ChatPanel/hooks/useWorkspaceChat/useUserIntentSubmit";
 import { createLogger } from "@src/hooks/logger";
-import { WorkStationViewService } from "@src/services/workStation";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import {
   currentGitStatusAtom,
   workspaceGitStatusMapAtom,

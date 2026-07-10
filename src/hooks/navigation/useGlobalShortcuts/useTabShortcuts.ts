@@ -12,7 +12,7 @@ import {
   createEditorSpotlightRequest,
 } from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import { AppViewService } from "@src/services/app";
-import { WorkStationViewService } from "@src/services/workStation";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { spotlightInitialQueryAtom, spotlightOpenAtom } from "@src/store";
 import { modelSelectorAtom } from "@src/store/ui/modelSelectorAtom";
 import {
