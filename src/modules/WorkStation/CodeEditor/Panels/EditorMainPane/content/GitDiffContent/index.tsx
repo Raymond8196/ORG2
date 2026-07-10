@@ -39,7 +39,7 @@ import {
 } from "@src/modules/WorkStation/shared";
 import { HUMANTOOLS_TEXT_KEYS } from "@src/modules/WorkStation/shared/textTokens";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
-import { EditorService } from "@src/services/workStation";
+import { EditorService } from "@src/services/workStation/EditorService";
 import {
   activeStationChatVisibleAtom,
   activeStatusBarCallbacksAtom,
