@@ -142,7 +142,9 @@
       "views": "Görünümler",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Taslağı kaldır"
+      "removeDraft": "Taslağı kaldır",
+      "showSubagents": "Alt aracıları göster",
+      "hideSubagents": "Alt aracıları gizle"
     },
     "resultStatus": {
       "completed": "Tamamlandı",
@@ -406,7 +408,6 @@
         "interactionAskQuestion": "Soru",
         "interactionAskPermission": "İzin isteği",
         "interactionModeSwitch": "Mod değişimi",
-        "interactionNextSteps": "Sonraki adımlar",
         "interactionPlanDoc": "Plan belgesi",
         "interactionGeneric": "Etkileşim"
       },
@@ -669,7 +670,9 @@
       "empty": "Eylem bulunamadı.",
       "unpinAll": "Tümünün sabitlemesini kaldır",
       "insert": "Ekle"
-    }
+    },
+    "compactArgHint": "<özet için isteğe bağlı odak>",
+    "compactCommandDescription": "Eski bağlamı özetleyerek yer açar. İsteğe bağlı: /compact <özet odağı>"
   },
   "listPanel": {
     "showingOf": "{{total}} içinden {{filtered}} gösteriliyor",
@@ -728,6 +731,22 @@
         "sessions": "Oturumlar",
         "tokens": "Tokens",
         "cost": "Maliyet"
+      },
+      "quota": {
+        "empty": "Henüz quota verisi yok. Key Vault'tan kullanımı yenileyin.",
+        "refresh": "Yenile",
+        "justNow": "az önce",
+        "minutesAgo": "{{count}} dk önce",
+        "hoursAgo": "{{count}}s önce",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7g",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Haftalık",
+          "monthly": "Aylık"
+        }
       },
       "exploreRepos": {
         "title": "Repos keşfet"
@@ -952,7 +971,30 @@
         "mentioned": "Bahsedilenler"
       }
     },
-    "readOnly": "Salt okunur"
+    "readOnly": "Salt okunur",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Onaylandı",
@@ -1379,9 +1421,6 @@
     "toolSearchRunning": "Araçlar aranıyor",
     "toolSearchDone": "Araçlar arandı",
     "toolSearchFailed": "Araç araması başarısız",
-    "suggestNextStepsRunning": "Sonraki adımlar öneriliyor",
-    "suggestNextStepsDone": "{{count}} sonraki adım önerildi",
-    "suggestNextStepsFailed": "Sonraki adımlar önerilemedi",
     "agentSendMessageRunning": "Takım Agent'ına mesaj gönderiliyor",
     "agentSendMessageDone": "Takım Agent'ına mesaj gönderildi",
     "agentSendMessageFailed": "Takım Agent'ına mesaj gönderilemedi",
@@ -1843,7 +1882,8 @@
       "models": "Modeller",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Komutlar"
     },
     "diffMenu": {
       "gitActions": "GIT eylemleri",
@@ -2253,7 +2293,8 @@
       "Hâlâ düşünülüyor, olağandan uzun sürüyor...",
       "Üzerinde çalışılıyor, olağandan uzun sürüyor...",
       "Sırada ne olacağı değerlendiriliyor, olağandan uzun sürüyor..."
-    ]
+    ],
+    "compacting": "Bağlam sıkıştırılıyor..."
   },
   "revertConfirm": {
     "title": "Kaydedilmemiş dosya değişiklikleri",

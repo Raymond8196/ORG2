@@ -7,6 +7,9 @@ use crate::key_store::{
     AuthMethod, DefaultVariant, HealthStatus, ModelKey, ModelType, ModelVariant, ProviderProtocol,
     KEY_SERVICE,
 };
+// Re-exported here so consumers keep the established
+// `key_vault::commands::` path (matching `model_supports_output_config_effort`).
+pub use crate::key_store::{is_claude_official_oauth_token, is_official_anthropic_endpoint};
 
 const CURSOR_NATIVE_FALLBACK_MODELS: &[&str] = &["composer-2"];
 
@@ -223,7 +226,7 @@ fn enrich_cursor_native_models(info: &mut KeyInfo) -> Result<(), String> {
     Ok(())
 }
 
-fn key_info_from_entry(entry: ModelKey) -> Result<KeyInfo, String> {
+pub(super) fn key_info_from_entry(entry: ModelKey) -> Result<KeyInfo, String> {
     let mut info = KeyInfo::from(entry);
     enrich_cursor_native_models(&mut info)?;
     Ok(info)
@@ -247,15 +250,32 @@ fn is_cursor_web_session_token(token: &str) -> bool {
     value.get("type").and_then(|value| value.as_str()) == Some("web")
 }
 
-/// Whether the account talks to an official Anthropic endpoint. A configured
-/// `base_url` means the traffic goes through a third-party relay/mirror whose
-/// gateway may reject `output_config`/effort — those accounts must behave
-/// exactly as before this feature.
-fn is_official_anthropic_endpoint(base_url: Option<&str>) -> bool {
-    match base_url.map(str::trim) {
-        None | Some("") => true,
-        Some(url) => url.starts_with("https://api.anthropic.com"),
+/// Drop stale relay routing from a ClaudeCode row that carries official
+/// Anthropic OAuth material.
+///
+/// Re-detecting Claude Code OAuth on top of an account row that was earlier
+/// configured for a third-party relay leaves the relay's `base_url` (and a
+/// possible `protocol: openai`) on the row, because `save_key` only
+/// overwrites fields present in the request. The Rust agent then sends the
+/// `sk-ant-oat…` bearer token to the relay, which 401s (issue #276). Official
+/// OAuth tokens have exactly one valid endpoint, so the relay routing state
+/// is unambiguously stale. Relay ClaudeCode accounts (non-`sk-ant-oat`
+/// tokens) are left untouched.
+fn normalize_claude_official_oauth_routing(entry: &mut ModelKey) {
+    if entry.model_type != ModelType::ClaudeCode
+        || entry.auth_method != AuthMethod::Oauth
+        || !entry
+            .session_token
+            .as_deref()
+            .is_some_and(is_claude_official_oauth_token)
+    {
+        return;
     }
+
+    if !is_official_anthropic_endpoint(entry.base_url.as_deref()) {
+        entry.base_url = None;
+    }
+    entry.protocol = None;
 }
 
 fn account_uses_anthropic_native_messages(entry: &ModelKey) -> bool {
@@ -296,6 +316,9 @@ pub const CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &[
 ];
 
 pub const CODEX_OAUTH_MODELS: &[&str] = &[
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
     "gpt-5.5",
     "gpt-5.4",
     "gpt-5.4-mini",
@@ -304,7 +327,7 @@ pub const CODEX_OAUTH_MODELS: &[&str] = &[
     "codex-auto-review",
 ];
 
-pub const CODEX_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &["gpt-5.5"];
+pub const CODEX_OAUTH_DEFAULT_ENABLED_MODELS: &[&str] = &["gpt-5.6-sol"];
 
 /// Claude models whose Messages requests carry `output_config.effort`.
 pub fn model_supports_output_config_effort(model: &str) -> bool {
@@ -340,6 +363,7 @@ fn is_actionable_variant(variant: &ModelVariant) -> bool {
                     | "high"
                     | "extra_high"
                     | "xhigh"
+                    | "ultra"
                     | "max"
                     | "ultracode",
             )
@@ -401,13 +425,24 @@ fn codex_model_supports_variants(model: &str) -> bool {
 }
 
 fn codex_model_supports_fast_tier(model: &str) -> bool {
-    matches!(model, "gpt-5.5" | "gpt-5.4")
+    matches!(
+        model,
+        "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.4"
+    )
+}
+
+fn codex_model_supports_ultra_tier(model: &str) -> bool {
+    matches!(model, "gpt-5.6-sol" | "gpt-5.6-terra")
 }
 
 fn codex_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInfo> {
     let mut out = Vec::new();
     let supports_fast = codex_model_supports_fast_tier(base_model);
-    for effort in ["low", "medium", "high", "xhigh"] {
+    let mut efforts = vec!["low", "medium", "high", "xhigh"];
+    if codex_model_supports_ultra_tier(base_model) {
+        efforts.push("ultra");
+    }
+    for effort in efforts {
         out.push(ModelVariantInfo {
             model: format!("{base_model}-{effort}"),
             base_model: base_model.to_string(),
@@ -426,6 +461,36 @@ fn codex_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInf
         }
     }
     out
+}
+
+/// GLM (Zhipu) models that expose a thinking-effort ladder (High / Max on top
+/// of the bare Baseline row). Only GLM 5.2 and newer 5.x lines qualify — GLM 5.1
+/// and older have no effort ladder. Distinct sub-models (e.g. `glm-5-turbo`) are
+/// excluded because their id carries a non-numeric tier segment.
+fn glm_model_supports_variants(model: &str) -> bool {
+    let lower = model.to_lowercase();
+    let Some(rest) = lower.strip_prefix("glm-5.") else {
+        return false;
+    };
+    // `rest` must be a pure minor version (e.g. "2", "3") — reject anything with
+    // a further `-tier` segment like `glm-5.2-air`.
+    rest.parse::<u32>().map(|minor| minor >= 2).unwrap_or(false)
+}
+
+/// GLM effort ladder: `High` and `Max` synthesized on top of the bare Baseline
+/// model row. Zhipu recommends `Max` for coding, which drives the default in
+/// [`default_variants_for_key`].
+fn glm_effort_variants_for_base_model(base_model: &str) -> Vec<ModelVariantInfo> {
+    ["high", "max"]
+        .into_iter()
+        .map(|effort| ModelVariantInfo {
+            model: format!("{base_model}-{effort}"),
+            base_model: base_model.to_string(),
+            reasoning: Some(effort.to_string()),
+            fast: false,
+            context_window: None,
+        })
+        .collect()
 }
 
 fn append_missing_variants(out: &mut Vec<ModelVariantInfo>, variants: Vec<ModelVariantInfo>) {
@@ -461,6 +526,21 @@ fn default_variants_for_key(entry: &ModelKey) -> Vec<DefaultVariantInfo> {
                 model: format!("{model}-medium"),
             });
         }
+    }
+
+    // GLM 5.2+ defaults to Max effort (Zhipu recommends Max for coding).
+    for model in entry
+        .available_models
+        .iter()
+        .filter(|model| glm_model_supports_variants(model))
+    {
+        if out.iter().any(|variant| variant.base_model == *model) {
+            continue;
+        }
+        out.push(DefaultVariantInfo {
+            base_model: model.clone(),
+            model: format!("{model}-max"),
+        });
     }
 
     if account_uses_anthropic_native_messages(entry) {
@@ -506,6 +586,24 @@ fn model_variants_for_key(entry: &ModelKey) -> Vec<ModelVariantInfo> {
         {
             append_missing_variants(&mut out, codex_effort_variants_for_base_model(model));
         }
+    }
+
+    // GLM (Zhipu) 5.2+ effort ladder (High / Max). Not gated on ModelType —
+    // Zhipu accounts are OpenAI-compatible API keys, matched by model id. Skip
+    // any model that already carries a real ladder from the provider/user.
+    for model in entry
+        .available_models
+        .iter()
+        .filter(|model| glm_model_supports_variants(model))
+    {
+        if entry
+            .model_variants
+            .iter()
+            .any(|variant| variant.base_model == *model && is_actionable_variant(variant))
+        {
+            continue;
+        }
+        append_missing_variants(&mut out, glm_effort_variants_for_base_model(model));
     }
 
     if !account_uses_anthropic_native_messages(entry) {
@@ -927,6 +1025,8 @@ pub async fn save_key(request: SaveKeyRequest) -> Result<KeyInfo, String> {
             entry.api_key = None;
         }
 
+        normalize_claude_official_oauth_routing(&mut entry);
+
         if entry.auth_method == AuthMethod::Oauth && received_oauth_material {
             entry.oauth_refresh_failure_count = 0;
             entry.last_oauth_refresh_failed_at = None;
@@ -1067,4 +1167,122 @@ pub async fn clipboard_write_text(text: String) -> Result<(), String> {
     })
     .await
     .map_err(|err| format!("Task join error: {}", err))?
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn official_anthropic_endpoint_accepts_empty_and_official_urls() {
+        assert!(is_official_anthropic_endpoint(None));
+        assert!(is_official_anthropic_endpoint(Some("")));
+        assert!(is_official_anthropic_endpoint(Some("  ")));
+        assert!(is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com"
+        )));
+        assert!(is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com/v1"
+        )));
+        assert!(is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com:443/v1"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://relay.example.com/v1"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "http://api.anthropic.com"
+        )));
+        // Lookalike hosts must not pass the boundary check.
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com.evil.example/v1"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.community"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com@evil.example/"
+        )));
+        assert!(!is_official_anthropic_endpoint(Some(
+            "https://api.anthropic.com:pass@evil.example/"
+        )));
+    }
+
+    #[test]
+    fn official_claude_oauth_token_requires_oat_prefix() {
+        assert!(is_claude_official_oauth_token("sk-ant-oat01-abc"));
+        assert!(is_claude_official_oauth_token("  sk-ant-oat01-abc  "));
+        assert!(!is_claude_official_oauth_token("sk-ant-api03-abc"));
+        assert!(!is_claude_official_oauth_token("sk-relay-key"));
+        assert!(!is_claude_official_oauth_token(""));
+    }
+
+    fn claude_oauth_entry(token: &str) -> ModelKey {
+        let mut entry = ModelKey::new(ModelType::ClaudeCode);
+        entry.auth_method = AuthMethod::Oauth;
+        entry.session_token = Some(token.to_string());
+        entry
+    }
+
+    #[test]
+    fn official_oauth_save_drops_stale_relay_routing() {
+        let mut entry = claude_oauth_entry("sk-ant-oat01-abc");
+        entry.base_url = Some("https://relay.example.com/v1".to_string());
+        entry.protocol = Some(ProviderProtocol::OpenAi);
+
+        normalize_claude_official_oauth_routing(&mut entry);
+
+        assert_eq!(entry.base_url, None);
+        assert_eq!(entry.protocol, None);
+    }
+
+    #[test]
+    fn official_oauth_save_keeps_explicit_official_base_url() {
+        let mut entry = claude_oauth_entry("sk-ant-oat01-abc");
+        entry.base_url = Some("https://api.anthropic.com/v1".to_string());
+
+        normalize_claude_official_oauth_routing(&mut entry);
+
+        assert_eq!(
+            entry.base_url.as_deref(),
+            Some("https://api.anthropic.com/v1")
+        );
+    }
+
+    #[test]
+    fn relay_claude_oauth_save_keeps_relay_routing_untouched() {
+        let mut entry = claude_oauth_entry("sk-relay-issued-token");
+        entry.base_url = Some("https://relay.example.com/v1".to_string());
+        entry.protocol = Some(ProviderProtocol::OpenAi);
+
+        normalize_claude_official_oauth_routing(&mut entry);
+
+        assert_eq!(
+            entry.base_url.as_deref(),
+            Some("https://relay.example.com/v1")
+        );
+        assert_eq!(entry.protocol, Some(ProviderProtocol::OpenAi));
+    }
+
+    #[test]
+    fn non_claude_and_api_key_rows_are_never_normalized() {
+        let mut api_key_entry = ModelKey::new(ModelType::ClaudeCode);
+        api_key_entry.api_key = Some("sk-ant-oat01-misfiled".to_string());
+        api_key_entry.base_url = Some("https://relay.example.com/v1".to_string());
+        normalize_claude_official_oauth_routing(&mut api_key_entry);
+        assert_eq!(
+            api_key_entry.base_url.as_deref(),
+            Some("https://relay.example.com/v1")
+        );
+
+        let mut anthropic_entry = ModelKey::new(ModelType::AnthropicApi);
+        anthropic_entry.auth_method = AuthMethod::Oauth;
+        anthropic_entry.session_token = Some("sk-ant-oat01-abc".to_string());
+        anthropic_entry.base_url = Some("https://relay.example.com/v1".to_string());
+        normalize_claude_official_oauth_routing(&mut anthropic_entry);
+        assert_eq!(
+            anthropic_entry.base_url.as_deref(),
+            Some("https://relay.example.com/v1")
+        );
+    }
 }

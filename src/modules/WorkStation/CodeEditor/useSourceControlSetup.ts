@@ -14,7 +14,10 @@ import {
   sourceControlFilterModeHandlerAtom,
   sourceControlFocusTargetAtom,
 } from "@src/store/workstation/codeEditor";
-import { workstationPrCommitMessageAtom } from "@src/store/workstation/codeEditor/workstationPrAtom";
+import {
+  workstationPrCommitMessageAtomFamily,
+  workstationRepoScopeKey,
+} from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type {
   PanelState,
   SourceControlHistorySelection,
@@ -61,6 +64,7 @@ export interface UseSourceControlSetupReturn {
     surface: {
       sourceControl: {
         filterMode: SourceControlFilterMode;
+        onFilterModeChange: (mode: SourceControlFilterMode) => void;
         navigateWithoutSelecting: boolean;
       };
     };
@@ -125,8 +129,9 @@ export function useSourceControlSetup({
     repoPath,
     autoLoad: true,
   });
+  const scopeKey = workstationRepoScopeKey(repoId, repoPath);
   const workstationPrCommitMessage = useAtomValue(
-    workstationPrCommitMessageAtom
+    workstationPrCommitMessageAtomFamily(scopeKey)
   );
   useWorkstationPr({
     repoPath,
@@ -303,6 +308,7 @@ export function useSourceControlSetup({
       surface: {
         sourceControl: {
           filterMode: sourceControlFilterMode,
+          onFilterModeChange: handleSourceControlFilterModeChange,
           navigateWithoutSelecting: isSourceControlAllChangesActive,
           worktrees,
           hasWorktrees,
@@ -312,6 +318,7 @@ export function useSourceControlSetup({
       },
     }),
     [
+      handleSourceControlFilterModeChange,
       hasWorktrees,
       isSourceControlAllChangesActive,
       refreshWorktrees,

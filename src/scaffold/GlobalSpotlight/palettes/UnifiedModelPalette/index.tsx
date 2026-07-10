@@ -12,7 +12,7 @@
  * Thin UI wrapper — business logic lives in useUnifiedModelPalette.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { Grip } from "lucide-react";
+import { Grip, RefreshCw } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -22,6 +22,7 @@ import React, {
 } from "react";
 
 import { useFilteredItems } from "@src/hooks/search";
+import { useRefreshSpin } from "@src/hooks/ui";
 import { spotlightOpenAtom } from "@src/store";
 import { agentNameAtom } from "@src/store/session/creatorStateAtom";
 
@@ -64,8 +65,6 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
     selectedModelId,
     selectedSourceIndex,
     setSelectedSourceIndex,
-    currentModelItem,
-    currentHeader,
     recentItems,
     allModelItems,
     recentHeader,
@@ -73,6 +72,8 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
     sourceItems,
     previewModel,
     handleBack,
+    refreshAllModels,
+    refreshingAllModels,
     tCommon: tCommonHook,
   } = useUnifiedModelPalette({
     isOpen,
@@ -123,10 +124,6 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
 
   const filteredItems = useMemo<SpotlightItem[]>(() => {
     const out: SpotlightItem[] = [];
-    if (currentModelItem) {
-      out.push(currentHeader);
-      out.push(currentModelItem);
-    }
     if (filteredRecentItems.length > 0) {
       out.push(recentHeader);
       out.push(...filteredRecentItems);
@@ -137,8 +134,6 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
     }
     return out;
   }, [
-    currentModelItem,
-    currentHeader,
     filteredRecentItems,
     filteredAllModelItems,
     allModelItems.length,
@@ -251,8 +246,8 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
   // on a genuine model change, not on every render. Two cases clear the
   // preview (right column shows the "Hover a model…" empty state):
   //  - The focused row carries no model (search filtered the list to zero).
-  //  - The focused row is in the Current or Recent Models section — those
-  //    rows are one-click launches and the two-column flow does not apply.
+  //  - The focused row is in the Recent Models section — those rows are
+  //    one-click launches and the two-column flow does not apply.
   const hoveredItem = filteredItems[kernel.selectedIndex];
   const previewedModelRef = useRef<string | null>(null);
   useEffect(() => {
@@ -331,6 +326,25 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
   );
 
   // ============ RENDER ============
+  const { spinClass: refreshSpinClass, handleClick: handleRefreshModelsClick } =
+    useRefreshSpin(() => {
+      void refreshAllModels();
+    }, refreshingAllModels);
+
+  const refreshModelsButton = (
+    <button
+      type="button"
+      onClick={handleRefreshModelsClick}
+      disabled={refreshingAllModels}
+      aria-label={tCommonHook("actions.refresh")}
+      title={tCommonHook("actions.refresh")}
+      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1 disabled:opacity-60"
+      data-testid="model-spotlight-refresh-button"
+    >
+      <RefreshCw size={14} className={refreshSpinClass} />
+    </button>
+  );
+
   const content = (
     <TwoColumnModelBody
       items={filteredItems}
@@ -368,6 +382,7 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
         hideActionClose={false}
         placeholder={placeholderModel}
         contentOverride={content}
+        inputTrailingSlot={refreshModelsButton}
       />
       <ShellFooterAction>{footerAction}</ShellFooterAction>
     </SpotlightShell>

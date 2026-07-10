@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { shouldShowPlanningIndicator } from "./usePlanningIndicator";
+import {
+  planningWatchdogDelayMs,
+  shouldShowPlanningIndicator,
+} from "./usePlanningIndicator";
 
 const baseInput = {
   runtimeStatus: "running",
@@ -81,9 +84,9 @@ describe("shouldShowPlanningIndicator", () => {
     ).toBe(true);
   });
 
-  it("hides while a running await_output wait_for shows its own countdown", () => {
-    // The wait_for block renders a live "Waiting {countdown} for …" title, so
-    // the planning footer would be a redundant second waiting indicator.
+  it("hides while a running await_output shows its own loading title", () => {
+    // Any await_output (wait_for or monitor) renders a live shimmer title, so
+    // the planning footer would be a redundant second activity indicator.
     expect(
       shouldShowPlanningIndicator({
         ...baseInput,
@@ -92,7 +95,7 @@ describe("shouldShowPlanningIndicator", () => {
     ).toBe(false);
   });
 
-  it("still hides the footer during a wait_for even if a subagent is live", () => {
+  it("still hides the footer during await_output even if a subagent is live", () => {
     expect(
       shouldShowPlanningIndicator({
         ...baseInput,
@@ -101,5 +104,33 @@ describe("shouldShowPlanningIndicator", () => {
         hasRunningAwaitWaitFor: true,
       })
     ).toBe(false);
+  });
+});
+
+describe("planningWatchdogDelayMs", () => {
+  const WATCHDOG = 60_000;
+
+  it("trips when no channel event was ever observed", () => {
+    expect(planningWatchdogDelayMs(null, WATCHDOG)).toBeNull();
+  });
+
+  it("trips when the channel has been silent for the full window", () => {
+    expect(planningWatchdogDelayMs(WATCHDOG, WATCHDOG)).toBeNull();
+    expect(planningWatchdogDelayMs(WATCHDOG + 5_000, WATCHDOG)).toBeNull();
+  });
+
+  it("re-arms for the remainder while ephemeral deltas keep the channel busy", () => {
+    // tool_call_delta arrived 1s ago (never bumps the store version) —
+    // probe again in 59s rather than force-completing a live turn.
+    expect(planningWatchdogDelayMs(1_000, WATCHDOG)).toBe(59_000);
+  });
+
+  it("re-arms with a shrinking window as silence grows", () => {
+    expect(planningWatchdogDelayMs(59_999, WATCHDOG)).toBe(1);
+  });
+
+  it("clamps negative recency (clock skew) to a full window", () => {
+    // msSinceSessionChannelActivity floors at 0, but guard the policy too.
+    expect(planningWatchdogDelayMs(0, WATCHDOG)).toBe(WATCHDOG);
   });
 });

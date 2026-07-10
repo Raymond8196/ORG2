@@ -19,9 +19,9 @@ interface TauriInternals {
   invoke?: (cmd: string, args?: unknown) => Promise<unknown>;
 }
 
-interface WindowWithTauriInternals extends Window {
+type TauriInternalsHost = {
   __TAURI_INTERNALS__?: TauriInternals;
-}
+};
 
 export type InteractionType =
   | "auto"
@@ -373,7 +373,7 @@ type TimerPatchRecord = {
 
 function setWindowTimerFunction(
   name: TimerFunctionName,
-  value: Window[TimerFunctionName]
+  value: unknown
 ): TimerPatchRecord | undefined {
   const ownDescriptor = Object.getOwnPropertyDescriptor(window, name);
   try {
@@ -403,47 +403,63 @@ function restoreWindowTimerFunction(record: TimerPatchRecord): void {
 function installTimerTracking(): (() => void) | undefined {
   if (timerTrackingPatched || typeof window === "undefined") return undefined;
 
-  const originalSetInterval = window.setInterval.bind(window);
-  const originalSetTimeout = window.setTimeout.bind(window);
+  const originalSetInterval = window.setInterval.bind(
+    window
+  ) as Window["setInterval"];
+  const originalSetTimeout = window.setTimeout.bind(
+    window
+  ) as Window["setTimeout"];
   const originalRequestAnimationFrame =
     window.requestAnimationFrame.bind(window);
 
-  const patchedSetInterval: typeof window.setInterval = (
-    handler,
-    timeout,
-    ...args
-  ) => {
+  const createWrappedTimerCallback = (
+    timerId: string,
+    kind: Extract<TimerKind, "interval" | "timeout">,
+    delayMs: number | undefined,
+    source: ReturnType<typeof captureTimerSource>,
+    handler: TimerHandler
+  ): TimerHandler => {
+    if (typeof handler === "function") {
+      return (...callbackArgs: unknown[]) => {
+        recordTimerFire(timerId, kind, delayMs, source);
+        handler(...callbackArgs);
+      };
+    }
+
+    return () => {
+      recordTimerFire(timerId, kind, delayMs, source);
+      return Function(handler)();
+    };
+  };
+
+  const patchedSetInterval = <TArgs extends unknown[]>(
+    handler: TimerHandler,
+    timeout?: number,
+    ...args: TArgs
+  ): number => {
     const timerId = `interval-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const source = captureTimerSource();
     const delayMs = typeof timeout === "number" ? timeout : undefined;
-    const wrappedCallback = (...callbackArgs: unknown[]) => {
-      recordTimerFire(timerId, "interval", delayMs, source);
-      if (typeof handler === "function") {
-        handler(...callbackArgs);
-        return;
-      }
-      return Function(handler)();
-    };
-    return originalSetInterval(wrappedCallback, timeout, ...args);
+    return originalSetInterval(
+      createWrappedTimerCallback(timerId, "interval", delayMs, source, handler),
+      timeout,
+      ...args
+    );
   };
 
-  const patchedSetTimeout: typeof window.setTimeout = (
-    handler,
-    timeout,
-    ...args
-  ) => {
+  const patchedSetTimeout = <TArgs extends unknown[]>(
+    handler: TimerHandler,
+    timeout?: number,
+    ...args: TArgs
+  ): number => {
     const timerId = `timeout-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const source = captureTimerSource();
     const delayMs = typeof timeout === "number" ? timeout : undefined;
-    const wrappedCallback = (...callbackArgs: unknown[]) => {
-      recordTimerFire(timerId, "timeout", delayMs, source);
-      if (typeof handler === "function") {
-        handler(...callbackArgs);
-        return;
-      }
-      return Function(handler)();
-    };
-    return originalSetTimeout(wrappedCallback, timeout, ...args);
+    return originalSetTimeout(
+      createWrappedTimerCallback(timerId, "timeout", delayMs, source, handler),
+      timeout,
+      ...args
+    );
   };
 
   const patchedRequestAnimationFrame: typeof window.requestAnimationFrame = (
@@ -501,8 +517,7 @@ function installDirectTauriInvokeTracking(): (() => void) | undefined {
   if (directTauriInvokePatched || typeof window === "undefined")
     return undefined;
 
-  const tauriInternals = (window as WindowWithTauriInternals)
-    .__TAURI_INTERNALS__;
+  const tauriInternals = (window as TauriInternalsHost).__TAURI_INTERNALS__;
   const originalInvoke = tauriInternals?.invoke;
   if (!tauriInternals || !originalInvoke) return undefined;
 

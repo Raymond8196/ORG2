@@ -29,7 +29,7 @@ import {
 } from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import { AppViewService } from "@src/services/app";
 import { PanelService } from "@src/services/panel";
-import { WorkStationViewService } from "@src/services/workStation";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { selectedRepoAtom } from "@src/store/repo";
 import { REPO_KIND } from "@src/store/repo/types";
 import { spotlightRecentActionsAtom } from "@src/store/ui/spotlightRecentActionsAtom";

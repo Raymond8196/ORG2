@@ -53,6 +53,7 @@ import { clearTerminalBufferCache } from "./bufferCache";
 import "./index.scss";
 import { registerTerminalEventHandlers } from "./terminalHandlers";
 import { cleanupPtyListeners } from "./terminalLifecycle";
+import { flushBacklog, setPaneForeground } from "./terminalOutputScheduler";
 import { initPtyConnection } from "./terminalPty";
 import {
   createTerminalInstance,
@@ -66,6 +67,7 @@ import {
 import type { TerminalViewHandle, TerminalViewProps } from "./types";
 import { useTerminalAppearance } from "./useTerminalAppearance";
 import { useTerminalResizeListeners } from "./useTerminalResizeListeners";
+import { releaseWebglSlot } from "./webglContextManager";
 
 // Re-export types for consumers
 export type {
@@ -81,6 +83,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
   function TerminalView(
     {
       sessionKey,
+      isForeground = true,
       onSelectionChange,
       onOutput,
       onUserInput,
@@ -185,11 +188,12 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     );
 
     const initPTY = useCallback(
-      async (cols: number, rows: number) => {
+      async (cols: number, rows: number, abortSignal?: AbortSignal) => {
         await initPtyConnection({
           cols,
           rows,
           sessionKey,
+          isForeground,
           terminalRef,
           sessionIdRef,
           unlistenOutputRef,
@@ -204,6 +208,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
           onSessionInfoReady,
           setIsBrowserMode,
           setIsConnecting,
+          abortSignal,
         });
       },
       // repoPath and onSessionInfoReady use refs / mount-time semantics; avoid
@@ -211,6 +216,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
         sessionKey,
+        isForeground,
         customShellPath,
         shellType,
         shellOverride,
@@ -223,6 +229,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     useEffect(() => {
       if (!containerRef.current || terminalRef.current) return;
 
+      const ptyAbortController = new AbortController();
       const { terminal, fitAddon, searchAddon, serializeAddon } =
         createTerminalInstance({
           terminalTheme: initialThemeRef.current || terminalTheme,
@@ -244,7 +251,9 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
         containerRef,
         terminal,
         fitTerminal,
-        initPty: initPTY,
+        initPty: (cols, rows) => {
+          void initPTY(cols, rows, ptyAbortController.signal);
+        },
         loadWebGL: () => loadTerminalWebgl(terminal, webglAddonRef),
         setIsReady,
       });
@@ -264,12 +273,19 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       });
 
       return () => {
+        ptyAbortController.abort();
         cleanupContainerVisibilityInit();
         cleanupTerminalHandlers();
+        cleanupPtyListeners({
+          unlistenOutputRef,
+          unlistenExitRef,
+          sessionIdRef,
+        });
 
         if (webglAddonRef.current) {
           webglAddonRef.current.dispose();
           webglAddonRef.current = null;
+          releaseWebglSlot();
         }
         terminal.dispose();
         terminalRef.current = null;
@@ -282,14 +298,19 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fitTerminal, initPTY]);
 
+    // Scheduler foreground/background priority and tab-show backlog flush.
+    // The sessionId is set during initPtyConnection which runs after mount;
+    // we derive it the same way here rather than from the ref to keep this
+    // effect's deps clean.
+    const schedulerSessionId = `terminal-pty-${sessionKey}`;
     useEffect(() => {
-      return () => {
-        cleanupPtyListeners({
-          unlistenOutputRef,
-          unlistenExitRef,
-        });
-      };
-    }, []);
+      setPaneForeground(schedulerSessionId, isForeground);
+
+      if (isForeground) {
+        // Flush up to 256 KB of queued backlog immediately on tab show
+        flushBacklog(schedulerSessionId, 256 * 1024);
+      }
+    }, [isForeground, schedulerSessionId]);
 
     useTerminalResizeListeners({
       containerRef,

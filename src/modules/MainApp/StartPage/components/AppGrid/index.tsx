@@ -22,7 +22,7 @@ import React, { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ACTION_ID, useActionSystemOptional } from "@src/ActionSystem";
-import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/csp";
+import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/nonce";
 import { useRegionLuminance } from "@src/hooks/theme/useRegionLuminance";
 import { appGridConfigAtom } from "@src/store/ui/appGridAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";

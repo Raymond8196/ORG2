@@ -421,7 +421,6 @@
         "interactionAskQuestion": "Pytanie",
         "interactionAskPermission": "Prośba o uprawnienia",
         "interactionModeSwitch": "Zmiana trybu",
-        "interactionNextSteps": "Następne kroki",
         "interactionPlanDoc": "Dokument planu",
         "interactionGeneric": "Interakcja"
       },
@@ -677,7 +676,9 @@
       "empty": "Nie znaleziono akcji.",
       "unpinAll": "Odepnij wszystkie",
       "insert": "Wstaw"
-    }
+    },
+    "compactArgHint": "<opcjonalny nacisk podsumowania>",
+    "compactCommandDescription": "Podsumuj starszy kontekst, aby zwolnić miejsce. Opcjonalnie: /compact <nacisk podsumowania>"
   },
   "listPanel": {
     "showingOf": "Wyświetlono {{filtered}} z {{total}}",
@@ -736,6 +737,22 @@
         "sessions": "Sesje",
         "tokens": "Tokens",
         "cost": "Koszt"
+      },
+      "quota": {
+        "empty": "Brak danych quota. Odśwież użycie w Key Vault.",
+        "refresh": "Odśwież",
+        "justNow": "przed chwilą",
+        "minutesAgo": "{{count}} min temu",
+        "hoursAgo": "{{count}}g temu",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Tygodniowo",
+          "monthly": "Miesięcznie"
+        }
       },
       "exploreRepos": {
         "title": "Eksploruj Repos"
@@ -966,7 +983,30 @@
         "mentioned": "Wspomniane"
       }
     },
-    "readOnly": "Tylko do odczytu"
+    "readOnly": "Tylko do odczytu",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Zatwierdzone",
@@ -1006,7 +1046,8 @@
       "Wciąż myślę, trwa to dłużej niż zwykle...",
       "Pracuję nad tym, trwa to dłużej niż zwykle...",
       "Przemyśliwam to, trwa to dłużej niż zwykle..."
-    ]
+    ],
+    "compacting": "Kompaktowanie kontekstu..."
   },
   "tools": {
     "noResultsFound": "Nie znaleziono wyników",
@@ -1423,9 +1464,6 @@
     "toolSearchRunning": "Wyszukiwanie narzędzi",
     "toolSearchDone": "Wyszukano narzędzia",
     "toolSearchFailed": "Wyszukiwanie narzędzi nieudane",
-    "suggestNextStepsRunning": "Sugerowanie kolejnych kroków",
-    "suggestNextStepsDone": "Zasugerowano {{count}} kolejnych kroków",
-    "suggestNextStepsFailed": "Nie udało się zasugerować kolejnych kroków",
     "agentSendMessageRunning": "Wysyłanie wiadomości do współpracownika",
     "agentSendMessageDone": "Wysłano wiadomość do współpracownika",
     "agentSendMessageFailed": "Nie udało się wysłać wiadomości do współpracownika",
@@ -1874,7 +1912,8 @@
       "models": "Modele",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Polecenia"
     },
     "diffMenu": {
       "gitActions": "Akcje GIT",
