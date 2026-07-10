@@ -10,10 +10,12 @@
  */
 import { useAtomValue } from "jotai";
 import React, { Suspense, memo, useCallback } from "react";
-import { useTranslation } from "react-i18next";
 
 import { IssueDetailPanel } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
-import type { QuickAction } from "@src/modules/WorkStation/shared";
+import {
+  NoTabsPlaceholder,
+  type QuickAction,
+} from "@src/modules/WorkStation/shared";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { sourceControlSessionFilterAtom } from "@src/store/workstation/codeEditor/sourceControlSessionFilterAtom";
 import {
@@ -65,7 +67,6 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   onFileSelect,
   onGitDiffUnsavedChange,
 }) => {
-  const { t } = useTranslation();
   const sourceControlSessionFilter = useAtomValue(
     sourceControlSessionFilterAtom
   );
@@ -110,15 +111,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
 
   if (sourceControlFilterMode === "issues") {
     if (!selectedIssueState.issue) {
-      return (
-        <Placeholder
-          variant="empty"
-          placement="detail-panel"
-          title={t("previews.noIssueSelected")}
-          subtitle={t("previews.selectIssueHint")}
-          fillParentHeight
-        />
-      );
+      return <NoTabsPlaceholder icon="editor" actions={editorQuickActions} />;
     }
 
     return (
@@ -140,15 +133,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
     sourceControlFilterMode === "pr" &&
     (!historySelection || historySelection.type !== "pr")
   ) {
-    return (
-      <Placeholder
-        variant="empty"
-        placement="detail-panel"
-        title={t("previews.noPrSelected")}
-        subtitle={t("previews.selectPrHint")}
-        fillParentHeight
-      />
-    );
+    return <NoTabsPlaceholder icon="editor" actions={editorQuickActions} />;
   }
 
   return (
