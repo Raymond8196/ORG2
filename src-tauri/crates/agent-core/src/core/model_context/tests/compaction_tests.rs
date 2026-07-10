@@ -1158,6 +1158,98 @@ async fn compact_circuit_breaker_returns_failed_without_truncation() {
 }
 
 #[tokio::test]
+async fn manual_force_rescues_when_circuit_breaker_is_open() {
+    use crate::model_context::compaction::{
+        CompactionOutcome, CompactionState, MAX_CONSECUTIVE_COMPACTION_FAILURES,
+    };
+    use crate::providers::traits::{LLMProvider, LLMResponse, ProviderError};
+
+    struct SummaryProvider;
+
+    #[async_trait::async_trait]
+    impl LLMProvider for SummaryProvider {
+        async fn chat(
+            &self,
+            _messages: &[Value],
+            _tools: Option<&[Value]>,
+            _model: &str,
+            _max_tokens: u32,
+            _temperature: f32,
+        ) -> Result<LLMResponse, ProviderError> {
+            Ok(LLMResponse {
+                content: Some("rescued summary".to_string()),
+                tool_calls: vec![],
+                finish_reason: crate::providers::finish_reason::STOP.to_string(),
+                usage: std::collections::HashMap::new(),
+                reasoning_content: None,
+                blocks: Vec::new(),
+                stream_error_kind: None,
+                retry_after_ms: None,
+            })
+        }
+
+        fn default_model(&self) -> &str {
+            "test-model"
+        }
+
+        fn provider_name(&self) -> &str {
+            "mock"
+        }
+    }
+
+    let big = "x".repeat(400);
+    let mut history: Vec<Value> = vec![user_msg("task statement")];
+    for _ in 0..40 {
+        history.push(assistant_msg(&big));
+    }
+    let budget = ContextCompactor::estimate_messages_tokens(&history) / 2;
+    let mut config = default_config();
+    config.floor_tokens = 0;
+    // Breaker open: the automatic path refuses without touching the provider…
+    let mut state = CompactionState {
+        consecutive_failures: MAX_CONSECUTIVE_COMPACTION_FAILURES,
+        ..Default::default()
+    };
+    let (_, auto_outcome) = ContextCompactor::compact(
+        &history,
+        budget,
+        &config,
+        &mut state,
+        &SummaryProvider,
+        "test-model",
+    )
+    .await;
+    assert!(matches!(auto_outcome, CompactionOutcome::Failed { .. }));
+
+    // …but the manual-force rescue (used by the reactive path) ignores the
+    // breaker, compacts, and heals the failure counter.
+    let (rescued, rescue_outcome) = ContextCompactor::compact_manual_force(
+        &history,
+        budget,
+        &config,
+        &mut state,
+        &SummaryProvider,
+        "test-model",
+        None,
+    )
+    .await
+    .expect("rescue succeeds");
+
+    assert!(matches!(
+        rescue_outcome,
+        CompactionOutcome::Compacted { .. }
+    ));
+    assert!(rescued[0]["content"]
+        .as_str()
+        .unwrap()
+        .contains("rescued summary"));
+    assert_eq!(
+        state.consecutive_failures, 0,
+        "successful rescue must reset the circuit breaker"
+    );
+}
+
+#[tokio::test]
 async fn compact_manual_force_threads_custom_instructions_into_prompt() {
     use std::sync::Mutex;
 

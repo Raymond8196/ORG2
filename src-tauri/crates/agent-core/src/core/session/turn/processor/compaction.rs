@@ -85,6 +85,75 @@ pub(super) enum CompactionPhaseOutcome {
 }
 
 impl UnifiedMessageProcessor {
+    /// Reactive-path LLM compaction with a last-resort rescue.
+    ///
+    /// The provider has ALREADY rejected the prompt when this runs, so a
+    /// `Failed` outcome here means the turn dies. Instead of bouncing the
+    /// user to manual `/compact`, run the manual-compact semantics
+    /// ourselves as a rescue: `compact_manual_force` ignores the failure
+    /// circuit breaker (past failures must not doom the current stuck
+    /// session), zeroes the trigger ratio, and drops the keep floor to the
+    /// aggressive manual level — exactly what the user would get by
+    /// running `/compact` by hand. Only if the rescue also fails does the
+    /// failure propagate.
+    async fn reactive_llm_compact_with_rescue(
+        &self,
+        session_id: &str,
+        tail: &[Value],
+        budget_tokens: usize,
+    ) -> (Vec<Value>, CompactionOutcome) {
+        let mut state = self.compaction_state.lock().await;
+        let (compacted, outcome) = ContextCompactor::compact(
+            tail,
+            budget_tokens,
+            &self.runtime.resolved.compaction,
+            &mut state,
+            self.runtime.provider.as_ref(),
+            &self.runtime.model,
+        )
+        .await;
+
+        let CompactionOutcome::Failed { reason } = outcome else {
+            return (compacted, outcome);
+        };
+
+        warn!(
+            "[unified_processor] Reactive compaction failed for session {} ({}) — attempting manual-force rescue",
+            session_id, reason
+        );
+        match ContextCompactor::compact_manual_force(
+            tail,
+            budget_tokens,
+            &self.runtime.resolved.compaction,
+            &mut state,
+            self.runtime.provider.as_ref(),
+            &self.runtime.model,
+            None,
+        )
+        .await
+        {
+            Ok((rescued, rescue_outcome @ CompactionOutcome::Compacted { .. })) => {
+                info!(
+                    "[unified_processor] Manual-force rescue succeeded for session {}",
+                    session_id
+                );
+                (rescued, rescue_outcome)
+            }
+            Ok((_, _)) => (
+                tail.to_vec(),
+                CompactionOutcome::Failed {
+                    reason: format!("{reason}; rescue found nothing to compact"),
+                },
+            ),
+            Err(rescue_err) => (
+                tail.to_vec(),
+                CompactionOutcome::Failed {
+                    reason: format!("{reason}; rescue also failed: {rescue_err}"),
+                },
+            ),
+        }
+    }
+
     /// Reactive (mid-turn) compaction used by the ContextTooLong retry
     /// path. Mirrors the pre-turn pipeline — runtime system prefix is
     /// protected, SM-compact is tried first (zero API calls), the LLM
@@ -179,16 +248,9 @@ impl UnifiedMessageProcessor {
             ) {
                 // SM-compact not enough — fall through to LLM compaction on
                 // the SM-compacted tail.
-                let mut state = self.compaction_state.lock().await;
-                let (compacted, llm_outcome) = ContextCompactor::compact(
-                    &cleaned_tail,
-                    budget_tokens,
-                    &self.runtime.resolved.compaction,
-                    &mut state,
-                    self.runtime.provider.as_ref(),
-                    &self.runtime.model,
-                )
-                .await;
+                let (compacted, llm_outcome) = self
+                    .reactive_llm_compact_with_rescue(session_id, &cleaned_tail, budget_tokens)
+                    .await;
                 let cleaned = crate::model_context::cleanup::post_compact_cleanup(compacted);
                 *messages = append_compacted_tail(&prefix, cleaned);
                 outcome = llm_outcome;
@@ -211,16 +273,9 @@ impl UnifiedMessageProcessor {
             // long — resending it with a summary request appended would be
             // rejected identically. The side-query path with head-dropping
             // PTL retries is the only viable shape mid-turn.
-            let mut state = self.compaction_state.lock().await;
-            let (compacted, llm_outcome) = ContextCompactor::compact(
-                &compactable_tail,
-                budget_tokens,
-                &self.runtime.resolved.compaction,
-                &mut state,
-                self.runtime.provider.as_ref(),
-                &self.runtime.model,
-            )
-            .await;
+            let (compacted, llm_outcome) = self
+                .reactive_llm_compact_with_rescue(session_id, &compactable_tail, budget_tokens)
+                .await;
             let cleaned = crate::model_context::cleanup::post_compact_cleanup(compacted);
             *messages = append_compacted_tail(&prefix, cleaned);
             outcome = llm_outcome;
