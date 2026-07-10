@@ -33,7 +33,11 @@ type PendingAction = "apply" | "forceApply" | "restore" | "forceRestore";
 const DEFAULT_PROXY_URL = "http://127.0.0.1:17888";
 
 function isManagedConfigSupportedAgent(agentName: string): boolean {
-  return agentName === CLI_AGENT.CODEX || agentName === CLI_AGENT.CLAUDE_CODE;
+  return (
+    agentName === CLI_AGENT.CODEX ||
+    agentName === CLI_AGENT.CLAUDE_CODE ||
+    agentName === CLI_AGENT.GEMINI
+  );
 }
 
 function accountLabel(account: KeyVaultAccount): string {
@@ -318,7 +322,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
 
   if (status && !status.supported) return null;
 
-  const targetFile = status?.targetFiles[0];
+  const targetFiles = status?.targetFiles ?? [];
   const managedActive = draftMode === "orgii_managed";
   const canApplyManaged = managedActive && Boolean(selectedKeyId);
   const isBusy = pendingAction !== null;
@@ -399,7 +403,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
           label={tr("agentOrgs.cliManagedConfig.conflictTitle", "Conflict")}
           description={tr(
             "agentOrgs.cliManagedConfig.conflictDesc",
-            "The active Codex config changed after ORGII wrote it."
+            "The active CLI config changed after ORGII wrote it."
           )}
           align="start"
         >
@@ -471,16 +475,21 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
         />
       </SectionRow>
 
-      {targetFile && (
+      {targetFiles.length > 0 && (
         <SectionRow
-          label={tr("agentOrgs.cliManagedConfig.configFile", "Config file")}
+          label={tr("agentOrgs.cliManagedConfig.configFile", "Config files")}
         >
-          <span
-            className={SECTION_PATH_TEXT_CLASSES}
-            title={targetFile.targetPath}
-          >
-            {targetFile.targetPath}
-          </span>
+          <div className="flex min-w-0 flex-col gap-1">
+            {targetFiles.map((targetFile) => (
+              <span
+                key={targetFile.id}
+                className={SECTION_PATH_TEXT_CLASSES}
+                title={targetFile.targetPath}
+              >
+                {targetFile.targetPath}
+              </span>
+            ))}
+          </div>
         </SectionRow>
       )}
 

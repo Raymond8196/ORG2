@@ -350,11 +350,13 @@ pub fn get_provider_config(model_type: &str) -> ProviderConfig {
             true,
             Some("https://api.deepseek.com"),
         ),
-        "gemini_api" => ProviderConfig::new(
+        "gemini_api" => ProviderConfig::with_protocols(
             "GEMINI_API_KEY",
             None,
             true,
             Some("https://generativelanguage.googleapis.com/v1beta"),
+            &["gemini"],
+            "gemini",
         ),
         "groq_api" => ProviderConfig::new(
             "GROQ_API_KEY",
