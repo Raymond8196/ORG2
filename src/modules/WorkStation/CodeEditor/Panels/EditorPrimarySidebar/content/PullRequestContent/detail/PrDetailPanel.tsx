@@ -123,7 +123,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="allow-select-deep flex h-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
       <div className="flex shrink-0 items-center gap-2 border-b border-border-1 px-4 py-2.5">
         <span

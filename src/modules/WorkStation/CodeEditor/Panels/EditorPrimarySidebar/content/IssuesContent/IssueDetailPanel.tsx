@@ -164,7 +164,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
     }, [commentBody, submittingComment, onAddComment]);
 
     return (
-      <div className="flex h-full min-h-0 select-text flex-col overflow-hidden">
+      <div className="allow-select-deep flex h-full min-h-0 select-text flex-col overflow-hidden">
         {showHeader && (
           <div className={HEADER_CLASSES.pageHeader}>
             <IssueDetailHeaderContent issue={issue} />
