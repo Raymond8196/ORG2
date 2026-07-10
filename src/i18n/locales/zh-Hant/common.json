@@ -31,10 +31,6 @@
     "closeCanvas": "關閉畫布",
     "generatingCanvas": "正在產生畫布…",
     "noContent": "暫無內容",
-    "noIssueSelected": "未選擇 Issue",
-    "selectIssueHint": "請從側邊欄的 Issues 面板中選擇一個 Issue。",
-    "noPrSelected": "未選擇 Pull request",
-    "selectPrHint": "請從側邊欄的 Pull request 面板中選擇一個 Pull request。",
     "reload": "重新載入",
     "urlPreviewRequiresTauri": "URL 預覽需要 Tauri",
     "openInExternalBrowser": "請改用外部瀏覽器開啟",
@@ -210,8 +206,7 @@
     "skipThisVersion": "跳過此版本",
     "later": "稍後",
     "updateAiBlame": "更新 AI Blame",
-    "link": "連結",
-    "fetchPr": "Fetch PR"
+    "link": "連結"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",
@@ -978,9 +973,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "預覽不可用",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "搜索消息...",

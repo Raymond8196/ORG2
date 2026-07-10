@@ -237,14 +237,25 @@ export interface OpenPRItem {
   updated_at: string;
 }
 
+export type PullRequestListState = "open" | "closed";
+
+export async function listPRsLocal(
+  repoFullName: string,
+  state: PullRequestListState,
+  perPage?: number
+): Promise<OpenPRItem[]> {
+  return invokeWithAuth<OpenPRItem[]>("github_list_prs", {
+    repoFullName,
+    state,
+    perPage: perPage ?? null,
+  });
+}
+
 export async function listOpenPRsLocal(
   repoFullName: string,
   perPage?: number
 ): Promise<OpenPRItem[]> {
-  return invokeWithAuth<OpenPRItem[]>("github_list_open_prs", {
-    repoFullName,
-    perPage: perPage ?? null,
-  });
+  return listPRsLocal(repoFullName, "open", perPage);
 }
 
 export async function findPullRequestLocal(

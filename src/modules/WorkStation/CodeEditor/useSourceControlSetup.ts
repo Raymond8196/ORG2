@@ -52,7 +52,6 @@ interface UseSourceControlSetupParams {
   activeTab: WorkStationTab | undefined | null;
   setPrimaryPanel: (updater: (prev: PanelState) => PanelState) => void;
   handleGitFileSelect: (file: GitFile) => void;
-  isMultiRoot?: boolean;
 }
 
 export interface UseSourceControlSetupReturn {
@@ -84,7 +83,6 @@ export function useSourceControlSetup({
   activeTab,
   setPrimaryPanel,
   handleGitFileSelect,
-  isMultiRoot = false,
 }: UseSourceControlSetupParams): UseSourceControlSetupReturn {
   const { t } = useTranslation();
   const setSourceControlFocusTarget = useSetAtom(sourceControlFocusTargetAtom);
@@ -248,13 +246,7 @@ export function useSourceControlSetup({
     ]
   );
 
-  const showScopePicker =
-    activeTab?.type === "source-control" &&
-    hasWorktrees &&
-    !isMultiRoot &&
-    sourceControlFilterMode !== "history" &&
-    sourceControlFilterMode !== "pr" &&
-    sourceControlFilterMode !== "issues";
+  const showScopePicker = activeTab?.type === "source-control";
 
   const handleRemoveWorktree = useCallback(
     async (worktree: ScopePickerWorktreeEntry) => {

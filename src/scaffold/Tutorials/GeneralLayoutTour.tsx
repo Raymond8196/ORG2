@@ -24,11 +24,6 @@ import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "./generalLayoutTourConfig";
 
-export {
-  GENERAL_LAYOUT_TOUR_EVENT,
-  GENERAL_LAYOUT_TOUR_TARGETS,
-} from "./generalLayoutTourConfig";
-
 type GeneralLayoutTourTarget =
   (typeof GENERAL_LAYOUT_TOUR_TARGETS)[keyof typeof GENERAL_LAYOUT_TOUR_TARGETS];
 
