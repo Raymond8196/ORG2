@@ -260,7 +260,7 @@ export function useChatGroups(
     forceCollapseAllTurns = false,
     disableTurnCollapse = false,
     allTurnsCollapsed,
-    defaultTurnCollapsed = false,
+    defaultTurnCollapsed = true,
     isTurnHeaderItem,
     isTurnBoundaryItem,
   } = options;
