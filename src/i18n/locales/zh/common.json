@@ -31,10 +31,6 @@
     "closeCanvas": "关闭画布",
     "generatingCanvas": "正在生成画布…",
     "noContent": "暂无内容",
-    "noIssueSelected": "未选择 Issue",
-    "selectIssueHint": "请从侧边栏的 Issues 面板中选择一个 Issue。",
-    "noPrSelected": "未选择 Pull request",
-    "selectPrHint": "请从侧边栏的 Pull request 面板中选择一个 Pull request。",
     "reload": "重新加载",
     "urlPreviewRequiresTauri": "URL 预览需要 Tauri",
     "openInExternalBrowser": "请改用外部浏览器打开",
@@ -182,8 +178,6 @@
     "stop": "停止",
     "find": "查找",
     "filter": "筛选",
-    "filterCommits": "筛选提交…",
-    "filterPullRequests": "筛选 Pull Request…",
     "loading": "加载中...",
     "replace": "替换",
     "publish": "Publish",
@@ -212,8 +206,7 @@
     "skipThisVersion": "跳过此版本",
     "later": "稍后",
     "updateAiBlame": "更新 AI Blame",
-    "link": "链接",
-    "fetchPr": "拉取 PR"
+    "link": "链接"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",
@@ -982,9 +975,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "预览不可用",
-    "selectPrCommitToViewDiff": "从顶部选择一个 PR 提交来查看 diff。",
-    "fetchPrCommitToViewDiff": "拉取 PR 后查看这个提交",
-    "prCommitMissingLocally": "这个 PR 提交还不在你的本地仓库中。"
+    "selectPrCommitToViewDiff": "从顶部选择一个 PR 提交来查看 diff。"
   },
   "inbox": {
     "searchPlaceholder": "搜索消息...",
