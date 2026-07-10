@@ -148,7 +148,9 @@
       "views": "Views",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Remove draft"
+      "removeDraft": "Remove draft",
+      "showSubagents": "Show subagents",
+      "hideSubagents": "Hide subagents"
     },
     "resultStatus": {
       "completed": "Completed",
@@ -439,7 +441,6 @@
         "interactionAskQuestion": "Question",
         "interactionAskPermission": "Permission request",
         "interactionModeSwitch": "Mode switch",
-        "interactionNextSteps": "Next steps",
         "interactionPlanDoc": "Plan document",
         "interactionGeneric": "Interaction"
       },
@@ -699,7 +700,9 @@
       "empty": "No actions found.",
       "unpinAll": "Unpin all",
       "insert": "Insert"
-    }
+    },
+    "compactArgHint": "<optional focus for the summary>",
+    "compactCommandDescription": "Summarize older context to free space. Optional: /compact <focus for the summary>"
   },
   "listPanel": {
     "showingOf": "Showing {{filtered}} of {{total}}",
@@ -759,6 +762,22 @@
         "sessions": "Sessions",
         "tokens": "Tokens",
         "cost": "Cost"
+      },
+      "quota": {
+        "empty": "No quota data yet. Refresh usage from Key Vault.",
+        "refresh": "Refresh",
+        "justNow": "Just now",
+        "minutesAgo": "{{count}}m ago",
+        "hoursAgo": "{{count}}h ago",
+        "metrics": {
+          "fiveHour": "5h",
+          "sevenDay": "7d",
+          "auto": "Auto",
+          "api": "API",
+          "session": "Session",
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
       },
       "exploreRepos": {
         "title": "Explore repos"
@@ -983,7 +1002,30 @@
         "mentioned": "Mentioned"
       }
     },
-    "readOnly": "Read-only"
+    "readOnly": "Read-only",
+    "panels": {
+      "manageIssues": {
+        "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
+        "createIssueTrigger": "Issue",
+        "newIssueTitle": "New GitHub Issue",
+        "issueTitlePlaceholder": "Issue title",
+        "issueBodyPlaceholder": "Description",
+        "createIssue": "Create issue",
+        "creatingIssue": "Creating…",
+        "addToChat": "Add",
+        "repositoryLabel": "Repository",
+        "createIssueFailed": "Failed to create issue",
+        "sourceIssues": "Issues",
+        "sourcePrs": "PRs",
+        "stateOpen": "Open",
+        "stateClosed": "Closed",
+        "stateAll": "All states",
+        "assignedToMe": "Assigned to me",
+        "createdByMe": "Created by me",
+        "filters": "Filters",
+        "openInGitHub": "Open in GitHub"
+      }
+    }
   },
   "chatStatus": {
     "approved": "Approved",
@@ -1023,7 +1065,8 @@
       "Still thinking, taking longer than usual...",
       "Working on it, taking longer than usual...",
       "Thinking it through, taking longer than usual..."
-    ]
+    ],
+    "compacting": "Compacting context..."
   },
   "tools": {
     "noResultsFound": "No results found",
@@ -1437,9 +1480,6 @@
     "toolSearchRunning": "Searching for tools",
     "toolSearchDone": "Searched for tools",
     "toolSearchFailed": "Tool search failed",
-    "suggestNextStepsRunning": "Suggesting next steps",
-    "suggestNextStepsDone": "Suggested {{count}} next steps",
-    "suggestNextStepsFailed": "Could not suggest next steps",
     "agentSendMessageRunning": "Sending message to teammate",
     "agentSendMessageDone": "Sent message to teammate",
     "agentSendMessageFailed": "Could not send message to teammate",
@@ -1883,6 +1923,7 @@
     "slashMenu": {
       "image": "Image",
       "uploadImage": "Upload image",
+      "commands": "Commands",
       "mode": "Mode",
       "models": "Models",
       "skills": "Skills",

@@ -16,6 +16,7 @@ import {
   streamingDeltaContentAtom,
 } from "@src/engines/SessionCore";
 import { createLogger } from "@src/hooks/logger";
+import { canvasPreviewAtom } from "@src/store/session/canvasPreviewAtom";
 import {
   type CliSessionStatus,
   isPendingCancelAtom,
@@ -89,6 +90,16 @@ export function useSessionSync(
   const setStreamRetryStatus = useSetAtom(streamRetryStatusAtom);
   const setStreamingDeltaContent = useSetAtom(streamingDeltaContentAtom);
   const setPendingPlanApprovals = useSetAtom(pendingPlanApprovalsAtom);
+  const setCanvasPreview = useSetAtom(canvasPreviewAtom);
+  const dismissCanvasAtNewTurn = useCallback(
+    (sid: string) => {
+      setCanvasPreview((prev) => {
+        if (!prev || prev.sessionId !== sid || prev.cardDismissed) return prev;
+        return { ...prev, cardDismissed: true };
+      });
+    },
+    [setCanvasPreview]
+  );
 
   const adapterRef = useRef<SessionAdapter | null>(null);
   const handlerRef = useRef<SessionEventHandler | null>(null);
@@ -167,6 +178,7 @@ export function useSessionSync(
       setPendingCancel,
       setSessionRolledBack,
       setStreamingDeltaContent,
+      dismissCanvasAtNewTurn,
     }),
     [
       setSessionContextTokens,
@@ -177,6 +189,7 @@ export function useSessionSync(
       setPendingCancel,
       setSessionRolledBack,
       setStreamingDeltaContent,
+      dismissCanvasAtNewTurn,
     ]
   );
 

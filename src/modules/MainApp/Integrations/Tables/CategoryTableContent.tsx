@@ -42,6 +42,7 @@ export interface CategoryTableContentProps {
   accountsLoading: boolean;
   onSelectAccount: (id: string | null, mode?: DetailMode) => void;
   onRefreshAccounts?: () => Promise<void>;
+  onRefreshAccountUsage?: (accountId: string) => Promise<void>;
   onEditAccount?: (accountId: string) => void;
   onEditAccountSave?: (
     accountId: string,
@@ -54,6 +55,8 @@ export interface CategoryTableContentProps {
   ) => void;
   onRevalidateAccount?: (accountId: string) => Promise<void>;
   refreshingAccountId?: string | null;
+  onRefreshModels?: () => Promise<void>;
+  refreshingAllModels?: boolean;
   modelsActiveTab?: string;
   onModelsTabChange?: (tab: string) => void;
   onToggleModel?: (
@@ -177,11 +180,14 @@ export const CategoryTableContent: React.FC<CategoryTableContentProps> = (
           onSelect={props.onSelectAccount}
           onAdd={() => onAddAction("add-model")}
           onRefresh={props.onRefreshAccounts}
+          onRefreshAccountUsage={props.onRefreshAccountUsage}
           onEditAccount={props.onEditAccount}
           onEditAccountSave={props.onEditAccountSave}
           onDisconnectAccount={props.onDisconnectAccount}
           onRevalidateAccount={props.onRevalidateAccount}
           refreshingAccountId={props.refreshingAccountId}
+          onRefreshModels={props.onRefreshModels}
+          refreshingAllModels={props.refreshingAllModels}
           selectedRowId={props.selectedRowId}
           modelsActiveTab={props.modelsActiveTab}
           onModelsTabChange={props.onModelsTabChange}

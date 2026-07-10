@@ -11,7 +11,7 @@
  * `PrimarySidebarLayoutWithSections`.
  */
 import { useAtomValue } from "jotai";
-import { CircleDot, RefreshCw, RotateCcw } from "lucide-react";
+import { ArrowLeft, CircleDot, RefreshCw, RotateCcw } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -45,7 +45,8 @@ import {
   useSourceControlTabConfig,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/tabs/SourceControlTab";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared/PrimarySidebarLayout";
-import { workstationIssueCallbackAtom } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationIssueCallbackAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { SourceControlHistorySelection } from "@src/store/workstation/tabs";
 import type { GitFile } from "@src/types/git/types";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
@@ -75,6 +76,7 @@ export interface UseSourceControlSidebarModuleOptions {
   isMultiRoot?: boolean;
   /** Shared filter mode owned by the host header. */
   filterMode?: SourceControlFilterMode;
+  onFilterModeChange?: (mode: SourceControlFilterMode) => void;
   /** Notify parent on row click without updating sidebar selection. */
   navigateWithoutSelecting?: boolean;
   /** Optional worktree list supplied by the host to avoid duplicate fetches. */
@@ -100,6 +102,7 @@ export function useSourceControlSidebarModule({
   onGitFilesChange,
   isMultiRoot = false,
   filterMode: controlledFilterMode,
+  onFilterModeChange,
   navigateWithoutSelecting = false,
   worktrees: hostWorktrees,
   hasWorktrees: hostHasWorktrees,
@@ -263,7 +266,10 @@ export function useSourceControlSidebarModule({
     clear: clearIssuesFilter,
   } = useSectionFilter();
 
-  const issueCallbacks = useAtomValue(workstationIssueCallbackAtom);
+  const scopeKey = workstationRepoScopeKey(repoId, repoPath);
+  const issueCallbacks = useAtomValue(
+    workstationIssueCallbackAtomFamily(scopeKey)
+  );
   const handleIssuesRefresh = useCallback(() => {
     issueCallbacks.refreshIssues?.();
   }, [issueCallbacks]);
@@ -336,13 +342,28 @@ export function useSourceControlSidebarModule({
       : isIssuesMode
         ? issueActions
         : sourceControlActionsWithUndo;
-  const sectionTitle = isHistoryMode
+  const sectionLabel = isHistoryMode
     ? t("common:labels.gitHistory")
     : isPrMode
       ? t("common:labels.pullRequest", "Pull request")
       : isIssuesMode
         ? t("common:git.issues.title", "Issues")
         : t("tabs.sourceControl");
+  const isAlternateMode = isPrMode || isHistoryMode || isIssuesMode;
+  const sectionTitle = isAlternateMode ? (
+    <button
+      type="button"
+      className="flex min-w-0 items-center gap-1.5 normal-case"
+      onClick={() => onFilterModeChange?.("uncommitted")}
+      aria-label={t("tabs.sourceControl")}
+      title={t("tabs.sourceControl")}
+    >
+      <ArrowLeft size={14} className="shrink-0 text-text-3" />
+      <span className="truncate uppercase">{sectionLabel}</span>
+    </button>
+  ) : (
+    sectionLabel
+  );
 
   const historyContent = useMemo(
     () => (
@@ -395,6 +416,9 @@ export function useSourceControlSidebarModule({
         <PullRequestContent
           branchName={branchName}
           filterQuery={prFilterQuery}
+          onHistorySelectionChange={onGitHistorySelectionChange}
+          repoId={repoId}
+          repoPath={repoPath}
         />
       </div>
     ),
@@ -404,6 +428,9 @@ export function useSourceControlSidebarModule({
       setPrFilterQuery,
       clearPrFilter,
       branchName,
+      onGitHistorySelectionChange,
+      repoId,
+      repoPath,
       t,
     ]
   );
@@ -452,8 +479,8 @@ export function useSourceControlSidebarModule({
     hasWorktrees: hostHasWorktrees,
     worktreesLoading: hostWorktreesLoading,
     refreshWorktrees: hostRefreshWorktrees,
-    sourceControlTitleOverride:
-      isPrMode || isHistoryMode || isIssuesMode ? sectionTitle : undefined,
+    sourceControlTitleOverride: isAlternateMode ? sectionTitle : undefined,
+    sourceControlCollapsible: !isAlternateMode,
     sourceControlContentOverride: isPrMode
       ? prContent
       : isHistoryMode
