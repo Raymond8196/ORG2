@@ -16,5 +16,6 @@
 
 pub mod cli;
 pub mod event_pipeline;
+pub mod external_cli_adapter;
 pub mod health;
 pub mod unified_stats;
