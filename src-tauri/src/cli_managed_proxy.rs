@@ -13,9 +13,11 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const MANAGED_CODEX_AGENT: &str = "codex";
+const MANAGED_CLAUDE_CODE_AGENT: &str = "claude_code";
 const DEFAULT_PROXY_PORT: u16 = 17888;
 const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const DEFAULT_CODEX_OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
+const DEFAULT_ANTHROPIC_BASE_URL: &str = "https://api.anthropic.com/v1";
 const ORGII_CURRENT_MODEL: &str = "orgii-current-model";
 const MAX_PROXY_BODY_BYTES: usize = 64 * 1024 * 1024;
 
@@ -36,6 +38,12 @@ pub struct CliManagedProxyStatus {
     pub message: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy)]
+enum ProxyProtocol {
+    OpenAi,
+    Anthropic,
+}
+
 #[derive(Debug, Clone)]
 struct ProxyContext {
     key_id: String,
@@ -43,6 +51,7 @@ struct ProxyContext {
     model: String,
     upstream_base_url: String,
     api_key: String,
+    protocol: ProxyProtocol,
 }
 
 pub fn start_cli_managed_proxy_thread() {
@@ -70,7 +79,8 @@ async fn run_proxy_server() -> Result<(), String> {
     let addr = std::net::SocketAddr::from(([127, 0, 0, 1], DEFAULT_PROXY_PORT));
     let app = Router::new()
         .route("/health", get(health_handler))
-        .route("/v1/{*path}", any(proxy_v1_handler));
+        .route("/v1/{*path}", any(proxy_v1_handler))
+        .route("/claude/{*path}", any(proxy_claude_handler));
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await
@@ -94,7 +104,19 @@ async fn health_handler() -> impl IntoResponse {
 }
 
 async fn proxy_v1_handler(Path(path): Path<String>, request: Request<Body>) -> Response<Body> {
-    let context = match resolve_proxy_context(MANAGED_CODEX_AGENT) {
+    proxy_agent_handler(MANAGED_CODEX_AGENT, path, request).await
+}
+
+async fn proxy_claude_handler(Path(path): Path<String>, request: Request<Body>) -> Response<Body> {
+    proxy_agent_handler(MANAGED_CLAUDE_CODE_AGENT, path, request).await
+}
+
+async fn proxy_agent_handler(
+    agent_name: &str,
+    path: String,
+    request: Request<Body>,
+) -> Response<Body> {
+    let context = match resolve_proxy_context(agent_name) {
         Ok(context) => context,
         Err(err) => {
             return json_error(StatusCode::PRECONDITION_FAILED, err);
@@ -142,7 +164,10 @@ async fn forward_request(
         .timeout(Duration::from_secs(600))
         .build()
         .unwrap_or_else(|_| reqwest::Client::new());
-    let url = build_upstream_url(&context.upstream_base_url, path);
+    let url = match context.protocol {
+        ProxyProtocol::OpenAi => build_upstream_url(&context.upstream_base_url, path),
+        ProxyProtocol::Anthropic => build_anthropic_upstream_url(&context.upstream_base_url, path),
+    };
 
     let req_method =
         reqwest::Method::from_bytes(method.as_str().as_bytes()).unwrap_or(reqwest::Method::POST);
@@ -154,7 +179,12 @@ async fn forward_request(
         }
     }
 
-    builder = apply_auth_header(builder, &context.provider, &context.api_key);
+    builder = apply_auth_header(
+        builder,
+        &context.protocol,
+        &context.provider,
+        &context.api_key,
+    );
     if !incoming_headers.contains_key(CONTENT_TYPE) {
         builder = builder.header(CONTENT_TYPE.as_str(), "application/json");
     }
@@ -236,6 +266,17 @@ fn build_upstream_url(base_url: &str, path: &str) -> String {
     }
 }
 
+fn build_anthropic_upstream_url(base_url: &str, path: &str) -> String {
+    let base = base_url.trim_end_matches('/');
+    let path = path.trim_start_matches('/');
+    let path = if base.ends_with("/v1") {
+        path.strip_prefix("v1/").unwrap_or(path)
+    } else {
+        path
+    };
+    build_upstream_url(base, path)
+}
+
 fn should_forward_header(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
     !matches!(
@@ -272,13 +313,19 @@ fn should_forward_response_header(name: &str) -> bool {
 
 fn apply_auth_header(
     builder: reqwest::RequestBuilder,
+    protocol: &ProxyProtocol,
     provider: &str,
     api_key: &str,
 ) -> reqwest::RequestBuilder {
-    if provider == "azure_openai_api" {
-        builder.header("api-key", api_key)
-    } else {
-        builder.header("Authorization", format!("Bearer {api_key}"))
+    match protocol {
+        ProxyProtocol::OpenAi if provider == "azure_openai_api" => {
+            builder.header("api-key", api_key)
+        }
+        ProxyProtocol::OpenAi => builder.header("Authorization", format!("Bearer {api_key}")),
+        ProxyProtocol::Anthropic if provider == "azure_anthropic_api" => {
+            builder.header("api-key", api_key)
+        }
+        ProxyProtocol::Anthropic => builder.header("x-api-key", api_key),
     }
 }
 
@@ -293,18 +340,48 @@ fn responses_compatibility_note(provider: &str) -> Option<String> {
     }
 }
 
+fn proxy_compatibility_note(context: &ProxyContext) -> Option<String> {
+    match context.protocol {
+        ProxyProtocol::OpenAi => responses_compatibility_note(&context.provider),
+        ProxyProtocol::Anthropic => None,
+    }
+}
+
 fn resolve_proxy_context(agent_name: &str) -> Result<ProxyContext, String> {
-    if agent_name != MANAGED_CODEX_AGENT {
-        return Err("CLI managed proxy only supports Codex in this build".to_string());
+    let protocol = match agent_name {
+        MANAGED_CODEX_AGENT => ProxyProtocol::OpenAi,
+        MANAGED_CLAUDE_CODE_AGENT => ProxyProtocol::Anthropic,
+        _ => {
+            return Err(
+                "CLI managed proxy only supports Codex and Claude Code in this build".to_string(),
+            )
+        }
+    };
+
+    let protocol_name = match protocol {
+        ProxyProtocol::OpenAi => "openai",
+        ProxyProtocol::Anthropic => "anthropic",
+    };
+
+    let agent_display = match agent_name {
+        MANAGED_CODEX_AGENT => "Codex",
+        MANAGED_CLAUDE_CODE_AGENT => "Claude Code",
+        _ => agent_name,
+    };
+
+    if agent_name != MANAGED_CODEX_AGENT && agent_name != MANAGED_CLAUDE_CODE_AGENT {
+        return Err(
+            "CLI managed proxy only supports Codex and Claude Code in this build".to_string(),
+        );
     }
 
     let selection = agent_cli::managed_config::managed_selection_for_agent(agent_name)?
-        .ok_or_else(|| "Codex is not in ORGII Managed config mode".to_string())?;
+        .ok_or_else(|| format!("{agent_display} is not in ORGII Managed config mode"))?;
     let key_id = selection
         .selected_key_id
         .clone()
         .filter(|value| !value.trim().is_empty())
-        .ok_or_else(|| "No KeyVault key selected for Codex managed config".to_string())?;
+        .ok_or_else(|| format!("No KeyVault key selected for {agent_display} managed config"))?;
 
     let key = KEY_SERVICE
         .get_key_by_id(&key_id)
@@ -320,10 +397,10 @@ fn resolve_proxy_context(agent_name: &str) -> Result<ProxyContext, String> {
     if !provider_config
         .supported_protocols
         .iter()
-        .any(|protocol| protocol == "openai")
+        .any(|protocol| protocol == protocol_name)
     {
         return Err(format!(
-            "Provider {provider} is not OpenAI-compatible for Codex managed proxy"
+            "Provider {provider} is not {protocol_name}-compatible for {agent_display} managed proxy"
         ));
     }
 
@@ -333,7 +410,7 @@ fn resolve_proxy_context(agent_name: &str) -> Result<ProxyContext, String> {
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .ok_or_else(|| {
-            "Selected key has no API key material. Codex OAuth/subscription proxying is not supported yet."
+            "Selected key has no API key material. OAuth/subscription proxying is not supported yet."
                 .to_string()
         })?
         .to_string();
@@ -342,10 +419,19 @@ fn resolve_proxy_context(agent_name: &str) -> Result<ProxyContext, String> {
         .base_url
         .clone()
         .filter(|value| !value.trim().is_empty())
-        .or(provider_config.default_base_url)
+        .or_else(|| match protocol {
+            ProxyProtocol::OpenAi => provider_config.default_base_url.clone(),
+            ProxyProtocol::Anthropic => provider_config
+                .default_anthropic_base_url()
+                .or(provider_config.default_base_url.clone()),
+        })
         .or_else(|| {
-            if provider == MANAGED_CODEX_AGENT {
+            if matches!(protocol, ProxyProtocol::OpenAi) && provider == MANAGED_CODEX_AGENT {
                 Some(DEFAULT_CODEX_OPENAI_BASE_URL.to_string())
+            } else if matches!(protocol, ProxyProtocol::Anthropic)
+                && provider == MANAGED_CLAUDE_CODE_AGENT
+            {
+                Some(DEFAULT_ANTHROPIC_BASE_URL.to_string())
             } else {
                 None
             }
@@ -366,6 +452,7 @@ fn resolve_proxy_context(agent_name: &str) -> Result<ProxyContext, String> {
         model,
         upstream_base_url,
         api_key,
+        protocol,
     })
 }
 
@@ -374,7 +461,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
     let running = PROXY_STARTED.load(Ordering::SeqCst);
     let url = DEFAULT_PROXY_URL.to_string();
 
-    if agent_name != MANAGED_CODEX_AGENT {
+    if agent_name != MANAGED_CODEX_AGENT && agent_name != MANAGED_CLAUDE_CODE_AGENT {
         return Ok(CliManagedProxyStatus {
             agent_name,
             supported: false,
@@ -385,14 +472,16 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
             selected_provider: None,
             selected_model: None,
             upstream_base_url: None,
-            message: Some("CLI managed proxy only supports Codex in this build".to_string()),
+            message: Some(
+                "CLI managed proxy only supports Codex and Claude Code in this build".to_string(),
+            ),
         });
     }
 
     match resolve_proxy_context(&agent_name) {
         Ok(context) => {
             let message = if running {
-                responses_compatibility_note(&context.provider)
+                proxy_compatibility_note(&context)
             } else {
                 Some("Local proxy has not started yet".to_string())
             };
@@ -490,6 +579,18 @@ mod tests {
         assert_eq!(
             build_upstream_url("https://api.openai.com/v1/", "/responses"),
             "https://api.openai.com/v1/responses"
+        );
+    }
+
+    #[test]
+    fn builds_anthropic_upstream_url_without_double_v1() {
+        assert_eq!(
+            build_anthropic_upstream_url("https://api.anthropic.com/v1", "v1/messages"),
+            "https://api.anthropic.com/v1/messages"
+        );
+        assert_eq!(
+            build_anthropic_upstream_url("https://zenmux.ai/api/anthropic", "v1/messages"),
+            "https://zenmux.ai/api/anthropic/v1/messages"
         );
     }
 }

@@ -32,6 +32,10 @@ type PendingAction = "apply" | "forceApply" | "restore" | "forceRestore";
 
 const DEFAULT_PROXY_URL = "http://127.0.0.1:17888";
 
+function isManagedConfigSupportedAgent(agentName: string): boolean {
+  return agentName === CLI_AGENT.CODEX || agentName === CLI_AGENT.CLAUDE_CODE;
+}
+
 function accountLabel(account: KeyVaultAccount): string {
   const name = account.name || account.apiKeyPreview || account.authMethod;
   return `${name} - ${formatAgentType(account.modelType)}`;
@@ -115,7 +119,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
   }, [modelIds, selectedModel]);
 
   const loadProxyStatus = useCallback(async () => {
-    if (agent.name !== CLI_AGENT.CODEX) {
+    if (!isManagedConfigSupportedAgent(agent.name)) {
       setProxyStatus(null);
       return;
     }
@@ -138,7 +142,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
   }, [agent.name]);
 
   const loadStatus = useCallback(async () => {
-    if (agent.name !== CLI_AGENT.CODEX) {
+    if (!isManagedConfigSupportedAgent(agent.name)) {
       setLoading(false);
       return;
     }
@@ -300,7 +304,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
     [proxyCredentials]
   );
 
-  if (agent.name !== CLI_AGENT.CODEX) return null;
+  if (!isManagedConfigSupportedAgent(agent.name)) return null;
 
   if (loading) {
     return (

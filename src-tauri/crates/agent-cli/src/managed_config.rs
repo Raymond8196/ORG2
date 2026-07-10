@@ -1,9 +1,9 @@
 //! Managed CLI config profiles.
 //!
 //! This module owns the Default <-> ORGII Managed switch for CLI config files.
-//! The first implementation supports Codex because it has a well-known TOML
-//! provider section and is the current path with direct `~/.codex/config.toml`
-//! writes in the runner.
+//! The first managed agents are Codex and Claude Code because both expose
+//! stable user-level config files and can route model traffic through a local
+//! proxy without MITM interception.
 
 use app_paths as paths;
 use serde::{Deserialize, Serialize};
@@ -14,10 +14,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 const CODEX_AGENT: &str = "codex";
 const CODEX_CONFIG_FILE_ID: &str = "config";
 const CODEX_CONFIG_FILE_NAME: &str = "config.toml";
+const CLAUDE_CODE_AGENT: &str = "claude_code";
+const CLAUDE_CODE_CONFIG_FILE_ID: &str = "settings";
+const CLAUDE_CODE_CONFIG_FILE_NAME: &str = "settings.json";
 const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const ORGII_PROVIDER_ID: &str = "orgii";
 const ORGII_PROVIDER_NAME: &str = "ORGII";
 const DEFAULT_ORGII_MODEL: &str = "orgii-current-model";
+const ORGII_PROXY_TOKEN: &str = "orgii-managed-proxy";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -98,6 +102,12 @@ pub struct CliManagedConfigSelection {
 
 fn codex_config_path() -> PathBuf {
     paths::home_dir().join(".codex").join(CODEX_CONFIG_FILE_NAME)
+}
+
+fn claude_code_config_path() -> PathBuf {
+    paths::home_dir()
+        .join(".claude")
+        .join(CLAUDE_CODE_CONFIG_FILE_NAME)
 }
 
 fn default_backup_path(agent_name: &str, file_name: &str) -> PathBuf {
@@ -186,14 +196,14 @@ fn write_manifest(manifest: &CliConfigProfileManifest) -> Result<(), String> {
     Ok(())
 }
 
-fn codex_manifest_target(target_path: &Path) -> CliConfigTargetFileManifest {
+fn manifest_target(agent_name: &str, file_id: &str, file_name: &str, target_path: &Path) -> CliConfigTargetFileManifest {
     CliConfigTargetFileManifest {
-        id: CODEX_CONFIG_FILE_ID.to_string(),
+        id: file_id.to_string(),
         target_path: target_path.to_string_lossy().to_string(),
-        default_backup_path: default_backup_path(CODEX_AGENT, CODEX_CONFIG_FILE_NAME)
+        default_backup_path: default_backup_path(agent_name, file_name)
             .to_string_lossy()
             .to_string(),
-        managed_profile_path: managed_profile_path(CODEX_AGENT, CODEX_CONFIG_FILE_NAME)
+        managed_profile_path: managed_profile_path(agent_name, file_name)
             .to_string_lossy()
             .to_string(),
         original_hash: None,
@@ -203,7 +213,33 @@ fn codex_manifest_target(target_path: &Path) -> CliConfigTargetFileManifest {
 }
 
 fn supported_agent(agent_name: &str) -> bool {
-    agent_name == CODEX_AGENT
+    matches!(agent_name, CODEX_AGENT | CLAUDE_CODE_AGENT)
+}
+
+fn agent_target_path(agent_name: &str) -> Option<PathBuf> {
+    match agent_name {
+        CODEX_AGENT => Some(codex_config_path()),
+        CLAUDE_CODE_AGENT => Some(claude_code_config_path()),
+        _ => None,
+    }
+}
+
+fn agent_manifest_target(agent_name: &str, target_path: &Path) -> Option<CliConfigTargetFileManifest> {
+    match agent_name {
+        CODEX_AGENT => Some(manifest_target(
+            CODEX_AGENT,
+            CODEX_CONFIG_FILE_ID,
+            CODEX_CONFIG_FILE_NAME,
+            target_path,
+        )),
+        CLAUDE_CODE_AGENT => Some(manifest_target(
+            CLAUDE_CODE_AGENT,
+            CLAUDE_CODE_CONFIG_FILE_ID,
+            CLAUDE_CODE_CONFIG_FILE_NAME,
+            target_path,
+        )),
+        _ => None,
+    }
 }
 
 fn status_for(agent_name: &str) -> Result<CliConfigManagedStatus, String> {
@@ -223,9 +259,11 @@ fn status_for(agent_name: &str) -> Result<CliConfigManagedStatus, String> {
         });
     }
 
-    let target_path = codex_config_path();
+    let target_path = agent_target_path(agent_name)
+        .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let manifest = read_manifest(agent_name)?;
-    let fallback_target = codex_manifest_target(&target_path);
+    let fallback_target = agent_manifest_target(agent_name, &target_path)
+        .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let (mode, selected_key_id, selected_provider, selected_model, proxy_url, targets) =
         if let Some(manifest) = manifest {
             (
@@ -326,6 +364,17 @@ fn codex_proxy_base_url(proxy_url: &str) -> String {
     }
 }
 
+fn claude_code_proxy_base_url(proxy_url: &str) -> String {
+    let trimmed = proxy_url.trim().trim_end_matches('/');
+    if trimmed.ends_with("/claude/v1") {
+        trimmed.to_string()
+    } else if trimmed.ends_with("/claude") {
+        format!("{trimmed}/v1")
+    } else {
+        format!("{trimmed}/claude/v1")
+    }
+}
+
 fn generate_codex_managed_config(
     existing_content: &str,
     selected_model: Option<&str>,
@@ -384,6 +433,101 @@ fn generate_codex_managed_config(
     toml::to_string_pretty(&config).map_err(|err| format!("TOML serialize error: {err}"))
 }
 
+fn selected_model_or_default(selected_model: Option<&str>) -> &str {
+    selected_model
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or(DEFAULT_ORGII_MODEL)
+}
+
+fn generate_claude_code_managed_config(
+    existing_content: &str,
+    selected_model: Option<&str>,
+    proxy_url: &str,
+) -> Result<String, String> {
+    let mut config: serde_json::Value = if existing_content.trim().is_empty() {
+        serde_json::Value::Object(serde_json::Map::new())
+    } else {
+        serde_json::from_str(existing_content)
+            .map_err(|err| format!("Invalid Claude Code JSON: {err}"))?
+    };
+
+    let Some(root) = config.as_object_mut() else {
+        return Err("Claude Code settings must be a JSON object".to_string());
+    };
+
+    let model = selected_model_or_default(selected_model);
+    root.insert(
+        "model".to_string(),
+        serde_json::Value::String(model.to_string()),
+    );
+
+    if !matches!(root.get("env"), Some(serde_json::Value::Object(_))) {
+        root.insert(
+            "env".to_string(),
+            serde_json::Value::Object(serde_json::Map::new()),
+        );
+    }
+
+    let Some(serde_json::Value::Object(env)) = root.get_mut("env") else {
+        return Err("Failed to build Claude Code env object".to_string());
+    };
+
+    env.insert(
+        "ANTHROPIC_AUTH_TOKEN".to_string(),
+        serde_json::Value::String(ORGII_PROXY_TOKEN.to_string()),
+    );
+    env.insert(
+        "ANTHROPIC_BASE_URL".to_string(),
+        serde_json::Value::String(claude_code_proxy_base_url(proxy_url)),
+    );
+    env.insert(
+        "ANTHROPIC_MODEL".to_string(),
+        serde_json::Value::String(model.to_string()),
+    );
+    env.insert(
+        "ANTHROPIC_DEFAULT_SONNET_MODEL".to_string(),
+        serde_json::Value::String(model.to_string()),
+    );
+    env.insert(
+        "ANTHROPIC_DEFAULT_OPUS_MODEL".to_string(),
+        serde_json::Value::String(model.to_string()),
+    );
+    env.insert(
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL".to_string(),
+        serde_json::Value::String(model.to_string()),
+    );
+    env.insert(
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS".to_string(),
+        serde_json::Value::String("1".to_string()),
+    );
+    env.insert(
+        "DISABLE_INTERLEAVED_THINKING".to_string(),
+        serde_json::Value::String("1".to_string()),
+    );
+
+    serde_json::to_string_pretty(&config)
+        .map(|value| format!("{value}\n"))
+        .map_err(|err| format!("JSON serialize error: {err}"))
+}
+
+fn generate_managed_config(
+    agent_name: &str,
+    existing_content: &str,
+    selected_model: Option<&str>,
+    proxy_url: &str,
+) -> Result<String, String> {
+    match agent_name {
+        CODEX_AGENT => generate_codex_managed_config(existing_content, selected_model, proxy_url),
+        CLAUDE_CODE_AGENT => {
+            generate_claude_code_managed_config(existing_content, selected_model, proxy_url)
+        }
+        _ => Err(format!(
+            "ORGII managed config is not available for {agent_name} in this build"
+        )),
+    }
+}
+
 fn ensure_default_backup(
     mut target: CliConfigTargetFileManifest,
     refresh_existing: bool,
@@ -417,15 +561,16 @@ fn ensure_default_backup(
     Ok(target)
 }
 
-fn enable_codex_orgii_managed(
+fn enable_agent_orgii_managed(
+    agent_name: &str,
     key_id: Option<String>,
     provider: Option<String>,
     model: Option<String>,
     proxy_url: Option<String>,
     force: bool,
 ) -> Result<CliConfigManagedStatus, String> {
-    let agent_name = CODEX_AGENT;
-    let target_path = codex_config_path();
+    let target_path = agent_target_path(agent_name)
+        .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let existing_manifest = read_manifest(agent_name)?;
     let current_content = if target_path.exists() {
         std::fs::read_to_string(&target_path)
@@ -439,7 +584,7 @@ fn enable_codex_orgii_managed(
         .filter(|value| !value.is_empty())
         .unwrap_or_else(|| DEFAULT_PROXY_URL.to_string());
     let managed_content =
-        generate_codex_managed_config(&current_content, model.as_deref(), &proxy_url)?;
+        generate_managed_config(agent_name, &current_content, model.as_deref(), &proxy_url)?;
     let managed_hash = sha256_bytes(managed_content.as_bytes());
 
     if let Some(existing_manifest) = &existing_manifest {
@@ -462,10 +607,12 @@ fn enable_codex_orgii_managed(
     let refresh_default_backup = existing_manifest
         .as_ref()
         .is_none_or(|manifest| manifest.mode == CliConfigMode::Default);
+    let fallback_target = agent_manifest_target(agent_name, &target_path)
+        .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let mut manifest = existing_manifest.unwrap_or_else(|| CliConfigProfileManifest {
         agent: agent_name.to_string(),
         mode: CliConfigMode::Default,
-        target_files: vec![codex_manifest_target(&target_path)],
+        target_files: vec![fallback_target.clone()],
         selected_key_id: None,
         selected_provider: None,
         selected_model: None,
@@ -478,7 +625,7 @@ fn enable_codex_orgii_managed(
         .target_files
         .first()
         .cloned()
-        .unwrap_or_else(|| codex_manifest_target(&target_path));
+        .unwrap_or(fallback_target);
     let mut target = ensure_default_backup(target, refresh_default_backup)?;
 
     let managed_path = PathBuf::from(&target.managed_profile_path);
@@ -500,10 +647,9 @@ fn enable_codex_orgii_managed(
     status_for(agent_name)
 }
 
-fn restore_codex_default(force: bool) -> Result<CliConfigManagedStatus, String> {
-    let agent_name = CODEX_AGENT;
+fn restore_agent_default(agent_name: &str, force: bool) -> Result<CliConfigManagedStatus, String> {
     let mut manifest = read_manifest(agent_name)?
-        .ok_or_else(|| "No Default backup exists for Codex yet".to_string())?;
+        .ok_or_else(|| format!("No Default backup exists for {agent_name} yet"))?;
 
     for target in &manifest.target_files {
         if manifest.mode == CliConfigMode::OrgiiManaged && !force {
@@ -544,14 +690,14 @@ fn restore_codex_default(force: bool) -> Result<CliConfigManagedStatus, String> 
     status_for(agent_name)
 }
 
-fn set_codex_selection(
+fn set_agent_selection(
+    agent_name: &str,
     key_id: Option<String>,
     provider: Option<String>,
     model: Option<String>,
 ) -> Result<CliConfigManagedStatus, String> {
-    let agent_name = CODEX_AGENT;
     let mut manifest =
-        read_manifest(agent_name)?.ok_or_else(|| "Codex is not managed by ORGII yet".to_string())?;
+        read_manifest(agent_name)?.ok_or_else(|| format!("{agent_name} is not managed by ORGII yet"))?;
     manifest.selected_key_id = key_id;
     manifest.selected_provider = provider;
     manifest.selected_model = model;
@@ -577,10 +723,12 @@ pub async fn cli_config_enable_orgii_managed(
     force: bool,
 ) -> Result<CliConfigManagedStatus, String> {
     tokio::task::spawn_blocking(move || {
-        if agent_name != CODEX_AGENT {
-            return Err("ORGII managed config is only available for Codex in this build".to_string());
+        if !supported_agent(&agent_name) {
+            return Err(format!(
+                "ORGII managed config is not available for {agent_name} in this build"
+            ));
         }
-        enable_codex_orgii_managed(key_id, provider, model, proxy_url, force)
+        enable_agent_orgii_managed(&agent_name, key_id, provider, model, proxy_url, force)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -594,10 +742,12 @@ pub async fn cli_config_set_selection(
     model: Option<String>,
 ) -> Result<CliConfigManagedStatus, String> {
     tokio::task::spawn_blocking(move || {
-        if agent_name != CODEX_AGENT {
-            return Err("ORGII managed config is only available for Codex in this build".to_string());
+        if !supported_agent(&agent_name) {
+            return Err(format!(
+                "ORGII managed config is not available for {agent_name} in this build"
+            ));
         }
-        set_codex_selection(key_id, provider, model)
+        set_agent_selection(&agent_name, key_id, provider, model)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -609,10 +759,12 @@ pub async fn cli_config_restore_default(
     force: bool,
 ) -> Result<CliConfigManagedStatus, String> {
     tokio::task::spawn_blocking(move || {
-        if agent_name != CODEX_AGENT {
-            return Err("ORGII managed config is only available for Codex in this build".to_string());
+        if !supported_agent(&agent_name) {
+            return Err(format!(
+                "ORGII managed config is not available for {agent_name} in this build"
+            ));
         }
-        restore_codex_default(force)
+        restore_agent_default(&agent_name, force)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -660,6 +812,60 @@ shell_tool = true
         assert_eq!(
             parsed["model_providers"]["orgii"]["base_url"].as_str(),
             Some("http://localhost:9999/v1")
+        );
+    }
+
+    #[test]
+    fn claude_code_managed_config_preserves_existing_settings() {
+        let raw = r#"
+{
+  "permissions": {
+    "allow": ["Bash(git status:*)"]
+  },
+  "env": {
+    "CUSTOM_FLAG": "keep"
+  }
+}
+"#;
+
+        let generated =
+            generate_claude_code_managed_config(raw, Some("claude-sonnet-4-5"), DEFAULT_PROXY_URL)
+                .unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&generated).unwrap();
+
+        assert_eq!(parsed["model"].as_str(), Some("claude-sonnet-4-5"));
+        assert_eq!(
+            parsed["permissions"]["allow"][0].as_str(),
+            Some("Bash(git status:*)")
+        );
+        assert_eq!(parsed["env"]["CUSTOM_FLAG"].as_str(), Some("keep"));
+        assert_eq!(
+            parsed["env"]["ANTHROPIC_BASE_URL"].as_str(),
+            Some("http://127.0.0.1:17888/claude/v1")
+        );
+        assert_eq!(
+            parsed["env"]["ANTHROPIC_AUTH_TOKEN"].as_str(),
+            Some(ORGII_PROXY_TOKEN)
+        );
+        assert_eq!(
+            parsed["env"]["ANTHROPIC_MODEL"].as_str(),
+            Some("claude-sonnet-4-5")
+        );
+    }
+
+    #[test]
+    fn claude_code_proxy_base_url_is_idempotent() {
+        assert_eq!(
+            claude_code_proxy_base_url("http://127.0.0.1:17888"),
+            "http://127.0.0.1:17888/claude/v1"
+        );
+        assert_eq!(
+            claude_code_proxy_base_url("http://127.0.0.1:17888/claude"),
+            "http://127.0.0.1:17888/claude/v1"
+        );
+        assert_eq!(
+            claude_code_proxy_base_url("http://127.0.0.1:17888/claude/v1"),
+            "http://127.0.0.1:17888/claude/v1"
         );
     }
 }
