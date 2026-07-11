@@ -363,7 +363,7 @@ function renderLeadingIcon({
         aria-label={action.label}
         title={action.label}
         className={`pointer-events-none absolute left-1/2 top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded opacity-0 transition-[background-color,color,opacity] duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:pointer-events-auto focus:opacity-100 focus:outline-none group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 ${
-          action.active ? "text-primary-6" : "text-text-3"
+          action.active ? "text-text-1" : "text-text-3"
         }`}
         onClick={(event) => {
           event.preventDefault();

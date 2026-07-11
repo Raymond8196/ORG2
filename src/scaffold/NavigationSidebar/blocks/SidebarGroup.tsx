@@ -107,7 +107,7 @@ function SidebarGroupInner<T extends SidebarItemData = SidebarItemData>({
                   e.stopPropagation();
                   group.onAddNew?.();
                 }}
-                className="flex h-5 w-5 items-center justify-center rounded text-text-3 opacity-0 transition-all hover:bg-sidebar-selected hover:text-primary-6 group-hover:opacity-100"
+                className="flex h-5 w-5 items-center justify-center rounded text-text-3 opacity-0 transition-all hover:bg-sidebar-selected hover:text-text-1 group-hover:opacity-100"
                 title={group.addButtonLabel || t("sidebar.actions.addNew")}
               >
                 <Plus size={12} strokeWidth={2} />
