@@ -4,6 +4,7 @@
  * Multi-tab state for the chat panel. Each tab is one of:
  *   "session"  — AI agent session (chat history + session creator)
  *   "terminal" — Live PTY terminal embedded in the chat pane
+ *   "launchpad" — Workspace dashboard surface
  *
  * Terminal tabs share the global terminal atom store but use session IDs
  * prefixed with "chatpanel-" so they are invisible to the Workstation
@@ -28,12 +29,16 @@ import {
   jumpToSessionAtom,
   workstationActiveSessionIdAtom,
 } from "@src/store/session/viewAtom";
+import {
+  CHAT_PANEL_SURFACE_KIND,
+  chatPanelNavigateAtom,
+} from "@src/store/ui/chatPanelAtom";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
 // ────────────────────────────────────────────────────────────────────────────
 
-export type ChatPanelTabType = "session" | "terminal";
+export type ChatPanelTabType = "session" | "terminal" | "launchpad";
 
 export interface ChatPanelTab {
   id: string;
@@ -217,6 +222,18 @@ export const activateChatPanelTabAtom = atom(
       set(chatPanelTabsAtom, { ...state, activeTabId: tabId });
     }
 
+    if (tab.type === "launchpad") {
+      set(chatPanelNavigateAtom, {
+        kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD,
+      });
+      set(jumpToSessionAtom, null);
+      return;
+    }
+
+    if (tab.type === "session") {
+      set(chatPanelNavigateAtom, { kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+    }
+
     const sessionId = tab.type === "session" ? tab.sessionId : null;
     if (
       sessionId &&
@@ -256,6 +273,32 @@ export const addChatPanelSessionTabAtom = atom(null, (_get, set) => {
   return id;
 });
 addChatPanelSessionTabAtom.debugLabel = "addChatPanelSessionTab";
+
+/** Add a standalone Launchpad tab and activate its dashboard surface. */
+export const addChatPanelLaunchpadTabAtom = atom(
+  null,
+  (_get, set, title: string = "Launchpad") => {
+    const id = `launchpad-${crypto.randomUUID()}`;
+    const now = new Date().toISOString();
+    set(chatPanelTabsAtom, (prev) => ({
+      tabs: [
+        ...prev.tabs,
+        {
+          id,
+          type: "launchpad" as const,
+          title,
+          createdAt: now,
+          updatedAt: now,
+          closable: true,
+        },
+      ],
+      activeTabId: id,
+    }));
+    set(activateChatPanelTabAtom, id);
+    return id;
+  }
+);
+addChatPanelLaunchpadTabAtom.debugLabel = "addChatPanelLaunchpadTab";
 
 interface OpenSessionInNewChatTabOptions {
   sessionId: string;
