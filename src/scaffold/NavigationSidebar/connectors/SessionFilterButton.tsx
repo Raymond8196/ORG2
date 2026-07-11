@@ -133,8 +133,12 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
             <IconButton
               aria-label={t("sidebar.groupBy.title")}
               size="lg"
-              variant={isOpen ? "active" : "default"}
-              className="!rounded-full"
+              variant="default"
+              className={`!rounded-full ${
+                isOpen
+                  ? "!bg-sidebar-selected !text-text-1 hover:!bg-sidebar-selected"
+                  : "!text-text-2 hover:!bg-sidebar-selected hover:!text-text-1"
+              }`}
               onClick={toggle}
               onMouseEnter={(event) =>
                 triggerIconAnimation(event.currentTarget)
@@ -145,7 +149,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                 iconName="list-filter"
                 size={16}
                 strokeWidth={2}
-                className={isOpen ? "text-primary-6" : "text-text-2"}
+                className={isOpen ? "text-text-1" : "text-text-2"}
               />
             </IconButton>
           </div>

@@ -129,7 +129,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
 
   const openSettingsShortcut = getShortcutKeys("open_settings");
   const guiControlShortcut = getShortcutKeys(ADE_MANAGER_TOGGLE_SHORTCUT_ID);
-  const settingsButtonClassName = isOpen ? "text-primary-6" : "text-text-2";
+  const settingsButtonClassName = isOpen ? "text-text-1" : "text-text-2";
 
   useEffect(() => {
     if (!ramPanelOpen) return;
@@ -251,7 +251,9 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
             type="button"
             aria-label={t("sidebar.bottomBar.settings")}
             className={`flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none p-0 transition-colors duration-150 ${
-              isOpen ? "bg-bg-1" : "bg-transparent hover:bg-sidebar-selected"
+              isOpen
+                ? "bg-sidebar-selected"
+                : "bg-transparent hover:bg-sidebar-selected"
             }`}
             onClick={handleToggle}
             onMouseEnter={(event) => triggerIconAnimation(event.currentTarget)}

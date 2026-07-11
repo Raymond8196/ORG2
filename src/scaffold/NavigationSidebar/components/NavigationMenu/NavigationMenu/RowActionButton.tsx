@@ -24,7 +24,7 @@ export function NavigationMenuRowActionButton({
       aria-label={label}
       title={label}
       className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded transition-colors duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:outline-none ${
-        active ? "text-primary-6" : "text-text-3"
+        active ? "text-text-1" : "text-text-3"
       }`}
       onClick={(event) => {
         event.preventDefault();
