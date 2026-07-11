@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   ChevronLeft,
   ChevronRight,
+  Download,
   FolderGit2,
   KeyRound,
   ListTodo,
@@ -19,6 +20,7 @@ import { createLogger } from "@src/hooks/logger";
 import HeatmapGrid, {
   type HeatmapGridCell,
 } from "@src/modules/MainApp/DevRecord/components/HeatmapGrid";
+import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 
 import {
@@ -42,6 +44,7 @@ interface ChatPanelStartPageAction {
   title: string;
   icon: React.ReactNode;
   onClick: () => void;
+  tone?: "primary";
 }
 
 interface StartPageHint {
@@ -55,6 +58,7 @@ interface ChatPanelStartPageProps {
   className?: string;
   onAddApiKey: () => void;
   onExploreRepos: () => void;
+  onInstallLatestUpdate: () => void;
   onManageIssues: () => void;
   onNewSession: () => void;
   onNewWorkItem: () => void;
@@ -233,6 +237,9 @@ function StartPageActionCard({
 }: {
   action: ChatPanelStartPageAction;
 }): React.ReactNode {
+  const foregroundClass =
+    action.tone === "primary" ? "text-primary-6" : "text-text-1";
+
   return (
     <button
       type="button"
@@ -240,10 +247,14 @@ function StartPageActionCard({
       onClick={action.onClick}
       data-testid={`chat-panel-start-page-${action.id}`}
     >
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-1 transition-colors group-hover:bg-fill-3">
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 transition-colors group-hover:bg-fill-3 ${foregroundClass}`}
+      >
         {action.icon}
       </span>
-      <span className="block min-w-0 flex-1 truncate text-[13px] font-semibold text-text-1">
+      <span
+        className={`block min-w-0 flex-1 truncate text-[13px] font-semibold ${foregroundClass}`}
+      >
         {action.title}
       </span>
       <ChevronRight
@@ -332,6 +343,7 @@ export function ChatPanelStartPage({
   className,
   onAddApiKey,
   onExploreRepos,
+  onInstallLatestUpdate,
   onManageIssues,
   onNewSession,
   onNewWorkItem,
@@ -341,6 +353,7 @@ export function ChatPanelStartPage({
   const [activeTab, setActiveTab] = useState<StartPageTabKey>(
     START_PAGE_TAB.WORK
   );
+  const availableUpdate = useAvailableAppUpdate();
   const isChatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
   const tabs = useMemo(
     () => [
@@ -380,6 +393,17 @@ export function ChatPanelStartPage({
       icon: <KeyRound size={13} strokeWidth={1.8} />,
       onClick: onAddApiKey,
     },
+    ...(availableUpdate?.available
+      ? [
+          {
+            id: "install-latest-update",
+            title: t("chat.startPage.installLatestUpdate.title"),
+            icon: <Download size={13} strokeWidth={1.8} />,
+            onClick: onInstallLatestUpdate,
+            tone: "primary" as const,
+          },
+        ]
+      : []),
   ];
   const exploreActions: ChatPanelStartPageAction[] = [
     {

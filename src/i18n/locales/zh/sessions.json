@@ -742,6 +742,9 @@
       "addApiKey": {
         "title": "添加 API 密钥"
       },
+      "installLatestUpdate": {
+        "title": "安装最新更新"
+      },
       "agents": {
         "title": "Agents"
       },

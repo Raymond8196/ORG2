@@ -34,10 +34,6 @@ const isAppUpdateInstallingAtom = atom(false);
 let lastCheckStartedAt = 0;
 let pendingCheck: Promise<Update | null> | null = null;
 
-function canUseTauriUpdater(): boolean {
-  return typeof window !== "undefined" && "__TAURI__" in window;
-}
-
 function store() {
   return getInstrumentedStore();
 }
@@ -141,13 +137,6 @@ export async function checkForAppUpdates(
 ): Promise<Update | null> {
   const { notify = false, force = false } = options;
 
-  if (!canUseTauriUpdater()) {
-    if (notify) {
-      Message.info("Update checks are only available in the desktop app.");
-    }
-    return null;
-  }
-
   if (pendingCheck) return pendingCheck;
   if (shouldReuseRecentResult(force)) return getCachedUpdate();
 
@@ -213,11 +202,6 @@ function createProgressReporter(): (event: DownloadEvent) => void {
 }
 
 export async function installAvailableAppUpdate(): Promise<void> {
-  if (!canUseTauriUpdater()) {
-    Message.info("Updates can only be installed in the desktop app.");
-    return;
-  }
-
   const update = getCachedUpdate() ?? (await checkForUpdatesManually());
   if (!update || store().get(isAppUpdateInstallingAtom)) return;
 
@@ -265,8 +249,6 @@ export function useIsAppUpdateInstalling(): boolean {
 
 export const AppUpdater: React.FC = () => {
   useEffect(() => {
-    if (!canUseTauriUpdater()) return undefined;
-
     const startupTimer = window.setTimeout(() => {
       void checkForAppUpdates();
     }, STARTUP_CHECK_DELAY_MS);

@@ -717,6 +717,9 @@
       "addApiKey": {
         "title": "Ajouter une clé API"
       },
+      "installLatestUpdate": {
+        "title": "Installer la dernière mise à jour"
+      },
       "agents": {
         "title": "Agents"
       },
