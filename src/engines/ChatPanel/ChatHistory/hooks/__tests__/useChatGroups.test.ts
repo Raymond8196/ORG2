@@ -83,6 +83,20 @@ function assistantItem(text: string): OptimizedChatItem {
   );
 }
 
+function canonicalAgentMessageItem(text: string): OptimizedChatItem {
+  return item(
+    makeEvent({
+      functionName: "assistant",
+      uiCanonical: "agent_message",
+      actionType: "raw_event",
+      source: "assistant",
+      displayText: text,
+      displayVariant: "message",
+      result: { content: text },
+    })
+  );
+}
+
 /** Shape stamped by Rust build_session_error_event / FE makeErrorEvent. */
 function errorItem(message: string): OptimizedChatItem {
   return item(
@@ -112,6 +126,34 @@ function boundaryItem(summary: string): OptimizedChatItem {
   );
 }
 
+function unloadedTurnItem(
+  turnId: string,
+  bodyEventCount: number
+): OptimizedChatItem {
+  return item(
+    makeEvent({
+      id: `turn-placeholder-${turnId}`,
+      functionName: "turn_placeholder",
+      uiCanonical: "turn_placeholder",
+      actionType: "turn_placeholder",
+      displayText: "Turn is not loaded yet",
+      result: {
+        unloadedTurn: {
+          turnId,
+          bodyEventCount,
+          durationMs: 20_000,
+        },
+      },
+    })
+  );
+}
+
+function turnPreviewItem(text: string): OptimizedChatItem {
+  const preview = canonicalAgentMessageItem(text);
+  preview.event!.args = { turnPreviewOnly: true };
+  return preview;
+}
+
 function flatTexts(items: OptimizedChatItem[]): string[] {
   return items.map((entry) => entry.event?.displayText ?? "");
 }
@@ -137,6 +179,41 @@ describe("useChatGroups collapse — terminal error survival", () => {
       "run_shell",
       "current reply",
     ]);
+  });
+
+  it("keeps a canonical agent message outside a collapsed historical turn", () => {
+    const history = [
+      userItem("first turn"),
+      toolItem(),
+      canonicalAgentMessageItem("canonical final reply"),
+      userItem("current turn"),
+      assistantItem("current reply"),
+    ];
+
+    const result = useChatGroups(history);
+
+    expect(result.groupCounts).toEqual([1, 1]);
+    expect(flatTexts(result.flatItems)).toEqual([
+      "canonical final reply",
+      "current reply",
+    ]);
+  });
+
+  it("shows a final-reply preview while the historical turn body stays unloaded", () => {
+    const firstTurn = userItem("first turn");
+    const history = [
+      firstTurn,
+      turnPreviewItem("unloaded final reply"),
+      unloadedTurnItem(firstTurn.event!.id, 12),
+      userItem("current turn"),
+      assistantItem("current reply"),
+    ];
+
+    const result = useChatGroups(history);
+
+    expect(result.groupMeta[0].unloadedTurn?.turnId).toBe(firstTurn.event!.id);
+    expect(flatTexts(result.flatItems)).toContain("unloaded final reply");
+    expect(flatTexts(result.flatItems)).not.toContain("Turn is not loaded yet");
   });
 
   it("keeps the error card when a collapsed turn has no completed assistant reply", () => {
