@@ -151,6 +151,7 @@
     "layout": "Düzen",
     "sidebar": "Kenar çubuğu",
     "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "Kenar çubuğu kenar derinliği",
     "selectedItemTransparency": "Seçili öğe şeffaflığı",
     "spotlightPlacement": "Spotlight konumu",
     "spotlightPlacementDesc": "Spotlight komut paletinin nerede açılacağını seçin",

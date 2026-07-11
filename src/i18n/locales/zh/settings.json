@@ -151,6 +151,7 @@
     "layout": "布局",
     "sidebar": "侧边栏",
     "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "侧边栏边缘层次",
     "selectedItemTransparency": "选中项目透明度",
     "spotlightPlacement": "Spotlight 位置",
     "spotlightPlacementDesc": "选择 Spotlight 命令面板打开的位置",

@@ -122,6 +122,7 @@ body {
     transparent
   );
   --sidebar-backdrop: blur(8px) saturate(120%);
+  --sidebar-edge-shadow: none;
   --sidebar-shadow: none;
 
   /* Start Page */
