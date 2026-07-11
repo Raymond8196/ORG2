@@ -52,6 +52,7 @@ import type { SidebarBaseProps } from "./types";
 const log = createLogger("SidebarBase");
 
 const HOST_DESKTOP_KIND = resolveHostDesktop();
+const IS_MACOS_HOST = HOST_DESKTOP_KIND === HOST_DESKTOP.MACOS;
 const IS_WINDOWS_HOST = HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS;
 const SHOW_HOST_TITLE =
   HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS ||
@@ -97,6 +98,9 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     } = useSidebarState();
     const sidebarSelectedRowOpacity = useSettingValue(
       "layout.sidebarSelectedRowOpacity"
+    );
+    const sidebarEdgeDepthEnabled = useSettingValue(
+      "layout.sidebarEdgeDepthEnabled"
     );
     useEffect(() => {
       document.body.style.setProperty(
@@ -441,12 +445,11 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     );
 
     // Modern layout: the sidebar is flush with the rounded window edge
-    // (top-left + bottom-left curves match `--border-radius-window`). Both
-    // the floating drop shadow and the backdrop-filter blur produce a
-    // faint dark halo along that curve — the shadow smudges the boundary
-    // with the content panel, and `backdrop-filter` samples beyond the
-    // rounded clip on WebKit, leaving a visible "shade" tracing the
-    // corner. Drop both in compact so the corner is a clean fill.
+    // (top-left + bottom-left curves match `--border-radius-window`). Avoid
+    // a broad docked drop shadow because it traces the window corner. On
+    // macOS, use a narrow inset edge shadow instead: it creates the vertical
+    // Codex-style depth where the sidebar meets the content panel without
+    // bleeding outside the rounded clip.
     //
     // Floating / hover sidebar: it pops out over the workspace content as
     // a transient overlay. It should feel solid (so it's legible against
@@ -456,7 +459,9 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // current layout mode so it visually detaches from the workspace.
     const sidebarBoxShadow = shouldForceVisible
       ? "var(--sidebar-shadow)"
-      : "none";
+      : IS_MACOS_HOST && sidebarEdgeDepthEnabled
+        ? "var(--sidebar-edge-shadow)"
+        : "none";
     const sidebarBackdropFilter = "none";
     const floatingSurfaceOverride: React.CSSProperties = shouldForceVisible
       ? { backgroundColor: "var(--color-bg-1)" }

@@ -151,6 +151,7 @@
     "layout": "Disposition",
     "sidebar": "Barre latérale",
     "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "Profondeur du bord de la barre latérale",
     "selectedItemTransparency": "Transparence de l’élément sélectionné",
     "spotlightPlacement": "Position de Spotlight",
     "spotlightPlacementDesc": "Choisissez où s’ouvre la palette de commandes Spotlight",

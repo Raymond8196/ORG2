@@ -151,6 +151,7 @@
     "layout": "Макет",
     "sidebar": "Боковая панель",
     "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "Глубина границы боковой панели",
     "selectedItemTransparency": "Прозрачность выбранного элемента",
     "spotlightPlacement": "Положение Spotlight",
     "spotlightPlacementDesc": "Выберите, где открывается командная палитра Spotlight",

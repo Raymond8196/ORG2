@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import Select from "@src/components/Select";
 import Slider from "@src/components/Slider";
+import Switch from "@src/components/Switch";
 import type { ApplicationUiFontId } from "@src/config/appearance/applicationUiFonts";
 import type { PrimaryColorPreset } from "@src/config/appearance/primaryColors";
 import {
@@ -87,6 +88,9 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   const { t } = useTranslation("settings");
   const [sidebarSelectedRowOpacity, setSidebarSelectedRowOpacity] = useSetting(
     "layout.sidebarSelectedRowOpacity"
+  );
+  const [sidebarEdgeDepthEnabled, setSidebarEdgeDepthEnabled] = useSetting(
+    "layout.sidebarEdgeDepthEnabled"
   );
   const {
     globalThemeId,
@@ -190,6 +194,14 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 />
               </div>
             </SectionRow>
+            {IS_MACOS_HOST && (
+              <SectionRow label={t("general.sidebarEdgeDepth")}>
+                <Switch
+                  checked={sidebarEdgeDepthEnabled}
+                  onChange={setSidebarEdgeDepthEnabled}
+                />
+              </SectionRow>
+            )}
           </SectionContainer>
 
           <SectionContainer title={t("general.spotlight")}>

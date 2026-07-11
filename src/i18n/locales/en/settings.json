@@ -151,6 +151,7 @@
     "layout": "Layout",
     "sidebar": "Sidebar",
     "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "Sidebar edge depth",
     "selectedItemTransparency": "Selected item transparency",
     "spotlightPlacement": "Spotlight position",
     "spotlightPlacementDesc": "Choose where the Spotlight command palette opens",

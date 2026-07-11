@@ -141,6 +141,13 @@ export const GENERAL_SETTINGS_REGISTRY = {
     description: "Selected sidebar row highlight intensity percentage",
     category: "general",
   },
+  "layout.sidebarEdgeDepthEnabled": {
+    schema: z.boolean(),
+    default: true,
+    description:
+      "Show a theme-aware depth edge between the macOS sidebar and content panel",
+    category: "general",
+  },
   "general.workStationChatPosition": {
     schema: z.enum(["left", "right"]),
     default: "left" as const,

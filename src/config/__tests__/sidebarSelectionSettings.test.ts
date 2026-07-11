@@ -17,4 +17,16 @@ describe("sidebar item appearance", () => {
       ]
     ).toBe(12);
   });
+
+  it("enables the sidebar edge depth by default", () => {
+    expect(getSettingsDefaults()["layout.sidebarEdgeDepthEnabled"]).toBe(true);
+  });
+
+  it("accepts disabling the sidebar edge depth", () => {
+    expect(
+      validateSettings({ "layout.sidebarEdgeDepthEnabled": false })[
+        "layout.sidebarEdgeDepthEnabled"
+      ]
+    ).toBe(false);
+  });
 });
