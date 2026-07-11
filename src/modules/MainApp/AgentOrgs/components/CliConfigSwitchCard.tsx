@@ -10,7 +10,6 @@ import type {
 import { CLI_AGENT } from "@src/api/tauri/rpc/schemas/validation";
 import { formatAgentType } from "@src/assets/providers";
 import Button from "@src/components/Button";
-import Input from "@src/components/Input";
 import Message from "@src/components/Message";
 import Select from "@src/components/Select";
 import StatusDot from "@src/components/StatusDot";
@@ -26,6 +25,11 @@ import {
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import type { AvailableCliAgent } from "../types";
+import {
+  getManagedProxyAccounts,
+  getManagedProxyDraftSelection,
+  modelIdsFor,
+} from "./cliManagedConfigUtils";
 
 type CliConfigMode = "default" | "orgii_managed";
 type PendingAction = "apply" | "forceApply" | "restore" | "forceRestore";
@@ -45,21 +49,8 @@ function accountLabel(account: KeyVaultAccount): string {
   return `${name} - ${formatAgentType(account.modelType)}`;
 }
 
-function modelIdsFor(account: KeyVaultAccount | undefined): string[] {
-  if (!account) return [];
-  const models =
-    account.enabledModels && account.enabledModels.length > 0
-      ? account.enabledModels
-      : (account.availableModels ?? []);
-  return Array.from(new Set(models.filter(Boolean)));
-}
-
 function errMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
-}
-
-function canUseAccountForManagedProxy(account: KeyVaultAccount): boolean {
-  return account.enabled !== false && account.hasApiKey === true;
 }
 
 interface CliConfigSwitchCardProps {
@@ -82,7 +73,6 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
   const [draftMode, setDraftMode] = useState<CliConfigMode>("default");
   const [selectedKeyId, setSelectedKeyId] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
-  const [proxyUrl, setProxyUrl] = useState(DEFAULT_PROXY_URL);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null
   );
@@ -92,10 +82,17 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
     [t]
   );
 
-  const proxyCredentials = useMemo(
-    () => credentials.filter(canUseAccountForManagedProxy),
+  const candidateProxyCredentials = useMemo(
+    () => getManagedProxyAccounts(credentials),
     [credentials]
   );
+
+  const proxyCredentials = useMemo(() => {
+    return getManagedProxyAccounts(
+      candidateProxyCredentials,
+      proxyStatus?.compatibleKeyIds
+    );
+  }, [candidateProxyCredentials, proxyStatus?.compatibleKeyIds]);
 
   const selectedAccount = useMemo(
     () => proxyCredentials.find((account) => account.id === selectedKeyId),
@@ -117,10 +114,8 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
   );
 
   const modelOptions = useMemo(() => {
-    const values = new Set(modelIds);
-    if (selectedModel) values.add(selectedModel);
-    return Array.from(values).map((model) => ({ label: model, value: model }));
-  }, [modelIds, selectedModel]);
+    return modelIds.map((model) => ({ label: model, value: model }));
+  }, [modelIds]);
 
   const loadProxyStatus = useCallback(async () => {
     if (!isManagedConfigSupportedAgent(agent.name)) {
@@ -140,6 +135,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
         running: false,
         ready: false,
         url: DEFAULT_PROXY_URL,
+        compatibleKeyIds: [],
         message: errMessage(err),
       });
     }
@@ -164,19 +160,17 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
       setStatus(nextStatus);
       setProxyStatus(nextProxyStatus);
       setDraftMode(nextStatus.mode);
-      const savedKeyId = nextStatus.selectedKeyId ?? "";
-      const nextKeyId = proxyCredentials.some(
-        (account) => account.id === savedKeyId
-      )
-        ? savedKeyId
-        : (proxyCredentials[0]?.id ?? "");
-      const nextAccount = proxyCredentials.find(
-        (account) => account.id === nextKeyId
+      const nextProxyCredentials = getManagedProxyAccounts(
+        candidateProxyCredentials,
+        nextProxyStatus.compatibleKeyIds
       );
-      const nextModels = modelIdsFor(nextAccount);
-      setSelectedKeyId(nextKeyId);
-      setSelectedModel(nextStatus.selectedModel ?? nextModels[0] ?? "");
-      setProxyUrl(nextStatus.proxyUrl ?? DEFAULT_PROXY_URL);
+      const nextSelection = getManagedProxyDraftSelection(
+        nextProxyCredentials,
+        nextStatus.selectedKeyId,
+        nextStatus.selectedModel
+      );
+      setSelectedKeyId(nextSelection.keyId);
+      setSelectedModel(nextSelection.model);
     } catch (err) {
       Message.error({
         content: errMessage(err),
@@ -185,26 +179,25 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [agent.name, proxyCredentials]);
+  }, [agent.name, candidateProxyCredentials]);
 
   useEffect(() => {
     void loadStatus();
   }, [loadStatus]);
 
   useEffect(() => {
-    if (!selectedKeyId && proxyCredentials.length > 0) {
-      const fallback = proxyCredentials[0];
-      setSelectedKeyId(fallback.id);
-      setSelectedModel(modelIdsFor(fallback)[0] ?? "");
-      return;
+    const nextSelection = getManagedProxyDraftSelection(
+      proxyCredentials,
+      selectedKeyId,
+      selectedModel
+    );
+    if (nextSelection.keyId !== selectedKeyId) {
+      setSelectedKeyId(nextSelection.keyId);
     }
-
-    if (selectedKeyId && !selectedAccount) {
-      const fallback = proxyCredentials[0];
-      setSelectedKeyId(fallback?.id ?? "");
-      setSelectedModel(fallback ? (modelIdsFor(fallback)[0] ?? "") : "");
+    if (nextSelection.model !== selectedModel) {
+      setSelectedModel(nextSelection.model);
     }
-  }, [proxyCredentials, selectedAccount, selectedKeyId]);
+  }, [proxyCredentials, selectedKeyId, selectedModel]);
 
   const applyManaged = useCallback(
     async (force: boolean) => {
@@ -214,9 +207,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
           {
             agentName: agent.name,
             keyId: selectedKeyId || null,
-            provider: selectedAccount?.modelType ?? null,
             model: selectedModel || null,
-            proxyUrl: proxyUrl || null,
             force,
           }
         );
@@ -230,6 +221,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
           ),
         });
       } catch (err) {
+        setDraftMode(status?.mode ?? "default");
         Message.error({
           content: errMessage(err),
           duration: 3000,
@@ -241,10 +233,9 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
     [
       agent.name,
       loadProxyStatus,
-      proxyUrl,
-      selectedAccount,
       selectedKeyId,
       selectedModel,
+      status?.mode,
       tr,
     ]
   );
@@ -272,6 +263,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
           ),
         });
       } catch (err) {
+        setDraftMode(status?.mode ?? "default");
         Message.error({
           content: errMessage(err),
           duration: 3000,
@@ -298,12 +290,12 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
   const handleAccountChange = useCallback(
     (value: string | number | (string | number)[]) => {
       const nextKeyId = String(value);
-      const nextAccount = proxyCredentials.find(
-        (account) => account.id === nextKeyId
+      const nextSelection = getManagedProxyDraftSelection(
+        proxyCredentials,
+        nextKeyId
       );
-      const nextModels = modelIdsFor(nextAccount);
-      setSelectedKeyId(nextKeyId);
-      setSelectedModel(nextModels[0] ?? "");
+      setSelectedKeyId(nextSelection.keyId);
+      setSelectedModel(nextSelection.model);
     },
     [proxyCredentials]
   );
@@ -324,7 +316,11 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
 
   const targetFiles = status?.targetFiles ?? [];
   const managedActive = draftMode === "orgii_managed";
-  const canApplyManaged = managedActive && Boolean(selectedKeyId);
+  const canApplyManaged =
+    managedActive &&
+    Boolean(selectedKeyId) &&
+    Boolean(selectedModel) &&
+    proxyStatus?.running === true;
   const isBusy = pendingAction !== null;
   const modeLabel =
     status?.mode === "orgii_managed"
@@ -338,7 +334,9 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
     : status?.mode === "orgii_managed"
       ? "bg-primary-6"
       : "bg-fill-3";
-  const proxyReady = proxyStatus?.ready === true;
+  const proxyReady =
+    proxyStatus?.running === true &&
+    (status?.mode !== "orgii_managed" || proxyStatus.ready === true);
   const proxyLabel = !managedActive
     ? tr("agentOrgs.cliManagedConfig.proxyDefault", "Default mode")
     : proxyReady
@@ -349,6 +347,20 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
     : proxyReady
       ? "bg-success-6"
       : "bg-warning-6";
+  const proxyDescription =
+    status?.mode === "orgii_managed"
+      ? (proxyStatus?.message ??
+        proxyStatus?.upstreamBaseUrl ??
+        tr(
+          "agentOrgs.cliManagedConfig.proxyDesc",
+          "Local requests route through ORGII KeyVault."
+        ))
+      : proxyStatus?.message && proxyStatus.running !== true
+        ? proxyStatus.message
+        : tr(
+            "agentOrgs.cliManagedConfig.proxyDesc",
+            "Local requests route through ORGII KeyVault."
+          );
 
   return (
     <SectionContainer
@@ -414,14 +426,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
       {managedActive && (
         <SectionRow
           label={tr("agentOrgs.cliManagedConfig.proxyStatus", "Proxy")}
-          description={
-            proxyStatus?.message ??
-            proxyStatus?.upstreamBaseUrl ??
-            tr(
-              "agentOrgs.cliManagedConfig.proxyDesc",
-              "Local requests route through ORGII KeyVault."
-            )
-          }
+          description={proxyDescription}
         >
           <StatusDot
             color={proxyColor}
@@ -460,17 +465,6 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
           )}
           disabled={!managedActive || modelOptions.length === 0 || isBusy}
           showSearch
-          style={SECTION_CONTROL_STYLE}
-        />
-      </SectionRow>
-
-      <SectionRow
-        label={tr("agentOrgs.cliManagedConfig.proxyUrl", "Proxy URL")}
-      >
-        <Input
-          value={proxyUrl}
-          onChange={(value: string) => setProxyUrl(value)}
-          disabled={!managedActive || isBusy}
           style={SECTION_CONTROL_STYLE}
         />
       </SectionRow>

@@ -5,10 +5,12 @@
 //! model traffic through a local proxy without MITM interception.
 
 use app_paths as paths;
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const CODEX_AGENT: &str = "codex";
@@ -26,7 +28,10 @@ const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const ORGII_PROVIDER_ID: &str = "orgii";
 const ORGII_PROVIDER_NAME: &str = "ORGII";
 const DEFAULT_ORGII_MODEL: &str = "orgii-current-model";
-const ORGII_PROXY_TOKEN: &str = "orgii-managed-proxy";
+const TRANSACTION_DIR_NAME: &str = "transaction";
+const TRANSACTION_JOURNAL_FILE_NAME: &str = "journal.json";
+
+static CONFIG_OPERATION_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -58,6 +63,8 @@ pub struct CliConfigProfileManifest {
     pub selected_provider: Option<String>,
     pub selected_model: Option<String>,
     pub proxy_url: Option<String>,
+    #[serde(default)]
+    pub proxy_token: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -103,10 +110,46 @@ pub struct CliManagedConfigSelection {
     pub selected_provider: Option<String>,
     pub selected_model: Option<String>,
     pub proxy_url: Option<String>,
+    pub proxy_token: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+struct TargetSnapshot {
+    id: String,
+    target_path: PathBuf,
+    existed: bool,
+    bytes: Vec<u8>,
+    hash: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+enum TargetMutation {
+    Write(Vec<u8>),
+    Remove,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CliConfigTransactionTarget {
+    id: String,
+    target_path: String,
+    rollback_path: String,
+    target_existed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CliConfigTransactionJournal {
+    agent: String,
+    final_manifest_hash: String,
+    target_files: Vec<CliConfigTransactionTarget>,
+    created_at: String,
 }
 
 fn codex_config_path() -> PathBuf {
-    paths::home_dir().join(".codex").join(CODEX_CONFIG_FILE_NAME)
+    paths::home_dir()
+        .join(".codex")
+        .join(CODEX_CONFIG_FILE_NAME)
 }
 
 fn claude_code_config_path() -> PathBuf {
@@ -139,11 +182,39 @@ fn manifest_path(agent_name: &str) -> PathBuf {
     paths::cli_config_profile_manifest(agent_name)
 }
 
+fn transaction_dir(agent_name: &str) -> PathBuf {
+    paths::cli_config_profile_agent_dir(agent_name).join(TRANSACTION_DIR_NAME)
+}
+
+fn transaction_journal_path(agent_name: &str) -> PathBuf {
+    transaction_dir(agent_name).join(TRANSACTION_JOURNAL_FILE_NAME)
+}
+
+fn config_operation_guard() -> Result<MutexGuard<'static, ()>, String> {
+    CONFIG_OPERATION_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .map_err(|_| "CLI config operation lock is poisoned".to_string())
+}
+
 fn now_stamp() -> String {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|duration| duration.as_secs().to_string())
         .unwrap_or_else(|_| "0".to_string())
+}
+
+fn now_nanos() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .unwrap_or(0)
+}
+
+fn generate_proxy_token() -> String {
+    let mut bytes = [0_u8; 32];
+    rand::rng().fill_bytes(&mut bytes);
+    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 fn sha256_bytes(bytes: &[u8]) -> String {
@@ -161,19 +232,26 @@ fn file_hash(path: &Path) -> Result<Option<String>, String> {
     Ok(Some(sha256_bytes(&bytes)))
 }
 
+fn unique_temp_path(path: &Path) -> PathBuf {
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("config");
+    path.with_file_name(format!(
+        ".{file_name}.{}.{}.tmp",
+        std::process::id(),
+        now_nanos()
+    ))
+}
+
 fn write_file_atomic(path: &Path, bytes: &[u8]) -> Result<(), String> {
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)
             .map_err(|err| format!("Failed to create {}: {err}", dir.display()))?;
     }
 
-    let tmp = path.with_extension(format!(
-        "{}.tmp",
-        path.extension()
-            .and_then(|extension| extension.to_str())
-            .unwrap_or("file")
-    ));
-    {
+    let tmp = unique_temp_path(path);
+    let result = (|| {
         let mut file = std::fs::File::create(&tmp)
             .map_err(|err| format!("Failed to create {}: {err}", tmp.display()))?;
         use std::io::Write;
@@ -181,16 +259,27 @@ fn write_file_atomic(path: &Path, bytes: &[u8]) -> Result<(), String> {
             .map_err(|err| format!("Failed to write {}: {err}", tmp.display()))?;
         file.sync_all()
             .map_err(|err| format!("Failed to flush {}: {err}", tmp.display()))?;
-    }
+        std::fs::rename(&tmp, path).map_err(|err| {
+            format!(
+                "Failed to move {} to {}: {err}",
+                tmp.display(),
+                path.display()
+            )
+        })?;
+        Ok(())
+    })();
 
-    #[cfg(windows)]
-    if path.exists() {
-        std::fs::remove_file(path)
-            .map_err(|err| format!("Failed to replace {}: {err}", path.display()))?;
+    if result.is_err() {
+        let _ = std::fs::remove_file(&tmp);
     }
+    result
+}
 
-    std::fs::rename(&tmp, path)
-        .map_err(|err| format!("Failed to move {} to {}: {err}", tmp.display(), path.display()))?;
+fn write_sensitive_file_atomic(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    write_file_atomic(path, bytes)?;
+    if let Err(err) = app_paths::set_sensitive_file_permissions(path) {
+        tracing::warn!(path = %path.display(), error = %err, "Failed to secure CLI config profile file");
+    }
     Ok(())
 }
 
@@ -204,16 +293,22 @@ fn read_manifest(agent_name: &str) -> Result<Option<CliConfigProfileManifest>, S
     serde_json::from_str(&raw).map_err(|err| format!("Invalid {}: {err}", path.display()))
 }
 
-fn write_manifest(manifest: &CliConfigProfileManifest) -> Result<(), String> {
-    let path = manifest_path(&manifest.agent);
-    let bytes = serde_json::to_vec_pretty(manifest)
-        .map_err(|err| format!("Failed to serialize CLI config manifest: {err}"))?;
-    write_file_atomic(&path, &bytes)?;
-    app_paths::set_sensitive_file_permissions(&path).ok();
-    Ok(())
+fn manifest_bytes(manifest: &CliConfigProfileManifest) -> Result<Vec<u8>, String> {
+    serde_json::to_vec_pretty(manifest)
+        .map_err(|err| format!("Failed to serialize CLI config manifest: {err}"))
 }
 
-fn manifest_target(agent_name: &str, file_id: &str, file_name: &str, target_path: &Path) -> CliConfigTargetFileManifest {
+fn write_manifest(manifest: &CliConfigProfileManifest) -> Result<(), String> {
+    let path = manifest_path(&manifest.agent);
+    write_sensitive_file_atomic(&path, &manifest_bytes(manifest)?)
+}
+
+fn manifest_target(
+    agent_name: &str,
+    file_id: &str,
+    file_name: &str,
+    target_path: &Path,
+) -> CliConfigTargetFileManifest {
     CliConfigTargetFileManifest {
         id: file_id.to_string(),
         target_path: target_path.to_string_lossy().to_string(),
@@ -230,7 +325,10 @@ fn manifest_target(agent_name: &str, file_id: &str, file_name: &str, target_path
 }
 
 fn supported_agent(agent_name: &str) -> bool {
-    matches!(agent_name, CODEX_AGENT | CLAUDE_CODE_AGENT | GEMINI_CLI_AGENT)
+    matches!(
+        agent_name,
+        CODEX_AGENT | CLAUDE_CODE_AGENT | GEMINI_CLI_AGENT
+    )
 }
 
 fn agent_manifest_targets(agent_name: &str) -> Option<Vec<CliConfigTargetFileManifest>> {
@@ -281,7 +379,9 @@ fn targets_with_fallbacks(
         .unwrap_or_default();
 
     for target in fallback_targets {
-        by_id.entry(target.id.clone()).or_insert_with(|| target.clone());
+        by_id
+            .entry(target.id.clone())
+            .or_insert_with(|| target.clone());
     }
 
     let mut targets = Vec::new();
@@ -294,7 +394,253 @@ fn targets_with_fallbacks(
     targets
 }
 
-fn status_for(agent_name: &str) -> Result<CliConfigManagedStatus, String> {
+fn read_target_snapshots(
+    targets: &[CliConfigTargetFileManifest],
+) -> Result<BTreeMap<String, TargetSnapshot>, String> {
+    let mut snapshots = BTreeMap::new();
+    for target in targets {
+        let target_path = PathBuf::from(&target.target_path);
+        let existed = target_path.exists();
+        let bytes = if existed {
+            std::fs::read(&target_path)
+                .map_err(|err| format!("Failed to read {}: {err}", target_path.display()))?
+        } else {
+            Vec::new()
+        };
+        let hash = existed.then(|| sha256_bytes(&bytes));
+        let snapshot = TargetSnapshot {
+            id: target.id.clone(),
+            target_path,
+            existed,
+            bytes,
+            hash,
+        };
+        if snapshots.insert(target.id.clone(), snapshot).is_some() {
+            return Err(format!("Duplicate CLI config target id: {}", target.id));
+        }
+    }
+    Ok(snapshots)
+}
+
+fn versioned_default_backup_path(
+    agent_name: &str,
+    target: &CliConfigTargetFileManifest,
+    snapshot: &TargetSnapshot,
+) -> PathBuf {
+    let file_name = Path::new(&target.target_path)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("config");
+    let hash = snapshot
+        .hash
+        .as_deref()
+        .unwrap_or("missing")
+        .trim_start_matches("sha256:");
+    let short_hash = &hash[..hash.len().min(12)];
+    paths::cli_config_profile_default_dir(agent_name)
+        .join(format!("{}-{short_hash}-{file_name}", now_nanos()))
+}
+
+fn ensure_default_backup_from_snapshot(
+    agent_name: &str,
+    mut target: CliConfigTargetFileManifest,
+    snapshot: &TargetSnapshot,
+    refresh_existing: bool,
+) -> Result<CliConfigTargetFileManifest, String> {
+    let backup_path = PathBuf::from(&target.default_backup_path);
+    let is_new_target = target.last_applied_hash.is_none()
+        && target.original_hash.is_none()
+        && !target.default_was_missing
+        && !backup_path.exists();
+
+    if !refresh_existing && !is_new_target {
+        if target.default_was_missing || backup_path.exists() {
+            return Ok(target);
+        }
+        return Err(format!(
+            "Default backup is missing for {}. Restore it before applying ORGII Managed again.",
+            target.target_path
+        ));
+    }
+
+    if snapshot.existed {
+        let backup_path = versioned_default_backup_path(agent_name, &target, snapshot);
+        write_sensitive_file_atomic(&backup_path, &snapshot.bytes)?;
+        target.default_backup_path = backup_path.to_string_lossy().to_string();
+        target.original_hash = snapshot.hash.clone();
+        target.default_was_missing = false;
+    } else {
+        target.original_hash = None;
+        target.default_was_missing = true;
+    }
+
+    Ok(target)
+}
+
+fn cleanup_transaction_dir(agent_name: &str) -> Result<(), String> {
+    let dir = transaction_dir(agent_name);
+    if dir.exists() {
+        std::fs::remove_dir_all(&dir)
+            .map_err(|err| format!("Failed to remove {}: {err}", dir.display()))?;
+    }
+    Ok(())
+}
+
+fn read_transaction_journal(
+    agent_name: &str,
+) -> Result<Option<CliConfigTransactionJournal>, String> {
+    let path = transaction_journal_path(agent_name);
+    if !path.exists() {
+        return Ok(None);
+    }
+    let raw = std::fs::read_to_string(&path)
+        .map_err(|err| format!("Failed to read {}: {err}", path.display()))?;
+    let journal: CliConfigTransactionJournal = serde_json::from_str(&raw)
+        .map_err(|err| format!("Invalid CLI config transaction {}: {err}", path.display()))?;
+    if journal.agent != agent_name {
+        return Err(format!(
+            "CLI config transaction agent mismatch: expected {agent_name}, found {}",
+            journal.agent
+        ));
+    }
+    Ok(Some(journal))
+}
+
+fn rollback_transaction(journal: &CliConfigTransactionJournal) -> Result<(), String> {
+    let mut errors = Vec::new();
+    for target in &journal.target_files {
+        let target_path = PathBuf::from(&target.target_path);
+        let result = if target.target_existed {
+            let rollback_path = PathBuf::from(&target.rollback_path);
+            std::fs::read(&rollback_path)
+                .map_err(|err| format!("Failed to read {}: {err}", rollback_path.display()))
+                .and_then(|bytes| write_sensitive_file_atomic(&target_path, &bytes))
+        } else if target_path.exists() {
+            std::fs::remove_file(&target_path)
+                .map_err(|err| format!("Failed to remove {}: {err}", target_path.display()))
+        } else {
+            Ok(())
+        };
+        if let Err(err) = result {
+            errors.push(err);
+        }
+    }
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.join("; "))
+    }
+}
+
+fn recover_pending_transaction_unlocked(agent_name: &str) -> Result<(), String> {
+    let Some(journal) = read_transaction_journal(agent_name)? else {
+        let dir = transaction_dir(agent_name);
+        if dir.exists() {
+            cleanup_transaction_dir(agent_name)?;
+        }
+        return Ok(());
+    };
+
+    if file_hash(&manifest_path(agent_name))? == Some(journal.final_manifest_hash.clone()) {
+        cleanup_transaction_dir(agent_name)?;
+        return Ok(());
+    }
+
+    rollback_transaction(&journal)?;
+    cleanup_transaction_dir(agent_name)
+}
+
+fn begin_transaction(
+    agent_name: &str,
+    snapshots: &BTreeMap<String, TargetSnapshot>,
+    final_manifest: &CliConfigProfileManifest,
+) -> Result<CliConfigTransactionJournal, String> {
+    recover_pending_transaction_unlocked(agent_name)?;
+    let rollback_dir = transaction_dir(agent_name).join("rollback");
+    std::fs::create_dir_all(&rollback_dir)
+        .map_err(|err| format!("Failed to create {}: {err}", rollback_dir.display()))?;
+
+    let mut target_files = Vec::new();
+    for (index, snapshot) in snapshots.values().enumerate() {
+        if file_hash(&snapshot.target_path)? != snapshot.hash {
+            cleanup_transaction_dir(agent_name)?;
+            return Err(format!(
+                "CLI config changed while ORGII was preparing the switch: {}",
+                snapshot.target_path.display()
+            ));
+        }
+
+        let rollback_path = rollback_dir.join(format!("{index}-{}.bak", snapshot.id));
+        if snapshot.existed {
+            write_sensitive_file_atomic(&rollback_path, &snapshot.bytes)?;
+        }
+        target_files.push(CliConfigTransactionTarget {
+            id: snapshot.id.clone(),
+            target_path: snapshot.target_path.to_string_lossy().to_string(),
+            rollback_path: rollback_path.to_string_lossy().to_string(),
+            target_existed: snapshot.existed,
+        });
+    }
+
+    let journal = CliConfigTransactionJournal {
+        agent: agent_name.to_string(),
+        final_manifest_hash: sha256_bytes(&manifest_bytes(final_manifest)?),
+        target_files,
+        created_at: now_stamp(),
+    };
+    let bytes = serde_json::to_vec_pretty(&journal)
+        .map_err(|err| format!("Failed to serialize CLI config transaction: {err}"))?;
+    write_sensitive_file_atomic(&transaction_journal_path(agent_name), &bytes)?;
+    Ok(journal)
+}
+
+fn execute_transaction(
+    agent_name: &str,
+    snapshots: &BTreeMap<String, TargetSnapshot>,
+    mutations: &BTreeMap<String, TargetMutation>,
+    final_manifest: &CliConfigProfileManifest,
+) -> Result<(), String> {
+    let journal = begin_transaction(agent_name, snapshots, final_manifest)?;
+    let result = (|| {
+        for (id, mutation) in mutations {
+            let snapshot = snapshots
+                .get(id)
+                .ok_or_else(|| format!("Missing CLI config snapshot for target {id}"))?;
+            match mutation {
+                TargetMutation::Write(bytes) => {
+                    write_sensitive_file_atomic(&snapshot.target_path, bytes)?
+                }
+                TargetMutation::Remove => {
+                    if snapshot.target_path.exists() {
+                        std::fs::remove_file(&snapshot.target_path).map_err(|err| {
+                            format!("Failed to remove {}: {err}", snapshot.target_path.display())
+                        })?;
+                    }
+                }
+            }
+        }
+        write_manifest(final_manifest)
+    })();
+
+    if let Err(operation_error) = result {
+        let rollback_result = rollback_transaction(&journal);
+        if rollback_result.is_ok() {
+            let _ = cleanup_transaction_dir(agent_name);
+            return Err(operation_error);
+        }
+        return Err(format!(
+            "{operation_error}; rollback also failed: {}",
+            rollback_result.unwrap_err()
+        ));
+    }
+
+    if let Err(err) = cleanup_transaction_dir(agent_name) {
+        tracing::warn!(agent = agent_name, error = %err, "Committed CLI config transaction left cleanup files");
+    }
+    Ok(())
+}
+
+fn status_for_unlocked(agent_name: &str) -> Result<CliConfigManagedStatus, String> {
     if !supported_agent(agent_name) {
         return Ok(CliConfigManagedStatus {
             agent_name: agent_name.to_string(),
@@ -383,6 +729,14 @@ fn status_for(agent_name: &str) -> Result<CliConfigManagedStatus, String> {
 pub fn managed_selection_for_agent(
     agent_name: &str,
 ) -> Result<Option<CliManagedConfigSelection>, String> {
+    let _guard = config_operation_guard()?;
+    recover_pending_transaction_unlocked(agent_name)?;
+    managed_selection_for_agent_unlocked(agent_name)
+}
+
+fn managed_selection_for_agent_unlocked(
+    agent_name: &str,
+) -> Result<Option<CliManagedConfigSelection>, String> {
     if !supported_agent(agent_name) {
         return Ok(None);
     }
@@ -402,42 +756,32 @@ pub fn managed_selection_for_agent(
         selected_provider: manifest.selected_provider,
         selected_model: manifest.selected_model,
         proxy_url: manifest.proxy_url,
+        proxy_token: manifest.proxy_token,
     }))
 }
 
-fn codex_proxy_base_url(proxy_url: &str) -> String {
-    let trimmed = proxy_url.trim().trim_end_matches('/');
-    if trimmed.ends_with("/v1") {
-        trimmed.to_string()
-    } else {
-        format!("{trimmed}/v1")
-    }
+fn proxy_route_base_url(proxy_url: &str, proxy_token: &str, suffix: &str) -> String {
+    let root = proxy_url.trim().trim_end_matches('/');
+    format!("{root}/proxy/{proxy_token}/{suffix}")
 }
 
-fn claude_code_proxy_base_url(proxy_url: &str) -> String {
-    let trimmed = proxy_url.trim().trim_end_matches('/');
-    if trimmed.ends_with("/claude/v1") {
-        trimmed.trim_end_matches("/v1").to_string()
-    } else if trimmed.ends_with("/claude") {
-        trimmed.to_string()
-    } else {
-        format!("{trimmed}/claude")
-    }
+fn codex_proxy_base_url(proxy_url: &str, proxy_token: &str) -> String {
+    proxy_route_base_url(proxy_url, proxy_token, "v1")
 }
 
-fn gemini_cli_proxy_base_url(proxy_url: &str) -> String {
-    let trimmed = proxy_url.trim().trim_end_matches('/');
-    if trimmed.ends_with("/gemini") {
-        trimmed.to_string()
-    } else {
-        format!("{trimmed}/gemini")
-    }
+fn claude_code_proxy_base_url(proxy_url: &str, proxy_token: &str) -> String {
+    proxy_route_base_url(proxy_url, proxy_token, "claude")
+}
+
+fn gemini_cli_proxy_base_url(proxy_url: &str, proxy_token: &str) -> String {
+    proxy_route_base_url(proxy_url, proxy_token, "gemini")
 }
 
 fn generate_codex_managed_config(
     existing_content: &str,
     selected_model: Option<&str>,
     proxy_url: &str,
+    proxy_token: &str,
 ) -> Result<String, String> {
     let mut config: toml::Value = if existing_content.trim().is_empty() {
         toml::Value::Table(toml::map::Map::new())
@@ -477,7 +821,7 @@ fn generate_codex_managed_config(
     );
     orgii.insert(
         "base_url".to_string(),
-        toml::Value::String(codex_proxy_base_url(proxy_url)),
+        toml::Value::String(codex_proxy_base_url(proxy_url, proxy_token)),
     );
     orgii.insert(
         "requires_openai_auth".to_string(),
@@ -503,6 +847,7 @@ fn generate_claude_code_managed_config(
     existing_content: &str,
     selected_model: Option<&str>,
     proxy_url: &str,
+    proxy_token: &str,
 ) -> Result<String, String> {
     let mut config: serde_json::Value = if existing_content.trim().is_empty() {
         serde_json::Value::Object(serde_json::Map::new())
@@ -534,11 +879,11 @@ fn generate_claude_code_managed_config(
 
     env.insert(
         "ANTHROPIC_AUTH_TOKEN".to_string(),
-        serde_json::Value::String(ORGII_PROXY_TOKEN.to_string()),
+        serde_json::Value::String(proxy_token.to_string()),
     );
     env.insert(
         "ANTHROPIC_BASE_URL".to_string(),
-        serde_json::Value::String(claude_code_proxy_base_url(proxy_url)),
+        serde_json::Value::String(claude_code_proxy_base_url(proxy_url, proxy_token)),
     );
     env.insert(
         "ANTHROPIC_MODEL".to_string(),
@@ -669,17 +1014,18 @@ fn generate_gemini_cli_env_config(
     existing_content: &str,
     selected_model: Option<&str>,
     proxy_url: &str,
+    proxy_token: &str,
 ) -> String {
     let model = selected_model_or_default(selected_model).to_string();
     upsert_env_file(
         existing_content,
         &[
-            ("GEMINI_API_KEY", ORGII_PROXY_TOKEN.to_string()),
-            ("GOOGLE_API_KEY", ORGII_PROXY_TOKEN.to_string()),
+            ("GEMINI_API_KEY", proxy_token.to_string()),
+            ("GOOGLE_API_KEY", proxy_token.to_string()),
             ("GEMINI_MODEL", model),
             (
                 "GOOGLE_GEMINI_BASE_URL",
-                gemini_cli_proxy_base_url(proxy_url),
+                gemini_cli_proxy_base_url(proxy_url, proxy_token),
             ),
         ],
     )
@@ -690,6 +1036,7 @@ fn generate_managed_configs(
     existing_contents: &BTreeMap<String, String>,
     selected_model: Option<&str>,
     proxy_url: &str,
+    proxy_token: &str,
 ) -> Result<BTreeMap<String, String>, String> {
     let content = |file_id: &str| {
         existing_contents
@@ -706,6 +1053,7 @@ fn generate_managed_configs(
                     content(CODEX_CONFIG_FILE_ID),
                     selected_model,
                     proxy_url,
+                    proxy_token,
                 )?,
             );
             Ok(files)
@@ -717,6 +1065,7 @@ fn generate_managed_configs(
                     content(CLAUDE_CODE_CONFIG_FILE_ID),
                     selected_model,
                     proxy_url,
+                    proxy_token,
                 )?,
             );
             Ok(files)
@@ -732,6 +1081,7 @@ fn generate_managed_configs(
                     content(GEMINI_CLI_ENV_FILE_ID),
                     selected_model,
                     proxy_url,
+                    proxy_token,
                 ),
             );
             Ok(files)
@@ -742,77 +1092,41 @@ fn generate_managed_configs(
     }
 }
 
-fn ensure_default_backup(
-    mut target: CliConfigTargetFileManifest,
-    refresh_existing: bool,
-) -> Result<CliConfigTargetFileManifest, String> {
-    let target_path = PathBuf::from(&target.target_path);
-    let backup_path = PathBuf::from(&target.default_backup_path);
-    if !refresh_existing && (target.default_was_missing || backup_path.exists()) {
-        return Ok(target);
-    }
-
-    if target_path.exists() {
-        let bytes = std::fs::read(&target_path)
-            .map_err(|err| format!("Failed to read {}: {err}", target_path.display()))?;
-        target.original_hash = Some(sha256_bytes(&bytes));
-        target.default_was_missing = false;
-        write_file_atomic(&backup_path, &bytes)?;
-        app_paths::set_sensitive_file_permissions(&backup_path).ok();
-    } else {
-        target.original_hash = None;
-        target.default_was_missing = true;
-        if refresh_existing && backup_path.exists() {
-            std::fs::remove_file(&backup_path)
-                .map_err(|err| format!("Failed to remove {}: {err}", backup_path.display()))?;
-        }
-        if let Some(dir) = backup_path.parent() {
-            std::fs::create_dir_all(dir)
-                .map_err(|err| format!("Failed to create {}: {err}", dir.display()))?;
-        }
-    }
-
-    Ok(target)
-}
-
-fn enable_agent_orgii_managed(
+fn enable_agent_orgii_managed_unlocked(
     agent_name: &str,
     key_id: Option<String>,
     provider: Option<String>,
     model: Option<String>,
-    proxy_url: Option<String>,
     force: bool,
 ) -> Result<CliConfigManagedStatus, String> {
     let fallback_targets = agent_manifest_targets(agent_name)
         .ok_or_else(|| format!("Unsupported CLI managed config agent: {agent_name}"))?;
     let existing_manifest = read_manifest(agent_name)?;
     let targets = targets_with_fallbacks(existing_manifest.as_ref(), &fallback_targets);
+    let snapshots = read_target_snapshots(&targets)?;
     let mut current_contents = BTreeMap::new();
 
     for target in &targets {
-        let target_path = PathBuf::from(&target.target_path);
-        let content = if target_path.exists() {
-            std::fs::read_to_string(&target_path)
-                .map_err(|err| format!("Failed to read {}: {err}", target_path.display()))?
-        } else {
-            String::new()
-        };
+        let snapshot = snapshots
+            .get(&target.id)
+            .ok_or_else(|| format!("Missing CLI config snapshot for target {}", target.id))?;
+        let content = String::from_utf8(snapshot.bytes.clone()).map_err(|err| {
+            format!(
+                "CLI config must be UTF-8 text ({}): {err}",
+                snapshot.target_path.display()
+            )
+        })?;
         current_contents.insert(target.id.clone(), content);
     }
-
-    let proxy_url = proxy_url
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| DEFAULT_PROXY_URL.to_string());
-    let managed_contents =
-        generate_managed_configs(agent_name, &current_contents, model.as_deref(), &proxy_url)?;
 
     if let Some(existing_manifest) = &existing_manifest {
         if existing_manifest.mode == CliConfigMode::OrgiiManaged && !force {
             for target in &existing_manifest.target_files {
                 if let Some(last_hash) = &target.last_applied_hash {
-                    let current_hash = file_hash(Path::new(&target.target_path))?;
-                    if current_hash.as_ref() != Some(last_hash) {
+                    let current_hash = snapshots
+                        .get(&target.id)
+                        .and_then(|snapshot| snapshot.hash.as_ref());
+                    if current_hash != Some(last_hash) {
                         return Err(
                             "Current CLI config was modified outside ORGII. Restore or force apply before overwriting it."
                                 .to_string(),
@@ -822,6 +1136,16 @@ fn enable_agent_orgii_managed(
             }
         }
     }
+
+    let proxy_url = DEFAULT_PROXY_URL.to_string();
+    let proxy_token = generate_proxy_token();
+    let managed_contents = generate_managed_configs(
+        agent_name,
+        &current_contents,
+        model.as_deref(),
+        &proxy_url,
+        &proxy_token,
+    )?;
 
     let now = now_stamp();
     let refresh_default_backup = existing_manifest
@@ -835,26 +1159,36 @@ fn enable_agent_orgii_managed(
         selected_provider: None,
         selected_model: None,
         proxy_url: Some(DEFAULT_PROXY_URL.to_string()),
+        proxy_token: None,
         created_at: now.clone(),
         updated_at: now.clone(),
     });
 
     let mut managed_targets = Vec::new();
+    let mut mutations = BTreeMap::new();
     for target in targets {
         let Some(managed_content) = managed_contents.get(&target.id) else {
             continue;
         };
-        let mut target = ensure_default_backup(target, refresh_default_backup)?;
+        let snapshot = snapshots
+            .get(&target.id)
+            .ok_or_else(|| format!("Missing CLI config snapshot for target {}", target.id))?;
+        let mut target = ensure_default_backup_from_snapshot(
+            agent_name,
+            target,
+            snapshot,
+            refresh_default_backup,
+        )?;
         let managed_hash = sha256_bytes(managed_content.as_bytes());
-        let target_path = PathBuf::from(&target.target_path);
 
         let managed_path = PathBuf::from(&target.managed_profile_path);
-        write_file_atomic(&managed_path, managed_content.as_bytes())?;
-        app_paths::set_sensitive_file_permissions(&managed_path).ok();
-        write_file_atomic(&target_path, managed_content.as_bytes())?;
+        write_sensitive_file_atomic(&managed_path, managed_content.as_bytes())?;
 
         target.last_applied_hash = Some(managed_hash);
-        target.target_path = target_path.to_string_lossy().to_string();
+        mutations.insert(
+            target.id.clone(),
+            TargetMutation::Write(managed_content.as_bytes().to_vec()),
+        );
         managed_targets.push(target);
     }
 
@@ -864,20 +1198,31 @@ fn enable_agent_orgii_managed(
     manifest.selected_provider = provider;
     manifest.selected_model = model;
     manifest.proxy_url = Some(proxy_url);
+    manifest.proxy_token = Some(proxy_token);
     manifest.updated_at = now_stamp();
-    write_manifest(&manifest)?;
-    status_for(agent_name)
+    execute_transaction(agent_name, &snapshots, &mutations, &manifest)?;
+    status_for_unlocked(agent_name)
 }
 
-fn restore_agent_default(agent_name: &str, force: bool) -> Result<CliConfigManagedStatus, String> {
+fn restore_agent_default_unlocked(
+    agent_name: &str,
+    force: bool,
+) -> Result<CliConfigManagedStatus, String> {
     let mut manifest = read_manifest(agent_name)?
         .ok_or_else(|| format!("No Default backup exists for {agent_name} yet"))?;
+    if manifest.mode == CliConfigMode::Default {
+        return status_for_unlocked(agent_name);
+    }
+    let snapshots = read_target_snapshots(&manifest.target_files)?;
+    let mut mutations = BTreeMap::new();
 
     for target in &manifest.target_files {
         if manifest.mode == CliConfigMode::OrgiiManaged && !force {
             if let Some(last_hash) = &target.last_applied_hash {
-                let current_hash = file_hash(Path::new(&target.target_path))?;
-                if current_hash.as_ref() != Some(last_hash) {
+                let current_hash = snapshots
+                    .get(&target.id)
+                    .and_then(|snapshot| snapshot.hash.as_ref());
+                if current_hash != Some(last_hash) {
                     return Err(
                         "Current CLI config was modified outside ORGII. Force restore to overwrite it."
                             .to_string(),
@@ -886,12 +1231,8 @@ fn restore_agent_default(agent_name: &str, force: bool) -> Result<CliConfigManag
             }
         }
 
-        let target_path = PathBuf::from(&target.target_path);
         if target.default_was_missing {
-            if target_path.exists() {
-                std::fs::remove_file(&target_path)
-                    .map_err(|err| format!("Failed to remove {}: {err}", target_path.display()))?;
-            }
+            mutations.insert(target.id.clone(), TargetMutation::Remove);
         } else {
             let backup_path = PathBuf::from(&target.default_backup_path);
             if !backup_path.exists() {
@@ -902,74 +1243,45 @@ fn restore_agent_default(agent_name: &str, force: bool) -> Result<CliConfigManag
             }
             let bytes = std::fs::read(&backup_path)
                 .map_err(|err| format!("Failed to read {}: {err}", backup_path.display()))?;
-            write_file_atomic(&target_path, &bytes)?;
+            if target.original_hash.as_ref() != Some(&sha256_bytes(&bytes)) {
+                return Err(format!(
+                    "Default backup hash mismatch: {}",
+                    backup_path.display()
+                ));
+            }
+            mutations.insert(target.id.clone(), TargetMutation::Write(bytes));
         }
     }
 
     manifest.mode = CliConfigMode::Default;
     manifest.updated_at = now_stamp();
-    write_manifest(&manifest)?;
-    status_for(agent_name)
+    execute_transaction(agent_name, &snapshots, &mutations, &manifest)?;
+    status_for_unlocked(agent_name)
 }
 
-fn set_agent_selection(
+pub fn enable_orgii_managed(
     agent_name: &str,
     key_id: Option<String>,
     provider: Option<String>,
     model: Option<String>,
+    force: bool,
 ) -> Result<CliConfigManagedStatus, String> {
-    let mut manifest =
-        read_manifest(agent_name)?.ok_or_else(|| format!("{agent_name} is not managed by ORGII yet"))?;
-    manifest.selected_key_id = key_id;
-    manifest.selected_provider = provider;
-    manifest.selected_model = model;
-    manifest.updated_at = now_stamp();
-    write_manifest(&manifest)?;
-    status_for(agent_name)
+    let _guard = config_operation_guard()?;
+    recover_pending_transaction_unlocked(agent_name)?;
+    if !supported_agent(agent_name) {
+        return Err(format!(
+            "ORGII managed config is not available for {agent_name} in this build"
+        ));
+    }
+    enable_agent_orgii_managed_unlocked(agent_name, key_id, provider, model, force)
 }
 
 #[tauri::command(rename_all = "camelCase")]
 pub async fn cli_config_get_status(agent_name: String) -> Result<CliConfigManagedStatus, String> {
-    tokio::task::spawn_blocking(move || status_for(&agent_name))
-        .await
-        .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command(rename_all = "camelCase")]
-pub async fn cli_config_enable_orgii_managed(
-    agent_name: String,
-    key_id: Option<String>,
-    provider: Option<String>,
-    model: Option<String>,
-    proxy_url: Option<String>,
-    force: bool,
-) -> Result<CliConfigManagedStatus, String> {
     tokio::task::spawn_blocking(move || {
-        if !supported_agent(&agent_name) {
-            return Err(format!(
-                "ORGII managed config is not available for {agent_name} in this build"
-            ));
-        }
-        enable_agent_orgii_managed(&agent_name, key_id, provider, model, proxy_url, force)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command(rename_all = "camelCase")]
-pub async fn cli_config_set_selection(
-    agent_name: String,
-    key_id: Option<String>,
-    provider: Option<String>,
-    model: Option<String>,
-) -> Result<CliConfigManagedStatus, String> {
-    tokio::task::spawn_blocking(move || {
-        if !supported_agent(&agent_name) {
-            return Err(format!(
-                "ORGII managed config is not available for {agent_name} in this build"
-            ));
-        }
-        set_agent_selection(&agent_name, key_id, provider, model)
+        let _guard = config_operation_guard()?;
+        recover_pending_transaction_unlocked(&agent_name)?;
+        status_for_unlocked(&agent_name)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -981,12 +1293,14 @@ pub async fn cli_config_restore_default(
     force: bool,
 ) -> Result<CliConfigManagedStatus, String> {
     tokio::task::spawn_blocking(move || {
+        let _guard = config_operation_guard()?;
+        recover_pending_transaction_unlocked(&agent_name)?;
         if !supported_agent(&agent_name) {
             return Err(format!(
                 "ORGII managed config is not available for {agent_name} in this build"
             ));
         }
-        restore_agent_default(&agent_name, force)
+        restore_agent_default_unlocked(&agent_name, force)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -995,6 +1309,73 @@ pub async fn cli_config_restore_default(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::OsString;
+
+    const TEST_PROXY_TOKEN: &str = "test-proxy-token";
+    static TEST_ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+    struct OrgiiHomeGuard {
+        previous: Option<OsString>,
+    }
+
+    impl OrgiiHomeGuard {
+        fn set(path: &Path) -> Self {
+            let previous = std::env::var_os("ORGII_HOME");
+            std::env::set_var("ORGII_HOME", path);
+            Self { previous }
+        }
+    }
+
+    impl Drop for OrgiiHomeGuard {
+        fn drop(&mut self) {
+            match self.previous.take() {
+                Some(value) => std::env::set_var("ORGII_HOME", value),
+                None => std::env::remove_var("ORGII_HOME"),
+            }
+        }
+    }
+
+    fn test_target(
+        id: &str,
+        target_path: &Path,
+        profile_root: &Path,
+    ) -> CliConfigTargetFileManifest {
+        CliConfigTargetFileManifest {
+            id: id.to_string(),
+            target_path: target_path.to_string_lossy().to_string(),
+            default_backup_path: profile_root
+                .join("default")
+                .join(format!("{id}.bak"))
+                .to_string_lossy()
+                .to_string(),
+            managed_profile_path: profile_root
+                .join("managed")
+                .join(format!("{id}.txt"))
+                .to_string_lossy()
+                .to_string(),
+            original_hash: None,
+            last_applied_hash: None,
+            default_was_missing: false,
+        }
+    }
+
+    fn test_manifest(
+        agent_name: &str,
+        targets: Vec<CliConfigTargetFileManifest>,
+    ) -> CliConfigProfileManifest {
+        CliConfigProfileManifest {
+            agent: agent_name.to_string(),
+            mode: CliConfigMode::OrgiiManaged,
+            target_files: targets,
+            selected_key_id: Some("key-1".to_string()),
+            selected_provider: Some("openai_api".to_string()),
+            selected_model: Some("gpt-test".to_string()),
+            proxy_url: Some(DEFAULT_PROXY_URL.to_string()),
+            proxy_token: Some(TEST_PROXY_TOKEN.to_string()),
+            created_at: "1".to_string(),
+            updated_at: "1".to_string(),
+        }
+    }
 
     #[test]
     fn codex_managed_config_preserves_existing_settings() {
@@ -1006,8 +1387,13 @@ approval_policy = "on-request"
 shell_tool = true
 "#;
 
-        let generated =
-            generate_codex_managed_config(raw, Some("gpt-5-codex"), DEFAULT_PROXY_URL).unwrap();
+        let generated = generate_codex_managed_config(
+            raw,
+            Some("gpt-5-codex"),
+            DEFAULT_PROXY_URL,
+            TEST_PROXY_TOKEN,
+        )
+        .unwrap();
         let parsed: toml::Value = toml::from_str(&generated).unwrap();
 
         assert_eq!(parsed["model"].as_str(), Some("gpt-5-codex"));
@@ -1016,7 +1402,7 @@ shell_tool = true
         assert_eq!(parsed["features"]["shell_tool"].as_bool(), Some(true));
         assert_eq!(
             parsed["model_providers"]["orgii"]["base_url"].as_str(),
-            Some("http://127.0.0.1:17888/v1")
+            Some("http://127.0.0.1:17888/proxy/test-proxy-token/v1")
         );
         assert!(parsed["model_providers"]["orgii"].get("env_key").is_none());
         assert_eq!(
@@ -1027,13 +1413,15 @@ shell_tool = true
 
     #[test]
     fn codex_managed_config_uses_placeholder_model_when_missing() {
-        let generated = generate_codex_managed_config("", None, "http://localhost:9999/v1").unwrap();
+        let generated =
+            generate_codex_managed_config("", None, "http://localhost:9999", TEST_PROXY_TOKEN)
+                .unwrap();
         let parsed: toml::Value = toml::from_str(&generated).unwrap();
 
         assert_eq!(parsed["model"].as_str(), Some(DEFAULT_ORGII_MODEL));
         assert_eq!(
             parsed["model_providers"]["orgii"]["base_url"].as_str(),
-            Some("http://localhost:9999/v1")
+            Some("http://localhost:9999/proxy/test-proxy-token/v1")
         );
     }
 
@@ -1050,9 +1438,13 @@ shell_tool = true
 }
 "#;
 
-        let generated =
-            generate_claude_code_managed_config(raw, Some("claude-sonnet-4-5"), DEFAULT_PROXY_URL)
-                .unwrap();
+        let generated = generate_claude_code_managed_config(
+            raw,
+            Some("claude-sonnet-4-5"),
+            DEFAULT_PROXY_URL,
+            TEST_PROXY_TOKEN,
+        )
+        .unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&generated).unwrap();
 
         assert_eq!(parsed["model"].as_str(), Some("claude-sonnet-4-5"));
@@ -1063,11 +1455,11 @@ shell_tool = true
         assert_eq!(parsed["env"]["CUSTOM_FLAG"].as_str(), Some("keep"));
         assert_eq!(
             parsed["env"]["ANTHROPIC_BASE_URL"].as_str(),
-            Some("http://127.0.0.1:17888/claude")
+            Some("http://127.0.0.1:17888/proxy/test-proxy-token/claude")
         );
         assert_eq!(
             parsed["env"]["ANTHROPIC_AUTH_TOKEN"].as_str(),
-            Some(ORGII_PROXY_TOKEN)
+            Some(TEST_PROXY_TOKEN)
         );
         assert_eq!(
             parsed["env"]["ANTHROPIC_MODEL"].as_str(),
@@ -1076,18 +1468,18 @@ shell_tool = true
     }
 
     #[test]
-    fn claude_code_proxy_base_url_is_idempotent() {
+    fn proxy_base_urls_include_authenticated_route() {
         assert_eq!(
-            claude_code_proxy_base_url("http://127.0.0.1:17888"),
-            "http://127.0.0.1:17888/claude"
+            codex_proxy_base_url(DEFAULT_PROXY_URL, TEST_PROXY_TOKEN),
+            "http://127.0.0.1:17888/proxy/test-proxy-token/v1"
         );
         assert_eq!(
-            claude_code_proxy_base_url("http://127.0.0.1:17888/claude"),
-            "http://127.0.0.1:17888/claude"
+            claude_code_proxy_base_url(DEFAULT_PROXY_URL, TEST_PROXY_TOKEN),
+            "http://127.0.0.1:17888/proxy/test-proxy-token/claude"
         );
         assert_eq!(
-            claude_code_proxy_base_url("http://127.0.0.1:17888/claude/v1"),
-            "http://127.0.0.1:17888/claude"
+            gemini_cli_proxy_base_url(DEFAULT_PROXY_URL, TEST_PROXY_TOKEN),
+            "http://127.0.0.1:17888/proxy/test-proxy-token/gemini"
         );
     }
 
@@ -1111,7 +1503,10 @@ GEMINI_API_KEY="old-key"
 export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
 "#;
         let mut existing = BTreeMap::new();
-        existing.insert(GEMINI_CLI_SETTINGS_FILE_ID.to_string(), settings.to_string());
+        existing.insert(
+            GEMINI_CLI_SETTINGS_FILE_ID.to_string(),
+            settings.to_string(),
+        );
         existing.insert(GEMINI_CLI_ENV_FILE_ID.to_string(), env.to_string());
 
         let generated = generate_managed_configs(
@@ -1119,6 +1514,7 @@ export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
             &existing,
             Some("gemini-2.5-pro"),
             DEFAULT_PROXY_URL,
+            TEST_PROXY_TOKEN,
         )
         .unwrap();
         let generated_settings: serde_json::Value =
@@ -1131,12 +1527,12 @@ export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
             Some("gemini-api-key")
         );
         assert!(generated_env.contains("CUSTOM_FLAG=keep"));
-        assert!(generated_env.contains("GEMINI_API_KEY=\"orgii-managed-proxy\""));
-        assert!(generated_env.contains("GOOGLE_API_KEY=\"orgii-managed-proxy\""));
+        assert!(generated_env.contains("GEMINI_API_KEY=\"test-proxy-token\""));
+        assert!(generated_env.contains("GOOGLE_API_KEY=\"test-proxy-token\""));
         assert!(generated_env.contains("GEMINI_MODEL=\"gemini-2.5-pro\""));
-        assert!(
-            generated_env.contains("GOOGLE_GEMINI_BASE_URL=\"http://127.0.0.1:17888/gemini\"")
-        );
+        assert!(generated_env.contains(
+            "GOOGLE_GEMINI_BASE_URL=\"http://127.0.0.1:17888/proxy/test-proxy-token/gemini\""
+        ));
         assert!(!generated_env.contains("old-key"));
         assert!(!generated_env.contains("https://old.example.com"));
     }
@@ -1146,18 +1542,186 @@ export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
         let targets = agent_manifest_targets(GEMINI_CLI_AGENT).unwrap();
         let ids: Vec<_> = targets.iter().map(|target| target.id.as_str()).collect();
 
-        assert_eq!(ids, vec![GEMINI_CLI_SETTINGS_FILE_ID, GEMINI_CLI_ENV_FILE_ID]);
+        assert_eq!(
+            ids,
+            vec![GEMINI_CLI_SETTINGS_FILE_ID, GEMINI_CLI_ENV_FILE_ID]
+        );
     }
 
     #[test]
-    fn gemini_cli_proxy_base_url_is_idempotent() {
+    fn generated_proxy_token_has_256_bits() {
+        let token = generate_proxy_token();
+        assert_eq!(token.len(), 64);
+        assert!(token.chars().all(|ch| ch.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn atomic_write_replaces_existing_file_without_delete_gap() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("config.json");
+        std::fs::write(&path, b"old").unwrap();
+
+        write_file_atomic(&path, b"new").unwrap();
+
+        assert_eq!(std::fs::read(&path).unwrap(), b"new");
+    }
+
+    #[test]
+    fn transaction_rolls_back_prior_targets_when_later_write_fails() {
+        let _env_lock = TEST_ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let _home = OrgiiHomeGuard::set(&temp.path().join("orgii-home"));
+        let target_a_path = temp.path().join("a.json");
+        let blocked_parent = temp.path().join("blocked-parent");
+        let target_b_path = blocked_parent.join("b.json");
+        std::fs::write(&target_a_path, b"original-a").unwrap();
+        std::fs::write(&blocked_parent, b"not-a-directory").unwrap();
+
+        let profile_root = temp.path().join("profiles");
+        let target_a = test_target("a", &target_a_path, &profile_root);
+        let target_b = test_target("b", &target_b_path, &profile_root);
+        let targets = vec![target_a.clone(), target_b.clone()];
+        let snapshots = read_target_snapshots(&targets).unwrap();
+        let manifest = test_manifest("test-agent", targets);
+        let mutations = BTreeMap::from([
+            (
+                "a".to_string(),
+                TargetMutation::Write(b"managed-a".to_vec()),
+            ),
+            (
+                "b".to_string(),
+                TargetMutation::Write(b"managed-b".to_vec()),
+            ),
+        ]);
+
+        let result = execute_transaction("test-agent", &snapshots, &mutations, &manifest);
+
+        assert!(result.is_err());
+        assert_eq!(std::fs::read(&target_a_path).unwrap(), b"original-a");
+        assert!(!target_b_path.exists());
+        assert!(!transaction_journal_path("test-agent").exists());
+    }
+
+    #[test]
+    fn pending_transaction_recovers_exact_pre_operation_content() {
+        let _env_lock = TEST_ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let _home = OrgiiHomeGuard::set(&temp.path().join("orgii-home"));
+        let target_path = temp.path().join("config.toml");
+        std::fs::write(&target_path, b"original").unwrap();
+        let target = test_target("config", &target_path, &temp.path().join("profiles"));
+        let snapshots = read_target_snapshots(std::slice::from_ref(&target)).unwrap();
+        let manifest = test_manifest("test-agent", vec![target]);
+
+        begin_transaction("test-agent", &snapshots, &manifest).unwrap();
+        write_file_atomic(&target_path, b"managed").unwrap();
+        recover_pending_transaction_unlocked("test-agent").unwrap();
+
+        assert_eq!(std::fs::read(&target_path).unwrap(), b"original");
+        assert!(!transaction_journal_path("test-agent").exists());
+    }
+
+    #[test]
+    fn committed_transaction_cleanup_does_not_undo_target_changes() {
+        let _env_lock = TEST_ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let _home = OrgiiHomeGuard::set(&temp.path().join("orgii-home"));
+        let target_path = temp.path().join("config.toml");
+        std::fs::write(&target_path, b"original").unwrap();
+        let target = test_target("config", &target_path, &temp.path().join("profiles"));
+        let snapshots = read_target_snapshots(std::slice::from_ref(&target)).unwrap();
+        let manifest = test_manifest("test-agent", vec![target]);
+
+        begin_transaction("test-agent", &snapshots, &manifest).unwrap();
+        write_file_atomic(&target_path, b"managed").unwrap();
+        write_manifest(&manifest).unwrap();
+        recover_pending_transaction_unlocked("test-agent").unwrap();
+
+        assert_eq!(std::fs::read(&target_path).unwrap(), b"managed");
+        assert!(!transaction_journal_path("test-agent").exists());
+    }
+
+    #[test]
+    fn refreshed_default_backups_are_versioned_and_never_overwritten() {
+        let _env_lock = TEST_ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let _home = OrgiiHomeGuard::set(&temp.path().join("orgii-home"));
+        let target_path = temp.path().join("config.toml");
+        let profile_root = temp.path().join("profiles");
+        let target = test_target("config", &target_path, &profile_root);
+
+        std::fs::write(&target_path, b"default-v1").unwrap();
+        let snapshots = read_target_snapshots(std::slice::from_ref(&target)).unwrap();
+        let first = ensure_default_backup_from_snapshot(
+            "test-agent",
+            target,
+            snapshots.get("config").unwrap(),
+            true,
+        )
+        .unwrap();
+
+        std::fs::write(&target_path, b"default-v2").unwrap();
+        let snapshots = read_target_snapshots(std::slice::from_ref(&first)).unwrap();
+        let second = ensure_default_backup_from_snapshot(
+            "test-agent",
+            first.clone(),
+            snapshots.get("config").unwrap(),
+            true,
+        )
+        .unwrap();
+
+        assert_ne!(first.default_backup_path, second.default_backup_path);
         assert_eq!(
-            gemini_cli_proxy_base_url("http://127.0.0.1:17888"),
-            "http://127.0.0.1:17888/gemini"
+            std::fs::read(&first.default_backup_path).unwrap(),
+            b"default-v1"
         );
         assert_eq!(
-            gemini_cli_proxy_base_url("http://127.0.0.1:17888/gemini"),
-            "http://127.0.0.1:17888/gemini"
+            std::fs::read(&second.default_backup_path).unwrap(),
+            b"default-v2"
         );
+    }
+
+    #[test]
+    fn restore_is_a_noop_when_default_mode_is_already_active() {
+        let _env_lock = TEST_ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let _home = OrgiiHomeGuard::set(&temp.path().join("orgii-home"));
+        let target_path = temp.path().join("config.toml");
+        let profile_root = temp.path().join("profiles");
+        let mut target = test_target("config", &target_path, &profile_root);
+        let backup_path = PathBuf::from(&target.default_backup_path);
+        std::fs::create_dir_all(backup_path.parent().unwrap()).unwrap();
+        std::fs::write(&backup_path, b"older-default").unwrap();
+        std::fs::write(&target_path, b"new-user-change").unwrap();
+        target.original_hash = Some(sha256_bytes(b"older-default"));
+        target.last_applied_hash = Some(sha256_bytes(b"managed"));
+
+        let mut manifest = test_manifest(CODEX_AGENT, vec![target]);
+        manifest.mode = CliConfigMode::Default;
+        write_manifest(&manifest).unwrap();
+
+        restore_agent_default_unlocked(CODEX_AGENT, false).unwrap();
+
+        assert_eq!(std::fs::read(&target_path).unwrap(), b"new-user-change");
+    }
+
+    #[test]
+    fn missing_managed_mode_backup_is_never_recreated_from_active_config() {
+        let temp = tempfile::tempdir().unwrap();
+        let target_path = temp.path().join("config.toml");
+        std::fs::write(&target_path, b"managed-content").unwrap();
+        let mut target = test_target("config", &target_path, &temp.path().join("profiles"));
+        target.original_hash = Some(sha256_bytes(b"original-content"));
+        target.last_applied_hash = Some(sha256_bytes(b"managed-content"));
+        let snapshots = read_target_snapshots(std::slice::from_ref(&target)).unwrap();
+
+        let result = ensure_default_backup_from_snapshot(
+            "test-agent",
+            target,
+            snapshots.get("config").unwrap(),
+            false,
+        );
+
+        assert!(result.is_err());
     }
 }

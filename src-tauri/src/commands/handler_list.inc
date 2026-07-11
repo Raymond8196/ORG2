@@ -807,8 +807,7 @@ agent_cli::codex::commands::codex_config_read_raw,
 agent_cli::codex::commands::codex_config_write_raw,
 // CLI config manager (Default <-> ORGII Managed)
 agent_cli::managed_config::cli_config_get_status,
-agent_cli::managed_config::cli_config_enable_orgii_managed,
-agent_cli::managed_config::cli_config_set_selection,
+cli_managed_proxy::cli_config_enable_orgii_managed,
 agent_cli::managed_config::cli_config_restore_default,
 cli_managed_proxy::cli_managed_proxy_status,
 // Claude Code config (~/.claude/settings.json)
