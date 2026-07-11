@@ -7,7 +7,6 @@ import type {
   CliConfigManagedStatus,
   CliManagedProxyStatus,
 } from "@src/api/tauri/rpc/schemas/agentOrgs";
-import { CLI_AGENT } from "@src/api/tauri/rpc/schemas/validation";
 import { formatAgentType } from "@src/assets/providers";
 import Button from "@src/components/Button";
 import Message from "@src/components/Message";
@@ -22,7 +21,6 @@ import {
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import type { AvailableCliAgent } from "../types";
 import {
@@ -35,14 +33,6 @@ type CliConfigMode = "default" | "orgii_managed";
 type PendingAction = "apply" | "forceApply" | "restore" | "forceRestore";
 
 const DEFAULT_PROXY_URL = "http://127.0.0.1:17888";
-
-function isManagedConfigSupportedAgent(agentName: string): boolean {
-  return (
-    agentName === CLI_AGENT.CODEX ||
-    agentName === CLI_AGENT.CLAUDE_CODE ||
-    agentName === CLI_AGENT.GEMINI
-  );
-}
 
 function accountLabel(account: KeyVaultAccount): string {
   const name = account.name || account.apiKeyPreview || account.authMethod;
@@ -118,11 +108,6 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
   }, [modelIds]);
 
   const loadProxyStatus = useCallback(async () => {
-    if (!isManagedConfigSupportedAgent(agent.name)) {
-      setProxyStatus(null);
-      return;
-    }
-
     try {
       const nextProxyStatus = await rpc.agentOrgs.managedConfig.proxyStatus({
         agentName: agent.name,
@@ -142,11 +127,6 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
   }, [agent.name]);
 
   const loadStatus = useCallback(async () => {
-    if (!isManagedConfigSupportedAgent(agent.name)) {
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     try {
       const [nextStatus, nextProxyStatus] = await Promise.all([
@@ -300,19 +280,9 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
     [proxyCredentials]
   );
 
-  if (!isManagedConfigSupportedAgent(agent.name)) return null;
-
-  if (loading) {
-    return (
-      <SectionContainer
-        title={tr("agentOrgs.cliManagedConfig.title", "CLI config switch")}
-      >
-        <Placeholder variant="loading" />
-      </SectionContainer>
-    );
+  if (loading || !status?.supported || proxyStatus?.supported === false) {
+    return null;
   }
-
-  if (status && !status.supported) return null;
 
   const targetFiles = status?.targetFiles ?? [];
   const managedActive = draftMode === "orgii_managed";
