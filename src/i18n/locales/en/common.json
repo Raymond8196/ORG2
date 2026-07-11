@@ -2042,6 +2042,12 @@
     "removeWorktreeMessage": "This removes the worktree checkout from disk. The branch and commits are kept.",
     "removeWorktreeSuccess": "Worktree removed",
     "removeWorktreeFailed": "Failed to remove worktree",
+    "emptyState": {
+      "viewSourceControl": "View Source Control",
+      "viewIssues": "View Issues",
+      "viewGitHistory": "View Git history",
+      "viewPullRequests": "View PRs"
+    },
     "pill": {
       "focus": "Focus",
       "allChanges": "All Changes"

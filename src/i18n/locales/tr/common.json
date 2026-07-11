@@ -1938,6 +1938,12 @@
     "removeWorktreeMessage": "Bu, Worktree checkout'ını diskten kaldırır. Branch ve commits korunur.",
     "removeWorktreeSuccess": "Worktree kaldırıldı",
     "removeWorktreeFailed": "Worktree kaldırılamadı",
+    "emptyState": {
+      "viewSourceControl": "Source Control'ü görüntüle",
+      "viewIssues": "Issues'ları görüntüle",
+      "viewGitHistory": "Git geçmişini görüntüle",
+      "viewPullRequests": "Pull Requests'leri görüntüle"
+    },
     "pill": {
       "focus": "Odak",
       "allChanges": "Tüm Değişiklikler"

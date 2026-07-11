@@ -1958,6 +1958,12 @@
     "removeWorktreeMessage": "这会从磁盘移除 Worktree checkout。branch 和 commits 会保留。",
     "removeWorktreeSuccess": "Worktree 已移除",
     "removeWorktreeFailed": "移除 Worktree 失败",
+    "emptyState": {
+      "viewSourceControl": "查看 Source Control",
+      "viewIssues": "查看 Issues",
+      "viewGitHistory": "查看 Git 历史",
+      "viewPullRequests": "查看 Pull Requests"
+    },
     "pill": {
       "focus": "聚焦",
       "allChanges": "全部更改"
