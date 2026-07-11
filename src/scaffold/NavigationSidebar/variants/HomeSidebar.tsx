@@ -31,6 +31,7 @@ import { spotlightOpenAtom } from "@src/store/ui/uiAtom";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import { SidebarBottomBar } from "../blocks";
+import SidebarSettingsMenuButton from "../blocks/SidebarSettingsMenuButton";
 import type { NavigationMenuItem } from "../components/NavigationMenu/config";
 import { SidebarSearchShortcutTooltip } from "../connectors/WorkstationSidebarConnector/sidebarTabs";
 import type { SidebarTab } from "../types";
@@ -242,7 +243,9 @@ const HomeSidebar: React.FC = () => {
       beforeAddNewActions={workstationHeaderAction}
       defaultOpenKeys={["workspace"]}
       enableHoverIconAnimation
-      bottomContent={<SidebarBottomBar />}
+      bottomContent={
+        <SidebarBottomBar settingsAction={<SidebarSettingsMenuButton />} />
+      }
     />
   );
 };

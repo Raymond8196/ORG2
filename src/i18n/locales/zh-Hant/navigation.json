@@ -466,6 +466,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "切換 ORG",
     "addOrg": "新增 ORG",
     "unknownOrg": "未知 ORG",
     "emptyColleagues": "暫無同事活動",

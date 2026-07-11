@@ -149,17 +149,12 @@
       "zh-Hant": "Chinois traditionnel"
     },
     "layout": "Disposition",
-    "globalLayoutMethod": "Méthode de disposition",
-    "globalLayoutMethodDesc": "Choisissez l'encadrement des panneaux de contenu",
     "spotlightPlacement": "Position de Spotlight",
     "spotlightPlacementDesc": "Choisissez où s’ouvre la palette de commandes Spotlight",
     "spotlightPlacementOptions": {
       "top": "Haut",
       "center": "Centre de la page"
     },
-    "inset": "Confort",
-    "full": "Étendu",
-    "compact": "Moderne",
     "left": "Gauche",
     "right": "Droite",
     "light": "Clair",

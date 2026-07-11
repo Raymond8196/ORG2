@@ -295,32 +295,6 @@ export const isOnlineAtom = atom<boolean>(
 );
 isOnlineAtom.debugLabel = "isOnlineAtom";
 
-// ============================================
-// Global Layout Method (inset / full / compact)
-// ============================================
-
-/**
- * Single source of truth for layout density across all surfaces
- * (MainApp, Workstation, Simulator).
- *
- * - "inset":   padded container with rounded corners (default chrome look).
- * - "full":    edge-to-edge content panel; padded only when the sidebar is
- *              visible, otherwise the content fills the window.
- * - "compact": Cursor Agent-style chrome — sidebar is flush with the window
- *              edge (no padding, no radius) and the entire app surface is
- *              `bg-bg-2` (no rounded inset content panel).
- */
-export type GlobalLayoutMethod = "inset" | "full" | "compact";
-
-export const globalLayoutMethodAtom = atom(
-  (get) =>
-    get(settingsAtom)["general.globalLayoutMethod"] as GlobalLayoutMethod,
-  (_get, set, value: GlobalLayoutMethod) => {
-    set(updateSettingAtom, { key: "general.globalLayoutMethod", value });
-  }
-);
-globalLayoutMethodAtom.debugLabel = "globalLayoutMethodAtom";
-
 export type SpotlightPlacement = "top" | "center";
 
 export const spotlightPlacementAtom = atom(

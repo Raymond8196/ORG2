@@ -375,6 +375,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "Zmień ORG",
     "addOrg": "Dodaj ORG",
     "unknownOrg": "Nieznana ORG",
     "emptyColleagues": "Brak aktywności współpracowników",

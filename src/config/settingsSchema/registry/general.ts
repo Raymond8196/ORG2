@@ -124,18 +124,6 @@ export const GENERAL_SETTINGS_REGISTRY = {
       helveticaNeue: "Helvetica Neue style",
     },
   },
-  "general.globalLayoutMethod": {
-    schema: z.enum(["inset", "full", "compact"]),
-    default: "compact" as const,
-    description:
-      'Global layout method applied across MainApp, Workstation, and Simulator: "inset" (padded with rounded corners), "full" (edge-to-edge content panel), or "compact" (Cursor Agent-style — sidebar flush with edge, no radius, single bg-bg-2 surface)',
-    category: "general",
-    enumLabels: {
-      inset: "Comfort",
-      full: "Expanded",
-      compact: "Modern",
-    },
-  },
   "general.spotlightPlacement": {
     schema: z.enum(["top", "center"]),
     default: "top" as const,
