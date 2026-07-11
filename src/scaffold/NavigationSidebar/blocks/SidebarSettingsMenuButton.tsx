@@ -1,5 +1,6 @@
 import {
   ChevronRight,
+  Circle,
   Contrast,
   Gauge,
   HelpCircle,
@@ -324,6 +325,30 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
               <div className={DROPDOWN_CLASSES.menuSeparator} />
               <button
                 type="button"
+                className={`${DROPDOWN_CLASSES.menuActionItem} ${activeSubmenu === "presence" ? DROPDOWN_CLASSES.itemActive : ""} justify-between`}
+                onMouseEnter={(event) =>
+                  openSubmenu("presence", event.currentTarget)
+                }
+                onFocus={(event) =>
+                  openSubmenu("presence", event.currentTarget)
+                }
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <Circle
+                    size={DROPDOWN_ITEM.iconSize}
+                    className="shrink-0 text-success-6"
+                  />
+                  <span className="truncate">
+                    {tSettings("myRoles.tabs.presence")}
+                  </span>
+                </span>
+                <ChevronRight
+                  size={DROPDOWN_ITEM.iconSize}
+                  className={MENU_ARROW_CLASS_NAME}
+                />
+              </button>
+              <button
+                type="button"
                 className={`${DROPDOWN_CLASSES.menuActionItem} ${activeSubmenu === "appearance" ? DROPDOWN_CLASSES.itemActive : ""} justify-between`}
                 onMouseEnter={(event) =>
                   openSubmenu("appearance", event.currentTarget)
@@ -430,6 +455,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
         submenuPosition={submenuPosition}
         themeOptions={themeOptions}
         themePresetLabel={tSettings("general.themePreset")}
+        onPresenceSelectionComplete={closeAll}
         onSelectAppearanceMode={(mode) => void handleSelectAppearanceMode(mode)}
         onSelectTheme={(themeId) => void handleSelectTheme(themeId)}
         onSubmenuMouseDown={handleSubmenuMouseDown}
