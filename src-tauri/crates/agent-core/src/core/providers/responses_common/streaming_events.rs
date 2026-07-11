@@ -23,7 +23,7 @@ pub enum ResponsesStreamOutput {
     },
     ToolCallDone(ToolCallRequest),
     ResponseCompleted(ResponsesResponse),
-    Error(String),
+    Error(super::types::ResponsesError),
     UnknownFrame {
         event_type: String,
         sample: String,
@@ -124,17 +124,19 @@ impl ResponsesStreamNormalizer {
             ResponseStreamEventKind::Error => {
                 let error = event
                     .error
-                    .or_else(|| event.response.and_then(|response| response.error));
-                let message = error
-                    .as_ref()
-                    .map(|error| error.display_message())
-                    .unwrap_or_else(|| {
-                        format!(
-                            "Responses API returned {} without an error payload",
-                            event.event_type
-                        )
+                    .or_else(|| event.response.and_then(|response| response.error))
+                    .unwrap_or_else(|| super::types::ResponsesError {
+                        message: event.message.or_else(|| {
+                            Some(format!(
+                                "Responses API returned {} without an error message",
+                                event.event_type
+                            ))
+                        }),
+                        code: event.code,
+                        error_type: None,
+                        param: event.param,
                     });
-                outputs.push(ResponsesStreamOutput::Error(message));
+                outputs.push(ResponsesStreamOutput::Error(error));
             }
             ResponseStreamEventKind::Unknown(event_type) => {
                 self.unknown_frame_count += 1;
@@ -449,7 +451,27 @@ mod tests {
     }
 
     #[test]
-    fn normalizes_top_level_error_event() {
+    fn normalizes_official_top_level_error_event() {
+        let mut normalizer = ResponsesStreamNormalizer::new();
+
+        let outputs = normalizer.ingest(event(json!({
+            "type": "error",
+            "code": "context_length_exceeded",
+            "message": "Your input exceeds the context window.",
+            "param": "input"
+        })));
+
+        assert!(matches!(
+            outputs.as_slice(),
+            [ResponsesStreamOutput::Error(error)]
+                if error.code.as_deref() == Some("context_length_exceeded")
+                    && error.message.as_deref() == Some("Your input exceeds the context window.")
+                    && error.param.as_deref() == Some("input")
+        ));
+    }
+
+    #[test]
+    fn normalizes_compatible_nested_top_level_error_event() {
         let mut normalizer = ResponsesStreamNormalizer::new();
 
         let outputs = normalizer.ingest(event(json!({
@@ -463,10 +485,9 @@ mod tests {
 
         assert!(matches!(
             outputs.as_slice(),
-            [ResponsesStreamOutput::Error(message)]
-                if message.starts_with("Your input exceeds the context window.")
-                    && message.contains("code=context_length_exceeded")
-                    && message.contains("type=invalid_request_error")
+            [ResponsesStreamOutput::Error(error)]
+                if error.code.as_deref() == Some("context_length_exceeded")
+                    && error.error_type.as_deref() == Some("invalid_request_error")
         ));
     }
 
@@ -489,10 +510,10 @@ mod tests {
 
         assert!(matches!(
             outputs.as_slice(),
-            [ResponsesStreamOutput::Error(message)]
-                if message.starts_with("The service encountered an internal error.")
-                    && message.contains("code=internal_error")
-                    && message.contains("type=server_error")
+            [ResponsesStreamOutput::Error(error)]
+                if error.message.as_deref() == Some("The service encountered an internal error.")
+                    && error.code.as_deref() == Some("internal_error")
+                    && error.error_type.as_deref() == Some("server_error")
         ));
     }
 
@@ -515,10 +536,10 @@ mod tests {
 
         assert!(matches!(
             outputs.as_slice(),
-            [ResponsesStreamOutput::Error(message)]
-                if message.contains("code=context_length_exceeded")
-                    && message.contains("type=invalid_request_error")
-                    && message.contains("param=input")
+            [ResponsesStreamOutput::Error(error)]
+                if error.code.as_deref() == Some("context_length_exceeded")
+                    && error.error_type.as_deref() == Some("invalid_request_error")
+                    && error.param.as_deref() == Some("input")
         ));
     }
 
@@ -537,8 +558,9 @@ mod tests {
 
         assert!(matches!(
             outputs.as_slice(),
-            [ResponsesStreamOutput::Error(message)]
-                if message == "Responses API returned response.failed without an error payload"
+            [ResponsesStreamOutput::Error(error)]
+                if error.message.as_deref()
+                    == Some("Responses API returned response.failed without an error message")
         ));
     }
 
