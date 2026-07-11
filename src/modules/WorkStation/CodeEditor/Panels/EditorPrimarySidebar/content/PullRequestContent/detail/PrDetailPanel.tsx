@@ -10,17 +10,11 @@
  * shared state. Reuses commit-history + issue-timeline formatting throughout.
  */
 import { useAtom, useAtomValue } from "jotai";
-import {
-  CheckCircle2,
-  ExternalLink,
-  GitPullRequest,
-  Loader,
-  XCircle,
-} from "lucide-react";
+import { ArrowUpRight, GitPullRequest } from "lucide-react";
 import React, { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
+import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { getPrStatusVariant } from "@src/shared/pr/prStatus";
 import {
   type PrDetailTab,
@@ -40,18 +34,6 @@ interface PrDetailPanelProps {
   repoPath: string;
   repoId?: string;
   onFileSelect?: (path: string) => void;
-}
-
-function ChecksStateDot({ state }: { state: string }): React.ReactNode {
-  if (state === "success")
-    return (
-      <CheckCircle2 size={12} strokeWidth={2} className="text-success-6" />
-    );
-  if (state === "failure")
-    return <XCircle size={12} strokeWidth={2} className="text-danger-6" />;
-  return (
-    <Loader size={12} strokeWidth={2} className="animate-spin text-warning-6" />
-  );
 }
 
 interface TabDef {
@@ -95,6 +77,11 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         count: state.conversation.length + state.reviews.length,
       },
       {
+        key: "changes",
+        label: t("git.pr.tabs.changes", "Changes"),
+        count: state.files.length,
+      },
+      {
         key: "commits",
         label: t("git.pr.tabs.commits", "Commits"),
         count: state.commits.length,
@@ -102,14 +89,6 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       {
         key: "checks",
         label: t("git.pr.tabs.checks", "Checks"),
-        badge: state.checks ? (
-          <ChecksStateDot state={state.checks.state} />
-        ) : undefined,
-      },
-      {
-        key: "changes",
-        label: t("git.pr.tabs.changes", "Changes"),
-        count: state.files.length,
       },
     ],
     [
@@ -117,15 +96,24 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       state.conversation.length,
       state.reviews.length,
       state.commits.length,
-      state.checks,
       state.files.length,
     ]
   );
 
+  if (state.loading) {
+    return (
+      <Placeholder
+        variant="loading"
+        placement="detail-panel"
+        fillParentHeight
+      />
+    );
+  }
+
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="allow-select-deep flex h-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 items-center gap-2 border-b border-border-1 px-4 py-2.5">
+      <div className="flex shrink-0 items-center gap-2 px-4 py-2.5">
         <span
           className={`inline-flex h-5 items-center gap-1 rounded-full px-2 text-[11px] font-medium ${statusVariant.badgeClass}`}
         >
@@ -148,20 +136,10 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             {identity.headBranch}
           </span>
         </span>
-        <Button
-          href={identity.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="tertiary"
-          size="small"
-          iconOnly
-          icon={<ExternalLink size={14} strokeWidth={2} />}
-          title={t("actions.openOnGitHub", "Open on GitHub")}
-        />
       </div>
 
       {/* Sub-tab bar */}
-      <div className="flex shrink-0 items-center gap-1 border-b border-border-1 px-3">
+      <div className="flex shrink-0 items-center gap-1 border-b border-border-1 pl-3 pr-2">
         {tabs.map((tab) => {
           const isActive = tab.key === activeTab;
           return (
@@ -169,6 +147,8 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
+              aria-label={tab.label}
+              title={tab.label}
               className={`flex items-center gap-1.5 border-b-2 px-2.5 py-2 text-[12px] transition-colors ${
                 isActive
                   ? "border-primary-6 font-medium text-text-1"
@@ -185,6 +165,16 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             </button>
           );
         })}
+        <a
+          href={identity.url}
+          target="_blank"
+          rel="noreferrer"
+          className="ml-auto flex h-7 w-7 shrink-0 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
+          aria-label={t("actions.openOnGitHub", "Open on GitHub")}
+          title={t("actions.openOnGitHub", "Open on GitHub")}
+        >
+          <ArrowUpRight size={14} strokeWidth={2} />
+        </a>
       </div>
 
       {/* Error banner */}

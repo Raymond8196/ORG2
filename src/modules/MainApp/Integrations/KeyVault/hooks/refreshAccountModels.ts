@@ -184,13 +184,17 @@ async function fetchModelsForAccount(
 }
 
 export interface RefreshAccountModelsResult {
+  /** Available models after the refresh. */
   models: string[];
+  /** Available models before the refresh (for computing added/removed). */
+  previousModels: string[];
 }
 
 export async function refreshAccountModels(
   account: KeyVaultAccount
 ): Promise<RefreshAccountModelsResult> {
   const previousHealth = account.healthStatus ?? "valid";
+  const previousModels = account.availableModels ?? [];
   let fetched: FetchedAccountModels;
 
   try {
@@ -276,5 +280,91 @@ export async function refreshAccountModels(
     fetched.modelContextLengths
   );
 
-  return { models: fetched.models };
+  return { models: fetched.models, previousModels };
+}
+
+export interface RefreshAllAccountModelsSummary {
+  /** Number of accounts attempted. */
+  total: number;
+  /** Number of accounts whose refresh rejected. */
+  failed: number;
+  /** Distinct model ids that appeared after refresh (across all accounts). */
+  added: number;
+  /** Distinct model ids that disappeared after refresh (across all accounts). */
+  removed: number;
+}
+
+/**
+ * Refresh models for every provided account in parallel and tally the net
+ * added/removed models across all of them. Single shared pipeline used by both
+ * the Key Vault models table and the model spotlight refresh buttons — do not
+ * re-implement the loop at call sites.
+ */
+export async function refreshAllAccountModels(
+  accounts: KeyVaultAccount[]
+): Promise<RefreshAllAccountModelsSummary> {
+  const results = await Promise.allSettled(
+    accounts.map((account) => refreshAccountModels(account))
+  );
+
+  let failed = 0;
+  let added = 0;
+  let removed = 0;
+
+  for (const result of results) {
+    if (result.status === "rejected") {
+      failed += 1;
+      continue;
+    }
+    const before = new Set(result.value.previousModels);
+    const after = new Set(result.value.models);
+    for (const model of after) {
+      if (!before.has(model)) added += 1;
+    }
+    for (const model of before) {
+      if (!after.has(model)) removed += 1;
+    }
+  }
+
+  return { total: accounts.length, failed, added, removed };
+}
+
+type RefreshSummaryTranslate = (
+  key: string,
+  options?: Record<string, unknown>
+) => string;
+
+/**
+ * Which Message tone to use for a refresh summary: `warning` when any account
+ * failed, otherwise `success`. Shared so every refresh entry point renders the
+ * same toast semantics.
+ */
+export function refreshSummaryTone(
+  summary: RefreshAllAccountModelsSummary
+): "success" | "warning" {
+  return summary.failed > 0 ? "warning" : "success";
+}
+
+/**
+ * Human-readable toast text for a refresh summary, reporting how many models
+ * were added / removed (and how many accounts failed, if any). Single source of
+ * truth for both the Key Vault table and the model spotlight.
+ */
+export function formatRefreshSummary(
+  summary: RefreshAllAccountModelsSummary,
+  t: RefreshSummaryTranslate
+): string {
+  const { added, removed, failed, total } = summary;
+  if (failed > 0) {
+    return t("keyVault.toasts.refreshPartial", {
+      failed,
+      total,
+      added,
+      removed,
+    });
+  }
+  if (added === 0 && removed === 0) {
+    return t("keyVault.toasts.refreshedNoChange");
+  }
+  return t("keyVault.toasts.refreshedDelta", { added, removed });
 }

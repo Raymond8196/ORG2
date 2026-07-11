@@ -64,7 +64,7 @@ function isSameOrDescendant(candidate: string, parent: string): boolean {
 
 function folderIdForPath(
   path: string | undefined,
-  folders: WorkspacePortProbe[],
+  folders: WorkspacePortProbe[]
 ): string | null {
   if (!path) {
     return null;
@@ -89,7 +89,7 @@ function folderIdForPath(
 function folderIdForTerminalSession(
   session: TerminalSession,
   folders: WorkspacePortProbe[],
-  fallbackFolderId: string | null,
+  fallbackFolderId: string | null
 ): string | null {
   return (
     folderIdForPath(session.liveCwd ?? session.cwd, folders) ?? fallbackFolderId
@@ -128,7 +128,7 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
     const flushPending = () => {
       debounceTimerRef.current = null;
       const entries = Array.from(pendingOriginsByFolder.entries()).map(
-        ([folderId, origins]) => [folderId, Array.from(origins)] as const,
+        ([folderId, origins]) => [folderId, Array.from(origins)] as const
       );
       pendingOriginsByFolder.clear();
       if (entries.length === 0) {
@@ -165,14 +165,14 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
       }
       debounceTimerRef.current = window.setTimeout(
         flushPending,
-        WORKSPACE_PORT_ADVERTISED_URL_DEBOUNCE_MS,
+        WORKSPACE_PORT_ADVERTISED_URL_DEBOUNCE_MS
       );
     };
 
     const ingestChunk = (
       sessionId: string,
       folderId: string | null,
-      chunk: string,
+      chunk: string
     ) => {
       const previous = buffers.get(sessionId) ?? "";
       let next = previous + chunk;
@@ -181,7 +181,7 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
       }
       const lastBreak = Math.max(
         next.lastIndexOf("\n"),
-        next.lastIndexOf("\r"),
+        next.lastIndexOf("\r")
       );
       if (lastBreak === -1) {
         buffers.set(sessionId, next);
@@ -207,7 +207,7 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
               const folderId = folderIdForTerminalSession(
                 session,
                 foldersRef.current,
-                fallbackFolderId,
+                fallbackFolderId
               );
               const { bytes, data } = event.payload;
               if (bytes && bytes.length > 0) {
@@ -222,7 +222,7 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
               if (data) {
                 ingestChunk(backendSessionId, folderId, data);
               }
-            },
+            }
           );
           if (cancelled) {
             safeUnlisten(unlisten);

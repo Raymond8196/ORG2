@@ -12,7 +12,7 @@ import {
   useDockFilterUrlSync,
   useWorkStationPanels,
 } from "@src/hooks/workStation";
-import { GUIDE_TARGETS } from "@src/scaffold/Tutorials";
+import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import { workstationActiveSessionIdAtom } from "@src/store/session";
 import {
   CHAT_PANEL_SURFACE_KIND,
@@ -53,16 +53,10 @@ interface AppShellProps {
   isActive?: boolean;
   /** Whether the chat panel is taking over the WorkStation surface */
   chatPanelFocused?: boolean;
-  /** Whether using full layout mode (chat panel inside, no frame radius needed) */
-  isFullMode?: boolean;
 }
 
 const AppShell = React.memo(
-  ({
-    isActive = true,
-    chatPanelFocused = false,
-    isFullMode = false,
-  }: AppShellProps) => {
+  ({ isActive = true, chatPanelFocused = false }: AppShellProps) => {
     const appMode = useRouteAppMode();
     const _titleBarHidden = useAtomValue(workStationTitleBarHiddenAtom);
     const statusBarHidden = useAtomValue(workStationStatusBarHiddenAtom);
@@ -157,14 +151,11 @@ const AppShell = React.memo(
       isOpsControlStation && opsControlPeekHost === null;
 
     return (
-      <div
-        className={`group relative flex h-full w-full min-w-0 flex-col overflow-hidden bg-workstation-bg ${isFullMode ? "" : "rounded-page"}`}
-      >
+      <div className="group relative flex h-full w-full min-w-0 flex-col overflow-hidden bg-workstation-bg">
         {isAgentStation && <AgentStationTopHeader />}
         <AgentStationChromeFrame
           enabled={followAgentHighlightEnabled && isAgentStation}
           illuminated={illuminateAgentStationChrome}
-          isFullMode={isFullMode}
           captionVisible={agentStationCaptionVisible}
           hasSession={!!workstationActiveSessionId}
         >

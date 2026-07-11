@@ -20,6 +20,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import {
   BriefcaseBusiness,
   KeyRound,
+  LayoutGrid,
   ListTodo,
   MessageSquarePlus,
   Plus,
@@ -215,6 +216,7 @@ const TabPill = memo(function TabPill({
 // ─── Plus-menu dropdown ───────────────────────────────────────────────────────
 
 interface PlusMenuContentProps {
+  onOpenLaunchpad: () => void;
   onNewSession: () => void;
   onNewWorkItem: () => void;
   onManageIssues: () => void;
@@ -223,16 +225,23 @@ interface PlusMenuContentProps {
 }
 
 function PlusMenuContent({
+  onOpenLaunchpad,
   onNewSession,
   onNewWorkItem,
   onManageIssues,
   onAddApiKey,
   onClose,
 }: PlusMenuContentProps) {
-  const { t } = useTranslation("sessions");
+  const { t } = useTranslation(["sessions", "navigation"]);
   const MOD = isMac ? "⌘" : "Ctrl";
 
   const items = [
+    {
+      id: "launchpad",
+      icon: <LayoutGrid size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("navigation:launchpad.dashboard"),
+      onClick: onOpenLaunchpad,
+    },
     {
       id: "new-session",
       icon: <MessageSquarePlus size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
@@ -295,6 +304,7 @@ function PlusMenuContent({
 // ─── Exported + menu button (placed in header toolbar, left of ...) ───────────
 
 export interface ChatPanelPlusMenuProps {
+  onOpenLaunchpad: () => void;
   onNewSession: () => void;
   onNewWorkItem: () => void;
   onManageIssues: () => void;
@@ -302,6 +312,7 @@ export interface ChatPanelPlusMenuProps {
 }
 
 export function ChatPanelPlusMenu({
+  onOpenLaunchpad,
   onNewSession,
   onNewWorkItem,
   onManageIssues,
@@ -316,6 +327,7 @@ export function ChatPanelPlusMenu({
     <Dropdown
       droplist={
         <PlusMenuContent
+          onOpenLaunchpad={onOpenLaunchpad}
           onNewSession={onNewSession}
           onNewWorkItem={onNewWorkItem}
           onManageIssues={onManageIssues}

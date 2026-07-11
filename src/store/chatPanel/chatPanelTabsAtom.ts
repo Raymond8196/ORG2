@@ -22,6 +22,12 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 import { destroyChatPanelTerminalAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
+import { sessionByIdAtom } from "@src/store/session/sessionAtom";
+import {
+  activeSessionIdAtom,
+  jumpToSessionAtom,
+  workstationActiveSessionIdAtom,
+} from "@src/store/session/viewAtom";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -183,14 +189,47 @@ export const chatPanelTabCountAtom = atom(
 // Write-only action atoms
 // ────────────────────────────────────────────────────────────────────────────
 
-/** Switch to a tab by ID */
+interface ActivateChatPanelTabOptions {
+  tabId: string;
+  sessionName?: string;
+  repoPath?: string;
+}
+
+function getActivateTabOptions(
+  optionsOrTabId: ActivateChatPanelTabOptions | string
+): ActivateChatPanelTabOptions {
+  return typeof optionsOrTabId === "string"
+    ? { tabId: optionsOrTabId }
+    : optionsOrTabId;
+}
+
+/** Switch to a tab by ID and sync session state for linked session tabs. */
 export const activateChatPanelTabAtom = atom(
   null,
-  (_get, set, tabId: string) => {
-    set(chatPanelTabsAtom, (prev) => {
-      if (!prev.tabs.some((tab) => tab.id === tabId)) return prev;
-      return { ...prev, activeTabId: tabId };
-    });
+  (get, set, optionsOrTabId: ActivateChatPanelTabOptions | string) => {
+    const { tabId, sessionName, repoPath } =
+      getActivateTabOptions(optionsOrTabId);
+    const state = get(chatPanelTabsAtom);
+    const tab = state.tabs.find((candidate) => candidate.id === tabId);
+    if (!tab) return;
+
+    if (state.activeTabId !== tabId) {
+      set(chatPanelTabsAtom, { ...state, activeTabId: tabId });
+    }
+
+    const sessionId = tab.type === "session" ? tab.sessionId : null;
+    if (
+      sessionId &&
+      (get(workstationActiveSessionIdAtom) !== sessionId ||
+        get(activeSessionIdAtom) !== sessionId)
+    ) {
+      const session = get(sessionByIdAtom(sessionId));
+      set(jumpToSessionAtom, {
+        sessionId,
+        sessionName: sessionName ?? session?.name,
+        repoPath: repoPath ?? session?.repoPath,
+      });
+    }
   }
 );
 activateChatPanelTabAtom.debugLabel = "activateChatPanelTab";
@@ -218,14 +257,24 @@ export const addChatPanelSessionTabAtom = atom(null, (_get, set) => {
 });
 addChatPanelSessionTabAtom.debugLabel = "addChatPanelSessionTab";
 
+interface OpenSessionInNewChatTabOptions {
+  sessionId: string;
+  sessionName?: string;
+  repoPath?: string;
+}
+
 /**
- * Open an existing session in a new chat panel tab.
- * Creates the tab pre-linked to the given sessionId so the tab pill shows the
- * session icon/name immediately and the chat history loads without a redirect.
+ * Open an existing session in a new chat panel tab and make it the active
+ * WorkStation session.
  */
 export const openSessionInNewChatTabAtom = atom(
   null,
-  (_get, set, sessionId: string) => {
+  (_get, set, optionsOrSessionId: OpenSessionInNewChatTabOptions | string) => {
+    const options =
+      typeof optionsOrSessionId === "string"
+        ? { sessionId: optionsOrSessionId }
+        : optionsOrSessionId;
+    const { sessionId, sessionName, repoPath } = options;
     const id = `chat-${crypto.randomUUID()}`;
     const now = new Date().toISOString();
     set(chatPanelTabsAtom, (prev) => ({
@@ -243,6 +292,7 @@ export const openSessionInNewChatTabAtom = atom(
       ],
       activeTabId: id,
     }));
+    set(activateChatPanelTabAtom, { tabId: id, sessionName, repoPath });
     return id;
   }
 );
@@ -304,56 +354,62 @@ export const clearChatPanelTabCliCommandAtom = atom(
 clearChatPanelTabCliCommandAtom.debugLabel = "clearChatPanelTabCliCommand";
 
 /** Close a tab by ID. If it was active, move to the nearest neighbour. */
-export const closeChatPanelTabAtom = atom(null, (_get, set, tabId: string) => {
-  set(chatPanelTabsAtom, (prev) => {
-    const idx = prev.tabs.findIndex((t) => t.id === tabId);
-    if (idx === -1) return prev;
-    const tab = prev.tabs[idx];
-    if (!tab.closable) return prev;
-    const nextTabs = prev.tabs.filter((t) => t.id !== tabId);
-    if (nextTabs.length === 0) {
-      // Re-create primary tab if we just closed the last one
-      const now = new Date().toISOString();
-      const primary: ChatPanelTab = {
-        id: PRIMARY_TAB_ID,
-        type: "session",
-        title: "Chat",
-        createdAt: now,
-        updatedAt: now,
-        isPrimary: true,
-        closable: false,
-        sessionId: null,
-      };
-      return { tabs: [primary], activeTabId: PRIMARY_TAB_ID };
-    }
-    let nextActiveId = prev.activeTabId;
-    if (prev.activeTabId === tabId) {
-      // Prefer the tab to the left, fall back to the one to the right
-      const nextIdx = Math.max(0, idx - 1);
-      nextActiveId = nextTabs[Math.min(nextIdx, nextTabs.length - 1)].id;
-    }
-    return { tabs: nextTabs, activeTabId: nextActiveId };
-  });
+export const closeChatPanelTabAtom = atom(null, (get, set, tabId: string) => {
+  const state = get(chatPanelTabsAtom);
+  const idx = state.tabs.findIndex((tab) => tab.id === tabId);
+  if (idx === -1) return;
+  const tab = state.tabs[idx];
+  if (!tab.closable) return;
+
+  const nextTabs = state.tabs.filter((candidate) => candidate.id !== tabId);
+  let nextActiveId = state.activeTabId;
+
+  if (nextTabs.length === 0) {
+    const now = new Date().toISOString();
+    const primary: ChatPanelTab = {
+      id: PRIMARY_TAB_ID,
+      type: "session",
+      title: "Chat",
+      createdAt: now,
+      updatedAt: now,
+      isPrimary: true,
+      closable: false,
+      sessionId: null,
+    };
+    set(chatPanelTabsAtom, { tabs: [primary], activeTabId: PRIMARY_TAB_ID });
+    return;
+  }
+
+  if (state.activeTabId === tabId) {
+    const nextIdx = Math.max(0, idx - 1);
+    nextActiveId = nextTabs[Math.min(nextIdx, nextTabs.length - 1)].id;
+  }
+
+  set(chatPanelTabsAtom, { tabs: nextTabs, activeTabId: nextActiveId });
+  if (state.activeTabId === tabId) {
+    set(activateChatPanelTabAtom, nextActiveId);
+  }
 });
 closeChatPanelTabAtom.debugLabel = "closeChatPanelTab";
 
 /** Navigate to the next tab (wraps around) */
-export const nextChatPanelTabAtom = atom(null, (_get, set) => {
-  set(chatPanelTabsAtom, (prev) => {
-    const idx = prev.tabs.findIndex((tab) => tab.id === prev.activeTabId);
-    const nextIdx = (idx + 1) % prev.tabs.length;
-    return { ...prev, activeTabId: prev.tabs[nextIdx].id };
-  });
+export const nextChatPanelTabAtom = atom(null, (get, set) => {
+  const state = get(chatPanelTabsAtom);
+  if (state.tabs.length === 0) return;
+  const idx = state.tabs.findIndex((tab) => tab.id === state.activeTabId);
+  const nextIdx = ((idx === -1 ? 0 : idx) + 1) % state.tabs.length;
+  set(activateChatPanelTabAtom, state.tabs[nextIdx].id);
 });
 nextChatPanelTabAtom.debugLabel = "nextChatPanelTab";
 
 /** Navigate to the previous tab (wraps around) */
-export const prevChatPanelTabAtom = atom(null, (_get, set) => {
-  set(chatPanelTabsAtom, (prev) => {
-    const idx = prev.tabs.findIndex((tab) => tab.id === prev.activeTabId);
-    const prevIdx = (idx - 1 + prev.tabs.length) % prev.tabs.length;
-    return { ...prev, activeTabId: prev.tabs[prevIdx].id };
-  });
+export const prevChatPanelTabAtom = atom(null, (get, set) => {
+  const state = get(chatPanelTabsAtom);
+  if (state.tabs.length === 0) return;
+  const idx = state.tabs.findIndex((tab) => tab.id === state.activeTabId);
+  const currentIdx = idx === -1 ? 0 : idx;
+  const prevIdx = (currentIdx - 1 + state.tabs.length) % state.tabs.length;
+  set(activateChatPanelTabAtom, state.tabs[prevIdx].id);
 });
 prevChatPanelTabAtom.debugLabel = "prevChatPanelTab";
 

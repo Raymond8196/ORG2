@@ -2641,7 +2641,10 @@
   },
   "cliLaunchProfiles": {
     "title": "啟動設定",
+    "plain": "基礎",
+    "plan": "計劃",
     "fullPermission": "完整權限",
+    "autoEdit": "自動編輯",
     "manual": "手動",
     "command": "命令",
     "environment": "環境變數",

@@ -149,17 +149,12 @@
       "zh-Hant": "繁體中文"
     },
     "layout": "佈局",
-    "globalLayoutMethod": "佈局方式",
-    "globalLayoutMethodDesc": "選擇內容面板如何呈現應用邊框",
     "spotlightPlacement": "Spotlight 位置",
     "spotlightPlacementDesc": "選擇 Spotlight 命令面板開啟的位置",
     "spotlightPlacementOptions": {
       "top": "頂部",
       "center": "頁面置中"
     },
-    "inset": "舒適",
-    "full": "擴展",
-    "compact": "現代",
     "left": "左側",
     "right": "右側",
     "light": "淺色",

@@ -449,9 +449,8 @@ export const AvailableApiProviderSchema = z.object({
 /**
  * Matches `ProviderEndpoint` in `src-tauri/.../provider_config.rs`.
  *
- * A selectable endpoint — a regional split (Zhipu's China vs Global hosts), a
- * product tier (OpenCode Zen vs Go), or an AWS region. `anthropic_base_url` is
- * null when the endpoint has no dedicated Anthropic-protocol host.
+ * A selectable endpoint — sometimes combining dimensions (Zhipu region and
+ * credential type), or representing a product tier or AWS region.
  */
 export const ProviderEndpointSchema = z.object({
   id: z.string(),

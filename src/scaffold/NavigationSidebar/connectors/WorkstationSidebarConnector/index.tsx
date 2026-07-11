@@ -73,6 +73,7 @@ import {
 } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
 import { SidebarBottomBar } from "../../blocks";
+import SidebarSettingsMenuButton from "../../blocks/SidebarSettingsMenuButton";
 import NavigationSidebar from "../../variants/NavigationSidebar";
 import SidebarOrgSelector from "../SidebarOrgSelector";
 import { COLLAB_ADD_ORG_MENU_ITEM_ID } from "../sidebarConnectorUtils";
@@ -619,14 +620,27 @@ export const WorkstationSidebarConnector: React.FC = () => {
   });
   const handleOpenInNewTab = useCallback(
     (sessionId: string) => {
+      activateMyStationRouteForProjectTabContent();
+      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
       if (isChatPanelTuiSessionId(sessionId)) {
         const tabId = getChatPanelTabIdFromTuiSessionId(sessionId);
         if (tabId) activateChatPanelTab(tabId);
         return;
       }
-      openSessionInNewChatTab(sessionId);
+      const session = sessionMap.get(sessionId);
+      openSessionInNewChatTab({
+        sessionId,
+        sessionName: session?.name,
+        repoPath: session?.repoPath,
+      });
     },
-    [activateChatPanelTab, openSessionInNewChatTab]
+    [
+      activateChatPanelTab,
+      activateMyStationRouteForProjectTabContent,
+      navigateChatPanel,
+      openSessionInNewChatTab,
+      sessionMap,
+    ]
   );
 
   const handleToggleSubagentExpansion = useCallback((sessionId: string) => {
@@ -862,18 +876,21 @@ export const WorkstationSidebarConnector: React.FC = () => {
           placeholder: searchPlaceholder,
           noResultsTitle: noSearchResultsTitle,
         }}
-        preListContent={
-          <SidebarOrgSelector
-            value={activeOrgId}
-            options={orgSelectorOptions}
-            addOrgLabel={addOrgLabel}
-            onChange={setSelectedOrgId}
-            onAddOrg={handleAddOrgFromSelector}
-          />
-        }
         listTopPadding
         bottomContent={
-          <SidebarBottomBar rightActions={sidebarBottomRightActions} />
+          <SidebarBottomBar
+            leftContent={
+              <SidebarOrgSelector
+                value={activeOrgId}
+                options={orgSelectorOptions}
+                addOrgLabel={addOrgLabel}
+                onChange={setSelectedOrgId}
+                onAddOrg={handleAddOrgFromSelector}
+              />
+            }
+            rightActions={sidebarBottomRightActions}
+            settingsAction={<SidebarSettingsMenuButton />}
+          />
         }
         isLoading={isLoading}
         collapsibleSections

@@ -14,6 +14,7 @@ use crate::providers::google::GoogleValidator;
 use crate::providers::kiro::KiroValidator;
 use crate::providers::openai::OpenAIValidator;
 use crate::providers::opencode_go::{workspace_id_override_from_key, OpenCodeGoQuotaFetcher};
+use crate::providers::zhipu::ZhipuQuotaFetcher;
 
 #[derive(Debug, Serialize)]
 pub struct TestModelResult {
@@ -477,6 +478,9 @@ pub async fn fetch_key_quota(
                 .fetch_quota(&api_key, None)
                 .await
         }
+        // Zhipu (BigModel / Z.ai) GLM Coding Plan. Base URL is not available on
+        // this validation-time path, so the fetcher defaults to the China host.
+        "zhipu_api" | "zhipu" => ZhipuQuotaFetcher::new().fetch_quota(&api_key, None).await,
         // Other providers don't have public quota APIs
         "openai"
         | "anthropic"
@@ -491,7 +495,6 @@ pub async fn fetch_key_quota(
         | "deepseek_api"
         | "groq_api"
         | "xai_api"
-        | "zhipu_api"
         | "dashscope_api"
         | "moonshot_api"
         | "minimax_api"
@@ -629,6 +632,16 @@ async fn fetch_quota_for_key(
                 .ok_or_else(|| "OpenCode account has no session cookie".to_string())?;
             OpenCodeGoQuotaFetcher::new()
                 .fetch_quota(cookie, workspace_id_override_from_key(key))
+                .await
+        }
+        ModelType::ZhipuApi => {
+            let token = key
+                .api_key
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Zhipu account has no API key".to_string())?;
+            ZhipuQuotaFetcher::new()
+                .fetch_quota(token, key.base_url.as_deref())
                 .await
         }
         ref other => Err(format!(

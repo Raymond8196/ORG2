@@ -292,7 +292,7 @@
     "emptyWorkspaces": "无匹配的工作区",
     "myRepos": "我的仓库",
     "myMultiRepoWorkspaces": "我的多仓库 Workspaces",
-    "dashboard": "仪表盘",
+    "dashboard": "启动台",
     "myWorkspaces": "我的工作区",
     "workspaces": "工作区",
     "dashboardTitle": "工作区",
@@ -466,6 +466,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "切换 ORG",
     "addOrg": "添加 ORG",
     "unknownOrg": "未知 ORG",
     "emptyColleagues": "暂无同事活动",

@@ -1,4 +1,7 @@
-use super::command::{build_command_with_launch_profile, map_claude_model, CliCommandBuildRequest};
+use super::command::{
+    build_command_with_launch_profile, map_claude_model, map_claude_model_variant,
+    CliCommandBuildRequest,
+};
 use super::launch_profiles::{
     bare_command_for_agent, default_args_for_mode, default_env_for_mode, defaults_for_agent,
     CliPermissionMode, ResolvedCliLaunchProfile,
@@ -149,6 +152,21 @@ fn build_claude_code_with_model_maps_shorthand() {
     assert!(cmd.contains(&"--model".to_string()));
     let model_idx = cmd.iter().position(|c| c == "--model").unwrap();
     assert_eq!(cmd[model_idx + 1], "claude-sonnet-4");
+    assert!(!cmd.contains(&"--effort".to_string()));
+}
+
+#[test]
+fn build_claude_code_effort_variant_maps_to_effort_flag() {
+    let cmd = build_command!(
+        ModelType::ClaudeCode,
+        task = "task",
+        model = Some("claude-opus-4-8-high"),
+    );
+    let model_idx = cmd.iter().position(|c| c == "--model").unwrap();
+    assert_eq!(cmd[model_idx + 1], "claude-opus-4-8");
+    let effort_idx = cmd.iter().position(|c| c == "--effort").unwrap();
+    assert_eq!(cmd[effort_idx + 1], "high");
+    assert!(!cmd.contains(&"claude-opus-4-8-high".to_string()));
 }
 
 #[test]
@@ -187,6 +205,20 @@ fn build_codex_fast_variant_maps_to_priority_service_tier() {
     assert_eq!(cmd[model_idx + 1], "gpt-5.4");
     assert!(cmd.contains(&"model_reasoning_effort=\"medium\"".to_string()));
     assert!(cmd.contains(&"service_tier=\"priority\"".to_string()));
+}
+
+#[test]
+fn build_codex_gpt_5_6_ultra_fast_variant() {
+    let cmd = build_command!(
+        ModelType::Codex,
+        task = "write tests",
+        model = Some("gpt-5.6-sol-ultra-fast"),
+    );
+    let model_idx = cmd.iter().position(|arg| arg == "-m").unwrap();
+    assert_eq!(cmd[model_idx + 1], "gpt-5.6-sol");
+    assert!(cmd.contains(&"model_reasoning_effort=\"ultra\"".to_string()));
+    assert!(cmd.contains(&"service_tier=\"priority\"".to_string()));
+    assert!(!cmd.contains(&"gpt-5.6-sol-ultra-fast".to_string()));
 }
 
 #[test]
@@ -356,4 +388,31 @@ fn map_claude_model_passthrough_non_claude() {
     assert_eq!(map_claude_model("gpt-4o"), "gpt-4o");
     assert_eq!(map_claude_model("gemini-2.5-pro"), "gemini-2.5-pro");
     assert_eq!(map_claude_model("o3"), "o3");
+}
+
+#[test]
+fn map_claude_model_variant_splits_effort() {
+    let cfg = map_claude_model_variant("claude-opus-4-8-high");
+    assert_eq!(cfg.base_model, "claude-opus-4-8");
+    assert_eq!(cfg.effort.as_deref(), Some("high"));
+
+    let cfg = map_claude_model_variant("opus-4-8-xhigh");
+    assert_eq!(cfg.base_model, "claude-opus-4-8");
+    assert_eq!(cfg.effort.as_deref(), Some("xhigh"));
+
+    let cfg = map_claude_model_variant("claude-sonnet-4-5-extra-high");
+    assert_eq!(cfg.base_model, "claude-sonnet-4-5");
+    assert_eq!(cfg.effort.as_deref(), Some("xhigh"));
+}
+
+#[test]
+fn map_claude_model_variant_no_effort_keeps_base() {
+    let cfg = map_claude_model_variant("claude-opus-4-8");
+    assert_eq!(cfg.base_model, "claude-opus-4-8");
+    assert!(cfg.effort.is_none());
+
+    // `thinking` is not an --effort level; leave it on the base model.
+    let cfg = map_claude_model_variant("claude-opus-4-8-thinking");
+    assert_eq!(cfg.base_model, "claude-opus-4-8-thinking");
+    assert!(cfg.effort.is_none());
 }

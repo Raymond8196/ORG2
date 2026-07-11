@@ -79,7 +79,18 @@ export const OrgIdInput = z.object({
 
 export const AvailableCliAgentsSchema = z.array(AvailableAgentSchema);
 
-export const CliPermissionModeSchema = z.enum(["full_permission", "manual"]);
+export const CliPermissionModeSchema = z.enum([
+  "plan",
+  "full_permission",
+  "auto_edit",
+  "manual",
+]);
+
+export const CliLaunchProfileModeDefaultsSchema = z.object({
+  mode: CliPermissionModeSchema,
+  args: z.array(z.string()),
+  env: z.record(z.string(), z.string()),
+});
 
 export const CliLaunchProfileInput = z.object({
   agentName: z.string(),
@@ -104,6 +115,8 @@ export const CliLaunchProfileViewSchema = z.object({
   fullPermissionArgs: z.array(z.string()),
   manualEnv: z.record(z.string(), z.string()),
   fullPermissionEnv: z.record(z.string(), z.string()),
+  supportedPermissionModes: z.array(CliPermissionModeSchema),
+  modeDefaults: z.array(CliLaunchProfileModeDefaultsSchema),
   commandOverridden: z.boolean(),
   argsOverridden: z.boolean(),
   envOverridden: z.boolean(),

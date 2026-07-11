@@ -201,7 +201,7 @@
     "emptyWorkspaces": "Нет подходящих рабочих областей",
     "myRepos": "Мои репозитории",
     "myMultiRepoWorkspaces": "Мои мульти-репо Workspaces",
-    "dashboard": "Панель",
+    "dashboard": "Launchpad",
     "myWorkspaces": "Мои рабочие области",
     "workspaces": "Рабочие области",
     "dashboardTitle": "Рабочие области",
@@ -375,6 +375,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "Сменить ORG",
     "addOrg": "Добавить ORG",
     "unknownOrg": "Неизвестная ORG",
     "emptyColleagues": "Активности коллег пока нет",

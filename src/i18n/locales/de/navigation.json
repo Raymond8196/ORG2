@@ -203,7 +203,7 @@
     "emptyWorkspaces": "Keine passenden Arbeitsbereiche",
     "myRepos": "Meine Repos",
     "myMultiRepoWorkspaces": "Meine Multi-Repo Workspaces",
-    "dashboard": "Dashboard",
+    "dashboard": "Launchpad",
     "myWorkspaces": "Meine Arbeitsbereiche",
     "workspaces": "Arbeitsbereiche",
     "dashboardTitle": "Arbeitsbereiche",
@@ -377,6 +377,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "ORG wechseln",
     "addOrg": "ORG hinzufügen",
     "unknownOrg": "Unbekannte ORG",
     "emptyColleagues": "Noch keine Kolleg:innen-Aktivität",

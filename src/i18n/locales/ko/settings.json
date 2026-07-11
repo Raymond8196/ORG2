@@ -149,17 +149,12 @@
       "zh-Hant": "중국어 번체"
     },
     "layout": "레이아웃",
-    "globalLayoutMethod": "레이아웃 방식",
-    "globalLayoutMethodDesc": "콘텐츠 패널이 앱을 감싸는 방식 선택",
     "spotlightPlacement": "Spotlight 위치",
     "spotlightPlacementDesc": "Spotlight 명령 팔레트가 열릴 위치를 선택합니다",
     "spotlightPlacementOptions": {
       "top": "상단",
       "center": "페이지 중앙"
     },
-    "inset": "편안",
-    "full": "확장",
-    "compact": "모던",
     "left": "왼쪽",
     "right": "오른쪽",
     "light": "라이트",
