@@ -715,6 +715,9 @@
       "addApiKey": {
         "title": "Thêm API key"
       },
+      "installLatestUpdate": {
+        "title": "Cài đặt bản cập nhật mới nhất"
+      },
       "agents": {
         "title": "Agents"
       },

@@ -26,6 +26,7 @@ import type { CreatedOrgResult } from "@src/features/TeamCollaboration/component
 import { useShouldOffsetChatPanelHeader } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
+import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   collabConnectionStatesAtom,
   collabMembersAtom,
@@ -268,6 +269,10 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       navigate(buildWizardPath(accountsPath, WIZARD_IDS.KEY_ADD));
     }, [navigate]);
 
+    const handleStartPageInstallLatestUpdate = useCallback(() => {
+      void installAvailableAppUpdate();
+    }, []);
+
     const sessionSidebarVisible = sessionSidebarWidth > 0;
     const collabOrgHeader = useCollabOrgHeaderModel({
       collabConnectionStates,
@@ -391,6 +396,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleRegionNoticeChange={handleRegionNoticeChange}
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageExploreRepos={handleStartPageExploreRepos}
+        handleStartPageInstallLatestUpdate={handleStartPageInstallLatestUpdate}
         handleStartPageManageIssues={handleStartPageManageIssues}
         handleStartPageNewSession={handleNewSession}
         handleStartPageNewWorkItem={handleStartPageNewWorkItem}

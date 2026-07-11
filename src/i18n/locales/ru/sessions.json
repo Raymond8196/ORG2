@@ -719,6 +719,9 @@
       "addApiKey": {
         "title": "Добавить API key"
       },
+      "installLatestUpdate": {
+        "title": "Установить последнее обновление"
+      },
       "agents": {
         "title": "Agents"
       },
