@@ -109,10 +109,6 @@ const managedConfig = {
     .input(schemas.agentOrgs.CliConfigEnableOrgiiManagedInput)
     .output(schemas.agentOrgs.CliConfigManagedStatusSchema)
     .build(),
-  setSelection: defineProcedure("cli_config_set_selection")
-    .input(schemas.agentOrgs.CliConfigSetSelectionInput)
-    .output(schemas.agentOrgs.CliConfigManagedStatusSchema)
-    .build(),
   restoreDefault: defineProcedure("cli_config_restore_default")
     .input(schemas.agentOrgs.CliConfigRestoreDefaultInput)
     .output(schemas.agentOrgs.CliConfigManagedStatusSchema)

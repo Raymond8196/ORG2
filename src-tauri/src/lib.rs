@@ -480,8 +480,8 @@ pub fn run() {
                 Err(err) => tracing::error!(error = %err, "[IDE Server] Failed to create tokio runtime"),
             });
 
-            // Start the local CLI managed-config proxy used by Codex config
-            // switch mode. It is idle until a CLI points at 127.0.0.1:17888.
+            // Start the local managed-config proxy used by supported CLI agents.
+            // It stays idle until a CLI points at 127.0.0.1:17888.
             cli_managed_proxy::start_cli_managed_proxy_thread();
 
             // Initialize Rust EventStore state

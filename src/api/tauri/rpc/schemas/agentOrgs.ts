@@ -136,17 +136,8 @@ export const CliConfigManagedStatusInput = z.object({
 export const CliConfigEnableOrgiiManagedInput = z.object({
   agentName: z.string(),
   keyId: z.string().nullable().optional(),
-  provider: z.string().nullable().optional(),
   model: z.string().nullable().optional(),
-  proxyUrl: z.string().nullable().optional(),
   force: z.boolean(),
-});
-
-export const CliConfigSetSelectionInput = z.object({
-  agentName: z.string(),
-  keyId: z.string().nullable().optional(),
-  provider: z.string().nullable().optional(),
-  model: z.string().nullable().optional(),
 });
 
 export const CliConfigRestoreDefaultInput = z.object({
@@ -196,6 +187,7 @@ export const CliManagedProxyStatusSchema = z.object({
   selectedProvider: z.string().nullable().optional(),
   selectedModel: z.string().nullable().optional(),
   upstreamBaseUrl: z.string().nullable().optional(),
+  compatibleKeyIds: z.array(z.string()),
   message: z.string().nullable().optional(),
 });
 
