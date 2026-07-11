@@ -149,17 +149,12 @@
       "zh-Hant": "繁体中国語"
     },
     "layout": "レイアウト",
-    "globalLayoutMethod": "レイアウト方式",
-    "globalLayoutMethodDesc": "コンテンツパネルの枠取り方を選択",
     "spotlightPlacement": "Spotlight の位置",
     "spotlightPlacementDesc": "Spotlight コマンドパレットを開く位置を選択",
     "spotlightPlacementOptions": {
       "top": "上部",
       "center": "ページ中央"
     },
-    "inset": "快適",
-    "full": "拡張",
-    "compact": "モダン",
     "left": "左",
     "right": "右",
     "light": "ライト",

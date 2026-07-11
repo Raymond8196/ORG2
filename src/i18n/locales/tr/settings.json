@@ -149,17 +149,12 @@
       "zh-Hant": "Geleneksel Çince"
     },
     "layout": "Düzen",
-    "globalLayoutMethod": "Düzen Yöntemi",
-    "globalLayoutMethodDesc": "İçerik panellerinin uygulamayı çerçeveleme şeklini seçin",
     "spotlightPlacement": "Spotlight konumu",
     "spotlightPlacementDesc": "Spotlight komut paletinin nerede açılacağını seçin",
     "spotlightPlacementOptions": {
       "top": "Üst",
       "center": "Sayfa merkezi"
     },
-    "inset": "Konfor",
-    "full": "Genişletilmiş",
-    "compact": "Modern",
     "left": "Sol",
     "right": "Sağ",
     "light": "Açık",

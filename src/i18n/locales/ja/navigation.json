@@ -375,6 +375,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "ORG を切り替え",
     "addOrg": "ORG を追加",
     "unknownOrg": "不明な ORG",
     "emptyColleagues": "同僚のアクティビティはまだありません",

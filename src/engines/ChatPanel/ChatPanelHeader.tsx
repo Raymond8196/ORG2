@@ -98,7 +98,6 @@ interface ChatPanelHeaderProps {
   headerTitle: string;
   headerTitleContent?: React.ReactNode;
   isChatFocus: boolean;
-  isCompactLayout: boolean;
   isHeaderActionsOpen: boolean;
   isHeaderActionsPositioned: boolean;
   isProjectTarget: boolean;
@@ -168,7 +167,6 @@ export function ChatPanelHeader({
   headerTitle,
   headerTitleContent,
   isChatFocus,
-  isCompactLayout,
   isHeaderActionsOpen,
   isHeaderActionsPositioned,
   isProjectTarget,
@@ -528,7 +526,7 @@ export function ChatPanelHeader({
 
   return (
     <div
-      className={`workspace-header header-tab-group relative flex flex-shrink-0 items-center gap-1.5 ${isCompactLayout ? "h-11 min-h-11 pl-2 pr-[7px] pt-2" : "h-9 min-h-9 px-2"}`}
+      className="workspace-header header-tab-group relative flex h-11 min-h-11 flex-shrink-0 items-center gap-1.5 pl-2 pr-[7px] pt-2"
       data-testid="chat-panel-header"
       data-tauri-drag-region={windowsHost ? undefined : true}
       style={

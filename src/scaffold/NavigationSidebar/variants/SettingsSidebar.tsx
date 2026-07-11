@@ -178,7 +178,6 @@ const SettingsSidebar: React.FC = () => {
             />
           </>
         }
-        hideSettings
       />
     </SidebarBase>
   );

@@ -134,6 +134,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
               aria-label={t("sidebar.groupBy.title")}
               size="lg"
               variant={isOpen ? "active" : "default"}
+              className="!rounded-full"
               onClick={toggle}
               onMouseEnter={(event) =>
                 triggerIconAnimation(event.currentTarget)
