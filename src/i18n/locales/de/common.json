@@ -1941,6 +1941,12 @@
     "removeWorktreeMessage": "Dies entfernt den Worktree checkout vom Datenträger. Branch und commits bleiben erhalten.",
     "removeWorktreeSuccess": "Worktree entfernt",
     "removeWorktreeFailed": "Worktree konnte nicht entfernt werden",
+    "emptyState": {
+      "viewSourceControl": "Source Control anzeigen",
+      "viewIssues": "Issues anzeigen",
+      "viewGitHistory": "Git-Verlauf anzeigen",
+      "viewPullRequests": "Pull Requests anzeigen"
+    },
     "pill": {
       "focus": "Fokus",
       "allChanges": "Alle Änderungen"

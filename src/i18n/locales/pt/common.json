@@ -1933,6 +1933,12 @@
     "removeWorktreeMessage": "Isso remove o checkout Worktree do disco. A branch e os commits são mantidos.",
     "removeWorktreeSuccess": "Worktree removido",
     "removeWorktreeFailed": "Falha ao remover Worktree",
+    "emptyState": {
+      "viewSourceControl": "Ver Source Control",
+      "viewIssues": "Ver Issues",
+      "viewGitHistory": "Ver histórico do Git",
+      "viewPullRequests": "Ver Pull Requests"
+    },
     "pill": {
       "focus": "Foco",
       "allChanges": "Todas as alterações"

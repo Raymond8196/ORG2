@@ -1951,6 +1951,12 @@
     "removeWorktreeMessage": "這會從磁碟移除 Worktree checkout。branch 和 commits 會保留。",
     "removeWorktreeSuccess": "Worktree 已移除",
     "removeWorktreeFailed": "移除 Worktree 失敗",
+    "emptyState": {
+      "viewSourceControl": "檢視 Source Control",
+      "viewIssues": "檢視 Issues",
+      "viewGitHistory": "檢視 Git 歷史",
+      "viewPullRequests": "檢視 Pull Requests"
+    },
     "pill": {
       "focus": "聚焦",
       "allChanges": "全部更改"

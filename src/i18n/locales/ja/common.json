@@ -1939,6 +1939,12 @@
     "removeWorktreeMessage": "ディスクから Worktree checkout を削除します。branch と commits は保持されます。",
     "removeWorktreeSuccess": "Worktree を削除しました",
     "removeWorktreeFailed": "Worktree の削除に失敗しました",
+    "emptyState": {
+      "viewSourceControl": "Source Control を表示",
+      "viewIssues": "Issues を表示",
+      "viewGitHistory": "Git 履歴を表示",
+      "viewPullRequests": "Pull Requests を表示"
+    },
     "pill": {
       "focus": "フォーカス",
       "allChanges": "すべての変更"

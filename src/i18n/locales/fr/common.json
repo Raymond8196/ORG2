@@ -1936,6 +1936,12 @@
     "removeWorktreeMessage": "Cela supprime le checkout Worktree du disque. La branch et les commits sont conservés.",
     "removeWorktreeSuccess": "Worktree supprimé",
     "removeWorktreeFailed": "Échec de la suppression du Worktree",
+    "emptyState": {
+      "viewSourceControl": "Afficher Source Control",
+      "viewIssues": "Afficher les Issues",
+      "viewGitHistory": "Afficher l’historique Git",
+      "viewPullRequests": "Afficher les Pull Requests"
+    },
     "pill": {
       "focus": "Focus",
       "allChanges": "Toutes les modifications"
