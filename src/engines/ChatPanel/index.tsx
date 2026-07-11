@@ -25,7 +25,6 @@ import {
 import type { CreatedOrgResult } from "@src/features/TeamCollaboration/components/CreateCollabOrgView";
 import { useShouldOffsetChatPanelHeader } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
-import { useIsCompactLayout } from "@src/modules/shared/layouts/useCompactLayout";
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import {
   collabConnectionStatesAtom,
@@ -96,7 +95,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const isLeftPosition = position === "left";
     const shouldOffsetHeaderForCollapsedSidebar =
       useShouldOffsetChatPanelHeader({ position, useExternalWidth });
-    const isCompactLayout = useIsCompactLayout();
     const navigate = useNavigate();
     const viewMode = useRouteViewMode();
     const { currentSessionId, panelTitle, currentSession } = usePanelTitle();
@@ -553,7 +551,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           headerTitle={contentState.headerTitle}
           headerTitleContent={contentState.headerTitleContent}
           isChatFocus={isChatFocus}
-          isCompactLayout={isCompactLayout}
           isHeaderActionsOpen={isHeaderActionsOpen}
           isHeaderActionsPositioned={isHeaderActionsPositioned}
           isProjectTarget={contentState.isProjectTarget}

@@ -149,17 +149,12 @@
       "zh-Hant": "Chiński tradycyjny"
     },
     "layout": "Układ",
-    "globalLayoutMethod": "Metoda układu",
-    "globalLayoutMethodDesc": "Wybierz, jak panele treści obramowują aplikację",
     "spotlightPlacement": "Pozycja Spotlight",
     "spotlightPlacementDesc": "Wybierz, gdzie otwiera się paleta poleceń Spotlight",
     "spotlightPlacementOptions": {
       "top": "Góra",
       "center": "Środek strony"
     },
-    "inset": "Komfort",
-    "full": "Rozszerzony",
-    "compact": "Nowoczesny",
     "left": "Lewa",
     "right": "Prawa",
     "light": "Jasny",

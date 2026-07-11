@@ -58,7 +58,6 @@ import {
   sidebarWidthAtom,
 } from "@src/store/ui/sidebarAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
-import { globalLayoutMethodAtom } from "@src/store/ui/uiAtom";
 import {
   sessionChatPositionAtom,
   workStationChatPositionAtom,
@@ -76,7 +75,6 @@ import {
   useWorkspaceEvents,
 } from "./shared/hooks";
 import { AppLayout } from "./shared/layouts";
-import type { ChatLayout } from "./shared/layouts/AppLayout";
 import {
   LAYOUT_CONTAIN_STYLE,
   VIEW_CONTAINER_CLASSES,
@@ -407,10 +405,6 @@ const AppShell = () => {
     }
   }, [chatPanelMaximized, isSettingsRoute, setChatPanelMaximized]);
 
-  const globalLayoutMethod = useAtomValue(globalLayoutMethodAtom);
-
-  // `/orgii/app/settings/*` resolves to `viewMode === "workStation"` (see routeViewModeConfig),
-  // so this captures the settings surface too — no extra OR clause needed.
   const isWorkStationViewActive = viewMode === "workStation";
   // Skip bridging when Settings-in-slot is active — it doesn't run a real chat session.
   const shouldBridgeWorkStationPipeline =
@@ -425,11 +419,6 @@ const AppShell = () => {
   // Settings-in-slot owns the slot while its route is active; the Outlet stays
   // mounted but hidden so deeplinks / refresh still work.
   const shouldShowOutlet = !isWorkStationViewActive;
-
-  // GlobalLayoutMethod and ChatLayout unions match exactly, so the value passes through.
-  const chatLayout: ChatLayout = isWorkStationViewActive
-    ? globalLayoutMethod
-    : "inset";
 
   const workStationChatPosition = useAtomValue(workStationChatPositionAtom);
   const sessionChatPosition = useAtomValue(sessionChatPositionAtom);
@@ -475,8 +464,6 @@ const AppShell = () => {
             sidebar={<SidebarSelector />}
             floatingSidebar={<FloatingSidebar />}
             showChatPanel={showChatPanel}
-            contentPadding={isWorkStationViewActive}
-            chatLayout={chatLayout}
             chatPosition={chatPosition}
             chatPanelMaximized={effectiveChatFocus}
             chatPanelMode={chatPanelMode}
@@ -486,13 +473,7 @@ const AppShell = () => {
               {/* WorkStation — deferred until first visit, then kept mounted */}
               {shouldRenderWorkStation && (
                 <div
-                  className={
-                    globalLayoutMethod === "compact"
-                      ? VIEW_CONTAINER_CLASSES.compactWithBg
-                      : globalLayoutMethod === "full"
-                        ? VIEW_CONTAINER_CLASSES.fullWithBg
-                        : VIEW_CONTAINER_CLASSES.insetWithBg
-                  }
+                  className={VIEW_CONTAINER_CLASSES.withBg}
                   style={getViewToggleStyle(isWorkStationViewActive)}
                   data-guide-target={
                     isWorkStationViewActive
@@ -509,10 +490,6 @@ const AppShell = () => {
                     <WorkStationPage
                       isActive={isWorkStationViewActive}
                       chatPanelFocused={effectiveChatFocus}
-                      isFullMode={
-                        globalLayoutMethod === "full" ||
-                        globalLayoutMethod === "compact"
-                      }
                     />
                   </React.Suspense>
                 </div>
