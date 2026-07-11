@@ -1,6 +1,6 @@
 import { RenameModal } from "@/src/scaffold/ModalSystem/variants";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Search } from "lucide-react";
+import { ChevronLeft, Search } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -72,11 +72,15 @@ import {
   toChatPanelTuiSessionId,
 } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
-import { SidebarBottomBar } from "../../blocks";
+import { SidebarBottomBar, SidebarHeaderNavButton } from "../../blocks";
 import SidebarSettingsMenuButton from "../../blocks/SidebarSettingsMenuButton";
 import NavigationSidebar from "../../variants/NavigationSidebar";
 import SidebarOrgSelector from "../SidebarOrgSelector";
-import { COLLAB_ADD_ORG_MENU_ITEM_ID } from "../sidebarConnectorUtils";
+import {
+  COLLAB_ADD_ORG_MENU_ITEM_ID,
+  WORKSPACES_SIDEBAR_MENU_ITEM_ID,
+  WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
+} from "../sidebarConnectorUtils";
 import {
   sidebarGroupByAtom,
   sidebarIncludeExternalAtom,
@@ -117,11 +121,7 @@ import {
   useSessionSidebarMenuItems,
 } from "./sidebarMenuCollections";
 import { useSidebarSessionRefreshEffects } from "./sidebarSessionRefresh";
-import {
-  SidebarSearchShortcutTooltip,
-  isWorkstationSidebarKey,
-  useWorkstationSidebarTabs,
-} from "./sidebarTabs";
+import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
 import type { WorkstationSidebarKey } from "./types";
 import {
   openRepoTarget,
@@ -193,10 +193,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   >({ folders: "", workstation: "", projects: "" });
   const [, setFoldersDashboardSelected] = useState(false);
   const [, setFoldersExploreSelected] = useState(false);
-  const tabs = useWorkstationSidebarTabs(t);
-
-  const handleTabChange = useCallback((key: string) => {
-    if (!isWorkstationSidebarKey(key)) return;
+  const handleSidebarLayerChange = useCallback((key: WorkstationSidebarKey) => {
     if (key !== "folders") {
       setFoldersDashboardSelected(false);
       setFoldersExploreSelected(false);
@@ -304,6 +301,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const unpinFolderLabel = tCommon("sessions:chat.unpinSession", "Unpin");
   const createProjectLabel = tProjects("projects.createProject");
   const createWorkItemLabel = tProjects("workItems.createWorkItem");
+  const workspacesLabel = t("launchpad.dashboardTitle");
+  const workItemsLabel = t("labels.workItems");
   const importGithubIssuesLabel = tProjects("githubIssuesImport.menuLabel");
   const addOrgLabel = t("collaboration.addOrg");
   const searchPlaceholder =
@@ -406,6 +405,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     createWorkItemLabel,
     importGithubIssuesLabel,
     newSessionLabel,
+    workspacesLabel,
+    workItemsLabel,
     t,
   });
   const sessionSidebarMenuItems = useSessionSidebarMenuItems({
@@ -736,14 +737,39 @@ export const WorkstationSidebarConnector: React.FC = () => {
 
   const handleSessionMenuItemClick = useCallback(
     (key: string, item: NavigationMenuItem) => {
+      if (item.id === WORKSPACES_SIDEBAR_MENU_ITEM_ID) {
+        handleSidebarLayerChange("folders");
+        return;
+      }
+      if (item.id === WORK_ITEMS_SIDEBAR_MENU_ITEM_ID) {
+        handleSidebarLayerChange("projects");
+        return;
+      }
       if (isChatTerminalSidebarItem(item.id)) {
         activateChatPanelTab(getChatTerminalTabId(item.id));
         return;
       }
       handleMenuItemClick(key, item);
     },
-    [activateChatPanelTab, handleMenuItemClick]
+    [activateChatPanelTab, handleMenuItemClick, handleSidebarLayerChange]
   );
+
+  const handleBackToSessionSidebar = useCallback(() => {
+    handleSidebarLayerChange("workstation");
+  }, [handleSidebarLayerChange]);
+
+  const sidebarLayerHeader =
+    activeSidebarKey === "workstation" ? null : (
+      <div className="shrink-0 px-3">
+        <SidebarHeaderNavButton
+          icon={ChevronLeft}
+          label={
+            activeSidebarKey === "folders" ? workspacesLabel : workItemsLabel
+          }
+          onClick={handleBackToSessionSidebar}
+        />
+      </div>
+    );
 
   const resolvedMenuItemClick =
     activeSidebarKey === "projects"
@@ -833,21 +859,22 @@ export const WorkstationSidebarConnector: React.FC = () => {
     pinnedMenuItems,
     selectedMenuItemId,
     sidebarMenuItems,
-    tabCount: tabs.length,
+    tabCount: 0,
   });
 
   return (
     <>
       <NavigationSidebar
-        items={tabs}
+        items={[]}
         activeKey={activeSidebarKey}
-        onChange={handleTabChange}
+        onChange={() => undefined}
         menuItems={sidebarMenuItems}
         pinnedMenuItems={pinnedMenuItems}
         selectedKey={selectedMenuItemId}
         onMenuItemClick={resolvedMenuItemClick}
         onMenuItemContextMenu={resolvedMenuItemContextMenu}
         renderMenuItemWrapper={resolvedRenderMenuItemWrapper}
+        preListContent={sidebarLayerHeader}
         compactRows
         onAddNew={handleOpenSpotlight}
         addIcon={Search}

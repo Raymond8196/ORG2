@@ -7,9 +7,15 @@
 import type { CSSProperties } from "react";
 
 import {
+  HOST_DESKTOP,
+  resolveHostDesktop,
+} from "@src/config/windowChromeRadius";
+import {
   sanitizePageOpacity,
   sanitizeSidebarOpacity,
 } from "@src/store/ui/backgroundConfigAtom";
+
+const IS_MACOS_HOST = resolveHostDesktop() === HOST_DESKTOP.MACOS;
 
 /**
  * View container class strings for modules/index.tsx
@@ -52,7 +58,7 @@ export const LAYOUT_CONTAIN_STYLE: CSSProperties = {
 export function getPagePanelBackgroundStyle(
   pageOpacity: number | undefined
 ): CSSProperties {
-  const opacity = sanitizePageOpacity(pageOpacity);
+  const opacity = IS_MACOS_HOST ? 100 : sanitizePageOpacity(pageOpacity);
   return {
     backgroundColor: `color-mix(in srgb, var(--color-bg-2) ${opacity}%, transparent)`,
   };
@@ -88,7 +94,7 @@ export function getSidebarSurfaceBackgroundStyle(
 export function getChatPanelBackgroundStyle(
   pageOpacity: number | undefined
 ): CSSProperties {
-  const opacity = sanitizePageOpacity(pageOpacity);
+  const opacity = IS_MACOS_HOST ? 100 : sanitizePageOpacity(pageOpacity);
   const chatPaneMix = `color-mix(in srgb, var(--color-chat-pane-base) ${opacity}%, transparent)`;
   return {
     backgroundColor: chatPaneMix,

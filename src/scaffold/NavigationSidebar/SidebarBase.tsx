@@ -22,7 +22,7 @@ import {
 import i18next from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
 import { PanelLeft, Plus, X } from "lucide-react";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
@@ -32,6 +32,7 @@ import {
   resolveHostDesktop,
 } from "@src/config/windowChromeRadius";
 import { createLogger } from "@src/hooks/logger";
+import { useSettingValue } from "@src/hooks/settings/useSettings";
 import { useSidebarState } from "@src/hooks/ui/sidebar/useSidebarState";
 import { getSidebarSurfaceBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import { VerticalResizeHandle } from "@src/scaffold/Resize";
@@ -94,6 +95,15 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
       expand,
       setWidth,
     } = useSidebarState();
+    const sidebarSelectedRowOpacity = useSettingValue(
+      "layout.sidebarSelectedRowOpacity"
+    );
+    useEffect(() => {
+      document.body.style.setProperty(
+        "--sidebar-selected-row-opacity",
+        `${sidebarSelectedRowOpacity}%`
+      );
+    }, [sidebarSelectedRowOpacity]);
 
     const isMacOS = isTauriDesktop();
     const hideSidebarShortcut = getShortcutKeys("toggle_sidebar");
@@ -212,11 +222,13 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
 
     // Memoize outer container style to avoid re-creating on every render
     const containerStyle = useMemo(
-      () => ({
-        width: `${effectiveWidth}px`,
-        willChange: isDragging ? ("width" as const) : ("auto" as const),
-      }),
-      [effectiveWidth, isDragging]
+      () =>
+        ({
+          width: `${effectiveWidth}px`,
+          willChange: isDragging ? ("width" as const) : ("auto" as const),
+          "--sidebar-selected-row-opacity": `${sidebarSelectedRowOpacity}%`,
+        }) as React.CSSProperties,
+      [effectiveWidth, isDragging, sidebarSelectedRowOpacity]
     );
 
     // Don't render if collapsed (unless forceVisible is true)
@@ -297,7 +309,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     role="button"
                     tabIndex={0}
                   >
-                    <div className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] transition-colors duration-150 hover:bg-fill-2">
+                    <div className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] transition-colors duration-150 hover:bg-sidebar-selected">
                       <AddIcon
                         size={16}
                         strokeWidth={2}
@@ -329,7 +341,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     {/* Expand sidebar permanently button */}
                     <button
                       type="button"
-                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-fill-2"
+                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                       onClick={handleExpand}
                     >
                       <PanelLeft
@@ -342,7 +354,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     {/* Close floating sidebar button */}
                     <button
                       type="button"
-                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-fill-2"
+                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                       onClick={handleCollapse}
                     >
                       <X
@@ -368,7 +380,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     <div className="inline-flex">
                       <button
                         type="button"
-                        className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-fill-2"
+                        className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                         onClick={handleCollapse}
                       >
                         <PanelLeft

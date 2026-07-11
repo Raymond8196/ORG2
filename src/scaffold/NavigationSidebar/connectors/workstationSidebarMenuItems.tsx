@@ -1,8 +1,10 @@
 import {
   Box,
   Compass,
+  Folders,
   Github,
   LayoutDashboard,
+  ListTodo,
   Plus,
   Radar,
   SquarePen,
@@ -20,6 +22,8 @@ import {
   PROJECTS_IMPORT_GITHUB_ISSUES_MENU_ITEM_ID,
   PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
   PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID,
+  WORKSPACES_SIDEBAR_MENU_ITEM_ID,
+  WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
   getDraftMenuItemId,
   getDraftPreviewText,
 } from "./sidebarConnectorUtils";
@@ -30,6 +34,8 @@ interface BuildPinnedMenuItemsParams {
   opsControlLabel: string;
   opsControlRoutePath: string;
   opsControlShortcut: string;
+  workspacesLabel: string;
+  workItemsLabel: string;
 }
 
 interface BuildProjectsPinnedMenuItemsParams {
@@ -51,6 +57,8 @@ export function buildPinnedMenuItems({
   opsControlLabel,
   opsControlRoutePath,
   opsControlShortcut,
+  workspacesLabel,
+  workItemsLabel,
 }: BuildPinnedMenuItemsParams): NavigationMenuItem[] {
   return [
     {
@@ -69,6 +77,24 @@ export function buildPinnedMenuItems({
       iconName: "radar",
       routePath: opsControlRoutePath,
       shortcut: opsControlShortcut,
+    },
+    {
+      id: WORKSPACES_SIDEBAR_MENU_ITEM_ID,
+      key: WORKSPACES_SIDEBAR_MENU_ITEM_ID,
+      label: workspacesLabel,
+      icon: Folders,
+      iconName: "folders",
+      showDrillDownIndicator: true,
+      dataTestId: "sidebar-open-workspaces",
+    },
+    {
+      id: WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
+      key: WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
+      label: workItemsLabel,
+      icon: ListTodo,
+      iconName: "list-todo",
+      showDrillDownIndicator: true,
+      dataTestId: "sidebar-open-work-items",
     },
   ];
 }

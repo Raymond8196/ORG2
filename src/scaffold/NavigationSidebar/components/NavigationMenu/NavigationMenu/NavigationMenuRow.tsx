@@ -62,7 +62,7 @@ export const NavigationMenuParentRow = React.forwardRef<
   },
   ref
 ): React.ReactElement {
-  const iconColor = submenuSelected ? "text-primary-6" : "text-text-1";
+  const iconColor = "text-text-1";
   const { dragHandlers, dragState } = useNavItemDrag(item);
   const {
     cursorReset,
@@ -99,7 +99,7 @@ export const NavigationMenuParentRow = React.forwardRef<
         data-testid={item.dataTestId}
         className={`group flex ${rowHeightClass} items-center justify-between rounded-lg transition-colors duration-150 ${
           isChild ? "pl-5 pr-2" : "px-2"
-        } ${submenuSelected ? "cursor-default bg-fill-2 text-primary-6" : cursorReset ? "cursor-default text-text-1 hover:bg-fill-2" : "cursor-pointer text-text-1 hover:bg-fill-2"}`}
+        } ${submenuSelected ? "cursor-default bg-sidebar-selected text-text-1" : cursorReset ? "cursor-default text-text-1 hover:bg-sidebar-selected" : "cursor-pointer text-text-1 hover:bg-sidebar-selected"}`}
         onClick={() => {
           if (item.disabled) return;
           markClicked();
@@ -117,11 +117,7 @@ export const NavigationMenuParentRow = React.forwardRef<
           })}
           {!collapsed && (
             <div className="flex min-w-0 flex-1 flex-col gap-0">
-              <span
-                className={`truncate text-[13px] ${
-                  submenuSelected ? "font-medium text-primary-6" : "text-text-1"
-                }`}
-              >
+              <span className="truncate text-[13px] text-text-1">
                 {item.label}
               </span>
               {item.subtitle && (
@@ -143,7 +139,7 @@ export const NavigationMenuParentRow = React.forwardRef<
               type="button"
               aria-label={isOpen ? t("actions.collapse") : t("actions.expand")}
               title={isOpen ? t("actions.collapse") : t("actions.expand")}
-              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-text-3 transition-colors duration-150 hover:bg-fill-2 hover:text-text-1 focus:outline-none"
+              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-text-3 transition-colors duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:outline-none"
               data-testid={`${item.key}-session-tree-toggle`}
               onClick={(event) => {
                 event.preventDefault();
@@ -156,7 +152,7 @@ export const NavigationMenuParentRow = React.forwardRef<
                 strokeWidth={2}
                 className={`transition-transform duration-200 ${
                   isOpen ? "rotate-180" : ""
-                } ${submenuSelected ? "text-primary-6" : "text-text-2"}`}
+                } text-text-2`}
               />
             </button>
           </span>
@@ -225,7 +221,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
       ? "text-text-2"
       : "text-text-3"
     : isSelected
-      ? "text-primary-6"
+      ? "text-text-1"
       : isSecondaryTone
         ? "text-text-2"
         : "text-text-1";
@@ -273,10 +269,10 @@ export const NavigationMenuLeafRow = React.forwardRef<
               ? "cursor-default text-text-2 opacity-60"
               : "cursor-default text-text-3 opacity-60"
             : isSelected
-              ? "cursor-default bg-fill-2 text-primary-6"
+              ? "cursor-default bg-sidebar-selected text-text-1"
               : isSecondaryTone
-                ? `${cursorReset ? "cursor-default" : "cursor-pointer"} text-text-2 hover:bg-fill-2 hover:text-text-1`
-                : `${cursorReset ? "cursor-default" : "cursor-pointer"} text-text-1 hover:bg-fill-2`
+                ? `${cursorReset ? "cursor-default" : "cursor-pointer"} text-text-2 hover:bg-sidebar-selected hover:text-text-1`
+                : `${cursorReset ? "cursor-default" : "cursor-pointer"} text-text-1 hover:bg-sidebar-selected`
         }`}
         onClick={(event: React.MouseEvent) => {
           if (item.disabled) return;
@@ -306,7 +302,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
                       ? "text-text-2"
                       : "text-text-3"
                     : isSelected
-                      ? "font-medium text-primary-6"
+                      ? "text-text-1"
                       : isSecondaryTone
                         ? "text-text-2"
                         : "text-text-1"
@@ -366,7 +362,7 @@ function renderLeadingIcon({
         type="button"
         aria-label={action.label}
         title={action.label}
-        className={`pointer-events-none absolute left-1/2 top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded opacity-0 transition-[background-color,color,opacity] duration-150 hover:bg-fill-2 hover:text-text-1 focus:pointer-events-auto focus:opacity-100 focus:outline-none group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 ${
+        className={`pointer-events-none absolute left-1/2 top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded opacity-0 transition-[background-color,color,opacity] duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:pointer-events-auto focus:opacity-100 focus:outline-none group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 ${
           action.active ? "text-primary-6" : "text-text-3"
         }`}
         onClick={(event) => {
@@ -445,7 +441,7 @@ function renderLeafRowAccessory({
             <ChevronRight
               size={13}
               strokeWidth={2}
-              className={isSelected ? "text-primary-6" : "text-text-3"}
+              className={isSelected ? "text-text-1" : "text-text-3"}
             />
           )}
         </>

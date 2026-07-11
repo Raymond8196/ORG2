@@ -35,7 +35,9 @@ import type { SessionCreatorChatPanelProps } from "@src/features/SessionCreator/
 import { dispatchWebviewLayoutChanged } from "@src/hooks/platform/useInlineWebview/webviewLayoutEvents";
 import GlobalSessionSync from "@src/modules/shared/components/GlobalSessionSync";
 import { GlobalSpotlightPortal } from "@src/modules/shared/components/GlobalSpotlightPortal";
+import { getPagePanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
+import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
   type ChatPanelMode,
   DEFAULT_CHAT_WIDTH,
@@ -164,6 +166,7 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
   children,
 }) => {
   const rawChatWidth = useAtomValue(chatWidthAtom);
+  const backgroundConfig = useAtomValue(resolvedBackgroundConfigAtom);
   const viewportWidth = useViewportWidth();
   // Settings-in-slot must always have a usable width even if the user
   // previously dragged the chat to zero. Fall back to the configured
@@ -180,6 +183,9 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
   // (otherwise an existing zero-width chat would hide the settings panel
   // too).
   const isSlotVisible = chatPanelMode === "settings" ? true : isChatVisible;
+  const settingsSurfaceStyle = getPagePanelBackgroundStyle(
+    backgroundConfig.pageOpacity
+  );
 
   useEffect(() => {
     dispatchWebviewLayoutChanged();
@@ -190,7 +196,15 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
   // component differs.
   const slotInner =
     chatPanelMode === "settings" ? (
-      <React.Suspense fallback={<div className="h-full w-full" />}>
+      <React.Suspense
+        fallback={
+          <div
+            data-settings-loading-surface
+            className="h-full w-full"
+            style={settingsSurfaceStyle}
+          />
+        }
+      >
         <SettingsSlot
           maximized={chatPanelMaximized}
           position={chatPosition}
