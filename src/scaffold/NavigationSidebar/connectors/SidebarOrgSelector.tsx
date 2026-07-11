@@ -47,29 +47,31 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
     );
 
     return (
-      <WorkstationToolbarTooltip
-        label={t("collaboration.switchOrg")}
-        position="top"
-        disabled={menuOpen}
-      >
-        <div className="min-w-0 flex-1">
-          <Select
-            value={value}
-            options={options}
-            onChange={handleChange}
-            onVisibleChange={setMenuOpen}
-            dropdownRender={renderDropdown}
-            variant="ghost"
-            size="small"
-            radius="pill"
-            dropdownWidthMode="match"
-            dropdownAlign="left"
-            className="h-7"
-            selectorClassName="h-7 !px-2 text-[12px] font-normal [&_.select-suffix]:ml-1 [&_.select-value]:text-[12px]"
-            dataTestId="sidebar-org-selector"
-          />
-        </div>
-      </WorkstationToolbarTooltip>
+      <div className="w-full min-w-0 [&>span]:w-full">
+        <WorkstationToolbarTooltip
+          label={t("collaboration.switchOrg")}
+          position="top"
+          disabled={menuOpen}
+        >
+          <div className="w-full min-w-0">
+            <Select
+              value={value}
+              options={options}
+              onChange={handleChange}
+              onVisibleChange={setMenuOpen}
+              dropdownRender={renderDropdown}
+              variant="ghost"
+              size="small"
+              radius="pill"
+              dropdownWidth={250}
+              dropdownAlign="left"
+              className="h-7 w-full"
+              selectorClassName="h-7 !px-2 text-[12px] font-normal [&_.select-suffix]:ml-1 [&_.select-value]:text-[12px]"
+              dataTestId="sidebar-org-selector"
+            />
+          </div>
+        </WorkstationToolbarTooltip>
+      </div>
     );
   }
 );
