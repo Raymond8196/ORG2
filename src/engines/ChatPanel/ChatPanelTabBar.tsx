@@ -127,6 +127,14 @@ const TabPill = memo(function TabPill({
         className={`shrink-0 ${iconColorClass}`}
       />
     );
+  } else if (tab.type === "launchpad") {
+    icon = (
+      <LayoutGrid
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
   } else if (session) {
     // Use the same icon resolution as the session sidebar.
     // React.createElement avoids the static-components lint rule —
@@ -346,7 +354,12 @@ export function ChatPanelPlusMenu({
         className="inline-flex shrink-0"
         style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
       >
-        <TabBarTrailingIconButton title={plusLabel} active={menuOpen}>
+        <TabBarTrailingIconButton
+          title={plusLabel}
+          active={menuOpen}
+          tooltipDisabled
+          nativeTitle={false}
+        >
           <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
         </TabBarTrailingIconButton>
       </span>

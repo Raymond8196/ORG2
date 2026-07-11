@@ -3,6 +3,7 @@ import { useCallback, useEffect } from "react";
 
 import {
   activeChatPanelTabAtom,
+  addChatPanelLaunchpadTabAtom,
   addChatPanelSessionTabAtom,
   addChatPanelTerminalTabAtom,
   chatPanelTabsAtom,
@@ -15,6 +16,7 @@ import type { ChatPanelCliTerminalLaunchOptions } from "../types";
 
 interface UseChatPanelTabsControllerOptions {
   currentSessionId: string | null;
+  launchpadTitle: string;
   panelTitle: string;
   resetToSessionSurface: () => void;
   showSessionSurface: () => void;
@@ -22,6 +24,7 @@ interface UseChatPanelTabsControllerOptions {
 
 export function useChatPanelTabsController({
   currentSessionId,
+  launchpadTitle,
   panelTitle,
   resetToSessionSurface,
   showSessionSurface,
@@ -30,6 +33,7 @@ export function useChatPanelTabsController({
   const setTabTitle = useSetAtom(setChatPanelTabTitleAtom);
   const activeTab = useAtomValue(activeChatPanelTabAtom);
   const allTabs = useAtomValue(chatPanelTabsAtom).tabs;
+  const addLaunchpadTab = useSetAtom(addChatPanelLaunchpadTabAtom);
   const addSessionTab = useSetAtom(addChatPanelSessionTabAtom);
   const addTerminalTab = useSetAtom(addChatPanelTerminalTabAtom);
   const createTerminalSession = useSetAtom(createChatPanelTerminalAtom);
@@ -90,6 +94,10 @@ export function useChatPanelTabsController({
     resetToSessionSurface();
   }, [addSessionTab, resetToSessionSurface]);
 
+  const handleOpenLaunchpadTab = useCallback(() => {
+    addLaunchpadTab(launchpadTitle);
+  }, [addLaunchpadTab, launchpadTitle]);
+
   const isTerminalTabActive = activeTab?.type === "terminal";
   const terminalTabs = allTabs.filter(
     (tab) => tab.type === "terminal" && tab.terminalSessionId
@@ -100,6 +108,7 @@ export function useChatPanelTabsController({
     handleNewSessionTab,
     handleNewTerminalTab,
     handleOpenCliTerminal,
+    handleOpenLaunchpadTab,
     isTerminalTabActive,
     terminalTabs,
   };

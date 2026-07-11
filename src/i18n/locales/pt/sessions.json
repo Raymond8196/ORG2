@@ -1054,6 +1054,8 @@
     "deleteFileRunning": "Excluindo {{name}}",
     "deleteFileDone": "{{name}} excluído",
     "deleteFileFailed": "Falha ao excluir {{name}}",
+    "deleteFileCompactRunning": "Excluindo",
+    "deleteFileCompactDone": "Excluir",
     "directoryTree": "Árvore de diretórios",
     "ls": "ls",
     "listDirRunning": "Listando diretório",
@@ -1119,6 +1121,14 @@
     "editFileDoneNoName": "Arquivo editado",
     "editFileCompactRunning": "Editando",
     "editFileCompactDone": "Editar",
+    "editFiles": "Editar arquivos",
+    "editSummary": {
+      "edit_one": "{{count}} edição",
+      "edit_other": "{{count}} edições",
+      "read_one": "{{count}} leitura",
+      "read_other": "{{count}} leituras",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Tentou editar",
     "file": "arquivo",
     "runShellRunning": "Executando comando",
@@ -1182,7 +1192,8 @@
       "ls_one": "ls {{count}} pasta",
       "ls_other": "ls {{count}} pastas",
       "lsp_one": "{{count}} consulta LSP",
-      "lsp_other": "{{count}} consultas LSP"
+      "lsp_other": "{{count}} consultas LSP",
+      "separator": ", "
     },
     "categoryRead": "Ler",
     "categorySearch": "Buscar",

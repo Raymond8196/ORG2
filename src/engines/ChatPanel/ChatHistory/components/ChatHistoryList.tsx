@@ -388,6 +388,30 @@ interface VirtualGroup {
   itemCount: number;
 }
 
+interface GroupPinMetrics {
+  groupIndex: number;
+  top: number;
+}
+
+export function resolveActiveGroupPinState(
+  groups: readonly GroupPinMetrics[]
+): { groupIndex: number; pinned: boolean } {
+  let activeGroupIndex = 0;
+  let activeTop = Number.NEGATIVE_INFINITY;
+
+  for (const group of groups) {
+    if (group.top <= 0 && group.top >= activeTop) {
+      activeTop = group.top;
+      activeGroupIndex = group.groupIndex;
+    }
+  }
+
+  return {
+    groupIndex: activeGroupIndex,
+    pinned: Number.isFinite(activeTop) && activeTop < 0,
+  };
+}
+
 // memo: parent (`ChatHistory/index.tsx`) re-renders on every chat event
 // (atom subscriptions, useDeferredValue ticks). All props are either
 // primitives, useCallback-wrapped, refs, or arrays/objects produced by
@@ -667,23 +691,51 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
       (scrollRoot: HTMLDivElement) => {
         if (!onActiveGroupIndexChange) return;
         const rootTop = scrollRoot.getBoundingClientRect().top;
-        let activeGroupIndex = 0;
-        let activeTop = Number.NEGATIVE_INFINITY;
-        for (const groupElement of scrollRoot.querySelectorAll<HTMLElement>(
-          "[data-chat-group-index]"
-        )) {
+        const groupElements = Array.from(
+          scrollRoot.querySelectorAll<HTMLElement>("[data-chat-group-index]")
+        );
+        const groupMetrics = groupElements.flatMap((groupElement) => {
           const groupIndex = Number(groupElement.dataset.chatGroupIndex);
-          if (!Number.isFinite(groupIndex)) continue;
-          const top = groupElement.getBoundingClientRect().top - rootTop;
-          if (top <= 0 && top >= activeTop) {
-            activeTop = top;
-            activeGroupIndex = groupIndex;
-          }
+          if (!Number.isFinite(groupIndex)) return [];
+          return [
+            {
+              groupIndex,
+              top: groupElement.getBoundingClientRect().top - rootTop,
+            },
+          ];
+        });
+        const pinState = resolveActiveGroupPinState(groupMetrics);
+        for (const groupElement of groupElements) {
+          const groupIndex = Number(groupElement.dataset.chatGroupIndex);
+          const headerElement = groupElement.querySelector<HTMLElement>(
+            "[data-chat-group-header]"
+          );
+          if (!headerElement) continue;
+          const hideOriginal =
+            pinState.pinned && groupIndex === pinState.groupIndex;
+          headerElement.style.visibility = hideOriginal ? "hidden" : "";
+          headerElement.toggleAttribute("aria-hidden", hideOriginal);
         }
-        onActiveGroupIndexChange(activeGroupIndex, activeTop < 0);
+        onActiveGroupIndexChange(pinState.groupIndex, pinState.pinned);
       },
       [onActiveGroupIndexChange]
     );
+
+    useEffect(() => {
+      const frameId = window.requestAnimationFrame(() => {
+        const scrollRoot = useStaticRendering
+          ? staticScrollerRef?.current
+          : virtualScrollerRef.current;
+        if (scrollRoot) reportActiveGroupIndex(scrollRoot);
+      });
+      return () => window.cancelAnimationFrame(frameId);
+    }, [
+      reportActiveGroupIndex,
+      staticScrollerRef,
+      useStaticRendering,
+      virtualListDataKey,
+      virtualScrollerRef,
+    ]);
 
     if (useStaticRendering) {
       return (
@@ -711,10 +763,12 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                 className="relative"
                 data-chat-group-index={groupIndex}
               >
-                <div className="relative z-[30]">
-                  {renderGroupHeaderProp(groupIndex, "user")}
+                <div data-chat-group-header>
+                  <div className="relative z-[30]">
+                    {renderGroupHeaderProp(groupIndex, "user")}
+                  </div>
+                  {renderGroupHeaderProp(groupIndex, "collapse")}
                 </div>
-                {renderGroupHeaderProp(groupIndex, "collapse")}
                 {itemIndexes.map((itemFlatIndex) => {
                   if (itemFlatIndex >= flatItems.length) {
                     return (
@@ -796,10 +850,12 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                   transform: `translateY(${virtualItem.start}px)`,
                 }}
               >
-                <div className="relative z-[30]">
-                  {renderGroupHeaderProp(group.groupIndex, "user")}
+                <div data-chat-group-header>
+                  <div className="relative z-[30]">
+                    {renderGroupHeaderProp(group.groupIndex, "user")}
+                  </div>
+                  {renderGroupHeaderProp(group.groupIndex, "collapse")}
                 </div>
-                {renderGroupHeaderProp(group.groupIndex, "collapse")}
                 {Array.from({ length: group.itemCount }, (_, itemOffset) => {
                   const flatIndex = group.startFlatIndex + itemOffset;
                   return (

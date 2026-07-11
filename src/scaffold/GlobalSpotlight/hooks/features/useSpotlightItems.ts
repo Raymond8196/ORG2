@@ -32,7 +32,6 @@ import {
   workStationChatPositionAtom,
   workStationDockAutoHideAtom,
   workStationEditorSecondaryCollapsedAtom,
-  workStationInternalLayoutModeAtom,
   workStationLayoutModeAtom,
   workStationPrimarySidebarCollapsedAtom,
 } from "@src/store/ui/workStationAtom";
@@ -137,7 +136,6 @@ export function useSpotlightItems(
   const agentStationChatPosition = useAtomValue(sessionChatPositionAtom);
   const chatTurnPaginationEnabled = useAtomValue(chatTurnPaginationEnabledAtom);
   const modelPickerStyle = useAtomValue(modelPickerStyleAtom);
-  const internalLayoutMode = useAtomValue(workStationInternalLayoutModeAtom);
   const workstationSidebarPosition = useAtomValue(workStationLayoutModeAtom);
   const dockAutoHide = useAtomValue(workStationDockAutoHideAtom);
   const currentLanguage = useAtomValue(languageAtom);
@@ -184,7 +182,6 @@ export function useSpotlightItems(
       agentStationChatPosition,
       chatTurnPaginationEnabled,
       modelPickerStyle,
-      internalLayoutMode,
       workstationSidebarPosition,
       dockAutoHide,
     });
@@ -339,7 +336,6 @@ export function useSpotlightItems(
     agentStationChatPosition,
     chatTurnPaginationEnabled,
     modelPickerStyle,
-    internalLayoutMode,
     workstationSidebarPosition,
     dockAutoHide,
     currentLanguage,

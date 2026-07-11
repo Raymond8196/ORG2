@@ -36,7 +36,6 @@ interface ChatPinnedHeaderLayerProps {
   groupChatViewActive?: boolean;
   onGroupChatViewToggle?: (active: boolean) => void;
   showPinnedTurnHeader: boolean;
-  sessionId: string | null;
   sourceGroupIndex?: number;
   sourceGroupCount: number;
   header: OptimizedChatItem | null | undefined;
@@ -80,7 +79,6 @@ const ChatPinnedHeaderLayer: React.FC<ChatPinnedHeaderLayerProps> = memo(
     groupChatViewActive,
     onGroupChatViewToggle,
     showPinnedTurnHeader,
-    sessionId,
     sourceGroupIndex,
     sourceGroupCount,
     header,
@@ -132,7 +130,6 @@ const ChatPinnedHeaderLayer: React.FC<ChatPinnedHeaderLayerProps> = memo(
         )}
         <PinnedTurnHeader
           visible={showPinnedTurnHeader}
-          sessionId={sessionId}
           sourceGroupIndex={sourceGroupIndex}
           sourceGroupCount={sourceGroupCount}
           header={header}

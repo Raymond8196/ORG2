@@ -89,6 +89,8 @@ export interface ChatItemPipelineOptions {
   minBrowserActionsToStack?: number;
   groupTerminalActivities?: boolean;
   minTerminalActivitiesToGroup?: number;
+  groupEditActivities?: boolean;
+  minEditActivitiesToGroup?: number;
   consolidatePartialObservations?: boolean;
   preFilterEmptyActivities?: boolean;
   minReadFilesToGroup?: number;
@@ -109,6 +111,8 @@ export const DEFAULT_PIPELINE_OPTIONS: ChatItemPipelineOptions = {
   minBrowserActionsToStack: 3,
   groupTerminalActivities: true,
   minTerminalActivitiesToGroup: 1,
+  groupEditActivities: true,
+  minEditActivitiesToGroup: 1,
   consolidatePartialObservations: true,
   preFilterEmptyActivities: true,
   minReadFilesToGroup: 2,
