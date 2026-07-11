@@ -24,7 +24,6 @@ import React, {
 } from "react";
 
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
-import { workStationInternalLayoutModeAtom } from "@src/store/ui/workStationAtom";
 import { extractSessionId } from "@src/store/workstation/browser/tabs";
 import { workstationNewBrowserSessionRequestAtom } from "@src/store/workstation/workstationTabBarAtoms";
 
@@ -54,8 +53,6 @@ export type { BrowserLayoutProps } from "./types";
 export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
   ({ repoPath, repoName: _repoName, isActive = true }) => {
     const state = useBrowserLayoutState({ repoPath, isActive });
-    const internalLayoutMode = useAtomValue(workStationInternalLayoutModeAtom);
-    const webviewBottomInsetPx = internalLayoutMode === "comfort" ? 8 : 0;
 
     const setDevToolsCollapsed = state.browser.setDevToolsCollapsed;
     const handleCloseDevTools = useCallback(() => {
@@ -199,7 +196,7 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
                 onToggleDevToolsPane={state.browser.handleToggleDevTools}
                 devToolsPaneCollapsed={state.browser.devToolsCollapsed}
                 hideWebviews={!isActive || !state.showBrowserViewport}
-                webviewBottomInsetPx={webviewBottomInsetPx}
+                webviewBottomInsetPx={0}
                 isInspectMode={state.browser.isInspectMode}
                 onToggleInspectMode={state.browser.toggleInspectMode}
                 placeholderActions={state.browserQuickActions}

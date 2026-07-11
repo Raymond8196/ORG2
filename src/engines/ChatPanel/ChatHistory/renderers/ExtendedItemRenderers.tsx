@@ -25,6 +25,7 @@ import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { createLogger } from "@src/hooks/logger";
 
 import ActionSummaryGroup from "../../ChatItems/ActionSummaryGroup";
+import EditActivityGroup from "../../ChatItems/EditActivityGroup";
 import ReadFileGroup from "../../ChatItems/ReadFileGroup";
 import TerminalActivityGroup from "../../ChatItems/TerminalActivityGroup";
 import ActivityChatItem from "../ActivityRouter";
@@ -212,6 +213,17 @@ export function renderActivityStackGroup(
     return (
       <ChatItemWrap key={itemKey}>
         <TerminalActivityGroup
+          events={stackGroup.events}
+          closedByBoundary={stackGroup.closedByBoundary}
+        />
+      </ChatItemWrap>
+    );
+  }
+
+  if (stackGroup.category === "edit") {
+    return (
+      <ChatItemWrap key={itemKey}>
+        <EditActivityGroup
           events={stackGroup.events}
           closedByBoundary={stackGroup.closedByBoundary}
         />

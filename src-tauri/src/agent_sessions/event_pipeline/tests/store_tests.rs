@@ -1148,6 +1148,34 @@ fn test_unload_turn_body_restores_placeholder_and_preserves_headers() {
 }
 
 #[test]
+fn test_unload_turn_body_preserves_final_reply_as_preview() {
+    let mut final_reply = make_event("turn-1-final-reply", "assistant");
+    final_reply.function_name = "assistant".to_string();
+    final_reply.ui_canonical = "agent_message".to_string();
+    final_reply.display_variant = EventDisplayVariant::Message;
+    final_reply.display_text = "Finished the work".to_string();
+
+    let mut store = EventStore::new();
+    store.set_round_window(vec![
+        make_user_turn_header("turn-1", "2026-01-01T00:00:00Z"),
+        make_event("turn-1-tool", "tool_call"),
+        final_reply,
+        make_user_turn_header("turn-2", "2026-01-01T00:01:00Z"),
+    ]);
+
+    let removed = store.unload_turn_body("turn-1", make_turn_placeholder("turn-1", Some("turn-2")));
+
+    assert_eq!(removed, 1);
+    let preview = store.get_by_id("turn-1-final-reply").unwrap();
+    assert_eq!(
+        preview.args.get("turnPreviewOnly"),
+        Some(&serde_json::Value::Bool(true))
+    );
+    assert!(store.get_by_id("turn-1-tool").is_none());
+    assert!(store.get_by_id("turn-placeholder-turn-1").is_some());
+}
+
+#[test]
 fn test_merge_round_window_events_removes_loaded_turn_placeholder() {
     let mut store = EventStore::new();
     store.set_round_window(vec![

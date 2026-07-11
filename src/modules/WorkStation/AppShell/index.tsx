@@ -22,7 +22,6 @@ import { simulatorCaptionBarEnabledAtom } from "@src/store/ui/simulatorAtom";
 import {
   workStationDockAutoHideAtom,
   workStationFollowAgentHighlightEnabledAtom,
-  workStationInternalLayoutModeAtom,
   workStationPrimarySidebarCollapsedAtom,
   workStationStatusBarHiddenAtom,
   workStationTitleBarHiddenAtom,
@@ -61,7 +60,6 @@ const AppShell = React.memo(
     const _titleBarHidden = useAtomValue(workStationTitleBarHiddenAtom);
     const statusBarHidden = useAtomValue(workStationStatusBarHiddenAtom);
     const dockAutoHide = useAtomValue(workStationDockAutoHideAtom);
-    const internalLayoutMode = useAtomValue(workStationInternalLayoutModeAtom);
     const followAgentHighlightEnabled = useAtomValue(
       workStationFollowAgentHighlightEnabledAtom
     );
@@ -146,7 +144,6 @@ const AppShell = React.memo(
     useWorkspacePortAdvertisedUrls(portsEnabled);
 
     const showStatusBar = !statusBarHidden && !isAgentStation;
-    const useFloatingStatusBar = internalLayoutMode === "comfort";
     const showOpsControlEmptyStatusBar =
       isOpsControlStation && opsControlPeekHost === null;
 
@@ -214,15 +211,12 @@ const AppShell = React.memo(
           </div>
           {portsEnabled && <WorkspacePortScanner enabled />}
           {showStatusBar && !showOpsControlEmptyStatusBar && (
-            <StatusBarRenderer floating={useFloatingStatusBar} />
+            <StatusBarRenderer />
           )}
           {!isAgentStation &&
             !isOpsControlStation &&
             !hideWorkstationDockForChatPanel && (
-              <StationDockChrome
-                autoHide={dockAutoHide}
-                showTopBorder={!useFloatingStatusBar}
-              >
+              <StationDockChrome autoHide={dockAutoHide} showTopBorder>
                 <div data-guide-target={GUIDE_TARGETS.WORKSTATION_DOCK}>
                   <Dock
                     segments={myStationDockSegments}

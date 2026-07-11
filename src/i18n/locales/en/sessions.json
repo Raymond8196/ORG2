@@ -1079,6 +1079,8 @@
     "deleteFileRunning": "Deleting {{name}}",
     "deleteFileDone": "Deleted {{name}}",
     "deleteFileFailed": "Failed to delete {{name}}",
+    "deleteFileCompactRunning": "Deleting",
+    "deleteFileCompactDone": "Delete",
     "directoryTree": "Directory Tree",
     "ls": "ls",
     "listDirRunning": "Listing directory",
@@ -1144,6 +1146,14 @@
     "editFileDoneNoName": "Edited file",
     "editFileCompactRunning": "Editing",
     "editFileCompactDone": "Edit",
+    "editFiles": "Edit files",
+    "editSummary": {
+      "edit_one": "{{count}} edit",
+      "edit_other": "{{count}} edits",
+      "read_one": "{{count}} file read",
+      "read_other": "{{count}} reads",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Attempted to edit",
     "file": "file",
     "runShellRunning": "Running command",
@@ -1207,7 +1217,8 @@
       "ls_one": "ls {{count}} folder",
       "ls_other": "ls {{count}} folders",
       "lsp_one": "{{count}} LSP query",
-      "lsp_other": "{{count}} LSP queries"
+      "lsp_other": "{{count}} LSP queries",
+      "separator": ", "
     },
     "categoryRead": "Read",
     "categorySearch": "Search",
