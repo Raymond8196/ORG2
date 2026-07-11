@@ -22,7 +22,7 @@ import {
 import i18next from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
 import { PanelLeft, Plus, X } from "lucide-react";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
@@ -34,7 +34,10 @@ import {
 import { createLogger } from "@src/hooks/logger";
 import { useSettingValue } from "@src/hooks/settings/useSettings";
 import { useSidebarState } from "@src/hooks/ui/sidebar/useSidebarState";
-import { getSidebarSurfaceBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
+import {
+  PANE_WIDTH_TRANSITION_CLASSES,
+  getSidebarSurfaceBackgroundStyle,
+} from "@src/modules/shared/layouts/viewContainerTokens";
 import { VerticalResizeHandle } from "@src/scaffold/Resize";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import { hoverSidebarOpenAtom } from "@src/store/ui/hoverSidebarAtom";
@@ -87,8 +90,10 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     beforeAddNewActions,
     headerActions,
   }) => {
+    const sidebarContainerRef = useRef<HTMLDivElement>(null);
     const {
       width: sidebarWidth,
+      expandedWidth: expandedSidebarWidth,
       isDragging,
       handleMouseDown,
       isCollapsed,
@@ -108,7 +113,6 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
         `${sidebarSelectedRowOpacity}%`
       );
     }, [sidebarSelectedRowOpacity]);
-
     const isMacOS = isTauriDesktop();
     const hideSidebarShortcut = getShortcutKeys("toggle_sidebar");
     const isFullscreen = useAtomValue(windowFullscreenAtom);
@@ -121,6 +125,16 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // Check for force visible from context (for hover sidebar)
     const forceVisibleFromContext = useForceVisibleSidebar();
     const shouldForceVisible = forceVisibleProp || forceVisibleFromContext;
+    useEffect(() => {
+      if (!isCollapsed || shouldForceVisible) return;
+      const activeElement = document.activeElement;
+      if (
+        activeElement instanceof HTMLElement &&
+        sidebarContainerRef.current?.contains(activeElement)
+      ) {
+        activeElement.blur();
+      }
+    }, [isCollapsed, shouldForceVisible]);
 
     // Check if hover sidebar is open — split read/write to avoid re-renders from setter reference
     const isHoverSidebarOpen = useAtomValue(hoverSidebarOpenAtom);
@@ -223,6 +237,10 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // When forceVisible and collapsed, use default width instead of 0
     const effectiveWidth =
       shouldForceVisible && isCollapsed ? DEFAULT_SIDEBAR_WIDTH : sidebarWidth;
+    const surfaceWidth =
+      shouldForceVisible && isCollapsed
+        ? DEFAULT_SIDEBAR_WIDTH
+        : expandedSidebarWidth;
 
     // Memoize outer container style to avoid re-creating on every render
     const containerStyle = useMemo(
@@ -230,15 +248,18 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
         ({
           width: `${effectiveWidth}px`,
           willChange: isDragging ? ("width" as const) : ("auto" as const),
+          pointerEvents:
+            isCollapsed && !shouldForceVisible ? ("none" as const) : undefined,
           "--sidebar-selected-row-opacity": `${sidebarSelectedRowOpacity}%`,
         }) as React.CSSProperties,
-      [effectiveWidth, isDragging, sidebarSelectedRowOpacity]
+      [
+        effectiveWidth,
+        isCollapsed,
+        isDragging,
+        shouldForceVisible,
+        sidebarSelectedRowOpacity,
+      ]
     );
-
-    // Don't render if collapsed (unless forceVisible is true)
-    if (isCollapsed && !shouldForceVisible) {
-      return null;
-    }
 
     const sidebarTopChromeClassName = SIDEBAR_TOP_CHROME_CLASS_NAME;
 
@@ -506,13 +527,14 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     } as const;
     const wrappedContent = wrapInSurface ? (
       <div
-        className={`sidebar-base flex h-full w-full flex-col ${innerClassName}`}
+        className={`sidebar-base flex h-full w-full flex-col overflow-hidden ${innerClassName}`}
       >
         <div
-          className="flex flex-1 flex-col overflow-hidden"
+          className="flex h-full flex-none flex-col overflow-hidden"
           style={{
             ...surfaceStyle,
             ...modernSurfaceStyle,
+            width: `${surfaceWidth}px`,
           }}
         >
           {content}
@@ -529,14 +551,17 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
 
     return (
       <div
+        ref={sidebarContainerRef}
         className={`group/sidebar relative flex h-full flex-shrink-0 ${
-          isDragging ? "" : "transition-[width] duration-150"
+          isDragging ? "" : PANE_WIDTH_TRANSITION_CLASSES
         } ${className}`}
         style={containerStyle}
+        aria-hidden={isCollapsed && !shouldForceVisible}
+        data-sidebar-collapsed={isCollapsed || undefined}
         onContextMenu={handleResizeContextMenu}
       >
         {wrappedContent}
-        {renderResizeHandle()}
+        {(!isCollapsed || shouldForceVisible) && renderResizeHandle()}
       </div>
     );
   }
