@@ -216,6 +216,7 @@
     }
   },
   "collaboration": {
+    "switchOrg": "Switch ORG",
     "addOrg": "Add ORG",
     "unknownOrg": "Unknown ORG",
     "emptyColleagues": "No colleague activity yet",
