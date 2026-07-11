@@ -594,7 +594,11 @@ fn protocol_for_agent(agent_name: &str) -> Result<ProxyAgentDescriptor, String> 
     use agent_cli::managed_config::CliManagedProxyProtocol;
 
     let proxy_protocol = agent_cli::managed_config::managed_proxy_protocol_for_agent(agent_name)
-        .ok_or_else(|| format!("CLI managed proxy is not available for {agent_name}"))?;
+        .ok_or_else(|| {
+            agent_cli::managed_config::managed_config_unavailable_reason_for_agent(agent_name)
+                .map(str::to_string)
+                .unwrap_or_else(|| format!("CLI managed proxy is not registered for {agent_name}"))
+        })?;
     let display_name = key_vault::cli_agent_display_name(agent_name)
         .ok_or_else(|| format!("Missing CLI registry entry for {agent_name}"))?;
     let (protocol, protocol_name, requires_openai_responses) = match proxy_protocol {
@@ -813,7 +817,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
     let running = PROXY_RUNNING.load(Ordering::SeqCst);
     let url = DEFAULT_PROXY_URL.to_string();
 
-    if protocol_for_agent(&agent_name).is_err() {
+    if let Err(reason) = protocol_for_agent(&agent_name) {
         return Ok(CliManagedProxyStatus {
             agent_name,
             supported: false,
@@ -825,7 +829,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
             selected_model: None,
             upstream_base_url: None,
             compatible_key_ids: Vec::new(),
-            message: Some("CLI managed proxy is not available for this agent".to_string()),
+            message: Some(reason),
         });
     }
 
