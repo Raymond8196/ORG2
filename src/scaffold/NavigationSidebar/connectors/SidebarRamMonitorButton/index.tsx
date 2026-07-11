@@ -257,7 +257,7 @@ export const SidebarRamMonitorButton: React.FC = React.memo(() => {
         <button
           type="button"
           className={`flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none p-0 transition-colors duration-150 ${
-            isOpen ? "bg-bg-1" : "bg-transparent hover:bg-fill-2"
+            isOpen ? "bg-bg-1" : "bg-transparent hover:bg-sidebar-selected"
           }`}
           onClick={toggle}
           onMouseEnter={(event) => triggerIconAnimation(event.currentTarget)}

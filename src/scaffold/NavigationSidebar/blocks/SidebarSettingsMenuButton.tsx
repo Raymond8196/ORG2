@@ -4,6 +4,7 @@ import {
   Contrast,
   Gauge,
   HelpCircle,
+  House,
   Laptop,
   MessageCircle,
   MousePointer2,
@@ -76,7 +77,7 @@ function getSubmenuPosition(
 const SidebarSettingsMenuButton: React.FC = React.memo(() => {
   const { t } = useTranslation("navigation");
   const { t: tSettings } = useTranslation("settings");
-  const { goToSettings } = useAppNavigation();
+  const { goToSettings, goToStartPage } = useAppNavigation();
   const ramPanelRef = useRef<HTMLDivElement | null>(null);
   const submenuPanelRef = useRef<HTMLDivElement | null>(null);
   const preserveRamPanelOnMenuCloseRef = useRef(false);
@@ -179,6 +180,11 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
     goToSettings();
   }, [closeAll, goToSettings]);
 
+  const handleOpenHome = useCallback(() => {
+    closeAll();
+    goToStartPage();
+  }, [closeAll, goToStartPage]);
+
   const handleViewRam = useCallback(() => {
     setActiveSubmenu(null);
     setSubmenuPosition(null);
@@ -245,7 +251,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
             type="button"
             aria-label={t("sidebar.bottomBar.settings")}
             className={`flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none p-0 transition-colors duration-150 ${
-              isOpen ? "bg-bg-1" : "bg-transparent hover:bg-fill-2"
+              isOpen ? "bg-bg-1" : "bg-transparent hover:bg-sidebar-selected"
             }`}
             onClick={handleToggle}
             onMouseEnter={(event) => triggerIconAnimation(event.currentTarget)}
@@ -274,6 +280,20 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
             }}
           >
             <div className={DROPDOWN_CLASSES.itemsColumn}>
+              <button
+                type="button"
+                className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}
+                onMouseEnter={() => setActiveSubmenu(null)}
+                onFocus={() => setActiveSubmenu(null)}
+                onClick={handleOpenHome}
+              >
+                <House
+                  size={DROPDOWN_ITEM.iconSize}
+                  className={MENU_ICON_CLASS_NAME}
+                />
+                <span>{t("sidebar.tabs.build")}</span>
+              </button>
+              <div className={DROPDOWN_CLASSES.menuSeparator} />
               <button
                 type="button"
                 className={`${DROPDOWN_CLASSES.menuActionItem} justify-between`}
