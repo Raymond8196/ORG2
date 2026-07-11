@@ -149,6 +149,10 @@
       "zh-Hant": "Chiński tradycyjny"
     },
     "layout": "Układ",
+    "sidebar": "Pasek boczny",
+    "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "Głębia krawędzi paska bocznego",
+    "selectedItemTransparency": "Przezroczystość wybranego elementu",
     "spotlightPlacement": "Pozycja Spotlight",
     "spotlightPlacementDesc": "Wybierz, gdzie otwiera się paleta poleceń Spotlight",
     "spotlightPlacementOptions": {

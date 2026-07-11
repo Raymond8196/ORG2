@@ -51,6 +51,7 @@ export function ChatPanelShell({
   const dragHandle = showResizeHandle && (
     <VerticalResizeHandle
       key="chat-panel-resize-handle"
+      className={`!z-[80] ${isLeftPosition ? "-ml-px" : "-mr-px"}`}
       onMouseDown={onResizeMouseDown}
       variant={embedded ? "border" : "transparent"}
       noAccent={!embedded}

@@ -33,10 +33,17 @@ export function NavigationMenuRowAccessorySlot({
     actionContent ||
     workingIndicatorContent
   );
+  const hasHoverReplacement = Boolean(hoverContent || actionContent);
   const stackedContent = hasStacked ? (
     <span className="grid items-center justify-end leading-none">
       {(persistentContent || workingIndicatorContent) && (
-        <span className="col-start-1 row-start-1 inline-flex items-center justify-end leading-none transition-opacity duration-150 group-hover:pointer-events-none group-hover:opacity-0">
+        <span
+          className={`col-start-1 row-start-1 inline-flex items-center justify-end leading-none transition-opacity duration-150 ${
+            hasHoverReplacement
+              ? "group-hover:pointer-events-none group-hover:opacity-0"
+              : ""
+          }`}
+        >
           {persistentContent}
           {workingIndicatorContent}
         </span>

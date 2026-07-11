@@ -42,6 +42,8 @@ interface UsePinnedMenuItemsParams {
   createWorkItemLabel: string;
   importGithubIssuesLabel: string;
   newSessionLabel: string;
+  workspacesLabel: string;
+  workItemsLabel: string;
   t: TFunction<"navigation">;
 }
 
@@ -56,6 +58,8 @@ export function usePinnedMenuItems({
   createWorkItemLabel,
   importGithubIssuesLabel,
   newSessionLabel,
+  workspacesLabel,
+  workItemsLabel,
   t,
 }: UsePinnedMenuItemsParams): UsePinnedMenuItemsResult {
   const sessionPinnedMenuItems = useMemo<NavigationMenuItem[]>(
@@ -66,8 +70,10 @@ export function usePinnedMenuItems({
         opsControlLabel: t("routes.opsControl"),
         opsControlRoutePath: ROUTES.workStation.opsControl.path,
         opsControlShortcut: getShortcutKeys("open_ops_control"),
+        workspacesLabel,
+        workItemsLabel,
       }),
-    [newSessionLabel, t]
+    [newSessionLabel, t, workItemsLabel, workspacesLabel]
   );
   const projectsPinnedMenuItems = useMemo<NavigationMenuItem[]>(
     () =>
