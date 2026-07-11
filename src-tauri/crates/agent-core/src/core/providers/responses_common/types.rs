@@ -172,6 +172,9 @@ impl ResponsesError {
         let error_type = self.error_type.as_deref().unwrap_or_default();
 
         match (code, error_type) {
+            ("usage_limit_reached", _) | (_, "usage_limit_reached") => {
+                ProviderError::UsageLimitReached(message)
+            }
             ("context_length_exceeded", _) | ("input_too_long", _) => {
                 ProviderError::ContextTooLong(message)
             }
@@ -204,7 +207,9 @@ impl ResponsesError {
 
 fn classify_responses_error_message(message: String) -> ProviderError {
     let lower = message.to_ascii_lowercase();
-    if lower.contains("context_length_exceeded")
+    if lower.contains("usage_limit_reached") || lower.contains("usage limit has been reached") {
+        ProviderError::UsageLimitReached(message)
+    } else if lower.contains("context_length_exceeded")
         || lower.contains("context window")
         || lower.contains("maximum context length")
         || lower.contains("prompt is too long")
@@ -390,6 +395,23 @@ pub fn extract_account_id_from_id_token(id_token: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn maps_usage_limit_type_to_non_transient_provider_error() {
+        let error = ResponsesError {
+            message: Some("The usage limit has been reached".to_string()),
+            code: None,
+            error_type: Some("usage_limit_reached".to_string()),
+            param: None,
+        };
+
+        assert!(matches!(
+            error.into_provider_error(),
+            ProviderError::UsageLimitReached(message)
+                if message.contains("The usage limit has been reached")
+                    && message.contains("type=usage_limit_reached")
+        ));
+    }
 
     #[test]
     fn maps_official_context_error_code_without_message_heuristics() {
