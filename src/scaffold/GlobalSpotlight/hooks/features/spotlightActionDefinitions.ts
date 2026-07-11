@@ -22,7 +22,6 @@ import {
   FolderTree,
   GitBranch,
   GitPullRequest,
-  LayoutPanelLeft,
   LayoutPanelTop,
   List,
   Menu,
@@ -76,8 +75,6 @@ export type SpotlightStaticActionId =
   | "disable-chat-pagination"
   | "use-model-picker-spotlight"
   | "use-model-picker-dropdown"
-  | "set-comfort-layout"
-  | "set-compact-layout"
   | "set-workstation-sidebar-left"
   | "set-workstation-sidebar-right"
   | "enable-dock-auto-hide"
@@ -416,7 +413,6 @@ export function buildChatPanelSettingsActions({
   agentStationChatPosition,
   chatTurnPaginationEnabled,
   modelPickerStyle,
-  internalLayoutMode,
   workstationSidebarPosition,
   dockAutoHide,
 }: {
@@ -424,7 +420,6 @@ export function buildChatPanelSettingsActions({
   agentStationChatPosition: "left" | "right";
   chatTurnPaginationEnabled: boolean;
   modelPickerStyle: "spotlight" | "dropdown";
-  internalLayoutMode: "comfort" | "compact";
   workstationSidebarPosition: "left" | "right";
   dockAutoHide: boolean;
 }): SpotlightStaticActionDefinition[] {
@@ -508,25 +503,6 @@ export function buildChatPanelSettingsActions({
       modelPickerStyle === "spotlight"
         ? ACTION_ID.CHAT_PANEL_USE_MODEL_PICKER_DROPDOWN
         : ACTION_ID.CHAT_PANEL_USE_MODEL_PICKER_SPOTLIGHT,
-    payload: {},
-    closeOnSuccess: false,
-  });
-
-  actions.push({
-    id:
-      internalLayoutMode === "comfort"
-        ? "set-compact-layout"
-        : "set-comfort-layout",
-    labelKey:
-      internalLayoutMode === "comfort"
-        ? "common:spotlightActions.useCompactWorkstationLayout"
-        : "common:spotlightActions.useComfortWorkstationLayout",
-    icon: LayoutPanelLeft,
-    keywords: ["layout mode", "compact layout", "comfort layout", "density"],
-    actionId:
-      internalLayoutMode === "comfort"
-        ? ACTION_ID.WORKSTATION_SET_COMPACT_LAYOUT
-        : ACTION_ID.WORKSTATION_SET_COMFORT_LAYOUT,
     payload: {},
     closeOnSuccess: false,
   });
