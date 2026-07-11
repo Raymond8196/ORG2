@@ -457,6 +457,7 @@ const AppShell = () => {
             blurAmount={backgroundConfig.blurAmount ?? 0}
             backgroundColor={backgroundConfig.backgroundColor}
             glass={backgroundConfig.glass}
+            sidebarInset={sidebarCollapsed ? 0 : sidebarWidth}
           />
 
           {/* Main layout with sidebar, toolbar, content, and chat panel */}

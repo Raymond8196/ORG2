@@ -19,6 +19,7 @@
   ],
   "permissions": [
     "core:default",
+    "liquid-glass:default",
     "shell:allow-open",
     "shell:default",
     "shell:allow-spawn",
