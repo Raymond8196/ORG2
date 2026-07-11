@@ -14,7 +14,7 @@
  */
 import { HoverSidebar } from "@/src/scaffold/NavigationSidebar";
 import { useAtomValue } from "jotai";
-import React, { memo, useCallback, useEffect } from "react";
+import React, { memo, useCallback, useEffect, useRef } from "react";
 
 import { ActionSystemProvider } from "@src/ActionSystem";
 import { sendAdeActionResult } from "@src/api/tauri/agent";
@@ -35,12 +35,19 @@ import type { SessionCreatorChatPanelProps } from "@src/features/SessionCreator/
 import { dispatchWebviewLayoutChanged } from "@src/hooks/platform/useInlineWebview/webviewLayoutEvents";
 import GlobalSessionSync from "@src/modules/shared/components/GlobalSessionSync";
 import { GlobalSpotlightPortal } from "@src/modules/shared/components/GlobalSpotlightPortal";
-import { getPagePanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
+import {
+  PANE_WIDTH_TRANSITION_CLASSES,
+  getChatPanelBackgroundStyle,
+  getChatSlotLayoutStyle,
+  getPagePanelBackgroundStyle,
+  getWorkbenchLayoutStyle,
+} from "@src/modules/shared/layouts/viewContainerTokens";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
   type ChatPanelMode,
   DEFAULT_CHAT_WIDTH,
+  chatPanelDraggingAtom,
   chatWidthAtom,
 } from "@src/store/ui/chatPanelAtom";
 import type { ChatPanelPosition } from "@src/store/ui/workStationLayout/chatPositionAtoms";
@@ -166,8 +173,10 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
   children,
 }) => {
   const rawChatWidth = useAtomValue(chatWidthAtom);
+  const isChatPanelDragging = useAtomValue(chatPanelDraggingAtom);
   const backgroundConfig = useAtomValue(resolvedBackgroundConfigAtom);
   const viewportWidth = useViewportWidth();
+  const chatSlotRef = useRef<HTMLDivElement>(null);
   // Settings-in-slot must always have a usable width even if the user
   // previously dragged the chat to zero. Fall back to the configured
   // default so opening Settings never produces a collapsed slot.
@@ -183,13 +192,51 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
   // (otherwise an existing zero-width chat would hide the settings panel
   // too).
   const isSlotVisible = chatPanelMode === "settings" ? true : isChatVisible;
+  // Keep the chat mounted at zero width while the workstation route owns the
+  // slot. This lets close/open animate without keeping the heavy panel alive
+  // on unrelated routes.
+  const shouldMountSlot = isSettingsSlot || showChatPanel || chatPanelMaximized;
   const settingsSurfaceStyle = getPagePanelBackgroundStyle(
     backgroundConfig.pageOpacity
+  );
+  const chatPanelSurfaceStyle = getChatPanelBackgroundStyle(
+    backgroundConfig.pageOpacity
+  );
+  const paneUnderlayStyle: React.CSSProperties = {
+    backgroundColor: chatPanelSurfaceStyle.backgroundColor,
+  };
+  const paneTransitionClassName = isChatPanelDragging
+    ? ""
+    : PANE_WIDTH_TRANSITION_CLASSES;
+  const chatSlotStyle = getChatSlotLayoutStyle({
+    maximized: chatPanelMaximized,
+    visible: isSlotVisible,
+    visibleWidth: chatWidthStyleValue,
+  });
+  const workbenchStyle = getWorkbenchLayoutStyle(chatPanelMaximized);
+
+  const handlePaneTransitionEnd = useCallback(
+    (event: React.TransitionEvent<HTMLDivElement>) => {
+      if (event.currentTarget !== event.target) return;
+      dispatchWebviewLayoutChanged();
+    },
+    []
   );
 
   useEffect(() => {
     dispatchWebviewLayoutChanged();
   }, [chatPosition, chatPanelMaximized, chatWidth, isSlotVisible]);
+
+  useEffect(() => {
+    if (isSlotVisible) return;
+    const activeElement = document.activeElement;
+    if (
+      activeElement instanceof HTMLElement &&
+      chatSlotRef.current?.contains(activeElement)
+    ) {
+      activeElement.blur();
+    }
+  }, [isSlotVisible]);
 
   // Slot content: either the live chat panel or the in-slot Settings surface.
   // Both share the slot's outer maximize/inset behaviour — only the inner
@@ -221,6 +268,27 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
       />
     );
 
+  const chatSlot = shouldMountSlot ? (
+    <div
+      key="chat-slot"
+      ref={chatSlotRef}
+      className={`relative z-10 flex min-h-0 min-w-0 overflow-hidden ${paneTransitionClassName}`}
+      style={chatSlotStyle}
+      aria-hidden={!isSlotVisible}
+      data-fullmode-chat-wrapper
+      data-tour-target={
+        chatPanelMode === "session"
+          ? GENERAL_LAYOUT_TOUR_TARGETS.chatPanel
+          : undefined
+      }
+      data-chat-focus={chatPanelMaximized || undefined}
+      data-chat-slot-mode={chatPanelMode}
+      onTransitionEnd={handlePaneTransitionEnd}
+    >
+      {slotInner}
+    </div>
+  ) : null;
+
   // Shared content wrapped in providers
   const contentArea = (
     <DataProvider>
@@ -232,68 +300,28 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
             className="min-h-0 min-w-0 flex-1 overflow-hidden"
             data-main-content
           >
-            <div className="relative isolate flex h-full min-h-0 min-w-0 flex-row overflow-hidden">
-              {isChatOnLeft && isSlotVisible && (
-                <div
-                  key="chat-slot"
-                  className={
-                    chatPanelMaximized
-                      ? "absolute inset-0 z-10 flex min-h-0 min-w-0"
-                      : "relative z-10 flex flex-shrink-0"
-                  }
-                  style={
-                    chatPanelMaximized
-                      ? undefined
-                      : { width: chatWidthStyleValue }
-                  }
-                  data-fullmode-chat-wrapper
-                  data-tour-target={
-                    chatPanelMode === "session"
-                      ? GENERAL_LAYOUT_TOUR_TARGETS.chatPanel
-                      : undefined
-                  }
-                  data-chat-focus={chatPanelMaximized || undefined}
-                  data-chat-slot-mode={chatPanelMode}
-                >
-                  {slotInner}
-                </div>
-              )}
+            <div
+              className="relative isolate flex h-full min-h-0 min-w-0 flex-row overflow-hidden"
+              style={paneUnderlayStyle}
+              data-pane-surface-underlay
+            >
+              {isChatOnLeft && chatSlot}
               <div
                 key="workbench-surface"
-                // Maximizing the slot collapses the workbench surface to
-                // zero width so inline native webviews shrink to zero-area.
-                className={`relative z-0 h-full min-h-0 min-w-0 overflow-hidden ${chatPanelMaximized ? "w-0 flex-none" : "flex-1"}`}
+                // Animate the real flex track to zero so inline native
+                // webviews and ResizeObserver consumers see the exact width
+                // throughout focus/unfocus instead of an overlay swap.
+                className={`relative z-0 h-full min-h-0 min-w-0 overflow-hidden ${paneTransitionClassName}`}
+                style={workbenchStyle}
+                aria-hidden={chatPanelMaximized}
                 data-workbench-surface
+                onTransitionEnd={handlePaneTransitionEnd}
               >
                 <WorkbenchActionSystemScope>
                   {children}
                 </WorkbenchActionSystemScope>
               </div>
-              {!isChatOnLeft && isSlotVisible && (
-                <div
-                  key="chat-slot"
-                  className={
-                    chatPanelMaximized
-                      ? "absolute inset-0 z-10 flex min-h-0 min-w-0"
-                      : "relative z-10 flex flex-shrink-0"
-                  }
-                  style={
-                    chatPanelMaximized
-                      ? undefined
-                      : { width: chatWidthStyleValue }
-                  }
-                  data-fullmode-chat-wrapper
-                  data-tour-target={
-                    chatPanelMode === "session"
-                      ? GENERAL_LAYOUT_TOUR_TARGETS.chatPanel
-                      : undefined
-                  }
-                  data-chat-focus={chatPanelMaximized || undefined}
-                  data-chat-slot-mode={chatPanelMode}
-                >
-                  {slotInner}
-                </div>
-              )}
+              {!isChatOnLeft && chatSlot}
               {chatPanelMaximized && chatPanelMode === "session" && (
                 <FocusedChatWorkstationRail />
               )}
