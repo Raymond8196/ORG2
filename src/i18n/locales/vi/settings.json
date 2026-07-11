@@ -149,6 +149,9 @@
       "zh-Hant": "Tiếng Trung phồn thể"
     },
     "layout": "Bố cục",
+    "sidebar": "Thanh bên",
+    "spotlight": "Spotlight",
+    "selectedItemTransparency": "Độ trong suốt của mục đã chọn",
     "spotlightPlacement": "Vị trí Spotlight",
     "spotlightPlacementDesc": "Chọn nơi bảng lệnh Spotlight mở ra",
     "spotlightPlacementOptions": {

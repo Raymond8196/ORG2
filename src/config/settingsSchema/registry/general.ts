@@ -135,6 +135,12 @@ export const GENERAL_SETTINGS_REGISTRY = {
       center: "Page center",
     },
   },
+  "layout.sidebarSelectedRowOpacity": {
+    schema: z.number().min(0).max(20),
+    default: 5,
+    description: "Selected sidebar row highlight intensity percentage",
+    category: "general",
+  },
   "general.workStationChatPosition": {
     schema: z.enum(["left", "right"]),
     default: "left" as const,

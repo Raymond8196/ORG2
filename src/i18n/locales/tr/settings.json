@@ -149,6 +149,9 @@
       "zh-Hant": "Geleneksel Çince"
     },
     "layout": "Düzen",
+    "sidebar": "Kenar çubuğu",
+    "spotlight": "Spotlight",
+    "selectedItemTransparency": "Seçili öğe şeffaflığı",
     "spotlightPlacement": "Spotlight konumu",
     "spotlightPlacementDesc": "Spotlight komut paletinin nerede açılacağını seçin",
     "spotlightPlacementOptions": {

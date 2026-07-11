@@ -149,6 +149,9 @@
       "zh-Hant": "Traditionelles Chinesisch"
     },
     "layout": "Layout",
+    "sidebar": "Seitenleiste",
+    "spotlight": "Spotlight",
+    "selectedItemTransparency": "Transparenz ausgewählter Elemente",
     "spotlightPlacement": "Spotlight-Position",
     "spotlightPlacementDesc": "Wählen Sie, wo die Spotlight-Befehlspalette geöffnet wird",
     "spotlightPlacementOptions": {

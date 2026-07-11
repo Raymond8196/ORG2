@@ -149,6 +149,9 @@
       "zh-Hant": "Китайский традиционный"
     },
     "layout": "Макет",
+    "sidebar": "Боковая панель",
+    "spotlight": "Spotlight",
+    "selectedItemTransparency": "Прозрачность выбранного элемента",
     "spotlightPlacement": "Положение Spotlight",
     "spotlightPlacementDesc": "Выберите, где открывается командная палитра Spotlight",
     "spotlightPlacementOptions": {

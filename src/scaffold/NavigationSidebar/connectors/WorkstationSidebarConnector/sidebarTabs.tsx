@@ -1,43 +1,7 @@
-import type { TFunction } from "i18next";
-import { Folders, ListTodo, MessageCircle } from "lucide-react";
-import React, { useMemo } from "react";
+import React from "react";
 
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
-
-import type { WorkstationSidebarKey } from "./types";
-
-export function isWorkstationSidebarKey(
-  key: string
-): key is WorkstationSidebarKey {
-  return key === "folders" || key === "workstation" || key === "projects";
-}
-
-export function useWorkstationSidebarTabs(t: TFunction<"navigation">) {
-  return useMemo(
-    () => [
-      {
-        key: "folders",
-        label: t("labels.folders"),
-        icon: Folders,
-        iconName: "folders",
-      },
-      {
-        key: "workstation",
-        label: t("labels.session"),
-        icon: MessageCircle,
-        iconName: "message-circle",
-      },
-      {
-        key: "projects",
-        label: t("labels.workItems"),
-        icon: ListTodo,
-        iconName: "list-todo",
-      },
-    ],
-    [t]
-  );
-}
 
 export function SidebarSearchShortcutTooltip({
   searchLabel,

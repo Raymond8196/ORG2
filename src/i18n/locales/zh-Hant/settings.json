@@ -149,6 +149,9 @@
       "zh-Hant": "繁體中文"
     },
     "layout": "佈局",
+    "sidebar": "側邊欄",
+    "spotlight": "Spotlight",
+    "selectedItemTransparency": "選取項目透明度",
     "spotlightPlacement": "Spotlight 位置",
     "spotlightPlacementDesc": "選擇 Spotlight 命令面板開啟的位置",
     "spotlightPlacementOptions": {
