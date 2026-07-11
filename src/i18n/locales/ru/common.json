@@ -31,10 +31,6 @@
     "closeCanvas": "Закрыть холст",
     "generatingCanvas": "Создание холста…",
     "noContent": "Нет содержимого",
-    "noIssueSelected": "Issue не выбран",
-    "selectIssueHint": "Выберите issue на панели Issues в боковой панели.",
-    "noPrSelected": "Pull request не выбран",
-    "selectPrHint": "Выберите Pull request на панели Pull request в боковой панели.",
     "reload": "Перезагрузить",
     "urlPreviewRequiresTauri": "Для предпросмотра URL требуется Tauri",
     "openInExternalBrowser": "Откройте во внешнем браузере",
@@ -107,6 +103,7 @@
     "retry": "Повторить",
     "regenerate": "Перегенерировать",
     "refresh": "Обновить",
+    "rescan": "Сканировать снова",
     "reload": "Перезагрузить",
     "reviewNextFile": "Проверить следующий файл",
     "reviewPreviousFile": "Проверить предыдущий файл",
@@ -207,8 +204,7 @@
     "skipThisVersion": "Пропустить эту версию",
     "later": "Позже",
     "updateAiBlame": "Обновить AI Blame",
-    "link": "Связать",
-    "fetchPr": "Fetch PR"
+    "link": "Связать"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено",
@@ -965,9 +961,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Предпросмотр недоступен",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Поиск сообщений...",

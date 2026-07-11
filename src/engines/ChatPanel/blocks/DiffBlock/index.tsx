@@ -291,7 +291,8 @@ const CompactSegmentView: React.FC<CompactSegmentViewProps> = ({
                 additions={linesAdded}
                 deletions={linesRemoved}
                 variant="plain"
-                className="translate-y-px gap-0"
+                gapClassName="gap-0"
+                className="translate-y-px"
               />
               {segment.isDeleted && (
                 <span className="text-danger-6">{t("tools.deleted")}</span>

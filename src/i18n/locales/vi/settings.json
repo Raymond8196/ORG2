@@ -149,17 +149,12 @@
       "zh-Hant": "Tiếng Trung phồn thể"
     },
     "layout": "Bố cục",
-    "globalLayoutMethod": "Phương thức bố cục",
-    "globalLayoutMethodDesc": "Chọn cách các bảng nội dung định khung ứng dụng",
     "spotlightPlacement": "Vị trí Spotlight",
     "spotlightPlacementDesc": "Chọn nơi bảng lệnh Spotlight mở ra",
     "spotlightPlacementOptions": {
       "top": "Trên cùng",
       "center": "Giữa trang"
     },
-    "inset": "Thoải mái",
-    "full": "Mở rộng",
-    "compact": "Hiện đại",
     "left": "Trái",
     "right": "Phải",
     "light": "Sáng",

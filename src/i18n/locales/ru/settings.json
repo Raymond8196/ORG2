@@ -149,17 +149,12 @@
       "zh-Hant": "Китайский традиционный"
     },
     "layout": "Макет",
-    "globalLayoutMethod": "Метод макета",
-    "globalLayoutMethodDesc": "Выберите оформление панелей контента",
     "spotlightPlacement": "Положение Spotlight",
     "spotlightPlacementDesc": "Выберите, где открывается командная палитра Spotlight",
     "spotlightPlacementOptions": {
       "top": "Сверху",
       "center": "По центру страницы"
     },
-    "inset": "Комфорт",
-    "full": "Расширенный",
-    "compact": "Современный",
     "left": "Слева",
     "right": "Справа",
     "light": "Светлая",

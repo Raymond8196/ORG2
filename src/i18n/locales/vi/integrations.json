@@ -2595,7 +2595,10 @@
   },
   "cliLaunchProfiles": {
     "title": "Hồ sơ khởi chạy",
+    "plain": "Cơ bản",
+    "plan": "Kế hoạch",
     "fullPermission": "Toàn quyền",
+    "autoEdit": "Tự sửa",
     "manual": "Thủ công",
     "command": "Lệnh",
     "environment": "Môi trường",

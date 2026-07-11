@@ -16,7 +16,7 @@ import {
   buildHtmlDocument,
   buildReactDocument,
 } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/canvasBuilder";
-import { EditorTabService } from "@src/services/workStation";
+import { EditorTabService } from "@src/services/workStation/EditorTabService";
 import { canvasPreviewAtom } from "@src/store/session/canvasPreviewAtom";
 import { getCanvasPreviewTabId } from "@src/store/workstation/tabs/factories/canvasPreview";
 

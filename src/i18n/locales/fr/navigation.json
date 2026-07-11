@@ -203,7 +203,7 @@
     "emptyWorkspaces": "Aucun espace de travail correspondant",
     "myRepos": "Mes Dépôts",
     "myMultiRepoWorkspaces": "Mes Workspaces multi-dépôts",
-    "dashboard": "Tableau de bord",
+    "dashboard": "Launchpad",
     "myWorkspaces": "Mes espaces de travail",
     "workspaces": "Espaces de travail",
     "dashboardTitle": "Espaces de travail",
@@ -377,6 +377,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "Changer d’ORG",
     "addOrg": "Ajouter une ORG",
     "unknownOrg": "ORG inconnue",
     "emptyColleagues": "Aucune activité de collègue pour le moment",

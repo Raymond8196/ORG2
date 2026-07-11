@@ -201,7 +201,7 @@
     "emptyWorkspaces": "Brak pasujących obszarów roboczych",
     "myRepos": "Moje repozytoria",
     "myMultiRepoWorkspaces": "Moje wielo-repo Workspaces",
-    "dashboard": "Pulpit",
+    "dashboard": "Launchpad",
     "myWorkspaces": "Moje obszary robocze",
     "workspaces": "Obszary robocze",
     "dashboardTitle": "Obszary robocze",
@@ -375,6 +375,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "Zmień ORG",
     "addOrg": "Dodaj ORG",
     "unknownOrg": "Nieznana ORG",
     "emptyColleagues": "Brak aktywności współpracowników",

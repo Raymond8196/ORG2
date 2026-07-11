@@ -84,6 +84,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
       placement = SELECT_DEFAULTS.placement,
       dropdownAlign,
       dropdownMinWidth,
+      dropdownWidth,
       dropdownWidthMode = SELECT_DEFAULTS.dropdownWidthMode,
       panelZIndex,
       radius = SELECT_DEFAULTS.radius,
@@ -310,10 +311,17 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
           ? { right: `${pos.right}px` }
           : { left: `${pos.left}px` }),
         ...panelWidthStyle,
+        ...(dropdownWidth ? { width: `${dropdownWidth}px` } : {}),
         ...(dropdownMinWidth ? { minWidth: `${dropdownMinWidth}px` } : {}),
         ...(panelZIndex !== undefined ? { zIndex: panelZIndex } : {}),
       };
-    }, [panelPosition, panelWidthStyle, dropdownMinWidth, panelZIndex]);
+    }, [
+      panelPosition,
+      panelWidthStyle,
+      dropdownWidth,
+      dropdownMinWidth,
+      panelZIndex,
+    ]);
 
     return (
       <div ref={ref} style={style}>

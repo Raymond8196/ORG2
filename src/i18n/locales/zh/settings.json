@@ -149,17 +149,12 @@
       "zh-Hant": "繁体中文"
     },
     "layout": "布局",
-    "globalLayoutMethod": "布局方式",
-    "globalLayoutMethodDesc": "选择内容面板如何呈现应用边框",
     "spotlightPlacement": "Spotlight 位置",
     "spotlightPlacementDesc": "选择 Spotlight 命令面板打开的位置",
     "spotlightPlacementOptions": {
       "top": "顶部",
       "center": "页面居中"
     },
-    "inset": "舒适",
-    "full": "扩展",
-    "compact": "现代",
     "left": "左侧",
     "right": "右侧",
     "light": "浅色",

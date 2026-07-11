@@ -31,10 +31,6 @@
     "closeCanvas": "Close canvas",
     "generatingCanvas": "Generating canvas…",
     "noContent": "No content",
-    "noIssueSelected": "No issue selected",
-    "selectIssueHint": "Select an issue from the Issues panel in the sidebar.",
-    "noPrSelected": "No pull request selected",
-    "selectPrHint": "Select a pull request from the Pull request panel in the sidebar.",
     "reload": "Reload",
     "urlPreviewRequiresTauri": "URL Preview requires Tauri",
     "openInExternalBrowser": "Open in external browser instead",
@@ -108,6 +104,7 @@
     "retry": "Retry",
     "regenerate": "Regenerate",
     "refresh": "Refresh",
+    "rescan": "Rescan",
     "reload": "Reload",
     "reviewNextFile": "Review Next File",
     "reviewPreviousFile": "Review Previous File",
@@ -181,8 +178,6 @@
     "stop": "Stop",
     "find": "Find",
     "filter": "Filter",
-    "filterCommits": "Filter commits...",
-    "filterPullRequests": "Filter pull requests...",
     "loading": "Loading...",
     "replace": "Replace",
     "publish": "Publish",
@@ -216,8 +211,7 @@
     "skipThisVersion": "Skip this version",
     "later": "Later",
     "updateAiBlame": "Update AI Blame",
-    "link": "Link",
-    "fetchPr": "Fetch PR"
+    "link": "Link"
   },
   "refreshToast": {
     "successName": "{{name}} refreshed",
@@ -993,9 +987,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Preview unavailable",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Search messages...",
@@ -1300,7 +1292,6 @@
       "filterOpen": "Open",
       "filterClosed": "Closed",
       "noGitHubRepo": "Connect a GitHub repository to manage issues",
-      "searchPlaceholder": "Filter by title or label…",
       "commentPlaceholder": "Leave a comment…",
       "updated": "Last updated",
       "notUpdated": "not updated",

@@ -149,17 +149,12 @@
       "zh-Hant": "Chino tradicional"
     },
     "layout": "Diseño",
-    "globalLayoutMethod": "Método de diseño",
-    "globalLayoutMethodDesc": "Elige cómo enmarcan los paneles de contenido la app",
     "spotlightPlacement": "Posición de Spotlight",
     "spotlightPlacementDesc": "Elige dónde se abre la paleta de comandos Spotlight",
     "spotlightPlacementOptions": {
       "top": "Arriba",
       "center": "Centro de la página"
     },
-    "inset": "Confort",
-    "full": "Expandido",
-    "compact": "Moderno",
     "left": "Izquierda",
     "right": "Derecha",
     "light": "Claro",

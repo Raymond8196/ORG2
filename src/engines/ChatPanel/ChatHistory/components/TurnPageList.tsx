@@ -22,6 +22,8 @@ import {
 
 interface TurnPageListProps {
   surfaceBgClass: string;
+  /** Reserved space for the overlapping composer at the bottom of the pane. */
+  bottomInset: number;
   pages: UseChatTurnPaginationReturn["pages"];
   groupHeaders: UseChatGroupsReturn["groupHeaders"];
   groupMeta: ChatGroupMeta[];
@@ -43,6 +45,7 @@ interface TurnPageItem {
 const TurnPageList: React.FC<TurnPageListProps> = memo(
   ({
     surfaceBgClass,
+    bottomInset,
     pages,
     groupHeaders,
     groupMeta,
@@ -91,13 +94,16 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
 
     return (
       <div
-        ref={scrollParentRef}
-        className={`absolute inset-0 z-30 overflow-y-auto scrollbar-hide ${surfaceBgClass}`}
+        className={`absolute inset-x-0 top-0 z-30 ${surfaceBgClass}`}
+        style={bottomInset > 0 ? { bottom: bottomInset } : { bottom: 0 }}
       >
         <div
-          className={`mx-auto w-full px-2 pb-[200px] ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          className={`mx-auto h-full w-full px-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
         >
-          <div className={`${DROPDOWN_CLASSES.panel} p-1`}>
+          <div
+            ref={scrollParentRef}
+            className={`${DROPDOWN_CLASSES.panel} h-full !overflow-y-auto !overflow-x-hidden p-1 scrollbar-hide`}
+          >
             <div
               className="relative w-full"
               style={{ height: rowVirtualizer.getTotalSize() }}

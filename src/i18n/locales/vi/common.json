@@ -31,10 +31,6 @@
     "closeCanvas": "Đóng canvas",
     "generatingCanvas": "Đang tạo canvas…",
     "noContent": "Không có nội dung",
-    "noIssueSelected": "Chưa chọn issue",
-    "selectIssueHint": "Chọn một issue trong bảng Issues ở thanh bên.",
-    "noPrSelected": "Chưa chọn Pull request",
-    "selectPrHint": "Chọn một Pull request trong bảng Pull request ở thanh bên.",
     "reload": "Tải lại",
     "urlPreviewRequiresTauri": "Xem trước URL cần Tauri",
     "openInExternalBrowser": "Hãy mở trong trình duyệt ngoài",
@@ -107,6 +103,7 @@
     "retry": "Thử lại",
     "regenerate": "Tạo lại",
     "refresh": "Làm mới",
+    "rescan": "Quét lại",
     "reload": "Tải lại",
     "reviewNextFile": "Xem tệp tiếp theo",
     "reviewPreviousFile": "Xem tệp trước",
@@ -207,8 +204,7 @@
     "skipThisVersion": "Bỏ qua phiên bản này",
     "later": "Để sau",
     "updateAiBlame": "Cập nhật AI Blame",
-    "link": "Liên kết",
-    "fetchPr": "Fetch PR"
+    "link": "Liên kết"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}",
@@ -965,9 +961,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Không thể xem trước",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Tìm kiếm tin nhắn...",

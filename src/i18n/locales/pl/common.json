@@ -31,10 +31,6 @@
     "closeCanvas": "Zamknij płótno",
     "generatingCanvas": "Generowanie płótna…",
     "noContent": "Brak treści",
-    "noIssueSelected": "Nie wybrano zgłoszenia",
-    "selectIssueHint": "Wybierz zgłoszenie w panelu Issues na pasku bocznym.",
-    "noPrSelected": "Nie wybrano Pull request",
-    "selectPrHint": "Wybierz Pull request w panelu Pull request na pasku bocznym.",
     "reload": "Odśwież",
     "urlPreviewRequiresTauri": "Podgląd URL wymaga Tauri",
     "openInExternalBrowser": "Otwórz w zewnętrznej przeglądarce",
@@ -108,6 +104,7 @@
     "retry": "Spróbuj ponownie",
     "regenerate": "Wygeneruj ponownie",
     "refresh": "Odśwież",
+    "rescan": "Skanuj ponownie",
     "reload": "Załaduj ponownie",
     "reviewNextFile": "Przejrzyj następny plik",
     "reviewPreviousFile": "Przejrzyj poprzedni plik",
@@ -207,8 +204,7 @@
     "skipThisVersion": "Pomiń tę wersję",
     "later": "Później",
     "updateAiBlame": "Zaktualizuj AI Blame",
-    "link": "Połącz",
-    "fetchPr": "Fetch PR"
+    "link": "Połącz"
   },
   "refreshToast": {
     "successName": "Odświeżono: {{name}}",
@@ -965,9 +961,7 @@
     "scanningFileExtensions": "Skanowanie rozszerzeń plików...",
     "startBrowsingMarket": "Rozpocznij przeglądanie marketplace",
     "previewUnavailable": "Podgląd niedostępny",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Szukaj wiadomości...",

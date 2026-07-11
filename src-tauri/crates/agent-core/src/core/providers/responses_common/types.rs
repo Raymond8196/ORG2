@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::warn;
 
+use crate::providers::traits::ProviderError;
+
 // ============================================
 // Responses API Request Types
 // ============================================
@@ -115,9 +117,131 @@ pub struct ResponsesUsage {
 }
 
 /// Error from the Responses API.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ResponsesError {
     pub message: Option<String>,
+    #[serde(default)]
+    pub code: Option<String>,
+    #[serde(rename = "type", default)]
+    pub error_type: Option<String>,
+    #[serde(default)]
+    pub param: Option<String>,
+}
+
+impl ResponsesError {
+    pub fn display_message(&self) -> String {
+        let mut details = Vec::new();
+        if let Some(code) = self.code.as_deref().filter(|code| !code.is_empty()) {
+            details.push(format!("code={code}"));
+        }
+        if let Some(error_type) = self
+            .error_type
+            .as_deref()
+            .filter(|error_type| !error_type.is_empty())
+        {
+            details.push(format!("type={error_type}"));
+        }
+        if let Some(param) = self.param.as_deref().filter(|param| !param.is_empty()) {
+            details.push(format!("param={param}"));
+        }
+
+        if let Some(message) = self
+            .message
+            .as_deref()
+            .filter(|message| !message.is_empty())
+        {
+            if details.is_empty() {
+                message.to_string()
+            } else {
+                format!("{message} ({})", details.join(", "))
+            }
+        } else if details.is_empty() {
+            "Responses API returned an error without details".to_string()
+        } else {
+            format!("Responses API error ({})", details.join(", "))
+        }
+    }
+
+    /// Map an OpenAI Responses API error envelope to the runtime's typed
+    /// provider errors. Machine-readable `code` and `type` fields take
+    /// precedence; message matching is only a compatibility fallback for
+    /// Responses-compatible gateways that omit structured fields.
+    pub fn into_provider_error(self) -> ProviderError {
+        let message = self.display_message();
+        let code = self.code.as_deref().unwrap_or_default();
+        let error_type = self.error_type.as_deref().unwrap_or_default();
+
+        match (code, error_type) {
+            ("usage_limit_reached", _) | (_, "usage_limit_reached") => {
+                ProviderError::UsageLimitReached(message)
+            }
+            ("context_length_exceeded", _) | ("input_too_long", _) => {
+                ProviderError::ContextTooLong(message)
+            }
+            ("rate_limit_exceeded", _) | (_, "rate_limit_error") => ProviderError::RateLimited {
+                message,
+                retry_after_secs: None,
+            },
+            ("model_not_found", _) => ProviderError::ModelNotFound(message),
+            ("invalid_api_key", _) | ("authentication_error", _) | (_, "authentication_error") => {
+                ProviderError::AuthError(message)
+            }
+            ("overloaded", _) | ("overloaded_error", _) | (_, "overloaded_error") => {
+                ProviderError::Overloaded {
+                    message,
+                    retry_after_secs: None,
+                }
+            }
+            _ => classify_responses_error_message(message),
+        }
+    }
+
+    pub fn is_auth_error(&self) -> bool {
+        matches!(
+            (self.code.as_deref(), self.error_type.as_deref()),
+            (Some("invalid_api_key" | "authentication_error"), _)
+                | (_, Some("authentication_error"))
+        ) || looks_like_auth_error(self.message.as_deref().unwrap_or_default())
+    }
+}
+
+fn classify_responses_error_message(message: String) -> ProviderError {
+    let lower = message.to_ascii_lowercase();
+    if lower.contains("usage_limit_reached") || lower.contains("usage limit has been reached") {
+        ProviderError::UsageLimitReached(message)
+    } else if lower.contains("context_length_exceeded")
+        || lower.contains("context window")
+        || lower.contains("maximum context length")
+        || lower.contains("prompt is too long")
+        || lower.contains("input is too long")
+    {
+        ProviderError::ContextTooLong(message)
+    } else if lower.contains("rate_limit") || lower.contains("rate limit") {
+        ProviderError::RateLimited {
+            message,
+            retry_after_secs: None,
+        }
+    } else if lower.contains("overloaded") || lower.contains("capacity") {
+        ProviderError::Overloaded {
+            message,
+            retry_after_secs: None,
+        }
+    } else if lower.contains("model_not_found") || lower.contains("model not found") {
+        ProviderError::ModelNotFound(message)
+    } else if looks_like_auth_error(&lower) {
+        ProviderError::AuthError(message)
+    } else {
+        ProviderError::RequestFailed(message)
+    }
+}
+
+fn looks_like_auth_error(message: &str) -> bool {
+    let lower = message.to_ascii_lowercase();
+    lower.contains("unauthorized")
+        || lower.contains("unauthorized_unknown")
+        || lower.contains("could not parse your authentication token")
+        || lower.contains("invalid authentication")
+        || lower.contains("expired") && lower.contains("token")
 }
 
 // ============================================
@@ -136,9 +260,22 @@ pub struct ResponsesError {
 pub struct StreamEvent {
     #[serde(rename = "type")]
     pub event_type: String,
-    /// Present on response.completed
+    /// Present on response.completed and response.failed.
     #[serde(default)]
     pub response: Option<ResponsesResponse>,
+    /// Present on top-level `error` events in the official Responses SSE
+    /// protocol. Some compatible backends instead wrap these fields in
+    /// `error`, so both shapes are retained.
+    #[serde(default)]
+    pub code: Option<String>,
+    #[serde(default)]
+    pub message: Option<String>,
+    #[serde(default)]
+    pub param: Option<String>,
+    /// Present on top-level `error` events from some Responses-compatible
+    /// backends instead of direct `code` / `message` / `param` fields.
+    #[serde(default)]
+    pub error: Option<ResponsesError>,
     /// Present on text delta events
     pub delta: Option<String>,
     pub call_id: Option<String>,
@@ -258,6 +395,114 @@ pub fn extract_account_id_from_id_token(id_token: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn maps_usage_limit_type_to_non_transient_provider_error() {
+        let error = ResponsesError {
+            message: Some("The usage limit has been reached".to_string()),
+            code: None,
+            error_type: Some("usage_limit_reached".to_string()),
+            param: None,
+        };
+
+        assert!(matches!(
+            error.into_provider_error(),
+            ProviderError::UsageLimitReached(message)
+                if message.contains("The usage limit has been reached")
+                    && message.contains("type=usage_limit_reached")
+        ));
+    }
+
+    #[test]
+    fn maps_official_context_error_code_without_message_heuristics() {
+        let error = ResponsesError {
+            message: Some("Request rejected".to_string()),
+            code: Some("context_length_exceeded".to_string()),
+            error_type: Some("invalid_request_error".to_string()),
+            param: Some("input".to_string()),
+        };
+
+        assert!(matches!(
+            error.into_provider_error(),
+            ProviderError::ContextTooLong(message)
+                if message.contains("code=context_length_exceeded")
+                    && message.contains("param=input")
+        ));
+    }
+
+    #[test]
+    fn maps_structured_rate_limit_auth_overload_and_model_codes() {
+        let cases = [
+            (
+                ResponsesError {
+                    message: None,
+                    code: Some("rate_limit_exceeded".to_string()),
+                    error_type: None,
+                    param: None,
+                },
+                "rate_limit",
+            ),
+            (
+                ResponsesError {
+                    message: None,
+                    code: Some("invalid_api_key".to_string()),
+                    error_type: None,
+                    param: None,
+                },
+                "auth",
+            ),
+            (
+                ResponsesError {
+                    message: None,
+                    code: None,
+                    error_type: Some("overloaded_error".to_string()),
+                    param: None,
+                },
+                "overloaded",
+            ),
+            (
+                ResponsesError {
+                    message: None,
+                    code: Some("model_not_found".to_string()),
+                    error_type: None,
+                    param: None,
+                },
+                "model",
+            ),
+        ];
+
+        assert!(matches!(
+            cases[0].0.clone().into_provider_error(),
+            ProviderError::RateLimited { .. }
+        ));
+        assert!(matches!(
+            cases[1].0.clone().into_provider_error(),
+            ProviderError::AuthError(_)
+        ));
+        assert!(matches!(
+            cases[2].0.clone().into_provider_error(),
+            ProviderError::Overloaded { .. }
+        ));
+        assert!(matches!(
+            cases[3].0.clone().into_provider_error(),
+            ProviderError::ModelNotFound(_)
+        ));
+    }
+
+    #[test]
+    fn unknown_server_error_remains_retryable_request_failure() {
+        let error = ResponsesError {
+            message: Some("Internal server error".to_string()),
+            code: Some("internal_error".to_string()),
+            error_type: Some("server_error".to_string()),
+            param: None,
+        };
+
+        assert!(matches!(
+            error.into_provider_error(),
+            ProviderError::RequestFailed(_)
+        ));
+    }
 
     #[test]
     fn test_enforce_strict_schema_adds_additional_properties() {
