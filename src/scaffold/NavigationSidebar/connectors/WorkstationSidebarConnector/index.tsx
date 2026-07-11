@@ -118,7 +118,6 @@ import {
 } from "./sidebarMenuCollections";
 import { useSidebarSessionRefreshEffects } from "./sidebarSessionRefresh";
 import {
-  HomeHeaderAction,
   SidebarSearchShortcutTooltip,
   isWorkstationSidebarKey,
   useWorkstationSidebarTabs,
@@ -180,7 +179,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     closeAndDestroyChatPanelTabAtom
   );
   const { openSession } = useSessionView();
-  const { goToStartPage, goToNewSession, navigateTo } = useAppNavigation();
+  const { goToNewSession, navigateTo } = useAppNavigation();
   const [activeSidebarKey, setActiveSidebarKey] =
     useState<WorkstationSidebarKey>("workstation");
   const [activeSessionMoreMenuId, setActiveSessionMoreMenuId] = useState("");
@@ -307,7 +306,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const createWorkItemLabel = tProjects("workItems.createWorkItem");
   const importGithubIssuesLabel = tProjects("githubIssuesImport.menuLabel");
   const addOrgLabel = t("collaboration.addOrg");
-  const homeLabel = t("sidebar.tabs.build");
   const searchPlaceholder =
     activeSidebarKey === "projects"
       ? t("sidebar.search.projects")
@@ -857,13 +855,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
         addTooltipContent={
           <SidebarSearchShortcutTooltip
             searchLabel={tCommon("actions.search")}
-          />
-        }
-        beforeAddNewActions={
-          <HomeHeaderAction
-            label={homeLabel}
-            tooltipLabel={t("sidebar.actions.openHome")}
-            onClick={goToStartPage}
           />
         }
         search={{
