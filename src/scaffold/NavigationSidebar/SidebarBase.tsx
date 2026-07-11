@@ -33,7 +33,6 @@ import {
 } from "@src/config/windowChromeRadius";
 import { createLogger } from "@src/hooks/logger";
 import { useSidebarState } from "@src/hooks/ui/sidebar/useSidebarState";
-import { useIsCompactLayout } from "@src/modules/shared/layouts/useCompactLayout";
 import { getSidebarSurfaceBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import { VerticalResizeHandle } from "@src/scaffold/Resize";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
@@ -56,8 +55,6 @@ const IS_WINDOWS_HOST = HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS;
 const SHOW_HOST_TITLE =
   HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS ||
   HOST_DESKTOP_KIND === HOST_DESKTOP.LINUX;
-const PLATFORM_SIDEBAR_RADIUS =
-  HOST_DESKTOP_KIND === HOST_DESKTOP.MACOS ? SIDEBAR_STYLE.borderRadius : 8;
 
 const IDLE_SIDEBAR_RESIZE_HANDLE_CLASS_NAME =
   "h-full [&>div:first-child]:origin-right [&>div:first-child]:scale-x-50 [&>div:first-child]:transition-transform hover:[&>div:first-child]:scale-x-100";
@@ -101,7 +98,6 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     const isMacOS = isTauriDesktop();
     const hideSidebarShortcut = getShortcutKeys("toggle_sidebar");
     const isFullscreen = useAtomValue(windowFullscreenAtom);
-    const isCompactLayout = useIsCompactLayout();
     const backgroundConfig = useAtomValue(resolvedBackgroundConfigAtom);
     const sidebarOpacityStyle = useMemo(
       () => getSidebarSurfaceBackgroundStyle(backgroundConfig.sidebarOpacity),
@@ -404,19 +400,19 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
           isResizing={isDragging}
           onMouseDown={handleMouseDown}
           onContextMenu={handleResizeContextMenu}
-          variant={isCompactLayout ? "border" : "transparent"}
+          variant="border"
         />
       </div>
     );
 
     // Content
-    // Compact layout: the sidebar surface itself reaches the top window edge
+    // Modern layout: the sidebar surface itself reaches the top window edge
     // (no outer `pt-2`), so we move the 8px top breathing room inside via a
     // spacer div. This keeps the header / icons at the same vertical position
-    // as inset/full while letting the surface cover the full sidebar column.
+    // as the previous alternatives while letting the surface cover the full sidebar column.
     const content = (
       <>
-        {isCompactLayout && wrapInSurface && (
+        {wrapInSurface && (
           <div
             className="h-2 flex-shrink-0"
             data-tauri-drag-region
@@ -432,7 +428,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
       </>
     );
 
-    // Compact layout: the sidebar is flush with the rounded window edge
+    // Modern layout: the sidebar is flush with the rounded window edge
     // (top-left + bottom-left curves match `--border-radius-window`). Both
     // the floating drop shadow and the backdrop-filter blur produce a
     // faint dark halo along that curve — the shadow smudges the boundary
@@ -446,12 +442,10 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // setting. We paint `--color-bg-1` (the design-system solid raised
     // surface) and keep the floating drop shadow regardless of the
     // current layout mode so it visually detaches from the workspace.
-    const sidebarBoxShadow =
-      isCompactLayout && !shouldForceVisible ? "none" : "var(--sidebar-shadow)";
-    const sidebarBackdropFilter =
-      IS_WINDOWS_HOST || shouldForceVisible || isCompactLayout
-        ? "none"
-        : "var(--sidebar-backdrop)";
+    const sidebarBoxShadow = shouldForceVisible
+      ? "var(--sidebar-shadow)"
+      : "none";
+    const sidebarBackdropFilter = "none";
     const floatingSurfaceOverride: React.CSSProperties = shouldForceVisible
       ? { backgroundColor: "var(--color-bg-1)" }
       : {};
@@ -476,20 +470,14 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
         };
 
     // Wrapped content
-    // Compact layout: sidebar is flush with the top/left/bottom window edge —
+    // Modern layout: sidebar is flush with the top/left/bottom window edge —
     // no outer padding, no border radius on the right (it butts against the
     // content panel). The top-left and bottom-left corners follow the window
     // radius (`--border-radius-window`) so the sidebar surface aligns with
     // the rounded window/body clip instead of leaving a sliver of the body
-    // surface visible through the corner curve.
-    // The 8px header inset lives inside `content` (see spacer above) so the
-    // surface itself reaches the window edge.
-    // In compact mode the outer edges (top/left/bottom) sit flush against
-    // the rounded window chrome. A 1px border on those edges would trace
-    // the curve and read as a dark shade around the corner. Drop it and
-    // only keep a 1px separator on the right edge where the sidebar meets
-    // the content panel.
-    const compactSurfaceStyle = {
+    // Modern chrome keeps the sidebar flush against the rounded window edge,
+    // with only a separator where it meets the content panel.
+    const modernSurfaceStyle = {
       borderTopLeftRadius: "var(--border-radius-window)",
       borderBottomLeftRadius: "var(--border-radius-window)",
       borderTopRightRadius: 0,
@@ -499,24 +487,15 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
       borderBottomWidth: 0,
       borderRightWidth: 1,
     } as const;
-    const sidebarOuterPaddingClass = isCompactLayout
-      ? ""
-      : IS_WINDOWS_HOST
-        ? "pb-2 pl-2"
-        : "pb-2 pl-2 pt-2";
     const wrappedContent = wrapInSurface ? (
       <div
-        className={`sidebar-base flex h-full w-full flex-col ${sidebarOuterPaddingClass} ${innerClassName}`}
+        className={`sidebar-base flex h-full w-full flex-col ${innerClassName}`}
       >
         <div
-          className={`flex flex-1 flex-col overflow-hidden ${
-            isCompactLayout ? "" : "border"
-          }`}
+          className="flex flex-1 flex-col overflow-hidden"
           style={{
             ...surfaceStyle,
-            ...(isCompactLayout
-              ? compactSurfaceStyle
-              : { borderRadius: PLATFORM_SIDEBAR_RADIUS }),
+            ...modernSurfaceStyle,
           }}
         >
           {content}

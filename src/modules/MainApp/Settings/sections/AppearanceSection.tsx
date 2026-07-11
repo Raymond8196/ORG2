@@ -16,16 +16,7 @@ import {
   TerminalSection as EditorTerminalSection,
   TypographySection as EditorTypographySection,
 } from "@src/modules/MainApp/Settings/subpages/EditorAppearancePage";
-import { LayoutPresetOption } from "@src/modules/WorkStation/shared/LayoutSettingsDropdown/LayoutDropdownControls";
-import {
-  CompactLayoutThumb,
-  FullLayoutThumb,
-  InsetLayoutThumb,
-} from "@src/modules/WorkStation/shared/LayoutSettingsDropdown/LayoutThumbs";
-import type {
-  GlobalLayoutMethod,
-  SpotlightPlacement,
-} from "@src/store/ui/uiAtom";
+import type { SpotlightPlacement } from "@src/store/ui/uiAtom";
 
 import { ChatPanelAppearanceTab } from "./ChatPanelAppearanceTab";
 import { UI_SCALE_OPTIONS, useAppearanceState } from "./useAppearanceState";
@@ -45,24 +36,7 @@ export const APPEARANCE_TAB_KEYS = {
 export type AppearanceTabKey =
   (typeof APPEARANCE_TAB_KEYS)[keyof typeof APPEARANCE_TAB_KEYS];
 
-const GLOBAL_LAYOUT_METHODS: GlobalLayoutMethod[] = [
-  "compact",
-  "inset",
-  "full",
-];
-
 const SPOTLIGHT_PLACEMENT_OPTIONS: SpotlightPlacement[] = ["top", "center"];
-
-function renderGlobalLayoutThumb(method: GlobalLayoutMethod) {
-  switch (method) {
-    case "inset":
-      return <InsetLayoutThumb />;
-    case "full":
-      return <FullLayoutThumb />;
-    case "compact":
-      return <CompactLayoutThumb />;
-  }
-}
 
 interface AppearanceSectionProps {
   activeTab?: string;
@@ -79,8 +53,6 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     uiScale,
     applicationUiFont,
     setApplicationUiFont,
-    globalLayoutMethod,
-    setGlobalLayoutMethod,
     spotlightPlacement,
     setSpotlightPlacement,
     appearanceMode,
@@ -160,27 +132,6 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           </SectionContainer>
 
           <SectionContainer title={t("general.layout")}>
-            <SectionRow
-              label={t("general.globalLayoutMethod")}
-              description={t("general.globalLayoutMethodDesc")}
-              align="start"
-              headerClassName="@[480px]:pt-1"
-            >
-              <div className="flex max-w-full flex-wrap gap-3 @[480px]:justify-end">
-                {GLOBAL_LAYOUT_METHODS.map((method) => (
-                  <LayoutPresetOption
-                    key={method}
-                    active={globalLayoutMethod === method}
-                    label={t(`general.${method}`)}
-                    captionSize="body"
-                    stretch={false}
-                    onClick={() => setGlobalLayoutMethod(method)}
-                  >
-                    {renderGlobalLayoutThumb(method)}
-                  </LayoutPresetOption>
-                ))}
-              </div>
-            </SectionRow>
             <SectionRow
               label={t("general.spotlightPlacement")}
               description={t("general.spotlightPlacementDesc")}
