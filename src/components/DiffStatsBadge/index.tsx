@@ -27,6 +27,8 @@ export interface DiffStatsBadgeProps {
    * container gap and lose to Tailwind source-order.
    */
   gapClassName?: string;
+  /** Reserve a 3ch column for each value so additions/deletions align. */
+  reserveValueWidth?: boolean;
   className?: string;
   valueClassName?: string;
   formatValue?: (value: number) => ReactNode;
@@ -42,7 +44,8 @@ const CONTAINER_CLASSES: Record<DiffStatsBadgeVariant, string> = {
     "inline-flex shrink-0 items-center font-mono font-medium leading-none tabular-nums",
 };
 
-const VALUE_CLASSES = "inline-flex min-w-[3ch] justify-end";
+const VALUE_BASE_CLASSES = "inline-flex";
+const VALUE_ALIGNED_CLASSES = "min-w-[3ch] justify-end";
 
 function joinClasses(...classes: Array<string | undefined>): string {
   return classes.filter(Boolean).join(" ");
@@ -54,6 +57,7 @@ const DiffStatsBadge = memo(function DiffStatsBadge({
   variant = "default",
   size = "inherit",
   gapClassName = "gap-1",
+  reserveValueWidth = true,
   className,
   valueClassName,
   formatValue = String,
@@ -79,7 +83,8 @@ const DiffStatsBadge = memo(function DiffStatsBadge({
       {hasAdditions && (
         <span
           className={joinClasses(
-            VALUE_CLASSES,
+            VALUE_BASE_CLASSES,
+            reserveValueWidth ? VALUE_ALIGNED_CLASSES : undefined,
             DIFF_STATS.additions,
             valueClassName
           )}
@@ -90,7 +95,8 @@ const DiffStatsBadge = memo(function DiffStatsBadge({
       {hasDeletions && (
         <span
           className={joinClasses(
-            VALUE_CLASSES,
+            VALUE_BASE_CLASSES,
+            reserveValueWidth ? VALUE_ALIGNED_CLASSES : undefined,
             DIFF_STATS.deletions,
             valueClassName
           )}
