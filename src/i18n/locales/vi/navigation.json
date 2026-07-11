@@ -375,6 +375,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "Chuyển ORG",
     "addOrg": "Thêm ORG",
     "unknownOrg": "ORG không xác định",
     "emptyColleagues": "Chưa có hoạt động của đồng nghiệp",
