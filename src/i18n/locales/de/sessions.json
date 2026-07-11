@@ -1030,6 +1030,8 @@
     "deleteFileRunning": "{{name}} wird gelöscht",
     "deleteFileDone": "{{name}} gelöscht",
     "deleteFileFailed": "{{name}} konnte nicht gelöscht werden",
+    "deleteFileCompactRunning": "Wird gelöscht",
+    "deleteFileCompactDone": "Löschen",
     "directoryTree": "Verzeichnisbaum",
     "ls": "ls",
     "listDirRunning": "Verzeichnis wird aufgelistet",
@@ -1095,6 +1097,14 @@
     "editFileDoneNoName": "Datei bearbeitet",
     "editFileCompactRunning": "Bearbeiten",
     "editFileCompactDone": "Bearbeiten",
+    "editFiles": "Dateien bearbeiten",
+    "editSummary": {
+      "edit_one": "{{count}} Änderung",
+      "edit_other": "{{count}} Änderungen",
+      "read_one": "{{count}} Lesevorgang",
+      "read_other": "{{count}} Lesevorgänge",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Bearbeitungsversuch",
     "file": "Datei",
     "runShellRunning": "Befehl wird ausgeführt",
@@ -1154,7 +1164,8 @@
       "ls_one": "ls {{count}} Ordner",
       "ls_other": "ls {{count}} Ordner",
       "lsp_one": "{{count}} LSP-Abfrage",
-      "lsp_other": "{{count}} LSP-Abfragen"
+      "lsp_other": "{{count}} LSP-Abfragen",
+      "separator": ", "
     },
     "categoryRead": "Lesen",
     "categorySearch": "Suche",

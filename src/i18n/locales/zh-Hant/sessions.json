@@ -1036,6 +1036,8 @@
     "deleteFileRunning": "正在刪除 {{name}}",
     "deleteFileDone": "刪除 {{name}}",
     "deleteFileFailed": "刪除 {{name}} 失敗",
+    "deleteFileCompactRunning": "正在刪除",
+    "deleteFileCompactDone": "刪除",
     "directoryTree": "目錄樹",
     "ls": "ls",
     "listDirRunning": "正在列出目錄",
@@ -1101,6 +1103,14 @@
     "editFileDoneNoName": "編輯文件",
     "editFileCompactRunning": "正在編輯",
     "editFileCompactDone": "編輯",
+    "editFiles": "編輯檔案",
+    "editSummary": {
+      "edit_one": "{{count}} 次修改",
+      "edit_other": "{{count}} 次修改",
+      "read_one": "{{count}} 次閱讀",
+      "read_other": "{{count}} 次閱讀",
+      "separator": "、"
+    },
     "editFileFailedNoName": "嘗試編輯",
     "file": "文件",
     "runShellRunning": "正在執行命令",
@@ -1160,7 +1170,8 @@
       "ls_one": "ls {{count}} 個文件夾",
       "ls_other": "ls {{count}} 個文件夾",
       "lsp_one": "{{count}} 次 LSP 查詢",
-      "lsp_other": "{{count}} 次 LSP 查詢"
+      "lsp_other": "{{count}} 次 LSP 查詢",
+      "separator": "、"
     },
     "categoryRead": "讀取",
     "categorySearch": "搜索",
