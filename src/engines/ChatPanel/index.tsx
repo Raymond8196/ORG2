@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   Gauge,
-  LayoutDashboard,
+  LayoutGrid,
   ListTodo,
   Search,
   UsersRound,
@@ -191,10 +191,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handleNewSessionTab,
       handleNewTerminalTab,
       handleOpenCliTerminal,
+      handleOpenLaunchpadTab,
       isTerminalTabActive,
       terminalTabs,
     } = useChatPanelTabsController({
       currentSessionId: currentSessionId ?? null,
+      launchpadTitle: t("navigation:launchpad.dashboard"),
       panelTitle,
       resetToSessionSurface,
       showSessionSurface,
@@ -417,7 +419,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       if (startPageOpen) {
         return {
           title: t("navigation:launchpad.dashboard"),
-          icon: <LayoutDashboard size={16} strokeWidth={1.75} />,
+          icon: <LayoutGrid size={16} strokeWidth={1.75} />,
         };
       }
       if (contentState.showManageIssuesContent) {
@@ -435,7 +437,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       if (contentState.showWorkspaceDashboardContent) {
         return {
           title: t("navigation:launchpad.dashboard"),
-          icon: <LayoutDashboard size={16} strokeWidth={1.75} />,
+          icon: <LayoutGrid size={16} strokeWidth={1.75} />,
         };
       }
       if (contentState.showCollabOrgContent) {
@@ -479,7 +481,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const tabStripPlus = (
       <ChatPanelPlusMenu
-        onOpenLaunchpad={handleStartPageSetupRepo}
+        onOpenLaunchpad={handleOpenLaunchpadTab}
         onNewSession={handleNewSessionTab}
         onNewWorkItem={handleStartPageNewWorkItem}
         onManageIssues={handleStartPageManageIssues}
