@@ -67,6 +67,14 @@ struct ProxyContext {
     protocol: ProxyProtocol,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct ProxyAgentDescriptor {
+    protocol: ProxyProtocol,
+    protocol_name: &'static str,
+    display_name: &'static str,
+    requires_openai_responses: bool,
+}
+
 pub fn start_cli_managed_proxy_thread() {
     if PROXY_START_REQUESTED.swap(true, Ordering::SeqCst) {
         return;
@@ -99,7 +107,19 @@ async fn run_proxy_server() -> Result<(), String> {
         .route("/proxy/{token}/claude", any(proxy_claude_root_handler))
         .route("/proxy/{token}/claude/{*path}", any(proxy_claude_handler))
         .route("/proxy/{token}/gemini", any(proxy_gemini_root_handler))
-        .route("/proxy/{token}/gemini/{*path}", any(proxy_gemini_handler));
+        .route("/proxy/{token}/gemini/{*path}", any(proxy_gemini_handler))
+        .route("/cli/{agent}/{token}/v1", any(cli_v1_root_handler))
+        .route("/cli/{agent}/{token}/v1/{*path}", any(cli_v1_handler))
+        .route("/cli/{agent}/{token}/claude", any(cli_claude_root_handler))
+        .route(
+            "/cli/{agent}/{token}/claude/{*path}",
+            any(cli_claude_handler),
+        )
+        .route("/cli/{agent}/{token}/gemini", any(cli_gemini_root_handler))
+        .route(
+            "/cli/{agent}/{token}/gemini/{*path}",
+            any(cli_gemini_handler),
+        );
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await
@@ -115,14 +135,14 @@ async fn run_proxy_server() -> Result<(), String> {
 }
 
 async fn health_handler() -> impl IntoResponse {
-    match cli_managed_proxy_status(MANAGED_CODEX_AGENT.to_string()).await {
-        Ok(status) => (StatusCode::OK, Json(status)).into_response(),
-        Err(err) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "ready": false, "message": err })),
-        )
-            .into_response(),
-    }
+    (
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "running": true,
+            "url": DEFAULT_PROXY_URL,
+        })),
+    )
+        .into_response()
 }
 
 async fn proxy_v1_root_handler(
@@ -177,6 +197,57 @@ async fn proxy_gemini_root_handler(
     }
 
     proxy_agent_handler(MANAGED_GEMINI_CLI_AGENT, token, String::new(), request).await
+}
+
+async fn cli_v1_root_handler(
+    Path((agent, token)): Path<(String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    proxy_agent_handler(&agent, token, String::new(), request).await
+}
+
+async fn cli_v1_handler(
+    Path((agent, token, path)): Path<(String, String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    proxy_agent_handler(&agent, token, path, request).await
+}
+
+async fn cli_claude_root_handler(
+    Path((agent, token)): Path<(String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    if request.method() == Method::HEAD {
+        return authenticated_empty_ok_response(&agent, &token);
+    }
+    proxy_agent_handler(&agent, token, String::new(), request).await
+}
+
+async fn cli_claude_handler(
+    Path((agent, token, path)): Path<(String, String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    if request.method() == Method::HEAD && path == "v1" {
+        return authenticated_empty_ok_response(&agent, &token);
+    }
+    proxy_agent_handler(&agent, token, path, request).await
+}
+
+async fn cli_gemini_root_handler(
+    Path((agent, token)): Path<(String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    if request.method() == Method::HEAD {
+        return authenticated_empty_ok_response(&agent, &token);
+    }
+    proxy_agent_handler(&agent, token, String::new(), request).await
+}
+
+async fn cli_gemini_handler(
+    Path((agent, token, path)): Path<(String, String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    proxy_agent_handler(&agent, token, path, request).await
 }
 
 async fn proxy_agent_handler(
@@ -519,18 +590,27 @@ fn apply_auth_header(
     }
 }
 
-fn protocol_for_agent(
-    agent_name: &str,
-) -> Result<(ProxyProtocol, &'static str, &'static str), String> {
-    match agent_name {
-        MANAGED_CODEX_AGENT => Ok((ProxyProtocol::OpenAi, "openai", "Codex")),
-        MANAGED_CLAUDE_CODE_AGENT => Ok((ProxyProtocol::Anthropic, "anthropic", "Claude Code")),
-        MANAGED_GEMINI_CLI_AGENT => Ok((ProxyProtocol::Gemini, "gemini", "Gemini CLI")),
-        _ => Err(
-            "CLI managed proxy only supports Codex, Claude Code, and Gemini CLI in this build"
-                .to_string(),
-        ),
-    }
+fn protocol_for_agent(agent_name: &str) -> Result<ProxyAgentDescriptor, String> {
+    use agent_cli::managed_config::CliManagedProxyProtocol;
+
+    let proxy_protocol = agent_cli::managed_config::managed_proxy_protocol_for_agent(agent_name)
+        .ok_or_else(|| format!("CLI managed proxy is not available for {agent_name}"))?;
+    let display_name = key_vault::cli_agent_display_name(agent_name)
+        .ok_or_else(|| format!("Missing CLI registry entry for {agent_name}"))?;
+    let (protocol, protocol_name, requires_openai_responses) = match proxy_protocol {
+        CliManagedProxyProtocol::OpenAiResponses => (ProxyProtocol::OpenAi, "openai", true),
+        CliManagedProxyProtocol::OpenAiChatCompletions => (ProxyProtocol::OpenAi, "openai", false),
+        CliManagedProxyProtocol::AnthropicMessages => {
+            (ProxyProtocol::Anthropic, "anthropic", false)
+        }
+        CliManagedProxyProtocol::GeminiGenerateContent => (ProxyProtocol::Gemini, "gemini", false),
+    };
+    Ok(ProxyAgentDescriptor {
+        protocol,
+        protocol_name,
+        display_name,
+        requires_openai_responses,
+    })
 }
 
 fn resolve_proxy_context_for_selection(
@@ -539,7 +619,10 @@ fn resolve_proxy_context_for_selection(
     selected_model: Option<&str>,
     proxy_token: String,
 ) -> Result<ProxyContext, String> {
-    let (protocol, protocol_name, agent_display) = protocol_for_agent(agent_name)?;
+    let descriptor = protocol_for_agent(agent_name)?;
+    let protocol = descriptor.protocol;
+    let protocol_name = descriptor.protocol_name;
+    let agent_display = descriptor.display_name;
     let key_id = key_id
         .map(str::trim)
         .filter(|value| !value.is_empty())
@@ -561,9 +644,9 @@ fn resolve_proxy_context_for_selection(
         ));
     }
 
-    if matches!(protocol, ProxyProtocol::OpenAi) && provider != OPENAI_API_PROVIDER {
+    if descriptor.requires_openai_responses && provider != OPENAI_API_PROVIDER {
         return Err(format!(
-            "Provider {provider} is OpenAI-compatible but is not verified for the Responses API required by Codex managed config"
+            "Provider {provider} is OpenAI-compatible but is not verified for the Responses API required by {agent_display} managed config"
         ));
     }
 
@@ -663,7 +746,7 @@ fn resolve_proxy_context_for_selection(
 }
 
 fn resolve_proxy_context(agent_name: &str) -> Result<ProxyContext, String> {
-    let (_, _, agent_display) = protocol_for_agent(agent_name)?;
+    let agent_display = protocol_for_agent(agent_name)?.display_name;
     let selection = agent_cli::managed_config::managed_selection_for_agent(agent_name)?
         .ok_or_else(|| format!("{agent_display} is not in ORGII Managed config mode"))?;
     let proxy_token = selection
@@ -730,10 +813,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
     let running = PROXY_RUNNING.load(Ordering::SeqCst);
     let url = DEFAULT_PROXY_URL.to_string();
 
-    if agent_name != MANAGED_CODEX_AGENT
-        && agent_name != MANAGED_CLAUDE_CODE_AGENT
-        && agent_name != MANAGED_GEMINI_CLI_AGENT
-    {
+    if protocol_for_agent(&agent_name).is_err() {
         return Ok(CliManagedProxyStatus {
             agent_name,
             supported: false,
@@ -745,10 +825,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
             selected_model: None,
             upstream_base_url: None,
             compatible_key_ids: Vec::new(),
-            message: Some(
-                "CLI managed proxy only supports Codex, Claude Code, and Gemini CLI in this build"
-                    .to_string(),
-            ),
+            message: Some("CLI managed proxy is not available for this agent".to_string()),
         });
     }
 
@@ -850,6 +927,21 @@ mod tests {
         rewrite_model_field(&mut value, "gpt-5.1");
 
         assert_eq!(value["model"], "gpt-5.1");
+    }
+
+    #[test]
+    fn managed_adapter_protocols_drive_proxy_capabilities() {
+        let codex = protocol_for_agent("codex").unwrap();
+        assert!(matches!(codex.protocol, ProxyProtocol::OpenAi));
+        assert!(codex.requires_openai_responses);
+
+        let opencode = protocol_for_agent("opencode").unwrap();
+        assert!(matches!(opencode.protocol, ProxyProtocol::OpenAi));
+        assert!(!opencode.requires_openai_responses);
+
+        let aider = protocol_for_agent("aider").unwrap();
+        assert!(matches!(aider.protocol, ProxyProtocol::OpenAi));
+        assert!(!aider.requires_openai_responses);
     }
 
     #[test]

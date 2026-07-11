@@ -390,6 +390,10 @@ fn resolve_config(
     Ok((safe_join(base, config.relative_path)?, config.format))
 }
 
+pub(crate) fn resolve_config_path(agent_name: &str, file_id: &str) -> Result<PathBuf, String> {
+    resolve_config(agent_name, file_id).map(|(path, _)| path)
+}
+
 fn nearest_existing_reveal_target(path: &Path) -> Result<PathBuf, String> {
     if path.exists() {
         return Ok(path.to_path_buf());
