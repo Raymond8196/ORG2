@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { makeSessionEvent } from "@src/engines/SessionCore/rendering/props/__tests__/fixtures";
 
-import { countActivities } from "..";
+import { countActivities, sumEditDiffStats } from "..";
 
 describe("countActivities", () => {
   it("counts edit calls even when they target the same file", () => {
@@ -66,5 +66,43 @@ describe("countActivities", () => {
     });
 
     expect(countActivities([first, second], "read")).toBe(2);
+  });
+
+  it("sums line changes across edit events", () => {
+    const first = makeSessionEvent({
+      action_type: "tool_call",
+      function: "edit_file",
+      uiCanonical: "edit_file",
+    });
+    first.extracted = {
+      kind: "edit",
+      filePath: "src/app.ts",
+      fileName: "app.ts",
+      language: "typescript",
+      linesAdded: 2,
+      linesRemoved: 1,
+      isDeleted: false,
+      applyPatchSegments: [],
+    };
+    const second = makeSessionEvent({
+      action_type: "tool_call",
+      function: "edit_file",
+      uiCanonical: "edit_file",
+    });
+    second.extracted = {
+      kind: "edit",
+      filePath: "src/styles.css",
+      fileName: "styles.css",
+      language: "css",
+      linesAdded: 3,
+      linesRemoved: 4,
+      isDeleted: false,
+      applyPatchSegments: [],
+    };
+
+    expect(sumEditDiffStats([first, second])).toEqual({
+      additions: 5,
+      deletions: 5,
+    });
   });
 });

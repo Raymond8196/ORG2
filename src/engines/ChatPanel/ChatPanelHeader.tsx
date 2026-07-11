@@ -33,7 +33,6 @@ import Select, { type SelectOption } from "@src/components/Select";
 import SessionHoverCard from "@src/components/SessionHoverCard";
 import Switch from "@src/components/Switch";
 import Tooltip from "@src/components/Tooltip";
-import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { COLLAPSED_SIDEBAR_CHROME_OFFSET } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared";
@@ -217,20 +216,7 @@ export function ChatPanelHeader({
   const chatFocusLabel = isChatFocus
     ? t("chat.showWorkstation")
     : t("chat.maximizeChatPanel");
-  const chatFocusShortcut = getShortcutKeys("maximize_chat");
-  const chatFocusTooltip = (
-    <KeyboardShortcutTooltipContent
-      label={chatFocusLabel}
-      shortcut={chatFocusShortcut}
-    />
-  );
   const shrinkToWorkstationLabel = t("chat.showWorkstation");
-  const shrinkToWorkstationTooltip = (
-    <KeyboardShortcutTooltipContent
-      label={shrinkToWorkstationLabel}
-      shortcut={chatFocusShortcut}
-    />
-  );
   const agentSwitchLabel = t("navigation:labels.agent", {
     defaultValue: "Agent",
   });
@@ -321,97 +307,63 @@ export function ChatPanelHeader({
       )}
       {tabStripPlus}
       {showSessionContent && (
-        <Tooltip
-          content={
-            <KeyboardShortcutTooltipContent label={t("common:actions.more")} />
-          }
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex">
-            <Button
-              ref={
-                headerActionsTriggerRef as React.RefObject<HTMLButtonElement>
-              }
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              className={
-                isHeaderActionsOpen ? "!bg-fill-1 !text-primary-6" : ""
-              }
-              onClick={(event) => {
-                event.stopPropagation();
-                toggleHeaderActionsMenu();
-              }}
-              aria-label={t("common:actions.more")}
-              aria-expanded={isHeaderActionsOpen}
-              data-testid="chat-panel-header-more-button"
-              icon={
-                <MoreHorizontal
-                  size={CHAT_PANEL_HEADER_ICON_SIZE}
-                  strokeWidth={2}
-                />
-              }
+        <Button
+          ref={headerActionsTriggerRef as React.RefObject<HTMLButtonElement>}
+          htmlType="button"
+          variant="tertiary"
+          size="small"
+          iconOnly
+          className={isHeaderActionsOpen ? "!bg-fill-1 !text-primary-6" : ""}
+          onClick={(event) => {
+            event.stopPropagation();
+            toggleHeaderActionsMenu();
+          }}
+          aria-label={t("common:actions.more")}
+          aria-expanded={isHeaderActionsOpen}
+          data-testid="chat-panel-header-more-button"
+          icon={
+            <MoreHorizontal
+              size={CHAT_PANEL_HEADER_ICON_SIZE}
+              strokeWidth={2}
             />
-          </span>
-        </Tooltip>
+          }
+        />
       )}
       {showChatFocusToggle && (
-        <Tooltip
-          content={isChatFocus ? shrinkToWorkstationTooltip : chatFocusTooltip}
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex">
-            <TabBarTrailingIconButton
-              title={isChatFocus ? shrinkToWorkstationLabel : chatFocusLabel}
-              nativeTitle={false}
-              onClick={handleChatFocusToggle}
-            >
-              {isChatFocus ? (
-                <GalleryThumbnails
-                  size={HEADER_ICON_SIZE.md}
-                  strokeWidth={1.75}
-                />
-              ) : (
-                <Maximize2 size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
-              )}
-            </TabBarTrailingIconButton>
-          </span>
-        </Tooltip>
+        <span className="inline-flex">
+          <TabBarTrailingIconButton
+            title={isChatFocus ? shrinkToWorkstationLabel : chatFocusLabel}
+            shortcutId="maximize_chat"
+            tooltipPosition="bottom-end"
+            nativeTitle={false}
+            onClick={handleChatFocusToggle}
+          >
+            {isChatFocus ? (
+              <GalleryThumbnails
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={1.75}
+              />
+            ) : (
+              <Maximize2 size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+            )}
+          </TabBarTrailingIconButton>
+        </span>
       )}
       {!tabStrip && showNewSessionButton && (
-        <Tooltip
-          content={
-            <KeyboardShortcutTooltipContent
-              label={t("chat.newSession")}
-              shortcut={getShortcutKeys("new_session")}
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          size="small"
+          iconOnly
+          onClick={handleNewSession}
+          aria-label={t("chat.newSession")}
+          icon={
+            <Plus
+              size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
+              strokeWidth={2}
             />
           }
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex">
-            <Button
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              onClick={handleNewSession}
-              aria-label={t("chat.newSession")}
-              icon={
-                <Plus
-                  size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
-                  strokeWidth={2}
-                />
-              }
-            />
-          </span>
-        </Tooltip>
+        />
       )}
       {isHeaderActionsOpen &&
         isHeaderActionsPositioned &&

@@ -346,7 +346,12 @@ export function ChatPanelPlusMenu({
         className="inline-flex shrink-0"
         style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
       >
-        <TabBarTrailingIconButton title={plusLabel} active={menuOpen}>
+        <TabBarTrailingIconButton
+          title={plusLabel}
+          active={menuOpen}
+          tooltipDisabled
+          nativeTitle={false}
+        >
           <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
         </TabBarTrailingIconButton>
       </span>

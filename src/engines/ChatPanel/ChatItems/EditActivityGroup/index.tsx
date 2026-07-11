@@ -8,6 +8,7 @@ import React, { Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { getToolIcon } from "@src/config/toolIcons";
+import { DIFF_STATS } from "@src/config/workstation/tokens";
 import ToolUsageBadge from "@src/engines/ChatPanel/blocks/ToolCallBlock/ToolUsageBadge";
 import { StackedBlock } from "@src/engines/ChatPanel/blocks/primitives";
 import {
@@ -15,6 +16,7 @@ import {
   TOOL_USAGE_ARGS_KEY,
   type ToolUsageMetadata,
 } from "@src/engines/SessionCore/core/types";
+import { extractEditData } from "@src/engines/SessionCore/rendering/props/propsDataExtractors";
 import { getChatLazyComponent } from "@src/engines/SessionCore/rendering/registry/events";
 import {
   getRegistryEventType,
@@ -50,6 +52,37 @@ export function countActivities(
         : canonical === "read_file";
     return matches ? count + 1 : count;
   }, 0);
+}
+
+export function sumEditDiffStats(events: readonly SessionEvent[]): {
+  additions: number;
+  deletions: number;
+} {
+  return events.reduce(
+    (total, event) => {
+      if (getCanonicalName(event) !== "edit_file") return total;
+      const edit = extractEditData({
+        eventId: event.id,
+        eventType: "edit_file",
+        functionName: event.functionName,
+        args: event.args ?? {},
+        result: event.result ?? {},
+        status:
+          event.displayStatus === "running"
+            ? "running"
+            : event.displayStatus === "failed"
+              ? "failed"
+              : "success",
+        variant: "chat",
+        context: "chat",
+        rustExtracted: event.extracted,
+      });
+      total.additions += edit.linesAdded ?? 0;
+      total.deletions += edit.linesRemoved ?? 0;
+      return total;
+    },
+    { additions: 0, deletions: 0 }
+  );
 }
 
 const ActivityBlockFallback: React.FC = () => (
@@ -158,6 +191,8 @@ const EditActivityGroup: React.FC<EditActivityGroupProps> = ({
   if (readCount > 0) {
     summaryParts.push(t("tools.editSummary.read", { count: readCount }));
   }
+  const diffStats = sumEditDiffStats(events);
+  const hasDiffStats = diffStats.additions > 0 || diffStats.deletions > 0;
 
   const firstEvent = items[0].event;
   const groupToolUsage = aggregateToolUsage(items);
@@ -178,7 +213,29 @@ const EditActivityGroup: React.FC<EditActivityGroupProps> = ({
           className: "text-text-2",
         })}
         label={t("tools.editFiles")}
-        groupSummary={summaryParts.join(t("tools.editSummary.separator"))}
+        groupSummary={
+          <span className="inline-flex items-center gap-1.5">
+            <span>{summaryParts.join(t("tools.editSummary.separator"))}</span>
+            {hasDiffStats && (
+              <span className="inline-flex items-center font-normal">
+                <span>(</span>
+                {diffStats.additions > 0 && (
+                  <span className={DIFF_STATS.additions}>
+                    +{diffStats.additions}
+                  </span>
+                )}
+                {diffStats.deletions > 0 && (
+                  <span
+                    className={`${diffStats.additions > 0 ? "ml-1" : ""} ${DIFF_STATS.deletions}`.trim()}
+                  >
+                    -{diffStats.deletions}
+                  </span>
+                )}
+                <span>)</span>
+              </span>
+            )}
+          </span>
+        }
         defaultCollapsed={closedByBoundary}
         collapseWhen={closedByBoundary}
         eventId={firstEvent.id}
