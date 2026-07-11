@@ -4,6 +4,8 @@
 //! The first managed agents expose stable user-level config files and can route
 //! model traffic through a local proxy without MITM interception.
 
+mod adapters;
+
 use app_paths as paths;
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
@@ -30,6 +32,56 @@ const OPENCODE_CONFIG_FILE_NAME: &str = "opencode.jsonc";
 const AIDER_AGENT: &str = "aider";
 const AIDER_CONFIG_FILE_ID: &str = "config";
 const AIDER_CONFIG_FILE_NAME: &str = ".aider.conf.yml";
+const KIMI_CLI_AGENT: &str = "kimi_cli";
+const KIMI_CLI_CONFIG_FILE_ID: &str = "config";
+const KIMI_CLI_CONFIG_FILE_NAME: &str = "config.toml";
+const GOOSE_AGENT: &str = "goose";
+const GOOSE_CONFIG_FILE_ID: &str = "config";
+const GOOSE_CONFIG_FILE_NAME: &str = "config.yaml";
+const GOOSE_SECRETS_FILE_ID: &str = "secrets";
+const GOOSE_SECRETS_FILE_NAME: &str = "secrets.yaml";
+const CLINE_AGENT: &str = "cline";
+const CLINE_PROVIDERS_FILE_ID: &str = "providers";
+const CLINE_PROVIDERS_FILE_NAME: &str = "providers.json";
+const KILO_AGENT: &str = "kilo";
+const KILO_CONFIG_FILE_ID: &str = "config";
+const KILO_CONFIG_FILE_NAME: &str = "kilo.jsonc";
+const HERMES_AGENT: &str = "hermes";
+const HERMES_CONFIG_FILE_ID: &str = "config";
+const HERMES_CONFIG_FILE_NAME: &str = "config.yaml";
+const OPENCLAW_AGENT: &str = "openclaw";
+const OPENCLAW_CONFIG_FILE_ID: &str = "config";
+const OPENCLAW_CONFIG_FILE_NAME: &str = "openclaw.json";
+const QWEN_CODE_AGENT: &str = "qwen_code";
+const QWEN_CODE_SETTINGS_FILE_ID: &str = "settings";
+const QWEN_CODE_SETTINGS_FILE_NAME: &str = "settings.json";
+const MIMO_CODE_AGENT: &str = "mimo_code";
+const MIMO_CODE_CONFIG_FILE_ID: &str = "config";
+const MIMO_CODE_CONFIG_FILE_NAME: &str = "mimocode.json";
+const CONTINUE_CLI_AGENT: &str = "continue_cli";
+const CONTINUE_CLI_CONFIG_FILE_ID: &str = "config";
+const CONTINUE_CLI_CONFIG_FILE_NAME: &str = "config.yaml";
+const DROID_AGENT: &str = "droid";
+const DROID_SETTINGS_FILE_ID: &str = "settings";
+const DROID_SETTINGS_FILE_NAME: &str = "settings.json";
+const MISTRAL_VIBE_AGENT: &str = "mistral_vibe";
+const MISTRAL_VIBE_CONFIG_FILE_ID: &str = "config";
+const MISTRAL_VIBE_CONFIG_FILE_NAME: &str = "config.toml";
+const MISTRAL_VIBE_ENV_FILE_ID: &str = "env";
+const MISTRAL_VIBE_ENV_FILE_NAME: &str = ".env";
+const AUTOHAND_AGENT: &str = "autohand";
+const AUTOHAND_CONFIG_FILE_ID: &str = "config";
+const AUTOHAND_CONFIG_FILE_NAME: &str = "config.json";
+const OMP_AGENT: &str = "omp";
+const OMP_MODELS_FILE_ID: &str = "models";
+const OMP_MODELS_FILE_NAME: &str = "models.yml";
+const OMP_SETTINGS_FILE_ID: &str = "settings";
+const OMP_SETTINGS_FILE_NAME: &str = "config.yml";
+const PI_AGENT: &str = "pi";
+const PI_SETTINGS_FILE_ID: &str = "settings";
+const PI_SETTINGS_FILE_NAME: &str = "settings.json";
+const PI_MODELS_FILE_ID: &str = "models";
+const PI_MODELS_FILE_NAME: &str = "models.json";
 const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const ORGII_PROVIDER_ID: &str = "orgii";
 const ORGII_PROVIDER_NAME: &str = "ORGII";
@@ -47,6 +99,13 @@ pub enum CliManagedProxyProtocol {
     GeminiGenerateContent,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CliManagedConfigAvailability {
+    Supported(CliManagedProxyProtocol),
+    Unavailable(&'static str),
+    Unknown,
+}
+
 #[derive(Debug, Clone, Copy)]
 enum ManagedConfigGenerator {
     CodexToml,
@@ -55,6 +114,24 @@ enum ManagedConfigGenerator {
     GeminiEnv,
     OpenCodeJsonc,
     AiderYaml,
+    KimiToml,
+    GooseYaml,
+    GooseSecretsYaml,
+    ClineProvidersJson,
+    KiloJsonc,
+    HermesYaml,
+    OpenClawJsonc,
+    QwenCodeJson,
+    MimoCodeJson,
+    ContinueYaml,
+    DroidJson,
+    MistralVibeToml,
+    MistralVibeEnv,
+    AutohandJson,
+    OmpModelsYaml,
+    OmpSettingsYaml,
+    PiSettingsJson,
+    PiModelsJson,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -103,6 +180,104 @@ const AIDER_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
     AIDER_CONFIG_FILE_NAME,
     ManagedConfigGenerator::AiderYaml,
 )];
+const KIMI_CLI_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    KIMI_CLI_CONFIG_FILE_ID,
+    KIMI_CLI_CONFIG_FILE_NAME,
+    ManagedConfigGenerator::KimiToml,
+)];
+const GOOSE_TARGETS: &[ManagedConfigTargetSpec] = &[
+    managed_target(
+        GOOSE_CONFIG_FILE_ID,
+        GOOSE_CONFIG_FILE_NAME,
+        ManagedConfigGenerator::GooseYaml,
+    ),
+    managed_target(
+        GOOSE_SECRETS_FILE_ID,
+        GOOSE_SECRETS_FILE_NAME,
+        ManagedConfigGenerator::GooseSecretsYaml,
+    ),
+];
+const CLINE_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    CLINE_PROVIDERS_FILE_ID,
+    CLINE_PROVIDERS_FILE_NAME,
+    ManagedConfigGenerator::ClineProvidersJson,
+)];
+const KILO_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    KILO_CONFIG_FILE_ID,
+    KILO_CONFIG_FILE_NAME,
+    ManagedConfigGenerator::KiloJsonc,
+)];
+const HERMES_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    HERMES_CONFIG_FILE_ID,
+    HERMES_CONFIG_FILE_NAME,
+    ManagedConfigGenerator::HermesYaml,
+)];
+const OPENCLAW_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    OPENCLAW_CONFIG_FILE_ID,
+    OPENCLAW_CONFIG_FILE_NAME,
+    ManagedConfigGenerator::OpenClawJsonc,
+)];
+const QWEN_CODE_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    QWEN_CODE_SETTINGS_FILE_ID,
+    QWEN_CODE_SETTINGS_FILE_NAME,
+    ManagedConfigGenerator::QwenCodeJson,
+)];
+const MIMO_CODE_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    MIMO_CODE_CONFIG_FILE_ID,
+    MIMO_CODE_CONFIG_FILE_NAME,
+    ManagedConfigGenerator::MimoCodeJson,
+)];
+const CONTINUE_CLI_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    CONTINUE_CLI_CONFIG_FILE_ID,
+    CONTINUE_CLI_CONFIG_FILE_NAME,
+    ManagedConfigGenerator::ContinueYaml,
+)];
+const DROID_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    DROID_SETTINGS_FILE_ID,
+    DROID_SETTINGS_FILE_NAME,
+    ManagedConfigGenerator::DroidJson,
+)];
+const MISTRAL_VIBE_TARGETS: &[ManagedConfigTargetSpec] = &[
+    managed_target(
+        MISTRAL_VIBE_CONFIG_FILE_ID,
+        MISTRAL_VIBE_CONFIG_FILE_NAME,
+        ManagedConfigGenerator::MistralVibeToml,
+    ),
+    managed_target(
+        MISTRAL_VIBE_ENV_FILE_ID,
+        MISTRAL_VIBE_ENV_FILE_NAME,
+        ManagedConfigGenerator::MistralVibeEnv,
+    ),
+];
+const AUTOHAND_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
+    AUTOHAND_CONFIG_FILE_ID,
+    AUTOHAND_CONFIG_FILE_NAME,
+    ManagedConfigGenerator::AutohandJson,
+)];
+const OMP_TARGETS: &[ManagedConfigTargetSpec] = &[
+    managed_target(
+        OMP_MODELS_FILE_ID,
+        OMP_MODELS_FILE_NAME,
+        ManagedConfigGenerator::OmpModelsYaml,
+    ),
+    managed_target(
+        OMP_SETTINGS_FILE_ID,
+        OMP_SETTINGS_FILE_NAME,
+        ManagedConfigGenerator::OmpSettingsYaml,
+    ),
+];
+const PI_TARGETS: &[ManagedConfigTargetSpec] = &[
+    managed_target(
+        PI_SETTINGS_FILE_ID,
+        PI_SETTINGS_FILE_NAME,
+        ManagedConfigGenerator::PiSettingsJson,
+    ),
+    managed_target(
+        PI_MODELS_FILE_ID,
+        PI_MODELS_FILE_NAME,
+        ManagedConfigGenerator::PiModelsJson,
+    ),
+];
 
 const MANAGED_CONFIG_ADAPTERS: &[CliManagedConfigAdapter] = &[
     managed_adapter(
@@ -129,6 +304,119 @@ const MANAGED_CONFIG_ADAPTERS: &[CliManagedConfigAdapter] = &[
         AIDER_AGENT,
         CliManagedProxyProtocol::OpenAiChatCompletions,
         AIDER_TARGETS,
+    ),
+    managed_adapter(
+        KIMI_CLI_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        KIMI_CLI_TARGETS,
+    ),
+    managed_adapter(
+        GOOSE_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        GOOSE_TARGETS,
+    ),
+    managed_adapter(
+        CLINE_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        CLINE_TARGETS,
+    ),
+    managed_adapter(
+        KILO_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        KILO_TARGETS,
+    ),
+    managed_adapter(
+        HERMES_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        HERMES_TARGETS,
+    ),
+    managed_adapter(
+        OPENCLAW_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        OPENCLAW_TARGETS,
+    ),
+    managed_adapter(
+        QWEN_CODE_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        QWEN_CODE_TARGETS,
+    ),
+    managed_adapter(
+        MIMO_CODE_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        MIMO_CODE_TARGETS,
+    ),
+    managed_adapter(
+        CONTINUE_CLI_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        CONTINUE_CLI_TARGETS,
+    ),
+    managed_adapter(
+        DROID_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        DROID_TARGETS,
+    ),
+    managed_adapter(
+        MISTRAL_VIBE_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        MISTRAL_VIBE_TARGETS,
+    ),
+    managed_adapter(
+        AUTOHAND_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        AUTOHAND_TARGETS,
+    ),
+    managed_adapter(
+        OMP_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        OMP_TARGETS,
+    ),
+    managed_adapter(
+        PI_AGENT,
+        CliManagedProxyProtocol::OpenAiChatCompletions,
+        PI_TARGETS,
+    ),
+];
+
+const MANAGED_CONFIG_UNAVAILABLE: &[(&str, &str)] = &[
+    (
+        "cursor_cli",
+        "Cursor CLI uses Cursor account/subscription authentication and does not expose a Provider base URL switch",
+    ),
+    (
+        "kiro",
+        "Kiro CLI is tied to AWS/Kiro account authentication and has no compatible Provider redirect setting",
+    ),
+    (
+        "copilot",
+        "GitHub Copilot CLI uses GitHub subscription authentication and does not accept an external Provider base URL",
+    ),
+    (
+        "amp",
+        "Amp uses its own subscription API and does not provide a third-party Provider redirect setting",
+    ),
+    (
+        "grok_cli",
+        "Grok CLI currently exposes XAI_API_KEY or cached account auth, but no stable persisted base URL config for managed switching",
+    ),
+    (
+        "devin",
+        "Devin CLI is backed by a Cognition account and does not expose a compatible external Provider config",
+    ),
+    (
+        "rovo",
+        "Rovo Dev uses Atlassian account/subscription authentication and does not expose a compatible Provider redirect setting",
+    ),
+    (
+        "aug",
+        "Augment CLI uses OAuth session authentication and does not expose a compatible Provider base URL setting",
+    ),
+    (
+        "codebuff",
+        "Codebuff uses its hosted account service and has no stable local Provider config target",
+    ),
+    (
+        "antigravity",
+        "Antigravity uses its own account-backed runtime and has no stable local Provider config target",
     ),
 ];
 
@@ -164,6 +452,24 @@ fn managed_config_adapter(agent_name: &str) -> Option<&'static CliManagedConfigA
 
 pub fn managed_proxy_protocol_for_agent(agent_name: &str) -> Option<CliManagedProxyProtocol> {
     managed_config_adapter(agent_name).map(|adapter| adapter.proxy_protocol)
+}
+
+pub fn managed_config_availability_for_agent(agent_name: &str) -> CliManagedConfigAvailability {
+    if let Some(adapter) = managed_config_adapter(agent_name) {
+        return CliManagedConfigAvailability::Supported(adapter.proxy_protocol);
+    }
+    MANAGED_CONFIG_UNAVAILABLE
+        .iter()
+        .find(|(name, _)| *name == agent_name)
+        .map(|(_, reason)| CliManagedConfigAvailability::Unavailable(reason))
+        .unwrap_or(CliManagedConfigAvailability::Unknown)
+}
+
+pub fn managed_config_unavailable_reason_for_agent(agent_name: &str) -> Option<&'static str> {
+    match managed_config_availability_for_agent(agent_name) {
+        CliManagedConfigAvailability::Unavailable(reason) => Some(reason),
+        CliManagedConfigAvailability::Supported(_) | CliManagedConfigAvailability::Unknown => None,
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -435,6 +741,12 @@ fn manifest_target(
 
 fn supported_agent(agent_name: &str) -> bool {
     managed_config_adapter(agent_name).is_some()
+}
+
+fn unavailable_agent_message(agent_name: &str) -> String {
+    managed_config_unavailable_reason_for_agent(agent_name)
+        .map(str::to_string)
+        .unwrap_or_else(|| format!("ORGII managed config is not registered for {agent_name}"))
 }
 
 fn agent_manifest_targets(agent_name: &str) -> Result<Vec<CliConfigTargetFileManifest>, String> {
@@ -746,7 +1058,7 @@ fn status_for_unlocked(agent_name: &str) -> Result<CliConfigManagedStatus, Strin
             selected_model: None,
             proxy_url: None,
             target_files: Vec::new(),
-            message: Some("ORGII managed config is not available for this CLI yet".to_string()),
+            message: Some(unavailable_agent_message(agent_name)),
         });
     }
 
@@ -1138,57 +1450,15 @@ fn generate_opencode_managed_config(
     proxy_url: &str,
     proxy_token: &str,
 ) -> Result<String, String> {
-    let mut config: serde_json::Value = if existing_content.trim().is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        json5::from_str(existing_content).map_err(|err| format!("Invalid OpenCode JSONC: {err}"))?
-    };
-    let Some(root) = config.as_object_mut() else {
-        return Err("OpenCode config must be a JSON object".to_string());
-    };
-
-    if !matches!(root.get("provider"), Some(serde_json::Value::Object(_))) {
-        root.insert(
-            "provider".to_string(),
-            serde_json::Value::Object(serde_json::Map::new()),
-        );
-    }
-    let Some(serde_json::Value::Object(providers)) = root.get_mut("provider") else {
-        return Err("Failed to build OpenCode provider object".to_string());
-    };
-
-    let model = selected_model_or_default(selected_model);
-    let mut models = serde_json::Map::new();
-    models.insert(model.to_string(), serde_json::json!({}));
-    providers.insert(
-        ORGII_PROVIDER_ID.to_string(),
-        serde_json::json!({
-            "npm": "@ai-sdk/openai-compatible",
-            "name": ORGII_PROVIDER_NAME,
-            "options": {
-                "baseURL": openai_chat_proxy_base_url(
-                    proxy_url,
-                    OPENCODE_AGENT,
-                    proxy_token,
-                ),
-                "apiKey": proxy_token,
-            },
-            "models": models,
-        }),
-    );
-    let model_ref = format!("{ORGII_PROVIDER_ID}/{model}");
-    root.insert(
-        "model".to_string(),
-        serde_json::Value::String(model_ref.clone()),
-    );
-    root.insert(
-        "small_model".to_string(),
-        serde_json::Value::String(model_ref),
-    );
-
-    serde_json::to_string_pretty(&config)
-        .map(|value| format!("{value}\n"))
-        .map_err(|err| format!("OpenCode JSON serialize error: {err}"))
+    adapters::generate_open_code_family_managed_config(
+        existing_content,
+        selected_model,
+        proxy_url,
+        proxy_token,
+        OPENCODE_AGENT,
+        "OpenCode",
+        true,
+    )
 }
 
 fn generate_aider_managed_config(
@@ -1280,6 +1550,112 @@ fn generate_managed_configs(
                 proxy_token,
             )?,
             ManagedConfigGenerator::AiderYaml => generate_aider_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::KimiToml => adapters::generate_kimi_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::GooseYaml => adapters::generate_goose_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::GooseSecretsYaml => {
+                adapters::generate_goose_secrets(existing_content, proxy_token)?
+            }
+            ManagedConfigGenerator::ClineProvidersJson => adapters::generate_cline_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::KiloJsonc => {
+                adapters::generate_open_code_family_managed_config(
+                    existing_content,
+                    selected_model,
+                    proxy_url,
+                    proxy_token,
+                    KILO_AGENT,
+                    "Kilo",
+                    true,
+                )?
+            }
+            ManagedConfigGenerator::HermesYaml => adapters::generate_hermes_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::OpenClawJsonc => adapters::generate_openclaw_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::QwenCodeJson => adapters::generate_qwen_code_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::MimoCodeJson => {
+                adapters::generate_open_code_family_managed_config(
+                    existing_content,
+                    selected_model,
+                    proxy_url,
+                    proxy_token,
+                    MIMO_CODE_AGENT,
+                    "MiMo Code",
+                    false,
+                )?
+            }
+            ManagedConfigGenerator::ContinueYaml => adapters::generate_continue_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::DroidJson => adapters::generate_droid_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::MistralVibeToml => adapters::generate_mistral_vibe_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::MistralVibeEnv => {
+                adapters::generate_mistral_vibe_env(existing_content, proxy_token)
+            }
+            ManagedConfigGenerator::AutohandJson => adapters::generate_autohand_managed_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::OmpModelsYaml => adapters::generate_omp_models_config(
+                existing_content,
+                selected_model,
+                proxy_url,
+                proxy_token,
+            )?,
+            ManagedConfigGenerator::OmpSettingsYaml => {
+                adapters::generate_omp_settings_config(existing_content, selected_model)?
+            }
+            ManagedConfigGenerator::PiSettingsJson => {
+                adapters::generate_pi_settings_config(existing_content, selected_model)?
+            }
+            ManagedConfigGenerator::PiModelsJson => adapters::generate_pi_models_config(
                 existing_content,
                 selected_model,
                 proxy_url,
@@ -1467,9 +1843,7 @@ pub fn enable_orgii_managed(
     let _guard = config_operation_guard()?;
     recover_pending_transaction_unlocked(agent_name)?;
     if !supported_agent(agent_name) {
-        return Err(format!(
-            "ORGII managed config is not available for {agent_name} in this build"
-        ));
+        return Err(unavailable_agent_message(agent_name));
     }
     enable_agent_orgii_managed_unlocked(agent_name, key_id, provider, model, force)
 }
@@ -1494,9 +1868,7 @@ pub async fn cli_config_restore_default(
         let _guard = config_operation_guard()?;
         recover_pending_transaction_unlocked(&agent_name)?;
         if !supported_agent(&agent_name) {
-            return Err(format!(
-                "ORGII managed config is not available for {agent_name} in this build"
-            ));
+            return Err(unavailable_agent_message(&agent_name));
         }
         restore_agent_default_unlocked(&agent_name, force)
     })
@@ -1573,6 +1945,32 @@ mod tests {
             created_at: "1".to_string(),
             updated_at: "1".to_string(),
         }
+    }
+
+    fn generated_for(agent_name: &str, existing: &[(&str, &str)]) -> BTreeMap<String, String> {
+        let existing_contents = existing
+            .iter()
+            .map(|(id, content)| ((*id).to_string(), (*content).to_string()))
+            .collect();
+        generate_managed_configs(
+            agent_name,
+            &existing_contents,
+            Some("test-model"),
+            DEFAULT_PROXY_URL,
+            TEST_PROXY_TOKEN,
+        )
+        .unwrap()
+    }
+
+    fn central_cli_registry_agent_names() -> Vec<&'static str> {
+        include_str!("../../key-vault/src/commands/registry/data/cli_agents.rs")
+            .lines()
+            .filter_map(|line| {
+                line.trim()
+                    .strip_prefix("name: \"")
+                    .and_then(|value| value.strip_suffix("\","))
+            })
+            .collect()
     }
 
     #[test]
@@ -1771,6 +2169,70 @@ export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
     }
 
     #[test]
+    fn every_central_cli_registry_entry_has_an_explicit_managed_config_result() {
+        let agent_names = central_cli_registry_agent_names();
+        assert_eq!(agent_names.len(), 29);
+
+        let mut supported = 0;
+        let mut unavailable = 0;
+        for agent_name in agent_names {
+            match managed_config_availability_for_agent(agent_name) {
+                CliManagedConfigAvailability::Supported(_) => supported += 1,
+                CliManagedConfigAvailability::Unavailable(reason) => {
+                    unavailable += 1;
+                    assert!(!reason.trim().is_empty(), "missing reason for {agent_name}");
+                }
+                CliManagedConfigAvailability::Unknown => {
+                    panic!("central CLI registry entry is not classified: {agent_name}")
+                }
+            }
+        }
+
+        assert_eq!(supported, 19);
+        assert_eq!(unavailable, 10);
+    }
+
+    #[test]
+    fn every_managed_adapter_resolves_all_declared_targets() {
+        for adapter in MANAGED_CONFIG_ADAPTERS {
+            let targets = agent_manifest_targets(adapter.agent_name).unwrap();
+            assert_eq!(
+                targets.len(),
+                adapter.targets.len(),
+                "{}",
+                adapter.agent_name
+            );
+            assert!(!targets.is_empty(), "{}", adapter.agent_name);
+        }
+
+        let omp_targets = agent_manifest_targets(OMP_AGENT).unwrap();
+        assert!(omp_targets[0]
+            .target_path
+            .replace('\\', "/")
+            .ends_with("/.oh-omp/agent/models.yml"));
+        assert!(omp_targets[1]
+            .target_path
+            .replace('\\', "/")
+            .ends_with("/.oh-omp/agent/config.yml"));
+
+        if std::env::var_os("GOOSE_PATH_ROOT").is_none() {
+            let goose_targets = agent_manifest_targets(GOOSE_AGENT).unwrap();
+            let config_path = goose_targets[0].target_path.replace('\\', "/");
+            let secrets_path = goose_targets[1].target_path.replace('\\', "/");
+            #[cfg(target_os = "windows")]
+            {
+                assert!(config_path.ends_with("/Block/goose/config/config.yaml"));
+                assert!(secrets_path.ends_with("/Block/goose/config/secrets.yaml"));
+            }
+            #[cfg(not(target_os = "windows"))]
+            {
+                assert!(config_path.ends_with("/goose/config.yaml"));
+                assert!(secrets_path.ends_with("/goose/secrets.yaml"));
+            }
+        }
+    }
+
+    #[test]
     fn opencode_managed_config_preserves_jsonc_and_adds_orgii_provider() {
         let raw = r#"
 {
@@ -1834,6 +2296,279 @@ map-tokens: 2048
             Some("http://127.0.0.1:17888/cli/aider/test-proxy-token/v1")
         );
         assert_eq!(parsed["openai-api-key"].as_str(), Some(TEST_PROXY_TOKEN));
+    }
+
+    #[test]
+    fn kimi_and_goose_managed_configs_select_the_orgii_model() {
+        let kimi = generated_for(
+            KIMI_CLI_AGENT,
+            &[(KIMI_CLI_CONFIG_FILE_ID, "theme = \"dark\"\n")],
+        );
+        let kimi: toml::Value = toml::from_str(&kimi[KIMI_CLI_CONFIG_FILE_ID]).unwrap();
+        assert_eq!(kimi["theme"].as_str(), Some("dark"));
+        assert_eq!(kimi["default_model"].as_str(), Some("orgii/test-model"));
+        assert_eq!(
+            kimi["providers"]["orgii"]["base_url"].as_str(),
+            Some("http://127.0.0.1:17888/cli/kimi_cli/test-proxy-token/v1")
+        );
+        assert_eq!(
+            kimi["models"]["orgii/test-model"]["provider"].as_str(),
+            Some("orgii")
+        );
+
+        let goose = generated_for(
+            GOOSE_AGENT,
+            &[
+                (
+                    GOOSE_CONFIG_FILE_ID,
+                    "extensions:\n  developer:\n    enabled: true\n",
+                ),
+                (GOOSE_SECRETS_FILE_ID, "EXISTING_SECRET: keep\n"),
+            ],
+        );
+        let goose_config: serde_yaml::Value =
+            serde_yaml::from_str(&goose[GOOSE_CONFIG_FILE_ID]).unwrap();
+        let goose_secrets: serde_yaml::Value =
+            serde_yaml::from_str(&goose[GOOSE_SECRETS_FILE_ID]).unwrap();
+        assert_eq!(goose_config["active_provider"].as_str(), Some("openai"));
+        assert_eq!(
+            goose_config["providers"]["openai"]["model"].as_str(),
+            Some("test-model")
+        );
+        assert_eq!(
+            goose_config["OPENAI_BASE_URL"].as_str(),
+            Some("http://127.0.0.1:17888/cli/goose/test-proxy-token/v1")
+        );
+        assert_eq!(
+            goose_config["extensions"]["developer"]["enabled"].as_bool(),
+            Some(true)
+        );
+        assert_eq!(goose_secrets["EXISTING_SECRET"].as_str(), Some("keep"));
+        assert_eq!(
+            goose_secrets["OPENAI_API_KEY"].as_str(),
+            Some(TEST_PROXY_TOKEN)
+        );
+    }
+
+    #[test]
+    fn cline_kilo_and_mimo_configs_activate_the_managed_provider() {
+        let cline = generated_for(
+            CLINE_AGENT,
+            &[(
+                CLINE_PROVIDERS_FILE_ID,
+                r#"{"version":1,"lastUsedProvider":"cline","providers":{"cline":{"settings":{"provider":"cline"},"updatedAt":"2026-01-01T00:00:00.000Z","tokenSource":"oauth"}}}"#,
+            )],
+        );
+        let cline: serde_json::Value =
+            serde_json::from_str(&cline[CLINE_PROVIDERS_FILE_ID]).unwrap();
+        assert_eq!(cline["lastUsedProvider"].as_str(), Some("orgii"));
+        assert!(cline["providers"]["cline"].is_object());
+        assert!(chrono::DateTime::parse_from_rfc3339(
+            cline["providers"]["orgii"]["updatedAt"].as_str().unwrap()
+        )
+        .is_ok());
+        assert_eq!(
+            cline["providers"]["orgii"]["settings"]["model"].as_str(),
+            Some("test-model")
+        );
+        assert_eq!(
+            cline["providers"]["orgii"]["settings"]["protocol"].as_str(),
+            Some("openai-chat")
+        );
+        assert_eq!(
+            cline["providers"]["orgii"]["settings"]["client"].as_str(),
+            Some("openai-compatible")
+        );
+        assert_eq!(
+            cline["providers"]["orgii"]["settings"]["baseUrl"].as_str(),
+            Some("http://127.0.0.1:17888/cli/cline/test-proxy-token/v1")
+        );
+
+        let kilo = generated_for(
+            KILO_AGENT,
+            &[(KILO_CONFIG_FILE_ID, "{ enabled_providers: ['existing'] }")],
+        );
+        let kilo: serde_json::Value = serde_json::from_str(&kilo[KILO_CONFIG_FILE_ID]).unwrap();
+        assert_eq!(kilo["model"].as_str(), Some("orgii/test-model"));
+        assert!(kilo["enabled_providers"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|value| value.as_str() == Some("orgii")));
+        assert_eq!(
+            kilo["provider"]["orgii"]["options"]["baseURL"].as_str(),
+            Some("http://127.0.0.1:17888/cli/kilo/test-proxy-token/v1")
+        );
+
+        let mimo = generated_for(
+            MIMO_CODE_AGENT,
+            &[(MIMO_CODE_CONFIG_FILE_ID, "{\"theme\":\"dark\"}")],
+        );
+        let mimo: serde_json::Value =
+            serde_json::from_str(&mimo[MIMO_CODE_CONFIG_FILE_ID]).unwrap();
+        assert_eq!(mimo["theme"].as_str(), Some("dark"));
+        assert_eq!(mimo["model"].as_str(), Some("orgii/test-model"));
+        assert_eq!(
+            mimo["provider"]["orgii"]["options"]["baseURL"].as_str(),
+            Some("http://127.0.0.1:17888/cli/mimo_code/test-proxy-token/v1")
+        );
+    }
+
+    #[test]
+    fn hermes_openclaw_and_qwen_configs_preserve_existing_values() {
+        let hermes = generated_for(
+            HERMES_AGENT,
+            &[(HERMES_CONFIG_FILE_ID, "display:\n  compact: true\n")],
+        );
+        let hermes: serde_yaml::Value =
+            serde_yaml::from_str(&hermes[HERMES_CONFIG_FILE_ID]).unwrap();
+        assert_eq!(hermes["display"]["compact"].as_bool(), Some(true));
+        assert_eq!(hermes["model"]["provider"].as_str(), Some("custom"));
+        assert_eq!(hermes["model"]["default"].as_str(), Some("test-model"));
+
+        let openclaw = generated_for(
+            OPENCLAW_AGENT,
+            &[(OPENCLAW_CONFIG_FILE_ID, "{ logging: { level: 'debug' } }")],
+        );
+        let openclaw: serde_json::Value =
+            serde_json::from_str(&openclaw[OPENCLAW_CONFIG_FILE_ID]).unwrap();
+        assert_eq!(openclaw["logging"]["level"].as_str(), Some("debug"));
+        assert_eq!(
+            openclaw["agents"]["defaults"]["model"]["primary"].as_str(),
+            Some("orgii/test-model")
+        );
+        assert_eq!(
+            openclaw["models"]["providers"]["orgii"]["api"].as_str(),
+            Some("openai-completions")
+        );
+
+        let qwen = generated_for(
+            QWEN_CODE_AGENT,
+            &[(QWEN_CODE_SETTINGS_FILE_ID, "{\"theme\":\"dark\"}")],
+        );
+        let qwen: serde_json::Value =
+            serde_json::from_str(&qwen[QWEN_CODE_SETTINGS_FILE_ID]).unwrap();
+        assert_eq!(qwen["theme"].as_str(), Some("dark"));
+        assert_eq!(
+            qwen["security"]["auth"]["selectedType"].as_str(),
+            Some("orgii")
+        );
+        assert_eq!(qwen["providerProtocol"]["orgii"].as_str(), Some("openai"));
+        assert_eq!(
+            qwen["modelProviders"]["orgii"][0]["baseUrl"].as_str(),
+            Some("http://127.0.0.1:17888/cli/qwen_code/test-proxy-token/v1")
+        );
+    }
+
+    #[test]
+    fn continue_droid_and_autohand_configs_select_the_managed_model() {
+        let continue_config = generated_for(
+            CONTINUE_CLI_AGENT,
+            &[(
+                CONTINUE_CLI_CONFIG_FILE_ID,
+                "name: Existing\nversion: 2.0.0\nmodels: []\n",
+            )],
+        );
+        let continue_config: serde_yaml::Value =
+            serde_yaml::from_str(&continue_config[CONTINUE_CLI_CONFIG_FILE_ID]).unwrap();
+        assert_eq!(continue_config["name"].as_str(), Some("Existing"));
+        assert_eq!(continue_config["models"][0]["name"].as_str(), Some("ORGII"));
+        assert_eq!(
+            continue_config["models"][0]["model"].as_str(),
+            Some("test-model")
+        );
+        assert!(!continue_config["models"][0]["roles"]
+            .as_sequence()
+            .unwrap()
+            .iter()
+            .any(|role| role.as_str() == Some("apply")));
+
+        let droid = generated_for(
+            DROID_AGENT,
+            &[(DROID_SETTINGS_FILE_ID, "{\"theme\":\"dark\"}")],
+        );
+        let droid: serde_json::Value =
+            serde_json::from_str(&droid[DROID_SETTINGS_FILE_ID]).unwrap();
+        assert_eq!(droid["theme"].as_str(), Some("dark"));
+        assert_eq!(droid["model"].as_str(), Some("test-model"));
+        assert_eq!(
+            droid["customModels"][0]["displayName"].as_str(),
+            Some("ORGII")
+        );
+        assert_eq!(
+            droid["customModels"][0]["baseUrl"].as_str(),
+            Some("http://127.0.0.1:17888/cli/droid/test-proxy-token/v1")
+        );
+
+        let autohand = generated_for(
+            AUTOHAND_AGENT,
+            &[(AUTOHAND_CONFIG_FILE_ID, "{\"telemetry\":false}")],
+        );
+        let autohand: serde_json::Value =
+            serde_json::from_str(&autohand[AUTOHAND_CONFIG_FILE_ID]).unwrap();
+        assert_eq!(autohand["telemetry"].as_bool(), Some(false));
+        assert_eq!(autohand["provider"].as_str(), Some("openai"));
+        assert_eq!(autohand["openai"]["model"].as_str(), Some("test-model"));
+    }
+
+    #[test]
+    fn vibe_omp_and_pi_multi_file_configs_are_complete() {
+        let vibe = generated_for(
+            MISTRAL_VIBE_AGENT,
+            &[
+                (MISTRAL_VIBE_CONFIG_FILE_ID, "theme = \"dark\"\n"),
+                (MISTRAL_VIBE_ENV_FILE_ID, "EXISTING=keep\n"),
+            ],
+        );
+        let vibe_config: toml::Value = toml::from_str(&vibe[MISTRAL_VIBE_CONFIG_FILE_ID]).unwrap();
+        assert_eq!(vibe_config["theme"].as_str(), Some("dark"));
+        assert_eq!(vibe_config["active_model"].as_str(), Some("orgii"));
+        assert_eq!(vibe_config["providers"][0]["name"].as_str(), Some("orgii"));
+        assert_eq!(
+            vibe_config["models"][0]["name"].as_str(),
+            Some("test-model")
+        );
+        assert!(vibe[MISTRAL_VIBE_ENV_FILE_ID].contains("EXISTING=keep"));
+        assert!(vibe[MISTRAL_VIBE_ENV_FILE_ID].contains("ORGII_API_KEY=\"test-proxy-token\""));
+
+        let omp = generated_for(
+            OMP_AGENT,
+            &[
+                (OMP_MODELS_FILE_ID, "providers: {}\n"),
+                (OMP_SETTINGS_FILE_ID, "theme:\n  dark: titanium\n"),
+            ],
+        );
+        let omp_models: serde_yaml::Value = serde_yaml::from_str(&omp[OMP_MODELS_FILE_ID]).unwrap();
+        let omp_settings: serde_yaml::Value =
+            serde_yaml::from_str(&omp[OMP_SETTINGS_FILE_ID]).unwrap();
+        assert_eq!(
+            omp_models["providers"]["orgii"]["models"][0]["id"].as_str(),
+            Some("test-model")
+        );
+        assert_eq!(
+            omp_settings["modelRoles"]["default"].as_str(),
+            Some("orgii/test-model")
+        );
+        assert!(omp_settings["modelRoles"].get("task").is_none());
+        assert_eq!(omp_settings["theme"]["dark"].as_str(), Some("titanium"));
+
+        let pi = generated_for(
+            PI_AGENT,
+            &[
+                (PI_SETTINGS_FILE_ID, "{\"theme\":\"dark\"}"),
+                (PI_MODELS_FILE_ID, "{\"providers\":{}}"),
+            ],
+        );
+        let pi_settings: serde_json::Value =
+            serde_json::from_str(&pi[PI_SETTINGS_FILE_ID]).unwrap();
+        let pi_models: serde_json::Value = serde_json::from_str(&pi[PI_MODELS_FILE_ID]).unwrap();
+        assert_eq!(pi_settings["theme"].as_str(), Some("dark"));
+        assert_eq!(pi_settings["defaultProvider"].as_str(), Some("orgii"));
+        assert_eq!(pi_settings["defaultModel"].as_str(), Some("test-model"));
+        assert_eq!(
+            pi_models["providers"]["orgii"]["models"][0]["id"].as_str(),
+            Some("test-model")
+        );
     }
 
     #[test]
