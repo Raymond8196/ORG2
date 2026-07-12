@@ -94,6 +94,12 @@
       "rescanAll": "Tümünü yeniden tara",
       "rescan": "Yeniden tara",
       "rescanning": "Yeniden taranıyor…",
+      "openFolder": "Klasörü aç",
+      "tabs": {
+        "all": "Tümü",
+        "apps": "Uygulamalar",
+        "clis": "CLI'ler"
+      },
       "sessions_one": "{{count}} oturum",
       "sessions_other": "{{count}} oturum",
       "noPath": "Yol algılanmadı",

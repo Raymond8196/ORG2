@@ -107,7 +107,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "autohand",
         "autohand",
         false,
-        &[],
+        &[".autohand"],
     ),
     source(
         "opencode",
@@ -131,7 +131,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         false,
         &[".config/mimo", ".local/share/mimo"],
     ),
-    source("pi", "Pi", "pi", "pi", &[], "pi", "pi", false, &[]),
+    source("pi", "Pi", "pi", "pi", &[], "pi", "pi", false, &[".pi"]),
     source(
         "omp",
         "OMP",
@@ -141,7 +141,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "omp",
         "omp",
         false,
-        &[],
+        &[".omp"],
     ),
     source(
         "gemini",
@@ -163,7 +163,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "agy",
         "agy",
         false,
-        &[],
+        &[".antigravity"],
     ),
     source(
         "aider",
@@ -207,7 +207,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "kilo",
         "kilo",
         false,
-        &[],
+        &[".config/kilo"],
     ),
     source(
         "kiro",
@@ -221,17 +221,6 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[".kiro"],
     ),
     source(
-        "aug",
-        "Auggie",
-        "aug",
-        "auggie",
-        &[],
-        "auggie",
-        "auggie",
-        false,
-        &[],
-    ),
-    source(
         "cline",
         "Cline",
         "cline",
@@ -240,7 +229,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "cline",
         "cline",
         false,
-        &[],
+        &[".cline"],
     ),
     source(
         "codebuff",
@@ -266,7 +255,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     ),
     source(
         "cursor",
-        "Cursor Agent",
+        "Cursor CLI",
         "cursor",
         "cursor-agent",
         &[],
@@ -284,7 +273,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "droid",
         "droid",
         false,
-        &[],
+        &[".factory"],
     ),
     source(
         "kimi",
@@ -318,17 +307,6 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "qwen",
         false,
         &[".qwen"],
-    ),
-    source(
-        "rovo",
-        "Rovo",
-        "rovo",
-        "rovo",
-        &[],
-        "rovo",
-        "rovo",
-        false,
-        &[".rovo"],
     ),
     source(
         "hermes",

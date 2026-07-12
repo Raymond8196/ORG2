@@ -14,8 +14,9 @@
  * store is re-read and the cache repopulated — so a newly-installed tool or a
  * freshly-created store is picked up even when nothing was found before.
  */
-import { RefreshCw, Terminal } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { FolderOpen, RefreshCw, Terminal } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -31,11 +32,14 @@ import {
 import Button from "@src/components/Button";
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
 import StatusBadge, { type StatusType } from "@src/components/StatusBadge";
+import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import {
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
 import { loadSidebarSessions } from "@src/store/session";
+
+type DataSourceTab = "all" | "apps" | "clis";
 
 // The sources ORGII imports history from (have a cache + support Rescan).
 const IMPORTABLE_SOURCE_IDS = new Set<ImportedHistorySourceId>(
@@ -81,6 +85,7 @@ const DataSourcePanel: React.FC = () => {
   });
   const [rows, setRows] = useState<SourceRow[] | null>(null);
   const [rescanningAll, setRescanningAll] = useState(false);
+  const [tab, setTab] = useState<DataSourceTab>("all");
 
   const patchRow = useCallback(
     (sourceId: string, patch: Partial<SourceRow>) => {
@@ -250,6 +255,25 @@ const DataSourcePanel: React.FC = () => {
       : { status: "empty", labelKey: "notInstalled" };
   };
 
+  const openFolder = useCallback((path: string) => {
+    void invoke("open_folder", { path }).catch(() => {
+      /* best-effort reveal */
+    });
+  }, []);
+
+  const tabs = useMemo<TabPillItem[]>(
+    () => [
+      { key: "all", label: t("tabs.all") },
+      { key: "apps", label: t("tabs.apps") },
+      { key: "clis", label: t("tabs.clis") },
+    ],
+    [t]
+  );
+
+  const visibleRows = (rows ?? []).filter((row) =>
+    tab === "apps" ? row.importable : tab === "clis" ? !row.importable : true
+  );
+
   return (
     <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
       <div className="mx-auto flex max-w-3xl flex-col gap-3 p-4">
@@ -271,9 +295,20 @@ const DataSourcePanel: React.FC = () => {
           )}
         </div>
 
+        <TabPill
+          activeTab={tab}
+          tabs={tabs}
+          onChange={(key) => setTab(key as DataSourceTab)}
+          variant="pill"
+          color="fill"
+          fillWidth={false}
+          size="small"
+        />
+
         <SectionContainer>
-          {(rows ?? []).map((row) => {
+          {visibleRows.map((row) => {
             const badge = rowBadge(row);
+            const path = row.probe.historyPaths[0];
             return (
               <SectionRow
                 key={row.probe.sourceId}
@@ -286,7 +321,7 @@ const DataSourcePanel: React.FC = () => {
                 description={describeRow(row)}
                 truncateLabel
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {row.importable && !row.statsLoading && row.stats && (
                     <span className="whitespace-nowrap text-xs text-text-3">
                       {t("sessions", { count: row.stats.sessionCount })}
@@ -299,8 +334,16 @@ const DataSourcePanel: React.FC = () => {
                     size="sm"
                   />
                   <Button
-                    variant="tertiary"
-                    appearance="ghost"
+                    variant="secondary"
+                    size="small"
+                    iconOnly
+                    icon={<FolderOpen size={14} />}
+                    title={t("openFolder")}
+                    disabled={!path}
+                    onClick={() => path && openFolder(path)}
+                  />
+                  <Button
+                    variant="secondary"
                     size="small"
                     loading={row.rescanning}
                     icon={<RefreshCw size={14} />}

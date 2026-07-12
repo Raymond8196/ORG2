@@ -94,6 +94,12 @@
       "rescanAll": "Пересканировать все",
       "rescan": "Пересканировать",
       "rescanning": "Пересканирование…",
+      "openFolder": "Открыть папку",
+      "tabs": {
+        "all": "Все",
+        "apps": "Приложения",
+        "clis": "CLI"
+      },
       "sessions_one": "{{count}} сессия",
       "sessions_few": "{{count}} сессии",
       "sessions_many": "{{count}} сессий",

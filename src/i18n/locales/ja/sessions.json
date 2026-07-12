@@ -94,6 +94,12 @@
       "rescanAll": "すべて再スキャン",
       "rescan": "再スキャン",
       "rescanning": "再スキャン中…",
+      "openFolder": "フォルダを開く",
+      "tabs": {
+        "all": "すべて",
+        "apps": "アプリ",
+        "clis": "CLI"
+      },
       "sessions_other": "{{count}} 件のセッション",
       "noPath": "パスが検出されません",
       "notImported": "未インポート",

@@ -94,6 +94,12 @@
       "rescanAll": "Alle neu scannen",
       "rescan": "Neu scannen",
       "rescanning": "Wird neu gescannt…",
+      "openFolder": "Ordner öffnen",
+      "tabs": {
+        "all": "Alle",
+        "apps": "Apps",
+        "clis": "CLIs"
+      },
       "sessions_one": "{{count}} Sitzung",
       "sessions_other": "{{count}} Sitzungen",
       "noPath": "Kein Pfad erkannt",
