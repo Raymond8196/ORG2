@@ -13,9 +13,7 @@
  * - open-source-control - Drive the unified Source Control tab into All Changes mode
  * - workstation-open-code-tab - Focus a pinned Code Editor tab from global shortcuts
  * - close-all-tabs - Close all editor tabs
- * - orgii:open-file-in-editor (Tauri) - Cross-window file open (e.g. from SessionDiffWindow)
  */
-import { listen } from "@tauri-apps/api/event";
 import { exists } from "@tauri-apps/plugin-fs";
 import { useSetAtom } from "jotai";
 import { useEffect, useRef } from "react";
@@ -49,7 +47,6 @@ import {
 } from "@src/store/workstation/tabs";
 import type { GitFile } from "@src/types/git/types";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
-import { isTauriDesktop } from "@src/util/platform/tauri";
 
 import {
   buildCandidateRoots,
@@ -474,24 +471,6 @@ export function useCodeEditorEvents(options: CodeEditorEventsOptions): void {
     window.addEventListener("workstation-open-code-tab", handleOpenCodeTab);
     window.addEventListener("close-all-tabs", handleCloseAllTabs);
 
-    // Cross-window Tauri event (emitted by standalone windows like SessionDiffWindow)
-    let unlistenTauriOpenFile: (() => void) | undefined;
-    let tauriListenCancelled = false;
-    if (isTauriDesktop()) {
-      void listen<{ path: string; line?: number }>(
-        "orgii:open-file-in-editor",
-        (event) => {
-          openFileTab(event.payload.path, false, event.payload.line);
-        }
-      ).then((unlisten) => {
-        if (tauriListenCancelled) {
-          unlisten();
-        } else {
-          unlistenTauriOpenFile = unlisten;
-        }
-      });
-    }
-
     // Consume any files queued by other pages before this hook mounted
     const pendingFiles = consumePendingFileOpens();
     if (pendingFiles.length > 0) {
@@ -531,8 +510,6 @@ export function useCodeEditorEvents(options: CodeEditorEventsOptions): void {
         handleOpenCodeTab
       );
       window.removeEventListener("close-all-tabs", handleCloseAllTabs);
-      tauriListenCancelled = true;
-      unlistenTauriOpenFile?.();
     };
   }, [
     repoPath,

@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { ChevronDown, GitCompare, GitMerge, Play, Trash2 } from "lucide-react";
+import { ChevronDown, GitMerge, Play, Trash2 } from "lucide-react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -21,7 +21,6 @@ interface TaskDetailHeaderActionsProps {
   strategyRef: React.RefObject<HTMLDivElement | null>;
   t: TFunction<"sessions">;
   onReplay: () => void;
-  onOpenDiffWindow: () => void;
   onMerge: () => void;
   onDiscard: () => void;
   onToggleStrategy: () => void;
@@ -39,7 +38,6 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
   strategyRef,
   t,
   onReplay,
-  onOpenDiffWindow,
   onMerge,
   onDiscard,
   onToggleStrategy,
@@ -57,15 +55,6 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
         {t("opsControl.replay.replaySession")}
       </Button>
     )}
-    <Button
-      size="small"
-      variant="tertiary"
-      onClick={onOpenDiffWindow}
-      title={t("opsControl.diff.openDiffWindow")}
-      icon={<GitCompare size={14} strokeWidth={1.75} />}
-    >
-      {t("opsControl.diff.openDiffWindow")}
-    </Button>
     {canMerge && (
       <>
         <div className="relative flex items-center" ref={strategyRef}>

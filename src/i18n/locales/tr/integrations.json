@@ -2449,13 +2449,6 @@
     "installHintNote": "Bu özelliği etkinleştirmek için eksik bağımlılığı yükleyin",
     "installSection": "Kurulum"
   },
-  "worktreeCompare": {
-    "button": "Karşılaştır",
-    "buttonTooltip": "Worktree'leri karşılaştır",
-    "title": "Worktree'leri Karşılaştır",
-    "noSessions": "Karşılaştırmak için oturum yok",
-    "sessionTab": "Oturum"
-  },
   "creator": {
     "assign": "Ata"
   },
