@@ -355,6 +355,8 @@ git::bundle::calculate_ahead_behind,
 // Git operations for conflict resolution
 git::bundle::git_add_all,
 git::bundle::git_commit,
+// Worktree PR base resolution (fetch PR head → git-resolvable base ref)
+git::pr_base::worktree_resolve_pr_base,
 // Git proxy detection
 git::util::get_git_proxy_config,
 git::util::set_git_proxy_config,

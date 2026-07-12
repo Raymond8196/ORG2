@@ -56,6 +56,7 @@ import { REPO_KIND } from "@src/store/repo/types";
 import {
   CLI_LAUNCH_MODE,
   SESSION_TARGET_KIND,
+  type WorktreeLaunchSource,
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
@@ -68,6 +69,7 @@ import {
   sessionCreatorStateAtom,
   sessionSourceAtom,
   sessionTargetKindAtom,
+  worktreeLaunchSourceAtom,
 } from "@src/store/session";
 import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
 import { creatorDefaultTuiModeAtom } from "@src/store/session/creatorDefaultTuiModeAtom";
@@ -305,13 +307,35 @@ const SessionCreatorChatPanelSingle: React.FC<
   const runningLocation = useAtomValue(runningLocationAtom);
   const setRunningLocation = useSetAtom(runningLocationAtom);
   const setSelectedWorktreePath = useSetAtom(selectedWorktreePathAtom);
+  const worktreeLaunchSource = useAtomValue(worktreeLaunchSourceAtom);
+  const setWorktreeLaunchSource = useSetAtom(worktreeLaunchSourceAtom);
 
   const handleWorktreeLocationChange = useCallback(
     (location: Parameters<typeof setRunningLocation>[0]) => {
       setSelectedWorktreePath(null);
+      if (location !== "worktree") {
+        setWorktreeLaunchSource(null);
+      }
       setRunningLocation(location);
     },
-    [setRunningLocation, setSelectedWorktreePath]
+    [setRunningLocation, setSelectedWorktreePath, setWorktreeLaunchSource]
+  );
+
+  const handleWorktreeSourceSelect = useCallback(
+    (source: WorktreeLaunchSource) => {
+      setSelectedWorktreePath(null);
+      setWorktreeLaunchSource(source);
+      setRunningLocation("worktree");
+      if (source.baseBranch) {
+        handleBranchChange(source.baseBranch);
+      }
+    },
+    [
+      handleBranchChange,
+      setRunningLocation,
+      setSelectedWorktreePath,
+      setWorktreeLaunchSource,
+    ]
   );
 
   const agentVariant = getRustAgentType(selectedAgentDefId);
@@ -725,7 +749,11 @@ const SessionCreatorChatPanelSingle: React.FC<
       branchLoading={branchLoading && !effectiveBranchName}
       onBranchChange={handleBranchChange}
       worktreeLocation={isDisplayedSystemPath ? undefined : runningLocation}
+      worktreeSourceLabel={
+        runningLocation === "worktree" ? worktreeLaunchSource?.label : undefined
+      }
       onWorktreeLocationChange={handleWorktreeLocationChange}
+      onWorktreeSourceSelect={handleWorktreeSourceSelect}
       fullWidth
       pillVariant={headerLayout === "compact" ? "ghost" : undefined}
     />
