@@ -118,7 +118,7 @@ export function GitHubWorkItemSidebarFilters({
 export interface GitHubWorkItemSummaryTab {
   key: string;
   label: string;
-  count: number;
+  count: number | null;
   icon: ReactNode;
   active?: boolean;
   onSelect?: () => void;
@@ -145,9 +145,11 @@ export function GitHubWorkItemSummary({
         >
           {tab.icon}
           {tab.label}
-          <span className="rounded-full bg-fill-2 px-1.5 py-0.5 text-[10px] text-text-2">
-            {tab.count}
-          </span>
+          {tab.count !== null ? (
+            <span className="rounded-full bg-fill-2 px-1.5 py-0.5 text-[10px] text-text-2">
+              {tab.count}
+            </span>
+          ) : null}
         </button>
       ))}
     </div>
@@ -188,8 +190,8 @@ export function GitHubWorkItemRow({
     <div className="group flex min-h-[72px] w-full items-start gap-2.5 px-3 py-2.5 transition-colors focus-within:bg-fill-1/60 hover:bg-fill-1/60">
       <span className="mt-1 shrink-0">{icon}</span>
       {content}
-      {trailing}
       {actions}
+      {trailing}
     </div>
   );
 }
