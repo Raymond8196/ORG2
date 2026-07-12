@@ -20,7 +20,6 @@ export { useCursorSessionCapture } from "./sessionCapture/useCursorSessionCaptur
 export {
   useWorkStationPanels,
   usePrimarySidebarState,
-  useOpsControlSidebarState,
   useBottomPanelState,
 } from "./panels/useWorkStationPanels";
 export { usePanelResize } from "./panels/usePanelResize";

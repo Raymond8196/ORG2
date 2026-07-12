@@ -46,6 +46,7 @@ export interface NavigationSidebarProps {
   pinnedMenuItems?: NavigationMenuItem[];
   selectedKey?: string;
   onMenuItemClick?: (key: string, item: NavigationMenuItem) => void;
+  onSubmenuOpenChange?: (key: string, open: boolean) => void;
   onMenuItemContextMenu?: (
     e: React.MouseEvent,
     key: string,
@@ -164,6 +165,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
     pinnedMenuItems = [],
     selectedKey,
     onMenuItemClick,
+    onSubmenuOpenChange,
     onMenuItemContextMenu,
     renderMenuItemWrapper,
     defaultOpenKeys = [],
@@ -393,6 +395,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
               enableHoverIconAnimation={enableHoverIconAnimation}
               compactRows={compactRows}
               onMenuItemClick={handleMenuItemClick}
+              onSubmenuOpenChange={onSubmenuOpenChange}
               onMenuItemContextMenu={handleMenuItemContextMenu}
               renderMenuItemWrapper={renderMenuItemWrapper}
             />
@@ -476,6 +479,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                       enableHoverIconAnimation={enableHoverIconAnimation}
                       compactRows={compactRows}
                       onMenuItemClick={handleMenuItemClick}
+                      onSubmenuOpenChange={onSubmenuOpenChange}
                       onMenuItemContextMenu={handleMenuItemContextMenu}
                       renderMenuItemWrapper={renderMenuItemWrapper}
                     />

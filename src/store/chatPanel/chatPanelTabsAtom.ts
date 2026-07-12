@@ -45,6 +45,19 @@ import {
 
 import { disposeOpsControlStateAtom } from "./disposeOpsControlStateAtom";
 
+function getOpsControlFallbackTitle(section: OpsControlHomeTab): string {
+  switch (section) {
+    case OPS_CONTROL_HOME_TAB.PROJECTS:
+      return "Projects";
+    case OPS_CONTROL_HOME_TAB.GITHUB_ISSUES:
+      return "GitHub Issues";
+    case OPS_CONTROL_HOME_TAB.GITHUB_PRS:
+      return "GitHub PRs";
+    case OPS_CONTROL_HOME_TAB.OPS_CONTROL:
+      return "Kanban";
+  }
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Types
 // ────────────────────────────────────────────────────────────────────────────
@@ -134,14 +147,16 @@ export function normalizePersistedChatPanelTabsState(
         return {
           ...tab,
           type: "ops-control",
-          title: "Ops Control",
+          title: "Projects",
           opsSection: OPS_CONTROL_HOME_TAB.PROJECTS,
         } as ChatPanelTab;
       }
       if (persistedType === "ops-control") {
+        const opsSection = tab.opsSection ?? OPS_CONTROL_HOME_TAB.OPS_CONTROL;
         return {
           ...tab,
-          opsSection: tab.opsSection ?? OPS_CONTROL_HOME_TAB.OPS_CONTROL,
+          title: getOpsControlFallbackTitle(opsSection),
+          opsSection,
         } as ChatPanelTab;
       }
       return tab;
@@ -511,7 +526,7 @@ export const openOpsControlChatPanelTabAtom = atom(
   (get, set, options: OpenOpsControlTabOptions = {}) => {
     const {
       section = OPS_CONTROL_HOME_TAB.OPS_CONTROL,
-      title = "Ops Control",
+      title = getOpsControlFallbackTitle(section),
     } = options;
     const state = get(chatPanelTabsAtom);
     const existingTab = state.tabs.find((tab) => tab.type === "ops-control");

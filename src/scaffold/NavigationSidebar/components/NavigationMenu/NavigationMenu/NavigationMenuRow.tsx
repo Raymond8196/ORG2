@@ -1,4 +1,9 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
+} from "lucide-react";
 import React, { useCallback } from "react";
 
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
@@ -24,10 +29,8 @@ interface NavigationMenuParentRowProps extends Omit<
   isOpen: boolean;
   submenuSelected: boolean;
   collapsed: boolean;
-  t: (key: string) => string;
   renderIcon: NavigationMenuIconRenderer;
   renderMenuItem: NavigationMenuItemRenderer;
-  onMenuItemClick: (key: string, item: NavigationMenuItem) => void;
   onMenuItemContextMenu?: (
     event: React.MouseEvent,
     key: string,
@@ -48,10 +51,8 @@ export const NavigationMenuParentRow = React.forwardRef<
     isOpen,
     submenuSelected,
     collapsed,
-    t,
     renderIcon,
     renderMenuItem,
-    onMenuItemClick,
     onMenuItemContextMenu,
     onRowMouseEnter,
     onToggleSubmenu,
@@ -84,7 +85,7 @@ export const NavigationMenuParentRow = React.forwardRef<
       {...rootProps}
       {...dragHandlers}
       ref={ref}
-      className={`mb-1 ${rootProps.className ?? ""} ${item.dragPayload ? "cursor-grab active:cursor-grabbing" : ""}`}
+      className={`${rootProps.className ?? ""} ${item.dragPayload ? "cursor-grab active:cursor-grabbing" : ""}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={handleRootMouseLeave}
       onContextMenu={
@@ -97,13 +98,29 @@ export const NavigationMenuParentRow = React.forwardRef<
       {dragState && <ReferenceDragGhost dragState={dragState} />}
       <div
         data-testid={item.dataTestId}
+        role="button"
+        tabIndex={item.disabled ? -1 : 0}
+        aria-expanded={isOpen}
+        aria-disabled={item.disabled || undefined}
         className={`group flex ${rowHeightClass} items-center justify-between rounded-lg transition-colors duration-150 ${
           isChild ? "pl-5 pr-2" : "px-2"
-        } ${submenuSelected ? "cursor-default bg-sidebar-selected text-text-1" : cursorReset ? "cursor-default text-text-1 hover:bg-sidebar-selected" : "cursor-pointer text-text-1 hover:bg-sidebar-selected"}`}
+        } ${submenuSelected ? "bg-sidebar-selected text-text-1" : "text-text-1"} ${
+          item.disabled
+            ? "cursor-default opacity-60"
+            : `${cursorReset ? "cursor-default" : "cursor-pointer"} hover:bg-sidebar-selected`
+        }`}
         onClick={() => {
           if (item.disabled) return;
           markClicked();
-          onMenuItemClick(item.key, item);
+          onToggleSubmenu(item.key);
+        }}
+        onKeyDown={(event) => {
+          if (item.disabled || (event.key !== "Enter" && event.key !== " ")) {
+            return;
+          }
+          event.preventDefault();
+          markClicked();
+          onToggleSubmenu(item.key);
         }}
         onMouseEnter={(event: React.MouseEvent) =>
           onRowMouseEnter(event, item.routePath)
@@ -135,26 +152,19 @@ export const NavigationMenuParentRow = React.forwardRef<
                 {item.trailingElement}
               </span>
             )}
-            <button
-              type="button"
-              aria-label={isOpen ? t("actions.collapse") : t("actions.expand")}
-              title={isOpen ? t("actions.collapse") : t("actions.expand")}
-              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-text-3 transition-colors duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:outline-none"
-              data-testid={`${item.key}-session-tree-toggle`}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                onToggleSubmenu(item.key);
-              }}
-            >
-              <ChevronDown
+            {isOpen ? (
+              <ChevronsDownUp
                 size={12}
                 strokeWidth={2}
-                className={`transition-transform duration-200 ${
-                  isOpen ? "rotate-180" : ""
-                } text-text-2`}
+                className="shrink-0 text-text-2"
               />
-            </button>
+            ) : (
+              <ChevronsUpDown
+                size={12}
+                strokeWidth={2}
+                className="shrink-0 text-text-2"
+              />
+            )}
           </span>
         )}
       </div>
@@ -439,9 +449,11 @@ function renderLeafRowAccessory({
           {item.trailingElement}
           {item.showDrillDownIndicator && (
             <ChevronRight
-              size={13}
+              size={12}
               strokeWidth={2}
-              className={isSelected ? "text-text-1" : "text-text-3"}
+              className={
+                isSelected ? "shrink-0 text-text-1" : "shrink-0 text-text-2"
+              }
             />
           )}
         </>

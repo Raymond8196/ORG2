@@ -1,14 +1,4 @@
-import {
-  Box,
-  Compass,
-  Folders,
-  Github,
-  LayoutDashboard,
-  ListTodo,
-  Plus,
-  Radar,
-  SquarePen,
-} from "lucide-react";
+import { Box, Columns3, Github, ListTodo, Plus, SquarePen } from "lucide-react";
 import React from "react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
@@ -18,12 +8,11 @@ import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import {
   NEW_SESSION_MENU_ITEM_ID,
+  OPS_CONTROL_KANBAN_MENU_ITEM_ID,
   OPS_CONTROL_MENU_ITEM_ID,
   PROJECTS_IMPORT_GITHUB_ISSUES_MENU_ITEM_ID,
   PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
   PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID,
-  WORKSPACES_SIDEBAR_MENU_ITEM_ID,
-  WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
   getDraftMenuItemId,
   getDraftPreviewText,
 } from "./sidebarConnectorUtils";
@@ -32,10 +21,9 @@ interface BuildPinnedMenuItemsParams {
   newSessionLabel: string;
   newSessionShortcut: string;
   opsControlLabel: string;
-  opsControlRoutePath: string;
-  opsControlShortcut: string;
-  workspacesLabel: string;
-  workItemsLabel: string;
+  opsControlItems: NavigationMenuItem[];
+  kanbanLabel: string;
+  kanbanShortcut: string;
 }
 
 interface BuildProjectsPinnedMenuItemsParams {
@@ -44,21 +32,13 @@ interface BuildProjectsPinnedMenuItemsParams {
   importGithubIssuesLabel: string;
 }
 
-interface BuildFoldersPinnedMenuItemsParams {
-  dashboardItemId: string;
-  dashboardLabel: string;
-  exploreItemId: string;
-  exploreLabel: string;
-}
-
 export function buildPinnedMenuItems({
   newSessionLabel,
   newSessionShortcut,
   opsControlLabel,
-  opsControlRoutePath,
-  opsControlShortcut,
-  workspacesLabel,
-  workItemsLabel,
+  opsControlItems,
+  kanbanLabel,
+  kanbanShortcut,
 }: BuildPinnedMenuItemsParams): NavigationMenuItem[] {
   return [
     {
@@ -70,31 +50,21 @@ export function buildPinnedMenuItems({
       shortcut: newSessionShortcut,
     },
     {
+      id: OPS_CONTROL_KANBAN_MENU_ITEM_ID,
+      key: OPS_CONTROL_KANBAN_MENU_ITEM_ID,
+      label: kanbanLabel,
+      icon: Columns3,
+      iconName: "columns-3",
+      shortcut: kanbanShortcut,
+    },
+    {
       id: OPS_CONTROL_MENU_ITEM_ID,
       key: OPS_CONTROL_MENU_ITEM_ID,
       label: opsControlLabel,
-      icon: Radar,
-      iconName: "radar",
-      routePath: opsControlRoutePath,
-      shortcut: opsControlShortcut,
-    },
-    {
-      id: WORKSPACES_SIDEBAR_MENU_ITEM_ID,
-      key: WORKSPACES_SIDEBAR_MENU_ITEM_ID,
-      label: workspacesLabel,
-      icon: Folders,
-      iconName: "folders",
-      showDrillDownIndicator: true,
-      dataTestId: "sidebar-open-workspaces",
-    },
-    {
-      id: WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
-      key: WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
-      label: workItemsLabel,
       icon: ListTodo,
       iconName: "list-todo",
-      showDrillDownIndicator: true,
-      dataTestId: "sidebar-open-work-items",
+      children: opsControlItems,
+      dataTestId: "sidebar-open-ops-control",
     },
   ];
 }
@@ -125,30 +95,6 @@ export function buildProjectsPinnedMenuItems({
       label: importGithubIssuesLabel,
       icon: Github,
       iconName: "github",
-    },
-  ];
-}
-
-export function buildFoldersPinnedMenuItems({
-  dashboardItemId,
-  dashboardLabel,
-  exploreItemId,
-  exploreLabel,
-}: BuildFoldersPinnedMenuItemsParams): NavigationMenuItem[] {
-  return [
-    {
-      id: dashboardItemId,
-      key: dashboardItemId,
-      label: dashboardLabel,
-      icon: LayoutDashboard,
-      iconName: "layout-dashboard",
-    },
-    {
-      id: exploreItemId,
-      key: exploreItemId,
-      label: exploreLabel,
-      icon: Compass,
-      iconName: "compass",
     },
   ];
 }

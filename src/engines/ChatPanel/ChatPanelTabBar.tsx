@@ -18,11 +18,14 @@
  */
 import { useAtomValue, useSetAtom } from "jotai";
 import {
+  Boxes,
   BriefcaseBusiness,
+  CircleDot,
+  Columns3,
+  GitPullRequest,
   LayoutGrid,
   MessageSquarePlus,
   Plus,
-  Radar,
   TerminalSquare,
 } from "lucide-react";
 import React, {
@@ -59,6 +62,7 @@ import {
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { terminalSessionsAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
 import { sessionByIdAtom } from "@src/store/session";
+import { OPS_CONTROL_HOME_TAB } from "@src/store/workstation";
 import { isWindows } from "@src/util/platform/tauri";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 
@@ -111,7 +115,12 @@ const TabPill = memo(function TabPill({
 
   const displayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
     launchpad: t("navigation:routes.launchpad"),
-    opsControl: t("navigation:routes.opsControl"),
+    opsControl: {
+      kanban: t("sessions:simulator.tabs.kanban"),
+      projects: t("navigation:labels.projects"),
+      githubIssues: t("sessions:opsControl.sidebar.githubIssues"),
+      githubPrs: t("sessions:opsControl.sidebar.githubPrs"),
+    },
     sessionFallback: t("chat.defaultTitle"),
   });
 
@@ -135,13 +144,19 @@ const TabPill = memo(function TabPill({
       />
     );
   } else if (tab.type === "ops-control") {
-    icon = (
-      <Radar
-        size={16}
-        strokeWidth={1.75}
-        className={`shrink-0 ${iconColorClass}`}
-      />
-    );
+    const OpsControlIcon =
+      tab.opsSection === OPS_CONTROL_HOME_TAB.PROJECTS
+        ? Boxes
+        : tab.opsSection === OPS_CONTROL_HOME_TAB.GITHUB_ISSUES
+          ? CircleDot
+          : tab.opsSection === OPS_CONTROL_HOME_TAB.GITHUB_PRS
+            ? GitPullRequest
+            : Columns3;
+    icon = React.createElement(OpsControlIcon, {
+      size: 16,
+      strokeWidth: 1.75,
+      className: `shrink-0 ${iconColorClass}`,
+    });
   } else if (session) {
     // Use the same icon resolution as the session sidebar.
     // React.createElement avoids the static-components lint rule —
@@ -258,8 +273,8 @@ function PlusMenuContent({
     },
     {
       id: "ops-control",
-      icon: <Radar size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("navigation:labels.opsCenter"),
+      icon: <Columns3 size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:simulator.tabs.kanban"),
       onClick: onOpenOpsControl,
     },
     {

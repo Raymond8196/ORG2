@@ -8,7 +8,6 @@ import {
 import type { ReactNode } from "react";
 
 import Button from "@src/components/Button";
-import { TreeRowBase } from "@src/components/TreeRow";
 
 export function GitHubWorkItemToolbarActions({
   openHref,
@@ -76,45 +75,6 @@ export function GitHubWorkItemToolbarActions({
   );
 }
 
-export interface GitHubWorkItemSidebarFilter {
-  key: string;
-  label: string;
-  icon: ReactNode;
-  selected: boolean;
-}
-
-export function GitHubWorkItemSidebarFilters({
-  filters,
-  onSelect,
-}: {
-  filters: GitHubWorkItemSidebarFilter[];
-  onSelect: (key: string) => void;
-}): ReactNode {
-  return (
-    <div className="flex flex-col">
-      {filters.map((filter) => {
-        const path = `ops-control-github-filter:${filter.key}`;
-        return (
-          <TreeRowBase
-            key={filter.key}
-            node={{
-              id: path,
-              name: filter.label,
-              path,
-              type: "file",
-              icon: filter.icon,
-            }}
-            depth={0}
-            isSelected={filter.selected}
-            onClick={() => onSelect(filter.key)}
-            dataPath={path}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
 export interface GitHubWorkItemSummaryTab {
   key: string;
   label: string;
@@ -126,8 +86,10 @@ export interface GitHubWorkItemSummaryTab {
 
 export function GitHubWorkItemSummary({
   tabs,
+  actions,
 }: {
   tabs: GitHubWorkItemSummaryTab[];
+  actions?: ReactNode;
 }): ReactNode {
   return (
     <div className="flex h-10 items-center gap-4 border-b border-border-2 bg-bg-1 px-3">
@@ -152,6 +114,7 @@ export function GitHubWorkItemSummary({
           ) : null}
         </button>
       ))}
+      {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
     </div>
   );
 }

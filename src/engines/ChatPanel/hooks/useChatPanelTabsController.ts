@@ -21,14 +21,14 @@ import type { ChatPanelCliTerminalLaunchOptions } from "../types";
 interface UseChatPanelTabsControllerOptions {
   currentSessionId: string | null;
   launchpadTitle: string;
-  opsControlTitle: string;
+  kanbanTitle: string;
   showSessionSurface: () => void;
 }
 
 export function useChatPanelTabsController({
   currentSessionId,
   launchpadTitle,
-  opsControlTitle,
+  kanbanTitle,
   showSessionSurface,
 }: UseChatPanelTabsControllerOptions) {
   const setTabSessionId = useSetAtom(setChatPanelTabSessionIdAtom);
@@ -96,9 +96,9 @@ export function useChatPanelTabsController({
   const handleOpenOpsControlTab = useCallback(() => {
     openOpsControlTab({
       section: OPS_CONTROL_HOME_TAB.OPS_CONTROL,
-      title: opsControlTitle,
+      title: kanbanTitle,
     });
-  }, [openOpsControlTab, opsControlTitle]);
+  }, [kanbanTitle, openOpsControlTab]);
 
   const isTerminalTabActive = activeTab?.type === "terminal";
   const terminalTabs = allTabs.filter(

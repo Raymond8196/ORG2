@@ -8,11 +8,8 @@ import {
   GitPullRequest,
   GitPullRequestClosed,
   Link2,
-  ListFilter,
   MessageSquare,
   MoreHorizontal,
-  PenLine,
-  UserCheck,
 } from "lucide-react";
 import React, {
   useCallback,
@@ -21,7 +18,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { getGitRemotes } from "@src/api/http/git/remotes";
@@ -90,7 +86,6 @@ import {
   GitHubWorkItemListFrame,
   GitHubWorkItemPagination,
   GitHubWorkItemRow,
-  GitHubWorkItemSidebarFilters,
   GitHubWorkItemSummary,
   GitHubWorkItemToolbarActions,
 } from "./GitHubWorkItemList";
@@ -120,7 +115,6 @@ const GITHUB_QUERY_SCOPE = {
 const GITHUB_FILTER_PRESET = {
   ASSIGNED_TO_ME: "assignedToMe",
   BY_ME: "byMe",
-  CLOSED: "closed",
 } as const;
 
 const GITHUB_QUERY_STATE = {
@@ -215,6 +209,8 @@ interface GitHubRepoSource {
 interface RepoIssueState {
   openIssues: GitHubIssue[];
   closedIssues: GitHubIssue[];
+  openLoaded: boolean;
+  closedLoaded: boolean;
   openHasMore: boolean;
   closedHasMore: boolean;
   openNextPage: number | null;
@@ -234,6 +230,8 @@ interface RepoIssueLoadResult {
   source: GitHubRepoSource;
   openIssues: GitHubIssue[];
   closedIssues: GitHubIssue[];
+  openLoaded: boolean;
+  closedLoaded: boolean;
   openHasMore: boolean;
   closedHasMore: boolean;
   openNextPage: number | null;
@@ -252,6 +250,8 @@ interface RepoPrLoadResult {
 const EMPTY_REPO_ISSUES: RepoIssueState = {
   openIssues: [],
   closedIssues: [],
+  openLoaded: false,
+  closedLoaded: false,
   openHasMore: false,
   closedHasMore: false,
   openNextPage: null,
@@ -636,6 +636,8 @@ function getCachedRepoIssues(source: GitHubRepoSource): RepoIssueState {
   return {
     openIssues: cached.openIssues,
     closedIssues: cached.closedIssues,
+    openLoaded: typeof cached.openCachedAt === "number",
+    closedLoaded: typeof cached.closedCachedAt === "number",
     openHasMore: cached.openIssues.length >= ISSUE_PAGE_SIZE,
     closedHasMore: cached.closedIssues.length >= ISSUE_PAGE_SIZE,
     openNextPage: cached.openIssues.length >= ISSUE_PAGE_SIZE ? 2 : null,
@@ -702,18 +704,20 @@ async function resolveGitHubRepoSource(
 
 async function loadRepoIssues(
   source: GitHubRepoSource,
+  states: IssuePageState[],
   force = false
 ): Promise<RepoIssueLoadResult> {
   const cached = getCachedRepoIssues(source);
   if (
     !force &&
-    !isIssueCacheStale(source.repoPath, "open") &&
-    !isIssueCacheStale(source.repoPath, "closed")
+    states.every((state) => !isIssueCacheStale(source.repoPath, state))
   ) {
     return {
       source,
       openIssues: cached.openIssues,
       closedIssues: cached.closedIssues,
+      openLoaded: cached.openLoaded,
+      closedLoaded: cached.closedLoaded,
       openHasMore: cached.openHasMore,
       closedHasMore: cached.closedHasMore,
       openNextPage: cached.openNextPage,
@@ -722,39 +726,43 @@ async function loadRepoIssues(
     };
   }
 
-  const [openResult, closedResult] = await coalesceGitHubListRequest(
-    `ops-control:issues:${source.repoPath}`,
+  const results = await coalesceGitHubListRequest(
+    `ops-control:issues:${states.join(",")}:${source.repoPath}`,
     () =>
-      Promise.all([
-        fetchIssues(source.remoteUrl, {
-          state: "open",
-          page: 1,
-          perPage: ISSUE_PAGE_SIZE,
-        }),
-        fetchIssues(source.remoteUrl, {
-          state: "closed",
-          page: 1,
-          perPage: ISSUE_PAGE_SIZE,
-        }),
-      ])
+      Promise.all(
+        states.map((state) =>
+          fetchIssues(source.remoteUrl, {
+            state,
+            page: 1,
+            perPage: ISSUE_PAGE_SIZE,
+          })
+        )
+      )
   );
 
-  const openIssues = openResult.data?.issues ?? cached.openIssues;
-  const closedIssues = closedResult.data?.issues ?? cached.closedIssues;
+  const resultByState = new Map(
+    states.map((state, index) => [state, results[index]] as const)
+  );
+  const openResult = resultByState.get("open");
+  const closedResult = resultByState.get("closed");
+  const openIssues = openResult?.data?.issues ?? cached.openIssues;
+  const closedIssues = closedResult?.data?.issues ?? cached.closedIssues;
 
-  if (openResult.data) updateCachedOpenIssues(source.repoPath, openIssues);
-  if (closedResult.data)
+  if (openResult?.data) updateCachedOpenIssues(source.repoPath, openIssues);
+  if (closedResult?.data)
     updateCachedClosedIssues(source.repoPath, closedIssues);
 
   return {
     source,
     openIssues,
     closedIssues,
-    openHasMore: openResult.data?.has_more ?? false,
-    closedHasMore: closedResult.data?.has_more ?? false,
-    openNextPage: openResult.data?.next_page ?? null,
-    closedNextPage: closedResult.data?.next_page ?? null,
-    error: openResult.error ?? closedResult.error ?? null,
+    openLoaded: Boolean(openResult?.data) || cached.openLoaded,
+    closedLoaded: Boolean(closedResult?.data) || cached.closedLoaded,
+    openHasMore: openResult?.data?.has_more ?? cached.openHasMore,
+    closedHasMore: closedResult?.data?.has_more ?? cached.closedHasMore,
+    openNextPage: openResult?.data?.next_page ?? cached.openNextPage,
+    closedNextPage: closedResult?.data?.next_page ?? cached.closedNextPage,
+    error: openResult?.error ?? closedResult?.error ?? null,
   };
 }
 
@@ -1159,13 +1167,11 @@ function CreateIssueModal({
 
 interface GitHubWorkItemsSurfaceProps {
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
-  sidebarHost: HTMLDivElement | null;
   onDetailViewChange: (open: boolean, onBack: (() => void) | null) => void;
 }
 
 const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   scope,
-  sidebarHost,
   onDetailViewChange,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
@@ -1195,6 +1201,10 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     query.scope = scope;
     return query;
   }, [scope, searchQuery]);
+  const selectedIssueListStates = useMemo(
+    () => getIssuePageStatesForQuery(parsedSearchQuery),
+    [parsedSearchQuery]
+  );
   const selectedPrListStates = useMemo(
     () => getOpsPrListStates(parsedSearchQuery.state),
     [parsedSearchQuery.state]
@@ -1289,7 +1299,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
         scope === GITHUB_QUERY_SCOPE.ISSUE
           ? Promise.all(
               resolvedSources.map((source) =>
-                loadRepoIssues(source, forceRefresh)
+                loadRepoIssues(source, selectedIssueListStates, forceRefresh)
               )
             )
           : Promise.resolve([]),
@@ -1313,6 +1323,8 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
               {
                 openIssues: result.openIssues,
                 closedIssues: result.closedIssues,
+                openLoaded: result.openLoaded,
+                closedLoaded: result.closedLoaded,
                 openHasMore: result.openHasMore,
                 closedHasMore: result.closedHasMore,
                 openNextPage: result.openNextPage,
@@ -1356,7 +1368,13 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [gitRepos, refreshNonce, scope, selectedPrListStates]);
+  }, [
+    gitRepos,
+    refreshNonce,
+    scope,
+    selectedIssueListStates,
+    selectedPrListStates,
+  ]);
 
   const selectedWorkstationRepoSource = useMemo(
     () =>
@@ -1407,74 +1425,47 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     [setSelectedRepo]
   );
 
-  const handleSidebarFilterSelect = useCallback(
-    (key: string) => {
+  const handleIssuePersonalFiltersSelect = useCallback(
+    (values: (string | number)[]) => {
       updateSearchQuery((query) => {
-        if (key === GITHUB_FILTER_PRESET.ASSIGNED_TO_ME) {
-          query.state = GITHUB_QUERY_STATE.OPEN;
-          query.assignee = "@me";
-          query.author = null;
-          return;
-        }
-        if (key === GITHUB_FILTER_PRESET.BY_ME) {
-          query.state = GITHUB_QUERY_STATE.OPEN;
-          query.assignee = null;
-          query.author = "@me";
-          return;
-        }
-        if (key === GITHUB_FILTER_PRESET.CLOSED) {
-          query.state = GITHUB_QUERY_STATE.CLOSED;
-          query.assignee = null;
-          query.author = null;
-          return;
-        }
-        if (key === GITHUB_QUERY_STATE.ALL) {
-          query.state = GITHUB_QUERY_STATE.ALL;
-          query.assignee = null;
-          query.author = null;
-        }
+        query.author = values.includes(GITHUB_FILTER_PRESET.BY_ME)
+          ? "@me"
+          : null;
+        query.assignee = values.includes(GITHUB_FILTER_PRESET.ASSIGNED_TO_ME)
+          ? "@me"
+          : null;
       });
     },
     [updateSearchQuery]
   );
 
-  const sidebarFilters = useMemo(
+  const issuePersonalFilterOptions = useMemo<SelectOption[]>(
     () =>
       scope === GITHUB_QUERY_SCOPE.ISSUE
         ? [
             {
-              key: GITHUB_FILTER_PRESET.ASSIGNED_TO_ME,
-              label: t("chat.panels.manageIssues.assignedToMe"),
-              icon: <UserCheck size={14} strokeWidth={1.75} />,
-              selected: parsedSearchQuery.assignee === "@me",
-            },
-            {
-              key: GITHUB_FILTER_PRESET.BY_ME,
+              value: GITHUB_FILTER_PRESET.BY_ME,
               label: t("chat.panels.manageIssues.createdByMe"),
-              icon: <PenLine size={14} strokeWidth={1.75} />,
-              selected: parsedSearchQuery.author === "@me",
             },
             {
-              key: GITHUB_FILTER_PRESET.CLOSED,
-              label: t("chat.panels.manageIssues.stateClosed"),
-              icon: <CheckCircle2 size={14} strokeWidth={1.75} />,
-              selected:
-                parsedSearchQuery.state === GITHUB_QUERY_STATE.CLOSED &&
-                !parsedSearchQuery.assignee &&
-                !parsedSearchQuery.author,
-            },
-            {
-              key: GITHUB_QUERY_STATE.ALL,
-              label: t("chat.panels.manageIssues.stateAll"),
-              icon: <ListFilter size={14} strokeWidth={1.75} />,
-              selected:
-                parsedSearchQuery.state === GITHUB_QUERY_STATE.ALL &&
-                !parsedSearchQuery.assignee &&
-                !parsedSearchQuery.author,
+              value: GITHUB_FILTER_PRESET.ASSIGNED_TO_ME,
+              label: t("chat.panels.manageIssues.assignedToMe"),
             },
           ]
         : [],
-    [parsedSearchQuery, scope, t]
+    [scope, t]
+  );
+
+  const selectedIssuePersonalFilters = useMemo(
+    () => [
+      ...(parsedSearchQuery.author === "@me"
+        ? [GITHUB_FILTER_PRESET.BY_ME]
+        : []),
+      ...(parsedSearchQuery.assignee === "@me"
+        ? [GITHUB_FILTER_PRESET.ASSIGNED_TO_ME]
+        : []),
+    ],
+    [parsedSearchQuery.assignee, parsedSearchQuery.author]
   );
 
   const repoOptions = useMemo<RepoFilterOption[]>(
@@ -1572,6 +1563,24 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
         { open: 0, closed: 0 }
       ),
     [effectiveSelectedRepo, issues]
+  );
+  const openIssuesLoaded = useMemo(
+    () =>
+      paginatedSources.length > 0 &&
+      paginatedSources.every(
+        (source) =>
+          repoIssueMap[getRepoIssueMapKey(source)]?.openLoaded === true
+      ),
+    [paginatedSources, repoIssueMap]
+  );
+  const closedIssuesLoaded = useMemo(
+    () =>
+      paginatedSources.length > 0 &&
+      paginatedSources.every(
+        (source) =>
+          repoIssueMap[getRepoIssueMapKey(source)]?.closedLoaded === true
+      ),
+    [paginatedSources, repoIssueMap]
   );
   const openPrCount = useMemo(
     () =>
@@ -2069,7 +2078,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
                 {
                   key: GITHUB_QUERY_STATE.OPEN,
                   label: t("chat.panels.manageIssues.stateOpen"),
-                  count: issueStateCounts.open,
+                  count: openIssuesLoaded ? issueStateCounts.open : null,
                   icon: <CircleDot size={13} strokeWidth={1.8} />,
                   active: parsedSearchQuery.state === GITHUB_QUERY_STATE.OPEN,
                   onSelect: () =>
@@ -2080,7 +2089,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
                 {
                   key: GITHUB_QUERY_STATE.CLOSED,
                   label: t("chat.panels.manageIssues.stateClosed"),
-                  count: issueStateCounts.closed,
+                  count: closedIssuesLoaded ? issueStateCounts.closed : null,
                   icon: <CheckCircle2 size={13} strokeWidth={1.8} />,
                   active: parsedSearchQuery.state === GITHUB_QUERY_STATE.CLOSED,
                   onSelect: () =>
@@ -2107,7 +2116,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
                   key: GITHUB_QUERY_STATE.CLOSED,
                   label: t("chat.panels.manageIssues.stateClosed"),
                   count: closedPrLoaded ? closedPrCount : null,
-                  icon: <GitPullRequestClosed size={13} strokeWidth={1.8} />,
+                  icon: <CheckCircle2 size={13} strokeWidth={1.8} />,
                   active:
                     parsedSearchQuery.state === GITHUB_QUERY_STATE.CLOSED ||
                     parsedSearchQuery.state === GITHUB_QUERY_STATE.MERGED,
@@ -2117,6 +2126,33 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
                     }),
                 },
               ]
+        }
+        actions={
+          scope === GITHUB_QUERY_SCOPE.ISSUE ? (
+            <Dropdown
+              options={issuePersonalFilterOptions}
+              value={selectedIssuePersonalFilters}
+              mode="multiple"
+              position="bottom-end"
+              onSelect={(value) =>
+                handleIssuePersonalFiltersSelect(
+                  Array.isArray(value) ? value : [value]
+                )
+              }
+            >
+              <Button
+                htmlType="button"
+                variant="secondary"
+                appearance="outline"
+                size="small"
+              >
+                {t("common:actions.filter")}
+                {selectedIssuePersonalFilters.length > 0
+                  ? ` (${selectedIssuePersonalFilters.length})`
+                  : ""}
+              </Button>
+            </Dropdown>
+          ) : undefined
         }
       />
     );
@@ -2201,13 +2237,6 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       onAddComment={handleAddIssueDetailComment}
     />
   ) : null;
-
-  const sidebarControlsContent = (
-    <GitHubWorkItemSidebarFilters
-      filters={sidebarFilters}
-      onSelect={handleSidebarFilterSelect}
-    />
-  );
 
   const listDescriptionContent = (
     <section
@@ -2312,9 +2341,6 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
 
   return (
     <>
-      {scope === GITHUB_QUERY_SCOPE.ISSUE && sidebarHost
-        ? createPortal(sidebarControlsContent, sidebarHost)
-        : null}
       <div
         className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
         data-testid="ops-control-github"

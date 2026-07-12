@@ -1,7 +1,6 @@
 export {
   useWorkStationPanels,
   usePrimarySidebarState,
-  useOpsControlSidebarState,
   useBottomPanelState,
 } from "./useWorkStationPanels";
 export type { UseWorkStationPanelsReturn } from "./useWorkStationPanels";
