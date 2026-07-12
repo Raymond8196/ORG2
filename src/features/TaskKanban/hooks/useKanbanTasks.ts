@@ -27,6 +27,7 @@ import {
   kanbanReplayModeAtom,
 } from "@src/store/ui/kanbanReplayAtom";
 import { kanbanManualArchivedSessionsAtom } from "@src/store/ui/kanbanViewStateAtom";
+import { dedupeByCanonicalSession } from "@src/util/session/canonicalSessionKey";
 import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility";
 
@@ -106,10 +107,16 @@ export function useKanbanTasks(
 
   const visibleSessions = useMemo(
     () =>
-      sessions.filter(
-        (session) =>
-          isPrimarySessionListSession(session) &&
-          (!sessionIdFilter || sessionIdFilter.has(session.session_id))
+      // Collapse dual-ingested duplicates (e.g. a Codex rollout surfaced both
+      // as a native CLI session and as imported "Codex App" history) to one
+      // card, keeping the copy that carries impact / tokens / model. Runs
+      // before task construction so both the board and List view are deduped.
+      dedupeByCanonicalSession(
+        sessions.filter(
+          (session) =>
+            isPrimarySessionListSession(session) &&
+            (!sessionIdFilter || sessionIdFilter.has(session.session_id))
+        )
       ),
     [sessions, sessionIdFilter]
   );

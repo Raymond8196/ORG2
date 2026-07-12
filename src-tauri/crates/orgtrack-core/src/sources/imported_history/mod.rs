@@ -58,7 +58,8 @@ pub struct ImportedHistorySessionPage {
 }
 
 /// Lightweight cached row for list-only surfaces such as the session sidebar.
-/// Full source metadata and impact details stay in SQLite until explicitly requested.
+/// Carries the impact/model fields that card surfaces (e.g. the Kanban board)
+/// render inline; the heavier source metadata stays in SQLite until requested.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportedHistorySidebarRow {
@@ -68,6 +69,13 @@ pub struct ImportedHistorySidebarRow {
     pub updated_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    pub total_tokens: i64,
+    pub files_changed: i64,
+    pub lines_added: i64,
+    pub lines_removed: i64,
+    pub touched_files: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]

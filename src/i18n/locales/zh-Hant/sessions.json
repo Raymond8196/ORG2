@@ -85,7 +85,26 @@
     "view": {
       "list": "列表",
       "diary": "日誌",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "資料來源"
+    },
+    "dataSource": {
+      "title": "資料來源",
+      "description": "ORGII 偵測到的外部程式設計工具。可匯入的應用程式會顯示工作階段數量並可重新掃描；其餘僅顯示安裝狀態和歷史記錄所在位置。",
+      "rescanAll": "全部重新掃描",
+      "rescan": "重新掃描",
+      "rescanning": "正在重新掃描…",
+      "sessions_other": "{{count}} 個工作階段",
+      "noPath": "未偵測到路徑",
+      "notImported": "未匯入",
+      "status": {
+        "ready": "就緒",
+        "empty": "沒有歷史記錄",
+        "loading": "檢查中…",
+        "error": "錯誤",
+        "installed": "已安裝",
+        "notInstalled": "未偵測到"
+      }
     },
     "list": {
       "updated": "已更新",

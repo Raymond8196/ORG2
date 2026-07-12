@@ -85,7 +85,27 @@
     "view": {
       "list": "Lista",
       "diary": "Diário",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "Fontes de dados"
+    },
+    "dataSource": {
+      "title": "Fontes de dados",
+      "description": "Ferramentas de programação externas que o ORGII detecta. Apps importáveis mostram sua contagem de sessões e podem ser reescaneados; o restante mostra o status de instalação e onde fica seu histórico.",
+      "rescanAll": "Reescanear tudo",
+      "rescan": "Reescanear",
+      "rescanning": "Reescaneando…",
+      "sessions_one": "{{count}} sessão",
+      "sessions_other": "{{count}} sessões",
+      "noPath": "Nenhum caminho detectado",
+      "notImported": "Não importado",
+      "status": {
+        "ready": "Pronto",
+        "empty": "Sem histórico",
+        "loading": "Verificando…",
+        "error": "Erro",
+        "installed": "Instalado",
+        "notInstalled": "Não detectado"
+      }
     },
     "list": {
       "updated": "Atualizado",

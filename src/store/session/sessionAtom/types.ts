@@ -139,6 +139,8 @@ export interface Session {
   linesRemoved?: number;
   /** Source-cache touched file list for external and Rust-native sessions. */
   touchedFiles?: string[];
+  /** Total token usage (input + output) reported by the source, when known. */
+  totalTokens?: number;
 }
 
 // ============================================

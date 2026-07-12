@@ -219,23 +219,6 @@ impl<'conn> SqliteRecordStore<'conn> {
             CREATE INDEX IF NOT EXISTS idx_claude_cache_created
                 ON claude_session_cache(created_at);
 
-            CREATE TABLE IF NOT EXISTS cli_session_cache (
-                id              TEXT PRIMARY KEY,
-                tool            TEXT NOT NULL DEFAULT '',
-                name            TEXT NOT NULL DEFAULT '',
-                created_at      INTEGER NOT NULL DEFAULT 0,
-                last_active_at  INTEGER NOT NULL DEFAULT 0,
-                message_count   INTEGER NOT NULL DEFAULT 0,
-                model           TEXT NOT NULL DEFAULT '',
-                workspace_path  TEXT NOT NULL DEFAULT '',
-                input_tokens    INTEGER NOT NULL DEFAULT 0,
-                output_tokens   INTEGER NOT NULL DEFAULT 0
-            );
-            CREATE INDEX IF NOT EXISTS idx_cli_cache_created
-                ON cli_session_cache(created_at);
-            CREATE INDEX IF NOT EXISTS idx_cli_cache_tool
-                ON cli_session_cache(tool);
-
             CREATE TABLE IF NOT EXISTS imported_history_session_cache (
                 source              TEXT NOT NULL,
                 source_session_id   TEXT NOT NULL,

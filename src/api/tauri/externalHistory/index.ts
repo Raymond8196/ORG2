@@ -7,6 +7,11 @@ export type {
   ExternalCliSourceProbe,
 } from "./detection";
 export { externalCliSourceProbe, externalCliSourcesDetect } from "./detection";
+export { externalHistoryRescanSource } from "./rescan";
+export {
+  fetchExternalSourceStats,
+  type ExternalSourceStats,
+} from "./sourceStats";
 export * from "./cursorIde";
 export * from "./imported";
 export * from "./sources/claudeCode";

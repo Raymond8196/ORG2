@@ -278,6 +278,12 @@ export const ExternalHistorySidebarRowSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   repoPath: z.string().optional(),
+  model: z.string().optional(),
+  totalTokens: z.number().int().optional(),
+  filesChanged: z.number().int().optional(),
+  linesAdded: z.number().int().optional(),
+  linesRemoved: z.number().int().optional(),
+  touchedFiles: z.array(z.string()).optional(),
 });
 
 export const ExternalHistorySidebarResponseSchema = z.object({

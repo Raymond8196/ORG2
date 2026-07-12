@@ -43,15 +43,37 @@ pub struct ExternalCliSourceProbe {
     pub history_paths: Vec<String>,
     pub status: String,
     pub importable: bool,
+    /// On-disk store format ORGII parses for this source: "jsonl", "sqlite",
+    /// or "" when the source is only install-detected (no history import).
+    pub store_kind: String,
 }
 
 const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "codex_app",
     "claude_code",
+    "cursor_ide",
     "opencode",
     "windsurf",
     "workbuddy",
 ];
+
+/// On-disk store format for a source's session history — the "file type" shown
+/// in the Data Sources inventory. Covers the importable sources ORGII parses
+/// plus tools whose store format is known (observed empirically) even though
+/// ORGII does not import them yet. Returns "" when no local transcript store is
+/// known (server-side/cloud tools, or nothing persisted locally).
+fn store_kind_for(source_id: &str) -> &'static str {
+    match source_id {
+        // Importable — ORGII parses these.
+        "claude_code" | "codex_app" | "workbuddy" => "jsonl",
+        "cursor_ide" | "opencode" | "windsurf" => "sqlite",
+        // Known store format, not yet imported.
+        "gemini" | "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
+        "cursor" | "copilot" | "goose" | "grok" | "openclaw" | "cline" => "sqlite",
+        "aider" => "markdown",
+        _ => "",
+    }
+}
 
 pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
@@ -364,6 +386,17 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[".devin"],
     ),
     source(
+        "cursor_ide",
+        "Cursor App",
+        "cursor",
+        "cursor",
+        &[],
+        "cursor",
+        "Cursor",
+        true,
+        &[],
+    ),
+    source(
         "windsurf",
         "Windsurf",
         "windsurf",
@@ -453,6 +486,7 @@ fn probe_source(source: &ExternalCliSourceSpec) -> ExternalCliSourceProbe {
             .collect(),
         status,
         importable,
+        store_kind: store_kind_for(source.source_id).to_string(),
     }
 }
 
@@ -497,6 +531,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         "claude_code" => home_candidates(&[".claude", ".claude/projects"]),
         "codex_app" => home_candidates(&[".codex", ".codex/sessions"]),
         "opencode" => home_candidates(&[".config/opencode", ".local/share/opencode"]),
+        "cursor_ide" => platform_data_candidates(&["Cursor/User/globalStorage"]),
         "windsurf" => platform_data_candidates(&[
             "Windsurf/User/globalStorage",
             "Windsurf/User/workspaceStorage",

@@ -65,6 +65,8 @@ export interface KanbanTask {
   cliAgentType?: CliAgentType;
   /** Raw LLM model id used by the session. */
   modelName?: string;
+  /** Total token usage (input + output) reported by the source, when known. */
+  totalTokens?: number;
   /**
    * Session impact stats — file/line/commit attribution for the card.
    * Read-only: parsed from external app data / previously-stored orgtrack

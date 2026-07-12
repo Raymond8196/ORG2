@@ -1,4 +1,4 @@
-import type { Session } from "@src/store/session";
+import type { Session } from "@src/store/session/sessionAtom/types";
 
 export const SESSION_DATE_BUCKET_KEYS = [
   "today",

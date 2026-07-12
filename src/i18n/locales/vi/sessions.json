@@ -85,7 +85,26 @@
     "view": {
       "list": "Danh sách",
       "diary": "Nhật ký",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "Nguồn dữ liệu"
+    },
+    "dataSource": {
+      "title": "Nguồn dữ liệu",
+      "description": "Các công cụ lập trình bên ngoài mà ORGII phát hiện. Các ứng dụng có thể nhập hiển thị số phiên và có thể quét lại; số còn lại hiển thị trạng thái cài đặt và nơi lưu lịch sử.",
+      "rescanAll": "Quét lại tất cả",
+      "rescan": "Quét lại",
+      "rescanning": "Đang quét lại…",
+      "sessions_other": "{{count}} phiên",
+      "noPath": "Không phát hiện đường dẫn",
+      "notImported": "Chưa nhập",
+      "status": {
+        "ready": "Sẵn sàng",
+        "empty": "Không có lịch sử",
+        "loading": "Đang kiểm tra…",
+        "error": "Lỗi",
+        "installed": "Đã cài đặt",
+        "notInstalled": "Không phát hiện"
+      }
     },
     "list": {
       "updated": "Đã cập nhật",

@@ -85,7 +85,26 @@
     "view": {
       "list": "列表",
       "diary": "日志",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "数据源"
+    },
+    "dataSource": {
+      "title": "数据源",
+      "description": "ORGII 检测到的外部编程工具。可导入的应用会显示会话数并可重新扫描；其余仅显示安装状态和历史记录所在位置。",
+      "rescanAll": "全部重新扫描",
+      "rescan": "重新扫描",
+      "rescanning": "正在重新扫描…",
+      "sessions_other": "{{count}} 个会话",
+      "noPath": "未检测到路径",
+      "notImported": "未导入",
+      "status": {
+        "ready": "就绪",
+        "empty": "无历史记录",
+        "loading": "检查中…",
+        "error": "错误",
+        "installed": "已安装",
+        "notInstalled": "未检测到"
+      }
     },
     "list": {
       "updated": "已更新",
