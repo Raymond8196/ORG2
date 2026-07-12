@@ -19,8 +19,9 @@ import { getPrStatusVariant } from "@src/shared/pr/prStatus";
 import {
   type PrDetailTab,
   type PrIdentity,
-  workstationPrDetailTabAtom,
-  workstationSelectedPrAtom,
+  workstationPrDetailTabAtomFamily,
+  workstationPrScopeKey,
+  workstationSelectedPrAtomFamily,
 } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
 import { useWorkstationPrDetail } from "../../../hooks/useWorkstationPrDetail";
@@ -102,8 +103,11 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   onFileSelect,
 }) => {
   const { t } = useTranslation("common");
-  const state = useAtomValue(workstationSelectedPrAtom);
-  const [activeTab, setActiveTab] = useAtom(workstationPrDetailTabAtom);
+  const scopeKey = workstationPrScopeKey(repoId, repoPath, identity.number);
+  const state = useAtomValue(workstationSelectedPrAtomFamily(scopeKey));
+  const [activeTab, setActiveTab] = useAtom(
+    workstationPrDetailTabAtomFamily(scopeKey)
+  );
 
   const { repoFullName, addComment, submitReview, replyInlineComment } =
     useWorkstationPrDetail({
