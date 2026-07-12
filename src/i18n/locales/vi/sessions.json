@@ -94,6 +94,12 @@
       "rescanAll": "Quét lại tất cả",
       "rescan": "Quét lại",
       "rescanning": "Đang quét lại…",
+      "openFolder": "Mở thư mục",
+      "tabs": {
+        "all": "Tất cả",
+        "apps": "Ứng dụng",
+        "clis": "CLI"
+      },
       "sessions_other": "{{count}} phiên",
       "noPath": "Không phát hiện đường dẫn",
       "notImported": "Chưa nhập",

@@ -94,6 +94,12 @@
       "rescanAll": "Rescan all",
       "rescan": "Rescan",
       "rescanning": "Rescanning…",
+      "openFolder": "Open folder",
+      "tabs": {
+        "all": "All",
+        "apps": "Apps",
+        "clis": "CLIs"
+      },
       "sessions_one": "{{count}} session",
       "sessions_other": "{{count}} sessions",
       "noPath": "No path detected",

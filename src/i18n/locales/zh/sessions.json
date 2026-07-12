@@ -94,6 +94,12 @@
       "rescanAll": "全部重新扫描",
       "rescan": "重新扫描",
       "rescanning": "正在重新扫描…",
+      "openFolder": "打开文件夹",
+      "tabs": {
+        "all": "全部",
+        "apps": "应用",
+        "clis": "命令行"
+      },
       "sessions_other": "{{count}} 个会话",
       "noPath": "未检测到路径",
       "notImported": "未导入",

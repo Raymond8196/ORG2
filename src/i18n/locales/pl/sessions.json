@@ -94,6 +94,12 @@
       "rescanAll": "Przeskanuj wszystko",
       "rescan": "Przeskanuj",
       "rescanning": "Skanowanie…",
+      "openFolder": "Otwórz folder",
+      "tabs": {
+        "all": "Wszystkie",
+        "apps": "Aplikacje",
+        "clis": "CLI"
+      },
       "sessions_one": "{{count}} sesja",
       "sessions_few": "{{count}} sesje",
       "sessions_many": "{{count}} sesji",

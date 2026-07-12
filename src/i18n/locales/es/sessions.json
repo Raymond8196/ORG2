@@ -94,6 +94,12 @@
       "rescanAll": "Reescanear todo",
       "rescan": "Reescanear",
       "rescanning": "Reescaneando…",
+      "openFolder": "Abrir carpeta",
+      "tabs": {
+        "all": "Todos",
+        "apps": "Apps",
+        "clis": "CLIs"
+      },
       "sessions_one": "{{count}} sesión",
       "sessions_other": "{{count}} sesiones",
       "noPath": "Ninguna ruta detectada",

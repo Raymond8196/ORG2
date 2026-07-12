@@ -94,6 +94,12 @@
       "rescanAll": "Tout réanalyser",
       "rescan": "Réanalyser",
       "rescanning": "Réanalyse…",
+      "openFolder": "Ouvrir le dossier",
+      "tabs": {
+        "all": "Tous",
+        "apps": "Applis",
+        "clis": "CLIs"
+      },
       "sessions_one": "{{count}} session",
       "sessions_other": "{{count}} sessions",
       "noPath": "Aucun chemin détecté",

@@ -94,6 +94,12 @@
       "rescanAll": "모두 다시 스캔",
       "rescan": "다시 스캔",
       "rescanning": "다시 스캔 중…",
+      "openFolder": "폴더 열기",
+      "tabs": {
+        "all": "전체",
+        "apps": "앱",
+        "clis": "CLI"
+      },
       "sessions_other": "{{count}}개 세션",
       "noPath": "경로가 감지되지 않음",
       "notImported": "가져오지 않음",

@@ -94,6 +94,12 @@
       "rescanAll": "全部重新掃描",
       "rescan": "重新掃描",
       "rescanning": "正在重新掃描…",
+      "openFolder": "開啟資料夾",
+      "tabs": {
+        "all": "全部",
+        "apps": "應用程式",
+        "clis": "命令列"
+      },
       "sessions_other": "{{count}} 個工作階段",
       "noPath": "未偵測到路徑",
       "notImported": "未匯入",
