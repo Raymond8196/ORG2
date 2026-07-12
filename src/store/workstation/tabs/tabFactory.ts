@@ -111,6 +111,7 @@ const DEFAULT_CATEGORY_BY_TYPE: Record<
   "agent-config": "agent-config",
   "canvas-preview": "preview",
   "github-issue-detail": "git",
+  "github-pr-detail": "git",
 };
 
 // ============================================

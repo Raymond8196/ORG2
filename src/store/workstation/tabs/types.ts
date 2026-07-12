@@ -66,7 +66,9 @@ export type WorkStationTabType =
   // Canvas preview tab — renders agent-generated canvas from canvasPreviewAtom
   | "canvas-preview"
   // GitHub Issues detail tab — opened from the sidebar Issues panel
-  | "github-issue-detail";
+  | "github-issue-detail"
+  // GitHub Pull Request detail tab — opened from Ops Control PR rows
+  | "github-pr-detail";
 
 // ============================================
 // Tab Types
@@ -441,6 +443,8 @@ export const TOOL_TAB_TYPES = [
   "agent-config",
   // GitHub Issues detail
   "github-issue-detail",
+  // GitHub Pull Request detail
+  "github-pr-detail",
 ] as const;
 
 export type FileTabType = (typeof FILE_TAB_TYPES)[number];
