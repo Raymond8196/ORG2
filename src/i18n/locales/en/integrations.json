@@ -2474,13 +2474,6 @@
     "installHintNote": "Install the missing dependency to enable this feature",
     "installSection": "Installation"
   },
-  "worktreeCompare": {
-    "button": "Compare",
-    "buttonTooltip": "Compare worktrees",
-    "title": "Compare Worktrees",
-    "noSessions": "No sessions to compare",
-    "sessionTab": "Session"
-  },
   "creator": {
     "assign": "Assign"
   },

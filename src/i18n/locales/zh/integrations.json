@@ -2470,13 +2470,6 @@
     "installHintNote": "安装缺失的依赖以启用此功能",
     "installSection": "安装"
   },
-  "worktreeCompare": {
-    "button": "比较",
-    "buttonTooltip": "比较工作树",
-    "title": "比较工作树",
-    "noSessions": "没有可比较的会话",
-    "sessionTab": "会话"
-  },
   "creator": {
     "assign": "分配"
   },

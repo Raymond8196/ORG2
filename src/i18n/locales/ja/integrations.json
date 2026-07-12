@@ -2452,13 +2452,6 @@
     "installHintNote": "この機能を有効にするには不足している依存関係をインストールしてください",
     "installSection": "インストール"
   },
-  "worktreeCompare": {
-    "button": "比較",
-    "buttonTooltip": "Worktreeを比較",
-    "title": "Worktreeの比較",
-    "noSessions": "比較するセッションがありません",
-    "sessionTab": "セッション"
-  },
   "creator": {
     "assign": "割り当て"
   },

@@ -78,18 +78,6 @@ export const ModeSelectionWindow = React.lazy(
     import(/* webpackChunkName: "windows" */ "@src/windows/ModeSelectionWindow")
 );
 
-export const SessionDiffWindowPage = React.lazy(
-  () =>
-    import(/* webpackChunkName: "windows" */ "@src/windows/SessionDiffWindow")
-);
-
-export const WorktreeCompareWindowPage = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "windows" */ "@src/windows/WorktreeCompareWindow"
-    )
-);
-
 export const LoginPage = React.lazy(
   () => import(/* webpackChunkName: "auth" */ "@/src/modules/AppLogin")
 );
