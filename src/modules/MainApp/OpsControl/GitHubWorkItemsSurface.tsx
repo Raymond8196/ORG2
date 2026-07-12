@@ -3,10 +3,10 @@ import { useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import {
   CheckCircle2,
-  ChevronLeft,
   CircleDot,
-  ExternalLink,
+  GitMerge,
   GitPullRequest,
+  GitPullRequestClosed,
   Link2,
   ListFilter,
   MessageSquare,
@@ -27,12 +27,13 @@ import { useTranslation } from "react-i18next";
 import { getGitRemotes } from "@src/api/http/git/remotes";
 import {
   getGitHubGitCredentialForRemote,
-  listOpenPRsLocal,
+  listPRsLocal,
 } from "@src/api/tauri/github";
 import type {
   GitHubIssue,
   GitHubIssueComment,
   OpenPRItem,
+  PullRequestListState,
 } from "@src/api/tauri/github";
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
@@ -49,16 +50,20 @@ import {
   IssueDetailPanel,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
 import {
-  getCachedIssues,
-  isIssueCacheStale,
-  updateCachedClosedIssues,
-  updateCachedOpenIssues,
-} from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/hooks/githubListCache";
-import {
   DetailPanelContainer,
   Placeholder,
 } from "@src/modules/shared/layouts/blocks";
 import Modal from "@src/scaffold/ModalSystem";
+import {
+  coalesceGitHubListRequest,
+  getCachedIssues,
+  getCachedPrs,
+  isIssueCacheStale,
+  isPrCacheStale,
+  setCachedPrs,
+  updateCachedClosedIssues,
+  updateCachedOpenIssues,
+} from "@src/services/git/githubListCache";
 import { parseGithubRepoFullName } from "@src/services/git/operations/createPullRequest";
 import {
   addIssueComment,
@@ -68,12 +73,17 @@ import {
   fetchIssues,
   reopenIssue,
 } from "@src/services/git/operations/githubIssues";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
+import { getPrStatusVariant } from "@src/shared/pr/prStatus";
 import { REPO_KIND, reposAtom, selectedRepoPathAtom } from "@src/store/repo";
 import type { Repo } from "@src/store/repo/types";
 import { addToAgentAtom } from "@src/store/ui/addToAgentAtom";
 import { workstationSelectedIssueAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
 import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
-import { createGitHubIssueDetailTab } from "@src/store/workstation/tabs";
+import {
+  createGitHubIssueDetailTab,
+  createGitHubPrDetailTab,
+} from "@src/store/workstation/tabs";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import {
@@ -89,6 +99,12 @@ import {
   getGitHubWorkItemsPage,
   getGitHubWorkItemsPageCount,
 } from "./githubWorkItemsPagination";
+import {
+  getCachedOpsGitHubView,
+  getOpsPrListStates,
+  matchesOpsPrQueryState,
+  setCachedOpsGitHubView,
+} from "./githubWorkItemsViewCache";
 
 const ISSUE_REPO_FILTER = {
   ALL: "all",
@@ -168,6 +184,7 @@ interface ManagedPrItem {
   id: number;
   title: string;
   repo: string;
+  repoId: string;
   repoPath: string;
   remoteUrl: string;
   rawPr: OpenPRItem;
@@ -205,8 +222,12 @@ interface RepoIssueState {
 }
 
 interface RepoPrState {
-  prs: OpenPRItem[];
-  error: string | null;
+  openPrs: OpenPRItem[];
+  closedPrs: OpenPRItem[];
+  openLoaded: boolean;
+  closedLoaded: boolean;
+  openError: string | null;
+  closedError: string | null;
 }
 
 interface RepoIssueLoadResult {
@@ -222,7 +243,9 @@ interface RepoIssueLoadResult {
 
 interface RepoPrLoadResult {
   source: GitHubRepoSource;
+  state: PullRequestListState;
   prs: OpenPRItem[];
+  loaded: boolean;
   error: string | null;
 }
 
@@ -236,8 +259,12 @@ const EMPTY_REPO_ISSUES: RepoIssueState = {
 };
 
 const EMPTY_REPO_PRS: RepoPrState = {
-  prs: [],
-  error: null,
+  openPrs: [],
+  closedPrs: [],
+  openLoaded: false,
+  closedLoaded: false,
+  openError: null,
+  closedError: null,
 };
 
 function ManagedIssueStateIcon({
@@ -332,6 +359,7 @@ function mapPrToManagedPr(
     id: pr.number,
     title: pr.title,
     repo: source.repoFullName,
+    repoId: source.repoId,
     repoPath: source.repoPath,
     remoteUrl: source.remoteUrl,
     rawPr: pr,
@@ -545,8 +573,11 @@ function itemMatchesParsedQuery(
     return false;
   }
   if (query.state && query.state !== GITHUB_QUERY_STATE.ALL) {
-    if (query.state === GITHUB_QUERY_STATE.MERGED) return false;
-    if (item.state !== query.state) return false;
+    if (item.kind === GITHUB_ITEM_KIND.PR) {
+      if (!matchesOpsPrQueryState(item.state, query.state)) return false;
+    } else if (item.state !== query.state) {
+      return false;
+    }
   }
   if (query.author) {
     const author =
@@ -612,6 +643,19 @@ function getCachedRepoIssues(source: GitHubRepoSource): RepoIssueState {
   };
 }
 
+function getCachedRepoPrs(source: GitHubRepoSource): RepoPrState {
+  const open = getCachedPrs(source.repoPath, "open");
+  const closed = getCachedPrs(source.repoPath, "closed");
+  return {
+    openPrs: open?.prs ?? [],
+    closedPrs: closed?.prs ?? [],
+    openLoaded: Boolean(open),
+    closedLoaded: Boolean(closed),
+    openError: null,
+    closedError: null,
+  };
+}
+
 function getRepoIssueMapKey(source: GitHubRepoSource): string {
   return source.repoFullName;
 }
@@ -657,10 +701,15 @@ async function resolveGitHubRepoSource(
 }
 
 async function loadRepoIssues(
-  source: GitHubRepoSource
+  source: GitHubRepoSource,
+  force = false
 ): Promise<RepoIssueLoadResult> {
   const cached = getCachedRepoIssues(source);
-  if (!isIssueCacheStale(source.repoPath)) {
+  if (
+    !force &&
+    !isIssueCacheStale(source.repoPath, "open") &&
+    !isIssueCacheStale(source.repoPath, "closed")
+  ) {
     return {
       source,
       openIssues: cached.openIssues,
@@ -673,18 +722,22 @@ async function loadRepoIssues(
     };
   }
 
-  const [openResult, closedResult] = await Promise.all([
-    fetchIssues(source.remoteUrl, {
-      state: "open",
-      page: 1,
-      perPage: ISSUE_PAGE_SIZE,
-    }),
-    fetchIssues(source.remoteUrl, {
-      state: "closed",
-      page: 1,
-      perPage: ISSUE_PAGE_SIZE,
-    }),
-  ]);
+  const [openResult, closedResult] = await coalesceGitHubListRequest(
+    `ops-control:issues:${source.repoPath}`,
+    () =>
+      Promise.all([
+        fetchIssues(source.remoteUrl, {
+          state: "open",
+          page: 1,
+          perPage: ISSUE_PAGE_SIZE,
+        }),
+        fetchIssues(source.remoteUrl, {
+          state: "closed",
+          page: 1,
+          perPage: ISSUE_PAGE_SIZE,
+        }),
+      ])
+  );
 
   const openIssues = openResult.data?.issues ?? cached.openIssues;
   const closedIssues = closedResult.data?.issues ?? cached.closedIssues;
@@ -706,18 +759,34 @@ async function loadRepoIssues(
 }
 
 async function loadRepoPrs(
-  source: GitHubRepoSource
+  source: GitHubRepoSource,
+  state: PullRequestListState,
+  force = false
 ): Promise<RepoPrLoadResult> {
+  const cached = getCachedPrs(source.repoPath, state);
+  if (cached && !force && !isPrCacheStale(source.repoPath, state)) {
+    return { source, state, prs: cached.prs, loaded: true, error: null };
+  }
+
   try {
+    const prs = await coalesceGitHubListRequest(
+      `ops-control:prs:${state}:${source.repoPath}`,
+      () => listPRsLocal(source.repoFullName, state, PR_PAGE_SIZE)
+    );
+    setCachedPrs(source.repoPath, prs, state);
     return {
       source,
-      prs: await listOpenPRsLocal(source.repoFullName, PR_PAGE_SIZE),
+      state,
+      prs,
+      loaded: true,
       error: null,
     };
   } catch (err: unknown) {
     return {
       source,
-      prs: [],
+      state,
+      prs: cached?.prs ?? [],
+      loaded: Boolean(cached),
       error: String(err),
     };
   }
@@ -915,11 +984,19 @@ function ManagedPrRow({
   onOpenPr: (pr: ManagedPrItem) => void;
   onAddPr: (pr: ManagedPrItem) => void;
 }): React.ReactNode {
+  const statusVariant = getPrStatusVariant(pr.state);
+  const PrIcon =
+    pr.state === GITHUB_QUERY_STATE.MERGED
+      ? GitMerge
+      : pr.state === GITHUB_QUERY_STATE.CLOSED
+        ? GitPullRequestClosed
+        : GitPullRequest;
+
   return (
     <GitHubWorkItemRow
       icon={
-        <span className="text-success-6">
-          <GitPullRequest size={14} strokeWidth={1.8} />
+        <span className={statusVariant.dotClass.replace("bg-", "text-")}>
+          <PrIcon size={14} strokeWidth={1.8} />
         </span>
       }
       content={
@@ -1083,11 +1160,13 @@ function CreateIssueModal({
 interface GitHubWorkItemsSurfaceProps {
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
   sidebarHost: HTMLDivElement | null;
+  onDetailViewChange: (open: boolean, onBack: (() => void) | null) => void;
 }
 
 const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   scope,
   sidebarHost,
+  onDetailViewChange,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
   const repos = useAtomValue(reposAtom);
@@ -1101,21 +1180,49 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     Record<string, RepoIssueState>
   >({});
   const [repoPrMap, setRepoPrMap] = useState<Record<string, RepoPrState>>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState(`is:${scope} is:open`);
+  const [currentPage, setCurrentPage] = useState(
+    () => getCachedOpsGitHubView(scope)?.currentPage ?? 1
+  );
+  const [searchQuery, setSearchQuery] = useState(
+    () => getCachedOpsGitHubView(scope)?.searchQuery ?? `is:${scope} is:open`
+  );
   const parsedSearchQuery = useMemo(() => {
     const query = parseGitHubSearchQuery(searchQuery);
     query.scope = scope;
     return query;
   }, [scope, searchQuery]);
+  const selectedPrListStates = useMemo(
+    () => getOpsPrListStates(parsedSearchQuery.state),
+    [parsedSearchQuery.state]
+  );
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [creatingIssue, setCreatingIssue] = useState(false);
   const [issueDetail, setIssueDetail] = useState<IssueDetailState | null>(null);
-  const [selectedPr, setSelectedPr] = useState<ManagedPrItem | null>(null);
+  const detailViewOpen = Boolean(issueDetail);
+
+  const handleBackFromDetail = useCallback(() => {
+    setIssueDetail(null);
+  }, []);
+
+  useEffect(() => {
+    onDetailViewChange(
+      detailViewOpen,
+      detailViewOpen ? handleBackFromDetail : null
+    );
+  }, [detailViewOpen, handleBackFromDetail, onDetailViewChange]);
+
+  useEffect(
+    () => () => {
+      onDetailViewChange(false, null);
+    },
+    [onDetailViewChange]
+  );
+  const previousScopeRef = useRef(scope);
+  const handledRefreshNonceRef = useRef(0);
 
   const gitRepos = useMemo(
     () => repos.filter((repo) => repo.kind === REPO_KIND.GIT && repo.path),
@@ -1123,13 +1230,23 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   );
 
   useEffect(() => {
-    setSearchQuery(`is:${scope} is:open`);
+    if (previousScopeRef.current !== scope) {
+      previousScopeRef.current = scope;
+      const cachedView = getCachedOpsGitHubView(scope);
+      setSearchQuery(cachedView?.searchQuery ?? `is:${scope} is:open`);
+      setCurrentPage(cachedView?.currentPage ?? 1);
+    }
     setIssueDetail(null);
-    setSelectedPr(null);
   }, [scope]);
 
   useEffect(() => {
+    setCachedOpsGitHubView(scope, { searchQuery, currentPage });
+  }, [currentPage, scope, searchQuery]);
+
+  useEffect(() => {
     let cancelled = false;
+    const forceRefresh = refreshNonce !== handledRefreshNonceRef.current;
+    handledRefreshNonceRef.current = refreshNonce;
 
     void (async () => {
       setLoading(true);
@@ -1157,7 +1274,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
           ? Object.fromEntries(
               resolvedSources.map((source) => [
                 getRepoIssueMapKey(source),
-                EMPTY_REPO_PRS,
+                getCachedRepoPrs(source),
               ])
             )
           : {}
@@ -1170,10 +1287,20 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
 
       const [issueResults, prResults] = await Promise.all([
         scope === GITHUB_QUERY_SCOPE.ISSUE
-          ? Promise.all(resolvedSources.map(loadRepoIssues))
+          ? Promise.all(
+              resolvedSources.map((source) =>
+                loadRepoIssues(source, forceRefresh)
+              )
+            )
           : Promise.resolve([]),
         scope === GITHUB_QUERY_SCOPE.PR
-          ? Promise.all(resolvedSources.map(loadRepoPrs))
+          ? Promise.all(
+              resolvedSources.flatMap((source) =>
+                selectedPrListStates.map((state) =>
+                  loadRepoPrs(source, state, forceRefresh)
+                )
+              )
+            )
           : Promise.resolve([]),
       ]);
       if (cancelled) return;
@@ -1195,17 +1322,28 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
           )
         );
       } else {
-        setRepoPrMap(
-          Object.fromEntries(
-            prResults.map((result) => [
-              getRepoIssueMapKey(result.source),
-              {
-                prs: result.prs,
-                error: result.error,
-              },
-            ])
-          )
-        );
+        setRepoPrMap((current) => {
+          const next = { ...current };
+          for (const result of prResults) {
+            const key = getRepoIssueMapKey(result.source);
+            const currentState = next[key] ?? EMPTY_REPO_PRS;
+            next[key] =
+              result.state === "open"
+                ? {
+                    ...currentState,
+                    openPrs: result.prs,
+                    openLoaded: result.loaded,
+                    openError: result.error,
+                  }
+                : {
+                    ...currentState,
+                    closedPrs: result.prs,
+                    closedLoaded: result.loaded,
+                    closedError: result.error,
+                  };
+          }
+          return next;
+        });
       }
       setLoadError(
         issueResults.find((result) => result.error)?.error ??
@@ -1218,7 +1356,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [gitRepos, refreshNonce, scope]);
+  }, [gitRepos, refreshNonce, scope, selectedPrListStates]);
 
   const selectedWorkstationRepoSource = useMemo(
     () =>
@@ -1251,8 +1389,22 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       const nextQuery = parseGitHubSearchQuery(searchQuery);
       mutate(nextQuery);
       setSearchQuery(serializeGitHubSearchQuery(nextQuery));
+      setCurrentPage(1);
     },
     [searchQuery]
+  );
+
+  const handleSearchQueryChange = useCallback((query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  }, []);
+
+  const handleRepoSelect = useCallback(
+    (repo: IssueRepoFilter) => {
+      setSelectedRepo(repo);
+      setCurrentPage(1);
+    },
+    [setSelectedRepo]
   );
 
   const handleSidebarFilterSelect = useCallback(
@@ -1356,7 +1508,9 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       repoSources.flatMap((source) => {
         const sourcePrs =
           repoPrMap[getRepoIssueMapKey(source)] ?? EMPTY_REPO_PRS;
-        return sourcePrs.prs.map((pr) => mapPrToManagedPr(pr, source));
+        return [...sourcePrs.openPrs, ...sourcePrs.closedPrs].map((pr) =>
+          mapPrToManagedPr(pr, source)
+        );
       }),
     [repoPrMap, repoSources]
   );
@@ -1421,20 +1575,45 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   );
   const openPrCount = useMemo(
     () =>
-      pullRequests.filter((pr) => itemMatchesRepo(pr, effectiveSelectedRepo))
-        .length,
+      pullRequests.filter(
+        (pr) =>
+          pr.state === GITHUB_QUERY_STATE.OPEN &&
+          itemMatchesRepo(pr, effectiveSelectedRepo)
+      ).length,
     [effectiveSelectedRepo, pullRequests]
+  );
+  const openPrLoaded = useMemo(
+    () =>
+      paginatedSources.length > 0 &&
+      paginatedSources.every(
+        (source) => repoPrMap[getRepoIssueMapKey(source)]?.openLoaded === true
+      ),
+    [paginatedSources, repoPrMap]
+  );
+  const closedPrCount = useMemo(
+    () =>
+      pullRequests.filter(
+        (pr) =>
+          (pr.state === GITHUB_QUERY_STATE.CLOSED ||
+            pr.state === GITHUB_QUERY_STATE.MERGED) &&
+          itemMatchesRepo(pr, effectiveSelectedRepo)
+      ).length,
+    [effectiveSelectedRepo, pullRequests]
+  );
+  const closedPrLoaded = useMemo(
+    () =>
+      paginatedSources.length > 0 &&
+      paginatedSources.every(
+        (source) => repoPrMap[getRepoIssueMapKey(source)]?.closedLoaded === true
+      ),
+    [paginatedSources, repoPrMap]
   );
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [effectiveSelectedRepo, scope, searchQuery]);
-
-  useEffect(() => {
-    if (currentPage > totalLoadedPages) {
+    if (!loading && currentPage > totalLoadedPages) {
       setCurrentPage(totalLoadedPages);
     }
-  }, [currentPage, totalLoadedPages]);
+  }, [currentPage, loading, totalLoadedPages]);
 
   const listScrollRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual exposes imperative helpers that cannot be memoized safely.
@@ -1446,9 +1625,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   });
   const virtualItems = itemVirtualizer.getVirtualItems();
 
-  const handleBackToIssueList = useCallback(() => {
-    setIssueDetail(null);
-  }, []);
+  const handleBackToIssueList = handleBackFromDetail;
 
   const surfaceTitle =
     scope === GITHUB_QUERY_SCOPE.PR
@@ -1460,28 +1637,13 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       <span className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-text-1">
         {issueDetail ? (
           <IssueDetailHeaderContent issue={issueDetail.issue} />
-        ) : selectedPr ? (
-          <>
-            <GitPullRequest size={14} strokeWidth={1.8} />
-            <span className="truncate">{selectedPr.title}</span>
-            <span className="shrink-0 text-text-3">#{selectedPr.id}</span>
-          </>
         ) : (
           surfaceTitle
         )}
       </span>
     ),
-    [issueDetail, selectedPr, surfaceTitle]
+    [issueDetail, surfaceTitle]
   );
-  const headerContribution = useMemo(
-    () => ({ content: headerContent }),
-    [headerContent]
-  );
-
-  usePublishWorkstationTabHeader({
-    host: "opsControl",
-    content: headerContribution,
-  });
 
   const handleRefresh = useCallback(() => {
     setCurrentPage(1);
@@ -1780,9 +1942,34 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     [setAddToAgent, t]
   );
 
-  const handleOpenPr = useCallback((pr: ManagedPrItem) => {
-    setSelectedPr(pr);
-  }, []);
+  const handleOpenPr = useCallback(
+    (pr: ManagedPrItem) => {
+      openTab(
+        createGitHubPrDetailTab({
+          prNumber: pr.id,
+          prTitle: pr.title,
+          prUrl: pr.rawPr.url,
+          prStatus: pr.state,
+          headBranch: pr.sourceBranch,
+          baseBranch: pr.targetBranch,
+          repoPath: pr.repoPath,
+          repoId: pr.repoId,
+        })
+      );
+      void WorkStationViewService.openStationMode("my-station");
+    },
+    [openTab]
+  );
+
+  const headerContribution = useMemo(
+    () => ({ content: headerContent }),
+    [headerContent]
+  );
+
+  usePublishWorkstationTabHeader({
+    host: "opsControl",
+    content: headerContribution,
+  });
 
   const handleCreateIssue = useCallback(
     async (source: GitHubRepoSource, title: string, body: string) => {
@@ -1837,7 +2024,11 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   );
 
   const listContent = (() => {
-    if (loading && filteredItems.length === 0) {
+    if (
+      scope !== GITHUB_QUERY_SCOPE.PR &&
+      loading &&
+      filteredItems.length === 0
+    ) {
       return (
         <Placeholder
           variant="loading"
@@ -1862,7 +2053,11 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       return <Placeholder variant="empty" fillParentHeight />;
     }
 
-    if (!loading && filteredItems.length === 0) {
+    if (
+      scope !== GITHUB_QUERY_SCOPE.PR &&
+      !loading &&
+      filteredItems.length === 0
+    ) {
       return <Placeholder variant="no-results" fillParentHeight />;
     }
 
@@ -1898,7 +2093,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
                 {
                   key: GITHUB_QUERY_STATE.OPEN,
                   label: t("chat.panels.manageIssues.stateOpen"),
-                  count: openPrCount,
+                  count: openPrLoaded ? openPrCount : null,
                   icon: <GitPullRequest size={13} strokeWidth={1.8} />,
                   active:
                     parsedSearchQuery.state === null ||
@@ -1906,6 +2101,19 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
                   onSelect: () =>
                     updateSearchQuery((query) => {
                       query.state = GITHUB_QUERY_STATE.OPEN;
+                    }),
+                },
+                {
+                  key: GITHUB_QUERY_STATE.CLOSED,
+                  label: t("chat.panels.manageIssues.stateClosed"),
+                  count: closedPrLoaded ? closedPrCount : null,
+                  icon: <GitPullRequestClosed size={13} strokeWidth={1.8} />,
+                  active:
+                    parsedSearchQuery.state === GITHUB_QUERY_STATE.CLOSED ||
+                    parsedSearchQuery.state === GITHUB_QUERY_STATE.MERGED,
+                  onSelect: () =>
+                    updateSearchQuery((query) => {
+                      query.state = GITHUB_QUERY_STATE.CLOSED;
                     }),
                 },
               ]
@@ -1916,45 +2124,65 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     return (
       <GitHubWorkItemListFrame
         summary={summary}
-        height={itemVirtualizer.getTotalSize()}
+        height={
+          scope === GITHUB_QUERY_SCOPE.PR && filteredItems.length === 0
+            ? 180
+            : itemVirtualizer.getTotalSize()
+        }
       >
-        {virtualItems.map((virtualItem) => {
-          const item = pagedItems[virtualItem.index];
-          return (
-            <div
-              key={`${item.kind}-${item.repo}-${item.id}`}
-              ref={itemVirtualizer.measureElement}
-              data-index={virtualItem.index}
-              className={`absolute left-0 top-0 w-full ${
-                virtualItem.index < pagedItems.length - 1
-                  ? "border-b border-border-2"
-                  : ""
-              }`}
-              style={{ transform: `translateY(${virtualItem.start}px)` }}
-            >
-              {item.kind === GITHUB_ITEM_KIND.ISSUE ? (
-                <ManagedIssueRow
-                  issue={item}
-                  addLabel={t("chat.panels.manageIssues.addToChat")}
-                  openInBrowserLabel={t("common:previews.openInBrowser")}
-                  openInMyStationLabel={t("layout.sidebar.openInMyStation")}
-                  moreActionsLabel={t("common:actions.moreActions")}
-                  onOpenIssue={handleOpenIssue}
-                  onOpenIssueInBrowser={handleOpenIssueInBrowser}
-                  onOpenIssueInMyStation={handleOpenIssueInMyStation}
-                  onAddIssue={handleAddIssue}
-                />
-              ) : (
-                <ManagedPrRow
-                  pr={item}
-                  addLabel={t("chat.panels.manageIssues.addToChat")}
-                  onOpenPr={handleOpenPr}
-                  onAddPr={handleAddPr}
-                />
-              )}
-            </div>
-          );
-        })}
+        {scope === GITHUB_QUERY_SCOPE.PR && filteredItems.length === 0 ? (
+          <Placeholder
+            variant={loading ? "loading" : loadError ? "error" : "no-results"}
+            subtitle={loadError ?? undefined}
+            action={
+              loadError
+                ? {
+                    label: t("common:actions.retry"),
+                    onClick: handleRefresh,
+                  }
+                : undefined
+            }
+            fillParentHeight
+          />
+        ) : (
+          virtualItems.map((virtualItem) => {
+            const item = pagedItems[virtualItem.index];
+            return (
+              <div
+                key={`${item.kind}-${item.repo}-${item.id}`}
+                ref={itemVirtualizer.measureElement}
+                data-index={virtualItem.index}
+                className={`absolute left-0 top-0 w-full ${
+                  virtualItem.index < pagedItems.length - 1
+                    ? "border-b border-border-2"
+                    : ""
+                }`}
+                style={{ transform: `translateY(${virtualItem.start}px)` }}
+              >
+                {item.kind === GITHUB_ITEM_KIND.ISSUE ? (
+                  <ManagedIssueRow
+                    issue={item}
+                    addLabel={t("chat.panels.manageIssues.addToChat")}
+                    openInBrowserLabel={t("common:previews.openInBrowser")}
+                    openInMyStationLabel={t("layout.sidebar.openInMyStation")}
+                    moreActionsLabel={t("common:actions.moreActions")}
+                    onOpenIssue={handleOpenIssue}
+                    onOpenIssueInBrowser={handleOpenIssueInBrowser}
+                    onOpenIssueInMyStation={handleOpenIssueInMyStation}
+                    onAddIssue={handleAddIssue}
+                  />
+                ) : (
+                  <ManagedPrRow
+                    pr={item}
+                    addLabel={t("chat.panels.manageIssues.addToChat")}
+                    onOpenPr={handleOpenPr}
+                    onAddPr={handleAddPr}
+                  />
+                )}
+              </div>
+            );
+          })
+        )}
       </GitHubWorkItemListFrame>
     );
   })();
@@ -1966,94 +2194,12 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       commentsLoading={issueDetail.commentsLoading}
       submittingComment={issueDetail.submittingComment}
       showHeader={false}
-      showBackTitleHeader
-      backLabel={t("common:actions.back")}
       contentPadding="none"
       onClose={handleBackToIssueList}
       onCloseIssue={handleCloseIssueDetail}
       onReopenIssue={handleReopenIssueDetail}
       onAddComment={handleAddIssueDetailComment}
     />
-  ) : null;
-
-  const prDetailContent = selectedPr ? (
-    <div
-      className="flex h-full min-h-0 flex-col"
-      data-testid="ops-control-pr-detail"
-    >
-      <div className="flex h-11 shrink-0 items-center gap-2 border-b border-border-2 px-3">
-        <Button
-          htmlType="button"
-          variant="tertiary"
-          appearance="ghost"
-          size="small"
-          icon={<ChevronLeft size={14} />}
-          iconOnly
-          aria-label={t("common:actions.back")}
-          onClick={() => setSelectedPr(null)}
-        />
-        <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-1">
-          {selectedPr.title}
-        </span>
-        <Button
-          htmlType="button"
-          variant="secondary"
-          appearance="outline"
-          size="small"
-          icon={<Link2 size={12} />}
-          onClick={() => handleAddPr(selectedPr)}
-        >
-          {t("chat.panels.manageIssues.addToChat")}
-        </Button>
-        <Button
-          htmlType="button"
-          variant="secondary"
-          appearance="outline"
-          size="small"
-          icon={<ExternalLink size={12} />}
-          href={selectedPr.rawPr.url}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {t("chat.panels.manageIssues.openInGitHub")}
-        </Button>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-5 scrollbar-hide">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
-          <div className="flex items-start gap-3">
-            <GitPullRequest
-              size={18}
-              strokeWidth={1.8}
-              className="mt-0.5 shrink-0 text-success-6"
-            />
-            <div className="min-w-0">
-              <h2 className="m-0 text-[18px] font-semibold leading-6 text-text-1">
-                {selectedPr.title}
-              </h2>
-              <p className="m-0 mt-1 text-[12px] text-text-3">
-                {selectedPr.repo} · PR #{selectedPr.id} · {selectedPr.state}
-              </p>
-            </div>
-          </div>
-          <dl className="grid grid-cols-[120px_minmax(0,1fr)] gap-x-4 gap-y-3 rounded-xl border border-border-2 bg-bg-1 p-4 text-[13px]">
-            <dt className="text-text-3">Source branch</dt>
-            <dd className="m-0 truncate font-mono text-text-1">
-              {selectedPr.sourceBranch}
-            </dd>
-            <dt className="text-text-3">Target branch</dt>
-            <dd className="m-0 truncate font-mono text-text-1">
-              {selectedPr.targetBranch}
-            </dd>
-            <dt className="text-text-3">Last updated</dt>
-            <dd className="m-0 text-text-1">{selectedPr.timeAgo}</dd>
-            <dt className="text-text-3">Draft</dt>
-            <dd className="m-0 text-text-1">
-              {selectedPr.rawPr.draft ? "Yes" : "No"}
-            </dd>
-          </dl>
-        </div>
-      </div>
-    </div>
   ) : null;
 
   const sidebarControlsContent = (
@@ -2090,18 +2236,18 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
         onCancel={() => setCreateFormOpen(false)}
       />
       <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
-        {issueDetailContent ?? prDetailContent ?? (
+        {issueDetailContent ?? (
           <>
             <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border-2 px-3">
               <RepoFilterPill
                 options={repoOptions}
                 selectedRepo={effectiveSelectedRepo}
                 allReposLabel={t("chat.manageIssues.allRepositories")}
-                onSelectRepo={setSelectedRepo}
+                onSelectRepo={handleRepoSelect}
               />
               <SearchInput
                 value={searchQuery}
-                onChange={setSearchQuery}
+                onChange={handleSearchQueryChange}
                 placeholder={t("chat.panels.manageIssues.searchPlaceholder")}
                 variant="panel"
                 surface="pane"

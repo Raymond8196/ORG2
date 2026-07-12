@@ -20,7 +20,6 @@ import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAg
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
-  isChatPanelTabFullscreenOnly,
   openSessionInNewChatTabAtom,
   syncActiveChatPanelTabStateAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -190,11 +189,11 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       opsControlTitle: t("navigation:routes.opsControl"),
       showSessionSurface,
     });
-    const isManagementTabActive = isChatPanelTabFullscreenOnly(activeTab);
+    const isManagementTabActive = activeTab?.type === "ops-control";
 
     React.useLayoutEffect(() => {
       syncActiveTabState();
-    }, [activeTab, isChatFocus, syncActiveTabState]);
+    }, [activeTab, syncActiveTabState]);
 
     const creatorState = useAtomValue(sessionCreatorStateAtom);
     const setCreatorState = useSetAtom(sessionCreatorStateAtom);
@@ -500,7 +499,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           showBenchmarkSessionGroupContent={
             contentState.showBenchmarkSessionGroupContent
           }
-          showChatFocusToggle={showChatFocusToggle && !isManagementTabActive}
+          showChatFocusToggle={showChatFocusToggle}
           showCreatorPresenceInHeader={contentState.showCreatorPresenceInHeader}
           showHeader={contentState.showHeader || isManagementTabActive}
           showExploreAgentSwitchInHeader={contentState.showExploreContent}

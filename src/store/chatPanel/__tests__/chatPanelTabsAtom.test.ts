@@ -48,6 +48,7 @@ async function loadChatPanelTabAtoms() {
     openOrFocusSessionInChatPanelTabAtom,
     openSessionInNewChatTabAtom,
     prevChatPanelTabAtom,
+    syncActiveChatPanelTabStateAtom,
   } = await import("../chatPanelTabsAtom");
   const {
     activeChatPanelSurfaceAtom,
@@ -94,6 +95,7 @@ async function loadChatPanelTabAtoms() {
     opsControlProjectsViewAtom,
     openSessionInNewChatTabAtom,
     prevChatPanelTabAtom,
+    syncActiveChatPanelTabStateAtom,
     sessionViewAtom,
     sessionsAtom,
     store,
@@ -239,7 +241,7 @@ describe("openOpsControlChatPanelTabAtom", () => {
     vi.useRealTimers();
   });
 
-  it("opens Ops Control as a singleton full-screen tab", async () => {
+  it("opens Ops Control as a singleton default-fullscreen tab", async () => {
     const {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
@@ -262,6 +264,41 @@ describe("openOpsControlChatPanelTabAtom", () => {
     expect(store.get(activeOpsControlHomeTabAtom)).toBe(
       OPS_CONTROL_HOME_TAB.OPS_CONTROL
     );
+  });
+
+  it("keeps a manual Workstation restore while Ops Control remains active", async () => {
+    const {
+      chatPanelMaximizedAtom,
+      openOpsControlChatPanelTabAtom,
+      store,
+      syncActiveChatPanelTabStateAtom,
+    } = await loadChatPanelTabAtoms();
+
+    store.set(openOpsControlChatPanelTabAtom, {});
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+
+    store.set(chatPanelMaximizedAtom, false);
+    store.set(syncActiveChatPanelTabStateAtom);
+
+    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
+  });
+
+  it("preserves a manual Workstation restore after leaving Ops Control", async () => {
+    const {
+      activateChatPanelTabAtom,
+      chatPanelMaximizedAtom,
+      chatPanelTabsAtom,
+      openOpsControlChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+    const primaryTabId = store.get(chatPanelTabsAtom).activeTabId;
+
+    store.set(chatPanelMaximizedAtom, true);
+    store.set(openOpsControlChatPanelTabAtom, {});
+    store.set(chatPanelMaximizedAtom, false);
+    store.set(activateChatPanelTabAtom, primaryTabId);
+
+    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
   });
 
   it("keeps management tab, surface header, and sidebar selection correlated", async () => {

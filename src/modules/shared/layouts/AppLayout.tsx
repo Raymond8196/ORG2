@@ -43,10 +43,7 @@ import {
   getWorkbenchLayoutStyle,
 } from "@src/modules/shared/layouts/viewContainerTokens";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
-import {
-  activeChatPanelTabAtom,
-  isChatPanelTabFullscreenOnly,
-} from "@src/store/chatPanel/chatPanelTabsAtom";
+import { activeChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
   type ChatPanelMode,
@@ -222,7 +219,7 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
   const showFocusedChatWorkstationRail =
     chatPanelMaximized &&
     chatPanelMode === "session" &&
-    !isChatPanelTabFullscreenOnly(activeChatPanelTab);
+    activeChatPanelTab?.type !== "ops-control";
 
   const handlePaneTransitionEnd = useCallback(
     (event: React.TransitionEvent<HTMLDivElement>) => {

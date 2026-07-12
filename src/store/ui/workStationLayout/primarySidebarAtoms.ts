@@ -102,6 +102,66 @@ export const workStationBrowserSidebarCollapsedPersistAtom = atom(
   }
 );
 
+/**
+ * Ops Control primary sidebar collapsed state.
+ *
+ * Independent of the shared `workStationPrimarySidebarCollapsedAtom` so that
+ * toggling the sidebar in Ops Control does not affect Code Editor / Database
+ * Manager, and vice versa. Ops Control also intentionally has no keyboard
+ * shortcut for its sidebar — the `toggle_workstation_sidebar` shortcut targets
+ * the shared atom above, never this one.
+ */
+function getStoredOpsControlSidebarCollapsed(): boolean {
+  const stored = getStoredValue("ops_control_sidebar_collapsed");
+  return stored === "true";
+}
+
+export const workStationOpsControlSidebarCollapsedAtom = atom<boolean>(
+  getStoredOpsControlSidebarCollapsed()
+);
+workStationOpsControlSidebarCollapsedAtom.debugLabel =
+  "workStationOpsControlSidebarCollapsedAtom";
+
+export const workStationOpsControlSidebarCollapsedPersistAtom = atom(
+  (get) => get(workStationOpsControlSidebarCollapsedAtom),
+  (get, set, value: boolean | "toggle") => {
+    const next =
+      value === "toggle"
+        ? !get(workStationOpsControlSidebarCollapsedAtom)
+        : value;
+    set(workStationOpsControlSidebarCollapsedAtom, next);
+    setStoredValue("ops_control_sidebar_collapsed", String(next));
+  }
+);
+
+function getStoredOpsControlSidebarWidth(): number {
+  const { minWidth, maxWidth, defaultWidth } = WORK_STATION_PRIMARY_SIDEBAR;
+  const stored = getStoredValue("ops_control_sidebar_width");
+  if (stored) {
+    const width = parseInt(stored, 10);
+    if (!isNaN(width) && width >= minWidth && width <= maxWidth) {
+      return width;
+    }
+  }
+  return defaultWidth;
+}
+
+export const workStationOpsControlSidebarWidthAtom = atom<number>(
+  getStoredOpsControlSidebarWidth()
+);
+workStationOpsControlSidebarWidthAtom.debugLabel =
+  "workStationOpsControlSidebarWidthAtom";
+
+export const workStationOpsControlSidebarWidthPersistAtom = atom(
+  (get) => get(workStationOpsControlSidebarWidthAtom),
+  (_get, set, value: number) => {
+    const { minWidth, maxWidth } = WORK_STATION_PRIMARY_SIDEBAR;
+    const clampedValue = Math.max(minWidth, Math.min(maxWidth, value));
+    set(workStationOpsControlSidebarWidthAtom, clampedValue);
+    setStoredValue("ops_control_sidebar_width", String(clampedValue));
+  }
+);
+
 function getStoredPrimarySidebarWidth(): number {
   const { minWidth, maxWidth, defaultWidth } = WORK_STATION_PRIMARY_SIDEBAR;
   const stored = getStoredValue("primary_sidebar_width");

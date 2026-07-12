@@ -88,16 +88,16 @@ export interface ChatPanelTab {
   cliCommand?: string;
 }
 
-const FULLSCREEN_ONLY_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
+const DEFAULT_FULLSCREEN_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
   "ops-control",
 ]);
 
-export function isChatPanelTabFullscreenOnly(
+function isChatPanelTabDefaultFullscreen(
   tabOrType: ChatPanelTab | ChatPanelTabType | null | undefined
 ): boolean {
   const type =
     typeof tabOrType === "string" ? tabOrType : (tabOrType?.type ?? null);
-  return type !== null && FULLSCREEN_ONLY_CHAT_PANEL_TAB_TYPES.has(type);
+  return type !== null && DEFAULT_FULLSCREEN_CHAT_PANEL_TAB_TYPES.has(type);
 }
 
 export interface ChatPanelTabsState {
@@ -277,8 +277,8 @@ export const chatPanelTabCountAtom = atom(
   (get) => get(chatPanelTabsAtom).tabs.length
 );
 
-/** Maximize-state snapshot taken before entering a full-screen-only tab. */
-const fullscreenTabPriorMaximizedAtom = atom<boolean | null>(null);
+/** Maximize-state snapshot taken before entering a default-fullscreen tab. */
+const defaultFullscreenTabPriorMaximizedAtom = atom<boolean | null>(null);
 
 const transitionChatPanelTabPresentationAtom = atom(
   null,
@@ -293,12 +293,16 @@ const transitionChatPanelTabPresentationAtom = atom(
       nextTab: ChatPanelTab | null | undefined;
     }
   ) => {
-    const previousFullscreen = isChatPanelTabFullscreenOnly(previousTab);
-    const nextFullscreen = isChatPanelTabFullscreenOnly(nextTab);
+    const previousDefaultFullscreen =
+      isChatPanelTabDefaultFullscreen(previousTab);
+    const nextDefaultFullscreen = isChatPanelTabDefaultFullscreen(nextTab);
 
-    if (nextFullscreen) {
-      if (!previousFullscreen) {
-        set(fullscreenTabPriorMaximizedAtom, get(chatPanelMaximizedAtom));
+    if (nextDefaultFullscreen) {
+      if (!previousDefaultFullscreen) {
+        set(
+          defaultFullscreenTabPriorMaximizedAtom,
+          get(chatPanelMaximizedAtom)
+        );
       }
       if (!get(chatPanelMaximizedAtom)) {
         set(chatPanelMaximizedAtom, true);
@@ -306,12 +310,15 @@ const transitionChatPanelTabPresentationAtom = atom(
       return;
     }
 
-    if (previousFullscreen) {
-      set(
-        chatPanelMaximizedAtom,
-        get(fullscreenTabPriorMaximizedAtom) ?? false
-      );
-      set(fullscreenTabPriorMaximizedAtom, null);
+    if (previousDefaultFullscreen) {
+      const priorMaximized = get(defaultFullscreenTabPriorMaximizedAtom);
+      // A manual Workstation restore while Ops Control is active is an
+      // explicit override. Preserve it instead of restoring an older
+      // maximized state when the user later changes tabs.
+      if (get(chatPanelMaximizedAtom) && priorMaximized !== null) {
+        set(chatPanelMaximizedAtom, priorMaximized);
+      }
+      set(defaultFullscreenTabPriorMaximizedAtom, null);
     }
   }
 );
@@ -339,30 +346,21 @@ const syncChatPanelTabNavigationAtom = atom(
 );
 
 /**
- * Reconcile presentation and legacy surface state after hydration or layout
- * changes. All interactive activation paths use the same synchronization.
+ * Reconcile legacy surface state after hydration or layout changes.
+ * Presentation defaults are applied only on tab entry so a manual Workstation
+ * restore is not overwritten while Ops Control remains active.
  */
 export const syncActiveChatPanelTabStateAtom = atom(null, (get, set) => {
   const state = get(chatPanelTabsAtom);
   const activeTab =
     state.tabs.find((tab) => tab.id === state.activeTabId) ?? null;
-  const priorMaximized = get(fullscreenTabPriorMaximizedAtom);
-
   set(syncChatPanelTabNavigationAtom, activeTab);
 
-  if (isChatPanelTabFullscreenOnly(activeTab)) {
-    if (priorMaximized === null) {
-      set(fullscreenTabPriorMaximizedAtom, get(chatPanelMaximizedAtom));
-    }
-    if (!get(chatPanelMaximizedAtom)) {
-      set(chatPanelMaximizedAtom, true);
-    }
-    return;
-  }
-
-  if (priorMaximized !== null) {
-    set(chatPanelMaximizedAtom, priorMaximized);
-    set(fullscreenTabPriorMaximizedAtom, null);
+  if (
+    isChatPanelTabDefaultFullscreen(activeTab) &&
+    get(defaultFullscreenTabPriorMaximizedAtom) === null
+  ) {
+    set(defaultFullscreenTabPriorMaximizedAtom, get(chatPanelMaximizedAtom));
   }
 });
 syncActiveChatPanelTabStateAtom.debugLabel = "syncActiveChatPanelTabState";
