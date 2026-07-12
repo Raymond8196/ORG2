@@ -94,6 +94,17 @@
       "rescanAll": "Reescanear tudo",
       "rescan": "Reescanear",
       "rescanning": "Reescaneando…",
+      "enable": "Ativar",
+      "disable": "Desativar",
+      "lastScan": "Última varredura {{time}}",
+      "neverScanned": "Nunca verificado",
+      "frequencyTitle": "Frequência de varredura",
+      "freq": {
+        "manual": "Manual",
+        "5m": "A cada 5 min",
+        "1h": "A cada hora",
+        "1d": "Diário"
+      },
       "openFolder": "Abrir pasta",
       "tabs": {
         "all": "Todos",
@@ -110,7 +121,8 @@
         "loading": "Verificando…",
         "error": "Erro",
         "installed": "Instalado",
-        "notInstalled": "Não detectado"
+        "notInstalled": "Não detectado",
+        "disabled": "Desativado"
       }
     },
     "list": {

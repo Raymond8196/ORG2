@@ -3,20 +3,26 @@
  *
  * "Data Sources" tab of the Kanban station. A single inventory of every
  * external coding tool ORGII detects, driven by the one shared detect pipeline
- * (`external_cli_sources_detect`). Sources ORGII can actually read history from
- * (the importable apps: Cursor, Codex, Claude, OpenCode, Windsurf, WorkBuddy)
- * show their imported-session count; the rest show install status. Every row
- * shows the on-disk path + file type and can be rescanned.
+ * (`external_cli_sources_detect`). Importable apps (Cursor, Codex, Claude,
+ * OpenCode, Windsurf, WorkBuddy) show their imported-session count and can be
+ * enabled/disabled, auto-scanned on a schedule, and rescanned on demand; the
+ * rest show install status. Every row shows the on-disk path + file type.
  *
- * Rescan re-runs detection for the source (install status / path). For
- * importable sources it also clears the cached metadata
- * (`external_history_rescan_source`) and forces a fresh sidebar load so the
- * store is re-read and the cache repopulated — so a newly-installed tool or a
- * freshly-created store is picked up even when nothing was found before.
+ * Per-source config (enabled / frequency / lastScannedAt) is persisted via
+ * `dataSourceConfigAtom`. A disabled source is gated out of `loadSidebarSessions`
+ * so its sessions never load anywhere. Rescan re-runs detection; for importable
+ * sources it also clears the cache and re-imports.
  */
 import { invoke } from "@tauri-apps/api/core";
+import { useAtom } from "jotai";
 import { FolderOpen, RefreshCw, Terminal } from "lucide-react";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -31,15 +37,29 @@ import {
 } from "@src/api/tauri/externalHistory";
 import Button from "@src/components/Button";
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
+import Select from "@src/components/Select";
 import StatusBadge, { type StatusType } from "@src/components/StatusBadge";
+import Switch from "@src/components/Switch";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import {
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
 import { loadSidebarSessions } from "@src/store/session";
+import {
+  type DataSourceConfigMap,
+  FREQUENCY_INTERVAL_MS,
+  SCAN_FREQUENCIES,
+  type ScanFrequency,
+  dataSourceConfigAtom,
+  getSourceConfig,
+} from "@src/store/session/dataSourceConfigAtom";
+import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 
 type DataSourceTab = "all" | "apps" | "clis";
+
+// How often the auto-scan loop checks whether any source is due.
+const AUTO_SCAN_TICK_MS = 60_000;
 
 // The sources ORGII imports history from (have a cache + support Rescan).
 const IMPORTABLE_SOURCE_IDS = new Set<ImportedHistorySourceId>(
@@ -86,6 +106,7 @@ const DataSourcePanel: React.FC = () => {
   const [rows, setRows] = useState<SourceRow[] | null>(null);
   const [rescanningAll, setRescanningAll] = useState(false);
   const [tab, setTab] = useState<DataSourceTab>("all");
+  const [configMap, setConfigMap] = useAtom(dataSourceConfigAtom);
 
   const patchRow = useCallback(
     (sourceId: string, patch: Partial<SourceRow>) => {
@@ -98,6 +119,16 @@ const DataSourcePanel: React.FC = () => {
       );
     },
     []
+  );
+
+  const updateConfig = useCallback(
+    (sourceId: string, patch: Partial<DataSourceConfigMap[string]>) => {
+      setConfigMap((prev) => ({
+        ...prev,
+        [sourceId]: { ...getSourceConfig(prev, sourceId), ...patch },
+      }));
+    },
+    [setConfigMap]
   );
 
   const loadStats = useCallback(
@@ -113,7 +144,12 @@ const DataSourcePanel: React.FC = () => {
     [patchRow]
   );
 
-  // Initial load: detect the full inventory, then fetch stats for importables.
+  // Snapshot config for the initial detect effect without re-running on change.
+  const configRef = useRef(configMap);
+  configRef.current = configMap;
+
+  // Initial load: detect the full inventory, then fetch stats for enabled
+  // importable sources.
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -126,14 +162,21 @@ const DataSourcePanel: React.FC = () => {
       }
       if (cancelled) return;
       const built: SourceRow[] = probes
-        .map((probe) => ({
-          probe,
-          importable: probe.importable && isImportableId(probe.sourceId),
-          stats: null,
-          statsLoading: probe.importable && isImportableId(probe.sourceId),
-          rescanning: false,
-          error: false,
-        }))
+        .map((probe) => {
+          const importable = probe.importable && isImportableId(probe.sourceId);
+          const enabled = getSourceConfig(
+            configRef.current,
+            probe.sourceId
+          ).enabled;
+          return {
+            probe,
+            importable,
+            stats: null,
+            statsLoading: importable && enabled,
+            rescanning: false,
+            error: false,
+          };
+        })
         .sort((a, b) => {
           const rank = (r: SourceRow) =>
             r.importable ? 0 : r.probe.installed ? 1 : 2;
@@ -145,7 +188,12 @@ const DataSourcePanel: React.FC = () => {
       setRows(built);
       await Promise.all(
         built
-          .filter((r) => r.importable && isImportableId(r.probe.sourceId))
+          .filter(
+            (r) =>
+              r.importable &&
+              isImportableId(r.probe.sourceId) &&
+              getSourceConfig(configRef.current, r.probe.sourceId).enabled
+          )
           .map((r) => loadStats(r.probe.sourceId as ImportedHistorySourceId))
       );
     })();
@@ -167,9 +215,9 @@ const DataSourcePanel: React.FC = () => {
     [patchRow]
   );
 
-  // Every row can be rescanned. Importable sources clear + re-import their
-  // history; all sources re-probe detection so a newly-installed tool or a
-  // freshly-created store is picked up ("rescan even when not found").
+  // Full manual rescan. Importable sources clear + re-import their history; all
+  // sources re-probe so a newly-installed tool or freshly-created store is
+  // picked up. Stamps lastScannedAt.
   const handleRescan = useCallback(
     async (row: SourceRow) => {
       const sourceId = row.probe.sourceId;
@@ -185,9 +233,32 @@ const DataSourcePanel: React.FC = () => {
         patchRow(sourceId, { error: true });
       } finally {
         patchRow(sourceId, { rescanning: false });
+        updateConfig(sourceId, { lastScannedAt: Date.now() });
       }
     },
-    [loadStats, patchRow, reprobe]
+    [loadStats, patchRow, reprobe, updateConfig]
+  );
+
+  // Lightweight scheduled scan: refresh sessions/stats/detection without the
+  // destructive cache clear a manual rescan does. Stamps lastScannedAt.
+  const autoScan = useCallback(
+    async (row: SourceRow) => {
+      const sourceId = row.probe.sourceId;
+      patchRow(sourceId, { rescanning: true });
+      try {
+        await loadSidebarSessions({ forceRefresh: true });
+        if (row.importable && isImportableId(sourceId)) {
+          await loadStats(sourceId);
+        }
+        await reprobe(sourceId);
+      } catch {
+        /* transient; next tick retries */
+      } finally {
+        patchRow(sourceId, { rescanning: false });
+        updateConfig(sourceId, { lastScannedAt: Date.now() });
+      }
+    },
+    [loadStats, patchRow, reprobe, updateConfig]
   );
 
   const handleRescanAll = useCallback(async () => {
@@ -199,14 +270,18 @@ const DataSourcePanel: React.FC = () => {
         prev?.map((r) => ({ ...r, rescanning: true, error: false })) ?? prev
     );
     const importables = current
-      .filter((r) => r.importable && isImportableId(r.probe.sourceId))
+      .filter(
+        (r) =>
+          r.importable &&
+          isImportableId(r.probe.sourceId) &&
+          getSourceConfig(configRef.current, r.probe.sourceId).enabled
+      )
       .map((r) => r.probe.sourceId as ImportedHistorySourceId);
     try {
       await Promise.all(importables.map((s) => externalHistoryRescanSource(s)));
       if (importables.length > 0) {
         await loadSidebarSessions({ forceRefresh: true });
       }
-      // Re-detect the whole inventory in one shot, then refresh importable stats.
       const probes = await externalCliSourcesDetect();
       const byId = new Map(probes.map((p) => [p.sourceId, p]));
       setRows(
@@ -217,6 +292,14 @@ const DataSourcePanel: React.FC = () => {
           }) ?? prev
       );
       await Promise.all(importables.map((s) => loadStats(s)));
+      const now = Date.now();
+      setConfigMap((prev) => {
+        const next = { ...prev };
+        for (const s of importables) {
+          next[s] = { ...getSourceConfig(prev, s), lastScannedAt: now };
+        }
+        return next;
+      });
     } catch {
       // Per-source errors surface via loadStats/reprobe; ignore the aggregate.
     } finally {
@@ -225,7 +308,52 @@ const DataSourcePanel: React.FC = () => {
       );
       setRescanningAll(false);
     }
-  }, [loadStats, rows]);
+  }, [loadStats, rows, setConfigMap]);
+
+  // Toggle a source on/off. Disabling clears it from the sidebar; enabling
+  // loads it and stamps a scan.
+  const toggleEnabled = useCallback(
+    async (row: SourceRow, enabled: boolean) => {
+      const sourceId = row.probe.sourceId;
+      updateConfig(sourceId, { enabled });
+      // Config write is synchronous in the shared store, so the reload below
+      // already respects the new enabled state.
+      await loadSidebarSessions({ forceRefresh: true });
+      if (enabled) {
+        if (row.importable && isImportableId(sourceId)) {
+          await loadStats(sourceId);
+          updateConfig(sourceId, { lastScannedAt: Date.now() });
+        }
+      } else {
+        patchRow(sourceId, { stats: null });
+      }
+    },
+    [loadStats, patchRow, updateConfig]
+  );
+
+  // Auto-scan loop: every tick, rescan any enabled source whose frequency
+  // window has elapsed. Uses refs so the interval never goes stale.
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
+  const autoScanRef = useRef(autoScan);
+  autoScanRef.current = autoScan;
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now();
+      for (const row of rowsRef.current ?? []) {
+        if (!row.importable || row.rescanning) continue;
+        const cfg = getSourceConfig(configRef.current, row.probe.sourceId);
+        if (!cfg.enabled) continue;
+        const interval = FREQUENCY_INTERVAL_MS[cfg.frequency];
+        if (interval == null) continue; // manual
+        const due =
+          cfg.lastScannedAt == null || now - cfg.lastScannedAt >= interval;
+        if (due) void autoScanRef.current(row);
+      }
+    };
+    const id = window.setInterval(tick, AUTO_SCAN_TICK_MS);
+    return () => window.clearInterval(id);
+  }, []);
 
   const describeRow = useCallback(
     (row: SourceRow): string => {
@@ -239,20 +367,15 @@ const DataSourcePanel: React.FC = () => {
     [t]
   );
 
-  const rowBadge = (
+  const importableBadge = (
     row: SourceRow
   ): { status: StatusType; labelKey: string } => {
-    if (row.importable) {
-      if (row.statsLoading) return { status: "loading", labelKey: "loading" };
-      if (row.error) return { status: "error", labelKey: "error" };
-      if (row.stats && row.stats.sessionCount > 0) {
-        return { status: "success", labelKey: "ready" };
-      }
-      return { status: "empty", labelKey: "empty" };
+    if (row.statsLoading) return { status: "loading", labelKey: "loading" };
+    if (row.error) return { status: "error", labelKey: "error" };
+    if (row.stats && row.stats.sessionCount > 0) {
+      return { status: "success", labelKey: "ready" };
     }
-    return row.probe.installed
-      ? { status: "installed", labelKey: "installed" }
-      : { status: "empty", labelKey: "notInstalled" };
+    return { status: "empty", labelKey: "empty" };
   };
 
   const openFolder = useCallback((path: string) => {
@@ -267,6 +390,11 @@ const DataSourcePanel: React.FC = () => {
       { key: "apps", label: t("tabs.apps") },
       { key: "clis", label: t("tabs.clis") },
     ],
+    [t]
+  );
+
+  const frequencyOptions = useMemo(
+    () => SCAN_FREQUENCIES.map((f) => ({ value: f, label: t(`freq.${f}`) })),
     [t]
   );
 
@@ -307,50 +435,99 @@ const DataSourcePanel: React.FC = () => {
 
         <SectionContainer>
           {visibleRows.map((row) => {
-            const badge = rowBadge(row);
+            const sourceId = row.probe.sourceId;
+            const cfg = getSourceConfig(configMap, sourceId);
+            const disabled = row.importable && !cfg.enabled;
+            const badge = disabled
+              ? { status: "disabled" as StatusType, labelKey: "disabled" }
+              : row.importable
+                ? importableBadge(row)
+                : row.probe.installed
+                  ? { status: "installed" as StatusType, labelKey: "installed" }
+                  : { status: "empty" as StatusType, labelKey: "notInstalled" };
             const path = row.probe.historyPaths[0];
+            const lastScanText = cfg.lastScannedAt
+              ? t("lastScan", {
+                  time: formatRelativeElapsedShort(new Date(cfg.lastScannedAt)),
+                })
+              : t("neverScanned");
+            const description = row.importable
+              ? `${describeRow(row)} · ${lastScanText}`
+              : describeRow(row);
+
             return (
               <SectionRow
-                key={row.probe.sourceId}
+                key={sourceId}
+                className={disabled ? "opacity-55" : ""}
                 label={
                   <span className="flex items-center gap-2">
                     <SourceIcon probe={row.probe} />
                     {row.probe.displayName}
                   </span>
                 }
-                description={describeRow(row)}
+                description={description}
                 truncateLabel
               >
-                <div className="flex items-center gap-2">
-                  {row.importable && !row.statsLoading && row.stats && (
-                    <span className="whitespace-nowrap text-xs text-text-3">
-                      {t("sessions", { count: row.stats.sessionCount })}
-                    </span>
-                  )}
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {row.importable &&
+                    !disabled &&
+                    !row.statsLoading &&
+                    row.stats && (
+                      <span className="whitespace-nowrap text-xs text-text-3">
+                        {t("sessions", { count: row.stats.sessionCount })}
+                      </span>
+                    )}
                   <StatusBadge
                     status={badge.status}
                     label={t(`status.${badge.labelKey}`)}
                     showPulse={false}
                     size="sm"
                   />
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    iconOnly
-                    icon={<FolderOpen size={14} />}
-                    title={t("openFolder")}
-                    disabled={!path}
-                    onClick={() => path && openFolder(path)}
-                  />
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    loading={row.rescanning}
-                    icon={<RefreshCw size={14} />}
-                    onClick={() => void handleRescan(row)}
-                  >
-                    {row.rescanning ? t("rescanning") : t("rescan")}
-                  </Button>
+                  {row.importable && !disabled && (
+                    <Select
+                      value={cfg.frequency}
+                      onChange={(v) => {
+                        if (typeof v === "string") {
+                          updateConfig(sourceId, {
+                            frequency: v as ScanFrequency,
+                          });
+                        }
+                      }}
+                      options={frequencyOptions}
+                      size="small"
+                      style={{ width: 128 }}
+                      aria-label={t("frequencyTitle")}
+                    />
+                  )}
+                  {path && (
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      iconOnly
+                      icon={<FolderOpen size={14} />}
+                      title={t("openFolder")}
+                      onClick={() => openFolder(path)}
+                    />
+                  )}
+                  {!disabled && (
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      loading={row.rescanning}
+                      icon={<RefreshCw size={14} />}
+                      onClick={() => void handleRescan(row)}
+                    >
+                      {row.rescanning ? t("rescanning") : t("rescan")}
+                    </Button>
+                  )}
+                  {row.importable && (
+                    <Switch
+                      checked={cfg.enabled}
+                      onChange={(checked) => void toggleEnabled(row, checked)}
+                      size="small"
+                      ariaLabel={cfg.enabled ? t("disable") : t("enable")}
+                    />
+                  )}
                 </div>
               </SectionRow>
             );

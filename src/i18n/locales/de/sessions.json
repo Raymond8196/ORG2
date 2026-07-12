@@ -94,6 +94,17 @@
       "rescanAll": "Alle neu scannen",
       "rescan": "Neu scannen",
       "rescanning": "Wird neu gescannt…",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "lastScan": "Letzter Scan {{time}}",
+      "neverScanned": "Nie gescannt",
+      "frequencyTitle": "Auto-Scan-Frequenz",
+      "freq": {
+        "manual": "Manuell",
+        "5m": "Alle 5 Min",
+        "1h": "Stündlich",
+        "1d": "Täglich"
+      },
       "openFolder": "Ordner öffnen",
       "tabs": {
         "all": "Alle",
@@ -110,7 +121,8 @@
         "loading": "Wird geprüft…",
         "error": "Fehler",
         "installed": "Installiert",
-        "notInstalled": "Nicht erkannt"
+        "notInstalled": "Nicht erkannt",
+        "disabled": "Deaktiviert"
       }
     },
     "list": {

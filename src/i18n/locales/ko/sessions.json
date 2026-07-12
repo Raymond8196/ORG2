@@ -94,6 +94,17 @@
       "rescanAll": "모두 다시 스캔",
       "rescan": "다시 스캔",
       "rescanning": "다시 스캔 중…",
+      "enable": "사용",
+      "disable": "사용 안 함",
+      "lastScan": "마지막 스캔 {{time}}",
+      "neverScanned": "스캔 안 됨",
+      "frequencyTitle": "자동 스캔 주기",
+      "freq": {
+        "manual": "수동",
+        "5m": "5분마다",
+        "1h": "매시간",
+        "1d": "매일"
+      },
       "openFolder": "폴더 열기",
       "tabs": {
         "all": "전체",
@@ -109,7 +120,8 @@
         "loading": "확인 중…",
         "error": "오류",
         "installed": "설치됨",
-        "notInstalled": "감지되지 않음"
+        "notInstalled": "감지되지 않음",
+        "disabled": "사용 안 함"
       }
     },
     "list": {

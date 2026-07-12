@@ -94,6 +94,17 @@
       "rescanAll": "Tout réanalyser",
       "rescan": "Réanalyser",
       "rescanning": "Réanalyse…",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "lastScan": "Dernier scan {{time}}",
+      "neverScanned": "Jamais scanné",
+      "frequencyTitle": "Fréquence d'analyse",
+      "freq": {
+        "manual": "Manuel",
+        "5m": "Toutes les 5 min",
+        "1h": "Toutes les heures",
+        "1d": "Quotidien"
+      },
       "openFolder": "Ouvrir le dossier",
       "tabs": {
         "all": "Tous",
@@ -110,7 +121,8 @@
         "loading": "Vérification…",
         "error": "Erreur",
         "installed": "Installé",
-        "notInstalled": "Non détecté"
+        "notInstalled": "Non détecté",
+        "disabled": "Désactivé"
       }
     },
     "list": {
