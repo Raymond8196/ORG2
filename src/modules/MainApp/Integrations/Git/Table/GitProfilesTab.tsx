@@ -21,6 +21,9 @@ import {
   SECTION_CONTROL_STYLE,
   SectionContainer,
   SectionRow,
+  SectionSidebarItem,
+  SectionSidebarList,
+  SectionSidebarSplit,
 } from "@src/modules/shared/layouts/SectionLayout";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
 
@@ -253,72 +256,61 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
   return (
     <div data-testid="settings-git-profiles-tab">
       <SectionContainer className="!p-0">
-        <div className="grid min-h-[360px] grid-cols-1 @[720px]:grid-cols-[240px_minmax(0,1fr)]">
-          <div className="border-b border-border-2 p-2 @[720px]:border-b-0 @[720px]:border-r">
-            <div className="flex gap-2 overflow-x-auto @[720px]:flex-col">
+        <SectionSidebarSplit
+          sidebar={
+            <SectionSidebarList>
               {state.profiles.map((profile) => {
                 const active = state.activeProfileId === profile.id;
                 const selected = selectedProfileId === profile.id;
                 return (
-                  <button
+                  <SectionSidebarItem
                     key={profile.id}
-                    type="button"
-                    className={`flex min-w-[190px] items-center gap-2 rounded-md px-3 py-2 text-left transition-colors @[720px]:min-w-0 ${
-                      selected
-                        ? "bg-primary-1 text-primary-7"
-                        : "text-text-2 hover:bg-fill-2"
-                    }`}
+                    selected={selected}
+                    leading={<UserRound size={16} />}
+                    trailing={
+                      active ? (
+                        <Check
+                          size={15}
+                          className="text-success-6"
+                          aria-label={t("gitProfiles.active")}
+                        />
+                      ) : null
+                    }
                     onClick={() => setSelectedProfileId(profile.id)}
                     data-testid={`settings-git-profile-${profile.id}`}
                   >
-                    <UserRound size={16} className="shrink-0" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">
-                        {profile.label}
-                      </span>
+                    <span className="block truncate font-medium">
+                      {profile.label}
                     </span>
-                    {active && (
-                      <Check
-                        size={15}
-                        className="shrink-0 text-success-6"
-                        aria-label={t("gitProfiles.active")}
-                      />
-                    )}
-                  </button>
+                  </SectionSidebarItem>
                 );
               })}
-              <div className="flex shrink-0 gap-1">
-                <Button
-                  variant="tertiary"
-                  appearance="ghost"
-                  size="small"
-                  icon={<Plus size={14} />}
-                  onClick={handleAdd}
-                  className="min-w-0 flex-1 justify-start"
-                  data-testid="settings-git-profile-add"
-                >
-                  {t("gitProfiles.add")}
-                </Button>
-                <Button
-                  variant="tertiary"
-                  appearance="ghost"
-                  size="small"
-                  icon={<RefreshCw size={14} />}
-                  iconOnly
-                  loading={loading}
-                  loadingSpinIcon
-                  disabled={loading}
-                  onClick={() => void handleRefresh()}
-                  aria-label={t("gitProfiles.refresh")}
-                  title={t("gitProfiles.refresh")}
-                  data-testid="settings-git-profile-refresh"
-                />
-              </div>
-            </div>
-          </div>
-
-          {selectedProfile && (
-            <div className="min-w-0 px-4 py-2">
+              <SectionSidebarItem
+                leading={<Plus size={14} />}
+                onClick={handleAdd}
+                data-testid="settings-git-profile-add"
+              >
+                {t("gitProfiles.add")}
+              </SectionSidebarItem>
+              <SectionSidebarItem
+                leading={
+                  <RefreshCw
+                    size={14}
+                    className={loading ? "animate-spin" : undefined}
+                  />
+                }
+                disabled={loading}
+                onClick={() => void handleRefresh()}
+                title={t("gitProfiles.refresh")}
+                data-testid="settings-git-profile-refresh"
+              >
+                {t("gitProfiles.refresh")}
+              </SectionSidebarItem>
+            </SectionSidebarList>
+          }
+        >
+          {selectedProfile ? (
+            <>
               <SectionRow label={t("gitProfiles.profileName")} required>
                 <Input
                   value={selectedProfile.label}
@@ -369,7 +361,7 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
               <SectionRow showHeader={false}>
                 <div className="flex w-full flex-wrap items-center justify-between gap-2">
                   <Button
-                    variant="tertiary"
+                    variant="secondary"
                     size="small"
                     onClick={() => setShowRawConfig((visible) => !visible)}
                   >
@@ -410,9 +402,9 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
                   </div>
                 </div>
               </SectionRow>
-            </div>
-          )}
-        </div>
+            </>
+          ) : null}
+        </SectionSidebarSplit>
       </SectionContainer>
 
       {showRawConfig && selectedProfile && (

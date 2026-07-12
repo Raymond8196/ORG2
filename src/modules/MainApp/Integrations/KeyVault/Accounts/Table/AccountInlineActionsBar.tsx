@@ -3,12 +3,11 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
-import StatusDot from "@src/components/StatusDot";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { AccountStatusIndicator } from "@src/modules/shared/keyVault/AccountStatusIndicator";
 
 import { InlineCardFooter } from "../../shared/InlineCardPrimitives";
-import { KEY_VAULT_STATUS_DOT } from "../../statusColors";
 
 interface AccountInlineActionsBarProps {
   account: KeyVaultAccount;
@@ -45,23 +44,10 @@ export const AccountInlineActionsBar: React.FC<
 
   const showEdit = !account.listingId && account.hasLocalKey && onEdit;
   const resolvedRefreshLabel = refreshLabel ?? tCommon("actions.refresh");
-  const statusLabel =
-    {
-      ready: t("status.ready"),
-      needs_setup: t("status.needsSetup"),
-      error: t("status.error"),
-      expired: t("status.expired"),
-      pending_approval: t("status.pendingApproval"),
-    }[account.status] ?? account.status;
-
   return (
     <InlineCardFooter>
       <div className="mr-auto flex min-h-7 items-center">
-        <StatusDot
-          color={KEY_VAULT_STATUS_DOT[account.status] ?? "bg-fill-3"}
-          size="inline"
-          label={statusLabel}
-        />
+        <AccountStatusIndicator account={account} />
       </div>
       {onRefresh ? (
         <Button
