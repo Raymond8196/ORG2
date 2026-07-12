@@ -16,7 +16,6 @@ export interface ImportedHistorySourceDescriptor {
   iconId: string;
   displayName: string;
   groupLabel: string;
-  sidebarPageSize?: number;
   listable: true;
   replayable: true;
   supportsWindowedReplay: boolean;
@@ -31,7 +30,6 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       iconId: "cursor",
       displayName: "Cursor",
       groupLabel: "Cursor History",
-      sidebarPageSize: 50,
       listable: true,
       replayable: true,
       supportsWindowedReplay: true,

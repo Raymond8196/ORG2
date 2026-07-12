@@ -66,6 +66,66 @@ fn cache_query_paginates_newest_first() {
 }
 
 #[test]
+fn sidebar_query_is_date_bounded_and_omits_heavy_metadata() {
+    let mut conn = fixture_conn();
+    let mut inside = input(SOURCE_CODEX_APP, "inside", 250);
+    inside.impact.touched_files = vec!["large/path.rs".to_string()];
+    let outside = input(SOURCE_CODEX_APP, "outside", 450);
+    upsert_imported_session_cache_from_conn(&mut conn, &[inside, outside]).expect("upsert");
+
+    let page =
+        query_imported_sidebar_page_from_conn(&conn, SOURCE_CODEX_APP, Some(200), Some(300), 10, 0)
+            .expect("sidebar page");
+
+    assert!(!page.has_more);
+    assert_eq!(page.sessions.len(), 1);
+    assert_eq!(page.sessions[0].session_id, "codex_app-inside");
+    assert_eq!(
+        page.sessions[0].repo_path.as_deref(),
+        Some("/tmp/repo-inside")
+    );
+    let wire = serde_json::to_value(&page.sessions[0]).expect("serialize sidebar row");
+    assert_eq!(
+        wire.as_object()
+            .expect("sidebar row object")
+            .keys()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>(),
+        ["createdAt", "name", "repoPath", "sessionId", "updatedAt"]
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    );
+}
+
+#[test]
+fn sidebar_query_paginates_within_one_date_bucket() {
+    let mut conn = fixture_conn();
+    upsert_imported_session_cache_from_conn(
+        &mut conn,
+        &[
+            input(SOURCE_CODEX_APP, "old", 210),
+            input(SOURCE_CODEX_APP, "mid", 220),
+            input(SOURCE_CODEX_APP, "new", 230),
+        ],
+    )
+    .expect("upsert");
+
+    let first =
+        query_imported_sidebar_page_from_conn(&conn, SOURCE_CODEX_APP, Some(200), Some(300), 2, 0)
+            .expect("first page");
+    let second =
+        query_imported_sidebar_page_from_conn(&conn, SOURCE_CODEX_APP, Some(200), Some(300), 2, 2)
+            .expect("second page");
+
+    assert!(first.has_more);
+    assert_eq!(first.sessions[0].session_id, "codex_app-new");
+    assert_eq!(first.sessions[1].session_id, "codex_app-mid");
+    assert!(!second.has_more);
+    assert_eq!(second.sessions[0].session_id, "codex_app-old");
+}
+
+#[test]
 fn cache_pruning_is_source_scoped() {
     let mut conn = fixture_conn();
     upsert_imported_session_cache_from_conn(

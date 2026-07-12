@@ -15,6 +15,18 @@ pub const SOURCE_OPENCODE: &str = "opencode";
 pub const SOURCE_WINDSURF: &str = "windsurf";
 pub const SOURCE_WORKBUDDY: &str = "workbuddy";
 
+pub fn is_imported_history_source(source: &str) -> bool {
+    matches!(
+        source,
+        SOURCE_CLAUDE_CODE
+            | SOURCE_CODEX_APP
+            | SOURCE_CURSOR_IDE
+            | SOURCE_OPENCODE
+            | SOURCE_WINDSURF
+            | SOURCE_WORKBUDDY
+    )
+}
+
 #[derive(Debug, Clone)]
 pub struct ImportedHistoryCacheInput {
     pub source: &'static str,

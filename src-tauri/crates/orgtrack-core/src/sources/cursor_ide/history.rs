@@ -71,7 +71,7 @@ const CURSOR_BUBBLE_TYPE_USER: i64 = 1;
 /// Frontend-side session id prefix for Cursor IDE history sessions.
 /// Kept here (not in a shared `types` module) because every consumer either
 /// crosses this module's API surface or works with bare composer UUIDs.
-pub const CURSORIDE_SESSION_PREFIX: &str = "cursoride-";
+pub use super::CURSORIDE_SESSION_PREFIX;
 
 /// Strip the `cursoride-` prefix to recover the bare composer UUID Cursor
 /// stores. Returns the input unchanged if no prefix is present (defensive —

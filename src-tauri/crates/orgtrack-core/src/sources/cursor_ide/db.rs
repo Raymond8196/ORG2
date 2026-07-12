@@ -23,12 +23,13 @@ use crate::sources::imported_history::{
 };
 
 use super::io::cursor_db_path;
+use super::CURSORIDE_SESSION_PREFIX;
 
 static LAST_SYNC: Mutex<Option<SyncSnapshot>> = Mutex::new(None);
 const SYNC_COOLDOWN: Duration = Duration::from_secs(60);
 const RECENT_TERMINAL_RESYNC_WINDOW: Duration = Duration::from_secs(7 * 24 * 60 * 60);
 const TERMINAL_STATUSES: &[&str] = &["completed", "aborted", "cancelled", "failed"];
-const CURSOR_IDE_METADATA_PARSER_VERSION: i64 = 2;
+const CURSOR_IDE_METADATA_PARSER_VERSION: i64 = 3;
 const COMPOSER_KEY_PREFIX: &str = "composerData:";
 const BUBBLE_KEY_PREFIX: &str = "bubbleId:";
 const SOURCE_RECORD_KEY_PREFIX: &str = "cursorDiskKV:";
@@ -342,7 +343,7 @@ fn composer_to_cache_input(
     Ok(ImportedHistoryCacheInput {
         source: SOURCE_CURSOR_IDE,
         source_session_id: record.source_session_id.clone(),
-        session_id: record.source_session_id.clone(),
+        session_id: format!("{CURSORIDE_SESSION_PREFIX}{}", record.source_session_id),
         source_path: record.source_path.clone(),
         source_record_key: record.source_record_key.clone(),
         source_mtime_ms: record.source_mtime_ms,

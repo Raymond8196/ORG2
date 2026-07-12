@@ -3,7 +3,15 @@
 //! Provides the Tauri command endpoints that the frontend calls to interact
 //! with the unified session listing / statistics system.
 
+use std::collections::HashSet;
+
 use crate::agent_sessions::health::check_session_health;
+use database::db::get_connection;
+use orgtrack_core::sources::cursor_ide::history::CURSORIDE_SESSION_PREFIX;
+use orgtrack_core::sources::imported_history::{
+    cache::query_imported_sidebar_page_from_conn,
+    metadata::{is_imported_history_source, SOURCE_CURSOR_IDE},
+};
 
 use super::accounting::{
     query_session_heatmap, session_usage_summary as build_session_usage_summary,
@@ -13,7 +21,8 @@ use super::aggregation::list_all_sessions;
 use super::history::build_history_response;
 use super::stats::compute_aggregate_stats_with_accounting;
 use super::types::{
-    AggregateStats, SessionAggregateRecord, SessionFilter, SessionHealthStatus,
+    AggregateStats, ExternalHistorySidebarBucketPage, ExternalHistorySidebarBucketRequest,
+    ExternalHistorySidebarResponse, SessionAggregateRecord, SessionFilter, SessionHealthStatus,
     SessionHistoryResponse, SessionListResponse, UsageFilter, UsageRecord,
 };
 use super::usage::query_usage_list;
@@ -34,6 +43,69 @@ pub async fn session_aggregate_list(
     tokio::task::spawn_blocking(move || list_all_sessions(filter.as_ref()))
         .await
         .map_err(|err| format!("Task join error: {}", err))?
+}
+
+const EXTERNAL_HISTORY_SIDEBAR_BUCKET_MAX_LIMIT: usize = 50;
+
+/// List lightweight external-history rows from ORGII's SQLite cache only.
+/// The command never scans or opens an external provider's storage.
+#[tauri::command]
+pub async fn session_external_history_sidebar_list(
+    source: String,
+    buckets: Vec<ExternalHistorySidebarBucketRequest>,
+) -> Result<ExternalHistorySidebarResponse, String> {
+    tokio::task::spawn_blocking(move || {
+        if !is_imported_history_source(&source) {
+            return Err(format!("Unknown external history source: {source}"));
+        }
+        let conn =
+            get_connection().map_err(|err| format!("Failed to open ORGII session cache: {err}"))?;
+        let mut pages = Vec::with_capacity(buckets.len());
+        let mut seen_buckets = HashSet::with_capacity(buckets.len());
+        for request in buckets {
+            if !seen_buckets.insert(request.bucket) {
+                return Err("External history sidebar buckets must be unique".to_string());
+            }
+            if request.limit == 0 {
+                return Err("External history sidebar bucket limit must be positive".to_string());
+            }
+            if request
+                .start_ms
+                .zip(request.end_ms)
+                .is_some_and(|(start, end)| start >= end)
+            {
+                return Err("External history sidebar bucket start must precede end".to_string());
+            }
+            let limit = request.limit.min(EXTERNAL_HISTORY_SIDEBAR_BUCKET_MAX_LIMIT);
+            let mut page = query_imported_sidebar_page_from_conn(
+                &conn,
+                &source,
+                request.start_ms,
+                request.end_ms,
+                limit,
+                request.offset,
+            )?;
+            if source == SOURCE_CURSOR_IDE {
+                for session in &mut page.sessions {
+                    if !session.session_id.starts_with(CURSORIDE_SESSION_PREFIX) {
+                        session.session_id =
+                            format!("{CURSORIDE_SESSION_PREFIX}{}", session.session_id);
+                    }
+                }
+            }
+            pages.push(ExternalHistorySidebarBucketPage {
+                bucket: request.bucket,
+                sessions: page.sessions,
+                has_more: page.has_more,
+            });
+        }
+        Ok(ExternalHistorySidebarResponse {
+            source,
+            buckets: pages,
+        })
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
 }
 
 /// Check session health (in-progress and stale detection).
