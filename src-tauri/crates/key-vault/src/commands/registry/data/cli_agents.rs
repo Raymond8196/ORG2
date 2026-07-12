@@ -139,7 +139,10 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             docs_url: "https://google-gemini.github.io/gemini-cli/docs/get-started/configuration.html",
             has_subscription_plan: true,
             compatible_api_providers: &["gemini_api"],
-            config_files: vec![home_config("settings", "Settings", ".gemini/settings.json", CliConfigFormat::Json, false)],
+            config_files: vec![
+                home_config("settings", "Settings", ".gemini/settings.json", CliConfigFormat::Json, false),
+                home_config("env", "Environment", ".gemini/.env", CliConfigFormat::Text, true),
+            ],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
