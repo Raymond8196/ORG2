@@ -186,7 +186,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     } = useChatPanelTabsController({
       currentSessionId: currentSessionId ?? null,
       launchpadTitle: t("navigation:routes.launchpad"),
-      opsControlTitle: t("navigation:routes.opsControl"),
+      kanbanTitle: t("sessions:simulator.tabs.kanban"),
       showSessionSurface,
     });
     const isManagementTabActive = activeTab?.type === "ops-control";

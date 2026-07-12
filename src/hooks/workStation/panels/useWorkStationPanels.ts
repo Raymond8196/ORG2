@@ -27,10 +27,6 @@ import {
   workStationEditorSecondaryCollapsedPersistAtom,
   workStationLayoutModeAtom,
   workStationLayoutModePersistAtom,
-  workStationOpsControlSidebarCollapsedAtom,
-  workStationOpsControlSidebarCollapsedPersistAtom,
-  workStationOpsControlSidebarWidthAtom,
-  workStationOpsControlSidebarWidthPersistAtom,
   workStationPrimarySidebarCollapsedAtom,
   workStationPrimarySidebarCollapsedPersistAtom,
   workStationPrimarySidebarTabAtom,
@@ -195,50 +191,6 @@ export function usePrimarySidebarState() {
   );
   const setPrimarySidebarCollapsed = useSetAtom(
     workStationPrimarySidebarCollapsedPersistAtom
-  );
-
-  const togglePrimarySidebar = useCallback(() => {
-    setPrimarySidebarCollapsed("toggle");
-  }, [setPrimarySidebarCollapsed]);
-
-  const closePrimarySidebar = useCallback(() => {
-    setPrimarySidebarCollapsed(true);
-  }, [setPrimarySidebarCollapsed]);
-
-  return {
-    layoutMode,
-    setLayoutMode,
-    primarySidebarCollapsed,
-    primarySidebarWidth,
-    setPrimarySidebarWidth,
-    setPrimarySidebarCollapsed,
-    togglePrimarySidebar,
-    closePrimarySidebar,
-  };
-}
-
-/**
- * Hook for the Ops Control primary sidebar state.
- *
- * Backed by Ops-Control-specific atoms so that collapsing / resizing the
- * sidebar here is fully independent of the Code Editor / Database Manager
- * sidebar. Unlike the Workstation sidebar, this one is deliberately not wired
- * to any keyboard shortcut — it is toggled only via the header button.
- */
-export function useOpsControlSidebarState() {
-  const layoutMode = useAtomValue(workStationLayoutModeAtom);
-  const setLayoutMode = useSetAtom(workStationLayoutModePersistAtom);
-  const primarySidebarCollapsed = useAtomValue(
-    workStationOpsControlSidebarCollapsedAtom
-  );
-  const setPrimarySidebarCollapsed = useSetAtom(
-    workStationOpsControlSidebarCollapsedPersistAtom
-  );
-  const primarySidebarWidth = useAtomValue(
-    workStationOpsControlSidebarWidthAtom
-  );
-  const setPrimarySidebarWidth = useSetAtom(
-    workStationOpsControlSidebarWidthPersistAtom
   );
 
   const togglePrimarySidebar = useCallback(() => {

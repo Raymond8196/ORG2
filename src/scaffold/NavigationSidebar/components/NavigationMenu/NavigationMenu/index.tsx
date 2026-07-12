@@ -21,6 +21,7 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
     items,
     selectedKeys,
     onMenuItemClick,
+    onSubmenuOpenChange,
     onMenuItemContextMenu,
     renderMenuItemWrapper,
     collapsed = false,
@@ -45,13 +46,18 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
 
     const [openSubmenus, setOpenSubmenus] = useState<string[]>(defaultOpenKeys);
 
-    const toggleSubmenu = useCallback((key: string) => {
-      setOpenSubmenus((prev) =>
-        prev.includes(key)
-          ? prev.filter((keyItem) => keyItem !== key)
-          : [...prev, key]
-      );
-    }, []);
+    const toggleSubmenu = useCallback(
+      (key: string) => {
+        setOpenSubmenus((prev) => {
+          const open = !prev.includes(key);
+          onSubmenuOpenChange?.(key, open);
+          return open
+            ? [...prev, key]
+            : prev.filter((keyItem) => keyItem !== key);
+        });
+      },
+      [onSubmenuOpenChange]
+    );
 
     const isSubmenuSelected = useCallback(
       (item: NavigationMenuItem): boolean => {
@@ -79,13 +85,15 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
     useEffect(() => {
       items.forEach((item) => {
         if (item.children && isSubmenuSelected(item)) {
-          setOpenSubmenus((prev) =>
-            prev.includes(item.key) ? prev : [...prev, item.key]
-          );
+          setOpenSubmenus((prev) => {
+            if (prev.includes(item.key)) return prev;
+            onSubmenuOpenChange?.(item.key, true);
+            return [...prev, item.key];
+          });
         }
       });
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [itemsKey, selectedKeysKey]);
+    }, [itemsKey, onSubmenuOpenChange, selectedKeysKey]);
 
     const renderIcon = useCallback(
       (
@@ -173,7 +181,6 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
           renderMenuItemWrapper,
           renderIcon,
           renderMenuItem,
-          isSubmenuSelected,
           onMenuItemClick,
           onMenuItemContextMenu,
           onRowMouseEnter: handleRowMouseEnter,
@@ -188,7 +195,6 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
         t,
         renderMenuItemWrapper,
         renderIcon,
-        isSubmenuSelected,
         onMenuItemClick,
         onMenuItemContextMenu,
         handleRowMouseEnter,

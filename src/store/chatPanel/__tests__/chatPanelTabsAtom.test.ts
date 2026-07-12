@@ -241,7 +241,7 @@ describe("openOpsControlChatPanelTabAtom", () => {
     vi.useRealTimers();
   });
 
-  it("opens Ops Control as a singleton default-fullscreen tab", async () => {
+  it("opens Kanban as a singleton default-fullscreen management tab", async () => {
     const {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
@@ -325,7 +325,7 @@ describe("openOpsControlChatPanelTabAtom", () => {
         expect.objectContaining({
           id: opsControlTabId,
           type: "ops-control",
-          title: "Ops Control",
+          title: "Kanban",
         }),
       ]),
     });
@@ -349,6 +349,11 @@ describe("openOpsControlChatPanelTabAtom", () => {
     expect(store.get(activeOpsControlHomeTabAtom)).toBe(
       OPS_CONTROL_HOME_TAB.PROJECTS
     );
+    expect(
+      store
+        .get(chatPanelTabsAtom)
+        .tabs.find((tab) => tab.id === opsControlTabId)?.title
+    ).toBe("Projects");
 
     store.set(openOpsControlChatPanelTabAtom, {
       section: OPS_CONTROL_HOME_TAB.GITHUB_ISSUES,
@@ -356,6 +361,11 @@ describe("openOpsControlChatPanelTabAtom", () => {
     expect(store.get(activeOpsControlHomeTabAtom)).toBe(
       OPS_CONTROL_HOME_TAB.GITHUB_ISSUES
     );
+    expect(
+      store
+        .get(chatPanelTabsAtom)
+        .tabs.find((tab) => tab.id === opsControlTabId)?.title
+    ).toBe("GitHub Issues");
 
     store.set(openOpsControlChatPanelTabAtom, {
       section: OPS_CONTROL_HOME_TAB.GITHUB_PRS,
@@ -363,6 +373,11 @@ describe("openOpsControlChatPanelTabAtom", () => {
     expect(store.get(activeOpsControlHomeTabAtom)).toBe(
       OPS_CONTROL_HOME_TAB.GITHUB_PRS
     );
+    expect(
+      store
+        .get(chatPanelTabsAtom)
+        .tabs.find((tab) => tab.id === opsControlTabId)?.title
+    ).toBe("GitHub PRs");
 
     store.set(activateChatPanelTabAtom, opsControlTabId);
     expect(store.get(activeOpsControlHomeTabAtom)).toBe(
@@ -612,7 +627,7 @@ describe("ChatPanel navigation tabs", () => {
         expect.objectContaining({
           id: "legacy-projects",
           type: "ops-control",
-          title: "Ops Control",
+          title: "Projects",
           opsSection: OPS_CONTROL_HOME_TAB.PROJECTS,
         }),
       ],
