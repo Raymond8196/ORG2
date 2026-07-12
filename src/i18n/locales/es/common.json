@@ -1134,9 +1134,9 @@
       "tokenLabel": "Token de acceso personal",
       "tokenRequired": "El token es obligatorio",
       "createTokenButton": "Crear token",
-      "openGitSettingsButton": "Abrir ajustes de Git",
+      "openGitSettingsButton": "Abrir ajustes",
       "configureInSettings": "Configura Git en Ajustes",
-      "configureInSettingsDesc": "Añade acceso de GitHub App, guarda un token o escanea credenciales locales en Ajustes → Integraciones → Git y vuelve a intentar esta operación de Git."
+      "configureInSettingsDesc": "Añade acceso de GitHub App, guarda un token o escanea credenciales locales en Ajustes → Conexiones y vuelve a intentar esta operación de Git."
     },
     "actions": {
       "publish": "Publish",

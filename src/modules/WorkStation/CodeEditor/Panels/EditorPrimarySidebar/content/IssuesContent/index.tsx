@@ -305,11 +305,12 @@ const IssuesContent: React.FC<IssuesContentProps> = memo(
           )}
           subtitle={t(
             "git.issues.reAuthDescription",
-            "Your GitHub token has expired. Go to Settings → Integrations → Git to reconnect."
+            "Your GitHub token has expired. Go to Settings → Connections to reconnect."
           )}
           action={{
             label: t("git.issues.goToSettings", "Go to Settings"),
-            onClick: () => navigate(buildIntegrationsPath({ category: "git" })),
+            onClick: () =>
+              navigate(buildIntegrationsPath({ category: "connections" })),
           }}
           fillParentHeight
         />

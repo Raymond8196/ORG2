@@ -1135,9 +1135,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token は必須です",
       "createTokenButton": "Token を作成",
-      "openGitSettingsButton": "Git 設定を開く",
+      "openGitSettingsButton": "設定を開く",
       "configureInSettings": "設定で Git を構成",
-      "configureInSettingsDesc": "設定 → 連携 → Git で GitHub App アクセスの追加、token の保存、またはローカル認証情報のスキャンを行い、その後この Git 操作を再試行してください。"
+      "configureInSettingsDesc": "設定 → 接続 で GitHub App アクセスの追加、token の保存、またはローカル認証情報のスキャンを行い、その後この Git 操作を再試行してください。"
     },
     "actions": {
       "publish": "Publish",
