@@ -424,8 +424,7 @@ const AccountInlineExpandedCard: React.FC<AccountInlineExpandedCardProps> = ({
           state={editState}
           onCancel={handleEditCancel}
         />
-      ) : effectiveActiveTab === ACCOUNT_INLINE_TAB.STATUS &&
-        (showQuotaRefresh || showModelRefresh) ? (
+      ) : effectiveActiveTab === ACCOUNT_INLINE_TAB.STATUS ? (
         <AccountInlineActionsBar
           account={account}
           refreshLabel={t("keyVault.quota.refreshUsage")}
