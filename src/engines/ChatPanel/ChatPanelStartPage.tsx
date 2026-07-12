@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import {
   BriefcaseBusiness,
   ChevronLeft,
@@ -26,7 +26,6 @@ import HeatmapGrid, {
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   CHAT_PANEL_START_PAGE_TAB,
-  chatPanelMaximizedAtom,
   chatPanelStartPageTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 
@@ -355,7 +354,6 @@ export function ChatPanelStartPage({
 }: ChatPanelStartPageProps): React.ReactNode {
   const [activeTab, setActiveTab] = useAtom(chatPanelStartPageTabAtom);
   const availableUpdate = useAvailableAppUpdate();
-  const isChatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
   const tabs = useMemo(
     () => [
       {
@@ -408,13 +406,10 @@ export function ChatPanelStartPage({
         ]
       : []),
   ];
-  const contentWidthClass =
-    activeTab === CHAT_PANEL_START_PAGE_TAB.HEATMAP && isChatPanelMaximized
-      ? "max-w-[600px]"
-      : activeTab === CHAT_PANEL_START_PAGE_TAB.HEATMAP
-        ? "max-w-[400px]"
-        : DETAIL_PANEL_TOKENS.contentMaxWidth;
   const manageTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.MANAGE;
+  const bodyOverflowClass = manageTabActive
+    ? "overflow-hidden"
+    : "overflow-y-auto";
 
   return (
     <div
@@ -422,7 +417,7 @@ export function ChatPanelStartPage({
       data-testid="chat-panel-start-page"
     >
       <div
-        className="flex shrink-0 justify-center px-4 pb-2 pt-4"
+        className={`flex shrink-0 justify-center px-4 pb-2 pt-4 ${DETAIL_PANEL_TOKENS.headerWidth}`}
         data-testid="chat-panel-start-page-tabs"
       >
         <TabPill
@@ -434,39 +429,38 @@ export function ChatPanelStartPage({
           onChange={handleTabChange}
         />
       </div>
-      <div
-        className={`min-h-0 flex-1 ${manageTabActive ? "overflow-hidden" : "overflow-y-auto px-3 py-5"}`}
-      >
+      <div className={`min-h-0 flex-1 ${bodyOverflowClass}`}>
         {manageTabActive ? (
           <Suspense fallback={null}>
             <WorkspaceDashboardPanelView />
           </Suspense>
         ) : (
           <div className="flex min-h-full items-center justify-center">
-            <div className={`flex w-full ${contentWidthClass} flex-col gap-3`}>
-              {activeTab === CHAT_PANEL_START_PAGE_TAB.HEATMAP ? (
-                <div className="flex flex-col gap-3">
-                  <StartPageHeatmap t={t} />
-                  <StartPageQuotaGrid />
-                </div>
-              ) : activeTab === CHAT_PANEL_START_PAGE_TAB.WORK &&
-                sessionLauncher ? (
-                <div data-testid="chat-panel-start-page-session-launcher">
-                  {sessionLauncher}
-                </div>
-              ) : null}
-            </div>
+            {activeTab === CHAT_PANEL_START_PAGE_TAB.HEATMAP ? (
+              <div
+                className={`flex flex-col gap-3 px-4 py-5 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+              >
+                <StartPageHeatmap t={t} />
+                <StartPageQuotaGrid />
+              </div>
+            ) : activeTab === CHAT_PANEL_START_PAGE_TAB.WORK &&
+              sessionLauncher ? (
+              <div
+                className="w-full"
+                data-testid="chat-panel-start-page-session-launcher"
+              >
+                {sessionLauncher}
+              </div>
+            ) : null}
           </div>
         )}
       </div>
       {activeTab === CHAT_PANEL_START_PAGE_TAB.WORK ? (
         <div
-          className="shrink-0 px-3 pb-5 pt-2"
+          className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
           data-testid="chat-panel-start-page-actions"
         >
-          <div
-            className={`mx-auto flex w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth} flex-col gap-3`}
-          >
+          <div className="flex w-full flex-col gap-3">
             <StartPageHintLine t={t} />
             <div className="@container/startactions">
               <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-4">

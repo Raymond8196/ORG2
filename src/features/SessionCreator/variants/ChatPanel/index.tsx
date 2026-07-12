@@ -819,58 +819,54 @@ const SessionCreatorChatPanelSingle: React.FC<
     ) : null;
 
   const editorArea = (
-    <div className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}>
-      <EditorArea
-        variant="chatPanelFullScreen"
-        uploadedFiles={uploadedFiles}
-        onRemoveFile={handleRemoveFile}
-        composerInputRef={composerInputRef}
-        onContentChange={handleContentChangeWithTracking}
-        onAtMention={handleAtMention}
-        onAtMentionClose={handleAtMentionClose}
-        onSubmit={handleLaunch}
-        showContextMenu={showContextMenu}
-        setShowContextMenu={setShowContextMenu}
-        atSearchQuery={atSearchQuery}
-        setAtSearchQuery={setAtSearchQuery}
-        onAtSelect={handleAtSelect}
-        repoPath={currentRepoPath}
-        onAtMentionClick={handleAtMentionClick}
-        onUploadClick={handleUploadClick}
-        isLoading={isLoading}
-        onLaunch={handleLaunch}
-        advancedConfig={advancedConfig}
-        onAdvancedConfigChange={handleAdvancedConfigChange}
-        hideInfoLine={true}
-        repoId={displayedRepoId}
-        repoName={displayedRepoName}
-        repoKind={isOSMode && !sessionRepoId ? undefined : currentRepo?.kind}
-        branchName={
-          isOSMode && !sessionRepoId ? undefined : effectiveBranchName
-        }
-        onBranchChange={handleBranchChange}
-        onImagePaste={handleImagePaste}
-        attachedImages={attachedImages}
-        onRemoveImage={removeImage}
-        launchDisabled={!canLaunch}
-        requestModelOpen={requestModelOpen}
-        onModelOpenHandled={() => setRequestModelOpen(false)}
-        shellClassName="session-creator-chat-panel-fullscreen-input-shell"
-        initialContent={initialRestoreText || initialContent || undefined}
-        autoFocus
-        showSlashMenu={showSlashMenu}
-        slashQuery={slashQuery}
-        slashCommandKeyboardHandlerRef={slashCommandKeyboardHandlerRef}
-        onSlashCommand={handleSlashCommand}
-        onSlashCommandClose={handleSlashCommandClose}
-        onSlashSelect={handleSlashSelect}
-        onModeSelect={handleModeSelect}
-        currentMode={currentMode}
-        filteredSlashItems={filteredSlashItems}
-        slashLoading={slashLoading}
-        dropdownDirection={dropdownDirection}
-      />
-    </div>
+    <EditorArea
+      variant="chatPanelFullScreen"
+      uploadedFiles={uploadedFiles}
+      onRemoveFile={handleRemoveFile}
+      composerInputRef={composerInputRef}
+      onContentChange={handleContentChangeWithTracking}
+      onAtMention={handleAtMention}
+      onAtMentionClose={handleAtMentionClose}
+      onSubmit={handleLaunch}
+      showContextMenu={showContextMenu}
+      setShowContextMenu={setShowContextMenu}
+      atSearchQuery={atSearchQuery}
+      setAtSearchQuery={setAtSearchQuery}
+      onAtSelect={handleAtSelect}
+      repoPath={currentRepoPath}
+      onAtMentionClick={handleAtMentionClick}
+      onUploadClick={handleUploadClick}
+      isLoading={isLoading}
+      onLaunch={handleLaunch}
+      advancedConfig={advancedConfig}
+      onAdvancedConfigChange={handleAdvancedConfigChange}
+      hideInfoLine={true}
+      repoId={displayedRepoId}
+      repoName={displayedRepoName}
+      repoKind={isOSMode && !sessionRepoId ? undefined : currentRepo?.kind}
+      branchName={isOSMode && !sessionRepoId ? undefined : effectiveBranchName}
+      onBranchChange={handleBranchChange}
+      onImagePaste={handleImagePaste}
+      attachedImages={attachedImages}
+      onRemoveImage={removeImage}
+      launchDisabled={!canLaunch}
+      requestModelOpen={requestModelOpen}
+      onModelOpenHandled={() => setRequestModelOpen(false)}
+      shellClassName="session-creator-chat-panel-fullscreen-input-shell"
+      initialContent={initialRestoreText || initialContent || undefined}
+      autoFocus
+      showSlashMenu={showSlashMenu}
+      slashQuery={slashQuery}
+      slashCommandKeyboardHandlerRef={slashCommandKeyboardHandlerRef}
+      onSlashCommand={handleSlashCommand}
+      onSlashCommandClose={handleSlashCommandClose}
+      onSlashSelect={handleSlashSelect}
+      onModeSelect={handleModeSelect}
+      currentMode={currentMode}
+      filteredSlashItems={filteredSlashItems}
+      slashLoading={slashLoading}
+      dropdownDirection={dropdownDirection}
+    />
   );
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -881,7 +877,7 @@ const SessionCreatorChatPanelSingle: React.FC<
       data-testid="session-creator-chat-panel"
     >
       <div
-        className={`session-creator-chat-panel-content flex min-h-0 flex-1 items-center justify-center px-4 ${
+        className={`session-creator-chat-panel-content flex min-h-0 flex-1 items-center justify-center px-4 ${DETAIL_PANEL_TOKENS.headerWidth} ${
           innerClassName ??
           (isFullScreenVariant
             ? centerFullScreenContent
@@ -890,9 +886,7 @@ const SessionCreatorChatPanelSingle: React.FC<
             : "pb-[4vh]")
         }`}
       >
-        <div
-          className={`flex w-full flex-col items-stretch gap-3 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-        >
+        <div className="flex w-full flex-col items-stretch gap-3">
           {isCliTuiMode ? (
             <>
               {headerLayout !== "compact" && (
