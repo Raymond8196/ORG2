@@ -25,15 +25,21 @@ async function loadChatPanelTabAtoms() {
   const { sessionsAtom } = await import("@src/store/session/sessionAtom");
   const {
     activateChatPanelTabAtom,
+    addChatPanelLaunchpadTabAtom,
     chatPanelTabsAtom,
     closeChatPanelTabAtom,
     openSessionInNewChatTabAtom,
     prevChatPanelTabAtom,
   } = await import("../chatPanelTabsAtom");
+  const { activeChatPanelSurfaceAtom, CHAT_PANEL_SURFACE_KIND } =
+    await import("@src/store/ui/chatPanelAtom");
 
   return {
     activateChatPanelTabAtom,
+    activeChatPanelSurfaceAtom,
     activeSessionIdAtom,
+    addChatPanelLaunchpadTabAtom,
+    CHAT_PANEL_SURFACE_KIND,
     chatPanelTabsAtom,
     closeChatPanelTabAtom,
     openSessionInNewChatTabAtom,
@@ -43,6 +49,62 @@ async function loadChatPanelTabAtoms() {
     store,
   };
 }
+
+describe("addChatPanelLaunchpadTabAtom", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    localStorage.removeItem("orgii:chatPanelTabs");
+    localStorage.removeItem("orgii-v2-session-view");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("opens Launchpad in a separate tab and preserves the current session tab", async () => {
+    const {
+      activateChatPanelTabAtom,
+      activeChatPanelSurfaceAtom,
+      addChatPanelLaunchpadTabAtom,
+      CHAT_PANEL_SURFACE_KIND,
+      chatPanelTabsAtom,
+      openSessionInNewChatTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+
+    const sessionTabId = store.set(openSessionInNewChatTabAtom, {
+      sessionId: "session-current",
+      sessionName: "Current session",
+    });
+    const launchpadTabId = store.set(addChatPanelLaunchpadTabAtom, "Launchpad");
+
+    expect(store.get(chatPanelTabsAtom)).toMatchObject({
+      activeTabId: launchpadTabId,
+      tabs: expect.arrayContaining([
+        expect.objectContaining({
+          id: sessionTabId,
+          type: "session",
+          sessionId: "session-current",
+        }),
+        expect.objectContaining({
+          id: launchpadTabId,
+          type: "launchpad",
+          title: "Launchpad",
+        }),
+      ]),
+    });
+    expect(store.get(activeChatPanelSurfaceAtom).kind).toBe(
+      CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD
+    );
+
+    store.set(activateChatPanelTabAtom, sessionTabId);
+
+    expect(store.get(activeChatPanelSurfaceAtom).kind).toBe(
+      CHAT_PANEL_SURFACE_KIND.SESSION
+    );
+  });
+});
 
 describe("openSessionInNewChatTabAtom", () => {
   beforeEach(() => {

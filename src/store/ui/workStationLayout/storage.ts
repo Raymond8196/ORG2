@@ -4,7 +4,6 @@ const STORAGE_KEYS = [
   "split_enabled",
   "split_ratio",
   "layout_mode",
-  "internal_layout_mode",
   "primary_sidebar_collapsed",
   "primary_sidebar_width",
   "browser_primary_sidebar_collapsed",

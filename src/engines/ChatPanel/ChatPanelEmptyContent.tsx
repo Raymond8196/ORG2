@@ -88,6 +88,7 @@ interface ChatPanelEmptyContentProps {
   handleRegionNoticeChange: (notice: ChatPanelRegionNotice | null) => void;
   handleStartPageAddApiKey: () => void;
   handleStartPageExploreRepos: () => void;
+  handleStartPageInstallLatestUpdate: () => void;
   handleStartPageManageIssues: () => void;
   handleStartPageNewSession: () => void;
   handleStartPageNewWorkItem: () => void;
@@ -120,6 +121,7 @@ export function ChatPanelEmptyContent({
   handleRegionNoticeChange,
   handleStartPageAddApiKey,
   handleStartPageExploreRepos,
+  handleStartPageInstallLatestUpdate,
   handleStartPageManageIssues,
   handleStartPageNewSession,
   handleStartPageNewWorkItem,
@@ -138,6 +140,7 @@ export function ChatPanelEmptyContent({
         className={creatorClassName}
         onAddApiKey={handleStartPageAddApiKey}
         onExploreRepos={handleStartPageExploreRepos}
+        onInstallLatestUpdate={handleStartPageInstallLatestUpdate}
         onManageIssues={handleStartPageManageIssues}
         onNewSession={handleStartPageNewSession}
         onNewWorkItem={handleStartPageNewWorkItem}

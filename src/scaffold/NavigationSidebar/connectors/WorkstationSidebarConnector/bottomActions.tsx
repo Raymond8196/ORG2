@@ -52,7 +52,7 @@ export function useSidebarBottomRightActions({
         type="button"
         title={collapseAllLabel}
         aria-label={collapseAllLabel}
-        className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-fill-2"
+        className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
         onClick={handleCollapseAllActiveSections}
       >
         <ListChevronsDownUp size={16} strokeWidth={2} className="text-text-2" />

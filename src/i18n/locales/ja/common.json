@@ -1618,11 +1618,8 @@
     "chatRight": "右チャット",
     "pageSettings": "ページ設定",
     "pageLayout": "ページレイアウト",
-    "layoutMode": "レイアウトモード",
     "inset": "インセット",
     "full": "フル",
-    "compact": "コンパクト",
-    "comfort": "快適",
     "theme": "テーマ",
     "primaryPanel": "サイドバー",
     "sidebarPosition": "サイドバーの位置",
@@ -1681,8 +1678,6 @@
     "disableChatPagination": "チャットのページ分割をオフにする",
     "useModelPickerSpotlight": "Spotlight モデル選択を使う",
     "useModelPickerDropdown": "ドロップダウンモデル選択を使う",
-    "useCompactWorkstationLayout": "コンパクトな Workstation レイアウトを使う",
-    "useComfortWorkstationLayout": "ゆったりした Workstation レイアウトを使う",
     "moveWorkstationSidebarLeft": "Workstation サイドバーを左に移動",
     "moveWorkstationSidebarRight": "Workstation サイドバーを右に移動",
     "enableDockAutoHide": "Workstation Dock を自動的に隠す",
@@ -1944,6 +1939,12 @@
     "removeWorktreeMessage": "ディスクから Worktree checkout を削除します。branch と commits は保持されます。",
     "removeWorktreeSuccess": "Worktree を削除しました",
     "removeWorktreeFailed": "Worktree の削除に失敗しました",
+    "emptyState": {
+      "viewSourceControl": "Source Control を表示",
+      "viewIssues": "Issues を表示",
+      "viewGitHistory": "Git 履歴を表示",
+      "viewPullRequests": "Pull Requests を表示"
+    },
     "pill": {
       "focus": "フォーカス",
       "allChanges": "すべての変更"

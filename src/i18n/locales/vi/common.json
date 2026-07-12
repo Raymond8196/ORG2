@@ -1618,11 +1618,8 @@
     "chatRight": "Chat phải",
     "pageSettings": "Cài đặt trang",
     "pageLayout": "Bố cục trang",
-    "layoutMode": "Chế độ bố cục",
     "inset": "Chèn",
     "full": "Toàn bộ",
-    "compact": "Gọn",
-    "comfort": "Thoải mái",
     "theme": "Giao diện",
     "primaryPanel": "Thanh bên",
     "sidebarPosition": "Vị trí thanh bên",
@@ -1676,8 +1673,6 @@
     "disableChatPagination": "Tắt phân trang chat",
     "useModelPickerSpotlight": "Dùng bộ chọn mô hình Spotlight",
     "useModelPickerDropdown": "Dùng bộ chọn mô hình dạng menu",
-    "useCompactWorkstationLayout": "Dùng bố cục Workstation gọn",
-    "useComfortWorkstationLayout": "Dùng bố cục Workstation thoải mái",
     "moveWorkstationSidebarLeft": "Chuyển thanh bên Workstation sang trái",
     "moveWorkstationSidebarRight": "Chuyển thanh bên Workstation sang phải",
     "enableDockAutoHide": "Tự động ẩn Dock Workstation",
@@ -1939,6 +1934,12 @@
     "removeWorktreeMessage": "Thao tác này xóa Worktree checkout khỏi ổ đĩa. Branch và commits được giữ lại.",
     "removeWorktreeSuccess": "Đã xóa Worktree",
     "removeWorktreeFailed": "Không thể xóa Worktree",
+    "emptyState": {
+      "viewSourceControl": "Xem Source Control",
+      "viewIssues": "Xem Issues",
+      "viewGitHistory": "Xem lịch sử Git",
+      "viewPullRequests": "Xem Pull Requests"
+    },
     "pill": {
       "focus": "Tiêu điểm",
       "allChanges": "Tất cả thay đổi"

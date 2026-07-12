@@ -723,6 +723,9 @@
       "addApiKey": {
         "title": "Dodaj API key"
       },
+      "installLatestUpdate": {
+        "title": "Zainstaluj najnowszą aktualizację"
+      },
       "agents": {
         "title": "Agents"
       },
@@ -1060,6 +1063,8 @@
     "deleteFileRunning": "Usuwanie {{name}}",
     "deleteFileDone": "Usunięto {{name}}",
     "deleteFileFailed": "Nie udało się usunąć {{name}}",
+    "deleteFileCompactRunning": "Usuwanie",
+    "deleteFileCompactDone": "Usuń",
     "directoryTree": "Drzewo katalogów",
     "ls": "ls",
     "listDirRunning": "Wyświetlanie katalogu",
@@ -1125,6 +1130,18 @@
     "editFileDoneNoName": "Edytowano plik",
     "editFileCompactRunning": "Edytowanie",
     "editFileCompactDone": "Edytuj",
+    "editFiles": "Edytuj pliki",
+    "editSummary": {
+      "edit_one": "{{count}} edycja",
+      "edit_few": "{{count}} edycje",
+      "edit_many": "{{count}} edycji",
+      "edit_other": "{{count}} edycji",
+      "read_one": "{{count}} odczyt",
+      "read_few": "{{count}} odczyty",
+      "read_many": "{{count}} odczytów",
+      "read_other": "{{count}} odczytu",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Próba edycji",
     "file": "plik",
     "runShellRunning": "Wykonywanie polecenia",
@@ -1186,15 +1203,26 @@
     "askUserQuestionsSkipped": "Pytania pominięte",
     "exploreSummary": {
       "read_one": "{{count}} plik",
-      "read_other": "{{count}} plików",
+      "read_few": "{{count}} pliki",
+      "read_many": "{{count}} plików",
+      "read_other": "{{count}} pliku",
       "search_one": "{{count}} wyszukiwanie",
-      "search_other": "{{count}} wyszukiwań",
+      "search_few": "{{count}} wyszukiwania",
+      "search_many": "{{count}} wyszukiwań",
+      "search_other": "{{count}} wyszukiwania",
       "glob_one": "{{count}} glob",
-      "glob_other": "{{count}} globów",
+      "glob_few": "{{count}} globy",
+      "glob_many": "{{count}} globów",
+      "glob_other": "{{count}} globu",
       "ls_one": "ls {{count}} folder",
-      "ls_other": "ls {{count}} folderów",
+      "ls_few": "ls {{count}} foldery",
+      "ls_many": "ls {{count}} folderów",
+      "ls_other": "ls {{count}} folderu",
       "lsp_one": "{{count}} zapytanie LSP",
-      "lsp_other": "{{count}} zapytań LSP"
+      "lsp_few": "{{count}} zapytania LSP",
+      "lsp_many": "{{count}} zapytań LSP",
+      "lsp_other": "{{count}} zapytania LSP",
+      "separator": ", "
     },
     "categoryRead": "Odczyt",
     "categorySearch": "Wyszukiwanie",

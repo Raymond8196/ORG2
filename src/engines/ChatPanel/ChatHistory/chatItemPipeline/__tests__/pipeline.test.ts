@@ -35,6 +35,26 @@ function makeReadFileItem(filePath: string) {
   });
 }
 
+function makeEditFileItem(filePath: string) {
+  return makeSessionEvent({
+    action_type: "tool_call",
+    function: "edit_file",
+    uiCanonical: "edit_file",
+    args: { file_path: filePath, old_string: "before", new_string: "after" },
+    result: { success: true, file_path: filePath },
+  });
+}
+
+function makeDeleteFileItem(filePath: string) {
+  return makeSessionEvent({
+    action_type: "tool_call",
+    function: "delete_file",
+    uiCanonical: "delete_file",
+    args: { file_path: filePath },
+    result: { success: true, file_path: filePath },
+  });
+}
+
 function makeBrowserItem(action = "navigate") {
   return makeSessionEvent({
     action_type: "tool_call",
@@ -772,6 +792,154 @@ describe("processChatItems", () => {
         "activityStackGroup",
       ]);
       expect(items[1].event?.id).toBe(kill.id);
+    });
+  });
+
+  describe("edit grouping", () => {
+    it("groups a single edit", () => {
+      const edit = makeEditFileItem("src/app.ts");
+
+      const { items } = processChatItems([edit], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].type).toBe("activityStackGroup");
+      expect(items[0].activityStackGroup?.category).toBe("edit");
+      expect(items[0].activityStackGroup?.events).toEqual([edit]);
+      expect(items[0].activityStackGroup?.closedByBoundary).toBe(false);
+    });
+
+    it("groups a single deletion as an edit activity", () => {
+      const deletion = makeDeleteFileItem("src/obsolete.ts");
+
+      const { items } = processChatItems([deletion], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].type).toBe("activityStackGroup");
+      expect(items[0].activityStackGroup?.category).toBe("edit");
+      expect(items[0].activityStackGroup?.events).toEqual([deletion]);
+    });
+
+    it("keeps deletions in an edit and read sequence", () => {
+      const activities = [
+        makeEditFileItem("src/app.ts"),
+        makeReadFileItem("src/app.ts"),
+        makeDeleteFileItem("src/obsolete.ts"),
+      ];
+
+      const { items } = processChatItems(activities, {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].activityStackGroup?.events).toEqual(activities);
+    });
+
+    it("includes reads after an edit in the same group", () => {
+      const activities = [
+        makeEditFileItem("src/app.ts"),
+        makeReadFileItem("src/app.ts"),
+        makeEditFileItem("src/styles.css"),
+      ];
+
+      const { items } = processChatItems(activities, {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].activityStackGroup?.category).toBe("edit");
+      expect(items[0].activityStackGroup?.events).toEqual(activities);
+    });
+
+    it("keeps reads before the first edit in Explore", () => {
+      const read = makeReadFileItem("src/app.ts");
+      const search = makeSearchItem("app");
+      const edit = makeEditFileItem("src/app.ts");
+
+      const { items } = processChatItems([read, search, edit], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(2);
+      expect(items[0].type).toBe("actionSummaryGroup");
+      expect(items[1].activityStackGroup?.category).toBe("edit");
+      expect(items[1].activityStackGroup?.events).toEqual([edit]);
+    });
+
+    it("closes the edit group when another activity follows", () => {
+      const edit = makeEditFileItem("src/app.ts");
+      const shell = makeShellItem("npm test");
+
+      const { items } = processChatItems([edit, shell], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(2);
+      expect(items[0].activityStackGroup?.category).toBe("edit");
+      expect(items[0].activityStackGroup?.closedByBoundary).toBe(true);
+      expect(items[1].activityStackGroup?.category).toBe("terminal");
+    });
+
+    it("groups failed edits", () => {
+      const failedEdit = makeSessionEvent({
+        action_type: "tool_call",
+        function: "edit_file",
+        uiCanonical: "edit_file",
+        args: { file_path: "src/app.ts" },
+        result: { success: false, error: "edit failed" },
+      });
+
+      const { items } = processChatItems([failedEdit], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].type).toBe("activityStackGroup");
+      expect(items[0].activityStackGroup?.category).toBe("edit");
+      expect(items[0].activityStackGroup?.events).toEqual([failedEdit]);
+    });
+
+    it("groups failed deletions", () => {
+      const failedDeletion = makeSessionEvent({
+        action_type: "tool_call",
+        function: "delete_file",
+        uiCanonical: "delete_file",
+        args: { file_path: "src/obsolete.ts" },
+        result: { success: false, error: "delete failed" },
+      });
+
+      const { items } = processChatItems([failedDeletion], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].type).toBe("activityStackGroup");
+      expect(items[0].activityStackGroup?.category).toBe("edit");
+      expect(items[0].activityStackGroup?.events).toEqual([failedDeletion]);
+    });
+
+    it("keeps successful and failed modifications in one group", () => {
+      const successfulEdit = makeEditFileItem("src/app.ts");
+      const failedDeletion = makeSessionEvent({
+        action_type: "tool_call",
+        function: "delete_file",
+        uiCanonical: "delete_file",
+        args: { file_path: "src/obsolete.ts" },
+        result: { success: false, error: "delete failed" },
+      });
+
+      const { items } = processChatItems([successfulEdit, failedDeletion], {
+        preFilterEmptyActivities: false,
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0].activityStackGroup?.events).toEqual([
+        successfulEdit,
+        failedDeletion,
+      ]);
     });
   });
 

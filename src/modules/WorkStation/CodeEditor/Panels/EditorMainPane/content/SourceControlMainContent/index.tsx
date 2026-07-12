@@ -60,7 +60,7 @@ export interface SourceControlMainContentProps {
   repoId?: string;
   repoPath?: string;
   collapseAllSignal?: number;
-  /** Regular editor placeholder actions reused when no source-control file is focused. */
+  /** Source Control navigation shown when no detail is selected. */
   emptyFocusActions: QuickAction[];
 }
 
@@ -140,7 +140,9 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
 
   if (historySelection?.type === "issue") {
     if (!selectedIssueState.issue) {
-      return <NoTabsPlaceholder icon="editor" actions={emptyFocusActions} />;
+      return (
+        <NoTabsPlaceholder icon="source-control" actions={emptyFocusActions} />
+      );
     }
 
     return (

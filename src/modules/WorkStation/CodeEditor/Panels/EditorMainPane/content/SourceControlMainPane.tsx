@@ -47,7 +47,7 @@ export interface SourceControlMainPaneProps {
   sourceControlFilterMode: string;
   gitDiffLoading: boolean;
   sourceControlCollapseAllSignal?: number;
-  editorQuickActions: QuickAction[];
+  sourceControlQuickActions: QuickAction[];
   onForceReload?: () => void;
   onFileSelect?: (path: string) => void;
   onGitDiffUnsavedChange?: (hasUnsaved: boolean) => void;
@@ -62,7 +62,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   sourceControlFilterMode,
   gitDiffLoading,
   sourceControlCollapseAllSignal,
-  editorQuickActions,
+  sourceControlQuickActions,
   onForceReload,
   onFileSelect,
   onGitDiffUnsavedChange,
@@ -111,7 +111,12 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
 
   if (sourceControlFilterMode === "issues") {
     if (!selectedIssueState.issue) {
-      return <NoTabsPlaceholder icon="editor" actions={editorQuickActions} />;
+      return (
+        <NoTabsPlaceholder
+          icon="source-control"
+          actions={sourceControlQuickActions}
+        />
+      );
     }
 
     return (
@@ -133,7 +138,12 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
     sourceControlFilterMode === "pr" &&
     (!historySelection || historySelection.type !== "pr")
   ) {
-    return <NoTabsPlaceholder icon="editor" actions={editorQuickActions} />;
+    return (
+      <NoTabsPlaceholder
+        icon="source-control"
+        actions={sourceControlQuickActions}
+      />
+    );
   }
 
   return (
@@ -153,7 +163,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
           repoId={repoId ?? undefined}
           repoPath={repoPath}
           collapseAllSignal={sourceControlCollapseAllSignal}
-          emptyFocusActions={editorQuickActions}
+          emptyFocusActions={sourceControlQuickActions}
         />
       </Suspense>
     </div>

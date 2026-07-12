@@ -54,6 +54,21 @@ export const isReadFileEvent = (event: SessionEvent): boolean => {
   return getUiCanonical(event) === "read_file";
 };
 
+/** Check if an event is a file edit/create/patch operation. */
+export const isEditFileEvent = (event: SessionEvent): boolean => {
+  return getUiCanonical(event) === "edit_file";
+};
+
+/** Check if an event deletes a file. */
+export const isDeleteFileEvent = (event: SessionEvent): boolean => {
+  return getUiCanonical(event) === "delete_file";
+};
+
+/** Check if an event modifies the workspace file set or file contents. */
+export const isFileModificationEvent = (event: SessionEvent): boolean => {
+  return isEditFileEvent(event) || isDeleteFileEvent(event);
+};
+
 /**
  * Get the simulator app type for a tool (Rust source of truth).
  */

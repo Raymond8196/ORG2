@@ -86,6 +86,10 @@ if (typeof document !== "undefined") {
 const chatWidthBaseAtom = atom<number>(initialChatWidth);
 chatWidthBaseAtom.debugLabel = "chatWidthBaseAtom";
 
+/** True only while the user is actively resizing the chat pane. */
+export const chatPanelDraggingAtom = atom<boolean>(false);
+chatPanelDraggingAtom.debugLabel = "chatPanelDraggingAtom";
+
 /**
  * Chat width atom with optimized persistence
  * - Reads from base atom (fast)

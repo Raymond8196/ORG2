@@ -149,6 +149,10 @@
       "zh-Hant": "繁体中国語"
     },
     "layout": "レイアウト",
+    "sidebar": "サイドバー",
+    "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "サイドバー境界の奥行き",
+    "selectedItemTransparency": "選択項目の透明度",
     "spotlightPlacement": "Spotlight の位置",
     "spotlightPlacementDesc": "Spotlight コマンドパレットを開く位置を選択",
     "spotlightPlacementOptions": {

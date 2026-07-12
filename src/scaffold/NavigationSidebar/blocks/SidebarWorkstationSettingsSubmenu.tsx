@@ -20,8 +20,6 @@ import {
   workStationChatPositionAtom,
   workStationDockAutoHideAtom,
   workStationDockAutoHidePersistAtom,
-  workStationInternalLayoutModeAtom,
-  workStationInternalLayoutModePersistAtom,
   workStationLayoutModeAtom,
   workStationLayoutModePersistAtom,
 } from "@src/store/ui/workStationAtom";
@@ -38,7 +36,6 @@ interface SidebarWorkstationSettingsSubmenuProps {
 }
 
 type ChatPanelPosition = "left" | "right";
-type InternalLayoutMode = "comfort" | "compact";
 type WorkstationSidebarPosition = "left" | "right";
 
 function SelectionRow<TValue extends string>({
@@ -111,18 +108,9 @@ export const SidebarWorkstationSettingsSubmenu: React.FC<SidebarWorkstationSetti
     const [chatTurnPaginationEnabled, setChatTurnPaginationEnabled] = useAtom(
       chatTurnPaginationEnabledAtom
     );
-    const internalLayoutMode = useAtomValue(workStationInternalLayoutModeAtom);
-    const setInternalLayoutMode = useSetAtom(
-      workStationInternalLayoutModePersistAtom
-    );
-
     const chatPositionOptions = [
       { value: "left", label: t("layoutSettings.left") },
       { value: "right", label: t("layoutSettings.right") },
-    ] as const;
-    const internalLayoutOptions = [
-      { value: "comfort", label: t("layoutSettings.comfort") },
-      { value: "compact", label: t("layoutSettings.compact") },
     ] as const;
     const modelPickerStyleOptions = [
       { value: "spotlight", label: t("layoutSettings.modelPickerSpotlight") },
@@ -164,13 +152,6 @@ export const SidebarWorkstationSettingsSubmenu: React.FC<SidebarWorkstationSetti
         </>
       ) : (
         <>
-          <SelectionRow<InternalLayoutMode>
-            label={t("layoutSettings.layoutMode")}
-            value={internalLayoutMode}
-            options={internalLayoutOptions}
-            onChange={setInternalLayoutMode}
-          />
-          <div className={DROPDOWN_CLASSES.menuSeparator} />
           <SelectionRow<WorkstationSidebarPosition>
             label={t("layoutSettings.sidebarPosition")}
             value={layoutMode}

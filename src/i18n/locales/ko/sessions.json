@@ -717,6 +717,9 @@
       "addApiKey": {
         "title": "API 키 추가"
       },
+      "installLatestUpdate": {
+        "title": "최신 업데이트 설치"
+      },
       "agents": {
         "title": "Agents"
       },
@@ -1032,6 +1035,8 @@
     "deleteFileRunning": "{{name}} 삭제 중",
     "deleteFileDone": "{{name}} 삭제됨",
     "deleteFileFailed": "{{name}} 삭제 실패",
+    "deleteFileCompactRunning": "삭제 중",
+    "deleteFileCompactDone": "삭제",
     "directoryTree": "디렉토리 트리",
     "ls": "ls",
     "listDirRunning": "디렉토리 나열 중",
@@ -1097,6 +1102,14 @@
     "editFileDoneNoName": "파일 편집됨",
     "editFileCompactRunning": "편집 중",
     "editFileCompactDone": "편집",
+    "editFiles": "파일 편집",
+    "editSummary": {
+      "edit_one": "편집 {{count}}회",
+      "edit_other": "편집 {{count}}회",
+      "read_one": "읽기 {{count}}회",
+      "read_other": "읽기 {{count}}회",
+      "separator": ", "
+    },
     "editFileFailedNoName": "편집 시도",
     "file": "파일",
     "runShellRunning": "명령 실행 중",
@@ -1156,7 +1169,8 @@
       "ls_one": "ls {{count}}개 폴더",
       "ls_other": "ls {{count}}개 폴더",
       "lsp_one": "{{count}}회 LSP 쿼리",
-      "lsp_other": "{{count}}회 LSP 쿼리"
+      "lsp_other": "{{count}}회 LSP 쿼리",
+      "separator": ", "
     },
     "categoryRead": "읽기",
     "categorySearch": "검색",

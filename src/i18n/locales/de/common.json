@@ -1617,11 +1617,8 @@
     "chatRight": "Chat rechts",
     "pageSettings": "Seiteneinstellungen",
     "pageLayout": "Seitenlayout",
-    "layoutMode": "Layoutmodus",
     "inset": "Eingesetzt",
     "full": "Vollständig",
-    "compact": "Kompakt",
-    "comfort": "Komfort",
     "theme": "Design",
     "primaryPanel": "Seitenleiste",
     "sidebarPosition": "Seitenleistenposition",
@@ -1683,8 +1680,6 @@
     "disableChatPagination": "Chat-Paginierung ausschalten",
     "useModelPickerSpotlight": "Spotlight-Modellauswahl verwenden",
     "useModelPickerDropdown": "Dropdown-Modellauswahl verwenden",
-    "useCompactWorkstationLayout": "Kompaktes Workstation-Layout verwenden",
-    "useComfortWorkstationLayout": "Komfortables Workstation-Layout verwenden",
     "moveWorkstationSidebarLeft": "Workstation-Seitenleiste nach links verschieben",
     "moveWorkstationSidebarRight": "Workstation-Seitenleiste nach rechts verschieben",
     "enableDockAutoHide": "Workstation-Dock automatisch ausblenden",
@@ -1946,6 +1941,12 @@
     "removeWorktreeMessage": "Dies entfernt den Worktree checkout vom Datenträger. Branch und commits bleiben erhalten.",
     "removeWorktreeSuccess": "Worktree entfernt",
     "removeWorktreeFailed": "Worktree konnte nicht entfernt werden",
+    "emptyState": {
+      "viewSourceControl": "Source Control anzeigen",
+      "viewIssues": "Issues anzeigen",
+      "viewGitHistory": "Git-Verlauf anzeigen",
+      "viewPullRequests": "Pull Requests anzeigen"
+    },
     "pill": {
       "focus": "Fokus",
       "allChanges": "Alle Änderungen"

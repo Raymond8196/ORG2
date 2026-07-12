@@ -715,6 +715,9 @@
       "addApiKey": {
         "title": "Thêm API key"
       },
+      "installLatestUpdate": {
+        "title": "Cài đặt bản cập nhật mới nhất"
+      },
       "agents": {
         "title": "Agents"
       },
@@ -1030,6 +1033,8 @@
     "deleteFileRunning": "Đang xóa {{name}}",
     "deleteFileDone": "Đã xóa {{name}}",
     "deleteFileFailed": "Không thể xóa {{name}}",
+    "deleteFileCompactRunning": "Đang xóa",
+    "deleteFileCompactDone": "Xóa",
     "directoryTree": "Cây thư mục",
     "ls": "ls",
     "listDirRunning": "Đang liệt kê thư mục",
@@ -1095,6 +1100,14 @@
     "editFileDoneNoName": "Đã chỉnh sửa tệp",
     "editFileCompactRunning": "Đang chỉnh sửa",
     "editFileCompactDone": "Chỉnh sửa",
+    "editFiles": "Chỉnh sửa tệp",
+    "editSummary": {
+      "edit_one": "{{count}} lần sửa",
+      "edit_other": "{{count}} lần sửa",
+      "read_one": "{{count}} lần đọc",
+      "read_other": "{{count}} lần đọc",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Đã thử chỉnh sửa",
     "file": "tệp",
     "runShellRunning": "Đang chạy lệnh",
@@ -1154,7 +1167,8 @@
       "ls_one": "ls {{count}} thư mục",
       "ls_other": "ls {{count}} thư mục",
       "lsp_one": "{{count}} truy vấn LSP",
-      "lsp_other": "{{count}} truy vấn LSP"
+      "lsp_other": "{{count}} truy vấn LSP",
+      "separator": ", "
     },
     "categoryRead": "Đọc",
     "categorySearch": "Tìm kiếm",

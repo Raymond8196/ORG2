@@ -22,7 +22,7 @@ import {
 import i18next from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
 import { PanelLeft, Plus, X } from "lucide-react";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
@@ -32,8 +32,12 @@ import {
   resolveHostDesktop,
 } from "@src/config/windowChromeRadius";
 import { createLogger } from "@src/hooks/logger";
+import { useSettingValue } from "@src/hooks/settings/useSettings";
 import { useSidebarState } from "@src/hooks/ui/sidebar/useSidebarState";
-import { getSidebarSurfaceBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
+import {
+  PANE_WIDTH_TRANSITION_CLASSES,
+  getSidebarSurfaceBackgroundStyle,
+} from "@src/modules/shared/layouts/viewContainerTokens";
 import { VerticalResizeHandle } from "@src/scaffold/Resize";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import { hoverSidebarOpenAtom } from "@src/store/ui/hoverSidebarAtom";
@@ -51,6 +55,7 @@ import type { SidebarBaseProps } from "./types";
 const log = createLogger("SidebarBase");
 
 const HOST_DESKTOP_KIND = resolveHostDesktop();
+const IS_MACOS_HOST = HOST_DESKTOP_KIND === HOST_DESKTOP.MACOS;
 const IS_WINDOWS_HOST = HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS;
 const SHOW_HOST_TITLE =
   HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS ||
@@ -85,8 +90,10 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     beforeAddNewActions,
     headerActions,
   }) => {
+    const sidebarContainerRef = useRef<HTMLDivElement>(null);
     const {
       width: sidebarWidth,
+      expandedWidth: expandedSidebarWidth,
       isDragging,
       handleMouseDown,
       isCollapsed,
@@ -94,7 +101,18 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
       expand,
       setWidth,
     } = useSidebarState();
-
+    const sidebarSelectedRowOpacity = useSettingValue(
+      "layout.sidebarSelectedRowOpacity"
+    );
+    const sidebarEdgeDepthEnabled = useSettingValue(
+      "layout.sidebarEdgeDepthEnabled"
+    );
+    useEffect(() => {
+      document.body.style.setProperty(
+        "--sidebar-selected-row-opacity",
+        `${sidebarSelectedRowOpacity}%`
+      );
+    }, [sidebarSelectedRowOpacity]);
     const isMacOS = isTauriDesktop();
     const hideSidebarShortcut = getShortcutKeys("toggle_sidebar");
     const isFullscreen = useAtomValue(windowFullscreenAtom);
@@ -107,6 +125,16 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // Check for force visible from context (for hover sidebar)
     const forceVisibleFromContext = useForceVisibleSidebar();
     const shouldForceVisible = forceVisibleProp || forceVisibleFromContext;
+    useEffect(() => {
+      if (!isCollapsed || shouldForceVisible) return;
+      const activeElement = document.activeElement;
+      if (
+        activeElement instanceof HTMLElement &&
+        sidebarContainerRef.current?.contains(activeElement)
+      ) {
+        activeElement.blur();
+      }
+    }, [isCollapsed, shouldForceVisible]);
 
     // Check if hover sidebar is open — split read/write to avoid re-renders from setter reference
     const isHoverSidebarOpen = useAtomValue(hoverSidebarOpenAtom);
@@ -209,20 +237,29 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // When forceVisible and collapsed, use default width instead of 0
     const effectiveWidth =
       shouldForceVisible && isCollapsed ? DEFAULT_SIDEBAR_WIDTH : sidebarWidth;
+    const surfaceWidth =
+      shouldForceVisible && isCollapsed
+        ? DEFAULT_SIDEBAR_WIDTH
+        : expandedSidebarWidth;
 
     // Memoize outer container style to avoid re-creating on every render
     const containerStyle = useMemo(
-      () => ({
-        width: `${effectiveWidth}px`,
-        willChange: isDragging ? ("width" as const) : ("auto" as const),
-      }),
-      [effectiveWidth, isDragging]
+      () =>
+        ({
+          width: `${effectiveWidth}px`,
+          willChange: isDragging ? ("width" as const) : ("auto" as const),
+          pointerEvents:
+            isCollapsed && !shouldForceVisible ? ("none" as const) : undefined,
+          "--sidebar-selected-row-opacity": `${sidebarSelectedRowOpacity}%`,
+        }) as React.CSSProperties,
+      [
+        effectiveWidth,
+        isCollapsed,
+        isDragging,
+        shouldForceVisible,
+        sidebarSelectedRowOpacity,
+      ]
     );
-
-    // Don't render if collapsed (unless forceVisible is true)
-    if (isCollapsed && !shouldForceVisible) {
-      return null;
-    }
 
     const sidebarTopChromeClassName = SIDEBAR_TOP_CHROME_CLASS_NAME;
 
@@ -297,7 +334,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     role="button"
                     tabIndex={0}
                   >
-                    <div className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] transition-colors duration-150 hover:bg-fill-2">
+                    <div className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] transition-colors duration-150 hover:bg-sidebar-selected">
                       <AddIcon
                         size={16}
                         strokeWidth={2}
@@ -329,7 +366,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     {/* Expand sidebar permanently button */}
                     <button
                       type="button"
-                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-fill-2"
+                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                       onClick={handleExpand}
                     >
                       <PanelLeft
@@ -342,7 +379,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     {/* Close floating sidebar button */}
                     <button
                       type="button"
-                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-fill-2"
+                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                       onClick={handleCollapse}
                     >
                       <X
@@ -368,7 +405,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     <div className="inline-flex">
                       <button
                         type="button"
-                        className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-fill-2"
+                        className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                         onClick={handleCollapse}
                       >
                         <PanelLeft
@@ -429,12 +466,11 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     );
 
     // Modern layout: the sidebar is flush with the rounded window edge
-    // (top-left + bottom-left curves match `--border-radius-window`). Both
-    // the floating drop shadow and the backdrop-filter blur produce a
-    // faint dark halo along that curve — the shadow smudges the boundary
-    // with the content panel, and `backdrop-filter` samples beyond the
-    // rounded clip on WebKit, leaving a visible "shade" tracing the
-    // corner. Drop both in compact so the corner is a clean fill.
+    // (top-left + bottom-left curves match `--border-radius-window`). Avoid
+    // a broad docked drop shadow because it traces the window corner. On
+    // macOS, use a narrow inset edge shadow instead: it creates the vertical
+    // Codex-style depth where the sidebar meets the content panel without
+    // bleeding outside the rounded clip.
     //
     // Floating / hover sidebar: it pops out over the workspace content as
     // a transient overlay. It should feel solid (so it's legible against
@@ -444,7 +480,9 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // current layout mode so it visually detaches from the workspace.
     const sidebarBoxShadow = shouldForceVisible
       ? "var(--sidebar-shadow)"
-      : "none";
+      : IS_MACOS_HOST && sidebarEdgeDepthEnabled
+        ? "var(--sidebar-edge-shadow)"
+        : "none";
     const sidebarBackdropFilter = "none";
     const floatingSurfaceOverride: React.CSSProperties = shouldForceVisible
       ? { backgroundColor: "var(--color-bg-1)" }
@@ -489,13 +527,14 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     } as const;
     const wrappedContent = wrapInSurface ? (
       <div
-        className={`sidebar-base flex h-full w-full flex-col ${innerClassName}`}
+        className={`sidebar-base flex h-full w-full flex-col overflow-hidden ${innerClassName}`}
       >
         <div
-          className="flex flex-1 flex-col overflow-hidden"
+          className="flex h-full flex-none flex-col overflow-hidden"
           style={{
             ...surfaceStyle,
             ...modernSurfaceStyle,
+            width: `${surfaceWidth}px`,
           }}
         >
           {content}
@@ -512,14 +551,17 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
 
     return (
       <div
+        ref={sidebarContainerRef}
         className={`group/sidebar relative flex h-full flex-shrink-0 ${
-          isDragging ? "" : "transition-[width] duration-150"
+          isDragging ? "" : PANE_WIDTH_TRANSITION_CLASSES
         } ${className}`}
         style={containerStyle}
+        aria-hidden={isCollapsed && !shouldForceVisible}
+        data-sidebar-collapsed={isCollapsed || undefined}
         onContextMenu={handleResizeContextMenu}
       >
         {wrappedContent}
-        {renderResizeHandle()}
+        {(!isCollapsed || shouldForceVisible) && renderResizeHandle()}
       </div>
     );
   }
