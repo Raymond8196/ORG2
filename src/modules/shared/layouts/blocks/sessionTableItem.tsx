@@ -73,11 +73,10 @@ export function mapKanbanTaskToSessionTableItem({
   active,
   testId,
 }: MapKanbanTaskToSessionTableItemInput): SessionTableItem {
-  const orgtrackMetadata = task.orgtrackMetadata;
-  const committedRateValue = orgtrackMetadata?.committedRatePercent;
+  const impact = task.impact;
+  const committedRateValue = impact?.committedRatePercent;
   const hasLinesChanged = Boolean(
-    orgtrackMetadata &&
-    (orgtrackMetadata.linesAdded > 0 || orgtrackMetadata.linesRemoved > 0)
+    impact && (impact.linesAdded > 0 || impact.linesRemoved > 0)
   );
 
   return {
@@ -101,10 +100,10 @@ export function mapKanbanTaskToSessionTableItem({
     workspaceLabel: truncateWorkspaceLabel(task.workspaceName),
     workspaceTitle: task.workspaceName,
     impactLabel:
-      hasLinesChanged && orgtrackMetadata ? (
+      hasLinesChanged && impact ? (
         <DiffStatsBadge
-          additions={orgtrackMetadata.linesAdded}
-          deletions={orgtrackMetadata.linesRemoved}
+          additions={impact.linesAdded}
+          deletions={impact.linesRemoved}
           variant="plain"
           size="inherit"
           reserveValueWidth={false}
@@ -113,12 +112,12 @@ export function mapKanbanTaskToSessionTableItem({
         />
       ) : undefined,
     filesChangedLabel:
-      orgtrackMetadata && orgtrackMetadata.filesChanged > 0
-        ? orgtrackMetadata.filesChanged.toLocaleString()
+      impact && impact.filesChanged > 0
+        ? impact.filesChanged.toLocaleString()
         : undefined,
     relatedCommitsLabel:
-      orgtrackMetadata && orgtrackMetadata.relatedCommits > 0
-        ? orgtrackMetadata.relatedCommits.toLocaleString()
+      impact && impact.relatedCommits > 0
+        ? impact.relatedCommits.toLocaleString()
         : undefined,
     committedRateLabel:
       committedRateValue !== undefined ? `${committedRateValue}%` : undefined,

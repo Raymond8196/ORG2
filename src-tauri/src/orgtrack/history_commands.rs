@@ -1,8 +1,7 @@
 use std::path::Path;
 
 use database::db::get_connection;
-use orgtrack_core::sources::claude_code::{db as claude_code_db, history as claude_code_history};
-use orgtrack_core::sources::cli_session_db::{self, CliSession};
+use orgtrack_core::sources::claude_code::history as claude_code_history;
 use orgtrack_core::sources::codex::app as codex_app;
 use orgtrack_core::sources::cursor_ide::{db as cursor_db, history as cursor_db_history};
 use orgtrack_core::sources::imported_history;
@@ -10,10 +9,21 @@ use orgtrack_core::sources::opencode::history as opencode_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
 
+use crate::agent_sessions::unified_stats::pricing_catalog;
+
 use super::external_cli_detection::{self, ExternalCliSourceProbe};
 
 fn open_cache_conn() -> Result<rusqlite::Connection, String> {
     get_connection().map_err(|err| format!("Failed to open orgtrack source cache DB: {err}"))
+}
+
+/// List-price estimate for a session that carries only a single total token
+/// count with no input/output split (Cursor). Priced at a blended rate — the
+/// mean of the input and output rates — which is an approximation for
+/// total-only token counts.
+fn estimate_cost_blended(total_tokens: i64, model: &str) -> f64 {
+    let pricing = pricing_catalog::resolve_pricing(Some(model));
+    total_tokens as f64 / 1e6 * (pricing.input_per_mtok + pricing.output_per_mtok) / 2.0
 }
 
 fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecentPath>, String> {
@@ -37,34 +47,11 @@ pub async fn orgtrack_get_cursor_sessions(
 ) -> Result<Vec<cursor_db::CursorSession>, String> {
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
-        cursor_db::get_cursor_sessions(&mut conn, &start_date, &end_date)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command]
-pub async fn orgtrack_get_claude_sessions(
-    start_date: String,
-    end_date: String,
-) -> Result<Vec<claude_code_db::ClaudeCodeSession>, String> {
-    tokio::task::spawn_blocking(move || {
-        let conn = open_cache_conn()?;
-        claude_code_db::get_claude_sessions(&conn, &start_date, &end_date)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command]
-pub async fn orgtrack_get_cli_sessions(
-    tool: Option<String>,
-    start_date: String,
-    end_date: String,
-) -> Result<Vec<CliSession>, String> {
-    tokio::task::spawn_blocking(move || {
-        let conn = open_cache_conn()?;
-        cli_session_db::get_cli_sessions(&conn, tool.as_deref(), &start_date, &end_date)
+        let mut sessions = cursor_db::get_cursor_sessions(&mut conn, &start_date, &end_date)?;
+        for session in &mut sessions {
+            session.estimated_cost = estimate_cost_blended(session.tokens_used, &session.model);
+        }
+        Ok(sessions)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

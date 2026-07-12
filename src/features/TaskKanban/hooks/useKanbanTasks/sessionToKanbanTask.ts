@@ -90,20 +90,14 @@ export function sessionToKanbanTask(
   const resultStatus = getResultStatus(session, columnId);
   const agentLabel = getAgentLabel(session, categoryTag);
 
-  // Rust agent sessions render as single-line title-only cards to match
-  // CLI/Cursor cards. Their `user_input` would otherwise duplicate the
-  // auto-generated `name` (or a near-identical first prompt) below the title.
-  const isRustAgent = isAgentSession(session.session_id);
-
   return {
     id: session.session_id,
     title: stripPillReferences(
       session.name || session.user_input?.slice(0, 120) || session.session_id
     ),
-    description:
-      !isRustAgent && session.user_input
-        ? stripPillReferences(session.user_input)
-        : undefined,
+    // Session names are commonly generated from the first user message, so
+    // repeating `user_input` as a description produces duplicate card copy.
+    description: undefined,
     status: columnId as KanbanTask["status"],
     assignee: agentLabel,
     tags,

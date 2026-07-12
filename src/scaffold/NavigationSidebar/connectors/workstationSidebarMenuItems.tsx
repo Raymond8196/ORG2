@@ -7,12 +7,12 @@ import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import {
+  KANBAN_MENU_ITEM_ID,
   NEW_SESSION_MENU_ITEM_ID,
-  OPS_CONTROL_KANBAN_MENU_ITEM_ID,
-  OPS_CONTROL_MENU_ITEM_ID,
   PROJECTS_IMPORT_GITHUB_ISSUES_MENU_ITEM_ID,
   PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
   PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID,
+  WORK_ITEMS_MENU_ITEM_ID,
   getDraftMenuItemId,
   getDraftPreviewText,
 } from "./sidebarConnectorUtils";
@@ -20,8 +20,8 @@ import {
 interface BuildPinnedMenuItemsParams {
   newSessionLabel: string;
   newSessionShortcut: string;
-  opsControlLabel: string;
-  opsControlItems: NavigationMenuItem[];
+  workItemsLabel: string;
+  workItemDestinations: NavigationMenuItem[];
   kanbanLabel: string;
   kanbanShortcut: string;
 }
@@ -35,8 +35,8 @@ interface BuildProjectsPinnedMenuItemsParams {
 export function buildPinnedMenuItems({
   newSessionLabel,
   newSessionShortcut,
-  opsControlLabel,
-  opsControlItems,
+  workItemsLabel,
+  workItemDestinations,
   kanbanLabel,
   kanbanShortcut,
 }: BuildPinnedMenuItemsParams): NavigationMenuItem[] {
@@ -50,21 +50,21 @@ export function buildPinnedMenuItems({
       shortcut: newSessionShortcut,
     },
     {
-      id: OPS_CONTROL_KANBAN_MENU_ITEM_ID,
-      key: OPS_CONTROL_KANBAN_MENU_ITEM_ID,
+      id: KANBAN_MENU_ITEM_ID,
+      key: KANBAN_MENU_ITEM_ID,
       label: kanbanLabel,
       icon: Columns3,
       iconName: "columns-3",
       shortcut: kanbanShortcut,
     },
     {
-      id: OPS_CONTROL_MENU_ITEM_ID,
-      key: OPS_CONTROL_MENU_ITEM_ID,
-      label: opsControlLabel,
+      id: WORK_ITEMS_MENU_ITEM_ID,
+      key: WORK_ITEMS_MENU_ITEM_ID,
+      label: workItemsLabel,
       icon: ListTodo,
       iconName: "list-todo",
-      children: opsControlItems,
-      dataTestId: "sidebar-open-ops-control",
+      children: workItemDestinations,
+      dataTestId: "sidebar-toggle-work-items",
     },
   ];
 }
@@ -127,6 +127,7 @@ export function buildDraftMenuItems({
           cliAgentType: draft.cliAgentType ?? undefined,
         }),
         shortcut: formatRelativeTime(draft.createdAt, "nano"),
+        openContextMenuOnSelectedClick: true,
         trailingElement: (
           <span className="h-1.5 w-1.5 rounded-full border border-border-3 bg-transparent" />
         ),

@@ -74,7 +74,7 @@ export function useTaskKanbanHeader({
   }, [diaryControls, headerTrailing, viewMode]);
 
   usePublishWorkstationTabHeader({
-    host: "opsControl",
+    host: "workManagement",
     content: headerContent,
     enabled: !hidden,
   });

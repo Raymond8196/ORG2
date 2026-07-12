@@ -1,4 +1,3 @@
-pub mod analysis_backfill;
 pub mod exporter;
 pub mod external_cli_detection;
 pub mod extraction_scheduler;
@@ -235,19 +234,21 @@ fn apply_runtime_impact_overrides(summaries: &mut [CoreSessionSummary]) -> Resul
     Ok(())
 }
 
+/// Delete a session's derived orgtrack artifacts (final diffs, edit artifacts,
+/// diff chunks, file changes, checkpoints, commit links) WITHOUT recomputing.
+///
+/// Used by checkpoint-restore to drop diff rows that no longer match the rewound
+/// event stream. This is a pure invalidation, not an analysis pass: the Diff (N)
+/// panel reads live from these tables, so clearing them makes it show the clean
+/// post-checkpoint state. Subsequent real edits repopulate the tables via the
+/// live runtime path.
 #[tauri::command]
-pub async fn orgtrack_analyze_sessions(
-    workspace_path: Option<String>,
-    session_id: Option<String>,
-    rebuild: Option<bool>,
-) -> Result<analysis_backfill::AnalysisBackfillStats, String> {
-    record_orgtrack_command_call("orgtrack_analyze_sessions");
+pub async fn orgtrack_delete_session_artifacts(session_id: String) -> Result<(), String> {
+    record_orgtrack_command_call("orgtrack_delete_session_artifacts");
     tokio::task::spawn_blocking(move || {
-        analysis_backfill::analyze_requested(
-            workspace_path.as_deref(),
-            session_id.as_deref(),
-            rebuild.unwrap_or(false),
-        )
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let store = SqliteRecordStore::new(&conn);
+        store.delete_session_artifacts(SOURCE_ORGII_RUST_AGENTS, &session_id)
     })
     .await
     .map_err(|err| err.to_string())?
@@ -507,11 +508,10 @@ pub async fn orgtrack_get_session_commit_links(
 
 /// Debug-only: seed an orgtrack commit link for WDIO Submissions-tab specs.
 ///
-/// Production commit links are written by `analysis_backfill` after the
-/// extraction scheduler parses a `git commit` / `git push` shell event. That
-/// path is async and depends on a real provider run, so WDIO specs cannot
-/// reach it. This wire writes the same `CommitLinkRecord` shape the backfill
-/// produces (camelCase JSON, `observed_in_terminal_output` reachability) so
+/// Commit links are normally derived from a real provider run parsing a
+/// `git commit` / `git push` shell event — an async path WDIO specs cannot
+/// reach. This wire writes a `CommitLinkRecord` directly (camelCase JSON,
+/// `observed_in_terminal_output` reachability) so
 /// `orgtrack_get_session_commit_links` returns it and the Submissions tab
 /// renders the commit exactly like a live push. Returns Err in release builds.
 #[tauri::command]

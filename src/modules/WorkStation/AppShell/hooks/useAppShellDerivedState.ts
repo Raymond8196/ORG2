@@ -32,12 +32,8 @@ function isWorkStationHost(host: string): host is Exclude<DockFilter, "all"> {
 
 export function useAppShellDerivedState({
   dockFilter,
-  isOpsControlStation,
-  opsControlPeekHost,
 }: {
   dockFilter: DockFilter;
-  isOpsControlStation: boolean;
-  opsControlPeekHost: "code" | "browser" | "data" | "project" | null;
 }): AppShellDerivedState {
   const activeHost = useAtomValue(activeHostAtom);
   const effectiveHost = dockFilter === "all" ? activeHost : dockFilter;
@@ -51,7 +47,7 @@ export function useAppShellDerivedState({
   const isBrowserMode = effectiveHost === "browser";
   const isProjectMode = effectiveHost === "project";
 
-  const codeContentVisible = isCodeMode || opsControlPeekHost === "code";
+  const codeContentVisible = isCodeMode;
   const browserContentVisible = isBrowserMode;
   const dataContentVisible = isDataMode;
   const projectContentVisible = isProjectMode;
@@ -59,9 +55,7 @@ export function useAppShellDerivedState({
   const setActiveStatusBarApp = useSetAtom(activeStatusBarAppAtom);
   useEffect(() => {
     let appType: StatusBarAppType;
-    if (isOpsControlStation && opsControlPeekHost !== null) {
-      appType = opsControlPeekHost;
-    } else if (effectiveHost === "browser") {
+    if (effectiveHost === "browser") {
       appType = "browser";
     } else if (effectiveHost === "data") {
       appType = "data";
@@ -71,12 +65,7 @@ export function useAppShellDerivedState({
       appType = "code";
     }
     setActiveStatusBarApp(appType);
-  }, [
-    effectiveHost,
-    isOpsControlStation,
-    opsControlPeekHost,
-    setActiveStatusBarApp,
-  ]);
+  }, [effectiveHost, setActiveStatusBarApp]);
 
   return {
     effectiveHost,

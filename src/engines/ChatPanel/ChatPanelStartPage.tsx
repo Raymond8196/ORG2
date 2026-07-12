@@ -22,7 +22,7 @@ import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { createLogger } from "@src/hooks/logger";
 import HeatmapGrid, {
   type HeatmapGridCell,
-} from "@src/modules/MainApp/DevRecord/components/HeatmapGrid";
+} from "@src/modules/shared/devStats/HeatmapGrid";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   CHAT_PANEL_START_PAGE_TAB,

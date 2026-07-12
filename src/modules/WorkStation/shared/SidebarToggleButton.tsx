@@ -62,7 +62,7 @@ export interface SidebarToggleButtonProps {
   /**
    * Show the `toggle_workstation_sidebar` shortcut hint in the tooltip.
    * Defaults to `true`. Set `false` for sidebars that are intentionally not
-   * bound to that shortcut (e.g. Ops Control), so the tooltip doesn't advertise
+   * bound to that shortcut (e.g. Kanban), so the tooltip doesn't advertise
    * a keybinding that has no effect on this sidebar.
    */
   showShortcut?: boolean;

@@ -28,7 +28,8 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use rusqlite::{params, Connection};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use chrono::TimeZone;
 
@@ -36,7 +37,11 @@ static LAST_SYNC: Mutex<Option<Instant>> = Mutex::new(None);
 const SYNC_COOLDOWN: Duration = Duration::from_secs(60);
 
 /// Bump this when parser logic changes to force re-scan of all sessions.
-const PARSER_VERSION: i32 = 2;
+///
+/// v3: replaced hand-rolled substring JSON extraction with real `serde_json`
+/// parsing in every per-tool scanner (robust against nested/escaped JSON) and
+/// fixed Aider message counting.
+const PARSER_VERSION: i32 = 3;
 
 // ============================================
 // Types
@@ -101,6 +106,15 @@ pub struct CliSession {
     pub workspace_path: String,
     pub input_tokens: i64,
     pub output_tokens: i64,
+    /// List-price estimate in USD, priced from `input_tokens`/`output_tokens`
+    /// via the shared pricing catalog. Filled at the command boundary (this
+    /// crate has no pricing dependency); `0.0` until then.
+    #[serde(rename = "estimatedCost", default)]
+    pub estimated_cost: f64,
+    /// Metered spend recorded by the source. Always `0.0` for these imported
+    /// CLI sources — they record no dollar figures.
+    #[serde(rename = "recordedCost", default)]
+    pub recorded_cost: f64,
 }
 
 // ============================================
@@ -261,6 +275,19 @@ fn scan_codex_sessions(codex_dir: &Path) -> Vec<CliSession> {
     sessions
 }
 
+/// One line of a Codex rollout JSONL file. Mirrors the canonical parser in
+/// `sources/codex/app.rs`: a top-level `type`/`timestamp` plus a nested
+/// `payload` object whose shape depends on the line type.
+#[derive(Debug, Deserialize)]
+struct CodexScanLine {
+    #[serde(default)]
+    timestamp: Option<String>,
+    #[serde(default, rename = "type")]
+    line_type: String,
+    #[serde(default)]
+    payload: Value,
+}
+
 fn parse_codex_jsonl(path: &std::path::Path) -> Option<CliSession> {
     let file = fs::File::open(path).ok()?;
     let reader = BufReader::new(file);
@@ -288,55 +315,64 @@ fn parse_codex_jsonl(path: &std::path::Path) -> Option<CliSession> {
         if trimmed.is_empty() {
             continue;
         }
+        let parsed: CodexScanLine = match serde_json::from_str(trimmed) {
+            Ok(parsed) => parsed,
+            Err(_) => continue,
+        };
 
         // Codex timestamps are ISO-8601 strings: "2026-02-11T06:16:06.458Z"
-        if let Some(ts_str) = extract_json_string_field(trimmed, "timestamp") {
-            if let Some(ts_ms) = parse_iso_to_epoch_ms_opt(&ts_str) {
-                if first_timestamp == 0 || ts_ms < first_timestamp {
-                    first_timestamp = ts_ms;
-                }
-                if ts_ms > last_timestamp {
-                    last_timestamp = ts_ms;
+        if let Some(ts_ms) = parsed
+            .timestamp
+            .as_deref()
+            .and_then(parse_iso_to_epoch_ms_opt)
+        {
+            if first_timestamp == 0 || ts_ms < first_timestamp {
+                first_timestamp = ts_ms;
+            }
+            if ts_ms > last_timestamp {
+                last_timestamp = ts_ms;
+            }
+        }
+
+        // Workspace path: cwd lives on session_meta / turn_context payloads.
+        if workspace_path.is_empty() {
+            if let Some(cwd) = json_str(&parsed.payload, "cwd") {
+                if !cwd.is_empty() {
+                    workspace_path = cwd.to_string();
                 }
             }
         }
 
-        // session_meta: extract cwd (workspace path)
-        if workspace_path.is_empty() && trimmed.contains("\"session_meta\"") {
-            if let Some(cwd) = extract_json_string_field(trimmed, "cwd") {
-                workspace_path = cwd;
-            }
-        }
-
-        // turn_context: extract model name (e.g. "gpt-5.3-codex")
-        if model.is_empty() && trimmed.contains("\"turn_context\"") {
-            if let Some(found_model) = extract_json_string_field(trimmed, "model") {
+        // Model name (e.g. "gpt-5.3-codex") lives on the turn_context payload.
+        if model.is_empty() {
+            if let Some(found_model) = json_str(&parsed.payload, "model") {
                 if !found_model.is_empty() {
-                    model = found_model;
+                    model = found_model.to_string();
                 }
             }
         }
 
-        // user_message: extract first user prompt
-        if first_prompt.is_empty() && trimmed.contains("\"user_message\"") {
-            if let Some(msg) = extract_json_string_field(trimmed, "message") {
-                first_prompt = truncate_str(&msg, 200);
+        // First user prompt: the earliest payload that carries a message string.
+        if first_prompt.is_empty() {
+            if let Some(msg) = json_str(&parsed.payload, "message") {
+                if !msg.is_empty() {
+                    first_prompt = truncate_str(msg, 200);
+                }
             }
         }
 
-        // Count assistant response_items (type: "message" with role: "assistant")
-        if trimmed.contains("\"response_item\"") {
+        // Count response_item lines (assistant/tool turns).
+        if parsed.line_type == "response_item" {
             message_count += 1;
         }
 
-        // token_count events: extract total_token_usage (last one wins = cumulative)
-        if trimmed.contains("\"token_count\"") && trimmed.contains("\"total_token_usage\"") {
-            // These are cumulative — take the latest values
-            if let Some(input) = extract_json_i64(trimmed, "input_tokens") {
-                total_input = input; // overwrite, not accumulate — it's cumulative
-            }
-            if let Some(output) = extract_json_i64(trimmed, "output_tokens") {
-                total_output = output;
+        // token_count events carry a cumulative total_token_usage — last wins.
+        if parsed.payload.get("type").and_then(Value::as_str) == Some("token_count") {
+            if let Some(total_usage) = parsed.payload.get("total_token_usage") {
+                // Overwrite, not accumulate: the counter is cumulative. Preserve
+                // the prior value if a field is absent on this record.
+                total_input = json_i64(total_usage, "input_tokens").unwrap_or(total_input);
+                total_output = json_i64(total_usage, "output_tokens").unwrap_or(total_output);
             }
         }
     }
@@ -371,6 +407,8 @@ fn parse_codex_jsonl(path: &std::path::Path) -> Option<CliSession> {
         workspace_path,
         input_tokens: total_input,
         output_tokens: total_output,
+        estimated_cost: 0.0,
+        recorded_cost: 0.0,
     })
 }
 
@@ -422,56 +460,50 @@ fn parse_gemini_session(path: &std::path::Path) -> Option<CliSession> {
         .map(|d| d.as_millis() as i64)
         .unwrap_or(0);
 
-    // Gemini stores chat sessions as JSON with messages array
+    // Gemini stores chat sessions as JSON (single object) or JSONL.
     let mut message_count: i32 = 0;
     let mut model_counts: HashMap<String, usize> = HashMap::new();
     let mut first_prompt = String::new();
     let mut total_input: i64 = 0;
     let mut total_output: i64 = 0;
 
-    // Parse line by line for JSONL, or try as single JSON
-    for line in content.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-
-        if trimmed.contains("\"role\"") && trimmed.contains("\"model\"") {
-            message_count += 1;
-        }
-
-        if first_prompt.is_empty() && trimmed.contains("\"user\"") {
-            if let Some(text) = extract_json_string_field(trimmed, "text") {
-                first_prompt = truncate_str(&text, 200);
-            } else if let Some(text) = extract_json_string_field(trimmed, "content") {
-                first_prompt = truncate_str(&text, 200);
+    for document in parse_json_documents(&content) {
+        for_each_json_node(&document, &mut |node| {
+            if !node.is_object() {
+                return;
             }
-        }
 
-        if let Some(model) = extract_json_string_field(trimmed, "model") {
-            if !model.is_empty() && model.contains("gemini") {
-                *model_counts.entry(model).or_insert(0) += 1;
+            // Message nodes carry a role ("user" / "model" / "assistant").
+            if let Some(role) = json_str(node, "role") {
+                if matches!(role, "user" | "model" | "assistant") {
+                    message_count += 1;
+                }
+                if first_prompt.is_empty() && role == "user" {
+                    if let Some(text) = json_message_text(node) {
+                        first_prompt = truncate_str(&text, 200);
+                    }
+                }
             }
-        }
 
-        if let Some(input) = extract_json_i64(trimmed, "input_tokens") {
-            total_input += input;
-        }
-        if let Some(input) = extract_json_i64(trimmed, "promptTokenCount") {
-            total_input += input;
-        }
-        if let Some(output) = extract_json_i64(trimmed, "output_tokens") {
-            total_output += output;
-        }
-        if let Some(output) = extract_json_i64(trimmed, "candidatesTokenCount") {
-            total_output += output;
-        }
-    }
+            if let Some(model) = json_str(node, "model") {
+                if model.contains("gemini") {
+                    *model_counts.entry(model.to_string()).or_insert(0) += 1;
+                }
+            }
 
-    // Count user messages too
-    let user_msg_count = content.matches("\"user\"").count() as i32;
-    if message_count == 0 {
-        message_count = user_msg_count;
+            // Usage counters can appear under either the OpenAI-style or the
+            // Gemini-style field names; sum whichever are present on the node.
+            for field in ["input_tokens", "promptTokenCount"] {
+                if let Some(input) = json_i64(node, field) {
+                    total_input += input;
+                }
+            }
+            for field in ["output_tokens", "candidatesTokenCount"] {
+                if let Some(output) = json_i64(node, field) {
+                    total_output += output;
+                }
+            }
+        });
     }
 
     if message_count == 0 && mtime == 0 {
@@ -499,6 +531,8 @@ fn parse_gemini_session(path: &std::path::Path) -> Option<CliSession> {
         workspace_path: String::new(),
         input_tokens: total_input,
         output_tokens: total_output,
+        estimated_cost: 0.0,
+        recorded_cost: 0.0,
     })
 }
 
@@ -562,36 +596,38 @@ fn parse_kiro_session(path: &std::path::Path) -> Option<CliSession> {
     let mut total_input: i64 = 0;
     let mut total_output: i64 = 0;
 
-    for line in content.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-
-        if trimmed.contains("\"assistant\"") || trimmed.contains("\"model\"") {
-            message_count += 1;
-        }
-
-        if first_prompt.is_empty() && trimmed.contains("\"user\"") {
-            if let Some(text) = extract_json_string_field(trimmed, "content") {
-                first_prompt = truncate_str(&text, 200);
+    for document in parse_json_documents(&content) {
+        for_each_json_node(&document, &mut |node| {
+            if !node.is_object() {
+                return;
             }
-        }
 
-        if model.is_empty() {
-            if let Some(found_model) = extract_json_string_field(trimmed, "model") {
-                if !found_model.is_empty() {
-                    model = found_model;
+            if let Some(role) = json_str(node, "role") {
+                if matches!(role, "user" | "assistant" | "model") {
+                    message_count += 1;
+                }
+                if first_prompt.is_empty() && role == "user" {
+                    if let Some(text) = json_message_text(node) {
+                        first_prompt = truncate_str(&text, 200);
+                    }
                 }
             }
-        }
 
-        if let Some(input) = extract_json_i64(trimmed, "input_tokens") {
-            total_input += input;
-        }
-        if let Some(output) = extract_json_i64(trimmed, "output_tokens") {
-            total_output += output;
-        }
+            if model.is_empty() {
+                if let Some(found_model) = json_str(node, "model") {
+                    if !found_model.is_empty() {
+                        model = found_model.to_string();
+                    }
+                }
+            }
+
+            if let Some(input) = json_i64(node, "input_tokens") {
+                total_input += input;
+            }
+            if let Some(output) = json_i64(node, "output_tokens") {
+                total_output += output;
+            }
+        });
     }
 
     if message_count == 0 && mtime == 0 {
@@ -613,6 +649,8 @@ fn parse_kiro_session(path: &std::path::Path) -> Option<CliSession> {
         workspace_path: String::new(),
         input_tokens: total_input,
         output_tokens: total_output,
+        estimated_cost: 0.0,
+        recorded_cost: 0.0,
     })
 }
 
@@ -667,21 +705,73 @@ fn parse_aider_session(path: &std::path::Path) -> Option<CliSession> {
         return None;
     }
 
-    // Count message-like patterns
-    let user_messages = content.matches("#### ").count() as i32; // Aider markdown format
-    let message_count = if user_messages > 0 {
-        user_messages
+    let is_markdown = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.eq_ignore_ascii_case("md"))
+        .unwrap_or(false);
+
+    let mut message_count: i32;
+    let mut first_prompt: String;
+    let mut model = String::new();
+    let mut input_tokens: i64 = 0;
+    let mut output_tokens: i64 = 0;
+
+    if is_markdown {
+        // Aider's `.aider.chat.history.md` is Markdown, not JSON: each user turn
+        // is prefixed with "#### ". Count those turns directly (real count,
+        // replacing the former `lines / 4` estimate).
+        message_count = content.lines().filter(|l| l.starts_with("#### ")).count() as i32;
+        first_prompt = content
+            .lines()
+            .find(|l| l.starts_with("#### "))
+            .map(|l| truncate_str(l.trim_start_matches("#### "), 200))
+            .unwrap_or_else(|| file_name.clone());
+
+        // Token accounting stays 0 for the Markdown history: usage is only ever
+        // recorded there in human-formatted, abbreviated lines such as
+        // `> Tokens: 12k sent, 3.4k received.` that mix per-message and
+        // cumulative session figures. They are not reliably machine-parseable
+        // without risking double-counting, so we do not derive token counts from
+        // them. Structured (JSON/JSONL) Aider logs are handled below.
     } else {
-        content.lines().filter(|l| !l.trim().is_empty()).count() as i32 / 4 // rough estimate
-    };
-
-    let first_prompt = content
-        .lines()
-        .find(|l| l.starts_with("#### "))
-        .map(|l| truncate_str(l.trim_start_matches("#### "), 200))
-        .unwrap_or_else(|| file_name.clone());
-
-    let model = extract_json_string_field(&content, "model").unwrap_or_default();
+        // JSON / JSONL Aider logs carry structured usage; parse them properly.
+        message_count = 0;
+        first_prompt = String::new();
+        for document in parse_json_documents(&content) {
+            for_each_json_node(&document, &mut |node| {
+                if !node.is_object() {
+                    return;
+                }
+                if let Some(role) = json_str(node, "role") {
+                    if matches!(role, "user" | "assistant") {
+                        message_count += 1;
+                    }
+                    if first_prompt.is_empty() && role == "user" {
+                        if let Some(text) = json_message_text(node) {
+                            first_prompt = truncate_str(&text, 200);
+                        }
+                    }
+                }
+                if model.is_empty() {
+                    if let Some(found_model) = json_str(node, "model") {
+                        if !found_model.is_empty() {
+                            model = found_model.to_string();
+                        }
+                    }
+                }
+                if let Some(input) = json_i64(node, "input_tokens") {
+                    input_tokens += input;
+                }
+                if let Some(output) = json_i64(node, "output_tokens") {
+                    output_tokens += output;
+                }
+            });
+        }
+        if first_prompt.is_empty() {
+            first_prompt = file_name.clone();
+        }
+    }
 
     Some(CliSession {
         id: format!("aider:{}", file_name),
@@ -692,8 +782,10 @@ fn parse_aider_session(path: &std::path::Path) -> Option<CliSession> {
         message_count,
         model,
         workspace_path: String::new(),
-        input_tokens: 0,
-        output_tokens: 0,
+        input_tokens,
+        output_tokens,
+        estimated_cost: 0.0,
+        recorded_cost: 0.0,
     })
 }
 
@@ -751,36 +843,38 @@ fn parse_cursor_cli_session(path: &std::path::Path) -> Option<CliSession> {
     let mut total_input: i64 = 0;
     let mut total_output: i64 = 0;
 
-    for line in content.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-
-        if trimmed.contains("\"assistant\"") {
-            message_count += 1;
-        }
-
-        if first_prompt.is_empty() && trimmed.contains("\"user\"") {
-            if let Some(text) = extract_json_string_field(trimmed, "content") {
-                first_prompt = truncate_str(&text, 200);
+    for document in parse_json_documents(&content) {
+        for_each_json_node(&document, &mut |node| {
+            if !node.is_object() {
+                return;
             }
-        }
 
-        if model.is_empty() {
-            if let Some(found_model) = extract_json_string_field(trimmed, "model") {
-                if !found_model.is_empty() {
-                    model = found_model;
+            if let Some(role) = json_str(node, "role") {
+                if matches!(role, "user" | "assistant") {
+                    message_count += 1;
+                }
+                if first_prompt.is_empty() && role == "user" {
+                    if let Some(text) = json_message_text(node) {
+                        first_prompt = truncate_str(&text, 200);
+                    }
                 }
             }
-        }
 
-        if let Some(input) = extract_json_i64(trimmed, "input_tokens") {
-            total_input += input;
-        }
-        if let Some(output) = extract_json_i64(trimmed, "output_tokens") {
-            total_output += output;
-        }
+            if model.is_empty() {
+                if let Some(found_model) = json_str(node, "model") {
+                    if !found_model.is_empty() {
+                        model = found_model.to_string();
+                    }
+                }
+            }
+
+            if let Some(input) = json_i64(node, "input_tokens") {
+                total_input += input;
+            }
+            if let Some(output) = json_i64(node, "output_tokens") {
+                total_output += output;
+            }
+        });
     }
 
     if message_count == 0 && mtime == 0 {
@@ -802,6 +896,8 @@ fn parse_cursor_cli_session(path: &std::path::Path) -> Option<CliSession> {
         workspace_path: String::new(),
         input_tokens: total_input,
         output_tokens: total_output,
+        estimated_cost: 0.0,
+        recorded_cost: 0.0,
     })
 }
 
@@ -961,46 +1057,96 @@ fn row_to_session(row: &rusqlite::Row) -> rusqlite::Result<CliSession> {
         workspace_path: row.get(7)?,
         input_tokens: row.get(8)?,
         output_tokens: row.get(9)?,
+        estimated_cost: 0.0,
+        recorded_cost: 0.0,
     })
 }
 
 // ============================================
-// JSON Parsing Helpers (lightweight, no serde)
+// JSON Parsing Helpers (serde_json)
 // ============================================
 
-fn extract_json_string_field(line: &str, field: &str) -> Option<String> {
-    let key = format!("\"{}\"", field);
-    let key_pos = line.find(&key)?;
-    let after_key = &line[key_pos + key.len()..];
-    let colon = after_key.find(':')?;
-    let after_colon = after_key[colon + 1..].trim_start();
-
-    if !after_colon.starts_with('"') {
-        return None;
+/// Parse a session file into one or more JSON documents.
+///
+/// Chat exports come in two shapes: a single JSON object/array spanning the
+/// whole file, or JSONL (one object per line). Try the whole file first, then
+/// fall back to per-line parsing so both are handled robustly.
+fn parse_json_documents(content: &str) -> Vec<Value> {
+    let trimmed = content.trim();
+    if trimmed.is_empty() {
+        return Vec::new();
     }
-
-    let bytes = after_colon.as_bytes();
-    let mut end_pos = 1;
-    while end_pos < bytes.len() {
-        if bytes[end_pos] == b'"' && (end_pos == 0 || bytes[end_pos - 1] != b'\\') {
-            break;
-        }
-        end_pos += 1;
+    if let Ok(value) = serde_json::from_str::<Value>(trimmed) {
+        return vec![value];
     }
-
-    Some(after_colon[1..end_pos].to_string())
+    content
+        .lines()
+        .filter_map(|line| {
+            let line = line.trim();
+            if line.is_empty() {
+                None
+            } else {
+                serde_json::from_str::<Value>(line).ok()
+            }
+        })
+        .collect()
 }
 
-fn extract_json_i64(line: &str, field: &str) -> Option<i64> {
-    let key = format!("\"{}\"", field);
-    let key_pos = line.find(&key)?;
-    let after_key = &line[key_pos + key.len()..];
-    let colon = after_key.find(':')?;
-    let after_colon = after_key[colon + 1..].trim_start();
-    let end_pos = after_colon
-        .find(|ch: char| !ch.is_ascii_digit() && ch != '-')
-        .unwrap_or(after_colon.len());
-    after_colon[..end_pos].parse::<i64>().ok()
+/// Visit a JSON value and every descendant, in document order (pre-order).
+fn for_each_json_node(value: &Value, visit: &mut impl FnMut(&Value)) {
+    visit(value);
+    match value {
+        Value::Array(items) => {
+            for item in items {
+                for_each_json_node(item, visit);
+            }
+        }
+        Value::Object(map) => {
+            for item in map.values() {
+                for_each_json_node(item, visit);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Read a direct string field from an object node.
+fn json_str<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value.get(key).and_then(Value::as_str)
+}
+
+/// Read a direct integer field from an object node, tolerating numbers encoded
+/// as floats or numeric strings.
+fn json_i64(value: &Value, key: &str) -> Option<i64> {
+    let field = value.get(key)?;
+    field
+        .as_i64()
+        .or_else(|| field.as_f64().map(|number| number as i64))
+        .or_else(|| field.as_str().and_then(|text| text.trim().parse::<i64>().ok()))
+}
+
+/// Extract display text from a message node: a direct `text`/`content` string,
+/// or the concatenated `text` parts of a `parts`/`content` array.
+fn json_message_text(node: &Value) -> Option<String> {
+    if let Some(text) = json_str(node, "text") {
+        return Some(text.to_string());
+    }
+    if let Some(text) = json_str(node, "content") {
+        return Some(text.to_string());
+    }
+    let parts = node
+        .get("parts")
+        .and_then(Value::as_array)
+        .or_else(|| node.get("content").and_then(Value::as_array))?;
+    let joined = parts
+        .iter()
+        .filter_map(|part| json_str(part, "text").map(str::to_string))
+        .collect::<Vec<_>>();
+    if joined.is_empty() {
+        None
+    } else {
+        Some(joined.join("\n"))
+    }
 }
 
 fn truncate_str(value: &str, max_len: usize) -> String {

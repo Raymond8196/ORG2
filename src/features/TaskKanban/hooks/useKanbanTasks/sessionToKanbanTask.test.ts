@@ -65,3 +65,19 @@ describe("sessionToKanbanTask agent label", () => {
     expect(task.agentLabel).toBe(expected);
   });
 });
+
+describe("sessionToKanbanTask card copy", () => {
+  it("renders session cards title-only when the first message matches", () => {
+    const task = toTask(
+      makeSession({
+        session_id: "cliagent-claude-1",
+        name: "hi",
+        user_input: "hi",
+        cliAgentType: "claude_code",
+      })
+    );
+
+    expect(task.title).toBe("hi");
+    expect(task.description).toBeUndefined();
+  });
+});

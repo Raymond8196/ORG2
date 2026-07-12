@@ -6,7 +6,9 @@
 
 use database::db::get_connection;
 
-use super::accounting::{session_usage_summary_with_fallback, usage_source_for};
+use core_types::key_source::KeySource;
+
+use super::accounting::{session_usage_summary_priced, usage_source_for};
 use super::aggregation::list_all_sessions;
 use super::types::{SessionFilter, UsageFilter, UsageRecord};
 
@@ -34,8 +36,13 @@ pub fn query_usage_list(filter: Option<&UsageFilter>) -> Result<Vec<UsageRecord>
             continue;
         }
 
-        let usage =
-            session_usage_summary_with_fallback(&conn, &session.session_id, session.total_tokens)?;
+        let metered = session.key_source == KeySource::HostedKey;
+        let usage = session_usage_summary_priced(
+            &conn,
+            &session.session_id,
+            session.total_tokens,
+            metered,
+        )?;
         let source = usage_source_for(&session).as_str().to_string();
         results.push(UsageRecord {
             id: session.session_id,
@@ -45,6 +52,8 @@ pub fn query_usage_list(filter: Option<&UsageFilter>) -> Result<Vec<UsageRecord>
             model: session.model.unwrap_or_else(|| "auto".to_string()),
             tokens: usage.total_tokens,
             cost: usage.cost_usd,
+            recorded_cost: usage.recorded_cost_usd,
+            estimated_cost: usage.estimated_cost_usd,
             status: session.status,
             created_at: session.created_at,
         });

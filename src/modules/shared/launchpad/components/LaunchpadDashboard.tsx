@@ -35,6 +35,10 @@ import {
   SESSION_TARGET_KIND,
   sessionCreatorStateAtom,
 } from "@src/store/session";
+import {
+  CHAT_PANEL_START_PAGE_TAB,
+  chatPanelStartPageTabAtom,
+} from "@src/store/ui/chatPanelAtom";
 import type { AgentConfigTabVariant } from "@src/store/workstation/tabs";
 import { getRustAgentType } from "@src/util/session/sessionDispatch";
 import { openAgentConfigInWorkStation } from "@src/util/ui/openAgentConfigInWorkStation";
@@ -343,8 +347,13 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
     onAddWorkspace,
   }) => {
     const { t } = useTranslation(["navigation", "sessions"]);
-    const { goToNewSession, navigateTo } = useAppNavigation();
+    const { navigateTo } = useAppNavigation();
     const setCreatorState = useSetAtom(sessionCreatorStateAtom);
+    // The dashboard lives inside the chat pane's Launchpad (start-page) tab.
+    // Launching an agent switches to the Work sub-tab, whose session launcher
+    // reads the creator state we just set. Navigating the outer route instead
+    // (the old behavior) left the pane pinned on the dashboard → blank surface.
+    const setStartPageTab = useSetAtom(chatPanelStartPageTabAtom);
     const [selectedAgentKey, setSelectedAgentKey] = useState<string | null>(
       null
     );
@@ -402,7 +411,7 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
               agentName: agent.displayName,
               agentIconId: null,
             }));
-            goToNewSession();
+            setStartPageTab(CHAT_PANEL_START_PAGE_TAB.WORK);
           },
           onOpenDetails: () => {
             openAgentConfigInWorkStation({
@@ -452,7 +461,7 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
               agentIconId: null,
               cliAgentType: null,
             }));
-            goToNewSession();
+            setStartPageTab(CHAT_PANEL_START_PAGE_TAB.WORK);
           },
           onOpenDetails: () => {
             if (!definition) return;
@@ -486,7 +495,7 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
               agentIconId: null,
               cliAgentType: null,
             }));
-            goToNewSession();
+            setStartPageTab(CHAT_PANEL_START_PAGE_TAB.WORK);
           },
           onOpenDetails: () => {
             openAgentConfigInWorkStation({
@@ -504,7 +513,7 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
       builtInRustAgents,
       customRustAgents,
       setCreatorState,
-      goToNewSession,
+      setStartPageTab,
       t,
     ]);
 

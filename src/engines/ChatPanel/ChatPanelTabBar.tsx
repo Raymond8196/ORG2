@@ -62,7 +62,7 @@ import {
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { terminalSessionsAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
 import { sessionByIdAtom } from "@src/store/session";
-import { OPS_CONTROL_HOME_TAB } from "@src/store/workstation";
+import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 import { isWindows } from "@src/util/platform/tauri";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 
@@ -115,11 +115,11 @@ const TabPill = memo(function TabPill({
 
   const displayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
     launchpad: t("navigation:routes.launchpad"),
-    opsControl: {
+    workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
       projects: t("navigation:labels.projects"),
-      githubIssues: t("sessions:opsControl.sidebar.githubIssues"),
-      githubPrs: t("sessions:opsControl.sidebar.githubPrs"),
+      githubIssues: t("sessions:kanban.sidebar.githubIssues"),
+      githubPrs: t("sessions:kanban.sidebar.githubPrs"),
     },
     sessionFallback: t("chat.defaultTitle"),
   });
@@ -143,16 +143,16 @@ const TabPill = memo(function TabPill({
         className={`shrink-0 ${iconColorClass}`}
       />
     );
-  } else if (tab.type === "ops-control") {
-    const OpsControlIcon =
-      tab.opsSection === OPS_CONTROL_HOME_TAB.PROJECTS
+  } else if (tab.type === "work-management") {
+    const WorkManagementIcon =
+      tab.managementSection === WORK_MANAGEMENT_SECTION.PROJECTS
         ? Boxes
-        : tab.opsSection === OPS_CONTROL_HOME_TAB.GITHUB_ISSUES
+        : tab.managementSection === WORK_MANAGEMENT_SECTION.GITHUB_ISSUES
           ? CircleDot
-          : tab.opsSection === OPS_CONTROL_HOME_TAB.GITHUB_PRS
+          : tab.managementSection === WORK_MANAGEMENT_SECTION.GITHUB_PRS
             ? GitPullRequest
             : Columns3;
-    icon = React.createElement(OpsControlIcon, {
+    icon = React.createElement(WorkManagementIcon, {
       size: 16,
       strokeWidth: 1.75,
       className: `shrink-0 ${iconColorClass}`,
@@ -248,41 +248,36 @@ const TabPill = memo(function TabPill({
 
 interface PlusMenuContentProps {
   onOpenLaunchpad: () => void;
-  onOpenOpsControl: () => void;
-  onNewSession: () => void;
+  onOpenKanban: () => void;
   onNewWorkItem: () => void;
   onClose: () => void;
 }
 
 function PlusMenuContent({
   onOpenLaunchpad,
-  onOpenOpsControl,
-  onNewSession,
+  onOpenKanban,
   onNewWorkItem,
   onClose,
 }: PlusMenuContentProps) {
   const { t } = useTranslation(["sessions", "navigation"]);
   const MOD = isMac ? "⌘" : "Ctrl";
 
+  // "New session" and "Launchpad" now open the same singleton start page, so
+  // only the Launchpad entry is kept. It carries the ⌘N hint since that
+  // shortcut (handled in ChatPanelTabBar) opens the same start page.
   const items = [
     {
       id: "launchpad",
       icon: <LayoutGrid size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
       label: t("navigation:routes.launchpad"),
+      hint: `${MOD}N`,
       onClick: onOpenLaunchpad,
     },
     {
-      id: "ops-control",
+      id: "work-management",
       icon: <Columns3 size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
       label: t("sessions:simulator.tabs.kanban"),
-      onClick: onOpenOpsControl,
-    },
-    {
-      id: "new-session",
-      icon: <MessageSquarePlus size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("chat.startPage.newSession.title"),
-      hint: `${MOD}N`,
-      onClick: onNewSession,
+      onClick: onOpenKanban,
     },
     {
       id: "new-work-item",
@@ -328,15 +323,13 @@ function PlusMenuContent({
 
 export interface ChatPanelPlusMenuProps {
   onOpenLaunchpad: () => void;
-  onOpenOpsControl: () => void;
-  onNewSession: () => void;
+  onOpenKanban: () => void;
   onNewWorkItem: () => void;
 }
 
 export function ChatPanelPlusMenu({
   onOpenLaunchpad,
-  onOpenOpsControl,
-  onNewSession,
+  onOpenKanban,
   onNewWorkItem,
 }: ChatPanelPlusMenuProps): React.ReactNode {
   const { t } = useTranslation("sessions");
@@ -349,8 +342,7 @@ export function ChatPanelPlusMenu({
       droplist={
         <PlusMenuContent
           onOpenLaunchpad={onOpenLaunchpad}
-          onOpenOpsControl={onOpenOpsControl}
-          onNewSession={onNewSession}
+          onOpenKanban={onOpenKanban}
           onNewWorkItem={onNewWorkItem}
           onClose={closeMenu}
         />

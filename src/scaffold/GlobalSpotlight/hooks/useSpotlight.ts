@@ -232,8 +232,8 @@ export function useSpotlight(
         "open-agent-station": () => {
           void WorkStationViewService.openStationMode("agent-station");
         },
-        "open-ops-control": () => {
-          void WorkStationViewService.openOpsControlTab();
+        "open-kanban": () => {
+          void WorkStationViewService.openKanbanTab();
         },
         "open-search-sidebar": () => {
           void WorkStationViewService.openSearchSidebar();

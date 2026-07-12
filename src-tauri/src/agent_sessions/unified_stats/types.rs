@@ -228,8 +228,15 @@ pub struct KeySourceStats {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AggregateStats {
-    /// Total cost in USD (estimated from tokens)
+    /// Headline total cost in USD: recorded metered spend where known, else the
+    /// list-price estimate. Preserves the historical single-figure semantics.
     pub total_cost_usd: f64,
+    /// Total real metered spend across sessions (pooled / hosted-key routes).
+    #[serde(default)]
+    pub total_recorded_cost_usd: f64,
+    /// Total list-price estimate across sessions (tokens × catalog rate).
+    #[serde(default)]
+    pub total_estimated_cost_usd: f64,
     /// Total input tokens
     pub total_tokens_input: i64,
     /// Total output tokens
@@ -450,7 +457,14 @@ pub struct UsageRecord {
     pub provider: String,
     pub model: String,
     pub tokens: i64,
+    /// Headline cost: recorded metered spend where known, else the estimate.
     pub cost: f64,
+    /// Real metered spend for this session (`$0` for own-key / subscription).
+    #[serde(default)]
+    pub recorded_cost: f64,
+    /// List-price estimate: tokens × catalog rate.
+    #[serde(default)]
+    pub estimated_cost: f64,
     pub status: String,
     pub created_at: String,
 }

@@ -23,9 +23,8 @@ use super::stats::compute_aggregate_stats_with_accounting;
 use super::types::{
     AggregateStats, ExternalHistorySidebarBucketPage, ExternalHistorySidebarBucketRequest,
     ExternalHistorySidebarResponse, SessionAggregateRecord, SessionFilter, SessionHealthStatus,
-    SessionHistoryResponse, SessionListResponse, UsageFilter, UsageRecord,
+    SessionHistoryResponse, SessionListResponse,
 };
-use super::usage::query_usage_list;
 
 // ============================================================================
 // Tauri Commands
@@ -189,17 +188,6 @@ pub async fn session_get_history(
     })
     .await
     .map_err(|err| format!("Task join error: {}", err))?
-}
-
-/// Get session usage list for the Dev Record > Sessions tab.
-///
-/// Replaces the frontend's dual-fetch pipeline (`cli_agent_list` +
-/// `agent_list_all_sessions` → JS merge/filter) with a single SQL UNION ALL.
-#[tauri::command]
-pub async fn session_usage_list(filter: Option<UsageFilter>) -> Result<Vec<UsageRecord>, String> {
-    tokio::task::spawn_blocking(move || query_usage_list(filter.as_ref()))
-        .await
-        .map_err(|err| format!("Task join error: {}", err))?
 }
 
 /// Get a prompt-cache-aware token and cost summary for one session.

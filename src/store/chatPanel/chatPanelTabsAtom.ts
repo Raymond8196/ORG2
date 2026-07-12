@@ -5,7 +5,7 @@
  *   "session"  — AI agent session chat history
  *   "terminal" — Live PTY terminal embedded in the chat pane
  *   "start-page" — Launchpad with Work / Manage / Trend tabs
- *   "ops-control" — Singleton management surface with internal sections
+ *   "work-management" — Singleton management surface with internal sections
  *
  * Terminal tabs share the global terminal atom store but use session IDs
  * prefixed with "chatpanel-" so they are invisible to the Workstation
@@ -33,27 +33,30 @@ import {
 import {
   CHAT_PANEL_START_PAGE_TAB,
   CHAT_PANEL_SURFACE_KIND,
+  type ChatPanelStartPageTab,
   chatPanelMaximizedAtom,
   chatPanelNavigateAtom,
   chatPanelStartPageOpenAtom,
   chatPanelStartPageTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
-  OPS_CONTROL_HOME_TAB,
-  type OpsControlHomeTab,
+  WORK_MANAGEMENT_SECTION,
+  type WorkManagementSection,
 } from "@src/store/workstation/workstationTabBarAtoms";
 
-import { disposeOpsControlStateAtom } from "./disposeOpsControlStateAtom";
+import { disposeWorkManagementStateAtom } from "./disposeWorkManagementStateAtom";
 
-function getOpsControlFallbackTitle(section: OpsControlHomeTab): string {
+function getWorkManagementFallbackTitle(
+  section: WorkManagementSection
+): string {
   switch (section) {
-    case OPS_CONTROL_HOME_TAB.PROJECTS:
+    case WORK_MANAGEMENT_SECTION.PROJECTS:
       return "Projects";
-    case OPS_CONTROL_HOME_TAB.GITHUB_ISSUES:
+    case WORK_MANAGEMENT_SECTION.GITHUB_ISSUES:
       return "GitHub Issues";
-    case OPS_CONTROL_HOME_TAB.GITHUB_PRS:
+    case WORK_MANAGEMENT_SECTION.GITHUB_PRS:
       return "GitHub PRs";
-    case OPS_CONTROL_HOME_TAB.OPS_CONTROL:
+    case WORK_MANAGEMENT_SECTION.KANBAN:
       return "Kanban";
   }
 }
@@ -66,15 +69,15 @@ export type ChatPanelTabType =
   | "session"
   | "terminal"
   | "start-page"
-  | "ops-control";
+  | "work-management";
 
 export interface ChatPanelTab {
   id: string;
   type: ChatPanelTabType;
   /** Display label */
   title: string;
-  /** Active inner section for the singleton Ops Control tab. */
-  opsSection?: OpsControlHomeTab;
+  /** Active inner section for the singleton Kanban tab. */
+  managementSection?: WorkManagementSection;
   createdAt?: string;
   updatedAt?: string;
   /**
@@ -102,7 +105,7 @@ export interface ChatPanelTab {
 }
 
 const DEFAULT_FULLSCREEN_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
-  "ops-control",
+  "work-management",
 ]);
 
 function isChatPanelTabDefaultFullscreen(
@@ -143,20 +146,13 @@ export function normalizePersistedChatPanelTabsState(
           title: "Launchpad",
         } as ChatPanelTab;
       }
-      if (persistedType === "ops-projects") {
+      if (persistedType === "work-management") {
+        const managementSection =
+          tab.managementSection ?? WORK_MANAGEMENT_SECTION.KANBAN;
         return {
           ...tab,
-          type: "ops-control",
-          title: "Projects",
-          opsSection: OPS_CONTROL_HOME_TAB.PROJECTS,
-        } as ChatPanelTab;
-      }
-      if (persistedType === "ops-control") {
-        const opsSection = tab.opsSection ?? OPS_CONTROL_HOME_TAB.OPS_CONTROL;
-        return {
-          ...tab,
-          title: getOpsControlFallbackTitle(opsSection),
-          opsSection,
+          title: getWorkManagementFallbackTitle(managementSection),
+          managementSection,
         } as ChatPanelTab;
       }
       return tab;
@@ -165,12 +161,22 @@ export function normalizePersistedChatPanelTabsState(
   const activeMappedTab = mappedTabs.find(
     (tab) => tab.id === candidate.activeTabId
   );
-  const preferredOpsControlTabId =
-    activeMappedTab?.type === "ops-control"
+  const preferredWorkManagementTabId =
+    activeMappedTab?.type === "work-management"
       ? activeMappedTab.id
-      : mappedTabs.find((tab) => tab.type === "ops-control")?.id;
+      : mappedTabs.find((tab) => tab.type === "work-management")?.id;
+  // The Launchpad start page is a singleton: collapse any persisted duplicates
+  // to a single tab (preferring the active one) so new-session / launchpad
+  // entry points can never stack more than one.
+  const preferredStartPageTabId =
+    activeMappedTab?.type === "start-page"
+      ? activeMappedTab.id
+      : mappedTabs.find((tab) => tab.type === "start-page")?.id;
   const survivingTabs = mappedTabs.filter(
-    (tab) => tab.type !== "ops-control" || tab.id === preferredOpsControlTabId
+    (tab) =>
+      (tab.type !== "work-management" ||
+        tab.id === preferredWorkManagementTabId) &&
+      (tab.type !== "start-page" || tab.id === preferredStartPageTabId)
   );
   if (survivingTabs.length === 0) return null;
 
@@ -186,7 +192,7 @@ export function normalizePersistedChatPanelTabsState(
 // Debounced storage (400 ms, matching other high-frequency panel atoms)
 // ────────────────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "orgii:chatPanelTabs";
+const STORAGE_KEY = "orgii:chatPanelTabs:v2";
 const WRITE_DEBOUNCE_MS = 400;
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -278,15 +284,16 @@ export const activeChatPanelTabAtom = atom((get) => {
 activeChatPanelTabAtom.debugLabel = "activeChatPanelTab";
 
 /**
- * Ops Control content and sidebar selection are projections of the active
+ * Kanban content and sidebar selection are projections of the active
  * ChatPanel tab. Keeping this derived prevents tab chrome, content, and
  * sidebar state from drifting independently.
  */
-export const activeOpsControlHomeTabAtom = atom(
+export const activeWorkManagementSectionAtom = atom(
   (get) =>
-    get(activeChatPanelTabAtom)?.opsSection ?? OPS_CONTROL_HOME_TAB.OPS_CONTROL
+    get(activeChatPanelTabAtom)?.managementSection ??
+    WORK_MANAGEMENT_SECTION.KANBAN
 );
-activeOpsControlHomeTabAtom.debugLabel = "activeOpsControlHomeTab";
+activeWorkManagementSectionAtom.debugLabel = "activeWorkManagementSection";
 
 export const chatPanelTabCountAtom = atom(
   (get) => get(chatPanelTabsAtom).tabs.length
@@ -327,7 +334,7 @@ const transitionChatPanelTabPresentationAtom = atom(
 
     if (previousDefaultFullscreen) {
       const priorMaximized = get(defaultFullscreenTabPriorMaximizedAtom);
-      // A manual Workstation restore while Ops Control is active is an
+      // A manual Workstation restore while Kanban is active is an
       // explicit override. Preserve it instead of restoring an older
       // maximized state when the user later changes tabs.
       if (get(chatPanelMaximizedAtom) && priorMaximized !== null) {
@@ -363,7 +370,7 @@ const syncChatPanelTabNavigationAtom = atom(
 /**
  * Reconcile legacy surface state after hydration or layout changes.
  * Presentation defaults are applied only on tab entry so a manual Workstation
- * restore is not overwritten while Ops Control remains active.
+ * restore is not overwritten while Kanban remains active.
  */
 export const syncActiveChatPanelTabStateAtom = atom(null, (get, set) => {
   const state = get(chatPanelTabsAtom);
@@ -425,7 +432,7 @@ export const activateChatPanelTabAtom = atom(
       return;
     }
 
-    if (tab.type === "terminal" || tab.type === "ops-control") {
+    if (tab.type === "terminal" || tab.type === "work-management") {
       return;
     }
 
@@ -501,41 +508,67 @@ export const addChatPanelLaunchpadTabAtom = atom(
 );
 addChatPanelLaunchpadTabAtom.debugLabel = "addChatPanelLaunchpadTab";
 
-/** Focus the existing Launchpad at Manage, or create it when none is open. */
-export const openOrFocusChatPanelManageTabAtom = atom(null, (get, set) => {
-  set(chatPanelStartPageTabAtom, CHAT_PANEL_START_PAGE_TAB.MANAGE);
-  const existingTab = get(chatPanelTabsAtom).tabs.find(
-    (tab) => tab.type === "start-page"
-  );
-  if (existingTab) {
-    set(activateChatPanelTabAtom, existingTab.id);
-    return existingTab.id;
-  }
-  return set(addChatPanelLaunchpadTabAtom, "Launchpad");
-});
-openOrFocusChatPanelManageTabAtom.debugLabel = "openOrFocusChatPanelManageTab";
-
-interface OpenOpsControlTabOptions {
-  section?: OpsControlHomeTab;
+interface OpenOrFocusStartPageTabOptions {
+  section?: ChatPanelStartPageTab;
   title?: string;
 }
 
-/** Open or focus the singleton Ops Control tab at the requested section. */
-export const openOpsControlChatPanelTabAtom = atom(
+/**
+ * Focus the singleton Launchpad start-page tab at the requested section, or
+ * create it when none is open. This is the one entry point new-session and
+ * launchpad triggers should use so they reuse the existing tab instead of
+ * stacking duplicates.
+ */
+export const openOrFocusChatPanelStartPageTabAtom = atom(
   null,
-  (get, set, options: OpenOpsControlTabOptions = {}) => {
+  (get, set, options: OpenOrFocusStartPageTabOptions = {}) => {
+    const { section = CHAT_PANEL_START_PAGE_TAB.WORK, title = "Launchpad" } =
+      options;
+    set(chatPanelStartPageTabAtom, section);
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) => tab.type === "start-page"
+    );
+    if (existingTab) {
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+    return set(addChatPanelLaunchpadTabAtom, title);
+  }
+);
+openOrFocusChatPanelStartPageTabAtom.debugLabel =
+  "openOrFocusChatPanelStartPageTab";
+
+/** Focus the existing Launchpad at Manage, or create it when none is open. */
+export const openOrFocusChatPanelManageTabAtom = atom(null, (_get, set) =>
+  set(openOrFocusChatPanelStartPageTabAtom, {
+    section: CHAT_PANEL_START_PAGE_TAB.MANAGE,
+  })
+);
+openOrFocusChatPanelManageTabAtom.debugLabel = "openOrFocusChatPanelManageTab";
+
+interface OpenKanbanTabOptions {
+  section?: WorkManagementSection;
+  title?: string;
+}
+
+/** Open or focus the singleton Kanban tab at the requested section. */
+export const openKanbanChatPanelTabAtom = atom(
+  null,
+  (get, set, options: OpenKanbanTabOptions = {}) => {
     const {
-      section = OPS_CONTROL_HOME_TAB.OPS_CONTROL,
-      title = getOpsControlFallbackTitle(section),
+      section = WORK_MANAGEMENT_SECTION.KANBAN,
+      title = getWorkManagementFallbackTitle(section),
     } = options;
     const state = get(chatPanelTabsAtom);
-    const existingTab = state.tabs.find((tab) => tab.type === "ops-control");
+    const existingTab = state.tabs.find(
+      (tab) => tab.type === "work-management"
+    );
     if (existingTab) {
       set(chatPanelTabsAtom, {
         ...state,
         tabs: state.tabs.map((tab) =>
           tab.id === existingTab.id
-            ? { ...tab, title, opsSection: section }
+            ? { ...tab, title, managementSection: section }
             : tab
         ),
       });
@@ -543,13 +576,13 @@ export const openOpsControlChatPanelTabAtom = atom(
       return existingTab.id;
     }
 
-    const id = "chat-ops-control";
+    const id = "chat-work-management";
     const now = new Date().toISOString();
     const tab: ChatPanelTab = {
       id,
-      type: "ops-control",
+      type: "work-management",
       title,
-      opsSection: section,
+      managementSection: section,
       createdAt: now,
       updatedAt: now,
     };
@@ -557,7 +590,7 @@ export const openOpsControlChatPanelTabAtom = atom(
     return id;
   }
 );
-openOpsControlChatPanelTabAtom.debugLabel = "openOpsControlChatPanelTab";
+openKanbanChatPanelTabAtom.debugLabel = "openKanbanChatPanelTab";
 
 interface OpenSessionInNewChatTabOptions {
   sessionId: string;
@@ -674,8 +707,8 @@ export const closeChatPanelTabAtom = atom(null, (get, set, tabId: string) => {
   const idx = state.tabs.findIndex((tab) => tab.id === tabId);
   if (idx === -1) return;
   const tab = state.tabs[idx];
-  if (tab.type === "ops-control") {
-    set(disposeOpsControlStateAtom);
+  if (tab.type === "work-management") {
+    set(disposeWorkManagementStateAtom);
   }
   const nextTabs = state.tabs.filter((candidate) => candidate.id !== tabId);
   let nextActiveId = state.activeTabId;

@@ -127,17 +127,8 @@ export const OrgtrackSessionSummaryInput = z.object({
   sessionId: z.string(),
 });
 
-export const OrgtrackAnalyzeSessionsInput = z.object({
-  workspacePath: z.string().optional(),
-  sessionId: z.string().optional(),
-  rebuild: z.boolean().optional(),
-});
-
-export const OrgtrackAnalysisBackfillStatsSchema = z.object({
-  scannedSessions: z.number().int(),
-  analyzedSessions: z.number().int(),
-  skippedSessions: z.number().int(),
-  failedSessions: z.number().int(),
+export const OrgtrackDeleteSessionArtifactsInput = z.object({
+  sessionId: z.string(),
 });
 
 export const OrgtrackReachabilityStateSchema = z.enum([
@@ -514,9 +505,6 @@ export type OrgtrackSourceTierPolicy = z.output<
 >;
 export type OrgtrackExtractionMemoryGate = z.output<
   typeof OrgtrackExtractionMemoryGateSchema
->;
-export type OrgtrackAnalysisBackfillStats = z.output<
-  typeof OrgtrackAnalysisBackfillStatsSchema
 >;
 export type OrgtrackSessionEditArtifact = z.output<
   typeof OrgtrackSessionEditArtifactSchema

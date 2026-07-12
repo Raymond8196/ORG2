@@ -161,6 +161,81 @@ fn prefers_claude_session_json_name_as_name() {
 }
 
 #[test]
+fn prefers_claude_custom_title_over_ai_title_and_prompt() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-title-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-title.jsonl");
+    // The app derives the displayed name from `custom-title` (user override)
+    // first, then `ai-title`; the raw first prompt is only a last resort.
+    let content = r#"{"type":"user","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:46.543Z","message":{"role":"user","content":"noisy first prompt that should not win"}}
+{"type":"ai-title","aiTitle":"Auto generated title","sessionId":"abc"}
+{"type":"custom-title","customTitle":"User chosen title","sessionId":"abc"}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Claude").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "claude-title".to_string(),
+        source_path: path.clone(),
+        source_record_key: "claude-title".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_claude_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+
+    assert_eq!(meta.name, "User chosen title");
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn counts_diff_stats_from_structured_patch() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-patch-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-patch.jsonl");
+    // Two edited files: file_a nets +2/-1, file_b (a create) nets +1/-0.
+    let content = r#"{"type":"user","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:46.543Z","message":{"role":"user","content":"do edits"}}
+{"type":"user","sessionId":"abc","timestamp":"2026-04-01T07:06:47.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"ok"}]},"toolUseResult":{"filePath":"/tmp/project/a.rs","structuredPatch":[{"oldStart":1,"oldLines":2,"newStart":1,"newLines":3,"lines":[" ctx","-old line","+new line one","+new line two"]}]}}
+{"type":"user","sessionId":"abc","timestamp":"2026-04-01T07:06:48.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t2","content":"ok"}]},"toolUseResult":{"type":"create","filePath":"/tmp/project/b.rs","structuredPatch":[{"oldStart":0,"oldLines":0,"newStart":1,"newLines":1,"lines":["+brand new"]}]}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Claude").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "claude-patch".to_string(),
+        source_path: path.clone(),
+        source_record_key: "claude-patch".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_claude_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+
+    assert_eq!(meta.impact.lines_added, 3);
+    assert_eq!(meta.impact.lines_removed, 1);
+    assert_eq!(meta.impact.files_changed, 2);
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn prefers_claude_summary_as_session_name() {
     let temp_dir = std::env::temp_dir().join(format!(
         "orgii-claude-history-summary-test-{}",

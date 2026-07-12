@@ -9,7 +9,7 @@ function makeTask(): KanbanTask {
     id: "session-1",
     title: "Test session",
     status: "in_progress",
-    orgtrackMetadata: {
+    impact: {
       filesChanged: 3,
       linesAdded: 7,
       linesRemoved: 5,
@@ -56,8 +56,8 @@ describe("mapKanbanTaskToSessionTableItem", () => {
 
   it("leaves the impact cell empty when no lines changed", () => {
     const task = makeTask();
-    task.orgtrackMetadata = {
-      ...task.orgtrackMetadata!,
+    task.impact = {
+      ...task.impact!,
       linesAdded: 0,
       linesRemoved: 0,
     };

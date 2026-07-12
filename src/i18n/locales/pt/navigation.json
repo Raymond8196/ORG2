@@ -45,8 +45,6 @@
     "projects": "Histórias",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
-    "opsCenter": "Central de Operações",
     "colleagues": "Colegas",
     "terminals": "Terminais"
   },
@@ -84,8 +82,7 @@
     "signingIn": "Entrando...",
     "launchpad": "Central de início",
     "ideaArea": "Área de Ideias",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Personalizar Grade",

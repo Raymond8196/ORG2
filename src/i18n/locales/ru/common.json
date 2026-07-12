@@ -203,7 +203,6 @@
     "openWorkspace": "Открыть workspace",
     "skipThisVersion": "Пропустить эту версию",
     "later": "Позже",
-    "updateAiBlame": "Обновить AI Blame",
     "link": "Связать"
   },
   "refreshToast": {
@@ -1678,7 +1677,7 @@
     "disableDockAutoHide": "Всегда показывать Dock Workstation",
     "openMyStation": "Перейти в My Station",
     "openAgentStation": "Перейти в Agent Station",
-    "openOpsControl": "Перейти в Ops Control",
+    "openKanban": "Перейти в Kanban",
     "changeLanguage": "Изменить язык",
     "switchToSystemTheme": "Следовать системной теме",
     "detectUpdate": "Проверить обновления",

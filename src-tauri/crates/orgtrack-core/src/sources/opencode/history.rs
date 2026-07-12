@@ -21,7 +21,10 @@ use crate::sources::imported_history::{
 const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
 const OPENCODE_PROVIDER_SLUG: &str = "opencode";
 const OPENCODE_DB_FILENAME: &str = "opencode.db";
-const OPENCODE_METADATA_PARSER_VERSION: i64 = 2;
+// Bumped to 3 when the fingerprint moved from a bare mtime string to a
+// content-aware (session fields + WAL/`-shm` sidecar) signature so existing
+// caches rebuild once.
+const OPENCODE_METADATA_PARSER_VERSION: i64 = 3;
 
 pub type OpenCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type OpenCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -271,6 +274,9 @@ fn list_all_opencode_session_meta_from_conn(
         })
         .map_err(|err| format!("Failed to query OpenCode sessions: {err}"))?;
 
+    // A single `opencode.db` backs every session, so fold its WAL/`-shm`
+    // sidecars into each session's fingerprint once.
+    let sidecar_signature = imported_paths::sqlite_sidecar_signature(db_path);
     let mut sessions = Vec::new();
     for row in rows {
         let mut meta = row.map_err(|err| format!("Failed to read OpenCode session row: {err}"))?;
@@ -281,10 +287,30 @@ fn list_all_opencode_session_meta_from_conn(
         meta.source_record_key = meta.source_session_id.clone();
         meta.source_mtime_ms = source_mtime_ms;
         meta.source_size_bytes = source_size_bytes;
-        meta.source_fingerprint = source_mtime_ms.to_string();
+        meta.source_fingerprint = opencode_source_fingerprint(&meta, &sidecar_signature);
         sessions.push(meta);
     }
     Ok(sessions)
+}
+
+/// Content-aware change fingerprint for an OpenCode session.
+///
+/// The `opencode.db` mtime alone can stay flat across a same-mtime rewrite, so
+/// this folds the session's own identity/title/timestamp/token/parent fields
+/// together with the shared WAL/`-shm` sidecar signature.
+fn opencode_source_fingerprint(meta: &OpenCodeSessionMeta, sidecar_signature: &str) -> String {
+    [
+        meta.source_session_id.as_str(),
+        meta.title.as_str(),
+        meta.model.as_deref().unwrap_or_default(),
+        &meta.time_created.to_string(),
+        &meta.time_updated.to_string(),
+        &meta.input_tokens.to_string(),
+        &meta.output_tokens.to_string(),
+        meta.parent_id.as_deref().unwrap_or_default(),
+        sidecar_signature,
+    ]
+    .join("|")
 }
 
 fn session_meta_to_cache_input(

@@ -301,7 +301,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         id: session.session_id,
         title: session.name || session.session_id,
         status: "in_progress",
-        orgtrackMetadata: {
+        impact: {
           filesChanged,
           linesAdded,
           linesRemoved,

@@ -45,8 +45,6 @@
     "projects": "Projects",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
-    "opsCenter": "Операционный центр",
     "colleagues": "Коллеги",
     "terminals": "Терминалы"
   },
@@ -84,8 +82,7 @@
     "signingIn": "Выполняется вход...",
     "launchpad": "Панель запуска",
     "ideaArea": "Пространство идей",
-    "changelog": "Журнал изменений",
-    "opsControl": "Ops Control"
+    "changelog": "Журнал изменений"
   },
   "appGrid": {
     "customizeGrid": "Настроить сетку",

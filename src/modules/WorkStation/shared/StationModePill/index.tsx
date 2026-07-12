@@ -75,11 +75,8 @@ const StationModePill: React.FC = () => {
 
   const myStationShortcut = getShortcutKeys(MY_STATION_SHORTCUT_ID);
   const agentStationShortcut = getShortcutKeys(AGENT_STATION_SHORTCUT_ID);
-  const activeStationMode =
-    stationMode === "ops-control" ? "my-station" : stationMode;
-
   const handleChange = useCallback(
-    (mode: Exclude<StationMode, "ops-control">) => {
+    (mode: StationMode) => {
       setStationMode(mode);
     },
     [setStationMode]
@@ -94,7 +91,7 @@ const StationModePill: React.FC = () => {
         label={mySegment}
         tooltipLabel={t("actions.switchToStation", { station: mySegment })}
         icon={Laptop}
-        selected={activeStationMode === "my-station"}
+        selected={stationMode === "my-station"}
         onClick={() => handleChange("my-station")}
         testId="station-mode-my-station"
         shortcut={myStationShortcut}
@@ -103,7 +100,7 @@ const StationModePill: React.FC = () => {
         label={agentSegment}
         tooltipLabel={t("actions.switchToStation", { station: agentSegment })}
         icon={Infinity}
-        selected={activeStationMode === "agent-station"}
+        selected={stationMode === "agent-station"}
         onClick={() => handleChange("agent-station")}
         testId="station-mode-agent-station"
         shortcut={agentStationShortcut}

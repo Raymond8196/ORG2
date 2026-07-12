@@ -205,7 +205,6 @@
     "openWorkspace": "開啟工作區",
     "skipThisVersion": "跳過此版本",
     "later": "稍後",
-    "updateAiBlame": "更新 AI Blame",
     "link": "連結"
   },
   "refreshToast": {
@@ -1696,7 +1695,7 @@
     "disableDockAutoHide": "一律顯示工作站 Dock",
     "openMyStation": "前往我的工作站",
     "openAgentStation": "前往 Agent 工作站",
-    "openOpsControl": "前往 Ops Control",
+    "openKanban": "前往 Kanban",
     "changeLanguage": "變更語言",
     "switchToSystemTheme": "跟隨系統主題",
     "detectUpdate": "檢查更新",

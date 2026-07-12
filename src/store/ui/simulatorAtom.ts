@@ -245,17 +245,14 @@ simulatorAutoScrollAtom.debugLabel = "simulatorAutoScrollAtom";
 
 // ============================================
 // Station Mode — switches the right-side WorkStation surface between live
-// tools, agent simulator, and Ops Control. Chat-panel maximization is now a
-// separate axis (see `chatPanelMaximizedAtom` in `chatPanelAtom.ts`) so the
-// two concerns don't share an enum value any more.
+// tools and the agent simulator. Chat-panel maximization is a separate axis.
 // ============================================
 
-const STATION_MODES = ["my-station", "agent-station", "ops-control"] as const;
+const STATION_MODES = ["my-station", "agent-station"] as const;
 export type StationMode = (typeof STATION_MODES)[number];
 export const STATION_MODE = {
   MY_STATION: "my-station",
   AGENT_STATION: "agent-station",
-  OPS_CONTROL: "ops-control",
 } as const satisfies Record<string, StationMode>;
 const StationModeSchema = z.enum(STATION_MODES);
 

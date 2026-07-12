@@ -45,8 +45,6 @@
     "projects": "Projects",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
-    "opsCenter": "Betriebszentrale",
     "colleagues": "Kolleg:innen",
     "terminals": "Terminals"
   },
@@ -84,8 +82,7 @@
     "signingIn": "Anmeldung läuft...",
     "launchpad": "Startbereich",
     "ideaArea": "Ideen-Bereich",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Raster anpassen",

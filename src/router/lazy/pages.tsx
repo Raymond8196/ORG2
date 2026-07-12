@@ -35,10 +35,6 @@ export const MyRolePage = React.lazy(
   () => import(/* webpackChunkName: "mainapp" */ "@src/modules/MainApp/MyRole")
 );
 
-export const DevRecordPage = React.lazy(
-  () => import(/* webpackChunkName: "misc" */ "@src/modules/MainApp/DevRecord")
-);
-
 // Market routes (Consumer Wallet, Profile, Provider Earnings/Boost, Creator
 // Studio, Delegation History) all resolve to the OSS unavailable-page
 // placeholder. The real implementations live out-of-app on the ORGII

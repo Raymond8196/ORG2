@@ -9,7 +9,7 @@
  * - Sessions older than the selected window are filtered out
  *
  * View mode (kanban / diary) is driven by the `?view=` URL search param,
- * toggled from the Ops Control Workstation header tabs.
+ * toggled from the Kanban Workstation header tabs.
  */
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Plus } from "lucide-react";
@@ -23,11 +23,10 @@ import React, {
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
-import Button from "@src/components/Button";
 import {
-  OPS_CONTROL_SESSION_PREVIEW_OVERLAY_CLASS,
-  OPS_CONTROL_SESSION_PREVIEW_SURFACE_CLASS,
-} from "@src/config/opsControlCardTokens";
+  WORK_MANAGEMENT_SESSION_PREVIEW_OVERLAY_CLASS,
+  WORK_MANAGEMENT_SESSION_PREVIEW_SURFACE_CLASS,
+} from "@src/config/workManagementCardTokens";
 import type { KanbanTask, TaskStatus } from "@src/features/KanbanBoard";
 import { loadSidebarSessions } from "@src/store/session";
 import { kanbanReplayModeAtom } from "@src/store/ui/kanbanReplayAtom";
@@ -40,7 +39,7 @@ import {
   kanbanSidebarFilterAtom,
   kanbanTimeFilterAtom,
 } from "@src/store/ui/kanbanViewStateAtom";
-import { opsControlCreatorVisibleAtom } from "@src/store/ui/opsControlCreatorAtom";
+import { workManagementCreatorVisibleAtom } from "@src/store/ui/workManagementCreatorAtom";
 
 import { parseFactoryViewMode } from "./components/FactoryViewPill";
 import TaskKanbanReplayBar from "./components/KanbanReplayBar";
@@ -65,13 +64,13 @@ export interface TaskKanbanProps {
   /**
    * Hide the "New Session" button in the bottom dock. The dock itself
    * still renders (same height + top border) so the layout matches the
-   * global Ops Control view — embedders that own their own composer
+   * global Kanban view — embedders that own their own composer
    * (e.g. the Inbox `OrgChatPanel`) just don't want a duplicate trigger
    * here.
    */
   hideAddSessionButton?: boolean;
   /**
-   * Suppress publishing Ops Control controls into the Workstation 40px header.
+   * Suppress publishing Kanban controls into the Workstation 40px header.
    * Embeds that render their own header — e.g. the Inbox `OrgChatPanel`
    * merges the time-filter pills into its own sub-tab row — pass `true`.
    * When hidden, callers must supply `timeFilter` + `onTimeFilterChange`
@@ -111,7 +110,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     kanbanManualArchivedSessionIdsAtom
   );
   const [creatorVisible, setCreatorVisible] = useAtom(
-    opsControlCreatorVisibleAtom
+    workManagementCreatorVisibleAtom
   );
   const kanbanReplayMode = useAtomValue(kanbanReplayModeAtom);
 
@@ -213,13 +212,6 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     setCreatorVisible(true);
   }, [setCreatorVisible]);
 
-  const handleUpdateVisibleAiBlame = useCallback(async () => {
-    for (const task of visibleTasks) {
-      if (task.orgtrackMetadataLoading) continue;
-      await task.onAnalyzeGitBlame?.(task);
-    }
-  }, [visibleTasks]);
-
   React.useLayoutEffect(() => {
     resetKanbanHorizontalScroll();
   }, [detailPanelVisible, selectedTaskId]);
@@ -306,24 +298,16 @@ const Kanban: React.FC<TaskKanbanProps> = ({
         </div>
       )}
 
-      <div className="flex h-10 shrink-0 items-center justify-end overflow-visible border-t border-border-2 px-3">
-        <Button
-          variant="tertiary"
-          size="small"
-          shape="round"
-          onClick={handleUpdateVisibleAiBlame}
-          aria-label={t("common:actions.updateAiBlame")}
-          title={t("common:actions.updateAiBlame")}
-        >
-          {t("common:actions.updateAiBlame")}
-        </Button>
-      </div>
+      <div
+        className="h-10 shrink-0 border-t border-border-2"
+        aria-hidden="true"
+      />
 
       {detailPanelVisible && (
         <div
-          className={`${OPS_CONTROL_SESSION_PREVIEW_OVERLAY_CLASS} kanban-session-preview-overlay`}
+          className={`${WORK_MANAGEMENT_SESSION_PREVIEW_OVERLAY_CLASS} kanban-session-preview-overlay`}
         >
-          <div className={OPS_CONTROL_SESSION_PREVIEW_SURFACE_CLASS}>
+          <div className={WORK_MANAGEMENT_SESSION_PREVIEW_SURFACE_CLASS}>
             <TaskDetailPanel
               visible={detailPanelVisible}
               task={selectedTask}

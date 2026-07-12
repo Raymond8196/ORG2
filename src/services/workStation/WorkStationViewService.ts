@@ -112,49 +112,34 @@ export const WorkStationViewService = {
     return true;
   },
 
-  async openOpsControlTab(): Promise<boolean> {
-    const [
-      { activeStationChatVisibleAtom },
-      { stationModeAtom },
-      { opsControlFocusedTabAtom, opsControlPeekHostAtom },
-    ] = await Promise.all([
-      import("@src/store/ui/chatPanelAtom"),
-      import("@src/store/ui/simulatorAtom"),
-      import("@src/store/workstation"),
-    ]);
+  async openKanbanTab(): Promise<boolean> {
+    const [{ activeStationChatVisibleAtom }, { stationModeAtom }] =
+      await Promise.all([
+        import("@src/store/ui/chatPanelAtom"),
+        import("@src/store/ui/simulatorAtom"),
+      ]);
 
     const store = getStore();
-    const { openOpsControlChatPanelTabAtom } =
+    const { openKanbanChatPanelTabAtom } =
       await import("@src/store/chatPanel/chatPanelTabsAtom");
     const currentMode = store.get(stationModeAtom);
     const chatStationMode =
       currentMode === "agent-station" ? "agent-station" : "my-station";
     store.set(stationModeAtom, chatStationMode);
     store.set(activeStationChatVisibleAtom, chatStationMode, true);
-    store.set(openOpsControlChatPanelTabAtom, {});
-    store.set(opsControlPeekHostAtom, null);
-    store.set(opsControlFocusedTabAtom, null);
-    if (
-      !isWorkStationRoute() ||
-      window.location.pathname === ROUTES.workStation.opsControl.path
-    ) {
+    store.set(openKanbanChatPanelTabAtom, {});
+    if (!isWorkStationRoute()) {
       dispatchNavigate(ROUTES.workStation.base.path);
     }
     return true;
   },
 
-  async openStationMode(
-    mode: Exclude<StationMode, "ops-control">
-  ): Promise<boolean> {
-    const [
-      { activeStationChatVisibleAtom },
-      { stationModeAtom },
-      { opsControlFocusedTabAtom, opsControlPeekHostAtom },
-    ] = await Promise.all([
-      import("@src/store/ui/chatPanelAtom"),
-      import("@src/store/ui/simulatorAtom"),
-      import("@src/store/workstation"),
-    ]);
+  async openStationMode(mode: StationMode): Promise<boolean> {
+    const [{ activeStationChatVisibleAtom }, { stationModeAtom }] =
+      await Promise.all([
+        import("@src/store/ui/chatPanelAtom"),
+        import("@src/store/ui/simulatorAtom"),
+      ]);
 
     const store = getStore();
 
@@ -162,12 +147,7 @@ export const WorkStationViewService = {
 
     await unmaximizeChatPanel();
     store.set(activeStationChatVisibleAtom, mode, true);
-    store.set(opsControlPeekHostAtom, null);
-    store.set(opsControlFocusedTabAtom, null);
-    if (
-      !isWorkStationRoute() ||
-      window.location.pathname === ROUTES.workStation.opsControl.path
-    ) {
+    if (!isWorkStationRoute()) {
       dispatchNavigate(ROUTES.workStation.base.path);
     }
     return true;

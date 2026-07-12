@@ -203,7 +203,6 @@
     "openWorkspace": "Workspace aç",
     "skipThisVersion": "Bu sürümü atla",
     "later": "Daha sonra",
-    "updateAiBlame": "AI Blame'i güncelle",
     "link": "Bağla"
   },
   "refreshToast": {
@@ -1683,7 +1682,7 @@
     "disableDockAutoHide": "Workstation Dock'u görünür tut",
     "openMyStation": "My Station'a git",
     "openAgentStation": "Agent Station'a git",
-    "openOpsControl": "Ops Control'e git",
+    "openKanban": "Kanban'e git",
     "changeLanguage": "Dili değiştir",
     "switchToSystemTheme": "Sistem temasını izle",
     "detectUpdate": "Güncellemeleri denetle",
