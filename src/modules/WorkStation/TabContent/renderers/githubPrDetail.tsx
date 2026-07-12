@@ -7,14 +7,16 @@
  * its own header, so this renderer only disables the primary-sidebar toggle in
  * the tab-header strip while the PR fills the main pane.
  */
-import React, { memo, useMemo } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
+import { useWorkStationTabs } from "@src/hooks/workStation/tabs/useWorkStationTabs";
 import {
   PrDetailHeaderContent,
   PrDetailPanel,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
+import { createFileTab } from "@src/store/workstation/tabs";
 import type { GitHubPrDetailTabData } from "@src/store/workstation/tabs";
 
 import type { UnifiedTabContentProps } from "../types";
@@ -22,6 +24,18 @@ import type { UnifiedTabContentProps } from "../types";
 const GitHubPrDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
     const tabData = tab.data as unknown as GitHubPrDetailTabData;
+    const { openTab } = useWorkStationTabs();
+
+    const handleFileSelect = useCallback(
+      (path: string) => {
+        const absolutePath =
+          path.startsWith("/") || !tabData.repoPath
+            ? path
+            : `${tabData.repoPath}/${path}`;
+        openTab(createFileTab(absolutePath));
+      },
+      [openTab, tabData.repoPath]
+    );
 
     const identity = useMemo<PrIdentity>(
       () => ({
@@ -65,6 +79,7 @@ const GitHubPrDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         repoPath={tabData.repoPath}
         repoId={tabData.repoId}
         showHeader={false}
+        onFileSelect={handleFileSelect}
       />
     );
   }
