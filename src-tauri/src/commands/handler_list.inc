@@ -362,6 +362,8 @@ git::util::get_git_proxy_config,
 git::util::set_git_proxy_config,
 git::util::unset_git_proxy_config,
 git::util::get_git_user_identity,
+git::util::get_git_global_profile,
+git::util::set_git_global_profile,
 // AI-powered git utilities
 git_api::commands::ai::generate_commit_message,
 // Network detection
