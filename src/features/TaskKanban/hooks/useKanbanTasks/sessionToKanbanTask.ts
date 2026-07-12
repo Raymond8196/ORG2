@@ -1,3 +1,4 @@
+import { getImportedHistorySourceBySessionId } from "@src/api/tauri/externalHistory";
 import { formatAgentType } from "@src/assets/providers";
 import { KANBAN_RESULT_STATUS } from "@src/features/KanbanBoard/types";
 import type { Session } from "@src/store/session";
@@ -40,13 +41,24 @@ function getCategoryTag(session: Session): string {
 }
 
 function getAgentLabel(session: Session, categoryTag: string): string {
+  const importedSource = getImportedHistorySourceBySessionId(
+    session.session_id
+  );
+  if (importedSource) return importedSource.displayName;
+  if (session.cliAgentType === "claude_code") return "Claude CLI";
   if (session.cliAgentType) return formatAgentType(session.cliAgentType);
   return session.agentDisplayName || categoryTag;
 }
 
 function getWorkspaceName(session: Session): string | undefined {
-  const workspacePath = session.worktreePath || session.repoPath;
-  if (!workspacePath) return session.repo_name;
+  const repoName = session.repo_name?.trim();
+  if (repoName) return repoName;
+
+  // A worktree's basename is an internal generated identifier (for example,
+  // `sdeagent-97c3d918-5dec`), not the workspace the user selected. Prefer the
+  // persisted repo root and keep worktreePath only as a legacy fallback.
+  const workspacePath = session.repoPath || session.worktreePath;
+  if (!workspacePath) return undefined;
 
   return workspacePath.split(/[\\/]/).filter(Boolean).pop() || workspacePath;
 }

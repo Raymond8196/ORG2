@@ -122,17 +122,18 @@ function importedHistoryDescriptorForSession(sessionId: string) {
 function getFrontendDispatchCategory(
   record: SessionAggregateRecord
 ): DispatchCategory {
-  if (importedHistoryDescriptorForSession(record.sessionId)) {
-    return "external_history";
+  const importedSource = importedHistoryDescriptorForSession(record.sessionId);
+  if (importedSource) {
+    return importedSource.sourceId === "cursor_ide"
+      ? "cursor_ide"
+      : "external_history";
   }
   return record.category;
 }
 
 export function toFrontendSession(record: SessionAggregateRecord): Session {
   const category = getFrontendDispatchCategory(record);
-  const importedIconId = importedHistoryDescriptorForSession(
-    record.sessionId
-  )?.iconId;
+  const importedSource = importedHistoryDescriptorForSession(record.sessionId);
 
   return {
     session_id: record.sessionId,
@@ -148,7 +149,10 @@ export function toFrontendSession(record: SessionAggregateRecord): Session {
     branch: record.branch || "",
     is_active: record.isActive,
     category,
-    cliAgentType: record.cliAgentType,
+    // Imported app history can carry a backend CLI compatibility value, but
+    // exposing it here makes app sessions indistinguishable from sessions
+    // actually launched through that CLI.
+    cliAgentType: importedSource ? undefined : record.cliAgentType,
     model: record.model,
     keySource: record.keySource,
     accountId: record.accountId,
@@ -172,8 +176,8 @@ export function toFrontendSession(record: SessionAggregateRecord): Session {
     agentOrgId: record.agentOrgId,
     agentOrgName: record.agentOrgName,
     agentDefinitionId: record.agentDefinitionId,
-    agentIconId: importedIconId ?? record.agentIconId,
-    agentDisplayName: record.agentDisplayName,
+    agentIconId: importedSource?.iconId ?? record.agentIconId,
+    agentDisplayName: importedSource?.displayName ?? record.agentDisplayName,
     agentExecMode: normalizeAgentExecMode(record.agentExecMode) ?? undefined,
     draftText: record.draftText,
     replyTargetEventId: record.replyTargetEventId,
