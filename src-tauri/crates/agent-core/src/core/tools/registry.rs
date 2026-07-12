@@ -16,6 +16,60 @@ use serde_json::Value;
 use super::policy::ResolvedToolPolicy;
 use super::traits::{sanitize_tool_name, Tool, ToolAction, ToolExecuteResult, ToolPriority};
 
+fn schema_accepts_null(schema: &Value) -> bool {
+    schema.get("type").is_some_and(|kind| match kind {
+        Value::String(kind) => kind == "null",
+        Value::Array(kinds) => kinds.iter().any(|kind| kind.as_str() == Some("null")),
+        _ => false,
+    }) || ["anyOf", "oneOf"].iter().any(|combiner| {
+        schema
+            .get(*combiner)
+            .and_then(Value::as_array)
+            .is_some_and(|variants| variants.iter().any(schema_accepts_null))
+    })
+}
+
+/// Responses strict schemas represent source-schema optional fields as
+/// required nullable properties. Before invoking the tool, restore `null`
+/// placeholders to the original "field omitted" shape. Explicitly nullable
+/// properties keep their null value, and required properties remain untouched
+/// so each tool can report a useful validation error.
+fn strip_optional_null_placeholders(value: &mut Value, schema: &Value) {
+    if let (Some(params), Some(properties)) = (
+        value.as_object_mut(),
+        schema.get("properties").and_then(Value::as_object),
+    ) {
+        let originally_required = schema.get("required").and_then(Value::as_array);
+        let keys_to_remove: Vec<String> = params
+            .iter()
+            .filter_map(|(key, value)| {
+                let property_schema = properties.get(key)?;
+                let is_required = originally_required
+                    .is_some_and(|required| required.iter().any(|name| name.as_str() == Some(key)));
+                (value.is_null() && !is_required && !schema_accepts_null(property_schema))
+                    .then(|| key.clone())
+            })
+            .collect();
+
+        for key in keys_to_remove {
+            params.remove(&key);
+        }
+
+        for (key, child) in params.iter_mut() {
+            if let Some(child_schema) = properties.get(key) {
+                strip_optional_null_placeholders(child, child_schema);
+            }
+        }
+        return;
+    }
+
+    if let (Some(items), Some(item_schema)) = (value.as_array_mut(), schema.get("items")) {
+        for item in items {
+            strip_optional_null_placeholders(item, item_schema);
+        }
+    }
+}
+
 /// Registry for agent tools.
 ///
 /// Stores tools by name and provides lookup, execution, and schema generation.
@@ -317,12 +371,14 @@ impl ToolRegistry {
     pub async fn execute(
         &self,
         name: &str,
-        params: Value,
+        mut params: Value,
         ctx: &crate::tools::call_context::CallContext,
     ) -> Result<ToolExecuteResult, String> {
         let Some(tool) = self.get(name) else {
             return Err(format!("Error: Tool '{}' not found", name));
         };
+
+        strip_optional_null_placeholders(&mut params, &tool.parameters());
 
         match tool.execute(params, ctx).await {
             Ok(result) => Ok(result),
