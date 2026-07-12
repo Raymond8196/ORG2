@@ -27,7 +27,6 @@ import {
   InlineCardColumnStack,
   InlineCardSplit,
 } from "../../shared/InlineCardPrimitives";
-import { KEY_VAULT_STATUS_DOT } from "../../statusColors";
 import KeyHealthBadge from "../Detail/KeyHealthBadge";
 import VerificationStatusBadge from "../Detail/VerificationStatusBadge";
 import { AccountCompatibilitySection } from "./AccountCompatibilitySection";
@@ -103,6 +102,15 @@ export const AccountInlineStatusSection: React.FC<
     account.authMethod === "oauth"
       ? t("keyVault.info.oauthLogin")
       : t("keyVault.info.apiKey");
+  const categoryValue = isApiKey
+    ? t("keyVault.categoryApi")
+    : t("keyVault.categorySubscription");
+  const overviewValue = [
+    account.authMethod ? authMethodValue : null,
+    categoryValue,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const quotaSummary = useMemo(() => {
     if (!showQuota || !account.quotaInfo) return null;
@@ -153,15 +161,6 @@ export const AccountInlineStatusSection: React.FC<
   const { copied: apiKeyCopied, handleCopy: handleCopyApiKey } =
     useCopyCheck(copyApiKey);
 
-  const statusLabel =
-    {
-      ready: t("status.ready"),
-      needs_setup: t("status.needsSetup"),
-      error: t("status.error"),
-      expired: t("status.expired"),
-      pending_approval: t("status.pendingApproval"),
-    }[account.status] ?? account.status;
-
   const connectedAtLabel = account.connectedAt
     ? `${account.connectedAt.toLocaleDateString(undefined, {
         month: "short",
@@ -177,9 +176,6 @@ export const AccountInlineStatusSection: React.FC<
     : null;
 
   const accountEmail = account.accountMetadata?.email;
-  const organizationName = account.accountMetadata?.organization_name;
-  const organizationUuid = account.accountMetadata?.organization_uuid;
-  const organizationLabel = organizationName ?? organizationUuid;
 
   const accountUsageRows = (
     <>
@@ -194,10 +190,6 @@ export const AccountInlineStatusSection: React.FC<
       ) : null}
       {quotaSummary ? (
         <>
-          <InfoRow
-            label={t("keyVault.quota.plan")}
-            value={quotaSummary.planLabel ?? "—"}
-          />
           {quotaUsageItems.length > 0 ? (
             quotaUsageItems.map((item) => {
               const remainingPercent = item.remaining_percentage;
@@ -301,26 +293,13 @@ export const AccountInlineStatusSection: React.FC<
         equalColumns
         left={
           <InlineCardColumnStack>
-            {account.authMethod ? (
+            <InfoRow label={tCommon("common.overview")} value={overviewValue} />
+            {quotaSummary ? (
               <InfoRow
-                label={t("keyVault.info.authMethod")}
-                value={authMethodValue}
+                label={t("keyVault.quota.plan")}
+                value={quotaSummary.planLabel ?? "—"}
               />
             ) : null}
-            <InfoRow label={t("common:labels.status")}>
-              <StatusDot
-                color={KEY_VAULT_STATUS_DOT[account.status] ?? "bg-fill-3"}
-                size="inline"
-                label={statusLabel}
-              />
-            </InfoRow>
-            <InfoRow label={t("tableHeaders.category")}>
-              <span className="text-[12px] text-text-1">
-                {isApiKey
-                  ? t("keyVault.categoryApi")
-                  : t("keyVault.categorySubscription")}
-              </span>
-            </InfoRow>
             {connectedAtLabel ? (
               <InfoRow
                 label={t("keyVault.info.connectedAt")}
@@ -331,12 +310,6 @@ export const AccountInlineStatusSection: React.FC<
               <InfoRow
                 label={t("keyVault.info.accountEmail")}
                 value={accountEmail}
-              />
-            ) : null}
-            {organizationLabel ? (
-              <InfoRow
-                label={t("keyVault.info.organization")}
-                value={organizationLabel}
               />
             ) : null}
           </InlineCardColumnStack>

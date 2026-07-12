@@ -39,7 +39,7 @@ export const InfoRow: React.FC<InfoRowProps> = ({
   );
 
   const labelBlock = (
-    <span className="flex min-h-[24px] shrink-0 items-center gap-1.5 text-[12px] font-semibold text-text-1">
+    <span className="flex min-h-[24px] shrink-0 items-center gap-1.5 text-[12px] font-medium text-text-2">
       {icon && <span className="flex-shrink-0">{icon}</span>}
       {label}
       {required && <span className="ml-0.5 text-danger-6">*</span>}
