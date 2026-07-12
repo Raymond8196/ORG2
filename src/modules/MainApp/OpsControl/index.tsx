@@ -81,7 +81,7 @@ const OpsControlPage: React.FC = () => {
             sidebarHost={githubControlsHost}
           />
         ) : activeHomeTab === OPS_CONTROL_HOME_TAB.GITHUB_PRS ? (
-          <GitHubWorkItemsSurface scope="pr" sidebarHost={githubControlsHost} />
+          <GitHubWorkItemsSurface scope="pr" sidebarHost={null} />
         ) : (
           <>
             <TaskKanban />
