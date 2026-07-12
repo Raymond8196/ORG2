@@ -166,6 +166,14 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
   }, [loadStatus]);
 
   useEffect(() => {
+    if (proxyStatus?.running !== false) return;
+    const intervalId = window.setInterval(() => {
+      void loadProxyStatus();
+    }, 3000);
+    return () => window.clearInterval(intervalId);
+  }, [loadProxyStatus, proxyStatus?.running]);
+
+  useEffect(() => {
     const nextSelection = getManagedProxyDraftSelection(
       proxyCredentials,
       selectedKeyId,
@@ -318,19 +326,12 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
       ? "bg-success-6"
       : "bg-warning-6";
   const proxyDescription =
-    status?.mode === "orgii_managed"
-      ? (proxyStatus?.message ??
-        proxyStatus?.upstreamBaseUrl ??
-        tr(
-          "agentOrgs.cliManagedConfig.proxyDesc",
-          "Local requests route through ORGII KeyVault."
-        ))
-      : proxyStatus?.message && proxyStatus.running !== true
-        ? proxyStatus.message
-        : tr(
-            "agentOrgs.cliManagedConfig.proxyDesc",
-            "Local requests route through ORGII KeyVault."
-          );
+    !proxyReady && proxyStatus?.message
+      ? proxyStatus.message
+      : tr(
+          "agentOrgs.cliManagedConfig.proxyLifecycleDesc",
+          "Keep ORGII running while using this mode. Closing the window keeps the proxy in the tray; quitting ORGII safely restores Default unless the config changed externally."
+        );
 
   return (
     <SectionContainer
