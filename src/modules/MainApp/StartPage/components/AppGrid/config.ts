@@ -12,12 +12,12 @@ import {
   Database,
   Globe,
   History,
+  Info,
   ListTodo,
   Network,
   Play,
   Puzzle,
   Radar,
-  Rocket,
   Settings,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -44,7 +44,7 @@ export const ICON_CONFIG = {
   opsControl: Radar,
   startSession: Play,
   integrations: ChevronsLeftRightEllipsis,
-  launchpad: Rocket,
+  dashboard: Info,
   agentOrgs: Network,
   plugins: Puzzle,
   browser: Globe,
@@ -90,15 +90,16 @@ export const APP_GRID_ITEMS: AppItem[] = [
     routePath: ROUTES.app.home.changelog.path,
   },
   {
+    // Keep the legacy id/action so customized app-grid ordering persists.
     id: "launchpad",
-    labelKey: "navigation:routes.launchpad",
-    icon: ICON_CONFIG.launchpad,
-    iconName: "rocket",
+    labelKey: "navigation:launchpad.dashboard",
+    icon: ICON_CONFIG.dashboard,
+    iconName: "info",
     action: "launchpad",
-    // Launchpad is no longer a standalone Workstation host — its dashboard
+    // Dashboard is no longer a standalone Workstation host — its workspace
     // and per-repo views are pinned tabs inside the Code Editor surface.
     // The start-page tile lands the user on the editor route, where the
-    // pinned dashboard tab is the first fixture.
+    // dashboard tab is the first fixture.
     routePath: ROUTES.workStation.code.path,
   },
   {

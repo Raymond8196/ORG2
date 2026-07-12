@@ -47,6 +47,7 @@
     "projectManager": "Project Manager",
     "diff": "Diff",
     "opsControl": "Ops Control",
+    "opsCenter": "Ops Center",
     "terminals": "Terminals"
   },
   "workstation": {
@@ -349,7 +350,7 @@
     "emptyWorkspaces": "No workspaces match",
     "myRepos": "My Repos",
     "myMultiRepoWorkspaces": "My Multi-Repo Workspaces",
-    "dashboard": "Launchpad",
+    "dashboard": "Dashboard",
     "myWorkspaces": "My Workspaces",
     "workspaces": "Workspaces",
     "dashboardTitle": "Workspaces",

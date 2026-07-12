@@ -3,11 +3,11 @@ import { useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import {
   CheckCircle2,
+  ChevronLeft,
   CircleDot,
   ExternalLink,
   GitPullRequest,
   Link2,
-  ListFilter,
   MoreHorizontal,
   Plus,
   RefreshCw,
@@ -41,17 +41,11 @@ import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
-import {
-  ChatPanelHeaderTitlePill,
-  usePublishChatPanelHeader,
-} from "@src/engines/ChatPanel/header";
+import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import { useWorkStationTabs } from "@src/hooks/workStation/tabs";
-import WorkItemContentStack from "@src/modules/ProjectManager/WorkItems/components/WorkItemContentStack";
 import {
   IssueDetailHeaderContent,
   IssueDetailPanel,
-  IssueStateIcon,
-  getIssueDetailTitle,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
 import {
   getCachedIssues,
@@ -60,7 +54,6 @@ import {
   updateCachedOpenIssues,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/hooks/githubListCache";
 import {
-  DETAIL_PANEL_TOKENS,
   DetailPanelContainer,
   Placeholder,
 } from "@src/modules/shared/layouts/blocks";
@@ -122,7 +115,7 @@ type GitHubQueryState =
   (typeof GITHUB_QUERY_STATE)[keyof typeof GITHUB_QUERY_STATE];
 
 const manageIssuesSelectedRepoAtom = atomWithStorage<IssueRepoFilter>(
-  "orgii:chatPanelManageIssues:selectedRepo:v2",
+  "orgii:opsControlGitHub:selectedRepo:v1",
   ISSUE_REPO_FILTER.CURRENT_WORKSTATION
 );
 
@@ -147,7 +140,7 @@ interface ManagedIssueItem {
   updatedAt: string;
 }
 
-interface ChatIssueDetailState {
+interface IssueDetailState {
   source: ManagedIssueItem;
   issue: GitHubIssue;
   comments: GitHubIssueComment[];
@@ -716,55 +709,26 @@ async function loadRepoPrs(
   }
 }
 
-function FilterMenuButton({
-  label,
+function FilterOptionList({
   options,
   onSelect,
 }: {
-  label: string;
   options: RepoFilterOption[];
   onSelect: (key: string) => void;
 }): React.ReactNode {
-  const [menuVisible, setMenuVisible] = useState(false);
-  const closeMenu = useCallback(() => setMenuVisible(false), []);
-  const droplist = (
-    <div className={`${DROPDOWN_CLASSES.menuPanelBase} min-w-[170px]`}>
+  return (
+    <div className="flex flex-col gap-0.5">
       {options.map((option) => (
         <button
           key={option.key}
           type="button"
-          className={DROPDOWN_CLASSES.menuActionItem}
-          onClick={() => {
-            onSelect(option.key);
-            closeMenu();
-          }}
+          className="flex h-7 w-full items-center rounded-md px-2 text-left text-[12px] text-text-2 transition-colors hover:bg-fill-2 hover:text-text-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30"
+          onClick={() => onSelect(option.key)}
         >
           <span className="min-w-0 flex-1 truncate">{option.label}</span>
         </button>
       ))}
     </div>
-  );
-
-  return (
-    <Dropdown
-      droplist={droplist}
-      trigger="click"
-      position="bottom-start"
-      popupVisible={menuVisible}
-      onVisibleChange={setMenuVisible}
-    >
-      <Button
-        htmlType="button"
-        variant="secondary"
-        appearance="outline"
-        size="small"
-        icon={<ListFilter size={13} />}
-        iconOnly
-        className="h-7 w-7"
-        aria-label={label}
-        aria-expanded={menuVisible}
-      />
-    </Dropdown>
   );
 }
 
@@ -932,10 +896,12 @@ function ManagedIssueRow({
 function ManagedPrRow({
   pr,
   addLabel,
+  onOpenPr,
   onAddPr,
 }: {
   pr: ManagedPrItem;
   addLabel: string;
+  onOpenPr: (pr: ManagedPrItem) => void;
   onAddPr: (pr: ManagedPrItem) => void;
 }): React.ReactNode {
   return (
@@ -944,11 +910,10 @@ function ManagedPrRow({
         <span className="mt-0.5 shrink-0 text-success-6">
           <GitPullRequest size={14} strokeWidth={1.8} />
         </span>
-        <a
+        <button
+          type="button"
           className="min-w-0 flex-1 text-left focus-visible:outline-none"
-          href={pr.rawPr.url}
-          target="_blank"
-          rel="noreferrer"
+          onClick={() => onOpenPr(pr)}
           aria-label={`Open pull request #${pr.id}: ${pr.title}`}
         >
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
@@ -965,7 +930,7 @@ function ManagedPrRow({
             <span>·</span>
             <span>{pr.timeAgo}</span>
           </div>
-        </a>
+        </button>
         <Button
           htmlType="button"
           variant="tertiary"
@@ -1093,7 +1058,13 @@ function CreateIssueModal({
   );
 }
 
-const ManageIssuesPanelView: React.FC = () => {
+interface GitHubWorkItemsSurfaceProps {
+  scope: Extract<GitHubQueryScope, "issue" | "pr">;
+}
+
+const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
+  scope,
+}) => {
   const { t } = useTranslation(["sessions", "common"]);
   const repos = useAtomValue(reposAtom);
   const selectedRepoPath = useAtomValue(selectedRepoPathAtom);
@@ -1110,33 +1081,20 @@ const ManageIssuesPanelView: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("is:issue is:open");
-  const parsedSearchQuery = useMemo(
-    () => parseGitHubSearchQuery(searchQuery),
-    [searchQuery]
-  );
+  const [searchQuery, setSearchQuery] = useState(`is:${scope} is:open`);
+  const parsedSearchQuery = useMemo(() => {
+    const query = parseGitHubSearchQuery(searchQuery);
+    query.scope = scope;
+    return query;
+  }, [scope, searchQuery]);
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [creatingIssue, setCreatingIssue] = useState(false);
-  const [chatIssueDetail, setChatIssueDetail] =
-    useState<ChatIssueDetailState | null>(null);
+  const [issueDetail, setIssueDetail] = useState<IssueDetailState | null>(null);
+  const [selectedPr, setSelectedPr] = useState<ManagedPrItem | null>(null);
 
   const gitRepos = useMemo(
     () => repos.filter((repo) => repo.kind === REPO_KIND.GIT && repo.path),
     [repos]
-  );
-
-  const typeSwitchOptions = useMemo<TabPillItem[]>(
-    () => [
-      {
-        key: GITHUB_QUERY_SCOPE.ISSUE,
-        label: t("chat.panels.manageIssues.sourceIssues"),
-      },
-      {
-        key: GITHUB_QUERY_SCOPE.PR,
-        label: t("chat.panels.manageIssues.sourcePrs"),
-      },
-    ],
-    [t]
   );
 
   const quickFilterOptions = useMemo<TabPillItem[]>(
@@ -1145,20 +1103,28 @@ const ManageIssuesPanelView: React.FC = () => {
         key: GITHUB_FILTER_PRESET.OPEN,
         label: t("chat.panels.manageIssues.stateOpen"),
       },
-      {
-        key: GITHUB_FILTER_PRESET.ASSIGNED_TO_ME,
-        label: t("chat.panels.manageIssues.assignedToMe"),
-      },
+      ...(scope === GITHUB_QUERY_SCOPE.ISSUE
+        ? [
+            {
+              key: GITHUB_FILTER_PRESET.ASSIGNED_TO_ME,
+              label: t("chat.panels.manageIssues.assignedToMe"),
+            },
+          ]
+        : []),
     ],
-    [t]
+    [scope, t]
   );
 
   const filterMenuOptions = useMemo<RepoFilterOption[]>(
     () => [
-      {
-        key: GITHUB_FILTER_PRESET.BY_ME,
-        label: t("chat.panels.manageIssues.createdByMe"),
-      },
+      ...(scope === GITHUB_QUERY_SCOPE.ISSUE
+        ? [
+            {
+              key: GITHUB_FILTER_PRESET.BY_ME,
+              label: t("chat.panels.manageIssues.createdByMe"),
+            },
+          ]
+        : []),
       {
         key: GITHUB_FILTER_PRESET.CLOSED,
         label: t("chat.panels.manageIssues.stateClosed"),
@@ -1168,8 +1134,14 @@ const ManageIssuesPanelView: React.FC = () => {
         label: t("chat.panels.manageIssues.stateAll"),
       },
     ],
-    [t]
+    [scope, t]
   );
+
+  useEffect(() => {
+    setSearchQuery(`is:${scope} is:open`);
+    setIssueDetail(null);
+    setSelectedPr(null);
+  }, [scope]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1186,20 +1158,24 @@ const ManageIssuesPanelView: React.FC = () => {
 
       setRepoSources(resolvedSources);
       setRepoIssueMap(
-        Object.fromEntries(
-          resolvedSources.map((source) => [
-            getRepoIssueMapKey(source),
-            getCachedRepoIssues(source),
-          ])
-        )
+        scope === GITHUB_QUERY_SCOPE.ISSUE
+          ? Object.fromEntries(
+              resolvedSources.map((source) => [
+                getRepoIssueMapKey(source),
+                getCachedRepoIssues(source),
+              ])
+            )
+          : {}
       );
       setRepoPrMap(
-        Object.fromEntries(
-          resolvedSources.map((source) => [
-            getRepoIssueMapKey(source),
-            EMPTY_REPO_PRS,
-          ])
-        )
+        scope === GITHUB_QUERY_SCOPE.PR
+          ? Object.fromEntries(
+              resolvedSources.map((source) => [
+                getRepoIssueMapKey(source),
+                EMPTY_REPO_PRS,
+              ])
+            )
+          : {}
       );
 
       if (resolvedSources.length === 0) {
@@ -1208,37 +1184,44 @@ const ManageIssuesPanelView: React.FC = () => {
       }
 
       const [issueResults, prResults] = await Promise.all([
-        Promise.all(resolvedSources.map(loadRepoIssues)),
-        Promise.all(resolvedSources.map(loadRepoPrs)),
+        scope === GITHUB_QUERY_SCOPE.ISSUE
+          ? Promise.all(resolvedSources.map(loadRepoIssues))
+          : Promise.resolve([]),
+        scope === GITHUB_QUERY_SCOPE.PR
+          ? Promise.all(resolvedSources.map(loadRepoPrs))
+          : Promise.resolve([]),
       ]);
       if (cancelled) return;
 
-      setRepoIssueMap(
-        Object.fromEntries(
-          issueResults.map((result) => [
-            getRepoIssueMapKey(result.source),
-            {
-              openIssues: result.openIssues,
-              closedIssues: result.closedIssues,
-              openHasMore: result.openHasMore,
-              closedHasMore: result.closedHasMore,
-              openNextPage: result.openNextPage,
-              closedNextPage: result.closedNextPage,
-            },
-          ])
-        )
-      );
-      setRepoPrMap(
-        Object.fromEntries(
-          prResults.map((result) => [
-            getRepoIssueMapKey(result.source),
-            {
-              prs: result.prs,
-              error: result.error,
-            },
-          ])
-        )
-      );
+      if (scope === GITHUB_QUERY_SCOPE.ISSUE) {
+        setRepoIssueMap(
+          Object.fromEntries(
+            issueResults.map((result) => [
+              getRepoIssueMapKey(result.source),
+              {
+                openIssues: result.openIssues,
+                closedIssues: result.closedIssues,
+                openHasMore: result.openHasMore,
+                closedHasMore: result.closedHasMore,
+                openNextPage: result.openNextPage,
+                closedNextPage: result.closedNextPage,
+              },
+            ])
+          )
+        );
+      } else {
+        setRepoPrMap(
+          Object.fromEntries(
+            prResults.map((result) => [
+              getRepoIssueMapKey(result.source),
+              {
+                prs: result.prs,
+                error: result.error,
+              },
+            ])
+          )
+        );
+      }
       setLoadError(
         issueResults.find((result) => result.error)?.error ??
           prResults.find((result) => result.error)?.error ??
@@ -1250,7 +1233,7 @@ const ManageIssuesPanelView: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [gitRepos, refreshNonce]);
+  }, [gitRepos, refreshNonce, scope]);
 
   const selectedWorkstationRepoSource = useMemo(
     () =>
@@ -1287,18 +1270,6 @@ const ManageIssuesPanelView: React.FC = () => {
     [searchQuery]
   );
 
-  const handleTypeTabChange = useCallback(
-    (key: string) => {
-      updateSearchQuery((query) => {
-        query.scope =
-          key === GITHUB_QUERY_SCOPE.PR
-            ? GITHUB_QUERY_SCOPE.PR
-            : GITHUB_QUERY_SCOPE.ISSUE;
-      });
-    },
-    [updateSearchQuery]
-  );
-
   const handleFilterMenuSelect = useCallback(
     (key: string) => {
       updateSearchQuery((query) => {
@@ -1318,10 +1289,6 @@ const ManageIssuesPanelView: React.FC = () => {
     [updateSearchQuery]
   );
 
-  const activeTypeTab =
-    parsedSearchQuery.scope === GITHUB_QUERY_SCOPE.PR
-      ? GITHUB_QUERY_SCOPE.PR
-      : GITHUB_QUERY_SCOPE.ISSUE;
   const activeQuickFilterTabs: string[] = [];
   if (parsedSearchQuery.state === GITHUB_QUERY_STATE.OPEN) {
     activeQuickFilterTabs.push(GITHUB_FILTER_PRESET.OPEN);
@@ -1419,53 +1386,36 @@ const ManageIssuesPanelView: React.FC = () => {
   const virtualItems = itemVirtualizer.getVirtualItems();
 
   const handleBackToIssueList = useCallback(() => {
-    setChatIssueDetail(null);
+    setIssueDetail(null);
   }, []);
 
-  const activeChatIssue = chatIssueDetail?.issue ?? null;
-  const activeChatIssueTitle = activeChatIssue
-    ? getIssueDetailTitle(activeChatIssue)
-    : t("chat.manageIssues.title");
-  const activeChatIssueIcon = activeChatIssue ? (
-    <IssueStateIcon
-      isOpen={activeChatIssue.state === GITHUB_QUERY_STATE.OPEN}
-    />
-  ) : (
-    <ListFilter size={14} strokeWidth={1.8} />
-  );
+  const surfaceTitle =
+    scope === GITHUB_QUERY_SCOPE.PR
+      ? t("sessions:opsControl.sidebar.githubPrs")
+      : t("sessions:opsControl.sidebar.githubIssues");
 
   const headerContent = useMemo(
     () => (
-      <span className="flex min-w-0 max-w-full items-center gap-2">
-        {activeChatIssue ? (
-          <IssueDetailHeaderContent issue={activeChatIssue} />
-        ) : (
+      <span className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-text-1">
+        {issueDetail ? (
+          <IssueDetailHeaderContent issue={issueDetail.issue} />
+        ) : selectedPr ? (
           <>
-            <ChatPanelHeaderTitlePill>
-              {t("chat.manageIssues.title")}
-            </ChatPanelHeaderTitlePill>
-            <span className="h-4 w-px shrink-0 bg-border-2" aria-hidden />
-            <RepoFilterPill
-              options={repoOptions}
-              selectedRepo={effectiveSelectedRepo}
-              allReposLabel={t("chat.manageIssues.allRepositories")}
-              onSelectRepo={setSelectedRepo}
-            />
+            <GitPullRequest size={14} strokeWidth={1.8} />
+            <span className="truncate">{selectedPr.title}</span>
+            <span className="shrink-0 text-text-3">#{selectedPr.id}</span>
           </>
+        ) : (
+          surfaceTitle
         )}
       </span>
     ),
-    [activeChatIssue, effectiveSelectedRepo, repoOptions, setSelectedRepo, t]
+    [issueDetail, selectedPr, surfaceTitle]
   );
 
-  usePublishChatPanelHeader({
-    content: {
-      content: headerContent,
-      tabTitle: activeChatIssueTitle,
-      tabIcon: activeChatIssueIcon,
-      backAction: activeChatIssue ? handleBackToIssueList : null,
-      backLabel: t("common:actions.back"),
-    },
+  usePublishWorkstationTabHeader({
+    host: "opsControl",
+    content: { content: headerContent },
   });
 
   const handleRefresh = useCallback(() => {
@@ -1554,7 +1504,7 @@ const ManageIssuesPanelView: React.FC = () => {
   ]);
 
   const handleOpenIssue = useCallback((issue: ManagedIssueItem) => {
-    setChatIssueDetail({
+    setIssueDetail({
       source: issue,
       issue: issue.rawIssue,
       comments: [],
@@ -1568,7 +1518,7 @@ const ManageIssuesPanelView: React.FC = () => {
         remoteUrl: issue.remoteUrl,
         issueNumber: issue.id,
       });
-      setChatIssueDetail((current) => {
+      setIssueDetail((current) => {
         if (current?.issue.html_url !== issue.rawIssue.html_url) {
           return current;
         }
@@ -1629,14 +1579,14 @@ const ManageIssuesPanelView: React.FC = () => {
     [openTab, store]
   );
 
-  const handleCloseChatIssue = useCallback(async () => {
-    const currentIssue = chatIssueDetail;
+  const handleCloseIssueDetail = useCallback(async () => {
+    const currentIssue = issueDetail;
     if (!currentIssue) return;
     const result = await closeIssue({
       remoteUrl: currentIssue.source.remoteUrl,
       issueNumber: currentIssue.issue.number,
     });
-    setChatIssueDetail((current) => {
+    setIssueDetail((current) => {
       if (!current || current.issue.html_url !== currentIssue.issue.html_url) {
         return current;
       }
@@ -1645,16 +1595,16 @@ const ManageIssuesPanelView: React.FC = () => {
       }
       return { ...current, error: result.error };
     });
-  }, [chatIssueDetail]);
+  }, [issueDetail]);
 
-  const handleReopenChatIssue = useCallback(async () => {
-    const currentIssue = chatIssueDetail;
+  const handleReopenIssueDetail = useCallback(async () => {
+    const currentIssue = issueDetail;
     if (!currentIssue) return;
     const result = await reopenIssue({
       remoteUrl: currentIssue.source.remoteUrl,
       issueNumber: currentIssue.issue.number,
     });
-    setChatIssueDetail((current) => {
+    setIssueDetail((current) => {
       if (!current || current.issue.html_url !== currentIssue.issue.html_url) {
         return current;
       }
@@ -1663,13 +1613,13 @@ const ManageIssuesPanelView: React.FC = () => {
       }
       return { ...current, error: result.error };
     });
-  }, [chatIssueDetail]);
+  }, [issueDetail]);
 
-  const handleAddChatIssueComment = useCallback(
+  const handleAddIssueDetailComment = useCallback(
     async (body: string) => {
-      const currentIssue = chatIssueDetail;
+      const currentIssue = issueDetail;
       if (!currentIssue) return;
-      setChatIssueDetail((current) =>
+      setIssueDetail((current) =>
         current?.issue.html_url === currentIssue.issue.html_url
           ? { ...current, submittingComment: true }
           : current
@@ -1681,7 +1631,7 @@ const ManageIssuesPanelView: React.FC = () => {
       });
       if (result.data) {
         const comment = result.data;
-        setChatIssueDetail((current) =>
+        setIssueDetail((current) =>
           current?.issue.html_url === currentIssue.issue.html_url
             ? {
                 ...current,
@@ -1697,14 +1647,14 @@ const ManageIssuesPanelView: React.FC = () => {
         );
         return;
       }
-      setChatIssueDetail((current) =>
+      setIssueDetail((current) =>
         current?.issue.html_url === currentIssue.issue.html_url
           ? { ...current, submittingComment: false, error: result.error }
           : current
       );
       throw new Error(result.error);
     },
-    [chatIssueDetail]
+    [issueDetail]
   );
 
   const handleAddIssue = useCallback(
@@ -1739,6 +1689,10 @@ const ManageIssuesPanelView: React.FC = () => {
     },
     [setAddToAgent, t]
   );
+
+  const handleOpenPr = useCallback((pr: ManagedPrItem) => {
+    setSelectedPr(pr);
+  }, []);
 
   const handleCreateIssue = useCallback(
     async (source: GitHubRepoSource, title: string, body: string) => {
@@ -1848,6 +1802,7 @@ const ManageIssuesPanelView: React.FC = () => {
                   <ManagedPrRow
                     pr={item}
                     addLabel={t("chat.panels.manageIssues.addToChat")}
+                    onOpenPr={handleOpenPr}
                     onAddPr={handleAddPr}
                   />
                 )}
@@ -1877,65 +1832,124 @@ const ManageIssuesPanelView: React.FC = () => {
     );
   })();
 
-  const issueDetailContent = chatIssueDetail ? (
+  const issueDetailContent = issueDetail ? (
     <IssueDetailPanel
-      issue={chatIssueDetail.issue}
-      comments={chatIssueDetail.comments}
-      commentsLoading={chatIssueDetail.commentsLoading}
-      submittingComment={chatIssueDetail.submittingComment}
+      issue={issueDetail.issue}
+      comments={issueDetail.comments}
+      commentsLoading={issueDetail.commentsLoading}
+      submittingComment={issueDetail.submittingComment}
       showHeader={false}
       showBackTitleHeader
       backLabel={t("common:actions.back")}
       contentPadding="none"
       onClose={handleBackToIssueList}
-      onCloseIssue={handleCloseChatIssue}
-      onReopenIssue={handleReopenChatIssue}
-      onAddComment={handleAddChatIssueComment}
+      onCloseIssue={handleCloseIssueDetail}
+      onReopenIssue={handleReopenIssueDetail}
+      onAddComment={handleAddIssueDetailComment}
     />
+  ) : null;
+
+  const prDetailContent = selectedPr ? (
+    <div
+      className="flex h-full min-h-0 flex-col"
+      data-testid="ops-control-pr-detail"
+    >
+      <div className="flex h-11 shrink-0 items-center gap-2 border-b border-border-2 px-3">
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          appearance="ghost"
+          size="small"
+          icon={<ChevronLeft size={14} />}
+          iconOnly
+          aria-label={t("common:actions.back")}
+          onClick={() => setSelectedPr(null)}
+        />
+        <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-1">
+          {selectedPr.title}
+        </span>
+        <Button
+          htmlType="button"
+          variant="secondary"
+          appearance="outline"
+          size="small"
+          icon={<Link2 size={12} />}
+          onClick={() => handleAddPr(selectedPr)}
+        >
+          {t("chat.panels.manageIssues.addToChat")}
+        </Button>
+        <Button
+          htmlType="button"
+          variant="secondary"
+          appearance="outline"
+          size="small"
+          icon={<ExternalLink size={12} />}
+          href={selectedPr.rawPr.url}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t("chat.panels.manageIssues.openInGitHub")}
+        </Button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-5 scrollbar-hide">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
+          <div className="flex items-start gap-3">
+            <GitPullRequest
+              size={18}
+              strokeWidth={1.8}
+              className="mt-0.5 shrink-0 text-success-6"
+            />
+            <div className="min-w-0">
+              <h2 className="m-0 text-[18px] font-semibold leading-6 text-text-1">
+                {selectedPr.title}
+              </h2>
+              <p className="m-0 mt-1 text-[12px] text-text-3">
+                {selectedPr.repo} · PR #{selectedPr.id} · {selectedPr.state}
+              </p>
+            </div>
+          </div>
+          <dl className="grid grid-cols-[120px_minmax(0,1fr)] gap-x-4 gap-y-3 rounded-xl border border-border-2 bg-bg-1 p-4 text-[13px]">
+            <dt className="text-text-3">Source branch</dt>
+            <dd className="m-0 truncate font-mono text-text-1">
+              {selectedPr.sourceBranch}
+            </dd>
+            <dt className="text-text-3">Target branch</dt>
+            <dd className="m-0 truncate font-mono text-text-1">
+              {selectedPr.targetBranch}
+            </dd>
+            <dt className="text-text-3">Last updated</dt>
+            <dd className="m-0 text-text-1">{selectedPr.timeAgo}</dd>
+            <dt className="text-text-3">Draft</dt>
+            <dd className="m-0 text-text-1">
+              {selectedPr.rawPr.draft ? "Yes" : "No"}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
   ) : null;
 
   const listDescriptionContent = (
     <section
-      className={`${DETAIL_PANEL_TOKENS.contentWidth} flex min-h-0 flex-1 flex-col`}
-      data-testid="chat-panel-manage-issues-section"
+      className="flex min-h-0 flex-1"
+      data-testid={`ops-control-github-${scope}`}
     >
-      <div className="mb-3 flex shrink-0 flex-col gap-1.5 rounded-xl border border-border-1 bg-bg-1 p-2">
-        <div className="flex items-center gap-2">
-          <TabPill
-            tabs={typeSwitchOptions}
-            activeTab={activeTypeTab}
-            onChange={handleTypeTabChange}
-            variant="pill"
-            fillWidth={false}
-            size="mini"
-            buttonStyle
-          />
+      <aside className="flex w-60 shrink-0 flex-col gap-5 overflow-y-auto border-r border-border-2 bg-bg-1/40 p-3 scrollbar-hide">
+        <div className="flex flex-col gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">
+            {t("chat.panels.manageIssues.repositoryLabel")}
+          </span>
           <RepoFilterPill
             options={repoOptions}
             selectedRepo={effectiveSelectedRepo}
             allReposLabel={t("chat.manageIssues.allRepositories")}
             onSelectRepo={setSelectedRepo}
           />
-          <Button
-            htmlType="button"
-            variant="secondary"
-            appearance="outline"
-            size="small"
-            icon={<ExternalLink size={13} />}
-            iconOnly
-            className="h-7 w-7"
-            aria-label={t("chat.panels.manageIssues.openInGitHub")}
-            disabled={!selectedRepoSourceForCreate}
-            href={
-              selectedRepoSourceForCreate
-                ? `https://github.com/${selectedRepoSourceForCreate.repoFullName}`
-                : undefined
-            }
-            target="_blank"
-            rel="noreferrer"
-          />
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-col gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">
+            {t("chat.panels.manageIssues.filters")}
+          </span>
           <TabPill
             tabs={quickFilterOptions}
             activeTabs={activeQuickFilterTabs}
@@ -1957,34 +1971,44 @@ const ManageIssuesPanelView: React.FC = () => {
             size="mini"
             buttonStyle
           />
-          <SearchInput
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder={t("chat.panels.manageIssues.searchPlaceholder")}
-            variant="panel"
-            surface="pane"
-            hideChevron
-            showClearButton
-            inputBoxClassName="flex-1"
-            className="min-w-0 flex-1"
-          />
-          <FilterMenuButton
-            label={t("chat.panels.manageIssues.filters")}
+          <FilterOptionList
             options={filterMenuOptions}
             onSelect={handleFilterMenuSelect}
           />
+        </div>
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border-2 pt-3">
           <Button
             htmlType="button"
             variant="secondary"
             appearance="outline"
             size="small"
-            icon={<Plus size={13} />}
+            icon={<ExternalLink size={13} />}
             iconOnly
             className="h-7 w-7"
-            aria-label={t("chat.panels.manageIssues.createIssueTrigger")}
-            onClick={() => setCreateFormOpen(true)}
-            disabled={repoSources.length === 0}
+            aria-label={t("chat.panels.manageIssues.openInGitHub")}
+            disabled={!selectedRepoSourceForCreate}
+            href={
+              selectedRepoSourceForCreate
+                ? `https://github.com/${selectedRepoSourceForCreate.repoFullName}`
+                : undefined
+            }
+            target="_blank"
+            rel="noreferrer"
           />
+          {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
+            <Button
+              htmlType="button"
+              variant="secondary"
+              appearance="outline"
+              size="small"
+              icon={<Plus size={13} />}
+              iconOnly
+              className="h-7 w-7"
+              aria-label={t("chat.panels.manageIssues.createIssueTrigger")}
+              onClick={() => setCreateFormOpen(true)}
+              disabled={repoSources.length === 0}
+            />
+          ) : null}
           <Button
             htmlType="button"
             variant="secondary"
@@ -1999,7 +2023,7 @@ const ManageIssuesPanelView: React.FC = () => {
             onClick={handleRefresh}
           />
         </div>
-      </div>
+      </aside>
       <CreateIssueModal
         open={createFormOpen}
         repoSources={repoSources}
@@ -2021,11 +2045,33 @@ const ManageIssuesPanelView: React.FC = () => {
         onCreateIssue={handleCreateIssue}
         onCancel={() => setCreateFormOpen(false)}
       />
-      <div
-        ref={listScrollRef}
-        className="min-h-0 flex-1 overflow-y-auto scrollbar-hide"
-      >
-        {listContent}
+      <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
+        {issueDetailContent ?? prDetailContent ?? (
+          <>
+            <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border-2 px-3">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={t("chat.panels.manageIssues.searchPlaceholder")}
+                variant="panel"
+                surface="pane"
+                hideChevron
+                showClearButton
+                inputBoxClassName="flex-1"
+                className="min-w-0 flex-1"
+              />
+              <span className="shrink-0 text-[11px] text-text-3">
+                {filteredItems.length} {surfaceTitle}
+              </span>
+            </div>
+            <div
+              ref={listScrollRef}
+              className="min-h-0 flex-1 overflow-y-auto px-2 py-1 scrollbar-hide"
+            >
+              {listContent}
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
@@ -2033,17 +2079,13 @@ const ManageIssuesPanelView: React.FC = () => {
   return (
     <div
       className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
-      data-testid="chat-panel-manage-issues"
+      data-testid="ops-control-github"
     >
-      <DetailPanelContainer testId="manage-issues-panel">
-        <WorkItemContentStack
-          descriptionContent={issueDetailContent ?? listDescriptionContent}
-          descriptionClassName="min-h-0 flex flex-1 flex-col px-4 pt-2"
-          descriptionFlexible
-        />
+      <DetailPanelContainer testId="ops-control-github-panel">
+        {listDescriptionContent}
       </DetailPanelContainer>
     </div>
   );
 };
 
-export default ManageIssuesPanelView;
+export default GitHubWorkItemsSurface;

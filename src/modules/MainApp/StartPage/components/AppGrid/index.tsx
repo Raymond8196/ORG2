@@ -150,9 +150,8 @@ const APP_GRID_ACTION_IDS: Partial<Record<string, string>> = {
   integrations: ACTION_ID.APP_GO_TO_INTEGRATIONS,
   economy: ACTION_ID.APP_GO_TO_MARKET,
   "agent-orgs": ACTION_ID.APP_GO_TO_AGENT_ORGS,
-  // launchpad: intentionally absent — falls through to APP_NAVIGATE,
-  // which lands on the Code Editor route (the launchpad dashboard is
-  // pinned there as the first tab).
+  // Legacy launchpad action: intentionally absent so it falls through to
+  // APP_NAVIGATE and opens the renamed Dashboard in the Code Editor route.
   "dev-record": ACTION_ID.APP_GO_TO_DEV_RECORD,
   changelog: ACTION_ID.APP_GO_TO_CHANGELOG,
   projects: ACTION_ID.APP_GO_TO_STORIES,

@@ -177,7 +177,7 @@ export function useShortcutRegistration(options: ShortcutRegistrationOptions) {
         void WorkStationViewService.openStationMode("agent-station");
       }),
       shortcutRegistry.on("open_ops_control", () => {
-        void WorkStationViewService.openStationMode("ops-control");
+        void WorkStationViewService.openOpsControlTab();
       }),
       shortcutRegistry.on(
         "open_file_folder_tab",

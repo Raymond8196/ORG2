@@ -80,6 +80,8 @@ workstationProjectTabBarAtom.debugLabel = "workstationProjectTabBarAtom";
 export const OPS_CONTROL_HOME_TAB = {
   OPS_CONTROL: "ops-control",
   PROJECTS: "projects",
+  GITHUB_ISSUES: "github-issues",
+  GITHUB_PRS: "github-prs",
 } as const;
 
 export type OpsControlHomeTab =
@@ -92,11 +94,6 @@ export const OPS_CONTROL_PROJECTS_VIEW = {
 
 export type OpsControlProjectsView =
   (typeof OPS_CONTROL_PROJECTS_VIEW)[keyof typeof OPS_CONTROL_PROJECTS_VIEW];
-
-export const opsControlHomeTabAtom = atom<OpsControlHomeTab>(
-  OPS_CONTROL_HOME_TAB.OPS_CONTROL
-);
-opsControlHomeTabAtom.debugLabel = "opsControlHomeTabAtom";
 
 export const opsControlProjectsViewAtom = atom<OpsControlProjectsView>(
   OPS_CONTROL_PROJECTS_VIEW.WORK_ITEMS

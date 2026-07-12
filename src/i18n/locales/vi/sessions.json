@@ -182,11 +182,6 @@
       "merging": "Đang hợp nhất…",
       "merged": "Đã hợp nhất"
     },
-    "diff": {
-      "openDiffWindow": "Xem Diff",
-      "windowTitle": "Diff Phiên",
-      "filesChanged": "Tệp"
-    },
     "replay": {
       "replaySession": "Phát lại"
     },
@@ -723,7 +718,7 @@
       },
       "tabs": {
         "work": "Làm việc",
-        "explore": "Khám phá",
+        "manage": "Quản lý",
         "heatmap": "Xu hướng"
       },
       "heatmap": {
@@ -1077,7 +1072,7 @@
     "pathCopied": "Đã sao chép đường dẫn!",
     "failedToCopyPath": "Sao chép đường dẫn thất bại",
     "copyFilePath": "Sao chép đường dẫn tệp",
-    "explore": "Khám phá",
+    "manage": "Quản lý",
     "readFile": "Đọc tệp",
     "readFileRunning": "Đang đọc",
     "readFileDone": "Đọc",
@@ -2469,13 +2464,6 @@
       "missing": "Thiếu",
       "disabled": "Đã tắt"
     }
-  },
-  "worktreeCompare": {
-    "title": "So sánh Worktree",
-    "button": "So sánh",
-    "buttonTooltip": "So sánh diff Worktree cạnh nhau",
-    "noSessions": "Không có phiên nào để so sánh.",
-    "sessionTab": "Phiên {{n}}"
   },
   "groupChat": {
     "senderTitle": {

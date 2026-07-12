@@ -7,6 +7,8 @@ import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
 
 import { ChatPanelTerminalContent } from "./ChatPanelTerminalContent";
 
+const OpsControl = React.lazy(() => import("@src/modules/MainApp/OpsControl"));
+
 type ChatPanelShellStyle = React.CSSProperties;
 
 interface ChatPanelShellProps {
@@ -48,6 +50,7 @@ export function ChatPanelShell({
   terminalTabs,
   useExternalWidth,
 }: ChatPanelShellProps): React.ReactNode {
+  const isManagementTabActive = activeTab?.type === "ops-control";
   const dragHandle = showResizeHandle && (
     <VerticalResizeHandle
       key="chat-panel-resize-handle"
@@ -81,9 +84,21 @@ export function ChatPanelShell({
       }}
     >
       {headerSection}
-      <div style={{ display: isTerminalTabActive ? "none" : "contents" }}>
+      <div
+        style={{
+          display:
+            isTerminalTabActive || isManagementTabActive ? "none" : "contents",
+        }}
+      >
         {chatColumn}
       </div>
+      {isManagementTabActive && (
+        <div className="min-h-0 w-full flex-1 overflow-hidden">
+          <React.Suspense fallback={null}>
+            <OpsControl />
+          </React.Suspense>
+        </div>
+      )}
       {terminalTabs.map((tab) => {
         const terminalSessionId = tab.terminalSessionId;
         if (!terminalSessionId) return null;

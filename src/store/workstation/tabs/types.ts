@@ -63,8 +63,6 @@ export type WorkStationTabType =
   // view inside the Code Editor surface (opened from the Agent Teams page
   // table rows; mirrors how skills are previewed).
   | "agent-config"
-  // Ops Control station tabs
-  | "ops-control-station"
   // Canvas preview tab — renders agent-generated canvas from canvasPreviewAtom
   | "canvas-preview"
   // GitHub Issues detail tab — opened from the sidebar Issues panel
@@ -441,7 +439,6 @@ export const TOOL_TAB_TYPES = [
   "chat-session",
   "subagent-detail",
   "agent-config",
-  "ops-control-station",
   // GitHub Issues detail
   "github-issue-detail",
 ] as const;
