@@ -1135,9 +1135,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token gerekli",
       "createTokenButton": "Token oluştur",
-      "openGitSettingsButton": "Git ayarlarını aç",
+      "openGitSettingsButton": "Ayarları aç",
       "configureInSettings": "Git’i ayarlarda yapılandır",
-      "configureInSettingsDesc": "Ayarlar → Entegrasyonlar → Git içinde GitHub App erişimi ekleyin, token kaydedin veya yerel kimlik bilgilerini tarayın; ardından bu Git işlemini yeniden deneyin."
+      "configureInSettingsDesc": "Ayarlar → Bağlantılar içinde GitHub App erişimi ekleyin, token kaydedin veya yerel kimlik bilgilerini tarayın; ardından bu Git işlemini yeniden deneyin."
     },
     "actions": {
       "publish": "Publish",

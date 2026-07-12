@@ -1134,9 +1134,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token ist erforderlich",
       "createTokenButton": "Token erstellen",
-      "openGitSettingsButton": "Git-Einstellungen öffnen",
+      "openGitSettingsButton": "Einstellungen öffnen",
       "configureInSettings": "Git in den Einstellungen konfigurieren",
-      "configureInSettingsDesc": "Füge GitHub App-Zugriff hinzu, speichere ein Token oder scanne lokale Zugangsdaten unter Einstellungen → Integrationen → Git und versuche diese Git-Operation erneut."
+      "configureInSettingsDesc": "Füge GitHub App-Zugriff hinzu, speichere ein Token oder scanne lokale Zugangsdaten unter Einstellungen → Verbindungen und versuche diese Git-Operation erneut."
     },
     "actions": {
       "publish": "Publish",
