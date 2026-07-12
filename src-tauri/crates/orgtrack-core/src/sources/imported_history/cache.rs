@@ -15,6 +15,7 @@ use super::metadata::{
 use super::{
     effective_limit, recent_paths_from_rows, row_from_input, ImportedHistoryRecentPath,
     ImportedHistoryRowInput, ImportedHistorySessionPage, ImportedHistorySessionRow,
+    ImportedHistorySidebarPage, ImportedHistorySidebarRow,
 };
 
 #[derive(Debug, Clone)]
@@ -271,6 +272,68 @@ pub fn query_imported_session_page_from_conn(
         .map(|session| session.to_row())
         .collect();
     Ok(ImportedHistorySessionPage { sessions, has_more })
+}
+
+/// Query a bounded, lightweight page from ORGII's imported-history cache.
+/// `end_ms` is exclusive so adjacent date buckets cannot overlap.
+pub fn query_imported_sidebar_page_from_conn(
+    conn: &Connection,
+    source: &str,
+    start_ms: Option<i64>,
+    end_ms: Option<i64>,
+    limit: usize,
+    offset: usize,
+) -> Result<ImportedHistorySidebarPage, String> {
+    let limit = effective_limit(limit);
+    let mut range_sql = String::new();
+    let mut values = vec![SqlValue::from(source.to_string())];
+    if let Some(start_ms) = start_ms {
+        values.push(SqlValue::from(start_ms));
+        range_sql.push_str(&format!(" AND updated_at_ms >= ?{}", values.len()));
+    }
+    if let Some(end_ms) = end_ms {
+        values.push(SqlValue::from(end_ms));
+        range_sql.push_str(&format!(" AND updated_at_ms < ?{}", values.len()));
+    }
+    let limit_param = values.len() + 1;
+    let offset_param = values.len() + 2;
+    values.push(SqlValue::from(limit.saturating_add(1) as i64));
+    values.push(SqlValue::from(offset as i64));
+    let sql = format!(
+        "SELECT session_id, name, created_at_ms, updated_at_ms, repo_path
+         FROM imported_history_session_cache
+         WHERE source = ?1
+           AND listable = 1
+           AND parent_session_id = ''
+           {range_sql}
+         ORDER BY updated_at_ms DESC, created_at_ms DESC, source_session_id ASC
+         LIMIT ?{limit_param} OFFSET ?{offset_param}"
+    );
+    let mut stmt = conn
+        .prepare(&sql)
+        .map_err(|err| format!("Failed to prepare imported sidebar query for {source}: {err}"))?;
+    let rows = stmt
+        .query_map(params_from_iter(values), |row| {
+            let repo_path: String = row.get(4)?;
+            Ok(ImportedHistorySidebarRow {
+                session_id: row.get(0)?,
+                name: row.get(1)?,
+                created_at: super::epoch_ms_to_iso(row.get(2)?),
+                updated_at: super::epoch_ms_to_iso(row.get(3)?),
+                repo_path: non_empty_string(repo_path),
+            })
+        })
+        .map_err(|err| format!("Failed to query imported sidebar rows for {source}: {err}"))?;
+
+    let mut sessions = Vec::new();
+    for row in rows {
+        sessions.push(
+            row.map_err(|err| format!("Failed to read imported sidebar row for {source}: {err}"))?,
+        );
+    }
+    let has_more = sessions.len() > limit;
+    sessions.truncate(limit);
+    Ok(ImportedHistorySidebarPage { sessions, has_more })
 }
 
 pub fn query_imported_recent_paths_from_conn(

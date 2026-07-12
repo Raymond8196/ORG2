@@ -266,6 +266,14 @@ impl<'conn> SqliteRecordStore<'conn> {
             );
             CREATE INDEX IF NOT EXISTS idx_imported_history_source_updated
                 ON imported_history_session_cache(source, updated_at_ms DESC);
+            CREATE INDEX IF NOT EXISTS idx_imported_history_sidebar_order
+                ON imported_history_session_cache(
+                    source,
+                    updated_at_ms DESC,
+                    created_at_ms DESC,
+                    source_session_id ASC
+                )
+                WHERE listable = 1 AND parent_session_id = '';
             CREATE INDEX IF NOT EXISTS idx_imported_history_source_repo
                 ON imported_history_session_cache(source, repo_path);
             CREATE INDEX IF NOT EXISTS idx_imported_history_source_path

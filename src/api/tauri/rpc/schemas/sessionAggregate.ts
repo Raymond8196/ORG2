@@ -57,6 +57,38 @@ export const SessionAggregateListInput = z.object({
   filter: SessionFilterInput.optional(),
 });
 
+export const ExternalHistorySidebarDateBucketSchema = z.enum([
+  "today",
+  "yesterday",
+  "thisWeek",
+  "older",
+]);
+
+export const ExternalHistorySidebarListInput = z.object({
+  source: z.string().min(1),
+  buckets: z
+    .array(
+      z
+        .object({
+          bucket: ExternalHistorySidebarDateBucketSchema,
+          startMs: z.number().int().optional(),
+          endMs: z.number().int().optional(),
+          limit: z.number().int().min(1).max(50),
+          offset: z.number().int().min(0),
+        })
+        .refine(
+          ({ startMs, endMs }) =>
+            startMs === undefined || endMs === undefined || startMs < endMs,
+          { message: "startMs must precede endMs" }
+        )
+    )
+    .refine(
+      (buckets) =>
+        new Set(buckets.map(({ bucket }) => bucket)).size === buckets.length,
+      { message: "date buckets must be unique" }
+    ),
+});
+
 export const SessionGetAggregateStatsInput = z.object({
   sessionIds: z.array(z.string()).optional(),
   keySource: z.string().optional(),
@@ -240,6 +272,25 @@ export const SessionListResponseSchema = z.object({
   stats: SessionStatsSchema.optional(),
 });
 
+export const ExternalHistorySidebarRowSchema = z.object({
+  sessionId: z.string(),
+  name: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  repoPath: z.string().optional(),
+});
+
+export const ExternalHistorySidebarResponseSchema = z.object({
+  source: z.string(),
+  buckets: z.array(
+    z.object({
+      bucket: ExternalHistorySidebarDateBucketSchema,
+      sessions: z.array(ExternalHistorySidebarRowSchema),
+      hasMore: z.boolean(),
+    })
+  ),
+});
+
 export const AggregateStatsSchema = z.object({
   totalCostUsd: z.number(),
   totalTokensInput: z.number().int(),
@@ -294,6 +345,15 @@ export type SessionAggregateRecord = z.output<
   typeof SessionAggregateRecordSchema
 >;
 export type SessionListResponse = z.output<typeof SessionListResponseSchema>;
+export type ExternalHistorySidebarDateBucket = z.output<
+  typeof ExternalHistorySidebarDateBucketSchema
+>;
+export type ExternalHistorySidebarListRequest = z.input<
+  typeof ExternalHistorySidebarListInput
+>;
+export type ExternalHistorySidebarResponse = z.output<
+  typeof ExternalHistorySidebarResponseSchema
+>;
 export type AggregateStats = z.output<typeof AggregateStatsSchema>;
 export type SessionUsageSummary = z.output<typeof SessionUsageSummarySchema>;
 export type SessionHeatmapMetric = z.output<typeof SessionHeatmapMetricSchema>;

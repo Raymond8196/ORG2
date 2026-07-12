@@ -7,6 +7,13 @@ export const sessionAggregate = {
     .output(schemas.sessionAggregate.SessionListResponseSchema)
     .build(),
 
+  externalHistorySidebarList: defineProcedure(
+    "session_external_history_sidebar_list"
+  )
+    .input(schemas.sessionAggregate.ExternalHistorySidebarListInput)
+    .output(schemas.sessionAggregate.ExternalHistorySidebarResponseSchema)
+    .build(),
+
   getStats: defineProcedure("session_get_aggregate_stats")
     .input(schemas.sessionAggregate.SessionGetAggregateStatsInput)
     .output(schemas.sessionAggregate.AggregateStatsSchema)

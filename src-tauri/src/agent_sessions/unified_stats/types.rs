@@ -6,6 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 use core_types::key_source::KeySource;
+use orgtrack_core::sources::imported_history::ImportedHistorySidebarRow;
 
 // ============================================================================
 // Core Types
@@ -320,6 +321,40 @@ pub struct SessionListResponse {
     pub sessions: Vec<SessionAggregateRecord>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stats: Option<SessionStats>,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ExternalHistorySidebarDateBucket {
+    Today,
+    Yesterday,
+    ThisWeek,
+    Older,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySidebarBucketRequest {
+    pub bucket: ExternalHistorySidebarDateBucket,
+    pub start_ms: Option<i64>,
+    pub end_ms: Option<i64>,
+    pub limit: usize,
+    pub offset: usize,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySidebarBucketPage {
+    pub bucket: ExternalHistorySidebarDateBucket,
+    pub sessions: Vec<ImportedHistorySidebarRow>,
+    pub has_more: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySidebarResponse {
+    pub source: String,
+    pub buckets: Vec<ExternalHistorySidebarBucketPage>,
 }
 
 // ============================================================================
