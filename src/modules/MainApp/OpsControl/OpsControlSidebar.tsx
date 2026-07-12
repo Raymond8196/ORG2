@@ -329,19 +329,13 @@ const OpsControlSidebar: React.FC<OpsControlSidebarProps> = ({
 
   const emptyMessage = t("common:states.empty");
   const githubControlsSection = useMemo(() => {
-    if (
-      activeHomeTab !== OPS_CONTROL_HOME_TAB.GITHUB_ISSUES &&
-      activeHomeTab !== OPS_CONTROL_HOME_TAB.GITHUB_PRS
-    ) {
+    if (activeHomeTab !== OPS_CONTROL_HOME_TAB.GITHUB_ISSUES) {
       return null;
     }
 
     return {
       key: "github-controls",
-      title:
-        activeHomeTab === OPS_CONTROL_HOME_TAB.GITHUB_PRS
-          ? t("sessions:opsControl.sidebar.githubPrs")
-          : t("sessions:opsControl.sidebar.githubIssues"),
+      title: t("sessions:opsControl.sidebar.githubIssues"),
       content: (
         <div ref={githubControlsHostRef} className="h-full min-h-0 w-full" />
       ),
@@ -371,26 +365,28 @@ const OpsControlSidebar: React.FC<OpsControlSidebarProps> = ({
             defaultFlexGrow: 0.35,
             resizable: false,
           },
-          ...(activeHomeTab === OPS_CONTROL_HOME_TAB.OPS_CONTROL
-            ? [
-                {
-                  key: "views",
-                  title: t("sessions:opsControl.sidebar.views"),
-                  content: (
-                    <OpsControlSidebarRows
-                      nodes={viewNodes}
-                      activeHomeTab={activeHomeTab}
-                      activeProjectsView={activeProjectsView}
-                      activeViewMode={activeViewMode}
-                      onSelectNode={handleSelectNode}
-                      emptyMessage={emptyMessage}
-                    />
-                  ),
-                  defaultFlexGrow: 1,
-                  resizable: false,
-                },
-              ]
-            : []),
+          ...(githubControlsSection
+            ? [githubControlsSection]
+            : activeHomeTab === OPS_CONTROL_HOME_TAB.OPS_CONTROL
+              ? [
+                  {
+                    key: "views",
+                    title: t("sessions:opsControl.sidebar.views"),
+                    content: (
+                      <OpsControlSidebarRows
+                        nodes={viewNodes}
+                        activeHomeTab={activeHomeTab}
+                        activeProjectsView={activeProjectsView}
+                        activeViewMode={activeViewMode}
+                        onSelectNode={handleSelectNode}
+                        emptyMessage={emptyMessage}
+                      />
+                    ),
+                    defaultFlexGrow: 1,
+                    resizable: false,
+                  },
+                ]
+              : []),
         ],
       },
     ],
@@ -399,6 +395,7 @@ const OpsControlSidebar: React.FC<OpsControlSidebarProps> = ({
       activeProjectsView,
       activeViewMode,
       emptyMessage,
+      githubControlsSection,
       handleSelectNode,
       manageItemNodes,
       t,
@@ -415,7 +412,6 @@ const OpsControlSidebar: React.FC<OpsControlSidebarProps> = ({
       onTabChange={handleTabChange}
       tabIconOnly={true}
       hideTabs={true}
-      globalSection={githubControlsSection ?? undefined}
     />
   );
 };
