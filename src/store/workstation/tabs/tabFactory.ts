@@ -109,7 +109,6 @@ const DEFAULT_CATEGORY_BY_TYPE: Record<
   "chat-session": "chat",
   "subagent-detail": "subagent",
   "agent-config": "agent-config",
-  "ops-control-station": "ops-control",
   "canvas-preview": "preview",
   "github-issue-detail": "git",
 };

@@ -46,6 +46,7 @@
     "projectManager": "Project 관리자",
     "diff": "Diff",
     "opsControl": "Ops Control",
+    "opsCenter": "운영 센터",
     "colleagues": "Colleagues",
     "terminals": "터미널"
   },
@@ -81,7 +82,7 @@
     "agentStudio": "Agent 스튜디오",
     "serviceMarket": "Service 마켓",
     "signingIn": "로그인 중...",
-    "launchpad": "Launchpad",
+    "launchpad": "런치패드",
     "ideaArea": "아이디어 공간",
     "changelog": "Changelog",
     "opsControl": "Ops Control"
@@ -201,7 +202,7 @@
     "emptyWorkspaces": "일치하는 워크스페이스가 없습니다",
     "myRepos": "내 저장소",
     "myMultiRepoWorkspaces": "멀티 리포 Workspaces",
-    "dashboard": "런치패드",
+    "dashboard": "대시보드",
     "myWorkspaces": "내 Workspaces",
     "workspaces": "워크스페이스",
     "dashboardTitle": "워크스페이스",

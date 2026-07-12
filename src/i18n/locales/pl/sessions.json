@@ -187,11 +187,6 @@
       "discarding": "Odrzucanie…",
       "confirmMessage": "Odrzucić wszystkie zmiany w tym Worktree? Tej operacji nie można cofnąć."
     },
-    "diff": {
-      "openDiffWindow": "Wyświetl różnice",
-      "windowTitle": "Różnice sesji",
-      "filesChanged": "Pliki"
-    },
     "replay": {
       "replaySession": "Powtórz"
     },
@@ -225,13 +220,6 @@
       "commits_other": "{{count}} commitów",
       "committedRateShort": "{{percent}}% scommitowane"
     }
-  },
-  "worktreeCompare": {
-    "title": "Porównaj Worktree",
-    "button": "Porównaj",
-    "buttonTooltip": "Porównaj różnice Worktree obok siebie",
-    "noSessions": "Brak sesji do porównania.",
-    "sessionTab": "Sesja {{n}}"
   },
   "changes": {
     "scope": {
@@ -731,7 +719,7 @@
       },
       "tabs": {
         "work": "Praca",
-        "explore": "Eksploruj",
+        "manage": "Zarządzaj",
         "heatmap": "Trendy"
       },
       "heatmap": {
@@ -1107,7 +1095,7 @@
     "pathCopied": "Ścieżka skopiowana!",
     "failedToCopyPath": "Nie udało się skopiować ścieżki",
     "copyFilePath": "Kopiuj ścieżkę pliku",
-    "explore": "Eksploruj",
+    "manage": "Zarządzaj",
     "readFile": "Odczytaj plik",
     "readFileRunning": "Odczytywanie",
     "readFileDone": "Czytaj",

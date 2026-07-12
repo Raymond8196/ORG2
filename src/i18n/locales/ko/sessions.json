@@ -184,11 +184,6 @@
       "merging": "병합 중…",
       "merged": "병합됨"
     },
-    "diff": {
-      "openDiffWindow": "Diff 보기",
-      "windowTitle": "Session Diff",
-      "filesChanged": "파일"
-    },
     "replay": {
       "replaySession": "리플레이"
     },
@@ -725,7 +720,7 @@
       },
       "tabs": {
         "work": "작업",
-        "explore": "탐색",
+        "manage": "관리",
         "heatmap": "추세"
       },
       "heatmap": {
@@ -1079,7 +1074,7 @@
     "pathCopied": "경로가 복사되었습니다!",
     "failedToCopyPath": "경로 복사에 실패했습니다",
     "copyFilePath": "파일 경로 복사",
-    "explore": "탐색",
+    "manage": "관리",
     "readFile": "파일 읽기",
     "readFileRunning": "읽는 중",
     "readFileDone": "읽기",
@@ -2472,13 +2467,6 @@
       "missing": "없음",
       "disabled": "비활성화됨"
     }
-  },
-  "worktreeCompare": {
-    "title": "Worktree 비교",
-    "button": "비교",
-    "buttonTooltip": "Worktree diff를 나란히 비교",
-    "noSessions": "비교할 세션이 없습니다.",
-    "sessionTab": "Session {{n}}"
   },
   "groupChat": {
     "senderTitle": {

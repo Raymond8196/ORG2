@@ -228,13 +228,8 @@ const WorkItemDetailEntry: RendererEntry = {
 };
 
 // ============================================
-// Ops Control / Launchpad renderers
+// Launchpad renderers
 // ============================================
-
-const OpsControlStationEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/opsControlStation")),
-  debugLabel: "ops-control-station",
-};
 
 const BenchmarkEntry: RendererEntry = {
   Component: lazy(() => import("./renderers/benchmark")),
@@ -314,9 +309,6 @@ export const REGISTRY: TabContentRegistry = {
 
   // Agent Config (Agent Teams page → opens here)
   "agent-config": AgentConfigEntry,
-
-  // Ops Control
-  "ops-control-station": OpsControlStationEntry,
 
   // Canvas Preview
   "canvas-preview": CanvasPreviewEntry,

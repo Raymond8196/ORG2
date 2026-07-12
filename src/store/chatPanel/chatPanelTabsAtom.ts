@@ -2,9 +2,10 @@
  * Chat Panel Tab Store
  *
  * Multi-tab state for the chat panel. Each tab is one of:
- *   "session"  — AI agent session (chat history + session creator)
+ *   "session"  — AI agent session chat history
  *   "terminal" — Live PTY terminal embedded in the chat pane
- *   "launchpad" — Workspace dashboard surface
+ *   "start-page" — Launchpad with Work / Manage / Trend tabs
+ *   "ops-control" — Singleton management surface with internal sections
  *
  * Terminal tabs share the global terminal atom store but use session IDs
  * prefixed with "chatpanel-" so they are invisible to the Workstation
@@ -30,30 +31,42 @@ import {
   workstationActiveSessionIdAtom,
 } from "@src/store/session/viewAtom";
 import {
+  CHAT_PANEL_START_PAGE_TAB,
   CHAT_PANEL_SURFACE_KIND,
+  chatPanelMaximizedAtom,
   chatPanelNavigateAtom,
+  chatPanelStartPageOpenAtom,
+  chatPanelStartPageTabAtom,
 } from "@src/store/ui/chatPanelAtom";
+import {
+  OPS_CONTROL_HOME_TAB,
+  type OpsControlHomeTab,
+} from "@src/store/workstation/workstationTabBarAtoms";
+
+import { disposeOpsControlStateAtom } from "./disposeOpsControlStateAtom";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
 // ────────────────────────────────────────────────────────────────────────────
 
-export type ChatPanelTabType = "session" | "terminal" | "launchpad";
+export type ChatPanelTabType =
+  | "session"
+  | "terminal"
+  | "start-page"
+  | "ops-control";
 
 export interface ChatPanelTab {
   id: string;
   type: ChatPanelTabType;
   /** Display label */
   title: string;
+  /** Active inner section for the singleton Ops Control tab. */
+  opsSection?: OpsControlHomeTab;
   createdAt?: string;
   updatedAt?: string;
-  /** Set to true for the initial default session tab so Cmd+W skips it */
-  isPrimary?: boolean;
-  /** true means the × button is hidden */
-  closable: boolean;
   /**
-   * For "session" tabs: the ORGII session ID once a session is launched.
-   * Null for the creator (empty) state.
+   * For "session" tabs: the linked ORGII session ID.
+   * Legacy persisted empty tabs may still hydrate with null before migration.
    */
   sessionId?: string | null;
   /**
@@ -75,9 +88,83 @@ export interface ChatPanelTab {
   cliCommand?: string;
 }
 
+const FULLSCREEN_ONLY_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
+  "ops-control",
+]);
+
+export function isChatPanelTabFullscreenOnly(
+  tabOrType: ChatPanelTab | ChatPanelTabType | null | undefined
+): boolean {
+  const type =
+    typeof tabOrType === "string" ? tabOrType : (tabOrType?.type ?? null);
+  return type !== null && FULLSCREEN_ONLY_CHAT_PANEL_TAB_TYPES.has(type);
+}
+
 export interface ChatPanelTabsState {
   tabs: ChatPanelTab[];
   activeTabId: string;
+}
+
+export function normalizePersistedChatPanelTabsState(
+  value: unknown
+): ChatPanelTabsState | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Partial<ChatPanelTabsState>;
+  if (!Array.isArray(candidate.tabs)) return null;
+
+  const mappedTabs = candidate.tabs
+    .filter((tab) => tab.type !== "terminal")
+    .map((tab) => {
+      const persistedType = (tab as { type: string }).type;
+      if (persistedType === "session" && !tab.sessionId) {
+        return {
+          ...tab,
+          type: "start-page",
+          title: "Launchpad",
+        } as ChatPanelTab;
+      }
+      if (persistedType === "launchpad" || persistedType === "dashboard") {
+        return {
+          ...tab,
+          type: "start-page",
+          title: "Launchpad",
+        } as ChatPanelTab;
+      }
+      if (persistedType === "ops-projects") {
+        return {
+          ...tab,
+          type: "ops-control",
+          title: "Ops Control",
+          opsSection: OPS_CONTROL_HOME_TAB.PROJECTS,
+        } as ChatPanelTab;
+      }
+      if (persistedType === "ops-control") {
+        return {
+          ...tab,
+          opsSection: tab.opsSection ?? OPS_CONTROL_HOME_TAB.OPS_CONTROL,
+        } as ChatPanelTab;
+      }
+      return tab;
+    });
+
+  const activeMappedTab = mappedTabs.find(
+    (tab) => tab.id === candidate.activeTabId
+  );
+  const preferredOpsControlTabId =
+    activeMappedTab?.type === "ops-control"
+      ? activeMappedTab.id
+      : mappedTabs.find((tab) => tab.type === "ops-control")?.id;
+  const survivingTabs = mappedTabs.filter(
+    (tab) => tab.type !== "ops-control" || tab.id === preferredOpsControlTabId
+  );
+  if (survivingTabs.length === 0) return null;
+
+  const activeTabId = survivingTabs.some(
+    (tab) => tab.id === candidate.activeTabId
+  )
+    ? (candidate.activeTabId as string)
+    : survivingTabs[0].id;
+  return { tabs: survivingTabs, activeTabId };
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -94,21 +181,10 @@ const debouncedStorage = {
     try {
       const raw = localStorage.getItem(key);
       if (raw) {
-        const parsed = JSON.parse(raw) as ChatPanelTabsState;
-        if (parsed && Array.isArray(parsed.tabs)) {
-          // Strip terminal tabs — their PTY sessions don't survive reload.
-          const survivingTabs = parsed.tabs.filter(
-            (tab) => tab.type === "session"
-          );
-          if (survivingTabs.length > 0) {
-            const activeId = survivingTabs.some(
-              (tab) => tab.id === parsed.activeTabId
-            )
-              ? parsed.activeTabId
-              : survivingTabs[0].id;
-            return { tabs: survivingTabs, activeTabId: activeId };
-          }
-        }
+        const normalized = normalizePersistedChatPanelTabsState(
+          JSON.parse(raw)
+        );
+        if (normalized) return normalized;
       }
     } catch {
       // fall through to default
@@ -140,24 +216,24 @@ const debouncedStorage = {
 // Initial state factory
 // ────────────────────────────────────────────────────────────────────────────
 
-const PRIMARY_TAB_ID = "chat-primary";
+const DEFAULT_LAUNCHPAD_TAB_ID = "launchpad-default";
 
-function buildInitialState(): ChatPanelTabsState {
+function buildDefaultLaunchpadTab(): ChatPanelTab {
   const now = new Date().toISOString();
   return {
-    tabs: [
-      {
-        id: PRIMARY_TAB_ID,
-        type: "session",
-        title: "Chat",
-        createdAt: now,
-        updatedAt: now,
-        isPrimary: true,
-        closable: false,
-        sessionId: null,
-      },
-    ],
-    activeTabId: PRIMARY_TAB_ID,
+    id: DEFAULT_LAUNCHPAD_TAB_ID,
+    type: "start-page",
+    title: "Launchpad",
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function buildInitialState(): ChatPanelTabsState {
+  const launchpad = buildDefaultLaunchpadTab();
+  return {
+    tabs: [launchpad],
+    activeTabId: launchpad.id,
   };
 }
 
@@ -186,9 +262,110 @@ export const activeChatPanelTabAtom = atom((get) => {
 });
 activeChatPanelTabAtom.debugLabel = "activeChatPanelTab";
 
+/**
+ * Ops Control content and sidebar selection are projections of the active
+ * ChatPanel tab. Keeping this derived prevents tab chrome, content, and
+ * sidebar state from drifting independently.
+ */
+export const activeOpsControlHomeTabAtom = atom(
+  (get) =>
+    get(activeChatPanelTabAtom)?.opsSection ?? OPS_CONTROL_HOME_TAB.OPS_CONTROL
+);
+activeOpsControlHomeTabAtom.debugLabel = "activeOpsControlHomeTab";
+
 export const chatPanelTabCountAtom = atom(
   (get) => get(chatPanelTabsAtom).tabs.length
 );
+
+/** Maximize-state snapshot taken before entering a full-screen-only tab. */
+const fullscreenTabPriorMaximizedAtom = atom<boolean | null>(null);
+
+const transitionChatPanelTabPresentationAtom = atom(
+  null,
+  (
+    get,
+    set,
+    {
+      previousTab,
+      nextTab,
+    }: {
+      previousTab: ChatPanelTab | null | undefined;
+      nextTab: ChatPanelTab | null | undefined;
+    }
+  ) => {
+    const previousFullscreen = isChatPanelTabFullscreenOnly(previousTab);
+    const nextFullscreen = isChatPanelTabFullscreenOnly(nextTab);
+
+    if (nextFullscreen) {
+      if (!previousFullscreen) {
+        set(fullscreenTabPriorMaximizedAtom, get(chatPanelMaximizedAtom));
+      }
+      if (!get(chatPanelMaximizedAtom)) {
+        set(chatPanelMaximizedAtom, true);
+      }
+      return;
+    }
+
+    if (previousFullscreen) {
+      set(
+        chatPanelMaximizedAtom,
+        get(fullscreenTabPriorMaximizedAtom) ?? false
+      );
+      set(fullscreenTabPriorMaximizedAtom, null);
+    }
+  }
+);
+
+/** Make the active tab's legacy surface atoms match its canonical identity. */
+const syncChatPanelTabNavigationAtom = atom(
+  null,
+  (_get, set, tab: ChatPanelTab | null | undefined) => {
+    if (!tab) return;
+
+    if (tab.type === "start-page") {
+      set(chatPanelNavigateAtom, { kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+      set(chatPanelStartPageOpenAtom, true);
+      set(jumpToSessionAtom, null);
+      return;
+    }
+
+    set(chatPanelStartPageOpenAtom, false);
+
+    // Session is the neutral legacy surface underneath tabs whose content is
+    // owned by ChatPanelShell (management and terminal tabs).
+    set(chatPanelNavigateAtom, { kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+    if (tab.type !== "session") set(jumpToSessionAtom, null);
+  }
+);
+
+/**
+ * Reconcile presentation and legacy surface state after hydration or layout
+ * changes. All interactive activation paths use the same synchronization.
+ */
+export const syncActiveChatPanelTabStateAtom = atom(null, (get, set) => {
+  const state = get(chatPanelTabsAtom);
+  const activeTab =
+    state.tabs.find((tab) => tab.id === state.activeTabId) ?? null;
+  const priorMaximized = get(fullscreenTabPriorMaximizedAtom);
+
+  set(syncChatPanelTabNavigationAtom, activeTab);
+
+  if (isChatPanelTabFullscreenOnly(activeTab)) {
+    if (priorMaximized === null) {
+      set(fullscreenTabPriorMaximizedAtom, get(chatPanelMaximizedAtom));
+    }
+    if (!get(chatPanelMaximizedAtom)) {
+      set(chatPanelMaximizedAtom, true);
+    }
+    return;
+  }
+
+  if (priorMaximized !== null) {
+    set(chatPanelMaximizedAtom, priorMaximized);
+    set(fullscreenTabPriorMaximizedAtom, null);
+  }
+});
+syncActiveChatPanelTabStateAtom.debugLabel = "syncActiveChatPanelTabState";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Write-only action atoms
@@ -217,21 +394,26 @@ export const activateChatPanelTabAtom = atom(
     const state = get(chatPanelTabsAtom);
     const tab = state.tabs.find((candidate) => candidate.id === tabId);
     if (!tab) return;
+    const previousTab =
+      state.tabs.find((candidate) => candidate.id === state.activeTabId) ??
+      null;
 
     if (state.activeTabId !== tabId) {
       set(chatPanelTabsAtom, { ...state, activeTabId: tabId });
     }
+    set(transitionChatPanelTabPresentationAtom, {
+      previousTab,
+      nextTab: tab,
+    });
 
-    if (tab.type === "launchpad") {
-      set(chatPanelNavigateAtom, {
-        kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD,
-      });
-      set(jumpToSessionAtom, null);
+    set(syncChatPanelTabNavigationAtom, tab);
+
+    if (tab.type === "start-page") {
       return;
     }
 
-    if (tab.type === "session") {
-      set(chatPanelNavigateAtom, { kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+    if (tab.type === "terminal" || tab.type === "ops-control") {
+      return;
     }
 
     const sessionId = tab.type === "session" ? tab.sessionId : null;
@@ -251,54 +433,118 @@ export const activateChatPanelTabAtom = atom(
 );
 activateChatPanelTabAtom.debugLabel = "activateChatPanelTab";
 
-/** Add a new session tab and activate it */
-export const addChatPanelSessionTabAtom = atom(null, (_get, set) => {
-  const id = `chat-${crypto.randomUUID()}`;
-  const now = new Date().toISOString();
-  set(chatPanelTabsAtom, (prev) => ({
-    tabs: [
-      ...prev.tabs,
-      {
-        id,
-        type: "session" as const,
-        title: "Chat",
-        createdAt: now,
-        updatedAt: now,
-        closable: true,
-        sessionId: null,
-      },
-    ],
-    activeTabId: id,
-  }));
-  return id;
-});
-addChatPanelSessionTabAtom.debugLabel = "addChatPanelSessionTab";
+interface AppendAndActivateChatPanelTabOptions {
+  tab: ChatPanelTab;
+  sessionName?: string;
+  repoPath?: string;
+}
 
-/** Add a standalone Launchpad tab and activate its dashboard surface. */
+/** Append a tab and run the same presentation/navigation activation chain. */
+const appendAndActivateChatPanelTabAtom = atom(
+  null,
+  (
+    get,
+    set,
+    { tab, sessionName, repoPath }: AppendAndActivateChatPanelTabOptions
+  ) => {
+    const state = get(chatPanelTabsAtom);
+    const previousTab =
+      state.tabs.find((candidate) => candidate.id === state.activeTabId) ??
+      null;
+
+    set(transitionChatPanelTabPresentationAtom, {
+      previousTab,
+      nextTab: tab,
+    });
+    set(chatPanelTabsAtom, {
+      tabs: [...state.tabs, tab],
+      activeTabId: tab.id,
+    });
+    set(activateChatPanelTabAtom, {
+      tabId: tab.id,
+      sessionName,
+      repoPath,
+    });
+  }
+);
+
+/** Add a standalone Launchpad tab and show its Work / Manage / Trend page. */
 export const addChatPanelLaunchpadTabAtom = atom(
   null,
   (_get, set, title: string = "Launchpad") => {
     const id = `launchpad-${crypto.randomUUID()}`;
     const now = new Date().toISOString();
-    set(chatPanelTabsAtom, (prev) => ({
-      tabs: [
-        ...prev.tabs,
-        {
-          id,
-          type: "launchpad" as const,
-          title,
-          createdAt: now,
-          updatedAt: now,
-          closable: true,
-        },
-      ],
-      activeTabId: id,
-    }));
-    set(activateChatPanelTabAtom, id);
+    set(appendAndActivateChatPanelTabAtom, {
+      tab: {
+        id,
+        type: "start-page",
+        title,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
     return id;
   }
 );
 addChatPanelLaunchpadTabAtom.debugLabel = "addChatPanelLaunchpadTab";
+
+/** Focus the existing Launchpad at Manage, or create it when none is open. */
+export const openOrFocusChatPanelManageTabAtom = atom(null, (get, set) => {
+  set(chatPanelStartPageTabAtom, CHAT_PANEL_START_PAGE_TAB.MANAGE);
+  const existingTab = get(chatPanelTabsAtom).tabs.find(
+    (tab) => tab.type === "start-page"
+  );
+  if (existingTab) {
+    set(activateChatPanelTabAtom, existingTab.id);
+    return existingTab.id;
+  }
+  return set(addChatPanelLaunchpadTabAtom, "Launchpad");
+});
+openOrFocusChatPanelManageTabAtom.debugLabel = "openOrFocusChatPanelManageTab";
+
+interface OpenOpsControlTabOptions {
+  section?: OpsControlHomeTab;
+  title?: string;
+}
+
+/** Open or focus the singleton Ops Control tab at the requested section. */
+export const openOpsControlChatPanelTabAtom = atom(
+  null,
+  (get, set, options: OpenOpsControlTabOptions = {}) => {
+    const {
+      section = OPS_CONTROL_HOME_TAB.OPS_CONTROL,
+      title = "Ops Control",
+    } = options;
+    const state = get(chatPanelTabsAtom);
+    const existingTab = state.tabs.find((tab) => tab.type === "ops-control");
+    if (existingTab) {
+      set(chatPanelTabsAtom, {
+        ...state,
+        tabs: state.tabs.map((tab) =>
+          tab.id === existingTab.id
+            ? { ...tab, title, opsSection: section }
+            : tab
+        ),
+      });
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+
+    const id = "chat-ops-control";
+    const now = new Date().toISOString();
+    const tab: ChatPanelTab = {
+      id,
+      type: "ops-control",
+      title,
+      opsSection: section,
+      createdAt: now,
+      updatedAt: now,
+    };
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return id;
+  }
+);
+openOpsControlChatPanelTabAtom.debugLabel = "openOpsControlChatPanelTab";
 
 interface OpenSessionInNewChatTabOptions {
   sessionId: string;
@@ -320,26 +566,44 @@ export const openSessionInNewChatTabAtom = atom(
     const { sessionId, sessionName, repoPath } = options;
     const id = `chat-${crypto.randomUUID()}`;
     const now = new Date().toISOString();
-    set(chatPanelTabsAtom, (prev) => ({
-      tabs: [
-        ...prev.tabs,
-        {
-          id,
-          type: "session" as const,
-          title: "Chat",
-          createdAt: now,
-          updatedAt: now,
-          closable: true,
-          sessionId,
-        },
-      ],
-      activeTabId: id,
-    }));
-    set(activateChatPanelTabAtom, { tabId: id, sessionName, repoPath });
+    set(appendAndActivateChatPanelTabAtom, {
+      tab: {
+        id,
+        type: "session",
+        title: sessionName ?? "Chat",
+        createdAt: now,
+        updatedAt: now,
+        sessionId,
+      },
+      sessionName,
+      repoPath,
+    });
     return id;
   }
 );
 openSessionInNewChatTabAtom.debugLabel = "openSessionInNewChatTab";
+
+/** Focus an existing tab for a session, or create one when none is open. */
+export const openOrFocusSessionInChatPanelTabAtom = atom(
+  null,
+  (get, set, options: OpenSessionInNewChatTabOptions) => {
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) => tab.type === "session" && tab.sessionId === options.sessionId
+    );
+    if (existingTab) {
+      set(activateChatPanelTabAtom, {
+        tabId: existingTab.id,
+        sessionName: options.sessionName,
+        repoPath: options.repoPath,
+      });
+      return existingTab.id;
+    }
+
+    return set(openSessionInNewChatTabAtom, options);
+  }
+);
+openOrFocusSessionInChatPanelTabAtom.debugLabel =
+  "openOrFocusSessionInChatPanelTab";
 
 interface AddTerminalTabOptions {
   terminalSessionId: string;
@@ -361,22 +625,17 @@ export const addChatPanelTerminalTabAtom = atom(
       : optionsOrId;
     const id = `terminal-${crypto.randomUUID()}`;
     const now = new Date().toISOString();
-    set(chatPanelTabsAtom, (prev) => ({
-      tabs: [
-        ...prev.tabs,
-        {
-          id,
-          type: "terminal" as const,
-          title,
-          createdAt: now,
-          updatedAt: now,
-          closable: true,
-          terminalSessionId,
-          cliCommand,
-        },
-      ],
-      activeTabId: id,
-    }));
+    set(appendAndActivateChatPanelTabAtom, {
+      tab: {
+        id,
+        type: "terminal",
+        title,
+        createdAt: now,
+        updatedAt: now,
+        terminalSessionId,
+        cliCommand,
+      },
+    });
     return id;
   }
 );
@@ -402,30 +661,33 @@ export const closeChatPanelTabAtom = atom(null, (get, set, tabId: string) => {
   const idx = state.tabs.findIndex((tab) => tab.id === tabId);
   if (idx === -1) return;
   const tab = state.tabs[idx];
-  if (!tab.closable) return;
-
+  if (tab.type === "ops-control") {
+    set(disposeOpsControlStateAtom);
+  }
   const nextTabs = state.tabs.filter((candidate) => candidate.id !== tabId);
   let nextActiveId = state.activeTabId;
 
   if (nextTabs.length === 0) {
-    const now = new Date().toISOString();
-    const primary: ChatPanelTab = {
-      id: PRIMARY_TAB_ID,
-      type: "session",
-      title: "Chat",
-      createdAt: now,
-      updatedAt: now,
-      isPrimary: true,
-      closable: false,
-      sessionId: null,
-    };
-    set(chatPanelTabsAtom, { tabs: [primary], activeTabId: PRIMARY_TAB_ID });
+    const launchpad = buildDefaultLaunchpadTab();
+    set(transitionChatPanelTabPresentationAtom, {
+      previousTab: tab,
+      nextTab: launchpad,
+    });
+    set(chatPanelTabsAtom, {
+      tabs: [launchpad],
+      activeTabId: launchpad.id,
+    });
+    set(activateChatPanelTabAtom, launchpad.id);
     return;
   }
 
   if (state.activeTabId === tabId) {
     const nextIdx = Math.max(0, idx - 1);
     nextActiveId = nextTabs[Math.min(nextIdx, nextTabs.length - 1)].id;
+    set(transitionChatPanelTabPresentationAtom, {
+      previousTab: tab,
+      nextTab: nextTabs.find((candidate) => candidate.id === nextActiveId),
+    });
   }
 
   set(chatPanelTabsAtom, { tabs: nextTabs, activeTabId: nextActiveId });
