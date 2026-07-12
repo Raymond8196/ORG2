@@ -9,6 +9,11 @@ import { listPRsLocal } from "@src/api/tauri/github";
 import { Message } from "@src/components/Message";
 import { buildIntegrationsPath } from "@src/config/mainAppPaths/integrations";
 import {
+  getCachedPrs,
+  isPrCacheStale,
+  setCachedPrs,
+} from "@src/services/git/githubListCache";
+import {
   createPullRequest,
   parseGithubRepoFullName,
 } from "@src/services/git/operations/createPullRequest";
@@ -25,7 +30,6 @@ import {
   workstationRepoScopeKey,
 } from "@src/store/workstation/codeEditor/workstationPrAtom";
 
-import { getCachedPrs, isPrCacheStale, setCachedPrs } from "./githubListCache";
 import {
   formatWorkstationPrTitle,
   getStoredWorkstationPr,
