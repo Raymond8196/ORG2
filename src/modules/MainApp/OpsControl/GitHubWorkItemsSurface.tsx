@@ -1940,17 +1940,6 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     <div className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto p-3 scrollbar-hide">
       <div className="flex flex-col gap-2">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">
-          {t("chat.panels.manageIssues.repositoryLabel")}
-        </span>
-        <RepoFilterPill
-          options={repoOptions}
-          selectedRepo={effectiveSelectedRepo}
-          allReposLabel={t("chat.manageIssues.allRepositories")}
-          onSelectRepo={setSelectedRepo}
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">
           {t("chat.panels.manageIssues.filters")}
         </span>
         <TabPill
@@ -2059,6 +2048,12 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
         {issueDetailContent ?? prDetailContent ?? (
           <>
             <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border-2 px-3">
+              <RepoFilterPill
+                options={repoOptions}
+                selectedRepo={effectiveSelectedRepo}
+                allReposLabel={t("chat.manageIssues.allRepositories")}
+                onSelectRepo={setSelectedRepo}
+              />
               <SearchInput
                 value={searchQuery}
                 onChange={setSearchQuery}
