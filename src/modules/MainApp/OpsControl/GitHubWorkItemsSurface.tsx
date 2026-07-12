@@ -19,6 +19,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { getGitRemotes } from "@src/api/http/git/remotes";
@@ -1060,10 +1061,12 @@ function CreateIssueModal({
 
 interface GitHubWorkItemsSurfaceProps {
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
+  sidebarHost: HTMLDivElement | null;
 }
 
 const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   scope,
+  sidebarHost,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
   const repos = useAtomValue(reposAtom);
@@ -1412,10 +1415,14 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     ),
     [issueDetail, selectedPr, surfaceTitle]
   );
+  const headerContribution = useMemo(
+    () => ({ content: headerContent }),
+    [headerContent]
+  );
 
   usePublishWorkstationTabHeader({
     host: "opsControl",
-    content: { content: headerContent },
+    content: headerContribution,
   });
 
   const handleRefresh = useCallback(() => {
@@ -1929,101 +1936,104 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     </div>
   ) : null;
 
+  const sidebarControlsContent = (
+    <div className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto p-3 scrollbar-hide">
+      <div className="flex flex-col gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">
+          {t("chat.panels.manageIssues.repositoryLabel")}
+        </span>
+        <RepoFilterPill
+          options={repoOptions}
+          selectedRepo={effectiveSelectedRepo}
+          allReposLabel={t("chat.manageIssues.allRepositories")}
+          onSelectRepo={setSelectedRepo}
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">
+          {t("chat.panels.manageIssues.filters")}
+        </span>
+        <TabPill
+          tabs={quickFilterOptions}
+          activeTabs={activeQuickFilterTabs}
+          onMultiChange={(keys) => {
+            const activeKeys = new Set(keys);
+            updateSearchQuery((query) => {
+              query.state = activeKeys.has(GITHUB_FILTER_PRESET.OPEN)
+                ? GITHUB_QUERY_STATE.OPEN
+                : null;
+              query.assignee = activeKeys.has(
+                GITHUB_FILTER_PRESET.ASSIGNED_TO_ME
+              )
+                ? "@me"
+                : null;
+            });
+          }}
+          variant="pill"
+          fillWidth={false}
+          size="mini"
+          buttonStyle
+        />
+        <FilterOptionList
+          options={filterMenuOptions}
+          onSelect={handleFilterMenuSelect}
+        />
+      </div>
+      <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border-2 pt-3">
+        <Button
+          htmlType="button"
+          variant="secondary"
+          appearance="outline"
+          size="small"
+          icon={<ExternalLink size={13} />}
+          iconOnly
+          className="h-7 w-7"
+          aria-label={t("chat.panels.manageIssues.openInGitHub")}
+          disabled={!selectedRepoSourceForCreate}
+          href={
+            selectedRepoSourceForCreate
+              ? `https://github.com/${selectedRepoSourceForCreate.repoFullName}`
+              : undefined
+          }
+          target="_blank"
+          rel="noreferrer"
+        />
+        {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
+          <Button
+            htmlType="button"
+            variant="secondary"
+            appearance="outline"
+            size="small"
+            icon={<Plus size={13} />}
+            iconOnly
+            className="h-7 w-7"
+            aria-label={t("chat.panels.manageIssues.createIssueTrigger")}
+            onClick={() => setCreateFormOpen(true)}
+            disabled={repoSources.length === 0}
+          />
+        ) : null}
+        <Button
+          htmlType="button"
+          variant="secondary"
+          appearance="outline"
+          size="small"
+          icon={<RefreshCw size={13} />}
+          iconOnly
+          loading={loading}
+          loadingSpinIcon
+          className="h-7 w-7"
+          aria-label={t("common:actions.refresh")}
+          onClick={handleRefresh}
+        />
+      </div>
+    </div>
+  );
+
   const listDescriptionContent = (
     <section
       className="flex min-h-0 flex-1"
       data-testid={`ops-control-github-${scope}`}
     >
-      <aside className="flex w-60 shrink-0 flex-col gap-5 overflow-y-auto border-r border-border-2 bg-bg-1/40 p-3 scrollbar-hide">
-        <div className="flex flex-col gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">
-            {t("chat.panels.manageIssues.repositoryLabel")}
-          </span>
-          <RepoFilterPill
-            options={repoOptions}
-            selectedRepo={effectiveSelectedRepo}
-            allReposLabel={t("chat.manageIssues.allRepositories")}
-            onSelectRepo={setSelectedRepo}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">
-            {t("chat.panels.manageIssues.filters")}
-          </span>
-          <TabPill
-            tabs={quickFilterOptions}
-            activeTabs={activeQuickFilterTabs}
-            onMultiChange={(keys) => {
-              const activeKeys = new Set(keys);
-              updateSearchQuery((query) => {
-                query.state = activeKeys.has(GITHUB_FILTER_PRESET.OPEN)
-                  ? GITHUB_QUERY_STATE.OPEN
-                  : null;
-                query.assignee = activeKeys.has(
-                  GITHUB_FILTER_PRESET.ASSIGNED_TO_ME
-                )
-                  ? "@me"
-                  : null;
-              });
-            }}
-            variant="pill"
-            fillWidth={false}
-            size="mini"
-            buttonStyle
-          />
-          <FilterOptionList
-            options={filterMenuOptions}
-            onSelect={handleFilterMenuSelect}
-          />
-        </div>
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border-2 pt-3">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            appearance="outline"
-            size="small"
-            icon={<ExternalLink size={13} />}
-            iconOnly
-            className="h-7 w-7"
-            aria-label={t("chat.panels.manageIssues.openInGitHub")}
-            disabled={!selectedRepoSourceForCreate}
-            href={
-              selectedRepoSourceForCreate
-                ? `https://github.com/${selectedRepoSourceForCreate.repoFullName}`
-                : undefined
-            }
-            target="_blank"
-            rel="noreferrer"
-          />
-          {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
-            <Button
-              htmlType="button"
-              variant="secondary"
-              appearance="outline"
-              size="small"
-              icon={<Plus size={13} />}
-              iconOnly
-              className="h-7 w-7"
-              aria-label={t("chat.panels.manageIssues.createIssueTrigger")}
-              onClick={() => setCreateFormOpen(true)}
-              disabled={repoSources.length === 0}
-            />
-          ) : null}
-          <Button
-            htmlType="button"
-            variant="secondary"
-            appearance="outline"
-            size="small"
-            icon={<RefreshCw size={13} />}
-            iconOnly
-            loading={loading}
-            loadingSpinIcon
-            className="h-7 w-7"
-            aria-label={t("common:actions.refresh")}
-            onClick={handleRefresh}
-          />
-        </div>
-      </aside>
       <CreateIssueModal
         open={createFormOpen}
         repoSources={repoSources}
@@ -2077,14 +2087,17 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   );
 
   return (
-    <div
-      className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
-      data-testid="ops-control-github"
-    >
-      <DetailPanelContainer testId="ops-control-github-panel">
-        {listDescriptionContent}
-      </DetailPanelContainer>
-    </div>
+    <>
+      {sidebarHost ? createPortal(sidebarControlsContent, sidebarHost) : null}
+      <div
+        className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
+        data-testid="ops-control-github"
+      >
+        <DetailPanelContainer testId="ops-control-github-panel">
+          {listDescriptionContent}
+        </DetailPanelContainer>
+      </div>
+    </>
   );
 };
 
