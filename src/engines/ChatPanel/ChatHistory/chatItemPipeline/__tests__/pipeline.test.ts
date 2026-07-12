@@ -1037,6 +1037,63 @@ describe("processChatItems", () => {
 
       expect(items.length).toBe(1);
     });
+
+    it("keeps only the latest consecutive todo snapshot", () => {
+      const pendingSnapshot = makeSessionEvent({
+        action_type: "tool_call",
+        function: "manage_todo",
+        result: { success: true, content: "Run relevant verification" },
+      });
+      const activeSnapshot = makeSessionEvent({
+        action_type: "tool_call",
+        function: "manage_todo",
+        result: { content: "Verifying Anchor changes" },
+      });
+
+      const { items, stats } = processChatItems(
+        [pendingSnapshot, activeSnapshot],
+        {
+          filterManageTodo: false,
+          preFilterEmptyActivities: false,
+          groupActionSummaries: false,
+        }
+      );
+
+      expect(items).toHaveLength(1);
+      expect(items[0].event?.id).toBe(activeSnapshot.id);
+      expect(stats.totalActivities).toBe(2);
+      expect(stats.successCount).toBe(0);
+      expect(stats.pendingCount).toBe(1);
+    });
+
+    it("preserves todo snapshots separated by a real activity", () => {
+      const firstSnapshot = makeSessionEvent({
+        action_type: "tool_call",
+        function: "manage_todo",
+        result: { content: "First snapshot" },
+      });
+      const shellEvent = makeShellItem("npm test");
+      const secondSnapshot = makeSessionEvent({
+        action_type: "tool_call",
+        function: "manage_todo",
+        result: { content: "Second snapshot" },
+      });
+
+      const { items } = processChatItems(
+        [firstSnapshot, shellEvent, secondSnapshot],
+        {
+          filterManageTodo: false,
+          preFilterEmptyActivities: false,
+          groupActionSummaries: false,
+        }
+      );
+
+      expect(items.map((item) => item.event?.id)).toEqual([
+        firstSnapshot.id,
+        shellEvent.id,
+        secondSnapshot.id,
+      ]);
+    });
   });
 
   describe("pre-filter empty activities", () => {
