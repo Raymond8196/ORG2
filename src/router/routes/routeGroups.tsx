@@ -4,7 +4,6 @@ import {
   Outlet,
   type RouteObject,
   useLocation,
-  useSearchParams,
 } from "react-router-dom";
 
 import { ROUTES } from "@src/config/routes";
@@ -26,11 +25,9 @@ import {
   ProviderEarnings,
   PublicProfilePage,
   SelectRepoPage,
-  SessionDiffWindowPage,
   SetupWalkthrough,
   SuggestionsPage,
   TabWindow,
-  WorktreeCompareWindowPage,
 } from "@src/router/lazy/pages";
 import ComingSoonRoutePage from "@src/router/routes/ComingSoonRoutePage";
 import OpenSourceMarketUnavailablePage from "@src/router/routes/OpenSourceMarketUnavailablePage";
@@ -98,12 +95,25 @@ const WORK_STATION_PATHS = [
   "workstation/browser",
   "workstation/chat",
   "workstation/project",
-  "workstation/ops-control",
 ] as const;
 
-export const workStationRouteGroup: RouteObject[] = WORK_STATION_PATHS.map(
-  (path) => ({ path, element: <WorkStationRoutePlaceholder /> })
-);
+const LegacyOpsControlRoute: React.FC = () => {
+  React.useEffect(() => {
+    void import("@src/services/workStation/WorkStationViewService").then(
+      ({ WorkStationViewService }) => WorkStationViewService.openOpsControlTab()
+    );
+  }, []);
+
+  return <WorkStationRoutePlaceholder />;
+};
+
+export const workStationRouteGroup: RouteObject[] = [
+  ...WORK_STATION_PATHS.map((path) => ({
+    path,
+    element: <WorkStationRoutePlaceholder />,
+  })),
+  { path: "workstation/ops-control", element: <LegacyOpsControlRoute /> },
+];
 
 export const projectManagerRouteGroup: RouteObject[] = [
   {
@@ -237,45 +247,11 @@ export const mainAppRouteGroup: RouteObject = {
   ],
 };
 
-const SessionDiffWindowRoute: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get("sessionId") ?? "";
-  const title = searchParams.get("title") ?? undefined;
-  const repoPath = searchParams.get("repoPath") ?? undefined;
-  const hasWorktree = searchParams.get("hasWorktree") === "1";
-  return (
-    <SessionDiffWindowPage
-      sessionId={sessionId}
-      title={title}
-      repoPath={repoPath}
-      hasWorktree={hasWorktree}
-    />
-  );
-};
-
-const WorktreeCompareWindowRoute: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const raw = searchParams.get("sessionIds") ?? "";
-  const sessionIds = raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const repoPath = searchParams.get("repoPath") ?? undefined;
-  return (
-    <WorktreeCompareWindowPage sessionIds={sessionIds} repoPath={repoPath} />
-  );
-};
-
 export const windowRouteGroup: RouteObject = {
   path: "windows",
   element: <Outlet />,
   children: [
     { path: "welcome", element: lazy(<ModeSelectionWindow />) },
     { path: "tab", element: lazy(<TabWindow />) },
-    { path: "session-diff", element: lazy(<SessionDiffWindowRoute />) },
-    {
-      path: "worktree-compare",
-      element: lazy(<WorktreeCompareWindowRoute />),
-    },
   ],
 };

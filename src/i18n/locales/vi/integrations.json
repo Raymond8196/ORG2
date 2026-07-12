@@ -2452,13 +2452,6 @@
     "installHintNote": "Cài đặt phụ thuộc còn thiếu để kích hoạt tính năng này",
     "installSection": "Cài đặt"
   },
-  "worktreeCompare": {
-    "button": "So sánh",
-    "buttonTooltip": "So sánh các Worktree",
-    "title": "So sánh Worktree",
-    "noSessions": "Không có phiên nào để so sánh",
-    "sessionTab": "Phiên"
-  },
   "creator": {
     "assign": "Giao việc"
   },

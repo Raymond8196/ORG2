@@ -46,6 +46,7 @@
     "projectManager": "Project Manager",
     "diff": "Diff",
     "opsControl": "Ops Control",
+    "opsCenter": "Central de Operações",
     "colleagues": "Colegas",
     "terminals": "Terminais"
   },
@@ -81,7 +82,7 @@
     "agentStudio": "Estúdio de Agents",
     "serviceMarket": "Mercado de Serviços",
     "signingIn": "Entrando...",
-    "launchpad": "Launchpad",
+    "launchpad": "Central de início",
     "ideaArea": "Área de Ideias",
     "changelog": "Changelog",
     "opsControl": "Ops Control"
@@ -203,7 +204,7 @@
     "emptyWorkspaces": "Nenhuma área de trabalho corresponde",
     "myRepos": "Meus Repos",
     "myMultiRepoWorkspaces": "Meus Workspaces multi-repo",
-    "dashboard": "Launchpad",
+    "dashboard": "Painel",
     "myWorkspaces": "Minhas áreas de trabalho",
     "workspaces": "Áreas de trabalho",
     "dashboardTitle": "Áreas de trabalho",

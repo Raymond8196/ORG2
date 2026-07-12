@@ -2452,13 +2452,6 @@
     "installHintNote": "Установите недостающую зависимость для включения этой функции",
     "installSection": "Установка"
   },
-  "worktreeCompare": {
-    "button": "Сравнить",
-    "buttonTooltip": "Сравнить Worktree",
-    "title": "Сравнение Worktree",
-    "noSessions": "Нет сессий для сравнения",
-    "sessionTab": "Сессия"
-  },
   "creator": {
     "assign": "Назначить"
   },

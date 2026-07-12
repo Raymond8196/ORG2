@@ -184,11 +184,6 @@
       "merging": "Слияние…",
       "merged": "Слито"
     },
-    "diff": {
-      "openDiffWindow": "Просмотр Diff",
-      "windowTitle": "Diff сессии",
-      "filesChanged": "Файлы"
-    },
     "replay": {
       "replaySession": "Воспроизвести"
     },
@@ -727,7 +722,7 @@
       },
       "tabs": {
         "work": "Работа",
-        "explore": "Обзор",
+        "manage": "Управление",
         "heatmap": "Тренды"
       },
       "heatmap": {
@@ -1091,7 +1086,7 @@
     "pathCopied": "Путь скопирован!",
     "failedToCopyPath": "Не удалось скопировать путь",
     "copyFilePath": "Копировать путь к файлу",
-    "explore": "Исследовать",
+    "manage": "Управление",
     "readFile": "Чтение файла",
     "readFileRunning": "Чтение",
     "readFileDone": "Читать",
@@ -2505,13 +2500,6 @@
       "missing": "Отсутствует",
       "disabled": "Отключено"
     }
-  },
-  "worktreeCompare": {
-    "title": "Сравнить Worktree",
-    "button": "Сравнить",
-    "buttonTooltip": "Сравнить diff'ы Worktree рядом",
-    "noSessions": "Нет сессий для сравнения.",
-    "sessionTab": "Сессия {{n}}"
   },
   "groupChat": {
     "senderTitle": {

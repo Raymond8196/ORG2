@@ -7,6 +7,8 @@ const STORAGE_KEYS = [
   "primary_sidebar_collapsed",
   "primary_sidebar_width",
   "browser_primary_sidebar_collapsed",
+  "ops_control_sidebar_collapsed",
+  "ops_control_sidebar_width",
   "browser_devtools_position",
   "editor_panel_position",
   "right_collapsed",

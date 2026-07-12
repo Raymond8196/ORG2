@@ -23,7 +23,9 @@ import { benchmarkAgentBatchStatusAtom } from "@src/store/benchmark";
 import {
   activateChatPanelTabAtom,
   activeChatPanelTabAtom,
+  addChatPanelLaunchpadTabAtom,
   closeAndDestroyChatPanelTabAtom,
+  openOrFocusSessionInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { collabOrgsAtom } from "@src/store/collaboration/collabOrgsAtom";
@@ -52,7 +54,7 @@ import {
   chatPanelSelectedProjectAtom,
   chatPanelSelectedWorkItemAtom,
   chatPanelSelectedWorkspaceAtom,
-  chatPanelWorkspaceDashboardOpenAtom,
+  chatPanelStartPageTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { spotlightOpenAtom } from "@src/store/ui/uiAtom";
@@ -163,9 +165,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const chatPanelSelectedWorkspace = useAtomValue(
     chatPanelSelectedWorkspaceAtom
   );
-  const chatPanelWorkspaceDashboardOpen = useAtomValue(
-    chatPanelWorkspaceDashboardOpenAtom
-  );
+  const chatPanelStartPageTab = useAtomValue(chatPanelStartPageTabAtom);
   const chatPanelExploreOpen = useAtomValue(chatPanelExploreOpenAtom);
   const setChatPanelCreateTarget = useSetAtom(chatPanelCreateTargetAtom);
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
@@ -174,7 +174,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const setOpsControlPeekHost = useSetAtom(opsControlPeekHostAtom);
   const setOpsControlFocusedTab = useSetAtom(opsControlFocusedTabAtom);
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
+  const openOrFocusSessionInChatPanelTab = useSetAtom(
+    openOrFocusSessionInChatPanelTabAtom
+  );
   const activateChatPanelTab = useSetAtom(activateChatPanelTabAtom);
+  const addLaunchpadTab = useSetAtom(addChatPanelLaunchpadTabAtom);
   const closeAndDestroyChatPanelTab = useSetAtom(
     closeAndDestroyChatPanelTabAtom
   );
@@ -537,23 +541,23 @@ export const WorkstationSidebarConnector: React.FC = () => {
   });
   const projectsSidebarMenuItems = projectsWorkItemMenuItems;
 
-  const { selectedMenuItemId, sessionSelectedMenuItemId } =
-    resolveSelectedMenuItemIds({
-      activeSessionCreatorDraftId,
-      activeSessionId: highlightedSessionId,
-      activeSidebarKey,
-      chatPanelContentMode,
-      chatPanelCreateTarget,
-      chatPanelSelectedProject,
-      chatPanelSelectedWorkItem,
-      chatPanelSelectedWorkspace,
-      chatPanelWorkspaceDashboardOpen,
-      chatPanelExploreOpen,
-      opsControlRoutePath: ROUTES.workStation.opsControl.path,
-      pathname: location.pathname,
-      projectsSelectedMenuItemId,
-      sessionCreatorDrafts,
-    });
+  const { selectedMenuItemId } = resolveSelectedMenuItemIds({
+    activeSessionCreatorDraftId,
+    activeSessionId: highlightedSessionId,
+    activeSidebarKey,
+    activeChatPanelTabType: activeChatPanelTab?.type ?? null,
+    chatPanelContentMode,
+    chatPanelCreateTarget,
+    chatPanelSelectedProject,
+    chatPanelSelectedWorkItem,
+    chatPanelSelectedWorkspace,
+    chatPanelStartPageTab,
+    chatPanelExploreOpen,
+    opsControlRoutePath: ROUTES.workStation.opsControl.path,
+    pathname: location.pathname,
+    projectsSelectedMenuItemId,
+    sessionCreatorDrafts,
+  });
   const resolvedCollapsedSectionIds =
     activeSidebarKey === "projects"
       ? projectsCollapsedSectionIds
@@ -590,9 +594,14 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setStationMode,
   ]);
 
+  const openNewChatTab = useCallback(() => {
+    addLaunchpadTab(t("routes.launchpad"));
+  }, [addLaunchpadTab, t]);
+
   const { handleGoToNewSession } = useSessionEntryActions({
     goToNewSession,
     navigateChatPanel,
+    openNewChatTab,
     setChatPanelCreateTarget,
   });
 
@@ -603,7 +612,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleTogglePin,
   } = useWorkstationSidebarHandlers({
     activeSessionId,
-    selectedMenuItemId: sessionSelectedMenuItemId,
     sessionMap,
     isLoadMoreId,
     getLoadMoreGroupId,
@@ -615,6 +623,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setGroupVisibleCounts,
     tCommon,
     onOpenChatPanelTab: activateChatPanelTab,
+    onOpenSessionChatPanelTab: openOrFocusSessionInChatPanelTab,
     onCloseChatPanelTab: closeAndDestroyChatPanelTab,
   });
   const handleOpenInNewTab = useCallback(

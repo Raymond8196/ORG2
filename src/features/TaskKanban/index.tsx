@@ -29,7 +29,6 @@ import {
   OPS_CONTROL_SESSION_PREVIEW_SURFACE_CLASS,
 } from "@src/config/opsControlCardTokens";
 import type { KanbanTask, TaskStatus } from "@src/features/KanbanBoard";
-import { createLogger } from "@src/hooks/logger";
 import { loadSidebarSessions } from "@src/store/session";
 import { kanbanReplayModeAtom } from "@src/store/ui/kanbanReplayAtom";
 import {
@@ -42,7 +41,6 @@ import {
   kanbanTimeFilterAtom,
 } from "@src/store/ui/kanbanViewStateAtom";
 import { opsControlCreatorVisibleAtom } from "@src/store/ui/opsControlCreatorAtom";
-import { openWorktreeCompareWindow } from "@src/util/ui/window/windowManager";
 
 import { parseFactoryViewMode } from "./components/FactoryViewPill";
 import TaskKanbanReplayBar from "./components/KanbanReplayBar";
@@ -57,8 +55,6 @@ import {
   beginKanbanHorizontalScrollGuard,
   resetKanbanHorizontalScroll,
 } from "./utils/scrollGuard";
-
-const log = createLogger("TaskKanban");
 
 export interface TaskKanbanProps {
   /**
@@ -148,19 +144,14 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     sessionIdFilter,
   });
 
-  const {
-    sessionMap,
-    visibleTasks,
-    visibleDiaryTasks,
-    visibleColumns,
-    selectedTask,
-  } = useTaskKanbanFilters({
-    tasks,
-    diaryTasks: allTasks,
-    sidebarFilter,
-    agentTypeFilter,
-    selectedTaskId,
-  });
+  const { visibleTasks, visibleDiaryTasks, visibleColumns, selectedTask } =
+    useTaskKanbanFilters({
+      tasks,
+      diaryTasks: allTasks,
+      sidebarFilter,
+      agentTypeFilter,
+      selectedTaskId,
+    });
 
   const handlePointerDownCapture = useCallback((event: React.PointerEvent) => {
     const target = event.target;
@@ -233,35 +224,6 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     resetKanbanHorizontalScroll();
   }, [detailPanelVisible, selectedTaskId]);
 
-  const worktreeSessionIds = useMemo(() => {
-    return visibleTasks
-      .filter((task) => {
-        const session = task.session_id
-          ? sessionMap.get(task.session_id)
-          : null;
-        return session?.worktreeBranch != null;
-      })
-      .map((task) => task.session_id)
-      .filter((id): id is string => Boolean(id));
-  }, [visibleTasks, sessionMap]);
-
-  const compareRepoPath = useMemo(() => {
-    const firstId = worktreeSessionIds[0];
-    if (!firstId) return undefined;
-    const session = sessionMap.get(firstId);
-    return session?.worktreePath ?? session?.repoPath ?? undefined;
-  }, [worktreeSessionIds, sessionMap]);
-
-  const handleCompareWorktrees = useCallback(() => {
-    if (worktreeSessionIds.length < 2) return;
-    openWorktreeCompareWindow(worktreeSessionIds, {
-      repoPath: compareRepoPath,
-      title: `Compare ${worktreeSessionIds.length} Worktrees`,
-    }).catch((err: unknown) => {
-      log.error("[TaskKanban] failed to open compare window:", err);
-    });
-  }, [worktreeSessionIds, compareRepoPath]);
-
   const handleTaskMove = useCallback(
     (taskId: string, newStatus: TaskStatus) => {
       const targetStatus = newStatus as AgentKanbanColumnId;
@@ -291,8 +253,6 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     viewMode,
     calendarDate,
     onCalendarDateChange: setCalendarDate,
-    worktreeSessionCount: worktreeSessionIds.length,
-    onCompareWorktrees: handleCompareWorktrees,
     autoArchiveTtl,
     onAutoArchiveTtlChange: setAutoArchiveTtl,
     timeFilter,

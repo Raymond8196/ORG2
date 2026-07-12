@@ -46,6 +46,7 @@
     "projectManager": "Project Manager",
     "diff": "Diff",
     "opsControl": "Ops Control",
+    "opsCenter": "Trung tâm vận hành",
     "colleagues": "Đồng nghiệp",
     "terminals": "Terminal"
   },
@@ -81,7 +82,7 @@
     "agentStudio": "Agent Studio",
     "serviceMarket": "Thị trường Service",
     "signingIn": "Đang đăng nhập...",
-    "launchpad": "Launchpad",
+    "launchpad": "Trung tâm khởi động",
     "ideaArea": "Khu vực ý tưởng",
     "changelog": "Changelog",
     "opsControl": "Ops Control"
@@ -201,7 +202,7 @@
     "emptyWorkspaces": "Không có workspace nào khớp",
     "myRepos": "Repo của tôi",
     "myMultiRepoWorkspaces": "Workspaces đa-repo của tôi",
-    "dashboard": "Launchpad",
+    "dashboard": "Bảng điều khiển",
     "myWorkspaces": "Workspaces của tôi",
     "workspaces": "Workspaces",
     "dashboardTitle": "Workspaces",

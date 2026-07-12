@@ -1,9 +1,11 @@
+import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import type { NavigateFunction } from "react-router-dom";
 
 import type { WorkspaceRecord } from "@src/api/tauri/workspace";
 import { ROUTES } from "@src/config/routes";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
+import { openOrFocusChatPanelManageTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import type { Repo } from "@src/store/repo";
 import {
   CHAT_PANEL_SURFACE_KIND,
@@ -101,6 +103,8 @@ export function useFoldersMenuItemClick({
   key: string,
   item: NavigationMenuItem
 ) => void {
+  const openLaunchpadManage = useSetAtom(openOrFocusChatPanelManageTabAtom);
+
   return useCallback(
     (_key: string, item: NavigationMenuItem) => {
       if (item.id === FOLDERS_DASHBOARD_ITEM_ID) {
@@ -108,9 +112,7 @@ export function useFoldersMenuItemClick({
         setProjectsSelectedMenuItemId("");
         setFoldersDashboardSelected(true);
         setFoldersExploreSelected(false);
-        navigateChatPanel({
-          kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD,
-        });
+        openLaunchpadManage();
         navigate(ROUTES.workStation.code.path);
         return;
       }
@@ -175,6 +177,7 @@ export function useFoldersMenuItemClick({
     },
     [
       navigate,
+      openLaunchpadManage,
       repos,
       navigateChatPanel,
       resetOpsControlStateForProjectsContent,

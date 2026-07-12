@@ -1,15 +1,21 @@
+import type { ChatPanelTabType } from "@src/store/chatPanel/chatPanelTabsAtom";
 import type { SessionCreatorDraft } from "@src/store/session";
 import {
   CHAT_PANEL_CONTENT_MODE,
   CHAT_PANEL_CREATE_TARGET,
+  CHAT_PANEL_START_PAGE_TAB,
   type ChatPanelContentMode,
   type ChatPanelCreateTarget,
   type ChatPanelSelectedProject,
   type ChatPanelSelectedWorkItem,
   type ChatPanelSelectedWorkspace,
+  type ChatPanelStartPageTab,
 } from "@src/store/ui/chatPanelAtom";
 
-import { COLLAB_ADD_ORG_MENU_ITEM_ID } from "../sidebarConnectorUtils";
+import {
+  COLLAB_ADD_ORG_MENU_ITEM_ID,
+  OPS_CONTROL_MENU_ITEM_ID,
+} from "../sidebarConnectorUtils";
 import {
   getSelectedDraftMenuItemId,
   getSelectedMenuItemId,
@@ -26,12 +32,13 @@ interface ResolveSelectedMenuItemIdParams {
   activeSessionCreatorDraftId: string | null | undefined;
   activeSessionId: string;
   activeSidebarKey: WorkstationSidebarKey;
+  activeChatPanelTabType: ChatPanelTabType | null;
   chatPanelContentMode: ChatPanelContentMode;
   chatPanelCreateTarget: ChatPanelCreateTarget;
   chatPanelSelectedProject: ChatPanelSelectedProject | null;
   chatPanelSelectedWorkItem: ChatPanelSelectedWorkItem | null;
   chatPanelSelectedWorkspace: ChatPanelSelectedWorkspace | null;
-  chatPanelWorkspaceDashboardOpen: boolean;
+  chatPanelStartPageTab: ChatPanelStartPageTab;
   chatPanelExploreOpen: boolean;
   opsControlRoutePath: string;
   pathname: string;
@@ -48,12 +55,13 @@ export function resolveSelectedMenuItemIds({
   activeSessionCreatorDraftId,
   activeSessionId,
   activeSidebarKey,
+  activeChatPanelTabType,
   chatPanelContentMode,
   chatPanelCreateTarget,
   chatPanelSelectedProject,
   chatPanelSelectedWorkItem,
   chatPanelSelectedWorkspace,
-  chatPanelWorkspaceDashboardOpen,
+  chatPanelStartPageTab,
   chatPanelExploreOpen,
   opsControlRoutePath,
   pathname,
@@ -64,10 +72,10 @@ export function resolveSelectedMenuItemIds({
     activeSessionCreatorDraftId ?? null,
     sessionCreatorDrafts
   );
-  const selectedPinnedMenuItemId = getSelectedPinnedMenuItemId(
-    pathname,
-    opsControlRoutePath
-  );
+  const selectedPinnedMenuItemId =
+    activeChatPanelTabType === "ops-control"
+      ? OPS_CONTROL_MENU_ITEM_ID
+      : getSelectedPinnedMenuItemId(pathname, opsControlRoutePath);
   const isChatPanelProjectsContentSelected =
     chatPanelContentMode === CHAT_PANEL_CONTENT_MODE.NON_SESSION ||
     Boolean(chatPanelSelectedWorkItem) ||
@@ -96,7 +104,8 @@ export function resolveSelectedMenuItemIds({
     ? getFolderItemId(chatPanelSelectedWorkspace)
     : chatPanelExploreOpen
       ? FOLDERS_EXPLORE_ITEM_ID
-      : chatPanelWorkspaceDashboardOpen
+      : activeChatPanelTabType === "start-page" &&
+          chatPanelStartPageTab === CHAT_PANEL_START_PAGE_TAB.MANAGE
         ? FOLDERS_DASHBOARD_ITEM_ID
         : "";
   const selectedMenuItemId =

@@ -2479,13 +2479,6 @@
     "installHintNote": "安裝缺失的依賴以啓用此功能",
     "installSection": "安裝"
   },
-  "worktreeCompare": {
-    "button": "比較",
-    "buttonTooltip": "比較工作樹",
-    "title": "比較工作樹",
-    "noSessions": "沒有可比較的會話",
-    "sessionTab": "會話"
-  },
   "creator": {
     "assign": "分配"
   },

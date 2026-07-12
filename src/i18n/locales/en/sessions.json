@@ -145,6 +145,8 @@
       "manageItems": "Manage items",
       "sessionsView": "Sessions View",
       "workitemView": "Workitem View",
+      "githubIssues": "GitHub Issues",
+      "githubPrs": "GitHub PRs",
       "views": "Views",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
@@ -196,11 +198,6 @@
       "discarding": "Discarding…",
       "confirmMessage": "Discard all changes in this worktree? This cannot be undone."
     },
-    "diff": {
-      "openDiffWindow": "View Diff",
-      "windowTitle": "Session Diff",
-      "filesChanged": "Files"
-    },
     "replay": {
       "replaySession": "Replay"
     },
@@ -227,13 +224,6 @@
         "stillWorking": "Still working"
       }
     }
-  },
-  "worktreeCompare": {
-    "title": "Compare Worktrees",
-    "button": "Compare",
-    "buttonTooltip": "Compare worktree diffs side-by-side",
-    "noSessions": "No sessions to compare.",
-    "sessionTab": "Session {{n}}"
   },
   "changes": {
     "scope": {
@@ -756,7 +746,7 @@
       },
       "tabs": {
         "work": "Work",
-        "explore": "Explore",
+        "manage": "Manage",
         "heatmap": "Trends"
       },
       "heatmap": {
@@ -1126,7 +1116,7 @@
     "pathCopied": "Path Copied!",
     "failedToCopyPath": "Failed to copy path",
     "copyFilePath": "Copy file path",
-    "explore": "Explore",
+    "manage": "Manage",
     "readFile": "Read file",
     "readFileRunning": "Reading",
     "readFileDone": "Read",

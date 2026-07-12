@@ -184,11 +184,6 @@
       "merging": "Birleştiriliyor…",
       "merged": "Birleştirildi"
     },
-    "diff": {
-      "openDiffWindow": "Diff'i Görüntüle",
-      "windowTitle": "Oturum Diff",
-      "filesChanged": "Dosyalar"
-    },
     "replay": {
       "replaySession": "Oynat"
     },
@@ -725,7 +720,7 @@
       },
       "tabs": {
         "work": "Çalışma",
-        "explore": "Keşfet",
+        "manage": "Yönet",
         "heatmap": "Trendler"
       },
       "heatmap": {
@@ -1079,7 +1074,7 @@
     "pathCopied": "Yol kopyalandı!",
     "failedToCopyPath": "Yol kopyalanamadı",
     "copyFilePath": "Dosya yolunu kopyala",
-    "explore": "Keşfet",
+    "manage": "Yönet",
     "readFile": "Dosya oku",
     "readFileRunning": "Okunuyor",
     "readFileDone": "Oku",
@@ -2472,13 +2467,6 @@
       "missing": "Eksik",
       "disabled": "Devre dışı"
     }
-  },
-  "worktreeCompare": {
-    "title": "Worktree'leri Karşılaştır",
-    "button": "Karşılaştır",
-    "buttonTooltip": "Worktree diff'lerini yan yana karşılaştır",
-    "noSessions": "Karşılaştırılacak oturum yok.",
-    "sessionTab": "Oturum {{n}}"
   },
   "groupChat": {
     "senderTitle": {

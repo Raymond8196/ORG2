@@ -33,7 +33,6 @@ export {
   OPS_CONTROL_HOME_TAB,
   OPS_CONTROL_PROJECTS_VIEW,
   opsControlFocusedTabAtom,
-  opsControlHomeTabAtom,
   opsControlPeekHostAtom,
   opsControlProjectsViewAtom,
   type OpsControlHomeTab,

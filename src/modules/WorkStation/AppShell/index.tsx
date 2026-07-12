@@ -33,9 +33,7 @@ import { useWorkspacePortAdvertisedUrls } from "../shared/StatusBar/utils/useWor
 import AgentStationChromeFrame from "./AgentStationChromeFrame";
 import AgentStationTopHeader from "./AgentStationTopHeader";
 import { AppShellContent } from "./AppShellContent";
-import WorkstationTabBar, {
-  OpsControlStationTabBar,
-} from "./WorkstationTabBar";
+import WorkstationTabBar from "./WorkstationTabBar";
 import WorkstationTabHeader from "./WorkstationTabHeader";
 import { useAppShellActions } from "./hooks/useAppShellActions";
 import { useAppShellDerivedState } from "./hooks/useAppShellDerivedState";
@@ -76,8 +74,7 @@ const AppShell = React.memo(
       chatPanelFocused &&
       (chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.PROJECT ||
         chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.PROJECT_ORG ||
-        chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.WORK_ITEM ||
-        chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES);
+        chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.WORK_ITEM);
 
     const { repoPath, repoName, pathExists, lastSeenPath } = useAppShellRepo();
     const { visitedModes, handleDockClick } = useAppShellDock();
@@ -125,7 +122,6 @@ const AppShell = React.memo(
     const hasVisitedData = visitedModes.has("data");
     const hasVisitedBrowser = visitedModes.has("browser");
     const hasVisitedProject = visitedModes.has("project");
-    const hasVisitedOpsControlStation = visitedModes.has("opsControl");
 
     const showCodeEditorBottomPanelToggle =
       codeContentVisible && !isAgentStation;
@@ -144,9 +140,6 @@ const AppShell = React.memo(
     useWorkspacePortAdvertisedUrls(portsEnabled);
 
     const showStatusBar = !statusBarHidden && !isAgentStation;
-    const showOpsControlEmptyStatusBar =
-      isOpsControlStation && opsControlPeekHost === null;
-
     return (
       <div className="group relative flex h-full w-full min-w-0 flex-col overflow-hidden bg-workstation-bg">
         {isAgentStation && <AgentStationTopHeader />}
@@ -157,23 +150,19 @@ const AppShell = React.memo(
           hasSession={!!workstationActiveSessionId}
         >
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {isOpsControlStation ? (
-              <OpsControlStationTabBar />
-            ) : (
-              !isAgentStation && (
-                <div data-guide-target={GUIDE_TARGETS.WORKSTATION_TAB_BAR}>
-                  <WorkstationTabBar
-                    appMode={
-                      (effectiveHost === "code" ||
-                      effectiveHost === "browser" ||
-                      effectiveHost === "data" ||
-                      effectiveHost === "project"
-                        ? effectiveHost
-                        : appMode) as AppModeType
-                    }
-                  />
-                </div>
-              )
+            {!isAgentStation && (
+              <div data-guide-target={GUIDE_TARGETS.WORKSTATION_TAB_BAR}>
+                <WorkstationTabBar
+                  appMode={
+                    (effectiveHost === "code" ||
+                    effectiveHost === "browser" ||
+                    effectiveHost === "data" ||
+                    effectiveHost === "project"
+                      ? effectiveHost
+                      : appMode) as AppModeType
+                  }
+                />
+              </div>
             )}
             {!isAgentStation && (
               <div data-guide-target={GUIDE_TARGETS.WORKSTATION_TAB_HEADER}>
@@ -189,10 +178,7 @@ const AppShell = React.memo(
                 isActive={isActive}
                 chatPanelFocused={chatPanelFocused}
                 isAgentStation={isAgentStation}
-                isOpsControlStation={isOpsControlStation}
-                opsControlPeekHost={opsControlPeekHost}
                 hasVisitedAgentStation={hasVisitedAgentStation}
-                hasVisitedOpsControlStation={hasVisitedOpsControlStation}
                 hasVisitedCode={hasVisitedCode}
                 hasVisitedData={hasVisitedData}
                 hasVisitedBrowser={hasVisitedBrowser}
@@ -210,22 +196,18 @@ const AppShell = React.memo(
             </div>
           </div>
           {portsEnabled && <WorkspacePortScanner enabled />}
-          {showStatusBar && !showOpsControlEmptyStatusBar && (
-            <StatusBarRenderer />
+          {showStatusBar && <StatusBarRenderer />}
+          {!isAgentStation && !hideWorkstationDockForChatPanel && (
+            <StationDockChrome autoHide={dockAutoHide} showTopBorder>
+              <div data-guide-target={GUIDE_TARGETS.WORKSTATION_DOCK}>
+                <Dock
+                  segments={myStationDockSegments}
+                  activeApp={activeDockApp}
+                  onAppClick={handleDockClick}
+                />
+              </div>
+            </StationDockChrome>
           )}
-          {!isAgentStation &&
-            !isOpsControlStation &&
-            !hideWorkstationDockForChatPanel && (
-              <StationDockChrome autoHide={dockAutoHide} showTopBorder>
-                <div data-guide-target={GUIDE_TARGETS.WORKSTATION_DOCK}>
-                  <Dock
-                    segments={myStationDockSegments}
-                    activeApp={activeDockApp}
-                    onAppClick={handleDockClick}
-                  />
-                </div>
-              </StationDockChrome>
-            )}
         </AgentStationChromeFrame>
       </div>
     );
