@@ -5,11 +5,24 @@ import type { KanbanTask } from "@src/features/KanbanBoard";
 import {
   Placeholder,
   SessionTable,
+  type SessionTableColumnKey,
   mapKanbanTaskToSessionTableItem,
 } from "@src/modules/shared/layouts/blocks";
 import { toIntlLocaleTag } from "@src/util/data/formatters/date";
 
 import { getColumnTitleKey } from "../../config";
+
+const PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [50, 100, 200];
+
+// Stable identity so <SessionTable>'s column memo isn't rebuilt each render.
+// The list drops the git-commit "Committed" ratio (meaningless for read-only
+// imported/agent sessions) and surfaces token usage instead.
+const LIST_COLUMN_VISIBILITY: Partial<Record<SessionTableColumnKey, boolean>> =
+  {
+    committedRate: false,
+    tokens: true,
+  };
 
 function getTaskTimestamp(task: KanbanTask): number {
   const timestamp = task.updated_at || task.created_at;
@@ -69,6 +82,7 @@ const ListView: React.FC<ListViewProps> = ({
         <SessionTable
           items={sessionTableItems}
           className="[&_.table-fixed-header]:scrollbar-hide [&_.table-scroll]:scrollbar-hide"
+          columnVisibility={LIST_COLUMN_VISIBILITY}
           onSelect={(item) => {
             const task = sortedTasks.find(
               (candidate) => candidate.id === item.id
@@ -79,6 +93,12 @@ const ListView: React.FC<ListViewProps> = ({
           }}
           fillHeight
           showSearch
+          // Bound the rendered row count. The List view feeds the shared
+          // semantic <table>, which can't be windowed without breaking table
+          // layout, so we cap DOM/memory with the table's own pagination —
+          // only kicks in past one page, keeping short lists single-page.
+          pageSize={PAGE_SIZE}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
         />
       )}
     </div>
