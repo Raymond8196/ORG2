@@ -1710,6 +1710,7 @@
       "proxyReady": "代理已就緒",
       "proxyNotReady": "代理未就緒",
       "proxyDesc": "CLI 請求會透過 ORGII KeyVault 本機代理轉送。",
+      "proxyLifecycleDesc": "使用此模式時請保持 ORGII 運行。關閉視窗後代理會留在系統列；完全退出時會安全還原預設設定，外部修改不會被覆蓋。",
       "keyLabel": "金鑰",
       "keyDesc": "僅顯示與目前 CLI 和託管代理相容的 API Key。",
       "selectKey": "選擇金鑰",

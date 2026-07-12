@@ -924,22 +924,41 @@ pub fn run() {
                 // Debug Linux/Windows exits normally when the last window closes.
                 // code.is_none() means it's an automatic exit (last window closed), not an explicit exit(0).
                 tauri::RunEvent::ExitRequested {
-                    api: _api, code, ..
+                    api: _api,
+                    code: _code,
+                    ..
                 } => {
                     #[cfg(any(target_os = "macos", not(debug_assertions)))]
-                    if code.is_none() {
+                    if _code.is_none() {
                         _api.prevent_exit();
                         return;
                     }
 
-                    if code.is_some()
-                        || cfg!(all(debug_assertions, not(target_os = "macos")))
-                    {
-                        // Explicit exit — mark active orchestrator workflows as interrupted
-                        agent_core::coordination::work_item_recovery::mark_all_interrupted_sync();
-                        // Release computer-use lock if held
-                        integrations::computer_use_lock::force_release_on_exit();
+                    match agent_cli::managed_config::restore_managed_configs_for_shutdown() {
+                        Ok(report) => {
+                            if !report.restored_agents.is_empty() {
+                                tracing::info!(
+                                    agents = ?report.restored_agents,
+                                    "[CLI Managed Config] restored Default configs before exit"
+                                );
+                            }
+                            for (agent, error) in report.failed_agents {
+                                tracing::warn!(
+                                    agent,
+                                    error = %error,
+                                    "[CLI Managed Config] left config unchanged during exit"
+                                );
+                            }
+                        }
+                        Err(error) => tracing::warn!(
+                            error = %error,
+                            "[CLI Managed Config] failed to run shutdown restoration"
+                        ),
                     }
+                    // Explicit exit — mark active orchestrator workflows as interrupted
+                    agent_core::coordination::work_item_recovery::mark_all_interrupted_sync();
+                    // Release computer-use lock if held
+                    integrations::computer_use_lock::force_release_on_exit();
                 }
                 _ => {}
             }

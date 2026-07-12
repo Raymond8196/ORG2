@@ -552,6 +552,12 @@ pub struct CliManagedConfigSelection {
     pub proxy_token: Option<String>,
 }
 
+#[derive(Debug, Default)]
+pub struct CliConfigShutdownRestoreReport {
+    pub restored_agents: Vec<String>,
+    pub failed_agents: Vec<(String, String)>,
+}
+
 #[derive(Debug, Clone)]
 struct TargetSnapshot {
     id: String,
@@ -1848,6 +1854,41 @@ pub fn enable_orgii_managed(
     enable_agent_orgii_managed_unlocked(agent_name, key_id, provider, model, force)
 }
 
+/// Restore active managed CLI configs before the ORGII process exits.
+///
+/// Shutdown restoration is deliberately non-forcing: a config edited outside
+/// ORGII is left untouched and reported instead of being overwritten.
+pub fn restore_managed_configs_for_shutdown() -> Result<CliConfigShutdownRestoreReport, String> {
+    let _guard = config_operation_guard()?;
+    let mut report = CliConfigShutdownRestoreReport::default();
+
+    for adapter in MANAGED_CONFIG_ADAPTERS {
+        let agent_name = adapter.agent_name;
+        if let Err(err) = recover_pending_transaction_unlocked(agent_name) {
+            report.failed_agents.push((agent_name.to_string(), err));
+            continue;
+        }
+
+        let managed_active = match read_manifest(agent_name) {
+            Ok(Some(manifest)) => manifest.mode == CliConfigMode::OrgiiManaged,
+            Ok(None) => false,
+            Err(err) => {
+                report.failed_agents.push((agent_name.to_string(), err));
+                continue;
+            }
+        };
+        if !managed_active {
+            continue;
+        }
+        match restore_agent_default_unlocked(agent_name, false) {
+            Ok(_) => report.restored_agents.push(agent_name.to_string()),
+            Err(err) => report.failed_agents.push((agent_name.to_string(), err)),
+        }
+    }
+
+    Ok(report)
+}
+
 #[tauri::command(rename_all = "camelCase")]
 pub async fn cli_config_get_status(agent_name: String) -> Result<CliConfigManagedStatus, String> {
     tokio::task::spawn_blocking(move || {
@@ -2726,6 +2767,61 @@ map-tokens: 2048
         restore_agent_default_unlocked(CODEX_AGENT, false).unwrap();
 
         assert_eq!(std::fs::read(&target_path).unwrap(), b"new-user-change");
+    }
+
+    #[test]
+    fn shutdown_restores_active_managed_config_without_forcing() {
+        let _env_lock = TEST_ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let _home = OrgiiHomeGuard::set(&temp.path().join("orgii-home"));
+        let target_path = temp.path().join("config.toml");
+        let profile_root = temp.path().join("profiles");
+        let mut target = test_target("config", &target_path, &profile_root);
+        let backup_path = PathBuf::from(&target.default_backup_path);
+        std::fs::create_dir_all(backup_path.parent().unwrap()).unwrap();
+        std::fs::write(&backup_path, b"default-config").unwrap();
+        std::fs::write(&target_path, b"managed-config").unwrap();
+        target.original_hash = Some(sha256_bytes(b"default-config"));
+        target.last_applied_hash = Some(sha256_bytes(b"managed-config"));
+        write_manifest(&test_manifest(CODEX_AGENT, vec![target])).unwrap();
+
+        let report = restore_managed_configs_for_shutdown().unwrap();
+
+        assert_eq!(report.restored_agents, vec![CODEX_AGENT.to_string()]);
+        assert!(report.failed_agents.is_empty());
+        assert_eq!(std::fs::read(&target_path).unwrap(), b"default-config");
+        assert_eq!(
+            read_manifest(CODEX_AGENT).unwrap().unwrap().mode,
+            CliConfigMode::Default
+        );
+    }
+
+    #[test]
+    fn shutdown_leaves_externally_modified_managed_config_untouched() {
+        let _env_lock = TEST_ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let _home = OrgiiHomeGuard::set(&temp.path().join("orgii-home"));
+        let target_path = temp.path().join("config.toml");
+        let profile_root = temp.path().join("profiles");
+        let mut target = test_target("config", &target_path, &profile_root);
+        let backup_path = PathBuf::from(&target.default_backup_path);
+        std::fs::create_dir_all(backup_path.parent().unwrap()).unwrap();
+        std::fs::write(&backup_path, b"default-config").unwrap();
+        std::fs::write(&target_path, b"external-change").unwrap();
+        target.original_hash = Some(sha256_bytes(b"default-config"));
+        target.last_applied_hash = Some(sha256_bytes(b"managed-config"));
+        write_manifest(&test_manifest(CODEX_AGENT, vec![target])).unwrap();
+
+        let report = restore_managed_configs_for_shutdown().unwrap();
+
+        assert!(report.restored_agents.is_empty());
+        assert_eq!(report.failed_agents.len(), 1);
+        assert_eq!(report.failed_agents[0].0, CODEX_AGENT);
+        assert_eq!(std::fs::read(&target_path).unwrap(), b"external-change");
+        assert_eq!(
+            read_manifest(CODEX_AGENT).unwrap().unwrap().mode,
+            CliConfigMode::OrgiiManaged
+        );
     }
 
     #[test]
