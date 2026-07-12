@@ -12,8 +12,6 @@ export interface UseTaskKanbanHeaderOptions {
   viewMode: FactoryViewMode;
   calendarDate: Date;
   onCalendarDateChange: React.Dispatch<React.SetStateAction<Date>>;
-  worktreeSessionCount: number;
-  onCompareWorktrees: () => void;
   autoArchiveTtl: KanbanAutoArchiveTtl;
   onAutoArchiveTtlChange: (ttl: KanbanAutoArchiveTtl) => void;
   timeFilter: KanbanTimeFilter;
@@ -25,8 +23,6 @@ export function useTaskKanbanHeader({
   viewMode,
   calendarDate,
   onCalendarDateChange,
-  worktreeSessionCount,
-  onCompareWorktrees,
   autoArchiveTtl,
   onAutoArchiveTtlChange,
   timeFilter,
@@ -47,8 +43,6 @@ export function useTaskKanbanHeader({
     if (viewMode === "diary") return null;
     return (
       <KanbanHeaderTrailingControls
-        worktreeSessionCount={worktreeSessionCount}
-        onCompareWorktrees={onCompareWorktrees}
         autoArchiveTtl={autoArchiveTtl}
         onAutoArchiveTtlChange={onAutoArchiveTtlChange}
         timeFilter={timeFilter}
@@ -58,11 +52,9 @@ export function useTaskKanbanHeader({
   }, [
     autoArchiveTtl,
     onAutoArchiveTtlChange,
-    onCompareWorktrees,
     onTimeFilterChange,
     timeFilter,
     viewMode,
-    worktreeSessionCount,
   ]);
 
   const headerContent = useMemo(() => {

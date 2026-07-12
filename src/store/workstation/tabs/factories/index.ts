@@ -164,3 +164,7 @@ export {
   createGitHubIssueDetailTab,
 } from "./githubIssue";
 export type { GitHubIssueDetailTabData } from "./githubIssue";
+
+// GitHub PR Detail
+export { githubPrDetailTabFactory, createGitHubPrDetailTab } from "./githubPr";
+export type { GitHubPrDetailTabData } from "./githubPr";

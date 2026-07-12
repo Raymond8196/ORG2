@@ -2449,13 +2449,6 @@
     "installHintNote": "이 기능을 활성화하려면 누락된 종속성을 설치하세요",
     "installSection": "설치"
   },
-  "worktreeCompare": {
-    "button": "비교",
-    "buttonTooltip": "Worktree 비교",
-    "title": "Worktree 비교",
-    "noSessions": "비교할 세션 없음",
-    "sessionTab": "세션"
-  },
   "creator": {
     "assign": "할당"
   },

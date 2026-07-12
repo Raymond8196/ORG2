@@ -114,8 +114,7 @@ export function FocusedChatWorkstationRail() {
   const shouldHideForProjectSurface =
     chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.PROJECT ||
     chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.PROJECT_ORG ||
-    chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.WORK_ITEM ||
-    chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES;
+    chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.WORK_ITEM;
 
   const activeWorkspaceRoot = useAtomValue(activeWorkspaceRootAtom);
   const tabEntries = useAtomValue(tabRegistryAtom);

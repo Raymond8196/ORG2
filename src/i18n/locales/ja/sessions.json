@@ -184,11 +184,6 @@
       "merging": "マージ中…",
       "merged": "マージ済み"
     },
-    "diff": {
-      "openDiffWindow": "Diff を表示",
-      "windowTitle": "Session Diff",
-      "filesChanged": "ファイル"
-    },
     "replay": {
       "replaySession": "リプレイ"
     },
@@ -725,7 +720,7 @@
       },
       "tabs": {
         "work": "作業",
-        "explore": "探索",
+        "manage": "管理",
         "heatmap": "トレンド"
       },
       "heatmap": {
@@ -1079,7 +1074,7 @@
     "pathCopied": "パスをコピーしました！",
     "failedToCopyPath": "パスのコピーに失敗しました",
     "copyFilePath": "ファイルパスをコピー",
-    "explore": "探索",
+    "manage": "管理",
     "readFile": "ファイルを読み込む",
     "readFileRunning": "読み取り中",
     "readFileDone": "読み取り",
@@ -2471,13 +2466,6 @@
       "missing": "未インストール",
       "disabled": "無効"
     }
-  },
-  "worktreeCompare": {
-    "title": "Worktreeを比較",
-    "button": "比較",
-    "buttonTooltip": "Worktreeの差分を並べて表示",
-    "noSessions": "比較するセッションがありません。",
-    "sessionTab": "Session {{n}}"
   },
   "groupChat": {
     "senderTitle": {

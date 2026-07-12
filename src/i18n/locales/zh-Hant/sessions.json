@@ -184,11 +184,6 @@
       "merging": "合併中…",
       "merged": "已合併"
     },
-    "diff": {
-      "openDiffWindow": "查看 Diff",
-      "windowTitle": "Session Diff",
-      "filesChanged": "文件"
-    },
     "discard": {
       "discard": "丟棄",
       "discarding": "丟棄中…",
@@ -729,7 +724,7 @@
       },
       "tabs": {
         "work": "工作",
-        "explore": "探索",
+        "manage": "管理",
         "heatmap": "趨勢"
       },
       "heatmap": {
@@ -1083,7 +1078,7 @@
     "pathCopied": "路徑複製！",
     "failedToCopyPath": "複製路徑失敗",
     "copyFilePath": "複製文件路徑",
-    "explore": "探索",
+    "manage": "管理",
     "readFile": "讀取文件",
     "readFileRunning": "正在讀取",
     "readFileDone": "閱讀",
@@ -2475,13 +2470,6 @@
       "missing": "缺少",
       "disabled": "已停用"
     }
-  },
-  "worktreeCompare": {
-    "title": "比較 Worktree",
-    "button": "比較",
-    "buttonTooltip": "並排比較 Worktree 差異",
-    "noSessions": "沒有可比較的 Session。",
-    "sessionTab": "Session {{n}}"
   },
   "groupChat": {
     "senderTitle": {

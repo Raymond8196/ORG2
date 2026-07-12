@@ -184,11 +184,6 @@
       "merging": "Fusionando…",
       "merged": "Fusionado"
     },
-    "diff": {
-      "openDiffWindow": "Ver Diff",
-      "windowTitle": "Diff de Sesión",
-      "filesChanged": "Archivos"
-    },
     "replay": {
       "replaySession": "Reproducir"
     },
@@ -725,7 +720,7 @@
       },
       "tabs": {
         "work": "Trabajo",
-        "explore": "Explorar",
+        "manage": "Gestionar",
         "heatmap": "Tendencias"
       },
       "heatmap": {
@@ -1079,7 +1074,7 @@
     "pathCopied": "¡Ruta copiada!",
     "failedToCopyPath": "Error al copiar la ruta",
     "copyFilePath": "Copiar ruta del archivo",
-    "explore": "Explorar",
+    "manage": "Gestionar",
     "readFile": "Leer archivo",
     "readFileRunning": "Leyendo",
     "readFileDone": "Leer",
@@ -2471,13 +2466,6 @@
       "missing": "Falta",
       "disabled": "Desactivado"
     }
-  },
-  "worktreeCompare": {
-    "title": "Comparar Worktrees",
-    "button": "Comparar",
-    "buttonTooltip": "Comparar diffs de worktree uno al lado del otro",
-    "noSessions": "No hay sesiones para comparar.",
-    "sessionTab": "Sesión {{n}}"
   },
   "groupChat": {
     "senderTitle": {

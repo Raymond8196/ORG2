@@ -2452,13 +2452,6 @@
     "installHintNote": "Installez la dépendance manquante pour activer cette fonctionnalité",
     "installSection": "Installation"
   },
-  "worktreeCompare": {
-    "button": "Comparer",
-    "buttonTooltip": "Comparer les worktrees",
-    "title": "Comparer les Worktrees",
-    "noSessions": "Aucune session à comparer",
-    "sessionTab": "Session"
-  },
   "creator": {
     "assign": "Attribuer"
   },

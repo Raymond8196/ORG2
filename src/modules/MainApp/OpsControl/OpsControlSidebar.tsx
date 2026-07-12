@@ -1,7 +1,9 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   Boxes,
+  CircleDot,
   Columns3,
+  GitPullRequest,
   List,
   ListTodo,
   NotebookTabs,
@@ -26,11 +28,14 @@ import {
   type PrimarySidebarTab,
 } from "@src/modules/WorkStation/shared";
 import {
+  activeOpsControlHomeTabAtom,
+  openOpsControlChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
   OPS_CONTROL_HOME_TAB,
   OPS_CONTROL_PROJECTS_VIEW,
   type OpsControlHomeTab,
   type OpsControlProjectsView,
-  opsControlHomeTabAtom,
   opsControlProjectsViewAtom,
 } from "@src/store/workstation";
 
@@ -41,6 +46,8 @@ const OPS_CONTROL_SIDEBAR_NODE_KIND = {
   SessionsView: "sessions-view",
   WorkitemView: "workitem-view",
   ProjectView: "project-view",
+  GitHubIssues: "github-issues",
+  GitHubPrs: "github-prs",
   Kanban: "kanban",
   List: "list",
   Diary: "diary",
@@ -101,6 +108,10 @@ const OpsControlSidebarRows: React.FC<OpsControlSidebarRowsProps> = memo(
           (node.kind === OPS_CONTROL_SIDEBAR_NODE_KIND.ProjectView &&
             isProjectsHome &&
             activeProjectsView === OPS_CONTROL_PROJECTS_VIEW.PROJECTS) ||
+          (node.kind === OPS_CONTROL_SIDEBAR_NODE_KIND.GitHubIssues &&
+            activeHomeTab === OPS_CONTROL_HOME_TAB.GITHUB_ISSUES) ||
+          (node.kind === OPS_CONTROL_SIDEBAR_NODE_KIND.GitHubPrs &&
+            activeHomeTab === OPS_CONTROL_HOME_TAB.GITHUB_PRS) ||
           (isOpsControlHome && viewMode === activeViewMode);
         const handleClick = () => onSelectNode(node);
 
@@ -131,14 +142,20 @@ const OpsControlSidebarRows: React.FC<OpsControlSidebarRowsProps> = memo(
 
 OpsControlSidebarRows.displayName = "OpsControlSidebarRows";
 
-const OpsControlSidebar: React.FC = memo(() => {
+interface OpsControlSidebarProps {
+  githubControlsHostRef: React.RefCallback<HTMLDivElement>;
+}
+
+const OpsControlSidebar: React.FC<OpsControlSidebarProps> = ({
+  githubControlsHostRef,
+}) => {
   const { t } = useTranslation(["sessions", "common", "navigation"]);
   const location = useLocation();
   const navigate = useNavigate();
-  const activeHomeTab = useAtomValue(opsControlHomeTabAtom);
+  const activeHomeTab = useAtomValue(activeOpsControlHomeTabAtom);
   const activeProjectsView = useAtomValue(opsControlProjectsViewAtom);
-  const setOpsControlHomeTab = useSetAtom(opsControlHomeTabAtom);
   const setOpsControlProjectsView = useSetAtom(opsControlProjectsViewAtom);
+  const openOpsControlTab = useSetAtom(openOpsControlChatPanelTabAtom);
   const activeViewMode = parseFactoryViewMode(location.search);
 
   const setViewMode = useCallback(
@@ -190,6 +207,35 @@ const OpsControlSidebar: React.FC = memo(() => {
           kind: OPS_CONTROL_SIDEBAR_NODE_KIND.ProjectView,
         },
       },
+      {
+        depth: 0,
+        node: {
+          id: "ops-control-sidebar:github-issues",
+          name: t("sessions:opsControl.sidebar.githubIssues"),
+          path: "ops-control-sidebar:github-issues",
+          type: "file",
+          icon: (
+            <CircleDot size={ROW_ICON_SIZE} strokeWidth={ROW_ICON_STROKE} />
+          ),
+          kind: OPS_CONTROL_SIDEBAR_NODE_KIND.GitHubIssues,
+        },
+      },
+      {
+        depth: 0,
+        node: {
+          id: "ops-control-sidebar:github-prs",
+          name: t("sessions:opsControl.sidebar.githubPrs"),
+          path: "ops-control-sidebar:github-prs",
+          type: "file",
+          icon: (
+            <GitPullRequest
+              size={ROW_ICON_SIZE}
+              strokeWidth={ROW_ICON_STROKE}
+            />
+          ),
+          kind: OPS_CONTROL_SIDEBAR_NODE_KIND.GitHubPrs,
+        },
+      },
     ],
     [t]
   );
@@ -239,24 +285,64 @@ const OpsControlSidebar: React.FC = memo(() => {
     (node: OpsControlSidebarNode) => {
       if (node.kind === OPS_CONTROL_SIDEBAR_NODE_KIND.WorkitemView) {
         setOpsControlProjectsView(OPS_CONTROL_PROJECTS_VIEW.WORK_ITEMS);
-        setOpsControlHomeTab(OPS_CONTROL_HOME_TAB.PROJECTS);
+        openOpsControlTab({
+          section: OPS_CONTROL_HOME_TAB.PROJECTS,
+          title: t("navigation:routes.opsControl"),
+        });
         return;
       }
 
       if (node.kind === OPS_CONTROL_SIDEBAR_NODE_KIND.ProjectView) {
         setOpsControlProjectsView(OPS_CONTROL_PROJECTS_VIEW.PROJECTS);
-        setOpsControlHomeTab(OPS_CONTROL_HOME_TAB.PROJECTS);
+        openOpsControlTab({
+          section: OPS_CONTROL_HOME_TAB.PROJECTS,
+          title: t("navigation:routes.opsControl"),
+        });
         return;
       }
 
-      setOpsControlHomeTab(OPS_CONTROL_HOME_TAB.OPS_CONTROL);
+      if (node.kind === OPS_CONTROL_SIDEBAR_NODE_KIND.GitHubIssues) {
+        openOpsControlTab({
+          section: OPS_CONTROL_HOME_TAB.GITHUB_ISSUES,
+          title: t("navigation:routes.opsControl"),
+        });
+        return;
+      }
+
+      if (node.kind === OPS_CONTROL_SIDEBAR_NODE_KIND.GitHubPrs) {
+        openOpsControlTab({
+          section: OPS_CONTROL_HOME_TAB.GITHUB_PRS,
+          title: t("navigation:routes.opsControl"),
+        });
+        return;
+      }
+
+      openOpsControlTab({
+        section: OPS_CONTROL_HOME_TAB.OPS_CONTROL,
+        title: t("navigation:routes.opsControl"),
+      });
       const viewMode = VIEW_MODE_BY_NODE_KIND[node.kind];
       if (viewMode) setViewMode(viewMode);
     },
-    [setOpsControlHomeTab, setOpsControlProjectsView, setViewMode]
+    [openOpsControlTab, setOpsControlProjectsView, setViewMode, t]
   );
 
   const emptyMessage = t("common:states.empty");
+  const githubControlsSection = useMemo(() => {
+    if (activeHomeTab !== OPS_CONTROL_HOME_TAB.GITHUB_ISSUES) {
+      return null;
+    }
+
+    return {
+      key: "github-controls",
+      title: t("sessions:opsControl.sidebar.githubIssues"),
+      content: (
+        <div ref={githubControlsHostRef} className="h-full min-h-0 w-full" />
+      ),
+      defaultFlexGrow: 1,
+      resizable: false,
+    };
+  }, [activeHomeTab, githubControlsHostRef, t]);
   const tabs = useMemo<PrimarySidebarTab[]>(
     () => [
       {
@@ -279,22 +365,28 @@ const OpsControlSidebar: React.FC = memo(() => {
             defaultFlexGrow: 0.35,
             resizable: false,
           },
-          {
-            key: "views",
-            title: t("sessions:opsControl.sidebar.views"),
-            content: (
-              <OpsControlSidebarRows
-                nodes={viewNodes}
-                activeHomeTab={activeHomeTab}
-                activeProjectsView={activeProjectsView}
-                activeViewMode={activeViewMode}
-                onSelectNode={handleSelectNode}
-                emptyMessage={emptyMessage}
-              />
-            ),
-            defaultFlexGrow: 1,
-            resizable: false,
-          },
+          ...(githubControlsSection
+            ? [githubControlsSection]
+            : activeHomeTab === OPS_CONTROL_HOME_TAB.OPS_CONTROL
+              ? [
+                  {
+                    key: "views",
+                    title: t("sessions:opsControl.sidebar.views"),
+                    content: (
+                      <OpsControlSidebarRows
+                        nodes={viewNodes}
+                        activeHomeTab={activeHomeTab}
+                        activeProjectsView={activeProjectsView}
+                        activeViewMode={activeViewMode}
+                        onSelectNode={handleSelectNode}
+                        emptyMessage={emptyMessage}
+                      />
+                    ),
+                    defaultFlexGrow: 1,
+                    resizable: false,
+                  },
+                ]
+              : []),
         ],
       },
     ],
@@ -303,6 +395,7 @@ const OpsControlSidebar: React.FC = memo(() => {
       activeProjectsView,
       activeViewMode,
       emptyMessage,
+      githubControlsSection,
       handleSelectNode,
       manageItemNodes,
       t,
@@ -321,8 +414,8 @@ const OpsControlSidebar: React.FC = memo(() => {
       hideTabs={true}
     />
   );
-});
+};
 
 OpsControlSidebar.displayName = "OpsControlSidebar";
 
-export default OpsControlSidebar;
+export default memo(OpsControlSidebar);

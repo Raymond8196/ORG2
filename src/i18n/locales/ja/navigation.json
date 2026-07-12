@@ -46,6 +46,7 @@
     "projectManager": "Project マネージャー",
     "diff": "Diff",
     "opsControl": "Ops Control",
+    "opsCenter": "オペレーションセンター",
     "colleagues": "同僚",
     "terminals": "ターミナル"
   },
@@ -81,7 +82,7 @@
     "agentStudio": "Agent スタジオ",
     "serviceMarket": "Service マーケット",
     "signingIn": "サインイン中...",
-    "launchpad": "Launchpad",
+    "launchpad": "ランチパッド",
     "ideaArea": "アイデアエリア",
     "changelog": "Changelog",
     "opsControl": "Ops Control"
@@ -201,7 +202,7 @@
     "emptyWorkspaces": "一致するワークスペースがありません",
     "myRepos": "マイリポジトリ",
     "myMultiRepoWorkspaces": "マルチリポ Workspaces",
-    "dashboard": "ランチパッド",
+    "dashboard": "ダッシュボード",
     "myWorkspaces": "マイ Workspaces",
     "workspaces": "ワークスペース",
     "dashboardTitle": "ワークスペース",

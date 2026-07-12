@@ -27,7 +27,7 @@ const sampleWorkspace = {
 } satisfies ChatPanelSelectedWorkspace;
 
 describe("reduceChatPanelSurfaceCommand", () => {
-  it("clears Explore and dashboard state when navigating to New Work Item", () => {
+  it("clears Explore state when navigating to New Work Item", () => {
     const snapshot = reduceChatPanelSurfaceCommand({
       kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM,
     });
@@ -35,14 +35,12 @@ describe("reduceChatPanelSurfaceCommand", () => {
     expect(snapshot.contentMode).toBe(CHAT_PANEL_CONTENT_MODE.NON_SESSION);
     expect(snapshot.createTarget).toBe(CHAT_PANEL_CREATE_TARGET.WORK_ITEM);
     expect(snapshot.exploreOpen).toBe(false);
-    expect(snapshot.workspaceDashboardOpen).toBe(false);
-    expect(snapshot.manageIssuesOpen).toBe(false);
     expect(snapshot.selectedWorkspace).toBeNull();
     expect(snapshot.selectedProject).toBeNull();
     expect(snapshot.selectedWorkItem).toBeNull();
   });
 
-  it("clears Explore and dashboard state when navigating to New Project", () => {
+  it("clears Explore state when navigating to New Project", () => {
     const snapshot = reduceChatPanelSurfaceCommand({
       kind: CHAT_PANEL_SURFACE_KIND.NEW_PROJECT,
     });
@@ -50,7 +48,6 @@ describe("reduceChatPanelSurfaceCommand", () => {
     expect(snapshot.contentMode).toBe(CHAT_PANEL_CONTENT_MODE.NON_SESSION);
     expect(snapshot.createTarget).toBe(CHAT_PANEL_CREATE_TARGET.PROJECT);
     expect(snapshot.exploreOpen).toBe(false);
-    expect(snapshot.workspaceDashboardOpen).toBe(false);
   });
 
   it("opening a session clears non-session surfaces", () => {
@@ -61,7 +58,6 @@ describe("reduceChatPanelSurfaceCommand", () => {
     expect(snapshot.contentMode).toBe(CHAT_PANEL_CONTENT_MODE.SESSION);
     expect(snapshot.createTarget).toBe(CHAT_PANEL_CREATE_TARGET.AGENT_SESSION);
     expect(snapshot.exploreOpen).toBe(false);
-    expect(snapshot.workspaceDashboardOpen).toBe(false);
     expect(snapshot.selectedWorkItem).toBeNull();
   });
 
@@ -77,20 +73,7 @@ describe("reduceChatPanelSurfaceCommand", () => {
     expect(snapshot.exploreOpen).toBe(false);
   });
 
-  it("opens Manage issues without dashboard or Explore", () => {
-    const snapshot = reduceChatPanelSurfaceCommand({
-      kind: CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES,
-    });
-
-    expect(snapshot.contentMode).toBe(CHAT_PANEL_CONTENT_MODE.NON_SESSION);
-    expect(snapshot.manageIssuesOpen).toBe(true);
-    expect(snapshot.workspaceDashboardOpen).toBe(false);
-    expect(snapshot.exploreOpen).toBe(false);
-    expect(snapshot.selectedWorkItem).toBeNull();
-    expect(snapshot.selectedWorkspace).toBeNull();
-  });
-
-  it("opens workspace overview details without dashboard or Explore", () => {
+  it("opens workspace overview details without Explore", () => {
     const snapshot = reduceChatPanelSurfaceCommand({
       kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_OVERVIEW,
       workspace: sampleWorkspace,
@@ -99,7 +82,6 @@ describe("reduceChatPanelSurfaceCommand", () => {
 
     expect(snapshot.selectedWorkspace).toBe(sampleWorkspace);
     expect(snapshot.workspaceOverviewTab).toBe(WORKSPACE_OVERVIEW_TAB.DETAILS);
-    expect(snapshot.workspaceDashboardOpen).toBe(false);
     expect(snapshot.exploreOpen).toBe(false);
   });
 

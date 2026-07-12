@@ -233,7 +233,7 @@ export function useSpotlight(
           void WorkStationViewService.openStationMode("agent-station");
         },
         "open-ops-control": () => {
-          void WorkStationViewService.openStationMode("ops-control");
+          void WorkStationViewService.openOpsControlTab();
         },
         "open-search-sidebar": () => {
           void WorkStationViewService.openSearchSidebar();

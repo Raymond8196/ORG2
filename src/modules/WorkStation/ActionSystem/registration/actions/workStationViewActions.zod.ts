@@ -63,7 +63,7 @@ export const workstationToggleChatPanelVisibility = defineZodAction(
 
 function defineOpenStationAction(
   id: ActionId,
-  mode: "my-station" | "agent-station" | "ops-control",
+  mode: "my-station" | "agent-station",
   description: string,
   message: string,
   shortcut: string,
@@ -110,13 +110,23 @@ export const workstationOpenAgentStation = defineOpenStationAction(
   ["open agent station", "switch to agent station", "show agent station"]
 );
 
-export const workstationOpenOpsControl = defineOpenStationAction(
-  ACTION_ID.WORKSTATION_OPEN_OPS_CONTROL,
-  "ops-control",
-  "Open Ops Control in Workstation",
-  "Opened Ops Control",
-  getShortcutKeys("open_ops_control"),
-  ["open ops control", "go to ops control", "show ops control"]
+export const workstationOpenOpsControl = defineZodAction(
+  {
+    id: ACTION_ID.WORKSTATION_OPEN_OPS_CONTROL,
+    category: "navigation",
+    description: "Open Ops Control in the chat pane",
+    params: z.object({}),
+    shortcut: getShortcutKeys("open_ops_control"),
+    tags: ["workstation", "chat", "ops-control", "navigation"],
+    examples: ["open ops control", "go to ops control", "show ops control"],
+  },
+  async () => {
+    const workStationViewService = await getWorkStationViewService();
+    const success = await workStationViewService.openOpsControlTab();
+    return success
+      ? { success: true, message: "Opened Ops Control" }
+      : { success: false, message: "Ops Control is not available" };
+  }
 );
 
 export const workstationToggleSidebar = defineZodAction(

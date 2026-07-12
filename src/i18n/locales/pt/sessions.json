@@ -189,11 +189,6 @@
       "discarding": "Descartando…",
       "confirmMessage": "Descartar todas as alterações neste Worktree? Esta ação não pode ser desfeita."
     },
-    "diff": {
-      "openDiffWindow": "Ver diff",
-      "windowTitle": "Diff da sessão",
-      "filesChanged": "Arquivos"
-    },
     "replay": {
       "replaySession": "Repetir"
     },
@@ -227,13 +222,6 @@
       "commits_other": "{{count}} commits",
       "committedRateShort": "{{percent}}% commitado"
     }
-  },
-  "worktreeCompare": {
-    "title": "Comparar Worktrees",
-    "button": "Comparar",
-    "buttonTooltip": "Comparar diffs de Worktree lado a lado",
-    "noSessions": "Nenhuma sessão para comparar.",
-    "sessionTab": "Sessão {{n}}"
   },
   "changes": {
     "scope": {
@@ -731,7 +719,7 @@
       },
       "tabs": {
         "work": "Trabalho",
-        "explore": "Explorar",
+        "manage": "Gerenciar",
         "heatmap": "Tendências"
       },
       "heatmap": {
@@ -1101,7 +1089,7 @@
     "pathCopied": "Caminho copiado!",
     "failedToCopyPath": "Falha ao copiar caminho",
     "copyFilePath": "Copiar caminho do arquivo",
-    "explore": "Explorar",
+    "manage": "Gerenciar",
     "readFile": "Ler arquivo",
     "readFileRunning": "Lendo",
     "readFileDone": "Ler",

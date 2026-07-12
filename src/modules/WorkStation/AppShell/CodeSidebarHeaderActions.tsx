@@ -42,6 +42,7 @@ function usesFallbackCodeSidebar(tab: WorkStationTab | null): boolean {
   return (
     tab.type !== "agent-config" &&
     tab.type !== "github-issue-detail" &&
+    tab.type !== "github-pr-detail" &&
     tab.type !== "source-control" &&
     tab.type !== "terminal" &&
     tab.type !== "benchmark"

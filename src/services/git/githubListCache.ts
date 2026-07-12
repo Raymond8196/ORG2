@@ -5,12 +5,13 @@
  * app session. Stale-while-revalidate: callers receive cached data instantly
  * and kick off a background refresh when the TTL has expired.
  *
- * Limits (chosen to bound memory while covering the typical "last two
- * workspaces" use-case):
- *   MAX_REPOS   — 2  (LRU eviction — oldest-accessed repo is dropped)
+ * Limits (chosen to bound memory while covering a small set of recent
+ * workspaces):
+ *   MAX_REPOS   — 4  (LRU eviction — oldest-accessed repo is dropped)
  *   MAX_ISSUES  — 200 per repo per section (open / closed)
- *   MAX_PRS     — 100 per repo
- *   TTL         — 5 minutes
+ *   MAX_PR_LISTS — 8 repo/state combinations
+ *   MAX_PRS      — 100 per repo/state list
+ *   TTL          — 10 minutes
  */
 import type {
   GitHubChecksSummary,
@@ -22,17 +23,19 @@ import type {
   PrFile,
 } from "@src/api/tauri/github";
 
-const MAX_REPOS = 2;
+const MAX_REPOS = 4;
 const MAX_ISSUES_PER_SECTION = 200;
 const MAX_PRS = 100;
+const MAX_PR_LISTS = 8;
 /** Distinct PR detail snapshots retained (LRU across all repos). */
 const MAX_PR_DETAILS = 20;
-const TTL_MS = 5 * 60 * 1000;
+export const GITHUB_LIST_CACHE_TTL_MS = 10 * 60 * 1000;
 
 export interface CachedIssues {
   openIssues: GitHubIssue[];
   closedIssues: GitHubIssue[];
-  cachedAt: number;
+  openCachedAt: number | null;
+  closedCachedAt: number | null;
 }
 
 export interface CachedPrs {
@@ -82,6 +85,28 @@ function lruSet<T>(
 
 const issueCache = new Map<string, CachedIssues>();
 const prCache = new Map<string, CachedPrs>();
+const inFlightListRequests = new Map<string, Promise<unknown>>();
+
+/**
+ * Reuses an in-flight list request across remounts and removes it on settle.
+ * This prevents rapid tab switches from duplicating GitHub calls without
+ * retaining completed promises or installing a cleanup timer.
+ */
+export function coalesceGitHubListRequest<T>(
+  key: string,
+  requestFactory: () => Promise<T>
+): Promise<T> {
+  const existing = inFlightListRequests.get(key) as Promise<T> | undefined;
+  if (existing) return existing;
+
+  const request = requestFactory().finally(() => {
+    if (inFlightListRequests.get(key) === request) {
+      inFlightListRequests.delete(key);
+    }
+  });
+  inFlightListRequests.set(key, request);
+  return request;
+}
 
 // ── Disk persistence (survive app restart) ──────────────────────────────────
 //
@@ -102,7 +127,11 @@ function safeLocalStorage(): Storage | null {
   }
 }
 
-function hydrate<T>(storageKey: string, cache: Map<string, T>): void {
+function hydrate<T>(
+  storageKey: string,
+  cache: Map<string, T>,
+  maxSize: number
+): void {
   const store = safeLocalStorage();
   if (!store) return;
   try {
@@ -110,7 +139,9 @@ function hydrate<T>(storageKey: string, cache: Map<string, T>): void {
     if (!raw) return;
     const entries = JSON.parse(raw) as [string, T][];
     if (!Array.isArray(entries)) return;
-    for (const [key, value] of entries) cache.set(key, value);
+    for (const [key, value] of entries) {
+      lruSet(cache, key, value, maxSize);
+    }
   } catch {
     // Corrupt/legacy payload — ignore and start fresh.
   }
@@ -126,8 +157,8 @@ function persist<T>(storageKey: string, cache: Map<string, T>): void {
   }
 }
 
-hydrate(STORAGE_KEY_ISSUES, issueCache);
-hydrate(STORAGE_KEY_PRS, prCache);
+hydrate(STORAGE_KEY_ISSUES, issueCache, MAX_REPOS);
+hydrate(STORAGE_KEY_PRS, prCache, MAX_PR_LISTS);
 
 // ── Issues ────────────────────────────────────────────────────────────────────
 
@@ -135,10 +166,19 @@ export function getCachedIssues(repoKey: string): CachedIssues | null {
   return lruGet(issueCache, repoKey);
 }
 
-export function isIssueCacheStale(repoKey: string): boolean {
+export type CachedIssueState = "open" | "closed";
+
+export function isIssueCacheStale(
+  repoKey: string,
+  state: CachedIssueState = "open"
+): boolean {
   const entry = issueCache.get(repoKey);
   if (!entry) return true;
-  return Date.now() - entry.cachedAt > TTL_MS;
+  const cachedAt = state === "open" ? entry.openCachedAt : entry.closedCachedAt;
+  return (
+    typeof cachedAt !== "number" ||
+    Date.now() - cachedAt > GITHUB_LIST_CACHE_TTL_MS
+  );
 }
 
 export function updateCachedOpenIssues(
@@ -149,7 +189,8 @@ export function updateCachedOpenIssues(
   lruSet(issueCache, repoKey, {
     openIssues: openIssues.slice(0, MAX_ISSUES_PER_SECTION),
     closedIssues: existing?.closedIssues ?? [],
-    cachedAt: Date.now(),
+    openCachedAt: Date.now(),
+    closedCachedAt: existing?.closedCachedAt ?? null,
   });
   persist(STORAGE_KEY_ISSUES, issueCache);
 }
@@ -162,7 +203,8 @@ export function updateCachedClosedIssues(
   lruSet(issueCache, repoKey, {
     openIssues: existing?.openIssues ?? [],
     closedIssues: closedIssues.slice(0, MAX_ISSUES_PER_SECTION),
-    cachedAt: Date.now(),
+    openCachedAt: existing?.openCachedAt ?? null,
+    closedCachedAt: Date.now(),
   });
   persist(STORAGE_KEY_ISSUES, issueCache);
 }
@@ -188,7 +230,7 @@ export function isPrCacheStale(
 ): boolean {
   const entry = prCache.get(prCacheKey(repoKey, state));
   if (!entry) return true;
-  return Date.now() - entry.cachedAt > TTL_MS;
+  return Date.now() - entry.cachedAt > GITHUB_LIST_CACHE_TTL_MS;
 }
 
 export function setCachedPrs(
@@ -196,10 +238,15 @@ export function setCachedPrs(
   prs: OpenPRItem[],
   state: CachedPrState = "open"
 ) {
-  lruSet(prCache, prCacheKey(repoKey, state), {
-    prs: prs.slice(0, MAX_PRS),
-    cachedAt: Date.now(),
-  });
+  lruSet(
+    prCache,
+    prCacheKey(repoKey, state),
+    {
+      prs: prs.slice(0, MAX_PRS),
+      cachedAt: Date.now(),
+    },
+    MAX_PR_LISTS
+  );
   persist(STORAGE_KEY_PRS, prCache);
 }
 
@@ -219,7 +266,7 @@ export function getCachedPrDetail(key: string): CachedPrDetail | null {
 export function isPrDetailStale(key: string): boolean {
   const entry = prDetailCache.get(key);
   if (!entry) return true;
-  return Date.now() - entry.cachedAt > TTL_MS;
+  return Date.now() - entry.cachedAt > GITHUB_LIST_CACHE_TTL_MS;
 }
 
 export function setCachedPrDetail(
