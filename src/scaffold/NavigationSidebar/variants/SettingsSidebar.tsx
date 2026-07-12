@@ -72,7 +72,7 @@ const SettingsFooterBackButton: React.FC<SettingsFooterBackButtonProps> = ({
   <button
     type="button"
     aria-label={label}
-    className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-bg-1 p-0 text-primary-6 transition-colors duration-150 hover:bg-fill-2"
+    className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-sidebar-selected p-0 text-text-1 transition-colors duration-150 hover:bg-sidebar-selected"
     onClick={onClick}
     onMouseEnter={(event) => triggerIconAnimation(event.currentTarget)}
   >
@@ -81,7 +81,7 @@ const SettingsFooterBackButton: React.FC<SettingsFooterBackButtonProps> = ({
       iconName="settings"
       size={16}
       strokeWidth={2}
-      className="text-primary-6"
+      className="text-text-1"
     />
   </button>
 );

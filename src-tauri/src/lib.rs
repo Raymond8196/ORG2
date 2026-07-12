@@ -326,6 +326,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_drag::init())
+        .plugin(tauri_plugin_liquid_glass::init())
         .on_window_event(|_window, _event| {
             #[cfg(target_os = "macos")]
             match _event {
@@ -380,6 +381,7 @@ pub fn run() {
                             app_window::TRAFFIC_LIGHT_X,
                             app_window::TRAFFIC_LIGHT_Y,
                         );
+                        app_window::apply_macos_window_material(&main_window);
                     }
 
                     app_window::apply_host_desktop_window_chrome(&main_window);

@@ -446,7 +446,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                                   type="button"
                                   title={action.label}
                                   aria-label={action.label}
-                                  className="flex h-5 w-5 items-center justify-center rounded text-text-2 transition-colors duration-150 hover:bg-fill-2 hover:text-text-1 focus:outline-none"
+                                  className="flex h-5 w-5 items-center justify-center rounded text-text-2 transition-colors duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:outline-none"
                                   onClick={(event) => {
                                     event.preventDefault();
                                     event.stopPropagation();

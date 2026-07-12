@@ -22,6 +22,10 @@ import React, { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ACTION_ID, useActionSystemOptional } from "@src/ActionSystem";
+import {
+  HOST_DESKTOP,
+  resolveHostDesktop,
+} from "@src/config/windowChromeRadius";
 import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/nonce";
 import { useRegionLuminance } from "@src/hooks/theme/useRegionLuminance";
 import { appGridConfigAtom } from "@src/store/ui/appGridAtom";
@@ -32,6 +36,8 @@ import AppGridEditPanel from "../AppGridEditPanel";
 import { AppGridIcon } from "./AppGridIcon";
 import { APP_GRID_ITEMS, type AppItem } from "./config";
 import { useAppGridDrag } from "./useAppGridDrag";
+
+const IS_MACOS_HOST = resolveHostDesktop() === HOST_DESKTOP.MACOS;
 
 // ============================================
 // Styles
@@ -190,7 +196,9 @@ const AppGrid: React.FC<AppGridProps> = ({ className }) => {
   const [gridConfig, setGridConfig] = useAtom(appGridConfigAtom);
   const backgroundConfig = useAtomValue(resolvedBackgroundConfigAtom);
   const shouldUseAdaptiveColors = Boolean(
-    backgroundConfig.adaptiveColors && backgroundConfig.selectedImageId
+    !IS_MACOS_HOST &&
+    backgroundConfig.adaptiveColors &&
+    backgroundConfig.selectedImageId
   );
 
   const sortedApps = useMemo(() => {

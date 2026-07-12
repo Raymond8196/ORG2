@@ -50,8 +50,6 @@ export const ACTION_ID = {
   CHAT_PANEL_DISABLE_PAGINATION: "chatPanel.disablePagination",
   CHAT_PANEL_USE_MODEL_PICKER_SPOTLIGHT: "chatPanel.useModelPickerSpotlight",
   CHAT_PANEL_USE_MODEL_PICKER_DROPDOWN: "chatPanel.useModelPickerDropdown",
-  WORKSTATION_SET_COMFORT_LAYOUT: "workstation.setComfortLayout",
-  WORKSTATION_SET_COMPACT_LAYOUT: "workstation.setCompactLayout",
   WORKSTATION_SET_SIDEBAR_LEFT: "workstation.setSidebarLeft",
   WORKSTATION_SET_SIDEBAR_RIGHT: "workstation.setSidebarRight",
   WORKSTATION_ENABLE_DOCK_AUTO_HIDE: "workstation.enableDockAutoHide",

@@ -28,6 +28,10 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useRouteViewMode } from "@src/config/routeViewModeConfig";
 import { ROUTES } from "@src/config/routes";
+import {
+  HOST_DESKTOP,
+  resolveHostDesktop,
+} from "@src/config/windowChromeRadius";
 import { BrowserProvider, TerminalProvider } from "@src/contexts/workstation";
 import { useAgentADEActions } from "@src/engines/SessionCore/hooks/useAgentADEActions";
 import { useProjectDataChangedListener } from "@src/hooks/project";
@@ -147,9 +151,16 @@ const WorkStationLoadingFallback: React.FC = () => (
   <div className="h-full w-full bg-workstation-bg" />
 );
 
-const AppShell = () => {
-  const location = useLocation();
+const IS_MACOS_HOST = resolveHostDesktop() === HOST_DESKTOP.MACOS;
 
+interface ConfiguredBackgroundLayerProps {
+  sidebarInset: number;
+}
+
+/** Legacy wallpaper/color background, retained for non-macOS hosts. */
+const ConfiguredBackgroundLayer: React.FC<ConfiguredBackgroundLayerProps> = ({
+  sidebarInset,
+}) => {
   const backgroundConfig = useAtomValue(resolvedBackgroundConfigAtom);
   const currentBackgroundImage = useBackgroundImage();
 
@@ -157,6 +168,20 @@ const AppShell = () => {
     if (!backgroundConfig.backgroundColor) return;
     prewarmColor(backgroundConfig.backgroundColor);
   }, [backgroundConfig.backgroundColor]);
+
+  return (
+    <BackgroundLayer
+      image={backgroundConfig.backgroundColor ? null : currentBackgroundImage}
+      blurAmount={backgroundConfig.blurAmount ?? 0}
+      backgroundColor={backgroundConfig.backgroundColor}
+      glass={backgroundConfig.glass}
+      sidebarInset={sidebarInset}
+    />
+  );
+};
+
+const AppShell = () => {
+  const location = useLocation();
 
   const viewMode = useRouteViewMode();
 
@@ -450,14 +475,11 @@ const AppShell = () => {
           className="relative flex h-full"
           data-guide-target={GUIDE_TARGETS.APP_ROOT}
         >
-          <BackgroundLayer
-            image={
-              backgroundConfig.backgroundColor ? null : currentBackgroundImage
-            }
-            blurAmount={backgroundConfig.blurAmount ?? 0}
-            backgroundColor={backgroundConfig.backgroundColor}
-            glass={backgroundConfig.glass}
-          />
+          {!IS_MACOS_HOST && (
+            <ConfiguredBackgroundLayer
+              sidebarInset={sidebarCollapsed ? 0 : sidebarWidth}
+            />
+          )}
 
           {/* Main layout with sidebar, toolbar, content, and chat panel */}
           <AppLayout

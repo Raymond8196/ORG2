@@ -1617,11 +1617,8 @@
     "chatRight": "Чат справа",
     "pageSettings": "Настройки страницы",
     "pageLayout": "Макет страницы",
-    "layoutMode": "Режим макета",
     "inset": "Вставка",
     "full": "Полный",
-    "compact": "Компактный",
-    "comfort": "Комфортный",
     "theme": "Тема",
     "primaryPanel": "Боковая панель",
     "sidebarPosition": "Положение панели",
@@ -1675,8 +1672,6 @@
     "disableChatPagination": "Отключить пагинацию чата",
     "useModelPickerSpotlight": "Использовать выбор модели через Spotlight",
     "useModelPickerDropdown": "Использовать выпадающий выбор модели",
-    "useCompactWorkstationLayout": "Использовать компактную компоновку Workstation",
-    "useComfortWorkstationLayout": "Использовать комфортную компоновку Workstation",
     "moveWorkstationSidebarLeft": "Переместить боковую панель Workstation влево",
     "moveWorkstationSidebarRight": "Переместить боковую панель Workstation вправо",
     "enableDockAutoHide": "Автоматически скрывать Dock Workstation",
@@ -1938,6 +1933,12 @@
     "removeWorktreeMessage": "Это удалит checkout Worktree с диска. Branch и commits сохранятся.",
     "removeWorktreeSuccess": "Worktree удален",
     "removeWorktreeFailed": "Не удалось удалить Worktree",
+    "emptyState": {
+      "viewSourceControl": "Просмотреть Source Control",
+      "viewIssues": "Просмотреть Issues",
+      "viewGitHistory": "Просмотреть историю Git",
+      "viewPullRequests": "Просмотреть Pull Requests"
+    },
     "pill": {
       "focus": "Фокус",
       "allChanges": "Все изменения"

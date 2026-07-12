@@ -35,7 +35,7 @@ export interface FocusViewProps {
   onUnsavedChange?: (hasUnsaved: boolean) => void;
   /** Render the file breadcrumb inside the main pane instead of the workstation header. */
   inlineFileHeader?: boolean;
-  /** Regular editor placeholder actions shown when no source-control file is focused. */
+  /** Source Control navigation shown when no file is focused. */
   emptyActions: QuickAction[];
 }
 
@@ -51,7 +51,7 @@ const FocusView: React.FC<FocusViewProps> = ({
   emptyActions,
 }) => {
   if (!hasFocus) {
-    return <NoTabsPlaceholder icon="editor" actions={emptyActions} />;
+    return <NoTabsPlaceholder icon="source-control" actions={emptyActions} />;
   }
 
   return (

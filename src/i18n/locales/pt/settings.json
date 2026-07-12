@@ -149,6 +149,10 @@
       "zh-Hant": "Chinês tradicional"
     },
     "layout": "Layout",
+    "sidebar": "Barra lateral",
+    "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "Profundidade da borda da barra lateral",
+    "selectedItemTransparency": "Transparência do item selecionado",
     "spotlightPlacement": "Posição do Spotlight",
     "spotlightPlacementDesc": "Escolha onde a paleta de comandos Spotlight abre",
     "spotlightPlacementOptions": {

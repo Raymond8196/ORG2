@@ -717,6 +717,9 @@
       "addApiKey": {
         "title": "Ajouter une clé API"
       },
+      "installLatestUpdate": {
+        "title": "Installer la dernière mise à jour"
+      },
       "agents": {
         "title": "Agents"
       },
@@ -1032,6 +1035,8 @@
     "deleteFileRunning": "Suppression de {{name}}",
     "deleteFileDone": "{{name}} supprimé",
     "deleteFileFailed": "Échec de la suppression de {{name}}",
+    "deleteFileCompactRunning": "Suppression",
+    "deleteFileCompactDone": "Supprimer",
     "directoryTree": "Arborescence",
     "ls": "ls",
     "listDirRunning": "Listage du répertoire",
@@ -1097,6 +1102,14 @@
     "editFileDoneNoName": "Fichier modifié",
     "editFileCompactRunning": "Modification",
     "editFileCompactDone": "Modifier",
+    "editFiles": "Modifier des fichiers",
+    "editSummary": {
+      "edit_one": "{{count}} modification",
+      "edit_other": "{{count}} modifications",
+      "read_one": "{{count}} lecture",
+      "read_other": "{{count}} lectures",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Tentative de modification",
     "file": "fichier",
     "runShellRunning": "Exécution de la commande",
@@ -1156,7 +1169,8 @@
       "ls_one": "ls {{count}} dossier",
       "ls_other": "ls {{count}} dossiers",
       "lsp_one": "{{count}} requête LSP",
-      "lsp_other": "{{count}} requêtes LSP"
+      "lsp_other": "{{count}} requêtes LSP",
+      "separator": ", "
     },
     "categoryRead": "Lire",
     "categorySearch": "Rechercher",

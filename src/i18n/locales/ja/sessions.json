@@ -717,6 +717,9 @@
       "addApiKey": {
         "title": "API キーを追加"
       },
+      "installLatestUpdate": {
+        "title": "最新アップデートをインストール"
+      },
       "agents": {
         "title": "Agents"
       },
@@ -1032,6 +1035,8 @@
     "deleteFileRunning": "{{name}} を削除中",
     "deleteFileDone": "{{name}} を削除しました",
     "deleteFileFailed": "{{name}} の削除に失敗しました",
+    "deleteFileCompactRunning": "削除中",
+    "deleteFileCompactDone": "削除",
     "directoryTree": "ディレクトリツリー",
     "ls": "ls",
     "listDirRunning": "ディレクトリを一覧表示中",
@@ -1097,6 +1102,14 @@
     "editFileDoneNoName": "ファイルを編集しました",
     "editFileCompactRunning": "編集中",
     "editFileCompactDone": "編集",
+    "editFiles": "ファイルを編集",
+    "editSummary": {
+      "edit_one": "{{count}} 回編集",
+      "edit_other": "{{count}} 回編集",
+      "read_one": "{{count}} 回読み取り",
+      "read_other": "{{count}} 回読み取り",
+      "separator": "、"
+    },
     "editFileFailedNoName": "編集を試行",
     "file": "ファイル",
     "runShellRunning": "コマンド実行中",
@@ -1156,7 +1169,8 @@
       "ls_one": "ls {{count}} フォルダ",
       "ls_other": "ls {{count}} フォルダ",
       "lsp_one": "{{count}} 件の LSP クエリ",
-      "lsp_other": "{{count}} 件の LSP クエリ"
+      "lsp_other": "{{count}} 件の LSP クエリ",
+      "separator": "、"
     },
     "categoryRead": "読み取り",
     "categorySearch": "検索",

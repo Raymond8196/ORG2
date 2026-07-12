@@ -719,6 +719,9 @@
       "addApiKey": {
         "title": "Добавить API key"
       },
+      "installLatestUpdate": {
+        "title": "Установить последнее обновление"
+      },
       "agents": {
         "title": "Agents"
       },
@@ -1040,6 +1043,8 @@
     "deleteFileRunning": "Удаление {{name}}",
     "deleteFileDone": "{{name}} удалён",
     "deleteFileFailed": "Не удалось удалить {{name}}",
+    "deleteFileCompactRunning": "Удаление",
+    "deleteFileCompactDone": "Удалить",
     "directoryTree": "Дерево каталогов",
     "ls": "ls",
     "listDirRunning": "Просмотр каталога",
@@ -1109,6 +1114,18 @@
     "editFileDoneNoName": "Файл отредактирован",
     "editFileCompactRunning": "Редактирование",
     "editFileCompactDone": "Редактировать",
+    "editFiles": "Редактировать файлы",
+    "editSummary": {
+      "edit_one": "{{count}} изменение",
+      "edit_few": "{{count}} изменения",
+      "edit_many": "{{count}} изменений",
+      "edit_other": "{{count}} изменения",
+      "read_one": "{{count}} чтение",
+      "read_few": "{{count}} чтения",
+      "read_many": "{{count}} чтений",
+      "read_other": "{{count}} чтения",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Попытка отредактировать",
     "file": "файл",
     "runShellRunning": "Выполнение команды",
@@ -1170,15 +1187,26 @@
     },
     "exploreSummary": {
       "read_one": "{{count}} файл",
-      "read_other": "{{count}} файлов",
+      "read_few": "{{count}} файла",
+      "read_many": "{{count}} файлов",
+      "read_other": "{{count}} файла",
       "search_one": "{{count}} поиск",
-      "search_other": "{{count}} поисков",
-      "glob_one": "{{count}} glob",
-      "glob_other": "{{count}} glob",
+      "search_few": "{{count}} поиска",
+      "search_many": "{{count}} поисков",
+      "search_other": "{{count}} поиска",
+      "glob_one": "{{count}} glob-запрос",
+      "glob_few": "{{count}} glob-запроса",
+      "glob_many": "{{count}} glob-запросов",
+      "glob_other": "{{count}} glob-запроса",
       "ls_one": "ls {{count}} папка",
-      "ls_other": "ls {{count}} папок",
-      "lsp_one": "{{count}} LSP запрос",
-      "lsp_other": "{{count}} LSP запросов"
+      "ls_few": "ls {{count}} папки",
+      "ls_many": "ls {{count}} папок",
+      "ls_other": "ls {{count}} папки",
+      "lsp_one": "{{count}} LSP-запрос",
+      "lsp_few": "{{count}} LSP-запроса",
+      "lsp_many": "{{count}} LSP-запросов",
+      "lsp_other": "{{count}} LSP-запроса",
+      "separator": ", "
     },
     "categoryRead": "Чтение",
     "categorySearch": "Поиск",

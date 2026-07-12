@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   Gauge,
-  LayoutDashboard,
+  LayoutGrid,
   ListTodo,
   Search,
   UsersRound,
@@ -26,6 +26,7 @@ import type { CreatedOrgResult } from "@src/features/TeamCollaboration/component
 import { useShouldOffsetChatPanelHeader } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
+import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   collabConnectionStatesAtom,
   collabMembersAtom,
@@ -191,10 +192,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handleNewSessionTab,
       handleNewTerminalTab,
       handleOpenCliTerminal,
+      handleOpenLaunchpadTab,
       isTerminalTabActive,
       terminalTabs,
     } = useChatPanelTabsController({
       currentSessionId: currentSessionId ?? null,
+      launchpadTitle: t("navigation:launchpad.dashboard"),
       panelTitle,
       resetToSessionSurface,
       showSessionSurface,
@@ -265,6 +268,10 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       const accountsPath = `${buildIntegrationsPath({ category: "models" })}?modelsTab=my-accounts`;
       navigate(buildWizardPath(accountsPath, WIZARD_IDS.KEY_ADD));
     }, [navigate]);
+
+    const handleStartPageInstallLatestUpdate = useCallback(() => {
+      void installAvailableAppUpdate();
+    }, []);
 
     const sessionSidebarVisible = sessionSidebarWidth > 0;
     const collabOrgHeader = useCollabOrgHeaderModel({
@@ -389,6 +396,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleRegionNoticeChange={handleRegionNoticeChange}
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageExploreRepos={handleStartPageExploreRepos}
+        handleStartPageInstallLatestUpdate={handleStartPageInstallLatestUpdate}
         handleStartPageManageIssues={handleStartPageManageIssues}
         handleStartPageNewSession={handleNewSession}
         handleStartPageNewWorkItem={handleStartPageNewWorkItem}
@@ -417,7 +425,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       if (startPageOpen) {
         return {
           title: t("navigation:launchpad.dashboard"),
-          icon: <LayoutDashboard size={16} strokeWidth={1.75} />,
+          icon: <LayoutGrid size={16} strokeWidth={1.75} />,
         };
       }
       if (contentState.showManageIssuesContent) {
@@ -435,7 +443,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       if (contentState.showWorkspaceDashboardContent) {
         return {
           title: t("navigation:launchpad.dashboard"),
-          icon: <LayoutDashboard size={16} strokeWidth={1.75} />,
+          icon: <LayoutGrid size={16} strokeWidth={1.75} />,
         };
       }
       if (contentState.showCollabOrgContent) {
@@ -479,7 +487,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const tabStripPlus = (
       <ChatPanelPlusMenu
-        onOpenLaunchpad={handleStartPageSetupRepo}
+        onOpenLaunchpad={handleOpenLaunchpadTab}
         onNewSession={handleNewSessionTab}
         onNewWorkItem={handleStartPageNewWorkItem}
         onManageIssues={handleStartPageManageIssues}

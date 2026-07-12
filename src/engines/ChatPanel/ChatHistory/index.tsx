@@ -1071,7 +1071,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
       groupChatViewActive={groupChatViewActive}
       onGroupChatViewToggle={onGroupChatViewToggle}
       showPinnedTurnHeader={showPinnedTurnHeader}
-      sessionId={activeId}
       sourceGroupIndex={activePinnedSourceGroupIndex}
       sourceGroupCount={groupCounts.length}
       header={activePinnedHeader}
@@ -1134,7 +1133,15 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
         />
 
         {pinnedHeaderPortalHost
-          ? createPortal(pinnedHeaderLayer, pinnedHeaderPortalHost)
+          ? createPortal(
+              <div
+                className="chat-history-portal"
+                style={chatHistoryContainerStyle}
+              >
+                {pinnedHeaderLayer}
+              </div>,
+              pinnedHeaderPortalHost
+            )
           : pinnedHeaderLayer}
 
         <div className="flex min-h-0 flex-1 flex-col">
