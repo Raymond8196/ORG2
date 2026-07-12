@@ -6,7 +6,7 @@
  *
  * Hierarchy:
  *   <SectionHeading title="General" id="general">     page-level heading
- *     <SectionContainer title="Layout">                surface-container card + optional sub-title
+ *     <SectionContainer title="Layout">                bordered container + optional sub-title
  *       <SectionRow label="Theme">                     label + control pair
  *         <Select style={SECTION_CONTROL_STYLE} />
  *       </SectionRow>

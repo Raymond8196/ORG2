@@ -366,10 +366,7 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
                   }
                 />
               </SectionRow>
-              <SectionRow
-                showHeader={false}
-                className="border-t border-border-2"
-              >
+              <SectionRow showHeader={false}>
                 <div className="flex w-full flex-wrap items-center justify-between gap-2">
                   <Button
                     variant="tertiary"
