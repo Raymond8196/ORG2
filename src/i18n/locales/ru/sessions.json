@@ -994,9 +994,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Все состояния",
+        "assignedToMe": "Назначенные мне",
+        "createdByMe": "Созданные мной",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }

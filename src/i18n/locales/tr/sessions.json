@@ -986,9 +986,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Tüm durumlar",
+        "assignedToMe": "Bana atananlar",
+        "createdByMe": "Benim oluşturduklarım",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }

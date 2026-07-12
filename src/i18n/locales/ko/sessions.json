@@ -986,9 +986,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "모든 상태",
+        "assignedToMe": "나에게 할당됨",
+        "createdByMe": "내가 생성함",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }

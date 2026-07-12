@@ -1011,9 +1011,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "所有状态",
+        "assignedToMe": "分配给我的",
+        "createdByMe": "由我创建",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
