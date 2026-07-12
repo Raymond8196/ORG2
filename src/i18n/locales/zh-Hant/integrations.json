@@ -1340,6 +1340,8 @@
     "commitAttributionDesc": "為 ORGII 建立的 Commit 添加 ORGII Co-authored-by 署名",
     "prAttribution": "Pull Request Attribution",
     "prAttributionDesc": "為 ORGII 建立的 Pull Request 添加 ORGII 署名頁腳",
+    "autoCreatePr": "自動建立 Pull Request",
+    "autoCreatePrDesc": "當功能分支已完整推送且工作區沒有未提交的變更時，在 Workstation 原始碼管理中自動建立 Pull Request",
     "coauthor": "Co-authored-by",
     "coauthorDesc": "為 ORGII 建立的 Git Commit 添加 {{name}} <{{email}}>",
     "noTokenYet": "需要 Token？",
