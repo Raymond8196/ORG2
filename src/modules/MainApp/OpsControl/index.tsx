@@ -34,14 +34,18 @@ function buildOpsControlSidebarConfig({
   size,
   onSizeChange,
   onClose,
+  githubControlsHostRef,
 }: {
   collapsed: boolean;
   size: number;
   onSizeChange: (size: number) => void;
   onClose: () => void;
+  githubControlsHostRef: React.RefCallback<HTMLDivElement>;
 }) {
   return buildPrimarySidebarConfig({
-    content: <OpsControlSidebar />,
+    content: (
+      <OpsControlSidebar githubControlsHostRef={githubControlsHostRef} />
+    ),
     collapsed,
     size,
     onSizeChange,
@@ -59,6 +63,12 @@ const OpsControlPage: React.FC = () => {
   } = usePrimarySidebarState();
   const activeHomeTab = useAtomValue(activeOpsControlHomeTabAtom);
   const headerSlots = useAtomValue(workstationTabHeaderAtomByHost.opsControl);
+  const [githubControlsHost, setGitHubControlsHost] =
+    React.useState<HTMLDivElement | null>(null);
+  const githubControlsHostRef = React.useCallback(
+    (node: HTMLDivElement | null) => setGitHubControlsHost(node),
+    []
+  );
 
   const mainContent = (
     <div className="ops-control-page flex h-full min-h-0 w-full flex-col overflow-hidden">
@@ -66,9 +76,12 @@ const OpsControlPage: React.FC = () => {
         {activeHomeTab === OPS_CONTROL_HOME_TAB.PROJECTS ? (
           <OpsControlProjectsSurface />
         ) : activeHomeTab === OPS_CONTROL_HOME_TAB.GITHUB_ISSUES ? (
-          <GitHubWorkItemsSurface scope="issue" />
+          <GitHubWorkItemsSurface
+            scope="issue"
+            sidebarHost={githubControlsHost}
+          />
         ) : activeHomeTab === OPS_CONTROL_HOME_TAB.GITHUB_PRS ? (
-          <GitHubWorkItemsSurface scope="pr" />
+          <GitHubWorkItemsSurface scope="pr" sidebarHost={githubControlsHost} />
         ) : (
           <>
             <TaskKanban />
@@ -84,6 +97,7 @@ const OpsControlPage: React.FC = () => {
     size: primarySidebarWidth,
     onSizeChange: setPrimarySidebarWidth,
     onClose: closePrimarySidebar,
+    githubControlsHostRef,
   });
 
   return (

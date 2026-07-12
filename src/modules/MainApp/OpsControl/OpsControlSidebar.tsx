@@ -142,7 +142,13 @@ const OpsControlSidebarRows: React.FC<OpsControlSidebarRowsProps> = memo(
 
 OpsControlSidebarRows.displayName = "OpsControlSidebarRows";
 
-const OpsControlSidebar: React.FC = memo(() => {
+interface OpsControlSidebarProps {
+  githubControlsHostRef: React.RefCallback<HTMLDivElement>;
+}
+
+const OpsControlSidebar: React.FC<OpsControlSidebarProps> = ({
+  githubControlsHostRef,
+}) => {
   const { t } = useTranslation(["sessions", "common", "navigation"]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -322,6 +328,27 @@ const OpsControlSidebar: React.FC = memo(() => {
   );
 
   const emptyMessage = t("common:states.empty");
+  const githubControlsSection = useMemo(() => {
+    if (
+      activeHomeTab !== OPS_CONTROL_HOME_TAB.GITHUB_ISSUES &&
+      activeHomeTab !== OPS_CONTROL_HOME_TAB.GITHUB_PRS
+    ) {
+      return null;
+    }
+
+    return {
+      key: "github-controls",
+      title:
+        activeHomeTab === OPS_CONTROL_HOME_TAB.GITHUB_PRS
+          ? t("sessions:opsControl.sidebar.githubPrs")
+          : t("sessions:opsControl.sidebar.githubIssues"),
+      content: (
+        <div ref={githubControlsHostRef} className="h-full min-h-0 w-full" />
+      ),
+      defaultFlexGrow: 1,
+      resizable: false,
+    };
+  }, [activeHomeTab, githubControlsHostRef, t]);
   const tabs = useMemo<PrimarySidebarTab[]>(
     () => [
       {
@@ -344,22 +371,26 @@ const OpsControlSidebar: React.FC = memo(() => {
             defaultFlexGrow: 0.35,
             resizable: false,
           },
-          {
-            key: "views",
-            title: t("sessions:opsControl.sidebar.views"),
-            content: (
-              <OpsControlSidebarRows
-                nodes={viewNodes}
-                activeHomeTab={activeHomeTab}
-                activeProjectsView={activeProjectsView}
-                activeViewMode={activeViewMode}
-                onSelectNode={handleSelectNode}
-                emptyMessage={emptyMessage}
-              />
-            ),
-            defaultFlexGrow: 1,
-            resizable: false,
-          },
+          ...(activeHomeTab === OPS_CONTROL_HOME_TAB.OPS_CONTROL
+            ? [
+                {
+                  key: "views",
+                  title: t("sessions:opsControl.sidebar.views"),
+                  content: (
+                    <OpsControlSidebarRows
+                      nodes={viewNodes}
+                      activeHomeTab={activeHomeTab}
+                      activeProjectsView={activeProjectsView}
+                      activeViewMode={activeViewMode}
+                      onSelectNode={handleSelectNode}
+                      emptyMessage={emptyMessage}
+                    />
+                  ),
+                  defaultFlexGrow: 1,
+                  resizable: false,
+                },
+              ]
+            : []),
         ],
       },
     ],
@@ -384,10 +415,11 @@ const OpsControlSidebar: React.FC = memo(() => {
       onTabChange={handleTabChange}
       tabIconOnly={true}
       hideTabs={true}
+      globalSection={githubControlsSection ?? undefined}
     />
   );
-});
+};
 
 OpsControlSidebar.displayName = "OpsControlSidebar";
 
-export default OpsControlSidebar;
+export default memo(OpsControlSidebar);
