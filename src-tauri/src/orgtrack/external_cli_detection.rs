@@ -101,7 +101,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "autohand",
         "AutoHand",
-        "terminal",
+        "autohand",
         "autohand",
         &[],
         "autohand",
@@ -131,11 +131,11 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         false,
         &[".config/mimo", ".local/share/mimo"],
     ),
-    source("pi", "Pi", "terminal", "pi", &[], "pi", "pi", false, &[]),
+    source("pi", "Pi", "pi", "pi", &[], "pi", "pi", false, &[]),
     source(
         "omp",
         "OMP",
-        "terminal",
+        "omp",
         "omp",
         &[],
         "omp",
@@ -157,7 +157,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "antigravity",
         "Antigravity",
-        "terminal",
+        "antigravity",
         "agy",
         &[],
         "agy",
@@ -168,7 +168,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "aider",
         "Aider",
-        "terminal",
+        "aider",
         "aider",
         &[],
         "aider",
@@ -179,7 +179,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "goose",
         "Goose",
-        "terminal",
+        "goose",
         "goose",
         &[],
         "goose",
@@ -190,7 +190,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "amp",
         "Amp",
-        "terminal",
+        "amp",
         "amp",
         &[],
         "amp",
@@ -201,7 +201,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "kilo",
         "Kilo",
-        "terminal",
+        "kilo",
         "kilo",
         &[],
         "kilo",
@@ -223,7 +223,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "aug",
         "Auggie",
-        "terminal",
+        "aug",
         "auggie",
         &[],
         "auggie",
@@ -234,7 +234,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "cline",
         "Cline",
-        "terminal",
+        "cline",
         "cline",
         &[],
         "cline",
@@ -245,7 +245,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "codebuff",
         "Codebuff",
-        "terminal",
+        "codebuff",
         "codebuff",
         &[],
         "codebuff",
@@ -256,7 +256,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "continue",
         "Continue",
-        "terminal",
+        "continue_cli",
         "cn",
         &[],
         "cn",
@@ -278,7 +278,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "droid",
         "Droid",
-        "terminal",
+        "droid",
         "droid",
         &[],
         "droid",
@@ -300,7 +300,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "mistral_vibe",
         "Mistral Vibe",
-        "terminal",
+        "mistral_vibe",
         "vibe",
         &["mistral-vibe"],
         "vibe",
@@ -311,7 +311,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "qwen_code",
         "Qwen Code",
-        "terminal",
+        "qwen_code",
         "qwen",
         &[],
         "qwen",
@@ -322,7 +322,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "rovo",
         "Rovo",
-        "terminal",
+        "rovo",
         "rovo",
         &[],
         "rovo",
@@ -333,7 +333,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "hermes",
         "Hermes",
-        "terminal",
+        "hermes",
         "hermes",
         &[],
         "hermes --tui",
@@ -344,7 +344,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "openclaw",
         "OpenClaw",
-        "terminal",
+        "openclaw",
         "openclaw",
         &[],
         "openclaw",
@@ -377,7 +377,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "devin",
         "Devin",
-        "terminal",
+        "devin",
         "devin",
         &[],
         "devin",

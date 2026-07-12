@@ -5,12 +5,14 @@
  * external coding tool ORGII detects, driven by the one shared detect pipeline
  * (`external_cli_sources_detect`). Sources ORGII can actually read history from
  * (the importable apps: Cursor, Codex, Claude, OpenCode, Windsurf, WorkBuddy)
- * show their imported-session count + a Rescan action; the rest are shown with
- * install status and the on-disk path we'd read from.
+ * show their imported-session count; the rest show install status. Every row
+ * shows the on-disk path + file type and can be rescanned.
  *
- * Rescan clears the source's cached metadata (`external_history_rescan_source`)
- * then forces a fresh sidebar load so the source's store is re-read and the
- * cache repopulated.
+ * Rescan re-runs detection for the source (install status / path). For
+ * importable sources it also clears the cached metadata
+ * (`external_history_rescan_source`) and forces a fresh sidebar load so the
+ * store is re-read and the cache repopulated — so a newly-installed tool or a
+ * freshly-created store is picked up even when nothing was found before.
  */
 import { RefreshCw, Terminal } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
@@ -21,6 +23,7 @@ import {
   type ExternalSourceStats,
   IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
   type ImportedHistorySourceId,
+  externalCliSourceProbe,
   externalCliSourcesDetect,
   externalHistoryRescanSource,
   fetchExternalSourceStats,
@@ -146,40 +149,71 @@ const DataSourcePanel: React.FC = () => {
     };
   }, [loadStats]);
 
+  // Re-run detection for one source (install status, path, store kind).
+  const reprobe = useCallback(
+    async (sourceId: string) => {
+      try {
+        const probe = await externalCliSourceProbe(sourceId);
+        if (probe) patchRow(sourceId, { probe });
+      } catch {
+        /* keep the last-known probe */
+      }
+    },
+    [patchRow]
+  );
+
+  // Every row can be rescanned. Importable sources clear + re-import their
+  // history; all sources re-probe detection so a newly-installed tool or a
+  // freshly-created store is picked up ("rescan even when not found").
   const handleRescan = useCallback(
-    async (sourceId: ImportedHistorySourceId) => {
+    async (row: SourceRow) => {
+      const sourceId = row.probe.sourceId;
       patchRow(sourceId, { rescanning: true, error: false });
       try {
-        await externalHistoryRescanSource(sourceId);
-        await loadSidebarSessions({ forceRefresh: true });
-        await loadStats(sourceId);
+        if (row.importable && isImportableId(sourceId)) {
+          await externalHistoryRescanSource(sourceId);
+          await loadSidebarSessions({ forceRefresh: true });
+          await loadStats(sourceId);
+        }
+        await reprobe(sourceId);
       } catch {
         patchRow(sourceId, { error: true });
       } finally {
         patchRow(sourceId, { rescanning: false });
       }
     },
-    [loadStats, patchRow]
+    [loadStats, patchRow, reprobe]
   );
 
   const handleRescanAll = useCallback(async () => {
-    const importables = (rows ?? [])
-      .filter((r) => r.importable && isImportableId(r.probe.sourceId))
-      .map((r) => r.probe.sourceId as ImportedHistorySourceId);
-    if (importables.length === 0) return;
+    const current = rows ?? [];
+    if (current.length === 0) return;
     setRescanningAll(true);
     setRows(
       (prev) =>
-        prev?.map((r) =>
-          r.importable ? { ...r, rescanning: true, error: false } : r
-        ) ?? prev
+        prev?.map((r) => ({ ...r, rescanning: true, error: false })) ?? prev
     );
+    const importables = current
+      .filter((r) => r.importable && isImportableId(r.probe.sourceId))
+      .map((r) => r.probe.sourceId as ImportedHistorySourceId);
     try {
       await Promise.all(importables.map((s) => externalHistoryRescanSource(s)));
-      await loadSidebarSessions({ forceRefresh: true });
+      if (importables.length > 0) {
+        await loadSidebarSessions({ forceRefresh: true });
+      }
+      // Re-detect the whole inventory in one shot, then refresh importable stats.
+      const probes = await externalCliSourcesDetect();
+      const byId = new Map(probes.map((p) => [p.sourceId, p]));
+      setRows(
+        (prev) =>
+          prev?.map((r) => {
+            const probe = byId.get(r.probe.sourceId);
+            return probe ? { ...r, probe } : r;
+          }) ?? prev
+      );
       await Promise.all(importables.map((s) => loadStats(s)));
     } catch {
-      // Per-source errors surface via loadStats; ignore the aggregate here.
+      // Per-source errors surface via loadStats/reprobe; ignore the aggregate.
     } finally {
       setRows(
         (prev) => prev?.map((r) => ({ ...r, rescanning: false })) ?? prev
@@ -200,18 +234,21 @@ const DataSourcePanel: React.FC = () => {
     [t]
   );
 
-  const importableBadge = (
+  const rowBadge = (
     row: SourceRow
   ): { status: StatusType; labelKey: string } => {
-    if (row.statsLoading) return { status: "loading", labelKey: "loading" };
-    if (row.error) return { status: "error", labelKey: "error" };
-    if (row.stats && row.stats.sessionCount > 0) {
-      return { status: "success", labelKey: "ready" };
+    if (row.importable) {
+      if (row.statsLoading) return { status: "loading", labelKey: "loading" };
+      if (row.error) return { status: "error", labelKey: "error" };
+      if (row.stats && row.stats.sessionCount > 0) {
+        return { status: "success", labelKey: "ready" };
+      }
+      return { status: "empty", labelKey: "empty" };
     }
-    return { status: "empty", labelKey: "empty" };
+    return row.probe.installed
+      ? { status: "installed", labelKey: "installed" }
+      : { status: "empty", labelKey: "notInstalled" };
   };
-
-  const importableCount = (rows ?? []).filter((r) => r.importable).length;
 
   return (
     <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
@@ -221,7 +258,7 @@ const DataSourcePanel: React.FC = () => {
             <div className="text-sm font-medium text-text-1">{t("title")}</div>
             <div className="mt-0.5 text-xs text-text-3">{t("description")}</div>
           </div>
-          {importableCount > 0 && (
+          {(rows ?? []).length > 0 && (
             <Button
               variant="secondary"
               size="small"
@@ -236,7 +273,7 @@ const DataSourcePanel: React.FC = () => {
 
         <SectionContainer>
           {(rows ?? []).map((row) => {
-            const badge = row.importable ? importableBadge(row) : null;
+            const badge = rowBadge(row);
             return (
               <SectionRow
                 key={row.probe.sourceId}
@@ -250,48 +287,27 @@ const DataSourcePanel: React.FC = () => {
                 truncateLabel
               >
                 <div className="flex items-center gap-3">
-                  {row.importable ? (
-                    <>
-                      {!row.statsLoading && row.stats && (
-                        <span className="whitespace-nowrap text-xs text-text-3">
-                          {t("sessions", { count: row.stats.sessionCount })}
-                        </span>
-                      )}
-                      {badge && (
-                        <StatusBadge
-                          status={badge.status}
-                          label={t(`status.${badge.labelKey}`)}
-                          showPulse={false}
-                          size="sm"
-                        />
-                      )}
-                      <Button
-                        variant="tertiary"
-                        appearance="ghost"
-                        size="small"
-                        loading={row.rescanning}
-                        icon={<RefreshCw size={14} />}
-                        onClick={() =>
-                          void handleRescan(
-                            row.probe.sourceId as ImportedHistorySourceId
-                          )
-                        }
-                      >
-                        {row.rescanning ? t("rescanning") : t("rescan")}
-                      </Button>
-                    </>
-                  ) : (
-                    <StatusBadge
-                      status={row.probe.installed ? "installed" : "empty"}
-                      label={t(
-                        row.probe.installed
-                          ? "status.installed"
-                          : "status.notInstalled"
-                      )}
-                      showPulse={false}
-                      size="sm"
-                    />
+                  {row.importable && !row.statsLoading && row.stats && (
+                    <span className="whitespace-nowrap text-xs text-text-3">
+                      {t("sessions", { count: row.stats.sessionCount })}
+                    </span>
                   )}
+                  <StatusBadge
+                    status={badge.status}
+                    label={t(`status.${badge.labelKey}`)}
+                    showPulse={false}
+                    size="sm"
+                  />
+                  <Button
+                    variant="tertiary"
+                    appearance="ghost"
+                    size="small"
+                    loading={row.rescanning}
+                    icon={<RefreshCw size={14} />}
+                    onClick={() => void handleRescan(row)}
+                  >
+                    {row.rescanning ? t("rescanning") : t("rescan")}
+                  </Button>
                 </div>
               </SectionRow>
             );
