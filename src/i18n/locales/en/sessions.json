@@ -95,6 +95,17 @@
       "rescan": "Rescan",
       "rescanning": "Rescanning…",
       "openFolder": "Open folder",
+      "enable": "Enable",
+      "disable": "Disable",
+      "lastScan": "Last scan {{time}}",
+      "neverScanned": "Never scanned",
+      "frequencyTitle": "Auto-scan frequency",
+      "freq": {
+        "manual": "Manual",
+        "5m": "Every 5 min",
+        "1h": "Hourly",
+        "1d": "Daily"
+      },
       "tabs": {
         "all": "All",
         "apps": "Apps",
@@ -110,7 +121,8 @@
         "loading": "Checking…",
         "error": "Error",
         "installed": "Installed",
-        "notInstalled": "Not detected"
+        "notInstalled": "Not detected",
+        "disabled": "Disabled"
       }
     },
     "list": {

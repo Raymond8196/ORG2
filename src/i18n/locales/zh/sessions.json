@@ -94,6 +94,17 @@
       "rescanAll": "全部重新扫描",
       "rescan": "重新扫描",
       "rescanning": "正在重新扫描…",
+      "enable": "启用",
+      "disable": "禁用",
+      "lastScan": "上次扫描 {{time}}",
+      "neverScanned": "从未扫描",
+      "frequencyTitle": "自动扫描频率",
+      "freq": {
+        "manual": "手动",
+        "5m": "每 5 分钟",
+        "1h": "每小时",
+        "1d": "每天"
+      },
       "openFolder": "打开文件夹",
       "tabs": {
         "all": "全部",
@@ -109,7 +120,8 @@
         "loading": "检查中…",
         "error": "错误",
         "installed": "已安装",
-        "notInstalled": "未检测到"
+        "notInstalled": "未检测到",
+        "disabled": "已禁用"
       }
     },
     "list": {

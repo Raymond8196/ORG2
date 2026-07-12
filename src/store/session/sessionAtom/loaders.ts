@@ -35,6 +35,10 @@ import {
 import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility";
 
 import {
+  dataSourceConfigAtom,
+  isSourceDisabled,
+} from "../dataSourceConfigAtom";
+import {
   sessionErrorAtom,
   sessionFlatListLastLoadedBySignatureAtom,
   sessionLastLoadedAtom,
@@ -377,12 +381,32 @@ export const loadSidebarSessions = async (options?: {
   store.set(sessionErrorAtom, null);
   store.set(sessionPaginationAtom, resetPaginationState());
 
+  // Sources the user has disabled in the Data Sources panel must not load.
+  const dataSourceConfig = store.get(dataSourceConfigAtom);
+  const isCategoryDisabled = (category: string): boolean => {
+    if (!isImportedHistoryListCategory(category)) return false;
+    const source = getImportedHistorySourceByListCategory(category);
+    return source ? isSourceDisabled(dataSourceConfig, source.sourceId) : false;
+  };
+
   for (const category of SESSION_LIST_CATEGORIES) {
     setPaginationFor(category, { loading: true });
   }
 
   await Promise.allSettled(
     SESSION_LIST_CATEGORIES.map(async (category) => {
+      // Disabled source: clear any previously-loaded page and skip.
+      if (isCategoryDisabled(category)) {
+        store.set(sessionsAtom, (prev) =>
+          replaceFirstPageForCategory(category, prev, [])
+        );
+        setPaginationFor(category, {
+          loaded: 0,
+          hasMore: false,
+          loading: false,
+        });
+        return;
+      }
       try {
         const { sessions, hasMore, dateBuckets } = await loadCategoryPage(
           category,

@@ -94,6 +94,17 @@
       "rescanAll": "Quét lại tất cả",
       "rescan": "Quét lại",
       "rescanning": "Đang quét lại…",
+      "enable": "Bật",
+      "disable": "Tắt",
+      "lastScan": "Quét lần cuối {{time}}",
+      "neverScanned": "Chưa quét",
+      "frequencyTitle": "Tần suất tự quét",
+      "freq": {
+        "manual": "Thủ công",
+        "5m": "Mỗi 5 phút",
+        "1h": "Hàng giờ",
+        "1d": "Hàng ngày"
+      },
       "openFolder": "Mở thư mục",
       "tabs": {
         "all": "Tất cả",
@@ -109,7 +120,8 @@
         "loading": "Đang kiểm tra…",
         "error": "Lỗi",
         "installed": "Đã cài đặt",
-        "notInstalled": "Không phát hiện"
+        "notInstalled": "Không phát hiện",
+        "disabled": "Đã tắt"
       }
     },
     "list": {

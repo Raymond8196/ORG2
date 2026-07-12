@@ -94,6 +94,17 @@
       "rescanAll": "すべて再スキャン",
       "rescan": "再スキャン",
       "rescanning": "再スキャン中…",
+      "enable": "有効化",
+      "disable": "無効化",
+      "lastScan": "最終スキャン {{time}}",
+      "neverScanned": "未スキャン",
+      "frequencyTitle": "自動スキャン頻度",
+      "freq": {
+        "manual": "手動",
+        "5m": "5分ごと",
+        "1h": "1時間ごと",
+        "1d": "毎日"
+      },
       "openFolder": "フォルダを開く",
       "tabs": {
         "all": "すべて",
@@ -109,7 +120,8 @@
         "loading": "確認中…",
         "error": "エラー",
         "installed": "インストール済み",
-        "notInstalled": "未検出"
+        "notInstalled": "未検出",
+        "disabled": "無効"
       }
     },
     "list": {

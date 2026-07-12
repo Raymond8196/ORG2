@@ -94,6 +94,17 @@
       "rescanAll": "Tümünü yeniden tara",
       "rescan": "Yeniden tara",
       "rescanning": "Yeniden taranıyor…",
+      "enable": "Etkinleştir",
+      "disable": "Devre dışı bırak",
+      "lastScan": "Son tarama {{time}}",
+      "neverScanned": "Hiç taranmadı",
+      "frequencyTitle": "Otomatik tarama sıklığı",
+      "freq": {
+        "manual": "Manuel",
+        "5m": "5 dakikada bir",
+        "1h": "Saatlik",
+        "1d": "Günlük"
+      },
       "openFolder": "Klasörü aç",
       "tabs": {
         "all": "Tümü",
@@ -110,7 +121,8 @@
         "loading": "Kontrol ediliyor…",
         "error": "Hata",
         "installed": "Kurulu",
-        "notInstalled": "Algılanmadı"
+        "notInstalled": "Algılanmadı",
+        "disabled": "Devre dışı"
       }
     },
     "list": {
