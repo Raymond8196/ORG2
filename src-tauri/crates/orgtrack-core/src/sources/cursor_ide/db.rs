@@ -128,6 +128,15 @@ pub struct CursorSession {
     pub lines_removed: i64,
     pub files_changed: i64,
     pub tokens_used: i64,
+    /// List-price estimate in USD. Cursor records only a single `tokens_used`
+    /// total (no input/output split), so it is priced at a blended rate at the
+    /// command boundary (this crate has no pricing dependency); `0.0` until then.
+    #[serde(rename = "estimatedCost", default)]
+    pub estimated_cost: f64,
+    /// Metered spend recorded by the source. Always `0.0` for imported Cursor
+    /// sessions — they record no dollar figures.
+    #[serde(rename = "recordedCost", default)]
+    pub recorded_cost: f64,
 }
 
 pub fn get_cursor_sessions(
@@ -419,6 +428,8 @@ fn cursor_session_from_cached(
         lines_removed: row.impact.lines_removed,
         files_changed: row.impact.files_changed,
         tokens_used: row.input_tokens + row.output_tokens,
+        estimated_cost: 0.0,
+        recorded_cost: 0.0,
     })
 }
 

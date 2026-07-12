@@ -17,10 +17,10 @@ import { benchmarkAgentBatchStatusAtom } from "@src/store/benchmark";
 import {
   activateChatPanelTabAtom,
   activeChatPanelTabAtom,
-  activeOpsControlHomeTabAtom,
-  addChatPanelLaunchpadTabAtom,
+  activeWorkManagementSectionAtom,
   closeAndDestroyChatPanelTabAtom,
-  openOpsControlChatPanelTabAtom,
+  openKanbanChatPanelTabAtom,
+  openOrFocusChatPanelStartPageTabAtom,
   openOrFocusSessionInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -51,12 +51,10 @@ import {
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { spotlightOpenAtom } from "@src/store/ui/uiAtom";
 import {
-  OPS_CONTROL_HOME_TAB,
-  OPS_CONTROL_PROJECTS_VIEW,
-  type OpsControlHomeTab,
-  opsControlFocusedTabAtom,
-  opsControlPeekHostAtom,
-  opsControlProjectsViewAtom,
+  WORK_MANAGEMENT_PROJECTS_VIEW,
+  WORK_MANAGEMENT_SECTION,
+  type WorkManagementSection,
+  workManagementProjectsViewAtom,
 } from "@src/store/workstation";
 import {
   getChatPanelTabIdFromTuiSessionId,
@@ -70,11 +68,12 @@ import NavigationSidebar from "../../variants/NavigationSidebar";
 import SidebarOrgSelector from "../SidebarOrgSelector";
 import {
   COLLAB_ADD_ORG_MENU_ITEM_ID,
-  OPS_CONTROL_GITHUB_ISSUES_MENU_ITEM_ID,
-  OPS_CONTROL_GITHUB_PRS_MENU_ITEM_ID,
-  OPS_CONTROL_KANBAN_MENU_ITEM_ID,
-  OPS_CONTROL_MENU_ITEM_ID,
-  OPS_CONTROL_PROJECTS_MENU_ITEM_ID,
+  KANBAN_MENU_ITEM_ID,
+  WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
+  WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
+  WORK_ITEMS_MENU_ITEM_ID,
+  WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+  isWorkManagementMenuItemId,
 } from "../sidebarConnectorUtils";
 import {
   sidebarGroupByAtom,
@@ -97,10 +96,6 @@ import {
   useRenderSessionMenuItemWrapper,
 } from "./menuItemWrappers";
 import { resolveSelectedMenuItemIds } from "./menuSelection";
-import {
-  buildOpsControlSidebarMenuItems,
-  resolveOpsControlSidebarMenuItemId,
-} from "./opsControlSidebarMenuItems";
 import { useSessionEntryActions } from "./sessionEntryActions";
 import { useDecorateSessionRowActions } from "./sessionRowActions";
 import { useWorkstationSidebarMemory } from "./sidebarMemory";
@@ -115,6 +110,10 @@ import { useSidebarSessionRefreshEffects } from "./sidebarSessionRefresh";
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
 import type { WorkstationSidebarKey } from "./types";
 import { useProjectsMenuItemClick } from "./useProjectsMenuItemClick";
+import {
+  buildWorkItemsSidebarMenuItems,
+  resolveWorkItemsSidebarMenuItemId,
+} from "./workItemsSidebarMenuItems";
 
 const logger = createLogger("WorkstationSidebar");
 
@@ -150,19 +149,19 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
   const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
   const setStationMode = useSetAtom(stationModeAtom);
-  const setOpsControlPeekHost = useSetAtom(opsControlPeekHostAtom);
-  const setOpsControlFocusedTab = useSetAtom(opsControlFocusedTabAtom);
-  const activeOpsControlHomeTab = useAtomValue(activeOpsControlHomeTabAtom);
-  const [opsControlProjectsView, setOpsControlProjectsView] = useAtom(
-    opsControlProjectsViewAtom
+  const activeWorkManagementSection = useAtomValue(
+    activeWorkManagementSectionAtom
   );
-  const openOpsControlTab = useSetAtom(openOpsControlChatPanelTabAtom);
+  const [workManagementProjectsView, setWorkManagementProjectsView] = useAtom(
+    workManagementProjectsViewAtom
+  );
+  const openKanbanTab = useSetAtom(openKanbanChatPanelTabAtom);
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
   const openOrFocusSessionInChatPanelTab = useSetAtom(
     openOrFocusSessionInChatPanelTabAtom
   );
   const activateChatPanelTab = useSetAtom(activateChatPanelTabAtom);
-  const addLaunchpadTab = useSetAtom(addChatPanelLaunchpadTabAtom);
+  const openStartPageTab = useSetAtom(openOrFocusChatPanelStartPageTabAtom);
   const closeAndDestroyChatPanelTab = useSetAtom(
     closeAndDestroyChatPanelTabAtom
   );
@@ -358,12 +357,12 @@ export const WorkstationSidebarConnector: React.FC = () => {
       ? benchmarkBatchStatus.masterSessionId
       : activeSessionId;
 
-  const opsControlSidebarMenuItems = useMemo(
+  const workItemsSidebarMenuItems = useMemo(
     () =>
-      buildOpsControlSidebarMenuItems({
+      buildWorkItemsSidebarMenuItems({
         projects: t("labels.projects"),
-        githubIssues: tSessions("opsControl.sidebar.githubIssues"),
-        githubPrs: tSessions("opsControl.sidebar.githubPrs"),
+        githubIssues: tSessions("kanban.sidebar.githubIssues"),
+        githubPrs: tSessions("kanban.sidebar.githubPrs"),
       }),
     [t, tSessions]
   );
@@ -375,7 +374,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     importGithubIssuesLabel,
     kanbanLabel: tSessions("simulator.tabs.kanban"),
     newSessionLabel,
-    opsControlItems: opsControlSidebarMenuItems,
+    workItemDestinations: workItemsSidebarMenuItems,
     t,
   });
   const sessionSidebarMenuItems = useSessionSidebarMenuItems({
@@ -383,18 +382,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
     sessionCreatorDrafts,
     t,
   });
-  const resetOpsControlStateForProjectsContent = useCallback(() => {
+  const resetWorkManagementStateForProjectsContent = useCallback(() => {
     const stationMode: StationMode = "my-station";
     setStationMode(stationMode);
     setStationChatVisible(stationMode, true);
-    setOpsControlPeekHost(null);
-    setOpsControlFocusedTab(null);
-  }, [
-    setOpsControlFocusedTab,
-    setOpsControlPeekHost,
-    setStationChatVisible,
-    setStationMode,
-  ]);
+  }, [setStationChatVisible, setStationMode]);
 
   const projectsSidebarMenuItems = projectsWorkItemMenuItems;
   const { selectedMenuItemId: baseSelectedMenuItemId } =
@@ -407,8 +399,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
       chatPanelCreateTarget,
       chatPanelSelectedProject,
       chatPanelSelectedWorkItem,
-      opsControlRoutePath: ROUTES.workStation.opsControl.path,
-      pathname: location.pathname,
       projectsSelectedMenuItemId,
       sessionCreatorDrafts,
     });
@@ -416,10 +406,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
     workItemsContentVisible && projectsSelectedMenuItemId
       ? projectsSelectedMenuItemId
       : activeSidebarKey === "workstation" &&
-          activeChatPanelTab?.type === "ops-control"
-        ? resolveOpsControlSidebarMenuItemId({
-            homeTab: activeOpsControlHomeTab,
-            projectsView: opsControlProjectsView,
+          activeChatPanelTab?.type === "work-management"
+        ? resolveWorkItemsSidebarMenuItemId({
+            homeTab: activeWorkManagementSection,
+            projectsView: workManagementProjectsView,
           })
         : baseSelectedMenuItemId;
   const resolvedCollapsedSectionIds =
@@ -433,30 +423,21 @@ export const WorkstationSidebarConnector: React.FC = () => {
 
   const activateMyStationRouteForProjectsContent = useCallback(() => {
     const targetRoute = ROUTES.workStation.code.path;
-    resetOpsControlStateForProjectsContent();
+    resetWorkManagementStateForProjectsContent();
     if (location.pathname !== targetRoute) navigate(targetRoute);
-  }, [location.pathname, navigate, resetOpsControlStateForProjectsContent]);
+  }, [location.pathname, navigate, resetWorkManagementStateForProjectsContent]);
 
   const activateMyStationRouteForProjectTabContent = useCallback(() => {
     const stationMode: StationMode = "my-station";
     const targetRoute = ROUTES.workStation.code.path;
     setStationMode(stationMode);
     setStationChatVisible(stationMode, true);
-    setOpsControlPeekHost(null);
-    setOpsControlFocusedTab(null);
     if (location.pathname !== targetRoute) navigate(targetRoute);
-  }, [
-    location.pathname,
-    navigate,
-    setOpsControlFocusedTab,
-    setOpsControlPeekHost,
-    setStationChatVisible,
-    setStationMode,
-  ]);
+  }, [location.pathname, navigate, setStationChatVisible, setStationMode]);
 
   const openNewChatTab = useCallback(() => {
-    addLaunchpadTab(t("routes.launchpad"));
-  }, [addLaunchpadTab, t]);
+    openStartPageTab({ title: t("routes.launchpad") });
+  }, [openStartPageTab, t]);
 
   const { handleGoToNewSession } = useSessionEntryActions({
     goToNewSession,
@@ -570,7 +551,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     projectsLocalOrgMap,
     projectsProjectMap,
     projectsWorkItemMap,
-    resetOpsControlStateForProjectsContent,
+    resetWorkManagementStateForProjectsContent,
     setProjectsGroupVisibleCounts,
     setProjectsSelectedMenuItemId,
     toChatPanelProject,
@@ -580,10 +561,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setSpotlightOpen(true);
   }, [setSpotlightOpen]);
   const handleAddOrgFromSelector = useCallback(() => {
-    resetOpsControlStateForProjectsContent();
+    resetWorkManagementStateForProjectsContent();
     setProjectsSelectedMenuItemId(COLLAB_ADD_ORG_MENU_ITEM_ID);
     navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_COLLAB_ORG });
-  }, [navigateChatPanel, resetOpsControlStateForProjectsContent]);
+  }, [navigateChatPanel, resetWorkManagementStateForProjectsContent]);
   const renderSessionMenuItemWrapper =
     useRenderSessionMenuItemWrapper(sessionMap);
   const renderProjectsMenuItemWrapper = useRenderProjectsMenuItemWrapper({
@@ -591,35 +572,32 @@ export const WorkstationSidebarConnector: React.FC = () => {
     projectsWorkItemMap,
   });
 
-  const handleOpsControlMenuItemClick = useCallback(
+  const handleWorkManagementMenuItemClick = useCallback(
     (_key: string, item: NavigationMenuItem) => {
-      let section: OpsControlHomeTab = OPS_CONTROL_HOME_TAB.OPS_CONTROL;
+      let section: WorkManagementSection = WORK_MANAGEMENT_SECTION.KANBAN;
       let title = tSessions("simulator.tabs.kanban");
-      if (item.id === OPS_CONTROL_PROJECTS_MENU_ITEM_ID) {
-        setOpsControlProjectsView(OPS_CONTROL_PROJECTS_VIEW.PROJECTS);
-        section = OPS_CONTROL_HOME_TAB.PROJECTS;
+      if (item.id === WORK_ITEMS_PROJECTS_MENU_ITEM_ID) {
+        setWorkManagementProjectsView(WORK_MANAGEMENT_PROJECTS_VIEW.PROJECTS);
+        section = WORK_MANAGEMENT_SECTION.PROJECTS;
         title = t("labels.projects");
-      } else if (item.id === OPS_CONTROL_GITHUB_ISSUES_MENU_ITEM_ID) {
-        section = OPS_CONTROL_HOME_TAB.GITHUB_ISSUES;
-        title = tSessions("opsControl.sidebar.githubIssues");
-      } else if (item.id === OPS_CONTROL_GITHUB_PRS_MENU_ITEM_ID) {
-        section = OPS_CONTROL_HOME_TAB.GITHUB_PRS;
-        title = tSessions("opsControl.sidebar.githubPrs");
-      } else if (item.id !== OPS_CONTROL_KANBAN_MENU_ITEM_ID) {
+      } else if (item.id === WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID) {
+        section = WORK_MANAGEMENT_SECTION.GITHUB_ISSUES;
+        title = tSessions("kanban.sidebar.githubIssues");
+      } else if (item.id === WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID) {
+        section = WORK_MANAGEMENT_SECTION.GITHUB_PRS;
+        title = tSessions("kanban.sidebar.githubPrs");
+      } else if (item.id !== KANBAN_MENU_ITEM_ID) {
         return;
       }
-      openOpsControlTab({ section, title });
+      openKanbanTab({ section, title });
     },
-    [openOpsControlTab, setOpsControlProjectsView, t, tSessions]
+    [openKanbanTab, setWorkManagementProjectsView, t, tSessions]
   );
 
   const handleSessionMenuItemClick = useCallback(
     (key: string, item: NavigationMenuItem) => {
-      if (
-        item.id === OPS_CONTROL_MENU_ITEM_ID ||
-        item.id.startsWith(`${OPS_CONTROL_MENU_ITEM_ID}:`)
-      ) {
-        handleOpsControlMenuItemClick(key, item);
+      if (isWorkManagementMenuItemId(item.id)) {
+        handleWorkManagementMenuItemClick(key, item);
         return;
       }
       if (isChatTerminalSidebarItem(item.id)) {
@@ -635,7 +613,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     [
       activateChatPanelTab,
       handleMenuItemClick,
-      handleOpsControlMenuItemClick,
+      handleWorkManagementMenuItemClick,
       handleProjectsMenuItemClick,
       workItemsContentVisible,
     ]
@@ -646,7 +624,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   }, [handleSidebarLayerChange]);
 
   const handleSubmenuOpenChange = useCallback((key: string, open: boolean) => {
-    if (key === OPS_CONTROL_MENU_ITEM_ID) setWorkItemsOpen(open);
+    if (key === WORK_ITEMS_MENU_ITEM_ID) setWorkItemsOpen(open);
   }, []);
 
   const sidebarLayerHeader =

@@ -231,7 +231,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
       },
       {
         key: "started",
-        label: t("sessions:opsControl.list.started"),
+        label: t("sessions:kanban.list.started"),
         width: "115px",
         renderCell: (item) => (
           <div className="truncate text-text-3">
@@ -241,7 +241,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
       },
       {
         key: "lastUpdated",
-        label: t("sessions:opsControl.list.lastUpdated"),
+        label: t("sessions:kanban.list.lastUpdated"),
         width: "115px",
         renderCell: (item) => (
           <div className="truncate text-text-3">
@@ -280,9 +280,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
         shouldShowSearch
           ? {
               searchValue: searchQuery,
-              searchPlaceholder: t(
-                "sessions:opsControl.list.searchPlaceholder"
-              ),
+              searchPlaceholder: t("sessions:kanban.list.searchPlaceholder"),
               onSearchChange: setSearchQuery,
               onSearchClear: () => setSearchQuery(""),
               searchCountText:

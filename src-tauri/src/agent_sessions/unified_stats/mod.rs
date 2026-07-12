@@ -24,6 +24,7 @@ pub mod display;
 pub mod history;
 pub mod orgtrack_adapter;
 pub mod patch;
+pub mod pricing_catalog;
 pub mod stats;
 pub mod status;
 pub mod types;

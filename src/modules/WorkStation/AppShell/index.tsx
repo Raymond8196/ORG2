@@ -85,8 +85,6 @@ const AppShell = React.memo(
 
     const {
       isAgentStation,
-      isOpsControlStation,
-      opsControlPeekHost,
       hasVisitedAgentStation,
       illuminateAgentStationChrome,
     } = useAppShellStationMode({ followAgentHighlightEnabled });
@@ -114,8 +112,6 @@ const AppShell = React.memo(
       projectContentVisible,
     } = useAppShellDerivedState({
       dockFilter,
-      isOpsControlStation,
-      opsControlPeekHost,
     });
 
     const hasVisitedCode = visitedModes.has("code");

@@ -49,10 +49,10 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
         size="small"
         variant="tertiary"
         onClick={onReplay}
-        title={t("opsControl.replay.replaySession")}
+        title={t("kanban.replay.replaySession")}
         icon={<Play size={14} fill="currentColor" strokeWidth={0} />}
       >
-        {t("opsControl.replay.replaySession")}
+        {t("kanban.replay.replaySession")}
       </Button>
     )}
     {canMerge && (
@@ -75,8 +75,8 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
             iconOnly
             onClick={onToggleStrategy}
             disabled={mergeLoading || discardLoading}
-            title={t("opsControl.merge.strategyLabel")}
-            aria-label={t("opsControl.merge.strategyLabel")}
+            title={t("kanban.merge.strategyLabel")}
+            aria-label={t("kanban.merge.strategyLabel")}
             icon={<ChevronDown size={14} strokeWidth={1.75} />}
           />
           {strategyOpen && (

@@ -45,8 +45,6 @@
     "projects": "Projects",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
-    "opsCenter": "Operasyon Merkezi",
     "colleagues": "Ekip arkadaşları",
     "terminals": "Terminaller"
   },
@@ -84,8 +82,7 @@
     "signingIn": "Giriş yapılıyor...",
     "launchpad": "Başlangıç Merkezi",
     "ideaArea": "Fikir Alanı",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Izgarayı Özelleştir",

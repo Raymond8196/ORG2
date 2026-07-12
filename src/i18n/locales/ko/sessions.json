@@ -78,14 +78,14 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Session",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "현재 Kanban",
     "view": {
       "list": "List",
       "diary": "다이어리",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban"
     },
     "list": {
       "updated": "Updated",

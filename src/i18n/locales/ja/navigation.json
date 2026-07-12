@@ -45,8 +45,6 @@
     "projects": "Projects",
     "projectManager": "Project マネージャー",
     "diff": "Diff",
-    "opsControl": "Ops Control",
-    "opsCenter": "オペレーションセンター",
     "colleagues": "同僚",
     "terminals": "ターミナル"
   },
@@ -84,8 +82,7 @@
     "signingIn": "サインイン中...",
     "launchpad": "ランチパッド",
     "ideaArea": "アイデアエリア",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "グリッドのカスタマイズ",

@@ -180,7 +180,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handleNewTerminalTab,
       handleOpenCliTerminal,
       handleOpenLaunchpadTab,
-      handleOpenOpsControlTab,
+      handleOpenKanbanTab,
       isTerminalTabActive,
       terminalTabs,
     } = useChatPanelTabsController({
@@ -189,7 +189,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       kanbanTitle: t("sessions:simulator.tabs.kanban"),
       showSessionSurface,
     });
-    const isManagementTabActive = activeTab?.type === "ops-control";
+    const isManagementTabActive = activeTab?.type === "work-management";
 
     React.useLayoutEffect(() => {
       syncActiveTabState();
@@ -416,8 +416,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const tabStripPlus = (
       <ChatPanelPlusMenu
         onOpenLaunchpad={handleOpenLaunchpadTab}
-        onOpenOpsControl={handleOpenOpsControlTab}
-        onNewSession={handleNewSessionTab}
+        onOpenKanban={handleOpenKanbanTab}
         onNewWorkItem={handleStartPageNewWorkItem}
       />
     );

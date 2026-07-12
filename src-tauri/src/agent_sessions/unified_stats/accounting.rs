@@ -9,12 +9,8 @@ use database::db::get_connection;
 use core_types::key_source::KeySource;
 
 use super::aggregation::{cached_external_history_sessions_in_range, list_all_sessions};
+use super::pricing_catalog::{self, ModelPricing};
 use super::types::{SessionAggregateRecord, SessionFilter};
-
-pub const DEFAULT_INPUT_COST_PER_MTOK: f64 = 3.0;
-pub const DEFAULT_OUTPUT_COST_PER_MTOK: f64 = 15.0;
-pub const DEFAULT_CACHE_WRITE_COST_PER_MTOK: f64 = 3.75;
-pub const DEFAULT_CACHE_READ_COST_PER_MTOK: f64 = 0.30;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UsageSourceLabel {
@@ -58,7 +54,15 @@ pub struct SessionUsageSummary {
     pub cache_write_tokens: i64,
     pub total_tokens: i64,
     pub context_tokens: i64,
+    /// Headline cost figure: recorded metered spend when known, otherwise the
+    /// list-price estimate. Preserves the historical single-`cost` semantics.
     pub cost_usd: f64,
+    /// Real metered spend for this session. Non-zero only for metered routes
+    /// (pooled / hosted-key). `$0` for subscription / own-key routes.
+    pub recorded_cost_usd: f64,
+    /// List-price estimate: tokens × catalog rate. Always populated when the
+    /// session has tokens, regardless of billing route.
+    pub estimated_cost_usd: f64,
 }
 
 impl SessionUsageSummary {
@@ -119,23 +123,11 @@ pub struct SessionHeatmapFilter {
     pub timezone_offset_minutes: Option<i32>,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct ModelPricing {
-    input_per_mtok: f64,
-    output_per_mtok: f64,
-    cache_creation_per_mtok: f64,
-    cache_read_per_mtok: f64,
-}
-
-impl Default for ModelPricing {
-    fn default() -> Self {
-        Self {
-            input_per_mtok: DEFAULT_INPUT_COST_PER_MTOK,
-            output_per_mtok: DEFAULT_OUTPUT_COST_PER_MTOK,
-            cache_creation_per_mtok: DEFAULT_CACHE_WRITE_COST_PER_MTOK,
-            cache_read_per_mtok: DEFAULT_CACHE_READ_COST_PER_MTOK,
-        }
-    }
+/// Whether a route's spend is metered by us (pooled / hosted-key) — i.e. we can
+/// report a *recorded* dollar figure — versus a subscription / own-key route
+/// where only a list-price *estimate* is available.
+fn route_is_metered(key_source: KeySource) -> bool {
+    key_source == KeySource::HostedKey
 }
 
 pub fn usage_source_for(record: &SessionAggregateRecord) -> UsageSourceLabel {
@@ -163,6 +155,24 @@ pub fn session_usage_summary_with_fallback(
     session_id: &str,
     fallback_total_tokens: i64,
 ) -> Result<SessionUsageSummary, String> {
+    // Public entry point without route context: no recorded metered spend is
+    // known, so the summary carries the list-price estimate only.
+    session_usage_summary_priced(conn, session_id, fallback_total_tokens, false)
+}
+
+/// Build a usage summary, pricing tokens through the bundled catalog and
+/// deciding recorded vs estimated cost from `metered`.
+///
+/// Tokens are sourced from the native `session_token_usage` table; when a
+/// session has none there (imported / external history), its tokens are read
+/// from `imported_history_session_cache` so it is no longer priced at `$0`
+/// purely because its tokens live in a different table.
+pub fn session_usage_summary_priced(
+    conn: &Connection,
+    session_id: &str,
+    fallback_total_tokens: i64,
+    metered: bool,
+) -> Result<SessionUsageSummary, String> {
     let mut stmt = conn
         .prepare(
             "SELECT
@@ -187,9 +197,25 @@ pub fn session_usage_summary_with_fallback(
                 total_tokens: row.get(4)?,
                 context_tokens: row.get(5)?,
                 cost_usd: 0.0,
+                recorded_cost_usd: 0.0,
+                estimated_cost_usd: 0.0,
             })
         })
         .map_err(|err| format!("Row read error: {err}"))?;
+
+    let mut model = session_model(conn, session_id)?;
+
+    // Imported / external-history sessions keep their tokens in a separate cache
+    // table. If the native table had nothing, price those tokens too.
+    if summary.billable_tokens() == 0 {
+        if let Some(imported) = imported_history_tokens(conn, session_id)? {
+            summary.input_tokens = imported.input_tokens;
+            summary.output_tokens = imported.output_tokens;
+            if model.as_deref().unwrap_or("").is_empty() && !imported.model.is_empty() {
+                model = Some(imported.model);
+            }
+        }
+    }
 
     if summary.total_tokens == 0 {
         let billable_tokens = summary.billable_tokens();
@@ -200,10 +226,61 @@ pub fn session_usage_summary_with_fallback(
         };
     }
 
-    let model = session_model(conn, session_id)?;
-    let pricing = resolve_model_pricing(conn, model.as_deref())?;
-    summary.cost_usd = calculate_cost_usd(&summary, pricing);
+    let pricing = pricing_catalog::resolve_pricing(model.as_deref());
+    let estimated = calculate_cost_usd(&summary, pricing);
+    let recorded = if metered { estimated } else { 0.0 };
+    summary.estimated_cost_usd = estimated;
+    summary.recorded_cost_usd = recorded;
+    // Headline cost preserves the historical single-figure semantics:
+    // recorded metered spend when known, otherwise the list-price estimate.
+    summary.cost_usd = if recorded > 0.0 { recorded } else { estimated };
     Ok(summary)
+}
+
+/// Tokens/model pulled from `imported_history_session_cache` for one session.
+struct ImportedHistoryTokens {
+    input_tokens: i64,
+    output_tokens: i64,
+    model: String,
+}
+
+fn imported_history_tokens(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Option<ImportedHistoryTokens>, String> {
+    let table_exists = conn
+        .query_row(
+            "SELECT 1 FROM sqlite_master
+             WHERE type = 'table' AND name = 'imported_history_session_cache' LIMIT 1",
+            [],
+            |_| Ok(()),
+        )
+        .optional()
+        .map_err(|err| format!("SQL query error: {err}"))?
+        .is_some();
+    if !table_exists {
+        return Ok(None);
+    }
+
+    conn.query_row(
+        "SELECT
+            COALESCE(SUM(input_tokens), 0),
+            COALESCE(SUM(output_tokens), 0),
+            COALESCE(MAX(model), '')
+         FROM imported_history_session_cache
+         WHERE session_id = ?1",
+        [session_id],
+        |row| {
+            Ok(ImportedHistoryTokens {
+                input_tokens: row.get(0)?,
+                output_tokens: row.get(1)?,
+                model: row.get(2)?,
+            })
+        },
+    )
+    .optional()
+    .map_err(|err| format!("SQL query error: {err}"))
+    .map(|tokens| tokens.filter(|t| t.input_tokens > 0 || t.output_tokens > 0))
 }
 
 pub fn session_usage_summaries(
@@ -214,7 +291,12 @@ pub fn session_usage_summaries(
     for session in sessions {
         summaries.insert(
             session.session_id.clone(),
-            session_usage_summary_with_fallback(&conn, &session.session_id, session.total_tokens)?,
+            session_usage_summary_priced(
+                &conn,
+                &session.session_id,
+                session.total_tokens,
+                route_is_metered(session.key_source),
+            )?,
         );
     }
     Ok(summaries)
@@ -429,47 +511,6 @@ fn session_model(conn: &Connection, session_id: &str) -> Result<Option<String>, 
     .optional()
     .map(|value| value.flatten())
     .map_err(|err| format!("SQL query error: {err}"))
-}
-
-fn resolve_model_pricing(conn: &Connection, model: Option<&str>) -> Result<ModelPricing, String> {
-    let Some(model) = model else {
-        return Ok(ModelPricing::default());
-    };
-    let table_exists = conn
-        .query_row(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'model_pricing' LIMIT 1",
-            [],
-            |_| Ok(()),
-        )
-        .optional()
-        .map_err(|err| format!("SQL query error: {err}"))?
-        .is_some();
-    if !table_exists {
-        return Ok(ModelPricing::default());
-    }
-
-    let mut stmt = conn
-        .prepare(
-            "SELECT input_per_mtok, output_per_mtok,
-                    cache_creation_per_mtok, cache_read_per_mtok
-             FROM model_pricing
-             WHERE ?1 LIKE model_pattern
-             ORDER BY length(model_pattern) DESC
-             LIMIT 1",
-        )
-        .map_err(|err| format!("SQL prepare error: {err}"))?;
-
-    stmt.query_row([model], |row| {
-        Ok(ModelPricing {
-            input_per_mtok: row.get(0)?,
-            output_per_mtok: row.get(1)?,
-            cache_creation_per_mtok: row.get(2)?,
-            cache_read_per_mtok: row.get(3)?,
-        })
-    })
-    .optional()
-    .map_err(|err| format!("SQL query error: {err}"))
-    .map(|pricing| pricing.unwrap_or_default())
 }
 
 fn heatmap_date_window(

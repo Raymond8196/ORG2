@@ -7,7 +7,9 @@ import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
 
 import { ChatPanelTerminalContent } from "./ChatPanelTerminalContent";
 
-const OpsControl = React.lazy(() => import("@src/modules/MainApp/OpsControl"));
+const WorkManagement = React.lazy(
+  () => import("@src/modules/MainApp/WorkManagement")
+);
 
 type ChatPanelShellStyle = React.CSSProperties;
 
@@ -50,7 +52,7 @@ export function ChatPanelShell({
   terminalTabs,
   useExternalWidth,
 }: ChatPanelShellProps): React.ReactNode {
-  const isManagementTabActive = activeTab?.type === "ops-control";
+  const isManagementTabActive = activeTab?.type === "work-management";
   const dragHandle = showResizeHandle && (
     <VerticalResizeHandle
       key="chat-panel-resize-handle"
@@ -95,7 +97,7 @@ export function ChatPanelShell({
       {isManagementTabActive && (
         <div className="min-h-0 w-full flex-1 overflow-hidden">
           <React.Suspense fallback={null}>
-            <OpsControl />
+            <WorkManagement />
           </React.Suspense>
         </div>
       )}

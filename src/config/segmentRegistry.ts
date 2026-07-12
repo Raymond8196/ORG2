@@ -22,7 +22,6 @@ import {
   FolderOpen,
   Globe,
   Hammer,
-  History,
   Home,
   Inbox,
   Key,
@@ -180,9 +179,6 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
   earnings: { labelKey: "navigation:labels.earnings", icon: FileText },
   boost: { labelKey: "navigation:labels.boost", icon: Sparkles },
   profile: { labelKey: "navigation:routes.myProfile", icon: Sparkles },
-
-  // journey (Dev Record remains at journey/record; map archived)
-  record: { labelKey: "navigation:routes.devRecord", icon: History },
 };
 
 // ============================================================================

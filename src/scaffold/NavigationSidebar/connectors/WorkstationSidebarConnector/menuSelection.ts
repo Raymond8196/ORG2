@@ -11,12 +11,11 @@ import {
 
 import {
   COLLAB_ADD_ORG_MENU_ITEM_ID,
-  OPS_CONTROL_KANBAN_MENU_ITEM_ID,
+  KANBAN_MENU_ITEM_ID,
 } from "../sidebarConnectorUtils";
 import {
   getSelectedDraftMenuItemId,
   getSelectedMenuItemId,
-  getSelectedPinnedMenuItemId,
 } from "../workstationSidebarData";
 import type { WorkstationSidebarKey } from "./types";
 
@@ -29,8 +28,6 @@ interface ResolveSelectedMenuItemIdParams {
   chatPanelCreateTarget: ChatPanelCreateTarget;
   chatPanelSelectedProject: ChatPanelSelectedProject | null;
   chatPanelSelectedWorkItem: ChatPanelSelectedWorkItem | null;
-  opsControlRoutePath: string;
-  pathname: string;
   projectsSelectedMenuItemId: string;
   sessionCreatorDrafts: readonly SessionCreatorDraft[];
 }
@@ -49,8 +46,6 @@ export function resolveSelectedMenuItemIds({
   chatPanelCreateTarget,
   chatPanelSelectedProject,
   chatPanelSelectedWorkItem,
-  opsControlRoutePath,
-  pathname,
   projectsSelectedMenuItemId,
   sessionCreatorDrafts,
 }: ResolveSelectedMenuItemIdParams): ResolvedSelectedMenuItemIds {
@@ -59,9 +54,7 @@ export function resolveSelectedMenuItemIds({
     sessionCreatorDrafts
   );
   const selectedPinnedMenuItemId =
-    activeChatPanelTabType === "ops-control"
-      ? OPS_CONTROL_KANBAN_MENU_ITEM_ID
-      : getSelectedPinnedMenuItemId(pathname, opsControlRoutePath);
+    activeChatPanelTabType === "work-management" ? KANBAN_MENU_ITEM_ID : "";
   const isChatPanelProjectsContentSelected =
     chatPanelContentMode === CHAT_PANEL_CONTENT_MODE.NON_SESSION ||
     Boolean(chatPanelSelectedWorkItem) ||

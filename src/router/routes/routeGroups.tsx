@@ -16,7 +16,6 @@ import {
   ChangelogPage,
   ConsumerWallet,
   DelegationHistoryPage,
-  DevRecordPage,
   FlowAwarenessTestPage,
   LoginPage,
   ModeSelectionWindow,
@@ -97,22 +96,11 @@ const WORK_STATION_PATHS = [
   "workstation/project",
 ] as const;
 
-const LegacyOpsControlRoute: React.FC = () => {
-  React.useEffect(() => {
-    void import("@src/services/workStation/WorkStationViewService").then(
-      ({ WorkStationViewService }) => WorkStationViewService.openOpsControlTab()
-    );
-  }, []);
-
-  return <WorkStationRoutePlaceholder />;
-};
-
 export const workStationRouteGroup: RouteObject[] = [
   ...WORK_STATION_PATHS.map((path) => ({
     path,
     element: <WorkStationRoutePlaceholder />,
   })),
-  { path: "workstation/ops-control", element: <LegacyOpsControlRoute /> },
 ];
 
 export const projectManagerRouteGroup: RouteObject[] = [
@@ -242,7 +230,6 @@ export const mainAppRouteGroup: RouteObject = {
       element: <Navigate to={ROUTES.workStation.code.path} replace />,
     },
     { path: "changelog", element: lazy(<ChangelogPage />) },
-    { path: "journey/record", element: <DevRecordPage /> },
     { path: "ideas", element: <ComingSoonRoutePage /> },
   ],
 };

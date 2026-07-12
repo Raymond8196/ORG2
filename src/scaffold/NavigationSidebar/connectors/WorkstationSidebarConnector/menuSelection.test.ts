@@ -10,23 +10,21 @@ import { buildColleaguesSidebarMenuItems } from "./colleaguesSidebarMenuItems";
 import { resolveSelectedMenuItemIds } from "./menuSelection";
 
 describe("resolveSelectedMenuItemIds", () => {
-  it("selects Kanban from the active management tab without the legacy route", () => {
+  it("selects Kanban from the active management tab", () => {
     expect(
       resolveSelectedMenuItemIds({
         activeSessionCreatorDraftId: null,
         activeSessionId: "session-1",
         activeSidebarKey: "workstation",
-        activeChatPanelTabType: "ops-control",
+        activeChatPanelTabType: "work-management",
         chatPanelContentMode: CHAT_PANEL_CONTENT_MODE.SESSION,
         chatPanelCreateTarget: CHAT_PANEL_CREATE_TARGET.AGENT_SESSION,
         chatPanelSelectedProject: null,
         chatPanelSelectedWorkItem: null,
-        opsControlRoutePath: "/ops-control",
-        pathname: "/workstation/code",
         projectsSelectedMenuItemId: "",
         sessionCreatorDrafts: [],
       }).selectedMenuItemId
-    ).toBe("ops-control:kanban");
+    ).toBe("kanban");
   });
 
   it("selects Add Org by default on the projects sidebar for the collab org create target", () => {
@@ -40,8 +38,6 @@ describe("resolveSelectedMenuItemIds", () => {
         chatPanelCreateTarget: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
         chatPanelSelectedProject: null,
         chatPanelSelectedWorkItem: null,
-        opsControlRoutePath: "/ops-control",
-        pathname: "/workstation/code",
         projectsSelectedMenuItemId: "",
         sessionCreatorDrafts: [],
       }).selectedMenuItemId

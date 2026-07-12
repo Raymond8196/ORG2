@@ -62,8 +62,8 @@ const ListView: React.FC<ListViewProps> = ({
         <Placeholder
           variant="empty"
           placement="detail-panel"
-          title={t("sessions:opsControl.list.emptyTitle")}
-          subtitle={t("sessions:opsControl.list.emptyDescription")}
+          title={t("sessions:kanban.list.emptyTitle")}
+          subtitle={t("sessions:kanban.list.emptyDescription")}
         />
       ) : (
         <SessionTable

@@ -35,7 +35,7 @@ const KanbanHeaderTrailingControls: React.FC<
         return {
           label,
           value: filter.key,
-          triggerLabel: `${t("opsControl.timeFilter.label")}: ${label}`,
+          triggerLabel: `${t("kanban.timeFilter.label")}: ${label}`,
         };
       }),
     [t]
@@ -48,7 +48,7 @@ const KanbanHeaderTrailingControls: React.FC<
         return {
           label,
           value: ttl.key,
-          triggerLabel: `${t("opsControl.autoArchive.label")}: ${label}`,
+          triggerLabel: `${t("kanban.autoArchive.label")}: ${label}`,
         };
       }),
     [t]

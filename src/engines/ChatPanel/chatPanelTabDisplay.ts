@@ -1,12 +1,12 @@
 import { SESSION_CONFIG } from "@src/config/sessionCreatorConfig";
 import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
 import type { Session } from "@src/store/session";
-import { OPS_CONTROL_HOME_TAB } from "@src/store/workstation";
+import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 import { stripPillReferences } from "@src/util/session/stripPillReferences";
 
 export interface ChatPanelTabDisplayLabels {
   launchpad: string;
-  opsControl: {
+  workManagement: {
     kanban: string;
     projects: string;
     githubIssues: string;
@@ -15,18 +15,18 @@ export interface ChatPanelTabDisplayLabels {
   sessionFallback: string;
 }
 
-function resolveOpsControlTabTitle(
+function resolveWorkManagementTabTitle(
   tab: ChatPanelTab,
-  labels: ChatPanelTabDisplayLabels["opsControl"]
+  labels: ChatPanelTabDisplayLabels["workManagement"]
 ): string {
-  switch (tab.opsSection) {
-    case OPS_CONTROL_HOME_TAB.PROJECTS:
+  switch (tab.managementSection) {
+    case WORK_MANAGEMENT_SECTION.PROJECTS:
       return labels.projects;
-    case OPS_CONTROL_HOME_TAB.GITHUB_ISSUES:
+    case WORK_MANAGEMENT_SECTION.GITHUB_ISSUES:
       return labels.githubIssues;
-    case OPS_CONTROL_HOME_TAB.GITHUB_PRS:
+    case WORK_MANAGEMENT_SECTION.GITHUB_PRS:
       return labels.githubPrs;
-    case OPS_CONTROL_HOME_TAB.OPS_CONTROL:
+    case WORK_MANAGEMENT_SECTION.KANBAN:
     default:
       return labels.kanban;
   }
@@ -41,8 +41,8 @@ export function resolveChatPanelTabDisplayTitle(
   switch (tab.type) {
     case "start-page":
       return labels.launchpad;
-    case "ops-control":
-      return resolveOpsControlTabTitle(tab, labels.opsControl);
+    case "work-management":
+      return resolveWorkManagementTabTitle(tab, labels.workManagement);
     case "session": {
       const sessionName =
         session?.name && session.name !== SESSION_CONFIG.DEFAULT_SESSION_NAME

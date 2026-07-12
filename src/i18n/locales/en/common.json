@@ -210,7 +210,6 @@
     "openInApp": "Open in App",
     "skipThisVersion": "Skip this version",
     "later": "Later",
-    "updateAiBlame": "Update AI Blame",
     "link": "Link"
   },
   "refreshToast": {
@@ -1787,7 +1786,7 @@
     "disableDockAutoHide": "Keep the Workstation dock visible",
     "openMyStation": "Go to My Station",
     "openAgentStation": "Go to Agent Station",
-    "openOpsControl": "Go to Ops Control",
+    "openKanban": "Go to Kanban",
     "changeLanguage": "Change language",
     "switchToSystemTheme": "Follow system theme",
     "detectUpdate": "Detect update",
@@ -1903,7 +1902,14 @@
       "overview": "Overview",
       "cursor": "Cursor",
       "cli": "CLI"
-    }
+    },
+    "cost": "Cost",
+    "estimatedCost": "Est. Cost",
+    "estimated": "EST",
+    "estimatedTooltip": "Estimated cost — tokens × list price (no metered spend for this source)",
+    "totalEstimatedCost": "Est. Cost",
+    "viewCost": "Cost",
+    "viewTokens": "Tokens"
   },
   "devActivity": {
     "title": "Coding Profile",

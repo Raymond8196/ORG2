@@ -34,6 +34,9 @@ pub struct ImportedHistoryCacheInput {
     pub session_id: String,
     pub source_path: String,
     pub source_record_key: String,
+    /// Source file modified time as **nanoseconds** since the Unix epoch
+    /// (nanosecond granularity so rapid in-place edits invalidate reliably).
+    /// The `_ms` suffix is retained only to match the cache column name.
     pub source_mtime_ms: i64,
     pub source_size_bytes: i64,
     pub source_fingerprint: String,
@@ -56,6 +59,7 @@ pub struct ImportedHistoryCacheInput {
 pub struct ImportedHistoryRecordSignature {
     pub source_session_id: String,
     pub source_path: String,
+    /// Nanosecond-granularity source mtime; see [`ImportedHistoryCacheInput::source_mtime_ms`].
     pub source_mtime_ms: i64,
     pub source_size_bytes: i64,
     pub source_fingerprint: String,

@@ -203,7 +203,6 @@
     "openWorkspace": "Workspace öffnen",
     "skipThisVersion": "Diese Version überspringen",
     "later": "Später",
-    "updateAiBlame": "AI Blame aktualisieren",
     "link": "Verknüpfen"
   },
   "refreshToast": {
@@ -1686,7 +1685,7 @@
     "disableDockAutoHide": "Workstation-Dock sichtbar halten",
     "openMyStation": "Zu My Station wechseln",
     "openAgentStation": "Zu Agent Station wechseln",
-    "openOpsControl": "Zu Ops Control wechseln",
+    "openKanban": "Zu Kanban wechseln",
     "changeLanguage": "Sprache ändern",
     "switchToSystemTheme": "Systemdesign folgen",
     "detectUpdate": "Nach Updates suchen",

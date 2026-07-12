@@ -203,7 +203,6 @@
     "openWorkspace": "Otwórz Workspace",
     "skipThisVersion": "Pomiń tę wersję",
     "later": "Później",
-    "updateAiBlame": "Zaktualizuj AI Blame",
     "link": "Połącz"
   },
   "refreshToast": {
@@ -1678,7 +1677,7 @@
     "disableDockAutoHide": "Zawsze pokazuj Dock Workstation",
     "openMyStation": "Przejdź do My Station",
     "openAgentStation": "Przejdź do Agent Station",
-    "openOpsControl": "Przejdź do Ops Control",
+    "openKanban": "Przejdź do Kanban",
     "changeLanguage": "Zmień język",
     "switchToSystemTheme": "Zgodnie z motywem systemu",
     "detectUpdate": "Sprawdź aktualizacje",

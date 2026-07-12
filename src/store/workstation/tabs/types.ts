@@ -67,7 +67,7 @@ export type WorkStationTabType =
   | "canvas-preview"
   // GitHub Issues detail tab — opened from the sidebar Issues panel
   | "github-issue-detail"
-  // GitHub Pull Request detail tab — opened from Ops Control PR rows
+  // GitHub Pull Request detail tab — opened from Kanban PR rows
   | "github-pr-detail";
 
 // ============================================
@@ -109,7 +109,6 @@ export type WorkStationTabCategory =
   | "db-schema"
   | "browser"
   | "project"
-  | "ops-control"
   | "launchpad";
 
 export const TAB_RETURN_TARGET_DATA_KEY = "returnTabId";

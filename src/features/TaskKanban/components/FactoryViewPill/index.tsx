@@ -1,7 +1,7 @@
 /**
  * FactoryViewPill
  *
- * Header tabs for the Ops Control station.
+ * Header tabs for the Kanban station.
  * Toggles between Kanban board, list view, and daily Diary.
  *
  * View is stored in the URL search param `?view=kanban|list|diary`
@@ -33,8 +33,8 @@ const FactoryViewPill: React.FC = () => {
   const tabs = useMemo<TabPillItem[]>(
     () => [
       { key: "kanban", label: t("simulator.tabs.kanban") },
-      { key: "list", label: t("opsControl.view.list") },
-      { key: "diary", label: t("opsControl.view.diary") },
+      { key: "list", label: t("kanban.view.list") },
+      { key: "diary", label: t("kanban.view.diary") },
     ],
     [t]
   );

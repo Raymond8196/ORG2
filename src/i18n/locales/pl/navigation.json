@@ -45,8 +45,6 @@
     "projects": "Historie",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
-    "opsCenter": "Centrum operacyjne",
     "colleagues": "Współpracownicy",
     "terminals": "Terminale"
   },
@@ -84,8 +82,7 @@
     "signingIn": "Logowanie...",
     "launchpad": "Panel startowy",
     "ideaArea": "Strefa pomysłów",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Dostosuj siatkę",

@@ -286,7 +286,11 @@ export const NavigationMenuLeafRow = React.forwardRef<
         }`}
         onClick={(event: React.MouseEvent) => {
           if (item.disabled) return;
-          if (isSelected && onMenuItemContextMenu) {
+          if (
+            isSelected &&
+            item.openContextMenuOnSelectedClick &&
+            onMenuItemContextMenu
+          ) {
             onMenuItemContextMenu(event, item.key, item);
             return;
           }

@@ -2,7 +2,7 @@
  * GitHub Pull Request Detail Tab Factory
  *
  * Opens a github-pr-detail tab in the main pane when the user clicks a PR row
- * in Ops Control (or elsewhere). Mirrors the github-issue-detail factory; the
+ * in Kanban (or elsewhere). Mirrors the github-issue-detail factory; the
  * renderer reuses the Source Control `PrDetailPanel`, so the PR opens as a
  * first-class My Station tab rather than in the Source Control sidebar.
  */

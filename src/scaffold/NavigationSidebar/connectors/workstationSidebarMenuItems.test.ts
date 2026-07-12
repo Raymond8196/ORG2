@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  OPS_CONTROL_KANBAN_MENU_ITEM_ID,
-  OPS_CONTROL_MENU_ITEM_ID,
-  OPS_CONTROL_PROJECTS_MENU_ITEM_ID,
+  KANBAN_MENU_ITEM_ID,
+  WORK_ITEMS_MENU_ITEM_ID,
+  WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
 } from "./sidebarConnectorUtils";
 import { buildPinnedMenuItems } from "./workstationSidebarMenuItems";
 
@@ -12,11 +12,11 @@ describe("buildPinnedMenuItems", () => {
     const items = buildPinnedMenuItems({
       newSessionLabel: "New Session",
       newSessionShortcut: "⌘N",
-      opsControlLabel: "Work Items",
-      opsControlItems: [
+      workItemsLabel: "Work Items",
+      workItemDestinations: [
         {
-          id: OPS_CONTROL_PROJECTS_MENU_ITEM_ID,
-          key: OPS_CONTROL_PROJECTS_MENU_ITEM_ID,
+          id: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+          key: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
           label: "Projects",
         },
       ],
@@ -26,12 +26,13 @@ describe("buildPinnedMenuItems", () => {
 
     expect(items.map((item) => item.id)).toEqual([
       "new-session",
-      OPS_CONTROL_KANBAN_MENU_ITEM_ID,
-      OPS_CONTROL_MENU_ITEM_ID,
+      KANBAN_MENU_ITEM_ID,
+      WORK_ITEMS_MENU_ITEM_ID,
     ]);
     expect(items[2]?.children?.map((item) => item.id)).toEqual([
-      OPS_CONTROL_PROJECTS_MENU_ITEM_ID,
+      WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
     ]);
     expect(items[2]?.routePath).toBeUndefined();
+    expect(items[0]?.openContextMenuOnSelectedClick).toBeUndefined();
   });
 });

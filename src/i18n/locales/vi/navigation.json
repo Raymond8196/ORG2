@@ -45,8 +45,6 @@
     "projects": "Project",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
-    "opsCenter": "Trung tâm vận hành",
     "colleagues": "Đồng nghiệp",
     "terminals": "Terminal"
   },
@@ -84,8 +82,7 @@
     "signingIn": "Đang đăng nhập...",
     "launchpad": "Trung tâm khởi động",
     "ideaArea": "Khu vực ý tưởng",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Tùy chỉnh lưới",

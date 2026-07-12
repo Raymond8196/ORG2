@@ -26,7 +26,9 @@ use crate::sources::imported_history::{
 
 const CLAUDE_CODE_SESSION_PREFIX: &str = "claudecodeapp-";
 const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 3;
+// v4: read ai-title/custom-title records for the name, and derive diff stats
+// from tool_use_result.structuredPatch instead of the old_string/new_string heuristic.
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 4;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -59,6 +61,12 @@ struct ClaudeJsonlLine {
     r#type: String,
     #[serde(default)]
     summary: String,
+    /// `ai-title` records: the auto-generated title shown in the Claude Code app.
+    #[serde(default)]
+    ai_title: String,
+    /// `custom-title` records: a user-set title that overrides the AI title.
+    #[serde(default)]
+    custom_title: String,
     #[serde(default)]
     timestamp: Option<String>,
     #[serde(default)]
@@ -67,6 +75,10 @@ struct ClaudeJsonlLine {
     git_branch: String,
     #[serde(default)]
     message: Option<ClaudeMessage>,
+    /// Sidecar payload on tool-result lines. For edit tools it carries a
+    /// `structuredPatch` with exact `+`/`-` diff lines.
+    #[serde(default)]
+    tool_use_result: Option<Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -323,14 +335,21 @@ fn parse_claude_session_meta(
     let mut created_at_ms = 0;
     let mut updated_at_ms = 0;
     let mut external_title = claude_session_title_for_record(record)?;
+    let mut ai_title = String::new();
+    let mut custom_title = String::new();
     let mut first_prompt = String::new();
     let mut model: Option<String> = None;
     let mut repo_path: Option<String> = None;
     let mut branch: Option<String> = None;
     let mut input_tokens = 0;
     let mut output_tokens = 0;
+    // Primary impact source: exact counts from tool_use_result.structuredPatch.
     let mut impact = ImportedHistoryImpactStats::default();
     let mut touched_files = BTreeSet::new();
+    // Fallback for transcripts old enough to lack structuredPatch: the coarse
+    // old_string/new_string line count. Only used when no patch data is found.
+    let mut fallback_impact = ImportedHistoryImpactStats::default();
+    let mut fallback_touched = BTreeSet::new();
 
     for line in reader.lines() {
         let line = line.map_err(|err| format!("Failed to read Claude history line: {err}"))?;
@@ -360,11 +379,32 @@ fn parse_claude_session_meta(
         if branch.is_none() && !parsed.git_branch.trim().is_empty() {
             branch = Some(parsed.git_branch.clone());
         }
-        if external_title.is_empty() && parsed.r#type == "summary" {
-            let summary = parsed.summary.trim();
-            if !summary.is_empty() {
-                external_title = imported_history::truncate_name(summary, 200);
+        // Claude Code persists the session title inside the transcript. Titles are
+        // re-emitted as the conversation evolves, so the last write wins.
+        match parsed.r#type.as_str() {
+            "summary" if external_title.is_empty() => {
+                let summary = parsed.summary.trim();
+                if !summary.is_empty() {
+                    external_title = imported_history::truncate_name(summary, 200);
+                }
             }
+            "ai-title" => {
+                let title = parsed.ai_title.trim();
+                if !title.is_empty() {
+                    ai_title = imported_history::truncate_name(title, 200);
+                }
+            }
+            "custom-title" => {
+                let title = parsed.custom_title.trim();
+                if !title.is_empty() {
+                    custom_title = imported_history::truncate_name(title, 200);
+                }
+            }
+            _ => {}
+        }
+        // Exact diff stats come from the tool-result's structuredPatch.
+        if let Some(result) = parsed.tool_use_result.as_ref() {
+            collect_claude_impact_from_tool_result(result, &mut impact, &mut touched_files);
         }
         if let Some(message) = parsed.message {
             if first_prompt.is_empty() && parsed.r#type == "user" {
@@ -380,7 +420,11 @@ fn parse_claude_session_meta(
             }
             if parsed.r#type == "assistant" {
                 for item in claude_content_items(&message.content) {
-                    collect_claude_impact_from_item(item, &mut impact, &mut touched_files);
+                    collect_claude_impact_from_item(
+                        item,
+                        &mut fallback_impact,
+                        &mut fallback_touched,
+                    );
                 }
             }
             if let Some(usage) = message.usage {
@@ -390,6 +434,16 @@ fn parse_claude_session_meta(
                 output_tokens += usage.output_tokens;
             }
         }
+    }
+
+    // Prefer the precise structuredPatch counts; fall back to the coarse
+    // old_string/new_string heuristic only when no patch data was present.
+    if touched_files.is_empty()
+        && impact.lines_added == 0
+        && impact.lines_removed == 0
+    {
+        impact = fallback_impact;
+        touched_files = fallback_touched;
     }
 
     impact.touched_files = touched_files.into_iter().collect();
@@ -407,12 +461,19 @@ fn parse_claude_session_meta(
         source_mtime_ms: record.source_mtime_ms,
         source_size_bytes: record.source_size_bytes,
         source_fingerprint: record.source_fingerprint.clone(),
-        name: if !external_title.is_empty() {
+        // Mirror the Claude Code app's own precedence: a user-set custom title
+        // wins, then the AI-generated title, then the derived/summary title,
+        // then the first prompt, and finally the raw session id.
+        name: if !custom_title.is_empty() {
+            custom_title
+        } else if !ai_title.is_empty() {
+            ai_title
+        } else if !external_title.is_empty() {
             external_title
-        } else if first_prompt.is_empty() {
-            record.source_record_key.clone()
-        } else {
+        } else if !first_prompt.is_empty() {
             first_prompt
+        } else {
+            record.source_record_key.clone()
         },
         created_at_ms: if created_at_ms > 0 {
             created_at_ms
@@ -456,6 +517,42 @@ fn session_meta_to_cache_input(meta: ClaudeCodeHistoryMeta) -> ImportedHistoryCa
         listable: true,
         source_metadata_json: None,
         parent_session_id: None,
+    }
+}
+
+/// Accumulate exact diff stats from a tool result's `structuredPatch`.
+///
+/// Claude Code attaches a `toolUseResult` sidecar to Edit/MultiEdit/Write tool
+/// results containing a unified-diff-style `structuredPatch`. Each hunk's `lines`
+/// are prefixed with `+` (added), `-` (removed), or ` ` (context), so this yields
+/// the same counts a `git diff` would — unlike the old_string/new_string heuristic.
+fn collect_claude_impact_from_tool_result(
+    result: &Value,
+    impact: &mut ImportedHistoryImpactStats,
+    touched_files: &mut BTreeSet<String>,
+) {
+    let Some(hunks) = result.get("structuredPatch").and_then(Value::as_array) else {
+        return;
+    };
+    if let Some(file_path) = result
+        .get("filePath")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+    {
+        touched_files.insert(file_path.to_string());
+    }
+    for hunk in hunks {
+        let Some(lines) = hunk.get("lines").and_then(Value::as_array) else {
+            continue;
+        };
+        for line in lines {
+            match line.as_str().and_then(|text| text.as_bytes().first()) {
+                Some(b'+') => impact.lines_added += 1,
+                Some(b'-') => impact.lines_removed += 1,
+                _ => {}
+            }
+        }
     }
 }
 
