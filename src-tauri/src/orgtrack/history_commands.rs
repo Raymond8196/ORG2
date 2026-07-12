@@ -40,6 +40,25 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
     Ok(imported_history::recent_paths_from_paths(&paths))
 }
 
+/// Force a full rescan of a single external history source.
+///
+/// Clears every cached metadata row for `source` from
+/// `imported_history_session_cache`. The next sidebar/list load re-reads the
+/// source's on-disk store from scratch (no cached signatures means the
+/// delta-sync treats every session as new) and repopulates the cache.
+#[tauri::command]
+pub async fn external_history_rescan_source(source: String) -> Result<(), String> {
+    if !imported_history::metadata::is_imported_history_source(&source) {
+        return Err(format!("Unknown external history source: {source}"));
+    }
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
 #[tauri::command]
 pub async fn orgtrack_get_cursor_sessions(
     start_date: String,

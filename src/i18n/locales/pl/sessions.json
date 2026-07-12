@@ -85,7 +85,29 @@
     "view": {
       "list": "Lista",
       "diary": "Dziennik",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "Źródła danych"
+    },
+    "dataSource": {
+      "title": "Źródła danych",
+      "description": "Zewnętrzne narzędzia do kodowania wykrywane przez ORGII. Aplikacje importowalne pokazują liczbę sesji i można je przeskanować ponownie; pozostałe pokazują status instalacji i lokalizację historii.",
+      "rescanAll": "Przeskanuj wszystko",
+      "rescan": "Przeskanuj",
+      "rescanning": "Skanowanie…",
+      "sessions_one": "{{count}} sesja",
+      "sessions_few": "{{count}} sesje",
+      "sessions_many": "{{count}} sesji",
+      "sessions_other": "{{count}} sesji",
+      "noPath": "Nie wykryto ścieżki",
+      "notImported": "Nie zaimportowano",
+      "status": {
+        "ready": "Gotowe",
+        "empty": "Brak historii",
+        "loading": "Sprawdzanie…",
+        "error": "Błąd",
+        "installed": "Zainstalowano",
+        "notInstalled": "Nie wykryto"
+      }
     },
     "list": {
       "updated": "Zaktualizowano",

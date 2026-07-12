@@ -85,7 +85,26 @@
     "view": {
       "list": "List",
       "diary": "다이어리",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "데이터 소스"
+    },
+    "dataSource": {
+      "title": "데이터 소스",
+      "description": "ORGII가 감지하는 외부 코딩 도구입니다. 가져올 수 있는 앱은 세션 수를 표시하고 다시 스캔할 수 있으며, 나머지는 설치 상태와 기록 위치를 표시합니다.",
+      "rescanAll": "모두 다시 스캔",
+      "rescan": "다시 스캔",
+      "rescanning": "다시 스캔 중…",
+      "sessions_other": "{{count}}개 세션",
+      "noPath": "경로가 감지되지 않음",
+      "notImported": "가져오지 않음",
+      "status": {
+        "ready": "준비됨",
+        "empty": "기록 없음",
+        "loading": "확인 중…",
+        "error": "오류",
+        "installed": "설치됨",
+        "notInstalled": "감지되지 않음"
+      }
     },
     "list": {
       "updated": "Updated",

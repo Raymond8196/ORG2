@@ -451,6 +451,7 @@
     "files": "Files",
     "commits": "Commits",
     "committedRate": "Committed",
+    "tokens": "Tokens",
     "entries": "Entries",
     "records": "Records",
     "topSessions": "Top Sessions",

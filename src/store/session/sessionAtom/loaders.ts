@@ -183,6 +183,12 @@ async function loadImportedHistorySourcePage(
         repoPath: row.repoPath,
         agentIconId: source.iconId,
         agentDisplayName: source.displayName,
+        model: row.model,
+        totalTokens: row.totalTokens,
+        filesChanged: row.filesChanged,
+        linesAdded: row.linesAdded,
+        linesRemoved: row.linesRemoved,
+        touchedFiles: row.touchedFiles,
       };
     })
   );

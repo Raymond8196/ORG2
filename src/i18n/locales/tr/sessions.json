@@ -85,7 +85,27 @@
     "view": {
       "list": "Liste",
       "diary": "Günlük",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "Veri kaynakları"
+    },
+    "dataSource": {
+      "title": "Veri kaynakları",
+      "description": "ORGII'nin algıladığı harici kodlama araçları. İçe aktarılabilir uygulamalar oturum sayısını gösterir ve yeniden taranabilir; diğerleri kurulum durumunu ve geçmişlerinin nerede olduğunu gösterir.",
+      "rescanAll": "Tümünü yeniden tara",
+      "rescan": "Yeniden tara",
+      "rescanning": "Yeniden taranıyor…",
+      "sessions_one": "{{count}} oturum",
+      "sessions_other": "{{count}} oturum",
+      "noPath": "Yol algılanmadı",
+      "notImported": "İçe aktarılmadı",
+      "status": {
+        "ready": "Hazır",
+        "empty": "Geçmiş yok",
+        "loading": "Kontrol ediliyor…",
+        "error": "Hata",
+        "installed": "Kurulu",
+        "notInstalled": "Algılanmadı"
+      }
     },
     "list": {
       "updated": "Güncellendi",

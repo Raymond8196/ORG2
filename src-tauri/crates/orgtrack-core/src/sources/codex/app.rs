@@ -27,7 +27,10 @@ use crate::sources::imported_history::{
 
 const CODEX_APP_SESSION_PREFIX: &str = "codexapp-";
 const CODEX_PROVIDER_SLUG: &str = "codex";
-const CODEX_APP_METADATA_PARSER_VERSION: i64 = 8;
+// v9: derive impact from authoritative `patch_apply_end` events (structured
+// `changes` map with unified diffs) instead of only scanning `apply_patch`
+// tool calls, so `exec`-wrapped and other edit paths are counted too.
+const CODEX_APP_METADATA_PARSER_VERSION: i64 = 9;
 
 pub type CodexAppSessionRow = ImportedHistorySessionRow;
 pub type CodexAppSessionPage = ImportedHistorySessionPage;
@@ -338,8 +341,15 @@ fn parse_codex_session_meta(
     let mut repo_path: Option<String> = None;
     let mut input_tokens = 0;
     let mut output_tokens = 0;
+    // Primary impact source: `patch_apply_end` events, which Codex emits after
+    // every *successful* apply with a structured `changes` map (path ->
+    // unified_diff). This covers every edit path uniformly — the `apply_patch`
+    // tool, `exec`-wrapped patches, etc. The tool-call scan below is only a
+    // fallback for older rollouts that predate `patch_apply_end`.
     let mut impact = ImportedHistoryImpactStats::default();
     let mut touched_files = BTreeSet::new();
+    let mut fallback_impact = ImportedHistoryImpactStats::default();
+    let mut fallback_touched = BTreeSet::new();
     let mut parent_thread_id: Option<String> = None;
 
     for line in reader.lines() {
@@ -404,7 +414,23 @@ fn parse_codex_session_meta(
                     .unwrap_or(output_tokens);
             }
         }
-        collect_codex_impact_from_payload(&parsed.payload, &mut impact, &mut touched_files);
+        collect_codex_impact_from_patch_apply_end(
+            &parsed.payload,
+            &mut impact,
+            &mut touched_files,
+        );
+        collect_codex_impact_from_payload(
+            &parsed.payload,
+            &mut fallback_impact,
+            &mut fallback_touched,
+        );
+    }
+
+    // Prefer the authoritative `patch_apply_end` tally; only fall back to the
+    // tool-call scan when no successful applies were recorded (older rollouts).
+    if touched_files.is_empty() && impact.lines_added == 0 && impact.lines_removed == 0 {
+        impact = fallback_impact;
+        touched_files = fallback_touched;
     }
 
     impact.touched_files = touched_files.into_iter().collect();
@@ -537,6 +563,43 @@ fn codex_file_stem_for_thread_id_near_session(
         (codex_thread_id_from_file_stem(file_stem) == Some(thread_id))
             .then(|| file_stem.to_string())
     })
+}
+
+/// Tally impact from a `patch_apply_end` event — Codex's authoritative record
+/// of a successfully applied patch. `changes` maps each touched path to a
+/// `{ type, unified_diff }` object; the diff's `+`/`-` lines give exact
+/// add/remove counts regardless of how the edit was requested.
+fn collect_codex_impact_from_patch_apply_end(
+    payload: &Value,
+    impact: &mut ImportedHistoryImpactStats,
+    touched_files: &mut BTreeSet<String>,
+) {
+    if payload.get("type").and_then(Value::as_str) != Some("patch_apply_end") {
+        return;
+    }
+    // A failed apply changed nothing; don't attribute its diff.
+    if payload.get("success").and_then(Value::as_bool) == Some(false) {
+        return;
+    }
+    let Some(changes) = payload.get("changes").and_then(Value::as_object) else {
+        return;
+    };
+    for (path, change) in changes {
+        let path = path.trim();
+        if path.is_empty() {
+            continue;
+        }
+        touched_files.insert(path.to_string());
+        if let Some(diff) = change.get("unified_diff").and_then(Value::as_str) {
+            for line in diff.lines() {
+                if line.starts_with('+') && !line.starts_with("+++") {
+                    impact.lines_added += 1;
+                } else if line.starts_with('-') && !line.starts_with("---") {
+                    impact.lines_removed += 1;
+                }
+            }
+        }
+    }
 }
 
 fn collect_codex_impact_from_payload(

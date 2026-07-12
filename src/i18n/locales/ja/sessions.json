@@ -85,7 +85,26 @@
     "view": {
       "list": "リスト",
       "diary": "日誌",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "データソース"
+    },
+    "dataSource": {
+      "title": "データソース",
+      "description": "ORGII が検出する外部コーディングツール。インポート可能なアプリはセッション数を表示し、再スキャンできます。その他はインストール状況と履歴の保存場所を表示します。",
+      "rescanAll": "すべて再スキャン",
+      "rescan": "再スキャン",
+      "rescanning": "再スキャン中…",
+      "sessions_other": "{{count}} 件のセッション",
+      "noPath": "パスが検出されません",
+      "notImported": "未インポート",
+      "status": {
+        "ready": "準備完了",
+        "empty": "履歴なし",
+        "loading": "確認中…",
+        "error": "エラー",
+        "installed": "インストール済み",
+        "notInstalled": "未検出"
+      }
     },
     "list": {
       "updated": "更新済み",

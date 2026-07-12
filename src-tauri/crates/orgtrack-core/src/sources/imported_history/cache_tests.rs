@@ -66,9 +66,12 @@ fn cache_query_paginates_newest_first() {
 }
 
 #[test]
-fn sidebar_query_is_date_bounded_and_omits_heavy_metadata() {
+fn sidebar_query_is_date_bounded_and_carries_impact_metadata() {
     let mut conn = fixture_conn();
     let mut inside = input(SOURCE_CODEX_APP, "inside", 250);
+    inside.impact.files_changed = 1;
+    inside.impact.lines_added = 7;
+    inside.impact.lines_removed = 2;
     inside.impact.touched_files = vec!["large/path.rs".to_string()];
     let outside = input(SOURCE_CODEX_APP, "outside", 450);
     upsert_imported_session_cache_from_conn(&mut conn, &[inside, outside]).expect("upsert");
@@ -79,23 +82,17 @@ fn sidebar_query_is_date_bounded_and_omits_heavy_metadata() {
 
     assert!(!page.has_more);
     assert_eq!(page.sessions.len(), 1);
-    assert_eq!(page.sessions[0].session_id, "codex_app-inside");
-    assert_eq!(
-        page.sessions[0].repo_path.as_deref(),
-        Some("/tmp/repo-inside")
-    );
-    let wire = serde_json::to_value(&page.sessions[0]).expect("serialize sidebar row");
-    assert_eq!(
-        wire.as_object()
-            .expect("sidebar row object")
-            .keys()
-            .cloned()
-            .collect::<std::collections::BTreeSet<_>>(),
-        ["createdAt", "name", "repoPath", "sessionId", "updatedAt"]
-            .into_iter()
-            .map(str::to_string)
-            .collect()
-    );
+    let row = &page.sessions[0];
+    assert_eq!(row.session_id, "codex_app-inside");
+    assert_eq!(row.repo_path.as_deref(), Some("/tmp/repo-inside"));
+    // The Kanban board and other card surfaces render these inline, so the
+    // lightweight sidebar row must carry them (regression guard).
+    assert_eq!(row.model.as_deref(), Some("model-a"));
+    assert_eq!(row.total_tokens, 7); // input_tokens (3) + output_tokens (4)
+    assert_eq!(row.files_changed, 1);
+    assert_eq!(row.lines_added, 7);
+    assert_eq!(row.lines_removed, 2);
+    assert_eq!(row.touched_files, vec!["large/path.rs".to_string()]);
 }
 
 #[test]

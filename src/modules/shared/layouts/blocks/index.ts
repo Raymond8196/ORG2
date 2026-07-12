@@ -10,7 +10,7 @@ export { default as SessionGroupPage } from "./SessionGroupPage";
 export { default as SessionTable } from "./SessionTable";
 export type { HintWithInfoProps } from "./HintWithInfo";
 export type { SessionGroupPageProps } from "./SessionGroupPage";
-export type { SessionTableItem } from "./SessionTable";
+export type { SessionTableColumnKey, SessionTableItem } from "./SessionTable";
 export {
   mapKanbanTaskToSessionTableItem,
   type SessionTableDateTimeLabelOptions,

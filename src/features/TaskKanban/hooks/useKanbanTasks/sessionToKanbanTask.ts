@@ -105,6 +105,7 @@ export function sessionToKanbanTask(
     agentIconId: session.agentIconId,
     cliAgentType: session.cliAgentType,
     modelName: session.model,
+    totalTokens: session.totalTokens,
     workspaceName: getWorkspaceName(session),
     created_at: session.created_at,
     updated_at: session.updated_at,

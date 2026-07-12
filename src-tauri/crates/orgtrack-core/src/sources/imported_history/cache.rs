@@ -300,7 +300,9 @@ pub fn query_imported_sidebar_page_from_conn(
     values.push(SqlValue::from(limit.saturating_add(1) as i64));
     values.push(SqlValue::from(offset as i64));
     let sql = format!(
-        "SELECT session_id, name, created_at_ms, updated_at_ms, repo_path
+        "SELECT session_id, name, created_at_ms, updated_at_ms, repo_path,
+                model, files_changed, lines_added, lines_removed, touched_files_json,
+                input_tokens, output_tokens
          FROM imported_history_session_cache
          WHERE source = ?1
            AND listable = 1
@@ -315,12 +317,26 @@ pub fn query_imported_sidebar_page_from_conn(
     let rows = stmt
         .query_map(params_from_iter(values), |row| {
             let repo_path: String = row.get(4)?;
+            let model: String = row.get(5)?;
+            let touched_files_json: String = row.get(9)?;
+            let touched_files =
+                serde_json::from_str::<Vec<String>>(&touched_files_json).map_err(|err| {
+                    rusqlite::Error::FromSqlConversionFailure(9, Type::Text, Box::new(err))
+                })?;
+            let input_tokens: i64 = row.get(10)?;
+            let output_tokens: i64 = row.get(11)?;
             Ok(ImportedHistorySidebarRow {
                 session_id: row.get(0)?,
                 name: row.get(1)?,
                 created_at: super::epoch_ms_to_iso(row.get(2)?),
                 updated_at: super::epoch_ms_to_iso(row.get(3)?),
                 repo_path: non_empty_string(repo_path),
+                model: non_empty_string(model),
+                total_tokens: input_tokens + output_tokens,
+                files_changed: row.get(6)?,
+                lines_added: row.get(7)?,
+                lines_removed: row.get(8)?,
+                touched_files,
             })
         })
         .map_err(|err| format!("Failed to query imported sidebar rows for {source}: {err}"))?;

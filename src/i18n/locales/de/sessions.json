@@ -85,7 +85,27 @@
     "view": {
       "list": "Liste",
       "diary": "Tagebuch",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "Datenquellen"
+    },
+    "dataSource": {
+      "title": "Datenquellen",
+      "description": "Externe Coding-Tools, die ORGII erkennt. Importierbare Apps zeigen ihre Sitzungsanzahl und können neu gescannt werden; die übrigen zeigen den Installationsstatus und wo ihr Verlauf liegt.",
+      "rescanAll": "Alle neu scannen",
+      "rescan": "Neu scannen",
+      "rescanning": "Wird neu gescannt…",
+      "sessions_one": "{{count}} Sitzung",
+      "sessions_other": "{{count}} Sitzungen",
+      "noPath": "Kein Pfad erkannt",
+      "notImported": "Nicht importiert",
+      "status": {
+        "ready": "Bereit",
+        "empty": "Kein Verlauf",
+        "loading": "Wird geprüft…",
+        "error": "Fehler",
+        "installed": "Installiert",
+        "notInstalled": "Nicht erkannt"
+      }
     },
     "list": {
       "updated": "Aktualisiert",

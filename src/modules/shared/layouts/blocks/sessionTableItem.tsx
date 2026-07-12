@@ -26,6 +26,16 @@ interface MapKanbanTaskToSessionTableItemInput {
 
 const WORKSPACE_LABEL_MAX_LENGTH = 15;
 
+const compactNumberFormatter = new Intl.NumberFormat(undefined, {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+function formatTokenCount(total: number | undefined): string | undefined {
+  if (!total || total <= 0) return undefined;
+  return compactNumberFormatter.format(total);
+}
+
 function truncateWorkspaceLabel(label: string | undefined): string | undefined {
   if (!label || label.length <= WORKSPACE_LABEL_MAX_LENGTH) return label;
   return `${label.slice(0, WORKSPACE_LABEL_MAX_LENGTH)}...`;
@@ -122,6 +132,8 @@ export function mapKanbanTaskToSessionTableItem({
     committedRateLabel:
       committedRateValue !== undefined ? `${committedRateValue}%` : undefined,
     committedRateValue,
+    tokensLabel: formatTokenCount(task.totalTokens),
+    tokensValue: task.totalTokens,
     startedLabel: formatDateTimeLabel(task.created_at, dateTimeLabelOptions),
     lastUpdatedLabel: formatDateTimeLabel(
       task.updated_at ?? task.completed_at,

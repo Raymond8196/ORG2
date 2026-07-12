@@ -85,7 +85,27 @@
     "view": {
       "list": "Liste",
       "diary": "Journal",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "dataSource": "Sources de données"
+    },
+    "dataSource": {
+      "title": "Sources de données",
+      "description": "Outils de codage externes détectés par ORGII. Les applications importables affichent leur nombre de sessions et peuvent être réanalysées ; les autres affichent l'état d'installation et l'emplacement de leur historique.",
+      "rescanAll": "Tout réanalyser",
+      "rescan": "Réanalyser",
+      "rescanning": "Réanalyse…",
+      "sessions_one": "{{count}} session",
+      "sessions_other": "{{count}} sessions",
+      "noPath": "Aucun chemin détecté",
+      "notImported": "Non importé",
+      "status": {
+        "ready": "Prêt",
+        "empty": "Aucun historique",
+        "loading": "Vérification…",
+        "error": "Erreur",
+        "installed": "Installé",
+        "notInstalled": "Non détecté"
+      }
     },
     "list": {
       "updated": "Mis à jour",

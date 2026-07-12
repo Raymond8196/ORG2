@@ -28,6 +28,7 @@ function probe(sourceId: string, importable = false): ExternalCliSourceProbe {
     historyPaths: [],
     status: "detected_no_importer",
     importable,
+    storeKind: "",
   };
 }
 

@@ -28,7 +28,7 @@ const CLAUDE_CODE_SESSION_PREFIX: &str = "claudecodeapp-";
 const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // v4: read ai-title/custom-title records for the name, and derive diff stats
 // from tool_use_result.structuredPatch instead of the old_string/new_string heuristic.
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 4;
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 5;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -52,6 +52,10 @@ struct ClaudeCodeHistoryMeta {
     input_tokens: i64,
     output_tokens: i64,
     impact: ImportedHistoryImpactStats,
+    /// Set for Task-tool subagent transcripts: the parent session's frontend
+    /// id (`claudecodeapp-<parent-uuid>`). `None` for ordinary top-level
+    /// sessions. Non-empty values are subsumed out of the sidebar/kanban.
+    parent_session_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -79,6 +83,16 @@ struct ClaudeJsonlLine {
     /// `structuredPatch` with exact `+`/`-` diff lines.
     #[serde(default)]
     tool_use_result: Option<Value>,
+    /// `true` on every line of a Task-tool subagent transcript
+    /// (`<parent-uuid>/subagents/agent-*.jsonl`). Marks the whole file as a
+    /// child session that must be subsumed under its parent.
+    #[serde(default)]
+    is_sidechain: bool,
+    /// The parent session's UUID. On a subagent transcript every line carries
+    /// the spawning session's id here (not the subagent's own `agent-*` stem),
+    /// which is exactly the parent linkage we need.
+    #[serde(default)]
+    session_id: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -350,6 +364,11 @@ fn parse_claude_session_meta(
     // old_string/new_string line count. Only used when no patch data is found.
     let mut fallback_impact = ImportedHistoryImpactStats::default();
     let mut fallback_touched = BTreeSet::new();
+    // Subagent transcripts (`<parent-uuid>/subagents/agent-*.jsonl`) tag every
+    // line `isSidechain: true` and carry the spawning session's UUID in
+    // `sessionId`. Capturing it lets us subsume the child under its parent the
+    // same way Codex does, instead of listing it as a top-level session.
+    let mut parent_source_session_id: Option<String> = None;
 
     for line in reader.lines() {
         let line = line.map_err(|err| format!("Failed to read Claude history line: {err}"))?;
@@ -378,6 +397,15 @@ fn parse_claude_session_meta(
         }
         if branch.is_none() && !parsed.git_branch.trim().is_empty() {
             branch = Some(parsed.git_branch.clone());
+        }
+        // A sidechain line whose `sessionId` differs from this file's own stem
+        // is a subagent pointing at its spawning session. Guard against a self
+        // reference so a malformed line can never make a session its own parent.
+        if parent_source_session_id.is_none() && parsed.is_sidechain {
+            let candidate = parsed.session_id.trim();
+            if !candidate.is_empty() && candidate != record.source_session_id {
+                parent_source_session_id = Some(candidate.to_string());
+            }
         }
         // Claude Code persists the session title inside the transcript. Titles are
         // re-emitted as the conversation evolves, so the last write wins.
@@ -491,6 +519,8 @@ fn parse_claude_session_meta(
         input_tokens,
         output_tokens,
         impact,
+        parent_session_id: parent_source_session_id
+            .map(|uuid| format!("{CLAUDE_CODE_SESSION_PREFIX}{uuid}")),
     }))
 }
 
@@ -516,7 +546,7 @@ fn session_meta_to_cache_input(meta: ClaudeCodeHistoryMeta) -> ImportedHistoryCa
         impact: meta.impact,
         listable: true,
         source_metadata_json: None,
-        parent_session_id: None,
+        parent_session_id: meta.parent_session_id,
     }
 }
 

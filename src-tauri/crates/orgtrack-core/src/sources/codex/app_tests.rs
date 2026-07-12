@@ -468,6 +468,115 @@ fn codex_apply_patch_headers_contribute_file_stats() {
 }
 
 #[test]
+fn codex_patch_apply_end_is_authoritative_impact_source() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-history-patch-apply-end-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-patch-apply-end.jsonl");
+
+    // The same edit is present both as an `apply_patch` tool call AND as the
+    // authoritative `patch_apply_end` result. The parser must count it once,
+    // from `patch_apply_end`, not add the tool-call fallback on top.
+    let tool_patch =
+        "*** Begin Patch\n*** Update File: src/app.rs\n@@\n-old\n+new\n*** End Patch";
+    let tool_arguments = serde_json::json!({ "patch": tool_patch }).to_string();
+    let changes = serde_json::json!({
+        "src/app.rs": {
+            "type": "update",
+            "unified_diff": "@@ -1,1 +1,2 @@\n-old\n+new\n+extra\n",
+            "move_path": null
+        },
+        "src/added.rs": {
+            "type": "add",
+            "unified_diff": "@@ -0,0 +1,1 @@\n+fresh\n",
+            "move_path": null
+        }
+    });
+    let content = format!(
+        r#"{{"timestamp":"2026-02-11T06:16:06.458Z","type":"session_meta","payload":{{"cwd":"/Users/me/project","id":"abc"}}}}
+{{"timestamp":"2026-02-11T06:16:07.000Z","type":"response_item","payload":{{"type":"function_call","name":"apply_patch","arguments":{},"call_id":"call_patch"}}}}
+{{"timestamp":"2026-02-11T06:16:08.000Z","type":"event_msg","payload":{{"type":"patch_apply_end","call_id":"call_patch","success":true,"stdout":"Success","stderr":"","changes":{}}}}}
+"#,
+        serde_json::to_string(&tool_arguments).expect("encode args string"),
+        changes
+    );
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Codex").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "rollout-patch-apply-end".to_string(),
+        source_path: path.clone(),
+        source_record_key: "rollout-patch-apply-end".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CODEX_APP_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_codex_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+
+    // Two files from `changes`, line counts from the unified diffs — and the
+    // tool-call fallback is NOT added on top (would inflate lines otherwise).
+    assert_eq!(meta.impact.files_changed, 2);
+    assert_eq!(meta.impact.lines_added, 3); // +new +extra +fresh
+    assert_eq!(meta.impact.lines_removed, 1); // -old
+    assert_eq!(
+        meta.impact.touched_files,
+        vec!["src/added.rs".to_string(), "src/app.rs".to_string()]
+    );
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn codex_failed_patch_apply_end_is_ignored() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-history-failed-patch-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-failed-patch.jsonl");
+    let changes = serde_json::json!({
+        "src/app.rs": { "type": "update", "unified_diff": "@@\n-old\n+new\n" }
+    });
+    let content = format!(
+        r#"{{"timestamp":"2026-02-11T06:16:06.458Z","type":"session_meta","payload":{{"cwd":"/Users/me/project","id":"abc"}}}}
+{{"timestamp":"2026-02-11T06:16:08.000Z","type":"event_msg","payload":{{"type":"patch_apply_end","call_id":"c1","success":false,"stdout":"","stderr":"nope","changes":{}}}}}
+"#,
+        changes
+    );
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Codex").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "rollout-failed-patch".to_string(),
+        source_path: path.clone(),
+        source_record_key: "rollout-failed-patch".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CODEX_APP_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_codex_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+
+    assert_eq!(meta.impact.files_changed, 0);
+    assert_eq!(meta.impact.lines_added, 0);
+    assert_eq!(meta.impact.lines_removed, 0);
+    assert!(meta.impact.touched_files.is_empty());
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn parses_codex_session_metadata() {
     let temp_dir = std::env::temp_dir().join(format!(
         "orgii-codex-history-meta-test-{}",
