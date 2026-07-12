@@ -107,7 +107,8 @@ export const SESSION_PREFIX_REGISTRY: readonly SessionPrefixConfig[] = [
   ...IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(
     (source): SessionPrefixConfig => ({
       prefix: source.prefix,
-      category: "external_history",
+      category:
+        source.sourceId === "cursor_ide" ? "cursor_ide" : "external_history",
       variant: undefined,
       iconId: source.iconId,
       externalHistorySourceId: source.sourceId,

@@ -181,7 +181,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
       },
       {
         key: "impact",
-        label: t("sessions:simulator.impact.lines"),
+        label: t("common:aiImpact.lines"),
         width: "110px",
         renderCell: (item) => (
           <div className="truncate text-text-3">
