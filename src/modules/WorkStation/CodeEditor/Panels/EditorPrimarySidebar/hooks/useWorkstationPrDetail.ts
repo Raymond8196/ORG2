@@ -32,6 +32,13 @@ import {
   listPrReviewsLocal,
   replyPrReviewCommentLocal,
 } from "@src/api/tauri/github";
+import {
+  type CachedPrDetail,
+  getCachedPrDetail,
+  isPrDetailStale,
+  prDetailKey,
+  setCachedPrDetail,
+} from "@src/services/git/githubListCache";
 import { parseGithubRepoFullName } from "@src/services/git/operations/createPullRequest";
 import {
   type PrIdentity,
@@ -39,14 +46,6 @@ import {
   workstationPrDetailCallbackAtom,
   workstationSelectedPrAtom,
 } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
-
-import {
-  type CachedPrDetail,
-  getCachedPrDetail,
-  isPrDetailStale,
-  prDetailKey,
-  setCachedPrDetail,
-} from "./githubListCache";
 
 type PrDetailBundle = Omit<CachedPrDetail, "cachedAt">;
 
