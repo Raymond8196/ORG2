@@ -53,6 +53,17 @@ export type { ExpandableTableRowProps } from "./ExpandableTableRow";
 export { default as PathCopyOpenRow } from "./PathCopyOpenRow";
 export type { PathCopyOpenRowProps } from "./PathCopyOpenRow";
 
+export {
+  SectionSidebarItem,
+  SectionSidebarList,
+  SectionSidebarSplit,
+} from "./SidebarSplit";
+export type {
+  SectionSidebarItemProps,
+  SectionSidebarListProps,
+  SectionSidebarSplitProps,
+} from "./SidebarSplit";
+
 // ── Public tokens (for consumers) ───────────────────────
 export {
   /** Apply to <Select> / <Input> / <NumberInput> controls: { width: 280, maxWidth: "100%" } */

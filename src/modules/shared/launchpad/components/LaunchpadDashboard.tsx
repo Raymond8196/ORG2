@@ -16,10 +16,18 @@ import Button from "@src/components/Button";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import {
+  WIZARD_IDS,
+  buildIntegrationsPath,
+  buildWizardPath,
+} from "@src/config/mainAppPaths";
+import { ROUTES } from "@src/config/routes";
 import { useKeyVault } from "@src/hooks/keyVault";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
+import { AccountStatusIndicator } from "@src/modules/shared/keyVault/AccountStatusIndicator";
 import {
   CollapsibleSection,
+  InlineInfoCard,
   Placeholder,
 } from "@src/modules/shared/layouts/blocks";
 import type { Repo } from "@src/store/repo/types";
@@ -70,6 +78,10 @@ const LAUNCHPAD_TILE_LABEL_CLASS =
 
 const LAUNCHPAD_TILE_LABEL_SELECTED_CLASS =
   "line-clamp-2 w-20 text-center text-[12px] font-normal leading-tight text-text-1";
+
+const AccountInlineDetails = React.lazy(
+  () => import("@src/modules/shared/keyVault/AccountInlineDetails")
+);
 
 interface LaunchpadCollapsibleSectionProps {
   title: string;
@@ -143,10 +155,11 @@ interface LaunchpadTileProps {
   status?: React.ReactNode;
   selected?: boolean;
   onClick?: () => void;
+  dataTestId?: string;
 }
 
 const LaunchpadTile: React.FC<LaunchpadTileProps> = memo(
-  ({ icon, label, title, status, selected = false, onClick }) => {
+  ({ icon, label, title, status, selected = false, onClick, dataTestId }) => {
     const content = (
       <>
         <div
@@ -180,6 +193,8 @@ const LaunchpadTile: React.FC<LaunchpadTileProps> = memo(
           onClick={onClick}
           className={LAUNCHPAD_TILE_CLASS}
           title={title ?? label}
+          aria-pressed={selected}
+          data-testid={dataTestId}
         >
           {content}
         </button>
@@ -328,11 +343,17 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
     onAddWorkspace,
   }) => {
     const { t } = useTranslation(["navigation", "sessions"]);
-    const { goToNewSession, goToIntegrations } = useAppNavigation();
+    const { goToNewSession, navigateTo } = useAppNavigation();
     const setCreatorState = useSetAtom(sessionCreatorStateAtom);
     const [selectedAgentKey, setSelectedAgentKey] = useState<string | null>(
       null
     );
+    const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
+      null
+    );
+    const [refreshingAccountId, setRefreshingAccountId] = useState<
+      string | null
+    >(null);
 
     const {
       installedCliAgents,
@@ -341,9 +362,11 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
       ready: catalogReady,
     } = useLaunchpadAgentCatalog();
 
-    const { localAccounts, loading: keysLoading } = useKeyVault({
-      autoLoad: true,
-    });
+    const {
+      localAccounts,
+      loading: keysLoading,
+      refreshAccount,
+    } = useKeyVault({ autoLoad: true });
 
     const {
       containers,
@@ -502,6 +525,38 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
       );
     }, []);
 
+    const handleSelectAccount = useCallback(
+      (accountId: string) => {
+        if (selectedAccountId === accountId) {
+          setSelectedAccountId(null);
+          return;
+        }
+        setSelectedAccountId(accountId);
+        setRefreshingAccountId(accountId);
+        void refreshAccount(accountId, true)
+          .catch(() => false)
+          .finally(() => {
+            setRefreshingAccountId((currentId) =>
+              currentId === accountId ? null : currentId
+            );
+          });
+      },
+      [refreshAccount, selectedAccountId]
+    );
+
+    const handleAddKey = useCallback(() => {
+      const accountsPath = `${buildIntegrationsPath({
+        category: "models",
+      })}?modelsTab=my-accounts`;
+      navigateTo(buildWizardPath(accountsPath, WIZARD_IDS.KEY_ADD));
+    }, [navigateTo]);
+
+    const handleAddAgent = useCallback(() => {
+      navigateTo(
+        buildWizardPath(ROUTES.app.home.agentOrgs.path, WIZARD_IDS.AGENT_ADD)
+      );
+    }, [navigateTo]);
+
     const handleClearSelection = useCallback(
       () => onSelectDashboardRepo(null),
       [onSelectDashboardRepo]
@@ -510,6 +565,8 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
       repos.find((repo) => repo.id === selectedDashboardRepoId) ?? null;
     const selectedAgent =
       rankedAgents.find((agent) => agent.key === selectedAgentKey) ?? null;
+    const selectedAccount =
+      localAccounts.find((account) => account.id === selectedAccountId) ?? null;
 
     return (
       <div className="flex h-full min-h-0 w-full flex-col">
@@ -565,7 +622,38 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
               {keysLoading ? (
                 <Placeholder variant="loading" />
               ) : (
-                <LaunchpadTileWrap>
+                <LaunchpadTileWrap
+                  actionAfterIndex={
+                    selectedAccount
+                      ? localAccounts.indexOf(selectedAccount)
+                      : -1
+                  }
+                  action={
+                    selectedAccount ? (
+                      <InlineInfoCard
+                        contentClassName="bg-bg-2"
+                        dataTestId="launchpad-key-inline-details"
+                      >
+                        <React.Suspense
+                          fallback={<Placeholder variant="loading" />}
+                        >
+                          {refreshingAccountId === selectedAccount.id ? (
+                            <Placeholder variant="loading" />
+                          ) : (
+                            <div className="flex min-w-0 flex-col gap-2">
+                              <AccountInlineDetails account={selectedAccount} />
+                              <div className="flex min-h-8 items-center border-t border-border-2 pt-2">
+                                <AccountStatusIndicator
+                                  account={selectedAccount}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </React.Suspense>
+                      </InlineInfoCard>
+                    ) : null
+                  }
+                >
                   {localAccounts.map((account) => {
                     const isReady = account.status === "ready";
                     return (
@@ -580,6 +668,9 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
                         }
                         label={account.name}
                         title={account.name}
+                        selected={account.id === selectedAccountId}
+                        onClick={() => handleSelectAccount(account.id)}
+                        dataTestId={`launchpad-key-${account.id}`}
                         status={
                           <span
                             className={`h-2 w-2 shrink-0 rounded-full ${isReady ? "bg-success-6" : "bg-text-4"}`}
@@ -590,7 +681,7 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
                     );
                   })}
                   <LaunchpadAddTile
-                    onCreate={goToIntegrations}
+                    onCreate={handleAddKey}
                     label={t("sessions:controlTower.addApiKey")}
                   />
                 </LaunchpadTileWrap>
@@ -634,7 +725,7 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
                       />
                     ))}
                     <LaunchpadAddTile
-                      onCreate={goToIntegrations}
+                      onCreate={handleAddAgent}
                       label={t("sessions:controlTower.addAgent")}
                     />
                   </LaunchpadTileWrap>
