@@ -254,6 +254,11 @@ const GitHubIssueDetailEntry: RendererEntry = {
   debugLabel: "github-issue-detail",
 };
 
+const GitHubPrDetailEntry: RendererEntry = {
+  Component: lazy(() => import("./renderers/githubPrDetail")),
+  debugLabel: "github-pr-detail",
+};
+
 // ============================================
 // Registry — exhaustive over WorkStationTabType
 // ============================================
@@ -315,6 +320,9 @@ export const REGISTRY: TabContentRegistry = {
 
   // GitHub Issue Detail
   "github-issue-detail": GitHubIssueDetailEntry,
+
+  // GitHub PR Detail
+  "github-pr-detail": GitHubPrDetailEntry,
 };
 
 // Exhaustiveness check: any missing WorkStationTabType becomes a TS error.
