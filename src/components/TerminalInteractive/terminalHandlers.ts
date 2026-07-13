@@ -8,6 +8,7 @@ import { isMacOS } from "@src/util/platform/tauri";
 import { invokeTauri, isTauriReady } from "@src/util/platform/tauri/init";
 
 import { setTerminalBuffer } from "./bufferCache";
+import { TerminalImeInputController } from "./terminalImeInput";
 import { notifyPtyUserInput } from "./terminalPty";
 import type { TerminalViewProps } from "./types";
 import { createTerminalFileLinks } from "./utils";
@@ -99,14 +100,16 @@ function cacheSerializedTerminalBuffer(
 function registerInputHandler({
   terminal,
   sessionIdRef,
+  containerRef,
   onOutput,
   onUserInput,
 }: Pick<
   RegisterTerminalEventHandlersParams,
-  "terminal" | "sessionIdRef" | "onOutput" | "onUserInput"
+  "terminal" | "sessionIdRef" | "containerRef" | "onOutput" | "onUserInput"
 >) {
   let pendingInput = "";
   let inputBatchScheduled = false;
+  const imeInput = new TerminalImeInputController();
 
   const flushInput = () => {
     const batch = pendingInput;
@@ -122,7 +125,8 @@ function registerInputHandler({
     }
   };
 
-  return terminal.onData((data) => {
+  const enqueueInput = (data: string | null) => {
+    if (!data) return;
     if (isTauriReady() && sessionIdRef.current) {
       onOutput?.();
       onUserInput?.();
@@ -134,7 +138,41 @@ function registerInputHandler({
         queueMicrotask(flushInput);
       }
     }
+  };
+
+  const terminalInputHandler = terminal.onData((data) => {
+    enqueueInput(imeInput.handleTerminalData(data));
   });
+
+  const helperTextarea = containerRef.current?.querySelector(
+    ".xterm-helper-textarea"
+  );
+  const handleCompositionStart = () => {
+    imeInput.handleCompositionStart();
+  };
+  const handleCompositionEnd = (event: Event) => {
+    const data =
+      event instanceof CompositionEvent && typeof event.data === "string"
+        ? event.data
+        : "";
+    enqueueInput(imeInput.handleCompositionEnd(data));
+  };
+  helperTextarea?.addEventListener("compositionstart", handleCompositionStart);
+  helperTextarea?.addEventListener("compositionend", handleCompositionEnd);
+
+  return {
+    dispose: () => {
+      helperTextarea?.removeEventListener(
+        "compositionstart",
+        handleCompositionStart
+      );
+      helperTextarea?.removeEventListener(
+        "compositionend",
+        handleCompositionEnd
+      );
+      terminalInputHandler.dispose();
+    },
+  };
 }
 
 function registerFileLinkProvider({
@@ -279,6 +317,7 @@ export function registerTerminalEventHandlers({
   const inputHandler = registerInputHandler({
     terminal,
     sessionIdRef,
+    containerRef,
     onOutput,
     onUserInput,
   });
