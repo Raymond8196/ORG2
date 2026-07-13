@@ -225,6 +225,28 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
 
           {showGitControls && branchName && (
             <StatusBarButton
+              onClick={onWorktreeClick}
+              title={
+                activeWorktree
+                  ? `${activeWorktree.path} · ${activeWorktree.branch}`
+                  : t("selectors.branch.labels.mainWorktree", "Main worktree")
+              }
+              className="min-w-0 max-w-56"
+              dataTestId="status-bar-worktree"
+            >
+              <GitFork size={13} className="shrink-0 text-text-1" />
+              <span className="min-w-0 truncate font-medium text-text-1">
+                {activeWorktree && !activeWorktree.isMain
+                  ? activeWorktree.path.split("/").pop() ||
+                    activeWorktree.branch ||
+                    activeWorktree.path
+                  : t("selectors.branch.labels.mainWorktree", "Main")}
+              </span>
+            </StatusBarButton>
+          )}
+
+          {showGitControls && branchName && (
+            <StatusBarButton
               onClick={onBranchClick}
               className="min-w-0 max-w-56"
               dataTestId="status-bar-branch"
@@ -246,28 +268,6 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
               )}
               <span className="min-w-0 truncate font-medium text-text-1">
                 {branchName}
-              </span>
-            </StatusBarButton>
-          )}
-
-          {showGitControls && branchName && (
-            <StatusBarButton
-              onClick={onWorktreeClick}
-              title={
-                activeWorktree
-                  ? `${activeWorktree.path} · ${activeWorktree.branch}`
-                  : t("selectors.branch.labels.mainWorktree", "Main worktree")
-              }
-              className="min-w-0 max-w-56"
-              dataTestId="status-bar-worktree"
-            >
-              <GitFork size={13} className="shrink-0 text-text-1" />
-              <span className="min-w-0 truncate font-medium text-text-1">
-                {activeWorktree && !activeWorktree.isMain
-                  ? activeWorktree.path.split("/").pop() ||
-                    activeWorktree.branch ||
-                    activeWorktree.path
-                  : t("selectors.branch.labels.mainWorktree", "Main")}
               </span>
             </StatusBarButton>
           )}
