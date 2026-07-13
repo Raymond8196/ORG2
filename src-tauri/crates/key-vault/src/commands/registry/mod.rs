@@ -154,8 +154,6 @@ mod compatibility_tests {
     fn compatibility_comes_from_the_central_cli_registry() {
         assert!(is_cli_provider_compatible("codex", "openai_api"));
         assert!(is_cli_provider_compatible("claude_code", "anthropic_api"));
-        assert!(is_cli_provider_compatible("gemini_cli", "gemini_api"));
-        assert!(!is_cli_provider_compatible("gemini_cli", "openai_api"));
         assert!(!is_cli_provider_compatible("unknown", "openai_api"));
     }
 }

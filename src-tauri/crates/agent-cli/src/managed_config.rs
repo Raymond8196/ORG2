@@ -8,7 +8,7 @@ use app_paths as paths;
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -19,11 +19,6 @@ const CODEX_CONFIG_FILE_NAME: &str = "config.toml";
 const CLAUDE_CODE_AGENT: &str = "claude_code";
 const CLAUDE_CODE_CONFIG_FILE_ID: &str = "settings";
 const CLAUDE_CODE_CONFIG_FILE_NAME: &str = "settings.json";
-const GEMINI_CLI_AGENT: &str = "gemini_cli";
-const GEMINI_CLI_SETTINGS_FILE_ID: &str = "settings";
-const GEMINI_CLI_SETTINGS_FILE_NAME: &str = "settings.json";
-const GEMINI_CLI_ENV_FILE_ID: &str = "env";
-const GEMINI_CLI_ENV_FILE_NAME: &str = ".env";
 const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const ORGII_PROVIDER_ID: &str = "orgii";
 const ORGII_PROVIDER_NAME: &str = "ORGII";
@@ -156,18 +151,6 @@ fn claude_code_config_path() -> PathBuf {
     paths::home_dir()
         .join(".claude")
         .join(CLAUDE_CODE_CONFIG_FILE_NAME)
-}
-
-fn gemini_cli_settings_path() -> PathBuf {
-    paths::home_dir()
-        .join(".gemini")
-        .join(GEMINI_CLI_SETTINGS_FILE_NAME)
-}
-
-fn gemini_cli_env_path() -> PathBuf {
-    paths::home_dir()
-        .join(".gemini")
-        .join(GEMINI_CLI_ENV_FILE_NAME)
 }
 
 fn default_backup_path(agent_name: &str, file_name: &str) -> PathBuf {
@@ -325,10 +308,7 @@ fn manifest_target(
 }
 
 fn supported_agent(agent_name: &str) -> bool {
-    matches!(
-        agent_name,
-        CODEX_AGENT | CLAUDE_CODE_AGENT | GEMINI_CLI_AGENT
-    )
+    matches!(agent_name, CODEX_AGENT | CLAUDE_CODE_AGENT)
 }
 
 fn agent_manifest_targets(agent_name: &str) -> Option<Vec<CliConfigTargetFileManifest>> {
@@ -345,20 +325,6 @@ fn agent_manifest_targets(agent_name: &str) -> Option<Vec<CliConfigTargetFileMan
             CLAUDE_CODE_CONFIG_FILE_NAME,
             &claude_code_config_path(),
         )]),
-        GEMINI_CLI_AGENT => Some(vec![
-            manifest_target(
-                GEMINI_CLI_AGENT,
-                GEMINI_CLI_SETTINGS_FILE_ID,
-                GEMINI_CLI_SETTINGS_FILE_NAME,
-                &gemini_cli_settings_path(),
-            ),
-            manifest_target(
-                GEMINI_CLI_AGENT,
-                GEMINI_CLI_ENV_FILE_ID,
-                GEMINI_CLI_ENV_FILE_NAME,
-                &gemini_cli_env_path(),
-            ),
-        ]),
         _ => None,
     }
 }
@@ -773,10 +739,6 @@ fn claude_code_proxy_base_url(proxy_url: &str, proxy_token: &str) -> String {
     proxy_route_base_url(proxy_url, proxy_token, "claude")
 }
 
-fn gemini_cli_proxy_base_url(proxy_url: &str, proxy_token: &str) -> String {
-    proxy_route_base_url(proxy_url, proxy_token, "gemini")
-}
-
 fn generate_codex_managed_config(
     existing_content: &str,
     selected_model: Option<&str>,
@@ -915,122 +877,6 @@ fn generate_claude_code_managed_config(
         .map_err(|err| format!("JSON serialize error: {err}"))
 }
 
-fn generate_gemini_cli_settings_config(existing_content: &str) -> Result<String, String> {
-    let mut config: serde_json::Value = if existing_content.trim().is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        serde_json::from_str(existing_content)
-            .map_err(|err| format!("Invalid Gemini CLI JSON: {err}"))?
-    };
-
-    let Some(root) = config.as_object_mut() else {
-        return Err("Gemini CLI settings must be a JSON object".to_string());
-    };
-
-    if !matches!(root.get("security"), Some(serde_json::Value::Object(_))) {
-        root.insert(
-            "security".to_string(),
-            serde_json::Value::Object(serde_json::Map::new()),
-        );
-    }
-    let Some(serde_json::Value::Object(security)) = root.get_mut("security") else {
-        return Err("Failed to build Gemini CLI security object".to_string());
-    };
-
-    if !matches!(security.get("auth"), Some(serde_json::Value::Object(_))) {
-        security.insert(
-            "auth".to_string(),
-            serde_json::Value::Object(serde_json::Map::new()),
-        );
-    }
-    let Some(serde_json::Value::Object(auth)) = security.get_mut("auth") else {
-        return Err("Failed to build Gemini CLI auth object".to_string());
-    };
-
-    auth.insert(
-        "selectedType".to_string(),
-        serde_json::Value::String("gemini-api-key".to_string()),
-    );
-
-    serde_json::to_string_pretty(&config)
-        .map(|value| format!("{value}\n"))
-        .map_err(|err| format!("JSON serialize error: {err}"))
-}
-
-fn quote_env_value(value: &str) -> String {
-    let escaped = value.replace('\\', "\\\\").replace('"', "\\\"");
-    format!("\"{escaped}\"")
-}
-
-fn env_line_key(line: &str) -> Option<String> {
-    let trimmed = line.trim_start();
-    if trimmed.is_empty() || trimmed.starts_with('#') {
-        return None;
-    }
-    let trimmed = trimmed.strip_prefix("export ").unwrap_or(trimmed);
-    let (key, _) = trimmed.split_once('=')?;
-    let key = key.trim();
-    if key.is_empty()
-        || !key
-            .chars()
-            .all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
-    {
-        return None;
-    }
-    Some(key.to_string())
-}
-
-fn upsert_env_file(existing_content: &str, values: &[(&str, String)]) -> String {
-    let replacements: BTreeMap<&str, String> = values.iter().cloned().collect();
-    let mut seen = BTreeSet::new();
-    let mut lines = Vec::new();
-
-    for line in existing_content.lines() {
-        if let Some(key) = env_line_key(line) {
-            if let Some(value) = replacements.get(key.as_str()) {
-                if seen.insert(key.clone()) {
-                    lines.push(format!("{key}={}", quote_env_value(value)));
-                }
-                continue;
-            }
-        }
-        lines.push(line.to_string());
-    }
-
-    for (key, value) in values {
-        if !seen.contains(*key) {
-            lines.push(format!("{key}={}", quote_env_value(value)));
-        }
-    }
-
-    if lines.is_empty() {
-        String::new()
-    } else {
-        format!("{}\n", lines.join("\n"))
-    }
-}
-
-fn generate_gemini_cli_env_config(
-    existing_content: &str,
-    selected_model: Option<&str>,
-    proxy_url: &str,
-    proxy_token: &str,
-) -> String {
-    let model = selected_model_or_default(selected_model).to_string();
-    upsert_env_file(
-        existing_content,
-        &[
-            ("GEMINI_API_KEY", proxy_token.to_string()),
-            ("GOOGLE_API_KEY", proxy_token.to_string()),
-            ("GEMINI_MODEL", model),
-            (
-                "GOOGLE_GEMINI_BASE_URL",
-                gemini_cli_proxy_base_url(proxy_url, proxy_token),
-            ),
-        ],
-    )
-}
-
 fn generate_managed_configs(
     agent_name: &str,
     existing_contents: &BTreeMap<String, String>,
@@ -1067,22 +913,6 @@ fn generate_managed_configs(
                     proxy_url,
                     proxy_token,
                 )?,
-            );
-            Ok(files)
-        }
-        GEMINI_CLI_AGENT => {
-            files.insert(
-                GEMINI_CLI_SETTINGS_FILE_ID.to_string(),
-                generate_gemini_cli_settings_config(content(GEMINI_CLI_SETTINGS_FILE_ID))?,
-            );
-            files.insert(
-                GEMINI_CLI_ENV_FILE_ID.to_string(),
-                generate_gemini_cli_env_config(
-                    content(GEMINI_CLI_ENV_FILE_ID),
-                    selected_model,
-                    proxy_url,
-                    proxy_token,
-                ),
             );
             Ok(files)
         }
@@ -1476,75 +1306,6 @@ shell_tool = true
         assert_eq!(
             claude_code_proxy_base_url(DEFAULT_PROXY_URL, TEST_PROXY_TOKEN),
             "http://127.0.0.1:17888/proxy/test-proxy-token/claude"
-        );
-        assert_eq!(
-            gemini_cli_proxy_base_url(DEFAULT_PROXY_URL, TEST_PROXY_TOKEN),
-            "http://127.0.0.1:17888/proxy/test-proxy-token/gemini"
-        );
-    }
-
-    #[test]
-    fn gemini_cli_managed_config_preserves_settings_and_writes_env() {
-        let settings = r#"
-{
-  "ide": {
-    "enabled": true
-  },
-  "security": {
-    "auth": {
-      "selectedType": "oauth-personal"
-    }
-  }
-}
-"#;
-        let env = r#"
-CUSTOM_FLAG=keep
-GEMINI_API_KEY="old-key"
-export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
-"#;
-        let mut existing = BTreeMap::new();
-        existing.insert(
-            GEMINI_CLI_SETTINGS_FILE_ID.to_string(),
-            settings.to_string(),
-        );
-        existing.insert(GEMINI_CLI_ENV_FILE_ID.to_string(), env.to_string());
-
-        let generated = generate_managed_configs(
-            GEMINI_CLI_AGENT,
-            &existing,
-            Some("gemini-2.5-pro"),
-            DEFAULT_PROXY_URL,
-            TEST_PROXY_TOKEN,
-        )
-        .unwrap();
-        let generated_settings: serde_json::Value =
-            serde_json::from_str(&generated[GEMINI_CLI_SETTINGS_FILE_ID]).unwrap();
-        let generated_env = &generated[GEMINI_CLI_ENV_FILE_ID];
-
-        assert_eq!(generated_settings["ide"]["enabled"].as_bool(), Some(true));
-        assert_eq!(
-            generated_settings["security"]["auth"]["selectedType"].as_str(),
-            Some("gemini-api-key")
-        );
-        assert!(generated_env.contains("CUSTOM_FLAG=keep"));
-        assert!(generated_env.contains("GEMINI_API_KEY=\"test-proxy-token\""));
-        assert!(generated_env.contains("GOOGLE_API_KEY=\"test-proxy-token\""));
-        assert!(generated_env.contains("GEMINI_MODEL=\"gemini-2.5-pro\""));
-        assert!(generated_env.contains(
-            "GOOGLE_GEMINI_BASE_URL=\"http://127.0.0.1:17888/proxy/test-proxy-token/gemini\""
-        ));
-        assert!(!generated_env.contains("old-key"));
-        assert!(!generated_env.contains("https://old.example.com"));
-    }
-
-    #[test]
-    fn gemini_cli_manifest_tracks_settings_and_env() {
-        let targets = agent_manifest_targets(GEMINI_CLI_AGENT).unwrap();
-        let ids: Vec<_> = targets.iter().map(|target| target.id.as_str()).collect();
-
-        assert_eq!(
-            ids,
-            vec![GEMINI_CLI_SETTINGS_FILE_ID, GEMINI_CLI_ENV_FILE_ID]
         );
     }
 
