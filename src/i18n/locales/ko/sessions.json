@@ -123,6 +123,11 @@
         "clis": "CLI"
       },
       "sessions_other": "{{count}}개 세션",
+      "details": {
+        "path": "경로",
+        "storeType": "저장 형식",
+        "copyPath": "경로 복사"
+      },
       "noPath": "경로가 감지되지 않음",
       "notImported": "가져오지 않음",
       "status": {

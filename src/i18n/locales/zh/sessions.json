@@ -123,6 +123,11 @@
         "clis": "命令行"
       },
       "sessions_other": "{{count}} 个会话",
+      "details": {
+        "path": "路径",
+        "storeType": "存储类型",
+        "copyPath": "复制路径"
+      },
       "noPath": "未检测到路径",
       "notImported": "未导入",
       "status": {
