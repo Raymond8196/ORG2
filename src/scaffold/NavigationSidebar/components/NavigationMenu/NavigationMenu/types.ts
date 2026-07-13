@@ -5,7 +5,7 @@ import type { NavigationMenuItem } from "../config";
 export interface NavigationMenuProps {
   items: NavigationMenuItem[];
   selectedKeys: string[];
-  onMenuItemClick: (key: string, item: NavigationMenuItem) => void;
+  onMenuItemClick: NavigationMenuItemClickHandler;
   onSubmenuOpenChange?: (key: string, open: boolean) => void;
   onMenuItemContextMenu?: (
     event: React.MouseEvent,
@@ -20,6 +20,12 @@ export interface NavigationMenuProps {
   defaultOpenKeys?: string[];
   compactRows?: boolean;
 }
+
+export type NavigationMenuItemClickHandler = (
+  key: string,
+  item: NavigationMenuItem,
+  event: React.MouseEvent
+) => void;
 
 export type NavigationMenuIconRenderer = (
   icon: NavigationMenuItem["icon"],
