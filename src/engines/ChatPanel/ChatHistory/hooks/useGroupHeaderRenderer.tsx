@@ -26,6 +26,7 @@ interface UseGroupHeaderRendererOptions {
   turnPaginationEnabled: boolean;
   collapseTailWhenIdle: boolean;
   hideUserMessage: boolean;
+  userMessageBubble: boolean;
   defaultTurnCollapsed: boolean;
   turnCollapseInteractionAtRef: React.MutableRefObject<number>;
   onEditSubmit: GroupHeaderRendererProps["onEditSubmit"];
@@ -43,6 +44,7 @@ export function useGroupHeaderRenderer({
   turnPaginationEnabled,
   collapseTailWhenIdle,
   hideUserMessage,
+  userMessageBubble,
   defaultTurnCollapsed,
   turnCollapseInteractionAtRef,
   onEditSubmit,
@@ -72,6 +74,7 @@ export function useGroupHeaderRenderer({
           hideCollapseTimeRange={turnPaginationEnabled}
           collapseTailWhenIdle={collapseTailWhenIdle}
           hideUserMessage={hideUserMessage}
+          userMessageBubble={userMessageBubble}
           defaultTurnCollapsed={defaultTurnCollapsed}
           renderPart={renderPart}
           turnCollapseInteractionAtRef={turnCollapseInteractionAtRef}
@@ -91,6 +94,7 @@ export function useGroupHeaderRenderer({
       turnPaginationEnabled,
       collapseTailWhenIdle,
       hideUserMessage,
+      userMessageBubble,
       defaultTurnCollapsed,
       turnCollapseInteractionAtRef,
       onEditSubmit,

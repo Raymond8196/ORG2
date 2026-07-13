@@ -80,6 +80,7 @@ function sameGroupHeaderProps(
     previous.suppressRoundGap === next.suppressRoundGap &&
     previous.collapseTailWhenIdle === next.collapseTailWhenIdle &&
     previous.hideUserMessage === next.hideUserMessage &&
+    previous.userMessageBubble === next.userMessageBubble &&
     previous.defaultTurnCollapsed === next.defaultTurnCollapsed &&
     previous.renderPart === next.renderPart &&
     previous.turnCollapseInteractionAtRef ===
@@ -118,6 +119,8 @@ export interface GroupHeaderRendererProps {
    * the pagination row.
    */
   hideUserMessage?: boolean;
+  /** Render the user message as a compact, right-aligned bubble. */
+  userMessageBubble?: boolean;
   /** Default collapse state for eligible turns when no explicit override exists. */
   defaultTurnCollapsed?: boolean;
   renderPart?: GroupHeaderRenderPart;
@@ -151,6 +154,7 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
     suppressRoundGap = false,
     collapseTailWhenIdle = false,
     hideUserMessage = false,
+    userMessageBubble = false,
     defaultTurnCollapsed = false,
     renderPart = "all",
     turnCollapseInteractionAtRef,
@@ -233,12 +237,15 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
           <div
             className={
               showPinnedBars
-                ? "flex flex-col rounded-[12px] bg-chat-container"
+                ? userMessageBubble
+                  ? "flex flex-col gap-1"
+                  : "flex flex-col rounded-[12px] bg-chat-container"
                 : "contents"
             }
           >
             <UserChatItem
               chatItem={header}
+              bubble={userMessageBubble}
               onEditSubmit={onEditSubmit ? handleEdit : undefined}
               onRestoreCheckpoint={
                 onRestoreCheckpoint ? handleRestoreCheckpoint : undefined
