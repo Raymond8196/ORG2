@@ -456,6 +456,27 @@ describe("My Station follows the active session's repo", () => {
     await clickSidebarSessionRow(SESSION_A);
     await waitForStatusBarRepo(REPO_X_NAME, "before opening Worktree picker");
 
+    const gitControlOrder = await execJS(`
+      const repo = document.querySelector('[data-testid="status-bar-repo-name"]');
+      const worktree = document.querySelector('[data-testid="status-bar-worktree"]');
+      const branch = document.querySelector('[data-testid="status-bar-branch"]');
+      const follows = (left, right) =>
+        !!left && !!right &&
+        !!(left.compareDocumentPosition(right) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return {
+        repoBeforeWorktree: follows(repo, worktree),
+        worktreeBeforeBranch: follows(worktree, branch),
+      };
+    `);
+    if (
+      !gitControlOrder.repoBeforeWorktree ||
+      !gitControlOrder.worktreeBeforeBranch
+    ) {
+      throw new Error(
+        `status bar git controls are not Workspace → Worktree → Branch: ${JSON.stringify(gitControlOrder)}`
+      );
+    }
+
     // Exercise the production status-bar click -> openWorktreeSpotlight ->
     // GlobalSpotlight WorktreePalette path. The fixture helper only seeded the
     // durable repo/worktree precondition; it does not open or select the UI.

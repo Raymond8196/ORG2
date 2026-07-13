@@ -24,11 +24,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
-import {
-  type GitWorktreeEntry,
-  gitApi,
-  removeGitWorktree,
-} from "@src/api/http/git";
+import { gitApi, removeGitWorktree } from "@src/api/http/git";
 import { CheckoutBlockedDialog } from "@src/components/GitDialogs/CheckoutBlockedDialog";
 import { CheckoutConflictDialog } from "@src/components/GitDialogs/CheckoutConflictDialog";
 import PillGroup, { type PillGroupVariant } from "@src/components/PillGroup";
@@ -60,19 +56,11 @@ import { workspaceNameAtom } from "@src/store/workspace/derived";
 import { showGitActionDialogSafely } from "@src/util/dialogs/gitActionDialog";
 
 import {
-  WorktreeDropdown,
-  useRepoWorktrees,
-} from "./SessionInfoLine/WorktreeDropdown";
-import {
   buildSessionInfoSegments,
   getSessionInfoDisplayState,
 } from "./SessionInfoLine/buildSessionInfoSegments";
 import { type LocationRow } from "./SessionInfoLine/locationConfig";
 import { useSystemPathRepoItems } from "./SessionInfoLine/useSystemPathRepoItems";
-import {
-  getWorktreeName,
-  normalizeWorktreePath,
-} from "./SessionInfoLine/worktreeSwitcher";
 import WorktreeSourceModal from "./WorktreeSourceModal";
 
 // ============================================
@@ -139,7 +127,6 @@ export interface SessionInfoLineProps {
   selectedWorktreePath?: string | null;
   worktreeSourceLabel?: string;
   onWorktreeLocationChange?: (location: RunningLocation) => void;
-  onExistingWorktreeSelect?: (worktree: GitWorktreeEntry) => void;
   onWorktreeSourceSelect?: (source: WorktreeLaunchSource) => void;
 }
 
@@ -281,7 +268,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   selectedWorktreePath,
   worktreeSourceLabel,
   onWorktreeLocationChange,
-  onExistingWorktreeSelect,
   onWorktreeSourceSelect,
   disabled = false,
   hideBranch = false,
@@ -293,7 +279,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   // ============================================
 
   const [isRepoSelectorOpen, setIsRepoSelectorOpen] = useState(false);
-  const [isWorktreeSelectorOpen, setIsWorktreeSelectorOpen] = useState(false);
   const [isBranchSelectorOpen, setIsBranchSelectorOpen] = useState(false);
   const [isWorktreeSourceModalOpen, setIsWorktreeSourceModalOpen] =
     useState(false);
@@ -347,7 +332,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   // ============================================
 
   const repoTriggerRef = useRef<HTMLButtonElement>(null);
-  const worktreeTriggerRef = useRef<HTMLButtonElement>(null);
   const branchTriggerRef = useRef<HTMLButtonElement>(null);
   const modelPickerStyle = useAtomValue(modelPickerStyleAtom);
   const useDropdownPicker = modelPickerStyle === "dropdown";
@@ -359,11 +343,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   const handleRepoTriggerClick = useCallback(() => {
     if (disabled) return;
     setIsRepoSelectorOpen((isOpen) => !isOpen);
-  }, [disabled]);
-
-  const handleWorktreeTriggerClick = useCallback(() => {
-    if (disabled) return;
-    setIsWorktreeSelectorOpen((isOpen) => !isOpen);
   }, [disabled]);
 
   const handleBranchTriggerClick = useCallback(() => {
@@ -602,32 +581,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
     ]
   );
 
-  const worktrees = useRepoWorktrees({
-    repoId,
-    repoPath,
-    enabled: showBranchRow,
-  });
-  const activeWorktreePath = selectedWorktreePath ?? repoPath ?? "";
-  const activeWorktree = worktrees.find(
-    (worktree) =>
-      normalizeWorktreePath(worktree.path) ===
-      normalizeWorktreePath(activeWorktreePath)
-  );
-  const showWorktreeRow = showBranchRow;
-  const worktreeName = activeWorktree?.is_main
-    ? t("sourceControl.scope.main")
-    : activeWorktree
-      ? getWorktreeName(activeWorktree)
-      : undefined;
-
-  const handleExistingWorktreeSelect = useCallback(
-    (worktree: GitWorktreeEntry) => {
-      onExistingWorktreeSelect?.(worktree);
-      setIsWorktreeSelectorOpen(false);
-    },
-    [onExistingWorktreeSelect]
-  );
-
   const handleLocationTriggerClick = useCallback(() => {
     if (disabled) return;
     toggleLocation();
@@ -658,10 +611,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
     sourceDisplayName,
     isRepoSelectorOpen,
     handleRepoTriggerClick,
-    showWorktreeRow,
-    worktreeName,
-    isWorktreeSelectorOpen,
-    handleWorktreeTriggerClick,
     showBranchRow,
     branchLoading,
     branchName,
@@ -680,8 +629,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   // flag passing locally-created refs through a plain function.
   const segments = baseSegments.map((segment) => {
     if (segment.id === "repo") return { ...segment, buttonRef: repoTriggerRef };
-    if (segment.id === "worktree")
-      return { ...segment, buttonRef: worktreeTriggerRef };
     if (segment.id === "branch")
       return { ...segment, buttonRef: branchTriggerRef };
     return segment;
@@ -714,17 +661,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
           switchPathLabel={t("selectors.sessionInfo.sessionWorkspace")}
           hideActionClose
           leadingRepos={systemPathSourceItems}
-        />
-      )}
-
-      {showWorktreeRow && (
-        <WorktreeDropdown
-          isOpen={isWorktreeSelectorOpen}
-          onClose={() => setIsWorktreeSelectorOpen(false)}
-          onSelect={handleExistingWorktreeSelect}
-          worktrees={worktrees}
-          selectedPath={activeWorktreePath}
-          anchorRef={worktreeTriggerRef}
         />
       )}
 

@@ -15,11 +15,13 @@ import React from "react";
 import WorktreeSourceModal from "@src/features/SessionCreator/components/WorktreeSourceModal";
 import { useFilteredItems } from "@src/hooks/search";
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
+import { compactRepoPathForDisplay } from "@src/util/file/repoPathDisplay";
 
 import {
   SPOTLIGHT_FOOTER_ACTIVE_CHIP,
   SpotlightPinnedActionSection,
 } from "../../components";
+import { SPOTLIGHT_CLASSES, SPOTLIGHT_TOKENS } from "../../constants";
 import { PaletteBody, SpotlightShell } from "../../shell";
 import type { SpotlightItem } from "../../types";
 import { useSelectorKernel } from "../core";
@@ -54,22 +56,28 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     () =>
       worktrees.map((worktree) => {
         const path = normalizeWorktreePath(worktree.path);
-        const label = worktree.is_main
-          ? "Main Worktree"
-          : path.split("/").pop() || path;
+        const label =
+          worktree.branch ||
+          (worktree.is_main ? "Main Worktree" : path.split("/").pop() || path);
         const isSelected =
           path === normalizeWorktreePath(activePath || repoPath);
         return {
           id: `worktree:${path}`,
           label,
-          desc: path,
+          desc: compactRepoPathForDisplay({ path }),
           icon: GitFork,
           type: "option" as const,
           data: {
             isSelector: true,
             isCurrentSelection: isSelected,
-            rightLabel: worktree.branch,
-            tagLabel: isSelected ? "Current" : undefined,
+            inlineTag: worktree.is_main ? "Main" : undefined,
+            rightContent: isSelected ? (
+              <span
+                className={`${SPOTLIGHT_CLASSES.primaryPill} ${SPOTLIGHT_TOKENS.badgeFontSize} shrink-0 font-medium`}
+              >
+                Current
+              </span>
+            ) : undefined,
           },
           action: () => {
             void Promise.resolve(onSelect(worktree)).then(onClose);
@@ -107,8 +115,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
   const { filteredItems } = useFilteredItems({
     items,
     searchQuery,
-    getSearchText: (item) =>
-      `${item.label} ${item.desc ?? ""} ${String(item.data?.rightLabel ?? "")}`,
+    getSearchText: (item) => `${item.label} ${item.desc ?? ""}`,
   });
 
   const pinnedActionSection = onCreate ? (
@@ -150,7 +157,6 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       ]}
       onRemoveSegment={() => (onGoBackToParent ?? onClose)()}
       isLoading={isOpen && worktrees.length === 0}
-      containerHeight={350}
       fixedHeight
       afterListSlot={pinnedActionSection}
     />
