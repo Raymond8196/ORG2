@@ -93,7 +93,9 @@ pub enum SideQueryError {
     Provider(ProviderError),
     /// The model hit its output token limit. Never accept this for side queries:
     /// summaries / classifiers may be syntactically parseable but semantically truncated.
-    IncompleteOutput { finish_reason: String },
+    IncompleteOutput {
+        finish_reason: String,
+    },
     EmptyContent,
 }
 
