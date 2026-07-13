@@ -342,7 +342,9 @@ export const SessionTable: React.FC<SessionTableProps> = ({
       maxHeight={maxHeight}
       pageSize={pageSize}
       pageSizeOptions={pageSizeOptions}
-      className={className}
+      className={["table-settings-session-list-hover", className]
+        .filter(Boolean)
+        .join(" ")}
       rootClassName={rootClassName}
       emptyTitle={hasSearchFilter ? t("common:status.noResults") : undefined}
       searchBar={
