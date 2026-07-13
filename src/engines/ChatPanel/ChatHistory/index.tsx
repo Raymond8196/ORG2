@@ -683,23 +683,15 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
 
   const visibleRangeEndRef = useRef(0);
   const [activePinnedGroupIndex, setActivePinnedGroupIndex] = useState(0);
-  const [activeGroupPinned, setActiveGroupPinned] = useState(false);
-  const handleActiveGroupIndexChange = useCallback(
-    (groupIndex: number, pinned: boolean) => {
-      setActivePinnedGroupIndex((previousIndex) =>
-        previousIndex === groupIndex ? previousIndex : groupIndex
-      );
-      setActiveGroupPinned((previousPinned) =>
-        previousPinned === pinned ? previousPinned : pinned
-      );
-    },
-    []
-  );
+  const handleActiveGroupIndexChange = useCallback((groupIndex: number) => {
+    setActivePinnedGroupIndex((previousIndex) =>
+      previousIndex === groupIndex ? previousIndex : groupIndex
+    );
+  }, []);
   useEffect(() => {
     setActivePinnedGroupIndex((previousIndex) =>
       Math.min(previousIndex, Math.max(0, displayGroupCounts.length - 1))
     );
-    setActiveGroupPinned(false);
   }, [activeId, currentPageIndex, displayGroupCounts.length]);
 
   // Shared scroll intent refs — owned here, passed into scroll hooks so
@@ -1014,6 +1006,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     turnPaginationEnabled,
     collapseTailWhenIdle,
     hideUserMessage: hideGroupUserMessage,
+    userMessageBubble: !turnPaginationEnabled,
     defaultTurnCollapsed,
     turnCollapseInteractionAtRef,
     onEditSubmit: mutationActionsDisabled ? undefined : handleEditUserMessage,
@@ -1035,9 +1028,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     (turnPaginationEnabled && Boolean(activePinnedHeader));
   const showPinnedTurnHeader =
     hasPinnedHeaderContent &&
+    turnPaginationEnabled &&
     !turnPageListOpen &&
-    !agentOrgOverviewOpen &&
-    (turnPaginationEnabled || activeGroupPinned);
+    !agentOrgOverviewOpen;
   const showTurnContextRow =
     turnPaginationEnabled ||
     Boolean(agentOrgCurrentMemberName) ||
@@ -1238,7 +1231,11 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                       }
                       onAtBottomStateChange={handleAtBottomStateChange}
                       onRangeChanged={handleRangeChanged}
-                      onActiveGroupIndexChange={handleActiveGroupIndexChange}
+                      onActiveGroupIndexChange={
+                        turnPaginationEnabled
+                          ? handleActiveGroupIndexChange
+                          : undefined
+                      }
                       onEndReached={handleTurnPageEndReached}
                       onRegenerate={
                         mutationActionsDisabled

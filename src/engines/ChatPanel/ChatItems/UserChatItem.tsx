@@ -34,6 +34,7 @@ import { imageRefToRustPath } from "@src/engines/SessionCore/ingestion/agentMess
 import UserMessageContent from "../ChatHistory/components/UserMessageContent";
 import InputArea from "../InputArea";
 import { stripExpandedPillContent } from "../InputArea/utils/pillContentParser";
+import { normalizeUserMessageText } from "./normalizeUserMessageText";
 
 const USER_MSG_MAX_LINES = 3;
 const USER_MSG_MAX_CHARS = 120;
@@ -91,6 +92,8 @@ function extractPrPillCards(text: string): SessionLinkCardData[] {
 
 interface UserChatItemProps {
   chatItem: OptimizedChatItem;
+  /** Use the compact, right-aligned presentation for natural-scroll chat. */
+  bubble?: boolean;
   onEditSubmit?: (newText: string, imageDataUrls?: string[]) => void;
   /**
    * Restore the session to this message's checkpoint WITHOUT re-sending it
@@ -177,8 +180,7 @@ CachedFileChip.displayName = "CachedFileChip";
 // ============================================
 
 /** Layout-only; border/hover/focus ring added per-row below */
-const DISPLAY_CONTAINER_BASE =
-  "group relative w-full rounded-lg bg-chat-input px-3 py-2";
+const DISPLAY_CONTAINER_BASE = "group relative max-w-full px-3 py-2";
 
 // ============================================
 // Component
@@ -186,6 +188,7 @@ const DISPLAY_CONTAINER_BASE =
 
 const UserChatItem = ({
   chatItem,
+  bubble = false,
   onEditSubmit,
   onRestoreCheckpoint,
   onEditingChange,
@@ -222,7 +225,7 @@ const UserChatItem = ({
     // that the user originally typed (e.g. "create-rule [skill:/create-rule]").
     // Prefer it unconditionally — falling back to message.content would show the
     // expanded YAML/raw text instead of the pill badge.
-    if (editedText) return editedText;
+    if (editedText) return normalizeUserMessageText(editedText);
 
     // Legacy path: no display_text stored (old messages). Use message.content
     // stripped of any auto-expanded pill block.
@@ -231,7 +234,7 @@ const UserChatItem = ({
       | undefined;
     const content = message?.content;
     if (typeof content === "string") {
-      return stripExpandedPillContent(content);
+      return normalizeUserMessageText(stripExpandedPillContent(content));
     }
     return "";
   }, [activityResult, editedText]);
@@ -347,18 +350,25 @@ const UserChatItem = ({
     !isAgentOrgInboxTranscript &&
     !isPlanApproved
   );
+  const hasDisplayContent = Boolean(
+    fullContent.trim() ||
+    messageImages?.length ||
+    cachedFiles.length ||
+    isRepoSetup ||
+    isPlanApproved
+  );
+  if (!hasDisplayContent) return null;
+
   const displayNeedsTruncation = needsTruncation;
 
-  // The user message always carries its own border + hover so the hover
-  // affordance lights up ONLY the message ("input area"), not the surrounding
-  // fill-2 frame. When a pinned strip sits below, it lives as a separate
-  // rounded card on the same fill-2 backdrop (handled by the parent).
-  const containerClass = `${DISPLAY_CONTAINER_BASE} ${INPUT_AREA.shellInteractionClassesNoGlow} ${
-    isEditableDisplay ? "cursor-pointer outline-none" : ""
-  }`;
+  const containerClass = `${DISPLAY_CONTAINER_BASE} ${
+    bubble
+      ? "w-fit rounded-2xl bg-fill-2 transition-colors hover:bg-fill-3"
+      : `w-full rounded-lg bg-chat-input ${INPUT_AREA.shellInteractionClassesNoGlow}`
+  } ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
 
   // Display mode
-  return (
+  const display = (
     <>
       <div
         className={containerClass}
@@ -366,8 +376,12 @@ const UserChatItem = ({
         onClick={isEditableDisplay ? handleEditClick : undefined}
       >
         {fullContent && (
-          <div className="absolute right-1.5 top-[19px] z-10 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
-            <div className="flex items-center gap-1 rounded-lg border border-fill-2 bg-fill-2 px-1 py-0.5">
+          <div
+            className={`absolute z-10 -translate-y-1/2 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 ${
+              bubble ? "right-full top-1/2 mr-1" : "right-1.5 top-[19px]"
+            }`}
+          >
+            <div className="flex items-center gap-1 px-1 py-0.5">
               <ChatBubbleCopyButton content={fullContent} placement="toolbar" />
               {isEditableDisplay && onRestoreCheckpoint && (
                 <button
@@ -424,7 +438,7 @@ const UserChatItem = ({
             <>
               {(fullContent || (messageImages && messageImages.length > 0)) && (
                 <div
-                  className={`group/expand relative w-full ${fullContent && fullContent !== "(image)" ? "pr-6" : ""}`}
+                  className={`group/expand relative w-full ${!bubble && fullContent && fullContent !== "(image)" ? "pr-6" : ""}`}
                 >
                   <div
                     ref={messageContentRef}
@@ -450,7 +464,7 @@ const UserChatItem = ({
                       <ExpandOverlay
                         isExpanded
                         onToggle={handleToggleTruncation}
-                        fadeFrom="from-chat-input"
+                        fadeFrom={bubble ? "from-fill-2" : "from-chat-input"}
                       />
                     )}
                   </div>
@@ -460,7 +474,7 @@ const UserChatItem = ({
                       isExpanded={false}
                       onToggle={handleToggleTruncation}
                       collapsedFadeHeightClass="h-8"
-                      fadeFrom="from-chat-input"
+                      fadeFrom={bubble ? "from-fill-2" : "from-chat-input"}
                     />
                   )}
                 </div>
@@ -486,7 +500,9 @@ const UserChatItem = ({
         </div>
       </div>
       {prPillCards.length > 0 && (
-        <div className="mt-1 flex flex-col">
+        <div
+          className={`mt-1 flex flex-col ${bubble ? "w-full max-w-2xl" : ""}`.trim()}
+        >
           {prPillCards.map((card) => (
             <SessionLinkCard
               key={`${card.repoFullName}#${card.prNumber}`}
@@ -497,6 +513,10 @@ const UserChatItem = ({
       )}
     </>
   );
+
+  if (!bubble) return display;
+
+  return <div className="flex w-full flex-col items-end pl-24">{display}</div>;
 };
 
 export default memo(UserChatItem);
