@@ -8,6 +8,15 @@ describe("normalizeUserMessageText", () => {
     expect(
       normalizeUserMessageText("# Files mentioned by the user:\n\n   ")
     ).toBe("");
+    expect(
+      normalizeUserMessageText("\n\n# Files mentioned by the user:\n")
+    ).toBe("");
+    expect(
+      normalizeUserMessageText("\u200B# Files mentioned by the user:\n")
+    ).toBe("");
+    expect(
+      normalizeUserMessageText("\u200B\n# Files mentioned by the user:\n")
+    ).toBe("");
   });
 
   it("removes the heading and leading blank lines when content follows", () => {
@@ -21,5 +30,8 @@ describe("normalizeUserMessageText", () => {
   it("leaves ordinary user text unchanged", () => {
     const text = "# Review this file\nKeep the heading.";
     expect(normalizeUserMessageText(text)).toBe(text);
+    expect(normalizeUserMessageText("\n\nKeep intentional spacing.")).toBe(
+      "\n\nKeep intentional spacing."
+    );
   });
 });
