@@ -65,7 +65,6 @@ export const KANBAN_AGENT_TYPE_FILTER = {
   CLAUDE_CLI: "claude_code",
   CODEX_APP: "codex_app",
   CODEX_CLI: "codex",
-  GEMINI_CLI: "gemini_cli",
   COPILOT: "copilot",
   KIRO: "kiro",
   KIMI_CLI: "kimi_cli",

@@ -69,7 +69,7 @@ fn store_kind_for(source_id: &str) -> &'static str {
         "claude_code" | "codex_app" | "workbuddy" | "trae" => "jsonl",
         "cursor_ide" | "opencode" | "windsurf" => "sqlite",
         // Known store format, not yet imported.
-        "gemini" | "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
+        "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
         "cursor" | "copilot" | "goose" | "grok" | "openclaw" | "cline" => "sqlite",
         "aider" => "markdown",
         _ => "",
@@ -85,7 +85,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[],
         "claude",
         "claude",
-        true,
+        false,
         &[".claude", ".claude/projects"],
     ),
     source(
@@ -145,17 +145,6 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[".omp"],
     ),
     source(
-        "gemini",
-        "Gemini",
-        "gemini",
-        "gemini",
-        &[],
-        "gemini",
-        "gemini",
-        false,
-        &[".gemini"],
-    ),
-    source(
         "antigravity",
         "Antigravity",
         "antigravity",
@@ -164,7 +153,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "agy",
         "agy",
         false,
-        &[".antigravity"],
+        &[".gemini/antigravity-cli"],
     ),
     source(
         "aider",
@@ -229,7 +218,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[],
         "cline",
         "cline",
-        false,
+        true,
         &[".cline"],
     ),
     source(

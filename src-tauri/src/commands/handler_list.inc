@@ -146,11 +146,6 @@ agent_sessions::cli::platform_adapters::codex::oauth::start_codex_oauth_login,
 agent_sessions::cli::platform_adapters::codex::oauth::exchange_codex_oauth_code,
 agent_sessions::cli::platform_adapters::codex::oauth::create_codex_oauth_webview,
 agent_sessions::cli::platform_adapters::codex::oauth::close_codex_oauth_webview,
-// Runner commands - Gemini OAuth login
-agent_sessions::cli::platform_adapters::gemini::oauth::start_gemini_oauth_login,
-agent_sessions::cli::platform_adapters::gemini::oauth::exchange_gemini_oauth_code,
-agent_sessions::cli::platform_adapters::gemini::oauth::create_gemini_oauth_webview,
-agent_sessions::cli::platform_adapters::gemini::oauth::close_gemini_oauth_webview,
 // Runner commands - Kiro Credentials (PTY-driven `kiro-cli login` flow).
 // The direct-AWS-SDK SSO variant (`start_kiro_sso_login` / `cancel_kiro_sso_login`)
 // has been archived to `.archive/kiro-sso/` to drop the AWS SDK dep tree.
@@ -460,7 +455,6 @@ key_vault::cursor_list_models_native,
 key_vault::oauth_model_catalog,
 key_vault::claude_code_oauth_list_models,
 key_vault::codex_oauth_list_models,
-key_vault::gemini_oauth_list_models,
 key_vault::refresh_oauth_token,
 key_vault::prompt_polish,
 key_vault::session_step_explain,

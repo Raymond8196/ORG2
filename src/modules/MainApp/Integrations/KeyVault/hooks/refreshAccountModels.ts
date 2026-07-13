@@ -5,7 +5,6 @@
  *   • Cursor (with session token) → cursor_list_models_native
  *   • Claude Code OAuth           → claude_code_oauth_list_models
  *   • Codex OAuth                 → codex_oauth_list_models
- *   • Gemini OAuth                → gemini_oauth_list_models
  *   • Anything else (API key)     → validate_key (validator already returns
  *                                   models_available alongside the auth check)
  *
@@ -29,7 +28,6 @@ import {
   getCodexOAuthModels,
   getCursorNativeModels,
   getFullKey,
-  getGeminiOAuthModels,
   getOAuthModelCatalog,
   refreshOauthToken,
   updateKeyHealth,
@@ -128,29 +126,6 @@ async function fetchModelsForAccount(
       const idToken = fullKey.env_vars?.CODEX_ID_TOKEN;
       return {
         models: await getCodexOAuthModels(token, idToken),
-        modelContextLengths: {},
-      };
-    }
-    case CLI_AGENT.GEMINI: {
-      if (!isOAuthAccount(account)) {
-        break;
-      }
-      const token = fullKey.session_token;
-      if (!token) {
-        throw new RefreshModelsError(
-          "Gemini OAuth account has no access token",
-          "auth_expired"
-        );
-      }
-      // Subscription (Code Assist) accounts must resolve models via the
-      // cloudcode-pa quota endpoint, which needs the project id. It's stored
-      // in env_vars when the account was captured. Older accounts without it
-      // fall back to the generativelanguage endpoint server-side.
-      const projectId =
-        fullKey.env_vars?.GOOGLE_CLOUD_PROJECT ??
-        fullKey.env_vars?.GOOGLE_CLOUD_PROJECT_ID;
-      return {
-        models: await getGeminiOAuthModels(token, projectId),
         modelContextLengths: {},
       };
     }

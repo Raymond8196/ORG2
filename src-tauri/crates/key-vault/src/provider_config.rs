@@ -333,7 +333,6 @@ pub fn get_provider_config(model_type: &str) -> ProviderConfig {
             "anthropic",
         ),
         "codex" => ProviderConfig::new("OPENAI_API_KEY", None, false, None),
-        "gemini_cli" => ProviderConfig::new("GEMINI_API_KEY", None, false, None),
         "copilot" => ProviderConfig::new("GITHUB_TOKEN", None, false, None),
         "kiro" => ProviderConfig::new("KIRO_SESSION_TOKEN", None, false, None),
         "kimi_cli" => ProviderConfig::new("MOONSHOT_API_KEY", Some("MOONSHOT_BASE_URL"), true, None)
@@ -524,7 +523,6 @@ pub fn get_all_provider_configs() -> Vec<(String, ProviderConfig)> {
         "cursor_cli",
         "claude_code",
         "codex",
-        "gemini_cli",
         "copilot",
         "kiro",
         "kimi_cli",
@@ -694,7 +692,6 @@ mod tests {
             "cursor_cli",
             "claude_code",
             "codex",
-            "gemini_cli",
             "copilot",
             "kiro",
             "kimi_cli",
