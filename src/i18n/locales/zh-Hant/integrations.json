@@ -2615,6 +2615,10 @@
       "uiControl": {
         "title": "輕量 ADE/UI 控制",
         "description": "MiniCPM 只能把請求識別成嚴格白名單裡的本地 action。"
+      },
+      "contextCompact": {
+        "title": "自動壓縮上下文",
+        "description": "會話閒置時由 MiniCPM 分段維護舊上下文，獨立於原有手動與自動壓縮。"
       }
     },
     "health": {
