@@ -2,11 +2,11 @@ import React from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import ModelIcon from "@src/components/ModelIcon";
-import { resolveAgentIcon } from "@src/config/agentIcons";
 import type { KanbanTask } from "@src/features/KanbanBoard";
 import { KANBAN_RESULT_STATUS } from "@src/features/KanbanBoard/types";
 import { formatSmartDateTime } from "@src/util/data/formatters/date";
 import { formatModelNameFull } from "@src/util/formatModelName";
+import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 
 import type { SessionTableItem } from "./SessionTable";
 
@@ -42,15 +42,13 @@ function truncateWorkspaceLabel(label: string | undefined): string | undefined {
 }
 
 function renderAgentIcon(task: KanbanTask): React.ReactNode {
-  if (task.cliAgentType) {
-    return <ModelIcon agentType={task.cliAgentType} size={14} />;
-  }
-
-  if (task.agentIconId === "cursor") {
-    return <ModelIcon agentType="cursor_cli" size={14} />;
-  }
-
-  const AgentIcon = resolveAgentIcon(task.agentIconId);
+  // Match the sidebar: a monochrome, text-colored Lucide-style glyph (via the
+  // shared resolver) rather than the full-color brand logo.
+  const AgentIcon = resolveSessionRowIcon({
+    session_id: task.id,
+    agentIconId: task.agentIconId ?? undefined,
+    cliAgentType: task.cliAgentType ?? undefined,
+  });
   return <AgentIcon size={14} strokeWidth={1.75} className="text-text-3" />;
 }
 

@@ -2,12 +2,14 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Loader2,
   Plus,
   RefreshCw,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import Button from "@src/components/Button";
+import { PAGE_ICON_BUTTON } from "@src/components/SettingsTable/SettingsTablePagination";
 
 export function GitHubWorkItemToolbarActions({
   openHref,
@@ -178,34 +180,37 @@ export function GitHubWorkItemPagination({
   onPrevious: () => void;
   onNext: () => void;
 }): ReactNode {
+  // Shares the session-table pagination footer look (PAGE_ICON_BUTTON prev/next
+  // + text-xs label) while keeping the surface's load-more behavior.
   return (
-    <div className="flex h-12 shrink-0 items-center justify-center gap-3 border-t border-border-2 px-3">
-      <Button
-        htmlType="button"
-        variant="tertiary"
-        size="small"
-        iconOnly
-        icon={<ChevronLeft size={14} strokeWidth={1.75} />}
+    <div className="flex h-12 shrink-0 items-center justify-center gap-2 border-t border-border-2 px-3">
+      <button
+        type="button"
+        className={PAGE_ICON_BUTTON}
         disabled={!canGoPrevious}
         onClick={onPrevious}
         aria-label={previousLabel}
         title={previousLabel}
-      />
-      <span className="min-w-20 text-center text-[11px] text-text-3">
+      >
+        <ChevronLeft size={14} />
+      </button>
+      <span className="min-w-20 text-center text-xs text-text-1">
         {totalLabel}
       </span>
-      <Button
-        htmlType="button"
-        variant="tertiary"
-        size="small"
-        iconOnly
-        icon={<ChevronRight size={14} strokeWidth={1.75} />}
-        loading={loadingNext}
+      <button
+        type="button"
+        className={PAGE_ICON_BUTTON}
         disabled={!canGoNext || loadingNext}
         onClick={onNext}
         aria-label={nextLabel}
         title={nextLabel}
-      />
+      >
+        {loadingNext ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <ChevronRight size={14} />
+        )}
+      </button>
     </div>
   );
 }
