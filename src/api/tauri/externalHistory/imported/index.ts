@@ -4,6 +4,7 @@ import type { DispatchCategory } from "../../session";
 import { cursorIdeInitialWindow } from "../cursorIde";
 import type { ExternalCliSourceProbe } from "../detection";
 import { claudeCodeHistoryChunks } from "../sources/claudeCode";
+import { clineHistoryChunks } from "../sources/cline";
 import { codexAppChunks } from "../sources/codexApp";
 import { opencodeHistoryChunks } from "../sources/opencode";
 import { traeHistoryChunks } from "../sources/trae";
@@ -84,6 +85,11 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     ...descriptorFor("trae"),
     dispatchCategory: "external_history",
     loadChunks: traeHistoryChunks,
+  },
+  {
+    ...descriptorFor("cline"),
+    dispatchCategory: "external_history",
+    loadChunks: clineHistoryChunks,
   },
 ];
 

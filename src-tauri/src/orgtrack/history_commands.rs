@@ -2,6 +2,7 @@ use std::path::Path;
 
 use database::db::get_connection;
 use orgtrack_core::sources::claude_code::history as claude_code_history;
+use orgtrack_core::sources::cline::history as cline_history;
 use orgtrack_core::sources::codex::app as codex_app;
 use orgtrack_core::sources::cursor_ide::{db as cursor_db, history as cursor_db_history};
 use orgtrack_core::sources::imported_history;
@@ -39,6 +40,7 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
         &mut conn, 0,
     )?);
     paths.extend(trae_history::list_trae_recent_paths(&mut conn, 0)?);
+    paths.extend(cline_history::list_cline_recent_paths(&mut conn, 0)?);
     Ok(imported_history::recent_paths_from_paths(&paths))
 }
 
@@ -122,15 +124,6 @@ pub async fn cursor_ide_turn_window(
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
-}
-
-#[tauri::command]
-pub async fn cursor_ide_session_detail(
-    session_id: String,
-) -> Result<cursor_db_history::CursorIdeSessionDetail, String> {
-    tokio::task::spawn_blocking(move || cursor_db_history::cursor_ide_session_detail(&session_id))
-        .await
-        .map_err(|err| format!("Task join error: {err}"))?
 }
 
 #[tauri::command]
@@ -287,6 +280,31 @@ pub async fn trae_recent_paths(
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
         trae_history::list_trae_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn cline_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        cline_history::load_cline_history_for_session(&conn, &session_id)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn cline_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<cline_history::ClineRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        cline_history::list_cline_recent_paths(&mut conn, limit)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

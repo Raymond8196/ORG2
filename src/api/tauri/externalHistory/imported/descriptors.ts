@@ -5,7 +5,8 @@ export type ImportedHistorySourceId =
   | "opencode"
   | "windsurf"
   | "workbuddy"
-  | "trae";
+  | "trae"
+  | "cline";
 
 export type ImportedHistoryListCategory =
   `external_history:${ImportedHistorySourceId}`;
@@ -97,6 +98,17 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       iconId: "trae",
       displayName: "Trae",
       groupLabel: "Trae",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "cline",
+      listCategory: "external_history:cline",
+      prefix: "clineapp-",
+      iconId: "cline",
+      displayName: "Cline",
+      groupLabel: "Cline",
       listable: true,
       replayable: true,
       supportsWindowedReplay: false,
