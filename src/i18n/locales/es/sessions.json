@@ -99,8 +99,11 @@
       "lastScan": "Último escaneo {{time}}",
       "neverScanned": "Nunca escaneado",
       "frequencyTitle": "Frecuencia de escaneo",
+      "globalFrequency": "Escaneo automático",
       "freq": {
+        "default": "Predeterminado",
         "manual": "Manual",
+        "60s": "Cada 60s",
         "5m": "Cada 5 min",
         "1h": "Cada hora",
         "1d": "Diario"
@@ -1192,6 +1195,7 @@
       "skip": "Omitir",
       "noReason": "El Agent sugiere cambiar de modo"
     },
+    "explore": "Explorar",
     "exploreSummary": {
       "read_one": "{{count}} archivo",
       "read_other": "{{count}} archivos",

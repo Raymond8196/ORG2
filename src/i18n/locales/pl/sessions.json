@@ -99,8 +99,11 @@
       "lastScan": "Ostatni skan {{time}}",
       "neverScanned": "Nigdy nie skanowano",
       "frequencyTitle": "Częstotliwość skanowania",
+      "globalFrequency": "Autoskan",
       "freq": {
+        "default": "Domyślnie",
         "manual": "Ręcznie",
+        "60s": "Co 60 s",
         "5m": "Co 5 min",
         "1h": "Co godzinę",
         "1d": "Codziennie"
@@ -1229,6 +1232,7 @@
     "askUserSkipped": "Pominięto",
     "askUserQuestionsAnswered": "Pytania zostały udzielone odpowiedzi",
     "askUserQuestionsSkipped": "Pytania pominięte",
+    "explore": "Eksploruj",
     "exploreSummary": {
       "read_one": "{{count}} plik",
       "read_few": "{{count}} pliki",

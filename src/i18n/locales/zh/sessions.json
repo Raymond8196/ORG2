@@ -99,8 +99,11 @@
       "lastScan": "上次扫描 {{time}}",
       "neverScanned": "从未扫描",
       "frequencyTitle": "自动扫描频率",
+      "globalFrequency": "自动扫描",
       "freq": {
+        "default": "默认",
         "manual": "手动",
+        "60s": "每 60 秒",
         "5m": "每 5 分钟",
         "1h": "每小时",
         "1d": "每天"
@@ -1216,6 +1219,7 @@
       "skip": "跳过",
       "noReason": "Agent 建议切换模式"
     },
+    "explore": "探索",
     "exploreSummary": {
       "read_one": "{{count}} 个文件",
       "read_other": "{{count}} 个文件",

@@ -99,8 +99,11 @@
       "lastScan": "Son tarama {{time}}",
       "neverScanned": "Hiç taranmadı",
       "frequencyTitle": "Otomatik tarama sıklığı",
+      "globalFrequency": "Otomatik tarama",
       "freq": {
+        "default": "Varsayılan",
         "manual": "Manuel",
+        "60s": "60 saniyede bir",
         "5m": "5 dakikada bir",
         "1h": "Saatlik",
         "1d": "Günlük"
@@ -1196,6 +1199,7 @@
       "skip": "Atla",
       "noReason": "Agent mod değiştirmeyi öneriyor"
     },
+    "explore": "Keşfet",
     "exploreSummary": {
       "read_one": "{{count}} dosya",
       "read_other": "{{count}} dosya",

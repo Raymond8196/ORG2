@@ -50,6 +50,7 @@ export const SessionFilterInput = z.object({
   includeExternalHistory: z.boolean().optional(),
   includeStats: z.boolean().optional(),
   externalHistorySource: z.string().optional(),
+  disabledExternalHistorySources: z.array(z.string()).optional(),
   activeOnly: z.boolean().optional(),
 });
 

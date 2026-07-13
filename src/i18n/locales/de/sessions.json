@@ -99,8 +99,11 @@
       "lastScan": "Letzter Scan {{time}}",
       "neverScanned": "Nie gescannt",
       "frequencyTitle": "Auto-Scan-Frequenz",
+      "globalFrequency": "Auto-Scan",
       "freq": {
+        "default": "Standard",
         "manual": "Manuell",
+        "60s": "Alle 60s",
         "5m": "Alle 5 Min",
         "1h": "Stündlich",
         "1d": "Täglich"
@@ -1190,6 +1193,7 @@
       "skip": "Überspringen",
       "noReason": "Der Agent schlägt einen Moduswechsel vor"
     },
+    "explore": "Erkunden",
     "exploreSummary": {
       "read_one": "{{count}} Datei",
       "read_other": "{{count}} Dateien",

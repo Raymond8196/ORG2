@@ -99,8 +99,11 @@
       "lastScan": "Última varredura {{time}}",
       "neverScanned": "Nunca verificado",
       "frequencyTitle": "Frequência de varredura",
+      "globalFrequency": "Varredura automática",
       "freq": {
+        "default": "Padrão",
         "manual": "Manual",
+        "60s": "A cada 60s",
         "5m": "A cada 5 min",
         "1h": "A cada hora",
         "1d": "Diário"
@@ -1211,6 +1214,7 @@
     "askUserSkipped": "Ignorado",
     "askUserQuestionsAnswered": "As perguntas foram respondidas",
     "askUserQuestionsSkipped": "Perguntas ignoradas",
+    "explore": "Explorar",
     "exploreSummary": {
       "read_one": "{{count}} arquivo",
       "read_other": "{{count}} arquivos",

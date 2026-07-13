@@ -13,6 +13,7 @@
  *    cache so a busy Today bucket cannot hide Yesterday.
  */
 import {
+  IMPORTED_HISTORY_SOURCES,
   type ImportedHistorySource,
   getImportedHistorySourceByListCategory,
   isImportedHistoryListCategory,
@@ -261,6 +262,10 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
           }
         : undefined;
 
+    const disabledSources = Object.entries(store.get(dataSourceConfigAtom))
+      .filter(([, cfg]) => cfg?.enabled === false)
+      .map(([sourceId]) => sourceId);
+
     const response = await sessionAggregateList({
       ...filter,
       limit: filter?.limit ?? DEFAULT_FLAT_LIST_PAGE_SIZE,
@@ -268,6 +273,8 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
       includeStats: false,
       sortBy: filter?.sortBy ?? "updated_at",
       sortOrder: filter?.sortOrder ?? "desc",
+      disabledExternalHistorySources:
+        disabledSources.length > 0 ? disabledSources : undefined,
     });
 
     const fetched: Session[] = toFrontendSessions(
@@ -433,6 +440,50 @@ export const loadSidebarSessions = async (options?: {
   persistSessions(merged);
   store.set(sessionLastLoadedAtom, now);
   store.set(sessionLoadingAtom, false);
+};
+
+/**
+ * Incremental refresh of a single external-history source's first page.
+ *
+ * Used by the app-wide auto-scan scheduler. The Rust reader delta-syncs by file
+ * mtime, so this only re-reads sessions that actually changed — a cheap
+ * "metadata refresh", not a full rescan. Disabled sources are cleared instead.
+ */
+export const refreshImportedHistorySource = async (
+  sourceId: string
+): Promise<void> => {
+  const source = IMPORTED_HISTORY_SOURCES.find((s) => s.sourceId === sourceId);
+  if (!source) return;
+  const store = getStore();
+  const category = source.listCategory;
+
+  if (isSourceDisabled(store.get(dataSourceConfigAtom), sourceId)) {
+    store.set(sessionsAtom, (prev) =>
+      replaceFirstPageForCategory(category, prev, [])
+    );
+    setPaginationFor(category, { loaded: 0, hasMore: false, loading: false });
+    return;
+  }
+
+  try {
+    const { sessions, hasMore, dateBuckets } = await loadCategoryPage(
+      category,
+      0,
+      SESSION_SIDEBAR_PAGE_SIZE
+    );
+    store.set(sessionsAtom, (prev) =>
+      replaceFirstPageForCategory(category, prev, sessions)
+    );
+    setPaginationFor(category, {
+      loaded: sessions.length,
+      hasMore,
+      loading: false,
+      dateBuckets,
+    });
+    persistSessions(store.get(sessionsAtom));
+  } catch (error) {
+    log.warn(`[SessionAtom] refresh ${category} failed:`, error);
+  }
 };
 
 export const loadMoreCategory = async (

@@ -99,8 +99,11 @@
       "lastScan": "最終スキャン {{time}}",
       "neverScanned": "未スキャン",
       "frequencyTitle": "自動スキャン頻度",
+      "globalFrequency": "自動スキャン",
       "freq": {
+        "default": "デフォルト",
         "manual": "手動",
+        "60s": "60秒ごと",
         "5m": "5分ごと",
         "1h": "1時間ごと",
         "1d": "毎日"
@@ -1191,6 +1194,7 @@
       "skip": "スキップ",
       "noReason": "Agent がモード切り替えを提案しています"
     },
+    "explore": "探索",
     "exploreSummary": {
       "read_one": "{{count}} 件のファイル",
       "read_other": "{{count}} 件のファイル",

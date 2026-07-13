@@ -99,8 +99,11 @@
       "lastScan": "Dernier scan {{time}}",
       "neverScanned": "Jamais scanné",
       "frequencyTitle": "Fréquence d'analyse",
+      "globalFrequency": "Analyse auto",
       "freq": {
+        "default": "Par défaut",
         "manual": "Manuel",
+        "60s": "Toutes les 60s",
         "5m": "Toutes les 5 min",
         "1h": "Toutes les heures",
         "1d": "Quotidien"
@@ -1192,6 +1195,7 @@
       "skip": "Ignorer",
       "noReason": "L’agent suggère de changer de mode"
     },
+    "explore": "Explorer",
     "exploreSummary": {
       "read_one": "{{count}} fichier",
       "read_other": "{{count}} fichiers",
