@@ -32,7 +32,7 @@ use agent_core::foundation::exec_target::SshTarget;
 /// in `lifecycle::kill_running_agent`.
 pub const REMOTE_PID_MARKER: &str = "ORGII_RPID=";
 
-const REMOTE_RUNTIME_BOOTSTRAP: &str = r#"if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true; nvm use --silent default >/dev/null 2>&1 || nvm use --silent node >/dev/null 2>&1 || nvm use --silent stable >/dev/null 2>&1 || true; fi"#;
+const REMOTE_RUNTIME_BOOTSTRAP: &str = r#"if [ -f "$HOME/.bashrc" ]; then . "$HOME/.bashrc" >/dev/null 2>&1 || true; fi; if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true; nvm use --silent default >/dev/null 2>&1 || nvm use --silent node >/dev/null 2>&1 || nvm use --silent stable >/dev/null 2>&1 || true; fi"#;
 
 /// Escape `s` for safe embedding as a single literal word in a POSIX shell
 /// (bash) script: wrap in single quotes and turn each embedded `'` into the
@@ -109,11 +109,11 @@ fn is_loopback_url(value: &str) -> bool {
 
 /// Prefix remote shell scripts with a quiet user-runtime bootstrap.
 ///
-/// Many npm-based CLIs (Claude Code, Codex, Gemini) are installed against a
-/// user-managed Node from nvm, but non-interactive `bash -lc` often reaches
-/// the distro `/usr/bin/node` instead because `.bashrc` returns early. This
-/// keeps preflight and spawn on the same PATH while remaining a no-op on hosts
-/// without nvm.
+/// Remote GUI/TUI launches run under non-interactive `bash -lc`, so exports
+/// that only live in `.bashrc` are otherwise absent. Source it quietly first,
+/// then load nvm for npm-based CLIs (Claude Code, Codex, Gemini) that depend
+/// on a user-managed Node. This keeps preflight and spawn on the same PATH
+/// while remaining a no-op on hosts without either file.
 fn with_remote_runtime_bootstrap(script: &str) -> String {
     format!("{REMOTE_RUNTIME_BOOTSTRAP}; {script}")
 }
@@ -499,6 +499,7 @@ mod tests {
         assert_eq!(argv[argv.len() - 2], "user@host");
         let remote = argv.last().unwrap();
         let script = decoded_script(remote);
+        assert!(script.contains("$HOME/.bashrc"));
         assert!(script.contains("${NVM_DIR:-$HOME/.nvm}/nvm.sh"));
         assert!(script.contains("nvm use --silent default"));
         assert!(script.ends_with("command -v -- 'claude'"));
@@ -522,6 +523,7 @@ mod tests {
         // decode to what bash -lc actually executes, then assert structure
         let script = decoded_script(remote);
         assert!(script.contains("ORGII_RPID=$$"));
+        assert!(script.contains("$HOME/.bashrc"));
         assert!(script.contains("${NVM_DIR:-$HOME/.nvm}/nvm.sh"));
         assert!(script.contains("nvm use --silent node"));
         assert!(script.contains("cd '/home/u/repo'"));
