@@ -10,7 +10,8 @@ The repository-referenced `frontend-ui-audit` skill is not installed in either d
 | `ConversationMinimap.tsx:41`  | User preview normalization  | keep with reason | Reuses the same pill stripping, empty-file-heading normalization, and round-preview truncation as existing chat surfaces instead of introducing a second text-cleanup rule.              | None.            |
 | `ConversationMinimap.tsx:49`  | Assistant preview selection | keep with reason | Selects the final assistant message from each already-displayed group, avoiding raw tool events and matching the compact turn-summary intent.                                            | None.            |
 | `ConversationMinimap.tsx:124` | Navigation landmark         | keep with reason | Uses a labeled `nav`; every marker is a native button with an accessible turn label, focus ring, tooltip association, and `aria-current` for the visible turn.                           | None.            |
-| `ConversationMinimap.tsx:129` | Responsive rail             | keep with reason | The named chat-body container query hides the rail below 640px, preventing overlap in narrow split panes; standard spacing and color tokens own the marker styling.                      | None.            |
+| `ConversationMinimap.tsx:150` | Viewport highlighting       | keep with reason | Multiple viewport-intersecting turns may share the primary visual state, while a single nearest handle retains `aria-current` semantics.                                                 | None.            |
+| `ConversationMinimap.tsx:129` | Responsive rail             | keep with reason | The named chat-body container keeps the right-edge rail persistent on wide panes while narrow panes show a handle-width floating surface only during active chat scrolling.              | None.            |
 | `ConversationMinimap.tsx:176` | Hover/focus preview         | keep with reason | Reuses the shared dropdown panel surface, anchors it to the hovered or focused marker, and exposes the same preview to keyboard users.                                                   | None.            |
 | `ConversationMinimap.tsx:183` | Turn timing summary         | keep with reason | Reuses the turn-collapse sidebar's shared duration and clock-range formatter, and omits the row until measurable timing exists.                                                          | None.            |
 | `ChatHistoryList.tsx:593`     | Group navigation handle     | keep with reason | One imperative entry point resolves both static DOM scrolling and virtualized group scrolling, so the minimap does not duplicate list-mode branching.                                    | None.            |
@@ -19,6 +20,6 @@ The repository-referenced `frontend-ui-audit` skill is not installed in either d
 ## Summary
 
 - fix: 0
-- keep with reason: 9
+- keep with reason: 10
 - abstract: 0
 - sweep candidates: none
