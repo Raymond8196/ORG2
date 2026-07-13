@@ -126,6 +126,11 @@
       "sessions_few": "{{count}} sesje",
       "sessions_many": "{{count}} sesji",
       "sessions_other": "{{count}} sesji",
+      "details": {
+        "path": "Ścieżka",
+        "storeType": "Typ magazynu",
+        "copyPath": "Kopiuj ścieżkę"
+      },
       "noPath": "Nie wykryto ścieżki",
       "notImported": "Nie zaimportowano",
       "status": {

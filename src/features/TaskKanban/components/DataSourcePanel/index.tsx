@@ -38,6 +38,10 @@ import {
 import Button from "@src/components/Button";
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
 import Select from "@src/components/Select";
+import SettingsTable, {
+  SETTINGS_TABLE_CELL,
+  type SettingsTableColumn,
+} from "@src/components/SettingsTable";
 import StatusBadge, { type StatusType } from "@src/components/StatusBadge";
 import Switch from "@src/components/Switch";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
@@ -45,8 +49,6 @@ import {
   SECTION_CONTROL_STYLE,
   SectionContainer,
   SectionRow,
-  SectionTable,
-  type SectionTableColumn,
 } from "@src/modules/shared/layouts/SectionLayout";
 import { loadSidebarSessions } from "@src/store/session";
 import {
@@ -59,7 +61,11 @@ import {
   dataSourceGlobalFrequencyAtom,
   getSourceConfig,
 } from "@src/store/session/dataSourceConfigAtom";
+import { copyText } from "@src/util/data/clipboard";
 import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
+
+import DataSourceDetailsCard from "./DataSourceDetailsCard";
+import { storeKindLabel, tildePath } from "./sourcePath";
 
 type DataSourceTab = "all" | "apps" | "clis";
 
@@ -72,13 +78,6 @@ function isImportableId(id: string): id is ImportedHistorySourceId {
   return IMPORTABLE_SOURCE_IDS.has(id as ImportedHistorySourceId);
 }
 
-const STORE_KIND_LABELS: Record<string, string> = {
-  jsonl: "JSONL",
-  sqlite: "SQLite",
-  json: "JSON",
-  markdown: "Markdown",
-};
-
 interface SourceRow {
   probe: ExternalCliSourceProbe;
   importable: boolean;
@@ -86,11 +85,6 @@ interface SourceRow {
   statsLoading: boolean;
   rescanning: boolean;
   error: boolean;
-}
-
-/** Collapse an absolute home path to a leading `~/` for display. */
-function tildePath(path: string): string {
-  return path.replace(/^(\/Users\/[^/]+|\/home\/[^/]+)\//, "~/");
 }
 
 const SourceIcon: React.FC<{ probe: ExternalCliSourceProbe }> = ({ probe }) => (
@@ -105,9 +99,12 @@ const DataSourcePanel: React.FC = () => {
   const { t } = useTranslation("sessions", {
     keyPrefix: "kanban.dataSource",
   });
+  const { t: tCommon } = useTranslation("common");
   const [rows, setRows] = useState<SourceRow[] | null>(null);
   const [rescanningAll, setRescanningAll] = useState(false);
   const [tab, setTab] = useState<DataSourceTab>("all");
+  const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [configMap, setConfigMap] = useAtom(dataSourceConfigAtom);
   const [globalFrequency, setGlobalFrequency] = useAtom(
     dataSourceGlobalFrequencyAtom
@@ -319,8 +316,7 @@ const DataSourcePanel: React.FC = () => {
       const path = row.probe.historyPaths[0]
         ? tildePath(row.probe.historyPaths[0])
         : t("noPath");
-      const typeLabel =
-        STORE_KIND_LABELS[row.probe.storeKind] ?? row.probe.storeKind;
+      const typeLabel = storeKindLabel(row.probe);
       return typeLabel ? `${path} · ${typeLabel}` : path;
     },
     [t]
@@ -365,20 +361,16 @@ const DataSourcePanel: React.FC = () => {
     tab === "apps" ? row.importable : tab === "clis" ? !row.importable : true
   );
   const importableCount = (rows ?? []).filter((r) => r.importable).length;
-  const rowById = new Map(visibleRows.map((row) => [row.probe.sourceId, row]));
 
-  const columns: SectionTableColumn[] = [
-    { key: "sessions", label: t("col.sessions"), width: 84 },
-    { key: "lastScan", label: t("col.lastScan"), width: 118 },
-    { key: "frequency", label: t("col.frequency") },
-    { key: "status", label: t("col.status"), width: 104 },
-    { key: "actions", label: "", width: 128 },
-  ];
-  const tableRows = visibleRows.map((row) => ({
-    key: row.probe.sourceId,
-    icon: <SourceIcon probe={row.probe} />,
-    label: row.probe.displayName,
-  }));
+  const searchTerm = searchQuery.trim().toLowerCase();
+  const searchedRows = searchTerm
+    ? visibleRows.filter((row) =>
+        [row.probe.displayName, row.probe.sourceId, ...row.probe.historyPaths]
+          .join(" ")
+          .toLowerCase()
+          .includes(searchTerm)
+      )
+    : visibleRows;
 
   const badgeFor = (
     row: SourceRow,
@@ -391,33 +383,62 @@ const DataSourcePanel: React.FC = () => {
       : { status: "empty", labelKey: "notInstalled" };
   };
 
-  const renderCell = (rowKey: string, columnKey: string): React.ReactNode => {
-    const row = rowById.get(rowKey);
-    if (!row) return null;
-    const cfg = getSourceConfig(configMap, rowKey);
-    const disabled = row.importable && !cfg.enabled;
-    const path = row.probe.historyPaths[0];
-
-    switch (columnKey) {
-      case "sessions":
+  const columns: SettingsTableColumn<SourceRow>[] = [
+    {
+      key: "source",
+      label: t("col.source"),
+      renderCell: (row) => (
+        <span className={`${SETTINGS_TABLE_CELL.primaryIcon} min-w-0`}>
+          <span className="shrink-0 text-text-2">
+            <SourceIcon probe={row.probe} />
+          </span>
+          <span className="truncate">{row.probe.displayName}</span>
+        </span>
+      ),
+    },
+    {
+      key: "sessions",
+      label: t("col.sessions"),
+      width: "84px",
+      renderCell: (row) => {
+        const cfg = getSourceConfig(configMap, row.probe.sourceId);
+        const disabled = row.importable && !cfg.enabled;
         return row.importable && !disabled && row.stats ? (
-          <span className="text-xs tabular-nums text-text-2">
+          <span className="tabular-nums text-text-2">
             {row.stats.sessionCount}
           </span>
         ) : null;
-      case "lastScan":
+      },
+    },
+    {
+      key: "lastScan",
+      label: t("col.lastScan"),
+      width: "118px",
+      renderCell: (row) => {
+        const cfg = getSourceConfig(configMap, row.probe.sourceId);
+        const disabled = row.importable && !cfg.enabled;
         return row.importable && !disabled && cfg.lastScannedAt ? (
-          <span className="whitespace-nowrap text-xs text-text-3">
+          <span className="whitespace-nowrap text-text-3">
             {formatRelativeElapsedShort(new Date(cfg.lastScannedAt))}
           </span>
         ) : null;
-      case "frequency":
+      },
+    },
+    {
+      key: "frequency",
+      label: t("col.frequency"),
+      width: "160px",
+      renderCell: (row) => {
+        const cfg = getSourceConfig(configMap, row.probe.sourceId);
+        const disabled = row.importable && !cfg.enabled;
         return row.importable && !disabled ? (
           <Select
             value={cfg.frequency}
             onChange={(v) => {
               if (typeof v === "string") {
-                updateConfig(rowKey, { frequency: v as SourceFrequency });
+                updateConfig(row.probe.sourceId, {
+                  frequency: v as SourceFrequency,
+                });
               }
             }}
             options={sourceFrequencyOptions}
@@ -426,7 +447,15 @@ const DataSourcePanel: React.FC = () => {
             aria-label={t("frequencyTitle")}
           />
         ) : null;
-      case "status": {
+      },
+    },
+    {
+      key: "status",
+      label: t("col.status"),
+      width: "104px",
+      renderCell: (row) => {
+        const cfg = getSourceConfig(configMap, row.probe.sourceId);
+        const disabled = row.importable && !cfg.enabled;
         const badge = badgeFor(row, disabled);
         return (
           <StatusBadge
@@ -436,8 +465,20 @@ const DataSourcePanel: React.FC = () => {
             size="sm"
           />
         );
-      }
-      case "actions":
+      },
+    },
+    {
+      // Key must stay "actions" — SettingsTable pins the last column when its
+      // key ∈ {actions, status, enabled}, keeping these controls visible while
+      // the table scrolls horizontally.
+      key: "actions",
+      label: "",
+      width: "128px",
+      align: "right",
+      renderCell: (row) => {
+        const cfg = getSourceConfig(configMap, row.probe.sourceId);
+        const disabled = row.importable && !cfg.enabled;
+        const path = row.probe.historyPaths[0];
         return (
           <div className="flex items-center justify-end gap-1.5">
             {path && (
@@ -471,41 +512,17 @@ const DataSourcePanel: React.FC = () => {
             )}
           </div>
         );
-      default:
-        return null;
-    }
-  };
+      },
+    },
+  ];
 
   return (
     <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
-      <div className="mx-auto flex max-w-3xl flex-col gap-3 p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="text-sm font-medium text-text-1">{t("title")}</div>
-            <div className="mt-0.5 text-xs text-text-3">{t("description")}</div>
-          </div>
-          {(rows ?? []).length > 0 && (
-            <Button
-              variant="secondary"
-              size="small"
-              loading={rescanningAll}
-              icon={<RefreshCw size={14} />}
-              onClick={() => void handleRescanAll()}
-            >
-              {t("rescanAll")}
-            </Button>
-          )}
+      <div className="mx-auto flex w-full max-w-[932px] flex-col gap-3 p-4">
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-text-1">{t("title")}</div>
+          <div className="mt-0.5 text-xs text-text-3">{t("description")}</div>
         </div>
-
-        <TabPill
-          activeTab={tab}
-          tabs={tabs}
-          onChange={(key) => setTab(key as DataSourceTab)}
-          variant="pill"
-          color="fill"
-          fillWidth={false}
-          size="small"
-        />
 
         {importableCount > 0 && (
           <SectionContainer>
@@ -529,14 +546,62 @@ const DataSourcePanel: React.FC = () => {
           </SectionContainer>
         )}
 
-        <SectionContainer>
-          <SectionTable
-            columns={columns}
-            rows={tableRows}
-            renderCell={renderCell}
-            labelColumnHeader={t("col.source")}
-          />
-        </SectionContainer>
+        <SettingsTable<SourceRow>
+          columns={columns}
+          rows={searchedRows}
+          getRowKey={(row) => row.probe.sourceId}
+          headerHeight="tall"
+          headerBorder
+          hover
+          loading={rows === null}
+          emptyTitle={searchTerm ? tCommon("status.noResults") : undefined}
+          searchBar={{
+            searchValue: searchQuery,
+            searchPlaceholder: tCommon("common.searchPlaceholder"),
+            onSearchChange: setSearchQuery,
+            onSearchClear: () => setSearchQuery(""),
+            rightContent:
+              (rows ?? []).length > 0 ? (
+                <Button
+                  variant="secondary"
+                  size="small"
+                  loading={rescanningAll}
+                  icon={<RefreshCw size={14} />}
+                  onClick={() => void handleRescanAll()}
+                >
+                  {t("rescanAll")}
+                </Button>
+              ) : undefined,
+            tabPills: (
+              <TabPill
+                activeTab={tab}
+                tabs={tabs}
+                onChange={(key) => setTab(key as DataSourceTab)}
+                variant="pill"
+                color="fill"
+                fillWidth={false}
+                size="small"
+              />
+            ),
+            searchCountText:
+              searchTerm && searchedRows.length !== visibleRows.length
+                ? `${searchedRows.length} / ${visibleRows.length}`
+                : undefined,
+          }}
+          expandable={{
+            expandedRowRender: (row) => (
+              <DataSourceDetailsCard
+                probe={row.probe}
+                stats={row.stats}
+                onOpenFolder={openFolder}
+                onCopyPath={(path) => void copyText(path)}
+              />
+            ),
+            rowExpandable: (row) => row.probe.historyPaths.length > 0,
+            expandedRowKeys,
+            onExpandedRowsChange: setExpandedRowKeys,
+          }}
+        />
       </div>
     </div>
   );

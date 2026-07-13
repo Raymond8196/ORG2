@@ -123,6 +123,11 @@
         "clis": "CLI"
       },
       "sessions_other": "{{count}} 件のセッション",
+      "details": {
+        "path": "パス",
+        "storeType": "保存形式",
+        "copyPath": "パスをコピー"
+      },
       "noPath": "パスが検出されません",
       "notImported": "未インポート",
       "status": {
