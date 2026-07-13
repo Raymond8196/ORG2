@@ -12,9 +12,9 @@ import {
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 import { useRefreshSpin } from "@src/hooks/ui";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import { InfoRow } from "@src/modules/shared/layouts/blocks/InfoRow";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
-import { InfoRow } from "../../../shared/InfoRow";
 import { AccountSourceBreadcrumb } from "../../Models/Table/AccountSourceBreadcrumb";
 import {
   InlineCardBody,
