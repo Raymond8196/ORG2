@@ -147,7 +147,6 @@ fn can_launch_cli(entry: &ModelKey) -> bool {
         ModelType::CursorCli => has_cursor_api_key(entry),
         ModelType::ClaudeCode
         | ModelType::Codex
-        | ModelType::GeminiCli
         | ModelType::Copilot
         | ModelType::Kiro
         | ModelType::KimiCli
@@ -171,7 +170,6 @@ fn supports_rust_agents(
         ModelType::CursorCli | ModelType::OrgiiOrchestrator => false,
         ModelType::ClaudeCode
         | ModelType::Codex
-        | ModelType::GeminiCli
         | ModelType::Copilot
         | ModelType::Kiro
         | ModelType::KimiCli

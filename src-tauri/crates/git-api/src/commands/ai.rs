@@ -62,7 +62,6 @@ const CLI_AGENT_FALLBACKS: &[(ModelType, &str, &str, Option<&str>)] = &[
         None,
     ),
     (ModelType::Codex, "openai", "gpt-4o-mini", None),
-    (ModelType::GeminiCli, "gemini", "gemini-2.0-flash", None),
 ];
 
 /// Default model per provider (small/cheap).
