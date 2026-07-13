@@ -1088,11 +1088,10 @@ describe("processChatItems", () => {
         }
       );
 
-      expect(items.map((item) => item.event?.id)).toEqual([
-        firstSnapshot.id,
-        shellEvent.id,
-        secondSnapshot.id,
-      ]);
+      expect(items).toHaveLength(3);
+      expect(items[0].event?.id).toBe(firstSnapshot.id);
+      expect(items[1].activityStackGroup?.events).toEqual([shellEvent]);
+      expect(items[2].event?.id).toBe(secondSnapshot.id);
     });
   });
 

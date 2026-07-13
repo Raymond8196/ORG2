@@ -29,6 +29,15 @@ fn schema_accepts_null(schema: &Value) -> bool {
     })
 }
 
+fn contains_null(value: &Value) -> bool {
+    match value {
+        Value::Null => true,
+        Value::Array(values) => values.iter().any(contains_null),
+        Value::Object(values) => values.values().any(contains_null),
+        _ => false,
+    }
+}
+
 /// Responses strict schemas represent source-schema optional fields as
 /// required nullable properties. Before invoking the tool, restore `null`
 /// placeholders to the original "field omitted" shape. Explicitly nullable
@@ -40,20 +49,13 @@ fn strip_optional_null_placeholders(value: &mut Value, schema: &Value) {
         schema.get("properties").and_then(Value::as_object),
     ) {
         let originally_required = schema.get("required").and_then(Value::as_array);
-        let keys_to_remove: Vec<String> = params
-            .iter()
-            .filter_map(|(key, value)| {
-                let property_schema = properties.get(key)?;
+        params.retain(|key, value| {
+            properties.get(key).is_none_or(|property_schema| {
                 let is_required = originally_required
                     .is_some_and(|required| required.iter().any(|name| name.as_str() == Some(key)));
-                (value.is_null() && !is_required && !schema_accepts_null(property_schema))
-                    .then(|| key.clone())
+                !value.is_null() || is_required || schema_accepts_null(property_schema)
             })
-            .collect();
-
-        for key in keys_to_remove {
-            params.remove(&key);
-        }
+        });
 
         for (key, child) in params.iter_mut() {
             if let Some(child_schema) = properties.get(key) {
@@ -378,7 +380,13 @@ impl ToolRegistry {
             return Err(format!("Error: Tool '{}' not found", name));
         };
 
-        strip_optional_null_placeholders(&mut params, &tool.parameters());
+        // Most tool calls contain no nulls. Avoid rebuilding the tool's JSON
+        // schema on that hot path; the schema is only needed to distinguish
+        // optional placeholders from explicitly nullable values.
+        if contains_null(&params) {
+            let schema = tool.parameters();
+            strip_optional_null_placeholders(&mut params, &schema);
+        }
 
         match tool.execute(params, ctx).await {
             Ok(result) => Ok(result),
