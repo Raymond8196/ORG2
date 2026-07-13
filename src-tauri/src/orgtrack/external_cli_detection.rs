@@ -56,6 +56,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "windsurf",
     "workbuddy",
     "trae",
+    "cline",
 ];
 
 /// On-disk store format for a source's session history — the "file type" shown
@@ -66,11 +67,11 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
 fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
-        "claude_code" | "codex_app" | "workbuddy" | "trae" => "jsonl",
+        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" => "jsonl",
         "cursor_ide" | "opencode" | "windsurf" => "sqlite",
         // Known store format, not yet imported.
         "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
-        "cursor" | "copilot" | "goose" | "grok" | "openclaw" | "cline" => "sqlite",
+        "cursor" | "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
         "aider" => "markdown",
         _ => "",
     }
@@ -518,6 +519,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         ]),
         "workbuddy" => platform_data_candidates(&["WorkBuddy", "workbuddy"]),
         "trae" => home_candidates(&[".trae-cn/memory/projects", ".trae/memory/projects"]),
+        "cline" => home_candidates(&[".cline/data/sessions", ".cline/data/db"]),
         _ => Vec::new(),
     }
 }

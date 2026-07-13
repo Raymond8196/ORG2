@@ -2,6 +2,7 @@ import { getOrgtrackCursorSessions } from "@src/api/tauri/orgtrackHistory";
 
 import type { ImportedHistorySourceId } from "./imported/descriptors";
 import { claudeCodeRecentPaths } from "./sources/claudeCode";
+import { clineRecentPaths } from "./sources/cline";
 import { codexAppRecentPaths } from "./sources/codexApp";
 import { opencodeRecentPaths } from "./sources/opencode";
 import { traeRecentPaths } from "./sources/trae";
@@ -35,6 +36,7 @@ const RECENT_PATH_FETCHERS: Partial<
   windsurf: () => windsurfRecentPaths(),
   workbuddy: () => workBuddyRecentPaths(),
   trae: () => traeRecentPaths(),
+  cline: () => clineRecentPaths(),
 };
 
 function statsFromRecentPaths(rows: RecentPathLike[]): ExternalSourceStats {
