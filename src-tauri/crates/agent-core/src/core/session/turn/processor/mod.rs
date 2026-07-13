@@ -757,6 +757,30 @@ impl UnifiedMessageProcessor {
             return Ok(redirect);
         }
 
+        // Optional MiniCPM sidecar overlay. The canonical transcript and the
+        // existing automatic/manual compaction state remain untouched: this
+        // replaces a validated old prefix only in the provider request view.
+        // Apply it after the normal compaction pipeline so that pipeline keeps
+        // its original trigger, persistence, and compact-fork semantics.
+        match tokio::task::block_in_place(|| {
+            crate::session::housekeeper_compaction::apply_overlay(
+                session_id,
+                &mut messages,
+            )
+        }) {
+            Ok(crate::session::housekeeper_compaction::OverlayOutcome::Applied {
+                covered_messages,
+            }) => info!(
+                "[unified_processor] Applied MiniCPM context overlay for session {} ({} canonical messages covered)",
+                session_id, covered_messages
+            ),
+            Ok(_) => {}
+            Err(err) => warn!(
+                "[unified_processor] MiniCPM context overlay skipped for session {}: {}",
+                session_id, err
+            ),
+        }
+
         if super::super::recovery::ensure_tool_result_pairing(&mut messages) {
             info!(
                 "[unified_processor] Normalized tool_result pairing before provider request for session {}",
