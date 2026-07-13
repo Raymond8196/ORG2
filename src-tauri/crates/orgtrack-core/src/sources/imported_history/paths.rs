@@ -42,18 +42,20 @@ pub fn file_metadata_signature(path: &Path, source_name: &str) -> Result<(i64, i
 pub fn sqlite_sidecar_signature(db_path: &Path) -> String {
     ["-wal", "-shm"]
         .iter()
-        .map(|suffix| match sqlite_sidecar_path(db_path, suffix).metadata() {
-            Ok(metadata) => {
-                let mtime_ns = metadata
-                    .modified()
-                    .ok()
-                    .and_then(|time| time.duration_since(std::time::UNIX_EPOCH).ok())
-                    .map(|since| since.as_nanos() as i64)
-                    .unwrap_or_default();
-                format!("{suffix}:{}:{mtime_ns}", metadata.len())
-            }
-            Err(_) => format!("{suffix}:-"),
-        })
+        .map(
+            |suffix| match sqlite_sidecar_path(db_path, suffix).metadata() {
+                Ok(metadata) => {
+                    let mtime_ns = metadata
+                        .modified()
+                        .ok()
+                        .and_then(|time| time.duration_since(std::time::UNIX_EPOCH).ok())
+                        .map(|since| since.as_nanos() as i64)
+                        .unwrap_or_default();
+                    format!("{suffix}:{}:{mtime_ns}", metadata.len())
+                }
+                Err(_) => format!("{suffix}:-"),
+            },
+        )
         .collect::<Vec<_>>()
         .join("|")
 }

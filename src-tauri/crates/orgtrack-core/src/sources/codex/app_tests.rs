@@ -881,8 +881,7 @@ fn codex_patch_apply_end_is_authoritative_impact_source() {
     // The same edit is present both as an `apply_patch` tool call AND as the
     // authoritative `patch_apply_end` result. The parser must count it once,
     // from `patch_apply_end`, not add the tool-call fallback on top.
-    let tool_patch =
-        "*** Begin Patch\n*** Update File: src/app.rs\n@@\n-old\n+new\n*** End Patch";
+    let tool_patch = "*** Begin Patch\n*** Update File: src/app.rs\n@@\n-old\n+new\n*** End Patch";
     let tool_arguments = serde_json::json!({ "patch": tool_patch }).to_string();
     let changes = serde_json::json!({
         "src/app.rs": {
@@ -1076,16 +1075,8 @@ fn maps_codex_subagent_parent_thread_to_parent_session_id() {
         "orgii-codex-history-subagent-parent-test-{}",
         std::process::id()
     ));
-    let parent_sessions_dir = temp_dir
-        .join("sessions")
-        .join("2026")
-        .join("07")
-        .join("08");
-    let child_sessions_dir = temp_dir
-        .join("sessions")
-        .join("2026")
-        .join("07")
-        .join("09");
+    let parent_sessions_dir = temp_dir.join("sessions").join("2026").join("07").join("08");
+    let child_sessions_dir = temp_dir.join("sessions").join("2026").join("07").join("09");
     std::fs::create_dir_all(&parent_sessions_dir).expect("create parent sessions dir");
     std::fs::create_dir_all(&child_sessions_dir).expect("create child sessions dir");
 

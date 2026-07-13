@@ -16,13 +16,13 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 
 use crate::sources::imported_history::{
-    self, ImportedHistoryRecentPath, ImportedHistorySessionPage, ImportedHistorySessionRow,
-    ImportedToolCall, cache as imported_cache,
+    self, cache as imported_cache,
     metadata::{
         ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
         SOURCE_CODEX_APP,
     },
-    paths as imported_paths,
+    paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
+    ImportedHistorySessionRow, ImportedToolCall,
 };
 
 mod desktop_exec;
@@ -426,11 +426,7 @@ fn parse_codex_session_meta(
                     .unwrap_or(output_tokens);
             }
         }
-        collect_codex_impact_from_patch_apply_end(
-            &parsed.payload,
-            &mut impact,
-            &mut touched_files,
-        );
+        collect_codex_impact_from_patch_apply_end(&parsed.payload, &mut impact, &mut touched_files);
         collect_codex_impact_from_payload(
             &parsed.payload,
             &mut fallback_impact,
