@@ -3,8 +3,11 @@
 //! Reads Trae's local per-session "memory" JSONL from
 //! `~/.trae-cn/memory/projects/<slug>/<YYYYMMDD>/session_memory_<id>.jsonl` and
 //! converts each turn-summary line into ORGII's canonical `ActivityChunk` shape
-//! for read-only replay. Trae keeps only turn summaries on disk (intent /
-//! actions / outcome / learned); the verbatim messages are server-side.
+//! for read-only replay. Trae keeps only turn summaries in plaintext here
+//! (intent / actions / outcome / learned); the verbatim transcript lives in a
+//! SQLCipher-encrypted `ModularData/ai-agent/database.db` (and server-side)
+//! that ORGII does not decrypt. Encrypted-DB format + key-extraction reference
+//! (MIT): <https://github.com/bigmanBass666/trae-db-decrypt>.
 
 use std::collections::HashSet;
 use std::fs;
@@ -15,6 +18,7 @@ use core_types::activity::ActivityChunk;
 use rusqlite::Connection;
 use serde::Deserialize;
 
+use super::index;
 use crate::sources::imported_history::{
     self, cache as imported_cache,
     metadata::{
@@ -27,7 +31,11 @@ use crate::sources::imported_history::{
 
 const TRAE_SESSION_PREFIX: &str = "traeapp-";
 const TRAE_PROVIDER_SLUG: &str = "trae";
-const TRAE_METADATA_PARSER_VERSION: i64 = 1;
+// v2: re-parse fixes — `message_summary_time` now read as local (not UTC)
+// wall-clock time, and `repo_path` slug decode now anchors on the home dir (so
+// dashed usernames like `laptop-h` resolve instead of yielding NULL). Bumping
+// forces cached sessions to re-parse and pick up both.
+const TRAE_METADATA_PARSER_VERSION: i64 = 2;
 const SESSION_FILE_PREFIX: &str = "session_memory_";
 const TRAE_TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
@@ -48,6 +56,11 @@ struct TraeHistoryMeta {
     created_at_ms: i64,
     updated_at_ms: i64,
     repo_path: Option<String>,
+    /// Friendly agent label from the vscdb index (e.g. `"Solo Agent"`).
+    model: Option<String>,
+    /// Serialized `{ "trae": TraeIndexEntry }` when the session carries index
+    /// signal (agent / current / order), else `None`.
+    source_metadata_json: Option<String>,
 }
 
 /// One turn-summary line of a Trae `session_memory_*.jsonl` file.
@@ -105,15 +118,20 @@ fn sync_trae_history_cache(conn: &mut Connection) -> Result<(), String> {
         .iter()
         .map(ImportedHistoryDiscoveredRecord::signature)
         .collect::<Vec<_>>();
-    let changed = imported_cache::changed_records_from_conn(
-        conn,
-        SOURCE_TRAE,
-        &discovered,
-        |record| record.signature(),
-    )?;
+    let changed =
+        imported_cache::changed_records_from_conn(conn, SOURCE_TRAE, &discovered, |record| {
+            record.signature()
+        })?;
+    // VS Code `state.vscdb` index (agent / current / order), keyed on the same
+    // session ids. Best-effort and cheap, so only read it when there is work.
+    let session_index = if changed.is_empty() {
+        index::TraeSessionIndex::new()
+    } else {
+        index::load_trae_session_index()
+    };
     let mut inputs = Vec::new();
     for record in changed {
-        if let Some(meta) = parse_trae_session_meta(record)? {
+        if let Some(meta) = parse_trae_session_meta(record, &session_index)? {
             inputs.push(session_meta_to_cache_input(meta));
         }
     }
@@ -200,6 +218,7 @@ fn project_slug_for_path(projects_root: &Path, session_path: &Path) -> String {
 
 fn parse_trae_session_meta(
     record: &ImportedHistoryDiscoveredRecord,
+    session_index: &index::TraeSessionIndex,
 ) -> Result<Option<TraeHistoryMeta>, String> {
     let file = fs::File::open(&record.source_path).map_err(|err| {
         format!(
@@ -251,6 +270,25 @@ fn parse_trae_session_meta(
 
     let repo_path = decode_project_path(&record.source_fingerprint);
 
+    // Enrich from the vscdb index: surface the agent as the session's model
+    // label and persist the raw index signal for later use.
+    let index_entry = session_index.get(&record.source_session_id);
+    let model = index_entry
+        .and_then(|entry| entry.agent.as_deref())
+        .map(index::agent_display_label);
+    let source_metadata_json = index_entry
+        .filter(|entry| entry.is_meaningful())
+        .and_then(|entry| serde_json::to_string(&serde_json::json!({ "trae": entry })).ok());
+
+    // Trae session ids are Mongo ObjectId-style; their embedded creation time is
+    // a more reliable `created_at` than the summary timestamps when the latter
+    // are absent.
+    let created_at_ms = if created_at_ms > 0 {
+        created_at_ms
+    } else {
+        object_id_created_ms(&record.source_session_id).unwrap_or(record.source_mtime_ms)
+    };
+
     Ok(Some(TraeHistoryMeta {
         source_session_id: record.source_session_id.clone(),
         session_id: format!("{TRAE_SESSION_PREFIX}{}", record.source_session_id),
@@ -260,18 +298,26 @@ fn parse_trae_session_meta(
         source_size_bytes: record.source_size_bytes,
         source_fingerprint: record.source_fingerprint.clone(),
         name,
-        created_at_ms: if created_at_ms > 0 {
-            created_at_ms
-        } else {
-            record.source_mtime_ms
-        },
+        created_at_ms,
         updated_at_ms: if updated_at_ms > 0 {
             updated_at_ms
         } else {
             record.source_mtime_ms
         },
         repo_path,
+        model,
+        source_metadata_json,
     }))
+}
+
+/// Extract the creation time (ms) embedded in a Mongo ObjectId-style session id
+/// (24 hex chars; first 4 bytes are the Unix seconds). `None` for other shapes.
+fn object_id_created_ms(source_session_id: &str) -> Option<i64> {
+    if source_session_id.len() != 24 || !source_session_id.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return None;
+    }
+    let seconds = i64::from_str_radix(&source_session_id[..8], 16).ok()?;
+    (seconds > 0).then_some(seconds * 1000)
 }
 
 fn session_meta_to_cache_input(meta: TraeHistoryMeta) -> ImportedHistoryCacheInput {
@@ -288,14 +334,14 @@ fn session_meta_to_cache_input(meta: TraeHistoryMeta) -> ImportedHistoryCacheInp
         name: meta.name,
         created_at_ms: meta.created_at_ms,
         updated_at_ms: meta.updated_at_ms,
-        model: None,
+        model: meta.model,
         input_tokens: 0,
         output_tokens: 0,
         repo_path: meta.repo_path,
         branch: None,
         impact: ImportedHistoryImpactStats::default(),
         listable: true,
-        source_metadata_json: None,
+        source_metadata_json: meta.source_metadata_json,
         parent_session_id: None,
     }
 }
@@ -412,14 +458,38 @@ fn find_all(haystack: &str, needle: &str) -> Vec<usize> {
     out
 }
 
-/// Decode a `-Users-me-Documents-GitHub-Brick` slug back to an absolute path,
-/// but only if the naive decode actually exists (dashes in path segments make
-/// the encoding lossy). Returns `None` when it can't be resolved.
+/// Decode a `-Users-me-Documents-GitHub-Brick` slug back to an absolute path.
+///
+/// The slug replaces every `/` with `-`, which is lossy when a path segment
+/// itself contains `-` (e.g. a username like `laptop-h`: the naive decode
+/// `/Users/laptop/h/…` doesn't exist, so the repo can't be resolved and the
+/// session ends up with a NULL `repo_path` — which drops it from the Data
+/// Sources session count). Anchor on the home directory first, whose known slug
+/// prefix disambiguates the dashes in that portion, then fall back to the naive
+/// decode. Returns `None` only when neither resolves to an existing directory.
 fn decode_project_path(slug: &str) -> Option<String> {
     let cleaned = slug.trim_start_matches('-');
     if cleaned.is_empty() {
         return None;
     }
+    // Home-anchored decode: strip the home dir's slug prefix (which may itself
+    // contain literal dashes) and decode only the remainder under it.
+    if let Some(home) = dirs::home_dir() {
+        let home_str = home.to_string_lossy();
+        let home_prefix = home_str.replace('/', "-");
+        if let Some(rest) = cleaned.strip_prefix(home_prefix.trim_start_matches('-')) {
+            let rest = rest.trim_start_matches('-');
+            let candidate = if rest.is_empty() {
+                home_str.to_string()
+            } else {
+                format!("{home_str}/{}", rest.replace('-', "/"))
+            };
+            if Path::new(&candidate).is_dir() {
+                return Some(candidate);
+            }
+        }
+    }
+    // Fallback: naive decode (correct when no path segment contains `-`).
     let candidate = format!("/{}", cleaned.replace('-', "/"));
     if Path::new(&candidate).is_dir() {
         Some(candidate)
@@ -433,9 +503,15 @@ fn parse_trae_time_ms(value: &str) -> Option<i64> {
     if value.is_empty() {
         return None;
     }
+    // Trae records `message_summary_time` as wall-clock *local* time with no
+    // timezone suffix (it matches the file's local mtime). Interpret it in the
+    // machine's local zone to recover the correct UTC instant — treating it as
+    // UTC would shift every timestamp by the local offset (e.g. sessions land
+    // +8h "in the future" on a UTC+8 machine).
     chrono::NaiveDateTime::parse_from_str(value, TRAE_TIME_FORMAT)
         .ok()
-        .map(|naive| naive.and_utc().timestamp_millis())
+        .and_then(|naive| naive.and_local_timezone(chrono::Local).earliest())
+        .map(|dt| dt.timestamp_millis())
 }
 
 fn trae_time_to_iso(value: &str) -> String {

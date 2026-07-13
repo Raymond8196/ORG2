@@ -1,12 +1,18 @@
 use super::*;
 
 #[test]
-fn parses_trae_time() {
+fn parses_trae_time_as_local_wall_clock() {
+    use chrono::TimeZone;
     let ms = parse_trae_time_ms("2026-07-13 12:42:20").expect("parses");
-    // Round-trips back to an ISO string.
-    let iso = trae_time_to_iso("2026-07-13 12:42:20");
-    assert!(iso.starts_with("2026-07-13T12:42:20"));
     assert!(ms > 0);
+    // The source is local wall-clock time, so the recovered instant must render
+    // back to the same wall clock in the local zone (timezone-independent, so
+    // this holds on a UTC CI runner and a UTC+8 dev machine alike).
+    let expected = chrono::Local
+        .with_ymd_and_hms(2026, 7, 13, 12, 42, 20)
+        .unwrap()
+        .timestamp_millis();
+    assert_eq!(ms, expected);
     assert!(parse_trae_time_ms("not a time").is_none());
     assert!(parse_trae_time_ms("").is_none());
 }
@@ -40,6 +46,30 @@ fn composes_turn_body_from_outcome_actions_learned() {
 fn decode_project_path_rejects_nonexistent() {
     // A slug that decodes to a path that does not exist yields None.
     assert!(decode_project_path("-no-such-dir-anywhere-xyz").is_none());
+}
+
+#[test]
+fn decode_project_path_anchors_on_home() {
+    // The home dir's own slug must round-trip even when the home path contains a
+    // '-' (e.g. `/Users/laptop-h`), which the naive `-`->`/` decode would split
+    // into a non-existent `/Users/laptop/h`. Home-anchoring resolves it; without
+    // the fix this returns None and the session's repo_path is dropped.
+    if let Some(home) = dirs::home_dir() {
+        let home_str = home.to_string_lossy().to_string();
+        let slug = home_str.replace('/', "-");
+        assert_eq!(decode_project_path(&slug), Some(home_str));
+    }
+}
+
+#[test]
+fn object_id_created_ms_reads_embedded_timestamp() {
+    // 0x6a546c49 = 1783917641 seconds → milliseconds.
+    let ms = object_id_created_ms("6a546c493934825c28f92b42").expect("valid object id");
+    assert_eq!(ms, 1_783_917_641_000);
+    // Wrong length / non-hex / all-zero timestamp are rejected.
+    assert!(object_id_created_ms("short").is_none());
+    assert!(object_id_created_ms("zzzz6c493934825c28f92b42").is_none());
+    assert!(object_id_created_ms("00000000000000000000000z").is_none());
 }
 
 #[test]
