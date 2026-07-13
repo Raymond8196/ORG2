@@ -127,6 +127,12 @@ export interface ButtonProps extends Omit<
   /** Optional main segment width for icon-only split buttons. */
   splitIconOnlyMainWidth?: number;
 
+  /**
+   * Optional width (px) of the split-button dropdown caret segment. Overrides
+   * the default (`height / 2` for icon-only, `height` otherwise).
+   */
+  splitDropdownWidth?: number;
+
   /** Align split-button content within the main segment or the full button. */
   splitContentAlign?: "main" | "button";
 
@@ -280,6 +286,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       onDropdownClick,
       dropdownVisible,
       splitIconOnlyMainWidth,
+      splitDropdownWidth,
       splitContentAlign = "main",
       splitWidthMode = "fill",
       ...rest
@@ -446,9 +453,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     if (hasSplitButton) {
-      const dropdownWidth = iconOnly
-        ? sizeConfig.height / 2
-        : sizeConfig.height;
+      const dropdownWidth =
+        splitDropdownWidth ??
+        (iconOnly ? sizeConfig.height / 2 : sizeConfig.height);
       const splitMainWidth = iconOnly
         ? (splitIconOnlyMainWidth ?? sizeConfig.height)
         : undefined;

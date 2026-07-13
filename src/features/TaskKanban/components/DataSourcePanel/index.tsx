@@ -36,6 +36,8 @@ import {
   fetchExternalSourceStats,
 } from "@src/api/tauri/externalHistory";
 import Button from "@src/components/Button";
+import Dropdown from "@src/components/Dropdown";
+import Menu from "@src/components/Menu";
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
 import Select from "@src/components/Select";
 import SettingsTable, {
@@ -102,6 +104,8 @@ const DataSourcePanel: React.FC = () => {
   const { t: tCommon } = useTranslation("common");
   const [rows, setRows] = useState<SourceRow[] | null>(null);
   const [rescanningAll, setRescanningAll] = useState(false);
+  // sourceId whose rescan split-menu is open (null = none).
+  const [openRescanMenu, setOpenRescanMenu] = useState<string | null>(null);
   const [tab, setTab] = useState<DataSourceTab>("all");
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -221,12 +225,12 @@ const DataSourcePanel: React.FC = () => {
   // sources re-probe so a newly-installed tool or freshly-created store is
   // picked up. Stamps lastScannedAt.
   const handleRescan = useCallback(
-    async (row: SourceRow) => {
+    async (row: SourceRow, clear = false) => {
       const sourceId = row.probe.sourceId;
       patchRow(sourceId, { rescanning: true, error: false });
       try {
         if (row.importable && isImportableId(sourceId)) {
-          await externalHistoryRescanSource(sourceId);
+          await externalHistoryRescanSource(sourceId, { clear });
           await loadSidebarSessions({ forceRefresh: true });
           await loadStats(sourceId);
         }
@@ -491,17 +495,76 @@ const DataSourcePanel: React.FC = () => {
                 onClick={() => openFolder(path)}
               />
             )}
-            {!disabled && (
-              <Button
-                variant="secondary"
-                size="small"
-                iconOnly
-                loading={row.rescanning}
-                icon={<RefreshCw size={14} />}
-                title={t("rescan")}
-                onClick={() => void handleRescan(row)}
-              />
-            )}
+            {!disabled &&
+              (row.importable ? (
+                // Importable sources have a cache, so offer two rescan modes via
+                // a split button: the main click runs Update (incremental
+                // re-sync); the caret opens Update / Clear + rescan (full rebuild).
+                <Button
+                  variant="secondary"
+                  size="small"
+                  iconOnly
+                  splitDropdownWidth={22}
+                  loading={row.rescanning}
+                  loadingSpinIcon
+                  icon={<RefreshCw size={14} />}
+                  title={t("rescan")}
+                  onClick={() => void handleRescan(row, false)}
+                  dropdownVisible={openRescanMenu === row.probe.sourceId}
+                  onDropdownClick={(event) => {
+                    event.stopPropagation();
+                    setOpenRescanMenu((current) =>
+                      current === row.probe.sourceId ? null : row.probe.sourceId
+                    );
+                  }}
+                  dropdownMenu={
+                    <Dropdown
+                      trigger="click"
+                      position="bottom-end"
+                      popupVisible={openRescanMenu === row.probe.sourceId}
+                      onVisibleChange={(visible) =>
+                        setOpenRescanMenu(visible ? row.probe.sourceId : null)
+                      }
+                      getPopupContainer={() => document.body}
+                      avoidViewportOverflow
+                      droplist={
+                        <Menu>
+                          <Menu.Item
+                            key="update"
+                            onClick={() => {
+                              setOpenRescanMenu(null);
+                              void handleRescan(row, false);
+                            }}
+                          >
+                            {t("rescanUpdate")}
+                          </Menu.Item>
+                          <Menu.Item
+                            key="clear"
+                            onClick={() => {
+                              setOpenRescanMenu(null);
+                              void handleRescan(row, true);
+                            }}
+                          >
+                            {t("rescanClear")}
+                          </Menu.Item>
+                        </Menu>
+                      }
+                    >
+                      <div />
+                    </Dropdown>
+                  }
+                />
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="small"
+                  iconOnly
+                  loading={row.rescanning}
+                  icon={<RefreshCw size={14} />}
+                  title={t("rescan")}
+                  onClick={() => void handleRescan(row)}
+                />
+              ))}
             {row.importable && (
               <Switch
                 checked={cfg.enabled}

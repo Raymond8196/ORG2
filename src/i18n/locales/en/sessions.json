@@ -93,6 +93,8 @@
       "description": "External coding tools ORGII detects. Importable apps show their session count and can be rescanned; the rest show install status and where their history lives.",
       "rescanAll": "Rescan all",
       "rescan": "Rescan",
+      "rescanUpdate": "Update",
+      "rescanClear": "Clear + rescan",
       "rescanning": "Rescanning…",
       "openFolder": "Open folder",
       "enable": "Enable",

@@ -51,13 +51,27 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
 /// source's on-disk store from scratch (no cached signatures means the
 /// delta-sync treats every session as new) and repopulates the cache.
 #[tauri::command]
-pub async fn external_history_rescan_source(source: String) -> Result<(), String> {
+pub async fn external_history_rescan_source(
+    source: String,
+    clear: bool,
+) -> Result<(), String> {
     if !imported_history::metadata::is_imported_history_source(&source) {
         return Err(format!("Unknown external history source: {source}"));
     }
     tokio::task::spawn_blocking(move || {
-        let conn = open_cache_conn()?;
-        imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])
+        let mut conn = open_cache_conn()?;
+        // `clear`: wipe the source's cached rows so every session is re-parsed
+        // from scratch (drops stale rows / forces a full re-parse even when
+        // file signatures are unchanged). Otherwise this is an incremental
+        // "update" — only sessions whose signature changed are re-parsed.
+        if clear {
+            imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])?;
+        }
+        // Always re-read the on-disk store and repopulate the cache. The old
+        // behavior only pruned, leaving the count at 0 until a later lazy load.
+        crate::agent_sessions::unified_stats::aggregation::resync_external_history_source(
+            &mut conn, &source,
+        )
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
