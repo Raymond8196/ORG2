@@ -118,6 +118,7 @@ import WorkItemAttachmentControl from "./WorkItemAttachmentControl";
 import { deriveChatPanelLaunchContext } from "./deriveLaunchContext";
 import "./index.scss";
 import { withRemotePreflightTimeout } from "./remotePreflightTimeout";
+import { buildRemoteTuiCommand } from "./remoteTuiCommand";
 import { resolveSessionCreatorAgentHeroContent } from "./resolveSessionCreatorAgentHero";
 import { useSessionCreatorChatPanelHandlers } from "./useSessionCreatorChatPanelHandlers";
 
@@ -128,48 +129,10 @@ const REMOTE_CAPABLE_CLI_AGENTS: ReadonlyArray<string> = [
   "codex",
   "gemini_cli",
 ];
-const REMOTE_RUNTIME_BOOTSTRAP =
-  'if [ -f "$HOME/.bashrc" ]; then . "$HOME/.bashrc" >/dev/null 2>&1 || true; fi; if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true; nvm use --silent default >/dev/null 2>&1 || nvm use --silent node >/dev/null 2>&1 || nvm use --silent stable >/dev/null 2>&1 || true; fi';
 
 function deriveExpectedProcess(command: string): string | undefined {
   const [binary] = command.trim().split(/\s+/);
   return binary || undefined;
-}
-
-function shQuote(value: string): string {
-  return `'${value.replace(/'/g, `'\\''`)}'`;
-}
-
-function buildRemoteTuiCommand(input: {
-  command: string;
-  host: string;
-  port?: number;
-  workingDir?: string;
-}): string {
-  const sshArgs = [
-    "-tt",
-    "-o BatchMode=yes",
-    "-o ControlMaster=auto",
-    '-o ControlPath="$HOME/.orgii/ssh/%C"',
-    "-o ControlPersist=60s",
-    "-o ServerAliveInterval=30",
-    "-o ServerAliveCountMax=3",
-  ];
-  if (input.port) {
-    sshArgs.push("-p", String(input.port));
-  }
-  const remoteScript = input.workingDir
-    ? `${REMOTE_RUNTIME_BOOTSTRAP}; cd ${shQuote(input.workingDir)} && exec ${input.command}`
-    : `${REMOTE_RUNTIME_BOOTSTRAP}; exec ${input.command}`;
-  const remoteCommand = `bash -lc ${shQuote(remoteScript)}`;
-  return [
-    'mkdir -p "$HOME/.orgii/ssh"',
-    "&&",
-    "ssh",
-    ...sshArgs,
-    shQuote(input.host),
-    shQuote(remoteCommand),
-  ].join(" ");
 }
 
 function isCliAgentType(
