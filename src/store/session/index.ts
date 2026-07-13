@@ -31,10 +31,6 @@ export * from "./cliSessionStatusAtom"; // Contains sessionRuntimeStatusAtom, et
 export * from "./fileReviewAtom";
 export * from "./shellProcessAtom";
 
-// Cursor IDE per-session model picker scratch space
-export * from "./cursorModelOverrideAtom";
-export * from "./cursorModeOverrideAtom";
-
 export * from "./agentRegistryAtom";
 export * from "./canvasPreviewAtom";
 export * from "./cursorIdeTurnSummariesAtom";

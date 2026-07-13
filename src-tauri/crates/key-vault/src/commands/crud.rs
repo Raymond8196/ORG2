@@ -179,8 +179,7 @@ fn supports_rust_agents(
 }
 
 fn cursor_native_model_ids() -> Result<Vec<String>, String> {
-    let models = cursor_bridge_app::vscdb_models::read_models_from_disk()?;
-    Ok(models.into_iter().map(|model| model.name).collect())
+    orgtrack_core::sources::cursor_ide::disk_reads::cursor_model_names_from_disk()
 }
 
 fn merge_unique_models(target: &mut Vec<String>, models: impl IntoIterator<Item = String>) {
