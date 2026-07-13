@@ -47,6 +47,7 @@ async function loadChatPanelTabAtoms() {
     openOrFocusChatPanelManageTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
+    openOrReplaceSessionInChatPanelTabAtom,
     openSessionInNewChatTabAtom,
     prevChatPanelTabAtom,
     syncActiveChatPanelTabStateAtom,
@@ -91,6 +92,7 @@ async function loadChatPanelTabAtoms() {
     openOrFocusChatPanelManageTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
+    openOrReplaceSessionInChatPanelTabAtom,
     WORK_MANAGEMENT_SECTION,
     WORK_MANAGEMENT_PROJECTS_VIEW,
     workManagementCreatorVisibleAtom,
@@ -785,5 +787,78 @@ describe("openSessionInNewChatTabAtom", () => {
     store.set(closeChatPanelTabAtom, secondTabId);
 
     expect(store.get(activeSessionIdAtom)).toBe("session-a");
+  });
+});
+
+describe("openOrReplaceSessionInChatPanelTabAtom", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    localStorage.removeItem("orgii:chatPanelTabs:v2");
+    localStorage.removeItem("orgii-v2-session-view");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("reuses the active session tab for normal sidebar navigation", async () => {
+    const {
+      activeSessionIdAtom,
+      chatPanelTabsAtom,
+      openOrReplaceSessionInChatPanelTabAtom,
+      openSessionInNewChatTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+
+    const originalTabId = store.set(openSessionInNewChatTabAtom, {
+      sessionId: "session-a",
+      sessionName: "Session A",
+    });
+    const originalTabCount = store.get(chatPanelTabsAtom).tabs.length;
+
+    const replacementTabId = store.set(openOrReplaceSessionInChatPanelTabAtom, {
+      sessionId: "session-b",
+      sessionName: "Session B",
+      repoPath: "/repos/b",
+    });
+
+    expect(replacementTabId).toBe(originalTabId);
+    expect(store.get(chatPanelTabsAtom)).toMatchObject({
+      activeTabId: originalTabId,
+      tabs: expect.arrayContaining([
+        expect.objectContaining({
+          id: originalTabId,
+          type: "session",
+          title: "Session B",
+          sessionId: "session-b",
+        }),
+      ]),
+    });
+    expect(store.get(chatPanelTabsAtom).tabs).toHaveLength(originalTabCount);
+    expect(store.get(activeSessionIdAtom)).toBe("session-b");
+  });
+
+  it("does not replace a non-session tab", async () => {
+    const { chatPanelTabsAtom, openOrReplaceSessionInChatPanelTabAtom, store } =
+      await loadChatPanelTabAtoms();
+
+    const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
+    const sessionTabId = store.set(openOrReplaceSessionInChatPanelTabAtom, {
+      sessionId: "session-a",
+      sessionName: "Session A",
+    });
+
+    expect(sessionTabId).not.toBe(launchpadTabId);
+    expect(store.get(chatPanelTabsAtom).tabs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: launchpadTabId, type: "start-page" }),
+        expect.objectContaining({
+          id: sessionTabId,
+          type: "session",
+          sessionId: "session-a",
+        }),
+      ])
+    );
   });
 });
