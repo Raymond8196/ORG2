@@ -146,6 +146,10 @@ export const agentSession = {
     .input(schemas.agentSession.SessionLaunchInput)
     .output(schemas.agentSession.SessionLaunchResultSchema)
     .build(),
+  remotePreflight: defineProcedure("cli_remote_preflight")
+    .input(schemas.agentSession.RemotePreflightInput)
+    .output(schemas.agentSession.RemotePreflightResultSchema)
+    .build(),
   wingmanStart: defineProcedure("wingman_start")
     .input(schemas.agentSession.WingmanStartInput)
     .build(),

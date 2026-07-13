@@ -320,3 +320,186 @@ pub(crate) async fn remote_kill(ssh_target: &SshTarget, pid: u32) -> Result<(), 
     }
     Ok(())
 }
+
+// ---------------------------------------------------------------------------
+// Connection health check (§3-Phase3). A lightweight, user-triggered ping that
+// proves SSH connectivity + (optionally) the CLI binary / working directory
+// exist on the remote host — *before* the user commits to creating a session.
+// Reuses the spawn ControlMaster socket + the same check primitives as the
+// pre-spawn guards, so it adds no new ssh code path to audit.
+// ---------------------------------------------------------------------------
+
+/// Result of a [`remote_preflight`] health check. Serialized to the frontend
+/// (camelCase) so the "Test connection" button can render a precise verdict.
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemotePreflightResult {
+    /// Did ssh connect + authenticate (BatchMode)? When false, the other
+    /// fields are `None`/irrelevant and `error` carries the ssh failure.
+    pub connected: bool,
+    /// Was the CLI binary found on the remote login-shell PATH? `None` = no
+    /// binary check was requested (connectivity-only ping).
+    pub binary_found: Option<bool>,
+    /// Does the remote working directory exist? `None` = not checked.
+    pub dir_ok: Option<bool>,
+    /// Human-readable verdict for the UI (one line).
+    pub summary: String,
+    /// Raw ssh error when `connected` is false.
+    pub error: Option<String>,
+}
+
+/// Run a connection health check against `ssh_target` (§3-Phase3).
+///
+/// - `bare_command` — when `Some`, also verifies the CLI binary resolves on
+///   the remote login-shell PATH (same check as the pre-spawn guard). The
+///   binary check doubles as the connectivity proof. When `None`, a trivial
+///   `true` script is run purely to test ssh connectivity.
+/// - `dir` — when `Some` and the host is reachable, also checks the working
+///   directory exists.
+///
+/// Returns a structured verdict; never errors — ssh failures land in
+/// `connected=false` + `error` so the UI can always render something.
+pub(crate) async fn remote_preflight(
+    ssh_target: &SshTarget,
+    bare_command: Option<&str>,
+    dir: Option<&str>,
+) -> RemotePreflightResult {
+    let bare = bare_command.filter(|b| !b.is_empty());
+
+    // 1. Connectivity (+ optional binary check in the same round-trip).
+    let (connected, binary_found) = match bare {
+        Some(cmd) => match remote_binary_exists(ssh_target, cmd).await {
+            Ok(found) => (true, Some(found)),
+            Err(e) => {
+                return RemotePreflightResult {
+                    connected: false,
+                    binary_found: None,
+                    dir_ok: None,
+                    summary: format!(
+                        "Couldn't connect to `{}` over SSH. {e}",
+                        ssh_target.host
+                    ),
+                    error: Some(e),
+                };
+            }
+        },
+        None => {
+            // Connectivity-only ping: run `true` and inspect the ssh exit code.
+            match run_remote_script(ssh_target, "true").await {
+                Ok(code) => (code != SSH_FAILURE_EXIT, None),
+                Err(e) => {
+                    return RemotePreflightResult {
+                        connected: false,
+                        binary_found: None,
+                        dir_ok: None,
+                        summary: format!(
+                            "Couldn't connect to `{}` over SSH. {e}",
+                            ssh_target.host
+                        ),
+                        error: Some(e),
+                    };
+                }
+            }
+        }
+    };
+
+    // 2. Optional working-directory check (only meaningful once connected).
+    let dir_ok = if connected {
+        match dir.filter(|d| !d.is_empty()) {
+            Some(d) => match remote_dir_exists(ssh_target, d).await {
+                Ok(ok) => Some(ok),
+                // Connectivity was just proven; a dir-check transport error is
+                // transient — report "unknown" rather than failing the whole
+                // verdict.
+                Err(_) => None,
+            },
+            None => None,
+        }
+    } else {
+        None
+    };
+
+    RemotePreflightResult {
+        connected,
+        binary_found,
+        dir_ok,
+        summary: preflight_summary(&ssh_target.host, bare, binary_found, dir, dir_ok),
+        error: None,
+    }
+}
+
+/// Pure summary builder, factored out so it can be unit-tested without I/O.
+fn preflight_summary(
+    host: &str,
+    bare: Option<&str>,
+    binary_found: Option<bool>,
+    dir: Option<&str>,
+    dir_ok: Option<bool>,
+) -> String {
+    // Connected but the requested binary is missing — surface that first; it's
+    // the single most useful "you need to install it" signal.
+    if bare.is_some() && !matches!(binary_found, Some(true)) {
+        return format!(
+            "Connected to `{host}`, but `{bare}` was not found on the remote \
+             login-shell PATH — install it there (or put it on PATH) and retry.",
+            bare = bare.unwrap_or("")
+        );
+    }
+
+    let mut sentences = vec![format!("Connected to `{host}` over SSH")];
+    if let Some(b) = bare {
+        sentences.push(format!("`{b}` found on the login-shell PATH"));
+    }
+    match (dir.filter(|d| !d.is_empty()), dir_ok) {
+        (Some(d), Some(true)) => sentences.push(format!("working directory `{d}` exists")),
+        (Some(d), Some(false)) => sentences.push(format!("working directory `{d}` does NOT exist")),
+        (Some(_), None) => sentences.push("working directory check was inconclusive".to_string()),
+        (None, _) => {}
+    }
+    sentences.join(". ")
+}
+
+#[cfg(test)]
+mod preflight_tests {
+    use super::preflight_summary;
+
+    #[test]
+    fn missing_binary_beats_other_signals() {
+        let s = preflight_summary("host", Some("claude"), Some(false), None, None);
+        assert!(s.contains("Connected to `host`"));
+        assert!(s.contains("`claude` was not found"));
+    }
+
+    #[test]
+    fn found_binary_and_dir_ok() {
+        let s = preflight_summary(
+            "host",
+            Some("claude"),
+            Some(true),
+            Some("/repo"),
+            Some(true),
+        );
+        assert!(s.contains("Connected to `host`"));
+        assert!(s.contains("`claude` found"));
+        assert!(s.contains("`/repo` exists"));
+    }
+
+    #[test]
+    fn found_binary_but_dir_missing() {
+        let s = preflight_summary(
+            "host",
+            Some("claude"),
+            Some(true),
+            Some("/nope"),
+            Some(false),
+        );
+        assert!(s.contains("`/nope` does NOT exist"));
+    }
+
+    #[test]
+    fn connectivity_only_ping_has_no_binary_clause() {
+        let s = preflight_summary("host", None, None, None, None);
+        assert!(s.contains("Connected to `host`"));
+        assert!(!s.contains("PATH"));
+    }
+}

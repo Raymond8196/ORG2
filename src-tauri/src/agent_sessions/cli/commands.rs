@@ -4,10 +4,10 @@ use super::launch_profile_store;
 use super::persistence::{self, CliHistoryMutation, CodeSession, CreateCodeSessionParams};
 use super::session_runner;
 use super::session_runner::launch_profiles::{
-    CliLaunchProfileUpdate, CliLaunchProfileView, CliPermissionMode,
+    bare_command_for_agent, CliLaunchProfileUpdate, CliLaunchProfileView, CliPermissionMode,
 };
 use super::types::{KeySource, SessionStatus};
-use agent_core::foundation::exec_target::ExecTarget;
+use agent_core::foundation::exec_target::{ExecTarget, SshTarget};
 use agent_core::session::IdeContext;
 use agent_core::state::control_flow::CancelReason;
 use core_types::activity::ActivityChunk;
@@ -104,6 +104,39 @@ fn validate_exec_target_compat(
         }
     }
     Ok(())
+}
+
+/// SSH-remote connection health check (§3-Phase3).
+///
+/// Verifies `host` is reachable over SSH with BatchMode auth and, when
+/// `cli_agent_type` names a CLI agent, that the binary resolves on the remote
+/// login-shell PATH. Optionally also checks `working_dir` exists. Powers the
+/// SessionCreator "Test connection" button so connectivity problems surface
+/// *before* session creation instead of as a confusing spawn-time failure.
+///
+/// Never panics: an unknown / non-CLI `cli_agent_type` degrades to a
+/// connectivity-only ping (no binary check) rather than aborting the command.
+#[tauri::command(rename_all = "camelCase")]
+pub async fn cli_remote_preflight(
+    host: String,
+    port: Option<u16>,
+    cli_agent_type: Option<String>,
+    working_dir: Option<String>,
+) -> Result<session_runner::RemotePreflightResult, String> {
+    let ssh_target = SshTarget { host, port };
+    // Resolve the bare command name for the requested CLI agent. Unknown /
+    // non-CLI agents (API providers) fall back to a connectivity-only ping.
+    let bare = cli_agent_type
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .and_then(ModelType::from_str)
+        .and_then(|agent| bare_command_for_agent(&agent));
+    Ok(session_runner::remote_preflight(
+        &ssh_target,
+        bare,
+        working_dir.as_deref(),
+    )
+    .await)
 }
 
 /// Create a new code session.

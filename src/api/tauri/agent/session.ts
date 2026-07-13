@@ -470,6 +470,40 @@ export async function sessionLaunch(
 }
 
 // ============================================
+// Remote SSH connection health check
+// ============================================
+
+/**
+ * Verdict returned by {@link remotePreflight}. Mirrors the Rust
+ * `RemotePreflightResult` (camelCase). `binaryFound` / `dirOk` / `error` are
+ * `null` when that check wasn't performed (or didn't apply).
+ */
+export interface RemotePreflightResult {
+  connected: boolean;
+  binaryFound: boolean | null;
+  dirOk: boolean | null;
+  summary: string;
+  error: string | null;
+}
+
+/**
+ * Probe an SSH host before creating a remote CLI session: checks connectivity
+ * (BatchMode auth), optionally that the CLI binary resolves on the remote
+ * login-shell PATH, and optionally that `workingDir` exists. Used by the
+ * SessionCreator "Test connection" button so problems surface upfront.
+ */
+export async function remotePreflight(input: {
+  host: string;
+  port?: number;
+  cliAgentType?: string;
+  workingDir?: string;
+}): Promise<RemotePreflightResult> {
+  return rpc.agentSession.remotePreflight(
+    input
+  ) as Promise<RemotePreflightResult>;
+}
+
+// ============================================
 // Wingman Mode
 // ============================================
 

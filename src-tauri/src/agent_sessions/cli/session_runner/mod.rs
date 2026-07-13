@@ -37,6 +37,8 @@ pub use lifecycle::{
 };
 pub use proxy_release::release_proxy_token_for_session_pub;
 pub use session::run_session;
+pub(crate) use remote_spawn::remote_preflight;
+pub use remote_spawn::RemotePreflightResult;
 
 #[cfg(test)]
 #[path = "../tests/runner_tests.rs"]

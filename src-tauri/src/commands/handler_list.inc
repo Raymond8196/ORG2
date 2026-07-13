@@ -512,6 +512,7 @@ integrations::external_ide::server_detect_ides,
 api::websocket_handler::subscribe_session_events,
 api::websocket_handler::unsubscribe_session_events,
 // Code session commands (spawn CLI agents, manage sessions)
+agent_sessions::cli::commands::cli_remote_preflight,
 agent_sessions::cli::commands::cli_agent_create,
 agent_sessions::cli::commands::cli_agent_run,
 agent_sessions::cli::commands::cli_agent_message,

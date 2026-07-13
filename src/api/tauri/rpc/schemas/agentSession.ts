@@ -315,6 +315,34 @@ export const WingmanStartInput = z.object({
   monitorIndex: z.number().optional(),
 });
 
+/**
+ * Input for the SSH-remote connection health check (`cli_remote_preflight`).
+ * Verifies `host` is reachable over SSH (BatchMode), optionally that the CLI
+ * binary resolves on the remote login-shell PATH, and optionally that
+ * `workingDir` exists. Powers the SessionCreator "Test connection" button.
+ */
+export const RemotePreflightInput = z.object({
+  host: z.string().min(1),
+  port: z.number().int().positive().max(65535).optional(),
+  cliAgentType: z.string().optional(),
+  workingDir: z.string().optional(),
+});
+
+export const RemotePreflightResultSchema = z
+  .object({
+    /** Did ssh connect + authenticate (BatchMode)? */
+    connected: z.boolean(),
+    /** Was the CLI binary found on the remote PATH? null = not checked. */
+    binaryFound: z.boolean().nullable(),
+    /** Does the remote working directory exist? null = not checked. */
+    dirOk: z.boolean().nullable(),
+    /** One-line human verdict for the UI. */
+    summary: z.string(),
+    /** Raw ssh error when `connected` is false. */
+    error: z.string().nullable(),
+  })
+  .catchall(z.unknown());
+
 export const WingmanDesktopControlTestInput = z.object({
   monitorIndex: z.number().optional(),
 });

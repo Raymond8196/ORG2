@@ -1,5 +1,11 @@
 import { useAtomValue, useSetAtom, useStore } from "jotai";
-import { Airplay, Network } from "lucide-react";
+import {
+  Airplay,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Network,
+} from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -9,6 +15,10 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  type RemotePreflightResult,
+  remotePreflight,
+} from "@src/api/tauri/agent/session";
 import type { ModelType } from "@src/api/tauri/rpc/schemas/validation";
 import type { CliAgentType } from "@src/api/types/keys";
 import Button from "@src/components/Button";
@@ -847,6 +857,60 @@ const SessionCreatorChatPanelSingle: React.FC<
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // ── Remote SSH connection health check (§3-Phase3) ──────────────────────
+  // A "Test connection" affordance next to the Remote SSH inputs: proves SSH
+  // connectivity (BatchMode auth) + that the CLI binary is on the remote PATH
+  // *before* the user commits to creating a session.
+  const remoteHost = advancedConfig.remoteTarget?.host?.trim() ?? "";
+  // The verdict carries the host it was run against; a `done`/`checking`
+  // verdict is only honoured while that host is still current. That naturally
+  // invalidates a stale result when the user edits the host — no effect, no
+  // manual reset (avoids setState-in-effect + React-Compiler memo friction).
+  const [remotePreflightState, setRemotePreflightState] = useState<
+    | { kind: "idle" }
+    | { kind: "checking"; host: string }
+    | { kind: "done"; host: string; result: RemotePreflightResult }
+  >({ kind: "idle" });
+  const preflightChecking =
+    remotePreflightState.kind === "checking" &&
+    remotePreflightState.host === remoteHost;
+  const preflightResult =
+    remotePreflightState.kind === "done" &&
+    remotePreflightState.host === remoteHost
+      ? remotePreflightState.result
+      : null;
+  const preflightOk =
+    !!preflightResult &&
+    preflightResult.connected &&
+    preflightResult.binaryFound !== false;
+
+  const runRemotePreflight = async () => {
+    if (!remoteHost) return;
+    setRemotePreflightState({ kind: "checking", host: remoteHost });
+    try {
+      const result = await remotePreflight({
+        host: remoteHost,
+        port: advancedConfig.remoteTarget?.port,
+        cliAgentType: advancedConfig.cliAgentType ?? undefined,
+      });
+      setRemotePreflightState({ kind: "done", host: remoteHost, result });
+    } catch (err) {
+      // rpc throws on transport errors; surface them with the same shape.
+      const message = err instanceof Error ? err.message : String(err);
+      setRemotePreflightState({
+        kind: "done",
+        host: remoteHost,
+        result: {
+          connected: false,
+          binaryFound: null,
+          dirOk: null,
+          summary: message,
+          error: message,
+        },
+      });
+    }
+  };
+
   // SSH-remote milestone (§3-Phase3): offer a manual Remote SSH target entry
   // for the line-based CLIs that support it (cursor_cli/copilot/kiro are
   // MITM/ACP and can't run remote yet). Hosted+Remote is rejected server-side.
@@ -961,47 +1025,79 @@ const SessionCreatorChatPanelSingle: React.FC<
                   </div>
                 )}
                 {showRemoteTargetInput && (
-                  <div className="flex items-center gap-2 px-1 pb-1 pt-2 text-[12px] text-text-3">
-                    <span className="shrink-0">Remote SSH</span>
-                    <input
-                      type="text"
-                      spellCheck={false}
-                      autoComplete="off"
-                      data-testid="remote-ssh-host-input"
-                      className="min-w-0 flex-1 rounded border border-border-2 bg-transparent px-2 py-0.5 text-text-1 outline-none focus:border-primary-4"
-                      placeholder="user@host"
-                      value={advancedConfig.remoteTarget?.host ?? ""}
-                      onChange={(e) =>
-                        handleAdvancedConfigChange({
-                          ...advancedConfig,
-                          remoteTarget: {
-                            host: e.target.value,
-                            port: advancedConfig.remoteTarget?.port,
-                          },
-                        })
-                      }
-                    />
-                    <input
-                      type="number"
-                      min={1}
-                      max={65535}
-                      data-testid="remote-ssh-port-input"
-                      className="w-20 shrink-0 rounded border border-border-2 bg-transparent px-2 py-0.5 text-text-1 outline-none focus:border-primary-4"
-                      placeholder="port"
-                      value={advancedConfig.remoteTarget?.port ?? ""}
-                      onChange={(e) =>
-                        handleAdvancedConfigChange({
-                          ...advancedConfig,
-                          remoteTarget: {
-                            host: advancedConfig.remoteTarget?.host ?? "",
-                            port: e.target.value
-                              ? Number(e.target.value)
-                              : undefined,
-                          },
-                        })
-                      }
-                    />
-                  </div>
+                  <>
+                    <div className="flex items-center gap-2 px-1 pb-1 pt-2 text-[12px] text-text-3">
+                      <span className="shrink-0">Remote SSH</span>
+                      <input
+                        type="text"
+                        spellCheck={false}
+                        autoComplete="off"
+                        data-testid="remote-ssh-host-input"
+                        className="min-w-0 flex-1 rounded border border-border-2 bg-transparent px-2 py-0.5 text-text-1 outline-none focus:border-primary-4"
+                        placeholder="user@host"
+                        value={advancedConfig.remoteTarget?.host ?? ""}
+                        onChange={(e) =>
+                          handleAdvancedConfigChange({
+                            ...advancedConfig,
+                            remoteTarget: {
+                              host: e.target.value,
+                              port: advancedConfig.remoteTarget?.port,
+                            },
+                          })
+                        }
+                      />
+                      <input
+                        type="number"
+                        min={1}
+                        max={65535}
+                        data-testid="remote-ssh-port-input"
+                        className="w-20 shrink-0 rounded border border-border-2 bg-transparent px-2 py-0.5 text-text-1 outline-none focus:border-primary-4"
+                        placeholder="port"
+                        value={advancedConfig.remoteTarget?.port ?? ""}
+                        onChange={(e) =>
+                          handleAdvancedConfigChange({
+                            ...advancedConfig,
+                            remoteTarget: {
+                              host: advancedConfig.remoteTarget?.host ?? "",
+                              port: e.target.value
+                                ? Number(e.target.value)
+                                : undefined,
+                            },
+                          })
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={runRemotePreflight}
+                        disabled={!remoteHost || preflightChecking}
+                        data-testid="remote-ssh-test-button"
+                        className="flex shrink-0 items-center gap-1 rounded border border-border-2 px-2 py-0.5 text-text-2 outline-none transition-colors hover:text-text-1 focus:border-primary-4 disabled:opacity-50"
+                      >
+                        {preflightChecking ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          "Test"
+                        )}
+                      </button>
+                    </div>
+                    {preflightResult && (
+                      <div
+                        data-testid="remote-ssh-test-result"
+                        className={`flex items-start gap-1.5 px-1 pb-1 text-[12px] ${
+                          preflightOk ? "text-emerald-600" : "text-red-600"
+                        }`}
+                      >
+                        {preflightOk ? (
+                          <CheckCircle2 size={12} className="mt-0.5 shrink-0" />
+                        ) : (
+                          <AlertCircle size={12} className="mt-0.5 shrink-0" />
+                        )}
+                        <span className="min-w-0 break-words">
+                          {preflightResult.summary}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </>
