@@ -8,13 +8,21 @@ import {
   isTauriReady,
   listenTauri,
 } from "@src/util/platform/tauri/init";
+import {
+  type PtyOutputPayload,
+  ptyPayloadBytes,
+} from "@src/util/terminal/ptyOutputPayload";
 
 import { deleteTerminalBuffer, getTerminalBuffer } from "./bufferCache";
 import {
+  ackBytesWithoutWrite,
+  flushBacklog,
   notifyUserInput,
   registerPane,
+  resumePane,
   scheduleWrite,
   setPaneForeground,
+  suspendPane,
   unregisterPane,
 } from "./terminalOutputScheduler";
 import type { TerminalViewProps } from "./types";
@@ -48,11 +56,10 @@ function estimateByteLength(s: string): number {
   return len;
 }
 
-interface PtyOutputPayload {
-  bytes?: number[];
-  byte_count?: number;
-  // Backward-compatible fallback for older backends during hot reloads.
-  data?: string;
+interface AttachPtyStreamResponse {
+  output: string;
+  covers_seq: number;
+  missed_output: boolean;
 }
 
 interface InitPtyConnectionParams {
@@ -221,33 +228,66 @@ async function reconnectOrCreatePty({
     });
 
     await fetchPtyInfo(sessionId, sessionKey, onSessionInfoReady);
-    return;
+    return undefined;
   }
 
-  const cachedBuffer = getTerminalBuffer(sessionId);
-  if (cachedBuffer) {
-    terminal.write(cachedBuffer);
-    deleteTerminalBuffer(sessionId);
-    return;
-  }
-
+  // Live session: attach atomically. The backend resumes event emission,
+  // resets the flow-control window (fresh listener, no debt — this is what
+  // recovers a reader parked on ACKs lost to the previous listener), and
+  // returns the restore snapshot plus the stream offset it covers.
   try {
-    const snapshot = await invokeTauri<{
-      output: string;
-      unacked_bytes?: number;
-    }>("get_pty_output_snapshot", { sessionId });
+    const attach = await invokeTauri<AttachPtyStreamResponse>(
+      "attach_pty_stream",
+      { sessionId }
+    );
 
-    if (snapshot.output) {
-      terminal.write(snapshot.output);
+    const cachedBuffer = getTerminalBuffer(sessionId);
+    deleteTerminalBuffer(sessionId);
+    if (cachedBuffer && !attach.missed_output) {
+      // Nothing was produced while detached: the client-side serialized
+      // buffer is the richer restore (full scrollback vs bounded snapshot).
+      terminal.write(cachedBuffer);
+    } else if (attach.output) {
+      terminal.write(attach.output);
     }
-    if (snapshot.unacked_bytes && snapshot.unacked_bytes > 0) {
-      await invokeTauri("ack_pty_data", {
-        sessionId,
-        byteCount: snapshot.unacked_bytes,
-      });
-    }
+    return attach.covers_seq;
   } catch (error) {
-    log.error("[TerminalView] Failed to restore PTY output snapshot:", error);
+    // Backend without attach_pty_stream (hot-reload version skew) — legacy
+    // restore: client buffer if present, else bounded snapshot + window resync.
+    log.warn(
+      "[TerminalView] attach_pty_stream unavailable, using legacy restore:",
+      error
+    );
+
+    const cachedBuffer = getTerminalBuffer(sessionId);
+    if (cachedBuffer) {
+      terminal.write(cachedBuffer);
+      deleteTerminalBuffer(sessionId);
+      return undefined;
+    }
+
+    try {
+      const snapshot = await invokeTauri<{
+        output: string;
+        unacked_bytes?: number;
+      }>("get_pty_output_snapshot", { sessionId });
+
+      if (snapshot.output) {
+        terminal.write(snapshot.output);
+      }
+      if (snapshot.unacked_bytes && snapshot.unacked_bytes > 0) {
+        await invokeTauri("ack_pty_data", {
+          sessionId,
+          byteCount: snapshot.unacked_bytes,
+        });
+      }
+    } catch (snapshotError) {
+      log.error(
+        "[TerminalView] Failed to restore PTY output snapshot:",
+        snapshotError
+      );
+    }
+    return undefined;
   }
 }
 
@@ -299,9 +339,12 @@ export async function initPtyConnection({
     // handler never allocates a new closure per event.
     const terminalWrite = (d: string | Uint8Array) => terminal.write(d);
 
-    // Register this pane with the output scheduler. ACK is handled by the
-    // scheduler after it drains chunks — we no longer call ack directly here.
+    // Register this pane with the output scheduler, suspended: chunks that
+    // arrive during connect queue up in order but nothing is written until
+    // the restore base (snapshot or cached buffer) is in place — otherwise
+    // live output interleaves with the restore and garbles the screen.
     registerPane(sessionId, terminalWrite);
+    suspendPane(sessionId);
     setPaneForeground(sessionId, isForeground);
 
     const unlistenOutput = await listenTauri<PtyOutputPayload>(
@@ -309,15 +352,25 @@ export async function initPtyConnection({
       (event) => {
         if (isAborted()) return;
 
-        const { bytes, byte_count: byteCount, data } = event.payload;
+        const { byte_count: byteCount, seq, data } = event.payload;
+        const chunk = ptyPayloadBytes(event.payload);
 
-        if (bytes && bytes.length > 0) {
-          const decoded = utf8Decoder.decode(new Uint8Array(bytes), {
-            stream: true,
-          });
+        if (chunk && chunk.length > 0) {
+          const resolvedByteCount = byteCount ?? chunk.length;
+          const decoded = utf8Decoder.decode(chunk, { stream: true });
           if (decoded) {
-            const resolvedByteCount = byteCount ?? bytes.length;
-            scheduleWrite(sessionId, decoded, resolvedByteCount, terminalWrite);
+            scheduleWrite(
+              sessionId,
+              decoded,
+              resolvedByteCount,
+              terminalWrite,
+              seq
+            );
+          } else {
+            // Chunk ended mid-codepoint and decoded to nothing — the bytes
+            // sit in the decoder but still count against the backend
+            // flow-control window.
+            ackBytesWithoutWrite(sessionId, resolvedByteCount);
           }
         } else if (data) {
           // Backward-compat branch (no byte_count from backend): estimate byte
@@ -326,7 +379,7 @@ export async function initPtyConnection({
           // scheduler treats byte_count as a flow-control hint, not an exact
           // invariant, so a cheap over-estimate is correct.
           const encodedLen = estimateByteLength(data);
-          scheduleWrite(sessionId, data, encodedLen, terminalWrite);
+          scheduleWrite(sessionId, data, encodedLen, terminalWrite, seq);
         }
       }
     );
@@ -339,6 +392,11 @@ export async function initPtyConnection({
 
     const unlistenExit = await listenTauri(`pty-exit-${sessionId}`, () => {
       if (isAborted()) return;
+
+      // Drain any still-queued output before the banner so the final bytes
+      // land in order (resume first in case exit raced a reconnect).
+      resumePane(sessionId);
+      flushBacklog(sessionId, Number.MAX_SAFE_INTEGER);
 
       const trailingOutput = utf8Decoder.decode();
       if (trailingOutput) {
@@ -357,21 +415,28 @@ export async function initPtyConnection({
     unlistenExitRef.current = unlistenExit;
 
     if (isAborted()) return;
-    await reconnectOrCreatePty({
-      cols,
-      rows,
-      sessionId,
-      sessionKey,
-      terminal,
-      repoPath: repoPathRef.current,
-      shellType,
-      customShellPath,
-      shellOverride,
-      argsOverride,
-      envOverride,
-      nameOverride,
-      onSessionInfoReady,
-    });
+    let coversSeq: number | undefined;
+    try {
+      coversSeq = await reconnectOrCreatePty({
+        cols,
+        rows,
+        sessionId,
+        sessionKey,
+        terminal,
+        repoPath: repoPathRef.current,
+        shellType,
+        customShellPath,
+        shellOverride,
+        argsOverride,
+        envOverride,
+        nameOverride,
+        onSessionInfoReady,
+      });
+    } finally {
+      // Always lift the suspension — a pane left suspended never renders.
+      // Queued chunks the snapshot already covers are dropped here.
+      resumePane(sessionId, coversSeq);
+    }
 
     if (isAborted()) return;
     setIsConnecting(false);

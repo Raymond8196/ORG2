@@ -16,6 +16,10 @@ import {
 } from "@src/store/workstation/codeEditor/workspacePortsAtom";
 import { safeUnlisten } from "@src/util/platform/tauri";
 import { listenTauri } from "@src/util/platform/tauri/init";
+import {
+  type PtyOutputPayload,
+  ptyPayloadBytes,
+} from "@src/util/terminal/ptyOutputPayload";
 import { toBackendPtySessionId } from "@src/util/ui/terminal/ptySessionId";
 import { normalizeHttpUrlCandidate } from "@src/util/url/validation";
 
@@ -25,11 +29,6 @@ const logger = createLogger("WorkspacePortAdvertisedUrls");
 
 const URL_CANDIDATE_PATTERN = /\bhttps?:\/\/[^\s<>"'`]+/gi;
 const PER_SESSION_BUFFER_LIMIT = 4096;
-
-interface PtyOutputPayload {
-  bytes?: number[];
-  data?: string;
-}
 
 function extractOrigins(text: string): string[] {
   const origins: string[] = [];
@@ -209,18 +208,16 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
                 foldersRef.current,
                 fallbackFolderId
               );
-              const { bytes, data } = event.payload;
-              if (bytes && bytes.length > 0) {
-                const decoded = decoder.decode(new Uint8Array(bytes), {
-                  stream: true,
-                });
+              const chunk = ptyPayloadBytes(event.payload);
+              if (chunk && chunk.length > 0) {
+                const decoded = decoder.decode(chunk, { stream: true });
                 if (decoded) {
                   ingestChunk(backendSessionId, folderId, decoded);
                 }
                 return;
               }
-              if (data) {
-                ingestChunk(backendSessionId, folderId, data);
+              if (event.payload.data) {
+                ingestChunk(backendSessionId, folderId, event.payload.data);
               }
             }
           );
