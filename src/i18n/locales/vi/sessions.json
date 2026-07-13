@@ -99,8 +99,11 @@
       "lastScan": "Quét lần cuối {{time}}",
       "neverScanned": "Chưa quét",
       "frequencyTitle": "Tần suất tự quét",
+      "globalFrequency": "Tự quét",
       "freq": {
+        "default": "Mặc định",
         "manual": "Thủ công",
+        "60s": "Mỗi 60 giây",
         "5m": "Mỗi 5 phút",
         "1h": "Hàng giờ",
         "1d": "Hàng ngày"
@@ -1189,6 +1192,7 @@
       "skip": "Bỏ qua",
       "noReason": "Agent đề xuất chuyển chế độ"
     },
+    "explore": "Khám phá",
     "exploreSummary": {
       "read_one": "{{count}} tệp",
       "read_other": "{{count}} tệp",

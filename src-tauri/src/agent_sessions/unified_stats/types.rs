@@ -304,6 +304,10 @@ pub struct SessionFilter {
     /// Filter imported external history rows by source subtype.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub external_history_source: Option<String>,
+    /// External history sources the user has disabled — skipped entirely when
+    /// loading imported history so their sessions never surface (no disk read).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disabled_external_history_sources: Option<Vec<String>>,
     /// Only include sessions created at or after this epoch millisecond.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_after_ms: Option<i64>,

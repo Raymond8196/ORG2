@@ -99,8 +99,11 @@
       "lastScan": "마지막 스캔 {{time}}",
       "neverScanned": "스캔 안 됨",
       "frequencyTitle": "자동 스캔 주기",
+      "globalFrequency": "자동 스캔",
       "freq": {
+        "default": "기본값",
         "manual": "수동",
+        "60s": "60초마다",
         "5m": "5분마다",
         "1h": "매시간",
         "1d": "매일"
@@ -1191,6 +1194,7 @@
       "skip": "건너뛰기",
       "noReason": "Agent가 모드 전환을 제안합니다"
     },
+    "explore": "탐색",
     "exploreSummary": {
       "read_one": "{{count}}개 파일",
       "read_other": "{{count}}개 파일",

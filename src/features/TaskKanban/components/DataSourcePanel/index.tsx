@@ -48,18 +48,17 @@ import {
 import { loadSidebarSessions } from "@src/store/session";
 import {
   type DataSourceConfigMap,
-  FREQUENCY_INTERVAL_MS,
-  SCAN_FREQUENCIES,
+  GLOBAL_FREQUENCIES,
+  SOURCE_FREQUENCIES,
   type ScanFrequency,
+  type SourceFrequency,
   dataSourceConfigAtom,
+  dataSourceGlobalFrequencyAtom,
   getSourceConfig,
 } from "@src/store/session/dataSourceConfigAtom";
 import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 
 type DataSourceTab = "all" | "apps" | "clis";
-
-// How often the auto-scan loop checks whether any source is due.
-const AUTO_SCAN_TICK_MS = 60_000;
 
 // The sources ORGII imports history from (have a cache + support Rescan).
 const IMPORTABLE_SOURCE_IDS = new Set<ImportedHistorySourceId>(
@@ -107,6 +106,9 @@ const DataSourcePanel: React.FC = () => {
   const [rescanningAll, setRescanningAll] = useState(false);
   const [tab, setTab] = useState<DataSourceTab>("all");
   const [configMap, setConfigMap] = useAtom(dataSourceConfigAtom);
+  const [globalFrequency, setGlobalFrequency] = useAtom(
+    dataSourceGlobalFrequencyAtom
+  );
 
   const patchRow = useCallback(
     (sourceId: string, patch: Partial<SourceRow>) => {
@@ -239,28 +241,6 @@ const DataSourcePanel: React.FC = () => {
     [loadStats, patchRow, reprobe, updateConfig]
   );
 
-  // Lightweight scheduled scan: refresh sessions/stats/detection without the
-  // destructive cache clear a manual rescan does. Stamps lastScannedAt.
-  const autoScan = useCallback(
-    async (row: SourceRow) => {
-      const sourceId = row.probe.sourceId;
-      patchRow(sourceId, { rescanning: true });
-      try {
-        await loadSidebarSessions({ forceRefresh: true });
-        if (row.importable && isImportableId(sourceId)) {
-          await loadStats(sourceId);
-        }
-        await reprobe(sourceId);
-      } catch {
-        /* transient; next tick retries */
-      } finally {
-        patchRow(sourceId, { rescanning: false });
-        updateConfig(sourceId, { lastScannedAt: Date.now() });
-      }
-    },
-    [loadStats, patchRow, reprobe, updateConfig]
-  );
-
   const handleRescanAll = useCallback(async () => {
     const current = rows ?? [];
     if (current.length === 0) return;
@@ -331,30 +311,6 @@ const DataSourcePanel: React.FC = () => {
     [loadStats, patchRow, updateConfig]
   );
 
-  // Auto-scan loop: every tick, rescan any enabled source whose frequency
-  // window has elapsed. Uses refs so the interval never goes stale.
-  const rowsRef = useRef(rows);
-  rowsRef.current = rows;
-  const autoScanRef = useRef(autoScan);
-  autoScanRef.current = autoScan;
-  useEffect(() => {
-    const tick = () => {
-      const now = Date.now();
-      for (const row of rowsRef.current ?? []) {
-        if (!row.importable || row.rescanning) continue;
-        const cfg = getSourceConfig(configRef.current, row.probe.sourceId);
-        if (!cfg.enabled) continue;
-        const interval = FREQUENCY_INTERVAL_MS[cfg.frequency];
-        if (interval == null) continue; // manual
-        const due =
-          cfg.lastScannedAt == null || now - cfg.lastScannedAt >= interval;
-        if (due) void autoScanRef.current(row);
-      }
-    };
-    const id = window.setInterval(tick, AUTO_SCAN_TICK_MS);
-    return () => window.clearInterval(id);
-  }, []);
-
   const describeRow = useCallback(
     (row: SourceRow): string => {
       const path = row.probe.historyPaths[0]
@@ -393,8 +349,12 @@ const DataSourcePanel: React.FC = () => {
     [t]
   );
 
-  const frequencyOptions = useMemo(
-    () => SCAN_FREQUENCIES.map((f) => ({ value: f, label: t(`freq.${f}`) })),
+  const sourceFrequencyOptions = useMemo(
+    () => SOURCE_FREQUENCIES.map((f) => ({ value: f, label: t(`freq.${f}`) })),
+    [t]
+  );
+  const globalFrequencyOptions = useMemo(
+    () => GLOBAL_FREQUENCIES.map((f) => ({ value: f, label: t(`freq.${f}`) })),
     [t]
   );
 
@@ -410,17 +370,34 @@ const DataSourcePanel: React.FC = () => {
             <div className="text-sm font-medium text-text-1">{t("title")}</div>
             <div className="mt-0.5 text-xs text-text-3">{t("description")}</div>
           </div>
-          {(rows ?? []).length > 0 && (
-            <Button
-              variant="secondary"
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <span className="whitespace-nowrap text-xs text-text-3">
+              {t("globalFrequency")}
+            </span>
+            <Select
+              value={globalFrequency}
+              onChange={(v) => {
+                if (typeof v === "string") {
+                  setGlobalFrequency(v as ScanFrequency);
+                }
+              }}
+              options={globalFrequencyOptions}
               size="small"
-              loading={rescanningAll}
-              icon={<RefreshCw size={14} />}
-              onClick={() => void handleRescanAll()}
-            >
-              {t("rescanAll")}
-            </Button>
-          )}
+              style={{ width: 128 }}
+              aria-label={t("globalFrequency")}
+            />
+            {(rows ?? []).length > 0 && (
+              <Button
+                variant="secondary"
+                size="small"
+                loading={rescanningAll}
+                icon={<RefreshCw size={14} />}
+                onClick={() => void handleRescanAll()}
+              >
+                {t("rescanAll")}
+              </Button>
+            )}
+          </div>
         </div>
 
         <TabPill
@@ -489,11 +466,11 @@ const DataSourcePanel: React.FC = () => {
                       onChange={(v) => {
                         if (typeof v === "string") {
                           updateConfig(sourceId, {
-                            frequency: v as ScanFrequency,
+                            frequency: v as SourceFrequency,
                           });
                         }
                       }}
-                      options={frequencyOptions}
+                      options={sourceFrequencyOptions}
                       size="small"
                       style={{ width: 128 }}
                       aria-label={t("frequencyTitle")}

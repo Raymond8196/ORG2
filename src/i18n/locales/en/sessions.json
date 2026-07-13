@@ -100,8 +100,11 @@
       "lastScan": "Last scan {{time}}",
       "neverScanned": "Never scanned",
       "frequencyTitle": "Auto-scan frequency",
+      "globalFrequency": "Auto-scan",
       "freq": {
+        "default": "Default",
         "manual": "Manual",
+        "60s": "Every 60s",
         "5m": "Every 5 min",
         "1h": "Hourly",
         "1d": "Daily"
@@ -1238,6 +1241,7 @@
     "askUserSkipped": "Skipped",
     "askUserQuestionsAnswered": "Questions were answered",
     "askUserQuestionsSkipped": "Questions skipped",
+    "explore": "Explore",
     "exploreSummary": {
       "read_one": "{{count}} file",
       "read_other": "{{count}} files",
