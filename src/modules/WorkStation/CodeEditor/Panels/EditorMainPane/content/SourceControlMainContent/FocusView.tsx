@@ -50,8 +50,12 @@ const FocusView: React.FC<FocusViewProps> = ({
   inlineFileHeader = true,
   emptyActions,
 }) => {
+  const emptyPlaceholder = (
+    <NoTabsPlaceholder icon="source-control" actions={emptyActions} />
+  );
+
   if (!hasFocus) {
-    return <NoTabsPlaceholder icon="source-control" actions={emptyActions} />;
+    return emptyPlaceholder;
   }
 
   return (
@@ -65,6 +69,7 @@ const FocusView: React.FC<FocusViewProps> = ({
           onFileSelect={onFileSelect}
           onUnsavedChange={onUnsavedChange}
           publishHeaderToWorkstation={!inlineFileHeader}
+          emptyState={emptyPlaceholder}
         />
       </Suspense>
     </div>
