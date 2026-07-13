@@ -56,6 +56,7 @@ import ChatHistoryEmptyState from "./components/ChatHistoryEmptyState";
 import ChatHistoryList from "./components/ChatHistoryList";
 import ChatPinnedHeaderLayer from "./components/ChatPinnedHeaderLayer";
 import ChatSearchBar from "./components/ChatSearchBar";
+import ConversationMinimap from "./components/ConversationMinimap";
 import RevertConfirmDialog from "./components/RevertConfirmDialog";
 import TurnPageList from "./components/TurnPageList";
 import { getChatContentBottomDistance } from "./config/chatFooterSpacer";
@@ -667,17 +668,26 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   }, [onRegisterSearchOpen, handleOpenSearch]);
 
   const visibleRangeEndRef = useRef(0);
-  const [activePinnedGroupIndex, setActivePinnedGroupIndex] = useState(0);
+  const [activeGroupIndex, setActiveGroupIndex] = useState(0);
   const handleActiveGroupIndexChange = useCallback((groupIndex: number) => {
-    setActivePinnedGroupIndex((previousIndex) =>
+    setActiveGroupIndex((previousIndex) =>
       previousIndex === groupIndex ? previousIndex : groupIndex
     );
   }, []);
   useEffect(() => {
-    setActivePinnedGroupIndex((previousIndex) =>
+    setActiveGroupIndex((previousIndex) =>
       Math.min(previousIndex, Math.max(0, displayGroupCounts.length - 1))
     );
   }, [activeId, currentPageIndex, displayGroupCounts.length]);
+  const handleConversationMinimapNavigate = useCallback(
+    (groupIndex: number) => {
+      virtualListRef.current?.scrollToGroup({
+        groupIndex,
+        behavior: "smooth",
+      });
+    },
+    [virtualListRef]
+  );
 
   // Shared scroll intent refs — owned here, passed into scroll hooks so
   // they coordinate without re-renders.
@@ -999,9 +1009,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   });
 
   const activePinnedDisplayGroupIndex =
-    activePinnedGroupIndex < displayGroupHeaders.length
-      ? activePinnedGroupIndex
-      : 0;
+    activeGroupIndex < displayGroupHeaders.length ? activeGroupIndex : 0;
   const activePinnedHeader = displayGroupHeaders[activePinnedDisplayGroupIndex];
   const activePinnedMeta = displayGroupMeta[activePinnedDisplayGroupIndex];
   const activePinnedSourceGroupIndex =
@@ -1138,10 +1146,25 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
           )}
 
           <div
-            className="relative min-h-0 flex-1"
+            className="relative min-h-0 flex-1 @container/chatbody"
             style={VIRTUALIZED_BODY_STYLE}
             data-chat-virtualized-body-layer
           >
+            {!turnPaginationEnabled &&
+              !turnPageListOpen &&
+              !agentOrgOverviewOpen && (
+                <ConversationMinimap
+                  groupHeaders={displayGroupHeaders}
+                  groupMeta={displayGroupMeta}
+                  groupCounts={displayGroupCounts}
+                  flatItems={displayFlatItems}
+                  activeGroupIndex={activeGroupIndex}
+                  isAtBottom={atBottom}
+                  labelVariant={groupChat?.enabled ? "agents" : "agent"}
+                  onNavigate={handleConversationMinimapNavigate}
+                />
+              )}
+
             {turnPageListOpen && turnPaginationReady && (
               <TurnPageList
                 surfaceBgClass={surfaceBgClass}
@@ -1213,11 +1236,8 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                       }
                       onAtBottomStateChange={handleAtBottomStateChange}
                       onRangeChanged={handleRangeChanged}
-                      onActiveGroupIndexChange={
-                        turnPaginationEnabled
-                          ? handleActiveGroupIndexChange
-                          : undefined
-                      }
+                      onActiveGroupIndexChange={handleActiveGroupIndexChange}
+                      hideActiveGroupHeader={turnPaginationEnabled}
                       onEndReached={handleTurnPageEndReached}
                       onRegenerate={
                         mutationActionsDisabled

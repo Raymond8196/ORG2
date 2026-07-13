@@ -293,6 +293,10 @@ function sameChatHistoryListProps(
       "onActiveGroupIndexChange",
       previous.onActiveGroupIndexChange === next.onActiveGroupIndexChange,
     ],
+    [
+      "hideActiveGroupHeader",
+      previous.hideActiveGroupHeader === next.hideActiveGroupHeader,
+    ],
     ["onEndReached", previous.onEndReached === next.onEndReached],
     ["onRegenerate", previous.onRegenerate === next.onRegenerate],
     ["onSubmit", previous.onSubmit === next.onSubmit],
@@ -322,6 +326,10 @@ export interface ChatHistoryListHandle {
     index: number;
     behavior?: ScrollBehavior;
     align?: "start" | "center" | "end" | "auto";
+  }) => void;
+  scrollToGroup: (options: {
+    groupIndex: number;
+    behavior?: ScrollBehavior;
   }) => void;
 }
 
@@ -356,6 +364,8 @@ interface ChatHistoryListProps {
   onAtBottomStateChange: (atBottom: boolean) => void;
   onRangeChanged: (range: { startIndex: number; endIndex: number }) => void;
   onActiveGroupIndexChange?: (groupIndex: number, pinned: boolean) => void;
+  /** Hide the in-list copy of the active header when a separate pinned header is rendered. */
+  hideActiveGroupHeader?: boolean;
   onEndReached: () => void;
   onRegenerate?: (groupIndex: number) => void;
   onSubmit: (eventId: string, answers: Record<string, string>) => void;
@@ -438,6 +448,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
     onAtBottomStateChange,
     onRangeChanged,
     onActiveGroupIndexChange,
+    hideActiveGroupHeader = false,
     onEndReached,
     onRegenerate,
     onSubmit,
@@ -579,8 +590,36 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
           const groupIndex = flatIndexToGroupIndex[index] ?? 0;
           virtualizer.scrollToIndex(groupIndex, { align, behavior });
         },
+        scrollToGroup: ({ groupIndex, behavior = "smooth" }) => {
+          const boundedGroupIndex = Math.max(
+            0,
+            Math.min(groupIndex, virtualGroups.length - 1)
+          );
+          const staticScrollRoot = staticScrollerRef?.current;
+          const staticGroup = staticScrollRoot?.querySelector<HTMLElement>(
+            `[data-chat-group-index="${boundedGroupIndex}"]`
+          );
+          if (staticScrollRoot && staticGroup) {
+            const rootRect = staticScrollRoot.getBoundingClientRect();
+            const groupRect = staticGroup.getBoundingClientRect();
+            staticScrollRoot.scrollTo({
+              top: staticScrollRoot.scrollTop + groupRect.top - rootRect.top,
+              behavior,
+            });
+            return;
+          }
+          virtualizer.scrollToIndex(boundedGroupIndex, {
+            align: "start",
+            behavior,
+          });
+        },
       }),
-      [flatIndexToGroupIndex, virtualizer]
+      [
+        flatIndexToGroupIndex,
+        staticScrollerRef,
+        virtualGroups.length,
+        virtualizer,
+      ]
     );
     const rowGroupMeta = useMemo(
       () =>
@@ -692,7 +731,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
         const groupElements = Array.from(
           scrollRoot.querySelectorAll<HTMLElement>("[data-chat-group-index]")
         );
-        if (!onActiveGroupIndexChange) {
+        if (!onActiveGroupIndexChange && !hideActiveGroupHeader) {
           for (const groupElement of groupElements) {
             const headerElement = groupElement.querySelector<HTMLElement>(
               "[data-chat-group-header]"
@@ -723,13 +762,15 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
           );
           if (!headerElement) continue;
           const hideOriginal =
-            pinState.pinned && groupIndex === pinState.groupIndex;
+            hideActiveGroupHeader &&
+            pinState.pinned &&
+            groupIndex === pinState.groupIndex;
           headerElement.style.visibility = hideOriginal ? "hidden" : "";
           headerElement.toggleAttribute("aria-hidden", hideOriginal);
         }
-        onActiveGroupIndexChange(pinState.groupIndex, pinState.pinned);
+        onActiveGroupIndexChange?.(pinState.groupIndex, pinState.pinned);
       },
-      [onActiveGroupIndexChange]
+      [hideActiveGroupHeader, onActiveGroupIndexChange]
     );
 
     useEffect(() => {
