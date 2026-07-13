@@ -100,6 +100,14 @@
       "neverScanned": "從未掃描",
       "frequencyTitle": "自動掃描頻率",
       "globalFrequency": "自動掃描",
+      "globalFrequencyDesc": "設為「預設」的來源的預設頻率。",
+      "col": {
+        "source": "來源",
+        "sessions": "工作階段",
+        "lastScan": "上次掃描",
+        "frequency": "自動掃描",
+        "status": "狀態"
+      },
       "freq": {
         "default": "預設",
         "manual": "手動",

@@ -100,6 +100,14 @@
       "neverScanned": "스캔 안 됨",
       "frequencyTitle": "자동 스캔 주기",
       "globalFrequency": "자동 스캔",
+      "globalFrequencyDesc": "“기본값”으로 설정된 소스의 기본 주기.",
+      "col": {
+        "source": "소스",
+        "sessions": "세션",
+        "lastScan": "마지막 스캔",
+        "frequency": "자동 스캔",
+        "status": "상태"
+      },
       "freq": {
         "default": "기본값",
         "manual": "수동",

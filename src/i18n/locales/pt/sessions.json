@@ -100,6 +100,14 @@
       "neverScanned": "Nunca verificado",
       "frequencyTitle": "Frequência de varredura",
       "globalFrequency": "Varredura automática",
+      "globalFrequencyDesc": "Cadência padrão para fontes definidas como “Padrão”.",
+      "col": {
+        "source": "Fonte",
+        "sessions": "Sessões",
+        "lastScan": "Última varredura",
+        "frequency": "Varredura automática",
+        "status": "Status"
+      },
       "freq": {
         "default": "Padrão",
         "manual": "Manual",

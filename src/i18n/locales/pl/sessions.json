@@ -100,6 +100,14 @@
       "neverScanned": "Nigdy nie skanowano",
       "frequencyTitle": "Częstotliwość skanowania",
       "globalFrequency": "Autoskan",
+      "globalFrequencyDesc": "Domyślna częstotliwość dla źródeł ustawionych na „Domyślnie”.",
+      "col": {
+        "source": "Źródło",
+        "sessions": "Sesje",
+        "lastScan": "Ostatni skan",
+        "frequency": "Autoskan",
+        "status": "Status"
+      },
       "freq": {
         "default": "Domyślnie",
         "manual": "Ręcznie",

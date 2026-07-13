@@ -101,6 +101,14 @@
       "neverScanned": "Never scanned",
       "frequencyTitle": "Auto-scan frequency",
       "globalFrequency": "Auto-scan",
+      "globalFrequencyDesc": "Default cadence for sources set to Default.",
+      "col": {
+        "source": "Source",
+        "sessions": "Sessions",
+        "lastScan": "Last scan",
+        "frequency": "Auto-scan",
+        "status": "Status"
+      },
       "freq": {
         "default": "Default",
         "manual": "Manual",
