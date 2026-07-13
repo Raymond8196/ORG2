@@ -979,6 +979,7 @@ agent_core::mcp::registries::glama::glama_detail,
 // Orgtrack history sources
 orgtrack::history_commands::orgtrack_get_cursor_sessions,
 orgtrack::history_commands::cursor_ide_chunks,
+orgtrack::history_commands::cursor_ide_composer_last_updated_at,
 orgtrack::history_commands::cursor_ide_initial_window,
 orgtrack::history_commands::cursor_ide_full_refresh,
 orgtrack::history_commands::cursor_ide_turn_window,
@@ -1000,34 +1001,6 @@ orgtrack::history_commands::cline_history_chunks,
 orgtrack::history_commands::cline_recent_paths,
 orgtrack::history_commands::workbuddy_history_chunks,
 orgtrack::history_commands::workbuddy_recent_paths,
-// Cursor IDE control — drive a running Cursor.app via CDP `Input.*`
-// so users can submit prompts (start + follow-up) without leaving ORGII.
-// See `crates/cursor-bridge-app/src/lib.rs` and
-// `crates/cursor-bridge/README.md`.
-cursor_bridge_app::cursor_bridge_ensure_running,
-cursor_bridge_app::cursor_bridge_ensure_real_cursor_running,
-cursor_bridge_app::cursor_bridge_restart_real_cursor_with_debug_port,
-cursor_bridge_app::cursor_bridge_status,
-cursor_bridge_app::cursor_bridge_attach_mode,
-cursor_bridge_app::cursor_bridge_send,
-// Composer-targeted routing + agent enumeration.
-cursor_bridge_app::cursor_bridge_route,
-cursor_bridge_app::cursor_bridge_list_agents,
-// Dynamic model picker (live CDP + state.vscdb fallback).
-cursor_bridge_app::cursor_bridge_list_models,
-cursor_bridge_app::cursor_bridge_set_model,
-cursor_bridge_app::cursor_bridge_get_composer_model,
-cursor_bridge_app::cursor_bridge_get_default_model,
-cursor_bridge_app::cursor_bridge_composer_last_updated_at,
-// Unified-mode picker (Agent / Plan / Debug / Ask / Multitask /
-// Project) — mirrors the model picker shape with a live-CDP listing
-// and a per-composer state.vscdb fallback.
-cursor_bridge_app::cursor_bridge_list_modes,
-cursor_bridge_app::cursor_bridge_get_composer_mode,
-cursor_bridge_app::cursor_bridge_set_mode,
-// Open a fresh composer + seed first prompt — backs the session
-// creator's "Cursor IDE" agent option.
-cursor_bridge_app::cursor_bridge_new_composer,
 // Remote SQL client commands (PostgreSQL + MySQL via sqlx).
 // Crate: src-tauri/crates/db-clients. Owns the `sqlx` dep tree privately
 // so it never enters `cargo check -p org2`. See the crate's Cargo.toml
