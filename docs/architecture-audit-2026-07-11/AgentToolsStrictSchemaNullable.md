@@ -1,4 +1,4 @@
-# Architecture Audit — todo strict-schema optional fields and snapshot deduplication
+# Architecture Audit — agent tools strict-schema optional fields and todo snapshot deduplication
 
 **Date:** 2026-07-11
 **Auditor:** orgii session
@@ -7,16 +7,19 @@
 
 - `src-tauri/crates/agent-core/src/core/providers/responses_common/types.rs`
 - `src-tauri/crates/agent-core/src/core/tools/registry.rs`
+- `src-tauri/crates/agent-core/src/core/tools/impls/coding/code_search.rs`
 - `src-tauri/crates/agent-core/src/core/tools/impls/coding/manage_todo.rs`
 - `src-tauri/crates/agent-core/src/core/tools/tests/registry_tests.rs`
+- `src-tauri/crates/agent-core/src/core/tools/tests/search_tool_tests.rs`
 - `src/engines/ChatPanel/ChatHistory/chatItemPipeline/pipeline.ts`
 - `src/engines/ChatPanel/ChatHistory/chatItemPipeline/__tests__/pipeline.test.ts`
 
 ## What the change does (one theme)
 
-All six files implement one todo-focused feature: preserve task titles when the
-OpenAI Responses API uses `strict: true`, then render only the latest snapshot
-in a consecutive run of todo updates.
+All eight files implement one strict-schema handling path plus its todo UI
+projection: preserve optional tool arguments when the OpenAI Responses API uses
+`strict: true`, then render only the latest snapshot in a consecutive run of
+todo updates.
 
 The Responses strict contract requires every property to be listed in `required`
 and to appear in the model's output. Previously, source-schema _optional_ fields
@@ -32,15 +35,15 @@ end-to-end:
    the tool. For properties that were originally optional and are **not**
    natively nullable, a literal `null` is deleted, restoring the "field omitted"
    shape the tools expect. Recurses into nested objects and array items.
-3. **Tool-level validation (`manage_todo.rs`):** nullable optional update fields
-   mean "leave unchanged"; empty titles, malformed strings, and invalid
-   `blockedBy` arrays are rejected instead of silently erasing or weakening a
-   patch.
+3. **Tool-level validation (`code_search.rs`, `manage_todo.rs`):** nullable
+   optional search scope is treated as absent; nullable todo update fields mean
+   "leave unchanged". Empty titles, malformed strings, and invalid `blockedBy`
+   arrays are rejected instead of silently erasing or weakening a patch.
 4. **Frontend projection (`pipeline.ts`):** consecutive `manage_todo` events are
    complete snapshots, so only the latest card is retained. A real intervening
    activity remains a history boundary.
-5. **Tests:** cover schema nullability, registry cleanup, todo update parsing,
-   status-count reconciliation, and snapshot boundaries.
+5. **Tests:** cover schema nullability, registry cleanup, search scope fallback,
+   todo update parsing, status-count reconciliation, and snapshot boundaries.
 
 ## Layers covered
 
@@ -134,8 +137,9 @@ registry strip. Parity holds for the model-driven path.
 
 ## Summary
 
-- **1 coherent todo feature** across 6 files; correctly split into outbound
-  schema, inbound cleanup, tool validation, and frontend projection layers.
+- **1 coherent strict-schema/todo feature** across 8 files; correctly split into
+  outbound schema, inbound cleanup, tool validation, and frontend projection
+  layers.
 - **Round-trip parity verified** — outbound nullable-set and inbound strip-set are
   keyed off the same source `required` set.
 - **0 open fix candidates** after the focused cleanup.
