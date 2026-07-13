@@ -6,6 +6,7 @@ use orgtrack_core::sources::codex::app as codex_app;
 use orgtrack_core::sources::cursor_ide::{db as cursor_db, history as cursor_db_history};
 use orgtrack_core::sources::imported_history;
 use orgtrack_core::sources::opencode::history as opencode_history;
+use orgtrack_core::sources::trae::history as trae_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
 
@@ -37,6 +38,7 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
     paths.extend(workbuddy_history::list_workbuddy_recent_paths(
         &mut conn, 0,
     )?);
+    paths.extend(trae_history::list_trae_recent_paths(&mut conn, 0)?);
     Ok(imported_history::recent_paths_from_paths(&paths))
 }
 
@@ -260,6 +262,31 @@ pub async fn windsurf_recent_paths(
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
         windsurf_history::list_windsurf_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn trae_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        trae_history::load_trae_history_for_session(&conn, &session_id)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn trae_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<trae_history::TraeRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        trae_history::list_trae_recent_paths(&mut conn, limit)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

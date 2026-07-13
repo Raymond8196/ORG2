@@ -55,6 +55,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "opencode",
     "windsurf",
     "workbuddy",
+    "trae",
 ];
 
 /// On-disk store format for a source's session history — the "file type" shown
@@ -65,7 +66,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
 fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
-        "claude_code" | "codex_app" | "workbuddy" => "jsonl",
+        "claude_code" | "codex_app" | "workbuddy" | "trae" => "jsonl",
         "cursor_ide" | "opencode" | "windsurf" => "sqlite",
         // Known store format, not yet imported.
         "gemini" | "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
@@ -396,6 +397,17 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         true,
         &[],
     ),
+    source(
+        "trae",
+        "Trae",
+        "trae",
+        "trae",
+        &[],
+        "trae",
+        "Trae",
+        true,
+        &[],
+    ),
 ];
 
 const fn source(
@@ -516,6 +528,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
             "Codeium/Windsurf",
         ]),
         "workbuddy" => platform_data_candidates(&["WorkBuddy", "workbuddy"]),
+        "trae" => home_candidates(&[".trae-cn/memory/projects", ".trae/memory/projects"]),
         _ => Vec::new(),
     }
 }
