@@ -102,6 +102,19 @@ const TabPill = memo(function TabPill({
   const [hovered, setHovered] = useState(false);
   const showCloseSlot = hovered;
 
+  // When this tab becomes active (e.g. via a sidebar click), reveal it in the
+  // horizontally-scrollable tab strip. `nearest` only scrolls when off-screen.
+  const pillRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (isActive) {
+      pillRef.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      });
+    }
+  }, [isActive]);
+
   // Read session data for icon + hover card (session tabs only)
   const session = useAtomValue(sessionByIdAtom(tab.sessionId ?? ""));
   const terminalSessions = useAtomValue(terminalSessionsAtom);
@@ -179,7 +192,8 @@ const TabPill = memo(function TabPill({
 
   const pill = (
     <div
-      className="relative inline-flex min-w-0 max-w-[180px] shrink-0"
+      ref={pillRef}
+      className="relative inline-flex min-w-0 max-w-[120px] shrink-0"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
