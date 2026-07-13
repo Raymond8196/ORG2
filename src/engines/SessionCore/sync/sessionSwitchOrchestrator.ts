@@ -1,4 +1,4 @@
-import { cursorBridgeComposerLastUpdatedAt } from "@src/api/tauri/cursorBridge";
+import { cursorIdeComposerLastUpdatedAt } from "@src/api/tauri/externalHistory/cursorIde";
 import { Message } from "@src/components/Message";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { isVisibleInChat } from "@src/engines/SessionCore/ingestion/visibilityFilters";
@@ -195,7 +195,7 @@ async function handleCursorIdeCacheHit(
   actions.setLoadStatus("loading");
   const composerId = composerIdFromSessionId(sessionId);
   const currentUpdatedAt = composerId
-    ? await cursorBridgeComposerLastUpdatedAt(composerId)
+    ? await cursorIdeComposerLastUpdatedAt(composerId)
     : null;
   if (abortController.signal.aborted) return true;
   const cachedUpdatedAt = getCursorIdeSnapshotLastUpdatedAt(sessionId);

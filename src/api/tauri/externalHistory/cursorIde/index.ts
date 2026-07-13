@@ -56,6 +56,19 @@ export async function cursorIdeChunks(
   return invoke<ActivityChunk[]>("cursor_ide_chunks", { sessionId });
 }
 
+/**
+ * A composer's last-updated timestamp from Cursor's `state.vscdb` — a cheap
+ * freshness signal for reloading an open read-only Cursor session when it
+ * changes. `null` when Cursor isn't installed or the composer is unknown.
+ */
+export async function cursorIdeComposerLastUpdatedAt(
+  composerId: string
+): Promise<number | null> {
+  return invoke<number | null>("cursor_ide_composer_last_updated_at", {
+    composerId,
+  });
+}
+
 export async function cursorIdeInitialWindow(args: {
   sessionId: string;
   recentLimit?: number;
