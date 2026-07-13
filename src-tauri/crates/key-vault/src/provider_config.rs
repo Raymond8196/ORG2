@@ -641,6 +641,52 @@ mod tests {
         assert!(configs.iter().any(|(k, _)| k == "cursor_cli"));
     }
 
+    /// Contract guard: every protocol the registry can emit must be a member of
+    /// the frontend's `ProviderProtocolSchema` zod enum. `get_available_api_providers`
+    /// validates its output against that enum in dev, so a protocol added here but
+    /// not mirrored there silently fails validation at runtime (see the gemini_api
+    /// regression). This reads the real `validation.ts` so the two can't drift.
+    #[test]
+    fn every_registry_protocol_is_known_to_the_frontend_zod_enum() {
+        // key-vault crate dir -> repo root is three levels up (src-tauri/crates/key-vault).
+        let validation_ts = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../../src/api/tauri/rpc/schemas/validation.ts");
+        let source = std::fs::read_to_string(&validation_ts).unwrap_or_else(|err| {
+            panic!("cannot read {}: {err}", validation_ts.display())
+        });
+
+        // Extract the members of `ProviderProtocolSchema = z.enum([ ... ])`.
+        let enum_body = source
+            .split_once("ProviderProtocolSchema = z.enum([")
+            .and_then(|(_, rest)| rest.split_once("])"))
+            .map(|(members, _)| members)
+            .expect("could not locate ProviderProtocolSchema z.enum([...]) in validation.ts");
+        let frontend_protocols: std::collections::HashSet<&str> = enum_body
+            .split(',')
+            .map(|token| token.trim().trim_matches(['"', '\'']))
+            .filter(|token| !token.is_empty())
+            .collect();
+
+        let mut missing: Vec<String> = Vec::new();
+        for (provider, config) in get_all_provider_configs() {
+            for protocol in config
+                .supported_protocols
+                .iter()
+                .chain(std::iter::once(&config.default_protocol))
+            {
+                if !frontend_protocols.contains(protocol.as_str()) {
+                    missing.push(format!("{provider}: {protocol:?}"));
+                }
+            }
+        }
+
+        assert!(
+            missing.is_empty(),
+            "these registry protocols are missing from ProviderProtocolSchema in \
+             src/api/tauri/rpc/schemas/validation.ts (add them there to fix): {missing:?}"
+        );
+    }
+
     #[test]
     fn all_registered_cli_agents_have_provider_configs() {
         let configs = get_all_provider_configs();
