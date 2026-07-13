@@ -2,59 +2,70 @@ import { getVersion } from "@tauri-apps/api/app";
 import type { DownloadEvent, Update } from "@tauri-apps/plugin-updater";
 import { check } from "@tauri-apps/plugin-updater";
 import { atom, useAtomValue } from "jotai";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import Message from "@src/components/Message";
 import { createLogger } from "@src/hooks/logger";
+import { autoUpdateEnabledAtom } from "@src/store/platform/autoUpdateAtom";
+import { settingsLoadedAtom } from "@src/store/settings/settingsAtom";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
+
+import {
+  AppUpdaterCoordinator,
+  type AppUpdaterState,
+  createInitialAppUpdaterState,
+} from "./appUpdaterCoordinator";
+import {
+  AppUpdaterScheduler,
+  type AutomaticUpdateReason,
+} from "./appUpdaterScheduler";
 
 const log = createLogger("AppUpdater");
 
 const STARTUP_CHECK_DELAY_MS = 10_000;
-// Background poll is intentionally long: focus/visibilitychange checks (throttled
-// by FOREGROUND_CHECK_MIN_INTERVAL_MS) cover active users, so the timer only
-// matters for a window left focused for hours without any focus events.
 const UPDATE_CHECK_INTERVAL_MS = 2 * 60 * 60_000;
 const FOREGROUND_CHECK_MIN_INTERVAL_MS = 5 * 60_000;
+const FOREGROUND_EVENT_DEBOUNCE_MS = 750;
 const INSTALL_PROGRESS_MESSAGE_MIN_INTERVAL_MS = 2_000;
 const UPDATE_TOAST_DURATION_MS = 5_000;
 
-// Reused toast slots so status updates replace in place instead of stacking.
 const CHECK_TOAST_ID = "app-update-check";
 const INSTALL_TOAST_ID = "app-update-progress";
 
-interface CheckForAppUpdatesOptions {
+export interface CheckForAppUpdatesOptions {
   notify?: boolean;
   force?: boolean;
 }
 
-const availableAppUpdateAtom = atom<Update | null>(null);
-const isAppUpdateInstallingAtom = atom(false);
-
-let lastCheckStartedAt = 0;
-let pendingCheck: Promise<Update | null> | null = null;
+const appUpdaterStateAtom = atom<AppUpdaterState>(
+  createInitialAppUpdaterState()
+);
+const availableAppUpdateAtom = atom((get) => get(appUpdaterStateAtom).update);
+const isAppUpdateInstallingAtom = atom((get) => {
+  const phase = get(appUpdaterStateAtom).phase;
+  return (
+    phase === "downloading" || phase === "installing" || phase === "relaunching"
+  );
+});
 
 function store() {
   return getInstrumentedStore();
 }
 
+function createCoordinator(): AppUpdaterCoordinator {
+  return new AppUpdaterCoordinator({
+    check,
+    getVersion,
+    minCheckIntervalMs: FOREGROUND_CHECK_MIN_INTERVAL_MS,
+    onStateChange: (state) => store().set(appUpdaterStateAtom, state),
+  });
+}
+
+const coordinator = createCoordinator();
+
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return typeof error === "string" ? error : "Unknown error";
-}
-
-function getCachedUpdate(): Update | null {
-  return store().get(availableAppUpdateAtom);
-}
-
-function setCachedUpdate(update: Update | null): void {
-  store().set(availableAppUpdateAtom, update);
-}
-
-function shouldReuseRecentResult(force: boolean): boolean {
-  return (
-    !force && Date.now() - lastCheckStartedAt < FOREGROUND_CHECK_MIN_INTERVAL_MS
-  );
 }
 
 function notifyCheckSuccess(
@@ -68,7 +79,7 @@ function notifyCheckSuccess(
     Message.info({
       id: CHECK_TOAST_ID,
       title: "Update available",
-      content: `Version ${update.version} is ready to download.`,
+      content: `Version ${update.version} is ready to install.`,
       duration: UPDATE_TOAST_DURATION_MS,
     });
     return;
@@ -96,8 +107,10 @@ function notifyCheckFailure(error: unknown, notify: boolean): void {
   });
 }
 
-async function runUpdateCheck(notify: boolean): Promise<Update | null> {
-  lastCheckStartedAt = Date.now();
+export async function checkForAppUpdates(
+  options: CheckForAppUpdatesOptions = {}
+): Promise<Update | null> {
+  const { notify = false, force = false } = options;
 
   if (notify) {
     Message.info({
@@ -108,40 +121,17 @@ async function runUpdateCheck(notify: boolean): Promise<Update | null> {
   }
 
   try {
-    const [currentVersion, update] = await Promise.all([
-      getVersion().catch(() => undefined),
-      check(),
-    ]);
-
-    setCachedUpdate(update);
-
-    if (update) {
-      log.info("Update available", {
-        currentVersion: update.currentVersion || currentVersion,
-        version: update.version,
-      });
-    }
-
-    notifyCheckSuccess(update, currentVersion, notify);
-    return update;
+    const result = await coordinator.checkForUpdate(force);
+    notifyCheckSuccess(result.update, result.currentVersion, notify);
+    return result.update;
   } catch (error) {
+    // A manual check is an explicit freshness request. Do not keep showing an
+    // update that this check could not confirm. Silent failures keep the last
+    // successful result so transient network loss does not erase UI state.
+    if (notify) coordinator.clearAvailableUpdate();
     notifyCheckFailure(error, notify);
-    return getCachedUpdate();
-  } finally {
-    pendingCheck = null;
+    return notify ? null : coordinator.getAvailableUpdate();
   }
-}
-
-export async function checkForAppUpdates(
-  options: CheckForAppUpdatesOptions = {}
-): Promise<Update | null> {
-  const { notify = false, force = false } = options;
-
-  if (pendingCheck) return pendingCheck;
-  if (shouldReuseRecentResult(force)) return getCachedUpdate();
-
-  pendingCheck = runUpdateCheck(notify);
-  return pendingCheck;
 }
 
 export async function checkForUpdatesManually(): Promise<Update | null> {
@@ -154,9 +144,6 @@ function formatBytes(bytes: number): string {
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
-// Tracks cumulative download progress so the toast reflects real percentage
-// (or downloaded size when the server omits Content-Length) instead of a
-// static string. `Started`/`Finished` always report; `Progress` is throttled.
 function createProgressReporter(): (event: DownloadEvent) => void {
   let lastReportedAt = 0;
   let downloaded = 0;
@@ -201,21 +188,28 @@ function createProgressReporter(): (event: DownloadEvent) => void {
   };
 }
 
-export async function installAvailableAppUpdate(): Promise<void> {
-  const update = getCachedUpdate() ?? (await checkForUpdatesManually());
-  if (!update || store().get(isAppUpdateInstallingAtom)) return;
+async function relaunchApp(): Promise<void> {
+  const { relaunch } = await import("@tauri-apps/plugin-process");
+  await relaunch();
+}
 
-  store().set(isAppUpdateInstallingAtom, true);
+export async function installAvailableAppUpdate(): Promise<void> {
+  const update =
+    coordinator.getAvailableUpdate() ?? (await checkForUpdatesManually());
+  if (!update) return;
 
   try {
     Message.info({
       id: INSTALL_TOAST_ID,
       title: "Installing update",
-      content: `Preparing to download v${update.version}…`,
+      content: `Preparing v${update.version}…`,
       duration: 0,
     });
 
-    await update.downloadAndInstall(createProgressReporter());
+    const installed = await coordinator.installAvailableUpdate(
+      createProgressReporter()
+    );
+    if (!installed) return;
 
     Message.success({
       id: INSTALL_TOAST_ID,
@@ -223,9 +217,7 @@ export async function installAvailableAppUpdate(): Promise<void> {
       content: "Restarting ORGII to finish the update.",
       duration: 2500,
     });
-
-    const { relaunch } = await import("@tauri-apps/plugin-process");
-    await relaunch();
+    await relaunchApp();
   } catch (error) {
     Message.error({
       id: INSTALL_TOAST_ID,
@@ -234,8 +226,30 @@ export async function installAvailableAppUpdate(): Promise<void> {
       duration: 6000,
     });
     log.error("Update install failed", error);
-  } finally {
-    store().set(isAppUpdateInstallingAtom, false);
+  }
+}
+
+async function runAutomaticUpdate(
+  reason: AutomaticUpdateReason
+): Promise<void> {
+  try {
+    const result = await coordinator.checkForUpdate(
+      reason === "startup" || reason === "interval"
+    );
+    if (!result.update) return;
+
+    if (reason === "startup") {
+      const installed = await coordinator.installAvailableUpdate();
+      if (installed) await relaunchApp();
+      return;
+    }
+
+    // Installing can terminate the app on Windows. While the user is active,
+    // only download in the background; the existing update button can install
+    // immediately from the prepared package, or startup auto-update will.
+    await coordinator.downloadAvailableUpdate();
+  } catch (error) {
+    log.warn(`Automatic update (${reason}) failed`, getErrorMessage(error));
   }
 }
 
@@ -248,29 +262,32 @@ export function useIsAppUpdateInstalling(): boolean {
 }
 
 export const AppUpdater: React.FC = () => {
+  const autoUpdateEnabled = useAtomValue(autoUpdateEnabledAtom);
+  const settingsLoaded = useAtomValue(settingsLoadedAtom);
+  const startupSchedulingPendingRef = useRef(true);
+
   useEffect(() => {
-    const startupTimer = window.setTimeout(() => {
-      void checkForAppUpdates();
-    }, STARTUP_CHECK_DELAY_MS);
+    if (!settingsLoaded) return;
+    const scheduleStartupInstall = startupSchedulingPendingRef.current;
+    startupSchedulingPendingRef.current = false;
+    if (!autoUpdateEnabled) return;
 
-    const interval = window.setInterval(() => {
-      void checkForAppUpdates({ force: true });
-    }, UPDATE_CHECK_INTERVAL_MS);
-
-    const checkWhenVisible = () => {
-      if (document.visibilityState === "visible") void checkForAppUpdates();
-    };
-
-    window.addEventListener("focus", checkWhenVisible);
-    document.addEventListener("visibilitychange", checkWhenVisible);
-
-    return () => {
-      window.clearTimeout(startupTimer);
-      window.clearInterval(interval);
-      window.removeEventListener("focus", checkWhenVisible);
-      document.removeEventListener("visibilitychange", checkWhenVisible);
-    };
-  }, []);
+    const scheduler = new AppUpdaterScheduler({
+      startupDelayMs: scheduleStartupInstall ? STARTUP_CHECK_DELAY_MS : null,
+      intervalMs: UPDATE_CHECK_INTERVAL_MS,
+      foregroundDebounceMs: FOREGROUND_EVENT_DEBOUNCE_MS,
+    });
+    scheduler.start((reason) => {
+      void runAutomaticUpdate(reason);
+    });
+    if (!scheduleStartupInstall) void runAutomaticUpdate("foreground");
+    return () => scheduler.stop();
+  }, [autoUpdateEnabled, settingsLoaded]);
 
   return null;
 };
+
+/** Test-only reset for the module singleton. */
+export function resetAppUpdaterForTests(): void {
+  coordinator.reset();
+}

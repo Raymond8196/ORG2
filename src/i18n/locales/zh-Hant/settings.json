@@ -786,6 +786,8 @@
   },
   "update": {
     "title": "App 更新",
+    "autoUpdate": "自動更新",
+    "autoUpdateDesc": "啟動時自動安裝更新，並在 ORGII 運行期間靜默下載新版本",
     "detectUpdate": "檢測更新",
     "currentVersion": "目前版本"
   },

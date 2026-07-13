@@ -786,6 +786,8 @@
   },
   "update": {
     "title": "App Update",
+    "autoUpdate": "Automatic updates",
+    "autoUpdateDesc": "Install updates during startup and download new versions silently while ORGII is running",
     "detectUpdate": "Detect Update",
     "currentVersion": "Current Version"
   },
