@@ -335,8 +335,10 @@ pub fn get_provider_config(model_type: &str) -> ProviderConfig {
         "codex" => ProviderConfig::new("OPENAI_API_KEY", None, false, None),
         "copilot" => ProviderConfig::new("GITHUB_TOKEN", None, false, None),
         "kiro" => ProviderConfig::new("KIRO_SESSION_TOKEN", None, false, None),
-        "kimi_cli" => ProviderConfig::new("MOONSHOT_API_KEY", Some("MOONSHOT_BASE_URL"), true, None)
-            .with_endpoints(MOONSHOT_ENDPOINTS),
+        "kimi_cli" => {
+            ProviderConfig::new("MOONSHOT_API_KEY", Some("MOONSHOT_BASE_URL"), true, None)
+                .with_endpoints(MOONSHOT_ENDPOINTS)
+        }
         "opencode" => {
             ProviderConfig::new("OPENCODE_API_KEY", Some("OPENCODE_BASE_URL"), true, None)
                 .with_endpoints(OPENCODE_ENDPOINTS)
@@ -376,17 +378,15 @@ pub fn get_provider_config(model_type: &str) -> ProviderConfig {
             Some("https://api.groq.com/openai/v1"),
         ),
         "xai_api" => ProviderConfig::new("XAI_API_KEY", None, true, Some("https://api.x.ai/v1")),
-        "zhipu_api" => {
-            ProviderConfig::with_protocols(
-                "ZHIPU_API_KEY",
-                None,
-                true,
-                None,
-                &["openai", "anthropic"],
-                "openai",
-            )
-            .with_endpoints(ZHIPU_ENDPOINTS)
-        }
+        "zhipu_api" => ProviderConfig::with_protocols(
+            "ZHIPU_API_KEY",
+            None,
+            true,
+            None,
+            &["openai", "anthropic"],
+            "openai",
+        )
+        .with_endpoints(ZHIPU_ENDPOINTS),
         "dashscope_api" => ProviderConfig::new("DASHSCOPE_API_KEY", None, true, None)
             .with_endpoints(DASHSCOPE_ENDPOINTS),
         "moonshot_api" => ProviderConfig::with_protocols(
@@ -649,9 +649,8 @@ mod tests {
         // key-vault crate dir -> repo root is three levels up (src-tauri/crates/key-vault).
         let validation_ts = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../../../src/api/tauri/rpc/schemas/validation.ts");
-        let source = std::fs::read_to_string(&validation_ts).unwrap_or_else(|err| {
-            panic!("cannot read {}: {err}", validation_ts.display())
-        });
+        let source = std::fs::read_to_string(&validation_ts)
+            .unwrap_or_else(|err| panic!("cannot read {}: {err}", validation_ts.display()));
 
         // Extract the members of `ProviderProtocolSchema = z.enum([ ... ])`.
         let enum_body = source
@@ -882,10 +881,7 @@ mod tests {
             endpoints,
             vec![
                 ("global", "https://api.z.ai/api/paas/v4"),
-                (
-                    "global-subscription",
-                    "https://api.z.ai/api/coding/paas/v4"
-                ),
+                ("global-subscription", "https://api.z.ai/api/coding/paas/v4"),
                 ("cn", "https://open.bigmodel.cn/api/paas/v4"),
                 (
                     "cn-subscription",
