@@ -1,4 +1,4 @@
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 use super::{normalize_codex_tool_calls, normalize_tool_name_key};
 
