@@ -1,4 +1,4 @@
-{
+﻿{
   "toasts": {
     "replyEmpty": "Reply cannot be empty",
     "sessionNotFound": "Session not found",
@@ -2115,7 +2115,7 @@
     "manualCompactFailed": "Compaction failed: {{message}}",
     "manualCompactChannelAttached": "This session is managed by a channel — use /compact there",
     "manualCompactInstructionsPlaceholder": "Optional: what to focus on when summarizing",
-    "manualCompactSectionTitle": "Manual compaction?",
+    "manualCompactSectionTitle": "Manual compaction",
     "miniCpmCompactTitle": "MiniCPM silent auto-compaction",
     "miniCpmCompactDescription": "Processes older context asynchronously",
     "miniCpmCompactToggleAria": "Enable MiniCPM silent auto-compaction",

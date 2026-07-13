@@ -309,7 +309,7 @@ pub fn run() {
     #[cfg(all(debug_assertions, feature = "webdriver"))]
     let builder = builder.plugin(tauri_plugin_webdriver_automation::init());
 
-    builder
+    let builder = builder
         // NOTE: Single-instance disabled for development - uncomment for production
         // .plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
         //   tracing::info!(?argv, "a new app instance was opened and the deep link event was already triggered");
@@ -326,8 +326,12 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
-        .plugin(tauri_plugin_drag::init())
-        .plugin(tauri_plugin_liquid_glass::init())
+        .plugin(tauri_plugin_drag::init());
+
+    #[cfg(target_os = "macos")]
+    let builder = builder.plugin(tauri_plugin_liquid_glass::init());
+
+    builder
         .on_window_event(|_window, _event| {
             #[cfg(target_os = "macos")]
             match _event {

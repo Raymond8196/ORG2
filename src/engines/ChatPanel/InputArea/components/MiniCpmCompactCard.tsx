@@ -1,23 +1,13 @@
-import {
-  AlertCircle,
-  CheckCircle2,
-  Circle,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
   type HousekeeperContextCompactionState,
-  compactHousekeeperContextNow,
   getHousekeeperContextCompactionStatus,
   setHousekeeperContextCompactionEnabled,
 } from "@src/api/tauri/agent";
-import Button from "@src/components/Button";
 import Switch from "@src/components/Switch";
-
-import { formatTokenCount } from "./useContextUsageInfo";
 
 const EMPTY_STATE: HousekeeperContextCompactionState = {
   enabled: false,
@@ -81,69 +71,6 @@ const MiniCpmCompactCard: React.FC<MiniCpmCompactCardProps> = memo(
       [pending, sessionId]
     );
 
-    const handleCompactNow = useCallback(async () => {
-      if (!state.enabled || pending || state.status === "running") return;
-      setPending(true);
-      setState((current) => ({ ...current, status: "running" }));
-      try {
-        setState(await compactHousekeeperContextNow(sessionId));
-      } catch (error) {
-        setState((current) => ({
-          ...current,
-          status: "error",
-          lastError: errorMessage(error),
-        }));
-      } finally {
-        setPending(false);
-      }
-    }, [pending, sessionId, state.enabled, state.status]);
-
-    const running = pending || state.status === "running";
-    const hasMetrics =
-      state.coveredMessages > 0 && state.sourceTokens > state.summaryTokens;
-    const statusLabel = (() => {
-      if (state.status === "error") {
-        return state.lastError || t("contextInfo.miniCpmCompactError");
-      }
-      if (state.status === "running") {
-        return t("contextInfo.miniCpmCompactRunning");
-      }
-      if (state.status === "busy") {
-        return t("contextInfo.miniCpmCompactBusy");
-      }
-      if (state.status === "unavailable") {
-        return t("contextInfo.miniCpmCompactUnavailable");
-      }
-      if (state.status === "complete" && hasMetrics) {
-        return t("contextInfo.miniCpmCompactMetrics", {
-          covered: state.coveredMessages,
-          source: formatTokenCount(state.sourceTokens),
-          summary: formatTokenCount(state.summaryTokens),
-        });
-      }
-      if (state.status === "complete") {
-        return t("contextInfo.miniCpmCompactComplete");
-      }
-      return state.enabled
-        ? t("contextInfo.miniCpmCompactEnabled")
-        : t("contextInfo.miniCpmCompactDisabled");
-    })();
-
-    const statusIcon = running ? (
-      <Loader2 size={13} className="animate-spin" />
-    ) : state.status === "error" || state.status === "unavailable" ? (
-      <AlertCircle size={13} />
-    ) : state.status === "complete" || state.enabled ? (
-      <CheckCircle2 size={13} />
-    ) : (
-      <Circle size={13} />
-    );
-    const actionDisabled =
-      !state.enabled ||
-      running ||
-      state.status === "busy" ||
-      state.status === "unavailable";
-
     return (
       <section
         data-testid="context-info-minicpm-compact-card"
@@ -173,38 +100,6 @@ const MiniCpmCompactCard: React.FC<MiniCpmCompactCardProps> = memo(
             dataTestId="context-info-minicpm-compact-switch"
             onChange={(enabled) => void handleToggle(enabled)}
           />
-        </div>
-
-        <div className="flex min-h-11 items-center justify-between gap-3 border-t border-border-2/80 px-3 py-2">
-          <span
-            aria-live="polite"
-            title={statusLabel}
-            className={`flex min-w-0 items-center gap-1.5 text-[11px] font-medium ${
-              state.status === "error" || state.status === "unavailable"
-                ? "text-danger-6"
-                : state.status === "complete"
-                  ? "text-success-6"
-                  : running || state.enabled
-                    ? "text-primary-6"
-                    : "text-text-3"
-            }`}
-          >
-            <span className="shrink-0">{statusIcon}</span>
-            <span className="truncate">{statusLabel}</span>
-          </span>
-          <Button
-            variant="primary"
-            size="small"
-            data-testid="context-info-minicpm-compact-now"
-            icon={<Sparkles size={13} />}
-            loading={running}
-            disabled={actionDisabled}
-            onClick={() => void handleCompactNow()}
-          >
-            {running
-              ? t("contextInfo.miniCpmCompactRunningAction")
-              : t("contextInfo.miniCpmCompactAction")}
-          </Button>
         </div>
       </section>
     );
