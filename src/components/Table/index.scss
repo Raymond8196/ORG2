@@ -678,6 +678,22 @@
   background: transparent;
 }
 
+// Session tables are navigable lists, so their enabled `hover` state must
+// remain visible even on the transparent SettingsTable surface.
+.table-settings.table-settings-session-list-hover.table-hover {
+  .table-row:hover,
+  .table-row:hover > .table-td {
+    background: var(--color-surface-hover);
+  }
+
+  &.table-settings-sticky-first-col
+    .table-scroll
+    .table-row:hover
+    > .table-td:first-child {
+    background: var(--color-surface-hover);
+  }
+}
+
 .settings-table-root-transparent .table-settings.table-dark .table-tbody {
   background: transparent;
 }

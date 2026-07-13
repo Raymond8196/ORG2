@@ -298,10 +298,12 @@ const Kanban: React.FC<TaskKanbanProps> = ({
         </div>
       )}
 
-      <div
-        className="h-10 shrink-0 border-t border-border-2"
-        aria-hidden="true"
-      />
+      {viewMode === "kanban" && (
+        <div
+          className="h-10 shrink-0 border-t border-border-2"
+          aria-hidden="true"
+        />
+      )}
 
       {detailPanelVisible && (
         <div
