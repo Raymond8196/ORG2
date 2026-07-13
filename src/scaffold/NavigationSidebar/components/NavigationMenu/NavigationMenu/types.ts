@@ -18,7 +18,6 @@ export interface NavigationMenuProps {
   ) => React.ReactElement;
   collapsed?: boolean;
   defaultOpenKeys?: string[];
-  enableHoverIconAnimation?: boolean;
   compactRows?: boolean;
 }
 
