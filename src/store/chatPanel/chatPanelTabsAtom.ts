@@ -199,16 +199,13 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 const debouncedStorage = {
   getItem(key: string): ChatPanelTabsState {
+    // On app restart, close all chat-pane tabs: never rehydrate persisted
+    // tabs, always start from a fresh single Launchpad tab. The persisted
+    // value is cleared so it can't leak back in through any other reader.
     try {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const normalized = normalizePersistedChatPanelTabsState(
-          JSON.parse(raw)
-        );
-        if (normalized) return normalized;
-      }
+      localStorage.removeItem(key);
     } catch {
-      // fall through to default
+      // Ignore removal errors
     }
     return buildInitialState();
   },
