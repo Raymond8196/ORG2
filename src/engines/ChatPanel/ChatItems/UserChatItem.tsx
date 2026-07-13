@@ -12,7 +12,6 @@ import React, {
   type SyntheticEvent,
   memo,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -21,7 +20,6 @@ import { useTranslation } from "react-i18next";
 
 import { ChatBubbleCopyButton } from "@src/components/ChatBubble";
 import ExpandOverlay from "@src/components/ExpandOverlay";
-import { INPUT_AREA } from "@src/config/inputAreaTokens";
 import { readPillText } from "@src/config/pillTokens";
 import { REPO_SETUP_PROMPT_MARKER } from "@src/config/repoSetupMarker";
 import type { OptimizedChatItem } from "@src/engines/ChatPanel/ChatHistory/chatItemPipeline/types";
@@ -92,8 +90,6 @@ function extractPrPillCards(text: string): SessionLinkCardData[] {
 
 interface UserChatItemProps {
   chatItem: OptimizedChatItem;
-  /** Use the compact, right-aligned presentation for natural-scroll chat. */
-  bubble?: boolean;
   onEditSubmit?: (newText: string, imageDataUrls?: string[]) => void;
   /**
    * Restore the session to this message's checkpoint WITHOUT re-sending it
@@ -101,12 +97,6 @@ interface UserChatItemProps {
    * the edit button.
    */
   onRestoreCheckpoint?: () => void;
-  /**
-   * Notifies the parent when this message enters / leaves edit mode.
-   * Used by `GroupHeaderRenderer` to hide the attached pinned bar (and
-   * the wrapper shell) while the editor is open.
-   */
-  onEditingChange?: (isEditing: boolean) => void;
 }
 
 // ============================================
@@ -180,7 +170,8 @@ CachedFileChip.displayName = "CachedFileChip";
 // ============================================
 
 /** Layout-only; border/hover/focus ring added per-row below */
-const DISPLAY_CONTAINER_BASE = "group relative max-w-full px-3 py-2";
+const DISPLAY_CONTAINER_BASE =
+  "group relative w-fit max-w-full rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
 
 // ============================================
 // Component
@@ -188,17 +179,12 @@ const DISPLAY_CONTAINER_BASE = "group relative max-w-full px-3 py-2";
 
 const UserChatItem = ({
   chatItem,
-  bubble = false,
   onEditSubmit,
   onRestoreCheckpoint,
-  onEditingChange,
 }: UserChatItemProps) => {
   const { t } = useTranslation("sessions");
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    onEditingChange?.(isEditing);
-  }, [isEditing, onEditingChange]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [previewFile, setPreviewFile] = useState<string | null>(null);
   // Editable copy of the message's attached images; seeded on edit entry so
@@ -361,11 +347,7 @@ const UserChatItem = ({
 
   const displayNeedsTruncation = needsTruncation;
 
-  const containerClass = `${DISPLAY_CONTAINER_BASE} ${
-    bubble
-      ? "w-fit rounded-2xl bg-fill-2 transition-colors hover:bg-fill-3"
-      : `w-full rounded-lg bg-chat-input ${INPUT_AREA.shellInteractionClassesNoGlow}`
-  } ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
+  const containerClass = `${DISPLAY_CONTAINER_BASE} ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
 
   // Display mode
   const display = (
@@ -376,11 +358,7 @@ const UserChatItem = ({
         onClick={isEditableDisplay ? handleEditClick : undefined}
       >
         {fullContent && (
-          <div
-            className={`absolute z-10 -translate-y-1/2 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 ${
-              bubble ? "right-full top-1/2 mr-1" : "right-1.5 top-[19px]"
-            }`}
-          >
+          <div className="absolute right-full top-1/2 z-10 mr-1 -translate-y-1/2 translate-x-2 opacity-0 transition-[opacity,transform] duration-150 ease-out focus-within:translate-x-0 focus-within:opacity-100 group-hover:translate-x-0 group-hover:opacity-100 motion-reduce:translate-x-0 motion-reduce:transition-none">
             <div className="flex items-center gap-1 px-1 py-0.5">
               <ChatBubbleCopyButton content={fullContent} placement="toolbar" />
               {isEditableDisplay && onRestoreCheckpoint && (
@@ -437,9 +415,7 @@ const UserChatItem = ({
           ) : (
             <>
               {(fullContent || (messageImages && messageImages.length > 0)) && (
-                <div
-                  className={`group/expand relative w-full ${!bubble && fullContent && fullContent !== "(image)" ? "pr-6" : ""}`}
-                >
+                <div className="group/expand relative w-full">
                   <div
                     ref={messageContentRef}
                     className={`allow-select ${isExpanded && displayNeedsTruncation ? "scrollbar-hide" : ""}`}
@@ -464,7 +440,7 @@ const UserChatItem = ({
                       <ExpandOverlay
                         isExpanded
                         onToggle={handleToggleTruncation}
-                        fadeFrom={bubble ? "from-fill-2" : "from-chat-input"}
+                        fadeFrom="from-fill-2"
                       />
                     )}
                   </div>
@@ -474,7 +450,7 @@ const UserChatItem = ({
                       isExpanded={false}
                       onToggle={handleToggleTruncation}
                       collapsedFadeHeightClass="h-8"
-                      fadeFrom={bubble ? "from-fill-2" : "from-chat-input"}
+                      fadeFrom="from-fill-2"
                     />
                   )}
                 </div>
@@ -500,9 +476,7 @@ const UserChatItem = ({
         </div>
       </div>
       {prPillCards.length > 0 && (
-        <div
-          className={`mt-1 flex flex-col ${bubble ? "w-full max-w-2xl" : ""}`.trim()}
-        >
+        <div className="mt-1 flex w-full max-w-2xl flex-col">
           {prPillCards.map((card) => (
             <SessionLinkCard
               key={`${card.repoFullName}#${card.prNumber}`}
@@ -513,8 +487,6 @@ const UserChatItem = ({
       )}
     </>
   );
-
-  if (!bubble) return display;
 
   return <div className="flex w-full flex-col items-end pl-24">{display}</div>;
 };

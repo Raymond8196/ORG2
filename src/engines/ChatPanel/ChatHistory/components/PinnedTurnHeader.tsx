@@ -13,7 +13,6 @@ interface PinnedTurnHeaderProps {
   sourceGroupCount: number;
   header: OptimizedChatItem | null | undefined;
   meta: ChatGroupMeta | undefined;
-  hasPinnedContent: boolean;
   collapseLabelVariant?: GroupHeaderRendererProps["collapseLabelVariant"];
   collapseTailWhenIdle: boolean;
   hideUserMessage: boolean;
@@ -63,7 +62,6 @@ function samePinnedTurnHeaderProps(
     previous.visible === next.visible &&
     previous.sourceGroupIndex === next.sourceGroupIndex &&
     previous.sourceGroupCount === next.sourceGroupCount &&
-    previous.hasPinnedContent === next.hasPinnedContent &&
     previous.collapseLabelVariant === next.collapseLabelVariant &&
     previous.collapseTailWhenIdle === next.collapseTailWhenIdle &&
     previous.hideUserMessage === next.hideUserMessage &&
@@ -83,7 +81,6 @@ const PinnedTurnHeaderComponent: React.FC<PinnedTurnHeaderProps> = ({
   sourceGroupCount,
   header,
   meta,
-  hasPinnedContent,
   collapseLabelVariant = "agent",
   collapseTailWhenIdle,
   hideUserMessage,
@@ -103,7 +100,6 @@ const PinnedTurnHeaderComponent: React.FC<PinnedTurnHeaderProps> = ({
         groupHeaders={[header]}
         groupMeta={meta ? [meta] : []}
         groupCount={1}
-        hasPinnedContent={hasPinnedContent}
         collapseLabelVariant={collapseLabelVariant}
         collapseTailWhenIdle={collapseTailWhenIdle}
         hideUserMessage={hideUserMessage}

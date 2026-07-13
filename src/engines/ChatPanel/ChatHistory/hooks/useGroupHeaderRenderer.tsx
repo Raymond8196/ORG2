@@ -21,12 +21,10 @@ interface UseGroupHeaderRendererOptions {
   displayGroupHeaders: (OptimizedChatItem | null)[];
   displayGroupMeta: ChatGroupMeta[];
   displayGroupCount: number;
-  hasPinnedContent: boolean;
   collapseLabelVariant?: GroupHeaderRendererProps["collapseLabelVariant"];
   turnPaginationEnabled: boolean;
   collapseTailWhenIdle: boolean;
   hideUserMessage: boolean;
-  userMessageBubble: boolean;
   defaultTurnCollapsed: boolean;
   turnCollapseInteractionAtRef: React.MutableRefObject<number>;
   onEditSubmit: GroupHeaderRendererProps["onEditSubmit"];
@@ -39,12 +37,10 @@ export function useGroupHeaderRenderer({
   displayGroupHeaders,
   displayGroupMeta,
   displayGroupCount,
-  hasPinnedContent,
   collapseLabelVariant,
   turnPaginationEnabled,
   collapseTailWhenIdle,
   hideUserMessage,
-  userMessageBubble,
   defaultTurnCollapsed,
   turnCollapseInteractionAtRef,
   onEditSubmit,
@@ -69,12 +65,10 @@ export function useGroupHeaderRenderer({
           groupHeaders={displayGroupHeaders}
           groupMeta={displayGroupMeta}
           groupCount={displayGroupCount}
-          hasPinnedContent={hasPinnedContent}
           collapseLabelVariant={collapseLabelVariant}
           hideCollapseTimeRange={turnPaginationEnabled}
           collapseTailWhenIdle={collapseTailWhenIdle}
           hideUserMessage={hideUserMessage}
-          userMessageBubble={userMessageBubble}
           defaultTurnCollapsed={defaultTurnCollapsed}
           renderPart={renderPart}
           turnCollapseInteractionAtRef={turnCollapseInteractionAtRef}
@@ -89,12 +83,10 @@ export function useGroupHeaderRenderer({
       displayGroupHeaders,
       displayGroupMeta,
       displayGroupCount,
-      hasPinnedContent,
       collapseLabelVariant,
       turnPaginationEnabled,
       collapseTailWhenIdle,
       hideUserMessage,
-      userMessageBubble,
       defaultTurnCollapsed,
       turnCollapseInteractionAtRef,
       onEditSubmit,
