@@ -180,8 +180,7 @@ const HoverCardTrigger: React.FC<HoverCardTriggerProps> = ({
 
   const originalProps =
     (children.props as ElementProps | undefined) ?? ({} as ElementProps);
-  const originalRef = (children as unknown as { ref?: React.Ref<HTMLElement> })
-    .ref;
+  const originalRef = originalProps.ref;
 
   const composedRef = useCallback(
     (node: HTMLElement | null) => {
