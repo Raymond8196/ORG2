@@ -74,6 +74,7 @@ import YiIcon from "@src/assets/modelIcons/yi.svg";
 import ZcodeIcon from "@src/assets/modelIcons/zcode.svg";
 import ZenMuxIcon from "@src/assets/modelIcons/zenmux.svg";
 import ZhipuIcon from "@src/assets/modelIcons/zhipu.svg";
+import TraeIcon from "@src/assets/softwareIcons/trae.svg";
 import WindsurfIcon from "@src/assets/softwareIcons/windsurf.svg";
 
 // ============================================
@@ -96,6 +97,7 @@ export type IconProvider =
   | "copilot"
   | "cursor"
   | "windsurf"
+  | "trae"
   | "workbuddy"
   | "amp"
   | "devin"
@@ -169,6 +171,7 @@ export const ICON_MAP: Record<
   // CLI agents (active)
   cursor: CursorIcon,
   windsurf: WindsurfIcon,
+  trae: TraeIcon,
   workbuddy: WorkBuddyIcon,
   claude_code: ClaudeCodeIcon,
   copilot: CopilotIcon,

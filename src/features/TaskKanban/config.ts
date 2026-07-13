@@ -73,6 +73,7 @@ export const KANBAN_AGENT_TYPE_FILTER = {
   OPENCODE_CLI: "opencode",
   WINDSURF_APP: "windsurf_app",
   WORKBUDDY_APP: "workbuddy_app",
+  TRAE_APP: "trae_app",
 } as const;
 
 export type KanbanBuiltInAgentTypeFilter =
