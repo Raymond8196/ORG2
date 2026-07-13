@@ -223,6 +223,8 @@ const EMPTY_BROWSER_ADD_TO_CONVERSATION_NAV: BrowserAddToConversationNavState =
 interface ChatHistoryProps {
   /** Opaque background class for sticky headers. Must match the container surface. */
   surfaceBgClass?: string;
+  /** Dock side of the containing chat panel, used by narrow side previews. */
+  chatPanelPosition?: "left" | "right";
   agentOrgCurrentMemberName?: string | null;
   /**
    * Stable identifier of the member currently being viewed in the chat
@@ -309,6 +311,7 @@ interface ChatHistoryProps {
 
 const ChatHistory: React.FC<ChatHistoryProps> = ({
   surfaceBgClass = "bg-chat-pane",
+  chatPanelPosition = "right",
   agentOrgCurrentMemberName = null,
   agentOrgCurrentMemberId = null,
   agentOrgMembers = EMPTY_ORG_MEMBERS,
@@ -702,6 +705,34 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
       });
     },
     [virtualListRef]
+  );
+  const conversationHistoryPageIndex = useMemo(() => {
+    if (turnPaginationEnabled) return currentPageIndex;
+    const pageIndex = pages.findIndex(
+      (page) =>
+        activeGroupIndex >= page.startGroupIndex &&
+        activeGroupIndex <= page.endGroupIndex
+    );
+    return pageIndex >= 0 ? pageIndex : Math.max(0, pages.length - 1);
+  }, [activeGroupIndex, currentPageIndex, pages, turnPaginationEnabled]);
+  const handleConversationHistoryToggle = useCallback(() => {
+    setTurnPageListOpen((open) => !open);
+  }, [setTurnPageListOpen]);
+  const handleConversationHistoryClose = useCallback(() => {
+    setTurnPageListOpen(false);
+  }, [setTurnPageListOpen]);
+  const handleConversationHistorySortToggle = useCallback(() => {
+    setTurnPageSortAscending((ascending) => !ascending);
+  }, [setTurnPageSortAscending]);
+  const handleConversationHistorySelect = useCallback(
+    (pageIndex: number) => {
+      const groupIndex = pages[pageIndex]?.startGroupIndex;
+      setTurnPageListOpen(false);
+      if (groupIndex !== undefined) {
+        handleConversationMinimapNavigate(groupIndex);
+      }
+    },
+    [handleConversationMinimapNavigate, pages, setTurnPageListOpen]
   );
 
   // Shared scroll intent refs — owned here, passed into scroll hooks so
@@ -1198,27 +1229,46 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                   groupMeta={displayGroupMeta}
                   groupCounts={displayGroupCounts}
                   flatItems={displayFlatItems}
+                  chatPanelPosition={chatPanelPosition}
                   activeGroupIndex={activeGroupIndex}
                   visibleGroupIndices={visibleGroupIndices}
                   isAtBottom={atBottom}
                   isScrolling={conversationMinimapScrolling}
                   labelVariant={groupChat?.enabled ? "agents" : "agent"}
                   onNavigate={handleConversationMinimapNavigate}
+                  onHistoryToggle={handleConversationHistoryToggle}
                 />
               )}
 
-            {turnPageListOpen && turnPaginationReady && (
-              <TurnPageList
-                surfaceBgClass={surfaceBgClass}
-                bottomInset={bottomInset}
-                pages={pages}
-                groupHeaders={groupHeaders}
-                groupMeta={groupMeta}
-                currentPageIndex={currentPageIndex}
-                turnPageSortAscending={turnPageSortAscending}
-                onSelectTurnPage={selectTurnPage}
-              />
-            )}
+            {turnPageListOpen &&
+              (turnPaginationEnabled
+                ? turnPaginationReady
+                : pages.length > 0) && (
+                <TurnPageList
+                  surfaceBgClass={surfaceBgClass}
+                  bottomInset={bottomInset}
+                  pages={pages}
+                  groupHeaders={groupHeaders}
+                  groupMeta={groupMeta}
+                  currentPageIndex={conversationHistoryPageIndex}
+                  turnPageSortAscending={turnPageSortAscending}
+                  onSelectTurnPage={
+                    turnPaginationEnabled
+                      ? selectTurnPage
+                      : handleConversationHistorySelect
+                  }
+                  onToggleSort={
+                    turnPaginationEnabled
+                      ? undefined
+                      : handleConversationHistorySortToggle
+                  }
+                  onClose={
+                    turnPaginationEnabled
+                      ? undefined
+                      : handleConversationHistoryClose
+                  }
+                />
+              )}
 
             {isLoadingMore && (
               <div
