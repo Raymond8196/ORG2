@@ -13,12 +13,8 @@
  * than the selected window.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  type CursorIdeSessionDetail,
-  cursorIdeSessionDetail,
-} from "@src/api/tauri/externalHistory";
 import { sessionsAtom, visitedSessionsAtom } from "@src/store/session";
 import {
   kanbanReplayBoundsAtom,
@@ -28,7 +24,6 @@ import {
 } from "@src/store/ui/kanbanReplayAtom";
 import { kanbanManualArchivedSessionsAtom } from "@src/store/ui/kanbanViewStateAtom";
 import { dedupeByCanonicalSession } from "@src/util/session/canonicalSessionKey";
-import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility";
 
 import type {
@@ -120,60 +115,6 @@ export function useKanbanTasks(
       ),
     [sessions, sessionIdFilter]
   );
-  const [cursorWorkspaceDetails, setCursorWorkspaceDetails] = useState<
-    Map<string, CursorIdeSessionDetail>
-  >(() => new Map());
-  const requestedCursorWorkspaceIds = useRef(new Set<string>());
-
-  // Cursor's fast history list intentionally omits workspace metadata. Enrich
-  // only recent, visible Cursor App rows so Kanban can show their workspace
-  // without making the global sidebar loader open Cursor's database per row.
-  useEffect(() => {
-    const cutoff = getTimeFilterCutoff(timeFilter);
-    const candidates = visibleSessions.filter((session) => {
-      if (
-        !isCursorIdeSession(session.session_id) ||
-        session.repoPath ||
-        requestedCursorWorkspaceIds.current.has(session.session_id)
-      ) {
-        return false;
-      }
-      const activityTime = Date.parse(
-        session.updated_at || session.created_at || ""
-      );
-      return Number.isFinite(activityTime) && activityTime >= cutoff;
-    });
-    if (candidates.length === 0) return;
-
-    candidates.forEach((session) =>
-      requestedCursorWorkspaceIds.current.add(session.session_id)
-    );
-    let cancelled = false;
-    void Promise.all(
-      candidates.map(async (session) => {
-        try {
-          const detail = await cursorIdeSessionDetail(session.session_id);
-          return [session.session_id, detail] as const;
-        } catch {
-          return null;
-        }
-      })
-    ).then((entries) => {
-      if (cancelled) return;
-      setCursorWorkspaceDetails((current) => {
-        const next = new Map(current);
-        for (const entry of entries) {
-          if (entry) next.set(entry[0], entry[1]);
-        }
-        return next;
-      });
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [timeFilter, visibleSessions]);
-
   const { impactBySessionId } = useSessionImpact(visibleSessions);
 
   // Pair sessions with their kanban-task projection once. Downstream
@@ -182,16 +123,8 @@ export function useKanbanTasks(
   // tasks) automatically respects the scope.
   const sessionPairs = useMemo(() => {
     return visibleSessions.map((session) => {
-      const cursorWorkspace = cursorWorkspaceDetails.get(session.session_id);
-      const displaySession = cursorWorkspace
-        ? {
-            ...session,
-            repoPath: cursorWorkspace.repoPath ?? session.repoPath,
-            repo_name: cursorWorkspace.repoName ?? session.repo_name,
-          }
-        : session;
       const task = sessionToKanbanTask(
-        displaySession,
+        session,
         visitedSessions,
         manualArchivedSessionIds,
         autoArchiveTtl,
@@ -212,7 +145,6 @@ export function useKanbanTasks(
     autoArchiveTtl,
     nowTick,
     impactBySessionId,
-    cursorWorkspaceDetails,
   ]);
 
   const sessionTasks = useMemo(

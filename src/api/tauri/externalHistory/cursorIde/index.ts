@@ -81,26 +81,3 @@ export async function cursorIdeTurnWindow(args: {
     userBubbleId: args.userBubbleId,
   });
 }
-
-/**
- * Hover-card detail for a single Cursor IDE session.
- *
- * Fetches `repo_path`, `repo_name`, `branch`, and `touched_files` on demand —
- * these fields are NOT included in the list response to keep pagination fast.
- * Call only when the hover card actually opens.
- */
-export interface CursorIdeSessionDetail {
-  repoPath?: string;
-  storagePath?: string;
-  repoName?: string;
-  branch?: string;
-  touchedFiles: string[];
-}
-
-export async function cursorIdeSessionDetail(
-  sessionId: string
-): Promise<CursorIdeSessionDetail> {
-  return invoke<CursorIdeSessionDetail>("cursor_ide_session_detail", {
-    sessionId,
-  });
-}

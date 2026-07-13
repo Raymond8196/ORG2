@@ -5,10 +5,6 @@
 //! external-history cache table. Full bubble/transcript content stays in
 //! Cursor's DB and is loaded lazily by `history.rs`.
 
-use std::collections::HashSet;
-use std::sync::Mutex;
-use std::time::{Duration, Instant};
-
 use chrono::TimeZone;
 use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
@@ -22,22 +18,24 @@ use crate::sources::imported_history::{
     },
 };
 
-use super::io::cursor_db_path;
+use super::io::{
+    cursor_conversation_index_path, cursor_db_path, open_cursor_conversation_index_db,
+    open_cursor_db,
+};
 use super::CURSORIDE_SESSION_PREFIX;
 
-static LAST_SYNC: Mutex<Option<SyncSnapshot>> = Mutex::new(None);
-const SYNC_COOLDOWN: Duration = Duration::from_secs(60);
-const RECENT_TERMINAL_RESYNC_WINDOW: Duration = Duration::from_secs(7 * 24 * 60 * 60);
-const TERMINAL_STATUSES: &[&str] = &["completed", "aborted", "cancelled", "failed"];
-const CURSOR_IDE_METADATA_PARSER_VERSION: i64 = 3;
+// v5: discovery reads Cursor's `conversation-search.db` index only (signature =
+// updated_at + root_fingerprint), and each row now carries repo_path / branch /
+// touched_files parsed from the composer. Bumped so older cached rows re-sync
+// once cleanly and pick up the new metadata.
+const CURSOR_IDE_METADATA_PARSER_VERSION: i64 = 5;
 const COMPOSER_KEY_PREFIX: &str = "composerData:";
 const BUBBLE_KEY_PREFIX: &str = "bubbleId:";
 const SOURCE_RECORD_KEY_PREFIX: &str = "cursorDiskKV:";
-
-#[derive(Debug, Clone, Copy)]
-struct SyncSnapshot {
-    synced_at: Instant,
-}
+/// Reads the lightweight conversation index. `source = 'local'` sessions have
+/// their content in `state.vscdb`; cloud-cache rows are skipped.
+const CONVERSATION_INDEX_QUERY: &str = "SELECT id, title, updated_at, is_archived, \
+     root_fingerprint FROM conversations WHERE source = 'local'";
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -70,6 +68,12 @@ struct RawComposerData {
     full_conversation_headers_only: Vec<BubbleHeader>,
     #[serde(default)]
     subagent_info: Option<Value>,
+    #[serde(default)]
+    tracked_git_repos: Vec<super::models::RawTrackedGitRepo>,
+    #[serde(default)]
+    workspace_identifier: Option<super::models::RawWorkspaceIdentifier>,
+    #[serde(default)]
+    original_file_states: std::collections::BTreeMap<String, super::models::RawCursorOriginalFileState>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -101,15 +105,31 @@ struct CursorCacheMetadata {
     mode: String,
 }
 
+/// One row of Cursor's `conversation-search.db` `conversations` table — the
+/// cheap discovery signal that replaces scanning every `composerData` blob.
 #[derive(Debug, Clone)]
-struct CursorDiscoveredComposer {
-    source_session_id: String,
-    source_path: String,
-    source_record_key: String,
-    source_mtime_ms: i64,
-    source_size_bytes: i64,
-    source_fingerprint: String,
-    raw: RawComposerData,
+struct CursorIndexRow {
+    id: String,
+    title: String,
+    updated_at_ms: i64,
+    is_archived: bool,
+    root_fingerprint: String,
+}
+
+impl CursorIndexRow {
+    /// Change-detection signature straight from the index — no blob parse.
+    /// `updated_at` + `root_fingerprint` change whenever the conversation does;
+    /// `is_archived` rides in `source_size_bytes` so archive toggles re-sync.
+    fn signature(&self, source_path: &str) -> ImportedHistoryRecordSignature {
+        ImportedHistoryRecordSignature {
+            source_session_id: self.id.clone(),
+            source_path: source_path.to_string(),
+            source_mtime_ms: self.updated_at_ms,
+            source_size_bytes: self.is_archived as i64,
+            source_fingerprint: self.root_fingerprint.clone(),
+            parser_version: CURSOR_IDE_METADATA_PARSER_VERSION,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -128,6 +148,11 @@ pub struct CursorSession {
     pub lines_removed: i64,
     pub files_changed: i64,
     pub tokens_used: i64,
+    /// Workspace repo the session ran in (from the composer's `trackedGitRepos`
+    /// / `workspaceIdentifier`), plus the branch and the files it edited.
+    pub repo_path: Option<String>,
+    pub branch: Option<String>,
+    pub touched_files: Vec<String>,
     /// List-price estimate in USD. Cursor records only a single `tokens_used`
     /// total (no input/output split), so it is priced at a blended rate at the
     /// command boundary (this crate has no pricing dependency); `0.0` until then.
@@ -214,126 +239,180 @@ where
     Ok((matched, has_more))
 }
 
+/// Refresh the Cursor metadata cache from `conversation-search.db`.
+///
+/// A cheap indexed read yields per-session change signatures (`updated_at` +
+/// `root_fingerprint`) without parsing any conversation blob, so only
+/// genuinely-changed sessions are re-read — the same incremental model the
+/// file-based sources use, and no per-restart scan of the multi-GB `state.vscdb`.
+/// If Cursor's conversation index is absent (very old builds), there's simply
+/// nothing to sync.
 fn delta_sync(cache_conn: &mut Connection) -> Result<(), String> {
-    let now = Instant::now();
-    let cursor_path = match cursor_db_path() {
-        Some(path) => path,
-        None => return Ok(()),
+    let Some(index_conn) = open_cursor_conversation_index_db() else {
+        return Ok(());
     };
-    if let Ok(guard) = LAST_SYNC.lock() {
-        if let Some(last) = *guard {
-            // Skip if the cooldown window has not expired yet.
-            // The mtime check is NOT used to bypass the cooldown — when Cursor
-            // is actively running its WAL flushes change mtime on every write,
-            // which would cause discover_cursor_composers (a full table scan +
-            // serde_json parse of every composerData row) to run on every
-            // sidebar poll, burning 60-80% CPU.
-            if now.duration_since(last.synced_at) < SYNC_COOLDOWN {
-                return Ok(());
-            }
-        }
-    }
+    // A missing/foreign `conversations` table degrades to "no sessions" rather
+    // than failing the whole session list.
+    let discovered = discover_from_index(&index_conn).unwrap_or_default();
 
-    let cursor_conn = super::io::open_cursor_db()
-        .ok_or_else(|| "Failed to open Cursor DB for metadata sync".to_string())?;
-    let source_path = cursor_path.to_string_lossy().to_string();
-    let discovered = discover_cursor_composers(&cursor_conn, &source_path)?;
+    // Content lives in `state.vscdb`; open it only to parse the changed few. Its
+    // path is the session's store path even when we can't open it (cloud rows).
+    let cursor_conn = open_cursor_db();
+    let source_path = cursor_db_path()
+        .or_else(cursor_conversation_index_path)
+        .map(|path| path.to_string_lossy().to_string())
+        .unwrap_or_default();
+
     let signatures = discovered
         .iter()
-        .map(CursorDiscoveredComposer::signature)
+        .map(|row| row.signature(&source_path))
         .collect::<Vec<_>>();
     let live_ids = source_cache::live_ids_from_signatures(&signatures);
-    let old_terminal_ids = get_old_terminal_cached_ids(cache_conn)?;
     let changed = source_cache::changed_records_from_conn(
         cache_conn,
         SOURCE_CURSOR_IDE,
         &discovered,
-        CursorDiscoveredComposer::signature,
+        |row| row.signature(&source_path),
     )?;
     let inputs = changed
         .into_iter()
-        .filter(|record| !old_terminal_ids.contains(&record.source_session_id))
-        .map(|record| composer_to_cache_input(&cursor_conn, record))
+        .map(|row| build_input_from_index(cursor_conn.as_ref(), row, &source_path))
         .collect::<Result<Vec<_>, _>>()?;
 
     source_cache::sync_source_cache_from_conn(cache_conn, SOURCE_CURSOR_IDE, live_ids, inputs)?;
-    update_sync_snapshot(now);
-
     Ok(())
 }
 
-fn update_sync_snapshot(synced_at: Instant) {
-    if let Ok(mut guard) = LAST_SYNC.lock() {
-        *guard = Some(SyncSnapshot { synced_at });
-    }
-}
-
-fn get_old_terminal_cached_ids(conn: &Connection) -> Result<HashSet<String>, String> {
-    let now_ms = source_cache::current_epoch_ms()?;
-    let cutoff_ms = now_ms - RECENT_TERMINAL_RESYNC_WINDOW.as_millis() as i64;
-    let rows = source_cache::query_cached_sessions_for_source_from_conn(conn, SOURCE_CURSOR_IDE)?;
-    let mut ids = HashSet::new();
-    for row in rows {
-        if row.updated_at_ms >= cutoff_ms {
-            continue;
-        }
-        let metadata = cursor_metadata_from_cached(&row)?;
-        if TERMINAL_STATUSES.contains(&metadata.status.as_str()) {
-            ids.insert(row.source_session_id);
-        }
-    }
-    Ok(ids)
-}
-
-fn discover_cursor_composers(
-    cursor_conn: &Connection,
-    source_path: &str,
-) -> Result<Vec<CursorDiscoveredComposer>, String> {
-    let mut stmt = cursor_conn
-        .prepare("SELECT key, value FROM cursorDiskKV WHERE key LIKE 'composerData:%'")
-        .map_err(|err| format!("Failed to query Cursor composer metadata: {err}"))?;
+fn discover_from_index(index_conn: &Connection) -> Result<Vec<CursorIndexRow>, String> {
+    let mut stmt = index_conn
+        .prepare(CONVERSATION_INDEX_QUERY)
+        .map_err(|err| format!("Failed to prepare Cursor conversation index query: {err}"))?;
     let rows = stmt
         .query_map([], |row| {
-            Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?))
+            Ok(CursorIndexRow {
+                id: row.get::<_, String>(0)?,
+                title: row.get::<_, Option<String>>(1)?.unwrap_or_default(),
+                updated_at_ms: row.get::<_, i64>(2)?,
+                is_archived: row.get::<_, i64>(3)? != 0,
+                root_fingerprint: row.get::<_, Option<String>>(4)?.unwrap_or_default(),
+            })
         })
-        .map_err(|err| format!("Failed to read Cursor composer metadata: {err}"))?;
+        .map_err(|err| format!("Failed to read Cursor conversation index: {err}"))?;
 
-    let mut composers = Vec::new();
+    let mut out = Vec::new();
     for row in rows {
-        let (key, Some(value)) =
-            row.map_err(|err| format!("Failed to read Cursor composer metadata row: {err}"))?
-        else {
-            continue;
-        };
-        let Some(source_session_id) = key.strip_prefix(COMPOSER_KEY_PREFIX) else {
-            continue;
-        };
-        let raw: RawComposerData = match serde_json::from_str(&value) {
-            Ok(parsed) => parsed,
-            Err(_) => continue,
-        };
-        if raw.created_at == 0 || raw.composer_id.is_empty() {
-            continue;
+        let row = row.map_err(|err| format!("Failed to read Cursor index row: {err}"))?;
+        if !row.id.is_empty() {
+            out.push(row);
         }
-        let source_fingerprint = cursor_source_fingerprint(&raw);
-        composers.push(CursorDiscoveredComposer {
-            source_session_id: source_session_id.to_string(),
-            source_path: source_path.to_string(),
-            source_record_key: format!("{SOURCE_RECORD_KEY_PREFIX}{key}"),
-            source_mtime_ms: raw.last_updated_at.max(raw.created_at),
-            source_size_bytes: value.len() as i64,
-            source_fingerprint,
-            raw,
-        });
     }
-    Ok(composers)
+    Ok(out)
 }
 
-fn composer_to_cache_input(
-    cursor_conn: &Connection,
-    record: &CursorDiscoveredComposer,
+/// Build a cache row for a changed index conversation. Point-looks-up its
+/// `composerData` in `state.vscdb` for the rich metadata (status / mode / tokens
+/// / impact); if that's missing (state.vscdb absent or a cloud-only row), falls
+/// back to a minimal row carrying just the index's title + timestamp.
+fn build_input_from_index(
+    cursor_conn: Option<&Connection>,
+    row: &CursorIndexRow,
+    source_path: &str,
 ) -> Result<ImportedHistoryCacheInput, String> {
-    let raw = &record.raw;
+    let record_key = format!("{SOURCE_RECORD_KEY_PREFIX}{COMPOSER_KEY_PREFIX}{}", row.id);
+    if let Some(cursor_conn) = cursor_conn {
+        if let Some(raw) = load_composer_raw(cursor_conn, &row.id)? {
+            let mut input = cache_input_from_raw(
+                cursor_conn,
+                &row.id,
+                source_path,
+                &record_key,
+                row.updated_at_ms,
+                row.is_archived as i64,
+                &row.root_fingerprint,
+                &raw,
+            )?;
+            // Sort/display recency comes from the index's authoritative
+            // `updated_at`, not the composer's possibly-stale last-bubble time.
+            if row.updated_at_ms > 0 {
+                input.updated_at_ms = row.updated_at_ms;
+            }
+            return Ok(input);
+        }
+    }
+    Ok(minimal_cache_input_from_index(
+        row,
+        source_path,
+        &record_key,
+    ))
+}
+
+/// Minimal cache row from the index alone — used when the composer blob is
+/// unavailable. Lists the session with its title and last-updated time; the
+/// rich fields fill in if the blob reappears (the signature stays keyed on the
+/// index, so a later scan won't spuriously re-import).
+fn minimal_cache_input_from_index(
+    row: &CursorIndexRow,
+    source_path: &str,
+    record_key: &str,
+) -> ImportedHistoryCacheInput {
+    ImportedHistoryCacheInput {
+        source: SOURCE_CURSOR_IDE,
+        source_session_id: row.id.clone(),
+        session_id: format!("{CURSORIDE_SESSION_PREFIX}{}", row.id),
+        source_path: source_path.to_string(),
+        source_record_key: record_key.to_string(),
+        source_mtime_ms: row.updated_at_ms,
+        source_size_bytes: row.is_archived as i64,
+        source_fingerprint: row.root_fingerprint.clone(),
+        parser_version: CURSOR_IDE_METADATA_PARSER_VERSION,
+        name: row.title.clone(),
+        created_at_ms: row.updated_at_ms,
+        updated_at_ms: row.updated_at_ms,
+        model: None,
+        input_tokens: 0,
+        output_tokens: 0,
+        repo_path: None,
+        branch: None,
+        impact: ImportedHistoryImpactStats::default(),
+        listable: true,
+        source_metadata_json: serde_json::to_string(&CursorCacheMetadata::default()).ok(),
+        parent_session_id: None,
+    }
+}
+
+/// Point-lookup + parse a single `composerData:<id>` row (fast; primary key).
+fn load_composer_raw(
+    cursor_conn: &Connection,
+    id: &str,
+) -> Result<Option<RawComposerData>, String> {
+    let key = format!("{COMPOSER_KEY_PREFIX}{id}");
+    let value: Option<String> = cursor_conn
+        .query_row(
+            "SELECT value FROM cursorDiskKV WHERE key = ?1",
+            params![key],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|err| format!("Failed to read Cursor composer {id}: {err}"))?;
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    // A malformed blob shouldn't fail the whole sync — treat it as absent.
+    Ok(serde_json::from_str(&value).ok())
+}
+
+/// Normalize a parsed `composerData` blob into a cache row.
+#[allow(clippy::too_many_arguments)]
+fn cache_input_from_raw(
+    cursor_conn: &Connection,
+    id: &str,
+    source_path: &str,
+    source_record_key: &str,
+    source_mtime_ms: i64,
+    source_size_bytes: i64,
+    source_fingerprint: &str,
+    raw: &RawComposerData,
+) -> Result<ImportedHistoryCacheInput, String> {
     let model = raw
         .model_config
         .as_ref()
@@ -341,6 +420,14 @@ fn composer_to_cache_input(
         .filter(|model_name| !model_name.is_empty())
         .map(str::to_string);
     let last_active_at = cursor_last_active_at(cursor_conn, raw)?;
+    // Git + touched-file metadata straight from the composer blob (these used to
+    // be computed lazily on hover; now they ride in the row like every other
+    // source).
+    let workspace = super::helpers::cursor_workspace_metadata_from_parts(
+        &raw.tracked_git_repos,
+        raw.workspace_identifier.as_ref(),
+    );
+    let touched_files = super::helpers::cursor_touched_files_from_states(&raw.original_file_states);
     let metadata = CursorCacheMetadata {
         status: raw.status.clone(),
         is_agentic: raw.is_agentic,
@@ -351,13 +438,13 @@ fn composer_to_cache_input(
 
     Ok(ImportedHistoryCacheInput {
         source: SOURCE_CURSOR_IDE,
-        source_session_id: record.source_session_id.clone(),
-        session_id: format!("{CURSORIDE_SESSION_PREFIX}{}", record.source_session_id),
-        source_path: record.source_path.clone(),
-        source_record_key: record.source_record_key.clone(),
-        source_mtime_ms: record.source_mtime_ms,
-        source_size_bytes: record.source_size_bytes,
-        source_fingerprint: record.source_fingerprint.clone(),
+        source_session_id: id.to_string(),
+        session_id: format!("{CURSORIDE_SESSION_PREFIX}{id}"),
+        source_path: source_path.to_string(),
+        source_record_key: source_record_key.to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: source_fingerprint.to_string(),
         parser_version: CURSOR_IDE_METADATA_PARSER_VERSION,
         name: raw.name.clone(),
         created_at_ms: raw.created_at,
@@ -365,13 +452,13 @@ fn composer_to_cache_input(
         model,
         input_tokens: raw.context_tokens_used as i64,
         output_tokens: 0,
-        repo_path: None,
-        branch: None,
+        repo_path: workspace.repo_path,
+        branch: workspace.branch,
         impact: ImportedHistoryImpactStats {
             files_changed: raw.files_changed_count,
             lines_added: raw.total_lines_added,
             lines_removed: raw.total_lines_removed,
-            touched_files: Vec::new(),
+            touched_files,
         },
         listable: raw.subagent_info.is_none(),
         source_metadata_json: Some(source_metadata_json),
@@ -428,6 +515,9 @@ fn cursor_session_from_cached(
         lines_removed: row.impact.lines_removed,
         files_changed: row.impact.files_changed,
         tokens_used: row.input_tokens + row.output_tokens,
+        repo_path: row.repo_path,
+        branch: row.branch,
+        touched_files: row.impact.touched_files,
         estimated_cost: 0.0,
         recorded_cost: 0.0,
     })
@@ -441,38 +531,6 @@ fn cursor_metadata_from_cached(
     };
     serde_json::from_str(source_metadata_json)
         .map_err(|err| format!("Failed to decode Cursor metadata cache payload: {err}"))
-}
-
-fn cursor_source_fingerprint(raw: &RawComposerData) -> String {
-    [
-        raw.composer_id.as_str(),
-        raw.name.as_str(),
-        raw.status.as_str(),
-        raw.unified_mode.as_str(),
-        &raw.created_at.to_string(),
-        &raw.last_updated_at.to_string(),
-        &raw.is_agentic.to_string(),
-        &raw.total_lines_added.to_string(),
-        &raw.total_lines_removed.to_string(),
-        &raw.files_changed_count.to_string(),
-        &raw.context_tokens_used.to_string(),
-        &raw.full_conversation_headers_only.len().to_string(),
-        &raw.subagent_info.is_some().to_string(),
-    ]
-    .join("|")
-}
-
-impl CursorDiscoveredComposer {
-    fn signature(&self) -> ImportedHistoryRecordSignature {
-        ImportedHistoryRecordSignature {
-            source_session_id: self.source_session_id.clone(),
-            source_path: self.source_path.clone(),
-            source_mtime_ms: self.source_mtime_ms,
-            source_size_bytes: self.source_size_bytes,
-            source_fingerprint: self.source_fingerprint.clone(),
-            parser_version: CURSOR_IDE_METADATA_PARSER_VERSION,
-        }
-    }
 }
 
 fn date_str_to_epoch_ms(date_str: &str) -> i64 {
@@ -587,5 +645,141 @@ mod tests {
         assert_eq!(decoded.status, "completed");
         assert!(decoded.is_agentic);
         assert_eq!(decoded.mode, "agent");
+    }
+
+    fn index_db_with_rows() -> Connection {
+        let conn = Connection::open_in_memory().expect("open index db");
+        conn.execute(
+            "CREATE TABLE conversations (id TEXT, title TEXT, updated_at INTEGER, \
+             is_archived INTEGER, root_fingerprint TEXT, source TEXT)",
+            [],
+        )
+        .expect("create conversations");
+        for (id, title, updated, archived, fp, source) in [
+            ("c1", "Local chat", 1700, 0, "fp1", "local"),
+            ("c2", "Archived", 1800, 1, "fp2", "local"),
+            ("c3", "Cloud only", 1900, 0, "fp3", "cloud-cache"),
+        ] {
+            conn.execute(
+                "INSERT INTO conversations VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![id, title, updated, archived, fp, source],
+            )
+            .expect("insert conversation");
+        }
+        conn
+    }
+
+    #[test]
+    fn index_discovery_reads_only_local_rows() {
+        let conn = index_db_with_rows();
+        let mut rows = discover_from_index(&conn).expect("discover");
+        rows.sort_by(|a, b| a.id.cmp(&b.id));
+        // cloud-cache row (c3) is excluded — its content isn't in state.vscdb.
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0].id, "c1");
+        assert_eq!(rows[0].title, "Local chat");
+        assert_eq!(rows[0].updated_at_ms, 1700);
+        assert!(!rows[0].is_archived);
+        assert!(rows[1].is_archived);
+    }
+
+    #[test]
+    fn index_signature_tracks_update_archive_and_fingerprint() {
+        let row = CursorIndexRow {
+            id: "c1".into(),
+            title: "t".into(),
+            updated_at_ms: 1700,
+            is_archived: false,
+            root_fingerprint: "fp1".into(),
+        };
+        let sig = row.signature("/p/state.vscdb");
+        assert_eq!(sig.source_session_id, "c1");
+        assert_eq!(sig.source_mtime_ms, 1700);
+        assert_eq!(sig.source_size_bytes, 0);
+        assert_eq!(sig.source_fingerprint, "fp1");
+        assert_eq!(sig.parser_version, CURSOR_IDE_METADATA_PARSER_VERSION);
+        // Archiving alone changes the signature (rides in source_size_bytes).
+        let archived = CursorIndexRow {
+            is_archived: true,
+            ..row.clone()
+        };
+        assert_ne!(
+            archived.signature("/p").source_size_bytes,
+            sig.source_size_bytes
+        );
+    }
+
+    #[test]
+    fn build_input_from_index_without_composer_uses_index_fields() {
+        let row = CursorIndexRow {
+            id: "c9".into(),
+            title: "Just title".into(),
+            updated_at_ms: 4242,
+            is_archived: false,
+            root_fingerprint: "fp".into(),
+        };
+        let input = build_input_from_index(None, &row, "/store/state.vscdb").expect("build");
+        assert_eq!(input.session_id, format!("{CURSORIDE_SESSION_PREFIX}c9"));
+        assert_eq!(input.name, "Just title");
+        assert_eq!(input.created_at_ms, 4242);
+        assert_eq!(input.updated_at_ms, 4242);
+        assert_eq!(input.source_mtime_ms, 4242);
+        assert!(input.listable);
+        assert!(input.model.is_none());
+    }
+
+    #[test]
+    fn build_input_from_index_with_composer_reads_rich_metadata() {
+        let cursor = Connection::open_in_memory().expect("open cursor db");
+        cursor
+            .execute(
+                "CREATE TABLE cursorDiskKV (key TEXT PRIMARY KEY, value TEXT)",
+                [],
+            )
+            .expect("create cursorDiskKV");
+        let composer = serde_json::json!({
+            "composerId": "c1", "name": "Rich", "createdAt": 1000, "lastUpdatedAt": 2000,
+            "status": "completed", "isAgentic": true, "unifiedMode": "agent",
+            "totalLinesAdded": 5, "totalLinesRemoved": 2, "filesChangedCount": 1,
+            "contextTokensUsed": 42.0,
+            "trackedGitRepos": [{"repoPath": "/repo/orgii", "branches": [{"branchName": "fix/295"}]}],
+            "originalFileStates": {
+                "file:///repo/orgii/src/a.ts": {"isNewlyCreated": false, "contentKey": "k1"},
+                "file:///repo/orgii/src/b.ts": {"isNewlyCreated": true, "contentKey": ""},
+                "file:///repo/orgii/src/untouched.ts": {"isNewlyCreated": false, "contentKey": ""}
+            }
+        })
+        .to_string();
+        cursor
+            .execute(
+                "INSERT INTO cursorDiskKV VALUES ('composerData:c1', ?1)",
+                params![composer],
+            )
+            .expect("insert composer");
+
+        let row = CursorIndexRow {
+            id: "c1".into(),
+            title: "Index title".into(),
+            updated_at_ms: 3000,
+            is_archived: false,
+            root_fingerprint: "fp".into(),
+        };
+        let input = build_input_from_index(Some(&cursor), &row, "/store").expect("build");
+        // Rich fields come from the composer blob…
+        assert_eq!(input.name, "Rich");
+        assert_eq!(input.created_at_ms, 1000);
+        assert_eq!(input.impact.lines_added, 5);
+        assert_eq!(input.input_tokens, 42);
+        // …including git + touched-file metadata (the point of the unification).
+        assert_eq!(input.repo_path.as_deref(), Some("/repo/orgii"));
+        assert_eq!(input.branch.as_deref(), Some("fix/295"));
+        let mut touched = input.impact.touched_files.clone();
+        touched.sort();
+        // Edited (contentKey) + newly-created files, but not the untouched one.
+        assert_eq!(touched, vec!["/repo/orgii/src/a.ts", "/repo/orgii/src/b.ts"]);
+        // …while recency + change-signature come from the index row.
+        assert_eq!(input.updated_at_ms, 3000);
+        assert_eq!(input.source_mtime_ms, 3000);
+        assert_eq!(input.source_fingerprint, "fp");
     }
 }
