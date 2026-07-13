@@ -32,6 +32,8 @@ use agent_core::foundation::exec_target::SshTarget;
 /// in `lifecycle::kill_running_agent`.
 pub const REMOTE_PID_MARKER: &str = "ORGII_RPID=";
 
+const REMOTE_RUNTIME_BOOTSTRAP: &str = r#"if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true; nvm use --silent default >/dev/null 2>&1 || nvm use --silent node >/dev/null 2>&1 || nvm use --silent stable >/dev/null 2>&1 || true; fi"#;
+
 /// Escape `s` for safe embedding as a single literal word in a POSIX shell
 /// (bash) script: wrap in single quotes and turn each embedded `'` into the
 /// `'\''` idiom (close-quote, escaped-quote, reopen-quote).
@@ -103,6 +105,17 @@ fn is_loopback_url(value: &str) -> bool {
         || lower.contains("localhost")
         || lower.contains("0.0.0.0")
         || lower.contains("::1")
+}
+
+/// Prefix remote shell scripts with a quiet user-runtime bootstrap.
+///
+/// Many npm-based CLIs (Claude Code, Codex, Gemini) are installed against a
+/// user-managed Node from nvm, but non-interactive `bash -lc` often reaches
+/// the distro `/usr/bin/node` instead because `.bashrc` returns early. This
+/// keeps preflight and spawn on the same PATH while remaining a no-op on hosts
+/// without nvm.
+fn with_remote_runtime_bootstrap(script: &str) -> String {
+    format!("{REMOTE_RUNTIME_BOOTSTRAP}; {script}")
 }
 
 /// Extract the remote pid from a stderr line carrying the
@@ -180,6 +193,8 @@ pub fn build_remote_command_argv(
     //    escaped so remote bash treats each as a literal word.
     let mut script = String::new();
     script.push_str("echo \"ORGII_RPID=$$\" >&2");
+    script.push_str("; ");
+    script.push_str(REMOTE_RUNTIME_BOOTSTRAP);
     script.push_str("; cd ");
     script.push_str(&sh_single_quote(working_dir));
     script.push_str(" && exec env");
@@ -213,12 +228,9 @@ pub fn build_remote_command_argv(
 /// `bash -lc`. Used by the remote binary / dir health checks (§1, §3-Phase1).
 /// Shares the ControlMaster socket with [`build_remote_command_argv`] so the
 /// checks ride the same authenticated connection as the spawn.
-pub fn build_remote_check_argv(
-    ssh: &SshTarget,
-    script: &str,
-    control_path: &str,
-) -> Vec<String> {
-    let remote_command = format!("bash -lc {}", sh_single_quote(script));
+pub fn build_remote_check_argv(ssh: &SshTarget, script: &str, control_path: &str) -> Vec<String> {
+    let script = with_remote_runtime_bootstrap(script);
+    let remote_command = format!("bash -lc {}", sh_single_quote(&script));
     let mut argv = ssh_option_args(control_path, ssh.port);
     argv.push(ssh.host.clone());
     argv.push(remote_command);
@@ -342,7 +354,10 @@ mod tests {
     #[test]
     fn forwards_enterprise_proxy_and_no_proxy() {
         let mut m = HashMap::new();
-        m.insert("https_proxy".into(), "http://corp.proxy.example:3128".into());
+        m.insert(
+            "https_proxy".into(),
+            "http://corp.proxy.example:3128".into(),
+        );
         m.insert("no_proxy".into(), "127.0.0.1,localhost".into());
         let out = env_for_remote(&m);
         let keys: Vec<&str> = out.iter().map(|(k, _)| k.as_str()).collect();
@@ -415,9 +430,29 @@ mod tests {
             "/repo",
             "/cache/orgii/ssh-%C",
         );
-        assert_eq!(argv[0..8], ["-o", "BatchMode=yes", "-o", "ControlMaster=auto", "-o", "ControlPath=/cache/orgii/ssh-%C", "-o", "ControlPersist=60s"]);
+        assert_eq!(
+            argv[0..8],
+            [
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                "ControlMaster=auto",
+                "-o",
+                "ControlPath=/cache/orgii/ssh-%C",
+                "-o",
+                "ControlPersist=60s"
+            ]
+        );
         // keepalive (§3-Phase3)
-        assert_eq!(argv[8..12], ["-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3"]);
+        assert_eq!(
+            argv[8..12],
+            [
+                "-o",
+                "ServerAliveInterval=30",
+                "-o",
+                "ServerAliveCountMax=3"
+            ]
+        );
         // host, then the single remote-command element
         assert_eq!(argv[12], "user@host");
         assert_eq!(argv.len(), 14);
@@ -451,14 +486,22 @@ mod tests {
         assert_eq!(
             argv[0..8],
             [
-                "-o", "BatchMode=yes", "-o", "ControlMaster=auto",
-                "-o", "ControlPath=/c/ssh-%C", "-o", "ControlPersist=60s"
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                "ControlMaster=auto",
+                "-o",
+                "ControlPath=/c/ssh-%C",
+                "-o",
+                "ControlPersist=60s"
             ]
         );
         assert_eq!(argv[argv.len() - 2], "user@host");
         let remote = argv.last().unwrap();
         let script = decoded_script(remote);
-        assert_eq!(script, "command -v -- 'claude'");
+        assert!(script.contains("${NVM_DIR:-$HOME/.nvm}/nvm.sh"));
+        assert!(script.contains("nvm use --silent default"));
+        assert!(script.ends_with("command -v -- 'claude'"));
         assert!(argv.iter().all(|a| !a.starts_with("-t")));
     }
 
@@ -479,6 +522,8 @@ mod tests {
         // decode to what bash -lc actually executes, then assert structure
         let script = decoded_script(remote);
         assert!(script.contains("ORGII_RPID=$$"));
+        assert!(script.contains("${NVM_DIR:-$HOME/.nvm}/nvm.sh"));
+        assert!(script.contains("nvm use --silent node"));
         assert!(script.contains("cd '/home/u/repo'"));
         assert!(script.contains("exec env"));
         assert!(script.contains("'ANTHROPIC_API_KEY=sk-x'"));

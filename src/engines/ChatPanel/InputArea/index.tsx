@@ -11,6 +11,7 @@ import type {
 import { useSessionDiscovery } from "@src/engines/SessionCore";
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
 import { voiceInputEnabledAtom } from "@src/store/platform/voiceInputAtom";
+import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 
@@ -31,6 +32,7 @@ import {
 } from "./components/InputComposerBars";
 import ModePill from "./components/ModePill";
 import ModelPill from "./components/ModelPill";
+import RemoteTargetPill from "./components/RemoteTargetPill";
 import SessionReadOnlyBar from "./components/SessionReadOnlyBar";
 import { useContainerDrag } from "./hooks/useContainerDrag";
 import { useEditMode } from "./hooks/useEditMode";
@@ -136,6 +138,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
 
     const { sessionId } = useSessionId({ propSessionId });
     const isCursorIde = sessionId ? isCursorIdeSession(sessionId) : false;
+    const session = useAtomValue(sessionByIdAtom(sessionId ?? ""));
 
     const openedTabMentionOptions = useAtomValue(openedTabMentionOptionsAtom);
     const mergedCustomMentionOptions = useMemo(
@@ -341,6 +344,15 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       ) : (
         <ModePill hideWhenDefault resetToDefaultOnClick />
       );
+    const mergedTopRowPills = (
+      <>
+        {topRowPills}
+        <RemoteTargetPill
+          execTarget={session?.execTarget}
+          workspacePath={session?.repoPath}
+        />
+      </>
+    );
     const clearReplyInfo = useCallback(
       () => setReplyInfo({ isReply: false }),
       [setReplyInfo]
@@ -370,7 +382,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
           <InputAreaTopRows
             isEditMode={isEditMode}
             omitChatHeader={omitChatHeader}
-            topRowPills={topRowPills}
+            topRowPills={mergedTopRowPills}
             topRowTrailingContent={topRowTrailingContent}
             composerInputRef={composerInputRef}
             sessionId={sessionId}

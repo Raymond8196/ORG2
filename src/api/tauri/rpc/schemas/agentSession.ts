@@ -371,6 +371,8 @@ export const RemotePreflightResultSchema = z
     binaryFound: z.boolean().nullable(),
     /** Does the remote working directory exist? null = not checked. */
     dirOk: z.boolean().nullable(),
+    /** Is the remote CLI runtime compatible? null = not checked. */
+    runtimeOk: z.boolean().nullable(),
     /** One-line human verdict for the UI. */
     summary: z.string(),
     /** Raw ssh error when `connected` is false. */

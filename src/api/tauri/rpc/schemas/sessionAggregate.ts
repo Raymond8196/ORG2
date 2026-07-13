@@ -31,6 +31,16 @@ const WireCategorySchema = z
 
 // Schema for wire validation only — canonical KeySource type lives in dispatchTypes.ts
 const KeySourceSchema = z.enum(["own_key", "hosted_key"]);
+const ExecTargetWireSchema = z.union([
+  z.literal("local"),
+  z.object({ local: z.null().optional() }),
+  z.object({
+    remote: z.object({
+      host: z.string(),
+      port: z.number().int().positive().max(65535).optional(),
+    }),
+  }),
+]);
 
 // ── Filter input ──
 
@@ -190,6 +200,7 @@ export const SessionAggregateRecordSchema = z.object({
   externalHistorySource: z.string().optional(),
   userInput: z.string().optional(),
   repoPath: z.string().optional(),
+  execTarget: ExecTargetWireSchema.optional(),
   storagePath: z.string().optional(),
   repoName: z.string().optional(),
   branch: z.string().optional(),

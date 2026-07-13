@@ -137,6 +137,7 @@ mod tests {
             external_history_source: None,
             user_input: None,
             repo_path: None,
+            exec_target: Default::default(),
             storage_path: None,
             repo_name: None,
             branch: None,

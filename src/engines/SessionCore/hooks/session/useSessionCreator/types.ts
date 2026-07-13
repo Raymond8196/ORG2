@@ -15,6 +15,8 @@ import type { SessionSource } from "@src/store/session/creatorStateAtom";
 import type { ChatImageAttachment } from "@src/store/ui/chatImageAtom";
 import type { SlashItem } from "@src/types/extensions";
 
+import type { SessionLaunchDebugState } from "./useSessionLaunch/types";
+
 /**
  * Handler interface for keyboard navigation in context menu
  */
@@ -38,6 +40,7 @@ export interface UseSessionCreatorReturn {
   setSessionName: (name: string) => void;
   uploadedFiles: UploadedFile[];
   isLoading: boolean;
+  launchDebugState: SessionLaunchDebugState | null;
   advancedConfig: AdvancedConfig;
   setAdvancedConfig: (
     nextOrUpdater: AdvancedConfig | ((prev: AdvancedConfig) => AdvancedConfig)

@@ -70,12 +70,29 @@ import {
 } from "./launchValidation";
 import { resolveKeys } from "./resolveKeys";
 import { injectSyntheticUserEventIfNeeded } from "./syntheticEvents";
-import type { UseSessionLaunchOptions, UseSessionLaunchReturn } from "./types";
+import type {
+  SessionLaunchDebugState,
+  UseSessionLaunchOptions,
+  UseSessionLaunchReturn,
+} from "./types";
 import { useWalletModalState } from "./walletModalState";
 
 export type { UseSessionLaunchOptions, UseSessionLaunchReturn } from "./types";
 
 const log = createLogger("useSessionLaunch");
+const LAUNCH_DEBUG_STORAGE_KEY = "orgii:sshRemoteLaunchDebug";
+
+function persistLaunchDebug(state: SessionLaunchDebugState): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      LAUNCH_DEBUG_STORAGE_KEY,
+      JSON.stringify(state)
+    );
+  } catch {
+    // Debug-only persistence; keep launch behavior unchanged if storage fails.
+  }
+}
 
 export function useSessionLaunch(
   options: UseSessionLaunchOptions
@@ -98,6 +115,18 @@ export function useSessionLaunch(
 
   const { t } = useTranslation("sessions");
   const [isLoading, setIsLoading] = useState(false);
+  const [debugState, setDebugState] = useState<SessionLaunchDebugState | null>(
+    null
+  );
+  const setLaunchDebug = useCallback(
+    (stage: string, message: string, details?: Record<string, unknown>) => {
+      const next = { stage, message, timestamp: Date.now(), details };
+      setDebugState(next);
+      persistLaunchDebug(next);
+      log.info("[launch-debug]", next);
+    },
+    []
+  );
   const {
     closeAddFundsModal,
     closeBuyCreditsModal,
@@ -243,20 +272,48 @@ export function useSessionLaunch(
   );
 
   const handleLaunch = useCallback(async () => {
-    if (isLoading) return false;
+    const remoteTarget = advancedConfig.remoteTarget;
+    const remoteHost = remoteTarget?.host.trim() ?? "";
+    const remoteWorkingDir = remoteTarget?.workingDir?.trim() ?? "";
+    setLaunchDebug("clicked", "Launch handler invoked", {
+      dispatchCategory,
+      targetKind,
+      keySource: advancedConfig.keySource ?? KEY_SOURCE.OWN,
+      cliAgentType: advancedConfig.cliAgentType ?? null,
+      effectiveRepoId: effectiveSource?.repoId ?? null,
+      effectiveRepoPath: effectiveSource?.repoPath ?? null,
+      remoteHost: remoteHost || null,
+      remoteWorkingDir: remoteWorkingDir || null,
+      isContentEmpty,
+      isLoading,
+    });
 
+    if (isLoading) {
+      setLaunchDebug("ignored_loading", "Launch ignored because one is active");
+      return false;
+    }
+
+    setLaunchDebug("validation", "Validating launch configuration");
     const validation = validateSessionConfig();
     if (!validation.valid) {
+      setLaunchDebug("validation_failed", validation.errors.join("; "), {
+        errors: validation.errors,
+      });
       showValidationErrors(validation);
       return false;
     }
 
+    setLaunchDebug("confirm_input", "Checking launch input");
     const confirmedShortInput = await confirmShortInputIfNeeded(
       editorContent,
       t
     );
-    if (!confirmedShortInput) return false;
+    if (!confirmedShortInput) {
+      setLaunchDebug("cancelled_input", "Launch cancelled by input check");
+      return false;
+    }
 
+    setLaunchDebug("prepare_input", "Preparing launch input");
     const { agentInput, userInput } = await prepareLaunchInput({
       editorContent,
       effectiveSource,
@@ -268,10 +325,17 @@ export function useSessionLaunch(
     if (dispatchCategory === DISPATCH_CATEGORY.CURSOR_IDE) {
       setIsLoading(true);
       try {
+        setLaunchDebug("cursor_ide_launch", "Launching Cursor IDE session");
         const resolvedWorkItemContext = resolveWorkItemContext
           ? await resolveWorkItemContext()
           : workItemContext;
-        if (resolveWorkItemContext && !resolvedWorkItemContext) return false;
+        if (resolveWorkItemContext && !resolvedWorkItemContext) {
+          setLaunchDebug(
+            "work_item_context_missing",
+            "Work item context resolver returned nothing"
+          );
+          return false;
+        }
 
         await executeCursorIdeLaunch(
           agentInput,
@@ -299,6 +363,10 @@ export function useSessionLaunch(
 
     try {
       const keySource = advancedConfig.keySource ?? KEY_SOURCE.OWN;
+      setLaunchDebug("resolve_keys", "Resolving launch key source", {
+        keySource,
+        cliAgentType: advancedConfig.cliAgentType ?? null,
+      });
       const resolvedKeys = await resolveKeys(keySource, advancedConfig, {
         onAuthError: () => {
           clearDraft(null);
@@ -306,16 +374,27 @@ export function useSessionLaunch(
         },
       });
 
-      if (!resolvedKeys) return false;
+      if (!resolvedKeys) {
+        setLaunchDebug("resolve_keys_failed", "No launch keys were resolved");
+        return false;
+      }
 
+      setLaunchDebug("work_item_context", "Resolving work item context");
       const resolvedWorkItemContext = resolveWorkItemContext
         ? await resolveWorkItemContext()
         : workItemContext;
-      if (resolveWorkItemContext && !resolvedWorkItemContext) return false;
+      if (resolveWorkItemContext && !resolvedWorkItemContext) {
+        setLaunchDebug(
+          "work_item_context_missing",
+          "Work item context resolver returned nothing"
+        );
+        return false;
+      }
 
       const adeContext = collectAdeContext({
         expectedRepoPath: effectiveSource?.repoPath || null,
       });
+      setLaunchDebug("build_payload", "Building session launch payload");
       const { hasImages, launchParams, sessionUsesHostedKey } =
         buildSessionLaunchPayload({
           agentExecMode,
@@ -337,6 +416,19 @@ export function useSessionLaunch(
           worktreeLaunchSource,
         });
 
+      setLaunchDebug("payload_built", "Built session launch payload", {
+        category: launchParams.category,
+        platform: launchParams.platform ?? null,
+        workspacePath: launchParams.workspacePath ?? null,
+        execTarget: launchParams.execTarget ?? "local",
+        hasImages,
+        sessionUsesHostedKey,
+      });
+
+      setLaunchDebug("session_launch_rpc", "Calling sessionLaunch RPC", {
+        workspacePath: launchParams.workspacePath ?? null,
+        execTarget: launchParams.execTarget ?? "local",
+      });
       const result = await sessionLaunch({
         ...launchParams,
         ...(resolvedWorkItemContext
@@ -352,6 +444,12 @@ export function useSessionLaunch(
             }
           : {}),
       });
+      setLaunchDebug("session_launch_result", "sessionLaunch returned", {
+        sessionId: result.sessionId,
+        status: result.status,
+        workspacePath: result.workspacePath ?? null,
+        cliAgentType: result.cliAgentType ?? null,
+      });
 
       if (imageDataUrls && imageDataUrls.length > 0) {
         clearImages?.();
@@ -363,6 +461,7 @@ export function useSessionLaunch(
           effectiveSource,
           isBackgroundLaunch,
           launchCliAgentType: launchParams.platform,
+          launchExecTarget: launchParams.execTarget,
           launchOrgContext: resolvedWorkItemContext ?? undefined,
           result,
         })
@@ -426,8 +525,14 @@ export function useSessionLaunch(
       }
 
       setSessionSource(null);
+      setLaunchDebug("complete", "Launch flow completed", {
+        sessionId: result.sessionId,
+      });
       return true;
     } catch (error) {
+      setLaunchDebug("error", "Launch failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       log.error("Error creating session:", error);
       handleNonCursorLaunchError({
         advancedConfig,
@@ -466,6 +571,7 @@ export function useSessionLaunch(
     targetKind,
     workspaceFolders,
     worktreeLaunchSource,
+    setLaunchDebug,
     clearImages,
     dispatchLoadSession,
     setLastUserMessage,
@@ -481,6 +587,7 @@ export function useSessionLaunch(
 
   return {
     isLoading,
+    debugState,
     handleLaunch,
     showAddFundsModal,
     closeAddFundsModal,

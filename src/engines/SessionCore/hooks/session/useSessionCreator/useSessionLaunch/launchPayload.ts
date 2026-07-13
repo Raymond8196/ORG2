@@ -230,22 +230,41 @@ export function buildSessionLaunchPayload(
   const sessionUsesHostedKey = isHostedKey(resolvedKeys.keySource);
   const hasImages = !!imageDataUrls && imageDataUrls.length > 0;
   const isRustAgent = dispatchCategory === DISPATCH_CATEGORY.RUST_AGENT;
-  const additionalDirectories = getAdditionalDirectories(
-    sessionRepoPath,
-    workspaceFolders
-  );
+  const remoteTarget = advancedConfig.remoteTarget;
+  const remoteHost = remoteTarget?.host.trim() ?? "";
+  const remotePort = remoteTarget?.port;
+  const remoteWorkingDir = remoteTarget?.workingDir?.trim() ?? "";
+  const launchWorkspacePath =
+    remoteHost && remoteWorkingDir ? remoteWorkingDir : sessionRepoPath;
+  const additionalDirectories = remoteHost
+    ? []
+    : getAdditionalDirectories(sessionRepoPath, workspaceFolders);
+  const worktreeFields = remoteHost
+    ? {}
+    : getWorktreeFields({
+        runningLocation,
+        selectedWorktreePath,
+        worktreeLaunchSource,
+      });
 
   const launchParams: SessionLaunchParams = {
     category: dispatchCategory,
     content: agentInput,
-    workspacePath: sessionRepoPath || undefined,
+    workspacePath: launchWorkspacePath || undefined,
     keySource: resolvedKeys.keySource,
     accountId: resolvedKeys.accountId,
     model: resolvedKeys.model,
     platform: resolvedKeys.cliAgentType,
     branch: sessionBranch,
-    ...(advancedConfig.remoteTarget && advancedConfig.remoteTarget.host.trim()
-      ? { execTarget: { remote: advancedConfig.remoteTarget } }
+    ...(remoteHost
+      ? {
+          execTarget: {
+            remote: {
+              host: remoteHost,
+              ...(remotePort ? { port: remotePort } : {}),
+            },
+          },
+        }
       : {}),
     hostedToken: resolvedKeys.hostedToken,
     tier: resolvedKeys.tier,
@@ -273,11 +292,7 @@ export function buildSessionLaunchPayload(
     ...(isRustAgent && resolvedKeys.nativeHarnessType
       ? { nativeHarnessType: resolvedKeys.nativeHarnessType }
       : {}),
-    ...getWorktreeFields({
-      runningLocation,
-      selectedWorktreePath,
-      worktreeLaunchSource,
-    }),
+    ...worktreeFields,
     ...(additionalDirectories.length > 0 ? { additionalDirectories } : {}),
   };
 
@@ -295,6 +310,7 @@ export function buildSessionFromLaunchResult(options: {
   effectiveSource: SessionSource | null;
   isBackgroundLaunch: boolean;
   launchCliAgentType?: SessionLaunchResult["cliAgentType"];
+  launchExecTarget?: SessionLaunchParams["execTarget"];
   launchOrgContext?: Partial<SessionLaunchOrgContext>;
   result: SessionLaunchResult;
 }): Session {
@@ -303,6 +319,7 @@ export function buildSessionFromLaunchResult(options: {
     effectiveSource,
     isBackgroundLaunch,
     launchCliAgentType,
+    launchExecTarget,
     launchOrgContext,
     result,
   } = options;
@@ -346,6 +363,7 @@ export function buildSessionFromLaunchResult(options: {
       ? { agentRole: result.agentRole ?? launchOrgContext?.agentRole }
       : {}),
     ...(result.background ? { background: true } : {}),
+    ...(launchExecTarget ? { execTarget: launchExecTarget } : {}),
     ...(result.worktreePath ? { worktreePath: result.worktreePath } : {}),
     ...(result.workspacePath ? { repoPath: result.workspacePath } : {}),
   };

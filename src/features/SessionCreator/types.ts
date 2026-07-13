@@ -90,7 +90,7 @@ export interface AdvancedConfig {
    * the user types `user@host` (or an ssh-config alias) + optional port.
    * (SSH-remote milestone §1, §3-Phase3.)
    */
-  remoteTarget?: { host: string; port?: number };
+  remoteTarget?: { host: string; port?: number; workingDir?: string };
   /** Price tier for hosted_key sessions (e.g., "standard", "premium", "vip", "basic") */
   tier?: string;
   /** Hosted listing display name (when keySource is hosted) */

@@ -42,6 +42,7 @@ import type {
   SessionLaunchSuccessInfo,
   SessionLaunchWorkItemContext,
 } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
+import { buildRemoteTargetDisplay } from "@src/features/SessionCreator/remoteTargetDisplay";
 import type { SessionCreatorLaunchMode } from "@src/features/SessionCreator/types";
 import {
   SYSTEM_HOME_SOURCE_ID,
@@ -113,10 +114,12 @@ import SessionCreatorOrgMembersPanel from "./SessionCreatorOrgMembersPanel";
 import WorkItemAttachmentControl from "./WorkItemAttachmentControl";
 import { deriveChatPanelLaunchContext } from "./deriveLaunchContext";
 import "./index.scss";
+import { withRemotePreflightTimeout } from "./remotePreflightTimeout";
 import { resolveSessionCreatorAgentHeroContent } from "./resolveSessionCreatorAgentHero";
 import { useSessionCreatorChatPanelHandlers } from "./useSessionCreatorChatPanelHandlers";
 
 const log = createLogger("ChatPanel");
+const LAUNCH_CLICK_DEBUG_STORAGE_KEY = "orgii:sshRemoteLaunchClickDebug";
 
 function deriveExpectedProcess(command: string): string | undefined {
   const [binary] = command.trim().split(/\s+/);
@@ -127,6 +130,32 @@ function isCliAgentType(
   value: string | null | undefined
 ): value is CliAgentType {
   return Boolean(value);
+}
+
+function formatDebugDetails(
+  details: Record<string, unknown> | undefined
+): string | null {
+  if (!details) return null;
+  try {
+    return JSON.stringify(details);
+  } catch {
+    return "[unserializable details]";
+  }
+}
+
+function persistLaunchClickDebug(state: {
+  stage: string;
+  message: string;
+  timestamp: number;
+}): void {
+  try {
+    window.localStorage.setItem(
+      LAUNCH_CLICK_DEBUG_STORAGE_KEY,
+      JSON.stringify(state)
+    );
+  } catch {
+    // Debug-only persistence; ignore storage failures.
+  }
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -277,6 +306,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     handleAtMentionClick,
     handleAtSelect,
     handleLaunch: originalHandleLaunch,
+    launchDebugState,
     handleBranchChange,
     attachedImages,
     handleImagePaste,
@@ -501,7 +531,22 @@ const SessionCreatorChatPanelSingle: React.FC<
 
   // ── Launch ────────────────────────────────────────────────────────────────
 
+  const [launchClickDebug, setLaunchClickDebug] = useState<{
+    stage: string;
+    message: string;
+    timestamp: number;
+  } | null>(null);
+
   const handleLaunch = useCallback(async () => {
+    const remoteTarget = advancedConfig.remoteTarget;
+    const clickedDebug = {
+      stage: "clicked",
+      message: `dispatch=${dispatchCategory}, canLaunch=${canLaunch}, loading=${isLoading}, remote=${remoteTarget?.host?.trim() || "none"}, dir=${remoteTarget?.workingDir?.trim() || "none"}`,
+      timestamp: Date.now(),
+    };
+    setLaunchClickDebug(clickedDebug);
+    persistLaunchClickDebug(clickedDebug);
+
     if (
       isCliTuiMode &&
       onOpenCliTerminal &&
@@ -510,6 +555,13 @@ const SessionCreatorChatPanelSingle: React.FC<
     ) {
       const command = selectedCliAgent.command.trim();
       if (command.length > 0) {
+        const tuiDebug = {
+          stage: "tui_terminal",
+          message: `Opening CLI terminal for ${cliAgentType}`,
+          timestamp: Date.now(),
+        };
+        setLaunchClickDebug(tuiDebug);
+        persistLaunchClickDebug(tuiDebug);
         onOpenCliTerminal({
           cliAgentType,
           command,
@@ -522,10 +574,22 @@ const SessionCreatorChatPanelSingle: React.FC<
       }
     }
 
-    return originalHandleLaunch();
+    const launched = await originalHandleLaunch();
+    const delegatedDebug = {
+      stage: launched ? "delegated_ok" : "delegated_false",
+      message: `originalHandleLaunch returned ${String(launched)}`,
+      timestamp: Date.now(),
+    };
+    setLaunchClickDebug(delegatedDebug);
+    persistLaunchClickDebug(delegatedDebug);
+    return launched;
   }, [
+    advancedConfig.remoteTarget,
+    canLaunch,
     cliAgentType,
+    dispatchCategory,
     effectiveSource?.repoPath,
+    isLoading,
     isCliTuiMode,
     onOpenCliTerminal,
     originalHandleLaunch,
@@ -886,48 +950,69 @@ const SessionCreatorChatPanelSingle: React.FC<
   // connectivity (BatchMode auth) + that the CLI binary is on the remote PATH
   // *before* the user commits to creating a session.
   const remoteHost = advancedConfig.remoteTarget?.host?.trim() ?? "";
-  // The verdict carries the host it was run against; a `done`/`checking`
-  // verdict is only honoured while that host is still current. That naturally
-  // invalidates a stale result when the user edits the host — no effect, no
-  // manual reset (avoids setState-in-effect + React-Compiler memo friction).
+  // The verdict carries the host/port/dir key it was run against; a
+  // `done`/`checking` verdict is only honoured while that target is still
+  // current. That naturally invalidates a stale result when the user edits the
+  // inputs — no effect, no manual reset (avoids setState-in-effect + React-
+  // Compiler memo friction).
   const [remotePreflightState, setRemotePreflightState] = useState<
     | { kind: "idle" }
-    | { kind: "checking"; host: string }
-    | { kind: "done"; host: string; result: RemotePreflightResult }
+    | { kind: "checking"; key: string }
+    | { kind: "done"; key: string; result: RemotePreflightResult }
   >({ kind: "idle" });
+  const remotePort = advancedConfig.remoteTarget?.port;
+  const remoteWorkingDir =
+    advancedConfig.remoteTarget?.workingDir?.trim() ?? "";
+  const remotePreflightKey = `${remoteHost}:${remotePort ?? ""}:${remoteWorkingDir}`;
   const preflightChecking =
     remotePreflightState.kind === "checking" &&
-    remotePreflightState.host === remoteHost;
+    remotePreflightState.key === remotePreflightKey;
   const preflightResult =
     remotePreflightState.kind === "done" &&
-    remotePreflightState.host === remoteHost
+    remotePreflightState.key === remotePreflightKey
       ? remotePreflightState.result
       : null;
   const preflightOk =
     !!preflightResult &&
     preflightResult.connected &&
-    preflightResult.binaryFound !== false;
+    preflightResult.binaryFound !== false &&
+    preflightResult.dirOk !== false &&
+    preflightResult.runtimeOk !== false;
+  const remoteTargetDisplay = buildRemoteTargetDisplay({
+    host: remoteHost,
+    port: remotePort,
+    workspacePath: remoteWorkingDir,
+  });
+  const launchDebugDetails = formatDebugDetails(launchDebugState?.details);
 
   const runRemotePreflight = async () => {
     if (!remoteHost) return;
-    setRemotePreflightState({ kind: "checking", host: remoteHost });
+    setRemotePreflightState({ kind: "checking", key: remotePreflightKey });
     try {
-      const result = await remotePreflight({
-        host: remoteHost,
-        port: advancedConfig.remoteTarget?.port,
-        cliAgentType: advancedConfig.cliAgentType ?? undefined,
+      const result = await withRemotePreflightTimeout(
+        remotePreflight({
+          host: remoteHost,
+          port: remotePort,
+          cliAgentType: advancedConfig.cliAgentType ?? undefined,
+          workingDir: remoteWorkingDir || undefined,
+        })
+      );
+      setRemotePreflightState({
+        kind: "done",
+        key: remotePreflightKey,
+        result,
       });
-      setRemotePreflightState({ kind: "done", host: remoteHost, result });
     } catch (err) {
       // rpc throws on transport errors; surface them with the same shape.
       const message = err instanceof Error ? err.message : String(err);
       setRemotePreflightState({
         kind: "done",
-        host: remoteHost,
+        key: remotePreflightKey,
         result: {
           connected: false,
           binaryFound: null,
           dirOk: null,
+          runtimeOk: null,
           summary: message,
           error: message,
         },
@@ -1048,60 +1133,155 @@ const SessionCreatorChatPanelSingle: React.FC<
                 )}
                 {showRemoteTargetInput && (
                   <>
-                    <div className="flex items-center gap-2 px-1 pb-1 pt-2 text-[12px] text-text-3">
-                      <span className="shrink-0">Remote SSH</span>
-                      <input
-                        type="text"
-                        spellCheck={false}
-                        autoComplete="off"
-                        data-testid="remote-ssh-host-input"
-                        className="min-w-0 flex-1 rounded border border-border-2 bg-transparent px-2 py-0.5 text-text-1 outline-none focus:border-primary-4"
-                        placeholder="user@host"
-                        value={advancedConfig.remoteTarget?.host ?? ""}
-                        onChange={(e) =>
-                          handleAdvancedConfigChange({
-                            ...advancedConfig,
-                            remoteTarget: {
-                              host: e.target.value,
-                              port: advancedConfig.remoteTarget?.port,
-                            },
-                          })
-                        }
-                      />
-                      <input
-                        type="number"
-                        min={1}
-                        max={65535}
-                        data-testid="remote-ssh-port-input"
-                        className="w-20 shrink-0 rounded border border-border-2 bg-transparent px-2 py-0.5 text-text-1 outline-none focus:border-primary-4"
-                        placeholder="port"
-                        value={advancedConfig.remoteTarget?.port ?? ""}
-                        onChange={(e) =>
-                          handleAdvancedConfigChange({
-                            ...advancedConfig,
-                            remoteTarget: {
-                              host: advancedConfig.remoteTarget?.host ?? "",
-                              port: e.target.value
-                                ? Number(e.target.value)
-                                : undefined,
-                            },
-                          })
-                        }
-                      />
-                      <button
-                        type="button"
-                        onClick={runRemotePreflight}
-                        disabled={!remoteHost || preflightChecking}
-                        data-testid="remote-ssh-test-button"
-                        className="flex shrink-0 items-center gap-1 rounded border border-border-2 px-2 py-0.5 text-text-2 outline-none transition-colors hover:text-text-1 focus:border-primary-4 disabled:opacity-50"
-                      >
-                        {preflightChecking ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          "Test"
-                        )}
-                      </button>
+                    <div className="px-1 pb-1 pt-2">
+                      <div className="rounded-md border border-border-2 bg-fill-1/40 px-2.5 py-2">
+                        <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
+                          <div className="flex min-w-0 items-center gap-2 text-[12px] font-medium text-text-1">
+                            <Network
+                              size={14}
+                              strokeWidth={1.75}
+                              className="shrink-0"
+                            />
+                            <span className="shrink-0">Run on remote</span>
+                            {remoteTargetDisplay && (
+                              <span
+                                className="min-w-0 truncate text-text-3"
+                                title={remoteTargetDisplay.title}
+                              >
+                                {remoteTargetDisplay.hostLabel}
+                                {remoteTargetDisplay.workspaceLabel
+                                  ? ` · ${remoteTargetDisplay.workspaceLabel}`
+                                  : ""}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={runRemotePreflight}
+                            disabled={!remoteHost || preflightChecking}
+                            data-testid="remote-ssh-test-button"
+                            className={`flex h-[24px] shrink-0 items-center gap-1 rounded border px-2 text-[11px] outline-none transition-colors focus:border-primary-4 disabled:opacity-50 ${
+                              preflightOk
+                                ? "border-emerald-300 text-emerald-700"
+                                : "border-border-2 text-text-2 hover:text-text-1"
+                            }`}
+                          >
+                            {preflightChecking ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : preflightOk ? (
+                              <CheckCircle2 size={12} />
+                            ) : null}
+                            {preflightOk ? "Connected" : "Test"}
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-[minmax(0,1fr)_80px] gap-2 text-[12px] text-text-3">
+                          <label className="min-w-0">
+                            <span className="mb-1 block text-[11px] text-text-4">
+                              Host
+                            </span>
+                            <input
+                              type="text"
+                              spellCheck={false}
+                              autoComplete="off"
+                              data-testid="remote-ssh-host-input"
+                              className="bg-background h-[26px] w-full min-w-0 rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                              placeholder="user@host"
+                              value={advancedConfig.remoteTarget?.host ?? ""}
+                              onChange={(e) =>
+                                handleAdvancedConfigChange({
+                                  ...advancedConfig,
+                                  remoteTarget: {
+                                    host: e.target.value,
+                                    port: advancedConfig.remoteTarget?.port,
+                                    workingDir:
+                                      advancedConfig.remoteTarget?.workingDir,
+                                  },
+                                })
+                              }
+                            />
+                          </label>
+                          <label>
+                            <span className="mb-1 block text-[11px] text-text-4">
+                              Port
+                            </span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={65535}
+                              data-testid="remote-ssh-port-input"
+                              className="bg-background h-[26px] w-full rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                              placeholder="22"
+                              value={advancedConfig.remoteTarget?.port ?? ""}
+                              onChange={(e) =>
+                                handleAdvancedConfigChange({
+                                  ...advancedConfig,
+                                  remoteTarget: {
+                                    host:
+                                      advancedConfig.remoteTarget?.host ?? "",
+                                    port: e.target.value
+                                      ? Number(e.target.value)
+                                      : undefined,
+                                    workingDir:
+                                      advancedConfig.remoteTarget?.workingDir,
+                                  },
+                                })
+                              }
+                            />
+                          </label>
+                          <label className="col-span-2 min-w-0">
+                            <span className="mb-1 block text-[11px] text-text-4">
+                              Working target
+                            </span>
+                            <input
+                              type="text"
+                              spellCheck={false}
+                              autoComplete="off"
+                              data-testid="remote-ssh-working-dir-input"
+                              className="bg-background h-[26px] w-full min-w-0 rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                              placeholder="/home/qlg/wkspaces/ORG2"
+                              value={
+                                advancedConfig.remoteTarget?.workingDir ?? ""
+                              }
+                              onChange={(e) =>
+                                handleAdvancedConfigChange({
+                                  ...advancedConfig,
+                                  remoteTarget: {
+                                    host:
+                                      advancedConfig.remoteTarget?.host ?? "",
+                                    port: advancedConfig.remoteTarget?.port,
+                                    workingDir: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </label>
+                        </div>
+                      </div>
                     </div>
+                    {(launchClickDebug || launchDebugState) && (
+                      <div
+                        data-testid="remote-launch-debug"
+                        className="space-y-0.5 px-1 pb-1 font-mono text-[10px] leading-4 text-text-4"
+                      >
+                        {launchClickDebug && (
+                          <div className="break-words">
+                            Click[{launchClickDebug.stage}]:{" "}
+                            {launchClickDebug.message}
+                          </div>
+                        )}
+                        {launchDebugState && (
+                          <div className="break-words">
+                            Pipeline[{launchDebugState.stage}]:{" "}
+                            {launchDebugState.message}
+                          </div>
+                        )}
+                        {launchDebugDetails && (
+                          <div className="break-all">
+                            Details: {launchDebugDetails}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {preflightResult && (
                       <div
                         data-testid="remote-ssh-test-result"

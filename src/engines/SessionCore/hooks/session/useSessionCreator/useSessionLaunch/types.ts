@@ -27,6 +27,13 @@ export interface SessionLaunchSuccessInfo {
   workItemContext?: SessionLaunchWorkItemContext;
 }
 
+export interface SessionLaunchDebugState {
+  stage: string;
+  message: string;
+  timestamp: number;
+  details?: Record<string, unknown>;
+}
+
 export interface UseSessionLaunchOptions {
   /**
    * Repo/branch the new session will run against.
@@ -54,6 +61,7 @@ export interface UseSessionLaunchOptions {
 
 export interface UseSessionLaunchReturn {
   isLoading: boolean;
+  debugState: SessionLaunchDebugState | null;
   handleLaunch: () => Promise<boolean>;
   /**
    * True when an "out of funds" wallet error was caught. The modal

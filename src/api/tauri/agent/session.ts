@@ -486,13 +486,14 @@ export async function sessionLaunch(
 
 /**
  * Verdict returned by {@link remotePreflight}. Mirrors the Rust
- * `RemotePreflightResult` (camelCase). `binaryFound` / `dirOk` / `error` are
- * `null` when that check wasn't performed (or didn't apply).
+ * `RemotePreflightResult` (camelCase). `binaryFound` / `dirOk` / `runtimeOk`
+ * / `error` are `null` when that check wasn't performed (or didn't apply).
  */
 export interface RemotePreflightResult {
   connected: boolean;
   binaryFound: boolean | null;
   dirOk: boolean | null;
+  runtimeOk: boolean | null;
   summary: string;
   error: string | null;
 }

@@ -377,6 +377,7 @@ export function useSessionCreator(
   // Session Launch
   const {
     isLoading,
+    debugState: launchDebugState,
     handleLaunch,
     showAddFundsModal,
     closeAddFundsModal,
@@ -464,6 +465,7 @@ export function useSessionCreator(
     setSessionName,
     uploadedFiles,
     isLoading,
+    launchDebugState,
     advancedConfig,
     setAdvancedConfig,
 

@@ -1,9 +1,10 @@
 # SSH Remote CLI — MVP 实现计划(Codex / Claude Code / Gemini)
 
-> 状态:规划中,待分配。关联 issue:[yorgai/ORG2#157](https://github.com/yorgai/ORG2/issues/157)。
+> 状态:实现层已落地,正在真实 Ubuntu 远端验收。关联 issue:[yorgai/ORG2#157](https://github.com/yorgai/ORG2/issues/157)。
 > 第一步目标:**让外部 CLI agent 能跑在远端 host 上**,先支持 **Claude Code、Codex、Gemini** 三个。
 > 本文档自包含,接手人无需阅读设计讨论记录。
 > 修订 2026-07-07:对照代码核实后修订——补 spawn 前本地文件物化的远程化(skill_sync / Codex hosted,§2.6)、终止机制去 PTY 化(§2.2.1)、Phase 0 spike 改为按部署验证(§3)、明确本里程碑只覆盖 issue 验收标准③(§1)。
+> 进度更新 2026-07-13:代码实现、targeted Rust/TS 验证、Ubuntu 远端 T1-T3 手动检查、SessionCreator「Test」按钮联通性/二进制/远端目录检查均已通过;已发现并修复 nvm/Node runtime PATH 分叉问题(Test 与真实 spawn 现在都会静默加载远端 nvm 并选用 default/node/stable);T4-T19 真实远端会话矩阵仍待执行。
 
 ---
 
@@ -203,38 +204,45 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 ### Phase 0 — Spike + 脚手架(阻塞后续,先做)
 
 > 目的:验证最大未知,搭好抽象。**预计 0.5–1 天。**
+>
+> **状态(实现层):完成。**全量本地回归未跑;已跑 targeted 验证见 §4。
 
-- [ ] **Hosted 已推迟,无需 spike**。代码事实备查(不用再翻):hosted 的 `proxy_url` 来自 marketplace `/proxy/allocate` 响应(`crates/integrations/src/proxy/mod.rs:80-150`),按部署而定——云端可能返回公网 URL(远端可达),dev / 自托管必然 loopback(不可达)。本里程碑不做 Hosted,这条留作后续里程碑立项时的第一验证项。
-- [ ] **运行时守卫**:session 创建时 `exec_target=Remote` + `key_source=Hosted` → 友好拒绝("Hosted 模式暂不支持远端执行,请用 BYOK"),不让会话跑起来再莫名认证失败。**本里程碑 Remote 只允许 BYOK**。Hosted 远程化落地后移除此守卫。
-- [ ] BYOK 模式无 proxy,CLI 直连 provider,**必然可达**(用一次手动测试确认即可)。
-- [ ] 加 `ExecTarget` / `SshTarget` 类型 + serde: - 默认 `Local`;**未知 variant 降级 `Local` + warning,不报错**(自定义反序列化,§2.5-A2)。- `ExecTarget` 设计成开放枚举,`match` 带 default 分支(§2.5-B5)。- `SshTarget` 用结构体(`host`/`port` 可选字段),不压成单字符串(§2.5-B10)。
-- [ ] 三层结构体加字段 + bridge 映射 + **加列式** DB migration(默认 `Local`,§2.5-A1)。`CliLaunchParams` 同时加 `workspace_target` 槽(本期可与 `exec_target` 同值,§2.5-B9)。
-- [ ] spawn 缝引入 `RemoteSpawn` trait + `match exec_target`,`Local` 分支逐字保留原逻辑(§2.5-A4、B6)。
-- [ ] CLI 能力位:为 `line-based` / `base-url` 两个能力位定义声明(参照现有 `needs_mitm_proxy()` 模式,§2.5-B7)。
+- [x] **Hosted 已推迟,无需 spike**。代码事实备查(不用再翻):hosted 的 `proxy_url` 来自 marketplace `/proxy/allocate` 响应(`crates/integrations/src/proxy/mod.rs:80-150`),按部署而定——云端可能返回公网 URL(远端可达),dev / 自托管必然 loopback(不可达)。本里程碑不做 Hosted,这条留作后续里程碑立项时的第一验证项。
+- [x] **运行时守卫**:session 创建时 `exec_target=Remote` + `key_source=Hosted` → 友好拒绝("Hosted 模式暂不支持远端执行,请用 BYOK"),不让会话跑起来再莫名认证失败。**本里程碑 Remote 只允许 BYOK**。Hosted 远程化落地后移除此守卫。
+- [x] BYOK 模式无 proxy,CLI 直连 provider,**必然可达**(2026-07-13 手动 T1-T3 + Test 按钮已确认 SSH / `claude` binary / remote dir 预检通过)。
+- [x] 加 `ExecTarget` / `SshTarget` 类型 + serde: - 默认 `Local`;**未知 variant 降级 `Local` + warning,不报错**(自定义反序列化,§2.5-A2)。- `ExecTarget` 设计成开放枚举,`match` 带 default 分支(§2.5-B5)。- `SshTarget` 用结构体(`host`/`port` 可选字段),不压成单字符串(§2.5-B10)。
+- [x] 三层结构体加字段 + bridge 映射 + **加列式** DB migration(默认 `Local`,§2.5-A1)。`CliLaunchParams` 同时加 `workspace_target` 槽(本期可与 `exec_target` 同值,§2.5-B9)。
+- [x] spawn 缝引入 `RemoteSpawn` trait + `match exec_target`,`Local` 分支逐字保留原逻辑(§2.5-A4、B6)。
+- [x] CLI 能力位:为 `line-based` / `base-url` 两个能力位定义声明(参照现有 `needs_mitm_proxy()` 模式,§2.5-B7)。
 - [ ] **全量本地回归通过**:`cargo test --lib agent_sessions::` + 三个 CLI 的现有解析快照。
-- [ ] **前向兼容单测**:构造一个含"未来 variant"(如 `Container{...}`)的序列化 payload,断言反序列化降级为 `Local` 且不 panic(§2.5-A2)。
+- [x] **前向兼容单测**:构造一个含"未来 variant"(如 `Container{...}`)的序列化 payload,断言反序列化降级为 `Local` 且不 panic(§2.5-A2)。
 
 ### Phase 1 — Claude Code 远端打通(证明抽象)
 
 > 目的:用一个 CLI 把 Remote 分支跑通,验证抽象正确。**预计 3–4 天**(含 skill_sync 物化、显式 kill、ControlMaster;原 2–3 天的估算不含这三项)。
+>
+> **状态(实现层):完成;端到端会话验收待跑 T4-T12。**
 
-- [ ] `build_ssh_spawn`:组装 §2.2 形态的命令(**无 `-t`**、`bash -lc`、`BatchMode=yes`、pid 经 stderr 带 marker 回传)。
-- [ ] ControlMaster 连接管理:`ControlMaster=auto` + app 运行时目录下的 `ControlPath` + `ControlPersist`;binary check / 目录校验 / skill_sync / spawn / kill 共享一条已认证连接。
-- [ ] 远端二进制解析:`ssh <host> bash -lc 'command -v claude'`(**必须 login shell**,镜像本地 `cli_binary_resolver.rs:379-436` 的兜底;在该模块加远端分支)。
-- [ ] 远端工作目录校验:`ssh <host> test -d <dir>`(替代 `session.rs:445-460` 的本地 `is_dir`)。
-- [ ] env 选择性转发(§2.3 规则)。
-- [ ] **skill_sync 远程物化 + 会话后远端清理**(§2.6-a)。
-- [ ] 显式远程 kill 打通(§2.2.1):前端 Ctrl-C → 远端进程消失,以远端 `ps` 验证。
+- [x] `build_ssh_spawn`:组装 §2.2 形态的命令(**无 `-t`**、`bash -lc`、`BatchMode=yes`、pid 经 stderr 带 marker 回传)。
+- [x] ControlMaster 连接管理:`ControlMaster=auto` + app 运行时目录下的 `ControlPath` + `ControlPersist`;binary check / 目录校验 / skill_sync / spawn / kill 共享一条已认证连接。
+- [x] 远端二进制解析:`ssh <host> bash -lc 'command -v claude'`(**必须 login shell**,镜像本地 `cli_binary_resolver.rs:379-436` 的兜底;在该模块加远端分支)。
+- [x] 远端 Node runtime bootstrap:远端脚本在 preflight 与 spawn 中都会静默加载 `$HOME/.nvm/nvm.sh`,并按 `default -> node -> stable` 尝试启用 nvm 版本,避免 `command -v claude` 成功但 `/usr/bin/node` 过旧导致 Claude Code 启动失败。2026-07-13 在 `qlg@172.16.10.239` 验证:原 `bash -lc` 为 Node `v10.19.0`;bootstrap 后为 nvm Node `v24.13.0`,`claude --version` 返回 `2.1.39`。
+- [x] 远端工作目录校验:`ssh <host> test -d <dir>`(替代 `session.rs:445-460` 的本地 `is_dir`)。
+- [x] env 选择性转发(§2.3 规则)。
+- [x] **skill_sync 远程物化 + 会话后远端清理**(§2.6-a;project conventions 远端同步仍未实现,见 §6 风险/备注)。
+- [x] 显式远程 kill 实现打通(§2.2.1):前端 Ctrl-C → 远端进程消失;远端 `ps` 实测仍按 T7 跑。
 - [ ] Claude Code 共享 `~/.claude` 的首跑行为实测(onboarding 状态,§2.6 末段)。
 - [ ] 手动验收:Claude Code 在真实远端 host 上跑通(见 §5 验收矩阵 Claude 行)。
 
 ### Phase 2 — Codex + Gemini 增量跟进
 
 > 目的:验证抽象的可复用性。Codex/Gemini 的 BYOK 应近乎免费——只改测试 + 手动验收。**预计 1 天。**
+>
+> **状态(实现层):完成;真实远端 Codex/Gemini 验收待跑 T18-T19。**
 
-- [ ] Gemini:argv 已有(`gemini --output-format stream-json ...`),复用 `build_ssh_spawn`,应只改测试 + 手动验收。
-- [ ] Codex BYOK:argv 已有(`codex exec --json ...`),复用 `build_ssh_spawn`。
-- [ ] Codex Hosted / Gemini Hosted:**已随 Hosted 模式整体推迟**(§1 Out),§2.6-b 留作后续里程碑参考。
+- [x] Gemini:argv 已有(`gemini --output-format stream-json ...`),复用 `build_ssh_spawn`,应只改测试 + 手动验收。
+- [x] Codex BYOK:argv 已有(`codex exec --json ...`),复用 `build_ssh_spawn`。
+- [x] Codex Hosted / Gemini Hosted:**已随 Hosted 模式整体推迟**(§1 Out),§2.6-b 留作后续里程碑参考。
 - [ ] 若 BYOK 增量被迫改 spawn 逻辑 → 抽象有问题,回头补。
 
 ### Phase 3 — 健壮性
@@ -247,8 +255,8 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 - [x] exit code 透传(`ssh` 的退出码 = 远端命令退出码,验证链路;注意 ssh 自身错误是 255)。
 - [x] 连接保活:`ServerAliveInterval` / `ServerAliveCountMax` + `ControlPersist`。断线重连**不需要新机制**:远端重 spawn 带 `--resume <cli_session_id>`——存取已就位(`persistence/session_crud.rs:224-288`),补 Remote 分支即可。
 - [x] 错误信息友好化:`ssh` 连接失败(含 BatchMode 认证拒绝)、远端无 CLI、远端无目录 → 翻译成用户可读的前端提示。
-- [x] 远端 CLI 缺失时的健康检查 UI(`cli_remote_preflight` 命令 + SessionCreator「Test」按钮,连通性 + 二进制 + 目录检查;手动验证见 §5.4 T1–T3 / T15–T16)。
-- [x] 最小前端入口收尾:SessionCreator 的 Remote 目标输入(§1 In 承诺项)联调走通。
+- [x] 远端 CLI 缺失时的健康检查 UI(`cli_remote_preflight` 命令 + SessionCreator「Test」按钮,连通性 + 二进制 + 可选远端目录检查;手动验证见 §5.4 T1–T3 / T15–T17)。2026-07-13 补前端 25s 超时、后端 tracing、Claude Code Node runtime 检查,避免预检无限转圈或二进制存在但运行时过旧时假绿。
+- [x] 最小前端入口收尾:SessionCreator 的 Remote 目标输入 + Remote dir 输入(§1 In 承诺项)联调走通。Remote dir 只作为远端会话的 `workspacePath/repoPath`,不写入 `exec_target.remote`。
 
 ---
 
@@ -256,12 +264,12 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 
 ### 4.1 单元测试(纯函数,快,CI 必跑)
 
-- [ ] `ExecTarget` serde:默认 `Local`;`Remote(SshTarget)` 往返序列化;旧行(无该列)反序列化为 `Local`。
-- [ ] **SSH argv 构造器**:给定 `(host, port, program, args, env, dir)` → 产出正确的 §2.2 形态命令(无 `-t`、`bash -lc`、BatchMode);**重点测 quoting 函数**,注入向量至少覆盖:空格、单双引号、`$()`、反引号、换行、`;`、`&&`(task 字符串和 env 值都要测)。
-- [ ] **env 过滤器**:给定完整 env map → 保留 provider 认证 + 用户代理,剥离 `CLAUDE_CONFIG_DIR`/`CODEX_HOME`/`GEMINI_CLI_HOME`/MITM proxy。
-- [ ] **pid 回传解析**:stderr 流里 `ORGII_RPID=<pid>` marker 的提取;marker 行不进用户可见的 stderr 记录。
-- [ ] **Remote+Hosted 守卫**(§3-Phase 0):`exec_target=Remote` + `key_source=Hosted` → 创建被拒且报错可读(Hosted 推迟到后续里程碑)。
-- [ ] `exec_target` 三层透传:`CliLaunchParams` → `CreateCodeSessionParams` → session 行 → 读回一致。
+- [x] `ExecTarget` serde:默认 `Local`;`Remote(SshTarget)` 往返序列化;旧行(无该列)反序列化为 `Local`。
+- [x] **SSH argv 构造器**:给定 `(host, port, program, args, env, dir)` → 产出正确的 §2.2 形态命令(无 `-t`、`bash -lc`、BatchMode);**重点测 quoting 函数**,注入向量至少覆盖:空格、单双引号、`$()`、反引号、换行、`;`、`&&`(task 字符串和 env 值都要测)。
+- [x] **env 过滤器**:给定完整 env map → 保留 provider 认证 + 用户代理,剥离 `CLAUDE_CONFIG_DIR`/`CODEX_HOME`/`GEMINI_CLI_HOME`/MITM proxy。
+- [x] **pid 回传解析**:stderr 流里 `ORGII_RPID=<pid>` marker 的提取;marker 行不进用户可见的 stderr 记录。
+- [x] **Remote+Hosted 守卫**(§3-Phase 0):`exec_target=Remote` + `key_source=Hosted` → 创建被拒且报错可读(Hosted 推迟到后续里程碑)。
+- [x] `exec_target` 三层透传:`CliLaunchParams` → `CreateCodeSessionParams` → session 行 → 读回一致。
 
 ### 4.2 集成测试(CI 可跑,不依赖真远端)
 
@@ -271,7 +279,7 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 ### 4.3 端到端(手动 / 专用环境,不在 CI)
 
 - [ ] `ssh localhost`:CI Linux 上生成临时 keypair、`ssh localhost` 跑一遍 Remote 分支(可选,较重)。
-- [ ] 真实远端 host:见 §5 验收矩阵。
+- [ ] 真实远端 host:见 §5 验收矩阵。2026-07-13 已通过 T1-T3 手动检查和 SessionCreator「Test」按钮预检(填 Remote dir 时覆盖 T3);T4-T19 待跑。
 
 ---
 
@@ -335,13 +343,13 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 | T2  | 🖥️→🌐 | `ssh <user>@<host> 'bash -lc "command -v claude"'`         | 验远端 login-shell 能找到 claude    | 打印 claude 绝对路径   |
 | T3  | 🖥️→🌐 | `ssh <user>@<host> 'test -d /abs/path/to/repo && echo ok'` | 验远端工作目录存在                  | 打印 `ok`              |
 
-> T1–T2 现在也可直接点 SessionCreator 的 **「Test」** 按钮代替——它跑的就是 T1(连通性)+ T2(二进制存在)的组合检查。
+> 2026-07-13:Ubuntu 远端 `qlg@172.16.10.239` 上 T1-T3 手动通过;SessionCreator **「Test」** 按钮在完整重启 `pnpm tauri:dev` 后可正确显示连接成功。填入 **Remote dir** 后,Test 按钮覆盖 T1(连通性)+ T2(二进制存在)+ T3(远端工作目录存在)。
 
 **B. 冒烟(claude_code + BYOK + Remote)**
 
-| ID  | 在哪 | 操作                                                                                                             | 目的                                        | 预期                                     |
-| --- | ---- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------- |
-| T4  | 🖥️   | 选 claude_code / BYOK / workspace=远端路径 / Remote 填 `<user>@<host>` / 发 `read a.txt and tell me its content` | 核心功能:经 ssh 在远端跑 claude,stdout 流回 | 创建成功 + 实时出 token + agent 回复正确 |
+| ID  | 在哪 | 操作                                                                                                                                         | 目的                                        | 预期                                     |
+| --- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------- |
+| T4  | 🖥️   | 选 claude_code / BYOK / Remote SSH 填 `<user>@<host>` / Remote dir 填远端 repo 绝对路径 / Test 通过后发 `read a.txt and tell me its content` | 核心功能:经 ssh 在远端跑 claude,stdout 流回 | 创建成功 + 实时出 token + agent 回复正确 |
 
 **C. §5.1 功能矩阵(claude_code)**
 
@@ -363,13 +371,13 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 
 **E. 失败守卫(§5.3,全在 🖥️ 创建时拦)**
 
-| ID  | 在哪 | 操作                                     | 预期                                                           |
-| --- | ---- | ---------------------------------------- | -------------------------------------------------------------- |
-| T13 | 🖥️   | hosted key + Remote host → 创建          | 「Hosted (market) mode does not yet support remote execution」 |
-| T14 | 🖥️   | cursor_cli + Remote host → 创建          | 「Remote execution is not yet supported for `cursor_cli`」     |
-| T15 | 🖥️   | Remote host 故意填错 → 创建 / 或点 Test  | 「ssh connection to … failed」                                 |
-| T16 | 🖥️   | 换没装 claude 的 host → 创建 / 或点 Test | 「`claude` was not found on the remote host」                  |
-| T17 | 🖥️   | workspace 选远端不存在的路径 → 创建      | 「Remote working directory does not exist」                    |
+| ID  | 在哪 | 操作                                             | 预期                                                           |
+| --- | ---- | ------------------------------------------------ | -------------------------------------------------------------- |
+| T13 | 🖥️   | hosted key + Remote host → 创建                  | 「Hosted (market) mode does not yet support remote execution」 |
+| T14 | 🖥️   | cursor_cli + Remote host → 创建                  | 「Remote execution is not yet supported for `cursor_cli`」     |
+| T15 | 🖥️   | Remote host 故意填错 → 创建 / 或点 Test          | 「ssh connection to … failed」                                 |
+| T16 | 🖥️   | 换没装 claude 的 host → 创建 / 或点 Test         | 「`claude` was not found on the remote host」                  |
+| T17 | 🖥️   | Remote dir 填远端不存在的路径 → 创建 / 或点 Test | 「Remote working directory does not exist」                    |
 
 **F. 多 CLI 复用(验证抽象,§2)**
 
@@ -384,14 +392,15 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 
 ## 6. 风险与未决问题
 
-| 风险                                                   | 影响                                                         | 缓解                                                                                                                                                                                                                                              |
-| ------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hosted 远程化的前置安全**(后续里程碑,本里程碑不触发) | Hosted 模式整体推迟(§1 Out)                                  | 本里程碑用 Remote+Hosted 守卫挡住。将来 Hosted 落地大概率需 `ssh -R` 反向隧道——而**共享多用户远端主机上 loopback 转发端口对同机其他用户可见,proxy token 会暴露**;隧道方案落地前必须先解决(unix socket + 权限 / 隧道内鉴权)。提前记录,免得到时才踩 |
-| **argv shell 转义**(task 字符串含特殊字符)             | 命令注入 / 执行失败                                          | 唯一 quoting 函数 + 强制单测(注入向量见 §4.1)。**换 `russh` 也绕不开**——SSH exec 把命令字符串交远端 shell 解析,转义是协议层固有的                                                                                                                 |
-| **剥离 `*_CONFIG_DIR` 的副作用**                       | CLI 远端行为与本地不一致                                     | 本里程碑只做 BYOK:Claude/Gemini 认证在 env,影响可控;Claude 共享远端 `~/.claude` 的首跑 onboarding / 跨会话互串在 Phase 1 实测(§2.6 末段)                                                                                                          |
-| **远端 kill 不可靠**                                   | 僵尸进程 / 资源泄漏                                          | 显式远程 kill(§2.2.1:pid 回传 + 第二条 ssh)+ 远端 `ps` 实测;**禁止用 `-t`/PTY 解决**(破坏 parser,见 §2.2)                                                                                                                                         |
-| **skill_sync 远端残留**                                | `AGENTS.md`/`GEMINI.md` 留在用户远端仓库,可能被 agent commit | 会话后经 ssh 清理 + §5.1 横切验收;清理失败要上报,不静默                                                                                                                                                                                           |
-| **长会话断线**                                         | 会话中断                                                     | Phase 3 保活(`ServerAliveInterval`)+ `--resume <cli_session_id>` 重连(机制已有)                                                                                                                                                                   |
+| 风险                                                   | 影响                                                           | 缓解                                                                                                                                                                                                                                              |
+| ------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hosted 远程化的前置安全**(后续里程碑,本里程碑不触发) | Hosted 模式整体推迟(§1 Out)                                    | 本里程碑用 Remote+Hosted 守卫挡住。将来 Hosted 落地大概率需 `ssh -R` 反向隧道——而**共享多用户远端主机上 loopback 转发端口对同机其他用户可见,proxy token 会暴露**;隧道方案落地前必须先解决(unix socket + 权限 / 隧道内鉴权)。提前记录,免得到时才踩 |
+| **argv shell 转义**(task 字符串含特殊字符)             | 命令注入 / 执行失败                                            | 唯一 quoting 函数 + 强制单测(注入向量见 §4.1)。**换 `russh` 也绕不开**——SSH exec 把命令字符串交远端 shell 解析,转义是协议层固有的                                                                                                                 |
+| **剥离 `*_CONFIG_DIR` 的副作用**                       | CLI 远端行为与本地不一致                                       | 本里程碑只做 BYOK:Claude/Gemini 认证在 env,影响可控;Claude 共享远端 `~/.claude` 的首跑 onboarding / 跨会话互串在 Phase 1 实测(§2.6 末段)                                                                                                          |
+| **远端 kill 不可靠**                                   | 僵尸进程 / 资源泄漏                                            | 显式远程 kill(§2.2.1:pid 回传 + 第二条 ssh)+ 远端 `ps` 实测;**禁止用 `-t`/PTY 解决**(破坏 parser,见 §2.2)                                                                                                                                         |
+| **skill_sync 远端残留**                                | `AGENTS.md`/`GEMINI.md` 留在用户远端仓库,可能被 agent commit   | 会话后经 ssh 清理 + §5.1 横切验收;清理失败要上报,不静默                                                                                                                                                                                           |
+| **project conventions 远端未同步**                     | Remote 会话不会读取本地 `.orgii/agent-rules.md` 的 conventions | 当前只远端物化 skills 文件;conventions 远端同步仍是 warning 而不是功能。验收时不要把 conventions parity 计为已完成;若需要一致性,后续补远端写入/清理或 UI 明示。                                                                                   |
+| **长会话断线**                                         | 会话中断                                                       | Phase 3 保活(`ServerAliveInterval`)+ `--resume <cli_session_id>` 重连(机制已有)                                                                                                                                                                   |
 
 ### 未决(需在 Phase 0 / Phase 1 早期回答)
 

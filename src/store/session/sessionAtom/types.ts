@@ -7,6 +7,7 @@
  * Re-exported here for convenience in store consumers.
  */
 import type { AgentRole } from "@src/api/http/project";
+import type { ExecTargetWire } from "@src/api/tauri/agent/session";
 import type {
   CliAgentType,
   MergeStatus,
@@ -73,6 +74,8 @@ export interface Session {
   mergeStatus?: MergeStatus;
   /** Whether this session was launched in background ("fire and forget") mode */
   background?: boolean;
+  /** Where this CLI session runs: local by default, or a remote SSH target. */
+  execTarget?: ExecTargetWire;
   /** Owning project/collaboration org ID for this session. */
   orgId?: string;
   /** Linked project ID, when the session is scoped below an org. */

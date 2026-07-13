@@ -5,8 +5,13 @@
 
 use serde::{Deserialize, Serialize};
 
+use agent_core::foundation::exec_target::ExecTarget;
 use core_types::key_source::KeySource;
 use orgtrack_core::sources::imported_history::ImportedHistorySidebarRow;
+
+fn is_local_exec_target(target: &ExecTarget) -> bool {
+    matches!(target, ExecTarget::Local)
+}
 
 // ============================================================================
 // Core Types
@@ -32,6 +37,9 @@ pub struct SessionAggregateRecord {
     /// Repository path (CLI sessions)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_path: Option<String>,
+    /// Where the session's CLI process runs. Omitted for local/default rows.
+    #[serde(default, skip_serializing_if = "is_local_exec_target")]
+    pub exec_target: ExecTarget,
     /// Path to the file or directory where this session's persisted data lives.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub storage_path: Option<String>,

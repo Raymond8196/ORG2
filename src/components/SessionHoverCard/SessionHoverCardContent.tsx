@@ -7,6 +7,7 @@ import {
   GitBranch,
   GitCommitVertical,
   Grip,
+  Network,
   Pin,
   Save,
   Timer,
@@ -30,6 +31,10 @@ import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import TaskImpactLine from "@src/features/KanbanBoard/components/TaskImpactLine";
 import type { KanbanTask } from "@src/features/KanbanBoard/types";
+import {
+  buildRemoteTargetDisplay,
+  remoteTargetFromExecTarget,
+} from "@src/features/SessionCreator/remoteTargetDisplay";
 import { createLogger } from "@src/hooks/logger";
 import { useResolvedModelLabel } from "@src/hooks/models";
 import { useValidatedLastPair } from "@src/hooks/models/useValidatedLastPair";
@@ -343,6 +348,13 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
     const modelIconAgent = lastModel?.listingModelType || undefined;
     const agentSessionInfo = getAgentSessionInfo(session);
     const sessionOriginInfo = getSessionOriginInfo(session.session_id, t);
+    const remoteTarget = remoteTargetFromExecTarget(session.execTarget);
+    const remoteDisplay = remoteTarget
+      ? buildRemoteTargetDisplay({
+          ...remoteTarget,
+          workspacePath: repoPath,
+        })
+      : null;
 
     const dateTimeLabelOptions = {
       todayLabel: t("common:relativeDate.today"),
@@ -410,6 +422,19 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
             )}
           </div>
         </HoverCardRow>
+        {remoteDisplay && (
+          <HoverCardRow icon={<Network size={13} strokeWidth={1.75} />}>
+            <div className="truncate text-text-2" title={remoteDisplay.title}>
+              <span>{remoteDisplay.hostLabel}</span>
+              {remoteDisplay.workspaceLabel && (
+                <>
+                  <span className="mx-1 text-text-4">·</span>
+                  <span>{remoteDisplay.workspaceLabel}</span>
+                </>
+              )}
+            </div>
+          </HoverCardRow>
+        )}
         {(repoName || branchLabel) && (
           <HoverCardRow icon={<GitBranch size={13} strokeWidth={1.75} />}>
             <div className="truncate text-text-2">

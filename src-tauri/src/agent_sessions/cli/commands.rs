@@ -124,6 +124,13 @@ pub async fn cli_remote_preflight(
     working_dir: Option<String>,
 ) -> Result<session_runner::RemotePreflightResult, String> {
     let ssh_target = SshTarget { host, port };
+    tracing::info!(
+        "[cli_remote_preflight] start host={} port={:?} cli_agent_type={:?} working_dir={:?}",
+        ssh_target.host,
+        ssh_target.port,
+        cli_agent_type,
+        working_dir
+    );
     // Resolve the bare command name for the requested CLI agent. Unknown /
     // non-CLI agents (API providers) fall back to a connectivity-only ping.
     let bare = cli_agent_type
@@ -131,12 +138,16 @@ pub async fn cli_remote_preflight(
         .filter(|s| !s.is_empty())
         .and_then(ModelType::from_str)
         .and_then(|agent| bare_command_for_agent(&agent));
-    Ok(session_runner::remote_preflight(
-        &ssh_target,
-        bare,
-        working_dir.as_deref(),
-    )
-    .await)
+    let result = session_runner::remote_preflight(&ssh_target, bare, working_dir.as_deref()).await;
+    tracing::info!(
+        "[cli_remote_preflight] finish host={} connected={} binary_found={:?} dir_ok={:?} summary={}",
+        ssh_target.host,
+        result.connected,
+        result.binary_found,
+        result.dir_ok,
+        result.summary
+    );
+    Ok(result)
 }
 
 /// Create a new code session.

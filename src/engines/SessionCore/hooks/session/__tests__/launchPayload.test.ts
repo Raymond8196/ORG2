@@ -160,6 +160,94 @@ describe("launchPayload", () => {
     expect(launchParams.platform).toBe("opencode");
   });
 
+  it("uses the remote working directory as the launch workspace without storing it in execTarget", () => {
+    const { launchParams } = buildSessionLaunchPayload({
+      ...baseLaunchOptions(),
+      advancedConfig: {
+        remoteTarget: {
+          host: "qlg@172.16.10.239",
+          port: 2222,
+          workingDir: "/home/qlg/wkspaces/ORG2",
+        },
+      },
+      dispatchCategory: DISPATCH_CATEGORY.CLI_AGENT,
+      effectiveSource: {
+        type: "local",
+        repoId: "repo-local",
+        repoName: "Local ORG2",
+        repoPath: "/local/not-on-remote/ORG2",
+      },
+      resolvedKeys: {
+        ...baseLaunchOptions().resolvedKeys,
+        cliAgentType: "claude_code",
+      },
+    });
+
+    expect(launchParams.workspacePath).toBe("/home/qlg/wkspaces/ORG2");
+    expect(launchParams.execTarget).toEqual({
+      remote: { host: "qlg@172.16.10.239", port: 2222 },
+    });
+    expect(launchParams.worktreePath).toBeUndefined();
+    expect(launchParams.additionalDirectories).toBeUndefined();
+  });
+
+  it("can launch a remote CLI session from a remote working directory without a local source", () => {
+    const { launchParams } = buildSessionLaunchPayload({
+      ...baseLaunchOptions(),
+      advancedConfig: {
+        remoteTarget: {
+          host: "qlg@172.16.10.239",
+          workingDir: "/home/qlg/wkspaces/ORG2",
+        },
+      },
+      dispatchCategory: DISPATCH_CATEGORY.CLI_AGENT,
+      effectiveSource: null,
+      resolvedKeys: {
+        ...baseLaunchOptions().resolvedKeys,
+        cliAgentType: "claude_code",
+      },
+    });
+
+    expect(launchParams.workspacePath).toBe("/home/qlg/wkspaces/ORG2");
+    expect(launchParams.execTarget).toEqual({
+      remote: { host: "qlg@172.16.10.239" },
+    });
+  });
+
+  it("persists the launch execTarget on the optimistic session row", () => {
+    const session = buildSessionFromLaunchResult({
+      agentExecMode: "build",
+      effectiveSource: null,
+      isBackgroundLaunch: false,
+      launchCliAgentType: "claude_code",
+      launchExecTarget: {
+        remote: {
+          host: "qlg@172.16.10.239",
+          port: 2222,
+        },
+      },
+      result: {
+        sessionId: "cliagent-remote",
+        category: DISPATCH_CATEGORY.CLI_AGENT,
+        name: "Remote session",
+        status: "running",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        userInput: "hello",
+        workspacePath: "/home/qlg/wkspaces/ORG2",
+        background: false,
+        model: "anthropic/claude-opus-4.6",
+        cliAgentType: "claude_code",
+      },
+    });
+
+    expect(session.execTarget).toEqual({
+      remote: {
+        host: "qlg@172.16.10.239",
+        port: 2222,
+      },
+    });
+  });
+
   it("passes non-primary multi-root folders as additional directories", () => {
     const { launchParams } = buildSessionLaunchPayload({
       agentExecMode: "build",

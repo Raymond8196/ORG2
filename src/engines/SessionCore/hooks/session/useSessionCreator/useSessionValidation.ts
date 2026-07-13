@@ -72,7 +72,11 @@ export function useSessionValidation(options: UseSessionValidationOptions) {
 
     // Repo required for own_key sessions (both rust_agent and cli_agent).
     // rust_agent + hosted_key is already rejected above, so skip repo check then.
-    const needsRepo = !usingHostedKey && !isOSMode;
+    const hasRemoteCliWorkspace =
+      dispatchCategory === "cli_agent" &&
+      !!advancedConfig.remoteTarget?.host.trim() &&
+      !!advancedConfig.remoteTarget?.workingDir?.trim();
+    const needsRepo = !usingHostedKey && !isOSMode && !hasRemoteCliWorkspace;
     if (needsRepo && !effectiveRepoId) {
       errors.push("Please select a repo");
     }
