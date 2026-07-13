@@ -13,8 +13,6 @@ export type { ComposerStackHeaderProps } from "./ComposerStackHeader";
 export { ComposerStackHeaderCountBadge } from "./ComposerStackHeader";
 export { default as ContextInfoButton } from "./ContextInfoButton";
 export { default as ContextMenuPortal } from "./ContextMenuPortal";
-export { default as CursorModePill } from "./CursorModePill";
-export { default as CursorModelPill } from "./CursorModelPill";
 export { default as EditModeHeader } from "./EditModeHeader";
 export { default as EditModeImageThumbnail } from "./EditModeImageThumbnail";
 export { default as ImageAttachmentPreview } from "./ImageAttachmentPreview";
