@@ -128,6 +128,8 @@ const REMOTE_CAPABLE_CLI_AGENTS: ReadonlyArray<string> = [
   "codex",
   "gemini_cli",
 ];
+const REMOTE_RUNTIME_BOOTSTRAP =
+  'if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true; nvm use --silent default >/dev/null 2>&1 || nvm use --silent node >/dev/null 2>&1 || nvm use --silent stable >/dev/null 2>&1 || true; fi';
 
 function deriveExpectedProcess(command: string): string | undefined {
   const [binary] = command.trim().split(/\s+/);
@@ -157,8 +159,8 @@ function buildRemoteTuiCommand(input: {
     sshArgs.push("-p", String(input.port));
   }
   const remoteScript = input.workingDir
-    ? `cd ${shQuote(input.workingDir)} && exec ${input.command}`
-    : `exec ${input.command}`;
+    ? `${REMOTE_RUNTIME_BOOTSTRAP}; cd ${shQuote(input.workingDir)} && exec ${input.command}`
+    : `${REMOTE_RUNTIME_BOOTSTRAP}; exec ${input.command}`;
   const remoteCommand = `bash -lc ${shQuote(remoteScript)}`;
   return [
     'mkdir -p "$HOME/.orgii/ssh"',
