@@ -951,12 +951,10 @@ fn nested_struct_tool_schemas_inline_without_refs() {
     // caught here rather than at runtime against a specific provider.
     use crate::tools::traits::{assert_llm_compatible_schema, params_schema};
 
-    let schemas: Vec<(&str, Value)> = vec![
-        (
-            "manage_code_map",
-            params_schema::<crate::tools::impls::coding::code_map::CodeMapToolParams>(),
-        ),
-    ];
+    let schemas: Vec<(&str, Value)> = vec![(
+        "manage_code_map",
+        params_schema::<crate::tools::impls::coding::code_map::CodeMapToolParams>(),
+    )];
 
     for (name, schema) in schemas {
         assert_llm_compatible_schema(&schema).unwrap_or_else(|err| {
