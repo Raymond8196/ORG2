@@ -168,6 +168,7 @@ const TAIL_TURN_COLLAPSE_IDLE_MS = 60_000;
 const EMPTY_ORG_MEMBERS: AgentOrgRunMemberView[] = [];
 const BOTTOM_OVERLAY_FADE_PX = 32;
 const SCROLL_NAV_SHOW_THRESHOLD_PX = 48;
+const FLOATING_MINIMAP_IDLE_DELAY_MS = 1_200;
 
 // Static GPU-layer hints for the virtualized body wrapper — never depends on
 // state, so keep it as a module-level const to avoid a fresh object each render.
@@ -669,14 +670,28 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
 
   const visibleRangeEndRef = useRef(0);
   const [activeGroupIndex, setActiveGroupIndex] = useState(0);
-  const handleActiveGroupIndexChange = useCallback((groupIndex: number) => {
-    setActiveGroupIndex((previousIndex) =>
-      previousIndex === groupIndex ? previousIndex : groupIndex
-    );
-  }, []);
+  const [visibleGroupIndices, setVisibleGroupIndices] = useState<number[]>([]);
+  const handleActiveGroupIndexChange = useCallback(
+    (
+      groupIndex: number,
+      _pinned: boolean,
+      nextVisibleGroupIndices: number[]
+    ) => {
+      setActiveGroupIndex((previousIndex) =>
+        previousIndex === groupIndex ? previousIndex : groupIndex
+      );
+      setVisibleGroupIndices(nextVisibleGroupIndices);
+    },
+    []
+  );
   useEffect(() => {
     setActiveGroupIndex((previousIndex) =>
       Math.min(previousIndex, Math.max(0, displayGroupCounts.length - 1))
+    );
+    setVisibleGroupIndices((previousIndices) =>
+      previousIndices.filter(
+        (groupIndex) => groupIndex < displayGroupCounts.length
+      )
     );
   }, [activeId, currentPageIndex, displayGroupCounts.length]);
   const handleConversationMinimapNavigate = useCallback(
@@ -807,6 +822,31 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     tailFollowKey,
     alwaysFollowTail: disableTailCollapse,
   });
+  const [conversationMinimapScrolling, setConversationMinimapScrolling] =
+    useState(false);
+  const conversationMinimapIdleTimerRef = useRef<number | null>(null);
+  const handleChatListScrollStateChange = useCallback(
+    (nextAtBottom: boolean) => {
+      handleAtBottomStateChange(nextAtBottom);
+      setConversationMinimapScrolling(true);
+      if (conversationMinimapIdleTimerRef.current !== null) {
+        window.clearTimeout(conversationMinimapIdleTimerRef.current);
+      }
+      conversationMinimapIdleTimerRef.current = window.setTimeout(() => {
+        conversationMinimapIdleTimerRef.current = null;
+        setConversationMinimapScrolling(false);
+      }, FLOATING_MINIMAP_IDLE_DELAY_MS);
+    },
+    [handleAtBottomStateChange]
+  );
+  useEffect(
+    () => () => {
+      if (conversationMinimapIdleTimerRef.current !== null) {
+        window.clearTimeout(conversationMinimapIdleTimerRef.current);
+      }
+    },
+    []
+  );
   // Subagent panes pass `disableTailCollapse` because every paginated page
   // is exactly one turn and the user expects the cell to show the freshest
   // event in that turn at all times. After mount the pane still needs to
@@ -1159,7 +1199,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                   groupCounts={displayGroupCounts}
                   flatItems={displayFlatItems}
                   activeGroupIndex={activeGroupIndex}
+                  visibleGroupIndices={visibleGroupIndices}
                   isAtBottom={atBottom}
+                  isScrolling={conversationMinimapScrolling}
                   labelVariant={groupChat?.enabled ? "agents" : "agent"}
                   onNavigate={handleConversationMinimapNavigate}
                 />
@@ -1234,7 +1276,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                           ? renderNoGroupHeader
                           : renderGroupHeader
                       }
-                      onAtBottomStateChange={handleAtBottomStateChange}
+                      onAtBottomStateChange={handleChatListScrollStateChange}
                       onRangeChanged={handleRangeChanged}
                       onActiveGroupIndexChange={handleActiveGroupIndexChange}
                       hideActiveGroupHeader={turnPaginationEnabled}

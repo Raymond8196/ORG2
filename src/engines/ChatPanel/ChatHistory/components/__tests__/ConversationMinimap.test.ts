@@ -2,9 +2,59 @@ import { describe, expect, it } from "vitest";
 
 import {
   findNearestConversationMarker,
+  getConversationMarkerWidthClass,
+  getNavigableConversationGroupIndices,
   resolveActiveConversationMarker,
+  resolveHighlightedConversationMarkers,
   sampleConversationGroupIndices,
 } from "../ConversationMinimap";
+
+describe("resolveHighlightedConversationMarkers", () => {
+  it("maps every visible round to its nearest sampled marker", () => {
+    expect(
+      resolveHighlightedConversationMarkers(
+        [0, 5, 10, 15],
+        [4, 6, 11],
+        4,
+        false
+      )
+    ).toEqual([5, 10]);
+  });
+
+  it("always includes the final marker at the content bottom", () => {
+    expect(
+      resolveHighlightedConversationMarkers([0, 5, 10], [5], 5, true)
+    ).toEqual([5, 10]);
+  });
+});
+
+describe("getConversationMarkerWidthClass", () => {
+  it("fans seven handles to 8, 12, 16, 20, 16, 12, 8 pixels", () => {
+    expect(
+      Array.from({ length: 7 }, (_, markerIndex) =>
+        getConversationMarkerWidthClass(markerIndex, 3)
+      )
+    ).toEqual(["w-2", "w-3", "w-4", "w-5", "w-4", "w-3", "w-2"]);
+  });
+
+  it("keeps resting handles at eight pixels", () => {
+    expect(getConversationMarkerWidthClass(3, -1)).toBe("w-2");
+  });
+});
+
+describe("getNavigableConversationGroupIndices", () => {
+  it("keeps non-empty headerless rounds and skips fully empty groups", () => {
+    expect(
+      getNavigableConversationGroupIndices([null, null, null], [2, 1, 0])
+    ).toEqual([0, 1]);
+  });
+
+  it("keeps a user-only round even when it has no body items", () => {
+    expect(getNavigableConversationGroupIndices([{}, {}], [1, 0])).toEqual([
+      0, 1,
+    ]);
+  });
+});
 
 describe("sampleConversationGroupIndices", () => {
   it("keeps every turn when the conversation fits within the marker cap", () => {
