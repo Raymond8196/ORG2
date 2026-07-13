@@ -2678,6 +2678,10 @@
       "uiControl": {
         "title": "Lightweight ADE/UI control",
         "description": "MiniCPM may only classify requests into a strict local action whitelist."
+      },
+      "contextCompact": {
+        "title": "Automatic context maintenance",
+        "description": "Let MiniCPM maintain an isolated rolling summary of older context while enabled sessions are idle."
       }
     },
     "health": {

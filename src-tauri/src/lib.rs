@@ -174,6 +174,7 @@ pub fn run() {
     // the watcher in `setup` starts, otherwise the first change event
     // after launch silently drops the HTTP-version update.
     register_settings_hooks();
+    agent_core::session::housekeeper_compaction::refresh_global_config_from_disk();
 
     // Wire `integrations::computer_use_lock`'s abort broadcaster so the ESC
     // hotkey can fan an event out to the frontend without the `integrations`
@@ -606,8 +607,16 @@ pub fn run() {
             );
             tracing::info!("[SubagentWake] Subagent completion wake hook installed");
 
+            let housekeeper_compaction_state = unified_state.clone();
             app.manage(unified_state);
             tracing::info!("[UnifiedAgent] Unified agent state initialized");
+
+            agent_core::session::housekeeper_compaction::spawn(
+                housekeeper_compaction_state,
+            );
+            tracing::info!(
+                "[HousekeeperCompaction] opt-in MiniCPM context worker initialized"
+            );
 
             // Spawn work item schedule executor
             {

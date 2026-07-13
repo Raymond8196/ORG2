@@ -2001,7 +2001,20 @@
     "manualCompactNoRuntime": "請先傳送一則訊息後再壓縮",
     "manualCompactFailed": "壓縮失敗：{{message}}",
     "manualCompactChannelAttached": "此會話由頻道託管，請在頻道內使用 /compact",
-    "manualCompactInstructionsPlaceholder": "可選：本次壓縮的總結重點"
+    "manualCompactInstructionsPlaceholder": "可選：本次壓縮的總結重點",
+    "miniCpmCompactTitle": "MiniCPM 靜默自動壓縮",
+    "miniCpmCompactDescription": "自動非同步處理舊上下文",
+    "miniCpmCompactToggleAria": "開啟 MiniCPM 靜默自動壓縮",
+    "miniCpmCompactDisabled": "靜默壓縮未開啟",
+    "miniCpmCompactEnabled": "靜默壓縮已開啟",
+    "miniCpmCompactRunning": "MiniCPM 正在壓縮",
+    "miniCpmCompactComplete": "本次壓縮完成",
+    "miniCpmCompactBusy": "目前會話執行中",
+    "miniCpmCompactUnavailable": "MiniCPM 目前不可用",
+    "miniCpmCompactError": "MiniCPM 壓縮失敗",
+    "miniCpmCompactMetrics": "已維護 {{covered}} 條 · {{source}} → {{summary}} tokens",
+    "miniCpmCompactAction": "立即壓縮",
+    "miniCpmCompactRunningAction": "壓縮中"
   },
   "relativeDate": {
     "today": "今天",

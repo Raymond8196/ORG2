@@ -59,6 +59,9 @@ export function useHousekeeperConfig() {
   const [uiControlEnabled, setUiControlEnabled] = useSetting(
     "housekeeper.features.uiControl"
   );
+  const [contextCompactEnabled, setContextCompactEnabled] = useSetting(
+    "housekeeper.features.contextCompact"
+  );
   const keyVault = useKeyVault({ autoLoad: true });
 
   const vllmAccounts = useMemo(
@@ -103,11 +106,13 @@ export function useHousekeeperConfig() {
       promptPolish: promptPolishEnabled,
       stepExplain: stepExplainEnabled,
       uiControl: uiControlEnabled,
+      contextCompact: contextCompactEnabled,
     },
     setFeatures: {
       promptPolish: setPromptPolishEnabled,
       stepExplain: setStepExplainEnabled,
       uiControl: setUiControlEnabled,
+      contextCompact: setContextCompactEnabled,
     },
     keyVault,
     vllmAccounts,
