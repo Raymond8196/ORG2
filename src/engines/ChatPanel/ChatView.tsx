@@ -843,6 +843,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
                 <AgentMessageClampProvider value={agentMessageClampEligible}>
                   <ChatHistory
                     surfaceBgClass={surfaceBgClass}
+                    chatPanelPosition={position}
                     agentOrgCurrentMemberName={
                       currentAgentOrgMember?.name ?? null
                     }

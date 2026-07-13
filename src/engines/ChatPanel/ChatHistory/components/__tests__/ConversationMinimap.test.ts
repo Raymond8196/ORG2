@@ -2,12 +2,49 @@ import { describe, expect, it } from "vitest";
 
 import {
   findNearestConversationMarker,
+  getAdjacentConversationGroupIndex,
   getConversationMarkerWidthClass,
+  getConversationPreviewPositionClass,
   getNavigableConversationGroupIndices,
   resolveActiveConversationMarker,
   resolveHighlightedConversationMarkers,
   sampleConversationGroupIndices,
 } from "../ConversationMinimap";
+
+describe("getConversationPreviewPositionClass", () => {
+  it("opens a narrow left-docked chat preview toward the pane interior", () => {
+    const positionClass = getConversationPreviewPositionClass("left");
+
+    expect(positionClass).toContain("left-full");
+    expect(positionClass).toContain("@[640px]/chatbody:right-full");
+  });
+
+  it("keeps a right-docked chat preview opening to the left", () => {
+    expect(getConversationPreviewPositionClass("right")).toContain(
+      "right-full"
+    );
+  });
+});
+
+describe("getAdjacentConversationGroupIndex", () => {
+  it("moves through every navigable round instead of sampled markers", () => {
+    const groups = [0, 2, 5, 9];
+
+    expect(getAdjacentConversationGroupIndex(groups, 5, -1, false)).toBe(2);
+    expect(getAdjacentConversationGroupIndex(groups, 5, 1, false)).toBe(9);
+  });
+
+  it("uses the final round as the current round at the content bottom", () => {
+    expect(getAdjacentConversationGroupIndex([0, 4, 8], 4, -1, true)).toBe(4);
+    expect(getAdjacentConversationGroupIndex([0, 4, 8], 4, 1, true)).toBeNull();
+  });
+
+  it("disables controls at either boundary and for an empty history", () => {
+    expect(getAdjacentConversationGroupIndex([1, 3], 1, -1, false)).toBeNull();
+    expect(getAdjacentConversationGroupIndex([1, 3], 3, 1, false)).toBeNull();
+    expect(getAdjacentConversationGroupIndex([], 0, 1, false)).toBeNull();
+  });
+});
 
 describe("resolveHighlightedConversationMarkers", () => {
   it("maps every visible round to its nearest sampled marker", () => {
