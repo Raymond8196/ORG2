@@ -45,7 +45,6 @@
     "projects": "Projects",
     "projectManager": "Project マネージャー",
     "diff": "Diff",
-    "opsControl": "Ops Control",
     "colleagues": "同僚",
     "terminals": "ターミナル"
   },
@@ -81,10 +80,9 @@
     "agentStudio": "Agent スタジオ",
     "serviceMarket": "Service マーケット",
     "signingIn": "サインイン中...",
-    "launchpad": "Launchpad",
+    "launchpad": "ランチパッド",
     "ideaArea": "アイデアエリア",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "グリッドのカスタマイズ",
@@ -375,6 +373,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "ORG を切り替え",
     "addOrg": "ORG を追加",
     "unknownOrg": "不明な ORG",
     "emptyColleagues": "同僚のアクティビティはまだありません",

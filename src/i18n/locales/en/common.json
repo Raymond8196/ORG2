@@ -31,10 +31,6 @@
     "closeCanvas": "Close canvas",
     "generatingCanvas": "Generating canvas…",
     "noContent": "No content",
-    "noIssueSelected": "No issue selected",
-    "selectIssueHint": "Select an issue from the Issues panel in the sidebar.",
-    "noPrSelected": "No pull request selected",
-    "selectPrHint": "Select a pull request from the Pull request panel in the sidebar.",
     "reload": "Reload",
     "urlPreviewRequiresTauri": "URL Preview requires Tauri",
     "openInExternalBrowser": "Open in external browser instead",
@@ -108,6 +104,7 @@
     "retry": "Retry",
     "regenerate": "Regenerate",
     "refresh": "Refresh",
+    "rescan": "Rescan",
     "reload": "Reload",
     "reviewNextFile": "Review Next File",
     "reviewPreviousFile": "Review Previous File",
@@ -181,8 +178,6 @@
     "stop": "Stop",
     "find": "Find",
     "filter": "Filter",
-    "filterCommits": "Filter commits...",
-    "filterPullRequests": "Filter pull requests...",
     "loading": "Loading...",
     "replace": "Replace",
     "publish": "Publish",
@@ -215,9 +210,7 @@
     "openInApp": "Open in App",
     "skipThisVersion": "Skip this version",
     "later": "Later",
-    "updateAiBlame": "Update AI Blame",
-    "link": "Link",
-    "fetchPr": "Fetch PR"
+    "link": "Link"
   },
   "refreshToast": {
     "successName": "{{name}} refreshed",
@@ -458,6 +451,7 @@
     "files": "Files",
     "commits": "Commits",
     "committedRate": "Committed",
+    "tokens": "Tokens",
     "entries": "Entries",
     "records": "Records",
     "topSessions": "Top Sessions",
@@ -993,9 +987,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Preview unavailable",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Search messages...",
@@ -1055,6 +1047,20 @@
     "indexingProgress": "Indexing: {{processed}}/{{total}} files ({{percent}}%)",
     "indexingProgressWithFile": "Indexing: {{processed}}/{{total}} files ({{percent}}%)\nCurrent: {{file}}",
     "languageServices": "Language Services",
+    "ports": {
+      "workspaceSection": "Workspace",
+      "externalSection": "External",
+      "tooltip": "Ports: {{workspace}} workspace, {{external}} external",
+      "noWorkspacePorts": "No workspace ports detected",
+      "externalLabel": "external",
+      "unknownProcess": "Unknown process",
+      "pidLabel": "PID {{pid}}",
+      "openInBrowser": "Open in Browser",
+      "copyAddress": "Copy address",
+      "stopProcess": "Stop Process",
+      "searchPlaceholder": "Search ports…",
+      "noSearchResults": "No matching ports"
+    },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
     "charsSelected": "{{count}} selected",
@@ -1286,7 +1292,6 @@
       "filterOpen": "Open",
       "filterClosed": "Closed",
       "noGitHubRepo": "Connect a GitHub repository to manage issues",
-      "searchPlaceholder": "Filter by title or label…",
       "commentPlaceholder": "Leave a comment…",
       "updated": "Last updated",
       "notUpdated": "not updated",
@@ -1321,7 +1326,6 @@
     },
     "modelSelector": {
       "recentModels": "Recent Models",
-      "currentModel": "Current Model",
       "allModels": "All Models",
       "noRecent": "No recent models",
       "noResults": "No matching models",
@@ -1336,6 +1340,7 @@
     "modelProperties": {
       "options": "Options",
       "effort": "Effort",
+      "default": "Default",
       "faster": "Faster",
       "smarter": "Smarter"
     },
@@ -1721,11 +1726,8 @@
     "chatRight": "Chat Right",
     "pageSettings": "Page Settings",
     "pageLayout": "Page layout",
-    "layoutMode": "Layout mode",
     "inset": "Inset",
     "full": "Full",
-    "compact": "Compact",
-    "comfort": "Comfort",
     "theme": "Theme",
     "primaryPanel": "Sidebar",
     "sidebarPosition": "Sidebar position",
@@ -1779,15 +1781,13 @@
     "disableChatPagination": "Turn off chat pagination",
     "useModelPickerSpotlight": "Use Spotlight model picker",
     "useModelPickerDropdown": "Use dropdown model picker",
-    "useCompactWorkstationLayout": "Use compact Workstation layout",
-    "useComfortWorkstationLayout": "Use comfort Workstation layout",
     "moveWorkstationSidebarLeft": "Move Workstation sidebar to the left",
     "moveWorkstationSidebarRight": "Move Workstation sidebar to the right",
     "enableDockAutoHide": "Auto-hide the Workstation dock",
     "disableDockAutoHide": "Keep the Workstation dock visible",
     "openMyStation": "Go to My Station",
     "openAgentStation": "Go to Agent Station",
-    "openOpsControl": "Go to Ops Control",
+    "openKanban": "Go to Kanban",
     "changeLanguage": "Change language",
     "switchToSystemTheme": "Follow system theme",
     "detectUpdate": "Detect update",
@@ -1903,7 +1903,14 @@
       "overview": "Overview",
       "cursor": "Cursor",
       "cli": "CLI"
-    }
+    },
+    "cost": "Cost",
+    "estimatedCost": "Est. Cost",
+    "estimated": "EST",
+    "estimatedTooltip": "Estimated cost — tokens × list price (no metered spend for this source)",
+    "totalEstimatedCost": "Est. Cost",
+    "viewCost": "Cost",
+    "viewTokens": "Tokens"
   },
   "devActivity": {
     "title": "Coding Profile",
@@ -2042,6 +2049,12 @@
     "removeWorktreeMessage": "This removes the worktree checkout from disk. The branch and commits are kept.",
     "removeWorktreeSuccess": "Worktree removed",
     "removeWorktreeFailed": "Failed to remove worktree",
+    "emptyState": {
+      "viewSourceControl": "View Source Control",
+      "viewIssues": "View Issues",
+      "viewGitHistory": "View Git history",
+      "viewPullRequests": "View PRs"
+    },
     "pill": {
       "focus": "Focus",
       "allChanges": "All Changes"
@@ -2084,9 +2097,25 @@
     "cacheSaved": "Cache saved: {{read}} read, {{write}} write",
     "remaining": "Free: {{tokens}} remaining",
     "cacheHero": "{{pct}}% served from cache · ~{{tokens}} reused this turn",
-    "cacheHeroSub": "Prompt caching cuts the cost of the reused prefix to roughly 1/10.",
+    "cacheHeroSub": "Prompt caching can lower cost by up to 90%",
     "headroom": "{{tokens}} of room left",
-    "autoCompactNote": "Context will be summarized soon"
+    "autoCompactNote": "Context will be summarized soon",
+    "compactBoundaryTitle": "Context compacted",
+    "compactBoundarySubtitle_one": "{{count}} earlier message summarized",
+    "compactBoundaryTokens": "{{before}} → {{after}} tokens",
+    "compactBoundarySubtitle_other": "{{count}} earlier messages summarized",
+    "manualCompactAction": "Compact",
+    "manualCompactRunning": "Compacting",
+    "manualCompactInProgress": "Compacting context — wait for it to finish before sending",
+    "manualCompactSuccess": "Compacted: {{messagesBefore}} → {{messagesAfter}} messages, {{tokensBefore}} → {{tokensAfter}} tokens",
+    "manualCompactTooShort": "Content is short; no compaction needed",
+    "manualCompactAlreadyCompact": "No new compactable content",
+    "manualCompactBusy": "Session is running. Compact after it finishes",
+    "manualCompactNoRuntime": "Send a message before compacting",
+    "manualCompactFailed": "Compaction failed: {{message}}",
+    "manualCompactChannelAttached": "This session is managed by a channel — use /compact there",
+    "manualCompactInstructionsPlaceholder": "Optional: what to focus on when summarizing",
+    "manualCompactSectionTitle": "Manual compaction?"
   },
   "relativeDate": {
     "today": "Today",

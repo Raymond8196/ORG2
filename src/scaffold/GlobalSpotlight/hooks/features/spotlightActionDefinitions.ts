@@ -15,6 +15,7 @@ import {
   ArrowBigLeft,
   ArrowBigRight,
   Box,
+  Columns3,
   Contrast,
   Dock,
   DraftingCompass,
@@ -22,7 +23,6 @@ import {
   FolderTree,
   GitBranch,
   GitPullRequest,
-  LayoutPanelLeft,
   LayoutPanelTop,
   List,
   Menu,
@@ -32,7 +32,6 @@ import {
   PanelBottom,
   PanelLeft,
   Play,
-  RadioTower,
   RefreshCw,
   RotateCcw,
   Search,
@@ -76,15 +75,13 @@ export type SpotlightStaticActionId =
   | "disable-chat-pagination"
   | "use-model-picker-spotlight"
   | "use-model-picker-dropdown"
-  | "set-comfort-layout"
-  | "set-compact-layout"
   | "set-workstation-sidebar-left"
   | "set-workstation-sidebar-right"
   | "enable-dock-auto-hide"
   | "disable-dock-auto-hide"
   | "open-my-station"
   | "open-agent-station"
-  | "open-ops-control"
+  | "open-kanban"
   | "zoom-in"
   | "zoom-out"
   | "zoom-reset"
@@ -117,7 +114,7 @@ export type SpotlightStaticActionFallback =
   | "toggle-chat-panel"
   | "open-my-station"
   | "open-agent-station"
-  | "open-ops-control"
+  | "open-kanban"
   | "open-search-sidebar"
   | "open-source-control-tab"
   | "open-terminal-tab"
@@ -377,14 +374,14 @@ export const STATION_MODE_ACTIONS = [
     closeOnSuccess: true,
   },
   {
-    id: "open-ops-control",
-    labelKey: "common:spotlightActions.openOpsControl",
-    icon: RadioTower,
-    keywords: ["ops control", "ops", "kanban", "project", "work items"],
-    shortcut: getShortcutKeys("open_ops_control"),
-    actionId: ACTION_ID.WORKSTATION_OPEN_OPS_CONTROL,
+    id: "open-kanban",
+    labelKey: "common:spotlightActions.openKanban",
+    icon: Columns3,
+    keywords: ["kanban", "project", "work items"],
+    shortcut: getShortcutKeys("open_kanban"),
+    actionId: ACTION_ID.WORKSTATION_OPEN_KANBAN,
     payload: {},
-    fallback: "open-ops-control",
+    fallback: "open-kanban",
     closeOnSuccess: true,
   },
 ] satisfies SpotlightStaticActionDefinition[];
@@ -416,7 +413,6 @@ export function buildChatPanelSettingsActions({
   agentStationChatPosition,
   chatTurnPaginationEnabled,
   modelPickerStyle,
-  internalLayoutMode,
   workstationSidebarPosition,
   dockAutoHide,
 }: {
@@ -424,7 +420,6 @@ export function buildChatPanelSettingsActions({
   agentStationChatPosition: "left" | "right";
   chatTurnPaginationEnabled: boolean;
   modelPickerStyle: "spotlight" | "dropdown";
-  internalLayoutMode: "comfort" | "compact";
   workstationSidebarPosition: "left" | "right";
   dockAutoHide: boolean;
 }): SpotlightStaticActionDefinition[] {
@@ -508,25 +503,6 @@ export function buildChatPanelSettingsActions({
       modelPickerStyle === "spotlight"
         ? ACTION_ID.CHAT_PANEL_USE_MODEL_PICKER_DROPDOWN
         : ACTION_ID.CHAT_PANEL_USE_MODEL_PICKER_SPOTLIGHT,
-    payload: {},
-    closeOnSuccess: false,
-  });
-
-  actions.push({
-    id:
-      internalLayoutMode === "comfort"
-        ? "set-compact-layout"
-        : "set-comfort-layout",
-    labelKey:
-      internalLayoutMode === "comfort"
-        ? "common:spotlightActions.useCompactWorkstationLayout"
-        : "common:spotlightActions.useComfortWorkstationLayout",
-    icon: LayoutPanelLeft,
-    keywords: ["layout mode", "compact layout", "comfort layout", "density"],
-    actionId:
-      internalLayoutMode === "comfort"
-        ? ACTION_ID.WORKSTATION_SET_COMPACT_LAYOUT
-        : ACTION_ID.WORKSTATION_SET_COMFORT_LAYOUT,
     payload: {},
     closeOnSuccess: false,
   });

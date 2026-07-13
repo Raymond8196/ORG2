@@ -91,7 +91,7 @@ export const SETTINGS_TABLE_COL = {
 export interface SettingsTableColumn<RowData> {
   key: string;
   label: ReactNode;
-  width?: string;
+  width?: React.CSSProperties["width"];
   align?: "left" | "center" | "right";
   /** Legacy: SettingsTable now preserves columns and relies on internal horizontal scrolling. */
   hideBelow?: "sm" | "md";
@@ -548,9 +548,25 @@ export default function SettingsTable<RowData>({
       : surfaceVariant === "transparent"
         ? "settings-table-root-transparent"
         : "settings-table-root-default bg-surface-container";
+  // Standalone tables get an outer border. Tables flagged `noPx` are embedded
+  // inside a SectionContainer that already draws the border — skip it there to
+  // avoid a double border.
+  const hasOuterBorder = surfaceVariant !== "transparent" && !noPx;
+  // Page-scrolled tables with a sticky header: the header must carry the top
+  // border + radius itself so they stay pinned while scrolling (the root scrolls
+  // away). The header's side borders are pulled out by 1px (-mx-px) so they sit
+  // exactly on top of the root's side borders — otherwise the two 12px arcs land
+  // 1px apart and the corner renders a doubled/offset curve.
+  // Contained-scroll tables (fillHeight/maxHeight) clip via overflow-hidden, so
+  // the root can keep the full border with clean corners — no split needed.
+  const stickyBordered = hasOuterBorder && hasHeader && !containedScroll;
   const rootClasses = [
     "settings-table-root min-w-0 max-w-full",
     surfaceVariant !== "transparent" && "rounded-xl",
+    hasOuterBorder &&
+      (stickyBordered
+        ? "border-x border-b border-border-2"
+        : "border border-border-2"),
     fillHeight && "flex h-full min-h-0 flex-col overflow-hidden",
     maxHeight != null && "flex min-h-0 flex-col overflow-hidden",
     surfaceClassName,
@@ -572,26 +588,30 @@ export default function SettingsTable<RowData>({
       {hasHeader && (
         <div
           ref={searchRef}
-          className={`${containedScroll ? "shrink-0" : "sticky top-0 z-[21]"} border-b border-border-2 px-4 ${surfaceVariant !== "transparent" ? "rounded-t-xl" : ""} ${surfaceClassName} ${searchHeaderClassName}`.trim()}
+          className={`${containedScroll ? "shrink-0" : "sticky top-0 z-[21]"} ${stickyBordered ? "settings-table-sticky-mask bg-bg-2" : ""}`.trim()}
         >
-          {inlineHeaderToolbar ? (
-            <SettingsTableToolbar
-              searchBar={searchBar}
-              selectFilters={selectFilters}
-              selectFiltersExtra={selectFiltersExtra}
-            />
-          ) : (
-            <>
-              {searchBar && <SearchSortBar {...searchBar} noPadding />}
-              {hasSelectFilterRow && (
-                <SelectFilterRow
-                  filters={selectFilters ?? []}
-                  extra={selectFiltersExtra}
-                  hasSearchBarAbove={!!searchBar}
-                />
-              )}
-            </>
-          )}
+          <div
+            className={`${stickyBordered ? "settings-table-sticky-surface -mx-px border-x border-t border-border-2" : ""} border-b border-border-2 px-4 ${surfaceVariant !== "transparent" ? "rounded-t-xl" : ""} ${surfaceClassName} ${searchHeaderClassName}`.trim()}
+          >
+            {inlineHeaderToolbar ? (
+              <SettingsTableToolbar
+                searchBar={searchBar}
+                selectFilters={selectFilters}
+                selectFiltersExtra={selectFiltersExtra}
+              />
+            ) : (
+              <>
+                {searchBar && <SearchSortBar {...searchBar} noPadding />}
+                {hasSelectFilterRow && (
+                  <SelectFilterRow
+                    filters={selectFilters ?? []}
+                    extra={selectFiltersExtra}
+                    hasSearchBarAbove={!!searchBar}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </div>
       )}
       <Table<RowData>

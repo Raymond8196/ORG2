@@ -8,28 +8,37 @@
  *    (Chat history panel, Simulator panel, useSessionManager).
  *
  *  - `loadSidebarSessions()` / `loadMoreCategory()` — sidebar-specific
- *    paginated loaders. Each category/source fetches its own top-N page so a
- *    heavy user with thousands of CLI/imported sessions doesn't pay for the
- *    long tail just to render the most-recent rows.
+ *    paginated loaders. Native categories fetch one top-N page; imported
+ *    sources fetch lightweight, independent date-bucket pages from ORGII's
+ *    cache so a busy Today bucket cannot hide Yesterday.
  */
 import {
   IMPORTED_HISTORY_SOURCES,
   type ImportedHistorySource,
   getImportedHistorySourceByListCategory,
-  getImportedHistorySourceBySessionId,
   isImportedHistoryListCategory,
   isImportedHistorySourceSession,
 } from "@src/api/tauri/externalHistory";
 import {
+  type ExternalHistorySidebarResponse,
   type SessionFilter,
   type SessionListResponse,
+  externalHistorySidebarList,
   sessionAggregateList,
   toFrontendSessions,
 } from "@src/api/tauri/session";
 import { createLogger } from "@src/hooks/logger";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
+import {
+  SESSION_DATE_BUCKET_KEYS,
+  getSessionDateBucketRanges,
+} from "@src/util/session/sessionDateBuckets";
 import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility";
 
+import {
+  dataSourceConfigAtom,
+  isSourceDisabled,
+} from "../dataSourceConfigAtom";
 import {
   sessionErrorAtom,
   sessionFlatListLastLoadedBySignatureAtom,
@@ -38,11 +47,12 @@ import {
   sessionsAtom,
 } from "./atoms";
 import {
-  BASE_SESSION_LIST_CATEGORIES,
+  type DateBucketPaginationMap,
   SESSION_LIST_CATEGORIES,
   SESSION_SIDEBAR_PAGE_SIZE,
   type SessionListCategory,
   type SessionPaginationMap,
+  emptyDateBucketPagination,
   resetPaginationState,
   sessionPaginationAtom,
 } from "./paginationAtoms";
@@ -134,29 +144,81 @@ function setPaginationFor(
 
 async function loadImportedHistorySourcePage(
   source: ImportedHistorySource,
-  offset: number,
+  currentBuckets: DateBucketPaginationMap | undefined,
   pageSize: number
 ): Promise<FetchPageResult> {
-  const effectivePageSize = source.sidebarPageSize
-    ? Math.max(pageSize, source.sidebarPageSize)
-    : pageSize;
-  const response = await sessionAggregateList({
-    category: "external_history",
-    externalHistorySource: source.sourceId,
-    includeExternalHistory: true,
-    includeStats: false,
-    limit: effectivePageSize + 1,
-    offset,
-    sortBy: "updated_at",
-    sortOrder: "desc",
+  const ranges = getSessionDateBucketRanges();
+  const buckets = ranges
+    .filter(({ bucket }) => !currentBuckets || currentBuckets[bucket].hasMore)
+    .map(({ bucket, startMs, endMs }) => ({
+      bucket,
+      startMs,
+      endMs,
+      limit: pageSize,
+      offset: currentBuckets?.[bucket].loaded ?? 0,
+    }));
+  if (buckets.length === 0) {
+    return {
+      sessions: [],
+      hasMore: false,
+      dateBuckets: currentBuckets ?? emptyDateBucketPagination(),
+    };
+  }
+
+  const response = await externalHistorySidebarList({
+    source: source.sourceId,
+    buckets,
   });
-  const sessions = toFrontendSessions(response.sessions)
-    .filter(isPrimarySessionListSession)
-    .slice(0, effectivePageSize);
+  const dateBuckets = mergeDateBucketPagination(currentBuckets, response);
+  const sessions = response.buckets.flatMap((page) =>
+    page.sessions.map((row): Session => {
+      const name = row.name.trim() || row.sessionId;
+      return {
+        session_id: row.sessionId,
+        name,
+        status: "completed",
+        created_at: row.createdAt,
+        updated_at: row.updatedAt,
+        created_time: row.createdAt,
+        updated_time: row.updatedAt,
+        category: "external_history",
+        readOnly: true,
+        is_active: false,
+        background: false,
+        repoPath: row.repoPath,
+        agentIconId: source.iconId,
+        agentDisplayName: source.displayName,
+        model: row.model,
+        totalTokens: row.totalTokens,
+        filesChanged: row.filesChanged,
+        linesAdded: row.linesAdded,
+        linesRemoved: row.linesRemoved,
+        touchedFiles: row.touchedFiles,
+      };
+    })
+  );
   return {
     sessions,
-    hasMore: response.sessions.length > effectivePageSize,
+    hasMore: SESSION_DATE_BUCKET_KEYS.some(
+      (bucket) => dateBuckets[bucket].hasMore
+    ),
+    dateBuckets,
   };
+}
+
+function mergeDateBucketPagination(
+  current: DateBucketPaginationMap | undefined,
+  response: ExternalHistorySidebarResponse
+): DateBucketPaginationMap {
+  const next = { ...(current ?? emptyDateBucketPagination()) };
+  for (const page of response.buckets) {
+    const previous = next[page.bucket];
+    next[page.bucket] = {
+      loaded: previous.loaded + page.sessions.length,
+      hasMore: page.hasMore,
+    };
+  }
+  return next;
 }
 
 export const loadSessions = async (options?: LoadSessionsOptions) => {
@@ -200,6 +262,10 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
           }
         : undefined;
 
+    const disabledSources = Object.entries(store.get(dataSourceConfigAtom))
+      .filter(([, cfg]) => cfg?.enabled === false)
+      .map(([sourceId]) => sourceId);
+
     const response = await sessionAggregateList({
       ...filter,
       limit: filter?.limit ?? DEFAULT_FLAT_LIST_PAGE_SIZE,
@@ -207,6 +273,8 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
       includeStats: false,
       sortBy: filter?.sortBy ?? "updated_at",
       sortOrder: filter?.sortOrder ?? "desc",
+      disabledExternalHistorySources:
+        disabledSources.length > 0 ? disabledSources : undefined,
     });
 
     const fetched: Session[] = toFrontendSessions(
@@ -237,6 +305,7 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
 interface FetchPageResult {
   sessions: Session[];
   hasMore: boolean;
+  dateBuckets?: DateBucketPaginationMap;
 }
 
 async function fetchAggregatePage(
@@ -262,37 +331,16 @@ async function fetchAggregatePage(
   };
 }
 
-async function fetchExternalHistoryPage(
-  offset: number,
-  pageSize: number
-): Promise<FetchPageResult> {
-  const response = await sessionAggregateList({
-    category: "external_history",
-    includeExternalHistory: true,
-    includeStats: false,
-    limit: pageSize + 1,
-    offset,
-    sortBy: "updated_at",
-    sortOrder: "desc",
-  });
-  const sessions = toFrontendSessions(response.sessions)
-    .filter(isPrimarySessionListSession)
-    .slice(0, pageSize);
-  return {
-    sessions,
-    hasMore: response.sessions.length > pageSize,
-  };
-}
-
 async function loadCategoryPage(
   category: SessionListCategory,
   offset: number,
-  pageSize: number
+  pageSize: number,
+  dateBuckets?: DateBucketPaginationMap
 ): Promise<FetchPageResult> {
   if (isImportedHistoryListCategory(category)) {
     const source = getImportedHistorySourceByListCategory(category);
     if (!source) return { sessions: [], hasMore: false };
-    return loadImportedHistorySourcePage(source, offset, pageSize);
+    return loadImportedHistorySourcePage(source, dateBuckets, pageSize);
   }
 
   switch (category) {
@@ -340,14 +388,34 @@ export const loadSidebarSessions = async (options?: {
   store.set(sessionErrorAtom, null);
   store.set(sessionPaginationAtom, resetPaginationState());
 
+  // Sources the user has disabled in the Data Sources panel must not load.
+  const dataSourceConfig = store.get(dataSourceConfigAtom);
+  const isCategoryDisabled = (category: string): boolean => {
+    if (!isImportedHistoryListCategory(category)) return false;
+    const source = getImportedHistorySourceByListCategory(category);
+    return source ? isSourceDisabled(dataSourceConfig, source.sourceId) : false;
+  };
+
   for (const category of SESSION_LIST_CATEGORIES) {
     setPaginationFor(category, { loading: true });
   }
 
   await Promise.allSettled(
-    BASE_SESSION_LIST_CATEGORIES.map(async (category) => {
+    SESSION_LIST_CATEGORIES.map(async (category) => {
+      // Disabled source: clear any previously-loaded page and skip.
+      if (isCategoryDisabled(category)) {
+        store.set(sessionsAtom, (prev) =>
+          replaceFirstPageForCategory(category, prev, [])
+        );
+        setPaginationFor(category, {
+          loaded: 0,
+          hasMore: false,
+          loading: false,
+        });
+        return;
+      }
       try {
-        const { sessions, hasMore } = await loadCategoryPage(
+        const { sessions, hasMore, dateBuckets } = await loadCategoryPage(
           category,
           0,
           pageSize
@@ -359,6 +427,7 @@ export const loadSidebarSessions = async (options?: {
           loaded: sessions.length,
           hasMore,
           loading: false,
+          dateBuckets,
         });
       } catch (error) {
         log.warn(`[SessionAtom] ${category} initial page failed:`, error);
@@ -367,39 +436,54 @@ export const loadSidebarSessions = async (options?: {
     })
   );
 
-  try {
-    const { sessions: externalSessions, hasMore: externalHasMore } =
-      await fetchExternalHistoryPage(0, pageSize);
-    store.set(sessionsAtom, (prev) => mergeSessions(prev, externalSessions));
-
-    const sessionsBySource = new Map<ImportedHistorySource, Session[]>();
-    for (const session of externalSessions) {
-      const source = getImportedHistorySourceBySessionId(session.session_id);
-      if (!source) continue;
-      const sourceSessions = sessionsBySource.get(source) ?? [];
-      sourceSessions.push(session);
-      sessionsBySource.set(source, sourceSessions);
-    }
-
-    for (const source of IMPORTED_HISTORY_SOURCES) {
-      const sourceSessions = sessionsBySource.get(source) ?? [];
-      setPaginationFor(source.listCategory, {
-        loaded: sourceSessions.length,
-        hasMore: externalHasMore || sourceSessions.length >= pageSize,
-        loading: false,
-      });
-    }
-  } catch (error) {
-    log.warn("[SessionAtom] external history initial page failed:", error);
-    for (const source of IMPORTED_HISTORY_SOURCES) {
-      setPaginationFor(source.listCategory, { loading: false });
-    }
-  }
-
   const merged = store.get(sessionsAtom);
   persistSessions(merged);
   store.set(sessionLastLoadedAtom, now);
   store.set(sessionLoadingAtom, false);
+};
+
+/**
+ * Incremental refresh of a single external-history source's first page.
+ *
+ * Used by the app-wide auto-scan scheduler. The Rust reader delta-syncs by file
+ * mtime, so this only re-reads sessions that actually changed — a cheap
+ * "metadata refresh", not a full rescan. Disabled sources are cleared instead.
+ */
+export const refreshImportedHistorySource = async (
+  sourceId: string
+): Promise<void> => {
+  const source = IMPORTED_HISTORY_SOURCES.find((s) => s.sourceId === sourceId);
+  if (!source) return;
+  const store = getStore();
+  const category = source.listCategory;
+
+  if (isSourceDisabled(store.get(dataSourceConfigAtom), sourceId)) {
+    store.set(sessionsAtom, (prev) =>
+      replaceFirstPageForCategory(category, prev, [])
+    );
+    setPaginationFor(category, { loaded: 0, hasMore: false, loading: false });
+    return;
+  }
+
+  try {
+    const { sessions, hasMore, dateBuckets } = await loadCategoryPage(
+      category,
+      0,
+      SESSION_SIDEBAR_PAGE_SIZE
+    );
+    store.set(sessionsAtom, (prev) =>
+      replaceFirstPageForCategory(category, prev, sessions)
+    );
+    setPaginationFor(category, {
+      loaded: sessions.length,
+      hasMore,
+      loading: false,
+      dateBuckets,
+    });
+    persistSessions(store.get(sessionsAtom));
+  } catch (error) {
+    log.warn(`[SessionAtom] refresh ${category} failed:`, error);
+  }
 };
 
 export const loadMoreCategory = async (
@@ -413,10 +497,11 @@ export const loadMoreCategory = async (
   setPaginationFor(category, { loading: true });
 
   try {
-    const { sessions, hasMore } = await loadCategoryPage(
+    const { sessions, hasMore, dateBuckets } = await loadCategoryPage(
       category,
       current.loaded,
-      pageSize
+      pageSize,
+      current.dateBuckets
     );
     const primarySessions = sessions.filter(isPrimarySessionListSession);
     store.set(sessionsAtom, (prev) => mergeSessions(prev, primarySessions));
@@ -424,6 +509,7 @@ export const loadMoreCategory = async (
       loaded: current.loaded + sessions.length,
       hasMore,
       loading: false,
+      dateBuckets,
     });
     persistSessions(store.get(sessionsAtom));
   } catch (error) {

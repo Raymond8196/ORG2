@@ -78,14 +78,57 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Sesje",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Bieżący Kanban",
     "view": {
       "list": "Lista",
       "diary": "Dziennik",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Źródła danych"
+    },
+    "dataSource": {
+      "title": "Źródła danych",
+      "description": "Zewnętrzne narzędzia do kodowania wykrywane przez ORGII. Aplikacje importowalne pokazują liczbę sesji i można je przeskanować ponownie; pozostałe pokazują status instalacji i lokalizację historii.",
+      "rescanAll": "Przeskanuj wszystko",
+      "rescan": "Przeskanuj",
+      "rescanning": "Skanowanie…",
+      "enable": "Włącz",
+      "disable": "Wyłącz",
+      "lastScan": "Ostatni skan {{time}}",
+      "neverScanned": "Nigdy nie skanowano",
+      "frequencyTitle": "Częstotliwość skanowania",
+      "globalFrequency": "Autoskan",
+      "freq": {
+        "default": "Domyślnie",
+        "manual": "Ręcznie",
+        "60s": "Co 60 s",
+        "5m": "Co 5 min",
+        "1h": "Co godzinę",
+        "1d": "Codziennie"
+      },
+      "openFolder": "Otwórz folder",
+      "tabs": {
+        "all": "Wszystkie",
+        "apps": "Aplikacje",
+        "clis": "CLI"
+      },
+      "sessions_one": "{{count}} sesja",
+      "sessions_few": "{{count}} sesje",
+      "sessions_many": "{{count}} sesji",
+      "sessions_other": "{{count}} sesji",
+      "noPath": "Nie wykryto ścieżki",
+      "notImported": "Nie zaimportowano",
+      "status": {
+        "ready": "Gotowe",
+        "empty": "Brak historii",
+        "loading": "Sprawdzanie…",
+        "error": "Błąd",
+        "installed": "Zainstalowano",
+        "notInstalled": "Nie wykryto",
+        "disabled": "Wyłączone"
+      }
     },
     "list": {
       "updated": "Zaktualizowano",
@@ -187,11 +230,6 @@
       "discarding": "Odrzucanie…",
       "confirmMessage": "Odrzucić wszystkie zmiany w tym Worktree? Tej operacji nie można cofnąć."
     },
-    "diff": {
-      "openDiffWindow": "Wyświetl różnice",
-      "windowTitle": "Różnice sesji",
-      "filesChanged": "Pliki"
-    },
     "replay": {
       "replaySession": "Powtórz"
     },
@@ -225,13 +263,6 @@
       "commits_other": "{{count}} commitów",
       "committedRateShort": "{{percent}}% scommitowane"
     }
-  },
-  "worktreeCompare": {
-    "title": "Porównaj Worktree",
-    "button": "Porównaj",
-    "buttonTooltip": "Porównaj różnice Worktree obok siebie",
-    "noSessions": "Brak sesji do porównania.",
-    "sessionTab": "Sesja {{n}}"
   },
   "changes": {
     "scope": {
@@ -421,7 +452,6 @@
         "interactionAskQuestion": "Pytanie",
         "interactionAskPermission": "Prośba o uprawnienia",
         "interactionModeSwitch": "Zmiana trybu",
-        "interactionNextSteps": "Następne kroki",
         "interactionPlanDoc": "Dokument planu",
         "interactionGeneric": "Interakcja"
       },
@@ -677,7 +707,9 @@
       "empty": "Nie znaleziono akcji.",
       "unpinAll": "Odepnij wszystkie",
       "insert": "Wstaw"
-    }
+    },
+    "compactArgHint": "<opcjonalny nacisk podsumowania>",
+    "compactCommandDescription": "Podsumuj starszy kontekst, aby zwolnić miejsce. Opcjonalnie: /compact <nacisk podsumowania>"
   },
   "listPanel": {
     "showingOf": "Wyświetlono {{filtered}} z {{total}}",
@@ -722,12 +754,15 @@
       "addApiKey": {
         "title": "Dodaj API key"
       },
+      "installLatestUpdate": {
+        "title": "Zainstaluj najnowszą aktualizację"
+      },
       "agents": {
         "title": "Agents"
       },
       "tabs": {
         "work": "Praca",
-        "explore": "Eksploruj",
+        "manage": "Zarządzaj",
         "heatmap": "Trendy"
       },
       "heatmap": {
@@ -740,6 +775,9 @@
       "quota": {
         "empty": "Brak danych quota. Odśwież użycie w Key Vault.",
         "refresh": "Odśwież",
+        "justNow": "przed chwilą",
+        "minutesAgo": "{{count}} min temu",
+        "hoursAgo": "{{count}}g temu",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",
@@ -996,9 +1034,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Wszystkie stany",
+        "assignedToMe": "Przypisane do mnie",
+        "createdByMe": "Utworzone przeze mnie",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1042,7 +1080,8 @@
       "Wciąż myślę, trwa to dłużej niż zwykle...",
       "Pracuję nad tym, trwa to dłużej niż zwykle...",
       "Przemyśliwam to, trwa to dłużej niż zwykle..."
-    ]
+    ],
+    "compacting": "Kompaktowanie kontekstu..."
   },
   "tools": {
     "noResultsFound": "Nie znaleziono wyników",
@@ -1055,6 +1094,8 @@
     "deleteFileRunning": "Usuwanie {{name}}",
     "deleteFileDone": "Usunięto {{name}}",
     "deleteFileFailed": "Nie udało się usunąć {{name}}",
+    "deleteFileCompactRunning": "Usuwanie",
+    "deleteFileCompactDone": "Usuń",
     "directoryTree": "Drzewo katalogów",
     "ls": "ls",
     "listDirRunning": "Wyświetlanie katalogu",
@@ -1097,7 +1138,7 @@
     "pathCopied": "Ścieżka skopiowana!",
     "failedToCopyPath": "Nie udało się skopiować ścieżki",
     "copyFilePath": "Kopiuj ścieżkę pliku",
-    "explore": "Eksploruj",
+    "manage": "Zarządzaj",
     "readFile": "Odczytaj plik",
     "readFileRunning": "Odczytywanie",
     "readFileDone": "Czytaj",
@@ -1120,12 +1161,40 @@
     "editFileDoneNoName": "Edytowano plik",
     "editFileCompactRunning": "Edytowanie",
     "editFileCompactDone": "Edytuj",
+    "editFiles": "Edytuj pliki",
+    "editSummary": {
+      "edit_one": "{{count}} edycja",
+      "edit_few": "{{count}} edycje",
+      "edit_many": "{{count}} edycji",
+      "edit_other": "{{count}} edycji",
+      "read_one": "{{count}} odczyt",
+      "read_few": "{{count}} odczyty",
+      "read_many": "{{count}} odczytów",
+      "read_other": "{{count}} odczytu",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Próba edycji",
     "file": "plik",
     "runShellRunning": "Wykonywanie polecenia",
     "terminalWaitRunning": "Oczekiwanie na zakończenie terminala",
     "runShellDone": "Wykonano polecenie",
     "runShellFailed": "Polecenie nieudane",
+    "runCommands": "Wykonaj polecenia",
+    "terminalSummary": {
+      "command_one": "{{count}} polecenie",
+      "command_few": "{{count}} polecenia",
+      "command_many": "{{count}} poleceń",
+      "command_other": "{{count}} polecenia",
+      "wait_one": "{{count}} oczekiwanie",
+      "wait_few": "{{count}} oczekiwania",
+      "wait_many": "{{count}} oczekiwań",
+      "wait_other": "{{count}} oczekiwania",
+      "check_one": "{{count}} sprawdzenie",
+      "check_few": "{{count}} sprawdzenia",
+      "check_many": "{{count}} sprawdzeń",
+      "check_other": "{{count}} sprawdzenia",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Sprawdzanie terminali",
     "inspectTerminalsDone": "Terminale sprawdzone",
     "inspectTerminalsFailed": "Nie udało się sprawdzić terminali",
@@ -1163,17 +1232,29 @@
     "askUserSkipped": "Pominięto",
     "askUserQuestionsAnswered": "Pytania zostały udzielone odpowiedzi",
     "askUserQuestionsSkipped": "Pytania pominięte",
+    "explore": "Eksploruj",
     "exploreSummary": {
       "read_one": "{{count}} plik",
-      "read_other": "{{count}} plików",
+      "read_few": "{{count}} pliki",
+      "read_many": "{{count}} plików",
+      "read_other": "{{count}} pliku",
       "search_one": "{{count}} wyszukiwanie",
-      "search_other": "{{count}} wyszukiwań",
+      "search_few": "{{count}} wyszukiwania",
+      "search_many": "{{count}} wyszukiwań",
+      "search_other": "{{count}} wyszukiwania",
       "glob_one": "{{count}} glob",
-      "glob_other": "{{count}} globów",
+      "glob_few": "{{count}} globy",
+      "glob_many": "{{count}} globów",
+      "glob_other": "{{count}} globu",
       "ls_one": "ls {{count}} folder",
-      "ls_other": "ls {{count}} folderów",
+      "ls_few": "ls {{count}} foldery",
+      "ls_many": "ls {{count}} folderów",
+      "ls_other": "ls {{count}} folderu",
       "lsp_one": "{{count}} zapytanie LSP",
-      "lsp_other": "{{count}} zapytań LSP"
+      "lsp_few": "{{count}} zapytania LSP",
+      "lsp_many": "{{count}} zapytań LSP",
+      "lsp_other": "{{count}} zapytania LSP",
+      "separator": ", "
     },
     "categoryRead": "Odczyt",
     "categorySearch": "Wyszukiwanie",
@@ -1459,9 +1540,6 @@
     "toolSearchRunning": "Wyszukiwanie narzędzi",
     "toolSearchDone": "Wyszukano narzędzia",
     "toolSearchFailed": "Wyszukiwanie narzędzi nieudane",
-    "suggestNextStepsRunning": "Sugerowanie kolejnych kroków",
-    "suggestNextStepsDone": "Zasugerowano {{count}} kolejnych kroków",
-    "suggestNextStepsFailed": "Nie udało się zasugerować kolejnych kroków",
     "agentSendMessageRunning": "Wysyłanie wiadomości do współpracownika",
     "agentSendMessageDone": "Wysłano wiadomość do współpracownika",
     "agentSendMessageFailed": "Nie udało się wysłać wiadomości do współpracownika",
@@ -1910,7 +1988,8 @@
       "models": "Modele",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Polecenia"
     },
     "diffMenu": {
       "gitActions": "Akcje GIT",

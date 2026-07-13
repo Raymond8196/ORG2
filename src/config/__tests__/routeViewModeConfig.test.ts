@@ -14,9 +14,6 @@ describe("getAppModeForRoute", () => {
     expect(getAppModeForRoute("/orgii/workstation/browser")).toBe("browser");
     expect(getAppModeForRoute("/orgii/workstation/chat")).toBe("chat");
     expect(getAppModeForRoute("/orgii/workstation/project")).toBe("project");
-    expect(getAppModeForRoute("/orgii/workstation/ops-control")).toBe(
-      "opsControl"
-    );
   });
 
   it("defaults to code for unknown paths", () => {
@@ -31,9 +28,6 @@ describe("getAppModeForRoute", () => {
 describe("getViewModeForRoute", () => {
   it("uses prefix fallbacks when no exact route matches", () => {
     expect(getViewModeForRoute("/orgii/workstation/extra")).toBe("workStation");
-    expect(getViewModeForRoute("/orgii/workstation/ops-control/detail")).toBe(
-      "workStation"
-    );
   });
 
   it("defaults other /orgii paths to mainApp", () => {
@@ -69,9 +63,6 @@ describe("getRouteConfig", () => {
 
 describe("shouldSaveToPreviousRoute", () => {
   it("is true for app routes and false for workstation prefix fallbacks", () => {
-    expect(shouldSaveToPreviousRoute("/orgii/workstation/ops-control")).toBe(
-      false
-    );
     expect(shouldSaveToPreviousRoute("/orgii/workstation/extra")).toBe(false);
   });
 });

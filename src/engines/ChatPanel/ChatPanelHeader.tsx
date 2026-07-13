@@ -5,7 +5,6 @@ import {
   Clipboard,
   FolderOutput,
   GalleryThumbnails,
-  LayoutGrid,
   Link2,
   ListChevronsDownUp,
   ListChevronsUpDown,
@@ -33,7 +32,6 @@ import Select, { type SelectOption } from "@src/components/Select";
 import SessionHoverCard from "@src/components/SessionHoverCard";
 import Switch from "@src/components/Switch";
 import Tooltip from "@src/components/Tooltip";
-import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { COLLAPSED_SIDEBAR_CHROME_OFFSET } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared";
@@ -83,7 +81,6 @@ interface ChatPanelHeaderProps {
   handleOpenLinkWorkItem: () => void;
   handleOpenSearch: () => void;
   handleNewSession: () => void;
-  handleOpenStartPage: () => void;
   handlePaginationToggle: (checked: boolean) => void;
   handleProjectAgentCreatorToggle: (enabled: boolean) => void;
   handleProjectTitleChange: (title: string) => void;
@@ -98,7 +95,6 @@ interface ChatPanelHeaderProps {
   headerTitle: string;
   headerTitleContent?: React.ReactNode;
   isChatFocus: boolean;
-  isCompactLayout: boolean;
   isHeaderActionsOpen: boolean;
   isHeaderActionsPositioned: boolean;
   isProjectTarget: boolean;
@@ -153,7 +149,6 @@ export function ChatPanelHeader({
   handleOpenLinkWorkItem,
   handleOpenSearch,
   handleNewSession,
-  handleOpenStartPage,
   handlePaginationToggle,
   handleProjectAgentCreatorToggle,
   handleProjectTitleChange,
@@ -168,7 +163,6 @@ export function ChatPanelHeader({
   headerTitle,
   headerTitleContent,
   isChatFocus,
-  isCompactLayout,
   isHeaderActionsOpen,
   isHeaderActionsPositioned,
   isProjectTarget,
@@ -219,20 +213,7 @@ export function ChatPanelHeader({
   const chatFocusLabel = isChatFocus
     ? t("chat.showWorkstation")
     : t("chat.maximizeChatPanel");
-  const chatFocusShortcut = getShortcutKeys("maximize_chat");
-  const chatFocusTooltip = (
-    <KeyboardShortcutTooltipContent
-      label={chatFocusLabel}
-      shortcut={chatFocusShortcut}
-    />
-  );
   const shrinkToWorkstationLabel = t("chat.showWorkstation");
-  const shrinkToWorkstationTooltip = (
-    <KeyboardShortcutTooltipContent
-      label={shrinkToWorkstationLabel}
-      shortcut={chatFocusShortcut}
-    />
-  );
   const agentSwitchLabel = t("navigation:labels.agent", {
     defaultValue: "Agent",
   });
@@ -323,97 +304,63 @@ export function ChatPanelHeader({
       )}
       {tabStripPlus}
       {showSessionContent && (
-        <Tooltip
-          content={
-            <KeyboardShortcutTooltipContent label={t("common:actions.more")} />
-          }
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex">
-            <Button
-              ref={
-                headerActionsTriggerRef as React.RefObject<HTMLButtonElement>
-              }
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              className={
-                isHeaderActionsOpen ? "!bg-fill-1 !text-primary-6" : ""
-              }
-              onClick={(event) => {
-                event.stopPropagation();
-                toggleHeaderActionsMenu();
-              }}
-              aria-label={t("common:actions.more")}
-              aria-expanded={isHeaderActionsOpen}
-              data-testid="chat-panel-header-more-button"
-              icon={
-                <MoreHorizontal
-                  size={CHAT_PANEL_HEADER_ICON_SIZE}
-                  strokeWidth={2}
-                />
-              }
+        <Button
+          ref={headerActionsTriggerRef as React.RefObject<HTMLButtonElement>}
+          htmlType="button"
+          variant="tertiary"
+          size="small"
+          iconOnly
+          className={isHeaderActionsOpen ? "!bg-fill-1 !text-primary-6" : ""}
+          onClick={(event) => {
+            event.stopPropagation();
+            toggleHeaderActionsMenu();
+          }}
+          aria-label={t("common:actions.more")}
+          aria-expanded={isHeaderActionsOpen}
+          data-testid="chat-panel-header-more-button"
+          icon={
+            <MoreHorizontal
+              size={CHAT_PANEL_HEADER_ICON_SIZE}
+              strokeWidth={2}
             />
-          </span>
-        </Tooltip>
+          }
+        />
       )}
       {showChatFocusToggle && (
-        <Tooltip
-          content={isChatFocus ? shrinkToWorkstationTooltip : chatFocusTooltip}
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex">
-            <TabBarTrailingIconButton
-              title={isChatFocus ? shrinkToWorkstationLabel : chatFocusLabel}
-              nativeTitle={false}
-              onClick={handleChatFocusToggle}
-            >
-              {isChatFocus ? (
-                <GalleryThumbnails
-                  size={HEADER_ICON_SIZE.md}
-                  strokeWidth={1.75}
-                />
-              ) : (
-                <Maximize2 size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
-              )}
-            </TabBarTrailingIconButton>
-          </span>
-        </Tooltip>
+        <span className="inline-flex">
+          <TabBarTrailingIconButton
+            title={isChatFocus ? shrinkToWorkstationLabel : chatFocusLabel}
+            shortcutId="maximize_chat"
+            tooltipPosition="bottom-end"
+            nativeTitle={false}
+            onClick={handleChatFocusToggle}
+          >
+            {isChatFocus ? (
+              <GalleryThumbnails
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={1.75}
+              />
+            ) : (
+              <Maximize2 size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+            )}
+          </TabBarTrailingIconButton>
+        </span>
       )}
       {!tabStrip && showNewSessionButton && (
-        <Tooltip
-          content={
-            <KeyboardShortcutTooltipContent
-              label={t("chat.newSession")}
-              shortcut={getShortcutKeys("new_session")}
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          size="small"
+          iconOnly
+          onClick={handleNewSession}
+          aria-label={t("chat.newSession")}
+          icon={
+            <Plus
+              size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
+              strokeWidth={2}
             />
           }
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex">
-            <Button
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              onClick={handleNewSession}
-              aria-label={t("chat.newSession")}
-              icon={
-                <Plus
-                  size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
-                  strokeWidth={2}
-                />
-              }
-            />
-          </span>
-        </Tooltip>
+        />
       )}
       {isHeaderActionsOpen &&
         isHeaderActionsPositioned &&
@@ -528,7 +475,7 @@ export function ChatPanelHeader({
 
   return (
     <div
-      className={`workspace-header header-tab-group relative flex flex-shrink-0 items-center gap-1.5 ${isCompactLayout ? "h-11 min-h-11 pl-2 pr-[7px] pt-2" : "h-9 min-h-9 px-2"}`}
+      className="workspace-header header-tab-group relative flex h-11 min-h-11 flex-shrink-0 items-center gap-1.5 pl-2 pr-[7px] pt-2"
       data-testid="chat-panel-header"
       data-tauri-drag-region={windowsHost ? undefined : true}
       style={
@@ -547,7 +494,7 @@ export function ChatPanelHeader({
           <CollapsedSidebarButton />
         </div>
       ) : null}
-      {showStartPageBackButton ? (
+      {showStartPageBackButton && nestedBackAction ? (
         <Tooltip
           content={
             <KeyboardShortcutTooltipContent
@@ -565,21 +512,14 @@ export function ChatPanelHeader({
               variant="tertiary"
               size="small"
               iconOnly
-              onClick={nestedBackAction ?? handleOpenStartPage}
+              onClick={nestedBackAction}
               aria-label={headerBackLabel}
               data-testid="chat-panel-start-page-back-button"
               icon={
-                nestedBackAction ? (
-                  <ChevronLeft
-                    size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
-                    strokeWidth={2}
-                  />
-                ) : (
-                  <LayoutGrid
-                    size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
-                    strokeWidth={2}
-                  />
-                )
+                <ChevronLeft
+                  size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
+                  strokeWidth={2}
+                />
               }
             />
           </span>

@@ -31,10 +31,6 @@
     "closeCanvas": "キャンバスを閉じる",
     "generatingCanvas": "キャンバスを生成中…",
     "noContent": "コンテンツがありません",
-    "noIssueSelected": "Issue が選択されていません",
-    "selectIssueHint": "サイドバーの Issues パネルから Issue を選択してください。",
-    "noPrSelected": "Pull request が選択されていません",
-    "selectPrHint": "サイドバーの Pull request パネルから Pull request を選択してください。",
     "reload": "再読み込み",
     "urlPreviewRequiresTauri": "URL プレビューには Tauri が必要です",
     "openInExternalBrowser": "代わりに外部ブラウザーで開いてください",
@@ -107,6 +103,7 @@
     "retry": "再試行",
     "regenerate": "再生成",
     "refresh": "更新",
+    "rescan": "再スキャン",
     "reload": "再読み込み",
     "reviewNextFile": "次のファイルをレビュー",
     "reviewPreviousFile": "前のファイルをレビュー",
@@ -206,9 +203,7 @@
     "openWorkspace": "Workspace を開く",
     "skipThisVersion": "このバージョンをスキップ",
     "later": "後で",
-    "updateAiBlame": "AI Blame を更新",
-    "link": "リンク",
-    "fetchPr": "Fetch PR"
+    "link": "リンク"
   },
   "refreshToast": {
     "successName": "{{name}} を更新しました",
@@ -965,9 +960,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "プレビューを利用できません",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "メッセージを検索...",
@@ -1028,6 +1021,20 @@
     "indexingProgress": "インデックス中: {{processed}}/{{total}} ファイル ({{percent}}%)",
     "indexingProgressWithFile": "インデックス中: {{processed}}/{{total}} ファイル ({{percent}}%)\n現在: {{file}}",
     "languageServices": "Language Services",
+    "ports": {
+      "workspaceSection": "Workspace",
+      "externalSection": "外部",
+      "tooltip": "ポート: Workspace {{workspace}}、外部 {{external}}",
+      "noWorkspacePorts": "Workspace ポートは検出されませんでした",
+      "externalLabel": "外部",
+      "unknownProcess": "不明なプロセス",
+      "pidLabel": "PID {{pid}}",
+      "openInBrowser": "ブラウザで開く",
+      "copyAddress": "アドレスをコピー",
+      "stopProcess": "プロセスを停止",
+      "searchPlaceholder": "ポートを検索…",
+      "noSearchResults": "一致するポートがありません"
+    },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
     "charsSelected": "{{count}} selected",
@@ -1219,7 +1226,6 @@
     },
     "modelSelector": {
       "recentModels": "最近のモデル",
-      "currentModel": "現在のモデル",
       "allModels": "すべてのモデル",
       "noRecent": "最近のモデルはありません",
       "noResults": "一致するモデルがありません",
@@ -1234,6 +1240,7 @@
     "modelProperties": {
       "options": "オプション",
       "effort": "Effort",
+      "default": "デフォルト",
       "faster": "高速",
       "smarter": "高精度"
     },
@@ -1610,11 +1617,8 @@
     "chatRight": "右チャット",
     "pageSettings": "ページ設定",
     "pageLayout": "ページレイアウト",
-    "layoutMode": "レイアウトモード",
     "inset": "インセット",
     "full": "フル",
-    "compact": "コンパクト",
-    "comfort": "快適",
     "theme": "テーマ",
     "primaryPanel": "サイドバー",
     "sidebarPosition": "サイドバーの位置",
@@ -1673,15 +1677,13 @@
     "disableChatPagination": "チャットのページ分割をオフにする",
     "useModelPickerSpotlight": "Spotlight モデル選択を使う",
     "useModelPickerDropdown": "ドロップダウンモデル選択を使う",
-    "useCompactWorkstationLayout": "コンパクトな Workstation レイアウトを使う",
-    "useComfortWorkstationLayout": "ゆったりした Workstation レイアウトを使う",
     "moveWorkstationSidebarLeft": "Workstation サイドバーを左に移動",
     "moveWorkstationSidebarRight": "Workstation サイドバーを右に移動",
     "enableDockAutoHide": "Workstation Dock を自動的に隠す",
     "disableDockAutoHide": "Workstation Dock を常に表示",
     "openMyStation": "My Station に移動",
     "openAgentStation": "Agent Station に移動",
-    "openOpsControl": "Ops Control に移動",
+    "openKanban": "Kanban に移動",
     "changeLanguage": "言語を変更",
     "switchToSystemTheme": "システムテーマに従う",
     "detectUpdate": "アップデートを確認",
@@ -1936,6 +1938,12 @@
     "removeWorktreeMessage": "ディスクから Worktree checkout を削除します。branch と commits は保持されます。",
     "removeWorktreeSuccess": "Worktree を削除しました",
     "removeWorktreeFailed": "Worktree の削除に失敗しました",
+    "emptyState": {
+      "viewSourceControl": "Source Control を表示",
+      "viewIssues": "Issues を表示",
+      "viewGitHistory": "Git 履歴を表示",
+      "viewPullRequests": "Pull Requests を表示"
+    },
     "pill": {
       "focus": "フォーカス",
       "allChanges": "すべての変更"
@@ -1967,7 +1975,21 @@
     "warningHint": "コンテキストが埋まりつつあります。より良い結果のため、まもなく新しいセッションを開始してください。",
     "dangerHint": "コンテキストがほぼいっぱいです。詳細を失わないよう、新しいセッションを開始してください。",
     "autoCompactNote": "まもなくコンテキストを要約します",
-    "startNewSession": "新しいセッションを開始"
+    "startNewSession": "新しいセッションを開始",
+    "compactBoundaryTitle": "コンテキストを圧縮しました",
+    "compactBoundarySubtitle_other": "{{count}}件の過去メッセージを要約",
+    "compactBoundaryTokens": "{{before}} → {{after}} トークン",
+    "manualCompactAction": "圧縮",
+    "manualCompactRunning": "圧縮中",
+    "manualCompactInProgress": "コンテキストを圧縮中です — 完了までお待ちください",
+    "manualCompactSuccess": "圧縮完了: {{messagesBefore}} → {{messagesAfter}} メッセージ、{{tokensBefore}} → {{tokensAfter}} トークン",
+    "manualCompactTooShort": "内容が短いため圧縮は不要です",
+    "manualCompactAlreadyCompact": "新たに圧縮できる内容はありません",
+    "manualCompactBusy": "セッション実行中です。完了後に圧縮してください",
+    "manualCompactNoRuntime": "圧縮する前にメッセージを送信してください",
+    "manualCompactFailed": "圧縮に失敗しました: {{message}}",
+    "manualCompactChannelAttached": "このセッションはチャンネル管理です — そちらで /compact を使ってください",
+    "manualCompactInstructionsPlaceholder": "任意: 要約で重視するポイント"
   },
   "relativeDate": {
     "today": "今日",

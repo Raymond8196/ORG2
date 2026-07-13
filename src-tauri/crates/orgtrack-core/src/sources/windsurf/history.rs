@@ -24,7 +24,10 @@ const WINDSURF_PROVIDER_SLUG: &str = "windsurf";
 const SQLITE_IN_QUERY_CHUNK_SIZE: usize = 500;
 const BUBBLE_TYPE_USER: i64 = 1;
 const BUBBLE_TYPE_ASSISTANT: i64 = 2;
-const WINDSURF_METADATA_PARSER_VERSION: i64 = 1;
+// Bumped to 2 when the fingerprint moved from a bare mtime string to a
+// content-aware (composer fields + WAL/`-shm` sidecar) signature so existing
+// caches rebuild once.
+const WINDSURF_METADATA_PARSER_VERSION: i64 = 2;
 
 pub type WindsurfHistorySessionRow = ImportedHistorySessionRow;
 pub type WindsurfHistorySessionPage = ImportedHistorySessionPage;
@@ -196,6 +199,9 @@ fn list_windsurf_composer_meta_from_conn(
         .query_map([], |row| row.get::<_, Option<String>>(0))
         .map_err(|err| format!("Failed to query Windsurf composers: {err}"))?;
 
+    // A single `state.vscdb` backs every composer, so fold its WAL/`-shm`
+    // sidecars into each composer's fingerprint once.
+    let sidecar_signature = imported_paths::sqlite_sidecar_signature(db_path);
     let mut metas = Vec::new();
     for row in rows {
         let Some(value) =
@@ -210,18 +216,39 @@ fn list_windsurf_composer_meta_from_conn(
             continue;
         }
         let listable = is_listable_composer(conn, &composer)?;
+        let source_fingerprint = windsurf_source_fingerprint(&composer, &sidecar_signature);
         metas.push(WindsurfComposerMeta {
             source_session_id: composer.composer_id.clone(),
             source_path: db_path.to_string_lossy().to_string(),
             source_record_key: composer.composer_id.clone(),
             source_mtime_ms,
             source_size_bytes,
-            source_fingerprint: source_mtime_ms.to_string(),
+            source_fingerprint,
             composer,
             listable,
         });
     }
     Ok(metas)
+}
+
+/// Content-aware change fingerprint for a Windsurf composer.
+///
+/// The `state.vscdb` mtime alone can stay flat across a same-mtime rewrite, so
+/// this folds the composer's own identity/status/timestamp/token/turn-count
+/// fields together with the shared WAL/`-shm` sidecar signature.
+fn windsurf_source_fingerprint(composer: &RawComposerData, sidecar_signature: &str) -> String {
+    [
+        composer.composer_id.as_str(),
+        composer.name.as_str(),
+        composer.status.as_str(),
+        &composer.created_at.to_string(),
+        &composer.last_updated_at.to_string(),
+        &composer.context_tokens_used.to_string(),
+        &composer.full_conversation_headers_only.len().to_string(),
+        &composer.subagent_info.is_some().to_string(),
+        sidecar_signature,
+    ]
+    .join("|")
 }
 
 fn is_listable_composer(conn: &Connection, composer: &RawComposerData) -> Result<bool, String> {

@@ -13,6 +13,9 @@ import { REPO_KIND, type RepoKind } from "@src/store/repo/types";
 
 import { LOCATION_ICONS } from "./locationConfig";
 
+/** Max pill label width for repo/branch segments in the session info row. */
+const SESSION_INFO_LABEL_MAX_WIDTH = 180;
+
 interface SessionInfoDisplayParams {
   isMultiRoot: boolean;
   workspaceName?: string;
@@ -68,6 +71,7 @@ interface BuildSessionInfoSegmentsParams extends SessionInfoDisplayState {
   branchLoading?: boolean;
   branchName?: string;
   worktreeLocation?: RunningLocation;
+  worktreeSourceLabel?: string;
   isLocationDropdownOpen: boolean;
   locationTriggerRef: React.Ref<HTMLButtonElement>;
   disabled: boolean;
@@ -89,6 +93,7 @@ export function buildSessionInfoSegments({
   isBranchSelectorOpen,
   handleBranchTriggerClick,
   worktreeLocation,
+  worktreeSourceLabel,
   isLocationDropdownOpen,
   handleLocationTriggerClick,
   locationTriggerRef,
@@ -106,6 +111,7 @@ export function buildSessionInfoSegments({
         />
       ),
       label: sourceDisplayName,
+      maxLabelWidth: SESSION_INFO_LABEL_MAX_WIDTH,
       active: isRepoSelectorOpen,
       danger: !hasSource,
       tooltip: disabled ? undefined : (
@@ -127,7 +133,7 @@ export function buildSessionInfoSegments({
       id: "branch",
       icon: <GitBranch size={14} strokeWidth={1.75} className="text-text-1" />,
       label: branchLoading ? t("status.loading") : branchName || "",
-      maxLabelWidth: 180,
+      maxLabelWidth: SESSION_INFO_LABEL_MAX_WIDTH,
       active: isBranchSelectorOpen,
       tooltip: disabled ? undefined : (
         <KeyboardShortcutTooltipContent
@@ -150,7 +156,11 @@ export function buildSessionInfoSegments({
     segments.push({
       id: "location",
       icon: LOCATION_ICONS[worktreeLocation],
-      label: t(`sessions:${locationEntry.i18nKey}`),
+      label:
+        worktreeLocation === "worktree" && worktreeSourceLabel
+          ? worktreeSourceLabel
+          : t(`sessions:${locationEntry.i18nKey}`),
+      maxLabelWidth: SESSION_INFO_LABEL_MAX_WIDTH,
       active: isLocationDropdownOpen,
       tooltip: disabled ? undefined : (
         <KeyboardShortcutTooltipContent

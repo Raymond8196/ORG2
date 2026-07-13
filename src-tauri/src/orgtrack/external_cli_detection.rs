@@ -43,15 +43,37 @@ pub struct ExternalCliSourceProbe {
     pub history_paths: Vec<String>,
     pub status: String,
     pub importable: bool,
+    /// On-disk store format ORGII parses for this source: "jsonl", "sqlite",
+    /// or "" when the source is only install-detected (no history import).
+    pub store_kind: String,
 }
 
 const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "codex_app",
     "claude_code",
+    "cursor_ide",
     "opencode",
     "windsurf",
     "workbuddy",
 ];
+
+/// On-disk store format for a source's session history — the "file type" shown
+/// in the Data Sources inventory. Covers the importable sources ORGII parses
+/// plus tools whose store format is known (observed empirically) even though
+/// ORGII does not import them yet. Returns "" when no local transcript store is
+/// known (server-side/cloud tools, or nothing persisted locally).
+fn store_kind_for(source_id: &str) -> &'static str {
+    match source_id {
+        // Importable — ORGII parses these.
+        "claude_code" | "codex_app" | "workbuddy" => "jsonl",
+        "cursor_ide" | "opencode" | "windsurf" => "sqlite",
+        // Known store format, not yet imported.
+        "gemini" | "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
+        "cursor" | "copilot" | "goose" | "grok" | "openclaw" | "cline" => "sqlite",
+        "aider" => "markdown",
+        _ => "",
+    }
+}
 
 pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
@@ -79,13 +101,13 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "autohand",
         "AutoHand",
-        "terminal",
+        "autohand",
         "autohand",
         &[],
         "autohand",
         "autohand",
         false,
-        &[],
+        &[".autohand"],
     ),
     source(
         "opencode",
@@ -109,17 +131,17 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         false,
         &[".config/mimo", ".local/share/mimo"],
     ),
-    source("pi", "Pi", "terminal", "pi", &[], "pi", "pi", false, &[]),
+    source("pi", "Pi", "pi", "pi", &[], "pi", "pi", false, &[".pi"]),
     source(
         "omp",
         "OMP",
-        "terminal",
+        "omp",
         "omp",
         &[],
         "omp",
         "omp",
         false,
-        &[],
+        &[".omp"],
     ),
     source(
         "gemini",
@@ -135,18 +157,18 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "antigravity",
         "Antigravity",
-        "terminal",
+        "antigravity",
         "agy",
         &[],
         "agy",
         "agy",
         false,
-        &[],
+        &[".antigravity"],
     ),
     source(
         "aider",
         "Aider",
-        "terminal",
+        "aider",
         "aider",
         &[],
         "aider",
@@ -157,7 +179,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "goose",
         "Goose",
-        "terminal",
+        "goose",
         "goose",
         &[],
         "goose",
@@ -168,7 +190,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "amp",
         "Amp",
-        "terminal",
+        "amp",
         "amp",
         &[],
         "amp",
@@ -179,13 +201,13 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "kilo",
         "Kilo",
-        "terminal",
+        "kilo",
         "kilo",
         &[],
         "kilo",
         "kilo",
         false,
-        &[],
+        &[".config/kilo"],
     ),
     source(
         "kiro",
@@ -199,31 +221,20 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[".kiro"],
     ),
     source(
-        "aug",
-        "Auggie",
-        "terminal",
-        "auggie",
-        &[],
-        "auggie",
-        "auggie",
-        false,
-        &[],
-    ),
-    source(
         "cline",
         "Cline",
-        "terminal",
+        "cline",
         "cline",
         &[],
         "cline",
         "cline",
         false,
-        &[],
+        &[".cline"],
     ),
     source(
         "codebuff",
         "Codebuff",
-        "terminal",
+        "codebuff",
         "codebuff",
         &[],
         "codebuff",
@@ -234,7 +245,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "continue",
         "Continue",
-        "terminal",
+        "continue_cli",
         "cn",
         &[],
         "cn",
@@ -244,7 +255,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     ),
     source(
         "cursor",
-        "Cursor Agent",
+        "Cursor CLI",
         "cursor",
         "cursor-agent",
         &[],
@@ -256,13 +267,13 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "droid",
         "Droid",
-        "terminal",
+        "droid",
         "droid",
         &[],
         "droid",
         "droid",
         false,
-        &[],
+        &[".factory"],
     ),
     source(
         "kimi",
@@ -278,7 +289,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "mistral_vibe",
         "Mistral Vibe",
-        "terminal",
+        "mistral_vibe",
         "vibe",
         &["mistral-vibe"],
         "vibe",
@@ -289,7 +300,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "qwen_code",
         "Qwen Code",
-        "terminal",
+        "qwen_code",
         "qwen",
         &[],
         "qwen",
@@ -298,20 +309,9 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[".qwen"],
     ),
     source(
-        "rovo",
-        "Rovo",
-        "terminal",
-        "rovo",
-        &[],
-        "rovo",
-        "rovo",
-        false,
-        &[".rovo"],
-    ),
-    source(
         "hermes",
         "Hermes",
-        "terminal",
+        "hermes",
         "hermes",
         &[],
         "hermes --tui",
@@ -322,7 +322,7 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "openclaw",
         "OpenClaw",
-        "terminal",
+        "openclaw",
         "openclaw",
         &[],
         "openclaw",
@@ -355,13 +355,24 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     source(
         "devin",
         "Devin",
-        "terminal",
+        "devin",
         "devin",
         &[],
         "devin",
         "devin",
         false,
         &[".devin"],
+    ),
+    source(
+        "cursor_ide",
+        "Cursor App",
+        "cursor",
+        "cursor",
+        &[],
+        "cursor",
+        "Cursor",
+        true,
+        &[],
     ),
     source(
         "windsurf",
@@ -453,6 +464,7 @@ fn probe_source(source: &ExternalCliSourceSpec) -> ExternalCliSourceProbe {
             .collect(),
         status,
         importable,
+        store_kind: store_kind_for(source.source_id).to_string(),
     }
 }
 
@@ -497,6 +509,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         "claude_code" => home_candidates(&[".claude", ".claude/projects"]),
         "codex_app" => home_candidates(&[".codex", ".codex/sessions"]),
         "opencode" => home_candidates(&[".config/opencode", ".local/share/opencode"]),
+        "cursor_ide" => platform_data_candidates(&["Cursor/User/globalStorage"]),
         "windsurf" => platform_data_candidates(&[
             "Windsurf/User/globalStorage",
             "Windsurf/User/workspaceStorage",

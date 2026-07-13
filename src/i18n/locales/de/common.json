@@ -31,10 +31,6 @@
     "closeCanvas": "Canvas schließen",
     "generatingCanvas": "Canvas wird generiert…",
     "noContent": "Kein Inhalt",
-    "noIssueSelected": "Kein Issue ausgewählt",
-    "selectIssueHint": "Wählen Sie ein Issue im Issues-Bereich der Seitenleiste aus.",
-    "noPrSelected": "Kein Pull request ausgewählt",
-    "selectPrHint": "Wählen Sie einen Pull request im Pull-request-Bereich der Seitenleiste aus.",
     "reload": "Neu laden",
     "urlPreviewRequiresTauri": "URL-Vorschau erfordert Tauri",
     "openInExternalBrowser": "Stattdessen im externen Browser öffnen",
@@ -107,6 +103,7 @@
     "retry": "Erneut versuchen",
     "regenerate": "Neu generieren",
     "refresh": "Aktualisieren",
+    "rescan": "Erneut scannen",
     "reload": "Neu laden",
     "reviewNextFile": "Nächste Datei prüfen",
     "reviewPreviousFile": "Vorherige Datei prüfen",
@@ -206,9 +203,7 @@
     "openWorkspace": "Workspace öffnen",
     "skipThisVersion": "Diese Version überspringen",
     "later": "Später",
-    "updateAiBlame": "AI Blame aktualisieren",
-    "link": "Verknüpfen",
-    "fetchPr": "Fetch PR"
+    "link": "Verknüpfen"
   },
   "refreshToast": {
     "successName": "{{name}} aktualisiert",
@@ -965,9 +960,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Vorschau nicht verfügbar",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Nachrichten durchsuchen...",
@@ -1027,6 +1020,20 @@
     "indexingProgress": "Indexierung: {{processed}}/{{total}} Dateien ({{percent}}%)",
     "indexingProgressWithFile": "Indexierung: {{processed}}/{{total}} Dateien ({{percent}}%)\nAktuell: {{file}}",
     "languageServices": "Language Services",
+    "ports": {
+      "workspaceSection": "Workspace",
+      "externalSection": "Extern",
+      "tooltip": "Ports: {{workspace}} Workspace, {{external}} extern",
+      "noWorkspacePorts": "Keine Workspace-Ports erkannt",
+      "externalLabel": "extern",
+      "unknownProcess": "Unbekannter Prozess",
+      "pidLabel": "PID {{pid}}",
+      "openInBrowser": "Im Browser öffnen",
+      "copyAddress": "Adresse kopieren",
+      "stopProcess": "Prozess beenden",
+      "searchPlaceholder": "Ports suchen…",
+      "noSearchResults": "Keine passenden Ports"
+    },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
     "charsSelected": "{{count}} selected",
@@ -1218,7 +1225,6 @@
     },
     "modelSelector": {
       "recentModels": "Letzte Modelle",
-      "currentModel": "Aktuelles Modell",
       "allModels": "Alle Modelle",
       "noRecent": "Keine letzten Modelle",
       "noResults": "Keine passenden Modelle",
@@ -1233,6 +1239,7 @@
     "modelProperties": {
       "options": "Optionen",
       "effort": "Aufwand",
+      "default": "Standard",
       "faster": "Schneller",
       "smarter": "Intelligenter"
     },
@@ -1609,11 +1616,8 @@
     "chatRight": "Chat rechts",
     "pageSettings": "Seiteneinstellungen",
     "pageLayout": "Seitenlayout",
-    "layoutMode": "Layoutmodus",
     "inset": "Eingesetzt",
     "full": "Vollständig",
-    "compact": "Kompakt",
-    "comfort": "Komfort",
     "theme": "Design",
     "primaryPanel": "Seitenleiste",
     "sidebarPosition": "Seitenleistenposition",
@@ -1675,15 +1679,13 @@
     "disableChatPagination": "Chat-Paginierung ausschalten",
     "useModelPickerSpotlight": "Spotlight-Modellauswahl verwenden",
     "useModelPickerDropdown": "Dropdown-Modellauswahl verwenden",
-    "useCompactWorkstationLayout": "Kompaktes Workstation-Layout verwenden",
-    "useComfortWorkstationLayout": "Komfortables Workstation-Layout verwenden",
     "moveWorkstationSidebarLeft": "Workstation-Seitenleiste nach links verschieben",
     "moveWorkstationSidebarRight": "Workstation-Seitenleiste nach rechts verschieben",
     "enableDockAutoHide": "Workstation-Dock automatisch ausblenden",
     "disableDockAutoHide": "Workstation-Dock sichtbar halten",
     "openMyStation": "Zu My Station wechseln",
     "openAgentStation": "Zu Agent Station wechseln",
-    "openOpsControl": "Zu Ops Control wechseln",
+    "openKanban": "Zu Kanban wechseln",
     "changeLanguage": "Sprache ändern",
     "switchToSystemTheme": "Systemdesign folgen",
     "detectUpdate": "Nach Updates suchen",
@@ -1938,6 +1940,12 @@
     "removeWorktreeMessage": "Dies entfernt den Worktree checkout vom Datenträger. Branch und commits bleiben erhalten.",
     "removeWorktreeSuccess": "Worktree entfernt",
     "removeWorktreeFailed": "Worktree konnte nicht entfernt werden",
+    "emptyState": {
+      "viewSourceControl": "Source Control anzeigen",
+      "viewIssues": "Issues anzeigen",
+      "viewGitHistory": "Git-Verlauf anzeigen",
+      "viewPullRequests": "Pull Requests anzeigen"
+    },
     "pill": {
       "focus": "Fokus",
       "allChanges": "Alle Änderungen"
@@ -1969,7 +1977,22 @@
     "warningHint": "Der Kontext füllt sich. Starten Sie bald eine neue Sitzung für bessere Ergebnisse.",
     "dangerHint": "Der Kontext ist fast voll. Starten Sie eine neue Sitzung, um Detailverlust zu vermeiden.",
     "autoCompactNote": "Kontext wird bald zusammengefasst",
-    "startNewSession": "Neue Sitzung starten"
+    "startNewSession": "Neue Sitzung starten",
+    "compactBoundaryTitle": "Kontext komprimiert",
+    "compactBoundarySubtitle_one": "{{count}} frühere Nachricht zusammengefasst",
+    "compactBoundarySubtitle_other": "{{count}} frühere Nachrichten zusammengefasst",
+    "compactBoundaryTokens": "{{before}} → {{after}} Tokens",
+    "manualCompactAction": "Komprimieren",
+    "manualCompactRunning": "Komprimiert",
+    "manualCompactInProgress": "Kontext wird komprimiert — bitte warten, bevor du sendest",
+    "manualCompactSuccess": "Komprimiert: {{messagesBefore}} → {{messagesAfter}} Nachrichten, {{tokensBefore}} → {{tokensAfter}} Tokens",
+    "manualCompactTooShort": "Inhalt ist kurz; keine Komprimierung nötig",
+    "manualCompactAlreadyCompact": "Kein neuer komprimierbarer Inhalt",
+    "manualCompactBusy": "Sitzung läuft. Komprimiere nach Abschluss",
+    "manualCompactNoRuntime": "Sende zuerst eine Nachricht, bevor du komprimierst",
+    "manualCompactFailed": "Komprimierung fehlgeschlagen: {{message}}",
+    "manualCompactChannelAttached": "Diese Sitzung wird von einem Channel verwaltet — nutze dort /compact",
+    "manualCompactInstructionsPlaceholder": "Optional: worauf die Zusammenfassung fokussieren soll"
   },
   "relativeDate": {
     "today": "Heute",

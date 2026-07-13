@@ -24,6 +24,7 @@ import type { AgentOrgRunMemberView } from "@src/api/tauri/agent";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import { manualCompactInFlightSessionAtom } from "@src/engines/ChatPanel/hooks/useManualCompact";
 import { streamingDeltaContentAtom } from "@src/engines/SessionCore/core/atoms";
 import { sessionIdAtom } from "@src/engines/SessionCore/core/atoms/metadata";
 import { usePlanningIndicator } from "@src/engines/SessionCore/hooks";
@@ -123,12 +124,24 @@ const PlanningIndicatorBridge: React.FC<PlanningIndicatorBridgeProps> = ({
     ? streamingDeltaMap.get(scopedSessionId)
     : undefined;
   const isAgentTyping = liveDelta?.kind === "message";
-  const planningFooterMode = isAgentTyping ? "agentTyping" : "planning";
-  const visibleCount = planningIndicatorEnabled
-    ? isAgentTyping
-      ? 1
-      : count
-    : 0;
+  // Manual compaction rewrites the durable transcript off-turn, so the
+  // running-turn atoms stay quiet; surface it through the same footer with
+  // its own label instead of leaving the chat silent while it works.
+  const compactingSessionId = useAtomValue(manualCompactInFlightSessionAtom);
+  const isCompacting =
+    scopedSessionId !== null && compactingSessionId === scopedSessionId;
+  const planningFooterMode = isCompacting
+    ? "compacting"
+    : isAgentTyping
+      ? "agentTyping"
+      : "planning";
+  const visibleCount = isCompacting
+    ? 1
+    : planningIndicatorEnabled
+      ? isAgentTyping
+        ? 1
+        : count
+      : 0;
 
   // Notify the orchestrator whenever the count flips so useChatFooterSpacer
   // can schedule a re-measurement.
@@ -474,7 +487,10 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     );
   }, []);
 
-  const defaultTurnCollapsed = forceCollapseAllTurns;
+  // Completed historical turns should start collapsed. `forceCollapseAllTurns`
+  // additionally makes the live tail eligible immediately for compact
+  // read-only subagent panes.
+  const defaultTurnCollapsed = true;
 
   // --- Grouping for virtualized chat rows ---
   //
@@ -1055,7 +1071,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
       groupChatViewActive={groupChatViewActive}
       onGroupChatViewToggle={onGroupChatViewToggle}
       showPinnedTurnHeader={showPinnedTurnHeader}
-      sessionId={activeId}
       sourceGroupIndex={activePinnedSourceGroupIndex}
       sourceGroupCount={groupCounts.length}
       header={activePinnedHeader}
@@ -1118,7 +1133,15 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
         />
 
         {pinnedHeaderPortalHost
-          ? createPortal(pinnedHeaderLayer, pinnedHeaderPortalHost)
+          ? createPortal(
+              <div
+                className="chat-history-portal"
+                style={chatHistoryContainerStyle}
+              >
+                {pinnedHeaderLayer}
+              </div>,
+              pinnedHeaderPortalHost
+            )
           : pinnedHeaderLayer}
 
         <div className="flex min-h-0 flex-1 flex-col">
@@ -1147,6 +1170,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
             {turnPageListOpen && turnPaginationReady && (
               <TurnPageList
                 surfaceBgClass={surfaceBgClass}
+                bottomInset={bottomInset}
                 pages={pages}
                 groupHeaders={groupHeaders}
                 groupMeta={groupMeta}

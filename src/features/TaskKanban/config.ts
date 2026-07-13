@@ -59,17 +59,20 @@ export const KANBAN_AGENT_TYPE_FILTER = {
   OS_AGENT: "builtin:os",
   SDE_AGENT: "builtin:sde",
   CUSTOM_RUST_AGENT: "rust_agent:custom",
-  CURSOR_IDE: "cursor_ide",
+  CURSOR_APP: "cursor_ide",
   CURSOR_CLI: "cursor_cli",
-  CLAUDE_CODE: "claude_code",
-  CODEX: "codex",
+  CLAUDE_APP: "claude_app",
+  CLAUDE_CLI: "claude_code",
+  CODEX_APP: "codex_app",
+  CODEX_CLI: "codex",
   GEMINI_CLI: "gemini_cli",
   COPILOT: "copilot",
   KIRO: "kiro",
   KIMI_CLI: "kimi_cli",
-  OPENCODE: "opencode",
-  WINDSURF: "windsurf",
-  WORKBUDDY: "workbuddy",
+  OPENCODE_HISTORY: "opencode_history",
+  OPENCODE_CLI: "opencode",
+  WINDSURF_APP: "windsurf_app",
+  WORKBUDDY_APP: "workbuddy_app",
 } as const;
 
 export type KanbanBuiltInAgentTypeFilter =
@@ -99,14 +102,14 @@ interface AgentKanbanColumnConfig {
 
 /**
  * Column ID → i18n key mapping for translation at render time.
- * Keys reference sessions:opsControl.columns.* namespace.
+ * Keys reference sessions:kanban.columns.* namespace.
  */
 const COLUMN_TITLE_KEYS: Record<string, string> = {
-  todo: "opsControl.columns.todo",
-  in_progress: "opsControl.columns.inProgress",
-  blocking: "opsControl.columns.blocking",
-  turn_finished: "opsControl.columns.turnFinished",
-  archived: "opsControl.columns.archived",
+  todo: "kanban.columns.todo",
+  in_progress: "kanban.columns.inProgress",
+  blocking: "kanban.columns.blocking",
+  turn_finished: "kanban.columns.turnFinished",
+  archived: "kanban.columns.archived",
 };
 
 export function getColumnTitleKey(columnId: string): string {
@@ -116,7 +119,7 @@ export function getColumnTitleKey(columnId: string): string {
 export const KANBAN_COLUMNS: AgentKanbanColumnConfig[] = [
   {
     id: "todo",
-    title: "sessions:opsControl.columns.todo",
+    title: "sessions:kanban.columns.todo",
     icon: Circle,
     color: "var(--color-fill-4)",
     bgColor: "color-mix(in srgb, var(--color-fill-4) 55%, transparent)",
@@ -126,7 +129,7 @@ export const KANBAN_COLUMNS: AgentKanbanColumnConfig[] = [
   },
   {
     id: "in_progress",
-    title: "sessions:opsControl.columns.inProgress",
+    title: "sessions:kanban.columns.inProgress",
     icon: Clock,
     color: "var(--color-primary-6)",
     bgColor: "color-mix(in srgb, var(--color-primary-6) 10%, transparent)",
@@ -135,7 +138,7 @@ export const KANBAN_COLUMNS: AgentKanbanColumnConfig[] = [
   },
   {
     id: "blocking",
-    title: "sessions:opsControl.columns.blocking",
+    title: "sessions:kanban.columns.blocking",
     icon: MessageCircleWarning,
     color: "#FF8C42",
     bgColor: "rgba(255, 140, 66, 0.1)",
@@ -144,7 +147,7 @@ export const KANBAN_COLUMNS: AgentKanbanColumnConfig[] = [
   },
   {
     id: "turn_finished",
-    title: "sessions:opsControl.columns.turnFinished",
+    title: "sessions:kanban.columns.turnFinished",
     icon: CheckCircle2,
     color: "#52C41A",
     bgColor: "rgba(82, 196, 26, 0.1)",
@@ -153,7 +156,7 @@ export const KANBAN_COLUMNS: AgentKanbanColumnConfig[] = [
   },
   {
     id: "archived",
-    title: "sessions:opsControl.columns.archived",
+    title: "sessions:kanban.columns.archived",
     icon: Archive,
     color: "var(--color-text-3)",
     bgColor: "color-mix(in srgb, var(--color-fill-4) 18%, transparent)",
@@ -255,21 +258,21 @@ export const KANBAN_TIME_FILTERS: {
   key: KanbanTimeFilter;
   labelKey: string;
 }[] = [
-  { key: "12h", labelKey: "opsControl.timeFilter.12h" },
-  { key: "24h", labelKey: "opsControl.timeFilter.24h" },
-  { key: "3d", labelKey: "opsControl.timeFilter.3d" },
-  { key: "7d", labelKey: "opsControl.timeFilter.7d" },
+  { key: "12h", labelKey: "kanban.timeFilter.12h" },
+  { key: "24h", labelKey: "kanban.timeFilter.24h" },
+  { key: "3d", labelKey: "kanban.timeFilter.3d" },
+  { key: "7d", labelKey: "kanban.timeFilter.7d" },
 ];
 
 export const KANBAN_AUTO_ARCHIVE_TTLS: {
   key: KanbanAutoArchiveTtl;
   labelKey: string;
 }[] = [
-  { key: "never", labelKey: "opsControl.autoArchive.never" },
-  { key: "12h", labelKey: "opsControl.autoArchive.12h" },
-  { key: "24h", labelKey: "opsControl.autoArchive.24h" },
-  { key: "3d", labelKey: "opsControl.autoArchive.3d" },
-  { key: "7d", labelKey: "opsControl.autoArchive.7d" },
+  { key: "never", labelKey: "kanban.autoArchive.never" },
+  { key: "12h", labelKey: "kanban.autoArchive.12h" },
+  { key: "24h", labelKey: "kanban.autoArchive.24h" },
+  { key: "3d", labelKey: "kanban.autoArchive.3d" },
+  { key: "7d", labelKey: "kanban.autoArchive.7d" },
 ];
 
 const TIME_FILTER_MS: Record<KanbanTimeFilter, number> = {

@@ -56,13 +56,18 @@ import {
 } from "@src/modules/WorkStation/shared";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { useStickyMount } from "@src/modules/shared/hooks/useStickyMount";
-import { workStationPrimarySidebarCollapsedAtom } from "@src/store/ui/workStationAtom";
+import {
+  workStationPrimarySidebarCollapsedAtom,
+  workStationPrimarySidebarCollapsedPersistAtom,
+} from "@src/store/ui/workStationAtom";
 import { gitReviewNavigationAtom } from "@src/store/workstation/codeEditor/gitReviewNavigationAtom";
+import { sourceControlFilterModeHandlerAtom } from "@src/store/workstation/codeEditor/sourceControlFilterModeAtom";
 import {
   SOURCE_CONTROL_ALL_SESSIONS_FILTER,
   sourceControlSessionFilterAtom,
 } from "@src/store/workstation/codeEditor/sourceControlSessionFilterAtom";
-import { workstationSelectedIssueAtom } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationSelectedIssueAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import {
   type SourceControlHistorySelection,
   createGitCommitDetailTab,
@@ -71,7 +76,11 @@ import {
 import type { GitFile } from "@src/types/git/types";
 
 import { CodeEditorDefaultHeader } from "./components/CodeEditorDefaultHeader";
-import { createEditorQuickActions } from "./config";
+import {
+  createEditorQuickActions,
+  createSourceControlQuickActions,
+} from "./config";
+import type { SourceControlDestination } from "./config";
 import { TabContentRenderer } from "./content";
 import SourceControlMainPane from "./content/SourceControlMainPane";
 import type { SourceControlMainTabData } from "./content/sourceControlMainProps";
@@ -120,9 +129,18 @@ const EditorContent: React.FC<EditorContentProps> = memo(
     const sourceControlSessionFilter = useAtomValue(
       sourceControlSessionFilterAtom
     );
-    const selectedIssueState = useAtomValue(workstationSelectedIssueAtom);
+    const scopeKey = workstationRepoScopeKey(repoId, repoPath);
+    const selectedIssueState = useAtomValue(
+      workstationSelectedIssueAtomFamily(scopeKey)
+    );
     const setSourceControlSessionFilter = useSetAtom(
       sourceControlSessionFilterAtom
+    );
+    const sourceControlFilterModeHandler = useAtomValue(
+      sourceControlFilterModeHandlerAtom
+    );
+    const setSidebarCollapsed = useSetAtom(
+      workStationPrimarySidebarCollapsedPersistAtom
     );
 
     // ============================================
@@ -676,6 +694,24 @@ const EditorContent: React.FC<EditorContentProps> = memo(
       [t, dispatch, sidebarCollapsed]
     );
 
+    const handleSourceControlNavigation = useCallback(
+      (destination: SourceControlDestination) => {
+        sourceControlFilterModeHandler?.(destination);
+        setSidebarCollapsed(false);
+      },
+      [setSidebarCollapsed, sourceControlFilterModeHandler]
+    );
+
+    const sourceControlQuickActions = useMemo(
+      () =>
+        createSourceControlQuickActions({
+          t,
+          activeMode: sourceControlFilterMode,
+          onNavigate: handleSourceControlNavigation,
+        }),
+      [handleSourceControlNavigation, sourceControlFilterMode, t]
+    );
+
     // ============================================
     // Render
     // ============================================
@@ -774,7 +810,7 @@ const EditorContent: React.FC<EditorContentProps> = memo(
                 sourceControlFilterMode={sourceControlFilterMode}
                 gitDiffLoading={gitDiffLoading}
                 sourceControlCollapseAllSignal={sourceControlCollapseAllSignal}
-                editorQuickActions={editorQuickActions}
+                sourceControlQuickActions={sourceControlQuickActions}
                 onForceReload={forceRefresh}
                 onFileSelect={onFileSelect}
                 onGitDiffUnsavedChange={handleGitDiffUnsavedChange}

@@ -39,6 +39,7 @@ import { cursorCreatorModeOverrideAtom } from "@src/store/session/cursorModeOver
 import { cursorCreatorModelOverrideAtom } from "@src/store/session/cursorModelOverrideAtom";
 import { runningLocationAtom } from "@src/store/session/runningLocationAtom";
 import { selectedWorktreePathAtom } from "@src/store/session/selectedWorktreePathAtom";
+import { worktreeLaunchSourceAtom } from "@src/store/session/worktreeLaunchSourceAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { triggerSessionExpired } from "@src/store/ui/uiAtom";
 import type { ViewModeType } from "@src/store/ui/viewModeAtom";
@@ -114,6 +115,7 @@ export function useSessionLaunch(
   const agentExecMode = useAtomValue(creatorDefaultExecModeAtom);
   const runningLocation = useAtomValue(runningLocationAtom);
   const selectedWorktreePath = useAtomValue(selectedWorktreePathAtom);
+  const worktreeLaunchSource = useAtomValue(worktreeLaunchSourceAtom);
   const cursorCreatorModelOverride = useAtomValue(
     cursorCreatorModelOverrideAtom
   );
@@ -332,6 +334,7 @@ export function useSessionLaunch(
           sessionName,
           targetKind,
           workspaceFolders,
+          worktreeLaunchSource,
         });
 
       const result = await sessionLaunch({
@@ -462,6 +465,7 @@ export function useSessionLaunch(
     sessionName,
     targetKind,
     workspaceFolders,
+    worktreeLaunchSource,
     clearImages,
     dispatchLoadSession,
     setLastUserMessage,

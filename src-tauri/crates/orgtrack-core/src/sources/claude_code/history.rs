@@ -26,7 +26,9 @@ use crate::sources::imported_history::{
 
 const CLAUDE_CODE_SESSION_PREFIX: &str = "claudecodeapp-";
 const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 2;
+// v4: read ai-title/custom-title records for the name, and derive diff stats
+// from tool_use_result.structuredPatch instead of the old_string/new_string heuristic.
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 5;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -50,6 +52,10 @@ struct ClaudeCodeHistoryMeta {
     input_tokens: i64,
     output_tokens: i64,
     impact: ImportedHistoryImpactStats,
+    /// Set for Task-tool subagent transcripts: the parent session's frontend
+    /// id (`claudecodeapp-<parent-uuid>`). `None` for ordinary top-level
+    /// sessions. Non-empty values are subsumed out of the sidebar/kanban.
+    parent_session_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -58,6 +64,14 @@ struct ClaudeJsonlLine {
     #[serde(default)]
     r#type: String,
     #[serde(default)]
+    summary: String,
+    /// `ai-title` records: the auto-generated title shown in the Claude Code app.
+    #[serde(default)]
+    ai_title: String,
+    /// `custom-title` records: a user-set title that overrides the AI title.
+    #[serde(default)]
+    custom_title: String,
+    #[serde(default)]
     timestamp: Option<String>,
     #[serde(default)]
     cwd: String,
@@ -65,6 +79,20 @@ struct ClaudeJsonlLine {
     git_branch: String,
     #[serde(default)]
     message: Option<ClaudeMessage>,
+    /// Sidecar payload on tool-result lines. For edit tools it carries a
+    /// `structuredPatch` with exact `+`/`-` diff lines.
+    #[serde(default)]
+    tool_use_result: Option<Value>,
+    /// `true` on every line of a Task-tool subagent transcript
+    /// (`<parent-uuid>/subagents/agent-*.jsonl`). Marks the whole file as a
+    /// child session that must be subsumed under its parent.
+    #[serde(default)]
+    is_sidechain: bool,
+    /// The parent session's UUID. On a subagent transcript every line carries
+    /// the spawning session's id here (not the subagent's own `agent-*` stem),
+    /// which is exactly the parent linkage we need.
+    #[serde(default)]
+    session_id: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -87,6 +115,23 @@ struct ClaudeUsage {
     cache_read_input_tokens: i64,
     #[serde(default)]
     cache_creation_input_tokens: i64,
+}
+
+#[derive(Debug, Clone)]
+struct ClaudeSessionTitle {
+    name: String,
+    name_source: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ClaudeSessionMetadataFile {
+    #[serde(default)]
+    session_id: String,
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    name_source: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -148,28 +193,28 @@ fn sync_claude_code_history_cache(conn: &mut Connection) -> Result<(), String> {
 }
 
 fn discover_claude_code_history_records() -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
-    let mut files = Vec::new();
+    let mut records = Vec::new();
     for projects_dir in claude_projects_dirs()? {
         if projects_dir.is_dir() {
+            let title_index = load_claude_session_titles_for_projects_dir(&projects_dir)?;
+            let mut files = Vec::new();
             collect_claude_session_files(&projects_dir, &mut files)?;
+            for file in files {
+                let (source_mtime_ms, source_size_bytes) =
+                    imported_paths::file_metadata_signature(&file.path, "Claude")?;
+                records.push(ImportedHistoryDiscoveredRecord {
+                    source_session_id: file.file_stem.clone(),
+                    source_path: file.path,
+                    source_record_key: file.file_stem.clone(),
+                    source_mtime_ms,
+                    source_size_bytes,
+                    source_fingerprint: claude_source_fingerprint(&file.file_stem, &title_index),
+                    parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+                });
+            }
         }
     }
-    files
-        .into_iter()
-        .map(|file| {
-            let (source_mtime_ms, source_size_bytes) =
-                imported_paths::file_metadata_signature(&file.path, "Claude")?;
-            Ok(ImportedHistoryDiscoveredRecord {
-                source_session_id: file.file_stem.clone(),
-                source_path: file.path,
-                source_record_key: file.file_stem,
-                source_mtime_ms,
-                source_size_bytes,
-                source_fingerprint: String::new(),
-                parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
-            })
-        })
-        .collect()
+    Ok(records)
 }
 
 fn collect_claude_session_files(
@@ -197,6 +242,99 @@ fn collect_claude_session_files(
     Ok(())
 }
 
+fn load_claude_session_titles_for_projects_dir(
+    projects_dir: &Path,
+) -> Result<HashMap<String, ClaudeSessionTitle>, String> {
+    let Some(root) = projects_dir.parent() else {
+        return Ok(HashMap::new());
+    };
+    load_claude_session_titles(&root.join("sessions"))
+}
+
+fn load_claude_session_titles(
+    sessions_dir: &Path,
+) -> Result<HashMap<String, ClaudeSessionTitle>, String> {
+    let mut entries = HashMap::new();
+    if !sessions_dir.is_dir() {
+        return Ok(entries);
+    }
+
+    for entry in fs::read_dir(sessions_dir)
+        .map_err(|err| format!("Failed to read Claude sessions dir: {err}"))?
+    {
+        let entry = entry.map_err(|err| format!("Failed to read Claude session entry: {err}"))?;
+        let path = entry.path();
+        if !path
+            .extension()
+            .is_some_and(|extension| extension == "json")
+        {
+            continue;
+        }
+        let contents = fs::read_to_string(&path).map_err(|err| {
+            format!(
+                "Failed to read Claude session metadata {}: {err}",
+                path.display()
+            )
+        })?;
+        let parsed: ClaudeSessionMetadataFile = match serde_json::from_str(&contents) {
+            Ok(parsed) => parsed,
+            Err(_) => continue,
+        };
+        let session_id = parsed.session_id.trim();
+        let name = parsed.name.trim();
+        if session_id.is_empty() || name.is_empty() {
+            continue;
+        }
+        entries.insert(
+            session_id.to_string(),
+            ClaudeSessionTitle {
+                name: name.to_string(),
+                name_source: parsed.name_source,
+            },
+        );
+    }
+
+    Ok(entries)
+}
+
+fn claude_source_fingerprint(
+    file_stem: &str,
+    title_index: &HashMap<String, ClaudeSessionTitle>,
+) -> String {
+    title_index
+        .get(file_stem)
+        .map(|title| {
+            format!(
+                "session-meta:{}:{}",
+                title.name_source.as_deref().unwrap_or_default(),
+                title.name
+            )
+        })
+        .unwrap_or_default()
+}
+
+fn claude_session_title_for_record(
+    record: &ImportedHistoryDiscoveredRecord,
+) -> Result<String, String> {
+    let Some(sessions_dir) = claude_sessions_dir_for_session_path(&record.source_path) else {
+        return Ok(String::new());
+    };
+    let title_index = load_claude_session_titles(&sessions_dir)?;
+    Ok(title_index
+        .get(&record.source_record_key)
+        .map(|title| imported_history::truncate_name(&title.name, 200))
+        .unwrap_or_default())
+}
+
+fn claude_sessions_dir_for_session_path(session_path: &Path) -> Option<PathBuf> {
+    session_path.ancestors().find_map(|ancestor| {
+        if ancestor.file_name().and_then(|name| name.to_str()) == Some("projects") {
+            return ancestor.parent().map(|root| root.join("sessions"));
+        }
+        None
+    })
+}
+
 fn parse_claude_session_meta(
     record: &ImportedHistoryDiscoveredRecord,
 ) -> Result<Option<ClaudeCodeHistoryMeta>, String> {
@@ -210,14 +348,27 @@ fn parse_claude_session_meta(
 
     let mut created_at_ms = 0;
     let mut updated_at_ms = 0;
+    let mut external_title = claude_session_title_for_record(record)?;
+    let mut ai_title = String::new();
+    let mut custom_title = String::new();
     let mut first_prompt = String::new();
     let mut model: Option<String> = None;
     let mut repo_path: Option<String> = None;
     let mut branch: Option<String> = None;
     let mut input_tokens = 0;
     let mut output_tokens = 0;
+    // Primary impact source: exact counts from tool_use_result.structuredPatch.
     let mut impact = ImportedHistoryImpactStats::default();
     let mut touched_files = BTreeSet::new();
+    // Fallback for transcripts old enough to lack structuredPatch: the coarse
+    // old_string/new_string line count. Only used when no patch data is found.
+    let mut fallback_impact = ImportedHistoryImpactStats::default();
+    let mut fallback_touched = BTreeSet::new();
+    // Subagent transcripts (`<parent-uuid>/subagents/agent-*.jsonl`) tag every
+    // line `isSidechain: true` and carry the spawning session's UUID in
+    // `sessionId`. Capturing it lets us subsume the child under its parent the
+    // same way Codex does, instead of listing it as a top-level session.
+    let mut parent_source_session_id: Option<String> = None;
 
     for line in reader.lines() {
         let line = line.map_err(|err| format!("Failed to read Claude history line: {err}"))?;
@@ -247,6 +398,42 @@ fn parse_claude_session_meta(
         if branch.is_none() && !parsed.git_branch.trim().is_empty() {
             branch = Some(parsed.git_branch.clone());
         }
+        // A sidechain line whose `sessionId` differs from this file's own stem
+        // is a subagent pointing at its spawning session. Guard against a self
+        // reference so a malformed line can never make a session its own parent.
+        if parent_source_session_id.is_none() && parsed.is_sidechain {
+            let candidate = parsed.session_id.trim();
+            if !candidate.is_empty() && candidate != record.source_session_id {
+                parent_source_session_id = Some(candidate.to_string());
+            }
+        }
+        // Claude Code persists the session title inside the transcript. Titles are
+        // re-emitted as the conversation evolves, so the last write wins.
+        match parsed.r#type.as_str() {
+            "summary" if external_title.is_empty() => {
+                let summary = parsed.summary.trim();
+                if !summary.is_empty() {
+                    external_title = imported_history::truncate_name(summary, 200);
+                }
+            }
+            "ai-title" => {
+                let title = parsed.ai_title.trim();
+                if !title.is_empty() {
+                    ai_title = imported_history::truncate_name(title, 200);
+                }
+            }
+            "custom-title" => {
+                let title = parsed.custom_title.trim();
+                if !title.is_empty() {
+                    custom_title = imported_history::truncate_name(title, 200);
+                }
+            }
+            _ => {}
+        }
+        // Exact diff stats come from the tool-result's structuredPatch.
+        if let Some(result) = parsed.tool_use_result.as_ref() {
+            collect_claude_impact_from_tool_result(result, &mut impact, &mut touched_files);
+        }
         if let Some(message) = parsed.message {
             if first_prompt.is_empty() && parsed.r#type == "user" {
                 if let Some(text) = claude_content_text(&message.content) {
@@ -261,7 +448,11 @@ fn parse_claude_session_meta(
             }
             if parsed.r#type == "assistant" {
                 for item in claude_content_items(&message.content) {
-                    collect_claude_impact_from_item(item, &mut impact, &mut touched_files);
+                    collect_claude_impact_from_item(
+                        item,
+                        &mut fallback_impact,
+                        &mut fallback_touched,
+                    );
                 }
             }
             if let Some(usage) = message.usage {
@@ -271,6 +462,16 @@ fn parse_claude_session_meta(
                 output_tokens += usage.output_tokens;
             }
         }
+    }
+
+    // Prefer the precise structuredPatch counts; fall back to the coarse
+    // old_string/new_string heuristic only when no patch data was present.
+    if touched_files.is_empty()
+        && impact.lines_added == 0
+        && impact.lines_removed == 0
+    {
+        impact = fallback_impact;
+        touched_files = fallback_touched;
     }
 
     impact.touched_files = touched_files.into_iter().collect();
@@ -288,10 +489,19 @@ fn parse_claude_session_meta(
         source_mtime_ms: record.source_mtime_ms,
         source_size_bytes: record.source_size_bytes,
         source_fingerprint: record.source_fingerprint.clone(),
-        name: if first_prompt.is_empty() {
-            record.source_record_key.clone()
-        } else {
+        // Mirror the Claude Code app's own precedence: a user-set custom title
+        // wins, then the AI-generated title, then the derived/summary title,
+        // then the first prompt, and finally the raw session id.
+        name: if !custom_title.is_empty() {
+            custom_title
+        } else if !ai_title.is_empty() {
+            ai_title
+        } else if !external_title.is_empty() {
+            external_title
+        } else if !first_prompt.is_empty() {
             first_prompt
+        } else {
+            record.source_record_key.clone()
         },
         created_at_ms: if created_at_ms > 0 {
             created_at_ms
@@ -309,6 +519,8 @@ fn parse_claude_session_meta(
         input_tokens,
         output_tokens,
         impact,
+        parent_session_id: parent_source_session_id
+            .map(|uuid| format!("{CLAUDE_CODE_SESSION_PREFIX}{uuid}")),
     }))
 }
 
@@ -334,7 +546,43 @@ fn session_meta_to_cache_input(meta: ClaudeCodeHistoryMeta) -> ImportedHistoryCa
         impact: meta.impact,
         listable: true,
         source_metadata_json: None,
-        parent_session_id: None,
+        parent_session_id: meta.parent_session_id,
+    }
+}
+
+/// Accumulate exact diff stats from a tool result's `structuredPatch`.
+///
+/// Claude Code attaches a `toolUseResult` sidecar to Edit/MultiEdit/Write tool
+/// results containing a unified-diff-style `structuredPatch`. Each hunk's `lines`
+/// are prefixed with `+` (added), `-` (removed), or ` ` (context), so this yields
+/// the same counts a `git diff` would — unlike the old_string/new_string heuristic.
+fn collect_claude_impact_from_tool_result(
+    result: &Value,
+    impact: &mut ImportedHistoryImpactStats,
+    touched_files: &mut BTreeSet<String>,
+) {
+    let Some(hunks) = result.get("structuredPatch").and_then(Value::as_array) else {
+        return;
+    };
+    if let Some(file_path) = result
+        .get("filePath")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+    {
+        touched_files.insert(file_path.to_string());
+    }
+    for hunk in hunks {
+        let Some(lines) = hunk.get("lines").and_then(Value::as_array) else {
+            continue;
+        };
+        for line in lines {
+            match line.as_str().and_then(|text| text.as_bytes().first()) {
+                Some(b'+') => impact.lines_added += 1,
+                Some(b'-') => impact.lines_removed += 1,
+                _ => {}
+            }
+        }
     }
 }
 

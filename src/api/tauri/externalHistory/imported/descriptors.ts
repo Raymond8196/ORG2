@@ -16,7 +16,6 @@ export interface ImportedHistorySourceDescriptor {
   iconId: string;
   displayName: string;
   groupLabel: string;
-  sidebarPageSize?: number;
   listable: true;
   replayable: true;
   supportsWindowedReplay: boolean;
@@ -29,9 +28,8 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       listCategory: "external_history:cursor_ide",
       prefix: "cursoride-",
       iconId: "cursor",
-      displayName: "Cursor",
-      groupLabel: "Cursor History",
-      sidebarPageSize: 50,
+      displayName: "Cursor App",
+      groupLabel: "Cursor App",
       listable: true,
       replayable: true,
       supportsWindowedReplay: true,
@@ -41,7 +39,7 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       listCategory: "external_history:codex_app",
       prefix: "codexapp-",
       iconId: "codex",
-      displayName: "Codex",
+      displayName: "Codex App",
       groupLabel: "Codex App",
       listable: true,
       replayable: true,
@@ -52,8 +50,8 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       listCategory: "external_history:claude_code",
       prefix: "claudecodeapp-",
       iconId: "claude_code",
-      displayName: "Claude Code",
-      groupLabel: "Claude Code",
+      displayName: "Claude App",
+      groupLabel: "Claude App",
       listable: true,
       replayable: true,
       supportsWindowedReplay: false,

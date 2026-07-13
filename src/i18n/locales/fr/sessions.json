@@ -78,14 +78,55 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Sessions",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Kanban actuel",
     "view": {
       "list": "Liste",
       "diary": "Journal",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Sources de données"
+    },
+    "dataSource": {
+      "title": "Sources de données",
+      "description": "Outils de codage externes détectés par ORGII. Les applications importables affichent leur nombre de sessions et peuvent être réanalysées ; les autres affichent l'état d'installation et l'emplacement de leur historique.",
+      "rescanAll": "Tout réanalyser",
+      "rescan": "Réanalyser",
+      "rescanning": "Réanalyse…",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "lastScan": "Dernier scan {{time}}",
+      "neverScanned": "Jamais scanné",
+      "frequencyTitle": "Fréquence d'analyse",
+      "globalFrequency": "Analyse auto",
+      "freq": {
+        "default": "Par défaut",
+        "manual": "Manuel",
+        "60s": "Toutes les 60s",
+        "5m": "Toutes les 5 min",
+        "1h": "Toutes les heures",
+        "1d": "Quotidien"
+      },
+      "openFolder": "Ouvrir le dossier",
+      "tabs": {
+        "all": "Tous",
+        "apps": "Applis",
+        "clis": "CLIs"
+      },
+      "sessions_one": "{{count}} session",
+      "sessions_other": "{{count}} sessions",
+      "noPath": "Aucun chemin détecté",
+      "notImported": "Non importé",
+      "status": {
+        "ready": "Prêt",
+        "empty": "Aucun historique",
+        "loading": "Vérification…",
+        "error": "Erreur",
+        "installed": "Installé",
+        "notInstalled": "Non détecté",
+        "disabled": "Désactivé"
+      }
     },
     "list": {
       "updated": "Mis à jour",
@@ -142,7 +183,9 @@
       "views": "Vues",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Supprimer le brouillon"
+      "removeDraft": "Supprimer le brouillon",
+      "showSubagents": "Afficher les sous-agents",
+      "hideSubagents": "Masquer les sous-agents"
     },
     "resultStatus": {
       "completed": "Terminé",
@@ -181,11 +224,6 @@
       "merge": "Fusionner",
       "merging": "Fusion…",
       "merged": "Fusionné"
-    },
-    "diff": {
-      "openDiffWindow": "Voir le Diff",
-      "windowTitle": "Diff de Session",
-      "filesChanged": "Fichiers"
     },
     "replay": {
       "replaySession": "Rejouer"
@@ -406,7 +444,6 @@
         "interactionAskQuestion": "Question",
         "interactionAskPermission": "Demande de permission",
         "interactionModeSwitch": "Changement de mode",
-        "interactionNextSteps": "Étapes suivantes",
         "interactionPlanDoc": "Document de plan",
         "interactionGeneric": "Interaction"
       },
@@ -669,7 +706,9 @@
       "empty": "Aucune action trouvée.",
       "unpinAll": "Tout désépingler",
       "insert": "Insérer"
-    }
+    },
+    "compactArgHint": "<focus facultatif pour le résumé>",
+    "compactCommandDescription": "Résume le contexte ancien pour libérer de l'espace. Facultatif : /compact <focus du résumé>"
   },
   "listPanel": {
     "showingOf": "Affichage de {{filtered}} sur {{total}}",
@@ -714,12 +753,15 @@
       "addApiKey": {
         "title": "Ajouter une clé API"
       },
+      "installLatestUpdate": {
+        "title": "Installer la dernière mise à jour"
+      },
       "agents": {
         "title": "Agents"
       },
       "tabs": {
         "work": "Travail",
-        "explore": "Explorer",
+        "manage": "Gérer",
         "heatmap": "Tendances"
       },
       "heatmap": {
@@ -732,6 +774,9 @@
       "quota": {
         "empty": "Aucune donnée de quota pour le moment. Actualisez l'utilisation depuis Key Vault.",
         "refresh": "Actualiser",
+        "justNow": "à l'instant",
+        "minutesAgo": "il y a {{count}} min",
+        "hoursAgo": "il y a {{count}}h",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7j",
@@ -982,9 +1027,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Tous les statuts",
+        "assignedToMe": "Qui me sont attribués",
+        "createdByMe": "Créés par moi",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1026,6 +1071,8 @@
     "deleteFileRunning": "Suppression de {{name}}",
     "deleteFileDone": "{{name}} supprimé",
     "deleteFileFailed": "Échec de la suppression de {{name}}",
+    "deleteFileCompactRunning": "Suppression",
+    "deleteFileCompactDone": "Supprimer",
     "directoryTree": "Arborescence",
     "ls": "ls",
     "listDirRunning": "Listage du répertoire",
@@ -1068,7 +1115,7 @@
     "pathCopied": "Chemin copié !",
     "failedToCopyPath": "Échec de la copie du chemin",
     "copyFilePath": "Copier le chemin du fichier",
-    "explore": "Explorer",
+    "manage": "Gérer",
     "readFile": "Lire le fichier",
     "readFileRunning": "Lecture",
     "readFileDone": "Lire",
@@ -1091,12 +1138,30 @@
     "editFileDoneNoName": "Fichier modifié",
     "editFileCompactRunning": "Modification",
     "editFileCompactDone": "Modifier",
+    "editFiles": "Modifier des fichiers",
+    "editSummary": {
+      "edit_one": "{{count}} modification",
+      "edit_other": "{{count}} modifications",
+      "read_one": "{{count}} lecture",
+      "read_other": "{{count}} lectures",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Tentative de modification",
     "file": "fichier",
     "runShellRunning": "Exécution de la commande",
     "terminalWaitRunning": "En attente de la fin du terminal",
     "runShellDone": "Commande exécutée",
     "runShellFailed": "Échec de la commande",
+    "runCommands": "Exécuter des commandes",
+    "terminalSummary": {
+      "command_one": "{{count}} commande",
+      "command_other": "{{count}} commandes",
+      "wait_one": "{{count}} attente",
+      "wait_other": "{{count}} attentes",
+      "check_one": "{{count}} vérification",
+      "check_other": "{{count}} vérifications",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Inspection des terminaux",
     "inspectTerminalsDone": "Terminaux inspectés",
     "inspectTerminalsFailed": "Échec de l’inspection des terminaux",
@@ -1130,6 +1195,7 @@
       "skip": "Ignorer",
       "noReason": "L’agent suggère de changer de mode"
     },
+    "explore": "Explorer",
     "exploreSummary": {
       "read_one": "{{count}} fichier",
       "read_other": "{{count}} fichiers",
@@ -1140,7 +1206,8 @@
       "ls_one": "ls {{count}} dossier",
       "ls_other": "ls {{count}} dossiers",
       "lsp_one": "{{count}} requête LSP",
-      "lsp_other": "{{count}} requêtes LSP"
+      "lsp_other": "{{count}} requêtes LSP",
+      "separator": ", "
     },
     "categoryRead": "Lire",
     "categorySearch": "Rechercher",
@@ -1415,9 +1482,6 @@
     "toolSearchRunning": "Recherche d'outils",
     "toolSearchDone": "Outils recherchés",
     "toolSearchFailed": "Échec de la recherche d'outils",
-    "suggestNextStepsRunning": "Suggestion des prochaines étapes",
-    "suggestNextStepsDone": "{{count}} prochaines étapes suggérées",
-    "suggestNextStepsFailed": "Impossible de suggérer les prochaines étapes",
     "agentSendMessageRunning": "Envoi d'un message à l'Agent coéquipier",
     "agentSendMessageDone": "Message envoyé à l'Agent coéquipier",
     "agentSendMessageFailed": "Impossible d'envoyer le message à l'Agent coéquipier",
@@ -1879,7 +1943,8 @@
       "models": "Modèles",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Commandes"
     },
     "diffMenu": {
       "gitActions": "Actions GIT",
@@ -2288,7 +2353,8 @@
       "Toujours en réflexion, plus long que d’habitude...",
       "En cours, plus long que d’habitude...",
       "En train de décider de la suite, plus long que d’habitude..."
-    ]
+    ],
+    "compacting": "Compactage du contexte..."
   },
   "revertConfirm": {
     "title": "Modifications de fichiers non enregistrées",
@@ -2442,13 +2508,6 @@
       "missing": "Manquant",
       "disabled": "Désactivé"
     }
-  },
-  "worktreeCompare": {
-    "title": "Comparer les Worktrees",
-    "button": "Comparer",
-    "buttonTooltip": "Comparer les diffs côte à côte",
-    "noSessions": "Aucune session à comparer.",
-    "sessionTab": "Session {{n}}"
   },
   "groupChat": {
     "senderTitle": {

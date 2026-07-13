@@ -78,14 +78,55 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Session",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Mevcut Kanban",
     "view": {
       "list": "Liste",
       "diary": "Günlük",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Veri kaynakları"
+    },
+    "dataSource": {
+      "title": "Veri kaynakları",
+      "description": "ORGII'nin algıladığı harici kodlama araçları. İçe aktarılabilir uygulamalar oturum sayısını gösterir ve yeniden taranabilir; diğerleri kurulum durumunu ve geçmişlerinin nerede olduğunu gösterir.",
+      "rescanAll": "Tümünü yeniden tara",
+      "rescan": "Yeniden tara",
+      "rescanning": "Yeniden taranıyor…",
+      "enable": "Etkinleştir",
+      "disable": "Devre dışı bırak",
+      "lastScan": "Son tarama {{time}}",
+      "neverScanned": "Hiç taranmadı",
+      "frequencyTitle": "Otomatik tarama sıklığı",
+      "globalFrequency": "Otomatik tarama",
+      "freq": {
+        "default": "Varsayılan",
+        "manual": "Manuel",
+        "60s": "60 saniyede bir",
+        "5m": "5 dakikada bir",
+        "1h": "Saatlik",
+        "1d": "Günlük"
+      },
+      "openFolder": "Klasörü aç",
+      "tabs": {
+        "all": "Tümü",
+        "apps": "Uygulamalar",
+        "clis": "CLI'ler"
+      },
+      "sessions_one": "{{count}} oturum",
+      "sessions_other": "{{count}} oturum",
+      "noPath": "Yol algılanmadı",
+      "notImported": "İçe aktarılmadı",
+      "status": {
+        "ready": "Hazır",
+        "empty": "Geçmiş yok",
+        "loading": "Kontrol ediliyor…",
+        "error": "Hata",
+        "installed": "Kurulu",
+        "notInstalled": "Algılanmadı",
+        "disabled": "Devre dışı"
+      }
     },
     "list": {
       "updated": "Güncellendi",
@@ -142,7 +183,9 @@
       "views": "Görünümler",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Taslağı kaldır"
+      "removeDraft": "Taslağı kaldır",
+      "showSubagents": "Alt aracıları göster",
+      "hideSubagents": "Alt aracıları gizle"
     },
     "resultStatus": {
       "completed": "Tamamlandı",
@@ -181,11 +224,6 @@
       "merge": "Birleştir",
       "merging": "Birleştiriliyor…",
       "merged": "Birleştirildi"
-    },
-    "diff": {
-      "openDiffWindow": "Diff'i Görüntüle",
-      "windowTitle": "Oturum Diff",
-      "filesChanged": "Dosyalar"
     },
     "replay": {
       "replaySession": "Oynat"
@@ -406,7 +444,6 @@
         "interactionAskQuestion": "Soru",
         "interactionAskPermission": "İzin isteği",
         "interactionModeSwitch": "Mod değişimi",
-        "interactionNextSteps": "Sonraki adımlar",
         "interactionPlanDoc": "Plan belgesi",
         "interactionGeneric": "Etkileşim"
       },
@@ -669,7 +706,9 @@
       "empty": "Eylem bulunamadı.",
       "unpinAll": "Tümünün sabitlemesini kaldır",
       "insert": "Ekle"
-    }
+    },
+    "compactArgHint": "<özet için isteğe bağlı odak>",
+    "compactCommandDescription": "Eski bağlamı özetleyerek yer açar. İsteğe bağlı: /compact <özet odağı>"
   },
   "listPanel": {
     "showingOf": "{{total}} içinden {{filtered}} gösteriliyor",
@@ -714,12 +753,15 @@
       "addApiKey": {
         "title": "API key ekle"
       },
+      "installLatestUpdate": {
+        "title": "En son güncellemeyi yükle"
+      },
       "agents": {
         "title": "Agents"
       },
       "tabs": {
         "work": "Çalışma",
-        "explore": "Keşfet",
+        "manage": "Yönet",
         "heatmap": "Trendler"
       },
       "heatmap": {
@@ -732,6 +774,9 @@
       "quota": {
         "empty": "Henüz quota verisi yok. Key Vault'tan kullanımı yenileyin.",
         "refresh": "Yenile",
+        "justNow": "az önce",
+        "minutesAgo": "{{count}} dk önce",
+        "hoursAgo": "{{count}}s önce",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7g",
@@ -982,9 +1027,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Tüm durumlar",
+        "assignedToMe": "Bana atananlar",
+        "createdByMe": "Benim oluşturduklarım",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1026,6 +1071,8 @@
     "deleteFileRunning": "{{name}} siliniyor",
     "deleteFileDone": "{{name}} silindi",
     "deleteFileFailed": "{{name}} silinemedi",
+    "deleteFileCompactRunning": "Siliniyor",
+    "deleteFileCompactDone": "Sil",
     "directoryTree": "Dizin ağacı",
     "ls": "ls",
     "listDirRunning": "Dizin listeleniyor",
@@ -1068,7 +1115,7 @@
     "pathCopied": "Yol kopyalandı!",
     "failedToCopyPath": "Yol kopyalanamadı",
     "copyFilePath": "Dosya yolunu kopyala",
-    "explore": "Keşfet",
+    "manage": "Yönet",
     "readFile": "Dosya oku",
     "readFileRunning": "Okunuyor",
     "readFileDone": "Oku",
@@ -1091,12 +1138,30 @@
     "editFileDoneNoName": "Dosya düzenlendi",
     "editFileCompactRunning": "Düzenleniyor",
     "editFileCompactDone": "Düzenle",
+    "editFiles": "Dosyaları düzenle",
+    "editSummary": {
+      "edit_one": "{{count}} düzenleme",
+      "edit_other": "{{count}} düzenleme",
+      "read_one": "{{count}} okuma",
+      "read_other": "{{count}} okuma",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Düzenlemeyi denedi",
     "file": "dosya",
     "runShellRunning": "Komut çalıştırılıyor",
     "terminalWaitRunning": "Terminalin bitmesi bekleniyor",
     "runShellDone": "Komut çalıştırıldı",
     "runShellFailed": "Komut başarısız",
+    "runCommands": "Komutları çalıştır",
+    "terminalSummary": {
+      "command_one": "{{count}} komut",
+      "command_other": "{{count}} komut",
+      "wait_one": "{{count}} bekleme",
+      "wait_other": "{{count}} bekleme",
+      "check_one": "{{count}} kontrol",
+      "check_other": "{{count}} kontrol",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Terminaller inceleniyor",
     "inspectTerminalsDone": "Terminaller incelendi",
     "inspectTerminalsFailed": "Terminal incelemesi başarısız",
@@ -1134,6 +1199,7 @@
       "skip": "Atla",
       "noReason": "Agent mod değiştirmeyi öneriyor"
     },
+    "explore": "Keşfet",
     "exploreSummary": {
       "read_one": "{{count}} dosya",
       "read_other": "{{count}} dosya",
@@ -1144,7 +1210,8 @@
       "ls_one": "ls {{count}} klasör",
       "ls_other": "ls {{count}} klasör",
       "lsp_one": "{{count}} LSP sorgusu",
-      "lsp_other": "{{count}} LSP sorgusu"
+      "lsp_other": "{{count}} LSP sorgusu",
+      "separator": ", "
     },
     "categoryRead": "Oku",
     "categorySearch": "Ara",
@@ -1415,9 +1482,6 @@
     "toolSearchRunning": "Araçlar aranıyor",
     "toolSearchDone": "Araçlar arandı",
     "toolSearchFailed": "Araç araması başarısız",
-    "suggestNextStepsRunning": "Sonraki adımlar öneriliyor",
-    "suggestNextStepsDone": "{{count}} sonraki adım önerildi",
-    "suggestNextStepsFailed": "Sonraki adımlar önerilemedi",
     "agentSendMessageRunning": "Takım Agent'ına mesaj gönderiliyor",
     "agentSendMessageDone": "Takım Agent'ına mesaj gönderildi",
     "agentSendMessageFailed": "Takım Agent'ına mesaj gönderilemedi",
@@ -1879,7 +1943,8 @@
       "models": "Modeller",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Komutlar"
     },
     "diffMenu": {
       "gitActions": "GIT eylemleri",
@@ -2289,7 +2354,8 @@
       "Hâlâ düşünülüyor, olağandan uzun sürüyor...",
       "Üzerinde çalışılıyor, olağandan uzun sürüyor...",
       "Sırada ne olacağı değerlendiriliyor, olağandan uzun sürüyor..."
-    ]
+    ],
+    "compacting": "Bağlam sıkıştırılıyor..."
   },
   "revertConfirm": {
     "title": "Kaydedilmemiş dosya değişiklikleri",
@@ -2443,13 +2509,6 @@
       "missing": "Eksik",
       "disabled": "Devre dışı"
     }
-  },
-  "worktreeCompare": {
-    "title": "Worktree'leri Karşılaştır",
-    "button": "Karşılaştır",
-    "buttonTooltip": "Worktree diff'lerini yan yana karşılaştır",
-    "noSessions": "Karşılaştırılacak oturum yok.",
-    "sessionTab": "Oturum {{n}}"
   },
   "groupChat": {
     "senderTitle": {

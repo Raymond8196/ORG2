@@ -217,8 +217,16 @@ fn load_imported_history_sessions(
         0
     };
 
+    let disabled_sources: std::collections::HashSet<&str> = filter
+        .and_then(|filter| filter.disabled_external_history_sources.as_ref())
+        .map(|sources| sources.iter().map(String::as_str).collect())
+        .unwrap_or_default();
+
     for loader in EXTERNAL_HISTORY_SOURCE_LOADERS {
         if source_filter.is_some_and(|source| source != loader.source) {
+            continue;
+        }
+        if disabled_sources.contains(loader.source) {
             continue;
         }
         let page = (loader.load_page)(&mut conn, page_limit, page_offset)?;

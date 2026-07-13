@@ -17,6 +17,7 @@ import {
   GitBranch,
   GitCommitHorizontal,
   GitMerge,
+  GitPullRequest,
   Globe,
   Layout,
   LayoutList,
@@ -78,6 +79,7 @@ const WORKSTATION_TAB_ICONS = {
   GitBranch,
   GitCommitHorizontal,
   GitMerge,
+  GitPullRequest,
   Globe,
   Infinity,
   Layout,
@@ -271,6 +273,10 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
           return `Terminal: ${sessionName || tab.title}`;
         case "output":
           return `Output: ${channelName || tab.title}`;
+        case "github-pr-detail": {
+          const prTitle = tab.data.prTitle as string | undefined;
+          return prTitle ? `#${tab.data.prNumber} ${prTitle}` : tab.title;
+        }
         default:
           return getDisplayTitle();
       }

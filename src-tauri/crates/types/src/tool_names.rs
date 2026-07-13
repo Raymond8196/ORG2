@@ -145,7 +145,6 @@ pub const WORKTREE: &str = "worktree";
 // ── Meta ────────────────────────────────────────────────────────────
 pub const SEND_TO_INBOX: &str = "send_to_inbox";
 pub const SUGGEST_MODE_SWITCH: &str = "suggest_mode_switch";
-pub const SUGGEST_NEXT_STEPS: &str = "suggest_next_steps";
 pub const TOOL_SEARCH: &str = "tool_search";
 
 // ── UI Output ───────────────────────────────────────────────────────

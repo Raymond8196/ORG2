@@ -50,7 +50,6 @@ function getRepresentativeSpotlightActionIds(): Set<string> {
       agentStationChatPosition: "left",
       chatTurnPaginationEnabled: true,
       modelPickerStyle: "spotlight",
-      internalLayoutMode: "comfort",
       workstationSidebarPosition: "left",
       dockAutoHide: true,
     }).map((action) => action.actionId),
@@ -59,7 +58,6 @@ function getRepresentativeSpotlightActionIds(): Set<string> {
       agentStationChatPosition: "right",
       chatTurnPaginationEnabled: false,
       modelPickerStyle: "dropdown",
-      internalLayoutMode: "compact",
       workstationSidebarPosition: "right",
       dockAutoHide: false,
     }).map((action) => action.actionId),
@@ -120,7 +118,7 @@ describe("getAllCoreZodActions", () => {
     expect(ids.has(ACTION_ID.WORKSTATION_TOGGLE_SIDEBAR)).toBe(true);
     expect(ids.has(ACTION_ID.WORKSTATION_OPEN_MY_STATION)).toBe(true);
     expect(ids.has(ACTION_ID.WORKSTATION_OPEN_AGENT_STATION)).toBe(true);
-    expect(ids.has(ACTION_ID.WORKSTATION_OPEN_OPS_CONTROL)).toBe(true);
+    expect(ids.has(ACTION_ID.WORKSTATION_OPEN_KANBAN)).toBe(true);
     expect(ids.has(ACTION_ID.WORKSTATION_OPEN_FILE_FOLDER_TAB)).toBe(true);
     expect(ids.has(ACTION_ID.WORKSTATION_OPEN_SOURCE_CONTROL_TAB)).toBe(true);
     expect(ids.has(ACTION_ID.WORKSTATION_OPEN_TERMINAL_TAB)).toBe(true);

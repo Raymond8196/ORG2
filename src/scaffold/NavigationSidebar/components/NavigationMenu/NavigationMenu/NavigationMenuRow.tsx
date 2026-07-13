@@ -1,4 +1,9 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
+} from "lucide-react";
 import React, { useCallback } from "react";
 
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
@@ -24,10 +29,8 @@ interface NavigationMenuParentRowProps extends Omit<
   isOpen: boolean;
   submenuSelected: boolean;
   collapsed: boolean;
-  t: (key: string) => string;
   renderIcon: NavigationMenuIconRenderer;
   renderMenuItem: NavigationMenuItemRenderer;
-  onMenuItemClick: (key: string, item: NavigationMenuItem) => void;
   onMenuItemContextMenu?: (
     event: React.MouseEvent,
     key: string,
@@ -48,10 +51,8 @@ export const NavigationMenuParentRow = React.forwardRef<
     isOpen,
     submenuSelected,
     collapsed,
-    t,
     renderIcon,
     renderMenuItem,
-    onMenuItemClick,
     onMenuItemContextMenu,
     onRowMouseEnter,
     onToggleSubmenu,
@@ -62,7 +63,7 @@ export const NavigationMenuParentRow = React.forwardRef<
   },
   ref
 ): React.ReactElement {
-  const iconColor = submenuSelected ? "text-primary-6" : "text-text-1";
+  const iconColor = "text-text-1";
   const { dragHandlers, dragState } = useNavItemDrag(item);
   const {
     cursorReset,
@@ -84,7 +85,7 @@ export const NavigationMenuParentRow = React.forwardRef<
       {...rootProps}
       {...dragHandlers}
       ref={ref}
-      className={`mb-1 ${rootProps.className ?? ""} ${item.dragPayload ? "cursor-grab active:cursor-grabbing" : ""}`}
+      className={`${rootProps.className ?? ""} ${item.dragPayload ? "cursor-grab active:cursor-grabbing" : ""}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={handleRootMouseLeave}
       onContextMenu={
@@ -97,27 +98,43 @@ export const NavigationMenuParentRow = React.forwardRef<
       {dragState && <ReferenceDragGhost dragState={dragState} />}
       <div
         data-testid={item.dataTestId}
+        role="button"
+        tabIndex={item.disabled ? -1 : 0}
+        aria-expanded={isOpen}
+        aria-disabled={item.disabled || undefined}
         className={`group flex ${rowHeightClass} items-center justify-between rounded-lg transition-colors duration-150 ${
           isChild ? "pl-5 pr-2" : "px-2"
-        } ${submenuSelected ? "cursor-default bg-fill-2 text-primary-6" : cursorReset ? "cursor-default text-text-1 hover:bg-fill-2" : "cursor-pointer text-text-1 hover:bg-fill-2"}`}
+        } ${submenuSelected ? "bg-sidebar-selected text-text-1" : "text-text-1"} ${
+          item.disabled
+            ? "cursor-default opacity-60"
+            : `${cursorReset ? "cursor-default" : "cursor-pointer"} hover:bg-sidebar-selected`
+        }`}
         onClick={() => {
           if (item.disabled) return;
           markClicked();
-          onMenuItemClick(item.key, item);
+          onToggleSubmenu(item.key);
+        }}
+        onKeyDown={(event) => {
+          if (item.disabled || (event.key !== "Enter" && event.key !== " ")) {
+            return;
+          }
+          event.preventDefault();
+          markClicked();
+          onToggleSubmenu(item.key);
         }}
         onMouseEnter={(event: React.MouseEvent) =>
           onRowMouseEnter(event, item.routePath)
         }
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          {renderIcon(item.icon, item.iconName, iconColor, item.iconElement)}
+          {renderLeadingIcon({
+            item,
+            iconColor,
+            renderIcon,
+          })}
           {!collapsed && (
             <div className="flex min-w-0 flex-1 flex-col gap-0">
-              <span
-                className={`truncate text-[13px] ${
-                  submenuSelected ? "font-medium text-primary-6" : "text-text-1"
-                }`}
-              >
+              <span className="truncate text-[13px] text-text-1">
                 {item.label}
               </span>
               {item.subtitle && (
@@ -135,26 +152,19 @@ export const NavigationMenuParentRow = React.forwardRef<
                 {item.trailingElement}
               </span>
             )}
-            <button
-              type="button"
-              aria-label={isOpen ? t("actions.collapse") : t("actions.expand")}
-              title={isOpen ? t("actions.collapse") : t("actions.expand")}
-              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-text-3 transition-colors duration-150 hover:bg-fill-2 hover:text-text-1 focus:outline-none"
-              data-testid={`${item.key}-session-tree-toggle`}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                onToggleSubmenu(item.key);
-              }}
-            >
-              <ChevronDown
+            {isOpen ? (
+              <ChevronsDownUp
                 size={12}
                 strokeWidth={2}
-                className={`transition-transform duration-200 ${
-                  isOpen ? "rotate-180" : ""
-                } ${submenuSelected ? "text-primary-6" : "text-text-2"}`}
+                className="shrink-0 text-text-2"
               />
-            </button>
+            ) : (
+              <ChevronsUpDown
+                size={12}
+                strokeWidth={2}
+                className="shrink-0 text-text-2"
+              />
+            )}
           </span>
         )}
       </div>
@@ -221,7 +231,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
       ? "text-text-2"
       : "text-text-3"
     : isSelected
-      ? "text-primary-6"
+      ? "text-text-1"
       : isSecondaryTone
         ? "text-text-2"
         : "text-text-1";
@@ -232,6 +242,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
     markClicked,
     resetCursor: resetImmediateCursor,
   } = useImmediateCursorReset(isSelected, !item.disabled);
+  const showIndentGuide = Boolean(item.showIndentGuide);
 
   const handleRootMouseLeave = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -247,7 +258,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
       {...rootProps}
       {...dragHandlers}
       ref={ref}
-      className={`${rootProps.className ?? ""} ${item.dragPayload ? "cursor-grab active:cursor-grabbing" : ""}`}
+      className={`${rootProps.className ?? ""} ${showIndentGuide ? "relative pl-4" : ""} ${item.dragPayload ? "cursor-grab active:cursor-grabbing" : ""}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={handleRootMouseLeave}
       onContextMenu={(event: React.MouseEvent) =>
@@ -255,6 +266,9 @@ export const NavigationMenuLeafRow = React.forwardRef<
       }
     >
       {dragState && <ReferenceDragGhost dragState={dragState} />}
+      {showIndentGuide && (
+        <span className="pointer-events-none absolute -bottom-0.5 -top-0.5 left-2 w-px bg-border-3" />
+      )}
       <div
         data-testid={item.dataTestId}
         className={`group flex ${rowHeightClass} items-center justify-between overflow-hidden rounded-lg transition-colors duration-150 ${
@@ -265,14 +279,18 @@ export const NavigationMenuLeafRow = React.forwardRef<
               ? "cursor-default text-text-2 opacity-60"
               : "cursor-default text-text-3 opacity-60"
             : isSelected
-              ? "cursor-default bg-fill-2 text-primary-6"
+              ? "cursor-default bg-sidebar-selected text-text-1"
               : isSecondaryTone
-                ? `${cursorReset ? "cursor-default" : "cursor-pointer"} text-text-2 hover:bg-fill-2 hover:text-text-1`
-                : `${cursorReset ? "cursor-default" : "cursor-pointer"} text-text-1 hover:bg-fill-2`
+                ? `${cursorReset ? "cursor-default" : "cursor-pointer"} text-text-2 hover:bg-sidebar-selected hover:text-text-1`
+                : `${cursorReset ? "cursor-default" : "cursor-pointer"} text-text-1 hover:bg-sidebar-selected`
         }`}
         onClick={(event: React.MouseEvent) => {
           if (item.disabled) return;
-          if (isSelected && onMenuItemContextMenu) {
+          if (
+            isSelected &&
+            item.openContextMenuOnSelectedClick &&
+            onMenuItemContextMenu
+          ) {
             onMenuItemContextMenu(event, item.key, item);
             return;
           }
@@ -284,7 +302,11 @@ export const NavigationMenuLeafRow = React.forwardRef<
         }
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          {renderIcon(item.icon, item.iconName, iconColor, item.iconElement)}
+          {renderLeadingIcon({
+            item,
+            iconColor,
+            renderIcon,
+          })}
           {!collapsed && (
             <div className="flex min-w-0 flex-1 flex-col gap-0">
               <span
@@ -294,7 +316,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
                       ? "text-text-2"
                       : "text-text-3"
                     : isSelected
-                      ? "font-medium text-primary-6"
+                      ? "text-text-1"
                       : isSecondaryTone
                         ? "text-text-2"
                         : "text-text-1"
@@ -322,6 +344,52 @@ export const NavigationMenuLeafRow = React.forwardRef<
     </div>
   );
 });
+
+interface RenderLeadingIconArgs {
+  item: NavigationMenuItem;
+  iconColor: string;
+  renderIcon: NavigationMenuIconRenderer;
+}
+
+function renderLeadingIcon({
+  item,
+  iconColor,
+  renderIcon,
+}: RenderLeadingIconArgs): React.ReactNode {
+  const icon = renderIcon(
+    item.icon,
+    item.iconName,
+    iconColor,
+    item.iconElement
+  );
+  const action = item.iconAction;
+  if (!action) return icon;
+
+  const ActionIcon = action.icon ?? ChevronDown;
+
+  return (
+    <span className="relative inline-flex h-[14px] w-[14px] flex-shrink-0 items-center justify-center leading-none">
+      <span className="inline-flex items-center justify-center leading-none transition-opacity duration-150 group-focus-within:pointer-events-none group-focus-within:opacity-0 group-hover:pointer-events-none group-hover:opacity-0">
+        {icon}
+      </span>
+      <button
+        type="button"
+        aria-label={action.label}
+        title={action.label}
+        className={`pointer-events-none absolute left-1/2 top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded opacity-0 transition-[background-color,color,opacity] duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:pointer-events-auto focus:opacity-100 focus:outline-none group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 ${
+          action.active ? "text-text-1" : "text-text-3"
+        }`}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          action.onClick(event);
+        }}
+      >
+        <ActionIcon size={14} strokeWidth={2} />
+      </button>
+    </span>
+  );
+}
 
 interface RenderLeafRowAccessoryArgs {
   item: NavigationMenuItem;
@@ -385,9 +453,11 @@ function renderLeafRowAccessory({
           {item.trailingElement}
           {item.showDrillDownIndicator && (
             <ChevronRight
-              size={13}
+              size={12}
               strokeWidth={2}
-              className={isSelected ? "text-primary-6" : "text-text-3"}
+              className={
+                isSelected ? "shrink-0 text-text-1" : "shrink-0 text-text-2"
+              }
             />
           )}
         </>

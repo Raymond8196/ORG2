@@ -46,6 +46,7 @@ export interface NavigationSidebarProps {
   pinnedMenuItems?: NavigationMenuItem[];
   selectedKey?: string;
   onMenuItemClick?: (key: string, item: NavigationMenuItem) => void;
+  onSubmenuOpenChange?: (key: string, open: boolean) => void;
   onMenuItemContextMenu?: (
     e: React.MouseEvent,
     key: string,
@@ -164,6 +165,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
     pinnedMenuItems = [],
     selectedKey,
     onMenuItemClick,
+    onSubmenuOpenChange,
     onMenuItemContextMenu,
     renderMenuItemWrapper,
     defaultOpenKeys = [],
@@ -393,6 +395,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
               enableHoverIconAnimation={enableHoverIconAnimation}
               compactRows={compactRows}
               onMenuItemClick={handleMenuItemClick}
+              onSubmenuOpenChange={onSubmenuOpenChange}
               onMenuItemContextMenu={handleMenuItemContextMenu}
               renderMenuItemWrapper={renderMenuItemWrapper}
             />
@@ -446,7 +449,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                                   type="button"
                                   title={action.label}
                                   aria-label={action.label}
-                                  className="flex h-5 w-5 items-center justify-center rounded text-text-2 transition-colors duration-150 hover:bg-fill-2 hover:text-text-1 focus:outline-none"
+                                  className="flex h-5 w-5 items-center justify-center rounded text-text-2 transition-colors duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:outline-none"
                                   onClick={(event) => {
                                     event.preventDefault();
                                     event.stopPropagation();
@@ -476,6 +479,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                       enableHoverIconAnimation={enableHoverIconAnimation}
                       compactRows={compactRows}
                       onMenuItemClick={handleMenuItemClick}
+                      onSubmenuOpenChange={onSubmenuOpenChange}
                       onMenuItemContextMenu={handleMenuItemContextMenu}
                       renderMenuItemWrapper={renderMenuItemWrapper}
                     />

@@ -66,6 +66,7 @@ import { REPO_KIND } from "@src/store/repo/types";
 import {
   CLI_LAUNCH_MODE,
   SESSION_TARGET_KIND,
+  type WorktreeLaunchSource,
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
@@ -78,6 +79,7 @@ import {
   sessionCreatorStateAtom,
   sessionSourceAtom,
   sessionTargetKindAtom,
+  worktreeLaunchSourceAtom,
 } from "@src/store/session";
 import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
 import { creatorDefaultTuiModeAtom } from "@src/store/session/creatorDefaultTuiModeAtom";
@@ -315,13 +317,35 @@ const SessionCreatorChatPanelSingle: React.FC<
   const runningLocation = useAtomValue(runningLocationAtom);
   const setRunningLocation = useSetAtom(runningLocationAtom);
   const setSelectedWorktreePath = useSetAtom(selectedWorktreePathAtom);
+  const worktreeLaunchSource = useAtomValue(worktreeLaunchSourceAtom);
+  const setWorktreeLaunchSource = useSetAtom(worktreeLaunchSourceAtom);
 
   const handleWorktreeLocationChange = useCallback(
     (location: Parameters<typeof setRunningLocation>[0]) => {
       setSelectedWorktreePath(null);
+      if (location !== "worktree") {
+        setWorktreeLaunchSource(null);
+      }
       setRunningLocation(location);
     },
-    [setRunningLocation, setSelectedWorktreePath]
+    [setRunningLocation, setSelectedWorktreePath, setWorktreeLaunchSource]
+  );
+
+  const handleWorktreeSourceSelect = useCallback(
+    (source: WorktreeLaunchSource) => {
+      setSelectedWorktreePath(null);
+      setWorktreeLaunchSource(source);
+      setRunningLocation("worktree");
+      if (source.baseBranch) {
+        handleBranchChange(source.baseBranch);
+      }
+    },
+    [
+      handleBranchChange,
+      setRunningLocation,
+      setSelectedWorktreePath,
+      setWorktreeLaunchSource,
+    ]
   );
 
   const agentVariant = getRustAgentType(selectedAgentDefId);
@@ -735,7 +759,11 @@ const SessionCreatorChatPanelSingle: React.FC<
       branchLoading={branchLoading && !effectiveBranchName}
       onBranchChange={handleBranchChange}
       worktreeLocation={isDisplayedSystemPath ? undefined : runningLocation}
+      worktreeSourceLabel={
+        runningLocation === "worktree" ? worktreeLaunchSource?.label : undefined
+      }
       onWorktreeLocationChange={handleWorktreeLocationChange}
+      onWorktreeSourceSelect={handleWorktreeSourceSelect}
       fullWidth
       pillVariant={headerLayout === "compact" ? "ghost" : undefined}
     />
@@ -801,58 +829,54 @@ const SessionCreatorChatPanelSingle: React.FC<
     ) : null;
 
   const editorArea = (
-    <div className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}>
-      <EditorArea
-        variant="chatPanelFullScreen"
-        uploadedFiles={uploadedFiles}
-        onRemoveFile={handleRemoveFile}
-        composerInputRef={composerInputRef}
-        onContentChange={handleContentChangeWithTracking}
-        onAtMention={handleAtMention}
-        onAtMentionClose={handleAtMentionClose}
-        onSubmit={handleLaunch}
-        showContextMenu={showContextMenu}
-        setShowContextMenu={setShowContextMenu}
-        atSearchQuery={atSearchQuery}
-        setAtSearchQuery={setAtSearchQuery}
-        onAtSelect={handleAtSelect}
-        repoPath={currentRepoPath}
-        onAtMentionClick={handleAtMentionClick}
-        onUploadClick={handleUploadClick}
-        isLoading={isLoading}
-        onLaunch={handleLaunch}
-        advancedConfig={advancedConfig}
-        onAdvancedConfigChange={handleAdvancedConfigChange}
-        hideInfoLine={true}
-        repoId={displayedRepoId}
-        repoName={displayedRepoName}
-        repoKind={isOSMode && !sessionRepoId ? undefined : currentRepo?.kind}
-        branchName={
-          isOSMode && !sessionRepoId ? undefined : effectiveBranchName
-        }
-        onBranchChange={handleBranchChange}
-        onImagePaste={handleImagePaste}
-        attachedImages={attachedImages}
-        onRemoveImage={removeImage}
-        launchDisabled={!canLaunch}
-        requestModelOpen={requestModelOpen}
-        onModelOpenHandled={() => setRequestModelOpen(false)}
-        shellClassName="session-creator-chat-panel-fullscreen-input-shell"
-        initialContent={initialRestoreText || initialContent || undefined}
-        autoFocus
-        showSlashMenu={showSlashMenu}
-        slashQuery={slashQuery}
-        slashCommandKeyboardHandlerRef={slashCommandKeyboardHandlerRef}
-        onSlashCommand={handleSlashCommand}
-        onSlashCommandClose={handleSlashCommandClose}
-        onSlashSelect={handleSlashSelect}
-        onModeSelect={handleModeSelect}
-        currentMode={currentMode}
-        filteredSlashItems={filteredSlashItems}
-        slashLoading={slashLoading}
-        dropdownDirection={dropdownDirection}
-      />
-    </div>
+    <EditorArea
+      variant="chatPanelFullScreen"
+      uploadedFiles={uploadedFiles}
+      onRemoveFile={handleRemoveFile}
+      composerInputRef={composerInputRef}
+      onContentChange={handleContentChangeWithTracking}
+      onAtMention={handleAtMention}
+      onAtMentionClose={handleAtMentionClose}
+      onSubmit={handleLaunch}
+      showContextMenu={showContextMenu}
+      setShowContextMenu={setShowContextMenu}
+      atSearchQuery={atSearchQuery}
+      setAtSearchQuery={setAtSearchQuery}
+      onAtSelect={handleAtSelect}
+      repoPath={currentRepoPath}
+      onAtMentionClick={handleAtMentionClick}
+      onUploadClick={handleUploadClick}
+      isLoading={isLoading}
+      onLaunch={handleLaunch}
+      advancedConfig={advancedConfig}
+      onAdvancedConfigChange={handleAdvancedConfigChange}
+      hideInfoLine={true}
+      repoId={displayedRepoId}
+      repoName={displayedRepoName}
+      repoKind={isOSMode && !sessionRepoId ? undefined : currentRepo?.kind}
+      branchName={isOSMode && !sessionRepoId ? undefined : effectiveBranchName}
+      onBranchChange={handleBranchChange}
+      onImagePaste={handleImagePaste}
+      attachedImages={attachedImages}
+      onRemoveImage={removeImage}
+      launchDisabled={!canLaunch}
+      requestModelOpen={requestModelOpen}
+      onModelOpenHandled={() => setRequestModelOpen(false)}
+      shellClassName="session-creator-chat-panel-fullscreen-input-shell"
+      initialContent={initialRestoreText || initialContent || undefined}
+      autoFocus
+      showSlashMenu={showSlashMenu}
+      slashQuery={slashQuery}
+      slashCommandKeyboardHandlerRef={slashCommandKeyboardHandlerRef}
+      onSlashCommand={handleSlashCommand}
+      onSlashCommandClose={handleSlashCommandClose}
+      onSlashSelect={handleSlashSelect}
+      onModeSelect={handleModeSelect}
+      currentMode={currentMode}
+      filteredSlashItems={filteredSlashItems}
+      slashLoading={slashLoading}
+      dropdownDirection={dropdownDirection}
+    />
   );
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -930,7 +954,7 @@ const SessionCreatorChatPanelSingle: React.FC<
       data-testid="session-creator-chat-panel"
     >
       <div
-        className={`session-creator-chat-panel-content flex min-h-0 flex-1 items-center justify-center px-4 ${
+        className={`session-creator-chat-panel-content flex min-h-0 flex-1 items-center justify-center px-4 ${DETAIL_PANEL_TOKENS.headerWidth} ${
           innerClassName ??
           (isFullScreenVariant
             ? centerFullScreenContent
@@ -939,9 +963,7 @@ const SessionCreatorChatPanelSingle: React.FC<
             : "pb-[4vh]")
         }`}
       >
-        <div
-          className={`flex w-full flex-col items-stretch gap-3 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-        >
+        <div className="flex w-full flex-col items-stretch gap-3">
           {isCliTuiMode ? (
             <>
               {headerLayout !== "compact" && (

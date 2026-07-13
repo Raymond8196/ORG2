@@ -78,14 +78,55 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Session",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Aktuelles Kanban",
     "view": {
       "list": "Liste",
       "diary": "Tagebuch",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Datenquellen"
+    },
+    "dataSource": {
+      "title": "Datenquellen",
+      "description": "Externe Coding-Tools, die ORGII erkennt. Importierbare Apps zeigen ihre Sitzungsanzahl und können neu gescannt werden; die übrigen zeigen den Installationsstatus und wo ihr Verlauf liegt.",
+      "rescanAll": "Alle neu scannen",
+      "rescan": "Neu scannen",
+      "rescanning": "Wird neu gescannt…",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "lastScan": "Letzter Scan {{time}}",
+      "neverScanned": "Nie gescannt",
+      "frequencyTitle": "Auto-Scan-Frequenz",
+      "globalFrequency": "Auto-Scan",
+      "freq": {
+        "default": "Standard",
+        "manual": "Manuell",
+        "60s": "Alle 60s",
+        "5m": "Alle 5 Min",
+        "1h": "Stündlich",
+        "1d": "Täglich"
+      },
+      "openFolder": "Ordner öffnen",
+      "tabs": {
+        "all": "Alle",
+        "apps": "Apps",
+        "clis": "CLIs"
+      },
+      "sessions_one": "{{count}} Sitzung",
+      "sessions_other": "{{count}} Sitzungen",
+      "noPath": "Kein Pfad erkannt",
+      "notImported": "Nicht importiert",
+      "status": {
+        "ready": "Bereit",
+        "empty": "Kein Verlauf",
+        "loading": "Wird geprüft…",
+        "error": "Fehler",
+        "installed": "Installiert",
+        "notInstalled": "Nicht erkannt",
+        "disabled": "Deaktiviert"
+      }
     },
     "list": {
       "updated": "Aktualisiert",
@@ -181,11 +222,6 @@
       "merge": "Zusammenführen",
       "merging": "Zusammenführen…",
       "merged": "Zusammengeführt"
-    },
-    "diff": {
-      "openDiffWindow": "Diff anzeigen",
-      "windowTitle": "Session-Diff",
-      "filesChanged": "Dateien"
     },
     "replay": {
       "replaySession": "Wiedergeben"
@@ -406,7 +442,6 @@
         "interactionAskQuestion": "Frage",
         "interactionAskPermission": "Berechtigungsanfrage",
         "interactionModeSwitch": "Moduswechsel",
-        "interactionNextSteps": "Nächste Schritte",
         "interactionPlanDoc": "Plan-Dokument",
         "interactionGeneric": "Interaktion"
       },
@@ -669,7 +704,9 @@
       "empty": "Keine Aktionen gefunden.",
       "unpinAll": "Alle lösen",
       "insert": "Einfügen"
-    }
+    },
+    "compactArgHint": "<optionaler Fokus für die Zusammenfassung>",
+    "compactCommandDescription": "Älteren Kontext zusammenfassen, um Platz freizugeben. Optional: /compact <Fokus für die Zusammenfassung>"
   },
   "listPanel": {
     "showingOf": "{{filtered}} von {{total}} angezeigt",
@@ -714,12 +751,15 @@
       "addApiKey": {
         "title": "API key hinzufügen"
       },
+      "installLatestUpdate": {
+        "title": "Neueste Aktualisierung installieren"
+      },
       "agents": {
         "title": "Agents"
       },
       "tabs": {
         "work": "Arbeit",
-        "explore": "Entdecken",
+        "manage": "Verwalten",
         "heatmap": "Trends"
       },
       "heatmap": {
@@ -732,6 +772,9 @@
       "quota": {
         "empty": "Noch keine Quota-Daten. Nutzung im Key Vault aktualisieren.",
         "refresh": "Aktualisieren",
+        "justNow": "gerade eben",
+        "minutesAgo": "vor {{count}} Min.",
+        "hoursAgo": "vor {{count}}Std",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7T",
@@ -982,9 +1025,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Alle Status",
+        "assignedToMe": "Mir zugewiesen",
+        "createdByMe": "Von mir erstellt",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1026,6 +1069,8 @@
     "deleteFileRunning": "{{name}} wird gelöscht",
     "deleteFileDone": "{{name}} gelöscht",
     "deleteFileFailed": "{{name}} konnte nicht gelöscht werden",
+    "deleteFileCompactRunning": "Wird gelöscht",
+    "deleteFileCompactDone": "Löschen",
     "directoryTree": "Verzeichnisbaum",
     "ls": "ls",
     "listDirRunning": "Verzeichnis wird aufgelistet",
@@ -1068,7 +1113,7 @@
     "pathCopied": "Pfad kopiert!",
     "failedToCopyPath": "Pfad konnte nicht kopiert werden",
     "copyFilePath": "Dateipfad kopieren",
-    "explore": "Erkunden",
+    "manage": "Verwalten",
     "readFile": "Datei lesen",
     "readFileRunning": "Wird gelesen",
     "readFileDone": "Lesen",
@@ -1091,12 +1136,30 @@
     "editFileDoneNoName": "Datei bearbeitet",
     "editFileCompactRunning": "Bearbeiten",
     "editFileCompactDone": "Bearbeiten",
+    "editFiles": "Dateien bearbeiten",
+    "editSummary": {
+      "edit_one": "{{count}} Änderung",
+      "edit_other": "{{count}} Änderungen",
+      "read_one": "{{count}} Lesevorgang",
+      "read_other": "{{count}} Lesevorgänge",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Bearbeitungsversuch",
     "file": "Datei",
     "runShellRunning": "Befehl wird ausgeführt",
     "terminalWaitRunning": "Warten, bis das Terminal fertig ist",
     "runShellDone": "Befehl ausgeführt",
     "runShellFailed": "Befehl fehlgeschlagen",
+    "runCommands": "Befehle ausführen",
+    "terminalSummary": {
+      "command_one": "{{count}} Befehl",
+      "command_other": "{{count}} Befehle",
+      "wait_one": "{{count}} Wartevorgang",
+      "wait_other": "{{count}} Wartevorgänge",
+      "check_one": "{{count}} Prüfung",
+      "check_other": "{{count}} Prüfungen",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Terminals werden geprüft",
     "inspectTerminalsDone": "Terminals geprüft",
     "inspectTerminalsFailed": "Terminal-Prüfung fehlgeschlagen",
@@ -1130,6 +1193,7 @@
       "skip": "Überspringen",
       "noReason": "Der Agent schlägt einen Moduswechsel vor"
     },
+    "explore": "Erkunden",
     "exploreSummary": {
       "read_one": "{{count}} Datei",
       "read_other": "{{count}} Dateien",
@@ -1140,7 +1204,8 @@
       "ls_one": "ls {{count}} Ordner",
       "ls_other": "ls {{count}} Ordner",
       "lsp_one": "{{count}} LSP-Abfrage",
-      "lsp_other": "{{count}} LSP-Abfragen"
+      "lsp_other": "{{count}} LSP-Abfragen",
+      "separator": ", "
     },
     "categoryRead": "Lesen",
     "categorySearch": "Suche",
@@ -1415,9 +1480,6 @@
     "toolSearchRunning": "Tools werden gesucht",
     "toolSearchDone": "Tools durchsucht",
     "toolSearchFailed": "Tool-Suche fehlgeschlagen",
-    "suggestNextStepsRunning": "Nächste Schritte werden vorgeschlagen",
-    "suggestNextStepsDone": "{{count}} nächste Schritte vorgeschlagen",
-    "suggestNextStepsFailed": "Nächste Schritte konnten nicht vorgeschlagen werden",
     "agentSendMessageRunning": "Nachricht wird an Team-Agent gesendet",
     "agentSendMessageDone": "Nachricht an Team-Agent gesendet",
     "agentSendMessageFailed": "Nachricht an Team-Agent konnte nicht gesendet werden",
@@ -1879,7 +1941,8 @@
       "models": "Modelle",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Befehle"
     },
     "diffMenu": {
       "gitActions": "GIT-Aktionen",
@@ -2288,7 +2351,8 @@
       "Denke noch nach, dauert länger als üblich...",
       "Arbeite daran, dauert länger als üblich...",
       "Überlege, was als Nächstes kommt, dauert länger als üblich..."
-    ]
+    ],
+    "compacting": "Kontext wird komprimiert..."
   },
   "revertConfirm": {
     "title": "Nicht gespeicherte Dateiänderungen",
@@ -2442,13 +2506,6 @@
       "missing": "Fehlt",
       "disabled": "Deaktiviert"
     }
-  },
-  "worktreeCompare": {
-    "title": "Worktrees vergleichen",
-    "button": "Vergleichen",
-    "buttonTooltip": "Worktree-Diffs nebeneinander vergleichen",
-    "noSessions": "Keine Sitzungen zum Vergleichen.",
-    "sessionTab": "Session {{n}}"
   },
   "groupChat": {
     "senderTitle": {

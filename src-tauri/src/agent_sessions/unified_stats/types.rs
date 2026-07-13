@@ -6,6 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 use core_types::key_source::KeySource;
+use orgtrack_core::sources::imported_history::ImportedHistorySidebarRow;
 
 // ============================================================================
 // Core Types
@@ -227,8 +228,15 @@ pub struct KeySourceStats {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AggregateStats {
-    /// Total cost in USD (estimated from tokens)
+    /// Headline total cost in USD: recorded metered spend where known, else the
+    /// list-price estimate. Preserves the historical single-figure semantics.
     pub total_cost_usd: f64,
+    /// Total real metered spend across sessions (pooled / hosted-key routes).
+    #[serde(default)]
+    pub total_recorded_cost_usd: f64,
+    /// Total list-price estimate across sessions (tokens × catalog rate).
+    #[serde(default)]
+    pub total_estimated_cost_usd: f64,
     /// Total input tokens
     pub total_tokens_input: i64,
     /// Total output tokens
@@ -296,6 +304,10 @@ pub struct SessionFilter {
     /// Filter imported external history rows by source subtype.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub external_history_source: Option<String>,
+    /// External history sources the user has disabled — skipped entirely when
+    /// loading imported history so their sessions never surface (no disk read).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disabled_external_history_sources: Option<Vec<String>>,
     /// Only include sessions created at or after this epoch millisecond.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_after_ms: Option<i64>,
@@ -320,6 +332,40 @@ pub struct SessionListResponse {
     pub sessions: Vec<SessionAggregateRecord>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stats: Option<SessionStats>,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ExternalHistorySidebarDateBucket {
+    Today,
+    Yesterday,
+    ThisWeek,
+    Older,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySidebarBucketRequest {
+    pub bucket: ExternalHistorySidebarDateBucket,
+    pub start_ms: Option<i64>,
+    pub end_ms: Option<i64>,
+    pub limit: usize,
+    pub offset: usize,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySidebarBucketPage {
+    pub bucket: ExternalHistorySidebarDateBucket,
+    pub sessions: Vec<ImportedHistorySidebarRow>,
+    pub has_more: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySidebarResponse {
+    pub source: String,
+    pub buckets: Vec<ExternalHistorySidebarBucketPage>,
 }
 
 // ============================================================================
@@ -415,7 +461,14 @@ pub struct UsageRecord {
     pub provider: String,
     pub model: String,
     pub tokens: i64,
+    /// Headline cost: recorded metered spend where known, else the estimate.
     pub cost: f64,
+    /// Real metered spend for this session (`$0` for own-key / subscription).
+    #[serde(default)]
+    pub recorded_cost: f64,
+    /// List-price estimate: tokens × catalog rate.
+    #[serde(default)]
+    pub estimated_cost: f64,
     pub status: String,
     pub created_at: String,
 }

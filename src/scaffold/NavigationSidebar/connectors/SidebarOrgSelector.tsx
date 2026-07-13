@@ -1,8 +1,10 @@
 import { Plus } from "lucide-react";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import Select, { type SelectOption } from "@src/components/Select";
+import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
 
 interface SidebarOrgSelectorProps {
   value: string;
@@ -14,6 +16,9 @@ interface SidebarOrgSelectorProps {
 
 const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
   ({ value, options, addOrgLabel, onChange, onAddOrg }) => {
+    const { t } = useTranslation("navigation");
+    const [menuOpen, setMenuOpen] = useState(false);
+
     const handleChange = useCallback(
       (nextValue: string | number | (string | number)[]) => {
         if (Array.isArray(nextValue)) return;
@@ -42,21 +47,36 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
     );
 
     return (
-      <div className="mb-1 px-3">
-        <Select
-          value={value}
-          options={options}
-          onChange={handleChange}
-          dropdownRender={renderDropdown}
-          variant="ghost"
-          size="small"
-          radius="lg"
-          dropdownWidthMode="match"
-          dropdownAlign="left"
-          className="h-7"
-          selectorClassName="h-7 !px-2 text-[12px] font-normal [&_.select-suffix]:ml-1 [&_.select-value]:text-[12px]"
-          dataTestId="sidebar-org-selector"
-        />
+      <div className="w-full min-w-0 [&>span]:w-full">
+        <WorkstationToolbarTooltip
+          label={t("collaboration.switchOrg")}
+          position="top"
+          disabled={menuOpen}
+        >
+          <div className="w-full min-w-0">
+            <Select
+              value={value}
+              options={options}
+              onChange={handleChange}
+              onVisibleChange={setMenuOpen}
+              dropdownRender={renderDropdown}
+              variant="ghost"
+              size="small"
+              radius="pill"
+              dropdownWidth={250}
+              dropdownAlign="left"
+              className="h-7 w-full"
+              style={
+                {
+                  "--select-ghost-hover-bg": "var(--sidebar-selected-row-bg)",
+                  "--select-ghost-open-bg": "var(--sidebar-selected-row-bg)",
+                } as React.CSSProperties
+              }
+              selectorClassName="h-7 !px-2 text-[12px] font-normal [&_.select-suffix]:ml-1 [&_.select-value]:text-[12px]"
+              dataTestId="sidebar-org-selector"
+            />
+          </div>
+        </WorkstationToolbarTooltip>
       </div>
     );
   }

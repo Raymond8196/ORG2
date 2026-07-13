@@ -228,13 +228,8 @@ const WorkItemDetailEntry: RendererEntry = {
 };
 
 // ============================================
-// Ops Control / Launchpad renderers
+// Launchpad renderers
 // ============================================
-
-const OpsControlStationEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/opsControlStation")),
-  debugLabel: "ops-control-station",
-};
 
 const BenchmarkEntry: RendererEntry = {
   Component: lazy(() => import("./renderers/benchmark")),
@@ -257,6 +252,11 @@ const CanvasPreviewEntry: RendererEntry = {
 const GitHubIssueDetailEntry: RendererEntry = {
   Component: lazy(() => import("./renderers/githubIssueDetail")),
   debugLabel: "github-issue-detail",
+};
+
+const GitHubPrDetailEntry: RendererEntry = {
+  Component: lazy(() => import("./renderers/githubPrDetail")),
+  debugLabel: "github-pr-detail",
 };
 
 // ============================================
@@ -315,14 +315,14 @@ export const REGISTRY: TabContentRegistry = {
   // Agent Config (Agent Teams page → opens here)
   "agent-config": AgentConfigEntry,
 
-  // Ops Control
-  "ops-control-station": OpsControlStationEntry,
-
   // Canvas Preview
   "canvas-preview": CanvasPreviewEntry,
 
   // GitHub Issue Detail
   "github-issue-detail": GitHubIssueDetailEntry,
+
+  // GitHub PR Detail
+  "github-pr-detail": GitHubPrDetailEntry,
 };
 
 // Exhaustiveness check: any missing WorkStationTabType becomes a TS error.

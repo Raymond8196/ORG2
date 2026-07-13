@@ -85,6 +85,75 @@ pub(super) enum CompactionPhaseOutcome {
 }
 
 impl UnifiedMessageProcessor {
+    /// Reactive-path LLM compaction with a last-resort rescue.
+    ///
+    /// The provider has ALREADY rejected the prompt when this runs, so a
+    /// `Failed` outcome here means the turn dies. Instead of bouncing the
+    /// user to manual `/compact`, run the manual-compact semantics
+    /// ourselves as a rescue: `compact_manual_force` ignores the failure
+    /// circuit breaker (past failures must not doom the current stuck
+    /// session), zeroes the trigger ratio, and drops the keep floor to the
+    /// aggressive manual level — exactly what the user would get by
+    /// running `/compact` by hand. Only if the rescue also fails does the
+    /// failure propagate.
+    async fn reactive_llm_compact_with_rescue(
+        &self,
+        session_id: &str,
+        tail: &[Value],
+        budget_tokens: usize,
+    ) -> (Vec<Value>, CompactionOutcome) {
+        let mut state = self.compaction_state.lock().await;
+        let (compacted, outcome) = ContextCompactor::compact(
+            tail,
+            budget_tokens,
+            &self.runtime.resolved.compaction,
+            &mut state,
+            self.runtime.provider.as_ref(),
+            &self.runtime.model,
+        )
+        .await;
+
+        let CompactionOutcome::Failed { reason } = outcome else {
+            return (compacted, outcome);
+        };
+
+        warn!(
+            "[unified_processor] Reactive compaction failed for session {} ({}) — attempting manual-force rescue",
+            session_id, reason
+        );
+        match ContextCompactor::compact_manual_force(
+            tail,
+            budget_tokens,
+            &self.runtime.resolved.compaction,
+            &mut state,
+            self.runtime.provider.as_ref(),
+            &self.runtime.model,
+            None,
+        )
+        .await
+        {
+            Ok((rescued, rescue_outcome @ CompactionOutcome::Compacted { .. })) => {
+                info!(
+                    "[unified_processor] Manual-force rescue succeeded for session {}",
+                    session_id
+                );
+                (rescued, rescue_outcome)
+            }
+            Ok((_, _)) => (
+                tail.to_vec(),
+                CompactionOutcome::Failed {
+                    reason: format!("{reason}; rescue found nothing to compact"),
+                },
+            ),
+            Err(rescue_err) => (
+                tail.to_vec(),
+                CompactionOutcome::Failed {
+                    reason: format!("{reason}; rescue also failed: {rescue_err}"),
+                },
+            ),
+        }
+    }
+
     /// Reactive (mid-turn) compaction used by the ContextTooLong retry
     /// path. Mirrors the pre-turn pipeline — runtime system prefix is
     /// protected, SM-compact is tried first (zero API calls), the LLM
@@ -179,16 +248,9 @@ impl UnifiedMessageProcessor {
             ) {
                 // SM-compact not enough — fall through to LLM compaction on
                 // the SM-compacted tail.
-                let mut state = self.compaction_state.lock().await;
-                let (compacted, llm_outcome) = ContextCompactor::compact(
-                    &cleaned_tail,
-                    budget_tokens,
-                    &self.runtime.resolved.compaction,
-                    &mut state,
-                    self.runtime.provider.as_ref(),
-                    &self.runtime.model,
-                )
-                .await;
+                let (compacted, llm_outcome) = self
+                    .reactive_llm_compact_with_rescue(session_id, &cleaned_tail, budget_tokens)
+                    .await;
                 let cleaned = crate::model_context::cleanup::post_compact_cleanup(compacted);
                 *messages = append_compacted_tail(&prefix, cleaned);
                 outcome = llm_outcome;
@@ -206,16 +268,14 @@ impl UnifiedMessageProcessor {
             let mut sm_state = self.sm_state.lock().await;
             sm_state.last_summarized_msg_idx = None;
         } else {
-            let mut state = self.compaction_state.lock().await;
-            let (compacted, llm_outcome) = ContextCompactor::compact(
-                &compactable_tail,
-                budget_tokens,
-                &self.runtime.resolved.compaction,
-                &mut state,
-                self.runtime.provider.as_ref(),
-                &self.runtime.model,
-            )
-            .await;
+            // No fork-form here (unlike pre-turn): reactive compaction runs
+            // right after the provider REJECTED this exact prefix as too
+            // long — resending it with a summary request appended would be
+            // rejected identically. The side-query path with head-dropping
+            // PTL retries is the only viable shape mid-turn.
+            let (compacted, llm_outcome) = self
+                .reactive_llm_compact_with_rescue(session_id, &compactable_tail, budget_tokens)
+                .await;
             let cleaned = crate::model_context::cleanup::post_compact_cleanup(compacted);
             *messages = append_compacted_tail(&prefix, cleaned);
             outcome = llm_outcome;
@@ -408,29 +468,64 @@ impl UnifiedMessageProcessor {
         }
 
         if need_llm_compact {
+            // Fork-form summarization inputs: the summary request rides on
+            // the main turn's EXACT wire prefix (same messages after
+            // screenshot resolution + timestamp strip, same tools, same
+            // model/max_tokens/temperature) so it reads the prompt cache
+            // written by the previous turn instead of a cold 200K+ resend.
+            // Ref: claude_code runForkedAgent CacheSafeParams.
+            let fork_tools = self
+                .runtime
+                .tool_registry
+                .get_definitions_budgeted(self.effective_tool_policy().as_ref());
+            let mut fork_messages = crate::core::turn_executor::resolve_screenshot_markers(
+                messages,
+                &self.screenshot_store,
+                &self.runtime.model,
+            );
+            crate::model_context::microcompact::strip_timestamp_metadata(&mut fork_messages);
+            let fork_inputs = crate::model_context::compaction::ForkSummaryInputs {
+                messages: &fork_messages,
+                tools: &fork_tools,
+                model: &self.runtime.model,
+                max_tokens: self.runtime.resolved.max_tokens as u32,
+                temperature: self.runtime.resolved.temperature as f32,
+            };
+
             let mut state = self.compaction_state.lock().await;
-            let (compacted, outcome) = ContextCompactor::compact(
+            let (compacted, outcome) = ContextCompactor::compact_with_fork(
                 &compactable_tail,
                 budget_tokens,
                 &self.runtime.resolved.compaction,
                 &mut state,
                 self.runtime.provider.as_ref(),
                 &self.runtime.model,
+                Some(&fork_inputs),
             )
             .await;
-            let cleaned_tail = crate::model_context::cleanup::post_compact_cleanup(compacted);
-            *messages = append_compacted_tail(&prefix, cleaned_tail);
 
-            if let CompactionOutcome::Truncated { messages_dropped } = outcome {
+            // CC semantics: a failed compaction leaves the history UNCHANGED
+            // and the turn proceeds with the original messages — no silent
+            // truncation, no boundary persist for a no-op. The failure was
+            // already counted toward the circuit breaker inside `compact`.
+            if let CompactionOutcome::Failed { reason } = outcome {
+                warn!(
+                    "[unified_processor] Pre-turn compaction failed for session {} — continuing uncompacted: {}",
+                    session_id, reason
+                );
                 broadcast_agent_warning(
                     session_id,
                     &format!(
-                        "Context compaction fell back to truncation ({} conversation messages dropped without summary)",
-                        messages_dropped
+                        "Context compaction failed ({}); continuing with the uncompacted history",
+                        reason
                     ),
                     "compaction",
                 );
+                return CompactionPhaseOutcome::Continue;
             }
+
+            let cleaned_tail = crate::model_context::cleanup::post_compact_cleanup(compacted);
+            *messages = append_compacted_tail(&prefix, cleaned_tail);
 
             let mut sm_state = self.sm_state.lock().await;
             sm_state.last_summarized_msg_idx = None;
@@ -530,15 +625,22 @@ impl UnifiedMessageProcessor {
         // rewriting the transcript. The durable view is `[summary] +
         // rows >= cutoff`; prior rows are never touched, so sequence and
         // created_at coordinates stay valid for truncation/replay.
-        let (summary_text, tail_len) = split_summary_and_tail(&durable_compacted_messages);
+        let compacted_for_persist = durable_compacted_messages.clone();
+        // Boundary display metadata: estimated context tokens either side of
+        // the compaction, shown in the chat marker's subtitle.
+        let boundary_token_delta = Some((
+            ContextCompactor::estimate_messages_tokens(&pre_compact_messages),
+            ContextCompactor::estimate_messages_tokens(messages),
+        ));
         let persist_result = tokio::task::spawn_blocking({
             let sid = session_id.to_string();
             move || -> Result<(), String> {
-                let cutoff = unified_persistence::compact_cutoff_sequence(&sid, tail_len)
-                    .map_err(|err| err.to_string())?;
-                unified_persistence::append_compact_boundary(&sid, &summary_text, cutoff)
-                    .map_err(|err| err.to_string())?;
-                Ok(())
+                super::super::super::compaction::persist::append_in_place_compact_boundary(
+                    &sid,
+                    &compacted_for_persist,
+                    boundary_token_delta,
+                )
+                .map(|_| ())
             }
         })
         .await;
@@ -579,36 +681,6 @@ impl UnifiedMessageProcessor {
         }
 
         CompactionPhaseOutcome::Continue
-    }
-}
-
-/// Split the compacted in-memory view into the boundary summary text and
-/// the number of preserved tail messages. The compactors emit
-/// `[user summary] + tail` (legacy summaries were `system`); if the leading
-/// summary is missing (e.g. truncation fallback dropped messages without
-/// summarizing), a generic marker is used and every message counts as tail.
-fn split_summary_and_tail(durable_compacted_messages: &[Value]) -> (String, usize) {
-    let is_summary_head = durable_compacted_messages.first().is_some_and(|first| {
-        message_role(first) == Some("system")
-            || crate::model_context::session_memory::compact::is_compact_boundary_message(first)
-    });
-    match durable_compacted_messages.first() {
-        Some(first) if is_summary_head => {
-            let text = match first.get("content") {
-                Some(Value::String(text)) => text.clone(),
-                Some(Value::Array(parts)) => parts
-                    .iter()
-                    .filter_map(|part| part.get("text").and_then(Value::as_str))
-                    .collect::<Vec<_>>()
-                    .join("\n"),
-                _ => String::new(),
-            };
-            (text, durable_compacted_messages.len().saturating_sub(1))
-        }
-        _ => (
-            "[Conversation summary — earlier messages compacted without summary]".to_string(),
-            durable_compacted_messages.len(),
-        ),
     }
 }
 

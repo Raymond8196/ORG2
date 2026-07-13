@@ -103,10 +103,11 @@ export const COMPONENT_LOADERS: ComponentLoaderMap = {
   // ── Stream events ──
   // Custom render paths — NOT tool calls, have no `chat_block` in Rust.
   // Each carries behaviour the chat-block pipeline cannot express:
-  //   `agent_message` — itemIndex-aware typewriter + markdown streaming
-  //   `thinking`      — reasoning-trace with custom collapse
-  //   `user`          — user-authored chat bubble
-  //   `turn_summary`  — stitches multiple child events into one card
+  //   `agent_message`     — itemIndex-aware typewriter + markdown streaming
+  //   `thinking`          — reasoning-trace with custom collapse
+  //   `user`              — user-authored chat bubble
+  //   `turn_summary`      — stitches multiple child events into one card
+  //   `context_compacted` — collapsed compact-boundary summary marker
   agent_message: () =>
     import("@src/engines/ChatPanel/events/stream/agent-message").then(
       (mod) => ({
@@ -131,6 +132,12 @@ export const COMPONENT_LOADERS: ComponentLoaderMap = {
         default: mod.RateLimitHintEvent as React.ComponentType<unknown>,
       })
     ),
+  context_compacted: () =>
+    import("@src/engines/ChatPanel/events/stream/context-compacted").then(
+      (mod) => ({
+        default: mod.ContextCompactedEvent as React.ComponentType<unknown>,
+      })
+    ),
 
   // ── Interactive events ──
   // State-mutating UI that owns its own input wiring. Custom render is
@@ -138,7 +145,6 @@ export const COMPONENT_LOADERS: ComponentLoaderMap = {
   //   `ask_user_questions`   — form with submit flow (answers posted back)
   //   `ask_user_permissions` — approve/deny buttons on PermissionCard
   //   `suggest_mode_switch`  — clickable card mutating `creatorDefaultExecModeAtom`
-  //   `suggest_next_steps`   — clickable cards that post a follow-up
   //
   // `plan_approval` uses chatBlockLoader (dispatches to `plan_doc` ChatBlock
   // → PlanDocAdapter). Explicit entry required so `_lazyComponentCache` is
@@ -162,12 +168,6 @@ export const COMPONENT_LOADERS: ComponentLoaderMap = {
     import("@src/engines/ChatPanel/events/interactive_events/mode-switch").then(
       (mod) => ({
         default: mod.ModeSwitchEvent as React.ComponentType<unknown>,
-      })
-    ),
-  suggest_next_steps: () =>
-    import("@src/engines/ChatPanel/events/interactive_events/next-step").then(
-      (mod) => ({
-        default: mod.NextStepEvent as React.ComponentType<unknown>,
       })
     ),
 };
@@ -328,6 +328,12 @@ export const CONTEXT_CONFIG: Record<string, ContextConfig> = {
     simulator: { supportsSplitView: false, supportsFullscreen: false },
   },
 
+  // Compact boundary (context compacted marker)
+  context_compacted: {
+    chat: { requiresItemIndex: false, showStatusLine: false },
+    simulator: { supportsSplitView: false, supportsFullscreen: false },
+  },
+
   // Worktree
   worktree: {
     chat: { requiresItemIndex: false, showStatusLine: true },
@@ -342,12 +348,6 @@ export const CONTEXT_CONFIG: Record<string, ContextConfig> = {
 
   // Plan card
   plan_approval: {
-    chat: { requiresItemIndex: false, showStatusLine: false },
-    simulator: { supportsSplitView: false, supportsFullscreen: false },
-  },
-
-  // Suggested next steps
-  suggest_next_steps: {
     chat: { requiresItemIndex: false, showStatusLine: false },
     simulator: { supportsSplitView: false, supportsFullscreen: false },
   },

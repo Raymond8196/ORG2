@@ -4,7 +4,7 @@
  * Right pane of the Kanban view. Two layouts:
  *
  *   1. Session-bearing tasks (the common case): a compact header
- *      strip with title + status + worktree/diff actions, and the
+ *      strip with title + status + worktree actions, and the
  *      session's `ChatView` filling the body. Lets the user inspect
  *      and steer the run without leaving the kanban surface.
  *
@@ -29,12 +29,10 @@ import ChatView from "@src/engines/ChatPanel/ChatView";
 import { useChatEventReplay } from "@src/engines/ChatPanel/hooks/useChatEventReplay";
 import { sortedEventsAtom } from "@src/engines/SessionCore/core/atoms";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
-import { createLogger } from "@src/hooks/logger";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { sessionMapAtom } from "@src/store/session";
 import { chatTurnPaginationEnabledAtom } from "@src/store/ui/chatPanelAtom";
 import { simulatorSessionPlaybackPlayingAtom } from "@src/store/ui/simulatorAtom";
-import { openSessionDiffWindow } from "@src/util/ui/window/windowManager";
 
 import type { KanbanTask } from "../../types";
 import TaskDetailHeader from "./TaskDetailHeader";
@@ -50,8 +48,6 @@ import {
   isMergeSettledStatus,
 } from "./helpers";
 import "./index.scss";
-
-const log = createLogger("TaskDetailPanel");
 
 export interface TaskDetailPanelProps {
   visible: boolean;
@@ -164,7 +160,7 @@ const SessionTaskPanel: React.FC<SessionTaskPanelProps> = ({
       const rawMessage = error instanceof Error ? error.message : String(error);
       setMergeError(
         isDirtyRepoMergeError(rawMessage)
-          ? t("opsControl.merge.dirtyRepo")
+          ? t("kanban.merge.dirtyRepo")
           : rawMessage
       );
     } finally {
@@ -185,15 +181,6 @@ const SessionTaskPanel: React.FC<SessionTaskPanelProps> = ({
     }
   }, [sessionId, t]);
 
-  const handleOpenDiffWindow = useCallback(() => {
-    openSessionDiffWindow(sessionId, task.title, {
-      repoPath: session?.worktreePath ?? session?.repoPath,
-      hasWorktree: hasWorktree || isSettled,
-    }).catch((error: unknown) => {
-      log.error("[TaskDetailPanel] failed to open diff window:", error);
-    });
-  }, [sessionId, task.title, session, hasWorktree, isSettled]);
-
   const handleReplay = useCallback(() => {
     if (!canReplay) return;
     const firstEventId = sortedEvents[0]?.id;
@@ -212,7 +199,7 @@ const SessionTaskPanel: React.FC<SessionTaskPanelProps> = ({
   }, []);
 
   const mergeButtonTitle = isRetryState
-    ? t("opsControl.merge.retryMerge")
+    ? t("kanban.merge.retryMerge")
     : t("common:actions.confirm");
 
   return (
@@ -235,7 +222,6 @@ const SessionTaskPanel: React.FC<SessionTaskPanelProps> = ({
             strategyRef={strategyRef}
             t={t}
             onReplay={handleReplay}
-            onOpenDiffWindow={handleOpenDiffWindow}
             onMerge={handleMerge}
             onDiscard={handleDiscard}
             onToggleStrategy={handleToggleStrategy}

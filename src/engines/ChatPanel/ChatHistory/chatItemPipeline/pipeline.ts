@@ -6,6 +6,8 @@
  * - Deduplicates running/completed tool_call pairs
  * - Groups consecutive read file events
  * - Groups consecutive exploration tool calls
+ * - Groups consecutive terminal commands and follow-up waits
+ * - Groups file edits/deletions with reads performed between them
  * - Stacks consecutive browser actions
  * - Consolidates partial observations
  *
@@ -23,8 +25,11 @@ import {
   type ActionSummaryCategory,
   getActionSummaryCategory,
   isBrowserEvent,
+  isFileModificationEvent,
   isManageTodoEvent,
   isReadFileEvent,
+  isTerminalActivityEvent,
+  isTerminalCommandEvent,
 } from "./classifiers";
 import { buildDedupMaps } from "./dedup";
 import { willEventRenderContent } from "./filters";
@@ -114,6 +119,8 @@ export function processChatItems(
     event: SessionEvent;
   }[] = [];
   let browserBuffer: SessionEvent[] = [];
+  let terminalBuffer: SessionEvent[] = [];
+  let editBuffer: SessionEvent[] = [];
   let partialBuffer: { event: SessionEvent; item: OptimizedChatItem }[] = [];
 
   // ------------------------------------------
@@ -212,6 +219,75 @@ export function processChatItems(
     browserBuffer = [];
   };
 
+  const flushTerminalBuffer = (closedByBoundary = true) => {
+    if (terminalBuffer.length === 0) return;
+
+    const minToGroup = opts.minTerminalActivitiesToGroup ?? 1;
+    const hasCommand = terminalBuffer.some(isTerminalCommandEvent);
+    if (
+      opts.groupTerminalActivities &&
+      terminalBuffer.length >= minToGroup &&
+      hasCommand
+    ) {
+      const firstTerminal = terminalBuffer[0];
+      result.push({
+        chunk_id: createActivityStackGroupId(
+          "terminal",
+          getStableActivityItemId(firstTerminal)
+        ),
+        type: "activityStackGroup",
+        activityStackGroup: {
+          category: "terminal",
+          events: [...terminalBuffer],
+          closedByBoundary,
+        },
+      });
+    } else {
+      terminalBuffer.forEach((event) => {
+        if (event.id !== "loading") {
+          if (event.result?.success === true) {
+            stats.successCount++;
+          } else if (event.result?.success === false) {
+            stats.failedCount++;
+          } else {
+            stats.pendingCount++;
+          }
+        }
+        result.push(eventToItem(event));
+      });
+    }
+    terminalBuffer = [];
+  };
+
+  const flushEditBuffer = (closedByBoundary = true) => {
+    if (editBuffer.length === 0) return;
+
+    const minToGroup = opts.minEditActivitiesToGroup ?? 1;
+    const hasModification = editBuffer.some(isFileModificationEvent);
+    if (
+      opts.groupEditActivities &&
+      editBuffer.length >= minToGroup &&
+      hasModification
+    ) {
+      const firstEditActivity = editBuffer[0];
+      result.push({
+        chunk_id: createActivityStackGroupId(
+          "edit",
+          getStableActivityItemId(firstEditActivity)
+        ),
+        type: "activityStackGroup",
+        activityStackGroup: {
+          category: "edit",
+          events: [...editBuffer],
+          closedByBoundary,
+        },
+      });
+    } else {
+      editBuffer.forEach((event) => result.push(eventToItem(event)));
+    }
+    editBuffer = [];
+  };
+
   const flushPartialBuffer = () => {
     if (partialBuffer.length === 0) return;
 
@@ -241,6 +317,8 @@ export function processChatItems(
     flushActionSummaryBuffer();
     flushReadFileBuffer();
     flushBrowserBuffer();
+    flushTerminalBuffer();
+    flushEditBuffer();
     flushPartialBuffer();
   };
 
@@ -329,11 +407,35 @@ export function processChatItems(
       stats.totalActivities++;
     }
 
+    // Buffer: file edits/deletions plus reads that occur after the first
+    // modification. Earlier reads remain part of Explore; a file modification
+    // anchors every group regardless of whether it succeeded or failed.
+    const isFileModification = isFileModificationEvent(event);
+    const isSuccessfulReadWithinEditGroup =
+      editBuffer.length > 0 &&
+      isReadFileEvent(event) &&
+      !isFailedToolCall(event);
+    if (
+      opts.groupEditActivities &&
+      (isFileModification || isSuccessfulReadWithinEditGroup)
+    ) {
+      flushActionSummaryBuffer();
+      flushReadFileBuffer();
+      flushBrowserBuffer();
+      flushTerminalBuffer();
+      flushPartialBuffer();
+      editBuffer.push(event);
+      continue;
+    } else {
+      flushEditBuffer();
+    }
+
     // Buffer: action summary (exploration tool calls: read, search, glob, list)
     if (opts.groupActionSummaries) {
       const summaryCategory = getActionSummaryCategory(event);
       if (summaryCategory && !isFailedToolCall(event)) {
         flushBrowserBuffer();
+        flushTerminalBuffer();
         flushPartialBuffer();
         flushReadFileBuffer();
         actionSummaryBuffer.push({ category: summaryCategory, event });
@@ -346,11 +448,28 @@ export function processChatItems(
     // Buffer: read file events (only when action summaries are disabled)
     if (!opts.groupActionSummaries && isReadFileEvent(event)) {
       flushBrowserBuffer();
+      flushTerminalBuffer();
       flushPartialBuffer();
       readFileBuffer.push(event);
       continue;
     } else if (!opts.groupActionSummaries) {
       flushReadFileBuffer();
+    }
+
+    // Buffer: consecutive terminal commands plus their wait/monitor/inspect
+    // follow-ups. Explicit infrastructure failures remain standalone error
+    // cards, matching the exploration-group failure policy.
+    if (
+      opts.groupTerminalActivities &&
+      isTerminalActivityEvent(event) &&
+      !isFailedToolCall(event)
+    ) {
+      flushBrowserBuffer();
+      flushPartialBuffer();
+      terminalBuffer.push(event);
+      continue;
+    } else {
+      flushTerminalBuffer();
     }
 
     // Buffer: browser actions
@@ -428,11 +547,13 @@ export function processChatItems(
     result.push(eventToItem(event));
   }
 
-  // Flush remaining buffers. A trailing action-summary buffer is still active,
-  // so keep its stack expanded until a later non-summary event closes it.
+  // Flush remaining buffers. Trailing exploration, terminal, and edit buffers
+  // are still active, so keep their stacks expanded until a later event closes them.
   flushActionSummaryBuffer(false);
   flushReadFileBuffer();
   flushBrowserBuffer();
+  flushTerminalBuffer(false);
+  flushEditBuffer(false);
   flushPartialBuffer();
 
   return { items: result, stats };

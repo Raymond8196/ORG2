@@ -559,6 +559,39 @@
   container-type: inline-size;
 }
 
+// A page-scrolled SettingsTable keeps its body side borders on the root while
+// the rounded toolbar sticks independently. Mask the first 12px of those
+// straight root borders, then paint the rounded toolbar above the mask so the
+// parent border cannot protrude past the corner arc during scroll.
+.settings-table-sticky-mask {
+  position: relative;
+
+  &::before,
+  &::after {
+    position: absolute;
+    top: 0;
+    z-index: 0;
+    width: 1px;
+    height: 12px;
+    background: var(--color-bg-2);
+    pointer-events: none;
+    content: "";
+  }
+
+  &::before {
+    left: -1px;
+  }
+
+  &::after {
+    right: -1px;
+  }
+}
+
+.settings-table-sticky-surface {
+  position: relative;
+  z-index: 1;
+}
+
 .settings-table-root-default .table-settings {
   --settings-table-surface: var(--color-surface-container);
 }
@@ -674,33 +707,6 @@
   .table-col-hide-md {
     display: none;
   }
-}
-
-// Inverse-radius corners for sticky search header inside bg-fill-2 card.
-// Paints bg-bg-2 in the tiny triangles outside the rounded-t-lg curve
-// so the parent card background doesn't leak through.
-.settings-search-corners::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 12px;
-  pointer-events: none;
-  z-index: 1;
-  background:
-    radial-gradient(
-        circle 12px at 100% 100%,
-        transparent 7.5px,
-        var(--color-bg-2) 12px
-      )
-      left top / 12px 12px no-repeat,
-    radial-gradient(
-        circle 12px at 0% 100%,
-        transparent 7.5px,
-        var(--color-bg-2) 12px
-      )
-      right top / 12px 12px no-repeat;
 }
 
 // Fixed layout — forces columns to respect assigned widths

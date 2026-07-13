@@ -225,7 +225,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
       activeTab,
       setPrimaryPanel,
       handleGitFileSelect,
-      isMultiRoot: workspaceFolders.length > 1,
     });
 
     // === Pinned tabs (always-visible icon-only tabs) ===
@@ -262,7 +261,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
 
     const activeTabHasNoSidebar =
       activeTab?.type === "agent-config" ||
-      activeTab?.type === "github-issue-detail";
+      activeTab?.type === "github-issue-detail" ||
+      activeTab?.type === "github-pr-detail";
     const sidebarVisible =
       !activeTabHasNoSidebar && !panels.primarySidebarCollapsed;
     const repoDisplayName = repoName || repoPath.split("/").pop() || "Repo";

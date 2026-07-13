@@ -78,14 +78,55 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Sessões",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Kanban atual",
     "view": {
       "list": "Lista",
       "diary": "Diário",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Fontes de dados"
+    },
+    "dataSource": {
+      "title": "Fontes de dados",
+      "description": "Ferramentas de programação externas que o ORGII detecta. Apps importáveis mostram sua contagem de sessões e podem ser reescaneados; o restante mostra o status de instalação e onde fica seu histórico.",
+      "rescanAll": "Reescanear tudo",
+      "rescan": "Reescanear",
+      "rescanning": "Reescaneando…",
+      "enable": "Ativar",
+      "disable": "Desativar",
+      "lastScan": "Última varredura {{time}}",
+      "neverScanned": "Nunca verificado",
+      "frequencyTitle": "Frequência de varredura",
+      "globalFrequency": "Varredura automática",
+      "freq": {
+        "default": "Padrão",
+        "manual": "Manual",
+        "60s": "A cada 60s",
+        "5m": "A cada 5 min",
+        "1h": "A cada hora",
+        "1d": "Diário"
+      },
+      "openFolder": "Abrir pasta",
+      "tabs": {
+        "all": "Todos",
+        "apps": "Apps",
+        "clis": "CLIs"
+      },
+      "sessions_one": "{{count}} sessão",
+      "sessions_other": "{{count}} sessões",
+      "noPath": "Nenhum caminho detectado",
+      "notImported": "Não importado",
+      "status": {
+        "ready": "Pronto",
+        "empty": "Sem histórico",
+        "loading": "Verificando…",
+        "error": "Erro",
+        "installed": "Instalado",
+        "notInstalled": "Não detectado",
+        "disabled": "Desativado"
+      }
     },
     "list": {
       "updated": "Atualizado",
@@ -148,7 +189,9 @@
       "views": "Visualizações",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Remover rascunho"
+      "removeDraft": "Remover rascunho",
+      "showSubagents": "Mostrar subagentes",
+      "hideSubagents": "Ocultar subagentes"
     },
     "resultStatus": {
       "completed": "Concluído",
@@ -187,11 +230,6 @@
       "discarding": "Descartando…",
       "confirmMessage": "Descartar todas as alterações neste Worktree? Esta ação não pode ser desfeita."
     },
-    "diff": {
-      "openDiffWindow": "Ver diff",
-      "windowTitle": "Diff da sessão",
-      "filesChanged": "Arquivos"
-    },
     "replay": {
       "replaySession": "Repetir"
     },
@@ -225,13 +263,6 @@
       "commits_other": "{{count}} commits",
       "committedRateShort": "{{percent}}% commitado"
     }
-  },
-  "worktreeCompare": {
-    "title": "Comparar Worktrees",
-    "button": "Comparar",
-    "buttonTooltip": "Comparar diffs de Worktree lado a lado",
-    "noSessions": "Nenhuma sessão para comparar.",
-    "sessionTab": "Sessão {{n}}"
   },
   "changes": {
     "scope": {
@@ -419,7 +450,6 @@
         "interactionAskQuestion": "Pergunta",
         "interactionAskPermission": "Solicitação de permissão",
         "interactionModeSwitch": "Troca de modo",
-        "interactionNextSteps": "Próximos passos",
         "interactionPlanDoc": "Documento de plano",
         "interactionGeneric": "Interação"
       },
@@ -675,7 +705,9 @@
       "empty": "Nenhuma ação encontrada.",
       "unpinAll": "Desafixar tudo",
       "insert": "Inserir"
-    }
+    },
+    "compactArgHint": "<foco opcional do resumo>",
+    "compactCommandDescription": "Resume o contexto antigo para liberar espaço. Opcional: /compact <foco do resumo>"
   },
   "listPanel": {
     "showingOf": "Mostrando {{filtered}} de {{total}}",
@@ -720,12 +752,15 @@
       "addApiKey": {
         "title": "Adicionar chave API"
       },
+      "installLatestUpdate": {
+        "title": "Instalar atualização mais recente"
+      },
       "agents": {
         "title": "Agents"
       },
       "tabs": {
         "work": "Trabalho",
-        "explore": "Explorar",
+        "manage": "Gerenciar",
         "heatmap": "Tendências"
       },
       "heatmap": {
@@ -738,6 +773,9 @@
       "quota": {
         "empty": "Ainda não há dados de quota. Atualize o uso no Key Vault.",
         "refresh": "Atualizar",
+        "justNow": "agora mesmo",
+        "minutesAgo": "há {{count}}min",
+        "hoursAgo": "há {{count}}h",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",
@@ -988,9 +1026,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Todos os estados",
+        "assignedToMe": "Atribuídos a mim",
+        "createdByMe": "Criados por mim",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1034,7 +1072,8 @@
       "Ainda pensando, demorando mais que o habitual...",
       "Trabalhando nisso, demorando mais que o habitual...",
       "Refletindo, demorando mais que o habitual..."
-    ]
+    ],
+    "compacting": "Compactando contexto..."
   },
   "tools": {
     "noResultsFound": "Nenhum resultado encontrado",
@@ -1047,6 +1086,8 @@
     "deleteFileRunning": "Excluindo {{name}}",
     "deleteFileDone": "{{name}} excluído",
     "deleteFileFailed": "Falha ao excluir {{name}}",
+    "deleteFileCompactRunning": "Excluindo",
+    "deleteFileCompactDone": "Excluir",
     "directoryTree": "Árvore de diretórios",
     "ls": "ls",
     "listDirRunning": "Listando diretório",
@@ -1089,7 +1130,7 @@
     "pathCopied": "Caminho copiado!",
     "failedToCopyPath": "Falha ao copiar caminho",
     "copyFilePath": "Copiar caminho do arquivo",
-    "explore": "Explorar",
+    "manage": "Gerenciar",
     "readFile": "Ler arquivo",
     "readFileRunning": "Lendo",
     "readFileDone": "Ler",
@@ -1112,12 +1153,30 @@
     "editFileDoneNoName": "Arquivo editado",
     "editFileCompactRunning": "Editando",
     "editFileCompactDone": "Editar",
+    "editFiles": "Editar arquivos",
+    "editSummary": {
+      "edit_one": "{{count}} edição",
+      "edit_other": "{{count}} edições",
+      "read_one": "{{count}} leitura",
+      "read_other": "{{count}} leituras",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Tentou editar",
     "file": "arquivo",
     "runShellRunning": "Executando comando",
     "terminalWaitRunning": "Aguardando o terminal terminar",
     "runShellDone": "Comando executado",
     "runShellFailed": "Falha no comando",
+    "runCommands": "Executar comandos",
+    "terminalSummary": {
+      "command_one": "{{count}} comando",
+      "command_other": "{{count}} comandos",
+      "wait_one": "{{count}} espera",
+      "wait_other": "{{count}} esperas",
+      "check_one": "{{count}} verificação",
+      "check_other": "{{count}} verificações",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Inspecionando terminais",
     "inspectTerminalsDone": "Terminais inspecionados",
     "inspectTerminalsFailed": "Falha ao inspecionar terminais",
@@ -1155,6 +1214,7 @@
     "askUserSkipped": "Ignorado",
     "askUserQuestionsAnswered": "As perguntas foram respondidas",
     "askUserQuestionsSkipped": "Perguntas ignoradas",
+    "explore": "Explorar",
     "exploreSummary": {
       "read_one": "{{count}} arquivo",
       "read_other": "{{count}} arquivos",
@@ -1165,7 +1225,8 @@
       "ls_one": "ls {{count}} pasta",
       "ls_other": "ls {{count}} pastas",
       "lsp_one": "{{count}} consulta LSP",
-      "lsp_other": "{{count}} consultas LSP"
+      "lsp_other": "{{count}} consultas LSP",
+      "separator": ", "
     },
     "categoryRead": "Ler",
     "categorySearch": "Buscar",
@@ -1451,9 +1512,6 @@
     "toolSearchRunning": "Buscando ferramentas",
     "toolSearchDone": "Ferramentas buscadas",
     "toolSearchFailed": "Falha na busca de ferramentas",
-    "suggestNextStepsRunning": "Sugerindo próximos passos",
-    "suggestNextStepsDone": "Sugeridos {{count}} próximos passos",
-    "suggestNextStepsFailed": "Não foi possível sugerir próximos passos",
     "agentSendMessageRunning": "Enviando mensagem ao colega",
     "agentSendMessageDone": "Mensagem enviada ao colega",
     "agentSendMessageFailed": "Não foi possível enviar mensagem ao colega",
@@ -1900,7 +1958,8 @@
       "models": "Modelos",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Comandos"
     },
     "diffMenu": {
       "gitActions": "Ações GIT",

@@ -86,6 +86,10 @@ if (typeof document !== "undefined") {
 const chatWidthBaseAtom = atom<number>(initialChatWidth);
 chatWidthBaseAtom.debugLabel = "chatWidthBaseAtom";
 
+/** True only while the user is actively resizing the chat pane. */
+export const chatPanelDraggingAtom = atom<boolean>(false);
+chatPanelDraggingAtom.debugLabel = "chatPanelDraggingAtom";
+
 /**
  * Chat width atom with optimized persistence
  * - Reads from base atom (fast)
@@ -269,6 +273,20 @@ chatPanelCreateTargetAtom.debugLabel = "chatPanelCreateTargetAtom";
 export const chatPanelStartPageOpenAtom = atom<boolean>(true);
 chatPanelStartPageOpenAtom.debugLabel = "chatPanelStartPageOpenAtom";
 
+export const CHAT_PANEL_START_PAGE_TAB = {
+  WORK: "work",
+  MANAGE: "manage",
+  HEATMAP: "heatmap",
+} as const;
+
+export type ChatPanelStartPageTab =
+  (typeof CHAT_PANEL_START_PAGE_TAB)[keyof typeof CHAT_PANEL_START_PAGE_TAB];
+
+export const chatPanelStartPageTabAtom = atom<ChatPanelStartPageTab>(
+  CHAT_PANEL_START_PAGE_TAB.WORK
+);
+chatPanelStartPageTabAtom.debugLabel = "chatPanelStartPageTabAtom";
+
 export interface ChatPanelCreateProjectContext {
   orgId: string;
   scopeBreadcrumbLabel?: string;
@@ -357,10 +375,6 @@ export const chatPanelSelectedCollabOrgAtom =
   atom<ChatPanelSelectedCollabOrg | null>(null);
 chatPanelSelectedCollabOrgAtom.debugLabel = "chatPanelSelectedCollabOrgAtom";
 
-export const chatPanelWorkspaceDashboardOpenAtom = atom<boolean>(false);
-chatPanelWorkspaceDashboardOpenAtom.debugLabel =
-  "chatPanelWorkspaceDashboardOpenAtom";
-
 /**
  * Whether the chat-panel slot is rendering the GitHub repo search /
  * "Explore" view. Mutually exclusive with the workspace dashboard,
@@ -374,9 +388,6 @@ chatPanelExploreOpenAtom.debugLabel = "chatPanelExploreOpenAtom";
 export const chatPanelExploreAgentSearchEnabledAtom = atom<boolean>(false);
 chatPanelExploreAgentSearchEnabledAtom.debugLabel =
   "chatPanelExploreAgentSearchEnabledAtom";
-
-export const chatPanelManageIssuesOpenAtom = atom<boolean>(false);
-chatPanelManageIssuesOpenAtom.debugLabel = "chatPanelManageIssuesOpenAtom";
 
 /**
  * Selected tab on the chat-panel workspace overview surface
@@ -417,7 +428,6 @@ export const CHAT_PANEL_SURFACE_KIND = {
   WORK_ITEM: "workItem",
   WORKSPACE_DASHBOARD: "workspaceDashboard",
   WORKSPACE_EXPLORE: "workspaceExplore",
-  MANAGE_ISSUES: "manageIssues",
   WORKSPACE_OVERVIEW: "workspaceOverview",
   COLLAB_ORG: "collabOrg",
 } as const;
@@ -444,9 +454,7 @@ export type ChatPanelSurfaceState =
       kind: typeof CHAT_PANEL_SURFACE_KIND.WORK_ITEM;
       workItem: ChatPanelSelectedWorkItem;
     }
-  | { kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD }
   | { kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE }
-  | { kind: typeof CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES }
   | {
       kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_OVERVIEW;
       workspace: ChatPanelSelectedWorkspace;
@@ -487,7 +495,6 @@ export type ChatPanelNavigateCommand =
     }
   | { kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD }
   | { kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE }
-  | { kind: typeof CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES }
   | {
       kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_OVERVIEW;
       workspace: ChatPanelSelectedWorkspace;
@@ -509,9 +516,7 @@ function resetChatPanelSurfaceState(set: SetAtom): void {
   set(chatPanelSelectedProjectOrgAtom, null);
   set(chatPanelSelectedWorkspaceAtom, null);
   set(chatPanelSelectedCollabOrgAtom, null);
-  set(chatPanelWorkspaceDashboardOpenAtom, false);
   set(chatPanelExploreOpenAtom, false);
-  set(chatPanelManageIssuesOpenAtom, false);
   set(chatPanelCreateProjectContextAtom, null);
   set(chatPanelCreateTargetAtom, DEFAULT_CHAT_PANEL_CREATE_TARGET);
   set(chatPanelWorkspaceOverviewTabAtom, WORKSPACE_OVERVIEW_TAB.OVERVIEW);
@@ -578,16 +583,14 @@ export const chatPanelNavigateAtom = atom(
         set(chatPanelSelectedWorkItemAtom, command.workItem);
         return;
       case CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD:
-        set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.NON_SESSION);
-        set(chatPanelWorkspaceDashboardOpenAtom, true);
+        // Legacy dashboard navigation now lands on Launchpad's Manage tab.
+        set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.SESSION);
+        set(chatPanelStartPageTabAtom, CHAT_PANEL_START_PAGE_TAB.MANAGE);
+        set(chatPanelStartPageOpenAtom, true);
         return;
       case CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE:
         set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.NON_SESSION);
         set(chatPanelExploreOpenAtom, true);
-        return;
-      case CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES:
-        set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.NON_SESSION);
-        set(chatPanelManageIssuesOpenAtom, true);
         return;
       case CHAT_PANEL_SURFACE_KIND.WORKSPACE_OVERVIEW:
         set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.NON_SESSION);
@@ -633,16 +636,8 @@ export const activeChatPanelSurfaceAtom = atom<ChatPanelSurfaceState>((get) => {
     };
   }
 
-  if (get(chatPanelWorkspaceDashboardOpenAtom)) {
-    return { kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD };
-  }
-
   if (get(chatPanelExploreOpenAtom)) {
     return { kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE };
-  }
-
-  if (get(chatPanelManageIssuesOpenAtom)) {
-    return { kind: CHAT_PANEL_SURFACE_KIND.MANAGE_ISSUES };
   }
 
   const selectedWorkspace = get(chatPanelSelectedWorkspaceAtom);

@@ -31,10 +31,6 @@
     "closeCanvas": "Tuvali kapat",
     "generatingCanvas": "Tuval oluşturuluyor…",
     "noContent": "İçerik yok",
-    "noIssueSelected": "Seçili sorun yok",
-    "selectIssueHint": "Kenar çubuğundaki Issues panelinden bir sorun seçin.",
-    "noPrSelected": "Seçili Pull request yok",
-    "selectPrHint": "Kenar çubuğundaki Pull request panelinden bir Pull request seçin.",
     "reload": "Yeniden yükle",
     "urlPreviewRequiresTauri": "URL önizlemesi Tauri gerektirir",
     "openInExternalBrowser": "Bunun yerine harici tarayıcıda açın",
@@ -107,6 +103,7 @@
     "retry": "Tekrar Dene",
     "regenerate": "Yeniden oluştur",
     "refresh": "Yenile",
+    "rescan": "Yeniden tara",
     "reload": "Yeniden yükle",
     "reviewNextFile": "Sonraki dosyayı incele",
     "reviewPreviousFile": "Önceki dosyayı incele",
@@ -206,9 +203,7 @@
     "openWorkspace": "Workspace aç",
     "skipThisVersion": "Bu sürümü atla",
     "later": "Daha sonra",
-    "updateAiBlame": "AI Blame'i güncelle",
-    "link": "Bağla",
-    "fetchPr": "Fetch PR"
+    "link": "Bağla"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi",
@@ -965,9 +960,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Önizleme kullanılamıyor",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Mesajlarda ara...",
@@ -1028,6 +1021,20 @@
     "indexingProgress": "İndeksleme: {{processed}}/{{total}} dosya ({{percent}}%)",
     "indexingProgressWithFile": "İndeksleme: {{processed}}/{{total}} dosya ({{percent}}%)\nGeçerli: {{file}}",
     "languageServices": "Language Services",
+    "ports": {
+      "workspaceSection": "Workspace",
+      "externalSection": "Harici",
+      "tooltip": "Portlar: {{workspace}} workspace, {{external}} harici",
+      "noWorkspacePorts": "Workspace portu algılanmadı",
+      "externalLabel": "harici",
+      "unknownProcess": "Bilinmeyen süreç",
+      "pidLabel": "PID {{pid}}",
+      "openInBrowser": "Tarayıcıda aç",
+      "copyAddress": "Adresi kopyala",
+      "stopProcess": "Süreci durdur",
+      "searchPlaceholder": "Port ara…",
+      "noSearchResults": "Eşleşen port yok"
+    },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
     "charsSelected": "{{count}} selected",
@@ -1219,7 +1226,6 @@
     },
     "modelSelector": {
       "recentModels": "Son modeller",
-      "currentModel": "Geçerli model",
       "allModels": "Tüm modeller",
       "noRecent": "Son model yok",
       "noResults": "Eşleşen model yok",
@@ -1234,6 +1240,7 @@
     "modelProperties": {
       "options": "Seçenekler",
       "effort": "Çaba",
+      "default": "Varsayılan",
       "faster": "Daha hızlı",
       "smarter": "Daha akıllı"
     },
@@ -1611,11 +1618,8 @@
     "chatRight": "Sohbet sağda",
     "pageSettings": "Sayfa ayarları",
     "pageLayout": "Sayfa düzeni",
-    "layoutMode": "Düzen modu",
     "inset": "Gömülü",
     "full": "Tam",
-    "compact": "Kompakt",
-    "comfort": "Konfor",
     "theme": "Tema",
     "primaryPanel": "Kenar çubuğu",
     "sidebarPosition": "Kenar çubuğu konumu",
@@ -1672,15 +1676,13 @@
     "disableChatPagination": "Sohbet sayfalandırmasını kapat",
     "useModelPickerSpotlight": "Spotlight model seçiciyi kullan",
     "useModelPickerDropdown": "Açılır model seçiciyi kullan",
-    "useCompactWorkstationLayout": "Kompakt Workstation düzenini kullan",
-    "useComfortWorkstationLayout": "Rahat Workstation düzenini kullan",
     "moveWorkstationSidebarLeft": "Workstation kenar çubuğunu sola taşı",
     "moveWorkstationSidebarRight": "Workstation kenar çubuğunu sağa taşı",
     "enableDockAutoHide": "Workstation Dock'u otomatik gizle",
     "disableDockAutoHide": "Workstation Dock'u görünür tut",
     "openMyStation": "My Station'a git",
     "openAgentStation": "Agent Station'a git",
-    "openOpsControl": "Ops Control'e git",
+    "openKanban": "Kanban'e git",
     "changeLanguage": "Dili değiştir",
     "switchToSystemTheme": "Sistem temasını izle",
     "detectUpdate": "Güncellemeleri denetle",
@@ -1935,6 +1937,12 @@
     "removeWorktreeMessage": "Bu, Worktree checkout'ını diskten kaldırır. Branch ve commits korunur.",
     "removeWorktreeSuccess": "Worktree kaldırıldı",
     "removeWorktreeFailed": "Worktree kaldırılamadı",
+    "emptyState": {
+      "viewSourceControl": "Source Control'ü görüntüle",
+      "viewIssues": "Issues'ları görüntüle",
+      "viewGitHistory": "Git geçmişini görüntüle",
+      "viewPullRequests": "Pull Requests'leri görüntüle"
+    },
     "pill": {
       "focus": "Odak",
       "allChanges": "Tüm Değişiklikler"
@@ -1966,7 +1974,22 @@
     "warningHint": "Bağlam doluyor. En iyi sonuçlar için yakında yeni bir oturum başlatın.",
     "dangerHint": "Bağlam neredeyse dolu. Ayrıntı kaybetmemek için yeni bir oturum başlatın.",
     "autoCompactNote": "Bağlam yakında özetlenecek",
-    "startNewSession": "Yeni oturum başlat"
+    "startNewSession": "Yeni oturum başlat",
+    "compactBoundaryTitle": "Bağlam sıkıştırıldı",
+    "compactBoundarySubtitle_one": "{{count}} önceki mesaj özetlendi",
+    "compactBoundarySubtitle_other": "{{count}} önceki mesaj özetlendi",
+    "compactBoundaryTokens": "{{before}} → {{after}} token",
+    "manualCompactAction": "Sıkıştır",
+    "manualCompactRunning": "Sıkıştırılıyor",
+    "manualCompactInProgress": "Bağlam sıkıştırılıyor — göndermeden önce bitmesini bekleyin",
+    "manualCompactSuccess": "Sıkıştırıldı: {{messagesBefore}} → {{messagesAfter}} mesaj, {{tokensBefore}} → {{tokensAfter}} token",
+    "manualCompactTooShort": "İçerik kısa; sıkıştırma gerekmiyor",
+    "manualCompactAlreadyCompact": "Sıkıştırılacak yeni içerik yok",
+    "manualCompactBusy": "Oturum çalışıyor. Bittikten sonra sıkıştırın",
+    "manualCompactNoRuntime": "Sıkıştırmadan önce bir mesaj gönderin",
+    "manualCompactFailed": "Sıkıştırma başarısız: {{message}}",
+    "manualCompactChannelAttached": "Bu oturum bir kanal tarafından yönetiliyor — /compact'i orada kullanın",
+    "manualCompactInstructionsPlaceholder": "İsteğe bağlı: özet neye odaklansın"
   },
   "relativeDate": {
     "today": "Bugün",

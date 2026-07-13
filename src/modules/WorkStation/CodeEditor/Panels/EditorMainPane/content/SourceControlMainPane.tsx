@@ -10,16 +10,19 @@
  */
 import { useAtomValue } from "jotai";
 import React, { Suspense, memo, useCallback } from "react";
-import { useTranslation } from "react-i18next";
 
 import { IssueDetailPanel } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
-import type { QuickAction } from "@src/modules/WorkStation/shared";
+import {
+  NoTabsPlaceholder,
+  type QuickAction,
+} from "@src/modules/WorkStation/shared";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { sourceControlSessionFilterAtom } from "@src/store/workstation/codeEditor/sourceControlSessionFilterAtom";
 import {
-  workstationIssueCallbackAtom,
-  workstationSelectedIssueAtom,
+  workstationIssueCallbackAtomFamily,
+  workstationSelectedIssueAtomFamily,
 } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { GitFile } from "@src/types/git/types";
 
 import {
@@ -44,7 +47,7 @@ export interface SourceControlMainPaneProps {
   sourceControlFilterMode: string;
   gitDiffLoading: boolean;
   sourceControlCollapseAllSignal?: number;
-  editorQuickActions: QuickAction[];
+  sourceControlQuickActions: QuickAction[];
   onForceReload?: () => void;
   onFileSelect?: (path: string) => void;
   onGitDiffUnsavedChange?: (hasUnsaved: boolean) => void;
@@ -59,17 +62,21 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   sourceControlFilterMode,
   gitDiffLoading,
   sourceControlCollapseAllSignal,
-  editorQuickActions,
+  sourceControlQuickActions,
   onForceReload,
   onFileSelect,
   onGitDiffUnsavedChange,
 }) => {
-  const { t } = useTranslation();
   const sourceControlSessionFilter = useAtomValue(
     sourceControlSessionFilterAtom
   );
-  const selectedIssueState = useAtomValue(workstationSelectedIssueAtom);
-  const issueCallbacks = useAtomValue(workstationIssueCallbackAtom);
+  const scopeKey = workstationRepoScopeKey(repoId, repoPath);
+  const selectedIssueState = useAtomValue(
+    workstationSelectedIssueAtomFamily(scopeKey)
+  );
+  const issueCallbacks = useAtomValue(
+    workstationIssueCallbackAtomFamily(scopeKey)
+  );
 
   const handleCloseIssue = useCallback(() => {
     if (selectedIssueState.issue && issueCallbacks.closeIssue) {
@@ -105,12 +112,9 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   if (sourceControlFilterMode === "issues") {
     if (!selectedIssueState.issue) {
       return (
-        <Placeholder
-          variant="empty"
-          placement="detail-panel"
-          title={t("previews.noIssueSelected")}
-          subtitle={t("previews.selectIssueHint")}
-          fillParentHeight
+        <NoTabsPlaceholder
+          icon="source-control"
+          actions={sourceControlQuickActions}
         />
       );
     }
@@ -135,12 +139,9 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
     (!historySelection || historySelection.type !== "pr")
   ) {
     return (
-      <Placeholder
-        variant="empty"
-        placement="detail-panel"
-        title={t("previews.noPrSelected")}
-        subtitle={t("previews.selectPrHint")}
-        fillParentHeight
+      <NoTabsPlaceholder
+        icon="source-control"
+        actions={sourceControlQuickActions}
       />
     );
   }
@@ -162,7 +163,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
           repoId={repoId ?? undefined}
           repoPath={repoPath}
           collapseAllSignal={sourceControlCollapseAllSignal}
-          emptyFocusActions={editorQuickActions}
+          emptyFocusActions={sourceControlQuickActions}
         />
       </Suspense>
     </div>

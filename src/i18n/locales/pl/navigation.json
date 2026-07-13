@@ -45,7 +45,6 @@
     "projects": "Historie",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
     "colleagues": "Współpracownicy",
     "terminals": "Terminale"
   },
@@ -81,10 +80,9 @@
     "agentStudio": "Studio Agentów",
     "serviceMarket": "Rynek usług",
     "signingIn": "Logowanie...",
-    "launchpad": "Launchpad",
+    "launchpad": "Panel startowy",
     "ideaArea": "Strefa pomysłów",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Dostosuj siatkę",
@@ -201,7 +199,7 @@
     "emptyWorkspaces": "Brak pasujących obszarów roboczych",
     "myRepos": "Moje repozytoria",
     "myMultiRepoWorkspaces": "Moje wielo-repo Workspaces",
-    "dashboard": "Pulpit",
+    "dashboard": "Panel",
     "myWorkspaces": "Moje obszary robocze",
     "workspaces": "Obszary robocze",
     "dashboardTitle": "Obszary robocze",
@@ -375,6 +373,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "Zmień ORG",
     "addOrg": "Dodaj ORG",
     "unknownOrg": "Nieznana ORG",
     "emptyColleagues": "Brak aktywności współpracowników",

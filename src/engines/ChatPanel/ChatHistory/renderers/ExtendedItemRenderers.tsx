@@ -25,7 +25,9 @@ import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { createLogger } from "@src/hooks/logger";
 
 import ActionSummaryGroup from "../../ChatItems/ActionSummaryGroup";
+import EditActivityGroup from "../../ChatItems/EditActivityGroup";
 import ReadFileGroup from "../../ChatItems/ReadFileGroup";
+import TerminalActivityGroup from "../../ChatItems/TerminalActivityGroup";
 import ActivityChatItem from "../ActivityRouter";
 import type { OptimizedChatItem } from "../chatItemPipeline";
 import ChatItemWrap from "./ChatItemWrap";
@@ -206,6 +208,28 @@ export function renderActivityStackGroup(
 ): React.ReactElement | null {
   const stackGroup = chatItem.activityStackGroup;
   if (!stackGroup || stackGroup.events.length === 0) return null;
+
+  if (stackGroup.category === "terminal") {
+    return (
+      <ChatItemWrap key={itemKey}>
+        <TerminalActivityGroup
+          events={stackGroup.events}
+          closedByBoundary={stackGroup.closedByBoundary}
+        />
+      </ChatItemWrap>
+    );
+  }
+
+  if (stackGroup.category === "edit") {
+    return (
+      <ChatItemWrap key={itemKey}>
+        <EditActivityGroup
+          events={stackGroup.events}
+          closedByBoundary={stackGroup.closedByBoundary}
+        />
+      </ChatItemWrap>
+    );
+  }
 
   const actionCount = stackGroup.events.length;
   const countLabel = i18next.t("sessions:chat.actionCount", {

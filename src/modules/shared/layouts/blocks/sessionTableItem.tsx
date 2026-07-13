@@ -1,9 +1,9 @@
 import React from "react";
 
+import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import type { KanbanTask } from "@src/features/KanbanBoard";
-import TaskImpactLine from "@src/features/KanbanBoard/components/TaskImpactLine";
 import { KANBAN_RESULT_STATUS } from "@src/features/KanbanBoard/types";
 import { formatSmartDateTime } from "@src/util/data/formatters/date";
 import { formatModelNameFull } from "@src/util/formatModelName";
@@ -22,6 +22,23 @@ interface MapKanbanTaskToSessionTableItemInput {
   dateTimeLabelOptions?: SessionTableDateTimeLabelOptions;
   active?: boolean;
   testId?: string;
+}
+
+const WORKSPACE_LABEL_MAX_LENGTH = 15;
+
+const compactNumberFormatter = new Intl.NumberFormat(undefined, {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+function formatTokenCount(total: number | undefined): string | undefined {
+  if (!total || total <= 0) return undefined;
+  return compactNumberFormatter.format(total);
+}
+
+function truncateWorkspaceLabel(label: string | undefined): string | undefined {
+  if (!label || label.length <= WORKSPACE_LABEL_MAX_LENGTH) return label;
+  return `${label.slice(0, WORKSPACE_LABEL_MAX_LENGTH)}...`;
 }
 
 function renderAgentIcon(task: KanbanTask): React.ReactNode {
@@ -66,8 +83,11 @@ export function mapKanbanTaskToSessionTableItem({
   active,
   testId,
 }: MapKanbanTaskToSessionTableItemInput): SessionTableItem {
-  const orgtrackMetadata = task.orgtrackMetadata;
-  const committedRateValue = orgtrackMetadata?.committedRatePercent;
+  const impact = task.impact;
+  const committedRateValue = impact?.committedRatePercent;
+  const hasLinesChanged = Boolean(
+    impact && (impact.linesAdded > 0 || impact.linesRemoved > 0)
+  );
 
   return {
     id: task.id,
@@ -87,20 +107,33 @@ export function mapKanbanTaskToSessionTableItem({
     modelLabel: task.modelName
       ? formatModelNameFull(task.modelName)
       : undefined,
-    workspaceLabel: task.workspaceName,
+    workspaceLabel: truncateWorkspaceLabel(task.workspaceName),
     workspaceTitle: task.workspaceName,
-    impactLabel: <TaskImpactLine task={task} showUnavailable={false} />,
+    impactLabel:
+      hasLinesChanged && impact ? (
+        <DiffStatsBadge
+          additions={impact.linesAdded}
+          deletions={impact.linesRemoved}
+          variant="plain"
+          size="inherit"
+          reserveValueWidth={false}
+          valueClassName="font-normal"
+          formatValue={(value) => value.toLocaleString()}
+        />
+      ) : undefined,
     filesChangedLabel:
-      orgtrackMetadata && orgtrackMetadata.filesChanged > 0
-        ? orgtrackMetadata.filesChanged.toLocaleString()
+      impact && impact.filesChanged > 0
+        ? impact.filesChanged.toLocaleString()
         : undefined,
     relatedCommitsLabel:
-      orgtrackMetadata && orgtrackMetadata.relatedCommits > 0
-        ? orgtrackMetadata.relatedCommits.toLocaleString()
+      impact && impact.relatedCommits > 0
+        ? impact.relatedCommits.toLocaleString()
         : undefined,
     committedRateLabel:
       committedRateValue !== undefined ? `${committedRateValue}%` : undefined,
     committedRateValue,
+    tokensLabel: formatTokenCount(task.totalTokens),
+    tokensValue: task.totalTokens,
     startedLabel: formatDateTimeLabel(task.created_at, dateTimeLabelOptions),
     lastUpdatedLabel: formatDateTimeLabel(
       task.updated_at ?? task.completed_at,

@@ -11,6 +11,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getGitRemotes } from "@src/api/http/git/remotes";
 import { createLogger } from "@src/hooks/logger";
+import {
+  getCachedIssues,
+  isIssueCacheStale,
+  updateCachedClosedIssues,
+  updateCachedOpenIssues,
+} from "@src/services/git/githubListCache";
 import { parseGithubRepoFullName } from "@src/services/git/operations/createPullRequest";
 import {
   addIssueComment,
@@ -29,18 +35,14 @@ import type {
   GitHubIssueUser,
 } from "@src/services/git/operations/githubIssues";
 import {
-  workstationIssueCallbackAtom,
-  workstationIssueListAtom,
-  workstationSelectedIssueAtom,
+  workstationIssueCallbackAtomFamily,
+  workstationIssueListAtomFamily,
+  workstationSelectedIssueAtomFamily,
 } from "@src/store/workstation/codeEditor/workstationIssueAtom";
 import type { IssueFilterState } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 
-import {
-  getCachedIssues,
-  isIssueCacheStale,
-  updateCachedClosedIssues,
-  updateCachedOpenIssues,
-} from "./githubListCache";
+import { filterIssuesByQuery } from "./workstationIssueHelpers";
 
 export type { IssueFilterState };
 
@@ -74,14 +76,22 @@ function mergeUniqueIssues(
 
 export function useWorkstationIssues({
   repoPath,
-  repoId = "default",
+  repoId,
   remoteUrl: remoteUrlProp,
 }: UseWorkstationIssuesOptions) {
-  const setListState = useSetAtom(workstationIssueListAtom);
-  const setSelectedState = useSetAtom(workstationSelectedIssueAtom);
-  const setCallbackAtom = useSetAtom(workstationIssueCallbackAtom);
+  const apiRepoId = repoId ?? "default";
+  const scopeKey = workstationRepoScopeKey(repoId, repoPath);
+  const setListState = useSetAtom(workstationIssueListAtomFamily(scopeKey));
+  const setSelectedState = useSetAtom(
+    workstationSelectedIssueAtomFamily(scopeKey)
+  );
+  const setCallbackAtom = useSetAtom(
+    workstationIssueCallbackAtomFamily(scopeKey)
+  );
 
-  const selectedState = useAtomValue(workstationSelectedIssueAtom);
+  const selectedState = useAtomValue(
+    workstationSelectedIssueAtomFamily(scopeKey)
+  );
 
   const mountedRef = useRef(true);
   useEffect(() => {
@@ -127,10 +137,10 @@ export function useWorkstationIssues({
         return;
       }
 
-      logger.debug("fetching remotes", { repoPath, repoId });
+      logger.debug("fetching remotes", { repoPath, repoId: apiRepoId });
       try {
         const remotesData = await getGitRemotes({
-          repo_id: repoId,
+          repo_id: apiRepoId,
           repo_path: repoPath,
         });
         logger.debug("getGitRemotes result", remotesData);
@@ -151,7 +161,7 @@ export function useWorkstationIssues({
     return () => {
       cancelled = true;
     };
-  }, [repoPath, repoId, remoteUrlProp]);
+  }, [repoPath, apiRepoId, remoteUrlProp]);
 
   // Optimistically true when the remote resolves to a GitHub URL.
   // A valid GitHub URL means credentials should be available via
@@ -196,7 +206,9 @@ export function useWorkstationIssues({
     cached ? "ready" : "idle"
   );
   const [closedLoadState, setClosedLoadState] = useState<SectionLoadState>(
-    cached?.closedIssues.length ? "ready" : "idle"
+    cached?.closedIssues.length && !isIssueCacheStale(repoKey, "closed")
+      ? "ready"
+      : "idle"
   );
   const [openIssues, setOpenIssues] = useState<GitHubIssue[]>(
     cached?.openIssues ?? []
@@ -353,7 +365,7 @@ export function useWorkstationIssues({
   ]);
 
   // Fetch open issues on mount / auth ready.
-  // Skip the network hit when the cache is still fresh (< 5 min) — the UI
+  // Skip the network hit when the cache is still fresh (< 10 min) — the UI
   // already shows cached rows so there's no spinner flash on re-entry.
   // Deferred via setTimeout to avoid synchronous setState inside effect body.
   useEffect(() => {
@@ -608,16 +620,7 @@ export function useWorkstationIssues({
   // ── Derived values ────────────────────────────────────────────────────────
 
   const applySearch = useCallback(
-    (list: GitHubIssue[]) => {
-      if (!debouncedSearch.trim()) return list;
-      const q = debouncedSearch.toLowerCase();
-      return list.filter(
-        (issue) =>
-          issue.title.toLowerCase().includes(q) ||
-          issue.labels.some((l) => l.name.toLowerCase().includes(q)) ||
-          issue.user.login.toLowerCase().includes(q)
-      );
-    },
+    (list: GitHubIssue[]) => filterIssuesByQuery(list, debouncedSearch),
     [debouncedSearch]
   );
 

@@ -19,9 +19,10 @@ import {
 } from "@src/modules/WorkStation/shared";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
-  workstationIssueCallbackAtom,
-  workstationSelectedIssueAtom,
+  workstationIssueCallbackAtomFamily,
+  workstationSelectedIssueAtomFamily,
 } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import type { SourceControlHistorySelection } from "@src/store/workstation/tabs";
 import type { GitFile } from "@src/types/git/types";
@@ -59,7 +60,7 @@ export interface SourceControlMainContentProps {
   repoId?: string;
   repoPath?: string;
   collapseAllSignal?: number;
-  /** Regular editor placeholder actions reused when no source-control file is focused. */
+  /** Source Control navigation shown when no detail is selected. */
   emptyFocusActions: QuickAction[];
 }
 
@@ -79,8 +80,13 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
   collapseAllSignal,
   emptyFocusActions,
 }) => {
-  const selectedIssueState = useAtomValue(workstationSelectedIssueAtom);
-  const issueCallbacks = useAtomValue(workstationIssueCallbackAtom);
+  const scopeKey = workstationRepoScopeKey(repoId, repoPath);
+  const selectedIssueState = useAtomValue(
+    workstationSelectedIssueAtomFamily(scopeKey)
+  );
+  const issueCallbacks = useAtomValue(
+    workstationIssueCallbackAtomFamily(scopeKey)
+  );
 
   const handleCloseIssue = useCallback(() => {
     if (selectedIssueState.issue && issueCallbacks.closeIssue) {
@@ -134,7 +140,9 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
 
   if (historySelection?.type === "issue") {
     if (!selectedIssueState.issue) {
-      return <NoTabsPlaceholder icon="editor" actions={emptyFocusActions} />;
+      return (
+        <NoTabsPlaceholder icon="source-control" actions={emptyFocusActions} />
+      );
     }
 
     return (

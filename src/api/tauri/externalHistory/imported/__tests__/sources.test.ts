@@ -54,7 +54,7 @@ describe("imported history source registry", () => {
     expect(
       getImportedHistorySourceByListCategory("external_history:cursor_ide")
         ?.groupLabel
-    ).toBe("Cursor History");
+    ).toBe("Cursor App");
     expect(
       getImportedHistorySourceByListCategory("external_history:codex_app")
         ?.groupLabel
@@ -62,7 +62,7 @@ describe("imported history source registry", () => {
     expect(
       getImportedHistorySourceByListCategory("external_history:claude_code")
         ?.groupLabel
-    ).toBe("Claude Code");
+    ).toBe("Claude App");
     expect(
       getImportedHistorySourceByListCategory("external_history:opencode")
         ?.groupLabel

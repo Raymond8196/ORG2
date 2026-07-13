@@ -24,6 +24,8 @@ export interface SessionTableItem {
   relatedCommitsLabel?: React.ReactNode;
   committedRateLabel?: React.ReactNode;
   committedRateValue?: number;
+  tokensLabel?: React.ReactNode;
+  tokensValue?: number;
   startedLabel?: React.ReactNode;
   lastUpdatedLabel?: React.ReactNode;
   active?: boolean;
@@ -31,6 +33,41 @@ export interface SessionTableItem {
   testId?: string;
   dataAttributes?: Record<string, string | number | boolean | undefined>;
 }
+
+export type SessionTableColumnKey =
+  | "name"
+  | "status"
+  | "agent"
+  | "model"
+  | "workspace"
+  | "impact"
+  | "filesChanged"
+  | "relatedCommits"
+  | "committedRate"
+  | "tokens"
+  | "started"
+  | "lastUpdated";
+
+/**
+ * Default column visibility shared by every consumer. `tokens` is opt-in so
+ * the established surfaces (Recent sessions, Collab org, Work items, session
+ * groups) keep their current layout; the Kanban list turns it on and hides
+ * `committedRate` via the `columnVisibility` prop.
+ */
+const DEFAULT_COLUMN_VISIBILITY: Record<SessionTableColumnKey, boolean> = {
+  name: true,
+  status: true,
+  agent: true,
+  model: true,
+  workspace: true,
+  impact: true,
+  filesChanged: true,
+  relatedCommits: true,
+  committedRate: true,
+  tokens: false,
+  started: true,
+  lastUpdated: true,
+};
 
 interface SessionTableProps {
   items: SessionTableItem[];
@@ -43,6 +80,12 @@ interface SessionTableProps {
   maxHeight?: number | string;
   pageSize?: number;
   pageSizeOptions?: number[];
+  /**
+   * Per-column visibility overrides merged over {@link DEFAULT_COLUMN_VISIBILITY}.
+   * Only keys present are overridden, so `{ committedRate: false, tokens: true }`
+   * flips those two and leaves the rest at their defaults.
+   */
+  columnVisibility?: Partial<Record<SessionTableColumnKey, boolean>>;
 }
 
 const EMPTY_CELL = "—";
@@ -83,6 +126,7 @@ function matchesSessionSearch(
     toSearchText(item.filesChangedLabel),
     toSearchText(item.relatedCommitsLabel),
     toSearchText(item.committedRateLabel),
+    toSearchText(item.tokensLabel),
     toSearchText(item.startedLabel),
     toSearchText(item.lastUpdatedLabel),
   ]
@@ -103,154 +147,178 @@ export const SessionTable: React.FC<SessionTableProps> = ({
   maxHeight,
   pageSize,
   pageSizeOptions,
+  columnVisibility,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
   const [searchQuery, setSearchQuery] = useState("");
   const shouldShowSearch = showSearch ?? true;
 
+  const isColumnVisible = (key: SessionTableColumnKey): boolean =>
+    columnVisibility?.[key] ?? DEFAULT_COLUMN_VISIBILITY[key];
+
   const columns = useMemo<SettingsTableColumn<SessionTableItem>[]>(
-    () => [
-      {
-        key: "name",
-        label: t("common:labels.name"),
-        width: "250px",
-        sorter: (left, right) => compareSessionText(left.title, right.title),
-        renderCell: (item) => (
-          <div className="flex min-w-0 max-w-[250px] items-center gap-2">
-            <span className="min-w-0 truncate font-medium text-text-1">
-              {item.title}
-            </span>
-          </div>
-        ),
-      },
-      {
-        key: "status",
-        label: t("common:labels.status"),
-        width: "95px",
-        renderCell: (item) => (
-          <div className="flex min-w-0 items-center gap-2 text-text-2">
-            <span
-              className="h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{
-                backgroundColor: item.statusColor ?? "var(--color-fill-4)",
-              }}
-            />
-            <span className="truncate">{item.statusLabel}</span>
-          </div>
-        ),
-      },
-      {
-        key: "agent",
-        label: t("common:terminology.agent"),
-        width: "130px",
-        sorter: (left, right) =>
-          compareSessionText(left.agentLabel, right.agentLabel),
-        renderCell: (item) => (
-          <div className="flex min-w-0 items-center gap-2 text-text-2">
-            {item.agentIcon}
-            <span className="min-w-0 truncate">
-              {item.agentLabel ?? EMPTY_CELL}
-            </span>
-          </div>
-        ),
-      },
-      {
-        key: "model",
-        label: t("common:labels.model"),
-        width: "130px",
-        sorter: (left, right) =>
-          compareSessionText(left.modelLabel, right.modelLabel),
-        renderCell: (item) => (
-          <div className="flex min-w-0 items-center gap-2 text-text-2">
-            {item.modelIcon}
-            <span className="min-w-0 truncate">
-              {item.modelLabel ?? EMPTY_CELL}
-            </span>
-          </div>
-        ),
-      },
-      {
-        key: "workspace",
-        label: t("common:selectors.shared.workspace"),
-        width: "130px",
-        renderCell: (item) => (
-          <div className="truncate text-text-3" title={item.workspaceTitle}>
-            {item.workspaceLabel ?? EMPTY_CELL}
-          </div>
-        ),
-      },
-      {
-        key: "impact",
-        label: t("sessions:simulator.impact.lines"),
-        width: "110px",
-        renderCell: (item) => (
-          <div className="truncate text-text-3">
-            {item.impactLabel ?? EMPTY_CELL}
-          </div>
-        ),
-      },
-      {
-        key: "filesChanged",
-        label: t("common:labels.files"),
-        width: "80px",
-        renderCell: (item) => (
-          <div className="truncate text-text-3">
-            {item.filesChangedLabel ?? EMPTY_CELL}
-          </div>
-        ),
-      },
-      {
-        key: "relatedCommits",
-        label: t("common:labels.commits"),
-        width: "90px",
-        renderCell: (item) => (
-          <div className="truncate text-text-3">
-            {item.relatedCommitsLabel ?? EMPTY_CELL}
-          </div>
-        ),
-      },
-      {
-        key: "committedRate",
-        label: t("common:labels.committedRate"),
-        width: "105px",
-        sorter: (left, right) =>
-          (left.committedRateValue ?? -1) - (right.committedRateValue ?? -1),
-        renderCell: (item) => (
-          <div className="flex min-w-0 items-center gap-2 text-text-3">
-            <div className="h-1.5 w-12 overflow-hidden rounded-full bg-fill-3">
-              <div
-                className="h-full rounded-full bg-success-6"
-                style={{ width: `${item.committedRateValue ?? 0}%` }}
-              />
-            </div>
-            <span className="truncate">
-              {item.committedRateLabel ?? EMPTY_CELL}
-            </span>
-          </div>
-        ),
-      },
-      {
-        key: "started",
-        label: t("sessions:opsControl.list.started"),
-        width: "115px",
-        renderCell: (item) => (
-          <div className="truncate text-text-3">
-            {item.startedLabel ?? EMPTY_CELL}
-          </div>
-        ),
-      },
-      {
-        key: "lastUpdated",
-        label: t("sessions:opsControl.list.lastUpdated"),
-        width: "115px",
-        renderCell: (item) => (
-          <div className="truncate text-text-3">
-            {item.lastUpdatedLabel ?? EMPTY_CELL}
-          </div>
-        ),
-      },
-    ],
-    [t]
+    () =>
+      (
+        [
+          {
+            key: "name",
+            label: t("common:labels.name"),
+            width: "250px",
+            sorter: (left, right) =>
+              compareSessionText(left.title, right.title),
+            renderCell: (item) => (
+              <div className="flex min-w-0 max-w-[250px] items-center gap-2">
+                <span className="min-w-0 truncate font-medium text-text-1">
+                  {item.title}
+                </span>
+              </div>
+            ),
+          },
+          {
+            key: "status",
+            label: t("common:labels.status"),
+            width: "95px",
+            renderCell: (item) => (
+              <div className="flex min-w-0 items-center gap-2 text-text-2">
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{
+                    backgroundColor: item.statusColor ?? "var(--color-fill-4)",
+                  }}
+                />
+                <span className="truncate">{item.statusLabel}</span>
+              </div>
+            ),
+          },
+          {
+            key: "agent",
+            label: t("common:terminology.agent"),
+            width: "130px",
+            sorter: (left, right) =>
+              compareSessionText(left.agentLabel, right.agentLabel),
+            renderCell: (item) => (
+              <div className="flex min-w-0 items-center gap-2 text-text-2">
+                {item.agentIcon}
+                <span className="min-w-0 truncate">
+                  {item.agentLabel ?? EMPTY_CELL}
+                </span>
+              </div>
+            ),
+          },
+          {
+            key: "model",
+            label: t("common:labels.model"),
+            width: "130px",
+            sorter: (left, right) =>
+              compareSessionText(left.modelLabel, right.modelLabel),
+            renderCell: (item) => (
+              <div className="flex min-w-0 items-center gap-2 text-text-2">
+                {item.modelIcon}
+                <span className="min-w-0 truncate">
+                  {item.modelLabel ?? EMPTY_CELL}
+                </span>
+              </div>
+            ),
+          },
+          {
+            key: "workspace",
+            label: t("common:selectors.shared.workspace"),
+            width: "130px",
+            renderCell: (item) => (
+              <div className="truncate text-text-3" title={item.workspaceTitle}>
+                {item.workspaceLabel ?? EMPTY_CELL}
+              </div>
+            ),
+          },
+          {
+            key: "impact",
+            label: t("common:aiImpact.lines"),
+            width: "110px",
+            renderCell: (item) => (
+              <div className="truncate text-text-3">
+                {item.impactLabel ?? EMPTY_CELL}
+              </div>
+            ),
+          },
+          {
+            key: "filesChanged",
+            label: t("common:labels.files"),
+            width: "80px",
+            renderCell: (item) => (
+              <div className="truncate text-text-3">
+                {item.filesChangedLabel ?? EMPTY_CELL}
+              </div>
+            ),
+          },
+          {
+            key: "relatedCommits",
+            label: t("common:labels.commits"),
+            width: "90px",
+            renderCell: (item) => (
+              <div className="truncate text-text-3">
+                {item.relatedCommitsLabel ?? EMPTY_CELL}
+              </div>
+            ),
+          },
+          {
+            key: "committedRate",
+            label: t("common:labels.committedRate"),
+            width: "105px",
+            sorter: (left, right) =>
+              (left.committedRateValue ?? -1) -
+              (right.committedRateValue ?? -1),
+            renderCell: (item) => (
+              <div className="flex min-w-0 items-center gap-2 text-text-3">
+                <div className="h-1.5 w-12 overflow-hidden rounded-full bg-fill-3">
+                  <div
+                    className="h-full rounded-full bg-success-6"
+                    style={{ width: `${item.committedRateValue ?? 0}%` }}
+                  />
+                </div>
+                <span className="truncate">
+                  {item.committedRateLabel ?? EMPTY_CELL}
+                </span>
+              </div>
+            ),
+          },
+          {
+            key: "tokens",
+            label: t("common:labels.tokens"),
+            width: "90px",
+            sorter: (left, right) =>
+              (left.tokensValue ?? -1) - (right.tokensValue ?? -1),
+            renderCell: (item) => (
+              <div className="truncate text-text-3">
+                {item.tokensLabel ?? EMPTY_CELL}
+              </div>
+            ),
+          },
+          {
+            key: "started",
+            label: t("sessions:kanban.list.started"),
+            width: "115px",
+            renderCell: (item) => (
+              <div className="truncate text-text-3">
+                {item.startedLabel ?? EMPTY_CELL}
+              </div>
+            ),
+          },
+          {
+            key: "lastUpdated",
+            label: t("sessions:kanban.list.lastUpdated"),
+            width: "115px",
+            renderCell: (item) => (
+              <div className="truncate text-text-3">
+                {item.lastUpdatedLabel ?? EMPTY_CELL}
+              </div>
+            ),
+          },
+        ] as SettingsTableColumn<SessionTableItem>[]
+      ).filter((column) =>
+        isColumnVisible(column.key as SessionTableColumnKey)
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t, columnVisibility]
   );
 
   const filteredItems = useMemo(() => {
@@ -280,9 +348,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
         shouldShowSearch
           ? {
               searchValue: searchQuery,
-              searchPlaceholder: t(
-                "sessions:opsControl.list.searchPlaceholder"
-              ),
+              searchPlaceholder: t("sessions:kanban.list.searchPlaceholder"),
               onSearchChange: setSearchQuery,
               onSearchClear: () => setSearchQuery(""),
               searchCountText:

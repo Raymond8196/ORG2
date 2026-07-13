@@ -149,17 +149,16 @@
       "zh-Hant": "Traditionelles Chinesisch"
     },
     "layout": "Layout",
-    "globalLayoutMethod": "Layout-Methode",
-    "globalLayoutMethodDesc": "Wählen Sie die Rahmung der Inhaltsbereiche",
+    "sidebar": "Seitenleiste",
+    "spotlight": "Spotlight",
+    "sidebarEdgeDepth": "Tiefe der Seitenleistenkante",
+    "selectedItemTransparency": "Transparenz ausgewählter Elemente",
     "spotlightPlacement": "Spotlight-Position",
     "spotlightPlacementDesc": "Wählen Sie, wo die Spotlight-Befehlspalette geöffnet wird",
     "spotlightPlacementOptions": {
       "top": "Oben",
       "center": "Seitenmitte"
     },
-    "inset": "Komfort",
-    "full": "Erweitert",
-    "compact": "Modern",
     "left": "Links",
     "right": "Rechts",
     "light": "Hell",
@@ -212,6 +211,9 @@
     "presenceGuidanceInvisible": "Unsichtbar — Hinweise für Agenten",
     "presenceGuidanceAway": "Abwesend — Hinweise für Agenten",
     "presenceGuidancePlaceholder": "Sag dem Agent, wie er sich in diesem Modus verhalten soll…",
+    "presenceGuidanceOnlineDefault": "Ich bin an der Tastatur. Du kannst mir jederzeit Rückfragen stellen und destruktive Aktionen vor der Ausführung von mir bestätigen lassen",
+    "presenceGuidanceInvisibleDefault": "Ich bin in der Nähe, erscheine aber offline. Arbeite standardmäßig autonom und benachrichtige mich nur bei riskanten Aktionen oder größeren Refactorings; fasse alle anderen Fragen gesammelt zusammen, statt sie einzeln zu stellen",
+    "presenceGuidanceAwayDefault": "Ich bin nicht an der Tastatur. Warte nicht auf mich, sondern triff mit den vorhandenen Informationen die beste Entscheidung, erledige alles Mögliche und hinterlasse eine knappe Zusammenfassung mit offenen Fragen für meine Rückkehr",
     "followSystem": "System folgen"
   },
   "background": {
@@ -618,6 +620,12 @@
     "autoTimeoutTitle": "Automatisches Timeout",
     "questionAutoSkipTimeoutByStatus": "Fragen automatisch überspringen",
     "questionAutoSkipTimeoutByStatusDesc": "Agent-Fragen nach diesem Timeout automatisch überspringen (0 = deaktiviert)",
+    "planAutoApproveTimeoutByStatus": "{{status}} Plan automatisch genehmigen",
+    "planAutoApproveTimeoutByStatusDesc": "Genehmigt einen ausstehenden Plan nach dieser Anzahl Sekunden in diesem Status automatisch (0 = deaktiviert)",
+    "goalMaxTurnsByStatus": "{{status}} Budget für Ziel-Fortsetzung",
+    "goalMaxTurnsByStatusDesc": "Arbeitet nach dem normalen Stopp des Agenten bis zu dieser Anzahl zusätzlicher Runden am letzten Wunsch weiter (0 = deaktiviert)",
+    "modeSwitchAutoPlanByStatus": "{{status}} Moduswechsel automatisch zu Plan",
+    "modeSwitchAutoPlanByStatusDesc": "Schaltet ausstehende Vorschläge für den Plan-Modus automatisch um, wenn ihr Bestätigungstimer abläuft",
     "resourceTabs": {
       "tools": "Werkzeuge",
       "mcp": "MCP",

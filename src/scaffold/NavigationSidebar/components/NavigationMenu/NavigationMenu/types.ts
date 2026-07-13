@@ -6,6 +6,7 @@ export interface NavigationMenuProps {
   items: NavigationMenuItem[];
   selectedKeys: string[];
   onMenuItemClick: (key: string, item: NavigationMenuItem) => void;
+  onSubmenuOpenChange?: (key: string, open: boolean) => void;
   onMenuItemContextMenu?: (
     event: React.MouseEvent,
     key: string,

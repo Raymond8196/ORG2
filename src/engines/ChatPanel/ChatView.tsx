@@ -23,6 +23,7 @@
  * - Session creator (shown when no session)
  */
 import { useAtomValue, useSetAtom, useStore } from "jotai";
+import { ArrowDown } from "lucide-react";
 import React, {
   memo,
   useCallback,
@@ -31,11 +32,13 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   type CoreSessionSummary,
   getOrgtrackSessionSummary,
 } from "@src/api/tauri/lineage";
+import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useShowInteractArea } from "@src/contexts/workspace/ChatContext";
 import { AgentMessageClampProvider } from "@src/engines/ChatPanel/blocks";
@@ -234,6 +237,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
     readOnly = false,
     secondary = false,
   }) => {
+    const { t } = useTranslation("sessions");
     const setActiveSessionId = useSetAtom(activeSessionIdAtom);
     const store = useStore();
     const rootRef = useRef<HTMLDivElement>(null);
@@ -486,6 +490,20 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const handleScrollNavChange = useCallback((state: ScrollNavState) => {
       setScrollNav(state);
     }, []);
+    const externalScrollToBottomButton = scrollNav?.showScrollToBottom ? (
+      <Button
+        variant="secondary"
+        appearance="outline"
+        size="small"
+        shape="round"
+        icon={<ArrowDown size={14} />}
+        iconOnly
+        aria-label={t("common:chat.scrollToBottom")}
+        title={t("common:chat.scrollToBottom")}
+        onClick={scrollNav.onScrollToBottom}
+        className="shrink-0"
+      />
+    ) : null;
 
     const {
       view: agentOrgRunView,
@@ -786,7 +804,11 @@ const ChatView: React.FC<ChatViewProps> = memo(
         >
           <div
             ref={handlePinnedHeaderHostRef}
-            className="flex flex-shrink-0 flex-col"
+            className={
+              turnPaginationEnabled
+                ? "flex flex-shrink-0 flex-col"
+                : "absolute inset-x-0 top-0 z-40 flex flex-col"
+            }
             data-chat-pinned-header-portal-host
           />
           <div className="min-h-0 min-w-0 max-w-full flex-1 overflow-hidden">
@@ -872,12 +894,26 @@ const ChatView: React.FC<ChatViewProps> = memo(
                     chatPanelPosition={position}
                     sessionScope="none"
                     onSubmitOverride={handleExternalHistoryForkSubmit}
+                    topRowTrailingContent={externalScrollToBottomButton}
                     bottomAnchored
                   />
                 </ChatSessionContext.Provider>
               </div>
             </div>
           )}
+          {isExternalHistory &&
+            !showExternalHistoryForkComposer &&
+            externalScrollToBottomButton && (
+              <div className="pointer-events-none absolute bottom-2 left-0 right-0 z-50">
+                <div
+                  className={`mx-auto flex w-full justify-end px-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+                >
+                  <span className="pointer-events-auto">
+                    {externalScrollToBottomButton}
+                  </span>
+                </div>
+              </div>
+            )}
           {showInteractArea && !isReadOnlySurface && (
             <ChatFloatingComposer
               composerRef={setMeasuredFloatingComposerRef}

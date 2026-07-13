@@ -21,7 +21,7 @@ use serde_json::Value;
 use tracing::{info, warn};
 
 use crate::providers::model_capabilities;
-use crate::providers::traits::{LLMProvider, LLMResponse, ProviderError};
+use crate::providers::traits::{finish_reason, LLMProvider, LLMResponse, ProviderError};
 
 /// Configuration for a side query call.
 pub struct SideQueryConfig {
@@ -40,6 +40,10 @@ pub struct SideQueryConfig {
     pub structured: Option<StructuredOutput>,
     /// KeyVault account ID for capability resolution + behavioral writeback.
     pub account_id: Option<String>,
+    /// Suppress prompt-cache write breakpoints for this call. Set for
+    /// one-shot requests whose prefix is never sent again (compaction
+    /// summarization) — see [`ChatOptions::skip_cache_write`].
+    pub skip_cache_write: bool,
 }
 
 /// Forced tool call for structured output.
@@ -59,6 +63,7 @@ impl Default for SideQueryConfig {
             system_prompt: None,
             structured: None,
             account_id: None,
+            skip_cache_write: false,
         }
     }
 }
@@ -76,11 +81,19 @@ pub struct SideQueryResult {
     /// Structured output extracted from a forced tool call. `None` when
     /// `SideQueryConfig::structured` was not set.
     pub structured: Option<Value>,
+    /// Provider-reported finish reason (see [`finish_reason`] constants).
+    /// Callers that persist the output durably (e.g. compaction summaries)
+    /// must reject `finish_reason::LENGTH` — it means the output was cut
+    /// off at `max_tokens`.
+    pub finish_reason: String,
 }
 
 #[derive(Debug)]
 pub enum SideQueryError {
     Provider(ProviderError),
+    /// The model hit its output token limit. Never accept this for side queries:
+    /// summaries / classifiers may be syntactically parseable but semantically truncated.
+    IncompleteOutput { finish_reason: String },
     EmptyContent,
 }
 
@@ -88,6 +101,10 @@ impl std::fmt::Display for SideQueryError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Provider(err) => write!(formatter, "Side query failed: {err}"),
+            Self::IncompleteOutput { finish_reason } => write!(
+                formatter,
+                "Side query returned incomplete output: finish_reason={finish_reason}"
+            ),
             Self::EmptyContent => write!(formatter, "Side query returned empty content"),
         }
     }
@@ -221,18 +238,30 @@ pub async fn side_query_typed(
         expecting_structured,
     );
 
+    let chat_options = crate::providers::traits::ChatOptions {
+        skip_cache_write: config.skip_cache_write,
+    };
+
     // First attempt
     let response = provider
-        .chat(
+        .chat_with_options(
             &messages,
             tools_ref,
             model,
             config.max_tokens,
             config.temperature,
+            chat_options,
         )
         .await;
 
     let result = match response {
+        Ok(resp) if is_output_truncated(&resp) => {
+            warn!(
+                "[side-query] incomplete output finish_reason={} — retrying with padded max_tokens",
+                resp.finish_reason
+            );
+            None
+        }
         Ok(resp) => try_extract_result(&resp, expecting_structured, model, config),
         Err(ProviderError::RequestFailed(ref msg))
             if msg.to_lowercase().contains("http 400")
@@ -267,15 +296,22 @@ pub async fn side_query_typed(
     let retry_tools_ref: Option<&[Value]> = retry_tools.as_deref();
 
     let retry_response = provider
-        .chat(
+        .chat_with_options(
             &messages,
             retry_tools_ref,
             model,
             retry_max_tokens,
             config.temperature,
+            chat_options,
         )
         .await
         .map_err(SideQueryError::Provider)?;
+
+    if is_output_truncated(&retry_response) {
+        return Err(SideQueryError::IncompleteOutput {
+            finish_reason: retry_response.finish_reason.clone(),
+        });
+    }
 
     // On retry, try structured first, then fall back to primary_text
     if expecting_structured {
@@ -295,6 +331,10 @@ pub async fn side_query_typed(
             Err(SideQueryError::EmptyContent)
         }
     }
+}
+
+fn is_output_truncated(response: &LLMResponse) -> bool {
+    response.finish_reason == finish_reason::LENGTH
 }
 
 /// Attempt to extract a result from a response. Returns `None` to signal
@@ -334,7 +374,36 @@ fn extract_structured_from_response(
         .tool_calls
         .iter()
         .find(|tc| tc.name == structured_cfg.tool_name)?;
+    // A forced tool call guarantees a `tool_use` block, but not a useful
+    // one: on very large prompts models sometimes emit the call with `{}`
+    // or all-empty fields (observed live: compaction summarizer answered
+    // a 233K-token prompt with completion=2 — an empty emit_summary).
+    // Accepting that as success bypasses the retry chain and hands the
+    // caller an empty payload, so treat it as "no structured output" and
+    // let the normal empty-response retry/fallback path run.
+    if structured_arguments_are_empty(&tool_call.arguments) {
+        warn!(
+            "[side-query] forced tool call '{}' returned empty arguments — treating as empty response",
+            structured_cfg.tool_name
+        );
+        return None;
+    }
     Some(tool_call.arguments.clone())
+}
+
+/// True when forced-tool-call arguments carry no usable payload: `null`,
+/// `{}`, or an object whose fields are all null / blank strings. Non-object
+/// shapes are left to the caller's own schema validation.
+fn structured_arguments_are_empty(arguments: &Value) -> bool {
+    match arguments {
+        Value::Null => true,
+        Value::Object(map) => map.values().all(|field| match field {
+            Value::Null => true,
+            Value::String(text) => text.trim().is_empty(),
+            _ => false,
+        }),
+        _ => false,
+    }
 }
 
 fn build_structured_result(response: &LLMResponse, structured: Value) -> SideQueryResult {
@@ -348,6 +417,7 @@ fn build_structured_result(response: &LLMResponse, structured: Value) -> SideQue
         prompt_tokens,
         completion_tokens,
         structured: Some(structured),
+        finish_reason: response.finish_reason.clone(),
     }
 }
 
@@ -364,6 +434,7 @@ fn build_text_result(response: &LLMResponse, content: String) -> SideQueryResult
         prompt_tokens,
         completion_tokens,
         structured: None,
+        finish_reason: response.finish_reason.clone(),
     }
 }
 

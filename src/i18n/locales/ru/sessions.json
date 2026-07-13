@@ -78,14 +78,57 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Session",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Текущий Kanban",
     "view": {
       "list": "Список",
       "diary": "Дневник",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Источники данных"
+    },
+    "dataSource": {
+      "title": "Источники данных",
+      "description": "Внешние инструменты для кодинга, которые обнаруживает ORGII. Импортируемые приложения показывают число сессий и могут быть пересканированы; остальные показывают статус установки и расположение истории.",
+      "rescanAll": "Пересканировать все",
+      "rescan": "Пересканировать",
+      "rescanning": "Пересканирование…",
+      "enable": "Включить",
+      "disable": "Отключить",
+      "lastScan": "Последнее сканирование {{time}}",
+      "neverScanned": "Не сканировалось",
+      "frequencyTitle": "Частота сканирования",
+      "globalFrequency": "Автоскан",
+      "freq": {
+        "default": "По умолчанию",
+        "manual": "Вручную",
+        "60s": "Каждые 60 с",
+        "5m": "Каждые 5 мин",
+        "1h": "Ежечасно",
+        "1d": "Ежедневно"
+      },
+      "openFolder": "Открыть папку",
+      "tabs": {
+        "all": "Все",
+        "apps": "Приложения",
+        "clis": "CLI"
+      },
+      "sessions_one": "{{count}} сессия",
+      "sessions_few": "{{count}} сессии",
+      "sessions_many": "{{count}} сессий",
+      "sessions_other": "{{count}} сессии",
+      "noPath": "Путь не обнаружен",
+      "notImported": "Не импортировано",
+      "status": {
+        "ready": "Готово",
+        "empty": "Нет истории",
+        "loading": "Проверка…",
+        "error": "Ошибка",
+        "installed": "Установлено",
+        "notInstalled": "Не обнаружено",
+        "disabled": "Отключено"
+      }
     },
     "list": {
       "updated": "Обновлено",
@@ -142,7 +185,9 @@
       "views": "Представления",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
-      "removeDraft": "Удалить черновик"
+      "removeDraft": "Удалить черновик",
+      "showSubagents": "Показать субагентов",
+      "hideSubagents": "Скрыть субагентов"
     },
     "resultStatus": {
       "completed": "Завершено",
@@ -181,11 +226,6 @@
       "merge": "Слить",
       "merging": "Слияние…",
       "merged": "Слито"
-    },
-    "diff": {
-      "openDiffWindow": "Просмотр Diff",
-      "windowTitle": "Diff сессии",
-      "filesChanged": "Файлы"
     },
     "replay": {
       "replaySession": "Воспроизвести"
@@ -408,7 +448,6 @@
         "interactionAskQuestion": "Вопрос",
         "interactionAskPermission": "Запрос разрешения",
         "interactionModeSwitch": "Смена режима",
-        "interactionNextSteps": "Следующие шаги",
         "interactionPlanDoc": "Документ плана",
         "interactionGeneric": "Взаимодействие"
       },
@@ -671,7 +710,9 @@
       "empty": "Действия не найдены.",
       "unpinAll": "Открепить все",
       "insert": "Вставить"
-    }
+    },
+    "compactArgHint": "<необязательный фокус резюме>",
+    "compactCommandDescription": "Обобщить старый контекст, чтобы освободить место. Необязательно: /compact <фокус резюме>"
   },
   "listPanel": {
     "showingOf": "Показано {{filtered}} из {{total}}",
@@ -716,12 +757,15 @@
       "addApiKey": {
         "title": "Добавить API key"
       },
+      "installLatestUpdate": {
+        "title": "Установить последнее обновление"
+      },
       "agents": {
         "title": "Agents"
       },
       "tabs": {
         "work": "Работа",
-        "explore": "Обзор",
+        "manage": "Управление",
         "heatmap": "Тренды"
       },
       "heatmap": {
@@ -734,6 +778,9 @@
       "quota": {
         "empty": "Данных о квоте пока нет. Обновите использование в Key Vault.",
         "refresh": "Обновить",
+        "justNow": "только что",
+        "minutesAgo": "{{count}} мин назад",
+        "hoursAgo": "{{count}}ч назад",
         "metrics": {
           "fiveHour": "5h",
           "sevenDay": "7d",
@@ -990,9 +1037,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Все состояния",
+        "assignedToMe": "Назначенные мне",
+        "createdByMe": "Созданные мной",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1034,6 +1081,8 @@
     "deleteFileRunning": "Удаление {{name}}",
     "deleteFileDone": "{{name}} удалён",
     "deleteFileFailed": "Не удалось удалить {{name}}",
+    "deleteFileCompactRunning": "Удаление",
+    "deleteFileCompactDone": "Удалить",
     "directoryTree": "Дерево каталогов",
     "ls": "ls",
     "listDirRunning": "Просмотр каталога",
@@ -1080,7 +1129,7 @@
     "pathCopied": "Путь скопирован!",
     "failedToCopyPath": "Не удалось скопировать путь",
     "copyFilePath": "Копировать путь к файлу",
-    "explore": "Исследовать",
+    "manage": "Управление",
     "readFile": "Чтение файла",
     "readFileRunning": "Чтение",
     "readFileDone": "Читать",
@@ -1103,12 +1152,40 @@
     "editFileDoneNoName": "Файл отредактирован",
     "editFileCompactRunning": "Редактирование",
     "editFileCompactDone": "Редактировать",
+    "editFiles": "Редактировать файлы",
+    "editSummary": {
+      "edit_one": "{{count}} изменение",
+      "edit_few": "{{count}} изменения",
+      "edit_many": "{{count}} изменений",
+      "edit_other": "{{count}} изменения",
+      "read_one": "{{count}} чтение",
+      "read_few": "{{count}} чтения",
+      "read_many": "{{count}} чтений",
+      "read_other": "{{count}} чтения",
+      "separator": ", "
+    },
     "editFileFailedNoName": "Попытка отредактировать",
     "file": "файл",
     "runShellRunning": "Выполнение команды",
     "terminalWaitRunning": "Ожидание завершения терминала",
     "runShellDone": "Команда выполнена",
     "runShellFailed": "Ошибка выполнения команды",
+    "runCommands": "Выполнить команды",
+    "terminalSummary": {
+      "command_one": "{{count}} команда",
+      "command_few": "{{count}} команды",
+      "command_many": "{{count}} команд",
+      "command_other": "{{count}} команды",
+      "wait_one": "{{count}} ожидание",
+      "wait_few": "{{count}} ожидания",
+      "wait_many": "{{count}} ожиданий",
+      "wait_other": "{{count}} ожидания",
+      "check_one": "{{count}} проверка",
+      "check_few": "{{count}} проверки",
+      "check_many": "{{count}} проверок",
+      "check_other": "{{count}} проверки",
+      "separator": ", "
+    },
     "inspectTerminalsRunning": "Проверка терминалов",
     "inspectTerminalsDone": "Терминалы проверены",
     "inspectTerminalsFailed": "Не удалось проверить терминалы",
@@ -1146,17 +1223,29 @@
       "skip": "Пропустить",
       "noReason": "Agent предлагает сменить режим"
     },
+    "explore": "Обзор",
     "exploreSummary": {
       "read_one": "{{count}} файл",
-      "read_other": "{{count}} файлов",
+      "read_few": "{{count}} файла",
+      "read_many": "{{count}} файлов",
+      "read_other": "{{count}} файла",
       "search_one": "{{count}} поиск",
-      "search_other": "{{count}} поисков",
-      "glob_one": "{{count}} glob",
-      "glob_other": "{{count}} glob",
+      "search_few": "{{count}} поиска",
+      "search_many": "{{count}} поисков",
+      "search_other": "{{count}} поиска",
+      "glob_one": "{{count}} glob-запрос",
+      "glob_few": "{{count}} glob-запроса",
+      "glob_many": "{{count}} glob-запросов",
+      "glob_other": "{{count}} glob-запроса",
       "ls_one": "ls {{count}} папка",
-      "ls_other": "ls {{count}} папок",
-      "lsp_one": "{{count}} LSP запрос",
-      "lsp_other": "{{count}} LSP запросов"
+      "ls_few": "ls {{count}} папки",
+      "ls_many": "ls {{count}} папок",
+      "ls_other": "ls {{count}} папки",
+      "lsp_one": "{{count}} LSP-запрос",
+      "lsp_few": "{{count}} LSP-запроса",
+      "lsp_many": "{{count}} LSP-запросов",
+      "lsp_other": "{{count}} LSP-запроса",
+      "separator": ", "
     },
     "categoryRead": "Чтение",
     "categorySearch": "Поиск",
@@ -1427,9 +1516,6 @@
     "toolSearchRunning": "Поиск инструментов",
     "toolSearchDone": "Инструменты найдены",
     "toolSearchFailed": "Сбой поиска инструментов",
-    "suggestNextStepsRunning": "Предлагаются следующие шаги",
-    "suggestNextStepsDone": "Предложено {{count}} следующих шагов",
-    "suggestNextStepsFailed": "Не удалось предложить следующие шаги",
     "agentSendMessageRunning": "Отправка сообщения коллеге Agent",
     "agentSendMessageDone": "Сообщение отправлено коллеге Agent",
     "agentSendMessageFailed": "Не удалось отправить сообщение коллеге Agent",
@@ -1892,7 +1978,8 @@
       "models": "Модели",
       "skills": "Skills",
       "workspaceSkills": "Workspace Skills",
-      "userSkills": "User Skills"
+      "userSkills": "User Skills",
+      "commands": "Команды"
     },
     "diffMenu": {
       "gitActions": "Действия GIT",
@@ -2302,7 +2389,8 @@
       "Всё ещё обдумываем, занимает больше времени, чем обычно...",
       "Работаем над этим, занимает больше времени, чем обычно...",
       "Решаем, что делать дальше, занимает больше времени, чем обычно..."
-    ]
+    ],
+    "compacting": "Сжатие контекста..."
   },
   "revertConfirm": {
     "title": "Несохранённые изменения файлов",
@@ -2456,13 +2544,6 @@
       "missing": "Отсутствует",
       "disabled": "Отключено"
     }
-  },
-  "worktreeCompare": {
-    "title": "Сравнить Worktree",
-    "button": "Сравнить",
-    "buttonTooltip": "Сравнить diff'ы Worktree рядом",
-    "noSessions": "Нет сессий для сравнения.",
-    "sessionTab": "Сессия {{n}}"
   },
   "groupChat": {
     "senderTitle": {

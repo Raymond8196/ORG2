@@ -31,10 +31,6 @@
     "closeCanvas": "Закрыть холст",
     "generatingCanvas": "Создание холста…",
     "noContent": "Нет содержимого",
-    "noIssueSelected": "Issue не выбран",
-    "selectIssueHint": "Выберите issue на панели Issues в боковой панели.",
-    "noPrSelected": "Pull request не выбран",
-    "selectPrHint": "Выберите Pull request на панели Pull request в боковой панели.",
     "reload": "Перезагрузить",
     "urlPreviewRequiresTauri": "Для предпросмотра URL требуется Tauri",
     "openInExternalBrowser": "Откройте во внешнем браузере",
@@ -107,6 +103,7 @@
     "retry": "Повторить",
     "regenerate": "Перегенерировать",
     "refresh": "Обновить",
+    "rescan": "Сканировать снова",
     "reload": "Перезагрузить",
     "reviewNextFile": "Проверить следующий файл",
     "reviewPreviousFile": "Проверить предыдущий файл",
@@ -206,9 +203,7 @@
     "openWorkspace": "Открыть workspace",
     "skipThisVersion": "Пропустить эту версию",
     "later": "Позже",
-    "updateAiBlame": "Обновить AI Blame",
-    "link": "Связать",
-    "fetchPr": "Fetch PR"
+    "link": "Связать"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено",
@@ -965,9 +960,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Предпросмотр недоступен",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Поиск сообщений...",
@@ -1027,6 +1020,20 @@
     "indexingProgress": "Индексация: {{processed}}/{{total}} файлов ({{percent}}%)",
     "indexingProgressWithFile": "Индексация: {{processed}}/{{total}} файлов ({{percent}}%)\nТекущий: {{file}}",
     "languageServices": "Language Services",
+    "ports": {
+      "workspaceSection": "Workspace",
+      "externalSection": "Внешние",
+      "tooltip": "Порты: {{workspace}} workspace, {{external}} внешних",
+      "noWorkspacePorts": "Порты workspace не обнаружены",
+      "externalLabel": "внешний",
+      "unknownProcess": "Неизвестный процесс",
+      "pidLabel": "PID {{pid}}",
+      "openInBrowser": "Открыть в браузере",
+      "copyAddress": "Копировать адрес",
+      "stopProcess": "Остановить процесс",
+      "searchPlaceholder": "Поиск портов…",
+      "noSearchResults": "Нет подходящих портов"
+    },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
     "charsSelected": "{{count}} selected",
@@ -1218,7 +1225,6 @@
     },
     "modelSelector": {
       "recentModels": "Недавние модели",
-      "currentModel": "Текущая модель",
       "allModels": "Все модели",
       "noRecent": "Нет недавних моделей",
       "noResults": "Нет подходящих моделей",
@@ -1233,6 +1239,7 @@
     "modelProperties": {
       "options": "Параметры",
       "effort": "Усилие",
+      "default": "По умолчанию",
       "faster": "Быстрее",
       "smarter": "Умнее"
     },
@@ -1609,11 +1616,8 @@
     "chatRight": "Чат справа",
     "pageSettings": "Настройки страницы",
     "pageLayout": "Макет страницы",
-    "layoutMode": "Режим макета",
     "inset": "Вставка",
     "full": "Полный",
-    "compact": "Компактный",
-    "comfort": "Комфортный",
     "theme": "Тема",
     "primaryPanel": "Боковая панель",
     "sidebarPosition": "Положение панели",
@@ -1667,15 +1671,13 @@
     "disableChatPagination": "Отключить пагинацию чата",
     "useModelPickerSpotlight": "Использовать выбор модели через Spotlight",
     "useModelPickerDropdown": "Использовать выпадающий выбор модели",
-    "useCompactWorkstationLayout": "Использовать компактную компоновку Workstation",
-    "useComfortWorkstationLayout": "Использовать комфортную компоновку Workstation",
     "moveWorkstationSidebarLeft": "Переместить боковую панель Workstation влево",
     "moveWorkstationSidebarRight": "Переместить боковую панель Workstation вправо",
     "enableDockAutoHide": "Автоматически скрывать Dock Workstation",
     "disableDockAutoHide": "Всегда показывать Dock Workstation",
     "openMyStation": "Перейти в My Station",
     "openAgentStation": "Перейти в Agent Station",
-    "openOpsControl": "Перейти в Ops Control",
+    "openKanban": "Перейти в Kanban",
     "changeLanguage": "Изменить язык",
     "switchToSystemTheme": "Следовать системной теме",
     "detectUpdate": "Проверить обновления",
@@ -1930,6 +1932,12 @@
     "removeWorktreeMessage": "Это удалит checkout Worktree с диска. Branch и commits сохранятся.",
     "removeWorktreeSuccess": "Worktree удален",
     "removeWorktreeFailed": "Не удалось удалить Worktree",
+    "emptyState": {
+      "viewSourceControl": "Просмотреть Source Control",
+      "viewIssues": "Просмотреть Issues",
+      "viewGitHistory": "Просмотреть историю Git",
+      "viewPullRequests": "Просмотреть Pull Requests"
+    },
     "pill": {
       "focus": "Фокус",
       "allChanges": "Все изменения"
@@ -1961,7 +1969,24 @@
     "warningHint": "Контекст заполняется. Скоро начните новую сессию для лучших результатов.",
     "dangerHint": "Контекст почти заполнен. Начните новую сессию, чтобы не потерять детали.",
     "autoCompactNote": "Контекст скоро будет резюмирован",
-    "startNewSession": "Начать новую сессию"
+    "startNewSession": "Начать новую сессию",
+    "compactBoundaryTitle": "Контекст сжат",
+    "compactBoundarySubtitle_one": "{{count}} предыдущее сообщение обобщено",
+    "compactBoundarySubtitle_few": "{{count}} предыдущих сообщения обобщены",
+    "compactBoundarySubtitle_many": "{{count}} предыдущих сообщений обобщено",
+    "compactBoundarySubtitle_other": "{{count}} предыдущих сообщений обобщено",
+    "compactBoundaryTokens": "{{before}} → {{after}} токенов",
+    "manualCompactAction": "Сжать",
+    "manualCompactRunning": "Сжатие",
+    "manualCompactInProgress": "Идёт сжатие контекста — дождитесь завершения перед отправкой",
+    "manualCompactSuccess": "Сжато: {{messagesBefore}} → {{messagesAfter}} сообщений, {{tokensBefore}} → {{tokensAfter}} токенов",
+    "manualCompactTooShort": "Содержимое короткое; сжатие не требуется",
+    "manualCompactAlreadyCompact": "Нет нового содержимого для сжатия",
+    "manualCompactBusy": "Сессия выполняется. Сожмите после завершения",
+    "manualCompactNoRuntime": "Отправьте сообщение перед сжатием",
+    "manualCompactFailed": "Сжатие не удалось: {{message}}",
+    "manualCompactChannelAttached": "Эта сессия управляется каналом — используйте /compact там",
+    "manualCompactInstructionsPlaceholder": "Необязательно: на чём сфокусировать резюме"
   },
   "relativeDate": {
     "today": "Сегодня",

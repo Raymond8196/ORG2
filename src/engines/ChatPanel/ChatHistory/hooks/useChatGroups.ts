@@ -86,6 +86,10 @@ function isUnloadedTurnItem(item: OptimizedChatItem | undefined): boolean {
   return getUnloadedTurnMeta(item) !== null;
 }
 
+function isTurnPreviewItem(item: OptimizedChatItem | undefined): boolean {
+  return item?.event?.args?.turnPreviewOnly === true;
+}
+
 function withoutUnloadedTurnItems(
   items: OptimizedChatItem[]
 ): OptimizedChatItem[] {
@@ -123,6 +127,30 @@ function isAgentErrorItem(item: OptimizedChatItem): boolean {
   const event = item.event;
   if (!event) return false;
   return isAgentErrorEvent(event);
+}
+
+/**
+ * Compact-boundary marker predicate (context-compaction summary rows).
+ *
+ * A boundary is a `system`-source event appended between rounds; the
+ * grouping reducer buckets it as a trailing item of the round it followed.
+ * Like error cards it MUST survive the "Agent worked for …" turn collapse —
+ * a collapsed historical round otherwise drops down to its final assistant
+ * reply and the "Context compacted" marker vanishes, leaving no durable
+ * trace that the transcript above it is a summary.
+ */
+function isCompactBoundaryItem(item: OptimizedChatItem): boolean {
+  if (isUnloadedTurnItem(item)) return false;
+  return item.event?.uiCanonical === "context_compacted";
+}
+
+/**
+ * Items that must never be hidden by turn collapse: terminal error cards
+ * and compact-boundary markers. Both are load-bearing outcomes of a round,
+ * not narration that can be folded away behind "Agent worked for …".
+ */
+function isCollapsePinnedItem(item: OptimizedChatItem): boolean {
+  return isAgentErrorItem(item) || isCompactBoundaryItem(item);
 }
 
 interface ChatGroup {
@@ -236,7 +264,7 @@ export function useChatGroups(
     forceCollapseAllTurns = false,
     disableTurnCollapse = false,
     allTurnsCollapsed,
-    defaultTurnCollapsed = false,
+    defaultTurnCollapsed = true,
     isTurnHeaderItem,
     isTurnBoundaryItem,
   } = options;
@@ -295,7 +323,7 @@ export function useChatGroups(
         g.items.map(getUnloadedTurnMeta).find((value) => value !== null) ??
         null;
       const hasLoadedBodyItem = g.items.some(
-        (item) => !isUnloadedTurnItem(item)
+        (item) => !isUnloadedTurnItem(item) && !isTurnPreviewItem(item)
       );
       const unloadedTurn = hasLoadedBodyItem ? null : unloadedTurnPlaceholder;
       const unloadedStartMs = parseEpochMs(unloadedTurn?.startedAt);
@@ -360,10 +388,24 @@ export function useChatGroups(
       }
 
       if (meta.unloadedTurn) {
-        survivingPerGroup[gi] = group.items;
-        droppedItemTargetByGroup[gi] = group.items.map(() => null);
-        groupCounts[gi] = group.items.length;
-        runningFlatIdx += group.items.length;
+        const previewIdxs = group.items
+          .map((item, index) => (isTurnPreviewItem(item) ? index : -1))
+          .filter((index) => index >= 0);
+        if (previewIdxs.length > 0) {
+          const previewIdxSet = new Set(previewIdxs);
+          const previews = previewIdxs.map((index) => group.items[index]);
+          survivingPerGroup[gi] = previews;
+          droppedItemTargetByGroup[gi] = group.items.map((_, index) =>
+            previewIdxSet.has(index) ? null : runningFlatIdx
+          );
+          groupCounts[gi] = previews.length;
+          runningFlatIdx += previews.length;
+        } else {
+          survivingPerGroup[gi] = group.items;
+          droppedItemTargetByGroup[gi] = group.items.map(() => null);
+          groupCounts[gi] = group.items.length;
+          runningFlatIdx += group.items.length;
+        }
         continue;
       }
 
@@ -378,19 +420,20 @@ export function useChatGroups(
           break;
         }
       }
-      // Terminal error cards (quota/rate-limit/stream-exhausted) must stay
-      // visible in the collapsed view — they are the turn's actual outcome.
-      // Keep every error item at/after the kept reply (or all of them when
-      // the turn produced no completed reply at all).
-      const errorIdxs: number[] = [];
+      // Terminal error cards (quota/rate-limit/stream-exhausted) and
+      // compact-boundary markers must stay visible in the collapsed view —
+      // they are the turn's actual outcome, not narration. Keep every such
+      // pinned item at/after the kept reply (or all of them when the turn
+      // produced no completed reply at all).
+      const pinnedIdxs: number[] = [];
       for (let i = Math.max(keepIdx + 1, 0); i < group.items.length; i++) {
-        if (isAgentErrorItem(group.items[i])) {
-          errorIdxs.push(i);
+        if (isCollapsePinnedItem(group.items[i])) {
+          pinnedIdxs.push(i);
         }
       }
-      if (keepIdx === -1 && errorIdxs.length > 0) {
-        const keptIdxSet = new Set(errorIdxs);
-        const kept = errorIdxs.map((idx) => group.items[idx]);
+      if (keepIdx === -1 && pinnedIdxs.length > 0) {
+        const keptIdxSet = new Set(pinnedIdxs);
+        const kept = pinnedIdxs.map((idx) => group.items[idx]);
         survivingPerGroup[gi] = kept;
         groupCounts[gi] = kept.length;
         const firstKeptFlatIdx = runningFlatIdx;
@@ -426,8 +469,9 @@ export function useChatGroups(
         continue;
       }
 
-      // Keep the final reply plus any terminal error cards after it.
-      const keptIdxList = [keepIdx, ...errorIdxs];
+      // Keep the final reply plus any pinned items (error cards,
+      // compact-boundary markers) after it.
+      const keptIdxList = [keepIdx, ...pinnedIdxs];
       const keptIdxSet = new Set(keptIdxList);
       const kept = keptIdxList.map((idx) => group.items[idx]);
       survivingPerGroup[gi] = kept;

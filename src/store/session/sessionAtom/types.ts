@@ -36,6 +36,8 @@ export interface Session {
   user_input?: string;
   repo_name?: string;
   name?: string;
+  /** Backend-computed display label for list/search surfaces. */
+  displayLabel?: string;
   branch?: string;
   is_active?: boolean;
   /** Session category: CLI-based agent or Rust-native agent */
@@ -137,6 +139,8 @@ export interface Session {
   linesRemoved?: number;
   /** Source-cache touched file list for external and Rust-native sessions. */
   touchedFiles?: string[];
+  /** Total token usage (input + output) reported by the source, when known. */
+  totalTokens?: number;
 }
 
 // ============================================

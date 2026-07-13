@@ -31,10 +31,6 @@
     "closeCanvas": "關閉畫布",
     "generatingCanvas": "正在產生畫布…",
     "noContent": "暫無內容",
-    "noIssueSelected": "未選擇 Issue",
-    "selectIssueHint": "請從側邊欄的 Issues 面板中選擇一個 Issue。",
-    "noPrSelected": "未選擇 Pull request",
-    "selectPrHint": "請從側邊欄的 Pull request 面板中選擇一個 Pull request。",
     "reload": "重新載入",
     "urlPreviewRequiresTauri": "URL 預覽需要 Tauri",
     "openInExternalBrowser": "請改用外部瀏覽器開啟",
@@ -107,6 +103,7 @@
     "retry": "重試",
     "regenerate": "重新生成",
     "refresh": "刷新",
+    "rescan": "重新掃描",
     "reload": "重新加載",
     "reviewNextFile": "審查下一個文件",
     "reviewPreviousFile": "審查上一個文件",
@@ -208,9 +205,7 @@
     "openWorkspace": "開啟工作區",
     "skipThisVersion": "跳過此版本",
     "later": "稍後",
-    "updateAiBlame": "更新 AI Blame",
-    "link": "連結",
-    "fetchPr": "Fetch PR"
+    "link": "連結"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",
@@ -977,9 +972,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "預覽不可用",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "搜索消息...",
@@ -1040,6 +1033,20 @@
     "indexingProgress": "索引：{{processed}}/{{total}} 個文件（{{percent}}%）",
     "indexingProgressWithFile": "索引：{{processed}}/{{total}} 個文件（{{percent}}%）\n當前：{{file}}",
     "languageServices": "Language Services",
+    "ports": {
+      "workspaceSection": "Workspace",
+      "externalSection": "外部",
+      "tooltip": "連接埠：{{workspace}} 個 Workspace，{{external}} 個外部",
+      "noWorkspacePorts": "未偵測到 Workspace 連接埠",
+      "externalLabel": "外部",
+      "unknownProcess": "未知程序",
+      "pidLabel": "PID {{pid}}",
+      "openInBrowser": "在瀏覽器中開啟",
+      "copyAddress": "複製位址",
+      "stopProcess": "停止程序",
+      "searchPlaceholder": "搜尋連接埠…",
+      "noSearchResults": "沒有符合的連接埠"
+    },
     "noLanguageServicesActive": "沒有活躍的 Language Service",
     "linesSelected": "已選擇 {{count}} 行",
     "charsSelected": "已選擇 {{count}} 個字符",
@@ -1231,7 +1238,6 @@
     },
     "modelSelector": {
       "recentModels": "最近模型",
-      "currentModel": "目前模型",
       "allModels": "所有模型",
       "noRecent": "暫無最近模型",
       "noResults": "沒有相符的模型",
@@ -1246,6 +1252,7 @@
     "modelProperties": {
       "options": "選項",
       "effort": "Effort",
+      "default": "預設",
       "faster": "更快",
       "smarter": "更智能"
     },
@@ -1622,11 +1629,8 @@
     "chatRight": "右側聊天",
     "pageSettings": "頁面設置",
     "pageLayout": "頁面佈局",
-    "layoutMode": "佈局模式",
     "inset": "內嵌",
     "full": "全屏",
-    "compact": "緊湊",
-    "comfort": "舒適",
     "theme": "主題",
     "primaryPanel": "側邊欄",
     "sidebarPosition": "側邊欄位置",
@@ -1685,15 +1689,13 @@
     "disableChatPagination": "關閉聊天分頁",
     "useModelPickerSpotlight": "使用 Spotlight 模型選擇器",
     "useModelPickerDropdown": "使用下拉式模型選擇器",
-    "useCompactWorkstationLayout": "使用緊湊工作站佈局",
-    "useComfortWorkstationLayout": "使用舒適工作站佈局",
     "moveWorkstationSidebarLeft": "將工作站側邊欄移到左側",
     "moveWorkstationSidebarRight": "將工作站側邊欄移到右側",
     "enableDockAutoHide": "自動隱藏工作站 Dock",
     "disableDockAutoHide": "一律顯示工作站 Dock",
     "openMyStation": "前往我的工作站",
     "openAgentStation": "前往 Agent 工作站",
-    "openOpsControl": "前往 Ops Control",
+    "openKanban": "前往 Kanban",
     "changeLanguage": "變更語言",
     "switchToSystemTheme": "跟隨系統主題",
     "detectUpdate": "檢查更新",
@@ -1948,6 +1950,12 @@
     "removeWorktreeMessage": "這會從磁碟移除 Worktree checkout。branch 和 commits 會保留。",
     "removeWorktreeSuccess": "Worktree 已移除",
     "removeWorktreeFailed": "移除 Worktree 失敗",
+    "emptyState": {
+      "viewSourceControl": "檢視 Source Control",
+      "viewIssues": "檢視 Issues",
+      "viewGitHistory": "檢視 Git 歷史",
+      "viewPullRequests": "檢視 Pull Requests"
+    },
     "pill": {
       "focus": "聚焦",
       "allChanges": "全部更改"
@@ -1979,7 +1987,21 @@
     "warningHint": "上下文即將填滿。建議盡快開始新會話以獲得更好的結果。",
     "dangerHint": "上下文幾乎已滿。請開始新會話，避免遺失細節。",
     "autoCompactNote": "即將自動摘要上下文",
-    "startNewSession": "開始新會話"
+    "compactBoundaryTitle": "上下文已壓縮",
+    "compactBoundarySubtitle": "已總結 {{count}} 則較早的訊息",
+    "compactBoundaryTokens": "{{before}} → {{after}} tokens",
+    "startNewSession": "開始新會話",
+    "manualCompactAction": "手動壓縮",
+    "manualCompactRunning": "壓縮中",
+    "manualCompactInProgress": "正在壓縮上下文，完成後再傳送",
+    "manualCompactSuccess": "已壓縮：{{messagesBefore}} → {{messagesAfter}} 則訊息，{{tokensBefore}} → {{tokensAfter}} tokens",
+    "manualCompactTooShort": "內容較少，無需壓縮",
+    "manualCompactAlreadyCompact": "暫無新的可壓縮內容",
+    "manualCompactBusy": "目前會話執行中，結束後再壓縮",
+    "manualCompactNoRuntime": "請先傳送一則訊息後再壓縮",
+    "manualCompactFailed": "壓縮失敗：{{message}}",
+    "manualCompactChannelAttached": "此會話由頻道託管，請在頻道內使用 /compact",
+    "manualCompactInstructionsPlaceholder": "可選：本次壓縮的總結重點"
   },
   "relativeDate": {
     "today": "今天",

@@ -28,6 +28,11 @@ import type { ChatImageAttachment } from "@src/store/ui/chatImageAtom";
 import { wpReadOnlyAtom } from "@src/store/ui/chatPanelAtom";
 
 import { clearImageDraft } from "../../InputArea/utils/imageDraftCache";
+import {
+  manualCompactInFlightSessionAtom,
+  parseCompactSlashCommand,
+  useManualCompact,
+} from "../useManualCompact";
 import { resolveMcpSlashCommand } from "./mcpSlashCommand";
 import type {
   CiteCodeSnapshot,
@@ -120,17 +125,29 @@ export function useSubmitMessage({
   const store = useStore();
   const wpReadOnly = useAtomValue(wpReadOnlyAtom);
   const submitInFlightKeyRef = useRef<string | null>(null);
+  const { runManualCompact } = useManualCompact();
 
   return useCallback(
     async (options: SubmitMessageOptions = {}) => {
-      if (submitDisabled) return;
-
       if (wpReadOnly) {
         Message.warning(t("chat.noActiveSession"));
         return;
       }
 
       if (!refs.composerInputRef.current) return;
+
+      // ── Compaction gate ──────────────────────────────────────────────────
+      // While this session's durable transcript is being rewritten by a
+      // manual compaction, hold new messages instead of dispatching them.
+      // (The backend scheduler serializes them anyway; this keeps the UX
+      // honest — the user sees why nothing is happening.)
+      if (
+        draftSessionId &&
+        store.get(manualCompactInFlightSessionAtom) === draftSessionId
+      ) {
+        Message.info(t("common:contextInfo.manualCompactInProgress"));
+        return;
+      }
 
       const liveDisplayText = refs.composerInputRef.current.getTextWithPills();
       let displayText =
@@ -141,6 +158,32 @@ export function useSubmitMessage({
       const hasAttachedImages = imageAttachment.hasImages;
 
       if (!hasText && !hasAttachedImages) return;
+
+      // ── /compact slash command ───────────────────────────────────────────
+      // `/compact [instructions]` runs a manual context compaction instead
+      // of dispatching a message (Claude Code parity). Only a pure text
+      // command qualifies — attached images mean the user is sending real
+      // content that happens to start with "/compact".
+      if (hasText && !hasAttachedImages) {
+        const compactCommand = parseCompactSlashCommand(displayText);
+        if (compactCommand) {
+          refs.composerInputRef.current.clear();
+          void flushDraft("").catch((err: unknown) => {
+            log.warn("[useSubmitMessage] flushDraft(compact) failed:", err);
+          });
+          void runManualCompact(
+            draftSessionId || null,
+            compactCommand.instructions
+          );
+          return;
+        }
+      }
+
+      // A running session blocks ordinary sends, but not `/compact`: manual
+      // compaction is a maintenance job queued behind the active turn by the
+      // backend scheduler. Parse the command first so selecting its pill never
+      // becomes a silent no-op while the session is working.
+      if (submitDisabled) return;
 
       // ── Question intercept ────────────────────────────────────────────────
       // When the agent asked a question and the user typed a reply in the main
@@ -448,6 +491,7 @@ export function useSubmitMessage({
       clearReplyTarget,
       onSubmitOverride,
       submitDisabled,
+      runManualCompact,
     ]
   );
 }

@@ -11,7 +11,7 @@
  * `PrimarySidebarLayoutWithSections`.
  */
 import { useAtomValue } from "jotai";
-import { CircleDot, RefreshCw, RotateCcw } from "lucide-react";
+import { ArrowLeft, CircleDot, RefreshCw, RotateCcw } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -45,7 +45,11 @@ import {
   useSourceControlTabConfig,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/tabs/SourceControlTab";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared/PrimarySidebarLayout";
-import { workstationIssueCallbackAtom } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import { workstationIssueCallbackAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
+import {
+  workstationPrCallbackAtomFamily,
+  workstationRepoScopeKey,
+} from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { SourceControlHistorySelection } from "@src/store/workstation/tabs";
 import type { GitFile } from "@src/types/git/types";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
@@ -75,6 +79,7 @@ export interface UseSourceControlSidebarModuleOptions {
   isMultiRoot?: boolean;
   /** Shared filter mode owned by the host header. */
   filterMode?: SourceControlFilterMode;
+  onFilterModeChange?: (mode: SourceControlFilterMode) => void;
   /** Notify parent on row click without updating sidebar selection. */
   navigateWithoutSelecting?: boolean;
   /** Optional worktree list supplied by the host to avoid duplicate fetches. */
@@ -100,6 +105,7 @@ export function useSourceControlSidebarModule({
   onGitFilesChange,
   isMultiRoot = false,
   filterMode: controlledFilterMode,
+  onFilterModeChange,
   navigateWithoutSelecting = false,
   worktrees: hostWorktrees,
   hasWorktrees: hostHasWorktrees,
@@ -263,7 +269,10 @@ export function useSourceControlSidebarModule({
     clear: clearIssuesFilter,
   } = useSectionFilter();
 
-  const issueCallbacks = useAtomValue(workstationIssueCallbackAtom);
+  const scopeKey = workstationRepoScopeKey(repoId, repoPath);
+  const issueCallbacks = useAtomValue(
+    workstationIssueCallbackAtomFamily(scopeKey)
+  );
   const handleIssuesRefresh = useCallback(() => {
     issueCallbacks.refreshIssues?.();
   }, [issueCallbacks]);
@@ -278,7 +287,7 @@ export function useSourceControlSidebarModule({
         isOpen: showIssuesFilter,
         hasQuery: issuesFilterQuery.length > 0,
         onToggle: handleToggleIssuesFilter,
-        tooltip: "Filter",
+        tooltip: t("common:actions.filter", "Filter"),
       }),
       {
         key: "refresh-issues",
@@ -289,7 +298,7 @@ export function useSourceControlSidebarModule({
             className={issuesRefreshSpinClass}
           />
         ),
-        tooltip: "Refresh",
+        tooltip: t("common:actions.refresh", "Refresh"),
         onClick: handleIssuesRefreshClick,
       },
       {
@@ -313,9 +322,16 @@ export function useSourceControlSidebarModule({
       handleIssuesRefreshClick,
       issuesRefreshSpinClass,
       issueCallbacks,
+      t,
     ]
   );
 
+  const prCallbacks = useAtomValue(workstationPrCallbackAtomFamily(scopeKey));
+  const handlePrRefresh = useCallback(() => {
+    prCallbacks.refreshPrs?.();
+  }, [prCallbacks]);
+  const { spinClass: prRefreshSpinClass, handleClick: handlePrRefreshClick } =
+    useRefreshSpin(handlePrRefresh, false);
   const prActions = useMemo<SectionHeaderAction[]>(
     () => [
       makeSectionFilterAction({
@@ -325,8 +341,27 @@ export function useSourceControlSidebarModule({
         onToggle: handleTogglePrFilter,
         tooltip: t("common:actions.filter", "Filter"),
       }),
+      {
+        key: "refresh-prs",
+        icon: (
+          <RefreshCw
+            size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
+            strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
+            className={prRefreshSpinClass}
+          />
+        ),
+        tooltip: t("common:actions.refresh", "Refresh"),
+        onClick: handlePrRefreshClick,
+      },
     ],
-    [showPrFilter, prFilterQuery, handleTogglePrFilter, t]
+    [
+      showPrFilter,
+      prFilterQuery,
+      handleTogglePrFilter,
+      handlePrRefreshClick,
+      prRefreshSpinClass,
+      t,
+    ]
   );
 
   const actions = isHistoryMode
@@ -336,13 +371,30 @@ export function useSourceControlSidebarModule({
       : isIssuesMode
         ? issueActions
         : sourceControlActionsWithUndo;
-  const sectionTitle = isHistoryMode
+  const sectionLabel = isHistoryMode
     ? t("common:labels.gitHistory")
     : isPrMode
       ? t("common:labels.pullRequest", "Pull request")
       : isIssuesMode
         ? t("common:git.issues.title", "Issues")
         : t("tabs.sourceControl");
+  const isAlternateMode = isPrMode || isHistoryMode || isIssuesMode;
+  const sectionTitle = isAlternateMode ? (
+    <button
+      type="button"
+      className="flex min-w-0 items-center gap-1.5 normal-case"
+      onClick={() => onFilterModeChange?.("uncommitted")}
+      aria-label={t("tabs.sourceControl")}
+      title={t("tabs.sourceControl")}
+    >
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+        <ArrowLeft size={14} className="text-text-3" />
+      </span>
+      <span className="truncate uppercase">{sectionLabel}</span>
+    </button>
+  ) : (
+    sectionLabel
+  );
 
   const historyContent = useMemo(
     () => (
@@ -352,7 +404,6 @@ export function useSourceControlSidebarModule({
             query={historyFilterQuery}
             onChange={setHistoryFilterQuery}
             onClose={clearHistoryFilter}
-            placeholder={t("common:actions.filterCommits", "Filter commits...")}
           />
         )}
         <GitHistoryContent
@@ -374,7 +425,6 @@ export function useSourceControlSidebarModule({
       onGitHistorySelectionChange,
       repoPath,
       repoId,
-      t,
     ]
   );
 
@@ -386,16 +436,14 @@ export function useSourceControlSidebarModule({
             query={prFilterQuery}
             onChange={setPrFilterQuery}
             onClose={clearPrFilter}
-            placeholder={t(
-              "common:actions.filterPullRequests",
-              "Filter pull requests..."
-            )}
           />
         )}
         <PullRequestContent
           branchName={branchName}
           filterQuery={prFilterQuery}
           onHistorySelectionChange={onGitHistorySelectionChange}
+          repoId={repoId}
+          repoPath={repoPath}
         />
       </div>
     ),
@@ -406,7 +454,8 @@ export function useSourceControlSidebarModule({
       clearPrFilter,
       branchName,
       onGitHistorySelectionChange,
-      t,
+      repoId,
+      repoPath,
     ]
   );
 
@@ -454,8 +503,8 @@ export function useSourceControlSidebarModule({
     hasWorktrees: hostHasWorktrees,
     worktreesLoading: hostWorktreesLoading,
     refreshWorktrees: hostRefreshWorktrees,
-    sourceControlTitleOverride:
-      isPrMode || isHistoryMode || isIssuesMode ? sectionTitle : undefined,
+    sourceControlTitleOverride: isAlternateMode ? sectionTitle : undefined,
+    sourceControlCollapsible: !isAlternateMode,
     sourceControlContentOverride: isPrMode
       ? prContent
       : isHistoryMode

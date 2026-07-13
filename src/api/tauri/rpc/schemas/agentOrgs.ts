@@ -79,7 +79,18 @@ export const OrgIdInput = z.object({
 
 export const AvailableCliAgentsSchema = z.array(AvailableAgentSchema);
 
-export const CliPermissionModeSchema = z.enum(["full_permission", "manual"]);
+export const CliPermissionModeSchema = z.enum([
+  "plan",
+  "full_permission",
+  "auto_edit",
+  "manual",
+]);
+
+export const CliLaunchProfileModeDefaultsSchema = z.object({
+  mode: CliPermissionModeSchema,
+  args: z.array(z.string()),
+  env: z.record(z.string(), z.string()),
+});
 
 export const CliLaunchProfileInput = z.object({
   agentName: z.string(),
@@ -104,6 +115,8 @@ export const CliLaunchProfileViewSchema = z.object({
   fullPermissionArgs: z.array(z.string()),
   manualEnv: z.record(z.string(), z.string()),
   fullPermissionEnv: z.record(z.string(), z.string()),
+  supportedPermissionModes: z.array(CliPermissionModeSchema),
+  modeDefaults: z.array(CliLaunchProfileModeDefaultsSchema),
   commandOverridden: z.boolean(),
   argsOverridden: z.boolean(),
   envOverridden: z.boolean(),
@@ -113,6 +126,76 @@ export const CliLaunchProfileViewSchema = z.object({
 
 export type CliPermissionMode = z.infer<typeof CliPermissionModeSchema>;
 export type CliLaunchProfileView = z.infer<typeof CliLaunchProfileViewSchema>;
+
+export const CliConfigModeSchema = z.enum(["default", "orgii_managed"]);
+
+export const CliConfigManagedStatusInput = z.object({
+  agentName: z.string(),
+});
+
+export const CliConfigEnableOrgiiManagedInput = z.object({
+  agentName: z.string(),
+  keyId: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  force: z.boolean(),
+});
+
+export const CliConfigRestoreDefaultInput = z.object({
+  agentName: z.string(),
+  force: z.boolean(),
+});
+
+export const CliManagedProxyStatusInput = z.object({
+  agentName: z.string(),
+});
+
+export const CliConfigTargetFileStatusSchema = z.object({
+  id: z.string(),
+  targetPath: z.string(),
+  defaultBackupPath: z.string(),
+  managedProfilePath: z.string(),
+  targetExists: z.boolean(),
+  hasDefaultBackup: z.boolean(),
+  defaultWasMissing: z.boolean(),
+  originalHash: z.string().nullable().optional(),
+  lastAppliedHash: z.string().nullable().optional(),
+  currentHash: z.string().nullable().optional(),
+  conflict: z.boolean(),
+});
+
+export const CliConfigManagedStatusSchema = z.object({
+  agentName: z.string(),
+  supported: z.boolean(),
+  mode: CliConfigModeSchema,
+  hasDefaultBackup: z.boolean(),
+  conflict: z.boolean(),
+  selectedKeyId: z.string().nullable().optional(),
+  selectedProvider: z.string().nullable().optional(),
+  selectedModel: z.string().nullable().optional(),
+  proxyUrl: z.string().nullable().optional(),
+  targetFiles: z.array(CliConfigTargetFileStatusSchema),
+  message: z.string().nullable().optional(),
+});
+
+export const CliManagedProxyStatusSchema = z.object({
+  agentName: z.string(),
+  supported: z.boolean(),
+  running: z.boolean(),
+  ready: z.boolean(),
+  url: z.string(),
+  selectedKeyId: z.string().nullable().optional(),
+  selectedProvider: z.string().nullable().optional(),
+  selectedModel: z.string().nullable().optional(),
+  upstreamBaseUrl: z.string().nullable().optional(),
+  compatibleKeyIds: z.array(z.string()),
+  message: z.string().nullable().optional(),
+});
+
+export type CliConfigMode = z.infer<typeof CliConfigModeSchema>;
+export type CliConfigManagedStatus = z.infer<
+  typeof CliConfigManagedStatusSchema
+>;
+export type CliManagedProxyStatus = z.infer<typeof CliManagedProxyStatusSchema>;
 
 export const SkillsListInput = z.object({
   workspacePath: z.string().optional(),

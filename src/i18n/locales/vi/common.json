@@ -31,10 +31,6 @@
     "closeCanvas": "Đóng canvas",
     "generatingCanvas": "Đang tạo canvas…",
     "noContent": "Không có nội dung",
-    "noIssueSelected": "Chưa chọn issue",
-    "selectIssueHint": "Chọn một issue trong bảng Issues ở thanh bên.",
-    "noPrSelected": "Chưa chọn Pull request",
-    "selectPrHint": "Chọn một Pull request trong bảng Pull request ở thanh bên.",
     "reload": "Tải lại",
     "urlPreviewRequiresTauri": "Xem trước URL cần Tauri",
     "openInExternalBrowser": "Hãy mở trong trình duyệt ngoài",
@@ -107,6 +103,7 @@
     "retry": "Thử lại",
     "regenerate": "Tạo lại",
     "refresh": "Làm mới",
+    "rescan": "Quét lại",
     "reload": "Tải lại",
     "reviewNextFile": "Xem tệp tiếp theo",
     "reviewPreviousFile": "Xem tệp trước",
@@ -206,9 +203,7 @@
     "openWorkspace": "Mở Workspace",
     "skipThisVersion": "Bỏ qua phiên bản này",
     "later": "Để sau",
-    "updateAiBlame": "Cập nhật AI Blame",
-    "link": "Liên kết",
-    "fetchPr": "Fetch PR"
+    "link": "Liên kết"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}",
@@ -965,9 +960,7 @@
     "scanningFileExtensions": "Scanning file extensions...",
     "startBrowsingMarket": "Start browsing the marketplace",
     "previewUnavailable": "Không thể xem trước",
-    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff.",
-    "fetchPrCommitToViewDiff": "Fetch PR to view this commit",
-    "prCommitMissingLocally": "This pull request commit is not available in your local repository yet."
+    "selectPrCommitToViewDiff": "Select a pull request commit from the header to view its diff."
   },
   "inbox": {
     "searchPlaceholder": "Tìm kiếm tin nhắn...",
@@ -1028,6 +1021,20 @@
     "indexingProgress": "Đang index: {{processed}}/{{total}} tệp ({{percent}}%)",
     "indexingProgressWithFile": "Đang index: {{processed}}/{{total}} tệp ({{percent}}%)\nHiện tại: {{file}}",
     "languageServices": "Language Services",
+    "ports": {
+      "workspaceSection": "Workspace",
+      "externalSection": "Bên ngoài",
+      "tooltip": "Cổng: {{workspace}} workspace, {{external}} bên ngoài",
+      "noWorkspacePorts": "Không phát hiện cổng workspace",
+      "externalLabel": "bên ngoài",
+      "unknownProcess": "Tiến trình không xác định",
+      "pidLabel": "PID {{pid}}",
+      "openInBrowser": "Mở trong trình duyệt",
+      "copyAddress": "Sao chép địa chỉ",
+      "stopProcess": "Dừng tiến trình",
+      "searchPlaceholder": "Tìm cổng…",
+      "noSearchResults": "Không có cổng khớp"
+    },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
     "charsSelected": "{{count}} selected",
@@ -1219,7 +1226,6 @@
     },
     "modelSelector": {
       "recentModels": "Mô hình gần đây",
-      "currentModel": "Model hiện tại",
       "allModels": "Tất cả mô hình",
       "noRecent": "Không có mô hình gần đây",
       "noResults": "Không có mô hình phù hợp",
@@ -1234,6 +1240,7 @@
     "modelProperties": {
       "options": "Tùy chọn",
       "effort": "Effort",
+      "default": "Mặc định",
       "faster": "Nhanh hơn",
       "smarter": "Thông minh hơn"
     },
@@ -1610,11 +1617,8 @@
     "chatRight": "Chat phải",
     "pageSettings": "Cài đặt trang",
     "pageLayout": "Bố cục trang",
-    "layoutMode": "Chế độ bố cục",
     "inset": "Chèn",
     "full": "Toàn bộ",
-    "compact": "Gọn",
-    "comfort": "Thoải mái",
     "theme": "Giao diện",
     "primaryPanel": "Thanh bên",
     "sidebarPosition": "Vị trí thanh bên",
@@ -1668,15 +1672,13 @@
     "disableChatPagination": "Tắt phân trang chat",
     "useModelPickerSpotlight": "Dùng bộ chọn mô hình Spotlight",
     "useModelPickerDropdown": "Dùng bộ chọn mô hình dạng menu",
-    "useCompactWorkstationLayout": "Dùng bố cục Workstation gọn",
-    "useComfortWorkstationLayout": "Dùng bố cục Workstation thoải mái",
     "moveWorkstationSidebarLeft": "Chuyển thanh bên Workstation sang trái",
     "moveWorkstationSidebarRight": "Chuyển thanh bên Workstation sang phải",
     "enableDockAutoHide": "Tự động ẩn Dock Workstation",
     "disableDockAutoHide": "Luôn hiển thị Dock Workstation",
     "openMyStation": "Đi tới My Station",
     "openAgentStation": "Đi tới Agent Station",
-    "openOpsControl": "Đi tới Ops Control",
+    "openKanban": "Đi tới Kanban",
     "changeLanguage": "Thay đổi ngôn ngữ",
     "switchToSystemTheme": "Theo chủ đề hệ thống",
     "detectUpdate": "Kiểm tra cập nhật",
@@ -1931,6 +1933,12 @@
     "removeWorktreeMessage": "Thao tác này xóa Worktree checkout khỏi ổ đĩa. Branch và commits được giữ lại.",
     "removeWorktreeSuccess": "Đã xóa Worktree",
     "removeWorktreeFailed": "Không thể xóa Worktree",
+    "emptyState": {
+      "viewSourceControl": "Xem Source Control",
+      "viewIssues": "Xem Issues",
+      "viewGitHistory": "Xem lịch sử Git",
+      "viewPullRequests": "Xem Pull Requests"
+    },
     "pill": {
       "focus": "Tiêu điểm",
       "allChanges": "Tất cả thay đổi"
@@ -1962,7 +1970,21 @@
     "warningHint": "Ngữ cảnh đang đầy dần. Hãy sớm bắt đầu phiên mới để có kết quả tốt hơn.",
     "dangerHint": "Ngữ cảnh gần đầy. Hãy bắt đầu phiên mới để tránh mất chi tiết.",
     "autoCompactNote": "Ngữ cảnh sẽ sớm được tóm tắt",
-    "startNewSession": "Bắt đầu phiên mới"
+    "startNewSession": "Bắt đầu phiên mới",
+    "compactBoundaryTitle": "Đã nén ngữ cảnh",
+    "compactBoundarySubtitle_other": "Đã tóm tắt {{count}} tin nhắn trước đó",
+    "compactBoundaryTokens": "{{before}} → {{after}} token",
+    "manualCompactAction": "Nén",
+    "manualCompactRunning": "Đang nén",
+    "manualCompactInProgress": "Đang nén ngữ cảnh — hãy đợi hoàn tất trước khi gửi",
+    "manualCompactSuccess": "Đã nén: {{messagesBefore}} → {{messagesAfter}} tin nhắn, {{tokensBefore}} → {{tokensAfter}} token",
+    "manualCompactTooShort": "Nội dung ngắn; không cần nén",
+    "manualCompactAlreadyCompact": "Không có nội dung mới để nén",
+    "manualCompactBusy": "Phiên đang chạy. Hãy nén sau khi hoàn tất",
+    "manualCompactNoRuntime": "Hãy gửi một tin nhắn trước khi nén",
+    "manualCompactFailed": "Nén thất bại: {{message}}",
+    "manualCompactChannelAttached": "Phiên này do một kênh quản lý — hãy dùng /compact ở đó",
+    "manualCompactInstructionsPlaceholder": "Tùy chọn: trọng tâm khi tóm tắt"
   },
   "relativeDate": {
     "today": "Hôm nay",

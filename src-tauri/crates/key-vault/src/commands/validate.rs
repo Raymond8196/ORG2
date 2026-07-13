@@ -14,6 +14,7 @@ use crate::providers::google::GoogleValidator;
 use crate::providers::kiro::KiroValidator;
 use crate::providers::openai::OpenAIValidator;
 use crate::providers::opencode_go::{workspace_id_override_from_key, OpenCodeGoQuotaFetcher};
+use crate::providers::zhipu::ZhipuQuotaFetcher;
 
 #[derive(Debug, Serialize)]
 pub struct TestModelResult {
@@ -110,14 +111,18 @@ fn default_base_url_for_provider(agent_type: &str) -> Option<String> {
     })
 }
 
+/// Anthropic-protocol base URL to fall back on when the caller supplied none.
+///
+/// Anthropic itself is special-cased because its short aliases don't resolve
+/// through `get_provider_config`. Every other provider declares its Anthropic
+/// endpoint in the provider registry, so there is no second table to keep in
+/// sync here.
 fn default_anthropic_base_url_for_provider(agent_type: &str) -> Option<String> {
     match agent_type {
         "anthropic" | "anthropic_api" | "claude_code" => {
             Some("https://api.anthropic.com/v1".to_string())
         }
-        "zenmux_api" => Some("https://zenmux.ai/api/anthropic".to_string()),
-        "longcat_api" => Some("https://api.longcat.chat/anthropic".to_string()),
-        _ => None,
+        other => get_provider_config(other).default_anthropic_base_url(),
     }
 }
 
@@ -254,10 +259,13 @@ pub async fn run_validate_key(
                 .await)
         }
 
-        // OpenAI-compatible API providers (use OpenAI validator with provider's base URL)
+        // OpenAI-compatible API providers (use OpenAI validator with provider's base URL).
+        // Providers that also speak the Anthropic protocol declare an Anthropic
+        // endpoint in the provider registry and route through it below.
         "deepseek_api" | "groq_api" | "xai_api" | "zhipu_api" | "dashscope_api"
         | "moonshot_api" | "minimax_api" | "longcat_api" | "openrouter_api" | "zenmux_api"
-        | "vllm_api" | "orgii_orchestrator" | "orgii" => {
+        | "siliconflow_api" | "modelscope_api" | "aihubmix_api" | "cherryin_api"
+        | "bedrock_api" | "custom_api" | "vllm_api" | "orgii_orchestrator" | "orgii" => {
             if protocol_lower.as_deref() == Some("anthropic") {
                 let effective_url = base_url
                     .clone()
@@ -282,7 +290,7 @@ pub async fn run_validate_key(
         }
 
         _ => Err(format!(
-            "Unknown agent type: {}. Supported: copilot, cursor_cli, openai, anthropic, google, gemini_cli, codex, claude_code, kiro, opencode, openai_api, anthropic_api, gemini_api, deepseek_api, groq_api, xai_api, zhipu_api, dashscope_api, moonshot_api, minimax_api, longcat_api, openrouter_api, zenmux_api, vllm_api, azure_openai_api, azure_anthropic_api",
+            "Unknown agent type: {}. Supported: copilot, cursor_cli, openai, anthropic, google, gemini_cli, codex, claude_code, kiro, opencode, openai_api, anthropic_api, gemini_api, deepseek_api, groq_api, xai_api, zhipu_api, dashscope_api, moonshot_api, minimax_api, longcat_api, openrouter_api, zenmux_api, siliconflow_api, modelscope_api, aihubmix_api, cherryin_api, bedrock_api, custom_api, vllm_api, azure_openai_api, azure_anthropic_api",
             agent_type
         )),
     }
@@ -470,6 +478,9 @@ pub async fn fetch_key_quota(
                 .fetch_quota(&api_key, None)
                 .await
         }
+        // Zhipu (BigModel / Z.ai) GLM Coding Plan. Base URL is not available on
+        // this validation-time path, so the fetcher defaults to the China host.
+        "zhipu_api" | "zhipu" => ZhipuQuotaFetcher::new().fetch_quota(&api_key, None).await,
         // Other providers don't have public quota APIs
         "openai"
         | "anthropic"
@@ -484,7 +495,6 @@ pub async fn fetch_key_quota(
         | "deepseek_api"
         | "groq_api"
         | "xai_api"
-        | "zhipu_api"
         | "dashscope_api"
         | "moonshot_api"
         | "minimax_api"
@@ -507,15 +517,48 @@ pub async fn refresh_key_quota(key_id: String) -> Result<Option<crate::commands:
         .get_key_by_id(&key_id)
         .ok_or_else(|| format!("Key not found: {}", key_id))?;
 
-    let quota = match fetch_quota_for_key(&key).await {
-        Ok(quota) => quota,
-        Err(first_err)
-            if key.auth_method == AuthMethod::Oauth && is_unauthorized_quota_error(&first_err) =>
-        {
-            let refreshed = refresh_oauth_key_for_quota(&key).await?;
-            fetch_quota_for_key(&refreshed).await?
+    let quota = if key.model_type == ModelType::ClaudeCode && key.auth_method == AuthMethod::Oauth {
+        let token = key
+            .session_token
+            .as_deref()
+            .filter(|token| !token.trim().is_empty())
+            .ok_or_else(|| "Claude Code OAuth account has no access token".to_string())?;
+
+        let refresh = match ClaudeCodeQuotaFetcher::new().fetch_quota_refresh(token).await {
+            Ok(refresh) => refresh,
+            Err(first_err) if is_unauthorized_quota_error(&first_err) => {
+                let refreshed = refresh_oauth_key_for_quota(&key).await?;
+                let retry_token = refreshed
+                    .session_token
+                    .as_deref()
+                    .filter(|retry_token| !retry_token.trim().is_empty())
+                    .ok_or_else(|| {
+                        "Claude Code OAuth account has no access token after refresh".to_string()
+                    })?;
+                ClaudeCodeQuotaFetcher::new()
+                    .fetch_quota_refresh(retry_token)
+                    .await?
+            }
+            Err(first_err) => return Err(first_err),
+        };
+
+        if !refresh.account_metadata.is_empty() {
+            KEY_SERVICE.merge_key_account_metadata(&key_id, refresh.account_metadata)?;
         }
-        Err(first_err) => return Err(first_err),
+
+        refresh.quota
+    } else {
+        match fetch_quota_for_key(&key).await {
+            Ok(quota) => quota,
+            Err(first_err)
+                if key.auth_method == AuthMethod::Oauth
+                    && is_unauthorized_quota_error(&first_err) =>
+            {
+                let refreshed = refresh_oauth_key_for_quota(&key).await?;
+                fetch_quota_for_key(&refreshed).await?
+            }
+            Err(first_err) => return Err(first_err),
+        }
     };
 
     let quota_value = serde_json::to_value(quota)
@@ -589,6 +632,16 @@ async fn fetch_quota_for_key(
                 .ok_or_else(|| "OpenCode account has no session cookie".to_string())?;
             OpenCodeGoQuotaFetcher::new()
                 .fetch_quota(cookie, workspace_id_override_from_key(key))
+                .await
+        }
+        ModelType::ZhipuApi => {
+            let token = key
+                .api_key
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Zhipu account has no API key".to_string())?;
+            ZhipuQuotaFetcher::new()
+                .fetch_quota(token, key.base_url.as_deref())
                 .await
         }
         ref other => Err(format!(

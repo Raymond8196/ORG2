@@ -45,7 +45,6 @@
     "projects": "Projects",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
     "colleagues": "Collègues",
     "terminals": "Terminaux"
   },
@@ -81,10 +80,9 @@
     "agentStudio": "Agent Studio",
     "serviceMarket": "Marché Service",
     "signingIn": "Connexion…",
-    "launchpad": "Launchpad",
+    "launchpad": "Centre de lancement",
     "ideaArea": "Espace Idées",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Personnaliser la grille",
@@ -377,6 +375,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "Changer d’ORG",
     "addOrg": "Ajouter une ORG",
     "unknownOrg": "ORG inconnue",
     "emptyColleagues": "Aucune activité de collègue pour le moment",

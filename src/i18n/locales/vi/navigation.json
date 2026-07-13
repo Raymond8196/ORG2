@@ -45,7 +45,6 @@
     "projects": "Project",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
     "colleagues": "Đồng nghiệp",
     "terminals": "Terminal"
   },
@@ -81,10 +80,9 @@
     "agentStudio": "Agent Studio",
     "serviceMarket": "Thị trường Service",
     "signingIn": "Đang đăng nhập...",
-    "launchpad": "Launchpad",
+    "launchpad": "Trung tâm khởi động",
     "ideaArea": "Khu vực ý tưởng",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Tùy chỉnh lưới",
@@ -375,6 +373,7 @@
     "backend": "Backend"
   },
   "collaboration": {
+    "switchOrg": "Chuyển ORG",
     "addOrg": "Thêm ORG",
     "unknownOrg": "ORG không xác định",
     "emptyColleagues": "Chưa có hoạt động của đồng nghiệp",
