@@ -323,7 +323,7 @@
     "configAgentKeys": "Chaves de API para OS e SDE Agents",
     "configAgentKeysDesc": "Adicione chaves de API de provedores como OpenAI, Anthropic e DeepSeek",
     "configCliKeys": "Chaves de API para CLI Agents",
-    "configCliKeysDesc": "Adicione chaves de API para ferramentas CLI como Claude Code, Codex e Gemini CLI"
+    "configCliKeysDesc": "Adicione chaves de API para ferramentas CLI como Claude Code e Codex"
   },
   "cliConfig": {
     "overviewLabel": "CLI Agents",
@@ -890,7 +890,6 @@
     "diskCategory_logs": "Logs",
     "diskCategory_personalWorkspace": "Workspace do OS Agent",
     "diskCategory_cursorConfig": "Configurações CLI de Sessão",
-    "diskCategory_geminiCliHome": "Homes do Gemini CLI",
     "diskCategory_extensions": "Extensões",
     "diskNotScanned": "Ainda não escaneado",
     "diskScanning": "Escaneando...",

@@ -323,7 +323,7 @@
     "configAgentKeys": "OS & SDE Agent API Keys",
     "configAgentKeysDesc": "OpenAI, Anthropic, DeepSeek 등 제공업체의 API Key 추가",
     "configCliKeys": "CLI Agent API Keys",
-    "configCliKeysDesc": "Claude Code, Codex, Gemini CLI 등 CLI 도구의 API Key 추가"
+    "configCliKeysDesc": "Claude Code, Codex 등 CLI 도구의 API Key 추가"
   },
   "cliConfig": {
     "overviewLabel": "CLI Agent",
@@ -889,7 +889,6 @@
     "diskCategory_logs": "로그",
     "diskCategory_personalWorkspace": "OS Agent 워크스페이스",
     "diskCategory_cursorConfig": "Session CLI 설정",
-    "diskCategory_geminiCliHome": "Gemini CLI 디렉토리",
     "diskCategory_extensions": "확장",
     "diskNotScanned": "아직 스캔되지 않음",
     "diskScanning": "스캔 중...",

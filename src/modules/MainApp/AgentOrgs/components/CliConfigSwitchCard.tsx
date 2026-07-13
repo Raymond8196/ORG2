@@ -37,11 +37,7 @@ type PendingAction = "apply" | "forceApply" | "restore" | "forceRestore";
 const DEFAULT_PROXY_URL = "http://127.0.0.1:17888";
 
 function isManagedConfigSupportedAgent(agentName: string): boolean {
-  return (
-    agentName === CLI_AGENT.CODEX ||
-    agentName === CLI_AGENT.CLAUDE_CODE ||
-    agentName === CLI_AGENT.GEMINI
-  );
+  return agentName === CLI_AGENT.CODEX || agentName === CLI_AGENT.CLAUDE_CODE;
 }
 
 function accountLabel(account: KeyVaultAccount): string {
