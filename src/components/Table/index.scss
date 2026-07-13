@@ -359,6 +359,43 @@
     position: static;
   }
 
+  /*
+   * Opt-in frozen first (label) column. Both the fixed-header and the body
+   * table scroll horizontally in sync, so pinning `left: 0` on each table's
+   * first cell keeps the label column visible. The cell paints an opaque
+   * surface so scrolled content passes behind it; header sits above other
+   * headers (z 21 > 20), body cell above sibling cells.
+   */
+  &.table-settings-sticky-first-col {
+    .table-fixed-header .table-th:first-child,
+    .table-scroll .table-row > .table-td:first-child {
+      position: sticky;
+      left: 0;
+      background: var(--settings-table-surface);
+    }
+
+    .table-fixed-header .table-th:first-child {
+      z-index: 21;
+    }
+
+    .table-scroll .table-row > .table-td:first-child {
+      z-index: 2;
+    }
+
+    /* Keep the pinned cell in sync with the row hover highlight. */
+    &.table-hover .table-scroll .table-row:hover > .table-td:first-child {
+      background: var(--fill-1);
+    }
+
+    /* Separator once the body is scrolled away from the left edge. */
+    &.table-scroll-has-left {
+      .table-fixed-header .table-th:first-child,
+      .table-scroll .table-row > .table-td:first-child {
+        box-shadow: 1px 0 0 0 var(--color-border-1);
+      }
+    }
+  }
+
   &.table-settings-no-header .table-thead {
     display: none;
   }

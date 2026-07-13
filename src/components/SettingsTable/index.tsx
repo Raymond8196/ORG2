@@ -189,6 +189,8 @@ export interface SettingsTableProps<RowData> {
   inlineHeaderToolbar?: boolean;
   /** When false, disables sticky table header. Default: true */
   stickyHeader?: boolean;
+  /** When true, pins the first (label) column while scrolling horizontally. */
+  stickyFirstColumn?: boolean;
   /** When true, shows a border below the header row. Default: false */
   headerBorder?: boolean;
   /** When true, removes horizontal cell padding on outer edges (first-child left, last-child right).
@@ -426,6 +428,7 @@ export default function SettingsTable<RowData>({
   selectFiltersExtra,
   inlineHeaderToolbar = false,
   stickyHeader = true,
+  stickyFirstColumn = false,
   headerBorder = false,
   noPx = false,
   onRowClick,
@@ -520,6 +523,7 @@ export default function SettingsTable<RowData>({
     fillHeight && "table-settings-fill-height",
     maxHeight != null && "table-settings-fill-height",
     containedScroll && "table-settings-contained-scroll",
+    stickyFirstColumn && "table-settings-sticky-first-col",
     !hasSearchBar &&
       surfaceVariant !== "transparent" &&
       "table-settings-rounded-top",

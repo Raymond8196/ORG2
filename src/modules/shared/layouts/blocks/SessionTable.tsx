@@ -336,6 +336,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
       hover
       headerBorder
       stickyHeader
+      stickyFirstColumn
       surfaceVariant={surfaceVariant}
       fillHeight={fillHeight}
       maxHeight={maxHeight}
