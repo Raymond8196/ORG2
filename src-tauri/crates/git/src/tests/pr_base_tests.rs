@@ -106,7 +106,7 @@ fn fail(stderr: &str) -> Result<GitInvocation, String> {
 #[test]
 fn resolves_same_repo_pr_via_branch_fetch() {
     let mock = MockGit::new(vec![
-        ok(""),                                          // fetch origin <head>
+        ok(""),                                           // fetch origin <head>
         ok("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n"), // rev-parse FETCH_HEAD
     ]);
 
@@ -143,17 +143,13 @@ fn resolves_same_repo_pr_via_branch_fetch() {
 fn falls_back_to_pull_ref_for_fork_pr() {
     let mock = MockGit::new(vec![
         fail("fatal: couldn't find remote ref forkbranch"), // branch fetch misses
-        ok(""),                                              // fetch refs/pull/7/head
-        ok("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n"),    // rev-parse FETCH_HEAD
+        ok(""),                                             // fetch refs/pull/7/head
+        ok("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n"),   // rev-parse FETCH_HEAD
     ]);
 
-    let result = resolve_pr_base_with(
-        "origin",
-        7,
-        Some("forkbranch"),
-        Some("develop"),
-        |args| mock.run(args),
-    )
+    let result = resolve_pr_base_with("origin", 7, Some("forkbranch"), Some("develop"), |args| {
+        mock.run(args)
+    })
     .expect("fork resolution should succeed");
 
     assert_eq!(result.source, PrBaseSource::PullRef);
@@ -173,7 +169,7 @@ fn falls_back_to_pull_ref_for_fork_pr() {
 #[test]
 fn uses_pull_ref_directly_when_head_branch_unknown() {
     let mock = MockGit::new(vec![
-        ok(""),                                          // fetch refs/pull/99/head
+        ok(""),                                           // fetch refs/pull/99/head
         ok("cccccccccccccccccccccccccccccccccccccccc\n"), // rev-parse FETCH_HEAD
     ]);
 
@@ -234,7 +230,7 @@ fn errors_when_rev_parse_returns_empty() {
 #[test]
 fn blank_head_branch_is_treated_as_unknown() {
     let mock = MockGit::new(vec![
-        ok(""),                                          // fetch refs/pull/8/head
+        ok(""),                                           // fetch refs/pull/8/head
         ok("dddddddddddddddddddddddddddddddddddddddd\n"), // rev-parse
     ]);
 
