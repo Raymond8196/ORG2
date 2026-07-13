@@ -141,7 +141,6 @@ const ORGII_HOME_SECRET_SEED_ENTRIES = new Set([
   "claude-code-cli-profiles",
   "codex-cli-profiles",
   "cursor-cli-profiles",
-  "gemini-cli-profiles",
 ]);
 const ORGII_HOME_SEED_EXCLUDED_NAMES = new Set([
   ".cargo",

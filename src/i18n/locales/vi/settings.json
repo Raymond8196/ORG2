@@ -323,7 +323,7 @@
     "configAgentKeys": "API Keys cho OS & SDE Agent",
     "configAgentKeysDesc": "Thêm API Key từ các nhà cung cấp như OpenAI, Anthropic và DeepSeek",
     "configCliKeys": "API Keys cho CLI Agent",
-    "configCliKeysDesc": "Thêm API Key cho các công cụ CLI như Claude Code, Codex và Gemini CLI"
+    "configCliKeysDesc": "Thêm API Key cho các công cụ CLI như Claude Code và Codex"
   },
   "cliConfig": {
     "overviewLabel": "CLI Agent",
@@ -889,7 +889,6 @@
     "diskCategory_logs": "Nhật ký",
     "diskCategory_personalWorkspace": "Không gian làm việc OS Agent",
     "diskCategory_cursorConfig": "Cấu hình CLI Session",
-    "diskCategory_geminiCliHome": "Thư mục Gemini CLI",
     "diskCategory_extensions": "Tiện ích mở rộng",
     "diskNotScanned": "Chưa quét",
     "diskScanning": "Đang quét...",
