@@ -174,6 +174,7 @@ pub fn run() {
     // the watcher in `setup` starts, otherwise the first change event
     // after launch silently drops the HTTP-version update.
     register_settings_hooks();
+    agent_core::session::housekeeper_compaction::refresh_global_config_from_disk();
 
     // Wire `integrations::computer_use_lock`'s abort broadcaster so the ESC
     // hotkey can fan an event out to the frontend without the `integrations`
@@ -308,7 +309,7 @@ pub fn run() {
     #[cfg(all(debug_assertions, feature = "webdriver"))]
     let builder = builder.plugin(tauri_plugin_webdriver_automation::init());
 
-    builder
+    let builder = builder
         // NOTE: Single-instance disabled for development - uncomment for production
         // .plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
         //   tracing::info!(?argv, "a new app instance was opened and the deep link event was already triggered");
@@ -325,8 +326,12 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
-        .plugin(tauri_plugin_drag::init())
-        .plugin(tauri_plugin_liquid_glass::init())
+        .plugin(tauri_plugin_drag::init());
+
+    #[cfg(target_os = "macos")]
+    let builder = builder.plugin(tauri_plugin_liquid_glass::init());
+
+    builder
         .on_window_event(|_window, _event| {
             #[cfg(target_os = "macos")]
             match _event {
@@ -606,8 +611,16 @@ pub fn run() {
             );
             tracing::info!("[SubagentWake] Subagent completion wake hook installed");
 
+            let housekeeper_compaction_state = unified_state.clone();
             app.manage(unified_state);
             tracing::info!("[UnifiedAgent] Unified agent state initialized");
+
+            agent_core::session::housekeeper_compaction::spawn(
+                housekeeper_compaction_state,
+            );
+            tracing::info!(
+                "[HousekeeperCompaction] opt-in MiniCPM context worker initialized"
+            );
 
             // Spawn work item schedule executor
             {
