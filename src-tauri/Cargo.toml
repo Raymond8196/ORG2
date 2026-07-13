@@ -208,7 +208,6 @@ tauri-plugin-store = "2"
 tauri-plugin-drag = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-webdriver-automation = { version = "0.1", optional = true }
-tauri-plugin-liquid-glass = "0.1.6"
 portable-pty = "0.9"
 tokio = { workspace = true }
 uuid = { version = "1", features = ["v4"] }
@@ -554,6 +553,7 @@ windows = { version = "0.61", features = [
 ] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
+tauri-plugin-liquid-glass = "0.1.6"
 objc2 = { workspace = true }
 objc2-foundation = { workspace = true }
 objc2-app-kit = { workspace = true }
