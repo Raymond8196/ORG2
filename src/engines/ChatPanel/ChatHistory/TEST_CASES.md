@@ -42,6 +42,7 @@
 | 13  | Narrow chat pane                     | Resize the non-paginated pane below 640px and scroll.                        | A compact floating minimap appears during scrolling, remains briefly for navigation, then clears.             |
 | 14  | Two-round conversation               | Open a conversation with two rounds, including a sparse or headerless round. | Two closely spaced minimap handles render and both rounds remain navigable.                                   |
 | 15  | Multiple visible rounds              | Scroll until two or more rounds intersect the viewport.                      | Every corresponding sampled minimap handle uses `primary-6`; only one handle exposes `aria-current`.          |
+| 16  | Long agent message in an older round | Open a prior round containing an agent message taller than 20 lines.         | The message starts as a 20-line preview with an expand control; the latest round remains fully open.          |
 
 ## Error / Degraded States
 
