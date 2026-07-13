@@ -424,6 +424,7 @@ export function useSessionLaunch(
         hasImages,
         sessionUsesHostedKey,
       });
+      const launchStartedTurn = !isContentEmpty || hasImages;
 
       setLaunchDebug("session_launch_rpc", "Calling sessionLaunch RPC", {
         workspacePath: launchParams.workspacePath ?? null,
@@ -489,10 +490,13 @@ export function useSessionLaunch(
         userInput,
       });
 
-      // The launch dispatched this session's first turn — open it in the
-      // turn-lifecycle FSM so follow-up submits queue until the provider
-      // delivers the turn's terminal.
-      markTurnRunning(result.sessionId);
+      if (launchStartedTurn) {
+        // The launch dispatched this session's first turn — open it in the
+        // turn-lifecycle FSM so follow-up submits queue until the provider
+        // delivers the turn's terminal. Empty CLI launches only create/open the
+        // shell; the first real message should dispatch directly.
+        markTurnRunning(result.sessionId);
+      }
 
       if (isBackgroundLaunch) {
         clearDraft(null);
@@ -521,7 +525,9 @@ export function useSessionLaunch(
         // session's running back to idle — that reset used to erase the
         // launch's running and leave slow providers (deepseek) showing no
         // footer / no Stop until the first stream event arrived seconds later.
-        beginOptimisticTurn(result.sessionId, "launch");
+        if (launchStartedTurn) {
+          beginOptimisticTurn(result.sessionId, "launch");
+        }
       }
 
       setSessionSource(null);

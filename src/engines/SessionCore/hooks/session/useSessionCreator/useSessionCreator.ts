@@ -89,7 +89,6 @@ export function useSessionCreator(
     workItemContext,
     resolveWorkItemContext,
     onLaunchSuccess,
-    cliAgentSupportsGui = false,
   } = options;
   // ============================================
   // Refs
@@ -417,10 +416,11 @@ export function useSessionCreator(
   const isContentEmpty = !editorContent || !editorContent.trim();
 
   const canLaunch = useMemo(() => {
-    // Pure-TUI CLI agents launch without a prompt; GUI-capable CLI agents and
-    // all other categories require non-empty content.
-    const isCliTui = dispatchCategory === "cli_agent" && !cliAgentSupportsGui;
-    if (isContentEmpty && !isCliTui) return false;
+    // CLI agents can start without an initial prompt; users may interact inside
+    // the launched CLI with commands such as /resume. Other session types still
+    // require composer content.
+    const isCliAgent = dispatchCategory === "cli_agent";
+    if (isContentEmpty && !isCliAgent) return false;
     if (
       dispatchCategory === "rust_agent" &&
       !isOSMode &&
@@ -440,7 +440,6 @@ export function useSessionCreator(
     return hasModelOrAccount;
   }, [
     isContentEmpty,
-    cliAgentSupportsGui,
     advancedConfig,
     dispatchCategory,
     effectiveSource,

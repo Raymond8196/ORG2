@@ -48,4 +48,34 @@ describe("useSessionValidation", () => {
 
     expect(result).toEqual({ valid: true, errors: [] });
   });
+
+  it("accepts an empty prompt for CLI agent sessions", () => {
+    const store = createStore();
+    store.set(dispatchCategoryAtom, "cli_agent");
+    store.set(selectedAgentDefinitionIdAtom, null);
+
+    let result: SessionValidationResult | undefined;
+
+    function Probe(): null {
+      // Test probe: capture the hook result synchronously from server rendering.
+      // eslint-disable-next-line react-hooks/globals
+      result = useSessionValidation({
+        effectiveRepoId: "repo-1",
+        editorContent: "",
+        advancedConfig: {
+          keySource: KEY_SOURCE.OWN,
+          cliAgentType: "claude_code",
+        },
+        providers: [],
+        agents: [],
+      }).validateSessionConfig();
+      return null;
+    }
+
+    renderToString(
+      React.createElement(Provider, { store }, React.createElement(Probe))
+    );
+
+    expect(result).toEqual({ valid: true, errors: [] });
+  });
 });

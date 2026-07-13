@@ -3,8 +3,11 @@ import {
   Airplay,
   AlertCircle,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Loader2,
   Network,
+  Play,
 } from "lucide-react";
 import React, {
   useCallback,
@@ -120,10 +123,51 @@ import { useSessionCreatorChatPanelHandlers } from "./useSessionCreatorChatPanel
 
 const log = createLogger("ChatPanel");
 const LAUNCH_CLICK_DEBUG_STORAGE_KEY = "orgii:sshRemoteLaunchClickDebug";
+const REMOTE_CAPABLE_CLI_AGENTS: ReadonlyArray<string> = [
+  "claude_code",
+  "codex",
+  "gemini_cli",
+];
 
 function deriveExpectedProcess(command: string): string | undefined {
   const [binary] = command.trim().split(/\s+/);
   return binary || undefined;
+}
+
+function shQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function buildRemoteTuiCommand(input: {
+  command: string;
+  host: string;
+  port?: number;
+  workingDir?: string;
+}): string {
+  const sshArgs = [
+    "-tt",
+    "-o BatchMode=yes",
+    "-o ControlMaster=auto",
+    '-o ControlPath="$HOME/.orgii/ssh/%C"',
+    "-o ControlPersist=60s",
+    "-o ServerAliveInterval=30",
+    "-o ServerAliveCountMax=3",
+  ];
+  if (input.port) {
+    sshArgs.push("-p", String(input.port));
+  }
+  const remoteScript = input.workingDir
+    ? `cd ${shQuote(input.workingDir)} && exec ${input.command}`
+    : `exec ${input.command}`;
+  const remoteCommand = `bash -lc ${shQuote(remoteScript)}`;
+  return [
+    'mkdir -p "$HOME/.orgii/ssh"',
+    "&&",
+    "ssh",
+    ...sshArgs,
+    shQuote(input.host),
+    shQuote(remoteCommand),
+  ].join(" ");
 }
 
 function isCliAgentType(
@@ -892,59 +936,6 @@ const SessionCreatorChatPanelSingle: React.FC<
       <CollapsedInlineRow sections={[]} scrollNav={browserElementScrollNav} />
     ) : null;
 
-  const editorArea = (
-    <EditorArea
-      variant="chatPanelFullScreen"
-      uploadedFiles={uploadedFiles}
-      onRemoveFile={handleRemoveFile}
-      composerInputRef={composerInputRef}
-      onContentChange={handleContentChangeWithTracking}
-      onAtMention={handleAtMention}
-      onAtMentionClose={handleAtMentionClose}
-      onSubmit={handleLaunch}
-      showContextMenu={showContextMenu}
-      setShowContextMenu={setShowContextMenu}
-      atSearchQuery={atSearchQuery}
-      setAtSearchQuery={setAtSearchQuery}
-      onAtSelect={handleAtSelect}
-      repoPath={currentRepoPath}
-      onAtMentionClick={handleAtMentionClick}
-      onUploadClick={handleUploadClick}
-      isLoading={isLoading}
-      onLaunch={handleLaunch}
-      advancedConfig={advancedConfig}
-      onAdvancedConfigChange={handleAdvancedConfigChange}
-      hideInfoLine={true}
-      repoId={displayedRepoId}
-      repoName={displayedRepoName}
-      repoKind={isOSMode && !sessionRepoId ? undefined : currentRepo?.kind}
-      branchName={isOSMode && !sessionRepoId ? undefined : effectiveBranchName}
-      onBranchChange={handleBranchChange}
-      onImagePaste={handleImagePaste}
-      attachedImages={attachedImages}
-      onRemoveImage={removeImage}
-      launchDisabled={!canLaunch}
-      requestModelOpen={requestModelOpen}
-      onModelOpenHandled={() => setRequestModelOpen(false)}
-      shellClassName="session-creator-chat-panel-fullscreen-input-shell"
-      initialContent={initialRestoreText || initialContent || undefined}
-      autoFocus
-      showSlashMenu={showSlashMenu}
-      slashQuery={slashQuery}
-      slashCommandKeyboardHandlerRef={slashCommandKeyboardHandlerRef}
-      onSlashCommand={handleSlashCommand}
-      onSlashCommandClose={handleSlashCommandClose}
-      onSlashSelect={handleSlashSelect}
-      onModeSelect={handleModeSelect}
-      currentMode={currentMode}
-      filteredSlashItems={filteredSlashItems}
-      slashLoading={slashLoading}
-      dropdownDirection={dropdownDirection}
-    />
-  );
-
-  // ── Render ────────────────────────────────────────────────────────────────
-
   // ── Remote SSH connection health check (§3-Phase3) ──────────────────────
   // A "Test connection" affordance next to the Remote SSH inputs: proves SSH
   // connectivity (BatchMode auth) + that the CLI binary is on the remote PATH
@@ -960,6 +951,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     | { kind: "checking"; key: string }
     | { kind: "done"; key: string; result: RemotePreflightResult }
   >({ kind: "idle" });
+  const [remoteTargetExpanded, setRemoteTargetExpanded] = useState(false);
   const remotePort = advancedConfig.remoteTarget?.port;
   const remoteWorkingDir =
     advancedConfig.remoteTarget?.workingDir?.trim() ?? "";
@@ -1023,15 +1015,114 @@ const SessionCreatorChatPanelSingle: React.FC<
   // SSH-remote milestone (§3-Phase3): offer a manual Remote SSH target entry
   // for the line-based CLIs that support it (cursor_cli/copilot/kiro are
   // MITM/ACP and can't run remote yet). Hosted+Remote is rejected server-side.
-  const REMOTE_CAPABLE_CLI_AGENTS: ReadonlyArray<string> = [
-    "claude_code",
-    "codex",
-    "gemini_cli",
-  ];
   const showRemoteTargetInput =
     isCliMode &&
     !!cliAgentType &&
     REMOTE_CAPABLE_CLI_AGENTS.includes(cliAgentType);
+  const remoteLaunchConfigured = showRemoteTargetInput && remoteHost.length > 0;
+  const remoteLaunchDisabled = isLoading || !preflightOk;
+  const handleComposerLaunch = useCallback(async () => {
+    if (remoteLaunchConfigured) {
+      setRemoteTargetExpanded(true);
+      return false;
+    }
+    return handleLaunch();
+  }, [handleLaunch, remoteLaunchConfigured, setRemoteTargetExpanded]);
+  const handleRemoteTuiLaunch = useCallback(async () => {
+    if (
+      !preflightOk ||
+      !onOpenCliTerminal ||
+      !selectedCliAgent ||
+      !isCliAgentType(cliAgentType)
+    ) {
+      return false;
+    }
+    const command = selectedCliAgent.command.trim();
+    if (!command || !remoteHost) return false;
+    const remoteTitle = remoteTargetDisplay?.hostLabel ?? remoteHost;
+    const tuiDebug = {
+      stage: "tui_remote_terminal",
+      message: `Opening remote CLI terminal for ${cliAgentType} on ${remoteHost}`,
+      timestamp: Date.now(),
+    };
+    setLaunchClickDebug(tuiDebug);
+    persistLaunchClickDebug(tuiDebug);
+    onOpenCliTerminal({
+      cliAgentType,
+      command: buildRemoteTuiCommand({
+        command,
+        host: remoteHost,
+        port: remotePort,
+        workingDir: remoteWorkingDir || undefined,
+      }),
+      title: `${selectedCliAgent.displayName} · ${remoteTitle}`,
+      expectedProcess: "ssh",
+    });
+    setAttachedWorkItemContext(null);
+    return true;
+  }, [
+    cliAgentType,
+    onOpenCliTerminal,
+    preflightOk,
+    remoteHost,
+    remotePort,
+    remoteTargetDisplay?.hostLabel,
+    remoteWorkingDir,
+    selectedCliAgent,
+  ]);
+
+  const editorArea = (
+    <EditorArea
+      variant="chatPanelFullScreen"
+      uploadedFiles={uploadedFiles}
+      onRemoveFile={handleRemoveFile}
+      composerInputRef={composerInputRef}
+      onContentChange={handleContentChangeWithTracking}
+      onAtMention={handleAtMention}
+      onAtMentionClose={handleAtMentionClose}
+      onSubmit={handleComposerLaunch}
+      showContextMenu={showContextMenu}
+      setShowContextMenu={setShowContextMenu}
+      atSearchQuery={atSearchQuery}
+      setAtSearchQuery={setAtSearchQuery}
+      onAtSelect={handleAtSelect}
+      repoPath={currentRepoPath}
+      onAtMentionClick={handleAtMentionClick}
+      onUploadClick={handleUploadClick}
+      isLoading={isLoading}
+      onLaunch={handleComposerLaunch}
+      advancedConfig={advancedConfig}
+      onAdvancedConfigChange={handleAdvancedConfigChange}
+      hideInfoLine={true}
+      repoId={displayedRepoId}
+      repoName={displayedRepoName}
+      repoKind={isOSMode && !sessionRepoId ? undefined : currentRepo?.kind}
+      branchName={isOSMode && !sessionRepoId ? undefined : effectiveBranchName}
+      onBranchChange={handleBranchChange}
+      onImagePaste={handleImagePaste}
+      attachedImages={attachedImages}
+      onRemoveImage={removeImage}
+      launchDisabled={!canLaunch}
+      requestModelOpen={requestModelOpen}
+      onModelOpenHandled={() => setRequestModelOpen(false)}
+      shellClassName="session-creator-chat-panel-fullscreen-input-shell"
+      initialContent={initialRestoreText || initialContent || undefined}
+      autoFocus
+      showSlashMenu={showSlashMenu}
+      slashQuery={slashQuery}
+      slashCommandKeyboardHandlerRef={slashCommandKeyboardHandlerRef}
+      onSlashCommand={handleSlashCommand}
+      onSlashCommandClose={handleSlashCommandClose}
+      onSlashSelect={handleSlashSelect}
+      onModeSelect={handleModeSelect}
+      currentMode={currentMode}
+      filteredSlashItems={filteredSlashItems}
+      slashLoading={slashLoading}
+      dropdownDirection={dropdownDirection}
+    />
+  );
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div
@@ -1086,6 +1177,216 @@ const SessionCreatorChatPanelSingle: React.FC<
                     {repoPills}
                   </div>
                 )}
+                {showRemoteTargetInput && (
+                  <>
+                    <div className="px-1 pb-1 pt-2">
+                      <div className="rounded-md border border-border-2 bg-fill-1/40">
+                        <button
+                          type="button"
+                          aria-expanded={remoteTargetExpanded}
+                          onClick={() =>
+                            setRemoteTargetExpanded((expanded) => !expanded)
+                          }
+                          className="flex min-h-[34px] w-full min-w-0 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left outline-none transition-colors hover:bg-fill-2/50 focus-visible:ring-1 focus-visible:ring-primary-4"
+                        >
+                          <div className="flex min-w-0 items-center gap-2 text-[12px] font-medium text-text-1">
+                            {remoteTargetExpanded ? (
+                              <ChevronDown
+                                size={13}
+                                strokeWidth={1.75}
+                                className="shrink-0 text-text-4"
+                              />
+                            ) : (
+                              <ChevronRight
+                                size={13}
+                                strokeWidth={1.75}
+                                className="shrink-0 text-text-4"
+                              />
+                            )}
+                            <Network
+                              size={14}
+                              strokeWidth={1.75}
+                              className="shrink-0"
+                            />
+                            <span className="shrink-0">Run on remote</span>
+                            {remoteTargetDisplay && (
+                              <span
+                                className="min-w-0 truncate text-text-3"
+                                title={remoteTargetDisplay.title}
+                              >
+                                {remoteTargetDisplay.hostLabel}
+                                {remoteTargetDisplay.workspaceLabel
+                                  ? ` · ${remoteTargetDisplay.workspaceLabel}`
+                                  : ""}
+                              </span>
+                            )}
+                          </div>
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                            {preflightChecking ? (
+                              <Loader2
+                                size={12}
+                                className="animate-spin text-text-4"
+                              />
+                            ) : preflightOk ? (
+                              <CheckCircle2
+                                size={12}
+                                className="text-emerald-600"
+                              />
+                            ) : preflightResult ? (
+                              <AlertCircle size={12} className="text-red-600" />
+                            ) : null}
+                          </span>
+                        </button>
+                        {remoteTargetExpanded && (
+                          <div className="border-t border-border-2 px-2.5 pb-2 pt-2">
+                            <div className="grid grid-cols-[minmax(0,1fr)_80px] gap-2 text-[12px] text-text-3">
+                              <label className="min-w-0">
+                                <span className="mb-1 block text-[11px] text-text-4">
+                                  Host
+                                </span>
+                                <input
+                                  type="text"
+                                  spellCheck={false}
+                                  autoComplete="off"
+                                  data-testid="remote-ssh-host-input"
+                                  className="bg-background h-[26px] w-full min-w-0 rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                                  placeholder="user@host"
+                                  value={
+                                    advancedConfig.remoteTarget?.host ?? ""
+                                  }
+                                  onChange={(e) =>
+                                    handleAdvancedConfigChange({
+                                      ...advancedConfig,
+                                      remoteTarget: {
+                                        host: e.target.value,
+                                        port: advancedConfig.remoteTarget?.port,
+                                        workingDir:
+                                          advancedConfig.remoteTarget
+                                            ?.workingDir,
+                                      },
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label>
+                                <span className="mb-1 block text-[11px] text-text-4">
+                                  Port
+                                </span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={65535}
+                                  data-testid="remote-ssh-port-input"
+                                  className="bg-background h-[26px] w-full rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                                  placeholder="22"
+                                  value={
+                                    advancedConfig.remoteTarget?.port ?? ""
+                                  }
+                                  onChange={(e) =>
+                                    handleAdvancedConfigChange({
+                                      ...advancedConfig,
+                                      remoteTarget: {
+                                        host:
+                                          advancedConfig.remoteTarget?.host ??
+                                          "",
+                                        port: e.target.value
+                                          ? Number(e.target.value)
+                                          : undefined,
+                                        workingDir:
+                                          advancedConfig.remoteTarget
+                                            ?.workingDir,
+                                      },
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label className="col-span-2 min-w-0">
+                                <span className="mb-1 block text-[11px] text-text-4">
+                                  Working target
+                                </span>
+                                <input
+                                  type="text"
+                                  spellCheck={false}
+                                  autoComplete="off"
+                                  data-testid="remote-ssh-working-dir-input"
+                                  className="bg-background h-[26px] w-full min-w-0 rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                                  placeholder="/home/qlg/wkspaces/ORG2"
+                                  value={
+                                    advancedConfig.remoteTarget?.workingDir ??
+                                    ""
+                                  }
+                                  onChange={(e) =>
+                                    handleAdvancedConfigChange({
+                                      ...advancedConfig,
+                                      remoteTarget: {
+                                        host:
+                                          advancedConfig.remoteTarget?.host ??
+                                          "",
+                                        port: advancedConfig.remoteTarget?.port,
+                                        workingDir: e.target.value,
+                                      },
+                                    })
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <div className="mt-2 flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={runRemotePreflight}
+                                disabled={!remoteHost || preflightChecking}
+                                data-testid="remote-ssh-test-button"
+                                className={`flex h-[24px] shrink-0 items-center gap-1 rounded border px-2 text-[11px] outline-none transition-colors focus:border-primary-4 disabled:opacity-50 ${
+                                  preflightOk
+                                    ? "border-emerald-300 text-emerald-700"
+                                    : "border-border-2 text-text-2 hover:text-text-1"
+                                }`}
+                              >
+                                {preflightChecking ? (
+                                  <Loader2 size={12} className="animate-spin" />
+                                ) : preflightOk ? (
+                                  <CheckCircle2 size={12} />
+                                ) : null}
+                                {preflightOk ? "Connected" : "Test"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleRemoteTuiLaunch}
+                                disabled={remoteLaunchDisabled}
+                                data-testid="remote-ssh-launch-button"
+                                className="flex h-[24px] shrink-0 items-center gap-1 rounded bg-primary-6 px-2.5 text-[11px] font-medium text-white outline-none transition-colors hover:bg-primary-7 focus-visible:ring-1 focus-visible:ring-primary-4 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Play
+                                  size={11}
+                                  fill="currentColor"
+                                  strokeWidth={0}
+                                />
+                                {t("creator.start")}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {remoteTargetExpanded && preflightResult && (
+                      <div
+                        data-testid="remote-ssh-test-result"
+                        className={`flex items-start gap-1.5 px-1 pb-1 text-[12px] ${
+                          preflightOk ? "text-emerald-600" : "text-red-600"
+                        }`}
+                      >
+                        {preflightOk ? (
+                          <CheckCircle2 size={12} className="mt-0.5 shrink-0" />
+                        ) : (
+                          <AlertCircle size={12} className="mt-0.5 shrink-0" />
+                        )}
+                        <span className="min-w-0 break-words">
+                          {preflightResult.summary}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </>
           ) : (
@@ -1134,9 +1435,29 @@ const SessionCreatorChatPanelSingle: React.FC<
                 {showRemoteTargetInput && (
                   <>
                     <div className="px-1 pb-1 pt-2">
-                      <div className="rounded-md border border-border-2 bg-fill-1/40 px-2.5 py-2">
-                        <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
+                      <div className="rounded-md border border-border-2 bg-fill-1/40">
+                        <button
+                          type="button"
+                          aria-expanded={remoteTargetExpanded}
+                          onClick={() =>
+                            setRemoteTargetExpanded((expanded) => !expanded)
+                          }
+                          className="flex min-h-[34px] w-full min-w-0 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left outline-none transition-colors hover:bg-fill-2/50 focus-visible:ring-1 focus-visible:ring-primary-4"
+                        >
                           <div className="flex min-w-0 items-center gap-2 text-[12px] font-medium text-text-1">
+                            {remoteTargetExpanded ? (
+                              <ChevronDown
+                                size={13}
+                                strokeWidth={1.75}
+                                className="shrink-0 text-text-4"
+                              />
+                            ) : (
+                              <ChevronRight
+                                size={13}
+                                strokeWidth={1.75}
+                                className="shrink-0 text-text-4"
+                              />
+                            )}
                             <Network
                               size={14}
                               strokeWidth={1.75}
@@ -1155,134 +1476,179 @@ const SessionCreatorChatPanelSingle: React.FC<
                               </span>
                             )}
                           </div>
-                          <button
-                            type="button"
-                            onClick={runRemotePreflight}
-                            disabled={!remoteHost || preflightChecking}
-                            data-testid="remote-ssh-test-button"
-                            className={`flex h-[24px] shrink-0 items-center gap-1 rounded border px-2 text-[11px] outline-none transition-colors focus:border-primary-4 disabled:opacity-50 ${
-                              preflightOk
-                                ? "border-emerald-300 text-emerald-700"
-                                : "border-border-2 text-text-2 hover:text-text-1"
-                            }`}
-                          >
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center">
                             {preflightChecking ? (
-                              <Loader2 size={12} className="animate-spin" />
+                              <Loader2
+                                size={12}
+                                className="animate-spin text-text-4"
+                              />
                             ) : preflightOk ? (
-                              <CheckCircle2 size={12} />
+                              <CheckCircle2
+                                size={12}
+                                className="text-emerald-600"
+                              />
+                            ) : preflightResult ? (
+                              <AlertCircle size={12} className="text-red-600" />
                             ) : null}
-                            {preflightOk ? "Connected" : "Test"}
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-[minmax(0,1fr)_80px] gap-2 text-[12px] text-text-3">
-                          <label className="min-w-0">
-                            <span className="mb-1 block text-[11px] text-text-4">
-                              Host
-                            </span>
-                            <input
-                              type="text"
-                              spellCheck={false}
-                              autoComplete="off"
-                              data-testid="remote-ssh-host-input"
-                              className="bg-background h-[26px] w-full min-w-0 rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
-                              placeholder="user@host"
-                              value={advancedConfig.remoteTarget?.host ?? ""}
-                              onChange={(e) =>
-                                handleAdvancedConfigChange({
-                                  ...advancedConfig,
-                                  remoteTarget: {
-                                    host: e.target.value,
-                                    port: advancedConfig.remoteTarget?.port,
-                                    workingDir:
-                                      advancedConfig.remoteTarget?.workingDir,
-                                  },
-                                })
-                              }
-                            />
-                          </label>
-                          <label>
-                            <span className="mb-1 block text-[11px] text-text-4">
-                              Port
-                            </span>
-                            <input
-                              type="number"
-                              min={1}
-                              max={65535}
-                              data-testid="remote-ssh-port-input"
-                              className="bg-background h-[26px] w-full rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
-                              placeholder="22"
-                              value={advancedConfig.remoteTarget?.port ?? ""}
-                              onChange={(e) =>
-                                handleAdvancedConfigChange({
-                                  ...advancedConfig,
-                                  remoteTarget: {
-                                    host:
-                                      advancedConfig.remoteTarget?.host ?? "",
-                                    port: e.target.value
-                                      ? Number(e.target.value)
-                                      : undefined,
-                                    workingDir:
-                                      advancedConfig.remoteTarget?.workingDir,
-                                  },
-                                })
-                              }
-                            />
-                          </label>
-                          <label className="col-span-2 min-w-0">
-                            <span className="mb-1 block text-[11px] text-text-4">
-                              Working target
-                            </span>
-                            <input
-                              type="text"
-                              spellCheck={false}
-                              autoComplete="off"
-                              data-testid="remote-ssh-working-dir-input"
-                              className="bg-background h-[26px] w-full min-w-0 rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
-                              placeholder="/home/qlg/wkspaces/ORG2"
-                              value={
-                                advancedConfig.remoteTarget?.workingDir ?? ""
-                              }
-                              onChange={(e) =>
-                                handleAdvancedConfigChange({
-                                  ...advancedConfig,
-                                  remoteTarget: {
-                                    host:
-                                      advancedConfig.remoteTarget?.host ?? "",
-                                    port: advancedConfig.remoteTarget?.port,
-                                    workingDir: e.target.value,
-                                  },
-                                })
-                              }
-                            />
-                          </label>
-                        </div>
+                          </span>
+                        </button>
+                        {remoteTargetExpanded && (
+                          <div className="border-t border-border-2 px-2.5 pb-2 pt-2">
+                            <div className="grid grid-cols-[minmax(0,1fr)_80px] gap-2 text-[12px] text-text-3">
+                              <label className="min-w-0">
+                                <span className="mb-1 block text-[11px] text-text-4">
+                                  Host
+                                </span>
+                                <input
+                                  type="text"
+                                  spellCheck={false}
+                                  autoComplete="off"
+                                  data-testid="remote-ssh-host-input"
+                                  className="bg-background h-[26px] w-full min-w-0 rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                                  placeholder="user@host"
+                                  value={
+                                    advancedConfig.remoteTarget?.host ?? ""
+                                  }
+                                  onChange={(e) =>
+                                    handleAdvancedConfigChange({
+                                      ...advancedConfig,
+                                      remoteTarget: {
+                                        host: e.target.value,
+                                        port: advancedConfig.remoteTarget?.port,
+                                        workingDir:
+                                          advancedConfig.remoteTarget
+                                            ?.workingDir,
+                                      },
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label>
+                                <span className="mb-1 block text-[11px] text-text-4">
+                                  Port
+                                </span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={65535}
+                                  data-testid="remote-ssh-port-input"
+                                  className="bg-background h-[26px] w-full rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                                  placeholder="22"
+                                  value={
+                                    advancedConfig.remoteTarget?.port ?? ""
+                                  }
+                                  onChange={(e) =>
+                                    handleAdvancedConfigChange({
+                                      ...advancedConfig,
+                                      remoteTarget: {
+                                        host:
+                                          advancedConfig.remoteTarget?.host ??
+                                          "",
+                                        port: e.target.value
+                                          ? Number(e.target.value)
+                                          : undefined,
+                                        workingDir:
+                                          advancedConfig.remoteTarget
+                                            ?.workingDir,
+                                      },
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label className="col-span-2 min-w-0">
+                                <span className="mb-1 block text-[11px] text-text-4">
+                                  Working target
+                                </span>
+                                <input
+                                  type="text"
+                                  spellCheck={false}
+                                  autoComplete="off"
+                                  data-testid="remote-ssh-working-dir-input"
+                                  className="bg-background h-[26px] w-full min-w-0 rounded border border-border-2 px-2 text-text-1 outline-none focus:border-primary-4"
+                                  placeholder="/home/qlg/wkspaces/ORG2"
+                                  value={
+                                    advancedConfig.remoteTarget?.workingDir ??
+                                    ""
+                                  }
+                                  onChange={(e) =>
+                                    handleAdvancedConfigChange({
+                                      ...advancedConfig,
+                                      remoteTarget: {
+                                        host:
+                                          advancedConfig.remoteTarget?.host ??
+                                          "",
+                                        port: advancedConfig.remoteTarget?.port,
+                                        workingDir: e.target.value,
+                                      },
+                                    })
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <div className="mt-2 flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={runRemotePreflight}
+                                disabled={!remoteHost || preflightChecking}
+                                data-testid="remote-ssh-test-button"
+                                className={`flex h-[24px] shrink-0 items-center gap-1 rounded border px-2 text-[11px] outline-none transition-colors focus:border-primary-4 disabled:opacity-50 ${
+                                  preflightOk
+                                    ? "border-emerald-300 text-emerald-700"
+                                    : "border-border-2 text-text-2 hover:text-text-1"
+                                }`}
+                              >
+                                {preflightChecking ? (
+                                  <Loader2 size={12} className="animate-spin" />
+                                ) : preflightOk ? (
+                                  <CheckCircle2 size={12} />
+                                ) : null}
+                                {preflightOk ? "Connected" : "Test"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleLaunch}
+                                disabled={remoteLaunchDisabled}
+                                data-testid="remote-ssh-launch-button"
+                                className="flex h-[24px] shrink-0 items-center gap-1 rounded bg-primary-6 px-2.5 text-[11px] font-medium text-white outline-none transition-colors hover:bg-primary-7 focus-visible:ring-1 focus-visible:ring-primary-4 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Play
+                                  size={11}
+                                  fill="currentColor"
+                                  strokeWidth={0}
+                                />
+                                {t("creator.start")}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    {(launchClickDebug || launchDebugState) && (
-                      <div
-                        data-testid="remote-launch-debug"
-                        className="space-y-0.5 px-1 pb-1 font-mono text-[10px] leading-4 text-text-4"
-                      >
-                        {launchClickDebug && (
-                          <div className="break-words">
-                            Click[{launchClickDebug.stage}]:{" "}
-                            {launchClickDebug.message}
-                          </div>
-                        )}
-                        {launchDebugState && (
-                          <div className="break-words">
-                            Pipeline[{launchDebugState.stage}]:{" "}
-                            {launchDebugState.message}
-                          </div>
-                        )}
-                        {launchDebugDetails && (
-                          <div className="break-all">
-                            Details: {launchDebugDetails}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {preflightResult && (
+                    {remoteTargetExpanded &&
+                      (launchClickDebug || launchDebugState) && (
+                        <div
+                          data-testid="remote-launch-debug"
+                          className="space-y-0.5 px-1 pb-1 font-mono text-[10px] leading-4 text-text-4"
+                        >
+                          {launchClickDebug && (
+                            <div className="break-words">
+                              Click[{launchClickDebug.stage}]:{" "}
+                              {launchClickDebug.message}
+                            </div>
+                          )}
+                          {launchDebugState && (
+                            <div className="break-words">
+                              Pipeline[{launchDebugState.stage}]:{" "}
+                              {launchDebugState.message}
+                            </div>
+                          )}
+                          {launchDebugDetails && (
+                            <div className="break-all">
+                              Details: {launchDebugDetails}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    {remoteTargetExpanded && preflightResult && (
                       <div
                         data-testid="remote-ssh-test-result"
                         className={`flex items-start gap-1.5 px-1 pb-1 text-[12px] ${

@@ -81,8 +81,10 @@ export function useSessionValidation(options: UseSessionValidationOptions) {
       errors.push("Please select a repo");
     }
 
-    // Content always required
-    if (!editorContent?.trim()) {
+    // CLI agents may start without an initial prompt; users can interact in the
+    // launched CLI directly (for example, /resume).
+    const needsPromptContent = dispatchCategory !== "cli_agent";
+    if (needsPromptContent && !editorContent?.trim()) {
       errors.push("Please describe what you want to build");
     }
     if (editorContent && editorContent.length > 10000) {
