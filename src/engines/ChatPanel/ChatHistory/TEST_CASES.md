@@ -25,21 +25,24 @@
 
 ## Edge Cases
 
-| #   | Scenario                             | Steps                                             | Expected Result                                                                                               |
-| --- | ------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| 1   | Empty session                        | Session has zero events.                          | `ChatHistoryEmptyState` renders; no crash.                                                                    |
-| 2   | Single turn                          | Session has exactly one turn.                     | Renders correctly; pagination controls hidden or disabled.                                                    |
-| 3   | Duplicate events from dedup pipeline | Events pipeline returns deduped list.             | Each event appears exactly once; no duplicates in DOM.                                                        |
-| 4   | Very long session (500+ turns)       | Open session with many turns.                     | Virtuoso windowing ensures only visible turns are in DOM.                                                     |
-| 5   | Rapid new messages                   | 10 messages arrive in quick succession.           | All appended; auto-scroll behaves without jump/flicker.                                                       |
-| 6   | Active session has todos             | Todo state contains incomplete items.             | Composer row shows a todo icon plus completed/total pill; clicking it opens the checklist above the composer. |
-| 7   | Group chat mode                      | Session is an agent-org group chat.               | `isAgentOrgGroupChatUserMessage` path renders group-specific header.                                          |
-| 8   | Paginated page 2 with no turns       | Navigate to page 2 that has 0 visible turns.      | Empty state or "no turns on this page" message shown.                                                         |
-| 9   | Search query with no results         | Type a unique string that matches nothing.        | Empty result state shown in search mode.                                                                      |
-| 10  | Revert dialog cancelled              | Open revert dialog; click Cancel.                 | Dialog closes; no state mutation.                                                                             |
-| 11  | Empty injected file section          | Message contains only the file-section title.     | The heading-only user bubble is omitted.                                                                      |
-| 12  | More than 20 conversation turns      | Open a non-paginated conversation with 100 turns. | The minimap renders exactly 20 evenly distributed markers including the first and last turns.                 |
-| 13  | Narrow chat pane                     | Resize the non-paginated pane below 640px.        | The minimap is hidden so it does not overlap message content.                                                 |
+| #   | Scenario                             | Steps                                                                        | Expected Result                                                                                               |
+| --- | ------------------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1   | Empty session                        | Session has zero events.                                                     | `ChatHistoryEmptyState` renders; no crash.                                                                    |
+| 2   | Single turn                          | Session has exactly one turn.                                                | Renders correctly; pagination controls hidden or disabled.                                                    |
+| 3   | Duplicate events from dedup pipeline | Events pipeline returns deduped list.                                        | Each event appears exactly once; no duplicates in DOM.                                                        |
+| 4   | Very long session (500+ turns)       | Open session with many turns.                                                | Virtuoso windowing ensures only visible turns are in DOM.                                                     |
+| 5   | Rapid new messages                   | 10 messages arrive in quick succession.                                      | All appended; auto-scroll behaves without jump/flicker.                                                       |
+| 6   | Active session has todos             | Todo state contains incomplete items.                                        | Composer row shows a todo icon plus completed/total pill; clicking it opens the checklist above the composer. |
+| 7   | Group chat mode                      | Session is an agent-org group chat.                                          | `isAgentOrgGroupChatUserMessage` path renders group-specific header.                                          |
+| 8   | Paginated page 2 with no turns       | Navigate to page 2 that has 0 visible turns.                                 | Empty state or "no turns on this page" message shown.                                                         |
+| 9   | Search query with no results         | Type a unique string that matches nothing.                                   | Empty result state shown in search mode.                                                                      |
+| 10  | Revert dialog cancelled              | Open revert dialog; click Cancel.                                            | Dialog closes; no state mutation.                                                                             |
+| 11  | Empty injected file section          | Message contains only the file-section title.                                | The heading-only user bubble is omitted.                                                                      |
+| 12  | More than 20 conversation turns      | Open a non-paginated conversation with 100 turns.                            | The minimap renders exactly 20 evenly distributed markers including the first and last turns.                 |
+| 13  | Narrow chat pane                     | Resize the non-paginated pane below 640px and scroll.                        | A compact floating minimap appears during scrolling, remains briefly for navigation, then clears.             |
+| 14  | Two-round conversation               | Open a conversation with two rounds, including a sparse or headerless round. | Two closely spaced minimap handles render and both rounds remain navigable.                                   |
+| 15  | Multiple visible rounds              | Scroll until two or more rounds intersect the viewport.                      | Every corresponding sampled minimap handle uses `primary-6`; only one handle exposes `aria-current`.          |
+| 16  | Long agent message in an older round | Open a prior round containing an agent message taller than 20 lines.         | The message starts as a 20-line preview with an expand control; the latest round remains fully open.          |
 
 ## Error / Degraded States
 

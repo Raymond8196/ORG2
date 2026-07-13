@@ -171,7 +171,7 @@ CachedFileChip.displayName = "CachedFileChip";
 
 /** Layout-only; border/hover/focus ring added per-row below */
 const DISPLAY_CONTAINER_BASE =
-  "group relative w-fit max-w-full rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
+  "group relative w-fit max-w-[min(600px,100%)] rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
 
 // ============================================
 // Component
