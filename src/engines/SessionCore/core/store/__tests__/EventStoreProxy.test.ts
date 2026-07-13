@@ -15,6 +15,7 @@ const { rpcMock, warnMock } = vi.hoisted(() => ({
         upsert: vi.fn().mockResolvedValue(undefined),
         saveToCache: vi.fn().mockResolvedValue(1),
         getSnapshot: vi.fn(),
+        switchSession: vi.fn().mockResolvedValue(true),
       },
     },
   },
@@ -137,6 +138,54 @@ describe("EventStoreProxy snapshot release", () => {
     eventStoreProxy.releaseSessionSnapshotIfIdle("session-idle");
 
     expect(eventStoreProxy.getLatestSessionSnapshot("session-idle")).toBeNull();
+  });
+});
+
+describe("EventStoreProxy deferred snapshot release", () => {
+  const GRACE_MS = 3 * 60 * 1000;
+
+  it("releases the snapshot only after the grace window", async () => {
+    vi.useFakeTimers();
+    try {
+      rpcMock.sessionCore.eventStore.getSnapshot.mockResolvedValueOnce(
+        makeDerivedSnapshot("session-deferred", 6)
+      );
+      await eventStoreProxy.getSnapshot("session-deferred");
+
+      eventStoreProxy.scheduleSessionSnapshotRelease("session-deferred");
+      vi.advanceTimersByTime(GRACE_MS - 1);
+      expect(
+        eventStoreProxy.getLatestSessionSnapshot("session-deferred")
+      ).not.toBeNull();
+
+      vi.advanceTimersByTime(2);
+      expect(
+        eventStoreProxy.getLatestSessionSnapshot("session-deferred")
+      ).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("switching back within the grace window cancels the release", async () => {
+    vi.useFakeTimers();
+    try {
+      rpcMock.sessionCore.eventStore.getSnapshot.mockResolvedValueOnce(
+        makeDerivedSnapshot("session-returned", 7)
+      );
+      await eventStoreProxy.getSnapshot("session-returned");
+
+      eventStoreProxy.scheduleSessionSnapshotRelease("session-returned");
+      vi.advanceTimersByTime(GRACE_MS / 2);
+      await eventStoreProxy.switchSession("session-returned");
+      vi.advanceTimersByTime(GRACE_MS * 4);
+
+      expect(
+        eventStoreProxy.getLatestSessionSnapshot("session-returned")
+      ).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

@@ -51,6 +51,13 @@ The `IfIdle` variant skips sessions whose latest snapshot is still streaming —
 an active background session keeps pushing envelopes, so eviction would only
 force a full-snapshot refetch on its next delta.
 
+Switch-away releases are deferred by a 3-minute grace window
+(`scheduleSessionSnapshotRelease`) and cancelled when the session becomes
+active again (`switchSession` / `loadSessionAtom`), so rapid ping-ponging
+between sessions keeps the instant JS-cache prime and the delta path. Rust
+idle-eviction still releases immediately — the Rust copy is already gone, so
+the JS mirror is pure garbage.
+
 ### 1.2 `FIXED` — session-scoped atom families never removed (unbounded)
 
 - `src/engines/SessionCore/derived/sessionScopedChatEvents.ts` — three
@@ -66,7 +73,7 @@ force a full-snapshot refetch on its next delta.
 
 **Fix applied:** mount-gated GC. `sessionSnapshotAtomFamily`'s `onMount` cancels
 any pending removal; its unmount cleanup schedules removal of all three family
-entries after `SESSION_FAMILY_RETAIN_MS` (60 s). The derived families depend on
+entries after `SESSION_FAMILY_RETAIN_MS` (3 min). The derived families depend on
 the snapshot family, so none of the three can still be mounted when the
 snapshot atom unmounts; a remount within the grace period cancels the timer and
 keeps the warm entry.
@@ -188,6 +195,9 @@ visiting replays.
 
 ## Fix log
 
-- 2026-07-13 — 1.1 and 1.2 implemented (this change): snapshot release on
-  switch-away + Rust-evict mirroring; mount-gated atom-family GC with 60 s
-  grace. Everything else remains `OPEN`.
+- 2026-07-13 — 1.1 and 1.2 implemented (67ce345e5): snapshot release on
+  switch-away + Rust-evict mirroring; mount-gated atom-family GC.
+- 2026-07-13 — deferred release: switch-away snapshot release now runs behind
+  a 3-minute grace window cancelled on re-activation (rapid switch-backs stay
+  warm); atom-family retain window aligned to the same 3 minutes. Everything
+  else remains `OPEN`.

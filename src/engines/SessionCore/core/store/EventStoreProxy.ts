@@ -45,6 +45,12 @@ export type {
 export { isStreamingSnapshot } from "./snapshotMaterialization";
 
 const SNAPSHOT_CACHE_MAX = 20;
+/**
+ * Grace window before a switched-away session's snapshot is released.
+ * Rapid ping-ponging between sessions keeps the instant JS-cache prime and
+ * the delta path; anything not revisited within the window is freed.
+ */
+const SNAPSHOT_RELEASE_GRACE_MS = 3 * 60 * 1000;
 const log = createLogger("EventStoreProxy");
 
 class EventStoreProxyImpl {
@@ -62,6 +68,11 @@ class EventStoreProxyImpl {
    * and apply out of order (older snapshot remembered after a newer one).
    */
   private _envelopeChains = new Map<string, Promise<void>>();
+  /** Pending deferred snapshot releases, keyed by sessionId. */
+  private _snapshotReleaseTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
 
   /**
    * Initialize the Tauri event listener. Call once at app startup.
@@ -174,6 +185,10 @@ class EventStoreProxyImpl {
     this._sessionListeners.clear();
     this._latestSnapshots.clear();
     this._normalizedSnapshots.clear();
+    for (const timer of this._snapshotReleaseTimers.values()) {
+      clearTimeout(timer);
+    }
+    this._snapshotReleaseTimers.clear();
   }
 
   // =========================================================================
@@ -241,6 +256,7 @@ class EventStoreProxyImpl {
    * out.
    */
   releaseSessionSnapshot(sessionId: string): void {
+    this.cancelScheduledSnapshotRelease(sessionId);
     this._latestSnapshots.delete(sessionId);
     this._normalizedSnapshots.delete(sessionId);
   }
@@ -255,6 +271,30 @@ class EventStoreProxyImpl {
     const cached = this._latestSnapshots.get(sessionId);
     if (cached && isStreamingSnapshot(cached)) return;
     this.releaseSessionSnapshot(sessionId);
+  }
+
+  /**
+   * Deferred `releaseSessionSnapshotIfIdle` for a session the UI just
+   * switched away from. The grace window keeps rapid switch-backs warm
+   * (instant cache prime, delta application stays valid); becoming active
+   * again cancels the release via `cancelScheduledSnapshotRelease`.
+   * Streaming is re-checked when the timer fires.
+   */
+  scheduleSessionSnapshotRelease(sessionId: string): void {
+    this.cancelScheduledSnapshotRelease(sessionId);
+    const timer = setTimeout(() => {
+      this._snapshotReleaseTimers.delete(sessionId);
+      this.releaseSessionSnapshotIfIdle(sessionId);
+    }, SNAPSHOT_RELEASE_GRACE_MS);
+    this._snapshotReleaseTimers.set(sessionId, timer);
+  }
+
+  /** Cancel a pending deferred release (the session is active again). */
+  cancelScheduledSnapshotRelease(sessionId: string): void {
+    const timer = this._snapshotReleaseTimers.get(sessionId);
+    if (timer === undefined) return;
+    clearTimeout(timer);
+    this._snapshotReleaseTimers.delete(sessionId);
   }
 
   getMemoryStats(): EventStoreMemoryStats {
@@ -407,6 +447,9 @@ class EventStoreProxyImpl {
 
   /** Switch the active session. Returns true if cache hit. */
   async switchSession(sessionId: string): Promise<boolean> {
+    // Becoming active again rescues the snapshot from a pending deferred
+    // release scheduled when the user previously switched away.
+    this.cancelScheduledSnapshotRelease(sessionId);
     return rpc.sessionCore.eventStore.switchSession({ sessionId });
   }
 

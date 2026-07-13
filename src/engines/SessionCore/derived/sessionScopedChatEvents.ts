@@ -72,7 +72,7 @@ const EMPTY_STATE: SnapshotState = {
  * mounted when the snapshot atom's unmount cleanup fires, and a remount
  * within the grace period cancels the pending removal.
  */
-export const SESSION_FAMILY_RETAIN_MS = 60_000;
+export const SESSION_FAMILY_RETAIN_MS = 3 * 60 * 1000;
 
 const familyRemovalTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
