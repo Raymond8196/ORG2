@@ -240,13 +240,15 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 ### Phase 3 — 健壮性
 
 > 目的:从"能跑"到"能用"。**预计 1–2 天。**
+>
+> **状态(实现层):全部完成。**下列各项均已落地并经单测覆盖(§4.1);端到端验收以 §5.4 逐步清单为准。
 
-- [ ] 终止链路加固(§2.2.1):kill 的 ssh 本身失败(远端不可达)时的兜底——标记"远端状态未知",不假装干净退出;长会话 / 断连后 kill 仍可靠;远端 `ps` 无残留。
-- [ ] exit code 透传(`ssh` 的退出码 = 远端命令退出码,验证链路;注意 ssh 自身错误是 255)。
-- [ ] 连接保活:`ServerAliveInterval` / `ServerAliveCountMax` + `ControlPersist`。断线重连**不需要新机制**:远端重 spawn 带 `--resume <cli_session_id>`——存取已就位(`persistence/session_crud.rs:224-288`),补 Remote 分支即可。
-- [ ] 错误信息友好化:`ssh` 连接失败(含 BatchMode 认证拒绝)、远端无 CLI、远端无目录 → 翻译成用户可读的前端提示。
-- [ ] 远端 CLI 缺失时的健康检查 UI(已有 `container_engine_ping` 模式可借鉴)。
-- [ ] 最小前端入口收尾:SessionCreator 的 Remote 目标输入(§1 In 承诺项)联调走通。
+- [x] 终止链路加固(§2.2.1):kill 的 ssh 本身失败(远端不可达)时的兜底——标记"远端状态未知",不假装干净退出;长会话 / 断连后 kill 仍可靠;远端 `ps` 无残留。
+- [x] exit code 透传(`ssh` 的退出码 = 远端命令退出码,验证链路;注意 ssh 自身错误是 255)。
+- [x] 连接保活:`ServerAliveInterval` / `ServerAliveCountMax` + `ControlPersist`。断线重连**不需要新机制**:远端重 spawn 带 `--resume <cli_session_id>`——存取已就位(`persistence/session_crud.rs:224-288`),补 Remote 分支即可。
+- [x] 错误信息友好化:`ssh` 连接失败(含 BatchMode 认证拒绝)、远端无 CLI、远端无目录 → 翻译成用户可读的前端提示。
+- [x] 远端 CLI 缺失时的健康检查 UI(`cli_remote_preflight` 命令 + SessionCreator「Test」按钮,连通性 + 二进制 + 目录检查;手动验证见 §5.4 T1–T3 / T15–T16)。
+- [x] 最小前端入口收尾:SessionCreator 的 Remote 目标输入(§1 In 承诺项)联调走通。
 
 ---
 
@@ -314,6 +316,69 @@ Claude Code / Gemini 的 hosted 认证确实全在 env(`agent_env_builder.rs:441
 - [ ] 远端无对应 CLI 二进制 → 提示安装。
 - [ ] 远端工作目录不存在 → 提示路径错误。
 - [ ] 认证失败(BYOK key 无效)→ 透传 CLI 的认证错误。
+
+### 5.4 逐步验证清单(T0–T19,本地 / 远端 / 目的)
+
+> 把 §5.1–§5.3 拆成可逐条执行的操作清单。标记:🖥️ = 本地(ORG-II 所在机) · 🌐 = 远端(CLI 实际运行的机) · 🖥️→🌐 = 本地敲 ssh、远端执行。每格过了打 ✅;不过把现象(报错 / 远端 `ps` / 日志)记下来。**顺序:T0 → A → B → C → D → E → F。**
+
+**第 0 步:重启 + 基线**
+
+| ID  | 在哪 | 操作                                     | 目的         | 预期                                                              |
+| --- | ---- | ---------------------------------------- | ------------ | ----------------------------------------------------------------- |
+| T0  | 🖥️   | 重启 `pnpm tauri:dev`(改了代码 HMR 不够) | 加载最新代码 | 应用起来,SessionCreator 能看到「Remote SSH」输入框 + 「Test」按钮 |
+
+**A. 环境(前置)**
+
+| ID  | 在哪  | 操作                                                       | 目的                                | 预期                   |
+| --- | ----- | ---------------------------------------------------------- | ----------------------------------- | ---------------------- |
+| T1  | 🖥️→🌐 | `ssh -o BatchMode=yes <user>@<host> echo ok`               | 验免交互认证(= ORG-II 实际用的模式) | 打印 `ok`,**不问密码** |
+| T2  | 🖥️→🌐 | `ssh <user>@<host> 'bash -lc "command -v claude"'`         | 验远端 login-shell 能找到 claude    | 打印 claude 绝对路径   |
+| T3  | 🖥️→🌐 | `ssh <user>@<host> 'test -d /abs/path/to/repo && echo ok'` | 验远端工作目录存在                  | 打印 `ok`              |
+
+> T1–T2 现在也可直接点 SessionCreator 的 **「Test」** 按钮代替——它跑的就是 T1(连通性)+ T2(二进制存在)的组合检查。
+
+**B. 冒烟(claude_code + BYOK + Remote)**
+
+| ID  | 在哪 | 操作                                                                                                             | 目的                                        | 预期                                     |
+| --- | ---- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------- |
+| T4  | 🖥️   | 选 claude_code / BYOK / workspace=远端路径 / Remote 填 `<user>@<host>` / 发 `read a.txt and tell me its content` | 核心功能:经 ssh 在远端跑 claude,stdout 流回 | 创建成功 + 实时出 token + agent 回复正确 |
+
+**C. §5.1 功能矩阵(claude_code)**
+
+| ID  | 在哪     | 操作                                                                    | 目的                                  | 预期                   |
+| --- | -------- | ----------------------------------------------------------------------- | ------------------------------------- | ---------------------- |
+| T5  | 🖥️→🌐    | T4 发任务后 `ssh <user>@<host> 'ps -ef \| grep claude \| grep -v grep'` | 确认 claude **真在远端**跑            | 看到远端 claude 进程   |
+| T6  | 🖥️       | 观察 T4 前端                                                            | 验流式回传                            | token 实时出现         |
+| T7  | 🖥️+🖥️→🌐 | 前端 Ctrl-C;停后立刻 + 10s 各 `ps -ef \| grep claude \| grep -v grep`   | 验显式远端 kill(§2.2.1)               | 远端**无** claude 残留 |
+| T8  | 🖥️       | T4 正常完成                                                             | 验退出码透传(ssh 退出码 = 远端退出码) | 会话 = completed       |
+| T9  | 🖥️       | 新任务让 agent 跑必失败命令                                             | 验失败路径退出码                      | 会话 = failed          |
+| T10 | 🖥️       | T4 结束后 sidebar 重开会话                                              | 验回放                                | trace 完整回放         |
+
+**D. skills 物化(§2.6-a)**
+
+| ID  | 在哪  | 操作                                                                         | 目的                    | 预期           |
+| --- | ----- | ---------------------------------------------------------------------------- | ----------------------- | -------------- |
+| T11 | 🖥️→🌐 | 会话**运行中** `ssh <user>@<host> 'ls <repo>/.claude/rules/orgii-skills.md'` | 验 skill 文件物化到远端 | 文件存在       |
+| T12 | 🖥️→🌐 | 会话**结束后**再 `ls` 同文件                                                 | 验清理 + marker 守卫    | 不存在(已清理) |
+
+**E. 失败守卫(§5.3,全在 🖥️ 创建时拦)**
+
+| ID  | 在哪 | 操作                                     | 预期                                                           |
+| --- | ---- | ---------------------------------------- | -------------------------------------------------------------- |
+| T13 | 🖥️   | hosted key + Remote host → 创建          | 「Hosted (market) mode does not yet support remote execution」 |
+| T14 | 🖥️   | cursor_cli + Remote host → 创建          | 「Remote execution is not yet supported for `cursor_cli`」     |
+| T15 | 🖥️   | Remote host 故意填错 → 创建 / 或点 Test  | 「ssh connection to … failed」                                 |
+| T16 | 🖥️   | 换没装 claude 的 host → 创建 / 或点 Test | 「`claude` was not found on the remote host」                  |
+| T17 | 🖥️   | workspace 选远端不存在的路径 → 创建      | 「Remote working directory does not exist」                    |
+
+**F. 多 CLI 复用(验证抽象,§2)**
+
+| ID  | 在哪  | 操作                        | 目的                        | 预期 |
+| --- | ----- | --------------------------- | --------------------------- | ---- |
+| T18 | 🖥️→🌐 | 换 **codex**,其余同 T4      | 验抽象可复用(应只改 CLI 名) | 跑通 |
+| T19 | 🖥️→🌐 | 换 **gemini_cli**,其余同 T4 | 同上                        | 跑通 |
+
+> **排障诀窍**:ssh 预检报错(T1–T3 / Test 按钮红)→ 环境问题;创建即拒(T13/T14/T17)→ 守卫生效;`ps`/`ls` 看不到预期(T5/T7/T11/T12)→ 链路 bug,把现象(远端 `ps`、日志、前端报错)贴回来。
 
 ---
 
