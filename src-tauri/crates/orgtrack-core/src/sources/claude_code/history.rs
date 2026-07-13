@@ -466,10 +466,7 @@ fn parse_claude_session_meta(
 
     // Prefer the precise structuredPatch counts; fall back to the coarse
     // old_string/new_string heuristic only when no patch data was present.
-    if touched_files.is_empty()
-        && impact.lines_added == 0
-        && impact.lines_removed == 0
-    {
+    if touched_files.is_empty() && impact.lines_added == 0 && impact.lines_removed == 0 {
         impact = fallback_impact;
         touched_files = fallback_touched;
     }
@@ -686,13 +683,18 @@ fn load_claude_code_history_from_path(
                 if let Some(tool_result_output) = claude_tool_result_text(&message.content) {
                     if let Some((call_id, output)) = tool_result_output {
                         if let Some(call) = pending_tool_calls.remove(&call_id) {
-                            chunks.push(imported_history::tool_call_chunk(
+                            let mut chunk = imported_history::tool_call_chunk(
                                 session_id,
                                 CLAUDE_CODE_PROVIDER_SLUG,
                                 sequence,
                                 &call,
                                 &output,
-                            ));
+                            );
+                            // Edit/MultiEdit/Write results carry a
+                            // `structuredPatch`; attach it as the exact diff so
+                            // the edit card renders the real change.
+                            apply_claude_edit_diff(&mut chunk, parsed.tool_use_result.as_ref());
+                            chunks.push(chunk);
                             sequence += 1;
                         }
                     }
@@ -808,11 +810,98 @@ fn normalize_edit_args(raw_name: &str, args: Value) -> Value {
         .and_then(Value::as_str)
         .or_else(|| args.get("path").and_then(Value::as_str))
         .unwrap_or_default();
+    // `create` for new-file Writes (so the diff card can tag it as new), `edit`
+    // otherwise. Old/new text is intentionally NOT carried on the args: the exact
+    // diff is threaded onto the result from the tool's `structuredPatch` at
+    // result-pairing time (see `apply_claude_edit_diff`), and keeping old/new off
+    // the args lets the frontend render that context-rich diff rather than a bare
+    // old_string→new_string snippet.
+    let action = if raw_name == "Write" { "create" } else { "edit" };
     json!({
-        "action": raw_name,
+        "action": action,
         "file_path": file_path,
-        "payload": args,
     })
+}
+
+/// Attach the exact edit diff to a tool-result chunk.
+///
+/// Edit/MultiEdit/Write results carry a `toolUseResult.structuredPatch`; convert
+/// it to a unified diff (with surrounding context) and store it on the chunk
+/// result as `diff` plus exact `linesAdded`/`linesRemoved`, so the frontend diff
+/// card renders the real change. When no patch is present (rare/older
+/// transcripts) fall back to the authoritative `oldString`/`newString` (or a
+/// Write's `content`) so at least a snippet still renders.
+fn apply_claude_edit_diff(chunk: &mut ActivityChunk, tool_use_result: Option<&Value>) {
+    let Some(result) = tool_use_result else {
+        return;
+    };
+
+    if let Some((diff, added, removed)) = claude_unified_diff_from_patch(result) {
+        if let Some(obj) = chunk.result.as_object_mut() {
+            obj.insert("diff".to_string(), Value::String(diff));
+            obj.insert("linesAdded".to_string(), json!(added));
+            obj.insert("linesRemoved".to_string(), json!(removed));
+        }
+        return;
+    }
+
+    let old_string = result
+        .get("oldString")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    let new_string = result
+        .get("newString")
+        .or_else(|| result.get("content"))
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    if old_string.is_empty() && new_string.is_empty() {
+        return;
+    }
+    if let Some(obj) = chunk.args.as_object_mut() {
+        obj.insert("old_string".to_string(), json!(old_string));
+        obj.insert("new_string".to_string(), json!(new_string));
+    }
+}
+
+/// Convert a `toolUseResult.structuredPatch` into a unified diff string plus its
+/// added/removed line counts. Returns `None` when no (non-empty) patch is present.
+///
+/// Each hunk's `lines` are already prefixed with `+`/`-`/` `, so this yields a
+/// standard unified diff that the frontend diff extractor parses directly.
+fn claude_unified_diff_from_patch(result: &Value) -> Option<(String, i64, i64)> {
+    let hunks = result.get("structuredPatch").and_then(Value::as_array)?;
+    if hunks.is_empty() {
+        return None;
+    }
+    let path = result.get("filePath").and_then(Value::as_str).unwrap_or("");
+    let mut diff = format!("--- {path}\n+++ {path}\n");
+    let mut added = 0i64;
+    let mut removed = 0i64;
+    for hunk in hunks {
+        let old_start = hunk.get("oldStart").and_then(Value::as_i64).unwrap_or(0);
+        let old_lines = hunk.get("oldLines").and_then(Value::as_i64).unwrap_or(0);
+        let new_start = hunk.get("newStart").and_then(Value::as_i64).unwrap_or(0);
+        let new_lines = hunk.get("newLines").and_then(Value::as_i64).unwrap_or(0);
+        diff.push_str(&format!(
+            "@@ -{old_start},{old_lines} +{new_start},{new_lines} @@\n"
+        ));
+        let Some(lines) = hunk.get("lines").and_then(Value::as_array) else {
+            continue;
+        };
+        for line in lines {
+            let Some(text) = line.as_str() else {
+                continue;
+            };
+            match text.as_bytes().first() {
+                Some(b'+') => added += 1,
+                Some(b'-') => removed += 1,
+                _ => {}
+            }
+            diff.push_str(text);
+            diff.push('\n');
+        }
+    }
+    Some((diff, added, removed))
 }
 
 fn claude_content_items(content: &Value) -> Vec<&Value> {

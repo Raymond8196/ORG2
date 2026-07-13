@@ -358,3 +358,106 @@ fn top_level_claude_session_has_no_parent_session_id() {
     std::fs::remove_file(&path).expect("remove fixture");
     std::fs::remove_dir(&temp_dir).expect("remove temp dir");
 }
+
+#[test]
+fn edit_replay_chunk_carries_structured_patch_as_diff() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-edit-diff-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-edit.jsonl");
+    let content = r#"{"type":"assistant","sessionId":"abc","timestamp":"2026-04-01T07:06:47.000Z","message":{"role":"assistant","model":"m","content":[{"type":"tool_use","id":"t1","name":"Edit","input":{"file_path":"/tmp/p/a.rs","old_string":"old line","new_string":"new line one\nnew line two"}}]}}
+{"type":"user","sessionId":"abc","timestamp":"2026-04-01T07:06:48.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"The file has been updated."}]},"toolUseResult":{"filePath":"/tmp/p/a.rs","oldString":"old line","newString":"new line one\nnew line two","structuredPatch":[{"oldStart":1,"oldLines":2,"newStart":1,"newLines":3,"lines":[" ctx","-old line","+new line one","+new line two"]}]}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
+    assert_eq!(chunks.len(), 1);
+    let edit = &chunks[0];
+    assert_eq!(edit.function, imported_history::FUNCTION_EDIT_FILE);
+    // Args no longer bury fields under `payload`; old/new stay off so the
+    // context-rich diff (below) is what the frontend renders.
+    assert_eq!(edit.args.get("action").and_then(Value::as_str), Some("edit"));
+    assert_eq!(
+        edit.args.get("file_path").and_then(Value::as_str),
+        Some("/tmp/p/a.rs")
+    );
+    assert!(edit.args.get("payload").is_none());
+    assert!(edit.args.get("old_string").is_none());
+
+    let diff = edit.result.get("diff").and_then(Value::as_str).expect("diff");
+    assert!(diff.contains("--- /tmp/p/a.rs"));
+    assert!(diff.contains("@@ -1,2 +1,3 @@"));
+    assert!(diff.contains("-old line"));
+    assert!(diff.contains("+new line one"));
+    assert!(diff.contains(" ctx"));
+    assert_eq!(edit.result.get("linesAdded").and_then(Value::as_i64), Some(2));
+    assert_eq!(
+        edit.result.get("linesRemoved").and_then(Value::as_i64),
+        Some(1)
+    );
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn write_replay_chunk_is_tagged_create_and_diffs_from_patch() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-write-diff-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-write.jsonl");
+    let content = r#"{"type":"assistant","sessionId":"abc","timestamp":"2026-04-01T07:06:47.000Z","message":{"role":"assistant","model":"m","content":[{"type":"tool_use","id":"w1","name":"Write","input":{"file_path":"/tmp/p/new.rs","content":"fn main() {}\n"}}]}}
+{"type":"user","sessionId":"abc","timestamp":"2026-04-01T07:06:48.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"w1","content":"File created."}]},"toolUseResult":{"type":"create","filePath":"/tmp/p/new.rs","content":"fn main() {}\n","structuredPatch":[{"oldStart":0,"oldLines":0,"newStart":1,"newLines":1,"lines":["+fn main() {}"]}]}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
+    assert_eq!(chunks.len(), 1);
+    let write = &chunks[0];
+    assert_eq!(write.function, imported_history::FUNCTION_EDIT_FILE);
+    assert_eq!(
+        write.args.get("action").and_then(Value::as_str),
+        Some("create")
+    );
+    let diff = write.result.get("diff").and_then(Value::as_str).expect("diff");
+    assert!(diff.contains("@@ -0,0 +1,1 @@"));
+    assert!(diff.contains("+fn main() {}"));
+    assert_eq!(
+        write.result.get("linesAdded").and_then(Value::as_i64),
+        Some(1)
+    );
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn edit_without_structured_patch_falls_back_to_old_new_on_args() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-edit-fallback-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-edit-fallback.jsonl");
+    // Older/edge transcript: a tool result with authoritative old/new strings but
+    // no structuredPatch. The strings are surfaced onto the args so a snippet
+    // diff still renders.
+    let content = r#"{"type":"assistant","sessionId":"abc","timestamp":"2026-04-01T07:06:47.000Z","message":{"role":"assistant","model":"m","content":[{"type":"tool_use","id":"t9","name":"Edit","input":{"file_path":"/tmp/p/a.rs","old_string":"foo","new_string":"bar"}}]}}
+{"type":"user","sessionId":"abc","timestamp":"2026-04-01T07:06:48.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t9","content":"ok"}]},"toolUseResult":{"filePath":"/tmp/p/a.rs","oldString":"foo","newString":"bar"}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
+    assert_eq!(chunks.len(), 1);
+    let edit = &chunks[0];
+    assert_eq!(edit.args.get("old_string").and_then(Value::as_str), Some("foo"));
+    assert_eq!(edit.args.get("new_string").and_then(Value::as_str), Some("bar"));
+    assert!(edit.result.get("diff").is_none());
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
