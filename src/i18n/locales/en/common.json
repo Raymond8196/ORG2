@@ -1,4 +1,4 @@
-{
+﻿{
   "toasts": {
     "replyEmpty": "Reply cannot be empty",
     "sessionNotFound": "Session not found",
@@ -2115,7 +2115,20 @@
     "manualCompactFailed": "Compaction failed: {{message}}",
     "manualCompactChannelAttached": "This session is managed by a channel — use /compact there",
     "manualCompactInstructionsPlaceholder": "Optional: what to focus on when summarizing",
-    "manualCompactSectionTitle": "Manual compaction?"
+    "manualCompactSectionTitle": "Manual compaction",
+    "miniCpmCompactTitle": "MiniCPM silent auto-compaction",
+    "miniCpmCompactDescription": "Processes older context asynchronously",
+    "miniCpmCompactToggleAria": "Enable MiniCPM silent auto-compaction",
+    "miniCpmCompactDisabled": "Silent compaction is off",
+    "miniCpmCompactEnabled": "Silent compaction is on",
+    "miniCpmCompactRunning": "MiniCPM is compacting",
+    "miniCpmCompactComplete": "Compaction complete",
+    "miniCpmCompactBusy": "Current session is busy",
+    "miniCpmCompactUnavailable": "MiniCPM is not available",
+    "miniCpmCompactError": "MiniCPM compaction failed",
+    "miniCpmCompactMetrics": "{{covered}} messages · {{source}} → {{summary}} tokens",
+    "miniCpmCompactAction": "Compact now",
+    "miniCpmCompactRunningAction": "Compacting"
   },
   "relativeDate": {
     "today": "Today",
