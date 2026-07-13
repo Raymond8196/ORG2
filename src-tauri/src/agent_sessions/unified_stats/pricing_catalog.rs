@@ -290,7 +290,11 @@ mod tests {
         assert!(!catalog.by_exact.is_empty());
         assert!(!catalog.by_normalized.is_empty());
         // sorted length-descending
-        let lens: Vec<usize> = catalog.by_normalized.iter().map(|(id, _)| id.len()).collect();
+        let lens: Vec<usize> = catalog
+            .by_normalized
+            .iter()
+            .map(|(id, _)| id.len())
+            .collect();
         assert!(lens.windows(2).all(|w| w[0] >= w[1]));
     }
 
@@ -303,9 +307,15 @@ mod tests {
 
     #[test]
     fn normalization_strips_date_pin_and_folds_dots() {
-        assert_eq!(normalize_model_id("claude-sonnet-4-5-20250101"), "claude-sonnet-4-5");
+        assert_eq!(
+            normalize_model_id("claude-sonnet-4-5-20250101"),
+            "claude-sonnet-4-5"
+        );
         assert_eq!(normalize_model_id("claude.sonnet.4.5"), "claude-sonnet-4-5");
-        assert_eq!(normalize_model_id("anthropic/Claude-Sonnet-4-5"), "claude-sonnet-4-5");
+        assert_eq!(
+            normalize_model_id("anthropic/Claude-Sonnet-4-5"),
+            "claude-sonnet-4-5"
+        );
         let a = resolve_pricing(Some("claude-sonnet-4-5-20250101"));
         let b = resolve_pricing(Some("claude.sonnet.4.5"));
         assert_eq!(a, b);
@@ -314,7 +324,10 @@ mod tests {
     #[test]
     fn effort_suffix_is_stripped() {
         assert_eq!(normalize_model_id("gpt-5-high"), "gpt-5");
-        assert_eq!(resolve_pricing(Some("gpt-5-high")), resolve_pricing(Some("gpt-5")));
+        assert_eq!(
+            resolve_pricing(Some("gpt-5-high")),
+            resolve_pricing(Some("gpt-5"))
+        );
     }
 
     #[test]
@@ -328,7 +341,10 @@ mod tests {
     #[test]
     fn local_providers_are_free() {
         assert_eq!(resolve_pricing(Some("ollama/llama3.1")), ModelPricing::ZERO);
-        assert_eq!(resolve_pricing(Some("lmstudio/qwen2.5-coder")), ModelPricing::ZERO);
+        assert_eq!(
+            resolve_pricing(Some("lmstudio/qwen2.5-coder")),
+            ModelPricing::ZERO
+        );
         assert_eq!(resolve_pricing(Some("vllm/mixtral")), ModelPricing::ZERO);
     }
 
