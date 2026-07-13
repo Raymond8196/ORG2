@@ -100,6 +100,14 @@
       "neverScanned": "Не сканировалось",
       "frequencyTitle": "Частота сканирования",
       "globalFrequency": "Автоскан",
+      "globalFrequencyDesc": "Частота по умолчанию для источников со значением «По умолчанию».",
+      "col": {
+        "source": "Источник",
+        "sessions": "Сессии",
+        "lastScan": "Посл. скан",
+        "frequency": "Автоскан",
+        "status": "Статус"
+      },
       "freq": {
         "default": "По умолчанию",
         "manual": "Вручную",
@@ -118,6 +126,11 @@
       "sessions_few": "{{count}} сессии",
       "sessions_many": "{{count}} сессий",
       "sessions_other": "{{count}} сессии",
+      "details": {
+        "path": "Путь",
+        "storeType": "Тип хранилища",
+        "copyPath": "Копировать путь"
+      },
       "noPath": "Путь не обнаружен",
       "notImported": "Не импортировано",
       "status": {

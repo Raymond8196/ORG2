@@ -4,7 +4,8 @@ export type ImportedHistorySourceId =
   | "claude_code"
   | "opencode"
   | "windsurf"
-  | "workbuddy";
+  | "workbuddy"
+  | "trae";
 
 export type ImportedHistoryListCategory =
   `external_history:${ImportedHistorySourceId}`;
@@ -85,6 +86,17 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       iconId: "workbuddy",
       displayName: "WorkBuddy",
       groupLabel: "WorkBuddy",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "trae",
+      listCategory: "external_history:trae",
+      prefix: "traeapp-",
+      iconId: "trae",
+      displayName: "Trae",
+      groupLabel: "Trae",
       listable: true,
       replayable: true,
       supportsWindowedReplay: false,

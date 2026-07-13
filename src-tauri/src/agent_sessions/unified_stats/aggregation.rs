@@ -17,11 +17,12 @@ use orgtrack_core::sources::cursor_ide::history as cursor_ide_history;
 use orgtrack_core::sources::cursor_ide::history::CursorIdeSessionPage;
 use orgtrack_core::sources::imported_history::cache as imported_history_cache;
 use orgtrack_core::sources::imported_history::metadata::{
-    SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE, SOURCE_OPENCODE, SOURCE_WINDSURF,
-    SOURCE_WORKBUDDY,
+    SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE, SOURCE_OPENCODE, SOURCE_TRAE,
+    SOURCE_WINDSURF, SOURCE_WORKBUDDY,
 };
 use orgtrack_core::sources::imported_history::ImportedHistorySessionPage;
 use orgtrack_core::sources::opencode::history as opencode_history;
+use orgtrack_core::sources::trae::history as trae_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
 
@@ -105,6 +106,15 @@ fn load_workbuddy_external_history_page(
         .map(ExternalHistoryPage::Imported)
 }
 
+fn load_trae_external_history_page(
+    conn: &mut rusqlite::Connection,
+    limit: usize,
+    offset: usize,
+) -> Result<ExternalHistoryPage, String> {
+    trae_history::list_trae_history_sessions_paginated(conn, limit, offset)
+        .map(ExternalHistoryPage::Imported)
+}
+
 const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_CLAUDE_CODE,
@@ -129,6 +139,10 @@ const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_WORKBUDDY,
         load_page: load_workbuddy_external_history_page,
+    },
+    ExternalHistorySourceLoader {
+        source: SOURCE_TRAE,
+        load_page: load_trae_external_history_page,
     },
 ];
 

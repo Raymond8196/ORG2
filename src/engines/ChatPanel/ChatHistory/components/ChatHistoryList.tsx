@@ -689,11 +689,22 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
 
     const reportActiveGroupIndex = useCallback(
       (scrollRoot: HTMLDivElement) => {
-        if (!onActiveGroupIndexChange) return;
-        const rootTop = scrollRoot.getBoundingClientRect().top;
         const groupElements = Array.from(
           scrollRoot.querySelectorAll<HTMLElement>("[data-chat-group-index]")
         );
+        if (!onActiveGroupIndexChange) {
+          for (const groupElement of groupElements) {
+            const headerElement = groupElement.querySelector<HTMLElement>(
+              "[data-chat-group-header]"
+            );
+            if (!headerElement) continue;
+            headerElement.style.visibility = "";
+            headerElement.removeAttribute("aria-hidden");
+          }
+          return;
+        }
+
+        const rootTop = scrollRoot.getBoundingClientRect().top;
         const groupMetrics = groupElements.flatMap((groupElement) => {
           const groupIndex = Number(groupElement.dataset.chatGroupIndex);
           if (!Number.isFinite(groupIndex)) return [];

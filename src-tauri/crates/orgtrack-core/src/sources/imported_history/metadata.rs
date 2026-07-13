@@ -14,6 +14,7 @@ pub const SOURCE_CURSOR_IDE: &str = "cursor_ide";
 pub const SOURCE_OPENCODE: &str = "opencode";
 pub const SOURCE_WINDSURF: &str = "windsurf";
 pub const SOURCE_WORKBUDDY: &str = "workbuddy";
+pub const SOURCE_TRAE: &str = "trae";
 
 pub fn is_imported_history_source(source: &str) -> bool {
     matches!(
@@ -24,6 +25,7 @@ pub fn is_imported_history_source(source: &str) -> bool {
             | SOURCE_OPENCODE
             | SOURCE_WINDSURF
             | SOURCE_WORKBUDDY
+            | SOURCE_TRAE
     )
 }
 

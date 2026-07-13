@@ -16,6 +16,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import "@src/components/TerminalDisplay/index.scss";
 import { getToolIcon } from "@src/config/toolIcons";
 import type {
   PayloadRef,

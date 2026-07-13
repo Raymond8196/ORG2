@@ -6,6 +6,7 @@ import type { ExternalCliSourceProbe } from "../detection";
 import { claudeCodeHistoryChunks } from "../sources/claudeCode";
 import { codexAppChunks } from "../sources/codexApp";
 import { opencodeHistoryChunks } from "../sources/opencode";
+import { traeHistoryChunks } from "../sources/trae";
 import { windsurfHistoryChunks } from "../sources/windsurf";
 import { workBuddyHistoryChunks } from "../sources/workbuddy";
 import {
@@ -78,6 +79,11 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     ...descriptorFor("workbuddy"),
     dispatchCategory: "external_history",
     loadChunks: workBuddyHistoryChunks,
+  },
+  {
+    ...descriptorFor("trae"),
+    dispatchCategory: "external_history",
+    loadChunks: traeHistoryChunks,
   },
 ];
 

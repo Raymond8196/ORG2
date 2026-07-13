@@ -590,7 +590,9 @@ describe("processChatItems", () => {
       expect(items.every((item) => item.type === "activity")).toBe(true);
     });
 
-    it("keeps failed exploration tools as individual activity cards", () => {
+    it("includes failed reads in the surrounding exploration group", () => {
+      const readItem = makeReadFileItem("a.ts");
+      const searchItem = makeSearchItem("handleClick");
       const failedReadItem = makeSessionEvent({
         action_type: "tool_call",
         function: "read_file",
@@ -602,14 +604,28 @@ describe("processChatItems", () => {
         },
       });
 
-      const { items } = processChatItems([failedReadItem], {
-        groupActionSummaries: true,
-        preFilterEmptyActivities: false,
-      });
+      const { items } = processChatItems(
+        [readItem, searchItem, failedReadItem],
+        {
+          groupActionSummaries: true,
+          preFilterEmptyActivities: false,
+        }
+      );
 
       expect(items.length).toBe(1);
-      expect(items[0].type).toBe("activity");
-      expect(items[0].event?.id).toBe(failedReadItem.id);
+      expect(items[0].type).toBe("actionSummaryGroup");
+      expect(items[0].actionSummaryItems?.map(({ event }) => event.id)).toEqual(
+        [readItem.id, searchItem.id, failedReadItem.id]
+      );
+      expect(
+        items[0].actionSummaryEntries?.find(
+          ({ category }) => category === "read"
+        )?.events
+      ).toEqual([readItem, failedReadItem]);
+      expect(items[0].actionSummaryItems?.at(-1)?.event.result).toEqual({
+        success: false,
+        error_message: "File could not be read",
+      });
     });
 
     it("keeps a single read_file as an activity when below minActionSummaryToGroup", () => {

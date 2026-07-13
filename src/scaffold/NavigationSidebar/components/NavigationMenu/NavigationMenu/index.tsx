@@ -9,9 +9,6 @@ import { useTranslation } from "react-i18next";
 
 import { preloadRouteByPath } from "@src/router/lazy/preload";
 
-import HoverAnimatedIcon, {
-  triggerIconAnimation,
-} from "../../HoverAnimatedIcon";
 import type { NavigationMenuItem } from "../config";
 import { renderNavigationMenuItem } from "./renderSection";
 import type { NavigationMenuProps } from "./types";
@@ -26,7 +23,6 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
     renderMenuItemWrapper,
     collapsed = false,
     defaultOpenKeys = [],
-    enableHoverIconAnimation = false,
     compactRows = false,
   }) => {
     const { t } = useTranslation();
@@ -98,7 +94,7 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
     const renderIcon = useCallback(
       (
         icon: NavigationMenuItem["icon"],
-        iconName: string | undefined,
+        _iconName: string | undefined,
         colorClass: string,
         iconElement?: NavigationMenuItem["iconElement"]
       ) => {
@@ -120,37 +116,22 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
           );
         }
 
-        if (enableHoverIconAnimation) {
-          return (
-            <HoverAnimatedIcon
-              icon={icon}
-              iconName={iconName}
-              size={14}
-              strokeWidth={2}
-              className={`flex-shrink-0 ${colorClass}`}
-            />
-          );
-        }
-
         return React.createElement(icon, {
           size: 14,
           strokeWidth: 2,
           className: `flex-shrink-0 ${colorClass}`,
         });
       },
-      [enableHoverIconAnimation]
+      []
     );
 
     const handleRowMouseEnter = useCallback(
-      (event: React.MouseEvent, routePath?: string) => {
-        if (enableHoverIconAnimation) {
-          triggerIconAnimation(event.currentTarget as HTMLElement);
-        }
+      (_event: React.MouseEvent, routePath?: string) => {
         if (routePath) {
           preloadRouteByPath(routePath);
         }
       },
-      [enableHoverIconAnimation]
+      []
     );
 
     const handleRowActionClick = useCallback(

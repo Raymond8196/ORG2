@@ -100,6 +100,14 @@
       "neverScanned": "Hiç taranmadı",
       "frequencyTitle": "Otomatik tarama sıklığı",
       "globalFrequency": "Otomatik tarama",
+      "globalFrequencyDesc": "“Varsayılan” olarak ayarlanan kaynaklar için varsayılan sıklık.",
+      "col": {
+        "source": "Kaynak",
+        "sessions": "Oturumlar",
+        "lastScan": "Son tarama",
+        "frequency": "Otomatik tarama",
+        "status": "Durum"
+      },
       "freq": {
         "default": "Varsayılan",
         "manual": "Manuel",
@@ -116,6 +124,11 @@
       },
       "sessions_one": "{{count}} oturum",
       "sessions_other": "{{count}} oturum",
+      "details": {
+        "path": "Yol",
+        "storeType": "Depolama türü",
+        "copyPath": "Yolu kopyala"
+      },
       "noPath": "Yol algılanmadı",
       "notImported": "İçe aktarılmadı",
       "status": {

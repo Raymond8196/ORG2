@@ -100,6 +100,14 @@
       "neverScanned": "从未扫描",
       "frequencyTitle": "自动扫描频率",
       "globalFrequency": "自动扫描",
+      "globalFrequencyDesc": "设为“默认”的数据源的默认频率。",
+      "col": {
+        "source": "来源",
+        "sessions": "会话",
+        "lastScan": "上次扫描",
+        "frequency": "自动扫描",
+        "status": "状态"
+      },
       "freq": {
         "default": "默认",
         "manual": "手动",
@@ -115,6 +123,11 @@
         "clis": "命令行"
       },
       "sessions_other": "{{count}} 个会话",
+      "details": {
+        "path": "路径",
+        "storeType": "存储类型",
+        "copyPath": "复制路径"
+      },
       "noPath": "未检测到路径",
       "notImported": "未导入",
       "status": {

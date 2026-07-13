@@ -16,6 +16,7 @@ describe("imported history source registry", () => {
       "opencode",
       "windsurf",
       "workbuddy",
+      "trae",
     ]);
     expect(
       IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory)
@@ -26,6 +27,7 @@ describe("imported history source registry", () => {
       "external_history:opencode",
       "external_history:windsurf",
       "external_history:workbuddy",
+      "external_history:trae",
     ]);
   });
 
