@@ -42,8 +42,11 @@ import StatusBadge, { type StatusType } from "@src/components/StatusBadge";
 import Switch from "@src/components/Switch";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import {
+  SECTION_CONTROL_STYLE,
   SectionContainer,
   SectionRow,
+  SectionTable,
+  type SectionTableColumn,
 } from "@src/modules/shared/layouts/SectionLayout";
 import { loadSidebarSessions } from "@src/store/session";
 import {
@@ -361,6 +364,117 @@ const DataSourcePanel: React.FC = () => {
   const visibleRows = (rows ?? []).filter((row) =>
     tab === "apps" ? row.importable : tab === "clis" ? !row.importable : true
   );
+  const importableCount = (rows ?? []).filter((r) => r.importable).length;
+  const rowById = new Map(visibleRows.map((row) => [row.probe.sourceId, row]));
+
+  const columns: SectionTableColumn[] = [
+    { key: "sessions", label: t("col.sessions"), width: 84 },
+    { key: "lastScan", label: t("col.lastScan"), width: 118 },
+    { key: "frequency", label: t("col.frequency") },
+    { key: "status", label: t("col.status"), width: 104 },
+    { key: "actions", label: "", width: 128 },
+  ];
+  const tableRows = visibleRows.map((row) => ({
+    key: row.probe.sourceId,
+    icon: <SourceIcon probe={row.probe} />,
+    label: row.probe.displayName,
+  }));
+
+  const badgeFor = (
+    row: SourceRow,
+    disabled: boolean
+  ): { status: StatusType; labelKey: string } => {
+    if (disabled) return { status: "disabled", labelKey: "disabled" };
+    if (row.importable) return importableBadge(row);
+    return row.probe.installed
+      ? { status: "installed", labelKey: "installed" }
+      : { status: "empty", labelKey: "notInstalled" };
+  };
+
+  const renderCell = (rowKey: string, columnKey: string): React.ReactNode => {
+    const row = rowById.get(rowKey);
+    if (!row) return null;
+    const cfg = getSourceConfig(configMap, rowKey);
+    const disabled = row.importable && !cfg.enabled;
+    const path = row.probe.historyPaths[0];
+
+    switch (columnKey) {
+      case "sessions":
+        return row.importable && !disabled && row.stats ? (
+          <span className="text-xs tabular-nums text-text-2">
+            {row.stats.sessionCount}
+          </span>
+        ) : null;
+      case "lastScan":
+        return row.importable && !disabled && cfg.lastScannedAt ? (
+          <span className="whitespace-nowrap text-xs text-text-3">
+            {formatRelativeElapsedShort(new Date(cfg.lastScannedAt))}
+          </span>
+        ) : null;
+      case "frequency":
+        return row.importable && !disabled ? (
+          <Select
+            value={cfg.frequency}
+            onChange={(v) => {
+              if (typeof v === "string") {
+                updateConfig(rowKey, { frequency: v as SourceFrequency });
+              }
+            }}
+            options={sourceFrequencyOptions}
+            size="small"
+            style={{ width: "100%" }}
+            aria-label={t("frequencyTitle")}
+          />
+        ) : null;
+      case "status": {
+        const badge = badgeFor(row, disabled);
+        return (
+          <StatusBadge
+            status={badge.status}
+            label={t(`status.${badge.labelKey}`)}
+            showPulse={false}
+            size="sm"
+          />
+        );
+      }
+      case "actions":
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            {path && (
+              <Button
+                variant="secondary"
+                size="small"
+                iconOnly
+                icon={<FolderOpen size={14} />}
+                title={describeRow(row)}
+                onClick={() => openFolder(path)}
+              />
+            )}
+            {!disabled && (
+              <Button
+                variant="secondary"
+                size="small"
+                iconOnly
+                loading={row.rescanning}
+                icon={<RefreshCw size={14} />}
+                title={t("rescan")}
+                onClick={() => void handleRescan(row)}
+              />
+            )}
+            {row.importable && (
+              <Switch
+                checked={cfg.enabled}
+                onChange={(checked) => void toggleEnabled(row, checked)}
+                size="small"
+                ariaLabel={cfg.enabled ? t("disable") : t("enable")}
+              />
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
@@ -370,34 +484,17 @@ const DataSourcePanel: React.FC = () => {
             <div className="text-sm font-medium text-text-1">{t("title")}</div>
             <div className="mt-0.5 text-xs text-text-3">{t("description")}</div>
           </div>
-          <div className="flex flex-shrink-0 items-center gap-2">
-            <span className="whitespace-nowrap text-xs text-text-3">
-              {t("globalFrequency")}
-            </span>
-            <Select
-              value={globalFrequency}
-              onChange={(v) => {
-                if (typeof v === "string") {
-                  setGlobalFrequency(v as ScanFrequency);
-                }
-              }}
-              options={globalFrequencyOptions}
+          {(rows ?? []).length > 0 && (
+            <Button
+              variant="secondary"
               size="small"
-              style={{ width: 128 }}
-              aria-label={t("globalFrequency")}
-            />
-            {(rows ?? []).length > 0 && (
-              <Button
-                variant="secondary"
-                size="small"
-                loading={rescanningAll}
-                icon={<RefreshCw size={14} />}
-                onClick={() => void handleRescanAll()}
-              >
-                {t("rescanAll")}
-              </Button>
-            )}
-          </div>
+              loading={rescanningAll}
+              icon={<RefreshCw size={14} />}
+              onClick={() => void handleRescanAll()}
+            >
+              {t("rescanAll")}
+            </Button>
+          )}
         </div>
 
         <TabPill
@@ -410,105 +507,35 @@ const DataSourcePanel: React.FC = () => {
           size="small"
         />
 
-        <SectionContainer>
-          {visibleRows.map((row) => {
-            const sourceId = row.probe.sourceId;
-            const cfg = getSourceConfig(configMap, sourceId);
-            const disabled = row.importable && !cfg.enabled;
-            const badge = disabled
-              ? { status: "disabled" as StatusType, labelKey: "disabled" }
-              : row.importable
-                ? importableBadge(row)
-                : row.probe.installed
-                  ? { status: "installed" as StatusType, labelKey: "installed" }
-                  : { status: "empty" as StatusType, labelKey: "notInstalled" };
-            const path = row.probe.historyPaths[0];
-            const lastScanText = cfg.lastScannedAt
-              ? t("lastScan", {
-                  time: formatRelativeElapsedShort(new Date(cfg.lastScannedAt)),
-                })
-              : t("neverScanned");
-            const description = row.importable
-              ? `${describeRow(row)} · ${lastScanText}`
-              : describeRow(row);
+        {importableCount > 0 && (
+          <SectionContainer>
+            <SectionRow
+              label={t("globalFrequency")}
+              description={t("globalFrequencyDesc")}
+            >
+              <Select
+                value={globalFrequency}
+                onChange={(v) => {
+                  if (typeof v === "string") {
+                    setGlobalFrequency(v as ScanFrequency);
+                  }
+                }}
+                options={globalFrequencyOptions}
+                size="default"
+                style={SECTION_CONTROL_STYLE}
+                aria-label={t("globalFrequency")}
+              />
+            </SectionRow>
+          </SectionContainer>
+        )}
 
-            return (
-              <SectionRow
-                key={sourceId}
-                className={disabled ? "opacity-55" : ""}
-                label={
-                  <span className="flex items-center gap-2">
-                    <SourceIcon probe={row.probe} />
-                    {row.probe.displayName}
-                  </span>
-                }
-                description={description}
-                truncateLabel
-              >
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  {row.importable &&
-                    !disabled &&
-                    !row.statsLoading &&
-                    row.stats && (
-                      <span className="whitespace-nowrap text-xs text-text-3">
-                        {t("sessions", { count: row.stats.sessionCount })}
-                      </span>
-                    )}
-                  <StatusBadge
-                    status={badge.status}
-                    label={t(`status.${badge.labelKey}`)}
-                    showPulse={false}
-                    size="sm"
-                  />
-                  {row.importable && !disabled && (
-                    <Select
-                      value={cfg.frequency}
-                      onChange={(v) => {
-                        if (typeof v === "string") {
-                          updateConfig(sourceId, {
-                            frequency: v as SourceFrequency,
-                          });
-                        }
-                      }}
-                      options={sourceFrequencyOptions}
-                      size="small"
-                      style={{ width: 128 }}
-                      aria-label={t("frequencyTitle")}
-                    />
-                  )}
-                  {path && (
-                    <Button
-                      variant="secondary"
-                      size="small"
-                      iconOnly
-                      icon={<FolderOpen size={14} />}
-                      title={t("openFolder")}
-                      onClick={() => openFolder(path)}
-                    />
-                  )}
-                  {!disabled && (
-                    <Button
-                      variant="secondary"
-                      size="small"
-                      loading={row.rescanning}
-                      icon={<RefreshCw size={14} />}
-                      onClick={() => void handleRescan(row)}
-                    >
-                      {row.rescanning ? t("rescanning") : t("rescan")}
-                    </Button>
-                  )}
-                  {row.importable && (
-                    <Switch
-                      checked={cfg.enabled}
-                      onChange={(checked) => void toggleEnabled(row, checked)}
-                      size="small"
-                      ariaLabel={cfg.enabled ? t("disable") : t("enable")}
-                    />
-                  )}
-                </div>
-              </SectionRow>
-            );
-          })}
+        <SectionContainer>
+          <SectionTable
+            columns={columns}
+            rows={tableRows}
+            renderCell={renderCell}
+            labelColumnHeader={t("col.source")}
+          />
         </SectionContainer>
       </div>
     </div>

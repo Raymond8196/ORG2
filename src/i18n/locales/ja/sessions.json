@@ -100,6 +100,14 @@
       "neverScanned": "未スキャン",
       "frequencyTitle": "自動スキャン頻度",
       "globalFrequency": "自動スキャン",
+      "globalFrequencyDesc": "「デフォルト」に設定されたソースの既定間隔。",
+      "col": {
+        "source": "ソース",
+        "sessions": "セッション",
+        "lastScan": "最終スキャン",
+        "frequency": "自動スキャン",
+        "status": "ステータス"
+      },
       "freq": {
         "default": "デフォルト",
         "manual": "手動",
