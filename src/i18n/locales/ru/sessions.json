@@ -126,6 +126,11 @@
       "sessions_few": "{{count}} сессии",
       "sessions_many": "{{count}} сессий",
       "sessions_other": "{{count}} сессии",
+      "details": {
+        "path": "Путь",
+        "storeType": "Тип хранилища",
+        "copyPath": "Копировать путь"
+      },
       "noPath": "Путь не обнаружен",
       "notImported": "Не импортировано",
       "status": {

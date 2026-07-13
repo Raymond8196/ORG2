@@ -123,6 +123,11 @@
         "clis": "命令列"
       },
       "sessions_other": "{{count}} 個工作階段",
+      "details": {
+        "path": "路徑",
+        "storeType": "儲存類型",
+        "copyPath": "複製路徑"
+      },
       "noPath": "未偵測到路徑",
       "notImported": "未匯入",
       "status": {

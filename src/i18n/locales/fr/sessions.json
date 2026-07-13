@@ -124,6 +124,11 @@
       },
       "sessions_one": "{{count}} session",
       "sessions_other": "{{count}} sessions",
+      "details": {
+        "path": "Chemin",
+        "storeType": "Type de stockage",
+        "copyPath": "Copier le chemin"
+      },
       "noPath": "Aucun chemin détecté",
       "notImported": "Non importé",
       "status": {
