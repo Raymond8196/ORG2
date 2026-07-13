@@ -250,6 +250,13 @@ export const GENERAL_SETTINGS_REGISTRY = {
       "Prevent the system from sleeping while any agent session is actively working. Releases automatically when all sessions finish or the toggle is turned off",
     category: "general",
   },
+  "general.autoUpdateEnabled": {
+    schema: z.boolean(),
+    default: true,
+    description:
+      "Automatically check for app updates, install them during startup, and download them silently while the app is running",
+    category: "general",
+  },
   "general.voiceInputEnabled": {
     schema: z.boolean(),
     default: true,
