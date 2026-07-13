@@ -217,7 +217,7 @@ export const DefaultVariantInfoSchema = z.object({
   model: z.string(),
 });
 
-export const ProviderProtocolSchema = z.enum(["openai", "anthropic"]);
+export const ProviderProtocolSchema = z.enum(["openai", "anthropic", "gemini"]);
 
 export const KeyInfoSchema = z.object({
   id: z.string(),
