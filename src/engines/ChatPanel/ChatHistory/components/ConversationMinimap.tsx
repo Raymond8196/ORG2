@@ -50,6 +50,55 @@ export function resolveActiveConversationMarker(
   return findNearestConversationMarker(markerGroupIndices, activeGroupIndex);
 }
 
+export function resolveHighlightedConversationMarkers(
+  markerGroupIndices: readonly number[],
+  visibleGroupIndices: readonly number[],
+  activeGroupIndex: number,
+  isAtBottom: boolean
+): number[] {
+  const highlightedMarkers = new Set<number>();
+  const sourceGroupIndices =
+    visibleGroupIndices.length > 0 ? visibleGroupIndices : [activeGroupIndex];
+  for (const groupIndex of sourceGroupIndices) {
+    const nearestMarker = findNearestConversationMarker(
+      markerGroupIndices,
+      groupIndex
+    );
+    if (nearestMarker !== null) highlightedMarkers.add(nearestMarker);
+  }
+  if (isAtBottom) {
+    const finalMarker = markerGroupIndices.at(-1);
+    if (finalMarker !== undefined) highlightedMarkers.add(finalMarker);
+  }
+  return [...highlightedMarkers];
+}
+
+export function getNavigableConversationGroupIndices(
+  groupHeaders: readonly unknown[],
+  groupCounts: readonly number[]
+): number[] {
+  const groupLength = Math.max(groupHeaders.length, groupCounts.length);
+  return Array.from(
+    { length: groupLength },
+    (_, groupIndex) => groupIndex
+  ).filter(
+    (groupIndex) =>
+      groupHeaders[groupIndex] != null || (groupCounts[groupIndex] ?? 0) > 0
+  );
+}
+
+export function getConversationMarkerWidthClass(
+  markerIndex: number,
+  previewMarkerIndex: number
+): string {
+  if (previewMarkerIndex < 0) return "w-2";
+  const distance = Math.abs(markerIndex - previewMarkerIndex);
+  if (distance === 0) return "w-5";
+  if (distance === 1) return "w-4";
+  if (distance === 2) return "w-3";
+  return "w-2";
+}
+
 function getUserPreview(header: OptimizedChatItem | null): string {
   const displayText = header?.event?.displayText;
   if (typeof displayText !== "string") return "";
@@ -84,7 +133,9 @@ interface ConversationMinimapProps {
   groupCounts: readonly number[];
   flatItems: readonly OptimizedChatItem[];
   activeGroupIndex: number;
+  visibleGroupIndices: readonly number[];
   isAtBottom: boolean;
+  isScrolling: boolean;
   labelVariant?: "agent" | "agents";
   onNavigate: (groupIndex: number) => void;
 }
@@ -96,7 +147,9 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
     groupCounts,
     flatItems,
     activeGroupIndex,
+    visibleGroupIndices,
     isAtBottom,
+    isScrolling,
     labelVariant = "agent",
     onNavigate,
   }) => {
@@ -105,12 +158,10 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
     const [previewGroupIndex, setPreviewGroupIndex] = useState<number | null>(
       null
     );
+    const [isPointerOver, setIsPointerOver] = useState(false);
     const navigableGroupIndices = useMemo(
-      () =>
-        groupHeaders.flatMap((header, groupIndex) =>
-          header ? [groupIndex] : []
-        ),
-      [groupHeaders]
+      () => getNavigableConversationGroupIndices(groupHeaders, groupCounts),
+      [groupCounts, groupHeaders]
     );
     const markerGroupIndices = useMemo(
       () => sampleConversationGroupIndices(navigableGroupIndices),
@@ -124,6 +175,18 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
       markerGroupIndices,
       activeGroupIndex,
       isAtBottom
+    );
+    const highlightedMarkerGroupIndices = useMemo(
+      () =>
+        new Set(
+          resolveHighlightedConversationMarkers(
+            markerGroupIndices,
+            visibleGroupIndices,
+            activeGroupIndex,
+            isAtBottom
+          )
+        ),
+      [activeGroupIndex, isAtBottom, markerGroupIndices, visibleGroupIndices]
     );
     const previewMarkerPosition =
       previewGroupIndex === null
@@ -168,6 +231,8 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
             current: previewMarkerPosition + 1,
           })
         : "";
+    const showFloatingMinimap =
+      isScrolling || isPointerOver || previewGroupIndex !== null;
 
     if (markerGroupIndices.length < 2) return null;
 
@@ -177,8 +242,12 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
           "sessions:chat.conversationNavigator",
           "Conversation navigator"
         )}
-        className="pointer-events-auto absolute left-2 top-1/2 z-40 hidden h-60 -translate-y-1/2 flex-col justify-between @[640px]/chatbody:flex"
-        onMouseLeave={() => setPreviewGroupIndex(null)}
+        className={`${showFloatingMinimap ? "flex" : "hidden"} pointer-events-auto absolute right-3 top-1/2 z-40 -translate-y-1/2 flex-col overflow-visible rounded-xl border border-border-2/60 bg-bg-1/90 px-1 py-2 shadow-lg backdrop-blur-sm transition-opacity @[640px]/chatbody:right-4 @[640px]/chatbody:flex @[640px]/chatbody:rounded-none @[640px]/chatbody:border-0 @[640px]/chatbody:bg-transparent @[640px]/chatbody:p-0 @[640px]/chatbody:shadow-none @[640px]/chatbody:backdrop-blur-none motion-reduce:transition-none`}
+        onMouseEnter={() => setIsPointerOver(true)}
+        onMouseLeave={() => {
+          setIsPointerOver(false);
+          setPreviewGroupIndex(null);
+        }}
         onBlur={(event) => {
           if (
             !event.currentTarget.contains(event.relatedTarget as Node | null)
@@ -191,19 +260,15 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
           const turnPosition = navigableGroupIndices.indexOf(groupIndex) + 1;
           const prompt = getUserPreview(groupHeaders[groupIndex]);
           const isActive = groupIndex === activeMarkerGroupIndex;
-          const distanceFromPreview = Math.abs(
-            markerIndex - previewSampledMarkerIndex
+          const isHighlighted = highlightedMarkerGroupIndices.has(groupIndex);
+          const widthClass = getConversationMarkerWidthClass(
+            markerIndex,
+            previewSampledMarkerIndex
           );
-          const widthClass =
-            previewSampledMarkerIndex < 0 || distanceFromPreview > 1
-              ? "w-2"
-              : distanceFromPreview === 1
-                ? "w-3"
-                : "w-4";
           return (
             <div
               key={groupIndex}
-              className="relative flex h-3 w-12 shrink-0 items-center"
+              className="relative flex h-3 w-2 shrink-0 items-center justify-end @[640px]/chatbody:w-12"
             >
               <button
                 type="button"
@@ -220,16 +285,16 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
                     prompt ||
                     t("common:pagination.round", { current: turnPosition }),
                 })}
-                className="group flex h-3 w-12 cursor-pointer items-center border-0 bg-transparent p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30"
+                className="group flex h-3 w-2 cursor-pointer items-center justify-end border-0 bg-transparent p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 @[640px]/chatbody:w-12"
                 onClick={() => onNavigate(groupIndex)}
                 onMouseEnter={() => setPreviewGroupIndex(groupIndex)}
                 onFocus={() => setPreviewGroupIndex(groupIndex)}
               >
                 <span
-                  className={`h-[3px] ${widthClass} transition-[width,background-color] duration-150 motion-reduce:transition-none ${
-                    isActive
+                  className={`h-[3px] shrink-0 ${widthClass} transition-[width,background-color] duration-150 motion-reduce:transition-none ${
+                    isHighlighted
                       ? "bg-primary-6"
-                      : "bg-text-3/40 group-hover:bg-text-2 group-focus-visible:bg-text-2"
+                      : "bg-text-3/40 group-hover:bg-primary-6 group-focus-visible:bg-primary-6"
                   }`}
                 />
               </button>
@@ -238,7 +303,7 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
                 <div
                   id={tooltipId}
                   role="tooltip"
-                  className={`${DROPDOWN_CLASSES.panel} pointer-events-none absolute left-4 top-1/2 ml-1 w-80 -translate-y-1/2 p-3 text-left`}
+                  className={`${DROPDOWN_CLASSES.panel} pointer-events-none absolute right-full top-1/2 mr-3 w-56 -translate-y-1/2 p-3 text-left @[640px]/chatbody:mr-1 @[640px]/chatbody:w-80`}
                 >
                   <div className="truncate text-sm font-medium text-text-1">
                     {previewTitle || previewFallback}
@@ -249,7 +314,7 @@ const ConversationMinimap: React.FC<ConversationMinimapProps> = memo(
                     </div>
                   )}
                   {showTiming && (
-                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border-2/60 pt-2 text-xs text-text-3">
+                    <div className="mt-2 grid gap-1 border-t border-border-2/60 pt-2 text-xs text-text-3">
                       <span className="font-medium text-text-2">
                         {durationLabel}
                       </span>
