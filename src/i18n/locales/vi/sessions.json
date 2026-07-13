@@ -123,6 +123,11 @@
         "clis": "CLI"
       },
       "sessions_other": "{{count}} phiên",
+      "details": {
+        "path": "Đường dẫn",
+        "storeType": "Loại lưu trữ",
+        "copyPath": "Sao chép đường dẫn"
+      },
       "noPath": "Không phát hiện đường dẫn",
       "notImported": "Chưa nhập",
       "status": {

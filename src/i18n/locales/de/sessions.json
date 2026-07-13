@@ -124,6 +124,11 @@
       },
       "sessions_one": "{{count}} Sitzung",
       "sessions_other": "{{count}} Sitzungen",
+      "details": {
+        "path": "Pfad",
+        "storeType": "Speichertyp",
+        "copyPath": "Pfad kopieren"
+      },
       "noPath": "Kein Pfad erkannt",
       "notImported": "Nicht importiert",
       "status": {
