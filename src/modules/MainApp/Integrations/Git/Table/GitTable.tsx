@@ -24,6 +24,7 @@ import {
   InternalHeader,
   ScrollPreservation,
 } from "@src/modules/shared/layouts/blocks";
+import { InfoRow } from "@src/modules/shared/layouts/blocks/InfoRow";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
 
 import {
@@ -32,7 +33,6 @@ import {
 } from "../../KeyVault/shared/InlineCardPrimitives";
 import { ThirdPartyDisclaimer } from "../../Tables/TrademarkDisclaimer";
 import { StatusDot } from "../../Tables/shared";
-import { InfoRow } from "../../shared";
 import type { DetailMode } from "../../types";
 import GitPreferencesSection from "./GitPreferencesSection";
 import GitProfilesTab from "./GitProfilesTab";
