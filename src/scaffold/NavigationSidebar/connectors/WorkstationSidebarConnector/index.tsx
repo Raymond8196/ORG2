@@ -21,7 +21,7 @@ import {
   closeAndDestroyChatPanelTabAtom,
   openKanbanChatPanelTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
-  openOrFocusSessionInChatPanelTabAtom,
+  openOrReplaceSessionInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { collabOrgsAtom } from "@src/store/collaboration/collabOrgsAtom";
@@ -157,8 +157,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
   );
   const openKanbanTab = useSetAtom(openKanbanChatPanelTabAtom);
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
-  const openOrFocusSessionInChatPanelTab = useSetAtom(
-    openOrFocusSessionInChatPanelTabAtom
+  const openOrReplaceSessionInChatPanelTab = useSetAtom(
+    openOrReplaceSessionInChatPanelTabAtom
   );
   const activateChatPanelTab = useSetAtom(activateChatPanelTabAtom);
   const openStartPageTab = useSetAtom(openOrFocusChatPanelStartPageTabAtom);
@@ -464,7 +464,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setGroupVisibleCounts,
     tCommon,
     onOpenChatPanelTab: activateChatPanelTab,
-    onOpenSessionChatPanelTab: openOrFocusSessionInChatPanelTab,
+    onOpenSessionChatPanelTab: openOrReplaceSessionInChatPanelTab,
     onCloseChatPanelTab: closeAndDestroyChatPanelTab,
   });
   const handleOpenInNewTab = useCallback(
@@ -595,7 +595,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   );
 
   const handleSessionMenuItemClick = useCallback(
-    (key: string, item: NavigationMenuItem) => {
+    (key: string, item: NavigationMenuItem, event: React.MouseEvent) => {
       if (isWorkManagementMenuItemId(item.id)) {
         handleWorkManagementMenuItemClick(key, item);
         return;
@@ -608,6 +608,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
         handleProjectsMenuItemClick(key, item);
         return;
       }
+      if ((event.metaKey || event.ctrlKey) && sessionMap.has(item.id)) {
+        handleOpenInNewTab(item.id);
+        return;
+      }
       handleMenuItemClick(key, item);
     },
     [
@@ -615,6 +619,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
       handleMenuItemClick,
       handleWorkManagementMenuItemClick,
       handleProjectsMenuItemClick,
+      handleOpenInNewTab,
+      sessionMap,
       workItemsContentVisible,
     ]
   );

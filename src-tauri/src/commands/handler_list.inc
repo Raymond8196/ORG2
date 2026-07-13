@@ -999,6 +999,8 @@ orgtrack::history_commands::external_history_rescan_source,
 orgtrack::history_commands::external_history_auto_import_recent_paths,
 orgtrack::history_commands::windsurf_history_chunks,
 orgtrack::history_commands::windsurf_recent_paths,
+orgtrack::history_commands::trae_history_chunks,
+orgtrack::history_commands::trae_recent_paths,
 orgtrack::history_commands::workbuddy_history_chunks,
 orgtrack::history_commands::workbuddy_recent_paths,
 // Cursor IDE control — drive a running Cursor.app via CDP `Input.*`

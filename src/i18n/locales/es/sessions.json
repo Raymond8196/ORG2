@@ -100,6 +100,14 @@
       "neverScanned": "Nunca escaneado",
       "frequencyTitle": "Frecuencia de escaneo",
       "globalFrequency": "Escaneo automático",
+      "globalFrequencyDesc": "Cadencia predeterminada para fuentes en “Predeterminado”.",
+      "col": {
+        "source": "Fuente",
+        "sessions": "Sesiones",
+        "lastScan": "Último escaneo",
+        "frequency": "Escaneo automático",
+        "status": "Estado"
+      },
       "freq": {
         "default": "Predeterminado",
         "manual": "Manual",
@@ -116,6 +124,11 @@
       },
       "sessions_one": "{{count}} sesión",
       "sessions_other": "{{count}} sesiones",
+      "details": {
+        "path": "Ruta",
+        "storeType": "Tipo de almacenamiento",
+        "copyPath": "Copiar ruta"
+      },
       "noPath": "Ninguna ruta detectada",
       "notImported": "No importado",
       "status": {

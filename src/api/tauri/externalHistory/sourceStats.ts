@@ -4,6 +4,7 @@ import type { ImportedHistorySourceId } from "./imported/descriptors";
 import { claudeCodeRecentPaths } from "./sources/claudeCode";
 import { codexAppRecentPaths } from "./sources/codexApp";
 import { opencodeRecentPaths } from "./sources/opencode";
+import { traeRecentPaths } from "./sources/trae";
 import { windsurfRecentPaths } from "./sources/windsurf";
 import { workBuddyRecentPaths } from "./sources/workbuddy";
 
@@ -33,6 +34,7 @@ const RECENT_PATH_FETCHERS: Partial<
   opencode: () => opencodeRecentPaths(),
   windsurf: () => windsurfRecentPaths(),
   workbuddy: () => workBuddyRecentPaths(),
+  trae: () => traeRecentPaths(),
 };
 
 function statsFromRecentPaths(rows: RecentPathLike[]): ExternalSourceStats {

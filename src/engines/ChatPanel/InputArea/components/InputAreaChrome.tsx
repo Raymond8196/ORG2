@@ -7,6 +7,7 @@ import ChatHeader from "../ChatHeader";
 import EditModeImageThumbnail from "./EditModeImageThumbnail";
 import ImageAttachmentPreview from "./ImageAttachmentPreview";
 import PinnedActionsBar from "./PinnedActionsBar";
+import PlanTodoPill from "./PlanTodoPill";
 
 interface TopRowsProps {
   isEditMode: boolean;
@@ -37,7 +38,12 @@ export const InputAreaTopRows: React.FC<TopRowsProps> = ({
           composerInputRef={composerInputRef}
           sessionId={sessionId}
           workspacePaths={skillWorkspacePaths ?? undefined}
-          leadingContent={topRowPills}
+          leadingContent={
+            <>
+              <PlanTodoPill sessionId={sessionId} />
+              {topRowPills}
+            </>
+          }
           trailingContent={topRowTrailingContent}
         />
       </div>

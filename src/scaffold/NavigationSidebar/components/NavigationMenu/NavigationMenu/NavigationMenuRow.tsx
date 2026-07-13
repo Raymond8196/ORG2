@@ -14,6 +14,7 @@ import { NavigationMenuRowAccessorySlot } from "./RowAccessorySlot";
 import { NavigationMenuRowActionButton } from "./RowActionButton";
 import type {
   NavigationMenuIconRenderer,
+  NavigationMenuItemClickHandler,
   NavigationMenuItemRenderer,
   NavigationMenuRowActionClickHandler,
   NavigationMenuRowMouseEnterHandler,
@@ -192,7 +193,7 @@ interface NavigationMenuLeafRowProps extends Omit<
   collapsed: boolean;
   t: (key: string) => string;
   renderIcon: NavigationMenuIconRenderer;
-  onMenuItemClick: (key: string, item: NavigationMenuItem) => void;
+  onMenuItemClick: NavigationMenuItemClickHandler;
   onMenuItemContextMenu?: (
     event: React.MouseEvent,
     key: string,
@@ -295,7 +296,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
             return;
           }
           markClicked();
-          onMenuItemClick(item.key, item);
+          onMenuItemClick(item.key, item, event);
         }}
         onMouseEnter={(event: React.MouseEvent) =>
           onRowMouseEnter(event, item.routePath)

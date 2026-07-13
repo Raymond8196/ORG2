@@ -44,9 +44,6 @@ import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 
 import SessionHeader from "../ChatItems/SessionHeader";
 import { useChatSessionId } from "../ChatSessionContext";
-import ChatPinnedBars, {
-  usePinnedContent,
-} from "../InputArea/components/ChatPinnedBars";
 import { useGroupChatContext } from "./GroupChatView/GroupChatContext";
 import {
   isAgentOrgGroupChatUserMessage,
@@ -247,13 +244,6 @@ interface ChatHistoryProps {
   /** Height in px of the overlapping input area so the footer spacer keeps the last message reachable. */
   bottomInset?: number;
   /**
-   * Suppress the in-history pinned bars (plan-todo / kanban summary that
-   * float above the last group). Used by subagent panes which surface the
-   * same content via a hover-revealed popover above the cell title instead
-   * — keeping the cell viewport reserved entirely for chat events.
-   */
-  hidePinnedBars?: boolean;
-  /**
    * Default every multi-item turn to collapsed (header + tail summary only)
    * regardless of streaming / tail / item-count gating. Subagent panes use
    * this so a 4-cell strip stays scannable; the user can still expand a
@@ -331,7 +321,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   turnPaginationEnabled = true,
   pinnedHeaderPortalHost = null,
   bottomInset = 0,
-  hidePinnedBars = false,
   forceCollapseAllTurns = false,
   disableTailCollapse = false,
   paginationTrailingSlot,
@@ -398,10 +387,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     onCancelAddToConversation,
   } = browserAddToConversationNav;
 
-  const { hasPinnedContent: hasPinnedContentRaw } = usePinnedContent();
-  // Subagent panes opt out of in-history pinned bars; they surface the same
-  // content via a hover popover on the cell title row instead.
-  const hasPinnedContent = hidePinnedBars ? false : hasPinnedContentRaw;
   const isAgentWorking = useAtomValue(isSessionActiveAtom);
   const [tailIdleReadyKey, setTailIdleReadyKey] = useState<string | null>(null);
   const turnCollapseOverrides = useAtomValue(turnCollapseOverrideAtom);
@@ -683,23 +668,15 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
 
   const visibleRangeEndRef = useRef(0);
   const [activePinnedGroupIndex, setActivePinnedGroupIndex] = useState(0);
-  const [activeGroupPinned, setActiveGroupPinned] = useState(false);
-  const handleActiveGroupIndexChange = useCallback(
-    (groupIndex: number, pinned: boolean) => {
-      setActivePinnedGroupIndex((previousIndex) =>
-        previousIndex === groupIndex ? previousIndex : groupIndex
-      );
-      setActiveGroupPinned((previousPinned) =>
-        previousPinned === pinned ? previousPinned : pinned
-      );
-    },
-    []
-  );
+  const handleActiveGroupIndexChange = useCallback((groupIndex: number) => {
+    setActivePinnedGroupIndex((previousIndex) =>
+      previousIndex === groupIndex ? previousIndex : groupIndex
+    );
+  }, []);
   useEffect(() => {
     setActivePinnedGroupIndex((previousIndex) =>
       Math.min(previousIndex, Math.max(0, displayGroupCounts.length - 1))
     );
-    setActiveGroupPinned(false);
   }, [activeId, currentPageIndex, displayGroupCounts.length]);
 
   // Shared scroll intent refs — owned here, passed into scroll hooks so
@@ -1009,7 +986,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     displayGroupHeaders,
     displayGroupMeta,
     displayGroupCount: displayGroupCounts.length,
-    hasPinnedContent,
     collapseLabelVariant: groupChat?.enabled ? "agents" : "agent",
     turnPaginationEnabled,
     collapseTailWhenIdle,
@@ -1035,9 +1011,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     (turnPaginationEnabled && Boolean(activePinnedHeader));
   const showPinnedTurnHeader =
     hasPinnedHeaderContent &&
+    turnPaginationEnabled &&
     !turnPageListOpen &&
-    !agentOrgOverviewOpen &&
-    (turnPaginationEnabled || activeGroupPinned);
+    !agentOrgOverviewOpen;
   const showTurnContextRow =
     turnPaginationEnabled ||
     Boolean(agentOrgCurrentMemberName) ||
@@ -1075,7 +1051,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
       sourceGroupCount={groupCounts.length}
       header={activePinnedHeader}
       meta={activePinnedMeta}
-      hasPinnedContent={hasPinnedContent}
       collapseLabelVariant={groupChat?.enabled ? "agents" : "agent"}
       collapseTailWhenIdle={collapseTailWhenIdle}
       hideUserMessage={hideGroupUserMessage}
@@ -1238,7 +1213,11 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                       }
                       onAtBottomStateChange={handleAtBottomStateChange}
                       onRangeChanged={handleRangeChanged}
-                      onActiveGroupIndexChange={handleActiveGroupIndexChange}
+                      onActiveGroupIndexChange={
+                        turnPaginationEnabled
+                          ? handleActiveGroupIndexChange
+                          : undefined
+                      }
                       onEndReached={handleTurnPageEndReached}
                       onRegenerate={
                         mutationActionsDisabled
@@ -1258,25 +1237,14 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                     />
                   </>
                 ) : (
-                  <div className="flex h-full min-h-0 flex-col">
-                    {hasPinnedContent && (
-                      <div
-                        className={`${DETAIL_PANEL_TOKENS.contentWidth} px-3 pb-2 pt-1`}
-                      >
-                        <ChatPinnedBars />
-                      </div>
-                    )}
-                    <div className="min-h-0 flex-1">
-                      <ChatHistoryEmptyState
-                        sessionLoadStatus={sessionLoadStatus}
-                        sessionLoadError={sessionLoadError}
-                        emptyConfirmed={emptyConfirmed}
-                        shouldShowEmpty={shouldShowEmpty}
-                        isRolledBack={isRolledBack}
-                        onReload={handleReloadSession}
-                      />
-                    </div>
-                  </div>
+                  <ChatHistoryEmptyState
+                    sessionLoadStatus={sessionLoadStatus}
+                    sessionLoadError={sessionLoadError}
+                    emptyConfirmed={emptyConfirmed}
+                    shouldShowEmpty={shouldShowEmpty}
+                    isRolledBack={isRolledBack}
+                    onReload={handleReloadSession}
+                  />
                 )}
               </div>
             </div>

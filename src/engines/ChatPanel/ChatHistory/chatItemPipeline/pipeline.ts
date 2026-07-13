@@ -433,7 +433,7 @@ export function processChatItems(
     // Buffer: action summary (exploration tool calls: read, search, glob, list)
     if (opts.groupActionSummaries) {
       const summaryCategory = getActionSummaryCategory(event);
-      if (summaryCategory && !isFailedToolCall(event)) {
+      if (summaryCategory) {
         flushBrowserBuffer();
         flushTerminalBuffer();
         flushPartialBuffer();

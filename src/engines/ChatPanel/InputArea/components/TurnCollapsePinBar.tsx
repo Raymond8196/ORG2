@@ -1,9 +1,8 @@
 /**
  * TurnCollapsePinBar — "Agent worked for xxx" collapse control.
  *
- * Rendered inside the sticky group header (`GroupHeaderRenderer`),
- * positioned *below* the pinned user message + `ChatPinnedBars` block,
- * for every completed turn that has body items. Clicking the chevron
+ * Rendered inside the group header (`GroupHeaderRenderer`), positioned below
+ * the user message for every completed turn that has body items. Clicking the chevron
  * toggles the collapse state in `turnCollapseOverrideAtom`; when
  * collapsed, `GroupItemRenderer` hides every non-final-assistant item
  * in the group so only the closing agent message remains visible —

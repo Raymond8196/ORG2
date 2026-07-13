@@ -100,6 +100,14 @@
       "neverScanned": "未スキャン",
       "frequencyTitle": "自動スキャン頻度",
       "globalFrequency": "自動スキャン",
+      "globalFrequencyDesc": "「デフォルト」に設定されたソースの既定間隔。",
+      "col": {
+        "source": "ソース",
+        "sessions": "セッション",
+        "lastScan": "最終スキャン",
+        "frequency": "自動スキャン",
+        "status": "ステータス"
+      },
       "freq": {
         "default": "デフォルト",
         "manual": "手動",
@@ -115,6 +123,11 @@
         "clis": "CLI"
       },
       "sessions_other": "{{count}} 件のセッション",
+      "details": {
+        "path": "パス",
+        "storeType": "保存形式",
+        "copyPath": "パスをコピー"
+      },
       "noPath": "パスが検出されません",
       "notImported": "未インポート",
       "status": {

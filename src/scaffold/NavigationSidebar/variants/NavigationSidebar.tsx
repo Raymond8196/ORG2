@@ -20,6 +20,7 @@ import SidebarBase from "../SidebarBase";
 import { SidebarList } from "../blocks";
 import HoverAnimatedIcon from "../components/HoverAnimatedIcon";
 import NavigationMenu from "../components/NavigationMenu";
+import type { NavigationMenuItemClickHandler } from "../components/NavigationMenu/NavigationMenu/types";
 import type {
   NavigationMenuItem,
   NavigationMenuRowAction,
@@ -45,7 +46,7 @@ export interface NavigationSidebarProps {
   menuItems: NavigationMenuItem[];
   pinnedMenuItems?: NavigationMenuItem[];
   selectedKey?: string;
-  onMenuItemClick?: (key: string, item: NavigationMenuItem) => void;
+  onMenuItemClick?: NavigationMenuItemClickHandler;
   onSubmenuOpenChange?: (key: string, open: boolean) => void;
   onMenuItemContextMenu?: (
     e: React.MouseEvent,
@@ -293,8 +294,8 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
 
     // Stable handler refs — avoid inline arrow wrappers
     const handleMenuItemClick = useCallback(
-      (key: string, item: NavigationMenuItem) => {
-        onMenuItemClick?.(key, item);
+      (key: string, item: NavigationMenuItem, event: React.MouseEvent) => {
+        onMenuItemClick?.(key, item, event);
       },
       [onMenuItemClick]
     );
@@ -392,7 +393,6 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
               selectedKeys={selectedKeys}
               collapsed={false}
               defaultOpenKeys={resolvedDefaultOpenKeys}
-              enableHoverIconAnimation={enableHoverIconAnimation}
               compactRows={compactRows}
               onMenuItemClick={handleMenuItemClick}
               onSubmenuOpenChange={onSubmenuOpenChange}
@@ -476,7 +476,6 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                       selectedKeys={selectedKeys}
                       collapsed={false}
                       defaultOpenKeys={resolvedDefaultOpenKeys}
-                      enableHoverIconAnimation={enableHoverIconAnimation}
                       compactRows={compactRows}
                       onMenuItemClick={handleMenuItemClick}
                       onSubmenuOpenChange={onSubmenuOpenChange}

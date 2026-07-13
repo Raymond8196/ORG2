@@ -199,16 +199,13 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 const debouncedStorage = {
   getItem(key: string): ChatPanelTabsState {
+    // On app restart, close all chat-pane tabs: never rehydrate persisted
+    // tabs, always start from a fresh single Launchpad tab. The persisted
+    // value is cleared so it can't leak back in through any other reader.
     try {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const normalized = normalizePersistedChatPanelTabsState(
-          JSON.parse(raw)
-        );
-        if (normalized) return normalized;
-      }
+      localStorage.removeItem(key);
     } catch {
-      // fall through to default
+      // Ignore removal errors
     }
     return buildInitialState();
   },
@@ -650,6 +647,56 @@ export const openOrFocusSessionInChatPanelTabAtom = atom(
 );
 openOrFocusSessionInChatPanelTabAtom.debugLabel =
   "openOrFocusSessionInChatPanelTab";
+
+/**
+ * Open a session from the sidebar without stacking tabs during normal
+ * navigation. An already-open target is focused; otherwise the active session
+ * tab is repointed to the target. Non-session tabs are never replaced.
+ */
+export const openOrReplaceSessionInChatPanelTabAtom = atom(
+  null,
+  (get, set, options: OpenSessionInNewChatTabOptions) => {
+    const state = get(chatPanelTabsAtom);
+    const existingTab = state.tabs.find(
+      (tab) => tab.type === "session" && tab.sessionId === options.sessionId
+    );
+    if (existingTab) {
+      set(activateChatPanelTabAtom, {
+        tabId: existingTab.id,
+        sessionName: options.sessionName,
+        repoPath: options.repoPath,
+      });
+      return existingTab.id;
+    }
+
+    const activeTab = state.tabs.find((tab) => tab.id === state.activeTabId);
+    if (activeTab?.type !== "session") {
+      return set(openSessionInNewChatTabAtom, options);
+    }
+
+    const session = get(sessionByIdAtom(options.sessionId));
+    const replacementTab: ChatPanelTab = {
+      ...activeTab,
+      title: options.sessionName ?? session?.name ?? "Chat",
+      sessionId: options.sessionId,
+      updatedAt: new Date().toISOString(),
+    };
+    set(chatPanelTabsAtom, {
+      ...state,
+      tabs: state.tabs.map((tab) =>
+        tab.id === activeTab.id ? replacementTab : tab
+      ),
+    });
+    set(activateChatPanelTabAtom, {
+      tabId: activeTab.id,
+      sessionName: options.sessionName,
+      repoPath: options.repoPath,
+    });
+    return activeTab.id;
+  }
+);
+openOrReplaceSessionInChatPanelTabAtom.debugLabel =
+  "openOrReplaceSessionInChatPanelTab";
 
 interface AddTerminalTabOptions {
   terminalSessionId: string;

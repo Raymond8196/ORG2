@@ -100,6 +100,14 @@
       "neverScanned": "Chưa quét",
       "frequencyTitle": "Tần suất tự quét",
       "globalFrequency": "Tự quét",
+      "globalFrequencyDesc": "Nhịp mặc định cho nguồn đặt “Mặc định”.",
+      "col": {
+        "source": "Nguồn",
+        "sessions": "Phiên",
+        "lastScan": "Quét lần cuối",
+        "frequency": "Tự quét",
+        "status": "Trạng thái"
+      },
       "freq": {
         "default": "Mặc định",
         "manual": "Thủ công",
@@ -115,6 +123,11 @@
         "clis": "CLI"
       },
       "sessions_other": "{{count}} phiên",
+      "details": {
+        "path": "Đường dẫn",
+        "storeType": "Loại lưu trữ",
+        "copyPath": "Sao chép đường dẫn"
+      },
       "noPath": "Không phát hiện đường dẫn",
       "notImported": "Chưa nhập",
       "status": {
