@@ -331,7 +331,6 @@ const MODEL_TYPE_TO_ICON: Record<ModelType, IconProvider> = {
   copilot: "copilot",
   claude_code: "claude_code",
   codex: "codex",
-  gemini_cli: "gemini",
   kiro: "kiro",
   kimi_cli: "kimi",
   opencode: "opencode",

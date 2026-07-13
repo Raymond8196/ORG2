@@ -863,26 +863,6 @@ pub fn codex_cli_profile_dir(account_id: &str) -> PathBuf {
     codex_cli_profile_root().join(sanitize_path_segment(account_id))
 }
 
-/// Per-session Gemini CLI home root: `~/.orgii/gemini-cli-home/`.
-pub fn gemini_cli_home_root() -> PathBuf {
-    orgii_root().join("gemini-cli-home")
-}
-
-/// Per-session Gemini CLI home dir for one session.
-pub fn gemini_cli_home(session_id: &str) -> PathBuf {
-    gemini_cli_home_root().join(session_id)
-}
-
-/// Account-scoped Gemini CLI profile root: `~/.orgii/gemini-cli-profiles/`.
-pub fn gemini_cli_profile_root() -> PathBuf {
-    orgii_root().join("gemini-cli-profiles")
-}
-
-/// Account-scoped Gemini CLI home dir.
-pub fn gemini_cli_profile_dir(account_id: &str) -> PathBuf {
-    gemini_cli_profile_root().join(sanitize_path_segment(account_id))
-}
-
 /// Account-scoped Kiro CLI profile root: `~/.orgii/kiro-cli-profiles/`.
 pub fn kiro_cli_profile_root() -> PathBuf {
     orgii_root().join("kiro-cli-profiles")

@@ -1080,7 +1080,6 @@ fn infer_cli_agent_type(session_id: &str, agent_kind: Option<&str>) -> Option<St
         "claude_code",
         "cursor_cli",
         "codex",
-        "gemini_cli",
         "copilot",
         "kiro",
         "opencode",

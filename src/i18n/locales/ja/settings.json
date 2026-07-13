@@ -323,7 +323,7 @@
     "configAgentKeys": "OS & SDE Agent の API Keys",
     "configAgentKeysDesc": "OpenAI、Anthropic、DeepSeek などのプロバイダーの API Key を追加",
     "configCliKeys": "CLI Agent の API Keys",
-    "configCliKeysDesc": "Claude Code、Codex、Gemini CLI などの CLI ツールの API Key を追加"
+    "configCliKeysDesc": "Claude Code、Codex などの CLI ツールの API Key を追加"
   },
   "cliConfig": {
     "overviewLabel": "CLI Agent",
@@ -889,7 +889,6 @@
     "diskCategory_logs": "ログ",
     "diskCategory_personalWorkspace": "OS Agent ワークスペース",
     "diskCategory_cursorConfig": "Session CLI 設定",
-    "diskCategory_geminiCliHome": "Gemini CLI ディレクトリ",
     "diskCategory_extensions": "拡張機能",
     "diskNotScanned": "未スキャン",
     "diskScanning": "スキャン中...",

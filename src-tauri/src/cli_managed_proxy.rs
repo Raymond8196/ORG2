@@ -17,17 +17,14 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const MANAGED_CODEX_AGENT: &str = "codex";
 const MANAGED_CLAUDE_CODE_AGENT: &str = "claude_code";
-const MANAGED_GEMINI_CLI_AGENT: &str = "gemini_cli";
 const DEFAULT_PROXY_PORT: u16 = 17888;
 const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const DEFAULT_CODEX_OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 const DEFAULT_ANTHROPIC_BASE_URL: &str = "https://api.anthropic.com/v1";
-const DEFAULT_GEMINI_BASE_URL: &str = "https://generativelanguage.googleapis.com/v1beta";
 const ORGII_CURRENT_MODEL: &str = "orgii-current-model";
 const MAX_PROXY_BODY_BYTES: usize = 64 * 1024 * 1024;
 const OPENAI_API_PROVIDER: &str = "openai_api";
 const ANTHROPIC_API_PROVIDER: &str = "anthropic_api";
-const GEMINI_API_PROVIDER: &str = "gemini_api";
 
 static PROXY_START_REQUESTED: AtomicBool = AtomicBool::new(false);
 static PROXY_RUNNING: AtomicBool = AtomicBool::new(false);
@@ -53,7 +50,6 @@ pub struct CliManagedProxyStatus {
 enum ProxyProtocol {
     OpenAi,
     Anthropic,
-    Gemini,
 }
 
 #[derive(Debug, Clone)]
@@ -97,9 +93,7 @@ async fn run_proxy_server() -> Result<(), String> {
         .route("/proxy/{token}/v1", any(proxy_v1_root_handler))
         .route("/proxy/{token}/v1/{*path}", any(proxy_v1_handler))
         .route("/proxy/{token}/claude", any(proxy_claude_root_handler))
-        .route("/proxy/{token}/claude/{*path}", any(proxy_claude_handler))
-        .route("/proxy/{token}/gemini", any(proxy_gemini_root_handler))
-        .route("/proxy/{token}/gemini/{*path}", any(proxy_gemini_handler));
+        .route("/proxy/{token}/claude/{*path}", any(proxy_claude_handler));
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await
@@ -159,24 +153,6 @@ async fn proxy_claude_handler(
     }
 
     proxy_agent_handler(MANAGED_CLAUDE_CODE_AGENT, token, path, request).await
-}
-
-async fn proxy_gemini_handler(
-    Path((token, path)): Path<(String, String)>,
-    request: Request<Body>,
-) -> Response<Body> {
-    proxy_agent_handler(MANAGED_GEMINI_CLI_AGENT, token, path, request).await
-}
-
-async fn proxy_gemini_root_handler(
-    Path(token): Path<String>,
-    request: Request<Body>,
-) -> Response<Body> {
-    if request.method() == Method::HEAD {
-        return authenticated_empty_ok_response(MANAGED_GEMINI_CLI_AGENT, &token);
-    }
-
-    proxy_agent_handler(MANAGED_GEMINI_CLI_AGENT, token, String::new(), request).await
 }
 
 async fn proxy_agent_handler(
@@ -275,7 +251,6 @@ async fn forward_request(
     let url = match context.protocol {
         ProxyProtocol::OpenAi => build_upstream_url(&context.upstream_base_url, path),
         ProxyProtocol::Anthropic => build_anthropic_upstream_url(&context.upstream_base_url, path),
-        ProxyProtocol::Gemini => build_gemini_upstream_url(&context.upstream_base_url, path),
     };
     let url = match url {
         Ok(url) => url,
@@ -343,31 +318,8 @@ fn proxy_token_matches(expected: &str, supplied: &str) -> bool {
         == 0
 }
 
-fn forwarded_query(protocol: &ProxyProtocol, query: Option<&str>) -> Option<String> {
-    let query = query.filter(|value| !value.is_empty())?;
-    if !matches!(protocol, ProxyProtocol::Gemini) {
-        return Some(query.to_string());
-    }
-
-    let mut url = reqwest::Url::parse("http://localhost/").ok()?;
-    url.set_query(Some(query));
-    let pairs: Vec<(String, String)> = url
-        .query_pairs()
-        .filter(|(name, _)| {
-            !matches!(
-                name.as_ref().to_ascii_lowercase().as_str(),
-                "key" | "api_key" | "x-goog-api-key"
-            )
-        })
-        .map(|(name, value)| (name.into_owned(), value.into_owned()))
-        .collect();
-
-    url.set_query(None);
-    if pairs.is_empty() {
-        return None;
-    }
-    url.query_pairs_mut().extend_pairs(pairs);
-    url.query().map(str::to_string)
+fn forwarded_query(_protocol: &ProxyProtocol, query: Option<&str>) -> Option<String> {
+    query.filter(|value| !value.is_empty()).map(str::to_string)
 }
 
 fn is_json_request(headers: &HeaderMap) -> bool {
@@ -449,20 +401,6 @@ fn build_anthropic_upstream_url(base_url: &str, path: &str) -> Result<String, St
     build_upstream_url(base_url, &path)
 }
 
-fn build_gemini_upstream_url(base_url: &str, path: &str) -> Result<String, String> {
-    let base_path = reqwest::Url::parse(base_url)
-        .map_err(|err| format!("Invalid Gemini upstream base URL: {err}"))?
-        .path()
-        .trim_end_matches('/')
-        .to_string();
-    let path = if base_path.ends_with("/v1beta") {
-        strip_path_prefix(path.trim_start_matches('/'), "v1beta/")
-    } else {
-        path.to_string()
-    };
-    build_upstream_url(base_url, &path)
-}
-
 fn should_forward_header(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
     !matches!(
@@ -515,7 +453,6 @@ fn apply_auth_header(
             builder.header("api-key", api_key)
         }
         ProxyProtocol::Anthropic => builder.header("x-api-key", api_key),
-        ProxyProtocol::Gemini => builder.header("x-goog-api-key", api_key),
     }
 }
 
@@ -525,11 +462,7 @@ fn protocol_for_agent(
     match agent_name {
         MANAGED_CODEX_AGENT => Ok((ProxyProtocol::OpenAi, "openai", "Codex")),
         MANAGED_CLAUDE_CODE_AGENT => Ok((ProxyProtocol::Anthropic, "anthropic", "Claude Code")),
-        MANAGED_GEMINI_CLI_AGENT => Ok((ProxyProtocol::Gemini, "gemini", "Gemini CLI")),
-        _ => Err(
-            "CLI managed proxy only supports Codex, Claude Code, and Gemini CLI in this build"
-                .to_string(),
-        ),
+        _ => Err("CLI managed proxy only supports Codex and Claude Code in this build".to_string()),
     }
 }
 
@@ -598,7 +531,6 @@ fn resolve_proxy_context_for_selection(
             ProxyProtocol::Anthropic => provider_config
                 .default_anthropic_base_url()
                 .or(provider_config.default_base_url.clone()),
-            ProxyProtocol::Gemini => provider_config.default_base_url.clone(),
         })
         .or_else(|| {
             if matches!(protocol, ProxyProtocol::OpenAi) && provider == OPENAI_API_PROVIDER {
@@ -607,8 +539,6 @@ fn resolve_proxy_context_for_selection(
                 && provider == ANTHROPIC_API_PROVIDER
             {
                 Some(DEFAULT_ANTHROPIC_BASE_URL.to_string())
-            } else if matches!(protocol, ProxyProtocol::Gemini) && provider == GEMINI_API_PROVIDER {
-                Some(DEFAULT_GEMINI_BASE_URL.to_string())
             } else {
                 None
             }
@@ -730,10 +660,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
     let running = PROXY_RUNNING.load(Ordering::SeqCst);
     let url = DEFAULT_PROXY_URL.to_string();
 
-    if agent_name != MANAGED_CODEX_AGENT
-        && agent_name != MANAGED_CLAUDE_CODE_AGENT
-        && agent_name != MANAGED_GEMINI_CLI_AGENT
-    {
+    if agent_name != MANAGED_CODEX_AGENT && agent_name != MANAGED_CLAUDE_CODE_AGENT {
         return Ok(CliManagedProxyStatus {
             agent_name,
             supported: false,
@@ -746,8 +673,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
             upstream_base_url: None,
             compatible_key_ids: Vec::new(),
             message: Some(
-                "CLI managed proxy only supports Codex, Claude Code, and Gemini CLI in this build"
-                    .to_string(),
+                "CLI managed proxy only supports Codex and Claude Code in this build".to_string(),
             ),
         });
     }
@@ -892,14 +818,7 @@ mod tests {
     }
 
     #[test]
-    fn gemini_proxy_drops_dummy_auth_query_parameters() {
-        assert_eq!(
-            forwarded_query(
-                &ProxyProtocol::Gemini,
-                Some("key=dummy&alt=sse&api_key=also-dummy")
-            ),
-            Some("alt=sse".to_string())
-        );
+    fn proxy_forwards_query_parameters() {
         assert_eq!(
             forwarded_query(&ProxyProtocol::OpenAi, Some("api-version=2026-01-01")),
             Some("api-version=2026-01-01".to_string())
