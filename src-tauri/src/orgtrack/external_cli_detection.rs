@@ -86,7 +86,11 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[],
         "claude",
         "claude",
-        false,
+        // Claude Code has a full importer (parser + cache + recent-paths) and is
+        // listed in IMPORTABLE_HISTORY_SOURCE_IDS, so it must be flagged
+        // importable — otherwise the Data Sources row renders non-importable
+        // (no rescan dropdown) and its session count never loads.
+        true,
         &[".claude", ".claude/projects"],
     ),
     source(
