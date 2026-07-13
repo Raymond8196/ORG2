@@ -31,6 +31,7 @@ import type {
 import { inferSessionId, isRealUserEvent } from "./eventStoreEvents";
 import { estimateObjectBytes } from "./memoryEstimation";
 import { rememberSnapshot, resolveSnapshotPayload } from "./snapshotCache";
+import { isStreamingSnapshot } from "./snapshotMaterialization";
 
 export type {
   DerivedSnapshot,
@@ -226,6 +227,34 @@ class EventStoreProxyImpl {
     this._latestSnapshots.delete(sessionId);
     this._normalizedSnapshots.delete(sessionId);
     this._sessionListeners.delete(sessionId);
+  }
+
+  /**
+   * Drop only the cached snapshot data (materialized + normalized) for a
+   * session, keeping `_sessionListeners` intact so still-mounted consumers
+   * keep receiving future pushes — the next envelope re-primes the cache
+   * (via a full snapshot fetch if it arrives as a delta).
+   *
+   * Use on session switch-away and when Rust idle-evicts a session: the full
+   * event arrays are the dominant per-session JS-heap cost, and without this
+   * every visited session stays resident until SNAPSHOT_CACHE_MAX pushes it
+   * out.
+   */
+  releaseSessionSnapshot(sessionId: string): void {
+    this._latestSnapshots.delete(sessionId);
+    this._normalizedSnapshots.delete(sessionId);
+  }
+
+  /**
+   * `releaseSessionSnapshot`, but skipped while the session's latest snapshot
+   * is still streaming — an active background session keeps pushing
+   * envelopes, so evicting it would only force a full-snapshot refetch on its
+   * next delta.
+   */
+  releaseSessionSnapshotIfIdle(sessionId: string): void {
+    const cached = this._latestSnapshots.get(sessionId);
+    if (cached && isStreamingSnapshot(cached)) return;
+    this.releaseSessionSnapshot(sessionId);
   }
 
   getMemoryStats(): EventStoreMemoryStats {

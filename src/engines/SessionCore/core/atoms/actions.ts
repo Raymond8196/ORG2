@@ -256,6 +256,10 @@ export const clearSessionAtom = atom(null, (get, set) => {
   clearLoadedPayloads();
   if (currentSessionId) {
     clearLoadedTurnRegistry(currentSessionId);
+    // Free the departing session's JS snapshot mirror (full event arrays,
+    // inflated further by any replay-loaded turn bodies). Skipped while it
+    // is still streaming; Rust remains the source of truth either way.
+    eventStoreProxy.releaseSessionSnapshotIfIdle(currentSessionId);
   }
   // NOTE: Do NOT call set(eventsAtom, []) here. eventsAtom's write handler
   // fires eventStoreProxy.set([]) which is an async fire-and-forget IPC to
@@ -353,6 +357,9 @@ export const loadSessionAtom = atom(
         set(pendingSyntheticEventAtom, null);
       }
       resetSessionUIState(set, currentSessionId);
+      // Direct A→B switches come through here without clearSessionAtom —
+      // release the outgoing session's snapshot mirror here too.
+      eventStoreProxy.releaseSessionSnapshotIfIdle(currentSessionId);
     }
 
     set(sessionIdAtom, sessionId);
