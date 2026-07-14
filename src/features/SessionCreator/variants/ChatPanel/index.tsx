@@ -306,6 +306,7 @@ const SessionCreatorChatPanelSingle: React.FC<
 
   const runningLocation = useAtomValue(runningLocationAtom);
   const setRunningLocation = useSetAtom(runningLocationAtom);
+  const selectedWorktreePath = useAtomValue(selectedWorktreePathAtom);
   const setSelectedWorktreePath = useSetAtom(selectedWorktreePathAtom);
   const worktreeLaunchSource = useAtomValue(worktreeLaunchSourceAtom);
   const setWorktreeLaunchSource = useSetAtom(worktreeLaunchSourceAtom);
@@ -377,739 +378,99 @@ const SessionCreatorChatPanelSingle: React.FC<
     setScreenPickerMonitors,
     handleShareScreenClick,
     handleScreenPicked,
-    handleRepoChange,
-    handleRepoSelectForSession,
+    handleRepoChange: handleRepoChangeBase,
+    handleRepoSelectForSession: handleRepoSelectForSessionBase,
     requestModelOpen,
-    setRequestModelOpen,
-    handleCategorySelect,
-  } = useSessionCreatorChatPanelHandlers({
-    reposList,
-    effectiveSource,
-    advancedConfig,
-    setAdvancedConfig,
-    selectRepo,
-    forceRefreshRepos,
-  });
+    setRequeЯЅy¶‰ћЛkєwµз\ЯX€]N€
+Ь™X]Ь‹њ™YЪ[Ы“›ЭXЩU]HЉK€›ЩK€NВ€KВ€™YЪ[Ы“[Щ[\K€™YЪ[ЫђЪXЪЛњЭ]\Л€™YЪ[ЫђЪXЪЛЫЭ[ќћPЫЩK€™YЪ[ЫђЪXЪЛ›ШШ][Ы•^€€JNВ‚€\ЩQY™™XЭ
 
-  const handleAgentPickerSelect = useCallback(
-    (selection: AgentSelection) => {
-      if (selection.cliAgentType && selection.cliLaunchMode) {
-        setCliLaunchMode(selection.cliLaunchMode);
-        setDefaultTuiMode(selection.cliLaunchMode === CLI_LAUNCH_MODE.TUI);
-      }
-      handleCategorySelect(selection);
-    },
-    [handleCategorySelect, setCliLaunchMode, setDefaultTuiMode]
-  );
 
-  const handleAdvancedConfigChange = useCallback(
-    (config: typeof advancedConfig) => {
-      setAdvancedConfig(config);
-    },
-    [setAdvancedConfig]
-  );
+HO€В€Ы”™YЪ[Ы“›ЭXЩPЪ[™ЩOЛЉ™YЪ[Ы“›ЭXЩJNВ€™]\›€
 
-  useEffect(() => {
-    if (!effectiveSource) return;
-    if (effectiveSource.type !== "local") return;
-    if (!effectiveSource.repoId) return;
-    if (effectiveSource.repoId !== selectedRepoId) return;
-    if (currentRepo?.kind === REPO_KIND.FOLDER) return;
-    if (!currentBranch) return;
-    if (effectiveSource.branch) return;
+HO€Ы”™YЪ[Ы“›ЭXЩPЪ[™ЩOЛЉќ[
+NВ€KЫЫ”™YЪ[Ы“›ЭXЩPЪ[™ЩK™YЪ[Ы“›ЭXЩWJNВ‚€ЫЫњЭ\Сќ[ШЬ™Y[•\љX[ќH\љX[ќOOH™ќ[ШЬ™Y[€ЋВ‚€ЫЫњЭ[™UЩЩЫSЬ™УY[X™\њИH\ЩPШ[XЪК
 
-    setSessionSource({
-      ...effectiveSource,
-      branch: currentBranch,
-    });
-  }, [
-    currentBranch,
-    currentRepo?.kind,
-    effectiveSource,
-    selectedRepoId,
-    setSessionSource,
-  ]);
+HO€В€Щ]Ь[“Ь™УY[X™\њФ[™[Y
 
-  // в”Ђв”Ђ Restore text в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+Э\њ™[ќY
+HO‚€Э\њ™[ќYOOHЩ[XЭYYЩ[ќЬ™ТYИќ[€
+Щ[XЭYYЩ[ќЬ™ТYПИќ[
+B€
+NВ€KЬЩ[XЭYYЩ[ќЬ™ТYJNВ‚€ЫЫњЭ\Ь^YY™\ТYB€\УФУ[ЩH	‰€\Щ\ЬЪ[Ы”™\ТYИЦTХSWТУQWФУХTђСWТQ€Щ\ЬЪ[Ы”™\ТYВ€ЫЫњЭ\Ь^YY™\У[YHB€\УФУ[ЩH	‰€\™\С\Ь^S[YB€ИЩ]Ю\Э[RЫYTЫЭ\ЩSX™[
+
+B€€™\С\Ь^S[YNВ€ЫЫњЭ\С\Ь^YYЮ\Э[T]H\ФЮ\Э[T]ЫЭ\ЩRY
+\Ь^YY™\ТY
+NВ‚€ЫЫњЭЩ\ЬЪ[Ы’[™›У[™HH
+€Щ\ЬЪ[Ы’[™›У[™B€™\ТY^Щ\Ь^YY™\ТYB€™\У[YO^Щ\Ь^YY™\У[Y_B€™\Ф]^ШЭ\њ™[ќ™\Ф]B€Ы”™\РЪ[™ЩO^Ъ[™T™\РЪ[™Щ_B€Ы”™\ФЩ[XЭ^Ъ[™T™\ФЩ[XЭ›Ь”Щ\ЬЪ[ЫџB€™\ТЪ[™^ЬЩ\ЬЪ[Ы”™\ТЪ[™B€[ЫYTЮ\Э[T]П^Ъ\УФУ[ЩH\ФСS[Щ_B€њ[Ъ[YO^Ъ\УФУ[ЩH	‰€\Щ\ЬЪ[Ы”™\ТYИ[™Yљ[™Y€Y™™XЭ]™Pњ[Ъ[Y_B€њ[ЪШY[™П^Шњ[ЪШY[™И	‰€YY™™XЭ]™Pњ[Ъ[Y_B€Ыђњ[ЪЪ[™ЩO^Ъ[™Pњ[ЪЪ[™Щ_B€ЫЬљЭ™YSШШ][ЫЏ^Ъ\С\Ь^YYЮ\Э[T]И[™Yљ[™Y€ќ[›љ[™УШШ][ЫџB€Щ[XЭYЫЬљЭ™YT]^ЬЩ[XЭYЫЬљЭ™YT]B€ЫЬљЭ™YTЫЭ\ЩSX™[^В€ќ[›љ[™УШШ][Ы€OOHќЫЬљЭ™YH‚€ИЩ[XЭYЫЬљЭ™YT]€И
+ЫЫ[[ЫЋњЫЭ\ЩPЫЫќ›ЫњШЫЬKќЫЬљЭ™Y\ИЉB€€ЫЬљЭ™YS][ЪЫЭ\ЩOЛ›X™[€€[™Yљ[™Y€B€Ы•ЫЬљЭ™YSШШ][ЫђЪ[™ЩO^Ъ[™UЫЬљЭ™YSШШ][ЫђЪ[™Щ_B€Ы•ЫЬљЭ™YTЫЭ\ЩTЩ[XЭ^Ъ[™UЫЬљЭ™YTЫЭ\ЩTЩ[XЭB€ќ[ЪY€[\љX[ќ^ЪXY\“^[Э]OOHЫЫ\XЭ€И™ЪЬЭ€€[™Yљ[™YB€П‚€
+NВ‚€ЫЫњЭ™\Ф[ИH
+€]€Ы\ЬУ[YOH™›^ЛYќ[ќ\ЭYћKXЩ[ќ\€Џ‚€]‚€Ы\ЬУ[YO^Ш›^ЛYќ[›^]Ь\][\ЛXЩ[ќ\€ќ\ЭYћK\Э\ќШ\LЌH	СURSФS‘SХТСS”ЛЫЫќ[ќX^ЪYXB€‚€ЬЩ\ЬЪ[Ы’[™›У[™_B€Щ]Џ‚€Щ]Џ‚€
+NВ‚€ЫЫњЭЫS][Ъ[ЩTЭЪ]ЪH\РЫS[ЩH	‰€
+€ЫS][Ъ[ЩTЭЪ]Ъ€[ЩO^ШЫS][Ъ[Щ_B€Э\ЬќСЭZO^В€\Щ[XЭYЫPYЩ[ќЭZTЭ\ЬќЫ›ЭЫ€Щ[XЭYЫPYЩ[ќЭ\ЬќСЭZB€B€Ы“[ЩPЪ[™ЩO^Ъ[™PЫS][Ъ[ЩPЪ[™Щ_B€П‚€
+NВ‚€ЫЫњЭЫЫ\XЭXY\€HXY\“^[Э]OOHЫЫ\XЭ€	‰€
+€]€Ы\ЬУ[YOHњЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[XЫЫ\XЭZXY\€›^ЛYќ[][\ЛXЩ[ќ\€ќ\ЭYћKX™]ЩY[€Ш\L€™ЛX™ЛL€LH‹L€LHЏ‚€Щ[XЭЬ”[€™YЏ^ШYЩ[ќ\›Ф™YџB€XЫЫЏ^ШЫЫ\XЭXY\’XЫЫџB€X™[^Ъ\›РЫЫќ[ќ›[Y_B€XЭ]™O^Ъ\РШ]YЫЬћTЩ[XЭЬ“Ь[џB€[™Щ\Џ^Ъ\›РЫЫќ[ќ™[™Щ\џB€Ъ^™OH›Y‚€ЫЫ\^Э
+Ь™X]Ь‹њЭЪ]ЪYЩ[ќЉ_B€ЫЫ\ЬЪ][ЫЏHќЬ‚€ЫђЫXЪП^К
+HO€Щ]\РШ]YЫЬћTЩ[XЭЬ“Ь[ЉќYJ_B€\љXSX™[^Ъ\›РЫЫќ[ќ›[Y_B€\љX[ќH™ЪЬЭ‚€П‚€]€Ы\ЬУ[YOH›[X]]И›^Z[‹]ЛL›^LH›^]Ь\][\ЛXЩ[ќ\€ќ\ЭYћKY[™Ш\LЌHЏ‚€ЬЩ\ЬЪ[Ы’[™›У[™_B€Щ]Џ‚€Щ]Џ‚€
+NВ‚€ЫЫњЭњ›ЭЬЩ\‘[[Y[ќШЬ›Ы]€H\ЩSY[[ПШЬ›Ы]”Э]OЉ€
 
-  const restoreToInput = useAtomValue(restoreToInputAtom);
-  const setImageAttachments = useSetAtom(chatImageAttachmentsAtom);
-  const [initialRestoreText] = useState<string>(() => {
-    return store.get(restoreToInputAtom)?.displayContent ?? "";
-  });
+HO€
+В€ЪЭФШЬ›ЫР›ЭЫN€[ЩK€Ы”ШЬ›ЫР›ЭЫN€
 
-  // в”Ђв”Ђ Draft content tracking в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+HO€[™Yљ[™Y€ЪЭС›ЫЭРYЩ[ќ€[ЩK€›ЫЭРYЩ[ќX™[€€‹€›ЫЭРYЩ[ќЫЫ\X™[€€‹€›ЫЭРYЩ[ќЪЬќЭ]€€‹€Ы‘›ЫЭРYЩ[ќ€
 
-  const setDraftHasContent = useSetAtom(draftHasContentAtom);
-
-  const handleContentChangeWithTracking = useCallback(
-    (text: string) => {
-      setDraftHasContent(text.trim().length > 0);
-      handleContentChange?.(text);
-    },
-    [handleContentChange, setDraftHasContent]
-  );
-
-  useEffect(() => {
-    if (!restoreToInput?.displayContent) return;
-    const editor = composerInputRef.current;
-    if (!editor) return;
-    const restoredText = restoreToInput.displayContent;
-    editor.setContent(restoredText);
-    editor.focus();
-    handleContentChangeWithTracking(restoredText);
-    if (restoreToInput.imageDataUrls?.length) {
-      const restoredImages: ChatImageAttachment[] =
-        restoreToInput.imageDataUrls.map((dataUrl, idx) => ({
-          id: `restored_${Date.now()}_${idx}`,
-          dataUrl,
-          fileName: `restored-image-${idx + 1}.png`,
-          size: 0,
-          width: 0,
-          height: 0,
-        }));
-      setImageAttachments((prev) => [
-        ...prev.filter((image) => image.ownerId),
-        ...restoredImages,
-      ]);
-    }
-    store.set(restoreToInputAtom, null);
-    store.set(draftHasContentAtom, restoredText.trim().length > 0);
-  }, [
-    restoreToInput,
-    composerInputRef,
-    handleContentChangeWithTracking,
-    setImageAttachments,
-    store,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      setDraftHasContent(false);
-    };
-  }, [setDraftHasContent]);
-
-  // в”Ђв”Ђ Launch в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-
-  const handleLaunch = useCallback(async () => {
-    if (
-      isCliTuiMode &&
-      onOpenCliTerminal &&
-      selectedCliAgent &&
-      isCliAgentType(cliAgentType)
-    ) {
-      const command = selectedCliAgent.command.trim();
-      if (command.length > 0) {
-        onOpenCliTerminal({
-          cliAgentType,
-          command,
-          title: selectedCliAgent.displayName,
-          cwd: effectiveSource?.repoPath,
-          expectedProcess: deriveExpectedProcess(command),
-        });
-        setAttachedWorkItemContext(null);
-        return;
-      }
-    }
-
-    return originalHandleLaunch();
-  }, [
-    cliAgentType,
-    effectiveSource?.repoPath,
-    isCliTuiMode,
-    onOpenCliTerminal,
-    originalHandleLaunch,
-    selectedCliAgent,
-  ]);
-
-  const handleCliLaunchModeChange = useCallback(
-    (mode: typeof cliLaunchMode) => {
-      if (mode === CLI_LAUNCH_MODE.GUI && !selectedCliAgentSupportsGui) return;
-      setCliLaunchMode(mode);
-      setDefaultTuiMode(mode === CLI_LAUNCH_MODE.TUI);
-    },
-    [selectedCliAgentSupportsGui, setCliLaunchMode, setDefaultTuiMode]
-  );
-
-  useEffect(() => {
-    if (!selectedRepoId) return;
-    if (currentRepo?.kind === REPO_KIND.FOLDER) return;
-    loadBranchList();
-  }, [selectedRepoId, loadBranchList, currentRepo?.kind]);
-
-  // в”Ђв”Ђ Hero section в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-
-  const sessionRepoId = effectiveSource?.repoId ?? "";
-  const sessionRepo = useMemo(
-    () => repos.find((repoItem) => repoItem.id === sessionRepoId),
-    [repos, sessionRepoId]
-  );
-  const repoDisplayName = effectiveSource?.repoName ?? sessionRepo?.name;
-  const effectiveBranchName = effectiveSource?.branch;
-  const sessionRepoKind = sessionRepo?.kind ?? currentRepo?.kind;
-  const currentRepoPath = effectiveSource?.repoPath ?? "";
-
-  const allAgentDefinitions = useMemo(
-    () => [...builtInAgents, ...customAgents],
-    [builtInAgents, customAgents]
-  );
-
-  const selectedAgentDefinition = useMemo(
-    () =>
-      selectedAgentDefId
-        ? allAgentDefinitions.find((agent) => agent.id === selectedAgentDefId)
-        : undefined,
-    [allAgentDefinitions, selectedAgentDefId]
-  );
-
-  const selectedOrg = useMemo(
-    () =>
-      targetKind === SESSION_TARGET_KIND.AGENT_ORG && selectedAgentOrgId
-        ? orgs.find((org) => org.id === selectedAgentOrgId)
-        : undefined,
-    [targetKind, selectedAgentOrgId, orgs]
-  );
-
-  // Workstation hides this creator while a session is active
-  // (`jumpToSession(sessionId)`) and remounts it when the user returns
-  // to a blank creator tab (`jumpToSession(null)`). Rehydrate the
-  // selected agent display fields from Rust definitions so the hero
-  // icon/name survive that lifecycle even if the persisted creator
-  // state only kept `selectedAgentDefinitionId`.
-  useEffect(() => {
-    if (!selectedAgentDefId || !selectedAgentDefinition) return;
-    setCreatorState((previous) => {
-      if (previous.selectedAgentDefinitionId !== selectedAgentDefId) {
-        return previous;
-      }
-      const nextAgentName = selectedAgentDefinition.name;
-      const nextAgentIconId = selectedAgentDefinition.iconId ?? null;
-      if (
-        previous.agentName === nextAgentName &&
-        previous.agentIconId === nextAgentIconId
-      ) {
-        return previous;
-      }
-      return {
-        ...previous,
-        agentName: nextAgentName,
-        agentIconId: nextAgentIconId,
-      };
-    });
-  }, [selectedAgentDefId, selectedAgentDefinition, setCreatorState]);
-
-  const resolvedAgentName = selectedAgentDefinition?.name ?? agentName;
-  const resolvedAgentIconId = selectedAgentDefinition?.iconId || agentIconId;
-  const hasAgentSelected = !!(
-    (isCliMode && cliAgentType) ||
-    (targetKind === SESSION_TARGET_KIND.AGENT_ORG && selectedAgentOrgId) ||
-    selectedAgentDefId ||
-    resolvedAgentName
-  );
-
-  const createAgentSelectorIcon = useCallback(
-    (size: number) => {
-      if (isCliMode && cliAgentType) {
-        return <ModelIcon agentType={cliAgentType as ModelType} size={size} />;
-      }
-      if (isCursorIdeMode) {
-        return <ModelIcon agentType="cursor_cli" size={size} />;
-      }
-      if (isRustMode) {
-        const iconId = resolvedAgentIconId || "code";
-        return React.createElement(resolveAgentIcon(iconId), {
-          size,
-          strokeWidth: 1.75,
-          className: hasAgentSelected ? "text-text-1" : "text-primary-6",
-        });
-      }
-      return null;
-    },
-    [
-      isRustMode,
-      isCliMode,
-      isCursorIdeMode,
-      cliAgentType,
-      resolvedAgentIconId,
-      hasAgentSelected,
-    ]
-  );
-
-  const heroIcon = useMemo(
-    () => createAgentSelectorIcon(20),
-    [createAgentSelectorIcon]
-  );
-  const compactHeaderIcon = useMemo(
-    () => createAgentSelectorIcon(14),
-    [createAgentSelectorIcon]
-  );
-
-  const heroContent = useMemo(
-    () =>
-      resolveSessionCreatorAgentHeroContent({
-        hasAgentSelected,
-        dispatchCategory,
-        targetKind,
-        selectedAgentDefinition,
-        resolvedAgentName,
-        cliAgentType,
-        selectedAgentOrgId,
-        orgs,
-        agentRegistry: registry,
-        isOSMode,
-      }),
-    [
-      hasAgentSelected,
-      dispatchCategory,
-      targetKind,
-      selectedAgentDefinition,
-      resolvedAgentName,
-      cliAgentType,
-      selectedAgentOrgId,
-      orgs,
-      registry,
-      isOSMode,
-    ]
-  );
-
-  const regionModelType = useMemo(
-    () =>
-      getBigThreeRegionModelTypeForSession(
-        dispatchCategory,
-        advancedConfig,
-        cliAgentType
-      ),
-    [dispatchCategory, advancedConfig, cliAgentType]
-  );
-
-  const regionCheck = useRegionCheck(regionModelType);
-  const regionNotice = useMemo<ChatPanelRegionNotice | null>(() => {
-    if (regionModelType === "" || regionCheck.status === "loading") {
-      return null;
-    }
-
-    const sanctioned =
-      regionCheck.countryCode && isRegionSanctioned(regionCheck.countryCode);
-    const providerRestricted = regionCheck.status === "unsupported";
-    if (!providerRestricted && !sanctioned) {
-      return null;
-    }
-
-    const location = regionCheck.locationText || regionCheck.countryCode || "";
-    const body = providerRestricted
-      ? sanctioned
-        ? t("creator.regionNoticeBodyBoth", { location })
-        : t("creator.regionNoticeBodyProvider", { location })
-      : t("creator.regionNoticeBodySanctions", { location });
-
-    return {
-      key: `${regionModelType}:${regionCheck.countryCode ?? "unknown"}:${regionCheck.status}`,
-      title: t("creator.regionNoticeTitle"),
-      body,
-    };
-  }, [
-    regionModelType,
-    regionCheck.status,
-    regionCheck.countryCode,
-    regionCheck.locationText,
-    t,
-  ]);
-
-  useEffect(() => {
-    onRegionNoticeChange?.(regionNotice);
-    return () => onRegionNoticeChange?.(null);
-  }, [onRegionNoticeChange, regionNotice]);
-
-  const isFullScreenVariant = variant === "fullScreen";
-
-  const handleToggleOrgMembers = useCallback(() => {
-    setOpenOrgMembersPanelId((currentId) =>
-      currentId === selectedAgentOrgId ? null : (selectedAgentOrgId ?? null)
-    );
-  }, [selectedAgentOrgId]);
-
-  const displayedRepoId =
-    isOSMode && !sessionRepoId ? SYSTEM_HOME_SOURCE_ID : sessionRepoId;
-  const displayedRepoName =
-    isOSMode && !repoDisplayName
-      ? getSystemHomeSourceLabel(t)
-      : repoDisplayName;
-  const isDisplayedSystemPath = isSystemPathSourceId(displayedRepoId);
-
-  const sessionInfoLine = (
-    <SessionInfoLine
-      repoId={displayedRepoId}
-      repoName={displayedRepoName}
-      repoPath={currentRepoPath}
-      onRepoChange={handleRepoChange}
-      onRepoSelect={handleRepoSelectForSession}
-      repoKind={sessionRepoKind}
-      includeSystemPaths={isOSMode || isSDEMode}
-      branchName={isOSMode && !sessionRepoId ? undefined : effectiveBranchName}
-      branchLoading={branchLoading && !effectiveBranchName}
-      onBranchChange={handleBranchChange}
-      worktreeLocation={isDisplayedSystemPath ? undefined : runningLocation}
-      worktreeSourceLabel={
-        runningLocation === "worktree" ? worktreeLaunchSource?.label : undefined
-      }
-      onWorktreeLocationChange={handleWorktreeLocationChange}
-      onWorktreeSourceSelect={handleWorktreeSourceSelect}
-      fullWidth
-      pillVariant={headerLayout === "compact" ? "ghost" : undefined}
-    />
-  );
-
-  const repoPills = (
-    <div className="flex w-full justify-center">
-      <div
-        className={`flex w-full flex-wrap items-center justify-start gap-0.5 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-      >
-        {sessionInfoLine}
-      </div>
-    </div>
-  );
-
-  const cliLaunchModeSwitch = isCliMode && (
-    <CliLaunchModeSwitch
-      mode={cliLaunchMode}
-      supportsGui={
-        !selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui
-      }
-      onModeChange={handleCliLaunchModeChange}
-    />
-  );
-
-  const compactHeader = headerLayout === "compact" && (
-    <div className="session-creator-chat-panel-compact-header flex w-full items-center justify-between gap-2 bg-bg-2 px-1 pb-2 pt-1">
-      <SelectorPill
-        ref={agentHeroRef}
-        icon={compactHeaderIcon}
-        label={heroContent.name}
-        active={isCategorySelectorOpen}
-        danger={heroContent.danger}
-        size="md"
-        tooltip={t("creator.switchAgent")}
-        tooltipPosition="top"
-        onClick={() => setIsCategorySelectorOpen(true)}
-        ariaLabel={heroContent.name}
-        variant="ghost"
-      />
-      <div className="ml-auto flex min-w-0 flex-1 flex-wrap items-center justify-end gap-0.5">
-        {sessionInfoLine}
-      </div>
-    </div>
-  );
-
-  const browserElementScrollNav = useMemo<ScrollNavState>(
-    () => ({
-      showScrollToBottom: false,
-      onScrollToBottom: () => undefined,
-      showFollowAgent: false,
-      followAgentLabel: "",
-      followAgentTooltipLabel: "",
-      followAgentShortcut: "",
-      onFollowAgent: () => undefined,
-      ...browserAddToConversationNav,
-    }),
-    [browserAddToConversationNav]
-  );
-  const browserElementRowContent =
-    browserElementScrollNav.showAddToConversation ? (
-      <CollapsedInlineRow sections={[]} scrollNav={browserElementScrollNav} />
-    ) : null;
-
-  const editorArea = (
-    <EditorArea
-      variant="chatPanelFullScreen"
-      uploadedFiles={uploadedFiles}
-      onRemoveFile={handleRemoveFile}
-      composerInputRef={composerInputRef}
-      onContentChange={handleContentChangeWithTracking}
-      onAtMention={handleAtMention}
-      onAtMentionClose={handleAtMentionClose}
-      onSubmit={handleLaunch}
-      showContextMenu={showContextMenu}
-      setShowContextMenu={setShowContextMenu}
-      atSearchQuery={atSearchQuery}
-      setAtSearchQuery={setAtSearchQuery}
-      onAtSelect={handleAtSelect}
-      repoPath={currentRepoPath}
-      onAtMentionClick={handleAtMentionClick}
-      onUploadClick={handleUploadClick}
-      isLoading={isLoading}
-      onLaunch={handleLaunch}
-      advancedConfig={advancedConfig}
-      onAdvancedConfigChange={handleAdvancedConfigChange}
-      hideInfoLine={true}
-      repoId={displayedRepoId}
-      repoName={displayedRepoName}
-      repoKind={isOSMode && !sessionRepoId ? undefined : currentRepo?.kind}
-      branchName={isOSMode && !sessionRepoId ? undefined : effectiveBranchName}
-      onBranchChange={handleBranchChange}
-      onImagePaste={handleImagePaste}
-      attachedImages={attachedImages}
-      onRemoveImage={removeImage}
-      launchDisabled={!canLaunch}
-      requestModelOpen={requestModelOpen}
-      onModelOpenHandled={() => setRequestModelOpen(false)}
-      shellClassName="session-creator-chat-panel-fullscreen-input-shell"
-      initialContent={initialRestoreText || initialContent || undefined}
-      autoFocus
-      showSlashMenu={showSlashMenu}
-      slashQuery={slashQuery}
-      slashCommandKeyboardHandlerRef={slashCommandKeyboardHandlerRef}
-      onSlashCommand={handleSlashCommand}
-      onSlashCommandClose={handleSlashCommandClose}
-      onSlashSelect={handleSlashSelect}
-      onModeSelect={handleModeSelect}
-      currentMode={currentMode}
-      filteredSlashItems={filteredSlashItems}
-      slashLoading={slashLoading}
-      dropdownDirection={dropdownDirection}
-    />
-  );
-
-  // в”Ђв”Ђ Render в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-
-  return (
-    <div
-      className={`session-creator-chat-panel-wrapper ${className}`}
-      data-testid="session-creator-chat-panel"
-    >
-      <div
-        className={`session-creator-chat-panel-content flex min-h-0 flex-1 items-center justify-center px-4 ${DETAIL_PANEL_TOKENS.headerWidth} ${
-          innerClassName ??
-          (isFullScreenVariant
-            ? centerFullScreenContent
-              ? "pb-[10vh]"
-              : "pb-[18vh]"
-            : "pb-[4vh]")
-        }`}
-      >
-        <div className="flex w-full flex-col items-stretch gap-3">
-          {isCliTuiMode ? (
-            <>
-              {headerLayout !== "compact" && (
-                <SessionCreatorAgentHero
-                  ref={agentHeroRef}
-                  name={heroContent.name}
-                  description={heroContent.description}
-                  avatarIcon={heroIcon}
-                  active={isCategorySelectorOpen}
-                  danger={heroContent.danger}
-                  onClick={() => setIsCategorySelectorOpen(true)}
-                />
-              )}
-
-              <div
-                className={`session-creator-chat-panel-fullscreen-composer w-full ${
-                  headerLayout === "compact"
-                    ? "session-creator-chat-panel-fullscreen-composer-compact"
-                    : ""
-                }`}
-              >
-                {compactHeader}
-                <div className="rounded-xl bg-chat-container p-3">
-                  <button
-                    type="button"
-                    onClick={handleLaunch}
-                    disabled={!canLaunch || isLoading}
-                    className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {t("creator.start")}
-                  </button>
-                </div>
-                {!hideRepoLine && headerLayout !== "compact" && (
-                  <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
-                    {repoPills}
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              {headerLayout !== "compact" && (
-                <>
-                  <SessionCreatorAgentHero
-                    ref={agentHeroRef}
-                    name={heroContent.name}
-                    description={heroContent.description}
-                    avatarIcon={heroIcon}
-                    active={isCategorySelectorOpen}
-                    danger={heroContent.danger}
-                    onClick={() => setIsCategorySelectorOpen(true)}
-                  />
-                </>
-              )}
-
-              {isWingmanMode && (
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
-                  onClick={() => {
-                    handleShareScreenClick().catch(log.error);
-                  }}
-                >
-                  <Airplay size={13} strokeWidth={1.75} />
-                  {t("chat.shareScreen")}
-                </button>
-              )}
-
-              <div
-                className={`session-creator-chat-panel-fullscreen-composer w-full ${
-                  headerLayout === "compact"
-                    ? "session-creator-chat-panel-fullscreen-composer-compact"
-                    : ""
-                }`}
-              >
-                {compactHeader}
-                {editorArea}
-                {!hideRepoLine && headerLayout !== "compact" && (
-                  <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
-                    {repoPills}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {showMissingGitAlert && (
-            <div
-              className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-            >
-              <InlineAlert type="warning" title={t("creator.missingGit.title")}>
-                {t("creator.missingGit.body")}
-              </InlineAlert>
-            </div>
-          )}
-
-          <div
-            className={`mx-auto flex w-full items-center ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-          >
-            <PinnedActionsBar
-              composerInputRef={
-                composerInputRef as React.RefObject<ComposerInputRef>
-              }
-              manageButtonPlacement="after-leading"
-              managePanelAlign="left"
-              leadingContent={
-                <>
-                  {browserElementRowContent}
-                  {leadingActionSlot}
-                  {cliLaunchModeSwitch}
-                  {cliLaunchModeSwitch && (
-                    <div
-                      aria-hidden
-                      className="mx-1 h-4 w-px shrink-0 bg-border-2"
-                    />
-                  )}
-                  <WorkItemAttachmentControl
-                    currentWorkItemContext={attachedWorkItemContext}
-                    panelHostRef={workItemPanelHostRef}
-                    repoPath={currentRepoPath}
-                    onWorkItemContextChange={setAttachedWorkItemContext}
-                  />
-                  {selectedOrg && (
-                    <Button
-                      variant="secondary"
-                      appearance="outline"
-                      size="small"
-                      shape="round"
-                      icon={<Network size={14} strokeWidth={1.75} />}
-                      title={t("creator.orgMembers.configButton")}
-                      aria-label={t("creator.orgMembers.configButton")}
-                      aria-expanded={isOrgMembersPanelOpen}
-                      aria-controls="session-creator-org-members-panel"
-                      onClick={handleToggleOrgMembers}
-                      className={
-                        isOrgMembersPanelOpen
-                          ? "shrink-0 !bg-fill-1 !text-primary-6"
-                          : "shrink-0"
-                      }
-                      data-testid="session-creator-org-members-toggle"
-                    >
-                      {t("creator.orgMembers.configButton")}
-                    </Button>
-                  )}
-                </>
-              }
-            />
-          </div>
-
-          <div
-            ref={workItemPanelHostRef}
-            className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-          />
-
-          {selectedOrg && isOrgMembersPanelOpen && (
-            <div id="session-creator-org-members-panel">
-              <SessionCreatorOrgMembersPanel
-                org={selectedOrg}
-                advancedConfig={advancedConfig}
-                onAdvancedConfigChange={handleAdvancedConfigChange}
-                allAgents={allAgentDefinitions}
-                cliAgents={enabledCliAgentList}
-              />
-            </div>
-          )}
-
-          {!hidePresenceButton && (
-            <div className="flex w-full items-center justify-center gap-2 pt-1">
-              <PresenceMenuButton
-                variant="detailed"
-                dropdownPosition="bottom-start"
-              />
-            </div>
-          )}
-
-          {footerSlot}
-        </div>
-      </div>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        className="hidden"
-        data-testid="chat-file-upload-input"
-        onChange={handleFileUpload}
-        accept="*/*"
-      />
-
-      {modelPickerStyle === "dropdown" ? (
-        <DispatchCategoryDropdown
-          isOpen={isCategorySelectorOpen}
-          onClose={() => setIsCategorySelectorOpen(false)}
-          onSelect={handleAgentPickerSelect}
-          currentCategory={dispatchCategory}
-          currentAgentDefinitionId={selectedAgentDefId ?? undefined}
-          currentAgentOrgId={selectedAgentOrgId ?? undefined}
-          currentCliAgentType={cliAgentType ?? undefined}
-          anchorRef={agentHeroRef}
-        />
-      ) : (
-        <DispatchCategoryPalette
-          isOpen={isCategorySelectorOpen}
-          onClose={() => setIsCategorySelectorOpen(false)}
-          onSelect={handleAgentPickerSelect}
-          currentCategory={dispatchCategory}
-          currentAgentDefinitionId={selectedAgentDefId ?? undefined}
-          currentAgentOrgId={selectedAgentOrgId ?? undefined}
-          currentCliAgentType={cliAgentType ?? undefined}
-        />
-      )}
-
-      {screenPickerMonitors && (
-        <ScreenPickerModal
-          monitors={screenPickerMonitors}
-          onSelect={handleScreenPicked}
-          onClose={() => setScreenPickerMonitors(null)}
-        />
-      )}
-    </div>
-  );
-};
-
-SessionCreatorChatPanelSingle.displayName = "SessionCreatorChatPanelSingle";
-
-export default SessionCreatorChatPanelSingle;
+HO€[™Yљ[™Y€‹‹њ›ЭЬЩ\ђYРЫЫќ™\њШ][Ы“]‹€JK€Шњ›ЭЬЩ\ђYРЫЫќ™\њШ][Ы“]—B€
+NВ€ЫЫњЭњ›ЭЬЩ\‘[[Y[ќ›ЭРЫЫќ[ќB€њ›ЭЬЩ\‘[[Y[ќШЬ›Ы]‹њЪЭРYРЫЫќ™\њШ][Ы€И
+€ЫЫ\ЩY[›[™T›ЭИЩXЭ[ЫњП^ЦЧ_HШЬ›Ы]Џ^Шњ›ЭЬЩ\‘[[Y[ќШЬ›Ы]џHП‚€
+H€ќ[В‚€ЫЫњЭY]Ьђ\™XHH
+€Y]Ьђ\™XB€\љX[ќHЪ][™[ќ[ШЬ™Y[€‚€\ШYYљ[\П^Э\ШYYљ[\ЯB€Ы”™[[Э™Qљ[O^Ъ[™T™[[Э™Qљ[_B€ЫЫ\ЬЩ\’[њ]™YЏ^ШЫЫ\ЬЩ\’[њ]™YџB€ЫђЫЫќ[ќЪ[™ЩO^Ъ[™PЫЫќ[ќЪ[™ЩUЪ]XЪЪ[™ЯB€Ыђ]Y[ќ[ЫЏ^Ъ[™P]Y[ќ[ЫџB€Ыђ]Y[ќ[ЫђЫЬЩO^Ъ[™P]Y[ќ[ЫђЫЬЩ_B€Ы”ЭX›Z]^Ъ[™S][ЪB€ЪЭРЫЫќ^Y[ќO^ЬЪЭРЫЫќ^Y[ќ_B€Щ]ЪЭРЫЫќ^Y[ќO^ЬЩ]ЪЭРЫЫќ^Y[ќ_B€]ЩX\Ъ]Y\ћO^Ш]ЩX\Ъ]Y\ћ_B€Щ]]ЩX\Ъ]Y\ћO^ЬЩ]]ЩX\Ъ]Y\ћ_B€Ыђ]Щ[XЭ^Ъ[™P]Щ[XЭB€™\Ф]^ШЭ\њ™[ќ™\Ф]B€Ыђ]Y[ќ[ЫђЫXЪП^Ъ[™P]Y[ќ[ЫђЫXЪЯB€Ы•\ШYЫXЪП^Ъ[™U\ШYЫXЪЯB€\УШY[™П^Ъ\УШY[™ЯB€Ы“][Ъ^Ъ[™S][ЪB€Y[ЩYЫЫ™љYП^ШY[ЩYЫЫ™љYЯB€ЫђY[ЩYЫЫ™љYРЪ[™ЩO^Ъ[™PY[ЩYЫЫ™љYРЪ[™Щ_B€YR[™›У[™O^ЭќY_B€™\ТY^Щ\Ь^YY™\ТYB€™\У[YO^Щ\Ь^YY™\У[Y_B€™\ТЪ[™^Ъ\УФУ[ЩH	‰€\Щ\ЬЪ[Ы”™\ТYИ[™Yљ[™Y€Э\њ™[ќ™\ПЛљЪ[™B€њ[Ъ[YO^Ъ\УФУ[ЩH	‰€\Щ\ЬЪ[Ы”™\ТYИ[™Yљ[™Y€Y™™XЭ]™Pњ[Ъ[Y_B€Ыђњ[ЪЪ[™ЩO^Ъ[™Pњ[ЪЪ[™Щ_B€Ы’[XYЩT\ЭO^Ъ[™R[XYЩT\Э_B€]XЪY[XYЩ\П^Ш]XЪY[XYЩ\ЯB€Ы”™[[Э™R[XYЩO^Ь™[[Э™R[XYЩ_B€][Ъ\ШX›Y^ИXШ[“][ЪB€™\]Y\Э[Щ[Ь[Џ^Ь™\]Y\Э[Щ[Ь[џB€Ы“[Щ[Ь[’[™Y^К
+HO€Щ]™\]Y\Э[Щ[Ь[Љ[ЩJ_B€Ъ[Ы\ЬУ[YOHњЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[Yќ[ШЬ™Y[‹Z[њ]\Ъ[‚€[љ]X[ЫЫќ[ќ^Ъ[љ]X[™\ЭЬ™U^[љ]X[ЫЫќ[ќ[™Yљ[™YB€]]С›ШЭ\В€ЪЭФЫ\ЪY[ќO^ЬЪЭФЫ\ЪY[ќ_B€Ы\Ъ]Y\ћO^ЬЫ\Ъ]Y\ћ_B€Ы\ЪЫЫ[X[™Щ^X›Ш\™[™\”™YЏ^ЬЫ\ЪЫЫ[X[™Щ^X›Ш\™[™\”™YџB€Ы”Ы\ЪЫЫ[X[™^Ъ[™TЫ\ЪЫЫ[X[™B€Ы”Ы\ЪЫЫ[X[™ЫЬЩO^Ъ[™TЫ\ЪЫЫ[X[™ЫЬЩ_B€Ы”Ы\ЪЩ[XЭ^Ъ[™TЫ\ЪЩ[XЭB€Ы“[ЩTЩ[XЭ^Ъ[™S[ЩTЩ[XЭB€Э\њ™[ќ[ЩO^ШЭ\њ™[ќ[Щ_B€љ[\™YЫ\Ъ][\П^Щљ[\™YЫ\Ъ][\ЯB€Ы\ЪШY[™П^ЬЫ\ЪШY[™ЯB€›ЬЭЫ‘\™XЭ[ЫЏ^Щ›ЬЭЫ‘\™XЭ[ЫџB€П‚€
+NВ‚€ЛИ8Ґ 8Ґ ™[™\€8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ 8Ґ ‚€™]\›€
+€]‚€Ы\ЬУ[YO^ШЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[]Ь\\€	ШЫ\ЬУ[Y_XB€]K]\ЭYHњЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[‚€‚€]‚€Ы\ЬУ[YO^ШЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[XЫЫќ[ќ›^Z[‹ZL›^LH][\ЛXЩ[ќ\€ќ\ЭYћKXЩ[ќ\€M	СURSФS‘SХТСS”ЛљXY\•ЪYH	В€[›™\ђЫ\ЬУ[YHПВ€
+\Сќ[ШЬ™Y[•\љX[ќ€ИЩ[ќ\‘ќ[ШЬ™Y[ђЫЫќ[ќ€Ињ‹VМLљH‚€€њ‹VМNљH‚€€њ‹VНљHЉB€XB€‚€]€Ы\ЬУ[YOH™›^ЛYќ[›^XЫЫ][\Л\Э™]ЪШ\LИЏ‚€Ъ\РЫUZS[ЩHИ
+€‚€ЪXY\“^[Э]OOHЫЫ\XЭ€	‰€
+€Щ\ЬЪ[ЫђЬ™X]ЬђYЩ[ќ\›В€™YЏ^ШYЩ[ќ\›Ф™YџB€[YO^Ъ\›РЫЫќ[ќ›[Y_B€\ШЬљ\[ЫЏ^Ъ\›РЫЫќ[ќ™\ШЬљ\[ЫџB€]]\’XЫЫЏ^Ъ\›ТXЫЫџB€XЭ]™O^Ъ\РШ]YЫЬћTЩ[XЭЬ“Ь[џB€[™Щ\Џ^Ъ\›РЫЫќ[ќ™[™Щ\џB€ЫђЫXЪП^К
+HO€Щ]\РШ]YЫЬћTЩ[XЭЬ“Ь[ЉќYJ_B€П‚€
+_B‚€]‚€Ы\ЬУ[YO^ШЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[Yќ[ШЬ™Y[‹XЫЫ\ЬЩ\€ЛYќ[	В€XY\“^[Э]OOHЫЫ\XЭ‚€ИњЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[Yќ[ШЬ™Y[‹XЫЫ\ЬЩ\‹XЫЫ\XЭ‚€€€‚€XB€‚€ШЫЫ\XЭXY\џB€]€Ы\ЬУ[YOHњ›Э[™Y^™ЛXЪ]XЫЫќZ[™\€LИЏ‚€ќ]Ы‚€\OHќ]Ы€‚€ЫђЫXЪП^Ъ[™S][ЪB€\ШX›Y^ИXШ[“][Ъ\УШY[™ЯB€Ы\ЬУ[YOH™›^ЛYќ[][\ЛXЩ[ќ\€ќ\ЭYћKXЩ[ќ\€›Э[™YYќ[™Л\љ[X\ћKM€KL€^VМLЬH›Ыќ\Щ[ZX›Ы^]Ъ]H[њЪ][Ы‹XЫЫЬњИЭ™\Ћ™Л\љ[X\ћKMИ\ШX›YЭ\њЫЬ‹[›ЭX[ЭЩY\ШX›Y›ЬXЪ]KM‚€‚€Э
+Ь™X]Ь‹њЭ\ќЉ_B€Шќ]ЫЏ‚€Щ]Џ‚€ИZYT™\У[™H	‰€XY\“^[Э]OOHЫЫ\XЭ€	‰€
+€]€Ы\ЬУ[YOHњЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[Yќ[ШЬ™Y[‹\™\Л\›ЭИLH‹L€LИЏ‚€Ь™\Ф[ЯB€Щ]Џ‚€
+_B€Щ]Џ‚€П‚€
+H€
+€‚€ЪXY\“^[Э]OOHЫЫ\XЭ€	‰€
+€‚€Щ\ЬЪ[ЫђЬ™X]ЬђYЩ[ќ\›В€™YЏ^ШYЩ[ќ\›Ф™YџB€[YO^Ъ\›РЫЫќ[ќ›[Y_B€\ШЬљ\[ЫЏ^Ъ\›РЫЫќ[ќ™\ШЬљ\[ЫџB€]]\’XЫЫЏ^Ъ\›ТXЫЫџB€XЭ]™O^Ъ\РШ]YЫЬћTЩ[XЭЬ“Ь[џB€[™Щ\Џ^Ъ\›РЫЫќ[ќ™[™Щ\џB€ЫђЫXЪП^К
+HO€Щ]\РШ]YЫЬћTЩ[XЭЬ“Ь[ЉќYJ_B€П‚€П‚€
+_B‚€Ъ\ХЪ[™ЫX[“[ЩH	‰€
+€ќ]Ы‚€\OHќ]Ы€‚€Ы\ЬУ[YOH™›^][\ЛXЩ[ќ\€Ш\LKЌH›Э[™YYќ[›Ь™\€›Ь™\‹Y\ЪY›Ь™\‹X›Ь™\‹L€LИKLKЌH^VМLњH^]^LИ[њЪ][Ы‹XЫЫЬњИЭ™\Ћ›Ь™\‹\љ[X\ћKMЭ™\Ћќ^\љ[X\ћKM€‚€ЫђЫXЪП^К
+HO€В€[™TЪ\™TШЬ™Y[ђЫXЪК
+KШ]Ъ
+ЩЛ™\њ›ЬЉNВ€_B€‚€Z\њ^HЪ^™O^МLЯHЭ›ЪЩUЪY^МKЌН_HП‚€Э
+Ъ]њЪ\™TШЬ™Y[€Љ_B€Шќ]ЫЏ‚€
+_B‚€]‚€Ы\ЬУ[YO^ШЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[Yќ[ШЬ™Y[‹XЫЫ\ЬЩ\€ЛYќ[	В€XY\“^[Э]OOHЫЫ\XЭ‚€ИњЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[Yќ[ШЬ™Y[‹XЫЫ\ЬЩ\‹XЫЫ\XЭ‚€€€‚€XB€‚€ШЫЫ\XЭXY\џB€ЩY]Ьђ\™X_B€ИZYT™\У[™H	‰€XY\“^[Э]OOHЫЫ\XЭ€	‰€
+€]€Ы\ЬУ[YOHњЩ\ЬЪ[Ы‹XЬ™X]Ь‹XЪ]\[™[Yќ[ШЬ™Y[‹\™\Л\›ЭИLH‹L€LИЏ‚€Ь™\Ф[ЯB€Щ]Џ‚€
+_B€Щ]Џ‚€П‚€
+_B‚€ЬЪЭУZ\ЬЪ[™СЪ][\ќ	‰€
+€]‚€Ы\ЬУ[YO^Ш^X]]ИЛYќ[	СURSФS‘SХТСS”ЛЫЫќ[ќX^ЪYXB€‚€[›[™P[\ќ\OHќШ\›љ[™И€]O^Э
+Ь™X]Ь‹›Z\ЬЪ[™СЪ]ќ]HЉ_O‚€Э
+Ь™X]Ь‹›Z\ЬЪ[™СЪ]›ЩHЉ_B€Т[›[™P[\ќ‚€Щ]Џ‚€
+_B‚€]‚€Ы\ЬУ[YO^Ш^X]]И›^ЛYќ[][\ЛXЩ[ќ\€	СURSФS‘SХТСS”ЛЫЫќ[ќX^ЪYXB€‚€[›™YXЭ[ЫњР\‚€ЫЫ\ЬЩ\’[њ]™YЏ^В€ЫЫ\ЬЩ\’[њ]™Y€\И™XXЭ”™Y“Шљ™XЭЫЫ\ЬЩ\’[њ]™YЏ‚€B€X[YЩPќ]Ы”XЩ[Y[ќHYќ\‹[XY[™И‚€X[YЩT[™[[YЫЏH›Yќ‚€XY[™РЫЫќ[ќ^В€‚€Шњ›ЭЬЩ\‘[[Y[ќ›ЭРЫЫќ[ќB€ЫXY[™РXЭ[Ы”ЫЭB€ШЫS][Ъ[ЩTЭЪ]ЪB€ШЫS][Ъ[ЩTЭЪ]Ъ	‰€
+€]‚€\љXKZY[‚€Ы\ЬУ[YOH›^LHMЛ\Ъљ[љЛL™ЛX›Ь™\‹L€‚€П‚€
+_B€ЫЬљТ][P]XЪY[ќЫЫќ›Ы€Э\њ™[ќЫЬљТ][PЫЫќ^^Ш]XЪYЫЬљТ][PЫЫќ^B€[™[ЬЭ™YЏ^ЭЫЬљТ][T[™[ЬЭ™YџB€™\Ф]^ШЭ\њ™[ќ™\Ф]B€Ы•ЫЬљТ][PЫЫќ^Ъ[™ЩO^ЬЩ]]XЪYЫЬљТ][PЫЫќ^B€П‚€ЬЩ[XЭYЬ™И	‰€
+€ќ]Ы‚€\љX[ќHњЩXЫЫ™\ћH‚€\X\[ЩOH›Э][™H‚€Ъ^™OHњЫX[‚€Ъ\OHњ›Э[™‚€XЫЫЏ^П™]ЫЬљИЪ^™O^МMHЭ›ЪЩUЪY^МKЌН_HПџB€]O^Э
+Ь™X]Ь‹›Ь™УY[X™\њЛЫЫ™љYРќ]Ы€Љ_B€\љXK[X™[^Э
+Ь™X]Ь‹›Ь™УY[X™\њЛЫЫ™љYРќ]Ы€Љ_B€\љXKY^[™Y^Ъ\УЬ™УY[X™\њФ[™[Ь[џB€\љXKXЫЫќ›ЫПHњЩ\ЬЪ[Ы‹XЬ™X]Ь‹[Ь™Л[Y[X™\њЛ\[™[‚€ЫђЫXЪП^Ъ[™UЩЩЫSЬ™УY[X™\њЯB€Ы\ЬУ[YO^В€\УЬ™УY[X™\њФ[™[Ь[‚€ИњЪљ[љЛLX™ЛYљ[LH]^\љ[X\ћKM€‚€€њЪљ[љЛL‚€B€]K]\ЭYHњЩ\ЬЪ[Ы‹XЬ™X]Ь‹[Ь™Л[Y[X™\њЛ]ЩЩЫH‚€‚€Э
+Ь™X]Ь‹›Ь™УY[X™\њЛЫЫ™љYРќ]Ы€Љ_B€Рќ]ЫЏ‚€
+_B€П‚€B€П‚€Щ]Џ‚‚€]‚€™YЏ^ЭЫЬљТ][T[™[ЬЭ™YџB€Ы\ЬУ[YO^Ш^X]]ИЛYќ[	СURSФS‘SХТСS”ЛЫЫќ[ќX^ЪYXB€П‚‚€ЬЩ[XЭYЬ™И	‰€\УЬ™УY[X™\њФ[™[Ь[€	‰€
+€]€YHњЩ\ЬЪ[Ы‹XЬ™X]Ь‹[Ь™Л[Y[X™\њЛ\[™[Џ‚€Щ\ЬЪ[ЫђЬ™X]Ь“Ь™УY[X™\њФ[™[€Ь™П^ЬЩ[XЭYЬ™ЯB€Y[ЩYЫЫ™љYП^ШY[ЩYЫЫ™љYЯB€ЫђY[ЩYЫЫ™љYРЪ[™ЩO^Ъ[™PY[ЩYЫЫ™љYРЪ[™Щ_B€[YЩ[ќП^Ш[YЩ[ќYљ[љ][ЫњЯB€ЫPYЩ[ќП^Щ[X›YЫPYЩ[ќ\ЭB€П‚€Щ]Џ‚€
+_B‚€ИZYT™\Щ[ЩPќ]Ы€	‰€
+€]€Ы\ЬУ[YOH™›^ЛYќ[][\ЛXЩ[ќ\€ќ\ЭYћKXЩ[ќ\€Ш\L€LHЏ‚€™\Щ[ЩSY[ќPќ]Ы‚€\љX[ќH™]Z[Y‚€›ЬЭЫ”ЬЪ][ЫЏH›ЭЫK\Э\ќ‚€П‚€Щ]Џ‚€
+_B‚€Щ›ЫЭ\”ЫЭB€Щ]Џ‚€Щ]Џ‚‚€[њ]€™YЏ^Щљ[R[њ]™YџB€\OH™љ[H‚€][\B€Ы\ЬУ[YOHљY[€‚€]K]\ЭYHЪ]Yљ[K]\ШYZ[њ]‚€ЫђЪ[™ЩO^Ъ[™Qљ[U\ШYB€XШЩ\HЉ‹К€‚€П‚‚€Ы[Щ[XЪЩ\”Э[HOOH™›ЬЭЫ€€И
+€\Ь]ЪШ]YЫЬћQ›ЬЭЫ‚€\УЬ[Џ^Ъ\РШ]YЫЬћTЩ[XЭЬ“Ь[џB€ЫђЫЬЩO^К
+HO€Щ]\РШ]YЫЬћTЩ[XЭЬ“Ь[Љ[ЩJ_B€Ы”Щ[XЭ^Ъ[™PYЩ[ќXЪЩ\”Щ[XЭB€Э\њ™[ќШ]YЫЬћO^Щ\Ь]ЪШ]YЫЬћ_B€Э\њ™[ќYЩ[ќYљ[љ][Ы’Y^ЬЩ[XЭYYЩ[ќY’YПИ[™Yљ[™YB€Э\њ™[ќYЩ[ќЬ™ТY^ЬЩ[XЭYYЩ[ќЬ™ТYПИ[™Yљ[™YB€Э\њ™[ќЫPYЩ[ќ\O^ШЫPYЩ[ќ\HПИ[™Yљ[™YB€[ЪЬ”™YЏ^ШYЩ[ќ\›Ф™YџB€П‚€
+H€
+€\Ь]ЪШ]YЫЬћT[]B€\УЬ[Џ^Ъ\РШ]YЫЬћTЩ[XЭЬ“Ь[џB€ЫђЫЬЩO^К
+HO€Щ]\РШ]YЫЬћTЩ[XЭЬ“Ь[Љ[ЩJ_B€Ы”Щ[XЭ^Ъ[™PYЩ[ќXЪЩ\”Щ[XЭB€Э\њ™[ќШ]YЫЬћO^Щ\Ь]ЪШ]YЫЬћ_B€Э\њ™[ќYЩ[ќYљ[љ][Ы’Y^ЬЩ[XЭYYЩ[ќY’YПИ[™Yљ[™YB€Э\њ™[ќYЩ[ќЬ™ТY^ЬЩ[XЭYYЩ[ќЬ™ТYПИ[™Yљ[™YB€Э\њ™[ќЫPYЩ[ќ\O^ШЫPYЩ[ќ\HПИ[™Yљ[™YB€П‚€
+_B‚€ЬШЬ™Y[”XЪЩ\“[Ыљ]ЬњИ	‰€
+€ШЬ™Y[”XЪЩ\“[Щ[€[Ыљ]ЬњП^ЬШЬ™Y[”XЪЩ\“[Ыљ]ЬњЯB€Ы”Щ[XЭ^Ъ[™TШЬ™Y[”XЪЩYB€ЫђЫЬЩO^К
+HO€Щ]ШЬ™Y[”XЪЩ\“[Ыљ]ЬњКќ[
+_B€П‚€
+_B€Щ]Џ‚€
+NВџNВ‚”Щ\ЬЪ[ЫђЬ™X]ЬђЪ][™[Ъ[™ЫK™\Ь^S[YHH”Щ\ЬЪ[ЫђЬ™X]ЬђЪ][™[Ъ[™ЫHЋВ‚™^ЬќY][Щ\ЬЪ[ЫђЬ™X]ЬђЪ][™[Ъ[™ЫNВ
