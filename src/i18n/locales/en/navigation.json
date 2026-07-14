@@ -74,6 +74,10 @@
       "newPrivateBrowserTab": "New private browser tab",
       "workItems": "Work items",
       "projects": "Projects"
+    },
+    "startPage": {
+      "title": "Start",
+      "subtitle": "Open a tab to get started."
     }
   },
   "trajectoryPanel": {
