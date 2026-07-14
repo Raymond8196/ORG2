@@ -329,6 +329,7 @@ function SettingsTableToolbar({
         <div className="flex shrink-0 items-center gap-2">
           <Input
             type="search"
+            size="small"
             className="w-52"
             value={searchBar.searchValue ?? ""}
             placeholder={searchBar.searchPlaceholder}

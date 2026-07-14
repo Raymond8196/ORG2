@@ -774,7 +774,8 @@
       "tabs": {
         "work": "作業",
         "manage": "管理",
-        "heatmap": "トレンド"
+        "heatmap": "トレンド",
+        "runtime": "ランタイム"
       },
       "heatmap": {
         "loading": "アクティビティトレンドを読み込み中…",

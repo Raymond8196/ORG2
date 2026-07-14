@@ -23,6 +23,7 @@ import {
   CircleDot,
   Columns3,
   GitPullRequest,
+  Info,
   LayoutGrid,
   MessageSquarePlus,
   Plus,
@@ -151,6 +152,14 @@ const TabPill = memo(function TabPill({
   } else if (tab.type === "start-page") {
     icon = (
       <LayoutGrid
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (tab.type === "workspace") {
+    icon = (
+      <Info
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}

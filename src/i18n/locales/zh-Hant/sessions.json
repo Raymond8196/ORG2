@@ -778,7 +778,8 @@
       "tabs": {
         "work": "工作",
         "manage": "管理",
-        "heatmap": "趨勢"
+        "heatmap": "趨勢",
+        "runtime": "執行階段"
       },
       "heatmap": {
         "loading": "正在載入活動趨勢…",

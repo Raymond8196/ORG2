@@ -41,6 +41,13 @@ const WorkspaceDashboardPanelView = React.lazy(
   () => import("./panels/WorkspaceDashboardPanelView")
 );
 
+// The "Runtime" tab reuses the same data-source inventory table shown under
+// Kanban → Data source. The panel lives in a shared module so both surfaces
+// render the identical component.
+const DataSourcePanel = React.lazy(
+  () => import("@src/modules/shared/dataSource")
+);
+
 type StartPageActionTone = "primary" | "purple" | "success" | "warning";
 
 interface ChatPanelStartPageAction {
@@ -129,6 +136,10 @@ function formatCompactNumber(value: number): string {
   return value.toLocaleString();
 }
 
+// Temporarily unused: the heatmap is hidden in the Runtime tab for now (its
+// call site is commented out). Kept here so it can be re-enabled without
+// reconstructing the component.
+// eslint-disable-next-line unused-imports/no-unused-vars
 function StartPageHeatmap({
   t,
 }: {
@@ -365,8 +376,8 @@ export function ChatPanelStartPage({
         label: t("chat.startPage.tabs.manage"),
       },
       {
-        key: CHAT_PANEL_START_PAGE_TAB.HEATMAP,
-        label: t("chat.startPage.tabs.heatmap"),
+        key: CHAT_PANEL_START_PAGE_TAB.RUNTIME,
+        label: t("chat.startPage.tabs.runtime"),
       },
     ],
     [t]
@@ -407,9 +418,12 @@ export function ChatPanelStartPage({
       : []),
   ];
   const manageTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.MANAGE;
-  const bodyOverflowClass = manageTabActive
-    ? "overflow-hidden"
-    : "overflow-y-auto";
+  const runtimeTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.RUNTIME;
+  // The Manage dashboard and the Runtime data-source panel both scroll
+  // internally (they fill their container), so the body wrapper must not add
+  // its own scrollbar for those tabs.
+  const bodyOverflowClass =
+    manageTabActive || runtimeTabActive ? "overflow-hidden" : "overflow-y-auto";
 
   return (
     <div
@@ -434,17 +448,28 @@ export function ChatPanelStartPage({
           <Suspense fallback={null}>
             <WorkspaceDashboardPanelView />
           </Suspense>
+        ) : runtimeTabActive ? (
+          <div
+            className="relative h-full w-full"
+            data-testid="chat-panel-start-page-runtime"
+          >
+            <Suspense fallback={null}>
+              <DataSourcePanel
+                headerContent={
+                  <div className="flex flex-col gap-3">
+                    {/* Heatmap / activity statistics hidden for now — keeping
+                        only the quota grid above the scan table. Re-enable by
+                        uncommenting <StartPageHeatmap t={t} /> below. */}
+                    {/* <StartPageHeatmap t={t} /> */}
+                    <StartPageQuotaGrid />
+                  </div>
+                }
+              />
+            </Suspense>
+          </div>
         ) : (
           <div className="flex min-h-full items-center justify-center">
-            {activeTab === CHAT_PANEL_START_PAGE_TAB.HEATMAP ? (
-              <div
-                className={`flex flex-col gap-3 px-4 py-5 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-              >
-                <StartPageHeatmap t={t} />
-                <StartPageQuotaGrid />
-              </div>
-            ) : activeTab === CHAT_PANEL_START_PAGE_TAB.WORK &&
-              sessionLauncher ? (
+            {activeTab === CHAT_PANEL_START_PAGE_TAB.WORK && sessionLauncher ? (
               <div
                 className="w-full"
                 data-testid="chat-panel-start-page-session-launcher"

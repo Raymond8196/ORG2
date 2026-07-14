@@ -775,7 +775,8 @@
       "tabs": {
         "work": "Travail",
         "manage": "Gérer",
-        "heatmap": "Tendances"
+        "heatmap": "Tendances",
+        "runtime": "Exécution"
       },
       "heatmap": {
         "loading": "Chargement des tendances d’activité…",

@@ -776,7 +776,8 @@
       "tabs": {
         "work": "Praca",
         "manage": "Zarządzaj",
-        "heatmap": "Trendy"
+        "heatmap": "Trendy",
+        "runtime": "Czas wykonania"
       },
       "heatmap": {
         "loading": "Ładowanie trendów aktywności…",

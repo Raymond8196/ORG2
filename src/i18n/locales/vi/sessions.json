@@ -772,7 +772,8 @@
       "tabs": {
         "work": "Làm việc",
         "manage": "Quản lý",
-        "heatmap": "Xu hướng"
+        "heatmap": "Xu hướng",
+        "runtime": "Thời gian chạy"
       },
       "heatmap": {
         "loading": "Đang tải xu hướng hoạt động…",

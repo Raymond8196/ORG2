@@ -1,7 +1,9 @@
 /**
  * DataSourcePanel
  *
- * "Data Sources" tab of the Kanban station. A single inventory of every
+ * Shared data-source inventory panel, rendered both as the Kanban station's
+ * "Data Sources" view and as the chat-panel start page's "Runtime" tab. A
+ * single inventory of every
  * external coding tool ORGII detects, driven by the one shared detect pipeline
  * (`external_cli_sources_detect`). Importable apps (Cursor, Codex, Claude,
  * OpenCode, Windsurf, WorkBuddy) show their imported-session count and can be
@@ -97,7 +99,14 @@ const SourceIcon: React.FC<{ probe: ExternalCliSourceProbe }> = ({ probe }) => (
   />
 );
 
-const DataSourcePanel: React.FC = () => {
+interface DataSourcePanelProps {
+  /** Optional content rendered above the sources title, inside the panel's
+   *  scroll container and centered 932px column (e.g. an activity summary).
+   *  It scrolls away with the page while the table's search header sticks. */
+  headerContent?: React.ReactNode;
+}
+
+const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
   const { t } = useTranslation("sessions", {
     keyPrefix: "kanban.dataSource",
   });
@@ -380,6 +389,7 @@ const DataSourcePanel: React.FC = () => {
     {
       key: "source",
       label: t("col.source"),
+      sorter: (a, b) => a.probe.displayName.localeCompare(b.probe.displayName),
       renderCell: (row) => {
         const cfg = getSourceConfig(configMap, row.probe.sourceId);
         const disabled = row.importable && !cfg.enabled;
@@ -401,6 +411,8 @@ const DataSourcePanel: React.FC = () => {
       key: "sessions",
       label: t("col.sessions"),
       width: "84px",
+      sorter: (a, b) =>
+        (a.stats?.sessionCount ?? 0) - (b.stats?.sessionCount ?? 0),
       renderCell: (row) => {
         const cfg = getSourceConfig(configMap, row.probe.sourceId);
         const disabled = row.importable && !cfg.enabled;
@@ -415,6 +427,13 @@ const DataSourcePanel: React.FC = () => {
       key: "lastScan",
       label: t("col.lastScan"),
       width: "118px",
+      sorter: (a, b) => {
+        const ta = getSourceConfig(configMap, a.probe.sourceId).lastScannedAt;
+        const tb = getSourceConfig(configMap, b.probe.sourceId).lastScannedAt;
+        return (
+          (ta ? new Date(ta).getTime() : 0) - (tb ? new Date(tb).getTime() : 0)
+        );
+      },
       renderCell: (row) => {
         const cfg = getSourceConfig(configMap, row.probe.sourceId);
         const disabled = row.importable && !cfg.enabled;
@@ -541,6 +560,7 @@ const DataSourcePanel: React.FC = () => {
   return (
     <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
       <div className="mx-auto flex w-full max-w-[932px] flex-col gap-3 p-4">
+        {headerContent}
         <div className="min-w-0">
           <div className="text-sm font-medium text-text-1">{t("title")}</div>
           <div className="mt-0.5 text-xs text-text-3">{t("description")}</div>
@@ -573,6 +593,10 @@ const DataSourcePanel: React.FC = () => {
           rows={searchedRows}
           getRowKey={(row) => row.probe.sourceId}
           headerHeight="tall"
+          // Keep the sticky header a single row (search + tab pills + rescan
+          // share one 32px toolbar), matching the Settings CLI clients table
+          // instead of stacking the pills onto a second row.
+          inlineHeaderToolbar
           className="table-expanded-no-hover table-settings-expanded-compact"
           hover
           loading={rows === null}

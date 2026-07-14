@@ -773,7 +773,8 @@
       "tabs": {
         "work": "Arbeit",
         "manage": "Verwalten",
-        "heatmap": "Trends"
+        "heatmap": "Trends",
+        "runtime": "Laufzeit"
       },
       "heatmap": {
         "loading": "Aktivitätstrends werden geladen…",

@@ -14,7 +14,7 @@ import type { FactoryViewMode } from "../FactoryViewPill";
 // branch, navigating away also unmounts (offloads) the previous view — its
 // DOM, virtualizers, and any in-flight data effects are torn down. Kanban is
 // the default view, so it stays eagerly imported to avoid a first-paint flash.
-const DataSourcePanel = lazy(() => import("../DataSourcePanel"));
+const DataSourcePanel = lazy(() => import("@src/modules/shared/dataSource"));
 const DiaryView = lazy(() => import("../DiaryView"));
 const ListView = lazy(() => import("../ListView"));
 

@@ -69,10 +69,12 @@ import SidebarOrgSelector from "../SidebarOrgSelector";
 import {
   COLLAB_ADD_ORG_MENU_ITEM_ID,
   KANBAN_MENU_ITEM_ID,
+  NEW_SESSION_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+  getDraftIdFromMenuItemId,
   isWorkManagementMenuItemId,
 } from "../sidebarConnectorUtils";
 import {
@@ -602,6 +604,17 @@ export const WorkstationSidebarConnector: React.FC = () => {
       }
       if (isChatTerminalSidebarItem(item.id)) {
         activateChatPanelTab(getChatTerminalTabId(item.id));
+        return;
+      }
+      // "New conversation" (and draft sessions) are session actions even while
+      // the Work Items submenu is expanded. Route them to the session handler
+      // — which focuses the Launchpad Work tab — before the projects reroute
+      // below, which would otherwise swallow the click.
+      if (
+        item.id === NEW_SESSION_MENU_ITEM_ID ||
+        getDraftIdFromMenuItemId(item.id)
+      ) {
+        handleMenuItemClick(key, item);
         return;
       }
       if (workItemsContentVisible) {

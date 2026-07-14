@@ -276,7 +276,7 @@ chatPanelStartPageOpenAtom.debugLabel = "chatPanelStartPageOpenAtom";
 export const CHAT_PANEL_START_PAGE_TAB = {
   WORK: "work",
   MANAGE: "manage",
-  HEATMAP: "heatmap",
+  RUNTIME: "runtime",
 } as const;
 
 export type ChatPanelStartPageTab =

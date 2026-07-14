@@ -803,7 +803,8 @@
       "tabs": {
         "work": "Work",
         "manage": "Manage",
-        "heatmap": "Trends"
+        "heatmap": "Trends",
+        "runtime": "Runtime"
       },
       "heatmap": {
         "loading": "Loading activity trends…",

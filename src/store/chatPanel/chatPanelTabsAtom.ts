@@ -6,6 +6,7 @@
  *   "terminal" — Live PTY terminal embedded in the chat pane
  *   "start-page" — Launchpad with Work / Manage / Trend tabs
  *   "work-management" — Singleton management surface with internal sections
+ *   "workspace" — A workspace's overview / detail page (one pill per workspace)
  *
  * Terminal tabs share the global terminal atom store but use session IDs
  * prefixed with "chatpanel-" so they are invisible to the Workstation
@@ -33,11 +34,14 @@ import {
 import {
   CHAT_PANEL_START_PAGE_TAB,
   CHAT_PANEL_SURFACE_KIND,
+  type ChatPanelSelectedWorkspace,
   type ChatPanelStartPageTab,
+  type WorkspaceOverviewTab,
   chatPanelMaximizedAtom,
   chatPanelNavigateAtom,
   chatPanelStartPageOpenAtom,
   chatPanelStartPageTabAtom,
+  chatPanelWorkspaceOverviewTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
   WORK_MANAGEMENT_SECTION,
@@ -69,7 +73,8 @@ export type ChatPanelTabType =
   | "session"
   | "terminal"
   | "start-page"
-  | "work-management";
+  | "work-management"
+  | "workspace";
 
 export interface ChatPanelTab {
   id: string;
@@ -102,6 +107,12 @@ export interface ChatPanelTab {
    * Written once after the PTY reports initialized; cleared afterwards.
    */
   cliCommand?: string;
+  /**
+   * For "workspace" tabs: the workspace whose overview / detail page this pill
+   * owns. Activating the tab replays this into `chatPanelSelectedWorkspaceAtom`
+   * (via `chatPanelNavigateAtom`) so the overview surface re-renders.
+   */
+  workspace?: ChatPanelSelectedWorkspace;
 }
 
 const DEFAULT_FULLSCREEN_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
@@ -355,6 +366,19 @@ const syncChatPanelTabNavigationAtom = atom(
       return;
     }
 
+    if (tab.type === "workspace" && tab.workspace) {
+      // A workspace tab owns the workspace-overview surface. Re-navigating on
+      // activation repopulates the selected-workspace atom the surface reads,
+      // so switching back to this pill restores its detail page. Passing no
+      // `tab` preserves whichever overview sub-tab is currently showing.
+      set(chatPanelNavigateAtom, {
+        kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_OVERVIEW,
+        workspace: tab.workspace,
+      });
+      set(jumpToSessionAtom, null);
+      return;
+    }
+
     set(chatPanelStartPageOpenAtom, false);
 
     // Session is the neutral legacy surface underneath tabs whose content is
@@ -429,7 +453,13 @@ export const activateChatPanelTabAtom = atom(
       return;
     }
 
-    if (tab.type === "terminal" || tab.type === "work-management") {
+    if (
+      tab.type === "terminal" ||
+      tab.type === "work-management" ||
+      tab.type === "workspace"
+    ) {
+      // Surface state for these tabs is fully driven by
+      // `syncChatPanelTabNavigationAtom` above; there is no session to jump to.
       return;
     }
 
@@ -588,6 +618,68 @@ export const openKanbanChatPanelTabAtom = atom(
   }
 );
 openKanbanChatPanelTabAtom.debugLabel = "openKanbanChatPanelTab";
+
+interface OpenWorkspaceOverviewTabOptions {
+  workspace: ChatPanelSelectedWorkspace;
+  /** Overview sub-tab to land on (e.g. Details). Preserves current when omitted. */
+  tab?: WorkspaceOverviewTab;
+}
+
+/**
+ * Open — or focus, if already open — a dedicated chat-panel tab for a
+ * workspace's overview / detail page. Each workspace gets its own pill titled
+ * with the workspace name (not "Launchpad"); re-opening the same workspace
+ * focuses the existing tab instead of stacking duplicates. The active tab
+ * drives `chatPanelSelectedWorkspaceAtom` through `chatPanelNavigateAtom`,
+ * which is what the overview surface actually renders from.
+ */
+export const openWorkspaceOverviewInChatPanelTabAtom = atom(
+  null,
+  (get, set, options: OpenWorkspaceOverviewTabOptions) => {
+    const { workspace, tab: overviewTab } = options;
+    // Seed the requested sub-tab before activation: the navigate that runs on
+    // activation passes no explicit tab, so it preserves this value.
+    if (overviewTab) {
+      set(chatPanelWorkspaceOverviewTabAtom, overviewTab);
+    }
+
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (candidate) =>
+        candidate.type === "workspace" &&
+        candidate.workspace?.kind === workspace.kind &&
+        candidate.workspace?.id === workspace.id
+    );
+    if (existingTab) {
+      // Refresh the stored payload (name/path can drift) before focusing.
+      set(chatPanelTabsAtom, (prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((candidate) =>
+          candidate.id === existingTab.id
+            ? { ...candidate, title: workspace.name, workspace }
+            : candidate
+        ),
+      }));
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+
+    const id = `workspace-${crypto.randomUUID()}`;
+    const now = new Date().toISOString();
+    set(appendAndActivateChatPanelTabAtom, {
+      tab: {
+        id,
+        type: "workspace",
+        title: workspace.name,
+        workspace,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+    return id;
+  }
+);
+openWorkspaceOverviewInChatPanelTabAtom.debugLabel =
+  "openWorkspaceOverviewInChatPanelTab";
 
 interface OpenSessionInNewChatTabOptions {
   sessionId: string;
