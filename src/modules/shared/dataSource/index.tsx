@@ -426,6 +426,27 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
       },
     },
     {
+      key: "subagents",
+      label: "Subagents",
+      width: "84px",
+      sorter: (a, b) =>
+        (a.stats?.subagentCount ?? 0) - (b.stats?.subagentCount ?? 0),
+      renderCell: (row) => {
+        const cfg = getSourceConfig(configMap, row.probe.sourceId);
+        const disabled = row.importable && !cfg.enabled;
+        if (!(row.importable && !disabled && row.stats)) return null;
+        // Only Cursor has sub-agent sessions today; show a muted dash for the
+        // sources that have none so the column doesn't read as a stray "0".
+        return row.stats.subagentCount > 0 ? (
+          <span className="tabular-nums text-text-2">
+            {row.stats.subagentCount}
+          </span>
+        ) : (
+          <span className="tabular-nums text-text-4">–</span>
+        );
+      },
+    },
+    {
       key: "lastScan",
       label: t("col.lastScan"),
       width: "118px",

@@ -104,6 +104,17 @@ const DataSourceDetailsCard: React.FC<DataSourceDetailsCardProps> = ({
             {stats?.sessionCount ?? 0}
           </span>
         </div>
+
+        {/* Hidden sub-agent sessions (Cursor sub-agent composers; omitted when
+            the source has none). */}
+        {stats && stats.subagentCount > 0 ? (
+          <div className={INFO_CARD_TOKENS.row}>
+            <span className={INFO_CARD_TOKENS.label}>Subagents</span>
+            <span className={`${INFO_CARD_TOKENS.value} tabular-nums`}>
+              {stats.subagentCount}
+            </span>
+          </div>
+        ) : null}
       </div>
     </InlineInfoCard>
   );

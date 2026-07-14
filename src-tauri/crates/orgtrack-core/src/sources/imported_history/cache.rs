@@ -384,6 +384,34 @@ pub fn get_cached_source_path_from_conn(
     .map_err(|err| format!("Failed to query imported history source path: {err}"))
 }
 
+/// Cached session counts for a source, split into top-level sessions and child
+/// sub-agent sessions. A session is a sub-agent when it has a parent — either a
+/// non-empty `parent_session_id` or a `:subagent:` id segment — which is exactly
+/// the signal the sidebar uses to collapse a session under its parent
+/// (`isPrimarySessionListSession`), independent of `listable`. This matters
+/// because sub-agents are represented two ways: Cursor hides them
+/// (`listable = 0`) while Claude Code / Codex / Cline keep them listable but
+/// collapsed. Returns `(sessions, subagents)`; the two sum to the source total.
+pub fn source_session_counts_from_conn(
+    conn: &Connection,
+    source: &str,
+) -> Result<(usize, usize), String> {
+    // Keep this predicate in sync with `isPrimarySessionListSession`
+    // (src/util/session/sessionVisibility.ts): a child = has a parent id.
+    const IS_SUBAGENT: &str =
+        "(COALESCE(parent_session_id, '') != '' OR source_session_id LIKE '%:subagent:%')";
+    let sql = format!(
+        "SELECT \
+            COALESCE(SUM(CASE WHEN {IS_SUBAGENT} THEN 0 ELSE 1 END), 0), \
+            COALESCE(SUM(CASE WHEN {IS_SUBAGENT} THEN 1 ELSE 0 END), 0) \
+         FROM imported_history_session_cache WHERE source = ?1"
+    );
+    conn.query_row(&sql, [source], |row| {
+        Ok((row.get::<_, i64>(0)? as usize, row.get::<_, i64>(1)? as usize))
+    })
+    .map_err(|err| format!("Failed to count imported history sessions: {err}"))
+}
+
 fn query_cached_sessions_from_conn(
     conn: &Connection,
     source: &str,

@@ -387,3 +387,22 @@ pub async fn workbuddy_recent_paths(
     .await
     .map_err(|err| format!("Task join error: {err}"))?
 }
+
+/// Number of hidden sub-agent sessions cached for an importable source — Cursor's
+/// sub-agent composers, which are folded under a parent and excluded from the
+/// normal list queries. 0 for every other source today. Surfaced as its own
+/// column in the Data Sources panel next to the top-level session count.
+#[tauri::command]
+pub async fn imported_history_subagent_count(source: String) -> Result<usize, String> {
+    if !imported_history::metadata::is_imported_history_source(&source) {
+        return Ok(0);
+    }
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        let (_sessions, subagents) =
+            imported_history::cache::source_session_counts_from_conn(&conn, &source)?;
+        Ok(subagents)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
