@@ -3,6 +3,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   File,
+  Folder,
   GitBranch,
   Globe,
   type LucideIcon,
@@ -267,7 +268,7 @@ export function FocusedChatWorkstationRail() {
       {
         key: "files",
         label: "Files",
-        icon: File,
+        icon: Folder,
         onClick: () => handlePrimarySidebarClick("files"),
       },
     ],
