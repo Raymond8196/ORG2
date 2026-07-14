@@ -12,18 +12,14 @@
  * - Browser sessions sync their state to the tab store
  * - All tab switching goes through useBrowserPaneState
  */
-import { useAtomValue } from "jotai";
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useAtom, useAtomValue } from "jotai";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import { extractSessionId } from "@src/store/workstation/browser/tabs";
-import { workstationNewBrowserSessionRequestAtom } from "@src/store/workstation/workstationTabBarAtoms";
+import {
+  workstationNewBrowserSessionConsumedTickAtom,
+  workstationNewBrowserSessionRequestAtom,
+} from "@src/store/workstation/workstationTabBarAtoms";
 
 import {
   WORK_STATION_PLACEHOLDER_PAGE_BG_CLASS,
@@ -64,28 +60,31 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
 
     const [devToolsPanelHeight, setDevToolsPanelHeight] = useState(300);
 
-    // Cross-host "New Browser Tab" intent: the unified `+` menu (in both
-    // All-Tabs and Browser modes) bumps
-    // `workstationNewBrowserSessionRequestAtom` via
-    // `requestNewBrowserSessionAtom`. We dispatch `addSession(url,
-    // isPrivate)` whenever the tick advances past the value observed on
-    // mount — already-pending requests do not fire retroactively when
-    // the user navigates into Browser for the first time, but the URL /
-    // private payload carried by the latest request is honored.
+    // Cross-host "New Browser Tab" intent: the unified `+` menu and the
+    // Launchpad bump `workstationNewBrowserSessionRequestAtom` via
+    // `requestNewBrowserSessionAtom`. We dispatch `addSession(url, isPrivate)`
+    // for any request whose tick exceeds the consumed-tick atom — including a
+    // request issued before this host mounted (e.g. "New Browser" clicked from
+    // the empty Launchpad), which a per-mount ref would have missed. The
+    // module-level consumed tick prevents re-firing on a later remount.
     const newSessionRequest = useAtomValue(
       workstationNewBrowserSessionRequestAtom
     );
-    const lastSeenRequestTickRef = useRef<number>(newSessionRequest.tick);
+    const [consumedTick, setConsumedTick] = useAtom(
+      workstationNewBrowserSessionConsumedTickAtom
+    );
     const addBrowserSession = state.browser.browserState.addSession;
     useEffect(() => {
-      if (newSessionRequest.tick !== lastSeenRequestTickRef.current) {
-        lastSeenRequestTickRef.current = newSessionRequest.tick;
+      if (newSessionRequest.tick > consumedTick) {
+        setConsumedTick(newSessionRequest.tick);
         addBrowserSession(newSessionRequest.url, newSessionRequest.isPrivate);
       }
     }, [
       newSessionRequest.tick,
       newSessionRequest.url,
       newSessionRequest.isPrivate,
+      consumedTick,
+      setConsumedTick,
       addBrowserSession,
     ]);
 
