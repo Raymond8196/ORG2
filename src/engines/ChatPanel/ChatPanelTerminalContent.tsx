@@ -250,6 +250,7 @@ export function ChatPanelTerminalContent({
         className="terminal-core chat-panel-terminal-core min-h-0 flex-1 bg-chat-pane"
         backgroundColor={resolvedBg ?? "var(--color-chat-pane-base)"}
         visible={visible}
+        autoLaunchAgentCommand={false}
       />
     </div>
   );

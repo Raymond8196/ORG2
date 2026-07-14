@@ -75,6 +75,12 @@ export interface AddSessionOptions {
   cwd?: string;
   /** User-assigned name for this terminal */
   name?: string;
+  /** CLI agent hosted in this terminal, when launched from the chat panel. */
+  cliAgentType?: CliAgentType;
+  /** Command injected to start the CLI agent after the PTY is ready. */
+  agentCommand?: string;
+  /** Foreground process name expected while the CLI agent is active. */
+  expectedProcess?: string;
 }
 
 export interface UseTerminalStateReturn {

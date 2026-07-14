@@ -65,6 +65,7 @@ import {
 } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
 import { DispatchCategoryDropdown } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette/DispatchCategoryDropdown";
 import { PresenceMenuButton } from "@src/scaffold/NavigationSidebar/blocks/SidebarBottomBar";
+import { TerminalService } from "@src/services/terminal";
 import { gitDependencyInstalledAtom } from "@src/store/platform/gitDependencyAtom";
 import { REPO_KIND } from "@src/store/repo/types";
 import {
@@ -994,12 +995,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     return handleLaunch();
   }, [handleLaunch, remoteLaunchConfigured, setRemoteTargetExpanded]);
   const handleRemoteTuiLaunch = useCallback(async () => {
-    if (
-      !preflightOk ||
-      !onOpenCliTerminal ||
-      !selectedCliAgent ||
-      !isCliAgentType(cliAgentType)
-    ) {
+    if (!preflightOk || !selectedCliAgent || !isCliAgentType(cliAgentType)) {
       return false;
     }
     const command = selectedCliAgent.command.trim();
@@ -1012,7 +1008,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     };
     setLaunchClickDebug(tuiDebug);
     persistLaunchClickDebug(tuiDebug);
-    onOpenCliTerminal({
+    TerminalService.openCliTerminal({
       cliAgentType,
       command: buildRemoteTuiCommand({
         command,
@@ -1027,7 +1023,6 @@ const SessionCreatorChatPanelSingle: React.FC<
     return true;
   }, [
     cliAgentType,
-    onOpenCliTerminal,
     preflightOk,
     remoteHost,
     remotePort,

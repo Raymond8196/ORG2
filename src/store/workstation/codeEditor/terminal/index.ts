@@ -13,6 +13,7 @@ import type {
   AddSessionOptions,
   TerminalSession,
 } from "@/src/engines/TerminalCore/types";
+import { TERMINAL_AGENT_STATUS } from "@/src/engines/TerminalCore/types";
 import { type Getter, type Setter, atom } from "jotai";
 
 import { getSettingsDefaults } from "@src/config/settingsSchema";
@@ -83,11 +84,19 @@ function loadPersistedState(): {
         parsed.initializedSessionIds &&
         Array.isArray(parsed.initializedSessionIds)
       ) {
-        const sessions = parsed.sessions.filter(
-          (session: TerminalSession) =>
-            !isAgentPtySessionId(session.id) &&
-            !isChatPanelTerminalId(session.id)
-        );
+        const sessions = parsed.sessions
+          .filter(
+            (session: TerminalSession) =>
+              !isAgentPtySessionId(session.id) &&
+              !isChatPanelTerminalId(session.id)
+          )
+          .map((session: TerminalSession) => ({
+            ...session,
+            cliAgentType: undefined,
+            agentCommand: undefined,
+            expectedProcess: undefined,
+            agentStatus: undefined,
+          }));
         if (sessions.length === 0) return null;
         const isEphemeral = (id: string) =>
           isAgentPtySessionId(id) || isChatPanelTerminalId(id);
@@ -291,6 +300,12 @@ export const editorAddTerminalSessionAtom = atom(
       profileId: options?.profileId,
       shell: options?.shell,
       cwd: options?.cwd,
+      cliAgentType: options?.cliAgentType,
+      agentCommand: options?.agentCommand,
+      expectedProcess: options?.expectedProcess,
+      agentStatus: options?.agentCommand
+        ? TERMINAL_AGENT_STATUS.STARTING
+        : undefined,
     };
 
     set(terminalSessionsAtom, [
@@ -496,6 +511,9 @@ export const updateTerminalSessionInfoAtom = atom(
           | "isDefaultSession"
           | "hasUserInput"
           | "agentStatus"
+          | "agentCommand"
+          | "cliAgentType"
+          | "expectedProcess"
         >
       >;
     }

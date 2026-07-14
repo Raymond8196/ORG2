@@ -7,6 +7,8 @@
 import { createStore } from "jotai/vanilla";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { TERMINAL_AGENT_STATUS } from "@src/engines/TerminalCore/types";
+
 import {
   activeTerminalIdAtom,
   closeTerminalSessionAtom,
@@ -85,6 +87,9 @@ describe("terminal atoms", () => {
         shell: "/bin/fish",
         profileId: "fish-profile",
         cwd: "/repo/project",
+        cliAgentType: "claude_code",
+        agentCommand: "ssh host claude",
+        expectedProcess: "ssh",
       });
 
       const sessions = store.get(terminalSessionsAtom);
@@ -94,6 +99,10 @@ describe("terminal atoms", () => {
       expect(newSession?.shell).toBe("/bin/fish");
       expect(newSession?.profileId).toBe("fish-profile");
       expect(newSession?.cwd).toBe("/repo/project");
+      expect(newSession?.cliAgentType).toBe("claude_code");
+      expect(newSession?.agentCommand).toBe("ssh host claude");
+      expect(newSession?.expectedProcess).toBe("ssh");
+      expect(newSession?.agentStatus).toBe(TERMINAL_AGENT_STATUS.STARTING);
     });
   });
 

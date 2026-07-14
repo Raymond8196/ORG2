@@ -15,6 +15,10 @@
  */
 import { Command } from "@tauri-apps/plugin-shell";
 
+import type {
+  AddSessionOptions,
+  TerminalSession,
+} from "@src/engines/TerminalCore/types";
 import { createLogger } from "@src/hooks/logger";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import {
@@ -45,6 +49,14 @@ export interface SubprocessResult {
   stdout: string;
   /** Combined stderr output */
   stderr: string;
+}
+
+export interface TerminalCliLaunchOptions {
+  cliAgentType?: TerminalSession["cliAgentType"];
+  command: string;
+  title: string;
+  cwd?: string;
+  expectedProcess?: string;
 }
 
 // ============================================
@@ -152,19 +164,26 @@ export const TerminalService = {
   /**
    * Create a new terminal session, optionally with a shell profile.
    */
-  createSession(options?: {
-    shell?: string;
-    args?: string[];
-    name?: string;
-    profileId?: string;
-    env?: Record<string, string>;
-  }): string {
+  createSession(options?: AddSessionOptions): string {
     // Bottom-panel Terminal is intentionally hidden while the standalone Terminal tab is the single source of truth.
     // PanelService.showBottomPanel("terminal");
     void WorkStationViewService.openTerminalTab();
     const store = getStore();
     const newId = store.set(editorAddTerminalSessionAtom, options);
     return newId;
+  },
+
+  /**
+   * Open a right-side workspace terminal that starts a CLI agent once the PTY is ready.
+   */
+  openCliTerminal(options: TerminalCliLaunchOptions): string {
+    return this.createSession({
+      name: options.title,
+      cwd: options.cwd,
+      cliAgentType: options.cliAgentType,
+      agentCommand: options.command,
+      expectedProcess: options.expectedProcess,
+    });
   },
 
   /**

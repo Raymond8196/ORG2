@@ -23,6 +23,7 @@ import {
   TerminalView,
   type TerminalViewHandle,
 } from "@src/components/TerminalInteractive";
+import { createLogger } from "@src/hooks/logger";
 import { useTerminalProcessPoller } from "@src/hooks/terminal";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { addToAgentAtom } from "@src/store/ui/addToAgentAtom";
@@ -33,14 +34,20 @@ import {
   commandFinishedAtom,
   commandPromptStartAtom,
 } from "@src/store/workstation/codeEditor/terminal/commandDetection";
+import { invokeTauri, listenTauri } from "@src/util/platform/tauri/init";
+import { toBackendPtySessionId } from "@src/util/ui/terminal/ptySessionId";
 
 import { TerminalSearchPanel } from "./components/TerminalSearchPanel";
-import type { UseTerminalStateReturn } from "./types";
+import { TERMINAL_AGENT_STATUS, type UseTerminalStateReturn } from "./types";
 
 // Lazy-load the read-only terminal to keep xterm (~300KB) from doubling the chunk
 const TerminalReadOnly = React.lazy(
   () => import("@src/components/TerminalReadOnly")
 );
+
+const logger = createLogger("TerminalCore");
+const AGENT_COMMAND_INJECTION_DELAY_MS = 300;
+const injectedAgentCommandSessionIds = new Set<string>();
 
 // ============================================
 // Types
@@ -67,6 +74,8 @@ export interface TerminalCoreProps {
   onOpenFileLink?: (target: TerminalFileLinkTarget) => void;
   /** True when this terminal tree is visible after tab switching. */
   visible?: boolean;
+  /** Inject `agentCommand` after PTY initialization for workspace-hosted CLI agents. */
+  autoLaunchAgentCommand?: boolean;
 }
 
 // ============================================
@@ -80,9 +89,15 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
   repoPath,
   onOpenFileLink,
   visible = true,
+  autoLaunchAgentCommand = true,
 }) => {
-  const { sessions, activeSessionId, initializedSessions, updateSessionInfo } =
-    terminalState;
+  const {
+    sessions,
+    activeSessionId,
+    activeSession,
+    initializedSessions,
+    updateSessionInfo,
+  } = terminalState;
   const [processRefreshSignal, setProcessRefreshSignal] = useState(0);
 
   const requestProcessRefresh = useCallback(() => {
@@ -138,6 +153,71 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
       window.clearTimeout(settleTimerId);
     };
   }, [activeSessionId, visible]);
+
+  useEffect(() => {
+    if (!autoLaunchAgentCommand || !visible || !activeSession?.agentCommand) {
+      return;
+    }
+    if (!initializedSessions.has(activeSession.id)) return;
+    if (injectedAgentCommandSessionIds.has(activeSession.id)) return;
+
+    injectedAgentCommandSessionIds.add(activeSession.id);
+    const sessionId = activeSession.id;
+    const command = activeSession.agentCommand;
+    const ptySessionId = toBackendPtySessionId(sessionId);
+
+    const timerId = window.setTimeout(() => {
+      invokeTauri("write_pty", {
+        sessionId: ptySessionId,
+        data: `${command}\n`,
+      })
+        .then(() => {
+          updateSessionInfo(sessionId, {
+            agentStatus: TERMINAL_AGENT_STATUS.RUNNING,
+            hasUserInput: true,
+          });
+        })
+        .catch((err: unknown) => {
+          logger.warn("Failed to inject CLI command into PTY", err);
+        });
+    }, AGENT_COMMAND_INJECTION_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [
+    autoLaunchAgentCommand,
+    visible,
+    activeSession?.id,
+    activeSession?.agentCommand,
+    initializedSessions,
+    updateSessionInfo,
+  ]);
+
+  useEffect(() => {
+    if (!autoLaunchAgentCommand) return;
+
+    const agentSessions = sessions.filter((session) => session.agentCommand);
+    if (agentSessions.length === 0) return;
+
+    const unlistenPromises = agentSessions.map((session) => {
+      const ptySessionId = toBackendPtySessionId(session.id);
+      return listenTauri(`pty-exit-${ptySessionId}`, () => {
+        updateSessionInfo(session.id, {
+          agentStatus: TERMINAL_AGENT_STATUS.DONE,
+        });
+      }).catch((err: unknown) => {
+        logger.warn("Failed to listen for PTY exit", err);
+        return undefined;
+      });
+    });
+
+    return () => {
+      unlistenPromises.forEach((unlistenPromise) => {
+        unlistenPromise.then((unlisten) => unlisten?.()).catch(() => undefined);
+      });
+    };
+  }, [autoLaunchAgentCommand, sessions, updateSessionInfo]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

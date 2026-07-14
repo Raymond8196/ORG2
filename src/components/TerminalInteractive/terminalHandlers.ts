@@ -8,6 +8,11 @@ import { isMacOS } from "@src/util/platform/tauri";
 import { invokeTauri, isTauriReady } from "@src/util/platform/tauri/init";
 
 import { setTerminalBuffer } from "./bufferCache";
+import {
+  isImeInputEvent,
+  isImeKeyEvent,
+  isPostCompositionDuplicateInput,
+} from "./terminalImeDomEvents";
 import { TerminalImeInputController } from "./terminalImeInput";
 import { notifyPtyUserInput } from "./terminalPty";
 import type { TerminalViewProps } from "./types";
@@ -63,6 +68,7 @@ function registerMacCmdArrowHandler(terminal: Terminal): () => void {
 }
 
 const log = createLogger("Terminal");
+const POST_COMPOSITION_INPUT_SUPPRESS_MS = 120;
 
 interface RegisterTerminalEventHandlersParams {
   terminal: Terminal;
@@ -147,28 +153,130 @@ function registerInputHandler({
   const helperTextarea = containerRef.current?.querySelector(
     ".xterm-helper-textarea"
   );
-  const handleCompositionStart = () => {
+  let latestCompositionData = "";
+  let lastCompositionCommit = "";
+  let lastCompositionCommitUntil = 0;
+  const stopXtermImeEvent = (event: Event) => {
+    event.stopImmediatePropagation();
+  };
+  const handleImeKeyDownCapture = (event: Event) => {
+    if (!(event instanceof KeyboardEvent)) return;
+    if (!isImeKeyEvent(event) && !imeInput.isCompositionActive()) return;
     imeInput.handleCompositionStart();
+    stopXtermImeEvent(event);
+  };
+  const handleImeBeforeInputCapture = (event: Event) => {
+    if (!(event instanceof InputEvent)) return;
+    if (
+      isPostCompositionDuplicateInput(
+        event,
+        lastCompositionCommit,
+        Date.now() <= lastCompositionCommitUntil
+      )
+    ) {
+      stopXtermImeEvent(event);
+      return;
+    }
+    if (!isImeInputEvent(event)) return;
+    if (typeof event.data === "string") {
+      latestCompositionData = event.data;
+    }
+    imeInput.handleCompositionStart();
+    stopXtermImeEvent(event);
+  };
+  const handleImeInputCapture = (event: Event) => {
+    if (!(event instanceof InputEvent)) return;
+    if (
+      isPostCompositionDuplicateInput(
+        event,
+        lastCompositionCommit,
+        Date.now() <= lastCompositionCommitUntil
+      )
+    ) {
+      stopXtermImeEvent(event);
+      return;
+    }
+    if (!isImeInputEvent(event)) return;
+    if (typeof event.data === "string") {
+      latestCompositionData = event.data;
+    }
+    imeInput.handleCompositionStart();
+    stopXtermImeEvent(event);
+  };
+  const handleCompositionStart = (event: Event) => {
+    latestCompositionData = "";
+    imeInput.handleCompositionStart();
+    stopXtermImeEvent(event);
+  };
+  const handleCompositionUpdate = (event: Event) => {
+    if (event instanceof CompositionEvent && typeof event.data === "string") {
+      latestCompositionData = event.data;
+    }
+    stopXtermImeEvent(event);
   };
   const handleCompositionEnd = (event: Event) => {
     const data =
       event instanceof CompositionEvent && typeof event.data === "string"
         ? event.data
-        : "";
+        : latestCompositionData;
+    latestCompositionData = "";
+    lastCompositionCommit = data;
+    lastCompositionCommitUntil = data
+      ? Date.now() + POST_COMPOSITION_INPUT_SUPPRESS_MS
+      : 0;
+    stopXtermImeEvent(event);
     enqueueInput(imeInput.handleCompositionEnd(data));
   };
-  helperTextarea?.addEventListener("compositionstart", handleCompositionStart);
-  helperTextarea?.addEventListener("compositionend", handleCompositionEnd);
+  helperTextarea?.addEventListener("keydown", handleImeKeyDownCapture, true);
+  helperTextarea?.addEventListener(
+    "beforeinput",
+    handleImeBeforeInputCapture,
+    true
+  );
+  helperTextarea?.addEventListener("input", handleImeInputCapture, true);
+  helperTextarea?.addEventListener(
+    "compositionstart",
+    handleCompositionStart,
+    true
+  );
+  helperTextarea?.addEventListener(
+    "compositionupdate",
+    handleCompositionUpdate,
+    true
+  );
+  helperTextarea?.addEventListener(
+    "compositionend",
+    handleCompositionEnd,
+    true
+  );
 
   return {
     dispose: () => {
       helperTextarea?.removeEventListener(
+        "keydown",
+        handleImeKeyDownCapture,
+        true
+      );
+      helperTextarea?.removeEventListener(
+        "beforeinput",
+        handleImeBeforeInputCapture,
+        true
+      );
+      helperTextarea?.removeEventListener("input", handleImeInputCapture, true);
+      helperTextarea?.removeEventListener(
         "compositionstart",
-        handleCompositionStart
+        handleCompositionStart,
+        true
+      );
+      helperTextarea?.removeEventListener(
+        "compositionupdate",
+        handleCompositionUpdate,
+        true
       );
       helperTextarea?.removeEventListener(
         "compositionend",
-        handleCompositionEnd
+        handleCompositionEnd,
+        true
       );
       terminalInputHandler.dispose();
     },
