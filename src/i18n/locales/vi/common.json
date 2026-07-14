@@ -1149,9 +1149,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Cần token",
       "createTokenButton": "Tạo token",
-      "openGitSettingsButton": "Mở cài đặt Git",
+      "openGitSettingsButton": "Mở cài đặt",
       "configureInSettings": "Cấu hình Git trong cài đặt",
-      "configureInSettingsDesc": "Thêm quyền truy cập GitHub App, lưu token hoặc quét thông tin xác thực cục bộ trong Cài đặt → Tích hợp → Git, rồi thử lại thao tác Git này."
+      "configureInSettingsDesc": "Thêm quyền truy cập GitHub App, lưu token hoặc quét thông tin xác thực cục bộ trong Cài đặt → Kết nối, rồi thử lại thao tác Git này."
     },
     "actions": {
       "publish": "Publish",

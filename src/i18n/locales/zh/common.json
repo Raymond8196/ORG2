@@ -1166,9 +1166,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "需要 token",
       "createTokenButton": "创建 Token",
-      "openGitSettingsButton": "打开 Git 设置",
+      "openGitSettingsButton": "打开设置",
       "configureInSettings": "在设置中配置 Git",
-      "configureInSettingsDesc": "在 设置 → 集成 → Git 中添加 GitHub App 访问权限、保存 token 或扫描本地凭据，然后重试此 Git 操作。"
+      "configureInSettingsDesc": "在 设置 → 连接 中添加 GitHub App 访问权限、保存 token 或扫描本地凭据，然后重试此 Git 操作。"
     },
     "actions": {
       "publish": "Publish",

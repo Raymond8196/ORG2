@@ -1148,9 +1148,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token обязателен",
       "createTokenButton": "Создать token",
-      "openGitSettingsButton": "Открыть настройки Git",
+      "openGitSettingsButton": "Открыть настройки",
       "configureInSettings": "Настройте Git в настройках",
-      "configureInSettingsDesc": "Добавьте доступ GitHub App, сохраните token или просканируйте локальные учетные данные в Настройки → Интеграции → Git, затем повторите эту операцию Git."
+      "configureInSettingsDesc": "Добавьте доступ GitHub App, сохраните token или просканируйте локальные учетные данные в Настройки → Подключения, затем повторите эту операцию Git."
     },
     "actions": {
       "publish": "Publish",
