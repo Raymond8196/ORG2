@@ -122,6 +122,10 @@
         "apps": "アプリ",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "スキャン",
+        "hooks": "フック"
+      },
       "sessions_other": "{{count}} 件のセッション",
       "details": {
         "path": "パス",

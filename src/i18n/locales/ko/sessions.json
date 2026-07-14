@@ -122,6 +122,10 @@
         "apps": "앱",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "스캔",
+        "hooks": "훅"
+      },
       "sessions_other": "{{count}}개 세션",
       "details": {
         "path": "경로",

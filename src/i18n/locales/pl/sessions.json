@@ -122,6 +122,10 @@
         "apps": "Aplikacje",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "Skanowanie",
+        "hooks": "Hooks"
+      },
       "sessions_one": "{{count}} sesja",
       "sessions_few": "{{count}} sesje",
       "sessions_many": "{{count}} sesji",

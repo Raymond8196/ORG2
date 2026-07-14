@@ -122,6 +122,10 @@
         "apps": "Apps",
         "clis": "CLIs"
       },
+      "views": {
+        "scanning": "Escaneamento",
+        "hooks": "Hooks"
+      },
       "sessions_one": "{{count}} sessão",
       "sessions_other": "{{count}} sessões",
       "details": {

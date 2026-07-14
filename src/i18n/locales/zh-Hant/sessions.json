@@ -122,6 +122,10 @@
         "apps": "應用程式",
         "clis": "命令列"
       },
+      "views": {
+        "scanning": "掃描",
+        "hooks": "掛鉤"
+      },
       "sessions_other": "{{count}} 個工作階段",
       "details": {
         "path": "路徑",
