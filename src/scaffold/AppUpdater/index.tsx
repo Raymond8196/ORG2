@@ -396,7 +396,7 @@ export const AppUpdater: React.FC = () => {
               variant="primary"
               size="large"
               shape="round"
-              onClick={() => void handleInstallConfirm()}
+              onClick={handleInstallConfirm}
               data-modal-primary-action
             >
               {t("update.installAndRestart")}
