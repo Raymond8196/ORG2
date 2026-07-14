@@ -28,6 +28,10 @@ import {
   type SessionLinkCardData,
 } from "@src/engines/ChatPanel/blocks/ToolCallBlock/cards";
 import { imageRefToRustPath } from "@src/engines/SessionCore/ingestion/agentMessageAdapters";
+import {
+  formatSmartDateTime,
+  toIntlLocaleTag,
+} from "@src/util/data/formatters/date";
 
 import UserMessageContent from "../ChatHistory/components/UserMessageContent";
 import InputArea from "../InputArea";
@@ -182,7 +186,7 @@ const UserChatItem = ({
   onEditSubmit,
   onRestoreCheckpoint,
 }: UserChatItemProps) => {
-  const { t } = useTranslation("sessions");
+  const { t, i18n } = useTranslation("sessions");
   const [isEditing, setIsEditing] = useState(false);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -256,6 +260,20 @@ const UserChatItem = ({
     () => extractPrPillCards(fullContent),
     [fullContent]
   );
+
+  // Per-message timestamp shown beneath the bubble. Same smart-format used by
+  // the other chat surfaces (Group chat, Org task, email): today → 24h time,
+  // yesterday → "Yesterday HH:mm", older → "Jun 13, HH:mm".
+  const timestampLabel = useMemo(() => {
+    const createdAt = event?.createdAt;
+    if (!createdAt) return "";
+    return formatSmartDateTime(createdAt, {
+      yesterdayLabel: t("common:relativeDate.yesterday", {
+        defaultValue: "Yesterday",
+      }),
+      locale: toIntlLocaleTag(i18n.resolvedLanguage),
+    });
+  }, [event?.createdAt, t, i18n.resolvedLanguage]);
 
   const handleToggleTruncation = useCallback(
     (event: SyntheticEvent) => {
@@ -475,6 +493,11 @@ const UserChatItem = ({
           )}
         </div>
       </div>
+      {timestampLabel && (
+        <div className="mt-1 px-1 text-[11px] leading-none text-text-3">
+          {timestampLabel}
+        </div>
+      )}
       {prPillCards.length > 0 && (
         <div className="mt-1 flex w-full max-w-2xl flex-col">
           {prPillCards.map((card) => (
