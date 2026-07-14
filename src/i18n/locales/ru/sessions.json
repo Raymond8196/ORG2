@@ -122,6 +122,10 @@
         "apps": "Приложения",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "Сканирование",
+        "hooks": "Хуки"
+      },
       "sessions_one": "{{count}} сессия",
       "sessions_few": "{{count}} сессии",
       "sessions_many": "{{count}} сессий",

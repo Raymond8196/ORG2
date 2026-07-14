@@ -122,6 +122,10 @@
         "apps": "Uygulamalar",
         "clis": "CLI'ler"
       },
+      "views": {
+        "scanning": "Tarama",
+        "hooks": "Hooks"
+      },
       "sessions_one": "{{count}} oturum",
       "sessions_other": "{{count}} oturum",
       "details": {

@@ -122,6 +122,10 @@
         "apps": "Ứng dụng",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "Quét",
+        "hooks": "Hooks"
+      },
       "sessions_other": "{{count}} phiên",
       "details": {
         "path": "Đường dẫn",

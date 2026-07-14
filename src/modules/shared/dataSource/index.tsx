@@ -116,6 +116,8 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
   // sourceId whose rescan split-menu is open (null = none).
   const [openRescanMenu, setOpenRescanMenu] = useState<string | null>(null);
   const [tab, setTab] = useState<DataSourceTab>("all");
+  // Top-level panel view: the scan inventory vs. the (not-yet-built) hooks tab.
+  const [panelView, setPanelView] = useState<"scanning" | "hooks">("scanning");
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [configMap, setConfigMap] = useAtom(dataSourceConfigAtom);
@@ -561,93 +563,103 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
     <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
       <div className="mx-auto flex w-full max-w-[932px] flex-col gap-3 p-4">
         {headerContent}
-        <div className="min-w-0">
-          <div className="text-sm font-medium text-text-1">{t("title")}</div>
-          <div className="mt-0.5 text-xs text-text-3">{t("description")}</div>
-        </div>
-
-        {importableCount > 0 && (
-          <SectionContainer>
-            <SectionRow
-              label={t("globalFrequency")}
-              description={t("globalFrequencyDesc")}
-            >
-              <Select
-                value={globalFrequency}
-                onChange={(v) => {
-                  if (typeof v === "string") {
-                    setGlobalFrequency(v as ScanFrequency);
-                  }
-                }}
-                options={globalFrequencyOptions}
-                size="default"
-                style={SECTION_CONTROL_STYLE}
-                aria-label={t("globalFrequency")}
-              />
-            </SectionRow>
-          </SectionContainer>
-        )}
-
-        <SettingsTable<SourceRow>
-          columns={columns}
-          rows={searchedRows}
-          getRowKey={(row) => row.probe.sourceId}
-          headerHeight="tall"
-          // Keep the sticky header a single row (search + tab pills + rescan
-          // share one 32px toolbar), matching the Settings CLI clients table
-          // instead of stacking the pills onto a second row.
-          inlineHeaderToolbar
-          className="table-expanded-no-hover table-settings-expanded-compact"
-          hover
-          loading={rows === null}
-          emptyTitle={searchTerm ? tCommon("status.noResults") : undefined}
-          searchBar={{
-            searchValue: searchQuery,
-            searchPlaceholder: tCommon("common.searchPlaceholder"),
-            onSearchChange: setSearchQuery,
-            onSearchClear: () => setSearchQuery(""),
-            rightContent:
-              (rows ?? []).length > 0 ? (
-                <Button
-                  variant="secondary"
-                  size="small"
-                  loading={rescanningAll}
-                  icon={<RefreshCw size={14} />}
-                  onClick={() => void handleRescanAll()}
-                >
-                  {t("rescanAll")}
-                </Button>
-              ) : undefined,
-            tabPills: (
-              <TabPill
-                activeTab={tab}
-                tabs={tabs}
-                onChange={(key) => setTab(key as DataSourceTab)}
-                variant="pill"
-                color="fill"
-                fillWidth={false}
-                size="small"
-              />
-            ),
-            searchCountText:
-              searchTerm && searchedRows.length !== visibleRows.length
-                ? `${searchedRows.length} / ${visibleRows.length}`
-                : undefined,
-          }}
-          expandable={{
-            expandedRowRender: (row) => (
-              <DataSourceDetailsCard
-                probe={row.probe}
-                stats={row.stats}
-                onOpenFolder={openFolder}
-                onCopyPath={(path) => void copyText(path)}
-              />
-            ),
-            rowExpandable: (row) => row.probe.historyPaths.length > 0,
-            expandedRowKeys,
-            onExpandedRowsChange: setExpandedRowKeys,
-          }}
+        <TabPill
+          activeTab={panelView}
+          tabs={[
+            { key: "scanning", label: t("views.scanning") },
+            { key: "hooks", label: t("views.hooks") },
+          ]}
+          onChange={(key) => setPanelView(key as "scanning" | "hooks")}
+          variant="simple"
+          fillWidth={false}
         />
+
+        {panelView === "scanning" ? (
+          <>
+            {importableCount > 0 && (
+              <SectionContainer>
+                <SectionRow
+                  label={t("globalFrequency")}
+                  description={t("globalFrequencyDesc")}
+                >
+                  <Select
+                    value={globalFrequency}
+                    onChange={(v) => {
+                      if (typeof v === "string") {
+                        setGlobalFrequency(v as ScanFrequency);
+                      }
+                    }}
+                    options={globalFrequencyOptions}
+                    size="default"
+                    style={SECTION_CONTROL_STYLE}
+                    aria-label={t("globalFrequency")}
+                  />
+                </SectionRow>
+              </SectionContainer>
+            )}
+
+            <SettingsTable<SourceRow>
+              columns={columns}
+              rows={searchedRows}
+              getRowKey={(row) => row.probe.sourceId}
+              headerHeight="tall"
+              // Keep the sticky header a single row (search + tab pills + rescan
+              // share one 32px toolbar), matching the Settings CLI clients table
+              // instead of stacking the pills onto a second row.
+              inlineHeaderToolbar
+              className="table-expanded-no-hover table-settings-expanded-compact"
+              hover
+              loading={rows === null}
+              emptyTitle={searchTerm ? tCommon("status.noResults") : undefined}
+              searchBar={{
+                searchValue: searchQuery,
+                searchPlaceholder: tCommon("common.searchPlaceholder"),
+                onSearchChange: setSearchQuery,
+                onSearchClear: () => setSearchQuery(""),
+                rightContent:
+                  (rows ?? []).length > 0 ? (
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      loading={rescanningAll}
+                      icon={<RefreshCw size={14} />}
+                      onClick={() => void handleRescanAll()}
+                    >
+                      {t("rescanAll")}
+                    </Button>
+                  ) : undefined,
+                tabPills: (
+                  <TabPill
+                    activeTab={tab}
+                    tabs={tabs}
+                    onChange={(key) => setTab(key as DataSourceTab)}
+                    variant="pill"
+                    color="fill"
+                    fillWidth={false}
+                    size="small"
+                  />
+                ),
+                searchCountText:
+                  searchTerm && searchedRows.length !== visibleRows.length
+                    ? `${searchedRows.length} / ${visibleRows.length}`
+                    : undefined,
+              }}
+              expandable={{
+                expandedRowRender: (row) => (
+                  <DataSourceDetailsCard
+                    probe={row.probe}
+                    stats={row.stats}
+                    onOpenFolder={openFolder}
+                    onCopyPath={(path) => void copyText(path)}
+                  />
+                ),
+                rowExpandable: (row) => row.probe.historyPaths.length > 0,
+                expandedRowKeys,
+                onExpandedRowsChange: setExpandedRowKeys,
+              }}
+            />
+          </>
+        ) : null}
       </div>
     </div>
   );
