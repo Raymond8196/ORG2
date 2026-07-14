@@ -9,7 +9,6 @@
  * Rendered as a compact quick-action list: label + keyboard hint, no icon.
  */
 import React, { memo, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   KEYBOARD_SHORTCUT_VARIANT,
@@ -49,7 +48,6 @@ const StartActionRow = memo<StartActionRowProps>(
 StartActionRow.displayName = "StartActionRow";
 
 export const WorkStationStartPage: React.FC = memo(() => {
-  const { t } = useTranslation("navigation");
   const actions = useWorkStationLaunchActions();
 
   const visibleActions = useMemo(
@@ -62,12 +60,6 @@ export const WorkStationStartPage: React.FC = memo(() => {
       className={`flex h-full w-full items-center justify-center overflow-auto p-8 ${EDITOR_TAB_CANVAS_BG_CLASS}`}
     >
       <div className="w-full max-w-[420px]">
-        <h1 className="mb-1 text-[20px] font-semibold text-text-1">
-          {t("routes.launchpad")}
-        </h1>
-        <p className="mb-5 text-[13px] leading-snug text-text-3">
-          {t("workstation.startPage.subtitle")}
-        </p>
         <div className="flex flex-col gap-0.5">
           {visibleActions.map((action) => (
             <StartActionRow

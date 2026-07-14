@@ -14,9 +14,9 @@
 import { useSetAtom } from "jotai";
 import {
   Box,
+  FileDiff,
   FileSearch,
   FolderTree,
-  GitBranch,
   Globe,
   ListTodo,
   type LucideIcon,
@@ -122,7 +122,7 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       },
       {
         id: "sourceControl",
-        icon: GitBranch,
+        icon: FileDiff,
         label: t("workstation.startPage.sourceControl"),
         shortcut: getShortcutKeys("open_source_control_tab"),
         onClick: () =>
