@@ -82,6 +82,11 @@ export function AppShellContent({
   const { t } = useTranslation();
   const activeTab = useAtomValue(activeWorkStationTabAtom);
   const noTabs = useAtomValue(mainPaneTabsAtom).length === 0;
+  // The Browser host is pinned outside the `mainPane` pool, so when it's the
+  // active surface the pool can still read as "start"/empty — don't let the
+  // launcher paint over it.
+  const showStartPage =
+    !isBrowserMode && (activeTab?.type === "start" || noTabs);
   const activeTabCanRenderWithoutRepo =
     activeTab?.type === "agent-config" ||
     activeTab?.type === "chat-session" ||
@@ -137,52 +142,67 @@ export function AppShellContent({
         className="h-full w-full"
         style={{ display: isAgentStation ? "none" : "contents" }}
       >
-        {noTabs && !isAgentStation ? (
-          <div className="h-full w-full">
+        {/*
+          Empty-pool start page. The hosts below stay MOUNTED (hidden) even
+          when the launcher is showing so their side effects keep running —
+          in particular the Browser host owns the new-session effect that
+          turns a "New Browser Tab" request into a live session. We toggle
+          visibility against the start page rather than unmounting them.
+        */}
+        {!isAgentStation && (
+          <div
+            className="h-full w-full"
+            style={{ display: showStartPage ? "block" : "none" }}
+          >
             <WorkStationStartPage />
           </div>
-        ) : null}
-        {noTabs ? null : (
-          <>
-            {(isCodeMode || hasVisitedCode) && (
-              <div
-                className="relative h-full w-full"
-                data-tour-target={CODE_EDITOR_TOUR_TARGETS.editorSurface}
-                style={{ display: codeContentVisible ? "block" : "none" }}
-              >
-                {renderCodeEditor()}
-                {codeContentVisible && isActive && !isAgentStation && (
-                  <LspInstallPrompt />
-                )}
-              </div>
-            )}
+        )}
+        {(isCodeMode || hasVisitedCode) && (
+          <div
+            className="relative h-full w-full"
+            data-tour-target={CODE_EDITOR_TOUR_TARGETS.editorSurface}
+            style={{
+              display: !showStartPage && codeContentVisible ? "block" : "none",
+            }}
+          >
+            {renderCodeEditor()}
+            {!showStartPage &&
+              codeContentVisible &&
+              isActive &&
+              !isAgentStation && <LspInstallPrompt />}
+          </div>
+        )}
 
-            {(isBrowserMode || hasVisitedBrowser) && (
-              <div
-                className="h-full w-full"
-                style={{ display: browserContentVisible ? "block" : "none" }}
-              >
-                <Suspense fallback={<AppShellLoadingPlaceholder />}>
-                  <Browser
-                    repoPath={repoPath}
-                    repoName={repoName}
-                    isActive={isActive && browserContentVisible}
-                  />
-                </Suspense>
-              </div>
-            )}
+        {(isBrowserMode || hasVisitedBrowser) && (
+          <div
+            className="h-full w-full"
+            style={{
+              display:
+                !showStartPage && browserContentVisible ? "block" : "none",
+            }}
+          >
+            <Suspense fallback={<AppShellLoadingPlaceholder />}>
+              <Browser
+                repoPath={repoPath}
+                repoName={repoName}
+                isActive={isActive && !showStartPage && browserContentVisible}
+              />
+            </Suspense>
+          </div>
+        )}
 
-            {(isProjectMode || hasVisitedProject) && (
-              <div
-                className="h-full w-full"
-                style={{ display: projectContentVisible ? "block" : "none" }}
-              >
-                <Suspense fallback={<AppShellLoadingPlaceholder />}>
-                  <ProjectManagerCore repoPath={repoPath} repoName={repoName} />
-                </Suspense>
-              </div>
-            )}
-          </>
+        {(isProjectMode || hasVisitedProject) && (
+          <div
+            className="h-full w-full"
+            style={{
+              display:
+                !showStartPage && projectContentVisible ? "block" : "none",
+            }}
+          >
+            <Suspense fallback={<AppShellLoadingPlaceholder />}>
+              <ProjectManagerCore repoPath={repoPath} repoName={repoName} />
+            </Suspense>
+          </div>
         )}
       </div>
     </>

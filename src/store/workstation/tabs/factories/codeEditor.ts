@@ -106,6 +106,17 @@ export function createExplorerTab(): WorkStationTab {
   return explorerTabFactory({});
 }
 
+export const startTabFactory = defineTabFactory<Record<string, never>>({
+  tabType: "start",
+  idStrategy: { type: "singleton", id: "start:main" },
+  getTitle: () => "Start",
+  icon: "House",
+});
+
+export function createStartTab(): WorkStationTab {
+  return startTabFactory({});
+}
+
 // ============================================
 // Git Diff Tabs
 // ============================================

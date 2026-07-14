@@ -34,6 +34,7 @@ import { useAppShellRepo } from "./hooks/useAppShellRepo";
 import { useAppShellSimulatorPanelSync } from "./hooks/useAppShellSimulatorPanelSync";
 import { useAppShellStationMode } from "./hooks/useAppShellStationMode";
 import { useAppShellStatusBar } from "./hooks/useAppShellStatusBar";
+import { useEnsureStartTab } from "./hooks/useEnsureStartTab";
 
 interface AppShellProps {
   /** Whether WorkStation is currently visible (code view mode is active) */
@@ -74,6 +75,10 @@ const AppShell = React.memo(
       captionEnabled &&
       !!captionMessage &&
       !!workstationActiveSessionId;
+
+    // Seed the empty tab pool with a Start launcher tab on first mount
+    // (regular WorkStation only — Agent Station has its own surface).
+    useEnsureStartTab(!isAgentStation);
 
     const workStationPanels = useWorkStationPanels();
     useAppShellSimulatorPanelSync({ isAgentStation, workStationPanels });
