@@ -31,6 +31,12 @@ const ExplorerEntry: RendererEntry = {
   debugLabel: "explorer",
 };
 
+const DirectoryEntry: RendererEntry = {
+  Component: lazy(() => import("./renderers/directory")),
+  requiresRepo: true,
+  debugLabel: "directory",
+};
+
 const GitDiffEntry: RendererEntry = {
   Component: lazy(() => import("./renderers/gitDiff")),
   requiresRepo: true,
@@ -241,7 +247,7 @@ const StartEntry: RendererEntry = {
 export const REGISTRY: TabContentRegistry = {
   // Code Editor
   file: FileEntry,
-  directory: ExplorerEntry,
+  directory: DirectoryEntry,
   explorer: ExplorerEntry,
   "git-diff": GitDiffEntry,
   "source-control": SourceControlEntry,
