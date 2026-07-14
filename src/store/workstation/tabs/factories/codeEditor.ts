@@ -270,7 +270,7 @@ export const sourceControlTabFactory = defineTabFactory<SourceControlTabData>({
     getKey: (data) => (data.staged ? "staged-changes" : "changes"),
   },
   getTitle: () => "Source Control",
-  icon: "GitBranch",
+  icon: "FileDiff",
 });
 
 export function createSourceControlTab(
