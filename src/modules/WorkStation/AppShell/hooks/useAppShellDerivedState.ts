@@ -5,12 +5,11 @@ import {
   type StatusBarAppType,
   activeStatusBarAppAtom,
 } from "@src/store/ui/workStationAtom";
-import { type DockFilter, activeHostAtom } from "@src/store/workstation";
-
-import { useActiveTabHostReconciliation } from "./useActiveTabHostReconciliation";
+import { activeHostAtom } from "@src/store/workstation";
+import type { WorkstationTabHost } from "@src/store/workstation/tabHost";
 
 export interface AppShellDerivedState {
-  effectiveHost: string;
+  activeHost: WorkstationTabHost;
   isCodeMode: boolean;
   isBrowserMode: boolean;
   isProjectMode: boolean;
@@ -19,25 +18,17 @@ export interface AppShellDerivedState {
   projectContentVisible: boolean;
 }
 
-function isWorkStationHost(host: string): host is Exclude<DockFilter, "all"> {
-  return host === "code" || host === "browser" || host === "project";
-}
-
 export function useAppShellDerivedState(): AppShellDerivedState {
   // Unified surface: the content host simply follows the active tab's host.
   // Browser sessions live in `mainPane` (as `browser-session` tabs), so a
   // browser tab makes `activeHost` "browser" on its own — no host pin needed,
   // and closing the last tab lands back on the Launchpad instead of a
   // stranded empty host.
-  const effectiveHost = useAtomValue(activeHostAtom);
+  const activeHost = useAtomValue(activeHostAtom);
 
-  useActiveTabHostReconciliation(
-    isWorkStationHost(effectiveHost) ? effectiveHost : null
-  );
-
-  const isCodeMode = effectiveHost === "code";
-  const isBrowserMode = effectiveHost === "browser";
-  const isProjectMode = effectiveHost === "project";
+  const isCodeMode = activeHost === "code";
+  const isBrowserMode = activeHost === "browser";
+  const isProjectMode = activeHost === "project";
 
   const codeContentVisible = isCodeMode;
   const browserContentVisible = isBrowserMode;
@@ -46,18 +37,18 @@ export function useAppShellDerivedState(): AppShellDerivedState {
   const setActiveStatusBarApp = useSetAtom(activeStatusBarAppAtom);
   useEffect(() => {
     let appType: StatusBarAppType;
-    if (effectiveHost === "browser") {
+    if (activeHost === "browser") {
       appType = "browser";
-    } else if (effectiveHost === "project") {
+    } else if (activeHost === "project") {
       appType = "project";
     } else {
       appType = "code";
     }
     setActiveStatusBarApp(appType);
-  }, [effectiveHost, setActiveStatusBarApp]);
+  }, [activeHost, setActiveStatusBarApp]);
 
   return {
-    effectiveHost,
+    activeHost,
     isCodeMode,
     isBrowserMode,
     isProjectMode,

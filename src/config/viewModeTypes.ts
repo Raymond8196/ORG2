@@ -10,4 +10,4 @@
 export type ViewModeType = "mainApp" | "workStation";
 
 /** App mode type for Workstation sub-navigation. */
-export type AppModeType = "code" | "data" | "browser" | "chat" | "project";
+export type AppModeType = "code" | "browser" | "chat" | "project";

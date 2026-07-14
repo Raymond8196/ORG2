@@ -50,12 +50,14 @@ import {
   usePublishWorkstationTabHeader,
   useWorkStationTabShortcutBridge,
 } from "@src/hooks/workStation";
+import UnifiedTabContent from "@src/modules/WorkStation/TabContent/UnifiedTabContent";
 import {
   NoTabsPlaceholder,
   TabBarBottomPanelToggle,
 } from "@src/modules/WorkStation/shared";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { useStickyMount } from "@src/modules/shared/hooks/useStickyMount";
+import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
   workStationPrimarySidebarCollapsedAtom,
   workStationPrimarySidebarCollapsedPersistAtom,
@@ -81,7 +83,6 @@ import {
   createSourceControlQuickActions,
 } from "./config";
 import type { SourceControlDestination } from "./config";
-import { TabContentRenderer } from "./content";
 import SourceControlMainPane from "./content/SourceControlMainPane";
 import type { SourceControlMainTabData } from "./content/sourceControlMainProps";
 import {
@@ -100,6 +101,18 @@ import type { EditorContentProps } from "./types";
 
 const TerminalMainContent = React.lazy(
   () => import("./content/TerminalMainContent")
+);
+
+// Empty read-only editor shown in the rare tabs-exist-but-activeTab-null window
+// (see the `!activeTab` guard below). Mirrors the old TabContentRenderer's
+// `!activeTab` branch.
+const CodeViewerContent = React.lazy(
+  () => import("./content/CodeViewerContent")
+);
+
+/** Lightweight fallback shown while lazy chunks load */
+const LazyFallback = () => (
+  <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
 );
 
 // ============================================
@@ -808,30 +821,32 @@ const EditorContent: React.FC<EditorContentProps> = memo(
                     icon="editor"
                     actions={editorQuickActions}
                   />
+                ) : activeTab ? (
+                  <UnifiedTabContent tab={activeTab} paneId="main" isActive />
                 ) : (
-                  <TabContentRenderer
-                    activeTab={activeTab}
-                    repoPath={repoPath}
-                    repoId={repoId ?? null}
-                    fileContentState={fileContentManager}
-                    gitFilesByPath={gitFilesByPath}
-                    sourceControlAttributedFiles={sourceControlAttributedFiles}
-                    gitDiffLoading={gitDiffLoading}
-                    forceRefresh={forceRefresh}
-                    onFileSelect={onFileSelect}
-                    onFileSelectWithLine={onFileSelectWithLine}
-                    onDiagnosticsChange={onDiagnosticsChange}
-                    onCursorPositionChange={onCursorPositionChange}
-                    onSearchTabTitleChange={handleSearchTabTitleChange}
-                    onGitDiffUnsavedChange={handleGitDiffUnsavedChange}
-                    onBinaryUnsavedChange={handleBinaryUnsavedChange}
-                    sourceControlCollapseAllSignal={
-                      sourceControlCollapseAllSignal
-                    }
-                    sourceControlFilterMode={sourceControlFilterMode}
-                    terminalState={terminalState}
-                    editorQuickActions={editorQuickActions}
-                  />
+                  // Preserve TabContentRenderer's `!activeTab` branch: an empty
+                  // read-only editor. `showAppPlaceholder` already covers
+                  // `hasNoTabs`; this guards the rare tabs-exist-but-activeTab-null
+                  // window so we don't render a blank pane.
+                  <Suspense fallback={<LazyFallback />}>
+                    <CodeViewerContent
+                      selectedFile={null}
+                      fileContent=""
+                      loading={false}
+                      error={null}
+                      repoPath={repoPath}
+                      onFileSelect={onFileSelect}
+                      onContentChange={fileContentManager.handleContentChange}
+                      onSave={fileContentManager.handleSave}
+                      onDiscard={fileContentManager.handleDiscard}
+                      onReload={fileContentManager.handleReload}
+                      hasUnsavedChanges={false}
+                      saving={false}
+                      requiresFilePreviewRoute={false}
+                      onDiagnosticsChange={onDiagnosticsChange}
+                      onCursorPositionChange={onCursorPositionChange}
+                    />
+                  </Suspense>
                 )}
               </div>
             )}

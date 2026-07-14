@@ -8,8 +8,8 @@
  *
  * Each action opens (or activates) a real `mainPane` tab, except the Browser
  * entries — the Browser host keeps its sessions in a separate store, so those
- * reveal the Browser surface (`dockFilter = "browser"`) and request a session
- * instead of adding a `mainPane` tab.
+ * request a session (the Browser host is pre-mounted via `visitedModes`
+ * seeding) instead of adding a `mainPane` tab.
  */
 import { useSetAtom } from "jotai";
 import {
@@ -37,7 +37,6 @@ import {
   createProjectWorkItemsIndexTab,
   createSourceControlTab,
   createTerminalTab,
-  dockFilterAtom,
   openTab as openTabMutation,
   requestNewBrowserSessionAtom,
   workstationLayoutAtom,
@@ -83,7 +82,6 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
   const { t } = useTranslation("navigation");
   const requestNewBrowserSession = useSetAtom(requestNewBrowserSessionAtom);
   const setLayout = useSetAtom(workstationLayoutAtom);
-  const setDockFilter = useSetAtom(dockFilterAtom);
 
   const openTabInMainPane = useCallback(
     (tab: WorkStationTab) => {
@@ -97,11 +95,10 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
 
   const openBrowser = useCallback(
     (isPrivate: boolean) => {
-      setDockFilter("browser");
       requestNewBrowserSession(isPrivate ? { isPrivate: true } : {});
       focusBrowserUrlBar();
     },
-    [setDockFilter, requestNewBrowserSession]
+    [requestNewBrowserSession]
   );
 
   return useMemo<WorkStationLaunchAction[]>(

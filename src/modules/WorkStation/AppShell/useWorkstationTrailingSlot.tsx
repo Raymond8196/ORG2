@@ -19,7 +19,6 @@ import { type ReactNode, startTransition, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
-import type { AppModeType } from "@src/config/viewModeTypes";
 import ProjectManagerWorkItemsTabBarTrailing from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectManagerWorkItemsTabBarTrailing";
 import { TabBarPlusMenu } from "@src/modules/WorkStation/AppShell/TabBarPlusMenu";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared";
@@ -32,11 +31,12 @@ import {
 } from "@src/store/ui/chatPanelAtom";
 import { workStationChatPositionAtom } from "@src/store/ui/workStationAtom";
 import { workstationProjectTabBarAtom } from "@src/store/workstation";
+import type { WorkstationTabHost } from "@src/store/workstation/tabHost";
 
 import type { UseWorkstationTabListReturn } from "./useWorkstationTabList";
 
 export interface UseWorkstationTrailingSlotOptions {
-  appMode: AppModeType;
+  host: WorkstationTabHost;
   visible: UseWorkstationTabListReturn["visible"];
 }
 
@@ -46,7 +46,7 @@ export interface UseWorkstationTrailingSlotReturn {
 }
 
 export function useWorkstationTrailingSlot({
-  appMode,
+  host,
   visible,
 }: UseWorkstationTrailingSlotOptions): UseWorkstationTrailingSlotReturn {
   const { t } = useTranslation(["sessions", "common", "settings"]);
@@ -146,7 +146,7 @@ export function useWorkstationTrailingSlot({
       </TabBarTrailingIconButton>
     ) : null;
 
-    if (appMode === "code") {
+    if (host === "code") {
       return (
         <>
           {plusMenuControl}
@@ -158,7 +158,7 @@ export function useWorkstationTrailingSlot({
       );
     }
 
-    if (appMode === "project" && projectTabBar) {
+    if (host === "project" && projectTabBar) {
       const activeRawId =
         visible.find((entry) => entry.isActive)?.tab.id ??
         visible[0]?.tab.id ??
@@ -188,7 +188,7 @@ export function useWorkstationTrailingSlot({
       </>
     );
   }, [
-    appMode,
+    host,
     handleToggleChatPanel,
     handleToggleChatPanelMaximized,
     isChatPanelVisible,
