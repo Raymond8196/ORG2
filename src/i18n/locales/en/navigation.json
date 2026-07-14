@@ -77,7 +77,10 @@
     },
     "startPage": {
       "title": "Start",
-      "subtitle": "Open a tab to get started."
+      "subtitle": "Open a tab to get started.",
+      "explorer": "Explorer",
+      "sourceControl": "Source Control",
+      "terminal": "Terminal"
     }
   },
   "trajectoryPanel": {
