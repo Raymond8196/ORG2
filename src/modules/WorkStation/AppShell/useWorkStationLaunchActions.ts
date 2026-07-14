@@ -16,7 +16,7 @@ import {
   Box,
   FileDiff,
   FileSearch,
-  FolderTree,
+  Folder,
   Globe,
   ListTodo,
   type LucideIcon,
@@ -70,8 +70,8 @@ export interface WorkStationLaunchAction {
  * hook still returns its action); we only hide the entrance.
  */
 export const LAUNCHPAD_ACTION_IDS: readonly WorkStationLaunchActionId[] = [
-  "searchFile",
   "explorer",
+  "searchFile",
   "sourceControl",
   "terminal",
   "newBrowserTab",
@@ -107,18 +107,18 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
   return useMemo<WorkStationLaunchAction[]>(
     () => [
       {
+        id: "explorer",
+        icon: Folder,
+        label: t("common:labels.files"),
+        shortcut: getShortcutKeys("open_file_folder_tab"),
+        onClick: () => openTabInMainPane(createExplorerTab()),
+      },
+      {
         id: "searchFile",
         icon: FileSearch,
         label: t("workstation.plusMenu.searchFile"),
         shortcut: "⌘P",
         onClick: () => openEditorSpotlight(""),
-      },
-      {
-        id: "explorer",
-        icon: FolderTree,
-        label: t("common:labels.files"),
-        shortcut: getShortcutKeys("open_file_folder_tab"),
-        onClick: () => openTabInMainPane(createExplorerTab()),
       },
       {
         id: "sourceControl",
