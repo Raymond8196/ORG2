@@ -4,10 +4,10 @@ import {
   Braces,
   Check,
   Code,
+  Folder,
   FolderTree,
   GitBranch,
   GitCommit,
-  GitFork,
   Loader2,
   Unplug,
   X,
@@ -52,6 +52,7 @@ import {
   StatusBarSegment,
   StatusBarText,
 } from "./StatusBarBase";
+import { StatusBarTooltip } from "./StatusBarTooltip";
 import type { EditorStatusBarProps, PanelRow } from "./types";
 import {
   countActiveLanguageServiceSources,
@@ -92,7 +93,6 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
 
     const {
       workspaceLabel,
-      workspaceTooltip,
       isMultiRoot,
       aheadCount,
       behindCount,
@@ -183,21 +183,31 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
       () => (
         <>
           {repoName ? (
-            <StatusBarButton
-              onClick={onRepoClick}
-              title={workspaceTooltip}
-              className="min-w-0 max-w-48"
-              dataTestId="status-bar-repo-name"
-            >
-              {isMultiRoot ? (
-                <FolderTree size={13} className="shrink-0 text-text-1" />
-              ) : (
-                <Code size={13} className="shrink-0 text-text-1" />
+            <StatusBarTooltip
+              label={t(
+                "workstation.switchWorkspaceTooltip",
+                "Switch workspace"
               )}
-              <span className="min-w-0 truncate font-medium text-text-1">
-                {workspaceLabel}
-              </span>
-            </StatusBarButton>
+            >
+              <StatusBarButton
+                onClick={onRepoClick}
+                ariaLabel={t(
+                  "workstation.switchWorkspaceTooltip",
+                  "Switch workspace"
+                )}
+                className="min-w-0 max-w-48"
+                dataTestId="status-bar-repo-name"
+              >
+                {isMultiRoot ? (
+                  <FolderTree size={13} className="shrink-0 text-text-1" />
+                ) : (
+                  <Code size={13} className="shrink-0 text-text-1" />
+                )}
+                <span className="min-w-0 truncate font-medium text-text-1">
+                  {workspaceLabel}
+                </span>
+              </StatusBarButton>
+            </StatusBarTooltip>
           ) : (
             <StatusBarButton
               onClick={onRepoClick}
@@ -224,57 +234,69 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
           )}
 
           {showGitControls && branchName && (
-            <StatusBarButton
-              onClick={onWorktreeClick}
-              title={
-                activeWorktree
-                  ? `${activeWorktree.path} · ${activeWorktree.branch}`
-                  : t("selectors.branch.labels.mainWorktree", "Main worktree")
-              }
-              className="min-w-0 max-w-56"
-              dataTestId="status-bar-worktree"
+            <StatusBarTooltip
+              label={t("workstation.switchWorktreeTooltip", "Switch worktree")}
             >
-              <GitFork size={13} className="shrink-0 text-text-1" />
-              <span className="min-w-0 truncate font-medium text-text-1">
-                {activeWorktree && !activeWorktree.isMain
-                  ? activeWorktree.path.split("/").pop() ||
-                    activeWorktree.branch ||
-                    activeWorktree.path
-                  : t("selectors.branch.labels.mainWorktree", "Main")}
-              </span>
-            </StatusBarButton>
+              <StatusBarButton
+                onClick={onWorktreeClick}
+                ariaLabel={t(
+                  "workstation.switchWorktreeTooltip",
+                  "Switch worktree"
+                )}
+                className="min-w-0 max-w-56"
+                dataTestId="status-bar-worktree"
+              >
+                <Folder size={13} className="shrink-0 text-text-1" />
+                <span className="min-w-0 truncate font-medium text-text-1">
+                  {activeWorktree && !activeWorktree.isMain
+                    ? activeWorktree.path.split("/").pop() ||
+                      activeWorktree.branch ||
+                      activeWorktree.path
+                    : t("selectors.branch.labels.mainWorktree", "Main")}
+                </span>
+              </StatusBarButton>
+            </StatusBarTooltip>
           )}
 
           {showGitControls && branchName && (
-            <StatusBarButton
-              onClick={onBranchClick}
-              className="min-w-0 max-w-56"
-              dataTestId="status-bar-branch"
-              title={
+            <StatusBarTooltip
+              label={
                 checkoutLoading
                   ? t("workstation.branchTooltipSwitching", {
                       branch: branchName,
                     })
-                  : t("workstation.branchTooltip", { branch: branchName })
+                  : t("workstation.switchBranchTooltip", "Switch branch")
               }
             >
-              {checkoutLoading ? (
-                <Loader2
-                  size={SPINNER_TOKENS.small}
-                  className="shrink-0 animate-spin text-text-1"
-                />
-              ) : (
-                <GitBranch size={13} className="shrink-0 text-text-1" />
-              )}
-              <span className="min-w-0 truncate font-medium text-text-1">
-                {branchName}
-              </span>
-            </StatusBarButton>
+              <StatusBarButton
+                onClick={onBranchClick}
+                className="min-w-0 max-w-56"
+                dataTestId="status-bar-branch"
+                ariaLabel={
+                  checkoutLoading
+                    ? t("workstation.branchTooltipSwitching", {
+                        branch: branchName,
+                      })
+                    : t("workstation.switchBranchTooltip", "Switch branch")
+                }
+              >
+                {checkoutLoading ? (
+                  <Loader2
+                    size={SPINNER_TOKENS.small}
+                    className="shrink-0 animate-spin text-text-1"
+                  />
+                ) : (
+                  <GitBranch size={13} className="shrink-0 text-text-1" />
+                )}
+                <span className="min-w-0 truncate font-medium text-text-1">
+                  {branchName}
+                </span>
+              </StatusBarButton>
+            </StatusBarTooltip>
           )}
 
           {showGitControls && branchName && (
             <GitSyncStatusMenu
-              branchName={branchName}
               aheadCount={aheadCount}
               behindCount={behindCount}
               needsPublish={needsPublish}
@@ -398,7 +420,6 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
         indexingProgress.currentFile,
         isMultiRoot,
         workspaceLabel,
-        workspaceTooltip,
         sessionRepoHint,
         handleSwitchToSessionRepo,
         t,
