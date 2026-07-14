@@ -248,8 +248,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
       ],
       [explorerTab, sourceControlFilterCounts.unstaged]
     );
+    // Unified surface: nothing is auto-opened. The editor fixtures
+    // (Explorer / Source Control / Terminal) are no longer force-seeded on
+    // mount — the pool starts empty (WorkStationStartPage) and every tab is
+    // opened lazily on user action.
     usePinnedTabs({
-      enabled: true,
+      enabled: false,
       pinnedTabs,
       initialActiveTabId: explorerTab.id,
     });

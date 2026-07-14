@@ -4,11 +4,15 @@ import { useTranslation } from "react-i18next";
 
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
-import { activeWorkStationTabAtom } from "@src/store/workstation/tabs";
+import {
+  activeWorkStationTabAtom,
+  mainPaneTabsAtom,
+} from "@src/store/workstation/tabs";
 
 import CodeEditor from "../CodeEditor";
 import { LspInstallPrompt } from "../CodeEditor/LspInstallPrompt";
 import { WORK_STATION_PLACEHOLDER_PAGE_BG_CLASS } from "../shared/tokens";
+import { WorkStationStartPage } from "./StartPage";
 
 const ProjectManagerCore = React.lazy(
   () =>
@@ -77,6 +81,7 @@ export function AppShellContent({
 }: AppShellContentProps) {
   const { t } = useTranslation();
   const activeTab = useAtomValue(activeWorkStationTabAtom);
+  const noTabs = useAtomValue(mainPaneTabsAtom).length === 0;
   const activeTabCanRenderWithoutRepo =
     activeTab?.type === "agent-config" ||
     activeTab?.type === "chat-session" ||
@@ -132,43 +137,52 @@ export function AppShellContent({
         className="h-full w-full"
         style={{ display: isAgentStation ? "none" : "contents" }}
       >
-        {(isCodeMode || hasVisitedCode) && (
-          <div
-            className="relative h-full w-full"
-            data-tour-target={CODE_EDITOR_TOUR_TARGETS.editorSurface}
-            style={{ display: codeContentVisible ? "block" : "none" }}
-          >
-            {renderCodeEditor()}
-            {codeContentVisible && isActive && !isAgentStation && (
-              <LspInstallPrompt />
+        {noTabs && !isAgentStation ? (
+          <div className="h-full w-full">
+            <WorkStationStartPage />
+          </div>
+        ) : null}
+        {noTabs ? null : (
+          <>
+            {(isCodeMode || hasVisitedCode) && (
+              <div
+                className="relative h-full w-full"
+                data-tour-target={CODE_EDITOR_TOUR_TARGETS.editorSurface}
+                style={{ display: codeContentVisible ? "block" : "none" }}
+              >
+                {renderCodeEditor()}
+                {codeContentVisible && isActive && !isAgentStation && (
+                  <LspInstallPrompt />
+                )}
+              </div>
             )}
-          </div>
-        )}
 
-        {(isBrowserMode || hasVisitedBrowser) && (
-          <div
-            className="h-full w-full"
-            style={{ display: browserContentVisible ? "block" : "none" }}
-          >
-            <Suspense fallback={<AppShellLoadingPlaceholder />}>
-              <Browser
-                repoPath={repoPath}
-                repoName={repoName}
-                isActive={isActive && browserContentVisible}
-              />
-            </Suspense>
-          </div>
-        )}
+            {(isBrowserMode || hasVisitedBrowser) && (
+              <div
+                className="h-full w-full"
+                style={{ display: browserContentVisible ? "block" : "none" }}
+              >
+                <Suspense fallback={<AppShellLoadingPlaceholder />}>
+                  <Browser
+                    repoPath={repoPath}
+                    repoName={repoName}
+                    isActive={isActive && browserContentVisible}
+                  />
+                </Suspense>
+              </div>
+            )}
 
-        {(isProjectMode || hasVisitedProject) && (
-          <div
-            className="h-full w-full"
-            style={{ display: projectContentVisible ? "block" : "none" }}
-          >
-            <Suspense fallback={<AppShellLoadingPlaceholder />}>
-              <ProjectManagerCore repoPath={repoPath} repoName={repoName} />
-            </Suspense>
-          </div>
+            {(isProjectMode || hasVisitedProject) && (
+              <div
+                className="h-full w-full"
+                style={{ display: projectContentVisible ? "block" : "none" }}
+              >
+                <Suspense fallback={<AppShellLoadingPlaceholder />}>
+                  <ProjectManagerCore repoPath={repoPath} repoName={repoName} />
+                </Suspense>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

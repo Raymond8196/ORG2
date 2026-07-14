@@ -98,12 +98,8 @@ export const explorerTabFactory = defineTabFactory<Record<string, never>>({
   tabType: "explorer",
   idStrategy: { type: "singleton", id: "explorer:main" },
   getTitle: () => "Explorer",
-  closable: false,
-  pinned: true,
-  // Explorer is the "blank state" — hide it from the tab bar whenever a
-  // regular file tab exists. It still lives in pane state so that closing the
-  // last real file tab brings it back as the fallback active tab.
-  hideWhenOthersExist: true,
+  // Unified surface: the Explorer is a regular closable tab, opened on demand.
+  // The empty-pool "blank state" is the WorkStationStartPage.
 });
 
 export function createExplorerTab(): WorkStationTab {
@@ -264,8 +260,6 @@ export const sourceControlTabFactory = defineTabFactory<SourceControlTabData>({
   },
   getTitle: () => "Source Control",
   icon: "GitBranch",
-  closable: false,
-  pinned: true,
 });
 
 export function createSourceControlTab(
@@ -431,8 +425,6 @@ export const terminalTabFactory = defineTabFactory<TerminalTabData>({
   },
   getTitle: (data) => data.sessionName,
   icon: "SquareTerminal",
-  closable: false,
-  pinned: true,
 });
 
 export function createTerminalTab(
