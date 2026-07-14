@@ -414,14 +414,12 @@ export function buildChatPanelSettingsActions({
   chatTurnPaginationEnabled,
   modelPickerStyle,
   workstationSidebarPosition,
-  dockAutoHide,
 }: {
   myStationChatPosition: "left" | "right";
   agentStationChatPosition: "left" | "right";
   chatTurnPaginationEnabled: boolean;
   modelPickerStyle: "spotlight" | "dropdown";
   workstationSidebarPosition: "left" | "right";
-  dockAutoHide: boolean;
 }): SpotlightStaticActionDefinition[] {
   const actions: SpotlightStaticActionDefinition[] = [];
 
@@ -527,20 +525,6 @@ export function buildChatPanelSettingsActions({
       workstationSidebarPosition === "left"
         ? ACTION_ID.WORKSTATION_SET_SIDEBAR_RIGHT
         : ACTION_ID.WORKSTATION_SET_SIDEBAR_LEFT,
-    payload: {},
-    closeOnSuccess: false,
-  });
-
-  actions.push({
-    id: dockAutoHide ? "disable-dock-auto-hide" : "enable-dock-auto-hide",
-    labelKey: dockAutoHide
-      ? "common:spotlightActions.disableDockAutoHide"
-      : "common:spotlightActions.enableDockAutoHide",
-    icon: Dock,
-    keywords: ["dock auto hide", "dock", "auto hide dock", "keep dock visible"],
-    actionId: dockAutoHide
-      ? ACTION_ID.WORKSTATION_DISABLE_DOCK_AUTO_HIDE
-      : ACTION_ID.WORKSTATION_ENABLE_DOCK_AUTO_HIDE,
     payload: {},
     closeOnSuccess: false,
   });

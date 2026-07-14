@@ -18,8 +18,6 @@ import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
   sessionChatPositionAtom,
   workStationChatPositionAtom,
-  workStationDockAutoHideAtom,
-  workStationDockAutoHidePersistAtom,
   workStationLayoutModeAtom,
   workStationLayoutModePersistAtom,
 } from "@src/store/ui/workStationAtom";
@@ -95,8 +93,6 @@ export const SidebarWorkstationSettingsSubmenu: React.FC<SidebarWorkstationSetti
     const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
     const layoutMode = useAtomValue(workStationLayoutModeAtom);
     const setLayoutModePersist = useSetAtom(workStationLayoutModePersistAtom);
-    const dockAutoHide = useAtomValue(workStationDockAutoHideAtom);
-    const setDockAutoHide = useSetAtom(workStationDockAutoHidePersistAtom);
     const [chatPosition, setChatPosition] = useAtom(
       workStationChatPositionAtom
     );
@@ -164,12 +160,6 @@ export const SidebarWorkstationSettingsSubmenu: React.FC<SidebarWorkstationSetti
             value={modelPickerStyle}
             options={modelPickerStyleOptions}
             onChange={setModelPickerStyle}
-          />
-          <div className={DROPDOWN_CLASSES.menuSeparator} />
-          <SwitchControlRow
-            label={t("layoutSettings.dockAutoHide")}
-            checked={dockAutoHide}
-            onChange={setDockAutoHide}
           />
         </>
       );
