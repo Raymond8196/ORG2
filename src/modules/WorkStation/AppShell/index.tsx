@@ -3,10 +3,6 @@ import React from "react";
 
 import { useRouteAppMode } from "@src/config/routeViewModeConfig";
 import type { AppModeType } from "@src/config/viewModeTypes";
-import {
-  Dock,
-  StationDockChrome,
-} from "@src/engines/Simulator/components/Dock";
 import { useCurrentTurnLastAgentMessage } from "@src/engines/Simulator/hooks/useCurrentTurnLastAgentMessage";
 import {
   useDockFilterUrlSync,
@@ -14,13 +10,8 @@ import {
 } from "@src/hooks/workStation";
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import { workstationActiveSessionIdAtom } from "@src/store/session";
-import {
-  CHAT_PANEL_SURFACE_KIND,
-  activeChatPanelSurfaceAtom,
-} from "@src/store/ui/chatPanelAtom";
 import { simulatorCaptionBarEnabledAtom } from "@src/store/ui/simulatorAtom";
 import {
-  workStationDockAutoHideAtom,
   workStationFollowAgentHighlightEnabledAtom,
   workStationPrimarySidebarCollapsedAtom,
   workStationStatusBarHiddenAtom,
@@ -43,7 +34,6 @@ import { useAppShellRepo } from "./hooks/useAppShellRepo";
 import { useAppShellSimulatorPanelSync } from "./hooks/useAppShellSimulatorPanelSync";
 import { useAppShellStationMode } from "./hooks/useAppShellStationMode";
 import { useAppShellStatusBar } from "./hooks/useAppShellStatusBar";
-import { useMyStationDockSegments } from "./hooks/useMyStationDockSegments";
 
 interface AppShellProps {
   /** Whether WorkStation is currently visible (code view mode is active) */
@@ -57,7 +47,6 @@ const AppShell = React.memo(
     const appMode = useRouteAppMode();
     const _titleBarHidden = useAtomValue(workStationTitleBarHiddenAtom);
     const statusBarHidden = useAtomValue(workStationStatusBarHiddenAtom);
-    const dockAutoHide = useAtomValue(workStationDockAutoHideAtom);
     const followAgentHighlightEnabled = useAtomValue(
       workStationFollowAgentHighlightEnabledAtom
     );
@@ -69,19 +58,10 @@ const AppShell = React.memo(
     const workstationActiveSessionId = useAtomValue(
       workstationActiveSessionIdAtom
     );
-    const chatPanelSurface = useAtomValue(activeChatPanelSurfaceAtom);
-    const hideWorkstationDockForChatPanel =
-      chatPanelFocused &&
-      (chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.PROJECT ||
-        chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.PROJECT_ORG ||
-        chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.WORK_ITEM);
-
     const { repoPath, repoName, pathExists, lastSeenPath } = useAppShellRepo();
-    const { visitedModes, handleDockClick } = useAppShellDock();
+    const { visitedModes } = useAppShellDock();
     const dockFilter = useAppShellDockFilterSync();
     useDockFilterUrlSync();
-    const myStationDockSegments = useMyStationDockSegments();
-    const activeDockApp = dockFilter === "all" ? "all" : dockFilter;
 
     const {
       isAgentStation,
@@ -186,17 +166,6 @@ const AppShell = React.memo(
           </div>
           {portsEnabled && <WorkspacePortScanner enabled />}
           {showStatusBar && <StatusBarRenderer />}
-          {!isAgentStation && !hideWorkstationDockForChatPanel && (
-            <StationDockChrome autoHide={dockAutoHide} showTopBorder>
-              <div data-guide-target={GUIDE_TARGETS.WORKSTATION_DOCK}>
-                <Dock
-                  segments={myStationDockSegments}
-                  activeApp={activeDockApp}
-                  onAppClick={handleDockClick}
-                />
-              </div>
-            </StationDockChrome>
-          )}
         </AgentStationChromeFrame>
       </div>
     );
