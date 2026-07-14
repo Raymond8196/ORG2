@@ -336,13 +336,6 @@
     "title": "Keşfet"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "Tüm Sekmeler",
-      "code": "Kod",
-      "browser": "Tarayıcı",
-      "data": "Veritabanı",
-      "project": "Projeler"
-    },
     "agentComputer": {
       "label": "{{agent}} çalışma istasyonu",
       "agents": {

@@ -428,13 +428,6 @@
     "title": "探索"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "所有标签页",
-      "code": "代码",
-      "browser": "浏览器",
-      "data": "数据库",
-      "project": "项目"
-    },
     "agentComputer": {
       "label": "{{agent}} 的工作站",
       "agents": {

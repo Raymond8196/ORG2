@@ -336,13 +336,6 @@
     "title": "Odkrywaj"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "Wszystkie karty",
-      "code": "Kod",
-      "browser": "Przeglądarka",
-      "data": "Baza danych",
-      "project": "Projekty"
-    },
     "agentComputer": {
       "label": "Stacja robocza {{agent}}",
       "agents": {
