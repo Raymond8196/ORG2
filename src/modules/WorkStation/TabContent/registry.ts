@@ -130,42 +130,12 @@ const ChatSessionEntry: RendererEntry = {
 };
 
 // ============================================
-// Database renderers
-// ============================================
-
-const TableEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/table")),
-  debugLabel: "table",
-};
-
-const QueryEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/query")),
-  debugLabel: "query",
-};
-
-const SchemaEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/schema")),
-  debugLabel: "schema",
-};
-
-const AddConnectionEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/addConnection")),
-  debugLabel: "add-connection",
-};
-
-// ============================================
 // Browser renderers
 // ============================================
 
 const BrowserSessionEntry: RendererEntry = {
   Component: lazy(() => import("./renderers/browserSession")),
   debugLabel: "browser-session",
-};
-
-const TokenCategoryEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/tokenCategory")),
-  requiresRepo: true,
-  debugLabel: "token-category",
 };
 
 const DevtoolsEntry: RendererEntry = {
@@ -259,6 +229,11 @@ const GitHubPrDetailEntry: RendererEntry = {
   debugLabel: "github-pr-detail",
 };
 
+const StartEntry: RendererEntry = {
+  Component: lazy(() => import("./renderers/start")),
+  debugLabel: "start",
+};
+
 // ============================================
 // Registry — exhaustive over WorkStationTabType
 // ============================================
@@ -285,15 +260,8 @@ export const REGISTRY: TabContentRegistry = {
   benchmark: BenchmarkEntry,
   "url-preview": UrlPreviewEntry,
 
-  // Database
-  table: TableEntry,
-  query: QueryEntry,
-  schema: SchemaEntry,
-  "add-connection": AddConnectionEntry,
-
   // Browser
   "browser-session": BrowserSessionEntry,
-  "token-category": TokenCategoryEntry,
   devtools: DevtoolsEntry,
 
   // Project Manager
@@ -323,6 +291,9 @@ export const REGISTRY: TabContentRegistry = {
 
   // GitHub PR Detail
   "github-pr-detail": GitHubPrDetailEntry,
+
+  // Start page launcher
+  start: StartEntry,
 };
 
 // Exhaustiveness check: any missing WorkStationTabType becomes a TS error.

@@ -6,4 +6,3 @@ export * from "./useAppShellRepo";
 export * from "./useAppShellSimulatorPanelSync";
 export * from "./useAppShellStationMode";
 export * from "./useAppShellStatusBar";
-export * from "./useMyStationDockSegments";

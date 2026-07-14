@@ -74,6 +74,13 @@
       "newPrivateBrowserTab": "New private browser tab",
       "workItems": "Work items",
       "projects": "Projects"
+    },
+    "startPage": {
+      "title": "Start",
+      "subtitle": "Open a tab to get started.",
+      "explorer": "Explorer",
+      "sourceControl": "Source Control",
+      "terminal": "Terminal"
     }
   },
   "trajectoryPanel": {

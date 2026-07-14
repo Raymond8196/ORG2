@@ -89,12 +89,7 @@ const DEFAULT_CATEGORY_BY_TYPE: Record<
   "ai-impact": "ai-impact",
   benchmark: "benchmark",
   "url-preview": "preview",
-  table: "db-table",
-  query: "db-query",
-  schema: "db-schema",
-  "add-connection": "db-table",
   "browser-session": "browser",
-  "token-category": "browser",
   devtools: "browser",
   "project-dashboard": "project",
   "project-work-items": "project",
@@ -112,6 +107,7 @@ const DEFAULT_CATEGORY_BY_TYPE: Record<
   "canvas-preview": "preview",
   "github-issue-detail": "git",
   "github-pr-detail": "git",
+  start: "launchpad",
 };
 
 // ============================================

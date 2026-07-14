@@ -220,9 +220,6 @@ export function getRouteDescription(pathname: string): string | null {
  * @returns AppMode for Workstation
  */
 export function getAppModeForRoute(pathname: string): AppModeType {
-  if (pathname.startsWith("/orgii/workstation/database")) {
-    return "data";
-  }
   if (pathname.startsWith("/orgii/workstation/browser")) {
     return "browser";
   }

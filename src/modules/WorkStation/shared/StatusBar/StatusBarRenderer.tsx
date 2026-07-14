@@ -17,7 +17,6 @@ import {
 } from "@src/store/ui/workStationAtom";
 
 import BrowserStatusBar from "./BrowserStatusBar";
-import DatabaseStatusBar from "./DatabaseStatusBar";
 import { EditorStatusBar } from "./EditorStatusBar";
 import ProjectStatusBar from "./ProjectStatusBar";
 
@@ -65,18 +64,6 @@ export const StatusBarRenderer: React.FC<StatusBarRendererProps> = memo(
           projectOrgId={state.projectOrgId}
           projectOrgName={state.projectOrgName}
           projectOrgGitFolderSyncEnabled={state.projectOrgGitFolderSyncEnabled}
-          className={className}
-        />
-      );
-    }
-
-    if (state.appType === "data") {
-      return (
-        <DatabaseStatusBar
-          repoName={state.repoName}
-          branchName={state.branchName}
-          onRepoClick={callbacks.onRepoClick}
-          onBranchClick={callbacks.onBranchClick}
           className={className}
         />
       );

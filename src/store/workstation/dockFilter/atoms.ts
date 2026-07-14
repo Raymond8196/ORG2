@@ -27,7 +27,7 @@ import { activeWorkStationTabAtom } from "../tabs";
  * `MY_STATION_DOCK_SEGMENTS` (`AppShell/index.tsx`) plus the new `"all"`
  * sentinel that disables filtering entirely.
  */
-export type DockFilter = "all" | "code" | "browser" | "data" | "project";
+export type DockFilter = "all" | "code" | "browser" | "project";
 
 export const DEFAULT_DOCK_FILTER: DockFilter = "all";
 
