@@ -169,7 +169,6 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
                 webviewBottomInsetPx={0}
                 isInspectMode={state.browser.isInspectMode}
                 onToggleInspectMode={state.browser.toggleInspectMode}
-                placeholderActions={state.browserQuickActions}
               />
             </div>
           )}
@@ -281,7 +280,6 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
     const browser = state.browser;
     const showBrowserViewport = state.showBrowserViewport;
     const automationRunning = state.automation.isRunning;
-    const browserQuickActions = state.browserQuickActions;
 
     const browserHostValue = useMemo<BrowserHostContextValue>(
       () => ({
@@ -296,7 +294,6 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
         onOpenNativeDevTools: browser.handleOpenNativeDevTools,
         onToggleDevToolsPane: browser.handleToggleDevTools,
         devToolsPaneCollapsed: browser.devToolsCollapsed,
-        workspacePlaceholderActions: browserQuickActions,
         devToolsCollapsed: browser.devToolsCollapsed,
         onToggleDevToolsCollapse: browser.handleToggleDevTools,
         devToolsPanelWidth: browser.devToolsPanelWidth,
@@ -320,7 +317,6 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
         isActive,
         showBrowserViewport,
         automationRunning,
-        browserQuickActions,
         devToolsPanelHeight,
         devToolsPosition,
         handleToggleDevToolsPosition,

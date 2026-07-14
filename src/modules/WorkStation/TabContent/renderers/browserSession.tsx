@@ -41,7 +41,6 @@ const BrowserSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
       onOpenNativeDevTools,
       onToggleDevToolsPane,
       devToolsPaneCollapsed,
-      workspacePlaceholderActions,
     } = useBrowserHostContext();
 
     return (
@@ -57,7 +56,6 @@ const BrowserSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         webviewBottomInsetPx={webviewBottomInsetPx}
         isInspectMode={isInspectMode}
         onToggleInspectMode={onToggleInspectMode}
-        placeholderActions={workspacePlaceholderActions}
       />
     );
   }
