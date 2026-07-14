@@ -6,7 +6,8 @@ export type ImportedHistorySourceId =
   | "windsurf"
   | "workbuddy"
   | "trae"
-  | "cline";
+  | "cline"
+  | "warp";
 
 export type ImportedHistoryListCategory =
   `external_history:${ImportedHistorySourceId}`;
@@ -109,6 +110,17 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       iconId: "cline",
       displayName: "Cline",
       groupLabel: "Cline",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "warp",
+      listCategory: "external_history:warp",
+      prefix: "warpapp-",
+      iconId: "warp",
+      displayName: "Warp",
+      groupLabel: "Warp",
       listable: true,
       replayable: true,
       supportsWindowedReplay: false,
