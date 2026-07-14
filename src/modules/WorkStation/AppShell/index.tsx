@@ -1,7 +1,6 @@
 import { useAtomValue } from "jotai";
 import React from "react";
 
-import type { AppModeType } from "@src/config/viewModeTypes";
 import { useCurrentTurnLastAgentMessage } from "@src/engines/Simulator/hooks/useCurrentTurnLastAgentMessage";
 import { useWorkStationPanels } from "@src/hooks/workStation";
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
@@ -125,7 +124,7 @@ const AppShell = React.memo(
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {!isAgentStation && (
               <div data-guide-target={GUIDE_TARGETS.WORKSTATION_TAB_BAR}>
-                <WorkstationTabBar appMode={effectiveHost as AppModeType} />
+                <WorkstationTabBar host={effectiveHost} />
               </div>
             )}
             {!isAgentStation && (

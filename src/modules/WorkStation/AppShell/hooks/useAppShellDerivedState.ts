@@ -6,9 +6,10 @@ import {
   activeStatusBarAppAtom,
 } from "@src/store/ui/workStationAtom";
 import { activeHostAtom } from "@src/store/workstation";
+import type { WorkstationTabHost } from "@src/store/workstation/tabHost";
 
 export interface AppShellDerivedState {
-  effectiveHost: string;
+  effectiveHost: WorkstationTabHost;
   isCodeMode: boolean;
   isBrowserMode: boolean;
   isProjectMode: boolean;
