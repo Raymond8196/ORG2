@@ -10,19 +10,24 @@ import { useSetAtom } from "jotai";
 import {
   Box,
   FileSearch,
+  FolderTree,
+  GitBranch,
   Globe,
   ListTodo,
   type LucideIcon,
   ShieldOff,
+  SquareTerminal,
 } from "lucide-react";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import KeyBadge from "@src/components/KeyBadge";
+import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { focusBrowserUrlBar } from "@src/modules/WorkStation/Browser/Panels/BrowserMainPane/components/WebUrlBar";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/modules/WorkStation/shared/tokens";
 import { openEditorSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import {
   STORY_ORG_SCOPE,
   createProjectDashboardTab,
@@ -79,6 +84,24 @@ export const WorkStationStartPage: React.FC = memo(() => {
         label: t("workstation.plusMenu.searchFile"),
         shortcut: "⌘P",
         onClick: () => openEditorSpotlight(""),
+      },
+      {
+        icon: FolderTree,
+        label: t("workstation.startPage.explorer"),
+        shortcut: getShortcutKeys("open_file_folder_tab"),
+        onClick: () => void WorkStationViewService.openFileFolderTab(),
+      },
+      {
+        icon: GitBranch,
+        label: t("workstation.startPage.sourceControl"),
+        shortcut: getShortcutKeys("open_source_control_tab"),
+        onClick: () => void WorkStationViewService.openSourceControlTab(),
+      },
+      {
+        icon: SquareTerminal,
+        label: t("workstation.startPage.terminal"),
+        shortcut: getShortcutKeys("open_terminal_tab"),
+        onClick: () => void WorkStationViewService.openTerminalTab(),
       },
       {
         icon: Globe,
