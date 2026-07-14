@@ -61,7 +61,9 @@ const AppShell = React.memo(
     );
     const { repoPath, repoName, pathExists, lastSeenPath } = useAppShellRepo();
     const { visitedModes } = useAppShellDock();
-    const dockFilter = useAppShellDockFilterSync();
+    // Called for its side effects (station mode / chat visibility on route
+    // changes); the content host itself follows the active tab, not the filter.
+    useAppShellDockFilterSync();
     useDockFilterUrlSync();
 
     const {
@@ -94,9 +96,7 @@ const AppShell = React.memo(
       codeContentVisible,
       browserContentVisible,
       projectContentVisible,
-    } = useAppShellDerivedState({
-      dockFilter,
-    });
+    } = useAppShellDerivedState();
 
     const hasVisitedCode = visitedModes.has("code");
     const hasVisitedBrowser = visitedModes.has("browser");
