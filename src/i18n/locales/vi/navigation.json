@@ -336,13 +336,6 @@
     "title": "Khám phá"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "Tất cả các thẻ",
-      "code": "Mã",
-      "browser": "Trình duyệt",
-      "data": "Cơ sở dữ liệu",
-      "project": "Dự án"
-    },
     "agentComputer": {
       "label": "Trạm làm việc của {{agent}}",
       "agents": {

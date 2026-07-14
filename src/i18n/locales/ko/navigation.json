@@ -336,13 +336,6 @@
     "title": "탐색"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "모든 탭",
-      "code": "코드",
-      "browser": "브라우저",
-      "data": "데이터베이스",
-      "project": "프로젝트"
-    },
     "agentComputer": {
       "label": "{{agent}}의 워크스테이션",
       "agents": {

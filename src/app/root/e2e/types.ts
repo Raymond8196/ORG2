@@ -774,7 +774,6 @@ export interface E2EHelpers {
     Result<{
       pathname: string;
       stationMode: string;
-      dockFilter: string;
       activeHost: string;
       activeTabId: string | null;
       activeTabType: string | null;

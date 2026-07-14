@@ -8,6 +8,9 @@
  * tab pool (`mainPane`), so dispatch to a content renderer is derived from the
  * active tab's type rather than from a separate per-host pane bucket.
  */
+import { atom } from "jotai";
+
+import { activeWorkStationTabAtom } from "./tabs";
 import type {
   WorkStationTab,
   WorkStationTabCategory,
@@ -69,3 +72,16 @@ export function tabToHost(tab: WorkStationTab): WorkstationTabHost {
     ? categoryToTabHost(tab.category)
     : tabTypeToTabHost(tab.type);
 }
+
+/**
+ * The host whose content the AppShell mounts. The unified workstation runs a
+ * single flat tab pool, so the visible host simply follows the active tab's
+ * type — clicking a tab in the unified bar swaps the content area without any
+ * route navigation. Falls back to `"code"` when no tab is active (empty pool /
+ * Launchpad).
+ */
+export const activeHostAtom = atom<WorkstationTabHost>((get) => {
+  const activeTab = get(activeWorkStationTabAtom);
+  return activeTab ? tabToHost(activeTab) : "code";
+});
+activeHostAtom.debugLabel = "activeHostAtom";
