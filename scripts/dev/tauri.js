@@ -12,6 +12,7 @@
 
 const { spawn, execFileSync, execSync } = require("child_process");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const { tauriFeatureList } = require("../tauri/features.cjs");
 const {
@@ -159,7 +160,7 @@ function recordStartupMetric(key) {
 function appendStartupMetrics() {
   try {
     fs.appendFileSync(
-      "/tmp/orgii-tauri-dev-startup.tsv",
+      path.join(os.tmpdir(), "orgii-tauri-dev-startup.tsv"),
       `${formatStartupMetricsTsv(startupMetrics)}\n`
     );
   } catch (_error) {
@@ -350,7 +351,7 @@ function cleanupOrphanedProcesses() {
 
 // ─── Start Tauri dev ──────────────────────────────────────────────────────────
 
-function killDescendants(pid) {
+function killDescendants(pid, signal = "SIGTERM") {
   if (process.platform === "win32") {
     try {
       execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], {
@@ -371,16 +372,62 @@ function killDescendants(pid) {
       .split("\n")
       .filter(Boolean);
     for (const childPid of children) {
-      killDescendants(Number(childPid));
+      killDescendants(Number(childPid), signal);
     }
   } catch (_err) {
     // no children
   }
   try {
-    process.kill(pid, "SIGTERM");
+    process.kill(pid, signal);
   } catch (_err) {
     // already dead
   }
+}
+
+// SIGTERM the whole tree rooted at each pid, then SIGKILL-escalate everything
+// (roots AND descendants) after a grace window. Returns the collected pids so
+// callers can do a final sweep. The escalation is essential because graceful
+// shutdown (Tauri/Cocoa, webpack server.stop(), Rust Drop) can outlive the
+// 3s window and leave orphans re-parented to init.
+function killProcessTree(pids) {
+  const targets = pids.filter((pid) => pid);
+  for (const pid of targets) {
+    killDescendants(pid, "SIGTERM");
+  }
+  const collectDescendants = (pid, acc) => {
+    if (process.platform === "win32") return;
+    try {
+      const children = execSync(`pgrep -P ${pid} 2>/dev/null`, {
+        encoding: "utf8",
+      })
+        .trim()
+        .split("\n")
+        .filter(Boolean);
+      for (const c of children) {
+        const cpid = Number(c);
+        if (!acc.includes(cpid)) {
+          acc.push(cpid);
+          collectDescendants(cpid, acc);
+        }
+      }
+    } catch (_err) {
+      /* no children */
+    }
+  };
+  const all = [...targets];
+  for (const pid of targets) {
+    collectDescendants(pid, all);
+  }
+  setTimeout(() => {
+    for (const pid of all) {
+      try {
+        process.kill(pid, "SIGKILL");
+      } catch (_err) {
+        /* already dead */
+      }
+    }
+  }, 3000).unref();
+  return all;
 }
 
 // npm injects npm_config_* / npm_* / INIT_CWD into any script it runs. These
@@ -590,23 +637,14 @@ function startTauriDev(features) {
 
 function shutdownProcesses(processes, signal) {
   console.log(`\n🛑 Shutting down (${signal})...`);
-  for (const childProcess of processes) {
-    if (childProcess?.pid) {
-      killDescendants(childProcess.pid);
-    }
-  }
+  killProcessTree(processes.map((p) => p?.pid).filter(Boolean));
+  // Final exit: after the SIGTERM grace window has had its chance, clean up
+  // any stragglers this session produced, then exit. cleanupOrphanedProcesses
+  // is synchronous (execFileSync) so it completes before process.exit.
   setTimeout(() => {
-    for (const childProcess of processes) {
-      if (childProcess?.pid) {
-        try {
-          process.kill(childProcess.pid, "SIGKILL");
-        } catch (_err) {
-          /* already dead */
-        }
-      }
-    }
+    cleanupOrphanedProcesses();
     process.exit(1);
-  }, 3000).unref();
+  }, 3500).unref();
 }
 
 async function startDev(features) {
@@ -627,6 +665,12 @@ async function startDev(features) {
 
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGTERM", () => shutdown("SIGTERM"));
+  // Terminal window closed / ssh disconnected → session leader gets SIGHUP.
+  // Without this handler the whole tree is orphaned with no cleanup.
+  if (process.platform !== "win32") {
+    process.on("SIGHUP", () => shutdown("SIGHUP"));
+    process.on("SIGQUIT", () => shutdown("SIGQUIT"));
+  }
 
   const frontend = startFrontendDev();
   managedProcesses.push(frontend.process);
@@ -664,6 +708,7 @@ async function startDev(features) {
           if (frontend.process.pid) {
             killDescendants(frontend.process.pid);
           }
+          cleanupOrphanedProcesses();
           process.exit(code || 0);
         }
       });

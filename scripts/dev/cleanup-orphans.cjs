@@ -19,8 +19,14 @@ function runWindowsCleanup() {
     { label: "webpack dev server", match: "scripts\\dev\\webpack-server.js" },
     { label: "build watchers", match: "build.js --watch" },
     { label: "esbuild services", match: "esbuild --service" },
-    { label: "ORG2 Dev", match: "ORG2 Dev" },
+    // Note: "ORG2 Dev" is a process.title, which Windows does NOT write into
+    // Win32_Process.CommandLine, so matching it would always hit zero. The
+    // webpack-server.js pattern above already covers that same process.
     { label: "orphaned cargo run", match: "cargo run" },
+    { label: "org2 app binary", match: "\\target\\debug\\org2" },
+    { label: "org2 app binary", match: "\\target\\release\\org2" },
+    { label: "tauri-cli dev", match: "@tauri-apps\\cli" },
+    { label: "tauri-cli dev", match: "@tauri-apps/cli" },
   ];
 
   const killed = [];
