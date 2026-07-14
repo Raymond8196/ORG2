@@ -51,7 +51,6 @@ function getRepresentativeSpotlightActionIds(): Set<string> {
       chatTurnPaginationEnabled: true,
       modelPickerStyle: "spotlight",
       workstationSidebarPosition: "left",
-      dockAutoHide: true,
     }).map((action) => action.actionId),
     ...buildChatPanelSettingsActions({
       myStationChatPosition: "right",
@@ -59,7 +58,6 @@ function getRepresentativeSpotlightActionIds(): Set<string> {
       chatTurnPaginationEnabled: false,
       modelPickerStyle: "dropdown",
       workstationSidebarPosition: "right",
-      dockAutoHide: false,
     }).map((action) => action.actionId),
     ...STATION_MODE_ACTIONS.map((action) => action.actionId),
     ...QUICK_NAVIGATION_ACTIONS.map((action) => action.actionId),

@@ -17,7 +17,6 @@ const STORAGE_KEYS = [
   "terminal_sidebar_width",
   "title_bar_hidden",
   "status_bar_hidden",
-  "dock_auto_hide",
   "follow_agent_highlight",
 ] as const;
 
