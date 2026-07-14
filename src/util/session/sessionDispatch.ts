@@ -152,6 +152,9 @@ export const WINDSURF_HISTORY_SESSION_PREFIX = "windsurfapp-";
 /** Prefix for imported WorkBuddy event session IDs. */
 export const WORKBUDDY_HISTORY_SESSION_PREFIX = "workbuddyapp-";
 
+/** Prefix for imported Warp event session IDs. */
+export const WARP_HISTORY_SESSION_PREFIX = "warpapp-";
+
 /** Prefix for Wingman Agent session IDs */
 export const WINGMAN_SESSION_PREFIX = "wingman-";
 
@@ -256,6 +259,12 @@ export function isWorkBuddyHistorySession(
   sessionId: string | null | undefined
 ): boolean {
   return getExternalHistorySourceId(sessionId) === "workbuddy";
+}
+
+export function isWarpHistorySession(
+  sessionId: string | null | undefined
+): boolean {
+  return getExternalHistorySourceId(sessionId) === "warp";
 }
 
 /**
