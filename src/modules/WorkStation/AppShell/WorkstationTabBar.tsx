@@ -1,5 +1,5 @@
 /**
- * Shared TabBar for My Station: Code / Browser / Database / Project Manager
+ * Shared TabBar for My Station: Code / Browser / Project Manager
  * filter to their own tab host.
  */
 import { useAtomValue } from "jotai";
@@ -19,7 +19,6 @@ import { useWorkstationTrailingSlot } from "./useWorkstationTrailingSlot";
 const WORKSTATION_SINGLE_HOST_MODES: AppModeType[] = [
   "code",
   "browser",
-  "data",
   "project",
 ];
 
