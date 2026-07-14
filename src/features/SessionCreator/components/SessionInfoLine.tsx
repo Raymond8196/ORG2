@@ -124,6 +124,7 @@ export interface SessionInfoLineProps {
    * (This Mac / New Worktree / Cloud) — modelled after Cursor's context bar.
    */
   worktreeLocation?: RunningLocation;
+  selectedWorktreePath?: string | null;
   worktreeSourceLabel?: string;
   onWorktreeLocationChange?: (location: RunningLocation) => void;
   onWorktreeSourceSelect?: (source: WorktreeLaunchSource) => void;
@@ -264,6 +265,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   pillVariant = "default",
   fullWidth: _fullWidth = false,
   worktreeLocation,
+  selectedWorktreePath,
   worktreeSourceLabel,
   onWorktreeLocationChange,
   onWorktreeSourceSelect,
@@ -365,10 +367,11 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   );
 
   const systemPathSourceItems = useSystemPathRepoItems(includeSystemPaths, t);
+  const branchRepoPath = selectedWorktreePath ?? repoPath ?? "";
 
   const handleBranchSelect = useCallback(
     async (branch: string) => {
-      if (!repoId || !repoPath || repoKind === REPO_KIND.FOLDER) {
+      if (!repoId || !branchRepoPath || repoKind === REPO_KIND.FOLDER) {
         onBranchChange?.(branch);
         setIsBranchSelectorOpen(false);
         return true;
@@ -376,7 +379,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
 
       const result = await runGuardedCheckout({
         repoId,
-        repoPath,
+        repoPath: branchRepoPath,
         ref: branch,
         onConflict: (name) => CheckoutConflictDialog.open({ branchName: name }),
         onBlocked: ({ branch: name, errorType, message }) =>
@@ -404,7 +407,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
       }
       return false;
     },
-    [onBranchChange, repoId, repoKind, repoPath]
+    [branchRepoPath, onBranchChange, repoId, repoKind]
   );
 
   const handleBranchPaletteSelect = useCallback(
@@ -416,10 +419,10 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
 
   const handleCreateBranch = useCallback(
     async (branch: string, startPoint?: string) => {
-      if (!repoId || !repoPath) return;
+      if (!repoId || !branchRepoPath) return;
       const result = await gitApi.gitCreateBranch({
         repo_id: repoId,
-        repo_path: repoPath,
+        repo_path: branchRepoPath,
         name: branch,
         start_point: startPoint ?? null,
         checkout: false,
@@ -433,7 +436,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
       }
       await handleBranchSelect(branch);
     },
-    [handleBranchSelect, repoId, repoPath]
+    [branchRepoPath, handleBranchSelect, repoId]
   );
 
   const handleDeleteBranch = useCallback(
@@ -441,7 +444,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
       branch: string,
       options?: { silent?: boolean; skipRefresh?: boolean }
     ) => {
-      if (!repoId || !repoPath) {
+      if (!repoId || !branchRepoPath) {
         const message = "No repo selected";
         if (!options?.silent) {
           showGitActionDialogSafely(message, "error");
@@ -451,7 +454,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
 
       const result = await gitApi.gitDeleteBranch({
         repo_id: repoId,
-        repo_path: repoPath,
+        repo_path: branchRepoPath,
         branch_name: branch,
       });
 
@@ -468,7 +471,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
       }
       return { success: true };
     },
-    [repoId, repoPath]
+    [branchRepoPath, repoId]
   );
 
   const handleRemoveWorktree = useCallback(
@@ -670,8 +673,9 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
             onClose={handleBranchClose}
             onSelect={handleBranchSelect}
             repoId={repoId}
-            repoPath={repoPath}
+            repoPath={branchRepoPath}
             currentBranchName={branchName}
+            groupWorktreeBranches={false}
             anchorRef={branchTriggerRef}
           />
         ) : (
@@ -680,8 +684,9 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
             onClose={handleBranchClose}
             onSelect={handleBranchPaletteSelect}
             repoId={repoId}
-            repoPath={repoPath}
+            repoPath={branchRepoPath}
             currentBranchName={branchName}
+            groupWorktreeBranches={false}
             onCreateBranch={handleCreateBranch}
             onDeleteBranch={handleDeleteBranch}
             onRemoveWorktree={handleRemoveWorktree}
