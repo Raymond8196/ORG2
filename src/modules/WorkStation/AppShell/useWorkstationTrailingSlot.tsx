@@ -21,10 +21,7 @@ import { useLocation } from "react-router-dom";
 
 import type { AppModeType } from "@src/config/viewModeTypes";
 import ProjectManagerWorkItemsTabBarTrailing from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectManagerWorkItemsTabBarTrailing";
-import {
-  TabBarPlusMenu,
-  type TabBarPlusMenuItem,
-} from "@src/modules/WorkStation/AppShell/TabBarPlusMenu";
+import { TabBarPlusMenu } from "@src/modules/WorkStation/AppShell/TabBarPlusMenu";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
@@ -38,14 +35,8 @@ import { workstationProjectTabBarAtom } from "@src/store/workstation";
 
 import type { UseWorkstationTabListReturn } from "./useWorkstationTabList";
 
-const BROWSER_PLUS_MENU_ITEMS: readonly TabBarPlusMenuItem[] = [
-  "newBrowserTab",
-  "newPrivateBrowserTab",
-];
-
 export interface UseWorkstationTrailingSlotOptions {
   appMode: AppModeType;
-  isAllTabsView: boolean;
   visible: UseWorkstationTabListReturn["visible"];
 }
 
@@ -56,7 +47,6 @@ export interface UseWorkstationTrailingSlotReturn {
 
 export function useWorkstationTrailingSlot({
   appMode,
-  isAllTabsView,
   visible,
 }: UseWorkstationTrailingSlotOptions): UseWorkstationTrailingSlotReturn {
   const { t } = useTranslation(["sessions", "common", "settings"]);
@@ -91,11 +81,10 @@ export function useWorkstationTrailingSlot({
   );
 
   const trailingSlot = useMemo((): ReactNode => {
-    const plusMenuControl = isAllTabsView ? (
-      <TabBarPlusMenu />
-    ) : appMode === "browser" ? (
-      <TabBarPlusMenu items={BROWSER_PLUS_MENU_ITEMS} />
-    ) : null;
+    // Unified surface: the "+" (new-tab) menu always renders. There are no
+    // per-app surfaces left to gate it on — from anywhere you can open any
+    // tab type.
+    const plusMenuControl = <TabBarPlusMenu />;
 
     const chatPanelLabel = isChatPanelVisible
       ? t("sessions:chat.maximizeWorkStation")
@@ -202,7 +191,6 @@ export function useWorkstationTrailingSlot({
     appMode,
     handleToggleChatPanel,
     handleToggleChatPanelMaximized,
-    isAllTabsView,
     isChatPanelVisible,
     isSettingsRoute,
     projectTabBar,

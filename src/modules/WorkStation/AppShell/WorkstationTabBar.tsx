@@ -36,7 +36,6 @@ const WorkstationTabBar: React.FC<WorkstationTabBarProps> = memo(
     const {
       tabsForBar,
       activeKey,
-      isAllTabsView,
       visible,
       handleTabClick,
       handleTabReorder,
@@ -47,7 +46,6 @@ const WorkstationTabBar: React.FC<WorkstationTabBarProps> = memo(
 
     const { trailingSlot } = useWorkstationTrailingSlot({
       appMode,
-      isAllTabsView,
       visible,
     });
 
