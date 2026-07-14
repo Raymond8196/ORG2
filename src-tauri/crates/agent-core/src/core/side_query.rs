@@ -93,7 +93,9 @@ pub enum SideQueryError {
     Provider(ProviderError),
     /// The model hit its output token limit. Never accept this for side queries:
     /// summaries / classifiers may be syntactically parseable but semantically truncated.
-    IncompleteOutput { finish_reason: String },
+    IncompleteOutput {
+        finish_reason: String,
+    },
     EmptyContent,
 }
 
@@ -136,7 +138,6 @@ impl std::error::Error for SideQueryError {}
 //   - `anthropic_native`→ `extract_tool_choice_override` (request.rs)
 //   - `openai_responses`→ `convert_tools_with_choice` (responses_common)
 //   - `codex_native`    → `convert_tools_with_choice` (responses_common)
-//   - `gemini_native`   → implicitly safe: `convert_tools` `filter_map`
 //                         drops any element lacking a `name` key.
 // A new provider that builds a `tools` payload without one of the above is a
 // latent `Unsupported tool type` bug — wire it through the shared helper.

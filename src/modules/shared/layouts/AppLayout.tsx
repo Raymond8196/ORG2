@@ -43,6 +43,7 @@ import {
   getWorkbenchLayoutStyle,
 } from "@src/modules/shared/layouts/viewContainerTokens";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
+import { activeChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
   type ChatPanelMode,
@@ -173,6 +174,7 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
   children,
 }) => {
   const rawChatWidth = useAtomValue(chatWidthAtom);
+  const activeChatPanelTab = useAtomValue(activeChatPanelTabAtom);
   const isChatPanelDragging = useAtomValue(chatPanelDraggingAtom);
   const backgroundConfig = useAtomValue(resolvedBackgroundConfigAtom);
   const viewportWidth = useViewportWidth();
@@ -214,6 +216,10 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
     visibleWidth: chatWidthStyleValue,
   });
   const workbenchStyle = getWorkbenchLayoutStyle(chatPanelMaximized);
+  const showFocusedChatWorkstationRail =
+    chatPanelMaximized &&
+    chatPanelMode === "session" &&
+    activeChatPanelTab?.type !== "work-management";
 
   const handlePaneTransitionEnd = useCallback(
     (event: React.TransitionEvent<HTMLDivElement>) => {
@@ -322,9 +328,7 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
                 </WorkbenchActionSystemScope>
               </div>
               {!isChatOnLeft && chatSlot}
-              {chatPanelMaximized && chatPanelMode === "session" && (
-                <FocusedChatWorkstationRail />
-              )}
+              {showFocusedChatWorkstationRail && <FocusedChatWorkstationRail />}
             </div>
           </div>
         </SessionSyncProvider>

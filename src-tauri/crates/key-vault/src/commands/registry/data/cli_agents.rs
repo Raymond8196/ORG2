@@ -131,25 +131,6 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             supports_gui: true,
         },
         CliAgentEntry {
-            name: "gemini_cli",
-            display_name: "Gemini CLI",
-            binary: "gemini",
-            description: "Google's Gemini CLI for Gemini models",
-            brand_color: "#4285F4",
-            docs_url: "https://google-gemini.github.io/gemini-cli/docs/get-started/configuration.html",
-            has_subscription_plan: true,
-            compatible_api_providers: &["gemini_api"],
-            config_files: vec![home_config("settings", "Settings", ".gemini/settings.json", CliConfigFormat::Json, false)],
-            is_complex_setup: false,
-            default_setup_method: None,
-            popular: false,
-            icon_provider: "gemini",
-            paired_api_provider: Some("gemini_api"),
-            supports_rust_agents: true,
-            acp_support: AcpSupport::Native,
-            supports_gui: true,
-        },
-        CliAgentEntry {
             name: "kiro",
             display_name: "Kiro CLI",
             binary: "kiro-cli-chat",
@@ -429,25 +410,6 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             supports_gui: false,
         },
         CliAgentEntry {
-            name: "rovo",
-            display_name: "Rovo Dev",
-            binary: "acli",
-            description: "Atlassian's Rovo Dev AI coding agent",
-            brand_color: "#0052CC",
-            docs_url: "https://support.atlassian.com/rovo/docs/install-and-run-rovo-dev-cli-on-your-device/",
-            has_subscription_plan: true,
-            compatible_api_providers: &[],
-            config_files: vec![home_config("config", "Config", ".rovodev/config.yml", CliConfigFormat::Yaml, false), home_config("mcp", "MCP config", ".rovodev/mcp.json", CliConfigFormat::Json, false)],
-            is_complex_setup: false,
-            default_setup_method: None,
-            popular: false,
-            icon_provider: "rovo",
-            paired_api_provider: None,
-            supports_rust_agents: false,
-            acp_support: AcpSupport::Partial,
-            supports_gui: false,
-        },
-        CliAgentEntry {
             name: "hermes",
             display_name: "Hermes",
             binary: "hermes",
@@ -499,26 +461,6 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             default_setup_method: None,
             popular: false,
             icon_provider: "openclaw",
-            paired_api_provider: None,
-            supports_rust_agents: false,
-            acp_support: AcpSupport::Native,
-            supports_gui: false,
-        },
-        CliAgentEntry {
-            name: "aug",
-            display_name: "Augment Code",
-            binary: "auggie",
-            description: "Augment Code's AI coding assistant CLI",
-            brand_color: "#4F46E5",
-            docs_url: "https://docs.augmentcode.com/cli/setup-auggie/authentication",
-            // Augment uses AUGMENT_SESSION_AUTH (OAuth session token, not a plain API key).
-            has_subscription_plan: true,
-            compatible_api_providers: &[],
-            config_files: vec![home_config("settings", "Settings", ".augment/.auggie.json", CliConfigFormat::Json, false)],
-            is_complex_setup: true,
-            default_setup_method: Some("oauth"),
-            popular: false,
-            icon_provider: "aug",
             paired_api_provider: None,
             supports_rust_agents: false,
             acp_support: AcpSupport::Native,
@@ -605,20 +547,42 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             name: "antigravity",
             display_name: "Antigravity",
             binary: "agy",
-            description: "Antigravity AI coding agent CLI",
+            description: "Google Antigravity agent-first development CLI",
             brand_color: "#0EA5E9",
-            docs_url: "https://antigravity.google/docs/cli",
-            has_subscription_plan: false,
+            docs_url: "https://antigravity.google/docs/cli/getting-started",
+            has_subscription_plan: true,
             compatible_api_providers: &[],
-            config_files: Vec::new(),
+            config_files: vec![
+                home_config(
+                    "settings",
+                    "Settings",
+                    ".gemini/antigravity-cli/settings.json",
+                    CliConfigFormat::Json,
+                    false,
+                ),
+                home_config(
+                    "keybindings",
+                    "Keybindings",
+                    ".gemini/antigravity-cli/keybindings.json",
+                    CliConfigFormat::Json,
+                    false,
+                ),
+                home_config(
+                    "mcp",
+                    "MCP config",
+                    ".gemini/config/mcp_config.json",
+                    CliConfigFormat::Json,
+                    true,
+                ),
+            ],
             is_complex_setup: true,
             default_setup_method: None,
             popular: false,
             icon_provider: "antigravity",
             paired_api_provider: None,
             supports_rust_agents: false,
-            acp_support: AcpSupport::AdapterBacked,
-            supports_gui: false,
+            acp_support: AcpSupport::Unavailable,
+            supports_gui: true,
         },
         CliAgentEntry {
             name: "continue_cli",
@@ -771,4 +735,35 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             supports_gui: false,
         },
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn antigravity_uses_native_print_mode_and_documented_config_paths() {
+        let agents = cli_agent_registry();
+        let antigravity = agents
+            .iter()
+            .find(|entry| entry.name == "antigravity")
+            .expect("Antigravity registry entry");
+
+        assert_eq!(antigravity.binary, "agy");
+        assert!(antigravity.supports_gui);
+        assert!(antigravity.has_subscription_plan);
+        assert!(matches!(antigravity.acp_support, AcpSupport::Unavailable));
+        assert_eq!(
+            antigravity
+                .config_files
+                .iter()
+                .map(|entry| entry.relative_path)
+                .collect::<Vec<_>>(),
+            vec![
+                ".gemini/antigravity-cli/settings.json",
+                ".gemini/antigravity-cli/keybindings.json",
+                ".gemini/config/mcp_config.json",
+            ]
+        );
+    }
 }

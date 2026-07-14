@@ -40,7 +40,6 @@ interface ChatPinnedHeaderLayerProps {
   sourceGroupCount: number;
   header: OptimizedChatItem | null | undefined;
   meta: ChatGroupMeta | undefined;
-  hasPinnedContent: boolean;
   collapseLabelVariant?: GroupHeaderRendererProps["collapseLabelVariant"];
   collapseTailWhenIdle: boolean;
   hideUserMessage: boolean;
@@ -83,7 +82,6 @@ const ChatPinnedHeaderLayer: React.FC<ChatPinnedHeaderLayerProps> = memo(
     sourceGroupCount,
     header,
     meta,
-    hasPinnedContent,
     collapseLabelVariant,
     collapseTailWhenIdle,
     hideUserMessage,
@@ -134,7 +132,6 @@ const ChatPinnedHeaderLayer: React.FC<ChatPinnedHeaderLayerProps> = memo(
           sourceGroupCount={sourceGroupCount}
           header={header}
           meta={meta}
-          hasPinnedContent={hasPinnedContent}
           collapseLabelVariant={collapseLabelVariant}
           collapseTailWhenIdle={collapseTailWhenIdle}
           hideUserMessage={hideUserMessage}

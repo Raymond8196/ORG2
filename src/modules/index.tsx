@@ -360,16 +360,13 @@ const AppShell = () => {
 
   const showChatPanel = useMemo(() => {
     const path = location.pathname;
-    // Settings-in-slot must stay visible even on Ops Control so the user can
-    // open Settings from the Kanban surface without flipping out of it.
     if (isSettingsRoute) return true;
-    if (stationMode === "ops-control") return false;
     return path.includes("/workstation");
-  }, [location.pathname, isSettingsRoute, stationMode]);
+  }, [location.pathname, isSettingsRoute]);
 
   useEffect(() => {
     if (viewMode !== "workStation") return;
-    if (chatPanelMaximized || stationMode === "ops-control") return;
+    if (chatPanelMaximized) return;
     // Don't touch chat width while Settings-in-slot owns the slot — its
     // own fallback width (DEFAULT_CHAT_WIDTH) shouldn't be overwritten.
     if (isSettingsRoute) return;
@@ -385,7 +382,6 @@ const AppShell = () => {
     isSettingsRoute,
     restoreChatWidth,
     setChatWidth,
-    stationMode,
     viewMode,
   ]);
 
@@ -433,9 +429,7 @@ const AppShell = () => {
   const isWorkStationViewActive = viewMode === "workStation";
   // Skip bridging when Settings-in-slot is active — it doesn't run a real chat session.
   const shouldBridgeWorkStationPipeline =
-    isWorkStationViewActive &&
-    stationMode !== "ops-control" &&
-    !isSettingsRoute;
+    isWorkStationViewActive && !isSettingsRoute;
 
   useNarrowChatFocus({ enabled: isWorkStationViewActive });
   useWorkStationPipelineBridge(shouldBridgeWorkStationPipeline);
@@ -458,11 +452,7 @@ const AppShell = () => {
       ? sidebarWidth || DEFAULT_SIDEBAR_WIDTH
       : 0;
 
-  // Ops Control suppresses overlay unless Settings-in-slot is active.
-  const effectiveChatFocus =
-    chatPanelMaximized &&
-    isWorkStationViewActive &&
-    (stationMode !== "ops-control" || isSettingsRoute);
+  const effectiveChatFocus = chatPanelMaximized && isWorkStationViewActive;
 
   return (
     <TerminalProvider>

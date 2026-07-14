@@ -476,24 +476,6 @@
     "claudeCodeAutodetectDesc": "Reads your local Claude Code login from macOS Keychain or ~/.claude/.credentials.json",
     "claudeCodeConnected": "Claude Code connected",
     "claudeCodeDetectErrorHint": "Sign in with the embedded browser, or run claude auth login and try detection again",
-    "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
-    "geminiSignInTitle": "Gemini Sign In",
-    "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
-    "signInWithGemini": "Sign in with Gemini",
-    "geminiReadyToSignIn": "Ready to sign in to Gemini",
-    "geminiSignedIn": "Gemini connected",
-    "geminiOAuthHint": "This saves a Gemini OAuth account for official Gemini CLI access",
-    "geminiBrowserHint": "Complete Google authorization in the secure sign-in window.",
-    "geminiSignInErrorHint": "Close the sign-in window and try signing in again. No token was saved",
-    "geminiProjectId": "Code Assist project: {{projectId}}",
-    "geminiAutodetectTitle": "Detect Gemini session",
-    "geminiAutodetectDesc": "Reads ~/.gemini/oauth_creds.json and GEMINI_API_KEY from your local environment",
-    "geminiApiKeyLabel": "Gemini API Key",
-    "geminiApiKeyDesc": "Paste a Gemini API key if you do not want to use Google sign-in",
-    "geminiApiKeyPlaceholder": "AIza...",
-    "geminiConnected": "Gemini connected",
-    "geminiDetectErrorHint": "Sign in with the secure native window, or paste a Gemini API key manually",
-    "geminiValidationErrorHint": "Check that the Gemini token or API key is valid and try again",
     "refreshModels": {
       "button": "Refresh models",
       "failed": "Refresh models failed: {{error}}"
@@ -2080,8 +2062,7 @@
         "claude_code": "Claude Code",
         "copilot": "GitHub Copilot",
         "kiro": "Kiro",
-        "codex": "Codex",
-        "gemini_cli": "Gemini CLI"
+        "codex": "Codex"
       },
       "noSkillsResults": "No importable skills found. Looked in ~/.claude/skills and ~/.claude/commands.",
       "noAgentResults": "No agents to import yet",
@@ -2345,7 +2326,36 @@
     "orgSaveFailed": "Failed to save team",
     "orgDeleteFailed": "Failed to delete team",
     "deleteOrgTitle": "Delete team?",
-    "deleteOrgMessage": "\"{{name}}\" will be permanently removed. This cannot be undone."
+    "deleteOrgMessage": "\"{{name}}\" will be permanently removed. This cannot be undone.",
+    "cliManagedConfig": {
+      "title": "CLI config switch",
+      "modeLabel": "Mode",
+      "modeDesc": "Default restores the CLI's own config. ORGII Managed writes a backed-up proxy config.",
+      "modeDefault": "Default",
+      "modeOrgii": "ORGII Managed",
+      "conflict": "External change",
+      "conflictTitle": "Conflict",
+      "conflictDesc": "The active CLI config changed after ORGII wrote it.",
+      "proxyStatus": "Proxy",
+      "proxyDefault": "Default mode",
+      "proxyReady": "Proxy ready",
+      "proxyNotReady": "Proxy not ready",
+      "proxyDesc": "Local requests route through ORGII KeyVault.",
+      "keyLabel": "Key",
+      "keyDesc": "Only API keys compatible with this CLI and managed proxy are shown.",
+      "selectKey": "Select key",
+      "modelLabel": "Model",
+      "selectModel": "Select model",
+      "configFile": "Config files",
+      "actions": "Actions",
+      "addKey": "Add key",
+      "apply": "Apply",
+      "restore": "Restore Default",
+      "forceApply": "Force Apply",
+      "forceRestore": "Force Restore",
+      "applySuccess": "ORGII managed config applied",
+      "restoreSuccess": "Default config restored"
+    }
   },
   "tableHeaders": {
     "agentType": "Agent Type",
@@ -2490,13 +2500,6 @@
     "installHintNote": "Install the missing dependency to enable this feature",
     "installSection": "Installation"
   },
-  "worktreeCompare": {
-    "button": "Compare",
-    "buttonTooltip": "Compare worktrees",
-    "title": "Compare Worktrees",
-    "noSessions": "No sessions to compare",
-    "sessionTab": "Session"
-  },
   "creator": {
     "assign": "Assign"
   },
@@ -2639,6 +2642,10 @@
       "uiControl": {
         "title": "Lightweight ADE/UI control",
         "description": "MiniCPM may only classify requests into a strict local action whitelist."
+      },
+      "contextCompact": {
+        "title": "Automatic context maintenance",
+        "description": "Let MiniCPM maintain an isolated rolling summary of older context while enabled sessions are idle."
       }
     },
     "health": {
@@ -2677,5 +2684,38 @@
     "unavailable": "Launch profile unavailable",
     "saved": "Launch profile saved",
     "resetDone": "Launch profile reset"
+  },
+  "gitProfiles": {
+    "tab": "Git profiles",
+    "title": "Git profiles",
+    "add": "Add profile",
+    "refresh": "Refresh profiles",
+    "refreshed": "Global Git profile refreshed",
+    "loading": "Loading your global Git profile…",
+    "defaultProfile": "Default profile",
+    "newProfile": "New profile",
+    "copyName": "{{name}} copy",
+    "profileName": "Profile name",
+    "authorName": "Author name",
+    "email": "Email",
+    "selectEmail": "Select an email",
+    "signingKey": "Signing key",
+    "signingKeyPlaceholder": "GPG or SSH signing key ID",
+    "signCommits": "Sign commits",
+    "active": "Active",
+    "activate": "Activate profile",
+    "activated": "{{name}} is now the global Git profile",
+    "editRaw": "Edit raw config",
+    "hideRaw": "Hide raw config",
+    "rawTitle": "Raw Git profile",
+    "rawConfig": "Git config",
+    "updateFromRaw": "Update profile from config",
+    "rawUpdated": "Profile updated from raw Git config",
+    "rawInvalid": "The raw Git profile is invalid",
+    "nameEmailRequired": "Author name and email are required",
+    "deleteTitle": "Delete Git profile",
+    "deleteMessage": "Delete the profile “{{name}}”? This does not change your current global Git config.",
+    "loadFailed": "Failed to load the global Git profile",
+    "applyFailed": "Failed to activate the Git profile"
   }
 }

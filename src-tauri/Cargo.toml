@@ -1,10 +1,4 @@
 [workspace]
-# `crates/cursor-bridge` drives a running Cursor.app over the
-# Chrome DevTools Protocol exposed by `--remote-debugging-port=<port>`
-# so the user can submit prompts (start + follow-up) without leaving
-# this app. The lib is wired into the main `app` binary via the
-# `cursor_bridge` dep below; the probe binary
-# (`cursor-bridge-probe`) ships alongside as internal tooling.
 members = [
     ".",
     "crates/agent-cli",
@@ -22,8 +16,6 @@ members = [
     "crates/container",
     "crates/code-map",
     "crates/ui-indexer",
-    "crates/cursor-bridge",
-    "crates/cursor-bridge-app",
     "crates/database",
     "crates/db-browser",
     "crates/db-clients",
@@ -172,7 +164,6 @@ ignored = [
     "advanced_search",
     "agent_cli",
     "container",
-    "cursor_bridge_app",
     "db_browser",
     "db_clients",
 ]
@@ -208,16 +199,9 @@ tauri-plugin-store = "2"
 tauri-plugin-drag = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-webdriver-automation = { version = "0.1", optional = true }
-tauri-plugin-liquid-glass = "0.1.6"
 portable-pty = "0.9"
 tokio = { workspace = true }
 uuid = { version = "1", features = ["v4"] }
-
-# Tauri-side wrapper around `cursor_bridge`: command handlers,
-# isolated probe-instance lifecycle, and `state.vscdb` diffing. Keeps its
-# `#[tauri::command]` macros in-crate (key-vault / git pattern); the
-# `app` crate just re-registers them in `commands/handler_list.inc`.
-cursor_bridge_app = { path = "crates/cursor-bridge-app" }
 
 # Shared cross-crate type definitions (Phase 1 of workspace migration).
 # See `docs/rust-backend/modularization-plan--0504.md`.
@@ -554,6 +538,7 @@ windows = { version = "0.61", features = [
 ] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
+tauri-plugin-liquid-glass = "0.1.6"
 objc2 = { workspace = true }
 objc2-foundation = { workspace = true }
 objc2-app-kit = { workspace = true }

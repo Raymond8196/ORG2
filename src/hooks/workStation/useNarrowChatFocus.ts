@@ -46,7 +46,6 @@ import {
   chatVisibleAtom,
   chatWidthAtom,
 } from "@src/store/ui/chatPanelAtom";
-import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 
 /**
  * Below this *workbench* width the chat panel takes over the entire
@@ -120,7 +119,6 @@ export function resolveWorkbenchEvaluationWidth({
 export function useNarrowChatFocus({
   enabled,
 }: UseNarrowChatFocusOptions): void {
-  const stationMode = useAtomValue(stationModeAtom);
   const chatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
   const chatPanelDragging = useAtomValue(chatPanelDraggingAtom);
   const chatWidth = useAtomValue(chatWidthAtom);
@@ -143,24 +141,16 @@ export function useNarrowChatFocus({
   // Latest atom values for the observer callbacks to read without
   // re-subscribing on every render. Mirrored in an effect so the
   // ref write happens after render (react-hooks/refs lint rule).
-  const stationModeRef = useRef(stationMode);
   const chatPanelMaximizedRef = useRef(chatPanelMaximized);
   const chatPanelDraggingRef = useRef(chatPanelDragging);
   const chatWidthRef = useRef(chatWidth);
   const chatVisibleRef = useRef(chatVisible);
   useEffect(() => {
-    stationModeRef.current = stationMode;
     chatPanelMaximizedRef.current = chatPanelMaximized;
     chatPanelDraggingRef.current = chatPanelDragging;
     chatWidthRef.current = chatWidth;
     chatVisibleRef.current = chatVisible;
-  }, [
-    stationMode,
-    chatPanelDragging,
-    chatPanelMaximized,
-    chatWidth,
-    chatVisible,
-  ]);
+  }, [chatPanelDragging, chatPanelMaximized, chatWidth, chatVisible]);
 
   // Last observed measurements. Cached so atom-driven re-evaluations
   // (chat width slider, chat visibility toggle, maximize toggle) can
@@ -199,15 +189,10 @@ export function useNarrowChatFocus({
       const isNarrow = width < NARROW_CHAT_FOCUS_BREAKPOINT_PX;
       const wasNarrow = wasNarrowRef.current;
       wasNarrowRef.current = isNarrow;
-      const mode = stationModeRef.current;
       const maximized = chatPanelMaximizedRef.current;
 
       if (isNarrow && wasNarrow !== true) {
         if (maximized) return;
-        // Ops Control hides the chat panel entirely (Kanban surface);
-        // surprise-maximizing it on narrow would reveal a panel the
-        // user explicitly switched away from. Leave it alone.
-        if (mode === "ops-control") return;
         setChatPanelMaximized(true);
         autoTriggeredRef.current = true;
         return;
@@ -303,7 +288,6 @@ export function useNarrowChatFocus({
 
     if (isNarrow && wasNarrow !== true) {
       if (chatPanelMaximized) return;
-      if (stationMode === "ops-control") return;
       setChatPanelMaximized(true);
       autoTriggeredRef.current = true;
       return;
@@ -320,7 +304,6 @@ export function useNarrowChatFocus({
     chatPanelDragging,
     chatWidth,
     chatVisible,
-    stationMode,
     chatPanelMaximized,
     setChatPanelMaximized,
   ]);

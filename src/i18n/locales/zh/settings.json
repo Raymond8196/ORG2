@@ -64,7 +64,7 @@
       "git": "Git",
       "databases": "数据库",
       "externalSkillsets": "Skills、MCPs、Plugins",
-      "housekeeper": "常驻管家"
+      "housekeeper": "MiniCPM 常驻管家"
     }
   },
   "myRoles": {
@@ -323,7 +323,7 @@
     "configAgentKeys": "OS & SDE Agent 的 API Keys",
     "configAgentKeysDesc": "添加 OpenAI、Anthropic、DeepSeek 等提供商的 API Key",
     "configCliKeys": "CLI Agent 的 API Keys",
-    "configCliKeysDesc": "添加 Claude Code、Codex、Gemini CLI 等 CLI 工具的 API Key"
+    "configCliKeysDesc": "添加 Claude Code、Codex 等 CLI 工具的 API Key"
   },
   "cliConfig": {
     "overviewLabel": "CLI Agent",
@@ -889,7 +889,6 @@
     "diskCategory_logs": "日志",
     "diskCategory_personalWorkspace": "OS Agent 工作区",
     "diskCategory_cursorConfig": "Session CLI 配置",
-    "diskCategory_geminiCliHome": "Gemini CLI 目录",
     "diskCategory_extensions": "扩展",
     "diskNotScanned": "尚未扫描",
     "diskScanning": "扫描中...",
@@ -915,7 +914,6 @@
     "diskCategory_codeMap": "Code Map 索引",
     "diskCategory_semanticIndex": "语义搜索索引",
     "diskCategory_cursorCliProfiles": "Cursor CLI 配置",
-    "diskCategory_geminiCliProfiles": "Gemini CLI 配置",
     "diskCategory_kiroCliProfiles": "Kiro CLI 配置",
     "diskCategory_opencodeCliProfiles": "OpenCode CLI 配置",
     "diskCategory_agentWorktrees": "Agent Session Worktrees",

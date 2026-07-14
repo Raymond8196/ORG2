@@ -203,7 +203,6 @@
     "openWorkspace": "Mở Workspace",
     "skipThisVersion": "Bỏ qua phiên bản này",
     "later": "Để sau",
-    "updateAiBlame": "Cập nhật AI Blame",
     "link": "Liên kết"
   },
   "refreshToast": {
@@ -1679,7 +1678,7 @@
     "disableDockAutoHide": "Luôn hiển thị Dock Workstation",
     "openMyStation": "Đi tới My Station",
     "openAgentStation": "Đi tới Agent Station",
-    "openOpsControl": "Đi tới Ops Control",
+    "openKanban": "Đi tới Kanban",
     "changeLanguage": "Thay đổi ngôn ngữ",
     "switchToSystemTheme": "Theo chủ đề hệ thống",
     "detectUpdate": "Kiểm tra cập nhật",

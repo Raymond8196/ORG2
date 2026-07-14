@@ -500,7 +500,7 @@ export const TodoKanban: React.FC<TodoKanbanProps> = ({
     [todos, timeline, yesterdayLabel, nowLabel, minutesAgoLabel]
   );
 
-  // `kanban-board--linear` matches the Ops Control / WorkItems styling
+  // `kanban-board--linear` matches the Kanban / WorkItems styling
   // (column-as-card, fill-2 surface, floating task cards).
   return (
     <div

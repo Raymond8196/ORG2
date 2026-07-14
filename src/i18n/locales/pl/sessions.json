@@ -78,14 +78,70 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Sesje",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Bieżący Kanban",
     "view": {
       "list": "Lista",
       "diary": "Dziennik",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Źródła danych"
+    },
+    "dataSource": {
+      "title": "Źródła danych",
+      "description": "Zewnętrzne narzędzia do kodowania wykrywane przez ORGII. Aplikacje importowalne pokazują liczbę sesji i można je przeskanować ponownie; pozostałe pokazują status instalacji i lokalizację historii.",
+      "rescanAll": "Przeskanuj wszystko",
+      "rescan": "Przeskanuj",
+      "rescanning": "Skanowanie…",
+      "enable": "Włącz",
+      "disable": "Wyłącz",
+      "lastScan": "Ostatni skan {{time}}",
+      "neverScanned": "Nigdy nie skanowano",
+      "frequencyTitle": "Częstotliwość skanowania",
+      "globalFrequency": "Autoskan",
+      "globalFrequencyDesc": "Domyślna częstotliwość dla źródeł ustawionych na „Domyślnie”.",
+      "col": {
+        "source": "Źródło",
+        "sessions": "Sesje",
+        "lastScan": "Ostatni skan",
+        "frequency": "Autoskan",
+        "status": "Status"
+      },
+      "freq": {
+        "default": "Domyślnie",
+        "manual": "Ręcznie",
+        "60s": "Co 60 s",
+        "5m": "Co 5 min",
+        "1h": "Co godzinę",
+        "1d": "Codziennie"
+      },
+      "openFolder": "Otwórz folder",
+      "tabs": {
+        "all": "Wszystkie",
+        "apps": "Aplikacje",
+        "clis": "CLI"
+      },
+      "sessions_one": "{{count}} sesja",
+      "sessions_few": "{{count}} sesje",
+      "sessions_many": "{{count}} sesji",
+      "sessions_other": "{{count}} sesji",
+      "details": {
+        "path": "Ścieżka",
+        "storeType": "Typ magazynu",
+        "copyPath": "Kopiuj ścieżkę"
+      },
+      "noPath": "Nie wykryto ścieżki",
+      "notImported": "Nie zaimportowano",
+      "status": {
+        "ready": "Gotowe",
+        "empty": "Brak historii",
+        "loading": "Sprawdzanie…",
+        "error": "Błąd",
+        "installed": "Zainstalowano",
+        "notInstalled": "Nie wykryto",
+        "disabled": "Wyłączone"
+      }
     },
     "list": {
       "updated": "Zaktualizowano",
@@ -187,11 +243,6 @@
       "discarding": "Odrzucanie…",
       "confirmMessage": "Odrzucić wszystkie zmiany w tym Worktree? Tej operacji nie można cofnąć."
     },
-    "diff": {
-      "openDiffWindow": "Wyświetl różnice",
-      "windowTitle": "Różnice sesji",
-      "filesChanged": "Pliki"
-    },
     "replay": {
       "replaySession": "Powtórz"
     },
@@ -225,13 +276,6 @@
       "commits_other": "{{count}} commitów",
       "committedRateShort": "{{percent}}% scommitowane"
     }
-  },
-  "worktreeCompare": {
-    "title": "Porównaj Worktree",
-    "button": "Porównaj",
-    "buttonTooltip": "Porównaj różnice Worktree obok siebie",
-    "noSessions": "Brak sesji do porównania.",
-    "sessionTab": "Sesja {{n}}"
   },
   "changes": {
     "scope": {
@@ -731,7 +775,7 @@
       },
       "tabs": {
         "work": "Praca",
-        "explore": "Eksploruj",
+        "manage": "Zarządzaj",
         "heatmap": "Trendy"
       },
       "heatmap": {
@@ -1003,9 +1047,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Wszystkie stany",
+        "assignedToMe": "Przypisane do mnie",
+        "createdByMe": "Utworzone przeze mnie",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1107,7 +1151,7 @@
     "pathCopied": "Ścieżka skopiowana!",
     "failedToCopyPath": "Nie udało się skopiować ścieżki",
     "copyFilePath": "Kopiuj ścieżkę pliku",
-    "explore": "Eksploruj",
+    "manage": "Zarządzaj",
     "readFile": "Odczytaj plik",
     "readFileRunning": "Odczytywanie",
     "readFileDone": "Czytaj",
@@ -1201,6 +1245,7 @@
     "askUserSkipped": "Pominięto",
     "askUserQuestionsAnswered": "Pytania zostały udzielone odpowiedzi",
     "askUserQuestionsSkipped": "Pytania pominięte",
+    "explore": "Eksploruj",
     "exploreSummary": {
       "read_one": "{{count}} plik",
       "read_few": "{{count}} pliki",

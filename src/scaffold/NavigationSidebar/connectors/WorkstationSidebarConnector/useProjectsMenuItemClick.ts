@@ -48,7 +48,7 @@ interface UseProjectsMenuItemClickParams<
   projectsLocalOrgMap: ReadonlyMap<string, LocalOrg>;
   projectsProjectMap: ReadonlyMap<string, Project>;
   projectsWorkItemMap: ReadonlyMap<string, WorkItem>;
-  resetOpsControlStateForProjectsContent: () => void;
+  resetWorkManagementStateForProjectsContent: () => void;
   setProjectsGroupVisibleCounts: React.Dispatch<
     React.SetStateAction<Map<string, number>>
   >;
@@ -78,7 +78,7 @@ export function useProjectsMenuItemClick<
   projectsLocalOrgMap,
   projectsProjectMap,
   projectsWorkItemMap,
-  resetOpsControlStateForProjectsContent,
+  resetWorkManagementStateForProjectsContent,
   setProjectsGroupVisibleCounts,
   setProjectsSelectedMenuItemId,
   toChatPanelProject,
@@ -94,21 +94,21 @@ export function useProjectsMenuItemClick<
   return useCallback(
     (_key: string, item: NavigationMenuItem) => {
       if (item.id === COLLAB_ADD_ORG_MENU_ITEM_ID) {
-        resetOpsControlStateForProjectsContent();
+        resetWorkManagementStateForProjectsContent();
         setProjectsSelectedMenuItemId(COLLAB_ADD_ORG_MENU_ITEM_ID);
         navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_COLLAB_ORG });
         return;
       }
 
       if (item.id === PROJECTS_NEW_PROJECT_MENU_ITEM_ID) {
-        resetOpsControlStateForProjectsContent();
+        resetWorkManagementStateForProjectsContent();
         setProjectsSelectedMenuItemId(PROJECTS_NEW_PROJECT_MENU_ITEM_ID);
         navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_PROJECT });
         return;
       }
 
       if (item.id === PROJECTS_IMPORT_GITHUB_ISSUES_MENU_ITEM_ID) {
-        resetOpsControlStateForProjectsContent();
+        resetWorkManagementStateForProjectsContent();
         setProjectsSelectedMenuItemId(
           PROJECTS_IMPORT_GITHUB_ISSUES_MENU_ITEM_ID
         );
@@ -119,7 +119,7 @@ export function useProjectsMenuItemClick<
       }
 
       if (item.id === PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID) {
-        resetOpsControlStateForProjectsContent();
+        resetWorkManagementStateForProjectsContent();
         setProjectsSelectedMenuItemId(PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID);
         navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM });
         return;
@@ -147,7 +147,7 @@ export function useProjectsMenuItemClick<
       if (cloudOrgId) {
         const cloudOrg = projectsCloudOrgMap.get(cloudOrgId);
         if (!cloudOrg) return;
-        resetOpsControlStateForProjectsContent();
+        resetWorkManagementStateForProjectsContent();
         setProjectsSelectedMenuItemId(item.id);
         navigateChatPanel({
           kind: CHAT_PANEL_SURFACE_KIND.COLLAB_ORG,
@@ -168,7 +168,7 @@ export function useProjectsMenuItemClick<
 
       const createWorkItemOrgId = getProjectsWorkItemCreateOrgId(item.id);
       if (createWorkItemOrgId) {
-        resetOpsControlStateForProjectsContent();
+        resetWorkManagementStateForProjectsContent();
         setProjectsSelectedMenuItemId(item.id);
         navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM });
         return;
@@ -241,7 +241,7 @@ export function useProjectsMenuItemClick<
       projectsLocalOrgMap,
       projectsProjectMap,
       projectsWorkItemMap,
-      resetOpsControlStateForProjectsContent,
+      resetWorkManagementStateForProjectsContent,
       setProjectsGroupVisibleCounts,
       setProjectsSelectedMenuItemId,
       toChatPanelProject,

@@ -16,8 +16,6 @@ import { activeWorkspaceRootPathAtom } from "@src/store/workspace";
 import { useWorkstationTabList } from "./useWorkstationTabList";
 import { useWorkstationTrailingSlot } from "./useWorkstationTrailingSlot";
 
-export { OpsControlStationTabBar } from "./OpsControlStationTabBar";
-
 const WORKSTATION_SINGLE_HOST_MODES: AppModeType[] = [
   "code",
   "browser",

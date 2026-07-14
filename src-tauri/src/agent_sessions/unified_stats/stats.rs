@@ -29,6 +29,8 @@ fn compute_aggregate_stats_from_usage(
     usage: Option<&std::collections::BTreeMap<String, super::accounting::SessionUsageSummary>>,
 ) -> AggregateStats {
     let mut total_cost_usd = 0.0;
+    let mut total_recorded_cost_usd = 0.0;
+    let mut total_estimated_cost_usd = 0.0;
     let mut total_tokens_input: i64 = 0;
     let mut total_tokens_output: i64 = 0;
     let mut total_tokens: i64 = 0;
@@ -42,6 +44,8 @@ fn compute_aggregate_stats_from_usage(
             total_tokens_output += summary.output_tokens;
             total_tokens += summary.total_tokens;
             total_cost_usd += summary.cost_usd;
+            total_recorded_cost_usd += summary.recorded_cost_usd;
+            total_estimated_cost_usd += summary.estimated_cost_usd;
         } else {
             total_tokens += session.total_tokens;
         }
@@ -57,6 +61,8 @@ fn compute_aggregate_stats_from_usage(
 
     AggregateStats {
         total_cost_usd,
+        total_recorded_cost_usd,
+        total_estimated_cost_usd,
         total_tokens_input,
         total_tokens_output,
         total_tokens,

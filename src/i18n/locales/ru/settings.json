@@ -323,7 +323,7 @@
     "configAgentKeys": "API Keys для OS & SDE Agents",
     "configAgentKeysDesc": "Добавить API Key от провайдеров: OpenAI, Anthropic, DeepSeek",
     "configCliKeys": "API Keys для CLI Agents",
-    "configCliKeysDesc": "Добавить API Key для CLI инструментов: Claude Code, Codex, Gemini CLI"
+    "configCliKeysDesc": "Добавить API Key для CLI инструментов: Claude Code, Codex"
   },
   "cliConfig": {
     "overviewLabel": "CLI Agent",
@@ -889,7 +889,6 @@
     "diskCategory_logs": "Журналы",
     "diskCategory_personalWorkspace": "Рабочая область OS Agent",
     "diskCategory_cursorConfig": "CLI-конфигурации Session",
-    "diskCategory_geminiCliHome": "Каталоги Gemini CLI",
     "diskCategory_extensions": "Расширения",
     "diskNotScanned": "Ещё не просканировано",
     "diskScanning": "Сканирование...",

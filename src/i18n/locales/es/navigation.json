@@ -45,7 +45,6 @@
     "projects": "Projects",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
     "colleagues": "Colegas",
     "terminals": "Terminales"
   },
@@ -81,10 +80,9 @@
     "agentStudio": "Agent Studio",
     "serviceMarket": "Mercado de Service",
     "signingIn": "Iniciando sesión...",
-    "launchpad": "Launchpad",
+    "launchpad": "Centro de inicio",
     "ideaArea": "Área de Ideas",
-    "changelog": "Registro de cambios",
-    "opsControl": "Ops Control"
+    "changelog": "Registro de cambios"
   },
   "appGrid": {
     "customizeGrid": "Personalizar cuadrícula",
@@ -203,7 +201,7 @@
     "emptyWorkspaces": "Ningún espacio de trabajo coincide",
     "myRepos": "Mis Repos",
     "myMultiRepoWorkspaces": "Mis Workspaces multi-repo",
-    "dashboard": "Launchpad",
+    "dashboard": "Panel de control",
     "myWorkspaces": "Mis espacios de trabajo",
     "workspaces": "Espacios de trabajo",
     "dashboardTitle": "Espacios de trabajo",

@@ -471,24 +471,6 @@
     "claudeCodeAutodetectDesc": "Reads your local Claude Code login from macOS Keychain or ~/.claude/.credentials.json",
     "claudeCodeConnected": "Claude Code connected",
     "claudeCodeDetectErrorHint": "Sign in with the embedded browser, or run claude auth login and try detection again",
-    "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
-    "geminiSignInTitle": "Gemini Sign In",
-    "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
-    "signInWithGemini": "Sign in with Gemini",
-    "geminiReadyToSignIn": "Ready to sign in to Gemini",
-    "geminiSignedIn": "Gemini connected",
-    "geminiOAuthHint": "This saves a Gemini OAuth account for official Gemini CLI access",
-    "geminiBrowserHint": "Complete Google authorization in the secure sign-in window.",
-    "geminiSignInErrorHint": "Close the sign-in window and try signing in again. No token was saved",
-    "geminiProjectId": "Code Assist project: {{projectId}}",
-    "geminiAutodetectTitle": "Detect Gemini session",
-    "geminiAutodetectDesc": "Reads ~/.gemini/oauth_creds.json and GEMINI_API_KEY from your local environment",
-    "geminiApiKeyLabel": "Gemini API Key",
-    "geminiApiKeyDesc": "Paste a Gemini API key if you do not want to use Google sign-in",
-    "geminiApiKeyPlaceholder": "AIza...",
-    "geminiConnected": "Gemini connected",
-    "geminiDetectErrorHint": "Sign in with the secure native window, or paste a Gemini API key manually",
-    "geminiValidationErrorHint": "Check that the Gemini token or API key is valid and try again",
     "refreshModels": {
       "button": "Cursor 모델 목록 새로고침",
       "failed": "Cursor에서 새로고침 실패: {{error}}"
@@ -2028,8 +2010,7 @@
         "claude_code": "Claude Code",
         "copilot": "GitHub Copilot",
         "kiro": "Kiro",
-        "codex": "Codex",
-        "gemini_cli": "Gemini CLI"
+        "codex": "Codex"
       },
       "noSkillsResults": "가져올 수 있는 Skill이 없습니다. ~/.claude/skills 및 ~/.claude/commands를 확인했습니다。",
       "noAgentResults": "가져올 Agent가 아직 없습니다",
@@ -2448,13 +2429,6 @@
     "categoryVersionControl": "버전 관리",
     "installHintNote": "이 기능을 활성화하려면 누락된 종속성을 설치하세요",
     "installSection": "설치"
-  },
-  "worktreeCompare": {
-    "button": "비교",
-    "buttonTooltip": "Worktree 비교",
-    "title": "Worktree 비교",
-    "noSessions": "비교할 세션 없음",
-    "sessionTab": "세션"
   },
   "creator": {
     "assign": "할당"

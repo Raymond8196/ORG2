@@ -474,24 +474,6 @@
     "claudeCodeAutodetectDesc": "Lê seu login local do Claude Code pelo macOS Keychain ou ~/.claude/.credentials.json",
     "claudeCodeConnected": "Claude Code conectado",
     "claudeCodeDetectErrorHint": "Entre pelo navegador incorporado ou execute claude auth login e tente detectar novamente",
-    "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
-    "geminiSignInTitle": "Gemini Sign In",
-    "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
-    "signInWithGemini": "Sign in with Gemini",
-    "geminiReadyToSignIn": "Ready to sign in to Gemini",
-    "geminiSignedIn": "Gemini connected",
-    "geminiOAuthHint": "This saves a Gemini OAuth account for official Gemini CLI access",
-    "geminiBrowserHint": "Complete Google authorization in the secure sign-in window.",
-    "geminiSignInErrorHint": "Close the sign-in window and try signing in again. No token was saved",
-    "geminiProjectId": "Code Assist project: {{projectId}}",
-    "geminiAutodetectTitle": "Detect Gemini session",
-    "geminiAutodetectDesc": "Reads ~/.gemini/oauth_creds.json and GEMINI_API_KEY from your local environment",
-    "geminiApiKeyLabel": "Gemini API Key",
-    "geminiApiKeyDesc": "Paste a Gemini API key if you do not want to use Google sign-in",
-    "geminiApiKeyPlaceholder": "AIza...",
-    "geminiConnected": "Gemini connected",
-    "geminiDetectErrorHint": "Sign in with the secure native window, or paste a Gemini API key manually",
-    "geminiValidationErrorHint": "Check that the Gemini token or API key is valid and try again",
     "refreshModels": {
       "button": "Atualizar lista de modelos do Cursor",
       "failed": "Falha ao atualizar a partir do Cursor: {{error}}"
@@ -2043,8 +2025,7 @@
         "claude_code": "Claude Code",
         "copilot": "GitHub Copilot",
         "kiro": "Kiro",
-        "codex": "Codex",
-        "gemini_cli": "Gemini CLI"
+        "codex": "Codex"
       },
       "noSkillsResults": "Nenhum Skill importável encontrado. Procuramos em ~/.claude/skills e ~/.claude/commands.",
       "noAgentResults": "Nenhum Agent para importar ainda",
@@ -2451,13 +2432,6 @@
     "categoryVersionControl": "Controle de versão",
     "installHintNote": "Instale a dependência ausente para ativar este recurso",
     "installSection": "Instalação"
-  },
-  "worktreeCompare": {
-    "button": "Comparar",
-    "buttonTooltip": "Comparar Worktrees",
-    "title": "Comparar Worktrees",
-    "noSessions": "Nenhuma sessão para comparar",
-    "sessionTab": "Sessão"
   },
   "creator": {
     "assign": "Atribuir"

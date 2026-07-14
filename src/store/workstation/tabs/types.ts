@@ -63,12 +63,12 @@ export type WorkStationTabType =
   // view inside the Code Editor surface (opened from the Agent Teams page
   // table rows; mirrors how skills are previewed).
   | "agent-config"
-  // Ops Control station tabs
-  | "ops-control-station"
   // Canvas preview tab — renders agent-generated canvas from canvasPreviewAtom
   | "canvas-preview"
   // GitHub Issues detail tab — opened from the sidebar Issues panel
-  | "github-issue-detail";
+  | "github-issue-detail"
+  // GitHub Pull Request detail tab — opened from Kanban PR rows
+  | "github-pr-detail";
 
 // ============================================
 // Tab Types
@@ -109,7 +109,6 @@ export type WorkStationTabCategory =
   | "db-schema"
   | "browser"
   | "project"
-  | "ops-control"
   | "launchpad";
 
 export const TAB_RETURN_TARGET_DATA_KEY = "returnTabId";
@@ -441,9 +440,10 @@ export const TOOL_TAB_TYPES = [
   "chat-session",
   "subagent-detail",
   "agent-config",
-  "ops-control-station",
   // GitHub Issues detail
   "github-issue-detail",
+  // GitHub Pull Request detail
+  "github-pr-detail",
 ] as const;
 
 export type FileTabType = (typeof FILE_TAB_TYPES)[number];

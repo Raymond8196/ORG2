@@ -323,7 +323,7 @@
     "configAgentKeys": "OS & SDE Agent için API Keys",
     "configAgentKeysDesc": "OpenAI, Anthropic, DeepSeek gibi sağlayıcılardan API Key ekleyin",
     "configCliKeys": "CLI Agent için API Keys",
-    "configCliKeysDesc": "Claude Code, Codex, Gemini CLI gibi CLI araçları için API Key ekleyin"
+    "configCliKeysDesc": "Claude Code ve Codex gibi CLI araçları için API Key ekleyin"
   },
   "cliConfig": {
     "overviewLabel": "CLI Agent",
@@ -889,7 +889,6 @@
     "diskCategory_logs": "Günlükler",
     "diskCategory_personalWorkspace": "OS Agent Çalışma Alanı",
     "diskCategory_cursorConfig": "Session CLI Yapılandırmaları",
-    "diskCategory_geminiCliHome": "Gemini CLI Dizinleri",
     "diskCategory_extensions": "Uzantılar",
     "diskNotScanned": "Henüz taranmadı",
     "diskScanning": "Taranıyor...",

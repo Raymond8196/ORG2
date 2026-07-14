@@ -100,6 +100,25 @@ const launchProfiles = {
     .build(),
 } as const;
 
+const managedConfig = {
+  getStatus: defineProcedure("cli_config_get_status")
+    .input(schemas.agentOrgs.CliConfigManagedStatusInput)
+    .output(schemas.agentOrgs.CliConfigManagedStatusSchema)
+    .build(),
+  enableOrgiiManaged: defineProcedure("cli_config_enable_orgii_managed")
+    .input(schemas.agentOrgs.CliConfigEnableOrgiiManagedInput)
+    .output(schemas.agentOrgs.CliConfigManagedStatusSchema)
+    .build(),
+  restoreDefault: defineProcedure("cli_config_restore_default")
+    .input(schemas.agentOrgs.CliConfigRestoreDefaultInput)
+    .output(schemas.agentOrgs.CliConfigManagedStatusSchema)
+    .build(),
+  proxyStatus: defineProcedure("cli_managed_proxy_status")
+    .input(schemas.agentOrgs.CliManagedProxyStatusInput)
+    .output(schemas.agentOrgs.CliManagedProxyStatusSchema)
+    .build(),
+} as const;
+
 const skills = {
   list: defineProcedure("skills_list")
     .input(schemas.agentOrgs.SkillsListInput)
@@ -144,6 +163,7 @@ export const agentOrgs = {
   claudeCode,
   cliConfigFiles,
   launchProfiles,
+  managedConfig,
   memory,
   orgs,
   skills,

@@ -78,14 +78,68 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Session",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Mevcut Kanban",
     "view": {
       "list": "Liste",
       "diary": "Günlük",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Veri kaynakları"
+    },
+    "dataSource": {
+      "title": "Veri kaynakları",
+      "description": "ORGII'nin algıladığı harici kodlama araçları. İçe aktarılabilir uygulamalar oturum sayısını gösterir ve yeniden taranabilir; diğerleri kurulum durumunu ve geçmişlerinin nerede olduğunu gösterir.",
+      "rescanAll": "Tümünü yeniden tara",
+      "rescan": "Yeniden tara",
+      "rescanning": "Yeniden taranıyor…",
+      "enable": "Etkinleştir",
+      "disable": "Devre dışı bırak",
+      "lastScan": "Son tarama {{time}}",
+      "neverScanned": "Hiç taranmadı",
+      "frequencyTitle": "Otomatik tarama sıklığı",
+      "globalFrequency": "Otomatik tarama",
+      "globalFrequencyDesc": "“Varsayılan” olarak ayarlanan kaynaklar için varsayılan sıklık.",
+      "col": {
+        "source": "Kaynak",
+        "sessions": "Oturumlar",
+        "lastScan": "Son tarama",
+        "frequency": "Otomatik tarama",
+        "status": "Durum"
+      },
+      "freq": {
+        "default": "Varsayılan",
+        "manual": "Manuel",
+        "60s": "60 saniyede bir",
+        "5m": "5 dakikada bir",
+        "1h": "Saatlik",
+        "1d": "Günlük"
+      },
+      "openFolder": "Klasörü aç",
+      "tabs": {
+        "all": "Tümü",
+        "apps": "Uygulamalar",
+        "clis": "CLI'ler"
+      },
+      "sessions_one": "{{count}} oturum",
+      "sessions_other": "{{count}} oturum",
+      "details": {
+        "path": "Yol",
+        "storeType": "Depolama türü",
+        "copyPath": "Yolu kopyala"
+      },
+      "noPath": "Yol algılanmadı",
+      "notImported": "İçe aktarılmadı",
+      "status": {
+        "ready": "Hazır",
+        "empty": "Geçmiş yok",
+        "loading": "Kontrol ediliyor…",
+        "error": "Hata",
+        "installed": "Kurulu",
+        "notInstalled": "Algılanmadı",
+        "disabled": "Devre dışı"
+      }
     },
     "list": {
       "updated": "Güncellendi",
@@ -183,11 +237,6 @@
       "merge": "Birleştir",
       "merging": "Birleştiriliyor…",
       "merged": "Birleştirildi"
-    },
-    "diff": {
-      "openDiffWindow": "Diff'i Görüntüle",
-      "windowTitle": "Oturum Diff",
-      "filesChanged": "Dosyalar"
     },
     "replay": {
       "replaySession": "Oynat"
@@ -725,7 +774,7 @@
       },
       "tabs": {
         "work": "Çalışma",
-        "explore": "Keşfet",
+        "manage": "Yönet",
         "heatmap": "Trendler"
       },
       "heatmap": {
@@ -991,9 +1040,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Tüm durumlar",
+        "assignedToMe": "Bana atananlar",
+        "createdByMe": "Benim oluşturduklarım",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1079,7 +1128,7 @@
     "pathCopied": "Yol kopyalandı!",
     "failedToCopyPath": "Yol kopyalanamadı",
     "copyFilePath": "Dosya yolunu kopyala",
-    "explore": "Keşfet",
+    "manage": "Yönet",
     "readFile": "Dosya oku",
     "readFileRunning": "Okunuyor",
     "readFileDone": "Oku",
@@ -1163,6 +1212,7 @@
       "skip": "Atla",
       "noReason": "Agent mod değiştirmeyi öneriyor"
     },
+    "explore": "Keşfet",
     "exploreSummary": {
       "read_one": "{{count}} dosya",
       "read_other": "{{count}} dosya",
@@ -2472,13 +2522,6 @@
       "missing": "Eksik",
       "disabled": "Devre dışı"
     }
-  },
-  "worktreeCompare": {
-    "title": "Worktree'leri Karşılaştır",
-    "button": "Karşılaştır",
-    "buttonTooltip": "Worktree diff'lerini yan yana karşılaştır",
-    "noSessions": "Karşılaştırılacak oturum yok.",
-    "sessionTab": "Oturum {{n}}"
   },
   "groupChat": {
     "senderTitle": {

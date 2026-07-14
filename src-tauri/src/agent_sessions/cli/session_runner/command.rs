@@ -1,9 +1,9 @@
 //! CLI command building and parser creation for each CLI agent type (ModelType).
 
+use crate::agent_sessions::cli::parsers::antigravity::AntigravityParser;
 use crate::agent_sessions::cli::parsers::claude_code::ClaudeCodeParser;
 use crate::agent_sessions::cli::parsers::codex::CodexParser;
 use crate::agent_sessions::cli::parsers::cursor::CursorParser;
-use crate::agent_sessions::cli::parsers::gemini::GeminiParser;
 use crate::agent_sessions::cli::parsers::CliAgentParser;
 use crate::agent_sessions::cli::session_runner::launch_profiles::{
     defaults_for_agent, static_args_to_vec, ResolvedCliLaunchProfile,
@@ -149,21 +149,6 @@ pub(super) fn build_command_with_launch_profile(
             cmd.push(task.into());
             cmd
         }
-        ModelType::GeminiCli => {
-            cmd.push("--output-format".into());
-            cmd.push("stream-json".into());
-            if let Some(rid) = resume_id {
-                cmd.push("--resume".into());
-                cmd.push(rid.into());
-            }
-            if let Some(m) = model {
-                cmd.push("--model".into());
-                cmd.push(m.into());
-            }
-            cmd.push("-p".into());
-            cmd.push(task.into());
-            cmd
-        }
         ModelType::Copilot => {
             cmd.push("--acp".into());
             if let Some(rid) = resume_id {
@@ -177,6 +162,26 @@ pub(super) fn build_command_with_launch_profile(
             cmd
         }
         ModelType::Kiro | ModelType::OpenCode => cmd,
+        ModelType::Antigravity => {
+            if let Some(rid) = resume_id {
+                cmd.push("--conversation".into());
+                cmd.push(rid.into());
+            }
+            if let Some(m) = model {
+                cmd.push("--model".into());
+                cmd.push(m.into());
+            }
+            for dir in additional_dirs {
+                if dir.is_empty() {
+                    continue;
+                }
+                cmd.push("--add-dir".into());
+                cmd.push(dir.clone());
+            }
+            cmd.push("--print".into());
+            cmd.push(task.into());
+            cmd
+        }
         ModelType::KimiCli
         | ModelType::Aider
         | ModelType::Goose
@@ -192,7 +197,6 @@ pub(super) fn build_command_with_launch_profile(
         | ModelType::Codebuff
         | ModelType::QwenCode
         | ModelType::MimoCode
-        | ModelType::Antigravity
         | ModelType::Continue
         | ModelType::Droid
         | ModelType::MistralVibe
@@ -366,9 +370,9 @@ pub(super) fn create_parser(agent: &ModelType, session_id: &str) -> Box<dyn CliA
         ModelType::CursorCli => Box::new(CursorParser::new(session_id)),
         ModelType::ClaudeCode => Box::new(ClaudeCodeParser::new(session_id)),
         ModelType::Codex => Box::new(CodexParser::new(session_id)),
-        ModelType::GeminiCli => Box::new(GeminiParser::new(session_id)),
+        ModelType::Antigravity => Box::new(AntigravityParser::new(session_id)),
         other => panic!(
-            "ModelType::{:?} does not use CliAgentParser (Copilot/Kiro use ACP; API providers are not CLI agents)",
+            "ModelType::{:?} does not use CliAgentParser (Copilot/Kiro/OpenCode use ACP; API providers are not CLI agents)",
             other
         ),
     }

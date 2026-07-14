@@ -474,24 +474,6 @@
     "claudeCodeAutodetectDesc": "macOS Keychain または ~/.claude/.credentials.json からローカルの Claude Code ログインを読み取ります",
     "claudeCodeConnected": "Claude Code 接続済み",
     "claudeCodeDetectErrorHint": "内蔵ブラウザでサインインするか、claude auth login を実行してから再検出してください",
-    "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
-    "geminiSignInTitle": "Gemini Sign In",
-    "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
-    "signInWithGemini": "Sign in with Gemini",
-    "geminiReadyToSignIn": "Ready to sign in to Gemini",
-    "geminiSignedIn": "Gemini connected",
-    "geminiOAuthHint": "This saves a Gemini OAuth account for official Gemini CLI access",
-    "geminiBrowserHint": "Complete Google authorization in the secure sign-in window.",
-    "geminiSignInErrorHint": "Close the sign-in window and try signing in again. No token was saved",
-    "geminiProjectId": "Code Assist project: {{projectId}}",
-    "geminiAutodetectTitle": "Detect Gemini session",
-    "geminiAutodetectDesc": "Reads ~/.gemini/oauth_creds.json and GEMINI_API_KEY from your local environment",
-    "geminiApiKeyLabel": "Gemini API Key",
-    "geminiApiKeyDesc": "Paste a Gemini API key if you do not want to use Google sign-in",
-    "geminiApiKeyPlaceholder": "AIza...",
-    "geminiConnected": "Gemini connected",
-    "geminiDetectErrorHint": "Sign in with the secure native window, or paste a Gemini API key manually",
-    "geminiValidationErrorHint": "Check that the Gemini token or API key is valid and try again",
     "refreshModels": {
       "button": "Cursor モデル一覧を更新",
       "failed": "Cursor からの更新に失敗しました: {{error}}"
@@ -2031,8 +2013,7 @@
         "claude_code": "Claude Code",
         "copilot": "GitHub Copilot",
         "kiro": "Kiro",
-        "codex": "Codex",
-        "gemini_cli": "Gemini CLI"
+        "codex": "Codex"
       },
       "noSkillsResults": "インポート可能な Skill が見つかりません。~/.claude/skills と ~/.claude/commands を検索しました。",
       "noAgentResults": "インポートできる Agent がまだありません",
@@ -2451,13 +2432,6 @@
     "categoryVersionControl": "バージョン管理",
     "installHintNote": "この機能を有効にするには不足している依存関係をインストールしてください",
     "installSection": "インストール"
-  },
-  "worktreeCompare": {
-    "button": "比較",
-    "buttonTooltip": "Worktreeを比較",
-    "title": "Worktreeの比較",
-    "noSessions": "比較するセッションがありません",
-    "sessionTab": "セッション"
   },
   "creator": {
     "assign": "割り当て"

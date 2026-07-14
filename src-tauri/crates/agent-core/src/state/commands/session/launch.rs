@@ -280,11 +280,6 @@ async fn ensure_cli_account_key_fresh(
                 .ensure_codex_oauth_key_fresh(account_id)
                 .await?;
         }
-        ModelType::GeminiCli => {
-            key_vault::key_store::KEY_SERVICE
-                .ensure_gemini_oauth_key_fresh(account_id)
-                .await?;
-        }
         _ => {}
     }
     Ok(())

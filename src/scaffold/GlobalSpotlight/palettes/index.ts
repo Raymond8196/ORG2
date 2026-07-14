@@ -29,12 +29,6 @@ export type { UnifiedModelPaletteProps } from "./UnifiedModelPalette";
 export { UnifiedModelDropdown } from "./UnifiedModelPalette/UnifiedModelDropdown";
 export type { UnifiedModelDropdownProps } from "./UnifiedModelPalette/UnifiedModelDropdown";
 
-export { CursorModelPalette } from "./CursorModelPalette";
-export type { CursorModelPaletteProps } from "./CursorModelPalette";
-
-export { CursorModelDropdown } from "./CursorModelPalette/CursorModelDropdown";
-export type { CursorModelDropdownProps } from "./CursorModelPalette/CursorModelDropdown";
-
 export { DispatchCategoryPalette } from "./DispatchCategoryPalette";
 export type {
   AgentSelection,

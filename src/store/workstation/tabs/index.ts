@@ -163,6 +163,9 @@ export {
   // GitHub Issue Detail factories
   githubIssueDetailTabFactory,
   createGitHubIssueDetailTab,
+  // GitHub PR Detail factories
+  githubPrDetailTabFactory,
+  createGitHubPrDetailTab,
 } from "./factories";
 
 export type {
@@ -208,6 +211,8 @@ export type {
   AgentConfigTabVariant,
   // GitHub Issue Detail data types
   GitHubIssueDetailTabData,
+  // GitHub PR Detail data types
+  GitHubPrDetailTabData,
 } from "./factories";
 
 // ============================================

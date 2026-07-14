@@ -9,7 +9,6 @@ import React from "react";
 import ClaudeIcon from "@src/assets/modelIcons/claude.svg";
 import CodexIcon from "@src/assets/modelIcons/codex.svg";
 import CursorIcon from "@src/assets/modelIcons/cursor.svg";
-import GeminiIcon from "@src/assets/modelIcons/gemini";
 import AiderIcon from "@src/assets/softwareIcons/aider.svg";
 import AndroidStudioIcon from "@src/assets/softwareIcons/android-studio.svg";
 import AtomIcon from "@src/assets/softwareIcons/atom.svg";
@@ -67,7 +66,6 @@ export type SoftwareType =
   | "claude"
   | "codex"
   | "aider"
-  | "gemini-cli"
   | "kiro";
 
 type SvgComponent = React.FC<React.SVGProps<SVGSVGElement>>;
@@ -107,7 +105,6 @@ export const SOFTWARE_ICON_MAP: Partial<Record<SoftwareType, SvgComponent>> = {
   kiro: KiroIcon,
   claude: ClaudeIcon,
   codex: CodexIcon,
-  "gemini-cli": GeminiIcon,
 };
 
 /**
@@ -152,11 +149,9 @@ export const SOFTWARE_NAME_TO_ID: Record<string, SoftwareType> = {
   "Claude Code": "claude",
   Codex: "codex",
   Aider: "aider",
-  "Gemini CLI": "gemini-cli",
   Kiro: "kiro",
   // Activity source IDs from coding tracker (underscore convention)
   claude_code: "claude",
-  gemini_cli: "gemini-cli",
   kiro_cli: "kiro",
   jetbrains: "intellij",
 };

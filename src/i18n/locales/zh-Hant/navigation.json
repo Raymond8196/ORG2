@@ -45,7 +45,6 @@
     "projects": "專案",
     "projectManager": "專案管理器",
     "diff": "Diff",
-    "opsControl": "Ops Control",
     "colleagues": "同事",
     "terminals": "終端機"
   },
@@ -81,10 +80,10 @@
     "agentStudio": "Agent 工作室",
     "serviceMarket": "Service 市場",
     "signingIn": "正在登錄...",
+    "launchpad": "啟動台",
     "appLauncher": "應用啓動器",
     "ideaArea": "想法廣場",
-    "changelog": "更新日誌",
-    "opsControl": "Ops Control"
+    "changelog": "更新日誌"
   },
   "appGrid": {
     "customizeGrid": "自定義網格",
@@ -292,7 +291,7 @@
     "emptyWorkspaces": "無符合的工作區",
     "myRepos": "我的倉庫",
     "myMultiRepoWorkspaces": "我的多倉庫 Workspaces",
-    "dashboard": "啟動台",
+    "dashboard": "儀表板",
     "myWorkspaces": "我的工作區",
     "workspaces": "工作區",
     "dashboardTitle": "工作區",

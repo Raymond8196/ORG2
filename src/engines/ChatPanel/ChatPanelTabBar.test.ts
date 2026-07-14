@@ -1,0 +1,49 @@
+import { Provider, createStore } from "jotai";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+
+import { chatPanelTabsAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+
+import { ChatPanelTabBar } from "./ChatPanelTabBar";
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+describe("ChatPanelTabBar", () => {
+  it("renders tab and close controls without nesting buttons", () => {
+    const store = createStore();
+    store.set(chatPanelTabsAtom, {
+      tabs: [
+        {
+          id: "launchpad-test",
+          type: "start-page",
+          title: "Launchpad",
+        },
+      ],
+      activeTabId: "launchpad-test",
+    });
+
+    const markup = renderToStaticMarkup(
+      createElement(
+        Provider,
+        { store },
+        createElement(ChatPanelTabBar, {
+          onNewSession: vi.fn(),
+          onNewTerminal: vi.fn(),
+        })
+      )
+    );
+
+    const tabButtonStart = markup.indexOf('<button type="button"');
+    const tabButtonEnd = markup.indexOf("</button>", tabButtonStart);
+    const closeButtonStart = markup.indexOf(
+      '<button type="button"',
+      tabButtonStart + 1
+    );
+
+    expect(markup.slice(tabButtonStart, tabButtonEnd)).toContain('role="tab"');
+    expect(tabButtonEnd).toBeLessThan(closeButtonStart);
+  });
+});

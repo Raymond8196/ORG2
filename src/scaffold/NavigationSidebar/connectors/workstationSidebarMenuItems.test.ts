@@ -1,31 +1,38 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  OPS_CONTROL_MENU_ITEM_ID,
-  WORKSPACES_SIDEBAR_MENU_ITEM_ID,
-  WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
+  KANBAN_MENU_ITEM_ID,
+  WORK_ITEMS_MENU_ITEM_ID,
+  WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
 } from "./sidebarConnectorUtils";
 import { buildPinnedMenuItems } from "./workstationSidebarMenuItems";
 
 describe("buildPinnedMenuItems", () => {
-  it("places workspace drill-downs directly below Ops Control", () => {
+  it("renders Kanban separately from the expandable Work Items group", () => {
     const items = buildPinnedMenuItems({
       newSessionLabel: "New Session",
       newSessionShortcut: "⌘N",
-      opsControlLabel: "Ops Control",
-      opsControlRoutePath: "/ops-control",
-      opsControlShortcut: "⌘O",
-      workspacesLabel: "Workspaces",
       workItemsLabel: "Work Items",
+      workItemDestinations: [
+        {
+          id: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+          key: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+          label: "Projects",
+        },
+      ],
+      kanbanLabel: "Kanban",
+      kanbanShortcut: "⌘O",
     });
 
     expect(items.map((item) => item.id)).toEqual([
       "new-session",
-      OPS_CONTROL_MENU_ITEM_ID,
-      WORKSPACES_SIDEBAR_MENU_ITEM_ID,
-      WORK_ITEMS_SIDEBAR_MENU_ITEM_ID,
+      KANBAN_MENU_ITEM_ID,
+      WORK_ITEMS_MENU_ITEM_ID,
     ]);
-    expect(items[2]?.showDrillDownIndicator).toBe(true);
-    expect(items[3]?.showDrillDownIndicator).toBe(true);
+    expect(items[2]?.children?.map((item) => item.id)).toEqual([
+      WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+    ]);
+    expect(items[2]?.routePath).toBeUndefined();
+    expect(items[0]?.openContextMenuOnSelectedClick).toBeUndefined();
   });
 });

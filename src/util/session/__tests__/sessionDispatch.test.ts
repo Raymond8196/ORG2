@@ -69,6 +69,7 @@ describe("getDispatchCategory", () => {
     expect(getDispatchCategory("osagent-x")).toBe("rust_agent");
     expect(getDispatchCategory("sdeagent-x")).toBe("rust_agent");
     expect(getDispatchCategory("cliagent-x")).toBe("cli_agent");
+    expect(getDispatchCategory("cursoride-x")).toBe("cursor_ide");
     expect(getDispatchCategory("codexapp-x")).toBe("external_history");
     expect(getDispatchCategory("claudecodeapp-x")).toBe("external_history");
     expect(getDispatchCategory("opencodeapp-x")).toBe("external_history");
@@ -113,9 +114,11 @@ describe("external history source detection", () => {
     );
   });
 
-  it("does not treat Cursor IDE as external history", () => {
+  it("routes Cursor App history through the Cursor IDE category", () => {
     expect(isExternalHistorySession("cursoride-session-1")).toBe(false);
-    expect(getExternalHistorySourceId("cursoride-session-1")).toBeUndefined();
+    expect(getExternalHistorySourceId("cursoride-session-1")).toBe(
+      "cursor_ide"
+    );
   });
 });
 
