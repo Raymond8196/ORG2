@@ -19,11 +19,9 @@ import { useFocusTab } from "@src/hooks/workStation/tabs/useFocusTab";
 import {
   closeOtherTabsAtom,
   closeSavedTabsAtom,
-  dockFilterAtom,
   reorderTabAtom,
   tabRegistryAtom,
 } from "@src/store/workstation";
-import type { DockFilter } from "@src/store/workstation";
 import {
   type WorkstationTabHost,
   tabToHost,
@@ -33,8 +31,6 @@ import type { WorkStationTab } from "@src/store/workstation/tabs";
 export interface UseWorkstationTabListReturn {
   tabsForBar: WorkStationTab[];
   activeKey: string | null;
-  dockFilter: DockFilter;
-  isAllTabsView: boolean;
   visible: ReturnType<typeof useAtomValue<typeof tabRegistryAtom>>;
   handleTabClick: (tabId: string) => void;
   handleTabReorder: (startIndex: number, endIndex: number) => void;
@@ -45,18 +41,14 @@ export interface UseWorkstationTabListReturn {
 
 export function useWorkstationTabList(): UseWorkstationTabListReturn {
   const entries = useAtomValue(tabRegistryAtom);
-  const dockFilter = useAtomValue(dockFilterAtom);
   const focusWorkstationTab = useFocusTab();
   const closeTab = useCloseTabWithGuard();
   const reorderTab = useSetAtom(reorderTabAtom);
   const closeOtherTabs = useSetAtom(closeOtherTabsAtom);
   const closeSavedTabs = useSetAtom(closeSavedTabsAtom);
 
-  const isAllTabsView = dockFilter === "all";
-
   // Unified surface: the tab strip shows every open tab regardless of the
-  // active host. `dockFilter` still drives which host *renders* (via
-  // effectiveHost), but it no longer filters the strip.
+  // active host.
   const visible = entries;
 
   const realTabHostSet = useMemo(() => {
@@ -127,8 +119,6 @@ export function useWorkstationTabList(): UseWorkstationTabListReturn {
   return {
     tabsForBar,
     activeKey,
-    dockFilter,
-    isAllTabsView,
     visible,
     handleTabClick,
     handleTabReorder,

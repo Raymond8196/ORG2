@@ -5,9 +5,7 @@ import {
   type StatusBarAppType,
   activeStatusBarAppAtom,
 } from "@src/store/ui/workStationAtom";
-import { type DockFilter, activeHostAtom } from "@src/store/workstation";
-
-import { useActiveTabHostReconciliation } from "./useActiveTabHostReconciliation";
+import { activeHostAtom } from "@src/store/workstation";
 
 export interface AppShellDerivedState {
   effectiveHost: string;
@@ -19,10 +17,6 @@ export interface AppShellDerivedState {
   projectContentVisible: boolean;
 }
 
-function isWorkStationHost(host: string): host is Exclude<DockFilter, "all"> {
-  return host === "code" || host === "browser" || host === "project";
-}
-
 export function useAppShellDerivedState(): AppShellDerivedState {
   // Unified surface: the content host simply follows the active tab's host.
   // Browser sessions live in `mainPane` (as `browser-session` tabs), so a
@@ -30,10 +24,6 @@ export function useAppShellDerivedState(): AppShellDerivedState {
   // and closing the last tab lands back on the Launchpad instead of a
   // stranded empty host.
   const effectiveHost = useAtomValue(activeHostAtom);
-
-  useActiveTabHostReconciliation(
-    isWorkStationHost(effectiveHost) ? effectiveHost : null
-  );
 
   const isCodeMode = effectiveHost === "code";
   const isBrowserMode = effectiveHost === "browser";

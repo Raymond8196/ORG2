@@ -49,13 +49,6 @@
     "terminals": "Terminals"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "All Tabs",
-      "code": "Code",
-      "browser": "Browser",
-      "data": "Database",
-      "project": "Projects"
-    },
     "agentComputer": {
       "label": "{{agent}}'s Workstation",
       "agents": {
