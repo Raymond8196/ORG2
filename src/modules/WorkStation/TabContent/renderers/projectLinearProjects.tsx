@@ -1,26 +1,114 @@
 /**
  * Renderer wrapper for `project-linear-projects` tabs.
  *
- * Linear projects tab is a persistent surface inside
- * `ProjectManagerContentRouter` and depends on the same host
- * callbacks as the rest of the project family.
- *
- * TODO(phase-2): expose the linear-projects action dispatcher and
- * keep-alive cache through the dispatcher context.
+ * Renders the Linear projects surface (`LinearProjectsPage`) through the
+ * unified dispatcher, pulling action callbacks from the hoisted Project host
+ * context and deriving the Linear surface / breadcrumb from tab data —
+ * mirroring the `LinearProjectsTabPane` logic in `ProjectManagerContentRouter`.
+ * Default surface is PROJECTS.
  */
-import React, { memo } from "react";
+import React, { memo, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+
+import LinearProjectsPage from "@src/modules/ProjectManager/LinearProjects";
+import { ProjectLinearSurfacePillSwitch } from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectLinearSurfacePillSwitch";
+import { getProjectManagerBreadcrumbSegments } from "@src/modules/ProjectManager/ProjectManagerLayout/components/projectManagerRouterUtils";
+import { useProjectHostContext } from "@src/modules/ProjectManager/ProjectManagerLayout/context/projectHostContext";
+import {
+  PROJECT_LINEAR_SURFACE_VIEW,
+  normalizeProjectLinearSurfaceView,
+} from "@src/store/workstation/tabs";
+import type { ProjectLinearSurfaceView } from "@src/store/workstation/tabs";
 
 import type { UnifiedTabContentProps } from "../types";
-import { HostCoupledPlaceholder } from "./HostCoupledPlaceholder";
 
 const ProjectLinearProjectsTabRenderer: React.FC<UnifiedTabContentProps> = memo(
-  ({ tab }) => (
-    <HostCoupledPlaceholder
-      tabType={tab.type}
-      title={String(tab.title ?? "Linear Projects")}
-      hostNote="Linear projects still rendered by ProjectManagerContentRouter (persistent keep-alive cache). Phase 2 will lift these through the dispatcher context."
-    />
-  )
+  ({ tab, isActive }) => {
+    const { t } = useTranslation("projects");
+    const {
+      repoPath,
+      onCreateProject,
+      onCreateWorkItem,
+      onUpdateTabData,
+      onEmbeddedWorkItemDetailStateChange,
+    } = useProjectHostContext();
+
+    const linearSurface = normalizeProjectLinearSurfaceView(
+      tab.data.linearSurface ?? PROJECT_LINEAR_SURFACE_VIEW.PROJECTS
+    );
+
+    const breadcrumbSegments = useMemo(
+      () => getProjectManagerBreadcrumbSegments(tab, t),
+      [tab, t]
+    );
+
+    const handleLinearSurfaceChange = useCallback(
+      (nextSurface: ProjectLinearSurfaceView) => {
+        if (nextSurface === linearSurface) return;
+        onUpdateTabData(tab.id, { linearSurface: nextSurface });
+      },
+      [linearSurface, onUpdateTabData, tab.id]
+    );
+
+    const linearSurfaceControls = useMemo(
+      () => (
+        <ProjectLinearSurfacePillSwitch
+          linearSurface={linearSurface}
+          onLinearSurfaceChange={handleLinearSurfaceChange}
+        />
+      ),
+      [handleLinearSurfaceChange, linearSurface]
+    );
+
+    const handleOpenLinearProject = useCallback(
+      (selection: {
+        connectionId: string;
+        projectId: string;
+        projectName: string;
+        teamId?: string;
+        teamName?: string;
+      }) => {
+        onUpdateTabData(tab.id, selection);
+      },
+      [onUpdateTabData, tab.id]
+    );
+
+    const handleEmbeddedWorkItemDetailStateChange = useCallback(
+      (
+        tabId: string,
+        state: Parameters<typeof onEmbeddedWorkItemDetailStateChange>[1]
+      ) => {
+        onEmbeddedWorkItemDetailStateChange(
+          tabId,
+          state,
+          tab.data.projectName as string
+        );
+      },
+      [onEmbeddedWorkItemDetailStateChange, tab.data.projectName]
+    );
+
+    return (
+      <LinearProjectsPage
+        surface={linearSurface}
+        connectionId={tab.data.connectionId as string | undefined}
+        projectId={tab.data.projectId as string | undefined}
+        projectName={tab.data.projectName as string | undefined}
+        teamId={tab.data.teamId as string | undefined}
+        teamName={tab.data.teamName as string | undefined}
+        breadcrumbSegments={breadcrumbSegments}
+        linearSurfaceControls={linearSurfaceControls}
+        workStationTabId={tab.id}
+        repoPath={repoPath}
+        onCreateProject={onCreateProject}
+        onCreateWorkItem={onCreateWorkItem}
+        onOpenLinearProject={handleOpenLinearProject}
+        isActive={isActive}
+        onEmbeddedWorkItemDetailStateChange={
+          handleEmbeddedWorkItemDetailStateChange
+        }
+      />
+    );
+  }
 );
 
 ProjectLinearProjectsTabRenderer.displayName =
