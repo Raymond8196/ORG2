@@ -1357,7 +1357,9 @@
         "delete": "Supprimer",
         "deleteTemplate": "Supprimer {branch}",
         "createSessionWith": "Changer la branche de session",
-        "createSessionWithTemplate": "Changer la branche de session vers {branch}"
+        "createSessionWithTemplate": "Changer la branche de session vers {branch}",
+        "switchWorktree": "Changer de worktree",
+        "switchWorktreeTemplate": "Basculer vers {worktree}"
       },
       "actions": {
         "createNew": "Créer une nouvelle branche",
@@ -1368,7 +1370,9 @@
         "refresh": "Actualiser la branche",
         "checkoutDetachedSuccess": "État detached HEAD au commit actuel",
         "checkoutDetachedFailed": "Échec du checkout detached HEAD",
-        "removeWorktree": "Supprimer le Worktree"
+        "removeWorktree": "Supprimer le Worktree",
+        "newWorktree": "Nouveau worktree...",
+        "newWorktreeDesc": "Créer depuis une branche, PR, ticket ou nom"
       },
       "messages": {
         "deletedCount_one": "{{count}} branche supprimée",
@@ -1492,7 +1496,8 @@
         "workspace": "Rechercher ou saisir un chemin de dossier",
         "branch": "Rechercher une branche...",
         "source": "Rechercher une source...",
-        "actions": "Rechercher des actions..."
+        "actions": "Rechercher des actions...",
+        "worktree": "Rechercher un worktree..."
       },
       "groups": {
         "agentSession": "Session Agent",

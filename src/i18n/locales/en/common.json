@@ -1467,7 +1467,9 @@
         "delete": "Delete",
         "deleteTemplate": "Delete {branch}",
         "createSessionWith": "Switch Session Branch",
-        "createSessionWithTemplate": "Switch Session Branch to {branch}"
+        "createSessionWithTemplate": "Switch Session Branch to {branch}",
+        "switchWorktree": "Switch worktree",
+        "switchWorktreeTemplate": "Switch to {worktree}"
       },
       "actions": {
         "createNew": "Create new branch",
@@ -1478,7 +1480,9 @@
         "refresh": "Refresh branch",
         "checkoutDetachedSuccess": "Now in detached HEAD state at current commit",
         "checkoutDetachedFailed": "Failed to checkout detached HEAD",
-        "removeWorktree": "Remove Worktree"
+        "removeWorktree": "Remove Worktree",
+        "newWorktree": "New Worktree...",
+        "newWorktreeDesc": "Create from a branch, PR, issue, or name"
       },
       "messages": {
         "deletedCount_one": "Deleted {{count}} branch",
@@ -1602,7 +1606,8 @@
         "workspace": "Search or enter folder path",
         "branch": "Search branch...",
         "source": "Search source...",
-        "actions": "Search actions..."
+        "actions": "Search actions...",
+        "worktree": "Search worktree..."
       },
       "groups": {
         "agentSession": "Agent Session",

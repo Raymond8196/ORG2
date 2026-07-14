@@ -1357,7 +1357,9 @@
         "delete": "Eliminar",
         "deleteTemplate": "Eliminar {branch}",
         "createSessionWith": "Cambiar rama de sesión",
-        "createSessionWithTemplate": "Cambiar rama de sesión a {branch}"
+        "createSessionWithTemplate": "Cambiar rama de sesión a {branch}",
+        "switchWorktree": "Cambiar de worktree",
+        "switchWorktreeTemplate": "Cambiar a {worktree}"
       },
       "actions": {
         "createNew": "Crear nueva rama",
@@ -1368,7 +1370,9 @@
         "refresh": "Actualizar rama",
         "checkoutDetachedSuccess": "En estado detached HEAD en el commit actual",
         "checkoutDetachedFailed": "Error al hacer checkout detached HEAD",
-        "removeWorktree": "Eliminar Worktree"
+        "removeWorktree": "Eliminar Worktree",
+        "newWorktree": "Nuevo worktree...",
+        "newWorktreeDesc": "Crear desde una rama, PR, incidencia o nombre"
       },
       "messages": {
         "deletedCount_one": "{{count}} rama eliminada",
@@ -1492,7 +1496,8 @@
         "workspace": "Buscar o introducir ruta de carpeta",
         "branch": "Buscar rama...",
         "source": "Buscar origen...",
-        "actions": "Buscar acciones..."
+        "actions": "Buscar acciones...",
+        "worktree": "Buscar worktree..."
       },
       "groups": {
         "agentSession": "Sesión de Agent",

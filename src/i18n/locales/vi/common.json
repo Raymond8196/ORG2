@@ -1358,7 +1358,9 @@
         "delete": "Xóa",
         "deleteTemplate": "Xóa {branch}",
         "createSessionWith": "Chuyển Branch của phiên",
-        "createSessionWithTemplate": "Chuyển Branch của phiên sang {branch}"
+        "createSessionWithTemplate": "Chuyển Branch của phiên sang {branch}",
+        "switchWorktree": "Chuyển Worktree",
+        "switchWorktreeTemplate": "Chuyển sang {worktree}"
       },
       "actions": {
         "createNew": "Tạo nhánh mới",
@@ -1369,7 +1371,9 @@
         "refresh": "Làm mới nhánh",
         "checkoutDetachedSuccess": "Đang ở trạng thái detached HEAD tại commit hiện tại",
         "checkoutDetachedFailed": "Checkout detached HEAD thất bại",
-        "removeWorktree": "Xóa Worktree"
+        "removeWorktree": "Xóa Worktree",
+        "newWorktree": "Worktree mới...",
+        "newWorktreeDesc": "Tạo từ nhánh, PR, issue hoặc tên"
       },
       "messages": {
         "deletedCount_one": "Đã xóa {{count}} nhánh",
@@ -1493,7 +1497,8 @@
         "workspace": "Tìm kiếm hoặc nhập đường dẫn thư mục",
         "branch": "Tìm kiếm nhánh...",
         "source": "Tìm kiếm nguồn...",
-        "actions": "Tìm kiếm hành động..."
+        "actions": "Tìm kiếm hành động...",
+        "worktree": "Tìm kiếm worktree..."
       },
       "groups": {
         "agentSession": "Phiên Agent",

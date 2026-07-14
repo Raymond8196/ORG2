@@ -9,8 +9,9 @@
  * (`gitApi.getGitBranches`) and share the centralized branch cache to
  * prevent redundant calls.
  */
-import { GitFork, Plus } from "lucide-react";
+import { Folder, Plus } from "lucide-react";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 import WorktreeSourceModal from "@src/features/SessionCreator/components/WorktreeSourceModal";
 import { useFilteredItems } from "@src/hooks/search";
@@ -44,6 +45,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
   onCreate,
   asBody = false,
 }) => {
+  const { t } = useTranslation();
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const worktrees = useWorktreeEntries({
@@ -58,24 +60,28 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
         const path = normalizeWorktreePath(worktree.path);
         const label =
           worktree.branch ||
-          (worktree.is_main ? "Main Worktree" : path.split("/").pop() || path);
+          (worktree.is_main
+            ? t("selectors.branch.labels.mainWorktree", "Main")
+            : path.split("/").pop() || path);
         const isSelected =
           path === normalizeWorktreePath(activePath || repoPath);
         return {
           id: `worktree:${path}`,
           label,
           desc: compactRepoPathForDisplay({ path }),
-          icon: GitFork,
+          icon: Folder,
           type: "option" as const,
           data: {
             isSelector: true,
             isCurrentSelection: isSelected,
-            inlineTag: worktree.is_main ? "Main" : undefined,
+            inlineTag: worktree.is_main
+              ? t("selectors.branch.labels.mainWorktree", "Main")
+              : undefined,
             rightContent: isSelected ? (
               <span
                 className={`${SPOTLIGHT_CLASSES.primaryPill} ${SPOTLIGHT_TOKENS.badgeFontSize} shrink-0 font-medium`}
               >
-                Current
+                {t("selectors.branch.labels.current", "Current")}
               </span>
             ) : undefined,
           },
@@ -84,19 +90,22 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
           },
         };
       }),
-    [activePath, onClose, onSelect, repoPath, worktrees]
+    [activePath, onClose, onSelect, repoPath, t, worktrees]
   );
   const createAction = React.useMemo<SpotlightItem>(
     () => ({
       id: "worktree:new",
-      label: "New Worktree...",
-      desc: "Create from a branch, PR, issue, or name",
+      label: t("selectors.branch.actions.newWorktree", "New Worktree..."),
+      desc: t(
+        "selectors.branch.actions.newWorktreeDesc",
+        "Create from a branch, PR, issue, or name"
+      ),
       icon: Plus,
       type: "action",
       data: { showDisclosureChevron: true },
       action: () => setCreateModalOpen(true),
     }),
-    []
+    [t]
   );
   const selectableItems = React.useMemo<SpotlightItem[]>(
     () => (onCreate ? [...items, createAction] : items),
@@ -141,16 +150,22 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     <PaletteBody
       kernel={kernel}
       items={filteredItems}
-      placeholder="worktree"
+      placeholder={t(
+        "selectors.spotlight.placeholders.worktree",
+        "Search worktree..."
+      )}
       path={[
         {
           type: "action",
           id: "switch-worktree",
-          label: "Switch worktree",
-          icon: GitFork,
+          label: t("selectors.branch.path.switchWorktree", "Switch worktree"),
+          icon: Folder,
           color: "",
           data: {
-            template: "Switch to {worktree}",
+            template: t(
+              "selectors.branch.path.switchWorktreeTemplate",
+              "Switch to {worktree}"
+            ),
             requiredParams: ["worktree"],
           },
         },

@@ -1358,7 +1358,9 @@
         "delete": "삭제",
         "deleteTemplate": "{branch} 삭제",
         "createSessionWith": "세션 Branch 전환",
-        "createSessionWithTemplate": "세션 Branch를 {branch}(으)로 전환"
+        "createSessionWithTemplate": "세션 Branch를 {branch}(으)로 전환",
+        "switchWorktree": "Worktree 전환",
+        "switchWorktreeTemplate": "{worktree}(으)로 전환"
       },
       "actions": {
         "createNew": "새 브랜치 만들기",
@@ -1369,7 +1371,9 @@
         "refresh": "브랜치 새로 고침",
         "checkoutDetachedSuccess": "현재 커밋에서 detached HEAD 상태입니다",
         "checkoutDetachedFailed": "detached HEAD 체크아웃 실패",
-        "removeWorktree": "Worktree 제거"
+        "removeWorktree": "Worktree 제거",
+        "newWorktree": "새 Worktree...",
+        "newWorktreeDesc": "브랜치, PR, 이슈 또는 이름에서 생성"
       },
       "messages": {
         "deletedCount_one": "브랜치 {{count}}개 삭제됨",
@@ -1493,7 +1497,8 @@
         "workspace": "검색하거나 폴더 경로 입력",
         "branch": "브랜치 검색...",
         "source": "소스 검색...",
-        "actions": "작업 검색..."
+        "actions": "작업 검색...",
+        "worktree": "Worktree 검색..."
       },
       "groups": {
         "agentSession": "Agent 세션",

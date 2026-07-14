@@ -1357,7 +1357,9 @@
         "delete": "Usuń",
         "deleteTemplate": "Usuń {branch}",
         "createSessionWith": "Przełącz Branch sesji",
-        "createSessionWithTemplate": "Przełącz Branch sesji na {branch}"
+        "createSessionWithTemplate": "Przełącz Branch sesji na {branch}",
+        "switchWorktree": "Przełącz worktree",
+        "switchWorktreeTemplate": "Przełącz na {worktree}"
       },
       "actions": {
         "createNew": "Utwórz nową gałąź",
@@ -1368,7 +1370,9 @@
         "refresh": "Odśwież gałąź",
         "checkoutDetachedSuccess": "Jesteś teraz w stanie detached HEAD na bieżącym commicie",
         "checkoutDetachedFailed": "Nie udało się wykonać checkout detached HEAD",
-        "removeWorktree": "Usuń Worktree"
+        "removeWorktree": "Usuń Worktree",
+        "newWorktree": "Nowy worktree...",
+        "newWorktreeDesc": "Utwórz z gałęzi, PR, zgłoszenia lub nazwy"
       },
       "messages": {
         "deletedCount_one": "Usunięto {{count}} gałąź",
@@ -1492,7 +1496,8 @@
         "workspace": "Szukaj lub wpisz ścieżkę folderu",
         "branch": "Szukaj gałęzi...",
         "source": "Szukaj źródła...",
-        "actions": "Szukaj akcji..."
+        "actions": "Szukaj akcji...",
+        "worktree": "Szukaj worktree..."
       },
       "groups": {
         "agentSession": "Sesja Agent",

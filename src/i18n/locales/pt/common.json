@@ -1357,7 +1357,9 @@
         "delete": "Excluir",
         "deleteTemplate": "Excluir {branch}",
         "createSessionWith": "Alterar branch da sessão",
-        "createSessionWithTemplate": "Alterar branch da sessão para {branch}"
+        "createSessionWithTemplate": "Alterar branch da sessão para {branch}",
+        "switchWorktree": "Mudar de worktree",
+        "switchWorktreeTemplate": "Mudar para {worktree}"
       },
       "actions": {
         "createNew": "Criar novo branch",
@@ -1368,7 +1370,9 @@
         "refresh": "Atualizar branch",
         "checkoutDetachedSuccess": "Agora em estado HEAD detached no commit atual",
         "checkoutDetachedFailed": "Falha ao fazer checkout em HEAD detached",
-        "removeWorktree": "Remover Worktree"
+        "removeWorktree": "Remover Worktree",
+        "newWorktree": "Novo worktree...",
+        "newWorktreeDesc": "Criar a partir de um branch, PR, issue ou nome"
       },
       "messages": {
         "deletedCount_one": "{{count}} branch excluído",
@@ -1492,7 +1496,8 @@
         "workspace": "Pesquisar ou inserir caminho da pasta",
         "branch": "Pesquisar branch...",
         "source": "Pesquisar origem...",
-        "actions": "Pesquisar ações..."
+        "actions": "Pesquisar ações...",
+        "worktree": "Pesquisar worktree..."
       },
       "groups": {
         "agentSession": "Sessão de Agent",
