@@ -144,7 +144,7 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       {
         id: "newBrowserTab",
         icon: Globe,
-        label: t("workstation.plusMenu.newBrowserTab"),
+        label: t("routes.browser"),
         onClick: () => openBrowser(false),
       },
       {
