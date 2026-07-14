@@ -39,14 +39,6 @@ export const WORK_STATION_ROUTES = {
     "code",
     "Code editing with file tree and terminal"
   ),
-  database: route(
-    "/orgii/workstation/database",
-    "Database Manager",
-    "workStation",
-    "workstation",
-    "database",
-    "Database explorer with SQL editor"
-  ),
   browser: route(
     "/orgii/workstation/browser",
     "Browser",

@@ -100,9 +100,6 @@ const PAGES: NavDestination[] = [
   dest("nav-browser", ROUTES.workStation.browser.path, "pages", {
     keywords: ["web", "devtools", "preview"],
   }),
-  dest("nav-database", ROUTES.workStation.database.path, "pages", {
-    keywords: ["sql", "schema", "query"],
-  }),
   dest("nav-project", ROUTES.workStation.project.path, "pages", {
     keywords: ["projects", "work items", "tasks"],
   }),

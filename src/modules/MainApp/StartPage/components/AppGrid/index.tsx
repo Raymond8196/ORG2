@@ -147,7 +147,6 @@ const APP_GRID_ACTION_IDS: Partial<Record<string, string>> = {
   editor: ACTION_ID.APP_GO_TO_EDITOR,
   browser: ACTION_ID.APP_GO_TO_BROWSER,
   kanban: ACTION_ID.APP_GO_TO_KANBAN,
-  "db-manager": ACTION_ID.APP_GO_TO_DATABASE,
   integrations: ACTION_ID.APP_GO_TO_INTEGRATIONS,
   economy: ACTION_ID.APP_GO_TO_MARKET,
   "agent-orgs": ACTION_ID.APP_GO_TO_AGENT_ORGS,

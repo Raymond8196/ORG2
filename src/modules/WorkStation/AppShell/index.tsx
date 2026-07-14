@@ -103,19 +103,16 @@ const AppShell = React.memo(
     const {
       effectiveHost,
       isCodeMode,
-      isDataMode,
       isBrowserMode,
       isProjectMode,
       codeContentVisible,
       browserContentVisible,
-      dataContentVisible,
       projectContentVisible,
     } = useAppShellDerivedState({
       dockFilter,
     });
 
     const hasVisitedCode = visitedModes.has("code");
-    const hasVisitedData = visitedModes.has("data");
     const hasVisitedBrowser = visitedModes.has("browser");
     const hasVisitedProject = visitedModes.has("project");
 
@@ -152,7 +149,6 @@ const AppShell = React.memo(
                   appMode={
                     (effectiveHost === "code" ||
                     effectiveHost === "browser" ||
-                    effectiveHost === "data" ||
                     effectiveHost === "project"
                       ? effectiveHost
                       : appMode) as AppModeType
@@ -176,16 +172,13 @@ const AppShell = React.memo(
                 isAgentStation={isAgentStation}
                 hasVisitedAgentStation={hasVisitedAgentStation}
                 hasVisitedCode={hasVisitedCode}
-                hasVisitedData={hasVisitedData}
                 hasVisitedBrowser={hasVisitedBrowser}
                 hasVisitedProject={hasVisitedProject}
                 isCodeMode={isCodeMode}
-                isDataMode={isDataMode}
                 isBrowserMode={isBrowserMode}
                 isProjectMode={isProjectMode}
                 codeContentVisible={codeContentVisible}
                 browserContentVisible={browserContentVisible}
-                dataContentVisible={dataContentVisible}
                 projectContentVisible={projectContentVisible}
                 handleSelectRepo={handleSelectRepo}
               />

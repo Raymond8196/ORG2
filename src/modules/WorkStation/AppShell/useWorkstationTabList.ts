@@ -37,8 +37,6 @@ function dockFilterToHost(filter: DockFilter): WorkstationTabHost | null {
       return "code";
     case "browser":
       return "browser";
-    case "data":
-      return "data";
     case "project":
       return "project";
   }

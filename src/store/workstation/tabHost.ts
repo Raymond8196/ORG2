@@ -14,7 +14,7 @@ import type {
   WorkStationTabType,
 } from "./tabs/types";
 
-export type WorkstationTabHost = "code" | "browser" | "data" | "project";
+export type WorkstationTabHost = "code" | "browser" | "project";
 
 /**
  * Map a tab category onto its content host. Categories are the canonical
@@ -30,10 +30,6 @@ export function categoryToTabHost(
   switch (category) {
     case "browser":
       return "browser";
-    case "db-table":
-    case "db-query":
-    case "db-schema":
-      return "data";
     case "project":
       return "project";
     default:
@@ -52,11 +48,6 @@ export function tabTypeToTabHost(type: WorkStationTabType): WorkstationTabHost {
     case "token-category":
     case "devtools":
       return "browser";
-    case "table":
-    case "query":
-    case "schema":
-    case "add-connection":
-      return "data";
     case "project-dashboard":
     case "project-work-items":
     case "project-linear-projects":

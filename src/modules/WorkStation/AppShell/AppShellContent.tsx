@@ -17,7 +17,6 @@ const ProjectManagerCore = React.lazy(
     )
 );
 const Browser = React.lazy(() => import("../Browser"));
-const DatabaseManager = React.lazy(() => import("../DatabaseManager"));
 const ActivitySimulator = React.lazy(() =>
   import("@src/engines/Simulator").then((module) => ({
     default: module.ActivitySimulator,
@@ -34,16 +33,13 @@ interface AppShellContentProps {
   isAgentStation: boolean;
   hasVisitedAgentStation: boolean;
   hasVisitedCode: boolean;
-  hasVisitedData: boolean;
   hasVisitedBrowser: boolean;
   hasVisitedProject: boolean;
   isCodeMode: boolean;
-  isDataMode: boolean;
   isBrowserMode: boolean;
   isProjectMode: boolean;
   codeContentVisible: boolean;
   browserContentVisible: boolean;
-  dataContentVisible: boolean;
   projectContentVisible: boolean;
   handleSelectRepo: () => void;
 }
@@ -69,16 +65,13 @@ export function AppShellContent({
   isAgentStation,
   hasVisitedAgentStation,
   hasVisitedCode,
-  hasVisitedData,
   hasVisitedBrowser,
   hasVisitedProject,
   isCodeMode,
-  isDataMode,
   isBrowserMode,
   isProjectMode,
   codeContentVisible,
   browserContentVisible,
-  dataContentVisible,
   projectContentVisible,
   handleSelectRepo,
 }: AppShellContentProps) {
@@ -149,17 +142,6 @@ export function AppShellContent({
             {codeContentVisible && isActive && !isAgentStation && (
               <LspInstallPrompt />
             )}
-          </div>
-        )}
-
-        {(isDataMode || hasVisitedData) && (
-          <div
-            className="h-full w-full"
-            style={{ display: dataContentVisible ? "block" : "none" }}
-          >
-            <Suspense fallback={<AppShellLoadingPlaceholder />}>
-              <DatabaseManager repoPath={repoPath} repoName={repoName} />
-            </Suspense>
           </div>
         )}
 
