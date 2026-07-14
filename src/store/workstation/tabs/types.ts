@@ -62,7 +62,9 @@ export type WorkStationTabType =
   // GitHub Issues detail tab — opened from the sidebar Issues panel
   | "github-issue-detail"
   // GitHub Pull Request detail tab — opened from Kanban PR rows
-  | "github-pr-detail";
+  | "github-pr-detail"
+  // Start page — the launcher shown when nothing else is open
+  | "start";
 
 // ============================================
 // Tab Types
@@ -410,6 +412,8 @@ export const TOOL_TAB_TYPES = [
   "github-issue-detail",
   // GitHub Pull Request detail
   "github-pr-detail",
+  // Start page launcher
+  "start",
 ] as const;
 
 export type FileTabType = (typeof FILE_TAB_TYPES)[number];

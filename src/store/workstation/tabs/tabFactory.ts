@@ -107,6 +107,7 @@ const DEFAULT_CATEGORY_BY_TYPE: Record<
   "canvas-preview": "preview",
   "github-issue-detail": "git",
   "github-pr-detail": "git",
+  start: "launchpad",
 };
 
 // ============================================

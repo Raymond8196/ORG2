@@ -27,11 +27,15 @@ import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { focusBrowserUrlBar } from "@src/modules/WorkStation/Browser/Panels/BrowserMainPane/components/WebUrlBar";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/modules/WorkStation/shared/tokens";
 import { openEditorSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
-import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import {
+  CODE_EDITOR_MAIN_TERMINAL_SESSION_ID,
   STORY_ORG_SCOPE,
+  createExplorerTab,
   createProjectDashboardTab,
   createProjectWorkItemsIndexTab,
+  createSourceControlTab,
+  createTerminalTab,
+  dockFilterAtom,
   openTab as openTabMutation,
   requestNewBrowserSessionAtom,
   workstationLayoutAtom,
@@ -66,6 +70,7 @@ export const WorkStationStartPage: React.FC = memo(() => {
   const { t } = useTranslation("navigation");
   const requestNewBrowserSession = useSetAtom(requestNewBrowserSessionAtom);
   const setLayout = useSetAtom(workstationLayoutAtom);
+  const setDockFilter = useSetAtom(dockFilterAtom);
 
   const openTabInMainPane = useCallback(
     (tab: WorkStationTab) => {
@@ -75,6 +80,19 @@ export const WorkStationStartPage: React.FC = memo(() => {
       });
     },
     [setLayout]
+  );
+
+  // The Browser host keeps its sessions in a separate store, so opening a
+  // browser tab means revealing that host (`dockFilter = "browser"`) rather
+  // than adding a `mainPane` tab. The pending new-session request is honored
+  // once the host is mounted.
+  const openBrowser = useCallback(
+    (isPrivate: boolean) => {
+      setDockFilter("browser");
+      requestNewBrowserSession(isPrivate ? { isPrivate: true } : {});
+      focusBrowserUrlBar();
+    },
+    [setDockFilter, requestNewBrowserSession]
   );
 
   const actions = useMemo<StartActionTileProps[]>(
@@ -89,35 +107,36 @@ export const WorkStationStartPage: React.FC = memo(() => {
         icon: FolderTree,
         label: t("workstation.startPage.explorer"),
         shortcut: getShortcutKeys("open_file_folder_tab"),
-        onClick: () => void WorkStationViewService.openFileFolderTab(),
+        onClick: () => openTabInMainPane(createExplorerTab()),
       },
       {
         icon: GitBranch,
         label: t("workstation.startPage.sourceControl"),
         shortcut: getShortcutKeys("open_source_control_tab"),
-        onClick: () => void WorkStationViewService.openSourceControlTab(),
+        onClick: () =>
+          openTabInMainPane(createSourceControlTab(0, { mode: "all-changes" })),
       },
       {
         icon: SquareTerminal,
         label: t("workstation.startPage.terminal"),
         shortcut: getShortcutKeys("open_terminal_tab"),
-        onClick: () => void WorkStationViewService.openTerminalTab(),
+        onClick: () =>
+          openTabInMainPane(
+            createTerminalTab(
+              CODE_EDITOR_MAIN_TERMINAL_SESSION_ID,
+              t("workstation.startPage.terminal")
+            )
+          ),
       },
       {
         icon: Globe,
         label: t("workstation.plusMenu.newBrowserTab"),
-        onClick: () => {
-          requestNewBrowserSession({});
-          focusBrowserUrlBar();
-        },
+        onClick: () => openBrowser(false),
       },
       {
         icon: ShieldOff,
         label: t("workstation.plusMenu.newPrivateBrowserTab"),
-        onClick: () => {
-          requestNewBrowserSession({ isPrivate: true });
-          focusBrowserUrlBar();
-        },
+        onClick: () => openBrowser(true),
       },
       {
         icon: ListTodo,
@@ -136,7 +155,7 @@ export const WorkStationStartPage: React.FC = memo(() => {
           ),
       },
     ],
-    [openTabInMainPane, requestNewBrowserSession, t]
+    [openTabInMainPane, openBrowser, t]
   );
 
   return (

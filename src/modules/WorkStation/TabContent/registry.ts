@@ -229,6 +229,11 @@ const GitHubPrDetailEntry: RendererEntry = {
   debugLabel: "github-pr-detail",
 };
 
+const StartEntry: RendererEntry = {
+  Component: lazy(() => import("./renderers/start")),
+  debugLabel: "start",
+};
+
 // ============================================
 // Registry — exhaustive over WorkStationTabType
 // ============================================
@@ -286,6 +291,9 @@ export const REGISTRY: TabContentRegistry = {
 
   // GitHub PR Detail
   "github-pr-detail": GitHubPrDetailEntry,
+
+  // Start page launcher
+  start: StartEntry,
 };
 
 // Exhaustiveness check: any missing WorkStationTabType becomes a TS error.

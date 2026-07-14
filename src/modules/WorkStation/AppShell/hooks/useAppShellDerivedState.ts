@@ -29,7 +29,15 @@ export function useAppShellDerivedState({
   dockFilter: DockFilter;
 }): AppShellDerivedState {
   const activeHost = useAtomValue(activeHostAtom);
-  const effectiveHost = dockFilter === "all" ? activeHost : dockFilter;
+  // Unified surface: the content host follows the active tab's host so that
+  // opening any tab (Explorer, Source Control, Terminal, Work Items, Projects)
+  // swaps the visible surface without route navigation. The Browser host is
+  // the one exception — its sessions still live in a separate store
+  // (`browserTabsAtom`), so no browser tab ever becomes the active `mainPane`
+  // tab. We keep it reachable through the explicit `dockFilter === "browser"`
+  // pin (set by the `+`/start-page "New Browser Tab" actions and released when
+  // the user focuses any `mainPane` tab — see `useFocusTab`).
+  const effectiveHost = dockFilter === "browser" ? "browser" : activeHost;
 
   useActiveTabHostReconciliation(
     isWorkStationHost(effectiveHost) ? effectiveHost : null

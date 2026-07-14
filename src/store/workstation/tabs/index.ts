@@ -88,6 +88,7 @@ export {
   createFileTab,
   createDirectoryTab,
   createExplorerTab,
+  createStartTab,
   createGitDiffTab,
   createTimelineDiffTab,
   createSourceControlTab,
