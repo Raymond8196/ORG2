@@ -15,7 +15,7 @@
  */
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
-import { FolderOpen, RefreshCw, Terminal } from "lucide-react";
+import { RefreshCw, Terminal } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -42,11 +42,12 @@ import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
 import Select from "@src/components/Select";
 import SettingsTable, {
   SETTINGS_TABLE_CELL,
+  SETTINGS_TABLE_COL,
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
-import StatusBadge, { type StatusType } from "@src/components/StatusBadge";
 import Switch from "@src/components/Switch";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import Tag, { type TagProps } from "@src/components/Tag";
 import {
   SECTION_CONTROL_STYLE,
   SectionContainer,
@@ -67,7 +68,6 @@ import { copyText } from "@src/util/data/clipboard";
 import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 
 import DataSourceDetailsCard from "./DataSourceDetailsCard";
-import { storeKindLabel, tildePath } from "./sourcePath";
 
 type DataSourceTab = "all" | "apps" | "clis";
 
@@ -315,26 +315,15 @@ const DataSourcePanel: React.FC = () => {
     [loadStats, patchRow, updateConfig]
   );
 
-  const describeRow = useCallback(
-    (row: SourceRow): string => {
-      const path = row.probe.historyPaths[0]
-        ? tildePath(row.probe.historyPaths[0])
-        : t("noPath");
-      const typeLabel = storeKindLabel(row.probe);
-      return typeLabel ? `${path} · ${typeLabel}` : path;
-    },
-    [t]
-  );
-
-  const importableBadge = (
+  const importableStatusTag = (
     row: SourceRow
-  ): { status: StatusType; labelKey: string } => {
-    if (row.statsLoading) return { status: "loading", labelKey: "loading" };
-    if (row.error) return { status: "error", labelKey: "error" };
+  ): { color: TagProps["color"]; labelKey: string } => {
+    if (row.statsLoading) return { color: "processing", labelKey: "loading" };
+    if (row.error) return { color: "danger", labelKey: "error" };
     if (row.stats && row.stats.sessionCount > 0) {
-      return { status: "success", labelKey: "ready" };
+      return { color: "success", labelKey: "ready" };
     }
-    return { status: "empty", labelKey: "empty" };
+    return { color: "default", labelKey: "empty" };
   };
 
   const openFolder = useCallback((path: string) => {
@@ -376,29 +365,37 @@ const DataSourcePanel: React.FC = () => {
       )
     : visibleRows;
 
-  const badgeFor = (
+  const statusTagFor = (
     row: SourceRow,
     disabled: boolean
-  ): { status: StatusType; labelKey: string } => {
-    if (disabled) return { status: "disabled", labelKey: "disabled" };
-    if (row.importable) return importableBadge(row);
+  ): { color: TagProps["color"]; labelKey: string } => {
+    if (disabled) return { color: "default", labelKey: "disabled" };
+    if (row.importable) return importableStatusTag(row);
     return row.probe.installed
-      ? { status: "installed", labelKey: "installed" }
-      : { status: "empty", labelKey: "notInstalled" };
+      ? { color: "success", labelKey: "installed" }
+      : { color: "default", labelKey: "notInstalled" };
   };
 
   const columns: SettingsTableColumn<SourceRow>[] = [
     {
       key: "source",
       label: t("col.source"),
-      renderCell: (row) => (
-        <span className={`${SETTINGS_TABLE_CELL.primaryIcon} min-w-0`}>
-          <span className="shrink-0 text-text-2">
-            <SourceIcon probe={row.probe} />
+      renderCell: (row) => {
+        const cfg = getSourceConfig(configMap, row.probe.sourceId);
+        const disabled = row.importable && !cfg.enabled;
+        const statusTag = statusTagFor(row, disabled);
+        return (
+          <span className={`${SETTINGS_TABLE_CELL.primaryIcon} min-w-0`}>
+            <span className="shrink-0 text-text-2">
+              <SourceIcon probe={row.probe} />
+            </span>
+            <span className="truncate">{row.probe.displayName}</span>
+            <Tag size="mini" color={statusTag.color} pill className="shrink-0">
+              {t(`status.${statusTag.labelKey}`)}
+            </Tag>
           </span>
-          <span className="truncate">{row.probe.displayName}</span>
-        </span>
-      ),
+        );
+      },
     },
     {
       key: "sessions",
@@ -429,71 +426,41 @@ const DataSourcePanel: React.FC = () => {
       },
     },
     {
-      key: "frequency",
-      label: t("col.frequency"),
-      width: "160px",
-      renderCell: (row) => {
-        const cfg = getSourceConfig(configMap, row.probe.sourceId);
-        const disabled = row.importable && !cfg.enabled;
-        return row.importable && !disabled ? (
-          <Select
-            value={cfg.frequency}
-            onChange={(v) => {
-              if (typeof v === "string") {
-                updateConfig(row.probe.sourceId, {
-                  frequency: v as SourceFrequency,
-                });
-              }
-            }}
-            options={sourceFrequencyOptions}
-            size="small"
-            style={{ width: "100%" }}
-            aria-label={t("frequencyTitle")}
-          />
-        ) : null;
-      },
-    },
-    {
-      key: "status",
-      label: t("col.status"),
-      width: "104px",
-      renderCell: (row) => {
-        const cfg = getSourceConfig(configMap, row.probe.sourceId);
-        const disabled = row.importable && !cfg.enabled;
-        const badge = badgeFor(row, disabled);
-        return (
-          <StatusBadge
-            status={badge.status}
-            label={t(`status.${badge.labelKey}`)}
-            showPulse={false}
-            size="sm"
-          />
-        );
-      },
-    },
-    {
-      // Key must stay "actions" — SettingsTable pins the last column when its
-      // key ∈ {actions, status, enabled}, keeping these controls visible while
-      // the table scrolls horizontally.
+      // Keep the combined control column pinned like the Settings CLI table.
       key: "actions",
-      label: "",
-      width: "128px",
+      label: t("col.frequency"),
+      width: SETTINGS_TABLE_COL.hug,
       align: "right",
       renderCell: (row) => {
         const cfg = getSourceConfig(configMap, row.probe.sourceId);
         const disabled = row.importable && !cfg.enabled;
-        const path = row.probe.historyPaths[0];
         return (
-          <div className="flex items-center justify-end gap-1.5">
-            {path && (
-              <Button
-                variant="secondary"
-                size="small"
-                iconOnly
-                icon={<FolderOpen size={14} />}
-                title={describeRow(row)}
-                onClick={() => openFolder(path)}
-              />
+          <div className="flex items-center justify-end gap-2">
+            {row.importable && (
+              <>
+                <Switch
+                  checked={cfg.enabled}
+                  onChange={(checked) => void toggleEnabled(row, checked)}
+                  size="default"
+                  ariaLabel={cfg.enabled ? t("disable") : t("enable")}
+                />
+                <Select
+                  value={cfg.frequency}
+                  onChange={(v) => {
+                    if (typeof v === "string") {
+                      updateConfig(row.probe.sourceId, {
+                        frequency: v as SourceFrequency,
+                      });
+                    }
+                  }}
+                  options={sourceFrequencyOptions}
+                  size="small"
+                  disabled={disabled}
+                  style={{ width: 120 }}
+                  selectorClassName="text-left"
+                  aria-label={t("frequencyTitle")}
+                />
+              </>
             )}
             {!disabled &&
               (row.importable ? (
@@ -565,14 +532,6 @@ const DataSourcePanel: React.FC = () => {
                   onClick={() => void handleRescan(row)}
                 />
               ))}
-            {row.importable && (
-              <Switch
-                checked={cfg.enabled}
-                onChange={(checked) => void toggleEnabled(row, checked)}
-                size="small"
-                ariaLabel={cfg.enabled ? t("disable") : t("enable")}
-              />
-            )}
           </div>
         );
       },
@@ -614,7 +573,7 @@ const DataSourcePanel: React.FC = () => {
           rows={searchedRows}
           getRowKey={(row) => row.probe.sourceId}
           headerHeight="tall"
-          headerBorder
+          className="table-expanded-no-hover table-settings-expanded-compact"
           hover
           loading={rows === null}
           emptyTitle={searchTerm ? tCommon("status.noResults") : undefined}
