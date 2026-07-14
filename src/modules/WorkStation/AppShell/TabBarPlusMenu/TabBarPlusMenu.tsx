@@ -24,12 +24,16 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
-import KeyBadge from "@src/components/KeyBadge";
+import {
+  KEYBOARD_SHORTCUT_VARIANT,
+  KeyboardShortcut,
+} from "@src/components/KeyboardShortcut";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared/TabBar/components/TabBarTrailingIconButton";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
 
 import {
+  LAUNCHPAD_ACTION_IDS,
   type WorkStationLaunchActionId,
   useWorkStationLaunchActions,
 } from "../useWorkStationLaunchActions";
@@ -39,19 +43,10 @@ const WORKSTATION_NEW_TAB_EVENT = "workstation-new-tab";
 export type TabBarPlusMenuItem = WorkStationLaunchActionId;
 
 /**
- * Full launcher palette — kept identical to the Launchpad tile grid. Callers
- * may pass a narrower `items` list (e.g. a Browser-only surface).
+ * Full launcher palette — kept identical to the Launchpad list. Callers may
+ * pass a narrower `items` list (e.g. a Browser-only surface).
  */
-const DEFAULT_ITEMS: readonly TabBarPlusMenuItem[] = [
-  "searchFile",
-  "explorer",
-  "sourceControl",
-  "terminal",
-  "newBrowserTab",
-  "newPrivateBrowserTab",
-  "workItems",
-  "projects",
-];
+const DEFAULT_ITEMS: readonly TabBarPlusMenuItem[] = LAUNCHPAD_ACTION_IDS;
 
 export interface TabBarPlusMenuProps {
   /** Menu items to render. Defaults to the full launcher palette. */
@@ -105,7 +100,10 @@ const TabBarPlusMenuComponent: React.FC<TabBarPlusMenuProps> = ({
                 <span className="truncate">{action.label}</span>
               </span>
               {action.shortcut ? (
-                <KeyBadge keys={action.shortcut} showSeparator={false} />
+                <KeyboardShortcut
+                  shortcut={action.shortcut}
+                  variant={KEYBOARD_SHORTCUT_VARIANT.dropdown}
+                />
               ) : null}
             </button>
           );

@@ -200,10 +200,7 @@ export function FocusedChatWorkstationRail() {
             : File,
       fileName: getRailTabFileName(tab),
       onClick: () => openWorkstationTab(tab),
-      onClose:
-        tab.closable === false
-          ? undefined
-          : () => void closeTab({ tabId: tab.id }),
+      onClose: () => void closeTab({ tabId: tab.id }),
     }));
 
     return [...tabItems, ...terminalItems];
