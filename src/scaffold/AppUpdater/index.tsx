@@ -5,6 +5,9 @@ import { atom, useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import AppMark from "@src/components/AppMark";
+import Button from "@src/components/Button";
+import Checkbox from "@src/components/Checkbox";
 import Message from "@src/components/Message";
 import { createLogger } from "@src/hooks/logger";
 import Modal from "@src/scaffold/ModalSystem";
@@ -33,6 +36,8 @@ const UPDATE_TOAST_DURATION_MS = 5_000;
 
 const CHECK_TOAST_ID = "app-update-check";
 const INSTALL_TOAST_ID = "app-update-progress";
+const SKIPPED_UPDATE_VERSION_STORAGE_KEY =
+  "orgii:updater:skipped-update-version";
 
 export interface CheckForAppUpdatesOptions {
   notify?: boolean;
@@ -53,6 +58,22 @@ const isAppUpdateInstallingAtom = atom((get) => {
 
 function store() {
   return getInstrumentedStore();
+}
+
+function getSkippedUpdateVersion(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(SKIPPED_UPDATE_VERSION_STORAGE_KEY);
+}
+
+function setSkippedUpdateVersion(version: string): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SKIPPED_UPDATE_VERSION_STORAGE_KEY, version);
+}
+
+function clearSkippedUpdateVersion(version: string): void {
+  if (typeof window !== "undefined" && getSkippedUpdateVersion() === version) {
+    window.localStorage.removeItem(SKIPPED_UPDATE_VERSION_STORAGE_KEY);
+  }
 }
 
 function createCoordinator(): AppUpdaterCoordinator {
@@ -211,6 +232,7 @@ export async function installAvailableAppUpdate(
 
   if (!confirmed) {
     try {
+      clearSkippedUpdateVersion(update.version);
       await coordinator.downloadAvailableUpdate(
         silentDownload ? undefined : createProgressReporter()
       );
@@ -264,6 +286,10 @@ async function runAutomaticUpdate(
       reason === "startup" || reason === "interval"
     );
     if (!result.update) return;
+    if (getSkippedUpdateVersion() === result.update.version) {
+      coordinator.clearAvailableUpdate();
+      return;
+    }
 
     // Installing can terminate the app on Windows. Every automatic path only
     // prepares the package and asks the user before installing or relaunching.
@@ -283,7 +309,9 @@ export function useIsAppUpdateInstalling(): boolean {
 
 export const AppUpdater: React.FC = () => {
   const { t } = useTranslation(["settings", "common"]);
-  const autoUpdateEnabled = useAtomValue(autoUpdateEnabledAtom);
+  const [autoUpdateEnabled, setAutoUpdateEnabled] = useAtom(
+    autoUpdateEnabledAtom
+  );
   const availableUpdate = useAtomValue(availableAppUpdateAtom);
   const [installPromptVisible, setInstallPromptVisible] = useAtom(
     appUpdateInstallPromptAtom
@@ -295,10 +323,23 @@ export const AppUpdater: React.FC = () => {
     setInstallPromptVisible(false);
   }, [setInstallPromptVisible]);
 
+  const handleSkipVersion = useCallback(() => {
+    if (availableUpdate) setSkippedUpdateVersion(availableUpdate.version);
+    coordinator.clearAvailableUpdate();
+    setInstallPromptVisible(false);
+  }, [availableUpdate, setInstallPromptVisible]);
+
   const handleInstallConfirm = useCallback(async () => {
     await installAvailableAppUpdate({ confirmed: true });
     setInstallPromptVisible(false);
   }, [setInstallPromptVisible]);
+
+  const handleAutoUpdateChange = useCallback(
+    (checked: boolean) => {
+      setAutoUpdateEnabled(checked);
+    },
+    [setAutoUpdateEnabled]
+  );
 
   useEffect(() => {
     if (!settingsLoaded) return;
@@ -322,18 +363,65 @@ export const AppUpdater: React.FC = () => {
     <Modal
       visible={installPromptVisible && Boolean(availableUpdate)}
       title={t("update.installConfirmTitle")}
-      size="small"
-      okText={t("update.installAndRestart")}
-      cancelText={t("common:actions.later")}
-      onOk={handleInstallConfirm}
+      width={620}
+      closable={false}
+      maskClosable={false}
+      escToExit={false}
       onCancel={handleInstallLater}
       onClose={handleInstallLater}
+      bodyClassName="px-6 py-5"
+      footerTopBorder={false}
+      footer={
+        <div className="flex items-center justify-between gap-3 px-5 py-4">
+          <Button
+            variant="tertiary"
+            appearance="ghost"
+            size="large"
+            shape="round"
+            onClick={handleSkipVersion}
+          >
+            {t("update.skipVersion")}
+          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              appearance="solid"
+              size="large"
+              shape="round"
+              onClick={handleInstallLater}
+            >
+              {t("common:actions.later")}
+            </Button>
+            <Button
+              variant="primary"
+              size="large"
+              shape="round"
+              onClick={() => void handleInstallConfirm()}
+              data-modal-primary-action
+            >
+              {t("update.installAndRestart")}
+            </Button>
+          </div>
+        </div>
+      }
     >
-      <p className="text-sm text-text-2">
-        {t("update.installConfirmDesc", {
-          version: availableUpdate?.version,
-        })}
-      </p>
+      <div className="flex items-center gap-5">
+        <AppMark
+          size={72}
+          className="border border-border-2 bg-bg-2 shadow-sm"
+          glyphClassName="text-text-1"
+        />
+        <p className="min-w-0 flex-1 text-sm leading-6 text-text-2">
+          {t("update.installConfirmDesc", {
+            version: availableUpdate?.version,
+          })}
+        </p>
+      </div>
+      <div className="mt-5 border-t border-border-1 pt-4">
+        <Checkbox checked={autoUpdateEnabled} onChange={handleAutoUpdateChange}>
+          {t("update.autoDownloadUpdates")}
+        </Checkbox>
+      </div>
     </Modal>
   );
 };

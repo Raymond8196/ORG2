@@ -24,6 +24,9 @@ Settings → General.
 - **Silent preparation:** download an available package in the background
   without showing progress toasts or forcing a restart, then show one
   confirmation dialog. Installation only starts after the user confirms.
+- **Dialog actions:** users can skip the detected version, postpone the
+  decision while keeping the package ready, or install and restart. Skipped
+  versions remain suppressed across app launches.
 - **Disabled:** no startup, interval, foreground, or online checks are
   registered. Manual checks and installs remain available.
 - **Enabled during an active session:** starts with a silent foreground check

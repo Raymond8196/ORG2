@@ -792,7 +792,9 @@
     "currentVersion": "目前版本",
     "installConfirmTitle": "更新已準備好安裝",
     "installConfirmDesc": "版本 {{version}} 已下載。安裝並重新啓動 ORGII 前，請儲存正在進行的工作。",
-    "installAndRestart": "安裝並重新啓動"
+    "installAndRestart": "安裝並重新啓動",
+    "autoDownloadUpdates": "以後自動下載更新",
+    "skipVersion": "跳過此版本"
   },
   "monitor": {
     "categoryTerminal": "終端機/工具程序",
