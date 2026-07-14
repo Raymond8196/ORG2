@@ -1,11 +1,13 @@
 import { getVersion } from "@tauri-apps/api/app";
 import type { DownloadEvent, Update } from "@tauri-apps/plugin-updater";
 import { check } from "@tauri-apps/plugin-updater";
-import { atom, useAtomValue } from "jotai";
-import React, { useEffect, useRef } from "react";
+import { atom, useAtom, useAtomValue } from "jotai";
+import React, { useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
 import { createLogger } from "@src/hooks/logger";
+import Modal from "@src/scaffold/ModalSystem";
 import { autoUpdateEnabledAtom } from "@src/store/platform/autoUpdateAtom";
 import { settingsLoadedAtom } from "@src/store/settings/settingsAtom";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
@@ -41,6 +43,7 @@ const appUpdaterStateAtom = atom<AppUpdaterState>(
   createInitialAppUpdaterState()
 );
 const availableAppUpdateAtom = atom((get) => get(appUpdaterStateAtom).update);
+const appUpdateInstallPromptAtom = atom(false);
 const isAppUpdateInstallingAtom = atom((get) => {
   const phase = get(appUpdaterStateAtom).phase;
   return (
@@ -161,7 +164,7 @@ function createProgressReporter(): (event: DownloadEvent) => void {
         return `Downloading update… ${percent}%`;
       }
       case "Finished":
-        return "Installing update…";
+        return "Update ready to install.";
     }
   };
 
@@ -193,10 +196,36 @@ async function relaunchApp(): Promise<void> {
   await relaunch();
 }
 
-export async function installAvailableAppUpdate(): Promise<void> {
+export interface InstallAvailableAppUpdateOptions {
+  confirmed?: boolean;
+  silentDownload?: boolean;
+}
+
+export async function installAvailableAppUpdate(
+  options: InstallAvailableAppUpdateOptions = {}
+): Promise<void> {
+  const { confirmed = false, silentDownload = false } = options;
   const update =
     coordinator.getAvailableUpdate() ?? (await checkForUpdatesManually());
   if (!update) return;
+
+  if (!confirmed) {
+    try {
+      await coordinator.downloadAvailableUpdate(
+        silentDownload ? undefined : createProgressReporter()
+      );
+      store().set(appUpdateInstallPromptAtom, true);
+    } catch (error) {
+      Message.error({
+        id: INSTALL_TOAST_ID,
+        title: "Update download failed",
+        content: getErrorMessage(error),
+        duration: 6000,
+      });
+      log.error("Update download failed", error);
+    }
+    return;
+  }
 
   try {
     Message.info({
@@ -206,9 +235,7 @@ export async function installAvailableAppUpdate(): Promise<void> {
       duration: 0,
     });
 
-    const installed = await coordinator.installAvailableUpdate(
-      createProgressReporter()
-    );
+    const installed = await coordinator.installAvailableUpdate();
     if (!installed) return;
 
     Message.success({
@@ -238,16 +265,9 @@ async function runAutomaticUpdate(
     );
     if (!result.update) return;
 
-    if (reason === "startup") {
-      const installed = await coordinator.installAvailableUpdate();
-      if (installed) await relaunchApp();
-      return;
-    }
-
-    // Installing can terminate the app on Windows. While the user is active,
-    // only download in the background; the existing update button can install
-    // immediately from the prepared package, or startup auto-update will.
-    await coordinator.downloadAvailableUpdate();
+    // Installing can terminate the app on Windows. Every automatic path only
+    // prepares the package and asks the user before installing or relaunching.
+    await installAvailableAppUpdate({ silentDownload: true });
   } catch (error) {
     log.warn(`Automatic update (${reason}) failed`, getErrorMessage(error));
   }
@@ -262,9 +282,23 @@ export function useIsAppUpdateInstalling(): boolean {
 }
 
 export const AppUpdater: React.FC = () => {
+  const { t } = useTranslation(["settings", "common"]);
   const autoUpdateEnabled = useAtomValue(autoUpdateEnabledAtom);
+  const availableUpdate = useAtomValue(availableAppUpdateAtom);
+  const [installPromptVisible, setInstallPromptVisible] = useAtom(
+    appUpdateInstallPromptAtom
+  );
   const settingsLoaded = useAtomValue(settingsLoadedAtom);
   const startupSchedulingPendingRef = useRef(true);
+
+  const handleInstallLater = useCallback(() => {
+    setInstallPromptVisible(false);
+  }, [setInstallPromptVisible]);
+
+  const handleInstallConfirm = useCallback(async () => {
+    await installAvailableAppUpdate({ confirmed: true });
+    setInstallPromptVisible(false);
+  }, [setInstallPromptVisible]);
 
   useEffect(() => {
     if (!settingsLoaded) return;
@@ -284,10 +318,28 @@ export const AppUpdater: React.FC = () => {
     return () => scheduler.stop();
   }, [autoUpdateEnabled, settingsLoaded]);
 
-  return null;
+  return (
+    <Modal
+      visible={installPromptVisible && Boolean(availableUpdate)}
+      title={t("update.installConfirmTitle")}
+      size="small"
+      okText={t("update.installAndRestart")}
+      cancelText={t("common:actions.later")}
+      onOk={handleInstallConfirm}
+      onCancel={handleInstallLater}
+      onClose={handleInstallLater}
+    >
+      <p className="text-sm text-text-2">
+        {t("update.installConfirmDesc", {
+          version: availableUpdate?.version,
+        })}
+      </p>
+    </Modal>
+  );
 };
 
 /** Test-only reset for the module singleton. */
 export function resetAppUpdaterForTests(): void {
   coordinator.reset();
+  store().set(appUpdateInstallPromptAtom, false);
 }

@@ -787,9 +787,12 @@
   "update": {
     "title": "App Update",
     "autoUpdate": "Automatic updates",
-    "autoUpdateDesc": "Install updates during startup and download new versions silently while ORGII is running",
+    "autoUpdateDesc": "Download updates automatically and ask before installing and restarting ORGII",
     "detectUpdate": "Detect Update",
-    "currentVersion": "Current Version"
+    "currentVersion": "Current Version",
+    "installConfirmTitle": "Update ready to install",
+    "installConfirmDesc": "Version {{version}} has been downloaded. Save any ongoing work before installing and restarting ORGII.",
+    "installAndRestart": "Install and restart"
   },
   "monitor": {
     "categoryTerminal": "Terminal/tool process",

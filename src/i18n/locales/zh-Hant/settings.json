@@ -787,9 +787,12 @@
   "update": {
     "title": "App 更新",
     "autoUpdate": "自動更新",
-    "autoUpdateDesc": "啟動時自動安裝更新，並在 ORGII 運行期間靜默下載新版本",
+    "autoUpdateDesc": "自動下載更新，並在安裝和重新啓動 ORGII 前詢問",
     "detectUpdate": "檢測更新",
-    "currentVersion": "目前版本"
+    "currentVersion": "目前版本",
+    "installConfirmTitle": "更新已準備好安裝",
+    "installConfirmDesc": "版本 {{version}} 已下載。安裝並重新啓動 ORGII 前，請儲存正在進行的工作。",
+    "installAndRestart": "安裝並重新啓動"
   },
   "monitor": {
     "categoryTerminal": "終端機/工具程序",

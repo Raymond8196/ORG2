@@ -16,22 +16,22 @@ Settings → General.
 ## Automatic behavior
 
 - **Startup:** after a 10-second delay, check for a fresh release. If one is
-  available, download, install, and relaunch ORGII.
+  available, download it and ask before installing or relaunching ORGII.
 - **While running:** check every two hours, when the app returns to the
   foreground, and when network connectivity returns.
 - **Foreground event deduplication:** focus and visibility events share one
   750 ms debounce path; checks also have a five-minute throttle.
-- **Silent preparation:** while the user is active, download an available
-  package in the background without showing progress toasts or forcing a
-  restart. The existing update button installs the prepared package, or the
-  next startup flow completes installation.
+- **Silent preparation:** download an available package in the background
+  without showing progress toasts or forcing a restart, then show one
+  confirmation dialog. Installation only starts after the user confirms.
 - **Disabled:** no startup, interval, foreground, or online checks are
   registered. Manual checks and installs remain available.
-- **Enabled during an active session:** starts with a silent foreground check;
-  it does not run the disruptive startup install/relaunch path.
+- **Enabled during an active session:** starts with a silent foreground check
+  and uses the same confirmation-gated install path as every other trigger.
 
-Installing while the user is active is intentionally not automatic because
-the Tauri updater installer can terminate the running process on Windows.
+Installing is never automatic because the Tauri updater installer can
+terminate the running process on Windows. Users can postpone installation and
+save ongoing work before confirming the restart.
 
 ## Public API
 
@@ -48,8 +48,9 @@ useIsAppUpdateInstalling(): boolean
   concurrent check.
 - Manual check failures clear a stale available-update result. Silent failures
   preserve the last successful result while marking the coordinator failed.
-- Concurrent install requests share one install; only the owning request may
-  continue to relaunch.
+- Download requests prepare the package and open the install confirmation.
+- Concurrent confirmed install requests share one install; only the owning
+  request may continue to relaunch.
 
 ## State model
 

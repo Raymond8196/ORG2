@@ -101,14 +101,29 @@ describe("AppUpdater", () => {
     );
   });
 
-  it("checks, installs, and relaunches when no update is cached", async () => {
+  it("downloads and asks before installing or relaunching", async () => {
     const update = createUpdate();
     mocks.check.mockResolvedValue(update);
 
     await installAvailableAppUpdate();
 
     expect(mocks.check).toHaveBeenCalledOnce();
-    expect(update.downloadAndInstall).toHaveBeenCalledOnce();
+    expect(update.download).toHaveBeenCalledOnce();
+    expect(update.install).not.toHaveBeenCalled();
+    expect(update.downloadAndInstall).not.toHaveBeenCalled();
+    expect(mocks.relaunch).not.toHaveBeenCalled();
+    expect(mocks.storeSet).toHaveBeenLastCalledWith(expect.anything(), true);
+  });
+
+  it("installs and relaunches only after confirmation", async () => {
+    const update = createUpdate();
+    mocks.check.mockResolvedValue(update);
+
+    await installAvailableAppUpdate();
+    await installAvailableAppUpdate({ confirmed: true });
+
+    expect(update.download).toHaveBeenCalledOnce();
+    expect(update.install).toHaveBeenCalledOnce();
     expect(mocks.relaunch).toHaveBeenCalledOnce();
   });
 
@@ -116,7 +131,7 @@ describe("AppUpdater", () => {
     vi.useFakeTimers();
     vi.setSystemTime(10_000);
     const update = createUpdate({
-      downloadAndInstall: vi.fn(async (onEvent) => {
+      download: vi.fn(async (onEvent) => {
         const report = onEvent as (event: DownloadEvent) => void;
         report({ event: "Started", data: { contentLength: 100 } });
         report({ event: "Progress", data: { chunkLength: 10 } });
@@ -132,8 +147,10 @@ describe("AppUpdater", () => {
     const progressMessages = mocks.messageInfo.mock.calls.filter(
       ([message]) => message.id === "app-update-progress"
     );
-    expect(progressMessages).toHaveLength(4);
-    expect(progressMessages[2]?.[0].content).toBe("Downloading update… 50%");
+    expect(progressMessages).toHaveLength(3);
+    expect(progressMessages[1]?.[0].content).toBe("Downloading update… 50%");
+    expect(progressMessages[2]?.[0].content).toBe("Update ready to install.");
+    expect(mocks.relaunch).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 });
