@@ -9,7 +9,7 @@ import { activeHostAtom } from "@src/store/workstation";
 import type { WorkstationTabHost } from "@src/store/workstation/tabHost";
 
 export interface AppShellDerivedState {
-  effectiveHost: WorkstationTabHost;
+  activeHost: WorkstationTabHost;
   isCodeMode: boolean;
   isBrowserMode: boolean;
   isProjectMode: boolean;
@@ -24,11 +24,11 @@ export function useAppShellDerivedState(): AppShellDerivedState {
   // browser tab makes `activeHost` "browser" on its own — no host pin needed,
   // and closing the last tab lands back on the Launchpad instead of a
   // stranded empty host.
-  const effectiveHost = useAtomValue(activeHostAtom);
+  const activeHost = useAtomValue(activeHostAtom);
 
-  const isCodeMode = effectiveHost === "code";
-  const isBrowserMode = effectiveHost === "browser";
-  const isProjectMode = effectiveHost === "project";
+  const isCodeMode = activeHost === "code";
+  const isBrowserMode = activeHost === "browser";
+  const isProjectMode = activeHost === "project";
 
   const codeContentVisible = isCodeMode;
   const browserContentVisible = isBrowserMode;
@@ -37,18 +37,18 @@ export function useAppShellDerivedState(): AppShellDerivedState {
   const setActiveStatusBarApp = useSetAtom(activeStatusBarAppAtom);
   useEffect(() => {
     let appType: StatusBarAppType;
-    if (effectiveHost === "browser") {
+    if (activeHost === "browser") {
       appType = "browser";
-    } else if (effectiveHost === "project") {
+    } else if (activeHost === "project") {
       appType = "project";
     } else {
       appType = "code";
     }
     setActiveStatusBarApp(appType);
-  }, [effectiveHost, setActiveStatusBarApp]);
+  }, [activeHost, setActiveStatusBarApp]);
 
   return {
-    effectiveHost,
+    activeHost,
     isCodeMode,
     isBrowserMode,
     isProjectMode,
