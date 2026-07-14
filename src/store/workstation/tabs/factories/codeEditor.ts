@@ -109,8 +109,8 @@ export function createExplorerTab(): WorkStationTab {
 export const startTabFactory = defineTabFactory<Record<string, never>>({
   tabType: "start",
   idStrategy: { type: "singleton", id: "start:main" },
-  getTitle: () => "Start",
-  icon: "House",
+  getTitle: () => "Launchpad",
+  icon: "LayoutGrid",
 });
 
 export function createStartTab(): WorkStationTab {
