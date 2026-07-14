@@ -1178,9 +1178,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token is required",
       "createTokenButton": "Create Token",
-      "openGitSettingsButton": "Open Git Settings",
+      "openGitSettingsButton": "Open Settings",
       "configureInSettings": "Configure Git in Settings",
-      "configureInSettingsDesc": "Add GitHub App access, save a token, or scan local credentials in Settings → Integrations → Git, then retry this Git operation."
+      "configureInSettingsDesc": "Add GitHub App access, save a token, or scan local credentials in Settings → Connections, then retry this Git operation."
     },
     "actions": {
       "publish": "Publish",
@@ -1282,7 +1282,7 @@
       },
       "authRequired": {
         "title": "Connect GitHub",
-        "description": "Go to Settings → Integrations → Git to connect your GitHub account."
+        "description": "Go to Settings → Connections to connect your GitHub account."
       }
     },
     "issues": {
@@ -1314,10 +1314,10 @@
       },
       "authRequired": {
         "title": "Connect GitHub",
-        "description": "Go to Settings → Integrations → Git to connect your GitHub account."
+        "description": "Go to Settings → Connections to connect your GitHub account."
       },
       "reAuthRequired": "GitHub Authorization Required",
-      "reAuthDescription": "Your GitHub token has expired. Go to Settings → Integrations → Git to reconnect.",
+      "reAuthDescription": "Your GitHub token has expired. Go to Settings → Connections to reconnect.",
       "goToSettings": "Go to Settings"
     },
     "commit": {
