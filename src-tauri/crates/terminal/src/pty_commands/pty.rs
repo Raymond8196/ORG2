@@ -39,7 +39,7 @@
 //! - **Windows**: Uses `powershell.exe` as default shell
 
 use chrono::{DateTime, Utc};
-use portable_pty::{PtyPair, PtySize};
+use portable_pty::{Child, PtyPair, PtySize};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -116,6 +116,14 @@ pub struct PtySession {
     pub reader: Arc<AsyncMutex<BufReader<Box<dyn Read + Send>>>>,
     /// Process ID of the shell (derived from session ID for display purposes)
     pub pid: Option<u32>,
+    /// Owning handle to the spawned shell process. Held so `close_session`
+    /// and `Drop` can kill it explicitly — dropping the PTY master alone does
+    /// NOT reliably terminate the child on Windows ConPTY
+    /// (`ClosePseudoConsole` only signals), which orphaned `conhost.exe` and
+    /// the shell across app restarts. `take()`n exactly once by whichever of
+    /// the reader's natural-exit path, `close_session`, or `Drop` runs first;
+    /// the taker kills + reaps it.
+    pub child: Arc<Mutex<Option<Box<dyn Child + Send>>>>,
     /// Shell executable being used (e.g., "/bin/zsh", "powershell.exe")
     pub shell: String,
     /// Detected shell kind for profile display
@@ -154,6 +162,31 @@ pub struct PtySession {
     /// Bytes read while detached since the last attach; tells the frontend
     /// whether its client-side buffer missed output.
     pub missed_while_detached: Arc<AtomicUsize>,
+}
+
+impl Drop for PtySession {
+    fn drop(&mut self) {
+        // Kill the spawned shell so it (and, on Windows, its ConPTY conhost
+        // host) cannot outlive the session. `close_session` and the reader's
+        // natural-exit path take() the child first; if either already did,
+        // this is a no-op. Dropping the PTY master alone does NOT reliably
+        // kill the child on Windows ConPTY — `ClosePseudoConsole` only
+        // signals — so an explicit kill is required to avoid orphaned
+        // conhost/shell processes accumulating across app restarts.
+        if let Some(mut child) = self
+            .child
+            .lock()
+            .ok()
+            .and_then(|mut guard| guard.take())
+        {
+            let _ = child.kill();
+            // Reap to avoid a zombie; wait() may block briefly, so do it off
+            // the dropping thread (which may be the Tokio runtime worker).
+            std::thread::spawn(move || {
+                let _ = child.wait();
+            });
+        }
+    }
 }
 
 /// Global state container for all PTY sessions.
