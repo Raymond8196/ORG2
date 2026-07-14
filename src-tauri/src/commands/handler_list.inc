@@ -1003,6 +1003,7 @@ orgtrack::history_commands::cline_history_chunks,
 orgtrack::history_commands::cline_recent_paths,
 orgtrack::history_commands::workbuddy_history_chunks,
 orgtrack::history_commands::workbuddy_recent_paths,
+orgtrack::history_commands::imported_history_subagent_count,
 // Remote SQL client commands (PostgreSQL + MySQL via sqlx).
 // Crate: src-tauri/crates/db-clients. Owns the `sqlx` dep tree privately
 // so it never enters `cargo check -p org2`. See the crate's Cargo.toml
