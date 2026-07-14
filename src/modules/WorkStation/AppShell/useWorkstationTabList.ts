@@ -5,7 +5,8 @@
  * WorkstationTabBar and computes the active tab key.
  *
  * Logic summary
- * - Reads `tabRegistryAtom` and filters by the current `dockFilterAtom`.
+ * - Reads `tabRegistryAtom`; the unified surface shows every open tab
+ *   (no per-host filtering of the strip).
  * - Strips "blank state" fixture tabs when any real file tab is open
  *   in the same host bucket.
  * - Pins pinned tabs first; regular tabs follow in registry order.
@@ -28,19 +29,6 @@ import {
   tabToHost,
 } from "@src/store/workstation/tabHost";
 import type { WorkStationTab } from "@src/store/workstation/tabs";
-
-function dockFilterToHost(filter: DockFilter): WorkstationTabHost | null {
-  switch (filter) {
-    case "all":
-      return null;
-    case "code":
-      return "code";
-    case "browser":
-      return "browser";
-    case "project":
-      return "project";
-  }
-}
 
 export interface UseWorkstationTabListReturn {
   tabsForBar: WorkStationTab[];
@@ -65,13 +53,11 @@ export function useWorkstationTabList(): UseWorkstationTabListReturn {
   const closeSavedTabs = useSetAtom(closeSavedTabsAtom);
 
   const isAllTabsView = dockFilter === "all";
-  const hostFilter = dockFilterToHost(dockFilter);
 
-  const visible = useMemo(() => {
-    if (dockFilter === "all") return entries;
-    if (!hostFilter) return [];
-    return entries.filter((entry) => tabToHost(entry.tab) === hostFilter);
-  }, [dockFilter, entries, hostFilter]);
+  // Unified surface: the tab strip shows every open tab regardless of the
+  // active host. `dockFilter` still drives which host *renders* (via
+  // effectiveHost), but it no longer filters the strip.
+  const visible = entries;
 
   const realTabHostSet = useMemo(() => {
     const set = new Set<WorkstationTabHost>();
