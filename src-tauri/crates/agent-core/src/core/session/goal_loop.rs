@@ -439,6 +439,7 @@ async fn enqueue_continuation(
         false,
         None,
         None,
+        None,
         crate::foundation::session_bridge::TurnIntentBridgeSource::Queue,
     )
     .await;
