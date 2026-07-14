@@ -28,7 +28,6 @@ import { type ReactNode, createContext, useContext } from "react";
 
 import type { UseBrowserStateReturn } from "@src/engines/BrowserCore/hooks/useBrowserState";
 import type { UseBrowserSessionsReturn } from "@src/hooks/workStation/browser/useBrowserSessions";
-import type { QuickAction } from "@src/modules/WorkStation/shared";
 import type { SecondaryPanelPosition } from "@src/store/ui/workStationAtom";
 
 export interface BrowserHostContextValue {
@@ -58,7 +57,6 @@ export interface BrowserHostContextValue {
   onToggleDevToolsPane: () => void;
   devToolsPaneCollapsed: boolean;
   /** Quick actions shown in the empty-workspace placeholder. */
-  workspacePlaceholderActions: QuickAction[];
 
   // ============================================
   // DevTools panel (devtools renderer)

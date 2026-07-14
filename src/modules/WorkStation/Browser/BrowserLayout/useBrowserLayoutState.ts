@@ -20,10 +20,7 @@ import { useWorkStationTabShortcutBridge } from "@src/hooks/workStation";
 import { useBrowserPaneState } from "@src/hooks/workStation/browser/useBrowserPaneState";
 import { useBrowserSessions } from "@src/hooks/workStation/browser/useBrowserSessions";
 import { addToAgentAtom } from "@src/store/ui/addToAgentAtom";
-import {
-  workStationDevToolsCollapsedAtom,
-  workStationDevToolsCollapsedPersistAtom,
-} from "@src/store/ui/workStationAtom";
+import { workStationDevToolsCollapsedPersistAtom } from "@src/store/ui/workStationAtom";
 import {
   browserTabsAtom,
   createBrowserSessionTabId,
@@ -31,7 +28,6 @@ import {
   isBrowserSessionTab,
 } from "@src/store/workstation/browser/tabs";
 
-import { createBrowserQuickActions } from "./config";
 import { useBrowserStatusBar } from "./useBrowserStatusBar";
 import { useBrowserTabSync } from "./useBrowserTabSync";
 
@@ -67,7 +63,6 @@ export function useBrowserLayoutState({
   // Sub-hooks
   // ============================================
 
-  const devToolsCollapsed = useAtomValue(workStationDevToolsCollapsedAtom);
   const setDevToolsCollapsed = useSetAtom(
     workStationDevToolsCollapsedPersistAtom
   );
@@ -168,33 +163,9 @@ export function useBrowserLayoutState({
   // Quick actions + keyboard shortcuts
   // ============================================
 
-  const sidebarCollapsed = browser.primarySidebarCollapsed;
-
   const handleOpenEditor = useCallback(() => {
     navigate(ROUTES.workStation.code.path);
   }, [navigate]);
-
-  const browserQuickActions = useMemo(
-    () =>
-      createBrowserQuickActions({
-        t,
-        onNewTab: browser.handleNewSession,
-        onNewPrivateTab: browser.handleNewPrivateSession,
-        sidebarCollapsed,
-        devToolsCollapsed,
-        onToggleSidebar: browser.togglePrimarySidebar,
-        onToggleDevTools: handleToggleDevTools,
-      }),
-    [
-      t,
-      browser.handleNewSession,
-      browser.handleNewPrivateSession,
-      sidebarCollapsed,
-      devToolsCollapsed,
-      browser.togglePrimarySidebar,
-      handleToggleDevTools,
-    ]
-  );
 
   // ============================================
   // Tab bar props
@@ -219,7 +190,6 @@ export function useBrowserLayoutState({
     isShowingBrowserSession,
     showBrowserViewport,
     hasBrowserSessions,
-    browserQuickActions,
     handleSelectSession,
     handleCloseSession,
     handleOpenEditor,
