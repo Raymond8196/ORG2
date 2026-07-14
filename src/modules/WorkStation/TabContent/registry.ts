@@ -138,12 +138,6 @@ const BrowserSessionEntry: RendererEntry = {
   debugLabel: "browser-session",
 };
 
-const TokenCategoryEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/tokenCategory")),
-  requiresRepo: true,
-  debugLabel: "token-category",
-};
-
 const DevtoolsEntry: RendererEntry = {
   Component: lazy(() => import("./renderers/devtools")),
   debugLabel: "devtools",
@@ -263,7 +257,6 @@ export const REGISTRY: TabContentRegistry = {
 
   // Browser
   "browser-session": BrowserSessionEntry,
-  "token-category": TokenCategoryEntry,
   devtools: DevtoolsEntry,
 
   // Project Manager

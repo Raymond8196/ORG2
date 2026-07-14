@@ -45,7 +45,6 @@ export function categoryToTabHost(
 export function tabTypeToTabHost(type: WorkStationTabType): WorkstationTabHost {
   switch (type) {
     case "browser-session":
-    case "token-category":
     case "devtools":
       return "browser";
     case "project-dashboard":

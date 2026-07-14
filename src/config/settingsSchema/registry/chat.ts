@@ -5,7 +5,7 @@ import type { SettingDefinition } from "@src/config/settingsSchema/types";
 export const CHAT_SETTINGS_REGISTRY = {
   "chat.fontSize": {
     schema: z.number().int().min(10).max(16),
-    default: 14,
+    default: 13,
     description: "Chat panel font size in pixels (10-16)",
     category: "chat",
   },

@@ -90,7 +90,6 @@ const DEFAULT_CATEGORY_BY_TYPE: Record<
   benchmark: "benchmark",
   "url-preview": "preview",
   "browser-session": "browser",
-  "token-category": "browser",
   devtools: "browser",
   "project-dashboard": "project",
   "project-work-items": "project",

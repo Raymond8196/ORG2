@@ -37,7 +37,6 @@ export type WorkStationTabType =
   | "url-preview" // URL preview (agent-triggered webview in editor)
   // Browser tabs
   | "browser-session"
-  | "token-category"
   /** DevTools right panel (Elements / Console / Network) */
   | "devtools"
   // Project Manager tabs
@@ -394,7 +393,6 @@ export const TOOL_TAB_TYPES = [
   "url-preview",
   // Browser tabs
   "browser-session",
-  "token-category",
   // Project Manager tabs
   "project-dashboard",
   "project-work-items",

@@ -14,7 +14,6 @@
  */
 import { useAtomValue } from "jotai";
 import React, {
-  Suspense,
   memo,
   useCallback,
   useEffect,
@@ -23,7 +22,6 @@ import React, {
   useState,
 } from "react";
 
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { extractSessionId } from "@src/store/workstation/browser/tabs";
 import { workstationNewBrowserSessionRequestAtom } from "@src/store/workstation/workstationTabBarAtoms";
 
@@ -44,15 +42,11 @@ import { AgentBrowserOverlay } from "./AgentBrowserOverlay";
 import type { BrowserLayoutProps } from "./types";
 import { useBrowserLayoutState } from "./useBrowserLayoutState";
 
-// Lazy-load heavy secondary panels
-const TokenManagerPanel = React.lazy(
-  () => import("../Panels/BrowserMainPane/content/TokenManagerContent")
-);
 export type { BrowserLayoutProps } from "./types";
 
 export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
   ({ repoPath, repoName: _repoName, isActive = true }) => {
-    const state = useBrowserLayoutState({ repoPath, isActive });
+    const state = useBrowserLayoutState({ isActive });
 
     const setDevToolsCollapsed = state.browser.setDevToolsCollapsed;
     const handleCloseDevTools = useCallback(() => {
@@ -106,15 +100,13 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
         buildPrimarySidebarConfig({
           content: (
             <BrowserPrimarySidebar
-              repoPath={repoPath}
               sessions={state.browser.browserState.sessions}
               activeSessionId={activeSessionId}
               onSelectSession={state.handleSelectSession}
               onNewSession={state.browser.handleNewSession}
               onNewPrivateSession={state.browser.handleNewPrivateSession}
               onCloseSession={state.handleCloseSession}
-              onOpenColorTokens={state.handleOpenColorTokens}
-              onOpenHistoryUrl={state.handleOpenHistoryUrl}
+              sessionsOnly
             />
           ),
           collapsed: state.browser.primarySidebarCollapsed,
@@ -126,15 +118,12 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
           maxSize: 400,
         }),
       [
-        repoPath,
         state.browser.browserState.sessions,
         activeSessionId,
         state.handleSelectSession,
         state.browser.handleNewSession,
         state.browser.handleNewPrivateSession,
         state.handleCloseSession,
-        state.handleOpenColorTokens,
-        state.handleOpenHistoryUrl,
         state.browser.primarySidebarCollapsed,
         state.browser.primarySidebarWidth,
         state.browser.setPrimarySidebarWidth,
@@ -152,28 +141,6 @@ export const BrowserLayout: React.FC<BrowserLayoutProps> = memo(
         className={`flex h-full min-h-0 w-full flex-col overflow-hidden ${WORK_STATION_PLACEHOLDER_PAGE_BG_CLASS}`}
       >
         <div className="relative flex-1 overflow-hidden">
-          {state.hasOpenTabs &&
-            state.isShowingTokenCategory &&
-            state.activeTokenCategory && (
-              <div className="absolute inset-0 z-20 bg-workstation-bg">
-                <Suspense
-                  fallback={
-                    <Placeholder
-                      variant="loading"
-                      placement="detail-panel"
-                      fillParentHeight
-                      className={WORK_STATION_PLACEHOLDER_PAGE_BG_CLASS}
-                    />
-                  }
-                >
-                  <TokenManagerPanel
-                    category={state.activeTokenCategory}
-                    repoPath={repoPath}
-                  />
-                </Suspense>
-              </div>
-            )}
-
           {(!state.hasOpenTabs || state.hasBrowserSessions) && (
             <div
               className={`absolute inset-0 ${
