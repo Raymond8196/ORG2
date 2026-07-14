@@ -97,7 +97,7 @@ export function createDirectoryTab(directoryPath: string): WorkStationTab {
 export const explorerTabFactory = defineTabFactory<Record<string, never>>({
   tabType: "explorer",
   idStrategy: { type: "singleton", id: "explorer:main" },
-  getTitle: () => "Explorer",
+  getTitle: () => "Files",
   // Unified surface: the Explorer is a regular closable tab, opened on demand.
   // The empty-pool "blank state" is the WorkStationStartPage.
 });
@@ -269,7 +269,7 @@ export const sourceControlTabFactory = defineTabFactory<SourceControlTabData>({
     prefix: "source-control",
     getKey: (data) => (data.staged ? "staged-changes" : "changes"),
   },
-  getTitle: () => "Source Control",
+  getTitle: () => "Review",
   icon: "FileDiff",
 });
 

@@ -116,14 +116,14 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       {
         id: "explorer",
         icon: FolderTree,
-        label: t("workstation.startPage.explorer"),
+        label: t("common:labels.files"),
         shortcut: getShortcutKeys("open_file_folder_tab"),
         onClick: () => openTabInMainPane(createExplorerTab()),
       },
       {
         id: "sourceControl",
         icon: FileDiff,
-        label: t("workstation.startPage.sourceControl"),
+        label: t("common:actions.review"),
         shortcut: getShortcutKeys("open_source_control_tab"),
         onClick: () =>
           openTabInMainPane(createSourceControlTab(0, { mode: "all-changes" })),
@@ -131,20 +131,20 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       {
         id: "terminal",
         icon: SquareTerminal,
-        label: t("workstation.startPage.terminal"),
+        label: t("common:tabs.terminal"),
         shortcut: getShortcutKeys("open_terminal_tab"),
         onClick: () =>
           openTabInMainPane(
             createTerminalTab(
               CODE_EDITOR_MAIN_TERMINAL_SESSION_ID,
-              t("workstation.startPage.terminal")
+              t("common:tabs.terminal")
             )
           ),
       },
       {
         id: "newBrowserTab",
         icon: Globe,
-        label: t("routes.browser"),
+        label: t("labels.browser"),
         onClick: () => openBrowser(false),
       },
       {
