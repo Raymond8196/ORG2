@@ -8,6 +8,7 @@
  *
  * Rendered as a compact quick-action list: label + keyboard hint, no icon.
  */
+import { type LucideIcon } from "lucide-react";
 import React, { memo, useMemo } from "react";
 
 import {
@@ -23,19 +24,25 @@ import {
 } from "../useWorkStationLaunchActions";
 
 interface StartActionRowProps {
+  icon: LucideIcon;
   label: string;
   shortcut?: string;
   onClick: () => void;
 }
 
 const StartActionRow = memo<StartActionRowProps>(
-  ({ label, shortcut, onClick }) => (
+  ({ icon: Icon, label, shortcut, onClick }) => (
     <button
       type="button"
       onClick={onClick}
       className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${SURFACE_TOKENS.hover} active:bg-fill-3`}
     >
-      <span className="text-[14px] font-medium text-text-2">{label}</span>
+      <span className="flex min-w-0 items-center gap-2.5">
+        <Icon size={16} strokeWidth={1.75} className="shrink-0 text-text-3" />
+        <span className="truncate text-[14px] font-medium text-text-2">
+          {label}
+        </span>
+      </span>
       {shortcut ? (
         <KeyboardShortcut
           shortcut={shortcut}
@@ -64,6 +71,7 @@ export const WorkStationStartPage: React.FC = memo(() => {
           {visibleActions.map((action) => (
             <StartActionRow
               key={action.id}
+              icon={action.icon}
               label={action.label}
               shortcut={action.shortcut}
               onClick={action.onClick}

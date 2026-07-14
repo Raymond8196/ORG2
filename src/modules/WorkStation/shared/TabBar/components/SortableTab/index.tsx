@@ -59,7 +59,10 @@ import {
   isPlaceholderBrowserSessionTitle,
   translatePlaceholderBrowserSessionTitle,
 } from "@src/store/workstation/browser/tabs";
-import { resolveProjectManagerTabTitle } from "@src/store/workstation/tabs";
+import {
+  CODE_EDITOR_MAIN_TERMINAL_TAB_ID,
+  resolveProjectManagerTabTitle,
+} from "@src/store/workstation/tabs";
 
 import { WorkstationToolbarTooltip } from "../../../WorkstationToolbarTooltip";
 import type { WorkStationTab } from "../../types";
@@ -253,6 +256,20 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
         tab.type === "project-linear-work-items"
       ) {
         return resolveProjectManagerTabTitle(tab, t);
+      }
+      // Localized titles for the singleton tool tabs.
+      switch (tab.type) {
+        case "start":
+          return t("navigation:routes.launchpad");
+        case "explorer":
+          return t("common:labels.files");
+        case "source-control":
+          return t("common:actions.review");
+        case "terminal":
+          if (tab.id === CODE_EDITOR_MAIN_TERMINAL_TAB_ID) {
+            return t("common:tabs.terminal");
+          }
+          break;
       }
       return tab.title;
     };
