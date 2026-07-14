@@ -44,6 +44,7 @@ fn aggregate_to_core_session(record: &SessionAggregateRecord) -> SessionRecord {
             .or_else(|| record.worktree_branch.clone()),
         parent_session_id: record.parent_session_id.clone(),
         org_member_id: record.org_member_id.clone(),
+        collaboration_origin: None,
         metadata: AgentMetadata {
             dispatch_category: Some(dispatch_category_for(record.category).to_string()),
             rust_agent_type: rust_agent_type_for(record),

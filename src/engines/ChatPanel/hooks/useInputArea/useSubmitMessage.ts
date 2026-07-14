@@ -22,6 +22,8 @@ import { rejectQuestion, respondQuestion } from "@src/api/tauri/agent";
 import Message from "@src/components/Message";
 import { extractQuestionBatch } from "@src/engines/ChatPanel/InputArea/AskQuestionCard/extractQuestionBatch";
 import { chatEventsAtom } from "@src/engines/SessionCore";
+import { parseAddressCommentsSlashCommand } from "@src/features/Org2Cloud/addressCommentsSlashToken";
+import { useAddressCommentsSlashCommand } from "@src/features/Org2Cloud/useAddressCommentsSlashCommand";
 import { createLogger } from "@src/hooks/logger";
 import { useSecretScanGuard } from "@src/hooks/security/useSecretScanGuard";
 import { sessionByIdAtom } from "@src/store/session";
@@ -128,10 +130,18 @@ export function useSubmitMessage({
   const submitInFlightKeyRef = useRef<string | null>(null);
   const { runManualCompact } = useManualCompact();
   const guardAgainstSecrets = useSecretScanGuard();
+  const addressComments = useAddressCommentsSlashCommand(
+    draftSessionId || null
+  );
 
   return useCallback(
     async (options: SubmitMessageOptions = {}) => {
-      if (wpReadOnly) {
+      // Imported teammate replays are intentionally read-only in the event
+      // store, but their composer owns an onSubmitOverride that performs
+      // fork-before-send. Let that coordinator inspect the submission before
+      // applying the ordinary read-only guard; otherwise the generic
+      // "No active session" toast makes the fork flow unreachable.
+      if (wpReadOnly && !onSubmitOverride) {
         Message.warning(t("chat.noActiveSession"));
         return;
       }
@@ -177,6 +187,19 @@ export function useSubmitMessage({
             draftSessionId || null,
             compactCommand.instructions
           );
+          return;
+        }
+
+        const addressDraft = parseAddressCommentsSlashCommand(displayText);
+        if (addressDraft) {
+          refs.composerInputRef.current.clear();
+          void flushDraft("").catch((err: unknown) => {
+            log.warn("[useSubmitMessage] flushDraft(address) failed:", err);
+          });
+          addressComments.run({
+            selectedHeadIds: addressDraft.selectedHeadIds,
+            instruction: addressDraft.instruction,
+          });
           return;
         }
       }
@@ -503,6 +526,7 @@ export function useSubmitMessage({
       onSubmitOverride,
       submitDisabled,
       runManualCompact,
+      addressComments,
     ]
   );
 }

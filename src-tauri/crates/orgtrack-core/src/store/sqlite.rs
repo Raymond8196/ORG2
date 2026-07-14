@@ -12,6 +12,37 @@ pub struct SqliteRecordStore<'conn> {
     conn: &'conn Connection,
 }
 
+/// Run the two-table file-resource write atomically without assuming whether
+/// the caller already owns a transaction. SQLite savepoints work both inside
+/// an existing transaction and in autocommit mode, so this hot-path upsert is
+/// safely composable in larger reconciliation transactions.
+fn with_file_resource_savepoint<T>(
+    conn: &Connection,
+    operation: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    const BEGIN: &str = "SAVEPOINT orgtrack_file_resource_write";
+    const COMMIT: &str = "RELEASE SAVEPOINT orgtrack_file_resource_write";
+    const ROLLBACK: &str = "ROLLBACK TO SAVEPOINT orgtrack_file_resource_write;
+                            RELEASE SAVEPOINT orgtrack_file_resource_write";
+    conn.execute_batch(BEGIN).map_err(|err| err.to_string())?;
+
+    match operation() {
+        Ok(value) => {
+            conn.execute_batch(COMMIT).map_err(|err| err.to_string())?;
+            Ok(value)
+        }
+        Err(operation_error) => {
+            let rollback = conn.execute_batch(ROLLBACK);
+            match rollback {
+                Ok(()) => Err(operation_error),
+                Err(rollback_error) => Err(format!(
+                    "{operation_error}; failed to roll back store savepoint: {rollback_error}"
+                )),
+            }
+        }
+    }
+}
+
 fn ensure_column(
     conn: &Connection,
     table_name: &str,
@@ -35,6 +66,63 @@ fn ensure_column(
 impl<'conn> SqliteRecordStore<'conn> {
     pub fn new(conn: &'conn Connection) -> Self {
         Self { conn }
+    }
+
+    /// Remove the local read model for one collaboration replay.
+    ///
+    /// File resources are shared across sessions and intentionally remain;
+    /// only the replay-owned session, actors, interactions, and reconciliation
+    /// checkpoint are deleted. This is used when the user explicitly hides
+    /// and discards a cached Team Session.
+    pub fn delete_collaboration_session_provenance(
+        &self,
+        source: &str,
+        session_id: &str,
+    ) -> Result<(), String> {
+        self.conn
+            .execute_batch("BEGIN IMMEDIATE")
+            .map_err(|err| err.to_string())?;
+        let result = (|| {
+            self.conn
+                .execute(
+                    "DELETE FROM orgtrack_core_resource_interactions
+                     WHERE source = ?1 AND session_id = ?2",
+                    params![source, session_id],
+                )
+                .map_err(|err| err.to_string())?;
+            self.conn
+                .execute(
+                    "DELETE FROM orgtrack_core_session_actors
+                     WHERE source = ?1 AND session_id = ?2",
+                    params![source, session_id],
+                )
+                .map_err(|err| err.to_string())?;
+            self.conn
+                .execute(
+                    "DELETE FROM orgtrack_core_interaction_import_checkpoints
+                     WHERE source = ?1 AND session_id = ?2",
+                    params![source, session_id],
+                )
+                .map_err(|err| err.to_string())?;
+            self.conn
+                .execute(
+                    "DELETE FROM orgtrack_core_sessions
+                     WHERE source = ?1 AND session_id = ?2",
+                    params![source, session_id],
+                )
+                .map_err(|err| err.to_string())?;
+            Ok::<(), String>(())
+        })();
+        match result {
+            Ok(()) => self
+                .conn
+                .execute_batch("COMMIT")
+                .map_err(|err| err.to_string()),
+            Err(err) => {
+                let _ = self.conn.execute_batch("ROLLBACK");
+                Err(err)
+            }
+        }
     }
 
     pub fn init_tables(conn: &Connection) -> rusqlite::Result<()> {
@@ -678,30 +766,27 @@ impl RecordStore for SqliteRecordStore<'_> {
                 record.workspace_path, record.repo_relative_path
             ),
         };
-        let transaction = self
-            .conn
-            .unchecked_transaction()
-            .map_err(|err| err.to_string())?;
-        transaction
-            .execute(
-                "INSERT INTO orgtrack_core_resources (
+        with_file_resource_savepoint(self.conn, || {
+            self.conn
+                .execute(
+                    "INSERT INTO orgtrack_core_resources (
                     resource_id, resource_kind, canonical_locator, display_locator, payload_json
                 ) VALUES (?1, 'file', ?2, ?3, ?4)
                 ON CONFLICT(resource_id) DO UPDATE SET
                     canonical_locator=excluded.canonical_locator,
                     display_locator=excluded.display_locator,
                     payload_json=excluded.payload_json",
-                params![
-                    record.resource_id,
-                    canonical_locator,
-                    record.display_path,
-                    payload
-                ],
-            )
-            .map_err(|err| err.to_string())?;
-        transaction
-            .execute(
-                "INSERT INTO orgtrack_core_file_resources (
+                    params![
+                        record.resource_id,
+                        canonical_locator,
+                        record.display_path,
+                        payload
+                    ],
+                )
+                .map_err(|err| err.to_string())?;
+            self.conn
+                .execute(
+                    "INSERT INTO orgtrack_core_file_resources (
                     resource_id, repository_id, workspace_path, repo_relative_path, path_hash
                 ) VALUES (?1, ?2, ?3, ?4, ?5)
                 ON CONFLICT(resource_id) DO UPDATE SET
@@ -709,16 +794,17 @@ impl RecordStore for SqliteRecordStore<'_> {
                     workspace_path=excluded.workspace_path,
                     repo_relative_path=excluded.repo_relative_path,
                     path_hash=excluded.path_hash",
-                params![
-                    record.resource_id,
-                    record.repository_id,
-                    record.workspace_path,
-                    record.repo_relative_path,
-                    record.path_hash
-                ],
-            )
-            .map_err(|err| err.to_string())?;
-        transaction.commit().map_err(|err| err.to_string())
+                    params![
+                        record.resource_id,
+                        record.repository_id,
+                        record.workspace_path,
+                        record.repo_relative_path,
+                        record.path_hash
+                    ],
+                )
+                .map_err(|err| err.to_string())?;
+            Ok(())
+        })
     }
 
     fn append_resource_interaction(
@@ -1652,6 +1738,7 @@ mod tests {
             branch: None,
             parent_session_id: None,
             org_member_id: None,
+            collaboration_origin: None,
             metadata: AgentMetadata::default(),
         };
 
@@ -1676,6 +1763,45 @@ mod tests {
             titled[0].session_title.as_deref(),
             Some("Refactor the auth flow")
         );
+    }
+
+    #[test]
+    fn file_resource_upsert_composes_with_outer_transaction() {
+        let conn = Connection::open_in_memory().expect("in-memory sqlite");
+        SqliteRecordStore::init_tables(&conn).expect("init tables");
+        conn.execute_batch("BEGIN IMMEDIATE")
+            .expect("begin reconciliation transaction");
+
+        let store = SqliteRecordStore::new(&conn);
+        store
+            .upsert_file_resource(&FileResourceRecord {
+                schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                resource_id: "nested-file-1".to_string(),
+                repository_id: Some("repo-1".to_string()),
+                workspace_path: "/repo/worktree".to_string(),
+                repo_relative_path: "package.json".to_string(),
+                display_path: "package.json".to_string(),
+                path_hash: "nested-hash-1".to_string(),
+            })
+            .expect("upsert file resource inside outer transaction");
+        conn.execute_batch("COMMIT")
+            .expect("commit reconciliation transaction");
+
+        let resource_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM orgtrack_core_resources WHERE resource_id = ?1",
+                ["nested-file-1"],
+                |row| row.get(0),
+            )
+            .expect("query resource row");
+        let file_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM orgtrack_core_file_resources WHERE resource_id = ?1",
+                ["nested-file-1"],
+                |row| row.get(0),
+            )
+            .expect("query file resource row");
+        assert_eq!((resource_count, file_count), (1, 1));
     }
 
     #[test]

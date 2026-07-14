@@ -397,7 +397,13 @@ export const syncActiveChatPanelTabStateAtom = atom(null, (get, set) => {
   const state = get(chatPanelTabsAtom);
   const activeTab =
     state.tabs.find((tab) => tab.id === state.activeTabId) ?? null;
-  set(syncChatPanelTabNavigationAtom, activeTab);
+  // A start-page tab is also the host for non-session project surfaces.
+  // Navigation deliberately closes the Launchpad before selecting one of
+  // those surfaces. Do not let the React reconciliation pass erase that
+  // newer navigation command after a switch away from Work Management.
+  if (activeTab?.type !== "start-page" || get(chatPanelStartPageOpenAtom)) {
+    set(syncChatPanelTabNavigationAtom, activeTab);
+  }
 
   if (
     isChatPanelTabDefaultFullscreen(activeTab) &&

@@ -40,7 +40,8 @@
     "storage": "Pamięć masowa",
     "projectUsage": "Project i użycie",
     "agentMemory": "Pamięć Agent",
-    "agentOrg": "Zespół Agent"
+    "agentOrg": "Zespół Agent",
+    "collaboration": "Współpraca"
   },
   "coreSidebar": {
     "groups": {
@@ -1305,5 +1306,11 @@
     "searchActions": "Szukaj akcji...",
     "noActionsFound": "Nie znaleziono akcji",
     "noConfigurableProperties": "Brak konfigurowalnych właściwości"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "Chmura",
+      "selfHosted": "Hostowane samodzielnie"
+    }
   }
 }

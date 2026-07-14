@@ -30,6 +30,7 @@ interface NavigationMenuParentRowProps extends Omit<
   isOpen: boolean;
   submenuSelected: boolean;
   collapsed: boolean;
+  t: (key: string) => string;
   renderIcon: NavigationMenuIconRenderer;
   renderMenuItem: NavigationMenuItemRenderer;
   onMenuItemContextMenu?: (
@@ -38,6 +39,7 @@ interface NavigationMenuParentRowProps extends Omit<
     item: NavigationMenuItem
   ) => void;
   onRowMouseEnter: NavigationMenuRowMouseEnterHandler;
+  onRowActionClick: NavigationMenuRowActionClickHandler;
   onToggleSubmenu: (key: string) => void;
   compactRows: boolean;
 }
@@ -52,10 +54,12 @@ export const NavigationMenuParentRow = React.forwardRef<
     isOpen,
     submenuSelected,
     collapsed,
+    t,
     renderIcon,
     renderMenuItem,
     onMenuItemContextMenu,
     onRowMouseEnter,
+    onRowActionClick,
     onToggleSubmenu,
     compactRows,
     onMouseEnter,
@@ -104,7 +108,7 @@ export const NavigationMenuParentRow = React.forwardRef<
         tabIndex={item.disabled ? -1 : 0}
         aria-expanded={isOpen}
         aria-disabled={item.disabled || undefined}
-        className={`group flex ${rowHeightClass} items-center justify-between rounded-lg transition-colors duration-150 ${
+        className={`group/parent flex ${rowHeightClass} items-center justify-between rounded-lg transition-colors duration-150 ${
           isChild ? "pl-5 pr-2" : "px-2"
         } ${submenuSelected ? "bg-sidebar-selected text-text-1" : "text-text-1"} ${
           item.disabled
@@ -149,11 +153,30 @@ export const NavigationMenuParentRow = React.forwardRef<
         </div>
         {!collapsed && (
           <span className="ml-1 inline-flex flex-shrink-0 items-center gap-1.5 leading-none">
-            {item.trailingElement && (
-              <span className="inline-flex flex-shrink-0 items-center leading-none">
-                {item.trailingElement}
-              </span>
-            )}
+            {/* Cloud thread roots carry hover metadata (owner · time) and
+                Fork/More actions; parentHoverGroup keys the reveal on the
+                named group so nested child rows can't capture it. */}
+            <NavigationMenuRowAccessorySlot
+              parentHoverGroup
+              persistentContent={item.trailingElement}
+              hoverContent={
+                item.shortcut ? (
+                  <span className="max-w-[6rem] truncate text-[11px] text-text-2">
+                    {item.shortcut}
+                  </span>
+                ) : undefined
+              }
+              actionContent={
+                item.showMoreActions
+                  ? renderRowActions({
+                      item,
+                      t,
+                      onMenuItemContextMenu,
+                      onRowActionClick,
+                    })
+                  : undefined
+              }
+            />
             {isOpen ? (
               <ChevronsDownUp
                 size={12}
@@ -501,6 +524,7 @@ function renderRowActions({
         icon={action.icon}
         label={action.label}
         active={action.active}
+        dataTestId={action.dataTestId}
         onClick={action.onClick}
       />
     ));

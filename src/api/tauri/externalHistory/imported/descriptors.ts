@@ -1,14 +1,6 @@
-export type ImportedHistorySourceId =
-  | "cursor_ide"
-  | "codex_app"
-  | "claude_code"
-  | "opencode"
-  | "windsurf"
-  | "workbuddy"
-  | "trae"
-  | "cline"
-  | "warp"
-  | "zcode";
+import type { ImportedHistorySourceId } from "@src/types/session/externalHistory";
+
+export type { ImportedHistorySourceId } from "@src/types/session/externalHistory";
 
 export type ImportedHistoryListCategory =
   `external_history:${ImportedHistorySourceId}`;

@@ -251,7 +251,7 @@ fn cost_is_non_negative() {
 }
 
 #[test]
-fn cost_is_proportional_to_tokens() {
+fn aggregate_without_usage_accounting_only_accumulates_tokens() {
     let sessions_small = vec![make_session("s1", "completed", 1_000, SessionCategory::Cli)];
     let sessions_large = vec![make_session(
         "s2",
@@ -260,13 +260,12 @@ fn cost_is_proportional_to_tokens() {
         SessionCategory::Cli,
     )];
 
-    let small_cost = compute_aggregate_stats(&sessions_small).total_cost_usd;
-    let large_cost = compute_aggregate_stats(&sessions_large).total_cost_usd;
+    let small = compute_aggregate_stats(&sessions_small);
+    let large = compute_aggregate_stats(&sessions_large);
 
-    assert!(
-        large_cost > small_cost,
-        "larger token count must produce higher cost"
-    );
+    assert!(large.total_tokens > small.total_tokens);
+    assert_eq!(small.total_cost_usd, 0.0);
+    assert_eq!(large.total_cost_usd, 0.0);
 }
 
 // ============================================================================

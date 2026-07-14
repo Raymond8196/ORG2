@@ -40,6 +40,20 @@ export const lineage = {
     .output(schemas.lineage.OrgtrackFileSessionHistorySchema)
     .build(),
 
+  orgtrackIndexCollaborationSession: defineProcedure(
+    "orgtrack_index_collaboration_session"
+  )
+    .input(schemas.lineage.OrgtrackIndexCollaborationSessionInput)
+    .output(z.number().int().nonnegative())
+    .build(),
+
+  orgtrackDeleteCollaborationSession: defineProcedure(
+    "orgtrack_delete_collaboration_session"
+  )
+    .input(schemas.lineage.OrgtrackDeleteCollaborationSessionInput)
+    .output(z.void())
+    .build(),
+
   orgtrackGetSessionSummaries: defineProcedure("orgtrack_get_session_summaries")
     .input(schemas.lineage.OrgtrackSessionSummariesInput)
     .output(z.array(schemas.lineage.CoreSessionSummarySchema))
