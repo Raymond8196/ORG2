@@ -1371,8 +1371,7 @@
         "checkoutDetachedSuccess": "Jesteś teraz w stanie detached HEAD na bieżącym commicie",
         "checkoutDetachedFailed": "Nie udało się wykonać checkout detached HEAD",
         "removeWorktree": "Usuń Worktree",
-        "newWorktree": "Nowy worktree...",
-        "newWorktreeDesc": "Utwórz z gałęzi, PR, zgłoszenia lub nazwy"
+        "newWorktree": "Nowy worktree..."
       },
       "messages": {
         "deletedCount_one": "Usunięto {{count}} gałąź",
@@ -1387,7 +1386,9 @@
         "basedOn": "Oparte na",
         "worktrees": "Worktrees",
         "worktreeInUse": "W użyciu",
-        "checkedOutInWorktree": "Checkout w Worktree: {{path}}"
+        "checkedOutInWorktree": "Checkout w Worktree: {{path}}",
+        "mainWorktreeSection": "Główny worktree",
+        "linkedWorktrees": "Połączone worktree"
       },
       "placeholders": {
         "checkout": "gałąź",

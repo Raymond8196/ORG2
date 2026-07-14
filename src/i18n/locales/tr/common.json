@@ -1372,8 +1372,7 @@
         "checkoutDetachedSuccess": "Mevcut commit'te detached HEAD durumunda",
         "checkoutDetachedFailed": "detached HEAD checkout başarısız",
         "removeWorktree": "Worktree kaldır",
-        "newWorktree": "Yeni worktree...",
-        "newWorktreeDesc": "Bir daldan, PR'dan, issue'dan veya addan oluştur"
+        "newWorktree": "Yeni worktree..."
       },
       "messages": {
         "deletedCount_one": "{{count}} branch silindi",
@@ -1388,7 +1387,9 @@
         "basedOn": "Temel alınan",
         "worktrees": "Worktrees",
         "worktreeInUse": "Kullanımda",
-        "checkedOutInWorktree": "Worktree içinde checkout edilmiş: {{path}}"
+        "checkedOutInWorktree": "Worktree içinde checkout edilmiş: {{path}}",
+        "mainWorktreeSection": "Ana worktree",
+        "linkedWorktrees": "Bağlı worktree'ler"
       },
       "placeholders": {
         "checkout": "branch",

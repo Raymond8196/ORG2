@@ -1371,8 +1371,7 @@
         "checkoutDetachedSuccess": "В состоянии detached HEAD на текущем коммите",
         "checkoutDetachedFailed": "Ошибка checkout detached HEAD",
         "removeWorktree": "Удалить Worktree",
-        "newWorktree": "Новый worktree...",
-        "newWorktreeDesc": "Создать из ветки, PR, задачи или имени"
+        "newWorktree": "Новый worktree..."
       },
       "messages": {
         "deletedCount_one": "Удалена {{count}} ветка",
@@ -1387,7 +1386,9 @@
         "basedOn": "На основе",
         "worktrees": "Worktrees",
         "worktreeInUse": "Используется",
-        "checkedOutInWorktree": "Checkout в Worktree: {{path}}"
+        "checkedOutInWorktree": "Checkout в Worktree: {{path}}",
+        "mainWorktreeSection": "Основной worktree",
+        "linkedWorktrees": "Связанные worktree"
       },
       "placeholders": {
         "checkout": "ветка",

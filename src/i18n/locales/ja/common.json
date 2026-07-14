@@ -1372,8 +1372,7 @@
         "checkoutDetachedSuccess": "detached HEAD 状態になりました（現在のコミット）",
         "checkoutDetachedFailed": "detached HEAD へのチェックアウトに失敗しました",
         "removeWorktree": "Worktree を削除",
-        "newWorktree": "新規 Worktree...",
-        "newWorktreeDesc": "ブランチ、PR、Issue、または名前から作成"
+        "newWorktree": "新規 Worktree..."
       },
       "messages": {
         "deletedCount_one": "{{count}} 件のブランチを削除しました",
@@ -1388,7 +1387,9 @@
         "basedOn": "ベース",
         "worktrees": "Worktrees",
         "worktreeInUse": "使用中",
-        "checkedOutInWorktree": "Worktree でチェックアウト済み: {{path}}"
+        "checkedOutInWorktree": "Worktree でチェックアウト済み: {{path}}",
+        "mainWorktreeSection": "メイン Worktree",
+        "linkedWorktrees": "リンク済み Worktree"
       },
       "placeholders": {
         "checkout": "ブランチ",

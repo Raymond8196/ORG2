@@ -1371,8 +1371,7 @@
         "checkoutDetachedSuccess": "Agora em estado HEAD detached no commit atual",
         "checkoutDetachedFailed": "Falha ao fazer checkout em HEAD detached",
         "removeWorktree": "Remover Worktree",
-        "newWorktree": "Novo worktree...",
-        "newWorktreeDesc": "Criar a partir de um branch, PR, issue ou nome"
+        "newWorktree": "Novo worktree..."
       },
       "messages": {
         "deletedCount_one": "{{count}} branch excluído",
@@ -1387,7 +1386,9 @@
         "basedOn": "Baseado em",
         "worktrees": "Worktrees",
         "worktreeInUse": "Em uso",
-        "checkedOutInWorktree": "Checkout em Worktree: {{path}}"
+        "checkedOutInWorktree": "Checkout em Worktree: {{path}}",
+        "mainWorktreeSection": "Worktree principal",
+        "linkedWorktrees": "Worktrees vinculados"
       },
       "placeholders": {
         "checkout": "branch",
