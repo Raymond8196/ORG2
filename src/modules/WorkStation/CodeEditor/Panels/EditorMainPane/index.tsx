@@ -85,6 +85,10 @@ import { TabContentRenderer } from "./content";
 import SourceControlMainPane from "./content/SourceControlMainPane";
 import type { SourceControlMainTabData } from "./content/sourceControlMainProps";
 import {
+  type EditorHostContextValue,
+  EditorHostProvider,
+} from "./context/editorHostContext";
+import {
   SOURCE_CONTROL_OTHER_SESSIONS_FILTER,
   useEditorPaneState,
   useFileContentManager,
@@ -713,6 +717,50 @@ const EditorContent: React.FC<EditorContentProps> = memo(
     );
 
     // ============================================
+    // Host context (Phase 2.4)
+    // ============================================
+
+    // Publish the exact 14-field prop bag `TabContentRenderer` receives so
+    // editor tab renderers mounted through `UnifiedTabContent` can consume it
+    // via `useEditorHostContext`. Sourced from the SAME live instances the host
+    // already holds — `fileContentManager` (live file-content manager) and
+    // `terminalState` (live PTY) are passed by reference, never recreated.
+    const editorHostValue = useMemo<EditorHostContextValue>(
+      () => ({
+        fileContentState: fileContentManager,
+        gitFilesByPath,
+        gitDiffLoading,
+        forceRefresh,
+        onFileSelect,
+        onFileSelectWithLine,
+        onDiagnosticsChange,
+        onCursorPositionChange,
+        onSearchTabTitleChange: handleSearchTabTitleChange,
+        onGitDiffUnsavedChange: handleGitDiffUnsavedChange,
+        onBinaryUnsavedChange: handleBinaryUnsavedChange,
+        terminalState,
+        repoPath,
+        repoId: repoId ?? null,
+      }),
+      [
+        fileContentManager,
+        gitFilesByPath,
+        gitDiffLoading,
+        forceRefresh,
+        onFileSelect,
+        onFileSelectWithLine,
+        onDiagnosticsChange,
+        onCursorPositionChange,
+        handleSearchTabTitleChange,
+        handleGitDiffUnsavedChange,
+        handleBinaryUnsavedChange,
+        terminalState,
+        repoPath,
+        repoId,
+      ]
+    );
+
+    // ============================================
     // Render
     // ============================================
 
@@ -725,66 +773,70 @@ const EditorContent: React.FC<EditorContentProps> = memo(
     const showAppPlaceholder = hasNoTabs || isExplorerHome;
 
     return (
-      <div className="code-editor-right-panel flex h-full w-full flex-col">
-        <CodeEditorDefaultHeader
-          enabled={isExplorerHome}
-          repoDisplayName={repoDisplayName}
-          activeFilePath={activeFilePath}
-        />
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          {shouldMountTerminalContent && (
-            <div
-              className={`absolute inset-0 ${
-                isTerminalTabActive
-                  ? "z-10 opacity-100"
-                  : "pointer-events-none z-0 opacity-0"
-              }`}
-              aria-hidden={!isTerminalTabActive}
-            >
-              <Suspense fallback={null}>
-                <TerminalMainContent
-                  terminalState={terminalState}
-                  repoPath={repoPath}
-                  onFileSelect={onFileSelect}
-                  onFileSelectWithLine={onFileSelectWithLine}
-                />
-              </Suspense>
-            </div>
-          )}
+      <EditorHostProvider value={editorHostValue}>
+        <div className="code-editor-right-panel flex h-full w-full flex-col">
+          <CodeEditorDefaultHeader
+            enabled={isExplorerHome}
+            repoDisplayName={repoDisplayName}
+            activeFilePath={activeFilePath}
+          />
+          <div className="relative min-h-0 flex-1 overflow-hidden">
+            {shouldMountTerminalContent && (
+              <div
+                className={`absolute inset-0 ${
+                  isTerminalTabActive
+                    ? "z-10 opacity-100"
+                    : "pointer-events-none z-0 opacity-0"
+                }`}
+                aria-hidden={!isTerminalTabActive}
+              >
+                <Suspense fallback={null}>
+                  <TerminalMainContent
+                    terminalState={terminalState}
+                    repoPath={repoPath}
+                    onFileSelect={onFileSelect}
+                    onFileSelectWithLine={onFileSelectWithLine}
+                  />
+                </Suspense>
+              </div>
+            )}
 
-          {!isTerminalTabActive && (
-            <div className="absolute inset-0 z-10 flex min-h-0 flex-col">
-              {showAppPlaceholder ? (
-                <NoTabsPlaceholder icon="editor" actions={editorQuickActions} />
-              ) : (
-                <TabContentRenderer
-                  activeTab={activeTab}
-                  repoPath={repoPath}
-                  repoId={repoId ?? null}
-                  fileContentState={fileContentManager}
-                  gitFilesByPath={gitFilesByPath}
-                  sourceControlAttributedFiles={sourceControlAttributedFiles}
-                  gitDiffLoading={gitDiffLoading}
-                  forceRefresh={forceRefresh}
-                  onFileSelect={onFileSelect}
-                  onFileSelectWithLine={onFileSelectWithLine}
-                  onDiagnosticsChange={onDiagnosticsChange}
-                  onCursorPositionChange={onCursorPositionChange}
-                  onSearchTabTitleChange={handleSearchTabTitleChange}
-                  onGitDiffUnsavedChange={handleGitDiffUnsavedChange}
-                  onBinaryUnsavedChange={handleBinaryUnsavedChange}
-                  sourceControlCollapseAllSignal={
-                    sourceControlCollapseAllSignal
-                  }
-                  sourceControlFilterMode={sourceControlFilterMode}
-                  terminalState={terminalState}
-                  editorQuickActions={editorQuickActions}
-                />
-              )}
-            </div>
-          )}
+            {!isTerminalTabActive && (
+              <div className="absolute inset-0 z-10 flex min-h-0 flex-col">
+                {showAppPlaceholder ? (
+                  <NoTabsPlaceholder
+                    icon="editor"
+                    actions={editorQuickActions}
+                  />
+                ) : (
+                  <TabContentRenderer
+                    activeTab={activeTab}
+                    repoPath={repoPath}
+                    repoId={repoId ?? null}
+                    fileContentState={fileContentManager}
+                    gitFilesByPath={gitFilesByPath}
+                    sourceControlAttributedFiles={sourceControlAttributedFiles}
+                    gitDiffLoading={gitDiffLoading}
+                    forceRefresh={forceRefresh}
+                    onFileSelect={onFileSelect}
+                    onFileSelectWithLine={onFileSelectWithLine}
+                    onDiagnosticsChange={onDiagnosticsChange}
+                    onCursorPositionChange={onCursorPositionChange}
+                    onSearchTabTitleChange={handleSearchTabTitleChange}
+                    onGitDiffUnsavedChange={handleGitDiffUnsavedChange}
+                    onBinaryUnsavedChange={handleBinaryUnsavedChange}
+                    sourceControlCollapseAllSignal={
+                      sourceControlCollapseAllSignal
+                    }
+                    sourceControlFilterMode={sourceControlFilterMode}
+                    terminalState={terminalState}
+                    editorQuickActions={editorQuickActions}
+                  />
+                )}
+              </div>
+            )}
 
-          {/*
+            {/*
             Keep-alive Source Control main pane. Mounted once the tab has been
             visited, then shown/hidden (instead of unmounted) so the diff view,
             scroll position, and lazy chunk survive navigating to a file tab and
@@ -792,33 +844,36 @@ const EditorContent: React.FC<EditorContentProps> = memo(
             `source-control` case in TabContentRenderer is a no-op so this owns
             the rendering. (Issue #16)
           */}
-          {hasVisitedSourceControl && sourceControlTab && (
-            <div
-              className={`absolute inset-0 flex min-h-0 flex-col ${
-                isSourceControlActive && !isTerminalTabActive
-                  ? "z-20 opacity-100"
-                  : "pointer-events-none z-0 opacity-0"
-              }`}
-              aria-hidden={!(isSourceControlActive && !isTerminalTabActive)}
-            >
-              <SourceControlMainPane
-                tabData={sourceControlTab.data as SourceControlMainTabData}
-                repoPath={repoPath}
-                repoId={repoId ?? null}
-                gitFilesByPath={gitFilesByPath}
-                sourceControlAttributedFiles={sourceControlAttributedFiles}
-                sourceControlFilterMode={sourceControlFilterMode}
-                gitDiffLoading={gitDiffLoading}
-                sourceControlCollapseAllSignal={sourceControlCollapseAllSignal}
-                sourceControlQuickActions={sourceControlQuickActions}
-                onForceReload={forceRefresh}
-                onFileSelect={onFileSelect}
-                onGitDiffUnsavedChange={handleGitDiffUnsavedChange}
-              />
-            </div>
-          )}
+            {hasVisitedSourceControl && sourceControlTab && (
+              <div
+                className={`absolute inset-0 flex min-h-0 flex-col ${
+                  isSourceControlActive && !isTerminalTabActive
+                    ? "z-20 opacity-100"
+                    : "pointer-events-none z-0 opacity-0"
+                }`}
+                aria-hidden={!(isSourceControlActive && !isTerminalTabActive)}
+              >
+                <SourceControlMainPane
+                  tabData={sourceControlTab.data as SourceControlMainTabData}
+                  repoPath={repoPath}
+                  repoId={repoId ?? null}
+                  gitFilesByPath={gitFilesByPath}
+                  sourceControlAttributedFiles={sourceControlAttributedFiles}
+                  sourceControlFilterMode={sourceControlFilterMode}
+                  gitDiffLoading={gitDiffLoading}
+                  sourceControlCollapseAllSignal={
+                    sourceControlCollapseAllSignal
+                  }
+                  sourceControlQuickActions={sourceControlQuickActions}
+                  onForceReload={forceRefresh}
+                  onFileSelect={onFileSelect}
+                  onGitDiffUnsavedChange={handleGitDiffUnsavedChange}
+                />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </EditorHostProvider>
     );
   }
 );
