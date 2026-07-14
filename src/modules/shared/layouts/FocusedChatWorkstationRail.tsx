@@ -18,22 +18,19 @@ import { IconButton } from "@src/components/IconButton";
 import { ROUTES } from "@src/config/routes";
 import { getTerminalDisplayTitle } from "@src/engines/TerminalCore/types";
 import { useCloseTabWithGuard } from "@src/hooks/workStation/tabs/useCloseTabWithGuard";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import {
   CHAT_PANEL_SURFACE_KIND,
   activeChatPanelSurfaceAtom,
   chatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
-import {
-  type BottomPanelTab,
-  type PrimarySidebarTabKey,
-  workStationBottomPanelTabPersistAtom,
-  workStationEditorSecondaryCollapsedPersistAtom,
-  workStationPrimarySidebarCollapsedPersistAtom,
-  workStationPrimarySidebarTabAtom,
-} from "@src/store/ui/workStationAtom";
 import { activeWorkspaceRootAtom } from "@src/store/workspace";
-import { type DockFilter, dockFilterAtom } from "@src/store/workstation";
+import {
+  type DockFilter,
+  dockFilterAtom,
+  requestNewBrowserSessionAtom,
+} from "@src/store/workstation";
 import {
   initializedTerminalIdsAtom,
   setActiveTerminalAtom,
@@ -127,14 +124,7 @@ export function FocusedChatWorkstationRail() {
   const setStationMode = useSetAtom(stationModeAtom);
   const setChatPanelMaximized = useSetAtom(chatPanelMaximizedAtom);
   const setDockFilter = useSetAtom(dockFilterAtom);
-  const setPrimarySidebarTab = useSetAtom(workStationPrimarySidebarTabAtom);
-  const setPrimarySidebarCollapsed = useSetAtom(
-    workStationPrimarySidebarCollapsedPersistAtom
-  );
-  const setBottomPanelTab = useSetAtom(workStationBottomPanelTabPersistAtom);
-  const setBottomPanelCollapsed = useSetAtom(
-    workStationEditorSecondaryCollapsedPersistAtom
-  );
+  const requestNewBrowserSession = useSetAtom(requestNewBrowserSessionAtom);
 
   const visibleTabs = useMemo(
     () => tabEntries.filter(({ tab }) => !tab.hideWhenOthersExist),
@@ -213,40 +203,19 @@ export function FocusedChatWorkstationRail() {
     terminalSessions,
   ]);
 
-  const handlePrimarySidebarClick = useCallback(
-    (tab: PrimarySidebarTabKey) => {
-      setPrimarySidebarTab(tab);
-      setPrimarySidebarCollapsed(false);
-      openWorkstationHost("code");
-    },
-    [openWorkstationHost, setPrimarySidebarCollapsed, setPrimarySidebarTab]
-  );
-
-  const handleBottomPanelClick = useCallback(
-    (tab: BottomPanelTab) => {
-      setBottomPanelTab(tab);
-      setBottomPanelCollapsed(false);
-      openWorkstationHost("code");
-    },
-    [openWorkstationHost, setBottomPanelCollapsed, setBottomPanelTab]
-  );
-
-  const sourceControlTab = visibleTabs.find(
-    ({ tab }) => tab.id === "source-control:changes"
-  );
   const browserTab = visibleTabs.find(
     ({ tab }) => tab.type === "browser-session"
   );
 
+  // Every rail action goes to the existing tab of its kind, or creates one —
+  // all through the unified tab system (WorkStationViewService / mainPane).
   const workspaceItems = useMemo<FocusedChatRailItem[]>(
     () => [
       {
         key: "changes",
         label: "Changes",
         icon: GitBranch,
-        onClick: sourceControlTab
-          ? () => openWorkstationTab(sourceControlTab.tab)
-          : () => openWorkstationHost("code"),
+        onClick: () => void WorkStationViewService.openSourceControlTab(),
       },
       {
         key: "browser",
@@ -254,28 +223,29 @@ export function FocusedChatWorkstationRail() {
         icon: Globe,
         onClick: browserTab
           ? () => openWorkstationTab(browserTab.tab)
-          : () => openWorkstationHost("browser"),
+          : () => {
+              openWorkstationHost("browser");
+              requestNewBrowserSession({});
+            },
       },
       {
         key: "terminal",
         label: "Terminal",
         icon: SquareTerminal,
-        onClick: () => handleBottomPanelClick("terminal"),
+        onClick: () => void WorkStationViewService.openTerminalTab(),
       },
       {
         key: "files",
         label: "Files",
         icon: Folder,
-        onClick: () => handlePrimarySidebarClick("files"),
+        onClick: () => void WorkStationViewService.openFileFolderTab(),
       },
     ],
     [
       browserTab,
-      handleBottomPanelClick,
-      handlePrimarySidebarClick,
       openWorkstationHost,
       openWorkstationTab,
-      sourceControlTab,
+      requestNewBrowserSession,
     ]
   );
 
