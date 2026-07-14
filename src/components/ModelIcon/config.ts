@@ -25,7 +25,6 @@ import CherryInIcon from "@src/assets/modelIcons/cherryin.svg";
 import ClaudeCodeIcon from "@src/assets/modelIcons/claude-code.svg";
 import ClaudeIcon from "@src/assets/modelIcons/claude.svg";
 import ClineIcon from "@src/assets/modelIcons/cline.svg";
-import CodexIcon from "@src/assets/modelIcons/codex.svg";
 import CohereIcon from "@src/assets/modelIcons/cohere.svg";
 import ContinueIcon from "@src/assets/modelIcons/continue.svg";
 import CopilotIcon from "@src/assets/modelIcons/copilot.svg";
@@ -179,7 +178,7 @@ export const ICON_MAP: Record<
   kiro: KiroIcon,
   // OpenAI-related
   openai: OpenAIIcon,
-  codex: CodexIcon, // Codex uses OpenAI branding but has its own icon
+  codex: OpenAIIcon,
   // Anthropic
   claude: ClaudeIcon,
   // ORGII
@@ -616,6 +615,8 @@ export function hasModelIcon(provider: IconProvider): boolean {
  */
 export const THEMEABLE_ICONS = new Set<IconProvider>([
   "unknown",
+  "openai",
+  "codex",
   "aws",
   "cursor",
   "copilot",
