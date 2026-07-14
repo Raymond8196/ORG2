@@ -336,13 +336,6 @@
     "title": "Обзор"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "Все вкладки",
-      "code": "Код",
-      "browser": "Браузер",
-      "data": "База данных",
-      "project": "Проекты"
-    },
     "agentComputer": {
       "label": "Рабочая станция {{agent}}",
       "agents": {

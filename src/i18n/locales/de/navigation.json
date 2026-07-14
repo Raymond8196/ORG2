@@ -338,13 +338,6 @@
     "title": "Entdecken"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "Alle Tabs",
-      "code": "Code",
-      "browser": "Browser",
-      "data": "Datenbank",
-      "project": "Projekte"
-    },
     "agentComputer": {
       "label": "Arbeitsstation von {{agent}}",
       "agents": {

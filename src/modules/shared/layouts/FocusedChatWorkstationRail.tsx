@@ -32,18 +32,17 @@ import {
 } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { activeWorkspaceRootAtom } from "@src/store/workspace";
-import {
-  type DockFilter,
-  dockFilterAtom,
-  requestNewBrowserSessionAtom,
-} from "@src/store/workstation";
+import { requestNewBrowserSessionAtom } from "@src/store/workstation";
 import {
   initializedTerminalIdsAtom,
   setActiveTerminalAtom,
   terminalSessionsAtom,
 } from "@src/store/workstation/codeEditor/terminal";
 import { codeEditorTerminalTargetAtom } from "@src/store/workstation/codeEditor/terminalTargetAtom";
-import { tabToHost } from "@src/store/workstation/tabHost";
+import {
+  type WorkstationTabHost,
+  tabToHost,
+} from "@src/store/workstation/tabHost";
 import {
   focusTabAtom,
   tabRegistryAtom,
@@ -69,8 +68,7 @@ type FocusedChatRailItem = {
   onClose?: () => void;
 };
 
-const WORKSTATION_HOST_ROUTES: Record<DockFilter, string> = {
-  all: ROUTES.workStation.base.path,
+const WORKSTATION_HOST_ROUTES: Record<WorkstationTabHost, string> = {
   code: ROUTES.workStation.code.path,
   browser: ROUTES.workStation.browser.path,
   project: ROUTES.workStation.project.path,
@@ -132,7 +130,6 @@ export function FocusedChatWorkstationRail() {
   const setTerminalTarget = useSetAtom(codeEditorTerminalTargetAtom);
   const setStationMode = useSetAtom(stationModeAtom);
   const setChatPanelMaximized = useSetAtom(chatPanelMaximizedAtom);
-  const setDockFilter = useSetAtom(dockFilterAtom);
   const requestNewBrowserSession = useSetAtom(requestNewBrowserSessionAtom);
 
   const visibleTabs = useMemo(
@@ -146,13 +143,12 @@ export function FocusedChatWorkstationRail() {
   );
 
   const openWorkstationHost = useCallback(
-    (host: DockFilter) => {
+    (host: WorkstationTabHost) => {
       setStationMode("my-station");
       setChatPanelMaximized(false);
-      setDockFilter(host);
       navigate(WORKSTATION_HOST_ROUTES[host]);
     },
-    [navigate, setChatPanelMaximized, setDockFilter, setStationMode]
+    [navigate, setChatPanelMaximized, setStationMode]
   );
 
   const openWorkstationTab = useCallback(

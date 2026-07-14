@@ -4,16 +4,15 @@
  * Publishes the Code Editor host's live state + action surface ABOVE the tab
  * dispatcher so that `UnifiedTabContent` renderers for editor tab types
  * (`TabContent/renderers/{file,gitDiff,gitCommitDetail,…}.tsx`) can consume it
- * directly, instead of receiving it as the 14-field prop bag threaded through
- * `TabContentRenderer`. This is the "host context hoist" the staged editor
- * renderers wait on before they can drop their `HostCoupledPlaceholder` stubs.
+ * directly, instead of receiving it as a 14-field prop bag threaded through a
+ * bespoke renderer. This is the "host context hoist" the editor tab renderers
+ * depend on.
  *
- * The value is EXACTLY the subset of `TabContentRendererProps` the per-tab
- * renderers consume (everything except `activeTab` — a renderer only handles
- * its own tab, passed via `UnifiedTabContentProps` — and the Source Control
- * overlay / placeholder props that stay owned by `EditorMainPane`). Sourcing it
- * from `TabContentRendererProps` via `Pick` keeps the two in lockstep by
- * construction.
+ * The value is EXACTLY the fields the per-tab renderers consume (everything
+ * except the per-tab `activeTab` — a renderer only handles its own tab, passed
+ * via `UnifiedTabContentProps` — and the Source Control overlay / placeholder
+ * props that stay owned by `EditorMainPane`). It is a standalone interface;
+ * `editorHostValue` in `EditorMainPane` provides exactly these fields.
  *
  * CRITICAL — live-state instances:
  *   - `fileContentState` is the LIVE file-content manager (`useFileContentManager`
@@ -25,32 +24,50 @@
  *
  * See docs/workstation-unification/phase-2-host-hoist-plan.md (Phase 2.4).
  */
+import type { UseTerminalStateReturn } from "@/src/engines/TerminalCore/exports";
 import { type ReactNode, createContext, useContext } from "react";
 
-import type { TabContentRendererProps } from "../content/TabContentRenderer/types";
+import type { CursorPosition } from "@src/modules/WorkStation/shared/StatusBar/EditorStatusBar";
+import type { GitFile } from "@src/types/git/types";
+
+import type { Diagnostic } from "../../EditorBottomPanel/content/ProblemsContent/types";
+import type { UseFileContentManagerReturn } from "../hooks/useFileContentManager";
 
 /**
  * The live host state + callbacks published to editor tab renderers. Exactly
- * the 14 fields `TabContentRenderer` threads from `EditorMainPane` (minus the
+ * the 14 fields the editor host threads from `EditorMainPane` (minus the
  * per-tab `activeTab` and the Source Control overlay / placeholder props).
  */
-export type EditorHostContextValue = Pick<
-  TabContentRendererProps,
-  | "fileContentState"
-  | "gitFilesByPath"
-  | "gitDiffLoading"
-  | "forceRefresh"
-  | "onFileSelect"
-  | "onFileSelectWithLine"
-  | "onDiagnosticsChange"
-  | "onCursorPositionChange"
-  | "onSearchTabTitleChange"
-  | "onGitDiffUnsavedChange"
-  | "onBinaryUnsavedChange"
-  | "terminalState"
-  | "repoPath"
-  | "repoId"
->;
+export interface EditorHostContextValue {
+  /** File content manager state */
+  fileContentState: UseFileContentManagerReturn;
+  /** Git files by path for diff viewing */
+  gitFilesByPath: Map<string, GitFile>;
+  /** Whether git diff is loading */
+  gitDiffLoading: boolean;
+  /** Force refresh git status */
+  forceRefresh: () => void;
+  /** File select callback */
+  onFileSelect: (path: string) => void;
+  /** File select with line number callback (for navigating to a specific line) */
+  onFileSelectWithLine?: (path: string, line: number) => void;
+  /** Diagnostics change callback */
+  onDiagnosticsChange?: (diagnostics: Diagnostic[]) => void;
+  /** Cursor position change callback */
+  onCursorPositionChange?: (position: CursorPosition | null) => void;
+  /** Update an active search tab title from its query */
+  onSearchTabTitleChange?: (tabId: string, query: string) => void;
+  /** Sync git-diff local edits to tab bar unsaved indicator */
+  onGitDiffUnsavedChange?: (hasUnsaved: boolean) => void;
+  /** Sync binary preview edits to tab bar unsaved indicator */
+  onBinaryUnsavedChange?: (hasUnsaved: boolean) => void;
+  /** Shared terminal runtime state for the pinned Terminal tab */
+  terminalState: UseTerminalStateReturn;
+  /** Repository path */
+  repoPath: string;
+  /** Repository id from selection state */
+  repoId: string | null;
+}
 
 const EditorHostContext = createContext<EditorHostContextValue | null>(null);
 

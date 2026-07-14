@@ -82,7 +82,9 @@ const SimulatorAppSwitcherChipComponent: React.FC<
   );
 };
 
-export const SimulatorAppSwitcherChip = memo(SimulatorAppSwitcherChipComponent);
+// Internal to this module: rendered by SimulatorTabBarLeading below. No longer
+// re-exported from the shared barrel (nothing outside imports it directly).
+const SimulatorAppSwitcherChip = memo(SimulatorAppSwitcherChipComponent);
 SimulatorAppSwitcherChip.displayName = "SimulatorAppSwitcherChip";
 
 function memberSessionId(member: AgentOrgRunMemberView): string | null {
