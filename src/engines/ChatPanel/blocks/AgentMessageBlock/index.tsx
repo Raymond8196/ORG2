@@ -5,9 +5,10 @@
  * it. Agent messages still do NOT participate in "collapse all" so the user
  * can always read the conversation.
  *
- * **Clamping policy**: completed, non-final turns clamp long messages to a
+ * **Clamping policy**: completed agent messages clamp long content to a
  * 20-line preview with the same expand-overlay pill that TerminalBlock uses.
- * The latest turn always stays fully open so active work remains readable.
+ * This applies to every round, the latest included; only the live streaming
+ * message stays fully open so active generation remains readable.
  *
  * The clamp no-ops silently when content already fits inside the preview
  * height — only messages that genuinely overflow surface the fade + Show
@@ -50,7 +51,11 @@ export function resolveAgentMessageClampEligibility(
   isLastGroup: boolean | null,
   fallbackEligible: boolean
 ): boolean {
-  return isLastGroup === null ? fallbackEligible : !isLastGroup;
+  // Every round inside a turn context clamps long (>20-line) messages — the
+  // latest round included. The live streaming tail is exempted separately by
+  // the caller (via `isStreaming`) so active generation stays fully visible.
+  // Outside a turn context (synthetic previews) fall back to the host flag.
+  return isLastGroup === null ? fallbackEligible : true;
 }
 
 const AgentMessageClampContext = createContext(false);
@@ -78,10 +83,16 @@ const AgentMessageBlock: React.FC<AgentMessageBlockProps> = ({
   const { t } = useTranslation("common");
   const fallbackClampEligible = useContext(AgentMessageClampContext);
   const turnContext = useAgentTurnContext();
-  const clampEligible = resolveAgentMessageClampEligibility(
-    turnContext?.isLastGroup ?? null,
-    fallbackClampEligible
-  );
+  // The live streaming message is never clamped — it grows as tokens arrive
+  // and hiding the tail behind a preview would bury the newest output. Once
+  // it settles (isStreaming false) it clamps like any other completed message,
+  // including in the latest round.
+  const clampEligible =
+    !isStreaming &&
+    resolveAgentMessageClampEligibility(
+      turnContext?.isLastGroup ?? null,
+      fallbackClampEligible
+    );
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [overflows, setOverflows] = useState(false);
@@ -119,7 +130,15 @@ const AgentMessageBlock: React.FC<AgentMessageBlockProps> = ({
     const element = viewportRef.current;
     if (!element) return;
     const measure = () => {
-      setOverflows(element.scrollHeight > element.clientHeight + 1);
+      // Compare content height against the fixed preview height, NOT against
+      // clientHeight. clientHeight is subject to sub-pixel line-height
+      // rounding that reads 1–2px larger than scrollHeight for single-line
+      // content — and once the overlay mounts inside this measured element it
+      // latches — which false-positived the clamp on one-line messages
+      // (wrapping the same text to two lines made the discrepancy vanish).
+      // The clamp only needs to fire when content genuinely exceeds the
+      // 20-line preview, so measure that directly.
+      setOverflows(element.scrollHeight > AGENT_MESSAGE_PREVIEW_MAX_HEIGHT + 1);
     };
     measure();
     const observer = new ResizeObserver(measure);
