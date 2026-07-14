@@ -336,13 +336,6 @@
     "title": "探す"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "すべてのタブ",
-      "code": "コード",
-      "browser": "ブラウザ",
-      "data": "データベース",
-      "project": "プロジェクト"
-    },
     "agentComputer": {
       "label": "{{agent}} のワークステーション",
       "agents": {

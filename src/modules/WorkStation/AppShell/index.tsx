@@ -1,13 +1,8 @@
 import { useAtomValue } from "jotai";
 import React from "react";
 
-import { useRouteAppMode } from "@src/config/routeViewModeConfig";
-import type { AppModeType } from "@src/config/viewModeTypes";
 import { useCurrentTurnLastAgentMessage } from "@src/engines/Simulator/hooks/useCurrentTurnLastAgentMessage";
-import {
-  useDockFilterUrlSync,
-  useWorkStationPanels,
-} from "@src/hooks/workStation";
+import { useWorkStationPanels } from "@src/hooks/workStation";
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import { workstationActiveSessionIdAtom } from "@src/store/session";
 import { simulatorCaptionBarEnabledAtom } from "@src/store/ui/simulatorAtom";
@@ -29,12 +24,13 @@ import WorkstationTabHeader from "./WorkstationTabHeader";
 import { useAppShellActions } from "./hooks/useAppShellActions";
 import { useAppShellDerivedState } from "./hooks/useAppShellDerivedState";
 import { useAppShellDock } from "./hooks/useAppShellDock";
-import { useAppShellDockFilterSync } from "./hooks/useAppShellDockFilterSync";
 import { useAppShellRepo } from "./hooks/useAppShellRepo";
+import { useAppShellRouteSync } from "./hooks/useAppShellRouteSync";
 import { useAppShellSimulatorPanelSync } from "./hooks/useAppShellSimulatorPanelSync";
 import { useAppShellStationMode } from "./hooks/useAppShellStationMode";
 import { useAppShellStatusBar } from "./hooks/useAppShellStatusBar";
 import { useLaunchpadTab } from "./hooks/useLaunchpadTab";
+import { useTerminalTabTeardown } from "./hooks/useTerminalTabTeardown";
 
 interface AppShellProps {
   /** Whether WorkStation is currently visible (code view mode is active) */
@@ -45,7 +41,6 @@ interface AppShellProps {
 
 const AppShell = React.memo(
   ({ isActive = true, chatPanelFocused = false }: AppShellProps) => {
-    const appMode = useRouteAppMode();
     const _titleBarHidden = useAtomValue(workStationTitleBarHiddenAtom);
     const statusBarHidden = useAtomValue(workStationStatusBarHiddenAtom);
     const followAgentHighlightEnabled = useAtomValue(
@@ -61,10 +56,9 @@ const AppShell = React.memo(
     );
     const { repoPath, repoName, pathExists, lastSeenPath } = useAppShellRepo();
     const { visitedModes } = useAppShellDock();
-    // Called for its side effects (station mode / chat visibility on route
-    // changes); the content host itself follows the active tab, not the filter.
-    useAppShellDockFilterSync();
-    useDockFilterUrlSync();
+    // Called for its side effects on the workstation base path (station mode /
+    // chat visibility / chat width); the content host follows the active tab.
+    useAppShellRouteSync();
 
     const {
       isAgentStation,
@@ -83,13 +77,16 @@ const AppShell = React.memo(
     // its own surface).
     useLaunchpadTab(!isAgentStation);
 
+    // Closing the Terminal tab kills all running PTYs (VS Code-style).
+    useTerminalTabTeardown();
+
     const workStationPanels = useWorkStationPanels();
     useAppShellSimulatorPanelSync({ isAgentStation, workStationPanels });
 
     const { handleSelectRepo, handleOpenSettings } = useAppShellActions();
 
     const {
-      effectiveHost,
+      activeHost,
       isCodeMode,
       isBrowserMode,
       isProjectMode,
@@ -131,15 +128,7 @@ const AppShell = React.memo(
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {!isAgentStation && (
               <div data-guide-target={GUIDE_TARGETS.WORKSTATION_TAB_BAR}>
-                <WorkstationTabBar
-                  appMode={
-                    (effectiveHost === "code" ||
-                    effectiveHost === "browser" ||
-                    effectiveHost === "project"
-                      ? effectiveHost
-                      : appMode) as AppModeType
-                  }
-                />
+                <WorkstationTabBar host={activeHost} />
               </div>
             )}
             {!isAgentStation && (

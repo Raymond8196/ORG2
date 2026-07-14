@@ -338,13 +338,6 @@
     "title": "Explorar"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "Todas las pestañas",
-      "code": "Código",
-      "browser": "Navegador",
-      "data": "Base de datos",
-      "project": "Proyectos"
-    },
     "agentComputer": {
       "label": "Estación de trabajo de {{agent}}",
       "agents": {

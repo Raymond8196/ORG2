@@ -42,20 +42,14 @@ async function unmaximizeChatPanel(): Promise<void> {
 
 /**
  * Prepare the Code Editor surface for opening a `mainPane` tab: unmaximize
- * the chat panel, snap into My Station, and release any Browser-host pin
- * (`dockFilter === "browser"`) so the unified content host follows the tab
- * we're about to open instead of staying on the Browser surface.
+ * the chat panel and snap into My Station. The unified content host follows
+ * the active tab, so opening the tab itself reveals the Code Editor.
  */
 async function revealCodeSurface(): Promise<void> {
-  const [{ stationModeAtom }, { DEFAULT_DOCK_FILTER, dockFilterAtom }] =
-    await Promise.all([
-      import("@src/store/ui/simulatorAtom"),
-      import("@src/store/workstation"),
-    ]);
+  const { stationModeAtom } = await import("@src/store/ui/simulatorAtom");
   const store = getStore();
   await unmaximizeChatPanel();
   store.set(stationModeAtom, "my-station");
-  store.set(dockFilterAtom, DEFAULT_DOCK_FILTER);
 }
 
 /**
