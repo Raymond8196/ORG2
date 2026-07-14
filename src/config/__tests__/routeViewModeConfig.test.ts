@@ -10,7 +10,6 @@ import { APP_HOME_ROUTES } from "../routes";
 describe("getAppModeForRoute", () => {
   it("maps workstation subpaths to app modes", () => {
     expect(getAppModeForRoute("/orgii/workstation")).toBe("code");
-    expect(getAppModeForRoute("/orgii/workstation/database")).toBe("data");
     expect(getAppModeForRoute("/orgii/workstation/browser")).toBe("browser");
     expect(getAppModeForRoute("/orgii/workstation/chat")).toBe("chat");
     expect(getAppModeForRoute("/orgii/workstation/project")).toBe("project");

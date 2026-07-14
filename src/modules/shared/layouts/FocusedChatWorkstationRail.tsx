@@ -67,7 +67,6 @@ const WORKSTATION_HOST_ROUTES: Record<DockFilter, string> = {
   all: ROUTES.workStation.base.path,
   code: ROUTES.workStation.code.path,
   browser: ROUTES.workStation.browser.path,
-  data: ROUTES.workStation.database.path,
   project: ROUTES.workStation.project.path,
 };
 

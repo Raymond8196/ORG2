@@ -1,4 +1,4 @@
-import { Code, Database, Globe, Layers, ListTodo } from "lucide-react";
+import { Code, Globe, Layers, ListTodo } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,7 +8,6 @@ const STATIC_MY_STATION_DOCK_ICONS = {
   all: Layers,
   code: Code,
   browser: Globe,
-  data: Database,
   project: ListTodo,
 } as const;
 
@@ -34,11 +33,6 @@ export function useMyStationDockSegments(): DockAppItem[][] {
           id: "browser",
           name: tNav("workstation.dockFilter.browser"),
           icon: STATIC_MY_STATION_DOCK_ICONS.browser,
-        },
-        {
-          id: "data",
-          name: tNav("workstation.dockFilter.data"),
-          icon: STATIC_MY_STATION_DOCK_ICONS.data,
         },
         {
           id: "project",

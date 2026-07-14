@@ -130,30 +130,6 @@ const ChatSessionEntry: RendererEntry = {
 };
 
 // ============================================
-// Database renderers
-// ============================================
-
-const TableEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/table")),
-  debugLabel: "table",
-};
-
-const QueryEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/query")),
-  debugLabel: "query",
-};
-
-const SchemaEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/schema")),
-  debugLabel: "schema",
-};
-
-const AddConnectionEntry: RendererEntry = {
-  Component: lazy(() => import("./renderers/addConnection")),
-  debugLabel: "add-connection",
-};
-
-// ============================================
 // Browser renderers
 // ============================================
 
@@ -284,12 +260,6 @@ export const REGISTRY: TabContentRegistry = {
   "ai-impact": AIImpactEntry,
   benchmark: BenchmarkEntry,
   "url-preview": UrlPreviewEntry,
-
-  // Database
-  table: TableEntry,
-  query: QueryEntry,
-  schema: SchemaEntry,
-  "add-connection": AddConnectionEntry,
 
   // Browser
   "browser-session": BrowserSessionEntry,

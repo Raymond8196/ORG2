@@ -35,11 +35,6 @@ export type WorkStationTabType =
   | "ai-impact" // AI session impact dashboard
   | "benchmark" // Benchmark task browser and runner setup
   | "url-preview" // URL preview (agent-triggered webview in editor)
-  // Database Explorer tabs
-  | "table"
-  | "query"
-  | "schema"
-  | "add-connection"
   // Browser tabs
   | "browser-session"
   | "token-category"
@@ -185,28 +180,6 @@ export interface TimelineDiffCommitInfo {
   message: string;
   author: string;
   timestamp: string;
-}
-
-// ============================================
-// Database Tab Data Types
-// ============================================
-
-/**
- * Data stored in table tabs
- */
-export interface TableTabData {
-  connectionId: string;
-  tableName: string;
-  connectionName?: string;
-}
-
-/**
- * Data stored in query tabs
- */
-export interface QueryTabData {
-  connectionId: string;
-  connectionName?: string;
-  queryText?: string;
 }
 
 // ============================================
@@ -419,11 +392,6 @@ export const TOOL_TAB_TYPES = [
   "lint-scan",
   "ai-impact",
   "url-preview",
-  // Database tabs
-  "table",
-  "query",
-  "schema",
-  "add-connection",
   // Browser tabs
   "browser-session",
   "token-category",

@@ -21,7 +21,6 @@ function appModeToDockFilter(
   switch (appMode) {
     case "code":
     case "browser":
-    case "data":
     case "project":
       return appMode;
     default:

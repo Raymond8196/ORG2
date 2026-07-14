@@ -52,7 +52,6 @@ const VALID_DOCK_FILTERS: ReadonlySet<DockFilter> = new Set<DockFilter>([
   "all",
   "code",
   "browser",
-  "data",
   "project",
 ]);
 

@@ -67,19 +67,6 @@ export type {
   UrlPreviewTabData,
 } from "./codeEditor";
 
-// Database
-export {
-  tableTabFactory,
-  queryTabFactory,
-  schemaTabFactory,
-  addConnectionTabFactory,
-  createTableTab,
-  createQueryTab,
-  createSchemaTab,
-  createAddConnectionTab,
-} from "./database";
-export type { TableTabData, QueryTabData, SchemaTabData } from "./database";
-
 // Browser
 export { browserSessionTabFactory, createBrowserSessionTab } from "./browser";
 export type { BrowserSessionTabData } from "./browser";
