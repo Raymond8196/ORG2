@@ -15,7 +15,7 @@ pub(crate) use exec::{extract_done_marker, strip_command_echo, ExecPhase};
 
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 use chrono::Utc;
-use portable_pty::{native_pty_system, CommandBuilder, PtySize};
+use portable_pty::{native_pty_system, Child, CommandBuilder, PtySize};
 use std::{
     collections::HashMap,
     io::{BufRead, BufReader, Write},
@@ -309,10 +309,49 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
     // Get the actual child process ID
     let pid: Option<u32> = child.process_id();
 
-    // Spawn a thread to wait for the child process (prevents zombie processes)
-    std::thread::spawn(move || {
-        let _ = child.wait();
-    });
+    // Hold the child behind a shared Option so close_session/Drop can take()
+    // and kill it. Previously the child was moved into a detached wait()
+    // thread — that reaped natural exits but left NO kill path, so on Windows
+    // ConPTY (where ClosePseudoConsole only signals, never kills) the
+    // conhost.exe host and shell were orphaned whenever the app exited
+    // without an explicit close_pty. The reaper thread below preserves
+    // natural-exit cleanup using try_wait() (a blocking wait() would own the
+    // only handle and make kill impossible again).
+    let child: Arc<Mutex<Option<Box<dyn Child + Send>>>> = Arc::new(Mutex::new(Some(child)));
+
+    // Reaper: poll try_wait() and, when the shell exits on its own, take it
+    // out and drop it. Dropping the child closes the ConPTY / pty slave,
+    // which tears down the conhost host on Windows. If close_session/Drop
+    // take() the child first to kill it, this thread sees None and exits.
+    {
+        let child_reaper = Arc::clone(&child);
+        std::thread::spawn(move || {
+            loop {
+                let exited = {
+                    let mut guard = match child_reaper.lock() {
+                        Ok(g) => g,
+                        Err(_) => break, // poisoned; nothing useful to do
+                    };
+                    match guard.as_mut() {
+                        Some(c) => match c.try_wait() {
+                            Ok(Some(_)) => true,  // shell exited
+                            Ok(None) => false,    // still running
+                            Err(_) => true,       // treat error as exited
+                        },
+                        None => return, // taken by close/Drop; they own reaping
+                    }
+                };
+                if exited {
+                    // Reap + drop: take ownership so Drop's ClosePseudoConsole
+                    // runs here, tearing down the conhost host.
+                    let _ = child_reaper.lock().ok().and_then(|mut g| g.take());
+                    return;
+                }
+                std::thread::sleep(Duration::from_millis(200));
+            }
+        });
+    }
+
 
     let reader = pty_pair
         .master
@@ -340,6 +379,7 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
             reader,
         ))),
         pid,
+        child: Arc::clone(&child),
         shell: shell_path.clone(),
         shell_kind,
         cwd: cwd.clone(),
@@ -620,7 +660,9 @@ pub async fn close_session(
 ) -> Result<(), String> {
     tokio::time::sleep(Duration::from_millis(CLOSE_FLUSH_MS)).await;
     let mut session_map = sessions.lock().await;
-    // Dropping the session closes the PTY master, terminating the child process.
+    // Removing drops the PtySession; its Drop impl kills + reaps the child
+    // (dropping the PTY master alone does NOT terminate the child on Windows
+    // ConPTY — ClosePseudoConsole only signals).
     session_map.remove(session_id);
     Ok(())
 }
