@@ -5,11 +5,13 @@
  * dropdown is open. Each row is `#N` + preview text + start/end clock range.
  */
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { ClockArrowDown, ClockArrowUp, X } from "lucide-react";
 import React, { memo, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared";
 
 import { stripExpandedPillContent } from "../../InputArea/utils/pillContentParser";
 import type { ChatGroupMeta, UseChatGroupsReturn } from "../hooks";
@@ -30,6 +32,9 @@ interface TurnPageListProps {
   currentPageIndex: number;
   turnPageSortAscending: boolean;
   onSelectTurnPage: (pageIndex: number) => void;
+  /** Non-pagination history overlays supply their own list controls. */
+  onToggleSort?: () => void;
+  onClose?: () => void;
 }
 
 interface TurnPageItem {
@@ -52,6 +57,8 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
     currentPageIndex,
     turnPageSortAscending,
     onSelectTurnPage,
+    onToggleSort,
+    onClose,
   }) => {
     const { t } = useTranslation();
 
@@ -101,50 +108,78 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
           className={`mx-auto h-full w-full px-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
         >
           <div
-            ref={scrollParentRef}
-            className={`${DROPDOWN_CLASSES.panel} h-full !overflow-y-auto !overflow-x-hidden p-1 scrollbar-hide`}
+            className={`${DROPDOWN_CLASSES.panel} flex h-full flex-col !overflow-hidden p-1`}
           >
-            <div
-              className="relative w-full"
-              style={{ height: rowVirtualizer.getTotalSize() }}
-            >
-              {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-                const item = turnPageItems[virtualItem.index];
-                if (!item) return null;
-                const { pageIndex, text, time } = item;
-                const isCurrent = pageIndex === currentPageIndex;
-                return (
-                  <div
-                    key={virtualItem.key}
-                    ref={rowVirtualizer.measureElement}
-                    data-index={virtualItem.index}
-                    className="absolute left-0 top-0 w-full"
-                    style={{
-                      transform: `translateY(${virtualItem.start}px)`,
-                    }}
+            {onClose && (
+              <div className="flex h-7 shrink-0 justify-end gap-px">
+                {onToggleSort && (
+                  <TabBarTrailingIconButton
+                    title={t("common:actions.sort")}
+                    tooltipPosition="bottom-end"
+                    onClick={onToggleSort}
                   >
-                    <button
-                      type="button"
-                      className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left ${
-                        isCurrent
-                          ? DROPDOWN_CLASSES.itemSelected
-                          : "text-text-2"
-                      }`}
-                      onClick={() => onSelectTurnPage(pageIndex)}
+                    {turnPageSortAscending ? (
+                      <ClockArrowDown size={14} strokeWidth={1.75} />
+                    ) : (
+                      <ClockArrowUp size={14} strokeWidth={1.75} />
+                    )}
+                  </TabBarTrailingIconButton>
+                )}
+                <TabBarTrailingIconButton
+                  title={t("common:actions.close")}
+                  tooltipPosition="bottom-end"
+                  onClick={onClose}
+                >
+                  <X size={14} strokeWidth={1.75} />
+                </TabBarTrailingIconButton>
+              </div>
+            )}
+            <div
+              ref={scrollParentRef}
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
+            >
+              <div
+                className="relative w-full"
+                style={{ height: rowVirtualizer.getTotalSize() }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                  const item = turnPageItems[virtualItem.index];
+                  if (!item) return null;
+                  const { pageIndex, text, time } = item;
+                  const isCurrent = pageIndex === currentPageIndex;
+                  return (
+                    <div
+                      key={virtualItem.key}
+                      ref={rowVirtualizer.measureElement}
+                      data-index={virtualItem.index}
+                      className="absolute left-0 top-0 w-full"
+                      style={{
+                        transform: `translateY(${virtualItem.start}px)`,
+                      }}
                     >
-                      <span className="shrink-0 font-semibold tabular-nums">
-                        #{pageIndex + 1}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate">{text}</span>
-                      {time && (
-                        <span className="shrink-0 text-xs tabular-nums text-text-3">
-                          {time}
+                      <button
+                        type="button"
+                        className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left ${
+                          isCurrent
+                            ? DROPDOWN_CLASSES.itemSelected
+                            : "text-text-2"
+                        }`}
+                        onClick={() => onSelectTurnPage(pageIndex)}
+                      >
+                        <span className="shrink-0 font-semibold tabular-nums">
+                          #{pageIndex + 1}
                         </span>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
+                        <span className="min-w-0 flex-1 truncate">{text}</span>
+                        {time && (
+                          <span className="shrink-0 text-xs tabular-nums text-text-3">
+                            {time}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

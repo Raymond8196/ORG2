@@ -7,11 +7,17 @@ export type {
   ExternalCliSourceProbe,
 } from "./detection";
 export { externalCliSourceProbe, externalCliSourcesDetect } from "./detection";
+export { externalHistoryRescanSource } from "./rescan";
+export {
+  fetchExternalSourceStats,
+  type ExternalSourceStats,
+} from "./sourceStats";
 export * from "./cursorIde";
 export * from "./imported";
 export * from "./sources/claudeCode";
 export * from "./sources/codexApp";
 export * from "./sources/opencode";
+export * from "./sources/trae";
 export * from "./sources/windsurf";
 export * from "./sources/workbuddy";
 

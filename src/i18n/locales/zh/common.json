@@ -1,4 +1,4 @@
-{
+﻿{
   "toasts": {
     "replyEmpty": "回复不能为空",
     "sessionNotFound": "未找到会话",
@@ -205,7 +205,6 @@
     "openWorkspace": "打开工作区",
     "skipThisVersion": "跳过此版本",
     "later": "稍后",
-    "updateAiBlame": "更新 AI Blame",
     "link": "链接"
   },
   "refreshToast": {
@@ -1703,7 +1702,7 @@
     "disableDockAutoHide": "始终显示工作站 Dock",
     "openMyStation": "前往我的工作站",
     "openAgentStation": "前往 Agent 工作站",
-    "openOpsControl": "前往 Ops Control",
+    "openKanban": "前往 Kanban",
     "changeLanguage": "更改语言",
     "switchToSystemTheme": "跟随系统主题",
     "detectUpdate": "检查更新",
@@ -2023,7 +2022,20 @@
     "manualCompactFailed": "压缩失败：{{message}}",
     "manualCompactChannelAttached": "此会话由频道托管，请在频道内使用 /compact",
     "manualCompactInstructionsPlaceholder": "可选：本次压缩的总结重点",
-    "manualCompactSectionTitle": "手动压缩？"
+    "manualCompactSectionTitle": "手动压缩",
+    "miniCpmCompactTitle": "MiniCPM 静默自动压缩",
+    "miniCpmCompactDescription": "自动异步处理旧上下文",
+    "miniCpmCompactToggleAria": "开启 MiniCPM 静默自动压缩",
+    "miniCpmCompactDisabled": "静默压缩未开启",
+    "miniCpmCompactEnabled": "静默压缩已开启",
+    "miniCpmCompactRunning": "MiniCPM 正在压缩",
+    "miniCpmCompactComplete": "本次压缩完成",
+    "miniCpmCompactBusy": "当前会话运行中",
+    "miniCpmCompactUnavailable": "MiniCPM 当前不可用",
+    "miniCpmCompactError": "MiniCPM 压缩失败",
+    "miniCpmCompactMetrics": "已维护 {{covered}} 条 · {{source}} → {{summary}} tokens",
+    "miniCpmCompactAction": "立即压缩",
+    "miniCpmCompactRunningAction": "压缩中"
   },
   "relativeDate": {
     "today": "今天",

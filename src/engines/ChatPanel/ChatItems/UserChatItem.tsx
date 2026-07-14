@@ -12,7 +12,6 @@ import React, {
   type SyntheticEvent,
   memo,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -21,7 +20,6 @@ import { useTranslation } from "react-i18next";
 
 import { ChatBubbleCopyButton } from "@src/components/ChatBubble";
 import ExpandOverlay from "@src/components/ExpandOverlay";
-import { INPUT_AREA } from "@src/config/inputAreaTokens";
 import { readPillText } from "@src/config/pillTokens";
 import { REPO_SETUP_PROMPT_MARKER } from "@src/config/repoSetupMarker";
 import type { OptimizedChatItem } from "@src/engines/ChatPanel/ChatHistory/chatItemPipeline/types";
@@ -34,6 +32,7 @@ import { imageRefToRustPath } from "@src/engines/SessionCore/ingestion/agentMess
 import UserMessageContent from "../ChatHistory/components/UserMessageContent";
 import InputArea from "../InputArea";
 import { stripExpandedPillContent } from "../InputArea/utils/pillContentParser";
+import { normalizeUserMessageText } from "./normalizeUserMessageText";
 
 const USER_MSG_MAX_LINES = 3;
 const USER_MSG_MAX_CHARS = 120;
@@ -98,12 +97,6 @@ interface UserChatItemProps {
    * the edit button.
    */
   onRestoreCheckpoint?: () => void;
-  /**
-   * Notifies the parent when this message enters / leaves edit mode.
-   * Used by `GroupHeaderRenderer` to hide the attached pinned bar (and
-   * the wrapper shell) while the editor is open.
-   */
-  onEditingChange?: (isEditing: boolean) => void;
 }
 
 // ============================================
@@ -178,7 +171,7 @@ CachedFileChip.displayName = "CachedFileChip";
 
 /** Layout-only; border/hover/focus ring added per-row below */
 const DISPLAY_CONTAINER_BASE =
-  "group relative w-full rounded-lg bg-chat-input px-3 py-2";
+  "group relative w-fit max-w-[min(600px,100%)] rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
 
 // ============================================
 // Component
@@ -188,14 +181,10 @@ const UserChatItem = ({
   chatItem,
   onEditSubmit,
   onRestoreCheckpoint,
-  onEditingChange,
 }: UserChatItemProps) => {
   const { t } = useTranslation("sessions");
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    onEditingChange?.(isEditing);
-  }, [isEditing, onEditingChange]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [previewFile, setPreviewFile] = useState<string | null>(null);
   // Editable copy of the message's attached images; seeded on edit entry so
@@ -222,7 +211,7 @@ const UserChatItem = ({
     // that the user originally typed (e.g. "create-rule [skill:/create-rule]").
     // Prefer it unconditionally — falling back to message.content would show the
     // expanded YAML/raw text instead of the pill badge.
-    if (editedText) return editedText;
+    if (editedText) return normalizeUserMessageText(editedText);
 
     // Legacy path: no display_text stored (old messages). Use message.content
     // stripped of any auto-expanded pill block.
@@ -231,7 +220,7 @@ const UserChatItem = ({
       | undefined;
     const content = message?.content;
     if (typeof content === "string") {
-      return stripExpandedPillContent(content);
+      return normalizeUserMessageText(stripExpandedPillContent(content));
     }
     return "";
   }, [activityResult, editedText]);
@@ -347,18 +336,21 @@ const UserChatItem = ({
     !isAgentOrgInboxTranscript &&
     !isPlanApproved
   );
+  const hasDisplayContent = Boolean(
+    fullContent.trim() ||
+    messageImages?.length ||
+    cachedFiles.length ||
+    isRepoSetup ||
+    isPlanApproved
+  );
+  if (!hasDisplayContent) return null;
+
   const displayNeedsTruncation = needsTruncation;
 
-  // The user message always carries its own border + hover so the hover
-  // affordance lights up ONLY the message ("input area"), not the surrounding
-  // fill-2 frame. When a pinned strip sits below, it lives as a separate
-  // rounded card on the same fill-2 backdrop (handled by the parent).
-  const containerClass = `${DISPLAY_CONTAINER_BASE} ${INPUT_AREA.shellInteractionClassesNoGlow} ${
-    isEditableDisplay ? "cursor-pointer outline-none" : ""
-  }`;
+  const containerClass = `${DISPLAY_CONTAINER_BASE} ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
 
   // Display mode
-  return (
+  const display = (
     <>
       <div
         className={containerClass}
@@ -366,8 +358,8 @@ const UserChatItem = ({
         onClick={isEditableDisplay ? handleEditClick : undefined}
       >
         {fullContent && (
-          <div className="absolute right-1.5 top-[19px] z-10 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
-            <div className="flex items-center gap-1 rounded-lg border border-fill-2 bg-fill-2 px-1 py-0.5">
+          <div className="absolute right-full top-1/2 z-10 mr-1 -translate-y-1/2 translate-x-2 opacity-0 transition-[opacity,transform] duration-150 ease-out focus-within:translate-x-0 focus-within:opacity-100 group-hover:translate-x-0 group-hover:opacity-100 motion-reduce:translate-x-0 motion-reduce:transition-none">
+            <div className="flex items-center gap-1 px-1 py-0.5">
               <ChatBubbleCopyButton content={fullContent} placement="toolbar" />
               {isEditableDisplay && onRestoreCheckpoint && (
                 <button
@@ -423,9 +415,7 @@ const UserChatItem = ({
           ) : (
             <>
               {(fullContent || (messageImages && messageImages.length > 0)) && (
-                <div
-                  className={`group/expand relative w-full ${fullContent && fullContent !== "(image)" ? "pr-6" : ""}`}
-                >
+                <div className="group/expand relative w-full">
                   <div
                     ref={messageContentRef}
                     className={`allow-select ${isExpanded && displayNeedsTruncation ? "scrollbar-hide" : ""}`}
@@ -450,7 +440,7 @@ const UserChatItem = ({
                       <ExpandOverlay
                         isExpanded
                         onToggle={handleToggleTruncation}
-                        fadeFrom="from-chat-input"
+                        fadeFrom="from-fill-2"
                       />
                     )}
                   </div>
@@ -460,7 +450,7 @@ const UserChatItem = ({
                       isExpanded={false}
                       onToggle={handleToggleTruncation}
                       collapsedFadeHeightClass="h-8"
-                      fadeFrom="from-chat-input"
+                      fadeFrom="from-fill-2"
                     />
                   )}
                 </div>
@@ -486,7 +476,7 @@ const UserChatItem = ({
         </div>
       </div>
       {prPillCards.length > 0 && (
-        <div className="mt-1 flex flex-col">
+        <div className="mt-1 flex w-full max-w-2xl flex-col">
           {prPillCards.map((card) => (
             <SessionLinkCard
               key={`${card.repoFullName}#${card.prNumber}`}
@@ -497,6 +487,8 @@ const UserChatItem = ({
       )}
     </>
   );
+
+  return <div className="flex w-full flex-col items-end pl-24">{display}</div>;
 };
 
 export default memo(UserChatItem);

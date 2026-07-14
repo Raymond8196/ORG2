@@ -78,14 +78,70 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Session",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Текущий Kanban",
     "view": {
       "list": "Список",
       "diary": "Дневник",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Источники данных"
+    },
+    "dataSource": {
+      "title": "Источники данных",
+      "description": "Внешние инструменты для кодинга, которые обнаруживает ORGII. Импортируемые приложения показывают число сессий и могут быть пересканированы; остальные показывают статус установки и расположение истории.",
+      "rescanAll": "Пересканировать все",
+      "rescan": "Пересканировать",
+      "rescanning": "Пересканирование…",
+      "enable": "Включить",
+      "disable": "Отключить",
+      "lastScan": "Последнее сканирование {{time}}",
+      "neverScanned": "Не сканировалось",
+      "frequencyTitle": "Частота сканирования",
+      "globalFrequency": "Автоскан",
+      "globalFrequencyDesc": "Частота по умолчанию для источников со значением «По умолчанию».",
+      "col": {
+        "source": "Источник",
+        "sessions": "Сессии",
+        "lastScan": "Посл. скан",
+        "frequency": "Автоскан",
+        "status": "Статус"
+      },
+      "freq": {
+        "default": "По умолчанию",
+        "manual": "Вручную",
+        "60s": "Каждые 60 с",
+        "5m": "Каждые 5 мин",
+        "1h": "Ежечасно",
+        "1d": "Ежедневно"
+      },
+      "openFolder": "Открыть папку",
+      "tabs": {
+        "all": "Все",
+        "apps": "Приложения",
+        "clis": "CLI"
+      },
+      "sessions_one": "{{count}} сессия",
+      "sessions_few": "{{count}} сессии",
+      "sessions_many": "{{count}} сессий",
+      "sessions_other": "{{count}} сессии",
+      "details": {
+        "path": "Путь",
+        "storeType": "Тип хранилища",
+        "copyPath": "Копировать путь"
+      },
+      "noPath": "Путь не обнаружен",
+      "notImported": "Не импортировано",
+      "status": {
+        "ready": "Готово",
+        "empty": "Нет истории",
+        "loading": "Проверка…",
+        "error": "Ошибка",
+        "installed": "Установлено",
+        "notInstalled": "Не обнаружено",
+        "disabled": "Отключено"
+      }
     },
     "list": {
       "updated": "Обновлено",
@@ -183,11 +239,6 @@
       "merge": "Слить",
       "merging": "Слияние…",
       "merged": "Слито"
-    },
-    "diff": {
-      "openDiffWindow": "Просмотр Diff",
-      "windowTitle": "Diff сессии",
-      "filesChanged": "Файлы"
     },
     "replay": {
       "replaySession": "Воспроизвести"
@@ -727,7 +778,7 @@
       },
       "tabs": {
         "work": "Работа",
-        "explore": "Обзор",
+        "manage": "Управление",
         "heatmap": "Тренды"
       },
       "heatmap": {
@@ -999,9 +1050,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Все состояния",
+        "assignedToMe": "Назначенные мне",
+        "createdByMe": "Созданные мной",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1091,7 +1142,7 @@
     "pathCopied": "Путь скопирован!",
     "failedToCopyPath": "Не удалось скопировать путь",
     "copyFilePath": "Копировать путь к файлу",
-    "explore": "Исследовать",
+    "manage": "Управление",
     "readFile": "Чтение файла",
     "readFileRunning": "Чтение",
     "readFileDone": "Читать",
@@ -1185,6 +1236,7 @@
       "skip": "Пропустить",
       "noReason": "Agent предлагает сменить режим"
     },
+    "explore": "Обзор",
     "exploreSummary": {
       "read_one": "{{count}} файл",
       "read_few": "{{count}} файла",
@@ -2505,13 +2557,6 @@
       "missing": "Отсутствует",
       "disabled": "Отключено"
     }
-  },
-  "worktreeCompare": {
-    "title": "Сравнить Worktree",
-    "button": "Сравнить",
-    "buttonTooltip": "Сравнить diff'ы Worktree рядом",
-    "noSessions": "Нет сессий для сравнения.",
-    "sessionTab": "Сессия {{n}}"
   },
   "groupChat": {
     "senderTitle": {

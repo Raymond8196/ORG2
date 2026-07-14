@@ -218,7 +218,9 @@ const EditActivityGroup: React.FC<EditActivityGroupProps> = ({
             <span>{summaryParts.join(t("tools.editSummary.separator"))}</span>
             {hasDiffStats && (
               <span className="inline-flex items-center font-normal">
-                <span>(</span>
+                <span className="mr-1.5 text-text-3" aria-hidden="true">
+                  ·
+                </span>
                 {diffStats.additions > 0 && (
                   <span className={DIFF_STATS.additions}>
                     +{diffStats.additions}
@@ -231,7 +233,6 @@ const EditActivityGroup: React.FC<EditActivityGroupProps> = ({
                     -{diffStats.deletions}
                   </span>
                 )}
-                <span>)</span>
               </span>
             )}
           </span>

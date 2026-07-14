@@ -57,6 +57,8 @@ export interface NavigationMenuItem {
   rowActionIcon?: LucideIcon;
   rowActionLabel?: string;
   onRowActionClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  /** Let a primary click on the selected row open its context menu. */
+  openContextMenuOnSelectedClick?: boolean;
   routePath?: string;
   /** Tab type for proper tab handling */
   tabType?: "app" | "terminal" | "browser" | "editor";

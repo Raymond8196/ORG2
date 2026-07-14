@@ -22,9 +22,12 @@ import {
   useManualCompact,
 } from "@src/engines/ChatPanel/hooks/useManualCompact";
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
+import { useHousekeeperConfig } from "@src/hooks/housekeeper";
+import { useSetting } from "@src/hooks/settings/useSettings";
 
 import ContextBreakdownBar from "./ContextBreakdownBar";
 import ContextCategoryRow from "./ContextCategoryRow";
+import MiniCpmCompactCard from "./MiniCpmCompactCard";
 import ProgressRing from "./ProgressRing";
 import { type PanelCategory, ringToneForPercentage } from "./contextInfoTypes";
 import { useContextPanel } from "./useContextPanel";
@@ -43,6 +46,20 @@ export interface ContextInfoButtonProps {
    */
   compact?: boolean;
 }
+
+const ConfiguredMiniCpmCompactCard: React.FC<{ sessionId: string }> = memo(
+  ({ sessionId }) => {
+    const housekeeper = useHousekeeperConfig();
+    if (!housekeeper.isConfigured) return null;
+    return (
+      <div className="mt-2">
+        <MiniCpmCompactCard sessionId={sessionId} />
+      </div>
+    );
+  }
+);
+
+ConfiguredMiniCpmCompactCard.displayName = "ConfiguredMiniCpmCompactCard";
 
 function normalizeCategoryTokens(
   categories: PanelCategory[],
@@ -135,6 +152,10 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
   ({ variant = "toolbar", compact = false }) => {
     const { t } = useTranslation();
     const { sessionId } = useSessionId();
+    const [housekeeperEnabled] = useSetting("housekeeper.enabled");
+    const [contextCompactEnabled] = useSetting(
+      "housekeeper.features.contextCompact"
+    );
     const { runManualCompact: runSharedManualCompact } = useManualCompact();
     const compactingSessionId = useAtomValue(manualCompactInFlightSessionAtom);
     const {
@@ -442,6 +463,10 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                         ? t("contextInfo.manualCompactRunning")
                         : t("contextInfo.manualCompactAction")}
                     </Button>
+
+                    {housekeeperEnabled && contextCompactEnabled && (
+                      <ConfiguredMiniCpmCompactCard sessionId={sessionId} />
+                    )}
                   </div>
                 )}
               </div>

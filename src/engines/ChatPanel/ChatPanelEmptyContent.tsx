@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import React, { Suspense } from "react";
 
+import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { SESSION_CREATOR_LAUNCH_MODE } from "@src/features/SessionCreator/types";
 import type { CreatedOrgResult } from "@src/features/TeamCollaboration/components/CreateCollabOrgView";
 import type { CreatedWorkItemResult } from "@src/modules/ProjectManager/WorkItems/components/CreateWorkItemView";
@@ -87,12 +88,9 @@ interface ChatPanelEmptyContentProps {
   >;
   handleRegionNoticeChange: (notice: ChatPanelRegionNotice | null) => void;
   handleStartPageAddApiKey: () => void;
-  handleStartPageExploreRepos: () => void;
   handleStartPageInstallLatestUpdate: () => void;
-  handleStartPageManageIssues: () => void;
-  handleStartPageNewSession: () => void;
+  handleStartPageSessionStart: (info: SessionLaunchSuccessInfo) => void;
   handleStartPageNewWorkItem: () => void;
-  handleStartPageSetupRepo: () => void;
   handleWorkItemAgentCreatorToggle: (enabled: boolean) => void;
   resolveAiWorkItemContext: NonNullable<
     React.ComponentProps<SessionCreatorSlot>["resolveWorkItemContext"]
@@ -120,12 +118,9 @@ export function ChatPanelEmptyContent({
   handleOpenCliTerminal,
   handleRegionNoticeChange,
   handleStartPageAddApiKey,
-  handleStartPageExploreRepos,
   handleStartPageInstallLatestUpdate,
-  handleStartPageManageIssues,
-  handleStartPageNewSession,
+  handleStartPageSessionStart,
   handleStartPageNewWorkItem,
-  handleStartPageSetupRepo,
   handleWorkItemAgentCreatorToggle,
   resolveAiWorkItemContext,
   SessionCreatorSlot,
@@ -135,16 +130,25 @@ export function ChatPanelEmptyContent({
   t,
 }: ChatPanelEmptyContentProps): React.ReactNode {
   if (showStartPage) {
+    const sessionLauncher = SessionCreatorSlot ? (
+      <SessionCreatorSlot
+        className="shrink-0"
+        variant={creatorVariant}
+        innerClassName="pb-2 pt-1"
+        hidePresenceButton
+        onOpenCliTerminal={handleOpenCliTerminal}
+        onRegionNoticeChange={handleRegionNoticeChange}
+        onSessionStart={handleStartPageSessionStart}
+      />
+    ) : null;
+
     return (
       <ChatPanelStartPage
         className={creatorClassName}
         onAddApiKey={handleStartPageAddApiKey}
-        onExploreRepos={handleStartPageExploreRepos}
         onInstallLatestUpdate={handleStartPageInstallLatestUpdate}
-        onManageIssues={handleStartPageManageIssues}
-        onNewSession={handleStartPageNewSession}
         onNewWorkItem={handleStartPageNewWorkItem}
-        onSetupRepo={handleStartPageSetupRepo}
+        sessionLauncher={sessionLauncher}
         t={t}
       />
     );
@@ -311,19 +315,6 @@ export function ChatPanelEmptyContent({
       <Suspense fallback={null}>
         <BenchmarkRunBuilder className={creatorClassName} />
       </Suspense>
-    );
-  }
-
-  if (SessionCreatorSlot) {
-    return (
-      <SessionCreatorSlot
-        className={creatorClassName}
-        variant={creatorVariant}
-        centerFullScreenContent
-        hidePresenceButton
-        onOpenCliTerminal={handleOpenCliTerminal}
-        onRegionNoticeChange={handleRegionNoticeChange}
-      />
     );
   }
 

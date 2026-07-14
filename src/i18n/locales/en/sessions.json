@@ -78,14 +78,70 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Sessions",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Current Kanban",
     "view": {
       "list": "List",
       "diary": "Diary",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Data Sources"
+    },
+    "dataSource": {
+      "title": "Data Sources",
+      "description": "External coding tools ORGII detects. Importable apps show their session count and can be rescanned; the rest show install status and where their history lives.",
+      "rescanAll": "Rescan all",
+      "rescan": "Rescan",
+      "rescanUpdate": "Update",
+      "rescanClear": "Clear + rescan",
+      "rescanning": "Rescanning…",
+      "openFolder": "Open folder",
+      "enable": "Enable",
+      "disable": "Disable",
+      "lastScan": "Last scan {{time}}",
+      "neverScanned": "Never scanned",
+      "frequencyTitle": "Auto-scan frequency",
+      "globalFrequency": "Auto-scan",
+      "globalFrequencyDesc": "Default cadence for sources set to Default.",
+      "col": {
+        "source": "Source",
+        "sessions": "Sessions",
+        "lastScan": "Last scan",
+        "frequency": "Auto-scan",
+        "status": "Status"
+      },
+      "freq": {
+        "default": "Default",
+        "manual": "Manual",
+        "60s": "Every 60s",
+        "5m": "Every 5 min",
+        "1h": "Hourly",
+        "1d": "Daily"
+      },
+      "tabs": {
+        "all": "All",
+        "apps": "Apps",
+        "clis": "CLIs"
+      },
+      "sessions_one": "{{count}} session",
+      "sessions_other": "{{count}} sessions",
+      "details": {
+        "path": "Path",
+        "storeType": "Store type",
+        "copyPath": "Copy path"
+      },
+      "noPath": "No path detected",
+      "notImported": "Not imported",
+      "status": {
+        "ready": "Ready",
+        "empty": "No history",
+        "loading": "Checking…",
+        "error": "Error",
+        "installed": "Installed",
+        "notInstalled": "Not detected",
+        "disabled": "Disabled"
+      }
     },
     "list": {
       "updated": "Updated",
@@ -145,6 +201,8 @@
       "manageItems": "Manage items",
       "sessionsView": "Sessions View",
       "workitemView": "Workitem View",
+      "githubIssues": "GitHub Issues",
+      "githubPrs": "GitHub PRs",
       "views": "Views",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
@@ -196,11 +254,6 @@
       "discarding": "Discarding…",
       "confirmMessage": "Discard all changes in this worktree? This cannot be undone."
     },
-    "diff": {
-      "openDiffWindow": "View Diff",
-      "windowTitle": "Session Diff",
-      "filesChanged": "Files"
-    },
     "replay": {
       "replaySession": "Replay"
     },
@@ -227,13 +280,6 @@
         "stillWorking": "Still working"
       }
     }
-  },
-  "worktreeCompare": {
-    "title": "Compare Worktrees",
-    "button": "Compare",
-    "buttonTooltip": "Compare worktree diffs side-by-side",
-    "noSessions": "No sessions to compare.",
-    "sessionTab": "Session {{n}}"
   },
   "changes": {
     "scope": {
@@ -762,7 +808,7 @@
       },
       "tabs": {
         "work": "Work",
-        "explore": "Explore",
+        "manage": "Manage",
         "heatmap": "Trends"
       },
       "heatmap": {
@@ -1132,7 +1178,7 @@
     "pathCopied": "Path Copied!",
     "failedToCopyPath": "Failed to copy path",
     "copyFilePath": "Copy file path",
-    "explore": "Explore",
+    "manage": "Manage",
     "readFile": "Read file",
     "readFileRunning": "Reading",
     "readFileDone": "Read",
@@ -1216,6 +1262,7 @@
     "askUserSkipped": "Skipped",
     "askUserQuestionsAnswered": "Questions were answered",
     "askUserQuestionsSkipped": "Questions skipped",
+    "explore": "Explore",
     "exploreSummary": {
       "read_one": "{{count}} file",
       "read_other": "{{count}} files",

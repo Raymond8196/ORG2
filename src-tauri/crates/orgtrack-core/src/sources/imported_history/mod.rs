@@ -23,6 +23,7 @@ pub const FUNCTION_READ_FILE: &str = "read_file";
 pub const FUNCTION_RUN_COMMAND_LINE: &str = "run_command_line";
 pub const FUNCTION_EDIT_FILE: &str = "edit_file_by_replace";
 pub const FUNCTION_CODE_SEARCH: &str = "grep";
+pub const FUNCTION_GLOB_FILE_SEARCH: &str = "glob_file_search";
 pub const DEFAULT_LIST_LIMIT: usize = 200;
 
 #[derive(Debug, Clone, Serialize)]
@@ -54,6 +55,34 @@ pub struct ImportedHistorySessionRow {
 #[serde(rename_all = "camelCase")]
 pub struct ImportedHistorySessionPage {
     pub sessions: Vec<ImportedHistorySessionRow>,
+    pub has_more: bool,
+}
+
+/// Lightweight cached row for list-only surfaces such as the session sidebar.
+/// Carries the impact/model fields that card surfaces (e.g. the Kanban board)
+/// render inline; the heavier source metadata stays in SQLite until requested.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedHistorySidebarRow {
+    pub session_id: String,
+    pub name: String,
+    pub created_at: String,
+    pub updated_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repo_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    pub total_tokens: i64,
+    pub files_changed: i64,
+    pub lines_added: i64,
+    pub lines_removed: i64,
+    pub touched_files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedHistorySidebarPage {
+    pub sessions: Vec<ImportedHistorySidebarRow>,
     pub has_more: bool,
 }
 

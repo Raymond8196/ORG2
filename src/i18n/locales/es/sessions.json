@@ -78,14 +78,68 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Session",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Kanban actual",
     "view": {
       "list": "Lista",
       "diary": "Diario",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Fuentes de datos"
+    },
+    "dataSource": {
+      "title": "Fuentes de datos",
+      "description": "Herramientas de programación externas que ORGII detecta. Las apps importables muestran su número de sesiones y pueden reescanearse; el resto muestra el estado de instalación y dónde está su historial.",
+      "rescanAll": "Reescanear todo",
+      "rescan": "Reescanear",
+      "rescanning": "Reescaneando…",
+      "enable": "Activar",
+      "disable": "Desactivar",
+      "lastScan": "Último escaneo {{time}}",
+      "neverScanned": "Nunca escaneado",
+      "frequencyTitle": "Frecuencia de escaneo",
+      "globalFrequency": "Escaneo automático",
+      "globalFrequencyDesc": "Cadencia predeterminada para fuentes en “Predeterminado”.",
+      "col": {
+        "source": "Fuente",
+        "sessions": "Sesiones",
+        "lastScan": "Último escaneo",
+        "frequency": "Escaneo automático",
+        "status": "Estado"
+      },
+      "freq": {
+        "default": "Predeterminado",
+        "manual": "Manual",
+        "60s": "Cada 60s",
+        "5m": "Cada 5 min",
+        "1h": "Cada hora",
+        "1d": "Diario"
+      },
+      "openFolder": "Abrir carpeta",
+      "tabs": {
+        "all": "Todos",
+        "apps": "Apps",
+        "clis": "CLIs"
+      },
+      "sessions_one": "{{count}} sesión",
+      "sessions_other": "{{count}} sesiones",
+      "details": {
+        "path": "Ruta",
+        "storeType": "Tipo de almacenamiento",
+        "copyPath": "Copiar ruta"
+      },
+      "noPath": "Ninguna ruta detectada",
+      "notImported": "No importado",
+      "status": {
+        "ready": "Listo",
+        "empty": "Sin historial",
+        "loading": "Comprobando…",
+        "error": "Error",
+        "installed": "Instalado",
+        "notInstalled": "No detectado",
+        "disabled": "Desactivado"
+      }
     },
     "list": {
       "updated": "Actualizado",
@@ -183,11 +237,6 @@
       "merge": "Fusionar",
       "merging": "Fusionando…",
       "merged": "Fusionado"
-    },
-    "diff": {
-      "openDiffWindow": "Ver Diff",
-      "windowTitle": "Diff de Sesión",
-      "filesChanged": "Archivos"
     },
     "replay": {
       "replaySession": "Reproducir"
@@ -725,7 +774,7 @@
       },
       "tabs": {
         "work": "Trabajo",
-        "explore": "Explorar",
+        "manage": "Gestionar",
         "heatmap": "Tendencias"
       },
       "heatmap": {
@@ -991,9 +1040,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Todos los estados",
+        "assignedToMe": "Asignados a mí",
+        "createdByMe": "Creados por mí",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1079,7 +1128,7 @@
     "pathCopied": "¡Ruta copiada!",
     "failedToCopyPath": "Error al copiar la ruta",
     "copyFilePath": "Copiar ruta del archivo",
-    "explore": "Explorar",
+    "manage": "Gestionar",
     "readFile": "Leer archivo",
     "readFileRunning": "Leyendo",
     "readFileDone": "Leer",
@@ -1159,6 +1208,7 @@
       "skip": "Omitir",
       "noReason": "El Agent sugiere cambiar de modo"
     },
+    "explore": "Explorar",
     "exploreSummary": {
       "read_one": "{{count}} archivo",
       "read_other": "{{count}} archivos",
@@ -2471,13 +2521,6 @@
       "missing": "Falta",
       "disabled": "Desactivado"
     }
-  },
-  "worktreeCompare": {
-    "title": "Comparar Worktrees",
-    "button": "Comparar",
-    "buttonTooltip": "Comparar diffs de worktree uno al lado del otro",
-    "noSessions": "No hay sesiones para comparar.",
-    "sessionTab": "Sesión {{n}}"
   },
   "groupChat": {
     "senderTitle": {

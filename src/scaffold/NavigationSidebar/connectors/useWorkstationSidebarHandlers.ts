@@ -49,7 +49,6 @@ const log = createLogger("WorkstationSidebar");
 
 interface UseWorkstationSidebarHandlersParams {
   activeSessionId: string;
-  selectedMenuItemId: string;
   sessionMap: Map<string, Session>;
   isLoadMoreId: (id: string) => SessionListCategory | null;
   getLoadMoreGroupId: (id: string) => string | null;
@@ -65,6 +64,11 @@ interface UseWorkstationSidebarHandlersParams {
   setGroupVisibleCounts: Dispatch<SetStateAction<Map<string, number>>>;
   tCommon: (key: string, defaultValue?: string) => string;
   onOpenChatPanelTab: (tabId: string) => void;
+  onOpenSessionChatPanelTab: (options: {
+    sessionId: string;
+    sessionName?: string;
+    repoPath?: string;
+  }) => void;
   onCloseChatPanelTab: (tabId: string) => Promise<void>;
 }
 
@@ -77,7 +81,6 @@ interface UseWorkstationSidebarHandlersResult {
 
 export function useWorkstationSidebarHandlers({
   activeSessionId,
-  selectedMenuItemId,
   sessionMap,
   isLoadMoreId,
   getLoadMoreGroupId,
@@ -89,6 +92,7 @@ export function useWorkstationSidebarHandlers({
   setGroupVisibleCounts,
   tCommon,
   onOpenChatPanelTab,
+  onOpenSessionChatPanelTab,
   onCloseChatPanelTab,
 }: UseWorkstationSidebarHandlersParams): UseWorkstationSidebarHandlersResult {
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
@@ -159,7 +163,6 @@ export function useWorkstationSidebarHandlers({
   const handleMenuItemClick = useCallback(
     (_key: string, item: NavigationMenuItem) => {
       if (item.id === NEW_SESSION_MENU_ITEM_ID) {
-        if (selectedMenuItemId === NEW_SESSION_MENU_ITEM_ID) return;
         goToNewSession();
         return;
       }
@@ -241,6 +244,11 @@ export function useWorkstationSidebarHandlers({
 
       navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
       promoteActiveSessionCreatorDraft();
+      onOpenSessionChatPanelTab({
+        sessionId: item.id,
+        sessionName,
+        repoPath: originalSession.repoPath,
+      });
       openSession(item.id, sessionName, originalSession.repoPath);
     },
     [
@@ -253,8 +261,8 @@ export function useWorkstationSidebarHandlers({
       navigateChatPanel,
       navigateTo,
       onOpenChatPanelTab,
+      onOpenSessionChatPanelTab,
       promoteActiveSessionCreatorDraft,
-      selectedMenuItemId,
       sessionRouteLabel,
       setBenchmarkActiveBatchId,
       setBenchmarkActiveBatchTaskId,

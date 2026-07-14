@@ -18,7 +18,6 @@ const ProjectManagerCore = React.lazy(
 );
 const Browser = React.lazy(() => import("../Browser"));
 const DatabaseManager = React.lazy(() => import("../DatabaseManager"));
-const OpsControl = React.lazy(() => import("@src/modules/MainApp/OpsControl"));
 const ActivitySimulator = React.lazy(() =>
   import("@src/engines/Simulator").then((module) => ({
     default: module.ActivitySimulator,
@@ -33,10 +32,7 @@ interface AppShellContentProps {
   isActive: boolean;
   chatPanelFocused: boolean;
   isAgentStation: boolean;
-  isOpsControlStation: boolean;
-  opsControlPeekHost: "code" | "browser" | "data" | "project" | null;
   hasVisitedAgentStation: boolean;
-  hasVisitedOpsControlStation: boolean;
   hasVisitedCode: boolean;
   hasVisitedData: boolean;
   hasVisitedBrowser: boolean;
@@ -71,10 +67,7 @@ export function AppShellContent({
   isActive,
   chatPanelFocused,
   isAgentStation,
-  isOpsControlStation,
-  opsControlPeekHost,
   hasVisitedAgentStation,
-  hasVisitedOpsControlStation,
   hasVisitedCode,
   hasVisitedData,
   hasVisitedBrowser,
@@ -142,33 +135,11 @@ export function AppShellContent({
         </div>
       )}
 
-      {(isOpsControlStation || hasVisitedOpsControlStation) && (
-        <div
-          className="h-full w-full"
-          style={{
-            display:
-              isOpsControlStation && opsControlPeekHost === null
-                ? "block"
-                : "none",
-          }}
-        >
-          <Suspense fallback={<AppShellLoadingPlaceholder />}>
-            <OpsControl />
-          </Suspense>
-        </div>
-      )}
-
       <div
         className="h-full w-full"
-        style={{
-          display:
-            isAgentStation ||
-            (isOpsControlStation && opsControlPeekHost === null)
-              ? "none"
-              : "contents",
-        }}
+        style={{ display: isAgentStation ? "none" : "contents" }}
       >
-        {(isCodeMode || hasVisitedCode || opsControlPeekHost === "code") && (
+        {(isCodeMode || hasVisitedCode) && (
           <div
             className="relative h-full w-full"
             data-tour-target={CODE_EDITOR_TOUR_TARGETS.editorSurface}

@@ -146,11 +146,6 @@ agent_sessions::cli::platform_adapters::codex::oauth::start_codex_oauth_login,
 agent_sessions::cli::platform_adapters::codex::oauth::exchange_codex_oauth_code,
 agent_sessions::cli::platform_adapters::codex::oauth::create_codex_oauth_webview,
 agent_sessions::cli::platform_adapters::codex::oauth::close_codex_oauth_webview,
-// Runner commands - Gemini OAuth login
-agent_sessions::cli::platform_adapters::gemini::oauth::start_gemini_oauth_login,
-agent_sessions::cli::platform_adapters::gemini::oauth::exchange_gemini_oauth_code,
-agent_sessions::cli::platform_adapters::gemini::oauth::create_gemini_oauth_webview,
-agent_sessions::cli::platform_adapters::gemini::oauth::close_gemini_oauth_webview,
 // Runner commands - Kiro Credentials (PTY-driven `kiro-cli login` flow).
 // The direct-AWS-SDK SSO variant (`start_kiro_sso_login` / `cancel_kiro_sso_login`)
 // has been archived to `.archive/kiro-sso/` to drop the AWS SDK dep tree.
@@ -320,7 +315,7 @@ orgtrack::orgtrack_get_index,
 orgtrack::orgtrack_get_file_timeline,
 orgtrack::orgtrack_get_session_summaries,
 orgtrack::orgtrack_get_session_summary,
-orgtrack::orgtrack_analyze_sessions,
+orgtrack::orgtrack_delete_session_artifacts,
 orgtrack::orgtrack_lookup_file_sessions,
 orgtrack::orgtrack_get_source_tier_policy,
 orgtrack::orgtrack_get_extraction_memory_gate,
@@ -355,11 +350,15 @@ git::bundle::calculate_ahead_behind,
 // Git operations for conflict resolution
 git::bundle::git_add_all,
 git::bundle::git_commit,
+// Worktree PR base resolution (fetch PR head → git-resolvable base ref)
+git::pr_base::worktree_resolve_pr_base,
 // Git proxy detection
 git::util::get_git_proxy_config,
 git::util::set_git_proxy_config,
 git::util::unset_git_proxy_config,
 git::util::get_git_user_identity,
+git::util::get_git_global_profile,
+git::util::set_git_global_profile,
 // AI-powered git utilities
 git_api::commands::ai::generate_commit_message,
 // Network detection
@@ -429,6 +428,8 @@ terminal::pty_commands::pty::close_pty,
 terminal::pty_commands::pty::check_pty_exists,
 terminal::pty_commands::pty::get_pty_info,
 terminal::pty_commands::pty::get_pty_output_snapshot,
+terminal::pty_commands::pty::attach_pty_stream,
+terminal::pty_commands::pty::detach_pty_stream,
 terminal::pty_commands::pty::list_pty_sessions,
 terminal::pty_commands::pty::get_pty_memory_usage,
 terminal::pty_commands::pty::get_pty_foreground_process,
@@ -456,7 +457,6 @@ key_vault::cursor_list_models_native,
 key_vault::oauth_model_catalog,
 key_vault::claude_code_oauth_list_models,
 key_vault::codex_oauth_list_models,
-key_vault::gemini_oauth_list_models,
 key_vault::refresh_oauth_token,
 key_vault::prompt_polish,
 key_vault::session_step_explain,
@@ -805,6 +805,11 @@ agent_cli::codex::commands::codex_config_write_partial,
 agent_cli::codex::commands::codex_config_get_path,
 agent_cli::codex::commands::codex_config_read_raw,
 agent_cli::codex::commands::codex_config_write_raw,
+// CLI config manager (Default <-> ORGII Managed)
+agent_cli::managed_config::cli_config_get_status,
+cli_managed_proxy::cli_config_enable_orgii_managed,
+agent_cli::managed_config::cli_config_restore_default,
+cli_managed_proxy::cli_managed_proxy_status,
 // Claude Code config (~/.claude/settings.json)
 agent_cli::claude_code::commands::claude_code_config_read,
 agent_cli::claude_code::commands::claude_code_config_write_partial,
@@ -974,13 +979,11 @@ agent_core::mcp::registries::glama::glama_detail,
 // Tokenizer
 // Orgtrack history sources
 orgtrack::history_commands::orgtrack_get_cursor_sessions,
-orgtrack::history_commands::orgtrack_get_claude_sessions,
-orgtrack::history_commands::orgtrack_get_cli_sessions,
 orgtrack::history_commands::cursor_ide_chunks,
+orgtrack::history_commands::cursor_ide_composer_last_updated_at,
 orgtrack::history_commands::cursor_ide_initial_window,
 orgtrack::history_commands::cursor_ide_full_refresh,
 orgtrack::history_commands::cursor_ide_turn_window,
-orgtrack::history_commands::cursor_ide_session_detail,
 orgtrack::history_commands::codex_app_chunks,
 orgtrack::history_commands::codex_app_recent_paths,
 orgtrack::history_commands::claude_code_history_chunks,
@@ -989,39 +992,16 @@ orgtrack::history_commands::opencode_history_chunks,
 orgtrack::history_commands::opencode_recent_paths,
 orgtrack::history_commands::external_cli_sources_detect,
 orgtrack::history_commands::external_cli_source_probe,
+orgtrack::history_commands::external_history_rescan_source,
 orgtrack::history_commands::external_history_auto_import_recent_paths,
 orgtrack::history_commands::windsurf_history_chunks,
 orgtrack::history_commands::windsurf_recent_paths,
+orgtrack::history_commands::trae_history_chunks,
+orgtrack::history_commands::trae_recent_paths,
+orgtrack::history_commands::cline_history_chunks,
+orgtrack::history_commands::cline_recent_paths,
 orgtrack::history_commands::workbuddy_history_chunks,
 orgtrack::history_commands::workbuddy_recent_paths,
-// Cursor IDE control — drive a running Cursor.app via CDP `Input.*`
-// so users can submit prompts (start + follow-up) without leaving ORGII.
-// See `crates/cursor-bridge-app/src/lib.rs` and
-// `crates/cursor-bridge/README.md`.
-cursor_bridge_app::cursor_bridge_ensure_running,
-cursor_bridge_app::cursor_bridge_ensure_real_cursor_running,
-cursor_bridge_app::cursor_bridge_restart_real_cursor_with_debug_port,
-cursor_bridge_app::cursor_bridge_status,
-cursor_bridge_app::cursor_bridge_attach_mode,
-cursor_bridge_app::cursor_bridge_send,
-// Composer-targeted routing + agent enumeration.
-cursor_bridge_app::cursor_bridge_route,
-cursor_bridge_app::cursor_bridge_list_agents,
-// Dynamic model picker (live CDP + state.vscdb fallback).
-cursor_bridge_app::cursor_bridge_list_models,
-cursor_bridge_app::cursor_bridge_set_model,
-cursor_bridge_app::cursor_bridge_get_composer_model,
-cursor_bridge_app::cursor_bridge_get_default_model,
-cursor_bridge_app::cursor_bridge_composer_last_updated_at,
-// Unified-mode picker (Agent / Plan / Debug / Ask / Multitask /
-// Project) — mirrors the model picker shape with a live-CDP listing
-// and a per-composer state.vscdb fallback.
-cursor_bridge_app::cursor_bridge_list_modes,
-cursor_bridge_app::cursor_bridge_get_composer_mode,
-cursor_bridge_app::cursor_bridge_set_mode,
-// Open a fresh composer + seed first prompt — backs the session
-// creator's "Cursor IDE" agent option.
-cursor_bridge_app::cursor_bridge_new_composer,
 // Remote SQL client commands (PostgreSQL + MySQL via sqlx).
 // Crate: src-tauri/crates/db-clients. Owns the `sqlx` dep tree privately
 // so it never enters `cargo check -p org2`. See the crate's Cargo.toml
@@ -1116,11 +1096,11 @@ agent_sessions::event_pipeline::commands::es_get_parent_session,
 agent_sessions::event_pipeline::commands::debug_seed_child_session,
 // Unified Session API commands
 agent_sessions::unified_stats::commands::session_aggregate_list,
+agent_sessions::unified_stats::commands::session_external_history_sidebar_list,
 agent_sessions::unified_stats::commands::session_check_health,
 agent_sessions::unified_stats::commands::session_get_aggregate_stats,
 agent_sessions::unified_stats::commands::session_get_history,
 agent_sessions::unified_stats::commands::session_heatmap,
-agent_sessions::unified_stats::commands::session_usage_list,
 agent_sessions::unified_stats::commands::session_usage_summary,
 agent_sessions::unified_stats::patch::session_patch,
 // Flow Awareness commands (user activity tracking for intent inference)
@@ -1134,6 +1114,9 @@ agent_core::state::commands::agent_session_list,
 agent_core::state::commands::agent_session_cancel,
 agent_core::state::commands::agent_session_info,
 agent_core::state::commands::agent_session_manual_compact,
+agent_core::state::commands::housekeeper_context_compaction_status,
+agent_core::state::commands::housekeeper_context_compaction_set_enabled,
+agent_core::state::commands::housekeeper_context_compact_now,
 agent_core::state::commands::agent_session_remove,
 agent_core::state::commands::agent_session_add_directory,
 agent_core::state::commands::agent_session_remove_directory,

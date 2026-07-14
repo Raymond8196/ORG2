@@ -4,7 +4,6 @@ import type { Session, SessionCreatorDraft } from "@src/store/session";
 
 import {
   NEW_SESSION_MENU_ITEM_ID,
-  OPS_CONTROL_MENU_ITEM_ID,
   getDraftMenuItemId,
 } from "./sidebarConnectorUtils";
 
@@ -52,15 +51,6 @@ export function getSelectedDraftMenuItemId(
     return getDraftMenuItemId(activeSessionCreatorDraftId);
   }
   return "";
-}
-
-export function getSelectedPinnedMenuItemId(
-  pathname: string,
-  opsControlRoutePath: string
-): string {
-  return pathname.startsWith(opsControlRoutePath)
-    ? OPS_CONTROL_MENU_ITEM_ID
-    : "";
 }
 
 export function getSelectedMenuItemId({

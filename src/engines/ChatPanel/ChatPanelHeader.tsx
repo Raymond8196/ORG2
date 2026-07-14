@@ -5,7 +5,6 @@ import {
   Clipboard,
   FolderOutput,
   GalleryThumbnails,
-  LayoutGrid,
   Link2,
   ListChevronsDownUp,
   ListChevronsUpDown,
@@ -82,7 +81,6 @@ interface ChatPanelHeaderProps {
   handleOpenLinkWorkItem: () => void;
   handleOpenSearch: () => void;
   handleNewSession: () => void;
-  handleOpenStartPage: () => void;
   handlePaginationToggle: (checked: boolean) => void;
   handleProjectAgentCreatorToggle: (enabled: boolean) => void;
   handleProjectTitleChange: (title: string) => void;
@@ -151,7 +149,6 @@ export function ChatPanelHeader({
   handleOpenLinkWorkItem,
   handleOpenSearch,
   handleNewSession,
-  handleOpenStartPage,
   handlePaginationToggle,
   handleProjectAgentCreatorToggle,
   handleProjectTitleChange,
@@ -497,7 +494,7 @@ export function ChatPanelHeader({
           <CollapsedSidebarButton />
         </div>
       ) : null}
-      {showStartPageBackButton ? (
+      {showStartPageBackButton && nestedBackAction ? (
         <Tooltip
           content={
             <KeyboardShortcutTooltipContent
@@ -515,21 +512,14 @@ export function ChatPanelHeader({
               variant="tertiary"
               size="small"
               iconOnly
-              onClick={nestedBackAction ?? handleOpenStartPage}
+              onClick={nestedBackAction}
               aria-label={headerBackLabel}
               data-testid="chat-panel-start-page-back-button"
               icon={
-                nestedBackAction ? (
-                  <ChevronLeft
-                    size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
-                    strokeWidth={2}
-                  />
-                ) : (
-                  <LayoutGrid
-                    size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
-                    strokeWidth={2}
-                  />
-                )
+                <ChevronLeft
+                  size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
+                  strokeWidth={2}
+                />
               }
             />
           </span>

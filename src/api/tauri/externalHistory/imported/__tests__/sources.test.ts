@@ -16,6 +16,7 @@ describe("imported history source registry", () => {
       "opencode",
       "windsurf",
       "workbuddy",
+      "trae",
     ]);
     expect(
       IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory)
@@ -26,6 +27,7 @@ describe("imported history source registry", () => {
       "external_history:opencode",
       "external_history:windsurf",
       "external_history:workbuddy",
+      "external_history:trae",
     ]);
   });
 
@@ -54,7 +56,7 @@ describe("imported history source registry", () => {
     expect(
       getImportedHistorySourceByListCategory("external_history:cursor_ide")
         ?.groupLabel
-    ).toBe("Cursor History");
+    ).toBe("Cursor App");
     expect(
       getImportedHistorySourceByListCategory("external_history:codex_app")
         ?.groupLabel
@@ -62,7 +64,7 @@ describe("imported history source registry", () => {
     expect(
       getImportedHistorySourceByListCategory("external_history:claude_code")
         ?.groupLabel
-    ).toBe("Claude Code");
+    ).toBe("Claude App");
     expect(
       getImportedHistorySourceByListCategory("external_history:opencode")
         ?.groupLabel

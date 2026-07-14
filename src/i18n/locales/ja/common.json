@@ -203,7 +203,6 @@
     "openWorkspace": "Workspace を開く",
     "skipThisVersion": "このバージョンをスキップ",
     "later": "後で",
-    "updateAiBlame": "AI Blame を更新",
     "link": "リンク"
   },
   "refreshToast": {
@@ -1684,7 +1683,7 @@
     "disableDockAutoHide": "Workstation Dock を常に表示",
     "openMyStation": "My Station に移動",
     "openAgentStation": "Agent Station に移動",
-    "openOpsControl": "Ops Control に移動",
+    "openKanban": "Kanban に移動",
     "changeLanguage": "言語を変更",
     "switchToSystemTheme": "システムテーマに従う",
     "detectUpdate": "アップデートを確認",

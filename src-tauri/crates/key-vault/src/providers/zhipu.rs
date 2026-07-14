@@ -136,10 +136,7 @@ impl ZhipuQuotaFetcher {
             .await
             .map_err(|e| format!("Failed to parse response: {e}"))?;
 
-        let limits = envelope
-            .data
-            .map(|data| data.limits)
-            .unwrap_or_default();
+        let limits = envelope.data.map(|data| data.limits).unwrap_or_default();
 
         Ok(parse_quota_limits(limits))
     }

@@ -369,56 +369,6 @@ fn detects_cursor_subagents_in_project_and_user_home() {
 }
 
 #[test]
-fn detects_gemini_subagents_in_project_and_user_home() {
-    let _env_lock = test_helpers::test_env::lock_home();
-    // Gemini CLI subagents (Oct 2025): `<repo>/.gemini/agents/<name>.md`
-    // and `~/.gemini/agents/<name>.md`. Same markdown + YAML
-    // frontmatter as Claude Code / Cursor.
-    let tmp = TempDir::new().unwrap();
-    let repo = tmp.path().join("repo");
-    fs::create_dir_all(&repo).unwrap();
-
-    write_file(
-        &repo.join(".gemini/agents/planner.md"),
-        "---\nname: planner\ndescription: Plans work\n---\nProject planner body.\n",
-    );
-
-    let fake_home = tmp.path().join("fake-home");
-    fs::create_dir_all(&fake_home).unwrap();
-    write_file(
-        &fake_home.join(".gemini/agents/explorer.md"),
-        "---\nname: explorer\n---\nGlobal explorer body.\n",
-    );
-    let _home = UserHomeGuard::set(&fake_home);
-
-    let repo_items = detect_all(Some(&repo));
-    let gemini_repo_agents: Vec<_> = repo_items
-        .iter()
-        .filter(|item| {
-            item.kind == ItemKind::AgentDefinition
-                && matches!(item.source_agent, SourceAgent::GeminiCli)
-        })
-        .collect();
-    assert_eq!(gemini_repo_agents.len(), 1);
-    assert!(gemini_repo_agents
-        .iter()
-        .any(|item| item.suggested_name == "planner"));
-
-    let global_items = detect_all(None);
-    let gemini_global_agents: Vec<_> = global_items
-        .iter()
-        .filter(|item| {
-            item.kind == ItemKind::AgentDefinition
-                && matches!(item.source_agent, SourceAgent::GeminiCli)
-        })
-        .collect();
-    assert_eq!(gemini_global_agents.len(), 1);
-    assert!(gemini_global_agents
-        .iter()
-        .any(|item| item.suggested_name == "explorer"));
-}
-
-#[test]
 fn detects_copilot_agent_and_chatmode_files() {
     let _env_lock = test_helpers::test_env::lock_home();
     // Copilot: `<repo>/.github/agents/<name>.agent.md` (new) and
@@ -1094,7 +1044,7 @@ impl Drop for OrgiiHomeGuard {
 /// RAII helper that points `$HOME` at a tmpdir for the duration of one test.
 ///
 /// Several detector branches (`~/.cursor/rules`, `~/.cursor/skills-cursor`,
-/// `~/.claude/...`, `~/.codex/...`, `~/.gemini/...`) consult the user's
+/// `~/.claude/...`, `~/.codex/...`) consult the user's
 /// home directory and therefore see the developer's real artifacts when
 /// tests run locally. That bleeds counts into `assert_eq!(len, …)`
 /// assertions made on `detect_all` output — pinning `$HOME` to a clean

@@ -1,6 +1,6 @@
 {
   "labels": {
-    "devRecord": "Dev Record",
+    "openSourceRepo": "Open Source Repo",
     "workItems": "Work Items",
     "codeSearch": "Code Search",
     "dbManager": "DB Manager",
@@ -46,7 +46,6 @@
     "projects": "Projects",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
     "terminals": "Terminals"
   },
   "workstation": {
@@ -111,8 +110,7 @@
     "signingIn": "Signing in...",
     "launchpad": "Launchpad",
     "ideaArea": "Idea Area",
-    "changelog": "Changelog",
-    "opsControl": "Ops Control"
+    "changelog": "Changelog"
   },
   "appGrid": {
     "customizeGrid": "Customize Grid",
@@ -349,7 +347,7 @@
     "emptyWorkspaces": "No workspaces match",
     "myRepos": "My Repos",
     "myMultiRepoWorkspaces": "My Multi-Repo Workspaces",
-    "dashboard": "Launchpad",
+    "dashboard": "Dashboard",
     "myWorkspaces": "My Workspaces",
     "workspaces": "Workspaces",
     "dashboardTitle": "Workspaces",

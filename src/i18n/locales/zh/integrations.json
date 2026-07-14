@@ -475,24 +475,6 @@
     "claudeCodeAutodetectDesc": "从 macOS Keychain 或 ~/.claude/.credentials.json 读取本地 Claude Code 登录",
     "claudeCodeConnected": "Claude Code 已连接",
     "claudeCodeDetectErrorHint": "请使用内嵌浏览器登录，或运行 claude auth login 后重新检测",
-    "geminiSetupMethodDesc": "Connect Gemini CLI with Google sign-in, local detection, or a Gemini API key",
-    "geminiSignInTitle": "Gemini Sign In",
-    "geminiSignInDesc": "Sign in to Google for Gemini CLI in a native secure sign-in window. ORGII captures the callback, resolves the Code Assist project, and stores OAuth tokens locally.",
-    "signInWithGemini": "Sign in with Gemini",
-    "geminiReadyToSignIn": "Ready to sign in to Gemini",
-    "geminiSignedIn": "Gemini connected",
-    "geminiOAuthHint": "This saves a Gemini OAuth account for official Gemini CLI access",
-    "geminiBrowserHint": "Complete Google authorization in the secure sign-in window.",
-    "geminiSignInErrorHint": "Close the sign-in window and try signing in again. No token was saved",
-    "geminiProjectId": "Code Assist project: {{projectId}}",
-    "geminiAutodetectTitle": "Detect Gemini session",
-    "geminiAutodetectDesc": "Reads ~/.gemini/oauth_creds.json and GEMINI_API_KEY from your local environment",
-    "geminiApiKeyLabel": "Gemini API Key",
-    "geminiApiKeyDesc": "Paste a Gemini API key if you do not want to use Google sign-in",
-    "geminiApiKeyPlaceholder": "AIza...",
-    "geminiConnected": "Gemini connected",
-    "geminiDetectErrorHint": "Sign in with the secure native window, or paste a Gemini API key manually",
-    "geminiValidationErrorHint": "Check that the Gemini token or API key is valid and try again",
     "refreshModels": {
       "button": "刷新模型",
       "failed": "刷新模型失败：{{error}}"
@@ -1067,7 +1049,7 @@
     "computerUse": "Computer Use",
     "rulesMemoryEvolution": "规则、记忆 & 进化",
     "externalSkillsets": "Skills, MCPs & Plugins",
-    "housekeeper": "常驻管家"
+    "housekeeper": "MiniCPM 常驻管家"
   },
   "projectConnections": {
     "linear": "Linear",
@@ -1377,7 +1359,9 @@
     "oauthDeviceCodeDesc": "打开下方 URL 并输入此代码",
     "oauthOpenGithub": "打开 GitHub",
     "oauthCancel": "取消",
-    "oauthFailed": "授权失败"
+    "oauthFailed": "授权失败",
+    "autoCreatePr": "自动创建 Pull Request",
+    "autoCreatePrDesc": "当功能分支已完全推送且工作区无未提交更改时，在 Workstation 源代码管理中自动创建 Pull Request"
   },
   "skillsHub": {
     "title": "Skills Hub",
@@ -2065,8 +2049,7 @@
         "claude_code": "Claude Code",
         "copilot": "GitHub Copilot",
         "kiro": "Kiro",
-        "codex": "Codex",
-        "gemini_cli": "Gemini CLI"
+        "codex": "Codex"
       },
       "noSkillsResults": "未找到可导入的 Skills。已扫描 ~/.claude/skills 和 ~/.claude/commands。",
       "noAgentResults": "暂无可导入的 Agent",
@@ -2353,7 +2336,36 @@
     "orgSaveFailed": "保存团队失败",
     "orgDeleteFailed": "删除团队失败",
     "deleteOrgTitle": "删除团队？",
-    "deleteOrgMessage": "\"{{name}}\" 将被永久移除。此操作无法撤销。"
+    "deleteOrgMessage": "\"{{name}}\" 将被永久移除。此操作无法撤销。",
+    "cliManagedConfig": {
+      "title": "CLI 配置切换",
+      "modeLabel": "模式",
+      "modeDesc": "默认配置会恢复 CLI 原有设置；ORGII 托管会在备份后写入本地代理配置。",
+      "modeDefault": "默认配置",
+      "modeOrgii": "ORGII 托管",
+      "conflict": "外部修改",
+      "conflictTitle": "配置冲突",
+      "conflictDesc": "ORGII 写入后，当前 CLI 配置又被其他程序修改。",
+      "proxyStatus": "本地代理",
+      "proxyDefault": "默认配置模式",
+      "proxyReady": "代理已就绪",
+      "proxyNotReady": "代理未就绪",
+      "proxyDesc": "CLI 请求会通过 ORGII KeyVault 本地代理转发。",
+      "keyLabel": "密钥",
+      "keyDesc": "仅显示与当前 CLI 和托管代理兼容的 API Key。",
+      "selectKey": "选择密钥",
+      "modelLabel": "模型",
+      "selectModel": "选择模型",
+      "configFile": "配置文件",
+      "actions": "操作",
+      "addKey": "添加密钥",
+      "apply": "应用",
+      "restore": "恢复默认配置",
+      "forceApply": "强制应用",
+      "forceRestore": "强制恢复",
+      "applySuccess": "已应用 ORGII 托管配置",
+      "restoreSuccess": "已恢复 CLI 默认配置"
+    }
   },
   "databases": {
     "title": "数据库",
@@ -2485,13 +2497,6 @@
     "categoryVersionControl": "版本控制",
     "installHintNote": "安装缺失的依赖以启用此功能",
     "installSection": "安装"
-  },
-  "worktreeCompare": {
-    "button": "比较",
-    "buttonTooltip": "比较工作树",
-    "title": "比较工作树",
-    "noSessions": "没有可比较的会话",
-    "sessionTab": "会话"
   },
   "creator": {
     "assign": "分配"
@@ -2630,6 +2635,10 @@
       "uiControl": {
         "title": "轻量 ADE/UI 控制",
         "description": "MiniCPM 只能把请求识别成严格白名单里的本地 action。"
+      },
+      "contextCompact": {
+        "title": "自动压缩上下文",
+        "description": "会话空闲时由 MiniCPM 分段维护旧上下文，独立于原有手动和自动压缩。"
       }
     },
     "health": {
@@ -2673,5 +2682,38 @@
     "unavailable": "启动配置不可用",
     "saved": "启动配置已保存",
     "resetDone": "启动配置已重置"
+  },
+  "gitProfiles": {
+    "tab": "Git 配置档案",
+    "title": "Git 配置档案",
+    "add": "添加配置档案",
+    "refresh": "刷新配置档案",
+    "refreshed": "已刷新全局 Git 配置档案",
+    "loading": "正在加载全局 Git 配置档案…",
+    "defaultProfile": "默认配置档案",
+    "newProfile": "新配置档案",
+    "copyName": "{{name}} 副本",
+    "profileName": "配置档案名称",
+    "authorName": "作者名称",
+    "email": "邮箱",
+    "selectEmail": "选择邮箱",
+    "signingKey": "签名密钥",
+    "signingKeyPlaceholder": "GPG 或 SSH 签名密钥 ID",
+    "signCommits": "签署 Commit",
+    "active": "使用中",
+    "activate": "启用配置档案",
+    "activated": "{{name}} 已设为全局 Git 配置档案",
+    "editRaw": "编辑原始配置",
+    "hideRaw": "隐藏原始配置",
+    "rawTitle": "原始 Git 配置档案",
+    "rawConfig": "Git 配置",
+    "updateFromRaw": "从配置更新档案",
+    "rawUpdated": "已从原始 Git 配置更新档案",
+    "rawInvalid": "原始 Git 配置档案无效",
+    "nameEmailRequired": "作者名称和邮箱为必填项",
+    "deleteTitle": "删除 Git 配置档案",
+    "deleteMessage": "删除配置档案“{{name}}”？这不会更改当前的全局 Git 配置。",
+    "loadFailed": "加载全局 Git 配置档案失败",
+    "applyFailed": "启用 Git 配置档案失败"
   }
 }

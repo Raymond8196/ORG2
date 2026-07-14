@@ -21,7 +21,7 @@ export type WorkstationTabHost = "code" | "browser" | "data" | "project";
  * discriminator already used by the renderer registry.
  *
  * Code-editor-family categories (file, git, terminal, search, settings, lint,
- * ai-impact, preview, subagent, chat, explorer, ops-control, launchpad) all
+ * ai-impact, preview, subagent, chat, explorer, work-management, launchpad) all
  * project onto `"code"` because they render inside the Code Editor surface.
  */
 export function categoryToTabHost(

@@ -9,7 +9,6 @@ import { rpc } from "@src/api/tauri/rpc";
 import type {
   CoreSessionSummary,
   FunctionEntry,
-  OrgtrackAnalysisBackfillStats,
   OrgtrackCheckpointFileState,
   OrgtrackCommitLink,
   OrgtrackDiffReplayPreview,
@@ -32,7 +31,6 @@ import type {
 export type {
   CoreSessionSummary,
   FunctionEntry,
-  OrgtrackAnalysisBackfillStats,
   OrgtrackCheckpointFileState,
   OrgtrackDiffReplayPreview,
   OrgtrackExportResult,
@@ -132,14 +130,15 @@ export async function getOrgtrackSessionSummary(
   return rpc.lineage.orgtrackGetSessionSummary({ sessionId });
 }
 
-export async function analyzeOrgtrackSessions(
-  input: {
-    workspacePath?: string;
-    sessionId?: string;
-    rebuild?: boolean;
-  } = {}
-): Promise<OrgtrackAnalysisBackfillStats> {
-  return rpc.lineage.orgtrackAnalyzeSessions(input);
+/**
+ * Delete a session's derived orgtrack artifacts without recomputing them.
+ * Checkpoint-restore uses this to drop diff rows that no longer match the
+ * rewound event stream — a pure invalidation, never an analysis pass.
+ */
+export async function deleteOrgtrackSessionArtifacts(
+  sessionId: string
+): Promise<void> {
+  await rpc.lineage.orgtrackDeleteSessionArtifacts({ sessionId });
 }
 
 export async function lookupOrgtrackFileSessions(input: {

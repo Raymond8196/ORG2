@@ -45,7 +45,6 @@
     "projects": "Projects",
     "projectManager": "Project Manager",
     "diff": "Diff",
-    "opsControl": "Ops Control",
     "colleagues": "Коллеги",
     "terminals": "Терминалы"
   },
@@ -81,10 +80,9 @@
     "agentStudio": "Agent Studio",
     "serviceMarket": "Service маркет",
     "signingIn": "Выполняется вход...",
-    "launchpad": "Launchpad",
+    "launchpad": "Панель запуска",
     "ideaArea": "Пространство идей",
-    "changelog": "Журнал изменений",
-    "opsControl": "Ops Control"
+    "changelog": "Журнал изменений"
   },
   "appGrid": {
     "customizeGrid": "Настроить сетку",
@@ -201,7 +199,7 @@
     "emptyWorkspaces": "Нет подходящих рабочих областей",
     "myRepos": "Мои репозитории",
     "myMultiRepoWorkspaces": "Мои мульти-репо Workspaces",
-    "dashboard": "Launchpad",
+    "dashboard": "Панель управления",
     "myWorkspaces": "Мои рабочие области",
     "workspaces": "Рабочие области",
     "dashboardTitle": "Рабочие области",

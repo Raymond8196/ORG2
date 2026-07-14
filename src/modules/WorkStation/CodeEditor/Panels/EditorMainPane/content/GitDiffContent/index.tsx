@@ -117,6 +117,13 @@ export interface GitDiffContentProps {
    * header. Source Control focus mode renders it inline above the diff editor.
    */
   publishHeaderToWorkstation?: boolean;
+  /**
+   * Optional node rendered in place of the default "select a file to view
+   * changes" placeholder when no file is resolved. Source Control focus mode
+   * passes its quick-actions placeholder here; regular diff tabs omit it and
+   * keep the plain text placeholder.
+   */
+  emptyState?: React.ReactNode;
 }
 
 // ============================================
@@ -159,6 +166,7 @@ function arePropsEqual(
     nextProps.publishHeaderToWorkstation
   )
     return false;
+  if (!!prevProps.emptyState !== !!nextProps.emptyState) return false;
   return true;
 }
 
@@ -195,6 +203,7 @@ const GitDiffContentInner: React.FC<GitDiffContentProps> = ({
   onUnsavedChange,
   leadingHeaderSlot,
   publishHeaderToWorkstation = true,
+  emptyState,
 }) => {
   const { t } = useTranslation();
   const [lineNumbers, setLineNumbers] = useAtom(editorLineNumbersAtom);
@@ -429,8 +438,13 @@ const GitDiffContentInner: React.FC<GitDiffContentProps> = ({
     );
   }
 
-  // No file selected
+  // No file selected. Source Control focus mode passes a quick-actions
+  // placeholder via `emptyState`; regular diff tabs fall back to the plain
+  // "select a file to view changes" text.
   if (!effectiveGitFile) {
+    if (emptyState) {
+      return <>{emptyState}</>;
+    }
     return (
       <Placeholder
         variant="empty"
