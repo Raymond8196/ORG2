@@ -55,6 +55,7 @@ async function loadChatPanelTabAtoms() {
   const {
     activeChatPanelSurfaceAtom,
     chatPanelMaximizedAtom,
+    chatPanelNavigateAtom,
     chatPanelStartPageOpenAtom,
     chatPanelStartPageTabAtom,
     CHAT_PANEL_SURFACE_KIND,
@@ -76,6 +77,7 @@ async function loadChatPanelTabAtoms() {
     CHAT_PANEL_SURFACE_KIND,
     chatPanelTabsAtom,
     chatPanelMaximizedAtom,
+    chatPanelNavigateAtom,
     chatPanelStartPageOpenAtom,
     chatPanelStartPageTabAtom,
     closeChatPanelTabAtom,
@@ -411,6 +413,36 @@ describe("openKanbanChatPanelTabAtom", () => {
     store.set(activateChatPanelTabAtom, primaryTabId);
 
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
+  });
+
+  it("preserves a project surface after leaving Work Management", async () => {
+    const {
+      activeChatPanelSurfaceAtom,
+      CHAT_PANEL_SURFACE_KIND,
+      chatPanelNavigateAtom,
+      chatPanelStartPageOpenAtom,
+      openKanbanChatPanelTabAtom,
+      openOrFocusChatPanelStartPageTabAtom,
+      store,
+      syncActiveChatPanelTabStateAtom,
+      WORK_MANAGEMENT_SECTION,
+    } = await loadChatPanelTabAtoms();
+
+    store.set(openKanbanChatPanelTabAtom, {
+      section: WORK_MANAGEMENT_SECTION.PROJECTS,
+    });
+    store.set(openOrFocusChatPanelStartPageTabAtom, {});
+    store.set(chatPanelNavigateAtom, {
+      kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE,
+    });
+
+    // Mirrors ChatPanel's layout reconciliation after the active tab changes.
+    store.set(syncActiveChatPanelTabStateAtom);
+
+    expect(store.get(chatPanelStartPageOpenAtom)).toBe(false);
+    expect(store.get(activeChatPanelSurfaceAtom).kind).toBe(
+      CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE
+    );
   });
 });
 

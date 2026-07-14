@@ -40,7 +40,8 @@
     "storage": "Depolama",
     "projectUsage": "Project ve Kullanım",
     "agentMemory": "Agent Belleği",
-    "agentOrg": "Agent Ekibi"
+    "agentOrg": "Agent Ekibi",
+    "collaboration": "İş birliği"
   },
   "coreSidebar": {
     "groups": {
@@ -1302,5 +1303,11 @@
     "searchActions": "Eylem ara...",
     "noActionsFound": "Eylem bulunamadı",
     "noConfigurableProperties": "Yapılandırılabilir özellik yok"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "Bulut",
+      "selfHosted": "Kendi kendine barındırılan"
+    }
   }
 }

@@ -40,7 +40,8 @@
     "storage": "Хранилище",
     "projectUsage": "Project и использование",
     "agentMemory": "Память Agent",
-    "agentOrg": "Команда Agent"
+    "agentOrg": "Команда Agent",
+    "collaboration": "Совместная работа"
   },
   "coreSidebar": {
     "groups": {
@@ -1303,5 +1304,11 @@
     "searchActions": "Поиск действий...",
     "noActionsFound": "Действия не найдены",
     "noConfigurableProperties": "Нет настраиваемых свойств"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "Облако",
+      "selfHosted": "Самостоятельный хостинг"
+    }
   }
 }

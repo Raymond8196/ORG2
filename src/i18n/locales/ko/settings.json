@@ -40,7 +40,8 @@
     "storage": "스토리지",
     "projectUsage": "Project 및 사용량",
     "agentMemory": "Agent 메모리",
-    "agentOrg": "Agent 팀"
+    "agentOrg": "Agent 팀",
+    "collaboration": "협업"
   },
   "coreSidebar": {
     "groups": {
@@ -1302,5 +1303,11 @@
     "searchActions": "액션 검색...",
     "noActionsFound": "액션을 찾을 수 없음",
     "noConfigurableProperties": "설정 가능한 속성 없음"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "클라우드",
+      "selfHosted": "자체 호스팅"
+    }
   }
 }

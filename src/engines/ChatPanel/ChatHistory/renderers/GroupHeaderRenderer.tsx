@@ -5,6 +5,7 @@ import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { CHAT_ITEM_PADDING_X } from "@src/engines/ChatPanel/blocks/primitives/config";
 import { sessionIdAtom } from "@src/engines/SessionCore/core/atoms";
 import { loadSessionTurnBodyIntoStore } from "@src/engines/SessionCore/turns";
+import TurnCommentChrome from "@src/features/Org2Cloud/SessionComments/TurnCommentChrome";
 
 import UserChatItem from "../../ChatItems/UserChatItem";
 import TurnCollapsePinBar from "../../InputArea/components/TurnCollapsePinBar";
@@ -226,6 +227,13 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
               onRestoreCheckpoint ? handleRestoreCheckpoint : undefined
             }
           />
+        )}
+        {/* Session comments (cloud replay surfaces only): anchor = the
+            turn's leading user-message event id. The component consumes
+            SessionCommentsContext and renders NOTHING when the surface has
+            no cloud comment target, so ordinary sessions are untouched. */}
+        {showUserPart && header.event?.id && (
+          <TurnCommentChrome anchorEventId={header.event.id} />
         )}
         {showCollapsePart && (
           <TurnCollapsePinBar

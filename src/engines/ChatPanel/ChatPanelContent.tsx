@@ -4,7 +4,7 @@ import React, { Suspense } from "react";
 import { chatStatusBarVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import type {
   ChatHistoryDisplayMode,
-  ChatPanelSelectedCollabOrg,
+  ChatPanelSelectedCloudOrg,
   ChatPanelSelectedProject,
   ChatPanelSelectedProjectOrg,
   ChatPanelSelectedWorkItem,
@@ -19,8 +19,8 @@ const BenchmarkPanel = React.lazy(() =>
     default: module.BenchmarkPanel,
   }))
 );
-const CollabOrgPanelView = React.lazy(
-  () => import("./panels/CollabOrgPanelView")
+const CloudOrgPanelView = React.lazy(
+  () => import("./panels/CloudOrgPanelView")
 );
 const ProjectOrgPanelView = React.lazy(
   () => import("./panels/ProjectOrgPanelView")
@@ -43,13 +43,13 @@ interface ChatPanelContentProps {
   displayMode: ChatHistoryDisplayMode;
   paginationEnabled: boolean;
   position: "left" | "right";
-  selectedCollabOrg: ChatPanelSelectedCollabOrg | null;
+  selectedCloudOrg: ChatPanelSelectedCloudOrg | null;
   selectedProject: ChatPanelSelectedProject | null;
   selectedProjectOrg: ChatPanelSelectedProjectOrg | null;
   selectedWorkItem: ChatPanelSelectedWorkItem | null;
   selectedWorkspace: ChatPanelSelectedWorkspace | null;
   showBenchmarkSessionGroupContent: boolean;
-  showCollabOrgContent: boolean;
+  showCloudOrgContent: boolean;
   showExploreContent: boolean;
   showPanelContent: boolean;
   showProjectContent: boolean;
@@ -66,13 +66,13 @@ export function ChatPanelContent({
   displayMode,
   paginationEnabled,
   position,
-  selectedCollabOrg,
+  selectedCloudOrg,
   selectedProject,
   selectedProjectOrg,
   selectedWorkItem,
   selectedWorkspace,
   showBenchmarkSessionGroupContent,
-  showCollabOrgContent,
+  showCloudOrgContent,
   showExploreContent,
   showPanelContent,
   showProjectContent,
@@ -105,9 +105,9 @@ export function ChatPanelContent({
         <Suspense fallback={null}>
           <WorkspaceExplorePanelView />
         </Suspense>
-      ) : showCollabOrgContent && selectedCollabOrg ? (
+      ) : showCloudOrgContent && selectedCloudOrg ? (
         <Suspense fallback={null}>
-          <CollabOrgPanelView selectedCollabOrg={selectedCollabOrg} />
+          <CloudOrgPanelView selectedCloudOrg={selectedCloudOrg} />
         </Suspense>
       ) : showWorkspaceOverviewContent && selectedWorkspace ? (
         <Suspense fallback={null}>

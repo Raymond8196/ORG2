@@ -2,7 +2,7 @@
  * General Settings Section
  *
  * Hosts three tabs:
- *   - `general` — account, language/date, security, update, settings file
+ *   - `general` — language/date, input, app behavior, update, settings file
  *   - `notifications` — master toggle + advanced blocks (lazy)
  *   - `shortcuts` — keyboard shortcuts viewer (lazy)
  *

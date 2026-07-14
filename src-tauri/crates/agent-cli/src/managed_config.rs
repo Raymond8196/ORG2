@@ -19,7 +19,10 @@ const CODEX_CONFIG_FILE_NAME: &str = "config.toml";
 const CLAUDE_CODE_AGENT: &str = "claude_code";
 const CLAUDE_CODE_CONFIG_FILE_ID: &str = "settings";
 const CLAUDE_CODE_CONFIG_FILE_NAME: &str = "settings.json";
+#[cfg(test)]
 const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
+const DEFAULT_PROXY_PORT: u16 = 17888;
+const PROXY_PORT_ENV: &str = "ORGII_CLI_PROXY_PORT";
 const ORGII_PROVIDER_ID: &str = "orgii";
 const ORGII_PROVIDER_NAME: &str = "ORGII";
 const DEFAULT_ORGII_MODEL: &str = "orgii-current-model";
@@ -27,6 +30,18 @@ const TRANSACTION_DIR_NAME: &str = "transaction";
 const TRANSACTION_JOURNAL_FILE_NAME: &str = "journal.json";
 
 static CONFIG_OPERATION_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+pub fn managed_proxy_port() -> u16 {
+    std::env::var(PROXY_PORT_ENV)
+        .ok()
+        .and_then(|value| value.parse::<u16>().ok())
+        .filter(|port| *port > 0)
+        .unwrap_or(DEFAULT_PROXY_PORT)
+}
+
+pub fn managed_proxy_url() -> String {
+    format!("http://127.0.0.1:{}", managed_proxy_port())
+}
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -642,7 +657,7 @@ fn status_for_unlocked(agent_name: &str) -> Result<CliConfigManagedStatus, Strin
                 None,
                 None,
                 None,
-                Some(DEFAULT_PROXY_URL.to_string()),
+                Some(managed_proxy_url()),
                 fallback_targets,
             )
         };
@@ -967,7 +982,7 @@ fn enable_agent_orgii_managed_unlocked(
         }
     }
 
-    let proxy_url = DEFAULT_PROXY_URL.to_string();
+    let proxy_url = managed_proxy_url();
     let proxy_token = generate_proxy_token();
     let managed_contents = generate_managed_configs(
         agent_name,
@@ -988,7 +1003,7 @@ fn enable_agent_orgii_managed_unlocked(
         selected_key_id: None,
         selected_provider: None,
         selected_model: None,
-        proxy_url: Some(DEFAULT_PROXY_URL.to_string()),
+        proxy_url: Some(managed_proxy_url()),
         proxy_token: None,
         created_at: now.clone(),
         updated_at: now.clone(),

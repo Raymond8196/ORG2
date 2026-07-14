@@ -8,6 +8,8 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
+use orgtrack_core::canonical::CollaborationSessionOrigin;
+
 /// My Station projection of canonical resource interactions, grouped by
 /// session for one file.
 #[derive(Debug, Clone, Serialize)]
@@ -45,6 +47,7 @@ pub struct FileSessionHistorySession {
     pub action_counts: BTreeMap<String, usize>,
     pub capture_methods: Vec<String>,
     pub attribution_precision: String,
+    pub collaboration_origin: Option<CollaborationSessionOrigin>,
     pub participants: Vec<FileSessionHistoryParticipant>,
 }
 

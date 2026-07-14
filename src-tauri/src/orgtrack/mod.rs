@@ -164,6 +164,7 @@ struct FileSessionGroupAccumulator {
     action_counts: BTreeMap<String, usize>,
     capture_methods: BTreeSet<String>,
     attribution_precision: AttributionPrecision,
+    collaboration_origin: Option<orgtrack_core::canonical::CollaborationSessionOrigin>,
     participants: BTreeMap<String, FileSessionHistoryAccumulator>,
 }
 
@@ -212,6 +213,50 @@ pub async fn orgtrack_get_file_session_history(
             backfill,
             sessions,
         })
+    })
+    .await
+    .map_err(|err| err.to_string())?
+}
+
+/// Index an already-authorized, locally cached collaboration replay into the
+/// same Session Blame read model used by native and external sessions.
+#[tauri::command]
+#[allow(clippy::too_many_arguments)]
+pub async fn orgtrack_index_collaboration_session(
+    local_session_id: String,
+    source_session_id: String,
+    title: String,
+    workspace_path: String,
+    source_workspace_path: Option<String>,
+    org_id: String,
+    session_row_id: String,
+    owner_member_id: String,
+    owner_display_name: String,
+) -> Result<usize, String> {
+    record_orgtrack_command_call("orgtrack_index_collaboration_session");
+    tokio::task::spawn_blocking(move || {
+        session_provenance::index_collaboration_replay(
+            &local_session_id,
+            &source_session_id,
+            &title,
+            &workspace_path,
+            source_workspace_path.as_deref(),
+            &org_id,
+            &session_row_id,
+            &owner_member_id,
+            &owner_display_name,
+        )
+    })
+    .await
+    .map_err(|err| err.to_string())?
+}
+
+/// Drop only the derived Session Blame rows for a discarded Team Session.
+#[tauri::command]
+pub async fn orgtrack_delete_collaboration_session(local_session_id: String) -> Result<(), String> {
+    record_orgtrack_command_call("orgtrack_delete_collaboration_session");
+    tokio::task::spawn_blocking(move || {
+        session_provenance::delete_collaboration_replay(&local_session_id)
     })
     .await
     .map_err(|err| err.to_string())?
@@ -328,6 +373,10 @@ fn project_file_session_history(
                 action_counts: BTreeMap::new(),
                 capture_methods: BTreeSet::new(),
                 attribution_precision: interaction.attribution_precision,
+                collaboration_origin: origin_session
+                    .as_ref()
+                    .or(session.as_ref())
+                    .and_then(|session| session.collaboration_origin.clone()),
                 participants: BTreeMap::new(),
             }
         });
@@ -436,6 +485,7 @@ fn project_file_session_history(
                 action_counts: entry.action_counts,
                 capture_methods: entry.capture_methods.into_iter().collect(),
                 attribution_precision: entry.attribution_precision.as_str().to_string(),
+                collaboration_origin: entry.collaboration_origin,
                 participants,
             }
         })
@@ -1052,6 +1102,7 @@ pub async fn debug_seed_final_diff(
             branch: None,
             parent_session_id: None,
             org_member_id: None,
+            collaboration_origin: None,
             metadata: AgentMetadata::default(),
         })?;
         let record_id = record_id(&["debug_seed_final_diff", &session_id, &file_path]);
@@ -1120,10 +1171,10 @@ pub async fn orgtrack_get_checkpoint_file_states(
 mod tests {
     use super::{is_temporary_diff_path, project_file_session_history};
     use orgtrack_core::canonical::{
-        AgentMetadata, AttributionPrecision, ResourceAction, ResourceInteractionCaptureMethod,
-        ResourceInteractionOutcome, ResourceInteractionRecord, SessionActorRecord, SessionRecord,
-        RESOURCE_INTERACTION_SCHEMA_VERSION, SESSION_ACTOR_SCHEMA_VERSION,
-        SESSION_PROVENANCE_HOOK_ORIGIN,
+        AgentMetadata, AttributionPrecision, CollaborationSessionOrigin, ResourceAction,
+        ResourceInteractionCaptureMethod, ResourceInteractionOutcome, ResourceInteractionRecord,
+        SessionActorRecord, SessionRecord, RESOURCE_INTERACTION_SCHEMA_VERSION,
+        SESSION_ACTOR_SCHEMA_VERSION, SESSION_PROVENANCE_HOOK_ORIGIN,
     };
     use orgtrack_core::privacy::ORGTRACK_SCHEMA_VERSION;
     use orgtrack_core::store::{sqlite::SqliteRecordStore, RecordStore};
@@ -1163,6 +1214,13 @@ mod tests {
                 branch: None,
                 parent_session_id: None,
                 org_member_id: None,
+                collaboration_origin: Some(CollaborationSessionOrigin {
+                    org_id: "org-1".to_string(),
+                    session_row_id: "org-1:user-1:source-1".to_string(),
+                    source_session_id: "source-1".to_string(),
+                    owner_member_id: "user-1".to_string(),
+                    owner_display_name: "Teammate".to_string(),
+                }),
                 metadata: AgentMetadata {
                     origin: Some(SESSION_PROVENANCE_HOOK_ORIGIN.to_string()),
                     ..AgentMetadata::default()
@@ -1220,6 +1278,13 @@ mod tests {
         assert_eq!(history[0].action_counts.get("read"), Some(&1));
         assert_eq!(history[0].action_counts.get("write"), Some(&1));
         assert_eq!(history[0].attribution_precision, "exact");
+        assert_eq!(
+            history[0]
+                .collaboration_origin
+                .as_ref()
+                .map(|origin| origin.session_row_id.as_str()),
+            Some("org-1:user-1:source-1")
+        );
         assert!(history[0].participants.is_empty());
     }
 
@@ -1243,6 +1308,7 @@ mod tests {
                 branch: None,
                 parent_session_id: None,
                 org_member_id: None,
+                collaboration_origin: None,
                 metadata: AgentMetadata::default(),
             })
             .expect("upsert root session");
@@ -1322,6 +1388,7 @@ mod tests {
                     branch: None,
                     parent_session_id: parent_session_id.map(str::to_string),
                     org_member_id: None,
+                    collaboration_origin: None,
                     metadata: AgentMetadata::default(),
                 })
                 .expect("upsert session");
@@ -1419,6 +1486,7 @@ mod tests {
                     branch: None,
                     parent_session_id: parent_session_id.map(str::to_string),
                     org_member_id: None,
+                    collaboration_origin: None,
                     metadata: AgentMetadata::default(),
                 })
                 .expect("upsert session");
