@@ -226,8 +226,9 @@ describe("Code Editor Factories", () => {
       expect(tab.id).toBe("source-control:changes");
       expect(tab.type).toBe("source-control");
       expect(tab.title).toBe("Source Control");
-      expect(tab.closable).toBe(false);
-      expect(tab.pinned).toBe(true);
+      // Unified surface: Source Control is a regular closable, unpinned tab.
+      expect(tab.closable).toBe(true);
+      expect(tab.pinned).toBe(false);
       expect(tab.data.mode).toBe("focus");
       expect(tab.data.staged).toBe(false);
       expect(tab.data.fileCount).toBe(5);

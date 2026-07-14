@@ -63,6 +63,22 @@ export interface WorkStationLaunchAction {
   onClick: () => void;
 }
 
+/**
+ * Visible launch entries, in display order, shared by the Launchpad and the
+ * `+` menu so the two stay in sync. `newPrivateBrowserTab` is intentionally
+ * omitted — the private-session feature stays available programmatically (the
+ * hook still returns its action); we only hide the entrance.
+ */
+export const LAUNCHPAD_ACTION_IDS: readonly WorkStationLaunchActionId[] = [
+  "searchFile",
+  "explorer",
+  "sourceControl",
+  "terminal",
+  "newBrowserTab",
+  "workItems",
+  "projects",
+];
+
 export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
   const { t } = useTranslation("navigation");
   const requestNewBrowserSession = useSetAtom(requestNewBrowserSessionAtom);
