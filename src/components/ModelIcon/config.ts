@@ -66,6 +66,7 @@ import RovoIcon from "@src/assets/modelIcons/rovo.svg";
 import SiliconFlowIcon from "@src/assets/modelIcons/siliconflow.svg";
 import VllmIcon from "@src/assets/modelIcons/vllm.svg";
 import VolcengineIcon from "@src/assets/modelIcons/volcengine.svg";
+import WarpIcon from "@src/assets/modelIcons/warp.svg";
 import WorkBuddyIcon from "@src/assets/modelIcons/workbuddy.svg";
 import XaiIcon from "@src/assets/modelIcons/xai.svg";
 import XiaomiIcon from "@src/assets/modelIcons/xiaomi.svg";
@@ -98,6 +99,7 @@ export type IconProvider =
   | "windsurf"
   | "trae"
   | "workbuddy"
+  | "warp"
   | "amp"
   | "devin"
   | "rovo"
@@ -172,6 +174,7 @@ export const ICON_MAP: Record<
   windsurf: WindsurfIcon,
   trae: TraeIcon,
   workbuddy: WorkBuddyIcon,
+  warp: WarpIcon,
   claude_code: ClaudeCodeIcon,
   copilot: CopilotIcon,
   gemini: GeminiIcon,

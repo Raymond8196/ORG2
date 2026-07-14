@@ -16,6 +16,7 @@ pub const SOURCE_WINDSURF: &str = "windsurf";
 pub const SOURCE_WORKBUDDY: &str = "workbuddy";
 pub const SOURCE_TRAE: &str = "trae";
 pub const SOURCE_CLINE: &str = "cline";
+pub const SOURCE_WARP: &str = "warp";
 
 pub fn is_imported_history_source(source: &str) -> bool {
     matches!(
@@ -28,6 +29,7 @@ pub fn is_imported_history_source(source: &str) -> bool {
             | SOURCE_WORKBUDDY
             | SOURCE_TRAE
             | SOURCE_CLINE
+            | SOURCE_WARP
     )
 }
 
