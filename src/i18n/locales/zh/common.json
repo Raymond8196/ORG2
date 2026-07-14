@@ -1377,7 +1377,9 @@
         "delete": "删除",
         "deleteTemplate": "删除 {branch}",
         "createSessionWith": "切换 Session 分支",
-        "createSessionWithTemplate": "切换 Session 分支到 {branch}"
+        "createSessionWithTemplate": "切换 Session 分支到 {branch}",
+        "switchWorktree": "切换 Worktree",
+        "switchWorktreeTemplate": "切换到 {worktree}"
       },
       "actions": {
         "createNew": "创建新分支",
@@ -1388,7 +1390,9 @@
         "refresh": "刷新分支",
         "checkoutDetachedSuccess": "已切换到 detached HEAD 状态（当前提交）",
         "checkoutDetachedFailed": "切换到 detached HEAD 失败",
-        "removeWorktree": "移除 Worktree"
+        "removeWorktree": "移除 Worktree",
+        "newWorktree": "新建 Worktree...",
+        "newWorktreeDesc": "从分支、PR、Issue 或名称创建"
       },
       "messages": {
         "deletedCount_one": "已删除 {{count}} 个分支",
@@ -1512,7 +1516,8 @@
         "workspace": "搜索或输入文件夹路径",
         "branch": "搜索分支...",
         "source": "搜索来源...",
-        "actions": "搜索操作..."
+        "actions": "搜索操作...",
+        "worktree": "搜索 Worktree..."
       },
       "groups": {
         "agentSession": "Agent 会话",

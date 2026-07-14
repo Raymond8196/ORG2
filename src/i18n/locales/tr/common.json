@@ -1358,7 +1358,9 @@
         "delete": "Sil",
         "deleteTemplate": "{branch} sil",
         "createSessionWith": "Oturum Branch'ini değiştir",
-        "createSessionWithTemplate": "Oturum Branch'ini {branch} olarak değiştir"
+        "createSessionWithTemplate": "Oturum Branch'ini {branch} olarak değiştir",
+        "switchWorktree": "Worktree değiştir",
+        "switchWorktreeTemplate": "{worktree} konumuna geç"
       },
       "actions": {
         "createNew": "Yeni branch oluştur",
@@ -1369,7 +1371,9 @@
         "refresh": "Branch yenile",
         "checkoutDetachedSuccess": "Mevcut commit'te detached HEAD durumunda",
         "checkoutDetachedFailed": "detached HEAD checkout başarısız",
-        "removeWorktree": "Worktree kaldır"
+        "removeWorktree": "Worktree kaldır",
+        "newWorktree": "Yeni worktree...",
+        "newWorktreeDesc": "Bir daldan, PR'dan, issue'dan veya addan oluştur"
       },
       "messages": {
         "deletedCount_one": "{{count}} branch silindi",
@@ -1493,7 +1497,8 @@
         "workspace": "Ara veya klasör yolu gir",
         "branch": "Dal ara...",
         "source": "Kaynak ara...",
-        "actions": "Eylem ara..."
+        "actions": "Eylem ara...",
+        "worktree": "Worktree ara..."
       },
       "groups": {
         "agentSession": "Agent oturumu",

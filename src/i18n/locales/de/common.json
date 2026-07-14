@@ -1357,7 +1357,9 @@
         "delete": "Löschen",
         "deleteTemplate": "{branch} löschen",
         "createSessionWith": "Sitzungs-Branch wechseln",
-        "createSessionWithTemplate": "Sitzungs-Branch zu {branch} wechseln"
+        "createSessionWithTemplate": "Sitzungs-Branch zu {branch} wechseln",
+        "switchWorktree": "Worktree wechseln",
+        "switchWorktreeTemplate": "Zu {worktree} wechseln"
       },
       "actions": {
         "createNew": "Neuen Branch erstellen",
@@ -1368,7 +1370,9 @@
         "refresh": "Branch aktualisieren",
         "checkoutDetachedSuccess": "Im detached HEAD-Zustand am aktuellen Commit",
         "checkoutDetachedFailed": "Checkout detached HEAD fehlgeschlagen",
-        "removeWorktree": "Worktree entfernen"
+        "removeWorktree": "Worktree entfernen",
+        "newWorktree": "Neuer Worktree...",
+        "newWorktreeDesc": "Aus Branch, PR, Issue oder Namen erstellen"
       },
       "messages": {
         "deletedCount_one": "{{count}} Branch gelöscht",
@@ -1492,7 +1496,8 @@
         "workspace": "Suchen oder Ordnerpfad eingeben",
         "branch": "Branch suchen...",
         "source": "Quelle suchen...",
-        "actions": "Aktionen suchen..."
+        "actions": "Aktionen suchen...",
+        "worktree": "Worktree suchen..."
       },
       "groups": {
         "agentSession": "Agent Session",

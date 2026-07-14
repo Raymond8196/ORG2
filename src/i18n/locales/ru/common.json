@@ -1357,7 +1357,9 @@
         "delete": "Удалить",
         "deleteTemplate": "Удалить {branch}",
         "createSessionWith": "Сменить Branch сессии",
-        "createSessionWithTemplate": "Сменить Branch сессии на {branch}"
+        "createSessionWithTemplate": "Сменить Branch сессии на {branch}",
+        "switchWorktree": "Сменить worktree",
+        "switchWorktreeTemplate": "Переключиться на {worktree}"
       },
       "actions": {
         "createNew": "Создать новую ветку",
@@ -1368,7 +1370,9 @@
         "refresh": "Обновить ветку",
         "checkoutDetachedSuccess": "В состоянии detached HEAD на текущем коммите",
         "checkoutDetachedFailed": "Ошибка checkout detached HEAD",
-        "removeWorktree": "Удалить Worktree"
+        "removeWorktree": "Удалить Worktree",
+        "newWorktree": "Новый worktree...",
+        "newWorktreeDesc": "Создать из ветки, PR, задачи или имени"
       },
       "messages": {
         "deletedCount_one": "Удалена {{count}} ветка",
@@ -1492,7 +1496,8 @@
         "workspace": "Найти или ввести путь к папке",
         "branch": "Поиск ветки...",
         "source": "Поиск источника...",
-        "actions": "Поиск действий..."
+        "actions": "Поиск действий...",
+        "worktree": "Поиск worktree..."
       },
       "groups": {
         "agentSession": "Сессия Agent",

@@ -1358,7 +1358,9 @@
         "delete": "削除",
         "deleteTemplate": "{branch} を削除",
         "createSessionWith": "セッション Branch を切り替え",
-        "createSessionWithTemplate": "セッション Branch を {branch} に切り替え"
+        "createSessionWithTemplate": "セッション Branch を {branch} に切り替え",
+        "switchWorktree": "Worktree を切り替え",
+        "switchWorktreeTemplate": "{worktree} に切り替え"
       },
       "actions": {
         "createNew": "新しいブランチを作成",
@@ -1369,7 +1371,9 @@
         "refresh": "ブランチを更新",
         "checkoutDetachedSuccess": "detached HEAD 状態になりました（現在のコミット）",
         "checkoutDetachedFailed": "detached HEAD へのチェックアウトに失敗しました",
-        "removeWorktree": "Worktree を削除"
+        "removeWorktree": "Worktree を削除",
+        "newWorktree": "新規 Worktree...",
+        "newWorktreeDesc": "ブランチ、PR、Issue、または名前から作成"
       },
       "messages": {
         "deletedCount_one": "{{count}} 件のブランチを削除しました",
@@ -1493,7 +1497,8 @@
         "workspace": "検索またはフォルダパスを入力",
         "branch": "ブランチを検索...",
         "source": "ソースを検索...",
-        "actions": "アクションを検索..."
+        "actions": "アクションを検索...",
+        "worktree": "Worktree を検索..."
       },
       "groups": {
         "agentSession": "Agent セッション",
