@@ -39,6 +39,19 @@ workstationNewBrowserSessionRequestAtom.debugLabel =
   "workstationNewBrowserSessionRequestAtom";
 
 /**
+ * Highest request `tick` the Browser host has already turned into a session.
+ *
+ * Lives at module scope (not a component ref) so it survives the Browser
+ * host mounting/unmounting. On mount the host fires for any request whose
+ * tick is greater than this — which lets a request issued *before* the host
+ * existed (e.g. "New Browser" from the empty Launchpad) still open a session,
+ * while a remount with no new request does not re-fire.
+ */
+export const workstationNewBrowserSessionConsumedTickAtom = atom<number>(0);
+workstationNewBrowserSessionConsumedTickAtom.debugLabel =
+  "workstationNewBrowserSessionConsumedTickAtom";
+
+/**
  * Write-only helper: bumps the request tick by one and applies the
  * provided payload atomically. Use this from `useSetAtom` instead of
  * writing the underlying atom directly — it keeps the tick monotonic and

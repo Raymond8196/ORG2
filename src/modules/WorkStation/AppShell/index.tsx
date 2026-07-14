@@ -3,10 +3,6 @@ import React from "react";
 
 import { useRouteAppMode } from "@src/config/routeViewModeConfig";
 import type { AppModeType } from "@src/config/viewModeTypes";
-import {
-  Dock,
-  StationDockChrome,
-} from "@src/engines/Simulator/components/Dock";
 import { useCurrentTurnLastAgentMessage } from "@src/engines/Simulator/hooks/useCurrentTurnLastAgentMessage";
 import {
   useDockFilterUrlSync,
@@ -14,13 +10,8 @@ import {
 } from "@src/hooks/workStation";
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import { workstationActiveSessionIdAtom } from "@src/store/session";
-import {
-  CHAT_PANEL_SURFACE_KIND,
-  activeChatPanelSurfaceAtom,
-} from "@src/store/ui/chatPanelAtom";
 import { simulatorCaptionBarEnabledAtom } from "@src/store/ui/simulatorAtom";
 import {
-  workStationDockAutoHideAtom,
   workStationFollowAgentHighlightEnabledAtom,
   workStationPrimarySidebarCollapsedAtom,
   workStationStatusBarHiddenAtom,
@@ -43,7 +34,7 @@ import { useAppShellRepo } from "./hooks/useAppShellRepo";
 import { useAppShellSimulatorPanelSync } from "./hooks/useAppShellSimulatorPanelSync";
 import { useAppShellStationMode } from "./hooks/useAppShellStationMode";
 import { useAppShellStatusBar } from "./hooks/useAppShellStatusBar";
-import { useMyStationDockSegments } from "./hooks/useMyStationDockSegments";
+import { useLaunchpadTab } from "./hooks/useLaunchpadTab";
 
 interface AppShellProps {
   /** Whether WorkStation is currently visible (code view mode is active) */
@@ -57,7 +48,6 @@ const AppShell = React.memo(
     const appMode = useRouteAppMode();
     const _titleBarHidden = useAtomValue(workStationTitleBarHiddenAtom);
     const statusBarHidden = useAtomValue(workStationStatusBarHiddenAtom);
-    const dockAutoHide = useAtomValue(workStationDockAutoHideAtom);
     const followAgentHighlightEnabled = useAtomValue(
       workStationFollowAgentHighlightEnabledAtom
     );
@@ -69,19 +59,12 @@ const AppShell = React.memo(
     const workstationActiveSessionId = useAtomValue(
       workstationActiveSessionIdAtom
     );
-    const chatPanelSurface = useAtomValue(activeChatPanelSurfaceAtom);
-    const hideWorkstationDockForChatPanel =
-      chatPanelFocused &&
-      (chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.PROJECT ||
-        chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.PROJECT_ORG ||
-        chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.WORK_ITEM);
-
     const { repoPath, repoName, pathExists, lastSeenPath } = useAppShellRepo();
-    const { visitedModes, handleDockClick } = useAppShellDock();
-    const dockFilter = useAppShellDockFilterSync();
+    const { visitedModes } = useAppShellDock();
+    // Called for its side effects (station mode / chat visibility on route
+    // changes); the content host itself follows the active tab, not the filter.
+    useAppShellDockFilterSync();
     useDockFilterUrlSync();
-    const myStationDockSegments = useMyStationDockSegments();
-    const activeDockApp = dockFilter === "all" ? "all" : dockFilter;
 
     const {
       isAgentStation,
@@ -95,6 +78,11 @@ const AppShell = React.memo(
       !!captionMessage &&
       !!workstationActiveSessionId;
 
+    // Keep a Launchpad tab as the pool's home base: seed it when empty, drop
+    // it once real tabs exist (regular WorkStation only — Agent Station has
+    // its own surface).
+    useLaunchpadTab(!isAgentStation);
+
     const workStationPanels = useWorkStationPanels();
     useAppShellSimulatorPanelSync({ isAgentStation, workStationPanels });
 
@@ -103,19 +91,14 @@ const AppShell = React.memo(
     const {
       effectiveHost,
       isCodeMode,
-      isDataMode,
       isBrowserMode,
       isProjectMode,
       codeContentVisible,
       browserContentVisible,
-      dataContentVisible,
       projectContentVisible,
-    } = useAppShellDerivedState({
-      dockFilter,
-    });
+    } = useAppShellDerivedState();
 
     const hasVisitedCode = visitedModes.has("code");
-    const hasVisitedData = visitedModes.has("data");
     const hasVisitedBrowser = visitedModes.has("browser");
     const hasVisitedProject = visitedModes.has("project");
 
@@ -152,7 +135,6 @@ const AppShell = React.memo(
                   appMode={
                     (effectiveHost === "code" ||
                     effectiveHost === "browser" ||
-                    effectiveHost === "data" ||
                     effectiveHost === "project"
                       ? effectiveHost
                       : appMode) as AppModeType
@@ -176,16 +158,13 @@ const AppShell = React.memo(
                 isAgentStation={isAgentStation}
                 hasVisitedAgentStation={hasVisitedAgentStation}
                 hasVisitedCode={hasVisitedCode}
-                hasVisitedData={hasVisitedData}
                 hasVisitedBrowser={hasVisitedBrowser}
                 hasVisitedProject={hasVisitedProject}
                 isCodeMode={isCodeMode}
-                isDataMode={isDataMode}
                 isBrowserMode={isBrowserMode}
                 isProjectMode={isProjectMode}
                 codeContentVisible={codeContentVisible}
                 browserContentVisible={browserContentVisible}
-                dataContentVisible={dataContentVisible}
                 projectContentVisible={projectContentVisible}
                 handleSelectRepo={handleSelectRepo}
               />
@@ -193,17 +172,6 @@ const AppShell = React.memo(
           </div>
           {portsEnabled && <WorkspacePortScanner enabled />}
           {showStatusBar && <StatusBarRenderer />}
-          {!isAgentStation && !hideWorkstationDockForChatPanel && (
-            <StationDockChrome autoHide={dockAutoHide} showTopBorder>
-              <div data-guide-target={GUIDE_TARGETS.WORKSTATION_DOCK}>
-                <Dock
-                  segments={myStationDockSegments}
-                  activeApp={activeDockApp}
-                  onAppClick={handleDockClick}
-                />
-              </div>
-            </StationDockChrome>
-          )}
         </AgentStationChromeFrame>
       </div>
     );

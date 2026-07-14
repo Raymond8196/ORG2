@@ -4,13 +4,13 @@ import {
   ChevronLeft,
   Clipboard,
   FolderOutput,
-  GalleryThumbnails,
   Link2,
   ListChevronsDownUp,
   ListChevronsUpDown,
   Maximize2,
   MonitorPlay,
   MoreHorizontal,
+  PanelRight,
   Plus,
   RefreshCw,
   Search,
@@ -336,10 +336,7 @@ export function ChatPanelHeader({
             onClick={handleChatFocusToggle}
           >
             {isChatFocus ? (
-              <GalleryThumbnails
-                size={HEADER_ICON_SIZE.md}
-                strokeWidth={1.75}
-              />
+              <PanelRight size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
             ) : (
               <Maximize2 size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
             )}

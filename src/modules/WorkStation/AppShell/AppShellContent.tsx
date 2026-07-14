@@ -4,11 +4,15 @@ import { useTranslation } from "react-i18next";
 
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
-import { activeWorkStationTabAtom } from "@src/store/workstation/tabs";
+import {
+  activeWorkStationTabAtom,
+  mainPaneTabsAtom,
+} from "@src/store/workstation/tabs";
 
 import CodeEditor from "../CodeEditor";
 import { LspInstallPrompt } from "../CodeEditor/LspInstallPrompt";
 import { WORK_STATION_PLACEHOLDER_PAGE_BG_CLASS } from "../shared/tokens";
+import { WorkStationStartPage } from "./StartPage";
 
 const ProjectManagerCore = React.lazy(
   () =>
@@ -17,7 +21,6 @@ const ProjectManagerCore = React.lazy(
     )
 );
 const Browser = React.lazy(() => import("../Browser"));
-const DatabaseManager = React.lazy(() => import("../DatabaseManager"));
 const ActivitySimulator = React.lazy(() =>
   import("@src/engines/Simulator").then((module) => ({
     default: module.ActivitySimulator,
@@ -34,16 +37,13 @@ interface AppShellContentProps {
   isAgentStation: boolean;
   hasVisitedAgentStation: boolean;
   hasVisitedCode: boolean;
-  hasVisitedData: boolean;
   hasVisitedBrowser: boolean;
   hasVisitedProject: boolean;
   isCodeMode: boolean;
-  isDataMode: boolean;
   isBrowserMode: boolean;
   isProjectMode: boolean;
   codeContentVisible: boolean;
   browserContentVisible: boolean;
-  dataContentVisible: boolean;
   projectContentVisible: boolean;
   handleSelectRepo: () => void;
 }
@@ -69,21 +69,24 @@ export function AppShellContent({
   isAgentStation,
   hasVisitedAgentStation,
   hasVisitedCode,
-  hasVisitedData,
   hasVisitedBrowser,
   hasVisitedProject,
   isCodeMode,
-  isDataMode,
   isBrowserMode,
   isProjectMode,
   codeContentVisible,
   browserContentVisible,
-  dataContentVisible,
   projectContentVisible,
   handleSelectRepo,
 }: AppShellContentProps) {
   const { t } = useTranslation();
   const activeTab = useAtomValue(activeWorkStationTabAtom);
+  const noTabs = useAtomValue(mainPaneTabsAtom).length === 0;
+  // The Browser host is pinned outside the `mainPane` pool, so when it's the
+  // active surface the pool can still read as "start"/empty — don't let the
+  // launcher paint over it.
+  const showStartPage =
+    !isBrowserMode && (activeTab?.type === "start" || noTabs);
   const activeTabCanRenderWithoutRepo =
     activeTab?.type === "agent-config" ||
     activeTab?.type === "chat-session" ||
@@ -139,40 +142,50 @@ export function AppShellContent({
         className="h-full w-full"
         style={{ display: isAgentStation ? "none" : "contents" }}
       >
+        {/*
+          Empty-pool start page. The hosts below stay MOUNTED (hidden) even
+          when the launcher is showing so their side effects keep running —
+          in particular the Browser host owns the new-session effect that
+          turns a "New Browser Tab" request into a live session. We toggle
+          visibility against the start page rather than unmounting them.
+        */}
+        {!isAgentStation && (
+          <div
+            className="h-full w-full"
+            style={{ display: showStartPage ? "block" : "none" }}
+          >
+            <WorkStationStartPage />
+          </div>
+        )}
         {(isCodeMode || hasVisitedCode) && (
           <div
             className="relative h-full w-full"
             data-tour-target={CODE_EDITOR_TOUR_TARGETS.editorSurface}
-            style={{ display: codeContentVisible ? "block" : "none" }}
+            style={{
+              display: !showStartPage && codeContentVisible ? "block" : "none",
+            }}
           >
             {renderCodeEditor()}
-            {codeContentVisible && isActive && !isAgentStation && (
-              <LspInstallPrompt />
-            )}
-          </div>
-        )}
-
-        {(isDataMode || hasVisitedData) && (
-          <div
-            className="h-full w-full"
-            style={{ display: dataContentVisible ? "block" : "none" }}
-          >
-            <Suspense fallback={<AppShellLoadingPlaceholder />}>
-              <DatabaseManager repoPath={repoPath} repoName={repoName} />
-            </Suspense>
+            {!showStartPage &&
+              codeContentVisible &&
+              isActive &&
+              !isAgentStation && <LspInstallPrompt />}
           </div>
         )}
 
         {(isBrowserMode || hasVisitedBrowser) && (
           <div
             className="h-full w-full"
-            style={{ display: browserContentVisible ? "block" : "none" }}
+            style={{
+              display:
+                !showStartPage && browserContentVisible ? "block" : "none",
+            }}
           >
             <Suspense fallback={<AppShellLoadingPlaceholder />}>
               <Browser
                 repoPath={repoPath}
                 repoName={repoName}
-                isActive={isActive && browserContentVisible}
+                isActive={isActive && !showStartPage && browserContentVisible}
               />
             </Suspense>
           </div>
@@ -181,7 +194,10 @@ export function AppShellContent({
         {(isProjectMode || hasVisitedProject) && (
           <div
             className="h-full w-full"
-            style={{ display: projectContentVisible ? "block" : "none" }}
+            style={{
+              display:
+                !showStartPage && projectContentVisible ? "block" : "none",
+            }}
           >
             <Suspense fallback={<AppShellLoadingPlaceholder />}>
               <ProjectManagerCore repoPath={repoPath} repoName={repoName} />

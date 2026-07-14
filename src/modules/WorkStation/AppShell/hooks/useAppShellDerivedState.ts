@@ -12,44 +12,35 @@ import { useActiveTabHostReconciliation } from "./useActiveTabHostReconciliation
 export interface AppShellDerivedState {
   effectiveHost: string;
   isCodeMode: boolean;
-  isDataMode: boolean;
   isBrowserMode: boolean;
   isProjectMode: boolean;
   codeContentVisible: boolean;
   browserContentVisible: boolean;
-  dataContentVisible: boolean;
   projectContentVisible: boolean;
 }
 
 function isWorkStationHost(host: string): host is Exclude<DockFilter, "all"> {
-  return (
-    host === "code" ||
-    host === "browser" ||
-    host === "data" ||
-    host === "project"
-  );
+  return host === "code" || host === "browser" || host === "project";
 }
 
-export function useAppShellDerivedState({
-  dockFilter,
-}: {
-  dockFilter: DockFilter;
-}): AppShellDerivedState {
-  const activeHost = useAtomValue(activeHostAtom);
-  const effectiveHost = dockFilter === "all" ? activeHost : dockFilter;
+export function useAppShellDerivedState(): AppShellDerivedState {
+  // Unified surface: the content host simply follows the active tab's host.
+  // Browser sessions live in `mainPane` (as `browser-session` tabs), so a
+  // browser tab makes `activeHost` "browser" on its own — no host pin needed,
+  // and closing the last tab lands back on the Launchpad instead of a
+  // stranded empty host.
+  const effectiveHost = useAtomValue(activeHostAtom);
 
   useActiveTabHostReconciliation(
     isWorkStationHost(effectiveHost) ? effectiveHost : null
   );
 
   const isCodeMode = effectiveHost === "code";
-  const isDataMode = effectiveHost === "data";
   const isBrowserMode = effectiveHost === "browser";
   const isProjectMode = effectiveHost === "project";
 
   const codeContentVisible = isCodeMode;
   const browserContentVisible = isBrowserMode;
-  const dataContentVisible = isDataMode;
   const projectContentVisible = isProjectMode;
 
   const setActiveStatusBarApp = useSetAtom(activeStatusBarAppAtom);
@@ -57,8 +48,6 @@ export function useAppShellDerivedState({
     let appType: StatusBarAppType;
     if (effectiveHost === "browser") {
       appType = "browser";
-    } else if (effectiveHost === "data") {
-      appType = "data";
     } else if (effectiveHost === "project") {
       appType = "project";
     } else {
@@ -70,12 +59,10 @@ export function useAppShellDerivedState({
   return {
     effectiveHost,
     isCodeMode,
-    isDataMode,
     isBrowserMode,
     isProjectMode,
     codeContentVisible,
     browserContentVisible,
-    dataContentVisible,
     projectContentVisible,
   };
 }

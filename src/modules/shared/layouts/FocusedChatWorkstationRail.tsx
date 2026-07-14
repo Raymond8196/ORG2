@@ -3,36 +3,40 @@ import {
   ChevronsLeft,
   ChevronsRight,
   File,
-  GitBranch,
+  FileDiff,
+  Folder,
   Globe,
   type LucideIcon,
   SquareTerminal,
   X,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { IconButton } from "@src/components/IconButton";
+import {
+  KEYBOARD_SHORTCUT_VARIANT,
+  KeyboardShortcut,
+} from "@src/components/KeyboardShortcut";
+import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { ROUTES } from "@src/config/routes";
 import { getTerminalDisplayTitle } from "@src/engines/TerminalCore/types";
 import { useCloseTabWithGuard } from "@src/hooks/workStation/tabs/useCloseTabWithGuard";
+import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import {
   CHAT_PANEL_SURFACE_KIND,
   activeChatPanelSurfaceAtom,
   chatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
-import {
-  type BottomPanelTab,
-  type PrimarySidebarTabKey,
-  workStationBottomPanelTabPersistAtom,
-  workStationEditorSecondaryCollapsedPersistAtom,
-  workStationPrimarySidebarCollapsedPersistAtom,
-  workStationPrimarySidebarTabAtom,
-} from "@src/store/ui/workStationAtom";
 import { activeWorkspaceRootAtom } from "@src/store/workspace";
-import { type DockFilter, dockFilterAtom } from "@src/store/workstation";
+import {
+  type DockFilter,
+  dockFilterAtom,
+  requestNewBrowserSessionAtom,
+} from "@src/store/workstation";
 import {
   initializedTerminalIdsAtom,
   setActiveTerminalAtom,
@@ -58,6 +62,8 @@ type FocusedChatRailItem = {
   key: string;
   label: string;
   icon: LucideIcon;
+  /** Keyboard hint shown in the expanded view (e.g. "⌘E"). */
+  shortcut?: string;
   fileName?: string;
   onClick?: () => void;
   onClose?: () => void;
@@ -67,7 +73,6 @@ const WORKSTATION_HOST_ROUTES: Record<DockFilter, string> = {
   all: ROUTES.workStation.base.path,
   code: ROUTES.workStation.code.path,
   browser: ROUTES.workStation.browser.path,
-  data: ROUTES.workStation.database.path,
   project: ROUTES.workStation.project.path,
 };
 
@@ -107,6 +112,7 @@ function persistRailCollapsed(collapsed: boolean): void {
 }
 
 export function FocusedChatWorkstationRail() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(getStoredRailCollapsed);
 
@@ -127,14 +133,7 @@ export function FocusedChatWorkstationRail() {
   const setStationMode = useSetAtom(stationModeAtom);
   const setChatPanelMaximized = useSetAtom(chatPanelMaximizedAtom);
   const setDockFilter = useSetAtom(dockFilterAtom);
-  const setPrimarySidebarTab = useSetAtom(workStationPrimarySidebarTabAtom);
-  const setPrimarySidebarCollapsed = useSetAtom(
-    workStationPrimarySidebarCollapsedPersistAtom
-  );
-  const setBottomPanelTab = useSetAtom(workStationBottomPanelTabPersistAtom);
-  const setBottomPanelCollapsed = useSetAtom(
-    workStationEditorSecondaryCollapsedPersistAtom
-  );
+  const requestNewBrowserSession = useSetAtom(requestNewBrowserSessionAtom);
 
   const visibleTabs = useMemo(
     () => tabEntries.filter(({ tab }) => !tab.hideWhenOthersExist),
@@ -200,10 +199,7 @@ export function FocusedChatWorkstationRail() {
             : File,
       fileName: getRailTabFileName(tab),
       onClick: () => openWorkstationTab(tab),
-      onClose:
-        tab.closable === false
-          ? undefined
-          : () => void closeTab({ tabId: tab.id }),
+      onClose: () => void closeTab({ tabId: tab.id }),
     }));
 
     return [...tabItems, ...terminalItems];
@@ -216,69 +212,54 @@ export function FocusedChatWorkstationRail() {
     terminalSessions,
   ]);
 
-  const handlePrimarySidebarClick = useCallback(
-    (tab: PrimarySidebarTabKey) => {
-      setPrimarySidebarTab(tab);
-      setPrimarySidebarCollapsed(false);
-      openWorkstationHost("code");
-    },
-    [openWorkstationHost, setPrimarySidebarCollapsed, setPrimarySidebarTab]
-  );
-
-  const handleBottomPanelClick = useCallback(
-    (tab: BottomPanelTab) => {
-      setBottomPanelTab(tab);
-      setBottomPanelCollapsed(false);
-      openWorkstationHost("code");
-    },
-    [openWorkstationHost, setBottomPanelCollapsed, setBottomPanelTab]
-  );
-
-  const sourceControlTab = visibleTabs.find(
-    ({ tab }) => tab.id === "source-control:changes"
-  );
   const browserTab = visibleTabs.find(
     ({ tab }) => tab.type === "browser-session"
   );
 
+  // Every rail action goes to the existing tab of its kind, or creates one —
+  // all through the unified tab system (WorkStationViewService / mainPane).
+  // Icons, labels, and keys mirror the Launchpad / `+` menu entries.
   const workspaceItems = useMemo<FocusedChatRailItem[]>(
     () => [
       {
         key: "changes",
-        label: "Changes",
-        icon: GitBranch,
-        onClick: sourceControlTab
-          ? () => openWorkstationTab(sourceControlTab.tab)
-          : () => openWorkstationHost("code"),
+        label: t("common:actions.review"),
+        icon: FileDiff,
+        shortcut: getShortcutKeys("open_source_control_tab"),
+        onClick: () => void WorkStationViewService.openSourceControlTab(),
       },
       {
         key: "browser",
-        label: "Browser",
+        label: t("navigation:labels.browser"),
         icon: Globe,
         onClick: browserTab
           ? () => openWorkstationTab(browserTab.tab)
-          : () => openWorkstationHost("browser"),
+          : () => {
+              openWorkstationHost("browser");
+              requestNewBrowserSession({});
+            },
       },
       {
         key: "terminal",
-        label: "Terminal",
+        label: t("common:tabs.terminal"),
         icon: SquareTerminal,
-        onClick: () => handleBottomPanelClick("terminal"),
+        shortcut: getShortcutKeys("open_terminal_tab"),
+        onClick: () => void WorkStationViewService.openTerminalTab(),
       },
       {
         key: "files",
-        label: "Files",
-        icon: File,
-        onClick: () => handlePrimarySidebarClick("files"),
+        label: t("common:labels.files"),
+        icon: Folder,
+        shortcut: getShortcutKeys("open_file_folder_tab"),
+        onClick: () => void WorkStationViewService.openFileFolderTab(),
       },
     ],
     [
+      t,
       browserTab,
-      handleBottomPanelClick,
-      handlePrimarySidebarClick,
       openWorkstationHost,
       openWorkstationTab,
-      sourceControlTab,
+      requestNewBrowserSession,
     ]
   );
 
@@ -382,6 +363,12 @@ export function FocusedChatWorkstationRail() {
                         <span className="min-w-0 flex-1 truncate text-[12px]">
                           {item.label}
                         </span>
+                        {item.shortcut ? (
+                          <KeyboardShortcut
+                            shortcut={item.shortcut}
+                            variant={KEYBOARD_SHORTCUT_VARIANT.dropdown}
+                          />
+                        ) : null}
                         {item.onClose && (
                           <IconButton
                             size="sm"

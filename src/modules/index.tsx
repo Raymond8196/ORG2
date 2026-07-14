@@ -65,7 +65,6 @@ import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
   sessionChatPositionAtom,
   workStationChatPositionAtom,
-  workStationDockAutoHidePersistAtom,
 } from "@src/store/ui/workStationAtom";
 import { dockFilterAtom } from "@src/store/workstation";
 import { prewarmColor } from "@src/util/ui/theme/glassMaterial";
@@ -254,7 +253,6 @@ const AppShell = () => {
   const setStationMode = useSetAtom(stationModeAtom);
   const setSidebarCollapsed = useSetAtom(sidebarCollapsedAtom);
   const setStationChatVisibility = useSetAtom(stationChatVisibilityAtom);
-  const setDockAutoHide = useSetAtom(workStationDockAutoHidePersistAtom);
   const setDockFilter = useSetAtom(dockFilterAtom);
   const [tutorialsModalOpen, setTutorialsModalOpen] = useState(false);
   const [generalLayoutTourOpen, setGeneralLayoutTourOpen] = useState(false);
@@ -289,7 +287,6 @@ const AppShell = () => {
       "my-station": true,
     }));
     restoreChatWidth();
-    setDockAutoHide(false);
     setDockFilter("all");
     setGeneralLayoutTourRunId((value) => value + 1);
     window.setTimeout(() => setGeneralLayoutTourOpen(true), 220);
@@ -298,7 +295,6 @@ const AppShell = () => {
     navigate,
     restoreChatWidth,
     setChatPanelMaximized,
-    setDockAutoHide,
     setDockFilter,
     setSidebarCollapsed,
     setStationChatVisibility,
@@ -318,7 +314,6 @@ const AppShell = () => {
       "my-station": true,
     }));
     restoreChatWidth();
-    setDockAutoHide(false);
     setDockFilter("code");
     setCodeEditorTourRunId((value) => value + 1);
     window.setTimeout(() => setCodeEditorTourOpen(true), 240);
@@ -327,7 +322,6 @@ const AppShell = () => {
     navigate,
     restoreChatWidth,
     setChatPanelMaximized,
-    setDockAutoHide,
     setDockFilter,
     setSidebarCollapsed,
     setStationChatVisibility,
