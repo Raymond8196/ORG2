@@ -775,7 +775,8 @@
       "tabs": {
         "work": "Çalışma",
         "manage": "Yönet",
-        "heatmap": "Trendler"
+        "heatmap": "Trendler",
+        "runtime": "Çalışma zamanı"
       },
       "heatmap": {
         "loading": "Etkinlik trendleri yükleniyor…",

@@ -774,7 +774,8 @@
       "tabs": {
         "work": "작업",
         "manage": "관리",
-        "heatmap": "추세"
+        "heatmap": "추세",
+        "runtime": "런타임"
       },
       "heatmap": {
         "loading": "활동 추세 로드 중…",

@@ -38,6 +38,7 @@ import {
   requestNewBrowserSessionAtom,
 } from "@src/store/workstation";
 import {
+  closeTerminalSessionAtom,
   initializedTerminalIdsAtom,
   setActiveTerminalAtom,
   terminalSessionsAtom,
@@ -83,8 +84,6 @@ function getRailTabFileName(tab: WorkStationTab): string | undefined {
       return (tab.data.filePath as string | undefined) || tab.title;
     case "directory":
       return "folder";
-    case "terminal":
-      return "terminal.sh";
     case "output":
       return "output.log";
     case "settings":
@@ -130,6 +129,8 @@ export function FocusedChatWorkstationRail() {
   const setFocusedTab = useSetAtom(focusTabAtom);
   const setActiveTerminal = useSetAtom(setActiveTerminalAtom);
   const setTerminalTarget = useSetAtom(codeEditorTerminalTargetAtom);
+  const terminalTarget = useAtomValue(codeEditorTerminalTargetAtom);
+  const closeTerminalSession = useSetAtom(closeTerminalSessionAtom);
   const setStationMode = useSetAtom(stationModeAtom);
   const setChatPanelMaximized = useSetAtom(chatPanelMaximizedAtom);
   const setDockFilter = useSetAtom(dockFilterAtom);
@@ -173,6 +174,22 @@ export function FocusedChatWorkstationRail() {
     [openWorkstationHost, setActiveTerminal, setFocusedTab, setTerminalTarget]
   );
 
+  // Kill a terminal session the same way the terminal sidebar does:
+  // close the PTY (killPty + local removal) and drop the terminal target
+  // when the session being killed is the active one.
+  const closePtySession = useCallback(
+    (sessionId: string) => {
+      void closeTerminalSession(sessionId);
+      if (
+        terminalTarget?.kind === "pty" &&
+        terminalTarget.ptySessionId === sessionId
+      ) {
+        setTerminalTarget(null);
+      }
+    },
+    [closeTerminalSession, setTerminalTarget, terminalTarget]
+  );
+
   const openTabItems = useMemo<FocusedChatRailItem[]>(() => {
     const terminalItems = terminalSessions
       .filter(
@@ -186,24 +203,35 @@ export function FocusedChatWorkstationRail() {
         label: getTerminalDisplayTitle(session),
         icon: SquareTerminal,
         onClick: () => openTerminalSession(session.id),
+        onClose: () => closePtySession(session.id),
       }));
 
-    const tabItems = openTabs.slice(0, 6).map(({ tab }) => ({
-      key: tab.id,
-      label: tab.title,
-      icon:
-        tab.type === "terminal"
-          ? SquareTerminal
-          : tab.type === "browser-session"
-            ? Globe
-            : File,
-      fileName: getRailTabFileName(tab),
-      onClick: () => openWorkstationTab(tab),
-      onClose: () => void closeTab({ tabId: tab.id }),
-    }));
+    // Excluded from Open Tabs:
+    // - "terminal": running terminal sessions (with foreground process names +
+    //   kill action) are shown instead, mirroring the terminal sidebar.
+    // - "start" (Launchpad) and "explorer" (the "Files" home tab): neither
+    //   points at a specific file, so they're noise here. Opening an actual
+    //   file spawns a "file" tab, which is kept.
+    const tabItems = openTabs
+      .filter(
+        ({ tab }) =>
+          tab.type !== "terminal" &&
+          tab.type !== "start" &&
+          tab.type !== "explorer"
+      )
+      .slice(0, 6)
+      .map(({ tab }) => ({
+        key: tab.id,
+        label: tab.title,
+        icon: tab.type === "browser-session" ? Globe : File,
+        fileName: getRailTabFileName(tab),
+        onClick: () => openWorkstationTab(tab),
+        onClose: () => void closeTab({ tabId: tab.id }),
+      }));
 
     return [...tabItems, ...terminalItems];
   }, [
+    closePtySession,
     closeTab,
     initializedTerminalIds,
     openTabs,
