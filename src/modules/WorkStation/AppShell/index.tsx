@@ -30,6 +30,7 @@ import { useAppShellSimulatorPanelSync } from "./hooks/useAppShellSimulatorPanel
 import { useAppShellStationMode } from "./hooks/useAppShellStationMode";
 import { useAppShellStatusBar } from "./hooks/useAppShellStatusBar";
 import { useLaunchpadTab } from "./hooks/useLaunchpadTab";
+import { useTerminalTabTeardown } from "./hooks/useTerminalTabTeardown";
 
 interface AppShellProps {
   /** Whether WorkStation is currently visible (code view mode is active) */
@@ -75,6 +76,9 @@ const AppShell = React.memo(
     // it once real tabs exist (regular WorkStation only — Agent Station has
     // its own surface).
     useLaunchpadTab(!isAgentStation);
+
+    // Closing the Terminal tab kills all running PTYs (VS Code-style).
+    useTerminalTabTeardown();
 
     const workStationPanels = useWorkStationPanels();
     useAppShellSimulatorPanelSync({ isAgentStation, workStationPanels });
