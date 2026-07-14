@@ -227,14 +227,9 @@ export {
   SimulatorAgentChip,
   SimulatorAppSwitcherChip,
   SimulatorTabBarLeading,
-  TabBarWorkStationAppSwitcherChip,
-  WorkStationAppSwitcherChip,
   WorkStationTabBarLeading,
 } from "./AppSwitcherWrappers";
-export {
-  useSimulatorAppSwitcher,
-  useWorkStationAppSwitcher,
-} from "./useAppSwitcherData";
+export { useSimulatorAppSwitcher } from "./useAppSwitcherData";
 export type { AppSwitcherChipData } from "./useAppSwitcherData";
 
 // Sidebar collapse toggle (lives in tab bar trailing slots)
