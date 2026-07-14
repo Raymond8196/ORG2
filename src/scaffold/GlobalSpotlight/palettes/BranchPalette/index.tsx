@@ -9,7 +9,7 @@
  * (`gitApi.getGitBranches`) and share the centralized branch cache to
  * prevent redundant calls.
  */
-import { Folder, Plus } from "lucide-react";
+import { Folder, FolderPlus } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -54,7 +54,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     repoPath,
     isLocalRepo: true,
   });
-  const items = React.useMemo<SpotlightItem[]>(
+  const allItems = React.useMemo<SpotlightItem[]>(
     () =>
       worktrees.map((worktree) => {
         const path = normalizeWorktreePath(worktree.path);
@@ -74,9 +74,6 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
           data: {
             isSelector: true,
             isCurrentSelection: isSelected,
-            inlineTag: worktree.is_main
-              ? t("selectors.branch.labels.mainWorktree", "Main")
-              : undefined,
             rightContent: isSelected ? (
               <span
                 className={`${SPOTLIGHT_CLASSES.primaryPill} ${SPOTLIGHT_TOKENS.badgeFontSize} shrink-0 font-medium`}
@@ -92,15 +89,63 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       }),
     [activePath, onClose, onSelect, repoPath, t, worktrees]
   );
+  // The main worktree is grouped separately from linked (secondary) ones.
+  const mainWorktreeIds = React.useMemo(
+    () =>
+      new Set(
+        worktrees
+          .filter((worktree) => worktree.is_main)
+          .map((worktree) => `worktree:${normalizeWorktreePath(worktree.path)}`)
+      ),
+    [worktrees]
+  );
+  const { filteredItems } = useFilteredItems({
+    items: allItems,
+    searchQuery,
+    getSearchText: (item) => `${item.label} ${item.desc ?? ""}`,
+  });
+  const sectionedItems = React.useMemo<SpotlightItem[]>(() => {
+    const header = (id: string, label: string): SpotlightItem => ({
+      id,
+      label,
+      desc: "",
+      icon: "",
+      type: "option" as const,
+      data: { isHeader: true },
+      action: () => {},
+    });
+    const mainItems = filteredItems.filter((item) =>
+      mainWorktreeIds.has(item.id)
+    );
+    const linkedItems = filteredItems.filter(
+      (item) => !mainWorktreeIds.has(item.id)
+    );
+    const list: SpotlightItem[] = [];
+    if (mainItems.length > 0) {
+      list.push(
+        header(
+          "worktree:header-main",
+          t("selectors.branch.labels.mainWorktreeSection", "Main worktree")
+        ),
+        ...mainItems
+      );
+    }
+    if (linkedItems.length > 0) {
+      list.push(
+        header(
+          "worktree:header-linked",
+          t("selectors.branch.labels.linkedWorktrees", "Linked worktrees")
+        ),
+        ...linkedItems
+      );
+    }
+    return list;
+  }, [filteredItems, mainWorktreeIds, t]);
   const createAction = React.useMemo<SpotlightItem>(
     () => ({
       id: "worktree:new",
       label: t("selectors.branch.actions.newWorktree", "New Worktree..."),
-      desc: t(
-        "selectors.branch.actions.newWorktreeDesc",
-        "Create from a branch, PR, issue, or name"
-      ),
-      icon: Plus,
+      icon: FolderPlus,
       type: "action",
       data: { showDisclosureChevron: true },
       action: () => setCreateModalOpen(true),
@@ -108,8 +153,8 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     [t]
   );
   const selectableItems = React.useMemo<SpotlightItem[]>(
-    () => (onCreate ? [...items, createAction] : items),
-    [createAction, items, onCreate]
+    () => (onCreate ? [...sectionedItems, createAction] : sectionedItems),
+    [createAction, onCreate, sectionedItems]
   );
   const kernel = useSelectorKernel({
     isOpen,
@@ -117,20 +162,15 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     items: selectableItems,
     hasModalState: true,
     onGoBack: onGoBackToParent ?? onClose,
-    isItemSelectable: () => true,
+    isItemSelectable: (item) => !item.data?.isHeader,
     externalSearchQuery: searchQuery,
     externalSetSearchQuery: setSearchQuery,
-  });
-  const { filteredItems } = useFilteredItems({
-    items,
-    searchQuery,
-    getSearchText: (item) => `${item.label} ${item.desc ?? ""}`,
   });
 
   const pinnedActionSection = onCreate ? (
     <SpotlightPinnedActionSection
       items={[createAction]}
-      startIndex={items.length}
+      startIndex={sectionedItems.length}
       selectedIndex={kernel.selectedIndex}
       onItemSelect={kernel.handleItemClick}
       onItemHover={kernel.setSelectedIndex}
@@ -149,7 +189,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
   const body = (
     <PaletteBody
       kernel={kernel}
-      items={filteredItems}
+      items={sectionedItems}
       placeholder={t(
         "selectors.spotlight.placeholders.worktree",
         "Search worktree..."

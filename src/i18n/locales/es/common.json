@@ -1371,8 +1371,7 @@
         "checkoutDetachedSuccess": "En estado detached HEAD en el commit actual",
         "checkoutDetachedFailed": "Error al hacer checkout detached HEAD",
         "removeWorktree": "Eliminar Worktree",
-        "newWorktree": "Nuevo worktree...",
-        "newWorktreeDesc": "Crear desde una rama, PR, incidencia o nombre"
+        "newWorktree": "Nuevo worktree..."
       },
       "messages": {
         "deletedCount_one": "{{count}} rama eliminada",
@@ -1387,7 +1386,9 @@
         "basedOn": "Basado en",
         "worktrees": "Worktrees",
         "worktreeInUse": "En uso",
-        "checkedOutInWorktree": "Checkout en Worktree: {{path}}"
+        "checkedOutInWorktree": "Checkout en Worktree: {{path}}",
+        "mainWorktreeSection": "Worktree principal",
+        "linkedWorktrees": "Worktrees vinculados"
       },
       "placeholders": {
         "checkout": "rama",

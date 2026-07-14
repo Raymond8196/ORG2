@@ -1372,8 +1372,7 @@
         "checkoutDetachedSuccess": "현재 커밋에서 detached HEAD 상태입니다",
         "checkoutDetachedFailed": "detached HEAD 체크아웃 실패",
         "removeWorktree": "Worktree 제거",
-        "newWorktree": "새 Worktree...",
-        "newWorktreeDesc": "브랜치, PR, 이슈 또는 이름에서 생성"
+        "newWorktree": "새 Worktree..."
       },
       "messages": {
         "deletedCount_one": "브랜치 {{count}}개 삭제됨",
@@ -1388,7 +1387,9 @@
         "basedOn": "기준",
         "worktrees": "Worktrees",
         "worktreeInUse": "사용 중",
-        "checkedOutInWorktree": "Worktree에서 체크아웃됨: {{path}}"
+        "checkedOutInWorktree": "Worktree에서 체크아웃됨: {{path}}",
+        "mainWorktreeSection": "메인 Worktree",
+        "linkedWorktrees": "연결된 Worktree"
       },
       "placeholders": {
         "checkout": "브랜치",

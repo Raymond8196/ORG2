@@ -1372,8 +1372,7 @@
         "checkoutDetachedSuccess": "Đang ở trạng thái detached HEAD tại commit hiện tại",
         "checkoutDetachedFailed": "Checkout detached HEAD thất bại",
         "removeWorktree": "Xóa Worktree",
-        "newWorktree": "Worktree mới...",
-        "newWorktreeDesc": "Tạo từ nhánh, PR, issue hoặc tên"
+        "newWorktree": "Worktree mới..."
       },
       "messages": {
         "deletedCount_one": "Đã xóa {{count}} nhánh",
@@ -1388,7 +1387,9 @@
         "basedOn": "Dựa trên",
         "worktrees": "Worktrees",
         "worktreeInUse": "Đang dùng",
-        "checkedOutInWorktree": "Đã checkout trong Worktree: {{path}}"
+        "checkedOutInWorktree": "Đã checkout trong Worktree: {{path}}",
+        "mainWorktreeSection": "Worktree chính",
+        "linkedWorktrees": "Worktree liên kết"
       },
       "placeholders": {
         "checkout": "nhánh",

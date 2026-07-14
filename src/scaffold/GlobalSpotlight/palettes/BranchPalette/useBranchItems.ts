@@ -53,7 +53,6 @@ export function useBranchItems(
       otherBranches:
         t("selectors.branch.labels.otherBranches") ||
         getLabel(BRANCH_PALETTE_CONFIG, "otherBranches"),
-      worktrees: t("selectors.branch.labels.worktrees"),
       current: t("selectors.branch.labels.current"),
       recent: t("selectors.branch.labels.recent"),
       currentCommit: t("selectors.branch.labels.currentCommit"),
@@ -252,7 +251,11 @@ export function useBranchItems(
     }
 
     // Checkout mode: show categorized branches with headers, including during search.
-    const categorized = categorizeBranches(filteredBranches);
+    // Worktree branches are excluded here — they have their own dedicated
+    // switcher (WorktreePalette), so listing them again would be redundant.
+    const categorized = categorizeBranches(
+      filteredBranches.filter((branch) => !branch.worktreePath)
+    );
 
     if (categorized.recent.length > 0) {
       result.push({
@@ -265,22 +268,6 @@ export function useBranchItems(
         action: () => {},
       });
       categorized.recent.forEach((branch) => {
-        result.push(createBranchItem(branch));
-      });
-    }
-
-    // Worktrees — branches checked out in a secondary git worktree.
-    if (categorized.worktrees.length > 0) {
-      result.push({
-        id: "__header_worktrees__",
-        label: labels.worktrees,
-        desc: "",
-        icon: "",
-        type: "option" as const,
-        data: { isHeader: true },
-        action: () => {},
-      });
-      categorized.worktrees.forEach((branch) => {
         result.push(createBranchItem(branch));
       });
     }
