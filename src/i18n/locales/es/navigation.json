@@ -352,7 +352,7 @@
     "plusMenu": {
       "title": "Nueva pestaña",
       "searchFile": "Buscar archivo",
-      "searchSessions": "Kanban",
+      "searchSessions": "Tablero Kanban",
       "newBrowserTab": "Nueva pestaña del navegador",
       "newPrivateBrowserTab": "Nueva pestaña privada del navegador",
       "workItems": "Elementos de trabajo",
