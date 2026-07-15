@@ -839,6 +839,7 @@
     "defaultTitle": "チャット",
     "hideChatPanel": "チャットパネルを非表示",
     "showTokenUsage": "Token を表示",
+    "showStatusBar": "ステータスバーを表示",
     "compactDisplayMode": "コンパクトモード",
     "replay": {
       "follow": "フォロー"

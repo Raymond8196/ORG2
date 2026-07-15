@@ -215,7 +215,7 @@ chatTokenUsageVisibleAtom.debugLabel = "chatTokenUsageVisibleAtom";
 /** Whether the chat pane's bottom status bar (repo · branch · context) shows. */
 export const chatStatusBarVisibleAtom = atomWithStorage<boolean>(
   "orgii:chatStatusBarVisible",
-  true,
+  false,
   undefined,
   { getOnInit: true }
 );

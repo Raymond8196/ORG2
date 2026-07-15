@@ -837,6 +837,7 @@
     "defaultTitle": "Chat",
     "hideChatPanel": "Ẩn bảng trò chuyện",
     "showTokenUsage": "Hiển thị Token",
+    "showStatusBar": "Hiển thị thanh trạng thái",
     "compactDisplayMode": "Chế độ gọn",
     "replay": {
       "follow": "Theo dõi"
