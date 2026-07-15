@@ -556,6 +556,28 @@ export function createAIImpactTab(): WorkStationTab {
   return aiImpactTabFactory({});
 }
 
+// ============================================
+// Search Sessions Tab (singleton)
+// ============================================
+
+/**
+ * Session search tab — a self-contained view that reuses the shared
+ * `SessionTable` (search box + table) over all sessions. Singleton so
+ * re-launching it from the Launchpad focuses the existing tab.
+ */
+export const searchSessionsTabFactory = defineTabFactory<Record<string, never>>(
+  {
+    tabType: "search-sessions",
+    idStrategy: { type: "singleton", id: "search-sessions:main" },
+    getTitle: () => "Kanban",
+    icon: "LayoutGrid",
+  }
+);
+
+export function createSearchSessionsTab(): WorkStationTab {
+  return searchSessionsTabFactory({});
+}
+
 export interface BenchmarkTabData {
   batchId?: string;
   selectedTaskId?: string;

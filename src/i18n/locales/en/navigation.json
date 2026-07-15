@@ -63,6 +63,7 @@
     "plusMenu": {
       "title": "New tab",
       "searchFile": "Search file",
+      "searchSessions": "Kanban",
       "newBrowserTab": "New browser tab",
       "newPrivateBrowserTab": "New private browser tab",
       "workItems": "Work items",

@@ -350,6 +350,7 @@
     "plusMenu": {
       "title": "Thẻ mới",
       "searchFile": "Tìm tệp",
+      "searchSessions": "Kanban",
       "newBrowserTab": "Thẻ trình duyệt mới",
       "newPrivateBrowserTab": "Thẻ trình duyệt ẩn danh mới",
       "workItems": "Mục công việc",

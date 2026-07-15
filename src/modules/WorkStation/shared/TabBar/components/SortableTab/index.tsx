@@ -261,6 +261,8 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
       switch (tab.type) {
         case "start":
           return t("navigation:routes.launchpad");
+        case "search-sessions":
+          return t("navigation:workstation.plusMenu.searchSessions");
         case "explorer":
           return t("common:labels.files");
         case "source-control":
