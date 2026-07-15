@@ -5237,7 +5237,6 @@ dependencies = [
  "serde_json",
  "sha2",
  "similar",
- "warp_multi_agent_api",
 ]
 
 [[package]]
@@ -6061,31 +6060,9 @@ checksum = "01b80ea363c31af2de2b92e3c07ed1156628f7838c4afb4df75ee78a37fedbd1"
 dependencies = [
  "base64 0.22.1",
  "prost",
- "prost-reflect-derive",
  "prost-types",
  "serde",
  "serde-value",
-]
-
-[[package]]
-name = "prost-reflect-build"
-version = "0.16.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95a9e8261adf6617d5dc2a5a9e75cce5ab9d546a007f6f870f809a1ad25386b6"
-dependencies = [
- "prost-build",
- "prost-reflect",
-]
-
-[[package]]
-name = "prost-reflect-derive"
-version = "0.16.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30320eb03b43b7dfcaf9b361f808a4f1adad1e718ad219df1d7e4283e34e73f5"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
 ]
 
 [[package]]
@@ -9554,18 +9531,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa7760aed19e106de2c7c0b581b509f2f25d3dacaf737cb82ac61bc6d760b0e"
 dependencies = [
  "try-lock",
-]
-
-[[package]]
-name = "warp_multi_agent_api"
-version = "0.0.0"
-source = "git+https://github.com/warpdotdev/warp-proto-apis.git?rev=2d0e8ddf5a946a663f7e0952144ccbced0068a81#2d0e8ddf5a946a663f7e0952144ccbced0068a81"
-dependencies = [
- "prost",
- "prost-reflect",
- "prost-reflect-build",
- "prost-types",
- "regex",
 ]
 
 [[package]]
