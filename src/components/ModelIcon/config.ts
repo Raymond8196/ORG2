@@ -64,9 +64,11 @@ import PiIcon from "@src/assets/modelIcons/pi.svg";
 import QwenIcon from "@src/assets/modelIcons/qwen.svg";
 import RovoIcon from "@src/assets/modelIcons/rovo.svg";
 import SiliconFlowIcon from "@src/assets/modelIcons/siliconflow.svg";
+import TraeIcon from "@src/assets/modelIcons/trae.svg";
 import VllmIcon from "@src/assets/modelIcons/vllm.svg";
 import VolcengineIcon from "@src/assets/modelIcons/volcengine.svg";
 import WarpIcon from "@src/assets/modelIcons/warp.svg";
+import WindsurfIcon from "@src/assets/modelIcons/windsurf.svg";
 import WorkBuddyIcon from "@src/assets/modelIcons/workbuddy.svg";
 import XaiIcon from "@src/assets/modelIcons/xai.svg";
 import XiaomiIcon from "@src/assets/modelIcons/xiaomi.svg";
@@ -74,8 +76,6 @@ import YiIcon from "@src/assets/modelIcons/yi.svg";
 import ZcodeIcon from "@src/assets/modelIcons/zcode.svg";
 import ZenMuxIcon from "@src/assets/modelIcons/zenmux.svg";
 import ZhipuIcon from "@src/assets/modelIcons/zhipu.svg";
-import TraeIcon from "@src/assets/softwareIcons/trae.svg";
-import WindsurfIcon from "@src/assets/softwareIcons/windsurf.svg";
 
 // ============================================
 // Types
