@@ -23,6 +23,7 @@ agent_core = { path = "../agent-core" }
 app_paths = { path = "../app-paths" }
 database = { path = "../database" }
 git = { path = "../git" }
+core_types = { path = "../types" }
 
 # Tauri runtime (for the 23 `#[tauri::command]`s) + tokio for the
 # `spawn_blocking` calls that gate sqlite access off the async runtime.

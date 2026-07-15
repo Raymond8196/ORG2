@@ -29,6 +29,7 @@ mod sequence;
 pub mod token_usage;
 pub mod tool_usage;
 mod turn_files;
+mod turn_git_artifacts;
 mod turn_index;
 mod turn_index_debounce;
 pub mod turn_intents;

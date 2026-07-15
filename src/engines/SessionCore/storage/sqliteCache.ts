@@ -16,6 +16,7 @@ import { rpc } from "@src/api/tauri/rpc";
 import { parseSessionSpecsJson } from "../core/schemas";
 import type {
   EventPayloadBody,
+  ExtractedGitArtifactData,
   ReplayTimeRange,
   SessionEvent,
   SessionSpec,
@@ -94,6 +95,7 @@ export interface TurnSummary {
   status: TurnStatus;
   interrupted: boolean;
   modifiedFiles: TurnModifiedFile[];
+  gitArtifacts: ExtractedGitArtifactData[];
 }
 
 export interface TurnBodyWindow {

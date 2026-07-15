@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "按文件路径搜索 Session",
+      "noResults": "没有 Session 改动过匹配的文件"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "当前看板",
     "view": {
@@ -1036,11 +1040,15 @@
         "importFailed": "无法导入 Session JSON。"
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "本轮更改了 {{count}} 个文件",
-      "filesChangedCount_other": "本轮更改了 {{count}} 个文件",
-      "historicalRoundDiffFiles_one": "历史轮次 Diff · {{count}} 个文件",
-      "historicalRoundDiffFiles_other": "历史轮次 Diff · {{count}} 个文件",
+    "turnMetadata": {
+      "noChanges": "本轮没有文件改动",
+      "earlierRound": "历史轮次",
+      "files_one": "{{count}} 个文件",
+      "files_other": "{{count}} 个文件",
+      "commits_one": "{{count}} 个 Commit",
+      "commits_other": "{{count}} 个 Commit",
+      "pullRequests_one": "{{count}} 个 PR",
+      "pullRequests_other": "{{count}} 个 PR",
       "review": "查看",
       "showLess": "收起",
       "showMore_one": "显示其余 {{count}} 个",

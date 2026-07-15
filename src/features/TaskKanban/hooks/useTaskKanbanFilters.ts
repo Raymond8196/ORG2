@@ -50,6 +50,17 @@ export interface UseTaskKanbanFiltersOptions {
   sidebarFilter: KanbanSidebarFilter;
   agentTypeFilter: KanbanAgentTypeFilter;
   selectedTaskId: string | null;
+  fileSearchQuery: string;
+}
+
+export function normalizeFileSearchQuery(value: string): string {
+  return value.trim().replace(/\\/g, "/").toLowerCase();
+}
+
+export function buildTaskFileSearchText(task: KanbanTask): string {
+  return (task.impact?.touchedFiles ?? [])
+    .map((path) => path.replace(/\\/g, "/").toLowerCase())
+    .join("\u0000");
 }
 
 export function useTaskKanbanFilters({
@@ -58,11 +69,22 @@ export function useTaskKanbanFilters({
   sidebarFilter,
   agentTypeFilter,
   selectedTaskId,
+  fileSearchQuery,
 }: UseTaskKanbanFiltersOptions) {
   const sessionMap = useAtomValue(sessionMapAtom);
+  const normalizedFileQuery = normalizeFileSearchQuery(fileSearchQuery);
+  const fileSearchActive = normalizedFileQuery.length > 0;
+  const fileSearchTextByTaskId = useMemo(() => {
+    if (!fileSearchActive) return new Map<string, string>();
+    const index = new Map<string, string>();
+    for (const task of tasks) {
+      index.set(task.id, buildTaskFileSearchText(task));
+    }
+    return index;
+  }, [fileSearchActive, tasks]);
 
   const applyVisibleFilters = useMemo(() => {
-    return (sourceTasks: KanbanTask[]) =>
+    return (sourceTasks: KanbanTask[], includeFileSearch: boolean) =>
       sourceTasks.filter((task) => {
         if (sidebarFilter !== KANBAN_SIDEBAR_FILTER.ALL) {
           const status = task.status as KanbanSidebarFilter;
@@ -80,17 +102,32 @@ export function useTaskKanbanFilters({
           }
         }
 
+        if (
+          includeFileSearch &&
+          fileSearchActive &&
+          !fileSearchTextByTaskId.get(task.id)?.includes(normalizedFileQuery)
+        ) {
+          return false;
+        }
+
         return true;
       });
-  }, [agentTypeFilter, sessionMap, sidebarFilter]);
+  }, [
+    agentTypeFilter,
+    fileSearchActive,
+    fileSearchTextByTaskId,
+    normalizedFileQuery,
+    sessionMap,
+    sidebarFilter,
+  ]);
 
   const visibleTasks = useMemo(
-    () => applyVisibleFilters(tasks),
+    () => applyVisibleFilters(tasks, true),
     [applyVisibleFilters, tasks]
   );
 
   const visibleDiaryTasks = useMemo(
-    () => applyVisibleFilters(diaryTasks ?? tasks),
+    () => applyVisibleFilters(diaryTasks ?? tasks, false),
     [applyVisibleFilters, diaryTasks, tasks]
   );
 

@@ -767,6 +767,7 @@ export function createSessionHelpers(store: E2EStore) {
     seedPersistedCachedSession,
     seedChatEvents: seeders.seedChatEvents,
     seedSidebarSession: seeders.seedSidebarSession,
+    openWorkManagementTab: seeders.openWorkManagementTab,
     seedModeSwitchSession: seeders.seedModeSwitchSession,
     seedPlanCard: seeders.seedPlanCard,
     seedShellProcess: seeders.seedShellProcess,

@@ -4,6 +4,7 @@
 
 pub mod branches;
 pub mod bundle;
+pub mod git_artifacts;
 pub mod hooks;
 pub mod pr_base;
 pub mod repos;

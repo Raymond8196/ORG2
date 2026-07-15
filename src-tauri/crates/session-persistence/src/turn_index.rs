@@ -1,12 +1,14 @@
 //! Materialized turn index derived from normalized session events.
 
 use chrono::{DateTime, Utc};
+use core_types::extracted::ExtractedGitArtifactData;
 use rusqlite::{params, Connection, OptionalExtension, Result as SqliteResult};
 use serde::{Deserialize, Serialize};
 
 use super::connection::{begin_immediate, get_connection, with_sessions_writer};
 use super::crud::normalize_session_sequences;
 use super::turn_files::{TurnFileAccumulator, TurnModifiedFile};
+use super::turn_git_artifacts::TurnGitArtifactAccumulator;
 
 const USER_MESSAGE_FUNCTION: &str = "user_message";
 const TURN_STATUS_PENDING: &str = "pending";
@@ -20,7 +22,8 @@ const TURN_STATUS_FAILED: &str = "failed";
 /// v6: materialize the per-round modified-file list (`modified_files_json`).
 /// v7: include patch-text fallback line stats in `modified_files_json`.
 /// v8: include content fallback line stats for create/write-style tools.
-const TURN_INDEX_VERSION: i64 = 8;
+/// v9: materialize exact per-round commits and pull requests.
+const TURN_INDEX_VERSION: i64 = 9;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -43,6 +46,10 @@ pub struct CachedTurnSummary {
     /// re-aggregates file changes from raw events.
     #[serde(default)]
     pub modified_files: Vec<TurnModifiedFile>,
+    /// Commits and pull requests produced by successful git/gh commands in
+    /// this round. Materialized for lazy historical backfill and direct UI use.
+    #[serde(default)]
+    pub git_artifacts: Vec<ExtractedGitArtifactData>,
 }
 
 #[derive(Debug, Clone)]
@@ -74,6 +81,7 @@ struct TurnDraft {
     turn_intent_id: Option<String>,
     /// File changes accumulated from the round's body events.
     file_accumulator: TurnFileAccumulator,
+    git_artifact_accumulator: TurnGitArtifactAccumulator,
 }
 
 #[derive(Debug, Clone)]
@@ -430,6 +438,7 @@ fn build_turn_drafts(rows: &[IndexEventRow], stale_intent_ids: &StaleIntentIds) 
                 body_event_count: 0,
                 turn_intent_id: row_intent_id,
                 file_accumulator: TurnFileAccumulator::new(),
+                git_artifact_accumulator: TurnGitArtifactAccumulator::default(),
             });
             continue;
         }
@@ -439,6 +448,11 @@ fn build_turn_drafts(rows: &[IndexEventRow], stale_intent_ids: &StaleIntentIds) 
             turn.event_count += 1;
             turn.body_event_count += 1;
             turn.file_accumulator.add_event(
+                row.function_name.as_deref(),
+                &row.args_json,
+                &row.result_json,
+            );
+            turn.git_artifact_accumulator.add_event(
                 row.function_name.as_deref(),
                 &row.args_json,
                 &row.result_json,
@@ -474,6 +488,8 @@ fn turn_summary_from_row(row: &rusqlite::Row<'_>) -> SqliteResult<CachedTurnSumm
     let interrupted_int: i64 = row.get(13)?;
     let modified_files_json: String = row.get(14)?;
     let modified_files = serde_json::from_str(&modified_files_json).unwrap_or_else(|_| Vec::new());
+    let git_artifacts_json: String = row.get(15)?;
+    let git_artifacts = serde_json::from_str(&git_artifacts_json).unwrap_or_else(|_| Vec::new());
 
     Ok(CachedTurnSummary {
         session_id: row.get(0)?,
@@ -491,6 +507,7 @@ fn turn_summary_from_row(row: &rusqlite::Row<'_>) -> SqliteResult<CachedTurnSumm
         status: row.get(12)?,
         interrupted: interrupted_int != 0,
         modified_files,
+        git_artifacts,
     })
 }
 
@@ -524,8 +541,8 @@ fn rebuild_turn_index_inner(session_id: &str) -> SqliteResult<Vec<CachedTurnSumm
             "INSERT INTO session_turns
              (session_id, turn_id, start_sequence, end_sequence, next_turn_id, started_at, ended_at,
               duration_ms, user_event_ids_json, user_preview, event_count, body_event_count,
-              status, interrupted, updated_at, modified_files_json)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+              status, interrupted, updated_at, modified_files_json, git_artifacts_json)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
         )?;
 
         for draft in &drafts {
@@ -533,6 +550,9 @@ fn rebuild_turn_index_inner(session_id: &str) -> SqliteResult<Vec<CachedTurnSumm
                 serde_json::to_string(&draft.user_event_ids).unwrap_or_else(|_| "[]".to_string());
             let modified_files_json = serde_json::to_string(draft.file_accumulator.files())
                 .unwrap_or_else(|_| "[]".to_string());
+            let git_artifacts_json =
+                serde_json::to_string(draft.git_artifact_accumulator.artifacts())
+                    .unwrap_or_else(|_| "[]".to_string());
             // Status derivation: lifecycle store wins when available.
             // Falls back to the legacy `body_event_count > 0` heuristic for
             // rows that predate the canonical intent id (no row in
@@ -575,6 +595,7 @@ fn rebuild_turn_index_inner(session_id: &str) -> SqliteResult<Vec<CachedTurnSumm
                 0_i64,
                 rebuilt_at,
                 modified_files_json,
+                git_artifacts_json,
             ])?;
         }
     }
@@ -656,7 +677,7 @@ pub fn load_turn_index(session_id: &str) -> SqliteResult<Vec<CachedTurnSummary>>
     let mut stmt = conn.prepare_cached(
         "SELECT session_id, turn_id, start_sequence, end_sequence, next_turn_id, started_at, ended_at,
                 duration_ms, user_event_ids_json, user_preview, event_count, body_event_count,
-                status, interrupted, modified_files_json
+                status, interrupted, modified_files_json, git_artifacts_json
          FROM session_turns
          WHERE session_id = ?1
          ORDER BY started_at ASC, start_sequence ASC",
@@ -677,7 +698,7 @@ pub fn get_turn_summary(
     conn.query_row(
         "SELECT session_id, turn_id, start_sequence, end_sequence, next_turn_id, started_at, ended_at,
                 duration_ms, user_event_ids_json, user_preview, event_count, body_event_count,
-                status, interrupted, modified_files_json
+                status, interrupted, modified_files_json, git_artifacts_json
          FROM session_turns
          WHERE session_id = ?1 AND turn_id = ?2",
         params![session_id, turn_id],

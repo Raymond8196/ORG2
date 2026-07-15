@@ -85,6 +85,8 @@ pub fn init_session_tables(conn: &Connection) -> SqliteResult<()> {
             status TEXT NOT NULL,
             interrupted INTEGER NOT NULL DEFAULT 0,
             updated_at TEXT NOT NULL,
+            modified_files_json TEXT NOT NULL DEFAULT '[]',
+            git_artifacts_json TEXT NOT NULL DEFAULT '[]',
             PRIMARY KEY (session_id, turn_id)
         )",
         [],
@@ -104,6 +106,13 @@ pub fn init_session_tables(conn: &Connection) -> SqliteResult<()> {
     // `{ path, fileName, status, additions, deletions }`.
     conn.execute(
         "ALTER TABLE session_turns ADD COLUMN modified_files_json TEXT NOT NULL DEFAULT '[]'",
+        [],
+    )
+    .ok();
+    // Per-round commits and pull requests, parsed from successful git/gh
+    // shell results by the same parser as the live event pipeline.
+    conn.execute(
+        "ALTER TABLE session_turns ADD COLUMN git_artifacts_json TEXT NOT NULL DEFAULT '[]'",
         [],
     )
     .ok();
