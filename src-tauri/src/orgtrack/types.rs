@@ -33,6 +33,9 @@ pub struct FileSessionHistoryBackfill {
 #[serde(rename_all = "camelCase")]
 pub struct FileSessionHistorySession {
     pub session_id: String,
+    /// Root transcript target. `None` means the identity is known but no
+    /// independently loadable transcript has been proven.
+    pub transcript_session_id: Option<String>,
     pub session_label: String,
     pub source: String,
     pub workspace_path: Option<String>,
@@ -49,9 +52,12 @@ pub struct FileSessionHistorySession {
 #[serde(rename_all = "camelCase")]
 pub struct FileSessionHistoryParticipant {
     pub entry_id: String,
-    /// Loadable transcript target. For a resolved subagent this is the child
-    /// session; otherwise it falls back to the root session.
+    /// Canonical participant identity. For legacy unresolved actors this can
+    /// equal the root session; navigation must use `transcript_session_id`.
     pub session_id: String,
+    /// Independently loadable transcript target. An unresolved subagent must
+    /// remain `None`; it must never silently fall back to the root session.
+    pub transcript_session_id: Option<String>,
     pub parent_session_id: Option<String>,
     pub session_label: String,
     pub participant_kind: String,

@@ -5,7 +5,8 @@ use crate::privacy::OrgtrackTier;
 pub use orgtrack_protocol::{
     AttributionPrecision, FileResourceRecord, ResourceAction, ResourceInteractionCaptureMethod,
     ResourceInteractionEnvelopeV1, ResourceInteractionOutcome, ResourceInteractionRecord,
-    RESOURCE_INTERACTION_SCHEMA_VERSION,
+    SessionActorLifecycleEnvelopeV1, SessionActorLifecyclePhase, SessionActorRecord,
+    RESOURCE_INTERACTION_SCHEMA_VERSION, SESSION_ACTOR_SCHEMA_VERSION,
 };
 
 pub const SOURCE_ORGII_RUST_AGENTS: &str = "orgii_rust_agents";

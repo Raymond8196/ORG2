@@ -181,7 +181,7 @@ interface FileSessionHistoryParticipantProps {
   participant: FileSessionHistoryParticipant;
   originSessionId: string;
   source: string;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 const FileSessionHistoryParticipantView: React.FC<FileSessionHistoryParticipantProps> =
@@ -211,12 +211,16 @@ const FileSessionHistoryParticipantView: React.FC<FileSessionHistoryParticipantP
     const precision = t(
       `labels.sessionBlamePrecision.${participant.attributionPrecision}`
     );
+    const hasTranscript = Boolean(participant.transcriptSessionId);
 
     return (
       <button
         type="button"
         data-testid="session-blame-entry"
         data-session-id={participant.sessionId}
+        data-transcript-session-id={
+          participant.transcriptSessionId ?? undefined
+        }
         data-origin-session-id={originSessionId}
         data-participant-kind={participant.participantKind}
         data-actor-id={participant.actorId ?? undefined}
@@ -224,12 +228,15 @@ const FileSessionHistoryParticipantView: React.FC<FileSessionHistoryParticipantP
         data-attribution-precision={participant.attributionPrecision}
         data-read-count={participant.actionCounts.read ?? 0}
         data-write-count={participant.actionCounts.write ?? 0}
-        className={`group/session-history flex w-full items-start gap-1.5 py-1.5 pl-7 pr-3 text-left transition-colors ${PRIMARY_SIDEBAR_HOVER.row}`}
+        className={`group/session-history flex w-full items-start gap-1.5 py-1.5 pl-7 pr-3 text-left transition-colors ${hasTranscript ? PRIMARY_SIDEBAR_HOVER.row : "cursor-default"}`}
         onClick={onClick}
+        disabled={!hasTranscript}
         title={`${participant.sessionLabel} · ${attribution} · ${precision}`}
       >
         <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
-          <FileSessionHistoryIcon sessionId={participant.sessionId} />
+          <FileSessionHistoryIcon
+            sessionId={participant.transcriptSessionId ?? participant.sessionId}
+          />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-[13px] text-text-2">
@@ -245,11 +252,13 @@ const FileSessionHistoryParticipantView: React.FC<FileSessionHistoryParticipantP
             {attribution} · {precision}
           </span>
         </span>
-        <span
-          className={`${HEADER_BUTTON.actionTreeRow} hidden flex-shrink-0 group-hover/session-history:flex`}
-        >
-          <OpenIcon size={14} />
-        </span>
+        {hasTranscript && (
+          <span
+            className={`${HEADER_BUTTON.actionTreeRow} hidden flex-shrink-0 group-hover/session-history:flex`}
+          >
+            <OpenIcon size={14} />
+          </span>
+        )}
       </button>
     );
   });
@@ -283,6 +292,7 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
       actionSummary,
     ].filter(Boolean);
     const workspacePath = session.workspacePath ?? fallbackWorkspacePath;
+    const hasRootTranscript = Boolean(session.transcriptSessionId);
 
     return (
       <div
@@ -293,14 +303,17 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
         <button
           type="button"
           data-testid="session-blame-session-header"
-          className={`flex w-full items-start gap-1.5 px-4 py-1.5 pr-3 text-left transition-colors ${PRIMARY_SIDEBAR_HOVER.row}`}
-          onClick={() =>
+          data-transcript-session-id={session.transcriptSessionId ?? undefined}
+          className={`flex w-full items-start gap-1.5 px-4 py-1.5 pr-3 text-left transition-colors ${hasRootTranscript ? PRIMARY_SIDEBAR_HOVER.row : "cursor-default"}`}
+          disabled={!hasRootTranscript}
+          onClick={() => {
+            if (!session.transcriptSessionId) return;
             onOpenSession(
-              session.sessionId,
+              session.transcriptSessionId,
               session.sessionLabel,
               workspacePath
-            )
-          }
+            );
+          }}
         >
           <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
             <FileSessionHistoryIcon sessionId={session.sessionId} />
@@ -321,12 +334,15 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
               participant={participant}
               originSessionId={session.sessionId}
               source={session.source}
-              onClick={() =>
-                onOpenSession(
-                  participant.sessionId,
-                  participant.sessionLabel,
-                  workspacePath
-                )
+              onClick={
+                participant.transcriptSessionId
+                  ? () =>
+                      onOpenSession(
+                        participant.transcriptSessionId!,
+                        participant.sessionLabel,
+                        workspacePath
+                      )
+                  : undefined
               }
             />
           ))}

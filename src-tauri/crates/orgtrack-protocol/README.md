@@ -6,10 +6,12 @@ filesystem discovery, and vendor hook formats.
 
 ## Contract boundary
 
-The wire envelope contains only the identity and timing needed to answer:
-which session interacted with which resource, how, when, and with what
-attribution precision. It never contains prompts, commands, tool output, file
-contents, diffs, user identity, or local database locations.
+The resource-interaction envelope contains only the identity and timing needed
+to answer: which session interacted with which resource, how, when, and with
+what attribution precision. The session-actor lifecycle envelope additionally
+supports a local child-transcript locator so a host can open the exact
+subagent transcript. Neither contract contains prompts, commands, tool output,
+file contents, diffs, user identity, or local database locations.
 
 Original vendor history paths and normalized-store paths are deployment
 configuration, not event fields:
@@ -19,14 +21,18 @@ configuration, not event fields:
 - `StoreLocator`: a collector destination such as ORG2's existing
   `~/.orgii/sessions.db` or a mounted container path like `/data/orgtrack.db`.
 
-Collectors may report redacted locator diagnostics locally, but absolute host
-paths must not be uploaded by default. Cross-machine identity uses configured
-source/store IDs rather than path strings.
+The lifecycle `transcriptPath` is explicitly local-only metadata. A collector
+may persist it in its protected local store, but exporters must omit it from
+repo-shareable bundles and cloud uploads by default. Cross-machine identity
+uses configured source/store IDs and canonical session IDs rather than path
+strings.
 
 ## Compatibility
 
-- JSON schema: `schemas/resource-interaction-envelope-v1.schema.json`
-- Golden fixture: `fixtures/resource-interaction-envelope-v1.json`
+- JSON schemas: `schemas/resource-interaction-envelope-v1.schema.json` and
+  `schemas/session-actor-lifecycle-envelope-v1.schema.json`
+- Golden fixtures: `fixtures/resource-interaction-envelope-v1.json` and
+  `fixtures/session-actor-lifecycle-envelope-v1.json`
 - Unknown envelope fields are rejected.
 - Schema versions are explicit and independent from ORG2's `.orgtrack` export
   schema and collector configuration versions.

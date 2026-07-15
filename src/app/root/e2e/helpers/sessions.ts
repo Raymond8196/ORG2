@@ -76,6 +76,7 @@ import {
   openTab as openWorkstationTab,
   workstationLayoutAtom,
 } from "@src/store/workstation/tabs";
+import { LAYOUT_STORAGE_KEY } from "@src/store/workstation/tabs/storage";
 import { isCliSession } from "@src/util/session/sessionDispatch";
 
 import { asError } from "../result";
@@ -189,15 +190,24 @@ export function createSessionHelpers(store: E2EStore) {
         };
       }
       const tab = createFileTab(filePath);
+      // A prior chat/session scenario may leave the panel maximized, which
+      // suppresses the workstation content host. Opening a file must make its
+      // editor visible before the tab can be exercised through WebDriver.
+      store.set(chatPanelMaximizedAtom, false);
       store.set(workStationPrimarySidebarTabAtom, "files");
       store.set(workStationPrimarySidebarCollapsedAtom, false);
-      store.set(workstationLayoutAtom, (layout: WorkStationLayoutState) => ({
+      const layout = store.get(workstationLayoutAtom);
+      const nextLayout: WorkStationLayoutState = {
         ...layout,
         mainPane: openWorkstationTab(
           layout?.mainPane ?? { tabs: [], activeTabId: null },
           tab
         ),
-      }));
+      };
+      // Keep the persistence source in sync so an in-flight layout hydration
+      // cannot overwrite the file tab immediately after this helper returns.
+      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(nextLayout));
+      store.set(workstationLayoutAtom, nextLayout);
       return { ok: true, filePath };
     } catch (err) {
       return asError(err);

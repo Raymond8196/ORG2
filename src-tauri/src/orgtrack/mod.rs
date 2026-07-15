@@ -16,8 +16,8 @@ use std::time::{Duration, Instant};
 use database::db::get_connection;
 use orgtrack_core::canonical::{
     AgentMetadata, AttributionPrecision, CommitLinkRecord, ResourceInteractionRecord,
-    SessionCheckpointFileStateRecord, SessionCheckpointRecord, SessionDiffChunkRecord,
-    SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
+    SessionActorRecord, SessionCheckpointFileStateRecord, SessionCheckpointRecord,
+    SessionDiffChunkRecord, SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
     RESOURCE_INTERACTION_SCHEMA_VERSION, SOURCE_ORGII_RUST_AGENTS,
 };
 use orgtrack_core::edit_extraction::final_diff_from_chunks;
@@ -133,6 +133,7 @@ pub async fn orgtrack_get_file_timeline(
 #[derive(Debug)]
 struct FileSessionHistoryAccumulator {
     session_id: String,
+    transcript_session_id: Option<String>,
     parent_session_id: Option<String>,
     session_label: String,
     participant_kind: String,
@@ -150,6 +151,7 @@ struct FileSessionHistoryAccumulator {
 #[derive(Debug)]
 struct FileSessionGroupAccumulator {
     session_id: String,
+    transcript_session_id: Option<String>,
     session_label: String,
     source: String,
     workspace_path: Option<String>,
@@ -219,14 +221,8 @@ fn project_file_session_history(
             .get(&interaction.session_id)
             .and_then(Option::as_ref)
             .cloned();
-        let actor_session = interaction
-            .actor_id
-            .as_deref()
-            .map(|actor_id| {
-                resolve_actor_session(store, &mut session_cache, &interaction.source, actor_id)
-            })
-            .transpose()?
-            .flatten();
+        let (effective_actor_id, actor_session, actor_type) =
+            resolve_interaction_actor(store, &mut session_cache, &interaction)?;
         let target_session = actor_session.as_ref().or(session.as_ref());
         let origin_session_id = target_session
             .and_then(|session| session.parent_session_id.clone())
@@ -250,12 +246,12 @@ fn project_file_session_history(
             .as_ref()
             .map(|session| session.session_id.clone())
             .unwrap_or_else(|| interaction.session_id.clone());
-        let is_subagent = interaction.actor_id.is_some()
+        let is_subagent = effective_actor_id.is_some()
             || target_session.is_some_and(|session| session.parent_session_id.is_some());
         let participant_id =
             if target_session.is_some_and(|session| session.parent_session_id.is_some()) {
                 target_session_id.clone()
-            } else if let Some(actor_id) = interaction.actor_id.as_ref() {
+            } else if let Some(actor_id) = effective_actor_id.as_ref() {
                 format!("{origin_session_id}::actor::{actor_id}")
             } else {
                 format!("{origin_session_id}::session")
@@ -266,12 +262,24 @@ fn project_file_session_history(
                 .or_else(|| target_session.filter(|session| session.parent_session_id.is_some()))
                 .map(|session| session.title.clone())
                 .filter(|title| !title.trim().is_empty())
-                .or_else(|| interaction.actor_id.clone())
+                .or_else(|| actor_type.clone())
+                .or_else(|| effective_actor_id.clone())
                 .unwrap_or_else(|| target_session_id.clone())
         });
+        let transcript_session_id = if is_subagent {
+            actor_session
+                .as_ref()
+                .or_else(|| target_session.filter(|session| session.parent_session_id.is_some()))
+                .map(|session| session.session_id.clone())
+        } else {
+            target_session.map(|session| session.session_id.clone())
+        };
         let group = grouped.entry(origin_session_id.clone()).or_insert_with(|| {
             FileSessionGroupAccumulator {
                 session_id: origin_session_id.clone(),
+                transcript_session_id: origin_session
+                    .as_ref()
+                    .map(|session| session.session_id.clone()),
                 session_label: origin_session
                     .as_ref()
                     .or(session.as_ref())
@@ -308,6 +316,7 @@ fn project_file_session_history(
         let entry = group.participants.entry(participant_id).or_insert_with(|| {
             FileSessionHistoryAccumulator {
                 session_id: target_session_id,
+                transcript_session_id,
                 parent_session_id: is_subagent.then_some(origin_session_id),
                 session_label: target_session
                     .map(|session| session.title.clone())
@@ -318,7 +327,7 @@ fn project_file_session_history(
                 } else {
                     "session".to_string()
                 },
-                actor_id: interaction.actor_id.clone(),
+                actor_id: effective_actor_id.clone(),
                 actor_label,
                 first_interaction_at: interaction.occurred_at.clone(),
                 last_interaction_at: interaction.occurred_at.clone(),
@@ -338,7 +347,7 @@ fn project_file_session_history(
             &mut entry.attribution_precision,
             &interaction,
         );
-        if let Some(actor_id) = interaction.actor_id {
+        if let Some(actor_id) = effective_actor_id {
             entry.actor_ids.insert(actor_id);
         }
     }
@@ -347,6 +356,7 @@ fn project_file_session_history(
         .into_iter()
         .map(|(_, entry)| types::FileSessionHistorySession {
             session_id: entry.session_id,
+            transcript_session_id: entry.transcript_session_id,
             session_label: entry.session_label,
             source: entry.source,
             workspace_path: entry.workspace_path,
@@ -363,6 +373,7 @@ fn project_file_session_history(
                     |(entry_id, participant)| types::FileSessionHistoryParticipant {
                         entry_id,
                         session_id: participant.session_id,
+                        transcript_session_id: participant.transcript_session_id,
                         parent_session_id: participant.parent_session_id,
                         session_label: participant.session_label,
                         participant_kind: participant.participant_kind,
@@ -461,6 +472,97 @@ fn interaction_strength(
         interaction.actor_id.is_some(),
         capture_rank,
     )
+}
+
+fn resolve_interaction_actor(
+    store: &dyn RecordStore,
+    session_cache: &mut HashMap<String, Option<SessionRecord>>,
+    interaction: &ResourceInteractionRecord,
+) -> Result<(Option<String>, Option<SessionRecord>, Option<String>), String> {
+    if let Some(actor_id) = interaction.actor_id.as_deref() {
+        let actor_record = match store.get_session_actor(
+            &interaction.source,
+            &interaction.session_id,
+            actor_id,
+        )? {
+            Some(record) => Some(record),
+            None => store
+                .get_session_actor_by_transcript_session_id(
+                    &interaction.source,
+                    &interaction.session_id,
+                )?
+                .filter(|record| record.actor_id == actor_id),
+        };
+        let actor_session = if let Some(transcript_session_id) = actor_record
+            .as_ref()
+            .and_then(|record| record.transcript_session_id.as_deref())
+        {
+            cached_session(store, session_cache, transcript_session_id)?
+        } else {
+            resolve_actor_session(store, session_cache, &interaction.source, actor_id)?
+        };
+        return Ok((
+            Some(actor_id.to_string()),
+            actor_session,
+            actor_record.and_then(|record| record.actor_type),
+        ));
+    }
+
+    let Some(turn_id) = interaction.turn_id.as_deref() else {
+        return Ok((None, None, None));
+    };
+    let matching_turn = store
+        .list_session_actors(&interaction.source, &interaction.session_id)?
+        .into_iter()
+        .filter(|record| record.turn_id.as_deref() == Some(turn_id))
+        .collect::<Vec<_>>();
+    let active = matching_turn
+        .iter()
+        .filter(|record| actor_was_active(record, &interaction.occurred_at))
+        .collect::<Vec<_>>();
+    let actor = if active.len() == 1 {
+        Some(active[0])
+    } else if matching_turn.len() == 1 {
+        matching_turn.first()
+    } else {
+        None
+    };
+    let Some(actor) = actor else {
+        return Ok((None, None, None));
+    };
+    let actor_session = if let Some(transcript_session_id) = actor.transcript_session_id.as_deref()
+    {
+        cached_session(store, session_cache, transcript_session_id)?
+    } else {
+        None
+    };
+    Ok((
+        Some(actor.actor_id.clone()),
+        actor_session,
+        actor.actor_type.clone(),
+    ))
+}
+
+fn actor_was_active(record: &SessionActorRecord, occurred_at: &str) -> bool {
+    record
+        .started_at
+        .as_deref()
+        .is_none_or(|started_at| started_at <= occurred_at)
+        && record
+            .stopped_at
+            .as_deref()
+            .is_none_or(|stopped_at| stopped_at >= occurred_at)
+}
+
+fn cached_session(
+    store: &dyn RecordStore,
+    session_cache: &mut HashMap<String, Option<SessionRecord>>,
+    session_id: &str,
+) -> Result<Option<SessionRecord>, String> {
+    if !session_cache.contains_key(session_id) {
+        session_cache.insert(session_id.to_string(), store.get_session(session_id)?);
+    }
+    Ok(session_cache.get(session_id).and_then(Clone::clone))
 }
 
 fn resolve_actor_session(
@@ -958,8 +1060,8 @@ mod tests {
     use super::{is_temporary_diff_path, project_file_session_history};
     use orgtrack_core::canonical::{
         AgentMetadata, AttributionPrecision, ResourceAction, ResourceInteractionCaptureMethod,
-        ResourceInteractionOutcome, ResourceInteractionRecord, SessionRecord,
-        RESOURCE_INTERACTION_SCHEMA_VERSION,
+        ResourceInteractionOutcome, ResourceInteractionRecord, SessionActorRecord, SessionRecord,
+        RESOURCE_INTERACTION_SCHEMA_VERSION, SESSION_ACTOR_SCHEMA_VERSION,
     };
     use orgtrack_core::privacy::ORGTRACK_SCHEMA_VERSION;
     use orgtrack_core::store::{sqlite::SqliteRecordStore, RecordStore};
@@ -1059,6 +1161,7 @@ mod tests {
         assert_eq!(participant.actor_id.as_deref(), Some("agent-1"));
         assert_eq!(participant.actor_label.as_deref(), Some("agent-1"));
         assert_eq!(participant.interaction_count, 2);
+        assert_eq!(participant.transcript_session_id, None);
     }
 
     #[test]
@@ -1142,6 +1245,10 @@ mod tests {
         let participant = &history[0].participants[0];
         assert_eq!(participant.session_id, "claudecodeapp-agent-1");
         assert_eq!(
+            participant.transcript_session_id.as_deref(),
+            Some("claudecodeapp-agent-1")
+        );
+        assert_eq!(
             participant.parent_session_id.as_deref(),
             Some("claudecodeapp-parent")
         );
@@ -1151,6 +1258,122 @@ mod tests {
         assert_eq!(
             participant.actor_label.as_deref(),
             Some("Research subagent")
+        );
+    }
+
+    #[test]
+    fn file_session_history_correlates_codex_turn_to_loadable_actor_transcript() {
+        let conn = Connection::open_in_memory().expect("in-memory SQLite");
+        SqliteRecordStore::init_tables(&conn).expect("initialize orgtrack schema");
+        let store = SqliteRecordStore::new(&conn);
+        for (session_id, source_session_id, title, parent_session_id) in [
+            ("codexapp-parent", "parent", "Parent", None),
+            (
+                "codexapp-child-rollout",
+                "child-rollout",
+                "Explorer",
+                Some("codexapp-parent"),
+            ),
+        ] {
+            store
+                .upsert_session(&SessionRecord {
+                    schema_version: ORGTRACK_SCHEMA_VERSION,
+                    source: "codex_app".to_string(),
+                    source_session_id: source_session_id.to_string(),
+                    session_id: session_id.to_string(),
+                    title: title.to_string(),
+                    status: None,
+                    created_at: None,
+                    updated_at: None,
+                    completed_at: None,
+                    workspace_path: Some("/repo".to_string()),
+                    branch: None,
+                    parent_session_id: parent_session_id.map(str::to_string),
+                    org_member_id: None,
+                    metadata: AgentMetadata::default(),
+                })
+                .expect("upsert session");
+        }
+        store
+            .upsert_session_actor(&SessionActorRecord {
+                schema_version: SESSION_ACTOR_SCHEMA_VERSION,
+                actor_record_id: "actor-record-1".to_string(),
+                source: "codex_app".to_string(),
+                source_session_id: "parent".to_string(),
+                session_id: "codexapp-parent".to_string(),
+                turn_id: Some("turn-1".to_string()),
+                actor_id: "agent-1".to_string(),
+                actor_type: Some("explorer".to_string()),
+                started_at: Some("2026-07-14T01:00:00Z".to_string()),
+                stopped_at: Some("2026-07-14T01:10:00Z".to_string()),
+                transcript_session_id: Some("codexapp-child-rollout".to_string()),
+                transcript_path: Some("/local/child-rollout.jsonl".to_string()),
+            })
+            .expect("upsert actor mapping");
+
+        let history = project_file_session_history(
+            &store,
+            vec![ResourceInteractionRecord {
+                schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                interaction_id: "interaction-hook".to_string(),
+                source: "codex_app".to_string(),
+                source_session_id: Some("parent".to_string()),
+                source_event_id: Some("tool-1".to_string()),
+                session_id: "codexapp-parent".to_string(),
+                turn_id: Some("turn-1".to_string()),
+                actor_id: None,
+                resource_id: "resource-1".to_string(),
+                action: ResourceAction::Read,
+                outcome: ResourceInteractionOutcome::Succeeded,
+                occurred_at: "2026-07-14T01:05:00Z".to_string(),
+                capture_method: ResourceInteractionCaptureMethod::Hook,
+                attribution_precision: AttributionPrecision::SessionOnly,
+            }],
+        )
+        .expect("project history");
+
+        assert_eq!(history.len(), 1);
+        assert_eq!(
+            history[0].transcript_session_id.as_deref(),
+            Some("codexapp-parent")
+        );
+        let participant = &history[0].participants[0];
+        assert_eq!(participant.participant_kind, "subagent");
+        assert_eq!(participant.actor_id.as_deref(), Some("agent-1"));
+        assert_eq!(participant.actor_label.as_deref(), Some("Explorer"));
+        assert_eq!(participant.session_id, "codexapp-child-rollout");
+        assert_eq!(
+            participant.transcript_session_id.as_deref(),
+            Some("codexapp-child-rollout")
+        );
+
+        let exact_history = project_file_session_history(
+            &store,
+            vec![ResourceInteractionRecord {
+                schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                interaction_id: "interaction-exact-child".to_string(),
+                source: "codex_app".to_string(),
+                source_session_id: Some("child-rollout".to_string()),
+                source_event_id: Some("tool-2".to_string()),
+                session_id: "codexapp-child-rollout".to_string(),
+                turn_id: Some("turn-1".to_string()),
+                actor_id: Some("agent-1".to_string()),
+                resource_id: "resource-1".to_string(),
+                action: ResourceAction::Write,
+                outcome: ResourceInteractionOutcome::Succeeded,
+                occurred_at: "2026-07-14T01:06:00Z".to_string(),
+                capture_method: ResourceInteractionCaptureMethod::Hook,
+                attribution_precision: AttributionPrecision::Exact,
+            }],
+        )
+        .expect("project exact child history");
+        assert_eq!(exact_history.len(), 1);
+        let exact_participant = &exact_history[0].participants[0];
+        assert_eq!(exact_participant.session_id, "codexapp-child-rollout");
+        assert_eq!(exact_participant.actor_label.as_deref(), Some("Explorer"));
+        assert_eq!(
+            exact_participant.transcript_session_id.as_deref(),
+            Some("codexapp-child-rollout")
         );
     }
 }
