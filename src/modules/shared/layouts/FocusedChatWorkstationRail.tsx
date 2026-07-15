@@ -14,15 +14,16 @@ import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { IconButton } from "@src/components/IconButton";
-import {
-  KEYBOARD_SHORTCUT_VARIANT,
-  KeyboardShortcut,
-} from "@src/components/KeyboardShortcut";
+import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
+import Tooltip from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { ROUTES } from "@src/config/routes";
 import { getTerminalDisplayTitle } from "@src/engines/TerminalCore/types";
+import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
+import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
 import { useCloseTabWithGuard } from "@src/hooks/workStation/tabs/useCloseTabWithGuard";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import {
@@ -67,6 +68,9 @@ type FocusedChatRailItem = {
   fileName?: string;
   onClick?: () => void;
   onClose?: () => void;
+  /** Working-tree +/- shown after the label (the Review row). */
+  additions?: number;
+  deletions?: number;
 };
 
 const WORKSTATION_HOST_ROUTES: Record<WorkstationTabHost, string> = {
@@ -120,6 +124,12 @@ export function FocusedChatWorkstationRail() {
     chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.WORK_ITEM;
 
   const activeWorkspaceRoot = useAtomValue(activeWorkspaceRootAtom);
+
+  // Working-tree +/- shown on the Review row, matching the branch pill's badge.
+  const { repoId, repoPath } = useActiveRepoRef();
+  const { additions: reviewAdditions, deletions: reviewDeletions } =
+    useWorkingTreeDiffTotals(repoId, repoPath);
+
   const tabEntries = useAtomValue(tabRegistryAtom);
   const terminalSessions = useAtomValue(terminalSessionsAtom);
   const initializedTerminalIds = useAtomValue(initializedTerminalIdsAtom);
@@ -208,12 +218,15 @@ export function FocusedChatWorkstationRail() {
     // - "start" (Launchpad) and "explorer" (the "Files" home tab): neither
     //   points at a specific file, so they're noise here. Opening an actual
     //   file spawns a "file" tab, which is kept.
+    // - "source-control": the workspace section below always exposes the same
+    //   Review action, so listing its open tab here would be a duplicate.
     const tabItems = openTabs
       .filter(
         ({ tab }) =>
           tab.type !== "terminal" &&
           tab.type !== "start" &&
-          tab.type !== "explorer"
+          tab.type !== "explorer" &&
+          tab.type !== "source-control"
       )
       .slice(0, 6)
       .map(({ tab }) => ({
@@ -250,18 +263,9 @@ export function FocusedChatWorkstationRail() {
         label: t("common:actions.review"),
         icon: FileDiff,
         shortcut: getShortcutKeys("open_source_control_tab"),
+        additions: reviewAdditions,
+        deletions: reviewDeletions,
         onClick: () => void WorkStationViewService.openSourceControlTab(),
-      },
-      {
-        key: "browser",
-        label: t("navigation:labels.browser"),
-        icon: Globe,
-        onClick: browserTab
-          ? () => openWorkstationTab(browserTab.tab)
-          : () => {
-              openWorkstationHost("browser");
-              requestNewBrowserSession({});
-            },
       },
       {
         key: "terminal",
@@ -277,6 +281,17 @@ export function FocusedChatWorkstationRail() {
         shortcut: getShortcutKeys("open_file_folder_tab"),
         onClick: () => void WorkStationViewService.openFileFolderTab(),
       },
+      {
+        key: "browser",
+        label: t("navigation:labels.browser"),
+        icon: Globe,
+        onClick: browserTab
+          ? () => openWorkstationTab(browserTab.tab)
+          : () => {
+              openWorkstationHost("browser");
+              requestNewBrowserSession({});
+            },
+      },
     ],
     [
       t,
@@ -284,6 +299,8 @@ export function FocusedChatWorkstationRail() {
       openWorkstationHost,
       openWorkstationTab,
       requestNewBrowserSession,
+      reviewAdditions,
+      reviewDeletions,
     ]
   );
 
@@ -364,7 +381,7 @@ export function FocusedChatWorkstationRail() {
                 <div className="space-y-1">
                   {section.items.map((item) => {
                     const Icon = item.icon;
-                    return (
+                    const row = (
                       <div
                         key={item.key}
                         className={`group flex h-7 min-w-0 cursor-pointer items-center gap-1.5 overflow-hidden rounded-lg px-2 transition-colors duration-150 ${
@@ -387,10 +404,15 @@ export function FocusedChatWorkstationRail() {
                         <span className="min-w-0 flex-1 truncate text-[12px]">
                           {item.label}
                         </span>
-                        {item.shortcut ? (
-                          <KeyboardShortcut
-                            shortcut={item.shortcut}
-                            variant={KEYBOARD_SHORTCUT_VARIANT.dropdown}
+                        {(item.additions ?? 0) > 0 ||
+                        (item.deletions ?? 0) > 0 ? (
+                          <DiffStatsBadge
+                            additions={item.additions}
+                            deletions={item.deletions}
+                            variant="plain"
+                            size="sm"
+                            reserveValueWidth={false}
+                            className="shrink-0"
                           />
                         ) : null}
                         {item.onClose && (
@@ -408,6 +430,32 @@ export function FocusedChatWorkstationRail() {
                           </IconButton>
                         )}
                       </div>
+                    );
+
+                    // Shortcuts are no longer shown inline — reveal them on
+                    // hover instead. Rows without a shortcut render bare.
+                    return item.shortcut ? (
+                      <Tooltip
+                        key={item.key}
+                        content={
+                          <KeyboardShortcutTooltipContent
+                            label={item.label}
+                            shortcut={item.shortcut}
+                          />
+                        }
+                        position="left"
+                        framedPanel
+                        mouseEnterDelay={200}
+                        smartPlacement
+                        // Nudge further left than the default 8px gap so the
+                        // tooltip clears the rail (the popup positions via
+                        // `left`, so a transform doesn't fight it).
+                        style={{ transform: "translateX(-12px)" }}
+                      >
+                        {row}
+                      </Tooltip>
+                    ) : (
+                      row
                     );
                   })}
                 </div>

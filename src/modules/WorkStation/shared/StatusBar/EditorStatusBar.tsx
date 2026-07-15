@@ -23,6 +23,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
@@ -96,6 +97,8 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
       isMultiRoot,
       aheadCount,
       behindCount,
+      workingAdditions,
+      workingDeletions,
       needsPublish,
       isSyncBusy,
       isPublishing,
@@ -270,7 +273,7 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
             >
               <StatusBarButton
                 onClick={onBranchClick}
-                className="min-w-0 max-w-56"
+                className="min-w-0 max-w-64"
                 dataTestId="status-bar-branch"
                 ariaLabel={
                   checkoutLoading
@@ -291,6 +294,16 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
                 <span className="min-w-0 truncate font-medium text-text-1">
                   {branchName}
                 </span>
+                {(workingAdditions > 0 || workingDeletions > 0) && (
+                  <DiffStatsBadge
+                    additions={workingAdditions}
+                    deletions={workingDeletions}
+                    variant="plain"
+                    size="xs"
+                    reserveValueWidth={false}
+                    className="shrink-0"
+                  />
+                )}
               </StatusBarButton>
             </StatusBarTooltip>
           )}
@@ -399,6 +412,8 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
         canSyncDisplayedRepo,
         behindCount,
         aheadCount,
+        workingAdditions,
+        workingDeletions,
         onRepoClick,
         onBranchClick,
         onWorktreeClick,
