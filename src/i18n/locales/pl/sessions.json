@@ -841,6 +841,7 @@
     "defaultTitle": "Czat",
     "hideChatPanel": "Ukryj panel czatu",
     "showTokenUsage": "Pokaż Token",
+    "showStatusBar": "Pokaż pasek stanu",
     "compactDisplayMode": "Tryb kompaktowy",
     "replay": {
       "follow": "Śledź"
