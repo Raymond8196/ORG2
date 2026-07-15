@@ -26,6 +26,7 @@ export const SECTION_IDS = {
   GENERAL: "general",
   APPEARANCE: "appearance",
   EDITOR: "editor",
+  SECURITY: "security",
 
   MONITOR: "monitor",
 } as const;

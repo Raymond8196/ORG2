@@ -74,6 +74,11 @@
       "other": "Gizli"
     }
   },
+  "secretScan": {
+    "title": "Olası sır algılandı",
+    "message": "Bu mesaj hassas kimlik bilgileri içeriyor gibi görünüyor:\n\n{{items}}\n\nGönderirseniz sır, sohbet kaydında saklanır ve modele gönderilir. Yine de gönderilsin mi?",
+    "sendAnyway": "Yine de gönder"
+  },
   "actions": {
     "save": "Kaydet",
     "cancel": "İptal",

@@ -74,6 +74,11 @@
       "other": "Bí mật"
     }
   },
+  "secretScan": {
+    "title": "Đã phát hiện thông tin bí mật có thể có",
+    "message": "Tin nhắn này có vẻ chứa thông tin xác thực nhạy cảm:\n\n{{items}}\n\nGửi đi sẽ lưu thông tin bí mật vào lịch sử trò chuyện và gửi đến mô hình. Vẫn gửi chứ?",
+    "sendAnyway": "Vẫn gửi"
+  },
   "actions": {
     "save": "Lưu",
     "cancel": "Hủy",
