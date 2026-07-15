@@ -12,6 +12,7 @@ import {
   workStationStatusBarHiddenAtom,
   workStationTitleBarHiddenAtom,
 } from "@src/store/ui/workStationAtom";
+import { activeWorkStationTabAtom } from "@src/store/workstation/tabs";
 
 import { StatusBarRenderer } from "../shared/StatusBar/StatusBarRenderer";
 import { WorkspacePortScanner } from "../shared/StatusBar/WorkspacePortScanner";
@@ -54,6 +55,7 @@ const AppShell = React.memo(
     const workstationActiveSessionId = useAtomValue(
       workstationActiveSessionIdAtom
     );
+    const activeWorkStationTab = useAtomValue(activeWorkStationTabAtom);
     const { repoPath, repoName, pathExists, lastSeenPath } = useAppShellRepo();
     const { visitedModes } = useAppShellDock();
     // Called for its side effects on the workstation base path (station mode /
@@ -100,7 +102,9 @@ const AppShell = React.memo(
     const hasVisitedProject = visitedModes.has("project");
 
     const showCodeEditorBottomPanelToggle =
-      codeContentVisible && !isAgentStation;
+      codeContentVisible &&
+      !isAgentStation &&
+      activeWorkStationTab?.type !== "source-control";
     const showSettingsButton =
       (codeContentVisible || projectContentVisible) && !isAgentStation;
 

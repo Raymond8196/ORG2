@@ -1991,9 +1991,6 @@
     "pill": {
       "focus": "聚焦",
       "allChanges": "全部更改"
-    },
-    "sessionFilter": {
-      "allSessions": "所有會話"
     }
   },
   "contextInfo": {

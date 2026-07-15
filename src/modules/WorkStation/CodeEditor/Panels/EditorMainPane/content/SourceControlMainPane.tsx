@@ -17,7 +17,6 @@ import {
   type QuickAction,
 } from "@src/modules/WorkStation/shared";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
-import { sourceControlSessionFilterAtom } from "@src/store/workstation/codeEditor/sourceControlSessionFilterAtom";
 import {
   workstationIssueCallbackAtomFamily,
   workstationSelectedIssueAtomFamily,
@@ -43,13 +42,14 @@ export interface SourceControlMainPaneProps {
   repoPath: string;
   repoId: string | null;
   gitFilesByPath: Map<string, GitFile>;
-  sourceControlAttributedFiles: GitFile[];
+  sourceControlFiles: GitFile[];
   sourceControlFilterMode: string;
   gitDiffLoading: boolean;
   sourceControlCollapseAllSignal?: number;
   sourceControlQuickActions: QuickAction[];
   onForceReload?: () => void;
   onFileSelect?: (path: string) => void;
+  onCloseFocus?: () => void;
   onGitDiffUnsavedChange?: (hasUnsaved: boolean) => void;
 }
 
@@ -58,18 +58,16 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   repoPath,
   repoId,
   gitFilesByPath,
-  sourceControlAttributedFiles,
+  sourceControlFiles,
   sourceControlFilterMode,
   gitDiffLoading,
   sourceControlCollapseAllSignal,
   sourceControlQuickActions,
   onForceReload,
   onFileSelect,
+  onCloseFocus,
   onGitDiffUnsavedChange,
 }) => {
-  const sourceControlSessionFilter = useAtomValue(
-    sourceControlSessionFilterAtom
-  );
   const scopeKey = workstationRepoScopeKey(repoId, repoPath);
   const selectedIssueState = useAtomValue(
     workstationSelectedIssueAtomFamily(scopeKey)
@@ -103,9 +101,8 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
     deriveSourceControlMainProps({
       tabData,
       gitFilesByPath,
-      sourceControlAttributedFiles,
+      sourceControlFiles,
       sourceControlFilterMode,
-      sourceControlSessionFilter,
       repoPath,
     });
 
@@ -155,6 +152,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
           hasFocus={Boolean(focusPath)}
           onForceReload={onForceReload}
           onFileSelect={onFileSelect}
+          onCloseFocus={onCloseFocus}
           onGitDiffUnsavedChange={onGitDiffUnsavedChange}
           historySelection={historySelection}
           files={allFiles}

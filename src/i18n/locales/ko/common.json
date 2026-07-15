@@ -1977,9 +1977,6 @@
     "pill": {
       "focus": "포커스",
       "allChanges": "모든 변경 사항"
-    },
-    "sessionFilter": {
-      "allSessions": "모든 세션"
     }
   },
   "contextInfo": {
