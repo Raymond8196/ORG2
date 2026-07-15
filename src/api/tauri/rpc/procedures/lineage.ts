@@ -33,6 +33,13 @@ export const lineage = {
     .output(schemas.lineage.OrgtrackFileTimelineSchema.nullable())
     .build(),
 
+  orgtrackGetFileSessionHistory: defineProcedure(
+    "orgtrack_get_file_session_history"
+  )
+    .input(schemas.lineage.OrgtrackFileSessionHistoryInput)
+    .output(schemas.lineage.OrgtrackFileSessionHistorySchema)
+    .build(),
+
   orgtrackGetSessionSummaries: defineProcedure("orgtrack_get_session_summaries")
     .input(schemas.lineage.OrgtrackSessionSummariesInput)
     .output(z.array(schemas.lineage.CoreSessionSummarySchema))

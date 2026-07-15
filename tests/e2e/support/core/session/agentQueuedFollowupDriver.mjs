@@ -986,9 +986,7 @@ async function assertControlFlowHealthyAfterStop(
 function isRotatingOAuthCliAccount(account) {
   return (
     account?.auth_method === "oauth" &&
-    [CLAUDE_CODE_AGENT_TYPE, CODEX_AGENT_TYPE].includes(
-      account?.agent_type
-    )
+    [CLAUDE_CODE_AGENT_TYPE, CODEX_AGENT_TYPE].includes(account?.agent_type)
   );
 }
 
@@ -1702,6 +1700,13 @@ async function configureScenario(config, overrides = {}) {
     `configureWithExistingKey(${config.label})`
   );
   expect(configured.modelId).toBe(config.model);
+  // Pinning the repository can remount the chat panel and reactivate its
+  // persisted Launchpad tab. Clear that post-configuration state so the
+  // rendered Session Creator is the stable surface we exercise below.
+  unwrap(
+    await invokeE2E("resetToNewSession"),
+    `resetToNewSession(${config.label}-configured)`
+  );
   await waitForSessionCreatorReady(
     `${config.label}-configured`,
     overrides.repoPath ?? config.defaultRepoPath ?? requireDefaultRepoPath()

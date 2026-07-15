@@ -1680,6 +1680,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "Không có nội dung cấu hình"
     },
+    "sessionProvenance": {
+      "title": "Nguồn gốc phiên",
+      "capture": "Ghi lại tương tác với tệp",
+      "description": "Ghi các thao tác đọc và ghi tệp dưới dạng siêu dữ liệu. Không lưu câu lệnh, đầu ra công cụ hoặc nội dung tệp.",
+      "configPath": "Ghi các thao tác đọc và ghi tệp dưới dạng siêu dữ liệu. Không lưu câu lệnh, đầu ra công cụ hoặc nội dung tệp. Cấu hình: {{path}}",
+      "installDrift": "Tùy chọn đã lưu và hook đã cài đặt không khớp. Hãy chuyển đổi tính năng ghi để sửa hook được quản lý. Cấu hình: {{path}}"
+    },
     "codexConfig": {
       "sectionTitle": "Cấu hình",
       "model": "Mô hình",

@@ -2,7 +2,8 @@ use rusqlite::{params, Connection, OptionalExtension};
 
 use super::RecordStore;
 use crate::canonical::{
-    ActivityRecord, CommitLinkRecord, FileChangeRecord, ScanCheckpoint,
+    ActivityRecord, CommitLinkRecord, FileChangeRecord, FileResourceRecord,
+    ResourceInteractionRecord, ScanCheckpoint, SessionActorRecord,
     SessionCheckpointFileStateRecord, SessionCheckpointRecord, SessionDiffChunkRecord,
     SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
 };
@@ -87,6 +88,91 @@ impl<'conn> SqliteRecordStore<'conn> {
                 ON orgtrack_core_file_changes(workspace_path, timestamp);
             CREATE INDEX IF NOT EXISTS idx_orgtrack_core_file_changes_path
                 ON orgtrack_core_file_changes(file_path, timestamp);
+
+            CREATE TABLE IF NOT EXISTS orgtrack_core_resources (
+                resource_id         TEXT PRIMARY KEY,
+                resource_kind       TEXT NOT NULL,
+                canonical_locator   TEXT NOT NULL,
+                display_locator     TEXT NOT NULL,
+                payload_json        TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_resources_locator
+                ON orgtrack_core_resources(resource_kind, canonical_locator);
+
+            CREATE TABLE IF NOT EXISTS orgtrack_core_file_resources (
+                resource_id         TEXT PRIMARY KEY,
+                repository_id       TEXT,
+                workspace_path      TEXT NOT NULL,
+                repo_relative_path  TEXT NOT NULL,
+                path_hash           TEXT NOT NULL,
+                FOREIGN KEY(resource_id) REFERENCES orgtrack_core_resources(resource_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_file_resources_repo
+                ON orgtrack_core_file_resources(repository_id, repo_relative_path);
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_file_resources_workspace
+                ON orgtrack_core_file_resources(workspace_path, repo_relative_path);
+
+            CREATE TABLE IF NOT EXISTS orgtrack_core_resource_interactions (
+                interaction_id       TEXT PRIMARY KEY,
+                source               TEXT NOT NULL,
+                source_session_id    TEXT,
+                source_event_id      TEXT,
+                session_id           TEXT NOT NULL,
+                turn_id              TEXT,
+                actor_id             TEXT,
+                resource_id          TEXT NOT NULL,
+                action               TEXT NOT NULL,
+                outcome              TEXT NOT NULL,
+                occurred_at          TEXT NOT NULL,
+                capture_method       TEXT NOT NULL,
+                attribution_precision TEXT NOT NULL,
+                payload_json         TEXT NOT NULL,
+                FOREIGN KEY(resource_id) REFERENCES orgtrack_core_resources(resource_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_resource_interactions_resource
+                ON orgtrack_core_resource_interactions(resource_id, occurred_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_resource_interactions_session
+                ON orgtrack_core_resource_interactions(session_id, occurred_at DESC);
+            -- A hook observation and a later transcript reconciliation may
+            -- describe the same source event with different attribution
+            -- precision. Keep both immutable observations; the read model
+            -- selects the strongest one. Older builds created this as UNIQUE,
+            -- which prevented an exact child-session observation from being
+            -- recorded after a session-only hook observation.
+            DROP INDEX IF EXISTS idx_orgtrack_core_resource_interactions_source_event;
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_resource_interactions_observation
+                ON orgtrack_core_resource_interactions(source, source_event_id, resource_id, action)
+                WHERE source_event_id IS NOT NULL;
+
+            CREATE TABLE IF NOT EXISTS orgtrack_core_session_actors (
+                actor_record_id        TEXT PRIMARY KEY,
+                source                 TEXT NOT NULL,
+                source_session_id      TEXT NOT NULL,
+                session_id             TEXT NOT NULL,
+                turn_id                TEXT,
+                actor_id               TEXT NOT NULL,
+                actor_type             TEXT,
+                started_at             TEXT,
+                stopped_at             TEXT,
+                transcript_session_id  TEXT,
+                transcript_path        TEXT,
+                payload_json           TEXT NOT NULL,
+                UNIQUE(source, source_session_id, actor_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_session_actors_session
+                ON orgtrack_core_session_actors(source, session_id, turn_id);
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_session_actors_transcript
+                ON orgtrack_core_session_actors(source, transcript_session_id)
+                WHERE transcript_session_id IS NOT NULL;
+
+            CREATE TABLE IF NOT EXISTS orgtrack_core_interaction_import_checkpoints (
+                source              TEXT NOT NULL,
+                session_id          TEXT NOT NULL,
+                source_fingerprint  TEXT NOT NULL,
+                parser_version      INTEGER NOT NULL,
+                reconciled_at       TEXT NOT NULL,
+                PRIMARY KEY (source, session_id)
+            );
 
             CREATE TABLE IF NOT EXISTS orgtrack_core_commit_links (
                 record_id       TEXT PRIMARY KEY,
@@ -261,6 +347,8 @@ impl<'conn> SqliteRecordStore<'conn> {
                 ON imported_history_session_cache(source, repo_path);
             CREATE INDEX IF NOT EXISTS idx_imported_history_source_path
                 ON imported_history_session_cache(source, source_path);
+            CREATE INDEX IF NOT EXISTS idx_imported_history_session_id
+                ON imported_history_session_cache(session_id);
             ",
         )?;
         ensure_column(
@@ -307,6 +395,75 @@ impl<'conn> SqliteRecordStore<'conn> {
 
     fn from_json<T: serde::de::DeserializeOwned>(value: String) -> Result<T, String> {
         serde_json::from_str(&value).map_err(|err| err.to_string())
+    }
+
+    /// Whether a historical transcript has already been reconciled with the
+    /// same source fingerprint and interaction parser version.
+    pub fn interaction_import_is_current(
+        &self,
+        source: &str,
+        session_id: &str,
+        source_fingerprint: &str,
+        parser_version: i64,
+    ) -> Result<bool, String> {
+        self.conn
+            .query_row(
+                "SELECT EXISTS(
+                    SELECT 1 FROM orgtrack_core_interaction_import_checkpoints
+                    WHERE source = ?1 AND session_id = ?2
+                      AND source_fingerprint = ?3 AND parser_version = ?4
+                )",
+                params![source, session_id, source_fingerprint, parser_version],
+                |row| row.get::<_, bool>(0),
+            )
+            .map_err(|err| err.to_string())
+    }
+
+    /// Mark a historical transcript as fully reconciled. Callers only invoke
+    /// this after every extracted interaction has been persisted.
+    pub fn mark_interaction_imported(
+        &self,
+        source: &str,
+        session_id: &str,
+        source_fingerprint: &str,
+        parser_version: i64,
+        reconciled_at: &str,
+    ) -> Result<(), String> {
+        self.conn
+            .execute(
+                "INSERT INTO orgtrack_core_interaction_import_checkpoints (
+                    source, session_id, source_fingerprint, parser_version, reconciled_at
+                 ) VALUES (?1, ?2, ?3, ?4, ?5)
+                 ON CONFLICT(source, session_id) DO UPDATE SET
+                    source_fingerprint = excluded.source_fingerprint,
+                    parser_version = excluded.parser_version,
+                    reconciled_at = excluded.reconciled_at",
+                params![
+                    source,
+                    session_id,
+                    source_fingerprint,
+                    parser_version,
+                    reconciled_at
+                ],
+            )
+            .map(|_| ())
+            .map_err(|err| err.to_string())
+    }
+
+    /// Remove only facts derived from a previous transcript reconciliation.
+    /// Live hook/native facts for the same session remain authoritative.
+    pub fn delete_reconciled_resource_interactions(
+        &self,
+        source: &str,
+        session_id: &str,
+    ) -> Result<usize, String> {
+        self.conn
+            .execute(
+                "DELETE FROM orgtrack_core_resource_interactions
+                 WHERE source = ?1 AND session_id = ?2 AND capture_method = 'reconciled'",
+                params![source, session_id],
+            )
+            .map_err(|err| err.to_string())
     }
 
     fn list_by_scope<T: serde::de::DeserializeOwned>(
@@ -447,6 +604,129 @@ impl RecordStore for SqliteRecordStore<'_> {
                     record.file_path,
                     record.path_hash,
                     record.timestamp,
+                    payload
+                ],
+            )
+            .map_err(|err| err.to_string())?;
+        Ok(())
+    }
+
+    fn upsert_file_resource(&self, record: &FileResourceRecord) -> Result<(), String> {
+        let payload = Self::to_json(record)?;
+        let canonical_locator = match record.repository_id.as_deref() {
+            Some(repository_id) => format!("repo:{repository_id}:{}", record.repo_relative_path),
+            None => format!(
+                "workspace:{}:{}",
+                record.workspace_path, record.repo_relative_path
+            ),
+        };
+        let transaction = self
+            .conn
+            .unchecked_transaction()
+            .map_err(|err| err.to_string())?;
+        transaction
+            .execute(
+                "INSERT INTO orgtrack_core_resources (
+                    resource_id, resource_kind, canonical_locator, display_locator, payload_json
+                ) VALUES (?1, 'file', ?2, ?3, ?4)
+                ON CONFLICT(resource_id) DO UPDATE SET
+                    canonical_locator=excluded.canonical_locator,
+                    display_locator=excluded.display_locator,
+                    payload_json=excluded.payload_json",
+                params![
+                    record.resource_id,
+                    canonical_locator,
+                    record.display_path,
+                    payload
+                ],
+            )
+            .map_err(|err| err.to_string())?;
+        transaction
+            .execute(
+                "INSERT INTO orgtrack_core_file_resources (
+                    resource_id, repository_id, workspace_path, repo_relative_path, path_hash
+                ) VALUES (?1, ?2, ?3, ?4, ?5)
+                ON CONFLICT(resource_id) DO UPDATE SET
+                    repository_id=excluded.repository_id,
+                    workspace_path=excluded.workspace_path,
+                    repo_relative_path=excluded.repo_relative_path,
+                    path_hash=excluded.path_hash",
+                params![
+                    record.resource_id,
+                    record.repository_id,
+                    record.workspace_path,
+                    record.repo_relative_path,
+                    record.path_hash
+                ],
+            )
+            .map_err(|err| err.to_string())?;
+        transaction.commit().map_err(|err| err.to_string())
+    }
+
+    fn append_resource_interaction(
+        &self,
+        record: &ResourceInteractionRecord,
+    ) -> Result<(), String> {
+        let payload = Self::to_json(record)?;
+        self.conn
+            .execute(
+                "INSERT OR IGNORE INTO orgtrack_core_resource_interactions (
+                    interaction_id, source, source_session_id, source_event_id, session_id,
+                    turn_id, actor_id, resource_id, action, outcome, occurred_at,
+                    capture_method, attribution_precision, payload_json
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+                params![
+                    record.interaction_id,
+                    record.source,
+                    record.source_session_id,
+                    record.source_event_id,
+                    record.session_id,
+                    record.turn_id,
+                    record.actor_id,
+                    record.resource_id,
+                    record.action.as_str(),
+                    record.outcome.as_str(),
+                    record.occurred_at,
+                    record.capture_method.as_str(),
+                    record.attribution_precision.as_str(),
+                    payload
+                ],
+            )
+            .map_err(|err| err.to_string())?;
+        Ok(())
+    }
+
+    fn upsert_session_actor(&self, record: &SessionActorRecord) -> Result<(), String> {
+        let payload = Self::to_json(record)?;
+        self.conn
+            .execute(
+                "INSERT INTO orgtrack_core_session_actors (
+                    actor_record_id, source, source_session_id, session_id, turn_id,
+                    actor_id, actor_type, started_at, stopped_at,
+                    transcript_session_id, transcript_path, payload_json
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+                ON CONFLICT(source, source_session_id, actor_id) DO UPDATE SET
+                    actor_record_id = excluded.actor_record_id,
+                    session_id = excluded.session_id,
+                    turn_id = excluded.turn_id,
+                    actor_type = excluded.actor_type,
+                    started_at = excluded.started_at,
+                    stopped_at = excluded.stopped_at,
+                    transcript_session_id = excluded.transcript_session_id,
+                    transcript_path = excluded.transcript_path,
+                    payload_json = excluded.payload_json",
+                params![
+                    record.actor_record_id,
+                    record.source,
+                    record.source_session_id,
+                    record.session_id,
+                    record.turn_id,
+                    record.actor_id,
+                    record.actor_type,
+                    record.started_at,
+                    record.stopped_at,
+                    record.transcript_session_id,
+                    record.transcript_path,
                     payload
                 ],
             )
@@ -919,13 +1199,142 @@ impl RecordStore for SqliteRecordStore<'_> {
         }
         Ok(records)
     }
+
+    fn list_file_resource_interactions(
+        &self,
+        repository_id: Option<&str>,
+        workspace_path: &str,
+        repo_relative_path: &str,
+    ) -> Result<Vec<ResourceInteractionRecord>, String> {
+        let mut statement = self
+            .conn
+            .prepare(
+                "SELECT interaction.payload_json
+                 FROM orgtrack_core_resource_interactions interaction
+                 JOIN orgtrack_core_file_resources file_resource
+                   ON file_resource.resource_id = interaction.resource_id
+                 WHERE file_resource.repo_relative_path = ?1
+                   AND (
+                     (?2 IS NOT NULL AND file_resource.repository_id = ?2)
+                     OR file_resource.workspace_path = ?3
+                   )
+                 ORDER BY interaction.occurred_at DESC, interaction.interaction_id DESC",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = statement
+            .query_map(
+                params![repo_relative_path, repository_id, workspace_path],
+                |row| row.get::<_, String>(0),
+            )
+            .map_err(|err| err.to_string())?;
+        let mut records = Vec::new();
+        for row in rows {
+            records.push(Self::from_json(row.map_err(|err| err.to_string())?)?);
+        }
+        Ok(records)
+    }
+
+    fn get_session(&self, session_id: &str) -> Result<Option<SessionRecord>, String> {
+        let payload = self
+            .conn
+            .query_row(
+                "SELECT payload_json FROM orgtrack_core_sessions WHERE session_id = ?1",
+                params![session_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        payload.map(Self::from_json).transpose()
+    }
+
+    fn get_session_actor(
+        &self,
+        source: &str,
+        session_id: &str,
+        actor_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String> {
+        let payload = self
+            .conn
+            .query_row(
+                "SELECT payload_json FROM orgtrack_core_session_actors
+                 WHERE source = ?1 AND session_id = ?2 AND actor_id = ?3",
+                params![source, session_id, actor_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        payload.map(Self::from_json).transpose()
+    }
+
+    fn get_session_actor_by_source_identity(
+        &self,
+        source: &str,
+        source_session_id: &str,
+        actor_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String> {
+        let payload = self
+            .conn
+            .query_row(
+                "SELECT payload_json FROM orgtrack_core_session_actors
+                 WHERE source = ?1 AND source_session_id = ?2 AND actor_id = ?3",
+                params![source, source_session_id, actor_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        payload.map(Self::from_json).transpose()
+    }
+
+    fn list_session_actors(
+        &self,
+        source: &str,
+        session_id: &str,
+    ) -> Result<Vec<SessionActorRecord>, String> {
+        let mut statement = self
+            .conn
+            .prepare(
+                "SELECT payload_json FROM orgtrack_core_session_actors
+                 WHERE source = ?1 AND session_id = ?2
+                 ORDER BY COALESCE(started_at, stopped_at, ''), actor_id",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = statement
+            .query_map(params![source, session_id], |row| row.get::<_, String>(0))
+            .map_err(|err| err.to_string())?;
+        let mut records = Vec::new();
+        for row in rows {
+            records.push(Self::from_json(row.map_err(|err| err.to_string())?)?);
+        }
+        Ok(records)
+    }
+
+    fn get_session_actor_by_transcript_session_id(
+        &self,
+        source: &str,
+        transcript_session_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String> {
+        let payload = self
+            .conn
+            .query_row(
+                "SELECT payload_json FROM orgtrack_core_session_actors
+                 WHERE source = ?1 AND transcript_session_id = ?2
+                 ORDER BY COALESCE(stopped_at, started_at, '') DESC LIMIT 1",
+                params![source, transcript_session_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        payload.map(Self::from_json).transpose()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::canonical::{
-        AgentMetadata, ArtifactQuality, SessionEditArtifactRecord, SessionEditKind,
+        AgentMetadata, ArtifactQuality, AttributionPrecision, FileResourceRecord, ResourceAction,
+        ResourceInteractionCaptureMethod, ResourceInteractionOutcome, ResourceInteractionRecord,
+        SessionEditArtifactRecord, SessionEditKind, RESOURCE_INTERACTION_SCHEMA_VERSION,
     };
     use crate::privacy::ORGTRACK_SCHEMA_VERSION;
 
@@ -933,6 +1342,47 @@ mod tests {
         let conn = Connection::open_in_memory().expect("in-memory sqlite");
         SqliteRecordStore::init_tables(&conn).expect("init tables");
         SqliteRecordStore::new(Box::leak(Box::new(conn)))
+    }
+
+    #[test]
+    fn init_tables_replaces_legacy_unique_source_event_index() {
+        let conn = Connection::open_in_memory().expect("in-memory sqlite");
+        SqliteRecordStore::init_tables(&conn).expect("init current tables");
+        conn.execute_batch(
+            "
+            DROP INDEX idx_orgtrack_core_resource_interactions_observation;
+            CREATE UNIQUE INDEX idx_orgtrack_core_resource_interactions_source_event
+                ON orgtrack_core_resource_interactions(
+                    source,
+                    source_event_id,
+                    resource_id,
+                    action
+                )
+                WHERE source_event_id IS NOT NULL;
+            ",
+        )
+        .expect("install legacy unique index");
+
+        SqliteRecordStore::init_tables(&conn).expect("migrate legacy index");
+
+        let legacy_index: Option<String> = conn
+            .query_row(
+                "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = ?1",
+                ["idx_orgtrack_core_resource_interactions_source_event"],
+                |row| row.get(0),
+            )
+            .optional()
+            .expect("query legacy index");
+        assert!(legacy_index.is_none());
+
+        let observation_index: String = conn
+            .query_row(
+                "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = ?1",
+                ["idx_orgtrack_core_resource_interactions_observation"],
+                |row| row.get(0),
+            )
+            .expect("query replacement index");
+        assert!(!observation_index.to_ascii_uppercase().contains("UNIQUE"));
     }
 
     #[test]
@@ -977,5 +1427,121 @@ mod tests {
             .list_edit_artifacts(Some("cursor_ide"), Some("session-1"))
             .expect("list edit artifacts after delete");
         assert!(records.is_empty());
+    }
+
+    #[test]
+    fn file_resource_interactions_are_idempotent_and_queryable_by_repo() {
+        let store = fixture_store();
+        let resource = FileResourceRecord {
+            schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+            resource_id: "file-1".to_string(),
+            repository_id: Some("repo-1".to_string()),
+            workspace_path: "/repo/worktree".to_string(),
+            repo_relative_path: "src/lib.rs".to_string(),
+            display_path: "src/lib.rs".to_string(),
+            path_hash: "hash-1".to_string(),
+        };
+        store
+            .upsert_file_resource(&resource)
+            .expect("upsert file resource");
+
+        let interaction = ResourceInteractionRecord {
+            schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+            interaction_id: "interaction-1".to_string(),
+            source: "claude_code".to_string(),
+            source_session_id: Some("source-1".to_string()),
+            source_event_id: Some("tool-1".to_string()),
+            session_id: "claudecodeapp-source-1".to_string(),
+            turn_id: Some("turn-1".to_string()),
+            actor_id: Some("agent-1".to_string()),
+            resource_id: resource.resource_id.clone(),
+            action: ResourceAction::Read,
+            outcome: ResourceInteractionOutcome::Succeeded,
+            occurred_at: "2026-07-14T00:00:00Z".to_string(),
+            capture_method: ResourceInteractionCaptureMethod::Hook,
+            attribution_precision: AttributionPrecision::Exact,
+        };
+        store
+            .append_resource_interaction(&interaction)
+            .expect("append interaction");
+        store
+            .append_resource_interaction(&interaction)
+            .expect("repeat interaction is idempotent");
+
+        let records = store
+            .list_file_resource_interactions(Some("repo-1"), "/different/worktree", "src/lib.rs")
+            .expect("list file interactions");
+        assert_eq!(records, vec![interaction.clone()]);
+
+        let mut stronger_observation = interaction.clone();
+        stronger_observation.interaction_id = "interaction-stronger".to_string();
+        stronger_observation.session_id = "claudecodeapp-child-1".to_string();
+        stronger_observation.capture_method = ResourceInteractionCaptureMethod::Reconciled;
+        store
+            .append_resource_interaction(&stronger_observation)
+            .expect("preserve stronger observation of the same source event");
+        assert_eq!(
+            store
+                .list_file_resource_interactions(
+                    Some("repo-1"),
+                    "/different/worktree",
+                    "src/lib.rs"
+                )
+                .expect("list immutable observations")
+                .len(),
+            2
+        );
+
+        let mut reconciled = interaction.clone();
+        reconciled.interaction_id = "interaction-2".to_string();
+        reconciled.source_event_id = Some("tool-2".to_string());
+        reconciled.capture_method = ResourceInteractionCaptureMethod::Reconciled;
+        store
+            .append_resource_interaction(&reconciled)
+            .expect("append reconciled interaction");
+        assert_eq!(
+            store
+                .delete_reconciled_resource_interactions("claude_code", "claudecodeapp-source-1")
+                .expect("delete reconciled interactions"),
+            1
+        );
+        assert_eq!(
+            store
+                .delete_reconciled_resource_interactions("claude_code", "claudecodeapp-child-1")
+                .expect("delete child reconciled observation"),
+            1
+        );
+        let records = store
+            .list_file_resource_interactions(Some("repo-1"), "/different/worktree", "src/lib.rs")
+            .expect("list interactions after reconciliation replacement");
+        assert_eq!(records, vec![interaction]);
+    }
+
+    #[test]
+    fn interaction_import_checkpoints_change_with_fingerprint_or_parser() {
+        let store = fixture_store();
+        assert!(!store
+            .interaction_import_is_current("claude_code", "session-1", "fingerprint-1", 1)
+            .expect("query empty checkpoint"));
+
+        store
+            .mark_interaction_imported(
+                "claude_code",
+                "session-1",
+                "fingerprint-1",
+                1,
+                "2026-07-14T00:00:00Z",
+            )
+            .expect("mark checkpoint");
+
+        assert!(store
+            .interaction_import_is_current("claude_code", "session-1", "fingerprint-1", 1)
+            .expect("query matching checkpoint"));
+        assert!(!store
+            .interaction_import_is_current("claude_code", "session-1", "fingerprint-2", 1)
+            .expect("query changed fingerprint"));
+        assert!(!store
+            .interaction_import_is_current("claude_code", "session-1", "fingerprint-1", 2)
+            .expect("query changed parser"));
     }
 }

@@ -119,6 +119,16 @@ const managedConfig = {
     .build(),
 } as const;
 
+const sessionProvenance = {
+  status: defineProcedure("session_provenance_hooks_status")
+    .output(z.array(schemas.agentOrgs.SessionProvenanceHookStatusSchema))
+    .build(),
+  setEnabled: defineProcedure("session_provenance_hooks_set_enabled")
+    .input(schemas.agentOrgs.SessionProvenanceHookSetEnabledInput)
+    .output(schemas.agentOrgs.SessionProvenanceHookStatusSchema)
+    .build(),
+} as const;
+
 const skills = {
   list: defineProcedure("skills_list")
     .input(schemas.agentOrgs.SkillsListInput)
@@ -164,6 +174,7 @@ export const agentOrgs = {
   cliConfigFiles,
   launchProfiles,
   managedConfig,
+  sessionProvenance,
   memory,
   orgs,
   skills,

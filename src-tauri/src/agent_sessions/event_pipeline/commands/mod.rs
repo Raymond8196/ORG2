@@ -688,19 +688,19 @@ mod bulk_writer {
     }
 }
 
-fn persist_runtime_edit_artifacts_async(session_id: String, events: Vec<(usize, SessionEvent)>) {
+fn persist_runtime_orgtrack_records_async(session_id: String, events: Vec<(usize, SessionEvent)>) {
     tokio::task::spawn_blocking(move || {
-        if let Err(err) = persist_runtime_edit_artifacts(&session_id, events) {
+        if let Err(err) = persist_runtime_orgtrack_records(&session_id, events) {
             tracing::warn!(
                 session_id = %session_id,
                 error = %err,
-                "[orgtrack_runtime_artifacts] failed to persist runtime edit artifacts"
+                "[orgtrack_runtime_artifacts] failed to persist runtime provenance records"
             );
         }
     });
 }
 
-fn persist_runtime_edit_artifacts(
+fn persist_runtime_orgtrack_records(
     session_id: &str,
     events: Vec<(usize, SessionEvent)>,
 ) -> Result<(), String> {
@@ -715,6 +715,16 @@ fn persist_runtime_edit_artifacts(
 
     let mut chunks_by_file: HashMap<String, Vec<SessionDiffChunkRecord>> = HashMap::new();
     for (sequence_index, event) in events {
+        if let Err(err) = crate::orgtrack::session_provenance::persist_native_event_interactions(
+            &store, &session, &event,
+        ) {
+            tracing::warn!(
+                session_id = %session.session_id,
+                event_id = %event.id,
+                error = %err,
+                "[SessionProvenance] Native interaction persistence failed"
+            );
+        }
         let Some(ExtractedData::Edit(edit)) = event.extracted.as_ref() else {
             continue;
         };
@@ -881,7 +891,15 @@ pub fn push_events_to_session(
             continue;
         }
         impact_events.push(event.clone());
-        if matches!(event.extracted, Some(ExtractedData::Edit(_))) {
+        if matches!(
+            event.extracted,
+            Some(
+                ExtractedData::File(_)
+                    | ExtractedData::Edit(_)
+                    | ExtractedData::Search(_)
+                    | ExtractedData::DeleteFile(_)
+            )
+        ) {
             runtime_artifact_events.push((sequence_index, event.clone()));
         }
         persistable.push(event_conversion::session_event_to_cached_event(&event));
@@ -894,7 +912,7 @@ pub fn push_events_to_session(
         );
     }
     if !runtime_artifact_events.is_empty() {
-        persist_runtime_edit_artifacts_async(session_id.to_string(), runtime_artifact_events);
+        persist_runtime_orgtrack_records_async(session_id.to_string(), runtime_artifact_events);
     }
 
     schedule_notify(app, state, session_id);

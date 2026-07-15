@@ -153,6 +153,7 @@ export function useSessionMenuItems({
   includeExternal,
   groupVisibleCounts,
   expandedSubagentParentIds = new Set(),
+  revealedSessionIds = new Set(),
 }: UseSessionMenuItemsParams): UseSessionMenuItemsResult {
   const { t: tCommon } = useTranslation();
   const pagination = useAtomValue(sessionPaginationAtom);
@@ -214,11 +215,14 @@ export function useSessionMenuItems({
   const visibleSessions = useMemo(
     () =>
       sortedSessions.filter((session) => {
+        const explicitlyRevealed = revealedSessionIds.has(session.session_id);
         const sessionOrgId = session.orgId ?? DEFAULT_SESSION_ORG_ID;
         return (
           isPrimarySessionListSession(session) &&
-          (includeExternal || !isImportedHistorySession(session.session_id)) &&
-          (!selectedOrgId || sessionOrgId === selectedOrgId) &&
+          (explicitlyRevealed ||
+            ((includeExternal ||
+              !isImportedHistorySession(session.session_id)) &&
+              (!selectedOrgId || sessionOrgId === selectedOrgId))) &&
           !benchmarkChildSessionIds.has(session.session_id) &&
           !benchmarkHistoryChildSessionIds.has(session.session_id) &&
           !benchmarkCoordinatorSessionIds.has(session.parentSessionId ?? "")
@@ -229,6 +233,7 @@ export function useSessionMenuItems({
       benchmarkCoordinatorSessionIds,
       benchmarkHistoryChildSessionIds,
       includeExternal,
+      revealedSessionIds,
       selectedOrgId,
       sortedSessions,
     ]
@@ -425,16 +430,27 @@ export function useSessionMenuItems({
       const visibleCount = isFiltering
         ? groupSessions.length
         : (groupVisibleCounts.get(groupId) ?? DEFAULT_GROUP_VISIBLE_COUNT);
+      const revealedIndex = groupSessions.reduce(
+        (lastIndex, session, index) =>
+          revealedSessionIds.has(session.session_id) ? index : lastIndex,
+        -1
+      );
       return appendSessionGroup({
         items,
         groupId,
         groupSessions,
-        visibleCount,
+        visibleCount: Math.max(visibleCount, revealedIndex + 1),
         buildSessionRow,
         loadMoreLabel: tCommon("common:actions.loadMore"),
       });
     },
-    [buildSessionRow, groupVisibleCounts, isFiltering, tCommon]
+    [
+      buildSessionRow,
+      groupVisibleCounts,
+      isFiltering,
+      revealedSessionIds,
+      tCommon,
+    ]
   );
 
   const dateGroupLabels: Record<DateGroupKey, string> = useMemo(

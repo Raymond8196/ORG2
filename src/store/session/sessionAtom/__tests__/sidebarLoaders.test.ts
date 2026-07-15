@@ -5,7 +5,12 @@ import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/externalHistory";
 
 import { dataSourceConfigAtom } from "../../dataSourceConfigAtom";
 import { sessionsAtom } from "../atoms";
-import { loadMoreCategory, loadSidebarSessions } from "../loaders";
+import {
+  __TESTS_ONLY,
+  loadMoreCategory,
+  loadSidebarSessionById,
+  loadSidebarSessions,
+} from "../loaders";
 import { sessionPaginationAtom } from "../paginationAtoms";
 
 const mocks = vi.hoisted(() => ({
@@ -177,5 +182,82 @@ describe("loadSidebarSessions", () => {
     );
     expect(requestedSources).not.toContain("warp");
     expect(requestedSources).toHaveLength(IMPORTED_HISTORY_SOURCES.length - 1);
+  });
+
+  it("hydrates one historical session by canonical ID without paging", async () => {
+    const historicalSession = {
+      session_id: "codexapp-rollout-historical",
+      name: "Historical Codex session",
+      status: "completed",
+      created_at: "2026-06-01T12:00:00Z",
+      updated_at: "2026-06-01T13:00:00Z",
+    };
+    mocks.sessionAggregateList.mockResolvedValue({
+      sessions: [historicalSession],
+    });
+
+    const loaded = await loadSidebarSessionById("codexapp-rollout-historical");
+
+    expect(loaded).toEqual(historicalSession);
+    expect(mocks.sessionAggregateList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionIds: ["codexapp-rollout-historical"],
+        includeExternalHistory: true,
+        includeStats: false,
+        limit: 1,
+      })
+    );
+    expect(mocks.sessionAggregateList.mock.calls[0]?.[0]).not.toHaveProperty(
+      "disabledExternalHistorySources"
+    );
+    expect(mocks.externalHistorySidebarList).not.toHaveBeenCalled();
+    expect(mocks.store?.get(sessionsAtom)).toContainEqual(historicalSession);
+  });
+
+  it("does not erase an exact-loaded child during a provider first-page refresh", () => {
+    const codex = IMPORTED_HISTORY_SOURCES.find(
+      (source) => source.sourceId === "codex_app"
+    );
+    expect(codex).toBeTruthy();
+    if (!codex) return;
+
+    const oldRoot = {
+      session_id: "codexapp-old-root",
+      name: "Old root",
+      status: "completed" as const,
+      created_at: "2026-07-01T00:00:00Z",
+      updated_at: "2026-07-01T00:00:00Z",
+    };
+    const exactChild = {
+      ...oldRoot,
+      session_id: "codexapp-exact-child",
+      name: "Exact child",
+      parentSessionId: "codexapp-current-root",
+    };
+    const currentRoot = {
+      ...oldRoot,
+      session_id: "codexapp-current-root",
+      name: "Current root",
+      updated_at: "2026-07-14T00:00:00Z",
+    };
+
+    const replaced = __TESTS_ONLY.replaceExternalHistorySourceFirstPage(
+      [oldRoot, exactChild],
+      [currentRoot],
+      codex
+    );
+
+    expect(replaced.map((session) => session.session_id)).toEqual([
+      "codexapp-current-root",
+      "codexapp-exact-child",
+    ]);
+
+    const disabled = __TESTS_ONLY.replaceExternalHistorySourceFirstPage(
+      replaced,
+      [],
+      codex,
+      false
+    );
+    expect(disabled).toEqual([]);
   });
 });

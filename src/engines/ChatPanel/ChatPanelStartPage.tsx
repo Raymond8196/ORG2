@@ -370,14 +370,17 @@ export function ChatPanelStartPage({
       {
         key: CHAT_PANEL_START_PAGE_TAB.WORK,
         label: t("chat.startPage.tabs.work"),
+        dataTestId: "chat-panel-start-page-tab-work",
       },
       {
         key: CHAT_PANEL_START_PAGE_TAB.MANAGE,
         label: t("chat.startPage.tabs.manage"),
+        dataTestId: "chat-panel-start-page-tab-manage",
       },
       {
         key: CHAT_PANEL_START_PAGE_TAB.RUNTIME,
         label: t("chat.startPage.tabs.runtime"),
+        dataTestId: "chat-panel-start-page-tab-runtime",
       },
     ],
     [t]

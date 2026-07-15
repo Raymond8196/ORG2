@@ -1680,6 +1680,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "Aucun contenu de configuration"
     },
+    "sessionProvenance": {
+      "title": "Traçabilité des sessions",
+      "capture": "Enregistrer les interactions avec les fichiers",
+      "description": "Enregistre les lectures et écritures de fichiers sous forme de métadonnées. Les prompts, les sorties d’outils et le contenu des fichiers ne sont pas stockés.",
+      "configPath": "Enregistre les lectures et écritures de fichiers sous forme de métadonnées. Les prompts, les sorties d’outils et le contenu des fichiers ne sont pas stockés. Configuration : {{path}}",
+      "installDrift": "La préférence enregistrée et le hook installé diffèrent. Basculez la capture pour réparer le hook géré. Configuration : {{path}}"
+    },
     "codexConfig": {
       "sectionTitle": "Configuration",
       "model": "Modèle",

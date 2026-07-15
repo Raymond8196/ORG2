@@ -405,7 +405,28 @@
     "nearby": "Próximos",
     "renowned": "Renomados",
     "dragToReorder": "Arraste para reordenar a sequência de mensagens",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Atribuição de sessões",
+    "sessionBlameSubagent": "Subagente: {{name}}",
+    "sessionBlameMainSession": "Sessão principal",
+    "sessionBlameAction": {
+      "read": "Ler",
+      "write": "Escrever",
+      "create": "Criar",
+      "delete": "Excluir",
+      "rename": "Renomear",
+      "search": "Pesquisar"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Confiança desconhecida",
+      "session_only": "Somente sessão",
+      "correlated": "Correlacionada",
+      "exact": "Atribuição exata"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Indexando sessões históricas {{indexed}}/{{total}}",
+      "partial": "Índice histórico incompleto ({{failed}} falhas)",
+      "failed": "Falha ao indexar sessões históricas"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

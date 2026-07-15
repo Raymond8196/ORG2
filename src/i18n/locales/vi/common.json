@@ -405,7 +405,28 @@
     "nearby": "Gần đây",
     "renowned": "Nổi tiếng",
     "dragToReorder": "Kéo để sắp xếp lại thứ tự tin nhắn",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Quy nguồn phiên",
+    "sessionBlameSubagent": "Tác tử phụ: {{name}}",
+    "sessionBlameMainSession": "Phiên chính",
+    "sessionBlameAction": {
+      "read": "Đọc",
+      "write": "Ghi",
+      "create": "Tạo",
+      "delete": "Xóa",
+      "rename": "Đổi tên",
+      "search": "Tìm kiếm"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Độ tin cậy chưa rõ",
+      "session_only": "Chỉ phiên",
+      "correlated": "Đã đối chiếu",
+      "exact": "Quy nguồn chính xác"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Đang lập chỉ mục phiên cũ {{indexed}}/{{total}}",
+      "partial": "Chỉ mục lịch sử chưa hoàn chỉnh ({{failed}} lỗi)",
+      "failed": "Không thể lập chỉ mục phiên cũ"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
