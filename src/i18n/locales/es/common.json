@@ -74,6 +74,11 @@
       "other": "Secreto"
     }
   },
+  "secretScan": {
+    "title": "Posible secreto detectado",
+    "message": "Este mensaje parece contener credenciales sensibles:\n\n{{items}}\n\nAl enviarlo, el secreto se guardará en el historial del chat y se enviará al modelo. ¿Enviar de todos modos?",
+    "sendAnyway": "Enviar de todos modos"
+  },
   "actions": {
     "save": "Guardar",
     "cancel": "Cancelar",

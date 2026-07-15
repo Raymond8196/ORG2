@@ -28,6 +28,7 @@
     "agentSessions": "Agent Sessions",
     "apiKeys": "API Keys",
     "appUpdate": "App-Update",
+    "security": "Sicherheit",
     "monitor": "Gerät & Netzwerk",
     "osAgentConfig": "OS Agent Config",
     "sdeAgentConfig": "SDE Agent Config",
@@ -54,6 +55,7 @@
       "models": "Modelle & Keys",
       "myRoles": "Meine Rollen",
       "rulesMemoryEvolution": "Regeln, Speicher & Entwicklung",
+      "security": "Sicherheit",
       "routines": "Routinen",
       "tools": "Built-in Tools",
       "computerUse": "Computer Use",
@@ -66,6 +68,16 @@
       "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
+  },
+  "security": {
+    "scan": "Vor dem Senden von Geheimnissen warnen",
+    "scanDesc": "Durchsucht deine Eingabe im Editor nach API-Schlüsseln, Tokens und Passwörtern und fragt vor dem Senden an das Modell nach einer Bestätigung",
+    "entropy": "Zeichenfolgen mit hoher Entropie erkennen",
+    "entropyDesc": "Markiert auch lange, zufällig wirkende Zeichenfolgen, die keinem bekannten Schlüsselformat entsprechen. Erkennt mehr Geheimnisse, kann aber gelegentlich Hashes oder IDs markieren",
+    "customPatterns": "Benutzerdefinierte Muster",
+    "customPatternsDesc": "Ein regulärer Ausdruck pro Zeile. Jede Übereinstimmung wird als Geheimnis behandelt. Ungültige Ausdrücke werden ignoriert",
+    "customPatternsPlaceholder": "z. B. MYCORP_[A-Z0-9]{20}",
+    "invalidPatterns": "{{count}} Muster sind ungültig und werden ignoriert: {{patterns}}"
   },
   "myRoles": {
     "currentStatus": "Mein aktueller Status",

@@ -28,6 +28,7 @@
     "agentSessions": "Agent Sessions",
     "apiKeys": "API Keys",
     "appUpdate": "Cập nhật ứng dụng",
+    "security": "Bảo mật",
     "monitor": "Thiết bị & Mạng",
     "osAgentConfig": "Cấu hình OS Agent",
     "sdeAgentConfig": "Cấu hình SDE Agent",
@@ -54,6 +55,7 @@
       "models": "Mô hình & Keys",
       "myRoles": "Vai trò của tôi",
       "rulesMemoryEvolution": "Quy tắc, Bộ nhớ & Tiến hóa",
+      "security": "Bảo mật",
       "routines": "Routine",
       "tools": "Built-in Tools",
       "computerUse": "Computer Use",
@@ -66,6 +68,16 @@
       "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
+  },
+  "security": {
+    "scan": "Cảnh báo trước khi gửi thông tin bí mật",
+    "scanDesc": "Quét nội dung bạn nhập trong trình soạn thảo để tìm khóa API, mã thông báo và mật khẩu, và yêu cầu xác nhận trước khi gửi chúng đến mô hình",
+    "entropy": "Phát hiện chuỗi có entropy cao",
+    "entropyDesc": "Cũng đánh dấu các chuỗi dài trông ngẫu nhiên không khớp với định dạng khóa đã biết. Phát hiện nhiều thông tin bí mật hơn nhưng đôi khi có thể đánh dấu nhầm giá trị băm hoặc ID",
+    "customPatterns": "Mẫu tùy chỉnh",
+    "customPatternsDesc": "Mỗi dòng một biểu thức chính quy. Mọi kết quả khớp đều được coi là thông tin bí mật. Các biểu thức không hợp lệ sẽ bị bỏ qua",
+    "customPatternsPlaceholder": "ví dụ: MYCORP_[A-Z0-9]{20}",
+    "invalidPatterns": "{{count}} mẫu không hợp lệ và sẽ bị bỏ qua: {{patterns}}"
   },
   "myRoles": {
     "currentStatus": "Trạng thái hiện tại của tôi",
