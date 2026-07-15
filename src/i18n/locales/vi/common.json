@@ -408,15 +408,13 @@
     "sessionBlame": "Quy nguồn phiên",
     "sessionBlameSubagent": "Tác tử phụ: {{name}}",
     "sessionBlameMainSession": "Phiên chính",
-    "sessionBlameSessionAttribution": "Quy nguồn ở cấp phiên",
     "sessionBlameAction": {
       "read": "Đọc",
       "write": "Ghi",
       "create": "Tạo",
       "delete": "Xóa",
       "rename": "Đổi tên",
-      "search": "Tìm kiếm",
-      "reference": "Tham chiếu"
+      "search": "Tìm kiếm"
     },
     "sessionBlamePrecision": {
       "unknown": "Độ tin cậy chưa rõ",

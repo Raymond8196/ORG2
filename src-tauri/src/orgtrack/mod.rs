@@ -18,13 +18,16 @@ use orgtrack_core::canonical::{
     AgentMetadata, AttributionPrecision, CommitLinkRecord, ResourceInteractionRecord,
     SessionActorRecord, SessionCheckpointFileStateRecord, SessionCheckpointRecord,
     SessionDiffChunkRecord, SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
-    RESOURCE_INTERACTION_SCHEMA_VERSION, SOURCE_ORGII_RUST_AGENTS,
+    RESOURCE_INTERACTION_SCHEMA_VERSION, SESSION_PROVENANCE_HOOK_ORIGIN, SOURCE_ORGII_RUST_AGENTS,
 };
 use orgtrack_core::edit_extraction::final_diff_from_chunks;
 use orgtrack_core::policy::{source_tier_policy, SourceTierPolicy};
 use orgtrack_core::privacy::ORGTRACK_SCHEMA_VERSION;
 use orgtrack_core::projectors::stats::{session_summaries, CoreSessionSummary};
 use orgtrack_core::repo_sync::paths::record_id;
+use orgtrack_core::sources::imported_history::metadata::{
+    SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE,
+};
 use orgtrack_core::store::{sqlite::SqliteRecordStore, RecordStore};
 use serde::Serialize;
 use types::OrgtrackTier;
@@ -185,13 +188,24 @@ pub async fn orgtrack_get_file_session_history(
             &resolved.workspace_path,
             &resolved.repo_relative_path,
         )?;
-        let sessions = project_file_session_history(&store, interactions)?;
+        let mut sessions = project_file_session_history(&store, interactions)?;
         // Scheduling is intentionally after the foreground read. Backfill
         // owns a separate DB connection and never delays this response.
         let backfill = session_provenance::request_historical_backfill(
             &repo_path,
             &resolved.repo_relative_path,
         );
+        // A shared backfill can finish between the foreground read and the
+        // job snapshot. Re-read on terminal success so the client never sees
+        // stale rows paired with a status that tells it to stop polling.
+        if matches!(backfill.status.as_str(), "complete" | "partial") {
+            let interactions = store.list_file_resource_interactions(
+                resolved.repository_id.as_deref(),
+                &resolved.workspace_path,
+                &resolved.repo_relative_path,
+            )?;
+            sessions = project_file_session_history(&store, interactions)?;
+        }
         Ok(types::FileSessionHistory {
             schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
             file_path: resolved.repo_relative_path,
@@ -210,7 +224,7 @@ fn project_file_session_history(
     let interactions = strongest_resource_interactions(interactions);
     let mut grouped: BTreeMap<String, FileSessionGroupAccumulator> = BTreeMap::new();
     let mut session_cache: HashMap<String, Option<SessionRecord>> = HashMap::new();
-    for interaction in interactions {
+    for mut interaction in interactions {
         if !session_cache.contains_key(&interaction.session_id) {
             session_cache.insert(
                 interaction.session_id.clone(),
@@ -223,6 +237,15 @@ fn project_file_session_history(
             .cloned();
         let (effective_actor_id, actor_session, actor_type) =
             resolve_interaction_actor(store, &mut session_cache, &interaction)?;
+        if interaction.actor_id.is_none() && effective_actor_id.is_some() {
+            // A unique actor found through turn/lifecycle timing is stronger
+            // than session-only attribution, but it is not a direct tool-event
+            // actor ID. Transcript reconciliation may later supersede it with
+            // exact attribution.
+            interaction.attribution_precision = interaction
+                .attribution_precision
+                .max(AttributionPrecision::Correlated);
+        }
         let target_session = actor_session.as_ref().or(session.as_ref());
         let origin_session_id = target_session
             .and_then(|session| session.parent_session_id.clone())
@@ -270,15 +293,19 @@ fn project_file_session_history(
             actor_session
                 .as_ref()
                 .or_else(|| target_session.filter(|session| session.parent_session_id.is_some()))
+                .filter(|session| session_has_replayable_transcript(session))
                 .map(|session| session.session_id.clone())
         } else {
-            target_session.map(|session| session.session_id.clone())
+            target_session
+                .filter(|session| session_has_replayable_transcript(session))
+                .map(|session| session.session_id.clone())
         };
         let group = grouped.entry(origin_session_id.clone()).or_insert_with(|| {
             FileSessionGroupAccumulator {
                 session_id: origin_session_id.clone(),
                 transcript_session_id: origin_session
                     .as_ref()
+                    .filter(|session| session_has_replayable_transcript(session))
                     .map(|session| session.session_id.clone()),
                 session_label: origin_session
                     .as_ref()
@@ -403,6 +430,10 @@ fn project_file_session_history(
     Ok(sessions)
 }
 
+fn session_has_replayable_transcript(session: &SessionRecord) -> bool {
+    session.metadata.origin.as_deref() != Some(SESSION_PROVENANCE_HOOK_ORIGIN)
+}
+
 fn update_file_session_aggregate(
     first_interaction_at: &mut String,
     last_interaction_at: &mut String,
@@ -462,10 +493,9 @@ fn interaction_strength(
     interaction: &ResourceInteractionRecord,
 ) -> (AttributionPrecision, bool, u8) {
     let capture_rank = match interaction.capture_method {
-        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Native => 4,
-        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Reconciled => 3,
-        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Hook => 2,
-        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Transcript => 1,
+        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Native => 3,
+        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Reconciled => 2,
+        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Hook => 1,
     };
     (
         interaction.attribution_precision,
@@ -573,16 +603,28 @@ fn resolve_actor_session(
 ) -> Result<Option<SessionRecord>, String> {
     let mut candidates = vec![actor_id.to_string()];
     match source {
-        "claude_code" => {
-            candidates.push(format!("claudecodeapp-{actor_id}"));
+        SOURCE_CLAUDE_CODE => {
+            candidates.push(orgtrack_core::sources::claude_code::canonical_session_id(
+                actor_id,
+            ));
             if !actor_id.starts_with("agent-") {
                 // Claude hook `agent_id` is the bare sidechain ID while the
                 // history importer uses the JSONL stem (`agent-{id}`).
-                candidates.push(format!("claudecodeapp-agent-{actor_id}"));
+                candidates.push(orgtrack_core::sources::claude_code::canonical_session_id(
+                    &format!("agent-{actor_id}"),
+                ));
             }
         }
-        "codex_app" => candidates.push(format!("codexapp-{actor_id}")),
-        "cursor_ide" => candidates.push(format!("cursoride-{actor_id}")),
+        SOURCE_CODEX_APP => {
+            candidates.push(orgtrack_core::sources::codex::canonical_session_id(
+                actor_id,
+            ));
+        }
+        SOURCE_CURSOR_IDE => {
+            candidates.push(orgtrack_core::sources::cursor_ide::canonical_session_id(
+                actor_id,
+            ));
+        }
         _ => {}
     };
     for candidate in candidates {
@@ -1062,6 +1104,7 @@ mod tests {
         AgentMetadata, AttributionPrecision, ResourceAction, ResourceInteractionCaptureMethod,
         ResourceInteractionOutcome, ResourceInteractionRecord, SessionActorRecord, SessionRecord,
         RESOURCE_INTERACTION_SCHEMA_VERSION, SESSION_ACTOR_SCHEMA_VERSION,
+        SESSION_PROVENANCE_HOOK_ORIGIN,
     };
     use orgtrack_core::privacy::ORGTRACK_SCHEMA_VERSION;
     use orgtrack_core::store::{sqlite::SqliteRecordStore, RecordStore};
@@ -1101,7 +1144,10 @@ mod tests {
                 branch: None,
                 parent_session_id: None,
                 org_member_id: None,
-                metadata: AgentMetadata::default(),
+                metadata: AgentMetadata {
+                    origin: Some(SESSION_PROVENANCE_HOOK_ORIGIN.to_string()),
+                    ..AgentMetadata::default()
+                },
             })
             .expect("upsert session");
 
@@ -1150,6 +1196,7 @@ mod tests {
 
         assert_eq!(history.len(), 1);
         assert_eq!(history[0].session_label, "Implement provenance");
+        assert_eq!(history[0].transcript_session_id, None);
         assert_eq!(history[0].interaction_count, 2);
         assert_eq!(history[0].action_counts.get("read"), Some(&1));
         assert_eq!(history[0].action_counts.get("write"), Some(&1));
@@ -1341,6 +1388,7 @@ mod tests {
         assert_eq!(participant.participant_kind, "subagent");
         assert_eq!(participant.actor_id.as_deref(), Some("agent-1"));
         assert_eq!(participant.actor_label.as_deref(), Some("Explorer"));
+        assert_eq!(participant.attribution_precision, "correlated");
         assert_eq!(participant.session_id, "codexapp-child-rollout");
         assert_eq!(
             participant.transcript_session_id.as_deref(),

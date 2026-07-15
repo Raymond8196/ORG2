@@ -30,15 +30,7 @@
     "cwd": { "type": "string", "minLength": 1 },
     "filePath": { "type": "string", "minLength": 1 },
     "action": {
-      "enum": [
-        "read",
-        "write",
-        "create",
-        "delete",
-        "rename",
-        "search",
-        "reference"
-      ]
+      "enum": ["read", "write", "create", "delete", "rename", "search"]
     },
     "outcome": { "enum": ["succeeded", "failed", "unknown"] },
     "occurredAt": { "type": "string", "format": "date-time" },

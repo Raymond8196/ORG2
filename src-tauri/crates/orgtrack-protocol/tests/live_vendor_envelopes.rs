@@ -1,4 +1,6 @@
-use orgtrack_protocol::{ResourceAction, ResourceInteractionEnvelopeV1};
+use orgtrack_protocol::{
+    ResourceAction, ResourceInteractionEnvelopeV1, SessionActorLifecycleEnvelopeV1,
+};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -47,6 +49,22 @@ fn validates_live_vendor_envelopes() {
     .into_iter()
     .map(str::to_string)
     .collect::<BTreeSet<_>>();
+    let expected_actor_keys = [
+        "schemaVersion",
+        "source",
+        "sourceSessionId",
+        "sessionId",
+        "turnId",
+        "actorId",
+        "actorType",
+        "phase",
+        "occurredAt",
+        "cwd",
+        "transcriptPath",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect::<BTreeSet<_>>();
     let mut actions_by_source = BTreeMap::<String, Vec<ResourceAction>>::new();
 
     for path in paths {
@@ -58,23 +76,39 @@ fn validates_live_vendor_envelopes() {
             .keys()
             .cloned()
             .collect::<BTreeSet<_>>();
-        assert_eq!(
-            actual_keys, expected_keys,
-            "unexpected wire fields in {path:?}"
-        );
-
-        let envelope: ResourceInteractionEnvelopeV1 =
-            serde_json::from_value(value.clone()).expect("strict live envelope decode");
-        envelope.validate().expect("live envelope invariants");
-        assert_eq!(
-            serde_json::to_value(&envelope).expect("serialize live envelope"),
-            value,
-            "live envelope must round-trip exactly"
-        );
-        actions_by_source
-            .entry(envelope.source.clone())
-            .or_default()
-            .push(envelope.action);
+        if value.get("phase").is_some() {
+            assert_eq!(
+                actual_keys, expected_actor_keys,
+                "unexpected actor wire fields in {path:?}"
+            );
+            let envelope: SessionActorLifecycleEnvelopeV1 =
+                serde_json::from_value(value.clone()).expect("strict actor envelope decode");
+            envelope.validate().expect("live actor envelope invariants");
+            assert_eq!(
+                serde_json::to_value(&envelope).expect("serialize actor envelope"),
+                value,
+                "live actor envelope must round-trip exactly"
+            );
+        } else {
+            assert_eq!(
+                actual_keys, expected_keys,
+                "unexpected resource wire fields in {path:?}"
+            );
+            let envelope: ResourceInteractionEnvelopeV1 =
+                serde_json::from_value(value.clone()).expect("strict resource envelope decode");
+            envelope
+                .validate()
+                .expect("live resource envelope invariants");
+            assert_eq!(
+                serde_json::to_value(&envelope).expect("serialize resource envelope"),
+                value,
+                "live resource envelope must round-trip exactly"
+            );
+            actions_by_source
+                .entry(envelope.source.clone())
+                .or_default()
+                .push(envelope.action);
+        }
 
         let serialized = String::from_utf8(bytes).expect("UTF-8 live envelope");
         for private_sentinel in [

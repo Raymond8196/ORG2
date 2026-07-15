@@ -114,19 +114,24 @@ function mergeSessions(
 function replaceImportedFirstPage(
   prev: readonly Session[],
   incoming: readonly Session[],
-  predicate: (sessionId: string) => boolean
+  shouldReplace: (session: Session) => boolean
 ): Session[] {
-  const retained = prev.filter((session) => !predicate(session.session_id));
+  const retained = prev.filter((session) => !shouldReplace(session));
   return mergeSessions(retained, incoming);
 }
 
 function replaceExternalHistorySourceFirstPage(
   prev: readonly Session[],
   incoming: readonly Session[],
-  source: ImportedHistorySource
+  source: ImportedHistorySource,
+  preserveChildren = true
 ): Session[] {
-  return replaceImportedFirstPage(prev, incoming, (sessionId) =>
-    isImportedHistorySourceSession(sessionId, source)
+  return replaceImportedFirstPage(
+    prev,
+    incoming,
+    (session) =>
+      (!preserveChildren || !session.parentSessionId) &&
+      isImportedHistorySourceSession(session.session_id, source)
   );
 }
 
@@ -353,12 +358,18 @@ async function loadCategoryPage(
 function replaceFirstPageForCategory(
   category: SessionListCategory,
   prev: readonly Session[],
-  incoming: readonly Session[]
+  incoming: readonly Session[],
+  preserveImportedChildren = true
 ): Session[] {
   if (isImportedHistoryListCategory(category)) {
     const source = getImportedHistorySourceByListCategory(category);
     return source
-      ? replaceExternalHistorySourceFirstPage(prev, incoming, source)
+      ? replaceExternalHistorySourceFirstPage(
+          prev,
+          incoming,
+          source,
+          preserveImportedChildren
+        )
       : mergeSessions(prev, incoming);
   }
   return mergeSessions(prev, incoming);
@@ -404,7 +415,7 @@ export const loadSidebarSessions = async (options?: {
       // Disabled source: clear any previously-loaded page and skip.
       if (isCategoryDisabled(category)) {
         store.set(sessionsAtom, (prev) =>
-          replaceFirstPageForCategory(category, prev, [])
+          replaceFirstPageForCategory(category, prev, [], false)
         );
         setPaginationFor(category, {
           loaded: 0,
@@ -461,16 +472,11 @@ export const loadSidebarSessionById = async (
     .find((session) => session.session_id === normalizedSessionId);
   if (existing) return existing;
 
-  const disabledSources = Object.entries(store.get(dataSourceConfigAtom))
-    .filter(([, config]) => config?.enabled === false)
-    .map(([sourceId]) => sourceId);
   const response = await sessionAggregateList({
     sessionIds: [normalizedSessionId],
     includeExternalHistory: true,
     includeStats: false,
     limit: 1,
-    disabledExternalHistorySources:
-      disabledSources.length > 0 ? disabledSources : undefined,
   });
   const session = toFrontendSessions(response.sessions).find(
     (candidate) => candidate.session_id === normalizedSessionId

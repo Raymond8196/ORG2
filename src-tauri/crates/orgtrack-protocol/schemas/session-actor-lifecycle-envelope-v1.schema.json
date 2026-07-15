@@ -26,7 +26,7 @@
     "actorId": { "type": "string", "minLength": 1 },
     "actorType": { "type": ["string", "null"] },
     "phase": { "enum": ["started", "stopped"] },
-    "occurredAt": { "type": "string", "minLength": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
     "cwd": { "type": "string", "minLength": 1 },
     "transcriptPath": { "type": ["string", "null"] }
   }

@@ -4,15 +4,20 @@
 //! hooks and unrelated configuration are preserved semantically when the JSON
 //! is rewritten.
 
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, OnceLock};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 
 const HOOK_MARKER: &str = "--session-provenance-hook";
 const PREFERENCES_SCHEMA_VERSION: u32 = 1;
+const ALL_SESSION_PROVENANCE_HOOK_PLATFORMS: [SessionProvenanceHookPlatform; 3] = [
+    SessionProvenanceHookPlatform::ClaudeCode,
+    SessionProvenanceHookPlatform::Codex,
+    SessionProvenanceHookPlatform::Cursor,
+];
 // Codex hook matchers use the public canonical tool names, not the internal
 // transcript/runtime names (`exec`, `exec_command`, etc.). Keep this aligned
 // with the official Hook matcher contract so Bash and apply_patch both fire.
@@ -46,8 +51,7 @@ impl SessionProvenanceHookPlatform {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(default)]
+#[serde(rename_all = "camelCase", default, deny_unknown_fields)]
 struct HookPreferences {
     schema_version: u32,
     claude_code: bool,
@@ -91,6 +95,7 @@ pub struct SessionProvenanceHookStatus {
     pub enabled: bool,
     pub desired_enabled: bool,
     pub config_path: String,
+    pub error: Option<String>,
 }
 
 fn preferences_path() -> PathBuf {
@@ -113,8 +118,15 @@ fn read_preferences() -> Result<HookPreferences, String> {
     }
     let bytes =
         std::fs::read(&path).map_err(|err| format!("Failed to read {}: {err}", path.display()))?;
-    serde_json::from_slice(&bytes)
-        .map_err(|err| format!("Invalid session-provenance preferences: {err}"))
+    let preferences: HookPreferences = serde_json::from_slice(&bytes)
+        .map_err(|err| format!("Invalid session-provenance preferences: {err}"))?;
+    if preferences.schema_version != PREFERENCES_SCHEMA_VERSION {
+        return Err(format!(
+            "Unsupported session-provenance preferences schema version: {}",
+            preferences.schema_version
+        ));
+    }
+    Ok(preferences)
 }
 
 fn write_preferences(preferences: &HookPreferences) -> Result<(), String> {
@@ -140,26 +152,25 @@ fn write_config(path: &Path, config: &Value) -> Result<(), String> {
 }
 
 fn write_atomic(path: &Path, bytes: &[u8]) -> Result<(), String> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|err| format!("Failed to create {}: {err}", parent.display()))?;
-    }
-    let nanos = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|duration| duration.as_nanos())
-        .unwrap_or(0);
-    let name = path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or("hooks.json");
-    let temp = path.with_file_name(format!(".{name}.{}.{nanos}.tmp", std::process::id()));
-    std::fs::write(&temp, bytes)
-        .map_err(|err| format!("Failed to write {}: {err}", temp.display()))?;
-    app_paths::set_sensitive_file_permissions(&temp).ok();
-    std::fs::rename(&temp, path).map_err(|err| {
-        let _ = std::fs::remove_file(&temp);
-        format!("Failed to publish {}: {err}", path.display())
-    })
+    let parent = path
+        .parent()
+        .ok_or_else(|| format!("Hook config has no parent directory: {}", path.display()))?;
+    std::fs::create_dir_all(parent)
+        .map_err(|err| format!("Failed to create {}: {err}", parent.display()))?;
+    let mut temp = tempfile::Builder::new()
+        .prefix(".orgii-session-provenance-")
+        .suffix(".tmp")
+        .tempfile_in(parent)
+        .map_err(|err| format!("Failed to create temp file in {}: {err}", parent.display()))?;
+    temp.write_all(bytes)
+        .map_err(|err| format!("Failed to write hook config temp file: {err}"))?;
+    temp.as_file()
+        .sync_all()
+        .map_err(|err| format!("Failed to flush hook config temp file: {err}"))?;
+    app_paths::set_sensitive_file_permissions(temp.path()).ok();
+    temp.persist(path)
+        .map(|_| ())
+        .map_err(|err| format!("Failed to publish {}: {}", path.display(), err.error))
 }
 
 fn hook_commands(executable: &Path, source: &str) -> (String, String) {
@@ -181,6 +192,16 @@ fn command_contains_marker(value: &Value) -> bool {
             .get("commandWindows")
             .and_then(Value::as_str)
             .is_some_and(|command| command.contains(HOOK_MARKER))
+}
+
+fn command_is_managed_for_platform(value: &Value, platform: SessionProvenanceHookPlatform) -> bool {
+    let expected = format!("{HOOK_MARKER} {}", platform.source_arg());
+    ["command", "commandWindows"].into_iter().any(|field| {
+        value
+            .get(field)
+            .and_then(Value::as_str)
+            .is_some_and(|command| command.trim_end().ends_with(&expected))
+    })
 }
 
 fn hooks_object_mut(config: &mut Value) -> Result<&mut Map<String, Value>, String> {
@@ -297,7 +318,7 @@ fn update_cursor_platform(
         .entry("version")
         .or_insert(json!(1));
     let hooks = hooks_object_mut(config)?;
-    for event_name in ["postToolUse", "subagentStop"] {
+    for event_name in ["postToolUse", "subagentStart", "subagentStop"] {
         if !hooks.contains_key(event_name) {
             hooks.insert(event_name.to_string(), Value::Array(Vec::new()));
         }
@@ -353,9 +374,90 @@ fn update_platform(
     write_config(&path, &config)
 }
 
-fn config_has_managed_hook(platform: SessionProvenanceHookPlatform) -> Result<bool, String> {
+fn nested_event_has_managed_hook(
+    config: &Value,
+    platform: SessionProvenanceHookPlatform,
+    event_name: &str,
+    matcher: Option<&str>,
+) -> bool {
+    config
+        .get("hooks")
+        .and_then(|hooks| hooks.get(event_name))
+        .and_then(Value::as_array)
+        .is_some_and(|groups| {
+            groups.iter().any(|group| {
+                let matcher_matches = match matcher {
+                    Some(expected) => {
+                        group.get("matcher").and_then(Value::as_str) == Some(expected)
+                    }
+                    None => group.get("matcher").is_none(),
+                };
+                matcher_matches
+                    && group
+                        .get("hooks")
+                        .and_then(Value::as_array)
+                        .is_some_and(|commands| {
+                            commands
+                                .iter()
+                                .any(|command| command_is_managed_for_platform(command, platform))
+                        })
+            })
+        })
+}
+
+fn cursor_event_has_managed_hook(config: &Value, event_name: &str, matcher: Option<&str>) -> bool {
+    config
+        .get("hooks")
+        .and_then(|hooks| hooks.get(event_name))
+        .and_then(Value::as_array)
+        .is_some_and(|commands| {
+            commands.iter().any(|command| {
+                let matcher_matches = match matcher {
+                    Some(expected) => {
+                        command.get("matcher").and_then(Value::as_str) == Some(expected)
+                    }
+                    None => command.get("matcher").is_none(),
+                };
+                matcher_matches
+                    && command_is_managed_for_platform(
+                        command,
+                        SessionProvenanceHookPlatform::Cursor,
+                    )
+            })
+        })
+}
+
+fn config_has_complete_managed_hooks(
+    config: &Value,
+    platform: SessionProvenanceHookPlatform,
+) -> bool {
+    match platform {
+        SessionProvenanceHookPlatform::ClaudeCode => nested_event_has_managed_hook(
+            config,
+            platform,
+            "PostToolUse",
+            Some("Read|Write|Edit|MultiEdit|NotebookEdit|Delete|Glob|Grep"),
+        ),
+        SessionProvenanceHookPlatform::Codex => {
+            nested_event_has_managed_hook(
+                config,
+                platform,
+                "PostToolUse",
+                Some(CODEX_POST_TOOL_USE_MATCHER),
+            ) && nested_event_has_managed_hook(config, platform, "SubagentStart", None)
+                && nested_event_has_managed_hook(config, platform, "SubagentStop", None)
+        }
+        SessionProvenanceHookPlatform::Cursor => {
+            cursor_event_has_managed_hook(config, "postToolUse", Some(".*"))
+                && cursor_event_has_managed_hook(config, "subagentStart", None)
+                && cursor_event_has_managed_hook(config, "subagentStop", None)
+        }
+    }
+}
+
+fn config_has_managed_hooks(platform: SessionProvenanceHookPlatform) -> Result<bool, String> {
     let config = read_config(&platform.config_path())?;
-    Ok(config.to_string().contains(HOOK_MARKER))
+    Ok(config_has_complete_managed_hooks(&config, platform))
 }
 
 /// Reconcile hook files with ORG2 preferences. On first launch preferences
@@ -366,11 +468,7 @@ pub fn ensure_hooks_from_preferences() -> Result<(), String> {
     let executable = std::env::current_exe()
         .map_err(|err| format!("Failed to locate ORG2 executable: {err}"))?;
     let mut errors = Vec::new();
-    for platform in [
-        SessionProvenanceHookPlatform::ClaudeCode,
-        SessionProvenanceHookPlatform::Codex,
-        SessionProvenanceHookPlatform::Cursor,
-    ] {
+    for platform in ALL_SESSION_PROVENANCE_HOOK_PLATFORMS {
         if let Err(err) = update_platform(platform, preferences.enabled(platform), &executable) {
             errors.push(format!("{platform:?}: {err}"));
         }
@@ -388,21 +486,24 @@ pub async fn session_provenance_hooks_status() -> Result<Vec<SessionProvenanceHo
     tokio::task::spawn_blocking(|| {
         let _guard = operation_guard()?;
         let preferences = read_preferences()?;
-        [
-            SessionProvenanceHookPlatform::ClaudeCode,
-            SessionProvenanceHookPlatform::Codex,
-            SessionProvenanceHookPlatform::Cursor,
-        ]
-        .into_iter()
-        .map(|platform| {
-            Ok(SessionProvenanceHookStatus {
-                platform,
-                enabled: config_has_managed_hook(platform).unwrap_or(false),
-                desired_enabled: preferences.enabled(platform),
-                config_path: platform.config_path().to_string_lossy().into_owned(),
-            })
-        })
-        .collect()
+        Ok::<_, String>(
+            ALL_SESSION_PROVENANCE_HOOK_PLATFORMS
+                .into_iter()
+                .map(|platform| {
+                    let (enabled, error) = match config_has_managed_hooks(platform) {
+                        Ok(enabled) => (enabled, None),
+                        Err(error) => (false, Some(error)),
+                    };
+                    SessionProvenanceHookStatus {
+                        platform,
+                        enabled,
+                        desired_enabled: preferences.enabled(platform),
+                        config_path: platform.config_path().to_string_lossy().into_owned(),
+                        error,
+                    }
+                })
+                .collect::<Vec<_>>(),
+        )
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -418,14 +519,30 @@ pub async fn session_provenance_hooks_set_enabled(
         let executable = std::env::current_exe()
             .map_err(|err| format!("Failed to locate ORG2 executable: {err}"))?;
         let mut preferences = read_preferences()?;
-        update_platform(platform, enabled, &executable)?;
         preferences.set_enabled(platform, enabled);
         write_preferences(&preferences)?;
+        // Persist the user's desired state before touching a provider file.
+        // If a malformed or read-only config cannot be repaired immediately,
+        // startup reconciliation can retry without losing the opt-out.
+        let update_error = update_platform(platform, enabled, &executable).err();
+        let (installed, inspection_error) = match config_has_managed_hooks(platform) {
+            Ok(installed) => (installed, None),
+            Err(err) => (false, Some(err)),
+        };
+        let error = match (update_error, inspection_error) {
+            (Some(update), Some(inspection)) => Some(format!(
+                "{update}; failed to inspect resulting hook config: {inspection}"
+            )),
+            (Some(update), None) => Some(update),
+            (None, Some(inspection)) => Some(inspection),
+            (None, None) => None,
+        };
         Ok(SessionProvenanceHookStatus {
             platform,
-            enabled: config_has_managed_hook(platform)?,
+            enabled: installed,
             desired_enabled: enabled,
             config_path: platform.config_path().to_string_lossy().into_owned(),
+            error,
         })
     })
     .await
@@ -494,6 +611,24 @@ mod tests {
             1
         );
         assert_eq!(config["hooks"]["SubagentStop"].as_array().unwrap().len(), 2);
+        assert!(config_has_complete_managed_hooks(
+            &config,
+            SessionProvenanceHookPlatform::Codex
+        ));
+
+        config["hooks"]["SubagentStart"] = json!([]);
+        assert!(!config_has_complete_managed_hooks(
+            &config,
+            SessionProvenanceHookPlatform::Codex
+        ));
+
+        update_codex_platform(
+            &mut config,
+            true,
+            "orgii --session-provenance-hook codex",
+            "orgii.exe --session-provenance-hook codex",
+        )
+        .expect("repair incomplete Codex hooks");
 
         update_codex_platform(&mut config, false, "unused", "unused").expect("disable Codex hooks");
         assert!(config.to_string().contains("user-hook"));
@@ -509,9 +644,21 @@ mod tests {
         update_cursor_platform(&mut config, true, "orgii --session-provenance-hook cursor")
             .expect("enable Cursor hook");
         assert_eq!(config["hooks"]["postToolUse"].as_array().unwrap().len(), 2);
+        assert_eq!(
+            config["hooks"]["subagentStart"].as_array().unwrap().len(),
+            1
+        );
         assert_eq!(config["hooks"]["subagentStop"].as_array().unwrap().len(), 1);
+        assert!(config_has_complete_managed_hooks(
+            &config,
+            SessionProvenanceHookPlatform::Cursor
+        ));
         update_cursor_platform(&mut config, false, "unused").expect("disable Cursor hook");
         assert_eq!(config["hooks"]["postToolUse"].as_array().unwrap().len(), 1);
+        assert!(config["hooks"]["subagentStart"]
+            .as_array()
+            .unwrap()
+            .is_empty());
         assert!(config["hooks"]["subagentStop"]
             .as_array()
             .unwrap()
@@ -526,5 +673,37 @@ mod tests {
             .expect_err("unknown shape must fail closed");
         assert!(error.contains("must be a JSON object"));
         assert_eq!(config, original);
+    }
+
+    #[test]
+    fn marker_in_unrelated_config_does_not_report_hooks_enabled() {
+        let config = json!({"notes": HOOK_MARKER});
+        assert!(!config_has_complete_managed_hooks(
+            &config,
+            SessionProvenanceHookPlatform::ClaudeCode
+        ));
+    }
+
+    #[test]
+    fn future_preferences_fail_closed_instead_of_being_clobbered() {
+        assert!(serde_json::from_value::<HookPreferences>(json!({
+            "schemaVersion": 2,
+            "claudeCode": true,
+            "codex": true,
+            "cursor": true,
+            "futurePlatform": true
+        }))
+        .is_err());
+    }
+
+    #[test]
+    fn atomic_write_replaces_an_existing_config() {
+        let temp = tempfile::tempdir().expect("temporary config dir");
+        let path = temp.path().join("hooks.json");
+        std::fs::write(&path, b"old").expect("old config");
+
+        write_atomic(&path, b"new").expect("replace config");
+
+        assert_eq!(std::fs::read(&path).unwrap(), b"new");
     }
 }

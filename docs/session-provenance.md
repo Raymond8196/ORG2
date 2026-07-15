@@ -77,10 +77,10 @@ into portable metadata.
 
 - canonical and source session IDs;
 - optional turn, source event, and actor/subagent IDs;
-- resource ID and action (`read`, `write`, `create`, `delete`, `rename`,
-  `search`, or `reference`);
+- resource ID and action (`read`, `write`, `create`, `delete`, `rename`, or
+  `search`);
 - outcome and occurrence time;
-- capture method (`native`, `hook`, `transcript`, or `reconciled`);
+- capture method (`native`, `hook`, or `reconciled`);
 - attribution precision (`unknown`, `session_only`, `correlated`, or `exact`).
 
 `FileResourceRecord` is a typed projection of a generic resource. A file is
@@ -148,11 +148,12 @@ transcript, the row shows the actor and its precision while keeping the parent
 session as the navigation target. ORG2 never fabricates a child session merely
 to imply stronger attribution.
 
-Cursor's `subagentStart` lifecycle payload exposes `subagent_id` and
-`parent_conversation_id`, but its file-bearing `postToolUse` and
-`subagentStop` payloads do not currently provide a stable actor key that can be
-joined without lifecycle correlation. Version 1 therefore keeps those file
-facts at session precision instead of guessing exact subagent ownership.
+Cursor's installed `subagentStart` lifecycle hook preserves `subagent_id`,
+`subagent_type`, and `parent_conversation_id`. Its file-bearing `postToolUse`
+and `subagentStop` payloads do not currently provide a stable actor key that
+can be joined without transcript evidence; some current Cursor releases also
+self-reference the parent conversation fields. Version 1 therefore keeps those
+file facts at session precision instead of guessing exact subagent ownership.
 
 ## Hook installation and customization
 

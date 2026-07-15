@@ -11,6 +11,9 @@ pub use orgtrack_protocol::{
 
 pub const SOURCE_ORGII_RUST_AGENTS: &str = "orgii_rust_agents";
 pub const SOURCE_ORGII_CLI_SESSIONS: &str = "orgii_cli_sessions";
+/// Session placeholder created from hook metadata before a replayable source
+/// transcript has been independently discovered.
+pub const SESSION_PROVENANCE_HOOK_ORIGIN: &str = "session_provenance_hook";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -28,7 +31,7 @@ pub enum ActivityKind {
     FocusLost,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AgentMetadata {
     pub dispatch_category: Option<String>,
@@ -41,23 +44,6 @@ pub struct AgentMetadata {
     pub origin: Option<String>,
     pub display_name: Option<String>,
     pub parsed_categories: BTreeMap<String, String>,
-}
-
-impl Default for AgentMetadata {
-    fn default() -> Self {
-        Self {
-            dispatch_category: None,
-            rust_agent_type: None,
-            cli_agent_type: None,
-            agent_exec_mode: None,
-            provider_model_type: None,
-            model: None,
-            key_source: None,
-            origin: None,
-            display_name: None,
-            parsed_categories: BTreeMap::new(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

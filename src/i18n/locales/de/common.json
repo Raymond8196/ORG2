@@ -408,15 +408,13 @@
     "sessionBlame": "Sitzungszuordnung",
     "sessionBlameSubagent": "Unteragent: {{name}}",
     "sessionBlameMainSession": "Hauptsitzung",
-    "sessionBlameSessionAttribution": "Zuordnung auf Sitzungsebene",
     "sessionBlameAction": {
       "read": "Lesen",
       "write": "Schreiben",
       "create": "Erstellen",
       "delete": "Löschen",
       "rename": "Umbenennen",
-      "search": "Suchen",
-      "reference": "Referenzieren"
+      "search": "Suchen"
     },
     "sessionBlamePrecision": {
       "unknown": "Unbekannte Sicherheit",

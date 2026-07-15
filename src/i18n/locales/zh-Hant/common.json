@@ -420,15 +420,13 @@
     "sessionBlame": "Session 歸屬",
     "sessionBlameSubagent": "子代理：{{name}}",
     "sessionBlameMainSession": "主 Session",
-    "sessionBlameSessionAttribution": "Session 層級歸屬",
     "sessionBlameAction": {
       "read": "讀取",
       "write": "寫入",
       "create": "建立",
       "delete": "刪除",
       "rename": "重新命名",
-      "search": "搜尋",
-      "reference": "引用"
+      "search": "搜尋"
     },
     "sessionBlamePrecision": {
       "unknown": "歸屬未知",

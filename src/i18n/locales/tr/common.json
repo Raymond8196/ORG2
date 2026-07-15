@@ -408,15 +408,13 @@
     "sessionBlame": "Oturum ilişkilendirmesi",
     "sessionBlameSubagent": "Alt ajan: {{name}}",
     "sessionBlameMainSession": "Ana oturum",
-    "sessionBlameSessionAttribution": "Oturum düzeyinde ilişkilendirme",
     "sessionBlameAction": {
       "read": "Okuma",
       "write": "Yazma",
       "create": "Oluşturma",
       "delete": "Silme",
       "rename": "Yeniden adlandırma",
-      "search": "Arama",
-      "reference": "Referans"
+      "search": "Arama"
     },
     "sessionBlamePrecision": {
       "unknown": "Güven düzeyi bilinmiyor",

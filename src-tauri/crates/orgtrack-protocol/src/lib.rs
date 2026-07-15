@@ -46,7 +46,6 @@ pub enum ResourceAction {
     Delete,
     Rename,
     Search,
-    Reference,
 }
 
 impl ResourceAction {
@@ -58,7 +57,6 @@ impl ResourceAction {
             Self::Delete => "delete",
             Self::Rename => "rename",
             Self::Search => "search",
-            Self::Reference => "reference",
         }
     }
 }
@@ -86,7 +84,6 @@ impl ResourceInteractionOutcome {
 pub enum ResourceInteractionCaptureMethod {
     Native,
     Hook,
-    Transcript,
     Reconciled,
 }
 
@@ -95,7 +92,6 @@ impl ResourceInteractionCaptureMethod {
         match self {
             Self::Native => "native",
             Self::Hook => "hook",
-            Self::Transcript => "transcript",
             Self::Reconciled => "reconciled",
         }
     }
@@ -302,13 +298,13 @@ impl fmt::Display for ProtocolValidationError {
             Self::UnsupportedSchemaVersion(version) => {
                 write!(
                     formatter,
-                    "unsupported resource-interaction schema version: {version}"
+                    "unsupported Orgtrack protocol schema version: {version}"
                 )
             }
             Self::EmptyRequiredField(field) => {
                 write!(
                     formatter,
-                    "resource-interaction field `{field}` must not be empty"
+                    "Orgtrack protocol field `{field}` must not be empty"
                 )
             }
         }
@@ -368,6 +364,18 @@ mod tests {
         .collect::<BTreeSet<_>>();
         assert_eq!(properties, expected);
         assert_eq!(schema["additionalProperties"], json!(false));
+        assert_eq!(
+            schema["properties"]["action"]["enum"],
+            json!(["read", "write", "create", "delete", "rename", "search"])
+        );
+        assert_eq!(
+            schema["properties"]["outcome"]["enum"],
+            json!(["succeeded", "failed", "unknown"])
+        );
+        assert_eq!(
+            schema["properties"]["attributionPrecision"]["enum"],
+            json!(["unknown", "session_only", "correlated", "exact"])
+        );
     }
 
     #[test]

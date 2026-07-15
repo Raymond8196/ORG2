@@ -578,22 +578,37 @@ pub fn resolve_codex_transcript_for_thread_id_near_path(
     let Some(sessions_dir) = codex_sessions_dir_for_session_path(reference_path) else {
         return Ok(None);
     };
+    let find_locator = |mut files: Vec<PathBuf>| {
+        files.sort();
+        files.into_iter().find_map(|path| {
+            let file_stem = path
+                .file_stem()
+                .and_then(|value| value.to_str())?
+                .to_string();
+            (codex_thread_id_from_file_stem(&file_stem) == Some(thread_id)).then(|| {
+                CodexTranscriptLocator {
+                    session_id: super::canonical_session_id(&file_stem),
+                    source_session_id: file_stem,
+                    source_path: path,
+                }
+            })
+        })
+    };
+
+    // Parent and child rollouts from one subagent run normally share the same
+    // dated directory. Search that tiny locality before falling back to the
+    // full CODEX_HOME session tree, which can contain years of history.
+    if let Some(nearby_dir) = reference_path.parent() {
+        let mut nearby_files = Vec::new();
+        collect_codex_session_files(nearby_dir, &mut nearby_files)?;
+        if let Some(locator) = find_locator(nearby_files) {
+            return Ok(Some(locator));
+        }
+    }
+
     let mut files = Vec::new();
     collect_codex_session_files(&sessions_dir, &mut files)?;
-    files.sort();
-    Ok(files.into_iter().find_map(|path| {
-        let file_stem = path
-            .file_stem()
-            .and_then(|value| value.to_str())?
-            .to_string();
-        (codex_thread_id_from_file_stem(&file_stem) == Some(thread_id)).then(|| {
-            CodexTranscriptLocator {
-                session_id: super::canonical_session_id(&file_stem),
-                source_session_id: file_stem,
-                source_path: path,
-            }
-        })
-    }))
+    Ok(find_locator(files))
 }
 
 /// Tally impact from a `patch_apply_end` event — Codex's authoritative record
