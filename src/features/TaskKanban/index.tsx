@@ -309,7 +309,10 @@ const Kanban: React.FC<TaskKanbanProps> = ({
         <div
           className={`${WORK_MANAGEMENT_SESSION_PREVIEW_OVERLAY_CLASS} kanban-session-preview-overlay`}
         >
-          <div className={WORK_MANAGEMENT_SESSION_PREVIEW_SURFACE_CLASS}>
+          <div
+            className={WORK_MANAGEMENT_SESSION_PREVIEW_SURFACE_CLASS}
+            data-draggable-window
+          >
             <TaskDetailPanel
               visible={detailPanelVisible}
               task={selectedTask}
