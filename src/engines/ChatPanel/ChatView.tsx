@@ -70,7 +70,10 @@ import {
 } from "@src/store/session/cliSessionStatusAtom";
 import { pendingPlanApprovalsAtom } from "@src/store/session/planApprovalAtom";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
-import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
+import {
+  chatPanelMaximizedAtom,
+  chatStatusBarVisibleAtom,
+} from "@src/store/ui/chatPanelAtom";
 import {
   dequeueMessageAtom,
   editMessageAtom,
@@ -436,6 +439,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const browserAddToConversationNav = useBrowserAddToConversationAction();
     const stationMode = useAtomValue(stationModeAtom);
     const chatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
+    const statusBarVisible = useAtomValue(chatStatusBarVisibleAtom);
     const agentMessageClampEligible =
       stationMode === STATION_MODE.AGENT_STATION && !chatPanelMaximized;
 
@@ -900,7 +904,9 @@ const ChatView: React.FC<ChatViewProps> = memo(
           {showExternalHistoryForkComposer && (
             <div
               ref={setMeasuredFloatingComposerRef}
-              className="absolute bottom-0 left-0 right-0 z-50 flex w-full flex-shrink-0 flex-col items-center px-2 pb-2 pt-1"
+              className={`absolute bottom-0 left-0 right-0 z-50 flex w-full flex-shrink-0 flex-col items-center px-2 pt-1 ${
+                statusBarVisible ? "pb-0" : "pb-2"
+              }`}
             >
               <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[-28px] bg-gradient-to-t from-chat-pane via-chat-pane/90 to-transparent" />
               <div
