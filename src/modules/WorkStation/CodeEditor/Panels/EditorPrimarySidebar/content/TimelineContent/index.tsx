@@ -25,6 +25,7 @@ import {
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { openOrReplaceSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { sessionByIdAtom } from "@src/store/session";
+import { requestSessionSidebarRevealAtom } from "@src/store/ui/sidebarAtom";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
@@ -272,7 +273,8 @@ interface FileSessionHistorySessionProps {
   onOpenSession: (
     sessionId: string,
     sessionLabel: string,
-    workspacePath?: string
+    workspacePath?: string,
+    parentSessionId?: string
   ) => void;
 }
 
@@ -340,7 +342,8 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
                       onOpenSession(
                         participant.transcriptSessionId!,
                         participant.sessionLabel,
-                        workspacePath
+                        workspacePath,
+                        session.transcriptSessionId ?? undefined
                       )
                   : undefined
               }
@@ -366,6 +369,9 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
     const { openSession } = useSessionView();
     const openOrReplaceSessionTab = useSetAtom(
       openOrReplaceSessionInChatPanelTabAtom
+    );
+    const requestSessionSidebarReveal = useSetAtom(
+      requestSessionSidebarRevealAtom
     );
     const orgtrackRepoPath = repoPath ?? repoId;
     const relativeFilePath = React.useMemo(() => {
@@ -420,7 +426,13 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
     );
 
     const handleOpenSession = useCallback(
-      (sessionId: string, sessionName: string, workspacePath?: string) => {
+      (
+        sessionId: string,
+        sessionName: string,
+        workspacePath?: string,
+        parentSessionId?: string
+      ) => {
+        requestSessionSidebarReveal({ sessionId, parentSessionId });
         // ChatView is owned by the active Chat Panel tab. Keep that tab's
         // identity in sync with the legacy WorkStation session selection so
         // root-session and subagent rows load their own transcripts.
@@ -431,7 +443,7 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
         });
         openSession(sessionId, sessionName, workspacePath);
       },
-      [openOrReplaceSessionTab, openSession]
+      [openOrReplaceSessionTab, openSession, requestSessionSidebarReveal]
     );
 
     const handleOrgtrackCommitClick = useCallback(

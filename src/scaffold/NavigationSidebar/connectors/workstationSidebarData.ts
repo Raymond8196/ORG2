@@ -81,3 +81,26 @@ export function getAllSectionIds(
   }
   return sectionIds;
 }
+
+function containsMenuItem(item: NavigationMenuItem, targetId: string): boolean {
+  return (
+    item.id === targetId ||
+    item.children?.some((child) => containsMenuItem(child, targetId)) === true
+  );
+}
+
+/** Return the separator-backed section that currently renders a menu row. */
+export function findSidebarSectionIdForMenuItem(
+  sidebarMenuItems: readonly NavigationMenuItem[],
+  targetId: string
+): string | null {
+  let currentSectionId = "default";
+  for (const item of sidebarMenuItems) {
+    if (item.id?.startsWith("separator-")) {
+      currentSectionId = item.id.slice("separator-".length);
+      continue;
+    }
+    if (containsMenuItem(item, targetId)) return currentSectionId;
+  }
+  return null;
+}

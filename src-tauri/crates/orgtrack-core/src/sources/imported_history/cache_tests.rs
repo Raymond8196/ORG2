@@ -200,6 +200,24 @@ fn cache_single_session_lookup_returns_source_metadata() {
 }
 
 #[test]
+fn cache_canonical_session_lookup_returns_source_and_hidden_rows() {
+    let mut conn = fixture_conn();
+    let mut cached = input(SOURCE_CODEX_APP, "child-source-id", 100);
+    cached.session_id = "codexapp-child-canonical-id".to_string();
+    cached.listable = false;
+    upsert_imported_session_cache_from_conn(&mut conn, &[cached]).expect("upsert");
+
+    let (source, session) =
+        query_cached_session_by_session_id_from_conn(&conn, "codexapp-child-canonical-id")
+            .expect("query")
+            .expect("cached child");
+
+    assert_eq!(source, SOURCE_CODEX_APP);
+    assert_eq!(session.source_session_id, "child-source-id");
+    assert!(!session.listable);
+}
+
+#[test]
 fn cache_source_list_filters_unlistable_sessions() {
     let mut conn = fixture_conn();
     let listed = input(SOURCE_CODEX_APP, "listed", 300);

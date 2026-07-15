@@ -63,3 +63,42 @@ sidebarCollapsedAtom.debugLabel = "sidebarCollapsedAtom";
  */
 export const sidebarDraggingAtom = atom<boolean>(false);
 sidebarDraggingAtom.debugLabel = "sidebarDraggingAtom";
+
+export interface SessionSidebarRevealTarget {
+  /** Independently replayable session row that should be selected and shown. */
+  sessionId: string;
+  /** Root row to hydrate/expand when `sessionId` is a subagent transcript. */
+  parentSessionId?: string;
+}
+
+export interface SessionSidebarRevealRequest extends SessionSidebarRevealTarget {
+  requestId: number;
+}
+
+/**
+ * Ephemeral navigation intent for cross-surface session links.
+ *
+ * The connector remains the sole owner of sidebar filters, collapsed groups,
+ * and subagent expansion. Callers publish only the target identity here so a
+ * Session Blame link does not need to duplicate sidebar grouping logic.
+ */
+export const sessionSidebarRevealRequestAtom =
+  atom<SessionSidebarRevealRequest | null>(null);
+sessionSidebarRevealRequestAtom.debugLabel = "sessionSidebarRevealRequestAtom";
+
+export const requestSessionSidebarRevealAtom = atom(
+  null,
+  (get, set, target: SessionSidebarRevealTarget) => {
+    const sessionId = target.sessionId.trim();
+    const parentSessionId = target.parentSessionId?.trim() || undefined;
+    if (!sessionId) return;
+    const previousRequestId =
+      get(sessionSidebarRevealRequestAtom)?.requestId ?? 0;
+    set(sessionSidebarRevealRequestAtom, {
+      sessionId,
+      parentSessionId,
+      requestId: previousRequestId + 1,
+    });
+  }
+);
+requestSessionSidebarRevealAtom.debugLabel = "requestSessionSidebarRevealAtom";

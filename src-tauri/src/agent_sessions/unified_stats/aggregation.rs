@@ -4,6 +4,8 @@
 //! from CLI, Coding, and OS Agent backends, applies filters, sorting, and pagination,
 //! and computes statistics.
 
+use std::collections::HashSet;
+
 use crate::agent_sessions::cli::persistence as cli_session_persistence;
 use agent_core::coordination::agent_org_runs::{AgentOrgRunRecord, AgentOrgRunStore};
 use agent_core::definitions::orgs::OrgDefinition;
@@ -265,6 +267,36 @@ fn load_imported_history_sessions(
         get_connection().map_err(|err| format!("Failed to open orgtrack cache DB: {err}"))?;
     let mut records = Vec::new();
     let source_filter = filter.and_then(|filter| filter.external_history_source.as_deref());
+    let disabled_sources: std::collections::HashSet<&str> = filter
+        .and_then(|filter| filter.disabled_external_history_sources.as_ref())
+        .map(|sources| sources.iter().map(String::as_str).collect())
+        .unwrap_or_default();
+
+    if let Some(session_ids) = filter
+        .and_then(|filter| filter.session_ids.as_ref())
+        .filter(|session_ids| !session_ids.is_empty())
+    {
+        for session_id in session_ids {
+            let Some((source, session)) =
+                imported_history_cache::query_cached_session_by_session_id_from_conn(
+                    &conn, session_id,
+                )?
+            else {
+                continue;
+            };
+            if source_filter.is_some_and(|expected| expected != source.as_str())
+                || disabled_sources.contains(source.as_str())
+            {
+                continue;
+            }
+            records.push(imported_history_to_aggregate_record(
+                session.to_row(),
+                &source,
+            ));
+        }
+        return Ok(records);
+    }
+
     let requested_limit = filter
         .and_then(|filter| filter.limit)
         .unwrap_or(IMPORTED_HISTORY_PAGE_SIZE);
@@ -275,11 +307,6 @@ fn load_imported_history_sessions(
     } else {
         0
     };
-
-    let disabled_sources: std::collections::HashSet<&str> = filter
-        .and_then(|filter| filter.disabled_external_history_sources.as_ref())
-        .map(|sources| sources.iter().map(String::as_str).collect())
-        .unwrap_or_default();
 
     for loader in EXTERNAL_HISTORY_SOURCE_LOADERS {
         if source_filter.is_some_and(|source| source != loader.source) {
@@ -436,6 +463,18 @@ fn apply_filters(
     sessions: &mut Vec<SessionAggregateRecord>,
     filter: &SessionFilter,
 ) -> Result<(), String> {
+    if let Some(session_ids) = filter
+        .session_ids
+        .as_ref()
+        .filter(|session_ids| !session_ids.is_empty())
+    {
+        let session_ids = session_ids
+            .iter()
+            .map(String::as_str)
+            .collect::<HashSet<_>>();
+        sessions.retain(|session| session_ids.contains(session.session_id.as_str()));
+    }
+
     if let Some(ref category) = filter.category {
         let categories: Vec<&str> = category.split(',').map(|s| s.trim()).collect();
         sessions.retain(|session| {
@@ -797,6 +836,33 @@ mod tests {
 
         assert_eq!(sessions.len(), 1);
         assert_eq!(sessions[0].session_id, "2");
+    }
+
+    #[test]
+    fn apply_filters_matches_canonical_session_ids_exactly() {
+        let mut sessions = vec![
+            make_session(
+                "session-1",
+                "completed",
+                SessionCategory::Cli,
+                KeySource::OwnKey,
+            ),
+            make_session(
+                "session-10",
+                "completed",
+                SessionCategory::Cli,
+                KeySource::OwnKey,
+            ),
+        ];
+        let filter = SessionFilter {
+            session_ids: Some(vec!["session-1".to_string()]),
+            ..Default::default()
+        };
+
+        apply_filters(&mut sessions, &filter).expect("session ID filter");
+
+        assert_eq!(sessions.len(), 1);
+        assert_eq!(sessions[0].session_id, "session-1");
     }
 
     #[test]
