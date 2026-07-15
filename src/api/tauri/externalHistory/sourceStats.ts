@@ -11,6 +11,7 @@ import { traeRecentPaths } from "./sources/trae";
 import { warpRecentPaths } from "./sources/warp";
 import { windsurfRecentPaths } from "./sources/windsurf";
 import { workBuddyRecentPaths } from "./sources/workbuddy";
+import { zcodeRecentPaths } from "./sources/zcode";
 
 export interface ExternalSourceStats {
   /** Top-level sessions ORGII has imported/cached for the source. */
@@ -49,6 +50,7 @@ const RECENT_PATH_FETCHERS: Partial<
   trae: () => traeRecentPaths(),
   cline: () => clineRecentPaths(),
   warp: () => warpRecentPaths(),
+  zcode: () => zcodeRecentPaths(),
 };
 
 function statsFromRecentPaths(rows: RecentPathLike[]): SourceCounts {

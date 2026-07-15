@@ -6,6 +6,7 @@ import {
   opencodeRecentPaths,
   warpRecentPaths,
   windsurfRecentPaths,
+  zcodeRecentPaths,
 } from "@src/api/tauri/externalHistory";
 import type { RepoItem } from "@src/scaffold/GlobalSpotlight/types";
 import { REPO_KIND } from "@src/store/repo";
@@ -86,8 +87,16 @@ export function useExternalRecentPaths({
       opencodeRecentPaths({ limit: EXTERNAL_RECENT_PATH_LIMIT }),
       windsurfRecentPaths({ limit: EXTERNAL_RECENT_PATH_LIMIT }),
       warpRecentPaths({ limit: EXTERNAL_RECENT_PATH_LIMIT }),
+      zcodeRecentPaths({ limit: EXTERNAL_RECENT_PATH_LIMIT }),
     ]).then(
-      ([codexPaths, claudePaths, opencodePaths, windsurfPaths, warpPaths]) => {
+      ([
+        codexPaths,
+        claudePaths,
+        opencodePaths,
+        windsurfPaths,
+        warpPaths,
+        zcodePaths,
+      ]) => {
         if (!cancelled) {
           setPaths(
             mergeRecentPaths([
@@ -96,6 +105,7 @@ export function useExternalRecentPaths({
               ...opencodePaths,
               ...windsurfPaths,
               ...warpPaths,
+              ...zcodePaths,
             ])
           );
         }

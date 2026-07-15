@@ -11,6 +11,7 @@ import { traeHistoryChunks } from "../sources/trae";
 import { warpHistoryChunks } from "../sources/warp";
 import { windsurfHistoryChunks } from "../sources/windsurf";
 import { workBuddyHistoryChunks } from "../sources/workbuddy";
+import { zcodeHistoryChunks } from "../sources/zcode";
 import {
   IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
   type ImportedHistoryListCategory,
@@ -96,6 +97,11 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     ...descriptorFor("warp"),
     dispatchCategory: "external_history",
     loadChunks: warpHistoryChunks,
+  },
+  {
+    ...descriptorFor("zcode"),
+    dispatchCategory: "external_history",
+    loadChunks: zcodeHistoryChunks,
   },
 ];
 
