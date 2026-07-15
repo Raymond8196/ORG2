@@ -57,6 +57,7 @@ import { createLogger } from "@src/hooks/logger";
 import { useSessionWorkspaceSync } from "@src/hooks/session/useSessionWorkspaceSync";
 import {
   activeSessionIdAtom,
+  claimPipelineSessionAtom,
   loadSessions,
   sessionByIdAtom,
 } from "@src/store/session";
@@ -239,6 +240,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
   }) => {
     const { t } = useTranslation("sessions");
     const setActiveSessionId = useSetAtom(activeSessionIdAtom);
+    const claimPipelineSession = useSetAtom(claimPipelineSessionAtom);
     const store = useStore();
     const rootRef = useRef<HTMLDivElement>(null);
     const inputBoxRef = useRef<HTMLDivElement>(null);
@@ -256,8 +258,16 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const isReadOnlySurface = readOnly || isExternalHistory;
 
     useEffect(() => {
-      if (isReadOnlySurface) return;
-      setActiveSessionId(sessionId);
+      // Imported history is immutable at its source, but it still owns the
+      // event pipeline while visible. Only explicit passive replay skips the
+      // claim. Secondary surfaces also need the canonical clear/loading
+      // transition because they do not navigate through jumpToSessionAtom.
+      if (readOnly) return;
+      if (secondary) {
+        claimPipelineSession(sessionId);
+      } else {
+        setActiveSessionId(sessionId);
+      }
 
       // Secondary surfaces (e.g. kanban detail panel) must release the
       // pipeline when the embedding closes, otherwise event streaming
@@ -274,7 +284,14 @@ const ChatView: React.FC<ChatViewProps> = memo(
           setActiveSessionId(null);
         }
       };
-    }, [sessionId, setActiveSessionId, isReadOnlySurface, secondary, store]);
+    }, [
+      claimPipelineSession,
+      readOnly,
+      secondary,
+      sessionId,
+      setActiveSessionId,
+      store,
+    ]);
 
     useTodoSync(isReadOnlySurface ? undefined : sessionId);
     useFileReviewSync(sessionId, !isReadOnlySurface && !secondary);
