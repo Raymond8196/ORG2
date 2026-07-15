@@ -452,6 +452,7 @@ export const OrgtrackInteractionPrecisionSchema = z.enum([
 export const OrgtrackFileSessionHistoryParticipantSchema = z.object({
   entryId: z.string(),
   sessionId: z.string(),
+  transcriptSessionId: z.string().nullable().optional(),
   parentSessionId: z.string().nullable().optional(),
   sessionLabel: z.string(),
   participantKind: z.enum(["session", "subagent"]),
@@ -468,6 +469,7 @@ export const OrgtrackFileSessionHistoryParticipantSchema = z.object({
 
 export const OrgtrackFileSessionHistorySessionSchema = z.object({
   sessionId: z.string(),
+  transcriptSessionId: z.string().nullable().optional(),
   sessionLabel: z.string(),
   source: z.string(),
   workspacePath: z.string().nullable().optional(),

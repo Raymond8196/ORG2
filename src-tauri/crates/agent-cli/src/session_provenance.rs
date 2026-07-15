@@ -202,14 +202,32 @@ fn update_nested_platform(
     unix_command: &str,
     windows_command: &str,
 ) -> Result<(), String> {
+    update_nested_event(
+        config,
+        "PostToolUse",
+        enabled,
+        Some(matcher),
+        unix_command,
+        windows_command,
+    )
+}
+
+fn update_nested_event(
+    config: &mut Value,
+    event_name: &str,
+    enabled: bool,
+    matcher: Option<&str>,
+    unix_command: &str,
+    windows_command: &str,
+) -> Result<(), String> {
     let hooks = hooks_object_mut(config)?;
-    if !hooks.contains_key("PostToolUse") {
-        hooks.insert("PostToolUse".to_string(), Value::Array(Vec::new()));
+    if !hooks.contains_key(event_name) {
+        hooks.insert(event_name.to_string(), Value::Array(Vec::new()));
     }
     let groups = hooks
-        .get_mut("PostToolUse")
+        .get_mut(event_name)
         .and_then(Value::as_array_mut)
-        .ok_or_else(|| "Hook config `hooks.PostToolUse` must be an array".to_string())?;
+        .ok_or_else(|| format!("Hook config `hooks.{event_name}` must be an array"))?;
     for group in groups.iter_mut() {
         if let Some(commands) = group.get_mut("hooks").and_then(Value::as_array_mut) {
             commands.retain(|command| !command_contains_marker(command));
@@ -222,15 +240,48 @@ fn update_nested_platform(
             .is_none_or(|commands| !commands.is_empty())
     });
     if enabled {
-        groups.push(json!({
-            "matcher": matcher,
+        let mut group = json!({
             "hooks": [{
                 "type": "command",
                 "command": unix_command,
                 "commandWindows": windows_command,
                 "timeout": 5
             }]
-        }));
+        });
+        if let Some(matcher) = matcher {
+            group
+                .as_object_mut()
+                .expect("hook group is object")
+                .insert("matcher".to_string(), json!(matcher));
+        }
+        groups.push(group);
+    }
+    Ok(())
+}
+
+fn update_codex_platform(
+    config: &mut Value,
+    enabled: bool,
+    unix_command: &str,
+    windows_command: &str,
+) -> Result<(), String> {
+    update_nested_event(
+        config,
+        "PostToolUse",
+        enabled,
+        Some(CODEX_POST_TOOL_USE_MATCHER),
+        unix_command,
+        windows_command,
+    )?;
+    for event_name in ["SubagentStart", "SubagentStop"] {
+        update_nested_event(
+            config,
+            event_name,
+            enabled,
+            None,
+            unix_command,
+            windows_command,
+        )?;
     }
     Ok(())
 }
@@ -280,21 +331,15 @@ fn update_platform(
     let mut config = read_config(&path)?;
     let (unix_command, windows_command) = hook_commands(executable, platform.source_arg());
     match platform {
-        SessionProvenanceHookPlatform::ClaudeCode | SessionProvenanceHookPlatform::Codex => {
-            let matcher = match platform {
-                SessionProvenanceHookPlatform::ClaudeCode => {
-                    "Read|Write|Edit|MultiEdit|NotebookEdit|Delete|Glob|Grep"
-                }
-                SessionProvenanceHookPlatform::Codex => CODEX_POST_TOOL_USE_MATCHER,
-                SessionProvenanceHookPlatform::Cursor => unreachable!(),
-            };
-            update_nested_platform(
-                &mut config,
-                enabled,
-                matcher,
-                &unix_command,
-                &windows_command,
-            )?
+        SessionProvenanceHookPlatform::ClaudeCode => update_nested_platform(
+            &mut config,
+            enabled,
+            "Read|Write|Edit|MultiEdit|NotebookEdit|Delete|Glob|Grep",
+            &unix_command,
+            &windows_command,
+        )?,
+        SessionProvenanceHookPlatform::Codex => {
+            update_codex_platform(&mut config, enabled, &unix_command, &windows_command)?
         }
         SessionProvenanceHookPlatform::Cursor => {
             let cursor_command = if cfg!(windows) {
@@ -423,6 +468,36 @@ mod tests {
         assert!(CODEX_POST_TOOL_USE_MATCHER.contains("Bash"));
         assert!(CODEX_POST_TOOL_USE_MATCHER.contains("apply_patch"));
         assert!(!CODEX_POST_TOOL_USE_MATCHER.contains("exec_command"));
+    }
+
+    #[test]
+    fn codex_config_installs_and_removes_actor_lifecycle_hooks() {
+        let mut config = json!({
+            "hooks": {
+                "SubagentStop": [{
+                    "matcher": "explorer",
+                    "hooks": [{"type": "command", "command": "user-hook"}]
+                }]
+            }
+        });
+        update_codex_platform(
+            &mut config,
+            true,
+            "orgii --session-provenance-hook codex",
+            "orgii.exe --session-provenance-hook codex",
+        )
+        .expect("enable Codex hooks");
+
+        assert_eq!(config["hooks"]["PostToolUse"].as_array().unwrap().len(), 1);
+        assert_eq!(
+            config["hooks"]["SubagentStart"].as_array().unwrap().len(),
+            1
+        );
+        assert_eq!(config["hooks"]["SubagentStop"].as_array().unwrap().len(), 2);
+
+        update_codex_platform(&mut config, false, "unused", "unused").expect("disable Codex hooks");
+        assert!(config.to_string().contains("user-hook"));
+        assert!(!config.to_string().contains(HOOK_MARKER));
     }
 
     #[test]

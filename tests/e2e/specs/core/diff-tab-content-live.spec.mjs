@@ -139,6 +139,22 @@ function hookConfigContainsMarker(path) {
   );
 }
 
+function hookConfigContainsEvents(path, eventNames) {
+  if (!existsSync(path)) return false;
+  const config = JSON.parse(readFileSync(path, "utf8"));
+  return eventNames.every(
+    (eventName) =>
+      Array.isArray(config?.hooks?.[eventName]) &&
+      config.hooks[eventName].some((group) =>
+        group?.hooks?.some((hook) =>
+          String(hook?.command ?? hook?.commandWindows ?? "").includes(
+            "--session-provenance-hook"
+          )
+        )
+      )
+  );
+}
+
 function sqlLiteral(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
@@ -167,6 +183,31 @@ async function provenanceRowsForFile(orgiiHome, filePath) {
     {
       maxBuffer: 2 * 1024 * 1024,
     }
+  );
+  return stdout.trim() ? JSON.parse(stdout) : [];
+}
+
+async function codexActorRows(orgiiHome, rootThreadId) {
+  const databasePath = join(orgiiHome, "sessions.db");
+  if (!existsSync(databasePath)) return [];
+  const sql = `
+    SELECT session_id AS sessionId,
+           turn_id AS turnId,
+           actor_id AS actorId,
+           actor_type AS actorType,
+           transcript_session_id AS transcriptSessionId,
+           transcript_path AS transcriptPath,
+           started_at AS startedAt,
+           stopped_at AS stoppedAt
+    FROM orgtrack_core_session_actors
+    WHERE source = 'codex_app'
+      AND session_id LIKE ${sqlLiteral(`%${rootThreadId}`)}
+    ORDER BY COALESCE(stopped_at, started_at, '') ASC;
+  `;
+  const { stdout } = await execFileWithClosedStdin(
+    "sqlite3",
+    ["-json", databasePath, sql],
+    { maxBuffer: 2 * 1024 * 1024 }
   );
   return stdout.trim() ? JSON.parse(stdout) : [];
 }
@@ -226,9 +267,10 @@ async function runClaudeCodeProvenance(repoPath) {
 
 async function runCodexProvenance(repoPath) {
   const prompt = [
-    `Use exec_command to run exactly: sed -n '1,40p' ${TARGET_FILE}`,
-    `Then use apply_patch to append exactly this new final line: // ${CODEX_SENTINEL}`,
-    "Do not change any existing line. Use no other tools, then stop.",
+    "Use spawn_agent exactly once to delegate all file work to one subagent.",
+    `Tell that subagent to use exec_command to run exactly: sed -n '1,40p' ${TARGET_FILE}`,
+    `Then tell it to use apply_patch to append exactly this new final line: // ${CODEX_SENTINEL}`,
+    "The parent must not read or edit the file itself. Wait for that subagent to finish, then stop.",
   ].join(" ");
   const { stdout, stderr } = await execFileWithClosedStdin(
     "codex",
@@ -341,33 +383,65 @@ async function openFileTimeline(repoPath) {
 
   // The workstation host is tab-driven rather than route-driven. Opening the
   // file above creates/focuses the code tab, which is what mounts CodeEditor.
-  await browser.waitUntil(
-    async () =>
-      execJS(`
-        const panel = document.querySelector('.code-editor-right-panel');
-        if (!panel) return false;
-        const rect = panel.getBoundingClientRect();
-        const style = window.getComputedStyle(panel);
-        return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
-      `),
-    {
-      timeout: 30_000,
-      interval: 500,
-      timeoutMsg:
-        "My Station Code Editor never rendered after opening the file tab",
-    }
-  );
+  let reopenAttempts = 0;
+  try {
+    await browser.waitUntil(
+      async () => {
+        const surface = unwrap(
+          await invokeE2E("inspectWorkstationSurface"),
+          "inspect opened workstation file"
+        );
+        if (
+          surface.activeHost === "code" &&
+          surface.activeTabType === "file" &&
+          surface.activeTabId === `file:${absoluteFilePath}` &&
+          surface.codeEditorPresent
+        ) {
+          return true;
+        }
+        reopenAttempts += 1;
+        if (reopenAttempts % 4 === 0) {
+          unwrap(
+            await invokeE2E("openWorkstationFile", absoluteFilePath),
+            "refocus target file after workstation hydration"
+          );
+        }
+        return false;
+      },
+      {
+        timeout: 30_000,
+        interval: 500,
+        timeoutMsg:
+          "My Station Code Editor never rendered after opening the file tab",
+      }
+    );
+  } catch {
+    const surface = unwrap(
+      await invokeE2E("inspectWorkstationSurface"),
+      "inspect missing My Station Code Editor"
+    );
+    const diagnostic = await execJS(`
+      return {
+        layout: localStorage.getItem('workstation:layout-v2'),
+        bodyTail: (document.body.innerText || '').slice(-1200),
+      };
+    `);
+    throw new Error(
+      `My Station Code Editor never rendered; surface=${JSON.stringify(surface)} diagnostic=${JSON.stringify(diagnostic)}`
+    );
+  }
 
   const toggleSelector = '[data-testid="code-editor-timeline-section-toggle"]';
   await browser.waitUntil(
     async () =>
       execJS(`
-        const toggle = document.querySelector(${JSON.stringify(
+        return [...document.querySelectorAll(${JSON.stringify(
           toggleSelector
-        )});
-        if (!toggle) return false;
-        const rect = toggle.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
+        )})].some((toggle) => {
+          const rect = toggle.getBoundingClientRect();
+          const style = window.getComputedStyle(toggle);
+          return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+        });
       `),
     {
       timeout: 30_000,
@@ -382,29 +456,38 @@ async function openFileTimeline(repoPath) {
     }
   );
   const collapsed = await execJS(`
-    return document.querySelector(${JSON.stringify(
+    for (const candidate of document.querySelectorAll('[data-e2e-active-timeline-toggle]')) {
+      candidate.removeAttribute('data-e2e-active-timeline-toggle');
+    }
+    const toggle = [...document.querySelectorAll(${JSON.stringify(
       toggleSelector
-    )})?.getAttribute('data-collapsed') ?? null;
+    )})].filter((candidate) => {
+      const rect = candidate.getBoundingClientRect();
+      const style = window.getComputedStyle(candidate);
+      return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+    }).at(-1);
+    toggle?.setAttribute('data-e2e-active-timeline-toggle', 'true');
+    return toggle?.getAttribute('data-collapsed') ?? null;
   `);
-  if (collapsed === "false") {
-    await pointerClick(toggleSelector, "collapse Timeline section", 30_000);
-    await browser.waitUntil(
-      async () =>
-        execJS(`
-          return document.querySelector(${JSON.stringify(
-            toggleSelector
-          )})?.getAttribute('data-collapsed') === 'true';
-        `),
-      { timeout: 10_000, interval: 250 }
+  if (collapsed === null) {
+    throw new Error("Visible Timeline section disappeared before interaction");
+  }
+  if (collapsed === "true") {
+    await pointerClick(
+      '[data-e2e-active-timeline-toggle="true"]',
+      "expand Timeline section",
+      30_000
     );
   }
-  await pointerClick(toggleSelector, "expand Timeline section", 30_000);
   await browser.waitUntil(
     async () =>
       execJS(`
-        return document.querySelector(${JSON.stringify(
+        return [...document.querySelectorAll(${JSON.stringify(
           toggleSelector
-        )})?.getAttribute('data-collapsed') === 'false';
+        )})].some((candidate) => {
+          const rect = candidate.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && candidate.getAttribute('data-collapsed') === 'false';
+        });
       `),
     {
       timeout: 10_000,
@@ -415,14 +498,18 @@ async function openFileTimeline(repoPath) {
   try {
     await browser.waitUntil(
       async () =>
-        execJS(
-          "return Boolean(document.querySelector('[data-testid=\"session-blame-section\"]'));"
-        ),
+        execJS(`
+          return [...document.querySelectorAll('[data-testid="session-blame-section"]')].some((section) => {
+            const rect = section.getBoundingClientRect();
+            const style = window.getComputedStyle(section);
+            return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+          });
+        `),
       { timeout: 60_000, interval: 500 }
     );
   } catch {
     const timeline = await execJS(`
-      const toggle = document.querySelector(${JSON.stringify(toggleSelector)});
+      const toggle = document.querySelector('[data-e2e-active-timeline-toggle="true"]');
       const section = toggle?.parentElement?.parentElement;
       return {
         togglePresent: Boolean(toggle),
@@ -690,7 +777,11 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
     await browser.waitUntil(
       async () =>
         hookConfigContainsMarker(claudeHooks) &&
-        hookConfigContainsMarker(codexHooks) &&
+        hookConfigContainsEvents(codexHooks, [
+          "PostToolUse",
+          "SubagentStart",
+          "SubagentStop",
+        ]) &&
         hookConfigContainsMarker(cursorHooks),
       {
         timeout: 30_000,
@@ -724,6 +815,40 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
         interval: 500,
         timeoutMsg: "Codex did not append its provenance sentinel",
       }
+    );
+    let codexActors = [];
+    await browser.waitUntil(
+      async () => {
+        codexActors = await codexActorRows(orgiiHome, codex.sessionId);
+        return codexActors.some(
+          (actor) =>
+            actor.actorId &&
+            actor.turnId &&
+            actor.startedAt &&
+            actor.stoppedAt &&
+            actor.transcriptSessionId &&
+            actor.transcriptSessionId !== actor.sessionId &&
+            actor.transcriptPath &&
+            existsSync(actor.transcriptPath)
+        );
+      },
+      {
+        timeout: 90_000,
+        interval: 1_000,
+        timeoutMsg: async () =>
+          `Codex actor lifecycle/transcript mapping never converged; actors=${JSON.stringify(await codexActorRows(orgiiHome, codex.sessionId))}`,
+      }
+    );
+    const codexMappedActor = codexActors.find(
+      (actor) =>
+        actor.transcriptSessionId &&
+        actor.transcriptSessionId !== actor.sessionId &&
+        actor.transcriptPath &&
+        existsSync(actor.transcriptPath)
+    );
+    expect(codexMappedActor).toBeTruthy();
+    expect(readFileSync(codexMappedActor.transcriptPath, "utf8")).toContain(
+      CODEX_SENTINEL
     );
 
     const cursor = await runCursorProvenance(repoPath);
@@ -791,10 +916,14 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
       rows.some(
         (row) =>
           row.source === "codex_app" &&
-          row.sessionId.endsWith(codex.sessionId) &&
+          codexActors.some(
+            (actor) =>
+              actor.actorId === row.actorId &&
+              actor.transcriptSessionId === row.sessionId
+          ) &&
           row.turnId &&
           row.captureMethod === "hook" &&
-          row.attributionPrecision === "session_only"
+          row.attributionPrecision === "exact"
       )
     ).toBe(true);
     expect(
@@ -879,19 +1008,47 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
           participant.participantKind === "subagent" &&
           participant.parentSessionId === session.sessionId &&
           participant.sessionId !== session.sessionId
-    );
+      );
     expect(claudeWireChild).toBeTruthy();
     expect(claudeWireChild.session.sessionId).toMatch(
       new RegExp(`${claude.sessionId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)
+    );
+    const codexWireChild = wireHistory.sessions
+      .filter(
+        (session) =>
+          session.source === "codex_app" &&
+          session.sessionId.endsWith(codex.sessionId)
+      )
+      .flatMap((session) =>
+        session.participants.map((participant) => ({ session, participant }))
+      )
+      .find(
+        ({ session, participant }) =>
+          participant.participantKind === "subagent" &&
+          participant.parentSessionId === session.sessionId &&
+          participant.actorId &&
+          participant.transcriptSessionId &&
+          participant.transcriptSessionId !== session.transcriptSessionId
+      );
+    expect(codexWireChild).toBeTruthy();
+    expect(codexWireChild.session.transcriptSessionId).toBe(
+      codexWireChild.session.sessionId
     );
 
     await switchToMyStationCodeEditor();
     await openFileTimeline(repoPath);
 
     const rendered = await execJS(`
-      return [...document.querySelectorAll('[data-testid="session-blame-entry"]')].map((row) => ({
+      return [...document.querySelectorAll('[data-testid="session-blame-entry"]')]
+        .filter((row) => {
+          const rect = row.getBoundingClientRect();
+          const style = window.getComputedStyle(row);
+          return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+        })
+        .map((row) => ({
         source: row.getAttribute('data-session-source'),
         sessionId: row.getAttribute('data-session-id'),
+        transcriptSessionId: row.getAttribute('data-transcript-session-id'),
         originSessionId: row.getAttribute('data-origin-session-id'),
         participantKind: row.getAttribute('data-participant-kind'),
         actorId: row.getAttribute('data-actor-id'),
@@ -899,7 +1056,7 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
         readCount: Number(row.getAttribute('data-read-count') || '0'),
         writeCount: Number(row.getAttribute('data-write-count') || '0'),
         text: row.innerText || row.textContent || '',
-      }));
+        }));
     `);
     for (const source of expectedSources) {
       const entry = rendered.find((row) => row.source === source);
@@ -919,6 +1076,16 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
     // semantic attributes above and participant-specific content here so the
     // scenario remains valid in every supported UI language.
     expect(claudeSubagent.text).toContain(TARGET_FILE);
+
+    const codexSubagent = rendered.find(
+      (row) => row.source === "codex_app" && row.actorId
+    );
+    expect(codexSubagent).toBeTruthy();
+    expect(codexSubagent.participantKind).toBe("subagent");
+    expect(codexSubagent.transcriptSessionId).toBeTruthy();
+    expect(codexSubagent.transcriptSessionId).not.toBe(
+      codexSubagent.originSessionId
+    );
 
     const claudeRootSessionId = claudeWireChild.session.sessionId;
     const claudeChildSessionId = claudeWireChild.participant.sessionId;
@@ -982,5 +1149,66 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
     );
     expect(childTranscript.text).toContain(TARGET_FILE);
     expect(childTranscript.text).not.toBe(rootTranscript.text);
+
+    const codexRootSessionId = codexWireChild.session.transcriptSessionId;
+    const codexChildSessionId = codexWireChild.participant.transcriptSessionId;
+    await switchToMyStationCodeEditor();
+    await openFileTimeline(repoPath);
+    await pointerClick(
+      `[data-testid="session-blame-session"] [data-testid="session-blame-session-header"][data-transcript-session-id="${codexRootSessionId}"]`,
+      "Codex root Session Blame entry"
+    );
+    let codexRootTranscript = null;
+    await browser.waitUntil(
+      async () => {
+        const state = unwrap(
+          await invokeE2E("inspectChatState"),
+          "inspectChatState(after Codex root click)"
+        );
+        codexRootTranscript = await visibleChatTranscriptSnapshot();
+        return (
+          state.activeSessionId === codexRootSessionId &&
+          codexRootTranscript.sessionId === codexRootSessionId &&
+          codexRootTranscript.historyCount > 0 &&
+          codexRootTranscript.text.length > 0
+        );
+      },
+      {
+        timeout: 90_000,
+        interval: 1_000,
+        timeoutMsg: async () =>
+          `Codex root transcript did not render; snapshot=${JSON.stringify(await visibleChatTranscriptSnapshot())}`,
+      }
+    );
+
+    await switchToMyStationCodeEditor();
+    await openFileTimeline(repoPath);
+    await pointerClick(
+      `[data-testid="session-blame-entry"][data-transcript-session-id="${codexChildSessionId}"]`,
+      "Codex subagent Session Blame entry"
+    );
+    let codexChildTranscript = null;
+    await browser.waitUntil(
+      async () => {
+        const state = unwrap(
+          await invokeE2E("inspectChatState"),
+          "inspectChatState(after Codex child click)"
+        );
+        codexChildTranscript = await visibleChatTranscriptSnapshot();
+        return (
+          state.activeSessionId === codexChildSessionId &&
+          codexChildTranscript.sessionId === codexChildSessionId &&
+          codexChildTranscript.historyCount > 0 &&
+          codexChildTranscript.text.length > 0
+        );
+      },
+      {
+        timeout: 90_000,
+        interval: 1_000,
+        timeoutMsg: async () =>
+          `Codex child transcript did not render; snapshot=${JSON.stringify(await visibleChatTranscriptSnapshot())}`,
+      }
+    );
+    expect(codexChildTranscript.text).not.toBe(codexRootTranscript.text);
   });
 });

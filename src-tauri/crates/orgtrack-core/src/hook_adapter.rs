@@ -6,10 +6,12 @@
 
 use chrono::{SecondsFormat, Utc};
 use serde_json::Value;
+use std::path::Path;
 
 use crate::canonical::{
     AttributionPrecision, ResourceAction, ResourceInteractionEnvelopeV1,
-    ResourceInteractionOutcome, RESOURCE_INTERACTION_SCHEMA_VERSION,
+    ResourceInteractionOutcome, SessionActorLifecycleEnvelopeV1, SessionActorLifecyclePhase,
+    RESOURCE_INTERACTION_SCHEMA_VERSION, SESSION_ACTOR_SCHEMA_VERSION,
 };
 use crate::sources::imported_history::metadata::{
     SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE,
@@ -42,14 +44,34 @@ impl HookSource {
         }
     }
 
-    fn canonical_session_id(self, source_session_id: &str) -> String {
+    fn canonical_session_id(self, source_session_id: &str, payload: &Value) -> String {
         match self {
             Self::ClaudeCode => {
                 crate::sources::claude_code::canonical_session_id(source_session_id)
             }
-            Self::Codex => crate::sources::codex::canonical_session_id(source_session_id),
+            Self::Codex => string_field(payload, &["transcript_path", "transcriptPath"])
+                .as_deref()
+                .and_then(transcript_file_stem)
+                .map(crate::sources::codex::canonical_session_id)
+                .unwrap_or_else(|| crate::sources::codex::canonical_session_id(source_session_id)),
             Self::Cursor => crate::sources::cursor_ide::canonical_session_id(source_session_id),
         }
+    }
+
+    fn canonical_lifecycle_session_id(self, source_session_id: &str, payload: &Value) -> String {
+        if self != Self::Codex {
+            return self.canonical_session_id(source_session_id, payload);
+        }
+        string_field(payload, &["transcript_path", "transcriptPath"])
+            .as_deref()
+            .and_then(transcript_file_stem)
+            // Real Codex SubagentStart payloads point `transcript_path` at
+            // the child rollout even though `session_id` is the parent. Only
+            // trust the common path as the parent locator when its stem
+            // actually carries the parent thread id.
+            .filter(|file_stem| file_stem.ends_with(source_session_id))
+            .map(crate::sources::codex::canonical_session_id)
+            .unwrap_or_else(|| crate::sources::codex::canonical_session_id(source_session_id))
     }
 }
 
@@ -98,7 +120,7 @@ pub fn normalize_hook_payload(
             "generationId",
         ],
     );
-    let session_id = source.canonical_session_id(&source_session_id);
+    let session_id = source.canonical_session_id(&source_session_id, payload);
     let precision = if actor_id.is_some() {
         AttributionPrecision::Exact
     } else {
@@ -128,6 +150,71 @@ pub fn normalize_hook_payload(
             }
         })
         .collect())
+}
+
+/// Reduce a vendor subagent lifecycle hook to local-only session metadata.
+/// Raw prompts, assistant messages, tool payloads, and transcript contents are
+/// never copied across this boundary.
+pub fn normalize_actor_lifecycle_payload(
+    source: HookSource,
+    payload: &Value,
+) -> Result<Option<SessionActorLifecycleEnvelopeV1>, String> {
+    let Some(phase) = hook_lifecycle_phase(payload) else {
+        return Ok(None);
+    };
+    let source_session_id = source_session_id(source, payload)
+        .ok_or_else(|| "Hook payload is missing its session identifier".to_string())?;
+    let Some(actor_id) = string_field(payload, &["agent_id", "subagent_id", "subagentId"]) else {
+        // Some vendors emit a coarse subagent-stop event with only modified
+        // files. Keep those resource observations, but do not invent an actor
+        // identity or transcript relationship.
+        return Ok(None);
+    };
+    let cwd = string_field(payload, &["cwd", "workspace_path", "workspacePath"])
+        .or_else(|| first_string_array_item(payload, &["workspace_roots", "workspaceRoots"]))
+        .unwrap_or_else(|| ".".to_string());
+    let occurred_at = string_field(payload, &["timestamp", "occurred_at", "occurredAt"])
+        .and_then(|timestamp| normalize_rfc3339(&timestamp))
+        .unwrap_or_else(now_rfc3339);
+    let transcript_path = string_field(payload, &["agent_transcript_path", "agentTranscriptPath"]);
+    let session_id = source.canonical_lifecycle_session_id(&source_session_id, payload);
+    let envelope = SessionActorLifecycleEnvelopeV1 {
+        schema_version: SESSION_ACTOR_SCHEMA_VERSION,
+        source: source.as_source_str().to_string(),
+        source_session_id,
+        session_id,
+        turn_id: string_field(payload, &["turn_id", "generation_id", "generationId"]),
+        actor_id,
+        actor_type: string_field(payload, &["agent_type", "agentType"]),
+        phase,
+        occurred_at,
+        cwd,
+        transcript_path,
+    };
+    envelope.validate().map_err(|err| err.to_string())?;
+    Ok(Some(envelope))
+}
+
+fn hook_lifecycle_phase(payload: &Value) -> Option<SessionActorLifecyclePhase> {
+    let event = string_field(payload, &["hook_event_name", "hookEventName", "event"])?;
+    let normalized = event
+        .chars()
+        .filter(|character| character.is_ascii_alphanumeric())
+        .collect::<String>()
+        .to_ascii_lowercase();
+    match normalized.as_str() {
+        "subagentstart" => Some(SessionActorLifecyclePhase::Started),
+        "subagentstop" => Some(SessionActorLifecyclePhase::Stopped),
+        _ => None,
+    }
+}
+
+fn transcript_file_stem(path: &str) -> Option<&str> {
+    Path::new(path)
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
 }
 
 fn source_session_id(source: HookSource, payload: &Value) -> Option<String> {
@@ -395,6 +482,82 @@ mod tests {
             envelopes[0].attribution_precision,
             AttributionPrecision::SessionOnly
         );
+    }
+
+    #[test]
+    fn codex_uses_parent_transcript_stem_as_loadable_root_session() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Codex,
+            &json!({
+                "session_id": "019f-parent-thread",
+                "transcript_path": "/Users/me/.codex/sessions/2026/07/14/rollout-2026-07-14T10-00-00-019f-parent-thread.jsonl",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                "tool_name": "Read",
+                "tool_use_id": "tool-1",
+                "tool_input": {"file_path": "src/lib.rs"}
+            }),
+        )
+        .expect("normalize Codex hook");
+
+        assert_eq!(
+            envelopes[0].session_id,
+            "codexapp-rollout-2026-07-14T10-00-00-019f-parent-thread"
+        );
+        assert_eq!(envelopes[0].source_session_id, "019f-parent-thread");
+    }
+
+    #[test]
+    fn codex_subagent_stop_keeps_only_lifecycle_and_child_locator_metadata() {
+        let payload = json!({
+            "session_id": "019f-parent-thread",
+            "turn_id": "turn-1",
+            "transcript_path": "/Users/me/.codex/sessions/parent-rollout-019f-parent-thread.jsonl",
+            "cwd": "/repo",
+            "hook_event_name": "SubagentStop",
+            "agent_id": "agent-1",
+            "agent_type": "explorer",
+            "agent_transcript_path": "/Users/me/.codex/sessions/child-rollout.jsonl",
+            "last_assistant_message": "private answer"
+        });
+        let lifecycle = normalize_actor_lifecycle_payload(HookSource::Codex, &payload)
+            .expect("normalize lifecycle")
+            .expect("lifecycle envelope");
+
+        assert_eq!(
+            lifecycle.session_id,
+            "codexapp-parent-rollout-019f-parent-thread"
+        );
+        assert_eq!(lifecycle.actor_id, "agent-1");
+        assert_eq!(lifecycle.actor_type.as_deref(), Some("explorer"));
+        assert_eq!(lifecycle.phase, SessionActorLifecyclePhase::Stopped);
+        assert_eq!(
+            lifecycle.transcript_path.as_deref(),
+            Some("/Users/me/.codex/sessions/child-rollout.jsonl")
+        );
+        let serialized = serde_json::to_string(&lifecycle).expect("serialize lifecycle");
+        assert!(!serialized.contains("private answer"));
+    }
+
+    #[test]
+    fn codex_subagent_start_does_not_mistake_child_transcript_for_parent() {
+        let lifecycle = normalize_actor_lifecycle_payload(
+            HookSource::Codex,
+            &json!({
+                "session_id": "019f-parent-thread",
+                "turn_id": "turn-1",
+                "transcript_path": "/Users/me/.codex/sessions/child-rollout-019f-child-thread.jsonl",
+                "cwd": "/repo",
+                "hook_event_name": "SubagentStart",
+                "agent_id": "019f-child-thread",
+                "agent_type": "default"
+            }),
+        )
+        .expect("normalize lifecycle")
+        .expect("lifecycle envelope");
+
+        assert_eq!(lifecycle.session_id, "codexapp-019f-parent-thread");
+        assert_eq!(lifecycle.phase, SessionActorLifecyclePhase::Started);
     }
 
     #[test]

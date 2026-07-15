@@ -17,6 +17,9 @@ use std::fmt;
 /// schema and from any collector configuration schema.
 pub const RESOURCE_INTERACTION_SCHEMA_VERSION: u32 = 1;
 
+/// Wire/storage version of the session-actor lifecycle contract.
+pub const SESSION_ACTOR_SCHEMA_VERSION: u32 = 1;
+
 /// A concrete file resource referenced by one or more interactions.
 ///
 /// `repository_id` is the preferred cross-worktree identity. When a producer
@@ -190,6 +193,103 @@ impl ResourceInteractionEnvelopeV1 {
     }
 }
 
+/// Lifecycle edge emitted when a session starts or stops a child actor.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SessionActorLifecyclePhase {
+    Started,
+    Stopped,
+}
+
+impl SessionActorLifecyclePhase {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Started => "started",
+            Self::Stopped => "stopped",
+        }
+    }
+}
+
+/// Privacy-filtered lifecycle metadata accepted by an Orgtrack collector.
+///
+/// `transcript_path` is the child actor's local transcript locator. It is
+/// needed to open the child transcript, but is local-only metadata: exporters
+/// must not include it in a repo-shareable Orgtrack bundle. Prompts, assistant
+/// output, commands, and file contents are deliberately absent.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SessionActorLifecycleEnvelopeV1 {
+    pub schema_version: u32,
+    pub source: String,
+    /// Stable vendor root-thread identifier used to merge lifecycle events.
+    pub source_session_id: String,
+    /// Producer's best-known canonical root session. A local collector may
+    /// upgrade a provisional vendor ID to a concrete transcript session ID.
+    pub session_id: String,
+    pub turn_id: Option<String>,
+    pub actor_id: String,
+    pub actor_type: Option<String>,
+    pub phase: SessionActorLifecyclePhase,
+    pub occurred_at: String,
+    pub cwd: String,
+    pub transcript_path: Option<String>,
+}
+
+impl SessionActorLifecycleEnvelopeV1 {
+    pub fn validate(&self) -> Result<(), ProtocolValidationError> {
+        if self.schema_version != SESSION_ACTOR_SCHEMA_VERSION {
+            return Err(ProtocolValidationError::UnsupportedSchemaVersion(
+                self.schema_version,
+            ));
+        }
+        for (field, value) in [
+            ("source", self.source.as_str()),
+            ("sourceSessionId", self.source_session_id.as_str()),
+            ("sessionId", self.session_id.as_str()),
+            ("actorId", self.actor_id.as_str()),
+            ("occurredAt", self.occurred_at.as_str()),
+            ("cwd", self.cwd.as_str()),
+        ] {
+            if value.trim().is_empty() {
+                return Err(ProtocolValidationError::EmptyRequiredField(field));
+            }
+        }
+        if self
+            .transcript_path
+            .as_deref()
+            .is_some_and(|path| path.trim().is_empty())
+        {
+            return Err(ProtocolValidationError::EmptyRequiredField(
+                "transcriptPath",
+            ));
+        }
+        Ok(())
+    }
+}
+
+/// Durable, merged view of one child actor within a root session.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionActorRecord {
+    pub schema_version: u32,
+    pub actor_record_id: String,
+    pub source: String,
+    /// Stable vendor root-thread identifier used as part of merge identity.
+    pub source_session_id: String,
+    /// Canonical root session that owns this actor.
+    pub session_id: String,
+    pub turn_id: Option<String>,
+    /// Vendor child-actor identifier.
+    pub actor_id: String,
+    pub actor_type: Option<String>,
+    pub started_at: Option<String>,
+    pub stopped_at: Option<String>,
+    /// Independently replayable child transcript session, when proven.
+    pub transcript_session_id: Option<String>,
+    /// Local-only source locator. Never included in repo-shareable exports.
+    pub transcript_path: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProtocolValidationError {
     UnsupportedSchemaVersion(u32),
@@ -225,6 +325,10 @@ mod tests {
 
     const FIXTURE: &str = include_str!("../fixtures/resource-interaction-envelope-v1.json");
     const SCHEMA: &str = include_str!("../schemas/resource-interaction-envelope-v1.schema.json");
+    const ACTOR_FIXTURE: &str =
+        include_str!("../fixtures/session-actor-lifecycle-envelope-v1.json");
+    const ACTOR_SCHEMA: &str =
+        include_str!("../schemas/session-actor-lifecycle-envelope-v1.schema.json");
 
     #[test]
     fn checked_in_fixture_round_trips_exactly() {
@@ -306,5 +410,53 @@ mod tests {
             envelope.validate(),
             Err(ProtocolValidationError::EmptyRequiredField("filePath"))
         );
+    }
+
+    #[test]
+    fn actor_lifecycle_fixture_round_trips_without_private_content() {
+        let fixture_value: Value = serde_json::from_str(ACTOR_FIXTURE).expect("fixture JSON");
+        let envelope: SessionActorLifecycleEnvelopeV1 =
+            serde_json::from_value(fixture_value.clone()).expect("actor lifecycle envelope");
+        envelope.validate().expect("valid actor lifecycle fixture");
+        assert_eq!(serde_json::to_value(envelope).unwrap(), fixture_value);
+
+        let serialized = fixture_value.to_string();
+        for forbidden in [
+            "prompt",
+            "lastAssistantMessage",
+            "toolOutput",
+            "fileContent",
+        ] {
+            assert!(!serialized.contains(forbidden));
+        }
+    }
+
+    #[test]
+    fn actor_lifecycle_schema_matches_the_serialized_wire_surface() {
+        let schema: Value = serde_json::from_str(ACTOR_SCHEMA).expect("schema JSON");
+        let properties = schema["properties"]
+            .as_object()
+            .expect("schema properties")
+            .keys()
+            .cloned()
+            .collect::<BTreeSet<_>>();
+        let expected = [
+            "schemaVersion",
+            "source",
+            "sourceSessionId",
+            "sessionId",
+            "turnId",
+            "actorId",
+            "actorType",
+            "phase",
+            "occurredAt",
+            "cwd",
+            "transcriptPath",
+        ]
+        .into_iter()
+        .map(str::to_string)
+        .collect::<BTreeSet<_>>();
+        assert_eq!(properties, expected);
+        assert_eq!(schema["additionalProperties"], json!(false));
     }
 }

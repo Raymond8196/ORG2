@@ -3,9 +3,9 @@ use rusqlite::{params, Connection, OptionalExtension};
 use super::RecordStore;
 use crate::canonical::{
     ActivityRecord, CommitLinkRecord, FileChangeRecord, FileResourceRecord,
-    ResourceInteractionRecord, ScanCheckpoint, SessionCheckpointFileStateRecord,
-    SessionCheckpointRecord, SessionDiffChunkRecord, SessionEditArtifactRecord,
-    SessionFinalDiffRecord, SessionRecord,
+    ResourceInteractionRecord, ScanCheckpoint, SessionActorRecord,
+    SessionCheckpointFileStateRecord, SessionCheckpointRecord, SessionDiffChunkRecord,
+    SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
 };
 
 pub struct SqliteRecordStore<'conn> {
@@ -143,6 +143,27 @@ impl<'conn> SqliteRecordStore<'conn> {
             CREATE INDEX IF NOT EXISTS idx_orgtrack_core_resource_interactions_observation
                 ON orgtrack_core_resource_interactions(source, source_event_id, resource_id, action)
                 WHERE source_event_id IS NOT NULL;
+
+            CREATE TABLE IF NOT EXISTS orgtrack_core_session_actors (
+                actor_record_id        TEXT PRIMARY KEY,
+                source                 TEXT NOT NULL,
+                source_session_id      TEXT NOT NULL,
+                session_id             TEXT NOT NULL,
+                turn_id                TEXT,
+                actor_id               TEXT NOT NULL,
+                actor_type             TEXT,
+                started_at             TEXT,
+                stopped_at             TEXT,
+                transcript_session_id  TEXT,
+                transcript_path        TEXT,
+                payload_json           TEXT NOT NULL,
+                UNIQUE(source, source_session_id, actor_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_session_actors_session
+                ON orgtrack_core_session_actors(source, session_id, turn_id);
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_session_actors_transcript
+                ON orgtrack_core_session_actors(source, transcript_session_id)
+                WHERE transcript_session_id IS NOT NULL;
 
             CREATE TABLE IF NOT EXISTS orgtrack_core_interaction_import_checkpoints (
                 source              TEXT NOT NULL,
@@ -673,6 +694,44 @@ impl RecordStore for SqliteRecordStore<'_> {
         Ok(())
     }
 
+    fn upsert_session_actor(&self, record: &SessionActorRecord) -> Result<(), String> {
+        let payload = Self::to_json(record)?;
+        self.conn
+            .execute(
+                "INSERT INTO orgtrack_core_session_actors (
+                    actor_record_id, source, source_session_id, session_id, turn_id,
+                    actor_id, actor_type, started_at, stopped_at,
+                    transcript_session_id, transcript_path, payload_json
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+                ON CONFLICT(source, source_session_id, actor_id) DO UPDATE SET
+                    actor_record_id = excluded.actor_record_id,
+                    session_id = excluded.session_id,
+                    turn_id = excluded.turn_id,
+                    actor_type = excluded.actor_type,
+                    started_at = excluded.started_at,
+                    stopped_at = excluded.stopped_at,
+                    transcript_session_id = excluded.transcript_session_id,
+                    transcript_path = excluded.transcript_path,
+                    payload_json = excluded.payload_json",
+                params![
+                    record.actor_record_id,
+                    record.source,
+                    record.source_session_id,
+                    record.session_id,
+                    record.turn_id,
+                    record.actor_id,
+                    record.actor_type,
+                    record.started_at,
+                    record.stopped_at,
+                    record.transcript_session_id,
+                    record.transcript_path,
+                    payload
+                ],
+            )
+            .map_err(|err| err.to_string())?;
+        Ok(())
+    }
+
     fn upsert_commit_link(&self, record: &CommitLinkRecord) -> Result<(), String> {
         let payload = Self::to_json(record)?;
         self.conn
@@ -1179,6 +1238,86 @@ impl RecordStore for SqliteRecordStore<'_> {
             .query_row(
                 "SELECT payload_json FROM orgtrack_core_sessions WHERE session_id = ?1",
                 params![session_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        payload.map(Self::from_json).transpose()
+    }
+
+    fn get_session_actor(
+        &self,
+        source: &str,
+        session_id: &str,
+        actor_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String> {
+        let payload = self
+            .conn
+            .query_row(
+                "SELECT payload_json FROM orgtrack_core_session_actors
+                 WHERE source = ?1 AND session_id = ?2 AND actor_id = ?3",
+                params![source, session_id, actor_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        payload.map(Self::from_json).transpose()
+    }
+
+    fn get_session_actor_by_source_identity(
+        &self,
+        source: &str,
+        source_session_id: &str,
+        actor_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String> {
+        let payload = self
+            .conn
+            .query_row(
+                "SELECT payload_json FROM orgtrack_core_session_actors
+                 WHERE source = ?1 AND source_session_id = ?2 AND actor_id = ?3",
+                params![source, source_session_id, actor_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        payload.map(Self::from_json).transpose()
+    }
+
+    fn list_session_actors(
+        &self,
+        source: &str,
+        session_id: &str,
+    ) -> Result<Vec<SessionActorRecord>, String> {
+        let mut statement = self
+            .conn
+            .prepare(
+                "SELECT payload_json FROM orgtrack_core_session_actors
+                 WHERE source = ?1 AND session_id = ?2
+                 ORDER BY COALESCE(started_at, stopped_at, ''), actor_id",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = statement
+            .query_map(params![source, session_id], |row| row.get::<_, String>(0))
+            .map_err(|err| err.to_string())?;
+        let mut records = Vec::new();
+        for row in rows {
+            records.push(Self::from_json(row.map_err(|err| err.to_string())?)?);
+        }
+        Ok(records)
+    }
+
+    fn get_session_actor_by_transcript_session_id(
+        &self,
+        source: &str,
+        transcript_session_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String> {
+        let payload = self
+            .conn
+            .query_row(
+                "SELECT payload_json FROM orgtrack_core_session_actors
+                 WHERE source = ?1 AND transcript_session_id = ?2
+                 ORDER BY COALESCE(stopped_at, started_at, '') DESC LIMIT 1",
+                params![source, transcript_session_id],
                 |row| row.get::<_, String>(0),
             )
             .optional()
