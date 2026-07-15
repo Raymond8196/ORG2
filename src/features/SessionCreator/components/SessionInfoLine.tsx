@@ -24,7 +24,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
-import { gitApi, removeGitWorktree } from "@src/api/http/git";
+import { gitApi } from "@src/api/http/git";
 import { CheckoutBlockedDialog } from "@src/components/GitDialogs/CheckoutBlockedDialog";
 import { CheckoutConflictDialog } from "@src/components/GitDialogs/CheckoutConflictDialog";
 import PillGroup, { type PillGroupVariant } from "@src/components/PillGroup";
@@ -474,42 +474,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
     [branchRepoPath, repoId]
   );
 
-  const handleRemoveWorktree = useCallback(
-    async (
-      worktreePath: string,
-      options?: { silent?: boolean; skipRefresh?: boolean }
-    ) => {
-      if (!repoId || !repoPath) {
-        const message = "No repo selected";
-        if (!options?.silent) {
-          showGitActionDialogSafely(message, "error");
-        }
-        return { success: false, message };
-      }
-
-      try {
-        await removeGitWorktree({
-          repo_id: repoId,
-          repo_path: repoPath,
-          worktree_path: worktreePath,
-          force: true,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (!options?.silent) {
-          showGitActionDialogSafely(message, "error");
-        }
-        return { success: false, message };
-      }
-
-      if (!options?.silent) {
-        showGitActionDialogSafely(`Worktree "${worktreePath}" removed`, "info");
-      }
-      return { success: true };
-    },
-    [repoId, repoPath]
-  );
-
   const handleBranchClose = useCallback(() => {
     setIsBranchSelectorOpen(false);
   }, []);
@@ -689,7 +653,6 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
             groupWorktreeBranches={false}
             onCreateBranch={handleCreateBranch}
             onDeleteBranch={handleDeleteBranch}
-            onRemoveWorktree={handleRemoveWorktree}
             variant="create-session"
             showRemoveMode
             hideActionClose

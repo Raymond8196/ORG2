@@ -205,7 +205,8 @@
     "openWorkspace": "打开工作区",
     "skipThisVersion": "跳过此版本",
     "later": "稍后",
-    "link": "链接"
+    "link": "链接",
+    "copyName": "复制名称"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",

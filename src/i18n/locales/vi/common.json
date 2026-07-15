@@ -203,7 +203,8 @@
     "openWorkspace": "Mở Workspace",
     "skipThisVersion": "Bỏ qua phiên bản này",
     "later": "Để sau",
-    "link": "Liên kết"
+    "link": "Liên kết",
+    "copyName": "Sao chép tên"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}",

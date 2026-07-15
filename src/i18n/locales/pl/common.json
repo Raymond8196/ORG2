@@ -203,7 +203,8 @@
     "openWorkspace": "Otwórz Workspace",
     "skipThisVersion": "Pomiń tę wersję",
     "later": "Później",
-    "link": "Połącz"
+    "link": "Połącz",
+    "copyName": "Kopiuj nazwę"
   },
   "refreshToast": {
     "successName": "Odświeżono: {{name}}",
