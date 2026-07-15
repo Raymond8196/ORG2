@@ -4,7 +4,7 @@
  * Displays Git commit history and repo-shareable `.orgtrack` session lineage
  * for the currently selected file.
  */
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +24,8 @@ import {
 } from "@src/modules/WorkStation/shared/tokens";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { openOrReplaceSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+import { sessionByIdAtom } from "@src/store/session";
+import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import { TIMELINE_CONSTANTS, TIMELINE_ICONS } from "./config";
@@ -33,6 +35,22 @@ type OrgtrackFileTimelineEntry = OrgtrackFileTimeline["entries"][number];
 type FileSessionHistorySession = OrgtrackFileSessionHistory["sessions"][number];
 type FileSessionHistoryParticipant =
   FileSessionHistorySession["participants"][number];
+
+interface FileSessionHistoryIconProps {
+  sessionId: string;
+}
+
+const FileSessionHistoryIcon = memo(
+  ({ sessionId }: FileSessionHistoryIconProps) => {
+    const session = useAtomValue(sessionByIdAtom(sessionId));
+    return React.createElement(resolveSessionRowIcon(session ?? sessionId), {
+      size: 14,
+      className: "text-primary-6",
+    });
+  }
+);
+
+FileSessionHistoryIcon.displayName = "FileSessionHistoryIcon";
 
 interface TimelineEntryProps {
   commitSha: string;
@@ -169,7 +187,6 @@ interface FileSessionHistoryParticipantProps {
 const FileSessionHistoryParticipantView: React.FC<FileSessionHistoryParticipantProps> =
   memo(({ participant, originSessionId, source, onClick }) => {
     const { t } = useTranslation();
-    const SessionIcon = TIMELINE_ICONS.pin;
     const OpenIcon = TIMELINE_ICONS.openDiff;
     const actionSummary = Object.entries(participant.actionCounts)
       .filter(([, count]) => count > 0)
@@ -212,7 +229,7 @@ const FileSessionHistoryParticipantView: React.FC<FileSessionHistoryParticipantP
         title={`${participant.sessionLabel} · ${attribution} · ${precision}`}
       >
         <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
-          <SessionIcon size={14} className="text-primary-6" />
+          <FileSessionHistoryIcon sessionId={participant.sessionId} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-[13px] text-text-2">
@@ -253,7 +270,6 @@ interface FileSessionHistorySessionProps {
 const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
   memo(({ session, fallbackWorkspacePath, onOpenSession }) => {
     const { t } = useTranslation();
-    const SessionIcon = TIMELINE_ICONS.pin;
     const actionSummary = Object.entries(session.actionCounts)
       .filter(([, count]) => count > 0)
       .map(
@@ -287,7 +303,7 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
           }
         >
           <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
-            <SessionIcon size={14} className="text-primary-6" />
+            <FileSessionHistoryIcon sessionId={session.sessionId} />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate text-[13px] font-medium text-text-2">
