@@ -14,6 +14,8 @@ export interface UseSessionMenuItemsParams {
   includeExternal: boolean;
   groupVisibleCounts: ReadonlyMap<string, number>;
   expandedSubagentParentIds?: ReadonlySet<string>;
+  /** IDs temporarily forced through view filters for cross-surface reveal. */
+  revealedSessionIds?: ReadonlySet<string>;
 }
 
 export interface UseSessionMenuItemsResult {

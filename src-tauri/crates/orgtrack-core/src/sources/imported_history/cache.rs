@@ -537,6 +537,40 @@ pub fn query_cached_session_from_conn(
     Ok(sessions.into_iter().next())
 }
 
+/// Resolve one canonical session ID without scanning paginated source rows.
+///
+/// Sidebar deep links use the canonical ID rendered by the rest of ORGII,
+/// while the cache primary key is `(source, source_session_id)`. Resolve the
+/// source first, then reuse the canonical row decoder so the targeted and
+/// paginated paths cannot drift in field handling.
+pub fn query_cached_session_by_session_id_from_conn(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Option<(String, ImportedHistoryCachedSession)>, String> {
+    let source = conn
+        .query_row(
+            "SELECT source FROM imported_history_session_cache WHERE session_id = ?1 LIMIT 1",
+            [session_id],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(|err| {
+            format!("Failed to resolve imported history source for {session_id}: {err}")
+        })?;
+    let Some(source) = source else {
+        return Ok(None);
+    };
+    let sessions = query_cached_sessions_by_filter_from_conn(
+        conn,
+        &source,
+        "session_id = ?2",
+        &[SqlValue::from(session_id.to_string())],
+        1,
+        0,
+    )?;
+    Ok(sessions.into_iter().next().map(|session| (source, session)))
+}
+
 pub fn query_cached_sessions_for_source_from_conn(
     conn: &Connection,
     source: &str,

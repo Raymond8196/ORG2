@@ -77,3 +77,31 @@ file section collapsed and re-expanded. A legacy-vault compatibility fix was
 needed first because retired Gemini CLI entries used `agent_type` while the
 existing filter handled only `model_type`; a focused regression test now
 covers both spellings without exposing or overwriting valid credentials.
+
+## Session Blame → Sidebar reveal extension
+
+| Layer                        | Decision / verification                                                                                                                                                                                                                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Compilation               | The exact-ID Rust filter and cache lookup compile in the app test target; focused Rust and frontend unit suites pass. Full TypeScript remains blocked only by the unrelated existing `ContextInfoButton.tsx:468` error, while every changed frontend file passes ESLint.                       |
+| 2. Dead code / deduplication | One write-only Jotai reveal intent connects Session Blame to the sidebar. It reuses the existing sidebar session collection, group builders, subagent expansion, collapsed-section state, and transcript selection instead of creating a second navigation model.                              |
+| 3. Naming                    | `SessionSidebarRevealRequest`, `loadSidebarSessionById`, and `revealMenuItemRequest` distinguish an ephemeral UI navigation intent from persisted session/resource metadata.                                                                                                                   |
+| 4. Semantic overloading      | `sessionId` is the independently replayable canonical target; `parentSessionId` is only the root row that must be hydrated/expanded. Neither is treated as an actor ID or vendor source ID.                                                                                                    |
+| 5. Default branches          | Empty reveal IDs are ignored; missing exact rows log a warning and leave the existing transcript behavior intact. Disabled history sources remain disabled.                                                                                                                                    |
+| 6. Cross-domain leakage      | Session Blame publishes identity only. The workstation connector owns view/search/collapse policy, the session loader owns API/cache hydration, and the generic sidebar owns DOM-scoped scrolling.                                                                                             |
+| 7. New-developer test        | Unit tests cover normalization/repeat requests, exact historical hydration without paging, exact-ID matching, hidden imported rows, and recursive section lookup. The rendered E2E documents the actual click/expand/select/scroll contract.                                                   |
+| 8. Wire/serialization        | `sessionIds?: string[]` is an additive camelCase RPC filter validated by Zod and deserialized by the existing `SessionFilter`. Matching is exact, preventing `session-1` from matching `session-10`.                                                                                           |
+| 9. Init parity               | Existing rows return from frontend state immediately; old imported rows resolve through the indexed Orgtrack cache; native rows use the normal aggregate stores. All paths merge into the same `sessionsAtom` projection before grouping.                                                      |
+| 10. Resolver symmetry        | The canonical ID emitted by Session Blame is the same ID queried from SQLite, merged into the sidebar, selected by workstation state, attached to `data-menu-item-id`, and loaded as the transcript. Child reveal carries its canonical parent explicitly rather than inferring by label/time. |
+
+The cache adds an idempotent index on canonical `session_id`; no data migration
+or duplicated database is introduced. A historical reveal bypasses only the
+current sidebar presentation filters for its requested row. Exact cache loads
+still forward the user's disabled-source list and do not mutate source settings.
+
+Final cold-start rendered evidence for the reveal extension (2026-07-14): the
+isolated real-CLI provenance scenario passed against Claude Code, Codex, and
+Cursor. A real pointer click on the Codex root Session Blame row selected and
+scrolled its sidebar row into view. The test then collapsed that real sidebar
+section, clicked the independently replayable Codex subagent row, and proved
+that the same section reopened, the child row became selected and fully visible,
+and the rendered child transcript differed from the root transcript.

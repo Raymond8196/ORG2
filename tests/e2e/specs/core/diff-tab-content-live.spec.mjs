@@ -105,6 +105,68 @@ async function pointerClick(selector, label, timeout = 60_000) {
     .perform();
 }
 
+async function visibleSidebarSessionSnapshot(sessionId) {
+  return execJS(`
+    const sessionId = ${JSON.stringify(sessionId)};
+    const row = [...document.querySelectorAll('[data-menu-item-id]')]
+      .filter((candidate) => candidate.getAttribute('data-menu-item-id') === sessionId)
+      .find((candidate) => {
+        const rect = candidate.getBoundingClientRect();
+        const style = window.getComputedStyle(candidate);
+        return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+      });
+    if (!row) return { present: false, sessionId };
+    const section = row.closest('[data-sidebar-section-id]');
+    const sectionId = section?.getAttribute('data-sidebar-section-id') ?? null;
+    const sectionToggle = section?.querySelector('[data-sidebar-section-toggle]');
+    const scrollContainer = row.closest('.sidebar-list');
+    const rowRect = row.getBoundingClientRect();
+    const scrollRect = scrollContainer?.getBoundingClientRect();
+    return {
+      present: true,
+      sessionId,
+      selected: row.getAttribute('data-selected') === 'true',
+      sectionId,
+      sectionExpanded: sectionToggle?.getAttribute('aria-expanded') === 'true',
+      withinScrollViewport: scrollRect
+        ? rowRect.top >= scrollRect.top - 1 && rowRect.bottom <= scrollRect.bottom + 1
+        : false,
+      sidebarCollapsed: Boolean(row.closest('[data-sidebar-collapsed="true"]')),
+    };
+  `);
+}
+
+async function collapseSidebarSection(sectionId) {
+  const selector = `[data-sidebar-section-toggle="${sectionId}"]`;
+  const expanded = await execJS(`
+    return [...document.querySelectorAll(${JSON.stringify(selector)})]
+      .filter((candidate) => {
+        const rect = candidate.getBoundingClientRect();
+        const style = window.getComputedStyle(candidate);
+        return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+      })
+      .some((candidate) => candidate.getAttribute('aria-expanded') === 'true');
+  `);
+  if (!expanded) return;
+  await pointerClick(selector, `collapse sidebar section ${sectionId}`);
+  await browser.waitUntil(
+    async () =>
+      execJS(`
+        return [...document.querySelectorAll(${JSON.stringify(selector)})]
+          .filter((candidate) => {
+            const rect = candidate.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+          })
+          .some((candidate) => candidate.getAttribute('aria-expanded') === 'false');
+      `),
+    {
+      timeout: 10_000,
+      interval: 250,
+      timeoutMsg: `sidebar section ${sectionId} did not collapse`,
+    }
+  );
+}
+
 async function visibleChatTranscriptSnapshot() {
   return execJS(`
     const roots = [...document.querySelectorAll('[data-chat-view-root]')];
@@ -1181,8 +1243,31 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
       }
     );
 
+    let codexRootSidebar = null;
+    await browser.waitUntil(
+      async () => {
+        codexRootSidebar =
+          await visibleSidebarSessionSnapshot(codexRootSessionId);
+        return (
+          codexRootSidebar.present &&
+          codexRootSidebar.selected &&
+          codexRootSidebar.sectionExpanded &&
+          codexRootSidebar.withinScrollViewport &&
+          !codexRootSidebar.sidebarCollapsed
+        );
+      },
+      {
+        timeout: 60_000,
+        interval: 500,
+        timeoutMsg: async () =>
+          `Codex root did not synchronize to its visible sidebar group; snapshot=${JSON.stringify(await visibleSidebarSessionSnapshot(codexRootSessionId))}`,
+      }
+    );
+
     await switchToMyStationCodeEditor();
     await openFileTimeline(repoPath);
+    expect(codexRootSidebar.sectionId).toBeTruthy();
+    await collapseSidebarSection(codexRootSidebar.sectionId);
     await pointerClick(
       `[data-testid="session-blame-entry"][data-transcript-session-id="${codexChildSessionId}"]`,
       "Codex subagent Session Blame entry"
@@ -1210,5 +1295,33 @@ describe("Diff tab content live (real agent edit → orgtrack final-diff)", () =
       }
     );
     expect(codexChildTranscript.text).not.toBe(codexRootTranscript.text);
+
+    let codexChildSidebar = null;
+    try {
+      await browser.waitUntil(
+        async () => {
+          codexChildSidebar =
+            await visibleSidebarSessionSnapshot(codexChildSessionId);
+          return (
+            codexChildSidebar.present &&
+            codexChildSidebar.selected &&
+            codexChildSidebar.sectionId === codexRootSidebar.sectionId &&
+            codexChildSidebar.sectionExpanded &&
+            codexChildSidebar.withinScrollViewport &&
+            !codexChildSidebar.sidebarCollapsed
+          );
+        },
+        {
+          timeout: 60_000,
+          interval: 500,
+          timeoutMsg:
+            "Codex subagent did not expand/select/scroll its sidebar row",
+        }
+      );
+    } catch (error) {
+      throw new Error(
+        `${error instanceof Error ? error.message : String(error)}; snapshot=${JSON.stringify(codexChildSidebar)}`
+      );
+    }
   });
 });

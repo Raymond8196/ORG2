@@ -259,6 +259,10 @@ pub struct AggregateStats {
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionFilter {
+    /// Return only these canonical session IDs. Used by deep-link surfaces
+    /// that must hydrate an older row without walking sidebar pagination.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_ids: Option<Vec<String>>,
     /// Filter by category: "cli", "agent", "os"
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,

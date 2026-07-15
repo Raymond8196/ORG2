@@ -347,6 +347,8 @@ impl<'conn> SqliteRecordStore<'conn> {
                 ON imported_history_session_cache(source, repo_path);
             CREATE INDEX IF NOT EXISTS idx_imported_history_source_path
                 ON imported_history_session_cache(source, source_path);
+            CREATE INDEX IF NOT EXISTS idx_imported_history_session_id
+                ON imported_history_session_cache(session_id);
             ",
         )?;
         ensure_column(

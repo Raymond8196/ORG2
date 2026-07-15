@@ -441,6 +441,47 @@ export const loadSidebarSessions = async (options?: {
   store.set(sessionLoadingAtom, false);
 };
 
+/**
+ * Hydrate one canonical session row for sidebar deep-link navigation.
+ *
+ * Normal sidebar loading is intentionally paginated per source/date bucket.
+ * A file-history link may target a much older session, so walking those pages
+ * would be both slow and nondeterministic. The aggregate API resolves the exact
+ * canonical ID and this function merges only that authoritative row.
+ */
+export const loadSidebarSessionById = async (
+  sessionId: string
+): Promise<Session | null> => {
+  const normalizedSessionId = sessionId.trim();
+  if (!normalizedSessionId) return null;
+
+  const store = getStore();
+  const existing = store
+    .get(sessionsAtom)
+    .find((session) => session.session_id === normalizedSessionId);
+  if (existing) return existing;
+
+  const disabledSources = Object.entries(store.get(dataSourceConfigAtom))
+    .filter(([, config]) => config?.enabled === false)
+    .map(([sourceId]) => sourceId);
+  const response = await sessionAggregateList({
+    sessionIds: [normalizedSessionId],
+    includeExternalHistory: true,
+    includeStats: false,
+    limit: 1,
+    disabledExternalHistorySources:
+      disabledSources.length > 0 ? disabledSources : undefined,
+  });
+  const session = toFrontendSessions(response.sessions).find(
+    (candidate) => candidate.session_id === normalizedSessionId
+  );
+  if (!session) return null;
+
+  store.set(sessionsAtom, (previous) => mergeSessions(previous, [session]));
+  persistSessions(store.get(sessionsAtom));
+  return session;
+};
+
 export const loadMoreCategory = async (
   category: SessionListCategory,
   pageSize: number = SESSION_SIDEBAR_PAGE_SIZE

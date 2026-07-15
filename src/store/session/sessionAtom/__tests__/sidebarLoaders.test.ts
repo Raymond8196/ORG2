@@ -5,7 +5,11 @@ import { IMPORTED_HISTORY_SOURCES } from "@src/api/tauri/externalHistory";
 
 import { dataSourceConfigAtom } from "../../dataSourceConfigAtom";
 import { sessionsAtom } from "../atoms";
-import { loadMoreCategory, loadSidebarSessions } from "../loaders";
+import {
+  loadMoreCategory,
+  loadSidebarSessionById,
+  loadSidebarSessions,
+} from "../loaders";
 import { sessionPaginationAtom } from "../paginationAtoms";
 
 const mocks = vi.hoisted(() => ({
@@ -177,5 +181,32 @@ describe("loadSidebarSessions", () => {
     );
     expect(requestedSources).not.toContain("warp");
     expect(requestedSources).toHaveLength(IMPORTED_HISTORY_SOURCES.length - 1);
+  });
+
+  it("hydrates one historical session by canonical ID without paging", async () => {
+    const historicalSession = {
+      session_id: "codexapp-rollout-historical",
+      name: "Historical Codex session",
+      status: "completed",
+      created_at: "2026-06-01T12:00:00Z",
+      updated_at: "2026-06-01T13:00:00Z",
+    };
+    mocks.sessionAggregateList.mockResolvedValue({
+      sessions: [historicalSession],
+    });
+
+    const loaded = await loadSidebarSessionById("codexapp-rollout-historical");
+
+    expect(loaded).toEqual(historicalSession);
+    expect(mocks.sessionAggregateList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionIds: ["codexapp-rollout-historical"],
+        includeExternalHistory: true,
+        includeStats: false,
+        limit: 1,
+      })
+    );
+    expect(mocks.externalHistorySidebarList).not.toHaveBeenCalled();
+    expect(mocks.store?.get(sessionsAtom)).toContainEqual(historicalSession);
   });
 });

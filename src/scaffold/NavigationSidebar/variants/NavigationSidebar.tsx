@@ -10,7 +10,13 @@ import {
   type LucideIcon,
   Search,
 } from "lucide-react";
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import Input from "@src/components/Input";
 import TabPill from "@src/components/TabPill";
@@ -94,6 +100,11 @@ export interface NavigationSidebarProps {
    */
   collapsedSectionIds?: Set<string>;
   onCollapsedSectionsChange?: (next: Set<string>) => void;
+  /** Scroll a newly revealed row into view after its section mounts. */
+  revealMenuItemRequest?: {
+    key: string;
+    requestId: number;
+  };
 }
 
 function normalizeSearchValue(value: string): string {
@@ -187,7 +198,9 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
     collapsibleSections = false,
     collapsedSectionIds,
     onCollapsedSectionsChange,
+    revealMenuItemRequest,
   }) => {
+    const menuRevealRootRef = useRef<HTMLDivElement>(null);
     const normalizedSearchQuery = useMemo(
       () => normalizeSearchValue(search?.filterValue ?? search?.value ?? ""),
       [search?.filterValue, search?.value]
@@ -276,6 +289,23 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
       },
       [collapsedSections, isControlled, onCollapsedSectionsChange]
     );
+
+    useEffect(() => {
+      if (!revealMenuItemRequest) return;
+      const frame = window.requestAnimationFrame(() => {
+        const row = Array.from(
+          menuRevealRootRef.current?.querySelectorAll<HTMLElement>(
+            "[data-menu-item-id]"
+          ) ?? []
+        ).find(
+          (candidate) =>
+            candidate.getAttribute("data-menu-item-id") ===
+            revealMenuItemRequest.key
+        );
+        row?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      });
+      return () => window.cancelAnimationFrame(frame);
+    }, [collapsedSections, revealMenuItemRequest, sections]);
 
     // Stable selected keys array
     const selectedKeys = useMemo(
@@ -403,7 +433,11 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
         )}
 
         {/* Section Container */}
-        <SidebarList isLoading={isLoading} topPadding={listTopPadding}>
+        <SidebarList
+          isLoading={isLoading}
+          topPadding={listTopPadding}
+          scrollContainerRef={menuRevealRootRef}
+        >
           {hasSearchInput &&
           filteredPinnedMenuItems.length === 0 &&
           sections.length === 0 ? (
@@ -420,12 +454,26 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                 collapsedSections.has(section.id);
 
               return (
-                <div key={section.id}>
+                <div key={section.id} data-sidebar-section-id={section.id}>
                   {section.title &&
                     (collapsibleSections ? (
                       <div
+                        data-sidebar-section-toggle={section.id}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={!isSectionCollapsed}
                         className={`${isSectionCollapsed ? "" : "mb-px"} group/section-title flex h-7 cursor-pointer items-center gap-2 pl-2`}
                         onClick={() => {
+                          if (!hasSearchInput) toggleSection(section.id);
+                        }}
+                        onKeyDown={(event) => {
+                          if (
+                            event.target !== event.currentTarget ||
+                            (event.key !== "Enter" && event.key !== " ")
+                          ) {
+                            return;
+                          }
+                          event.preventDefault();
                           if (!hasSearchInput) toggleSection(section.id);
                         }}
                       >
