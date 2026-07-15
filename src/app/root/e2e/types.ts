@@ -464,6 +464,13 @@ export interface E2EHelpers {
     sessionId: string
   ) => Promise<Result<{ dump: PromptDumpResult }>>;
   getActiveSessionId: () => Promise<Result<{ sessionId: string | null }>>;
+  openWorkstationFile: (
+    filePath: string
+  ) => Promise<Result<{ filePath: string }>>;
+  inspectOrgtrackFileSessionHistory: (input: {
+    repoPath: string;
+    filePath: string;
+  }) => Promise<Result<{ history: Json }>>;
   inspectCliSessionStatus: (
     sessionId: string
   ) => Promise<Result<{ session: Json | null }>>;

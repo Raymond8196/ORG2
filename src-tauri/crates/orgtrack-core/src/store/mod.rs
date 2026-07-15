@@ -1,5 +1,6 @@
 use crate::canonical::{
-    ActivityRecord, CommitLinkRecord, FileChangeRecord, ScanCheckpoint,
+    ActivityRecord, CommitLinkRecord, FileChangeRecord, FileResourceRecord,
+    ResourceInteractionRecord, ScanCheckpoint, SessionActorRecord,
     SessionCheckpointFileStateRecord, SessionCheckpointRecord, SessionDiffChunkRecord,
     SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
 };
@@ -8,6 +9,10 @@ pub trait RecordStore {
     fn upsert_session(&self, record: &SessionRecord) -> Result<(), String>;
     fn append_activity(&self, record: &ActivityRecord) -> Result<(), String>;
     fn upsert_file_change(&self, record: &FileChangeRecord) -> Result<(), String>;
+    fn upsert_file_resource(&self, record: &FileResourceRecord) -> Result<(), String>;
+    fn append_resource_interaction(&self, record: &ResourceInteractionRecord)
+        -> Result<(), String>;
+    fn upsert_session_actor(&self, record: &SessionActorRecord) -> Result<(), String>;
     fn upsert_commit_link(&self, record: &CommitLinkRecord) -> Result<(), String>;
     fn upsert_edit_artifact(&self, record: &SessionEditArtifactRecord) -> Result<(), String>;
     fn upsert_diff_chunk(&self, record: &SessionDiffChunkRecord) -> Result<(), String>;
@@ -59,6 +64,35 @@ pub trait RecordStore {
         &self,
         workspace_path: Option<&str>,
     ) -> Result<Vec<FileChangeRecord>, String>;
+    fn list_file_resource_interactions(
+        &self,
+        repository_id: Option<&str>,
+        workspace_path: &str,
+        repo_relative_path: &str,
+    ) -> Result<Vec<ResourceInteractionRecord>, String>;
+    fn get_session(&self, session_id: &str) -> Result<Option<SessionRecord>, String>;
+    fn get_session_actor(
+        &self,
+        source: &str,
+        session_id: &str,
+        actor_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String>;
+    fn get_session_actor_by_source_identity(
+        &self,
+        source: &str,
+        source_session_id: &str,
+        actor_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String>;
+    fn list_session_actors(
+        &self,
+        source: &str,
+        session_id: &str,
+    ) -> Result<Vec<SessionActorRecord>, String>;
+    fn get_session_actor_by_transcript_session_id(
+        &self,
+        source: &str,
+        transcript_session_id: &str,
+    ) -> Result<Option<SessionActorRecord>, String>;
 }
 
 #[cfg(feature = "sqlite")]

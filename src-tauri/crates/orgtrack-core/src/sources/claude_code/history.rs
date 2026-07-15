@@ -24,7 +24,7 @@ use crate::sources::imported_history::{
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const CLAUDE_CODE_SESSION_PREFIX: &str = "claudecodeapp-";
+use super::SESSION_PREFIX as CLAUDE_CODE_SESSION_PREFIX;
 const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // v4: read ai-title/custom-title records for the name, and derive diff stats
 // from tool_use_result.structuredPatch instead of the old_string/new_string heuristic.
@@ -480,7 +480,7 @@ fn parse_claude_session_meta(
 
     Ok(Some(ClaudeCodeHistoryMeta {
         source_session_id: record.source_session_id.clone(),
-        session_id: format!("{CLAUDE_CODE_SESSION_PREFIX}{}", record.source_session_id),
+        session_id: super::canonical_session_id(&record.source_session_id),
         source_path: record.source_path.to_string_lossy().to_string(),
         source_record_key: record.source_record_key.clone(),
         source_mtime_ms: record.source_mtime_ms,

@@ -44,6 +44,7 @@ function shouldSetupRealApiAccount() {
   const fakeOnlyScenarios = new Set([
     "provider-payload-snapshot",
     "fake-provider-auto-compact",
+    "runtime-hooks",
   ]);
   return (
     SCENARIO_FILTER.length === 0 ||
@@ -1000,6 +1001,189 @@ describe("Session launch wiring rendered UI invariants", function () {
     if (shouldSetupRealApiAccount()) {
       account = await getApiAccount();
       model = selectPreferredModel(account);
+    }
+  });
+
+  it("centralizes hook capture settings in Launchpad Runtime", async function () {
+    if (!shouldRunScenario("runtime-hooks")) {
+      this.skip();
+      return;
+    }
+
+    unwrap(await invokeE2E("resetToNewSession"), "reset to Launchpad");
+
+    const clickVisible = async (selector, label) => {
+      let point = null;
+      await browser.waitUntil(
+        async () => {
+          point = await execJS(`
+            const element = document.querySelector(${JSON.stringify(selector)});
+            if (!element) return { ok: false, reason: 'missing' };
+            element.scrollIntoView({ block: 'center', inline: 'center' });
+            const rect = element.getBoundingClientRect();
+            const style = window.getComputedStyle(element);
+            const x = Math.floor(rect.left + rect.width / 2);
+            const y = Math.floor(rect.top + rect.height / 2);
+            const hit = document.elementFromPoint(x, y);
+            return {
+              ok: rect.width > 0 && rect.height > 0 &&
+                style.display !== 'none' && style.visibility !== 'hidden' &&
+                Boolean(hit && (hit === element || element.contains(hit))),
+              x,
+              y,
+              text: element.textContent?.trim().replace(/\s+/g, ' ').slice(0, 160) ?? '',
+            };
+          `);
+          return point?.ok === true;
+        },
+        {
+          timeout: RENDER_TIMEOUT_MS,
+          interval: 250,
+          timeoutMsg: `${label} was not pointer-clickable: ${JSON.stringify(point)}`,
+        }
+      );
+      await browser
+        .action("pointer")
+        .move({ x: point.x, y: point.y })
+        .down()
+        .up()
+        .perform();
+    };
+
+    const waitForSwitchState = async (platform, expected) => {
+      const selector = `[data-testid="session-provenance-hook-switch-${platform}"]`;
+      let state = null;
+      await browser.waitUntil(
+        async () => {
+          state = await execJS(`
+            const element = document.querySelector(${JSON.stringify(selector)});
+            return element ? {
+              present: true,
+              checked: element.getAttribute('aria-checked'),
+              disabled: Boolean(element.disabled),
+            } : { present: false };
+          `);
+          return (
+            state?.present === true &&
+            state.checked === String(expected) &&
+            state.disabled === false
+          );
+        },
+        {
+          timeout: RENDER_TIMEOUT_MS,
+          interval: 200,
+          timeoutMsg: `Hook switch ${platform} did not settle at ${expected}: ${JSON.stringify(state)}`,
+        }
+      );
+    };
+
+    const openHooks = async () => {
+      const runtimeVisible = await execJS(`
+        const element = document.querySelector('[data-testid="chat-panel-start-page-runtime"]');
+        if (!element) return false;
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+      `);
+      if (!runtimeVisible) {
+        await clickVisible(
+          '[data-testid="chat-panel-start-page-tab-runtime"]',
+          "Launchpad Runtime tab"
+        );
+      }
+      await clickVisible('[data-testid="data-source-view-hooks"]', "Hooks tab");
+      await browser.waitUntil(
+        async () =>
+          execJS(`
+            const element = document.querySelector('[data-testid="session-provenance-hooks-panel"]');
+            if (!element) return false;
+            const rect = element.getBoundingClientRect();
+            const style = window.getComputedStyle(element);
+            return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+          `),
+        {
+          timeout: RENDER_TIMEOUT_MS,
+          timeoutMsg: "Session Provenance hooks panel did not render",
+        }
+      );
+    };
+
+    await clickVisible(
+      '[data-testid="chat-panel-start-page-tab-runtime"]',
+      "Launchpad Runtime tab"
+    );
+    await openHooks();
+
+    let panelState = null;
+    await browser.waitUntil(
+      async () => {
+        panelState = await execJS(`
+          const panel = document.querySelector('[data-testid="session-provenance-hooks-panel"]');
+          const switches = ['claude_code', 'codex', 'cursor'].map((platform) => {
+            const element = document.querySelector('[data-testid="session-provenance-hook-switch-' + platform + '"]');
+            return {
+              platform,
+              present: Boolean(element),
+              checked: element?.getAttribute('aria-checked') ?? null,
+              disabled: element ? Boolean(element.disabled) : null,
+            };
+          });
+          return {
+            text: panel?.textContent ?? '',
+            switches,
+          };
+        `);
+        return (
+          panelState.switches.every(
+            (item) => item.present && item.disabled === false
+          ) &&
+          panelState.text.includes("Claude Code") &&
+          panelState.text.includes("Codex") &&
+          panelState.text.includes("Cursor") &&
+          panelState.text.includes(".claude/settings.json") &&
+          panelState.text.includes(".codex/hooks.json") &&
+          panelState.text.includes(".cursor/hooks.json")
+        );
+      },
+      {
+        timeout: RENDER_TIMEOUT_MS,
+        interval: 250,
+        timeoutMsg: `Centralized hook settings did not load: ${JSON.stringify(panelState)}`,
+      }
+    );
+
+    const originalCodexState =
+      panelState.switches.find((item) => item.platform === "codex")?.checked ===
+      "true";
+    const toggledCodexState = !originalCodexState;
+
+    try {
+      await clickVisible(
+        '[data-testid="session-provenance-hook-switch-codex"]',
+        "Codex hook switch"
+      );
+      await waitForSwitchState("codex", toggledCodexState);
+
+      // Unmount and remount the production panel. The reloaded state comes
+      // from the real Tauri status command, not the component's optimistic state.
+      await clickVisible(
+        '[data-testid="data-source-view-scanning"]',
+        "Scanning tab"
+      );
+      await openHooks();
+      await waitForSwitchState("codex", toggledCodexState);
+    } finally {
+      await openHooks();
+      const current = await execJS(`
+        return document.querySelector('[data-testid="session-provenance-hook-switch-codex"]')?.getAttribute('aria-checked') === 'true';
+      `);
+      if (current !== originalCodexState) {
+        await clickVisible(
+          '[data-testid="session-provenance-hook-switch-codex"]',
+          "Codex hook switch restore"
+        );
+      }
+      await waitForSwitchState("codex", originalCodexState);
     }
   });
 

@@ -1677,6 +1677,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "Sin contenido de configuración"
     },
+    "sessionProvenance": {
+      "title": "Procedencia de sesiones",
+      "capture": "Registrar interacciones con archivos",
+      "description": "Registra lecturas y escrituras de archivos como metadatos. No se guardan prompts, salidas de herramientas ni contenido de archivos.",
+      "configPath": "Registra lecturas y escrituras de archivos como metadatos. No se guardan prompts, salidas de herramientas ni contenido de archivos. Configuración: {{path}}",
+      "installDrift": "La preferencia guardada y el hook instalado son distintos. Cambia la captura para reparar el hook administrado. Configuración: {{path}}"
+    },
     "codexConfig": {
       "sectionTitle": "Configuración",
       "model": "Modelo",

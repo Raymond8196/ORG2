@@ -491,6 +491,16 @@ pub fn run() {
             // It stays idle until a CLI points at 127.0.0.1:17888.
             cli_managed_proxy::start_cli_managed_proxy_thread();
 
+            // First launch defaults session-provenance capture on for supported
+            // external agents. Later launches reconcile the platform hook
+            // files with the user's per-platform preferences.
+            tauri::async_runtime::spawn_blocking(|| {
+                if let Err(err) = agent_cli::session_provenance::ensure_hooks_from_preferences() {
+                    tracing::warn!(error = %err, "[SessionProvenance] Failed to reconcile agent hooks");
+                }
+            });
+            orgtrack::session_provenance::spawn_hook_inbox_drain_loop();
+
             // Initialize Rust EventStore state
             app.manage(agent_sessions::event_pipeline::commands::EventStoreState::new());
             tracing::info!("[EventStore] Rust event store initialized");

@@ -407,7 +407,10 @@ pub fn source_session_counts_from_conn(
          FROM imported_history_session_cache WHERE source = ?1"
     );
     conn.query_row(&sql, [source], |row| {
-        Ok((row.get::<_, i64>(0)? as usize, row.get::<_, i64>(1)? as usize))
+        Ok((
+            row.get::<_, i64>(0)? as usize,
+            row.get::<_, i64>(1)? as usize,
+        ))
     })
     .map_err(|err| format!("Failed to count imported history sessions: {err}"))
 }
@@ -534,6 +537,40 @@ pub fn query_cached_session_from_conn(
     Ok(sessions.into_iter().next())
 }
 
+/// Resolve one canonical session ID without scanning paginated source rows.
+///
+/// Sidebar deep links use the canonical ID rendered by the rest of ORGII,
+/// while the cache primary key is `(source, source_session_id)`. Resolve the
+/// source first, then reuse the canonical row decoder so the targeted and
+/// paginated paths cannot drift in field handling.
+pub fn query_cached_session_by_session_id_from_conn(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Option<(String, ImportedHistoryCachedSession)>, String> {
+    let source = conn
+        .query_row(
+            "SELECT source FROM imported_history_session_cache WHERE session_id = ?1 LIMIT 1",
+            [session_id],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(|err| {
+            format!("Failed to resolve imported history source for {session_id}: {err}")
+        })?;
+    let Some(source) = source else {
+        return Ok(None);
+    };
+    let sessions = query_cached_sessions_by_filter_from_conn(
+        conn,
+        &source,
+        "session_id = ?2",
+        &[SqlValue::from(session_id.to_string())],
+        1,
+        0,
+    )?;
+    Ok(sessions.into_iter().next().map(|session| (source, session)))
+}
+
 pub fn query_cached_sessions_for_source_from_conn(
     conn: &Connection,
     source: &str,
@@ -543,6 +580,31 @@ pub fn query_cached_sessions_for_source_from_conn(
         source,
         "listable = ?2",
         &[SqlValue::from(1_i64)],
+        i64::MAX as usize,
+        0,
+    )
+}
+
+/// Query cached sessions for one repository, including child/subagent rows
+/// that list surfaces intentionally hide. A child without its own repository
+/// inherits the parent's match in SQL so reconciliation stays repo-scoped
+/// without loading every historical session into memory.
+pub fn query_cached_sessions_for_repo_from_conn(
+    conn: &Connection,
+    source: &str,
+    repo_path: &str,
+) -> Result<Vec<ImportedHistoryCachedSession>, String> {
+    query_cached_sessions_by_filter_from_conn(
+        conn,
+        source,
+        "(repo_path = ?2 OR (
+            repo_path = '' AND parent_session_id IN (
+                SELECT parent_match.session_id
+                FROM imported_history_session_cache parent_match
+                WHERE parent_match.source = ?1 AND parent_match.repo_path = ?2
+            )
+        ))",
+        &[SqlValue::from(repo_path.to_string())],
         i64::MAX as usize,
         0,
     )

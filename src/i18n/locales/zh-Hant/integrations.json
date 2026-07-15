@@ -1680,6 +1680,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "沒有配置內容"
     },
+    "sessionProvenance": {
+      "title": "Session 來源追蹤",
+      "capture": "擷取檔案互動",
+      "description": "以中繼資料記錄檔案讀取與寫入。不會儲存提示詞、工具輸出或檔案內容。",
+      "configPath": "以中繼資料記錄檔案讀取與寫入。不會儲存提示詞、工具輸出或檔案內容。設定：{{path}}",
+      "installDrift": "已儲存的偏好設定與已安裝的 hook 不一致。切換擷取功能即可修復受管理的 hook。設定：{{path}}"
+    },
     "cliManagedConfig": {
       "title": "CLI 設定切換",
       "modeLabel": "模式",

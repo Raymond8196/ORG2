@@ -5227,6 +5227,7 @@ dependencies = [
  "chrono",
  "core_types",
  "dirs",
+ "orgtrack_protocol",
  "orgtrack_sync",
  "prost",
  "prost-reflect",
@@ -5245,6 +5246,14 @@ dependencies = [
  "chrono",
  "orgtrack_sync",
  "rusqlite",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "orgtrack_protocol"
+version = "0.1.0"
+dependencies = [
  "serde",
  "serde_json",
 ]

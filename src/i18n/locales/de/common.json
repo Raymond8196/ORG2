@@ -405,7 +405,28 @@
     "nearby": "In der Nähe",
     "renowned": "Bekannt",
     "dragToReorder": "Ziehen, um die Nachrichtenreihenfolge zu ändern",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Sitzungszuordnung",
+    "sessionBlameSubagent": "Unteragent: {{name}}",
+    "sessionBlameMainSession": "Hauptsitzung",
+    "sessionBlameAction": {
+      "read": "Lesen",
+      "write": "Schreiben",
+      "create": "Erstellen",
+      "delete": "Löschen",
+      "rename": "Umbenennen",
+      "search": "Suchen"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Unbekannte Sicherheit",
+      "session_only": "Nur Sitzung",
+      "correlated": "Korreliert",
+      "exact": "Exakte Zuordnung"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Historische Sitzungen werden indiziert {{indexed}}/{{total}}",
+      "partial": "Historischer Index unvollständig ({{failed}} fehlgeschlagen)",
+      "failed": "Indizierung historischer Sitzungen fehlgeschlagen"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

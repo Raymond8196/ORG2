@@ -1733,6 +1733,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "没有配置内容"
     },
+    "sessionProvenance": {
+      "title": "Session Provenance",
+      "capture": "采集文件交互记录",
+      "description": "以 metadata 形式记录文件读写；不会存储提示词、工具输出或文件内容。",
+      "configPath": "以 metadata 形式记录文件读写；不会存储提示词、工具输出或文件内容。配置：{{path}}",
+      "installDrift": "保存的开关状态与实际安装的 hook 不一致。切换一次即可修复 ORGII 管理的 hook。配置：{{path}}"
+    },
     "cliManagedConfig": {
       "title": "CLI 配置切换",
       "modeLabel": "模式",

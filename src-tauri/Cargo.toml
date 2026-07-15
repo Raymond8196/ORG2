@@ -28,6 +28,7 @@ members = [
     "crates/key-vault",
     "crates/lsp",
     "crates/orgtrack-core",
+    "crates/orgtrack-protocol",
     "crates/orgtrack-graph",
     "crates/orgtrack-sync",
     "crates/perf-utils",
