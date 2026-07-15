@@ -486,6 +486,7 @@ export const updateTerminalSessionInfoAtom = atom(
         Pick<
           TerminalSession,
           | "pid"
+          | "ptyGeneration"
           | "shell"
           | "shellKind"
           | "cwd"

@@ -60,6 +60,16 @@ interface AttachPtyStreamResponse {
   output: string;
   covers_seq: number;
   missed_output: boolean;
+  generation?: number;
+}
+
+interface PtyConnectionResult {
+  coversSeq?: number;
+  generation?: number;
+}
+
+interface PtyExitPayload {
+  generation?: number;
 }
 
 interface InitPtyConnectionParams {
@@ -79,6 +89,8 @@ interface InitPtyConnectionParams {
   envOverride?: Record<string, string>;
   nameOverride?: string;
   onSessionInfoReady?: TerminalViewProps["onSessionInfoReady"];
+  onPtyCreateRef: MutableRefObject<TerminalViewProps["onPtyCreate"]>;
+  onSessionExitRef: MutableRefObject<TerminalViewProps["onSessionExit"]>;
   setIsBrowserMode: (value: boolean) => void;
   setIsConnecting: (value: boolean) => void;
   abortSignal?: AbortSignal;
@@ -139,11 +151,12 @@ async function fetchPtyInfo(
   sessionId: string,
   sessionKey: string,
   onSessionInfoReady?: TerminalViewProps["onSessionInfoReady"]
-) {
+): Promise<number | undefined> {
   try {
     const ptyInfo = await invokeTauri<{
       session_id: string;
       pid: number | null;
+      generation?: number;
       shell: string;
       cwd: string | null;
     }>("get_pty_info", {
@@ -153,11 +166,14 @@ async function fetchPtyInfo(
     onSessionInfoReady?.({
       sessionKey,
       pid: ptyInfo.pid || undefined,
+      generation: ptyInfo.generation,
       shell: ptyInfo.shell,
       cwd: ptyInfo.cwd || undefined,
     });
+    return ptyInfo.generation;
   } catch (error) {
     log.error("[TerminalView] Failed to get PTY info:", error);
+    return undefined;
   }
 }
 
@@ -175,6 +191,7 @@ async function reconnectOrCreatePty({
   envOverride,
   nameOverride,
   onSessionInfoReady,
+  onPtyCreate,
 }: {
   cols: number;
   rows: number;
@@ -189,6 +206,7 @@ async function reconnectOrCreatePty({
   envOverride?: Record<string, string>;
   nameOverride?: string;
   onSessionInfoReady?: TerminalViewProps["onSessionInfoReady"];
+  onPtyCreate?: TerminalViewProps["onPtyCreate"];
 }) {
   let ptyExists = false;
   try {
@@ -205,6 +223,10 @@ async function reconnectOrCreatePty({
   }
 
   if (!ptyExists) {
+    // Clear the previous generation before creating its replacement. Other
+    // consumers can then reject any delayed event until get_pty_info returns
+    // the new instance identity below.
+    onPtyCreate?.(sessionKey);
     terminal.writeln(formatLastLogin(sessionKey));
 
     const { cwd, shell } = resolvePtyLaunchOptions({
@@ -227,8 +249,9 @@ async function reconnectOrCreatePty({
       },
     });
 
-    await fetchPtyInfo(sessionId, sessionKey, onSessionInfoReady);
-    return undefined;
+    return {
+      generation: await fetchPtyInfo(sessionId, sessionKey, onSessionInfoReady),
+    } satisfies PtyConnectionResult;
   }
 
   // Live session: attach atomically. The backend resumes event emission,
@@ -250,7 +273,18 @@ async function reconnectOrCreatePty({
     } else if (attach.output) {
       terminal.write(attach.output);
     }
-    return attach.covers_seq;
+    // Reconnected PTYs need the same state synchronization as newly created
+    // ones. In particular, event consumers outside TerminalView use this
+    // generation to reject delayed events from a previous PTY instance.
+    const infoGeneration = await fetchPtyInfo(
+      sessionId,
+      sessionKey,
+      onSessionInfoReady
+    );
+    return {
+      coversSeq: attach.covers_seq,
+      generation: infoGeneration ?? attach.generation,
+    } satisfies PtyConnectionResult;
   } catch (error) {
     // Backend without attach_pty_stream (hot-reload version skew) — legacy
     // restore: client buffer if present, else bounded snapshot + window resync.
@@ -263,7 +297,7 @@ async function reconnectOrCreatePty({
     if (cachedBuffer) {
       terminal.write(cachedBuffer);
       deleteTerminalBuffer(sessionId);
-      return undefined;
+      return {} satisfies PtyConnectionResult;
     }
 
     try {
@@ -287,7 +321,7 @@ async function reconnectOrCreatePty({
         snapshotError
       );
     }
-    return undefined;
+    return {} satisfies PtyConnectionResult;
   }
 }
 
@@ -308,6 +342,8 @@ export async function initPtyConnection({
   envOverride,
   nameOverride,
   onSessionInfoReady,
+  onPtyCreateRef,
+  onSessionExitRef,
   setIsBrowserMode,
   setIsConnecting,
   abortSignal,
@@ -347,51 +383,67 @@ export async function initPtyConnection({
     suspendPane(sessionId);
     setPaneForeground(sessionId, isForeground);
 
-    const unlistenOutput = await listenTauri<PtyOutputPayload>(
-      `pty-output-${sessionId}`,
-      (event) => {
-        if (isAborted()) return;
+    // Listeners must be registered before create/attach to avoid dropping
+    // early output. Buffer events until that operation resolves the native
+    // PTY generation, then accept only the matching instance. This prevents
+    // delayed events from a prior PTY with the same tab session ID from
+    // corrupting or ending its replacement.
+    let generationResolved = false;
+    let expectedGeneration: number | undefined;
+    let sessionEnded = false;
+    const pendingOutput: PtyOutputPayload[] = [];
+    const pendingExit: PtyExitPayload[] = [];
 
-        const { byte_count: byteCount, seq, data } = event.payload;
-        const chunk = ptyPayloadBytes(event.payload);
+    const matchesCurrentGeneration = (generation: number | undefined) =>
+      expectedGeneration === undefined ||
+      generation === undefined ||
+      generation === expectedGeneration;
 
-        if (chunk && chunk.length > 0) {
-          const resolvedByteCount = byteCount ?? chunk.length;
-          const decoded = utf8Decoder.decode(chunk, { stream: true });
-          if (decoded) {
-            scheduleWrite(
-              sessionId,
-              decoded,
-              resolvedByteCount,
-              terminalWrite,
-              seq
-            );
-          } else {
-            // Chunk ended mid-codepoint and decoded to nothing — the bytes
-            // sit in the decoder but still count against the backend
-            // flow-control window.
-            ackBytesWithoutWrite(sessionId, resolvedByteCount);
-          }
-        } else if (data) {
-          // Backward-compat branch (no byte_count from backend): estimate byte
-          // length without a TextEncoder allocation. ASCII is 1 byte/char;
-          // non-ASCII (rare in terminal hot path) inflates slightly — the
-          // scheduler treats byte_count as a flow-control hint, not an exact
-          // invariant, so a cheap over-estimate is correct.
-          const encodedLen = estimateByteLength(data);
-          scheduleWrite(sessionId, data, encodedLen, terminalWrite, seq);
+    const writeOutput = (payload: PtyOutputPayload) => {
+      if (sessionEnded || !matchesCurrentGeneration(payload.generation)) return;
+
+      const { byte_count: byteCount, seq, data } = payload;
+      const chunk = ptyPayloadBytes(payload);
+
+      if (chunk && chunk.length > 0) {
+        const resolvedByteCount = byteCount ?? chunk.length;
+        const decoded = utf8Decoder.decode(chunk, { stream: true });
+        if (decoded) {
+          scheduleWrite(
+            sessionId,
+            decoded,
+            resolvedByteCount,
+            terminalWrite,
+            seq
+          );
+        } else {
+          // Chunk ended mid-codepoint and decoded to nothing — the bytes
+          // sit in the decoder but still count against the backend
+          // flow-control window.
+          ackBytesWithoutWrite(sessionId, resolvedByteCount);
         }
+      } else if (data) {
+        // Backward-compat branch (no byte_count from backend): estimate byte
+        // length without a TextEncoder allocation. ASCII is 1 byte/char;
+        // non-ASCII (rare in terminal hot path) inflates slightly — the
+        // scheduler treats byte_count as a flow-control hint, not an exact
+        // invariant, so a cheap over-estimate is correct.
+        const encodedLen = estimateByteLength(data);
+        scheduleWrite(sessionId, data, encodedLen, terminalWrite, seq);
       }
-    );
-    if (isAborted()) {
-      unlistenOutput();
-      unregisterPane(sessionId);
-      return;
-    }
-    unlistenOutputRef.current = unlistenOutput;
+    };
 
-    const unlistenExit = await listenTauri(`pty-exit-${sessionId}`, () => {
-      if (isAborted()) return;
+    const handleOutput = (payload: PtyOutputPayload) => {
+      if (!generationResolved) {
+        pendingOutput.push(payload);
+        return;
+      }
+      writeOutput(payload);
+    };
+
+    const finishSession = () => {
+      if (sessionEnded) return;
+      sessionEnded = true;
 
       // Drain any still-queued output before the banner so the final bytes
       // land in order (resume first in case exit raced a reconnect).
@@ -404,7 +456,45 @@ export async function initPtyConnection({
       }
       terminal.writeln("\r\n\x1b[33m[Session ended]\x1b[0m");
       unregisterPane(sessionId);
-    });
+
+      // The session was removed by the backend before this event was sent.
+      // Clearing the ref prevents this component's eventual unmount from
+      // detaching a freshly recreated PTY with the same session ID.
+      sessionIdRef.current = null;
+      onSessionExitRef.current?.(sessionKey);
+    };
+
+    const handleExit = (payload: PtyExitPayload) => {
+      if (!generationResolved) {
+        pendingExit.push(payload);
+        return;
+      }
+      if (matchesCurrentGeneration(payload.generation)) {
+        finishSession();
+      }
+    };
+
+    const unlistenOutput = await listenTauri<PtyOutputPayload>(
+      `pty-output-${sessionId}`,
+      (event) => {
+        if (isAborted()) return;
+        handleOutput(event.payload);
+      }
+    );
+    if (isAborted()) {
+      unlistenOutput();
+      unregisterPane(sessionId);
+      return;
+    }
+    unlistenOutputRef.current = unlistenOutput;
+
+    const unlistenExit = await listenTauri<PtyExitPayload>(
+      `pty-exit-${sessionId}`,
+      (event) => {
+        if (isAborted()) return;
+        handleExit(event.payload);
+      }
+    );
     if (isAborted()) {
       unlistenExit();
       unlistenOutputRef.current?.();
@@ -417,7 +507,7 @@ export async function initPtyConnection({
     if (isAborted()) return;
     let coversSeq: number | undefined;
     try {
-      coversSeq = await reconnectOrCreatePty({
+      const connection = await reconnectOrCreatePty({
         cols,
         rows,
         sessionId,
@@ -431,7 +521,18 @@ export async function initPtyConnection({
         envOverride,
         nameOverride,
         onSessionInfoReady,
+        onPtyCreate: onPtyCreateRef.current,
       });
+      coversSeq = connection.coversSeq;
+      expectedGeneration = connection.generation;
+      generationResolved = true;
+
+      for (const payload of pendingOutput.splice(0)) {
+        writeOutput(payload);
+      }
+      for (const payload of pendingExit.splice(0)) {
+        handleExit(payload);
+      }
     } finally {
       // Always lift the suspension — a pane left suspended never renders.
       // Queued chunks the snapshot already covers are dropped here.

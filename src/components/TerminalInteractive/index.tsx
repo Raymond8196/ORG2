@@ -91,6 +91,8 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       workingDirectory,
       onOpenFileLink,
       onSessionInfoReady,
+      onPtyCreate,
+      onSessionExit,
       onTitleChange,
       shellOverride,
       argsOverride,
@@ -117,6 +119,10 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     workingDirectoryRef.current = workingDirectory;
     const onOpenFileLinkRef = useRef(onOpenFileLink);
     onOpenFileLinkRef.current = onOpenFileLink;
+    const onSessionExitRef = useRef(onSessionExit);
+    onSessionExitRef.current = onSessionExit;
+    const onPtyCreateRef = useRef(onPtyCreate);
+    onPtyCreateRef.current = onPtyCreate;
 
     const [_isConnecting, setIsConnecting] = useState(true);
     const [_isBrowserMode, setIsBrowserMode] = useState(false);
@@ -206,6 +212,8 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
           envOverride,
           nameOverride,
           onSessionInfoReady,
+          onPtyCreateRef,
+          onSessionExitRef,
           setIsBrowserMode,
           setIsConnecting,
           abortSignal,

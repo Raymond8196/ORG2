@@ -21,6 +21,8 @@ export interface TerminalSession {
   name: string;
   isActive: boolean;
   pid?: number;
+  /** Native PTY instance identity; changes whenever this tab recreates its PTY. */
+  ptyGeneration?: number;
   shell?: string;
   shellKind?: ShellKind;
   cwd?: string;
@@ -101,6 +103,7 @@ export interface UseTerminalStateReturn {
       Pick<
         TerminalSession,
         | "pid"
+        | "ptyGeneration"
         | "shell"
         | "shellKind"
         | "cwd"

@@ -57,6 +57,7 @@ interface RunningSubagentJob {
 interface PtySessionInfo {
   session_id: string;
   pid: number | null;
+  generation: number;
   shell: string;
   shell_kind: ShellKind;
   cwd: string | null;
@@ -225,6 +226,7 @@ export function useProcessReconciliation(): void {
                   sessionId: session.id,
                   info: {
                     pid: info.pid ?? undefined,
+                    ptyGeneration: info.generation,
                     shell: info.shell,
                     shellKind: info.shell_kind,
                     cwd: info.cwd ?? undefined,

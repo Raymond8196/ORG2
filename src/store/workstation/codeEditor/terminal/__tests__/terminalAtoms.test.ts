@@ -208,6 +208,7 @@ describe("terminal atoms", () => {
         sessionId: "initial-1",
         info: {
           pid: 12345,
+          ptyGeneration: 7,
           shell: "/bin/zsh",
           shellKind: "zsh",
           cwd: "/home/user",
@@ -219,6 +220,7 @@ describe("terminal atoms", () => {
       const session = sessions.find((s) => s.id === "initial-1");
 
       expect(session?.pid).toBe(12345);
+      expect(session?.ptyGeneration).toBe(7);
       expect(session?.shell).toBe("/bin/zsh");
       expect(session?.shellKind).toBe("zsh");
       expect(session?.cwd).toBe("/home/user");

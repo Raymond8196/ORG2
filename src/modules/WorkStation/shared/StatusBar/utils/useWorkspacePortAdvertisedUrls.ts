@@ -201,6 +201,13 @@ export function useWorkspacePortAdvertisedUrls(enabled: boolean): void {
           const unlisten = await listenTauri<PtyOutputPayload>(
             `pty-output-${backendSessionId}`,
             (event) => {
+              // A tab can recreate its native PTY while a delayed event from
+              // the prior instance is still queued. Those bytes must not be
+              // attributed to the replacement terminal's workspace.
+              if (event.payload.generation !== session.ptyGeneration) {
+                return;
+              }
+
               const fallbackFolderId =
                 folderIdRef.current ?? foldersRef.current[0]?.id ?? null;
               const folderId = folderIdForTerminalSession(

@@ -1,7 +1,7 @@
 /**
  * Payload of `pty-output-{sessionId}` Tauri events.
  *
- * The backend emits `{ b64, byte_count, seq }`. The `bytes` (JSON integer
+ * The backend emits `{ b64, byte_count, seq, generation }`. The `bytes` (JSON integer
  * array) and `data` (plain string) forms are legacy fallbacks kept for
  * hot-reload version skew between webview and backend.
  */
@@ -10,6 +10,8 @@ export interface PtyOutputPayload {
   b64?: string;
   /** Stream offset of this chunk's first byte; aligns with attach covers_seq. */
   seq?: number;
+  /** Identity of the native PTY instance that emitted this chunk. */
+  generation?: number;
   byte_count?: number;
   /** Legacy: raw bytes as a JSON integer array. */
   bytes?: number[];

@@ -47,7 +47,7 @@ import {
   terminalSessionsAtom,
   updateTerminalSessionInfoAtom,
 } from "@src/store/chatPanel/chatPanelTerminalAtom";
-import { invokeTauri, listenTauri } from "@src/util/platform/tauri/init";
+import { invokeTauri } from "@src/util/platform/tauri/init";
 import { toBackendPtySessionId } from "@src/util/ui/terminal/ptySessionId";
 
 const logger = createLogger("ChatPanelTerminalContent");
@@ -104,21 +104,16 @@ export function ChatPanelTerminalContent({
     setTabTitle,
   ]);
 
-  useEffect(() => {
-    if (!session?.agentCommand) return;
-
-    const ptySessionId = toBackendPtySessionId(terminalSessionId);
-    const unlistenPromise = listenTauri(`pty-exit-${ptySessionId}`, () => {
+  const handlePtyExit = useCallback(
+    (sessionId: string) => {
+      if (sessionId !== terminalSessionId || !session?.agentCommand) return;
       dispatchUpdateInfo({
-        sessionId: terminalSessionId,
+        sessionId,
         info: { agentStatus: TERMINAL_AGENT_STATUS.DONE },
       });
-    });
-
-    return () => {
-      unlistenPromise.then((unlisten) => unlisten()).catch(() => undefined);
-    };
-  }, [session?.agentCommand, terminalSessionId, dispatchUpdateInfo]);
+    },
+    [dispatchUpdateInfo, session?.agentCommand, terminalSessionId]
+  );
 
   // Track whether we've already injected the CLI command to avoid double-write
   const injectedRef = useRef(false);
@@ -249,6 +244,7 @@ export function ChatPanelTerminalContent({
         terminalState={terminalState}
         className="terminal-core chat-panel-terminal-core min-h-0 flex-1 bg-chat-pane"
         backgroundColor={resolvedBg ?? "var(--color-chat-pane-base)"}
+        onPtyExit={handlePtyExit}
         visible={visible}
       />
     </div>

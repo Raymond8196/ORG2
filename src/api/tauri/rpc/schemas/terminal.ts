@@ -11,11 +11,17 @@ import { z } from "zod/v4";
 
 export const PtyInfoSchema = z.object({
   session_id: z.string(),
-  pid: z.number(),
-  cwd: z.string(),
-  cols: z.number(),
-  rows: z.number(),
+  pid: z.number().nullable(),
+  generation: z.number().int().nonnegative(),
+  shell: z.string(),
+  shell_kind: z.string(),
+  cwd: z.string().nullable(),
+  name: z.string().nullable(),
   created_at: z.string(),
+  last_output_at: z.string().nullable(),
+  has_output_tap: z.boolean(),
+  unacked_bytes: z.number().int().nonnegative(),
+  redacted_output_chars: z.number().int().nonnegative(),
 });
 
 export const PtyMemoryInfoSchema = z.object({

@@ -78,6 +78,7 @@ impl InspectTerminalsTool {
         PtyInfo {
             session_id: session_id.to_string(),
             pid: session.pid,
+            generation: session.generation,
             shell: session.shell.clone(),
             shell_kind: session.shell_kind.clone(),
             cwd: session.cwd.clone(),

@@ -74,9 +74,14 @@ export interface TerminalViewProps {
   onSessionInfoReady?: (info: {
     sessionKey: string;
     pid?: number;
+    generation?: number;
     shell?: string;
     cwd?: string;
   }) => void;
+  /** Called immediately before this tab creates a replacement native PTY. */
+  onPtyCreate?: (sessionKey: string) => void;
+  /** Called after the backend reports that this PTY has exited. */
+  onSessionExit?: (sessionKey: string) => void;
   /** Callback when the terminal title changes (OSC 0/2 sequences) */
   onTitleChange?: (title: string) => void;
   /** Override shell executable (from session profile) */

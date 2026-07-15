@@ -65,6 +65,8 @@ export interface TerminalCoreProps {
   repoPath?: string;
   /** Opens file references detected in terminal output */
   onOpenFileLink?: (target: TerminalFileLinkTarget) => void;
+  /** Called after a generation-validated native PTY exit. */
+  onPtyExit?: (sessionId: string) => void;
   /** True when this terminal tree is visible after tab switching. */
   visible?: boolean;
 }
@@ -79,6 +81,7 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
   backgroundColor,
   repoPath,
   onOpenFileLink,
+  onPtyExit,
   visible = true,
 }) => {
   const { sessions, activeSessionId, initializedSessions, updateSessionInfo } =
@@ -109,8 +112,27 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
   const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
 
   const terminalRefs = useRef<Map<string, TerminalViewHandle>>(new Map());
+  const [endedSessionIds, setEndedSessionIds] = useState<Set<string>>(
+    () => new Set()
+  );
 
   const [searchOpen, setSearchOpen] = useState(false);
+
+  const handlePtyExit = useCallback(
+    (sessionId: string) => {
+      // Consumers must wait for the replacement's get_pty_info response rather
+      // than matching a delayed event against this now-defunct generation.
+      updateSessionInfo(sessionId, { ptyGeneration: undefined });
+      setEndedSessionIds((previous) => {
+        if (previous.has(sessionId)) return previous;
+        const next = new Set(previous);
+        next.add(sessionId);
+        return next;
+      });
+      onPtyExit?.(sessionId);
+    },
+    [onPtyExit, updateSessionInfo]
+  );
 
   const [selection, setSelection] = useState<SelectionState>({
     visible: false,
@@ -333,83 +355,107 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
         {visibleSessions.length === 0 && (
           <Placeholder variant="empty" fillParentHeight />
         )}
-        {visibleSessions.map((session) => (
-          <div
-            key={session.id}
-            className="terminal-session-wrapper absolute inset-0 flex h-full w-full flex-col rounded-[8px]"
-            style={{
-              display: session.id === activeSessionId ? "flex" : "none",
-              backgroundColor: bgColor,
-            }}
-          >
-            {session.readOnly && session.agentSessionId ? (
-              <React.Suspense fallback={null}>
-                <TerminalReadOnly agentSessionId={session.agentSessionId} />
-              </React.Suspense>
-            ) : (
-              <TerminalView
-                ref={(handle) => {
-                  if (handle) {
-                    terminalRefs.current.set(session.id, handle);
-                  } else {
-                    terminalRefs.current.delete(session.id);
-                  }
-                }}
-                sessionKey={session.id}
-                onSelectionChange={handleSelectionChange}
-                repoPath={session.cwd || repoPath}
-                workingDirectory={session.liveCwd || session.cwd}
-                onOpenFileLink={onOpenFileLink}
-                backgroundColor={bgColor}
-                shellOverride={session.shell}
-                onUserInput={() => {
-                  requestProcessRefresh();
-                  if (!session.hasUserInput) {
-                    updateSessionInfo(session.id, { hasUserInput: true });
-                  }
-                }}
-                onTitleChange={(title) => {
-                  updateSessionInfo(session.id, {
-                    sequenceTitle: title,
-                  });
-                }}
-                onSessionInfoReady={(info) => {
-                  terminalState.markSessionInitialized(info.sessionKey);
-                  updateSessionInfo(info.sessionKey, {
-                    pid: info.pid,
-                    shell: info.shell,
-                    cwd: info.cwd,
-                  });
-                  requestProcessRefresh();
-                }}
-                shellIntegration={{
-                  onPromptStart: () => dispatchPromptStart(session.id),
-                  onCommandExecuted: (commandLine) => {
+        {visibleSessions.map((session) => {
+          // Keep live terminals mounted for fast tab switching. An exited
+          // terminal is intentionally unmounted while hidden so that showing
+          // it again runs its usual create-or-reconnect startup path.
+          const shouldMountTerminal =
+            !endedSessionIds.has(session.id) ||
+            (visible && session.id === activeSessionId);
+
+          return (
+            <div
+              key={session.id}
+              className="terminal-session-wrapper absolute inset-0 flex h-full w-full flex-col rounded-[8px]"
+              style={{
+                display: session.id === activeSessionId ? "flex" : "none",
+                backgroundColor: bgColor,
+              }}
+            >
+              {session.readOnly && session.agentSessionId ? (
+                <React.Suspense fallback={null}>
+                  <TerminalReadOnly agentSessionId={session.agentSessionId} />
+                </React.Suspense>
+              ) : !shouldMountTerminal ? null : (
+                <TerminalView
+                  ref={(handle) => {
+                    if (handle) {
+                      terminalRefs.current.set(session.id, handle);
+                    } else {
+                      terminalRefs.current.delete(session.id);
+                    }
+                  }}
+                  sessionKey={session.id}
+                  isForeground={visible && session.id === activeSessionId}
+                  onSelectionChange={handleSelectionChange}
+                  repoPath={session.cwd || repoPath}
+                  workingDirectory={session.liveCwd || session.cwd}
+                  onOpenFileLink={onOpenFileLink}
+                  backgroundColor={bgColor}
+                  shellOverride={session.shell}
+                  onUserInput={() => {
                     requestProcessRefresh();
-                    dispatchCommandExecuted({
-                      sessionId: session.id,
-                      commandLine,
+                    if (!session.hasUserInput) {
+                      updateSessionInfo(session.id, { hasUserInput: true });
+                    }
+                  }}
+                  onTitleChange={(title) => {
+                    updateSessionInfo(session.id, {
+                      sequenceTitle: title,
                     });
-                  },
-                  onCommandFinished: (exitCode) => {
+                  }}
+                  onSessionInfoReady={(info) => {
+                    setEndedSessionIds((previous) => {
+                      if (!previous.has(info.sessionKey)) return previous;
+                      const next = new Set(previous);
+                      next.delete(info.sessionKey);
+                      return next;
+                    });
+                    terminalState.markSessionInitialized(info.sessionKey);
+                    updateSessionInfo(info.sessionKey, {
+                      pid: info.pid,
+                      ptyGeneration: info.generation,
+                      shell: info.shell,
+                      cwd: info.cwd,
+                    });
                     requestProcessRefresh();
-                    dispatchCommandFinished({
-                      sessionId: session.id,
-                      exitCode,
-                    });
-                  },
-                  onCwdChanged: (cwd) => {
-                    dispatchCwdChanged({
-                      sessionId: session.id,
-                      cwd,
-                    });
-                    updateSessionInfo(session.id, { liveCwd: cwd });
-                  },
-                }}
-              />
-            )}
-          </div>
-        ))}
+                  }}
+                  onPtyCreate={(sessionId) => {
+                    // A stale event may already be queued for this reused tab
+                    // ID. Clear the prior identity before create_pty so event
+                    // consumers reject it during the startup round trip.
+                    updateSessionInfo(sessionId, { ptyGeneration: undefined });
+                  }}
+                  onSessionExit={handlePtyExit}
+                  shellIntegration={{
+                    onPromptStart: () => dispatchPromptStart(session.id),
+                    onCommandExecuted: (commandLine) => {
+                      requestProcessRefresh();
+                      dispatchCommandExecuted({
+                        sessionId: session.id,
+                        commandLine,
+                      });
+                    },
+                    onCommandFinished: (exitCode) => {
+                      requestProcessRefresh();
+                      dispatchCommandFinished({
+                        sessionId: session.id,
+                        exitCode,
+                      });
+                    },
+                    onCwdChanged: (cwd) => {
+                      dispatchCwdChanged({
+                        sessionId: session.id,
+                        cwd,
+                      });
+                      updateSessionInfo(session.id, { liveCwd: cwd });
+                    },
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <TextSelectionDropdown
