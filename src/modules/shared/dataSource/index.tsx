@@ -601,6 +601,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
           ]}
           onChange={(key) => setPanelView(key as "scanning" | "hooks")}
           variant="simple"
+          size="large"
           fillWidth={false}
         />
 
