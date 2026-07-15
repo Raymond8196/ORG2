@@ -203,7 +203,8 @@
     "openWorkspace": "Workspace aç",
     "skipThisVersion": "Bu sürümü atla",
     "later": "Daha sonra",
-    "link": "Bağla"
+    "link": "Bağla",
+    "copyName": "Adı Kopyala"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi",

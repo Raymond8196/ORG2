@@ -203,7 +203,8 @@
     "openWorkspace": "Workspace を開く",
     "skipThisVersion": "このバージョンをスキップ",
     "later": "後で",
-    "link": "リンク"
+    "link": "リンク",
+    "copyName": "名前をコピー"
   },
   "refreshToast": {
     "successName": "{{name}} を更新しました",

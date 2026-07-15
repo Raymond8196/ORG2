@@ -203,7 +203,8 @@
     "openWorkspace": "Открыть workspace",
     "skipThisVersion": "Пропустить эту версию",
     "later": "Позже",
-    "link": "Связать"
+    "link": "Связать",
+    "copyName": "Копировать имя"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено",

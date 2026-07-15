@@ -210,7 +210,8 @@
     "openInApp": "Open in App",
     "skipThisVersion": "Skip this version",
     "later": "Later",
-    "link": "Link"
+    "link": "Link",
+    "copyName": "Copy Name"
   },
   "refreshToast": {
     "successName": "{{name}} refreshed",
