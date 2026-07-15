@@ -261,6 +261,11 @@
     "replay": {
       "replaySession": "Replay"
     },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
+    },
     "diary": {
       "title": "Diary",
       "previousDay": "Previous day",

@@ -249,6 +249,11 @@
     "replay": {
       "replaySession": "回放"
     },
+    "detailView": {
+      "trajectory": "軌跡",
+      "touchedFiles": "變更檔案",
+      "noTouchedFiles": "尚無變更檔案"
+    },
     "diary": {
       "title": "日記",
       "previousDay": "前一天",

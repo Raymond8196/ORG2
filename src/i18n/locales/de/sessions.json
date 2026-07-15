@@ -277,6 +277,11 @@
       "commits_one": "{{count}} Commit",
       "commits_other": "{{count}} Commits",
       "committedRateShort": "{{percent}} % committed"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
   },
   "changes": {

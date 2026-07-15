@@ -244,6 +244,11 @@
     "replay": {
       "replaySession": "回放"
     },
+    "detailView": {
+      "trajectory": "轨迹",
+      "touchedFiles": "改动文件",
+      "noTouchedFiles": "暂无改动文件"
+    },
     "discard": {
       "discard": "丢弃",
       "discarding": "丢弃中…",
