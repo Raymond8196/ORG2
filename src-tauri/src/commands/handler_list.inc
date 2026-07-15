@@ -808,6 +808,7 @@ agent_cli::managed_config::cli_config_restore_default,
 cli_managed_proxy::cli_managed_proxy_status,
 agent_cli::session_provenance::session_provenance_hooks_status,
 agent_cli::session_provenance::session_provenance_hooks_set_enabled,
+orgtrack::session_provenance::session_provenance_recent_signals,
 // Claude Code config (~/.claude/settings.json)
 agent_cli::claude_code::commands::claude_code_config_read,
 agent_cli::claude_code::commands::claude_code_config_write_partial,

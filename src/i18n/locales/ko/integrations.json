@@ -1682,7 +1682,45 @@
       "capture": "파일 상호작용 기록",
       "description": "파일 읽기와 쓰기를 메타데이터로 기록합니다. 프롬프트, 도구 출력 및 파일 내용은 저장하지 않습니다.",
       "configPath": "파일 읽기와 쓰기를 메타데이터로 기록합니다. 프롬프트, 도구 출력 및 파일 내용은 저장하지 않습니다. 설정: {{path}}",
-      "installDrift": "저장된 설정과 설치된 hook이 다릅니다. 기록을 전환하여 관리되는 hook을 복구하세요. 설정: {{path}}"
+      "installDrift": "저장된 설정과 설치된 hook이 다릅니다. 기록을 전환하여 관리되는 hook을 복구하세요. 설정: {{path}}",
+      "copyPath": "복사",
+      "reveal": "표시",
+      "col": {
+        "source": "도구",
+        "config": "구성",
+        "capture": "캡처"
+      },
+      "status": {
+        "on": "켜짐",
+        "off": "꺼짐",
+        "repair": "복구",
+        "checking": "확인 중…",
+        "error": "오류"
+      },
+      "signals": {
+        "title": "최근 신호",
+        "empty": "아직 수신된 hook 신호가 없습니다.",
+        "noResults": "일치하는 신호 없음",
+        "search": "신호 검색",
+        "refresh": "새로 고침",
+        "openSession": "세션 {{session}} 열기",
+        "col": {
+          "source": "도구",
+          "action": "액션",
+          "file": "파일",
+          "workspace": "작업 공간",
+          "session": "세션",
+          "when": "시간"
+        },
+        "action": {
+          "read": "읽기",
+          "write": "쓰기",
+          "create": "생성",
+          "delete": "삭제",
+          "rename": "이름 변경",
+          "search": "검색"
+        }
+      }
     },
     "codexConfig": {
       "sectionTitle": "설정",
