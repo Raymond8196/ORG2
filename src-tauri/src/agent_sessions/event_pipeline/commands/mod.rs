@@ -886,13 +886,11 @@ pub fn push_events_to_session(
             .collect::<Vec<_>>()
     });
 
-    let mut impact_events = Vec::new();
     let mut runtime_artifact_events = Vec::new();
     for (sequence_index, event) in merged_tool_calls {
         if event_conversion::is_ts_placeholder_id(&event.id) {
             continue;
         }
-        impact_events.push(event.clone());
         if matches!(
             event.extracted,
             Some(
@@ -907,12 +905,6 @@ pub fn push_events_to_session(
         persistable.push(event_conversion::session_event_to_cached_event(&event));
     }
 
-    if !impact_events.is_empty() {
-        crate::orgtrack::impact_indexer::record_session_events_async(
-            session_id.to_string(),
-            impact_events,
-        );
-    }
     if !runtime_artifact_events.is_empty() {
         persist_runtime_orgtrack_records_async(session_id.to_string(), runtime_artifact_events);
     }

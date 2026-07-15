@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from "react";
+import { useTranslation } from "react-i18next";
 
 import KanbanBoard from "@src/features/KanbanBoard";
 import type {
@@ -29,6 +30,7 @@ export interface TaskKanbanContentProps {
   onTaskMove: (taskId: string, newStatus: TaskStatus) => void;
   onTaskClick: (task: KanbanTask) => void;
   onAddTask: () => void;
+  hasFileSearchQuery: boolean;
 }
 
 const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
@@ -42,7 +44,24 @@ const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
   onTaskMove,
   onTaskClick,
   onAddTask,
+  hasFileSearchQuery,
 }) => {
+  const { t } = useTranslation("sessions");
+  if (
+    hasFileSearchQuery &&
+    visibleTasks.length === 0 &&
+    (viewMode === "kanban" || viewMode === "list")
+  ) {
+    return (
+      <div
+        className="absolute inset-0 flex items-center justify-center px-6 text-center text-[13px] text-text-3"
+        data-testid="kanban-file-search-empty"
+      >
+        {t("kanban.fileSearch.noResults")}
+      </div>
+    );
+  }
+
   // Kanban is eager (default view); the lazy branches need a Suspense
   // boundary while their chunk loads. The fallback is an empty full-bleed
   // surface so the layout doesn't jump during the brief fetch.

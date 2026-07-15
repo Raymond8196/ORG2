@@ -59,6 +59,7 @@ import ChatPinnedHeaderLayer from "./components/ChatPinnedHeaderLayer";
 import ChatSearchBar from "./components/ChatSearchBar";
 import ConversationMinimap from "./components/ConversationMinimap";
 import RevertConfirmDialog from "./components/RevertConfirmDialog";
+import TurnMetadataLoader from "./components/TurnMetadataLoader";
 import TurnPageList from "./components/TurnPageList";
 import { getChatContentBottomDistance } from "./config/chatFooterSpacer";
 import {
@@ -643,6 +644,13 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   const virtualListDataKey = `${activeId ?? "no-session"}:${
     turnPaginationEnabled ? `page-${currentPageIndex}` : "all"
   }:${virtualListGroupShapeKey}:${virtualListItemShapeKey}:${collapseStateKey}`;
+  const displayTurnIds = useMemo(
+    () => displayGroupMeta.map((meta) => meta.turnId),
+    [displayGroupMeta]
+  );
+  const turnMetadataReloadKey = `${activeId ?? ""}:${displayTurnIds.length}:${
+    isAgentWorking ? "working" : "idle"
+  }`;
   const tailFollowKey = useMemo(() => {
     const tailItem = displayFlatItems[displayFlatItems.length - 1];
     const tailEvent = tailItem?.event;
@@ -1326,12 +1334,18 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
               <div className="h-full w-full">
                 {optimizedChatHistory.length > 0 ? (
                   <>
+                    <TurnMetadataLoader
+                      sessionId={activeId}
+                      reloadKey={turnMetadataReloadKey}
+                      turnIds={displayTurnIds}
+                    />
                     <PlanningIndicatorBridge
                       planningIndicatorScope={planningIndicatorScope}
                       planningIndicatorEnabled={planningIndicatorEnabled}
                       onPlanningIndicatorCount={handlePlanningIndicatorCount}
                       flatItems={displayFlatItems}
                       groupCounts={displayGroupCounts}
+                      turnIds={displayTurnIds}
                       totalFlatItems={displayTotalFlatItems}
                       lastAssistantFlatIndexPerItem={
                         displayLastAssistantFlatIndexPerItem

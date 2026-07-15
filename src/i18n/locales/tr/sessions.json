@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "Dosya yoluna göre oturum ara",
+      "noResults": "Eşleşen bir dosyayı değiştiren oturum yok"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Mevcut Kanban",
     "view": {
@@ -1012,11 +1016,15 @@
         "importFailed": "Session JSON içe aktarılamadı."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "Bu turda {{count}} dosya değişti",
-      "filesChangedCount_other": "Bu turda {{count}} dosya değişti",
-      "historicalRoundDiffFiles_one": "Önceki tur diff’i · {{count}} dosya",
-      "historicalRoundDiffFiles_other": "Önceki tur diff’i · {{count}} dosya",
+    "turnMetadata": {
+      "noChanges": "Bu turda dosya değişikliği yok",
+      "earlierRound": "Önceki tur",
+      "files_one": "{{count}} dosya",
+      "files_other": "{{count}} dosya",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commit",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PR",
       "review": "İncele",
       "showLess": "Daha az göster",
       "showMore_one": "{{count}} tane daha göster",
