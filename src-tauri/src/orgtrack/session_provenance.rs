@@ -43,8 +43,12 @@ use orgtrack_core::sources::codex::app::{
     load_codex_app_from_path, resolve_codex_transcript_for_thread_id_near_path,
 };
 use orgtrack_core::sources::imported_history::metadata::SOURCE_CODEX_APP;
-use orgtrack_core::store::{sqlite::SqliteRecordStore, RecordStore};
+use orgtrack_core::store::{sqlite::SqliteRecordStore, RecentHookSignal, RecordStore};
 use session_persistence::CachedEvent;
+
+/// Default and hard cap for the Session Provenance "recent signals" table.
+const DEFAULT_RECENT_HOOK_SIGNALS: usize = 50;
+const MAX_RECENT_HOOK_SIGNALS: usize = 500;
 
 const MAX_HOOK_PAYLOAD_BYTES: u64 = 2 * 1024 * 1024;
 const MAX_DRAIN_BATCH: usize = 1_000;
@@ -85,6 +89,29 @@ pub fn capture_hook_stdin(source: &str) -> Result<usize, String> {
         spool_actor_lifecycle(lifecycle)?;
     }
     Ok(envelopes.len() + usize::from(lifecycle.is_some()))
+}
+
+/// Return the most recently received session-provenance hook signals (file
+/// interactions captured via managed hooks), newest first. Drains any pending
+/// inbox envelopes first so a just-fired hook shows up without waiting for the
+/// 15s background tick. Metadata only — never file contents or tool output.
+#[tauri::command]
+pub async fn session_provenance_recent_signals(
+    limit: Option<usize>,
+) -> Result<Vec<RecentHookSignal>, String> {
+    tokio::task::spawn_blocking(move || {
+        // Best-effort: surfacing stale rows is preferable to failing the query
+        // if a single malformed envelope is stuck in the inbox.
+        let _ = drain_hook_inbox();
+        let limit = limit
+            .unwrap_or(DEFAULT_RECENT_HOOK_SIGNALS)
+            .clamp(1, MAX_RECENT_HOOK_SIGNALS);
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let store = SqliteRecordStore::new(&conn);
+        store.list_recent_hook_signals(limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
 }
 
 fn spool_envelope(envelope: &ResourceInteractionEnvelopeV1) -> Result<(), String> {

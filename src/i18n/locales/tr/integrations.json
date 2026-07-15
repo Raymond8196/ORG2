@@ -1682,7 +1682,45 @@
       "capture": "Dosya etkileşimlerini kaydet",
       "description": "Dosya okuma ve yazma işlemlerini meta veri olarak kaydeder. İstemler, araç çıktıları ve dosya içerikleri saklanmaz.",
       "configPath": "Dosya okuma ve yazma işlemlerini meta veri olarak kaydeder. İstemler, araç çıktıları ve dosya içerikleri saklanmaz. Yapılandırma: {{path}}",
-      "installDrift": "Kaydedilen tercih ile yüklü hook farklı. Yönetilen hook'u onarmak için kaydı değiştirin. Yapılandırma: {{path}}"
+      "installDrift": "Kaydedilen tercih ile yüklü hook farklı. Yönetilen hook'u onarmak için kaydı değiştirin. Yapılandırma: {{path}}",
+      "copyPath": "Kopyala",
+      "reveal": "Göster",
+      "col": {
+        "source": "Araç",
+        "config": "Yapılandırma",
+        "capture": "Yakalama"
+      },
+      "status": {
+        "on": "Açık",
+        "off": "Kapalı",
+        "repair": "Onar",
+        "checking": "Kontrol ediliyor…",
+        "error": "Hata"
+      },
+      "signals": {
+        "title": "Son sinyaller",
+        "empty": "Henüz hook sinyali alınmadı.",
+        "noResults": "Eşleşen sinyal yok",
+        "search": "Sinyal ara",
+        "refresh": "Yenile",
+        "openSession": "{{session}} oturumunu aç",
+        "col": {
+          "source": "Araç",
+          "action": "Eylem",
+          "file": "Dosya",
+          "workspace": "Çalışma alanı",
+          "session": "Oturum",
+          "when": "Ne zaman"
+        },
+        "action": {
+          "read": "Okuma",
+          "write": "Yazma",
+          "create": "Oluşturma",
+          "delete": "Silme",
+          "rename": "Yeniden adlandırma",
+          "search": "Arama"
+        }
+      }
     },
     "codexConfig": {
       "sectionTitle": "Yapılandırma",

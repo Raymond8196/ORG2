@@ -1685,7 +1685,45 @@
       "capture": "Registrar interações com arquivos",
       "description": "Registra leituras e gravações de arquivos como metadados. Prompts, saídas de ferramentas e conteúdo dos arquivos não são armazenados.",
       "configPath": "Registra leituras e gravações de arquivos como metadados. Prompts, saídas de ferramentas e conteúdo dos arquivos não são armazenados. Configuração: {{path}}",
-      "installDrift": "A preferência salva e o hook instalado são diferentes. Alterne a captura para reparar o hook gerenciado. Configuração: {{path}}"
+      "installDrift": "A preferência salva e o hook instalado são diferentes. Alterne a captura para reparar o hook gerenciado. Configuração: {{path}}",
+      "copyPath": "Copiar",
+      "reveal": "Mostrar",
+      "col": {
+        "source": "Ferramenta",
+        "config": "Configuração",
+        "capture": "Captura"
+      },
+      "status": {
+        "on": "Ativado",
+        "off": "Desativado",
+        "repair": "Reparar",
+        "checking": "Verificando…",
+        "error": "Erro"
+      },
+      "signals": {
+        "title": "Sinais recentes",
+        "empty": "Nenhum sinal de hook recebido ainda.",
+        "noResults": "Nenhum sinal correspondente",
+        "search": "Pesquisar sinais",
+        "refresh": "Atualizar",
+        "openSession": "Abrir sessão {{session}}",
+        "col": {
+          "source": "Ferramenta",
+          "action": "Ação",
+          "file": "Arquivo",
+          "workspace": "Espaço de trabalho",
+          "session": "Sessão",
+          "when": "Quando"
+        },
+        "action": {
+          "read": "Ler",
+          "write": "Gravar",
+          "create": "Criar",
+          "delete": "Excluir",
+          "rename": "Renomear",
+          "search": "Pesquisar"
+        }
+      }
     },
     "codexConfig": {
       "sectionTitle": "Configuração",
