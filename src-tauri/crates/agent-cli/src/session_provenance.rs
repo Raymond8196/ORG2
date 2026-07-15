@@ -193,7 +193,12 @@ fn opencode_plugin_path() -> PathBuf {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", default, deny_unknown_fields)]
+// No `deny_unknown_fields`: a newer build may add platform fields an older build
+// doesn't recognize. Unknown fields are ignored (and missing ones fall back to
+// `Default`) so backends of different versions can read each other's
+// preferences file instead of hard-failing — a hard failure here would abort
+// hook installation entirely and silently disable all capture.
+#[serde(rename_all = "camelCase", default)]
 struct HookPreferences {
     schema_version: u32,
     claude_code: bool,
@@ -1078,7 +1083,16 @@ fn config_has_managed_hooks(platform: SessionProvenanceHookPlatform) -> Result<b
 /// default to all supported platforms enabled.
 pub fn ensure_hooks_from_preferences() -> Result<(), String> {
     let _guard = operation_guard()?;
-    let preferences = read_preferences()?;
+    // A malformed or version-incompatible preferences file must never prevent
+    // hook installation. Fall back to defaults (all enabled) and self-heal the
+    // file below rather than aborting and disabling all capture.
+    let preferences = read_preferences().unwrap_or_else(|err| {
+        tracing::warn!(
+            error = %err,
+            "[SessionProvenance] Unreadable hook preferences; reinstalling with defaults"
+        );
+        HookPreferences::default()
+    });
     let executable = std::env::current_exe()
         .map_err(|err| format!("Failed to locate ORG2 executable: {err}"))?;
     let mut errors = Vec::new();
@@ -1602,15 +1616,23 @@ mod tests {
     }
 
     #[test]
-    fn future_preferences_fail_closed_instead_of_being_clobbered() {
-        assert!(serde_json::from_value::<HookPreferences>(json!({
-            "schemaVersion": 2,
-            "claudeCode": true,
+    fn newer_preferences_are_read_tolerantly_not_rejected() {
+        // A preferences file written by a NEWER build (extra platform field this
+        // reader doesn't know) must deserialize by ignoring the unknown field,
+        // not error — otherwise reconciliation aborts and all capture is
+        // silently disabled. Known fields are still read; missing ones default.
+        let preferences: HookPreferences = serde_json::from_value(json!({
+            "schemaVersion": 1,
+            "claudeCode": false,
             "codex": true,
             "cursor": true,
             "futurePlatform": true
         }))
-        .is_err());
+        .expect("newer preferences load by ignoring unknown fields");
+        assert!(!preferences.enabled(SessionProvenanceHookPlatform::ClaudeCode));
+        assert!(preferences.enabled(SessionProvenanceHookPlatform::Codex));
+        // Fields absent in this older-shaped file fall back to enabled.
+        assert!(preferences.enabled(SessionProvenanceHookPlatform::ZCode));
     }
 
     #[test]
