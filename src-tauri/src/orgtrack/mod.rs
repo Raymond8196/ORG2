@@ -91,45 +91,6 @@ pub async fn orgtrack_initialize(
 }
 
 #[tauri::command]
-pub async fn orgtrack_scan_start(
-    repo_path: String,
-    tier: Option<String>,
-    allow_raw_trajectory: Option<bool>,
-    resume: Option<bool>,
-    rebuild: Option<bool>,
-) -> Result<types::OrgtrackScanProgress, String> {
-    record_orgtrack_command_call("orgtrack_scan_start");
-    let tier = validate_tier(tier.as_deref(), allow_raw_trajectory)?;
-    exporter::start_orgtrack_scan(types::OrgtrackScanOptions {
-        repo_path,
-        tier,
-        allow_raw_trajectory: allow_raw_trajectory.unwrap_or(false),
-        resume: resume.unwrap_or(true),
-        rebuild: rebuild.unwrap_or(false),
-    })
-}
-
-#[tauri::command]
-pub async fn orgtrack_scan_status(
-    repo_path: String,
-) -> Result<Option<types::OrgtrackScanProgress>, String> {
-    record_orgtrack_command_call("orgtrack_scan_status");
-    tokio::task::spawn_blocking(move || exporter::read_scan_progress(&PathBuf::from(repo_path)))
-        .await
-        .map_err(|err| err.to_string())?
-}
-
-#[tauri::command]
-pub async fn orgtrack_scan_cancel(
-    repo_path: String,
-) -> Result<types::OrgtrackScanProgress, String> {
-    record_orgtrack_command_call("orgtrack_scan_cancel");
-    tokio::task::spawn_blocking(move || exporter::cancel_orgtrack_scan(&PathBuf::from(repo_path)))
-        .await
-        .map_err(|err| err.to_string())?
-}
-
-#[tauri::command]
 pub async fn orgtrack_export(
     repo_path: String,
     tier: Option<String>,
@@ -152,14 +113,6 @@ pub async fn orgtrack_sync_core_repo(repo_path: String) -> Result<types::Orgtrac
     })
     .await
     .map_err(|err| err.to_string())?
-}
-
-#[tauri::command]
-pub async fn orgtrack_get_index(repo_path: String) -> Result<Option<types::OrgtrackIndex>, String> {
-    record_orgtrack_command_call("orgtrack_get_index");
-    tokio::task::spawn_blocking(move || importer::read_index(&PathBuf::from(repo_path)))
-        .await
-        .map_err(|err| err.to_string())?
 }
 
 #[tauri::command]
@@ -249,19 +202,6 @@ pub async fn orgtrack_delete_session_artifacts(session_id: String) -> Result<(),
         let conn = get_connection().map_err(|err| err.to_string())?;
         let store = SqliteRecordStore::new(&conn);
         store.delete_session_artifacts(SOURCE_ORGII_RUST_AGENTS, &session_id)
-    })
-    .await
-    .map_err(|err| err.to_string())?
-}
-
-#[tauri::command]
-pub async fn orgtrack_lookup_file_sessions(
-    repo_path: String,
-    file_path: String,
-) -> Result<Option<types::OrgtrackFileSessionLookup>, String> {
-    record_orgtrack_command_call("orgtrack_lookup_file_sessions");
-    tokio::task::spawn_blocking(move || {
-        importer::read_file_session_lookup(&PathBuf::from(repo_path), &file_path)
     })
     .await
     .map_err(|err| err.to_string())?
