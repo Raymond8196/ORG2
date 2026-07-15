@@ -49,3 +49,4 @@ pub mod trae;
 pub mod warp;
 pub mod windsurf;
 pub mod workbuddy;
+pub mod zcode;

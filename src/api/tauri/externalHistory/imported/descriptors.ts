@@ -7,7 +7,8 @@ export type ImportedHistorySourceId =
   | "workbuddy"
   | "trae"
   | "cline"
-  | "warp";
+  | "warp"
+  | "zcode";
 
 export type ImportedHistoryListCategory =
   `external_history:${ImportedHistorySourceId}`;
@@ -121,6 +122,17 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       iconId: "warp",
       displayName: "Warp",
       groupLabel: "Warp",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "zcode",
+      listCategory: "external_history:zcode",
+      prefix: "zcodeapp-",
+      iconId: "zcode",
+      displayName: "ZCode",
+      groupLabel: "ZCode",
       listable: true,
       replayable: true,
       supportsWindowedReplay: false,

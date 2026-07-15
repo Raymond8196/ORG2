@@ -58,6 +58,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "trae",
     "cline",
     "warp",
+    "zcode",
 ];
 
 /// On-disk store format for a source's session history — the "file type" shown
@@ -69,7 +70,7 @@ fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
         "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" => "jsonl",
-        "cursor_ide" | "opencode" | "windsurf" | "warp" => "sqlite",
+        "cursor_ide" | "opencode" | "windsurf" | "warp" | "zcode" => "sqlite",
         // Known store format, not yet imported.
         "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
         "cursor" | "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
@@ -140,6 +141,17 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
             ".local/state/warp-terminal",
             "Library/Group Containers/2BBY89MBSN.dev.warp/Library/Application Support/dev.warp.Warp-Stable",
         ],
+    ),
+    source(
+        "zcode",
+        "ZCode",
+        "zcode",
+        "zcode",
+        &["zcode-cli"],
+        "zcode",
+        "zcode",
+        true,
+        &[".zcode/cli/db", ".zcode"],
     ),
     source(
         "mimo_code",
@@ -540,6 +552,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         "trae" => home_candidates(&[".trae-cn/memory/projects", ".trae/memory/projects"]),
         "cline" => home_candidates(&[".cline/data/sessions", ".cline/data/db"]),
         "warp" => orgtrack_core::sources::warp::history::warp_history_candidate_paths(),
+        "zcode" => orgtrack_core::sources::zcode::history::zcode_history_candidate_paths(),
         _ => Vec::new(),
     }
 }
