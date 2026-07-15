@@ -168,7 +168,7 @@ fn build_diff_summary(repo_path: &Path) -> Result<String, String> {
         return Ok(out);
     }
 
-    let numstat = get_diff_numstat(repo_path, "HEAD", None, false)?;
+    let numstat = get_diff_numstat(repo_path, "HEAD", None, false, false)?;
     if numstat.files.is_empty() {
         return Err("No staged or unstaged changes to summarize".to_string());
     }
