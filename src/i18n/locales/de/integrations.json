@@ -1685,7 +1685,45 @@
       "capture": "Dateiinteraktionen erfassen",
       "description": "Erfasst Lese- und Schreibzugriffe auf Dateien als Metadaten. Prompts, Werkzeugausgaben und Dateiinhalte werden nicht gespeichert.",
       "configPath": "Erfasst Lese- und Schreibzugriffe auf Dateien als Metadaten. Prompts, Werkzeugausgaben und Dateiinhalte werden nicht gespeichert. Konfiguration: {{path}}",
-      "installDrift": "Gespeicherte Einstellung und installierter Hook stimmen nicht überein. Schalten Sie die Erfassung um, um den verwalteten Hook zu reparieren. Konfiguration: {{path}}"
+      "installDrift": "Gespeicherte Einstellung und installierter Hook stimmen nicht überein. Schalten Sie die Erfassung um, um den verwalteten Hook zu reparieren. Konfiguration: {{path}}",
+      "copyPath": "Kopieren",
+      "reveal": "Anzeigen",
+      "col": {
+        "source": "Werkzeug",
+        "config": "Konfiguration",
+        "capture": "Erfassung"
+      },
+      "status": {
+        "on": "Ein",
+        "off": "Aus",
+        "repair": "Reparieren",
+        "checking": "Wird geprüft…",
+        "error": "Fehler"
+      },
+      "signals": {
+        "title": "Aktuelle Signale",
+        "empty": "Noch keine Hook-Signale empfangen.",
+        "noResults": "Keine passenden Signale",
+        "search": "Signale durchsuchen",
+        "refresh": "Aktualisieren",
+        "openSession": "Sitzung {{session}} öffnen",
+        "col": {
+          "source": "Werkzeug",
+          "action": "Aktion",
+          "file": "Datei",
+          "workspace": "Arbeitsbereich",
+          "session": "Sitzung",
+          "when": "Wann"
+        },
+        "action": {
+          "read": "Lesen",
+          "write": "Schreiben",
+          "create": "Erstellen",
+          "delete": "Löschen",
+          "rename": "Umbenennen",
+          "search": "Suchen"
+        }
+      }
     },
     "codexConfig": {
       "sectionTitle": "Konfiguration",

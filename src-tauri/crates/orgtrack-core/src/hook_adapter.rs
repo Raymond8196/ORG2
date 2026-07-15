@@ -15,8 +15,23 @@ use crate::canonical::{
 };
 use crate::resource_interaction::{explicit_file_paths, file_interactions_from_tool};
 use crate::sources::imported_history::metadata::{
-    SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE,
+    SOURCE_ANTIGRAVITY, SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE,
+    SOURCE_FACTORY_DROID, SOURCE_KIMI, SOURCE_OPENCODE, SOURCE_QWEN_CODE, SOURCE_TRAE,
+    SOURCE_WINDSURF, SOURCE_ZCODE,
 };
+
+// Session-id prefixes for hook sources handled inline here. Qwen/Droid/Kimi/
+// Antigravity have no transcript importer yet; Trae/OpenCode/Windsurf DO import,
+// so those must mirror the prefixes their importers use (`sources::*::history`)
+// for a hook session and its imported transcript to resolve to one id.
+const QWEN_CODE_SESSION_PREFIX: &str = "qwencodeapp-";
+const FACTORY_DROID_SESSION_PREFIX: &str = "droidapp-";
+const TRAE_SESSION_PREFIX: &str = "traeapp-";
+const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
+const WINDSURF_SESSION_PREFIX: &str = "windsurfapp-";
+const KIMI_SESSION_PREFIX: &str = "kimiapp-";
+const ANTIGRAVITY_SESSION_PREFIX: &str = "antigravityapp-";
+const ZCODE_SESSION_PREFIX: &str = "zcodeapp-";
 
 const MAX_RESOURCE_INTERACTIONS_PER_HOOK: usize = 1_000;
 
@@ -25,6 +40,14 @@ pub enum HookSource {
     ClaudeCode,
     Codex,
     Cursor,
+    QwenCode,
+    FactoryDroid,
+    Trae,
+    OpenCode,
+    Windsurf,
+    Kimi,
+    Antigravity,
+    ZCode,
 }
 
 impl HookSource {
@@ -33,6 +56,16 @@ impl HookSource {
             SOURCE_CLAUDE_CODE | "claude" => Ok(Self::ClaudeCode),
             SOURCE_CODEX_APP | "codex" => Ok(Self::Codex),
             SOURCE_CURSOR_IDE | "cursor" => Ok(Self::Cursor),
+            SOURCE_QWEN_CODE | "qwen" => Ok(Self::QwenCode),
+            // `SOURCE_FACTORY_DROID` is already "droid"; accept "factory" too.
+            SOURCE_FACTORY_DROID | "factory" => Ok(Self::FactoryDroid),
+            // `SOURCE_TRAE`/`SOURCE_OPENCODE`/etc. already equal their words.
+            SOURCE_TRAE => Ok(Self::Trae),
+            SOURCE_OPENCODE => Ok(Self::OpenCode),
+            SOURCE_WINDSURF => Ok(Self::Windsurf),
+            SOURCE_KIMI => Ok(Self::Kimi),
+            SOURCE_ANTIGRAVITY => Ok(Self::Antigravity),
+            SOURCE_ZCODE => Ok(Self::ZCode),
             other => Err(format!(
                 "Unsupported session-provenance hook source: {other}"
             )),
@@ -44,6 +77,14 @@ impl HookSource {
             Self::ClaudeCode => SOURCE_CLAUDE_CODE,
             Self::Codex => SOURCE_CODEX_APP,
             Self::Cursor => SOURCE_CURSOR_IDE,
+            Self::QwenCode => SOURCE_QWEN_CODE,
+            Self::FactoryDroid => SOURCE_FACTORY_DROID,
+            Self::Trae => SOURCE_TRAE,
+            Self::OpenCode => SOURCE_OPENCODE,
+            Self::Windsurf => SOURCE_WINDSURF,
+            Self::Kimi => SOURCE_KIMI,
+            Self::Antigravity => SOURCE_ANTIGRAVITY,
+            Self::ZCode => SOURCE_ZCODE,
         }
     }
 
@@ -58,6 +99,19 @@ impl HookSource {
                 .map(crate::sources::codex::canonical_session_id)
                 .unwrap_or_else(|| crate::sources::codex::canonical_session_id(source_session_id)),
             Self::Cursor => crate::sources::cursor_ide::canonical_session_id(source_session_id),
+            // Gemini-family (Qwen), Droid, Kimi, and Antigravity emit
+            // Claude-Code-shaped payloads but have no importer yet, so the
+            // canonical id is a stable prefix over the vendor session id.
+            Self::QwenCode => format!("{QWEN_CODE_SESSION_PREFIX}{source_session_id}"),
+            Self::FactoryDroid => format!("{FACTORY_DROID_SESSION_PREFIX}{source_session_id}"),
+            Self::Kimi => format!("{KIMI_SESSION_PREFIX}{source_session_id}"),
+            Self::Antigravity => format!("{ANTIGRAVITY_SESSION_PREFIX}{source_session_id}"),
+            // Trae/OpenCode/Windsurf/ZCode DO have importers; the prefix must
+            // match theirs so a hook session and its imported transcript unify.
+            Self::Trae => format!("{TRAE_SESSION_PREFIX}{source_session_id}"),
+            Self::OpenCode => format!("{OPENCODE_SESSION_PREFIX}{source_session_id}"),
+            Self::Windsurf => format!("{WINDSURF_SESSION_PREFIX}{source_session_id}"),
+            Self::ZCode => format!("{ZCODE_SESSION_PREFIX}{source_session_id}"),
         }
     }
 
@@ -82,6 +136,12 @@ pub fn normalize_hook_payload(
     source: HookSource,
     payload: &Value,
 ) -> Result<Vec<ResourceInteractionEnvelopeV1>, String> {
+    // Windsurf's payload shape is entirely different (verb-per-event under
+    // `agent_action_name` + a nested `tool_info`), so it is normalized on its
+    // own path rather than threaded through the Claude-family logic below.
+    if source == HookSource::Windsurf {
+        return normalize_windsurf_payload(payload);
+    }
     let source_session_id = source_session_id(source, payload)
         .ok_or_else(|| "Hook payload is missing its session identifier".to_string())?;
     let cwd = string_field(payload, &["cwd", "workspace_path", "workspacePath"])
@@ -163,6 +223,61 @@ pub fn normalize_hook_payload(
         .collect())
 }
 
+/// Windsurf (Cascade) hooks fire one verb-per-event (`post_write_code`,
+/// `post_read_code`, …) and carry the touched file only inside `tool_info`.
+/// There is no top-level `cwd`, tool name, or `tool_input`; the file path is
+/// absolute, so its parent directory anchors the git-workspace resolver. Only
+/// file read/write events yield a resource interaction.
+fn normalize_windsurf_payload(
+    payload: &Value,
+) -> Result<Vec<ResourceInteractionEnvelopeV1>, String> {
+    let Some(source_session_id) = string_field(payload, &["trajectory_id", "trajectoryId"]) else {
+        return Ok(Vec::new());
+    };
+    let event =
+        string_field(payload, &["agent_action_name", "agentActionName"]).unwrap_or_default();
+    let action = match event.as_str() {
+        "post_write_code" | "pre_write_code" => ResourceAction::Write,
+        "post_read_code" | "pre_read_code" => ResourceAction::Read,
+        // run-command / cascade-response / mcp events carry no path we track.
+        _ => return Ok(Vec::new()),
+    };
+    let tool_info = payload.get("tool_info").or_else(|| payload.get("toolInfo"));
+    let Some(file_path) = tool_info.and_then(|info| string_field(info, &["file_path", "filePath"]))
+    else {
+        return Ok(Vec::new());
+    };
+    let cwd = Path::new(&file_path)
+        .parent()
+        .map(|parent| parent.to_string_lossy().into_owned())
+        .filter(|parent| !parent.is_empty())
+        .unwrap_or_else(|| file_path.clone());
+    let occurred_at = string_field(payload, &["timestamp", "occurred_at", "occurredAt"])
+        .and_then(|timestamp| normalize_rfc3339(&timestamp))
+        .unwrap_or_else(now_rfc3339);
+    let source_event_id = string_field(payload, &["execution_id", "executionId"])
+        .map(|base| format!("{base}:{}:{file_path}", action.as_str()));
+    let envelope = ResourceInteractionEnvelopeV1 {
+        schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+        source: SOURCE_WINDSURF.to_string(),
+        source_session_id: source_session_id.clone(),
+        session_id: format!("{WINDSURF_SESSION_PREFIX}{source_session_id}"),
+        source_event_id,
+        turn_id: None,
+        actor_id: None,
+        cwd,
+        file_path,
+        action,
+        outcome: ResourceInteractionOutcome::Succeeded,
+        occurred_at,
+        attribution_precision: AttributionPrecision::SessionOnly,
+    };
+    envelope
+        .validate()
+        .map_err(|err| format!("Invalid Windsurf resource-interaction envelope: {err}"))?;
+    Ok(vec![envelope])
+}
+
 /// Reduce a vendor subagent lifecycle hook to local-only session metadata.
 /// Raw prompts, assistant messages, tool payloads, and transcript contents are
 /// never copied across this boundary.
@@ -238,9 +353,18 @@ fn transcript_file_stem(path: &str) -> Option<&str> {
 
 fn source_session_id(source: HookSource, payload: &Value) -> Option<String> {
     match source {
-        HookSource::ClaudeCode | HookSource::Codex => {
-            string_field(payload, &["session_id", "sessionId"])
-        }
+        HookSource::ClaudeCode
+        | HookSource::Codex
+        | HookSource::QwenCode
+        | HookSource::FactoryDroid
+        | HookSource::Trae
+        | HookSource::OpenCode
+        | HookSource::Kimi
+        | HookSource::Antigravity
+        | HookSource::ZCode => string_field(payload, &["session_id", "sessionId"]),
+        // Windsurf keys its session on `trajectory_id` (handled on its own path,
+        // but kept here for completeness/lifecycle callers).
+        HookSource::Windsurf => string_field(payload, &["trajectory_id", "trajectoryId"]),
         HookSource::Cursor => string_field(
             payload,
             &[
@@ -254,11 +378,29 @@ fn source_session_id(source: HookSource, payload: &Value) -> Option<String> {
 }
 
 fn tool_path_actions(source: HookSource, payload: &Value) -> Vec<(String, ResourceAction)> {
-    let tool_name = string_field(payload, &["tool_name", "toolName"]).unwrap_or_default();
-    let tool_input = payload
-        .get("tool_input")
-        .or_else(|| payload.get("toolInput"))
-        .unwrap_or(&Value::Null);
+    // Antigravity nests the tool under `toolCall` (name + args) rather than the
+    // Claude-family flat `tool_name` / `tool_input`.
+    let (tool_name, tool_input) = if source == HookSource::Antigravity {
+        let call = payload.get("toolCall").or_else(|| payload.get("tool_call"));
+        let name = call
+            .and_then(|c| string_field(c, &["name", "ToolName", "toolName"]))
+            .or_else(|| {
+                call.and_then(|c| c.get("args").or_else(|| c.get("Args")))
+                    .and_then(|args| string_field(args, &["ToolName", "tool_name", "toolName"]))
+            })
+            .unwrap_or_default();
+        let input = call
+            .and_then(|c| c.get("args").or_else(|| c.get("Args")))
+            .unwrap_or(&Value::Null);
+        (name, input)
+    } else {
+        let name = string_field(payload, &["tool_name", "toolName"]).unwrap_or_default();
+        let input = payload
+            .get("tool_input")
+            .or_else(|| payload.get("toolInput"))
+            .unwrap_or(&Value::Null);
+        (name, input)
+    };
 
     let explicit = file_interactions_from_tool(&tool_name, tool_input, None)
         .into_iter()
@@ -381,6 +523,231 @@ mod tests {
         );
         let serialized = serde_json::to_string(&envelopes[0]).expect("serialize envelope");
         assert!(!serialized.contains("secret file contents"));
+    }
+
+    #[test]
+    fn qwen_replace_normalizes_to_a_write_without_raw_output() {
+        let envelopes = normalize_hook_payload(
+            HookSource::QwenCode,
+            &json!({
+                "session_id": "qwen-1",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                // Gemini-family in-place edit tool.
+                "tool_name": "replace",
+                "tool_use_id": "tool-9",
+                "tool_input": {
+                    "file_path": "/repo/src/main.rs",
+                    "old_string": "secret before",
+                    "new_string": "secret after"
+                },
+                "tool_response": {"output": "diff with secret contents"}
+            }),
+        )
+        .expect("normalize Qwen hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].source, "qwen_code");
+        assert_eq!(envelopes[0].session_id, "qwencodeapp-qwen-1");
+        assert_eq!(envelopes[0].action, ResourceAction::Write);
+        let serialized = serde_json::to_string(&envelopes[0]).expect("serialize envelope");
+        assert!(!serialized.contains("secret"));
+    }
+
+    #[test]
+    fn factory_droid_create_normalizes_to_a_write() {
+        let envelopes = normalize_hook_payload(
+            HookSource::FactoryDroid,
+            &json!({
+                "session_id": "droid-1",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                "tool_name": "Create",
+                "tool_use_id": "tool-7",
+                "tool_input": {"file_path": "/repo/src/new.rs"}
+            }),
+        )
+        .expect("normalize Droid hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].source, "droid");
+        assert_eq!(envelopes[0].session_id, "droidapp-droid-1");
+        assert_eq!(envelopes[0].action, ResourceAction::Write);
+        assert_eq!(envelopes[0].file_path, "/repo/src/new.rs");
+    }
+
+    #[test]
+    fn opencode_edit_normalizes_to_a_write_with_camelcase_path() {
+        let envelopes = normalize_hook_payload(
+            HookSource::OpenCode,
+            &json!({
+                "session_id": "ses_abc",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                "tool_name": "edit",
+                "tool_use_id": "call_1",
+                "tool_input": {"filePath": "/repo/src/main.rs", "oldString": "a", "newString": "b"},
+                "output": {"output": "secret diff output"}
+            }),
+        )
+        .expect("normalize OpenCode hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].source, "opencode");
+        assert_eq!(envelopes[0].session_id, "opencodeapp-ses_abc");
+        assert_eq!(envelopes[0].action, ResourceAction::Write);
+        assert_eq!(envelopes[0].file_path, "/repo/src/main.rs");
+        let serialized = serde_json::to_string(&envelopes[0]).expect("serialize envelope");
+        assert!(!serialized.contains("secret"));
+    }
+
+    #[test]
+    fn trae_edit_normalizes_to_a_write() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Trae,
+            &json!({
+                "session_id": "trae-1",
+                "cwd": "/repo",
+                "workspace_roots": ["/repo"],
+                "hook_event_name": "PostToolUse",
+                "tool_name": "EditFile",
+                "tool_use_id": "t1",
+                "tool_input": {"file_path": "/repo/src/lib.rs"}
+            }),
+        )
+        .expect("normalize Trae hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].source, "trae");
+        assert_eq!(envelopes[0].session_id, "traeapp-trae-1");
+        assert_eq!(envelopes[0].action, ResourceAction::Write);
+    }
+
+    #[test]
+    fn kimi_str_replace_normalizes_to_a_write() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Kimi,
+            &json!({
+                "session_id": "kimi-1",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                "tool_name": "StrReplaceFile",
+                "tool_input": {"file_path": "/repo/src/lib.rs", "content": "secret"}
+            }),
+        )
+        .expect("normalize Kimi hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].source, "kimi");
+        assert_eq!(envelopes[0].session_id, "kimiapp-kimi-1");
+        assert_eq!(envelopes[0].action, ResourceAction::Write);
+        let serialized = serde_json::to_string(&envelopes[0]).expect("serialize envelope");
+        assert!(!serialized.contains("secret"));
+    }
+
+    #[test]
+    fn antigravity_toolcall_write_normalizes_to_a_write() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Antigravity,
+            &json!({
+                "session_id": "ag-1",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                // Antigravity nests the tool under `toolCall`, not tool_name/tool_input.
+                "toolCall": {
+                    "name": "write_file",
+                    "args": {"file_path": "/repo/src/app.ts", "content": "x"}
+                }
+            }),
+        )
+        .expect("normalize Antigravity hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].source, "antigravity");
+        assert_eq!(envelopes[0].session_id, "antigravityapp-ag-1");
+        assert_eq!(envelopes[0].action, ResourceAction::Write);
+        assert_eq!(envelopes[0].file_path, "/repo/src/app.ts");
+    }
+
+    #[test]
+    fn windsurf_post_write_code_normalizes_from_tool_info() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Windsurf,
+            &json!({
+                "agent_action_name": "post_write_code",
+                "trajectory_id": "traj-9",
+                "execution_id": "exec-1",
+                "timestamp": "2026-07-15T03:00:00Z",
+                "model_name": "cascade",
+                "tool_info": {
+                    "file_path": "/repo/src/main.rs",
+                    "edits": [{"old_string": "secret a", "new_string": "secret b"}]
+                }
+            }),
+        )
+        .expect("normalize Windsurf hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].source, "windsurf");
+        assert_eq!(envelopes[0].session_id, "windsurfapp-traj-9");
+        assert_eq!(envelopes[0].action, ResourceAction::Write);
+        assert_eq!(envelopes[0].file_path, "/repo/src/main.rs");
+        // No top-level cwd: the file's parent dir anchors the resolver.
+        assert_eq!(envelopes[0].cwd, "/repo/src");
+        let serialized = serde_json::to_string(&envelopes[0]).expect("serialize envelope");
+        assert!(!serialized.contains("secret"));
+    }
+
+    #[test]
+    fn windsurf_non_file_event_yields_no_envelope() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Windsurf,
+            &json!({
+                "agent_action_name": "post_run_command",
+                "trajectory_id": "traj-9",
+                "tool_info": {"command_line": "npm test", "cwd": "/repo"}
+            }),
+        )
+        .expect("normalize Windsurf command hook");
+        assert!(envelopes.is_empty());
+    }
+
+    #[test]
+    fn zcode_write_normalizes_to_a_write() {
+        let envelopes = normalize_hook_payload(
+            HookSource::ZCode,
+            &json!({
+                "session_id": "zc-1",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                "tool_name": "Write",
+                "tool_input": {"file_path": "/repo/src/lib.rs"}
+            }),
+        )
+        .expect("normalize ZCode hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].source, "zcode");
+        assert_eq!(envelopes[0].session_id, "zcodeapp-zc-1");
+        assert_eq!(envelopes[0].action, ResourceAction::Write);
+    }
+
+    #[test]
+    fn unknown_hook_source_is_rejected() {
+        assert!(HookSource::parse("gemini-cli").is_err());
+        assert!(HookSource::parse("warp").is_err());
+        assert!(HookSource::parse("cline").is_err());
+        assert_eq!(HookSource::parse("qwen").unwrap(), HookSource::QwenCode);
+        assert_eq!(HookSource::parse("droid").unwrap(), HookSource::FactoryDroid);
+        assert_eq!(HookSource::parse("trae").unwrap(), HookSource::Trae);
+        assert_eq!(HookSource::parse("opencode").unwrap(), HookSource::OpenCode);
+        assert_eq!(HookSource::parse("windsurf").unwrap(), HookSource::Windsurf);
+        assert_eq!(HookSource::parse("kimi").unwrap(), HookSource::Kimi);
+        assert_eq!(
+            HookSource::parse("antigravity").unwrap(),
+            HookSource::Antigravity
+        );
+        assert_eq!(HookSource::parse("zcode").unwrap(), HookSource::ZCode);
     }
 
     #[test]

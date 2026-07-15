@@ -1685,7 +1685,45 @@
       "capture": "Enregistrer les interactions avec les fichiers",
       "description": "Enregistre les lectures et écritures de fichiers sous forme de métadonnées. Les prompts, les sorties d’outils et le contenu des fichiers ne sont pas stockés.",
       "configPath": "Enregistre les lectures et écritures de fichiers sous forme de métadonnées. Les prompts, les sorties d’outils et le contenu des fichiers ne sont pas stockés. Configuration : {{path}}",
-      "installDrift": "La préférence enregistrée et le hook installé diffèrent. Basculez la capture pour réparer le hook géré. Configuration : {{path}}"
+      "installDrift": "La préférence enregistrée et le hook installé diffèrent. Basculez la capture pour réparer le hook géré. Configuration : {{path}}",
+      "copyPath": "Copier",
+      "reveal": "Afficher",
+      "col": {
+        "source": "Outil",
+        "config": "Configuration",
+        "capture": "Capture"
+      },
+      "status": {
+        "on": "Activé",
+        "off": "Désactivé",
+        "repair": "Réparer",
+        "checking": "Vérification…",
+        "error": "Erreur"
+      },
+      "signals": {
+        "title": "Signaux récents",
+        "empty": "Aucun signal de hook reçu pour le moment.",
+        "noResults": "Aucun signal correspondant",
+        "search": "Rechercher des signaux",
+        "refresh": "Actualiser",
+        "openSession": "Ouvrir la session {{session}}",
+        "col": {
+          "source": "Outil",
+          "action": "Action",
+          "file": "Fichier",
+          "workspace": "Espace de travail",
+          "session": "Session",
+          "when": "Quand"
+        },
+        "action": {
+          "read": "Lecture",
+          "write": "Écriture",
+          "create": "Création",
+          "delete": "Suppression",
+          "rename": "Renommage",
+          "search": "Recherche"
+        }
+      }
     },
     "codexConfig": {
       "sectionTitle": "Configuration",
