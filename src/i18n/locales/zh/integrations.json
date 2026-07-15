@@ -1738,7 +1738,45 @@
       "capture": "采集文件交互记录",
       "description": "以 metadata 形式记录文件读写；不会存储提示词、工具输出或文件内容。",
       "configPath": "以 metadata 形式记录文件读写；不会存储提示词、工具输出或文件内容。配置：{{path}}",
-      "installDrift": "保存的开关状态与实际安装的 hook 不一致。切换一次即可修复 ORGII 管理的 hook。配置：{{path}}"
+      "installDrift": "保存的开关状态与实际安装的 hook 不一致。切换一次即可修复 ORGII 管理的 hook。配置：{{path}}",
+      "copyPath": "复制",
+      "reveal": "显示",
+      "col": {
+        "source": "工具",
+        "config": "配置",
+        "capture": "捕获"
+      },
+      "status": {
+        "on": "开启",
+        "off": "关闭",
+        "repair": "修复",
+        "checking": "检查中…",
+        "error": "错误"
+      },
+      "signals": {
+        "title": "最近信号",
+        "empty": "尚未收到任何 hook 信号。",
+        "noResults": "没有匹配的信号",
+        "search": "搜索信号",
+        "refresh": "刷新",
+        "openSession": "打开会话 {{session}}",
+        "col": {
+          "source": "工具",
+          "action": "动作",
+          "file": "文件",
+          "workspace": "工作区",
+          "session": "会话",
+          "when": "时间"
+        },
+        "action": {
+          "read": "读取",
+          "write": "写入",
+          "create": "创建",
+          "delete": "删除",
+          "rename": "重命名",
+          "search": "搜索"
+        }
+      }
     },
     "cliManagedConfig": {
       "title": "CLI 配置切换",

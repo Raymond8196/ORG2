@@ -1,6 +1,6 @@
 use rusqlite::{params, Connection, OptionalExtension};
 
-use super::RecordStore;
+use super::{RecentHookSignal, RecordStore};
 use crate::canonical::{
     ActivityRecord, CommitLinkRecord, FileChangeRecord, FileResourceRecord,
     ResourceInteractionRecord, ScanCheckpoint, SessionActorRecord,
@@ -464,6 +464,64 @@ impl<'conn> SqliteRecordStore<'conn> {
                 params![source, session_id],
             )
             .map_err(|err| err.to_string())
+    }
+
+    /// The most recently received hook-captured file interactions, newest
+    /// first, joined with their file resource for a displayable path. Powers
+    /// the Session Provenance "recent signals" table. Only `capture_method =
+    /// 'hook'` rows are returned — native/reconciled facts are excluded.
+    pub fn list_recent_hook_signals(
+        &self,
+        limit: usize,
+    ) -> Result<Vec<RecentHookSignal>, String> {
+        let limit = limit.clamp(1, 1000) as i64;
+        let mut statement = self
+            .conn
+            .prepare(
+                "SELECT interaction.source, interaction.session_id, interaction.actor_id,
+                        file_resource.repo_relative_path, file_resource.workspace_path,
+                        interaction.action, interaction.outcome, interaction.occurred_at,
+                        interaction.capture_method,
+                        CASE
+                          WHEN session.title IS NULL OR session.title = ''
+                            THEN NULL
+                          WHEN session.title = interaction.source_session_id
+                            THEN NULL
+                          WHEN session.title = interaction.session_id
+                            THEN NULL
+                          ELSE session.title
+                        END AS session_title
+                 FROM orgtrack_core_resource_interactions interaction
+                 JOIN orgtrack_core_file_resources file_resource
+                   ON file_resource.resource_id = interaction.resource_id
+                 LEFT JOIN orgtrack_core_sessions session
+                   ON session.session_id = interaction.session_id
+                 WHERE interaction.capture_method = 'hook'
+                 ORDER BY interaction.occurred_at DESC, interaction.interaction_id DESC
+                 LIMIT ?1",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = statement
+            .query_map(params![limit], |row| {
+                Ok(RecentHookSignal {
+                    source: row.get(0)?,
+                    session_id: row.get(1)?,
+                    actor_id: row.get(2)?,
+                    file_path: row.get(3)?,
+                    workspace_path: row.get(4)?,
+                    action: row.get(5)?,
+                    outcome: row.get(6)?,
+                    occurred_at: row.get(7)?,
+                    capture_method: row.get(8)?,
+                    session_title: row.get(9)?,
+                })
+            })
+            .map_err(|err| err.to_string())?;
+        let mut signals = Vec::new();
+        for row in rows {
+            signals.push(row.map_err(|err| err.to_string())?);
+        }
+        Ok(signals)
     }
 
     fn list_by_scope<T: serde::de::DeserializeOwned>(
@@ -1334,7 +1392,8 @@ mod tests {
     use crate::canonical::{
         AgentMetadata, ArtifactQuality, AttributionPrecision, FileResourceRecord, ResourceAction,
         ResourceInteractionCaptureMethod, ResourceInteractionOutcome, ResourceInteractionRecord,
-        SessionEditArtifactRecord, SessionEditKind, RESOURCE_INTERACTION_SCHEMA_VERSION,
+        SessionEditArtifactRecord, SessionEditKind, SessionRecord,
+        RESOURCE_INTERACTION_SCHEMA_VERSION,
     };
     use crate::privacy::ORGTRACK_SCHEMA_VERSION;
 
@@ -1515,6 +1574,108 @@ mod tests {
             .list_file_resource_interactions(Some("repo-1"), "/different/worktree", "src/lib.rs")
             .expect("list interactions after reconciliation replacement");
         assert_eq!(records, vec![interaction]);
+    }
+
+    #[test]
+    fn recent_hook_signals_return_newest_hook_facts_with_paths() {
+        let store = fixture_store();
+        let resource = FileResourceRecord {
+            schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+            resource_id: "file-signal".to_string(),
+            repository_id: Some("repo-1".to_string()),
+            workspace_path: "/repo/worktree".to_string(),
+            repo_relative_path: "src/app.rs".to_string(),
+            display_path: "src/app.rs".to_string(),
+            path_hash: "hash-signal".to_string(),
+        };
+        store
+            .upsert_file_resource(&resource)
+            .expect("upsert file resource");
+
+        let base = ResourceInteractionRecord {
+            schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+            interaction_id: "sig-1".to_string(),
+            source: "qwen_code".to_string(),
+            source_session_id: Some("qwen-1".to_string()),
+            source_event_id: Some("tool-1".to_string()),
+            session_id: "qwencodeapp-qwen-1".to_string(),
+            turn_id: None,
+            actor_id: None,
+            resource_id: resource.resource_id.clone(),
+            action: ResourceAction::Read,
+            outcome: ResourceInteractionOutcome::Succeeded,
+            occurred_at: "2026-07-14T00:00:00Z".to_string(),
+            capture_method: ResourceInteractionCaptureMethod::Hook,
+            attribution_precision: AttributionPrecision::SessionOnly,
+        };
+        let mut newer = base.clone();
+        newer.interaction_id = "sig-2".to_string();
+        newer.action = ResourceAction::Write;
+        newer.occurred_at = "2026-07-14T01:00:00Z".to_string();
+        let mut reconciled = base.clone();
+        reconciled.interaction_id = "sig-3".to_string();
+        reconciled.occurred_at = "2026-07-14T02:00:00Z".to_string();
+        reconciled.capture_method = ResourceInteractionCaptureMethod::Reconciled;
+
+        for record in [&base, &newer, &reconciled] {
+            store
+                .append_resource_interaction(record)
+                .expect("append interaction");
+        }
+
+        let signals = store
+            .list_recent_hook_signals(50)
+            .expect("list recent hook signals");
+        // Only the two hook facts, newest first; the reconciled one is excluded.
+        assert_eq!(signals.len(), 2);
+        assert_eq!(signals[0].action, "write");
+        assert_eq!(signals[0].occurred_at, "2026-07-14T01:00:00Z");
+        assert_eq!(signals[0].file_path, "src/app.rs");
+        assert_eq!(signals[0].source, "qwen_code");
+        assert_eq!(signals[0].capture_method, "hook");
+        assert_eq!(signals[1].action, "read");
+        // No session row has been reconciled yet, so there is no human title to
+        // show — the UI falls back to a shortened id.
+        assert_eq!(signals[0].session_title, None);
+
+        let session_with_title = |title: &str| SessionRecord {
+            schema_version: 1,
+            source: "qwen_code".to_string(),
+            source_session_id: "qwen-1".to_string(),
+            session_id: "qwencodeapp-qwen-1".to_string(),
+            title: title.to_string(),
+            status: None,
+            created_at: None,
+            updated_at: None,
+            completed_at: None,
+            workspace_path: Some("/repo/worktree".to_string()),
+            branch: None,
+            parent_session_id: None,
+            org_member_id: None,
+            metadata: AgentMetadata::default(),
+        };
+
+        // A placeholder title (equal to the raw source id) is suppressed so a
+        // raw id never masquerades as a name.
+        store
+            .upsert_session(&session_with_title("qwen-1"))
+            .expect("upsert placeholder session");
+        let placeholder = store
+            .list_recent_hook_signals(50)
+            .expect("list recent hook signals with placeholder title");
+        assert_eq!(placeholder[0].session_title, None);
+
+        // A reconciled, human-readable title resolves through the LEFT JOIN.
+        store
+            .upsert_session(&session_with_title("Refactor the auth flow"))
+            .expect("upsert titled session");
+        let titled = store
+            .list_recent_hook_signals(50)
+            .expect("list recent hook signals with title");
+        assert_eq!(
+            titled[0].session_title.as_deref(),
+            Some("Refactor the auth flow")
+        );
     }
 
     #[test]
