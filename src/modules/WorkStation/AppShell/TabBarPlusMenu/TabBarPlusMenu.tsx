@@ -19,6 +19,7 @@ import { Plus } from "lucide-react";
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,
@@ -29,6 +30,8 @@ import {
   KeyboardShortcut,
 } from "@src/components/KeyboardShortcut";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
+import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared/TabBar/components/TabBarTrailingIconButton";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
 
@@ -58,6 +61,8 @@ const TabBarPlusMenuComponent: React.FC<TabBarPlusMenuProps> = ({
 }) => {
   const { t } = useTranslation("navigation");
   const actions = useWorkStationLaunchActions();
+  const { repoId, repoPath } = useActiveRepoRef();
+  const { additions, deletions } = useWorkingTreeDiffTotals(repoId, repoPath);
   const [menuVisible, setMenuVisible] = useState(false);
 
   // ⌘T (`new_tab`) is exclusively bound to opening this menu. Only one
@@ -99,6 +104,17 @@ const TabBarPlusMenuComponent: React.FC<TabBarPlusMenuProps> = ({
                 <Icon size={HEADER_ICON_SIZE.sm} />
                 <span className="truncate">{action.label}</span>
               </span>
+              {action.id === "sourceControl" &&
+              (additions > 0 || deletions > 0) ? (
+                <DiffStatsBadge
+                  additions={additions}
+                  deletions={deletions}
+                  variant="plain"
+                  size="xs"
+                  reserveValueWidth={false}
+                  className="shrink-0"
+                />
+              ) : null}
               {action.shortcut ? (
                 <KeyboardShortcut
                   shortcut={action.shortcut}
