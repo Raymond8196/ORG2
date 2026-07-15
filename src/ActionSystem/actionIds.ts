@@ -51,8 +51,6 @@ export const ACTION_ID = {
   CHAT_PANEL_USE_MODEL_PICKER_DROPDOWN: "chatPanel.useModelPickerDropdown",
   WORKSTATION_SET_SIDEBAR_LEFT: "workstation.setSidebarLeft",
   WORKSTATION_SET_SIDEBAR_RIGHT: "workstation.setSidebarRight",
-  WORKSTATION_ENABLE_DOCK_AUTO_HIDE: "workstation.enableDockAutoHide",
-  WORKSTATION_DISABLE_DOCK_AUTO_HIDE: "workstation.disableDockAutoHide",
   WORKSTATION_OPEN_MY_STATION: "workstation.openMyStation",
   WORKSTATION_OPEN_AGENT_STATION: "workstation.openAgentStation",
   WORKSTATION_OPEN_KANBAN: "workstation.openKanban",

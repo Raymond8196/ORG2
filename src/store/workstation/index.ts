@@ -21,8 +21,8 @@ export * from "./tabs";
 // Cross-host tab index (derived) + routed writers
 export * from "./tabRegistry";
 
-// Unified dock filter (Phase 1: atom only; Phase 2 wires UI + URL sync).
-export * from "./dockFilter";
+// Visible content host — derived from the active tab (unified surface).
+export { activeHostAtom } from "./tabHost";
 
 // Workstation TabBar (AppShell) coordination atoms
 export {

@@ -122,6 +122,10 @@
         "apps": "アプリ",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "スキャン",
+        "hooks": "フック"
+      },
       "sessions_other": "{{count}} 件のセッション",
       "details": {
         "path": "パス",
@@ -274,6 +278,11 @@
       "commits_one": "{{count}} Commit",
       "commits_other": "{{count}} Commit",
       "committedRateShort": "{{percent}}% コミット済み"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
   },
   "changes": {
@@ -774,7 +783,8 @@
       "tabs": {
         "work": "作業",
         "manage": "管理",
-        "heatmap": "トレンド"
+        "heatmap": "トレンド",
+        "runtime": "ランタイム"
       },
       "heatmap": {
         "loading": "アクティビティトレンドを読み込み中…",

@@ -292,7 +292,8 @@ pub struct StreamEvent {
 /// Recursively enforce strict schema rules on every object-type node:
 /// 1. `"additionalProperties": false`
 /// 2. `"required"` must be **exactly** the set of keys in `"properties"`
-/// 3. Object-type nodes must have an explicit `"properties"` field
+/// 3. Fields that were optional become nullable before being made required
+/// 4. Object-type nodes must have an explicit `"properties"` field
 ///
 /// All are mandatory for the Responses API when `strict: true`.
 pub fn enforce_strict_schema(schema: &mut Value) {
@@ -312,11 +313,32 @@ pub fn enforce_strict_schema(schema: &mut Value) {
                 );
             }
 
-            let prop_keys: Vec<Value> = obj
+            let originally_required: std::collections::HashSet<String> = obj
+                .get("required")
+                .and_then(|required| required.as_array())
+                .map(|required| {
+                    required
+                        .iter()
+                        .filter_map(|name| name.as_str().map(str::to_string))
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            let prop_names: Vec<String> = obj
                 .get("properties")
                 .and_then(|p| p.as_object())
-                .map(|props| props.keys().map(|k| Value::String(k.clone())).collect())
+                .map(|props| props.keys().cloned().collect())
                 .unwrap_or_default();
+
+            if let Some(properties) = obj.get_mut("properties").and_then(Value::as_object_mut) {
+                for (name, prop_schema) in properties.iter_mut() {
+                    if !originally_required.contains(name) {
+                        make_schema_nullable(prop_schema);
+                    }
+                }
+            }
+
+            let prop_keys: Vec<Value> = prop_names.into_iter().map(Value::String).collect();
 
             if prop_keys.is_empty() {
                 obj.remove("required");
@@ -347,6 +369,36 @@ pub fn enforce_strict_schema(schema: &mut Value) {
             enforce_strict_schema(items);
         }
     }
+}
+
+/// Strict Responses schemas require every property to appear in the model's
+/// output. Preserve the source schema's optional-field semantics by allowing
+/// those properties to be `null`; consumers can then distinguish "omitted"
+/// from meaningful empty values such as `""` or `[]`.
+fn make_schema_nullable(schema: &mut Value) {
+    let already_nullable = schema.get("type").is_some_and(|kind| match kind {
+        Value::String(kind) => kind == "null",
+        Value::Array(kinds) => kinds.iter().any(|kind| kind.as_str() == Some("null")),
+        _ => false,
+    }) || ["anyOf", "oneOf"].iter().any(|combiner| {
+        schema
+            .get(*combiner)
+            .and_then(Value::as_array)
+            .is_some_and(|variants| {
+                variants
+                    .iter()
+                    .any(|variant| variant.get("type").and_then(Value::as_str) == Some("null"))
+            })
+    });
+
+    if already_nullable {
+        return;
+    }
+
+    let original = std::mem::take(schema);
+    *schema = serde_json::json!({
+        "anyOf": [original, { "type": "null" }]
+    });
 }
 
 /// Extract `chatgpt_account_id` from a JWT id_token.
@@ -508,6 +560,7 @@ mod tests {
     fn test_enforce_strict_schema_adds_additional_properties() {
         let mut schema = serde_json::json!({
             "type": "object",
+            "required": ["name"],
             "properties": {
                 "name": {"type": "string"}
             }
@@ -523,9 +576,11 @@ mod tests {
     fn test_enforce_strict_schema_nested_objects() {
         let mut schema = serde_json::json!({
             "type": "object",
+            "required": ["user"],
             "properties": {
                 "user": {
                     "type": "object",
+                    "required": ["name"],
                     "properties": {
                         "name": {"type": "string"},
                         "age": {"type": "number"}
@@ -544,6 +599,10 @@ mod tests {
         let nested_required = schema["properties"]["user"]["required"].as_array().unwrap();
         assert!(nested_required.contains(&Value::String("name".to_string())));
         assert!(nested_required.contains(&Value::String("age".to_string())));
+        assert_eq!(
+            schema["properties"]["user"]["properties"]["age"]["anyOf"][1]["type"],
+            "null"
+        );
     }
 
     #[test]
@@ -565,6 +624,7 @@ mod tests {
             "type": "array",
             "items": {
                 "type": "object",
+                "required": ["id"],
                 "properties": {
                     "id": {"type": "string"}
                 }
@@ -601,6 +661,35 @@ mod tests {
         assert_eq!(
             schema["anyOf"][1]["additionalProperties"],
             Value::Bool(false)
+        );
+    }
+
+    #[test]
+    fn test_enforce_strict_schema_makes_optional_fields_nullable() {
+        let mut schema = serde_json::json!({
+            "type": "object",
+            "required": ["action"],
+            "properties": {
+                "action": {"type": "string"},
+                "content": {"type": "string"},
+                "blockedBy": {
+                    "type": "array",
+                    "items": {"type": "integer"}
+                }
+            }
+        });
+
+        enforce_strict_schema(&mut schema);
+
+        assert_eq!(
+            schema["required"],
+            serde_json::json!(["action", "blockedBy", "content"])
+        );
+        assert_eq!(schema["properties"]["action"]["type"], "string");
+        assert_eq!(schema["properties"]["content"]["anyOf"][1]["type"], "null");
+        assert_eq!(
+            schema["properties"]["blockedBy"]["anyOf"][1]["type"],
+            "null"
         );
     }
 }

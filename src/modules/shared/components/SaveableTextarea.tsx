@@ -23,6 +23,10 @@ export interface SaveableTextareaProps {
   placeholder?: string;
   /** Auto-size config for the textarea */
   autoSize?: { minRows?: number; maxRows?: number };
+  /** Maximum number of characters allowed in the draft. */
+  maxLength?: number;
+  /** Show the textarea's built-in character counter. */
+  showWordLimit?: boolean;
   /** Whether the component is in a loading state (hides content) */
   loading?: boolean;
   dataTestId?: string;
@@ -34,6 +38,8 @@ const SaveableTextarea: React.FC<SaveableTextareaProps> = ({
   onSave,
   placeholder,
   autoSize = { minRows: 3, maxRows: 10 },
+  maxLength,
+  showWordLimit = false,
   loading = false,
   dataTestId,
   saveButtonDataTestId,
@@ -89,6 +95,8 @@ const SaveableTextarea: React.FC<SaveableTextareaProps> = ({
         onChange={(val: string) => setDraft(val)}
         placeholder={placeholder}
         autoSize={autoSize}
+        maxLength={maxLength}
+        showWordLimit={showWordLimit}
         data-testid={dataTestId}
       />
       <div className="flex items-center gap-2">

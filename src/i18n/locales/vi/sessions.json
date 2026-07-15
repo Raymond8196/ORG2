@@ -122,6 +122,10 @@
         "apps": "Ứng dụng",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "Quét",
+        "hooks": "Hooks"
+      },
       "sessions_other": "{{count}} phiên",
       "details": {
         "path": "Đường dẫn",
@@ -272,6 +276,11 @@
       "commits_one": "{{count}} commit",
       "commits_other": "{{count}} commit",
       "committedRateShort": "{{percent}}% đã commit"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
   },
   "changes": {
@@ -772,7 +781,8 @@
       "tabs": {
         "work": "Làm việc",
         "manage": "Quản lý",
-        "heatmap": "Xu hướng"
+        "heatmap": "Xu hướng",
+        "runtime": "Thời gian chạy"
       },
       "heatmap": {
         "loading": "Đang tải xu hướng hoạt động…",

@@ -315,6 +315,30 @@ fn parses_opencode_parts_into_replay_chunks() {
 }
 
 #[test]
+fn derives_opencode_impact_from_session_edit_parts() {
+    let conn = fixture_conn();
+    conn.execute(
+        "INSERT INTO part (id, message_id, session_id, data, time_created) VALUES (?1, ?2, ?3, ?4, ?5)",
+        (
+            "prt_edit",
+            "msg_assistant",
+            "ses_1",
+            r#"{"type":"tool","tool":"edit","callID":"call_edit","state":{"status":"completed","input":{"filePath":"src/main.ts","oldString":"old","newString":"new\nextra"},"output":"done"}}"#,
+            1770000002500_i64,
+        ),
+    )
+    .expect("insert edit part");
+
+    let chunks = load_opencode_history_from_conn(&conn, "opencodeapp-ses_1", "ses_1")
+        .expect("load session chunks");
+    let impact = imported_history::impact_from_edit_chunks(&chunks);
+
+    assert_eq!(impact.touched_files, vec!["src/main.ts"]);
+    assert_eq!(impact.lines_added, 2);
+    assert_eq!(impact.lines_removed, 1);
+}
+
+#[test]
 fn rejects_invalid_opencode_prefixed_ids() {
     assert!(opencode_source_id_from_session_id("codexapp-ses_1").is_err());
     assert!(opencode_source_id_from_session_id("opencodeapp-").is_err());

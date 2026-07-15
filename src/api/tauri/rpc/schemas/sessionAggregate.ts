@@ -35,6 +35,7 @@ const KeySourceSchema = z.enum(["own_key", "hosted_key"]);
 // ── Filter input ──
 
 export const SessionFilterInput = z.object({
+  sessionIds: z.array(z.string().min(1)).optional(),
   category: z.string().optional(),
   status: z.string().optional(),
   keySource: z.string().optional(),

@@ -39,6 +39,9 @@ import TaskDetailHeader from "./TaskDetailHeader";
 import type { TaskDetailNavigationDirection } from "./TaskDetailHeader";
 import TaskDetailHeaderActions from "./TaskDetailHeaderActions";
 import TaskDetailInfoSection from "./TaskDetailInfoSection";
+import TaskDetailViewPill from "./TaskDetailViewPill";
+import type { TaskDetailView } from "./TaskDetailViewPill";
+import TouchedFilesList from "./TouchedFilesList";
 import {
   type MergeStrategy,
   buildDiscardConfirmationMessage,
@@ -117,6 +120,9 @@ const SessionTaskPanel: React.FC<SessionTaskPanelProps> = ({
   );
   const turnPaginationEnabled = useAtomValue(chatTurnPaginationEnabledAtom);
   const sortedEvents = useAtomValue(sortedEventsAtom);
+
+  const [detailView, setDetailView] = useState<TaskDetailView>("trajectory");
+  const touchedFiles = session?.touchedFiles ?? [];
 
   const [mergeLoading, setMergeLoading] = useState(false);
   const [discardLoading, setDiscardLoading] = useState(false);
@@ -211,22 +217,28 @@ const SessionTaskPanel: React.FC<SessionTaskPanelProps> = ({
         hasPrev={hasPrev}
         hasNext={hasNext}
         actions={
-          <TaskDetailHeaderActions
-            canReplay={canReplay}
-            canMerge={canMerge}
-            mergeLoading={mergeLoading}
-            discardLoading={discardLoading}
-            strategyOpen={strategyOpen}
-            mergeStrategy={mergeStrategy}
-            mergeButtonTitle={mergeButtonTitle}
-            strategyRef={strategyRef}
-            t={t}
-            onReplay={handleReplay}
-            onMerge={handleMerge}
-            onDiscard={handleDiscard}
-            onToggleStrategy={handleToggleStrategy}
-            onSelectStrategy={handleSelectStrategy}
-          />
+          <div className="flex items-center gap-1.5">
+            <TaskDetailViewPill
+              activeView={detailView}
+              onChange={setDetailView}
+            />
+            <TaskDetailHeaderActions
+              canReplay={canReplay}
+              canMerge={canMerge}
+              mergeLoading={mergeLoading}
+              discardLoading={discardLoading}
+              strategyOpen={strategyOpen}
+              mergeStrategy={mergeStrategy}
+              mergeButtonTitle={mergeButtonTitle}
+              strategyRef={strategyRef}
+              t={t}
+              onReplay={handleReplay}
+              onMerge={handleMerge}
+              onDiscard={handleDiscard}
+              onToggleStrategy={handleToggleStrategy}
+              onSelectStrategy={handleSelectStrategy}
+            />
+          </div>
         }
       />
 
@@ -235,12 +247,18 @@ const SessionTaskPanel: React.FC<SessionTaskPanelProps> = ({
       )}
 
       <div className="task-detail-panel__chat">
-        <ChatView
-          key={sessionId}
-          sessionId={sessionId}
-          secondary
-          turnPaginationEnabled={turnPaginationEnabled}
-        />
+        <div
+          className="h-full"
+          style={detailView === "touched" ? { display: "none" } : undefined}
+        >
+          <ChatView
+            key={sessionId}
+            sessionId={sessionId}
+            secondary
+            turnPaginationEnabled={turnPaginationEnabled}
+          />
+        </div>
+        {detailView === "touched" && <TouchedFilesList files={touchedFiles} />}
       </div>
     </div>
   );

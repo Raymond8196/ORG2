@@ -124,6 +124,10 @@
         "apps": "Apps",
         "clis": "CLIs"
       },
+      "views": {
+        "scanning": "Scanning",
+        "hooks": "Hooks"
+      },
       "sessions_one": "{{count}} session",
       "sessions_other": "{{count}} sessions",
       "details": {
@@ -256,6 +260,11 @@
     },
     "replay": {
       "replaySession": "Replay"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     },
     "diary": {
       "title": "Diary",
@@ -809,7 +818,8 @@
       "tabs": {
         "work": "Work",
         "manage": "Manage",
-        "heatmap": "Trends"
+        "heatmap": "Trends",
+        "runtime": "Runtime"
       },
       "heatmap": {
         "loading": "Loading activity trends…",

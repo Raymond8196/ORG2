@@ -431,6 +431,27 @@
     "issueComments_other": "{{count}} comments",
     "overview": "Overview",
     "sessionBlame": "Session Blame",
+    "sessionBlameSubagent": "Subagent: {{name}}",
+    "sessionBlameMainSession": "Main session",
+    "sessionBlameAction": {
+      "read": "Read",
+      "write": "Write",
+      "create": "Create",
+      "delete": "Delete",
+      "rename": "Rename",
+      "search": "Search"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Unknown confidence",
+      "session_only": "Session only",
+      "correlated": "Correlated",
+      "exact": "Exact attribution"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Indexing historical sessions {{indexed}}/{{total}}",
+      "partial": "Historical index incomplete ({{failed}} failed)",
+      "failed": "Historical session indexing failed"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -1039,6 +1060,10 @@
     "scanningFiles": "Scanning files...",
     "branchTooltip": "Branch: {{branch}}",
     "branchTooltipSwitching": "Branch: {{branch}} (switching...)",
+    "switchWorkspaceTooltip": "Switch workspace",
+    "switchWorktreeTooltip": "Switch worktree",
+    "switchBranchTooltip": "Switch branch",
+    "gitActionsTooltip": "Git actions",
     "switchToSessionRepo": "Switch to {{name}}",
     "embeddingProgress": "Embedding: {{count}} chunks processed",
     "embeddingProgressWithPercent": "Embedding: {{count}} chunks processed ({{percent}}%)",
@@ -1051,6 +1076,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "External",
       "tooltip": "Ports: {{workspace}} workspace, {{external}} external",
+      "viewPortsTooltip": "View used ports",
       "noWorkspacePorts": "No workspace ports detected",
       "externalLabel": "external",
       "unknownProcess": "Unknown process",
@@ -1173,9 +1199,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token is required",
       "createTokenButton": "Create Token",
-      "openGitSettingsButton": "Open Git Settings",
+      "openGitSettingsButton": "Open Settings",
       "configureInSettings": "Configure Git in Settings",
-      "configureInSettingsDesc": "Add GitHub App access, save a token, or scan local credentials in Settings → Integrations → Git, then retry this Git operation."
+      "configureInSettingsDesc": "Add GitHub App access, save a token, or scan local credentials in Settings → Connections, then retry this Git operation."
     },
     "actions": {
       "publish": "Publish",
@@ -1277,7 +1303,7 @@
       },
       "authRequired": {
         "title": "Connect GitHub",
-        "description": "Go to Settings → Integrations → Git to connect your GitHub account."
+        "description": "Go to Settings → Connections to connect your GitHub account."
       }
     },
     "issues": {
@@ -1309,10 +1335,10 @@
       },
       "authRequired": {
         "title": "Connect GitHub",
-        "description": "Go to Settings → Integrations → Git to connect your GitHub account."
+        "description": "Go to Settings → Connections to connect your GitHub account."
       },
       "reAuthRequired": "GitHub Authorization Required",
-      "reAuthDescription": "Your GitHub token has expired. Go to Settings → Integrations → Git to reconnect.",
+      "reAuthDescription": "Your GitHub token has expired. Go to Settings → Connections to reconnect.",
       "goToSettings": "Go to Settings"
     },
     "commit": {
@@ -1462,7 +1488,9 @@
         "delete": "Delete",
         "deleteTemplate": "Delete {branch}",
         "createSessionWith": "Switch Session Branch",
-        "createSessionWithTemplate": "Switch Session Branch to {branch}"
+        "createSessionWithTemplate": "Switch Session Branch to {branch}",
+        "switchWorktree": "Switch worktree",
+        "switchWorktreeTemplate": "Switch to {worktree}"
       },
       "actions": {
         "createNew": "Create new branch",
@@ -1473,7 +1501,8 @@
         "refresh": "Refresh branch",
         "checkoutDetachedSuccess": "Now in detached HEAD state at current commit",
         "checkoutDetachedFailed": "Failed to checkout detached HEAD",
-        "removeWorktree": "Remove Worktree"
+        "removeWorktree": "Remove Worktree",
+        "newWorktree": "New Worktree..."
       },
       "messages": {
         "deletedCount_one": "Deleted {{count}} branch",
@@ -1488,7 +1517,9 @@
         "basedOn": "Based on",
         "worktrees": "Worktrees",
         "worktreeInUse": "In use",
-        "checkedOutInWorktree": "Checked out in worktree: {{path}}"
+        "checkedOutInWorktree": "Checked out in worktree: {{path}}",
+        "mainWorktreeSection": "Main worktree",
+        "linkedWorktrees": "Linked worktrees"
       },
       "placeholders": {
         "checkout": "branch",
@@ -1597,7 +1628,8 @@
         "workspace": "Search or enter folder path",
         "branch": "Search branch...",
         "source": "Search source...",
-        "actions": "Search actions..."
+        "actions": "Search actions...",
+        "worktree": "Search worktree..."
       },
       "groups": {
         "agentSession": "Agent Session",
@@ -2058,9 +2090,6 @@
     "pill": {
       "focus": "Focus",
       "allChanges": "All Changes"
-    },
-    "sessionFilter": {
-      "allSessions": "All sessions"
     },
     "scope": {
       "local": "Local",

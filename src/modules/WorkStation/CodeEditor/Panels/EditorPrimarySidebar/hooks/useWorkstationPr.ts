@@ -321,7 +321,7 @@ export function useWorkstationPr(options: UseWorkstationPrOptions) {
     if (result.error) {
       if (result.error === "not_authenticated") {
         setCreatingByBranch((current) => ({ ...current, [branchName]: false }));
-        navigate(buildIntegrationsPath({ category: "git" }));
+        navigate(buildIntegrationsPath({ category: "connections" }));
         Message.info({
           id: "github-auth-required",
           title: t("git.pr.authRequired.title"),

@@ -20,6 +20,8 @@ export * from "./sources/opencode";
 export * from "./sources/trae";
 export * from "./sources/windsurf";
 export * from "./sources/workbuddy";
+export * from "./sources/warp";
+export * from "./sources/zcode";
 
 export interface ExternalHistoryImportedRepo {
   repoId: string;

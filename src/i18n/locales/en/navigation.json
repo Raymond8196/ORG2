@@ -49,13 +49,6 @@
     "terminals": "Terminals"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "All Tabs",
-      "code": "Code",
-      "browser": "Browser",
-      "data": "Database",
-      "project": "Projects"
-    },
     "agentComputer": {
       "label": "{{agent}}'s Workstation",
       "agents": {
@@ -74,6 +67,13 @@
       "newPrivateBrowserTab": "New private browser tab",
       "workItems": "Work items",
       "projects": "Projects"
+    },
+    "startPage": {
+      "title": "Start",
+      "subtitle": "Open a tab to get started.",
+      "explorer": "Explorer",
+      "sourceControl": "Source Control",
+      "terminal": "Terminal"
     }
   },
   "trajectoryPanel": {

@@ -46,5 +46,7 @@ pub mod opencode;
 pub mod orgii_cli;
 pub mod orgii_rust_agents;
 pub mod trae;
+pub mod warp;
 pub mod windsurf;
 pub mod workbuddy;
+pub mod zcode;

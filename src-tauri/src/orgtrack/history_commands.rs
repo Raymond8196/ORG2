@@ -10,8 +10,10 @@ use orgtrack_core::sources::cursor_ide::{
 use orgtrack_core::sources::imported_history;
 use orgtrack_core::sources::opencode::history as opencode_history;
 use orgtrack_core::sources::trae::history as trae_history;
+use orgtrack_core::sources::warp::history as warp_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
+use orgtrack_core::sources::zcode::history as zcode_history;
 
 use crate::agent_sessions::unified_stats::pricing_catalog;
 
@@ -43,6 +45,8 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
     )?);
     paths.extend(trae_history::list_trae_recent_paths(&mut conn, 0)?);
     paths.extend(cline_history::list_cline_recent_paths(&mut conn, 0)?);
+    paths.extend(warp_history::list_warp_recent_paths(&mut conn, 0)?);
+    paths.extend(zcode_history::list_zcode_recent_paths(&mut conn, 0)?);
     Ok(imported_history::recent_paths_from_paths(&paths))
 }
 
@@ -266,6 +270,50 @@ pub async fn opencode_recent_paths(
 }
 
 #[tauri::command]
+pub async fn warp_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || warp_history::load_warp_history_for_session(&session_id))
+        .await
+        .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn warp_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<warp_history::WarpRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        warp_history::list_warp_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn zcode_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || zcode_history::load_zcode_history_for_session(&session_id))
+        .await
+        .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn zcode_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<zcode_history::ZCodeRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        zcode_history::list_zcode_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
 pub async fn windsurf_history_chunks(
     session_id: String,
 ) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
@@ -359,6 +407,25 @@ pub async fn workbuddy_recent_paths(
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
         workbuddy_history::list_workbuddy_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+/// Number of hidden sub-agent sessions cached for an importable source — Cursor's
+/// sub-agent composers, which are folded under a parent and excluded from the
+/// normal list queries. 0 for every other source today. Surfaced as its own
+/// column in the Data Sources panel next to the top-level session count.
+#[tauri::command]
+pub async fn imported_history_subagent_count(source: String) -> Result<usize, String> {
+    if !imported_history::metadata::is_imported_history_source(&source) {
+        return Ok(0);
+    }
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        let (_sessions, subagents) =
+            imported_history::cache::source_session_counts_from_conn(&conn, &source)?;
+        Ok(subagents)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

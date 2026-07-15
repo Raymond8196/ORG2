@@ -122,6 +122,10 @@
         "apps": "Apps",
         "clis": "CLIs"
       },
+      "views": {
+        "scanning": "Scannen",
+        "hooks": "Hooks"
+      },
       "sessions_one": "{{count}} Sitzung",
       "sessions_other": "{{count}} Sitzungen",
       "details": {
@@ -273,6 +277,11 @@
       "commits_one": "{{count}} Commit",
       "commits_other": "{{count}} Commits",
       "committedRateShort": "{{percent}} % committed"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
   },
   "changes": {
@@ -773,7 +782,8 @@
       "tabs": {
         "work": "Arbeit",
         "manage": "Verwalten",
-        "heatmap": "Trends"
+        "heatmap": "Trends",
+        "runtime": "Laufzeit"
       },
       "heatmap": {
         "loading": "Aktivitätstrends werden geladen…",

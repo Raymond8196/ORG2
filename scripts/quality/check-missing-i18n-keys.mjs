@@ -29,6 +29,11 @@ const nsFilter = args.includes("--namespace")
 const shouldFix = args.includes("--fix");
 const verbose = args.includes("--verbose");
 
+// Locale files may carry a UTF-8 BOM; strip it so JSON.parse doesn't choke.
+function readJson(filePath) {
+  return JSON.parse(readFileSync(filePath, "utf-8").replace(/^﻿/, ""));
+}
+
 function flattenKeys(obj, prefix = "") {
   const keys = [];
   for (const [key, value] of Object.entries(obj)) {
@@ -81,7 +86,7 @@ for (const ns of namespaceFiles) {
   if (nsFilter && ns !== nsFilter) continue;
 
   const enPath = join(sourceDir, `${ns}.json`);
-  const enData = JSON.parse(readFileSync(enPath, "utf-8"));
+  const enData = readJson(enPath);
   const enKeys = flattenKeys(enData);
 
   let nsMissing = 0;
@@ -90,7 +95,7 @@ for (const ns of namespaceFiles) {
     const langPath = join(LOCALES_DIR, lang, `${ns}.json`);
     let langData;
     try {
-      langData = JSON.parse(readFileSync(langPath, "utf-8"));
+      langData = readJson(langPath);
     } catch {
       console.error(`  ✗ ${lang}/${ns}.json — file missing or invalid`);
       continue;

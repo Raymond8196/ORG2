@@ -122,6 +122,10 @@
         "apps": "Приложения",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "Сканирование",
+        "hooks": "Хуки"
+      },
       "sessions_one": "{{count}} сессия",
       "sessions_few": "{{count}} сессии",
       "sessions_many": "{{count}} сессий",
@@ -277,6 +281,11 @@
       "commits_one": "{{count}} commit",
       "commits_other": "{{count}} commits",
       "committedRateShort": "{{percent}}% закоммичено"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
   },
   "changes": {
@@ -779,7 +788,8 @@
       "tabs": {
         "work": "Работа",
         "manage": "Управление",
-        "heatmap": "Тренды"
+        "heatmap": "Тренды",
+        "runtime": "Среда выполнения"
       },
       "heatmap": {
         "loading": "Загрузка трендов активности…",

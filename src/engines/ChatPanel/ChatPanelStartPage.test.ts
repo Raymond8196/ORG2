@@ -88,6 +88,7 @@ describe("ChatPanelStartPage", () => {
       'data-testid="chat-panel-start-page-session-launcher"'
     );
     expect(markup).toContain('data-testid="chat-panel-start-page-tabs"');
+    expect(markup).toContain('data-testid="chat-panel-start-page-tab-runtime"');
     expect(markup).toContain("chat.startPage.tabs.manage");
     expect(markup).not.toContain("chat.startPage.tabs.explore");
     expect(markup).toContain('data-testid="chat-panel-start-page-actions"');

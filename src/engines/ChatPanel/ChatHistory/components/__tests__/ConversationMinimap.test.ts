@@ -12,11 +12,13 @@ import {
 } from "../ConversationMinimap";
 
 describe("getConversationPreviewPositionClass", () => {
-  it("opens a narrow left-docked chat preview toward the pane interior", () => {
+  it("opens a left-docked chat preview into the chat interior (not outward)", () => {
     const positionClass = getConversationPreviewPositionClass("left");
 
-    expect(positionClass).toContain("left-full");
-    expect(positionClass).toContain("@[640px]/chatbody:right-full");
+    // Minimap is pinned to the chat's right edge, so the preview opens left
+    // (into the chat) rather than outward where the pane edge would clip it.
+    expect(positionClass).toContain("right-full");
+    expect(positionClass).not.toContain("left-full");
   });
 
   it("keeps a right-docked chat preview opening to the left", () => {

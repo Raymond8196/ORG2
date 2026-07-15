@@ -419,6 +419,27 @@
     "renowned": "知名",
     "dragToReorder": "拖拽调整消息顺序",
     "sessionBlame": "Session Blame",
+    "sessionBlameSubagent": "子代理：{{name}}",
+    "sessionBlameMainSession": "主 Session",
+    "sessionBlameAction": {
+      "read": "读取",
+      "write": "写入",
+      "create": "创建",
+      "delete": "删除",
+      "rename": "重命名",
+      "search": "搜索"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "归属未知",
+      "session_only": "仅归属到 Session",
+      "correlated": "关联推断",
+      "exact": "精确归属"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "正在索引历史 Session {{indexed}}/{{total}}",
+      "partial": "历史索引不完整（{{failed}} 个失败）",
+      "failed": "历史 Session 索引失败"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -436,7 +457,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "文件",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1027,6 +1048,10 @@
     "scanningFiles": "正在扫描文件...",
     "branchTooltip": "分支：{{branch}}",
     "branchTooltipSwitching": "分支：{{branch}}（切换中…）",
+    "switchWorkspaceTooltip": "切换工作区",
+    "switchWorktreeTooltip": "切换 Worktree",
+    "switchBranchTooltip": "切换分支",
+    "gitActionsTooltip": "Git 操作",
     "switchToSessionRepo": "切换到 {{name}}",
     "embeddingProgress": "嵌入：已处理 {{count}} 个 chunk",
     "embeddingProgressWithPercent": "嵌入：已处理 {{count}} 个 chunk（{{percent}}%）",
@@ -1039,6 +1064,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "外部",
       "tooltip": "端口：{{workspace}} 个 Workspace，{{external}} 个外部",
+      "viewPortsTooltip": "查看使用中的端口",
       "noWorkspacePorts": "未检测到 Workspace 端口",
       "externalLabel": "外部",
       "unknownProcess": "未知进程",
@@ -1161,9 +1187,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "需要 token",
       "createTokenButton": "创建 Token",
-      "openGitSettingsButton": "打开 Git 设置",
+      "openGitSettingsButton": "打开设置",
       "configureInSettings": "在设置中配置 Git",
-      "configureInSettingsDesc": "在 设置 → 集成 → Git 中添加 GitHub App 访问权限、保存 token 或扫描本地凭据，然后重试此 Git 操作。"
+      "configureInSettingsDesc": "在 设置 → 连接 中添加 GitHub App 访问权限、保存 token 或扫描本地凭据，然后重试此 Git 操作。"
     },
     "actions": {
       "publish": "Publish",
@@ -1372,7 +1398,9 @@
         "delete": "删除",
         "deleteTemplate": "删除 {branch}",
         "createSessionWith": "切换 Session 分支",
-        "createSessionWithTemplate": "切换 Session 分支到 {branch}"
+        "createSessionWithTemplate": "切换 Session 分支到 {branch}",
+        "switchWorktree": "切换 Worktree",
+        "switchWorktreeTemplate": "切换到 {worktree}"
       },
       "actions": {
         "createNew": "创建新分支",
@@ -1383,7 +1411,8 @@
         "refresh": "刷新分支",
         "checkoutDetachedSuccess": "已切换到 detached HEAD 状态（当前提交）",
         "checkoutDetachedFailed": "切换到 detached HEAD 失败",
-        "removeWorktree": "移除 Worktree"
+        "removeWorktree": "移除 Worktree",
+        "newWorktree": "新建 Worktree..."
       },
       "messages": {
         "deletedCount_one": "已删除 {{count}} 个分支",
@@ -1398,7 +1427,9 @@
         "basedOn": "基于",
         "worktrees": "Worktrees",
         "worktreeInUse": "使用中",
-        "checkedOutInWorktree": "已在 Worktree 中检出：{{path}}"
+        "checkedOutInWorktree": "已在 Worktree 中检出：{{path}}",
+        "mainWorktreeSection": "主 Worktree",
+        "linkedWorktrees": "链接 Worktree"
       },
       "placeholders": {
         "checkout": "分支",
@@ -1507,7 +1538,8 @@
         "workspace": "搜索或输入文件夹路径",
         "branch": "搜索分支...",
         "source": "搜索来源...",
-        "actions": "搜索操作..."
+        "actions": "搜索操作...",
+        "worktree": "搜索 Worktree..."
       },
       "groups": {
         "agentSession": "Agent 会话",
@@ -1966,9 +1998,6 @@
     "pill": {
       "focus": "聚焦",
       "allChanges": "全部更改"
-    },
-    "sessionFilter": {
-      "allSessions": "所有会话"
     },
     "scope": {
       "local": "本地",

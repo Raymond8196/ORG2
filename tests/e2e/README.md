@@ -14,6 +14,8 @@ These are the specs to run after UI changes that can affect chat/session behavio
 - `specs/core/session-account-switch.spec.mjs` — provider account switch matrix across CLI and Rust-native paths.
 - `specs/core/session-memory-ui.spec.mjs` — rendered/session-visible smoke for session memory, agent memory, extract memory, and auto dream flags.
 - `specs/core/chat-rendering-ui.spec.mjs` — deterministic rendered ChatHistory coverage for tool-card compatibility and duplicate thought/answer deduping.
+- `specs/core/session-provenance-live.spec.mjs` — real Claude Code, Codex, and Cursor hooks through Session Blame, transcript navigation, and sidebar reveal.
+- `specs/core/diff-tab-content-live.spec.mjs` — real ORG2 agent edit/read through canonical final-diff rendering.
 
 ## Provider capacity policy
 
