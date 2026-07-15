@@ -624,9 +624,8 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
               rows={searchedRows}
               getRowKey={(row) => row.probe.sourceId}
               headerHeight="tall"
-              // Keep the sticky header a single row (search + tab pills + rescan
-              // share one 32px toolbar), matching the Settings CLI clients table
-              // instead of stacking the pills onto a second row.
+              // Keep search + tabs + rescan inline when space allows; the shared
+              // toolbar stacks search/actions above the tabs in narrow panels.
               inlineHeaderToolbar
               className="table-expanded-no-hover table-settings-expanded-compact"
               hover
@@ -641,7 +640,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
                   (rows ?? []).length > 0 ? (
                     <Button
                       variant="secondary"
-                      size="small"
+                      size="default"
                       loading={rescanningAll}
                       icon={<RefreshCw size={14} />}
                       onClick={() => void handleRescanAll()}
@@ -656,10 +655,13 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
                     onChange={(key) => setTab(key as DataSourceTab)}
                     variant="pill"
                     color="fill"
+                    className="h-8 [&>button]:!h-full"
                     fillWidth={false}
                     size="small"
+                    buttonStyle
                   />
                 ),
+                searchInputSize: "default",
                 searchCountText:
                   searchTerm && searchedRows.length !== visibleRows.length
                     ? `${searchedRows.length} / ${visibleRows.length}`
