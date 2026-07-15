@@ -143,10 +143,12 @@ its navigation target and displays the child title. Clicking it runs the same
 production session loader used elsewhere in My Station, so the child
 transcript—not only an ID change—is loaded and rendered.
 
-If an upstream exposes an actor ID but no independently loadable child
-transcript, the row shows the actor and its precision while keeping the parent
-session as the navigation target. ORG2 never fabricates a child session merely
-to imply stronger attribution.
+The root aggregate already includes every interaction in the group. A
+participant whose effective replay target resolves to the same canonical
+session/transcript as the root is therefore folded into the root row instead
+of being rendered as a duplicate main-agent or subagent row. A distinct child
+identity may remain visible without navigation when its transcript is not yet
+proven; ORG2 never falls back to opening the root as if it were that child.
 
 Cursor's installed `subagentStart` lifecycle hook preserves `subagent_id`,
 `subagent_type`, and `parent_conversation_id`. Its file-bearing `postToolUse`

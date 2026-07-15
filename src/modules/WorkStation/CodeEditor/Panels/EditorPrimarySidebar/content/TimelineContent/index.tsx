@@ -305,7 +305,14 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
         <button
           type="button"
           data-testid="session-blame-session-header"
+          data-session-id={session.sessionId}
           data-transcript-session-id={session.transcriptSessionId ?? undefined}
+          data-origin-session-id={session.sessionId}
+          data-participant-kind="root"
+          data-session-source={session.source}
+          data-attribution-precision={session.attributionPrecision}
+          data-read-count={session.actionCounts.read ?? 0}
+          data-write-count={session.actionCounts.write ?? 0}
           className={`flex w-full items-start gap-1.5 px-4 py-1.5 pr-3 text-left transition-colors ${hasRootTranscript ? PRIMARY_SIDEBAR_HOVER.row : "cursor-default"}`}
           disabled={!hasRootTranscript}
           onClick={() => {
