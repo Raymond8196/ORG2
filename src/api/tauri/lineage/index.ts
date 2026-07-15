@@ -14,10 +14,8 @@ import type {
   OrgtrackDiffReplayPreview,
   OrgtrackExportResult,
   OrgtrackExtractionMemoryGate,
-  OrgtrackFileSessionLookup,
   OrgtrackFileTimeline,
   OrgtrackIndex,
-  OrgtrackScanProgress,
   OrgtrackSessionCheckpoint,
   OrgtrackSessionDiffChunk,
   OrgtrackSessionEditArtifact,
@@ -36,10 +34,8 @@ export type {
   OrgtrackExportResult,
   OrgtrackExtractionMemoryGate,
   OrgtrackCommitLink,
-  OrgtrackFileSessionLookup,
   OrgtrackFileTimeline,
   OrgtrackIndex,
-  OrgtrackScanProgress,
   OrgtrackSessionCheckpoint,
   OrgtrackSessionDiffChunk,
   OrgtrackSessionEditArtifact,
@@ -67,28 +63,6 @@ export async function initializeOrgtrack(input: {
   return rpc.lineage.orgtrackInitialize(input);
 }
 
-export async function startOrgtrackScan(input: {
-  repoPath: string;
-  tier?: OrgtrackTier;
-  allowRawTrajectory?: boolean;
-  resume?: boolean;
-  rebuild?: boolean;
-}): Promise<OrgtrackScanProgress> {
-  return rpc.lineage.orgtrackScanStart(input);
-}
-
-export async function getOrgtrackScanStatus(
-  repoPath: string
-): Promise<OrgtrackScanProgress | null> {
-  return rpc.lineage.orgtrackScanStatus({ repoPath });
-}
-
-export async function cancelOrgtrackScan(
-  repoPath: string
-): Promise<OrgtrackScanProgress> {
-  return rpc.lineage.orgtrackScanCancel({ repoPath });
-}
-
 export async function syncOrgtrackCoreRepo(
   repoPath: string
 ): Promise<OrgtrackIndex> {
@@ -101,12 +75,6 @@ export async function exportOrgtrack(input: {
   allowRawTrajectory?: boolean;
 }): Promise<OrgtrackExportResult> {
   return rpc.lineage.orgtrackExport(input);
-}
-
-export async function getOrgtrackIndex(
-  repoPath: string
-): Promise<OrgtrackIndex | null> {
-  return rpc.lineage.orgtrackGetIndex({ repoPath });
 }
 
 export async function getOrgtrackFileTimeline(input: {
@@ -139,13 +107,6 @@ export async function deleteOrgtrackSessionArtifacts(
   sessionId: string
 ): Promise<void> {
   await rpc.lineage.orgtrackDeleteSessionArtifacts({ sessionId });
-}
-
-export async function lookupOrgtrackFileSessions(input: {
-  repoPath: string;
-  filePath: string;
-}): Promise<OrgtrackFileSessionLookup | null> {
-  return rpc.lineage.orgtrackLookupFileSessions(input);
 }
 
 export async function getOrgtrackSourceTierPolicy(
