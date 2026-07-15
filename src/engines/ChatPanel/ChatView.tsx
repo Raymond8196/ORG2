@@ -62,7 +62,6 @@ import {
   sessionByIdAtom,
 } from "@src/store/session";
 import type { Session } from "@src/store/session";
-import { canvasPreviewAtom } from "@src/store/session/canvasPreviewAtom";
 import {
   isSessionActiveAtom,
   sessionRuntimeStatusAtom,
@@ -121,6 +120,7 @@ import { useAgentOrgRunView } from "./InputArea/components/useAgentOrgRunView";
 import { useComposerSections } from "./InputArea/hooks/useComposerSections";
 import { useGitDiffActions } from "./InputArea/hooks/useGitDiffActions";
 import { useQueueEditMode } from "./InputArea/hooks/useQueueEditMode";
+import { useCanvasForTurn } from "./blocks/CanvasInlineCard/useCanvasForTurn";
 import { useJumpToSimulatorCanvas } from "./blocks/CanvasInlineCard/useJumpToSimulatorCanvas";
 import { useBrowserAddToConversationAction } from "./hooks/useBrowserAddToConversationAction";
 import { useFollowAgent } from "./hooks/useFollowAgent";
@@ -447,12 +447,12 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const streamRetry =
       streamRetryStatus?.sessionId === sessionId ? streamRetryStatus : null;
     const snapshot = useAtomValue(derivedSnapshotAtom);
-    const canvasPreview = useAtomValue(canvasPreviewAtom);
+    const { snapshot: canvasForTurn } = useCanvasForTurn(sessionId);
     const latestCanvasPreview = snapshot?.latestCanvasPreview ?? null;
     const latestCanvasPayload = useMemo(
       () =>
-        canvasPreview?.sessionId === sessionId
-          ? canvasPreview.payload
+        canvasForTurn.latestPayload
+          ? canvasForTurn.latestPayload
           : latestCanvasPreview
             ? {
                 mode: latestCanvasPreview.mode,
@@ -462,7 +462,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
                 eventId: latestCanvasPreview.eventId,
               }
             : null,
-      [canvasPreview, latestCanvasPreview, sessionId]
+      [canvasForTurn.latestPayload, latestCanvasPreview]
     );
     const openLatestCanvas = useJumpToSimulatorCanvas(
       sessionId,
@@ -471,14 +471,18 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const canvasPreviewPill = useMemo(
       () =>
         latestCanvasPayload &&
-        !canvasPreview?.openedInSimulator &&
+        canvasForTurn.allowsLatestCanvasShortcut &&
         openLatestCanvas
           ? {
               label: "Canvas",
               onOpen: openLatestCanvas,
             }
           : null,
-      [canvasPreview?.openedInSimulator, latestCanvasPayload, openLatestCanvas]
+      [
+        canvasForTurn.allowsLatestCanvasShortcut,
+        latestCanvasPayload,
+        openLatestCanvas,
+      ]
     );
     const currentPlanApproval = useAtomValue(pendingPlanApprovalsAtom).get(
       sessionId
