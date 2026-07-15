@@ -350,6 +350,7 @@
     "plusMenu": {
       "title": "新しいタブ",
       "searchFile": "ファイルを検索",
+      "searchSessions": "Kanban",
       "newBrowserTab": "新しいブラウザタブ",
       "newPrivateBrowserTab": "新しいプライベートブラウザタブ",
       "workItems": "作業項目",

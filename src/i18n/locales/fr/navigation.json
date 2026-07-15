@@ -352,6 +352,7 @@
     "plusMenu": {
       "title": "Nouvel onglet",
       "searchFile": "Rechercher un fichier",
+      "searchSessions": "Kanban",
       "newBrowserTab": "Nouvel onglet de navigateur",
       "newPrivateBrowserTab": "Nouvel onglet de navigation privée",
       "workItems": "Éléments de travail",

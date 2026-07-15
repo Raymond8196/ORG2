@@ -352,6 +352,7 @@
     "plusMenu": {
       "title": "Neuer Tab",
       "searchFile": "Datei suchen",
+      "searchSessions": "Kanban",
       "newBrowserTab": "Neuer Browser-Tab",
       "newPrivateBrowserTab": "Neuer privater Browser-Tab",
       "workItems": "Arbeitsaufgaben",
