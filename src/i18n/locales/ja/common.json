@@ -405,7 +405,30 @@
     "nearby": "近く",
     "renowned": "著名",
     "dragToReorder": "ドラッグしてメッセージの順序を変更",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "セッションの帰属",
+    "sessionBlameSubagent": "サブエージェント: {{name}}",
+    "sessionBlameMainSession": "メインセッション",
+    "sessionBlameSessionAttribution": "セッション単位の帰属",
+    "sessionBlameAction": {
+      "read": "読み取り",
+      "write": "書き込み",
+      "create": "作成",
+      "delete": "削除",
+      "rename": "名前変更",
+      "search": "検索",
+      "reference": "参照"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "信頼度不明",
+      "session_only": "セッションのみ",
+      "correlated": "関連付け済み",
+      "exact": "正確な帰属"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "過去のセッションをインデックス中 {{indexed}}/{{total}}",
+      "partial": "履歴インデックスが不完全です（{{failed}} 件失敗）",
+      "failed": "過去のセッションのインデックス作成に失敗しました"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

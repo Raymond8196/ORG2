@@ -419,6 +419,29 @@
     "renowned": "知名",
     "dragToReorder": "拖拽调整消息顺序",
     "sessionBlame": "Session Blame",
+    "sessionBlameSubagent": "子代理：{{name}}",
+    "sessionBlameMainSession": "主 Session",
+    "sessionBlameSessionAttribution": "Session 级归属",
+    "sessionBlameAction": {
+      "read": "读取",
+      "write": "写入",
+      "create": "创建",
+      "delete": "删除",
+      "rename": "重命名",
+      "search": "搜索",
+      "reference": "引用"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "归属未知",
+      "session_only": "仅归属到 Session",
+      "correlated": "关联推断",
+      "exact": "精确归属"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "正在索引历史 Session {{indexed}}/{{total}}",
+      "partial": "历史索引不完整（{{failed}} 个失败）",
+      "failed": "历史 Session 索引失败"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

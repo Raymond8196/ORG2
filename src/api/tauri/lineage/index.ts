@@ -14,6 +14,8 @@ import type {
   OrgtrackDiffReplayPreview,
   OrgtrackExportResult,
   OrgtrackExtractionMemoryGate,
+  OrgtrackFileSessionHistory,
+  OrgtrackFileSessionLookup,
   OrgtrackFileTimeline,
   OrgtrackIndex,
   OrgtrackSessionCheckpoint,
@@ -34,6 +36,8 @@ export type {
   OrgtrackExportResult,
   OrgtrackExtractionMemoryGate,
   OrgtrackCommitLink,
+  OrgtrackFileSessionLookup,
+  OrgtrackFileSessionHistory,
   OrgtrackFileTimeline,
   OrgtrackIndex,
   OrgtrackSessionCheckpoint,
@@ -82,6 +86,13 @@ export async function getOrgtrackFileTimeline(input: {
   filePath: string;
 }): Promise<OrgtrackFileTimeline | null> {
   return rpc.lineage.orgtrackGetFileTimeline(input);
+}
+
+export async function getOrgtrackFileSessionHistory(input: {
+  repoPath: string;
+  filePath: string;
+}): Promise<OrgtrackFileSessionHistory> {
+  return rpc.lineage.orgtrackGetFileSessionHistory(input);
 }
 
 export async function getOrgtrackSessionSummaries(

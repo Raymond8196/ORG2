@@ -18,6 +18,31 @@ export const RawConfigWriteInput = z.object({
   content: z.string(),
 });
 
+export const SessionProvenanceHookPlatformSchema = z.enum([
+  "claude_code",
+  "codex",
+  "cursor",
+]);
+
+export const SessionProvenanceHookStatusSchema = z.object({
+  platform: SessionProvenanceHookPlatformSchema,
+  enabled: z.boolean(),
+  desiredEnabled: z.boolean(),
+  configPath: z.string(),
+});
+
+export const SessionProvenanceHookSetEnabledInput = z.object({
+  platform: SessionProvenanceHookPlatformSchema,
+  enabled: z.boolean(),
+});
+
+export type SessionProvenanceHookPlatform = z.output<
+  typeof SessionProvenanceHookPlatformSchema
+>;
+export type SessionProvenanceHookStatus = z.output<
+  typeof SessionProvenanceHookStatusSchema
+>;
+
 export const CliConfigFileInput = z.object({
   agentName: z.string(),
   fileId: z.string(),

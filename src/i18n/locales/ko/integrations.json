@@ -1677,6 +1677,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "설정 내용이 없습니다"
     },
+    "sessionProvenance": {
+      "title": "세션 출처",
+      "capture": "파일 상호작용 기록",
+      "description": "파일 읽기와 쓰기를 메타데이터로 기록합니다. 프롬프트, 도구 출력 및 파일 내용은 저장하지 않습니다.",
+      "configPath": "파일 읽기와 쓰기를 메타데이터로 기록합니다. 프롬프트, 도구 출력 및 파일 내용은 저장하지 않습니다. 설정: {{path}}",
+      "installDrift": "저장된 설정과 설치된 hook이 다릅니다. 기록을 전환하여 관리되는 hook을 복구하세요. 설정: {{path}}"
+    },
     "codexConfig": {
       "sectionTitle": "설정",
       "model": "모델",

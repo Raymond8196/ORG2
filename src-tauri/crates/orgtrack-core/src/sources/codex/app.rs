@@ -32,7 +32,7 @@ use desktop_exec::{
     normalize_codex_exec_tool_calls,
 };
 
-const CODEX_APP_SESSION_PREFIX: &str = "codexapp-";
+use super::SESSION_PREFIX as CODEX_APP_SESSION_PREFIX;
 const CODEX_PROVIDER_SLUG: &str = "codex";
 // v9: derive impact from authoritative `patch_apply_end` events (structured
 // `changes` map with unified diffs) instead of only scanning `apply_patch`
@@ -457,7 +457,7 @@ fn parse_codex_session_meta(
     };
     Ok(Some(CodexAppSessionMeta {
         source_session_id: record.source_session_id.clone(),
-        session_id: format!("{CODEX_APP_SESSION_PREFIX}{}", record.source_session_id),
+        session_id: super::canonical_session_id(&record.source_session_id),
         source_path: record.source_path.to_string_lossy().to_string(),
         source_record_key: record.source_record_key.clone(),
         source_mtime_ms: record.source_mtime_ms,
@@ -1075,11 +1075,11 @@ fn split_call_id(call_id: &str, index: usize, total: usize) -> String {
     }
 }
 
-fn normalize_codex_tool_calls(raw_name: &str, args: Value) -> Vec<(String, Value)> {
+pub(crate) fn normalize_codex_tool_calls(raw_name: &str, args: Value) -> Vec<(String, Value)> {
     let key = normalize_tool_name_key(raw_name);
     match key.as_str() {
-        "shell" | "shell_command" | "bash" | "terminal" | "terminal_command" | "run_shell"
-        | "run_command" | "execute" | "exec" => {
+        "shell" | "shell_command" | "exec_command" | "bash" | "terminal" | "terminal_command"
+        | "run_shell" | "run_command" | "execute" | "exec" => {
             let shell_args = normalize_shell_args(args);
             if let Some(read_args) = read_file_arg_values_from_shell_args(&shell_args) {
                 read_args

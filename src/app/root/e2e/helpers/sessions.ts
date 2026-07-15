@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { getPendingPlanApproval } from "@src/api/tauri/agent";
 import { promptDump } from "@src/api/tauri/agent/promptDump";
 import { respondPlanApproval } from "@src/api/tauri/agent/session";
+import { getOrgtrackFileSessionHistory } from "@src/api/tauri/lineage";
 import { rpc } from "@src/api/tauri/rpc";
 import { normalizeAgentExecMode } from "@src/config/sessionCreatorConfig";
 import {
@@ -21,6 +22,7 @@ import {
 } from "@src/engines/SessionCore/storage/cacheAdapter";
 import { cliAdapter } from "@src/engines/SessionCore/sync/adapters";
 import { getAdapterForSession } from "@src/engines/SessionCore/sync/types";
+import { openOrFocusChatPanelStartPageTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { reposAtom, selectedRepoIdAtom } from "@src/store/repo/atoms";
 import {
   type ContextUsageSnapshot,
@@ -49,12 +51,12 @@ import {
 import { chatImageAttachmentsAtom } from "@src/store/ui/chatImageAtom";
 import {
   CHAT_PANEL_CONTENT_MODE,
+  CHAT_PANEL_START_PAGE_TAB,
   DEFAULT_CHAT_PANEL_CREATE_TARGET,
   chatPanelContentModeAtom,
   chatPanelCreateTargetAtom,
   chatPanelMaximizedAtom,
   chatPanelSelectedWorkItemAtom,
-  chatPanelStartPageOpenAtom,
   chatWidthAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
@@ -63,7 +65,17 @@ import {
   queueFlushRequestAtom,
 } from "@src/store/ui/messageQueueAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
+import {
+  workStationPrimarySidebarCollapsedAtom,
+  workStationPrimarySidebarTabAtom,
+} from "@src/store/ui/workStationAtom";
 import { workspaceFoldersAtom } from "@src/store/ui/workspaceFoldersAtom";
+import {
+  type WorkStationLayoutState,
+  createFileTab,
+  openTab as openWorkstationTab,
+  workstationLayoutAtom,
+} from "@src/store/workstation/tabs";
 import { isCliSession } from "@src/util/session/sessionDispatch";
 
 import { asError } from "../result";
@@ -166,6 +178,44 @@ export function createSessionHelpers(store: E2EStore) {
     }
   };
 
+  const openWorkstationFile = async (
+    filePath: string
+  ): Promise<Result<{ filePath: string }>> => {
+    try {
+      if (!filePath) {
+        return {
+          ok: false,
+          error: "openWorkstationFile: `filePath` is required",
+        };
+      }
+      const tab = createFileTab(filePath);
+      store.set(workStationPrimarySidebarTabAtom, "files");
+      store.set(workStationPrimarySidebarCollapsedAtom, false);
+      store.set(workstationLayoutAtom, (layout: WorkStationLayoutState) => ({
+        ...layout,
+        mainPane: openWorkstationTab(
+          layout?.mainPane ?? { tabs: [], activeTabId: null },
+          tab
+        ),
+      }));
+      return { ok: true, filePath };
+    } catch (err) {
+      return asError(err);
+    }
+  };
+
+  const inspectOrgtrackFileSessionHistory = async (input: {
+    repoPath: string;
+    filePath: string;
+  }): Promise<Result<{ history: Json }>> => {
+    try {
+      const history = await getOrgtrackFileSessionHistory(input);
+      return { ok: true, history: history as unknown as Json };
+    } catch (err) {
+      return asError(err);
+    }
+  };
+
   const inspectCliSessionStatus = async (
     sessionId: string
   ): Promise<Result<{ session: Json | null }>> => {
@@ -209,13 +259,17 @@ export function createSessionHelpers(store: E2EStore) {
       store.set(clearSessionAtom);
       store.set(activeSessionIdAtom, null);
       store.set(workstationActiveSessionIdAtom, null);
-      store.set(stationModeAtom, "my-station");
+      // A new session is composed on Agent Station. My Station can now show
+      // the empty WorkStation tab-pool start page, so resetting there no
+      // longer mounts SessionCreator even after all session atoms are clear.
+      store.set(stationModeAtom, "agent-station");
       store.set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.SESSION);
-      // The chat-panel start page (Work/Explore landing, commit 8db3bb76)
-      // defaults open for every fresh session. Without forcing it closed the
-      // SessionCreator composer never mounts and resetToNewSession times out
-      // waiting for chat-input — close it so the composer renders.
-      store.set(chatPanelStartPageOpenAtom, false);
+      // New-session creation now lives inside the singleton Launchpad's Work
+      // tab. Focus that canonical tab instead of forcing the legacy bare
+      // session surface, which no longer mounts SessionCreator by itself.
+      store.set(openOrFocusChatPanelStartPageTabAtom, {
+        section: CHAT_PANEL_START_PAGE_TAB.WORK,
+      });
       store.set(chatPanelCreateTargetAtom, DEFAULT_CHAT_PANEL_CREATE_TARGET);
       store.set(chatPanelSelectedWorkItemAtom, null);
       store.set(chatPanelMaximizedAtom, true);
@@ -648,6 +702,8 @@ export function createSessionHelpers(store: E2EStore) {
   return {
     promptDump: promptDumpHelper,
     getActiveSessionId,
+    openWorkstationFile,
+    inspectOrgtrackFileSessionHistory,
     inspectCliSessionStatus,
     inspectCliHistoryMutation,
     resetToNewSession,

@@ -1680,6 +1680,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "Kein Konfigurationsinhalt"
     },
+    "sessionProvenance": {
+      "title": "Sitzungsherkunft",
+      "capture": "Dateiinteraktionen erfassen",
+      "description": "Erfasst Lese- und Schreibzugriffe auf Dateien als Metadaten. Prompts, Werkzeugausgaben und Dateiinhalte werden nicht gespeichert.",
+      "configPath": "Erfasst Lese- und Schreibzugriffe auf Dateien als Metadaten. Prompts, Werkzeugausgaben und Dateiinhalte werden nicht gespeichert. Konfiguration: {{path}}",
+      "installDrift": "Gespeicherte Einstellung und installierter Hook stimmen nicht überein. Schalten Sie die Erfassung um, um den verwalteten Hook zu reparieren. Konfiguration: {{path}}"
+    },
     "codexConfig": {
       "sectionTitle": "Konfiguration",
       "model": "Modell",

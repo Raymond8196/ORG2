@@ -474,7 +474,7 @@ fn minimal_cache_input_from_index(
     ImportedHistoryCacheInput {
         source: SOURCE_CURSOR_IDE,
         source_session_id: row.id.clone(),
-        session_id: format!("{CURSORIDE_SESSION_PREFIX}{}", row.id),
+        session_id: super::canonical_session_id(&row.id),
         source_path: source_path.to_string(),
         source_record_key: record_key.to_string(),
         source_mtime_ms: row.updated_at_ms,
@@ -560,7 +560,7 @@ fn cache_input_from_raw(
     Ok(ImportedHistoryCacheInput {
         source: SOURCE_CURSOR_IDE,
         source_session_id: id.to_string(),
-        session_id: format!("{CURSORIDE_SESSION_PREFIX}{id}"),
+        session_id: super::canonical_session_id(id),
         source_path: source_path.to_string(),
         source_record_key: source_record_key.to_string(),
         source_mtime_ms,

@@ -2380,7 +2380,14 @@
     "orgSaveFailed": "Failed to save team",
     "orgDeleteFailed": "Failed to delete team",
     "deleteOrgTitle": "Delete team?",
-    "deleteOrgMessage": "\"{{name}}\" will be permanently removed. This cannot be undone."
+    "deleteOrgMessage": "\"{{name}}\" will be permanently removed. This cannot be undone.",
+    "sessionProvenance": {
+      "title": "Session Provenance",
+      "capture": "Capture file interactions",
+      "description": "Records file reads and writes as metadata. Prompts, tool output, and file contents are not stored.",
+      "configPath": "Records file reads and writes as metadata. Prompts, tool output, and file contents are not stored. Config: {{path}}",
+      "installDrift": "The saved preference and installed hook differ. Toggle capture to repair the managed hook. Config: {{path}}"
+    }
   },
   "tableHeaders": {
     "agentType": "Agent Type",

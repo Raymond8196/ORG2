@@ -407,7 +407,10 @@ pub fn source_session_counts_from_conn(
          FROM imported_history_session_cache WHERE source = ?1"
     );
     conn.query_row(&sql, [source], |row| {
-        Ok((row.get::<_, i64>(0)? as usize, row.get::<_, i64>(1)? as usize))
+        Ok((
+            row.get::<_, i64>(0)? as usize,
+            row.get::<_, i64>(1)? as usize,
+        ))
     })
     .map_err(|err| format!("Failed to count imported history sessions: {err}"))
 }
@@ -543,6 +546,31 @@ pub fn query_cached_sessions_for_source_from_conn(
         source,
         "listable = ?2",
         &[SqlValue::from(1_i64)],
+        i64::MAX as usize,
+        0,
+    )
+}
+
+/// Query cached sessions for one repository, including child/subagent rows
+/// that list surfaces intentionally hide. A child without its own repository
+/// inherits the parent's match in SQL so reconciliation stays repo-scoped
+/// without loading every historical session into memory.
+pub fn query_cached_sessions_for_repo_from_conn(
+    conn: &Connection,
+    source: &str,
+    repo_path: &str,
+) -> Result<Vec<ImportedHistoryCachedSession>, String> {
+    query_cached_sessions_by_filter_from_conn(
+        conn,
+        source,
+        "(repo_path = ?2 OR (
+            repo_path = '' AND parent_session_id IN (
+                SELECT parent_match.session_id
+                FROM imported_history_session_cache parent_match
+                WHERE parent_match.source = ?1 AND parent_match.repo_path = ?2
+            )
+        ))",
+        &[SqlValue::from(repo_path.to_string())],
         i64::MAX as usize,
         0,
     )

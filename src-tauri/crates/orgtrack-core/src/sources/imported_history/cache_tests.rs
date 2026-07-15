@@ -215,6 +215,29 @@ fn cache_source_list_filters_unlistable_sessions() {
 }
 
 #[test]
+fn cache_repo_query_includes_hidden_child_with_inherited_parent_repo() {
+    let mut conn = fixture_conn();
+    let mut parent = input(SOURCE_CODEX_APP, "parent", 300);
+    parent.repo_path = Some("/tmp/target-repo".to_string());
+    let mut child = input(SOURCE_CODEX_APP, "child", 200);
+    child.repo_path = None;
+    child.listable = false;
+    child.parent_session_id = Some(parent.session_id.clone());
+    let outside = input(SOURCE_CODEX_APP, "outside", 100);
+    upsert_imported_session_cache_from_conn(&mut conn, &[parent, child, outside]).expect("upsert");
+
+    let sessions =
+        query_cached_sessions_for_repo_from_conn(&conn, SOURCE_CODEX_APP, "/tmp/target-repo")
+            .expect("query repo sessions");
+    let ids = sessions
+        .iter()
+        .map(|session| session.source_session_id.as_str())
+        .collect::<Vec<_>>();
+
+    assert_eq!(ids, vec!["parent", "child"]);
+}
+
+#[test]
 fn cache_session_page_filters_child_sessions() {
     let mut conn = fixture_conn();
     let parent = input(SOURCE_CODEX_APP, "parent", 200);

@@ -431,6 +431,29 @@
     "issueComments_other": "{{count}} comments",
     "overview": "Overview",
     "sessionBlame": "Session Blame",
+    "sessionBlameSubagent": "Subagent: {{name}}",
+    "sessionBlameMainSession": "Main session",
+    "sessionBlameSessionAttribution": "Session-level attribution",
+    "sessionBlameAction": {
+      "read": "Read",
+      "write": "Write",
+      "create": "Create",
+      "delete": "Delete",
+      "rename": "Rename",
+      "search": "Search",
+      "reference": "Reference"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Unknown confidence",
+      "session_only": "Session only",
+      "correlated": "Correlated",
+      "exact": "Exact attribution"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Indexing historical sessions {{indexed}}/{{total}}",
+      "partial": "Historical index incomplete ({{failed}} failed)",
+      "failed": "Historical session indexing failed"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

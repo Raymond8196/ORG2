@@ -5,18 +5,20 @@ pub mod history_commands;
 pub mod impact_indexer;
 pub mod importer;
 pub mod paths;
+pub mod session_provenance;
 pub mod types;
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use database::db::get_connection;
 use orgtrack_core::canonical::{
-    AgentMetadata, CommitLinkRecord, SessionCheckpointFileStateRecord, SessionCheckpointRecord,
-    SessionDiffChunkRecord, SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
-    SOURCE_ORGII_RUST_AGENTS,
+    AgentMetadata, AttributionPrecision, CommitLinkRecord, ResourceInteractionRecord,
+    SessionCheckpointFileStateRecord, SessionCheckpointRecord, SessionDiffChunkRecord,
+    SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
+    RESOURCE_INTERACTION_SCHEMA_VERSION, SOURCE_ORGII_RUST_AGENTS,
 };
 use orgtrack_core::edit_extraction::final_diff_from_chunks;
 use orgtrack_core::policy::{source_tier_policy, SourceTierPolicy};
@@ -126,6 +128,370 @@ pub async fn orgtrack_get_file_timeline(
     })
     .await
     .map_err(|err| err.to_string())?
+}
+
+#[derive(Debug)]
+struct FileSessionHistoryAccumulator {
+    session_id: String,
+    parent_session_id: Option<String>,
+    session_label: String,
+    participant_kind: String,
+    actor_id: Option<String>,
+    actor_label: Option<String>,
+    first_interaction_at: String,
+    last_interaction_at: String,
+    interaction_count: usize,
+    action_counts: BTreeMap<String, usize>,
+    actor_ids: BTreeSet<String>,
+    capture_methods: BTreeSet<String>,
+    attribution_precision: AttributionPrecision,
+}
+
+#[derive(Debug)]
+struct FileSessionGroupAccumulator {
+    session_id: String,
+    session_label: String,
+    source: String,
+    workspace_path: Option<String>,
+    first_interaction_at: String,
+    last_interaction_at: String,
+    interaction_count: usize,
+    action_counts: BTreeMap<String, usize>,
+    capture_methods: BTreeSet<String>,
+    attribution_precision: AttributionPrecision,
+    participants: BTreeMap<String, FileSessionHistoryAccumulator>,
+}
+
+#[tauri::command]
+pub async fn orgtrack_get_file_session_history(
+    repo_path: String,
+    file_path: String,
+) -> Result<types::FileSessionHistory, String> {
+    record_orgtrack_command_call("orgtrack_get_file_session_history");
+    tokio::task::spawn_blocking(move || {
+        // Make newly emitted hook events visible in the same request that the
+        // user uses to open the file history panel.
+        if let Err(err) = session_provenance::drain_hook_inbox() {
+            tracing::warn!(error = %err, "[SessionProvenance] Pre-query inbox drain failed");
+        }
+
+        let resolved = session_provenance::resolve_file_resource(&repo_path, &file_path);
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let store = SqliteRecordStore::new(&conn);
+        let interactions = store.list_file_resource_interactions(
+            resolved.repository_id.as_deref(),
+            &resolved.workspace_path,
+            &resolved.repo_relative_path,
+        )?;
+        let sessions = project_file_session_history(&store, interactions)?;
+        // Scheduling is intentionally after the foreground read. Backfill
+        // owns a separate DB connection and never delays this response.
+        let backfill = session_provenance::request_historical_backfill(
+            &repo_path,
+            &resolved.repo_relative_path,
+        );
+        Ok(types::FileSessionHistory {
+            schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+            file_path: resolved.repo_relative_path,
+            backfill,
+            sessions,
+        })
+    })
+    .await
+    .map_err(|err| err.to_string())?
+}
+
+fn project_file_session_history(
+    store: &dyn RecordStore,
+    interactions: Vec<ResourceInteractionRecord>,
+) -> Result<Vec<types::FileSessionHistorySession>, String> {
+    let interactions = strongest_resource_interactions(interactions);
+    let mut grouped: BTreeMap<String, FileSessionGroupAccumulator> = BTreeMap::new();
+    let mut session_cache: HashMap<String, Option<SessionRecord>> = HashMap::new();
+    for interaction in interactions {
+        if !session_cache.contains_key(&interaction.session_id) {
+            session_cache.insert(
+                interaction.session_id.clone(),
+                store.get_session(&interaction.session_id)?,
+            );
+        }
+        let session = session_cache
+            .get(&interaction.session_id)
+            .and_then(Option::as_ref)
+            .cloned();
+        let actor_session = interaction
+            .actor_id
+            .as_deref()
+            .map(|actor_id| {
+                resolve_actor_session(store, &mut session_cache, &interaction.source, actor_id)
+            })
+            .transpose()?
+            .flatten();
+        let target_session = actor_session.as_ref().or(session.as_ref());
+        let origin_session_id = target_session
+            .and_then(|session| session.parent_session_id.clone())
+            .or_else(|| {
+                session
+                    .as_ref()
+                    .and_then(|session| session.parent_session_id.clone())
+            })
+            .unwrap_or_else(|| interaction.session_id.clone());
+        if !session_cache.contains_key(&origin_session_id) {
+            session_cache.insert(
+                origin_session_id.clone(),
+                store.get_session(&origin_session_id)?,
+            );
+        }
+        let origin_session = session_cache
+            .get(&origin_session_id)
+            .and_then(Option::as_ref)
+            .cloned();
+        let target_session_id = actor_session
+            .as_ref()
+            .map(|session| session.session_id.clone())
+            .unwrap_or_else(|| interaction.session_id.clone());
+        let is_subagent = interaction.actor_id.is_some()
+            || target_session.is_some_and(|session| session.parent_session_id.is_some());
+        let participant_id =
+            if target_session.is_some_and(|session| session.parent_session_id.is_some()) {
+                target_session_id.clone()
+            } else if let Some(actor_id) = interaction.actor_id.as_ref() {
+                format!("{origin_session_id}::actor::{actor_id}")
+            } else {
+                format!("{origin_session_id}::session")
+            };
+        let actor_label = is_subagent.then(|| {
+            actor_session
+                .as_ref()
+                .or_else(|| target_session.filter(|session| session.parent_session_id.is_some()))
+                .map(|session| session.title.clone())
+                .filter(|title| !title.trim().is_empty())
+                .or_else(|| interaction.actor_id.clone())
+                .unwrap_or_else(|| target_session_id.clone())
+        });
+        let group = grouped.entry(origin_session_id.clone()).or_insert_with(|| {
+            FileSessionGroupAccumulator {
+                session_id: origin_session_id.clone(),
+                session_label: origin_session
+                    .as_ref()
+                    .or(session.as_ref())
+                    .map(|session| session.title.clone())
+                    .filter(|title| !title.trim().is_empty())
+                    .unwrap_or_else(|| origin_session_id.clone()),
+                source: origin_session
+                    .as_ref()
+                    .or(session.as_ref())
+                    .map(|session| session.source.clone())
+                    .unwrap_or_else(|| interaction.source.clone()),
+                workspace_path: origin_session
+                    .as_ref()
+                    .or(session.as_ref())
+                    .and_then(|session| session.workspace_path.clone()),
+                first_interaction_at: interaction.occurred_at.clone(),
+                last_interaction_at: interaction.occurred_at.clone(),
+                interaction_count: 0,
+                action_counts: BTreeMap::new(),
+                capture_methods: BTreeSet::new(),
+                attribution_precision: interaction.attribution_precision,
+                participants: BTreeMap::new(),
+            }
+        });
+        update_file_session_aggregate(
+            &mut group.first_interaction_at,
+            &mut group.last_interaction_at,
+            &mut group.interaction_count,
+            &mut group.action_counts,
+            &mut group.capture_methods,
+            &mut group.attribution_precision,
+            &interaction,
+        );
+        let entry = group.participants.entry(participant_id).or_insert_with(|| {
+            FileSessionHistoryAccumulator {
+                session_id: target_session_id,
+                parent_session_id: is_subagent.then_some(origin_session_id),
+                session_label: target_session
+                    .map(|session| session.title.clone())
+                    .filter(|title| !title.trim().is_empty())
+                    .unwrap_or_else(|| interaction.session_id.clone()),
+                participant_kind: if is_subagent {
+                    "subagent".to_string()
+                } else {
+                    "session".to_string()
+                },
+                actor_id: interaction.actor_id.clone(),
+                actor_label,
+                first_interaction_at: interaction.occurred_at.clone(),
+                last_interaction_at: interaction.occurred_at.clone(),
+                interaction_count: 0,
+                action_counts: BTreeMap::new(),
+                actor_ids: BTreeSet::new(),
+                capture_methods: BTreeSet::new(),
+                attribution_precision: interaction.attribution_precision,
+            }
+        });
+        update_file_session_aggregate(
+            &mut entry.first_interaction_at,
+            &mut entry.last_interaction_at,
+            &mut entry.interaction_count,
+            &mut entry.action_counts,
+            &mut entry.capture_methods,
+            &mut entry.attribution_precision,
+            &interaction,
+        );
+        if let Some(actor_id) = interaction.actor_id {
+            entry.actor_ids.insert(actor_id);
+        }
+    }
+
+    let mut sessions = grouped
+        .into_iter()
+        .map(|(_, entry)| types::FileSessionHistorySession {
+            session_id: entry.session_id,
+            session_label: entry.session_label,
+            source: entry.source,
+            workspace_path: entry.workspace_path,
+            first_interaction_at: entry.first_interaction_at,
+            last_interaction_at: entry.last_interaction_at,
+            interaction_count: entry.interaction_count,
+            action_counts: entry.action_counts,
+            capture_methods: entry.capture_methods.into_iter().collect(),
+            attribution_precision: entry.attribution_precision.as_str().to_string(),
+            participants: entry
+                .participants
+                .into_iter()
+                .map(
+                    |(entry_id, participant)| types::FileSessionHistoryParticipant {
+                        entry_id,
+                        session_id: participant.session_id,
+                        parent_session_id: participant.parent_session_id,
+                        session_label: participant.session_label,
+                        participant_kind: participant.participant_kind,
+                        actor_id: participant.actor_id,
+                        actor_label: participant.actor_label,
+                        first_interaction_at: participant.first_interaction_at,
+                        last_interaction_at: participant.last_interaction_at,
+                        interaction_count: participant.interaction_count,
+                        action_counts: participant.action_counts,
+                        actor_ids: participant.actor_ids.into_iter().collect(),
+                        capture_methods: participant.capture_methods.into_iter().collect(),
+                        attribution_precision: participant
+                            .attribution_precision
+                            .as_str()
+                            .to_string(),
+                    },
+                )
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+    sessions.sort_by(|left, right| {
+        right
+            .last_interaction_at
+            .cmp(&left.last_interaction_at)
+            .then(left.session_id.cmp(&right.session_id))
+    });
+    Ok(sessions)
+}
+
+fn update_file_session_aggregate(
+    first_interaction_at: &mut String,
+    last_interaction_at: &mut String,
+    interaction_count: &mut usize,
+    action_counts: &mut BTreeMap<String, usize>,
+    capture_methods: &mut BTreeSet<String>,
+    attribution_precision: &mut AttributionPrecision,
+    interaction: &ResourceInteractionRecord,
+) {
+    if interaction.occurred_at < *first_interaction_at {
+        *first_interaction_at = interaction.occurred_at.clone();
+    }
+    if interaction.occurred_at > *last_interaction_at {
+        *last_interaction_at = interaction.occurred_at.clone();
+    }
+    *interaction_count += 1;
+    *action_counts
+        .entry(interaction.action.as_str().to_string())
+        .or_default() += 1;
+    capture_methods.insert(interaction.capture_method.as_str().to_string());
+    *attribution_precision = (*attribution_precision).max(interaction.attribution_precision);
+}
+
+fn strongest_resource_interactions(
+    interactions: Vec<ResourceInteractionRecord>,
+) -> Vec<ResourceInteractionRecord> {
+    let mut correlated = BTreeMap::<String, ResourceInteractionRecord>::new();
+    let mut uncorrelated = Vec::new();
+    for interaction in interactions {
+        let Some(source_event_id) = interaction.source_event_id.as_ref() else {
+            uncorrelated.push(interaction);
+            continue;
+        };
+        let key = format!(
+            "{}\0{}\0{}\0{}",
+            interaction.source,
+            source_event_id,
+            interaction.resource_id,
+            interaction.action.as_str()
+        );
+        match correlated.entry(key) {
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert(interaction);
+            }
+            std::collections::btree_map::Entry::Occupied(mut entry) => {
+                if interaction_strength(&interaction) > interaction_strength(entry.get()) {
+                    entry.insert(interaction);
+                }
+            }
+        }
+    }
+    uncorrelated.extend(correlated.into_values());
+    uncorrelated
+}
+
+fn interaction_strength(
+    interaction: &ResourceInteractionRecord,
+) -> (AttributionPrecision, bool, u8) {
+    let capture_rank = match interaction.capture_method {
+        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Native => 4,
+        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Reconciled => 3,
+        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Hook => 2,
+        orgtrack_core::canonical::ResourceInteractionCaptureMethod::Transcript => 1,
+    };
+    (
+        interaction.attribution_precision,
+        interaction.actor_id.is_some(),
+        capture_rank,
+    )
+}
+
+fn resolve_actor_session(
+    store: &dyn RecordStore,
+    session_cache: &mut HashMap<String, Option<SessionRecord>>,
+    source: &str,
+    actor_id: &str,
+) -> Result<Option<SessionRecord>, String> {
+    let mut candidates = vec![actor_id.to_string()];
+    match source {
+        "claude_code" => {
+            candidates.push(format!("claudecodeapp-{actor_id}"));
+            if !actor_id.starts_with("agent-") {
+                // Claude hook `agent_id` is the bare sidechain ID while the
+                // history importer uses the JSONL stem (`agent-{id}`).
+                candidates.push(format!("claudecodeapp-agent-{actor_id}"));
+            }
+        }
+        "codex_app" => candidates.push(format!("codexapp-{actor_id}")),
+        "cursor_ide" => candidates.push(format!("cursoride-{actor_id}")),
+        _ => {}
+    };
+    for candidate in candidates {
+        if !session_cache.contains_key(&candidate) {
+            session_cache.insert(candidate.clone(), store.get_session(&candidate)?);
+        }
+        if let Some(session) = session_cache.get(&candidate).and_then(Option::as_ref) {
+            return Ok(Some(session.clone()));
+        }
+    }
+    Ok(None)
 }
 
 #[tauri::command]
@@ -589,7 +955,15 @@ pub async fn orgtrack_get_checkpoint_file_states(
 
 #[cfg(test)]
 mod tests {
-    use super::is_temporary_diff_path;
+    use super::{is_temporary_diff_path, project_file_session_history};
+    use orgtrack_core::canonical::{
+        AgentMetadata, AttributionPrecision, ResourceAction, ResourceInteractionCaptureMethod,
+        ResourceInteractionOutcome, ResourceInteractionRecord, SessionRecord,
+        RESOURCE_INTERACTION_SCHEMA_VERSION,
+    };
+    use orgtrack_core::privacy::ORGTRACK_SCHEMA_VERSION;
+    use orgtrack_core::store::{sqlite::SqliteRecordStore, RecordStore};
+    use rusqlite::Connection;
 
     #[test]
     fn hides_tmp_and_scratchpad_diff_paths() {
@@ -603,6 +977,181 @@ mod tests {
         assert!(!is_temporary_diff_path(
             "/Users/vinceorz/Downloads/notes.txt"
         ));
+    }
+
+    #[test]
+    fn file_session_history_groups_actions_and_preserves_strongest_attribution() {
+        let conn = Connection::open_in_memory().expect("in-memory SQLite");
+        SqliteRecordStore::init_tables(&conn).expect("initialize orgtrack schema");
+        let store = SqliteRecordStore::new(&conn);
+        store
+            .upsert_session(&SessionRecord {
+                schema_version: ORGTRACK_SCHEMA_VERSION,
+                source: "codex_app".to_string(),
+                source_session_id: "source-1".to_string(),
+                session_id: "session-1".to_string(),
+                title: "Implement provenance".to_string(),
+                status: None,
+                created_at: None,
+                updated_at: None,
+                completed_at: None,
+                workspace_path: Some("/repo".to_string()),
+                branch: None,
+                parent_session_id: None,
+                org_member_id: None,
+                metadata: AgentMetadata::default(),
+            })
+            .expect("upsert session");
+
+        let interaction = |id: &str,
+                           action: ResourceAction,
+                           at: &str,
+                           actor: Option<&str>,
+                           precision: AttributionPrecision| {
+            ResourceInteractionRecord {
+                schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                interaction_id: id.to_string(),
+                source: "codex_app".to_string(),
+                source_session_id: Some("source-1".to_string()),
+                source_event_id: Some(id.to_string()),
+                session_id: "session-1".to_string(),
+                turn_id: None,
+                actor_id: actor.map(str::to_string),
+                resource_id: "resource-1".to_string(),
+                action,
+                outcome: ResourceInteractionOutcome::Succeeded,
+                occurred_at: at.to_string(),
+                capture_method: ResourceInteractionCaptureMethod::Hook,
+                attribution_precision: precision,
+            }
+        };
+        let history = project_file_session_history(
+            &store,
+            vec![
+                interaction(
+                    "read",
+                    ResourceAction::Read,
+                    "2026-07-14T01:00:00Z",
+                    Some("agent-1"),
+                    AttributionPrecision::SessionOnly,
+                ),
+                interaction(
+                    "write",
+                    ResourceAction::Write,
+                    "2026-07-14T02:00:00Z",
+                    Some("agent-1"),
+                    AttributionPrecision::Exact,
+                ),
+            ],
+        )
+        .expect("project history");
+
+        assert_eq!(history.len(), 1);
+        assert_eq!(history[0].session_label, "Implement provenance");
+        assert_eq!(history[0].interaction_count, 2);
+        assert_eq!(history[0].action_counts.get("read"), Some(&1));
+        assert_eq!(history[0].action_counts.get("write"), Some(&1));
+        assert_eq!(history[0].attribution_precision, "exact");
+        assert_eq!(history[0].participants.len(), 1);
+        let participant = &history[0].participants[0];
+        assert_eq!(participant.participant_kind, "subagent");
+        assert_eq!(participant.actor_ids, vec!["agent-1"]);
+        assert_eq!(participant.actor_id.as_deref(), Some("agent-1"));
+        assert_eq!(participant.actor_label.as_deref(), Some("agent-1"));
+        assert_eq!(participant.interaction_count, 2);
+    }
+
+    #[test]
+    fn file_session_history_resolves_subagent_to_loadable_child_transcript() {
+        let conn = Connection::open_in_memory().expect("in-memory SQLite");
+        SqliteRecordStore::init_tables(&conn).expect("initialize orgtrack schema");
+        let store = SqliteRecordStore::new(&conn);
+        for (session_id, source_session_id, title, parent_session_id) in [
+            ("claudecodeapp-parent", "parent", "Parent", None),
+            (
+                "claudecodeapp-agent-1",
+                "agent-1",
+                "Research subagent",
+                Some("claudecodeapp-parent"),
+            ),
+        ] {
+            store
+                .upsert_session(&SessionRecord {
+                    schema_version: ORGTRACK_SCHEMA_VERSION,
+                    source: "claude_code".to_string(),
+                    source_session_id: source_session_id.to_string(),
+                    session_id: session_id.to_string(),
+                    title: title.to_string(),
+                    status: None,
+                    created_at: None,
+                    updated_at: None,
+                    completed_at: None,
+                    workspace_path: Some("/repo".to_string()),
+                    branch: None,
+                    parent_session_id: parent_session_id.map(str::to_string),
+                    org_member_id: None,
+                    metadata: AgentMetadata::default(),
+                })
+                .expect("upsert session");
+        }
+
+        let history = project_file_session_history(
+            &store,
+            vec![
+                ResourceInteractionRecord {
+                    schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                    interaction_id: "interaction-hook".to_string(),
+                    source: "claude_code".to_string(),
+                    source_session_id: Some("parent".to_string()),
+                    source_event_id: Some("tool-1".to_string()),
+                    session_id: "claudecodeapp-parent".to_string(),
+                    turn_id: None,
+                    actor_id: None,
+                    resource_id: "resource-1".to_string(),
+                    action: ResourceAction::Read,
+                    outcome: ResourceInteractionOutcome::Succeeded,
+                    occurred_at: "2026-07-14T01:00:00Z".to_string(),
+                    capture_method: ResourceInteractionCaptureMethod::Hook,
+                    attribution_precision: AttributionPrecision::SessionOnly,
+                },
+                ResourceInteractionRecord {
+                    schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                    interaction_id: "interaction-reconciled".to_string(),
+                    source: "claude_code".to_string(),
+                    source_session_id: Some("agent-1".to_string()),
+                    source_event_id: Some("tool-1".to_string()),
+                    session_id: "claudecodeapp-agent-1".to_string(),
+                    turn_id: None,
+                    actor_id: Some("1".to_string()),
+                    resource_id: "resource-1".to_string(),
+                    action: ResourceAction::Read,
+                    outcome: ResourceInteractionOutcome::Succeeded,
+                    occurred_at: "2026-07-14T01:00:01Z".to_string(),
+                    capture_method: ResourceInteractionCaptureMethod::Reconciled,
+                    attribution_precision: AttributionPrecision::Exact,
+                },
+            ],
+        )
+        .expect("project history");
+
+        assert_eq!(history.len(), 1);
+        assert_eq!(history[0].session_id, "claudecodeapp-parent");
+        assert_eq!(history[0].session_label, "Parent");
+        assert_eq!(history[0].interaction_count, 1);
+        assert_eq!(history[0].participants.len(), 1);
+        let participant = &history[0].participants[0];
+        assert_eq!(participant.session_id, "claudecodeapp-agent-1");
+        assert_eq!(
+            participant.parent_session_id.as_deref(),
+            Some("claudecodeapp-parent")
+        );
+        assert_eq!(participant.session_label, "Research subagent");
+        assert_eq!(participant.participant_kind, "subagent");
+        assert_eq!(participant.actor_id.as_deref(), Some("1"));
+        assert_eq!(
+            participant.actor_label.as_deref(),
+            Some("Research subagent")
+        );
     }
 }
 
