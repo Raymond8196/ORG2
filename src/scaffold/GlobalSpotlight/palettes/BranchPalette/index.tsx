@@ -252,10 +252,17 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
         action: () => setMode("remove"),
       });
     }
+    const RefreshIcon = (props: { size?: number; className?: string }) =>
+      React.createElement(RefreshCw, {
+        ...props,
+        className:
+          `${props.className ?? ""} ${isRefreshing ? "spotlight-refresh-spin" : ""}`.trim(),
+      });
+
     actions.push({
       id: "worktree:refresh",
       label: t("actions.refresh", "Refresh"),
-      icon: RefreshCw,
+      icon: RefreshIcon,
       type: "action",
       data: { disabled: isRefreshing },
       action: () => void handleRefreshWorktrees(),
