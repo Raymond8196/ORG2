@@ -11,7 +11,14 @@
  */
 import { useAtom, useAtomValue } from "jotai";
 import { Layout, MoreHorizontal } from "lucide-react";
-import React, { memo, useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
@@ -185,13 +192,34 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
       return map;
     }, [availableItems]);
 
+    // Resolve pinned skill paths lazily: only scan when a pinned skill is
+    // missing its `skillPath` (needed for the hover preview). Pinned actions
+    // that already carry a path — the common case — never trigger a scan, so
+    // mounting the input stays free. The scan itself is bounded/coalesced by
+    // the shared scanner, and the full "…" panel list still loads on open.
+    const unresolvedPinnedSkillsKey = useMemo(
+      () =>
+        pinnedActions
+          .filter((action) => action.category === "skill" && !action.skillPath)
+          .map((action) => action.skillName ?? action.name)
+          .sort()
+          .join("\0"),
+      [pinnedActions]
+    );
+
+    useEffect(() => {
+      if (!unresolvedPinnedSkillsKey) return;
+      void fetchFresh();
+    }, [unresolvedPinnedSkillsKey, fetchFresh]);
+
     // ── "..." panel state ─────────────────────────────────────────────────────
 
     const [panelOpen, setPanelOpen] = useState(false);
     const moreButtonRef = useRef<HTMLButtonElement>(null);
 
     const handleOpenPanel = useCallback(() => {
-      void fetchFresh();
+      // Explicit user action → get a fresh list (still coalesced).
+      void fetchFresh({ force: true });
       setPanelOpen((prev) => !prev);
     }, [fetchFresh]);
 
