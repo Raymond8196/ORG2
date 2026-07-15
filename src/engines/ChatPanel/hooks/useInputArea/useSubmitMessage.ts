@@ -23,6 +23,7 @@ import Message from "@src/components/Message";
 import { extractQuestionBatch } from "@src/engines/ChatPanel/InputArea/AskQuestionCard/extractQuestionBatch";
 import { chatEventsAtom } from "@src/engines/SessionCore";
 import { createLogger } from "@src/hooks/logger";
+import { useSecretScanGuard } from "@src/hooks/security/useSecretScanGuard";
 import { sessionByIdAtom } from "@src/store/session";
 import type { ChatImageAttachment } from "@src/store/ui/chatImageAtom";
 import { wpReadOnlyAtom } from "@src/store/ui/chatPanelAtom";
@@ -126,6 +127,7 @@ export function useSubmitMessage({
   const wpReadOnly = useAtomValue(wpReadOnlyAtom);
   const submitInFlightKeyRef = useRef<string | null>(null);
   const { runManualCompact } = useManualCompact();
+  const guardAgainstSecrets = useSecretScanGuard();
 
   return useCallback(
     async (options: SubmitMessageOptions = {}) => {
@@ -184,6 +186,14 @@ export function useSubmitMessage({
       // backend scheduler. Parse the command first so selecting its pill never
       // becomes a silent no-op while the session is working.
       if (submitDisabled) return;
+
+      // ── Secret scan gate ─────────────────────────────────────────────────
+      // Warn before a typed API key / token / password enters the transcript
+      // and reaches the model. The user can still choose to send anyway.
+      if (hasText) {
+        const clearedSecretScan = await guardAgainstSecrets(displayText);
+        if (!clearedSecretScan) return;
+      }
 
       // ── Question intercept ────────────────────────────────────────────────
       // When the agent asked a question and the user typed a reply in the main
@@ -480,6 +490,7 @@ export function useSubmitMessage({
     [
       wpReadOnly,
       store,
+      guardAgainstSecrets,
       handleSessChatSubmit,
       citeCode,
       refs,

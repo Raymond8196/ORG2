@@ -28,6 +28,7 @@
     "agentSessions": "Sesje Agent",
     "apiKeys": "Klucze API",
     "appUpdate": "Aktualizacja aplikacji",
+    "security": "Bezpieczeństwo",
     "monitor": "Urządzenie & sieć",
     "osAgentConfig": "Konfiguracja OS Agent",
     "sdeAgentConfig": "Konfiguracja SDE Agent",
@@ -54,6 +55,7 @@
       "models": "Modele & Keys",
       "myRoles": "Moje role",
       "rulesMemoryEvolution": "Reguły, Pamięć & Ewolucja",
+      "security": "Bezpieczeństwo",
       "routines": "Rutyny",
       "tools": "Built-in Tools",
       "computerUse": "Computer Use",
@@ -66,6 +68,16 @@
       "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
+  },
+  "security": {
+    "scan": "Ostrzegaj przed wysłaniem sekretów",
+    "scanDesc": "Skanuje wpisywany w edytorze tekst w poszukiwaniu kluczy API, tokenów i haseł oraz prosi o potwierdzenie przed wysłaniem ich do modelu",
+    "entropy": "Wykrywaj ciągi o wysokiej entropii",
+    "entropyDesc": "Oznacza także długie, losowo wyglądające ciągi, które nie pasują do znanego formatu klucza. Wykrywa więcej sekretów, ale czasem może oznaczyć skróty lub identyfikatory",
+    "customPatterns": "Wzorce niestandardowe",
+    "customPatternsDesc": "Jedno wyrażenie regularne na wiersz. Każde dopasowanie jest traktowane jako sekret. Nieprawidłowe wyrażenia są ignorowane",
+    "customPatternsPlaceholder": "np. MYCORP_[A-Z0-9]{20}",
+    "invalidPatterns": "{{count}} wzorzec(ów) jest nieprawidłowych i zostanie zignorowanych: {{patterns}}"
   },
   "myRoles": {
     "currentStatus": "Mój obecny status",

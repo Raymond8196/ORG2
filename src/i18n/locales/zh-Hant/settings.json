@@ -28,6 +28,7 @@
     "agentSessions": "Agent Session",
     "apiKeys": "API Keys",
     "appUpdate": "應用更新",
+    "security": "安全",
     "monitor": "裝置 & 網路",
     "osAgentConfig": "OS Agent 配置",
     "sdeAgentConfig": "SDE Agent 配置",
@@ -54,6 +55,7 @@
       "models": "模型 & Keys",
       "myRoles": "我的角色",
       "rulesMemoryEvolution": "規則、記憶 & 進化",
+      "security": "安全",
       "routines": "例程",
       "tools": "內置工具",
       "computerUse": "Computer Use",
@@ -66,6 +68,16 @@
       "externalSkillsets": "Skills、MCPs、Plugins",
       "housekeeper": "MiniCPM 常駐管家"
     }
+  },
+  "security": {
+    "scan": "傳送密鑰前警告",
+    "scanDesc": "掃描你在輸入框中鍵入的內容，尋找 API 金鑰、權杖和密碼，並在傳送給模型前要求確認",
+    "entropy": "偵測高熵字串",
+    "entropyDesc": "同時標記不符合已知密鑰格式、看起來隨機的長字串。能發現更多密鑰，但偶爾可能誤報雜湊值或 ID",
+    "customPatterns": "自訂模式",
+    "customPatternsDesc": "每行一個正規表達式。任何符合項都會被視為密鑰。無效的表達式將被忽略",
+    "customPatternsPlaceholder": "例如 MYCORP_[A-Z0-9]{20}",
+    "invalidPatterns": "{{count}} 個模式無效，將被忽略：{{patterns}}"
   },
   "myRoles": {
     "currentStatus": "我的目前狀態",

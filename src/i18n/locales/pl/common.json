@@ -74,6 +74,11 @@
       "other": "Sekret"
     }
   },
+  "secretScan": {
+    "title": "Wykryto możliwy sekret",
+    "message": "Ta wiadomość wygląda na zawierającą poufne dane uwierzytelniające:\n\n{{items}}\n\nWysłanie zapisze sekret w historii czatu i prześle go do modelu. Wysłać mimo to?",
+    "sendAnyway": "Wyślij mimo to"
+  },
   "actions": {
     "all": "Wszystkie",
     "save": "Zapisz",
