@@ -678,6 +678,17 @@
   background: transparent;
 }
 
+// The session list sits directly on the page surface, but its frozen first
+// column still needs an opaque paint layer so horizontally scrolled cells do
+// not show through it.
+.settings-table-root-transparent
+  .table-settings.table-settings-session-list-hover.table-settings-sticky-first-col {
+  .table-fixed-header .table-th:first-child,
+  .table-scroll .table-row > .table-td:first-child {
+    background: var(--color-bg-2);
+  }
+}
+
 // Session tables are navigable lists, so their enabled `hover` state must
 // remain visible even on the transparent SettingsTable surface.
 .table-settings.table-settings-session-list-hover.table-hover {

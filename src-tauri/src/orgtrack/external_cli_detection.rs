@@ -57,6 +57,8 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "workbuddy",
     "trae",
     "cline",
+    "warp",
+    "zcode",
 ];
 
 /// On-disk store format for a source's session history — the "file type" shown
@@ -68,7 +70,7 @@ fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
         "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" => "jsonl",
-        "cursor_ide" | "opencode" | "windsurf" => "sqlite",
+        "cursor_ide" | "opencode" | "windsurf" | "warp" | "zcode" => "sqlite",
         // Known store format, not yet imported.
         "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
         "cursor" | "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
@@ -125,6 +127,31 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         "opencode",
         true,
         &[".config/opencode", ".local/share/opencode"],
+    ),
+    source(
+        "warp",
+        "Warp",
+        "warp",
+        "oz",
+        &["oz-preview", "warp-cli", "warp-terminal"],
+        "oz",
+        "Warp",
+        true,
+        &[
+            ".local/state/warp-terminal",
+            "Library/Group Containers/2BBY89MBSN.dev.warp/Library/Application Support/dev.warp.Warp-Stable",
+        ],
+    ),
+    source(
+        "zcode",
+        "ZCode",
+        "zcode",
+        "zcode",
+        &["zcode-cli"],
+        "zcode",
+        "zcode",
+        true,
+        &[".zcode/cli/db", ".zcode"],
     ),
     source(
         "mimo_code",
@@ -524,6 +551,8 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         "workbuddy" => platform_data_candidates(&["WorkBuddy", "workbuddy"]),
         "trae" => home_candidates(&[".trae-cn/memory/projects", ".trae/memory/projects"]),
         "cline" => home_candidates(&[".cline/data/sessions", ".cline/data/db"]),
+        "warp" => orgtrack_core::sources::warp::history::warp_history_candidate_paths(),
+        "zcode" => orgtrack_core::sources::zcode::history::zcode_history_candidate_paths(),
         _ => Vec::new(),
     }
 }
@@ -659,6 +688,19 @@ mod tests {
             assert!(seen.insert(source.source_id), "duplicate source id");
         }
     }
+
+    #[test]
+    fn warp_probe_metadata_matches_importer_contract() {
+        let source = EXTERNAL_CLI_SOURCES
+            .iter()
+            .find(|source| source.source_id == "warp")
+            .expect("Warp source");
+        assert!(source.history_import);
+        assert_eq!(store_kind_for("warp"), "sqlite");
+        assert_eq!(source.detect_cmd, "oz");
+        assert!(source.detect_aliases.contains(&"warp-terminal"));
+    }
+
     #[test]
     fn probe_unknown_source_returns_none() {
         assert!(probe_source_id("missing-agent").is_none());

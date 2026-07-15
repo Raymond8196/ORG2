@@ -66,6 +66,16 @@ describe("resolveChatPanelTabDisplayTitle", () => {
     ).toBe("Launchpad");
   });
 
+  it("shows the workspace name for a workspace tab", () => {
+    expect(
+      resolveChatPanelTabDisplayTitle(
+        tab("workspace", "orgii-web"),
+        null,
+        labels
+      )
+    ).toBe("orgii-web");
+  });
+
   it("uses the linked session instead of a leaked Launchpad title", () => {
     const session = {
       session_id: "session-1",

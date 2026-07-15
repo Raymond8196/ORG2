@@ -122,6 +122,10 @@
         "apps": "應用程式",
         "clis": "命令列"
       },
+      "views": {
+        "scanning": "掃描",
+        "hooks": "掛鉤"
+      },
       "sessions_other": "{{count}} 個工作階段",
       "details": {
         "path": "路徑",
@@ -244,6 +248,11 @@
     },
     "replay": {
       "replaySession": "回放"
+    },
+    "detailView": {
+      "trajectory": "軌跡",
+      "touchedFiles": "變更檔案",
+      "noTouchedFiles": "尚無變更檔案"
     },
     "diary": {
       "title": "日記",
@@ -778,7 +787,8 @@
       "tabs": {
         "work": "工作",
         "manage": "管理",
-        "heatmap": "趨勢"
+        "heatmap": "趨勢",
+        "runtime": "執行階段"
       },
       "heatmap": {
         "loading": "正在載入活動趨勢…",

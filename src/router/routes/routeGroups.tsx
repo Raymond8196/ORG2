@@ -90,7 +90,6 @@ const LegacyCoreSettingsRedirect: React.FC = () => {
 const WORK_STATION_PATHS = [
   "workstation",
   "workstation/code",
-  "workstation/database",
   "workstation/browser",
   "workstation/chat",
   "workstation/project",

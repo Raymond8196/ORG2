@@ -88,6 +88,7 @@ export {
   createFileTab,
   createDirectoryTab,
   createExplorerTab,
+  createStartTab,
   createGitDiffTab,
   createTimelineDiffTab,
   createSourceControlTab,
@@ -103,15 +104,6 @@ export {
   createBenchmarkTab,
   createLintScanTab,
   createSearchTab,
-  // Database factories
-  tableTabFactory,
-  queryTabFactory,
-  schemaTabFactory,
-  addConnectionTabFactory,
-  createTableTab,
-  createQueryTab,
-  createSchemaTab,
-  createAddConnectionTab,
   // Browser factories
   browserSessionTabFactory,
   createBrowserSessionTab,
@@ -182,10 +174,6 @@ export type {
   DomComponentPreviewTabData,
   OutputTabData,
   SearchTabData,
-  // Database data types
-  TableTabData,
-  QueryTabData,
-  SchemaTabData,
   DirectoryTabData,
   // Browser data types
   BrowserSessionTabData,

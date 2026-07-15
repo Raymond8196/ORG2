@@ -114,19 +114,24 @@ function mergeSessions(
 function replaceImportedFirstPage(
   prev: readonly Session[],
   incoming: readonly Session[],
-  predicate: (sessionId: string) => boolean
+  shouldReplace: (session: Session) => boolean
 ): Session[] {
-  const retained = prev.filter((session) => !predicate(session.session_id));
+  const retained = prev.filter((session) => !shouldReplace(session));
   return mergeSessions(retained, incoming);
 }
 
 function replaceExternalHistorySourceFirstPage(
   prev: readonly Session[],
   incoming: readonly Session[],
-  source: ImportedHistorySource
+  source: ImportedHistorySource,
+  preserveChildren = true
 ): Session[] {
-  return replaceImportedFirstPage(prev, incoming, (sessionId) =>
-    isImportedHistorySourceSession(sessionId, source)
+  return replaceImportedFirstPage(
+    prev,
+    incoming,
+    (session) =>
+      (!preserveChildren || !session.parentSessionId) &&
+      isImportedHistorySourceSession(session.session_id, source)
   );
 }
 
@@ -353,12 +358,18 @@ async function loadCategoryPage(
 function replaceFirstPageForCategory(
   category: SessionListCategory,
   prev: readonly Session[],
-  incoming: readonly Session[]
+  incoming: readonly Session[],
+  preserveImportedChildren = true
 ): Session[] {
   if (isImportedHistoryListCategory(category)) {
     const source = getImportedHistorySourceByListCategory(category);
     return source
-      ? replaceExternalHistorySourceFirstPage(prev, incoming, source)
+      ? replaceExternalHistorySourceFirstPage(
+          prev,
+          incoming,
+          source,
+          preserveImportedChildren
+        )
       : mergeSessions(prev, incoming);
   }
   return mergeSessions(prev, incoming);
@@ -404,7 +415,7 @@ export const loadSidebarSessions = async (options?: {
       // Disabled source: clear any previously-loaded page and skip.
       if (isCategoryDisabled(category)) {
         store.set(sessionsAtom, (prev) =>
-          replaceFirstPageForCategory(category, prev, [])
+          replaceFirstPageForCategory(category, prev, [], false)
         );
         setPaginationFor(category, {
           loaded: 0,
@@ -439,6 +450,42 @@ export const loadSidebarSessions = async (options?: {
   persistSessions(merged);
   store.set(sessionLastLoadedAtom, now);
   store.set(sessionLoadingAtom, false);
+};
+
+/**
+ * Hydrate one canonical session row for sidebar deep-link navigation.
+ *
+ * Normal sidebar loading is intentionally paginated per source/date bucket.
+ * A file-history link may target a much older session, so walking those pages
+ * would be both slow and nondeterministic. The aggregate API resolves the exact
+ * canonical ID and this function merges only that authoritative row.
+ */
+export const loadSidebarSessionById = async (
+  sessionId: string
+): Promise<Session | null> => {
+  const normalizedSessionId = sessionId.trim();
+  if (!normalizedSessionId) return null;
+
+  const store = getStore();
+  const existing = store
+    .get(sessionsAtom)
+    .find((session) => session.session_id === normalizedSessionId);
+  if (existing) return existing;
+
+  const response = await sessionAggregateList({
+    sessionIds: [normalizedSessionId],
+    includeExternalHistory: true,
+    includeStats: false,
+    limit: 1,
+  });
+  const session = toFrontendSessions(response.sessions).find(
+    (candidate) => candidate.session_id === normalizedSessionId
+  );
+  if (!session) return null;
+
+  store.set(sessionsAtom, (previous) => mergeSessions(previous, [session]));
+  persistSessions(store.get(sessionsAtom));
+  return session;
 };
 
 export const loadMoreCategory = async (

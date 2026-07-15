@@ -24,6 +24,7 @@ use crate::sources::imported_history::{
     paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
     ImportedHistorySessionRow, ImportedToolCall,
 };
+use crate::store::{sqlite::SqliteRecordStore, RecordStore};
 
 mod desktop_exec;
 
@@ -32,7 +33,7 @@ use desktop_exec::{
     normalize_codex_exec_tool_calls,
 };
 
-const CODEX_APP_SESSION_PREFIX: &str = "codexapp-";
+use super::SESSION_PREFIX as CODEX_APP_SESSION_PREFIX;
 const CODEX_PROVIDER_SLUG: &str = "codex";
 // v9: derive impact from authoritative `patch_apply_end` events (structured
 // `changes` map with unified diffs) instead of only scanning `apply_patch`
@@ -42,6 +43,13 @@ const CODEX_APP_METADATA_PARSER_VERSION: i64 = 9;
 pub type CodexAppSessionRow = ImportedHistorySessionRow;
 pub type CodexAppSessionPage = ImportedHistorySessionPage;
 pub type CodexAppRecentPath = ImportedHistoryRecentPath;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CodexTranscriptLocator {
+    pub source_session_id: String,
+    pub session_id: String,
+    pub source_path: PathBuf,
+}
 
 #[derive(Debug, Clone)]
 struct CodexAppSessionMeta {
@@ -457,7 +465,7 @@ fn parse_codex_session_meta(
     };
     Ok(Some(CodexAppSessionMeta {
         source_session_id: record.source_session_id.clone(),
-        session_id: format!("{CODEX_APP_SESSION_PREFIX}{}", record.source_session_id),
+        session_id: super::canonical_session_id(&record.source_session_id),
         source_path: record.source_path.to_string_lossy().to_string(),
         source_record_key: record.source_record_key.clone(),
         source_mtime_ms: record.source_mtime_ms,
@@ -554,23 +562,53 @@ fn codex_parent_session_id_for_record(
     record: &ImportedHistoryDiscoveredRecord,
     parent_thread_id: &str,
 ) -> Option<String> {
-    let parent_file_stem =
-        codex_file_stem_for_thread_id_near_session(&record.source_path, parent_thread_id)?;
-    Some(format!("{CODEX_APP_SESSION_PREFIX}{parent_file_stem}"))
+    resolve_codex_transcript_for_thread_id_near_path(&record.source_path, parent_thread_id)
+        .ok()
+        .flatten()
+        .map(|locator| locator.session_id)
 }
 
-fn codex_file_stem_for_thread_id_near_session(
-    session_path: &Path,
+/// Resolve a Codex thread UUID to the concrete rollout file that ORGII can
+/// replay. Lifecycle hooks identify the parent with a stable thread UUID, but
+/// their common `transcript_path` may point at the active child rollout.
+pub fn resolve_codex_transcript_for_thread_id_near_path(
+    reference_path: &Path,
     thread_id: &str,
-) -> Option<String> {
-    let sessions_dir = codex_sessions_dir_for_session_path(session_path)?;
+) -> Result<Option<CodexTranscriptLocator>, String> {
+    let Some(sessions_dir) = codex_sessions_dir_for_session_path(reference_path) else {
+        return Ok(None);
+    };
+    let find_locator = |mut files: Vec<PathBuf>| {
+        files.sort();
+        files.into_iter().find_map(|path| {
+            let file_stem = path
+                .file_stem()
+                .and_then(|value| value.to_str())?
+                .to_string();
+            (codex_thread_id_from_file_stem(&file_stem) == Some(thread_id)).then(|| {
+                CodexTranscriptLocator {
+                    session_id: super::canonical_session_id(&file_stem),
+                    source_session_id: file_stem,
+                    source_path: path,
+                }
+            })
+        })
+    };
+
+    // Parent and child rollouts from one subagent run normally share the same
+    // dated directory. Search that tiny locality before falling back to the
+    // full CODEX_HOME session tree, which can contain years of history.
+    if let Some(nearby_dir) = reference_path.parent() {
+        let mut nearby_files = Vec::new();
+        collect_codex_session_files(nearby_dir, &mut nearby_files)?;
+        if let Some(locator) = find_locator(nearby_files) {
+            return Ok(Some(locator));
+        }
+    }
+
     let mut files = Vec::new();
-    collect_codex_session_files(&sessions_dir, &mut files).ok()?;
-    files.into_iter().find_map(|path| {
-        let file_stem = path.file_stem().and_then(|value| value.to_str())?;
-        (codex_thread_id_from_file_stem(file_stem) == Some(thread_id))
-            .then(|| file_stem.to_string())
-    })
+    collect_codex_session_files(&sessions_dir, &mut files)?;
+    Ok(find_locator(files))
 }
 
 /// Tally impact from a `patch_apply_end` event — Codex's authoritative record
@@ -702,7 +740,10 @@ fn normalize_patch_path(path: &str) -> Option<String> {
     }
 }
 
-fn load_codex_app_from_path(session_id: &str, path: &Path) -> Result<Vec<ActivityChunk>, String> {
+pub fn load_codex_app_from_path(
+    session_id: &str,
+    path: &Path,
+) -> Result<Vec<ActivityChunk>, String> {
     let file = fs::File::open(path)
         .map_err(|err| format!("Failed to open Codex history {}: {err}", path.display()))?;
     let reader = BufReader::new(file);
@@ -1075,11 +1116,11 @@ fn split_call_id(call_id: &str, index: usize, total: usize) -> String {
     }
 }
 
-fn normalize_codex_tool_calls(raw_name: &str, args: Value) -> Vec<(String, Value)> {
+pub(crate) fn normalize_codex_tool_calls(raw_name: &str, args: Value) -> Vec<(String, Value)> {
     let key = normalize_tool_name_key(raw_name);
     match key.as_str() {
-        "shell" | "shell_command" | "bash" | "terminal" | "terminal_command" | "run_shell"
-        | "run_command" | "execute" | "exec" => {
+        "shell" | "shell_command" | "exec_command" | "bash" | "terminal" | "terminal_command"
+        | "run_shell" | "run_command" | "execute" | "exec" => {
             let shell_args = normalize_shell_args(args);
             if let Some(read_args) = read_file_arg_values_from_shell_args(&shell_args) {
                 read_args
@@ -2181,6 +2222,37 @@ fn codex_file_stem_from_session_id(session_id: &str) -> Result<&str, String> {
 }
 
 fn resolve_codex_session_path(conn: &Connection, file_stem: &str) -> Result<PathBuf, String> {
+    let transcript_session_id = super::canonical_session_id(file_stem);
+    let store = SqliteRecordStore::new(conn);
+    if let Some(path) = store
+        .get_session_actor_by_transcript_session_id(SOURCE_CODEX_APP, &transcript_session_id)?
+        .and_then(|actor| actor.transcript_path)
+    {
+        let path = PathBuf::from(path);
+        if path.is_file() {
+            return Ok(path);
+        }
+    }
+
+    // The lifecycle record stores the stable parent thread UUID plus the
+    // child's concrete transcript path. That is enough to rediscover the
+    // parent's rollout even when CODEX_HOME is outside the standard roots.
+    for actor in store.list_session_actors(SOURCE_CODEX_APP, &transcript_session_id)? {
+        let Some(reference_path) = actor.transcript_path.as_deref() else {
+            continue;
+        };
+        let Some(locator) = resolve_codex_transcript_for_thread_id_near_path(
+            Path::new(reference_path),
+            &actor.source_session_id,
+        )?
+        else {
+            continue;
+        };
+        if locator.session_id == transcript_session_id && locator.source_path.is_file() {
+            return Ok(locator.source_path);
+        }
+    }
+
     if let Some(path) =
         imported_cache::get_cached_source_path_from_conn(conn, SOURCE_CODEX_APP, file_stem)?
     {

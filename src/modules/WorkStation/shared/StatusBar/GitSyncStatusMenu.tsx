@@ -20,11 +20,11 @@ import { useDropdownEngine } from "@src/hooks/dropdown";
 import { classNames } from "@src/util/ui/classNames";
 
 import { StatusBarButton } from "./StatusBarBase";
+import { StatusBarTooltip } from "./StatusBarTooltip";
 
 const MENU_ICON_SIZE = DROPDOWN_ITEM.iconSize;
 
 interface GitSyncStatusMenuProps {
-  branchName: string;
   aheadCount: number;
   behindCount: number;
   needsPublish: boolean;
@@ -49,7 +49,6 @@ interface GitSyncMenuAction {
 
 export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
   ({
-    branchName,
     aheadCount,
     behindCount,
     needsPublish,
@@ -142,62 +141,59 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
       return actions.find((action) => action.key === "fetch");
     }, [actions, aheadCount, behindCount, needsPublish]);
 
-    const title = needsPublish
-      ? t("workstation.publishBranchToOrigin", { branch: branchName })
-      : behindCount > 0 || aheadCount > 0
-        ? t("workstation.syncWithRemote", {
-            behind: behindCount,
-            ahead: aheadCount,
-          })
-        : t("workstation.refreshGitStatus");
+    const gitActionsLabel = t("workstation.gitActionsTooltip", "Git actions");
 
     return (
       <div ref={triggerRef} className="flex h-full">
-        <StatusBarButton
-          onClick={handleToggle}
-          disabled={isSyncBusy || !canSyncDisplayedRepo}
-          title={title}
-          active={isOpen}
-          className="gap-2"
-        >
-          {needsPublish && !isPublishing ? (
-            <CloudUpload size={MENU_ICON_SIZE} className="text-text-1" />
-          ) : (
-            <RefreshCw
-              size={MENU_ICON_SIZE}
-              className={`text-text-1 ${syncSpinClass ?? ""}`}
-            />
-          )}
-          {needsPublish && !isPublishing && (
-            <span className="font-medium text-text-1">
-              {t("git.actions.publish")}
-            </span>
-          )}
-          {isPublishing && (
-            <span className="font-medium text-text-1">
-              {t("workstation.publishingBranch")}
-            </span>
-          )}
-          {!needsPublish &&
-            syncStatusLabel &&
-            behindCount === 0 &&
-            aheadCount === 0 && (
-              <span className="font-medium text-text-1">{syncStatusLabel}</span>
+        <StatusBarTooltip label={gitActionsLabel} disabled={isOpen}>
+          <StatusBarButton
+            onClick={handleToggle}
+            disabled={isSyncBusy || !canSyncDisplayedRepo}
+            ariaLabel={gitActionsLabel}
+            active={isOpen}
+            className="gap-2"
+          >
+            {needsPublish && !isPublishing ? (
+              <CloudUpload size={MENU_ICON_SIZE} className="text-text-1" />
+            ) : (
+              <RefreshCw
+                size={MENU_ICON_SIZE}
+                className={`text-text-1 ${syncSpinClass ?? ""}`}
+              />
             )}
-          {!needsPublish && (behindCount > 0 || aheadCount > 0) && (
-            <>
-              <span className="flex items-center font-medium text-text-1">
-                {behindCount}
-                <ArrowDown size={MENU_ICON_SIZE} />
+            {needsPublish && !isPublishing && (
+              <span className="font-medium text-text-1">
+                {t("git.actions.publish")}
               </span>
-              <span className="flex items-center font-medium text-text-1">
-                {aheadCount}
-                <ArrowUp size={MENU_ICON_SIZE} />
+            )}
+            {isPublishing && (
+              <span className="font-medium text-text-1">
+                {t("workstation.publishingBranch")}
               </span>
-            </>
-          )}
-          <ChevronDown size={12} className="text-text-3" />
-        </StatusBarButton>
+            )}
+            {!needsPublish &&
+              syncStatusLabel &&
+              behindCount === 0 &&
+              aheadCount === 0 && (
+                <span className="font-medium text-text-1">
+                  {syncStatusLabel}
+                </span>
+              )}
+            {!needsPublish && (behindCount > 0 || aheadCount > 0) && (
+              <>
+                <span className="flex items-center font-medium text-text-1">
+                  {behindCount}
+                  <ArrowDown size={MENU_ICON_SIZE} />
+                </span>
+                <span className="flex items-center font-medium text-text-1">
+                  {aheadCount}
+                  <ArrowUp size={MENU_ICON_SIZE} />
+                </span>
+              </>
+            )}
+            <ChevronDown size={12} className="text-text-3" />
+          </StatusBarButton>
+        </StatusBarTooltip>
 
         {isOpen &&
           isPositioned &&

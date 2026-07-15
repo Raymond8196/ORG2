@@ -405,7 +405,28 @@
     "nearby": "À proximité",
     "renowned": "Renommé",
     "dragToReorder": "Glisser pour réorganiser la séquence",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Attribution des sessions",
+    "sessionBlameSubagent": "Sous-agent : {{name}}",
+    "sessionBlameMainSession": "Session principale",
+    "sessionBlameAction": {
+      "read": "Lire",
+      "write": "Écrire",
+      "create": "Créer",
+      "delete": "Supprimer",
+      "rename": "Renommer",
+      "search": "Rechercher"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Confiance inconnue",
+      "session_only": "Session uniquement",
+      "correlated": "Corrélée",
+      "exact": "Attribution exacte"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Indexation des sessions historiques {{indexed}}/{{total}}",
+      "partial": "Index historique incomplet ({{failed}} échecs)",
+      "failed": "Échec de l’indexation des sessions historiques"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -423,7 +444,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "Fichiers",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1012,6 +1033,10 @@
     "scanningFiles": "Scanning files...",
     "branchTooltip": "Branche : {{branch}}",
     "branchTooltipSwitching": "Branche : {{branch}} (changement en cours…)",
+    "switchWorkspaceTooltip": "Changer d'espace de travail",
+    "switchWorktreeTooltip": "Changer de worktree",
+    "switchBranchTooltip": "Changer de branche",
+    "gitActionsTooltip": "Actions Git",
     "switchToSessionRepo": "Basculer vers {{name}}",
     "embeddingProgress": "Embedding : {{count}} chunks traités",
     "embeddingProgressWithPercent": "Embedding : {{count}} chunks traités ({{percent}}%)",
@@ -1024,6 +1049,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "Externes",
       "tooltip": "Ports : {{workspace}} workspace, {{external}} externes",
+      "viewPortsTooltip": "Voir les ports utilisés",
       "noWorkspacePorts": "Aucun port workspace détecté",
       "externalLabel": "externe",
       "unknownProcess": "Processus inconnu",
@@ -1143,9 +1169,9 @@
       "tokenLabel": "Token d’accès personnel",
       "tokenRequired": "Le token est requis",
       "createTokenButton": "Créer un token",
-      "openGitSettingsButton": "Ouvrir les paramètres Git",
+      "openGitSettingsButton": "Ouvrir les paramètres",
       "configureInSettings": "Configurer Git dans les paramètres",
-      "configureInSettingsDesc": "Ajoutez l’accès GitHub App, enregistrez un token ou analysez les identifiants locaux dans Paramètres → Intégrations → Git, puis réessayez cette opération Git."
+      "configureInSettingsDesc": "Ajoutez l’accès GitHub App, enregistrez un token ou analysez les identifiants locaux dans Paramètres → Connexions, puis réessayez cette opération Git."
     },
     "actions": {
       "publish": "Publish",
@@ -1352,7 +1378,9 @@
         "delete": "Supprimer",
         "deleteTemplate": "Supprimer {branch}",
         "createSessionWith": "Changer la branche de session",
-        "createSessionWithTemplate": "Changer la branche de session vers {branch}"
+        "createSessionWithTemplate": "Changer la branche de session vers {branch}",
+        "switchWorktree": "Changer de worktree",
+        "switchWorktreeTemplate": "Basculer vers {worktree}"
       },
       "actions": {
         "createNew": "Créer une nouvelle branche",
@@ -1363,7 +1391,8 @@
         "refresh": "Actualiser la branche",
         "checkoutDetachedSuccess": "État detached HEAD au commit actuel",
         "checkoutDetachedFailed": "Échec du checkout detached HEAD",
-        "removeWorktree": "Supprimer le Worktree"
+        "removeWorktree": "Supprimer le Worktree",
+        "newWorktree": "Nouveau worktree..."
       },
       "messages": {
         "deletedCount_one": "{{count}} branche supprimée",
@@ -1378,7 +1407,9 @@
         "basedOn": "Basé sur",
         "worktrees": "Worktrees",
         "worktreeInUse": "En cours d’utilisation",
-        "checkedOutInWorktree": "Checkout dans le Worktree : {{path}}"
+        "checkedOutInWorktree": "Checkout dans le Worktree : {{path}}",
+        "mainWorktreeSection": "Worktree principal",
+        "linkedWorktrees": "Worktrees liés"
       },
       "placeholders": {
         "checkout": "branche",
@@ -1487,7 +1518,8 @@
         "workspace": "Rechercher ou saisir un chemin de dossier",
         "branch": "Rechercher une branche...",
         "source": "Rechercher une source...",
-        "actions": "Rechercher des actions..."
+        "actions": "Rechercher des actions...",
+        "worktree": "Rechercher un worktree..."
       },
       "groups": {
         "agentSession": "Session Agent",
@@ -1944,9 +1976,6 @@
     "pill": {
       "focus": "Focus",
       "allChanges": "Toutes les modifications"
-    },
-    "sessionFilter": {
-      "allSessions": "Toutes les sessions"
     }
   },
   "contextInfo": {

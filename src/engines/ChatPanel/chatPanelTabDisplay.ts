@@ -56,5 +56,8 @@ export function resolveChatPanelTabDisplayTitle(
     }
     case "terminal":
       return tab.title;
+    case "workspace":
+      // The workspace name is stamped onto the tab at open time.
+      return tab.title;
   }
 }

@@ -48,6 +48,8 @@ export interface SourceControlMainContentProps {
   onForceReload?: () => void;
   /** Open the focused file as a regular file tab */
   onFileSelect?: (path: string) => void;
+  /** Clear the focused file without closing Source Control. */
+  onCloseFocus?: () => void;
   /** Sync git-diff local edits to tab bar unsaved indicator */
   onGitDiffUnsavedChange?: (hasUnsaved: boolean) => void;
   /** Selected commit/stash rendered in the Source Control right pane. */
@@ -70,6 +72,7 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
   hasFocus,
   onForceReload,
   onFileSelect,
+  onCloseFocus,
   onGitDiffUnsavedChange,
   historySelection,
   files,
@@ -210,6 +213,7 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
           hasFocus={hasFocus}
           onReload={onForceReload}
           onFileSelect={onFileSelect}
+          onClose={onCloseFocus}
           onUnsavedChange={onGitDiffUnsavedChange}
           emptyActions={emptyFocusActions}
         />

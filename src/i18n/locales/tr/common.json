@@ -405,7 +405,28 @@
     "nearby": "Yakın",
     "renowned": "Ünlü",
     "dragToReorder": "Mesaj sırasını değiştirmek için sürükleyin",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Oturum ilişkilendirmesi",
+    "sessionBlameSubagent": "Alt ajan: {{name}}",
+    "sessionBlameMainSession": "Ana oturum",
+    "sessionBlameAction": {
+      "read": "Okuma",
+      "write": "Yazma",
+      "create": "Oluşturma",
+      "delete": "Silme",
+      "rename": "Yeniden adlandırma",
+      "search": "Arama"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Güven düzeyi bilinmiyor",
+      "session_only": "Yalnızca oturum",
+      "correlated": "İlişkilendirildi",
+      "exact": "Kesin ilişkilendirme"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Geçmiş oturumlar dizine ekleniyor {{indexed}}/{{total}}",
+      "partial": "Geçmiş dizini eksik ({{failed}} başarısız)",
+      "failed": "Geçmiş oturumlar dizine eklenemedi"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -423,7 +444,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "Dosyalar",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1013,6 +1034,10 @@
     "scanningFiles": "Scanning files...",
     "branchTooltip": "Dal: {{branch}}",
     "branchTooltipSwitching": "Dal: {{branch}} (geçiş yapılıyor…)",
+    "switchWorkspaceTooltip": "Workspace değiştir",
+    "switchWorktreeTooltip": "Worktree değiştir",
+    "switchBranchTooltip": "Dal değiştir",
+    "gitActionsTooltip": "Git eylemleri",
     "switchToSessionRepo": "{{name}} konumuna geç",
     "embeddingProgress": "Embedding: {{count}} chunk işlendi",
     "embeddingProgressWithPercent": "Embedding: {{count}} chunk işlendi ({{percent}}%)",
@@ -1025,6 +1050,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "Harici",
       "tooltip": "Portlar: {{workspace}} workspace, {{external}} harici",
+      "viewPortsTooltip": "Kullanılan portları görüntüle",
       "noWorkspacePorts": "Workspace portu algılanmadı",
       "externalLabel": "harici",
       "unknownProcess": "Bilinmeyen süreç",
@@ -1144,9 +1170,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token gerekli",
       "createTokenButton": "Token oluştur",
-      "openGitSettingsButton": "Git ayarlarını aç",
+      "openGitSettingsButton": "Ayarları aç",
       "configureInSettings": "Git’i ayarlarda yapılandır",
-      "configureInSettingsDesc": "Ayarlar → Entegrasyonlar → Git içinde GitHub App erişimi ekleyin, token kaydedin veya yerel kimlik bilgilerini tarayın; ardından bu Git işlemini yeniden deneyin."
+      "configureInSettingsDesc": "Ayarlar → Bağlantılar içinde GitHub App erişimi ekleyin, token kaydedin veya yerel kimlik bilgilerini tarayın; ardından bu Git işlemini yeniden deneyin."
     },
     "actions": {
       "publish": "Publish",
@@ -1353,7 +1379,9 @@
         "delete": "Sil",
         "deleteTemplate": "{branch} sil",
         "createSessionWith": "Oturum Branch'ini değiştir",
-        "createSessionWithTemplate": "Oturum Branch'ini {branch} olarak değiştir"
+        "createSessionWithTemplate": "Oturum Branch'ini {branch} olarak değiştir",
+        "switchWorktree": "Worktree değiştir",
+        "switchWorktreeTemplate": "{worktree} konumuna geç"
       },
       "actions": {
         "createNew": "Yeni branch oluştur",
@@ -1364,7 +1392,8 @@
         "refresh": "Branch yenile",
         "checkoutDetachedSuccess": "Mevcut commit'te detached HEAD durumunda",
         "checkoutDetachedFailed": "detached HEAD checkout başarısız",
-        "removeWorktree": "Worktree kaldır"
+        "removeWorktree": "Worktree kaldır",
+        "newWorktree": "Yeni worktree..."
       },
       "messages": {
         "deletedCount_one": "{{count}} branch silindi",
@@ -1379,7 +1408,9 @@
         "basedOn": "Temel alınan",
         "worktrees": "Worktrees",
         "worktreeInUse": "Kullanımda",
-        "checkedOutInWorktree": "Worktree içinde checkout edilmiş: {{path}}"
+        "checkedOutInWorktree": "Worktree içinde checkout edilmiş: {{path}}",
+        "mainWorktreeSection": "Ana worktree",
+        "linkedWorktrees": "Bağlı worktree'ler"
       },
       "placeholders": {
         "checkout": "branch",
@@ -1488,7 +1519,8 @@
         "workspace": "Ara veya klasör yolu gir",
         "branch": "Dal ara...",
         "source": "Kaynak ara...",
-        "actions": "Eylem ara..."
+        "actions": "Eylem ara...",
+        "worktree": "Worktree ara..."
       },
       "groups": {
         "agentSession": "Agent oturumu",
@@ -1946,9 +1978,6 @@
     "pill": {
       "focus": "Odak",
       "allChanges": "Tüm Değişiklikler"
-    },
-    "sessionFilter": {
-      "allSessions": "Tüm oturumlar"
     }
   },
   "contextInfo": {

@@ -1680,6 +1680,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "設定内容がありません"
     },
+    "sessionProvenance": {
+      "title": "セッションの来歴",
+      "capture": "ファイル操作を記録",
+      "description": "ファイルの読み取りと書き込みをメタデータとして記録します。プロンプト、ツール出力、ファイル内容は保存されません。",
+      "configPath": "ファイルの読み取りと書き込みをメタデータとして記録します。プロンプト、ツール出力、ファイル内容は保存されません。設定: {{path}}",
+      "installDrift": "保存された設定とインストール済み hook が一致しません。記録を切り替えて管理対象の hook を修復してください。設定: {{path}}"
+    },
     "codexConfig": {
       "sectionTitle": "設定",
       "model": "モデル",

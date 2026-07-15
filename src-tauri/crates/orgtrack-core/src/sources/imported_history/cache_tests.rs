@@ -200,6 +200,24 @@ fn cache_single_session_lookup_returns_source_metadata() {
 }
 
 #[test]
+fn cache_canonical_session_lookup_returns_source_and_hidden_rows() {
+    let mut conn = fixture_conn();
+    let mut cached = input(SOURCE_CODEX_APP, "child-source-id", 100);
+    cached.session_id = "codexapp-child-canonical-id".to_string();
+    cached.listable = false;
+    upsert_imported_session_cache_from_conn(&mut conn, &[cached]).expect("upsert");
+
+    let (source, session) =
+        query_cached_session_by_session_id_from_conn(&conn, "codexapp-child-canonical-id")
+            .expect("query")
+            .expect("cached child");
+
+    assert_eq!(source, SOURCE_CODEX_APP);
+    assert_eq!(session.source_session_id, "child-source-id");
+    assert!(!session.listable);
+}
+
+#[test]
 fn cache_source_list_filters_unlistable_sessions() {
     let mut conn = fixture_conn();
     let listed = input(SOURCE_CODEX_APP, "listed", 300);
@@ -212,6 +230,29 @@ fn cache_source_list_filters_unlistable_sessions() {
 
     assert_eq!(sessions.len(), 1);
     assert_eq!(sessions[0].source_session_id, "listed");
+}
+
+#[test]
+fn cache_repo_query_includes_hidden_child_with_inherited_parent_repo() {
+    let mut conn = fixture_conn();
+    let mut parent = input(SOURCE_CODEX_APP, "parent", 300);
+    parent.repo_path = Some("/tmp/target-repo".to_string());
+    let mut child = input(SOURCE_CODEX_APP, "child", 200);
+    child.repo_path = None;
+    child.listable = false;
+    child.parent_session_id = Some(parent.session_id.clone());
+    let outside = input(SOURCE_CODEX_APP, "outside", 100);
+    upsert_imported_session_cache_from_conn(&mut conn, &[parent, child, outside]).expect("upsert");
+
+    let sessions =
+        query_cached_sessions_for_repo_from_conn(&conn, SOURCE_CODEX_APP, "/tmp/target-repo")
+            .expect("query repo sessions");
+    let ids = sessions
+        .iter()
+        .map(|session| session.source_session_id.as_str())
+        .collect::<Vec<_>>();
+
+    assert_eq!(ids, vec!["parent", "child"]);
 }
 
 #[test]

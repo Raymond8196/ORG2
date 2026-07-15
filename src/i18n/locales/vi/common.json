@@ -405,7 +405,28 @@
     "nearby": "Gần đây",
     "renowned": "Nổi tiếng",
     "dragToReorder": "Kéo để sắp xếp lại thứ tự tin nhắn",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Quy nguồn phiên",
+    "sessionBlameSubagent": "Tác tử phụ: {{name}}",
+    "sessionBlameMainSession": "Phiên chính",
+    "sessionBlameAction": {
+      "read": "Đọc",
+      "write": "Ghi",
+      "create": "Tạo",
+      "delete": "Xóa",
+      "rename": "Đổi tên",
+      "search": "Tìm kiếm"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Độ tin cậy chưa rõ",
+      "session_only": "Chỉ phiên",
+      "correlated": "Đã đối chiếu",
+      "exact": "Quy nguồn chính xác"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Đang lập chỉ mục phiên cũ {{indexed}}/{{total}}",
+      "partial": "Chỉ mục lịch sử chưa hoàn chỉnh ({{failed}} lỗi)",
+      "failed": "Không thể lập chỉ mục phiên cũ"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -423,7 +444,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "Tệp",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1013,6 +1034,10 @@
     "scanningFiles": "Scanning files...",
     "branchTooltip": "Nhánh: {{branch}}",
     "branchTooltipSwitching": "Nhánh: {{branch}} (đang chuyển…)",
+    "switchWorkspaceTooltip": "Chuyển Workspace",
+    "switchWorktreeTooltip": "Chuyển Worktree",
+    "switchBranchTooltip": "Chuyển nhánh",
+    "gitActionsTooltip": "Thao tác Git",
     "switchToSessionRepo": "Chuyển sang {{name}}",
     "embeddingProgress": "Embedding: đã xử lý {{count}} chunk",
     "embeddingProgressWithPercent": "Embedding: đã xử lý {{count}} chunk ({{percent}}%)",
@@ -1025,6 +1050,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "Bên ngoài",
       "tooltip": "Cổng: {{workspace}} workspace, {{external}} bên ngoài",
+      "viewPortsTooltip": "Xem các cổng đang dùng",
       "noWorkspacePorts": "Không phát hiện cổng workspace",
       "externalLabel": "bên ngoài",
       "unknownProcess": "Tiến trình không xác định",
@@ -1144,9 +1170,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Cần token",
       "createTokenButton": "Tạo token",
-      "openGitSettingsButton": "Mở cài đặt Git",
+      "openGitSettingsButton": "Mở cài đặt",
       "configureInSettings": "Cấu hình Git trong cài đặt",
-      "configureInSettingsDesc": "Thêm quyền truy cập GitHub App, lưu token hoặc quét thông tin xác thực cục bộ trong Cài đặt → Tích hợp → Git, rồi thử lại thao tác Git này."
+      "configureInSettingsDesc": "Thêm quyền truy cập GitHub App, lưu token hoặc quét thông tin xác thực cục bộ trong Cài đặt → Kết nối, rồi thử lại thao tác Git này."
     },
     "actions": {
       "publish": "Publish",
@@ -1353,7 +1379,9 @@
         "delete": "Xóa",
         "deleteTemplate": "Xóa {branch}",
         "createSessionWith": "Chuyển Branch của phiên",
-        "createSessionWithTemplate": "Chuyển Branch của phiên sang {branch}"
+        "createSessionWithTemplate": "Chuyển Branch của phiên sang {branch}",
+        "switchWorktree": "Chuyển Worktree",
+        "switchWorktreeTemplate": "Chuyển sang {worktree}"
       },
       "actions": {
         "createNew": "Tạo nhánh mới",
@@ -1364,7 +1392,8 @@
         "refresh": "Làm mới nhánh",
         "checkoutDetachedSuccess": "Đang ở trạng thái detached HEAD tại commit hiện tại",
         "checkoutDetachedFailed": "Checkout detached HEAD thất bại",
-        "removeWorktree": "Xóa Worktree"
+        "removeWorktree": "Xóa Worktree",
+        "newWorktree": "Worktree mới..."
       },
       "messages": {
         "deletedCount_one": "Đã xóa {{count}} nhánh",
@@ -1379,7 +1408,9 @@
         "basedOn": "Dựa trên",
         "worktrees": "Worktrees",
         "worktreeInUse": "Đang dùng",
-        "checkedOutInWorktree": "Đã checkout trong Worktree: {{path}}"
+        "checkedOutInWorktree": "Đã checkout trong Worktree: {{path}}",
+        "mainWorktreeSection": "Worktree chính",
+        "linkedWorktrees": "Worktree liên kết"
       },
       "placeholders": {
         "checkout": "nhánh",
@@ -1488,7 +1519,8 @@
         "workspace": "Tìm kiếm hoặc nhập đường dẫn thư mục",
         "branch": "Tìm kiếm nhánh...",
         "source": "Tìm kiếm nguồn...",
-        "actions": "Tìm kiếm hành động..."
+        "actions": "Tìm kiếm hành động...",
+        "worktree": "Tìm kiếm worktree..."
       },
       "groups": {
         "agentSession": "Phiên Agent",
@@ -1942,9 +1974,6 @@
     "pill": {
       "focus": "Tiêu điểm",
       "allChanges": "Tất cả thay đổi"
-    },
-    "sessionFilter": {
-      "allSessions": "Tất cả phiên"
     }
   },
   "contextInfo": {

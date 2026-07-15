@@ -338,13 +338,6 @@
     "title": "Explorer"
   },
   "workstation": {
-    "dockFilter": {
-      "all": "Tous les onglets",
-      "code": "Code",
-      "browser": "Navigateur",
-      "data": "Base de données",
-      "project": "Projets"
-    },
     "agentComputer": {
       "label": "Station de travail de {{agent}}",
       "agents": {

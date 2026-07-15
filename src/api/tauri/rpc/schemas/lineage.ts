@@ -46,65 +46,6 @@ export const OrgtrackExportInput = z.object({
   allowRawTrajectory: z.boolean().optional(),
 });
 
-export const OrgtrackScanStartInput = z.object({
-  repoPath: z.string(),
-  tier: OrgtrackTierSchema.optional(),
-  allowRawTrajectory: z.boolean().optional(),
-  resume: z.boolean().optional(),
-  rebuild: z.boolean().optional(),
-});
-
-export const OrgtrackScanStatusInput = z.object({
-  repoPath: z.string(),
-});
-
-export const OrgtrackScanCancelInput = z.object({
-  repoPath: z.string(),
-});
-
-export const OrgtrackScanStatusSchema = z.enum([
-  "idle",
-  "running",
-  "completed",
-  "failed",
-  "cancelled",
-]);
-
-export const OrgtrackScanPhaseSchema = z.enum([
-  "discover",
-  "provenance",
-  "local_edits",
-  "sessions",
-  "commits",
-  "index",
-  "done",
-]);
-
-export const OrgtrackScanCountsSchema = z.object({
-  sessions: z.number().int(),
-  files: z.number().int(),
-  commits: z.number().int(),
-  entries: z.number().int(),
-  records: z.number().int(),
-});
-
-export const OrgtrackScanProgressSchema = z.object({
-  schemaVersion: z.number().int(),
-  repoPath: z.string(),
-  tier: OrgtrackTierSchema,
-  status: OrgtrackScanStatusSchema,
-  phase: OrgtrackScanPhaseSchema,
-  processed: z.number().int(),
-  total: z.number().int(),
-  counts: OrgtrackScanCountsSchema,
-  lastError: z.string().nullable().optional(),
-  resumable: z.boolean(),
-  cancelRequested: z.boolean(),
-  startedAt: z.string(),
-  updatedAt: z.string(),
-  completedAt: z.string().nullable().optional(),
-});
-
 export const OrgtrackIndexInput = z.object({
   repoPath: z.string(),
 });
@@ -114,7 +55,7 @@ export const OrgtrackFileTimelineInput = z.object({
   filePath: z.string(),
 });
 
-export const OrgtrackFileSessionLookupInput = z.object({
+export const OrgtrackFileSessionHistoryInput = z.object({
   repoPath: z.string(),
   filePath: z.string(),
 });
@@ -478,22 +419,72 @@ export const OrgtrackFileTimelineSchema = z.object({
   entries: z.array(OrgtrackFileTimelineEntrySchema),
 });
 
-export const OrgtrackFileSessionSummarySchema = z.object({
+export const OrgtrackInteractionPrecisionSchema = z.enum([
+  "unknown",
+  "session_only",
+  "correlated",
+  "exact",
+]);
+
+export const OrgtrackInteractionCaptureMethodSchema = z.enum([
+  "native",
+  "hook",
+  "reconciled",
+]);
+
+export const OrgtrackFileSessionHistoryParticipantSchema = z.object({
+  entryId: z.string(),
   sessionId: z.string(),
-  sessionLabel: z.string().nullable().optional(),
-  agentIdentity: OrgtrackAgentIdentitySchema.nullable().optional(),
-  firstEditAt: z.number().int(),
-  lastEditAt: z.number().int(),
-  editCount: z.number().int(),
-  commitShas: z.array(z.string()),
-  reachabilityStates: z.array(OrgtrackReachabilityStateSchema),
+  transcriptSessionId: z.string().nullable().optional(),
+  parentSessionId: z.string().nullable().optional(),
+  sessionLabel: z.string(),
+  participantKind: z.enum(["session", "subagent"]),
+  actorId: z.string().nullable().optional(),
+  actorLabel: z.string().nullable().optional(),
+  firstInteractionAt: z.string(),
+  lastInteractionAt: z.string(),
+  interactionCount: z.number().int().nonnegative(),
+  actionCounts: z.record(z.string(), z.number().int().nonnegative()),
+  actorIds: z.array(z.string()),
+  captureMethods: z.array(OrgtrackInteractionCaptureMethodSchema),
+  attributionPrecision: OrgtrackInteractionPrecisionSchema,
 });
 
-export const OrgtrackFileSessionLookupSchema = z.object({
+export const OrgtrackFileSessionHistorySessionSchema = z.object({
+  sessionId: z.string(),
+  transcriptSessionId: z.string().nullable().optional(),
+  sessionLabel: z.string(),
+  source: z.string(),
+  workspacePath: z.string().nullable().optional(),
+  firstInteractionAt: z.string(),
+  lastInteractionAt: z.string(),
+  interactionCount: z.number().int().nonnegative(),
+  actionCounts: z.record(z.string(), z.number().int().nonnegative()),
+  captureMethods: z.array(OrgtrackInteractionCaptureMethodSchema),
+  attributionPrecision: OrgtrackInteractionPrecisionSchema,
+  participants: z.array(OrgtrackFileSessionHistoryParticipantSchema),
+});
+
+export const OrgtrackFileSessionHistoryBackfillSchema = z.object({
+  status: z.enum([
+    "queued",
+    "discovering",
+    "indexing",
+    "complete",
+    "partial",
+    "failed",
+  ]),
+  indexedSessions: z.number().int().nonnegative(),
+  totalSessions: z.number().int().nonnegative(),
+  failedSessions: z.number().int().nonnegative(),
+  lastError: z.string().nullable().optional(),
+});
+
+export const OrgtrackFileSessionHistorySchema = z.object({
   schemaVersion: z.number().int(),
   filePath: z.string(),
-  pathHash: z.string(),
-  sessions: z.array(OrgtrackFileSessionSummarySchema),
+  backfill: OrgtrackFileSessionHistoryBackfillSchema,
+  sessions: z.array(OrgtrackFileSessionHistorySessionSchema),
 });
 
 export type FunctionEntry = z.output<typeof FunctionEntrySchema>;
@@ -526,10 +517,6 @@ export type OrgtrackCheckpointFileState = z.output<
   typeof OrgtrackCheckpointFileStateSchema
 >;
 export type OrgtrackExportResult = z.output<typeof OrgtrackExportResultSchema>;
-export type OrgtrackScanStatus = z.output<typeof OrgtrackScanStatusSchema>;
-export type OrgtrackScanPhase = z.output<typeof OrgtrackScanPhaseSchema>;
-export type OrgtrackScanCounts = z.output<typeof OrgtrackScanCountsSchema>;
-export type OrgtrackScanProgress = z.output<typeof OrgtrackScanProgressSchema>;
 export type OrgtrackIndex = z.output<typeof OrgtrackIndexSchema>;
 export type OrgtrackFileTimeline = z.output<typeof OrgtrackFileTimelineSchema>;
 export const CoreSessionSummarySchema = z.object({
@@ -546,8 +533,8 @@ export const CoreSessionSummarySchema = z.object({
   keySource: z.string().nullable().optional(),
 });
 
-export type OrgtrackFileSessionLookup = z.output<
-  typeof OrgtrackFileSessionLookupSchema
+export type OrgtrackFileSessionHistory = z.output<
+  typeof OrgtrackFileSessionHistorySchema
 >;
 export type CoreSessionSummary = z.output<typeof CoreSessionSummarySchema>;
 export type OrgtrackFileTimelineEntry = z.output<

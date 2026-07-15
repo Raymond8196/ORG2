@@ -122,6 +122,10 @@
         "apps": "应用",
         "clis": "命令行"
       },
+      "views": {
+        "scanning": "扫描",
+        "hooks": "钩子"
+      },
       "sessions_other": "{{count}} 个会话",
       "details": {
         "path": "路径",
@@ -239,6 +243,11 @@
     },
     "replay": {
       "replaySession": "回放"
+    },
+    "detailView": {
+      "trajectory": "轨迹",
+      "touchedFiles": "改动文件",
+      "noTouchedFiles": "暂无改动文件"
     },
     "discard": {
       "discard": "丢弃",
@@ -805,7 +814,8 @@
       "tabs": {
         "work": "工作",
         "manage": "管理",
-        "heatmap": "趋势"
+        "heatmap": "趋势",
+        "runtime": "运行时"
       },
       "heatmap": {
         "loading": "正在加载活动趋势…",

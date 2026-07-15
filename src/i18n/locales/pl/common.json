@@ -405,7 +405,28 @@
     "nearby": "W pobliżu",
     "renowned": "Znani",
     "dragToReorder": "Przeciągnij, aby zmienić kolejność wiadomości",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Atrybucja sesji",
+    "sessionBlameSubagent": "Podagent: {{name}}",
+    "sessionBlameMainSession": "Sesja główna",
+    "sessionBlameAction": {
+      "read": "Odczyt",
+      "write": "Zapis",
+      "create": "Tworzenie",
+      "delete": "Usuwanie",
+      "rename": "Zmiana nazwy",
+      "search": "Wyszukiwanie"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Nieznana pewność",
+      "session_only": "Tylko sesja",
+      "correlated": "Skorelowana",
+      "exact": "Dokładna atrybucja"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Indeksowanie historycznych sesji {{indexed}}/{{total}}",
+      "partial": "Indeks historii jest niepełny (błędy: {{failed}})",
+      "failed": "Nie udało się zindeksować historycznych sesji"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -423,7 +444,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "Pliki",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1012,6 +1033,10 @@
     "scanningFiles": "Skanowanie plików...",
     "branchTooltip": "Gałąź: {{branch}}",
     "branchTooltipSwitching": "Gałąź: {{branch}} (przełączanie...)",
+    "switchWorkspaceTooltip": "Przełącz workspace",
+    "switchWorktreeTooltip": "Przełącz worktree",
+    "switchBranchTooltip": "Przełącz gałąź",
+    "gitActionsTooltip": "Akcje Git",
     "switchToSessionRepo": "Przełącz na {{name}}",
     "embeddingProgress": "Embedding: przetworzono {{count}} fragmentów",
     "embeddingProgressWithPercent": "Embedding: przetworzono {{count}} fragmentów ({{percent}}%)",
@@ -1024,6 +1049,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "Zewnętrzne",
       "tooltip": "Porty: {{workspace}} workspace, {{external}} zewnętrzne",
+      "viewPortsTooltip": "Zobacz używane porty",
       "noWorkspacePorts": "Nie wykryto portów workspace",
       "externalLabel": "zewnętrzny",
       "unknownProcess": "Nieznany proces",
@@ -1143,9 +1169,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token jest wymagany",
       "createTokenButton": "Utwórz token",
-      "openGitSettingsButton": "Otwórz ustawienia Git",
+      "openGitSettingsButton": "Otwórz ustawienia",
       "configureInSettings": "Skonfiguruj Git w ustawieniach",
-      "configureInSettingsDesc": "Dodaj dostęp GitHub App, zapisz token lub przeskanuj lokalne dane uwierzytelniające w Ustawienia → Integracje → Git, a następnie spróbuj ponownie wykonać tę operację Git."
+      "configureInSettingsDesc": "Dodaj dostęp GitHub App, zapisz token lub przeskanuj lokalne dane uwierzytelniające w Ustawienia → Połączenia, a następnie spróbuj ponownie wykonać tę operację Git."
     },
     "actions": {
       "publish": "Opublikuj",
@@ -1352,7 +1378,9 @@
         "delete": "Usuń",
         "deleteTemplate": "Usuń {branch}",
         "createSessionWith": "Przełącz Branch sesji",
-        "createSessionWithTemplate": "Przełącz Branch sesji na {branch}"
+        "createSessionWithTemplate": "Przełącz Branch sesji na {branch}",
+        "switchWorktree": "Przełącz worktree",
+        "switchWorktreeTemplate": "Przełącz na {worktree}"
       },
       "actions": {
         "createNew": "Utwórz nową gałąź",
@@ -1363,7 +1391,8 @@
         "refresh": "Odśwież gałąź",
         "checkoutDetachedSuccess": "Jesteś teraz w stanie detached HEAD na bieżącym commicie",
         "checkoutDetachedFailed": "Nie udało się wykonać checkout detached HEAD",
-        "removeWorktree": "Usuń Worktree"
+        "removeWorktree": "Usuń Worktree",
+        "newWorktree": "Nowy worktree..."
       },
       "messages": {
         "deletedCount_one": "Usunięto {{count}} gałąź",
@@ -1378,7 +1407,9 @@
         "basedOn": "Oparte na",
         "worktrees": "Worktrees",
         "worktreeInUse": "W użyciu",
-        "checkedOutInWorktree": "Checkout w Worktree: {{path}}"
+        "checkedOutInWorktree": "Checkout w Worktree: {{path}}",
+        "mainWorktreeSection": "Główny worktree",
+        "linkedWorktrees": "Połączone worktree"
       },
       "placeholders": {
         "checkout": "gałąź",
@@ -1487,7 +1518,8 @@
         "workspace": "Szukaj lub wpisz ścieżkę folderu",
         "branch": "Szukaj gałęzi...",
         "source": "Szukaj źródła...",
-        "actions": "Szukaj akcji..."
+        "actions": "Szukaj akcji...",
+        "worktree": "Szukaj worktree..."
       },
       "groups": {
         "agentSession": "Sesja Agent",
@@ -1941,9 +1973,6 @@
     "pill": {
       "focus": "Skupienie",
       "allChanges": "Wszystkie zmiany"
-    },
-    "sessionFilter": {
-      "allSessions": "Wszystkie sesje"
     }
   },
   "contextInfo": {

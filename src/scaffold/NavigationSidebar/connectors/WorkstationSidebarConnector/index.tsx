@@ -30,6 +30,7 @@ import {
   DEFAULT_SESSION_ORG_ID,
   activeSessionCreatorDraftIdAtom,
   deleteSessionCreatorDraftAtom,
+  loadSidebarSessionById,
   loadSidebarSessions,
   markAllSessionsVisited,
   promoteActiveSessionCreatorDraftAtom,
@@ -48,6 +49,11 @@ import {
   chatPanelSelectedProjectAtom,
   chatPanelSelectedWorkItemAtom,
 } from "@src/store/ui/chatPanelAtom";
+import {
+  clearSessionSidebarRevealAtom,
+  sessionSidebarRevealRequestAtom,
+  sidebarCollapsedAtom,
+} from "@src/store/ui/sidebarAtom";
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { spotlightOpenAtom } from "@src/store/ui/uiAtom";
 import {
@@ -69,10 +75,12 @@ import SidebarOrgSelector from "../SidebarOrgSelector";
 import {
   COLLAB_ADD_ORG_MENU_ITEM_ID,
   KANBAN_MENU_ITEM_ID,
+  NEW_SESSION_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+  getDraftIdFromMenuItemId,
   isWorkManagementMenuItemId,
 } from "../sidebarConnectorUtils";
 import {
@@ -87,6 +95,7 @@ import { useWorkstationSidebarHandlers } from "../useWorkstationSidebarHandlers"
 import {
   DEFAULT_COLLAPSED_SECTION_IDS,
   buildRepoPathToName,
+  findSidebarSectionIdForMenuItem,
   getAllSectionIds,
   sortSessionsByActivity,
 } from "../workstationSidebarData";
@@ -130,6 +139,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const navigate = useNavigate();
   const sessions = useAtomValue(sessionsAtom);
   const sessionsLoading = useAtomValue(sessionLoadingAtom);
+  const sessionSidebarRevealRequest = useAtomValue(
+    sessionSidebarRevealRequestAtom
+  );
+  const clearSessionSidebarReveal = useSetAtom(clearSessionSidebarRevealAtom);
+  const setSidebarCollapsed = useSetAtom(sidebarCollapsedAtom);
   const collabOrgs = useAtomValue(collabOrgsAtom);
   const visitedSessions = useAtomValue(visitedSessionsAtom);
   const sessionCreatorDrafts = useAtomValue(sessionCreatorDraftListAtom);
@@ -255,6 +269,40 @@ export const WorkstationSidebarConnector: React.FC = () => {
   );
   const [projectsCollapsedSectionIds, setProjectsCollapsedSectionIds] =
     useState<Set<string>>(() => new Set());
+  const activeSessionId = useAtomValue(workstationActiveSessionIdAtom) ?? "";
+  const activatedRevealRequestIdRef = React.useRef<number | null>(null);
+  const activeSessionSidebarRevealRequest =
+    sessionSidebarRevealRequest?.sessionId === activeSessionId
+      ? sessionSidebarRevealRequest
+      : null;
+  useEffect(() => {
+    if (!sessionSidebarRevealRequest) {
+      activatedRevealRequestIdRef.current = null;
+      return;
+    }
+    if (sessionSidebarRevealRequest.sessionId === activeSessionId) {
+      activatedRevealRequestIdRef.current =
+        sessionSidebarRevealRequest.requestId;
+      return;
+    }
+    if (
+      activatedRevealRequestIdRef.current ===
+      sessionSidebarRevealRequest.requestId
+    ) {
+      clearSessionSidebarReveal(sessionSidebarRevealRequest.requestId);
+      activatedRevealRequestIdRef.current = null;
+    }
+  }, [activeSessionId, clearSessionSidebarReveal, sessionSidebarRevealRequest]);
+  const revealedSessionIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (activeSessionSidebarRevealRequest?.sessionId) {
+      ids.add(activeSessionSidebarRevealRequest.sessionId);
+    }
+    if (activeSessionSidebarRevealRequest?.parentSessionId) {
+      ids.add(activeSessionSidebarRevealRequest.parentSessionId);
+    }
+    return ids;
+  }, [activeSessionSidebarRevealRequest]);
 
   const untitledSession = t("sidebar.defaults.untitledSession");
   const newSessionLabel = t("labels.newSession");
@@ -316,6 +364,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     includeExternal,
     groupVisibleCounts,
     expandedSubagentParentIds,
+    revealedSessionIds,
   });
   const {
     menuItems: projectsWorkItemMenuItems,
@@ -342,7 +391,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
   useCollaborationMetadataSync();
 
   const rename = useRenameSessionModal();
-  const activeSessionId = useAtomValue(workstationActiveSessionIdAtom) ?? "";
   const activeChatPanelTab = useAtomValue(activeChatPanelTabAtom);
   const benchmarkBatchStatus = useAtomValue(benchmarkAgentBatchStatusAtom);
   const activeChatPanelTuiSessionId =
@@ -382,6 +430,77 @@ export const WorkstationSidebarConnector: React.FC = () => {
     sessionCreatorDrafts,
     t,
   });
+  useEffect(() => {
+    if (!sessionSidebarRevealRequest) return;
+
+    setSidebarCollapsed(false);
+    const parentSessionId =
+      sessionSidebarRevealRequest.parentSessionId ??
+      sessionSidebarRevealRequest.sessionId;
+    const revealFrame = window.requestAnimationFrame(() => {
+      setActiveSidebarKey("workstation");
+      setWorkItemsOpen(false);
+      setSidebarSearchQueries((currentQueries) =>
+        currentQueries.workstation
+          ? { ...currentQueries, workstation: "" }
+          : currentQueries
+      );
+      if (sessionSidebarRevealRequest.parentSessionId) {
+        setExpandedSubagentParentIds((previousIds) => {
+          if (previousIds.has(parentSessionId)) return previousIds;
+          const nextIds = new Set(previousIds);
+          nextIds.add(parentSessionId);
+          return nextIds;
+        });
+      }
+    });
+
+    const sessionIds = new Set([
+      parentSessionId,
+      sessionSidebarRevealRequest.sessionId,
+    ]);
+    for (const sessionId of sessionIds) {
+      void loadSidebarSessionById(sessionId)
+        .then((session) => {
+          if (!session) {
+            logger.warn(
+              `Unable to hydrate sidebar row for session ${sessionId}`
+            );
+          }
+        })
+        .catch((error: unknown) => {
+          logger.warn(
+            `Failed to hydrate sidebar row for session ${sessionId}:`,
+            error
+          );
+        });
+    }
+
+    return () => window.cancelAnimationFrame(revealFrame);
+  }, [sessionSidebarRevealRequest, setSidebarCollapsed]);
+
+  const revealedSectionId = useMemo(
+    () =>
+      activeSessionSidebarRevealRequest
+        ? findSidebarSectionIdForMenuItem(
+            sessionSidebarMenuItems,
+            activeSessionSidebarRevealRequest.sessionId
+          )
+        : null,
+    [activeSessionSidebarRevealRequest, sessionSidebarMenuItems]
+  );
+  useEffect(() => {
+    if (!revealedSectionId) return;
+    const revealFrame = window.requestAnimationFrame(() => {
+      setCollapsedSectionIds((previousIds) => {
+        if (!previousIds.has(revealedSectionId)) return previousIds;
+        const nextIds = new Set(previousIds);
+        nextIds.delete(revealedSectionId);
+        return nextIds;
+      });
+    });
+    return () => window.cancelAnimationFrame(revealFrame);
+  }, [revealedSectionId]);
   const resetWorkManagementStateForProjectsContent = useCallback(() => {
     const stationMode: StationMode = "my-station";
     setStationMode(stationMode);
@@ -604,6 +723,17 @@ export const WorkstationSidebarConnector: React.FC = () => {
         activateChatPanelTab(getChatTerminalTabId(item.id));
         return;
       }
+      // "New conversation" (and draft sessions) are session actions even while
+      // the Work Items submenu is expanded. Route them to the session handler
+      // — which focuses the Launchpad Work tab — before the projects reroute
+      // below, which would otherwise swallow the click.
+      if (
+        item.id === NEW_SESSION_MENU_ITEM_ID ||
+        getDraftIdFromMenuItemId(item.id)
+      ) {
+        handleMenuItemClick(key, item);
+        return;
+      }
       if (workItemsContentVisible) {
         handleProjectsMenuItemClick(key, item);
         return;
@@ -750,6 +880,14 @@ export const WorkstationSidebarConnector: React.FC = () => {
         collapsibleSections
         collapsedSectionIds={resolvedCollapsedSectionIds}
         onCollapsedSectionsChange={resolvedSetCollapsedSectionIds}
+        revealMenuItemRequest={
+          activeSessionSidebarRevealRequest
+            ? {
+                key: activeSessionSidebarRevealRequest.sessionId,
+                requestId: activeSessionSidebarRevealRequest.requestId,
+              }
+            : undefined
+        }
       />
       <RenameModal
         visible={rename.visible}

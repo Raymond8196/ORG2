@@ -10,8 +10,9 @@ describe("resolveAgentMessageClampEligibility", () => {
     expect(resolveAgentMessageClampEligibility(false, false)).toBe(true);
   });
 
-  it("keeps the latest round open even when the host fallback is enabled", () => {
-    expect(resolveAgentMessageClampEligibility(true, true)).toBe(false);
+  it("clamps the latest round too (the streaming tail is exempted by the caller)", () => {
+    expect(resolveAgentMessageClampEligibility(true, false)).toBe(true);
+    expect(resolveAgentMessageClampEligibility(true, true)).toBe(true);
   });
 
   it("uses the host fallback outside a turn context", () => {

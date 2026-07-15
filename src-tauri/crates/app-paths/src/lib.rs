@@ -64,6 +64,16 @@ pub fn sessions_db() -> PathBuf {
     orgii_root().join("sessions.db")
 }
 
+/// Privacy-filtered session-provenance hook inbox:
+/// `~/.orgii/session-provenance/inbox/`.
+///
+/// External agent hooks write small, versioned envelopes here instead of
+/// opening `sessions.db` directly. The desktop process drains the inbox and
+/// owns all canonical SQLite writes.
+pub fn session_provenance_inbox_dir() -> PathBuf {
+    orgii_root().join("session-provenance").join("inbox")
+}
+
 /// Project & work-item SQLite database: `~/.orgii/projects/projects.db`.
 ///
 /// Kept separate from `sessions_db` so cross-device sync and manual

@@ -122,6 +122,10 @@
         "apps": "앱",
         "clis": "CLI"
       },
+      "views": {
+        "scanning": "스캔",
+        "hooks": "훅"
+      },
       "sessions_other": "{{count}}개 세션",
       "details": {
         "path": "경로",
@@ -274,6 +278,11 @@
       "commits_one": "{{count}} commit",
       "commits_other": "{{count}} commits",
       "committedRateShort": "{{percent}}% committed"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
   },
   "changes": {
@@ -774,7 +783,8 @@
       "tabs": {
         "work": "작업",
         "manage": "관리",
-        "heatmap": "추세"
+        "heatmap": "추세",
+        "runtime": "런타임"
       },
       "heatmap": {
         "loading": "활동 추세 로드 중…",

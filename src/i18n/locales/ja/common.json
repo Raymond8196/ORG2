@@ -405,7 +405,28 @@
     "nearby": "近く",
     "renowned": "著名",
     "dragToReorder": "ドラッグしてメッセージの順序を変更",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "セッションの帰属",
+    "sessionBlameSubagent": "サブエージェント: {{name}}",
+    "sessionBlameMainSession": "メインセッション",
+    "sessionBlameAction": {
+      "read": "読み取り",
+      "write": "書き込み",
+      "create": "作成",
+      "delete": "削除",
+      "rename": "名前変更",
+      "search": "検索"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "信頼度不明",
+      "session_only": "セッションのみ",
+      "correlated": "関連付け済み",
+      "exact": "正確な帰属"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "過去のセッションをインデックス中 {{indexed}}/{{total}}",
+      "partial": "履歴インデックスが不完全です（{{failed}} 件失敗）",
+      "failed": "過去のセッションのインデックス作成に失敗しました"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -423,7 +444,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "ファイル",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1013,6 +1034,10 @@
     "scanningFiles": "Scanning files...",
     "branchTooltip": "ブランチ: {{branch}}",
     "branchTooltipSwitching": "ブランチ: {{branch}}（切り替え中…）",
+    "switchWorkspaceTooltip": "Workspace を切り替え",
+    "switchWorktreeTooltip": "Worktree を切り替え",
+    "switchBranchTooltip": "ブランチを切り替え",
+    "gitActionsTooltip": "Git アクション",
     "switchToSessionRepo": "{{name}} に切り替え",
     "embeddingProgress": "Embedding: {{count}} チャンク処理済み",
     "embeddingProgressWithPercent": "Embedding: {{count}} チャンク処理済み ({{percent}}%)",
@@ -1025,6 +1050,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "外部",
       "tooltip": "ポート: Workspace {{workspace}}、外部 {{external}}",
+      "viewPortsTooltip": "使用中のポートを表示",
       "noWorkspacePorts": "Workspace ポートは検出されませんでした",
       "externalLabel": "外部",
       "unknownProcess": "不明なプロセス",
@@ -1144,9 +1170,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token は必須です",
       "createTokenButton": "Token を作成",
-      "openGitSettingsButton": "Git 設定を開く",
+      "openGitSettingsButton": "設定を開く",
       "configureInSettings": "設定で Git を構成",
-      "configureInSettingsDesc": "設定 → 連携 → Git で GitHub App アクセスの追加、token の保存、またはローカル認証情報のスキャンを行い、その後この Git 操作を再試行してください。"
+      "configureInSettingsDesc": "設定 → 接続 で GitHub App アクセスの追加、token の保存、またはローカル認証情報のスキャンを行い、その後この Git 操作を再試行してください。"
     },
     "actions": {
       "publish": "Publish",
@@ -1353,7 +1379,9 @@
         "delete": "削除",
         "deleteTemplate": "{branch} を削除",
         "createSessionWith": "セッション Branch を切り替え",
-        "createSessionWithTemplate": "セッション Branch を {branch} に切り替え"
+        "createSessionWithTemplate": "セッション Branch を {branch} に切り替え",
+        "switchWorktree": "Worktree を切り替え",
+        "switchWorktreeTemplate": "{worktree} に切り替え"
       },
       "actions": {
         "createNew": "新しいブランチを作成",
@@ -1364,7 +1392,8 @@
         "refresh": "ブランチを更新",
         "checkoutDetachedSuccess": "detached HEAD 状態になりました（現在のコミット）",
         "checkoutDetachedFailed": "detached HEAD へのチェックアウトに失敗しました",
-        "removeWorktree": "Worktree を削除"
+        "removeWorktree": "Worktree を削除",
+        "newWorktree": "新規 Worktree..."
       },
       "messages": {
         "deletedCount_one": "{{count}} 件のブランチを削除しました",
@@ -1379,7 +1408,9 @@
         "basedOn": "ベース",
         "worktrees": "Worktrees",
         "worktreeInUse": "使用中",
-        "checkedOutInWorktree": "Worktree でチェックアウト済み: {{path}}"
+        "checkedOutInWorktree": "Worktree でチェックアウト済み: {{path}}",
+        "mainWorktreeSection": "メイン Worktree",
+        "linkedWorktrees": "リンク済み Worktree"
       },
       "placeholders": {
         "checkout": "ブランチ",
@@ -1488,7 +1519,8 @@
         "workspace": "検索またはフォルダパスを入力",
         "branch": "ブランチを検索...",
         "source": "ソースを検索...",
-        "actions": "アクションを検索..."
+        "actions": "アクションを検索...",
+        "worktree": "Worktree を検索..."
       },
       "groups": {
         "agentSession": "Agent セッション",
@@ -1947,9 +1979,6 @@
     "pill": {
       "focus": "フォーカス",
       "allChanges": "すべての変更"
-    },
-    "sessionFilter": {
-      "allSessions": "すべてのセッション"
     }
   },
   "contextInfo": {

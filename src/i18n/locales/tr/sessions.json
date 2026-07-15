@@ -122,6 +122,10 @@
         "apps": "Uygulamalar",
         "clis": "CLI'ler"
       },
+      "views": {
+        "scanning": "Tarama",
+        "hooks": "Hooks"
+      },
       "sessions_one": "{{count}} oturum",
       "sessions_other": "{{count}} oturum",
       "details": {
@@ -275,6 +279,11 @@
       "commits_one": "{{count}} commit",
       "commits_other": "{{count}} commit",
       "committedRateShort": "%{{percent}} commitlendi"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
   },
   "changes": {
@@ -775,7 +784,8 @@
       "tabs": {
         "work": "Çalışma",
         "manage": "Yönet",
-        "heatmap": "Trendler"
+        "heatmap": "Trendler",
+        "runtime": "Çalışma zamanı"
       },
       "heatmap": {
         "loading": "Etkinlik trendleri yükleniyor…",

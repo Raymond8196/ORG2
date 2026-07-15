@@ -24,7 +24,6 @@ import {
   chatPanelWorkspaceOverviewTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 
-import AgentBlamePanelView from "./AgentBlamePanelView";
 import RecentSessionsPanelView from "./RecentSessionsPanelView";
 
 interface WorkspaceOverviewPanelViewProps {
@@ -112,8 +111,7 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
       if (
         !detailsTabAvailable &&
         (activeTab === WORKSPACE_OVERVIEW_TAB.DETAILS ||
-          activeTab === WORKSPACE_OVERVIEW_TAB.RECENT_SESSION ||
-          activeTab === WORKSPACE_OVERVIEW_TAB.AGENT_BLAME)
+          activeTab === WORKSPACE_OVERVIEW_TAB.RECENT_SESSION)
       ) {
         setActiveTab(WORKSPACE_OVERVIEW_TAB.OVERVIEW);
       }
@@ -135,10 +133,6 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
           {
             key: WORKSPACE_OVERVIEW_TAB.RECENT_SESSION,
             label: t("navigation:routes.sessions"),
-          },
-          {
-            key: WORKSPACE_OVERVIEW_TAB.AGENT_BLAME,
-            label: t("common:labels.agentBlame"),
           }
         );
       }
@@ -174,12 +168,6 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
         />
       ) : null;
 
-    const agentBlameBody =
-      resolvedActiveTab === WORKSPACE_OVERVIEW_TAB.AGENT_BLAME &&
-      selectedRepo?.path ? (
-        <AgentBlamePanelView repoPath={selectedRepo.path} />
-      ) : null;
-
     const overviewBody =
       resolvedActiveTab === WORKSPACE_OVERVIEW_TAB.OVERVIEW && overviewPath ? (
         <WorkspaceOverviewBody repoPath={overviewPath} />
@@ -212,7 +200,6 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
           {overviewBody}
           {detailsBody}
           {recentSessionBody}
-          {agentBlameBody}
         </div>
       </section>
     );
