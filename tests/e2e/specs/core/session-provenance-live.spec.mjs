@@ -837,7 +837,7 @@ describe("Session Provenance live (real vendor hooks → Session Blame)", () => 
     await openFileTimeline(repoPath);
 
     const rendered = await execJS(`
-      return [...document.querySelectorAll('[data-testid="session-blame-entry"]')]
+      return [...document.querySelectorAll('[data-testid="session-blame-session-header"], [data-testid="session-blame-entry"]')]
         .filter((row) => {
           const rect = row.getBoundingClientRect();
           const style = window.getComputedStyle(row);
@@ -853,6 +853,9 @@ describe("Session Provenance live (real vendor hooks → Session Blame)", () => 
         precision: row.getAttribute('data-attribution-precision'),
         readCount: Number(row.getAttribute('data-read-count') || '0'),
         writeCount: Number(row.getAttribute('data-write-count') || '0'),
+        rootTranscriptSessionId: row.closest('[data-testid="session-blame-session"]')
+          ?.querySelector('[data-testid="session-blame-session-header"]')
+          ?.getAttribute('data-transcript-session-id') ?? null,
         text: row.innerText || row.textContent || '',
         }));
     `);
@@ -862,6 +865,14 @@ describe("Session Provenance live (real vendor hooks → Session Blame)", () => 
       expect(entry.readCount).toBeGreaterThan(0);
       expect(entry.writeCount).toBeGreaterThan(0);
     }
+    expect(
+      rendered.some(
+        (row) =>
+          row.participantKind !== "root" &&
+          row.transcriptSessionId &&
+          row.transcriptSessionId === row.rootTranscriptSessionId
+      )
+    ).toBe(false);
 
     const claudeSubagent = rendered.find(
       (row) => row.source === "claude_code" && row.actorId
