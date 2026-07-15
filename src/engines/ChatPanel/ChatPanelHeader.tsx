@@ -85,6 +85,7 @@ interface ChatPanelHeaderProps {
   handleProjectAgentCreatorToggle: (enabled: boolean) => void;
   handleProjectTitleChange: (title: string) => void;
   handleReloadFromMenu: () => void;
+  handleStatusBarVisibleToggle: (checked: boolean) => void;
   handleToggleAllBlocksCollapsed: () => void;
   handleTokenUsageVisibleToggle: (checked: boolean) => void;
   handleWorkItemAgentCreatorToggle: (enabled: boolean) => void;
@@ -99,6 +100,7 @@ interface ChatPanelHeaderProps {
   isHeaderActionsPositioned: boolean;
   isProjectTarget: boolean;
   paginationEnabled: boolean;
+  statusBarVisible: boolean;
   tokenUsageVisible: boolean;
   showStartPageBackButton: boolean;
   selectedProjectVisible: boolean;
@@ -153,6 +155,7 @@ export function ChatPanelHeader({
   handleProjectAgentCreatorToggle,
   handleProjectTitleChange,
   handleReloadFromMenu,
+  handleStatusBarVisibleToggle,
   handleToggleAllBlocksCollapsed,
   handleTokenUsageVisibleToggle,
   handleWorkItemAgentCreatorToggle,
@@ -167,6 +170,7 @@ export function ChatPanelHeader({
   isHeaderActionsPositioned,
   isProjectTarget,
   paginationEnabled,
+  statusBarVisible,
   tokenUsageVisible,
   showStartPageBackButton,
   selectedProjectVisible,
@@ -437,6 +441,16 @@ export function ChatPanelHeader({
               <Switch
                 checked={tokenUsageVisible}
                 onChange={handleTokenUsageVisibleToggle}
+                size="small"
+              />
+            </div>
+            <div
+              className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
+            >
+              <span className="flex-1 truncate">{t("chat.showStatusBar")}</span>
+              <Switch
+                checked={statusBarVisible}
+                onChange={handleStatusBarVisibleToggle}
                 size="small"
               />
             </div>

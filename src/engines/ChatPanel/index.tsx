@@ -215,6 +215,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handlePaginationToggle,
       handleRegisterSearchOpen,
       handleReloadFromMenu,
+      handleStatusBarVisibleToggle,
       handleToggleAllBlocksCollapsed,
       handleTokenUsageVisibleToggle,
       headerActionsDropdownRef,
@@ -223,6 +224,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       isHeaderActionsOpen,
       isHeaderActionsPositioned,
       paginationEnabled,
+      statusBarVisible,
       tokenUsageVisible,
       toggleHeaderActionsMenu,
     } = useChatPanelHeaderActions({ handleReloadSession });
@@ -472,6 +474,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           handleProjectAgentCreatorToggle={handleProjectAgentCreatorToggle}
           handleProjectTitleChange={handleProjectTitleChange}
           handleReloadFromMenu={handleReloadFromMenu}
+          handleStatusBarVisibleToggle={handleStatusBarVisibleToggle}
           handleToggleAllBlocksCollapsed={handleToggleAllBlocksCollapsed}
           handleTokenUsageVisibleToggle={handleTokenUsageVisibleToggle}
           handleWorkItemAgentCreatorToggle={handleWorkItemAgentCreatorToggle}
@@ -486,6 +489,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           isHeaderActionsPositioned={isHeaderActionsPositioned}
           isProjectTarget={contentState.isProjectTarget}
           paginationEnabled={paginationEnabled}
+          statusBarVisible={statusBarVisible}
           tokenUsageVisible={tokenUsageVisible}
           showStartPageBackButton={
             !startPageOpen && !contentState.showSessionContent
