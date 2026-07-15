@@ -58,6 +58,7 @@ dependencies = [
  "app_paths",
  "app_platform",
  "app_utils",
+ "chrono",
  "rand 0.9.4",
  "rusqlite",
  "serde",
