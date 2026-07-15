@@ -1,0 +1,504 @@
+//! External hook payload adapters for session provenance.
+//!
+//! Vendor payloads are accepted only at this boundary and immediately reduced
+//! to [`ResourceInteractionEnvelopeV1`]. Raw tool responses, prompts, commands,
+//! and file contents are never copied into the envelope.
+
+use chrono::{SecondsFormat, Utc};
+use serde_json::Value;
+
+use crate::canonical::{
+    AttributionPrecision, ResourceAction, ResourceInteractionEnvelopeV1,
+    ResourceInteractionOutcome, RESOURCE_INTERACTION_SCHEMA_VERSION,
+};
+use crate::sources::imported_history::metadata::{
+    SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE,
+};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HookSource {
+    ClaudeCode,
+    Codex,
+    Cursor,
+}
+
+impl HookSource {
+    pub fn parse(value: &str) -> Result<Self, String> {
+        match value {
+            SOURCE_CLAUDE_CODE | "claude" => Ok(Self::ClaudeCode),
+            SOURCE_CODEX_APP | "codex" => Ok(Self::Codex),
+            SOURCE_CURSOR_IDE | "cursor" => Ok(Self::Cursor),
+            other => Err(format!(
+                "Unsupported session-provenance hook source: {other}"
+            )),
+        }
+    }
+
+    pub fn as_source_str(self) -> &'static str {
+        match self {
+            Self::ClaudeCode => SOURCE_CLAUDE_CODE,
+            Self::Codex => SOURCE_CODEX_APP,
+            Self::Cursor => SOURCE_CURSOR_IDE,
+        }
+    }
+
+    fn canonical_session_id(self, source_session_id: &str) -> String {
+        match self {
+            Self::ClaudeCode => {
+                crate::sources::claude_code::canonical_session_id(source_session_id)
+            }
+            Self::Codex => crate::sources::codex::canonical_session_id(source_session_id),
+            Self::Cursor => crate::sources::cursor_ide::canonical_session_id(source_session_id),
+        }
+    }
+}
+
+pub fn normalize_hook_payload(
+    source: HookSource,
+    payload: &Value,
+) -> Result<Vec<ResourceInteractionEnvelopeV1>, String> {
+    let source_session_id = source_session_id(source, payload)
+        .ok_or_else(|| "Hook payload is missing its session identifier".to_string())?;
+    let cwd = string_field(payload, &["cwd", "workspace_path", "workspacePath"])
+        .or_else(|| first_string_array_item(payload, &["workspace_roots", "workspaceRoots"]))
+        .unwrap_or_else(|| ".".to_string());
+    let turn_id = string_field(payload, &["turn_id", "generation_id", "generationId"]);
+    let actor_id = string_field(payload, &["agent_id", "subagent_id", "subagentId"]);
+    let hook_event_name =
+        string_field(payload, &["hook_event_name", "hookEventName", "event"]).unwrap_or_default();
+    let outcome = if hook_event_name.to_ascii_lowercase().contains("failure") {
+        ResourceInteractionOutcome::Failed
+    } else {
+        ResourceInteractionOutcome::Succeeded
+    };
+    let occurred_at = string_field(payload, &["timestamp", "occurred_at", "occurredAt"])
+        .and_then(|timestamp| normalize_rfc3339(&timestamp))
+        .unwrap_or_else(now_rfc3339);
+
+    let mut path_actions = if hook_event_name.eq_ignore_ascii_case("subagentStop") {
+        modified_file_actions(payload)
+    } else {
+        tool_path_actions(source, payload)
+    };
+    path_actions.sort_by(|left, right| {
+        left.0
+            .cmp(&right.0)
+            .then(left.1.as_str().cmp(right.1.as_str()))
+    });
+    path_actions.dedup();
+
+    let base_source_event_id = string_field(
+        payload,
+        &[
+            "tool_use_id",
+            "toolUseId",
+            "event_id",
+            "eventId",
+            "generation_id",
+            "generationId",
+        ],
+    );
+    let session_id = source.canonical_session_id(&source_session_id);
+    let precision = if actor_id.is_some() {
+        AttributionPrecision::Exact
+    } else {
+        AttributionPrecision::SessionOnly
+    };
+
+    Ok(path_actions
+        .into_iter()
+        .map(|(file_path, action)| {
+            let source_event_id = base_source_event_id
+                .as_ref()
+                .map(|base| format!("{base}:{}:{file_path}", action.as_str()));
+            ResourceInteractionEnvelopeV1 {
+                schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                source: source.as_source_str().to_string(),
+                source_session_id: source_session_id.clone(),
+                session_id: session_id.clone(),
+                source_event_id,
+                turn_id: turn_id.clone(),
+                actor_id: actor_id.clone(),
+                cwd: cwd.clone(),
+                file_path,
+                action,
+                outcome,
+                occurred_at: occurred_at.clone(),
+                attribution_precision: precision,
+            }
+        })
+        .collect())
+}
+
+fn source_session_id(source: HookSource, payload: &Value) -> Option<String> {
+    match source {
+        HookSource::ClaudeCode | HookSource::Codex => {
+            string_field(payload, &["session_id", "sessionId"])
+        }
+        HookSource::Cursor => string_field(
+            payload,
+            &[
+                "conversation_id",
+                "conversationId",
+                "session_id",
+                "sessionId",
+            ],
+        ),
+    }
+}
+
+fn tool_path_actions(source: HookSource, payload: &Value) -> Vec<(String, ResourceAction)> {
+    let tool_name = string_field(payload, &["tool_name", "toolName"]).unwrap_or_default();
+    let tool_input = payload
+        .get("tool_input")
+        .or_else(|| payload.get("toolInput"))
+        .unwrap_or(&Value::Null);
+
+    let patch_text = string_field(
+        tool_input,
+        &["patch", "patch_text", "patchText", "command", "input"],
+    );
+    let patch_actions = patch_text
+        .as_deref()
+        .map(extract_patch_file_actions)
+        .unwrap_or_default();
+    if !patch_actions.is_empty() {
+        return patch_actions;
+    }
+
+    if let Some(default_action) = action_for_tool_name(&tool_name) {
+        let explicit = extract_explicit_paths(tool_input)
+            .into_iter()
+            .map(|path| (path, default_action))
+            .collect::<Vec<_>>();
+        if !explicit.is_empty() {
+            return explicit;
+        }
+    }
+
+    if matches!(source, HookSource::Codex | HookSource::Cursor) {
+        return shell_path_actions(&tool_name, tool_input);
+    }
+    Vec::new()
+}
+
+/// Reuse the transcript importer's conservative shell classifier at the hook
+/// boundary. It recognizes only read-only file commands (`cat`, bounded
+/// `sed`, `head`, `tail`) and code-search commands. The raw command is used
+/// transiently for classification and is never copied into the envelope.
+fn shell_path_actions(tool_name: &str, tool_input: &Value) -> Vec<(String, ResourceAction)> {
+    crate::sources::codex::app::normalize_codex_tool_calls(tool_name, tool_input.clone())
+        .into_iter()
+        .flat_map(|(canonical_name, args)| {
+            let action = match canonical_name.as_str() {
+                crate::sources::imported_history::FUNCTION_READ_FILE => ResourceAction::Read,
+                crate::sources::imported_history::FUNCTION_CODE_SEARCH
+                | crate::sources::imported_history::FUNCTION_GLOB_FILE_SEARCH => {
+                    ResourceAction::Search
+                }
+                crate::sources::imported_history::FUNCTION_EDIT_FILE => ResourceAction::Write,
+                _ => return Vec::new(),
+            };
+            extract_explicit_paths(&args)
+                .into_iter()
+                .map(|path| (path, action))
+                .collect()
+        })
+        .collect()
+}
+
+fn modified_file_actions(payload: &Value) -> Vec<(String, ResourceAction)> {
+    payload
+        .get("modified_files")
+        .or_else(|| payload.get("modifiedFiles"))
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .filter(|path| !path.trim().is_empty())
+        .map(|path| (path.to_string(), ResourceAction::Write))
+        .collect()
+}
+
+fn action_for_tool_name(tool_name: &str) -> Option<ResourceAction> {
+    let normalized = tool_name.to_ascii_lowercase();
+    if normalized.contains("delete") || normalized.contains("remove_file") {
+        Some(ResourceAction::Delete)
+    } else if normalized.contains("write")
+        || normalized.contains("edit")
+        || normalized.contains("patch")
+        || normalized.contains("notebook")
+    {
+        Some(ResourceAction::Write)
+    } else if normalized.contains("read") || normalized.contains("view_file") {
+        Some(ResourceAction::Read)
+    } else if normalized.contains("grep")
+        || normalized.contains("search")
+        || normalized.contains("glob")
+    {
+        Some(ResourceAction::Search)
+    } else {
+        None
+    }
+}
+
+fn extract_explicit_paths(value: &Value) -> Vec<String> {
+    const PATH_FIELDS: &[&str] = &[
+        "file_path",
+        "filePath",
+        "path",
+        "notebook_path",
+        "notebookPath",
+        "target_file",
+        "targetFile",
+    ];
+    let mut paths = Vec::new();
+    if let Some(object) = value.as_object() {
+        for field in PATH_FIELDS {
+            match object.get(*field) {
+                Some(Value::String(path)) if !path.trim().is_empty() => paths.push(path.clone()),
+                Some(Value::Array(values)) => paths.extend(
+                    values
+                        .iter()
+                        .filter_map(Value::as_str)
+                        .filter(|path| !path.trim().is_empty())
+                        .map(str::to_string),
+                ),
+                _ => {}
+            }
+        }
+    }
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
+fn extract_patch_file_actions(patch: &str) -> Vec<(String, ResourceAction)> {
+    let mut actions = Vec::new();
+    for line in patch.lines() {
+        let trimmed = line.trim();
+        let candidate = [
+            ("*** Add File:", ResourceAction::Create),
+            ("*** Update File:", ResourceAction::Write),
+            ("*** Delete File:", ResourceAction::Delete),
+            ("*** Move to:", ResourceAction::Rename),
+        ]
+        .into_iter()
+        .find_map(|(prefix, action)| {
+            trimmed
+                .strip_prefix(prefix)
+                .map(|path| (path.trim(), action))
+        });
+        if let Some((path, action)) = candidate {
+            if !path.is_empty() {
+                actions.push((path.to_string(), action));
+            }
+        }
+    }
+    actions
+}
+
+fn string_field(value: &Value, fields: &[&str]) -> Option<String> {
+    fields.iter().find_map(|field| {
+        value
+            .get(*field)
+            .and_then(Value::as_str)
+            .map(str::trim)
+            .filter(|field| !field.is_empty())
+            .map(str::to_string)
+    })
+}
+
+fn first_string_array_item(value: &Value, fields: &[&str]) -> Option<String> {
+    fields.iter().find_map(|field| {
+        value
+            .get(*field)
+            .and_then(Value::as_array)
+            .and_then(|items| items.iter().find_map(Value::as_str))
+            .map(str::trim)
+            .filter(|item| !item.is_empty())
+            .map(str::to_string)
+    })
+}
+
+fn now_rfc3339() -> String {
+    Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true)
+}
+
+fn normalize_rfc3339(timestamp: &str) -> Option<String> {
+    chrono::DateTime::parse_from_rfc3339(timestamp)
+        .ok()
+        .map(|timestamp| {
+            timestamp
+                .with_timezone(&Utc)
+                .to_rfc3339_opts(SecondsFormat::Millis, true)
+        })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn claude_read_keeps_exact_subagent_attribution_without_raw_output() {
+        let envelopes = normalize_hook_payload(
+            HookSource::ClaudeCode,
+            &json!({
+                "session_id": "session-1",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                "tool_name": "Read",
+                "tool_use_id": "tool-1",
+                "agent_id": "agent-1",
+                "tool_input": {"file_path": "/repo/src/lib.rs"},
+                "tool_response": {"content": "secret file contents"}
+            }),
+        )
+        .expect("normalize Claude hook");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].session_id, "claudecodeapp-session-1");
+        assert_eq!(envelopes[0].actor_id.as_deref(), Some("agent-1"));
+        assert_eq!(envelopes[0].action, ResourceAction::Read);
+        assert_eq!(
+            envelopes[0].attribution_precision,
+            AttributionPrecision::Exact
+        );
+        let serialized = serde_json::to_string(&envelopes[0]).expect("serialize envelope");
+        assert!(!serialized.contains("secret file contents"));
+    }
+
+    #[test]
+    fn codex_apply_patch_preserves_per_file_actions() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Codex,
+            &json!({
+                "session_id": "session-2",
+                "turn_id": "turn-2",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                "tool_name": "apply_patch",
+                "tool_use_id": "tool-2",
+                "tool_input": {
+                    "command": "*** Begin Patch\n*** Add File: src/new.rs\n+x\n*** Delete File: src/old.rs\n*** End Patch"
+                }
+            }),
+        )
+        .expect("normalize Codex hook");
+
+        assert_eq!(envelopes.len(), 2);
+        assert_eq!(envelopes[0].session_id, "codexapp-session-2");
+        assert_eq!(envelopes[0].action, ResourceAction::Create);
+        assert_eq!(envelopes[1].action, ResourceAction::Delete);
+        assert_eq!(
+            envelopes[0].attribution_precision,
+            AttributionPrecision::SessionOnly
+        );
+    }
+
+    #[test]
+    fn codex_exec_command_records_read_path_without_retaining_command() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Codex,
+            &json!({
+                "session_id": "session-read",
+                "turn_id": "turn-read",
+                "cwd": "/repo",
+                "hook_event_name": "PostToolUse",
+                "tool_name": "exec_command",
+                "tool_use_id": "tool-read",
+                "tool_input": {"cmd": "sed -n '1,20p' src/lib.rs"},
+                "tool_response": {"output": "private source"}
+            }),
+        )
+        .expect("normalize Codex shell read");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].file_path, "src/lib.rs");
+        assert_eq!(envelopes[0].action, ResourceAction::Read);
+        let serialized = serde_json::to_string(&envelopes).expect("serialize envelopes");
+        assert!(!serialized.contains("sed -n"));
+        assert!(!serialized.contains("private source"));
+    }
+
+    #[test]
+    fn cursor_subagent_stop_uses_modified_files() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Cursor,
+            &json!({
+                "conversation_id": "conversation-1",
+                "generation_id": "generation-1",
+                "workspace_roots": ["/repo"],
+                "hook_event_name": "subagentStop",
+                "modified_files": ["src/a.rs", "src/b.rs"]
+            }),
+        )
+        .expect("normalize Cursor hook");
+
+        assert_eq!(envelopes.len(), 2);
+        assert_eq!(envelopes[0].session_id, "cursoride-conversation-1");
+        assert_eq!(envelopes[0].cwd, "/repo");
+        assert_eq!(envelopes[0].actor_id, None);
+        assert_eq!(
+            envelopes[0].attribution_precision,
+            AttributionPrecision::SessionOnly
+        );
+        assert!(envelopes
+            .iter()
+            .all(|envelope| envelope.action == ResourceAction::Write));
+    }
+
+    #[test]
+    fn cursor_post_tool_use_matches_live_payload_without_retaining_private_fields() {
+        let envelopes = normalize_hook_payload(
+            HookSource::Cursor,
+            &json!({
+                "conversation_id": "conversation-live",
+                "generation_id": "generation-live",
+                "workspace_roots": ["/repo"],
+                "hook_event_name": "postToolUse",
+                "tool_name": "Read",
+                "tool_use_id": "tool-live",
+                "tool_input": {"file_path": "src/lib.rs"},
+                "tool_output": "private file contents",
+                "user_email": "private@example.com"
+            }),
+        )
+        .expect("normalize live Cursor hook shape");
+
+        assert_eq!(envelopes.len(), 1);
+        assert_eq!(envelopes[0].session_id, "cursoride-conversation-live");
+        assert_eq!(envelopes[0].turn_id.as_deref(), Some("generation-live"));
+        assert_eq!(
+            envelopes[0].source_event_id.as_deref(),
+            Some("tool-live:read:src/lib.rs")
+        );
+        assert_eq!(envelopes[0].cwd, "/repo");
+        assert_eq!(envelopes[0].file_path, "src/lib.rs");
+        assert_eq!(envelopes[0].action, ResourceAction::Read);
+        assert_eq!(
+            envelopes[0].attribution_precision,
+            AttributionPrecision::SessionOnly
+        );
+        let serialized = serde_json::to_string(&envelopes).expect("serialize envelopes");
+        assert!(!serialized.contains("private file contents"));
+        assert!(!serialized.contains("private@example.com"));
+    }
+
+    #[test]
+    fn vendor_timestamps_are_normalized_to_utc() {
+        let envelopes = normalize_hook_payload(
+            HookSource::ClaudeCode,
+            &json!({
+                "session_id": "session-3",
+                "cwd": "/repo",
+                "timestamp": "2026-07-14T10:00:00+02:00",
+                "tool_name": "Read",
+                "tool_input": {"file_path": "src/lib.rs"}
+            }),
+        )
+        .expect("normalize timestamp");
+        assert_eq!(envelopes[0].occurred_at, "2026-07-14T08:00:00.000Z");
+    }
+}

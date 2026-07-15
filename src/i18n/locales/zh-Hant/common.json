@@ -417,7 +417,30 @@
     "nearby": "附近",
     "renowned": "知名",
     "dragToReorder": "拖拽調整消息順序",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Session 歸屬",
+    "sessionBlameSubagent": "子代理：{{name}}",
+    "sessionBlameMainSession": "主 Session",
+    "sessionBlameSessionAttribution": "Session 層級歸屬",
+    "sessionBlameAction": {
+      "read": "讀取",
+      "write": "寫入",
+      "create": "建立",
+      "delete": "刪除",
+      "rename": "重新命名",
+      "search": "搜尋",
+      "reference": "引用"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "歸屬未知",
+      "session_only": "僅歸屬至 Session",
+      "correlated": "關聯推斷",
+      "exact": "精確歸屬"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "正在索引歷史 Session {{indexed}}/{{total}}",
+      "partial": "歷史索引不完整（{{failed}} 個失敗）",
+      "failed": "歷史 Session 索引失敗"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

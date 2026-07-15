@@ -405,7 +405,30 @@
     "nearby": "W pobliżu",
     "renowned": "Znani",
     "dragToReorder": "Przeciągnij, aby zmienić kolejność wiadomości",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Atrybucja sesji",
+    "sessionBlameSubagent": "Podagent: {{name}}",
+    "sessionBlameMainSession": "Sesja główna",
+    "sessionBlameSessionAttribution": "Atrybucja na poziomie sesji",
+    "sessionBlameAction": {
+      "read": "Odczyt",
+      "write": "Zapis",
+      "create": "Tworzenie",
+      "delete": "Usuwanie",
+      "rename": "Zmiana nazwy",
+      "search": "Wyszukiwanie",
+      "reference": "Odwołanie"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Nieznana pewność",
+      "session_only": "Tylko sesja",
+      "correlated": "Skorelowana",
+      "exact": "Dokładna atrybucja"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Indeksowanie historycznych sesji {{indexed}}/{{total}}",
+      "partial": "Indeks historii jest niepełny (błędy: {{failed}})",
+      "failed": "Nie udało się zindeksować historycznych sesji"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

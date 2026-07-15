@@ -70,6 +70,7 @@ import { copyText } from "@src/util/data/clipboard";
 import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 
 import DataSourceDetailsCard from "./DataSourceDetailsCard";
+import SessionProvenanceHooksPanel from "./SessionProvenanceHooksPanel";
 
 type DataSourceTab = "all" | "apps" | "clis";
 
@@ -116,7 +117,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
   // sourceId whose rescan split-menu is open (null = none).
   const [openRescanMenu, setOpenRescanMenu] = useState<string | null>(null);
   const [tab, setTab] = useState<DataSourceTab>("all");
-  // Top-level panel view: the scan inventory vs. the (not-yet-built) hooks tab.
+  // Top-level panel view: scan/import inventory vs. hook capture management.
   const [panelView, setPanelView] = useState<"scanning" | "hooks">("scanning");
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -587,8 +588,16 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
         <TabPill
           activeTab={panelView}
           tabs={[
-            { key: "scanning", label: t("views.scanning") },
-            { key: "hooks", label: t("views.hooks") },
+            {
+              key: "scanning",
+              label: t("views.scanning"),
+              dataTestId: "data-source-view-scanning",
+            },
+            {
+              key: "hooks",
+              label: t("views.hooks"),
+              dataTestId: "data-source-view-hooks",
+            },
           ]}
           onChange={(key) => setPanelView(key as "scanning" | "hooks")}
           variant="simple"
@@ -680,7 +689,9 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
               }}
             />
           </>
-        ) : null}
+        ) : (
+          <SessionProvenanceHooksPanel />
+        )}
       </div>
     </div>
   );

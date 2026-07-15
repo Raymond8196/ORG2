@@ -1677,6 +1677,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "Yapılandırma içeriği yok"
     },
+    "sessionProvenance": {
+      "title": "Oturum kaynağı",
+      "capture": "Dosya etkileşimlerini kaydet",
+      "description": "Dosya okuma ve yazma işlemlerini meta veri olarak kaydeder. İstemler, araç çıktıları ve dosya içerikleri saklanmaz.",
+      "configPath": "Dosya okuma ve yazma işlemlerini meta veri olarak kaydeder. İstemler, araç çıktıları ve dosya içerikleri saklanmaz. Yapılandırma: {{path}}",
+      "installDrift": "Kaydedilen tercih ile yüklü hook farklı. Yönetilen hook'u onarmak için kaydı değiştirin. Yapılandırma: {{path}}"
+    },
     "codexConfig": {
       "sectionTitle": "Yapılandırma",
       "model": "Model",

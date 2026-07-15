@@ -405,7 +405,30 @@
     "nearby": "근처",
     "renowned": "유명한",
     "dragToReorder": "드래그하여 메시지 순서 변경",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "세션 귀속",
+    "sessionBlameSubagent": "하위 에이전트: {{name}}",
+    "sessionBlameMainSession": "기본 세션",
+    "sessionBlameSessionAttribution": "세션 수준 귀속",
+    "sessionBlameAction": {
+      "read": "읽기",
+      "write": "쓰기",
+      "create": "생성",
+      "delete": "삭제",
+      "rename": "이름 변경",
+      "search": "검색",
+      "reference": "참조"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "신뢰도 알 수 없음",
+      "session_only": "세션만",
+      "correlated": "연결됨",
+      "exact": "정확한 귀속"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "이전 세션 색인 중 {{indexed}}/{{total}}",
+      "partial": "이전 색인이 불완전합니다({{failed}}개 실패)",
+      "failed": "이전 세션 색인에 실패했습니다"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

@@ -55,6 +55,16 @@ export const OrgtrackFileTimelineInput = z.object({
   filePath: z.string(),
 });
 
+export const OrgtrackFileSessionLookupInput = z.object({
+  repoPath: z.string(),
+  filePath: z.string(),
+});
+
+export const OrgtrackFileSessionHistoryInput = z.object({
+  repoPath: z.string(),
+  filePath: z.string(),
+});
+
 export const OrgtrackSessionSummariesInput = z.object({
   workspacePath: z.string().optional(),
 });
@@ -414,6 +424,84 @@ export const OrgtrackFileTimelineSchema = z.object({
   entries: z.array(OrgtrackFileTimelineEntrySchema),
 });
 
+export const OrgtrackFileSessionSummarySchema = z.object({
+  sessionId: z.string(),
+  sessionLabel: z.string().nullable().optional(),
+  agentIdentity: OrgtrackAgentIdentitySchema.nullable().optional(),
+  firstEditAt: z.number().int(),
+  lastEditAt: z.number().int(),
+  editCount: z.number().int(),
+  commitShas: z.array(z.string()),
+  reachabilityStates: z.array(OrgtrackReachabilityStateSchema),
+});
+
+export const OrgtrackFileSessionLookupSchema = z.object({
+  schemaVersion: z.number().int(),
+  filePath: z.string(),
+  pathHash: z.string(),
+  sessions: z.array(OrgtrackFileSessionSummarySchema),
+});
+
+export const OrgtrackInteractionPrecisionSchema = z.enum([
+  "unknown",
+  "session_only",
+  "correlated",
+  "exact",
+]);
+
+export const OrgtrackFileSessionHistoryParticipantSchema = z.object({
+  entryId: z.string(),
+  sessionId: z.string(),
+  parentSessionId: z.string().nullable().optional(),
+  sessionLabel: z.string(),
+  participantKind: z.enum(["session", "subagent"]),
+  actorId: z.string().nullable().optional(),
+  actorLabel: z.string().nullable().optional(),
+  firstInteractionAt: z.string(),
+  lastInteractionAt: z.string(),
+  interactionCount: z.number().int(),
+  actionCounts: z.record(z.string(), z.number().int()),
+  actorIds: z.array(z.string()),
+  captureMethods: z.array(z.string()),
+  attributionPrecision: OrgtrackInteractionPrecisionSchema,
+});
+
+export const OrgtrackFileSessionHistorySessionSchema = z.object({
+  sessionId: z.string(),
+  sessionLabel: z.string(),
+  source: z.string(),
+  workspacePath: z.string().nullable().optional(),
+  firstInteractionAt: z.string(),
+  lastInteractionAt: z.string(),
+  interactionCount: z.number().int(),
+  actionCounts: z.record(z.string(), z.number().int()),
+  captureMethods: z.array(z.string()),
+  attributionPrecision: OrgtrackInteractionPrecisionSchema,
+  participants: z.array(OrgtrackFileSessionHistoryParticipantSchema),
+});
+
+export const OrgtrackFileSessionHistoryBackfillSchema = z.object({
+  status: z.enum([
+    "queued",
+    "discovering",
+    "indexing",
+    "complete",
+    "partial",
+    "failed",
+  ]),
+  indexedSessions: z.number().int().nonnegative(),
+  totalSessions: z.number().int().nonnegative(),
+  failedSessions: z.number().int().nonnegative(),
+  lastError: z.string().nullable().optional(),
+});
+
+export const OrgtrackFileSessionHistorySchema = z.object({
+  schemaVersion: z.number().int(),
+  filePath: z.string(),
+  backfill: OrgtrackFileSessionHistoryBackfillSchema,
+  sessions: z.array(OrgtrackFileSessionHistorySessionSchema),
+});
+
 export type FunctionEntry = z.output<typeof FunctionEntrySchema>;
 export type SessionImpact = z.output<typeof SessionImpactSchema>;
 export type OrgtrackTier = z.output<typeof OrgtrackTierSchema>;
@@ -460,6 +548,12 @@ export const CoreSessionSummarySchema = z.object({
   keySource: z.string().nullable().optional(),
 });
 
+export type OrgtrackFileSessionLookup = z.output<
+  typeof OrgtrackFileSessionLookupSchema
+>;
+export type OrgtrackFileSessionHistory = z.output<
+  typeof OrgtrackFileSessionHistorySchema
+>;
 export type CoreSessionSummary = z.output<typeof CoreSessionSummarySchema>;
 export type OrgtrackFileTimelineEntry = z.output<
   typeof OrgtrackFileTimelineEntrySchema

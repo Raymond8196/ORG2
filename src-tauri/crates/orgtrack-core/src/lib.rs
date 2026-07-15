@@ -5,10 +5,12 @@
 //! metadata. Host applications provide paths, permissions, UI commands, and
 //! runtime-specific adapters.
 
+pub mod activity_interaction;
 pub mod canonical;
 pub mod edit_extraction;
 #[cfg(test)]
 mod edit_extraction_tests;
+pub mod hook_adapter;
 pub mod policy;
 pub mod privacy;
 pub mod projectors;

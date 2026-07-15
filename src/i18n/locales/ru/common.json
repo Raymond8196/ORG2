@@ -405,7 +405,30 @@
     "nearby": "Рядом",
     "renowned": "Известные",
     "dragToReorder": "Перетащите для изменения порядка сообщений",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Атрибуция сессий",
+    "sessionBlameSubagent": "Подагент: {{name}}",
+    "sessionBlameMainSession": "Основная сессия",
+    "sessionBlameSessionAttribution": "Атрибуция на уровне сессии",
+    "sessionBlameAction": {
+      "read": "Чтение",
+      "write": "Запись",
+      "create": "Создание",
+      "delete": "Удаление",
+      "rename": "Переименование",
+      "search": "Поиск",
+      "reference": "Ссылка"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Точность неизвестна",
+      "session_only": "Только сессия",
+      "correlated": "Сопоставлено",
+      "exact": "Точная атрибуция"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Индексирование истории сессий {{indexed}}/{{total}}",
+      "partial": "Исторический индекс неполон (ошибок: {{failed}})",
+      "failed": "Не удалось проиндексировать историю сессий"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",

@@ -2,6 +2,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 use crate::privacy::OrgtrackTier;
+pub use orgtrack_protocol::{
+    AttributionPrecision, FileResourceRecord, ResourceAction, ResourceInteractionCaptureMethod,
+    ResourceInteractionEnvelopeV1, ResourceInteractionOutcome, ResourceInteractionRecord,
+    RESOURCE_INTERACTION_SCHEMA_VERSION,
+};
 
 pub const SOURCE_ORGII_RUST_AGENTS: &str = "orgii_rust_agents";
 pub const SOURCE_ORGII_CLI_SESSIONS: &str = "orgii_cli_sessions";

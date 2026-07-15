@@ -221,6 +221,8 @@ export const E2EBootstrap: FC = () => {
     const {
       promptDump: promptDumpHelper,
       getActiveSessionId,
+      openWorkstationFile,
+      inspectOrgtrackFileSessionHistory,
       inspectCliSessionStatus,
       inspectCliHistoryMutation,
       resetToNewSession,
@@ -412,6 +414,8 @@ export const E2EBootstrap: FC = () => {
       lintSetToolEnabled,
       promptDump: promptDumpHelper,
       getActiveSessionId,
+      openWorkstationFile,
+      inspectOrgtrackFileSessionHistory,
       inspectCliSessionStatus,
       inspectCliHistoryMutation,
       resetToNewSession,

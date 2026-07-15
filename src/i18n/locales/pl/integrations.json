@@ -1677,6 +1677,13 @@
       "tokenCount": "~{{count}} Token",
       "emptyConfigPreview": "Brak treści konfiguracji"
     },
+    "sessionProvenance": {
+      "title": "Pochodzenie sesji",
+      "capture": "Rejestruj interakcje z plikami",
+      "description": "Rejestruje odczyty i zapisy plików jako metadane. Prompty, wyniki narzędzi i zawartość plików nie są przechowywane.",
+      "configPath": "Rejestruje odczyty i zapisy plików jako metadane. Prompty, wyniki narzędzi i zawartość plików nie są przechowywane. Konfiguracja: {{path}}",
+      "installDrift": "Zapisane ustawienie różni się od zainstalowanego hooka. Przełącz rejestrowanie, aby naprawić zarządzany hook. Konfiguracja: {{path}}"
+    },
     "codexConfig": {
       "sectionTitle": "Konfiguracja",
       "model": "Model",
