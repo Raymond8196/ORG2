@@ -84,9 +84,10 @@ export interface AdvancedConfig {
   cliAgentType?: CliAgentType;
   /**
    * Remote SSH execution target. When set (with a non-empty `host`), the
-   * CLI agent runs on the remote host over ssh instead of locally.
-   * BYOK-only + line-based CLIs (claude_code / codex / gemini_cli),
-   * enforced server-side. `~/.ssh/config` host-list parsing is deferred —
+   * CLI agents run on the remote host; Rust-native agents keep their model
+   * local and use the target for remote workspace commands. CLI remote mode
+   * is BYOK-only + limited to line-based CLIs (claude_code / codex /
+   * gemini_cli), enforced server-side. `~/.ssh/config` host-list parsing is deferred —
    * the user types `user@host` (or an ssh-config alias) + optional port.
    * (SSH-remote milestone §1, §3-Phase3.)
    */

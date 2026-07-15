@@ -68,6 +68,10 @@ pub struct ToolDeps {
     pub action_bridge: Option<Arc<ActionBridge>>,
     /// Controls whether tools run locally or dispatch to the frontend.
     pub execution_mode: crate::integrations::config::ExecutionMode,
+    /// When present, `run_shell` executes through the system SSH client in
+    /// this remote workspace instead of spawning a local shell. The model and
+    /// session runtime remain local.
+    pub remote_workspace: Option<crate::foundation::exec_target::SshTarget>,
 
     // ── Browser / Web ──
     pub agent_browser_config: Option<AgentBrowserConfig>,

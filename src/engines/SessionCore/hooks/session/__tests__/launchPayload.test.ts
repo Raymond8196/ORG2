@@ -214,6 +214,26 @@ describe("launchPayload", () => {
     });
   });
 
+  it("passes the SSH workspace target to a local Rust agent", () => {
+    const { launchParams } = buildSessionLaunchPayload({
+      ...baseLaunchOptions(),
+      advancedConfig: {
+        remoteTarget: {
+          host: "dev@build-host",
+          port: 2202,
+          workingDir: "/srv/project",
+        },
+      },
+      dispatchCategory: DISPATCH_CATEGORY.RUST_AGENT,
+      effectiveSource: null,
+    });
+
+    expect(launchParams.workspacePath).toBe("/srv/project");
+    expect(launchParams.execTarget).toEqual({
+      remote: { host: "dev@build-host", port: 2202 },
+    });
+  });
+
   it("persists the launch execTarget on the optimistic session row", () => {
     const session = buildSessionFromLaunchResult({
       agentExecMode: "build",

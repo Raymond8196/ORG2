@@ -230,6 +230,7 @@ async fn launch_rust_agent(
             ide_context: params.ide_context,
             parent_session_id: params.parent_session_id,
             sub_agent_ids: Vec::new(),
+            exec_target: params.exec_target.clone(),
         },
     )
     .await?;

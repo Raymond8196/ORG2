@@ -5,6 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::foundation::exec_target::ExecTarget;
 use core_types::key_source::KeySource;
 
 /// Valid values for [`UnifiedSessionRecord::session_type`].
@@ -104,6 +105,11 @@ pub struct UnifiedSessionRecord {
     #[serde(default)]
     pub key_source: KeySource,
 
+    /// Where coding tools operate for this Rust-agent session. The agent
+    /// brain stays local; `Remote` routes its shell tool through system SSH.
+    #[serde(default)]
+    pub exec_target: ExecTarget,
+
     /// Per-session execution mode picked by the user via the in-session
     /// `ModePill` (build / ask / plan / debug / review / wingman).
     ///
@@ -180,6 +186,7 @@ impl Default for UnifiedSessionRecord {
             parent_event_id: None,
             workspace_additional_json: default_workspace_additional_json(),
             key_source: KeySource::default(),
+            exec_target: ExecTarget::default(),
             agent_exec_mode: None,
             draft_text: None,
             reply_target_event_id: None,
@@ -210,6 +217,7 @@ pub(super) const UNIFIED_SESSION_SELECT: &str = r#"
         s.parent_session_id, s.parent_event_id,
         s.workspace_additional_json,
         COALESCE(s.key_source, 'own_key'),
+        COALESCE(s.exec_target, '"local"'),
         s.agent_exec_mode,
         s.native_harness_type,
         s.draft_text,
@@ -234,13 +242,18 @@ pub(super) fn row_to_record(row: &rusqlite::Row) -> rusqlite::Result<UnifiedSess
             format!("unknown KeySource value: {key_source_str:?}").into(),
         )
     })?;
+    let exec_target_json: String = row.get(29)?;
+    let exec_target = serde_json::from_str(&exec_target_json).unwrap_or_else(|err| {
+        tracing::warn!(error = %err, value = %exec_target_json, "invalid stored exec_target; falling back to Local");
+        ExecTarget::Local
+    });
     Ok(UnifiedSessionRecord {
         session_id: row.get(0)?,
         name: row.get(1)?,
         status: row.get(2)?,
         model: row.get(3)?,
         account_id: row.get(4)?,
-        native_harness_type: row.get(30)?,
+        native_harness_type: row.get(31)?,
         user_input: row.get(5)?,
         total_tokens: row.get(6)?,
         created_at: row.get(7)?,
@@ -265,11 +278,12 @@ pub(super) fn row_to_record(row: &rusqlite::Row) -> rusqlite::Result<UnifiedSess
         parent_event_id: row.get(26)?,
         workspace_additional_json: row.get(27)?,
         key_source,
-        agent_exec_mode: row.get(29)?,
-        draft_text: row.get(31)?,
-        reply_target_event_id: row.get(32)?,
+        exec_target,
+        agent_exec_mode: row.get(30)?,
+        draft_text: row.get(32)?,
+        reply_target_event_id: row.get(33)?,
         pinned: {
-            let pinned_int: i64 = row.get(33)?;
+            let pinned_int: i64 = row.get(34)?;
             pinned_int != 0
         },
     })
@@ -279,7 +293,7 @@ pub(super) fn row_to_record(row: &rusqlite::Row) -> rusqlite::Result<UnifiedSess
 mod tests {
     use super::*;
 
-    // Column layout MUST mirror `UNIFIED_SESSION_SELECT` (34 columns) —
+    // Column layout MUST mirror `UNIFIED_SESSION_SELECT` (35 columns) —
     // these fixtures drift silently when production columns are added.
     const VALID_ROW_SELECT: &str = r#"
         SELECT
@@ -292,11 +306,12 @@ mod tests {
             NULL, NULL,
             '{}',
             'own_key',
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            0
+            'local',
+            'build',
+            'cursor_native',
+            'draft sentinel',
+            'reply-event-sentinel',
+            1
     "#;
 
     #[test]
@@ -310,6 +325,17 @@ mod tests {
         assert_eq!(record.agent_definition_id.as_deref(), Some("builtin:sde"));
         assert_eq!(record.workspace_additional_json, "{}");
         assert_eq!(record.key_source, KeySource::OwnKey);
+        assert_eq!(record.agent_exec_mode.as_deref(), Some("build"));
+        assert_eq!(
+            record.native_harness_type.as_deref(),
+            Some("cursor_native")
+        );
+        assert_eq!(record.draft_text.as_deref(), Some("draft sentinel"));
+        assert_eq!(
+            record.reply_target_event_id.as_deref(),
+            Some("reply-event-sentinel")
+        );
+        assert!(record.pinned);
     }
 
     #[test]
@@ -328,6 +354,7 @@ mod tests {
                     NULL, NULL,
                     '{}',
                     'hosted_key',
+                    'local',
                     'plan',
                     NULL,
                     'half-typed reply',
@@ -390,6 +417,7 @@ mod tests {
                     NULL, NULL,
                     '{}',
                     'market',
+                    'local',
                     NULL,
                     NULL,
                     NULL,
@@ -423,6 +451,7 @@ mod tests {
                     NULL, NULL,
                     '{}',
                     'own_key',
+                    'local',
                     NULL,
                     NULL,
                     NULL,
@@ -447,7 +476,7 @@ mod tests {
                     'sid', 'name', 'running', 'model', 'acct', NULL,
                     0, '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z', 'sde',
                     NULL, NULL, '/tmp/project', NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                    'builtin:sde', NULL, NULL, NULL, NULL, 'own_key', NULL, NULL, NULL, NULL,
+                    'builtin:sde', NULL, NULL, NULL, NULL, 'own_key', 'local', NULL, NULL, NULL, NULL,
                     0
                 "#,
                 [],

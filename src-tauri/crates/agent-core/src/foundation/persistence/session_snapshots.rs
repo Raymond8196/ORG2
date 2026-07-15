@@ -75,6 +75,7 @@ pub fn ensure_tables_with(conn: &Connection) -> SqliteResult<()> {
             model       TEXT,
             account_id  TEXT,
             workspace_path TEXT,
+            exec_target TEXT NOT NULL DEFAULT 'local',
             user_input  TEXT,
             created_at  TEXT NOT NULL,
             updated_at  TEXT NOT NULL
@@ -137,6 +138,10 @@ pub fn ensure_tables_with(conn: &Connection) -> SqliteResult<()> {
     )?;
 
     try_migrate(conn, "ALTER TABLE agent_messages ADD COLUMN images TEXT");
+    try_migrate(
+        conn,
+        "ALTER TABLE agent_sessions ADD COLUMN exec_target TEXT NOT NULL DEFAULT 'local'",
+    );
     try_migrate(
         conn,
         "ALTER TABLE agent_messages ADD COLUMN compact_from_sequence INTEGER",

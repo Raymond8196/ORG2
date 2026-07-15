@@ -21,6 +21,7 @@ use crate::coordination::agent_org_runs::{
     COORDINATOR_MEMBER_ID,
 };
 use crate::definitions::orgs::{AgentOrgsStore, OrgMemberLaunchOverride};
+use crate::foundation::exec_target::ExecTarget;
 use crate::init::launch_spec::AgentLaunchSpec;
 use crate::session::persistence;
 use crate::session::IdeContext;
@@ -56,6 +57,7 @@ pub(crate) struct AgentRunLaunchRequest {
     pub ide_context: Option<IdeContext>,
     pub parent_session_id: Option<String>,
     pub sub_agent_ids: Vec<String>,
+    pub exec_target: ExecTarget,
 }
 
 #[derive(Debug, Clone)]
@@ -324,6 +326,7 @@ pub async fn launch_agent_session(
             ide_context: None,
             parent_session_id: None,
             sub_agent_ids: sub_agent_ids.to_vec(),
+            exec_target: Default::default(),
         },
     )
     .await?;
@@ -456,6 +459,7 @@ pub(crate) async fn launch_rust_agent_run(
         request.mode.clone(),
         request.resources.native_harness_type.clone(),
         request.parent_session_id.clone(),
+        request.exec_target.clone(),
     )
     .await?;
 

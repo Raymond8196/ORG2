@@ -32,6 +32,7 @@ use tracing::{info, warn};
 use tokio::sync::Mutex as TokioMutex;
 
 use super::action_router::ActionRouter;
+use crate::foundation::exec_target::SshTarget;
 use crate::security::{self, SecurityPolicy, ValidationResult};
 use crate::session::workspace::SessionWorkspace;
 use crate::tools::names as tool_names;
@@ -60,6 +61,28 @@ const DENY_PATTERNS: &[&str] = &[
     "poweroff",
 ];
 
+/// Quote one literal word for the local POSIX shell used by the subprocess
+/// backend. The user command intentionally remains shell syntax inside the
+/// remote `bash -lc` script; host and directory never do.
+fn sh_quote(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\\''"))
+}
+
+fn remote_shell_command(target: &SshTarget, working_dir: &str, command: &str) -> String {
+    let script = format!("cd {} && {}", sh_quote(working_dir), command);
+    let remote_command = format!("bash -lc {}", sh_quote(&script));
+    let port = target
+        .port
+        .map(|port| format!(" -p {}", port))
+        .unwrap_or_default();
+    format!(
+        "ssh -o BatchMode=yes{} {} {}",
+        port,
+        sh_quote(&target.host),
+        sh_quote(&remote_command)
+    )
+}
+
 /// Shell execution tool: subprocess default, PTY for interactive.
 ///
 /// - **Default** (`interactive` omitted or `false`): runs command via
@@ -75,6 +98,7 @@ pub struct ExecTool {
     pty: Option<PtyResources>,
     active_repo: TokioMutex<Option<PathBuf>>,
     router: Option<ActionRouter>,
+    remote_workspace: Option<SshTarget>,
     session_key: TokioMutex<Option<String>>,
     cancel_flag: TokioMutex<Option<Arc<AtomicBool>>>,
     security_policy: Option<Arc<SecurityPolicy>>,
@@ -93,6 +117,7 @@ impl ExecTool {
             pty: None,
             active_repo: TokioMutex::new(None),
             router: None,
+            remote_workspace: None,
             session_key: TokioMutex::new(None),
             cancel_flag: TokioMutex::new(None),
             security_policy: None,
@@ -115,6 +140,7 @@ impl ExecTool {
             timeout_secs,
             restrict_to_workspace,
             router: None,
+            remote_workspace: None,
             session_key: TokioMutex::new(None),
             cancel_flag: TokioMutex::new(None),
             pty: Some(PtyResources::new(pty_sessions, app_handle)),
@@ -127,6 +153,14 @@ impl ExecTool {
 
     pub fn with_router(mut self, router: ActionRouter) -> Self {
         self.router = Some(router);
+        self
+    }
+
+    /// Execute commands through the system SSH client while keeping the agent
+    /// runtime and provider local. The workspace path is interpreted by the
+    /// remote shell, never as a local filesystem path.
+    pub fn with_remote_workspace(mut self, target: SshTarget) -> Self {
+        self.remote_workspace = Some(target);
         self
     }
 
@@ -280,6 +314,12 @@ impl Tool for ExecTool {
     }
 
     fn llm_description(&self) -> Option<String> {
+        if let Some(target) = &self.remote_workspace {
+            return Some(format!(
+                "Run a command on the remote workspace at {} via SSH host {}. This is the ONLY filesystem/terminal tool available in this remote session: use shell commands (rg, sed, cat, mkdir, python, git) to inspect and edit remote files. Commands run from the remote workspace by default. Do not use interactive commands, background mode, or terminal_target=external.",
+                self.working_dir.display(), target.host
+            ));
+        }
         let cwd = self
             .active_repo
             .try_lock()
@@ -460,6 +500,17 @@ impl Tool for ExecTool {
             }
         };
 
+        if self.remote_workspace.is_some()
+            && (interactive
+                || matches!(mode, subprocess::ExecMode::Background)
+                || matches!(terminal_target, external::TerminalTarget::External))
+        {
+            return Err(ToolError::InvalidParams(
+                "Remote workspaces support blocking, non-interactive run_shell commands only."
+                    .to_string(),
+            ));
+        }
+
         if let Some(ref policy) = self.security_policy {
             match policy.validate_command_execution(&command, false) {
                 ValidationResult::Allowed(_risk) => {}
@@ -480,6 +531,24 @@ impl Tool for ExecTool {
             if let Some(reason) = security::requires_user_confirmation(&command) {
                 self.request_command_confirmation(&command, &reason).await?;
             }
+        }
+
+        if let Some(remote) = &self.remote_workspace {
+            let remote_dir = custom_dir.unwrap_or_else(|| self.working_dir.display().to_string());
+            let ssh_command = remote_shell_command(remote, &remote_dir, &command);
+            let session_key = self.session_key.lock().await.clone();
+            let cancel_flag = self.cancel_flag.lock().await.clone();
+            return subprocess::execute_via_command(
+                &ssh_command,
+                std::env::temp_dir(),
+                self.timeout_secs,
+                wait_secs,
+                subprocess::ExecMode::Blocking,
+                session_key.as_deref(),
+                self.terminal_logs_root.as_ref(),
+                cancel_flag.as_deref(),
+            )
+            .await;
         }
 
         let current_workspace_dir = self
@@ -758,6 +827,23 @@ mod tests {
             .expect("path-like kill_handle should not take the kill path when command is present");
 
         assert!(result.contains("hello"), "unexpected output: {result}");
+    }
+
+    #[test]
+    fn remote_shell_quotes_host_and_directory_but_keeps_command_shell_syntax() {
+        let command = remote_shell_command(
+            &SshTarget::new("user@build host; touch /tmp/pwned"),
+            "/srv/project with spaces; touch /tmp/pwned",
+            "rg --files && git status --short",
+        );
+
+        assert!(command.starts_with("ssh -o BatchMode=yes "));
+        assert!(command.contains("'user@build host; touch /tmp/pwned'"));
+        assert_eq!(
+            sh_quote("/srv/project with spaces; touch /tmp/pwned"),
+            "'/srv/project with spaces; touch /tmp/pwned'"
+        );
+        assert!(command.contains("rg --files && git status --short"));
     }
 
     #[tokio::test]

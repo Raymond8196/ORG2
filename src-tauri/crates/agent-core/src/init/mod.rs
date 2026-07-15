@@ -407,6 +407,32 @@ async fn ensure_session_initialized(
     let disabled_set =
         crate::tools::derive_disabled_tools(&resolved.tools.restrict_to, &resolved.tools.excluded);
 
+    // The Rust agent's model/turn runtime stays local. When a session targets
+    // SSH, only run_shell crosses the boundary; local filesystem/LSP/worktree
+    // tools must not misinterpret the remote path on this machine.
+    let remote_workspace = crate::session::persistence::get_session(session_id)
+        .ok()
+        .flatten()
+        .and_then(|record| record.exec_target.as_remote().cloned());
+    let mut runtime_disabled_set = disabled_set.clone();
+    if remote_workspace.is_some() {
+        runtime_disabled_set.extend([
+            crate::tools::names::READ_FILE.to_string(),
+            crate::tools::names::LIST_DIR.to_string(),
+            crate::tools::names::EDIT_FILE.to_string(),
+            crate::tools::names::DELETE_FILE.to_string(),
+            crate::tools::names::CODE_SEARCH.to_string(),
+            crate::tools::names::APPLY_PATCH.to_string(),
+            crate::tools::names::AWAIT_OUTPUT.to_string(),
+            crate::tools::names::MANAGE_CODE_MAP.to_string(),
+            crate::tools::names::USE_CODE_MAP.to_string(),
+            crate::tools::names::MANAGE_LSP.to_string(),
+            crate::tools::names::QUERY_LSP.to_string(),
+            crate::tools::names::WORKTREE.to_string(),
+            crate::tools::names::CREATE_PLAN.to_string(),
+        ]);
+    }
+
     let node_registry = capabilities::build_node_registry(&cap_flags, &integrations);
     let bus = capabilities::channel_bus_for(&cap_flags, state);
     // Single SecurityPolicy instance per session — shared by ToolDeps
@@ -426,16 +452,20 @@ async fn ensure_session_initialized(
     let disabled_mcp_tools = capabilities::disabled_mcp_tools(&resolved);
 
     // Hydrate workspace from DB (additional_directories from earlier /add-dir calls).
-    let scratchpad_dir = app_paths::ensure_scratchpad(session_id, &workspace_root)
-        .map_err(|err| {
-            tracing::warn!(
-                "[init] ensure_scratchpad failed for session {}: {} — scratchpad disabled",
-                session_id,
+    let scratchpad_dir = if remote_workspace.is_some() {
+        None
+    } else {
+        app_paths::ensure_scratchpad(session_id, &workspace_root)
+            .map_err(|err| {
+                tracing::warn!(
+                    "[init] ensure_scratchpad failed for session {}: {} — scratchpad disabled",
+                    session_id,
+                    err
+                );
                 err
-            );
-            err
-        })
-        .ok();
+            })
+            .ok()
+    };
     let workspace_state =
         tool_assembly::hydrate_workspace_state(&workspace_root, session_id, &log_prefix);
     // Runtime (re)build re-hydrated the workspace from DB — push the fresh
@@ -490,6 +520,7 @@ async fn ensure_session_initialized(
         security_policy: Some(Arc::clone(&exec_security_policy)),
         action_bridge: Some(state.action_bridge.clone()),
         execution_mode: resolved.execution_mode,
+        remote_workspace,
         agent_browser_config: Some(agent_browser_config),
         screenshot_store: Some(state.screenshot_store.clone()),
         web_search_api_key: if integrations.web_search.api_key.is_empty() {
@@ -518,7 +549,7 @@ async fn ensure_session_initialized(
         &resolved.reliability,
         native_harness_type,
         tool_deps,
-        &disabled_set,
+        &runtime_disabled_set,
         &disabled_mcp_servers,
         &disabled_mcp_tools,
         resolved.load_workspace_resources,

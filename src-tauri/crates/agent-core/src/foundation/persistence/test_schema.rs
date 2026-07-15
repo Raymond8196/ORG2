@@ -24,6 +24,7 @@ pub(crate) const AGENT_SESSIONS_TEST_DDL: &str = r#"
         channel TEXT,
         chat_id TEXT,
         workspace_path TEXT,
+        exec_target TEXT NOT NULL DEFAULT 'local',
         org_id TEXT,
         project_id TEXT,
         project_name TEXT,
@@ -95,6 +96,7 @@ pub(crate) fn ensure_agent_sessions_schema(conn: &rusqlite::Connection) {
             "workspace_additional_json TEXT NOT NULL DEFAULT '{}'",
         ),
         ("key_source", "key_source TEXT NOT NULL DEFAULT 'own_key'"),
+        ("exec_target", "exec_target TEXT NOT NULL DEFAULT 'local'"),
         ("sm_content", "sm_content TEXT"),
         ("sm_last_msg_idx", "sm_last_msg_idx INTEGER"),
     ] {

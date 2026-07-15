@@ -107,6 +107,9 @@ pub fn register(registry: &mut ToolRegistry, deps: &ToolDeps, disabled: &HashSet
         if let Some(ref policy) = deps.security_policy {
             exec = exec.with_security_policy(Arc::clone(policy));
         }
+        if let Some(ref remote) = deps.remote_workspace {
+            exec = exec.with_remote_workspace(remote.clone());
+        }
         if let Some(router) = make_router() {
             exec = exec.with_router(router);
         }
@@ -123,6 +126,9 @@ pub fn register(registry: &mut ToolRegistry, deps: &ToolDeps, disabled: &HashSet
         }
         if let Some(ref policy) = deps.security_policy {
             exec = exec.with_security_policy(Arc::clone(policy));
+        }
+        if let Some(ref remote) = deps.remote_workspace {
+            exec = exec.with_remote_workspace(remote.clone());
         }
         if let Some(router) = make_router() {
             exec = exec.with_router(router);

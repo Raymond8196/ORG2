@@ -544,5 +544,6 @@ fn routine_to_launch_request(
         ide_context: None,
         parent_session_id: None,
         sub_agent_ids: Vec::new(),
+        exec_target: Default::default(),
     }
 }

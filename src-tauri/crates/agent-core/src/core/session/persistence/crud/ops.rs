@@ -27,10 +27,10 @@ INSERT INTO agent_sessions (
     work_item_id, agent_role, worktree_path,
     worktree_branch, base_branch, merge_status,
     project_slug, agent_definition_id, org_member_id, parent_session_id, parent_event_id,
-    workspace_additional_json, key_source, agent_exec_mode, native_harness_type,
+    workspace_additional_json, key_source, exec_target, agent_exec_mode, native_harness_type,
     draft_text, reply_target_event_id, pinned
 )
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32, ?33)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32, ?33, ?34)
 ON CONFLICT(session_id) DO UPDATE SET
     name                       = excluded.name,
     status                     = excluded.status,
@@ -73,6 +73,7 @@ ON CONFLICT(session_id) DO UPDATE SET
     -- spread on a partial upsert would silently re-flag a
     -- market session as `own_key'.
     key_source                 = agent_sessions.key_source,
+    exec_target                = agent_sessions.exec_target,
     -- `agent_exec_mode` is the user's per-session ModePill choice. Like
     -- `key_source` above, it must NOT be touched by background upserts
     -- (turn finalization, compaction-fork, gateway pipeline) — only the
@@ -103,6 +104,8 @@ pub fn upsert_session(record: &UnifiedSessionRecord) -> SqliteResult<()> {
     with_sessions_writer(|| {
         let conn = get_connection()?;
         let key_source_str = record.key_source.as_ref();
+        let exec_target_json = serde_json::to_string(&record.exec_target)
+            .expect("ExecTarget serialization is infallible");
         conn.execute(
             UPSERT_SESSION_SQL,
             params![
@@ -134,6 +137,7 @@ pub fn upsert_session(record: &UnifiedSessionRecord) -> SqliteResult<()> {
                 record.parent_event_id,
                 record.workspace_additional_json,
                 key_source_str,
+                exec_target_json,
                 record.agent_exec_mode,
                 record.native_harness_type,
                 record.draft_text,
@@ -788,6 +792,7 @@ mod tests {
             parent_event_id TEXT,
             workspace_additional_json TEXT NOT NULL DEFAULT '{}',
             key_source TEXT NOT NULL DEFAULT 'own_key',
+            exec_target TEXT NOT NULL DEFAULT 'local',
             agent_exec_mode TEXT,
             native_harness_type TEXT,
             draft_text TEXT,
@@ -830,6 +835,7 @@ mod tests {
 
     fn upsert_into(conn: &rusqlite::Connection, record: &UnifiedSessionRecord) {
         let key_source_str = record.key_source.as_ref();
+        let exec_target_json = serde_json::to_string(&record.exec_target).unwrap();
         conn.execute(
             UPSERT_SESSION_SQL,
             params![
@@ -861,6 +867,7 @@ mod tests {
                 record.parent_event_id,
                 record.workspace_additional_json,
                 key_source_str,
+                exec_target_json,
                 record.agent_exec_mode,
                 record.native_harness_type,
                 record.draft_text,
@@ -897,6 +904,26 @@ mod tests {
         assert_eq!(market_back.key_source, KeySource::HostedKey);
         let own_back = select_one(&conn, "sid-own");
         assert_eq!(own_back.key_source, KeySource::OwnKey);
+    }
+
+    #[test]
+    fn remote_exec_target_round_trips() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        conn.execute_batch(TEST_SCHEMA).unwrap();
+
+        let mut record = make_record("sid-remote", KeySource::OwnKey);
+        record.exec_target = crate::foundation::exec_target::ExecTarget::Remote(
+            crate::foundation::exec_target::SshTarget {
+                host: "dev@build-host".to_string(),
+                port: Some(2202),
+            },
+        );
+        upsert_into(&conn, &record);
+
+        assert_eq!(
+            select_one(&conn, "sid-remote").exec_target,
+            record.exec_target
+        );
     }
 
     #[test]

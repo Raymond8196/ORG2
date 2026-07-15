@@ -978,13 +978,14 @@ const SessionCreatorChatPanelSingle: React.FC<
     }
   };
 
-  // SSH-remote milestone (§3-Phase3): offer a manual Remote SSH target entry
-  // for the line-based CLIs that support it (cursor_cli/copilot/kiro are
-  // MITM/ACP and can't run remote yet). Hosted+Remote is rejected server-side.
+  // Native Rust agents keep their model/turn runtime local and route their
+  // workspace shell through SSH. CLI support remains limited to the
+  // line-based remote-capable agents below.
   const showRemoteTargetInput =
-    isCliMode &&
-    !!cliAgentType &&
-    REMOTE_CAPABLE_CLI_AGENTS.includes(cliAgentType);
+    isRustMode ||
+    (isCliMode &&
+      !!cliAgentType &&
+      REMOTE_CAPABLE_CLI_AGENTS.includes(cliAgentType));
   const remoteLaunchConfigured = showRemoteTargetInput && remoteHost.length > 0;
   const remoteLaunchDisabled = isLoading || !preflightOk;
   const handleComposerLaunch = useCallback(async () => {

@@ -389,6 +389,7 @@ impl AgentTool {
             security_policy,
             action_bridge: self.config.action_bridge.clone(),
             execution_mode: self.config.execution_mode,
+            remote_workspace: None,
             agent_browser_config: None,
             screenshot_store: None,
             web_search_api_key: None,
