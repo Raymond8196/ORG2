@@ -582,119 +582,131 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
   ];
 
   return (
-    <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
-      <div className="mx-auto flex w-full max-w-[932px] flex-col gap-3 p-4">
-        {headerContent}
-        <TabPill
-          activeTab={panelView}
-          tabs={[
-            {
-              key: "scanning",
-              label: t("views.scanning"),
-              dataTestId: "data-source-view-scanning",
-            },
-            {
-              key: "hooks",
-              label: t("views.hooks"),
-              dataTestId: "data-source-view-hooks",
-            },
-          ]}
-          onChange={(key) => setPanelView(key as "scanning" | "hooks")}
-          variant="simple"
-          size="large"
-          fillWidth={false}
-        />
+    <div className="absolute inset-0 flex min-h-0 flex-col overflow-hidden">
+      {/* Keep the view tabs outside the scrolling content, matching Settings.
+          `bg-chat-pane` resolves to the correct Chat Panel or My Station
+          surface color in each host. */}
+      <div className="shrink-0 bg-chat-pane">
+        <div className="mx-auto flex h-full w-full max-w-[932px] px-4 pb-3 pt-4">
+          <TabPill
+            activeTab={panelView}
+            tabs={[
+              {
+                key: "scanning",
+                label: t("views.scanning"),
+                dataTestId: "data-source-view-scanning",
+              },
+              {
+                key: "hooks",
+                label: t("views.hooks"),
+                dataTestId: "data-source-view-hooks",
+              },
+            ]}
+            onChange={(key) => setPanelView(key as "scanning" | "hooks")}
+            variant="simple"
+            size="large"
+            fillWidth={false}
+          />
+        </div>
+      </div>
 
-        {panelView === "scanning" ? (
-          <>
-            {importableCount > 0 && (
-              <SectionContainer>
-                <SectionRow
-                  label={t("globalFrequency")}
-                  description={t("globalFrequencyDesc")}
-                >
-                  <Select
-                    value={globalFrequency}
-                    onChange={(v) => {
-                      if (typeof v === "string") {
-                        setGlobalFrequency(v as ScanFrequency);
-                      }
-                    }}
-                    options={globalFrequencyOptions}
-                    size="default"
-                    style={SECTION_CONTROL_STYLE}
-                    aria-label={t("globalFrequency")}
-                  />
-                </SectionRow>
-              </SectionContainer>
-            )}
+      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
+        <div className="mx-auto flex w-full max-w-[932px] flex-col gap-3 px-4 pb-4">
+          {headerContent}
 
-            <SettingsTable<SourceRow>
-              columns={columns}
-              rows={searchedRows}
-              getRowKey={(row) => row.probe.sourceId}
-              headerHeight="tall"
-              // Keep search + tabs + rescan inline when space allows; the shared
-              // toolbar stacks search/actions above the tabs in narrow panels.
-              inlineHeaderToolbar
-              className="table-expanded-no-hover table-settings-expanded-compact"
-              hover
-              loading={rows === null}
-              emptyTitle={searchTerm ? tCommon("status.noResults") : undefined}
-              searchBar={{
-                searchValue: searchQuery,
-                searchPlaceholder: tCommon("common.searchPlaceholder"),
-                onSearchChange: setSearchQuery,
-                onSearchClear: () => setSearchQuery(""),
-                rightContent:
-                  (rows ?? []).length > 0 ? (
-                    <Button
-                      variant="secondary"
+          {panelView === "scanning" ? (
+            <>
+              {importableCount > 0 && (
+                <SectionContainer>
+                  <SectionRow
+                    label={t("globalFrequency")}
+                    description={t("globalFrequencyDesc")}
+                  >
+                    <Select
+                      value={globalFrequency}
+                      onChange={(v) => {
+                        if (typeof v === "string") {
+                          setGlobalFrequency(v as ScanFrequency);
+                        }
+                      }}
+                      options={globalFrequencyOptions}
                       size="default"
-                      loading={rescanningAll}
-                      icon={<RefreshCw size={14} />}
-                      onClick={() => void handleRescanAll()}
-                    >
-                      {t("rescanAll")}
-                    </Button>
-                  ) : undefined,
-                tabPills: (
-                  <TabPill
-                    activeTab={tab}
-                    tabs={tabs}
-                    onChange={(key) => setTab(key as DataSourceTab)}
-                    variant="pill"
-                    color="fill"
-                    className="h-8 [&>button]:!h-full"
-                    fillWidth={false}
-                    size="small"
-                    buttonStyle
-                  />
-                ),
-                searchInputSize: "default",
-                searchCountText:
-                  searchTerm && searchedRows.length !== visibleRows.length
-                    ? `${searchedRows.length} / ${visibleRows.length}`
-                    : undefined,
-              }}
-              expandable={{
-                expandedRowRender: (row) => (
-                  <DataSourceDetailsCard
-                    probe={row.probe}
-                    stats={row.stats}
-                    onOpenFolder={openFolder}
-                    onCopyPath={(path) => void copyText(path)}
-                  />
-                ),
-                rowExpandable: (row) => row.probe.historyPaths.length > 0,
-                expandedRowKeys,
-                onExpandedRowsChange: setExpandedRowKeys,
-              }}
-            />
-          </>
-        ) : (
-          <SessionProvenanceHooksPanel />
-        )}
+                      style={SECTION_CONTROL_STYLE}
+                      aria-label={t("globalFrequency")}
+                    />
+                  </SectionRow>
+                </SectionContainer>
+              )}
+
+              <SettingsTable<SourceRow>
+                columns={columns}
+                rows={searchedRows}
+                getRowKey={(row) => row.probe.sourceId}
+                headerHeight="tall"
+                // Keep search + tabs + rescan inline when space allows; the shared
+                // toolbar stacks search/actions above the tabs in narrow panels.
+                inlineHeaderToolbar
+                className="table-expanded-no-hover table-settings-expanded-compact"
+                hover
+                loading={rows === null}
+                emptyTitle={
+                  searchTerm ? tCommon("status.noResults") : undefined
+                }
+                searchBar={{
+                  searchValue: searchQuery,
+                  searchPlaceholder: tCommon("common.searchPlaceholder"),
+                  onSearchChange: setSearchQuery,
+                  onSearchClear: () => setSearchQuery(""),
+                  rightContent:
+                    (rows ?? []).length > 0 ? (
+                      <Button
+                        variant="secondary"
+                        size="default"
+                        loading={rescanningAll}
+                        icon={<RefreshCw size={14} />}
+                        onClick={() => void handleRescanAll()}
+                      >
+                        {t("rescanAll")}
+                      </Button>
+                    ) : undefined,
+                  tabPills: (
+                    <TabPill
+                      activeTab={tab}
+                      tabs={tabs}
+                      onChange={(key) => setTab(key as DataSourceTab)}
+                      variant="pill"
+                      color="fill"
+                      className="h-8 [&>button]:!h-full"
+                      fillWidth={false}
+                      size="small"
+                      buttonStyle
+                    />
+                  ),
+                  searchInputSize: "default",
+                  searchCountText:
+                    searchTerm && searchedRows.length !== visibleRows.length
+                      ? `${searchedRows.length} / ${visibleRows.length}`
+                      : undefined,
+                }}
+                expandable={{
+                  expandedRowRender: (row) => (
+                    <DataSourceDetailsCard
+                      probe={row.probe}
+                      stats={row.stats}
+                      onOpenFolder={openFolder}
+                      onCopyPath={(path) => void copyText(path)}
+                    />
+                  ),
+                  rowExpandable: (row) => row.probe.historyPaths.length > 0,
+                  expandedRowKeys,
+                  onExpandedRowsChange: setExpandedRowKeys,
+                }}
+              />
+            </>
+          ) : (
+            <SessionProvenanceHooksPanel />
+          )}
+        </div>
       </div>
     </div>
   );
