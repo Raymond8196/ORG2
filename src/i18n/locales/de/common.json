@@ -1981,9 +1981,6 @@
     "pill": {
       "focus": "Fokus",
       "allChanges": "Alle Änderungen"
-    },
-    "sessionFilter": {
-      "allSessions": "Alle Sitzungen"
     }
   },
   "contextInfo": {

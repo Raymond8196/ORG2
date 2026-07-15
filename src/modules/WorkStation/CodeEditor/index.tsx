@@ -533,7 +533,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
     // Editor panel size: bottom uses persisted bottomPanelHeight; right uses local width.
     // Single mount while visible — CSS grid swaps axis without unmounting EditorBottomPanel.
     const [editorRightPanelWidth, setEditorRightPanelWidth] = useState(400);
-    const shouldHideSecondaryPanel = activeTab?.type === "terminal";
+    const shouldHideSecondaryPanel =
+      activeTab?.type === "terminal" || activeTab?.type === "source-control";
     const secondaryPanelConfig = useMemo(() => {
       if (shouldHideSecondaryPanel) return undefined;
 

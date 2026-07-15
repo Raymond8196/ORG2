@@ -28,6 +28,7 @@ import {
   CircleDot,
   ExternalLink,
   ListChevronsDownUp,
+  RefreshCw,
 } from "lucide-react";
 import React, {
   Suspense,
@@ -42,19 +43,15 @@ import { useTranslation } from "react-i18next";
 
 import { useActionSystem } from "@src/ActionSystem";
 import Button from "@src/components/Button";
-import Select from "@src/components/Select";
-import type { SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import { useGitStatus } from "@src/contexts/git";
+import { useRefreshSpin } from "@src/hooks/ui";
 import {
   usePublishWorkstationTabHeader,
   useWorkStationTabShortcutBridge,
 } from "@src/hooks/workStation";
 import UnifiedTabContent from "@src/modules/WorkStation/TabContent/UnifiedTabContent";
-import {
-  NoTabsPlaceholder,
-  TabBarBottomPanelToggle,
-} from "@src/modules/WorkStation/shared";
+import { NoTabsPlaceholder } from "@src/modules/WorkStation/shared";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { useStickyMount } from "@src/modules/shared/hooks/useStickyMount";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
@@ -64,10 +61,6 @@ import {
 } from "@src/store/ui/workStationAtom";
 import { gitReviewNavigationAtom } from "@src/store/workstation/codeEditor/gitReviewNavigationAtom";
 import { sourceControlFilterModeHandlerAtom } from "@src/store/workstation/codeEditor/sourceControlFilterModeAtom";
-import {
-  SOURCE_CONTROL_ALL_SESSIONS_FILTER,
-  sourceControlSessionFilterAtom,
-} from "@src/store/workstation/codeEditor/sourceControlSessionFilterAtom";
 import { workstationSelectedIssueAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
 import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import {
@@ -90,10 +83,8 @@ import {
   EditorHostProvider,
 } from "./context/editorHostContext";
 import {
-  SOURCE_CONTROL_OTHER_SESSIONS_FILTER,
   useEditorPaneState,
   useFileContentManager,
-  useSourceControlSessionAttribution,
   useTabContentSync,
 } from "./hooks";
 import "./index.scss";
@@ -143,15 +134,20 @@ const EditorContent: React.FC<EditorContentProps> = memo(
     const { t } = useTranslation();
     const { dispatch } = useActionSystem();
     const { forceRefresh } = useGitStatus();
-    const sourceControlSessionFilter = useAtomValue(
-      sourceControlSessionFilterAtom
+    const refreshSourceControl = useCallback(() => {
+      void forceRefresh();
+    }, [forceRefresh]);
+    const {
+      spinClass: sourceControlRefreshSpinClass,
+      handleClick: handleSourceControlRefresh,
+    } = useRefreshSpin(
+      refreshSourceControl,
+      gitDiffLoading,
+      "source-control-main"
     );
     const scopeKey = workstationRepoScopeKey(repoId, repoPath);
     const selectedIssueState = useAtomValue(
       workstationSelectedIssueAtomFamily(scopeKey)
-    );
-    const setSourceControlSessionFilter = useSetAtom(
-      sourceControlSessionFilterAtom
     );
     const sourceControlFilterModeHandler = useAtomValue(
       sourceControlFilterModeHandlerAtom
@@ -218,8 +214,8 @@ const EditorContent: React.FC<EditorContentProps> = memo(
     const hasVisitedSourceControl = useStickyMount(isSourceControlActive);
 
     // Computed whenever the Source Control pane is (or has been) mounted so the
-    // attributed file list stays populated while the pane is hidden — otherwise
-    // returning to it would flash empty and reset scroll.
+    // file list stays populated while the pane is hidden — otherwise returning
+    // to it would flash empty and reset scroll.
     const sourceControlBaseFiles = useMemo(() => {
       if (!sourceControlTab) return [];
       if (!isSourceControlActive && !hasVisitedSourceControl) return [];
@@ -232,15 +228,6 @@ const EditorContent: React.FC<EditorContentProps> = memo(
       hasVisitedSourceControl,
       gitFilesByPath,
     ]);
-
-    const {
-      attributedFiles: sourceControlAttributedFiles,
-      sessionOptions: sourceControlAttributedSessionOptions,
-      otherCount: sourceControlOtherCount,
-    } = useSourceControlSessionAttribution({
-      files: sourceControlBaseFiles,
-      repoPath,
-    });
 
     // ============================================
     // Tab Content Sync (extracted hook - side effects only)
@@ -383,6 +370,28 @@ const EditorContent: React.FC<EditorContentProps> = memo(
       setSourceControlCollapseAllSignal((prev) => prev + 1);
     }, []);
 
+    const handleSourceControlCloseFocus = useCallback(() => {
+      updatePaneState((state) => {
+        const tabIndex = state.tabs.findIndex(
+          (item) => item.type === "source-control"
+        );
+        if (tabIndex === -1) return state;
+
+        const existing = state.tabs[tabIndex];
+        if (!existing.data.focusPath) return state;
+
+        const nextTabs = [...state.tabs];
+        nextTabs[tabIndex] = {
+          ...existing,
+          data: {
+            ...existing.data,
+            focusPath: null,
+          },
+        };
+        return { ...state, tabs: nextTabs };
+      });
+    }, [updatePaneState]);
+
     const gitReviewNavigation = useAtomValue(gitReviewNavigationAtom);
 
     const handleReviewPrevFile = useCallback(() => {
@@ -392,79 +401,6 @@ const EditorContent: React.FC<EditorContentProps> = memo(
     const handleReviewNextFile = useCallback(() => {
       document.dispatchEvent(new CustomEvent("review-next-file"));
     }, []);
-
-    const sourceControlSessionOptions = useMemo<SelectOption[]>(() => {
-      const formatLabelWithCount = (label: string, count: number) =>
-        `${label} (${count})`;
-      const allSessionsLabel = t("sourceControl.sessionFilter.allSessions");
-      const otherLabel = t("dashboard.other");
-      const attributedCount = sourceControlAttributedSessionOptions.reduce(
-        (total, option) => total + option.count,
-        0
-      );
-      const totalCount = attributedCount + sourceControlOtherCount;
-
-      return [
-        {
-          value: SOURCE_CONTROL_ALL_SESSIONS_FILTER,
-          label: (
-            <span className="whitespace-nowrap">
-              {formatLabelWithCount(allSessionsLabel, totalCount)}
-            </span>
-          ),
-          triggerLabel: formatLabelWithCount(allSessionsLabel, totalCount),
-        },
-        ...sourceControlAttributedSessionOptions.map((option) => ({
-          value: option.sessionId,
-          label: (
-            <span className="whitespace-nowrap">
-              {formatLabelWithCount(option.label, option.count)}
-            </span>
-          ),
-          triggerLabel: formatLabelWithCount(option.label, option.count),
-        })),
-        ...(sourceControlOtherCount > 0
-          ? [
-              {
-                value: SOURCE_CONTROL_OTHER_SESSIONS_FILTER,
-                label: (
-                  <span className="whitespace-nowrap">
-                    {formatLabelWithCount(otherLabel, sourceControlOtherCount)}
-                  </span>
-                ),
-                triggerLabel: formatLabelWithCount(
-                  otherLabel,
-                  sourceControlOtherCount
-                ),
-              },
-            ]
-          : []),
-      ];
-    }, [sourceControlAttributedSessionOptions, sourceControlOtherCount, t]);
-
-    useEffect(() => {
-      if (
-        sourceControlSessionFilter === SOURCE_CONTROL_ALL_SESSIONS_FILTER ||
-        sourceControlSessionOptions.some(
-          (option) => option.value === sourceControlSessionFilter
-        )
-      ) {
-        return;
-      }
-      setSourceControlSessionFilter(SOURCE_CONTROL_ALL_SESSIONS_FILTER);
-    }, [
-      setSourceControlSessionFilter,
-      sourceControlSessionFilter,
-      sourceControlSessionOptions,
-    ]);
-
-    const handleSourceControlSessionFilterChange = useCallback(
-      (nextValue: string | number | (string | number)[]) => {
-        if (Array.isArray(nextValue)) return;
-        setSourceControlSessionFilter(String(nextValue));
-      },
-      [setSourceControlSessionFilter]
-    );
 
     const handleOpenSourceControlHistoryInNewTab = useCallback(
       (selection: SourceControlHistorySelection) => {
@@ -630,28 +566,6 @@ const EditorContent: React.FC<EditorContentProps> = memo(
               </>
             )}
 
-            {showCollapseAll &&
-              sourceControlFilterMode === "uncommitted" &&
-              sourceControlSessionOptions.length > 1 && (
-                <>
-                  <Select
-                    value={sourceControlSessionFilter}
-                    onChange={handleSourceControlSessionFilterChange}
-                    options={sourceControlSessionOptions}
-                    size="small"
-                    variant="ghost"
-                    radius="lg"
-                    dropdownAlign="right"
-                    dropdownWidthMode="auto"
-                    className="w-auto max-w-[220px]"
-                  />
-                  <span
-                    className="pointer-events-none mx-1 h-4 w-px shrink-0 bg-border-2"
-                    aria-hidden
-                  />
-                </>
-              )}
-
             {showCollapseAll && (
               <Button
                 htmlType="button"
@@ -664,7 +578,22 @@ const EditorContent: React.FC<EditorContentProps> = memo(
                 icon={<ListChevronsDownUp size={HEADER_ICON_SIZE.md} />}
               />
             )}
-            <TabBarBottomPanelToggle />
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              size="small"
+              iconOnly
+              className="flex-shrink-0"
+              onClick={handleSourceControlRefresh}
+              title={t("common:actions.refresh")}
+              aria-label={t("common:actions.refresh")}
+              icon={
+                <RefreshCw
+                  size={HEADER_ICON_SIZE.sm}
+                  className={sourceControlRefreshSpinClass}
+                />
+              }
+            />
           </span>
         </div>
       );
@@ -676,14 +605,13 @@ const EditorContent: React.FC<EditorContentProps> = memo(
       handleReviewPrevFile,
       handleSourceControlCollapseAll,
       handleSourceControlModeChange,
-      handleSourceControlSessionFilterChange,
+      handleSourceControlRefresh,
       selectedIssueState,
       showSourceControlModePill,
       sourceControlFilterMode,
       sourceControlHeaderLeadingSlot,
       sourceControlHeaderTrailingSlot,
-      sourceControlSessionFilter,
-      sourceControlSessionOptions,
+      sourceControlRefreshSpinClass,
       t,
     ]);
 
@@ -873,7 +801,7 @@ const EditorContent: React.FC<EditorContentProps> = memo(
                   repoPath={repoPath}
                   repoId={repoId ?? null}
                   gitFilesByPath={gitFilesByPath}
-                  sourceControlAttributedFiles={sourceControlAttributedFiles}
+                  sourceControlFiles={sourceControlBaseFiles}
                   sourceControlFilterMode={sourceControlFilterMode}
                   gitDiffLoading={gitDiffLoading}
                   sourceControlCollapseAllSignal={
@@ -882,6 +810,7 @@ const EditorContent: React.FC<EditorContentProps> = memo(
                   sourceControlQuickActions={sourceControlQuickActions}
                   onForceReload={forceRefresh}
                   onFileSelect={onFileSelect}
+                  onCloseFocus={handleSourceControlCloseFocus}
                   onGitDiffUnsavedChange={handleGitDiffUnsavedChange}
                 />
               </div>

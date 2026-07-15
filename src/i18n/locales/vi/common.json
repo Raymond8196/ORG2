@@ -1974,9 +1974,6 @@
     "pill": {
       "focus": "Tiêu điểm",
       "allChanges": "Tất cả thay đổi"
-    },
-    "sessionFilter": {
-      "allSessions": "Tất cả phiên"
     }
   },
   "contextInfo": {

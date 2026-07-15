@@ -2091,9 +2091,6 @@
       "focus": "Focus",
       "allChanges": "All Changes"
     },
-    "sessionFilter": {
-      "allSessions": "All sessions"
-    },
     "scope": {
       "local": "Local",
       "main": "Main checkout",

@@ -1999,9 +1999,6 @@
       "focus": "聚焦",
       "allChanges": "全部更改"
     },
-    "sessionFilter": {
-      "allSessions": "所有会话"
-    },
     "scope": {
       "local": "本地",
       "main": "主工作区",
