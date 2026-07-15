@@ -1,56 +1,31 @@
-//! Resource-interaction extraction from normalized activity chunks.
+//! File-resource interaction extraction shared by live hooks and history.
 //!
 //! Imported histories from Claude Code, Codex, Cursor, and ORG2's own event
-//! cache all converge on [`ActivityChunk`]. This module classifies only that
-//! normalized shape so historical reconciliation does not depend on vendor
-//! payloads or copy the hook adapter's field heuristics into the app layer.
+//! cache all converge on [`ActivityChunk`]. Live hook adapters reduce vendor
+//! payloads to the same tool-name/input/result boundary. Keeping the path and
+//! action classifier here prevents capture methods from drifting apart.
 
 use core_types::activity::ActivityChunk;
 use serde_json::Value;
 
 use crate::canonical::{ResourceAction, ResourceInteractionOutcome};
-use crate::sources::imported_history::{
-    ACTION_TYPE_TOOL_CALL, FUNCTION_CODE_SEARCH, FUNCTION_EDIT_FILE, FUNCTION_GLOB_FILE_SEARCH,
-    FUNCTION_READ_FILE,
-};
+use crate::sources::imported_history::ACTION_TYPE_TOOL_CALL;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ActivityFileInteraction {
+pub struct FileInteractionCandidate {
     pub file_path: String,
     pub action: ResourceAction,
 }
 
 pub fn file_interactions_from_activity_chunk(
     chunk: &ActivityChunk,
-) -> Vec<ActivityFileInteraction> {
+) -> Vec<FileInteractionCandidate> {
     if chunk.action_type != ACTION_TYPE_TOOL_CALL {
         return Vec::new();
     }
 
-    let action = match chunk.function.as_str() {
-        FUNCTION_READ_FILE => Some(ResourceAction::Read),
-        FUNCTION_EDIT_FILE => Some(ResourceAction::Write),
-        FUNCTION_CODE_SEARCH | FUNCTION_GLOB_FILE_SEARCH => Some(ResourceAction::Search),
-        _ => action_for_tool_name(&chunk.function),
-    };
-    let Some(default_action) = action else {
-        return Vec::new();
-    };
-
-    let mut interactions = patch_text(&chunk.args)
-        .map(extract_patch_file_actions)
-        .unwrap_or_default();
-    if interactions.is_empty() {
-        interactions.extend(
-            explicit_paths(&chunk.args)
-                .into_iter()
-                .chain(explicit_paths(&chunk.result))
-                .map(|file_path| ActivityFileInteraction {
-                    file_path,
-                    action: default_action,
-                }),
-        );
-    }
+    let mut interactions =
+        file_interactions_from_tool(&chunk.function, &chunk.args, Some(&chunk.result));
     interactions.sort_by(|left, right| {
         left.file_path
             .cmp(&right.file_path)
@@ -83,7 +58,7 @@ pub fn interaction_outcome_from_activity_chunk(
 
 pub fn activity_chunk_source_event_id(
     chunk: &ActivityChunk,
-    interaction: &ActivityFileInteraction,
+    interaction: &FileInteractionCandidate,
 ) -> String {
     let base = chunk
         .result
@@ -99,7 +74,43 @@ pub fn activity_chunk_source_event_id(
     )
 }
 
-fn action_for_tool_name(tool_name: &str) -> Option<ResourceAction> {
+/// Extract file-resource candidates from the normalized tool boundary.
+///
+/// This intentionally accepts only already-isolated tool metadata. Callers
+/// must not persist the raw values: they can contain commands or file content.
+pub fn file_interactions_from_tool(
+    tool_name: &str,
+    tool_input: &Value,
+    tool_result: Option<&Value>,
+) -> Vec<FileInteractionCandidate> {
+    let Some(default_action) = action_for_tool_name(tool_name) else {
+        return Vec::new();
+    };
+    let mut interactions = patch_text(tool_input)
+        .or_else(|| tool_result.and_then(patch_text))
+        .map(patch_file_interactions)
+        .unwrap_or_default();
+    if interactions.is_empty() {
+        interactions.extend(
+            explicit_file_paths(tool_input)
+                .into_iter()
+                .chain(tool_result.into_iter().flat_map(explicit_file_paths))
+                .map(|file_path| FileInteractionCandidate {
+                    file_path,
+                    action: default_action,
+                }),
+        );
+    }
+    interactions.sort_by(|left, right| {
+        left.file_path
+            .cmp(&right.file_path)
+            .then(left.action.as_str().cmp(right.action.as_str()))
+    });
+    interactions.dedup();
+    interactions
+}
+
+pub fn action_for_tool_name(tool_name: &str) -> Option<ResourceAction> {
     let normalized = tool_name.to_ascii_lowercase();
     if normalized.contains("delete") || normalized.contains("remove_file") {
         Some(ResourceAction::Delete)
@@ -121,7 +132,7 @@ fn action_for_tool_name(tool_name: &str) -> Option<ResourceAction> {
     }
 }
 
-fn explicit_paths(value: &Value) -> Vec<String> {
+pub fn explicit_file_paths(value: &Value) -> Vec<String> {
     const PATH_FIELDS: &[&str] = &[
         "file_path",
         "filePath",
@@ -154,12 +165,19 @@ fn explicit_paths(value: &Value) -> Vec<String> {
 }
 
 fn patch_text(value: &Value) -> Option<&str> {
-    ["patch", "patch_text", "patchText", "diff"]
-        .into_iter()
-        .find_map(|field| value.get(field).and_then(Value::as_str))
+    [
+        "patch",
+        "patch_text",
+        "patchText",
+        "diff",
+        "command",
+        "input",
+    ]
+    .into_iter()
+    .find_map(|field| value.get(field).and_then(Value::as_str))
 }
 
-fn extract_patch_file_actions(patch: &str) -> Vec<ActivityFileInteraction> {
+pub fn patch_file_interactions(patch: &str) -> Vec<FileInteractionCandidate> {
     let mut interactions = Vec::new();
     for line in patch.lines() {
         let trimmed = line.trim();
@@ -177,7 +195,7 @@ fn extract_patch_file_actions(patch: &str) -> Vec<ActivityFileInteraction> {
         });
         if let Some((path, action)) = candidate {
             if !path.is_empty() {
-                interactions.push(ActivityFileInteraction {
+                interactions.push(FileInteractionCandidate {
                     file_path: path.to_string(),
                     action,
                 });
@@ -190,6 +208,7 @@ fn extract_patch_file_actions(patch: &str) -> Vec<ActivityFileInteraction> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::sources::imported_history::{FUNCTION_EDIT_FILE, FUNCTION_READ_FILE};
     use serde_json::json;
 
     fn chunk(function: &str, args: Value) -> ActivityChunk {
@@ -206,7 +225,7 @@ mod tests {
         let interactions = file_interactions_from_activity_chunk(&chunk);
         assert_eq!(
             interactions,
-            vec![ActivityFileInteraction {
+            vec![FileInteractionCandidate {
                 file_path: "src/lib.rs".to_string(),
                 action: ResourceAction::Read,
             }]
@@ -229,6 +248,22 @@ mod tests {
         assert_eq!(interactions.len(), 2);
         assert_eq!(interactions[0].action, ResourceAction::Create);
         assert_eq!(interactions[1].action, ResourceAction::Delete);
+    }
+
+    #[test]
+    fn shared_tool_extraction_supports_hook_patch_commands() {
+        let interactions = file_interactions_from_tool(
+            "apply_patch",
+            &json!({"command": "*** Begin Patch\n*** Update File: src/lib.rs\n+x\n*** End Patch"}),
+            None,
+        );
+        assert_eq!(
+            interactions,
+            vec![FileInteractionCandidate {
+                file_path: "src/lib.rs".to_string(),
+                action: ResourceAction::Write,
+            }]
+        );
     }
 
     #[test]

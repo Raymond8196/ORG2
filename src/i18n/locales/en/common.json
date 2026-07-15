@@ -433,15 +433,13 @@
     "sessionBlame": "Session Blame",
     "sessionBlameSubagent": "Subagent: {{name}}",
     "sessionBlameMainSession": "Main session",
-    "sessionBlameSessionAttribution": "Session-level attribution",
     "sessionBlameAction": {
       "read": "Read",
       "write": "Write",
       "create": "Create",
       "delete": "Delete",
       "rename": "Rename",
-      "search": "Search",
-      "reference": "Reference"
+      "search": "Search"
     },
     "sessionBlamePrecision": {
       "unknown": "Unknown confidence",

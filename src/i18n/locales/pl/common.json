@@ -408,15 +408,13 @@
     "sessionBlame": "Atrybucja sesji",
     "sessionBlameSubagent": "Podagent: {{name}}",
     "sessionBlameMainSession": "Sesja główna",
-    "sessionBlameSessionAttribution": "Atrybucja na poziomie sesji",
     "sessionBlameAction": {
       "read": "Odczyt",
       "write": "Zapis",
       "create": "Tworzenie",
       "delete": "Usuwanie",
       "rename": "Zmiana nazwy",
-      "search": "Wyszukiwanie",
-      "reference": "Odwołanie"
+      "search": "Wyszukiwanie"
     },
     "sessionBlamePrecision": {
       "unknown": "Nieznana pewność",

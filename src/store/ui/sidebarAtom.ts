@@ -85,6 +85,7 @@ export interface SessionSidebarRevealRequest extends SessionSidebarRevealTarget 
 export const sessionSidebarRevealRequestAtom =
   atom<SessionSidebarRevealRequest | null>(null);
 sessionSidebarRevealRequestAtom.debugLabel = "sessionSidebarRevealRequestAtom";
+const sessionSidebarRevealRequestIdAtom = atom(0);
 
 export const requestSessionSidebarRevealAtom = atom(
   null,
@@ -92,13 +93,24 @@ export const requestSessionSidebarRevealAtom = atom(
     const sessionId = target.sessionId.trim();
     const parentSessionId = target.parentSessionId?.trim() || undefined;
     if (!sessionId) return;
-    const previousRequestId =
-      get(sessionSidebarRevealRequestAtom)?.requestId ?? 0;
+    const requestId = get(sessionSidebarRevealRequestIdAtom) + 1;
+    set(sessionSidebarRevealRequestIdAtom, requestId);
     set(sessionSidebarRevealRequestAtom, {
       sessionId,
       parentSessionId,
-      requestId: previousRequestId + 1,
+      requestId,
     });
   }
 );
 requestSessionSidebarRevealAtom.debugLabel = "requestSessionSidebarRevealAtom";
+
+/** Clear one completed reveal without racing a newer navigation request. */
+export const clearSessionSidebarRevealAtom = atom(
+  null,
+  (get, set, requestId: number) => {
+    if (get(sessionSidebarRevealRequestAtom)?.requestId === requestId) {
+      set(sessionSidebarRevealRequestAtom, null);
+    }
+  }
+);
+clearSessionSidebarRevealAtom.debugLabel = "clearSessionSidebarRevealAtom";

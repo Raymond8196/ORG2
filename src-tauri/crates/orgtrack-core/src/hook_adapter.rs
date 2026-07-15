@@ -13,9 +13,12 @@ use crate::canonical::{
     ResourceInteractionOutcome, SessionActorLifecycleEnvelopeV1, SessionActorLifecyclePhase,
     RESOURCE_INTERACTION_SCHEMA_VERSION, SESSION_ACTOR_SCHEMA_VERSION,
 };
+use crate::resource_interaction::{explicit_file_paths, file_interactions_from_tool};
 use crate::sources::imported_history::metadata::{
     SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE,
 };
+
+const MAX_RESOURCE_INTERACTIONS_PER_HOOK: usize = 1_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HookSource {
@@ -82,8 +85,7 @@ pub fn normalize_hook_payload(
     let source_session_id = source_session_id(source, payload)
         .ok_or_else(|| "Hook payload is missing its session identifier".to_string())?;
     let cwd = string_field(payload, &["cwd", "workspace_path", "workspacePath"])
-        .or_else(|| first_string_array_item(payload, &["workspace_roots", "workspaceRoots"]))
-        .unwrap_or_else(|| ".".to_string());
+        .or_else(|| first_string_array_item(payload, &["workspace_roots", "workspaceRoots"]));
     let turn_id = string_field(payload, &["turn_id", "generation_id", "generationId"]);
     let actor_id = string_field(payload, &["agent_id", "subagent_id", "subagentId"]);
     let hook_event_name =
@@ -108,6 +110,15 @@ pub fn normalize_hook_payload(
             .then(left.1.as_str().cmp(right.1.as_str()))
     });
     path_actions.dedup();
+    // One vendor callback must not be able to turn a bounded hook payload
+    // into an unbounded number of spool files and Git resolver subprocesses.
+    path_actions.truncate(MAX_RESOURCE_INTERACTIONS_PER_HOOK);
+    if path_actions.is_empty() {
+        return Ok(Vec::new());
+    }
+    let cwd = cwd.ok_or_else(|| {
+        "Hook payload with file interactions is missing its workspace path".to_string()
+    })?;
 
     let base_source_event_id = string_field(
         payload,
@@ -162,8 +173,13 @@ pub fn normalize_actor_lifecycle_payload(
     let Some(phase) = hook_lifecycle_phase(payload) else {
         return Ok(None);
     };
-    let source_session_id = source_session_id(source, payload)
-        .ok_or_else(|| "Hook payload is missing its session identifier".to_string())?;
+    let source_session_id = if source == HookSource::Cursor {
+        string_field(payload, &["parent_conversation_id", "parentConversationId"])
+            .or_else(|| source_session_id(source, payload))
+    } else {
+        source_session_id(source, payload)
+    }
+    .ok_or_else(|| "Hook payload is missing its session identifier".to_string())?;
     let Some(actor_id) = string_field(payload, &["agent_id", "subagent_id", "subagentId"]) else {
         // Some vendors emit a coarse subagent-stop event with only modified
         // files. Keep those resource observations, but do not invent an actor
@@ -172,7 +188,7 @@ pub fn normalize_actor_lifecycle_payload(
     };
     let cwd = string_field(payload, &["cwd", "workspace_path", "workspacePath"])
         .or_else(|| first_string_array_item(payload, &["workspace_roots", "workspaceRoots"]))
-        .unwrap_or_else(|| ".".to_string());
+        .ok_or_else(|| "Actor lifecycle hook is missing its workspace path".to_string())?;
     let occurred_at = string_field(payload, &["timestamp", "occurred_at", "occurredAt"])
         .and_then(|timestamp| normalize_rfc3339(&timestamp))
         .unwrap_or_else(now_rfc3339);
@@ -185,7 +201,10 @@ pub fn normalize_actor_lifecycle_payload(
         session_id,
         turn_id: string_field(payload, &["turn_id", "generation_id", "generationId"]),
         actor_id,
-        actor_type: string_field(payload, &["agent_type", "agentType"]),
+        actor_type: string_field(
+            payload,
+            &["agent_type", "agentType", "subagent_type", "subagentType"],
+        ),
         phase,
         occurred_at,
         cwd,
@@ -241,26 +260,12 @@ fn tool_path_actions(source: HookSource, payload: &Value) -> Vec<(String, Resour
         .or_else(|| payload.get("toolInput"))
         .unwrap_or(&Value::Null);
 
-    let patch_text = string_field(
-        tool_input,
-        &["patch", "patch_text", "patchText", "command", "input"],
-    );
-    let patch_actions = patch_text
-        .as_deref()
-        .map(extract_patch_file_actions)
-        .unwrap_or_default();
-    if !patch_actions.is_empty() {
-        return patch_actions;
-    }
-
-    if let Some(default_action) = action_for_tool_name(&tool_name) {
-        let explicit = extract_explicit_paths(tool_input)
-            .into_iter()
-            .map(|path| (path, default_action))
-            .collect::<Vec<_>>();
-        if !explicit.is_empty() {
-            return explicit;
-        }
+    let explicit = file_interactions_from_tool(&tool_name, tool_input, None)
+        .into_iter()
+        .map(|interaction| (interaction.file_path, interaction.action))
+        .collect::<Vec<_>>();
+    if !explicit.is_empty() {
+        return explicit;
     }
 
     if matches!(source, HookSource::Codex | HookSource::Cursor) {
@@ -286,7 +291,7 @@ fn shell_path_actions(tool_name: &str, tool_input: &Value) -> Vec<(String, Resou
                 crate::sources::imported_history::FUNCTION_EDIT_FILE => ResourceAction::Write,
                 _ => return Vec::new(),
             };
-            extract_explicit_paths(&args)
+            explicit_file_paths(&args)
                 .into_iter()
                 .map(|path| (path, action))
                 .collect()
@@ -305,84 +310,6 @@ fn modified_file_actions(payload: &Value) -> Vec<(String, ResourceAction)> {
         .filter(|path| !path.trim().is_empty())
         .map(|path| (path.to_string(), ResourceAction::Write))
         .collect()
-}
-
-fn action_for_tool_name(tool_name: &str) -> Option<ResourceAction> {
-    let normalized = tool_name.to_ascii_lowercase();
-    if normalized.contains("delete") || normalized.contains("remove_file") {
-        Some(ResourceAction::Delete)
-    } else if normalized.contains("write")
-        || normalized.contains("edit")
-        || normalized.contains("patch")
-        || normalized.contains("notebook")
-    {
-        Some(ResourceAction::Write)
-    } else if normalized.contains("read") || normalized.contains("view_file") {
-        Some(ResourceAction::Read)
-    } else if normalized.contains("grep")
-        || normalized.contains("search")
-        || normalized.contains("glob")
-    {
-        Some(ResourceAction::Search)
-    } else {
-        None
-    }
-}
-
-fn extract_explicit_paths(value: &Value) -> Vec<String> {
-    const PATH_FIELDS: &[&str] = &[
-        "file_path",
-        "filePath",
-        "path",
-        "notebook_path",
-        "notebookPath",
-        "target_file",
-        "targetFile",
-    ];
-    let mut paths = Vec::new();
-    if let Some(object) = value.as_object() {
-        for field in PATH_FIELDS {
-            match object.get(*field) {
-                Some(Value::String(path)) if !path.trim().is_empty() => paths.push(path.clone()),
-                Some(Value::Array(values)) => paths.extend(
-                    values
-                        .iter()
-                        .filter_map(Value::as_str)
-                        .filter(|path| !path.trim().is_empty())
-                        .map(str::to_string),
-                ),
-                _ => {}
-            }
-        }
-    }
-    paths.sort();
-    paths.dedup();
-    paths
-}
-
-fn extract_patch_file_actions(patch: &str) -> Vec<(String, ResourceAction)> {
-    let mut actions = Vec::new();
-    for line in patch.lines() {
-        let trimmed = line.trim();
-        let candidate = [
-            ("*** Add File:", ResourceAction::Create),
-            ("*** Update File:", ResourceAction::Write),
-            ("*** Delete File:", ResourceAction::Delete),
-            ("*** Move to:", ResourceAction::Rename),
-        ]
-        .into_iter()
-        .find_map(|(prefix, action)| {
-            trimmed
-                .strip_prefix(prefix)
-                .map(|path| (path.trim(), action))
-        });
-        if let Some((path, action)) = candidate {
-            if !path.is_empty() {
-                actions.push((path.to_string(), action));
-            }
-        }
-    }
-    actions
 }
 
 fn string_field(value: &Value, fields: &[&str]) -> Option<String> {
@@ -561,6 +488,33 @@ mod tests {
     }
 
     #[test]
+    fn cursor_subagent_start_preserves_parent_and_actor_identity() {
+        let lifecycle = normalize_actor_lifecycle_payload(
+            HookSource::Cursor,
+            &json!({
+                "conversation_id": "cursor-current-context",
+                "generation_id": "generation-1",
+                "workspace_roots": ["/repo"],
+                "hook_event_name": "subagentStart",
+                "subagent_id": "cursor-child-1",
+                "subagent_type": "explore",
+                "parent_conversation_id": "cursor-parent-1",
+                "task": "private task description"
+            }),
+        )
+        .expect("normalize Cursor lifecycle")
+        .expect("Cursor lifecycle envelope");
+
+        assert_eq!(lifecycle.source_session_id, "cursor-parent-1");
+        assert_eq!(lifecycle.session_id, "cursoride-cursor-parent-1");
+        assert_eq!(lifecycle.actor_id, "cursor-child-1");
+        assert_eq!(lifecycle.actor_type.as_deref(), Some("explore"));
+        assert_eq!(lifecycle.phase, SessionActorLifecyclePhase::Started);
+        let serialized = serde_json::to_string(&lifecycle).expect("serialize lifecycle");
+        assert!(!serialized.contains("private task description"));
+    }
+
+    #[test]
     fn codex_exec_command_records_read_path_without_retaining_command() {
         let envelopes = normalize_hook_payload(
             HookSource::Codex,
@@ -663,5 +617,38 @@ mod tests {
         )
         .expect("normalize timestamp");
         assert_eq!(envelopes[0].occurred_at, "2026-07-14T08:00:00.000Z");
+    }
+
+    #[test]
+    fn file_interactions_without_a_workspace_are_rejected() {
+        let error = normalize_hook_payload(
+            HookSource::ClaudeCode,
+            &json!({
+                "session_id": "session-4",
+                "tool_name": "Read",
+                "tool_input": {"file_path": "src/lib.rs"}
+            }),
+        )
+        .expect_err("relative paths without a workspace must not be attributed");
+        assert!(error.contains("workspace path"));
+    }
+
+    #[test]
+    fn one_hook_payload_has_a_bounded_interaction_fanout() {
+        let modified_files = (0..=MAX_RESOURCE_INTERACTIONS_PER_HOOK)
+            .map(|index| format!("src/generated-{index}.rs"))
+            .collect::<Vec<_>>();
+        let envelopes = normalize_hook_payload(
+            HookSource::Cursor,
+            &json!({
+                "conversation_id": "bounded-fanout",
+                "workspace_roots": ["/repo"],
+                "hook_event_name": "subagentStop",
+                "modified_files": modified_files
+            }),
+        )
+        .expect("normalize bounded hook payload");
+
+        assert_eq!(envelopes.len(), MAX_RESOURCE_INTERACTIONS_PER_HOOK);
     }
 }

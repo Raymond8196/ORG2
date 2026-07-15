@@ -421,15 +421,13 @@
     "sessionBlame": "Session Blame",
     "sessionBlameSubagent": "子代理：{{name}}",
     "sessionBlameMainSession": "主 Session",
-    "sessionBlameSessionAttribution": "Session 级归属",
     "sessionBlameAction": {
       "read": "读取",
       "write": "写入",
       "create": "创建",
       "delete": "删除",
       "rename": "重命名",
-      "search": "搜索",
-      "reference": "引用"
+      "search": "搜索"
     },
     "sessionBlamePrecision": {
       "unknown": "归属未知",

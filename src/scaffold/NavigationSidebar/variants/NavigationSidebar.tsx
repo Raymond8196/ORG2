@@ -201,6 +201,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
     revealMenuItemRequest,
   }) => {
     const menuRevealRootRef = useRef<HTMLDivElement>(null);
+    const completedRevealRequestIdRef = useRef<number | null>(null);
     const normalizedSearchQuery = useMemo(
       () => normalizeSearchValue(search?.filterValue ?? search?.value ?? ""),
       [search?.filterValue, search?.value]
@@ -291,7 +292,12 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
     );
 
     useEffect(() => {
-      if (!revealMenuItemRequest) return;
+      if (
+        !revealMenuItemRequest ||
+        completedRevealRequestIdRef.current === revealMenuItemRequest.requestId
+      ) {
+        return;
+      }
       const frame = window.requestAnimationFrame(() => {
         const row = Array.from(
           menuRevealRootRef.current?.querySelectorAll<HTMLElement>(
@@ -302,7 +308,10 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
             candidate.getAttribute("data-menu-item-id") ===
             revealMenuItemRequest.key
         );
-        row?.scrollIntoView({ block: "nearest", inline: "nearest" });
+        if (row) {
+          row.scrollIntoView({ block: "nearest", inline: "nearest" });
+          completedRevealRequestIdRef.current = revealMenuItemRequest.requestId;
+        }
       });
       return () => window.cancelAnimationFrame(frame);
     }, [collapsedSections, revealMenuItemRequest, sections]);

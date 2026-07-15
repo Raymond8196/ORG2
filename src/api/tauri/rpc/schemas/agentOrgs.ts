@@ -29,6 +29,7 @@ export const SessionProvenanceHookStatusSchema = z.object({
   enabled: z.boolean(),
   desiredEnabled: z.boolean(),
   configPath: z.string(),
+  error: z.string().nullable().optional(),
 });
 
 export const SessionProvenanceHookSetEnabledInput = z.object({

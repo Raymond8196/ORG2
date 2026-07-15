@@ -55,11 +55,6 @@ export const OrgtrackFileTimelineInput = z.object({
   filePath: z.string(),
 });
 
-export const OrgtrackFileSessionLookupInput = z.object({
-  repoPath: z.string(),
-  filePath: z.string(),
-});
-
 export const OrgtrackFileSessionHistoryInput = z.object({
   repoPath: z.string(),
   filePath: z.string(),
@@ -424,29 +419,17 @@ export const OrgtrackFileTimelineSchema = z.object({
   entries: z.array(OrgtrackFileTimelineEntrySchema),
 });
 
-export const OrgtrackFileSessionSummarySchema = z.object({
-  sessionId: z.string(),
-  sessionLabel: z.string().nullable().optional(),
-  agentIdentity: OrgtrackAgentIdentitySchema.nullable().optional(),
-  firstEditAt: z.number().int(),
-  lastEditAt: z.number().int(),
-  editCount: z.number().int(),
-  commitShas: z.array(z.string()),
-  reachabilityStates: z.array(OrgtrackReachabilityStateSchema),
-});
-
-export const OrgtrackFileSessionLookupSchema = z.object({
-  schemaVersion: z.number().int(),
-  filePath: z.string(),
-  pathHash: z.string(),
-  sessions: z.array(OrgtrackFileSessionSummarySchema),
-});
-
 export const OrgtrackInteractionPrecisionSchema = z.enum([
   "unknown",
   "session_only",
   "correlated",
   "exact",
+]);
+
+export const OrgtrackInteractionCaptureMethodSchema = z.enum([
+  "native",
+  "hook",
+  "reconciled",
 ]);
 
 export const OrgtrackFileSessionHistoryParticipantSchema = z.object({
@@ -460,10 +443,10 @@ export const OrgtrackFileSessionHistoryParticipantSchema = z.object({
   actorLabel: z.string().nullable().optional(),
   firstInteractionAt: z.string(),
   lastInteractionAt: z.string(),
-  interactionCount: z.number().int(),
-  actionCounts: z.record(z.string(), z.number().int()),
+  interactionCount: z.number().int().nonnegative(),
+  actionCounts: z.record(z.string(), z.number().int().nonnegative()),
   actorIds: z.array(z.string()),
-  captureMethods: z.array(z.string()),
+  captureMethods: z.array(OrgtrackInteractionCaptureMethodSchema),
   attributionPrecision: OrgtrackInteractionPrecisionSchema,
 });
 
@@ -475,9 +458,9 @@ export const OrgtrackFileSessionHistorySessionSchema = z.object({
   workspacePath: z.string().nullable().optional(),
   firstInteractionAt: z.string(),
   lastInteractionAt: z.string(),
-  interactionCount: z.number().int(),
-  actionCounts: z.record(z.string(), z.number().int()),
-  captureMethods: z.array(z.string()),
+  interactionCount: z.number().int().nonnegative(),
+  actionCounts: z.record(z.string(), z.number().int().nonnegative()),
+  captureMethods: z.array(OrgtrackInteractionCaptureMethodSchema),
   attributionPrecision: OrgtrackInteractionPrecisionSchema,
   participants: z.array(OrgtrackFileSessionHistoryParticipantSchema),
 });
@@ -550,9 +533,6 @@ export const CoreSessionSummarySchema = z.object({
   keySource: z.string().nullable().optional(),
 });
 
-export type OrgtrackFileSessionLookup = z.output<
-  typeof OrgtrackFileSessionLookupSchema
->;
 export type OrgtrackFileSessionHistory = z.output<
   typeof OrgtrackFileSessionHistorySchema
 >;

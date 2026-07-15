@@ -34,6 +34,8 @@ export function useOrgtrackFileSessionHistory({
     const requestId = ++requestIdRef.current;
     if (!filePath || !repoPath) {
       setHistory(null);
+      setLoading(false);
+      setError(null);
       return;
     }
     setLoading(true);

@@ -82,7 +82,7 @@ const SessionProvenanceHooksPanel: React.FC = () => {
       Object.fromEntries(
         PLATFORMS.map(({ id }) => {
           const status = statuses[id];
-          const error = errors[id];
+          const error = errors[id] ?? status?.error;
           if (error) return [id, error];
           if (status && status.enabled !== status.desiredEnabled) {
             return [

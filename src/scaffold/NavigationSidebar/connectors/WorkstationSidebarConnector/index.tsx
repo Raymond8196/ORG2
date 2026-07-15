@@ -50,6 +50,7 @@ import {
   chatPanelSelectedWorkItemAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
+  clearSessionSidebarRevealAtom,
   sessionSidebarRevealRequestAtom,
   sidebarCollapsedAtom,
 } from "@src/store/ui/sidebarAtom";
@@ -141,6 +142,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const sessionSidebarRevealRequest = useAtomValue(
     sessionSidebarRevealRequestAtom
   );
+  const clearSessionSidebarReveal = useSetAtom(clearSessionSidebarRevealAtom);
   const setSidebarCollapsed = useSetAtom(sidebarCollapsedAtom);
   const collabOrgs = useAtomValue(collabOrgsAtom);
   const visitedSessions = useAtomValue(visitedSessionsAtom);
@@ -268,10 +270,29 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const [projectsCollapsedSectionIds, setProjectsCollapsedSectionIds] =
     useState<Set<string>>(() => new Set());
   const activeSessionId = useAtomValue(workstationActiveSessionIdAtom) ?? "";
+  const activatedRevealRequestIdRef = React.useRef<number | null>(null);
   const activeSessionSidebarRevealRequest =
     sessionSidebarRevealRequest?.sessionId === activeSessionId
       ? sessionSidebarRevealRequest
       : null;
+  useEffect(() => {
+    if (!sessionSidebarRevealRequest) {
+      activatedRevealRequestIdRef.current = null;
+      return;
+    }
+    if (sessionSidebarRevealRequest.sessionId === activeSessionId) {
+      activatedRevealRequestIdRef.current =
+        sessionSidebarRevealRequest.requestId;
+      return;
+    }
+    if (
+      activatedRevealRequestIdRef.current ===
+      sessionSidebarRevealRequest.requestId
+    ) {
+      clearSessionSidebarReveal(sessionSidebarRevealRequest.requestId);
+      activatedRevealRequestIdRef.current = null;
+    }
+  }, [activeSessionId, clearSessionSidebarReveal, sessionSidebarRevealRequest]);
   const revealedSessionIds = useMemo(() => {
     const ids = new Set<string>();
     if (activeSessionSidebarRevealRequest?.sessionId) {
@@ -434,20 +455,26 @@ export const WorkstationSidebarConnector: React.FC = () => {
       }
     });
 
-    void loadSidebarSessionById(parentSessionId)
-      .then((session) => {
-        if (!session) {
+    const sessionIds = new Set([
+      parentSessionId,
+      sessionSidebarRevealRequest.sessionId,
+    ]);
+    for (const sessionId of sessionIds) {
+      void loadSidebarSessionById(sessionId)
+        .then((session) => {
+          if (!session) {
+            logger.warn(
+              `Unable to hydrate sidebar row for session ${sessionId}`
+            );
+          }
+        })
+        .catch((error: unknown) => {
           logger.warn(
-            `Unable to hydrate sidebar row for session ${parentSessionId}`
+            `Failed to hydrate sidebar row for session ${sessionId}:`,
+            error
           );
-        }
-      })
-      .catch((error: unknown) => {
-        logger.warn(
-          `Failed to hydrate sidebar row for session ${parentSessionId}:`,
-          error
-        );
-      });
+        });
+    }
 
     return () => window.cancelAnimationFrame(revealFrame);
   }, [sessionSidebarRevealRequest, setSidebarCollapsed]);

@@ -408,15 +408,13 @@
     "sessionBlame": "Атрибуция сессий",
     "sessionBlameSubagent": "Подагент: {{name}}",
     "sessionBlameMainSession": "Основная сессия",
-    "sessionBlameSessionAttribution": "Атрибуция на уровне сессии",
     "sessionBlameAction": {
       "read": "Чтение",
       "write": "Запись",
       "create": "Создание",
       "delete": "Удаление",
       "rename": "Переименование",
-      "search": "Поиск",
-      "reference": "Ссылка"
+      "search": "Поиск"
     },
     "sessionBlamePrecision": {
       "unknown": "Точность неизвестна",

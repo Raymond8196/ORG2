@@ -408,15 +408,13 @@
     "sessionBlame": "Atribución de sesiones",
     "sessionBlameSubagent": "Subagente: {{name}}",
     "sessionBlameMainSession": "Sesión principal",
-    "sessionBlameSessionAttribution": "Atribución a nivel de sesión",
     "sessionBlameAction": {
       "read": "Leer",
       "write": "Escribir",
       "create": "Crear",
       "delete": "Eliminar",
       "rename": "Renombrar",
-      "search": "Buscar",
-      "reference": "Referenciar"
+      "search": "Buscar"
     },
     "sessionBlamePrecision": {
       "unknown": "Confianza desconocida",

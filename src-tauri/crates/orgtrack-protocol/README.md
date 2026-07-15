@@ -68,5 +68,6 @@ ORGTRACK_LIVE_ENVELOPE_DIR=/path/to/inbox \
 ```
 
 The test requires Claude Code, Codex, and Cursor sources with both read and
-write actions, performs strict deserialization and exact round-trips, and
-checks that file-content sentinels did not enter the envelopes.
+write actions, accepts strict resource and actor-lifecycle envelopes, performs
+exact round-trips, and checks that file-content sentinels did not enter either
+contract.

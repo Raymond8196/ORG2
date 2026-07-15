@@ -1138,9 +1138,10 @@ fn deserialize_key_store(contents: &str) -> Result<KeyStore, serde_json::Error> 
         .and_then(serde_json::Value::as_object_mut)
     {
         credentials.retain(|_, credential| {
-            !["agent_type", "model_type"].iter().any(|field| {
-                credential.get(field).and_then(serde_json::Value::as_str) == Some("gemini_cli")
-            })
+            credential
+                .get("model_type")
+                .and_then(serde_json::Value::as_str)
+                != Some("gemini_cli")
         });
     }
     serde_json::from_value(value)

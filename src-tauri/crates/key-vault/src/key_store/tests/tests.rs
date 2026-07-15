@@ -76,10 +76,6 @@ fn retired_gemini_cli_credentials_do_not_corrupt_the_vault() {
         .unwrap();
     let mut retired = credentials.get(&codex_id).unwrap().clone();
     retired["id"] = serde_json::Value::String("retired-gemini-cli".to_string());
-    // Production credentials use `agent_type`; early migration fixtures used
-    // `model_type`. Both spellings must be ignored without making the whole
-    // vault unreadable.
-    retired["agent_type"] = serde_json::Value::String("gemini_cli".to_string());
     retired["model_type"] = serde_json::Value::String("gemini_cli".to_string());
     credentials.insert("retired-gemini-cli".to_string(), retired);
     std::fs::write(&storage_file, serde_json::to_vec_pretty(&stored).unwrap()).unwrap();

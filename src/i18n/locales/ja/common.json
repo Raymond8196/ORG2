@@ -408,15 +408,13 @@
     "sessionBlame": "セッションの帰属",
     "sessionBlameSubagent": "サブエージェント: {{name}}",
     "sessionBlameMainSession": "メインセッション",
-    "sessionBlameSessionAttribution": "セッション単位の帰属",
     "sessionBlameAction": {
       "read": "読み取り",
       "write": "書き込み",
       "create": "作成",
       "delete": "削除",
       "rename": "名前変更",
-      "search": "検索",
-      "reference": "参照"
+      "search": "検索"
     },
     "sessionBlamePrecision": {
       "unknown": "信頼度不明",
