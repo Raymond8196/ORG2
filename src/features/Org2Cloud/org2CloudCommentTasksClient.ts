@@ -31,7 +31,6 @@
 import { z } from "zod/v4";
 
 import { ORG2_CLOUD_POSTGREST_SCHEMA, getCloudEndpoint } from "./config";
-import type { CloudSessionComment } from "./org2CloudCommentsClient";
 
 // ---------------------------------------------------------------------------
 // Protocol constants (server-side counterparts noted; changing one here
@@ -274,6 +273,8 @@ const CloudReportCommentWireSchema = z.object({
     .optional(),
 });
 
+type CloudReportComment = z.output<typeof CloudReportCommentWireSchema>;
+
 const CreateTaskResultSchema = z.object({
   task: CloudCommentTaskWireSchema,
   created: z.boolean(),
@@ -476,7 +477,7 @@ export interface CompleteCommentTaskResult {
    * insert into the comments atom without a refetch. Absent on
    * terminal-idempotent re-fires and when the report was skipped.
    */
-  reportComment?: CloudSessionComment;
+  reportComment?: CloudReportComment;
   /**
    * 'quota' (500-comment cap) | 'thread_deleted' — the task STILL
    * completed (invariant 6); permissive string for additive reasons.
