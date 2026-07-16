@@ -32,14 +32,11 @@ import {
 import { PANEL_FOOTER_TOKENS } from "@src/modules/shared/layouts/blocks";
 import SelectionGrid from "@src/scaffold/WizardSystem/primitives/SelectionGrid";
 import type { SelectionGridOption } from "@src/scaffold/WizardSystem/primitives/SelectionGrid";
+import { openCloudOrgManagementInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
   INVITE_KIND,
   createInviteDefaults,
 } from "@src/store/collaboration/inviteDefaults";
-import {
-  CHAT_PANEL_SURFACE_KIND,
-  chatPanelNavigateAtom,
-} from "@src/store/ui/chatPanelAtom";
 
 const LOCAL_SOURCE = "local";
 // Managed ORG2 Cloud org (create_org / accept_invite against the managed
@@ -81,7 +78,9 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
+  const openCloudOrgManagementTab = useSetAtom(
+    openCloudOrgManagementInChatPanelTabAtom
+  );
 
   // "Use ORG2 Cloud" opens the Collaboration section where managed sign-in lives.
   const handleUseOrg2Cloud = useCallback(() => {
@@ -188,9 +187,9 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
       Message.success(t("navigation:cloud.orgManagement.create.createdToast"));
       // Land straight in the org management panel (invites, members, repo
       // scopes) instead of a dead-end success screen.
-      navigateChatPanel({
-        kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
+      openCloudOrgManagementTab({
         cloudOrg: { orgId },
+        title: t("navigation:collaboration.manageOrg"),
       });
       return;
     }
@@ -225,8 +224,8 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
     cloudAuth,
     inviteInput,
     mode,
-    navigateChatPanel,
     onCancel,
+    openCloudOrgManagementTab,
     orgName,
     refetchCloudOrgs,
     setCloudAuth,
