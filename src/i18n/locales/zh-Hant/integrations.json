@@ -1324,6 +1324,13 @@
     "prAttributionDesc": "為 ORGII 建立的 Pull Request 添加 ORGII 署名頁腳",
     "autoCreatePr": "自動建立 Pull Request",
     "autoCreatePrDesc": "當功能分支已完整推送且工作區沒有未提交的變更時，在 Workstation 原始碼管理中自動建立 Pull Request",
+    "promptInstructionsTitle": "提示詞指示",
+    "commitInstructions": "Commit 指示",
+    "commitInstructionsDesc": "加入 Commit 訊息生成提示詞，儲存在本機並傳送至所選的 Agent",
+    "commitInstructionsPlaceholder": "例如：使用繁體中文撰寫 Commit 訊息並包含詳細內文",
+    "pullRequestInstructions": "Pull Request 指示",
+    "pullRequestInstructionsDesc": "加入 Pull Request 標題與描述生成提示詞，儲存在本機並傳送至所選的 Agent",
+    "pullRequestInstructionsPlaceholder": "例如：在標題前加上問題 ID 並包含測試區段",
     "coauthor": "Co-authored-by",
     "coauthorDesc": "為 ORGII 建立的 Git Commit 添加 {{name}} <{{email}}>",
     "noTokenYet": "需要 Token？",
@@ -1685,7 +1692,45 @@
       "capture": "擷取檔案互動",
       "description": "以中繼資料記錄檔案讀取與寫入。不會儲存提示詞、工具輸出或檔案內容。",
       "configPath": "以中繼資料記錄檔案讀取與寫入。不會儲存提示詞、工具輸出或檔案內容。設定：{{path}}",
-      "installDrift": "已儲存的偏好設定與已安裝的 hook 不一致。切換擷取功能即可修復受管理的 hook。設定：{{path}}"
+      "installDrift": "已儲存的偏好設定與已安裝的 hook 不一致。切換擷取功能即可修復受管理的 hook。設定：{{path}}",
+      "copyPath": "複製",
+      "reveal": "顯示",
+      "col": {
+        "source": "工具",
+        "config": "設定",
+        "capture": "擷取"
+      },
+      "status": {
+        "on": "開啟",
+        "off": "關閉",
+        "repair": "修復",
+        "checking": "檢查中…",
+        "error": "錯誤"
+      },
+      "signals": {
+        "title": "最近訊號",
+        "empty": "尚未收到任何 hook 訊號。",
+        "noResults": "沒有相符的訊號",
+        "search": "搜尋訊號",
+        "refresh": "重新整理",
+        "openSession": "開啟會話 {{session}}",
+        "col": {
+          "source": "工具",
+          "action": "動作",
+          "file": "檔案",
+          "workspace": "工作區",
+          "session": "會話",
+          "when": "時間"
+        },
+        "action": {
+          "read": "讀取",
+          "write": "寫入",
+          "create": "建立",
+          "delete": "刪除",
+          "rename": "重新命名",
+          "search": "搜尋"
+        }
+      }
     },
     "cliManagedConfig": {
       "title": "CLI 設定切換",

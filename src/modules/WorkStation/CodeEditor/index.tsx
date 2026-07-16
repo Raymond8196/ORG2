@@ -266,7 +266,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
     const activeTabHasNoSidebar =
       activeTab?.type === "agent-config" ||
       activeTab?.type === "github-issue-detail" ||
-      activeTab?.type === "github-pr-detail";
+      activeTab?.type === "github-pr-detail" ||
+      activeTab?.type === "search-sessions";
     const sidebarVisible =
       !activeTabHasNoSidebar && !panels.primarySidebarCollapsed;
     const repoDisplayName = repoName || repoPath.split("/").pop() || "Repo";

@@ -146,10 +146,28 @@ fn replace_streaming_event_adapter(
     event: SessionEvent,
 ) {
     let state = handle.state::<EventStoreState>();
+    let persistable =
+        if super::commands::event_conversion::is_synthetic_persistence_artifact(&event) {
+            None
+        } else {
+            Some(session_event_to_cached_event(&event))
+        };
     state.with_store_mut(session_id, |store| {
         store.replace_and_remove(Some(placeholder_id), event);
     });
     schedule_notify(handle, &state, session_id);
+
+    if let Some(cached) = persistable {
+        let sid = session_id.to_string();
+        tokio::task::spawn_blocking(move || {
+            let _ = save_events_retry(
+                "replace_streaming_event",
+                &sid,
+                &[cached],
+                BULK_WRITE_MAX_RETRIES,
+            );
+        });
+    }
 }
 
 fn pin_session_adapter(handle: &AppHandle, session_id: &str) {

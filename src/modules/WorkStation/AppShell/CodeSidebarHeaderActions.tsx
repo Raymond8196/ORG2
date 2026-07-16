@@ -43,7 +43,8 @@ function usesFallbackCodeSidebar(tab: WorkStationTab | null): boolean {
     tab.type !== "github-pr-detail" &&
     tab.type !== "source-control" &&
     tab.type !== "terminal" &&
-    tab.type !== "benchmark"
+    tab.type !== "benchmark" &&
+    tab.type !== "search-sessions"
   );
 }
 

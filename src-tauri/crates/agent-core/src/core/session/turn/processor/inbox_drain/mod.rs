@@ -126,6 +126,12 @@ mod tests {
         ctx
     }
 
+    fn eligible_task_metadata(member_ids: &[&str]) -> Option<Value> {
+        Some(serde_json::json!({
+            crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS: member_ids,
+        }))
+    }
+
     fn upsert_org_member_session(
         session_id: &str,
         root_session_id: &str,
@@ -1127,10 +1133,7 @@ mod tests {
             status: TaskStatus::InProgress,
             blocks: vec![],
             blocked_by: vec![],
-            metadata: Some(serde_json::json!({
-                crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS:
-                    ["member-alice-agent", "member-peer"],
-            })),
+            metadata: eligible_task_metadata(&["member-alice-agent", "member-peer"]),
         })
         .unwrap();
         AgentOrgTaskStore::create(CreateTaskParams {
@@ -1391,10 +1394,7 @@ mod tests {
             status: TaskStatus::InProgress,
             blocks: Vec::new(),
             blocked_by: Vec::new(),
-            metadata: Some(serde_json::json!({
-                crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS:
-                    ["member-stale", "member-fresh"],
-            })),
+            metadata: eligible_task_metadata(&["member-stale", "member-fresh"]),
         })
         .expect("create stale-owned task");
 
@@ -1456,10 +1456,7 @@ mod tests {
             status: TaskStatus::Pending,
             blocks: vec![],
             blocked_by: vec![],
-            metadata: Some(serde_json::json!({
-                crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS:
-                    ["member-alice"],
-            })),
+            metadata: eligible_task_metadata(&["member-alice"]),
         })
         .expect("create task");
 

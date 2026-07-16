@@ -74,6 +74,11 @@
       "other": "Secret"
     }
   },
+  "secretScan": {
+    "title": "Possible secret detected",
+    "message": "This message looks like it contains sensitive credentials:\n\n{{items}}\n\nSending it will store the secret in the chat transcript and send it to the model. Send anyway?",
+    "sendAnyway": "Send anyway"
+  },
   "actions": {
     "all": "All",
     "save": "Save",
@@ -210,7 +215,8 @@
     "openInApp": "Open in App",
     "skipThisVersion": "Skip this version",
     "later": "Later",
-    "link": "Link"
+    "link": "Link",
+    "copyName": "Copy Name"
   },
   "refreshToast": {
     "successName": "{{name}} refreshed",

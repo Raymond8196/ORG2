@@ -22,7 +22,10 @@ import {
 } from "@src/engines/SessionCore/storage/cacheAdapter";
 import { cliAdapter } from "@src/engines/SessionCore/sync/adapters";
 import { getAdapterForSession } from "@src/engines/SessionCore/sync/types";
-import { openOrFocusChatPanelStartPageTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
+  chatPanelTabsAtom,
+  openOrFocusChatPanelStartPageTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { reposAtom, selectedRepoIdAtom } from "@src/store/repo/atoms";
 import {
   type ContextUsageSnapshot,
@@ -317,9 +320,21 @@ export function createSessionHelpers(store: E2EStore) {
         await new Promise((resolve) => window.setTimeout(resolve, 50));
       }
       const bodyText = document.body?.textContent?.slice(0, 500) ?? "";
+      const tabState = store.get(chatPanelTabsAtom);
       return {
         ok: false,
-        error: `resetToNewSession: SessionCreator did not render after clearing session state; body=${JSON.stringify(bodyText)}`,
+        error: `resetToNewSession: SessionCreator did not render after clearing session state; state=${JSON.stringify(
+          {
+            tabState,
+            contentMode: store.get(chatPanelContentModeAtom),
+            selectedWorkItem: store.get(chatPanelSelectedWorkItemAtom)?.shortId,
+            activeSessionId: store.get(activeSessionIdAtom),
+            workstationActiveSessionId: store.get(
+              workstationActiveSessionIdAtom
+            ),
+            sessionId: store.get(sessionIdAtom),
+          }
+        )}; body=${JSON.stringify(bodyText)}`,
       };
     } catch (err) {
       return asError(err);
@@ -588,6 +603,32 @@ export function createSessionHelpers(store: E2EStore) {
     }
   };
 
+  const findSessionAggregateByWorkItem = async (
+    workItemId: string
+  ): Promise<Result<{ session: Json | null }>> => {
+    try {
+      if (!workItemId) {
+        return {
+          ok: false,
+          error: "findSessionAggregateByWorkItem: `workItemId` is required",
+        };
+      }
+      const listed = await rpc.sessionAggregate.list({
+        filter: {
+          category: "agent",
+          limit: 200,
+          sortBy: "updated_at",
+          sortOrder: "desc",
+        },
+      });
+      const session =
+        listed.sessions.find((row) => row.workItemId === workItemId) ?? null;
+      return { ok: true, session: session as unknown as Json | null };
+    } catch (err) {
+      return asError(err);
+    }
+  };
+
   const seedSessionContextUsage = async (
     usage: Json
   ): Promise<Result<{ usedTokens: number }>> => {
@@ -721,6 +762,7 @@ export function createSessionHelpers(store: E2EStore) {
     launchSession,
     getSessionAggregateRow,
     getSessionAggregateRowFromList,
+    findSessionAggregateByWorkItem,
     seedSessionContextUsage,
     seedPersistedCachedSession,
     seedChatEvents: seeders.seedChatEvents,

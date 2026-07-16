@@ -301,7 +301,9 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
                     variant="plain"
                     size="xs"
                     reserveValueWidth={false}
-                    className="shrink-0"
+                    // `!font-normal` overrides the badge's baked-in font-medium
+                    // (classNames is a plain join, so importance must win, not order).
+                    className="shrink-0 !font-normal"
                   />
                 )}
               </StatusBarButton>

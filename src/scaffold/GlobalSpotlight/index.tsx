@@ -38,7 +38,10 @@ import {
   WorkspacePalette,
   WorktreePalette,
 } from "./palettes";
-import type { BranchPaletteMode } from "./palettes/BranchPalette";
+import type {
+  BranchPaletteMode,
+  WorktreePaletteMode,
+} from "./palettes/BranchPalette";
 import type {
   DeleteBranchOptions,
   DeleteBranchResult,
@@ -106,6 +109,8 @@ const GlobalSpotlightInner: React.FC<
     useState<WorkspacePickerMode | null>(null);
   const [embeddedBranchMode, setEmbeddedBranchMode] =
     useState<BranchPaletteMode>("checkout");
+  const [embeddedWorktreeMode, setEmbeddedWorktreeMode] =
+    useState<WorktreePaletteMode>("switch");
   const [branchPickerOpen, setBranchPickerOpen] = useState(false);
   const [worktreePickerOpen, setWorktreePickerOpen] = useState(false);
   const activeWorktree = useAtomValue(activeWorktreeAtom);
@@ -138,6 +143,7 @@ const GlobalSpotlightInner: React.FC<
   }, []);
 
   const handleOpenWorktreePicker = useCallback(() => {
+    setEmbeddedWorktreeMode("switch");
     setWorktreePickerOpen(true);
   }, []);
 
@@ -624,7 +630,7 @@ const GlobalSpotlightInner: React.FC<
         : null;
   const activeActionChip =
     workspacePickerMode === "switch" ||
-    worktreePickerOpen ||
+    (worktreePickerOpen && embeddedWorktreeMode === "switch") ||
     (branchPickerOpen && embeddedBranchMode === "checkout")
       ? SPOTLIGHT_FOOTER_ACTIVE_CHIP.switchSection
       : undefined;
@@ -649,7 +655,6 @@ const GlobalSpotlightInner: React.FC<
       onSelect={handleBranchPickerSelect}
       onCreateBranch={handleCreateBranch}
       onDeleteBranch={handleDeleteBranch}
-      onRemoveWorktree={handleRemoveWorktree}
       onCheckoutDetached={handleCheckoutDetached}
       repoId={effectiveCurrentRepoId ?? ""}
       repoPath={activeWorktree?.path ?? currentRepoPath}
@@ -664,6 +669,8 @@ const GlobalSpotlightInner: React.FC<
       onGoBackToParent={handleCloseWorktreePicker}
       onSelect={handleWorktreePickerSelect}
       onCreate={handleWorktreePickerCreate}
+      onRemoveWorktree={handleRemoveWorktree}
+      onModeChange={setEmbeddedWorktreeMode}
       repoId={effectiveCurrentRepoId ?? ""}
       repoPath={currentRepoPath}
       activePath={activeWorktree?.path ?? currentRepoPath}

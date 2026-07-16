@@ -28,6 +28,7 @@
     "agentSessions": "Agent Session",
     "apiKeys": "API Keys",
     "appUpdate": "Обновление",
+    "security": "Безопасность",
     "monitor": "Устройство & сеть",
     "osAgentConfig": "Настройки OS Agent",
     "sdeAgentConfig": "Настройки SDE Agent",
@@ -39,7 +40,8 @@
     "storage": "Хранилище",
     "projectUsage": "Project и использование",
     "agentMemory": "Память Agent",
-    "agentOrg": "Команда Agent"
+    "agentOrg": "Команда Agent",
+    "collaboration": "Совместная работа"
   },
   "coreSidebar": {
     "groups": {
@@ -54,6 +56,7 @@
       "models": "Модели & Keys",
       "myRoles": "Мои роли",
       "rulesMemoryEvolution": "Правила, Память & Эволюция",
+      "security": "Безопасность",
       "routines": "Рутины",
       "tools": "Built-in Tools",
       "computerUse": "Computer Use",
@@ -66,6 +69,16 @@
       "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
+  },
+  "security": {
+    "scan": "Предупреждать перед отправкой секретов",
+    "scanDesc": "Проверяет введённый в редакторе текст на наличие API-ключей, токенов и паролей и запрашивает подтверждение перед их отправкой модели",
+    "entropy": "Обнаруживать строки с высокой энтропией",
+    "entropyDesc": "Также отмечает длинные строки со случайным видом, не соответствующие известным форматам ключей. Находит больше секретов, но иногда может отмечать хеши или идентификаторы",
+    "customPatterns": "Пользовательские шаблоны",
+    "customPatternsDesc": "По одному регулярному выражению в строке. Любое совпадение считается секретом. Недопустимые выражения игнорируются",
+    "customPatternsPlaceholder": "напр. MYCORP_[A-Z0-9]{20}",
+    "invalidPatterns": "{{count}} шаблон(ов) недействительны и будут проигнорированы: {{patterns}}"
   },
   "myRoles": {
     "currentStatus": "Мой текущий статус",
@@ -1291,5 +1304,11 @@
     "searchActions": "Поиск действий...",
     "noActionsFound": "Действия не найдены",
     "noConfigurableProperties": "Нет настраиваемых свойств"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "Облако",
+      "selfHosted": "Самостоятельный хостинг"
+    }
   }
 }

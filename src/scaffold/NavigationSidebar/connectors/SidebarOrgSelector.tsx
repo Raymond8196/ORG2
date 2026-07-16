@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, Settings2 } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -10,12 +10,27 @@ interface SidebarOrgSelectorProps {
   value: string;
   options: SelectOption[];
   addOrgLabel: string;
+  /** Label for the manage-org entry; rendered only with `onManageOrg`. */
+  manageLabel?: string;
   onChange: (orgId: string) => void;
   onAddOrg: () => void;
+  /**
+   * Explicit management entry for the ACTIVE org (cloud orgs only —
+   * selector picks switch scope, management needs its own entry).
+   */
+  onManageOrg?: () => void;
 }
 
 const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
-  ({ value, options, addOrgLabel, onChange, onAddOrg }) => {
+  ({
+    value,
+    options,
+    addOrgLabel,
+    manageLabel,
+    onChange,
+    onAddOrg,
+    onManageOrg,
+  }) => {
     const { t } = useTranslation("navigation");
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -27,15 +42,37 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
       [onChange]
     );
 
+    const handleAddOrg = useCallback(() => {
+      setMenuOpen(false);
+      onAddOrg();
+    }, [onAddOrg]);
+
+    const handleManageOrg = useCallback(() => {
+      setMenuOpen(false);
+      onManageOrg?.();
+    }, [onManageOrg]);
+
     const renderDropdown = useCallback(
       (menu: React.ReactNode) => (
         <>
           {menu}
           <div className="border-0 border-t border-solid border-border-2 p-1">
+            {onManageOrg ? (
+              <button
+                type="button"
+                className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full border-none bg-transparent text-text-1`}
+                onClick={handleManageOrg}
+                data-testid="sidebar-org-manage"
+              >
+                <Settings2 size={13} strokeWidth={2} className="shrink-0" />
+                <span className="min-w-0 truncate">{manageLabel}</span>
+              </button>
+            ) : null}
             <button
               type="button"
               className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full border-none bg-transparent text-text-1`}
-              onClick={onAddOrg}
+              onClick={handleAddOrg}
+              data-testid="sidebar-add-org"
             >
               <Plus size={13} strokeWidth={2} className="shrink-0" />
               <span className="min-w-0 truncate">{addOrgLabel}</span>
@@ -43,11 +80,15 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
           </div>
         </>
       ),
-      [addOrgLabel, onAddOrg]
+      [addOrgLabel, handleAddOrg, handleManageOrg, manageLabel, onManageOrg]
     );
 
     return (
-      <div className="w-full min-w-0 [&>span]:w-full">
+      <div
+        className="w-full min-w-0 [&>span]:w-full"
+        data-testid="sidebar-org-selector-scope"
+        data-org-id={value}
+      >
         <WorkstationToolbarTooltip
           label={t("collaboration.switchOrg")}
           position="top"

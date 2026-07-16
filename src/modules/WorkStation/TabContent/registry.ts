@@ -115,6 +115,11 @@ const AIImpactEntry: RendererEntry = {
   debugLabel: "ai-impact",
 };
 
+const SearchSessionsEntry: RendererEntry = {
+  Component: lazy(() => import("./renderers/searchSessions")),
+  debugLabel: "search-sessions",
+};
+
 const UrlPreviewEntry: RendererEntry = {
   Component: lazy(() => import("./renderers/urlPreview")),
   debugLabel: "url-preview",
@@ -263,6 +268,7 @@ export const REGISTRY: TabContentRegistry = {
   search: SearchEntry,
   "lint-scan": LintScanEntry,
   "ai-impact": AIImpactEntry,
+  "search-sessions": SearchSessionsEntry,
   benchmark: BenchmarkEntry,
   "url-preview": UrlPreviewEntry,
 

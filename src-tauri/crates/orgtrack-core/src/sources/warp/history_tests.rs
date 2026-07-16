@@ -6,7 +6,8 @@ use super::*;
 use crate::sources::imported_history::metadata::ImportedHistoryRecordSignature;
 
 fn fixture_task_blob() -> Vec<u8> {
-    let descriptor = warp_multi_agent_api::get_descriptor_pool()
+    let descriptor = warp_descriptor_pool()
+        .expect("bundled Warp descriptor")
         .get_message_by_name(WARP_TASK_PROTO_NAME)
         .expect("Warp Task descriptor");
     let mut deserializer =

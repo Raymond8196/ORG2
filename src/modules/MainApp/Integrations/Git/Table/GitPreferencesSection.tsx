@@ -162,57 +162,50 @@ const GitPreferencesSection: React.FC = () => {
       </SectionContainer>
 
       <SectionContainer title={t("git.promptInstructionsTitle")}>
-        <SectionRow showHeader={false} className="!min-h-0">
-          <p className="text-xs text-text-3">
-            {t("git.promptInstructionsNotice")}
-          </p>
-        </SectionRow>
         <SectionRow
           label={t("git.commitInstructions")}
           description={t("git.commitInstructionsDesc")}
-          align="start"
+          layout="vertical"
         >
-          <div style={SECTION_CONTROL_STYLE}>
-            <SaveableTextarea
-              value={commitInstructions}
-              onSave={(value) =>
-                saveSetting({
-                  key: "git.prompts.commitInstructions",
-                  value: value.trim(),
-                })
-              }
-              placeholder={t("git.commitInstructionsPlaceholder")}
-              autoSize={{ minRows: 4, maxRows: 10 }}
-              maxLength={4000}
-              showWordLimit
-              dataTestId="settings-git-commit-instructions"
-              saveButtonDataTestId="settings-git-commit-instructions-save"
-            />
-          </div>
+          <SaveableTextarea
+            value={commitInstructions}
+            onSave={(value) =>
+              saveSetting({
+                key: "git.prompts.commitInstructions",
+                value: value.trim(),
+              })
+            }
+            placeholder={t("git.commitInstructionsPlaceholder")}
+            autoSize={{ minRows: 4, maxRows: 10 }}
+            maxLength={4000}
+            maxWords={200}
+            showWordLimit
+            dataTestId="settings-git-commit-instructions"
+            saveButtonDataTestId="settings-git-commit-instructions-save"
+          />
         </SectionRow>
 
         <SectionRow
           label={t("git.pullRequestInstructions")}
           description={t("git.pullRequestInstructionsDesc")}
-          align="start"
+          layout="vertical"
         >
-          <div style={SECTION_CONTROL_STYLE}>
-            <SaveableTextarea
-              value={pullRequestInstructions}
-              onSave={(value) =>
-                saveSetting({
-                  key: "git.prompts.pullRequestInstructions",
-                  value: value.trim(),
-                })
-              }
-              placeholder={t("git.pullRequestInstructionsPlaceholder")}
-              autoSize={{ minRows: 4, maxRows: 10 }}
-              maxLength={4000}
-              showWordLimit
-              dataTestId="settings-git-pull-request-instructions"
-              saveButtonDataTestId="settings-git-pull-request-instructions-save"
-            />
-          </div>
+          <SaveableTextarea
+            value={pullRequestInstructions}
+            onSave={(value) =>
+              saveSetting({
+                key: "git.prompts.pullRequestInstructions",
+                value: value.trim(),
+              })
+            }
+            placeholder={t("git.pullRequestInstructionsPlaceholder")}
+            autoSize={{ minRows: 4, maxRows: 10 }}
+            maxLength={4000}
+            maxWords={200}
+            showWordLimit
+            dataTestId="settings-git-pull-request-instructions"
+            saveButtonDataTestId="settings-git-pull-request-instructions-save"
+          />
         </SectionRow>
       </SectionContainer>
 

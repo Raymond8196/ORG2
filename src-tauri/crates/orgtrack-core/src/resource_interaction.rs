@@ -118,6 +118,12 @@ pub fn action_for_tool_name(tool_name: &str) -> Option<ResourceAction> {
         || normalized.contains("edit")
         || normalized.contains("patch")
         || normalized.contains("notebook")
+        // `create` covers Factory Droid's `Create` file tool; `replace` covers
+        // the Gemini-family (Qwen Code) in-place edit tool. Both only yield an
+        // interaction when a path field is also present, so the broader match
+        // cannot misclassify a non-file tool.
+        || normalized.contains("create")
+        || normalized.contains("replace")
     {
         Some(ResourceAction::Write)
     } else if normalized.contains("read") || normalized.contains("view_file") {
@@ -248,6 +254,16 @@ mod tests {
         assert_eq!(interactions.len(), 2);
         assert_eq!(interactions[0].action, ResourceAction::Create);
         assert_eq!(interactions[1].action, ResourceAction::Delete);
+    }
+
+    #[test]
+    fn create_and_replace_tool_names_map_to_write() {
+        // Factory Droid `Create` and Gemini-family (Qwen) `replace`.
+        assert_eq!(action_for_tool_name("Create"), Some(ResourceAction::Write));
+        assert_eq!(action_for_tool_name("replace"), Some(ResourceAction::Write));
+        // A non-file tool that merely contains the word yields no path, so the
+        // higher-level extractor drops it — but the classifier itself is lenient.
+        assert!(file_interactions_from_tool("create_memory", &json!({"note": "x"}), None).is_empty());
     }
 
     #[test]

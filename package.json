@@ -1,6 +1,6 @@
 {
   "name": "orgii",
-  "version": "1.1.22",
+  "version": "1.1.24",
   "description": "Self-evolving agentic development framework — ORGII desktop app",
   "main": "src/index.tsx",
   "scripts": {
@@ -19,6 +19,7 @@
     "tauri:build": "node scripts/tauri/run-with-features.cjs build",
     "tauri:build:semantic": "node scripts/tauri/run-with-features.cjs build --semantic",
     "tauri:build:fast": "node scripts/tauri/build-fast-parallel.cjs",
+    "tauri:open:instance": "node scripts/tauri/open-instance.cjs",
     "tauri:build:fast:serial": "node scripts/tauri/run-with-features.cjs build -- --profile dev-build",
     "tauri:build:fast:local": "node scripts/tauri/build-fast-local.cjs",
     "tauri:build:fast:open": "node scripts/tauri/build-fast-open.cjs",
@@ -47,7 +48,8 @@
     "test:watch": "vitest",
     "check:unused-exports": "ts-unused-exports tsconfig.json --excludePathsFromReport='src/index.tsx;src/app/;src/i18n/;.test.ts;.test.tsx;/types.ts;/index.ts;src/scaffold/;src/types/ambient/'",
     "check:unused-exports:all": "ts-unused-exports tsconfig.json",
-    "check:e2e-oauth-guards": "node scripts/quality/check-e2e-oauth-guards.mjs"
+    "check:e2e-oauth-guards": "node scripts/quality/check-e2e-oauth-guards.mjs",
+    "check:i18n:cloud": "node scripts/quality/check-missing-i18n-keys.mjs --namespace navigation --prefix cloud && node scripts/quality/check-missing-i18n-keys.mjs --namespace navigation --prefix collaboration.forkImported"
   },
   "keywords": [
     "orgii",

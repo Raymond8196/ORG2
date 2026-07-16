@@ -60,6 +60,22 @@ export const OrgtrackFileSessionHistoryInput = z.object({
   filePath: z.string(),
 });
 
+export const OrgtrackIndexCollaborationSessionInput = z.object({
+  localSessionId: z.string(),
+  sourceSessionId: z.string(),
+  title: z.string(),
+  workspacePath: z.string(),
+  sourceWorkspacePath: z.string().optional(),
+  orgId: z.string(),
+  sessionRowId: z.string(),
+  ownerMemberId: z.string(),
+  ownerDisplayName: z.string(),
+});
+
+export const OrgtrackDeleteCollaborationSessionInput = z.object({
+  localSessionId: z.string(),
+});
+
 export const OrgtrackSessionSummariesInput = z.object({
   workspacePath: z.string().optional(),
 });
@@ -462,6 +478,16 @@ export const OrgtrackFileSessionHistorySessionSchema = z.object({
   actionCounts: z.record(z.string(), z.number().int().nonnegative()),
   captureMethods: z.array(OrgtrackInteractionCaptureMethodSchema),
   attributionPrecision: OrgtrackInteractionPrecisionSchema,
+  collaborationOrigin: z
+    .object({
+      orgId: z.string(),
+      sessionRowId: z.string(),
+      sourceSessionId: z.string(),
+      ownerMemberId: z.string(),
+      ownerDisplayName: z.string(),
+    })
+    .nullable()
+    .optional(),
   participants: z.array(OrgtrackFileSessionHistoryParticipantSchema),
 });
 

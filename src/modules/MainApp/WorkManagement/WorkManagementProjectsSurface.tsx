@@ -17,6 +17,7 @@ import { RepoSettingsTabContent } from "@src/modules/ProjectManager/ProjectManag
 import type { ActiveRepoView } from "@src/modules/ProjectManager/ProjectManagerLayout/types";
 import ProjectsPage from "@src/modules/ProjectManager/Projects";
 import WorkItemsPage from "@src/modules/ProjectManager/WorkItems";
+import { openOrFocusChatPanelStartPageTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import {
   CHAT_PANEL_SURFACE_KIND,
@@ -71,6 +72,7 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
 
   const setStationMode = useSetAtom(stationModeAtom);
   const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
+  const openStartPageTab = useSetAtom(openOrFocusChatPanelStartPageTabAtom);
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
 
   const activeOrgScope =
@@ -211,9 +213,22 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
             onCreateWorkItem={handleCreateWorkItem}
             onOpenLinearProject={handleOpenLinearProjects}
             allowExternalSources={activeOrgScope === STORY_ORG_SCOPE.ALL}
-            onOpenWorkItem={(projectId, projectName, projectSlug) => {
-              if (!projectId || !projectName) return;
-              handleSelectProject(projectId, projectName, projectSlug);
+            onOpenWorkItem={(selection) => {
+              openStartPageTab();
+              navigateChatPanel({
+                kind: CHAT_PANEL_SURFACE_KIND.WORK_ITEM,
+                workItem: {
+                  workItem: selection.workItem,
+                  shortId: selection.shortId,
+                  orgId: selection.orgId,
+                  orgName: selection.orgName,
+                  projectId: selection.projectId ?? "",
+                  projectName: selection.projectName ?? "",
+                  projectSlug: selection.projectSlug ?? "",
+                },
+              });
+              setStationMode("my-station");
+              setStationChatVisible("my-station", true);
             }}
           />
         );
@@ -255,6 +270,10 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
     handleProjectDeleted,
     handleCreateProject,
     handleCreateWorkItem,
+    navigateChatPanel,
+    openStartPageTab,
+    setStationChatVisible,
+    setStationMode,
     selectedProjectSlug,
     activeOrgScope,
     scopedOrgId,

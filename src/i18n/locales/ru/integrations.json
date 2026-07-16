@@ -1324,6 +1324,13 @@
     "commitAttributionDesc": "Добавлять ORGII как Co-authored-by в сообщения Commit, созданные из ORGII",
     "prAttribution": "Pull Request Attribution",
     "prAttributionDesc": "Добавлять footer с атрибуцией ORGII в описания Pull Request, созданные из ORGII",
+    "promptInstructionsTitle": "Инструкции для промптов",
+    "commitInstructions": "Инструкции для коммитов",
+    "commitInstructionsDesc": "Добавляются в промпты генерации сообщений коммитов, сохраняются локально и отправляются выбранному Agent",
+    "commitInstructionsPlaceholder": "Пример: Пишите сообщения коммитов на русском языке и добавляйте подробное описание",
+    "pullRequestInstructions": "Инструкции для pull request",
+    "pullRequestInstructionsDesc": "Добавляются в промпты генерации заголовков и описаний pull request, сохраняются локально и отправляются выбранному Agent",
+    "pullRequestInstructionsPlaceholder": "Пример: Добавляйте идентификатор задачи в начало заголовка и включайте раздел с тестами",
     "coauthor": "Co-authored-by",
     "coauthorDesc": "Добавлять {{name}} <{{email}}> в Git commit, созданные из ORGII",
     "noTokenYet": "Нужен Token?",
@@ -1685,7 +1692,45 @@
       "capture": "Записывать взаимодействия с файлами",
       "description": "Записывает чтение и запись файлов как метаданные. Запросы, вывод инструментов и содержимое файлов не сохраняются.",
       "configPath": "Записывает чтение и запись файлов как метаданные. Запросы, вывод инструментов и содержимое файлов не сохраняются. Конфигурация: {{path}}",
-      "installDrift": "Сохранённая настройка не совпадает с установленным hook. Переключите запись, чтобы восстановить управляемый hook. Конфигурация: {{path}}"
+      "installDrift": "Сохранённая настройка не совпадает с установленным hook. Переключите запись, чтобы восстановить управляемый hook. Конфигурация: {{path}}",
+      "copyPath": "Копировать",
+      "reveal": "Показать",
+      "col": {
+        "source": "Инструмент",
+        "config": "Конфигурация",
+        "capture": "Захват"
+      },
+      "status": {
+        "on": "Вкл.",
+        "off": "Выкл.",
+        "repair": "Восстановить",
+        "checking": "Проверка…",
+        "error": "Ошибка"
+      },
+      "signals": {
+        "title": "Недавние сигналы",
+        "empty": "Сигналы хуков ещё не получены.",
+        "noResults": "Нет подходящих сигналов",
+        "search": "Поиск сигналов",
+        "refresh": "Обновить",
+        "openSession": "Открыть сессию {{session}}",
+        "col": {
+          "source": "Инструмент",
+          "action": "Действие",
+          "file": "Файл",
+          "workspace": "Рабочая область",
+          "session": "Сессия",
+          "when": "Когда"
+        },
+        "action": {
+          "read": "Чтение",
+          "write": "Запись",
+          "create": "Создание",
+          "delete": "Удаление",
+          "rename": "Переименование",
+          "search": "Поиск"
+        }
+      }
     },
     "codexConfig": {
       "sectionTitle": "Конфигурация",

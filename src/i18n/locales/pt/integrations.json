@@ -1313,6 +1313,13 @@
     "commitAttributionDesc": "Adicionar ORGII como Co-authored-by às mensagens de Commit criadas no ORGII",
     "prAttribution": "Pull Request Attribution",
     "prAttributionDesc": "Adicionar um rodapé de atribuição ORGII às descrições de Pull Request criadas no ORGII",
+    "promptInstructionsTitle": "Instruções dos prompts",
+    "commitInstructions": "Instruções para commits",
+    "commitInstructionsDesc": "Adicionadas aos prompts de geração de mensagens de commit, armazenadas localmente e enviadas ao Agent selecionado",
+    "commitInstructionsPlaceholder": "Exemplo: Escreva as mensagens de commit em português e inclua uma descrição detalhada",
+    "pullRequestInstructions": "Instruções para pull requests",
+    "pullRequestInstructionsDesc": "Adicionadas aos prompts de geração de títulos e descrições de pull requests, armazenadas localmente e enviadas ao Agent selecionado",
+    "pullRequestInstructionsPlaceholder": "Exemplo: Inicie os títulos com o ID da tarefa e inclua uma seção de testes",
     "coauthor": "Co-authored-by",
     "coauthorDesc": "Adicionar {{name}} <{{email}}> aos commits Git criados no ORGII",
     "noTokenYet": "Precisa de um Token?",
@@ -1685,7 +1692,45 @@
       "capture": "Registrar interações com arquivos",
       "description": "Registra leituras e gravações de arquivos como metadados. Prompts, saídas de ferramentas e conteúdo dos arquivos não são armazenados.",
       "configPath": "Registra leituras e gravações de arquivos como metadados. Prompts, saídas de ferramentas e conteúdo dos arquivos não são armazenados. Configuração: {{path}}",
-      "installDrift": "A preferência salva e o hook instalado são diferentes. Alterne a captura para reparar o hook gerenciado. Configuração: {{path}}"
+      "installDrift": "A preferência salva e o hook instalado são diferentes. Alterne a captura para reparar o hook gerenciado. Configuração: {{path}}",
+      "copyPath": "Copiar",
+      "reveal": "Mostrar",
+      "col": {
+        "source": "Ferramenta",
+        "config": "Configuração",
+        "capture": "Captura"
+      },
+      "status": {
+        "on": "Ativado",
+        "off": "Desativado",
+        "repair": "Reparar",
+        "checking": "Verificando…",
+        "error": "Erro"
+      },
+      "signals": {
+        "title": "Sinais recentes",
+        "empty": "Nenhum sinal de hook recebido ainda.",
+        "noResults": "Nenhum sinal correspondente",
+        "search": "Pesquisar sinais",
+        "refresh": "Atualizar",
+        "openSession": "Abrir sessão {{session}}",
+        "col": {
+          "source": "Ferramenta",
+          "action": "Ação",
+          "file": "Arquivo",
+          "workspace": "Espaço de trabalho",
+          "session": "Sessão",
+          "when": "Quando"
+        },
+        "action": {
+          "read": "Ler",
+          "write": "Gravar",
+          "create": "Criar",
+          "delete": "Excluir",
+          "rename": "Renomear",
+          "search": "Pesquisar"
+        }
+      }
     },
     "codexConfig": {
       "sectionTitle": "Configuração",

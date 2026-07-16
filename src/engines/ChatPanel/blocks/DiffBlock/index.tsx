@@ -293,7 +293,6 @@ const CompactSegmentView: React.FC<CompactSegmentViewProps> = ({
                 additions={linesAdded}
                 deletions={linesRemoved}
                 variant="plain"
-                gapClassName="gap-0"
                 className="translate-y-px"
                 valueClassName="font-normal"
                 reserveValueWidth={false}

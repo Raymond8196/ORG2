@@ -127,6 +127,10 @@ const sessionProvenance = {
     .input(schemas.agentOrgs.SessionProvenanceHookSetEnabledInput)
     .output(schemas.agentOrgs.SessionProvenanceHookStatusSchema)
     .build(),
+  recentSignals: defineProcedure("session_provenance_recent_signals")
+    .input(schemas.agentOrgs.SessionProvenanceRecentSignalsInput)
+    .output(z.array(schemas.agentOrgs.SessionProvenanceRecentSignalSchema))
+    .build(),
 } as const;
 
 const skills = {

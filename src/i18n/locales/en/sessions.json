@@ -875,6 +875,7 @@
     "hideChatPanel": "Hide chat panel",
     "showTokenUsage": "Show token",
     "compactDisplayMode": "Compact mode",
+    "showStatusBar": "Show status bar",
     "replay": {
       "follow": "Follow"
     },

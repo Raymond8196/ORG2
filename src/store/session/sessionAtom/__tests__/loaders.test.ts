@@ -86,7 +86,8 @@ describe("replaceExternalHistorySourceFirstPage", () => {
     listable: true,
     replayable: true,
     supportsWindowedReplay: false,
-    loadChunks: async () => [],
+    loadPreviewChunks: async () => [],
+    loadFullTranscriptChunks: async () => [],
   } as const;
 
   it("replaces only rows for the matching imported-history source", () => {

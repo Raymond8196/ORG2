@@ -30,6 +30,7 @@ interface BuildProjectsPinnedMenuItemsParams {
   createProjectLabel: string;
   createWorkItemLabel: string;
   importGithubIssuesLabel: string;
+  workItemDestinations: readonly NavigationMenuItem[];
 }
 
 export function buildPinnedMenuItems({
@@ -48,6 +49,7 @@ export function buildPinnedMenuItems({
       icon: Plus,
       iconName: "plus",
       shortcut: newSessionShortcut,
+      dataTestId: "sidebar-new-session",
     },
     {
       id: KANBAN_MENU_ITEM_ID,
@@ -73,6 +75,7 @@ export function buildProjectsPinnedMenuItems({
   createProjectLabel,
   createWorkItemLabel,
   importGithubIssuesLabel,
+  workItemDestinations,
 }: BuildProjectsPinnedMenuItemsParams): NavigationMenuItem[] {
   return [
     {
@@ -81,6 +84,7 @@ export function buildProjectsPinnedMenuItems({
       label: createWorkItemLabel,
       icon: SquarePen,
       iconName: "square-pen",
+      dataTestId: "sidebar-create-work-item",
     },
     {
       id: PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
@@ -88,6 +92,7 @@ export function buildProjectsPinnedMenuItems({
       label: createProjectLabel,
       icon: Box,
       iconName: "box",
+      dataTestId: "sidebar-create-project",
     },
     {
       id: PROJECTS_IMPORT_GITHUB_ISSUES_MENU_ITEM_ID,
@@ -95,7 +100,9 @@ export function buildProjectsPinnedMenuItems({
       label: importGithubIssuesLabel,
       icon: Github,
       iconName: "github",
+      dataTestId: "sidebar-import-github-issues",
     },
+    ...workItemDestinations,
   ];
 }
 

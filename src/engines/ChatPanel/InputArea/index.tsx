@@ -11,7 +11,10 @@ import type {
 import { useSessionDiscovery } from "@src/engines/SessionCore";
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
 import { voiceInputEnabledAtom } from "@src/store/platform/voiceInputAtom";
-import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
+import {
+  chatPanelMaximizedAtom,
+  chatStatusBarVisibleAtom,
+} from "@src/store/ui/chatPanelAtom";
 import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 
 import EditModeHeader from "./components/EditModeHeader";
@@ -163,6 +166,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       slashLoading,
       slashQuery,
       prefetchSlashItems,
+      addressCommentsFlyout,
       fileInputRef,
       handleUploadClick,
       handleFileUpload,
@@ -208,6 +212,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
     const mentionTreePosition = chatPanelPosition === "left" ? "right" : "left";
     const voiceFeatureEnabled = useAtomValue(voiceInputEnabledAtom);
     const isChatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
+    const statusBarVisible = useAtomValue(chatStatusBarVisibleAtom);
 
     const {
       showPlusSlashMenu,
@@ -383,6 +388,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
               isDragOver,
               isEditMode,
               quietEditSurface,
+              disableBreathing: statusBarVisible,
             })}
           >
             {isEditMode && !quietEditSurface && showEditHeader && (
@@ -529,6 +535,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
           showSlashMenu={showSlashMenu}
           filteredSlashItems={filteredSlashItems}
           slashLoading={slashLoading}
+          addressCommentsFlyout={addressCommentsFlyout}
           currentMode={currentMode}
           slashQuery={slashQuery}
           onSlashCommandClose={handleSlashCommandClose}
