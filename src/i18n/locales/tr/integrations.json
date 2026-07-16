@@ -1701,8 +1701,16 @@
         "on": "Açık",
         "off": "Kapalı",
         "repair": "Onar",
+        "needsApproval": "Onay gerekli",
         "checking": "Kontrol ediliyor…",
         "error": "Hata"
+      },
+      "codexApproval": {
+        "title": "Approve ORG2 hooks in Codex",
+        "description": "Codex has the ORG2 hooks installed, but Codex still needs your approval before it can run them.",
+        "instructions": "Open Codex, review the 3 ORG2 hooks, then choose Trust all and continue. ORG2 marks this active after the first real hook signal.",
+        "review": "Review in Codex",
+        "verified": "Verified by a real Codex hook signal {{time}}."
       },
       "signals": {
         "title": "Son sinyaller",
@@ -1711,6 +1719,8 @@
         "search": "Sinyal ara",
         "refresh": "Yenile",
         "openSession": "{{session}} oturumunu aç",
+        "diffLoading": "Loading patch…",
+        "diffEmpty": "No patch captured. Provenance records file changes as metadata; a diff appears only once this session's edits are imported.",
         "col": {
           "source": "Araç",
           "action": "Eylem",
