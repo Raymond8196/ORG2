@@ -15,7 +15,7 @@ import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 import { repoMatchesOrgScopes } from "./orgScopeRepoFilter";
 
-type ScopePeek = (input: string) => string | null | undefined;
+type ScopePeek = (input: string) => string[] | null | undefined;
 type ScopePrime = (input: string) => void;
 
 export function isScopeMatchableImportedSession(

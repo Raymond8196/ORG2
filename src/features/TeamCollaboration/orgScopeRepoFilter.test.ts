@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { repoMatchesOrgScopes } from "./orgScopeRepoFilter";
+import {
+  repoEligibleForOrgScopedPicker,
+  repoMatchesOrgScopes,
+} from "./orgScopeRepoFilter";
 
 const SCOPES = ["github.com/yorgai/org2"];
 
-describe("repoMatchesOrgScopes", () => {
+describe("repoMatchesOrgScopes (strict)", () => {
   it("matches a repo whose remote url is in scope", () => {
     expect(
       repoMatchesOrgScopes(
@@ -14,26 +17,22 @@ describe("repoMatchesOrgScopes", () => {
     ).toBe(true);
   });
 
-  it("rejects a repo whose remote url is out of scope", () => {
+  it("matches a fork checkout through ANY remote key (upstream)", () => {
+    expect(
+      repoMatchesOrgScopes({ fs_uri: "/Users/me/org2-fork" }, SCOPES, () => [
+        "github.com/vantanode/org2",
+        "github.com/yorgai/org2",
+      ])
+    ).toBe(true);
+  });
+
+  it("rejects out-of-scope, unresolved, and remote-less repos", () => {
     expect(
       repoMatchesOrgScopes(
         { repo_url: "https://github.com/acme/elsewhere.git" },
         SCOPES
       )
     ).toBe(false);
-  });
-
-  it("resolves local checkouts through the peek cache", () => {
-    expect(
-      repoMatchesOrgScopes(
-        { fs_uri: "/Users/me/org2" },
-        SCOPES,
-        () => "github.com/yorgai/org2"
-      )
-    ).toBe(true);
-  });
-
-  it("hides unresolved local checkouts and primes resolution", () => {
     const prime = vi.fn();
     expect(
       repoMatchesOrgScopes(
@@ -44,19 +43,54 @@ describe("repoMatchesOrgScopes", () => {
       )
     ).toBe(false);
     expect(prime).toHaveBeenCalledWith("/Users/me/org2");
-  });
-
-  it("rejects remote-less repos and empty scopes", () => {
     expect(repoMatchesOrgScopes({ fs_uri: "/x" }, SCOPES, () => null)).toBe(
       false
     );
+  });
+});
+
+describe("repoEligibleForOrgScopedPicker (optimistic)", () => {
+  it("keeps a still-resolving checkout visible and primes it", () => {
+    const prime = vi.fn();
     expect(
-      repoMatchesOrgScopes({ repo_url: "https://github.com/yorgai/ORG2" }, [])
+      repoEligibleForOrgScopedPicker(
+        { fs_uri: "/Users/me/org2" },
+        SCOPES,
+        () => undefined,
+        prime
+      )
+    ).toBe(true);
+    expect(prime).toHaveBeenCalledWith("/Users/me/org2");
+  });
+
+  it("hides a resolved out-of-scope or remote-less checkout", () => {
+    expect(
+      repoEligibleForOrgScopedPicker(
+        { fs_uri: "/Users/me/other" },
+        SCOPES,
+        () => ["github.com/acme/elsewhere"]
+      )
     ).toBe(false);
     expect(
-      repoMatchesOrgScopes(
+      repoEligibleForOrgScopedPicker({ fs_uri: "/x" }, SCOPES, () => null)
+    ).toBe(false);
+  });
+
+  it("matches through any remote key like the strict variant", () => {
+    expect(
+      repoEligibleForOrgScopedPicker(
+        { fs_uri: "/Users/me/org2-fork" },
+        SCOPES,
+        () => ["github.com/vantanode/org2", "github.com/yorgai/org2"]
+      )
+    ).toBe(true);
+  });
+
+  it("rejects everything for empty scopes", () => {
+    expect(
+      repoEligibleForOrgScopedPicker(
         { repo_url: "https://github.com/yorgai/ORG2" },
-        undefined
+        []
       )
     ).toBe(false);
   });

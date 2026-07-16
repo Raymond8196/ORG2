@@ -14,7 +14,7 @@ import { org2CloudRepoScopesAtom } from "@src/features/Org2Cloud/org2CloudSyncAt
 
 import {
   type OrgScopeFilterRepo,
-  repoMatchesOrgScopes,
+  repoEligibleForOrgScopedPicker,
 } from "./orgScopeRepoFilter";
 import {
   getShareableScopeKeyVersion,
@@ -37,6 +37,10 @@ export function useActiveCloudOrgRepoFilter(): OrgScopeRepoPredicate | null {
     void scopeKeyVersion;
     if (!activeCloudOrgId) return null;
     const orgScopes = scopesByOrg[activeCloudOrgId];
-    return (repo: OrgScopeFilterRepo) => repoMatchesOrgScopes(repo, orgScopes);
+    // A scope-less org constrains nothing — filtering everything out would
+    // make session creation impossible until a scope is configured.
+    if (!orgScopes || orgScopes.length === 0) return null;
+    return (repo: OrgScopeFilterRepo) =>
+      repoEligibleForOrgScopedPicker(repo, orgScopes);
   }, [activeCloudOrgId, scopesByOrg, scopeKeyVersion]);
 }

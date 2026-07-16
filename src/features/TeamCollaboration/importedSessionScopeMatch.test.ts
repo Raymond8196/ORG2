@@ -7,9 +7,9 @@ import {
 
 const PEEK = (path: string) =>
   path === "/Users/me/org2"
-    ? "github.com/yorgai/org2"
+    ? ["github.com/yorgai/org2"]
     : path === "/Users/me/other"
-      ? "github.com/yorgai/other"
+      ? ["github.com/yorgai/other"]
       : null;
 
 const sessions = [
