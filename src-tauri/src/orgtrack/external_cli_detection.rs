@@ -59,6 +59,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "cline",
     "warp",
     "zcode",
+    "qoder",
 ];
 
 /// On-disk store format for a source's session history — the "file type" shown
@@ -69,7 +70,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
 fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
-        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" => "jsonl",
+        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" | "qoder" => "jsonl",
         "cursor_ide" | "opencode" | "windsurf" | "warp" | "zcode" => "sqlite",
         // Known store format, not yet imported.
         "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
@@ -429,6 +430,17 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         true,
         &[],
     ),
+    source(
+        "qoder",
+        "Qoder",
+        "qoder",
+        "qoder",
+        &[],
+        "qoder",
+        "Qoder",
+        true,
+        &[".qoder"],
+    ),
 ];
 
 const fn source(
@@ -553,6 +565,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         "cline" => home_candidates(&[".cline/data/sessions", ".cline/data/db"]),
         "warp" => orgtrack_core::sources::warp::history::warp_history_candidate_paths(),
         "zcode" => orgtrack_core::sources::zcode::history::zcode_history_candidate_paths(),
+        "qoder" => orgtrack_core::sources::qoder::history::qoder_history_candidate_paths(),
         _ => Vec::new(),
     }
 }
