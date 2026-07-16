@@ -53,13 +53,27 @@ pub fn reconcile_native_session_mirror() -> Result<(), String> {
         include_external_history: Some(false),
         ..Default::default()
     }))?;
-    upsert_aggregate_sessions(&native.sessions)
+    upsert_aggregate_sessions(&native.sessions)?;
+
+    // Project usage/cost rows for sessions written before the projection's
+    // write-path hooks existed. Bounded and missing-rows-only, so steady-state
+    // startups scan the candidate ids and do nothing.
+    let conn = get_connection().map_err(|err| err.to_string())?;
+    orgtrack_core::session_usage::backfill_session_usage(&conn, USAGE_BACKFILL_LIMIT)
+        .map(|_| ())
+        .map_err(|err| format!("session usage backfill: {err}"))
 }
 
-/// Drop a deleted ORGII session's mirror row. Scoped to ORGII sources so
-/// an id collision can never remove an imported-history row. Fired from the
-/// delete paths in both persistence layers (the upsert hook cannot serve
-/// deletes: re-reading a deleted session would resurrect a stub row).
+/// Upper bound on projection rows repaired per startup pass. Keeps the
+/// reconcile thread bounded on first launch against a large history; anything
+/// beyond the cap is picked up by subsequent startups.
+const USAGE_BACKFILL_LIMIT: usize = 20_000;
+
+/// Drop a deleted ORGII session's mirror row and its usage projection.
+/// Scoped to ORGII sources so an id collision can never remove an
+/// imported-history row. Fired from the delete paths in both persistence
+/// layers (the upsert hook cannot serve deletes: re-reading a deleted
+/// session would resurrect a stub row).
 pub fn remove_mirrored_session(session_id: &str) -> Result<(), String> {
     let conn = get_connection().map_err(|err| err.to_string())?;
     conn.execute(
@@ -72,6 +86,16 @@ pub fn remove_mirrored_session(session_id: &str) -> Result<(), String> {
         ],
     )
     .map_err(|err| format!("remove mirrored session: {err}"))?;
+    conn.execute(
+        "DELETE FROM orgtrack_core_session_usage
+         WHERE session_id = ?1 AND source IN (?2, ?3)",
+        rusqlite::params![
+            session_id,
+            SOURCE_ORGII_CLI_SESSIONS,
+            SOURCE_ORGII_RUST_AGENTS
+        ],
+    )
+    .map_err(|err| format!("remove session usage projection: {err}"))?;
     Ok(())
 }
 

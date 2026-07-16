@@ -21,7 +21,6 @@ pub mod conversion;
 pub mod display;
 pub mod orgtrack_adapter;
 pub mod patch;
-pub mod pricing_catalog;
 pub mod status;
 pub mod types;
 
