@@ -16,6 +16,13 @@ import { settingsLoadedAtom } from "@src/store/settings/settingsAtom";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import {
+  AppUpdateDownloadNoticeContent,
+  type AppUpdateDownloadProgress,
+  DownloadProgressOrb,
+  EMPTY_APP_UPDATE_DOWNLOAD_PROGRESS,
+  getDownloadProgressTitle,
+} from "./DownloadProgress";
+import {
   AppUpdaterCoordinator,
   type AppUpdaterState,
   createInitialAppUpdaterState,
@@ -31,7 +38,7 @@ const STARTUP_CHECK_DELAY_MS = 10_000;
 const UPDATE_CHECK_INTERVAL_MS = 2 * 60 * 60_000;
 const FOREGROUND_CHECK_MIN_INTERVAL_MS = 5 * 60_000;
 const FOREGROUND_EVENT_DEBOUNCE_MS = 750;
-const INSTALL_PROGRESS_MESSAGE_MIN_INTERVAL_MS = 2_000;
+const DOWNLOAD_PROGRESS_UPDATE_MIN_INTERVAL_MS = 250;
 const UPDATE_TOAST_DURATION_MS = 5_000;
 const UPDATE_CHECK_TIMEOUT_MS = 30_000;
 const UPDATE_DOWNLOAD_TIMEOUT_MS = 5 * 60_000;
@@ -51,6 +58,9 @@ const appUpdaterStateAtom = atom<AppUpdaterState>(
 );
 const availableAppUpdateAtom = atom((get) => get(appUpdaterStateAtom).update);
 const appUpdateInstallPromptAtom = atom(false);
+const appUpdateDownloadProgressAtom = atom<AppUpdateDownloadProgress>(
+  EMPTY_APP_UPDATE_DOWNLOAD_PROGRESS
+);
 const isAppUpdateInstallingAtom = atom((get) => {
   const phase = get(appUpdaterStateAtom).phase;
   return (
@@ -60,6 +70,50 @@ const isAppUpdateInstallingAtom = atom((get) => {
 
 function store() {
   return getInstrumentedStore();
+}
+
+function setDownloadProgress(progress: AppUpdateDownloadProgress): void {
+  store().set(appUpdateDownloadProgressAtom, progress);
+}
+
+function collapseDownloadProgressNotice(): void {
+  const progress = store().get(appUpdateDownloadProgressAtom);
+  if (!progress.active || progress.collapsed) return;
+  setDownloadProgress({ ...progress, collapsed: true });
+}
+
+function showDownloadProgressNotice(progress: AppUpdateDownloadProgress): void {
+  Message.info({
+    id: INSTALL_TOAST_ID,
+    title: getDownloadProgressTitle(progress),
+    content: <AppUpdateDownloadNoticeContent progress={progress} />,
+    duration: 0,
+    closable: true,
+    persistent: true,
+    onClose: collapseDownloadProgressNotice,
+  });
+}
+
+function beginDownloadProgress(): void {
+  const progress = {
+    ...EMPTY_APP_UPDATE_DOWNLOAD_PROGRESS,
+    active: true,
+  };
+  setDownloadProgress(progress);
+  showDownloadProgressNotice(progress);
+}
+
+function expandDownloadProgressNotice(): void {
+  const progress = store().get(appUpdateDownloadProgressAtom);
+  if (!progress.active) return;
+  const expanded = { ...progress, collapsed: false };
+  setDownloadProgress(expanded);
+  showDownloadProgressNotice(expanded);
+}
+
+function endDownloadProgress(): void {
+  Message.remove(INSTALL_TOAST_ID);
+  setDownloadProgress(EMPTY_APP_UPDATE_DOWNLOAD_PROGRESS);
 }
 
 function getSkippedUpdateVersion(): string | null {
@@ -173,32 +227,10 @@ export async function checkForUpdatesManually(): Promise<Update | null> {
   return checkForAppUpdates({ notify: true, force: true });
 }
 
-function formatBytes(bytes: number): string {
-  const mb = bytes / (1024 * 1024);
-  if (mb >= 1) return `${mb.toFixed(1)} MB`;
-  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
-
 function createProgressReporter(): (event: DownloadEvent) => void {
   let lastReportedAt = 0;
   let downloaded = 0;
   let total: number | null = null;
-
-  const describe = (event: DownloadEvent): string => {
-    switch (event.event) {
-      case "Started":
-        return total
-          ? `Downloading update (${formatBytes(total)})…`
-          : "Downloading update…";
-      case "Progress": {
-        if (!total) return `Downloading update… ${formatBytes(downloaded)}`;
-        const percent = Math.min(100, Math.round((downloaded / total) * 100));
-        return `Downloading update… ${percent}%`;
-      }
-      case "Finished":
-        return "Update ready to install.";
-    }
-  };
 
   return (event) => {
     if (event.event === "Started") {
@@ -211,15 +243,26 @@ function createProgressReporter(): (event: DownloadEvent) => void {
     const now = Date.now();
     const shouldReport =
       event.event !== "Progress" ||
-      now - lastReportedAt >= INSTALL_PROGRESS_MESSAGE_MIN_INTERVAL_MS;
+      now - lastReportedAt >= DOWNLOAD_PROGRESS_UPDATE_MIN_INTERVAL_MS;
     if (!shouldReport) return;
 
     lastReportedAt = now;
-    Message.info({
-      id: INSTALL_TOAST_ID,
-      content: describe(event),
-      duration: event.event === "Finished" ? 1500 : 2200,
-    });
+    const previous = store().get(appUpdateDownloadProgressAtom);
+    const percent =
+      event.event === "Finished"
+        ? 100
+        : total
+          ? Math.min(100, Math.round((downloaded / total) * 100))
+          : null;
+    const progress: AppUpdateDownloadProgress = {
+      active: true,
+      collapsed: previous.collapsed,
+      downloadedBytes: downloaded,
+      totalBytes: total,
+      percent,
+    };
+    setDownloadProgress(progress);
+    if (!progress.collapsed) showDownloadProgressNotice(progress);
   };
 }
 
@@ -242,13 +285,17 @@ export async function installAvailableAppUpdate(
   if (!update) return;
 
   if (!confirmed) {
+    const progressReporter = silentDownload
+      ? undefined
+      : createProgressReporter();
     try {
       clearSkippedUpdateVersion(update.version);
-      await coordinator.downloadAvailableUpdate(
-        silentDownload ? undefined : createProgressReporter()
-      );
+      if (progressReporter) beginDownloadProgress();
+      await coordinator.downloadAvailableUpdate(progressReporter);
+      if (progressReporter) endDownloadProgress();
       store().set(appUpdateInstallPromptAtom, true);
     } catch (error) {
+      if (progressReporter) endDownloadProgress();
       Message.error({
         id: INSTALL_TOAST_ID,
         title: "Update download failed",
@@ -329,6 +376,7 @@ export const AppUpdater: React.FC = () => {
     autoUpdateEnabledAtom
   );
   const availableUpdate = useAtomValue(availableAppUpdateAtom);
+  const downloadProgress = useAtomValue(appUpdateDownloadProgressAtom);
   const [installPromptVisible, setInstallPromptVisible] = useAtom(
     appUpdateInstallPromptAtom
   );
@@ -376,69 +424,78 @@ export const AppUpdater: React.FC = () => {
   }, [autoUpdateEnabled, settingsLoaded]);
 
   return (
-    <Modal
-      visible={installPromptVisible && Boolean(availableUpdate)}
-      title={t("update.installConfirmTitle")}
-      width={620}
-      closable={false}
-      maskClosable={false}
-      escToExit={false}
-      onCancel={handleInstallLater}
-      onClose={handleInstallLater}
-      bodyClassName="px-6 py-5"
-      footerTopBorder={false}
-      footer={
-        <div className="flex items-center justify-between gap-3 px-5 py-4">
-          <Button
-            variant="tertiary"
-            appearance="ghost"
-            size="large"
-            shape="round"
-            onClick={handleSkipVersion}
-          >
-            {t("update.skipVersion")}
-          </Button>
-          <div className="flex items-center gap-2">
+    <>
+      <Modal
+        visible={installPromptVisible && Boolean(availableUpdate)}
+        title={t("update.installConfirmTitle")}
+        width={620}
+        closable={false}
+        maskClosable={false}
+        escToExit={false}
+        onCancel={handleInstallLater}
+        onClose={handleInstallLater}
+        bodyClassName="px-6 py-5"
+        footerTopBorder={false}
+        footer={
+          <div className="flex items-center justify-between gap-3 px-5 py-4">
             <Button
-              variant="secondary"
-              appearance="solid"
+              variant="tertiary"
+              appearance="ghost"
               size="large"
               shape="round"
-              onClick={handleInstallLater}
+              onClick={handleSkipVersion}
             >
-              {t("common:actions.later")}
+              {t("update.skipVersion")}
             </Button>
-            <Button
-              variant="primary"
-              size="large"
-              shape="round"
-              onClick={handleInstallConfirm}
-              data-modal-primary-action
-            >
-              {t("update.installAndRestart")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                appearance="solid"
+                size="large"
+                shape="round"
+                onClick={handleInstallLater}
+              >
+                {t("common:actions.later")}
+              </Button>
+              <Button
+                variant="primary"
+                size="large"
+                shape="round"
+                onClick={handleInstallConfirm}
+                data-modal-primary-action
+              >
+                {t("update.installAndRestart")}
+              </Button>
+            </div>
           </div>
+        }
+      >
+        <div className="flex items-center gap-5">
+          <AppMark
+            size={72}
+            className="border border-border-2 bg-bg-2 shadow-sm"
+            glyphClassName="text-text-1"
+          />
+          <p className="min-w-0 flex-1 text-sm leading-6 text-text-2">
+            {t("update.installConfirmDesc", {
+              version: availableUpdate?.version,
+            })}
+          </p>
         </div>
-      }
-    >
-      <div className="flex items-center gap-5">
-        <AppMark
-          size={72}
-          className="border border-border-2 bg-bg-2 shadow-sm"
-          glyphClassName="text-text-1"
-        />
-        <p className="min-w-0 flex-1 text-sm leading-6 text-text-2">
-          {t("update.installConfirmDesc", {
-            version: availableUpdate?.version,
-          })}
-        </p>
-      </div>
-      <div className="mt-5 border-t border-border-1 pt-4">
-        <Checkbox checked={autoUpdateEnabled} onChange={handleAutoUpdateChange}>
-          {t("update.autoDownloadUpdates")}
-        </Checkbox>
-      </div>
-    </Modal>
+        <div className="mt-5 border-t border-border-1 pt-4">
+          <Checkbox
+            checked={autoUpdateEnabled}
+            onChange={handleAutoUpdateChange}
+          >
+            {t("update.autoDownloadUpdates")}
+          </Checkbox>
+        </div>
+      </Modal>
+      <DownloadProgressOrb
+        progress={downloadProgress}
+        onExpand={expandDownloadProgressNotice}
+      />
+    </>
   );
 };
 
@@ -446,4 +503,5 @@ export const AppUpdater: React.FC = () => {
 export function resetAppUpdaterForTests(): void {
   coordinator.reset();
   store().set(appUpdateInstallPromptAtom, false);
+  setDownloadProgress(EMPTY_APP_UPDATE_DOWNLOAD_PROGRESS);
 }
