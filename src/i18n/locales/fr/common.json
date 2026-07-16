@@ -1557,6 +1557,11 @@
           "pillLabel": "Rechercher sessions",
           "placeholder": "Rechercher des sessions Agent..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "Changer de workspace"
         },
@@ -1883,15 +1888,6 @@
     "lastActive": "Dernière activité: {{date}}",
     "activeNow": "Actif maintenant: {{ides}}",
     "active": "Actif",
-    "tabs": {
-      "activity": "Activité",
-      "focus": "Concentration",
-      "languages": "Langages",
-      "heatmap": "Carte thermique",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "Sessions AI CLI",
     "cliPrompt": "Prompt",
     "cliMessages": "Messages",

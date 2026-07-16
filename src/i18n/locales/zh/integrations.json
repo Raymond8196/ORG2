@@ -1742,6 +1742,8 @@
     },
     "sessionProvenance": {
       "title": "Session Provenance",
+      "masterToggle": "溯源 Hooks",
+      "masterToggleDesc": "关闭后将卸载所有托管 hook,不再采集任何信号;各平台的选择会保留,重新开启时恢复",
       "capture": "采集文件交互记录",
       "description": "以 metadata 形式记录文件读写；不会存储提示词、工具输出或文件内容。",
       "configPath": "以 metadata 形式记录文件读写；不会存储提示词、工具输出或文件内容。配置：{{path}}",
@@ -1757,8 +1759,16 @@
         "on": "开启",
         "off": "关闭",
         "repair": "修复",
+        "needsApproval": "需要授权",
         "checking": "检查中…",
         "error": "错误"
+      },
+      "codexApproval": {
+        "title": "在 Codex 中授权 ORG2 hooks",
+        "description": "ORG2 hooks 已安装，但 Codex 需要你的明确授权才能运行它们。",
+        "instructions": "打开 Codex，检查 3 条 ORG2 hooks，然后选择 Trust all and continue。收到第一条真实 hook 信号后，ORG2 会自动标记为已启用。",
+        "review": "在 Codex 中检查",
+        "verified": "已通过真实 Codex hook 信号验证（{{time}}）。"
       },
       "signals": {
         "title": "最近信号",
@@ -1767,6 +1777,8 @@
         "search": "搜索信号",
         "refresh": "刷新",
         "openSession": "打开会话 {{session}}",
+        "diffLoading": "正在加载补丁…",
+        "diffEmpty": "尚未采集到补丁。Provenance 会记录文件变更 metadata；只有在该会话的编辑被导入后才会显示 diff。",
         "col": {
           "source": "工具",
           "action": "动作",
@@ -1799,6 +1811,7 @@
       "proxyReady": "代理已就绪",
       "proxyNotReady": "代理未就绪",
       "proxyDesc": "CLI 请求会通过 ORGII KeyVault 本地代理转发。",
+      "proxyLifecycleDesc": "使用此模式时请保持 ORGII 运行。关闭窗口后代理会留在托盘；完全退出时会安全恢复默认配置，外部修改不会被覆盖。",
       "keyLabel": "密钥",
       "keyDesc": "仅显示与当前 CLI 和托管代理兼容的 API Key。",
       "selectKey": "选择密钥",

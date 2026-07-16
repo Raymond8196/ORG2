@@ -103,8 +103,16 @@
       "lastScan": "Último escaneo {{time}}",
       "neverScanned": "Nunca escaneado",
       "frequencyTitle": "Frecuencia de escaneo",
-      "globalFrequency": "Escaneo automático",
-      "globalFrequencyDesc": "Cadencia predeterminada para fuentes en “Predeterminado”.",
+      "globalFrequency": "Escaneo automático de fuentes externas",
+      "globalFrequencyDesc": "Frecuencia de escaneo predeterminada para las fuentes externas configuradas como “Predeterminado”",
+      "activeSessionRefresh": "Actualización de sesión externa abierta",
+      "activeSessionRefreshDesc": "Frecuencia de actualización de la sesión externa abierta actualmente en el panel de chat",
+      "activeSessionFreq": {
+        "3s": "Cada 3 segundos",
+        "5s": "Cada 5 segundos",
+        "10s": "Cada 10 segundos",
+        "1m": "Cada minuto"
+      },
       "col": {
         "source": "Fuente",
         "sessions": "Sesiones",
@@ -790,13 +798,6 @@
         "manage": "Gestionar",
         "heatmap": "Tendencias",
         "runtime": "Tiempo de ejecución"
-      },
-      "heatmap": {
-        "loading": "Cargando tendencias de actividad…",
-        "empty": "Aún no hay actividad de sesiones.",
-        "sessions": "Sesiones",
-        "tokens": "Tokens",
-        "cost": "Costo"
       },
       "quota": {
         "empty": "Aún no hay datos de cuota. Actualiza el uso desde Key Vault.",

@@ -1704,8 +1704,16 @@
         "on": "開啟",
         "off": "關閉",
         "repair": "修復",
+        "needsApproval": "需要授權",
         "checking": "檢查中…",
         "error": "錯誤"
+      },
+      "codexApproval": {
+        "title": "在 Codex 中授權 ORG2 hooks",
+        "description": "ORG2 hooks 已安裝，但 Codex 仍需要你的明確授權才能執行。",
+        "instructions": "開啟 Codex，檢查 3 條 ORG2 hooks，然後選擇 Trust all and continue。收到第一條真實 hook 訊號後，ORG2 會自動標記為已啟用。",
+        "review": "在 Codex 中檢查",
+        "verified": "已透過真實 Codex hook 訊號驗證（{{time}}）。"
       },
       "signals": {
         "title": "最近訊號",
@@ -1714,6 +1722,8 @@
         "search": "搜尋訊號",
         "refresh": "重新整理",
         "openSession": "開啟會話 {{session}}",
+        "diffLoading": "正在載入 patch…",
+        "diffEmpty": "尚未擷取到 patch。Provenance 會記錄檔案變更 metadata；只有在此會話的編輯匯入後才會顯示 diff。",
         "col": {
           "source": "工具",
           "action": "動作",
@@ -1746,6 +1756,7 @@
       "proxyReady": "代理已就緒",
       "proxyNotReady": "代理未就緒",
       "proxyDesc": "CLI 請求會透過 ORGII KeyVault 本機代理轉送。",
+      "proxyLifecycleDesc": "使用此模式時請保持 ORGII 運行。關閉視窗後代理會留在系統列；完全退出時會安全還原預設設定，外部修改不會被覆蓋。",
       "keyLabel": "金鑰",
       "keyDesc": "僅顯示與目前 CLI 和託管代理相容的 API Key。",
       "selectKey": "選擇金鑰",

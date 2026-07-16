@@ -210,10 +210,17 @@ export function createOrg2CloudRealtimeConnection(
         }
       }
     );
+    let wasEverTimedOut = false;
     channel.subscribe((status) => {
       const subscribed = status === "SUBSCRIBED";
       if (!subscribed && status !== "CLOSED") {
+        wasEverTimedOut = true;
         log.warn(`realtime channel ${channelName} status: ${status}`);
+      } else if (subscribed && wasEverTimedOut) {
+        // Supabase rejoins with exponential backoff after TIMED_OUT /
+        // CHANNEL_ERROR; log the recovery so a transient blip is
+        // distinguishable from a persistent failure in the console.
+        log.info(`realtime channel ${channelName} recovered (SUBSCRIBED)`);
       }
       onStatus?.(subscribed);
     });
@@ -341,10 +348,14 @@ export function createOrg2CloudRealtimeConnection(
         }
       });
     }
+    let wasEverTimedOut = false;
     channel.subscribe((status) => {
       if (status === "SUBSCRIBED") {
         subscribed = true;
         published = false;
+        if (wasEverTimedOut) {
+          log.info(`presence channel ${scope} recovered (SUBSCRIBED)`);
+        }
         // A reconnect has no server-side meta even if the local version was
         // previously applied, so force the latest payload onto the channel.
         desiredTrackVersion += 1;
@@ -352,6 +363,7 @@ export function createOrg2CloudRealtimeConnection(
       } else if (status !== "CLOSED") {
         subscribed = false;
         published = false;
+        wasEverTimedOut = true;
         log.warn(`presence channel ${scope} status: ${status}`);
       } else {
         subscribed = false;

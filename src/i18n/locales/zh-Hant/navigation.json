@@ -609,7 +609,6 @@
         "expiryOptionNever": "永不過期",
         "roleAdmin": "管理員",
         "roleMember": "成員",
-        "roleViewer": "檢視者",
         "createdAt": "建立於 {{date}}",
         "remainingUses": "剩餘次數：{{uses}}",
         "expires": "{{date}} 到期",

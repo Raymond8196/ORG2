@@ -6,6 +6,7 @@ import { stripPillReferences } from "@src/util/session/stripPillReferences";
 
 export interface ChatPanelTabDisplayLabels {
   launchpad: string;
+  cloudOrg: string;
   workManagement: {
     kanban: string;
     projects: string;
@@ -59,5 +60,7 @@ export function resolveChatPanelTabDisplayTitle(
     case "workspace":
       // The workspace name is stamped onto the tab at open time.
       return tab.title;
+    case "cloud-org":
+      return labels.cloudOrg;
   }
 }

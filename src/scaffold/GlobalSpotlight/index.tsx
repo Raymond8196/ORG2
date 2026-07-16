@@ -32,6 +32,7 @@ import {
 import {
   AgentControlPalette,
   AgentSessionSearchPalette,
+  AllSessionsSearchPalette,
   BranchPalette,
   EditorPalette,
   SessionCreatorPalette,
@@ -117,6 +118,7 @@ const GlobalSpotlightInner: React.FC<
   const setActiveWorktree = useSetAtom(setActiveWorktreeAtom);
   const setCurrentBranch = useSetAtom(currentBranchAtom);
   const [agentSessionSearchOpen, setAgentSessionSearchOpen] = useState(false);
+  const [allSessionsSearchOpen, setAllSessionsSearchOpen] = useState(false);
   const [agentControlOpen, setAgentControlOpen] = useState(false);
   const [sessionCreatorOpen, setSessionCreatorOpen] = useState(false);
   const [embeddedEditorPalette, setEmbeddedEditorPalette] =
@@ -149,6 +151,10 @@ const GlobalSpotlightInner: React.FC<
 
   const handleOpenAgentSessionSearch = useCallback(() => {
     setAgentSessionSearchOpen(true);
+  }, []);
+
+  const handleOpenAllSessionsSearch = useCallback(() => {
+    setAllSessionsSearchOpen(true);
   }, []);
 
   const handleOpenAgentControl = useCallback(() => {
@@ -190,6 +196,11 @@ const GlobalSpotlightInner: React.FC<
 
   const handleCloseAgentSessionSearch = useCallback(() => {
     setAgentSessionSearchOpen(false);
+    restoreLastActivatedItem();
+  }, [restoreLastActivatedItem]);
+
+  const handleCloseAllSessionsSearch = useCallback(() => {
+    setAllSessionsSearchOpen(false);
     restoreLastActivatedItem();
   }, [restoreLastActivatedItem]);
 
@@ -425,6 +436,7 @@ const GlobalSpotlightInner: React.FC<
       setBranchPickerOpen(false);
       setWorktreePickerOpen(false);
       setAgentSessionSearchOpen(false);
+      setAllSessionsSearchOpen(false);
       setAgentControlOpen(false);
       setSessionCreatorOpen(false);
       setEmbeddedEditorPalette(null);
@@ -447,6 +459,7 @@ const GlobalSpotlightInner: React.FC<
     onOpenBranchPicker: handleOpenBranchPicker,
     onOpenEditorPalette: handleOpenEditorPalette,
     onOpenAgentSessionSearch: handleOpenAgentSessionSearch,
+    onOpenAllSessionsSearch: handleOpenAllSessionsSearch,
     isEditorRoute,
     isWorkStationRoute,
     currentRepoId: selectedRepoId || currentRepo?.id,
@@ -461,6 +474,7 @@ const GlobalSpotlightInner: React.FC<
       !branchPickerOpen &&
       !worktreePickerOpen &&
       !agentSessionSearchOpen &&
+      !allSessionsSearchOpen &&
       !agentControlOpen &&
       !sessionCreatorOpen,
     dispatch: spotlightDispatch,
@@ -470,6 +484,7 @@ const GlobalSpotlightInner: React.FC<
     onOpenWorktreeLayer: handleOpenWorktreePicker,
     onOpenEditorLayer: handleOpenEditorPalette,
     onOpenAgentSessionSearchLayer: handleOpenAgentSessionSearch,
+    onOpenAllSessionsSearchLayer: handleOpenAllSessionsSearch,
     onOpenAgentControlLayer: handleOpenAgentControl,
     onOpenSessionCreatorLayer: handleOpenSessionCreator,
   });
@@ -520,6 +535,7 @@ const GlobalSpotlightInner: React.FC<
       !branchPickerOpen &&
       !worktreePickerOpen &&
       !agentSessionSearchOpen &&
+      !allSessionsSearchOpen &&
       !agentControlOpen &&
       !sessionCreatorOpen &&
       !activeEditorPalette,
@@ -545,6 +561,7 @@ const GlobalSpotlightInner: React.FC<
       branchPickerOpen ||
       worktreePickerOpen ||
       agentSessionSearchOpen ||
+      allSessionsSearchOpen ||
       agentControlOpen ||
       sessionCreatorOpen ||
       !pendingRestoreItemId
@@ -575,6 +592,7 @@ const GlobalSpotlightInner: React.FC<
     branchPickerOpen,
     worktreePickerOpen,
     agentSessionSearchOpen,
+    allSessionsSearchOpen,
     agentControlOpen,
     sessionCreatorOpen,
   ]);
@@ -617,6 +635,7 @@ const GlobalSpotlightInner: React.FC<
     branchPickerOpen ||
     worktreePickerOpen ||
     agentSessionSearchOpen ||
+    allSessionsSearchOpen ||
     agentControlOpen ||
     sessionCreatorOpen ||
     !!activeEditorPalette ||
@@ -681,6 +700,13 @@ const GlobalSpotlightInner: React.FC<
       isOpen={isOpen}
       onClose={closeModal}
       onGoBackToParent={handleCloseAgentSessionSearch}
+      asBody
+    />
+  ) : allSessionsSearchOpen ? (
+    <AllSessionsSearchPalette
+      isOpen={isOpen}
+      onClose={closeModal}
+      onGoBackToParent={handleCloseAllSessionsSearch}
       asBody
     />
   ) : agentControlOpen ? (

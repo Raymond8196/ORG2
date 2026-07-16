@@ -77,6 +77,9 @@ interface NavigationOptions {
   toggleChatPanelMaximizedWhenActive?: boolean;
   /** Match active tab by type (e.g. any `source-control` pinned tab id). */
   activeTabType?: WorkStationTabType;
+  /** Interactive setup flows that create a managed PTY must use the Code
+   * Editor terminal even when invoked from Agent Station. */
+  forceCodeEditorSurface?: boolean;
 }
 
 async function shouldToggleMaximizedForActiveTab(
@@ -350,7 +353,8 @@ export const WorkStationViewService = {
 
     if (
       isWorkStationRoute() &&
-      store.get(stationModeAtom) === "agent-station"
+      store.get(stationModeAtom) === "agent-station" &&
+      !options?.forceCodeEditorSurface
     ) {
       store.set(chatPanelMaximizedAtom, false);
       store.set(simulatorSelectedAppAtom, AppType.CODE_EDITOR);

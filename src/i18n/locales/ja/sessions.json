@@ -103,8 +103,16 @@
       "lastScan": "最終スキャン {{time}}",
       "neverScanned": "未スキャン",
       "frequencyTitle": "自動スキャン頻度",
-      "globalFrequency": "自動スキャン",
-      "globalFrequencyDesc": "「デフォルト」に設定されたソースの既定間隔。",
+      "globalFrequency": "外部ソースの自動スキャン",
+      "globalFrequencyDesc": "「デフォルト」に設定された外部ソースの既定のスキャン頻度",
+      "activeSessionRefresh": "開いている外部セッションの更新",
+      "activeSessionRefreshDesc": "チャットペインで現在開いている外部セッションの更新頻度",
+      "activeSessionFreq": {
+        "3s": "3秒ごと",
+        "5s": "5秒ごと",
+        "10s": "10秒ごと",
+        "1m": "1分ごと"
+      },
       "col": {
         "source": "ソース",
         "sessions": "セッション",
@@ -789,13 +797,6 @@
         "manage": "管理",
         "heatmap": "トレンド",
         "runtime": "ランタイム"
-      },
-      "heatmap": {
-        "loading": "アクティビティトレンドを読み込み中…",
-        "empty": "まだセッションアクティビティはありません。",
-        "sessions": "セッション",
-        "tokens": "Tokens",
-        "cost": "コスト"
       },
       "quota": {
         "empty": "Quota データはまだありません。Key Vault で使用量を更新してください。",

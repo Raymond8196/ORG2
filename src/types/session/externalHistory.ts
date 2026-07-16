@@ -10,6 +10,7 @@ export const IMPORTED_HISTORY_SOURCE_IDS = [
   "cline",
   "warp",
   "zcode",
+  "qoder",
 ] as const;
 
 export type ImportedHistorySourceId =

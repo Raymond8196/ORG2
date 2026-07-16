@@ -8,6 +8,8 @@ import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import {
   ensureFreshSession,
   getCloudProfile,
+  listMyOrgs,
+  listOrgMembers,
   refreshSession,
   schemaVersion,
 } from "./org2CloudClient";
@@ -222,5 +224,25 @@ describe("org2_cloud RPC calls", () => {
   it("getCloudProfile returns null on non-200", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ message: "nope" }, 401));
     expect(await getCloudProfile("at-1")).toBeNull();
+  });
+
+  it("rejects the removed viewer role from org and member roster payloads", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse([{ orgId: "org-1", name: "Acme", role: "viewer" }])
+    );
+    await expect(listMyOrgs("at-1")).resolves.toBeNull();
+
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse([
+        {
+          userId: "user-2",
+          displayName: "Viewer",
+          role: "viewer",
+          status: "active",
+          joinedAt: "2026-07-01T00:00:00Z",
+        },
+      ])
+    );
+    await expect(listOrgMembers("at-1", "org-1")).resolves.toEqual([]);
   });
 });

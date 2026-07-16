@@ -11,8 +11,9 @@
 //!   path.
 //!
 //! ## Database location
-//! `~/.orgii/sessions.db` (managed by `database::db`). FTS5 is used for
-//! full-text event search; sequence numbers gate edit / truncate flows.
+//! `~/.orgii/sessions.db` (managed by `database::db`). Event search runs
+//! LIKE scans over `events` (the FTS5 index was dropped — see
+//! `schema::drop_events_fts`); sequence numbers gate edit / truncate flows.
 //!
 //! ## Layering
 //! Pure host adapter — no back-edges into `app`. Provider-neutral provenance

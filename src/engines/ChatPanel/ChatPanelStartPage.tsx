@@ -5,37 +5,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Import,
   KeyRound,
 } from "lucide-react";
-import React, {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { Suspense, useCallback, useMemo, useState } from "react";
 
-import { sessionHeatmap } from "@src/api/tauri/session";
-import type { SessionHeatmapResponse } from "@src/api/tauri/session";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
-import { createLogger } from "@src/hooks/logger";
-import HeatmapGrid, {
-  type HeatmapGridCell,
-} from "@src/modules/shared/devStats/HeatmapGrid";
+import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   CHAT_PANEL_START_PAGE_TAB,
   chatPanelStartPageTabAtom,
 } from "@src/store/ui/chatPanelAtom";
-
-import {
-  START_PAGE_HEATMAP_CONTAINER_CLASS,
-  START_PAGE_TREND_SURFACE_CLASS,
-  StartPageQuotaGrid,
-} from "./StartPageQuotaGrid";
-
-const logger = createLogger("ChatPanelStartPage");
 
 const WorkspaceDashboardPanelView = React.lazy(
   () => import("./panels/WorkspaceDashboardPanelView")
@@ -62,7 +44,7 @@ const START_PAGE_ACTION_TONE_CLASS: Record<StartPageActionTone, string> = {
   primary:
     "border-primary-6/20 bg-primary-6/5 hover:border-primary-6/30 hover:bg-primary-6/10",
   purple:
-    "border-purple-6/20 bg-purple-6/5 hover:border-purple-6/30 hover:bg-purple-6/10",
+    "border-purple-6/20 bg-purple-6/5 hover:border-purple-6/30 hover:bg-bg-2",
   success:
     "border-success-6/20 bg-success-6/5 hover:border-success-6/30 hover:bg-success-6/10",
   warning:
@@ -85,8 +67,6 @@ interface ChatPanelStartPageProps {
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
 }
 
-const HEATMAP_DAY_COUNT = 7;
-const HEATMAP_HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const START_PAGE_HINTS: StartPageHint[] = [
   {
     id: "skill",
@@ -113,148 +93,6 @@ const START_PAGE_HINTS: StartPageHint[] = [
     textAfter: "chat.startPage.hints.switch.after",
   },
 ];
-const HEATMAP_X_LABELS = HEATMAP_HOURS.filter((hour) => hour % 4 === 0).map(
-  (hour) => ({ index: hour, label: `${hour}:00` })
-);
-function formatDateForHeatmap(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
-function getRollingHeatmapRange(): { startDate: string; endDate: string } {
-  const end = new Date();
-  const start = new Date(end);
-  start.setDate(end.getDate() - (HEATMAP_DAY_COUNT - 1));
-  return {
-    startDate: formatDateForHeatmap(start),
-    endDate: formatDateForHeatmap(end),
-  };
-}
-
-function formatCompactNumber(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
-  return value.toLocaleString();
-}
-
-// Temporarily unused: the heatmap is hidden in the Runtime tab for now (its
-// call site is commented out). Kept here so it can be re-enabled without
-// reconstructing the component.
-// eslint-disable-next-line unused-imports/no-unused-vars
-function StartPageHeatmap({
-  t,
-}: {
-  t: TFunction<["sessions", "common", "projects", "navigation"]>;
-}): React.ReactNode {
-  const [data, setData] = useState<SessionHeatmapResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    sessionHeatmap({
-      ...getRollingHeatmapRange(),
-      metric: "sessions",
-      timezoneOffsetMinutes: new Date().getTimezoneOffset(),
-    })
-      .then((response) => {
-        if (!cancelled) setData(response);
-      })
-      .catch((err: unknown) => {
-        logger.warn("failed to load session heatmap", err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const yLabels = useMemo(() => {
-    if (!data) return [];
-    const labels = new Map<number, string>();
-    for (const cell of data.cells) {
-      if (!labels.has(cell.day)) labels.set(cell.day, cell.label);
-    }
-    return Array.from(labels.entries()).map(([index, label]) => ({
-      index,
-      label,
-    }));
-  }, [data]);
-
-  const cells = useMemo<HeatmapGridCell[]>(() => {
-    if (!data) return [];
-    return data.cells.map((cell) => ({
-      xIndex: cell.hour,
-      yIndex: cell.day,
-      count: cell.count,
-      label: `${cell.label} ${cell.hour}:00`,
-      sessions: cell.sessions,
-    }));
-  }, [data]);
-
-  if (loading) {
-    return (
-      <div className={`${START_PAGE_TREND_SURFACE_CLASS} p-3`}>
-        <p className="text-[13px] text-text-2">
-          {t("chat.startPage.heatmap.loading")}
-        </p>
-      </div>
-    );
-  }
-
-  if (!data || data.totalSessions === 0) {
-    return (
-      <div className={`${START_PAGE_TREND_SURFACE_CLASS} p-3`}>
-        <p className="text-[13px] text-text-2">
-          {t("chat.startPage.heatmap.empty")}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={START_PAGE_HEATMAP_CONTAINER_CLASS}>
-      <div className="mb-2 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg bg-fill-2 px-2 py-2">
-          <div className="text-[11px] text-text-2">
-            {t("chat.startPage.heatmap.sessions")}
-          </div>
-          <div className="text-sm font-semibold tabular-nums text-text-1">
-            {formatCompactNumber(data.totalSessions)}
-          </div>
-        </div>
-        <div className="rounded-lg bg-fill-2 px-2 py-2">
-          <div className="text-[11px] text-text-2">
-            {t("chat.startPage.heatmap.tokens")}
-          </div>
-          <div className="text-sm font-semibold tabular-nums text-text-1">
-            {formatCompactNumber(data.totalTokens)}
-          </div>
-        </div>
-        <div className="rounded-lg bg-fill-2 px-2 py-2">
-          <div className="text-[11px] text-text-2">
-            {t("chat.startPage.heatmap.cost")}
-          </div>
-          <div className="text-sm font-semibold tabular-nums text-text-1">
-            ${data.totalCost.toFixed(2)}
-          </div>
-        </div>
-      </div>
-      <HeatmapGrid
-        cells={cells}
-        xCount={24}
-        yCount={HEATMAP_DAY_COUNT}
-        xLabels={HEATMAP_X_LABELS}
-        yLabels={yLabels}
-        maxCount={Math.max(1, data.maxCount)}
-        unit="session"
-        yLabelWidth={28}
-        showLegend={false}
-      />
-    </div>
-  );
-}
-
 function StartPageActionCard({
   action,
 }: {
@@ -267,7 +105,11 @@ function StartPageActionCard({
       onClick={action.onClick}
       data-testid={`chat-panel-start-page-${action.id}`}
     >
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-2 transition-colors group-hover:bg-fill-3">
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-2 transition-colors ${
+          action.tone === "warning" ? "group-hover:bg-fill-3" : ""
+        }`}
+      >
         {action.icon}
       </span>
       <span className="block min-w-0 flex-1 truncate text-[13px] font-semibold text-text-1">
@@ -364,6 +206,8 @@ export function ChatPanelStartPage({
   t,
 }: ChatPanelStartPageProps): React.ReactNode {
   const [activeTab, setActiveTab] = useAtom(chatPanelStartPageTabAtom);
+  const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
+    useState(false);
   const availableUpdate = useAvailableAppUpdate();
   const tabs = useMemo(
     () => [
@@ -393,33 +237,41 @@ export function ChatPanelStartPage({
     [setActiveTab]
   );
 
-  const workActions: ChatPanelStartPageAction[] = [
-    {
-      id: "new-work-item",
-      title: t("chat.startPage.newWorkItem.title"),
-      icon: <BriefcaseBusiness size={16} strokeWidth={1.8} />,
-      onClick: onNewWorkItem,
-      tone: "primary",
-    },
-    {
-      id: "add-api-key",
-      title: t("chat.startPage.addApiKey.title"),
-      icon: <KeyRound size={16} strokeWidth={1.8} />,
-      onClick: onAddApiKey,
-      tone: "success",
-    },
-    ...(availableUpdate?.available
-      ? [
-          {
-            id: "install-latest-update",
-            title: t("chat.startPage.installLatestUpdate.title"),
-            icon: <Download size={16} strokeWidth={1.8} />,
-            onClick: onInstallLatestUpdate,
-            tone: "warning" as const,
-          },
-        ]
-      : []),
-  ];
+  const newWorkItemAction: ChatPanelStartPageAction = {
+    id: "new-work-item",
+    title: t("chat.startPage.newWorkItem.title"),
+    icon: <BriefcaseBusiness size={16} strokeWidth={1.8} />,
+    onClick: onNewWorkItem,
+    tone: "purple",
+  };
+  const importSessionAction: ChatPanelStartPageAction = {
+    id: "import-session",
+    title: t("navigation:cloud.share.importEntry"),
+    icon: <Import size={16} strokeWidth={1.8} />,
+    onClick: () => setIsImportSessionDialogOpen(true),
+    tone: "purple",
+  };
+  const addApiKeyAction: ChatPanelStartPageAction = {
+    id: "add-api-key",
+    title: t("chat.startPage.addApiKey.title"),
+    icon: <KeyRound size={16} strokeWidth={1.8} />,
+    onClick: onAddApiKey,
+    tone: "purple",
+  };
+  const workActions: ChatPanelStartPageAction[] = availableUpdate?.available
+    ? [
+        {
+          id: "install-latest-update",
+          title: t("chat.startPage.installLatestUpdate.title"),
+          icon: <Download size={16} strokeWidth={1.8} />,
+          onClick: onInstallLatestUpdate,
+          tone: "warning",
+        },
+        importSessionAction,
+        newWorkItemAction,
+        addApiKeyAction,
+      ]
+    : [importSessionAction, newWorkItemAction, addApiKeyAction];
   const manageTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.MANAGE;
   const runtimeTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.RUNTIME;
   // The Manage dashboard and the Runtime data-source panel both scroll
@@ -457,17 +309,7 @@ export function ChatPanelStartPage({
             data-testid="chat-panel-start-page-runtime"
           >
             <Suspense fallback={null}>
-              <DataSourcePanel
-                headerContent={
-                  <div className="flex flex-col gap-3">
-                    {/* Heatmap / activity statistics hidden for now — keeping
-                        only the quota grid above the scan table. Re-enable by
-                        uncommenting <StartPageHeatmap t={t} /> below. */}
-                    {/* <StartPageHeatmap t={t} /> */}
-                    <StartPageQuotaGrid />
-                  </div>
-                }
-              />
+              <DataSourcePanel />
             </Suspense>
           </div>
         ) : (
@@ -500,6 +342,12 @@ export function ChatPanelStartPage({
           </div>
         </div>
       ) : null}
+      {isImportSessionDialogOpen && (
+        <ImportSharedSessionDialog
+          visible
+          onClose={() => setIsImportSessionDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }
