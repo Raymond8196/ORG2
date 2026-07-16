@@ -63,8 +63,14 @@ export function usePinnedMenuItems({
         createProjectLabel,
         createWorkItemLabel,
         importGithubIssuesLabel,
+        workItemDestinations,
       }),
-    [createProjectLabel, createWorkItemLabel, importGithubIssuesLabel]
+    [
+      createProjectLabel,
+      createWorkItemLabel,
+      importGithubIssuesLabel,
+      workItemDestinations,
+    ]
   );
   const pinnedMenuItems =
     activeSidebarKey === "projects"

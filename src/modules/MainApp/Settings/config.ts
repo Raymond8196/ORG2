@@ -24,6 +24,7 @@ export interface SettingsSectionConfig {
 // ============================================
 export const SECTION_IDS = {
   GENERAL: "general",
+  COLLABORATION: "collaboration",
   APPEARANCE: "appearance",
   EDITOR: "editor",
   SECURITY: "security",
@@ -63,6 +64,10 @@ export const SECTION_TAB_META: Partial<
     { key: "general", labelKey: "general.tabGeneral" },
     { key: "notifications", labelKey: "sections.notifications" },
     { key: "shortcuts", labelKey: "shortcuts.title" },
+  ],
+  [SECTION_IDS.COLLABORATION]: [
+    { key: "cloud", labelKey: "collaboration.tabs.cloud" },
+    { key: "self-hosted", labelKey: "collaboration.tabs.selfHosted" },
   ],
   [SECTION_IDS.APPEARANCE]: [
     { key: "app", labelKey: "appearance.tabApp" },

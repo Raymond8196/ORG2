@@ -4,6 +4,8 @@ interface NavigationMenuRowAccessorySlotProps {
   persistentContent?: React.ReactNode;
   hoverContent?: React.ReactNode;
   actionContent?: React.ReactNode;
+  /** Bind hover transitions to a parent-row named group. */
+  parentHoverGroup?: boolean;
   /**
    * Status indicator (e.g. "working" breathing dot). Rendered in the same
    * grid cell as persistentContent and fades out on hover so that hover-only
@@ -17,6 +19,7 @@ export function NavigationMenuRowAccessorySlot({
   hoverContent,
   actionContent,
   workingIndicatorContent,
+  parentHoverGroup = false,
 }: NavigationMenuRowAccessorySlotProps): React.ReactElement | null {
   if (
     !persistentContent &&
@@ -27,29 +30,39 @@ export function NavigationMenuRowAccessorySlot({
     return null;
   }
 
+  // Persistent content fades on hover ONLY when hover content replaces it
+  // (develop's guard — otherwise it blinks out with nothing in its place);
+  // parent thread rows scope the transition to the named group so a nested
+  // child's anonymous `group` cannot capture it.
+  const hasHoverReplacement = Boolean(hoverContent || actionContent);
+  const persistentHoverClasses = !hasHoverReplacement
+    ? ""
+    : parentHoverGroup
+      ? "group-hover/parent:pointer-events-none group-hover/parent:opacity-0"
+      : "group-hover:pointer-events-none group-hover:opacity-0";
+  const revealedHoverClasses = parentHoverGroup
+    ? "group-hover/parent:pointer-events-auto group-hover/parent:max-w-[11rem] group-hover/parent:opacity-100"
+    : "group-hover:pointer-events-auto group-hover:max-w-[11rem] group-hover:opacity-100";
   const hasStacked = Boolean(
     persistentContent ||
     hoverContent ||
     actionContent ||
     workingIndicatorContent
   );
-  const hasHoverReplacement = Boolean(hoverContent || actionContent);
   const stackedContent = hasStacked ? (
     <span className="grid items-center justify-end leading-none">
       {(persistentContent || workingIndicatorContent) && (
         <span
-          className={`col-start-1 row-start-1 inline-flex items-center justify-end leading-none transition-opacity duration-150 ${
-            hasHoverReplacement
-              ? "group-hover:pointer-events-none group-hover:opacity-0"
-              : ""
-          }`}
+          className={`col-start-1 row-start-1 inline-flex items-center justify-end leading-none transition-opacity duration-150 ${persistentHoverClasses}`}
         >
           {persistentContent}
           {workingIndicatorContent}
         </span>
       )}
       {(hoverContent || actionContent) && (
-        <span className="pointer-events-none col-start-1 row-start-1 inline-flex max-w-0 items-center justify-end gap-1.5 overflow-hidden whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-150 group-hover:pointer-events-auto group-hover:max-w-[11rem] group-hover:opacity-100">
+        <span
+          className={`pointer-events-none col-start-1 row-start-1 inline-flex max-w-0 items-center justify-end gap-1.5 overflow-hidden whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-150 ${revealedHoverClasses}`}
+        >
           {hoverContent && (
             <span className="inline-flex max-w-[4rem] items-center justify-end overflow-hidden">
               {hoverContent}

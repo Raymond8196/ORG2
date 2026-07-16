@@ -13,6 +13,7 @@ import type {
   OrgtrackFileTimeline,
 } from "@src/api/tauri/lineage";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
+import { buildCloudRemoteItemId } from "@src/features/Org2Cloud/cloudRemoteItemId";
 import { useFileHistory } from "@src/hooks/git/useFileHistory";
 import { useOrgtrackFileSessionHistory } from "@src/hooks/git/useOrgtrackFileSessionHistory";
 import { useOrgtrackFileTimeline } from "@src/hooks/git/useOrgtrackFileTimeline";
@@ -36,6 +37,9 @@ type OrgtrackFileTimelineEntry = OrgtrackFileTimeline["entries"][number];
 type FileSessionHistorySession = OrgtrackFileSessionHistory["sessions"][number];
 type FileSessionHistoryParticipant =
   FileSessionHistorySession["participants"][number];
+type CollaborationSessionOrigin = NonNullable<
+  FileSessionHistorySession["collaborationOrigin"]
+>;
 
 interface FileSessionHistoryIconProps {
   sessionId: string;
@@ -274,7 +278,8 @@ interface FileSessionHistorySessionProps {
     sessionId: string,
     sessionLabel: string,
     workspacePath?: string,
-    parentSessionId?: string
+    parentSessionId?: string,
+    collaborationOrigin?: CollaborationSessionOrigin
   ) => void;
 }
 
@@ -290,7 +295,9 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
       .join(" · ");
     const meta = [
       formatRelativeTime(session.lastInteractionAt, "compact"),
-      session.source.replace(/_/g, " "),
+      session.collaborationOrigin
+        ? `@${session.collaborationOrigin.ownerDisplayName}`
+        : session.source.replace(/_/g, " "),
       actionSummary,
     ].filter(Boolean);
     const workspacePath = session.workspacePath ?? fallbackWorkspacePath;
@@ -301,6 +308,8 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
         data-testid="session-blame-session"
         data-session-id={session.sessionId}
         data-session-source={session.source}
+        data-cloud-org-id={session.collaborationOrigin?.orgId}
+        data-cloud-session-row-id={session.collaborationOrigin?.sessionRowId}
       >
         <button
           type="button"
@@ -320,7 +329,9 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
             onOpenSession(
               session.transcriptSessionId,
               session.sessionLabel,
-              workspacePath
+              workspacePath,
+              undefined,
+              session.collaborationOrigin ?? undefined
             );
           }}
         >
@@ -350,7 +361,8 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
                         participant.transcriptSessionId!,
                         participant.sessionLabel,
                         workspacePath,
-                        session.transcriptSessionId ?? undefined
+                        session.transcriptSessionId ?? undefined,
+                        session.collaborationOrigin ?? undefined
                       )
                   : undefined
               }
@@ -437,9 +449,20 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
         sessionId: string,
         sessionName: string,
         workspacePath?: string,
-        parentSessionId?: string
+        parentSessionId?: string,
+        collaborationOrigin?: CollaborationSessionOrigin
       ) => {
-        requestSessionSidebarReveal({ sessionId, parentSessionId });
+        requestSessionSidebarReveal({
+          sessionId,
+          parentSessionId,
+          sidebarItemId: collaborationOrigin
+            ? buildCloudRemoteItemId(
+                collaborationOrigin.orgId,
+                collaborationOrigin.sessionRowId
+              )
+            : undefined,
+          cloudOrgId: collaborationOrigin?.orgId,
+        });
         // ChatView is owned by the active Chat Panel tab. Keep that tab's
         // identity in sync with the legacy WorkStation session selection so
         // root-session and subagent rows load their own transcripts.

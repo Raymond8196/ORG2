@@ -17,8 +17,6 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const MANAGED_CODEX_AGENT: &str = "codex";
 const MANAGED_CLAUDE_CODE_AGENT: &str = "claude_code";
-const DEFAULT_PROXY_PORT: u16 = 17888;
-const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const DEFAULT_CODEX_OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 const DEFAULT_ANTHROPIC_BASE_URL: &str = "https://api.anthropic.com/v1";
 const ORGII_CURRENT_MODEL: &str = "orgii-current-model";
@@ -87,7 +85,10 @@ pub fn start_cli_managed_proxy_thread() {
 }
 
 async fn run_proxy_server() -> Result<(), String> {
-    let addr = std::net::SocketAddr::from(([127, 0, 0, 1], DEFAULT_PROXY_PORT));
+    let addr = std::net::SocketAddr::from((
+        [127, 0, 0, 1],
+        agent_cli::managed_config::managed_proxy_port(),
+    ));
     let app = Router::new()
         .route("/health", get(health_handler))
         .route("/proxy/{token}/v1", any(proxy_v1_root_handler))
@@ -658,7 +659,7 @@ pub async fn cli_config_enable_orgii_managed(
 #[tauri::command(rename_all = "camelCase")]
 pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedProxyStatus, String> {
     let running = PROXY_RUNNING.load(Ordering::SeqCst);
-    let url = DEFAULT_PROXY_URL.to_string();
+    let url = agent_cli::managed_config::managed_proxy_url();
 
     if agent_name != MANAGED_CODEX_AGENT && agent_name != MANAGED_CLAUDE_CODE_AGENT {
         return Ok(CliManagedProxyStatus {

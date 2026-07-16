@@ -69,6 +69,13 @@ export interface SessionSidebarRevealTarget {
   sessionId: string;
   /** Root row to hydrate/expand when `sessionId` is a subagent transcript. */
   parentSessionId?: string;
+  /**
+   * Exact rendered menu item when the transcript is represented by another
+   * surface (for example a `cloudremote-…` Team Session row).
+   */
+  sidebarItemId?: string;
+  /** Cloud org whose Team Sessions section owns `sidebarItemId`. */
+  cloudOrgId?: string;
 }
 
 export interface SessionSidebarRevealRequest extends SessionSidebarRevealTarget {
@@ -92,12 +99,16 @@ export const requestSessionSidebarRevealAtom = atom(
   (get, set, target: SessionSidebarRevealTarget) => {
     const sessionId = target.sessionId.trim();
     const parentSessionId = target.parentSessionId?.trim() || undefined;
+    const sidebarItemId = target.sidebarItemId?.trim() || undefined;
+    const cloudOrgId = target.cloudOrgId?.trim() || undefined;
     if (!sessionId) return;
     const requestId = get(sessionSidebarRevealRequestIdAtom) + 1;
     set(sessionSidebarRevealRequestIdAtom, requestId);
     set(sessionSidebarRevealRequestAtom, {
       sessionId,
       parentSessionId,
+      ...(sidebarItemId ? { sidebarItemId } : {}),
+      ...(cloudOrgId ? { cloudOrgId } : {}),
       requestId,
     });
   }

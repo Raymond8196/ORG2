@@ -787,6 +787,7 @@ fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, St
             branch: None,
             parent_session_id: None,
             org_member_id: None,
+            collaboration_origin: None,
             metadata: AgentMetadata {
                 dispatch_category: Some("rust_agent".to_string()),
                 origin: Some(SOURCE_ORGII_RUST_AGENTS.to_string()),
@@ -820,6 +821,7 @@ fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, St
         branch: record.worktree_branch.or(record.base_branch),
         parent_session_id: record.parent_session_id,
         org_member_id: record.org_member_id,
+        collaboration_origin: None,
         metadata: AgentMetadata {
             dispatch_category: Some("rust_agent".to_string()),
             rust_agent_type,

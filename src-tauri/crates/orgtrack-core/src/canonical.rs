@@ -11,6 +11,7 @@ pub use orgtrack_protocol::{
 
 pub const SOURCE_ORGII_RUST_AGENTS: &str = "orgii_rust_agents";
 pub const SOURCE_ORGII_CLI_SESSIONS: &str = "orgii_cli_sessions";
+pub const SOURCE_ORGII_CLOUD_REPLAY: &str = "orgii_cloud_replay";
 /// Session placeholder created from hook metadata before a replayable source
 /// transcript has been independently discovered.
 pub const SESSION_PROVENANCE_HOOK_ORIGIN: &str = "session_provenance_hook";
@@ -46,6 +47,21 @@ pub struct AgentMetadata {
     pub parsed_categories: BTreeMap<String, String>,
 }
 
+/// Origin of a locally cached, read-only collaboration replay.
+///
+/// This is session identity metadata only. Transcript events continue to be
+/// governed by the collaboration replay access ladder; no prompts, tool
+/// output, diffs, or file contents are duplicated into Orgtrack.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollaborationSessionOrigin {
+    pub org_id: String,
+    pub session_row_id: String,
+    pub source_session_id: String,
+    pub owner_member_id: String,
+    pub owner_display_name: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionRecord {
@@ -62,6 +78,8 @@ pub struct SessionRecord {
     pub branch: Option<String>,
     pub parent_session_id: Option<String>,
     pub org_member_id: Option<String>,
+    #[serde(default)]
+    pub collaboration_origin: Option<CollaborationSessionOrigin>,
     pub metadata: AgentMetadata,
 }
 

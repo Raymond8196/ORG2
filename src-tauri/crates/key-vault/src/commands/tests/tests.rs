@@ -484,5 +484,5 @@ fn sonnet_ladders_follow_reference_effort_limits() {
     assert!(info
         .model_variants
         .iter()
-        .any(|variant| variant.model == "claude-sonnet-5-thinking-extra"));
+        .any(|variant| variant.model == "claude-sonnet-5-thinking-xhigh"));
 }

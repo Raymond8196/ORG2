@@ -144,8 +144,8 @@ mod tests {
             Err(poisoned) => poisoned.into_inner(),
         };
         let previous = std::env::var("ORGII_HOME").ok();
-        let root = std::path::Path::new("/private/var/folders/10/t245s0211dv9d_5252w6y5wh0000gn/T/orgii-501/Users_junyu_github_ORGII/sdeagent-7fa054ca-ee9b-4c49-b96b-35024a069eaf/scratchpad")
-            .join(format!("orgii-token-usage-test-{}", std::process::id()));
+        let root =
+            std::env::temp_dir().join(format!("orgii-token-usage-test-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         std::fs::create_dir_all(&root).expect("create temp ORGII_HOME");
         std::env::set_var("ORGII_HOME", &root);

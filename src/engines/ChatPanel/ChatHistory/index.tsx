@@ -28,6 +28,7 @@ import { manualCompactInFlightSessionAtom } from "@src/engines/ChatPanel/hooks/u
 import { streamingDeltaContentAtom } from "@src/engines/SessionCore/core/atoms";
 import { sessionIdAtom } from "@src/engines/SessionCore/core/atoms/metadata";
 import { usePlanningIndicator } from "@src/engines/SessionCore/hooks";
+import { addressRunActiveAtom } from "@src/features/Org2Cloud/addressCommentsRun";
 import {
   estimateRuntimeValueBytes,
   removeChatRenderedTreeMemoryEntry,
@@ -605,6 +606,27 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     // dead subagent session).
     mergeUserOnlyPages: hideGroupUserMessage,
   });
+  const addressRunActiveMap = useAtomValue(addressRunActiveAtom);
+  const addressRunActive = Boolean(activeId && addressRunActiveMap[activeId]);
+  const prevAddressRunActiveRef = useRef(false);
+  useEffect(() => {
+    const rose = addressRunActive && !prevAddressRunActiveRef.current;
+    prevAddressRunActiveRef.current = addressRunActive;
+    if (!rose || !turnPaginationEnabled || !activeId || pageCount <= 0) return;
+    setTurnPageSelection((current) =>
+      current.sessionId === activeId && current.pageIndex !== null
+        ? current
+        : { pageIndex: currentPageIndex, sessionId: activeId }
+    );
+  }, [
+    addressRunActive,
+    turnPaginationEnabled,
+    activeId,
+    pageCount,
+    currentPageIndex,
+    setTurnPageSelection,
+  ]);
+
   const planningIndicatorEnabled =
     !turnPaginationEnabled || currentPageIndex >= pageCount - 1;
   const collapseStateKey = useMemo(() => {

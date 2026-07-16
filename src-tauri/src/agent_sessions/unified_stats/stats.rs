@@ -168,13 +168,14 @@ mod tests {
     }
 
     #[test]
-    fn test_compute_aggregate_stats_cost_estimation() {
+    fn test_compute_aggregate_stats_without_accounting_leaves_cost_zero() {
         let mut session = make_session("1", "completed", SessionCategory::Cli, KeySource::OwnKey);
         session.total_tokens = 10000;
 
         let stats = compute_aggregate_stats(&[session]);
 
-        // 10000 tokens / 1000 * 0.003 = $0.03
-        assert!((stats.total_cost_usd - 0.03).abs() < 0.0001);
+        assert_eq!(stats.total_tokens, 10_000);
+        assert_eq!(stats.total_cost_usd, 0.0);
+        assert_eq!(stats.total_estimated_cost_usd, 0.0);
     }
 }

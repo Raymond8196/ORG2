@@ -9,7 +9,6 @@ import { useFilteredItems } from "@src/hooks/search";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { benchmarkAgentBatchStatusAtom } from "@src/store/benchmark";
 import {
-  DEFAULT_SESSION_ORG_ID,
   type Session,
   type SessionListCategory,
   sessionLastLoadedAtom,
@@ -34,6 +33,7 @@ import {
   buildByTimeMenuItems,
   buildByWorkspaceMenuItems,
 } from "./menuSectionBuilders";
+import { sessionMatchesOrgFilter } from "./orgFilter";
 import {
   appendSessionGroup,
   getLoadMoreGroupId,
@@ -149,7 +149,9 @@ export function useSessionMenuItems({
   groupByMode,
   untitledSession,
   searchQuery = "",
-  selectedOrgId,
+  selectedOrgIds,
+  extraSessionIds,
+  excludedSessionIds,
   includeExternal,
   groupVisibleCounts,
   expandedSubagentParentIds = new Set(),
@@ -216,13 +218,13 @@ export function useSessionMenuItems({
     () =>
       sortedSessions.filter((session) => {
         const explicitlyRevealed = revealedSessionIds.has(session.session_id);
-        const sessionOrgId = session.orgId ?? DEFAULT_SESSION_ORG_ID;
         return (
           isPrimarySessionListSession(session) &&
           (explicitlyRevealed ||
             ((includeExternal ||
               !isImportedHistorySession(session.session_id)) &&
-              (!selectedOrgId || sessionOrgId === selectedOrgId))) &&
+              (sessionMatchesOrgFilter(session, selectedOrgIds) ||
+                (extraSessionIds?.has(session.session_id) ?? false)))) &&
           !benchmarkChildSessionIds.has(session.session_id) &&
           !benchmarkHistoryChildSessionIds.has(session.session_id) &&
           !benchmarkCoordinatorSessionIds.has(session.parentSessionId ?? "")
@@ -232,9 +234,10 @@ export function useSessionMenuItems({
       benchmarkChildSessionIds,
       benchmarkCoordinatorSessionIds,
       benchmarkHistoryChildSessionIds,
+      extraSessionIds,
       includeExternal,
       revealedSessionIds,
-      selectedOrgId,
+      selectedOrgIds,
       sortedSessions,
     ]
   );
@@ -355,8 +358,22 @@ export function useSessionMenuItems({
     [childSessionsByParent]
   );
 
+  // Excluded ids leave the rendered list but stay in sessionMap so click
+  // routing (threaded cloud rows mapping to local sessions) keeps working.
+  // Subagent fetching above intentionally still covers the full visible set
+  // (visibleSessionIds), not just the listed subset.
+  const listedSessions = useMemo(
+    () =>
+      excludedSessionIds && excludedSessionIds.size > 0
+        ? visibleSessions.filter(
+            (session) => !excludedSessionIds.has(session.session_id)
+          )
+        : visibleSessions,
+    [excludedSessionIds, visibleSessions]
+  );
+
   const { filteredItems: searchedSessions, isFiltering } = useFilteredItems({
-    items: visibleSessions,
+    items: listedSessions,
     searchQuery,
     getSearchText: (session) => getSessionSearchText(session, untitledSession),
   });
