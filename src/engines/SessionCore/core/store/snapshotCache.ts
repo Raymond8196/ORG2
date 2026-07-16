@@ -21,25 +21,51 @@ import {
  * any) so the owner can drop per-session bookkeeping such as pending
  * flushes.
  */
+/**
+ * Rough retained-size proxy for one cached snapshot: its event count. The
+ * per-event object graph dominates the cache's footprint, so budgeting by
+ * events keeps a few heavy transcripts OR many light ones without letting
+ * "count-bounded" turn into hundreds of MB.
+ */
+function snapshotEventWeight(snapshot: Snapshot): number {
+  if ("events" in snapshot) {
+    return (snapshot as DerivedSnapshot).events.length;
+  }
+  return snapshot.chatEvents?.length ?? 0;
+}
+
 function storeSnapshot(
   sessionId: string,
   snapshot: Snapshot,
   latestSnapshots: Map<string, Snapshot>,
   normalizedSnapshots: Map<string, NormalizedSnapshotCache>,
-  maxSnapshots: number
-): string | undefined {
+  maxSnapshots: number,
+  eventBudget: number
+): string[] {
   latestSnapshots.delete(sessionId);
   latestSnapshots.set(sessionId, snapshot);
 
-  if (latestSnapshots.size > maxSnapshots) {
-    const oldest = latestSnapshots.keys().next().value;
-    if (oldest !== undefined) {
-      latestSnapshots.delete(oldest);
-      normalizedSnapshots.delete(oldest);
-      return oldest;
-    }
+  const evicted: string[] = [];
+  let totalWeight = 0;
+  for (const cached of latestSnapshots.values()) {
+    totalWeight += snapshotEventWeight(cached);
   }
-  return undefined;
+  // Evict oldest-first until both bounds hold. The just-stored session is
+  // the newest entry and is never evicted, even when it alone exceeds the
+  // budget (a single huge transcript must stay usable).
+  while (
+    latestSnapshots.size > 1 &&
+    (latestSnapshots.size > maxSnapshots || totalWeight > eventBudget)
+  ) {
+    const oldest = latestSnapshots.keys().next().value;
+    if (oldest === undefined || oldest === sessionId) break;
+    const oldestSnapshot = latestSnapshots.get(oldest);
+    totalWeight -= oldestSnapshot ? snapshotEventWeight(oldestSnapshot) : 0;
+    latestSnapshots.delete(oldest);
+    normalizedSnapshots.delete(oldest);
+    evicted.push(oldest);
+  }
+  return evicted;
 }
 
 /**
@@ -78,6 +104,7 @@ export function flushPendingDelta(
   latestSnapshots: Map<string, Snapshot>,
   normalizedSnapshots: Map<string, NormalizedSnapshotCache>,
   maxSnapshots: number,
+  eventBudget: number,
   onEvicted?: (evictedSessionId: string) => void
 ): Snapshot | null {
   const cache = normalizedSnapshots.get(sessionId);
@@ -92,9 +119,10 @@ export function flushPendingDelta(
     snapshot,
     latestSnapshots,
     normalizedSnapshots,
-    maxSnapshots
+    maxSnapshots,
+    eventBudget
   );
-  if (evicted !== undefined) onEvicted?.(evicted);
+  for (const evictedSessionId of evicted) onEvicted?.(evictedSessionId);
   return snapshot;
 }
 
@@ -104,6 +132,7 @@ export function rememberSnapshot(
   latestSnapshots: Map<string, Snapshot>,
   normalizedSnapshots: Map<string, NormalizedSnapshotCache>,
   maxSnapshots: number,
+  eventBudget: number,
   onEvicted?: (evictedSessionId: string) => void
 ): Snapshot {
   // Reject version regressions: a late-arriving older snapshot (e.g. a slow
@@ -131,9 +160,10 @@ export function rememberSnapshot(
     snapshotToStore,
     latestSnapshots,
     normalizedSnapshots,
-    maxSnapshots
+    maxSnapshots,
+    eventBudget
   );
-  if (evicted !== undefined) onEvicted?.(evicted);
+  for (const evictedSessionId of evicted) onEvicted?.(evictedSessionId);
 
   return snapshotToStore;
 }
