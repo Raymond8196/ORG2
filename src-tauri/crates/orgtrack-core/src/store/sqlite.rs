@@ -1,6 +1,6 @@
 use rusqlite::{params, Connection, OptionalExtension};
 
-use super::{RecentHookSignal, RecordStore};
+use super::{FileResourceInteractionPage, RecentHookSignal, RecordStore};
 use crate::canonical::{
     ActivityRecord, CommitLinkRecord, FileChangeRecord, FileResourceRecord,
     ResourceInteractionRecord, ScanCheckpoint, SessionActorRecord,
@@ -133,6 +133,7 @@ impl<'conn> SqliteRecordStore<'conn> {
                 source              TEXT NOT NULL,
                 source_session_id   TEXT NOT NULL,
                 workspace_path      TEXT,
+                parent_session_id   TEXT,
                 title               TEXT NOT NULL,
                 created_at          TEXT,
                 updated_at          TEXT,
@@ -232,6 +233,33 @@ impl<'conn> SqliteRecordStore<'conn> {
                 ON orgtrack_core_resource_interactions(source, source_event_id, resource_id, action)
                 WHERE source_event_id IS NOT NULL;
 
+            -- Durable invalidation clock. SQLite triggers cover every writer
+            -- (native runtime, managed hooks, historical reconciliation, and
+            -- collaboration replay) without an in-process cache or event bus.
+            CREATE TABLE IF NOT EXISTS orgtrack_core_resource_revisions (
+                resource_id  TEXT PRIMARY KEY,
+                revision     INTEGER NOT NULL,
+                updated_at   TEXT NOT NULL
+            );
+            CREATE TRIGGER IF NOT EXISTS orgtrack_core_resource_revision_insert
+            AFTER INSERT ON orgtrack_core_resource_interactions
+            BEGIN
+                INSERT INTO orgtrack_core_resource_revisions(resource_id, revision, updated_at)
+                VALUES (NEW.resource_id, 1, NEW.occurred_at)
+                ON CONFLICT(resource_id) DO UPDATE SET
+                    revision = revision + 1,
+                    updated_at = excluded.updated_at;
+            END;
+            CREATE TRIGGER IF NOT EXISTS orgtrack_core_resource_revision_delete
+            AFTER DELETE ON orgtrack_core_resource_interactions
+            BEGIN
+                INSERT INTO orgtrack_core_resource_revisions(resource_id, revision, updated_at)
+                VALUES (OLD.resource_id, 1, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+                ON CONFLICT(resource_id) DO UPDATE SET
+                    revision = revision + 1,
+                    updated_at = excluded.updated_at;
+            END;
+
             CREATE TABLE IF NOT EXISTS orgtrack_core_session_actors (
                 actor_record_id        TEXT PRIMARY KEY,
                 source                 TEXT NOT NULL,
@@ -260,6 +288,20 @@ impl<'conn> SqliteRecordStore<'conn> {
                 parser_version      INTEGER NOT NULL,
                 reconciled_at       TEXT NOT NULL,
                 PRIMARY KEY (source, session_id)
+            );
+
+            -- Repository-scoped historical indexing state. This replaces an
+            -- in-process job cache, making progress/recovery restart-safe and
+            -- queryable without retaining transcript state in RAM.
+            CREATE TABLE IF NOT EXISTS orgtrack_core_interaction_backfill_jobs (
+                repo_key            TEXT PRIMARY KEY,
+                status              TEXT NOT NULL,
+                indexed_sessions    INTEGER NOT NULL,
+                total_sessions      INTEGER NOT NULL,
+                failed_sessions     INTEGER NOT NULL,
+                last_error          TEXT,
+                run_token           TEXT NOT NULL,
+                updated_at_ms       INTEGER NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS orgtrack_core_commit_links (
@@ -351,7 +393,51 @@ impl<'conn> SqliteRecordStore<'conn> {
             CREATE INDEX IF NOT EXISTS idx_orgtrack_core_checkpoint_file_states_checkpoint
                 ON orgtrack_core_checkpoint_file_states(checkpoint_id, file_path);
             ",
-        )
+        )?;
+
+        // Older databases predate the normalized parent column. Keep the
+        // migration independent of SQLite JSON extensions by decoding the
+        // canonical payload with the same Rust type used by normal reads.
+        ensure_column(conn, "orgtrack_core_sessions", "parent_session_id", "TEXT")?;
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_orgtrack_core_sessions_parent
+             ON orgtrack_core_sessions(parent_session_id)",
+            [],
+        )?;
+        let legacy_parents = {
+            let mut statement = conn.prepare(
+                "SELECT session_id, payload_json FROM orgtrack_core_sessions
+                 WHERE parent_session_id IS NULL",
+            )?;
+            let rows = statement.query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })?;
+            rows.filter_map(Result::ok)
+                .filter_map(|(session_id, payload)| {
+                    serde_json::from_str::<SessionRecord>(&payload)
+                        .ok()
+                        .and_then(|record| {
+                            record.parent_session_id.map(|parent| (session_id, parent))
+                        })
+                })
+                .collect::<Vec<_>>()
+        };
+        for (session_id, parent_session_id) in legacy_parents {
+            conn.execute(
+                "UPDATE orgtrack_core_sessions SET parent_session_id = ?1 WHERE session_id = ?2",
+                params![parent_session_id, session_id],
+            )?;
+        }
+        // Existing interaction rows were created before the revision trigger.
+        // Seed them once; subsequent writes are incremented transactionally.
+        conn.execute(
+            "INSERT OR IGNORE INTO orgtrack_core_resource_revisions(resource_id, revision, updated_at)
+             SELECT resource_id, COUNT(*), COALESCE(MAX(occurred_at), '')
+             FROM orgtrack_core_resource_interactions
+             GROUP BY resource_id",
+            [],
+        )?;
+        Ok(())
     }
 
     pub fn init_source_cache_tables(conn: &Connection) -> rusqlite::Result<()> {
@@ -558,10 +644,7 @@ impl<'conn> SqliteRecordStore<'conn> {
     /// first, joined with their file resource for a displayable path. Powers
     /// the Session Provenance "recent signals" table. Only `capture_method =
     /// 'hook'` rows are returned — native/reconciled facts are excluded.
-    pub fn list_recent_hook_signals(
-        &self,
-        limit: usize,
-    ) -> Result<Vec<RecentHookSignal>, String> {
+    pub fn list_recent_hook_signals(&self, limit: usize) -> Result<Vec<RecentHookSignal>, String> {
         let limit = limit.clamp(1, 1000) as i64;
         let mut statement = self
             .conn
@@ -677,13 +760,15 @@ impl RecordStore for SqliteRecordStore<'_> {
         self.conn
             .execute(
                 "INSERT INTO orgtrack_core_sessions (
-                    session_id, source, source_session_id, workspace_path, title,
-                    created_at, updated_at, completed_at, branch, payload_json
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+                    session_id, source, source_session_id, workspace_path,
+                    parent_session_id, title, created_at, updated_at,
+                    completed_at, branch, payload_json
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
                 ON CONFLICT(session_id) DO UPDATE SET
                     source=excluded.source,
                     source_session_id=excluded.source_session_id,
                     workspace_path=excluded.workspace_path,
+                    parent_session_id=excluded.parent_session_id,
                     title=excluded.title,
                     created_at=excluded.created_at,
                     updated_at=excluded.updated_at,
@@ -695,6 +780,7 @@ impl RecordStore for SqliteRecordStore<'_> {
                     record.source,
                     record.source_session_id,
                     record.workspace_path,
+                    record.parent_session_id,
                     record.title,
                     record.created_at,
                     record.updated_at,
@@ -1344,38 +1430,108 @@ impl RecordStore for SqliteRecordStore<'_> {
         Ok(records)
     }
 
-    fn list_file_resource_interactions(
+    fn list_file_resource_interactions_page(
         &self,
         repository_id: Option<&str>,
         workspace_path: &str,
         repo_relative_path: &str,
-    ) -> Result<Vec<ResourceInteractionRecord>, String> {
-        let mut statement = self
+        limit: usize,
+        offset: usize,
+    ) -> Result<FileResourceInteractionPage, String> {
+        let limit = limit.clamp(1, 100) as i64;
+        let offset = offset.min(i64::MAX as usize) as i64;
+        let match_clause = "file_resource.repo_relative_path = ?1
+             AND ((?2 IS NOT NULL AND file_resource.repository_id = ?2)
+                  OR file_resource.workspace_path = ?3)";
+        let total_sessions = self
             .conn
-            .prepare(
-                "SELECT interaction.payload_json
-                 FROM orgtrack_core_resource_interactions interaction
-                 JOIN orgtrack_core_file_resources file_resource
-                   ON file_resource.resource_id = interaction.resource_id
-                 WHERE file_resource.repo_relative_path = ?1
-                   AND (
-                     (?2 IS NOT NULL AND file_resource.repository_id = ?2)
-                     OR file_resource.workspace_path = ?3
-                   )
-                 ORDER BY interaction.occurred_at DESC, interaction.interaction_id DESC",
+            .query_row(
+                &format!(
+                    "SELECT COUNT(DISTINCT COALESCE(session.parent_session_id, interaction.session_id))
+                     FROM orgtrack_core_resource_interactions interaction
+                     JOIN orgtrack_core_file_resources file_resource
+                       ON file_resource.resource_id = interaction.resource_id
+                     LEFT JOIN orgtrack_core_sessions session
+                       ON session.session_id = interaction.session_id
+                     WHERE {match_clause}"
+                ),
+                params![repo_relative_path, repository_id, workspace_path],
+                |row| row.get::<_, i64>(0),
             )
-            .map_err(|err| err.to_string())?;
+            .map_err(|err| err.to_string())?
+            .max(0) as usize;
+
+        let query = format!(
+            "WITH matching_roots AS (
+                SELECT COALESCE(session.parent_session_id, interaction.session_id) AS root_session_id,
+                       MAX(interaction.occurred_at) AS last_interaction_at
+                FROM orgtrack_core_resource_interactions interaction
+                JOIN orgtrack_core_file_resources file_resource
+                  ON file_resource.resource_id = interaction.resource_id
+                LEFT JOIN orgtrack_core_sessions session
+                  ON session.session_id = interaction.session_id
+                WHERE {match_clause}
+                GROUP BY root_session_id
+                ORDER BY last_interaction_at DESC, root_session_id ASC
+                LIMIT ?4 OFFSET ?5
+             )
+             SELECT interaction.payload_json
+             FROM orgtrack_core_resource_interactions interaction
+             JOIN orgtrack_core_file_resources file_resource
+               ON file_resource.resource_id = interaction.resource_id
+             LEFT JOIN orgtrack_core_sessions session
+               ON session.session_id = interaction.session_id
+             JOIN matching_roots page
+               ON page.root_session_id = COALESCE(session.parent_session_id, interaction.session_id)
+             WHERE {match_clause}
+             ORDER BY interaction.occurred_at DESC, interaction.interaction_id DESC"
+        );
+        let mut statement = self.conn.prepare(&query).map_err(|err| err.to_string())?;
         let rows = statement
             .query_map(
-                params![repo_relative_path, repository_id, workspace_path],
+                params![
+                    repo_relative_path,
+                    repository_id,
+                    workspace_path,
+                    limit,
+                    offset
+                ],
                 |row| row.get::<_, String>(0),
             )
             .map_err(|err| err.to_string())?;
-        let mut records = Vec::new();
+        let mut interactions = Vec::new();
         for row in rows {
-            records.push(Self::from_json(row.map_err(|err| err.to_string())?)?);
+            interactions.push(Self::from_json(row.map_err(|err| err.to_string())?)?);
         }
-        Ok(records)
+        Ok(FileResourceInteractionPage {
+            interactions,
+            total_sessions,
+            offset: offset as usize,
+            limit: limit as usize,
+        })
+    }
+
+    fn get_file_resource_revision(
+        &self,
+        repository_id: Option<&str>,
+        workspace_path: &str,
+        repo_relative_path: &str,
+    ) -> Result<u64, String> {
+        let revision = self
+            .conn
+            .query_row(
+                "SELECT COALESCE(SUM(revision.revision), 0)
+                 FROM orgtrack_core_file_resources file_resource
+                 LEFT JOIN orgtrack_core_resource_revisions revision
+                   ON revision.resource_id = file_resource.resource_id
+                 WHERE file_resource.repo_relative_path = ?1
+                   AND ((?2 IS NOT NULL AND file_resource.repository_id = ?2)
+                        OR file_resource.workspace_path = ?3)",
+                params![repo_relative_path, repository_id, workspace_path],
+                |row| row.get::<_, i64>(0),
+            )
+            .map_err(|err| err.to_string())?;
+        Ok(revision.max(0) as u64)
     }
 
     fn get_session(&self, session_id: &str) -> Result<Option<SessionRecord>, String> {
@@ -1489,6 +1645,24 @@ mod tests {
         SqliteRecordStore::new(Box::leak(Box::new(conn)))
     }
 
+    fn list_file_interactions(
+        store: &SqliteRecordStore<'_>,
+        repository_id: Option<&str>,
+        workspace_path: &str,
+        repo_relative_path: &str,
+    ) -> Vec<ResourceInteractionRecord> {
+        store
+            .list_file_resource_interactions_page(
+                repository_id,
+                workspace_path,
+                repo_relative_path,
+                100,
+                0,
+            )
+            .expect("list file interactions")
+            .interactions
+    }
+
     #[test]
     fn init_tables_replaces_legacy_unique_source_event_index() {
         let conn = Connection::open_in_memory().expect("in-memory sqlite");
@@ -1528,6 +1702,122 @@ mod tests {
             )
             .expect("query replacement index");
         assert!(!observation_index.to_ascii_uppercase().contains("UNIQUE"));
+    }
+
+    #[test]
+    fn init_tables_backfills_parent_identity_before_creating_parent_index() {
+        let conn = Connection::open_in_memory().expect("in-memory sqlite");
+        conn.execute_batch(
+            "CREATE TABLE orgtrack_core_sessions (
+                session_id TEXT PRIMARY KEY,
+                source TEXT NOT NULL,
+                source_session_id TEXT NOT NULL,
+                workspace_path TEXT,
+                title TEXT NOT NULL,
+                created_at TEXT,
+                updated_at TEXT,
+                completed_at TEXT,
+                branch TEXT,
+                payload_json TEXT NOT NULL
+             );",
+        )
+        .expect("create legacy sessions table");
+        let child = SessionRecord {
+            schema_version: ORGTRACK_SCHEMA_VERSION,
+            source: "claude_code".to_string(),
+            source_session_id: "child".to_string(),
+            session_id: "child".to_string(),
+            title: "Child".to_string(),
+            status: None,
+            created_at: None,
+            updated_at: None,
+            completed_at: None,
+            workspace_path: Some("/repo".to_string()),
+            branch: None,
+            parent_session_id: Some("root".to_string()),
+            org_member_id: None,
+            collaboration_origin: None,
+            metadata: AgentMetadata::default(),
+        };
+        let child_payload = serde_json::to_string(&child).expect("serialize child");
+        conn.execute(
+            "INSERT INTO orgtrack_core_sessions (
+                session_id, source, source_session_id, workspace_path, title, payload_json
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![
+                &child.session_id,
+                &child.source,
+                &child.source_session_id,
+                &child.workspace_path,
+                &child.title,
+                child_payload
+            ],
+        )
+        .expect("insert legacy child");
+
+        SqliteRecordStore::init_tables(&conn).expect("migrate legacy sessions table");
+        let parent: Option<String> = conn
+            .query_row(
+                "SELECT parent_session_id FROM orgtrack_core_sessions WHERE session_id = 'child'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("query migrated parent");
+        assert_eq!(parent.as_deref(), Some("root"));
+    }
+
+    #[test]
+    fn init_tables_seeds_revisions_for_existing_interactions() {
+        let conn = Connection::open_in_memory().expect("in-memory sqlite");
+        SqliteRecordStore::init_tables(&conn).expect("initialize current schema");
+        conn.execute_batch(
+            "DROP TRIGGER orgtrack_core_resource_revision_insert;
+             DROP TRIGGER orgtrack_core_resource_revision_delete;
+             DROP TABLE orgtrack_core_resource_revisions;",
+        )
+        .expect("simulate pre-revision schema");
+        let store = SqliteRecordStore::new(&conn);
+        store
+            .upsert_file_resource(&FileResourceRecord {
+                schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                resource_id: "legacy-resource".to_string(),
+                repository_id: Some("legacy-repo".to_string()),
+                workspace_path: "/legacy/repo".to_string(),
+                repo_relative_path: "src/legacy.rs".to_string(),
+                display_path: "src/legacy.rs".to_string(),
+                path_hash: "legacy-hash".to_string(),
+            })
+            .expect("insert legacy resource");
+        store
+            .append_resource_interaction(&ResourceInteractionRecord {
+                schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                interaction_id: "legacy-interaction".to_string(),
+                source: "cursor_ide".to_string(),
+                source_session_id: Some("legacy-session".to_string()),
+                source_event_id: Some("legacy-event".to_string()),
+                session_id: "legacy-session".to_string(),
+                turn_id: None,
+                actor_id: None,
+                resource_id: "legacy-resource".to_string(),
+                action: ResourceAction::Read,
+                outcome: ResourceInteractionOutcome::Succeeded,
+                occurred_at: "2026-07-15T00:00:00Z".to_string(),
+                capture_method: ResourceInteractionCaptureMethod::Hook,
+                attribution_precision: AttributionPrecision::SessionOnly,
+            })
+            .expect("insert interaction without revision trigger");
+
+        SqliteRecordStore::init_tables(&conn).expect("migrate revision schema");
+        assert_eq!(
+            SqliteRecordStore::new(&conn)
+                .get_file_resource_revision(
+                    Some("legacy-repo"),
+                    "/different/worktree",
+                    "src/legacy.rs"
+                )
+                .expect("query seeded revision"),
+            1
+        );
     }
 
     #[test]
@@ -1612,10 +1902,15 @@ mod tests {
         store
             .append_resource_interaction(&interaction)
             .expect("repeat interaction is idempotent");
+        assert_eq!(
+            store
+                .get_file_resource_revision(Some("repo-1"), "/different/worktree", "src/lib.rs")
+                .expect("read durable revision"),
+            1
+        );
 
-        let records = store
-            .list_file_resource_interactions(Some("repo-1"), "/different/worktree", "src/lib.rs")
-            .expect("list file interactions");
+        let records =
+            list_file_interactions(&store, Some("repo-1"), "/different/worktree", "src/lib.rs");
         assert_eq!(records, vec![interaction.clone()]);
 
         let mut stronger_observation = interaction.clone();
@@ -1626,13 +1921,7 @@ mod tests {
             .append_resource_interaction(&stronger_observation)
             .expect("preserve stronger observation of the same source event");
         assert_eq!(
-            store
-                .list_file_resource_interactions(
-                    Some("repo-1"),
-                    "/different/worktree",
-                    "src/lib.rs"
-                )
-                .expect("list immutable observations")
+            list_file_interactions(&store, Some("repo-1"), "/different/worktree", "src/lib.rs",)
                 .len(),
             2
         );
@@ -1656,10 +1945,123 @@ mod tests {
                 .expect("delete child reconciled observation"),
             1
         );
-        let records = store
-            .list_file_resource_interactions(Some("repo-1"), "/different/worktree", "src/lib.rs")
-            .expect("list interactions after reconciliation replacement");
+        let records =
+            list_file_interactions(&store, Some("repo-1"), "/different/worktree", "src/lib.rs");
         assert_eq!(records, vec![interaction]);
+        assert_eq!(
+            store
+                .get_file_resource_revision(Some("repo-1"), "/different/worktree", "src/lib.rs")
+                .expect("read revision after inserts and deletes"),
+            5
+        );
+    }
+
+    #[test]
+    fn file_resource_interaction_pages_keep_root_and_child_sessions_together() {
+        let store = fixture_store();
+        let resource = FileResourceRecord {
+            schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+            resource_id: "file-page".to_string(),
+            repository_id: Some("repo-page".to_string()),
+            workspace_path: "/repo/page".to_string(),
+            repo_relative_path: "src/page.rs".to_string(),
+            display_path: "src/page.rs".to_string(),
+            path_hash: "hash-page".to_string(),
+        };
+        store
+            .upsert_file_resource(&resource)
+            .expect("upsert page resource");
+
+        for (session_id, parent_session_id) in [
+            ("root-1", None),
+            ("child-1", Some("root-1")),
+            ("root-2", None),
+            ("root-3", None),
+        ] {
+            store
+                .upsert_session(&SessionRecord {
+                    schema_version: ORGTRACK_SCHEMA_VERSION,
+                    source: "codex_app".to_string(),
+                    source_session_id: session_id.to_string(),
+                    session_id: session_id.to_string(),
+                    title: session_id.to_string(),
+                    status: None,
+                    created_at: None,
+                    updated_at: None,
+                    completed_at: None,
+                    workspace_path: Some("/repo/page".to_string()),
+                    branch: None,
+                    parent_session_id: parent_session_id.map(str::to_string),
+                    org_member_id: None,
+                    collaboration_origin: None,
+                    metadata: AgentMetadata::default(),
+                })
+                .expect("upsert paged session");
+        }
+
+        for (interaction_id, session_id, occurred_at) in [
+            ("root-1-read", "root-1", "2026-07-14T01:00:00Z"),
+            ("child-1-write", "child-1", "2026-07-14T02:00:00Z"),
+            ("root-2-read", "root-2", "2026-07-14T03:00:00Z"),
+            ("root-3-read", "root-3", "2026-07-14T04:00:00Z"),
+        ] {
+            store
+                .append_resource_interaction(&ResourceInteractionRecord {
+                    schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
+                    interaction_id: interaction_id.to_string(),
+                    source: "codex_app".to_string(),
+                    source_session_id: Some(session_id.to_string()),
+                    source_event_id: Some(interaction_id.to_string()),
+                    session_id: session_id.to_string(),
+                    turn_id: None,
+                    actor_id: None,
+                    resource_id: resource.resource_id.clone(),
+                    action: ResourceAction::Read,
+                    outcome: ResourceInteractionOutcome::Succeeded,
+                    occurred_at: occurred_at.to_string(),
+                    capture_method: ResourceInteractionCaptureMethod::Hook,
+                    attribution_precision: AttributionPrecision::SessionOnly,
+                })
+                .expect("append paged interaction");
+        }
+
+        let first = store
+            .list_file_resource_interactions_page(
+                Some("repo-page"),
+                "/different/worktree",
+                "src/page.rs",
+                2,
+                0,
+            )
+            .expect("load first root page");
+        assert_eq!(first.total_sessions, 3);
+        assert_eq!(
+            first
+                .interactions
+                .iter()
+                .map(|record| record.session_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["root-3", "root-2"]
+        );
+
+        let second = store
+            .list_file_resource_interactions_page(
+                Some("repo-page"),
+                "/different/worktree",
+                "src/page.rs",
+                2,
+                2,
+            )
+            .expect("load second root page");
+        assert_eq!(second.total_sessions, 3);
+        assert_eq!(
+            second
+                .interactions
+                .iter()
+                .map(|record| record.session_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["child-1", "root-1"]
+        );
     }
 
     #[test]

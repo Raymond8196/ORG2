@@ -89,8 +89,17 @@ export async function getOrgtrackFileTimeline(input: {
 export async function getOrgtrackFileSessionHistory(input: {
   repoPath: string;
   filePath: string;
+  limit?: number;
+  offset?: number;
 }): Promise<OrgtrackFileSessionHistory> {
   return rpc.lineage.orgtrackGetFileSessionHistory(input);
+}
+
+export async function getOrgtrackFileSessionHistoryRevision(input: {
+  repoPath: string;
+  filePath: string;
+}): Promise<number> {
+  return rpc.lineage.orgtrackGetFileSessionHistoryRevision(input);
 }
 
 export interface IndexOrgtrackCollaborationSessionInput {

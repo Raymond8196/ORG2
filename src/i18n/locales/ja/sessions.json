@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "ファイルパスでセッションを検索",
+      "noResults": "一致するファイルを変更したセッションはありません"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "現在のKanban",
     "view": {
@@ -1011,15 +1015,24 @@
         "importFailed": "Session JSON をインポートできませんでした。"
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "このラウンドで {{count}} 件のファイルを変更",
-      "filesChangedCount_other": "このラウンドで {{count}} 件のファイルを変更",
-      "historicalRoundDiffFiles_one": "過去のラウンド Diff · {{count}} ファイル",
-      "historicalRoundDiffFiles_other": "過去のラウンド Diff · {{count}} ファイル",
-      "review": "確認",
-      "showLess": "表示を減らす",
-      "showMore_one": "他 {{count}} 件を表示",
-      "showMore_other": "他 {{count}} 件を表示"
+    "turnMetadata": {
+      "noChanges": "このラウンドではファイル変更なし",
+      "earlierRound": "以前のラウンド",
+      "files_one": "{{count}} ファイル",
+      "files_other": "{{count}} ファイル",
+      "reads_one": "{{count}} 回読み取り",
+      "reads_other": "{{count}} 回読み取り",
+      "searches_one": "{{count}} 回検索",
+      "searches_other": "{{count}} 回検索",
+      "failed": "失敗",
+      "commits_one": "{{count}} コミット",
+      "commits_other": "{{count}} コミット",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PR",
+      "review": "レビュー",
+      "showLess": "折りたたむ",
+      "showMore_one": "残り {{count}} 件を表示",
+      "showMore_other": "残り {{count}} 件を表示"
     },
     "manageIssues": {
       "title": "Issues を管理",

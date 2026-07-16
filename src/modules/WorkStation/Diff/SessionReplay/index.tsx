@@ -10,7 +10,7 @@
  *
  * The diff always shows the cumulative whole-session state (no per-event
  * replay focus and no per-round narrowing — see issue #24). A chat
- * `TurnFilesFooter` "Review"/file click still scrolls the cumulative list to
+ * `TurnMetadataFooter` "Review"/file click still scrolls the cumulative list to
  * the clicked file, but never filters it down to a single round.
  */
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -259,7 +259,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
   const hasSimulatorDiffs = simulatorConsolidatedSections.length > 0;
 
   // The Agent Station diff is always cumulative (whole-session). The chat
-  // `TurnFilesFooter` no longer narrows it to a single round (issue #24); it
+  // `TurnMetadataFooter` does not narrow it to a single round (issue #24); it
   // only scrolls the cumulative list to a clicked file (see the scope effect).
   const sidebarItems =
     finalDiffCount > 0 ? canonicalFinalSections : simulatorConsolidatedSections;
@@ -528,7 +528,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
     setDiffCommitNavigationRequest,
   ]);
 
-  // A chat `TurnFilesFooter` "Review"/file click switches to the (cumulative)
+  // A chat `TurnMetadataFooter` "Review"/file click switches to the (cumulative)
   // diff tab and scrolls to the clicked row, if any. The list is never
   // narrowed to the round (issue #24). `nonce` is part of the dep set so
   // re-clicking the same file refocuses.

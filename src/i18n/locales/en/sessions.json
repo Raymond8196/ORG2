@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Sessions",
+    "fileSearch": {
+      "placeholder": "Search sessions by file path",
+      "noResults": "No sessions touched a matching file"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Current Kanban",
     "view": {
@@ -873,16 +877,6 @@
     "replay": {
       "follow": "Follow"
     },
-    "turnFiles": {
-      "filesChangedCount_one": "{{count}} file changed this round",
-      "filesChangedCount_other": "{{count}} files changed this round",
-      "historicalRoundDiffFiles_one": "Earlier round diff · {{count}} file",
-      "historicalRoundDiffFiles_other": "Earlier round diff · {{count}} files",
-      "review": "Review",
-      "showLess": "Show less",
-      "showMore_one": "Show {{count}} more",
-      "showMore_other": "Show {{count}} more"
-    },
     "readOnlyBannerCursorIde": "Read-only Cursor IDE history. Open Cursor to continue this chat.",
     "cursorControl": {
       "enableButton": "Enable sending",
@@ -1049,6 +1043,25 @@
         "importReadFailed": "Failed to read the JSON file.",
         "importFailed": "Failed to import Session JSON."
       }
+    },
+    "turnMetadata": {
+      "noChanges": "No file changes this round",
+      "earlierRound": "Earlier round",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "reads_one": "{{count}} read",
+      "reads_other": "{{count}} reads",
+      "searches_one": "{{count}} search",
+      "searches_other": "{{count}} searches",
+      "failed": "Failed",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commits",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PRs",
+      "review": "Review",
+      "showLess": "Show less",
+      "showMore_one": "Show {{count}} more",
+      "showMore_other": "Show {{count}} more"
     },
     "manageIssues": {
       "title": "Manage issues",

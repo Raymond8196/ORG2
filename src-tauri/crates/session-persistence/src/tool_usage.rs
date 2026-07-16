@@ -364,12 +364,9 @@ pub fn delete_usage_telemetry(session_id: &str) -> SqliteResult<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Mutex as StdMutex;
-
-    static ORGII_HOME_TEST_LOCK: StdMutex<()> = StdMutex::new(());
 
     fn with_temp_orgii_home<R>(run: impl FnOnce() -> R) -> R {
-        let _guard = match ORGII_HOME_TEST_LOCK.lock() {
+        let _guard = match crate::ORGII_HOME_TEST_LOCK.lock() {
             Ok(guard) => guard,
             Err(poisoned) => poisoned.into_inner(),
         };

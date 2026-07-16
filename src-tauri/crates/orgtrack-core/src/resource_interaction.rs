@@ -38,9 +38,15 @@ pub fn file_interactions_from_activity_chunk(
 pub fn interaction_outcome_from_activity_chunk(
     chunk: &ActivityChunk,
 ) -> ResourceInteractionOutcome {
-    if chunk.result.get("success").and_then(Value::as_bool) == Some(false)
-        || chunk
-            .result
+    interaction_outcome_from_tool_result(&chunk.result)
+}
+
+/// Normalize the outcome fields used by every imported provider and ORG2's
+/// native event cache. Keeping this independent from [`ActivityChunk`] lets
+/// materialized turn projections share the exact same success semantics.
+pub fn interaction_outcome_from_tool_result(result: &Value) -> ResourceInteractionOutcome {
+    if result.get("success").and_then(Value::as_bool) == Some(false)
+        || result
             .get("status")
             .and_then(Value::as_str)
             .is_some_and(|status| {
@@ -49,6 +55,10 @@ pub fn interaction_outcome_from_activity_chunk(
                     "failed" | "error" | "cancelled" | "canceled" | "rejected"
                 )
             })
+        || ["output", "content", "observation"]
+            .into_iter()
+            .filter_map(|field| result.get(field).and_then(Value::as_str))
+            .any(|text| text.trim_start().to_ascii_lowercase().starts_with("error"))
     {
         ResourceInteractionOutcome::Failed
     } else {
@@ -86,8 +96,10 @@ pub fn file_interactions_from_tool(
     let Some(default_action) = action_for_tool_name(tool_name) else {
         return Vec::new();
     };
+    let successful_result = tool_result.and_then(|result| result.get("success"));
     let mut interactions = patch_text(tool_input)
         .or_else(|| tool_result.and_then(patch_text))
+        .or_else(|| successful_result.and_then(patch_text))
         .map(patch_file_interactions)
         .unwrap_or_default();
     if interactions.is_empty() {
@@ -95,9 +107,22 @@ pub fn file_interactions_from_tool(
             explicit_file_paths(tool_input)
                 .into_iter()
                 .chain(tool_result.into_iter().flat_map(explicit_file_paths))
+                .chain(successful_result.into_iter().flat_map(explicit_file_paths))
                 .map(|file_path| FileInteractionCandidate {
                     file_path,
                     action: default_action,
+                }),
+        );
+    }
+    if default_action == ResourceAction::Search {
+        interactions.extend(
+            tool_result
+                .into_iter()
+                .chain(successful_result)
+                .flat_map(search_result_paths)
+                .map(|file_path| FileInteractionCandidate {
+                    file_path,
+                    action: ResourceAction::Search,
                 }),
         );
     }
@@ -107,6 +132,7 @@ pub fn file_interactions_from_tool(
             .then(left.action.as_str().cmp(right.action.as_str()))
     });
     interactions.dedup();
+    interactions.truncate(1_000);
     interactions
 }
 
@@ -114,15 +140,18 @@ pub fn action_for_tool_name(tool_name: &str) -> Option<ResourceAction> {
     let normalized = tool_name.to_ascii_lowercase();
     if normalized.contains("delete") || normalized.contains("remove_file") {
         Some(ResourceAction::Delete)
+    } else if normalized.contains("rename") || normalized.contains("move_file") {
+        Some(ResourceAction::Rename)
+    } else if normalized.contains("create") {
+        // Factory Droid uses the bare `Create` name while most providers use
+        // `create_file`. A candidate is emitted only when a path is present,
+        // so similarly named non-file tools remain harmless.
+        Some(ResourceAction::Create)
     } else if normalized.contains("write")
         || normalized.contains("edit")
         || normalized.contains("patch")
         || normalized.contains("notebook")
-        // `create` covers Factory Droid's `Create` file tool; `replace` covers
-        // the Gemini-family (Qwen Code) in-place edit tool. Both only yield an
-        // interaction when a path field is also present, so the broader match
-        // cannot misclassify a non-file tool.
-        || normalized.contains("create")
+        // `replace` covers the Gemini-family (Qwen Code) in-place edit tool.
         || normalized.contains("replace")
     {
         Some(ResourceAction::Write)
@@ -162,6 +191,45 @@ pub fn explicit_file_paths(value: &Value) -> Vec<String> {
                         .map(str::to_string),
                 ),
                 _ => {}
+            }
+        }
+    }
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
+fn search_result_paths(value: &Value) -> Vec<String> {
+    const COLLECTION_FIELDS: &[&str] = &["matches", "results", "files", "filePaths"];
+    const ITEM_PATH_FIELDS: &[&str] = &[
+        "file",
+        "path",
+        "file_path",
+        "filePath",
+        "relativeWorkspacePath",
+    ];
+    let mut paths = Vec::new();
+    let Some(object) = value.as_object() else {
+        return paths;
+    };
+    for collection_field in COLLECTION_FIELDS {
+        let Some(items) = object.get(*collection_field).and_then(Value::as_array) else {
+            continue;
+        };
+        for item in items {
+            if let Some(path) = item.as_str().filter(|path| !path.trim().is_empty()) {
+                paths.push(path.to_string());
+                continue;
+            }
+            let Some(item) = item.as_object() else {
+                continue;
+            };
+            if let Some(path) = ITEM_PATH_FIELDS.iter().find_map(|field| {
+                item.get(*field)
+                    .and_then(Value::as_str)
+                    .filter(|path| !path.trim().is_empty())
+            }) {
+                paths.push(path.to_string());
             }
         }
     }
@@ -257,13 +325,36 @@ mod tests {
     }
 
     #[test]
-    fn create_and_replace_tool_names_map_to_write() {
-        // Factory Droid `Create` and Gemini-family (Qwen) `replace`.
-        assert_eq!(action_for_tool_name("Create"), Some(ResourceAction::Write));
+    fn create_and_replace_tool_names_keep_protocol_actions() {
+        // Factory Droid `Create` is a creation; Gemini-family (Qwen)
+        // `replace` remains an in-place write.
+        assert_eq!(action_for_tool_name("Create"), Some(ResourceAction::Create));
         assert_eq!(action_for_tool_name("replace"), Some(ResourceAction::Write));
         // A non-file tool that merely contains the word yields no path, so the
         // higher-level extractor drops it — but the classifier itself is lenient.
-        assert!(file_interactions_from_tool("create_memory", &json!({"note": "x"}), None).is_empty());
+        assert!(
+            file_interactions_from_tool("create_memory", &json!({"note": "x"}), None).is_empty()
+        );
+    }
+
+    #[test]
+    fn rename_and_nested_search_results_keep_protocol_actions() {
+        assert_eq!(
+            action_for_tool_name("rename_file"),
+            Some(ResourceAction::Rename)
+        );
+        let renamed =
+            file_interactions_from_tool("rename_file", &json!({"file_path": "src/old.rs"}), None);
+        assert_eq!(renamed[0].action, ResourceAction::Rename);
+
+        let searched = file_interactions_from_tool(
+            "search_files",
+            &json!({"path": "src"}),
+            Some(&json!({"success": {"results": [{"filePath": "src/lib.rs"}]}})),
+        );
+        assert!(searched.iter().any(|item| {
+            item.file_path == "src/lib.rs" && item.action == ResourceAction::Search
+        }));
     }
 
     #[test]

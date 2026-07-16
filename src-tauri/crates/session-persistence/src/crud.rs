@@ -649,14 +649,11 @@ pub fn get_event(session_id: &str, event_id: &str) -> SqliteResult<Option<Cached
 mod tests {
     use super::*;
     use rusqlite::params;
-    use std::sync::Mutex as StdMutex;
-
-    static ORGII_HOME_TEST_LOCK: StdMutex<()> = StdMutex::new(());
 
     fn with_temp_orgii_home<R>(run: impl FnOnce() -> R) -> R {
         // Tolerate poison so that one panicking test doesn't take down
         // every other test that shares the ORGII_HOME env var.
-        let _guard = match ORGII_HOME_TEST_LOCK.lock() {
+        let _guard = match crate::ORGII_HOME_TEST_LOCK.lock() {
             Ok(guard) => guard,
             Err(poisoned) => poisoned.into_inner(),
         };

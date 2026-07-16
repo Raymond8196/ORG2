@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "依檔案路徑搜尋 Session",
+      "noResults": "沒有 Session 改動過符合的檔案"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "目前看板",
     "view": {
@@ -1015,11 +1019,20 @@
         "importFailed": "無法匯入 Session JSON。"
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "本輪變更了 {{count}} 個檔案",
-      "filesChangedCount_other": "本輪變更了 {{count}} 個檔案",
-      "historicalRoundDiffFiles_one": "歷史輪次 Diff · {{count}} 個檔案",
-      "historicalRoundDiffFiles_other": "歷史輪次 Diff · {{count}} 個檔案",
+    "turnMetadata": {
+      "noChanges": "本輪沒有檔案改動",
+      "earlierRound": "較早輪次",
+      "files_one": "{{count}} 個檔案",
+      "files_other": "{{count}} 個檔案",
+      "reads_one": "讀取 {{count}} 次",
+      "reads_other": "讀取 {{count}} 次",
+      "searches_one": "搜尋 {{count}} 次",
+      "searches_other": "搜尋 {{count}} 次",
+      "failed": "失敗",
+      "commits_one": "{{count}} 個 Commit",
+      "commits_other": "{{count}} 個 Commit",
+      "pullRequests_one": "{{count}} 個 PR",
+      "pullRequests_other": "{{count}} 個 PR",
       "review": "檢視",
       "showLess": "收合",
       "showMore_one": "顯示其餘 {{count}} 個",

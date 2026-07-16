@@ -25,7 +25,7 @@ use crate::sources::imported_history::{
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const WARP_SESSION_PREFIX: &str = "warpapp-";
+pub const WARP_SESSION_PREFIX: &str = "warpapp-";
 const WARP_PROVIDER_SLUG: &str = "warp";
 const WARP_DB_FILENAME: &str = "warp.sqlite";
 const WARP_TASK_PROTO_NAME: &str = "warp.multi_agent.v1.Task";

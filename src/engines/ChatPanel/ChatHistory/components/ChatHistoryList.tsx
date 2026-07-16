@@ -73,6 +73,15 @@ function sameNullableNumberArray(
   return left.every((value, index) => value === right[index]);
 }
 
+function sameNullableStringArray(
+  left: readonly (string | null)[],
+  right: readonly (string | null)[]
+): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  return left.every((value, index) => value === right[index]);
+}
+
 type EventSummary = NonNullable<OptimizedChatItem["event"]>;
 
 const RESULT_RENDER_KEYS = [
@@ -244,6 +253,7 @@ function sameChatHistoryListProps(
   const checks: Array<[string, boolean]> = [
     ["flatItems", sameFlatItems(previous.flatItems, next.flatItems)],
     ["groupCounts", sameNumberArray(previous.groupCounts, next.groupCounts)],
+    ["turnIds", sameNullableStringArray(previous.turnIds, next.turnIds)],
     ["totalFlatItems", previous.totalFlatItems === next.totalFlatItems],
     [
       "lastAssistantFlatIndexPerItem",
@@ -336,6 +346,7 @@ export interface ChatHistoryListHandle {
 interface ChatHistoryListProps {
   flatItems: OptimizedChatItem[];
   groupCounts: number[];
+  turnIds: (string | null)[];
   totalFlatItems: number;
   lastAssistantFlatIndexPerItem: (number | null)[];
   codeBlockContainerWidth: number;
@@ -449,6 +460,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
   ({
     flatItems,
     groupCounts,
+    turnIds,
     totalFlatItems,
     lastAssistantFlatIndexPerItem,
     codeBlockContainerWidth,
@@ -645,6 +657,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
     );
     const rowGroupMetaRef = useRef<RowGroupMeta[]>(rowGroupMeta);
     rowGroupMetaRef.current = rowGroupMeta;
+    const turnIdsRef = useRef(turnIds);
+    turnIdsRef.current = turnIds;
 
     // For each flat index, the nearest preceding qualifying item — non-structural,
     // non-unloaded, with an event. Pre-computed once per flatItems change so
@@ -715,6 +729,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
           <GroupItemRenderer
             flatIndex={flatIndex}
             groupIndex={groupIndex}
+            turnId={turnIdsRef.current[groupIndex] ?? null}
             chatItem={currentFlatItems[flatIndex]}
             previousChatItem={previousChatItemsRef.current[flatIndex]}
             lastAssistantFlatIndex={rowMeta.lastAssistantFlatIndex}
@@ -893,6 +908,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                       key={itemKey}
                       flatIndex={itemFlatIndex}
                       groupIndex={groupIndex}
+                      turnId={turnIds[groupIndex] ?? null}
                       chatItem={flatItems[itemFlatIndex]}
                       previousChatItem={previousChatItems[itemFlatIndex]}
                       lastAssistantFlatIndex={rowMeta.lastAssistantFlatIndex}

@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "Tìm phiên theo đường dẫn tệp",
+      "noResults": "Không có phiên nào sửa tệp phù hợp"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Kanban hiện tại",
     "view": {
@@ -1009,15 +1013,24 @@
         "importFailed": "Không thể nhập Session JSON."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "Đã thay đổi {{count}} tệp trong vòng này",
-      "filesChangedCount_other": "Đã thay đổi {{count}} tệp trong vòng này",
-      "historicalRoundDiffFiles_one": "Diff vòng trước · {{count}} tệp",
-      "historicalRoundDiffFiles_other": "Diff vòng trước · {{count}} tệp",
+    "turnMetadata": {
+      "noChanges": "Không có thay đổi tệp trong vòng này",
+      "earlierRound": "Vòng trước",
+      "files_one": "{{count}} tệp",
+      "files_other": "{{count}} tệp",
+      "reads_one": "{{count}} lượt đọc",
+      "reads_other": "{{count}} lượt đọc",
+      "searches_one": "{{count}} lượt tìm kiếm",
+      "searches_other": "{{count}} lượt tìm kiếm",
+      "failed": "Thất bại",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commit",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PR",
       "review": "Xem lại",
-      "showLess": "Thu gọn",
-      "showMore_one": "Hiển thị thêm {{count}}",
-      "showMore_other": "Hiển thị thêm {{count}}"
+      "showLess": "Hiện ít hơn",
+      "showMore_one": "Hiện thêm {{count}}",
+      "showMore_other": "Hiện thêm {{count}}"
     },
     "manageIssues": {
       "title": "Quản lý issues",
