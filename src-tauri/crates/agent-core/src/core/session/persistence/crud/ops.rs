@@ -896,6 +896,24 @@ mod tests {
             context_usage_json TEXT,
             created_at TEXT NOT NULL DEFAULT ''
         );
+        CREATE TABLE orgtrack_core_session_usage (
+            session_id          TEXT PRIMARY KEY,
+            source              TEXT NOT NULL,
+            model               TEXT,
+            account_id          TEXT,
+            key_source          TEXT,
+            input_tokens        INTEGER NOT NULL DEFAULT 0,
+            output_tokens       INTEGER NOT NULL DEFAULT 0,
+            cache_read_tokens   INTEGER NOT NULL DEFAULT 0,
+            cache_write_tokens  INTEGER NOT NULL DEFAULT 0,
+            total_tokens        INTEGER NOT NULL DEFAULT 0,
+            context_tokens      INTEGER NOT NULL DEFAULT 0,
+            recorded_cost_usd   REAL NOT NULL DEFAULT 0,
+            estimated_cost_usd  REAL NOT NULL DEFAULT 0,
+            cost_usd            REAL NOT NULL DEFAULT 0,
+            tokens_source       TEXT NOT NULL DEFAULT 'none',
+            computed_at         TEXT NOT NULL
+        );
     "#;
 
     fn make_record(session_id: &str, key_source: KeySource) -> UnifiedSessionRecord {

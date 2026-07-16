@@ -98,6 +98,24 @@ pub(crate) const AGENT_SESSIONS_TEST_DDL: &str = r#"
         attribution_method TEXT NOT NULL DEFAULT 'bytes_only',
         created_at TEXT NOT NULL DEFAULT ''
     );
+    CREATE TABLE IF NOT EXISTS orgtrack_core_session_usage (
+        session_id          TEXT PRIMARY KEY,
+        source              TEXT NOT NULL,
+        model               TEXT,
+        account_id          TEXT,
+        key_source          TEXT,
+        input_tokens        INTEGER NOT NULL DEFAULT 0,
+        output_tokens       INTEGER NOT NULL DEFAULT 0,
+        cache_read_tokens   INTEGER NOT NULL DEFAULT 0,
+        cache_write_tokens  INTEGER NOT NULL DEFAULT 0,
+        total_tokens        INTEGER NOT NULL DEFAULT 0,
+        context_tokens      INTEGER NOT NULL DEFAULT 0,
+        recorded_cost_usd   REAL NOT NULL DEFAULT 0,
+        estimated_cost_usd  REAL NOT NULL DEFAULT 0,
+        cost_usd            REAL NOT NULL DEFAULT 0,
+        tokens_source       TEXT NOT NULL DEFAULT 'none',
+        computed_at         TEXT NOT NULL
+    );
 "#;
 
 /// Idempotently install the shared schema on the global test connection.

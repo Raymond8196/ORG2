@@ -224,7 +224,12 @@ impl RepoWatcher {
         std::thread::Builder::new()
             .name("repo-watcher-git-status-poller".to_string())
             .spawn(move || {
-                let rt = match tokio::runtime::Runtime::new() {
+                // Single polling loop; blocking work goes through spawn_blocking's
+                // own pool, so a current-thread runtime avoids a per-core worker set.
+                let rt = match tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                {
                     Ok(rt) => rt,
                     Err(err) => {
                         log::error!("[RepoWatch] Git status poller runtime init failed: {}", err);

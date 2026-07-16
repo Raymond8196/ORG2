@@ -77,7 +77,13 @@ pub fn start_cli_managed_proxy_thread() {
         return;
     }
 
-    std::thread::spawn(|| match tokio::runtime::Runtime::new() {
+    // Async-IO proxy: two workers cover many concurrent CLI streams without
+    // paying for a core-count worker pool.
+    std::thread::spawn(|| match tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .enable_all()
+        .build()
+    {
         Ok(rt) => {
             rt.block_on(supervise_proxy_server());
             PROXY_RUNNING.store(false, Ordering::SeqCst);
