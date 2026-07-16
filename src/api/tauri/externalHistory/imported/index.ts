@@ -22,6 +22,7 @@ import {
   type ImportedHistorySourceDescriptor,
   type ImportedHistorySourceId,
 } from "./descriptors";
+import { importedHistoryStat } from "./stat";
 
 export type {
   ImportedHistoryListCategory,
@@ -65,6 +66,7 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
   {
     ...descriptorFor("cursor_ide"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("cursor_ide", sessionId),
     async loadPreviewChunks(sessionId) {
       return (
         await cursorIdeInitialWindow({
@@ -78,6 +80,7 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
   {
     ...descriptorFor("codex_app"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("codex_app", sessionId),
     loadPreviewChunks: codexAppChunks,
     loadFullTranscriptChunks: codexAppChunks,
   },
@@ -91,42 +94,49 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
   {
     ...descriptorFor("opencode"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("opencode", sessionId),
     loadPreviewChunks: opencodeHistoryChunks,
     loadFullTranscriptChunks: opencodeHistoryChunks,
   },
   {
     ...descriptorFor("windsurf"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("windsurf", sessionId),
     loadPreviewChunks: windsurfHistoryChunks,
     loadFullTranscriptChunks: windsurfHistoryChunks,
   },
   {
     ...descriptorFor("workbuddy"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("workbuddy", sessionId),
     loadPreviewChunks: workBuddyHistoryChunks,
     loadFullTranscriptChunks: workBuddyHistoryChunks,
   },
   {
     ...descriptorFor("trae"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("trae", sessionId),
     loadPreviewChunks: traeHistoryChunks,
     loadFullTranscriptChunks: traeHistoryChunks,
   },
   {
     ...descriptorFor("cline"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("cline", sessionId),
     loadPreviewChunks: clineHistoryChunks,
     loadFullTranscriptChunks: clineHistoryChunks,
   },
   {
     ...descriptorFor("warp"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("warp", sessionId),
     loadPreviewChunks: warpHistoryChunks,
     loadFullTranscriptChunks: warpHistoryChunks,
   },
   {
     ...descriptorFor("zcode"),
     dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("zcode", sessionId),
     loadPreviewChunks: zcodeHistoryChunks,
     loadFullTranscriptChunks: zcodeHistoryChunks,
   },
