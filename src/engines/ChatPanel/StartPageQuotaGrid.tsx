@@ -18,17 +18,13 @@ import {
 } from "@src/hooks/keyVault/accountQuotaDisplay";
 import { createLogger } from "@src/hooks/logger";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 
 const logger = createLogger("StartPageQuotaGrid");
 
-export const START_PAGE_TREND_SURFACE_CLASS =
-  "rounded-lg border border-border-1 bg-chat-container/70";
-
-export const START_PAGE_HEATMAP_CONTAINER_CLASS = `${START_PAGE_TREND_SURFACE_CLASS} px-3 pt-3 pb-1`;
-
-// Quota cards render directly above the scan table in the Runtime tab, so they
-// use the standard settings surface (bg-surface-container) — matching the scan
-// table and settings rows — rather than the translucent trend surface.
+// Quota cards live in the Manage dashboard, so they use the standard settings
+// surface (bg-surface-container) to match its other management sections rather
+// than the translucent trend surface.
 const START_PAGE_QUOTA_SURFACE_CLASS =
   "rounded-lg border border-border-1 bg-surface-container";
 
@@ -246,31 +242,19 @@ export function StartPageQuotaGrid({
     ? formatQuotaRefreshElapsed(lastRefreshedAt, new Date(nowMs), t)
     : null;
 
-  if (entries.length === 0) {
-    return (
-      <p
-        className={`px-1 text-center text-[13px] text-text-3 ${className ?? ""}`}
-      >
-        {t("chat.startPage.quota.empty")}
-      </p>
-    );
-  }
-
   return (
-    <div className={`flex flex-col gap-2 ${className ?? ""}`}>
-      <div className={`grid gap-2 ${gridClassName}`}>
-        {visibleEntries.map((entry) => (
-          <StartPageQuotaCard key={entry.id} entry={entry} />
-        ))}
-      </div>
-      <div className="flex items-center justify-center px-1">
+    <CollapsibleSection
+      title={tIntegrations("keyVault.quota.quotaUsage")}
+      compact
+      className={className}
+      titleButtonTestId="chat-panel-start-page-quota-toggle"
+      actions={
         <Button
           htmlType="button"
           variant="tertiary"
-          appearance="ghost"
           size="mini"
           iconOnly={!lastRefreshedLabel}
-          disabled={refreshing}
+          disabled={refreshing || entries.length === 0}
           aria-label={t("chat.startPage.quota.refresh")}
           title={
             lastRefreshedLabel
@@ -284,26 +268,40 @@ export function StartPageQuotaGrid({
             <span className="tabular-nums">{lastRefreshedLabel}</span>
           ) : null}
         </Button>
-      </div>
-      {entries.length > pageSize ? (
-        <div className="group flex items-center justify-center gap-1 px-1 text-center text-[13px] leading-6 text-text-3">
-          <StartPageQuotaNavButton
-            label={t("chat.startPage.hints.previous")}
-            onClick={() => switchPage("previous")}
-          >
-            <ChevronLeft size={14} strokeWidth={1.8} />
-          </StartPageQuotaNavButton>
-          <p className="min-w-0 flex-1 truncate tabular-nums">
-            {safePageIndex + 1} / {pageCount}
-          </p>
-          <StartPageQuotaNavButton
-            label={t("chat.startPage.hints.next")}
-            onClick={() => switchPage("next")}
-          >
-            <ChevronRight size={14} strokeWidth={1.8} />
-          </StartPageQuotaNavButton>
+      }
+    >
+      {entries.length === 0 ? (
+        <p className="px-1 text-center text-[13px] text-text-3">
+          {t("chat.startPage.quota.empty")}
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <div className={`grid gap-2 ${gridClassName}`}>
+            {visibleEntries.map((entry) => (
+              <StartPageQuotaCard key={entry.id} entry={entry} />
+            ))}
+          </div>
+          {entries.length > pageSize ? (
+            <div className="group flex items-center justify-center gap-1 px-1 text-center text-[13px] leading-6 text-text-3">
+              <StartPageQuotaNavButton
+                label={t("chat.startPage.hints.previous")}
+                onClick={() => switchPage("previous")}
+              >
+                <ChevronLeft size={14} strokeWidth={1.8} />
+              </StartPageQuotaNavButton>
+              <p className="min-w-0 flex-1 truncate tabular-nums">
+                {safePageIndex + 1} / {pageCount}
+              </p>
+              <StartPageQuotaNavButton
+                label={t("chat.startPage.hints.next")}
+                onClick={() => switchPage("next")}
+              >
+                <ChevronRight size={14} strokeWidth={1.8} />
+              </StartPageQuotaNavButton>
+            </div>
+          ) : null}
         </div>
-      ) : null}
-    </div>
+      )}
+    </CollapsibleSection>
   );
 }
