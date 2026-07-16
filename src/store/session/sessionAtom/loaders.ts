@@ -27,7 +27,6 @@ import {
   sessionAggregateList,
   toFrontendSessions,
 } from "@src/api/tauri/session";
-import { overlayImportedSessionsCloudOrg } from "@src/features/TeamCollaboration/importedSessionCloudOrgOverlay";
 import { createLogger } from "@src/hooks/logger";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 import {
@@ -196,7 +195,7 @@ function importedHistoryPageResult(
   response: ExternalHistorySidebarResponse
 ): FetchPageResult {
   const dateBuckets = mergeDateBucketPagination(currentBuckets, response);
-  const mappedSessions = response.buckets.flatMap((page) =>
+  const sessions = response.buckets.flatMap((page) =>
     page.sessions.map((row): Session => {
       const name = row.name.trim() || row.sessionId;
       return {
@@ -224,7 +223,7 @@ function importedHistoryPageResult(
     })
   );
   return {
-    sessions: overlayImportedSessionsCloudOrg(mappedSessions),
+    sessions,
     hasMore: SESSION_DATE_BUCKET_KEYS.some(
       (bucket) => dateBuckets[bucket].hasMore
     ),
@@ -350,8 +349,8 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
         disabledSources.length > 0 ? disabledSources : undefined,
     });
 
-    const fetched: Session[] = overlayImportedSessionsCloudOrg(
-      toFrontendSessions((response as SessionListResponse).sessions)
+    const fetched: Session[] = toFrontendSessions(
+      (response as SessionListResponse).sessions
     );
 
     fetched.sort((sessionA, sessionB) =>
@@ -394,9 +393,7 @@ async function fetchAggregatePage(
     sortBy: "updated_at",
     sortOrder: "desc",
   });
-  const primarySessions = overlayImportedSessionsCloudOrg(
-    toFrontendSessions(response.sessions)
-  )
+  const primarySessions = toFrontendSessions(response.sessions)
     .filter(isPrimarySessionListSession)
     .slice(0, pageSize);
   return {
@@ -584,9 +581,9 @@ export const loadSidebarSessionById = async (
     includeExternalHistory: store.get(externalSessionsEnabledAtom),
     limit: 1,
   });
-  const session = overlayImportedSessionsCloudOrg(
-    toFrontendSessions(response.sessions)
-  ).find((candidate) => candidate.session_id === normalizedSessionId);
+  const session = toFrontendSessions(response.sessions).find(
+    (candidate) => candidate.session_id === normalizedSessionId
+  );
   if (!session) return null;
 
   store.set(sessionsAtom, (previous) => mergeSessions(previous, [session]));

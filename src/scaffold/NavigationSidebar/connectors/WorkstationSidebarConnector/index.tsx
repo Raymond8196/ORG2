@@ -7,6 +7,7 @@ import React, {
   useLayoutEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -32,10 +33,19 @@ import {
   parseCloudOrgSelectorValue,
   sidebarActiveCloudOrgIdAtom,
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import { org2CloudRepoScopesAtom } from "@src/features/Org2Cloud/org2CloudSyncAtoms";
 import ForkCheckoutPickerDialog from "@src/features/TeamCollaboration/components/ForkCheckoutPickerDialog";
 import ForkSessionSetupDialog from "@src/features/TeamCollaboration/components/ForkSessionSetupDialog";
 import MoveToOrgDialog from "@src/features/TeamCollaboration/components/MoveToOrgDialog";
 import { useMoveToOrgDialog } from "@src/features/TeamCollaboration/components/MoveToOrgDialog/useMoveToOrgDialog";
+import {
+  collectImportedSessionIdsCoveredByAnyScope,
+  collectScopeMatchedImportedSessionIds,
+} from "@src/features/TeamCollaboration/importedSessionScopeMatch";
+import {
+  getShareableScopeKeyVersion,
+  subscribeShareableScopeKeys,
+} from "@src/features/TeamCollaboration/repoScopeResolver";
 import {
   cloudOrgIdsForSession,
   sessionOrgTagsAtom,
@@ -456,11 +466,25 @@ export const WorkstationSidebarConnector: React.FC = () => {
   }, [activeCloudOrgId, setSidebarActiveCloudOrgId]);
 
   // Sessions explicitly tagged into the active cloud org (MoveToOrgDialog)
-  // match the cloud scope even without a stamped orgId.
+  // match the cloud scope even without a stamped orgId. Imported CLI
+  // sessions (claude/codex/…) match by REPO SCOPE at filter time: a session
+  // whose repo is covered by this org's scope belongs in this org's view —
+  // and in every other covering org's view too.
   const sessionOrgTags = useAtomValue(sessionOrgTagsAtom);
+  const repoScopesByOrg = useAtomValue(org2CloudRepoScopesAtom);
+  // Re-derive the scope matches when an async git-remote resolution lands
+  // in the shared cache (no polling — pure subscription).
+  const scopeKeyVersion = useSyncExternalStore(
+    subscribeShareableScopeKeys,
+    getShareableScopeKeyVersion
+  );
   const cloudTaggedSessionIds = useMemo(() => {
     if (!activeCloudOrgId) return undefined;
-    const ids = new Set<string>();
+    const ids = collectScopeMatchedImportedSessionIds(
+      sortedSessions,
+      repoScopesByOrg[activeCloudOrgId]
+    );
+    void scopeKeyVersion;
     for (const sessionId of Object.keys(sessionOrgTags)) {
       if (
         cloudOrgIdsForSession(sessionOrgTags, sessionId).includes(
@@ -471,21 +495,41 @@ export const WorkstationSidebarConnector: React.FC = () => {
       }
     }
     return ids;
-  }, [activeCloudOrgId, sessionOrgTags]);
+  }, [
+    activeCloudOrgId,
+    sessionOrgTags,
+    sortedSessions,
+    repoScopesByOrg,
+    scopeKeyVersion,
+  ]);
 
   // The mirror rule for the Personal scope: a session living in a cloud org
-  // (explicit tag) is HIDDEN from Personal — it moves back only when the tag
-  // is removed (MoveToOrgDialog / the engine's out-of-scope invalidation).
+  // — explicit tag, or an imported session covered by ANY member org's repo
+  // scope — is HIDDEN from Personal. It moves back when the tag is removed
+  // (MoveToOrgDialog / the engine's out-of-scope invalidation) or the scope
+  // stops covering its repo.
   const personalHiddenCloudTaggedIds = useMemo(() => {
     if (activeOrgId !== DEFAULT_SESSION_ORG_ID) return undefined;
-    const ids = new Set<string>();
+    const ids = collectImportedSessionIdsCoveredByAnyScope(
+      sortedSessions,
+      cloudOrgs.map((org) => org.orgId),
+      repoScopesByOrg
+    );
+    void scopeKeyVersion;
     for (const sessionId of Object.keys(sessionOrgTags)) {
       if (cloudOrgIdsForSession(sessionOrgTags, sessionId).length > 0) {
         ids.add(sessionId);
       }
     }
     return ids.size > 0 ? ids : undefined;
-  }, [activeOrgId, sessionOrgTags]);
+  }, [
+    activeOrgId,
+    sessionOrgTags,
+    sortedSessions,
+    cloudOrgs,
+    repoScopesByOrg,
+    scopeKeyVersion,
+  ]);
 
   // Per-org filter for the cloud "Team sessions" section.
   const [cloudSessionFilters, setCloudSessionFilters] = useState<
