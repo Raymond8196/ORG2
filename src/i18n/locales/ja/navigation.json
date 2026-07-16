@@ -517,7 +517,6 @@
         "expiryOptionNever": "無期限",
         "roleAdmin": "管理者",
         "roleMember": "メンバー",
-        "roleViewer": "閲覧者",
         "createdAt": "作成: {{date}}",
         "remainingUses": "残り回数: {{uses}}",
         "expires": "{{date}} に期限切れ",

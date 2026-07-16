@@ -517,7 +517,6 @@
         "expiryOptionNever": "Бессрочно",
         "roleAdmin": "Администратор",
         "roleMember": "Участник",
-        "roleViewer": "Наблюдатель",
         "createdAt": "Создано {{date}}",
         "remainingUses": "Осталось использований: {{uses}}",
         "expires": "Истекает {{date}}",
