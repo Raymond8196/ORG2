@@ -15,7 +15,8 @@
  *    and links through to that session's WorkStation view. Edit signals expand
  *    to lazily load the file's diff patch when one exists.
  */
-import { RefreshCw, Terminal } from "lucide-react";
+import { useAtomValue } from "jotai";
+import { AlertTriangle, RefreshCw, Terminal } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -50,6 +51,11 @@ import { parseUnifiedDiffToOldNew } from "@src/engines/SessionCore/rendering/pro
 import { CodeMirrorDiff } from "@src/features/CodeMirror/Diff";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import InlineInfoCard from "@src/modules/shared/layouts/blocks/InlineInfoCard";
+import { TerminalService } from "@src/services/terminal";
+import {
+  activeWorkspaceRootPathAtom,
+  primaryWorkspaceRootPathAtom,
+} from "@src/store/workspace";
 import { copyText } from "@src/util/data/clipboard";
 import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 import { openFileInWorkStation } from "@src/util/ui/openFileInWorkStation";
@@ -130,6 +136,8 @@ const SourceIcon: React.FC<{ iconId: IconProvider }> = ({ iconId }) => (
 const HookPlatformsTable: React.FC = () => {
   const { t } = useTranslation("integrations");
   const { t: tCommon } = useTranslation("common");
+  const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
+  const primaryWorkspaceRootPath = useAtomValue(primaryWorkspaceRootPathAtom);
   const [statuses, setStatuses] = useState<StatusByPlatform>({});
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -139,14 +147,19 @@ const HookPlatformsTable: React.FC = () => {
   >(() => new Set());
   const [errors, setErrors] = useState<ErrorByPlatform>({});
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+  const [launchingCodexApproval, setLaunchingCodexApproval] = useState(false);
+  const approvalAutoExpanded = useRef<Set<SessionProvenanceHookPlatform>>(
+    new Set()
+  );
 
-  const loadStatuses = useCallback(async () => {
-    setRefreshing(true);
+  const loadStatuses = useCallback(async (silent = false) => {
+    if (!silent) setRefreshing(true);
     try {
       const nextStatuses = await rpc.agentOrgs.sessionProvenance.status();
       setStatuses(indexStatuses(nextStatuses));
-      setErrors({});
+      if (!silent) setErrors({});
     } catch (error) {
+      if (silent) return;
       const message = error instanceof Error ? error.message : String(error);
       setErrors(
         Object.fromEntries(
@@ -155,13 +168,53 @@ const HookPlatformsTable: React.FC = () => {
       );
     } finally {
       setInitialLoading(false);
-      setRefreshing(false);
+      if (!silent) setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
     void loadStatuses();
   }, [loadStatuses]);
+
+  useEffect(() => {
+    if (statuses.codex?.activationState !== "awaiting_approval") return;
+    const interval = window.setInterval(() => void loadStatuses(true), 2_000);
+    return () => window.clearInterval(interval);
+  }, [loadStatuses, statuses.codex?.activationState]);
+
+  useEffect(() => {
+    for (const platform of PLATFORMS) {
+      const awaitingApproval =
+        platform.id === "codex" &&
+        statuses[platform.id]?.activationState === "awaiting_approval";
+      if (awaitingApproval && !approvalAutoExpanded.current.has(platform.id)) {
+        approvalAutoExpanded.current.add(platform.id);
+        setExpandedRowKeys((current) =>
+          current.includes(platform.id) ? current : [...current, platform.id]
+        );
+      } else if (!awaitingApproval) {
+        approvalAutoExpanded.current.delete(platform.id);
+      }
+    }
+  }, [statuses]);
+
+  const handleReviewCodexHooks = useCallback(async () => {
+    setLaunchingCodexApproval(true);
+    setErrors((current) => ({ ...current, codex: undefined }));
+    try {
+      await TerminalService.executeInNewSession("codex", {
+        name: "Codex hook approval",
+        cwd: activeWorkspaceRootPath || primaryWorkspaceRootPath || undefined,
+      });
+    } catch (error) {
+      setErrors((current) => ({
+        ...current,
+        codex: error instanceof Error ? error.message : String(error),
+      }));
+    } finally {
+      setLaunchingCodexApproval(false);
+    }
+  }, [activeWorkspaceRootPath, primaryWorkspaceRootPath]);
 
   const handleChange = useCallback(
     async (platform: SessionProvenanceHookPlatform, enabled: boolean) => {
@@ -224,6 +277,9 @@ const HookPlatformsTable: React.FC = () => {
     if (status && status.desiredEnabled && !status.enabled) {
       return { color: "warning", labelKey: "repair" };
     }
+    if (status?.activationState === "awaiting_approval") {
+      return { color: "warning", labelKey: "needsApproval" };
+    }
     return status?.enabled
       ? { color: "success", labelKey: "on" }
       : { color: "default", labelKey: "off" };
@@ -243,11 +299,21 @@ const HookPlatformsTable: React.FC = () => {
               <SourceIcon iconId={row.iconId} />
             </span>
             <span className="truncate">{row.label}</span>
-            <Tag size="mini" color={statusTag.color} pill className="shrink-0">
-              {t(`agentOrgs.sessionProvenance.status.${statusTag.labelKey}`, {
-                defaultValue: statusTag.labelKey,
-              })}
-            </Tag>
+            <span
+              data-testid={`session-provenance-hook-status-${row.id}`}
+              data-activation-state={row.status?.activationState ?? "inactive"}
+            >
+              <Tag
+                size="mini"
+                color={statusTag.color}
+                pill
+                className="shrink-0"
+              >
+                {t(`agentOrgs.sessionProvenance.status.${statusTag.labelKey}`, {
+                  defaultValue: statusTag.labelKey,
+                })}
+              </Tag>
+            </span>
           </span>
         );
       },
@@ -301,6 +367,18 @@ const HookPlatformsTable: React.FC = () => {
           defaultValue:
             "The saved preference and installed hook differ. Toggle capture to repair the managed hook. Config: {{path}}",
           path: status.configPath,
+        });
+      }
+      if (status?.activationState === "awaiting_approval") {
+        return t("agentOrgs.sessionProvenance.codexApproval.description", {
+          defaultValue:
+            "Codex has the ORG2 hooks installed, but Codex still needs your approval before it can run them.",
+        });
+      }
+      if (status?.activationState === "active" && status.lastActivatedAt) {
+        return t("agentOrgs.sessionProvenance.codexApproval.verified", {
+          defaultValue: "Verified by a real Codex hook signal {{time}}.",
+          time: formatRelativeElapsedShort(new Date(status.lastActivatedAt)),
         });
       }
       return t("agentOrgs.sessionProvenance.description", {
@@ -384,6 +462,50 @@ const HookPlatformsTable: React.FC = () => {
               <p className="text-[12px] leading-relaxed text-text-2">
                 {description(row)}
               </p>
+              {row.id === "codex" &&
+                row.status?.activationState === "awaiting_approval" && (
+                  <div
+                    className="flex items-start justify-between gap-4 rounded-md border border-warning-3 bg-warning-1 px-3 py-2.5"
+                    data-testid="session-provenance-codex-approval"
+                  >
+                    <div className="flex min-w-0 items-start gap-2.5">
+                      <AlertTriangle
+                        size={16}
+                        className="mt-0.5 shrink-0 text-warning-6"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-[12px] font-medium text-text-1">
+                          {t(
+                            "agentOrgs.sessionProvenance.codexApproval.title",
+                            { defaultValue: "Approve ORG2 hooks in Codex" }
+                          )}
+                        </p>
+                        <p className="mt-0.5 text-[12px] leading-relaxed text-text-2">
+                          {t(
+                            "agentOrgs.sessionProvenance.codexApproval.instructions",
+                            {
+                              defaultValue:
+                                "Open Codex, review the 3 ORG2 hooks, then choose Trust all and continue. ORG2 marks this active after the first real hook signal.",
+                            }
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <span data-testid="session-provenance-review-codex-hooks">
+                      <Button
+                        variant="primary"
+                        size="small"
+                        icon={<Terminal size={14} />}
+                        loading={launchingCodexApproval}
+                        onClick={() => void handleReviewCodexHooks()}
+                      >
+                        {t("agentOrgs.sessionProvenance.codexApproval.review", {
+                          defaultValue: "Review in Codex",
+                        })}
+                      </Button>
+                    </span>
+                  </div>
+                )}
             </div>
           </InlineInfoCard>
         ),
