@@ -12,9 +12,11 @@ describe("formatTurnDuration", () => {
     expect(formatTurnDuration(5 * 60_000 + 5_000)).toBe("5m 5s");
   });
 
-  it("normalizes missing and invalid durations", () => {
-    expect(formatTurnDuration(0)).toBe("0s");
-    expect(formatTurnDuration(Number.NaN)).toBe("0s");
+  it("normalizes missing and invalid durations to <1min", () => {
+    expect(formatTurnDuration(0)).toBe("<1min");
+    expect(formatTurnDuration(Number.NaN)).toBe("<1min");
+    // Sub-second real durations round to 0s, which reads as broken too.
+    expect(formatTurnDuration(400)).toBe("<1min");
   });
 });
 

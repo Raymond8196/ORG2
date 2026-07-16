@@ -77,6 +77,7 @@ export const KANBAN_AGENT_TYPE_FILTER = {
   CLINE_APP: "cline_app",
   WARP_APP: "warp_app",
   ZCODE_APP: "zcode_app",
+  QODER_APP: "qoder_app",
 } as const;
 
 export type KanbanBuiltInAgentTypeFilter =
@@ -97,6 +98,7 @@ export const EXTERNAL_HISTORY_FILTER_BY_SOURCE: Record<
   cline: KANBAN_AGENT_TYPE_FILTER.CLINE_APP,
   warp: KANBAN_AGENT_TYPE_FILTER.WARP_APP,
   zcode: KANBAN_AGENT_TYPE_FILTER.ZCODE_APP,
+  qoder: KANBAN_AGENT_TYPE_FILTER.QODER_APP,
 };
 
 /** Widened column id used inside Agent Kanban only. */

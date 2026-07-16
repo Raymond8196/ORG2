@@ -129,4 +129,15 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       replayable: true,
       supportsWindowedReplay: false,
     },
+    {
+      sourceId: "qoder",
+      listCategory: "external_history:qoder",
+      prefix: "qoderapp-",
+      iconId: "qoder",
+      displayName: "Qoder",
+      groupLabel: "Qoder",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
   ];
