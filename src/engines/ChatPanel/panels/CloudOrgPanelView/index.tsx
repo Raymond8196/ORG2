@@ -138,10 +138,11 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
   const [savingScopes, setSavingScopes] = useState(false);
   const [scopesSaved, setScopesSaved] = useState(false);
   const [scopesError, setScopesError] = useState<string | null>(null);
-  // Bumped when a checkout completes inside the billing window
-  // (org2-cloud-billing-complete from the Rust navigation handler) so the
-  // panel re-pulls entitlement/members/scopes and the plan badge flips
-  // without reopening the panel.
+  // Bumped when a checkout completes in the system browser
+  // (org2-cloud-billing-complete, re-emitted by useDeepLinkHandler from the
+  // orgii://billing/complete deep link) so the panel re-pulls
+  // entitlement/members/scopes and the plan badge flips without reopening
+  // the panel.
   const [refreshNonce, setRefreshNonce] = useState(0);
   useTauriListen(
     "org2-cloud-billing-complete",
