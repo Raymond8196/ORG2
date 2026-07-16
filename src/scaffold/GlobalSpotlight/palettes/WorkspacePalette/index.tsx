@@ -312,6 +312,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
     onClose,
     refreshReposForce,
     searchQuery,
+    repoFilter,
     setEditingWorkspace:
       addWorkspaceFlow.multiRepoWorkspaceForm.setEditingWorkspace,
   });

@@ -207,8 +207,12 @@ export interface WorkspaceDropdownProps {
   /**
    * Row eligibility predicate (e.g. active cloud org repo scope). Applied
    * to every source — leading, workspace, and external-recent rows.
+   * Multi-repo workspaces are judged by their PRIMARY folder.
    */
-  repoFilter?: (repo: RepoItem) => boolean;
+  repoFilter?: (repo: {
+    repo_url?: string | null;
+    fs_uri?: string | null;
+  }) => boolean;
 }
 
 export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
@@ -277,15 +281,26 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
   // workspace name and member folder names so users can find a workspace by
   // any of its repos.
   const filteredWorkspaces = useMemo(() => {
+    // Same primary-folder rule as the palette: the primary folder is the
+    // path a session launched from this workspace reports as its repoPath.
+    const eligible = repoFilter
+      ? workspaces.filter((entry) =>
+          repoFilter({
+            fs_uri:
+              entry.workspace.folders.find((folder) => folder.isPrimary)
+                ?.folderPath ?? entry.workspace.folders[0]?.folderPath,
+          })
+        )
+      : workspaces;
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return workspaces;
-    return workspaces.filter((entry) => {
+    if (!query) return eligible;
+    return eligible.filter((entry) => {
       if (entry.workspace.name.toLowerCase().includes(query)) return true;
       return entry.folderNames.some((name) =>
         name.toLowerCase().includes(query)
       );
     });
-  }, [workspaces, searchQuery]);
+  }, [workspaces, searchQuery, repoFilter]);
   const invalidPathTitle = t("selectors.repo.pathImport.invalidTitle");
   const invalidPathMessage = useCallback(
     (path: string) => t("selectors.repo.pathImport.invalidMessage", { path }),
