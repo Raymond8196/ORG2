@@ -43,6 +43,7 @@ async function loadChatPanelTabAtoms() {
     chatPanelTabsAtom,
     closeChatPanelTabAtom,
     normalizePersistedChatPanelTabsState,
+    openCloudOrgManagementInChatPanelTabAtom,
     openKanbanChatPanelTabAtom,
     openOrFocusChatPanelManageTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
@@ -90,6 +91,7 @@ async function loadChatPanelTabAtoms() {
     kanbanReplaySpeedAtom,
     kanbanSelectedTaskIdAtom,
     normalizePersistedChatPanelTabsState,
+    openCloudOrgManagementInChatPanelTabAtom,
     openKanbanChatPanelTabAtom,
     openOrFocusChatPanelManageTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
@@ -560,6 +562,60 @@ describe("ChatPanel navigation tabs", () => {
         .get(chatPanelTabsAtom)
         .tabs.filter((tab) => tab.type === "start-page")
     ).toHaveLength(1);
+  });
+
+  it("opens org management in its own singleton tab and restores the selected org", async () => {
+    const {
+      activateChatPanelTabAtom,
+      activeChatPanelSurfaceAtom,
+      CHAT_PANEL_SURFACE_KIND,
+      chatPanelTabsAtom,
+      openCloudOrgManagementInChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+    const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
+
+    const managementTabId = store.set(
+      openCloudOrgManagementInChatPanelTabAtom,
+      {
+        cloudOrg: { orgId: "org-a" },
+        title: "Manage ORG",
+      }
+    );
+
+    expect(store.get(chatPanelTabsAtom)).toMatchObject({
+      activeTabId: managementTabId,
+      tabs: expect.arrayContaining([
+        expect.objectContaining({
+          id: managementTabId,
+          type: "cloud-org",
+          title: "Manage ORG",
+          cloudOrg: { orgId: "org-a" },
+        }),
+      ]),
+    });
+    expect(store.get(activeChatPanelSurfaceAtom)).toEqual({
+      kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
+      cloudOrg: { orgId: "org-a" },
+    });
+
+    const switchedTabId = store.set(openCloudOrgManagementInChatPanelTabAtom, {
+      cloudOrg: { orgId: "org-b" },
+      title: "Manage ORG",
+    });
+    expect(switchedTabId).toBe(managementTabId);
+    expect(
+      store
+        .get(chatPanelTabsAtom)
+        .tabs.filter((tab) => tab.type === "cloud-org")
+    ).toEqual([expect.objectContaining({ cloudOrg: { orgId: "org-b" } })]);
+
+    store.set(activateChatPanelTabAtom, launchpadTabId);
+    store.set(activateChatPanelTabAtom, managementTabId);
+    expect(store.get(activeChatPanelSurfaceAtom)).toEqual({
+      kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
+      cloudOrg: { orgId: "org-b" },
+    });
   });
 
   it("reuses the singleton start page instead of stacking new-session tabs", async () => {

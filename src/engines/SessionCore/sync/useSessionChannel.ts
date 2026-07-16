@@ -47,6 +47,7 @@ import { useEffect, useRef } from "react";
 
 import { parseRawSessionEvent } from "@src/engines/SessionCore/core/schemas";
 import { createLogger } from "@src/hooks/logger";
+import { recordPushEvent } from "@src/util/monitoring/apiTracker";
 
 const log = createLogger("useSessionChannel");
 
@@ -269,6 +270,7 @@ export function useSessionChannel(
     );
 
     channel.onmessage = (message: string) => {
+      recordPushEvent("channel", "session-events");
       lifecycle.onMessage(message);
     };
 
