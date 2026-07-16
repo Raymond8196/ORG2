@@ -104,6 +104,7 @@ fn persist_actor_lifecycle(
             branch: None,
             parent_session_id: None,
             org_member_id: None,
+            collaboration_origin: None,
             metadata: AgentMetadata {
                 origin: Some(SESSION_PROVENANCE_HOOK_ORIGIN.to_string()),
                 ..AgentMetadata::default()
@@ -154,6 +155,7 @@ fn persist_actor_lifecycle(
                 branch: None,
                 parent_session_id: Some(root_session_id.clone()),
                 org_member_id: None,
+                collaboration_origin: None,
                 metadata: AgentMetadata {
                     origin: Some(envelope.source.clone()),
                     display_name: envelope.actor_type.clone(),
@@ -376,6 +378,7 @@ fn persist_envelope(
             // Actor/subagent identity belongs to the interaction. It must not
             // be promoted to session-level org membership.
             org_member_id: None,
+            collaboration_origin: None,
             metadata: AgentMetadata {
                 origin: Some(SESSION_PROVENANCE_HOOK_ORIGIN.to_string()),
                 ..AgentMetadata::default()
@@ -629,4 +632,3 @@ mod tests {
         assert_eq!(resolved.display_path, "src/new.rs");
     }
 }
-
