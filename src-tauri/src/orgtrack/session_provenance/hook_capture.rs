@@ -26,6 +26,13 @@ static INBOX_DRAIN_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 /// Entry point used by `orgii --session-provenance-hook <source>`.
 /// Provenance failures are diagnostic only and never block the provider tool.
 pub fn capture_hook_stdin(source: &str) -> Result<usize, String> {
+    // Backstop for the hooks master switch: when it is off the managed hooks
+    // are uninstalled, so this process normally isn't spawned at all — but a
+    // stale hook line (failed uninstall, read-only config) may still invoke
+    // us. Discard instead of spooling signals the user opted out of.
+    if !agent_cli::session_provenance::provenance_hooks_master_enabled_quick() {
+        return Ok(0);
+    }
     let source_arg = source;
     let source = HookSource::parse(source)?;
     let mut stdin = std::io::stdin().take(MAX_HOOK_PAYLOAD_BYTES + 1);

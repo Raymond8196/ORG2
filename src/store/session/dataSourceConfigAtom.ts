@@ -53,6 +53,20 @@ export const dataSourceConfigAtom = atomWithStorage<DataSourceConfigMap>(
   {}
 );
 
+const EXTERNAL_SESSIONS_ENABLED_STORAGE_KEY = "orgii:externalSessionsEnabled";
+
+/**
+ * Master switch for external-session integration (default on). When off, no
+ * external source is scanned or loaded anywhere: the auto-scan scheduler,
+ * manual rescans, sidebar/list loading and the open-replay auto-refresh all
+ * skip external history. Per-source `enabled` flags are preserved and take
+ * effect again when this is switched back on.
+ */
+export const externalSessionsEnabledAtom = atomWithStorage<boolean>(
+  EXTERNAL_SESSIONS_ENABLED_STORAGE_KEY,
+  true
+);
+
 export const dataSourceGlobalFrequencyAtom = atomWithStorage<ScanFrequency>(
   GLOBAL_FREQ_STORAGE_KEY,
   DEFAULT_GLOBAL_FREQUENCY

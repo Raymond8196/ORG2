@@ -28,6 +28,7 @@ import {
   dataSourceConfigAtom,
   dataSourceGlobalFrequencyAtom,
   effectiveFrequency,
+  externalSessionsEnabledAtom,
   getSourceConfig,
 } from "./dataSourceConfigAtom";
 import { loadSidebarSessions } from "./sessionAtom/loaders";
@@ -40,6 +41,8 @@ let autoScanInFlight: Promise<void> | null = null;
 
 async function performDataSourceAutoScan(force: boolean): Promise<void> {
   const store = getInstrumentedStore();
+  // Master switch: external sessions fully off — no scans, including startup.
+  if (!store.get(externalSessionsEnabledAtom)) return;
   const cfgMap = store.get(dataSourceConfigAtom);
   const global = store.get(dataSourceGlobalFrequencyAtom);
   const now = Date.now();

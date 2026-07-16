@@ -106,6 +106,8 @@
       "lastScan": "Last scan {{time}}",
       "neverScanned": "Never scanned",
       "frequencyTitle": "Auto-scan frequency",
+      "externalSessionsToggle": "External sessions",
+      "externalSessionsToggleDesc": "When off, no external source is scanned or its sessions loaded",
       "globalFrequency": "External source auto-scan",
       "globalFrequencyDesc": "Default scan frequency for external sources set to Default",
       "activeSessionRefresh": "Open external session refresh",
