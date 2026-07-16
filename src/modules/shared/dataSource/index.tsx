@@ -68,6 +68,7 @@ import {
   activeExternalSessionRefreshFrequencyAtom,
   dataSourceConfigAtom,
   dataSourceGlobalFrequencyAtom,
+  externalSessionsEnabledAtom,
   getSourceConfig,
 } from "@src/store/session/dataSourceConfigAtom";
 import { copyText } from "@src/util/data/clipboard";
@@ -131,6 +132,9 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
   );
   const [activeSessionRefreshFrequency, setActiveSessionRefreshFrequency] =
     useAtom(activeExternalSessionRefreshFrequencyAtom);
+  const [externalSessionsEnabled, setExternalSessionsEnabled] = useAtom(
+    externalSessionsEnabledAtom
+  );
 
   const patchRow = useCallback(
     (sourceId: string, patch: Partial<SourceRow>) => {
@@ -633,6 +637,18 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
               {importableCount > 0 && (
                 <SectionContainer>
                   <SectionRow
+                    label={t("externalSessionsToggle")}
+                    description={t("externalSessionsToggleDesc")}
+                  >
+                    <Switch
+                      checked={externalSessionsEnabled}
+                      onChange={(checked) =>
+                        setExternalSessionsEnabled(checked)
+                      }
+                      ariaLabel={t("externalSessionsToggle")}
+                    />
+                  </SectionRow>
+                  <SectionRow
                     label={t("globalFrequency")}
                     description={t("globalFrequencyDesc")}
                   >
@@ -647,6 +663,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
                       size="default"
                       style={SECTION_CONTROL_STYLE}
                       aria-label={t("globalFrequency")}
+                      disabled={!externalSessionsEnabled}
                     />
                   </SectionRow>
                   <SectionRow
@@ -666,6 +683,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
                       size="default"
                       style={SECTION_CONTROL_STYLE}
                       aria-label={t("activeSessionRefresh")}
+                      disabled={!externalSessionsEnabled}
                     />
                   </SectionRow>
                 </SectionContainer>
@@ -696,6 +714,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
                         variant="secondary"
                         size="default"
                         loading={rescanningAll}
+                        disabled={!externalSessionsEnabled}
                         icon={<RefreshCw size={14} />}
                         onClick={() => void handleRescanAll()}
                       >

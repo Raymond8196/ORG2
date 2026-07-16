@@ -2382,6 +2382,8 @@
     "deleteOrgMessage": "\"{{name}}\" will be permanently removed. This cannot be undone.",
     "sessionProvenance": {
       "title": "Session Provenance",
+      "masterToggle": "Provenance hooks",
+      "masterToggleDesc": "When off, all managed hooks are uninstalled and no signals are captured; per-platform choices are kept and restored on re-enable",
       "capture": "Capture file interactions",
       "description": "Records file reads and writes as metadata. Prompts, tool output, and file contents are not stored.",
       "configPath": "Records file reads and writes as metadata. Prompts, tool output, and file contents are not stored. Config: {{path}}",
