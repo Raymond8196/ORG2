@@ -54,12 +54,20 @@ import {
   resolveLanguagePreference,
 } from "@src/i18n";
 import { NAV_BUTTON_PROPS } from "@src/modules/MainApp/Settings/config";
-import { checkForUpdatesManually } from "@src/scaffold/AppUpdater";
+import {
+  checkForAppUpdates,
+  checkForUpdatesManually,
+} from "@src/scaffold/AppUpdater";
 import { type TimezoneOption, timezoneAtom } from "@src/store";
 import { chatAppearancePersistAtom } from "@src/store/config/configAtom";
 import { autoUpdateEnabledAtom } from "@src/store/platform/autoUpdateAtom";
 import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 import { preventSleepWhileRunningAtom } from "@src/store/platform/preventSleepAtom";
+import {
+  type UpdateChannel,
+  resolveUpdateChannel,
+  updateChannelPreferenceAtom,
+} from "@src/store/platform/updateChannelAtom";
 import { voiceInputEnabledAtom } from "@src/store/platform/voiceInputAtom";
 import { languageAtom } from "@src/store/ui/languageAtom";
 import { copyText } from "@src/util/data/clipboard";
@@ -137,6 +145,9 @@ const GeneralTabBody: React.FC = () => {
   const [devModeEnabled, setDevModeEnabled] = useAtom(devModeEnabledAtom);
   const [autoUpdateEnabled, setAutoUpdateEnabled] = useAtom(
     autoUpdateEnabledAtom
+  );
+  const [updateChannelPreference, setUpdateChannelPreference] = useAtom(
+    updateChannelPreferenceAtom
   );
   const [preventSleepWhileRunning, setPreventSleepWhileRunning] = useAtom(
     preventSleepWhileRunningAtom
@@ -287,6 +298,27 @@ const GeneralTabBody: React.FC = () => {
     [t]
   );
 
+  const updateChannelOptions = useMemo(
+    () => [
+      { value: "stable", label: t("update.channelStable") },
+      { value: "beta", label: t("update.channelBeta") },
+    ],
+    [t]
+  );
+
+  // The Select shows the resolved channel, so an untouched "auto" preference
+  // renders as what the build actually tracks (beta for prerelease installs).
+  // Picking an option pins the preference explicitly.
+  const handleUpdateChannelChange = useCallback(
+    (value: string | number | (string | number)[]) => {
+      setUpdateChannelPreference(String(value) as UpdateChannel);
+      // Re-check against the new channel so an available update from the
+      // previous channel doesn't linger in the install prompt.
+      void checkForAppUpdates({ force: true });
+    },
+    [setUpdateChannelPreference]
+  );
+
   return (
     <>
       <SectionContainer>
@@ -373,6 +405,21 @@ const GeneralTabBody: React.FC = () => {
           description={t("update.autoUpdateDesc")}
         >
           <Switch checked={autoUpdateEnabled} onChange={setAutoUpdateEnabled} />
+        </SectionRow>
+        <SectionRow
+          label={t("update.channel")}
+          description={t("update.channelDesc")}
+        >
+          <Select
+            value={resolveUpdateChannel(
+              updateChannelPreference,
+              appVersion || undefined
+            )}
+            onChange={handleUpdateChannelChange}
+            options={updateChannelOptions}
+            size="default"
+            style={SECTION_CONTROL_STYLE}
+          />
         </SectionRow>
         <SectionRow label={t("update.detectUpdate")}>
           <Button
