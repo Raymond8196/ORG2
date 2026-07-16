@@ -15,6 +15,26 @@
 // Invite code generation / hashing
 // ---------------------------------------------------------------------------
 
+/** Complete role vocabulary accepted from the managed-cloud roster. */
+export const CLOUD_ORG_ROLES = ["owner", "admin", "member"] as const;
+
+export type CloudOrgRole = (typeof CLOUD_ORG_ROLES)[number];
+
+/** Non-owner roles that admins may assign through invites or the roster. */
+export const CLOUD_ASSIGNABLE_ROLES = ["admin", "member"] as const;
+
+export type CloudAssignableRole = (typeof CLOUD_ASSIGNABLE_ROLES)[number];
+
+const CLOUD_ASSIGNABLE_ROLE_SET: ReadonlySet<string> = new Set(
+  CLOUD_ASSIGNABLE_ROLES
+);
+
+export function isCloudAssignableRole(
+  value: unknown
+): value is CloudAssignableRole {
+  return typeof value === "string" && CLOUD_ASSIGNABLE_ROLE_SET.has(value);
+}
+
 /** Random 32-byte hex invite code (same entropy as self-hosted org secrets). */
 export function generateCloudInviteCode(): string {
   const bytes = new Uint8Array(32);
@@ -183,7 +203,7 @@ export function parseCloudShareInput(raw: string): CloudShareDeepLink | null {
 /** One invite row as listed by `cloud_list_invites` (admin-only). */
 export interface CloudInviteRecord {
   inviteId: string;
-  role: string;
+  role: CloudAssignableRole;
   maxUses: number;
   usedCount: number;
   expiresAt?: string;
@@ -238,7 +258,7 @@ export function deriveCloudInviteState(
 
 export interface CloudMemberLike {
   userId: string;
-  role: string;
+  role: CloudOrgRole;
   status: string;
 }
 

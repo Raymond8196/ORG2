@@ -2940,40 +2940,40 @@ describe("Cloud collaboration with two independent rendered app instances", func
       ),
     ]);
 
-    // Exercise both demotion and promotion. A viewer retains read access but
-    // must not gain any admin surface; an admin receives it live.
     await clickRendered(
-      `[data-testid="cloud-org-member-role-${teammate.userId}"]`,
-      "owner teammate role selector"
+      '[data-testid="cloud-org-invite-role-select"]',
+      "owner invite role selector"
     );
+    const viewerInviteRoleExists = await execJS(
+      `return !!document.querySelector('[data-testid="cloud-org-invite-role-viewer"]');`
+    );
+    if (viewerInviteRoleExists) {
+      throw new Error("removed viewer role remained in the invite selector");
+    }
     await clickRendered(
-      '[data-testid="cloud-org-member-role-option-viewer"]',
-      "owner demote teammate to viewer"
+      '[data-testid="cloud-org-invite-role-member"]',
+      "owner keep member invite role"
     );
-    await second.client.waitUntil(
-      async () =>
-        executeOn(
-          second.client,
-          `return document.querySelector('[data-testid="cloud-org-member-row"][data-member-id="${teammate.userId}"]')?.textContent?.toLowerCase().includes('viewer') === true;`
-        ),
-      {
-        timeout: CLOUD_FETCH_TIMEOUT_MS,
-        interval: 250,
-        timeoutMsg: "viewer role did not propagate to the teammate",
-      }
-    );
-    const viewerHasAdminSurface = await executeOn(
+
+    // A member has no admin surface; promotion to admin receives it live.
+    const memberHasAdminSurface = await executeOn(
       second.client,
       `return !!document.querySelector('[data-testid="cloud-org-invites"], [data-testid="cloud-org-settings"], [data-testid="cloud-org-danger-zone"]');`
     );
-    if (viewerHasAdminSurface) {
-      throw new Error("viewer was offered an admin/owner management surface");
+    if (memberHasAdminSurface) {
+      throw new Error("member was offered an admin/owner management surface");
     }
 
     await clickRendered(
       `[data-testid="cloud-org-member-role-${teammate.userId}"]`,
-      "owner viewer role selector"
+      "owner member role selector"
     );
+    const viewerRoleOptionExists = await execJS(
+      `return !!document.querySelector('[data-testid="cloud-org-member-role-option-viewer"]');`
+    );
+    if (viewerRoleOptionExists) {
+      throw new Error("removed viewer role remained in the member selector");
+    }
     await clickRendered(
       '[data-testid="cloud-org-member-role-option-admin"]',
       "owner promote teammate to admin"

@@ -6,7 +6,7 @@
  *    expiry), one-time copyable `orgii://cloud/join` link, inventory with
  *    usage/state, revoke.
  *  - `CloudMembersSection` — member rows; admins get a role dropdown
- *    (admin/member/viewer) and Remove; everyone but the owner gets Leave
+ *    (admin/member) and Remove; everyone but the owner gets Leave
  *    with an inline confirm (the owner must transfer or delete instead).
  *  - `CloudOrgSettingsSection` (admin/owner) — rename; owner-only transfer
  *    picker and delete with typed name confirmation.
@@ -22,10 +22,13 @@ import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 import type { CloudOrgMember } from "@src/features/Org2Cloud/org2CloudClient";
 import {
+  CLOUD_ASSIGNABLE_ROLES,
   CLOUD_INVITE_STATE,
+  type CloudAssignableRole,
   type CloudInviteRecord,
   deriveCloudInviteState,
   getCloudInviteRemainingUses,
+  isCloudAssignableRole,
 } from "@src/features/Org2Cloud/org2CloudOrgManagement";
 import {
   SECTION_ACTION_GAP_CLASSES,
@@ -57,17 +60,13 @@ const MEMBER_ROLE_CONTROL_STYLE = {
   ...SECTION_CONTROL_STYLE,
   width: 132,
 } as const;
-const CLOUD_ROLES = ["admin", "member", "viewer"] as const;
-
-function roleLabel(t: TFunction<"navigation">, role: string): string {
-  switch (role) {
-    case "admin":
-      return t("cloud.orgManagement.invites.roleAdmin");
-    case "viewer":
-      return t("cloud.orgManagement.invites.roleViewer");
-    default:
-      return t("cloud.orgManagement.invites.roleMember");
-  }
+function roleLabel(
+  t: TFunction<"navigation">,
+  role: CloudAssignableRole
+): string {
+  return role === "admin"
+    ? t("cloud.orgManagement.invites.roleAdmin")
+    : t("cloud.orgManagement.invites.roleMember");
 }
 
 function CloudBadge({ children }: { children: React.ReactNode }) {
@@ -107,7 +106,7 @@ export function CloudInvitesCard({ t, management }: CloudInvitesCardProps) {
   const [expiresInDays, setExpiresInDays] = useState<number>(
     DEFAULT_INVITE_EXPIRY_DAYS
   );
-  const [role, setRole] = useState<string>("member");
+  const [role, setRole] = useState<CloudAssignableRole>("member");
 
   const usageOptions = useMemo(
     () =>
@@ -136,7 +135,7 @@ export function CloudInvitesCard({ t, management }: CloudInvitesCardProps) {
   );
   const roleOptions = useMemo(
     () =>
-      CLOUD_ROLES.map((value) => ({
+      CLOUD_ASSIGNABLE_ROLES.map((value) => ({
         value,
         label: roleLabel(t, value),
         dataTestId: `cloud-org-invite-role-${value}`,
@@ -284,7 +283,9 @@ export function CloudInvitesCard({ t, management }: CloudInvitesCardProps) {
             options={roleOptions}
             style={SECTION_CONTROL_STYLE}
             dataTestId="cloud-org-invite-role-select"
-            onChange={(value) => setRole(String(value))}
+            onChange={(value) => {
+              if (isCloudAssignableRole(value)) setRole(value);
+            }}
           />
         </SectionRow>
         <SectionRow label={t("cloud.orgManagement.invites.create")}>
@@ -344,7 +345,7 @@ export function CloudMembersSection({
 
   const roleOptions = useMemo(
     () =>
-      CLOUD_ROLES.map((value) => ({
+      CLOUD_ASSIGNABLE_ROLES.map((value) => ({
         value,
         label: roleLabel(t, value),
         dataTestId: `cloud-org-member-role-option-${value}`,
@@ -375,7 +376,10 @@ export function CloudMembersSection({
     [t]
   );
 
-  const handleRoleChange = async (member: CloudOrgMember, role: string) => {
+  const handleRoleChange = async (
+    member: CloudOrgMember,
+    role: CloudAssignableRole
+  ) => {
     if (role === member.role) return;
     const confirmed = await confirmDestructiveAction({
       title: t("cloud.orgManagement.members.roleChangeTitle"),
@@ -481,9 +485,11 @@ export function CloudMembersSection({
                         disabled={Boolean(updatingRoleUserId)}
                         loading={updatingRoleUserId === member.userId}
                         dataTestId={`cloud-org-member-role-${member.userId}`}
-                        onChange={(value) =>
-                          void handleRoleChange(member, String(value))
-                        }
+                        onChange={(value) => {
+                          if (isCloudAssignableRole(value)) {
+                            void handleRoleChange(member, value);
+                          }
+                        }}
                       />
                       <Button
                         htmlType="button"
