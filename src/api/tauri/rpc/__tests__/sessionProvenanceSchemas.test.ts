@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { rpc } from "../router";
 import {
   SessionProvenanceHookPlatformSchema,
+  SessionProvenanceHookStatusSchema,
   SessionProvenanceRecentSignalSchema,
 } from "../schemas/agentOrgs";
 import {
@@ -34,6 +35,20 @@ describe("session provenance RPC schemas", () => {
     expect(() =>
       SessionProvenanceHookPlatformSchema.parse("gemini_cli")
     ).toThrow();
+  });
+
+  it("keeps hook installation separate from verified activation", () => {
+    const parsed = SessionProvenanceHookStatusSchema.parse({
+      platform: "codex",
+      enabled: true,
+      desiredEnabled: true,
+      activationState: "awaiting_approval",
+      lastActivatedAt: null,
+      configPath: "/Users/test/.codex/hooks.json",
+      error: null,
+    });
+    expect(parsed.enabled).toBe(true);
+    expect(parsed.activationState).toBe("awaiting_approval");
   });
 
   it("parses a recent hook signal from the Rust camelCase payload", () => {

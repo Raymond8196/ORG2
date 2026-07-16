@@ -32,10 +32,18 @@ export const SessionProvenanceHookPlatformSchema = z.enum([
   "zcode",
 ]);
 
+export const SessionProvenanceHookActivationStateSchema = z.enum([
+  "inactive",
+  "awaiting_approval",
+  "active",
+]);
+
 export const SessionProvenanceHookStatusSchema = z.object({
   platform: SessionProvenanceHookPlatformSchema,
   enabled: z.boolean(),
   desiredEnabled: z.boolean(),
+  activationState: SessionProvenanceHookActivationStateSchema,
+  lastActivatedAt: z.string().nullable().optional(),
   configPath: z.string(),
   error: z.string().nullable().optional(),
 });

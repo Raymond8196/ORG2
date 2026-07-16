@@ -10,9 +10,11 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
+use sha2::{Digest, Sha256};
 
 const HOOK_MARKER: &str = "--session-provenance-hook";
 const PREFERENCES_SCHEMA_VERSION: u32 = 1;
+const ACTIVATION_RECEIPT_SCHEMA_VERSION: u32 = 1;
 const ALL_SESSION_PROVENANCE_HOOK_PLATFORMS: [SessionProvenanceHookPlatform; 11] = [
     SessionProvenanceHookPlatform::ClaudeCode,
     SessionProvenanceHookPlatform::Codex,
@@ -276,14 +278,40 @@ pub struct SessionProvenanceHookStatus {
     pub platform: SessionProvenanceHookPlatform,
     pub enabled: bool,
     pub desired_enabled: bool,
+    pub activation_state: SessionProvenanceHookActivationState,
+    pub last_activated_at: Option<String>,
     pub config_path: String,
     pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SessionProvenanceHookActivationState {
+    Inactive,
+    AwaitingApproval,
+    Active,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct HookActivationReceipt {
+    schema_version: u32,
+    platform: SessionProvenanceHookPlatform,
+    hook_fingerprint: String,
+    activated_at: String,
 }
 
 fn preferences_path() -> PathBuf {
     app_paths::orgii_root()
         .join("session-provenance")
         .join("hooks.json")
+}
+
+fn activation_receipt_path(platform: SessionProvenanceHookPlatform) -> PathBuf {
+    app_paths::orgii_root()
+        .join("session-provenance")
+        .join("activations")
+        .join(format!("{}.json", platform.source_arg()))
 }
 
 fn operation_guard() -> Result<MutexGuard<'static, ()>, String> {
@@ -1294,6 +1322,180 @@ fn config_has_managed_hooks(platform: SessionProvenanceHookPlatform) -> Result<b
     Ok(config_has_complete_managed_hooks(&config, platform))
 }
 
+/// Fingerprint only ORG2-managed definitions, so unrelated user hooks neither
+/// invalidate nor accidentally satisfy a Codex activation receipt.
+fn managed_hook_fingerprint(
+    config: &Value,
+    platform: SessionProvenanceHookPlatform,
+) -> Option<String> {
+    let hooks = config.get("hooks")?.as_object()?;
+    let mut definitions = Vec::new();
+    for (event_name, groups) in hooks {
+        let Some(groups) = groups.as_array() else {
+            continue;
+        };
+        for group in groups {
+            let matcher = group.get("matcher").cloned().unwrap_or(Value::Null);
+            let Some(commands) = group.get("hooks").and_then(Value::as_array) else {
+                continue;
+            };
+            for command in commands {
+                if !command_is_managed_for_platform(command, platform) {
+                    continue;
+                }
+                definitions.push(
+                    serde_json::to_string(&json!({
+                        "event": event_name,
+                        "matcher": matcher,
+                        "type": command.get("type").cloned().unwrap_or(Value::Null),
+                        "command": command.get("command").cloned().unwrap_or(Value::Null),
+                        "commandWindows": command
+                            .get("commandWindows")
+                            .cloned()
+                            .unwrap_or(Value::Null),
+                        "timeout": command.get("timeout").cloned().unwrap_or(Value::Null),
+                    }))
+                    .expect("managed hook fingerprint value is serializable"),
+                );
+            }
+        }
+    }
+    if definitions.is_empty() {
+        return None;
+    }
+    definitions.sort();
+    let digest = Sha256::digest(definitions.join("\n").as_bytes());
+    Some(format!("{digest:x}"))
+}
+
+fn current_managed_hook_fingerprint(
+    platform: SessionProvenanceHookPlatform,
+) -> Result<Option<String>, String> {
+    match platform {
+        SessionProvenanceHookPlatform::Codex => {
+            let config = read_config(&platform.config_path())?;
+            Ok(managed_hook_fingerprint(&config, platform))
+        }
+        _ => Ok(None),
+    }
+}
+
+fn read_activation_receipt(
+    platform: SessionProvenanceHookPlatform,
+) -> Option<HookActivationReceipt> {
+    let bytes = std::fs::read(activation_receipt_path(platform)).ok()?;
+    let receipt = serde_json::from_slice::<HookActivationReceipt>(&bytes).ok()?;
+    (receipt.schema_version == ACTIVATION_RECEIPT_SCHEMA_VERSION && receipt.platform == platform)
+        .then_some(receipt)
+}
+
+fn codex_activation_from_receipt(
+    fingerprint: &str,
+    receipt: Option<HookActivationReceipt>,
+) -> (SessionProvenanceHookActivationState, Option<String>) {
+    if let Some(receipt) = receipt.filter(|receipt| receipt.hook_fingerprint == fingerprint) {
+        (
+            SessionProvenanceHookActivationState::Active,
+            Some(receipt.activated_at),
+        )
+    } else {
+        (SessionProvenanceHookActivationState::AwaitingApproval, None)
+    }
+}
+
+fn activation_for_installed_hook(
+    platform: SessionProvenanceHookPlatform,
+    installed: bool,
+) -> Result<(SessionProvenanceHookActivationState, Option<String>), String> {
+    if !installed {
+        return Ok((SessionProvenanceHookActivationState::Inactive, None));
+    }
+    if platform != SessionProvenanceHookPlatform::Codex {
+        return Ok((SessionProvenanceHookActivationState::Active, None));
+    }
+
+    let fingerprint = current_managed_hook_fingerprint(platform)?.ok_or_else(|| {
+        "Installed Codex hooks are missing a managed definition fingerprint".to_string()
+    })?;
+    Ok(codex_activation_from_receipt(
+        &fingerprint,
+        read_activation_receipt(platform),
+    ))
+}
+
+fn append_error(existing: Option<String>, next: String) -> Option<String> {
+    Some(match existing {
+        Some(existing) => format!("{existing}; {next}"),
+        None => next,
+    })
+}
+
+fn build_hook_status(
+    platform: SessionProvenanceHookPlatform,
+    desired_enabled: bool,
+    operation_error: Option<String>,
+) -> SessionProvenanceHookStatus {
+    let (enabled, mut error) = match config_has_managed_hooks(platform) {
+        Ok(enabled) => (enabled, operation_error),
+        Err(inspection_error) => (
+            false,
+            append_error(
+                operation_error,
+                format!("failed to inspect resulting hook config: {inspection_error}"),
+            ),
+        ),
+    };
+    let (activation_state, last_activated_at) =
+        match activation_for_installed_hook(platform, enabled) {
+            Ok(activation) => activation,
+            Err(activation_error) => {
+                error = append_error(error, activation_error);
+                (SessionProvenanceHookActivationState::Inactive, None)
+            }
+        };
+    SessionProvenanceHookStatus {
+        platform,
+        enabled,
+        desired_enabled,
+        activation_state,
+        last_activated_at,
+        config_path: platform.config_path().to_string_lossy().into_owned(),
+        error,
+    }
+}
+
+/// Record proof that Codex invoked the current ORG2-managed hook definition.
+/// A matching receipt is the only state that upgrades the UI from
+/// `awaiting_approval` to `active`.
+pub fn record_session_provenance_hook_activation(source: &str) -> Result<bool, String> {
+    if source != SessionProvenanceHookPlatform::Codex.source_arg() {
+        return Ok(false);
+    }
+    let _guard = operation_guard()?;
+    let platform = SessionProvenanceHookPlatform::Codex;
+    if !config_has_managed_hooks(platform)? {
+        return Ok(false);
+    }
+    let fingerprint = current_managed_hook_fingerprint(platform)?.ok_or_else(|| {
+        "Cannot record Codex activation without managed hook definitions".to_string()
+    })?;
+    if read_activation_receipt(platform)
+        .is_some_and(|receipt| receipt.hook_fingerprint == fingerprint)
+    {
+        return Ok(false);
+    }
+    let receipt = HookActivationReceipt {
+        schema_version: ACTIVATION_RECEIPT_SCHEMA_VERSION,
+        platform,
+        hook_fingerprint: fingerprint,
+        activated_at: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true),
+    };
+    let bytes = serde_json::to_vec_pretty(&receipt)
+        .map_err(|err| format!("Failed to serialize hook activation receipt: {err}"))?;
+    write_atomic(&activation_receipt_path(platform), &bytes)?;
+    Ok(true)
+}
+
 /// Reconcile hook files with ORG2 preferences. On first launch preferences
 /// default to all supported platforms enabled.
 pub fn ensure_hooks_from_preferences() -> Result<(), String> {
@@ -1332,19 +1534,7 @@ pub async fn session_provenance_hooks_status() -> Result<Vec<SessionProvenanceHo
         Ok::<_, String>(
             ALL_SESSION_PROVENANCE_HOOK_PLATFORMS
                 .into_iter()
-                .map(|platform| {
-                    let (enabled, error) = match config_has_managed_hooks(platform) {
-                        Ok(enabled) => (enabled, None),
-                        Err(error) => (false, Some(error)),
-                    };
-                    SessionProvenanceHookStatus {
-                        platform,
-                        enabled,
-                        desired_enabled: preferences.enabled(platform),
-                        config_path: platform.config_path().to_string_lossy().into_owned(),
-                        error,
-                    }
-                })
+                .map(|platform| build_hook_status(platform, preferences.enabled(platform), None))
                 .collect::<Vec<_>>(),
         )
     })
@@ -1368,25 +1558,7 @@ pub async fn session_provenance_hooks_set_enabled(
         // If a malformed or read-only config cannot be repaired immediately,
         // startup reconciliation can retry without losing the opt-out.
         let update_error = update_platform(platform, enabled, &executable).err();
-        let (installed, inspection_error) = match config_has_managed_hooks(platform) {
-            Ok(installed) => (installed, None),
-            Err(err) => (false, Some(err)),
-        };
-        let error = match (update_error, inspection_error) {
-            (Some(update), Some(inspection)) => Some(format!(
-                "{update}; failed to inspect resulting hook config: {inspection}"
-            )),
-            (Some(update), None) => Some(update),
-            (None, Some(inspection)) => Some(inspection),
-            (None, None) => None,
-        };
-        Ok(SessionProvenanceHookStatus {
-            platform,
-            enabled: installed,
-            desired_enabled: enabled,
-            config_path: platform.config_path().to_string_lossy().into_owned(),
-            error,
-        })
+        Ok(build_hook_status(platform, enabled, update_error))
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -1476,6 +1648,94 @@ mod tests {
         update_codex_platform(&mut config, false, "unused", "unused").expect("disable Codex hooks");
         assert!(config.to_string().contains("user-hook"));
         assert!(!config.to_string().contains(HOOK_MARKER));
+    }
+
+    #[test]
+    fn codex_fingerprint_tracks_only_managed_definition_changes() {
+        let mut config = json!({
+            "hooks": {
+                "PostToolUse": [{
+                    "matcher": "Read",
+                    "hooks": [{"type": "command", "command": "user-hook"}]
+                }]
+            },
+            "theme": "dark"
+        });
+        update_codex_platform(
+            &mut config,
+            true,
+            "orgii --session-provenance-hook codex",
+            "orgii.exe --session-provenance-hook codex",
+        )
+        .expect("enable Codex hooks");
+        let original = managed_hook_fingerprint(&config, SessionProvenanceHookPlatform::Codex)
+            .expect("managed fingerprint");
+
+        config["hooks"]["PostToolUse"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "matcher": "Write",
+                "hooks": [{"type": "command", "command": "another-user-hook"}]
+            }));
+        config["theme"] = json!("light");
+        assert_eq!(
+            managed_hook_fingerprint(&config, SessionProvenanceHookPlatform::Codex),
+            Some(original.clone()),
+            "unrelated user configuration must not invalidate approval"
+        );
+
+        let managed_group = config["hooks"]["PostToolUse"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|group| group.to_string().contains(HOOK_MARKER))
+            .expect("managed PostToolUse group");
+        managed_group["matcher"] = json!("apply_patch");
+        assert_ne!(
+            managed_hook_fingerprint(&config, SessionProvenanceHookPlatform::Codex),
+            Some(original),
+            "a managed matcher change requires fresh approval"
+        );
+    }
+
+    #[test]
+    fn codex_activation_requires_a_matching_receipt() {
+        let receipt = HookActivationReceipt {
+            schema_version: ACTIVATION_RECEIPT_SCHEMA_VERSION,
+            platform: SessionProvenanceHookPlatform::Codex,
+            hook_fingerprint: "current".to_string(),
+            activated_at: "2026-07-15T12:00:00.000Z".to_string(),
+        };
+        assert_eq!(
+            codex_activation_from_receipt("current", None),
+            (SessionProvenanceHookActivationState::AwaitingApproval, None)
+        );
+        assert_eq!(
+            codex_activation_from_receipt("stale", Some(receipt.clone())),
+            (SessionProvenanceHookActivationState::AwaitingApproval, None)
+        );
+        assert_eq!(
+            codex_activation_from_receipt("current", Some(receipt)),
+            (
+                SessionProvenanceHookActivationState::Active,
+                Some("2026-07-15T12:00:00.000Z".to_string())
+            )
+        );
+    }
+
+    #[test]
+    fn activation_state_is_immediate_for_providers_without_a_trust_gate() {
+        assert_eq!(
+            activation_for_installed_hook(SessionProvenanceHookPlatform::ClaudeCode, true)
+                .expect("Claude activation"),
+            (SessionProvenanceHookActivationState::Active, None)
+        );
+        assert_eq!(
+            activation_for_installed_hook(SessionProvenanceHookPlatform::Codex, false)
+                .expect("inactive Codex"),
+            (SessionProvenanceHookActivationState::Inactive, None)
+        );
     }
 
     #[test]
