@@ -1755,6 +1755,7 @@
       "proxyReady": "Proxy ready",
       "proxyNotReady": "Proxy not ready",
       "proxyDesc": "Local requests route through ORGII KeyVault.",
+      "proxyLifecycleDesc": "Keep ORGII running while using this mode. Closing the window keeps the proxy in the tray; quitting ORGII safely restores Default unless the config changed externally.",
       "keyLabel": "Key",
       "keyDesc": "Only API keys compatible with this CLI and managed proxy are shown.",
       "selectKey": "Select key",

@@ -54,6 +54,23 @@ const fn app_data_config(
         secret_bearing,
     }
 }
+
+fn goose_config(
+    id: &'static str,
+    label: &'static str,
+    _xdg_relative_path: &'static str,
+    _windows_relative_path: &'static str,
+    format: CliConfigFormat,
+    secret_bearing: bool,
+) -> CliConfigFileEntry {
+    #[cfg(target_os = "windows")]
+    let config = app_data_config(id, label, _windows_relative_path, format, secret_bearing);
+
+    #[cfg(not(target_os = "windows"))]
+    let config = xdg_config(id, label, _xdg_relative_path, format, secret_bearing);
+
+    config
+}
 pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
     vec![
         CliAgentEntry {
@@ -278,7 +295,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "longcat_api",
                 "vllm_api",
             ],
-            config_files: vec![xdg_config("config", "Config", "goose/config.yaml", CliConfigFormat::Yaml, false), xdg_config("permissions", "Permissions", "goose/permission.yaml", CliConfigFormat::Yaml, false)],
+            config_files: vec![goose_config("config", "Config", "goose/config.yaml", "Block/goose/config/config.yaml", CliConfigFormat::Yaml, false), goose_config("secrets", "Secrets", "goose/secrets.yaml", "Block/goose/config/secrets.yaml", CliConfigFormat::Yaml, true), goose_config("permissions", "Permissions", "goose/permission.yaml", "Block/goose/config/permission.yaml", CliConfigFormat::Yaml, false)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -427,7 +444,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "longcat_api",
                 "vllm_api",
             ],
-            config_files: vec![home_config("config", "Config", ".hermes/config.yaml", CliConfigFormat::Yaml, false), home_config("soul", "SOUL", ".hermes/SOUL.md", CliConfigFormat::Text, false)],
+            config_files: vec![home_config("config", "Config", ".hermes/config.yaml", CliConfigFormat::Yaml, true), home_config("soul", "SOUL", ".hermes/SOUL.md", CliConfigFormat::Text, false)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -456,7 +473,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "longcat_api",
                 "vllm_api",
             ],
-            config_files: vec![home_config("config", "Config", ".openclaw/openclaw.json", CliConfigFormat::Json, true)],
+            config_files: vec![home_config("config", "Config", ".openclaw/openclaw.json", CliConfigFormat::Jsonc, true)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -503,7 +520,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "minimax_api",
                 "zhipu_api",
             ],
-            config_files: vec![home_config("settings", "Settings", ".qwen/settings.json", CliConfigFormat::Json, false)],
+            config_files: vec![home_config("settings", "Settings", ".qwen/settings.json", CliConfigFormat::Json, true)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -643,7 +660,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             docs_url: "https://docs.mistral.ai/vibe/code/cli/install-setup",
             has_subscription_plan: true,
             compatible_api_providers: &["openai_api", "openrouter_api"],
-            config_files: vec![home_config("config", "Config", ".vibe/config.toml", CliConfigFormat::Toml, true)],
+            config_files: vec![home_config("config", "Config", ".vibe/config.toml", CliConfigFormat::Toml, false), home_config("env", "Environment", ".vibe/.env", CliConfigFormat::Text, true)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -695,7 +712,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "xai_api",
                 "vllm_api",
             ],
-            config_files: vec![home_config("models", "Models", ".omp/agent/models.yml", CliConfigFormat::Yaml, true)],
+            config_files: vec![home_config("models", "Models", ".oh-omp/agent/models.yml", CliConfigFormat::Yaml, true), home_config("settings", "Settings", ".oh-omp/agent/config.yml", CliConfigFormat::Yaml, false)],
             is_complex_setup: true,
             default_setup_method: None,
             popular: false,
