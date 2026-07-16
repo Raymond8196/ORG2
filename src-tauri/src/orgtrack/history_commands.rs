@@ -14,9 +14,8 @@ use orgtrack_core::sources::warp::history as warp_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
 use orgtrack_core::sources::zcode::history as zcode_history;
+use orgtrack_core::pricing;
 use session_persistence::CachedTurnSummary;
-
-use crate::agent_sessions::session_directory::pricing_catalog;
 
 use super::external_cli_detection::{self, ExternalCliSourceProbe};
 
@@ -105,7 +104,7 @@ pub async fn orgtrack_session_turn_metadata_index(
 /// mean of the input and output rates — which is an approximation for
 /// total-only token counts.
 fn estimate_cost_blended(total_tokens: i64, model: &str) -> f64 {
-    let pricing = pricing_catalog::resolve_pricing(Some(model));
+    let pricing = pricing::resolve_pricing(Some(model));
     total_tokens as f64 / 1e6 * (pricing.input_per_mtok + pricing.output_per_mtok) / 2.0
 }
 

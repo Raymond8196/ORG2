@@ -588,6 +588,16 @@ pub fn delete_session(session_id: &str) -> SqliteResult<bool> {
         "DELETE FROM session_token_usage WHERE session_id = ?1",
         [session_id],
     )?;
+    // Per-LLM-call telemetry lives in the shared usage tables (not under the
+    // code_session_chunks CASCADE), so it needs its own cleanup here.
+    conn.execute(
+        "DELETE FROM session_llm_usage_spans WHERE session_id = ?1",
+        [session_id],
+    )?;
+    conn.execute(
+        "DELETE FROM session_tool_usage WHERE session_id = ?1",
+        [session_id],
+    )?;
     let affected = conn.execute(
         "DELETE FROM code_sessions WHERE session_id = ?1",
         [session_id],

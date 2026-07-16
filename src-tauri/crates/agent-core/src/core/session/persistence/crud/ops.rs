@@ -691,7 +691,9 @@ pub fn backfill_agent_definition_id(session_id: &str, definition_id: &str) -> Re
 ///    - `agent_snapshots`
 ///    - `agent_file_resolutions`
 ///    - `session_token_usage`
-///    - `events` + `events_fts*` (event-sourced history)
+///    - `session_llm_usage_spans` + `session_tool_usage` (per-LLM-call
+///      telemetry describing the same tokens as the rollups)
+///    - `events` (event-sourced history)
 ///    - `pending_plan_approvals` (Plan-mode approval state)
 ///    - `agent_sessions` (the row itself, always last)
 /// 2. **Lineage rows** via `lineage::delete_session_lineage`. Both
@@ -745,6 +747,8 @@ pub fn delete_session(session_id: &str) -> SqliteResult<()> {
             "agent_snapshots",
             "agent_file_resolutions",
             "session_token_usage",
+            "session_llm_usage_spans",
+            "session_tool_usage",
             "events",
             "pending_plan_approvals",
             "agent_sessions",
