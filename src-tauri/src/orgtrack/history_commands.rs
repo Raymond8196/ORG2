@@ -372,6 +372,33 @@ pub async fn claude_code_history_stat(
     .map_err(|err| format!("Task join error: {err}"))?
 }
 
+/// Source-agnostic freshness probe for the replay auto-refresh: resolves the
+/// session's transcript path from the imported-history cache and stats it
+/// (folding in the SQLite `-wal` sibling for WAL-mode stores, whose main db
+/// mtime doesn't move between checkpoints). `None` when the session is
+/// uncached or the file is missing — the frontend then falls back to the
+/// full refresh, which re-syncs the cache.
+#[tauri::command]
+pub async fn imported_history_stat(
+    source_id: String,
+    session_id: String,
+) -> Result<Option<ImportedTranscriptStat>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        Ok(
+            imported_history::cache::stat_imported_transcript_by_session_id_from_conn(
+                &conn, &source_id, &session_id,
+            )?
+            .map(|(mtime_ms, size_bytes)| ImportedTranscriptStat {
+                mtime_ms,
+                size_bytes,
+            }),
+        )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
 #[tauri::command]
 pub async fn claude_code_recent_paths(
     limit: Option<usize>,
