@@ -38,6 +38,22 @@ fn notify_session_mirror(session_id: &str) {
     }
 }
 
+/// Companion delete hook: the upsert-style mirror hook cannot serve deletes
+/// (re-reading a deleted session would mirror a stub back), so removals get
+/// their own registration.
+static SESSION_DELETE_MIRROR_HOOK: std::sync::OnceLock<fn(&str)> = std::sync::OnceLock::new();
+
+/// Register the delete mirror hook. First registration wins; later calls no-op.
+pub fn register_session_delete_mirror_hook(hook: fn(&str)) {
+    let _ = SESSION_DELETE_MIRROR_HOOK.set(hook);
+}
+
+fn notify_session_delete_mirror(session_id: &str) {
+    if let Some(hook) = SESSION_DELETE_MIRROR_HOOK.get() {
+        hook(session_id);
+    }
+}
+
 /// SQL statement used by [`upsert_session`].
 ///
 /// Lives at module scope (not inside the function) so the round-trip
@@ -734,6 +750,7 @@ pub fn delete_session(session_id: &str) -> SqliteResult<()> {
             "agent_sessions",
         ],
     )?;
+    notify_session_delete_mirror(session_id);
 
     // Lineage tables can't ride the generic cascade: `commit_lineage` is keyed
     // by `provenance_id` (FK into `node_provenance`), not `session_id`, so the

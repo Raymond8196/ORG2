@@ -471,6 +471,11 @@ pub fn run() {
                     tracing::warn!(session_id, error = %err, "[session-mirror] orgtrack session mirror failed");
                 }
             });
+            agent_core::session::persistence::register_session_delete_mirror_hook(|session_id| {
+                if let Err(err) = crate::agent_sessions::session_directory::orgtrack_adapter::remove_mirrored_session(session_id) {
+                    tracing::warn!(session_id, error = %err, "[session-mirror] orgtrack delete mirror failed");
+                }
+            });
             // Repair mirror rows from before the write-path hooks existed
             // (stale/mislabeled rows, cold titles). One bounded pass off the
             // main thread; the hooks keep it fresh from here on.

@@ -208,6 +208,8 @@ pub fn init_session_tables(conn: &Connection) -> SqliteResult<()> {
         END;",
     )?;
 
+    compact_events_fts(conn);
+
     // Create sessions metadata table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS sessions (
@@ -427,6 +429,56 @@ pub fn init_session_tables(conn: &Connection) -> SqliteResult<()> {
     );
 
     Ok(())
+}
+
+/// Compact the events FTS index.
+///
+/// `save_events` uses `INSERT OR REPLACE` and the frontend re-submits
+/// already-persisted events after reloads, so every re-save cycles a
+/// delete + insert through the FTS triggers. FTS5 segments are append-only
+/// and nothing ever ran `optimize`, so churn left the shadow tables ~70x
+/// their live size (594 MB indexing ~9 MB of text, 98% orphaned entries).
+///
+/// One marker-gated `rebuild` regenerates the index from the content table;
+/// the unconditional `optimize` afterwards is cheap on a compact index and
+/// stops the churn from re-accumulating. Best-effort: search degrades, the
+/// schema must not fail to initialize over it.
+fn compact_events_fts(conn: &Connection) {
+    const MARKER: &str = "events_fts_rebuild_2026_07";
+
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL)",
+    )
+    .ok();
+    let already_rebuilt = conn
+        .prepare("SELECT COUNT(*) FROM _migrations WHERE name = ?1")
+        .and_then(|mut stmt| stmt.query_row([MARKER], |row| row.get::<_, i64>(0)))
+        .unwrap_or(0)
+        > 0;
+
+    if !already_rebuilt {
+        let started = std::time::Instant::now();
+        match conn.execute("INSERT INTO events_fts(events_fts) VALUES('rebuild')", []) {
+            Ok(_) => {
+                tracing::info!(
+                    elapsed_ms = started.elapsed().as_millis() as u64,
+                    "[schema] events_fts rebuilt"
+                );
+                conn.execute(
+                    "INSERT OR IGNORE INTO _migrations (name, applied_at) VALUES (?1, ?2)",
+                    rusqlite::params![MARKER, chrono::Utc::now().to_rfc3339()],
+                )
+                .ok();
+            }
+            Err(err) => {
+                tracing::warn!(error = %err, "[schema] events_fts rebuild failed");
+            }
+        }
+    }
+
+    if let Err(err) = conn.execute("INSERT INTO events_fts(events_fts) VALUES('optimize')", []) {
+        tracing::warn!(error = %err, "[schema] events_fts optimize failed");
+    }
 }
 
 #[cfg(test)]
