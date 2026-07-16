@@ -1,6 +1,5 @@
 import { getVersion } from "@tauri-apps/api/app";
 import type { DownloadEvent, Update } from "@tauri-apps/plugin-updater";
-import { check } from "@tauri-apps/plugin-updater";
 import { atom, useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,6 +30,7 @@ import {
   AppUpdaterScheduler,
   type AutomaticUpdateReason,
 } from "./appUpdaterScheduler";
+import { checkAppUpdateOnChannel } from "./channelCheck";
 
 const log = createLogger("AppUpdater");
 
@@ -134,7 +134,7 @@ function clearSkippedUpdateVersion(version: string): void {
 
 function createCoordinator(): AppUpdaterCoordinator {
   return new AppUpdaterCoordinator({
-    check: () => check({ timeout: UPDATE_CHECK_TIMEOUT_MS }),
+    check: () => checkAppUpdateOnChannel(UPDATE_CHECK_TIMEOUT_MS),
     downloadTimeoutMs: UPDATE_DOWNLOAD_TIMEOUT_MS,
     getVersion,
     minCheckIntervalMs: FOREGROUND_CHECK_MIN_INTERVAL_MS,

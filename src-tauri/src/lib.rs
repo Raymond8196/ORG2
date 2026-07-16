@@ -105,6 +105,7 @@ fn apply_linux_webkit_cpu_guards() {}
 // Workstation (IDE functionality and development tools)
 pub mod agent_sessions; // Agent session management (CLI, event pipeline, persistence, aggregation)
 pub mod api;
+pub mod app_update; // Channel-aware (stable/beta) app update checks
 pub mod benchmark;
 pub mod cli_managed_proxy;
 pub mod infrastructure; // In-tree-only cross-cutting infrastructure (paths, platform, archive, index_manager, jsonrpc, housekeeping). Leaf pieces live in their own workspace crates.

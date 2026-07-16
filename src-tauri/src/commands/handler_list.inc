@@ -20,6 +20,8 @@ app_window::commands::remove_window_background,
 // Optional sidecar commands - lazy install after first paint
 crate::setup::sidecar_setup::sidecar_list_status,
 crate::setup::sidecar_setup::sidecar_install,
+// App updater commands - channel-aware (stable/beta) update check
+crate::app_update::check_app_update,
 // Integration commands - External IDE
 integrations::external_ide::open_in_external_ide,
 integrations::external_ide::show_in_folder,
