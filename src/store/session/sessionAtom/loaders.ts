@@ -37,6 +37,7 @@ import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility
 
 import {
   dataSourceConfigAtom,
+  externalSessionsEnabledAtom,
   isSourceDisabled,
 } from "../dataSourceConfigAtom";
 import {
@@ -341,7 +342,7 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
     const response = await sessionAggregateList({
       ...filter,
       limit: filter?.limit ?? DEFAULT_FLAT_LIST_PAGE_SIZE,
-      includeExternalHistory: true,
+      includeExternalHistory: store.get(externalSessionsEnabledAtom),
       includeStats: false,
       sortBy: filter?.sortBy ?? "updated_at",
       sortOrder: filter?.sortOrder ?? "desc",
@@ -466,10 +467,13 @@ export const loadSidebarSessions = async (options?: {
   store.set(sessionErrorAtom, null);
   store.set(sessionPaginationAtom, resetPaginationState());
 
-  // Sources the user has disabled in the Data Sources panel must not load.
+  // Sources the user has disabled in the Data Sources panel must not load;
+  // the master external-sessions switch disables all of them at once.
   const dataSourceConfig = store.get(dataSourceConfigAtom);
+  const externalSessionsEnabled = store.get(externalSessionsEnabledAtom);
   const isCategoryDisabled = (category: string): boolean => {
     if (!isImportedHistoryListCategory(category)) return false;
+    if (!externalSessionsEnabled) return true;
     const source = getImportedHistorySourceByListCategory(category);
     return source ? isSourceDisabled(dataSourceConfig, source.sourceId) : false;
   };
@@ -576,7 +580,7 @@ export const loadSidebarSessionById = async (
   // the sidebar can place them beneath the root session deterministically.
   const response = await sessionAggregateList({
     sessionIds: [normalizedSessionId],
-    includeExternalHistory: true,
+    includeExternalHistory: store.get(externalSessionsEnabledAtom),
     includeStats: false,
     limit: 1,
   });
