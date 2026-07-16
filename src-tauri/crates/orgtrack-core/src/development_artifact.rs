@@ -1,8 +1,9 @@
-//! Canonical parser for Git artifacts emitted by shell tools.
+//! Canonical parser for development artifacts emitted by shell tools.
 //!
 //! Both the live event extractor and the durable per-turn metadata index use
-//! this module. Keeping recognition here prevents the replay/backfill path
-//! from drifting from what the live UI considers a real commit or PR.
+//! this module. It lives in Orgtrack rather than the repository-operation
+//! crate because commits and pull requests are session provenance metadata,
+//! independent of how the host application implements Git operations.
 
 use std::collections::HashSet;
 use std::sync::LazyLock;

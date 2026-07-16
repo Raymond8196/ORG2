@@ -134,18 +134,18 @@ pub fn delete_token_usage_records(session_id: &str) -> SqliteResult<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Mutex as StdMutex;
-
-    static ORGII_HOME_TEST_LOCK: StdMutex<()> = StdMutex::new(());
 
     fn with_temp_orgii_home<R>(run: impl FnOnce() -> R) -> R {
-        let _guard = match ORGII_HOME_TEST_LOCK.lock() {
+        let _guard = match crate::ORGII_HOME_TEST_LOCK.lock() {
             Ok(guard) => guard,
             Err(poisoned) => poisoned.into_inner(),
         };
         let previous = std::env::var("ORGII_HOME").ok();
-        let root =
-            std::env::temp_dir().join(format!("orgii-token-usage-test-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!(
+            "orgii-token-usage-test-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
         let _ = std::fs::remove_dir_all(&root);
         std::fs::create_dir_all(&root).expect("create temp ORGII_HOME");
         std::env::set_var("ORGII_HOME", &root);

@@ -21,7 +21,7 @@ use crate::sources::imported_history::{
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
+pub const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
 const OPENCODE_PROVIDER_SLUG: &str = "opencode";
 const OPENCODE_DB_FILENAME: &str = "opencode.db";
 // Version 4 adds per-session file-impact extraction from normalized edit parts.

@@ -79,6 +79,16 @@ export interface TurnModifiedFile {
   deletions: number;
 }
 
+export interface TurnResourceInteraction {
+  path: string;
+  fileName: string;
+  action: "read" | "write" | "create" | "delete" | "rename" | "search";
+  outcome: "succeeded" | "failed" | "unknown";
+  count: number;
+  firstOccurredAt: string;
+  lastOccurredAt: string;
+}
+
 export interface TurnSummary {
   sessionId: string;
   turnId: string;
@@ -95,6 +105,7 @@ export interface TurnSummary {
   status: TurnStatus;
   interrupted: boolean;
   modifiedFiles: TurnModifiedFile[];
+  resourceInteractions: TurnResourceInteraction[];
   gitArtifacts: ExtractedGitArtifactData[];
 }
 

@@ -6,6 +6,7 @@
 //! runtime-specific adapters.
 
 pub mod canonical;
+pub mod development_artifact;
 pub mod edit_extraction;
 #[cfg(test)]
 mod edit_extraction_tests;

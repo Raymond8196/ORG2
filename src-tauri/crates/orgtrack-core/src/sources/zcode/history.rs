@@ -28,7 +28,7 @@ use crate::sources::imported_history::{
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const ZCODE_SESSION_PREFIX: &str = "zcodeapp-";
+pub const ZCODE_SESSION_PREFIX: &str = "zcodeapp-";
 const ZCODE_PROVIDER_SLUG: &str = "zcode";
 const ZCODE_SUBAGENT_TASK_TYPE: &str = "subagent_child";
 const ZCODE_METADATA_PARSER_VERSION: i64 = 1;
@@ -134,7 +134,12 @@ pub fn load_zcode_history_for_session(session_id: &str) -> Result<Vec<ActivityCh
 
 fn sync_zcode_history_cache(cache_conn: &mut Connection) -> Result<(), String> {
     let Some((conn, db_path)) = open_zcode_db()? else {
-        imported_cache::sync_source_cache_from_conn(cache_conn, SOURCE_ZCODE, Vec::new(), Vec::new())?;
+        imported_cache::sync_source_cache_from_conn(
+            cache_conn,
+            SOURCE_ZCODE,
+            Vec::new(),
+            Vec::new(),
+        )?;
         return Ok(());
     };
     let (source_mtime_ms, source_size_bytes) =
@@ -388,7 +393,11 @@ fn part_row_to_chunk(
     }
 }
 
-fn text_to_user_chunk(session_id: &str, sequence: usize, row: &ZCodePartRow) -> Option<ActivityChunk> {
+fn text_to_user_chunk(
+    session_id: &str,
+    sequence: usize,
+    row: &ZCodePartRow,
+) -> Option<ActivityChunk> {
     let text = row.part.text.trim();
     if text.is_empty() {
         return None;
@@ -420,7 +429,11 @@ fn text_to_assistant_chunk(
     ))
 }
 
-fn reasoning_to_chunk(session_id: &str, sequence: usize, row: &ZCodePartRow) -> Option<ActivityChunk> {
+fn reasoning_to_chunk(
+    session_id: &str,
+    sequence: usize,
+    row: &ZCodePartRow,
+) -> Option<ActivityChunk> {
     let text = row.part.text.trim();
     if text.is_empty() {
         return None;

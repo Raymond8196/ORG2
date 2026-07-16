@@ -73,6 +73,7 @@ mod tests {
             status: "completed".to_string(),
             interrupted: false,
             modified_files: files,
+            resource_interactions: vec![],
             git_artifacts: vec![],
         }
     }

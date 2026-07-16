@@ -29,7 +29,7 @@ use crate::sources::imported_history::{
     ImportedHistorySessionRow,
 };
 
-const TRAE_SESSION_PREFIX: &str = "traeapp-";
+pub const TRAE_SESSION_PREFIX: &str = "traeapp-";
 const TRAE_PROVIDER_SLUG: &str = "trae";
 // v2: re-parse fixes — `message_summary_time` now read as local (not UTC)
 // wall-clock time, and `repo_path` slug decode now anchors on the home dir (so

@@ -31,7 +31,7 @@ use crate::sources::imported_history::{
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const CLINE_SESSION_PREFIX: &str = "clineapp-";
+pub const CLINE_SESSION_PREFIX: &str = "clineapp-";
 const CLINE_PROVIDER_SLUG: &str = "cline";
 // Version 2 uses Cline's session index for child hierarchy and derives impact
 // independently from each root/agent transcript.
