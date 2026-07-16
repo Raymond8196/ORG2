@@ -12,7 +12,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 describe("ChatPanelTabBar", () => {
-  it("renders tab and close controls without nesting buttons", () => {
+  it("renders the close control inside the shared tab surface", () => {
     const store = createStore();
     store.set(chatPanelTabsAtom, {
       tabs: [
@@ -36,14 +36,9 @@ describe("ChatPanelTabBar", () => {
       )
     );
 
-    const tabButtonStart = markup.indexOf('<button type="button"');
-    const tabButtonEnd = markup.indexOf("</button>", tabButtonStart);
-    const closeButtonStart = markup.indexOf(
-      '<button type="button"',
-      tabButtonStart + 1
+    expect(markup).toMatch(
+      /<div[^>]*work-station-editor-tab[^>]*role="tab"[^>]*>.*<button type="button"/s
     );
-
-    expect(markup.slice(tabButtonStart, tabButtonEnd)).toContain('role="tab"');
-    expect(tabButtonEnd).toBeLessThan(closeButtonStart);
+    expect(markup.match(/<button type="button"/g)).toHaveLength(1);
   });
 });

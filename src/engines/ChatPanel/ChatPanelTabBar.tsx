@@ -105,7 +105,7 @@ const TabPill = memo(function TabPill({
 
   // When this tab becomes active (e.g. via a sidebar click), reveal it in the
   // horizontally-scrollable tab strip. `nearest` only scrolls when off-screen.
-  const pillRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLButtonElement | HTMLDivElement>(null);
   useEffect(() => {
     if (isActive) {
       pillRef.current?.scrollIntoView({
@@ -200,44 +200,38 @@ const TabPill = memo(function TabPill({
   }
 
   const pill = (
-    <div
+    <WorkStationTabPillSurface
       ref={pillRef}
-      className="relative inline-flex min-w-0 max-w-[120px] shrink-0"
+      isActive={isActive}
+      variant="session"
+      role="tab"
+      aria-selected={isActive}
+      title={displayTitle}
+      onClick={() => onActivate(tab.id)}
+      onAuxClick={(evt) => {
+        if (evt.button === 1) onClose(tab.id);
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
     >
-      <WorkStationTabPillSurface
-        as="button"
-        isActive={isActive}
-        variant="session"
-        role="tab"
-        aria-selected={isActive}
-        title={displayTitle}
-        onClick={() => onActivate(tab.id)}
-        onAuxClick={(evt) => {
-          if (evt.button === 1) onClose(tab.id);
-        }}
-        style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
-      >
-        <div className="flex shrink-0 items-center justify-center">{icon}</div>
-        <div className="relative flex min-w-0 flex-1 items-center overflow-hidden">
+      <div className="flex shrink-0 items-center justify-center">{icon}</div>
+      <div className="relative flex min-w-0 flex-1 items-center overflow-hidden">
+        <span
+          className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] ${
+            isActive ? "text-primary-6" : "text-text-2"
+          }`}
+        >
+          {displayTitle}
+        </span>
+        {agentStatus && (
           <span
-            className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] ${
-              isActive ? "text-primary-6" : "text-text-2"
-            }`}
-          >
-            {displayTitle}
-          </span>
-          {agentStatus && (
-            <span
-              aria-hidden="true"
-              className={`ml-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${TERMINAL_AGENT_STATUS_DOT_CLASS[agentStatus]}`}
-            />
-          )}
-          <TabLabelRowScrim visible={showCloseSlot} />
-        </div>
-      </WorkStationTabPillSurface>
+            aria-hidden="true"
+            className={`ml-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${TERMINAL_AGENT_STATUS_DOT_CLASS[agentStatus]}`}
+          />
+        )}
+        <TabLabelRowScrim visible={showCloseSlot} />
+      </div>
       <TabPillCloseButton
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
@@ -252,7 +246,7 @@ const TabPill = memo(function TabPill({
             : "pointer-events-none opacity-0"
         }`}
       />
-    </div>
+    </WorkStationTabPillSurface>
   );
 
   // Session tabs with an active session get the hover card
