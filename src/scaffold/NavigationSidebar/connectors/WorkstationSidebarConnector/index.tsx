@@ -153,7 +153,10 @@ import {
   usePinnedMenuItems,
   useSessionSidebarMenuItems,
 } from "./sidebarMenuCollections";
-import { useSidebarSessionRefreshEffects } from "./sidebarSessionRefresh";
+import {
+  rescanSidebarSessions,
+  useSidebarSessionRefreshEffects,
+} from "./sidebarSessionRefresh";
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
 import type { WorkstationSidebarKey } from "./types";
 import { useProjectsMenuItemClick } from "./useProjectsMenuItemClick";
@@ -1056,7 +1059,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
     markAllSessionsVisited(sessions.map((session) => session.session_id));
   }, [sessions]);
   const handleRefreshSessions = useCallback(() => {
-    void loadSidebarSessions({ forceRefresh: true });
+    void rescanSidebarSessions().catch((error) => {
+      logger.warn("Failed to rescan sidebar sessions:", error);
+    });
   }, []);
   const isLoading =
     workItemsContentVisible || activeSidebarKey === "projects"

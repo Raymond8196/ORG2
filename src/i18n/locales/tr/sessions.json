@@ -103,8 +103,16 @@
       "lastScan": "Son tarama {{time}}",
       "neverScanned": "Hiç taranmadı",
       "frequencyTitle": "Otomatik tarama sıklığı",
-      "globalFrequency": "Otomatik tarama",
-      "globalFrequencyDesc": "“Varsayılan” olarak ayarlanan kaynaklar için varsayılan sıklık.",
+      "globalFrequency": "Harici kaynakları otomatik tarama",
+      "globalFrequencyDesc": "“Varsayılan” olarak ayarlanan harici kaynaklar için varsayılan tarama sıklığı",
+      "activeSessionRefresh": "Açık harici oturumu yenileme",
+      "activeSessionRefreshDesc": "Sohbet panelinde açık olan harici oturumun yenileme sıklığı",
+      "activeSessionFreq": {
+        "3s": "Her 3 saniyede",
+        "5s": "Her 5 saniyede",
+        "10s": "Her 10 saniyede",
+        "1m": "Her dakika"
+      },
       "col": {
         "source": "Kaynak",
         "sessions": "Oturumlar",

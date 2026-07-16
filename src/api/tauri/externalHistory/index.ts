@@ -7,7 +7,10 @@ export type {
   ExternalCliSourceProbe,
 } from "./detection";
 export { externalCliSourceProbe, externalCliSourcesDetect } from "./detection";
-export { externalHistoryRescanSource } from "./rescan";
+export {
+  externalHistoryRescanSource,
+  externalHistoryRescanSources,
+} from "./rescan";
 export {
   fetchExternalSourceStats,
   type ExternalSourceStats,

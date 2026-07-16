@@ -103,8 +103,16 @@
       "lastScan": "上次扫描 {{time}}",
       "neverScanned": "从未扫描",
       "frequencyTitle": "自动扫描频率",
-      "globalFrequency": "自动扫描",
-      "globalFrequencyDesc": "设为“默认”的数据源的默认频率。",
+      "globalFrequency": "外部数据源自动扫描",
+      "globalFrequencyDesc": "设为“默认”的外部数据源所使用的扫描频率",
+      "activeSessionRefresh": "已打开外部会话刷新",
+      "activeSessionRefreshDesc": "当前在聊天面板中打开的外部会话的刷新频率",
+      "activeSessionFreq": {
+        "3s": "每 3 秒",
+        "5s": "每 5 秒",
+        "10s": "每 10 秒",
+        "1m": "每分钟"
+      },
       "col": {
         "source": "来源",
         "sessions": "会话",
