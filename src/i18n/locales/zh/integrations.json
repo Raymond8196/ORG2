@@ -1811,6 +1811,7 @@
       "proxyReady": "代理已就绪",
       "proxyNotReady": "代理未就绪",
       "proxyDesc": "CLI 请求会通过 ORGII KeyVault 本地代理转发。",
+      "proxyLifecycleDesc": "使用此模式时请保持 ORGII 运行。关闭窗口后代理会留在托盘；完全退出时会安全恢复默认配置，外部修改不会被覆盖。",
       "keyLabel": "密钥",
       "keyDesc": "仅显示与当前 CLI 和托管代理兼容的 API Key。",
       "selectKey": "选择密钥",
