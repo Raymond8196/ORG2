@@ -1,31 +1,29 @@
 //! ORG2 Cloud in-app webview windows (design §8).
 //!
-//! Opens managed-cloud web surfaces (login, billing) in an app-managed
-//! `WebviewWindow` instead of the system browser, mirroring the Codex /
-//! Gemini OAuth webview pattern. The login flow finishes with a top-level
-//! navigation to `orgii://auth/callback#access_token=…`; we intercept that
-//! navigation, forward the full URL to the frontend as the
+//! Opens the managed-cloud billing surface in an app-managed
+//! `WebviewWindow`, opened at a pre-authenticated handoff URL
+//! (`/auth/callback?return_to=/billing#…tokens`) that the frontend builds
+//! from the CURRENT desktop session, so the page lands already signed-in
+//! without a second login — the web app's own `/auth/callback` turns those
+//! fragment tokens into a browser cookie session before continuing to
+//! `/billing` (design §8 / §18).
+//!
+//! Login itself opens in the SYSTEM browser (frontend `openUrl`) and returns
+//! via the `orgii://auth/callback` OS deep link. But a billing window opened
+//! while the desktop is signed out receives the plain login URL and finishes
+//! with a top-level navigation to `orgii://auth/callback#access_token=…`; we
+//! intercept that navigation, forward the full URL to the frontend as the
 //! `org2-cloud-auth-callback` event (same payload shape the deep-link path
 //! parses), block the navigation so the OS never sees the custom scheme, and
 //! close the window.
-//!
-//! Billing reuses the exact same window plumbing but is opened at a
-//! pre-authenticated handoff URL (`/auth/callback?return_to=/billing#…tokens`)
-//! that the frontend builds from the CURRENT desktop session, so the page
-//! lands already signed-in without a second login — the web app's own
-//! `/auth/callback` turns those fragment tokens into a browser cookie session
-//! before continuing to `/billing` (design §8 / §18).
 
 use tauri::{AppHandle, Emitter, Manager, Url, WebviewUrl, WebviewWindowBuilder};
-
-/// Window label for the login window — one at a time, replaced on re-click.
-const LOGIN_WINDOW_LABEL: &str = "org2-cloud-login";
 
 /// Window label for the billing window — one at a time, replaced on re-click.
 const BILLING_WINDOW_LABEL: &str = "org2-cloud-billing";
 
-/// The deep-link the login page redirects to when auth completes; matched on
-/// the raw navigation URL inside our webview.
+/// The deep-link the web login page redirects to when auth completes;
+/// matched on the raw navigation URL inside our webview.
 const AUTH_CALLBACK_PREFIX: &str = "orgii://auth/callback";
 
 /// Event carrying `{ "url": "orgii://auth/callback#…" }` to the frontend.
@@ -47,9 +45,8 @@ const BILLING_COMPLETE_EVENT: &str = "org2-cloud-billing-complete";
 /// must sit on exactly that origin.
 ///
 /// The navigation handler intercepts the `orgii://auth/callback` redirect
-/// (used by the login flow, and by a billing window that had to re-auth) and
-/// forwards it to the frontend, so any in-window sign-in still completes the
-/// desktop session.
+/// (a billing window that had to re-auth) and forwards it to the frontend,
+/// so any in-window sign-in still completes the desktop session.
 async fn open_cloud_web_window(
     app: AppHandle,
     url: String,
@@ -131,23 +128,6 @@ async fn open_cloud_web_window(
         .map_err(|err| format!("Failed to open ORG2 Cloud window {label}: {err}"))?;
 
     Ok(())
-}
-
-/// Open the managed-cloud login page in an app-managed webview window.
-#[tauri::command]
-pub async fn org2_cloud_open_login(
-    app: AppHandle,
-    login_url: String,
-    allowed_origin: String,
-) -> Result<(), String> {
-    open_cloud_web_window(
-        app,
-        login_url,
-        allowed_origin,
-        LOGIN_WINDOW_LABEL,
-        "Sign in to ORG2 Cloud",
-    )
-    .await
 }
 
 /// Open the managed-cloud billing page in an app-managed webview window.

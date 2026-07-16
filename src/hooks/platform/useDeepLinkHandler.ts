@@ -207,11 +207,11 @@ export function useDeepLinkHandler(): void {
     [setOrg2CloudAuth]
   );
 
-  // The in-app managed login window cannot deliver an OS deep link — Rust
-  // blocks the orgii://auth/callback navigation and instead globally emits
-  // the `org2-cloud-auth-callback` event. Handle it here at the always-mounted
-  // root hook so sign-in completes even if the user leaves Settings (which
-  // unmounts Org2CloudSection) while the login window is still open.
+  // An in-app billing window that had to re-auth cannot deliver an OS deep
+  // link — Rust blocks the orgii://auth/callback navigation and instead
+  // globally emits the `org2-cloud-auth-callback` event. Handle it here at
+  // the always-mounted root hook so the sign-in completes regardless of
+  // which surface is mounted.
   const handleOrg2CloudLoginEvent = useCallback(
     (payload: { url: string }) => {
       if (!handleOrg2CloudAuthUrl(payload.url)) {

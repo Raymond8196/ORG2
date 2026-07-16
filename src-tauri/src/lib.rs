@@ -108,7 +108,7 @@ pub mod api;
 pub mod benchmark;
 pub mod cli_managed_proxy;
 pub mod infrastructure; // In-tree-only cross-cutting infrastructure (paths, platform, archive, index_manager, jsonrpc, housekeeping). Leaf pieces live in their own workspace crates.
-pub mod org2_cloud; // ORG2 Cloud in-app login window (design §8)
+pub mod org2_cloud; // ORG2 Cloud in-app billing window (design §8)
 pub mod orgtrack;
 pub(crate) mod setup;
 pub mod usage_diagnostics;
