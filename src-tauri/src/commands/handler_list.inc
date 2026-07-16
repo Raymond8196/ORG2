@@ -282,7 +282,7 @@ git::watch::commands::set_active_git_polling_repo,
 // Folder Archive commands (for cloud session upload - legacy ZIP)
 infrastructure::archive::create_folder_archive,
 infrastructure::archive::get_folder_info,
-// Session Persistence commands (SQLite + FTS5 for fast local storage)
+// Session Persistence commands (SQLite for fast local storage)
 session_persistence::cache_save_events,
 session_persistence::cache_load_events,
 session_persistence::cache_load_turn_index,
