@@ -86,6 +86,7 @@ pub fn init_session_tables(conn: &Connection) -> SqliteResult<()> {
             interrupted INTEGER NOT NULL DEFAULT 0,
             updated_at TEXT NOT NULL,
             modified_files_json TEXT NOT NULL DEFAULT '[]',
+            resource_interactions_json TEXT NOT NULL DEFAULT '[]',
             git_artifacts_json TEXT NOT NULL DEFAULT '[]',
             PRIMARY KEY (session_id, turn_id)
         )",
@@ -106,6 +107,14 @@ pub fn init_session_tables(conn: &Connection) -> SqliteResult<()> {
     // `{ path, fileName, status, additions, deletions }`.
     conn.execute(
         "ALTER TABLE session_turns ADD COLUMN modified_files_json TEXT NOT NULL DEFAULT '[]'",
+        [],
+    )
+    .ok();
+    // Provider-neutral per-round resource observations. Only normalized path,
+    // action, outcome, timestamps, and count are stored; raw tool payloads are
+    // deliberately excluded.
+    conn.execute(
+        "ALTER TABLE session_turns ADD COLUMN resource_interactions_json TEXT NOT NULL DEFAULT '[]'",
         [],
     )
     .ok();

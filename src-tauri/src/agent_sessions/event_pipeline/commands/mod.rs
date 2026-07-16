@@ -688,7 +688,10 @@ mod bulk_writer {
     }
 }
 
-fn persist_runtime_orgtrack_records_async(session_id: String, events: Vec<(usize, SessionEvent)>) {
+fn persist_runtime_orgtrack_records_async(
+    session_id: String,
+    events: Vec<(usize, Option<String>, SessionEvent)>,
+) {
     tokio::task::spawn_blocking(move || {
         if let Err(err) = persist_runtime_orgtrack_records(&session_id, events) {
             tracing::warn!(
@@ -702,7 +705,7 @@ fn persist_runtime_orgtrack_records_async(session_id: String, events: Vec<(usize
 
 fn persist_runtime_orgtrack_records(
     session_id: &str,
-    events: Vec<(usize, SessionEvent)>,
+    events: Vec<(usize, Option<String>, SessionEvent)>,
 ) -> Result<(), String> {
     if events.is_empty() {
         return Ok(());
@@ -714,9 +717,12 @@ fn persist_runtime_orgtrack_records(
     store.upsert_session(&session)?;
 
     let mut chunks_by_file: HashMap<String, Vec<SessionDiffChunkRecord>> = HashMap::new();
-    for (sequence_index, event) in events {
+    for (sequence_index, turn_id, event) in events {
         if let Err(err) = crate::orgtrack::session_provenance::persist_native_event_interactions(
-            &store, &session, &event,
+            &store,
+            &session,
+            &event,
+            turn_id.as_deref(),
         ) {
             tracing::warn!(
                 session_id = %session.session_id,
@@ -733,7 +739,7 @@ fn persist_runtime_orgtrack_records(
             source_session_id: Some(session.source_session_id.clone()),
             session_id: session.session_id.clone(),
             source_event_id: Some(event.id.clone()),
-            turn_id: event.thread_id.clone(),
+            turn_id,
             sequence_index: sequence_index as i64,
             timestamp: Some(event.created_at.clone()),
             workspace_path: event
@@ -871,23 +877,32 @@ pub fn push_events_to_session(
         if result_call_ids.is_empty() {
             return Vec::new();
         }
-        store
-            .events()
-            .iter()
-            .enumerate()
-            .filter(|(_, event)| {
-                event.action_type == ACTION_TYPE_TOOL_CALL
-                    && event
-                        .call_id
-                        .as_ref()
-                        .is_some_and(|call_id| result_call_ids.contains(call_id))
-            })
-            .map(|(sequence_index, event)| (sequence_index, event.clone()))
-            .collect::<Vec<_>>()
+        let mut current_turn_id: Option<String> = None;
+        let mut matched = Vec::new();
+        for (sequence_index, event) in store.events().iter().enumerate() {
+            if event.function_name == "user_message"
+                && event
+                    .result
+                    .get("syntheticUserInput")
+                    .and_then(|value| value.as_bool())
+                    != Some(true)
+            {
+                current_turn_id = Some(event.id.clone());
+            }
+            if event.action_type == ACTION_TYPE_TOOL_CALL
+                && event
+                    .call_id
+                    .as_ref()
+                    .is_some_and(|call_id| result_call_ids.contains(call_id))
+            {
+                matched.push((sequence_index, current_turn_id.clone(), event.clone()));
+            }
+        }
+        matched
     });
 
     let mut runtime_artifact_events = Vec::new();
-    for (sequence_index, event) in merged_tool_calls {
+    for (sequence_index, turn_id, event) in merged_tool_calls {
         if event_conversion::is_ts_placeholder_id(&event.id) {
             continue;
         }
@@ -900,7 +915,7 @@ pub fn push_events_to_session(
                     | ExtractedData::DeleteFile(_)
             )
         ) {
-            runtime_artifact_events.push((sequence_index, event.clone()));
+            runtime_artifact_events.push((sequence_index, turn_id, event.clone()));
         }
         persistable.push(event_conversion::session_event_to_cached_event(&event));
     }

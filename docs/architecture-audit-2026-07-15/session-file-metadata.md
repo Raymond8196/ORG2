@@ -1,53 +1,99 @@
-# Architecture Audit — Session File Metadata
+# Architecture Audit — Orgtrack Round Metadata
 
-**Scope:** Issues #387 and #388: per-round file/Git metadata, whole-session touched-file projection, and Kanban file search.
+**Scope:** Issues #387 and #388: per-round resource/development metadata, whole-session edit impact, and Kanban file search.
 
 ## Completion criteria
 
-- [x] Per-round file paths and line additions/deletions are stored in `session_turns`.
-- [x] Per-round commits and pull requests are stored beside the file metadata.
-- [x] Live extraction and historical rebuild share one Git-artifact recognizer.
-- [x] Historical rows rebuild lazily through a versioned index; no eager transcript migration is required.
-- [x] Whole-session touched files are folded from the canonical turn rows.
-- [x] Frontend RPC validation matches the Rust camelCase wire shape.
-- [x] Chat metadata loads without subscribing the virtualized chat tree to one aggregate result map.
-- [x] Kanban search reads materialized `touchedFiles`; it does not parse transcripts per keystroke.
+- [x] One Orgtrack projector owns per-round read/search/write/create/delete/rename observations.
+- [x] The same projector owns modified-file line stats and development artifacts (commits/PRs).
+- [x] ORG2, Claude Code, Codex, Cursor, and other normalized providers enter through the same tool metadata boundary.
+- [x] `session_turns` is a rebuildable ORG2 read cache, not the semantic owner.
+- [x] Historical rows rebuild lazily through a versioned index; existing DBs keep working.
+- [x] Session, turn, and actor/execution-thread identities are not conflated.
+- [x] The chat footer renders resource observations and edit/development metadata.
+- [x] Kanban file search uses the whole-session edit projection without parsing transcripts per keystroke.
+
+## Ownership and extraction boundary
+
+| Layer                    | Owns                                                                                        | Does not own                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `orgtrack-protocol`      | Stable action/outcome/envelope vocabulary                                                   | Provider payload parsing, SQLite, UI                                 |
+| `orgtrack-core`          | Provider adapters, resource extraction, `TurnMetadataAccumulator`, Git artifact recognition | ORG2 database paths, Tauri commands, React                           |
+| `session-persistence`    | Versioned `session_turns` materialized cache and lazy rebuild                               | Tool-name constants, provider-specific result parsing, Git semantics |
+| app `session_provenance` | stdin/inbox/SQLite/filesystem adapters and actor lifecycle wiring                           | Round aggregation rules                                              |
+| frontend                 | Validated display and navigation                                                            | Raw transcript aggregation                                           |
+
+Moving Orgtrack to a future repository/submodule therefore requires changing Cargo dependency locations and supplying host adapters; the protocol/projector does not depend on the ORG2 app crate.
+
+## Identity semantics
+
+| Field        | Meaning                                     | Source                                                    |
+| ------------ | ------------------------------------------- | --------------------------------------------------------- |
+| `session_id` | Durable conversation/session                | Provider canonical session identity                       |
+| `turn_id`    | User-message-bounded conversational round   | Latest non-synthetic user-message id                      |
+| `actor_id`   | Root agent/subagent identity                | Hook lifecycle or reconciled actor mapping                |
+| `thread_id`  | Provider execution thread/process dimension | Preserved on normalized events; never reused as `turn_id` |
+
+Native ORG2 associates completed tool calls with the nearest preceding real user message in the in-memory production event store. Reconciled histories infer the same boundary from normalized `user_message` chunks. A provider thread id may identify an execution lane or subagent and is intentionally not promoted to a conversational round.
+
+## Provider coverage
+
+| Capture surface  | Providers                                                                                                | Projection path                                                                                   |
+| ---------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Managed hooks    | Claude Code, Codex, Cursor, Qwen Code, Factory Droid, Trae, OpenCode, Windsurf, Kimi, Antigravity, ZCode | hook adapter → privacy-safe `ResourceInteractionEnvelopeV1`                                       |
+| Imported history | Claude Code, Codex, Cursor, OpenCode, Windsurf, WorkBuddy, Trae, Cline, Warp, ZCode                      | existing provider loader → normalized `ActivityChunk` → Orgtrack resource projector               |
+| Native ORG2      | Rust-agent event pipeline                                                                                | merged production tool event → Orgtrack interaction store; turn cache → `TurnMetadataAccumulator` |
+
+Hook-only providers gain live provenance immediately. Providers with imported-history loaders also gain lazy historical projection. Adding a future provider means implementing an adapter/loader to the normalized boundary, not adding another turn metadata implementation.
 
 ## Production call-chain trace
 
-| Entry point           | Path                                                                                                                | Result                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Live shell tool       | event pipeline → `shell_extractor` → `git::git_artifacts::parse_git_artifacts`                                      | Existing live cards retain the canonical commit/PR parser.       |
-| Historical round load | `load_turn_index` → freshness/version check → raw event scan → `TurnFileAccumulator` / `TurnGitArtifactAccumulator` | Old sessions gain v9 metadata on first access.                   |
-| Session aggregate     | unified session stats → `get_session_impact` → `load_turn_index` → fold unique paths and line totals                | Final touched-file metadata is derived from the same turn index. |
-| Chat UI               | `loadTurnIndex` RPC → `TurnMetadataLoader` → per-turn atom → footer slot                                            | Only the affected round footer updates.                          |
-| Kanban UI             | session aggregate → `useSessionImpact` → task impact → precomputed lowercase path text                              | Partial path/basename filtering is an in-memory lookup.          |
+| Entry point       | Path                                                                                        | Result                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Live native tool  | production event merge → nearest user-message turn → `persist_native_event_interactions`    | Canonical session/turn/actor/resource fact                    |
+| External hook     | provider hook → `hook_adapter` → privacy-safe spool → bounded drain                         | Canonical live resource fact without raw content/query/output |
+| Historical round  | existing provider loader/event cache → normalized tool metadata → `TurnMetadataAccumulator` | Lazy read/search/edit/Git metadata                            |
+| Session aggregate | `load_turn_index` → fold unique modified paths and line totals                              | Final edit impact and Kanban search input                     |
+| Chat UI           | validated RPC → per-turn atom → `TurnMetadataFooter`                                        | Read/search paths, edits, commits, and PRs                    |
 
 ## Ten-layer audit
 
-| Layer                                 | Verdict        | Evidence / decision                                                                                                                                                                                                      |
-| ------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1. Compilation correctness            | Pass           | Rust target tests, TypeScript typecheck, targeted ESLint, and Vitest pass.                                                                                                                                               |
-| 2. Dead code / structural duplication | Pass           | Removed the unused `TurnFilesContext`/`useTurnModifiedFiles` path and the separate live impact accumulator. The former app-local Git parser is now a thin re-export of the canonical `git` crate parser.                 |
-| 3. Naming consistency                 | Pass           | UI/data terminology is `TurnMetadata`; stale production comments naming `TurnFilesFooter` were swept. DB names remain explicit (`modified_files_json`, `git_artifacts_json`).                                            |
-| 4. Semantic overloading               | Pass           | “Turn” is the durable user-message window; “session impact” is its whole-session fold. Neither is used for read-only file access. “Touched files” means writes/patches/deletes only.                                     |
-| 5. Default branches                   | Pass           | Unknown/malformed tools and payloads are skipped, not classified as edits or successful Git artifacts. Failed shell payloads produce no artifact.                                                                        |
-| 6. Cross-domain leakage               | Pass           | Git recognition lives in the lower `git` crate; session materialization lives in `session-persistence`; the app layer only adapts and projects. Kanban never imports provider transcript loaders.                        |
-| 7. New-developer clarity              | Pass           | Module docs identify the canonical index and explain `undefined` (not loaded) versus `null` (loaded/no matching turn). Test-case ledgers cover the user-visible states.                                                  |
-| 8. Wire protocol / serialization      | Pass           | Rust uses serde camelCase, the Zod schema enumerates the same optional artifact fields, and malformed historical JSON degrades to an empty collection without corrupting the index. No external network payload changed. |
-| 9. Init parity                        | Pass           | Fresh DB creation includes both JSON columns; existing DBs receive both `ALTER TABLE` migrations. Production and E2E both enter through `saveEvents`/`loadTurnIndex`, so E2E exercises the real rebuild path.            |
-| 10. Resolver symmetry                 | Not applicable | This change adds no multi-source model/account/workspace resolver. Native and imported session impacts retain their existing source selection; only native turn materialization changed.                                 |
+| Layer                                 | Verdict | Evidence / decision                                                                                                                                                                                                   |
+| ------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Compilation correctness            | Pass    | Workspace Rust check, targeted Rust suites, TypeScript typecheck, ESLint, Vitest, and rendered E2E are required gates.                                                                                                |
+| 2. Dead code / structural duplication | Pass    | Removed host `turn_files` and `turn_git_artifacts`; moved Git recognition and the round accumulator into Orgtrack; split hook capture, interaction storage, path resolution, and historical backfill from the facade. |
+| 3. Naming consistency                 | Pass    | `TurnMetadata` names the UI/cache projection; `ResourceInteraction` names protocol facts; `modifiedFiles` remains the edit-only review subset.                                                                        |
+| 4. Semantic overloading               | Pass    | Session, turn, actor, and thread meanings are documented and enforced; the former `thread_id → turn_id` assignment was removed.                                                                                       |
+| 5. Default branches                   | Pass    | Malformed JSON is tolerated, unknown tools are skipped, failed writes remain failed observations and do not claim a modification, and raw provider payloads are never materialized.                                   |
+| 6. Cross-domain leakage               | Pass    | Provider/tool/Git semantics live in `orgtrack-core`; `session-persistence` calls one provider-neutral accumulator; filesystem/SQLite concerns remain host adapters.                                                   |
+| 7. New-developer clarity              | Pass    | Module docs and the ownership/provider/identity tables identify the one extension point and why the cache is rebuildable.                                                                                             |
+| 8. Wire protocol / serialization      | Pass    | Rust serde camelCase, Zod, and TS interfaces include the same resource observation fields and bounded enums.                                                                                                          |
+| 9. Init parity                        | Pass    | Fresh tables and additive existing-DB upgrades include all three JSON projections; index v10 forces lazy recomputation.                                                                                               |
+| 10. Resolver symmetry                 | Pass    | Live hooks, native events, and imported histories converge on Orgtrack action/outcome/path rules; provider discovery continues to reuse existing loaders.                                                             |
 
 ## Systematic sweeps
 
-| Issue class                         | Sweep                                                                                            | Outcome                                                                                                                                                                    |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Duplicate Git recognition           | Searched all `parse_git_artifacts` definitions/callers                                           | One implementation remains in `crates/git`; live and backfill paths call it.                                                                                               |
-| Parallel session impact computation | Searched old impact tables/functions and event-pipeline calls                                    | Runtime session impact now folds versioned turns; the old event accumulator call is removed. Existing user DB tables are left untouched for non-destructive compatibility. |
-| Schema parity                       | Searched every `session_turns` create/insert/select and frontend `TurnSummary` shape             | Create, migration, write, read, Rust struct, Zod schema, and TS interface include Git artifacts.                                                                           |
-| Stale component naming              | Searched production source for `TurnFilesFooter`, `TurnFilesContext`, and `useTurnModifiedFiles` | No production references remain. Historical audit documents are intentionally unchanged.                                                                                   |
-| Localization coverage               | Checked all locale `sessions.json` files and parsed them with `jq`                               | All 13 locales contain both feature key groups and valid JSON.                                                                                                             |
+| Issue class                | Sweep                                                         | Outcome                                                                        |
+| -------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Duplicate provider parsing | Searched provider loaders, hook adapters, and turn-cache code | Existing loaders/adapters are reused; no new transcript reader was introduced. |
+| Duplicate round projection | Searched file/Git accumulators and host tool-name constants   | One `TurnMetadataAccumulator` remains in `orgtrack-core`.                      |
+| Identity conflation        | Searched `turn_id` assignments from `thread_id`               | Native and reconciled paths now derive turns from user-message boundaries.     |
+| Schema parity              | Checked create/ALTER/insert/select/Rust/Zod/TS shapes         | All include `resource_interactions_json`; v10 rebuilds historical rows lazily. |
+| Localization               | Parsed every locale JSON and compared the new feature keys    | All 13 locales include read/search/failure labels.                             |
 
 ## Final verdict
 
-No blocking architecture findings remain. The JSON columns are intentionally bounded per-turn materializations: they preserve forward-compatible artifact fields, keep the frontend read O(turns), and are invalidated by `TURN_INDEX_VERSION` when extraction semantics change.
+No blocking architecture finding remains. Orgtrack now owns the reusable protocol and projection semantics; ORG2 owns only adapters and a disposable read cache. The remaining future extraction work is repository packaging/versioning, not a domain redesign.
+
+## Verification
+
+| Gate                 | Result                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------ |
+| Rust workspace tests | Pass: `cargo test --workspace --quiet -- --test-threads=1`                                             |
+| Rust compilation     | Pass: `cargo check --workspace`                                                                        |
+| Rust lint            | Pass: `cargo clippy --workspace` (pre-existing advisory warnings only)                                 |
+| Frontend types       | Pass: `NODE_OPTIONS=--max-old-space-size=6144 pnpm typecheck`                                          |
+| Frontend lint        | Pass: `pnpm lint`                                                                                      |
+| Frontend unit tests  | Pass: 376 files / 4,359 tests                                                                          |
+| Rendered desktop E2E | Pass: isolated macOS Tauri/WebDriver round-metadata scenario against the real command and SQLite cache |
+| Localization         | Pass: all 13 session locale JSON files parse and contain the new keys                                  |

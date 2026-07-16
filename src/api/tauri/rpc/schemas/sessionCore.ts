@@ -329,6 +329,20 @@ export const TurnModifiedFileSchema = z.object({
 
 export type TurnModifiedFile = z.output<typeof TurnModifiedFileSchema>;
 
+export const TurnResourceInteractionSchema = z.object({
+  path: z.string(),
+  fileName: z.string(),
+  action: z.enum(["read", "write", "create", "delete", "rename", "search"]),
+  outcome: z.enum(["succeeded", "failed", "unknown"]),
+  count: z.number().int().nonnegative(),
+  firstOccurredAt: z.string(),
+  lastOccurredAt: z.string(),
+});
+
+export type TurnResourceInteraction = z.output<
+  typeof TurnResourceInteractionSchema
+>;
+
 export const TurnGitArtifactSchema = z.object({
   kind: z.enum(["commit", "pullRequest"]),
   url: z.string().optional(),
@@ -361,6 +375,8 @@ export const TurnSummarySchema = z.object({
   interrupted: z.boolean(),
   // Per-round modified files, materialized by the Rust turn indexer.
   modifiedFiles: z.array(TurnModifiedFileSchema).default([]),
+  // Privacy-safe Orgtrack path/action aggregates for this round.
+  resourceInteractions: z.array(TurnResourceInteractionSchema).default([]),
   // Exact commits/PRs produced by successful git/gh commands in this round.
   gitArtifacts: z.array(TurnGitArtifactSchema).default([]),
 });

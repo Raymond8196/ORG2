@@ -1,10 +1,12 @@
 import { useSetAtom } from "jotai";
 import {
+  BookOpenText,
   ExternalLink,
   FileCode2,
   GitCommitHorizontal,
   GitPullRequest,
   MoreHorizontal,
+  Search,
 } from "lucide-react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,11 +17,15 @@ import TextButton from "@src/components/TextButton";
 import {
   CHAT_COMPOSER_STACK_BAR_INNER_PADDING_X_CLASS,
   CHAT_COMPOSER_STACK_BAR_SURFACE_BG_CLASS,
+  COMPOSER_STACK_ROW_BASE,
 } from "@src/config/composerStackTokens";
 import FileChangeRow from "@src/engines/ChatPanel/InputArea/components/FileChangeRow";
 import { replayModeAtom } from "@src/engines/SessionCore";
 import type { ExtractedGitArtifactData } from "@src/engines/SessionCore/core/types";
-import type { TurnSummary } from "@src/engines/SessionCore/storage/sqliteCache";
+import type {
+  TurnResourceInteraction,
+  TurnSummary,
+} from "@src/engines/SessionCore/storage/sqliteCache";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import {
@@ -76,6 +82,27 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
     const pullRequests = useMemo(
       () => summary.gitArtifacts.filter((item) => item.kind === "pullRequest"),
       [summary.gitArtifacts]
+    );
+    const observedResources = useMemo(
+      () =>
+        summary.resourceInteractions.filter(
+          (item) => item.action === "read" || item.action === "search"
+        ),
+      [summary.resourceInteractions]
+    );
+    const readCount = useMemo(
+      () =>
+        observedResources
+          .filter((item) => item.action === "read")
+          .reduce((total, item) => total + item.count, 0),
+      [observedResources]
+    );
+    const searchCount = useMemo(
+      () =>
+        observedResources
+          .filter((item) => item.action === "search")
+          .reduce((total, item) => total + item.count, 0),
+      [observedResources]
     );
 
     const openDiff = useCallback(
@@ -143,11 +170,25 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
     const visibleFiles = expanded
       ? files
       : files.slice(0, DEFAULT_VISIBLE_FILES);
-    const hiddenCount = files.length - visibleFiles.length;
+    const visibleResources = expanded
+      ? observedResources
+      : observedResources.slice(
+          0,
+          Math.max(0, DEFAULT_VISIBLE_FILES - visibleFiles.length)
+        );
+    const hiddenCount =
+      files.length +
+      observedResources.length -
+      visibleFiles.length -
+      visibleResources.length;
     const isSettled =
       summary.status !== "pending" && summary.status !== "working";
 
-    if (files.length === 0 && summary.gitArtifacts.length === 0) {
+    if (
+      files.length === 0 &&
+      observedResources.length === 0 &&
+      summary.gitArtifacts.length === 0
+    ) {
       if (!isSettled) return null;
       return (
         <div className="px-3 pt-2" data-testid="turn-metadata-empty">
@@ -180,6 +221,24 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                 >
                   <FileCode2 size={13} />
                   {t("chat.turnMetadata.files", { count: files.length })}
+                </span>
+              )}
+              {readCount > 0 && (
+                <span
+                  className="flex items-center gap-1"
+                  data-testid="turn-metadata-reads-count"
+                >
+                  <BookOpenText size={13} />
+                  {t("chat.turnMetadata.reads", { count: readCount })}
+                </span>
+              )}
+              {searchCount > 0 && (
+                <span
+                  className="flex items-center gap-1"
+                  data-testid="turn-metadata-searches-count"
+                >
+                  <Search size={13} />
+                  {t("chat.turnMetadata.searches", { count: searchCount })}
                 </span>
               )}
               {commits.length > 0 && (
@@ -250,6 +309,35 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                 <ExternalLink size={12} className="shrink-0 text-text-3" />
               </StackRowButton>
             ))}
+            {visibleResources.map((interaction: TurnResourceInteraction) => {
+              const isRead = interaction.action === "read";
+              const Icon = isRead ? BookOpenText : Search;
+              return (
+                <div
+                  key={`${interaction.action}-${interaction.outcome}-${interaction.path}`}
+                  className={COMPOSER_STACK_ROW_BASE}
+                  title={interaction.path}
+                  data-testid={`turn-metadata-${interaction.action}`}
+                >
+                  <Icon size={14} className="shrink-0 text-text-3" />
+                  <span className="min-w-0 flex-1 truncate text-[12px] text-text-2">
+                    {interaction.path}
+                  </span>
+                  <span className="shrink-0 text-[11px] text-text-3">
+                    {interaction.outcome === "failed"
+                      ? t("chat.turnMetadata.failed")
+                      : interaction.count > 1
+                        ? `×${interaction.count}`
+                        : t(
+                            isRead
+                              ? "chat.turnMetadata.reads"
+                              : "chat.turnMetadata.searches",
+                            { count: 1 }
+                          )}
+                  </span>
+                </div>
+              );
+            })}
             {visibleFiles.map((file) => (
               <FileChangeRow
                 key={file.path}
@@ -257,7 +345,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                 onFileClick={openDiff}
               />
             ))}
-            {files.length > DEFAULT_VISIBLE_FILES && (
+            {hiddenCount > 0 || expanded ? (
               <StackRowButton
                 onClick={() => setExpanded((previous) => !previous)}
                 className="text-text-3"
@@ -269,7 +357,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     : t("chat.turnMetadata.showMore", { count: hiddenCount })}
                 </span>
               </StackRowButton>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

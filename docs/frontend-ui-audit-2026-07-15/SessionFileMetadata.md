@@ -1,6 +1,6 @@
 # Frontend UI Audit — Session File Metadata
 
-**Scope:** `TurnMetadataFooter`, its loader/slot integration, and Kanban touched-file search.
+**Scope:** `TurnMetadataFooter` resource/edit/development metadata, its loader/slot integration, and Kanban modified-file search.
 
 The workspace `frontend-ui-audit` skill was unavailable, so this report applies the repository's documented dimensions manually.
 
@@ -9,6 +9,7 @@ The workspace `frontend-ui-audit` skill was unavailable, so this report applies 
 | Line / element                          | Verdict          | Reason                                                                                                                                                      | Suggested change |
 | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
 | `TurnMetadataFooter`: action/file rows  | keep with reason | Reuses `StackRowButton`, `TextButton`, `FileChangeRow`, `FileTypeIcon`, and shared composer-stack tokens. No parallel button/list primitive was introduced. | —                |
+| `TurnMetadataFooter`: read/search rows  | keep with reason | Read-only metadata is informational, so it uses the shared non-interactive stack-row token instead of presenting a misleading disabled button.              | —                |
 | `KanbanFileSearchInput`: search control | keep             | Reuses the shared `SearchInput` with the pane surface and built-in clear action.                                                                            | —                |
 | `TaskKanbanContent`: no-results state   | keep with reason | This is a full-board state, not a toast or inline form error; the same absolute full-bleed layout is used by the view fallback.                             | —                |
 
@@ -29,24 +30,25 @@ The workspace `frontend-ui-audit` skill was unavailable, so this report applies 
 
 ## D4 — Accessibility
 
-| Line / element     | Verdict          | Reason                                                                                                                 | Suggested change |
-| ------------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| File row           | keep             | Shared `FileChangeRow` supplies button role, keyboard focus, and Enter/Space activation when clickable.                | —                |
-| Commit and PR rows | keep             | Native buttons provide keyboard operation and disabled semantics when a target is unavailable.                         | —                |
-| Kanban file search | keep             | The shared input now accepts an explicit `ariaLabel`; the feature supplies its translated search label in all locales. | —                |
-| Summary icons      | keep with reason | Icons are accompanied by visible localized counts, so separate icon labels would be duplicate announcements.           | —                |
+| Line / element     | Verdict          | Reason                                                                                                                               | Suggested change |
+| ------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| File row           | keep             | Shared `FileChangeRow` supplies button role, keyboard focus, and Enter/Space activation when clickable.                              | —                |
+| Commit and PR rows | keep             | Native buttons provide keyboard operation and disabled semantics when a target is unavailable.                                       | —                |
+| Kanban file search | keep             | The shared input now accepts an explicit `ariaLabel`; the feature supplies its translated search label in all locales.               | —                |
+| Summary icons      | keep with reason | Icons are accompanied by visible localized counts, so separate icon labels would be duplicate announcements.                         | —                |
+| Read/search rows   | keep             | Visible path and localized operation text do not depend on icon recognition; full paths are also available through the native title. | —                |
 
 ## D5 — Visual-pattern duplication
 
-| Pattern         | Verdict          | Reason                                                                                                                                      | Suggested change |
-| --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| Round file rows | keep             | Extends the existing shared file-change row rather than cloning it.                                                                         | —                |
-| Search control  | keep             | Uses the existing shared search component.                                                                                                  | —                |
-| Metadata card   | keep with reason | It extends the former per-round file card with commit/PR rows; there are not three independent implementations requiring a new abstraction. | —                |
+| Pattern         | Verdict          | Reason                                                                                                                                                         | Suggested change |
+| --------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Round file rows | keep             | Extends the existing shared file-change row rather than cloning it.                                                                                            | —                |
+| Search control  | keep             | Uses the existing shared search component.                                                                                                                     | —                |
+| Metadata card   | keep with reason | One card now presents the three Orgtrack projections (observations, edits, development artifacts); there is still one implementation and one row token system. | —                |
 
 ## Summary
 
 - Fix candidates applied: 1 (explicit translated accessible name for the shared search input).
-- Keep / keep-with-reason decisions: 14.
+- Keep / keep-with-reason decisions: 16.
 - Abstract candidates: 0.
 - Blocking findings: 0.

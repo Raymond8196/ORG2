@@ -555,7 +555,7 @@ mod tests {
     }
 
     #[test]
-    fn factory_droid_create_normalizes_to_a_write() {
+    fn factory_droid_create_preserves_the_create_action() {
         let envelopes = normalize_hook_payload(
             HookSource::FactoryDroid,
             &json!({
@@ -572,7 +572,7 @@ mod tests {
         assert_eq!(envelopes.len(), 1);
         assert_eq!(envelopes[0].source, "droid");
         assert_eq!(envelopes[0].session_id, "droidapp-droid-1");
-        assert_eq!(envelopes[0].action, ResourceAction::Write);
+        assert_eq!(envelopes[0].action, ResourceAction::Create);
         assert_eq!(envelopes[0].file_path, "/repo/src/new.rs");
     }
 
@@ -738,7 +738,10 @@ mod tests {
         assert!(HookSource::parse("warp").is_err());
         assert!(HookSource::parse("cline").is_err());
         assert_eq!(HookSource::parse("qwen").unwrap(), HookSource::QwenCode);
-        assert_eq!(HookSource::parse("droid").unwrap(), HookSource::FactoryDroid);
+        assert_eq!(
+            HookSource::parse("droid").unwrap(),
+            HookSource::FactoryDroid
+        );
         assert_eq!(HookSource::parse("trae").unwrap(), HookSource::Trae);
         assert_eq!(HookSource::parse("opencode").unwrap(), HookSource::OpenCode);
         assert_eq!(HookSource::parse("windsurf").unwrap(), HookSource::Windsurf);

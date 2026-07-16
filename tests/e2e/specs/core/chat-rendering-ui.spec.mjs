@@ -2320,6 +2320,30 @@ async function assertTurnMetadataFooterRendered() {
     activityStatus: "agent",
     isDelta: false,
   };
+  const read = {
+    ...edit,
+    id: `${sessionId}-read`,
+    chunk_id: `${sessionId}-read`,
+    createdAt: new Date(baseTime + 500).toISOString(),
+    functionName: "read_file",
+    uiCanonical: "read_file",
+    args: { file_path: "src/features/metadata/source.ts" },
+    result: { output: "source contents" },
+    displayText: "Read source.ts",
+  };
+  const search = {
+    ...edit,
+    id: `${sessionId}-search`,
+    chunk_id: `${sessionId}-search`,
+    createdAt: new Date(baseTime + 750).toISOString(),
+    functionName: "search_files",
+    uiCanonical: "search_files",
+    args: { path: "src/features/metadata" },
+    result: {
+      results: [{ file: "src/features/metadata/sessionMetadata.ts" }],
+    },
+    displayText: "Searched metadata files",
+  };
   const commit = {
     ...edit,
     id: `${sessionId}-commit`,
@@ -2363,7 +2387,7 @@ async function assertTurnMetadataFooterRendered() {
     userInput: "Edit a file, commit it, and open a PR",
     category: "rust_agent",
     status: "completed",
-    events: [user, edit, commit, pullRequest, assistant],
+    events: [user, read, search, edit, commit, pullRequest, assistant],
   });
   if (!seed || seed.ok !== true) {
     throw new Error(`turn metadata seed failed: ${seed?.error ?? "unknown"}`);
@@ -2379,10 +2403,14 @@ async function assertTurnMetadataFooterRendered() {
         const footer = document.querySelector('[data-testid="turn-metadata-footer"]');
         return !!footer &&
           !!footer.querySelector('[data-testid="turn-metadata-files-count"]') &&
+          !!footer.querySelector('[data-testid="turn-metadata-reads-count"]') &&
+          !!footer.querySelector('[data-testid="turn-metadata-searches-count"]') &&
           !!footer.querySelector('[data-testid="turn-metadata-commits-count"]') &&
           !!footer.querySelector('[data-testid="turn-metadata-prs-count"]') &&
           footer.querySelectorAll('[data-testid="turn-metadata-commit"]').length === 1 &&
           footer.querySelectorAll('[data-testid="turn-metadata-pr"]').length === 1 &&
+          footer.querySelectorAll('[data-testid="turn-metadata-read"]').length === 1 &&
+          footer.querySelectorAll('[data-testid="turn-metadata-search"]').length === 2 &&
           (footer.innerText || '').includes('sessionMetadata.ts') &&
           (footer.innerText || '').includes('abc1234') &&
           (footer.innerText || '').includes('#387');
