@@ -414,7 +414,7 @@ git_api = { path = "crates/git-api" }
 # Pure leaf — depends only on the underlying `search` engine crate.
 api_search = { path = "crates/api-search" }
 
-# Session-specific SQLite persistence: event cache (FTS5), branching,
+# Session-specific SQLite persistence: event cache, branching,
 # file-change aggregation, token usage. Owns ~23 `#[tauri::command]`s
 # that the `app` crate re-registers from `commands/handler_list.inc`
 # via the bare `session_persistence::…` path. Wires concrete impls
