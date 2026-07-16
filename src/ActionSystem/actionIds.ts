@@ -4,6 +4,7 @@ export const ACTION_ID = {
   SIDEBAR_EXPAND: "sidebar.expand",
   SIDEBAR_RESIZE: "sidebar.resize",
   AGENT_STATION_CREATE_SESSION: "agentStation.createSession",
+  SESSION_REPLY_COMMENT: "session.replyComment",
   GUI_INSPECT: "gui.inspect",
   GUI_CONTEXT: "gui.context",
   GUI_EXECUTE: "gui.execute",

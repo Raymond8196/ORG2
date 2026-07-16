@@ -20,7 +20,6 @@ import type { SessionSyncRefs } from "./sessionSyncTypes";
 import {
   hydrateSessionStoreBeforeDisplay,
   isInFlightRunStatus,
-  loadOwnSessionInitialEvents,
   loadPersistedHistory,
 } from "./sessionSyncUtils";
 import type { SessionAdapter } from "./types";
@@ -144,7 +143,11 @@ async function handleCacheHit(
       // initial load (which itself falls back to `loadEvents` when the turn
       // index is empty) and re-hydrate the store so the events actually show.
       if (displayEvents.length === 0 || !displayEvents.some(isVisibleInChat)) {
-        const fallbackEvents = await loadOwnSessionInitialEvents(sessionId);
+        const fallbackEvents = await loadPersistedHistory(
+          adapter,
+          sessionId,
+          abortController.signal
+        );
         if (abortController.signal.aborted) return;
         if (fallbackEvents.length > 0) {
           await hydrateSessionStoreBeforeDisplay(sessionId, fallbackEvents);

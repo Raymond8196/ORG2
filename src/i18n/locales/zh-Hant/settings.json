@@ -40,7 +40,8 @@
     "storage": "存儲",
     "projectUsage": "專案與用量",
     "agentMemory": "Agent 記憶",
-    "agentOrg": "Agent 團隊"
+    "agentOrg": "Agent 團隊",
+    "collaboration": "協作"
   },
   "coreSidebar": {
     "groups": {
@@ -1309,5 +1310,11 @@
     "searchActions": "搜索動作...",
     "noActionsFound": "未找到動作",
     "noConfigurableProperties": "無可配置屬性"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "雲端",
+      "selfHosted": "自託管"
+    }
   }
 }

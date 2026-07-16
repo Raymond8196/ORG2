@@ -456,7 +456,7 @@ export function ChatPanelTabBar({
         return;
       }
     },
-    [closeTab, nextTab, prevTab, onNewSession, containerRef]
+    [closeTab, nextTab, onNewSession, prevTab, containerRef]
   );
 
   useEffect(() => {

@@ -49,19 +49,8 @@ export function useChatPanelNavigationActions() {
     resetActiveSession();
   }, [navigateChatPanel, resetActiveSession, setStartPageOpen]);
 
-  const openCollabOrgSurface = useCallback(
-    (orgId: string) => {
-      navigateChatPanel({
-        kind: CHAT_PANEL_SURFACE_KIND.COLLAB_ORG,
-        collabOrg: { orgId },
-      });
-    },
-    [navigateChatPanel]
-  );
-
   return {
     dispatchClearSession,
-    openCollabOrgSurface,
     openWorkItemCreate,
     openWorkspaceExplore,
     resetActiveSession,

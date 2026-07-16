@@ -166,6 +166,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       slashLoading,
       slashQuery,
       prefetchSlashItems,
+      addressCommentsFlyout,
       fileInputRef,
       handleUploadClick,
       handleFileUpload,
@@ -534,6 +535,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
           showSlashMenu={showSlashMenu}
           filteredSlashItems={filteredSlashItems}
           slashLoading={slashLoading}
+          addressCommentsFlyout={addressCommentsFlyout}
           currentMode={currentMode}
           slashQuery={slashQuery}
           onSlashCommandClose={handleSlashCommandClose}

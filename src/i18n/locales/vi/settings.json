@@ -40,7 +40,8 @@
     "storage": "Lưu trữ",
     "projectUsage": "Project & Sử dụng",
     "agentMemory": "Bộ nhớ Agent",
-    "agentOrg": "Nhóm Agent"
+    "agentOrg": "Nhóm Agent",
+    "collaboration": "Cộng tác"
   },
   "coreSidebar": {
     "groups": {
@@ -1302,5 +1303,11 @@
     "searchActions": "Tìm kiếm hành động...",
     "noActionsFound": "Không tìm thấy hành động",
     "noConfigurableProperties": "Không có thuộc tính có thể cấu hình"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "Đám mây",
+      "selfHosted": "Tự lưu trữ"
+    }
   }
 }

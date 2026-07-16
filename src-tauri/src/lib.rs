@@ -108,6 +108,7 @@ pub mod api;
 pub mod benchmark;
 pub mod cli_managed_proxy;
 pub mod infrastructure; // In-tree-only cross-cutting infrastructure (paths, platform, archive, index_manager, jsonrpc, housekeeping). Leaf pieces live in their own workspace crates.
+pub mod org2_cloud; // ORG2 Cloud in-app login window (design §8)
 pub mod orgtrack;
 pub(crate) mod setup;
 pub mod usage_diagnostics;
@@ -675,6 +676,17 @@ pub fn run() {
             // `orgii-project-sync-status` events to the frontend.
             project_management::sync::start_worker(app.handle().clone());
             tracing::info!("[sync::worker] Sync worker started");
+
+            let data_changed_handle = app.handle().clone();
+            project_management::projects::events::register_data_changed_notifier(Box::new(
+                move || {
+                    use tauri::Emitter;
+                    let _ = data_changed_handle.emit(
+                        project_management::projects::events::DATA_CHANGED_EVENT,
+                        serde_json::json!({ "source": "rust" }),
+                    );
+                },
+            ));
 
             // Restore previously-enabled channels (e.g. feishu was toggled on last run)
             let app_handle_for_restore = app.handle().clone();

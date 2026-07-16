@@ -79,6 +79,15 @@ export const APP_SETTINGS_UI_SECTIONS: SettingsSectionDefinition[] = [
     coveredKeys: GENERAL_SECTION_KEYS,
   },
   {
+    id: "collaboration",
+    tab: "app",
+    labelKey: "collaboration",
+    headingTitleKey: "sections.collaboration",
+    icon: iconForSegment("collaboration"),
+    customSectionSlotId: SETTINGS_SECTION_SLOT_IDS.APP_COLLABORATION,
+    coveredKeys: [],
+  },
+  {
     id: "appearance",
     tab: "app",
     labelKey: "appearance",

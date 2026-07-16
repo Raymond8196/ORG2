@@ -40,7 +40,8 @@
     "storage": "Armazenamento",
     "projectUsage": "Project e Uso",
     "agentMemory": "Memória do Agent",
-    "agentOrg": "Equipe Agent"
+    "agentOrg": "Equipe Agent",
+    "collaboration": "Colaboração"
   },
   "coreSidebar": {
     "groups": {
@@ -1302,5 +1303,11 @@
     "searchActions": "Pesquisar ações...",
     "noActionsFound": "Nenhuma ação encontrada",
     "noConfigurableProperties": "Sem propriedades configuráveis"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "Nuvem",
+      "selfHosted": "Auto-hospedado"
+    }
   }
 }

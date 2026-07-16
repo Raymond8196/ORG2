@@ -2091,13 +2091,13 @@ mod tests {
 
     #[test]
     fn strips_think_blocks_from_polished_text() {
+        let expected = "请梳理当前功能的目标、用户路径和相关实现，定位交互、状态管理与后端接口中的问题，完成必要的代码和文案修改；随后补充覆盖正常流程、异常状态与边界条件的单元测试和端到端验证，并说明具体改动、验证结果、兼容性影响以及仍需用户确认的风险。";
         let response = ChatCompletionResponse {
             choices: vec![ChatCompletionChoice {
                 message: Some(ChatCompletionResponseMessage {
-                    content: Some(serde_json::Value::String(
-                        "<think>这部分不应该进入输入框</think>\n请帮我优化这个功能描述。"
-                            .to_string(),
-                    )),
+                    content: Some(serde_json::Value::String(format!(
+                        "<think>这部分不应该进入输入框</think>\n{expected}"
+                    ))),
                 }),
                 text: None,
             }],
@@ -2105,7 +2105,7 @@ mod tests {
 
         let polished = extract_polished_text(response, "优化功能").unwrap();
 
-        assert_eq!(polished, "请帮我优化这个功能描述。");
+        assert_eq!(polished, expected);
     }
 
     #[test]

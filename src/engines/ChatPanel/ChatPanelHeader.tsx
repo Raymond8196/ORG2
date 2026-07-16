@@ -14,6 +14,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Share2,
   TerminalSquare,
 } from "lucide-react";
 import React from "react";
@@ -79,6 +80,7 @@ interface ChatPanelHeaderProps {
   handleExploreAgentSearchToggle: (enabled: boolean) => void;
   handleOpenExportSessionJson: () => void;
   handleOpenLinkWorkItem: () => void;
+  handleOpenCloudShareSettings: () => void;
   handleOpenSearch: () => void;
   handleNewSession: () => void;
   handlePaginationToggle: (checked: boolean) => void;
@@ -116,6 +118,8 @@ interface ChatPanelHeaderProps {
   showProjectAgentCreator: boolean;
   showProjectAgentSwitchInHeader: boolean;
   showSessionContent: boolean;
+  /** Owner-side share entry gate (design §6.3): own session + org in scope. */
+  showCloudShareSettings: boolean;
   showStartPage: boolean;
   showWorkItemAgentCreator: boolean;
   showWorkItemAgentSwitchInHeader: boolean;
@@ -129,6 +133,8 @@ interface ChatPanelHeaderProps {
   tabStrip?: React.ReactNode;
   /** When provided, rendered before the ... button (tab-strip + menu replacement) */
   tabStripPlus?: React.ReactNode;
+  /** Session-scoped extras (fork button / provenance chip), leading the toolbar */
+  sessionHeaderExtras?: React.ReactNode;
 }
 
 export function ChatPanelHeader({
@@ -149,6 +155,7 @@ export function ChatPanelHeader({
   handleExploreAgentSearchToggle,
   handleOpenExportSessionJson,
   handleOpenLinkWorkItem,
+  handleOpenCloudShareSettings,
   handleOpenSearch,
   handleNewSession,
   handlePaginationToggle,
@@ -186,6 +193,7 @@ export function ChatPanelHeader({
   showProjectAgentCreator,
   showProjectAgentSwitchInHeader,
   showSessionContent,
+  showCloudShareSettings,
   showStartPage,
   showWorkItemAgentCreator,
   showWorkItemAgentSwitchInHeader,
@@ -197,6 +205,7 @@ export function ChatPanelHeader({
   handleTuiModeToggle,
   tabStrip,
   tabStripPlus,
+  sessionHeaderExtras,
 }: ChatPanelHeaderProps): React.ReactNode {
   const publishedHeaderSlots = useAtomValue(chatPanelHeaderSlotsAtom);
   const windowsHost = isWindows();
@@ -229,6 +238,7 @@ export function ChatPanelHeader({
       className="flex h-9 flex-shrink-0 items-center gap-px"
       style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
     >
+      {showSessionContent && sessionHeaderExtras}
       {showTuiModeToggle && (
         <Tooltip
           content={
@@ -305,6 +315,14 @@ export function ChatPanelHeader({
           body={<p className="m-0">{visibleRegionNotice.body}</p>}
           alertClassName="!border-border-2 !bg-chat-container !text-text-1 shadow-lg"
         />
+      )}
+      {tabStrip && publishedHeaderSlots?.trailing && (
+        <div
+          className="flex shrink-0 items-center gap-px"
+          style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
+        >
+          {publishedHeaderSlots.trailing}
+        </div>
       )}
       {tabStripPlus}
       {showSessionContent && (
@@ -420,6 +438,19 @@ export function ChatPanelHeader({
               <Link2 size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
               <span className="flex-1 truncate">Link to Work Item…</span>
             </button>
+            {showCloudShareSettings && (
+              <button
+                type="button"
+                className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
+                onClick={handleOpenCloudShareSettings}
+                data-testid="cloud-session-share-settings-button"
+              >
+                <Share2 size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                <span className="flex-1 truncate">
+                  {t("navigation:cloud.share.menuItem")}
+                </span>
+              </button>
+            )}
             <button
               type="button"
               className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left disabled:cursor-not-allowed disabled:opacity-50`}
@@ -537,8 +568,7 @@ export function ChatPanelHeader({
         </Tooltip>
       ) : null}
       {tabStrip ?? null}
-      {!tabStrip &&
-        showNonSessionContent &&
+      {showNonSessionContent &&
         !showStartPage &&
         !selectedWorkItemVisible &&
         !selectedProjectVisible && (

@@ -40,7 +40,8 @@
     "storage": "存储",
     "projectUsage": "项目与用量",
     "agentMemory": "Agent 记忆",
-    "agentOrg": "Agent 团队"
+    "agentOrg": "Agent 团队",
+    "collaboration": "协作"
   },
   "coreSidebar": {
     "groups": {
@@ -1318,5 +1319,11 @@
     "searchActions": "搜索动作...",
     "noActionsFound": "未找到动作",
     "noConfigurableProperties": "无可配置属性"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "云端",
+      "selfHosted": "自托管"
+    }
   }
 }

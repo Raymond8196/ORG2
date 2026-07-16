@@ -126,6 +126,7 @@ export function createSessionSeederHelpers(store: E2EStore) {
     name?: string;
     repoPath?: string;
     status?: string;
+    orgId?: string;
   }): Promise<Result<{ sessionId: string }>> => {
     try {
       if (!input.sessionId) {
@@ -147,6 +148,7 @@ export function createSessionSeederHelpers(store: E2EStore) {
         name: input.name ?? existing?.name ?? input.sessionId,
         user_input: input.name ?? existing?.user_input ?? input.sessionId,
         repoPath: input.repoPath ?? existing?.repoPath,
+        orgId: input.orgId ?? existing?.orgId,
         category: existing?.category ?? "rust_agent",
         is_active: true,
       };
