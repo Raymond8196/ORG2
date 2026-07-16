@@ -153,6 +153,10 @@ pub struct RepoWatcher {
     last_git_change: Arc<RwLock<HashMap<String, Instant>>>,
     /// Window focus state (polling is more aggressive when focused)
     window_focused: Arc<RwLock<bool>>,
+    /// True while a Source Control surface is visible in the frontend.
+    /// Bumps focused polling back to the fast interval — the user is
+    /// actively looking at git state, so refresh latency matters there.
+    source_control_attention: Arc<RwLock<bool>>,
     /// Repo currently allowed to use periodic working-directory polling.
     active_poll_repo_id: Arc<RwLock<Option<String>>>,
     /// Last poll attempt per repo (prevents stacking of slow polls)
@@ -178,6 +182,7 @@ impl RepoWatcher {
             event_rx,
             last_git_change: Arc::new(RwLock::new(HashMap::new())),
             window_focused: Arc::new(RwLock::new(true)),
+            source_control_attention: Arc::new(RwLock::new(false)),
             active_poll_repo_id: Arc::new(RwLock::new(None)),
             last_poll_attempt: Arc::new(RwLock::new(HashMap::new())),
             poll_wake: Arc::new((Mutex::new(0), Condvar::new())),
@@ -195,13 +200,15 @@ impl RepoWatcher {
 
     /// Start adaptive periodic git status polling (VSCode-style approach)
     /// Adjusts polling frequency based on window focus, git activity, and health:
-    /// - Window focused + healthy: 5s
+    /// - Source Control UI visible + focused + healthy: 5s
+    /// - Window focused + healthy: 10s
     /// - Window not focused + healthy: 30s
     /// - No watched repos: parked until a repo is watched
     /// - Unhealthy (degraded): Exponential backoff up to 60s
     ///
-    /// Note: Each git status operation spawns 4-6 git processes, so conservative intervals
-    /// are needed to prevent file descriptor exhaustion
+    /// Note: Each poll spawns a git subprocess (~100ms+ on large repos), so
+    /// conservative intervals matter; the fast interval is reserved for when
+    /// the user is actually looking at git state.
     ///
     /// Uses std::thread with an ad-hoc tokio runtime instead of tokio::spawn because
     /// this runs during app setup before the global Tokio runtime is available.
@@ -209,6 +216,7 @@ impl RepoWatcher {
         let state_store = self.state_store.clone();
         let debounce_manager = self.debounce_manager.clone();
         let window_focused = self.window_focused.clone();
+        let source_control_attention = self.source_control_attention.clone();
         let active_poll_repo_id = self.active_poll_repo_id.clone();
         let last_poll_attempt = self.last_poll_attempt.clone();
         let poll_wake = self.poll_wake.clone();
@@ -288,6 +296,7 @@ impl RepoWatcher {
 
                         let poll_interval_ms = Self::calculate_poll_interval_with_health(
                             is_focused,
+                            *source_control_attention.read(),
                             any_unhealthy,
                             active_consecutive_failures,
                         );
@@ -339,9 +348,11 @@ impl RepoWatcher {
             .expect("Failed to spawn repo watcher git status poller thread");
     }
 
-    /// Calculate adaptive polling interval based on window focus and health.
+    /// Calculate adaptive polling interval based on window focus, whether a
+    /// Source Control surface is on screen, and repo health.
     fn calculate_poll_interval_with_health(
         is_focused: bool,
+        source_control_visible: bool,
         any_unhealthy: bool,
         max_failures: u32,
     ) -> u64 {
@@ -356,7 +367,14 @@ impl RepoWatcher {
         }
 
         if is_focused {
-            5000
+            // Fast refresh only while the user is actually looking at git
+            // state; each poll costs a git subprocess, so the general
+            // focused cadence stays relaxed.
+            if source_control_visible {
+                5000
+            } else {
+                10000
+            }
         } else {
             30000
         }
@@ -365,6 +383,12 @@ impl RepoWatcher {
     /// Update window focus state (called from frontend via Tauri command)
     pub fn set_window_focused(&self, focused: bool) {
         *self.window_focused.write() = focused;
+    }
+
+    /// Update Source Control visibility (called from frontend via Tauri
+    /// command). While visible, focused polling uses the fast interval.
+    pub fn set_source_control_attention(&self, visible: bool) {
+        *self.source_control_attention.write() = visible;
     }
 
     pub fn set_active_polling_repo(&self, repo_id: Option<String>) {
