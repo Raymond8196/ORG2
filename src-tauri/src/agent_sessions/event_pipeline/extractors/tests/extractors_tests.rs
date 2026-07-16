@@ -856,6 +856,7 @@ fn test_recompute_extracted_sets_timestamp() {
     assert!(event.extracted.is_none());
     assert!(event.last_extract_at.is_none());
 
+    crate::agent_sessions::event_pipeline::extractors::register_extractor_hook();
     event.recompute_extracted();
 
     assert!(event.extracted.is_some());
@@ -874,6 +875,7 @@ fn test_status_change_forces_recompute() {
         serde_json::json!({}),
     );
     event.display_status = EventDisplayStatus::Running;
+    crate::agent_sessions::event_pipeline::extractors::register_extractor_hook();
     event.recompute_extracted();
     let stamp_before = event.last_extract_at;
 
