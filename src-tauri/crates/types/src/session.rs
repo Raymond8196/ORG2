@@ -56,6 +56,10 @@ pub const PENDING_SESSION_PLACEHOLDER: &str = "pending";
 pub struct SessionListFilter {
     /// Filter by session type name ("os", "sde", "custom").
     pub type_name: Option<String>,
+    /// Filter by any of several session type names. Combines with
+    /// `type_name` as OR-of-equals; used by paginated directory reads
+    /// that span coding + org-member sessions in one SQL page.
+    pub type_names: Option<Vec<String>>,
     /// Filter by status — wire/DB string form (e.g. `"running"`).
     pub status: Option<String>,
     /// Filter by channel (OS sessions only).

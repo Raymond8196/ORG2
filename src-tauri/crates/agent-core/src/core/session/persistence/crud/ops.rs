@@ -189,6 +189,17 @@ pub fn list_sessions(filter: &SessionListFilter) -> SqliteResult<Vec<UnifiedSess
     if let Some(ref type_name) = filter.type_name {
         conditions.push(format!("s.session_type = ?{}", params_vec.len() + 1));
         params_vec.push(Box::new(type_name.clone()));
+    } else if let Some(ref type_names) = filter.type_names {
+        let placeholders = type_names
+            .iter()
+            .enumerate()
+            .map(|(i, _)| format!("?{}", params_vec.len() + 1 + i))
+            .collect::<Vec<_>>()
+            .join(", ");
+        conditions.push(format!("s.session_type IN ({placeholders})"));
+        for type_name in type_names {
+            params_vec.push(Box::new(type_name.clone()));
+        }
     } else {
         // Gateway is infrastructure, not a user-visible conversation.
         // Callers who explicitly want it must ask via `type_name = Some("gateway")`.

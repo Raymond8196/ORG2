@@ -145,6 +145,8 @@ impl<'conn> SqliteRecordStore<'conn> {
                 ON orgtrack_core_sessions(source, source_session_id);
             CREATE INDEX IF NOT EXISTS idx_orgtrack_core_sessions_workspace
                 ON orgtrack_core_sessions(workspace_path);
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_sessions_updated
+                ON orgtrack_core_sessions(updated_at DESC);
 
             CREATE TABLE IF NOT EXISTS orgtrack_core_activities (
                 record_id       TEXT PRIMARY KEY,
