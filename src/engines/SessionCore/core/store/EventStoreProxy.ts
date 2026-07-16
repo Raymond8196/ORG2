@@ -8,6 +8,11 @@
  * 2. Listens to `es:changed` Tauri events for read notifications
  * 3. Routes snapshots by `sessionId` so per-session subscribers (e.g.
  *    subagent nested blocks) only receive updates for their session.
+ * 4. Applies delta envelopes to the per-session normalized cache in arrival
+ *    order (lossless), but coalesces the expensive materialize + notify to
+ *    at most once per animation frame per session. Synchronous read paths
+ *    and lifecycle transitions force-flush, so only pure-render consumers
+ *    can observe the ≤1-frame staleness window.
  *
  * Components continue using Jotai atoms (eventsAtom, chatEventsAtom, etc.)
  * which are fed from the derived snapshot pushed by Rust.
@@ -30,8 +35,16 @@ import type {
 } from "./EventStoreProxyTypes";
 import { inferSessionId, isRealUserEvent } from "./eventStoreEvents";
 import { estimateObjectBytes } from "./memoryEstimation";
-import { rememberSnapshot, resolveSnapshotPayload } from "./snapshotCache";
-import { isStreamingSnapshot } from "./snapshotMaterialization";
+import {
+  applyDeltaEnvelope,
+  flushPendingDelta,
+  rememberSnapshot,
+} from "./snapshotCache";
+import {
+  type PendingDeltaState,
+  isSnapshotDelta,
+  isStreamingSnapshot,
+} from "./snapshotMaterialization";
 
 export type {
   DerivedSnapshot,
@@ -53,6 +66,28 @@ const SNAPSHOT_CACHE_MAX = 20;
 const SNAPSHOT_RELEASE_GRACE_MS = 3 * 60 * 1000;
 const log = createLogger("EventStoreProxy");
 
+/**
+ * Schedule a callback for the next animation frame; falls back to a 16ms
+ * timeout in non-DOM environments (tests). Returns a canceller.
+ */
+function scheduleFrameCallback(callback: () => void): () => void {
+  if (typeof requestAnimationFrame === "function") {
+    const handle = requestAnimationFrame(() => callback());
+    return () => cancelAnimationFrame(handle);
+  }
+  const timer = setTimeout(callback, 16);
+  return () => clearTimeout(timer);
+}
+
+interface PendingSessionFlush {
+  /**
+   * Un-materialized delta state already applied to the normalized cache;
+   * null when only the notify for an already-remembered snapshot is pending.
+   */
+  delta: PendingDeltaState | null;
+  cancelSchedule: () => void;
+}
+
 class EventStoreProxyImpl {
   private _globalListeners = new Set<GlobalListener>();
   private _sessionListeners = new Map<string, Set<SessionListener>>();
@@ -73,6 +108,16 @@ class EventStoreProxyImpl {
     string,
     ReturnType<typeof setTimeout>
   >();
+  /**
+   * Per-session coalescing state: cache updates are applied per envelope
+   * (ordered, lossless), while materialize + notify runs at most once per
+   * animation frame per session. Pure-render consumers may therefore see
+   * state up to one frame stale; every synchronous read path
+   * (getLatestSessionSnapshot, latestSnapshot, getMemoryStats) and lifecycle
+   * transition (switch / release / evict, streaming end) force-flushes
+   * first, so no correctness-sensitive path observes the window.
+   */
+  private _pendingFlushes = new Map<string, PendingSessionFlush>();
 
   /**
    * Initialize the Tauri event listener. Call once at app startup.
@@ -127,35 +172,112 @@ class EventStoreProxyImpl {
     envelope: SnapshotEnvelope
   ): Promise<void> {
     const { sessionId, ...payload } = envelope;
-    const snapshot = await this._resolveSnapshotPayload(
-      sessionId,
-      payload as SnapshotPayload
-    );
-    const rememberedSnapshot = this._rememberSnapshot(sessionId, snapshot);
-    this._notifyListeners(rememberedSnapshot, sessionId);
-  }
+    const snapshotPayload = payload as SnapshotPayload;
 
-  private async _resolveSnapshotPayload(
-    sessionId: string,
-    payload: SnapshotPayload
-  ): Promise<Snapshot> {
-    return resolveSnapshotPayload(
-      sessionId,
-      payload,
-      this._latestSnapshots,
-      this._normalizedSnapshots,
-      (snapshotSessionId) => this.getSnapshot(snapshotSessionId)
-    );
+    if (isSnapshotDelta(snapshotPayload)) {
+      const pendingDelta = applyDeltaEnvelope(
+        sessionId,
+        snapshotPayload,
+        this._latestSnapshots,
+        this._normalizedSnapshots,
+        this._pendingFlushes.get(sessionId)?.delta ?? null
+      );
+      if (pendingDelta) {
+        this._schedulePendingFlush(sessionId, pendingDelta);
+        return;
+      }
+      // Delta base miss (no cache or version gap): fetch + remember the full
+      // snapshot, then notify on the coalesced schedule like any envelope.
+      await this.getSnapshot(sessionId);
+      this._schedulePendingFlush(sessionId, null);
+      return;
+    }
+
+    this._rememberSnapshot(sessionId, snapshotPayload);
+    this._schedulePendingFlush(sessionId, null);
   }
 
   private _rememberSnapshot(sessionId: string, snapshot: Snapshot): Snapshot {
+    const pending = this._pendingFlushes.get(sessionId);
+    if (pending?.delta) {
+      if (snapshot.version < pending.delta.version) {
+        // Un-materialized deltas are already newer than this slow-resolving
+        // full snapshot; surface them instead of clobbering the cache.
+        return this._flushPendingSnapshot(sessionId) ?? snapshot;
+      }
+      // The full snapshot supersedes everything accumulated so far.
+      pending.delta = null;
+    }
     return rememberSnapshot(
       sessionId,
       snapshot,
       this._latestSnapshots,
       this._normalizedSnapshots,
-      SNAPSHOT_CACHE_MAX
+      SNAPSHOT_CACHE_MAX,
+      (evicted) => this._dropPendingFlush(evicted)
     );
+  }
+
+  /**
+   * Schedule the per-frame materialize + notify for a session. Passing a
+   * delta records it as the (single, mutated-in-place) accumulator; passing
+   * null keeps an existing accumulator and merely ensures a notify fires.
+   */
+  private _schedulePendingFlush(
+    sessionId: string,
+    delta: PendingDeltaState | null
+  ): void {
+    const existing = this._pendingFlushes.get(sessionId);
+    if (existing) {
+      if (delta) existing.delta = delta;
+      return;
+    }
+    this._pendingFlushes.set(sessionId, {
+      delta,
+      cancelSchedule: scheduleFrameCallback(() => {
+        this._flushPendingSnapshot(sessionId);
+      }),
+    });
+  }
+
+  /**
+   * Force-materialize and notify a session's pending state now. Returns the
+   * notified snapshot, or null when nothing was pending or the session's
+   * cache is gone (released / evicted before the flush).
+   */
+  private _flushPendingSnapshot(sessionId: string): Snapshot | null {
+    const pending = this._pendingFlushes.get(sessionId);
+    if (!pending) return null;
+    pending.cancelSchedule();
+    this._pendingFlushes.delete(sessionId);
+    const snapshot = pending.delta
+      ? flushPendingDelta(
+          sessionId,
+          pending.delta,
+          this._latestSnapshots,
+          this._normalizedSnapshots,
+          SNAPSHOT_CACHE_MAX,
+          (evicted) => this._dropPendingFlush(evicted)
+        )
+      : (this._latestSnapshots.get(sessionId) ?? null);
+    if (snapshot) {
+      this._notifyListeners(snapshot, sessionId);
+    }
+    return snapshot;
+  }
+
+  private _flushAllPendingSnapshots(): void {
+    for (const sessionId of [...this._pendingFlushes.keys()]) {
+      this._flushPendingSnapshot(sessionId);
+    }
+  }
+
+  /** Drop pending state without materializing (session evicted from LRU). */
+  private _dropPendingFlush(sessionId: string): void {
+    const pending = this._pendingFlushes.get(sessionId);
+    if (!pending) return;
+    pending.cancelSchedule();
+    this._pendingFlushes.delete(sessionId);
   }
 
   /**
@@ -185,6 +307,10 @@ class EventStoreProxyImpl {
     this._sessionListeners.clear();
     this._latestSnapshots.clear();
     this._normalizedSnapshots.clear();
+    for (const pending of this._pendingFlushes.values()) {
+      pending.cancelSchedule();
+    }
+    this._pendingFlushes.clear();
     for (const timer of this._snapshotReleaseTimers.values()) {
       clearTimeout(timer);
     }
@@ -229,6 +355,8 @@ class EventStoreProxyImpl {
 
   /** Get the latest snapshot for a specific session (may be null). */
   getLatestSessionSnapshot(sessionId: string): Snapshot | null {
+    // Synchronous readers must never observe the one-frame coalescing window.
+    this._flushPendingSnapshot(sessionId);
     return this._latestSnapshots.get(sessionId) ?? null;
   }
 
@@ -239,6 +367,8 @@ class EventStoreProxyImpl {
    * cache stays in sync and doesn't hold large event arrays for idle sessions.
    */
   evictSessionCache(sessionId: string): void {
+    // Surface the final coalesced state to listeners before they are dropped.
+    this._flushPendingSnapshot(sessionId);
     this._latestSnapshots.delete(sessionId);
     this._normalizedSnapshots.delete(sessionId);
     this._sessionListeners.delete(sessionId);
@@ -257,6 +387,9 @@ class EventStoreProxyImpl {
    */
   releaseSessionSnapshot(sessionId: string): void {
     this.cancelScheduledSnapshotRelease(sessionId);
+    // Deliver the final coalesced state before dropping it — a delta applied
+    // this frame must reach subscribers even though its cache is released.
+    this._flushPendingSnapshot(sessionId);
     this._latestSnapshots.delete(sessionId);
     this._normalizedSnapshots.delete(sessionId);
   }
@@ -268,6 +401,7 @@ class EventStoreProxyImpl {
    * next delta.
    */
   releaseSessionSnapshotIfIdle(sessionId: string): void {
+    this._flushPendingSnapshot(sessionId);
     const cached = this._latestSnapshots.get(sessionId);
     if (cached && isStreamingSnapshot(cached)) return;
     this.releaseSessionSnapshot(sessionId);
@@ -298,6 +432,8 @@ class EventStoreProxyImpl {
   }
 
   getMemoryStats(): EventStoreMemoryStats {
+    // Materialize pending state first so the reported sizes are current.
+    this._flushAllPendingSnapshots();
     let cachedEvents = 0;
     let bytes = 0;
     for (const snapshot of this._latestSnapshots.values()) {
@@ -317,6 +453,7 @@ class EventStoreProxyImpl {
 
   /** Get the latest snapshot (any session — last received). */
   get latestSnapshot(): Snapshot | null {
+    this._flushAllPendingSnapshots();
     if (this._latestSnapshots.size === 0) return null;
     let latest: Snapshot | null = null;
     for (const snap of this._latestSnapshots.values()) {
@@ -417,6 +554,11 @@ class EventStoreProxyImpl {
 
   /** Set streaming mode on/off. */
   async setStreaming(streaming: boolean, sessionId?: string): Promise<void> {
+    // Stream completion must surface the final coalesced state immediately —
+    // completion handlers read snapshot-derived state right after this call.
+    if (!streaming && sessionId) {
+      this._flushPendingSnapshot(sessionId);
+    }
     await rpc.sessionCore.eventStore.setStreaming({
       streaming,
       sessionId: sessionId ?? null,
@@ -450,6 +592,9 @@ class EventStoreProxyImpl {
     // Becoming active again rescues the snapshot from a pending deferred
     // release scheduled when the user previously switched away.
     this.cancelScheduledSnapshotRelease(sessionId);
+    // The bridge primes the incoming session from the JS cache — it must not
+    // read state that is stale by a frame of un-materialized deltas.
+    this._flushPendingSnapshot(sessionId);
     return rpc.sessionCore.eventStore.switchSession({ sessionId });
   }
 
