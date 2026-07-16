@@ -5,11 +5,19 @@ import { getImportedHistorySourceBySessionId } from "@src/api/tauri/externalHist
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { createLogger } from "@src/hooks/logger";
 import { externalSessionsEnabledAtom } from "@src/store/session/dataSourceConfigAtom";
+import {
+  isWindowFocused,
+  onWindowFocusRegained,
+} from "@src/util/core/windowFocus";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 import { getAdapterForSession } from "./types";
 
 const logger = createLogger("ExternalHistoryAutoRefresh");
+
+// Refresh floor while the window is unfocused; the configured 3s-1m cadence
+// only applies to a chat someone is looking at.
+const UNFOCUSED_REFRESH_INTERVAL_MS = 60_000;
 
 type DispatchSessionLoad = (payload: {
   sessionId: string;
@@ -91,12 +99,20 @@ export function useExternalHistoryAutoRefresh(options: {
 
     let refreshRunning = false;
     let activeController: AbortController | null = null;
+    let lastAttemptAt = 0;
     const refresh = async () => {
       if (refreshRunning) return;
-      // Each refresh re-reads and re-processes the imported transcript
-      // (~1s of backend work) — don't burn that while the window isn't
-      // even visible. The next visible tick catches up.
-      if (document.visibilityState !== "visible") return;
+      // The configured cadence (3s-1m) is for a chat the user is actually
+      // watching. While the window is unfocused, hold refreshes to one per
+      // minute (mirrors the backend git poller's focus-adaptive polling);
+      // regaining focus refreshes immediately via the listener below.
+      if (
+        !isWindowFocused() &&
+        Date.now() - lastAttemptAt < UNFOCUSED_REFRESH_INTERVAL_MS
+      ) {
+        return;
+      }
+      lastAttemptAt = Date.now();
       refreshRunning = true;
       activeController = new AbortController();
       try {
@@ -116,8 +132,10 @@ export function useExternalHistoryAutoRefresh(options: {
     };
 
     const intervalId = window.setInterval(() => void refresh(), intervalMs);
+    const unsubscribeFocus = onWindowFocusRegained(() => void refresh());
     return () => {
       window.clearInterval(intervalId);
+      unsubscribeFocus();
       activeController?.abort();
     };
   }, [dispatchLoadSession, externalSessionsEnabled, intervalMs, sessionId]);
