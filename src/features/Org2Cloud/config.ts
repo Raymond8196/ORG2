@@ -155,10 +155,11 @@ export function buildOrg2CloudLoginUrl(): string {
 export const CLOUD_BILLING_PATH = "/billing";
 
 /**
- * Billing uses an independent web session. Sharing the desktop refresh token
- * with a long-lived webview creates two rotating consumers and eventually
- * invalidates one of them. The web login owns its cookie/refresh lifecycle and
- * returns to billing without ever receiving desktop credentials.
+ * Billing uses an independent web session (the system browser's). Sharing
+ * the desktop refresh token with another long-lived consumer creates two
+ * rotating consumers and eventually invalidates one of them. The web login
+ * owns its cookie/refresh lifecycle and returns to billing without ever
+ * receiving desktop credentials.
  */
 export function buildCloudBillingLoginUrl(): string {
   const url = new URL("/login", getCloudEndpoint().webOrigin);
