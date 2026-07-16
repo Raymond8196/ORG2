@@ -1577,6 +1577,11 @@
           "pillLabel": "搜索会话",
           "placeholder": "搜索 Agent 会话..."
         },
+        "searchAllSessions": {
+          "label": "全局搜索会话内容",
+          "pillLabel": "全局搜索",
+          "placeholder": "全局搜索会话内容..."
+        },
         "switchWorkspace": {
           "label": "切换工作区"
         },

@@ -1558,6 +1558,11 @@
           "pillLabel": "Oturum ara",
           "placeholder": "Agent oturumlarını ara..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "Workspace değiştir"
         },

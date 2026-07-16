@@ -1557,6 +1557,11 @@
           "pillLabel": "Sessions suchen",
           "placeholder": "Agent-Sessions suchen..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "Workspace wechseln"
         },

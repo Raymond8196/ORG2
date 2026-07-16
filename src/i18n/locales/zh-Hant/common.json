@@ -1570,6 +1570,11 @@
           "pillLabel": "搜尋會話",
           "placeholder": "搜尋 Agent 會話..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "切換工作區"
         },
