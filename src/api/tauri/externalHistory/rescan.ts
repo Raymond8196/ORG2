@@ -35,7 +35,9 @@ export async function externalHistoryRescanSource(
 export async function externalHistoryRescanSources(
   sources: readonly ImportedHistorySourceId[]
 ): Promise<void> {
-  await Promise.all(
-    sources.map((source) => externalHistoryRescanSource(source))
-  );
+  if (sources.length === 0) return;
+  await invoke("external_history_rescan_sources", {
+    sources,
+    clear: false,
+  });
 }
