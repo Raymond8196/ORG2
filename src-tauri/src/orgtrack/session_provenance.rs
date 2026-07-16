@@ -44,6 +44,9 @@ use orgtrack_core::sources::codex::app::{
 use orgtrack_core::sources::imported_history::metadata::SOURCE_CODEX_APP;
 use orgtrack_core::store::{sqlite::SqliteRecordStore, RecentHookSignal, RecordStore};
 
+pub(crate) const RESOURCE_INTERACTIONS_CHANGED_EVENT: &str =
+    "orgtrack:resource-interactions-changed";
+
 #[tauri::command]
 pub async fn session_provenance_recent_signals(
     limit: Option<usize>,

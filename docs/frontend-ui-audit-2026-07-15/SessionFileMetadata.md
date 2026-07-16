@@ -1,6 +1,6 @@
 # Frontend UI Audit — Session File Metadata
 
-**Scope:** `TurnMetadataFooter` resource/edit/development metadata, its loader/slot integration, and Kanban modified-file search.
+**Scope:** `TurnMetadataFooter` resource/edit/development metadata, its loader/slot integration, Kanban modified-file search, and paged Session Blame history.
 
 The workspace `frontend-ui-audit` skill was unavailable, so this report applies the repository's documented dimensions manually.
 
@@ -12,6 +12,7 @@ The workspace `frontend-ui-audit` skill was unavailable, so this report applies 
 | `TurnMetadataFooter`: read/search rows  | keep with reason | Read-only metadata is informational, so it uses the shared non-interactive stack-row token instead of presenting a misleading disabled button.              | —                |
 | `KanbanFileSearchInput`: search control | keep             | Reuses the shared `SearchInput` with the pane surface and built-in clear action.                                                                            | —                |
 | `TaskKanbanContent`: no-results state   | keep with reason | This is a full-board state, not a toast or inline form error; the same absolute full-bleed layout is used by the view fallback.                             | —                |
+| Session Blame: load-more control        | keep             | Reuses the timeline header-button token and the existing localized `common:actions.loadMore` label; no new control primitive or locale key was introduced.  | —                |
 
 ## D2 — Tailwind values and tokens
 
@@ -30,13 +31,14 @@ The workspace `frontend-ui-audit` skill was unavailable, so this report applies 
 
 ## D4 — Accessibility
 
-| Line / element     | Verdict          | Reason                                                                                                                               | Suggested change |
-| ------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
-| File row           | keep             | Shared `FileChangeRow` supplies button role, keyboard focus, and Enter/Space activation when clickable.                              | —                |
-| Commit and PR rows | keep             | Native buttons provide keyboard operation and disabled semantics when a target is unavailable.                                       | —                |
-| Kanban file search | keep             | The shared input now accepts an explicit `ariaLabel`; the feature supplies its translated search label in all locales.               | —                |
-| Summary icons      | keep with reason | Icons are accompanied by visible localized counts, so separate icon labels would be duplicate announcements.                         | —                |
-| Read/search rows   | keep             | Visible path and localized operation text do not depend on icon recognition; full paths are also available through the native title. | —                |
+| Line / element           | Verdict          | Reason                                                                                                                               | Suggested change |
+| ------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| File row                 | keep             | Shared `FileChangeRow` supplies button role, keyboard focus, and Enter/Space activation when clickable.                              | —                |
+| Commit and PR rows       | keep             | Native buttons provide keyboard operation and disabled semantics when a target is unavailable.                                       | —                |
+| Kanban file search       | keep             | The shared input now accepts an explicit `ariaLabel`; the feature supplies its translated search label in all locales.               | —                |
+| Summary icons            | keep with reason | Icons are accompanied by visible localized counts, so separate icon labels would be duplicate announcements.                         | —                |
+| Read/search rows         | keep             | Visible path and localized operation text do not depend on icon recognition; full paths are also available through the native title. | —                |
+| Session Blame pagination | keep             | A native button exposes the localized label and disabled loading state; the list remains keyboard reachable.                         | —                |
 
 ## D5 — Visual-pattern duplication
 
@@ -49,6 +51,6 @@ The workspace `frontend-ui-audit` skill was unavailable, so this report applies 
 ## Summary
 
 - Fix candidates applied: 1 (explicit translated accessible name for the shared search input).
-- Keep / keep-with-reason decisions: 16.
+- Keep / keep-with-reason decisions: 18.
 - Abstract candidates: 0.
 - Blocking findings: 0.

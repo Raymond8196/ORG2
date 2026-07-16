@@ -5,6 +5,10 @@ import {
   SessionProvenanceHookPlatformSchema,
   SessionProvenanceRecentSignalSchema,
 } from "../schemas/agentOrgs";
+import {
+  OrgtrackFileSessionHistoryInput,
+  OrgtrackFileSessionHistorySchema,
+} from "../schemas/lineage";
 
 describe("session provenance RPC schemas", () => {
   it("accepts every managed hook platform, including the newer CLIs", () => {
@@ -85,5 +89,31 @@ describe("session provenance RPC schemas", () => {
     );
     expect(typeof rpc.agentOrgs.sessionProvenance.status).toBe("function");
     expect(typeof rpc.agentOrgs.sessionProvenance.setEnabled).toBe("function");
+  });
+
+  it("parses paged file history with a durable revision", () => {
+    expect(
+      OrgtrackFileSessionHistoryInput.parse({
+        repoPath: "/repo",
+        filePath: "src/lib.rs",
+        limit: 30,
+        offset: 60,
+      })
+    ).toMatchObject({ limit: 30, offset: 60 });
+    const parsed = OrgtrackFileSessionHistorySchema.parse({
+      schemaVersion: 1,
+      filePath: "src/lib.rs",
+      revision: 7,
+      page: { offset: 0, limit: 30, totalSessions: 31, hasMore: true },
+      backfill: {
+        status: "complete",
+        indexedSessions: 10,
+        totalSessions: 10,
+        failedSessions: 0,
+      },
+      sessions: [],
+    });
+    expect(parsed.revision).toBe(7);
+    expect(parsed.page.hasMore).toBe(true);
   });
 });

@@ -17,8 +17,21 @@ use orgtrack_core::canonical::CollaborationSessionOrigin;
 pub struct FileSessionHistory {
     pub schema_version: u32,
     pub file_path: String,
+    /// Monotonic, disk-backed invalidation token for this file's interaction
+    /// facts. Clients can poll this scalar without reloading history rows.
+    pub revision: u64,
+    pub page: FileSessionHistoryPage,
     pub backfill: FileSessionHistoryBackfill,
     pub sessions: Vec<FileSessionHistorySession>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileSessionHistoryPage {
+    pub offset: usize,
+    pub limit: usize,
+    pub total_sessions: usize,
+    pub has_more: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]

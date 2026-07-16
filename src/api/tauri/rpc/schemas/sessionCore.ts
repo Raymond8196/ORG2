@@ -149,6 +149,11 @@ export const SessionMetadataSchema = z.object({
   timeRangeEnd: z.string().optional(),
 });
 
+export const TurnMetadataIndexInput = z.object({
+  sessionId: z.string(),
+  turnIds: z.array(z.string()).max(500).optional(),
+});
+
 export const SearchResultSchema = z.object({
   event: SessionEventSchema,
   rank: z.number(),

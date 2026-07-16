@@ -702,6 +702,35 @@ pub fn load_turn_index(session_id: &str) -> SqliteResult<Vec<CachedTurnSummary>>
     Ok(rows)
 }
 
+/// Load only the requested materialized rounds. This is the low-memory read
+/// path used by a paged/virtualized transcript; the durable index remains the
+/// source of truth and no session-wide summary vector is constructed.
+pub fn load_turn_summaries(
+    session_id: &str,
+    turn_ids: &[String],
+) -> SqliteResult<Vec<CachedTurnSummary>> {
+    ensure_turn_index_fresh(session_id)?;
+    let conn = get_connection()?;
+    let mut summaries = Vec::with_capacity(turn_ids.len());
+    let mut statement = conn.prepare_cached(
+        "SELECT session_id, turn_id, start_sequence, end_sequence, next_turn_id, started_at, ended_at,
+                duration_ms, user_event_ids_json, user_preview, event_count, body_event_count,
+                status, interrupted, modified_files_json, resource_interactions_json,
+                git_artifacts_json
+         FROM session_turns
+         WHERE session_id = ?1 AND turn_id = ?2",
+    )?;
+    for turn_id in turn_ids {
+        if let Some(summary) = statement
+            .query_row(params![session_id, turn_id], turn_summary_from_row)
+            .optional()?
+        {
+            summaries.push(summary);
+        }
+    }
+    Ok(summaries)
+}
+
 pub fn get_turn_summary(
     conn: &Connection,
     session_id: &str,

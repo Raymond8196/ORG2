@@ -12,6 +12,9 @@
 - [x] Session, turn, and actor/execution-thread identities are not conflated.
 - [x] The chat footer renders resource observations and edit/development metadata.
 - [x] Kanban file search uses the whole-session edit projection without parsing transcripts per keystroke.
+- [x] Session Blame pages by complete root-session groups and refreshes from a durable SQLite revision.
+- [x] Historical backfill ownership/progress survives restarts without retaining an in-memory job registry.
+- [x] The chat loads metadata only for rendered turns and removes atoms when those turns leave the view.
 
 ## Ownership and extraction boundary
 
@@ -24,6 +27,18 @@
 | frontend                 | Validated display and navigation                                                            | Raw transcript aggregation                                           |
 
 Moving Orgtrack to a future repository/submodule therefore requires changing Cargo dependency locations and supplying host adapters; the protocol/projector does not depend on the ORG2 app crate.
+
+## Incremental memory and freshness model
+
+| Concern                  | Durable source of truth                                                         | Bounded in-memory state                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| File-history freshness   | Per-resource SQLite revision advanced by interaction insert/delete triggers     | Current visible page plus one numeric revision; no process-wide history cache                          |
+| Session Blame pagination | SQLite query pages root sessions, then returns all interactions for those roots | 30 root sessions by default (100 hard maximum); children never split from their root                   |
+| Historical backfill      | SQLite job row with owner, token, status, progress, error, and update time      | One process-owner UUID; transcript batches are released after projection                               |
+| Per-round chat metadata  | Versioned `session_turns` rows                                                  | Only currently rendered turn atoms; stale/session-unmounted atoms are explicitly removed               |
+| Live invalidation        | Revision remains authoritative across every writer and restart                  | A payload-free Tauri event accelerates refresh; visible-only 5 s revision probes recover missed events |
+
+Every inbox consumer emits the same invalidation after a successful drain. This prevents a query from consuming a hook envelope before the periodic drain loop can broadcast it. The event is only a hint: the frontend rechecks the SQLite revision before replacing a page, and an ordering change during “load more” restarts from page zero.
 
 ## Identity semantics
 
@@ -57,45 +72,50 @@ Hook-only providers gain live provenance immediately. Providers with imported-hi
 | Cloud replay      | authorized event cache → owner/viewer checkout remap → user-message round boundary          | Exact-owner resource facts without persisting the owner's path |
 | Session aggregate | `load_turn_index` → fold unique modified paths and line totals                              | Final edit impact and Kanban search input                      |
 | Chat UI           | validated RPC → per-turn atom → `TurnMetadataFooter`                                        | Read/search paths, edits, commits, and PRs                     |
+| Open file history | SQLite revision probe → root-session page → Session Blame                                   | Incremental refresh without a resident process-wide cache      |
 
 ## Ten-layer audit
 
-| Layer                                 | Verdict | Evidence / decision                                                                                                                                                                                                   |
-| ------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Compilation correctness            | Pass    | Workspace Rust check, targeted Rust suites, TypeScript typecheck, ESLint, Vitest, and rendered E2E are required gates.                                                                                                |
-| 2. Dead code / structural duplication | Pass    | Removed host `turn_files` and `turn_git_artifacts`; moved Git recognition and the round accumulator into Orgtrack; split hook capture, interaction storage, path resolution, and historical backfill from the facade. |
-| 3. Naming consistency                 | Pass    | `TurnMetadata` names the UI/cache projection; `ResourceInteraction` names protocol facts; `modifiedFiles` remains the edit-only review subset.                                                                        |
-| 4. Semantic overloading               | Pass    | Session, turn, actor, and thread meanings are documented and enforced; the former `thread_id → turn_id` assignment was removed.                                                                                       |
-| 5. Default branches                   | Pass    | Malformed JSON is tolerated, unknown tools are skipped, failed writes remain failed observations and do not claim a modification, and raw provider payloads are never materialized.                                   |
-| 6. Cross-domain leakage               | Pass    | Provider/tool/Git semantics live in `orgtrack-core`; `session-persistence` calls one provider-neutral accumulator; filesystem/SQLite concerns remain host adapters.                                                   |
-| 7. New-developer clarity              | Pass    | Module docs and the ownership/provider/identity tables identify the one extension point and why the cache is rebuildable.                                                                                             |
-| 8. Wire protocol / serialization      | Pass    | Rust serde camelCase, Zod, and TS interfaces include the same resource observation fields and bounded enums.                                                                                                          |
-| 9. Init parity                        | Pass    | Fresh tables and additive existing-DB upgrades include all three JSON projections; index v10 forces lazy recomputation.                                                                                               |
-| 10. Resolver symmetry                 | Pass    | Live hooks, native events, and imported histories converge on Orgtrack action/outcome/path rules; provider discovery continues to reuse existing loaders.                                                             |
+| Layer                                 | Verdict | Evidence / decision                                                                                                                                                                                                 |
+| ------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Compilation correctness            | Pass    | Rust check and 1,187 Rust tests, TypeScript typecheck, 5,127 Vitest tests, full ESLint, targeted Clippy, and two rendered desktop E2E scenarios passed.                                                             |
+| 2. Dead code / structural duplication | Pass    | Removed the unbounded file-interaction read path and the process-wide backfill `HashMap`; one paged store query, one durable job table, and existing provider loaders remain.                                       |
+| 3. Naming consistency                 | Pass    | `TurnMetadata` names the UI/cache projection; `ResourceInteraction` names protocol facts; `modifiedFiles` remains the edit-only review subset.                                                                      |
+| 4. Semantic overloading               | Pass    | Session, turn, actor, and thread meanings are documented and enforced; the former `thread_id → turn_id` assignment was removed.                                                                                     |
+| 5. Default branches                   | Pass    | Malformed JSON is tolerated, unknown tools are skipped, failed writes do not claim modifications, missed events recover through revision polling, and prior-process jobs are reclaimed without racing a live owner. |
+| 6. Cross-domain leakage               | Pass    | Provider/tool/Git semantics live in `orgtrack-core`; `session-persistence` calls one provider-neutral accumulator; filesystem/SQLite concerns remain host adapters.                                                 |
+| 7. New-developer clarity              | Pass    | Module docs and the ownership/provider/identity tables identify the one extension point and why the cache is rebuildable.                                                                                           |
+| 8. Wire protocol / serialization      | Pass    | Rust serde camelCase, Zod, and TS interfaces agree on revision/page fields and the optional bounded turn-id request (500 maximum).                                                                                  |
+| 9. Init parity                        | Pass    | Fresh and legacy DBs both gain parent identity, revisions, triggers, seeded revision rows, indexes, and durable job storage in safe migration order.                                                                |
+| 10. Resolver symmetry                 | Pass    | Live hooks, native events, cloud replay, and imported histories converge on Orgtrack rules; provider discovery and transcript parsing continue to reuse existing loaders.                                           |
 
 ## Systematic sweeps
 
-| Issue class                | Sweep                                                         | Outcome                                                                        |
-| -------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Duplicate provider parsing | Searched provider loaders, hook adapters, and turn-cache code | Existing loaders/adapters are reused; no new transcript reader was introduced. |
-| Duplicate round projection | Searched file/Git accumulators and host tool-name constants   | One `TurnMetadataAccumulator` remains in `orgtrack-core`.                      |
-| Identity conflation        | Searched `turn_id` assignments from `thread_id`               | Native and reconciled paths now derive turns from user-message boundaries.     |
-| Schema parity              | Checked create/ALTER/insert/select/Rust/Zod/TS shapes         | All include `resource_interactions_json`; v10 rebuilds historical rows lazily. |
-| Localization               | Parsed every locale JSON and compared the new feature keys    | All 13 locales include read/search/failure labels.                             |
+| Issue class                | Sweep                                                              | Outcome                                                                                         |
+| -------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| Duplicate provider parsing | Searched provider loaders, hook adapters, and turn-cache code      | Existing loaders/adapters are reused; no new transcript reader was introduced.                  |
+| Duplicate round projection | Searched file/Git accumulators and host tool-name constants        | One `TurnMetadataAccumulator` remains in `orgtrack-core`.                                       |
+| Identity conflation        | Searched `turn_id` assignments from `thread_id`                    | Native and reconciled paths now derive turns from user-message boundaries.                      |
+| Schema parity              | Checked create/ALTER/insert/select/Rust/Zod/TS shapes              | All include `resource_interactions_json`; v10 rebuilds historical rows lazily.                  |
+| Localization               | Parsed every locale JSON and compared the new feature keys         | All 13 locales include read/search/failure labels.                                              |
+| Unbounded reads/state      | Searched file history queries, backfill registries, and turn atoms | Root pages are bounded, job state is durable, and invisible turn atoms are evicted.             |
+| Invalidation consumers     | Searched every hook-inbox drain call and interaction writer        | Every drain broadcasts; native/collaboration writers broadcast; revision remains authoritative. |
 
 ## Final verdict
 
-No blocking architecture finding remains. Orgtrack now owns the reusable protocol and projection semantics; ORG2 owns only adapters and a disposable read cache. The remaining future extraction work is repository packaging/versioning, not a domain redesign.
+No blocking architecture finding remains. Orgtrack owns the reusable protocol, provider-neutral projection, paged store contract, and durable metadata; ORG2 owns host adapters and disposable UI state. A future extraction is repository packaging/versioning plus host wiring, not a domain redesign. Runtime memory no longer grows with indexed session count: persisted history/job/turn data remains on disk and the open surfaces keep bounded pages only.
 
 ## Verification
 
-| Gate                 | Result                                                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------------------------ |
-| Rust workspace tests | Pass: `cargo test --workspace --quiet -- --test-threads=1`                                             |
-| Rust compilation     | Pass: `cargo check --workspace`                                                                        |
-| Rust lint            | Pass: `cargo clippy --workspace` (pre-existing advisory warnings only)                                 |
-| Frontend types       | Pass: `NODE_OPTIONS=--max-old-space-size=6144 pnpm typecheck`                                          |
-| Frontend lint        | Pass: `pnpm lint`                                                                                      |
-| Frontend unit tests  | Pass: 444 files / 5,124 tests                                                                          |
-| Rendered desktop E2E | Pass: isolated macOS Tauri/WebDriver round-metadata scenario against the real command and SQLite cache |
-| Localization         | Pass: all 13 session locale JSON files parse and contain the new keys                                  |
+| Gate                | Result                                                                                                                                                                                                     |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rust app tests      | Pass: `cargo test --lib --no-fail-fast` — 936 tests                                                                                                                                                        |
+| Rust crate tests    | Pass: `orgtrack_core` 230 tests + `session_persistence` 21 tests                                                                                                                                           |
+| Rust compilation    | Pass: `cargo check`                                                                                                                                                                                        |
+| Rust lint           | Pass for changed crates with `cargo clippy ... --all-targets --no-deps -D warnings`; whole workspace remains blocked by unrelated existing lint debt in `integrations`, `system-services`, and `key-vault` |
+| Frontend types      | Pass: `npm run typecheck`                                                                                                                                                                                  |
+| Frontend lint       | Pass: `npm run lint`                                                                                                                                                                                       |
+| Frontend unit tests | Pass: 444 files / 5,127 tests                                                                                                                                                                              |
+| Session Blame E2E   | Pass: isolated macOS Tauri/WebDriver with real Claude Code 2.1.210, Codex 0.144.1, and Cursor Agent 2026.07.09-a3815c0 hooks; live refresh, distinct transcripts, and sidebar reveal verified              |
+| Round metadata E2E  | Pass: isolated macOS Tauri/WebDriver `turn-metadata` scenario against the real Tauri command and SQLite cache                                                                                              |
+| Localization        | Pass: all 13 session locale JSON files parse and contain the new keys                                                                                                                                      |
