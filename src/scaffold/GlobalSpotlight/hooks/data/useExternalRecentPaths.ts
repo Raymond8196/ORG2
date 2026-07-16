@@ -4,6 +4,7 @@ import {
   claudeCodeRecentPaths,
   codexAppRecentPaths,
   opencodeRecentPaths,
+  qoderRecentPaths,
   warpRecentPaths,
   windsurfRecentPaths,
   zcodeRecentPaths,
@@ -88,6 +89,7 @@ export function useExternalRecentPaths({
       windsurfRecentPaths({ limit: EXTERNAL_RECENT_PATH_LIMIT }),
       warpRecentPaths({ limit: EXTERNAL_RECENT_PATH_LIMIT }),
       zcodeRecentPaths({ limit: EXTERNAL_RECENT_PATH_LIMIT }),
+      qoderRecentPaths({ limit: EXTERNAL_RECENT_PATH_LIMIT }),
     ]).then(
       ([
         codexPaths,
@@ -96,6 +98,7 @@ export function useExternalRecentPaths({
         windsurfPaths,
         warpPaths,
         zcodePaths,
+        qoderPaths,
       ]) => {
         if (!cancelled) {
           setPaths(
@@ -106,6 +109,7 @@ export function useExternalRecentPaths({
               ...windsurfPaths,
               ...warpPaths,
               ...zcodePaths,
+              ...qoderPaths,
             ])
           );
         }

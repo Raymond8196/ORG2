@@ -25,6 +25,7 @@ export * from "./sources/windsurf";
 export * from "./sources/workbuddy";
 export * from "./sources/warp";
 export * from "./sources/zcode";
+export * from "./sources/qoder";
 
 export interface ExternalHistoryImportedRepo {
   repoId: string;
