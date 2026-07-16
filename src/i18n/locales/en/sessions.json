@@ -106,8 +106,16 @@
       "lastScan": "Last scan {{time}}",
       "neverScanned": "Never scanned",
       "frequencyTitle": "Auto-scan frequency",
-      "globalFrequency": "Auto-scan",
-      "globalFrequencyDesc": "Default cadence for sources set to Default.",
+      "globalFrequency": "External source auto-scan",
+      "globalFrequencyDesc": "Default scan frequency for external sources set to Default",
+      "activeSessionRefresh": "Open external session refresh",
+      "activeSessionRefreshDesc": "Refresh frequency for the external session currently open in the chat pane",
+      "activeSessionFreq": {
+        "3s": "Every 3 seconds",
+        "5s": "Every 5 seconds",
+        "10s": "Every 10 seconds",
+        "1m": "Every minute"
+      },
       "col": {
         "source": "Source",
         "sessions": "Sessions",

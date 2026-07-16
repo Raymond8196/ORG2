@@ -103,8 +103,16 @@
       "lastScan": "Dernier scan {{time}}",
       "neverScanned": "Jamais scanné",
       "frequencyTitle": "Fréquence d'analyse",
-      "globalFrequency": "Analyse auto",
-      "globalFrequencyDesc": "Cadence par défaut pour les sources réglées sur « Par défaut ».",
+      "globalFrequency": "Analyse automatique des sources externes",
+      "globalFrequencyDesc": "Fréquence d’analyse par défaut pour les sources externes réglées sur « Par défaut »",
+      "activeSessionRefresh": "Actualisation de la session externe ouverte",
+      "activeSessionRefreshDesc": "Fréquence d’actualisation de la session externe actuellement ouverte dans le volet de discussion",
+      "activeSessionFreq": {
+        "3s": "Toutes les 3 secondes",
+        "5s": "Toutes les 5 secondes",
+        "10s": "Toutes les 10 secondes",
+        "1m": "Chaque minute"
+      },
       "col": {
         "source": "Source",
         "sessions": "Sessions",

@@ -103,8 +103,16 @@
       "lastScan": "마지막 스캔 {{time}}",
       "neverScanned": "스캔 안 됨",
       "frequencyTitle": "자동 스캔 주기",
-      "globalFrequency": "자동 스캔",
-      "globalFrequencyDesc": "“기본값”으로 설정된 소스의 기본 주기.",
+      "globalFrequency": "외부 소스 자동 스캔",
+      "globalFrequencyDesc": "‘기본값’으로 설정된 외부 소스의 기본 스캔 주기",
+      "activeSessionRefresh": "열린 외부 세션 새로 고침",
+      "activeSessionRefreshDesc": "현재 채팅 창에 열려 있는 외부 세션의 새로 고침 주기",
+      "activeSessionFreq": {
+        "3s": "3초마다",
+        "5s": "5초마다",
+        "10s": "10초마다",
+        "1m": "1분마다"
+      },
       "col": {
         "source": "소스",
         "sessions": "세션",

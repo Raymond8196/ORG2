@@ -35,6 +35,7 @@ import {
   externalCliSourceProbe,
   externalCliSourcesDetect,
   externalHistoryRescanSource,
+  externalHistoryRescanSources,
   fetchExternalSourceStats,
 } from "@src/api/tauri/externalHistory";
 import Button from "@src/components/Button";
@@ -57,11 +58,14 @@ import {
 } from "@src/modules/shared/layouts/SectionLayout";
 import { loadSidebarSessions } from "@src/store/session";
 import {
+  ACTIVE_EXTERNAL_SESSION_REFRESH_FREQUENCIES,
+  type ActiveExternalSessionRefreshFrequency,
   type DataSourceConfigMap,
   GLOBAL_FREQUENCIES,
   SOURCE_FREQUENCIES,
   type ScanFrequency,
   type SourceFrequency,
+  activeExternalSessionRefreshFrequencyAtom,
   dataSourceConfigAtom,
   dataSourceGlobalFrequencyAtom,
   getSourceConfig,
@@ -125,6 +129,8 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
   const [globalFrequency, setGlobalFrequency] = useAtom(
     dataSourceGlobalFrequencyAtom
   );
+  const [activeSessionRefreshFrequency, setActiveSessionRefreshFrequency] =
+    useAtom(activeExternalSessionRefreshFrequencyAtom);
 
   const patchRow = useCallback(
     (sourceId: string, patch: Partial<SourceRow>) => {
@@ -274,7 +280,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
       )
       .map((r) => r.probe.sourceId as ImportedHistorySourceId);
     try {
-      await Promise.all(importables.map((s) => externalHistoryRescanSource(s)));
+      await externalHistoryRescanSources(importables);
       if (importables.length > 0) {
         await loadSidebarSessions({ forceRefresh: true });
       }
@@ -359,6 +365,14 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
   );
   const globalFrequencyOptions = useMemo(
     () => GLOBAL_FREQUENCIES.map((f) => ({ value: f, label: t(`freq.${f}`) })),
+    [t]
+  );
+  const activeSessionRefreshFrequencyOptions = useMemo(
+    () =>
+      ACTIVE_EXTERNAL_SESSION_REFRESH_FREQUENCIES.map((frequency) => ({
+        value: frequency,
+        label: t(`activeSessionFreq.${frequency}`),
+      })),
     [t]
   );
 
@@ -633,6 +647,25 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
                       size="default"
                       style={SECTION_CONTROL_STYLE}
                       aria-label={t("globalFrequency")}
+                    />
+                  </SectionRow>
+                  <SectionRow
+                    label={t("activeSessionRefresh")}
+                    description={t("activeSessionRefreshDesc")}
+                  >
+                    <Select
+                      value={activeSessionRefreshFrequency}
+                      onChange={(value) => {
+                        if (typeof value === "string") {
+                          setActiveSessionRefreshFrequency(
+                            value as ActiveExternalSessionRefreshFrequency
+                          );
+                        }
+                      }}
+                      options={activeSessionRefreshFrequencyOptions}
+                      size="default"
+                      style={SECTION_CONTROL_STYLE}
+                      aria-label={t("activeSessionRefresh")}
                     />
                   </SectionRow>
                 </SectionContainer>

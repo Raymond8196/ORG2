@@ -103,8 +103,16 @@
       "lastScan": "Última varredura {{time}}",
       "neverScanned": "Nunca verificado",
       "frequencyTitle": "Frequência de varredura",
-      "globalFrequency": "Varredura automática",
-      "globalFrequencyDesc": "Cadência padrão para fontes definidas como “Padrão”.",
+      "globalFrequency": "Varredura automática de fontes externas",
+      "globalFrequencyDesc": "Frequência de varredura padrão para fontes externas definidas como “Padrão”",
+      "activeSessionRefresh": "Atualização da sessão externa aberta",
+      "activeSessionRefreshDesc": "Frequência de atualização da sessão externa atualmente aberta no painel de chat",
+      "activeSessionFreq": {
+        "3s": "A cada 3 segundos",
+        "5s": "A cada 5 segundos",
+        "10s": "A cada 10 segundos",
+        "1m": "A cada minuto"
+      },
       "col": {
         "source": "Fonte",
         "sessions": "Sessões",
