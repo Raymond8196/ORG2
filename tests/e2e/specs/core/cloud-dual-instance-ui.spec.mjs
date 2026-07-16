@@ -321,6 +321,21 @@ async function openFileTimelineOn(client, absoluteFilePath) {
   );
 }
 
+async function selectCloudOrgManagementTabOn(client, tab, label) {
+  await clickRenderedOn(
+    client,
+    `[data-testid="cloud-org-tab-${tab}"]`,
+    `${label} management tab`
+  );
+}
+
+async function selectPrimaryCloudOrgManagementTab(tab, label) {
+  await clickRendered(
+    `[data-testid="cloud-org-tab-${tab}"]`,
+    `${label} management tab`
+  );
+}
+
 async function openCloudOrgPanelOn(client, orgId, label) {
   await selectCloudOrgOn(client, orgId);
   // A second Tauri window may be occluded, in which case WebKit legitimately
@@ -440,6 +455,7 @@ async function openCloudOrgPanelOn(client, orgId, label) {
     `${label} loaded cloud plan section`,
     CLOUD_FETCH_TIMEOUT_MS
   );
+  await selectCloudOrgManagementTabOn(client, "members", `${label} members`);
   await waitForRenderedOn(
     client,
     '[data-testid="cloud-org-members"]',
@@ -892,6 +908,15 @@ describe("Cloud collaboration with two independent rendered app instances", func
       "primary create-team submit"
     );
     await waitForRendered(
+      '[data-testid="cloud-org-plan-section"]',
+      "primary created-team plan section",
+      CLOUD_CREATE_ORG_TIMEOUT_MS
+    );
+    await selectPrimaryCloudOrgManagementTab(
+      "members",
+      "primary created-team members"
+    );
+    await waitForRendered(
       '[data-testid="cloud-org-invites"]',
       "primary created-team invite section",
       CLOUD_CREATE_ORG_TIMEOUT_MS
@@ -1006,6 +1031,10 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
 
     await openCloudOrgPanelFromSidebar(teamOrgId);
+    await selectPrimaryCloudOrgManagementTab(
+      "repo-scope",
+      "primary team repo scope"
+    );
     await waitForRendered(
       '[data-testid="cloud-org-repo-scope"]',
       "primary team repo scope",
@@ -2235,22 +2264,20 @@ describe("Cloud collaboration with two independent rendered app instances", func
 
     await openCloudOrgPanelFromSidebar(teamOrgId);
     await openCloudOrgPanelOn(second.client, teamOrgId, "secondary");
+    await selectCloudOrgManagementTabOn(
+      second.client,
+      "general",
+      "secondary general"
+    );
     await waitForRendered(
       '[data-testid="cloud-org-plan-section"]',
       "owner loaded cloud plan section",
       CLOUD_FETCH_TIMEOUT_MS
     );
-    await waitForRendered(
-      '[data-testid="cloud-org-members"]',
-      "owner loaded cloud member roster",
-      CLOUD_FETCH_TIMEOUT_MS
-    );
-
-    const [ownerControls, memberControls] = await Promise.all([
+    const [ownerGeneralControls, memberGeneralControls] = await Promise.all([
       execJS(`
         return {
           plan: !!document.querySelector('[data-testid="cloud-org-plan-section"]'),
-          invites: !!document.querySelector('[data-testid="cloud-org-invites"]'),
           settings: !!document.querySelector('[data-testid="cloud-org-settings"]'),
           danger: !!document.querySelector('[data-testid="cloud-org-danger-zone"]'),
         };
@@ -2260,15 +2287,57 @@ describe("Cloud collaboration with two independent rendered app instances", func
         `
           return {
             plan: !!document.querySelector('[data-testid="cloud-org-plan-section"]'),
-            invites: !!document.querySelector('[data-testid="cloud-org-invites"]'),
             settings: !!document.querySelector('[data-testid="cloud-org-settings"]'),
             danger: !!document.querySelector('[data-testid="cloud-org-danger-zone"]'),
-            leave: !!document.querySelector('[data-testid="cloud-org-leave"]'),
-            scopeSave: !!document.querySelector('[data-testid="cloud-org-save-repo-scopes"]'),
           };
         `
       ),
     ]);
+    await selectPrimaryCloudOrgManagementTab("members", "owner members");
+    await selectCloudOrgManagementTabOn(
+      second.client,
+      "members",
+      "secondary members"
+    );
+    await waitForRendered(
+      '[data-testid="cloud-org-members"]',
+      "owner loaded cloud member roster",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    const [ownerMemberControls, memberMemberControls] = await Promise.all([
+      execJS(`
+        return {
+          invites: !!document.querySelector('[data-testid="cloud-org-invites"]'),
+        };
+      `),
+      executeOn(
+        second.client,
+        `
+          return {
+            invites: !!document.querySelector('[data-testid="cloud-org-invites"]'),
+            leave: !!document.querySelector('[data-testid="cloud-org-leave"]'),
+          };
+        `
+      ),
+    ]);
+    await selectCloudOrgManagementTabOn(
+      second.client,
+      "repo-scope",
+      "secondary repo scope"
+    );
+    const memberScopeControls = await executeOn(
+      second.client,
+      `return { scopeSave: !!document.querySelector('[data-testid="cloud-org-save-repo-scopes"]') };`
+    );
+    const ownerControls = {
+      ...ownerGeneralControls,
+      ...ownerMemberControls,
+    };
+    const memberControls = {
+      ...memberGeneralControls,
+      ...memberMemberControls,
+      ...memberScopeControls,
+    };
     if (
       !ownerControls.plan ||
       !ownerControls.invites ||
@@ -2292,6 +2361,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       );
     }
 
+    await selectPrimaryCloudOrgManagementTab("general", "owner general");
     await typeRendered(
       '[data-testid="cloud-org-rename-input"]',
       RENAMED_TEAM_NAME,
@@ -2929,6 +2999,10 @@ describe("Cloud collaboration with two independent rendered app instances", func
       teamOrgId,
       "secondary role lifecycle"
     );
+    await selectPrimaryCloudOrgManagementTab(
+      "members",
+      "owner role lifecycle members"
+    );
     await Promise.all([
       executeOn(
         browser,
@@ -2984,6 +3058,11 @@ describe("Cloud collaboration with two independent rendered app instances", func
       "promoted admin invite controls",
       CLOUD_FETCH_TIMEOUT_MS
     );
+    await selectCloudOrgManagementTabOn(
+      second.client,
+      "general",
+      "promoted admin general"
+    );
     await waitForRenderedOn(
       second.client,
       '[data-testid="cloud-org-settings"]',
@@ -3001,6 +3080,10 @@ describe("Cloud collaboration with two independent rendered app instances", func
     // Transfer ownership to the second rendered app, verify both sides flip
     // live, then transfer it back so removal is exercised by the original
     // owner rather than through an RPC shortcut.
+    await selectPrimaryCloudOrgManagementTab(
+      "general",
+      "owner transfer settings"
+    );
     await clickRendered(
       '[data-testid="cloud-org-transfer-select"]',
       "owner transfer target selector"
@@ -3052,6 +3135,10 @@ describe("Cloud collaboration with two independent rendered app instances", func
       CLOUD_FETCH_TIMEOUT_MS
     );
 
+    await selectPrimaryCloudOrgManagementTab(
+      "members",
+      "restored owner members"
+    );
     await clickRendered(
       `[data-testid="cloud-org-member-remove-${teammate.userId}"]`,
       "owner remove teammate"

@@ -342,6 +342,37 @@ pub async fn claude_code_history_chunks(
     .map_err(|err| format!("Task join error: {err}"))?
 }
 
+/// Freshness snapshot of one imported transcript's source file.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedTranscriptStat {
+    pub mtime_ms: i64,
+    pub size_bytes: u64,
+}
+
+/// Cheap freshness probe for the replay auto-refresh: returns the transcript
+/// file's `(mtime, size)` so the frontend can skip the full
+/// read → parse → merge pipeline when nothing changed. `None` when the
+/// source file is missing.
+#[tauri::command]
+pub async fn claude_code_history_stat(
+    session_id: String,
+) -> Result<Option<ImportedTranscriptStat>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        Ok(
+            claude_code_history::stat_claude_code_history_for_session(&conn, &session_id)?.map(
+                |(mtime_ms, size_bytes)| ImportedTranscriptStat {
+                    mtime_ms,
+                    size_bytes,
+                },
+            ),
+        )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
 #[tauri::command]
 pub async fn claude_code_recent_paths(
     limit: Option<usize>,

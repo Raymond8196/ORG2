@@ -45,6 +45,7 @@ import { useActionSystem } from "@src/ActionSystem";
 import Button from "@src/components/Button";
 import TabPill from "@src/components/TabPill";
 import { useGitStatus } from "@src/contexts/git";
+import { useSourceControlAttention } from "@src/hooks/git/useSourceControlAttention";
 import { useRefreshSpin } from "@src/hooks/ui";
 import {
   usePublishWorkstationTabHeader,
@@ -199,6 +200,9 @@ const EditorContent: React.FC<EditorContentProps> = memo(
       useEditorPaneState(fileContentStateRef, forceRefreshRef);
     const isTerminalTabActive = activeTab?.type === "terminal";
     const isSourceControlActive = activeTab?.type === "source-control";
+    // While the Source Control page is on screen, the git watcher polls at
+    // its fast interval; otherwise it relaxes to halve idle git load.
+    useSourceControlAttention(isSourceControlActive);
 
     // The Source Control tab is pinned, so this is normally always present. We
     // drive the keep-alive main pane from the persisted tab (not `activeTab`)

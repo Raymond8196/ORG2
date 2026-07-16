@@ -27,6 +27,7 @@ import {
   LayoutGrid,
   MessageSquarePlus,
   Plus,
+  Settings2,
   TerminalSquare,
 } from "lucide-react";
 import React, {
@@ -129,6 +130,7 @@ const TabPill = memo(function TabPill({
 
   const displayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
     launchpad: t("navigation:routes.launchpad"),
+    cloudOrg: t("navigation:collaboration.manageOrg"),
     workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
       projects: t("navigation:labels.projects"),
@@ -160,6 +162,14 @@ const TabPill = memo(function TabPill({
   } else if (tab.type === "workspace") {
     icon = (
       <Info
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (tab.type === "cloud-org") {
+    icon = (
+      <Settings2
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}

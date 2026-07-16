@@ -35,7 +35,12 @@ use super::{
     cached_event_to_activity_chunk, canonicalize_existing_prefix, persist_activity_chunks,
 };
 
-const HISTORICAL_INTERACTION_PARSER_VERSION: i64 = 2;
+// v3: repository ids now come from filesystem git discovery instead of
+// `git rev-parse` output. The id derivation input could differ in edge
+// cases (symlinked paths, worktree commondir form), so force a one-shot
+// re-reconciliation to rebuild all Reconciled interactions under the new
+// derivation and keep every session's rows on a single repository_id.
+const HISTORICAL_INTERACTION_PARSER_VERSION: i64 = 3;
 const BACKFILL_REFRESH_INTERVAL: Duration = Duration::from_secs(30);
 // A single provider transcript can legitimately take several minutes to
 // parse. Previous-process rows are reclaimed immediately through owner_id, so
@@ -134,6 +139,39 @@ pub(in crate::orgtrack) fn request_historical_backfill(
 ) -> crate::orgtrack::types::FileSessionHistoryBackfill {
     let canonical_repo = canonicalize_existing_prefix(Path::new(repo_path));
     let repo_key = canonical_repo.to_string_lossy().into_owned();
+
+    // Fast path: a recently finished run means the repo's backlog was already
+    // walked. Re-running would only re-spawn discovery plus a fingerprint
+    // sweep to conclude "nothing to do" — a fixed cost paid on EVERY Timeline
+    // open. Skip it unless the requested file has sessions that still need
+    // indexing (a Timeline for a not-yet-covered file must never be starved).
+    // Because BACKFILL_RECHECK_TTL_MS < SESSION_QUIESCENCE_MS, any session
+    // that appears during the TTL window is still non-quiescent and would
+    // not have been indexed by a re-run anyway, so this delays nothing.
+    if let Ok(conn) = get_connection() {
+        if let Ok(Some(job)) = load_backfill_job(&conn, &repo_key) {
+            let is_terminal = matches!(
+                job.status,
+                HistoricalBackfillStatus::Complete | HistoricalBackfillStatus::Partial
+            );
+            let is_fresh = Utc::now()
+                .timestamp_millis()
+                .saturating_sub(job.updated_at_ms)
+                < BACKFILL_RECHECK_TTL_MS;
+            if is_terminal
+                && is_fresh
+                && !priority_file_needs_backfill(
+                    &conn,
+                    repo_path,
+                    &canonical_repo,
+                    priority_file,
+                )
+            {
+                return job.snapshot();
+            }
+        }
+    }
+
     let (job, claimed_run_token) = match get_connection()
         .map_err(|err| err.to_string())
         .and_then(|mut conn| claim_backfill_job(&mut conn, &repo_key))
@@ -399,12 +437,27 @@ fn reconcile_historical_interactions(
             }
         }
     }
-    // Prioritize the requested file across every provider. Per-provider
-    // batching can otherwise index hundreds of unrelated Claude sessions
-    // before the one relevant Codex or Cursor transcript.
-    imported_sessions.sort_by_key(|(_, session)| {
-        !session_touches_priority_file(session, &canonical_repo, priority_file)
-    });
+    // Lazy scope: fully reconcile only sessions that actually touched the
+    // requested file (per the discovery cache's impact.touched_files), and
+    // chip away at the remaining backlog with a bounded batch per run. A
+    // single file-history open used to reconcile EVERY historical session
+    // in the repo — hundreds of transcript parses for one Timeline panel.
+    // The backlog still converges to fully indexed across a few opens
+    // (already-current sessions are fingerprint-skipped for free), but each
+    // trigger now does a bounded, predictable amount of work.
+    let (priority_sessions, backlog_sessions): (Vec<_>, Vec<_>) =
+        imported_sessions.into_iter().partition(|(_, session)| {
+            session_touches_priority_file(session, &canonical_repo, priority_file)
+        });
+    let backlog_pending = backlog_sessions_needing_work(
+        conn,
+        backlog_sessions,
+        BACKFILL_BACKLOG_BATCH_PER_RUN,
+    );
+    let imported_sessions: Vec<_> = priority_sessions
+        .into_iter()
+        .chain(backlog_pending)
+        .collect();
     let native_sessions = native_sessions_for_repo(conn, repo_path, &canonical_repo)?;
     let total_sessions = imported_sessions.len() + native_sessions.len() + discovery_failures;
     let mut indexed_sessions = 0;
@@ -496,6 +549,111 @@ fn session_touches_priority_file(
     })
 }
 
+/// Sessions whose source transcript changed within this window are still
+/// being written (the user is actively using that CLI). Reconciling them is
+/// wasted work: the fingerprint (mtime/size/hash) changes on every append,
+/// so the next backfill run would delete and re-parse the whole transcript
+/// again — with 1-2 git subprocesses per interaction. This kept an
+/// always-on ~6% CPU floor on machines with active external sessions.
+/// Live interactions are covered by the real-time hook capture path
+/// (`capture_method = Hook`); backfill picks a session up once it has been
+/// quiet for this long, indexes it once, and its fingerprint then never
+/// changes again — effectively a one-shot migration per session.
+const SESSION_QUIESCENCE_MS: i64 = 10 * 60 * 1000;
+
+/// How many NON-priority backlog sessions (sessions that did not touch the
+/// requested file) get reconciled per backfill run. Keeps a single Timeline
+/// open from parsing the repo's entire imported history at once while still
+/// converging: every run chips away another batch, and already-indexed
+/// sessions are excluded before the batch is chosen so the backlog always
+/// makes forward progress.
+const BACKFILL_BACKLOG_BATCH_PER_RUN: usize = 25;
+
+/// After a run finishes, further backfill requests within this window return
+/// the finished snapshot instead of re-spawning a worker — unless the
+/// requested file still has pending sessions. MUST stay below
+/// SESSION_QUIESCENCE_MS: that guarantees sessions appearing inside the TTL
+/// window are still non-quiescent (a re-run would skip them too), so the
+/// short-circuit can never delay a reconciliation that would have happened.
+const BACKFILL_RECHECK_TTL_MS: i64 = 5 * 60 * 1000;
+
+fn session_is_quiescent(session: &ImportedHistoryCachedSession, now_ms: i64) -> bool {
+    now_ms.saturating_sub(session.source_mtime_ms) >= SESSION_QUIESCENCE_MS
+}
+
+/// Cheap pre-claim probe: does any already-discovered session that touched
+/// `priority_file` still need reconciliation? Pure SQLite reads against the
+/// discovery cache — no source rescan, no transcript parsing. Errs on the
+/// side of running the full backfill.
+fn priority_file_needs_backfill(
+    conn: &Connection,
+    repo_path: &str,
+    canonical_repo: &Path,
+    priority_file: &str,
+) -> bool {
+    let store = SqliteRecordStore::new(conn);
+    let now_ms = Utc::now().timestamp_millis();
+    for source in [SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE] {
+        let Ok(sessions) = imported_sessions_for_repo(conn, source, repo_path, canonical_repo)
+        else {
+            return true;
+        };
+        for session in sessions {
+            if !session_touches_priority_file(&session, canonical_repo, priority_file) {
+                continue;
+            }
+            if !session_is_quiescent(&session, now_ms) {
+                continue;
+            }
+            let fingerprint = imported_session_fingerprint(&session);
+            match store.interaction_import_is_current(
+                source,
+                &session.session_id,
+                &fingerprint,
+                HISTORICAL_INTERACTION_PARSER_VERSION,
+            ) {
+                Ok(true) => continue,
+                Ok(false) | Err(_) => return true,
+            }
+        }
+    }
+    false
+}
+
+/// Select up to `limit` backlog sessions that actually need reconciliation:
+/// already-current fingerprints and still-active (non-quiescent) sessions
+/// are filtered out first, so the batch budget is never wasted on no-ops and
+/// the backlog cannot stall behind a prefix of completed sessions.
+fn backlog_sessions_needing_work(
+    conn: &Connection,
+    backlog: Vec<(&'static str, ImportedHistoryCachedSession)>,
+    limit: usize,
+) -> Vec<(&'static str, ImportedHistoryCachedSession)> {
+    let store = SqliteRecordStore::new(conn);
+    let now_ms = Utc::now().timestamp_millis();
+    let mut selected = Vec::new();
+    for (source, session) in backlog {
+        if selected.len() >= limit {
+            break;
+        }
+        if !session_is_quiescent(&session, now_ms) {
+            continue;
+        }
+        let fingerprint = imported_session_fingerprint(&session);
+        match store.interaction_import_is_current(
+            source,
+            &session.session_id,
+            &fingerprint,
+            HISTORICAL_INTERACTION_PARSER_VERSION,
+        ) {
+            Ok(true) => continue,
+            // On a status-check error, let the real reconcile path surface it.
+            Ok(false) | Err(_) => selected.push((source, session)),
+        }
+    }
+    selected
+}
+
 fn reconcile_imported_session(
     conn: &Connection,
     source: &str,
@@ -510,6 +668,11 @@ fn reconcile_imported_session(
         &fingerprint,
         HISTORICAL_INTERACTION_PARSER_VERSION,
     )? {
+        return Ok(());
+    }
+    if !session_is_quiescent(session, Utc::now().timestamp_millis()) {
+        // Not marked as imported: the next backfill after the session goes
+        // quiet will index it.
         return Ok(());
     }
     let chunks = match source {

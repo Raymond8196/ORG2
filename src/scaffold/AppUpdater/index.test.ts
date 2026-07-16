@@ -1,8 +1,13 @@
 import type { DownloadEvent, Update } from "@tauri-apps/plugin-updater";
-import { type ReactNode, createElement } from "react";
+import { type ReactElement, type ReactNode, createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  AppUpdateDownloadNoticeContent,
+  type AppUpdateDownloadProgress,
+  DownloadProgressOrb,
+} from "./DownloadProgress";
 import {
   AppUpdater,
   checkForUpdatesManually,
@@ -32,9 +37,12 @@ const mocks = vi.hoisted(() => ({
   getVersion: vi.fn(),
   messageError: vi.fn(),
   messageInfo: vi.fn(),
+  messageRemove: vi.fn(),
   messageSuccess: vi.fn(),
   relaunch: vi.fn(),
+  storeGet: vi.fn(),
   storeSet: vi.fn(),
+  storeValues: new Map<unknown, unknown>(),
   useAtom: vi.fn(),
   useAtomValue: vi.fn(),
   setAutoUpdateEnabled: vi.fn(),
@@ -127,6 +135,7 @@ vi.mock("@src/components/Message", () => ({
   default: {
     error: mocks.messageError,
     info: mocks.messageInfo,
+    remove: mocks.messageRemove,
     success: mocks.messageSuccess,
   },
 }));
@@ -141,6 +150,7 @@ vi.mock("@src/hooks/logger", () => ({
 
 vi.mock("@src/util/core/state/instrumentedStore", () => ({
   getInstrumentedStore: () => ({
+    get: mocks.storeGet,
     set: mocks.storeSet,
   }),
 }));
@@ -164,6 +174,13 @@ describe("AppUpdater", () => {
     mocks.buttons.length = 0;
     mocks.checkbox = null;
     mocks.modal = null;
+    mocks.storeValues.clear();
+    mocks.storeGet.mockImplementation((target) =>
+      mocks.storeValues.get(target)
+    );
+    mocks.storeSet.mockImplementation((target, value) => {
+      mocks.storeValues.set(target, value);
+    });
     mocks.getVersion.mockResolvedValue("1.1.21");
     resetAppUpdaterForTests();
   });
@@ -172,7 +189,10 @@ describe("AppUpdater", () => {
     mocks.useAtom
       .mockReturnValueOnce([true, mocks.setAutoUpdateEnabled])
       .mockReturnValueOnce([true, mocks.setInstallPromptVisible]);
-    mocks.useAtomValue.mockReturnValueOnce(update).mockReturnValueOnce(true);
+    mocks.useAtomValue
+      .mockReturnValueOnce(update)
+      .mockReturnValueOnce({ active: false })
+      .mockReturnValueOnce(true);
     return renderToStaticMarkup(createElement(AppUpdater));
   }
 
@@ -190,7 +210,7 @@ describe("AppUpdater", () => {
 
     await expect(checkForUpdatesManually()).resolves.toBe(update);
 
-    expect(mocks.check).toHaveBeenCalledOnce();
+    expect(mocks.check).toHaveBeenCalledWith({ timeout: 30_000 });
     expect(mocks.messageInfo).toHaveBeenCalledWith(
       expect.objectContaining({
         content: "Version 1.1.22 is ready to install.",
@@ -226,6 +246,93 @@ describe("AppUpdater", () => {
     expect(update.downloadAndInstall).not.toHaveBeenCalled();
     expect(mocks.relaunch).not.toHaveBeenCalled();
     expect(mocks.storeSet).toHaveBeenLastCalledWith(expect.anything(), true);
+  });
+
+  it("surfaces a retry action when the update download times out", async () => {
+    const update = createUpdate({
+      download: vi.fn().mockRejectedValue(new Error("request timed out")),
+    });
+    mocks.check.mockResolvedValue(update);
+
+    await installAvailableAppUpdate();
+
+    expect(mocks.relaunch).not.toHaveBeenCalled();
+    expect(mocks.messageError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content:
+          "The download timed out. Check your network or proxy, then retry.",
+        duration: 0,
+        title: "Update download failed",
+        cancel: expect.objectContaining({
+          closeOnClick: false,
+          label: "Retry",
+        }),
+      })
+    );
+  });
+
+  it("renders determinate progress and a collapsible liquid download orb", () => {
+    const progress: AppUpdateDownloadProgress = {
+      active: true,
+      collapsed: true,
+      downloadedBytes: 32,
+      totalBytes: 100,
+      percent: 32,
+    };
+    const onExpand = vi.fn();
+
+    const noticeMarkup = renderToStaticMarkup(
+      createElement(AppUpdateDownloadNoticeContent, { progress })
+    );
+    const orb = DownloadProgressOrb({ progress, onExpand }) as ReactElement<{
+      onClick: () => void;
+    }>;
+    const orbMarkup = renderToStaticMarkup(orb);
+
+    expect(noticeMarkup).toContain('role="progressbar"');
+    expect(noticeMarkup).toContain('aria-valuenow="32"');
+    expect(noticeMarkup).toContain("32%");
+    expect(orbMarkup).toContain("--download-progress:32%");
+    expect(orbMarkup).toContain("Open progress notice");
+
+    orb.props.onClick();
+    expect(onExpand).toHaveBeenCalledOnce();
+  });
+
+  it("keeps a manually collapsed progress notice closed as download advances", async () => {
+    let reportProgress: ((event: DownloadEvent) => void) | undefined;
+    let finishDownload: (() => void) | undefined;
+    const update = createUpdate({
+      download: vi.fn(
+        (onEvent) =>
+          new Promise<void>((resolve) => {
+            reportProgress = onEvent as (event: DownloadEvent) => void;
+            finishDownload = resolve;
+          })
+      ),
+    });
+    mocks.check.mockResolvedValue(update);
+    await checkForUpdatesManually();
+
+    const pendingDownload = installAvailableAppUpdate();
+    const progressNotice = mocks.messageInfo.mock.calls.find(
+      ([message]) => message.id === "app-update-progress"
+    )?.[0];
+    expect(progressNotice).toBeDefined();
+
+    progressNotice?.onClose?.();
+    const messageCountAfterClose = mocks.messageInfo.mock.calls.length;
+    reportProgress?.({ event: "Started", data: { contentLength: 100 } });
+    reportProgress?.({ event: "Progress", data: { chunkLength: 50 } });
+
+    expect(mocks.messageInfo).toHaveBeenCalledTimes(messageCountAfterClose);
+    expect(mocks.storeSet).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ active: true, collapsed: true })
+    );
+
+    finishDownload?.();
+    await pendingDownload;
   });
 
   it("installs and relaunches only after confirmation", async () => {
@@ -302,7 +409,7 @@ describe("AppUpdater", () => {
     expect(mocks.setInstallPromptVisible).toHaveBeenCalledWith(false);
   });
 
-  it("throttles download progress messages", async () => {
+  it("keeps one progress notice alive and updates it in place", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(10_000);
     const update = createUpdate({
@@ -322,9 +429,15 @@ describe("AppUpdater", () => {
     const progressMessages = mocks.messageInfo.mock.calls.filter(
       ([message]) => message.id === "app-update-progress"
     );
-    expect(progressMessages).toHaveLength(3);
-    expect(progressMessages[1]?.[0].content).toBe("Downloading update… 50%");
-    expect(progressMessages[2]?.[0].content).toBe("Update ready to install.");
+    expect(progressMessages).toHaveLength(4);
+    expect(progressMessages[0]?.[0]).toMatchObject({
+      duration: 0,
+      persistent: true,
+      title: "Downloading update…",
+    });
+    expect(progressMessages[2]?.[0].title).toBe("Downloading update… 50%");
+    expect(progressMessages[3]?.[0].title).toBe("Downloading update… 100%");
+    expect(mocks.messageRemove).toHaveBeenCalledWith("app-update-progress");
     expect(mocks.relaunch).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
