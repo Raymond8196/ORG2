@@ -22,7 +22,23 @@ use crate::orgtrack::impact_indexer::get_session_impact;
 
 pub struct AgentMetadataResolver {
     store: std::sync::Arc<agent_core::definitions::AgentDefinitionsStore>,
-    warned_definition_ids: HashSet<String>,
+}
+
+/// Definition ids that already produced a resolution warning, deduplicated
+/// process-wide. Resolvers are constructed per list/page call, so a
+/// per-instance set would re-log the same stale id (e.g. a session row
+/// persisted with a since-removed builtin) on every sidebar refresh.
+static WARNED_DEFINITION_IDS: std::sync::OnceLock<std::sync::Mutex<HashSet<String>>> =
+    std::sync::OnceLock::new();
+
+fn warn_once_for_definition(def_id: &str, err: &str) {
+    let warned = WARNED_DEFINITION_IDS.get_or_init(|| std::sync::Mutex::new(HashSet::new()));
+    let mut warned = warned.lock().expect("definition warn set poisoned");
+    if warned.insert(def_id.to_string()) {
+        tracing::warn!(
+            "[session_directory] Failed to resolve agent definition '{def_id}' for aggregate metadata: {err}"
+        );
+    }
 }
 
 fn native_impact_fields(
@@ -47,7 +63,6 @@ impl AgentMetadataResolver {
     pub fn new() -> Self {
         Self {
             store: agent_core::definitions::definitions_store(),
-            warned_definition_ids: HashSet::new(),
         }
     }
 
@@ -73,11 +88,7 @@ impl AgentMetadataResolver {
         ) {
             Ok(definition) => (Some(def_id), definition.icon_id, Some(definition.name)),
             Err(err) => {
-                if self.warned_definition_ids.insert(def_id.clone()) {
-                    tracing::warn!(
-                        "[session_directory] Failed to resolve agent definition '{def_id}' for aggregate metadata: {err}"
-                    );
-                }
+                warn_once_for_definition(&def_id, &err);
                 (Some(def_id), None, None)
             }
         }
