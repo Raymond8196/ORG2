@@ -7,9 +7,11 @@ import { IMPORTED_HISTORY_SOURCE_DESCRIPTORS } from "@src/api/tauri/externalHist
 import { rpc } from "@src/api/tauri/rpc";
 import type {
   AggregateStats,
+  ExternalHistorySidebarBatchResponse,
   ExternalHistorySidebarDateBucket,
   ExternalHistorySidebarListRequest,
   ExternalHistorySidebarResponse,
+  ExternalHistorySidebarSourceRequest,
   SessionAggregateRecord,
   SessionFilter,
   SessionHeatmapFilter,
@@ -45,9 +47,11 @@ export type {
 // Re-export session aggregate types from RPC schemas (single source of truth).
 export type {
   AggregateStats,
+  ExternalHistorySidebarBatchResponse,
   ExternalHistorySidebarDateBucket,
   ExternalHistorySidebarListRequest,
   ExternalHistorySidebarResponse,
+  ExternalHistorySidebarSourceRequest,
   SessionAggregateRecord,
   SessionFilter,
   SessionHeatmapFilter,
@@ -74,7 +78,7 @@ export async function sessionAggregateList(
 
 export async function externalHistorySidebarList(
   request: ExternalHistorySidebarListRequest
-): Promise<ExternalHistorySidebarResponse> {
+): Promise<ExternalHistorySidebarBatchResponse> {
   return rpc.sessionAggregate.externalHistorySidebarList(request);
 }
 

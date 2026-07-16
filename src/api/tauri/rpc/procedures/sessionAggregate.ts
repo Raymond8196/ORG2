@@ -11,7 +11,7 @@ export const sessionAggregate = {
     "session_external_history_sidebar_list"
   )
     .input(schemas.sessionAggregate.ExternalHistorySidebarListInput)
-    .output(schemas.sessionAggregate.ExternalHistorySidebarResponseSchema)
+    .output(schemas.sessionAggregate.ExternalHistorySidebarBatchResponseSchema)
     .build(),
 
   getStats: defineProcedure("session_get_aggregate_stats")

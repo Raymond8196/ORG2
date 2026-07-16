@@ -11,6 +11,7 @@ import {
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import FileTypeIcon from "@src/components/FileTypeIcon";
 import Message from "@src/components/Message";
 import StackRowButton from "@src/components/StackRowButton";
 import TextButton from "@src/components/TextButton";
@@ -20,6 +21,7 @@ import {
   COMPOSER_STACK_ROW_BASE,
 } from "@src/config/composerStackTokens";
 import FileChangeRow from "@src/engines/ChatPanel/InputArea/components/FileChangeRow";
+import EventFileHoverPreview from "@src/engines/ChatPanel/blocks/EventFileHoverPreview";
 import { replayModeAtom } from "@src/engines/SessionCore";
 import type { ExtractedGitArtifactData } from "@src/engines/SessionCore/core/types";
 import type {
@@ -36,6 +38,7 @@ import {
   simulatorSelectedAppAtom,
   stationModeAtom,
 } from "@src/store/ui/simulatorAtom";
+import { getFileName } from "@src/util/file/pathUtils";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import { mapTurnModifiedFilesToFileChanges } from "./turnFilesMapping";
@@ -181,25 +184,12 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
       observedResources.length -
       visibleFiles.length -
       visibleResources.length;
-    const isSettled =
-      summary.status !== "pending" && summary.status !== "working";
-
     if (
       files.length === 0 &&
       observedResources.length === 0 &&
       summary.gitArtifacts.length === 0
     ) {
-      if (!isSettled) return null;
-      return (
-        <div className="px-3 pt-2" data-testid="turn-metadata-empty">
-          <div
-            className={`${CHAT_COMPOSER_STACK_BAR_SURFACE_BG_CLASS} flex h-8 items-center gap-2 rounded-lg border border-solid border-border-2 px-2.5 text-[12px] text-text-3`}
-          >
-            <FileCode2 size={14} />
-            {t("chat.turnMetadata.noChanges")}
-          </div>
-        </div>
-      );
+      return null;
     }
 
     return (
@@ -312,16 +302,22 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
             {visibleResources.map((interaction: TurnResourceInteraction) => {
               const isRead = interaction.action === "read";
               const Icon = isRead ? BookOpenText : Search;
-              return (
+              const displayName =
+                interaction.fileName ||
+                getFileName(interaction.path) ||
+                interaction.path;
+              const row = (
                 <div
-                  key={`${interaction.action}-${interaction.outcome}-${interaction.path}`}
                   className={COMPOSER_STACK_ROW_BASE}
-                  title={interaction.path}
                   data-testid={`turn-metadata-${interaction.action}`}
                 >
-                  <Icon size={14} className="shrink-0 text-text-3" />
+                  {isRead ? (
+                    <FileTypeIcon fileName={displayName} size="small" />
+                  ) : (
+                    <Icon size={14} className="shrink-0 text-text-3" />
+                  )}
                   <span className="min-w-0 flex-1 truncate text-[12px] text-text-2">
-                    {interaction.path}
+                    {displayName}
                   </span>
                   <span className="shrink-0 text-[11px] text-text-3">
                     {interaction.outcome === "failed"
@@ -337,13 +333,19 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                   </span>
                 </div>
               );
+              const key = `${interaction.action}-${interaction.outcome}-${interaction.path}`;
+              return isRead ? (
+                <EventFileHoverPreview key={key} path={interaction.path}>
+                  {row}
+                </EventFileHoverPreview>
+              ) : (
+                <React.Fragment key={key}>{row}</React.Fragment>
+              );
             })}
             {visibleFiles.map((file) => (
-              <FileChangeRow
-                key={file.path}
-                file={file}
-                onFileClick={openDiff}
-              />
+              <EventFileHoverPreview key={file.path} path={file.path}>
+                <FileChangeRow file={file} onFileClick={openDiff} />
+              </EventFileHoverPreview>
             ))}
             {hiddenCount > 0 || expanded ? (
               <StackRowButton

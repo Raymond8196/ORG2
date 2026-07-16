@@ -21,9 +21,9 @@ use super::aggregation::list_all_sessions;
 use super::history::build_history_response;
 use super::stats::compute_aggregate_stats_with_accounting;
 use super::types::{
-    AggregateStats, ExternalHistorySidebarBucketPage, ExternalHistorySidebarBucketRequest,
-    ExternalHistorySidebarResponse, SessionAggregateRecord, SessionFilter, SessionHealthStatus,
-    SessionHistoryResponse, SessionListResponse,
+    AggregateStats, ExternalHistorySidebarBatchResponse, ExternalHistorySidebarBucketPage,
+    ExternalHistorySidebarResponse, ExternalHistorySidebarSourceRequest, SessionAggregateRecord,
+    SessionFilter, SessionHealthStatus, SessionHistoryResponse, SessionListResponse,
 };
 
 // ============================================================================
@@ -50,58 +50,70 @@ const EXTERNAL_HISTORY_SIDEBAR_BUCKET_MAX_LIMIT: usize = 50;
 /// The command never scans or opens an external provider's storage.
 #[tauri::command]
 pub async fn session_external_history_sidebar_list(
-    source: String,
-    buckets: Vec<ExternalHistorySidebarBucketRequest>,
-) -> Result<ExternalHistorySidebarResponse, String> {
+    requests: Vec<ExternalHistorySidebarSourceRequest>,
+) -> Result<ExternalHistorySidebarBatchResponse, String> {
     tokio::task::spawn_blocking(move || {
-        if !is_imported_history_source(&source) {
-            return Err(format!("Unknown external history source: {source}"));
-        }
         let conn =
             get_connection().map_err(|err| format!("Failed to open ORGII session cache: {err}"))?;
-        let mut pages = Vec::with_capacity(buckets.len());
-        let mut seen_buckets = HashSet::with_capacity(buckets.len());
-        for request in buckets {
-            if !seen_buckets.insert(request.bucket) {
-                return Err("External history sidebar buckets must be unique".to_string());
+        let mut sources = Vec::with_capacity(requests.len());
+        let mut seen_sources = HashSet::with_capacity(requests.len());
+        for source_request in requests {
+            let source = source_request.source;
+            if !seen_sources.insert(source.clone()) {
+                return Err("External history sidebar sources must be unique".to_string());
             }
-            if request.limit == 0 {
-                return Err("External history sidebar bucket limit must be positive".to_string());
+            if !is_imported_history_source(&source) {
+                return Err(format!("Unknown external history source: {source}"));
             }
-            if request
-                .start_ms
-                .zip(request.end_ms)
-                .is_some_and(|(start, end)| start >= end)
-            {
-                return Err("External history sidebar bucket start must precede end".to_string());
-            }
-            let limit = request.limit.min(EXTERNAL_HISTORY_SIDEBAR_BUCKET_MAX_LIMIT);
-            let mut page = query_imported_sidebar_page_from_conn(
-                &conn,
-                &source,
-                request.start_ms,
-                request.end_ms,
-                limit,
-                request.offset,
-            )?;
-            if source == SOURCE_CURSOR_IDE {
-                for session in &mut page.sessions {
-                    if !session.session_id.starts_with(CURSORIDE_SESSION_PREFIX) {
-                        session.session_id =
-                            format!("{CURSORIDE_SESSION_PREFIX}{}", session.session_id);
+            let mut pages = Vec::with_capacity(source_request.buckets.len());
+            let mut seen_buckets = HashSet::with_capacity(source_request.buckets.len());
+            for request in source_request.buckets {
+                if !seen_buckets.insert(request.bucket) {
+                    return Err("External history sidebar buckets must be unique".to_string());
+                }
+                if request.limit == 0 {
+                    return Err(
+                        "External history sidebar bucket limit must be positive".to_string()
+                    );
+                }
+                if request
+                    .start_ms
+                    .zip(request.end_ms)
+                    .is_some_and(|(start, end)| start >= end)
+                {
+                    return Err(
+                        "External history sidebar bucket start must precede end".to_string()
+                    );
+                }
+                let limit = request.limit.min(EXTERNAL_HISTORY_SIDEBAR_BUCKET_MAX_LIMIT);
+                let mut page = query_imported_sidebar_page_from_conn(
+                    &conn,
+                    &source,
+                    request.start_ms,
+                    request.end_ms,
+                    limit,
+                    request.offset,
+                )?;
+                if source == SOURCE_CURSOR_IDE {
+                    for session in &mut page.sessions {
+                        if !session.session_id.starts_with(CURSORIDE_SESSION_PREFIX) {
+                            session.session_id =
+                                format!("{CURSORIDE_SESSION_PREFIX}{}", session.session_id);
+                        }
                     }
                 }
+                pages.push(ExternalHistorySidebarBucketPage {
+                    bucket: request.bucket,
+                    sessions: page.sessions,
+                    has_more: page.has_more,
+                });
             }
-            pages.push(ExternalHistorySidebarBucketPage {
-                bucket: request.bucket,
-                sessions: page.sessions,
-                has_more: page.has_more,
+            sources.push(ExternalHistorySidebarResponse {
+                source,
+                buckets: pages,
             });
         }
-        Ok(ExternalHistorySidebarResponse {
-            source,
-            buckets: pages,
-        })
+        Ok(ExternalHistorySidebarBatchResponse { sources })
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

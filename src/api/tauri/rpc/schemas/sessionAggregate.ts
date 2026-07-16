@@ -66,7 +66,7 @@ export const ExternalHistorySidebarDateBucketSchema = z.enum([
   "older",
 ]);
 
-export const ExternalHistorySidebarListInput = z.object({
+export const ExternalHistorySidebarSourceRequestSchema = z.object({
   source: z.string().min(1),
   buckets: z
     .array(
@@ -88,6 +88,17 @@ export const ExternalHistorySidebarListInput = z.object({
       (buckets) =>
         new Set(buckets.map(({ bucket }) => bucket)).size === buckets.length,
       { message: "date buckets must be unique" }
+    ),
+});
+
+export const ExternalHistorySidebarListInput = z.object({
+  requests: z
+    .array(ExternalHistorySidebarSourceRequestSchema)
+    .min(1)
+    .refine(
+      (requests) =>
+        new Set(requests.map(({ source }) => source)).size === requests.length,
+      { message: "external history sources must be unique" }
     ),
 });
 
@@ -299,6 +310,10 @@ export const ExternalHistorySidebarResponseSchema = z.object({
   ),
 });
 
+export const ExternalHistorySidebarBatchResponseSchema = z.object({
+  sources: z.array(ExternalHistorySidebarResponseSchema),
+});
+
 export const AggregateStatsSchema = z.object({
   totalCostUsd: z.number(),
   totalTokensInput: z.number().int(),
@@ -359,8 +374,14 @@ export type ExternalHistorySidebarDateBucket = z.output<
 export type ExternalHistorySidebarListRequest = z.input<
   typeof ExternalHistorySidebarListInput
 >;
+export type ExternalHistorySidebarSourceRequest = z.input<
+  typeof ExternalHistorySidebarSourceRequestSchema
+>;
 export type ExternalHistorySidebarResponse = z.output<
   typeof ExternalHistorySidebarResponseSchema
+>;
+export type ExternalHistorySidebarBatchResponse = z.output<
+  typeof ExternalHistorySidebarBatchResponseSchema
 >;
 export type AggregateStats = z.output<typeof AggregateStatsSchema>;
 export type SessionUsageSummary = z.output<typeof SessionUsageSummarySchema>;
