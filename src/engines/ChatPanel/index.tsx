@@ -26,6 +26,7 @@ import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAg
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
+  closeCloudOrgManagementChatPanelTabAtom,
   openSessionInNewChatTabAtom,
   syncActiveChatPanelTabStateAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -111,11 +112,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const selectedProject = useAtomValue(chatPanelSelectedProjectAtom);
     const selectedProjectOrg = useAtomValue(chatPanelSelectedProjectOrgAtom);
     const selectedWorkspace = useAtomValue(chatPanelSelectedWorkspaceAtom);
-    const [selectedCloudOrg, setSelectedCloudOrg] = useAtom(
-      chatPanelSelectedCloudOrgAtom
-    );
+    const selectedCloudOrg = useAtomValue(chatPanelSelectedCloudOrgAtom);
     const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
     const cloudOrgsLoaded = useAtomValue(org2CloudOrgsLoadedAtom);
+    const closeCloudOrgManagementTab = useSetAtom(
+      closeCloudOrgManagementChatPanelTabAtom
+    );
     const exploreOpen = useAtomValue(chatPanelExploreOpenAtom);
     const createProjectContext = useAtomValue(
       chatPanelCreateProjectContextAtom
@@ -147,9 +149,14 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         cloudOrgsLoaded &&
         !cloudOrgs.some((org) => org.orgId === selectedCloudOrg.orgId)
       ) {
-        setSelectedCloudOrg(null);
+        closeCloudOrgManagementTab();
       }
-    }, [cloudOrgs, cloudOrgsLoaded, selectedCloudOrg, setSelectedCloudOrg]);
+    }, [
+      closeCloudOrgManagementTab,
+      cloudOrgs,
+      cloudOrgsLoaded,
+      selectedCloudOrg,
+    ]);
     const chatWidthStyleValue =
       chatWidth > 0 ? `var(${CHAT_WIDTH_CSS_VAR})` : chatWidth;
     const { isDragging, panelRef, handleMouseDown } = useChatPanelResize({

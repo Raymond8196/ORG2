@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Import,
   KeyRound,
 } from "lucide-react";
 import React, {
@@ -19,6 +20,7 @@ import { sessionHeatmap } from "@src/api/tauri/session";
 import type { SessionHeatmapResponse } from "@src/api/tauri/session";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import { createLogger } from "@src/hooks/logger";
 import HeatmapGrid, {
   type HeatmapGridCell,
@@ -62,7 +64,7 @@ const START_PAGE_ACTION_TONE_CLASS: Record<StartPageActionTone, string> = {
   primary:
     "border-primary-6/20 bg-primary-6/5 hover:border-primary-6/30 hover:bg-primary-6/10",
   purple:
-    "border-purple-6/20 bg-purple-6/5 hover:border-purple-6/30 hover:bg-purple-6/10",
+    "border-purple-6/20 bg-purple-6/5 hover:border-purple-6/30 hover:bg-bg-2",
   success:
     "border-success-6/20 bg-success-6/5 hover:border-success-6/30 hover:bg-success-6/10",
   warning:
@@ -267,7 +269,11 @@ function StartPageActionCard({
       onClick={action.onClick}
       data-testid={`chat-panel-start-page-${action.id}`}
     >
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-2 transition-colors group-hover:bg-fill-3">
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-2 transition-colors ${
+          action.tone === "warning" ? "group-hover:bg-fill-3" : ""
+        }`}
+      >
         {action.icon}
       </span>
       <span className="block min-w-0 flex-1 truncate text-[13px] font-semibold text-text-1">
@@ -364,6 +370,8 @@ export function ChatPanelStartPage({
   t,
 }: ChatPanelStartPageProps): React.ReactNode {
   const [activeTab, setActiveTab] = useAtom(chatPanelStartPageTabAtom);
+  const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
+    useState(false);
   const availableUpdate = useAvailableAppUpdate();
   const tabs = useMemo(
     () => [
@@ -393,33 +401,41 @@ export function ChatPanelStartPage({
     [setActiveTab]
   );
 
-  const workActions: ChatPanelStartPageAction[] = [
-    {
-      id: "new-work-item",
-      title: t("chat.startPage.newWorkItem.title"),
-      icon: <BriefcaseBusiness size={16} strokeWidth={1.8} />,
-      onClick: onNewWorkItem,
-      tone: "primary",
-    },
-    {
-      id: "add-api-key",
-      title: t("chat.startPage.addApiKey.title"),
-      icon: <KeyRound size={16} strokeWidth={1.8} />,
-      onClick: onAddApiKey,
-      tone: "success",
-    },
-    ...(availableUpdate?.available
-      ? [
-          {
-            id: "install-latest-update",
-            title: t("chat.startPage.installLatestUpdate.title"),
-            icon: <Download size={16} strokeWidth={1.8} />,
-            onClick: onInstallLatestUpdate,
-            tone: "warning" as const,
-          },
-        ]
-      : []),
-  ];
+  const newWorkItemAction: ChatPanelStartPageAction = {
+    id: "new-work-item",
+    title: t("chat.startPage.newWorkItem.title"),
+    icon: <BriefcaseBusiness size={16} strokeWidth={1.8} />,
+    onClick: onNewWorkItem,
+    tone: "purple",
+  };
+  const importSessionAction: ChatPanelStartPageAction = {
+    id: "import-session",
+    title: t("navigation:cloud.share.importEntry"),
+    icon: <Import size={16} strokeWidth={1.8} />,
+    onClick: () => setIsImportSessionDialogOpen(true),
+    tone: "purple",
+  };
+  const addApiKeyAction: ChatPanelStartPageAction = {
+    id: "add-api-key",
+    title: t("chat.startPage.addApiKey.title"),
+    icon: <KeyRound size={16} strokeWidth={1.8} />,
+    onClick: onAddApiKey,
+    tone: "purple",
+  };
+  const workActions: ChatPanelStartPageAction[] = availableUpdate?.available
+    ? [
+        {
+          id: "install-latest-update",
+          title: t("chat.startPage.installLatestUpdate.title"),
+          icon: <Download size={16} strokeWidth={1.8} />,
+          onClick: onInstallLatestUpdate,
+          tone: "warning",
+        },
+        importSessionAction,
+        newWorkItemAction,
+        addApiKeyAction,
+      ]
+    : [importSessionAction, newWorkItemAction, addApiKeyAction];
   const manageTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.MANAGE;
   const runtimeTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.RUNTIME;
   // The Manage dashboard and the Runtime data-source panel both scroll
@@ -500,6 +516,12 @@ export function ChatPanelStartPage({
           </div>
         </div>
       ) : null}
+      {isImportSessionDialogOpen && (
+        <ImportSharedSessionDialog
+          visible
+          onClose={() => setIsImportSessionDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }
