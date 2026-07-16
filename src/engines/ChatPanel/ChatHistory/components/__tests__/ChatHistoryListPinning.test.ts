@@ -1,6 +1,25 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveActiveGroupPinState } from "../ChatHistoryList";
+import {
+  resolveActiveGroupPinState,
+  resolveVisibleGroupIndices,
+} from "../ChatHistoryList";
+
+describe("resolveVisibleGroupIndices", () => {
+  it("returns every group intersecting the viewport", () => {
+    expect(
+      resolveVisibleGroupIndices(
+        [
+          { groupIndex: 0, top: -100, bottom: -1 },
+          { groupIndex: 1, top: -20, bottom: 80 },
+          { groupIndex: 2, top: 80, bottom: 180 },
+          { groupIndex: 3, top: 180, bottom: 280 },
+        ],
+        160
+      )
+    ).toEqual([1, 2]);
+  });
+});
 
 describe("resolveActiveGroupPinState", () => {
   it("pins as soon as the active turn crosses the top", () => {

@@ -755,8 +755,7 @@ mod tests {
         assert!(raw_rows
             .iter()
             .filter(|row| row.compact_from_sequence.is_none())
-            .all(|row| row.compact_tokens_before.is_none()
-                && row.compact_tokens_after.is_none()));
+            .all(|row| row.compact_tokens_before.is_none() && row.compact_tokens_after.is_none()));
 
         let history = load_llm_history(session_id).expect("load compacted history");
         assert_eq!(history.len(), 3);
@@ -807,7 +806,8 @@ mod tests {
             .expect("resolve cutoff")
             .expect("cutoff row exists")
             .sequence;
-        append_compact_boundary(session_id, "summary", cutoff, None, None).expect("append boundary");
+        append_compact_boundary(session_id, "summary", cutoff, None, None)
+            .expect("append boundary");
 
         // User edits/resends the *old* (pre-compaction) message.
         let anchor = message_anchor(session_id, &old_user_id)
@@ -840,7 +840,8 @@ mod tests {
             .expect("anchor u2")
             .expect("u2 exists")
             .sequence;
-        append_compact_boundary(session_id, "first summary", first_cutoff, None, None).expect("first boundary");
+        append_compact_boundary(session_id, "first summary", first_cutoff, None, None)
+            .expect("first boundary");
 
         let u3 = save_user_msg(session_id, "u3", None).expect("save u3");
         let second_cutoff = message_anchor(session_id, &u3)

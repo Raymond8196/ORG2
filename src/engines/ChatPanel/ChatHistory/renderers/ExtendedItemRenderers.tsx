@@ -9,7 +9,7 @@
  */
 import i18next from "i18next";
 import { useAtomValue } from "jotai";
-import { AlertCircle, Chrome, FileSymlink, Globe, Search } from "lucide-react";
+import { AlertCircle, Chrome, FileSymlink, Globe } from "lucide-react";
 import React from "react";
 
 import ToolCallBlock from "@src/engines/ChatPanel/blocks/ToolCallBlock";
@@ -183,7 +183,7 @@ function getStackGroupPresentation(events: SessionEvent[]): {
   const iconCls = "text-text-2";
   if (hasSearch && !hasBrowser && !hasFetch)
     return {
-      icon: <Search size={14} className={iconCls} />,
+      icon: <Globe size={14} className={iconCls} />,
       label: i18next.t("sessions:chat.webSearchGroup"),
     };
   if (hasFetch && !hasBrowser && !hasSearch)

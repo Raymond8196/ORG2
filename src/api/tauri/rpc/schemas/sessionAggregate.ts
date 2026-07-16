@@ -35,6 +35,7 @@ const KeySourceSchema = z.enum(["own_key", "hosted_key"]);
 // ── Filter input ──
 
 export const SessionFilterInput = z.object({
+  sessionIds: z.array(z.string().min(1)).optional(),
   category: z.string().optional(),
   status: z.string().optional(),
   keySource: z.string().optional(),
@@ -50,11 +51,55 @@ export const SessionFilterInput = z.object({
   includeExternalHistory: z.boolean().optional(),
   includeStats: z.boolean().optional(),
   externalHistorySource: z.string().optional(),
+  disabledExternalHistorySources: z.array(z.string()).optional(),
   activeOnly: z.boolean().optional(),
 });
 
 export const SessionAggregateListInput = z.object({
   filter: SessionFilterInput.optional(),
+});
+
+export const ExternalHistorySidebarDateBucketSchema = z.enum([
+  "today",
+  "yesterday",
+  "thisWeek",
+  "older",
+]);
+
+export const ExternalHistorySidebarSourceRequestSchema = z.object({
+  source: z.string().min(1),
+  buckets: z
+    .array(
+      z
+        .object({
+          bucket: ExternalHistorySidebarDateBucketSchema,
+          startMs: z.number().int().optional(),
+          endMs: z.number().int().optional(),
+          limit: z.number().int().min(1).max(50),
+          offset: z.number().int().min(0),
+        })
+        .refine(
+          ({ startMs, endMs }) =>
+            startMs === undefined || endMs === undefined || startMs < endMs,
+          { message: "startMs must precede endMs" }
+        )
+    )
+    .refine(
+      (buckets) =>
+        new Set(buckets.map(({ bucket }) => bucket)).size === buckets.length,
+      { message: "date buckets must be unique" }
+    ),
+});
+
+export const ExternalHistorySidebarListInput = z.object({
+  requests: z
+    .array(ExternalHistorySidebarSourceRequestSchema)
+    .min(1)
+    .refine(
+      (requests) =>
+        new Set(requests.map(({ source }) => source)).size === requests.length,
+      { message: "external history sources must be unique" }
+    ),
 });
 
 export const SessionGetAggregateStatsInput = z.object({
@@ -240,6 +285,35 @@ export const SessionListResponseSchema = z.object({
   stats: SessionStatsSchema.optional(),
 });
 
+export const ExternalHistorySidebarRowSchema = z.object({
+  sessionId: z.string(),
+  name: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  repoPath: z.string().optional(),
+  model: z.string().optional(),
+  totalTokens: z.number().int().optional(),
+  filesChanged: z.number().int().optional(),
+  linesAdded: z.number().int().optional(),
+  linesRemoved: z.number().int().optional(),
+  touchedFiles: z.array(z.string()).optional(),
+});
+
+export const ExternalHistorySidebarResponseSchema = z.object({
+  source: z.string(),
+  buckets: z.array(
+    z.object({
+      bucket: ExternalHistorySidebarDateBucketSchema,
+      sessions: z.array(ExternalHistorySidebarRowSchema),
+      hasMore: z.boolean(),
+    })
+  ),
+});
+
+export const ExternalHistorySidebarBatchResponseSchema = z.object({
+  sources: z.array(ExternalHistorySidebarResponseSchema),
+});
+
 export const AggregateStatsSchema = z.object({
   totalCostUsd: z.number(),
   totalTokensInput: z.number().int(),
@@ -294,6 +368,21 @@ export type SessionAggregateRecord = z.output<
   typeof SessionAggregateRecordSchema
 >;
 export type SessionListResponse = z.output<typeof SessionListResponseSchema>;
+export type ExternalHistorySidebarDateBucket = z.output<
+  typeof ExternalHistorySidebarDateBucketSchema
+>;
+export type ExternalHistorySidebarListRequest = z.input<
+  typeof ExternalHistorySidebarListInput
+>;
+export type ExternalHistorySidebarSourceRequest = z.input<
+  typeof ExternalHistorySidebarSourceRequestSchema
+>;
+export type ExternalHistorySidebarResponse = z.output<
+  typeof ExternalHistorySidebarResponseSchema
+>;
+export type ExternalHistorySidebarBatchResponse = z.output<
+  typeof ExternalHistorySidebarBatchResponseSchema
+>;
 export type AggregateStats = z.output<typeof AggregateStatsSchema>;
 export type SessionUsageSummary = z.output<typeof SessionUsageSummarySchema>;
 export type SessionHeatmapMetric = z.output<typeof SessionHeatmapMetricSchema>;

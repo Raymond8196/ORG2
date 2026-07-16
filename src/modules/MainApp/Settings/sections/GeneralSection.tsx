@@ -2,7 +2,7 @@
  * General Settings Section
  *
  * Hosts three tabs:
- *   - `general` — account, language/date, security, update, settings file
+ *   - `general` — language/date, input, app behavior, update, settings file
  *   - `notifications` — master toggle + advanced blocks (lazy)
  *   - `shortcuts` — keyboard shortcuts viewer (lazy)
  *
@@ -57,6 +57,7 @@ import { NAV_BUTTON_PROPS } from "@src/modules/MainApp/Settings/config";
 import { checkForUpdatesManually } from "@src/scaffold/AppUpdater";
 import { type TimezoneOption, timezoneAtom } from "@src/store";
 import { chatAppearancePersistAtom } from "@src/store/config/configAtom";
+import { autoUpdateEnabledAtom } from "@src/store/platform/autoUpdateAtom";
 import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 import { preventSleepWhileRunningAtom } from "@src/store/platform/preventSleepAtom";
 import { voiceInputEnabledAtom } from "@src/store/platform/voiceInputAtom";
@@ -134,6 +135,9 @@ const GeneralTabBody: React.FC = () => {
   }, []);
 
   const [devModeEnabled, setDevModeEnabled] = useAtom(devModeEnabledAtom);
+  const [autoUpdateEnabled, setAutoUpdateEnabled] = useAtom(
+    autoUpdateEnabledAtom
+  );
   const [preventSleepWhileRunning, setPreventSleepWhileRunning] = useAtom(
     preventSleepWhileRunningAtom
   );
@@ -364,6 +368,12 @@ const GeneralTabBody: React.FC = () => {
       </SectionContainer>
 
       <SectionContainer>
+        <SectionRow
+          label={t("update.autoUpdate")}
+          description={t("update.autoUpdateDesc")}
+        >
+          <Switch checked={autoUpdateEnabled} onChange={setAutoUpdateEnabled} />
+        </SectionRow>
         <SectionRow label={t("update.detectUpdate")}>
           <Button
             size="default"

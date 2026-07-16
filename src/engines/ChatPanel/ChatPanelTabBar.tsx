@@ -18,10 +18,13 @@
  */
 import { useAtomValue, useSetAtom } from "jotai";
 import {
+  Boxes,
   BriefcaseBusiness,
-  KeyRound,
+  CircleDot,
+  Columns3,
+  GitPullRequest,
+  Info,
   LayoutGrid,
-  ListTodo,
   MessageSquarePlus,
   Plus,
   TerminalSquare,
@@ -60,13 +63,14 @@ import {
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { terminalSessionsAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
 import { sessionByIdAtom } from "@src/store/session";
+import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 import { isWindows } from "@src/util/platform/tauri";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 
+import { resolveChatPanelTabDisplayTitle } from "./chatPanelTabDisplay";
 import {
   CHAT_PANEL_HEADER_DRAG_STYLE,
   CHAT_PANEL_HEADER_NO_DRAG_STYLE,
-  chatPanelHeaderSlotsAtom,
 } from "./header";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -85,8 +89,6 @@ const TERMINAL_AGENT_STATUS_DOT_CLASS = {
 interface TabPillProps {
   tab: ChatPanelTab;
   isActive: boolean;
-  titleOverride?: string;
-  iconOverride?: React.ReactNode;
   onActivate: (id: string) => void;
   onClose: (id: string) => void;
 }
@@ -94,14 +96,25 @@ interface TabPillProps {
 const TabPill = memo(function TabPill({
   tab,
   isActive,
-  titleOverride,
-  iconOverride,
   onActivate,
   onClose,
 }: TabPillProps) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
-  const showCloseSlot = tab.closable && hovered;
+  const showCloseSlot = hovered;
+
+  // When this tab becomes active (e.g. via a sidebar click), reveal it in the
+  // horizontally-scrollable tab strip. `nearest` only scrolls when off-screen.
+  const pillRef = useRef<HTMLButtonElement | HTMLDivElement>(null);
+  useEffect(() => {
+    if (isActive) {
+      pillRef.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      });
+    }
+  }, [isActive]);
 
   // Read session data for icon + hover card (session tabs only)
   const session = useAtomValue(sessionByIdAtom(tab.sessionId ?? ""));
@@ -114,12 +127,21 @@ const TabPill = memo(function TabPill({
       : undefined;
   const agentStatus = terminalSession?.agentStatus;
 
+  const displayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
+    launchpad: t("navigation:routes.launchpad"),
+    workManagement: {
+      kanban: t("sessions:simulator.tabs.kanban"),
+      projects: t("navigation:labels.projects"),
+      githubIssues: t("sessions:kanban.sidebar.githubIssues"),
+      githubPrs: t("sessions:kanban.sidebar.githubPrs"),
+    },
+    sessionFallback: t("chat.defaultTitle"),
+  });
+
   const iconColorClass = isActive ? "text-primary-6" : "text-text-2";
 
   let icon: React.ReactNode;
-  if (iconOverride) {
-    icon = <span className={`shrink-0 ${iconColorClass}`}>{iconOverride}</span>;
-  } else if (tab.type === "terminal") {
+  if (tab.type === "terminal") {
     icon = (
       <TerminalSquare
         size={16}
@@ -127,7 +149,7 @@ const TabPill = memo(function TabPill({
         className={`shrink-0 ${iconColorClass}`}
       />
     );
-  } else if (tab.type === "launchpad") {
+  } else if (tab.type === "start-page") {
     icon = (
       <LayoutGrid
         size={16}
@@ -135,6 +157,28 @@ const TabPill = memo(function TabPill({
         className={`shrink-0 ${iconColorClass}`}
       />
     );
+  } else if (tab.type === "workspace") {
+    icon = (
+      <Info
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (tab.type === "work-management") {
+    const WorkManagementIcon =
+      tab.managementSection === WORK_MANAGEMENT_SECTION.PROJECTS
+        ? Boxes
+        : tab.managementSection === WORK_MANAGEMENT_SECTION.GITHUB_ISSUES
+          ? CircleDot
+          : tab.managementSection === WORK_MANAGEMENT_SECTION.GITHUB_PRS
+            ? GitPullRequest
+            : Columns3;
+    icon = React.createElement(WorkManagementIcon, {
+      size: 16,
+      strokeWidth: 1.75,
+      className: `shrink-0 ${iconColorClass}`,
+    });
   } else if (session) {
     // Use the same icon resolution as the session sidebar.
     // React.createElement avoids the static-components lint rule —
@@ -155,11 +199,9 @@ const TabPill = memo(function TabPill({
     );
   }
 
-  const displayTitle = titleOverride ?? tab.title;
-
   const pill = (
     <WorkStationTabPillSurface
-      as="button"
+      ref={pillRef}
       isActive={isActive}
       variant="session"
       role="tab"
@@ -167,7 +209,7 @@ const TabPill = memo(function TabPill({
       title={displayTitle}
       onClick={() => onActivate(tab.id)}
       onAuxClick={(evt) => {
-        if (evt.button === 1 && tab.closable) onClose(tab.id);
+        if (evt.button === 1) onClose(tab.id);
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -190,22 +232,20 @@ const TabPill = memo(function TabPill({
         )}
         <TabLabelRowScrim visible={showCloseSlot} />
       </div>
-      {tab.closable && (
-        <TabPillCloseButton
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose(tab.id);
-          }}
-          title={t("actions.close")}
-          showX={hovered}
-          className={`grid place-items-center rounded text-text-3 transition-[opacity,colors,background-color] duration-150 ${SURFACE_TOKENS.hover} absolute right-1 top-1/2 z-10 h-5 w-5 -translate-y-1/2 hover:text-text-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-6 focus-visible:ring-offset-0 ${
-            showCloseSlot
-              ? "pointer-events-auto opacity-100"
-              : "pointer-events-none opacity-0"
-          }`}
-        />
-      )}
+      <TabPillCloseButton
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose(tab.id);
+        }}
+        title={t("actions.close")}
+        showX={hovered}
+        className={`grid place-items-center rounded text-text-3 transition-[opacity,colors,background-color] duration-150 ${SURFACE_TOKENS.hover} absolute right-1 top-1/2 z-10 h-5 w-5 -translate-y-1/2 hover:text-text-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-6 focus-visible:ring-offset-0 ${
+          showCloseSlot
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+      />
     </WorkStationTabPillSurface>
   );
 
@@ -225,55 +265,42 @@ const TabPill = memo(function TabPill({
 
 interface PlusMenuContentProps {
   onOpenLaunchpad: () => void;
-  onNewSession: () => void;
+  onOpenKanban: () => void;
   onNewWorkItem: () => void;
-  onManageIssues: () => void;
-  onAddApiKey: () => void;
   onClose: () => void;
 }
 
 function PlusMenuContent({
   onOpenLaunchpad,
-  onNewSession,
+  onOpenKanban,
   onNewWorkItem,
-  onManageIssues,
-  onAddApiKey,
   onClose,
 }: PlusMenuContentProps) {
   const { t } = useTranslation(["sessions", "navigation"]);
   const MOD = isMac ? "⌘" : "Ctrl";
 
+  // "New session" and "Launchpad" now open the same singleton start page, so
+  // only the Launchpad entry is kept. It carries the ⌘N hint since that
+  // shortcut (handled in ChatPanelTabBar) opens the same start page.
   const items = [
     {
       id: "launchpad",
       icon: <LayoutGrid size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("navigation:launchpad.dashboard"),
+      label: t("navigation:routes.launchpad"),
+      hint: `${MOD}N`,
       onClick: onOpenLaunchpad,
     },
     {
-      id: "new-session",
-      icon: <MessageSquarePlus size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("chat.startPage.newSession.title"),
-      hint: `${MOD}N`,
-      onClick: onNewSession,
+      id: "work-management",
+      icon: <Columns3 size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:simulator.tabs.kanban"),
+      onClick: onOpenKanban,
     },
     {
       id: "new-work-item",
       icon: <BriefcaseBusiness size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
       label: t("chat.startPage.newWorkItem.title"),
       onClick: onNewWorkItem,
-    },
-    {
-      id: "manage-issues",
-      icon: <ListTodo size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("chat.startPage.manageIssues.title"),
-      onClick: onManageIssues,
-    },
-    {
-      id: "add-api-key",
-      icon: <KeyRound size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("chat.startPage.addApiKey.title"),
-      onClick: onAddApiKey,
     },
   ] as const;
 
@@ -313,18 +340,14 @@ function PlusMenuContent({
 
 export interface ChatPanelPlusMenuProps {
   onOpenLaunchpad: () => void;
-  onNewSession: () => void;
+  onOpenKanban: () => void;
   onNewWorkItem: () => void;
-  onManageIssues: () => void;
-  onAddApiKey: () => void;
 }
 
 export function ChatPanelPlusMenu({
   onOpenLaunchpad,
-  onNewSession,
+  onOpenKanban,
   onNewWorkItem,
-  onManageIssues,
-  onAddApiKey,
 }: ChatPanelPlusMenuProps): React.ReactNode {
   const { t } = useTranslation("sessions");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -336,10 +359,8 @@ export function ChatPanelPlusMenu({
       droplist={
         <PlusMenuContent
           onOpenLaunchpad={onOpenLaunchpad}
-          onNewSession={onNewSession}
+          onOpenKanban={onOpenKanban}
           onNewWorkItem={onNewWorkItem}
-          onManageIssues={onManageIssues}
-          onAddApiKey={onAddApiKey}
           onClose={closeMenu}
         />
       }
@@ -382,7 +403,6 @@ export function ChatPanelTabBar({
   containerRef,
 }: ChatPanelTabBarProps): React.ReactNode {
   const state = useAtomValue(chatPanelTabsAtom);
-  const headerSlots = useAtomValue(chatPanelHeaderSlotsAtom);
   const activateTab = useSetAtom(activateChatPanelTabAtom);
   const closeTab = useSetAtom(closeAndDestroyChatPanelTabAtom);
   const nextTab = useSetAtom(nextChatPanelTabAtom);
@@ -408,7 +428,7 @@ export function ChatPanelTabBar({
         const active = tabsRef.current.tabs.find(
           (tab) => tab.id === tabsRef.current.activeTabId
         );
-        if (active?.closable) {
+        if (active) {
           evt.preventDefault();
           void closeTab(active.id);
         }
@@ -430,7 +450,7 @@ export function ChatPanelTabBar({
         return;
       }
     },
-    [closeTab, nextTab, prevTab, onNewSession, containerRef]
+    [closeTab, nextTab, onNewSession, prevTab, containerRef]
   );
 
   useEffect(() => {
@@ -469,8 +489,6 @@ export function ChatPanelTabBar({
             <TabPill
               tab={tab}
               isActive={isActive}
-              titleOverride={isActive ? headerSlots?.tabTitle : undefined}
-              iconOverride={isActive ? headerSlots?.tabIcon : undefined}
               onActivate={activateTab}
               onClose={closeTab}
             />

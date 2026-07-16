@@ -25,6 +25,8 @@ interface AgentChatItemProps {
   /** Current check status (for showing result indicator) */
   curCheckStatus?: string;
   appendedContent?: React.ReactNode;
+  /** Whether to render the legacy hover copy button over the message body. */
+  showCopyButton?: boolean;
 }
 const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
   children,
@@ -35,6 +37,7 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
   codeBlockContainerWidth,
   curCheckStatus,
   appendedContent,
+  showCopyButton = true,
 }) => {
   const [isShow, setIsShow] = useState(expand);
   const themes = useAtomValue(themesAtom);
@@ -58,13 +61,16 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
               className="chat-text relative flex flex-col items-start gap-3 self-stretch text-text-1"
               data-testid="chat-message-assistant"
             >
-              {!isStreaming && children && !hasCodeBlockCopy && (
-                <ChatBubbleCopyButton
-                  content={children}
-                  hoverGroupClass="group-hover/agent-msg:opacity-100"
-                  placement="message-corner"
-                />
-              )}
+              {showCopyButton &&
+                !isStreaming &&
+                children &&
+                !hasCodeBlockCopy && (
+                  <ChatBubbleCopyButton
+                    content={children}
+                    hoverGroupClass="group-hover/agent-msg:opacity-100"
+                    placement="message-corner"
+                  />
+                )}
               <div className="resultBgc allow-select w-full overflow-visible break-words font-normal">
                 {isStreaming ? (
                   children?.length > 0 ? (

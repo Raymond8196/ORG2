@@ -108,6 +108,7 @@ pub mod api;
 pub mod benchmark;
 pub mod cli_managed_proxy;
 pub mod infrastructure; // In-tree-only cross-cutting infrastructure (paths, platform, archive, index_manager, jsonrpc, housekeeping). Leaf pieces live in their own workspace crates.
+pub mod org2_cloud; // ORG2 Cloud in-app login window (design §8)
 pub mod orgtrack;
 pub(crate) mod setup;
 pub mod usage_diagnostics;
@@ -174,6 +175,7 @@ pub fn run() {
     // the watcher in `setup` starts, otherwise the first change event
     // after launch silently drops the HTTP-version update.
     register_settings_hooks();
+    agent_core::session::housekeeper_compaction::refresh_global_config_from_disk();
 
     // Wire `integrations::computer_use_lock`'s abort broadcaster so the ESC
     // hotkey can fan an event out to the frontend without the `integrations`
@@ -308,7 +310,7 @@ pub fn run() {
     #[cfg(all(debug_assertions, feature = "webdriver"))]
     let builder = builder.plugin(tauri_plugin_webdriver_automation::init());
 
-    builder
+    let builder = builder
         // NOTE: Single-instance disabled for development - uncomment for production
         // .plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
         //   tracing::info!(?argv, "a new app instance was opened and the deep link event was already triggered");
@@ -325,7 +327,12 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
-        .plugin(tauri_plugin_drag::init())
+        .plugin(tauri_plugin_drag::init());
+
+    #[cfg(target_os = "macos")]
+    let builder = builder.plugin(tauri_plugin_liquid_glass::init());
+
+    builder
         .on_window_event(|_window, _event| {
             #[cfg(target_os = "macos")]
             match _event {
@@ -380,6 +387,7 @@ pub fn run() {
                             app_window::TRAFFIC_LIGHT_X,
                             app_window::TRAFFIC_LIGHT_Y,
                         );
+                        app_window::apply_macos_window_material(&main_window);
                     }
 
                     app_window::apply_host_desktop_window_chrome(&main_window);
@@ -483,6 +491,16 @@ pub fn run() {
             // Start the local managed-config proxy used by supported CLI agents.
             // It stays idle until a CLI points at 127.0.0.1:17888.
             cli_managed_proxy::start_cli_managed_proxy_thread();
+
+            // First launch defaults session-provenance capture on for supported
+            // external agents. Later launches reconcile the platform hook
+            // files with the user's per-platform preferences.
+            tauri::async_runtime::spawn_blocking(|| {
+                if let Err(err) = agent_cli::session_provenance::ensure_hooks_from_preferences() {
+                    tracing::warn!(error = %err, "[SessionProvenance] Failed to reconcile agent hooks");
+                }
+            });
+            orgtrack::session_provenance::spawn_hook_inbox_drain_loop(app.handle().clone());
 
             // Initialize Rust EventStore state
             app.manage(agent_sessions::event_pipeline::commands::EventStoreState::new());
@@ -604,8 +622,16 @@ pub fn run() {
             );
             tracing::info!("[SubagentWake] Subagent completion wake hook installed");
 
+            let housekeeper_compaction_state = unified_state.clone();
             app.manage(unified_state);
             tracing::info!("[UnifiedAgent] Unified agent state initialized");
+
+            agent_core::session::housekeeper_compaction::spawn(
+                housekeeper_compaction_state,
+            );
+            tracing::info!(
+                "[HousekeeperCompaction] opt-in MiniCPM context worker initialized"
+            );
 
             // Spawn work item schedule executor
             {
@@ -650,6 +676,17 @@ pub fn run() {
             // `orgii-project-sync-status` events to the frontend.
             project_management::sync::start_worker(app.handle().clone());
             tracing::info!("[sync::worker] Sync worker started");
+
+            let data_changed_handle = app.handle().clone();
+            project_management::projects::events::register_data_changed_notifier(Box::new(
+                move || {
+                    use tauri::Emitter;
+                    let _ = data_changed_handle.emit(
+                        project_management::projects::events::DATA_CHANGED_EVENT,
+                        serde_json::json!({ "source": "rust" }),
+                    );
+                },
+            ));
 
             // Restore previously-enabled channels (e.g. feishu was toggled on last run)
             let app_handle_for_restore = app.handle().clone();

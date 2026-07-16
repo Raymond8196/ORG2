@@ -78,14 +78,83 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Session",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "fileSearch": {
+      "placeholder": "파일 경로로 세션 검색",
+      "noResults": "일치하는 파일을 수정한 세션이 없습니다"
+    },
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "현재 Kanban",
     "view": {
       "list": "List",
       "diary": "다이어리",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "데이터 소스"
+    },
+    "dataSource": {
+      "title": "데이터 소스",
+      "description": "ORGII가 감지하는 외부 코딩 도구입니다. 가져올 수 있는 앱은 세션 수를 표시하고 다시 스캔할 수 있으며, 나머지는 설치 상태와 기록 위치를 표시합니다.",
+      "rescanAll": "모두 다시 스캔",
+      "rescan": "다시 스캔",
+      "rescanning": "다시 스캔 중…",
+      "enable": "사용",
+      "disable": "사용 안 함",
+      "lastScan": "마지막 스캔 {{time}}",
+      "neverScanned": "스캔 안 됨",
+      "frequencyTitle": "자동 스캔 주기",
+      "globalFrequency": "외부 소스 자동 스캔",
+      "globalFrequencyDesc": "‘기본값’으로 설정된 외부 소스의 기본 스캔 주기",
+      "activeSessionRefresh": "열린 외부 세션 새로 고침",
+      "activeSessionRefreshDesc": "현재 채팅 창에 열려 있는 외부 세션의 새로 고침 주기",
+      "activeSessionFreq": {
+        "3s": "3초마다",
+        "5s": "5초마다",
+        "10s": "10초마다",
+        "1m": "1분마다"
+      },
+      "col": {
+        "source": "소스",
+        "sessions": "세션",
+        "lastScan": "마지막 스캔",
+        "frequency": "자동 스캔",
+        "status": "상태"
+      },
+      "freq": {
+        "default": "기본값",
+        "manual": "수동",
+        "60s": "60초마다",
+        "5m": "5분마다",
+        "1h": "매시간",
+        "1d": "매일"
+      },
+      "openFolder": "폴더 열기",
+      "tabs": {
+        "all": "전체",
+        "apps": "앱",
+        "clis": "CLI"
+      },
+      "views": {
+        "scanning": "스캔",
+        "hooks": "훅"
+      },
+      "sessions_other": "{{count}}개 세션",
+      "details": {
+        "path": "경로",
+        "storeType": "저장 형식",
+        "copyPath": "경로 복사"
+      },
+      "noPath": "경로가 감지되지 않음",
+      "notImported": "가져오지 않음",
+      "status": {
+        "ready": "준비됨",
+        "empty": "기록 없음",
+        "loading": "확인 중…",
+        "error": "오류",
+        "installed": "설치됨",
+        "notInstalled": "감지되지 않음",
+        "disabled": "사용 안 함"
+      }
     },
     "list": {
       "updated": "Updated",
@@ -184,11 +253,6 @@
       "merging": "병합 중…",
       "merged": "병합됨"
     },
-    "diff": {
-      "openDiffWindow": "Diff 보기",
-      "windowTitle": "Session Diff",
-      "filesChanged": "파일"
-    },
     "replay": {
       "replaySession": "리플레이"
     },
@@ -226,6 +290,11 @@
       "commits_one": "{{count}} commit",
       "commits_other": "{{count}} commits",
       "committedRateShort": "{{percent}}% committed"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
   },
   "changes": {
@@ -717,13 +786,17 @@
       "addApiKey": {
         "title": "API 키 추가"
       },
+      "installLatestUpdate": {
+        "title": "최신 업데이트 설치"
+      },
       "agents": {
         "title": "Agents"
       },
       "tabs": {
         "work": "작업",
-        "explore": "탐색",
-        "heatmap": "추세"
+        "manage": "관리",
+        "heatmap": "추세",
+        "runtime": "런타임"
       },
       "heatmap": {
         "loading": "활동 추세 로드 중…",
@@ -778,6 +851,7 @@
     "defaultTitle": "채팅",
     "hideChatPanel": "채팅 패널 숨기기",
     "showTokenUsage": "Token 표시",
+    "showStatusBar": "상태 표시줄 표시",
     "compactDisplayMode": "컴팩트 모드",
     "replay": {
       "follow": "팔로우"
@@ -949,13 +1023,22 @@
         "importFailed": "Session JSON을 가져올 수 없습니다."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "이번 라운드에서 파일 {{count}}개 변경됨",
-      "filesChangedCount_other": "이번 라운드에서 파일 {{count}}개 변경됨",
-      "historicalRoundDiffFiles_one": "이전 라운드 Diff · 파일 {{count}}개",
-      "historicalRoundDiffFiles_other": "이전 라운드 Diff · 파일 {{count}}개",
+    "turnMetadata": {
+      "noChanges": "이번 라운드에는 파일 변경 없음",
+      "earlierRound": "이전 라운드",
+      "files_one": "파일 {{count}}개",
+      "files_other": "파일 {{count}}개",
+      "reads_one": "읽기 {{count}}회",
+      "reads_other": "읽기 {{count}}회",
+      "searches_one": "검색 {{count}}회",
+      "searches_other": "검색 {{count}}회",
+      "failed": "실패",
+      "commits_one": "커밋 {{count}}개",
+      "commits_other": "커밋 {{count}}개",
+      "pullRequests_one": "PR {{count}}개",
+      "pullRequests_other": "PR {{count}}개",
       "review": "검토",
-      "showLess": "간략히 보기",
+      "showLess": "접기",
       "showMore_one": "{{count}}개 더 보기",
       "showMore_other": "{{count}}개 더 보기"
     },
@@ -988,9 +1071,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "모든 상태",
+        "assignedToMe": "나에게 할당됨",
+        "createdByMe": "내가 생성함",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1076,7 +1159,7 @@
     "pathCopied": "경로가 복사되었습니다!",
     "failedToCopyPath": "경로 복사에 실패했습니다",
     "copyFilePath": "파일 경로 복사",
-    "explore": "탐색",
+    "manage": "관리",
     "readFile": "파일 읽기",
     "readFileRunning": "읽는 중",
     "readFileDone": "읽기",
@@ -1156,6 +1239,7 @@
       "skip": "건너뛰기",
       "noReason": "Agent가 모드 전환을 제안합니다"
     },
+    "explore": "탐색",
     "exploreSummary": {
       "read_one": "{{count}}개 파일",
       "read_other": "{{count}}개 파일",
@@ -2469,13 +2553,6 @@
       "missing": "없음",
       "disabled": "비활성화됨"
     }
-  },
-  "worktreeCompare": {
-    "title": "Worktree 비교",
-    "button": "비교",
-    "buttonTooltip": "Worktree diff를 나란히 비교",
-    "noSessions": "비교할 세션이 없습니다.",
-    "sessionTab": "Session {{n}}"
   },
   "groupChat": {
     "senderTitle": {

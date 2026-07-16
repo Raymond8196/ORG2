@@ -68,7 +68,9 @@ pub fn parse(content: &str) -> Option<GatewayCommand> {
     match head.as_str() {
         "/new" | "/reset" => bare_command(rest, GatewayCommand::NewSession),
         "/status" => bare_command(rest, GatewayCommand::Status),
-        "/model" => Some(GatewayCommand::Model((!rest.is_empty()).then(|| rest.to_string()))),
+        "/model" => Some(GatewayCommand::Model(
+            (!rest.is_empty()).then(|| rest.to_string()),
+        )),
         "/compact" => bare_command(rest, GatewayCommand::Compact),
         "/help" | "/commands" => bare_command(rest, GatewayCommand::Help),
         _ => None,

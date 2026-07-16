@@ -99,7 +99,7 @@ sessionTodoMapAtom.debugLabel = "sessionTodoMapAtom";
 /**
  * TodoState for the currently-active session. The old `todoStateAtom`
  * identifier is retained so internal code that reads "the session in
- * focus" (ChatHistory empty-state heuristic, PlanTodoPinBar, etc.)
+ * focus" (PlanTodoPill, subagent pinned previews, etc.)
  * keeps working unchanged.
  */
 export const todoStateAtom = atom((get) => {

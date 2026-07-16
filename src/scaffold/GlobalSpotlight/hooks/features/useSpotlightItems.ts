@@ -30,7 +30,6 @@ import { globalThemeIdAtom } from "@src/store/ui/uiAtom";
 import {
   sessionChatPositionAtom,
   workStationChatPositionAtom,
-  workStationDockAutoHideAtom,
   workStationEditorSecondaryCollapsedAtom,
   workStationLayoutModeAtom,
   workStationPrimarySidebarCollapsedAtom,
@@ -137,7 +136,6 @@ export function useSpotlightItems(
   const chatTurnPaginationEnabled = useAtomValue(chatTurnPaginationEnabledAtom);
   const modelPickerStyle = useAtomValue(modelPickerStyleAtom);
   const workstationSidebarPosition = useAtomValue(workStationLayoutModeAtom);
-  const dockAutoHide = useAtomValue(workStationDockAutoHideAtom);
   const currentLanguage = useAtomValue(languageAtom);
   const recentActionIds = useAtomValue(spotlightRecentActionsAtom);
   const { t } = useTranslation();
@@ -183,7 +181,6 @@ export function useSpotlightItems(
       chatTurnPaginationEnabled,
       modelPickerStyle,
       workstationSidebarPosition,
-      dockAutoHide,
     });
 
     if (stage === "confirming" || stage === "executing") {
@@ -337,7 +334,6 @@ export function useSpotlightItems(
     chatTurnPaginationEnabled,
     modelPickerStyle,
     workstationSidebarPosition,
-    dockAutoHide,
     currentLanguage,
     recentActionIds,
     isEditorRoute,

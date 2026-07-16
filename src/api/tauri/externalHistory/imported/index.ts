@@ -1,13 +1,17 @@
 import type { ActivityChunk } from "@src/types/session/session";
 
 import type { DispatchCategory } from "../../session";
-import { cursorIdeInitialWindow } from "../cursorIde";
+import { cursorIdeChunks, cursorIdeInitialWindow } from "../cursorIde";
 import type { ExternalCliSourceProbe } from "../detection";
 import { claudeCodeHistoryChunks } from "../sources/claudeCode";
+import { clineHistoryChunks } from "../sources/cline";
 import { codexAppChunks } from "../sources/codexApp";
 import { opencodeHistoryChunks } from "../sources/opencode";
+import { traeHistoryChunks } from "../sources/trae";
+import { warpHistoryChunks } from "../sources/warp";
 import { windsurfHistoryChunks } from "../sources/windsurf";
 import { workBuddyHistoryChunks } from "../sources/workbuddy";
+import { zcodeHistoryChunks } from "../sources/zcode";
 import {
   IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
   type ImportedHistoryListCategory,
@@ -24,7 +28,10 @@ export { IMPORTED_HISTORY_SOURCE_DESCRIPTORS };
 
 export interface ImportedHistorySource extends ImportedHistorySourceDescriptor {
   dispatchCategory: Extract<DispatchCategory, "external_history">;
-  loadChunks(sessionId: string): Promise<ActivityChunk[]>;
+  /** Fast/windowed transcript used when the user opens the local history. */
+  loadPreviewChunks(sessionId: string): Promise<ActivityChunk[]>;
+  /** Complete source transcript used for cloud replay/fork publication. */
+  loadFullTranscriptChunks(sessionId: string): Promise<ActivityChunk[]>;
 }
 
 const CURSOR_IDE_INITIAL_RECENT_BUBBLE_LIMIT = 100;
@@ -45,7 +52,7 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
   {
     ...descriptorFor("cursor_ide"),
     dispatchCategory: "external_history",
-    async loadChunks(sessionId) {
+    async loadPreviewChunks(sessionId) {
       return (
         await cursorIdeInitialWindow({
           sessionId,
@@ -53,31 +60,61 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
         })
       ).chunks;
     },
+    loadFullTranscriptChunks: cursorIdeChunks,
   },
   {
     ...descriptorFor("codex_app"),
     dispatchCategory: "external_history",
-    loadChunks: codexAppChunks,
+    loadPreviewChunks: codexAppChunks,
+    loadFullTranscriptChunks: codexAppChunks,
   },
   {
     ...descriptorFor("claude_code"),
     dispatchCategory: "external_history",
-    loadChunks: claudeCodeHistoryChunks,
+    loadPreviewChunks: claudeCodeHistoryChunks,
+    loadFullTranscriptChunks: claudeCodeHistoryChunks,
   },
   {
     ...descriptorFor("opencode"),
     dispatchCategory: "external_history",
-    loadChunks: opencodeHistoryChunks,
+    loadPreviewChunks: opencodeHistoryChunks,
+    loadFullTranscriptChunks: opencodeHistoryChunks,
   },
   {
     ...descriptorFor("windsurf"),
     dispatchCategory: "external_history",
-    loadChunks: windsurfHistoryChunks,
+    loadPreviewChunks: windsurfHistoryChunks,
+    loadFullTranscriptChunks: windsurfHistoryChunks,
   },
   {
     ...descriptorFor("workbuddy"),
     dispatchCategory: "external_history",
-    loadChunks: workBuddyHistoryChunks,
+    loadPreviewChunks: workBuddyHistoryChunks,
+    loadFullTranscriptChunks: workBuddyHistoryChunks,
+  },
+  {
+    ...descriptorFor("trae"),
+    dispatchCategory: "external_history",
+    loadPreviewChunks: traeHistoryChunks,
+    loadFullTranscriptChunks: traeHistoryChunks,
+  },
+  {
+    ...descriptorFor("cline"),
+    dispatchCategory: "external_history",
+    loadPreviewChunks: clineHistoryChunks,
+    loadFullTranscriptChunks: clineHistoryChunks,
+  },
+  {
+    ...descriptorFor("warp"),
+    dispatchCategory: "external_history",
+    loadPreviewChunks: warpHistoryChunks,
+    loadFullTranscriptChunks: warpHistoryChunks,
+  },
+  {
+    ...descriptorFor("zcode"),
+    dispatchCategory: "external_history",
+    loadPreviewChunks: zcodeHistoryChunks,
+    loadFullTranscriptChunks: zcodeHistoryChunks,
   },
 ];
 

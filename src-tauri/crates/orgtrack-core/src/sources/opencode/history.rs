@@ -13,15 +13,19 @@ use serde_json::{json, Value};
 
 use crate::sources::imported_history::{
     self, cache as imported_cache,
-    metadata::{ImportedHistoryCacheInput, ImportedHistoryImpactStats, SOURCE_OPENCODE},
+    metadata::{
+        ImportedHistoryCacheInput, ImportedHistoryImpactStats, ImportedHistoryRecordSignature,
+        SOURCE_OPENCODE,
+    },
     paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
+pub const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
 const OPENCODE_PROVIDER_SLUG: &str = "opencode";
 const OPENCODE_DB_FILENAME: &str = "opencode.db";
-const OPENCODE_METADATA_PARSER_VERSION: i64 = 2;
+// Version 4 adds per-session file-impact extraction from normalized edit parts.
+const OPENCODE_METADATA_PARSER_VERSION: i64 = 4;
 
 pub type OpenCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type OpenCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -43,6 +47,7 @@ struct OpenCodeSessionMeta {
     time_created: i64,
     time_updated: i64,
     parent_id: Option<String>,
+    impact: ImportedHistoryImpactStats,
 }
 
 #[derive(Debug, Clone)]
@@ -140,25 +145,62 @@ fn sync_opencode_history_cache(cache_conn: &mut Connection) -> Result<(), String
     };
     let (source_mtime_ms, source_size_bytes) =
         imported_paths::file_metadata_signature(&db_path, "OpenCode")?;
-    let metas = list_all_opencode_session_meta_from_conn(
+    let mut metas = list_all_opencode_session_meta_from_conn(
         &conn,
         &db_path,
         source_mtime_ms,
         source_size_bytes,
     )?;
     let managed_source_session_ids = managed_opencode_source_session_ids_from_conn(cache_conn)?;
+    for meta in &mut metas {
+        meta.source_fingerprint.push_str(
+            if managed_source_session_ids.contains(&meta.source_session_id) {
+                "|managed=1"
+            } else {
+                "|managed=0"
+            },
+        );
+    }
     let container_parent_ids = container_parent_ids_from_metas(&metas);
     let live_ids = metas
         .iter()
         .map(|meta| meta.source_session_id.clone())
         .collect::<Vec<_>>();
-    let inputs = metas
+    let changed_ids = imported_cache::changed_records_from_conn(
+        cache_conn,
+        SOURCE_OPENCODE,
+        &metas,
+        opencode_meta_signature,
+    )?
+    .into_iter()
+    .map(|meta| meta.source_session_id.clone())
+    .collect::<HashSet<_>>();
+    let mut inputs = Vec::with_capacity(changed_ids.len());
+    for mut meta in metas
         .into_iter()
-        .map(|meta| {
-            session_meta_to_cache_input(meta, &container_parent_ids, &managed_source_session_ids)
-        })
-        .collect::<Vec<_>>();
+        .filter(|meta| changed_ids.contains(&meta.source_session_id))
+    {
+        let session_id = format!("{OPENCODE_SESSION_PREFIX}{}", meta.source_session_id);
+        let chunks = load_opencode_history_from_conn(&conn, &session_id, &meta.source_session_id)?;
+        meta.impact = imported_history::impact_from_edit_chunks(&chunks);
+        inputs.push(session_meta_to_cache_input(
+            meta,
+            &container_parent_ids,
+            &managed_source_session_ids,
+        ));
+    }
     imported_cache::sync_source_cache_from_conn(cache_conn, SOURCE_OPENCODE, live_ids, inputs)
+}
+
+fn opencode_meta_signature(meta: &OpenCodeSessionMeta) -> ImportedHistoryRecordSignature {
+    ImportedHistoryRecordSignature {
+        source_session_id: meta.source_session_id.clone(),
+        source_path: meta.source_path.clone(),
+        source_mtime_ms: meta.source_mtime_ms,
+        source_size_bytes: meta.source_size_bytes,
+        source_fingerprint: meta.source_fingerprint.clone(),
+        parser_version: OPENCODE_METADATA_PARSER_VERSION,
+    }
 }
 
 fn managed_opencode_source_session_ids_from_conn(
@@ -267,10 +309,14 @@ fn list_all_opencode_session_meta_from_conn(
                     .get::<_, Option<String>>(11)?
                     .map(|s| s.trim().to_string())
                     .filter(|s| !s.is_empty()),
+                impact: ImportedHistoryImpactStats::default(),
             })
         })
         .map_err(|err| format!("Failed to query OpenCode sessions: {err}"))?;
 
+    // A single `opencode.db` backs every session, so fold its WAL/`-shm`
+    // sidecars into each session's fingerprint once.
+    let sidecar_signature = imported_paths::sqlite_sidecar_signature(db_path);
     let mut sessions = Vec::new();
     for row in rows {
         let mut meta = row.map_err(|err| format!("Failed to read OpenCode session row: {err}"))?;
@@ -281,10 +327,30 @@ fn list_all_opencode_session_meta_from_conn(
         meta.source_record_key = meta.source_session_id.clone();
         meta.source_mtime_ms = source_mtime_ms;
         meta.source_size_bytes = source_size_bytes;
-        meta.source_fingerprint = source_mtime_ms.to_string();
+        meta.source_fingerprint = opencode_source_fingerprint(&meta, &sidecar_signature);
         sessions.push(meta);
     }
     Ok(sessions)
+}
+
+/// Content-aware change fingerprint for an OpenCode session.
+///
+/// The `opencode.db` mtime alone can stay flat across a same-mtime rewrite, so
+/// this folds the session's own identity/title/timestamp/token/parent fields
+/// together with the shared WAL/`-shm` sidecar signature.
+fn opencode_source_fingerprint(meta: &OpenCodeSessionMeta, sidecar_signature: &str) -> String {
+    [
+        meta.source_session_id.as_str(),
+        meta.title.as_str(),
+        meta.model.as_deref().unwrap_or_default(),
+        &meta.time_created.to_string(),
+        &meta.time_updated.to_string(),
+        &meta.input_tokens.to_string(),
+        &meta.output_tokens.to_string(),
+        meta.parent_id.as_deref().unwrap_or_default(),
+        sidecar_signature,
+    ]
+    .join("|")
 }
 
 fn session_meta_to_cache_input(
@@ -324,7 +390,7 @@ fn session_meta_to_cache_input(
         output_tokens: meta.output_tokens,
         repo_path: (!meta.directory.trim().is_empty()).then_some(meta.directory),
         branch: None,
-        impact: ImportedHistoryImpactStats::default(),
+        impact: meta.impact,
         listable,
         source_metadata_json: None,
         parent_session_id,

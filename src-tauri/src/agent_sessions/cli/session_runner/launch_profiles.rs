@@ -94,7 +94,6 @@ pub fn cli_binary_id_for_agent(agent: &ModelType) -> Option<CliBinaryId> {
         ModelType::CursorCli => Some(CliBinaryId::CursorCli),
         ModelType::ClaudeCode => Some(CliBinaryId::ClaudeCode),
         ModelType::Codex => Some(CliBinaryId::Codex),
-        ModelType::GeminiCli => Some(CliBinaryId::GeminiCli),
         ModelType::Kiro => Some(CliBinaryId::Kiro),
         ModelType::Copilot => Some(CliBinaryId::Copilot),
         ModelType::OpenCode => Some(CliBinaryId::OpenCode),
@@ -170,16 +169,6 @@ pub const CLI_LAUNCH_PROFILE_DEFAULTS: &[CliLaunchProfileDefaults] = &[
             Manual => (&["--sandbox", "workspace-write", "-c", "approval_policy=on-request"], &[]),
             AutoEdit => (&["--sandbox", "workspace-write", "-c", "approval_policy=never"], &[]),
             FullPermission => (&["--dangerously-bypass-approvals-and-sandbox"], &[]),
-        ],
-    },
-    CliLaunchProfileDefaults {
-        agent_type: ModelType::GeminiCli,
-        command_args: &[],
-        mode_defaults: mode_defaults![
-            Plan => (&["--approval-mode", "plan"], &[]),
-            Manual => (&["--approval-mode", "default"], &[]),
-            AutoEdit => (&["--approval-mode", "auto_edit"], &[]),
-            FullPermission => (&["--yolo"], &[]),
         ],
     },
     CliLaunchProfileDefaults {

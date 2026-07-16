@@ -28,6 +28,10 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useRouteViewMode } from "@src/config/routeViewModeConfig";
 import { ROUTES } from "@src/config/routes";
+import {
+  HOST_DESKTOP,
+  resolveHostDesktop,
+} from "@src/config/windowChromeRadius";
 import { BrowserProvider, TerminalProvider } from "@src/contexts/workstation";
 import { useAgentADEActions } from "@src/engines/SessionCore/hooks/useAgentADEActions";
 import { useProjectDataChangedListener } from "@src/hooks/project";
@@ -61,9 +65,7 @@ import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
   sessionChatPositionAtom,
   workStationChatPositionAtom,
-  workStationDockAutoHidePersistAtom,
 } from "@src/store/ui/workStationAtom";
-import { dockFilterAtom } from "@src/store/workstation";
 import { prewarmColor } from "@src/util/ui/theme/glassMaterial";
 
 import { BackgroundLayer } from "./shared/components";
@@ -147,9 +149,16 @@ const WorkStationLoadingFallback: React.FC = () => (
   <div className="h-full w-full bg-workstation-bg" />
 );
 
-const AppShell = () => {
-  const location = useLocation();
+const IS_MACOS_HOST = resolveHostDesktop() === HOST_DESKTOP.MACOS;
 
+interface ConfiguredBackgroundLayerProps {
+  sidebarInset: number;
+}
+
+/** Legacy wallpaper/color background, retained for non-macOS hosts. */
+const ConfiguredBackgroundLayer: React.FC<ConfiguredBackgroundLayerProps> = ({
+  sidebarInset,
+}) => {
   const backgroundConfig = useAtomValue(resolvedBackgroundConfigAtom);
   const currentBackgroundImage = useBackgroundImage();
 
@@ -157,6 +166,20 @@ const AppShell = () => {
     if (!backgroundConfig.backgroundColor) return;
     prewarmColor(backgroundConfig.backgroundColor);
   }, [backgroundConfig.backgroundColor]);
+
+  return (
+    <BackgroundLayer
+      image={backgroundConfig.backgroundColor ? null : currentBackgroundImage}
+      blurAmount={backgroundConfig.blurAmount ?? 0}
+      backgroundColor={backgroundConfig.backgroundColor}
+      glass={backgroundConfig.glass}
+      sidebarInset={sidebarInset}
+    />
+  );
+};
+
+const AppShell = () => {
+  const location = useLocation();
 
   const viewMode = useRouteViewMode();
 
@@ -229,8 +252,6 @@ const AppShell = () => {
   const setStationMode = useSetAtom(stationModeAtom);
   const setSidebarCollapsed = useSetAtom(sidebarCollapsedAtom);
   const setStationChatVisibility = useSetAtom(stationChatVisibilityAtom);
-  const setDockAutoHide = useSetAtom(workStationDockAutoHidePersistAtom);
-  const setDockFilter = useSetAtom(dockFilterAtom);
   const [tutorialsModalOpen, setTutorialsModalOpen] = useState(false);
   const [generalLayoutTourOpen, setGeneralLayoutTourOpen] = useState(false);
   const [generalLayoutTourRunId, setGeneralLayoutTourRunId] = useState(0);
@@ -264,8 +285,6 @@ const AppShell = () => {
       "my-station": true,
     }));
     restoreChatWidth();
-    setDockAutoHide(false);
-    setDockFilter("all");
     setGeneralLayoutTourRunId((value) => value + 1);
     window.setTimeout(() => setGeneralLayoutTourOpen(true), 220);
   }, [
@@ -273,8 +292,6 @@ const AppShell = () => {
     navigate,
     restoreChatWidth,
     setChatPanelMaximized,
-    setDockAutoHide,
-    setDockFilter,
     setSidebarCollapsed,
     setStationChatVisibility,
     setStationMode,
@@ -293,8 +310,6 @@ const AppShell = () => {
       "my-station": true,
     }));
     restoreChatWidth();
-    setDockAutoHide(false);
-    setDockFilter("code");
     setCodeEditorTourRunId((value) => value + 1);
     window.setTimeout(() => setCodeEditorTourOpen(true), 240);
   }, [
@@ -302,8 +317,6 @@ const AppShell = () => {
     navigate,
     restoreChatWidth,
     setChatPanelMaximized,
-    setDockAutoHide,
-    setDockFilter,
     setSidebarCollapsed,
     setStationChatVisibility,
     setStationMode,
@@ -335,16 +348,13 @@ const AppShell = () => {
 
   const showChatPanel = useMemo(() => {
     const path = location.pathname;
-    // Settings-in-slot must stay visible even on Ops Control so the user can
-    // open Settings from the Kanban surface without flipping out of it.
     if (isSettingsRoute) return true;
-    if (stationMode === "ops-control") return false;
     return path.includes("/workstation");
-  }, [location.pathname, isSettingsRoute, stationMode]);
+  }, [location.pathname, isSettingsRoute]);
 
   useEffect(() => {
     if (viewMode !== "workStation") return;
-    if (chatPanelMaximized || stationMode === "ops-control") return;
+    if (chatPanelMaximized) return;
     // Don't touch chat width while Settings-in-slot owns the slot — its
     // own fallback width (DEFAULT_CHAT_WIDTH) shouldn't be overwritten.
     if (isSettingsRoute) return;
@@ -360,7 +370,6 @@ const AppShell = () => {
     isSettingsRoute,
     restoreChatWidth,
     setChatWidth,
-    stationMode,
     viewMode,
   ]);
 
@@ -408,9 +417,7 @@ const AppShell = () => {
   const isWorkStationViewActive = viewMode === "workStation";
   // Skip bridging when Settings-in-slot is active — it doesn't run a real chat session.
   const shouldBridgeWorkStationPipeline =
-    isWorkStationViewActive &&
-    stationMode !== "ops-control" &&
-    !isSettingsRoute;
+    isWorkStationViewActive && !isSettingsRoute;
 
   useNarrowChatFocus({ enabled: isWorkStationViewActive });
   useWorkStationPipelineBridge(shouldBridgeWorkStationPipeline);
@@ -433,11 +440,7 @@ const AppShell = () => {
       ? sidebarWidth || DEFAULT_SIDEBAR_WIDTH
       : 0;
 
-  // Ops Control suppresses overlay unless Settings-in-slot is active.
-  const effectiveChatFocus =
-    chatPanelMaximized &&
-    isWorkStationViewActive &&
-    (stationMode !== "ops-control" || isSettingsRoute);
+  const effectiveChatFocus = chatPanelMaximized && isWorkStationViewActive;
 
   return (
     <TerminalProvider>
@@ -450,14 +453,11 @@ const AppShell = () => {
           className="relative flex h-full"
           data-guide-target={GUIDE_TARGETS.APP_ROOT}
         >
-          <BackgroundLayer
-            image={
-              backgroundConfig.backgroundColor ? null : currentBackgroundImage
-            }
-            blurAmount={backgroundConfig.blurAmount ?? 0}
-            backgroundColor={backgroundConfig.backgroundColor}
-            glass={backgroundConfig.glass}
-          />
+          {!IS_MACOS_HOST && (
+            <ConfiguredBackgroundLayer
+              sidebarInset={sidebarCollapsed ? 0 : sidebarWidth}
+            />
+          )}
 
           {/* Main layout with sidebar, toolbar, content, and chat panel */}
           <AppLayout

@@ -113,6 +113,17 @@ export function processChatItems(
     pendingCount: 0,
   };
 
+  const updateVisibleStatusCount = (event: SessionEvent, delta: 1 | -1) => {
+    if (event.id === "loading") return;
+    if (event.result?.success === true) {
+      stats.successCount += delta;
+    } else if (event.result?.success === false) {
+      stats.failedCount += delta;
+    } else {
+      stats.pendingCount += delta;
+    }
+  };
+
   let readFileBuffer: SessionEvent[] = [];
   let actionSummaryBuffer: {
     category: ActionSummaryCategory;
@@ -433,7 +444,7 @@ export function processChatItems(
     // Buffer: action summary (exploration tool calls: read, search, glob, list)
     if (opts.groupActionSummaries) {
       const summaryCategory = getActionSummaryCategory(event);
-      if (summaryCategory && !isFailedToolCall(event)) {
+      if (summaryCategory) {
         flushBrowserBuffer();
         flushTerminalBuffer();
         flushPartialBuffer();
@@ -527,22 +538,32 @@ export function processChatItems(
       }
     }
 
+    // A todo event contains the complete checklist snapshot. Consecutive
+    // updates therefore supersede each other; rendering every intermediate
+    // snapshot produces near-identical cards (for example pending `content`
+    // immediately followed by in-progress `activeForm`). Keep only the last
+    // snapshot in a contiguous run. Any real activity between updates remains
+    // a boundary, so progress history around edits/commands is preserved.
+    if (isManageTodoEvent(event)) {
+      const last = result[result.length - 1];
+      if (
+        last?.type === "activity" &&
+        last.event &&
+        isManageTodoEvent(last.event)
+      ) {
+        updateVisibleStatusCount(last.event, -1);
+        updateVisibleStatusCount(event, 1);
+        result[result.length - 1] = eventToItem(event);
+        continue;
+      }
+    }
+
     // Count success / failed / pending only for events that actually land
     // in the result array as their own item. Folded error duplicates
     // (handled above via continue) are excluded so these counts stay
     // consistent with result.length-of-this-kind. (totalActivities was
     // bumped earlier — it tracks raw events including buffered ones.)
-    if (event.id !== "loading") {
-      const isSuccess = event.result?.success === true;
-      const isFailed = event.result?.success === false;
-      if (isSuccess) {
-        stats.successCount++;
-      } else if (isFailed) {
-        stats.failedCount++;
-      } else {
-        stats.pendingCount++;
-      }
-    }
+    updateVisibleStatusCount(event, 1);
 
     result.push(eventToItem(event));
   }

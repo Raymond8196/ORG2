@@ -74,6 +74,11 @@
       "other": "Geheimnis"
     }
   },
+  "secretScan": {
+    "title": "Mögliches Geheimnis erkannt",
+    "message": "Diese Nachricht scheint sensible Anmeldedaten zu enthalten:\n\n{{items}}\n\nBeim Senden wird das Geheimnis im Chatverlauf gespeichert und an das Modell übermittelt. Trotzdem senden?",
+    "sendAnyway": "Trotzdem senden"
+  },
   "actions": {
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -203,8 +208,8 @@
     "openWorkspace": "Workspace öffnen",
     "skipThisVersion": "Diese Version überspringen",
     "later": "Später",
-    "updateAiBlame": "AI Blame aktualisieren",
-    "link": "Verknüpfen"
+    "link": "Verknüpfen",
+    "copyName": "Namen kopieren"
   },
   "refreshToast": {
     "successName": "{{name}} aktualisiert",
@@ -406,7 +411,28 @@
     "nearby": "In der Nähe",
     "renowned": "Bekannt",
     "dragToReorder": "Ziehen, um die Nachrichtenreihenfolge zu ändern",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Sitzungszuordnung",
+    "sessionBlameSubagent": "Unteragent: {{name}}",
+    "sessionBlameMainSession": "Hauptsitzung",
+    "sessionBlameAction": {
+      "read": "Lesen",
+      "write": "Schreiben",
+      "create": "Erstellen",
+      "delete": "Löschen",
+      "rename": "Umbenennen",
+      "search": "Suchen"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Unbekannte Sicherheit",
+      "session_only": "Nur Sitzung",
+      "correlated": "Korreliert",
+      "exact": "Exakte Zuordnung"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Historische Sitzungen werden indiziert {{indexed}}/{{total}}",
+      "partial": "Historischer Index unvollständig ({{failed}} fehlgeschlagen)",
+      "failed": "Indizierung historischer Sitzungen fehlgeschlagen"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -424,7 +450,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "Dateien",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1013,6 +1039,10 @@
     "scanningFiles": "Scanning files...",
     "branchTooltip": "Branch: {{branch}}",
     "branchTooltipSwitching": "Branch: {{branch}} (wird gewechselt…)",
+    "switchWorkspaceTooltip": "Workspace wechseln",
+    "switchWorktreeTooltip": "Worktree wechseln",
+    "switchBranchTooltip": "Branch wechseln",
+    "gitActionsTooltip": "Git-Aktionen",
     "switchToSessionRepo": "Zu {{name}} wechseln",
     "embeddingProgress": "Embedding: {{count}} Chunks verarbeitet",
     "embeddingProgressWithPercent": "Embedding: {{count}} Chunks verarbeitet ({{percent}}%)",
@@ -1025,6 +1055,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "Extern",
       "tooltip": "Ports: {{workspace}} Workspace, {{external}} extern",
+      "viewPortsTooltip": "Belegte Ports anzeigen",
       "noWorkspacePorts": "Keine Workspace-Ports erkannt",
       "externalLabel": "extern",
       "unknownProcess": "Unbekannter Prozess",
@@ -1144,9 +1175,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token ist erforderlich",
       "createTokenButton": "Token erstellen",
-      "openGitSettingsButton": "Git-Einstellungen öffnen",
+      "openGitSettingsButton": "Einstellungen öffnen",
       "configureInSettings": "Git in den Einstellungen konfigurieren",
-      "configureInSettingsDesc": "Füge GitHub App-Zugriff hinzu, speichere ein Token oder scanne lokale Zugangsdaten unter Einstellungen → Integrationen → Git und versuche diese Git-Operation erneut."
+      "configureInSettingsDesc": "Füge GitHub App-Zugriff hinzu, speichere ein Token oder scanne lokale Zugangsdaten unter Einstellungen → Verbindungen und versuche diese Git-Operation erneut."
     },
     "actions": {
       "publish": "Publish",
@@ -1353,7 +1384,9 @@
         "delete": "Löschen",
         "deleteTemplate": "{branch} löschen",
         "createSessionWith": "Sitzungs-Branch wechseln",
-        "createSessionWithTemplate": "Sitzungs-Branch zu {branch} wechseln"
+        "createSessionWithTemplate": "Sitzungs-Branch zu {branch} wechseln",
+        "switchWorktree": "Worktree wechseln",
+        "switchWorktreeTemplate": "Zu {worktree} wechseln"
       },
       "actions": {
         "createNew": "Neuen Branch erstellen",
@@ -1364,7 +1397,8 @@
         "refresh": "Branch aktualisieren",
         "checkoutDetachedSuccess": "Im detached HEAD-Zustand am aktuellen Commit",
         "checkoutDetachedFailed": "Checkout detached HEAD fehlgeschlagen",
-        "removeWorktree": "Worktree entfernen"
+        "removeWorktree": "Worktree entfernen",
+        "newWorktree": "Neuer Worktree..."
       },
       "messages": {
         "deletedCount_one": "{{count}} Branch gelöscht",
@@ -1379,7 +1413,9 @@
         "basedOn": "Basierend auf",
         "worktrees": "Worktrees",
         "worktreeInUse": "In Verwendung",
-        "checkedOutInWorktree": "In Worktree ausgecheckt: {{path}}"
+        "checkedOutInWorktree": "In Worktree ausgecheckt: {{path}}",
+        "mainWorktreeSection": "Haupt-Worktree",
+        "linkedWorktrees": "Verknüpfte Worktrees"
       },
       "placeholders": {
         "checkout": "Branch",
@@ -1488,7 +1524,8 @@
         "workspace": "Suchen oder Ordnerpfad eingeben",
         "branch": "Branch suchen...",
         "source": "Quelle suchen...",
-        "actions": "Aktionen suchen..."
+        "actions": "Aktionen suchen...",
+        "worktree": "Worktree suchen..."
       },
       "groups": {
         "agentSession": "Agent Session",
@@ -1686,7 +1723,7 @@
     "disableDockAutoHide": "Workstation-Dock sichtbar halten",
     "openMyStation": "Zu My Station wechseln",
     "openAgentStation": "Zu Agent Station wechseln",
-    "openOpsControl": "Zu Ops Control wechseln",
+    "openKanban": "Zu Kanban wechseln",
     "changeLanguage": "Sprache ändern",
     "switchToSystemTheme": "Systemdesign folgen",
     "detectUpdate": "Nach Updates suchen",
@@ -1941,12 +1978,15 @@
     "removeWorktreeMessage": "Dies entfernt den Worktree checkout vom Datenträger. Branch und commits bleiben erhalten.",
     "removeWorktreeSuccess": "Worktree entfernt",
     "removeWorktreeFailed": "Worktree konnte nicht entfernt werden",
+    "emptyState": {
+      "viewSourceControl": "Source Control anzeigen",
+      "viewIssues": "Issues anzeigen",
+      "viewGitHistory": "Git-Verlauf anzeigen",
+      "viewPullRequests": "Pull Requests anzeigen"
+    },
     "pill": {
       "focus": "Fokus",
       "allChanges": "Alle Änderungen"
-    },
-    "sessionFilter": {
-      "allSessions": "Alle Sitzungen"
     }
   },
   "contextInfo": {

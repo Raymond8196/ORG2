@@ -21,11 +21,6 @@ const CODEX_CONFIG_FILE_NAME: &str = "config.toml";
 const CLAUDE_CODE_AGENT: &str = "claude_code";
 const CLAUDE_CODE_CONFIG_FILE_ID: &str = "settings";
 const CLAUDE_CODE_CONFIG_FILE_NAME: &str = "settings.json";
-const GEMINI_CLI_AGENT: &str = "gemini_cli";
-const GEMINI_CLI_SETTINGS_FILE_ID: &str = "settings";
-const GEMINI_CLI_SETTINGS_FILE_NAME: &str = "settings.json";
-const GEMINI_CLI_ENV_FILE_ID: &str = "env";
-const GEMINI_CLI_ENV_FILE_NAME: &str = ".env";
 const OPENCODE_AGENT: &str = "opencode";
 const OPENCODE_CONFIG_FILE_ID: &str = "config";
 const OPENCODE_CONFIG_FILE_NAME: &str = "opencode.jsonc";
@@ -82,7 +77,10 @@ const PI_SETTINGS_FILE_ID: &str = "settings";
 const PI_SETTINGS_FILE_NAME: &str = "settings.json";
 const PI_MODELS_FILE_ID: &str = "models";
 const PI_MODELS_FILE_NAME: &str = "models.json";
+#[cfg(test)]
 const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
+const DEFAULT_PROXY_PORT: u16 = 17888;
+const PROXY_PORT_ENV: &str = "ORGII_CLI_PROXY_PORT";
 const ORGII_PROVIDER_ID: &str = "orgii";
 const ORGII_PROVIDER_NAME: &str = "ORGII";
 const DEFAULT_ORGII_MODEL: &str = "orgii-current-model";
@@ -91,12 +89,23 @@ const TRANSACTION_JOURNAL_FILE_NAME: &str = "journal.json";
 
 static CONFIG_OPERATION_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
+pub fn managed_proxy_port() -> u16 {
+    std::env::var(PROXY_PORT_ENV)
+        .ok()
+        .and_then(|value| value.parse::<u16>().ok())
+        .filter(|port| *port > 0)
+        .unwrap_or(DEFAULT_PROXY_PORT)
+}
+
+pub fn managed_proxy_url() -> String {
+    format!("http://127.0.0.1:{}", managed_proxy_port())
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CliManagedProxyProtocol {
     OpenAiResponses,
     OpenAiChatCompletions,
     AnthropicMessages,
-    GeminiGenerateContent,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -110,8 +119,6 @@ pub enum CliManagedConfigAvailability {
 enum ManagedConfigGenerator {
     CodexToml,
     ClaudeCodeJson,
-    GeminiSettingsJson,
-    GeminiEnv,
     OpenCodeJsonc,
     AiderYaml,
     KimiToml,
@@ -158,18 +165,6 @@ const CLAUDE_CODE_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
     CLAUDE_CODE_CONFIG_FILE_NAME,
     ManagedConfigGenerator::ClaudeCodeJson,
 )];
-const GEMINI_CLI_TARGETS: &[ManagedConfigTargetSpec] = &[
-    managed_target(
-        GEMINI_CLI_SETTINGS_FILE_ID,
-        GEMINI_CLI_SETTINGS_FILE_NAME,
-        ManagedConfigGenerator::GeminiSettingsJson,
-    ),
-    managed_target(
-        GEMINI_CLI_ENV_FILE_ID,
-        GEMINI_CLI_ENV_FILE_NAME,
-        ManagedConfigGenerator::GeminiEnv,
-    ),
-];
 const OPENCODE_TARGETS: &[ManagedConfigTargetSpec] = &[managed_target(
     OPENCODE_CONFIG_FILE_ID,
     OPENCODE_CONFIG_FILE_NAME,
@@ -289,11 +284,6 @@ const MANAGED_CONFIG_ADAPTERS: &[CliManagedConfigAdapter] = &[
         CLAUDE_CODE_AGENT,
         CliManagedProxyProtocol::AnthropicMessages,
         CLAUDE_CODE_TARGETS,
-    ),
-    managed_adapter(
-        GEMINI_CLI_AGENT,
-        CliManagedProxyProtocol::GeminiGenerateContent,
-        GEMINI_CLI_TARGETS,
     ),
     managed_adapter(
         OPENCODE_AGENT,
@@ -1086,7 +1076,7 @@ fn status_for_unlocked(agent_name: &str) -> Result<CliConfigManagedStatus, Strin
                 None,
                 None,
                 None,
-                Some(DEFAULT_PROXY_URL.to_string()),
+                Some(managed_proxy_url()),
                 fallback_targets,
             )
         };
@@ -1186,10 +1176,6 @@ fn codex_proxy_base_url(proxy_url: &str, proxy_token: &str) -> String {
 
 fn claude_code_proxy_base_url(proxy_url: &str, proxy_token: &str) -> String {
     proxy_route_base_url(proxy_url, CLAUDE_CODE_AGENT, proxy_token, "claude")
-}
-
-fn gemini_cli_proxy_base_url(proxy_url: &str, proxy_token: &str) -> String {
-    proxy_route_base_url(proxy_url, GEMINI_CLI_AGENT, proxy_token, "gemini")
 }
 
 fn openai_chat_proxy_base_url(proxy_url: &str, agent_name: &str, proxy_token: &str) -> String {
@@ -1334,48 +1320,6 @@ fn generate_claude_code_managed_config(
         .map_err(|err| format!("JSON serialize error: {err}"))
 }
 
-fn generate_gemini_cli_settings_config(existing_content: &str) -> Result<String, String> {
-    let mut config: serde_json::Value = if existing_content.trim().is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        serde_json::from_str(existing_content)
-            .map_err(|err| format!("Invalid Gemini CLI JSON: {err}"))?
-    };
-
-    let Some(root) = config.as_object_mut() else {
-        return Err("Gemini CLI settings must be a JSON object".to_string());
-    };
-
-    if !matches!(root.get("security"), Some(serde_json::Value::Object(_))) {
-        root.insert(
-            "security".to_string(),
-            serde_json::Value::Object(serde_json::Map::new()),
-        );
-    }
-    let Some(serde_json::Value::Object(security)) = root.get_mut("security") else {
-        return Err("Failed to build Gemini CLI security object".to_string());
-    };
-
-    if !matches!(security.get("auth"), Some(serde_json::Value::Object(_))) {
-        security.insert(
-            "auth".to_string(),
-            serde_json::Value::Object(serde_json::Map::new()),
-        );
-    }
-    let Some(serde_json::Value::Object(auth)) = security.get_mut("auth") else {
-        return Err("Failed to build Gemini CLI auth object".to_string());
-    };
-
-    auth.insert(
-        "selectedType".to_string(),
-        serde_json::Value::String("gemini-api-key".to_string()),
-    );
-
-    serde_json::to_string_pretty(&config)
-        .map(|value| format!("{value}\n"))
-        .map_err(|err| format!("JSON serialize error: {err}"))
-}
-
 fn quote_env_value(value: &str) -> String {
     let escaped = value.replace('\\', "\\\\").replace('"', "\\\"");
     format!("\"{escaped}\"")
@@ -1427,27 +1371,6 @@ fn upsert_env_file(existing_content: &str, values: &[(&str, String)]) -> String 
     } else {
         format!("{}\n", lines.join("\n"))
     }
-}
-
-fn generate_gemini_cli_env_config(
-    existing_content: &str,
-    selected_model: Option<&str>,
-    proxy_url: &str,
-    proxy_token: &str,
-) -> String {
-    let model = selected_model_or_default(selected_model).to_string();
-    upsert_env_file(
-        existing_content,
-        &[
-            ("GEMINI_API_KEY", proxy_token.to_string()),
-            ("GOOGLE_API_KEY", proxy_token.to_string()),
-            ("GEMINI_MODEL", model),
-            (
-                "GOOGLE_GEMINI_BASE_URL",
-                gemini_cli_proxy_base_url(proxy_url, proxy_token),
-            ),
-        ],
-    )
 }
 
 fn generate_opencode_managed_config(
@@ -1540,15 +1463,6 @@ fn generate_managed_configs(
                 proxy_url,
                 proxy_token,
             )?,
-            ManagedConfigGenerator::GeminiSettingsJson => {
-                generate_gemini_cli_settings_config(existing_content)?
-            }
-            ManagedConfigGenerator::GeminiEnv => generate_gemini_cli_env_config(
-                existing_content,
-                selected_model,
-                proxy_url,
-                proxy_token,
-            ),
             ManagedConfigGenerator::OpenCodeJsonc => generate_opencode_managed_config(
                 existing_content,
                 selected_model,
@@ -1717,7 +1631,7 @@ fn enable_agent_orgii_managed_unlocked(
         }
     }
 
-    let proxy_url = DEFAULT_PROXY_URL.to_string();
+    let proxy_url = managed_proxy_url();
     let proxy_token = generate_proxy_token();
     let managed_contents = generate_managed_configs(
         agent_name,
@@ -1738,7 +1652,7 @@ fn enable_agent_orgii_managed_unlocked(
         selected_key_id: None,
         selected_provider: None,
         selected_model: None,
-        proxy_url: Some(DEFAULT_PROXY_URL.to_string()),
+        proxy_url: Some(managed_proxy_url()),
         proxy_token: None,
         created_at: now.clone(),
         updated_at: now.clone(),
@@ -2114,75 +2028,6 @@ shell_tool = true
             claude_code_proxy_base_url(DEFAULT_PROXY_URL, TEST_PROXY_TOKEN),
             "http://127.0.0.1:17888/cli/claude_code/test-proxy-token/claude"
         );
-        assert_eq!(
-            gemini_cli_proxy_base_url(DEFAULT_PROXY_URL, TEST_PROXY_TOKEN),
-            "http://127.0.0.1:17888/cli/gemini_cli/test-proxy-token/gemini"
-        );
-    }
-
-    #[test]
-    fn gemini_cli_managed_config_preserves_settings_and_writes_env() {
-        let settings = r#"
-{
-  "ide": {
-    "enabled": true
-  },
-  "security": {
-    "auth": {
-      "selectedType": "oauth-personal"
-    }
-  }
-}
-"#;
-        let env = r#"
-CUSTOM_FLAG=keep
-GEMINI_API_KEY="old-key"
-export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
-"#;
-        let mut existing = BTreeMap::new();
-        existing.insert(
-            GEMINI_CLI_SETTINGS_FILE_ID.to_string(),
-            settings.to_string(),
-        );
-        existing.insert(GEMINI_CLI_ENV_FILE_ID.to_string(), env.to_string());
-
-        let generated = generate_managed_configs(
-            GEMINI_CLI_AGENT,
-            &existing,
-            Some("gemini-2.5-pro"),
-            DEFAULT_PROXY_URL,
-            TEST_PROXY_TOKEN,
-        )
-        .unwrap();
-        let generated_settings: serde_json::Value =
-            serde_json::from_str(&generated[GEMINI_CLI_SETTINGS_FILE_ID]).unwrap();
-        let generated_env = &generated[GEMINI_CLI_ENV_FILE_ID];
-
-        assert_eq!(generated_settings["ide"]["enabled"].as_bool(), Some(true));
-        assert_eq!(
-            generated_settings["security"]["auth"]["selectedType"].as_str(),
-            Some("gemini-api-key")
-        );
-        assert!(generated_env.contains("CUSTOM_FLAG=keep"));
-        assert!(generated_env.contains("GEMINI_API_KEY=\"test-proxy-token\""));
-        assert!(generated_env.contains("GOOGLE_API_KEY=\"test-proxy-token\""));
-        assert!(generated_env.contains("GEMINI_MODEL=\"gemini-2.5-pro\""));
-        assert!(generated_env.contains(
-            "GOOGLE_GEMINI_BASE_URL=\"http://127.0.0.1:17888/cli/gemini_cli/test-proxy-token/gemini\""
-        ));
-        assert!(!generated_env.contains("old-key"));
-        assert!(!generated_env.contains("https://old.example.com"));
-    }
-
-    #[test]
-    fn gemini_cli_manifest_tracks_settings_and_env() {
-        let targets = agent_manifest_targets(GEMINI_CLI_AGENT).unwrap();
-        let ids: Vec<_> = targets.iter().map(|target| target.id.as_str()).collect();
-
-        assert_eq!(
-            ids,
-            vec![GEMINI_CLI_SETTINGS_FILE_ID, GEMINI_CLI_ENV_FILE_ID]
-        );
     }
 
     #[test]
@@ -2212,7 +2057,7 @@ export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
     #[test]
     fn every_central_cli_registry_entry_has_an_explicit_managed_config_result() {
         let agent_names = central_cli_registry_agent_names();
-        assert_eq!(agent_names.len(), 29);
+        assert_eq!(agent_names.len(), 26);
 
         let mut supported = 0;
         let mut unavailable = 0;
@@ -2229,8 +2074,8 @@ export GOOGLE_GEMINI_BASE_URL="https://old.example.com"
             }
         }
 
-        assert_eq!(supported, 19);
-        assert_eq!(unavailable, 10);
+        assert_eq!(supported, 18);
+        assert_eq!(unavailable, 8);
     }
 
     #[test]

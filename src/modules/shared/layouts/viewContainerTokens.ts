@@ -7,9 +7,65 @@
 import type { CSSProperties } from "react";
 
 import {
+  HOST_DESKTOP,
+  resolveHostDesktop,
+} from "@src/config/windowChromeRadius";
+import {
   sanitizePageOpacity,
   sanitizeSidebarOpacity,
 } from "@src/store/ui/backgroundConfigAtom";
+
+const IS_MACOS_HOST = resolveHostDesktop() === HOST_DESKTOP.MACOS;
+
+/**
+ * Shared pane transition. It animates layout dimensions themselves rather
+ * than transforms, so ResizeObserver and native-webview measurements see the
+ * real intermediate width throughout the motion.
+ */
+export const PANE_WIDTH_TRANSITION_CLASSES =
+  "transition-[width,flex-grow,flex-basis] duration-200 ease-out motion-reduce:transition-none";
+
+interface ChatSlotLayoutStyleOptions {
+  maximized: boolean;
+  visible: boolean;
+  visibleWidth: string | number;
+}
+
+/** Normal-flow flex geometry for the chat pane at each visibility state. */
+export function getChatSlotLayoutStyle({
+  maximized,
+  visible,
+  visibleWidth,
+}: ChatSlotLayoutStyleOptions): CSSProperties {
+  if (maximized) {
+    return {
+      flexBasis: 0,
+      flexGrow: 1,
+      flexShrink: 1,
+      width: 0,
+    };
+  }
+
+  const width = visible ? visibleWidth : 0;
+  return {
+    flexBasis: width,
+    flexGrow: 0,
+    flexShrink: 0,
+    pointerEvents: visible ? "auto" : "none",
+    width,
+  };
+}
+
+/** Normal-flow flex geometry for the workstation beside the chat pane. */
+export function getWorkbenchLayoutStyle(maximized: boolean): CSSProperties {
+  return {
+    flexBasis: 0,
+    flexGrow: maximized ? 0 : 1,
+    flexShrink: 1,
+    pointerEvents: maximized ? "none" : "auto",
+    width: 0,
+  };
+}
 
 /**
  * View container class strings for modules/index.tsx
@@ -52,7 +108,7 @@ export const LAYOUT_CONTAIN_STYLE: CSSProperties = {
 export function getPagePanelBackgroundStyle(
   pageOpacity: number | undefined
 ): CSSProperties {
-  const opacity = sanitizePageOpacity(pageOpacity);
+  const opacity = IS_MACOS_HOST ? 100 : sanitizePageOpacity(pageOpacity);
   return {
     backgroundColor: `color-mix(in srgb, var(--color-bg-2) ${opacity}%, transparent)`,
   };
@@ -88,7 +144,7 @@ export function getSidebarSurfaceBackgroundStyle(
 export function getChatPanelBackgroundStyle(
   pageOpacity: number | undefined
 ): CSSProperties {
-  const opacity = sanitizePageOpacity(pageOpacity);
+  const opacity = IS_MACOS_HOST ? 100 : sanitizePageOpacity(pageOpacity);
   const chatPaneMix = `color-mix(in srgb, var(--color-chat-pane-base) ${opacity}%, transparent)`;
   return {
     backgroundColor: chatPaneMix,

@@ -147,13 +147,68 @@ fn sanitize_required_todo_content(value: &str, idx: usize) -> Result<String, Too
     Ok(content)
 }
 
-fn sanitize_optional_todo_content(value: &str) -> Option<String> {
-    let content = sanitize_todo_text(value);
-    if content.is_empty() {
-        None
-    } else {
-        Some(content)
+fn optional_string_param<'a>(params: &'a Value, key: &str) -> Result<Option<&'a str>, ToolError> {
+    match params.get(key) {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::String(value)) => Ok(Some(value)),
+        Some(_) => Err(ToolError::InvalidParams(format!(
+            "'{key}' must be a string or null"
+        ))),
     }
+}
+
+fn optional_index_array(params: &Value, key: &str) -> Result<Option<Vec<usize>>, ToolError> {
+    let Some(value) = params.get(key) else {
+        return Ok(None);
+    };
+    if value.is_null() {
+        return Ok(None);
+    }
+
+    let values = value.as_array().ok_or_else(|| {
+        ToolError::InvalidParams(format!("'{key}' must be an array of non-negative integers"))
+    })?;
+    values
+        .iter()
+        .enumerate()
+        .map(|(index, value)| {
+            let value = value.as_u64().ok_or_else(|| {
+                ToolError::InvalidParams(format!("'{key}[{index}]' must be a non-negative integer"))
+            })?;
+            usize::try_from(value)
+                .map_err(|_| ToolError::InvalidParams(format!("'{key}[{index}]' is too large")))
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map(Some)
+}
+
+fn todo_update_from_params(params: &Value) -> Result<TodoUpdate, ToolError> {
+    let content = optional_string_param(params, "content")?
+        .map(|value| {
+            let sanitized = sanitize_todo_text(value);
+            if sanitized.is_empty() {
+                return Err(ToolError::InvalidParams(
+                    "'content' cannot be empty; omit it to leave the title unchanged".into(),
+                ));
+            }
+            Ok(sanitized)
+        })
+        .transpose()?;
+
+    // The outer Option distinguishes "leave unchanged" from an explicit
+    // clear; the inner Option is the value persisted on the todo record.
+    let active_form = optional_string_param(params, "activeForm")?.map(|value| {
+        let sanitized = sanitize_todo_text(value);
+        (!sanitized.is_empty()).then_some(sanitized)
+    });
+
+    Ok(TodoUpdate {
+        content,
+        active_form,
+        status: optional_string_param(params, "status")?.map(str::to_owned),
+        priority: optional_string_param(params, "priority")?.map(str::to_owned),
+        blocked_by: optional_index_array(params, "blockedBy")?,
+    })
 }
 
 #[async_trait]
@@ -380,15 +435,7 @@ impl TodoTool {
                 .and_then(|v| v.as_str())
                 .unwrap_or("medium")
                 .to_string();
-            let blocked_by = todo
-                .get("blockedBy")
-                .and_then(|v| v.as_array())
-                .map(|arr| {
-                    arr.iter()
-                        .filter_map(|v| v.as_u64().map(|n| n as usize))
-                        .collect()
-                })
-                .unwrap_or_default();
+            let blocked_by = optional_index_array(todo, "blockedBy")?.unwrap_or_default();
             records.push(TodoRecord {
                 content,
                 active_form,
@@ -419,40 +466,10 @@ impl TodoTool {
             .ok_or_else(|| ToolError::InvalidParams("'update' requires integer 'index'".into()))?
             as usize;
 
-        let patch = TodoUpdate {
-            content: params
-                .get("content")
-                .and_then(|v| v.as_str())
-                .and_then(sanitize_optional_todo_content),
-            // Empty string clears `activeForm` (stored as None); a missing
-            // key leaves it untouched. The outer Option distinguishes the
-            // two, the inner Option is the stored value.
-            active_form: params.get("activeForm").map(|v| {
-                v.as_str().and_then(|s| {
-                    if s.is_empty() {
-                        None
-                    } else {
-                        Some(sanitize_todo_text(s))
-                    }
-                })
-            }),
-            status: params
-                .get("status")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
-            priority: params
-                .get("priority")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
-            blocked_by: params
-                .get("blockedBy")
-                .and_then(|v| v.as_array())
-                .map(|arr| {
-                    arr.iter()
-                        .filter_map(|v| v.as_u64().map(|n| n as usize))
-                        .collect()
-                }),
-        };
+        // Empty string clears `activeForm` (stored as None); a missing key or
+        // null leaves it untouched. Empty todo titles are rejected so a
+        // provider-generated placeholder cannot erase the visible task.
+        let patch = todo_update_from_params(params)?;
 
         let sid = session_id.clone();
         let patch_clone = patch.clone();
@@ -632,8 +649,8 @@ fn broadcast_todos(session_id: &str, records: &[TodoRecord]) {
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_embedded_todo_array, sanitize_optional_todo_content, sanitize_required_todo_content,
-        sanitize_todo_text,
+        parse_embedded_todo_array, sanitize_required_todo_content, sanitize_todo_text,
+        todo_update_from_params,
     };
 
     #[test]
@@ -670,12 +687,50 @@ mod tests {
     }
 
     #[test]
-    fn sanitize_optional_todo_content_drops_empty_update_patch() {
-        assert_eq!(sanitize_optional_todo_content("   "), None);
-        assert_eq!(
-            sanitize_optional_todo_content(" Update docs "),
-            Some("Update docs".to_string())
-        );
+    fn nullable_update_placeholders_leave_fields_untouched() {
+        let patch = todo_update_from_params(&serde_json::json!({
+            "content": null,
+            "activeForm": null,
+            "status": "completed",
+            "priority": null,
+            "blockedBy": null
+        }))
+        .expect("nullable strict-schema placeholders should parse");
+
+        assert_eq!(patch.content, None);
+        assert_eq!(patch.active_form, None);
+        assert_eq!(patch.status.as_deref(), Some("completed"));
+        assert_eq!(patch.priority, None);
+        assert_eq!(patch.blocked_by, None);
+    }
+
+    #[test]
+    fn explicit_empty_active_form_clears_but_empty_content_is_rejected() {
+        let patch = todo_update_from_params(&serde_json::json!({
+            "activeForm": "   "
+        }))
+        .expect("blank activeForm is an explicit clear");
+        assert_eq!(patch.active_form, Some(None));
+
+        assert!(todo_update_from_params(&serde_json::json!({
+            "content": ""
+        }))
+        .is_err());
+    }
+
+    #[test]
+    fn malformed_update_fields_are_rejected_instead_of_silently_ignored() {
+        for params in [
+            serde_json::json!({ "status": 1 }),
+            serde_json::json!({ "priority": false }),
+            serde_json::json!({ "blockedBy": "0" }),
+            serde_json::json!({ "blockedBy": [0, -1] }),
+        ] {
+            assert!(
+                todo_update_from_params(&params).is_err(),
+                "params: {params}"
+            );
+        }
     }
 
     #[test]

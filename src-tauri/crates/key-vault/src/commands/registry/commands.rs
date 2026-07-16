@@ -58,10 +58,6 @@ fn native_subscription_labels_for_agent(agent_name: &str) -> Vec<String> {
         "cursor_cli" => &["Cursor account / Cursor subscription"][..],
         "claude_code" => &["Claude Pro / Max account", "Anthropic Console account"],
         "codex" => &["ChatGPT account", "OpenAI API account"],
-        "gemini_cli" => &[
-            "Google account / Gemini Code Assist",
-            "Google AI Studio API key",
-        ],
         "kiro" => &["Kiro account"],
         "copilot" => &["GitHub Copilot subscription"],
         "opencode" => &["opencode account"],
