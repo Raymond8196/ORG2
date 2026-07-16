@@ -190,7 +190,7 @@ describe("AppUpdater", () => {
 
     await expect(checkForUpdatesManually()).resolves.toBe(update);
 
-    expect(mocks.check).toHaveBeenCalledOnce();
+    expect(mocks.check).toHaveBeenCalledWith({ timeout: 30_000 });
     expect(mocks.messageInfo).toHaveBeenCalledWith(
       expect.objectContaining({
         content: "Version 1.1.22 is ready to install.",
@@ -226,6 +226,29 @@ describe("AppUpdater", () => {
     expect(update.downloadAndInstall).not.toHaveBeenCalled();
     expect(mocks.relaunch).not.toHaveBeenCalled();
     expect(mocks.storeSet).toHaveBeenLastCalledWith(expect.anything(), true);
+  });
+
+  it("surfaces a retry action when the update download times out", async () => {
+    const update = createUpdate({
+      download: vi.fn().mockRejectedValue(new Error("request timed out")),
+    });
+    mocks.check.mockResolvedValue(update);
+
+    await installAvailableAppUpdate();
+
+    expect(mocks.relaunch).not.toHaveBeenCalled();
+    expect(mocks.messageError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content:
+          "The download timed out. Check your network or proxy, then retry.",
+        duration: 0,
+        title: "Update download failed",
+        cancel: expect.objectContaining({
+          closeOnClick: false,
+          label: "Retry",
+        }),
+      })
+    );
   });
 
   it("installs and relaunches only after confirmation", async () => {

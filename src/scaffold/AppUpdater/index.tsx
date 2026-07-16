@@ -33,6 +33,8 @@ const FOREGROUND_CHECK_MIN_INTERVAL_MS = 5 * 60_000;
 const FOREGROUND_EVENT_DEBOUNCE_MS = 750;
 const INSTALL_PROGRESS_MESSAGE_MIN_INTERVAL_MS = 2_000;
 const UPDATE_TOAST_DURATION_MS = 5_000;
+const UPDATE_CHECK_TIMEOUT_MS = 30_000;
+const UPDATE_DOWNLOAD_TIMEOUT_MS = 5 * 60_000;
 
 const CHECK_TOAST_ID = "app-update-check";
 const INSTALL_TOAST_ID = "app-update-progress";
@@ -78,7 +80,8 @@ function clearSkippedUpdateVersion(version: string): void {
 
 function createCoordinator(): AppUpdaterCoordinator {
   return new AppUpdaterCoordinator({
-    check,
+    check: () => check({ timeout: UPDATE_CHECK_TIMEOUT_MS }),
+    downloadTimeoutMs: UPDATE_DOWNLOAD_TIMEOUT_MS,
     getVersion,
     minCheckIntervalMs: FOREGROUND_CHECK_MIN_INTERVAL_MS,
     onStateChange: (state) => store().set(appUpdaterStateAtom, state),
@@ -90,6 +93,14 @@ const coordinator = createCoordinator();
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return typeof error === "string" ? error : "Unknown error";
+}
+
+function getDownloadErrorMessage(error: unknown): string {
+  const message = getErrorMessage(error);
+  if (/timed?\s*out|timeout/i.test(message)) {
+    return "The download timed out. Check your network or proxy, then retry.";
+  }
+  return message;
 }
 
 function notifyCheckSuccess(
@@ -241,8 +252,13 @@ export async function installAvailableAppUpdate(
       Message.error({
         id: INSTALL_TOAST_ID,
         title: "Update download failed",
-        content: getErrorMessage(error),
-        duration: 6000,
+        content: getDownloadErrorMessage(error),
+        duration: 0,
+        cancel: {
+          label: "Retry",
+          onClick: () => void installAvailableAppUpdate({ silentDownload }),
+          closeOnClick: false,
+        },
       });
       log.error("Update download failed", error);
     }
