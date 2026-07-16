@@ -798,13 +798,6 @@
         "heatmap": "추세",
         "runtime": "런타임"
       },
-      "heatmap": {
-        "loading": "활동 추세 로드 중…",
-        "empty": "아직 세션 활동이 없습니다.",
-        "sessions": "세션",
-        "tokens": "Tokens",
-        "cost": "비용"
-      },
       "quota": {
         "empty": "Quota 데이터가 아직 없습니다. Key Vault에서 사용량을 새로고침하세요.",
         "refresh": "새로고침",

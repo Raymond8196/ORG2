@@ -798,13 +798,6 @@
         "heatmap": "トレンド",
         "runtime": "ランタイム"
       },
-      "heatmap": {
-        "loading": "アクティビティトレンドを読み込み中…",
-        "empty": "まだセッションアクティビティはありません。",
-        "sessions": "セッション",
-        "tokens": "Tokens",
-        "cost": "コスト"
-      },
       "quota": {
         "empty": "Quota データはまだありません。Key Vault で使用量を更新してください。",
         "refresh": "更新",

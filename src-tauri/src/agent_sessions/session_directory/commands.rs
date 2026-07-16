@@ -1,11 +1,11 @@
-//! Tauri commands for unified session statistics.
+//! Tauri commands for the cross-backend session directory.
 //!
-//! Provides the Tauri command endpoints that the frontend calls to interact
-//! with the unified session listing / statistics system.
+//! Provides the Tauri command endpoints that the frontend calls to list
+//! sessions across all backends (command names keep their historical
+//! `session_aggregate_*` wire ids for frontend compatibility).
 
 use std::collections::HashSet;
 
-use crate::agent_sessions::health::check_session_health;
 use database::db::get_connection;
 use orgtrack_core::sources::cursor_ide::history::CURSORIDE_SESSION_PREFIX;
 use orgtrack_core::sources::imported_history::{
@@ -13,17 +13,11 @@ use orgtrack_core::sources::imported_history::{
     metadata::{is_imported_history_source, SOURCE_CURSOR_IDE},
 };
 
-use super::accounting::{
-    query_session_heatmap, session_usage_summary as build_session_usage_summary,
-    SessionHeatmapFilter, SessionHeatmapResponse, SessionUsageSummary,
-};
 use super::aggregation::list_all_sessions;
-use super::history::build_history_response;
-use super::stats::compute_aggregate_stats_with_accounting;
 use super::types::{
-    AggregateStats, ExternalHistorySidebarBatchResponse, ExternalHistorySidebarBucketPage,
-    ExternalHistorySidebarResponse, ExternalHistorySidebarSourceRequest, SessionAggregateRecord,
-    SessionFilter, SessionHealthStatus, SessionHistoryResponse, SessionListResponse,
+    ExternalHistorySidebarBatchResponse, ExternalHistorySidebarBucketPage,
+    ExternalHistorySidebarResponse, ExternalHistorySidebarSourceRequest, SessionFilter,
+    SessionListResponse,
 };
 
 // ============================================================================
@@ -117,105 +111,4 @@ pub async fn session_external_history_sidebar_list(
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
-}
-
-/// Check session health (in-progress and stale detection).
-///
-/// This replaces the frontend's `isSessionInProgress()` utility with
-/// centralized logic that uses the same thresholds.
-#[tauri::command]
-pub async fn session_check_health(session_id: String) -> Result<SessionHealthStatus, String> {
-    tokio::task::spawn_blocking(move || {
-        // Load all sessions and find the one we want
-        let filter = SessionFilter {
-            include_stats: Some(false),
-            ..SessionFilter::default()
-        };
-        let response = list_all_sessions(Some(&filter))?;
-        let session = response
-            .sessions
-            .into_iter()
-            .find(|session| session.session_id == session_id)
-            .ok_or_else(|| format!("Session not found: {}", session_id))?;
-
-        Ok(check_session_health(&session))
-    })
-    .await
-    .map_err(|err| format!("Task join error: {}", err))?
-}
-
-/// Get aggregate statistics for sessions.
-///
-/// Optionally filter by session IDs or key source.
-#[tauri::command]
-pub async fn session_get_aggregate_stats(
-    session_ids: Option<Vec<String>>,
-    key_source: Option<String>,
-) -> Result<AggregateStats, String> {
-    tokio::task::spawn_blocking(move || {
-        let filter = SessionFilter {
-            key_source,
-            include_stats: Some(false),
-            ..SessionFilter::default()
-        };
-
-        let response = list_all_sessions(Some(&filter))?;
-
-        let sessions: Vec<SessionAggregateRecord> = if let Some(ids) = session_ids {
-            response
-                .sessions
-                .into_iter()
-                .filter(|session| ids.contains(&session.session_id))
-                .collect()
-        } else {
-            response.sessions
-        };
-
-        compute_aggregate_stats_with_accounting(&sessions)
-    })
-    .await
-    .map_err(|err| format!("Task join error: {}", err))?
-}
-
-/// Get session history with metrics for the History page.
-///
-/// This replaces the frontend's useSessionHistory hook's complex mapping logic.
-#[tauri::command]
-pub async fn session_get_history(
-    repo_id: Option<String>,
-    limit: Option<usize>,
-    offset: Option<usize>,
-) -> Result<SessionHistoryResponse, String> {
-    tokio::task::spawn_blocking(move || {
-        let filter = SessionFilter {
-            repo_path: repo_id,
-            limit,
-            include_stats: Some(false),
-            ..Default::default()
-        };
-
-        let response = list_all_sessions(Some(&filter))?;
-
-        Ok(build_history_response(&response.sessions, offset))
-    })
-    .await
-    .map_err(|err| format!("Task join error: {}", err))?
-}
-
-/// Get a prompt-cache-aware token and cost summary for one session.
-#[tauri::command]
-pub async fn session_usage_summary(session_id: String) -> Result<SessionUsageSummary, String> {
-    tokio::task::spawn_blocking(move || build_session_usage_summary(&session_id))
-        .await
-        .map_err(|err| format!("Task join error: {}", err))?
-}
-
-/// Get activity heatmap data from the shared unified stats/orgtrack pipeline.
-#[tauri::command]
-pub async fn session_heatmap(
-    filter: Option<SessionHeatmapFilter>,
-) -> Result<SessionHeatmapResponse, String> {
-    tokio::task::spawn_blocking(move || query_session_heatmap(filter.as_ref()))
-        .await
-        .map_err(|err| format!("Task join error: {}", err))?
 }

@@ -784,7 +784,7 @@ fn persist_runtime_orgtrack_records(
     Ok(())
 }
 
-fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, String> {
+pub(crate) fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, String> {
     let Some(record) =
         agent_core::session::persistence::get_session(session_id).map_err(|err| err.to_string())?
     else {

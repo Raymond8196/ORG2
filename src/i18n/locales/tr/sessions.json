@@ -799,13 +799,6 @@
         "heatmap": "Trendler",
         "runtime": "Çalışma zamanı"
       },
-      "heatmap": {
-        "loading": "Etkinlik trendleri yükleniyor…",
-        "empty": "Henüz oturum etkinliği yok.",
-        "sessions": "Oturumlar",
-        "tokens": "Tokens",
-        "cost": "Maliyet"
-      },
       "quota": {
         "empty": "Henüz quota verisi yok. Key Vault'tan kullanımı yenileyin.",
         "refresh": "Yenile",

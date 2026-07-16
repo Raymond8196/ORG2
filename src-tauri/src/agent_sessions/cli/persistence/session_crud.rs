@@ -14,6 +14,17 @@ pub(super) fn now_iso() -> String {
     Utc::now().to_rfc3339()
 }
 
+/// Best-effort mirror of the session row into orgtrack's canonical store.
+/// Runs after writes that change fields orgtrack surfaces (title, status,
+/// model, exec mode); never fails the primary write.
+fn sync_orgtrack_mirror(session_id: &str) {
+    if let Err(err) =
+        crate::agent_sessions::session_directory::orgtrack_adapter::upsert_cli_session(session_id)
+    {
+        tracing::warn!(session_id, error = %err, "[cli-persistence] orgtrack session mirror failed");
+    }
+}
+
 /// Create a new code session. Returns the session ID.
 pub fn create_session(
     session_id: &str,
@@ -95,7 +106,9 @@ pub fn create_session(
         ],
     )?;
 
-    get_session(session_id)?.ok_or(rusqlite::Error::QueryReturnedNoRows)
+    let session = get_session(session_id)?.ok_or(rusqlite::Error::QueryReturnedNoRows)?;
+    sync_orgtrack_mirror(session_id);
+    Ok(session)
 }
 
 /// Column list shared by get_session and list_sessions.
@@ -158,6 +171,9 @@ pub fn update_status(session_id: &str, status: SessionStatus) -> SqliteResult<bo
             params![session_id, status.as_ref(), now],
         )?
     };
+    if affected > 0 {
+        sync_orgtrack_mirror(session_id);
+    }
     Ok(affected > 0)
 }
 
@@ -180,6 +196,9 @@ pub fn update_status_with_error(
             params![session_id, status.as_ref(), error, now],
         )?
     };
+    if affected > 0 {
+        sync_orgtrack_mirror(session_id);
+    }
     Ok(affected > 0)
 }
 
@@ -390,6 +409,9 @@ pub fn update_name(session_id: &str, name: &str) -> SqliteResult<bool> {
         "UPDATE code_sessions SET name = ?2 WHERE session_id = ?1",
         params![session_id, name],
     )?;
+    if affected > 0 {
+        sync_orgtrack_mirror(session_id);
+    }
     Ok(affected > 0)
 }
 
@@ -452,6 +474,9 @@ pub fn update_model_and_account(
         (None, None) => 0,
     };
     tx.commit()?;
+    if affected > 0 {
+        sync_orgtrack_mirror(session_id);
+    }
     Ok(affected > 0)
 }
 
@@ -469,6 +494,9 @@ pub fn update_agent_exec_mode(session_id: &str, mode: &str) -> SqliteResult<bool
         "UPDATE code_sessions SET agent_exec_mode = ?2 WHERE session_id = ?1",
         params![session_id, parsed.as_str()],
     )?;
+    if affected > 0 {
+        sync_orgtrack_mirror(session_id);
+    }
     Ok(affected > 0)
 }
 

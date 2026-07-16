@@ -13,6 +13,31 @@ use database::db::{get_connection, with_sessions_writer};
 use super::super::super::types::{SessionListFilter, SessionStatus};
 use super::record::{row_to_record, session_type, UnifiedSessionRecord, UNIFIED_SESSION_SELECT};
 
+/// Process-global mirror hook, registered once at app startup (see
+/// `lib.rs` setup). Fired after a successful write to any column the
+/// orgtrack canonical session store carries (name, status, model,
+/// account, exec mode, org member, full upserts), so orgtrack follows
+/// session writes instead of piggybacking on list queries. Composer
+/// state (draft text, reply target, pinned) never fires it.
+///
+/// Called outside the sessions-writer guard: the hook may open its own
+/// connections and write other tables without extending writer lock
+/// hold time. Bulk repair paths (`mark_stale_running_sessions_abandoned`,
+/// `reconcile_sessions_with_terminal_turn_markers`) do not fire it —
+/// affected rows re-mirror on their next per-session write.
+static SESSION_MIRROR_HOOK: std::sync::OnceLock<fn(&str)> = std::sync::OnceLock::new();
+
+/// Register the mirror hook. First registration wins; later calls no-op.
+pub fn register_session_mirror_hook(hook: fn(&str)) {
+    let _ = SESSION_MIRROR_HOOK.set(hook);
+}
+
+fn notify_session_mirror(session_id: &str) {
+    if let Some(hook) = SESSION_MIRROR_HOOK.get() {
+        hook(session_id);
+    }
+}
+
 /// SQL statement used by [`upsert_session`].
 ///
 /// Lives at module scope (not inside the function) so the round-trip
@@ -100,7 +125,7 @@ ON CONFLICT(session_id) DO UPDATE SET
 
 /// Upsert a unified session.
 pub fn upsert_session(record: &UnifiedSessionRecord) -> SqliteResult<()> {
-    with_sessions_writer(|| {
+    with_sessions_writer(|| -> SqliteResult<()> {
         let conn = get_connection()?;
         let key_source_str = record.key_source.as_ref();
         conn.execute(
@@ -142,7 +167,9 @@ pub fn upsert_session(record: &UnifiedSessionRecord) -> SqliteResult<()> {
             ],
         )?;
         Ok(())
-    })
+    })?;
+    notify_session_mirror(&record.session_id);
+    Ok(())
 }
 
 /// Get a session by ID.
@@ -257,7 +284,7 @@ pub fn mark_stale_running_sessions_abandoned() -> SqliteResult<usize> {
 
 /// Update session status.
 pub fn update_status(session_id: &str, status: SessionStatus) -> SqliteResult<bool> {
-    with_sessions_writer(|| {
+    let changed = with_sessions_writer(|| -> SqliteResult<bool> {
         let conn = get_connection()?;
         let now = Utc::now().to_rfc3339();
         let updated = conn.execute(
@@ -265,7 +292,11 @@ pub fn update_status(session_id: &str, status: SessionStatus) -> SqliteResult<bo
             params![session_id, status.as_str(), now],
         )?;
         Ok(updated > 0)
-    })
+    })?;
+    if changed {
+        notify_session_mirror(session_id);
+    }
+    Ok(changed)
 }
 
 /// Atomically persist the durable terminal-turn marker and the UI-visible
@@ -283,7 +314,7 @@ pub fn finalize_terminal_turn_status(
     session_status: SessionStatus,
     completed_at: &str,
 ) -> SqliteResult<bool> {
-    with_sessions_writer(|| {
+    let changed = with_sessions_writer(|| -> SqliteResult<bool> {
         let conn = get_connection()?;
         let updated = conn.execute(
             "UPDATE agent_sessions
@@ -302,7 +333,11 @@ pub fn finalize_terminal_turn_status(
             ],
         )?;
         Ok(updated > 0)
-    })
+    })?;
+    if changed {
+        notify_session_mirror(session_id);
+    }
+    Ok(changed)
 }
 
 /// Repair rows that still say `running` even though this backend has already
@@ -378,14 +413,18 @@ pub fn update_work_item_link(
 
 /// Set the canonical Agent Org roster member id for a session.
 pub fn update_org_member_id(session_id: &str, org_member_id: &str) -> SqliteResult<bool> {
-    with_sessions_writer(|| {
+    let changed = with_sessions_writer(|| -> SqliteResult<bool> {
         let conn = get_connection()?;
         let updated = conn.execute(
             "UPDATE agent_sessions SET org_member_id = ?2 WHERE session_id = ?1",
             params![session_id, org_member_id],
         )?;
         Ok(updated > 0)
-    })
+    })?;
+    if changed {
+        notify_session_mirror(session_id);
+    }
+    Ok(changed)
 }
 
 // `updated_at` invariant
@@ -412,40 +451,48 @@ pub fn update_org_member_id(session_id: &str, org_member_id: &str) -> SqliteResu
 /// Update the display name for a session. Does not bump `updated_at` —
 /// renaming is metadata, not conversation activity.
 pub fn update_name(session_id: &str, name: &str) -> SqliteResult<bool> {
-    with_sessions_writer(|| {
+    let changed = with_sessions_writer(|| -> SqliteResult<bool> {
         let conn = get_connection()?;
         let affected = conn.execute(
             "UPDATE agent_sessions SET name = ?2 WHERE session_id = ?1",
             params![session_id, name],
         )?;
         Ok(affected > 0)
-    })
+    })?;
+    if changed {
+        notify_session_mirror(session_id);
+    }
+    Ok(changed)
 }
 
 /// Update the model for a session. Does not bump `updated_at` —
 /// switching models is config, not activity.
 pub fn update_model(session_id: &str, model: &str) -> SqliteResult<()> {
-    with_sessions_writer(|| {
+    with_sessions_writer(|| -> SqliteResult<()> {
         let conn = get_connection()?;
         conn.execute(
             "UPDATE agent_sessions SET model = ?2 WHERE session_id = ?1",
             params![session_id, model],
         )?;
         Ok(())
-    })
+    })?;
+    notify_session_mirror(session_id);
+    Ok(())
 }
 
 /// Update the account_id for a session. Does not bump `updated_at`
 /// (see invariant note above).
 pub fn update_account_id(session_id: &str, account_id: &str) -> SqliteResult<()> {
-    with_sessions_writer(|| {
+    with_sessions_writer(|| -> SqliteResult<()> {
         let conn = get_connection()?;
         conn.execute(
             "UPDATE agent_sessions SET account_id = ?2 WHERE session_id = ?1",
             params![session_id, account_id],
         )?;
         Ok(())
-    })
+    })?;
+    notify_session_mirror(session_id);
+    Ok(())
 }
 
 /// Atomically update `model` and `account_id` together.
@@ -461,7 +508,7 @@ pub fn update_model_and_account(
     model: &str,
     account_id: Option<&str>,
 ) -> SqliteResult<bool> {
-    with_sessions_writer(|| {
+    let changed = with_sessions_writer(|| -> SqliteResult<bool> {
         let conn = get_connection()?;
         let affected = if let Some(acc_id) = account_id {
             conn.execute(
@@ -475,7 +522,11 @@ pub fn update_model_and_account(
             )?
         };
         Ok(affected > 0)
-    })
+    })?;
+    if changed {
+        notify_session_mirror(session_id);
+    }
+    Ok(changed)
 }
 
 /// Update the per-session execution mode (`build` / `ask` /
@@ -488,14 +539,18 @@ pub fn update_model_and_account(
 ///
 /// Does not bump `updated_at` (see invariant note above).
 pub fn update_agent_exec_mode(session_id: &str, mode: &str) -> SqliteResult<bool> {
-    with_sessions_writer(|| {
+    let changed = with_sessions_writer(|| -> SqliteResult<bool> {
         let conn = get_connection()?;
         let affected = conn.execute(
             "UPDATE agent_sessions SET agent_exec_mode = ?2 WHERE session_id = ?1",
             params![session_id, mode],
         )?;
         Ok(affected > 0)
-    })
+    })?;
+    if changed {
+        notify_session_mirror(session_id);
+    }
+    Ok(changed)
 }
 
 /// Update the per-session unsent draft text. `text = None` clears the

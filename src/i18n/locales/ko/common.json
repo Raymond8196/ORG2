@@ -1884,15 +1884,6 @@
     "lastActive": "마지막 활동: {{date}}",
     "activeNow": "현재 활동 중: {{ides}}",
     "active": "활성",
-    "tabs": {
-      "activity": "활동",
-      "focus": "집중",
-      "languages": "언어",
-      "heatmap": "히트맵",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI 세션",
     "cliPrompt": "프롬프트",
     "cliMessages": "메시지",

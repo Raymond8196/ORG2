@@ -1997,15 +1997,6 @@
     "lastActive": "Last active: {{date}}",
     "activeNow": "Active now: {{ides}}",
     "active": "Active",
-    "tabs": {
-      "activity": "Activity",
-      "focus": "Focus",
-      "languages": "Languages",
-      "heatmap": "Heatmap",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI Sessions",
     "cliPrompt": "Prompt",
     "cliMessages": "Messages",

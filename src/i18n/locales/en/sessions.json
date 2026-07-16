@@ -827,13 +827,6 @@
         "heatmap": "Trends",
         "runtime": "Runtime"
       },
-      "heatmap": {
-        "loading": "Loading activity trends…",
-        "empty": "No session activity yet.",
-        "sessions": "Sessions",
-        "tokens": "Tokens",
-        "cost": "Cost"
-      },
       "quota": {
         "empty": "No quota data yet. Refresh usage from Key Vault.",
         "refresh": "Refresh",

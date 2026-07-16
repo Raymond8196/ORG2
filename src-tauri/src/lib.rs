@@ -462,6 +462,16 @@ pub fn run() {
             // ad-hoc tokio runtime.
             agent_core::specialization::memory::consolidation::spawn_consolidation_tick();
 
+            // Mirror Rust-agent session writes (status, name, model, …) into
+            // orgtrack's canonical session store. Registered once here so the
+            // agent-core persistence layer stays orgtrack-agnostic; CLI
+            // sessions mirror through their own persistence write path.
+            agent_core::session::persistence::register_session_mirror_hook(|session_id| {
+                if let Err(err) = crate::agent_sessions::session_directory::orgtrack_adapter::upsert_rust_agent_session(session_id) {
+                    tracing::warn!(session_id, error = %err, "[session-mirror] orgtrack session mirror failed");
+                }
+            });
+
 
             // Create WebSocket broadcast channel for real-time events
             let (ws_tx, _ws_rx) = tokio::sync::broadcast::channel::<String>(1000);

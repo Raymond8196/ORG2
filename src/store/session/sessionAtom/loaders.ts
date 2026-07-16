@@ -342,7 +342,6 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
       ...filter,
       limit: filter?.limit ?? DEFAULT_FLAT_LIST_PAGE_SIZE,
       includeExternalHistory: true,
-      includeStats: false,
       sortBy: filter?.sortBy ?? "updated_at",
       sortOrder: filter?.sortOrder ?? "desc",
       disabledExternalHistorySources:
@@ -388,7 +387,6 @@ async function fetchAggregatePage(
   const response = await sessionAggregateList({
     category: wireCategory,
     includeExternalHistory: false,
-    includeStats: false,
     limit: pageSize + 1,
     offset,
     sortBy: "updated_at",
@@ -577,7 +575,6 @@ export const loadSidebarSessionById = async (
   const response = await sessionAggregateList({
     sessionIds: [normalizedSessionId],
     includeExternalHistory: true,
-    includeStats: false,
     limit: 1,
   });
   const session = toFrontendSessions(response.sessions).find(

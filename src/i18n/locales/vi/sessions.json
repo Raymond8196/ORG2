@@ -796,13 +796,6 @@
         "heatmap": "Xu hướng",
         "runtime": "Thời gian chạy"
       },
-      "heatmap": {
-        "loading": "Đang tải xu hướng hoạt động…",
-        "empty": "Chưa có hoạt động phiên.",
-        "sessions": "Phiên",
-        "tokens": "Tokens",
-        "cost": "Chi phí"
-      },
       "quota": {
         "empty": "Chưa có dữ liệu quota. Hãy làm mới mức sử dụng từ Key Vault.",
         "refresh": "Làm mới",
