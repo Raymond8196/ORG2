@@ -496,8 +496,14 @@ pub fn run() {
             #[cfg(debug_assertions)]
             api::init_app_handle(app.handle().clone());
 
-            // Start unified IDE server (Git API + Search API + WebSocket) in background thread
-            std::thread::spawn(move || match tokio::runtime::Runtime::new() {
+            // Start unified IDE server (Git API + Search API + WebSocket) in background
+            // thread. Local single-user server: a small worker cap serves it fine and
+            // avoids a full core-count worker pool (the app spawns several runtimes).
+            std::thread::spawn(move || match tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(4)
+                .enable_all()
+                .build()
+            {
                 Ok(rt) => {
                     rt.block_on(async {
                         match api::start_server(ws_tx).await {

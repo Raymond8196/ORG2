@@ -117,7 +117,7 @@ const SESSION_COLUMNS: &str =
     "cs.session_id, cs.name, cs.status, cs.flow, cs.runner,
      COALESCE(cs.cli_agent_type, cs.platform), cs.model, cs.tier, cs.account_id, cs.repo_path, cs.branch, cs.user_input,
      cs.proxy_token, cs.proxy_url, cs.hosted_token, cs.error_message,
-     COALESCE((SELECT SUM(total_tokens) FROM session_token_usage WHERE session_id = cs.session_id), 0),
+     COALESCE((SELECT total_tokens FROM orgtrack_core_session_usage WHERE session_id = cs.session_id), 0),
      cs.pid, cs.cli_session_id, cs.proxy_session_id,
      cs.worktree_path, cs.worktree_branch, cs.base_branch, cs.merge_status,
      COALESCE(cs.background, 0),
