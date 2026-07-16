@@ -376,7 +376,7 @@ export const chatPanelSelectedWorkspaceAtom =
 chatPanelSelectedWorkspaceAtom.debugLabel = "chatPanelSelectedWorkspaceAtom";
 
 /**
- * Managed ORG2 Cloud org selected for the read-only CLOUD_ORG panel
+ * Managed ORG2 Cloud org selected for the CLOUD_ORG management panel
  * (cloud orgs come from the managed backend, `org2CloudOrgsAtom`).
  */
 export interface ChatPanelSelectedCloudOrg {

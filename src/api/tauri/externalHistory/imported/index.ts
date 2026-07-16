@@ -3,7 +3,11 @@ import type { ActivityChunk } from "@src/types/session/session";
 import type { DispatchCategory } from "../../session";
 import { cursorIdeChunks, cursorIdeInitialWindow } from "../cursorIde";
 import type { ExternalCliSourceProbe } from "../detection";
-import { claudeCodeHistoryChunks } from "../sources/claudeCode";
+import {
+  type ImportedTranscriptStat,
+  claudeCodeHistoryChunks,
+  claudeCodeHistoryStat,
+} from "../sources/claudeCode";
 import { clineHistoryChunks } from "../sources/cline";
 import { codexAppChunks } from "../sources/codexApp";
 import { opencodeHistoryChunks } from "../sources/opencode";
@@ -26,12 +30,21 @@ export type {
 };
 export { IMPORTED_HISTORY_SOURCE_DESCRIPTORS };
 
+export type { ImportedTranscriptStat };
+
 export interface ImportedHistorySource extends ImportedHistorySourceDescriptor {
   dispatchCategory: Extract<DispatchCategory, "external_history">;
   /** Fast/windowed transcript used when the user opens the local history. */
   loadPreviewChunks(sessionId: string): Promise<ActivityChunk[]>;
   /** Complete source transcript used for cloud replay/fork publication. */
   loadFullTranscriptChunks(sessionId: string): Promise<ActivityChunk[]>;
+  /**
+   * Optional freshness probe (one backend `stat`). When present, the replay
+   * auto-refresh compares it against the previous tick and skips the full
+   * read/parse/merge pipeline while the transcript is unchanged. Sources
+   * without it simply refresh unconditionally.
+   */
+  statTranscript?(sessionId: string): Promise<ImportedTranscriptStat | null>;
 }
 
 const CURSOR_IDE_INITIAL_RECENT_BUBBLE_LIMIT = 100;
@@ -73,6 +86,7 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     dispatchCategory: "external_history",
     loadPreviewChunks: claudeCodeHistoryChunks,
     loadFullTranscriptChunks: claudeCodeHistoryChunks,
+    statTranscript: claudeCodeHistoryStat,
   },
   {
     ...descriptorFor("opencode"),
