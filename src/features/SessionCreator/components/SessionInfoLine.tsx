@@ -37,7 +37,9 @@ import {
   isSystemHomeRepoItem,
   isSystemPathRepoItem,
 } from "@src/features/SessionCreator/utils/systemPathSource";
+import { useActiveCloudOrgRepoFilter } from "@src/features/TeamCollaboration/useActiveCloudOrgRepoFilter";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { useRepoState } from "@src/hooks/git/useRepoState";
 import { BranchPalette } from "@src/scaffold/GlobalSpotlight/palettes/BranchPalette";
 import { BranchDropdown } from "@src/scaffold/GlobalSpotlight/palettes/BranchPalette/BranchDropdown";
 import { WorkspacePalette } from "@src/scaffold/GlobalSpotlight/palettes/WorkspacePalette";
@@ -369,6 +371,37 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   const systemPathSourceItems = useSystemPathRepoItems(includeSystemPaths, t);
   const branchRepoPath = selectedWorktreePath ?? repoPath ?? "";
 
+  // Active cloud org scope: the workspace picker only offers in-scope repos,
+  // and a stale out-of-scope selection (e.g. the persisted default from a
+  // personal-scope session) is swapped to the first in-scope repo — sessions
+  // created here must land visible in the org view, never silently in
+  // Personal. Event-driven: runs on scope switch / repo-list / resolution
+  // changes only.
+  const orgScopeRepoFilter = useActiveCloudOrgRepoFilter();
+  const { repos: centralRepos } = useRepoState();
+  useEffect(() => {
+    if (!orgScopeRepoFilter || disabled) return;
+    if (!repoId || centralRepos.length === 0) return;
+    const current = centralRepos.find((repo) => repo.id === repoId);
+    if (!current || orgScopeRepoFilter(current)) return;
+    const fallback = centralRepos.find((repo) => orgScopeRepoFilter(repo));
+    if (!fallback) return;
+    // queueMicrotask: the selection callbacks set state synchronously, which
+    // the set-state-in-effect lint (correctly) rejects inline.
+    queueMicrotask(() =>
+      handleRepoSelected(fallback.id, {
+        id: fallback.id,
+        name: fallback.name,
+        description: fallback.description,
+        repo_url: fallback.repo_url,
+        branch: fallback.branch,
+        fs_uri: fallback.fs_uri,
+        workspace_uuid: fallback.workspace_uuid,
+        kind: fallback.kind,
+      })
+    );
+  }, [orgScopeRepoFilter, disabled, repoId, centralRepos, handleRepoSelected]);
+
   const handleBranchSelect = useCallback(
     async (branch: string) => {
       if (!repoId || !branchRepoPath || repoKind === REPO_KIND.FOLDER) {
@@ -615,6 +648,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
           currentRepoId={repoId}
           anchorRef={repoTriggerRef}
           leadingRepos={systemPathSourceItems}
+          repoFilter={orgScopeRepoFilter ?? undefined}
         />
       ) : (
         <WorkspacePalette
@@ -625,6 +659,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
           switchPathLabel={t("selectors.sessionInfo.sessionWorkspace")}
           hideActionClose
           leadingRepos={systemPathSourceItems}
+          repoFilter={orgScopeRepoFilter ?? undefined}
         />
       )}
 

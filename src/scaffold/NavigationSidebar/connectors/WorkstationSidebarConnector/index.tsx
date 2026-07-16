@@ -473,6 +473,20 @@ export const WorkstationSidebarConnector: React.FC = () => {
     return ids;
   }, [activeCloudOrgId, sessionOrgTags]);
 
+  // The mirror rule for the Personal scope: a session living in a cloud org
+  // (explicit tag) is HIDDEN from Personal — it moves back only when the tag
+  // is removed (MoveToOrgDialog / the engine's out-of-scope invalidation).
+  const personalHiddenCloudTaggedIds = useMemo(() => {
+    if (activeOrgId !== DEFAULT_SESSION_ORG_ID) return undefined;
+    const ids = new Set<string>();
+    for (const sessionId of Object.keys(sessionOrgTags)) {
+      if (cloudOrgIdsForSession(sessionOrgTags, sessionId).length > 0) {
+        ids.add(sessionId);
+      }
+    }
+    return ids.size > 0 ? ids : undefined;
+  }, [activeOrgId, sessionOrgTags]);
+
   // Per-org filter for the cloud "Team sessions" section.
   const [cloudSessionFilters, setCloudSessionFilters] = useState<
     Map<string, CloudSessionFilter>
@@ -510,6 +524,20 @@ export const WorkstationSidebarConnector: React.FC = () => {
     onFilterChange: handleCloudSessionFilterChange,
   });
 
+  // Threaded position wins: mine-rows shown inside a fork thread leave the
+  // flat local list (sessionMap keeps them for click routing). Under the
+  // Personal scope, cloud-tagged sessions are excluded as well.
+  const sessionListExcludedIds = useMemo(() => {
+    if (!personalHiddenCloudTaggedIds) return cloudThreadedLocalSessionIds;
+    if (cloudThreadedLocalSessionIds.size === 0) {
+      return personalHiddenCloudTaggedIds;
+    }
+    return new Set([
+      ...cloudThreadedLocalSessionIds,
+      ...personalHiddenCloudTaggedIds,
+    ]);
+  }, [cloudThreadedLocalSessionIds, personalHiddenCloudTaggedIds]);
+
   const {
     menuItems,
     sessionMap,
@@ -525,9 +553,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     searchQuery: sidebarSearchQueries.workstation,
     selectedOrgIds: sessionFilterOrgIds,
     extraSessionIds: cloudTaggedSessionIds,
-    // Threaded position wins: mine-rows shown inside a fork thread leave
-    // the flat local list (sessionMap keeps them for click routing).
-    excludedSessionIds: cloudThreadedLocalSessionIds,
+    excludedSessionIds: sessionListExcludedIds,
     includeExternal,
     groupVisibleCounts,
     expandedSubagentParentIds,

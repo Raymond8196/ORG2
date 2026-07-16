@@ -68,6 +68,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
   switchPathLabel,
   hideActionClose = false,
   leadingRepos = [],
+  repoFilter,
   onGoBackToParent,
 }) => {
   const { t } = useTranslation();
@@ -434,6 +435,20 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
     [handleRemoveRepo, t]
   );
 
+  const eligibleFilteredRepos = useMemo(
+    () => (repoFilter ? filteredRepos.filter(repoFilter) : filteredRepos),
+    [filteredRepos, repoFilter]
+  );
+  const eligibleExternalRecentRepos = useMemo(
+    () =>
+      repoFilter ? externalRecentRepos.filter(repoFilter) : externalRecentRepos,
+    [externalRecentRepos, repoFilter]
+  );
+  const eligibleLeadingRepos = useMemo(
+    () => (repoFilter ? leadingRepos.filter(repoFilter) : leadingRepos),
+    [leadingRepos, repoFilter]
+  );
+
   const mainItems = useMemo(
     (): SpotlightItem[] =>
       buildSectionedWorkspaceItems({
@@ -441,13 +456,13 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
         sectionedAddItems,
         workspaceItems,
         openPathItem,
-        filteredRepos,
-        externalRecentRepos,
+        filteredRepos: eligibleFilteredRepos,
+        externalRecentRepos: eligibleExternalRecentRepos,
         recentCachedRepos: cachedRepos,
         currentRepoId,
         isMultiRoot,
         isManageMode,
-        leadingRepos,
+        leadingRepos: eligibleLeadingRepos,
         selectedIds,
         searchQuery,
         paletteText,
@@ -472,13 +487,13 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
       addMenuKind,
       cachedRepos,
       currentRepoId,
-      externalRecentRepos,
-      filteredRepos,
+      eligibleExternalRecentRepos,
+      eligibleFilteredRepos,
       handleExternalRecentSelect,
       handleRepoSelectWithWorkspaceExit,
       isManageMode,
       isMultiRoot,
-      leadingRepos,
+      eligibleLeadingRepos,
       openPathItem,
       paletteText,
       renderRepoTrashAction,
