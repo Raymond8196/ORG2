@@ -54,6 +54,12 @@ export interface UseWorkspacePaletteWorkspaceOptions {
   searchQuery: string;
   /** multiRepoWorkspaceForm from useAddWorkspaceFlow — only `setEditingWorkspace` is needed */
   setEditingWorkspace: (ws: WorkspaceRecord) => void;
+  /**
+   * Row eligibility predicate (e.g. active cloud org repo scope), applied
+   * to the workspace's PRIMARY folder — the path a session launched from
+   * this workspace reports as its repoPath.
+   */
+  repoFilter?: (repo: { fs_uri?: string | null }) => boolean;
 }
 
 export interface UseWorkspacePaletteWorkspaceReturn {
@@ -108,6 +114,7 @@ export function useWorkspacePaletteWorkspace({
   refreshReposForce,
   searchQuery,
   setEditingWorkspace,
+  repoFilter,
 }: UseWorkspacePaletteWorkspaceOptions): UseWorkspacePaletteWorkspaceReturn {
   const { t } = useTranslation();
   const [savedWorkspaces, setSavedWorkspaces] = useAtom(savedWorkspacesAtom);
@@ -323,7 +330,16 @@ export function useWorkspacePaletteWorkspace({
   });
 
   const workspaceItems = useMemo((): SpotlightItem[] => {
-    const orderedWorkspaces = [...filteredWorkspaces].sort(
+    const eligibleWorkspaces = repoFilter
+      ? filteredWorkspaces.filter((ws) =>
+          repoFilter({
+            fs_uri:
+              ws.folders.find((folder) => folder.isPrimary)?.folderPath ??
+              ws.folders[0]?.folderPath,
+          })
+        )
+      : filteredWorkspaces;
+    const orderedWorkspaces = [...eligibleWorkspaces].sort(
       (workspaceA, workspaceB) => {
         if (workspaceA.workspaceId === activeWorkspaceId) return -1;
         if (workspaceB.workspaceId === activeWorkspaceId) return 1;
@@ -403,6 +419,7 @@ export function useWorkspacePaletteWorkspace({
     });
   }, [
     filteredWorkspaces,
+    repoFilter,
     activeWorkspaceId,
     handleWorkspaceSelect,
     handleEditWorkspace,

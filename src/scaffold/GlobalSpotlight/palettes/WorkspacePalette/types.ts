@@ -33,8 +33,12 @@ export interface WorkspacePaletteProps extends BasePaletteProps {
   /**
    * Row eligibility predicate (e.g. active cloud org repo scope). Applied
    * to every source — leading, workspace, and external-recent rows.
+   * Multi-repo workspaces are judged by their PRIMARY folder.
    */
-  repoFilter?: (repo: RepoItem) => boolean;
+  repoFilter?: (repo: {
+    repo_url?: string | null;
+    fs_uri?: string | null;
+  }) => boolean;
 }
 
 export interface WorkspacePaletteText {
