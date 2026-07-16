@@ -403,7 +403,7 @@ chatPanelExploreAgentSearchEnabledAtom.debugLabel =
 
 /**
  * Selected tab on the chat-panel workspace overview surface
- * (`WorkspaceOverviewPanelView`). The overview/details/recent-session split is
+ * (`WorkspaceOverviewPanelView`). The overview/details split is
  * orthogonal to which workspace is selected; entry points that drill
  * into a specific repo (e.g. the dashboard's "Open details" button)
  * set this to `"details"` along with `chatPanelSelectedWorkspaceAtom`.
@@ -415,7 +415,6 @@ chatPanelExploreAgentSearchEnabledAtom.debugLabel =
 export const WORKSPACE_OVERVIEW_TAB = {
   OVERVIEW: "overview",
   DETAILS: "details",
-  RECENT_SESSION: "recentSession",
 } as const;
 
 export type WorkspaceOverviewTab =
