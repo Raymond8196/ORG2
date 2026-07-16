@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom, useStore } from "jotai";
-import { Airplay, Import, Network } from "lucide-react";
+import { Airplay, Network } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -32,7 +32,6 @@ import type {
   SessionLaunchSuccessInfo,
   SessionLaunchWorkItemContext,
 } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
-import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import type { SessionCreatorLaunchMode } from "@src/features/SessionCreator/types";
 import {
   SYSTEM_HOME_SOURCE_ID,
@@ -173,7 +172,6 @@ const SessionCreatorChatPanelSingle: React.FC<
   resolveWorkItemContext,
 }) => {
   const { t } = useTranslation("sessions");
-  const { t: tNav } = useTranslation("navigation");
   const browserAddToConversationNav = useBrowserAddToConversationAction();
   const { registry } = useAgentCompatibility();
   const { orgs } = useAgentOrgs();
@@ -367,8 +365,6 @@ const SessionCreatorChatPanelSingle: React.FC<
   const [openOrgMembersPanelId, setOpenOrgMembersPanelId] = useState<
     string | null
   >(null);
-  const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
-    useState(false);
   const isOrgMembersPanelOpen =
     targetKind === SESSION_TARGET_KIND.AGENT_ORG &&
     Boolean(selectedAgentOrgId) &&
@@ -1013,20 +1009,6 @@ const SessionCreatorChatPanelSingle: React.FC<
                     repoPath={currentRepoPath}
                     onWorkItemContextChange={setAttachedWorkItemContext}
                   />
-                  <Button
-                    variant="secondary"
-                    appearance="outline"
-                    size="small"
-                    shape="round"
-                    icon={<Import size={14} strokeWidth={1.75} />}
-                    title={tNav("cloud.share.importEntry")}
-                    aria-label={tNav("cloud.share.importEntry")}
-                    onClick={() => setIsImportSessionDialogOpen(true)}
-                    className="shrink-0"
-                    data-testid="import-session-trigger"
-                  >
-                    {tNav("cloud.share.importEntry")}
-                  </Button>
                   {selectedOrg && (
                     <Button
                       variant="secondary"
@@ -1124,11 +1106,6 @@ const SessionCreatorChatPanelSingle: React.FC<
           onClose={() => setScreenPickerMonitors(null)}
         />
       )}
-
-      <ImportSharedSessionDialog
-        visible={isImportSessionDialogOpen}
-        onClose={() => setIsImportSessionDialogOpen(false)}
-      />
     </div>
   );
 };

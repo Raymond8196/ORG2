@@ -500,6 +500,205 @@ function installTimerTracking(): (() => void) | undefined {
   };
 }
 
+// ============================================
+// Native fetch() tracking
+//
+// axios interceptors only see axios traffic, but a large share of backend
+// calls (IDE server on :13847 — git status, file content, tab verification,
+// SSE bootstraps) go through bare `fetch()`. Patch it while tracking is
+// enabled so those calls appear in the panel too.
+// ============================================
+
+let fetchTrackingPatched = false;
+
+function describeFetchTarget(input: RequestInfo | URL): {
+  url: string;
+  method?: string;
+} {
+  if (typeof input === "string") return { url: input };
+  if (input instanceof URL) return { url: input.href };
+  return { url: input.url, method: input.method };
+}
+
+function isFetchNoise(url: string): boolean {
+  // webpack HMR manifests/chunks would drown real API traffic in dev.
+  return url.includes("hot-update") || url.includes("__webpack");
+}
+
+function installFetchTracking(): (() => void) | undefined {
+  if (fetchTrackingPatched || typeof window === "undefined") return undefined;
+
+  const originalFetch = window.fetch.bind(window);
+
+  const patchedFetch: typeof window.fetch = async (input, init) => {
+    const target = describeFetchTarget(input as RequestInfo | URL);
+    if (!trackingEnabled || isFetchNoise(target.url)) {
+      return originalFetch(input, init);
+    }
+
+    const requestId = generateRequestId();
+    const stack = getApiStack();
+    const fileInfo = extractFileInfo(stack);
+    const componentInfo = getComponentInfo();
+    const method = (init?.method || target.method || "GET").toUpperCase();
+
+    const apiCall: ApiCall = {
+      id: requestId,
+      method,
+      url: target.url,
+      fullUrl: target.url,
+      backend: "python",
+      data: init?.body,
+      timestamp: new Date().toISOString(),
+      componentSelector: componentInfo.selector,
+      componentLabel: componentInfo.label,
+      interactionType: detectInteractionType(),
+      filePath: fileInfo.filePath,
+      componentName: fileInfo.componentName,
+      functionName: fileInfo.functionName,
+      lineNumber: fileInfo.lineNumber,
+      stack,
+    };
+    apiCalls.unshift(apiCall);
+    if (apiCalls.length > MAX_API_CALLS) {
+      apiCalls = apiCalls.slice(0, MAX_API_CALLS);
+    }
+    requestStartTimes.set(requestId, Date.now());
+
+    const finish = (status?: number, statusText?: string, error?: unknown) => {
+      const startTime = requestStartTimes.get(requestId);
+      apiCall.duration = startTime ? Date.now() - startTime : undefined;
+      requestStartTimes.delete(requestId);
+      apiCall.status = status;
+      apiCall.statusText = statusText;
+      if (error !== undefined) apiCall.error = error;
+      if (tracingModeEnabled) {
+        window.dispatchEvent(
+          new CustomEvent("api-call-updated", {
+            detail: { apiCall, totalCalls: apiCalls.length },
+          })
+        );
+      }
+    };
+
+    try {
+      const response = await originalFetch(input, init);
+      finish(response.status, response.statusText);
+      return response;
+    } catch (error) {
+      finish(undefined, "Network Error", error);
+      throw error;
+    }
+  };
+
+  try {
+    Object.defineProperty(window, "fetch", {
+      configurable: true,
+      value: patchedFetch,
+      writable: true,
+    });
+  } catch {
+    return undefined;
+  }
+  fetchTrackingPatched = true;
+
+  return () => {
+    try {
+      Object.defineProperty(window, "fetch", {
+        configurable: true,
+        value: originalFetch,
+        writable: true,
+      });
+    } finally {
+      fetchTrackingPatched = false;
+    }
+  };
+}
+
+// ============================================
+// Push-traffic tracking (backend → frontend)
+//
+// invoke/fetch tracking only sees frontend-INITIATED calls. A lot of load
+// arrives as pushes: Tauri events (`listen`), IPC channels, WebSocket and
+// SSE messages. Dispatch chokepoints call `recordPushEvent`, and the panel
+// aggregates them into per-name rates so "the backend is streaming X at
+// N/min" is visible next to the polling hotspots.
+// ============================================
+
+export type PushKind = "tauri-event" | "channel" | "ws" | "sse";
+
+interface PushEvent {
+  kind: PushKind;
+  name: string;
+  timestampMs: number;
+}
+
+export interface PushHotspot {
+  key: string;
+  kind: PushKind;
+  name: string;
+  count: number;
+  eventsPerMinute: number;
+  lastTimestamp: string;
+  firstTimestamp: string;
+  isLikelyStream: boolean;
+}
+
+const MAX_PUSH_EVENTS = 2000;
+const pushEvents: PushEvent[] = [];
+
+/**
+ * Record one backend-push delivery (Tauri event, IPC channel message,
+ * WebSocket message, SSE event). Cheap no-op while tracking is disabled —
+ * safe to call from hot dispatch paths.
+ */
+export function recordPushEvent(kind: PushKind, name: string): void {
+  if (!trackingEnabled) return;
+  pushEvents.push({ kind, name, timestampMs: Date.now() });
+  if (pushEvents.length > MAX_PUSH_EVENTS) {
+    pushEvents.splice(0, pushEvents.length - MAX_PUSH_EVENTS);
+  }
+}
+
+export function getPushHotspots(windowMs = 120_000): PushHotspot[] {
+  const now = Date.now();
+  const recent = pushEvents.filter(
+    (event) => now - event.timestampMs <= windowMs
+  );
+
+  const grouped = new Map<string, PushEvent[]>();
+  for (const event of recent) {
+    const key = `${event.kind}:${event.name}`;
+    const group = grouped.get(key);
+    if (group) group.push(event);
+    else grouped.set(key, [event]);
+  }
+
+  return Array.from(grouped.entries())
+    .map(([key, events]) => {
+      const timestamps = events.map((event) => event.timestampMs);
+      const firstMs = Math.min(...timestamps);
+      const lastMs = Math.max(...timestamps);
+      const eventsPerMinute = ratePerMinuteInWindow(events.length, windowMs);
+      return {
+        key,
+        kind: events[0].kind,
+        name: events[0].name,
+        count: events.length,
+        eventsPerMinute,
+        lastTimestamp: new Date(lastMs).toISOString(),
+        firstTimestamp: new Date(firstMs).toISOString(),
+        isLikelyStream: events.length >= 10,
+      } satisfies PushHotspot;
+    })
+    .sort((hotspotA, hotspotB) => {
+      if (hotspotA.isLikelyStream !== hotspotB.isLikelyStream) {
+        return hotspotA.isLikelyStream ? -1 : 1;
+      }
+      return hotspotB.eventsPerMinute - hotspotA.eventsPerMinute;
+    });
+}
+
 let directTauriInvokePatched = false;
 let directTauriInvokeSuppressionDepth = 0;
 
@@ -577,12 +776,14 @@ function installDirectTauriInvokeTracking(): (() => void) | undefined {
 let cleanupInterceptors: (() => void) | undefined;
 let cleanupDirectTauriInvokeTracking: (() => void) | undefined;
 let cleanupTimerTracking: (() => void) | undefined;
+let cleanupFetchTracking: (() => void) | undefined;
 
 export const enableApiTracking = () => {
   trackingEnabled = true;
   cleanupInterceptors = initializeApiTracking();
   cleanupDirectTauriInvokeTracking = installDirectTauriInvokeTracking();
   cleanupTimerTracking = installTimerTracking();
+  cleanupFetchTracking = installFetchTracking();
   if (typeof window !== "undefined") {
     document.addEventListener("click", trackClick, true);
     document.addEventListener("mouseover", trackHover, true);
@@ -599,6 +800,8 @@ export const disableApiTracking = () => {
   cleanupDirectTauriInvokeTracking = undefined;
   cleanupTimerTracking?.();
   cleanupTimerTracking = undefined;
+  cleanupFetchTracking?.();
+  cleanupFetchTracking = undefined;
   cleanupInteractionTracking();
   // Drop in-flight timing/capture state since the result-side counterparts
   // early-return while disabled and would otherwise leak entries forever.
@@ -785,6 +988,7 @@ export const getApiCallsForComponent = (
 export const clearApiCalls = () => {
   apiCalls = [];
   timerEvents.splice(0, timerEvents.length);
+  pushEvents.splice(0, pushEvents.length);
   requestStartTimes.clear();
 
   // Dispatch event for UI update

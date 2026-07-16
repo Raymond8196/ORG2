@@ -11,6 +11,7 @@ import {
 
 const labels: ChatPanelTabDisplayLabels = {
   launchpad: "Launchpad",
+  cloudOrg: "Manage ORG",
   workManagement: {
     kanban: "Kanban",
     projects: "Projects",
@@ -74,6 +75,16 @@ describe("resolveChatPanelTabDisplayTitle", () => {
         labels
       )
     ).toBe("orgii-web");
+  });
+
+  it("keeps organization management distinct from Launchpad", () => {
+    expect(
+      resolveChatPanelTabDisplayTitle(
+        tab("cloud-org", "Manage ORG"),
+        null,
+        labels
+      )
+    ).toBe("Manage ORG");
   });
 
   it("uses the linked session instead of a leaked Launchpad title", () => {
