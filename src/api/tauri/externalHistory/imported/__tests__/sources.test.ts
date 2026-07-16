@@ -48,6 +48,7 @@ describe("imported history source registry", () => {
       "cline",
       "warp",
       "zcode",
+      "qoder",
     ]);
     expect(
       IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory)
@@ -62,6 +63,7 @@ describe("imported history source registry", () => {
       "external_history:cline",
       "external_history:warp",
       "external_history:zcode",
+      "external_history:qoder",
     ]);
     for (const source of IMPORTED_HISTORY_SOURCES) {
       expect(source.loadPreviewChunks).toBeTypeOf("function");

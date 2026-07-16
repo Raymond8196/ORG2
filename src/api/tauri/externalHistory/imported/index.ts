@@ -11,6 +11,7 @@ import {
 import { clineHistoryChunks } from "../sources/cline";
 import { codexAppChunks } from "../sources/codexApp";
 import { opencodeHistoryChunks } from "../sources/opencode";
+import { qoderHistoryChunks } from "../sources/qoder";
 import { traeHistoryChunks } from "../sources/trae";
 import { warpHistoryChunks } from "../sources/warp";
 import { windsurfHistoryChunks } from "../sources/windsurf";
@@ -139,6 +140,13 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     statTranscript: (sessionId) => importedHistoryStat("zcode", sessionId),
     loadPreviewChunks: zcodeHistoryChunks,
     loadFullTranscriptChunks: zcodeHistoryChunks,
+  },
+  {
+    ...descriptorFor("qoder"),
+    dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("qoder", sessionId),
+    loadPreviewChunks: qoderHistoryChunks,
+    loadFullTranscriptChunks: qoderHistoryChunks,
   },
 ];
 
