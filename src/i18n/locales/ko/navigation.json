@@ -517,7 +517,6 @@
         "expiryOptionNever": "무기한",
         "roleAdmin": "관리자",
         "roleMember": "멤버",
-        "roleViewer": "뷰어",
         "createdAt": "생성: {{date}}",
         "remainingUses": "남은 횟수: {{uses}}",
         "expires": "{{date}} 만료",

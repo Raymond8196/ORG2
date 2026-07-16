@@ -70,6 +70,7 @@ export const ACTION_ID = {
   SPOTLIGHT_OPEN_EDITOR_COMMAND: "spotlight.openEditorCommand",
   SPOTLIGHT_OPEN_EDITOR_SYMBOL: "spotlight.openEditorSymbol",
   SPOTLIGHT_OPEN_AGENT_SESSION_SEARCH: "spotlight.openAgentSessionSearch",
+  SPOTLIGHT_OPEN_ALL_SESSIONS_SEARCH: "spotlight.openAllSessionsSearch",
   SPOTLIGHT_OPEN_AGENT_CONTROL: "spotlight.openAgentControl",
   SPOTLIGHT_OPEN_SESSION_CREATOR: "spotlight.openSessionCreator",
   WORKSTATION_CREATE_PROJECT: "workstation.createProject",

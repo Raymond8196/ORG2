@@ -260,6 +260,7 @@ export type SpotlightInitialLayer =
   | { kind: "worktree" }
   | { kind: "editor"; mode?: SpotlightInitialEditorMode }
   | { kind: "agentSessionSearch" }
+  | { kind: "allSessionsSearch" }
   | { kind: "agentControl" }
   | { kind: "sessionCreator" };
 

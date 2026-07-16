@@ -25,6 +25,7 @@ describe("AppUpdaterCoordinator", () => {
     check = vi.fn();
     coordinator = new AppUpdaterCoordinator({
       check,
+      downloadTimeoutMs: 5 * 60_000,
       getVersion: vi.fn().mockResolvedValue("1.1.21"),
       minCheckIntervalMs: 5_000,
       now: () => now,
@@ -93,7 +94,9 @@ describe("AppUpdaterCoordinator", () => {
     await coordinator.downloadAvailableUpdate();
     await coordinator.installAvailableUpdate();
 
-    expect(update.download).toHaveBeenCalledOnce();
+    expect(update.download).toHaveBeenCalledWith(undefined, {
+      timeout: 5 * 60_000,
+    });
     expect(update.install).toHaveBeenCalledOnce();
     expect(update.downloadAndInstall).not.toHaveBeenCalled();
   });
@@ -115,6 +118,8 @@ describe("AppUpdaterCoordinator", () => {
 
     await expect(first).resolves.toBe(true);
     await expect(second).resolves.toBe(false);
-    expect(update.downloadAndInstall).toHaveBeenCalledOnce();
+    expect(update.downloadAndInstall).toHaveBeenCalledWith(undefined, {
+      timeout: 5 * 60_000,
+    });
   });
 });

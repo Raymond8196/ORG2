@@ -7,6 +7,7 @@ use crate::canonical::{
     SessionCheckpointFileStateRecord, SessionCheckpointRecord, SessionDiffChunkRecord,
     SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
 };
+use crate::session_usage::SessionUsageRecord;
 
 pub struct SqliteRecordStore<'conn> {
     conn: &'conn Connection,
@@ -135,6 +136,7 @@ impl<'conn> SqliteRecordStore<'conn> {
                 workspace_path      TEXT,
                 parent_session_id   TEXT,
                 title               TEXT NOT NULL,
+                status              TEXT,
                 created_at          TEXT,
                 updated_at          TEXT,
                 completed_at        TEXT,
@@ -145,6 +147,8 @@ impl<'conn> SqliteRecordStore<'conn> {
                 ON orgtrack_core_sessions(source, source_session_id);
             CREATE INDEX IF NOT EXISTS idx_orgtrack_core_sessions_workspace
                 ON orgtrack_core_sessions(workspace_path);
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_sessions_updated
+                ON orgtrack_core_sessions(updated_at DESC);
 
             CREATE TABLE IF NOT EXISTS orgtrack_core_activities (
                 record_id       TEXT PRIMARY KEY,
@@ -392,6 +396,32 @@ impl<'conn> SqliteRecordStore<'conn> {
             );
             CREATE INDEX IF NOT EXISTS idx_orgtrack_core_checkpoint_file_states_checkpoint
                 ON orgtrack_core_checkpoint_file_states(checkpoint_id, file_path);
+
+            -- Per-session usage/cost projection, recomputed from the token
+            -- stores (see crate::session_usage for the read rules). A derived
+            -- read model: safe to drop and re-backfill at any time.
+            CREATE TABLE IF NOT EXISTS orgtrack_core_session_usage (
+                session_id          TEXT PRIMARY KEY,
+                source              TEXT NOT NULL,
+                model               TEXT,
+                account_id          TEXT,
+                key_source          TEXT,
+                input_tokens        INTEGER NOT NULL DEFAULT 0,
+                output_tokens       INTEGER NOT NULL DEFAULT 0,
+                cache_read_tokens   INTEGER NOT NULL DEFAULT 0,
+                cache_write_tokens  INTEGER NOT NULL DEFAULT 0,
+                total_tokens        INTEGER NOT NULL DEFAULT 0,
+                context_tokens      INTEGER NOT NULL DEFAULT 0,
+                recorded_cost_usd   REAL NOT NULL DEFAULT 0,
+                estimated_cost_usd  REAL NOT NULL DEFAULT 0,
+                cost_usd            REAL NOT NULL DEFAULT 0,
+                tokens_source       TEXT NOT NULL DEFAULT 'none',
+                computed_at         TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_session_usage_model
+                ON orgtrack_core_session_usage(model);
+            CREATE INDEX IF NOT EXISTS idx_orgtrack_core_session_usage_source
+                ON orgtrack_core_session_usage(source);
             ",
         )?;
 
@@ -426,6 +456,32 @@ impl<'conn> SqliteRecordStore<'conn> {
             conn.execute(
                 "UPDATE orgtrack_core_sessions SET parent_session_id = ?1 WHERE session_id = ?2",
                 params![parent_session_id, session_id],
+            )?;
+        }
+
+        // Same migration pattern for the normalized status column: decode the
+        // canonical payload in Rust so SQLite JSON extensions stay optional.
+        ensure_column(conn, "orgtrack_core_sessions", "status", "TEXT")?;
+        let legacy_statuses = {
+            let mut statement = conn.prepare(
+                "SELECT session_id, payload_json FROM orgtrack_core_sessions
+                 WHERE status IS NULL",
+            )?;
+            let rows = statement.query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })?;
+            rows.filter_map(Result::ok)
+                .filter_map(|(session_id, payload)| {
+                    serde_json::from_str::<SessionRecord>(&payload)
+                        .ok()
+                        .and_then(|record| record.status.map(|status| (session_id, status)))
+                })
+                .collect::<Vec<_>>()
+        };
+        for (session_id, status) in legacy_statuses {
+            conn.execute(
+                "UPDATE orgtrack_core_sessions SET status = ?1 WHERE session_id = ?2",
+                params![status, session_id],
             )?;
         }
         // Existing interaction rows were created before the revision trigger.
@@ -695,6 +751,105 @@ impl<'conn> SqliteRecordStore<'conn> {
         Ok(signals)
     }
 
+    /// Upsert one session's usage/cost projection row. The projection is
+    /// derived state — writers always replace the full row rather than
+    /// patching columns, so a recompute can never leave mixed generations.
+    pub fn upsert_session_usage(&self, record: &SessionUsageRecord) -> Result<(), String> {
+        self.conn
+            .execute(
+                "INSERT INTO orgtrack_core_session_usage (
+                    session_id, source, model, account_id, key_source,
+                    input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
+                    total_tokens, context_tokens, recorded_cost_usd, estimated_cost_usd,
+                    cost_usd, tokens_source, computed_at
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
+                ON CONFLICT(session_id) DO UPDATE SET
+                    source=excluded.source,
+                    model=excluded.model,
+                    account_id=excluded.account_id,
+                    key_source=excluded.key_source,
+                    input_tokens=excluded.input_tokens,
+                    output_tokens=excluded.output_tokens,
+                    cache_read_tokens=excluded.cache_read_tokens,
+                    cache_write_tokens=excluded.cache_write_tokens,
+                    total_tokens=excluded.total_tokens,
+                    context_tokens=excluded.context_tokens,
+                    recorded_cost_usd=excluded.recorded_cost_usd,
+                    estimated_cost_usd=excluded.estimated_cost_usd,
+                    cost_usd=excluded.cost_usd,
+                    tokens_source=excluded.tokens_source,
+                    computed_at=excluded.computed_at",
+                params![
+                    record.session_id,
+                    record.source,
+                    record.model,
+                    record.account_id,
+                    record.key_source,
+                    record.input_tokens,
+                    record.output_tokens,
+                    record.cache_read_tokens,
+                    record.cache_write_tokens,
+                    record.total_tokens,
+                    record.context_tokens,
+                    record.recorded_cost_usd,
+                    record.estimated_cost_usd,
+                    record.cost_usd,
+                    record.tokens_source,
+                    record.computed_at
+                ],
+            )
+            .map(|_| ())
+            .map_err(|err| err.to_string())
+    }
+
+    pub fn get_session_usage(
+        &self,
+        session_id: &str,
+    ) -> Result<Option<SessionUsageRecord>, String> {
+        self.conn
+            .query_row(
+                "SELECT session_id, source, model, account_id, key_source,
+                        input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
+                        total_tokens, context_tokens, recorded_cost_usd, estimated_cost_usd,
+                        cost_usd, tokens_source, computed_at
+                 FROM orgtrack_core_session_usage
+                 WHERE session_id = ?1",
+                params![session_id],
+                |row| {
+                    Ok(SessionUsageRecord {
+                        session_id: row.get(0)?,
+                        source: row.get(1)?,
+                        model: row.get(2)?,
+                        account_id: row.get(3)?,
+                        key_source: row.get(4)?,
+                        input_tokens: row.get(5)?,
+                        output_tokens: row.get(6)?,
+                        cache_read_tokens: row.get(7)?,
+                        cache_write_tokens: row.get(8)?,
+                        total_tokens: row.get(9)?,
+                        context_tokens: row.get(10)?,
+                        recorded_cost_usd: row.get(11)?,
+                        estimated_cost_usd: row.get(12)?,
+                        cost_usd: row.get(13)?,
+                        tokens_source: row.get(14)?,
+                        computed_at: row.get(15)?,
+                    })
+                },
+            )
+            .optional()
+            .map_err(|err| err.to_string())
+    }
+
+    pub fn delete_session_usage(&self, session_id: &str) -> Result<(), String> {
+        self.conn
+            .execute(
+                "DELETE FROM orgtrack_core_session_usage WHERE session_id = ?1",
+                params![session_id],
+            )
+            .map(|_| ())
+            .map_err(|err| err.to_string())
+    }
+
     fn list_by_scope<T: serde::de::DeserializeOwned>(
         &self,
         table_name: &str,
@@ -761,15 +916,16 @@ impl RecordStore for SqliteRecordStore<'_> {
             .execute(
                 "INSERT INTO orgtrack_core_sessions (
                     session_id, source, source_session_id, workspace_path,
-                    parent_session_id, title, created_at, updated_at,
+                    parent_session_id, title, status, created_at, updated_at,
                     completed_at, branch, payload_json
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
                 ON CONFLICT(session_id) DO UPDATE SET
                     source=excluded.source,
                     source_session_id=excluded.source_session_id,
                     workspace_path=excluded.workspace_path,
                     parent_session_id=excluded.parent_session_id,
                     title=excluded.title,
+                    status=excluded.status,
                     created_at=excluded.created_at,
                     updated_at=excluded.updated_at,
                     completed_at=excluded.completed_at,
@@ -782,6 +938,7 @@ impl RecordStore for SqliteRecordStore<'_> {
                     record.workspace_path,
                     record.parent_session_id,
                     record.title,
+                    record.status,
                     record.created_at,
                     record.updated_at,
                     record.completed_at,

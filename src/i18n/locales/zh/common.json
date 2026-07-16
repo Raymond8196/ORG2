@@ -1577,6 +1577,11 @@
           "pillLabel": "搜索会话",
           "placeholder": "搜索 Agent 会话..."
         },
+        "searchAllSessions": {
+          "label": "全局搜索会话内容",
+          "pillLabel": "全局搜索",
+          "placeholder": "全局搜索会话内容..."
+        },
         "switchWorkspace": {
           "label": "切换工作区"
         },
@@ -1905,15 +1910,6 @@
     "lastActive": "上次活跃: {{date}}",
     "activeNow": "当前活跃: {{ides}}",
     "active": "活跃",
-    "tabs": {
-      "activity": "活动",
-      "focus": "专注",
-      "languages": "语言",
-      "heatmap": "热力图",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI 会话",
     "cliPrompt": "提示",
     "cliMessages": "消息",

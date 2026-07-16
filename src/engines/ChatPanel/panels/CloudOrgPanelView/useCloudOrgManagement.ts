@@ -37,6 +37,7 @@ import {
   updateCloudMemberRole,
 } from "@src/features/Org2Cloud/org2CloudManagementClient";
 import {
+  type CloudAssignableRole,
   type CloudInviteRecord,
   cloudManagementErrorMessage,
   wouldRemoveLastAdmin,
@@ -44,12 +45,12 @@ import {
 import { useRefetchOrg2CloudOrgs } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { setMemberSharingFloor } from "@src/features/Org2Cloud/org2CloudSyncClient";
 import { createLogger } from "@src/hooks/logger";
+import { closeCloudOrgManagementChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { getInviteExpiresAt } from "@src/store/collaboration/inviteDefaults";
 import {
   COLLAB_SESSION_ACCESS_MODE,
   type CollabSessionAccessMode,
 } from "@src/store/collaboration/types";
-import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 import { copyText } from "@src/util/data/clipboard";
 
 const log = createLogger("CloudOrgManagement");
@@ -58,8 +59,7 @@ export interface CreateCloudInviteOptions {
   usageLimit: number;
   /** null = the invite never expires. */
   expiresInDays: number | null;
-  /** admin | member | viewer. */
-  role: string;
+  role: CloudAssignableRole;
 }
 
 interface UseCloudOrgManagementParams {
@@ -81,7 +81,9 @@ export function useCloudOrgManagement({
 }: UseCloudOrgManagementParams) {
   const { t } = useTranslation("navigation");
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
-  const setSelectedCloudOrg = useSetAtom(chatPanelSelectedCloudOrgAtom);
+  const closeCloudOrgManagementTab = useSetAtom(
+    closeCloudOrgManagementChatPanelTabAtom
+  );
   const refetchOrgs = useRefetchOrg2CloudOrgs();
 
   // Invites (admin-only surface)
@@ -255,7 +257,7 @@ export function useCloudOrgManagement({
   );
 
   const handleUpdateMemberRole = useCallback(
-    async (member: CloudOrgMember, role: string) => {
+    async (member: CloudOrgMember, role: CloudAssignableRole) => {
       if (updatingRoleUserId || member.role === role) return;
       setMemberError(null);
       // Client-side last-admin pre-check (server ORG2_LAST_ADMIN mirror).
@@ -360,8 +362,8 @@ export function useCloudOrgManagement({
       await refetchOrgs({
         until: (orgs) => !orgs.some((org) => org.orgId === orgId),
       });
-      // The org is gone from list_my_orgs — drop the panel selection.
-      setSelectedCloudOrg(null);
+      // The org is gone from list_my_orgs — close its dedicated tab.
+      closeCloudOrgManagementTab();
     } catch (error) {
       setLeaveError(cloudManagementErrorMessage(error, t));
     } finally {
@@ -373,7 +375,7 @@ export function useCloudOrgManagement({
     orgId,
     orgName,
     refetchOrgs,
-    setSelectedCloudOrg,
+    closeCloudOrgManagementTab,
     t,
   ]);
 
@@ -446,13 +448,20 @@ export function useCloudOrgManagement({
       await refetchOrgs({
         until: (orgs) => !orgs.some((org) => org.orgId === orgId),
       });
-      setSelectedCloudOrg(null);
+      closeCloudOrgManagementTab();
     } catch (error) {
       setDeleteError(cloudManagementErrorMessage(error, t));
     } finally {
       setDeleting(false);
     }
-  }, [deleting, getFreshToken, orgId, refetchOrgs, setSelectedCloudOrg, t]);
+  }, [
+    closeCloudOrgManagementTab,
+    deleting,
+    getFreshToken,
+    orgId,
+    refetchOrgs,
+    t,
+  ]);
 
   return {
     // invites

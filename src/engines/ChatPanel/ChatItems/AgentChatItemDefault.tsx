@@ -9,7 +9,13 @@ import { isThemeCssPathDark } from "@src/config/appearance/globalThemes";
 import { themesAtom } from "@src/store";
 import { chatAppearanceAtom } from "@src/store/config/configAtom";
 
-import DecryptedText from "../components/DecryptedText";
+import TypewriterText from "../components/TypewriterText";
+
+/**
+ * Messages created within this window before mounting count as "fresh" and
+ * get the typewriter reveal; anything older is history and renders in full.
+ */
+const TYPEWRITER_FRESH_WINDOW_MS = 5_000;
 
 interface AgentChatItemProps {
   children: string;
@@ -20,6 +26,12 @@ interface AgentChatItemProps {
   title?: string;
   itemIndex: number;
   streamHtml?: boolean;
+  /**
+   * ISO timestamp of the underlying message. Gates the typewriter effect:
+   * only a message that arrived moments before mounting types out —
+   * history loaded from a past session renders in full immediately.
+   */
+  messageTimestamp?: string;
   /** Container width for code block diff view */
   codeBlockContainerWidth?: number;
   /** Current check status (for showing result indicator) */
@@ -34,6 +46,7 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
   handleResultClick,
   title,
   streamHtml,
+  messageTimestamp,
   codeBlockContainerWidth,
   curCheckStatus,
   appendedContent,
@@ -45,8 +58,31 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
 
   const isStreaming = Boolean(streamHtml);
   const hasCodeBlockCopy = !isStreaming && containsMarkdownFence(children);
-  const shouldUseDecryptEffect =
-    !isStreaming && chatAppearance.decryptEffectEnabled;
+
+  // Typewriter applies ONLY to a fresh, non-streamed message:
+  // - history rows (loaded from a past session) render in full immediately
+  //   (freshness gate: created moments before mount);
+  // - a message that streamed in this mount already revealed itself token by
+  //   token — re-typing it after completion would be a regression.
+  const [hasStreamed, setHasStreamed] = useState(isStreaming);
+  if (isStreaming && !hasStreamed) {
+    // Official render-time state adjustment: remember that this mount saw
+    // the message stream, so completion doesn't re-type it.
+    setHasStreamed(true);
+  }
+  const [isFreshAtMount] = useState(() => {
+    if (!messageTimestamp) return false;
+    const createdMs = new Date(messageTimestamp).getTime();
+    return (
+      Number.isFinite(createdMs) &&
+      Date.now() - createdMs < TYPEWRITER_FRESH_WINDOW_MS
+    );
+  });
+  const shouldUseTypewriterEffect =
+    !isStreaming &&
+    !hasStreamed &&
+    isFreshAtMount &&
+    chatAppearance.decryptEffectEnabled;
 
   useEffect(() => {
     setIsShow(expand);
@@ -85,8 +121,8 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
                   ) : (
                     <span className="text-text-3"> </span>
                   )
-                ) : shouldUseDecryptEffect ? (
-                  <DecryptedText
+                ) : shouldUseTypewriterEffect ? (
+                  <TypewriterText
                     text={children}
                     speed={chatAppearance.typingSpeed}
                     className="allow-select"

@@ -61,6 +61,7 @@ import OpenRouterIcon from "@src/assets/modelIcons/openrouter.svg";
 import OrgiiIcon from "@src/assets/modelIcons/orgii.svg";
 import PerplexityIcon from "@src/assets/modelIcons/perplexity.svg";
 import PiIcon from "@src/assets/modelIcons/pi.svg";
+import QoderIcon from "@src/assets/modelIcons/qoder.svg";
 import QwenIcon from "@src/assets/modelIcons/qwen.svg";
 import RovoIcon from "@src/assets/modelIcons/rovo.svg";
 import SiliconFlowIcon from "@src/assets/modelIcons/siliconflow.svg";
@@ -140,6 +141,7 @@ export type IconProvider =
   | "yi"
   | "zhipu"
   | "zcode"
+  | "qoder"
   | "baichuan"
   | "minimax"
   | "longcat"
@@ -210,6 +212,7 @@ export const ICON_MAP: Record<
   yi: YiIcon,
   zhipu: ZhipuIcon,
   zcode: ZcodeIcon,
+  qoder: QoderIcon,
   baichuan: BaichuanIcon,
   minimax: MinimaxIcon,
   longcat: LongCatIcon,
@@ -282,6 +285,7 @@ export const SELECTABLE_ICON_PROVIDERS: IconProvider[] = [
   "yi",
   "zhipu",
   "zcode",
+  "qoder",
   "baichuan",
   "minimax",
   "longcat",
@@ -572,6 +576,11 @@ export function getIconProviderFromModelName(
   // ZCode IDE / Z.ai coding workspace
   if (lower.includes("zcode")) {
     return "zcode";
+  }
+
+  // Qoder IDE (Alibaba's agentic IDE)
+  if (lower.includes("qoder")) {
+    return "qoder";
   }
 
   // Zhipu/GLM models

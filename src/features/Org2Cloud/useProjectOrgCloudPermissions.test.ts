@@ -23,7 +23,6 @@ describe("canAdministerProjectOrg", () => {
     ["owner", true],
     ["admin", true],
     ["member", false],
-    ["viewer", false],
   ])("maps the direct cloud %s role", (role, expected) => {
     expect(
       canAdministerProjectOrg(

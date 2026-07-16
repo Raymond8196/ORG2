@@ -297,6 +297,7 @@ const ActivityChatItem: React.FC<ActivityChatItemProps> = memo(
                 expand={true}
                 finish={!isStreaming}
                 streamHtml={isStreaming}
+                messageTimestamp={event.createdAt}
                 showCopyButton={false}
                 appendedContent={
                   <MessageReferenceCards

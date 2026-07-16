@@ -103,8 +103,16 @@
       "lastScan": "Letzter Scan {{time}}",
       "neverScanned": "Nie gescannt",
       "frequencyTitle": "Auto-Scan-Frequenz",
-      "globalFrequency": "Auto-Scan",
-      "globalFrequencyDesc": "Standard-Rhythmus für Quellen mit „Standard“.",
+      "globalFrequency": "Externe Quellen automatisch scannen",
+      "globalFrequencyDesc": "Standard-Scanintervall für externe Quellen mit der Einstellung „Standard“",
+      "activeSessionRefresh": "Geöffnete externe Sitzung aktualisieren",
+      "activeSessionRefreshDesc": "Aktualisierungsintervall für die derzeit im Chatbereich geöffnete externe Sitzung",
+      "activeSessionFreq": {
+        "3s": "Alle 3 Sekunden",
+        "5s": "Alle 5 Sekunden",
+        "10s": "Alle 10 Sekunden",
+        "1m": "Jede Minute"
+      },
       "col": {
         "source": "Quelle",
         "sessions": "Sitzungen",
@@ -788,13 +796,6 @@
         "manage": "Verwalten",
         "heatmap": "Trends",
         "runtime": "Laufzeit"
-      },
-      "heatmap": {
-        "loading": "Aktivitätstrends werden geladen…",
-        "empty": "Noch keine Sitzungsaktivität.",
-        "sessions": "Sitzungen",
-        "tokens": "Tokens",
-        "cost": "Kosten"
       },
       "quota": {
         "empty": "Noch keine Quota-Daten. Nutzung im Key Vault aktualisieren.",

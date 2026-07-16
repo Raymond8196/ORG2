@@ -1558,6 +1558,11 @@
           "pillLabel": "Tìm kiếm phiên",
           "placeholder": "Tìm kiếm phiên Agent..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "Chuyển workspace"
         },
@@ -1881,15 +1886,6 @@
     "lastActive": "Hoạt động cuối: {{date}}",
     "activeNow": "Đang hoạt động: {{ides}}",
     "active": "Hoạt động",
-    "tabs": {
-      "activity": "Hoạt động",
-      "focus": "Tập trung",
-      "languages": "Ngôn ngữ",
-      "heatmap": "Bản đồ nhiệt",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "Phiên AI CLI",
     "cliPrompt": "Lệnh",
     "cliMessages": "Tin nhắn",

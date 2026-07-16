@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{collections::HashSet, path::Path};
 
 use database::db::get_connection;
 use orgtrack_core::sources::claude_code::history as claude_code_history;
@@ -9,14 +9,14 @@ use orgtrack_core::sources::cursor_ide::{
 };
 use orgtrack_core::sources::imported_history;
 use orgtrack_core::sources::opencode::history as opencode_history;
+use orgtrack_core::sources::qoder::history as qoder_history;
 use orgtrack_core::sources::trae::history as trae_history;
 use orgtrack_core::sources::warp::history as warp_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
 use orgtrack_core::sources::zcode::history as zcode_history;
+use orgtrack_core::pricing;
 use session_persistence::CachedTurnSummary;
-
-use crate::agent_sessions::unified_stats::pricing_catalog;
 
 use super::external_cli_detection::{self, ExternalCliSourceProbe};
 
@@ -105,7 +105,7 @@ pub async fn orgtrack_session_turn_metadata_index(
 /// mean of the input and output rates — which is an approximation for
 /// total-only token counts.
 fn estimate_cost_blended(total_tokens: i64, model: &str) -> f64 {
-    let pricing = pricing_catalog::resolve_pricing(Some(model));
+    let pricing = pricing::resolve_pricing(Some(model));
     total_tokens as f64 / 1e6 * (pricing.input_per_mtok + pricing.output_per_mtok) / 2.0
 }
 
@@ -124,6 +124,7 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
     paths.extend(cline_history::list_cline_recent_paths(&mut conn, 0)?);
     paths.extend(warp_history::list_warp_recent_paths(&mut conn, 0)?);
     paths.extend(zcode_history::list_zcode_recent_paths(&mut conn, 0)?);
+    paths.extend(qoder_history::list_qoder_recent_paths(&mut conn, 0)?);
     Ok(imported_history::recent_paths_from_paths(&paths))
 }
 
@@ -149,9 +150,45 @@ pub async fn external_history_rescan_source(source: String, clear: bool) -> Resu
         }
         // Always re-read the on-disk store and repopulate the cache. The old
         // behavior only pruned, leaving the count at 0 until a later lazy load.
-        crate::agent_sessions::unified_stats::aggregation::resync_external_history_source(
+        crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
             &mut conn, &source,
         )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+/// Incrementally update multiple external history sources in one IPC request.
+///
+/// Sources are processed through one cache connection. This is the app-startup
+/// and scheduled auto-scan path; keeping it batched avoids one frontend/native
+/// round trip per installed provider.
+#[tauri::command]
+pub async fn external_history_rescan_sources(
+    sources: Vec<String>,
+    clear: bool,
+) -> Result<(), String> {
+    let mut seen_sources = HashSet::with_capacity(sources.len());
+    for source in &sources {
+        if !seen_sources.insert(source.as_str()) {
+            return Err(format!("Duplicate external history source: {source}"));
+        }
+        if !imported_history::metadata::is_imported_history_source(source) {
+            return Err(format!("Unknown external history source: {source}"));
+        }
+    }
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        for source in sources {
+            if clear {
+                imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])?;
+            }
+            crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
+                &mut conn, &source,
+            )?;
+        }
+        Ok(())
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -306,6 +343,64 @@ pub async fn claude_code_history_chunks(
     .map_err(|err| format!("Task join error: {err}"))?
 }
 
+/// Freshness snapshot of one imported transcript's source file.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedTranscriptStat {
+    pub mtime_ms: i64,
+    pub size_bytes: u64,
+}
+
+/// Cheap freshness probe for the replay auto-refresh: returns the transcript
+/// file's `(mtime, size)` so the frontend can skip the full
+/// read → parse → merge pipeline when nothing changed. `None` when the
+/// source file is missing.
+#[tauri::command]
+pub async fn claude_code_history_stat(
+    session_id: String,
+) -> Result<Option<ImportedTranscriptStat>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        Ok(
+            claude_code_history::stat_claude_code_history_for_session(&conn, &session_id)?.map(
+                |(mtime_ms, size_bytes)| ImportedTranscriptStat {
+                    mtime_ms,
+                    size_bytes,
+                },
+            ),
+        )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+/// Source-agnostic freshness probe for the replay auto-refresh: resolves the
+/// session's transcript path from the imported-history cache and stats it
+/// (folding in the SQLite `-wal` sibling for WAL-mode stores, whose main db
+/// mtime doesn't move between checkpoints). `None` when the session is
+/// uncached or the file is missing — the frontend then falls back to the
+/// full refresh, which re-syncs the cache.
+#[tauri::command]
+pub async fn imported_history_stat(
+    source_id: String,
+    session_id: String,
+) -> Result<Option<ImportedTranscriptStat>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        Ok(
+            imported_history::cache::stat_imported_transcript_by_session_id_from_conn(
+                &conn, &source_id, &session_id,
+            )?
+            .map(|(mtime_ms, size_bytes)| ImportedTranscriptStat {
+                mtime_ms,
+                size_bytes,
+            }),
+        )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
 #[tauri::command]
 pub async fn claude_code_recent_paths(
     limit: Option<usize>,
@@ -382,6 +477,31 @@ pub async fn zcode_recent_paths(
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
         zcode_history::list_zcode_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn qoder_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        qoder_history::load_qoder_history_for_session(&conn, &session_id)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn qoder_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<qoder_history::QoderRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        qoder_history::list_qoder_recent_paths(&mut conn, limit)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

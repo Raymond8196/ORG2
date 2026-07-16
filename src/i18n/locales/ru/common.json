@@ -1557,6 +1557,11 @@
           "pillLabel": "Искать сессии",
           "placeholder": "Искать Agent-сессии..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "Переключить Workspace"
         },
@@ -1880,15 +1885,6 @@
     "lastActive": "Последняя активность: {{date}}",
     "activeNow": "Активно сейчас: {{ides}}",
     "active": "Активно",
-    "tabs": {
-      "activity": "Активность",
-      "focus": "Фокус",
-      "languages": "Языки",
-      "heatmap": "Тепловая карта",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "Сессии AI CLI",
     "cliPrompt": "Запрос",
     "cliMessages": "Сообщения",

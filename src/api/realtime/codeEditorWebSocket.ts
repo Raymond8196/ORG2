@@ -12,6 +12,7 @@
  */
 import { IDE_SERVER_WS_URL } from "@src/config/ideServer";
 import { createLogger } from "@src/hooks/logger";
+import { recordPushEvent } from "@src/util/monitoring/apiTracker";
 
 import {
   type ParsedCodeEditorWebSocketMessage,
@@ -62,6 +63,7 @@ export class CodeEditorWebSocketClient {
           try {
             const data = maybeParseCodeEditorWebSocketMessage(event.data);
             if (data === null) return;
+            recordPushEvent("ws", data.type ?? "message");
             this.handleMessage(data);
           } catch (err) {
             log.error("[CodeEditorWS] Failed to parse message:", err);

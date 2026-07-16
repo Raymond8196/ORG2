@@ -40,6 +40,7 @@ enum ImportedHistoryLoader {
     Cline,
     Warp,
     ZCode,
+    Qoder,
 }
 
 fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
@@ -63,6 +64,8 @@ fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
         Some(ImportedHistoryLoader::Warp)
     } else if session_id.starts_with(super::zcode::history::ZCODE_SESSION_PREFIX) {
         Some(ImportedHistoryLoader::ZCode)
+    } else if session_id.starts_with(super::qoder::history::QODER_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Qoder)
     } else {
         None
     }
@@ -111,6 +114,9 @@ pub fn load_activity_chunks_for_session(
         }
         Some(ImportedHistoryLoader::ZCode) => {
             super::zcode::history::load_zcode_history_for_session(session_id)?
+        }
+        Some(ImportedHistoryLoader::Qoder) => {
+            super::qoder::history::load_qoder_history_for_session(conn, session_id)?
         }
         None => return Ok(None),
     };
@@ -653,6 +659,7 @@ mod impact_tests {
             ("clineapp-id", ImportedHistoryLoader::Cline),
             ("warpapp-id", ImportedHistoryLoader::Warp),
             ("zcodeapp-id", ImportedHistoryLoader::ZCode),
+            ("qoderapp-id", ImportedHistoryLoader::Qoder),
         ];
 
         for (session_id, expected) in cases {

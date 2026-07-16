@@ -103,8 +103,16 @@
       "lastScan": "Ostatni skan {{time}}",
       "neverScanned": "Nigdy nie skanowano",
       "frequencyTitle": "Częstotliwość skanowania",
-      "globalFrequency": "Autoskan",
-      "globalFrequencyDesc": "Domyślna częstotliwość dla źródeł ustawionych na „Domyślnie”.",
+      "globalFrequency": "Automatyczne skanowanie źródeł zewnętrznych",
+      "globalFrequencyDesc": "Domyślna częstotliwość skanowania źródeł zewnętrznych ustawionych na „Domyślnie”",
+      "activeSessionRefresh": "Odświeżanie otwartej sesji zewnętrznej",
+      "activeSessionRefreshDesc": "Częstotliwość odświeżania sesji zewnętrznej aktualnie otwartej w panelu czatu",
+      "activeSessionFreq": {
+        "3s": "Co 3 sekundy",
+        "5s": "Co 5 sekund",
+        "10s": "Co 10 sekund",
+        "1m": "Co minutę"
+      },
       "col": {
         "source": "Źródło",
         "sessions": "Sesje",
@@ -791,13 +799,6 @@
         "manage": "Zarządzaj",
         "heatmap": "Trendy",
         "runtime": "Czas wykonania"
-      },
-      "heatmap": {
-        "loading": "Ładowanie trendów aktywności…",
-        "empty": "Brak aktywności sesji.",
-        "sessions": "Sesje",
-        "tokens": "Tokens",
-        "cost": "Koszt"
       },
       "quota": {
         "empty": "Brak danych quota. Odśwież użycie w Key Vault.",

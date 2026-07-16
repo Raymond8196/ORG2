@@ -21,7 +21,7 @@ import {
   sessionLaunch,
 } from "@src/api/tauri/agent";
 import { ROUTES } from "@src/config/routes";
-import { getAdapterForSession } from "@src/engines/SessionCore/sync";
+import { getAdapterForSession } from "@src/engines/SessionCore/sync/types";
 import {
   buildPendingForkHandoff,
   markForkHandoffConsumed,

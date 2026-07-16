@@ -103,8 +103,16 @@
       "lastScan": "Quét lần cuối {{time}}",
       "neverScanned": "Chưa quét",
       "frequencyTitle": "Tần suất tự quét",
-      "globalFrequency": "Tự quét",
-      "globalFrequencyDesc": "Nhịp mặc định cho nguồn đặt “Mặc định”.",
+      "globalFrequency": "Tự quét nguồn bên ngoài",
+      "globalFrequencyDesc": "Tần suất quét mặc định cho nguồn bên ngoài được đặt thành “Mặc định”",
+      "activeSessionRefresh": "Làm mới phiên bên ngoài đang mở",
+      "activeSessionRefreshDesc": "Tần suất làm mới phiên bên ngoài hiện đang mở trong khung trò chuyện",
+      "activeSessionFreq": {
+        "3s": "Mỗi 3 giây",
+        "5s": "Mỗi 5 giây",
+        "10s": "Mỗi 10 giây",
+        "1m": "Mỗi phút"
+      },
       "col": {
         "source": "Nguồn",
         "sessions": "Phiên",
@@ -787,13 +795,6 @@
         "manage": "Quản lý",
         "heatmap": "Xu hướng",
         "runtime": "Thời gian chạy"
-      },
-      "heatmap": {
-        "loading": "Đang tải xu hướng hoạt động…",
-        "empty": "Chưa có hoạt động phiên.",
-        "sessions": "Phiên",
-        "tokens": "Tokens",
-        "cost": "Chi phí"
       },
       "quota": {
         "empty": "Chưa có dữ liệu quota. Hãy làm mới mức sử dụng từ Key Vault.",

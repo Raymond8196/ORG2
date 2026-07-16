@@ -103,8 +103,16 @@
       "lastScan": "上次掃描 {{time}}",
       "neverScanned": "從未掃描",
       "frequencyTitle": "自動掃描頻率",
-      "globalFrequency": "自動掃描",
-      "globalFrequencyDesc": "設為「預設」的來源的預設頻率。",
+      "globalFrequency": "外部資料來源自動掃描",
+      "globalFrequencyDesc": "設為「預設」的外部資料來源所使用的掃描頻率",
+      "activeSessionRefresh": "已開啟外部工作階段重新整理",
+      "activeSessionRefreshDesc": "目前在聊天面板中開啟的外部工作階段的重新整理頻率",
+      "activeSessionFreq": {
+        "3s": "每 3 秒",
+        "5s": "每 5 秒",
+        "10s": "每 10 秒",
+        "1m": "每分鐘"
+      },
       "col": {
         "source": "來源",
         "sessions": "工作階段",
@@ -793,13 +801,6 @@
         "manage": "管理",
         "heatmap": "趨勢",
         "runtime": "執行階段"
-      },
-      "heatmap": {
-        "loading": "正在載入活動趨勢…",
-        "empty": "尚無會話活動。",
-        "sessions": "會話",
-        "tokens": "Tokens",
-        "cost": "成本"
       },
       "quota": {
         "empty": "暫無配額資料。請在 Key Vault 中重新整理用量。",

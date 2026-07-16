@@ -124,7 +124,18 @@ pub fn insert_usage_telemetry_batch(
     with_sessions_writer(|| {
         let mut conn = get_connection()?;
         insert_usage_telemetry_batch_with_conn(&mut conn, spans, attributions)
-    })
+    })?;
+    // Spans describe the same tokens as `session_token_usage` at per-LLM-call
+    // granularity — the projection reads only the rollups (summing both would
+    // double-count). Refreshing here guards against a batch landing after the
+    // turn rollup's own refresh.
+    let mut seen = std::collections::HashSet::new();
+    for span in spans {
+        if seen.insert(span.session_id) {
+            super::token_usage::recompute_usage_projection(span.session_id);
+        }
+    }
+    Ok(())
 }
 
 pub fn insert_usage_telemetry_batch_with_conn(

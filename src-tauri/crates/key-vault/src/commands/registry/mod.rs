@@ -27,6 +27,13 @@ pub fn is_cli_provider_compatible(agent_name: &str, provider_name: &str) -> bool
         .is_some_and(|agent| agent.compatible_api_providers.contains(&provider_name))
 }
 
+pub fn cli_agent_display_name(agent_name: &str) -> Option<&'static str> {
+    data::cli_agent_registry()
+        .into_iter()
+        .find(|agent| agent.name == agent_name)
+        .map(|agent| agent.display_name)
+}
+
 // ============================================
 // Shared types (serialized to frontend via JSON)
 // ============================================
@@ -148,12 +155,14 @@ pub struct AvailableApiProvider {
 
 #[cfg(test)]
 mod compatibility_tests {
-    use super::is_cli_provider_compatible;
+    use super::{cli_agent_display_name, is_cli_provider_compatible};
 
     #[test]
     fn compatibility_comes_from_the_central_cli_registry() {
         assert!(is_cli_provider_compatible("codex", "openai_api"));
         assert!(is_cli_provider_compatible("claude_code", "anthropic_api"));
         assert!(!is_cli_provider_compatible("unknown", "openai_api"));
+        assert_eq!(cli_agent_display_name("opencode"), Some("OpenCode"));
+        assert_eq!(cli_agent_display_name("unknown"), None);
     }
 }

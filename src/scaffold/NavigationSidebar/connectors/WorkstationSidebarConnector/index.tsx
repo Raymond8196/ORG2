@@ -51,6 +51,7 @@ import {
   activeChatPanelTabAtom,
   activeWorkManagementSectionAtom,
   closeAndDestroyChatPanelTabAtom,
+  openCloudOrgManagementInChatPanelTabAtom,
   openKanbanChatPanelTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
@@ -153,7 +154,10 @@ import {
   usePinnedMenuItems,
   useSessionSidebarMenuItems,
 } from "./sidebarMenuCollections";
-import { useSidebarSessionRefreshEffects } from "./sidebarSessionRefresh";
+import {
+  rescanSidebarSessions,
+  useSidebarSessionRefreshEffects,
+} from "./sidebarSessionRefresh";
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
 import type { WorkstationSidebarKey } from "./types";
 import { useProjectsMenuItemClick } from "./useProjectsMenuItemClick";
@@ -209,6 +213,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
     workManagementProjectsViewAtom
   );
   const openKanbanTab = useSetAtom(openKanbanChatPanelTabAtom);
+  const openCloudOrgManagementTab = useSetAtom(
+    openCloudOrgManagementInChatPanelTabAtom
+  );
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
   const openOrReplaceSessionInChatPanelTab = useSetAtom(
     openOrReplaceSessionInChatPanelTabAtom
@@ -433,6 +440,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
     if (!cloudOrgId) return null;
     return cloudOrgs.find((org) => org.orgId === cloudOrgId) ?? null;
   }, [activeOrgId, cloudOrgs]);
+  // Management is a global org action, not a property of the current
+  // sidebar scope. When Personal or a local org is selected, open the first
+  // managed cloud org; the management page's switcher handles the rest.
+  const manageableCloudOrg = activeCloudOrg ?? cloudOrgs[0] ?? null;
   const activeCloudOrgId = activeCloudOrg?.orgId ?? null;
 
   const setSidebarActiveCloudOrgId = useSetAtom(sidebarActiveCloudOrgIdAtom);
@@ -871,9 +882,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_COLLAB_ORG });
   }, [navigateChatPanel, resetWorkManagementStateForProjectsContent]);
   // UX decision (scope vs. panel): picking an org in the selector ONLY
-  // switches the sidebar scope — it never navigates the chat panel. The org
-  // management panel opens via the dropdown's explicit manage action,
-  // rendered only while a CLOUD org is the active scope.
+  // switches the sidebar scope — it never navigates the chat panel. The
+  // dropdown's explicit management action remains available from any scope.
   const handleOrgSelectorChange = useCallback(
     (orgId: string) => {
       // Picking an org ONLY switches the sidebar scope. A cloud scope shows
@@ -883,19 +893,18 @@ export const WorkstationSidebarConnector: React.FC = () => {
     },
     [setSelectedOrgId]
   );
-  const handleManageActiveOrg = useCallback(() => {
-    // Cloud orgs open the CLOUD_ORG management panel; Personal / local
-    // project orgs have no management panel and therefore no button.
-    if (!activeCloudOrg) return;
+  const handleManageOrg = useCallback(() => {
+    if (!manageableCloudOrg) return;
     resetWorkManagementStateForProjectsContent();
-    navigateChatPanel({
-      kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
-      cloudOrg: { orgId: activeCloudOrg.orgId },
+    openCloudOrgManagementTab({
+      cloudOrg: { orgId: manageableCloudOrg.orgId },
+      title: t("collaboration.manageOrg"),
     });
   }, [
-    activeCloudOrg,
-    navigateChatPanel,
+    manageableCloudOrg,
+    openCloudOrgManagementTab,
     resetWorkManagementStateForProjectsContent,
+    t,
   ]);
   const renderSessionMenuItemWrapper =
     useRenderSessionMenuItemWrapper(sessionMap);
@@ -1056,7 +1065,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
     markAllSessionsVisited(sessions.map((session) => session.session_id));
   }, [sessions]);
   const handleRefreshSessions = useCallback(() => {
-    void loadSidebarSessions({ forceRefresh: true });
+    void rescanSidebarSessions().catch((error) => {
+      logger.warn("Failed to rescan sidebar sessions:", error);
+    });
   }, []);
   const isLoading =
     workItemsContentVisible || activeSidebarKey === "projects"
@@ -1134,7 +1145,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
                 manageLabel={manageOrgLabel}
                 onChange={handleOrgSelectorChange}
                 onAddOrg={handleAddOrgFromSelector}
-                onManageOrg={activeCloudOrg ? handleManageActiveOrg : undefined}
+                onManageOrg={manageableCloudOrg ? handleManageOrg : undefined}
               />
             }
             rightActions={sidebarBottomRightActions}

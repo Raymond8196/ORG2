@@ -1570,6 +1570,11 @@
           "pillLabel": "搜尋會話",
           "placeholder": "搜尋 Agent 會話..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "切換工作區"
         },
@@ -1898,15 +1903,6 @@
     "lastActive": "上次活躍: {{date}}",
     "activeNow": "當前活躍: {{ides}}",
     "active": "活躍",
-    "tabs": {
-      "activity": "活動",
-      "focus": "專注",
-      "languages": "語言",
-      "heatmap": "熱力圖",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI 會話",
     "cliPrompt": "提示",
     "cliMessages": "消息",

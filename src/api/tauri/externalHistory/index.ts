@@ -7,7 +7,10 @@ export type {
   ExternalCliSourceProbe,
 } from "./detection";
 export { externalCliSourceProbe, externalCliSourcesDetect } from "./detection";
-export { externalHistoryRescanSource } from "./rescan";
+export {
+  externalHistoryRescanSource,
+  externalHistoryRescanSources,
+} from "./rescan";
 export {
   fetchExternalSourceStats,
   type ExternalSourceStats,
@@ -22,6 +25,7 @@ export * from "./sources/windsurf";
 export * from "./sources/workbuddy";
 export * from "./sources/warp";
 export * from "./sources/zcode";
+export * from "./sources/qoder";
 
 export interface ExternalHistoryImportedRepo {
   repoId: string;

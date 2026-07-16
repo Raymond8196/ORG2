@@ -1755,6 +1755,7 @@
       "proxyReady": "Proxy ready",
       "proxyNotReady": "Proxy not ready",
       "proxyDesc": "Local requests route through ORGII KeyVault.",
+      "proxyLifecycleDesc": "Keep ORGII running while using this mode. Closing the window keeps the proxy in the tray; quitting ORGII safely restores Default unless the config changed externally.",
       "keyLabel": "Key",
       "keyDesc": "Only API keys compatible with this CLI and managed proxy are shown.",
       "selectKey": "Select key",
@@ -2382,6 +2383,8 @@
     "deleteOrgMessage": "\"{{name}}\" will be permanently removed. This cannot be undone.",
     "sessionProvenance": {
       "title": "Session Provenance",
+      "masterToggle": "Provenance hooks",
+      "masterToggleDesc": "When off, all managed hooks are uninstalled and no signals are captured; per-platform choices are kept and restored on re-enable",
       "capture": "Capture file interactions",
       "description": "Records file reads and writes as metadata. Prompts, tool output, and file contents are not stored.",
       "configPath": "Records file reads and writes as metadata. Prompts, tool output, and file contents are not stored. Config: {{path}}",
@@ -2397,8 +2400,16 @@
         "on": "On",
         "off": "Off",
         "repair": "Repair",
+        "needsApproval": "Needs approval",
         "checking": "Checking…",
         "error": "Error"
+      },
+      "codexApproval": {
+        "title": "Approve ORG2 hooks in Codex",
+        "description": "Codex has the ORG2 hooks installed, but Codex still needs your approval before it can run them.",
+        "instructions": "Open Codex, review the 3 ORG2 hooks, then choose Trust all and continue. ORG2 marks this active after the first real hook signal.",
+        "review": "Review in Codex",
+        "verified": "Verified by a real Codex hook signal {{time}}."
       },
       "signals": {
         "title": "Recent signals",
