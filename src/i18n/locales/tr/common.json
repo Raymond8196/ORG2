@@ -1885,15 +1885,6 @@
     "lastActive": "Son aktif: {{date}}",
     "activeNow": "Şu an aktif: {{ides}}",
     "active": "Aktif",
-    "tabs": {
-      "activity": "Etkinlik",
-      "focus": "Odak",
-      "languages": "Diller",
-      "heatmap": "Isı haritası",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI Oturumları",
     "cliPrompt": "İstem",
     "cliMessages": "Mesajlar",

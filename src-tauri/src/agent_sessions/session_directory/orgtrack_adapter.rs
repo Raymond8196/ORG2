@@ -19,6 +19,34 @@ pub fn upsert_aggregate_sessions(records: &[SessionAggregateRecord]) -> Result<(
     Ok(())
 }
 
+/// Mirror one ORGII-launched CLI session into orgtrack's canonical session
+/// store. Called from the CLI persistence write path (create / status /
+/// name / model / exec-mode changes) so the mirror follows writes instead
+/// of piggybacking on every list query. Missing sessions are a no-op.
+pub fn upsert_cli_session(session_id: &str) -> Result<(), String> {
+    let Some(session) = crate::agent_sessions::cli::persistence::get_session(session_id)
+        .map_err(|err| err.to_string())?
+    else {
+        return Ok(());
+    };
+    upsert_aggregate_sessions(&[super::conversion::cli_session_to_aggregate_record(
+        session,
+    )])
+}
+
+/// Mirror one Rust-agent session into orgtrack's canonical session store.
+/// Reuses the event pipeline's record mapping so patch-driven metadata
+/// changes (rename, model swap) land without waiting for the next
+/// artifact-persistence pass.
+pub fn upsert_rust_agent_session(session_id: &str) -> Result<(), String> {
+    let record = crate::agent_sessions::event_pipeline::commands::runtime_artifact_session_record(
+        session_id,
+    )?;
+    let conn = get_connection().map_err(|err| err.to_string())?;
+    let store = SqliteRecordStore::new(&conn);
+    store.upsert_session(&record)
+}
+
 fn aggregate_to_core_session(record: &SessionAggregateRecord) -> SessionRecord {
     let source = match record.category {
         SessionCategory::Cli => SOURCE_ORGII_CLI_SESSIONS,

@@ -113,8 +113,8 @@ pub fn matches_text_query(session: &SessionAggregateRecord, query: &str) -> bool
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::agent_sessions::unified_stats::status::is_active_status;
-    use crate::agent_sessions::unified_stats::types::SessionCategory;
+    use crate::agent_sessions::session_directory::status::is_active_status;
+    use crate::agent_sessions::session_directory::types::SessionCategory;
     use core_types::key_source::KeySource;
 
     fn make_session(

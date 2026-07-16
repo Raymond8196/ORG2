@@ -14,21 +14,6 @@ export const sessionAggregate = {
     .output(schemas.sessionAggregate.ExternalHistorySidebarBatchResponseSchema)
     .build(),
 
-  getStats: defineProcedure("session_get_aggregate_stats")
-    .input(schemas.sessionAggregate.SessionGetAggregateStatsInput)
-    .output(schemas.sessionAggregate.AggregateStatsSchema)
-    .build(),
-
-  usageSummary: defineProcedure("session_usage_summary")
-    .input(schemas.sessionAggregate.SessionUsageSummaryInput)
-    .output(schemas.sessionAggregate.SessionUsageSummarySchema)
-    .build(),
-
-  heatmap: defineProcedure("session_heatmap")
-    .input(schemas.sessionAggregate.SessionHeatmapInput)
-    .output(schemas.sessionAggregate.SessionHeatmapResponseSchema)
-    .build(),
-
   /**
    * Patch in-session mutable fields for a single session row.
    *

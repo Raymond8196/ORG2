@@ -23,7 +23,7 @@ pub const ACTIVE_STATUSES: &[&str] = &[
 // lockstep with the frontend `TERMINAL_STATUSES` set in
 // `src/types/session/session.ts` and with `SessionStatus::is_terminal()`
 // in `agent_core/core/session/types/enums.rs`. Missing a terminal variant
-// here mis-buckets that status as still-active in unified_stats
+// here mis-buckets that status as still-active in session_directory
 // aggregations (overall counters, recent failure counts, etc.).
 pub const FAILED_STATUSES: &[&str] = &[
     SessionStatus::Failed.as_str(),

@@ -1,8 +1,9 @@
 //! Core aggregation logic for combining sessions from multiple backends.
 //!
 //! This module provides the main `list_all_sessions` function that loads sessions
-//! from CLI, Coding, and OS Agent backends, applies filters, sorting, and pagination,
-//! and computes statistics.
+//! from CLI, Coding, and OS Agent backends and applies filters, sorting, and
+//! pagination. It is a pure read: orgtrack mirroring happens on the session
+//! write paths (see `orgtrack_adapter`), never during listing.
 
 use std::collections::HashSet;
 
@@ -39,11 +40,7 @@ use super::conversion::{
     sde_session_to_aggregate_record, AgentMetadataResolver,
 };
 use super::display::matches_text_query;
-use super::status::{is_active_status, is_completed_status, is_failed_status};
-use super::types::{
-    CategoryStats, KeySourceStats, SessionAggregateRecord, SessionCategory, SessionFilter,
-    SessionListResponse, SessionStats,
-};
+use super::types::{SessionAggregateRecord, SessionFilter, SessionListResponse};
 
 const IMPORTED_HISTORY_PAGE_SIZE: usize = 500;
 
@@ -234,46 +231,6 @@ fn append_external_history_page(
     }
 }
 
-fn cached_external_history_rows_in_range(
-    source: &'static str,
-    start_ms: i64,
-    end_ms: i64,
-) -> Result<Vec<SessionAggregateRecord>, String> {
-    let conn =
-        get_connection().map_err(|err| format!("Failed to open orgtrack cache DB: {err}"))?;
-    let rows = imported_history_cache::query_cached_sessions_in_range_from_conn(
-        &conn, source, start_ms, end_ms,
-    )?;
-    Ok(rows
-        .into_iter()
-        .map(|row| imported_history_to_aggregate_record(row.to_row(), source))
-        .collect())
-}
-
-pub fn cached_external_history_sessions_in_range(
-    start_ms: i64,
-    end_ms: i64,
-) -> Result<Vec<SessionAggregateRecord>, String> {
-    let handles = EXTERNAL_HISTORY_SOURCE_LOADERS
-        .iter()
-        .map(|loader| {
-            let source = loader.source;
-            std::thread::spawn(move || {
-                cached_external_history_rows_in_range(source, start_ms, end_ms)
-            })
-        })
-        .collect::<Vec<_>>();
-
-    let mut records = Vec::new();
-    for handle in handles {
-        let mut source_records = handle
-            .join()
-            .map_err(|_| "External history cache worker panicked".to_string())??;
-        records.append(&mut source_records);
-    }
-    Ok(records)
-}
-
 fn load_imported_history_sessions(
     filter: Option<&SessionFilter>,
 ) -> Result<Vec<SessionAggregateRecord>, String> {
@@ -375,7 +332,7 @@ pub fn list_all_sessions(filter: Option<&SessionFilter>) -> Result<SessionListRe
         match load_imported_history_sessions(filter) {
             Ok(imported_sessions) => all_sessions.extend(imported_sessions),
             Err(err) => {
-                tracing::warn!(error = %err, "unified_stats: failed to load orgtrack imported history sessions")
+                tracing::warn!(error = %err, "session_directory: failed to load orgtrack imported history sessions")
             }
         }
     }
@@ -427,25 +384,10 @@ pub fn list_all_sessions(filter: Option<&SessionFilter>) -> Result<SessionListRe
             all_sessions.push(os_session_to_aggregate_record(session, resolver));
         }
     }
-    let skip_orgtrack_upsert = filter
-        .map(|filter| filter.skip_orgtrack_upsert)
-        .unwrap_or(false);
-    if !skip_orgtrack_upsert {
-        if let Err(err) = super::orgtrack_adapter::upsert_aggregate_sessions(&all_sessions) {
-            tracing::warn!(error = %err, "unified_stats: failed to upsert orgtrack core sessions");
-        }
-    }
-
     // Apply filters
     if let Some(filter) = filter {
         apply_filters(&mut all_sessions, filter)?;
     }
-
-    // Compute statistics (before applying limit/offset)
-    let stats = filter
-        .and_then(|filter| filter.include_stats)
-        .unwrap_or(true)
-        .then(|| compute_stats(&all_sessions));
 
     // Apply sorting
     apply_sorting(&mut all_sessions, filter);
@@ -459,7 +401,6 @@ pub fn list_all_sessions(filter: Option<&SessionFilter>) -> Result<SessionListRe
 
     Ok(SessionListResponse {
         sessions: all_sessions,
-        stats,
     })
 }
 
@@ -663,60 +604,15 @@ fn annotate_agent_org_root_rows(sessions: &mut [SessionAggregateRecord]) -> Resu
 }
 
 // ============================================================================
-// Statistics Computation
-// ============================================================================
-
-/// Compute statistics for a set of sessions.
-pub fn compute_stats(sessions: &[SessionAggregateRecord]) -> SessionStats {
-    let total = sessions.len();
-    let mut active = 0;
-    let mut completed = 0;
-    let mut failed = 0;
-    let mut by_category = CategoryStats::default();
-    let mut by_key_source = KeySourceStats::default();
-
-    for session in sessions {
-        // Status counts
-        if is_active_status(&session.status) {
-            active += 1;
-        } else if is_completed_status(&session.status) {
-            completed += 1;
-        } else if is_failed_status(&session.status) {
-            failed += 1;
-        }
-
-        // Category counts
-        match session.category {
-            SessionCategory::Cli => by_category.cli += 1,
-            SessionCategory::Agent => by_category.agent += 1,
-            SessionCategory::Os => by_category.os += 1,
-        }
-
-        // Key source counts
-        match session.key_source {
-            KeySource::OwnKey => by_key_source.own_key += 1,
-            KeySource::HostedKey => by_key_source.hosted_key += 1,
-        }
-    }
-
-    SessionStats {
-        total,
-        active,
-        completed,
-        failed,
-        by_category,
-        by_key_source,
-    }
-}
-
-// ============================================================================
 // Tests
 // ============================================================================
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::agent_sessions::unified_stats::display::generate_display_label;
+    use crate::agent_sessions::session_directory::display::generate_display_label;
+    use crate::agent_sessions::session_directory::status::is_active_status;
+    use crate::agent_sessions::session_directory::types::SessionCategory;
 
     fn make_session(
         id: &str,
@@ -774,65 +670,6 @@ mod tests {
             lines_removed: None,
             touched_files: None,
         }
-    }
-
-    #[test]
-    fn test_compute_stats_empty() {
-        let sessions: Vec<SessionAggregateRecord> = vec![];
-        let stats = compute_stats(&sessions);
-
-        assert_eq!(stats.total, 0);
-        assert_eq!(stats.active, 0);
-        assert_eq!(stats.completed, 0);
-        assert_eq!(stats.failed, 0);
-        assert_eq!(stats.by_category.cli, 0);
-        assert_eq!(stats.by_category.agent, 0);
-        assert_eq!(stats.by_category.os, 0);
-        assert_eq!(stats.by_key_source.own_key, 0);
-        assert_eq!(stats.by_key_source.hosted_key, 0);
-    }
-
-    #[test]
-    fn test_compute_stats_mixed_sessions() {
-        let sessions = vec![
-            make_session("1", "running", SessionCategory::Cli, KeySource::OwnKey),
-            make_session("2", "completed", SessionCategory::Cli, KeySource::OwnKey),
-            make_session("3", "failed", SessionCategory::Agent, KeySource::HostedKey),
-            make_session("4", "pending", SessionCategory::Os, KeySource::OwnKey),
-            make_session("5", "cancelled", SessionCategory::Cli, KeySource::HostedKey),
-        ];
-
-        let stats = compute_stats(&sessions);
-
-        assert_eq!(stats.total, 5);
-        assert_eq!(stats.active, 2); // running, pending
-        assert_eq!(stats.completed, 1);
-        assert_eq!(stats.failed, 2); // failed, cancelled
-
-        // By category
-        assert_eq!(stats.by_category.cli, 3);
-        assert_eq!(stats.by_category.agent, 1);
-        assert_eq!(stats.by_category.os, 1);
-
-        // By key source
-        assert_eq!(stats.by_key_source.own_key, 3);
-        assert_eq!(stats.by_key_source.hosted_key, 2);
-    }
-
-    #[test]
-    fn test_compute_stats_all_active() {
-        let sessions = vec![
-            make_session("1", "running", SessionCategory::Cli, KeySource::OwnKey),
-            make_session("2", "pending", SessionCategory::Cli, KeySource::OwnKey),
-            make_session("3", "idle", SessionCategory::Cli, KeySource::OwnKey),
-        ];
-
-        let stats = compute_stats(&sessions);
-
-        assert_eq!(stats.total, 3);
-        assert_eq!(stats.active, 3);
-        assert_eq!(stats.completed, 0);
-        assert_eq!(stats.failed, 0);
     }
 
     #[test]

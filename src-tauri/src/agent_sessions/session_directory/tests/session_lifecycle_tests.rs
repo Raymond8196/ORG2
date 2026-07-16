@@ -12,7 +12,7 @@
 //! - Unknown / garbage status strings do not crash
 
 use crate::agent_sessions::cli::types::SessionStatus;
-use crate::agent_sessions::unified_stats::status::{
+use crate::agent_sessions::session_directory::status::{
     is_active_status, is_completed_status, is_failed_status,
 };
 
@@ -110,7 +110,7 @@ fn display_matches_parse_roundtrip() {
 }
 
 // ============================================================================
-// Parity: unified_stats status helpers vs SessionStatus
+// Parity: session_directory status helpers vs SessionStatus
 // ============================================================================
 
 #[test]

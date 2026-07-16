@@ -1880,15 +1880,6 @@
     "lastActive": "Ativo pela última vez: {{date}}",
     "activeNow": "Ativo agora: {{ides}}",
     "active": "Ativo",
-    "tabs": {
-      "activity": "Atividade",
-      "focus": "Foco",
-      "languages": "Linguagens",
-      "heatmap": "Mapa de calor",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "Sessões de CLI de IA",
     "cliPrompt": "Prompt",
     "cliMessages": "Mensagens",

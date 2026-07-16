@@ -189,69 +189,6 @@ impl SessionCategory {
 }
 
 // ============================================================================
-// Statistics Types
-// ============================================================================
-
-/// Session statistics summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionStats {
-    pub total: usize,
-    /// Active sessions: idle, running, waiting_for_user, waiting_for_funds, paused
-    pub active: usize,
-    /// Completed sessions
-    pub completed: usize,
-    /// Failed sessions: failed, cancelled, abandoned, timeout
-    pub failed: usize,
-    /// Sessions by category
-    pub by_category: CategoryStats,
-    /// Sessions by key source
-    pub by_key_source: KeySourceStats,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CategoryStats {
-    pub cli: usize,
-    pub agent: usize,
-    pub os: usize,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct KeySourceStats {
-    pub own_key: usize,
-    pub hosted_key: usize,
-}
-
-/// Aggregate statistics for market/billing analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AggregateStats {
-    /// Headline total cost in USD: recorded metered spend where known, else the
-    /// list-price estimate. Preserves the historical single-figure semantics.
-    pub total_cost_usd: f64,
-    /// Total real metered spend across sessions (pooled / hosted-key routes).
-    #[serde(default)]
-    pub total_recorded_cost_usd: f64,
-    /// Total list-price estimate across sessions (tokens × catalog rate).
-    #[serde(default)]
-    pub total_estimated_cost_usd: f64,
-    /// Total input tokens
-    pub total_tokens_input: i64,
-    /// Total output tokens
-    pub total_tokens_output: i64,
-    /// Total tokens (combined)
-    pub total_tokens: i64,
-    /// Count of ongoing sessions
-    pub ongoing_count: usize,
-    /// Count of completed sessions
-    pub completed_count: usize,
-    /// Count of failed sessions
-    pub failed_count: usize,
-}
-
-// ============================================================================
 // Filter Types
 // ============================================================================
 
@@ -302,9 +239,6 @@ pub struct SessionFilter {
     /// Include imported external history rows when loading CLI-category sessions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_external_history: Option<bool>,
-    /// Include aggregate stats in the response. Defaults to true for existing callers.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_stats: Option<bool>,
     /// Filter imported external history rows by source subtype.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub external_history_source: Option<String>,
@@ -318,8 +252,6 @@ pub struct SessionFilter {
     /// Only include sessions created at or before this epoch millisecond.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_before_ms: Option<i64>,
-    #[serde(skip)]
-    pub skip_orgtrack_upsert: bool,
     /// Only return active (ongoing) sessions
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active_only: Option<bool>,
@@ -334,8 +266,6 @@ pub struct SessionFilter {
 #[serde(rename_all = "camelCase")]
 pub struct SessionListResponse {
     pub sessions: Vec<SessionAggregateRecord>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stats: Option<SessionStats>,
 }
 
 #[derive(Debug, Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -385,107 +315,3 @@ pub struct ExternalHistorySidebarBatchResponse {
     pub sources: Vec<ExternalHistorySidebarResponse>,
 }
 
-// ============================================================================
-// Health Types
-// ============================================================================
-
-/// Session health status for stale detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionHealthStatus {
-    pub is_in_progress: bool,
-    pub is_stale: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stale_reason: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_activity_at: Option<String>,
-}
-
-// ============================================================================
-// History Types
-// ============================================================================
-
-/// History session record — matches frontend's ApiSessionData shape.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct HistorySessionRecord {
-    pub session_id: String,
-    pub name: String,
-    pub status: String,
-    pub repo_name: Option<String>,
-    pub repo_path: Option<String>,
-    pub branch: Option<String>,
-    pub created_at: String,
-    pub updated_at: String,
-    pub model: Option<String>,
-    pub total_tokens: i64,
-    pub added_lines: i64,
-    pub deleted_lines: i64,
-    pub pr_link: Option<String>,
-    pub is_active: bool,
-    pub category: SessionCategory,
-}
-
-/// History metrics — aggregate statistics for the history page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionHistoryMetrics {
-    pub total_sessions: usize,
-    pub total_tokens: i64,
-    pub total_added_lines: i64,
-    pub total_deleted_lines: i64,
-    pub starred_count: usize,
-    pub ongoing_count: usize,
-    pub completed_count: usize,
-}
-
-/// Response from session_get_history command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionHistoryResponse {
-    pub sessions: Vec<HistorySessionRecord>,
-    pub metrics: SessionHistoryMetrics,
-}
-
-// ============================================================================
-// Usage History Types
-// ============================================================================
-
-/// Filter for the session_usage_list command (Dev Record > Sessions tab).
-#[derive(Debug, Clone, Default, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UsageFilter {
-    /// ISO date "YYYY-MM-DD" — include sessions on or after this date
-    pub start_date: Option<String>,
-    /// ISO date "YYYY-MM-DD" — include sessions on or before this date
-    pub end_date: Option<String>,
-    /// cli_agent_type or agent variant to filter by (e.g. "cursor_cli", "sde_agent")
-    pub provider: Option<String>,
-}
-
-/// One row in the usage history list.
-///
-/// Mirrors the frontend `UsageItem` shape (minus the `dayjs` wrapper).
-/// Returned by `session_usage_list`.
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UsageRecord {
-    pub id: String,
-    pub name: String,
-    /// "local" (own_key) or "pooling" (hosted_key)
-    pub source: String,
-    /// cli_agent_type or "sde_agent" / "os_agent"
-    pub provider: String,
-    pub model: String,
-    pub tokens: i64,
-    /// Headline cost: recorded metered spend where known, else the estimate.
-    pub cost: f64,
-    /// Real metered spend for this session (`$0` for own-key / subscription).
-    #[serde(default)]
-    pub recorded_cost: f64,
-    /// List-price estimate: tokens × catalog rate.
-    #[serde(default)]
-    pub estimated_cost: f64,
-    pub status: String,
-    pub created_at: String,
-}

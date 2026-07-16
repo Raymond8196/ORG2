@@ -823,13 +823,6 @@
         "heatmap": "趋势",
         "runtime": "运行时"
       },
-      "heatmap": {
-        "loading": "正在加载活动趋势…",
-        "empty": "还没有会话活动。",
-        "sessions": "会话",
-        "tokens": "Tokens",
-        "cost": "成本"
-      },
       "quota": {
         "empty": "暂无配额数据。请在 Key Vault 中刷新用量。",
         "refresh": "刷新",

@@ -799,13 +799,6 @@
         "heatmap": "Tendencias",
         "runtime": "Tiempo de ejecución"
       },
-      "heatmap": {
-        "loading": "Cargando tendencias de actividad…",
-        "empty": "Aún no hay actividad de sesiones.",
-        "sessions": "Sesiones",
-        "tokens": "Tokens",
-        "cost": "Costo"
-      },
       "quota": {
         "empty": "Aún no hay datos de cuota. Actualiza el uso desde Key Vault.",
         "refresh": "Actualizar",

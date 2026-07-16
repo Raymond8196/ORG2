@@ -1886,15 +1886,6 @@
     "lastActive": "最終アクティブ: {{date}}",
     "activeNow": "アクティブ中: {{ides}}",
     "active": "アクティブ",
-    "tabs": {
-      "activity": "アクティビティ",
-      "focus": "集中",
-      "languages": "言語",
-      "heatmap": "ヒートマップ",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI セッション",
     "cliPrompt": "プロンプト",
     "cliMessages": "メッセージ",

@@ -16,7 +16,7 @@ use orgtrack_core::sources::workbuddy as workbuddy_history;
 use orgtrack_core::sources::zcode::history as zcode_history;
 use session_persistence::CachedTurnSummary;
 
-use crate::agent_sessions::unified_stats::pricing_catalog;
+use crate::agent_sessions::session_directory::pricing_catalog;
 
 use super::external_cli_detection::{self, ExternalCliSourceProbe};
 
@@ -149,7 +149,7 @@ pub async fn external_history_rescan_source(source: String, clear: bool) -> Resu
         }
         // Always re-read the on-disk store and repopulate the cache. The old
         // behavior only pruned, leaving the count at 0 until a later lazy load.
-        crate::agent_sessions::unified_stats::aggregation::resync_external_history_source(
+        crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
             &mut conn, &source,
         )
     })
@@ -183,7 +183,7 @@ pub async fn external_history_rescan_sources(
             if clear {
                 imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])?;
             }
-            crate::agent_sessions::unified_stats::aggregation::resync_external_history_source(
+            crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
                 &mut conn, &source,
             )?;
         }

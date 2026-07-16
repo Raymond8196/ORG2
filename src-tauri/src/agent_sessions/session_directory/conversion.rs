@@ -37,7 +37,7 @@ fn native_impact_fields(
         ),
         Ok(None) => (None, None, None, None),
         Err(err) => {
-            tracing::debug!(session_id = %session_id, error = %err, "[unified_stats] source impact unavailable");
+            tracing::debug!(session_id = %session_id, error = %err, "[session_directory] source impact unavailable");
             (None, None, None, None)
         }
     }
@@ -75,7 +75,7 @@ impl AgentMetadataResolver {
             Err(err) => {
                 if self.warned_definition_ids.insert(def_id.clone()) {
                     tracing::warn!(
-                        "[unified_stats] Failed to resolve agent definition '{def_id}' for aggregate metadata: {err}"
+                        "[session_directory] Failed to resolve agent definition '{def_id}' for aggregate metadata: {err}"
                     );
                 }
                 (Some(def_id), None, None)

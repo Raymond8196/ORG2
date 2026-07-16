@@ -16,7 +16,7 @@
 //! - String with only whitespace → None
 //! - Newlines and tabs in user_input (collapsed by split_whitespace)
 
-use crate::agent_sessions::unified_stats::display::{
+use crate::agent_sessions::session_directory::display::{
     generate_display_label, strip_pill_references, MAX_DISPLAY_LABEL_LENGTH,
 };
 

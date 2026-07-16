@@ -50,7 +50,7 @@ pub const PENDING_SESSION_PLACEHOLDER: &str = "pending";
 /// (with its impls keyed on `agent_core::persistence::db_helpers`)
 /// down into the shared crate.
 ///
-/// Not to be confused with `unified_stats::SessionFilter`, which is the
+/// Not to be confused with `session_directory::SessionFilter`, which is the
 /// richer frontend-facing filter (sorting, text search, key source, etc.).
 #[derive(Debug, Clone, Default)]
 pub struct SessionListFilter {

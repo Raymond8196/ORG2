@@ -233,7 +233,6 @@ describe("loadSidebarSessions", () => {
       expect.objectContaining({
         sessionIds: ["codexapp-rollout-historical"],
         includeExternalHistory: true,
-        includeStats: false,
         limit: 1,
       })
     );

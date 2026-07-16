@@ -800,13 +800,6 @@
         "heatmap": "Trendy",
         "runtime": "Czas wykonania"
       },
-      "heatmap": {
-        "loading": "Ładowanie trendów aktywności…",
-        "empty": "Brak aktywności sesji.",
-        "sessions": "Sesje",
-        "tokens": "Tokens",
-        "cost": "Koszt"
-      },
       "quota": {
         "empty": "Brak danych quota. Odśwież użycie w Key Vault.",
         "refresh": "Odśwież",
