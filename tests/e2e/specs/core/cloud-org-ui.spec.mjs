@@ -139,6 +139,13 @@ const LIVE_AGENT_ROUND = process.env.E2E_CLOUD_LIVE === "1";
 const E2E_REPO_SCOPE_KEY =
   process.env.E2E_REPO_SCOPE_KEY ?? "github.com/orgii/e2e-workspace";
 
+async function selectCloudOrgManagementTab(tab, label) {
+  await clickRendered(
+    `[data-testid="cloud-org-tab-${tab}"]`,
+    `${label} management tab`
+  );
+}
+
 // Removed with the fork runner: the Run-here dialog scenario and the
 // E2E_CLOUD_RUN claim→release leg (tasks now run in place on the owner's
 // machine; there is no teammate-machine fork pickup to drive).
@@ -450,19 +457,22 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       '[data-testid="cloud-org-default-access"]',
       "default sync level section"
     );
-    await waitForRendered(
-      '[data-testid="cloud-org-repo-scope"]',
-      "repo scopes section"
-    );
+    await selectCloudOrgManagementTab("members", "members");
     await waitForRendered(
       '[data-testid="cloud-org-member-row"]',
       "members section (self row)"
     );
-    // Owner of the personal org ⇒ admin surfaces render.
+    // Owner of the personal org ⇒ admin invite surface renders.
     await waitForRendered(
       '[data-testid="cloud-org-invites"]',
       "invites card (admin)"
     );
+    await selectCloudOrgManagementTab("repo-scope", "repo scopes");
+    await waitForRendered(
+      '[data-testid="cloud-org-repo-scope"]',
+      "repo scopes section"
+    );
+    await selectCloudOrgManagementTab("general", "general");
     await waitForRendered(
       '[data-testid="cloud-org-settings"]',
       "org settings section (admin)"
@@ -686,6 +696,7 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       "ensureRepoSelected(repository governance)"
     );
     await openCloudOrgPanelFromSidebar(orgId);
+    await selectCloudOrgManagementTab("repo-scope", "repository scope");
     await waitForRendered(
       '[data-testid="cloud-org-repo-scope"]',
       "repository-scope management section",
@@ -1063,6 +1074,7 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       "created org plan section",
       CLOUD_FETCH_TIMEOUT_MS
     );
+    await selectCloudOrgManagementTab("members", "created org members");
     await waitForRendered(
       '[data-testid="cloud-org-invites"]',
       "created org invites card (owner)"

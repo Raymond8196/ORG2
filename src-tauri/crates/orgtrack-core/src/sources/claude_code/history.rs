@@ -166,6 +166,31 @@ pub fn load_claude_code_history_for_session(
     load_claude_code_history_from_path(session_id, &path)
 }
 
+/// Cheap freshness probe for one session's transcript: `(mtime_ms, size_bytes)`.
+/// Auto-refresh callers compare it against the previous probe and skip the
+/// full read/parse/merge pipeline when the source file has not changed —
+/// which is every tick for a finished session. Returns `Ok(None)` when the
+/// transcript file is missing (caller falls back to a full refresh attempt).
+pub fn stat_claude_code_history_for_session(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Option<(i64, u64)>, String> {
+    let file_stem = claude_file_stem_from_session_id(session_id)?;
+    let path = resolve_claude_session_path(conn, file_stem)?;
+    match fs::metadata(&path) {
+        Ok(metadata) => {
+            let mtime_ms = metadata
+                .modified()
+                .ok()
+                .and_then(|modified| modified.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|duration| duration.as_millis() as i64)
+                .unwrap_or(0);
+            Ok(Some((mtime_ms, metadata.len())))
+        }
+        Err(_) => Ok(None),
+    }
+}
+
 fn sync_claude_code_history_cache(conn: &mut Connection) -> Result<(), String> {
     let discovered = discover_claude_code_history_records()?;
     let signatures = discovered

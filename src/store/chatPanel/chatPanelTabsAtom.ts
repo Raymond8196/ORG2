@@ -7,6 +7,7 @@
  *   "start-page" — Launchpad with Work / Manage / Trend tabs
  *   "work-management" — Singleton management surface with internal sections
  *   "workspace" — A workspace's overview / detail page (one pill per workspace)
+ *   "cloud-org" — Singleton managed-cloud organization settings page
  *
  * Terminal tabs share the global terminal atom store but use session IDs
  * prefixed with "chatpanel-" so they are invisible to the Workstation
@@ -34,11 +35,13 @@ import {
 import {
   CHAT_PANEL_START_PAGE_TAB,
   CHAT_PANEL_SURFACE_KIND,
+  type ChatPanelSelectedCloudOrg,
   type ChatPanelSelectedWorkspace,
   type ChatPanelStartPageTab,
   type WorkspaceOverviewTab,
   chatPanelMaximizedAtom,
   chatPanelNavigateAtom,
+  chatPanelSelectedCloudOrgAtom,
   chatPanelStartPageOpenAtom,
   chatPanelStartPageTabAtom,
   chatPanelWorkspaceOverviewTabAtom,
@@ -74,7 +77,8 @@ export type ChatPanelTabType =
   | "terminal"
   | "start-page"
   | "work-management"
-  | "workspace";
+  | "workspace"
+  | "cloud-org";
 
 export interface ChatPanelTab {
   id: string;
@@ -113,6 +117,11 @@ export interface ChatPanelTab {
    * (via `chatPanelNavigateAtom`) so the overview surface re-renders.
    */
   workspace?: ChatPanelSelectedWorkspace;
+  /**
+   * For "cloud-org" tabs: the managed organization restored when this tab
+   * is activated. The management page itself provides the org switcher.
+   */
+  cloudOrg?: ChatPanelSelectedCloudOrg;
 }
 
 const DEFAULT_FULLSCREEN_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
@@ -176,6 +185,10 @@ export function normalizePersistedChatPanelTabsState(
     activeMappedTab?.type === "work-management"
       ? activeMappedTab.id
       : mappedTabs.find((tab) => tab.type === "work-management")?.id;
+  const preferredCloudOrgTabId =
+    activeMappedTab?.type === "cloud-org"
+      ? activeMappedTab.id
+      : mappedTabs.find((tab) => tab.type === "cloud-org")?.id;
   // The Launchpad start page is a singleton: collapse any persisted duplicates
   // to a single tab (preferring the active one) so new-session / launchpad
   // entry points can never stack more than one.
@@ -187,6 +200,7 @@ export function normalizePersistedChatPanelTabsState(
     (tab) =>
       (tab.type !== "work-management" ||
         tab.id === preferredWorkManagementTabId) &&
+      (tab.type !== "cloud-org" || tab.id === preferredCloudOrgTabId) &&
       (tab.type !== "start-page" || tab.id === preferredStartPageTabId)
   );
   if (survivingTabs.length === 0) return null;
@@ -379,6 +393,15 @@ const syncChatPanelTabNavigationAtom = atom(
       return;
     }
 
+    if (tab.type === "cloud-org" && tab.cloudOrg) {
+      set(chatPanelNavigateAtom, {
+        kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
+        cloudOrg: tab.cloudOrg,
+      });
+      set(jumpToSessionAtom, null);
+      return;
+    }
+
     set(chatPanelStartPageOpenAtom, false);
 
     // Session is the neutral legacy surface underneath tabs whose content is
@@ -462,7 +485,8 @@ export const activateChatPanelTabAtom = atom(
     if (
       tab.type === "terminal" ||
       tab.type === "work-management" ||
-      tab.type === "workspace"
+      tab.type === "workspace" ||
+      tab.type === "cloud-org"
     ) {
       // Surface state for these tabs is fully driven by
       // `syncChatPanelTabNavigationAtom` above; there is no session to jump to.
@@ -687,6 +711,51 @@ export const openWorkspaceOverviewInChatPanelTabAtom = atom(
 openWorkspaceOverviewInChatPanelTabAtom.debugLabel =
   "openWorkspaceOverviewInChatPanelTab";
 
+interface OpenCloudOrgManagementTabOptions {
+  cloudOrg: ChatPanelSelectedCloudOrg;
+  title?: string;
+}
+
+/**
+ * Open or focus the singleton managed-cloud organization settings tab.
+ * Switching organizations updates the tab payload in place, so its identity
+ * remains "Manage ORG" and activating it restores the selected organization.
+ */
+export const openCloudOrgManagementInChatPanelTabAtom = atom(
+  null,
+  (get, set, options: OpenCloudOrgManagementTabOptions) => {
+    const { cloudOrg, title = "Manage ORG" } = options;
+    const state = get(chatPanelTabsAtom);
+    const existingTab = state.tabs.find((tab) => tab.type === "cloud-org");
+    if (existingTab) {
+      set(chatPanelTabsAtom, {
+        ...state,
+        tabs: state.tabs.map((tab) =>
+          tab.id === existingTab.id ? { ...tab, title, cloudOrg } : tab
+        ),
+      });
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+
+    const id = "chat-cloud-org-management";
+    const now = new Date().toISOString();
+    set(appendAndActivateChatPanelTabAtom, {
+      tab: {
+        id,
+        type: "cloud-org",
+        title,
+        cloudOrg,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+    return id;
+  }
+);
+openCloudOrgManagementInChatPanelTabAtom.debugLabel =
+  "openCloudOrgManagementInChatPanelTab";
+
 interface OpenSessionInNewChatTabOptions {
   sessionId: string;
   sessionName?: string;
@@ -887,6 +956,23 @@ export const closeChatPanelTabAtom = atom(null, (get, set, tabId: string) => {
   }
 });
 closeChatPanelTabAtom.debugLabel = "closeChatPanelTab";
+
+/** Close the singleton org-management tab, or clear a legacy bare surface. */
+export const closeCloudOrgManagementChatPanelTabAtom = atom(
+  null,
+  (get, set) => {
+    const tab = get(chatPanelTabsAtom).tabs.find(
+      (candidate) => candidate.type === "cloud-org"
+    );
+    if (tab) {
+      set(closeChatPanelTabAtom, tab.id);
+      return;
+    }
+    set(chatPanelSelectedCloudOrgAtom, null);
+  }
+);
+closeCloudOrgManagementChatPanelTabAtom.debugLabel =
+  "closeCloudOrgManagementChatPanelTab";
 
 /** Navigate to the next tab (wraps around) */
 export const nextChatPanelTabAtom = atom(null, (get, set) => {
