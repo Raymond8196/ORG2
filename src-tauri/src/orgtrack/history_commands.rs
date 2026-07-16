@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{collections::HashSet, path::Path};
 
 use database::db::get_connection;
 use orgtrack_core::sources::claude_code::history as claude_code_history;
@@ -152,6 +152,42 @@ pub async fn external_history_rescan_source(source: String, clear: bool) -> Resu
         crate::agent_sessions::unified_stats::aggregation::resync_external_history_source(
             &mut conn, &source,
         )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+/// Incrementally update multiple external history sources in one IPC request.
+///
+/// Sources are processed through one cache connection. This is the app-startup
+/// and scheduled auto-scan path; keeping it batched avoids one frontend/native
+/// round trip per installed provider.
+#[tauri::command]
+pub async fn external_history_rescan_sources(
+    sources: Vec<String>,
+    clear: bool,
+) -> Result<(), String> {
+    let mut seen_sources = HashSet::with_capacity(sources.len());
+    for source in &sources {
+        if !seen_sources.insert(source.as_str()) {
+            return Err(format!("Duplicate external history source: {source}"));
+        }
+        if !imported_history::metadata::is_imported_history_source(source) {
+            return Err(format!("Unknown external history source: {source}"));
+        }
+    }
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        for source in sources {
+            if clear {
+                imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])?;
+            }
+            crate::agent_sessions::unified_stats::aggregation::resync_external_history_source(
+                &mut conn, &source,
+            )?;
+        }
+        Ok(())
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
