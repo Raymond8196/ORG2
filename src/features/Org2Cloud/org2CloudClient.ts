@@ -18,6 +18,7 @@ import type { CollabSessionAccessMode } from "@src/store/collaboration/types";
 
 import { ORG2_CLOUD_POSTGREST_SCHEMA, getCloudEndpoint } from "./config";
 import type { Org2CloudAuthState, Org2CloudProfile } from "./org2CloudAuthAtom";
+import { CLOUD_ORG_ROLES, type CloudOrgRole } from "./org2CloudOrgManagement";
 
 const log = createLogger("Org2CloudClient");
 
@@ -145,19 +146,19 @@ export async function getCloudProfile(
 const CloudOrgWireSchema = z.object({
   orgId: z.string(),
   name: z.string(),
-  role: z.string(),
+  role: z.enum(CLOUD_ORG_ROLES),
 });
 
 export interface CloudOrg {
   orgId: string;
   name: string;
-  role: string;
+  role: CloudOrgRole;
 }
 
 const CloudOrgMemberWireSchema = z.object({
   userId: z.string(),
   displayName: z.string().nullish(),
-  role: z.string(),
+  role: z.enum(CLOUD_ORG_ROLES),
   status: z.string(),
   joinedAt: z.string().nullish(),
   // Per-member sharing floor (admin-set MINIMUM for this member; 'off' = no
@@ -176,7 +177,7 @@ const CloudOrgMemberWireSchema = z.object({
 export interface CloudOrgMember {
   userId: string;
   displayName?: string;
-  role: string;
+  role: CloudOrgRole;
   status: string;
   joinedAt?: string;
   /** Member-level sharing floor; absent/'off' ⇒ no member requirement. */

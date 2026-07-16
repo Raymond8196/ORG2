@@ -37,6 +37,7 @@ import {
   updateCloudMemberRole,
 } from "@src/features/Org2Cloud/org2CloudManagementClient";
 import {
+  type CloudAssignableRole,
   type CloudInviteRecord,
   cloudManagementErrorMessage,
   wouldRemoveLastAdmin,
@@ -58,8 +59,7 @@ export interface CreateCloudInviteOptions {
   usageLimit: number;
   /** null = the invite never expires. */
   expiresInDays: number | null;
-  /** admin | member | viewer. */
-  role: string;
+  role: CloudAssignableRole;
 }
 
 interface UseCloudOrgManagementParams {
@@ -255,7 +255,7 @@ export function useCloudOrgManagement({
   );
 
   const handleUpdateMemberRole = useCallback(
-    async (member: CloudOrgMember, role: string) => {
+    async (member: CloudOrgMember, role: CloudAssignableRole) => {
       if (updatingRoleUserId || member.role === role) return;
       setMemberError(null);
       // Client-side last-admin pre-check (server ORG2_LAST_ADMIN mirror).

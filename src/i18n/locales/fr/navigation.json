@@ -519,7 +519,6 @@
         "expiryOptionNever": "Jamais",
         "roleAdmin": "Admin",
         "roleMember": "Membre",
-        "roleViewer": "Lecteur",
         "createdAt": "Créée le {{date}}",
         "remainingUses": "Utilisations restantes : {{uses}}",
         "expires": "Expire le {{date}}",
