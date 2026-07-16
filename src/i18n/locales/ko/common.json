@@ -1558,6 +1558,11 @@
           "pillLabel": "세션 검색",
           "placeholder": "Agent 세션 검색..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "Workspace 전환"
         },

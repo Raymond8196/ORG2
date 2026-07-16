@@ -1558,6 +1558,11 @@
           "pillLabel": "Tìm kiếm phiên",
           "placeholder": "Tìm kiếm phiên Agent..."
         },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
+        },
         "switchWorkspace": {
           "label": "Chuyển workspace"
         },

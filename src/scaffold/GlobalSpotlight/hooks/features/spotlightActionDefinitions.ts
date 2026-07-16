@@ -57,6 +57,7 @@ export type SpotlightStaticActionId =
   | "create-project"
   | "create-work-item"
   | "search-agent-sessions"
+  | "search-all-sessions"
   | "open-agent-control"
   | "switch-workspace"
   | "switch-branch"
@@ -99,6 +100,7 @@ export type SpotlightStaticActionFallback =
   | "create-project"
   | "create-work-item"
   | "search-agent-sessions"
+  | "search-all-sessions"
   | "agent-control"
   | "workspace-switch"
   | "workspace-add"
@@ -233,6 +235,23 @@ export const AGENT_SESSION_ACTIONS = [
     actionId: ACTION_ID.SPOTLIGHT_OPEN_AGENT_SESSION_SEARCH,
     payload: {},
     fallback: "search-agent-sessions",
+    opensSecondLevel: true,
+    closeOnSuccess: false,
+  },
+  {
+    id: "search-all-sessions",
+    labelKey: "selectors.spotlight.actions.searchAllSessions.label",
+    icon: Search,
+    keywords: [
+      "full text search",
+      "search content",
+      "search transcripts",
+      "search all sessions",
+      "grep sessions",
+    ],
+    actionId: ACTION_ID.SPOTLIGHT_OPEN_ALL_SESSIONS_SEARCH,
+    payload: {},
+    fallback: "search-all-sessions",
     opensSecondLevel: true,
     closeOnSuccess: false,
   },
