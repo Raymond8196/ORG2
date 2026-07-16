@@ -19,6 +19,43 @@ pub fn upsert_aggregate_sessions(records: &[SessionAggregateRecord]) -> Result<(
     Ok(())
 }
 
+/// One-time startup reconcile of the orgtrack session mirror.
+///
+/// The write-path hooks keep the mirror fresh going forward; this pass
+/// repairs history from before they existed:
+/// - drops ORGII-source rows whose native session is gone — including
+///   imported-history ids the old per-list upsert mislabeled as
+///   `orgii_cli_sessions` (the import scan re-upserts those under their
+///   real source), and
+/// - re-mirrors every current native session so titles/status/timestamps
+///   are trustworthy for orgtrack readers.
+pub fn reconcile_native_session_mirror() -> Result<(), String> {
+    {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        conn.execute(
+            "DELETE FROM orgtrack_core_sessions
+             WHERE source = ?1
+               AND session_id NOT IN (SELECT session_id FROM code_sessions)",
+            rusqlite::params![SOURCE_ORGII_CLI_SESSIONS],
+        )
+        .map_err(|err| format!("purge stale cli mirror rows: {err}"))?;
+        conn.execute(
+            "DELETE FROM orgtrack_core_sessions
+             WHERE source = ?1
+               AND session_id NOT IN (SELECT session_id FROM agent_sessions)",
+            rusqlite::params![SOURCE_ORGII_RUST_AGENTS],
+        )
+        .map_err(|err| format!("purge stale agent mirror rows: {err}"))?;
+    }
+
+    let native = super::aggregation::list_all_sessions(Some(&super::types::SessionFilter {
+        category: Some("cli,agent,os".to_string()),
+        include_external_history: Some(false),
+        ..Default::default()
+    }))?;
+    upsert_aggregate_sessions(&native.sessions)
+}
+
 /// Mirror one ORGII-launched CLI session into orgtrack's canonical session
 /// store. Called from the CLI persistence write path (create / status /
 /// name / model / exec-mode changes) so the mirror follows writes instead

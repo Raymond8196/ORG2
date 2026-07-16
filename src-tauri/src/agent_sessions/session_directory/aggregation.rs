@@ -298,7 +298,121 @@ fn load_imported_history_sessions(
 // ============================================================================
 
 /// Load sessions from the requested sources and compute statistics.
+/// SQL-paginated fast path for the sidebar's per-category page shape.
+///
+/// The hot sidebar refresh asks for exactly one native category ordered by
+/// `updated_at DESC` with a limit/offset and external history excluded
+/// (`fetchAggregatePage` in the frontend). For that shape the page can come
+/// straight from the source table with a SQL `LIMIT`, instead of loading
+/// every row from every store and slicing in memory. Any other filter shape
+/// returns `None` and takes the full merge path below.
+///
+/// The filter is destructured exhaustively on purpose: adding a field to
+/// `SessionFilter` must fail compilation here so the new field's fast-path
+/// semantics are decided explicitly.
+fn plain_native_page(filter: Option<&SessionFilter>) -> Result<Option<SessionListResponse>, String> {
+    let Some(filter) = filter else {
+        return Ok(None);
+    };
+    let SessionFilter {
+        session_ids,
+        category,
+        status,
+        key_source,
+        repo_path,
+        org_id,
+        project_slug,
+        work_item_id,
+        limit,
+        offset,
+        text_query,
+        sort_by,
+        sort_order,
+        include_external_history,
+        external_history_source,
+        disabled_external_history_sources: _,
+        created_after_ms,
+        created_before_ms,
+        active_only,
+    } = filter;
+
+    let plain = session_ids.is_none()
+        && status.is_none()
+        && key_source.is_none()
+        && repo_path.is_none()
+        && org_id.is_none()
+        && project_slug.is_none()
+        && work_item_id.is_none()
+        && text_query.is_none()
+        && external_history_source.is_none()
+        && created_after_ms.is_none()
+        && created_before_ms.is_none()
+        && active_only.is_none_or(|active| !active)
+        && *include_external_history == Some(false)
+        && sort_by.as_deref().is_none_or(|key| key == "updated_at")
+        && sort_order.as_deref().is_none_or(|order| order == "desc");
+    if !plain {
+        return Ok(None);
+    }
+
+    let limit = limit.unwrap_or(usize::MAX);
+    let offset = offset.unwrap_or(0);
+
+    let mut sessions = match category.as_deref() {
+        Some("cli") => {
+            let page = cli_session_persistence::list_sessions_page(limit, offset)
+                .map_err(|err| format!("Failed to load CLI session page: {}", err))?;
+            page.into_iter()
+                .map(cli_session_to_aggregate_record)
+                .collect::<Vec<_>>()
+        }
+        Some("agent") => {
+            let sde_filter = agent_core::session::SessionListFilter {
+                type_names: Some(vec![
+                    session_type::CODING.to_string(),
+                    session_type::ORG_MEMBER.to_string(),
+                ]),
+                limit: Some(limit),
+                offset: Some(offset),
+                ..Default::default()
+            };
+            let page = session_persistence::list_sessions(&sde_filter)
+                .map_err(|err| format!("Failed to load agent session page: {}", err))?;
+            let mut resolver = AgentMetadataResolver::new();
+            let mut rows = page
+                .into_iter()
+                .map(|session| sde_session_to_aggregate_record(session, &mut resolver))
+                .collect::<Vec<_>>();
+            annotate_agent_org_root_rows(&mut rows)?;
+            rows
+        }
+        Some("os") => {
+            let os_filter = agent_core::session::SessionListFilter {
+                type_name: Some(session_type::DESKTOP.to_string()),
+                limit: Some(limit),
+                offset: Some(offset),
+                ..Default::default()
+            };
+            let page = session_persistence::list_sessions(&os_filter)
+                .map_err(|err| format!("Failed to load OS session page: {}", err))?;
+            let mut resolver = AgentMetadataResolver::new();
+            page.into_iter()
+                .map(|session| os_session_to_aggregate_record(session, &mut resolver))
+                .collect::<Vec<_>>()
+        }
+        _ => return Ok(None),
+    };
+
+    // The source queries already order by `updated_at DESC`; re-sorting via
+    // the shared path keeps tie-break behavior identical to the merge path.
+    apply_sorting(&mut sessions, Some(filter));
+    Ok(Some(SessionListResponse { sessions }))
+}
+
 pub fn list_all_sessions(filter: Option<&SessionFilter>) -> Result<SessionListResponse, String> {
+    if let Some(page) = plain_native_page(filter)? {
+        return Ok(page);
+    }
     let category_filter = filter.and_then(|filter| filter.category.as_deref());
     let wants_category = |category: &str| -> bool {
         category_filter
@@ -761,5 +875,48 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec!["root-session"]
         );
+    }
+
+    fn plain_page_filter() -> SessionFilter {
+        SessionFilter {
+            category: Some("cli".to_string()),
+            include_external_history: Some(false),
+            limit: Some(20),
+            offset: Some(0),
+            sort_by: Some("updated_at".to_string()),
+            sort_order: Some("desc".to_string()),
+            ..SessionFilter::default()
+        }
+    }
+
+    #[test]
+    fn plain_native_page_rejects_non_plain_filters() {
+        // Missing filter entirely, or any shape the SQL page can't express,
+        // must fall through to the merge path (Ok(None)).
+        assert!(plain_native_page(None).unwrap().is_none());
+
+        let mut with_text = plain_page_filter();
+        with_text.text_query = Some("bug".to_string());
+        assert!(plain_native_page(Some(&with_text)).unwrap().is_none());
+
+        let mut with_status = plain_page_filter();
+        with_status.status = Some("running".to_string());
+        assert!(plain_native_page(Some(&with_status)).unwrap().is_none());
+
+        let mut with_external = plain_page_filter();
+        with_external.include_external_history = Some(true);
+        assert!(plain_native_page(Some(&with_external)).unwrap().is_none());
+
+        let mut external_unset = plain_page_filter();
+        external_unset.include_external_history = None;
+        assert!(plain_native_page(Some(&external_unset)).unwrap().is_none());
+
+        let mut multi_category = plain_page_filter();
+        multi_category.category = Some("cli,agent".to_string());
+        assert!(plain_native_page(Some(&multi_category)).unwrap().is_none());
+
+        let mut sorted_by_name = plain_page_filter();
+        sorted_by_name.sort_by = Some("name".to_string());
+        assert!(plain_native_page(Some(&sorted_by_name)).unwrap().is_none());
     }
 }

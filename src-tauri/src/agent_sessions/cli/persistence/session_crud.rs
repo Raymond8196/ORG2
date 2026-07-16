@@ -156,6 +156,21 @@ pub fn list_sessions() -> SqliteResult<Vec<CodeSession>> {
     rows.collect()
 }
 
+/// One page of sessions ordered by recent activity. Serves the sidebar's
+/// paginated category view without loading the whole table.
+pub fn list_sessions_page(limit: usize, offset: usize) -> SqliteResult<Vec<CodeSession>> {
+    let conn = get_connection()?;
+    let query = format!(
+        "SELECT {} FROM code_sessions cs ORDER BY cs.updated_at DESC LIMIT ?1 OFFSET ?2",
+        SESSION_COLUMNS
+    );
+    let limit = limit.min(i64::MAX as usize) as i64;
+    let offset = offset.min(i64::MAX as usize) as i64;
+    let mut stmt = conn.prepare(&query)?;
+    let rows = stmt.query_map(params![limit, offset], row_to_session)?;
+    rows.collect()
+}
+
 /// Update session status.
 pub fn update_status(session_id: &str, status: SessionStatus) -> SqliteResult<bool> {
     let conn = get_connection()?;

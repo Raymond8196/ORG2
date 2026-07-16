@@ -471,6 +471,14 @@ pub fn run() {
                     tracing::warn!(session_id, error = %err, "[session-mirror] orgtrack session mirror failed");
                 }
             });
+            // Repair mirror rows from before the write-path hooks existed
+            // (stale/mislabeled rows, cold titles). One bounded pass off the
+            // main thread; the hooks keep it fresh from here on.
+            tauri::async_runtime::spawn_blocking(|| {
+                if let Err(err) = crate::agent_sessions::session_directory::orgtrack_adapter::reconcile_native_session_mirror() {
+                    tracing::warn!(error = %err, "[session-mirror] startup reconcile failed");
+                }
+            });
 
 
             // Create WebSocket broadcast channel for real-time events
