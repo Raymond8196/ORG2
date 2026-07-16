@@ -57,7 +57,7 @@ export type {
 } from "./EventStoreProxyTypes";
 export { isStreamingSnapshot } from "./snapshotMaterialization";
 
-const SNAPSHOT_CACHE_MAX = 8;
+const SNAPSHOT_CACHE_MAX = 5;
 
 // Total cached events across all retained snapshots. The count cap alone let
 // "20 sessions" quietly mean hundreds of MB once transcripts got long; this
