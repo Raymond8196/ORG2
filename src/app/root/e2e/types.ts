@@ -475,6 +475,8 @@ export interface E2EHelpers {
   inspectOrgtrackFileSessionHistory: (input: {
     repoPath: string;
     filePath: string;
+    limit?: number;
+    offset?: number;
   }) => Promise<Result<{ history: Json }>>;
   inspectCliSessionStatus: (
     sessionId: string

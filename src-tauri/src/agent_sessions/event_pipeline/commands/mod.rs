@@ -689,16 +689,25 @@ mod bulk_writer {
 }
 
 fn persist_runtime_orgtrack_records_async(
+    app: tauri::AppHandle,
     session_id: String,
     events: Vec<(usize, Option<String>, SessionEvent)>,
 ) {
     tokio::task::spawn_blocking(move || {
-        if let Err(err) = persist_runtime_orgtrack_records(&session_id, events) {
-            tracing::warn!(
-                session_id = %session_id,
-                error = %err,
-                "[orgtrack_runtime_artifacts] failed to persist runtime provenance records"
-            );
+        match persist_runtime_orgtrack_records(&session_id, events) {
+            Ok(()) => {
+                let _ = app.emit(
+                    crate::orgtrack::session_provenance::RESOURCE_INTERACTIONS_CHANGED_EVENT,
+                    (),
+                );
+            }
+            Err(err) => {
+                tracing::warn!(
+                    session_id = %session_id,
+                    error = %err,
+                    "[orgtrack_runtime_artifacts] failed to persist runtime provenance records"
+                );
+            }
         }
     });
 }
@@ -921,7 +930,11 @@ pub fn push_events_to_session(
     }
 
     if !runtime_artifact_events.is_empty() {
-        persist_runtime_orgtrack_records_async(session_id.to_string(), runtime_artifact_events);
+        persist_runtime_orgtrack_records_async(
+            app.clone(),
+            session_id.to_string(),
+            runtime_artifact_events,
+        );
     }
 
     schedule_notify(app, state, session_id);

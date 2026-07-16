@@ -220,6 +220,8 @@ export function createSessionHelpers(store: E2EStore) {
   const inspectOrgtrackFileSessionHistory = async (input: {
     repoPath: string;
     filePath: string;
+    limit?: number;
+    offset?: number;
   }): Promise<Result<{ history: Json }>> => {
     try {
       const history = await getOrgtrackFileSessionHistory(input);

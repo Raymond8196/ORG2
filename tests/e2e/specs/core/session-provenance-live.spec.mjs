@@ -329,6 +329,45 @@ async function runCodexProvenance(repoPath) {
   return { sessionId: started.thread_id, prompt };
 }
 
+async function runCodexReadOnlyProvenance(repoPath) {
+  const prompt = [
+    "Use exec_command exactly once.",
+    `Run exactly: sed -n '1,10p' ${TARGET_FILE}`,
+    "Do not use any other tool and do not modify the file, then stop.",
+  ].join(" ");
+  const { stdout, stderr } = await execFileWithClosedStdin(
+    "codex",
+    [
+      "exec",
+      "--json",
+      "--sandbox",
+      "workspace-write",
+      "--dangerously-bypass-hook-trust",
+      "-C",
+      repoPath,
+      prompt,
+    ],
+    {
+      cwd: repoPath,
+      env: process.env,
+      maxBuffer: 8 * 1024 * 1024,
+      timeout: LIVE_CLI_TIMEOUT_MS,
+    }
+  );
+  const started = stdout
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+    .find((event) => event.type === "thread.started");
+  if (!started?.thread_id) {
+    throw new Error(
+      `Codex refresh probe did not return a thread id; stderr=${stderr.slice(-1000)}`
+    );
+  }
+  return { sessionId: started.thread_id };
+}
+
 async function runCursorProvenance(repoPath) {
   const prompt = [
     `First read ${TARGET_FILE} using the file read tool.`,
@@ -498,7 +537,7 @@ async function openFileTimeline(repoPath) {
   }
   if (collapsed === "true") {
     await pointerClick(
-      '[data-e2e-active-timeline-toggle="true"]',
+      toggleSelector,
       "expand Timeline section",
       30_000
     );
@@ -762,6 +801,9 @@ describe("Session Provenance live (real vendor hooks → Session Blame)", () => 
       "complete",
       "partial",
     ]).toContain(firstWireHistory.backfill.status);
+    expect(firstWireHistory.revision).toBeGreaterThan(0);
+    expect(firstWireHistory.page.offset).toBe(0);
+    expect(firstWireHistory.page.limit).toBe(30);
 
     const expectedSources = ["claude_code", "codex_app", "cursor_ide"];
     let wireHistory = firstWireHistory;
@@ -796,6 +838,7 @@ describe("Session Provenance live (real vendor hooks → Session Blame)", () => 
         wireHistory.sessions.some((session) => session.source === source)
       ).toBe(true);
     }
+    expect(wireHistory.page.totalSessions).toBeGreaterThanOrEqual(3);
     const claudeWireChild = wireHistory.sessions
       .filter((session) => session.source === "claude_code")
       .flatMap((session) =>
@@ -859,6 +902,21 @@ describe("Session Provenance live (real vendor hooks → Session Blame)", () => 
         text: row.innerText || row.textContent || '',
         }));
     `);
+    const renderedPage = await execJS(`
+      const section = [...document.querySelectorAll('[data-testid="session-blame-section"]')]
+        .find((candidate) => {
+          const rect = candidate.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0;
+        });
+      return {
+        revision: Number(section?.getAttribute('data-history-revision') || '0'),
+        loaded: Number(section?.getAttribute('data-loaded-sessions') || '0'),
+        total: Number(section?.getAttribute('data-total-sessions') || '0'),
+      };
+    `);
+    expect(renderedPage.revision).toBeGreaterThan(0);
+    expect(renderedPage.loaded).toBeGreaterThanOrEqual(3);
+    expect(renderedPage.total).toBeGreaterThanOrEqual(renderedPage.loaded);
     for (const source of expectedSources) {
       const entry = rendered.find((row) => row.source === source);
       expect(entry).toBeTruthy();
@@ -873,6 +931,41 @@ describe("Session Provenance live (real vendor hooks → Session Blame)", () => 
           row.transcriptSessionId === row.rootTranscriptSessionId
       )
     ).toBe(false);
+
+    // Keep the panel open, then create a new real Codex hook fact. The
+    // SQLite revision + lightweight invalidation event must update rendered
+    // Session Blame without reopening the file or retaining a history cache.
+    const revisionBeforeLiveRefresh = wireHistory.revision;
+    const refreshCodex = await runCodexReadOnlyProvenance(repoPath);
+    await browser.waitUntil(
+      async () => {
+        const refreshedHistory = unwrap(
+          await invokeE2E("inspectOrgtrackFileSessionHistory", {
+            repoPath,
+            filePath: TARGET_FILE,
+          }),
+          "inspect live-refreshed file session history"
+        ).history;
+        const renderedRefreshRow = await execJS(`
+          return [...document.querySelectorAll('[data-testid="session-blame-session-header"]')]
+            .some((row) =>
+              row.getAttribute('data-session-source') === 'codex_app' &&
+              (row.getAttribute('data-session-id') || '').endsWith(${JSON.stringify(refreshCodex.sessionId)}) &&
+              Number(row.getAttribute('data-read-count') || '0') > 0
+            );
+        `);
+        return (
+          refreshedHistory.revision > revisionBeforeLiveRefresh &&
+          renderedRefreshRow
+        );
+      },
+      {
+        timeout: 90_000,
+        interval: 1_000,
+        timeoutMsg:
+          "open Session Blame panel did not refresh after a new real Codex hook fact",
+      }
+    );
 
     const claudeSubagent = rendered.find(
       (row) => row.source === "claude_code" && row.actorId

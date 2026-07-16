@@ -58,6 +58,8 @@ export const OrgtrackFileTimelineInput = z.object({
 export const OrgtrackFileSessionHistoryInput = z.object({
   repoPath: z.string(),
   filePath: z.string(),
+  limit: z.number().int().positive().max(100).optional(),
+  offset: z.number().int().nonnegative().optional(),
 });
 
 export const OrgtrackIndexCollaborationSessionInput = z.object({
@@ -509,6 +511,13 @@ export const OrgtrackFileSessionHistoryBackfillSchema = z.object({
 export const OrgtrackFileSessionHistorySchema = z.object({
   schemaVersion: z.number().int(),
   filePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  page: z.object({
+    offset: z.number().int().nonnegative(),
+    limit: z.number().int().positive(),
+    totalSessions: z.number().int().nonnegative(),
+    hasMore: z.boolean(),
+  }),
   backfill: OrgtrackFileSessionHistoryBackfillSchema,
   sessions: z.array(OrgtrackFileSessionHistorySessionSchema),
 });

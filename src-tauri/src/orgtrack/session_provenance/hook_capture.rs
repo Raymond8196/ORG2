@@ -13,6 +13,7 @@ use orgtrack_core::hook_adapter::{
 };
 use orgtrack_core::repo_sync::paths::record_id;
 use orgtrack_core::store::{sqlite::SqliteRecordStore, RecentHookSignal};
+use tauri::Emitter;
 
 use super::{persist_actor_lifecycle, persist_envelope};
 
@@ -206,11 +207,14 @@ pub(crate) fn quarantine_invalid_envelope(inbox: &Path, path: &Path) -> Result<(
     })
 }
 
-pub(crate) fn spawn_hook_inbox_drain_loop() {
-    tauri::async_runtime::spawn(async {
+pub(crate) fn spawn_hook_inbox_drain_loop(app: tauri::AppHandle) {
+    tauri::async_runtime::spawn(async move {
         loop {
             let result = tauri::async_runtime::spawn_blocking(drain_hook_inbox).await;
             match result {
+                Ok(Ok(drained)) if drained > 0 => {
+                    let _ = app.emit(super::RESOURCE_INTERACTIONS_CHANGED_EVENT, ());
+                }
                 Ok(Ok(_)) => {}
                 Ok(Err(err)) => {
                     tracing::warn!(error = %err, "[SessionProvenance] Hook inbox drain failed");

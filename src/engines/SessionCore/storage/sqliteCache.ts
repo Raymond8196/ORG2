@@ -123,8 +123,11 @@ export async function loadEvents(sessionId: string): Promise<SessionEvent[]> {
   return rpc.sessionCore.cache.loadEvents({ sessionId });
 }
 
-export async function loadTurnIndex(sessionId: string): Promise<TurnSummary[]> {
-  return rpc.sessionCore.cache.loadTurnIndex({ sessionId });
+export async function loadTurnIndex(
+  sessionId: string,
+  turnIds?: string[]
+): Promise<TurnSummary[]> {
+  return rpc.sessionCore.cache.loadTurnIndex({ sessionId, turnIds });
 }
 
 export async function loadTurnBody(

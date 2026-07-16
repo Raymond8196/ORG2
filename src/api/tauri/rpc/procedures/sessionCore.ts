@@ -23,7 +23,7 @@ const cache = {
     .build(),
 
   loadTurnIndex: defineProcedure("orgtrack_session_turn_metadata_index")
-    .input(schemas.sessionCore.SessionIdInput)
+    .input(schemas.sessionCore.TurnMetadataIndexInput)
     .output(z.array(schemas.sessionCore.TurnSummarySchema))
     .build(),
 

@@ -1,5 +1,5 @@
 import { useStore } from "jotai";
-import React, { memo, useEffect } from "react";
+import React, { memo, useEffect, useRef } from "react";
 
 import { loadTurnIndex } from "@src/engines/SessionCore/storage/cacheAdapter";
 
@@ -19,12 +19,40 @@ interface TurnMetadataLoaderProps {
 const TurnMetadataLoader: React.FC<TurnMetadataLoaderProps> = memo(
   ({ sessionId, reloadKey, turnIds }) => {
     const store = useStore();
+    const retainedKeysRef = useRef(new Set<string>());
+
+    useEffect(() => {
+      const retainedKeys = retainedKeysRef.current;
+      return () => {
+        for (const key of retainedKeys) {
+          store.set(turnMetadataAtomFamily(key), undefined);
+          turnMetadataAtomFamily.remove(key);
+        }
+        retainedKeys.clear();
+      };
+    }, [sessionId, store]);
 
     useEffect(() => {
       if (!sessionId) return;
       let cancelled = false;
+      const visibleKeys = new Set(
+        turnIds
+          .filter((turnId): turnId is string => Boolean(turnId))
+          .map((turnId) => turnMetadataKey(sessionId, turnId))
+      );
+      for (const key of retainedKeysRef.current) {
+        if (visibleKeys.has(key)) continue;
+        store.set(turnMetadataAtomFamily(key), undefined);
+        turnMetadataAtomFamily.remove(key);
+        retainedKeysRef.current.delete(key);
+      }
+      for (const key of visibleKeys) retainedKeysRef.current.add(key);
 
-      void loadTurnIndex(sessionId)
+      const visibleTurnIds = turnIds.filter((turnId): turnId is string =>
+        Boolean(turnId)
+      );
+      if (visibleTurnIds.length === 0) return;
+      void loadTurnIndex(sessionId, visibleTurnIds)
         .then((turns) => {
           if (cancelled) return;
           const summaries = new Map(turns.map((turn) => [turn.turnId, turn]));

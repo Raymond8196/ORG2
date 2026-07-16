@@ -4,10 +4,9 @@
 //! imported-history caches and loaders. This module owns only scheduling,
 //! checkpoints, prioritization, and projection into canonical interactions.
 
-use std::collections::HashMap;
 use std::path::Path;
-use std::sync::{Mutex, OnceLock};
-use std::time::{Duration, Instant};
+use std::sync::OnceLock;
+use std::time::Duration;
 
 use chrono::Utc;
 use database::db::get_connection;
@@ -38,9 +37,11 @@ use super::{
 
 const HISTORICAL_INTERACTION_PARSER_VERSION: i64 = 2;
 const BACKFILL_REFRESH_INTERVAL: Duration = Duration::from_secs(30);
-const BACKFILL_JOB_RETENTION: Duration = Duration::from_secs(60 * 60);
-static HISTORICAL_BACKFILL_JOBS: OnceLock<Mutex<HashMap<String, HistoricalBackfillJob>>> =
-    OnceLock::new();
+// A single provider transcript can legitimately take several minutes to
+// parse. Previous-process rows are reclaimed immediately through owner_id, so
+// this lease only protects against racing a still-live worker in this process.
+const BACKFILL_LEASE_TIMEOUT: Duration = Duration::from_secs(30 * 60);
+static BACKFILL_PROCESS_OWNER: OnceLock<String> = OnceLock::new();
 
 #[derive(Debug, Clone)]
 struct HistoricalBackfillJob {
@@ -49,7 +50,8 @@ struct HistoricalBackfillJob {
     total_sessions: usize,
     failed_sessions: usize,
     last_error: Option<String>,
-    finished_at: Option<Instant>,
+    run_token: String,
+    updated_at_ms: i64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -73,6 +75,17 @@ impl HistoricalBackfillStatus {
             Self::Failed => "failed",
         }
     }
+
+    fn parse(value: &str) -> Self {
+        match value {
+            "queued" => Self::Queued,
+            "discovering" => Self::Discovering,
+            "indexing" => Self::Indexing,
+            "complete" => Self::Complete,
+            "partial" => Self::Partial,
+            _ => Self::Failed,
+        }
+    }
 }
 
 impl HistoricalBackfillJob {
@@ -83,7 +96,8 @@ impl HistoricalBackfillJob {
             total_sessions: 0,
             failed_sessions: 0,
             last_error: None,
-            finished_at: None,
+            run_token: String::new(),
+            updated_at_ms: Utc::now().timestamp_millis(),
         }
     }
 
@@ -97,7 +111,7 @@ impl HistoricalBackfillJob {
         }
     }
 
-    fn is_active(&self) -> bool {
+    const fn is_active(&self) -> bool {
         matches!(
             self.status,
             HistoricalBackfillStatus::Queued
@@ -120,36 +134,35 @@ pub(in crate::orgtrack) fn request_historical_backfill(
 ) -> crate::orgtrack::types::FileSessionHistoryBackfill {
     let canonical_repo = canonicalize_existing_prefix(Path::new(repo_path));
     let repo_key = canonical_repo.to_string_lossy().into_owned();
-    let jobs = HISTORICAL_BACKFILL_JOBS.get_or_init(|| Mutex::new(HashMap::new()));
+    let (job, claimed_run_token) = match get_connection()
+        .map_err(|err| err.to_string())
+        .and_then(|mut conn| claim_backfill_job(&mut conn, &repo_key))
     {
-        let mut jobs = jobs.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        jobs.retain(|key, job| {
-            key == &repo_key
-                || job.is_active()
-                || job
-                    .finished_at
-                    .is_some_and(|finished_at| finished_at.elapsed() < BACKFILL_JOB_RETENTION)
-        });
-        if let Some(job) = jobs.get(&repo_key) {
-            let recently_finished = job
-                .finished_at
-                .is_some_and(|finished_at| finished_at.elapsed() < BACKFILL_REFRESH_INTERVAL);
-            if job.is_active() || recently_finished {
-                return job.snapshot();
-            }
+        Ok(claim) => claim,
+        Err(err) => {
+            tracing::warn!(repo_path = %repo_key, error = %err, "[SessionProvenance] Failed to claim historical backfill");
+            return failed_backfill_snapshot(err);
         }
-        jobs.insert(repo_key.clone(), HistoricalBackfillJob::queued());
-    }
+    };
+    let Some(run_token) = claimed_run_token else {
+        return job.snapshot();
+    };
 
     let thread_repo_key = repo_key.clone();
     let thread_repo_path = canonical_repo.to_string_lossy().into_owned();
     let priority_file = priority_file.to_string();
+    let thread_run_token = run_token.clone();
     let spawn_result = std::thread::Builder::new()
         .name("orgtrack-history-backfill".to_string())
         .spawn(move || {
-            update_backfill_job(&thread_repo_key, |job| {
-                job.status = HistoricalBackfillStatus::Discovering;
-            });
+            update_backfill_job(
+                &thread_repo_key,
+                &thread_run_token,
+                HistoricalBackfillStatus::Discovering,
+                0,
+                0,
+                0,
+            );
             let result = get_connection()
                 .map_err(|err| err.to_string())
                 .and_then(|mut conn| {
@@ -158,59 +171,207 @@ pub(in crate::orgtrack) fn request_historical_backfill(
                         &thread_repo_path,
                         &priority_file,
                         |indexed_sessions, total_sessions, failed_sessions| {
-                            update_backfill_job(&thread_repo_key, |job| {
-                                job.status = HistoricalBackfillStatus::Indexing;
-                                job.indexed_sessions = indexed_sessions;
-                                job.total_sessions = total_sessions;
-                                job.failed_sessions = failed_sessions;
-                            });
+                            update_backfill_job(
+                                &thread_repo_key,
+                                &thread_run_token,
+                                HistoricalBackfillStatus::Indexing,
+                                indexed_sessions,
+                                total_sessions,
+                                failed_sessions,
+                            );
                         },
                     )
                 });
             match result {
-                Ok(()) => update_backfill_job(&thread_repo_key, |job| {
-                    job.status = if job.failed_sessions > 0 {
-                        HistoricalBackfillStatus::Partial
-                    } else {
-                        HistoricalBackfillStatus::Complete
-                    };
-                    job.finished_at = Some(Instant::now());
-                }),
+                Ok(()) => finish_backfill_job(&thread_repo_key, &thread_run_token),
                 Err(err) => {
                     tracing::warn!(
                         repo_path = %thread_repo_path,
                         error = %err,
                         "[SessionProvenance] Historical backfill failed"
                     );
-                    update_backfill_job(&thread_repo_key, |job| {
-                        job.status = HistoricalBackfillStatus::Failed;
-                        job.last_error = Some(err.clone());
-                        job.finished_at = Some(Instant::now());
-                    });
+                    fail_backfill_job(&thread_repo_key, &thread_run_token, &err);
                 }
             }
         });
     if let Err(err) = spawn_result {
-        update_backfill_job(&repo_key, |job| {
-            job.status = HistoricalBackfillStatus::Failed;
-            job.last_error = Some(format!("Failed to start historical backfill: {err}"));
-            job.finished_at = Some(Instant::now());
-        });
+        let message = format!("Failed to start historical backfill: {err}");
+        fail_backfill_job(&repo_key, &run_token, &message);
+        return failed_backfill_snapshot(message);
     }
-
-    let jobs = jobs.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-    jobs.get(&repo_key)
-        .map(HistoricalBackfillJob::snapshot)
-        .unwrap_or_else(|| HistoricalBackfillJob::queued().snapshot())
+    job.snapshot()
 }
 
-fn update_backfill_job(repo_key: &str, update: impl FnOnce(&mut HistoricalBackfillJob)) {
-    let jobs = HISTORICAL_BACKFILL_JOBS.get_or_init(|| Mutex::new(HashMap::new()));
-    let mut jobs = jobs.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-    update(
-        jobs.entry(repo_key.to_string())
-            .or_insert_with(HistoricalBackfillJob::queued),
-    );
+fn backfill_process_owner() -> &'static str {
+    BACKFILL_PROCESS_OWNER
+        .get_or_init(|| uuid::Uuid::new_v4().to_string())
+        .as_str()
+}
+
+fn claim_backfill_job(
+    conn: &mut Connection,
+    repo_key: &str,
+) -> Result<(HistoricalBackfillJob, Option<String>), String> {
+    let now_ms = Utc::now().timestamp_millis();
+    conn.execute_batch("BEGIN IMMEDIATE")
+        .map_err(|err| err.to_string())?;
+    let result = (|| {
+        let current = load_backfill_job(conn, repo_key)?;
+        if let Some(job) = current {
+            let same_process = job
+                .run_token
+                .strip_prefix(backfill_process_owner())
+                .is_some_and(|suffix| suffix.starts_with(':'));
+            let age_ms = now_ms.saturating_sub(job.updated_at_ms);
+            let freshness = if job.is_active() {
+                BACKFILL_LEASE_TIMEOUT
+            } else {
+                BACKFILL_REFRESH_INTERVAL
+            };
+            if same_process && age_ms < freshness.as_millis() as i64 {
+                return Ok((job, None));
+            }
+        }
+
+        let run_token = format!("{}:{}", backfill_process_owner(), uuid::Uuid::new_v4());
+        conn.execute(
+            "INSERT INTO orgtrack_core_interaction_backfill_jobs (
+                repo_key, status, indexed_sessions, total_sessions,
+                failed_sessions, last_error, run_token, updated_at_ms
+             ) VALUES (?1, 'queued', 0, 0, 0, NULL, ?2, ?3)
+             ON CONFLICT(repo_key) DO UPDATE SET
+                status = excluded.status,
+                indexed_sessions = 0,
+                total_sessions = 0,
+                failed_sessions = 0,
+                last_error = NULL,
+                run_token = excluded.run_token,
+                updated_at_ms = excluded.updated_at_ms",
+            rusqlite::params![repo_key, run_token, now_ms],
+        )
+        .map_err(|err| err.to_string())?;
+        let job = load_backfill_job(conn, repo_key)?.unwrap_or_else(HistoricalBackfillJob::queued);
+        Ok((job, Some(run_token)))
+    })();
+    match result {
+        Ok(value) => {
+            conn.execute_batch("COMMIT")
+                .map_err(|err| err.to_string())?;
+            Ok(value)
+        }
+        Err(err) => {
+            let _ = conn.execute_batch("ROLLBACK");
+            Err(err)
+        }
+    }
+}
+
+fn load_backfill_job(
+    conn: &Connection,
+    repo_key: &str,
+) -> Result<Option<HistoricalBackfillJob>, String> {
+    use rusqlite::OptionalExtension;
+    conn.query_row(
+        "SELECT status, indexed_sessions, total_sessions, failed_sessions,
+                last_error, run_token, updated_at_ms
+         FROM orgtrack_core_interaction_backfill_jobs WHERE repo_key = ?1",
+        [repo_key],
+        |row| {
+            let status: String = row.get(0)?;
+            Ok(HistoricalBackfillJob {
+                status: HistoricalBackfillStatus::parse(&status),
+                indexed_sessions: row.get::<_, i64>(1)?.max(0) as usize,
+                total_sessions: row.get::<_, i64>(2)?.max(0) as usize,
+                failed_sessions: row.get::<_, i64>(3)?.max(0) as usize,
+                last_error: row.get(4)?,
+                run_token: row.get(5)?,
+                updated_at_ms: row.get(6)?,
+            })
+        },
+    )
+    .optional()
+    .map_err(|err| err.to_string())
+}
+
+fn update_backfill_job(
+    repo_key: &str,
+    run_token: &str,
+    status: HistoricalBackfillStatus,
+    indexed_sessions: usize,
+    total_sessions: usize,
+    failed_sessions: usize,
+) {
+    let result = get_connection()
+        .map_err(|err| err.to_string())
+        .and_then(|conn| {
+            conn.execute(
+                "UPDATE orgtrack_core_interaction_backfill_jobs SET
+                    status = ?1, indexed_sessions = ?2, total_sessions = ?3,
+                    failed_sessions = ?4, last_error = NULL, updated_at_ms = ?5
+                 WHERE repo_key = ?6 AND run_token = ?7",
+                rusqlite::params![
+                    status.as_str(),
+                    indexed_sessions.min(i64::MAX as usize) as i64,
+                    total_sessions.min(i64::MAX as usize) as i64,
+                    failed_sessions.min(i64::MAX as usize) as i64,
+                    Utc::now().timestamp_millis(),
+                    repo_key,
+                    run_token,
+                ],
+            )
+            .map(|_| ())
+            .map_err(|err| err.to_string())
+        });
+    if let Err(err) = result {
+        tracing::warn!(repo_path = %repo_key, error = %err, "[SessionProvenance] Failed to persist backfill progress");
+    }
+}
+
+fn finish_backfill_job(repo_key: &str, run_token: &str) {
+    let result = get_connection()
+        .map_err(|err| err.to_string())
+        .and_then(|conn| {
+            conn.execute(
+                "UPDATE orgtrack_core_interaction_backfill_jobs SET
+                    status = CASE WHEN failed_sessions > 0 THEN 'partial' ELSE 'complete' END,
+                    updated_at_ms = ?1
+                 WHERE repo_key = ?2 AND run_token = ?3",
+                rusqlite::params![Utc::now().timestamp_millis(), repo_key, run_token],
+            )
+            .map(|_| ())
+            .map_err(|err| err.to_string())
+        });
+    if let Err(err) = result {
+        tracing::warn!(repo_path = %repo_key, error = %err, "[SessionProvenance] Failed to finish backfill job");
+    }
+}
+
+fn fail_backfill_job(repo_key: &str, run_token: &str, error: &str) {
+    let result = get_connection()
+        .map_err(|err| err.to_string())
+        .and_then(|conn| {
+            conn.execute(
+                "UPDATE orgtrack_core_interaction_backfill_jobs SET
+                    status = 'failed', last_error = ?1, updated_at_ms = ?2
+                 WHERE repo_key = ?3 AND run_token = ?4",
+                rusqlite::params![error, Utc::now().timestamp_millis(), repo_key, run_token],
+            )
+            .map(|_| ())
+            .map_err(|err| err.to_string())
+        });
+    if let Err(err) = result {
+        tracing::warn!(repo_path = %repo_key, error = %err, "[SessionProvenance] Failed to persist backfill failure");
+    }
+}
+
+fn failed_backfill_snapshot(error: String) -> crate::orgtrack::types::FileSessionHistoryBackfill {
+    crate::orgtrack::types::FileSessionHistoryBackfill {
+        status: HistoricalBackfillStatus::Failed.as_str().to_string(),
+        indexed_sessions: 0,
+        total_sessions: 0,
+        failed_sessions: 1,
+        last_error: Some(error),
+    }
 }
 
 fn reconcile_historical_interactions(
@@ -493,4 +654,43 @@ fn reconcile_native_session(
         HISTORICAL_INTERACTION_PARSER_VERSION,
         &Utc::now().to_rfc3339(),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use orgtrack_core::store::sqlite::SqliteRecordStore;
+
+    #[test]
+    fn durable_backfill_claim_joins_current_process_and_reclaims_previous_process() {
+        let mut conn = Connection::open_in_memory().expect("in-memory SQLite");
+        SqliteRecordStore::init_tables(&conn).expect("initialize Orgtrack schema");
+
+        let (first, first_token) =
+            claim_backfill_job(&mut conn, "/repo").expect("claim first durable backfill");
+        let first_token = first_token.expect("first request owns the job");
+        assert_eq!(first.status, HistoricalBackfillStatus::Queued);
+
+        let (joined, joined_token) =
+            claim_backfill_job(&mut conn, "/repo").expect("join active durable backfill");
+        assert!(joined.is_active());
+        assert_eq!(joined.run_token, first_token);
+        assert!(joined_token.is_none());
+
+        conn.execute(
+            "UPDATE orgtrack_core_interaction_backfill_jobs
+             SET status = 'indexing', run_token = 'previous-process:run', updated_at_ms = ?1
+             WHERE repo_key = '/repo'",
+            [Utc::now().timestamp_millis()],
+        )
+        .expect("simulate previous process lease");
+        let (reclaimed, reclaimed_token) =
+            claim_backfill_job(&mut conn, "/repo").expect("reclaim previous process backfill");
+        assert_eq!(reclaimed.status, HistoricalBackfillStatus::Queued);
+        assert_ne!(reclaimed.run_token, "previous-process:run");
+        assert_eq!(
+            reclaimed_token.as_deref(),
+            Some(reclaimed.run_token.as_str())
+        );
+    }
 }

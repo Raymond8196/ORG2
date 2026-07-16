@@ -214,6 +214,32 @@ describe("loadSidebarSessions", () => {
     expect(mocks.store?.get(sessionsAtom)).toContainEqual(historicalSession);
   });
 
+  it("enriches an existing lightweight child with canonical parent metadata", async () => {
+    const lightweightChild = {
+      session_id: "codexapp-rollout-child",
+      name: "Codex child",
+      status: "completed",
+      created_at: "2026-07-15T12:00:00Z",
+      updated_at: "2026-07-15T12:01:00Z",
+    };
+    const canonicalChild = {
+      ...lightweightChild,
+      parentSessionId: "codexapp-rollout-root",
+    };
+    mocks.store?.set(sessionsAtom, [lightweightChild]);
+    mocks.sessionAggregateList.mockResolvedValue({
+      sessions: [canonicalChild],
+    });
+
+    const loaded = await loadSidebarSessionById(lightweightChild.session_id);
+
+    expect(loaded).toEqual(canonicalChild);
+    expect(mocks.sessionAggregateList).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionIds: [lightweightChild.session_id] })
+    );
+    expect(mocks.store?.get(sessionsAtom)).toContainEqual(canonicalChild);
+  });
+
   it("does not erase an exact-loaded child during a provider first-page refresh", () => {
     const codex = IMPORTED_HISTORY_SOURCES.find(
       (source) => source.sourceId === "codex_app"

@@ -68,15 +68,31 @@ fn projected_rounds_to_cached_turns(
 #[tauri::command]
 pub async fn orgtrack_session_turn_metadata_index(
     session_id: String,
+    turn_ids: Option<Vec<String>>,
 ) -> Result<Vec<CachedTurnSummary>, String> {
     tokio::task::spawn_blocking(move || {
+        if turn_ids
+            .as_ref()
+            .is_some_and(|turn_ids| turn_ids.len() > 500)
+        {
+            return Err("At most 500 turn summaries can be loaded at once".to_string());
+        }
         let conn = open_cache_conn()?;
         if let Some(chunks) =
             imported_history::load_activity_chunks_for_session(&conn, &session_id)?
         {
             let projected =
                 orgtrack_core::projectors::turn_metadata::project_activity_chunks(&chunks);
-            return Ok(projected_rounds_to_cached_turns(&session_id, projected));
+            let mut turns = projected_rounds_to_cached_turns(&session_id, projected);
+            if let Some(turn_ids) = turn_ids.as_ref() {
+                let requested = turn_ids.iter().collect::<std::collections::HashSet<_>>();
+                turns.retain(|turn| requested.contains(&turn.turn_id));
+            }
+            return Ok(turns);
+        }
+        if let Some(turn_ids) = turn_ids.as_ref() {
+            return session_persistence::load_turn_summaries(&session_id, turn_ids)
+                .map_err(|err| err.to_string());
         }
         session_persistence::load_turn_index(&session_id).map_err(|err| err.to_string())
     })
