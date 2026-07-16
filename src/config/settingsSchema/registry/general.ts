@@ -257,6 +257,13 @@ export const GENERAL_SETTINGS_REGISTRY = {
       "Automatically check for app updates, install them during startup, and download them silently while the app is running",
     category: "general",
   },
+  "general.updateChannel": {
+    schema: z.enum(["auto", "stable", "beta"]),
+    default: "auto",
+    description:
+      "Release channel for app updates. auto follows the installed build (prerelease builds track beta, release builds track stable); stable and beta pin the channel explicitly. Switching from beta to stable never downgrades — it takes effect at the next stable release",
+    category: "general",
+  },
   "general.voiceInputEnabled": {
     schema: z.boolean(),
     default: true,
