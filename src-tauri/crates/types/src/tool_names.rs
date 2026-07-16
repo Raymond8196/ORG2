@@ -89,6 +89,7 @@ pub const CONTROL_EXTERNAL_BROWSER: &str = "control_external_browser";
 pub const CONTROL_INTERNAL_BROWSER: &str = "control_internal_browser";
 pub const CONTROL_ORGII: &str = "control_orgii";
 pub const SPOTLIGHT: &str = "spotlight";
+pub const REPLY_SESSION_COMMENT: &str = "reply_session_comment";
 
 // ── Desktop ─────────────────────────────────────────────────────────
 pub const CONTROL_DESKTOP_WITH_PEEKABOO: &str = "control_desktop_with_peekaboo";

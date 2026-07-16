@@ -9,6 +9,11 @@ import type {
 } from "@src/api/tauri/rpc/schemas/validation";
 import type { DispatchCategory } from "@src/api/tauri/session";
 import type { AgentExecMode } from "@src/config/sessionCreatorConfig";
+import type {
+  CustomRoleDefinition,
+  UserPresenceState,
+  UserPresenceWire,
+} from "@src/types/userPresence";
 
 export interface AddAccountOptions {
   openaiApiKey: string;
@@ -529,6 +534,9 @@ export interface E2EHelpers {
   getSessionAggregateRowFromList: (
     sessionId: string
   ) => Promise<Result<{ session: Json | null; diagnostics?: Json }>>;
+  findSessionAggregateByWorkItem: (
+    workItemId: string
+  ) => Promise<Result<{ session: Json | null }>>;
   seedChatEvents: (
     sessionId: string,
     events: Json[],
@@ -562,6 +570,7 @@ export interface E2EHelpers {
     name?: string;
     repoPath?: string;
     status?: string;
+    orgId?: string;
   }) => Promise<Result<{ sessionId: string }>>;
   seedModeSwitchSession: (input: {
     sessionId?: string;
@@ -814,6 +823,108 @@ export interface E2EHelpers {
     patch: string;
   }) => Promise<Result<{ status: Json }>>;
   getBenchmarkRunStatus: (runId: string) => Promise<Result<{ status: Json }>>;
+  seedUserPresence: (opts: {
+    roles: CustomRoleDefinition[];
+    presence: UserPresenceState;
+  }) => Promise<
+    Result<{
+      roleCount: number;
+      mode: string;
+      wire: UserPresenceWire | undefined;
+    }>
+  >;
+  cloudSeedAuthState: (opts: {
+    supabaseUrl: string;
+    anonKey: string;
+    userId: string;
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: number;
+    displayName?: string;
+  }) => Promise<Result<{ userId: string }>>;
+  cloudClearAuthState: () => Promise<{ ok: true } | Err>;
+  cloudReadAuthState: () => Promise<
+    Result<{ signedIn: boolean; userId: string | null }>
+  >;
+  cloudSeedProjectOrgAlias: (opts: {
+    localOrgId: string;
+    externalOrgId: string;
+    name: string;
+  }) => Promise<Result<{ localOrgId: string; externalOrgId: string }>>;
+  cloudSeedOrgs: (opts: {
+    orgs: Array<{ orgId: string; name: string; role: string }>;
+  }) => Promise<Result<{ count: number }>>;
+  cloudListOrgs: () => Promise<Result<{ orgs: Json[] }>>;
+  cloudInspectRosterState: () => Promise<
+    Result<{
+      orgs: Json[];
+      directOrgs: Json[] | null;
+      loaded: boolean;
+      requestEpoch: number;
+      converging: boolean;
+    }>
+  >;
+  cloudInspectProjectState: (opts: {
+    projectSlug: string;
+    workItemId?: string;
+  }) => Promise<
+    Result<{
+      cachedPresent: boolean;
+      freshPresent: boolean;
+      cachedSlugs: string[];
+      freshSlugs: string[];
+      projectOrgId: string | null;
+      workItem: Json | null;
+      enrichedWorkItem: Json | null;
+      scopedEnrichedWorkItem: Json | null;
+      selectedWorkItem: Json | null;
+      dataChangedSignal: number;
+      pendingOutbox: Json[];
+    }>
+  >;
+  cloudSeedRepoScopes: (opts: {
+    orgId: string;
+    repoScopes: string[];
+  }) => Promise<Result<{ count: number }>>;
+  cloudResolveRepoScopeKeys: (opts: {
+    repoPath: string;
+  }) => Promise<Result<{ keys: string[] | null }>>;
+  cloudSeedRemoteSessions: (opts: {
+    orgId: string;
+    sessions: Json[];
+  }) => Promise<Result<{ count: number }>>;
+  cloudInspectDebugState: (opts: {
+    sessionId?: string;
+  }) => Promise<Result<{ debug: Json }>>;
+  cloudInspectPresence: () => Promise<
+    Result<{
+      presence: Json;
+      outbound: Json;
+      activeSessionId: string | null;
+      resolvedSessionRefs: Json[];
+      visibilityState: string;
+    }>
+  >;
+  cloudPublishSeededSessionEvents: (opts: {
+    orgId: string;
+    sessionId: string;
+    newEpoch?: number;
+  }) => Promise<Result<{ eventCount: number; epoch: number }>>;
+  cloudRunSyncPass: () => Promise<{ ok: true } | Err>;
+  cloudSeedPendingInvite: (opts: {
+    link: string;
+  }) => Promise<Result<{ inviteCode: string }>>;
+  cloudSeedPendingShare: (opts: {
+    link: string;
+  }) => Promise<Result<{ shareToken: string }>>;
+  cloudTagSessionToOrg: (opts: {
+    sessionId: string;
+    orgId: string;
+  }) => Promise<{ ok: true } | Err>;
+  cloudOpenSyncLevelDialog: (opts: {
+    sessionId: string;
+  }) => Promise<Result<{ sessionId: string }>>;
+  cloudCloseSyncLevelDialog: () => Promise<{ ok: true } | Err>;
   getLocationPathname: () => string;
 }
 

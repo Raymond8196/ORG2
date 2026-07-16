@@ -270,7 +270,7 @@ fn build_copilot_basic() {
     let cmd = build_command!(ModelType::Copilot, task = "task");
     assert_eq!(command_name(&cmd[0]), "copilot");
     assert!(cmd.contains(&"--acp".to_string()));
-    assert!(cmd.contains(&"--allow-all-tools".to_string()));
+    assert!(cmd.contains(&"--allow-all".to_string()));
     assert!(cmd.contains(&"--no-ask-user".to_string()));
     assert!(!cmd.contains(&"--stdio".to_string()));
 }

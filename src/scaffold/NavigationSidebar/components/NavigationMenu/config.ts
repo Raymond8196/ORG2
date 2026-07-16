@@ -10,6 +10,8 @@ export interface NavigationMenuRowAction {
   icon?: LucideIcon;
   label: string;
   active?: boolean;
+  /** Stable rendered selector for high-value header/row actions. */
+  dataTestId?: string;
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 

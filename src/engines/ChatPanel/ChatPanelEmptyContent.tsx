@@ -15,6 +15,7 @@ import { primaryWorkspaceRootAtom } from "@src/store/workspace";
 import {
   PROJECT_CREATOR_DRAFT_ID,
   type WorkItemDraft,
+  projectDraftsAtom,
 } from "@src/store/workstation/projectManager";
 import { STORY_PERSONAL_ORG_FILTER_ID } from "@src/store/workstation/tabs";
 
@@ -129,6 +130,9 @@ export function ChatPanelEmptyContent({
   showWorkItemAgentCreator,
   t,
 }: ChatPanelEmptyContentProps): React.ReactNode {
+  const projectDrafts = useAtomValue(projectDraftsAtom);
+  const projectDraftOrgId = projectDrafts.get(PROJECT_CREATOR_DRAFT_ID)?.orgId;
+
   if (showStartPage) {
     const sessionLauncher = SessionCreatorSlot ? (
       <SessionCreatorSlot
@@ -165,6 +169,12 @@ export function ChatPanelEmptyContent({
           launchMode={SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND}
           onOpenCliTerminal={handleOpenCliTerminal}
           onRegionNoticeChange={handleRegionNoticeChange}
+          workItemContext={{
+            orgId:
+              projectDraftOrgId ??
+              createProjectContext?.orgId ??
+              STORY_PERSONAL_ORG_FILTER_ID,
+          }}
         />
       ) : null;
 
@@ -250,6 +260,10 @@ export function ChatPanelEmptyContent({
           const workItemCreator = (
             <Suspense fallback={null}>
               <CreateWorkItemView
+                orgId={createProjectContext?.orgId}
+                scopeBreadcrumbLabel={
+                  createProjectContext?.scopeBreadcrumbLabel
+                }
                 repoPath={workspacePath}
                 onCancel={handleCancelWorkItemCreate}
                 onSetUnsaved={() => undefined}

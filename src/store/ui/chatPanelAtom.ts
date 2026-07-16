@@ -212,6 +212,15 @@ export const chatTokenUsageVisibleAtom = atomWithStorage<boolean>(
 );
 chatTokenUsageVisibleAtom.debugLabel = "chatTokenUsageVisibleAtom";
 
+/** Whether the chat pane's bottom status bar (repo · branch · context) shows. */
+export const chatStatusBarVisibleAtom = atomWithStorage<boolean>(
+  "orgii:chatStatusBarVisible",
+  false,
+  undefined,
+  { getOnInit: true }
+);
+chatStatusBarVisibleAtom.debugLabel = "chatStatusBarVisibleAtom";
+
 /** Presentation style for the chat panel model picker. */
 export type ModelPickerStyle = "spotlight" | "dropdown";
 
@@ -366,14 +375,17 @@ export const chatPanelSelectedWorkspaceAtom =
   atom<ChatPanelSelectedWorkspace | null>(null);
 chatPanelSelectedWorkspaceAtom.debugLabel = "chatPanelSelectedWorkspaceAtom";
 
-export interface ChatPanelSelectedCollabOrg {
+/**
+ * Managed ORG2 Cloud org selected for the read-only CLOUD_ORG panel
+ * (cloud orgs come from the managed backend, `org2CloudOrgsAtom`).
+ */
+export interface ChatPanelSelectedCloudOrg {
   orgId: string;
-  memberId?: string;
 }
 
-export const chatPanelSelectedCollabOrgAtom =
-  atom<ChatPanelSelectedCollabOrg | null>(null);
-chatPanelSelectedCollabOrgAtom.debugLabel = "chatPanelSelectedCollabOrgAtom";
+export const chatPanelSelectedCloudOrgAtom =
+  atom<ChatPanelSelectedCloudOrg | null>(null);
+chatPanelSelectedCloudOrgAtom.debugLabel = "chatPanelSelectedCloudOrgAtom";
 
 /**
  * Whether the chat-panel slot is rendering the GitHub repo search /
@@ -428,7 +440,7 @@ export const CHAT_PANEL_SURFACE_KIND = {
   WORKSPACE_DASHBOARD: "workspaceDashboard",
   WORKSPACE_EXPLORE: "workspaceExplore",
   WORKSPACE_OVERVIEW: "workspaceOverview",
-  COLLAB_ORG: "collabOrg",
+  CLOUD_ORG: "cloudOrg",
 } as const;
 
 export type ChatPanelSurfaceKind =
@@ -460,8 +472,8 @@ export type ChatPanelSurfaceState =
       tab: WorkspaceOverviewTab;
     }
   | {
-      kind: typeof CHAT_PANEL_SURFACE_KIND.COLLAB_ORG;
-      collabOrg: ChatPanelSelectedCollabOrg;
+      kind: typeof CHAT_PANEL_SURFACE_KIND.CLOUD_ORG;
+      cloudOrg: ChatPanelSelectedCloudOrg;
     };
 
 export type ChatPanelNavigateCommand =
@@ -500,8 +512,8 @@ export type ChatPanelNavigateCommand =
       tab?: WorkspaceOverviewTab;
     }
   | {
-      kind: typeof CHAT_PANEL_SURFACE_KIND.COLLAB_ORG;
-      collabOrg: ChatPanelSelectedCollabOrg;
+      kind: typeof CHAT_PANEL_SURFACE_KIND.CLOUD_ORG;
+      cloudOrg: ChatPanelSelectedCloudOrg;
     };
 
 type SetAtom = <Value, Args extends unknown[], Result>(
@@ -514,7 +526,7 @@ function resetChatPanelSurfaceState(set: SetAtom): void {
   set(chatPanelSelectedProjectAtom, null);
   set(chatPanelSelectedProjectOrgAtom, null);
   set(chatPanelSelectedWorkspaceAtom, null);
-  set(chatPanelSelectedCollabOrgAtom, null);
+  set(chatPanelSelectedCloudOrgAtom, null);
   set(chatPanelExploreOpenAtom, false);
   set(chatPanelCreateProjectContextAtom, null);
   set(chatPanelCreateTargetAtom, DEFAULT_CHAT_PANEL_CREATE_TARGET);
@@ -599,9 +611,9 @@ export const chatPanelNavigateAtom = atom(
           command.tab ?? currentWorkspaceOverviewTab
         );
         return;
-      case CHAT_PANEL_SURFACE_KIND.COLLAB_ORG:
+      case CHAT_PANEL_SURFACE_KIND.CLOUD_ORG:
         set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.NON_SESSION);
-        set(chatPanelSelectedCollabOrgAtom, command.collabOrg);
+        set(chatPanelSelectedCloudOrgAtom, command.cloudOrg);
         return;
     }
   }
@@ -648,11 +660,11 @@ export const activeChatPanelSurfaceAtom = atom<ChatPanelSurfaceState>((get) => {
     };
   }
 
-  const selectedCollabOrg = get(chatPanelSelectedCollabOrgAtom);
-  if (selectedCollabOrg) {
+  const selectedCloudOrg = get(chatPanelSelectedCloudOrgAtom);
+  if (selectedCloudOrg) {
     return {
-      kind: CHAT_PANEL_SURFACE_KIND.COLLAB_ORG,
-      collabOrg: selectedCollabOrg,
+      kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
+      cloudOrg: selectedCloudOrg,
     };
   }
 

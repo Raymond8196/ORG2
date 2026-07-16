@@ -93,6 +93,30 @@ export async function getOrgtrackFileSessionHistory(input: {
   return rpc.lineage.orgtrackGetFileSessionHistory(input);
 }
 
+export interface IndexOrgtrackCollaborationSessionInput {
+  localSessionId: string;
+  sourceSessionId: string;
+  title: string;
+  workspacePath: string;
+  sourceWorkspacePath?: string;
+  orgId: string;
+  sessionRowId: string;
+  ownerMemberId: string;
+  ownerDisplayName: string;
+}
+
+export async function indexOrgtrackCollaborationSession(
+  input: IndexOrgtrackCollaborationSessionInput
+): Promise<number> {
+  return rpc.lineage.orgtrackIndexCollaborationSession(input);
+}
+
+export async function deleteOrgtrackCollaborationSession(
+  localSessionId: string
+): Promise<void> {
+  await rpc.lineage.orgtrackDeleteCollaborationSession({ localSessionId });
+}
+
 export async function getOrgtrackSessionSummaries(
   input: {
     workspacePath?: string;

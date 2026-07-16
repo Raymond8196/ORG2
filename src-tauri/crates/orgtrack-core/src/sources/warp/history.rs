@@ -9,10 +9,11 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::env;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 use chrono::NaiveDateTime;
 use core_types::activity::ActivityChunk;
-use prost_reflect::DynamicMessage;
+use prost_reflect::{DescriptorPool, DynamicMessage};
 use rusqlite::{Connection, OpenFlags};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -29,6 +30,15 @@ const WARP_PROVIDER_SLUG: &str = "warp";
 const WARP_DB_FILENAME: &str = "warp.sqlite";
 const WARP_TASK_PROTO_NAME: &str = "warp.multi_agent.v1.Task";
 const WARP_METADATA_PARSER_VERSION: i64 = 1;
+const WARP_FILE_DESCRIPTOR_SET: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../proto/warp_multi_agent_v1.descriptor.pb"
+));
+
+static WARP_DESCRIPTOR_POOL: LazyLock<Result<DescriptorPool, String>> = LazyLock::new(|| {
+    DescriptorPool::decode(WARP_FILE_DESCRIPTOR_SET)
+        .map_err(|err| format!("Failed to load bundled Warp protobuf descriptor: {err}"))
+});
 
 pub type WarpHistorySessionRow = ImportedHistorySessionRow;
 pub type WarpHistorySessionPage = ImportedHistorySessionPage;
@@ -451,12 +461,16 @@ fn analyze_task_blobs(
 }
 
 fn decode_task_json(blob: &[u8]) -> Result<Value, String> {
-    let descriptor = warp_multi_agent_api::get_descriptor_pool()
+    let descriptor = warp_descriptor_pool()?
         .get_message_by_name(WARP_TASK_PROTO_NAME)
         .ok_or_else(|| format!("Missing Warp protobuf descriptor: {WARP_TASK_PROTO_NAME}"))?;
     let message = DynamicMessage::decode(descriptor, blob)
         .map_err(|err| format!("Failed to decode Warp task protobuf: {err}"))?;
     serde_json::to_value(message).map_err(|err| format!("Failed to project Warp task JSON: {err}"))
+}
+
+fn warp_descriptor_pool() -> Result<&'static DescriptorPool, String> {
+    WARP_DESCRIPTOR_POOL.as_ref().map_err(Clone::clone)
 }
 
 fn normalize_warp_tool_call(raw_name: &str, payload: Value) -> (String, Value) {

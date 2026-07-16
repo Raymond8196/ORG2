@@ -33,6 +33,7 @@ export type WorkStationTabType =
   | "search" // Repository-wide search tab
   | "lint-scan" // Workspace lint scan configuration
   | "ai-impact" // AI session impact dashboard
+  | "search-sessions" // Session search + table (reuses SessionTable; launchpad tab)
   | "benchmark" // Benchmark task browser and runner setup
   | "url-preview" // URL preview (agent-triggered webview in editor)
   // Browser tabs
@@ -95,6 +96,7 @@ export type WorkStationTabCategory =
   | "settings"
   | "lint"
   | "ai-impact"
+  | "search-sessions"
   | "benchmark"
   | "preview"
   | "subagent"
@@ -392,6 +394,7 @@ export const TOOL_TAB_TYPES = [
   "search",
   "lint-scan",
   "ai-impact",
+  "search-sessions",
   "url-preview",
   // Browser tabs
   "browser-session",

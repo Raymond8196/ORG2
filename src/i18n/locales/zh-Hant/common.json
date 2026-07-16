@@ -74,6 +74,11 @@
       "other": "敏感資訊"
     }
   },
+  "secretScan": {
+    "title": "偵測到可能的密鑰",
+    "message": "此訊息似乎包含敏感憑證：\n\n{{items}}\n\n傳送後，密鑰將儲存在聊天記錄中並傳送給模型。仍要傳送嗎？",
+    "sendAnyway": "仍然傳送"
+  },
   "actions": {
     "save": "保存",
     "cancel": "取消",
@@ -205,7 +210,8 @@
     "openWorkspace": "開啟工作區",
     "skipThisVersion": "跳過此版本",
     "later": "稍後",
-    "link": "連結"
+    "link": "連結",
+    "copyName": "複製名稱"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",

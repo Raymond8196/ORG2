@@ -1,8 +1,10 @@
+import { useAtomValue } from "jotai";
 import React, { Suspense } from "react";
 
+import { chatStatusBarVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import type {
   ChatHistoryDisplayMode,
-  ChatPanelSelectedCollabOrg,
+  ChatPanelSelectedCloudOrg,
   ChatPanelSelectedProject,
   ChatPanelSelectedProjectOrg,
   ChatPanelSelectedWorkItem,
@@ -10,14 +12,15 @@ import type {
 } from "@src/store/ui/chatPanelAtom";
 
 import ChatView from "./ChatView";
+import ChatStatusBar from "./components/ChatStatusBar";
 
 const BenchmarkPanel = React.lazy(() =>
   import("@src/features/BenchmarkPanel").then((module) => ({
     default: module.BenchmarkPanel,
   }))
 );
-const CollabOrgPanelView = React.lazy(
-  () => import("./panels/CollabOrgPanelView")
+const CloudOrgPanelView = React.lazy(
+  () => import("./panels/CloudOrgPanelView")
 );
 const ProjectOrgPanelView = React.lazy(
   () => import("./panels/ProjectOrgPanelView")
@@ -40,13 +43,13 @@ interface ChatPanelContentProps {
   displayMode: ChatHistoryDisplayMode;
   paginationEnabled: boolean;
   position: "left" | "right";
-  selectedCollabOrg: ChatPanelSelectedCollabOrg | null;
+  selectedCloudOrg: ChatPanelSelectedCloudOrg | null;
   selectedProject: ChatPanelSelectedProject | null;
   selectedProjectOrg: ChatPanelSelectedProjectOrg | null;
   selectedWorkItem: ChatPanelSelectedWorkItem | null;
   selectedWorkspace: ChatPanelSelectedWorkspace | null;
   showBenchmarkSessionGroupContent: boolean;
-  showCollabOrgContent: boolean;
+  showCloudOrgContent: boolean;
   showExploreContent: boolean;
   showPanelContent: boolean;
   showProjectContent: boolean;
@@ -63,13 +66,13 @@ export function ChatPanelContent({
   displayMode,
   paginationEnabled,
   position,
-  selectedCollabOrg,
+  selectedCloudOrg,
   selectedProject,
   selectedProjectOrg,
   selectedWorkItem,
   selectedWorkspace,
   showBenchmarkSessionGroupContent,
-  showCollabOrgContent,
+  showCloudOrgContent,
   showExploreContent,
   showPanelContent,
   showProjectContent,
@@ -78,6 +81,8 @@ export function ChatPanelContent({
   showWorkItemContent,
   showWorkspaceOverviewContent,
 }: ChatPanelContentProps): React.ReactNode {
+  const statusBarVisible = useAtomValue(chatStatusBarVisibleAtom);
+
   return (
     <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       {!showPanelContent ? null : showBenchmarkSessionGroupContent ? (
@@ -100,22 +105,27 @@ export function ChatPanelContent({
         <Suspense fallback={null}>
           <WorkspaceExplorePanelView />
         </Suspense>
-      ) : showCollabOrgContent && selectedCollabOrg ? (
+      ) : showCloudOrgContent && selectedCloudOrg ? (
         <Suspense fallback={null}>
-          <CollabOrgPanelView selectedCollabOrg={selectedCollabOrg} />
+          <CloudOrgPanelView selectedCloudOrg={selectedCloudOrg} />
         </Suspense>
       ) : showWorkspaceOverviewContent && selectedWorkspace ? (
         <Suspense fallback={null}>
           <WorkspaceOverviewPanelView selectedWorkspace={selectedWorkspace} />
         </Suspense>
       ) : showSessionContent && currentSessionId ? (
-        <ChatView
-          sessionId={currentSessionId}
-          onRegisterSearchOpen={handleRegisterSearchOpen}
-          displayMode={displayMode}
-          turnPaginationEnabled={paginationEnabled}
-          position={position}
-        />
+        <>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <ChatView
+              sessionId={currentSessionId}
+              onRegisterSearchOpen={handleRegisterSearchOpen}
+              displayMode={displayMode}
+              turnPaginationEnabled={paginationEnabled}
+              position={position}
+            />
+          </div>
+          {statusBarVisible && <ChatStatusBar sessionId={currentSessionId} />}
+        </>
       ) : (
         emptyChatContent
       )}

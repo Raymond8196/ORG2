@@ -57,10 +57,7 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
 /// source's on-disk store from scratch (no cached signatures means the
 /// delta-sync treats every session as new) and repopulates the cache.
 #[tauri::command]
-pub async fn external_history_rescan_source(
-    source: String,
-    clear: bool,
-) -> Result<(), String> {
+pub async fn external_history_rescan_source(source: String, clear: bool) -> Result<(), String> {
     if !imported_history::metadata::is_imported_history_source(&source) {
         return Err(format!("Unknown external history source: {source}"));
     }

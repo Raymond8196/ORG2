@@ -74,6 +74,11 @@
       "other": "Segredo"
     }
   },
+  "secretScan": {
+    "title": "Possível segredo detectado",
+    "message": "Esta mensagem parece conter credenciais sensíveis:\n\n{{items}}\n\nAo enviá-la, o segredo será armazenado no histórico do chat e enviado ao modelo. Enviar mesmo assim?",
+    "sendAnyway": "Enviar mesmo assim"
+  },
   "actions": {
     "all": "Todos",
     "save": "Salvar",
@@ -203,7 +208,8 @@
     "openWorkspace": "Abrir workspace",
     "skipThisVersion": "Ignorar esta versão",
     "later": "Mais tarde",
-    "link": "Vincular"
+    "link": "Vincular",
+    "copyName": "Copiar nome"
   },
   "refreshToast": {
     "successName": "{{name}} atualizado",

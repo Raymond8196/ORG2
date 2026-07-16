@@ -18,6 +18,7 @@ import {
   FileSearch,
   Folder,
   Globe,
+  LayoutGrid,
   ListTodo,
   type LucideIcon,
   ShieldOff,
@@ -35,6 +36,7 @@ import {
   createExplorerTab,
   createProjectDashboardTab,
   createProjectWorkItemsIndexTab,
+  createSearchSessionsTab,
   createSourceControlTab,
   createTerminalTab,
   openTab as openTabMutation,
@@ -45,6 +47,7 @@ import type { WorkStationTab } from "@src/store/workstation/tabs";
 
 export type WorkStationLaunchActionId =
   | "searchFile"
+  | "searchSessions"
   | "explorer"
   | "sourceControl"
   | "terminal"
@@ -69,9 +72,10 @@ export interface WorkStationLaunchAction {
  * hook still returns its action); we only hide the entrance.
  */
 export const LAUNCHPAD_ACTION_IDS: readonly WorkStationLaunchActionId[] = [
+  "sourceControl",
   "explorer",
   "searchFile",
-  "sourceControl",
+  "searchSessions",
   "terminal",
   "newBrowserTab",
   "workItems",
@@ -116,6 +120,12 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
         label: t("workstation.plusMenu.searchFile"),
         shortcut: "⌘P",
         onClick: () => openEditorSpotlight(""),
+      },
+      {
+        id: "searchSessions",
+        icon: LayoutGrid,
+        label: t("workstation.plusMenu.searchSessions"),
+        onClick: () => openTabInMainPane(createSearchSessionsTab()),
       },
       {
         id: "sourceControl",

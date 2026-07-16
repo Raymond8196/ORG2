@@ -35,6 +35,23 @@ describe("requestSessionSidebarRevealAtom", () => {
     expect(store.get(sessionSidebarRevealRequestAtom)).toBeNull();
   });
 
+  it("preserves an exact Team Session reveal target", () => {
+    const store = createStore();
+
+    store.set(requestSessionSidebarRevealAtom, {
+      sessionId: " imported-session-1 ",
+      sidebarItemId: " cloudremote-org-1|org-1:user-1:source-1 ",
+      cloudOrgId: " org-1 ",
+    });
+
+    expect(store.get(sessionSidebarRevealRequestAtom)).toEqual({
+      sessionId: "imported-session-1",
+      sidebarItemId: "cloudremote-org-1|org-1:user-1:source-1",
+      cloudOrgId: "org-1",
+      requestId: 1,
+    });
+  });
+
   it("clears only the reveal request that was actually completed", () => {
     const store = createStore();
     store.set(requestSessionSidebarRevealAtom, { sessionId: "session-a" });

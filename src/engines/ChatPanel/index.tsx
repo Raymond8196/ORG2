@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +14,13 @@ import {
   clampChatWidth,
   getChatMaxWidth,
 } from "@src/engines/ChatPanel/config";
+import SessionCommentsHeaderExtras from "@src/features/Org2Cloud/SessionComments/SessionCommentsHeaderExtras";
+import {
+  org2CloudOrgsAtom,
+  org2CloudOrgsLoadedAtom,
+} from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import type { CreatedOrgResult } from "@src/features/TeamCollaboration/components/CreateCollabOrgView";
+import SessionForkHeaderExtras from "@src/features/TeamCollaboration/components/SessionForkHeaderExtras";
 import { useShouldOffsetChatPanelHeader } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
@@ -23,12 +29,6 @@ import {
   openSessionInNewChatTabAtom,
   syncActiveChatPanelTabStateAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
-import {
-  collabConnectionStatesAtom,
-  collabMembersAtom,
-  collabOrgsAtom,
-  remoteTeammateSessionsAtom,
-} from "@src/store/collaboration/collabOrgsAtom";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import { sessionCreatorStateAtom } from "@src/store/session";
 import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
@@ -39,7 +39,7 @@ import {
   chatPanelCreateTargetAtom,
   chatPanelExploreOpenAtom,
   chatPanelMaximizedAtom,
-  chatPanelSelectedCollabOrgAtom,
+  chatPanelSelectedCloudOrgAtom,
   chatPanelSelectedProjectAtom,
   chatPanelSelectedProjectOrgAtom,
   chatPanelSelectedWorkItemAtom,
@@ -66,7 +66,6 @@ import { useChatPanelNavigationActions } from "./hooks/useChatPanelNavigationAct
 import { useChatPanelResize } from "./hooks/useChatPanelResize";
 import { useChatPanelSessionModals } from "./hooks/useChatPanelSessionModals";
 import { useChatPanelTabsController } from "./hooks/useChatPanelTabsController";
-import { useCollabOrgHeaderModel } from "./hooks/useCollabOrgHeaderModel";
 import { usePanelTitle } from "./hooks/usePanelTitle";
 import { useProjectWorkItemHandlers } from "./hooks/useProjectWorkItemHandlers";
 import { useViewportWidth } from "./hooks/useViewportWidth";
@@ -112,11 +111,11 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const selectedProject = useAtomValue(chatPanelSelectedProjectAtom);
     const selectedProjectOrg = useAtomValue(chatPanelSelectedProjectOrgAtom);
     const selectedWorkspace = useAtomValue(chatPanelSelectedWorkspaceAtom);
-    const selectedCollabOrg = useAtomValue(chatPanelSelectedCollabOrgAtom);
-    const collabOrgs = useAtomValue(collabOrgsAtom);
-    const collabMembers = useAtomValue(collabMembersAtom);
-    const collabConnectionStates = useAtomValue(collabConnectionStatesAtom);
-    const remoteTeammateSessions = useAtomValue(remoteTeammateSessionsAtom);
+    const [selectedCloudOrg, setSelectedCloudOrg] = useAtom(
+      chatPanelSelectedCloudOrgAtom
+    );
+    const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
+    const cloudOrgsLoaded = useAtomValue(org2CloudOrgsLoadedAtom);
     const exploreOpen = useAtomValue(chatPanelExploreOpenAtom);
     const createProjectContext = useAtomValue(
       chatPanelCreateProjectContextAtom
@@ -135,6 +134,22 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       [backgroundConfig.pageOpacity]
     );
     const chatWidth = clampChatWidth(rawChatWidth, viewportWidth);
+
+    // A teammate can lose the selected cloud org while its management panel
+    // is open (member removal or org deletion). Once the authoritative roster
+    // has loaded, an absent org is not a recoverable panel state: close the
+    // stale surface immediately instead of leaving deleted names/actions on
+    // screen. Keep the selection during the initial unknown-roster phase so
+    // a cold start does not flicker the panel closed before list_my_orgs lands.
+    useEffect(() => {
+      if (
+        selectedCloudOrg &&
+        cloudOrgsLoaded &&
+        !cloudOrgs.some((org) => org.orgId === selectedCloudOrg.orgId)
+      ) {
+        setSelectedCloudOrg(null);
+      }
+    }, [cloudOrgs, cloudOrgsLoaded, selectedCloudOrg, setSelectedCloudOrg]);
     const chatWidthStyleValue =
       chatWidth > 0 ? `var(${CHAT_WIDTH_CSS_VAR})` : chatWidth;
     const { isDragging, panelRef, handleMouseDown } = useChatPanelResize({
@@ -164,7 +179,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const {
       dispatchClearSession,
-      openCollabOrgSurface,
       openWorkItemCreate,
       resetActiveSession,
       resetToSessionSurface,
@@ -215,6 +229,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handlePaginationToggle,
       handleRegisterSearchOpen,
       handleReloadFromMenu,
+      handleStatusBarVisibleToggle,
       handleToggleAllBlocksCollapsed,
       handleTokenUsageVisibleToggle,
       headerActionsDropdownRef,
@@ -223,6 +238,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       isHeaderActionsOpen,
       isHeaderActionsPositioned,
       paginationEnabled,
+      statusBarVisible,
       tokenUsageVisible,
       toggleHeaderActionsMenu,
     } = useChatPanelHeaderActions({ handleReloadSession });
@@ -242,21 +258,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     );
 
     const handleChatPanelCollabOrgCreated = useCallback(
-      (result: CreatedOrgResult) => {
-        if (result.source === "supabase") {
-          openCollabOrgSurface(result.org.id);
-        } else {
-          bumpProjectListRefresh((previous) => previous + 1);
-          showSessionSurface();
-        }
+      (_result: CreatedOrgResult) => {
+        bumpProjectListRefresh((previous) => previous + 1);
+        showSessionSurface();
         resetActiveSession();
       },
-      [
-        bumpProjectListRefresh,
-        openCollabOrgSurface,
-        resetActiveSession,
-        showSessionSurface,
-      ]
+      [bumpProjectListRefresh, resetActiveSession, showSessionSurface]
     );
 
     const handleStartPageAddApiKey = useCallback(() => {
@@ -269,14 +276,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     }, []);
 
     const sessionSidebarVisible = sessionSidebarWidth > 0;
-    const collabOrgHeader = useCollabOrgHeaderModel({
-      collabConnectionStates,
-      collabMembers,
-      collabOrgs,
-      remoteTeammateSessions,
-      selectedCollabOrg,
-      t,
-    });
     const contentState = useChatPanelContentState({
       active,
       contentMode,
@@ -284,9 +283,10 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       currentSessionId: currentSessionId ?? null,
       exploreOpen,
       panelTitle,
-      collabOrgHeaderTitle: collabOrgHeader?.title,
-      collabOrgHeaderTitleContent: collabOrgHeader?.titleContent,
-      selectedCollabOrg,
+      cloudOrgHeaderTitle: selectedCloudOrg
+        ? cloudOrgs.find((org) => org.orgId === selectedCloudOrg.orgId)?.name
+        : undefined,
+      selectedCloudOrg,
       selectedProject,
       selectedProjectOrg,
       selectedWorkItem,
@@ -310,6 +310,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handleWorkItemTitleChange,
     } = useProjectWorkItemHandlers({
       bumpProjectListRefresh,
+      createProjectContext,
       dispatchClearSession,
       handleNewSession,
       selectedProject,
@@ -331,6 +332,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       resolveAiWorkItemContext,
     } = useAiWorkItemCreator({
       allAgentDefs,
+      createProjectContext,
       creatorState,
       dispatchClearSession,
       setActiveSessionId,
@@ -348,10 +350,13 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const {
       handleOpenExportSessionJson,
       handleOpenLinkWorkItem,
+      handleOpenCloudShareSettings,
+      showCloudShareSettings,
       sessionModals,
     } = useChatPanelSessionModals({
       activeSession,
       closeHeaderActionsMenu,
+      currentSession: currentSession ?? null,
       currentSessionId: currentSessionId ?? null,
       t,
     });
@@ -402,7 +407,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       (startPageOpen ||
         contentState.showBenchmarkSessionGroupContent ||
         contentState.showExploreContent ||
-        contentState.showCollabOrgContent ||
+        contentState.showCloudOrgContent ||
         contentState.showWorkspaceOverviewContent);
 
     const tabStrip = (
@@ -466,12 +471,14 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           handleExploreAgentSearchToggle={handleExploreAgentSearchToggle}
           handleOpenExportSessionJson={handleOpenExportSessionJson}
           handleOpenLinkWorkItem={handleOpenLinkWorkItem}
+          handleOpenCloudShareSettings={handleOpenCloudShareSettings}
           handleOpenSearch={handleOpenSearch}
           handleNewSession={handleNewSession}
           handlePaginationToggle={handlePaginationToggle}
           handleProjectAgentCreatorToggle={handleProjectAgentCreatorToggle}
           handleProjectTitleChange={handleProjectTitleChange}
           handleReloadFromMenu={handleReloadFromMenu}
+          handleStatusBarVisibleToggle={handleStatusBarVisibleToggle}
           handleToggleAllBlocksCollapsed={handleToggleAllBlocksCollapsed}
           handleTokenUsageVisibleToggle={handleTokenUsageVisibleToggle}
           handleWorkItemAgentCreatorToggle={handleWorkItemAgentCreatorToggle}
@@ -486,6 +493,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           isHeaderActionsPositioned={isHeaderActionsPositioned}
           isProjectTarget={contentState.isProjectTarget}
           paginationEnabled={paginationEnabled}
+          statusBarVisible={statusBarVisible}
           tokenUsageVisible={tokenUsageVisible}
           showStartPageBackButton={
             !startPageOpen && !contentState.showSessionContent
@@ -511,6 +519,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           showSessionContent={
             contentState.showSessionContent && !isManagementTabActive
           }
+          showCloudShareSettings={showCloudShareSettings}
           showStartPage={startPageOpen}
           showWorkItemAgentCreator={showWorkItemAgentCreator}
           showTuiModeToggle={showTuiModeToggle}
@@ -518,6 +527,14 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           handleTuiModeToggle={handleTuiModeToggle}
           tabStrip={tabStrip}
           tabStripPlus={tabStripPlus}
+          sessionHeaderExtras={
+            <>
+              {/* Session-level cloud notes (Phase F) — renders null for
+                  non-cloud sessions, exactly like the fork extras. */}
+              <SessionCommentsHeaderExtras session={currentSession ?? null} />
+              <SessionForkHeaderExtras session={currentSession ?? null} />
+            </>
+          }
           showWorkItemAgentSwitchInHeader={
             contentState.showWorkItemAgentSwitchInHeader
           }
@@ -536,7 +553,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleRegisterSearchOpen={handleRegisterSearchOpen}
         paginationEnabled={paginationEnabled}
         position={position}
-        selectedCollabOrg={selectedCollabOrg}
+        selectedCloudOrg={selectedCloudOrg}
         selectedProject={selectedProject}
         selectedProjectOrg={selectedProjectOrg}
         selectedWorkItem={selectedWorkItem}
@@ -544,7 +561,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         showBenchmarkSessionGroupContent={
           contentState.showBenchmarkSessionGroupContent
         }
-        showCollabOrgContent={contentState.showCollabOrgContent}
+        showCloudOrgContent={contentState.showCloudOrgContent}
         showExploreContent={contentState.showExploreContent}
         showPanelContent={contentState.showPanelContent}
         showProjectContent={contentState.showProjectContent}

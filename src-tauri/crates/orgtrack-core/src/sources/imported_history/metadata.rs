@@ -18,6 +18,14 @@ pub const SOURCE_TRAE: &str = "trae";
 pub const SOURCE_CLINE: &str = "cline";
 pub const SOURCE_WARP: &str = "warp";
 pub const SOURCE_ZCODE: &str = "zcode";
+// Hook-only sources: ORGII installs a managed PostToolUse command hook for
+// these CLIs and records their file-interaction provenance, but does not yet
+// import their session transcripts. Kept out of `is_imported_history_source`
+// so the scan inventory does not advertise a Rescan that has no parser.
+pub const SOURCE_QWEN_CODE: &str = "qwen_code";
+pub const SOURCE_FACTORY_DROID: &str = "droid";
+pub const SOURCE_KIMI: &str = "kimi";
+pub const SOURCE_ANTIGRAVITY: &str = "antigravity";
 
 pub fn is_imported_history_source(source: &str) -> bool {
     matches!(

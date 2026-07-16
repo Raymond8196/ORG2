@@ -74,6 +74,11 @@
       "other": "Secret"
     }
   },
+  "secretScan": {
+    "title": "Secret potentiel détecté",
+    "message": "Ce message semble contenir des informations d'identification sensibles :\n\n{{items}}\n\nL'envoyer enregistrera le secret dans l'historique de la conversation et le transmettra au modèle. Envoyer quand même ?",
+    "sendAnyway": "Envoyer quand même"
+  },
   "actions": {
     "save": "Enregistrer",
     "cancel": "Annuler",
@@ -203,7 +208,8 @@
     "openWorkspace": "Ouvrir le workspace",
     "skipThisVersion": "Ignorer cette version",
     "later": "Plus tard",
-    "link": "Lier"
+    "link": "Lier",
+    "copyName": "Copier le nom"
   },
   "refreshToast": {
     "successName": "{{name}} actualisé",

@@ -31,7 +31,12 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import ExpandOverlay from "@src/components/ExpandOverlay";
+import MessageFooter from "@src/components/MessageFooter";
 import { useAgentTurnContext } from "@src/engines/ChatPanel/ChatHistory/AgentTurnContext";
+import {
+  formatSmartDateTime,
+  toIntlLocaleTag,
+} from "@src/util/data/formatters/date";
 
 import { EventNavigateIcon } from "../primitives";
 import { useBlockHeader } from "../useBlockLocate";
@@ -58,6 +63,20 @@ export function resolveAgentMessageClampEligibility(
   return isLastGroup === null ? fallbackEligible : true;
 }
 
+export function shouldShowAgentMessageFooter(params: {
+  content: string | undefined;
+  isStreaming: boolean;
+  itemIndex: number | undefined;
+  lastAssistantFlatIndex: number | null | undefined;
+}): boolean {
+  return Boolean(
+    !params.isStreaming &&
+    params.content?.trim() &&
+    params.itemIndex !== undefined &&
+    params.itemIndex === params.lastAssistantFlatIndex
+  );
+}
+
 const AgentMessageClampContext = createContext(false);
 
 export const AgentMessageClampProvider = AgentMessageClampContext.Provider;
@@ -72,6 +91,12 @@ export interface AgentMessageBlockProps {
   rightContent?: React.ReactNode;
   /** Hide footer chrome while tokens are still streaming. */
   isStreaming?: boolean;
+  /** Content copied by the final-message footer. */
+  messageContent?: string;
+  /** Event timestamp displayed by the final-message footer. */
+  messageTimestamp?: string;
+  /** Flat chat-history index used to identify the round's final message. */
+  itemIndex?: number;
 }
 
 const AgentMessageBlock: React.FC<AgentMessageBlockProps> = ({
@@ -79,10 +104,36 @@ const AgentMessageBlock: React.FC<AgentMessageBlockProps> = ({
   eventId,
   rightContent,
   isStreaming = false,
+  messageContent,
+  messageTimestamp = "",
+  itemIndex,
 }) => {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const fallbackClampEligible = useContext(AgentMessageClampContext);
   const turnContext = useAgentTurnContext();
+  const showMessageFooter = shouldShowAgentMessageFooter({
+    content: messageContent,
+    isStreaming,
+    itemIndex,
+    lastAssistantFlatIndex: turnContext?.lastAssistantFlatIndex,
+  });
+  const timestampLabel =
+    showMessageFooter && messageTimestamp
+      ? formatSmartDateTime(messageTimestamp, {
+          yesterdayLabel: t("relativeDate.yesterday"),
+          locale: toIntlLocaleTag(i18n.resolvedLanguage),
+        })
+      : "";
+  const messageFooter = showMessageFooter ? (
+    <MessageFooter
+      content={messageContent ?? ""}
+      timestamp={messageTimestamp}
+      timestampLabel={timestampLabel}
+      copyLabel={t("actions.copy")}
+      copiedLabel={t("status.copied")}
+      className="mt-1"
+    />
+  ) : null;
   // The live streaming message is never clamped — it grows as tokens arrive
   // and hiding the tail behind a preview would bury the newest output. Once
   // it settles (isStreaming false) it clamps like any other completed message,
@@ -148,11 +199,12 @@ const AgentMessageBlock: React.FC<AgentMessageBlockProps> = ({
 
   if (!clampEligible) {
     return (
-      <div className="w-full min-w-0 overflow-hidden px-2 py-0.5">
+      <div className="group/agent-message w-full min-w-0 overflow-hidden px-2 py-0.5">
         {children}
         {rightContent && (
           <div className="mt-1 flex justify-end">{rightContent}</div>
         )}
+        {messageFooter}
       </div>
     );
   }
@@ -204,6 +256,7 @@ const AgentMessageBlock: React.FC<AgentMessageBlockProps> = ({
           />
         </div>
       )}
+      {messageFooter}
     </div>
   );
 };

@@ -17,7 +17,6 @@ import {
   PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID,
 } from "../sidebarConnectorUtils";
 import {
-  getProjectsCloudOrgId,
   getProjectsLinearLoadOrgId,
   getProjectsLinearOrgId,
   getProjectsLinearWorkItemId,
@@ -31,7 +30,6 @@ interface UseProjectsMenuItemClickParams<
   Project,
   WorkItem,
   LocalOrg extends { id: string; name: string; sync_provider?: string | null },
-  CloudOrg,
   LinearOrg,
   LinearWorkItem,
 > {
@@ -42,7 +40,6 @@ interface UseProjectsMenuItemClickParams<
   navigateChatPanel: (command: ChatPanelNavigateCommand) => void;
   openProjectsLinearOrg: (org: LinearOrg) => void;
   openProjectsLinearWorkItem: (workItem: LinearWorkItem) => void;
-  projectsCloudOrgMap: ReadonlyMap<string, CloudOrg>;
   projectsLinearOrgMap: ReadonlyMap<string, LinearOrg>;
   projectsLinearWorkItemMap: ReadonlyMap<string, LinearWorkItem>;
   projectsLocalOrgMap: ReadonlyMap<string, LocalOrg>;
@@ -61,7 +58,6 @@ export function useProjectsMenuItemClick<
   Project,
   WorkItem,
   LocalOrg extends { id: string; name: string; sync_provider?: string | null },
-  CloudOrg extends { id: string },
   LinearOrg,
   LinearWorkItem,
 >({
@@ -72,7 +68,6 @@ export function useProjectsMenuItemClick<
   navigateChatPanel,
   openProjectsLinearOrg,
   openProjectsLinearWorkItem,
-  projectsCloudOrgMap,
   projectsLinearOrgMap,
   projectsLinearWorkItemMap,
   projectsLocalOrgMap,
@@ -87,7 +82,6 @@ export function useProjectsMenuItemClick<
   Project,
   WorkItem,
   LocalOrg,
-  CloudOrg,
   LinearOrg,
   LinearWorkItem
 >): (key: string, item: NavigationMenuItem) => void {
@@ -143,19 +137,6 @@ export function useProjectsMenuItemClick<
         return;
       }
 
-      const cloudOrgId = getProjectsCloudOrgId(item.id);
-      if (cloudOrgId) {
-        const cloudOrg = projectsCloudOrgMap.get(cloudOrgId);
-        if (!cloudOrg) return;
-        resetWorkManagementStateForProjectsContent();
-        setProjectsSelectedMenuItemId(item.id);
-        navigateChatPanel({
-          kind: CHAT_PANEL_SURFACE_KIND.COLLAB_ORG,
-          collabOrg: { orgId: cloudOrg.id },
-        });
-        return;
-      }
-
       const linearOrgId = getProjectsLinearOrgId(item.id);
       if (linearOrgId) {
         const linearOrg = projectsLinearOrgMap.get(linearOrgId);
@@ -170,7 +151,13 @@ export function useProjectsMenuItemClick<
       if (createWorkItemOrgId) {
         resetWorkManagementStateForProjectsContent();
         setProjectsSelectedMenuItemId(item.id);
-        navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM });
+        // The row is org-scoped, so the creation surface must carry the org:
+        // NEW_WORK_ITEM without `createProjectContext` writes standalone
+        // items under personal-org (see createWorkItemFromDraft).
+        navigateChatPanel({
+          kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM,
+          createProjectContext: { orgId: createWorkItemOrgId },
+        });
         return;
       }
 
@@ -235,7 +222,6 @@ export function useProjectsMenuItemClick<
       navigateChatPanel,
       openProjectsLinearOrg,
       openProjectsLinearWorkItem,
-      projectsCloudOrgMap,
       projectsLinearOrgMap,
       projectsLinearWorkItemMap,
       projectsLocalOrgMap,

@@ -62,6 +62,7 @@ import {
 } from "./e2e/helpers/accounts";
 import { createAgentOrgHelpers } from "./e2e/helpers/agentOrgs";
 import { createBenchmarkE2EHelpers } from "./e2e/helpers/benchmark";
+import { createCloudHelpers } from "./e2e/helpers/cloud";
 import { createConfigHelpers } from "./e2e/helpers/config";
 import { createDebugEndpointHelpers } from "./e2e/helpers/debugEndpoints";
 import { createExternalToolHelpers } from "./e2e/helpers/externalTools";
@@ -73,6 +74,7 @@ import { createProjectHelpers } from "./e2e/helpers/projects";
 import { createRuntimeDebugHelpers } from "./e2e/helpers/runtimeDebug";
 import { createSessionConfigHelpers } from "./e2e/helpers/sessionConfig";
 import { createSessionHelpers } from "./e2e/helpers/sessions";
+import { createUserPresenceHelpers } from "./e2e/helpers/userPresence";
 import { createWorkspaceHelpers } from "./e2e/helpers/workspace";
 import { registerE2EHelpers } from "./e2e/registerE2EHelpers";
 import { asError } from "./e2e/result";
@@ -230,6 +232,7 @@ export const E2EBootstrap: FC = () => {
       launchSession,
       getSessionAggregateRow,
       getSessionAggregateRowFromList,
+      findSessionAggregateByWorkItem,
       seedChatEvents,
       seedPersistedCachedSession,
       seedSidebarSession,
@@ -307,6 +310,31 @@ export const E2EBootstrap: FC = () => {
       startLocalDockerBenchmarkRun,
       getBenchmarkRunStatus,
     } = createBenchmarkE2EHelpers(store);
+
+    const {
+      cloudSeedAuthState,
+      cloudClearAuthState,
+      cloudReadAuthState,
+      cloudSeedProjectOrgAlias,
+      cloudSeedOrgs,
+      cloudListOrgs,
+      cloudInspectRosterState,
+      cloudInspectProjectState,
+      cloudSeedRepoScopes,
+      cloudResolveRepoScopeKeys,
+      cloudSeedRemoteSessions,
+      cloudInspectDebugState,
+      cloudInspectPresence,
+      cloudPublishSeededSessionEvents,
+      cloudRunSyncPass,
+      cloudSeedPendingInvite,
+      cloudSeedPendingShare,
+      cloudTagSessionToOrg,
+      cloudOpenSyncLevelDialog,
+      cloudCloseSyncLevelDialog,
+    } = createCloudHelpers({ store });
+
+    const { seedUserPresence } = createUserPresenceHelpers({ store });
 
     const helpers: E2EHelpers = {
       addAccount,
@@ -431,6 +459,7 @@ export const E2EBootstrap: FC = () => {
       launchSession,
       getSessionAggregateRow,
       getSessionAggregateRowFromList,
+      findSessionAggregateByWorkItem,
       seedChatEvents,
       seedPersistedCachedSession,
       seedSidebarSession,
@@ -484,6 +513,27 @@ export const E2EBootstrap: FC = () => {
       inspectBenchmarkRun,
       startLocalDockerBenchmarkRun,
       getBenchmarkRunStatus,
+      cloudSeedAuthState,
+      cloudClearAuthState,
+      cloudReadAuthState,
+      cloudSeedProjectOrgAlias,
+      cloudSeedOrgs,
+      cloudListOrgs,
+      cloudInspectRosterState,
+      cloudInspectProjectState,
+      cloudSeedRepoScopes,
+      cloudResolveRepoScopeKeys,
+      cloudSeedRemoteSessions,
+      cloudInspectDebugState,
+      cloudInspectPresence,
+      cloudPublishSeededSessionEvents,
+      cloudRunSyncPass,
+      cloudSeedPendingInvite,
+      cloudSeedPendingShare,
+      cloudTagSessionToOrg,
+      cloudOpenSyncLevelDialog,
+      cloudCloseSyncLevelDialog,
+      seedUserPresence,
     };
 
     registerE2EHelpers(helpers);

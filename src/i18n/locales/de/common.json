@@ -74,6 +74,11 @@
       "other": "Geheimnis"
     }
   },
+  "secretScan": {
+    "title": "Mögliches Geheimnis erkannt",
+    "message": "Diese Nachricht scheint sensible Anmeldedaten zu enthalten:\n\n{{items}}\n\nBeim Senden wird das Geheimnis im Chatverlauf gespeichert und an das Modell übermittelt. Trotzdem senden?",
+    "sendAnyway": "Trotzdem senden"
+  },
   "actions": {
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -203,7 +208,8 @@
     "openWorkspace": "Workspace öffnen",
     "skipThisVersion": "Diese Version überspringen",
     "later": "Später",
-    "link": "Verknüpfen"
+    "link": "Verknüpfen",
+    "copyName": "Namen kopieren"
   },
   "refreshToast": {
     "successName": "{{name}} aktualisiert",

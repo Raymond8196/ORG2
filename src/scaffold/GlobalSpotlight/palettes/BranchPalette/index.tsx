@@ -9,7 +9,13 @@
  * (`gitApi.getGitBranches`) and share the centralized branch cache to
  * prevent redundant calls.
  */
-import { Folder, FolderPlus } from "lucide-react";
+import {
+  Check,
+  Folder,
+  FolderMinus,
+  FolderPlus,
+  RefreshCw,
+} from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,13 +28,16 @@ import {
   SPOTLIGHT_FOOTER_ACTIVE_CHIP,
   SpotlightPinnedActionSection,
 } from "../../components";
-import { SPOTLIGHT_CLASSES, SPOTLIGHT_TOKENS } from "../../constants";
 import { PaletteBody, SpotlightShell } from "../../shell";
 import type { SpotlightItem } from "../../types";
 import { useSelectorKernel } from "../core";
-import type { BranchPaletteProps, WorktreePaletteProps } from "./types";
+import type {
+  BranchPaletteProps,
+  WorktreePaletteMode,
+  WorktreePaletteProps,
+} from "./types";
 import { useBranchPalette } from "./useBranchPalette";
-import { useWorktreeEntries } from "./useWorktreeMap";
+import { refreshWorktreeMap, useWorktreeEntries } from "./useWorktreeMap";
 
 function normalizeWorktreePath(path: string | undefined): string {
   return (path ?? "").replace(/^file:\/\//, "").replace(/\/+$/, "");
@@ -43,51 +52,117 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
   activePath,
   onSelect,
   onCreate,
+  onRemoveWorktree,
+  onModeChange,
   asBody = false,
 }) => {
   const { t } = useTranslation();
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [mode, setMode] = React.useState<WorktreePaletteMode>("switch");
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [removingPaths, setRemovingPaths] = React.useState<Set<string>>(
+    () => new Set()
+  );
   const worktrees = useWorktreeEntries({
     enabled: isOpen,
     repoId,
     repoPath,
     isLocalRepo: true,
   });
+
+  React.useEffect(() => {
+    onModeChange?.(mode);
+  }, [mode, onModeChange]);
+
+  const normalizedActivePath = normalizeWorktreePath(activePath || repoPath);
+
+  const handleRemoveWorktree = React.useCallback(
+    async (worktreePath: string) => {
+      if (!onRemoveWorktree) return;
+      const normalizedPath = normalizeWorktreePath(worktreePath);
+      setRemovingPaths((current) => new Set(current).add(normalizedPath));
+      try {
+        const result = await onRemoveWorktree(worktreePath, {
+          skipRefresh: true,
+        });
+        if (result?.success === false) return;
+        await refreshWorktreeMap(repoId, repoPath);
+      } finally {
+        setRemovingPaths((current) => {
+          const next = new Set(current);
+          next.delete(normalizedPath);
+          return next;
+        });
+      }
+    },
+    [onRemoveWorktree, repoId, repoPath]
+  );
+
+  const handleRefreshWorktrees = React.useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshWorktreeMap(repoId, repoPath);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [repoId, repoPath]);
+
   const allItems = React.useMemo<SpotlightItem[]>(
     () =>
-      worktrees.map((worktree) => {
-        const path = normalizeWorktreePath(worktree.path);
-        const label =
-          worktree.branch ||
-          (worktree.is_main
-            ? t("selectors.branch.labels.mainWorktree", "Main")
-            : path.split("/").pop() || path);
-        const isSelected =
-          path === normalizeWorktreePath(activePath || repoPath);
-        return {
-          id: `worktree:${path}`,
-          label,
-          desc: compactRepoPathForDisplay({ path }),
-          icon: Folder,
-          type: "option" as const,
-          data: {
-            isSelector: true,
-            isCurrentSelection: isSelected,
-            rightContent: isSelected ? (
-              <span
-                className={`${SPOTLIGHT_CLASSES.primaryPill} ${SPOTLIGHT_TOKENS.badgeFontSize} shrink-0 font-medium`}
-              >
-                {t("selectors.branch.labels.current", "Current")}
-              </span>
-            ) : undefined,
-          },
-          action: () => {
-            void Promise.resolve(onSelect(worktree)).then(onClose);
-          },
-        };
-      }),
-    [activePath, onClose, onSelect, repoPath, t, worktrees]
+      worktrees
+        .filter((worktree) => {
+          if (mode === "switch") return true;
+          const path = normalizeWorktreePath(worktree.path);
+          return !worktree.is_main && path !== normalizedActivePath;
+        })
+        .map((worktree) => {
+          const path = normalizeWorktreePath(worktree.path);
+          const label =
+            worktree.branch ||
+            (worktree.is_main
+              ? t("selectors.branch.labels.mainWorktree", "Main")
+              : path.split("/").pop() || path);
+          const isSelected = path === normalizedActivePath;
+          const isRemoving = removingPaths.has(path);
+          return {
+            id: `worktree:${path}`,
+            label,
+            desc: compactRepoPathForDisplay({ path }),
+            icon: Folder,
+            type: "option" as const,
+            data: {
+              isSelector: true,
+              isCurrentSelection: mode === "switch" && isSelected,
+              disabled: isRemoving,
+              contextMenuCopy: { name: label, path },
+              rightLabel:
+                mode === "remove"
+                  ? t(
+                      "selectors.branch.actions.removeWorktree",
+                      "Remove Worktree"
+                    )
+                  : undefined,
+            },
+            action: () => {
+              if (mode === "remove") {
+                void handleRemoveWorktree(worktree.path);
+                return;
+              }
+              void Promise.resolve(onSelect(worktree)).then(onClose);
+            },
+          };
+        }),
+    [
+      handleRemoveWorktree,
+      mode,
+      normalizedActivePath,
+      onClose,
+      onSelect,
+      removingPaths,
+      t,
+      worktrees,
+    ]
   );
   // The main worktree is grouped separately from linked (secondary) ones.
   const mainWorktreeIds = React.useMemo(
@@ -121,7 +196,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       (item) => !mainWorktreeIds.has(item.id)
     );
     const list: SpotlightItem[] = [];
-    if (mainItems.length > 0) {
+    if (mode === "switch" && mainItems.length > 0) {
       list.push(
         header(
           "worktree:header-main",
@@ -140,7 +215,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       );
     }
     return list;
-  }, [filteredItems, mainWorktreeIds, t]);
+  }, [filteredItems, mainWorktreeIds, mode, t]);
   const createAction = React.useMemo<SpotlightItem>(
     () => ({
       id: "worktree:new",
@@ -152,31 +227,95 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     }),
     [t]
   );
+  const pinnedActionItems = React.useMemo<SpotlightItem[]>(() => {
+    if (mode === "remove") {
+      return [
+        {
+          id: "worktree:remove-done",
+          label: t("actions.done", "Done"),
+          icon: Check,
+          type: "action",
+          action: () => setMode("switch"),
+        },
+      ];
+    }
+
+    const actions: SpotlightItem[] = [];
+    if (onCreate) actions.push(createAction);
+    if (onRemoveWorktree) {
+      actions.push({
+        id: "worktree:remove",
+        label: t("selectors.branch.actions.removeWorktree", "Remove Worktree"),
+        icon: FolderMinus,
+        type: "action",
+        data: { showDisclosureChevron: true },
+        action: () => setMode("remove"),
+      });
+    }
+    const RefreshIcon = (props: { size?: number; className?: string }) =>
+      React.createElement(RefreshCw, {
+        ...props,
+        className:
+          `${props.className ?? ""} ${isRefreshing ? "spotlight-refresh-spin" : ""}`.trim(),
+      });
+
+    actions.push({
+      id: "worktree:refresh",
+      label: t("actions.refresh", "Refresh"),
+      icon: RefreshIcon,
+      type: "action",
+      data: { disabled: isRefreshing },
+      action: () => void handleRefreshWorktrees(),
+    });
+    return actions;
+  }, [
+    createAction,
+    handleRefreshWorktrees,
+    isRefreshing,
+    mode,
+    onCreate,
+    onRemoveWorktree,
+    t,
+  ]);
   const selectableItems = React.useMemo<SpotlightItem[]>(
-    () => (onCreate ? [...sectionedItems, createAction] : sectionedItems),
-    [createAction, onCreate, sectionedItems]
+    () => [...sectionedItems, ...pinnedActionItems],
+    [pinnedActionItems, sectionedItems]
   );
+  const handleGoBack = React.useCallback(() => {
+    if (mode === "remove") {
+      setMode("switch");
+      setSearchQuery("");
+      return;
+    }
+    (onGoBackToParent ?? onClose)();
+  }, [mode, onClose, onGoBackToParent]);
   const kernel = useSelectorKernel({
     isOpen,
     onClose,
     items: selectableItems,
     hasModalState: true,
-    onGoBack: onGoBackToParent ?? onClose,
-    isItemSelectable: (item) => !item.data?.isHeader,
+    onGoBack: handleGoBack,
+    isItemSelectable: (item) => !item.data?.isHeader && !item.data?.disabled,
+    onReset: () => {
+      setMode("switch");
+      setRemovingPaths(new Set());
+    },
     externalSearchQuery: searchQuery,
     externalSetSearchQuery: setSearchQuery,
   });
 
-  const pinnedActionSection = onCreate ? (
-    <SpotlightPinnedActionSection
-      items={[createAction]}
-      startIndex={sectionedItems.length}
-      selectedIndex={kernel.selectedIndex}
-      onItemSelect={kernel.handleItemClick}
-      onItemHover={kernel.setSelectedIndex}
-      searchQuery={searchQuery}
-    />
-  ) : undefined;
+  const pinnedActionSection =
+    pinnedActionItems.length > 0 ? (
+      <SpotlightPinnedActionSection
+        items={pinnedActionItems}
+        startIndex={sectionedItems.length}
+        selectedIndex={kernel.selectedIndex}
+        onItemSelect={kernel.handleItemClick}
+        onItemHover={kernel.setSelectedIndex}
+        searchQuery={searchQuery}
+        layout="twoColumn"
+      />
+    ) : undefined;
 
   const handleCreateSourceSelect = React.useCallback(
     (source: WorktreeLaunchSource) => {
@@ -197,21 +336,27 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       path={[
         {
           type: "action",
-          id: "switch-worktree",
-          label: t("selectors.branch.path.switchWorktree", "Switch worktree"),
-          icon: Folder,
+          id: mode === "remove" ? "remove-worktree" : "switch-worktree",
+          label:
+            mode === "remove"
+              ? t("selectors.branch.actions.removeWorktree", "Remove Worktree")
+              : t("selectors.branch.path.switchWorktree", "Switch worktree"),
+          icon: mode === "remove" ? FolderMinus : Folder,
           color: "",
-          data: {
-            template: t(
-              "selectors.branch.path.switchWorktreeTemplate",
-              "Switch to {worktree}"
-            ),
-            requiredParams: ["worktree"],
-          },
+          data:
+            mode === "switch"
+              ? {
+                  template: t(
+                    "selectors.branch.path.switchWorktreeTemplate",
+                    "Switch to {worktree}"
+                  ),
+                  requiredParams: ["worktree"],
+                }
+              : undefined,
         },
       ]}
-      onRemoveSegment={() => (onGoBackToParent ?? onClose)()}
-      isLoading={isOpen && worktrees.length === 0}
+      onRemoveSegment={handleGoBack}
+      isLoading={isOpen && (worktrees.length === 0 || isRefreshing)}
       fixedHeight
       afterListSlot={pinnedActionSection}
     />
@@ -245,8 +390,12 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     <SpotlightShell
       isOpen={isOpen}
       onClose={onClose}
-      hasActiveAction
-      activeActionChip={SPOTLIGHT_FOOTER_ACTIVE_CHIP.switchSection}
+      hasActiveAction={pinnedActionItems.length > 0}
+      activeActionChip={
+        mode === "switch"
+          ? SPOTLIGHT_FOOTER_ACTIVE_CHIP.switchSection
+          : undefined
+      }
     >
       {palette}
     </SpotlightShell>
@@ -265,7 +414,6 @@ export const BranchPalette: React.FC<BranchPaletteProps> = ({
   groupWorktreeBranches = true,
   onCreateBranch,
   onDeleteBranch,
-  onRemoveWorktree,
   onCheckoutDetached,
   githubConnectionId,
   githubRepoFullName,
@@ -298,7 +446,6 @@ export const BranchPalette: React.FC<BranchPaletteProps> = ({
     onSelect,
     onCreateBranch,
     onDeleteBranch,
-    onRemoveWorktree,
     onCheckoutDetached,
     onClose,
     onGoBackToParent,
@@ -384,5 +531,6 @@ export const BranchPalette: React.FC<BranchPaletteProps> = ({
 export type {
   BranchPaletteProps,
   BranchPaletteMode,
+  WorktreePaletteMode,
   WorktreePaletteProps,
 } from "./types";

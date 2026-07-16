@@ -1,9 +1,38 @@
+use serde::Serialize;
+
 use crate::canonical::{
     ActivityRecord, CommitLinkRecord, FileChangeRecord, FileResourceRecord,
     ResourceInteractionRecord, ScanCheckpoint, SessionActorRecord,
     SessionCheckpointFileStateRecord, SessionCheckpointRecord, SessionDiffChunkRecord,
     SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
 };
+
+/// A flattened, privacy-safe view of one recently captured hook interaction,
+/// joined with its file resource. Used by the Session Provenance panel's
+/// "recent signals" table. Carries only metadata — never file contents or raw
+/// tool output (those never enter the interaction store to begin with).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecentHookSignal {
+    pub source: String,
+    pub session_id: String,
+    /// Human-readable session title, when the session has been reconciled with
+    /// a real name by an importer. `None` for hook-only sessions whose title is
+    /// still just the raw source id — the UI falls back to a shortened id.
+    pub session_title: Option<String>,
+    pub actor_id: Option<String>,
+    /// Repository-relative display path of the touched file.
+    pub file_path: String,
+    pub workspace_path: String,
+    /// `read` | `write` | `create` | `delete` | `rename` | `search`.
+    pub action: String,
+    /// `succeeded` | `failed` | `unknown`.
+    pub outcome: String,
+    /// RFC3339 timestamp the interaction occurred at.
+    pub occurred_at: String,
+    /// Always `hook` for this projection; carried for forward-compatibility.
+    pub capture_method: String,
+}
 
 pub trait RecordStore {
     fn upsert_session(&self, record: &SessionRecord) -> Result<(), String>;

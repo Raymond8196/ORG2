@@ -1324,6 +1324,13 @@
     "commitAttributionDesc": "Ajouter ORGII en Co-authored-by aux messages de Commit créés depuis ORGII",
     "prAttribution": "Pull Request Attribution",
     "prAttributionDesc": "Ajouter un pied d’attribution ORGII aux descriptions de Pull Request créées depuis ORGII",
+    "promptInstructionsTitle": "Instructions des prompts",
+    "commitInstructions": "Instructions pour les commits",
+    "commitInstructionsDesc": "Ajoutées aux prompts de génération des messages de commit, stockées localement et envoyées à l’Agent sélectionné",
+    "commitInstructionsPlaceholder": "Exemple : Rédiger les messages de commit en français et inclure une description détaillée",
+    "pullRequestInstructions": "Instructions pour les pull requests",
+    "pullRequestInstructionsDesc": "Ajoutées aux prompts de génération des titres et descriptions de pull request, stockées localement et envoyées à l’Agent sélectionné",
+    "pullRequestInstructionsPlaceholder": "Exemple : Préfixer les titres avec l’identifiant du ticket et inclure une section de tests",
     "coauthor": "Co-authored-by",
     "coauthorDesc": "Ajouter {{name}} <{{email}}> aux commits Git créés depuis ORGII",
     "noTokenYet": "Besoin d’un Token ?",
@@ -1685,7 +1692,45 @@
       "capture": "Enregistrer les interactions avec les fichiers",
       "description": "Enregistre les lectures et écritures de fichiers sous forme de métadonnées. Les prompts, les sorties d’outils et le contenu des fichiers ne sont pas stockés.",
       "configPath": "Enregistre les lectures et écritures de fichiers sous forme de métadonnées. Les prompts, les sorties d’outils et le contenu des fichiers ne sont pas stockés. Configuration : {{path}}",
-      "installDrift": "La préférence enregistrée et le hook installé diffèrent. Basculez la capture pour réparer le hook géré. Configuration : {{path}}"
+      "installDrift": "La préférence enregistrée et le hook installé diffèrent. Basculez la capture pour réparer le hook géré. Configuration : {{path}}",
+      "copyPath": "Copier",
+      "reveal": "Afficher",
+      "col": {
+        "source": "Outil",
+        "config": "Configuration",
+        "capture": "Capture"
+      },
+      "status": {
+        "on": "Activé",
+        "off": "Désactivé",
+        "repair": "Réparer",
+        "checking": "Vérification…",
+        "error": "Erreur"
+      },
+      "signals": {
+        "title": "Signaux récents",
+        "empty": "Aucun signal de hook reçu pour le moment.",
+        "noResults": "Aucun signal correspondant",
+        "search": "Rechercher des signaux",
+        "refresh": "Actualiser",
+        "openSession": "Ouvrir la session {{session}}",
+        "col": {
+          "source": "Outil",
+          "action": "Action",
+          "file": "Fichier",
+          "workspace": "Espace de travail",
+          "session": "Session",
+          "when": "Quand"
+        },
+        "action": {
+          "read": "Lecture",
+          "write": "Écriture",
+          "create": "Création",
+          "delete": "Suppression",
+          "rename": "Renommage",
+          "search": "Recherche"
+        }
+      }
     },
     "codexConfig": {
       "sectionTitle": "Configuration",

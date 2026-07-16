@@ -75,6 +75,9 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
       placement: "top",
       align: "left",
       gap: DROPDOWN_PANEL.triggerGap,
+      // Click-opened sidebar menu: own keyboard focus so Escape works even
+      // when focus was parked in the chat composer / terminal pane.
+      captureKeyboardFocus: true,
     });
 
     const handleSelect = useCallback(

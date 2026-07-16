@@ -250,11 +250,39 @@ export const GENERAL_SETTINGS_REGISTRY = {
       "Prevent the system from sleeping while any agent session is actively working. Releases automatically when all sessions finish or the toggle is turned off",
     category: "general",
   },
+  "general.autoUpdateEnabled": {
+    schema: z.boolean(),
+    default: true,
+    description:
+      "Automatically check for app updates, install them during startup, and download them silently while the app is running",
+    category: "general",
+  },
   "general.voiceInputEnabled": {
     schema: z.boolean(),
     default: true,
     description:
       "Show the microphone button in composer toolbars and bind the Ctrl+M shortcut for push-to-talk dictation. Disabling hides the button everywhere",
+    category: "general",
+  },
+  "general.secretScanEnabled": {
+    schema: z.boolean(),
+    default: true,
+    description:
+      "Scan composer input (new session prompts and follow-up messages) for API keys, tokens, and passwords, and ask for confirmation before sending them to the model",
+    category: "general",
+  },
+  "general.secretScanEntropyEnabled": {
+    schema: z.boolean(),
+    default: false,
+    description:
+      "In addition to known key formats, flag long high-entropy (random-looking) strings as possible secrets. Catches more but may occasionally flag hashes or IDs",
+    category: "general",
+  },
+  "general.secretScanCustomPatterns": {
+    schema: z.array(z.string()),
+    default: [],
+    description:
+      "User-defined regular expressions (one per entry) whose matches are treated as secrets by the composer secret scanner. Invalid expressions are ignored",
     category: "general",
   },
   "general.presenceGuidanceOnline": {

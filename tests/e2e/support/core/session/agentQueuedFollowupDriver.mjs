@@ -419,6 +419,8 @@ const js = {
       chatHistoryCardRevisionIds: chatHistoryCards.map((card) => card.getAttribute('data-plan-revision-id') || ''),
       chatHistoryCardStatuses: chatHistoryCards.map((card) => card.getAttribute('data-plan-approval-status') || ''),
       readyCardCount: cards.filter((card) => card.getAttribute('data-plan-ready') === 'true').length,
+      visibleCardCount: cards.filter(isVisible).length,
+      visibleReadyCardCount: cards.filter((card) => isVisible(card) && card.getAttribute('data-plan-ready') === 'true').length,
       draftingCardCount: cards.filter((card) => card.getAttribute('data-plan-ready') !== 'true').length,
       readyCurrentCardCount: currentCards.filter((card) => card.getAttribute('data-plan-ready') === 'true').length,
       currentDraftCardCount: currentDraftCards.length,
@@ -438,15 +440,18 @@ const js = {
       visibleNavigateButtonCount: visibleNavigateButtons.length,
       buildButtonCount: buildButtons.length,
       enabledBuildButtonCount: buildButtons.filter((button) => !button.disabled).length,
+      visibleEnabledBuildButtonCount: buildButtons.filter((button) => isVisible(button) && !button.disabled).length,
       enabledBuildRevisionIds: buildButtons
         .filter((button) => !button.disabled)
         .map((button) => button.closest('[data-plan-revision-id]')?.getAttribute('data-plan-revision-id') || '')
         .filter(Boolean),
       editButtonCount: editButtons.length,
       planDocBuild: !!planDocBuild,
+      planDocBuildVisible: !!planDocBuild && isVisible(planDocBuild),
       planDocBuildEnabled: !!planDocBuild && !planDocBuild.disabled,
       planDocEdit: !!planDocEdit,
       planDocPanel: !!planDocPanel,
+      planDocPanelVisible: !!planDocPanel && isVisible(planDocPanel),
       planDocRevisionId: planDocPanel ? (planDocPanel.getAttribute('data-plan-revision-id') || '') : '',
       planDocText: planDocPanel ? (planDocPanel.textContent || '') : '',
       communicationPlanSurfaceCount: communicationPlanSurfaces.length,
