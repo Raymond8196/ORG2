@@ -38,23 +38,25 @@ Native ORG2 associates completed tool calls with the nearest preceding real user
 
 ## Provider coverage
 
-| Capture surface  | Providers                                                                                                | Projection path                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Managed hooks    | Claude Code, Codex, Cursor, Qwen Code, Factory Droid, Trae, OpenCode, Windsurf, Kimi, Antigravity, ZCode | hook adapter → privacy-safe `ResourceInteractionEnvelopeV1`                                       |
-| Imported history | Claude Code, Codex, Cursor, OpenCode, Windsurf, WorkBuddy, Trae, Cline, Warp, ZCode                      | existing provider loader → normalized `ActivityChunk` → Orgtrack resource projector               |
-| Native ORG2      | Rust-agent event pipeline                                                                                | merged production tool event → Orgtrack interaction store; turn cache → `TurnMetadataAccumulator` |
+| Capture surface            | Providers                                                                                                | Projection path                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Managed hooks              | Claude Code, Codex, Cursor, Qwen Code, Factory Droid, Trae, OpenCode, Windsurf, Kimi, Antigravity, ZCode | hook adapter → privacy-safe `ResourceInteractionEnvelopeV1`                                       |
+| Imported history           | Claude Code, Codex, Cursor, OpenCode, Windsurf, WorkBuddy, Trae, Cline, Warp, ZCode                      | existing provider loader → normalized `ActivityChunk` → Orgtrack resource projector               |
+| Native ORG2                | Rust-agent event pipeline                                                                                | merged production tool event → Orgtrack interaction store; turn cache → `TurnMetadataAccumulator` |
+| Cloud collaboration replay | Authorized ORG2 team-session event cache                                                                 | checkout-safe path remap → normalized `ActivityChunk` → Orgtrack interaction store                |
 
 Hook-only providers gain live provenance immediately. Providers with imported-history loaders also gain lazy historical projection. Adding a future provider means implementing an adapter/loader to the normalized boundary, not adding another turn metadata implementation.
 
 ## Production call-chain trace
 
-| Entry point       | Path                                                                                        | Result                                                        |
-| ----------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Live native tool  | production event merge → nearest user-message turn → `persist_native_event_interactions`    | Canonical session/turn/actor/resource fact                    |
-| External hook     | provider hook → `hook_adapter` → privacy-safe spool → bounded drain                         | Canonical live resource fact without raw content/query/output |
-| Historical round  | existing provider loader/event cache → normalized tool metadata → `TurnMetadataAccumulator` | Lazy read/search/edit/Git metadata                            |
-| Session aggregate | `load_turn_index` → fold unique modified paths and line totals                              | Final edit impact and Kanban search input                     |
-| Chat UI           | validated RPC → per-turn atom → `TurnMetadataFooter`                                        | Read/search paths, edits, commits, and PRs                    |
+| Entry point       | Path                                                                                        | Result                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Live native tool  | production event merge → nearest user-message turn → `persist_native_event_interactions`    | Canonical session/turn/actor/resource fact                     |
+| External hook     | provider hook → `hook_adapter` → privacy-safe spool → bounded drain                         | Canonical live resource fact without raw content/query/output  |
+| Historical round  | existing provider loader/event cache → normalized tool metadata → `TurnMetadataAccumulator` | Lazy read/search/edit/Git metadata                             |
+| Cloud replay      | authorized event cache → owner/viewer checkout remap → user-message round boundary          | Exact-owner resource facts without persisting the owner's path |
+| Session aggregate | `load_turn_index` → fold unique modified paths and line totals                              | Final edit impact and Kanban search input                      |
+| Chat UI           | validated RPC → per-turn atom → `TurnMetadataFooter`                                        | Read/search paths, edits, commits, and PRs                     |
 
 ## Ten-layer audit
 
@@ -94,6 +96,6 @@ No blocking architecture finding remains. Orgtrack now owns the reusable protoco
 | Rust lint            | Pass: `cargo clippy --workspace` (pre-existing advisory warnings only)                                 |
 | Frontend types       | Pass: `NODE_OPTIONS=--max-old-space-size=6144 pnpm typecheck`                                          |
 | Frontend lint        | Pass: `pnpm lint`                                                                                      |
-| Frontend unit tests  | Pass: 376 files / 4,359 tests                                                                          |
+| Frontend unit tests  | Pass: 444 files / 5,124 tests                                                                          |
 | Rendered desktop E2E | Pass: isolated macOS Tauri/WebDriver round-metadata scenario against the real command and SQLite cache |
 | Localization         | Pass: all 13 session locale JSON files parse and contain the new keys                                  |
