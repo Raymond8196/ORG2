@@ -34,6 +34,17 @@ pub struct RecentHookSignal {
     pub capture_method: String,
 }
 
+/// One bounded page of canonical interactions for a file. Pagination happens
+/// by root session rather than raw interaction, so a returned session always
+/// has complete counts and subagent attribution within that page.
+#[derive(Debug, Clone)]
+pub struct FileResourceInteractionPage {
+    pub interactions: Vec<ResourceInteractionRecord>,
+    pub total_sessions: usize,
+    pub offset: usize,
+    pub limit: usize,
+}
+
 pub trait RecordStore {
     fn upsert_session(&self, record: &SessionRecord) -> Result<(), String>;
     fn append_activity(&self, record: &ActivityRecord) -> Result<(), String>;
@@ -93,12 +104,20 @@ pub trait RecordStore {
         &self,
         workspace_path: Option<&str>,
     ) -> Result<Vec<FileChangeRecord>, String>;
-    fn list_file_resource_interactions(
+    fn list_file_resource_interactions_page(
         &self,
         repository_id: Option<&str>,
         workspace_path: &str,
         repo_relative_path: &str,
-    ) -> Result<Vec<ResourceInteractionRecord>, String>;
+        limit: usize,
+        offset: usize,
+    ) -> Result<FileResourceInteractionPage, String>;
+    fn get_file_resource_revision(
+        &self,
+        repository_id: Option<&str>,
+        workspace_path: &str,
+        repo_relative_path: &str,
+    ) -> Result<u64, String>;
     fn get_session(&self, session_id: &str) -> Result<Option<SessionRecord>, String>;
     fn get_session_actor(
         &self,

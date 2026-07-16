@@ -500,7 +500,7 @@ pub fn run() {
                     tracing::warn!(error = %err, "[SessionProvenance] Failed to reconcile agent hooks");
                 }
             });
-            orgtrack::session_provenance::spawn_hook_inbox_drain_loop();
+            orgtrack::session_provenance::spawn_hook_inbox_drain_loop(app.handle().clone());
 
             // Initialize Rust EventStore state
             app.manage(agent_sessions::event_pipeline::commands::EventStoreState::new());

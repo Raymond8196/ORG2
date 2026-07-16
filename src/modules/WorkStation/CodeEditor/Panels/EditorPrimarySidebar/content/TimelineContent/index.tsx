@@ -429,6 +429,9 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
       history: fileSessionHistory,
       loading: sessionHistoryLoading,
       error: sessionHistoryError,
+      loadMore: loadMoreFileSessions,
+      loadingMore: fileSessionsLoadingMore,
+      hasMore: hasMoreFileSessions,
     } = useOrgtrackFileSessionHistory({
       repoPath: orgtrackRepoPath,
       filePath: relativeFilePath,
@@ -551,7 +554,13 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
     return (
       <div className="h-full overflow-y-auto pb-2 scrollbar-hide">
         {(fileSessions.length > 0 || sessionBackfill) && (
-          <div className="py-1" data-testid="session-blame-section">
+          <div
+            className="py-1"
+            data-testid="session-blame-section"
+            data-history-revision={fileSessionHistory?.revision ?? 0}
+            data-loaded-sessions={fileSessions.length}
+            data-total-sessions={fileSessionHistory?.page.totalSessions ?? 0}
+          >
             <div className="px-4 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-text-3">
               {t("labels.sessionBlame")}
             </div>
@@ -584,6 +593,19 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
                 onOpenSession={handleOpenSession}
               />
             ))}
+            {hasMoreFileSessions && (
+              <div className="px-4 py-1">
+                <button
+                  type="button"
+                  className={`${HEADER_BUTTON} w-full justify-center text-xs text-text-2`}
+                  disabled={fileSessionsLoadingMore}
+                  data-testid="session-blame-load-more"
+                  onClick={() => void loadMoreFileSessions()}
+                >
+                  {t("actions.loadMore")}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

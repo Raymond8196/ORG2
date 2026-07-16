@@ -14,6 +14,7 @@ use orgtrack_core::sources::warp::history as warp_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
 use orgtrack_core::sources::zcode::history as zcode_history;
+use session_persistence::CachedTurnSummary;
 
 use crate::agent_sessions::unified_stats::pricing_catalog;
 
@@ -21,6 +22,82 @@ use super::external_cli_detection::{self, ExternalCliSourceProbe};
 
 fn open_cache_conn() -> Result<rusqlite::Connection, String> {
     get_connection().map_err(|err| format!("Failed to open orgtrack source cache DB: {err}"))
+}
+
+fn projected_rounds_to_cached_turns(
+    session_id: &str,
+    projected: Vec<orgtrack_core::projectors::turn_metadata::ProjectedTurnMetadata>,
+) -> Vec<CachedTurnSummary> {
+    let turn_boundaries = projected
+        .iter()
+        .map(|round| (round.turn_id.clone(), round.start_sequence))
+        .collect::<Vec<_>>();
+    projected
+        .into_iter()
+        .enumerate()
+        .map(|(index, round)| CachedTurnSummary {
+            session_id: session_id.to_string(),
+            turn_id: round.turn_id.clone(),
+            start_sequence: round.start_sequence,
+            end_sequence: turn_boundaries
+                .get(index + 1)
+                .map(|(_, sequence)| *sequence),
+            next_turn_id: turn_boundaries
+                .get(index + 1)
+                .map(|(turn_id, _)| turn_id.clone()),
+            started_at: round.started_at,
+            ended_at: round.ended_at,
+            duration_ms: None,
+            user_event_ids: vec![round.turn_id],
+            user_preview: round.user_preview,
+            event_count: round.event_count,
+            body_event_count: round.body_event_count,
+            status: "completed".to_string(),
+            interrupted: false,
+            modified_files: round.modified_files,
+            resource_interactions: round.resource_interactions,
+            git_artifacts: round.git_artifacts,
+        })
+        .collect()
+}
+
+/// Unified per-round metadata read surface. Native/managed sessions use the
+/// versioned local turn cache; read-only imported sessions are projected
+/// directly from their existing provider loader and never copied into
+/// `sessions.db.events`.
+#[tauri::command]
+pub async fn orgtrack_session_turn_metadata_index(
+    session_id: String,
+    turn_ids: Option<Vec<String>>,
+) -> Result<Vec<CachedTurnSummary>, String> {
+    tokio::task::spawn_blocking(move || {
+        if turn_ids
+            .as_ref()
+            .is_some_and(|turn_ids| turn_ids.len() > 500)
+        {
+            return Err("At most 500 turn summaries can be loaded at once".to_string());
+        }
+        let conn = open_cache_conn()?;
+        if let Some(chunks) =
+            imported_history::load_activity_chunks_for_session(&conn, &session_id)?
+        {
+            let projected =
+                orgtrack_core::projectors::turn_metadata::project_activity_chunks(&chunks);
+            let mut turns = projected_rounds_to_cached_turns(&session_id, projected);
+            if let Some(turn_ids) = turn_ids.as_ref() {
+                let requested = turn_ids.iter().collect::<std::collections::HashSet<_>>();
+                turns.retain(|turn| requested.contains(&turn.turn_id));
+            }
+            return Ok(turns);
+        }
+        if let Some(turn_ids) = turn_ids.as_ref() {
+            return session_persistence::load_turn_summaries(&session_id, turn_ids)
+                .map_err(|err| err.to_string());
+        }
+        session_persistence::load_turn_index(&session_id).map_err(|err| err.to_string())
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
 }
 
 /// List-price estimate for a session that carries only a single total token
@@ -426,4 +503,42 @@ pub async fn imported_history_subagent_count(source: String) -> Result<usize, St
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[cfg(test)]
+mod tests {
+    use orgtrack_core::projectors::turn_metadata::ProjectedTurnMetadata;
+
+    use super::*;
+
+    fn projected(turn_id: &str, start_sequence: i64) -> ProjectedTurnMetadata {
+        ProjectedTurnMetadata {
+            turn_id: turn_id.to_string(),
+            start_sequence,
+            started_at: format!("2026-07-15T00:00:0{start_sequence}Z"),
+            ended_at: None,
+            user_preview: turn_id.to_string(),
+            event_count: 2,
+            body_event_count: 1,
+            modified_files: Vec::new(),
+            resource_interactions: Vec::new(),
+            git_artifacts: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn projected_round_mapping_preserves_boundaries_and_next_turn() {
+        let turns = projected_rounds_to_cached_turns(
+            "codexapp-session",
+            vec![projected("user-1", 0), projected("user-2", 3)],
+        );
+
+        assert_eq!(turns.len(), 2);
+        assert_eq!(turns[0].turn_id, "user-1");
+        assert_eq!(turns[0].end_sequence, Some(3));
+        assert_eq!(turns[0].next_turn_id.as_deref(), Some("user-2"));
+        assert_eq!(turns[1].turn_id, "user-2");
+        assert_eq!(turns[1].end_sequence, None);
+        assert_eq!(turns[1].next_turn_id, None);
+    }
 }

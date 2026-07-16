@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "Sitzungen nach Dateipfad suchen",
+      "noResults": "Keine Sitzung hat eine passende Datei geändert"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Aktuelles Kanban",
     "view": {
@@ -1010,12 +1014,21 @@
         "importFailed": "Session JSON konnte nicht importiert werden."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "{{count}} Datei in dieser Runde geändert",
-      "filesChangedCount_other": "{{count}} Dateien in dieser Runde geändert",
-      "historicalRoundDiffFiles_one": "Frühere Runde Diff · {{count}} Datei",
-      "historicalRoundDiffFiles_other": "Frühere Runde Diff · {{count}} Dateien",
-      "review": "Überprüfen",
+    "turnMetadata": {
+      "noChanges": "Keine Dateiänderungen in dieser Runde",
+      "earlierRound": "Frühere Runde",
+      "files_one": "{{count}} Datei",
+      "files_other": "{{count}} Dateien",
+      "reads_one": "{{count}} Lesezugriff",
+      "reads_other": "{{count}} Lesezugriffe",
+      "searches_one": "{{count}} Suche",
+      "searches_other": "{{count}} Suchen",
+      "failed": "Fehlgeschlagen",
+      "commits_one": "{{count}} Commit",
+      "commits_other": "{{count}} Commits",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PRs",
+      "review": "Prüfen",
       "showLess": "Weniger anzeigen",
       "showMore_one": "{{count}} weitere anzeigen",
       "showMore_other": "{{count}} weitere anzeigen"

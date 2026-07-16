@@ -467,11 +467,10 @@ export const loadSidebarSessionById = async (
   if (!normalizedSessionId) return null;
 
   const store = getStore();
-  const existing = store
-    .get(sessionsAtom)
-    .find((session) => session.session_id === normalizedSessionId);
-  if (existing) return existing;
-
+  // Do not return an existing atom row before resolving the canonical record.
+  // Transcript activation can insert a lightweight row first; imported
+  // subagent rows in particular need the provider cache's parentSessionId so
+  // the sidebar can place them beneath the root session deterministically.
   const response = await sessionAggregateList({
     sessionIds: [normalizedSessionId],
     includeExternalHistory: true,

@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Sesje",
+    "fileSearch": {
+      "placeholder": "Szukaj sesji według ścieżki pliku",
+      "noResults": "Żadna sesja nie zmieniła pasującego pliku"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Bieżący Kanban",
     "view": {
@@ -1013,21 +1017,36 @@
         "importFailed": "Nie udało się zaimportować Session JSON."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "Zmieniono {{count}} plik w tej rundzie",
-      "filesChangedCount_few": "Zmieniono {{count}} pliki w tej rundzie",
-      "filesChangedCount_many": "Zmieniono {{count}} plików w tej rundzie",
-      "filesChangedCount_other": "Zmieniono {{count}} pliku w tej rundzie",
-      "historicalRoundDiffFiles_one": "Diff poprzedniej rundy · {{count}} plik",
-      "historicalRoundDiffFiles_few": "Diff poprzedniej rundy · {{count}} pliki",
-      "historicalRoundDiffFiles_many": "Diff poprzedniej rundy · {{count}} plików",
-      "historicalRoundDiffFiles_other": "Diff poprzedniej rundy · {{count}} pliku",
+    "turnMetadata": {
+      "noChanges": "Brak zmian plików w tej rundzie",
+      "earlierRound": "Wcześniejsza runda",
+      "files_one": "{{count}} plik",
+      "files_few": "{{count}} pliki",
+      "files_many": "{{count}} plików",
+      "files_other": "{{count}} plików",
+      "reads_one": "{{count}} odczyt",
+      "reads_few": "{{count}} odczyty",
+      "reads_many": "{{count}} odczytów",
+      "reads_other": "{{count}} odczytów",
+      "searches_one": "{{count}} wyszukiwanie",
+      "searches_few": "{{count}} wyszukiwania",
+      "searches_many": "{{count}} wyszukiwań",
+      "searches_other": "{{count}} wyszukiwań",
+      "failed": "Niepowodzenie",
+      "commits_one": "{{count}} commit",
+      "commits_few": "{{count}} commity",
+      "commits_many": "{{count}} commitów",
+      "commits_other": "{{count}} commitów",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_few": "{{count}} PR-y",
+      "pullRequests_many": "{{count}} PR-ów",
+      "pullRequests_other": "{{count}} PR-ów",
       "review": "Przejrzyj",
       "showLess": "Pokaż mniej",
-      "showMore_one": "Pokaż {{count}} więcej",
-      "showMore_few": "Pokaż {{count}} więcej",
-      "showMore_many": "Pokaż {{count}} więcej",
-      "showMore_other": "Pokaż {{count}} więcej"
+      "showMore_one": "Pokaż jeszcze {{count}}",
+      "showMore_few": "Pokaż jeszcze {{count}}",
+      "showMore_many": "Pokaż jeszcze {{count}}",
+      "showMore_other": "Pokaż jeszcze {{count}}"
     },
     "manageIssues": {
       "title": "Zarządzaj issues",
