@@ -125,7 +125,6 @@ pub(super) async fn handle_command(
     Ok(None)
 }
 
-
 async fn handle_model_command(
     state: &AgentAppState,
     _msg: &InboundMessage,
@@ -142,14 +141,20 @@ async fn handle_model_command(
             binding.target_session_id
         );
     };
-    let account_id = state
-        .current_account_id
-        .lock()
-        .await
-        .clone()
-        .or_else(|| state.integrations.snapshot().channels.gateway.account_id.clone());
+    let account_id = state.current_account_id.lock().await.clone().or_else(|| {
+        state
+            .integrations
+            .snapshot()
+            .channels
+            .gateway
+            .account_id
+            .clone()
+    });
     let Some((model, account_id)) = resolve_model_target(requested, account_id.as_deref()) else {
-        return format!("Model `{}` was not found in the configured model list.", requested);
+        return format!(
+            "Model `{}` was not found in the configured model list.",
+            requested
+        );
     };
     let sid = binding.target_session_id.clone();
     let model_for_db = model.clone();
@@ -174,7 +179,10 @@ async fn handle_model_command(
             .await;
             note
         }
-        Ok(Ok(false)) => format!("Model switch failed: session {} does not exist", binding.target_session_id),
+        Ok(Ok(false)) => format!(
+            "Model switch failed: session {} does not exist",
+            binding.target_session_id
+        ),
         Ok(Err(err)) => format!("Model switch failed: {}", err),
         Err(err) => format!("Model switch failed: {}", err),
     }
@@ -215,7 +223,8 @@ fn resolve_model_target(
     for (target, names) in aliases {
         if names.iter().any(|name| normalize_model_key(name) == needle) {
             return Some((
-                best_candidate_for_alias(&candidates, target).unwrap_or_else(|| (*target).to_string()),
+                best_candidate_for_alias(&candidates, target)
+                    .unwrap_or_else(|| (*target).to_string()),
                 account_id.map(str::to_string),
             ));
         }
@@ -223,7 +232,11 @@ fn resolve_model_target(
     candidates
         .iter()
         .find(|m| normalize_model_key(m) == needle)
-        .or_else(|| candidates.iter().find(|m| normalize_model_key(m).contains(&needle)))
+        .or_else(|| {
+            candidates
+                .iter()
+                .find(|m| normalize_model_key(m).contains(&needle))
+        })
         .cloned()
         .map(|model| (model, account_id.map(str::to_string)))
 }
@@ -321,7 +334,10 @@ mod help_text_tests {
 
     #[test]
     fn normalize_model_key_ignores_provider_punctuation() {
-        assert_eq!(normalize_model_key("openai/gpt-5.5:openai"), "openaigpt55openai");
+        assert_eq!(
+            normalize_model_key("openai/gpt-5.5:openai"),
+            "openaigpt55openai"
+        );
         assert_eq!(normalize_model_key("GPT-5.5"), "gpt55");
     }
 

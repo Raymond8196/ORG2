@@ -74,6 +74,11 @@
       "other": "Bí mật"
     }
   },
+  "secretScan": {
+    "title": "Đã phát hiện thông tin bí mật có thể có",
+    "message": "Tin nhắn này có vẻ chứa thông tin xác thực nhạy cảm:\n\n{{items}}\n\nGửi đi sẽ lưu thông tin bí mật vào lịch sử trò chuyện và gửi đến mô hình. Vẫn gửi chứ?",
+    "sendAnyway": "Vẫn gửi"
+  },
   "actions": {
     "save": "Lưu",
     "cancel": "Hủy",
@@ -203,8 +208,8 @@
     "openWorkspace": "Mở Workspace",
     "skipThisVersion": "Bỏ qua phiên bản này",
     "later": "Để sau",
-    "updateAiBlame": "Cập nhật AI Blame",
-    "link": "Liên kết"
+    "link": "Liên kết",
+    "copyName": "Sao chép tên"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}",
@@ -406,7 +411,28 @@
     "nearby": "Gần đây",
     "renowned": "Nổi tiếng",
     "dragToReorder": "Kéo để sắp xếp lại thứ tự tin nhắn",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Quy nguồn phiên",
+    "sessionBlameSubagent": "Tác tử phụ: {{name}}",
+    "sessionBlameMainSession": "Phiên chính",
+    "sessionBlameAction": {
+      "read": "Đọc",
+      "write": "Ghi",
+      "create": "Tạo",
+      "delete": "Xóa",
+      "rename": "Đổi tên",
+      "search": "Tìm kiếm"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Độ tin cậy chưa rõ",
+      "session_only": "Chỉ phiên",
+      "correlated": "Đã đối chiếu",
+      "exact": "Quy nguồn chính xác"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Đang lập chỉ mục phiên cũ {{indexed}}/{{total}}",
+      "partial": "Chỉ mục lịch sử chưa hoàn chỉnh ({{failed}} lỗi)",
+      "failed": "Không thể lập chỉ mục phiên cũ"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -424,7 +450,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "Tệp",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1014,6 +1040,10 @@
     "scanningFiles": "Scanning files...",
     "branchTooltip": "Nhánh: {{branch}}",
     "branchTooltipSwitching": "Nhánh: {{branch}} (đang chuyển…)",
+    "switchWorkspaceTooltip": "Chuyển Workspace",
+    "switchWorktreeTooltip": "Chuyển Worktree",
+    "switchBranchTooltip": "Chuyển nhánh",
+    "gitActionsTooltip": "Thao tác Git",
     "switchToSessionRepo": "Chuyển sang {{name}}",
     "embeddingProgress": "Embedding: đã xử lý {{count}} chunk",
     "embeddingProgressWithPercent": "Embedding: đã xử lý {{count}} chunk ({{percent}}%)",
@@ -1026,6 +1056,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "Bên ngoài",
       "tooltip": "Cổng: {{workspace}} workspace, {{external}} bên ngoài",
+      "viewPortsTooltip": "Xem các cổng đang dùng",
       "noWorkspacePorts": "Không phát hiện cổng workspace",
       "externalLabel": "bên ngoài",
       "unknownProcess": "Tiến trình không xác định",
@@ -1145,9 +1176,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Cần token",
       "createTokenButton": "Tạo token",
-      "openGitSettingsButton": "Mở cài đặt Git",
+      "openGitSettingsButton": "Mở cài đặt",
       "configureInSettings": "Cấu hình Git trong cài đặt",
-      "configureInSettingsDesc": "Thêm quyền truy cập GitHub App, lưu token hoặc quét thông tin xác thực cục bộ trong Cài đặt → Tích hợp → Git, rồi thử lại thao tác Git này."
+      "configureInSettingsDesc": "Thêm quyền truy cập GitHub App, lưu token hoặc quét thông tin xác thực cục bộ trong Cài đặt → Kết nối, rồi thử lại thao tác Git này."
     },
     "actions": {
       "publish": "Publish",
@@ -1354,7 +1385,9 @@
         "delete": "Xóa",
         "deleteTemplate": "Xóa {branch}",
         "createSessionWith": "Chuyển Branch của phiên",
-        "createSessionWithTemplate": "Chuyển Branch của phiên sang {branch}"
+        "createSessionWithTemplate": "Chuyển Branch của phiên sang {branch}",
+        "switchWorktree": "Chuyển Worktree",
+        "switchWorktreeTemplate": "Chuyển sang {worktree}"
       },
       "actions": {
         "createNew": "Tạo nhánh mới",
@@ -1365,7 +1398,8 @@
         "refresh": "Làm mới nhánh",
         "checkoutDetachedSuccess": "Đang ở trạng thái detached HEAD tại commit hiện tại",
         "checkoutDetachedFailed": "Checkout detached HEAD thất bại",
-        "removeWorktree": "Xóa Worktree"
+        "removeWorktree": "Xóa Worktree",
+        "newWorktree": "Worktree mới..."
       },
       "messages": {
         "deletedCount_one": "Đã xóa {{count}} nhánh",
@@ -1380,7 +1414,9 @@
         "basedOn": "Dựa trên",
         "worktrees": "Worktrees",
         "worktreeInUse": "Đang dùng",
-        "checkedOutInWorktree": "Đã checkout trong Worktree: {{path}}"
+        "checkedOutInWorktree": "Đã checkout trong Worktree: {{path}}",
+        "mainWorktreeSection": "Worktree chính",
+        "linkedWorktrees": "Worktree liên kết"
       },
       "placeholders": {
         "checkout": "nhánh",
@@ -1489,7 +1525,8 @@
         "workspace": "Tìm kiếm hoặc nhập đường dẫn thư mục",
         "branch": "Tìm kiếm nhánh...",
         "source": "Tìm kiếm nguồn...",
-        "actions": "Tìm kiếm hành động..."
+        "actions": "Tìm kiếm hành động...",
+        "worktree": "Tìm kiếm worktree..."
       },
       "groups": {
         "agentSession": "Phiên Agent",
@@ -1679,7 +1716,7 @@
     "disableDockAutoHide": "Luôn hiển thị Dock Workstation",
     "openMyStation": "Đi tới My Station",
     "openAgentStation": "Đi tới Agent Station",
-    "openOpsControl": "Đi tới Ops Control",
+    "openKanban": "Đi tới Kanban",
     "changeLanguage": "Thay đổi ngôn ngữ",
     "switchToSystemTheme": "Theo chủ đề hệ thống",
     "detectUpdate": "Kiểm tra cập nhật",
@@ -1934,12 +1971,15 @@
     "removeWorktreeMessage": "Thao tác này xóa Worktree checkout khỏi ổ đĩa. Branch và commits được giữ lại.",
     "removeWorktreeSuccess": "Đã xóa Worktree",
     "removeWorktreeFailed": "Không thể xóa Worktree",
+    "emptyState": {
+      "viewSourceControl": "Xem Source Control",
+      "viewIssues": "Xem Issues",
+      "viewGitHistory": "Xem lịch sử Git",
+      "viewPullRequests": "Xem Pull Requests"
+    },
     "pill": {
       "focus": "Tiêu điểm",
       "allChanges": "Tất cả thay đổi"
-    },
-    "sessionFilter": {
-      "allSessions": "Tất cả phiên"
     }
   },
   "contextInfo": {

@@ -9,6 +9,11 @@ import { listPRsLocal } from "@src/api/tauri/github";
 import { Message } from "@src/components/Message";
 import { buildIntegrationsPath } from "@src/config/mainAppPaths/integrations";
 import {
+  getCachedPrs,
+  isPrCacheStale,
+  setCachedPrs,
+} from "@src/services/git/githubListCache";
+import {
   createPullRequest,
   parseGithubRepoFullName,
 } from "@src/services/git/operations/createPullRequest";
@@ -25,7 +30,6 @@ import {
   workstationRepoScopeKey,
 } from "@src/store/workstation/codeEditor/workstationPrAtom";
 
-import { getCachedPrs, isPrCacheStale, setCachedPrs } from "./githubListCache";
 import {
   formatWorkstationPrTitle,
   getStoredWorkstationPr,
@@ -317,7 +321,7 @@ export function useWorkstationPr(options: UseWorkstationPrOptions) {
     if (result.error) {
       if (result.error === "not_authenticated") {
         setCreatingByBranch((current) => ({ ...current, [branchName]: false }));
-        navigate(buildIntegrationsPath({ category: "git" }));
+        navigate(buildIntegrationsPath({ category: "connections" }));
         Message.info({
           id: "github-auth-required",
           title: t("git.pr.authRequired.title"),

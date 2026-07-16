@@ -3,43 +3,39 @@ import { useCallback, useEffect } from "react";
 
 import {
   activeChatPanelTabAtom,
-  addChatPanelLaunchpadTabAtom,
-  addChatPanelSessionTabAtom,
   addChatPanelTerminalTabAtom,
   chatPanelTabsAtom,
+  openKanbanChatPanelTabAtom,
+  openOrFocusChatPanelStartPageTabAtom,
   setChatPanelTabSessionIdAtom,
-  setChatPanelTabTitleAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { createChatPanelTerminalAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
+import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 
 import type { ChatPanelCliTerminalLaunchOptions } from "../types";
 
 interface UseChatPanelTabsControllerOptions {
   currentSessionId: string | null;
   launchpadTitle: string;
-  panelTitle: string;
-  resetToSessionSurface: () => void;
+  kanbanTitle: string;
   showSessionSurface: () => void;
 }
 
 export function useChatPanelTabsController({
   currentSessionId,
   launchpadTitle,
-  panelTitle,
-  resetToSessionSurface,
+  kanbanTitle,
   showSessionSurface,
 }: UseChatPanelTabsControllerOptions) {
   const setTabSessionId = useSetAtom(setChatPanelTabSessionIdAtom);
-  const setTabTitle = useSetAtom(setChatPanelTabTitleAtom);
   const activeTab = useAtomValue(activeChatPanelTabAtom);
   const allTabs = useAtomValue(chatPanelTabsAtom).tabs;
-  const addLaunchpadTab = useSetAtom(addChatPanelLaunchpadTabAtom);
-  const addSessionTab = useSetAtom(addChatPanelSessionTabAtom);
+  const openStartPageTab = useSetAtom(openOrFocusChatPanelStartPageTabAtom);
   const addTerminalTab = useSetAtom(addChatPanelTerminalTabAtom);
+  const openKanbanTab = useSetAtom(openKanbanChatPanelTabAtom);
   const createTerminalSession = useSetAtom(createChatPanelTerminalAtom);
   const activeTabId = activeTab?.id;
   const activeTabSessionId = activeTab?.sessionId;
-  const activeTabTitle = activeTab?.title;
   const activeTabType = activeTab?.type;
 
   useEffect(() => {
@@ -57,13 +53,6 @@ export function useChatPanelTabsController({
     currentSessionId,
     setTabSessionId,
   ]);
-
-  useEffect(() => {
-    if (!activeTabId || activeTabType !== "session") return;
-    if (panelTitle && panelTitle !== activeTabTitle) {
-      setTabTitle({ tabId: activeTabId, title: panelTitle });
-    }
-  }, [activeTabId, activeTabTitle, activeTabType, panelTitle, setTabTitle]);
 
   const handleNewTerminalTab = useCallback(() => {
     const terminalSessionId = createTerminalSession("Terminal");
@@ -89,14 +78,22 @@ export function useChatPanelTabsController({
     [addTerminalTab, createTerminalSession, showSessionSurface]
   );
 
+  // New-session and launchpad both open the singleton start page (Work
+  // section), focusing the existing tab instead of stacking a new one.
   const handleNewSessionTab = useCallback(() => {
-    addSessionTab();
-    resetToSessionSurface();
-  }, [addSessionTab, resetToSessionSurface]);
+    openStartPageTab({ title: launchpadTitle });
+  }, [openStartPageTab, launchpadTitle]);
 
   const handleOpenLaunchpadTab = useCallback(() => {
-    addLaunchpadTab(launchpadTitle);
-  }, [addLaunchpadTab, launchpadTitle]);
+    openStartPageTab({ title: launchpadTitle });
+  }, [openStartPageTab, launchpadTitle]);
+
+  const handleOpenKanbanTab = useCallback(() => {
+    openKanbanTab({
+      section: WORK_MANAGEMENT_SECTION.KANBAN,
+      title: kanbanTitle,
+    });
+  }, [kanbanTitle, openKanbanTab]);
 
   const isTerminalTabActive = activeTab?.type === "terminal";
   const terminalTabs = allTabs.filter(
@@ -109,6 +106,7 @@ export function useChatPanelTabsController({
     handleNewTerminalTab,
     handleOpenCliTerminal,
     handleOpenLaunchpadTab,
+    handleOpenKanbanTab,
     isTerminalTabActive,
     terminalTabs,
   };

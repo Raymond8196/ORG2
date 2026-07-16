@@ -53,20 +53,6 @@ const ALLOWED_CLI_CONFIGS: &[AllowedCliConfig] = &[
         GenericCliConfigFormat::Toml,
     ),
     cfg(
-        "gemini_cli",
-        "settings",
-        ConfigBase::Home,
-        ".gemini/settings.json",
-        GenericCliConfigFormat::Json,
-    ),
-    cfg(
-        "gemini_cli",
-        "env",
-        ConfigBase::Home,
-        ".gemini/.env",
-        GenericCliConfigFormat::Text,
-    ),
-    cfg(
         "kiro",
         "settings",
         ConfigBase::Home,

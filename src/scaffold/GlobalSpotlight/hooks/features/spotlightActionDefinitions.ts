@@ -15,6 +15,7 @@ import {
   ArrowBigLeft,
   ArrowBigRight,
   Box,
+  Columns3,
   Contrast,
   Dock,
   DraftingCompass,
@@ -31,7 +32,6 @@ import {
   PanelBottom,
   PanelLeft,
   Play,
-  RadioTower,
   RefreshCw,
   RotateCcw,
   Search,
@@ -81,7 +81,7 @@ export type SpotlightStaticActionId =
   | "disable-dock-auto-hide"
   | "open-my-station"
   | "open-agent-station"
-  | "open-ops-control"
+  | "open-kanban"
   | "zoom-in"
   | "zoom-out"
   | "zoom-reset"
@@ -114,7 +114,7 @@ export type SpotlightStaticActionFallback =
   | "toggle-chat-panel"
   | "open-my-station"
   | "open-agent-station"
-  | "open-ops-control"
+  | "open-kanban"
   | "open-search-sidebar"
   | "open-source-control-tab"
   | "open-terminal-tab"
@@ -374,14 +374,14 @@ export const STATION_MODE_ACTIONS = [
     closeOnSuccess: true,
   },
   {
-    id: "open-ops-control",
-    labelKey: "common:spotlightActions.openOpsControl",
-    icon: RadioTower,
-    keywords: ["ops control", "ops", "kanban", "project", "work items"],
-    shortcut: getShortcutKeys("open_ops_control"),
-    actionId: ACTION_ID.WORKSTATION_OPEN_OPS_CONTROL,
+    id: "open-kanban",
+    labelKey: "common:spotlightActions.openKanban",
+    icon: Columns3,
+    keywords: ["kanban", "project", "work items"],
+    shortcut: getShortcutKeys("open_kanban"),
+    actionId: ACTION_ID.WORKSTATION_OPEN_KANBAN,
     payload: {},
-    fallback: "open-ops-control",
+    fallback: "open-kanban",
     closeOnSuccess: true,
   },
 ] satisfies SpotlightStaticActionDefinition[];
@@ -414,14 +414,12 @@ export function buildChatPanelSettingsActions({
   chatTurnPaginationEnabled,
   modelPickerStyle,
   workstationSidebarPosition,
-  dockAutoHide,
 }: {
   myStationChatPosition: "left" | "right";
   agentStationChatPosition: "left" | "right";
   chatTurnPaginationEnabled: boolean;
   modelPickerStyle: "spotlight" | "dropdown";
   workstationSidebarPosition: "left" | "right";
-  dockAutoHide: boolean;
 }): SpotlightStaticActionDefinition[] {
   const actions: SpotlightStaticActionDefinition[] = [];
 
@@ -527,20 +525,6 @@ export function buildChatPanelSettingsActions({
       workstationSidebarPosition === "left"
         ? ACTION_ID.WORKSTATION_SET_SIDEBAR_RIGHT
         : ACTION_ID.WORKSTATION_SET_SIDEBAR_LEFT,
-    payload: {},
-    closeOnSuccess: false,
-  });
-
-  actions.push({
-    id: dockAutoHide ? "disable-dock-auto-hide" : "enable-dock-auto-hide",
-    labelKey: dockAutoHide
-      ? "common:spotlightActions.disableDockAutoHide"
-      : "common:spotlightActions.enableDockAutoHide",
-    icon: Dock,
-    keywords: ["dock auto hide", "dock", "auto hide dock", "keep dock visible"],
-    actionId: dockAutoHide
-      ? ACTION_ID.WORKSTATION_DISABLE_DOCK_AUTO_HIDE
-      : ACTION_ID.WORKSTATION_ENABLE_DOCK_AUTO_HIDE,
     payload: {},
     closeOnSuccess: false,
   });

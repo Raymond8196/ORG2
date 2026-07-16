@@ -26,6 +26,12 @@ export const START_PAGE_TREND_SURFACE_CLASS =
 
 export const START_PAGE_HEATMAP_CONTAINER_CLASS = `${START_PAGE_TREND_SURFACE_CLASS} px-3 pt-3 pb-1`;
 
+// Quota cards render directly above the scan table in the Runtime tab, so they
+// use the standard settings surface (bg-surface-container) — matching the scan
+// table and settings rows — rather than the translucent trend surface.
+const START_PAGE_QUOTA_SURFACE_CLASS =
+  "rounded-lg border border-border-1 bg-surface-container";
+
 const REFRESH_AGO_TICK_MS = 30_000;
 const QUOTA_REFRESH_GAP_MS = 1_000;
 
@@ -73,7 +79,7 @@ function StartPageQuotaCard({
   const { t: tIntegrations } = useTranslation("integrations");
 
   return (
-    <div className={`min-w-0 p-2 ${START_PAGE_TREND_SURFACE_CLASS}`}>
+    <div className={`min-w-0 p-2 ${START_PAGE_QUOTA_SURFACE_CLASS}`}>
       <div className="mb-1 flex min-w-0 items-center gap-1.5">
         <ModelIcon agentType={entry.modelType} size="small" />
         <div

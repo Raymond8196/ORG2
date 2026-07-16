@@ -547,8 +547,18 @@ module.exports = (env, argv) => {
         }),
       new webpack.DefinePlugin({
         "process.env.NODE_ENV": JSON.stringify(argv.mode),
+        // Local Rust IDE-server port, baked into the bundle so a second app
+        // instance (dual-instance collab testing) talks to its own backend.
+        // Must match the ORGII_IDE_SERVER_PORT the Rust side is launched with.
+        "process.env.ORGII_IDE_SERVER_PORT": JSON.stringify(
+          process.env.ORGII_IDE_SERVER_PORT ?? "13847"
+        ),
+        "process.env.ORGII_DEEP_LINK_SCHEME": JSON.stringify(
+          process.env.ORGII_DEEP_LINK_SCHEME ?? "orgii"
+        ),
         "process.env.E2E_BASE_URL": JSON.stringify(
-          process.env.E2E_BASE_URL ?? "http://127.0.0.1:13847"
+          process.env.E2E_BASE_URL ??
+            `http://127.0.0.1:${process.env.ORGII_IDE_SERVER_PORT ?? "13847"}`
         ),
       }),
       // CopyWebpackPlugin: only needed for production.

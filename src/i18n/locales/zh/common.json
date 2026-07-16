@@ -1,4 +1,4 @@
-{
+﻿{
   "toasts": {
     "replyEmpty": "回复不能为空",
     "sessionNotFound": "未找到会话",
@@ -73,6 +73,11 @@
       "oauth_token": "OAuth Token",
       "other": "敏感信息"
     }
+  },
+  "secretScan": {
+    "title": "检测到可能的密钥",
+    "message": "此消息似乎包含敏感凭据：\n\n{{items}}\n\n发送后，密钥将保存在聊天记录中并发送给模型。仍要发送吗？",
+    "sendAnyway": "仍然发送"
   },
   "actions": {
     "save": "保存",
@@ -205,8 +210,8 @@
     "openWorkspace": "打开工作区",
     "skipThisVersion": "跳过此版本",
     "later": "稍后",
-    "updateAiBlame": "更新 AI Blame",
-    "link": "链接"
+    "link": "链接",
+    "copyName": "复制名称"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",
@@ -420,6 +425,27 @@
     "renowned": "知名",
     "dragToReorder": "拖拽调整消息顺序",
     "sessionBlame": "Session Blame",
+    "sessionBlameSubagent": "子代理：{{name}}",
+    "sessionBlameMainSession": "主 Session",
+    "sessionBlameAction": {
+      "read": "读取",
+      "write": "写入",
+      "create": "创建",
+      "delete": "删除",
+      "rename": "重命名",
+      "search": "搜索"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "归属未知",
+      "session_only": "仅归属到 Session",
+      "correlated": "关联推断",
+      "exact": "精确归属"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "正在索引历史 Session {{indexed}}/{{total}}",
+      "partial": "历史索引不完整（{{failed}} 个失败）",
+      "failed": "历史 Session 索引失败"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -437,7 +463,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "文件",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -1028,6 +1054,10 @@
     "scanningFiles": "正在扫描文件...",
     "branchTooltip": "分支：{{branch}}",
     "branchTooltipSwitching": "分支：{{branch}}（切换中…）",
+    "switchWorkspaceTooltip": "切换工作区",
+    "switchWorktreeTooltip": "切换 Worktree",
+    "switchBranchTooltip": "切换分支",
+    "gitActionsTooltip": "Git 操作",
     "switchToSessionRepo": "切换到 {{name}}",
     "embeddingProgress": "嵌入：已处理 {{count}} 个 chunk",
     "embeddingProgressWithPercent": "嵌入：已处理 {{count}} 个 chunk（{{percent}}%）",
@@ -1040,6 +1070,7 @@
       "workspaceSection": "Workspace",
       "externalSection": "外部",
       "tooltip": "端口：{{workspace}} 个 Workspace，{{external}} 个外部",
+      "viewPortsTooltip": "查看使用中的端口",
       "noWorkspacePorts": "未检测到 Workspace 端口",
       "externalLabel": "外部",
       "unknownProcess": "未知进程",
@@ -1162,9 +1193,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "需要 token",
       "createTokenButton": "创建 Token",
-      "openGitSettingsButton": "打开 Git 设置",
+      "openGitSettingsButton": "打开设置",
       "configureInSettings": "在设置中配置 Git",
-      "configureInSettingsDesc": "在 设置 → 集成 → Git 中添加 GitHub App 访问权限、保存 token 或扫描本地凭据，然后重试此 Git 操作。"
+      "configureInSettingsDesc": "在 设置 → 连接 中添加 GitHub App 访问权限、保存 token 或扫描本地凭据，然后重试此 Git 操作。"
     },
     "actions": {
       "publish": "Publish",
@@ -1373,7 +1404,9 @@
         "delete": "删除",
         "deleteTemplate": "删除 {branch}",
         "createSessionWith": "切换 Session 分支",
-        "createSessionWithTemplate": "切换 Session 分支到 {branch}"
+        "createSessionWithTemplate": "切换 Session 分支到 {branch}",
+        "switchWorktree": "切换 Worktree",
+        "switchWorktreeTemplate": "切换到 {worktree}"
       },
       "actions": {
         "createNew": "创建新分支",
@@ -1384,7 +1417,8 @@
         "refresh": "刷新分支",
         "checkoutDetachedSuccess": "已切换到 detached HEAD 状态（当前提交）",
         "checkoutDetachedFailed": "切换到 detached HEAD 失败",
-        "removeWorktree": "移除 Worktree"
+        "removeWorktree": "移除 Worktree",
+        "newWorktree": "新建 Worktree..."
       },
       "messages": {
         "deletedCount_one": "已删除 {{count}} 个分支",
@@ -1399,7 +1433,9 @@
         "basedOn": "基于",
         "worktrees": "Worktrees",
         "worktreeInUse": "使用中",
-        "checkedOutInWorktree": "已在 Worktree 中检出：{{path}}"
+        "checkedOutInWorktree": "已在 Worktree 中检出：{{path}}",
+        "mainWorktreeSection": "主 Worktree",
+        "linkedWorktrees": "链接 Worktree"
       },
       "placeholders": {
         "checkout": "分支",
@@ -1508,7 +1544,8 @@
         "workspace": "搜索或输入文件夹路径",
         "branch": "搜索分支...",
         "source": "搜索来源...",
-        "actions": "搜索操作..."
+        "actions": "搜索操作...",
+        "worktree": "搜索 Worktree..."
       },
       "groups": {
         "agentSession": "Agent 会话",
@@ -1703,7 +1740,7 @@
     "disableDockAutoHide": "始终显示工作站 Dock",
     "openMyStation": "前往我的工作站",
     "openAgentStation": "前往 Agent 工作站",
-    "openOpsControl": "前往 Ops Control",
+    "openKanban": "前往 Kanban",
     "changeLanguage": "更改语言",
     "switchToSystemTheme": "跟随系统主题",
     "detectUpdate": "检查更新",
@@ -1958,12 +1995,15 @@
     "removeWorktreeMessage": "这会从磁盘移除 Worktree checkout。branch 和 commits 会保留。",
     "removeWorktreeSuccess": "Worktree 已移除",
     "removeWorktreeFailed": "移除 Worktree 失败",
+    "emptyState": {
+      "viewSourceControl": "查看 Source Control",
+      "viewIssues": "查看 Issues",
+      "viewGitHistory": "查看 Git 历史",
+      "viewPullRequests": "查看 Pull Requests"
+    },
     "pill": {
       "focus": "聚焦",
       "allChanges": "全部更改"
-    },
-    "sessionFilter": {
-      "allSessions": "所有会话"
     },
     "scope": {
       "local": "本地",
@@ -2017,7 +2057,20 @@
     "manualCompactFailed": "压缩失败：{{message}}",
     "manualCompactChannelAttached": "此会话由频道托管，请在频道内使用 /compact",
     "manualCompactInstructionsPlaceholder": "可选：本次压缩的总结重点",
-    "manualCompactSectionTitle": "手动压缩？"
+    "manualCompactSectionTitle": "手动压缩",
+    "miniCpmCompactTitle": "MiniCPM 静默自动压缩",
+    "miniCpmCompactDescription": "自动异步处理旧上下文",
+    "miniCpmCompactToggleAria": "开启 MiniCPM 静默自动压缩",
+    "miniCpmCompactDisabled": "静默压缩未开启",
+    "miniCpmCompactEnabled": "静默压缩已开启",
+    "miniCpmCompactRunning": "MiniCPM 正在压缩",
+    "miniCpmCompactComplete": "本次压缩完成",
+    "miniCpmCompactBusy": "当前会话运行中",
+    "miniCpmCompactUnavailable": "MiniCPM 当前不可用",
+    "miniCpmCompactError": "MiniCPM 压缩失败",
+    "miniCpmCompactMetrics": "已维护 {{covered}} 条 · {{source}} → {{summary}} tokens",
+    "miniCpmCompactAction": "立即压缩",
+    "miniCpmCompactRunningAction": "压缩中"
   },
   "relativeDate": {
     "today": "今天",

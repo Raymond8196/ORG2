@@ -233,16 +233,29 @@ fn build_codex_with_resume() {
 }
 
 #[test]
-fn build_gemini_cli_basic() {
+fn build_antigravity_print_command() {
+    let additional_dirs = vec!["/tmp/secondary".to_string()];
     let cmd = build_command!(
-        ModelType::GeminiCli,
-        task = "refactor",
-        model = Some("gemini-2.5-pro"),
+        ModelType::Antigravity,
+        task = "inspect the repository",
+        model = Some("gemini-3.1-pro"),
+        resume_id = Some("conversation-123"),
+        additional_dirs = &additional_dirs,
     );
-    assert_eq!(command_name(&cmd[0]), "gemini");
-    assert!(cmd.contains(&"--yolo".to_string()));
-    assert!(cmd.contains(&"--model".to_string()));
-    assert!(cmd.contains(&"-p".to_string()));
+
+    assert_eq!(command_name(&cmd[0]), "agy");
+    assert!(cmd
+        .windows(2)
+        .any(|pair| pair == ["--conversation", "conversation-123"]));
+    assert!(cmd
+        .windows(2)
+        .any(|pair| pair == ["--model", "gemini-3.1-pro"]));
+    assert!(cmd
+        .windows(2)
+        .any(|pair| pair == ["--add-dir", "/tmp/secondary"]));
+    assert!(cmd
+        .windows(2)
+        .any(|pair| pair == ["--print", "inspect the repository"]));
 }
 
 #[test]
@@ -257,7 +270,7 @@ fn build_copilot_basic() {
     let cmd = build_command!(ModelType::Copilot, task = "task");
     assert_eq!(command_name(&cmd[0]), "copilot");
     assert!(cmd.contains(&"--acp".to_string()));
-    assert!(cmd.contains(&"--allow-all-tools".to_string()));
+    assert!(cmd.contains(&"--allow-all".to_string()));
     assert!(cmd.contains(&"--no-ask-user".to_string()));
     assert!(!cmd.contains(&"--stdio".to_string()));
 }

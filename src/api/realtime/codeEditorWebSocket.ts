@@ -10,6 +10,7 @@
  *
  * This replaces the unreliable Tauri event system for push notifications.
  */
+import { IDE_SERVER_WS_URL } from "@src/config/ideServer";
 import { createLogger } from "@src/hooks/logger";
 
 import {
@@ -34,7 +35,7 @@ export class CodeEditorWebSocketClient {
   private url: string;
   private isIntentionallyClosed = false;
 
-  constructor(url = "ws://localhost:13847/ws") {
+  constructor(url = IDE_SERVER_WS_URL) {
     this.url = url;
   }
 

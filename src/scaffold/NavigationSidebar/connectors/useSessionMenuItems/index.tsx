@@ -9,7 +9,6 @@ import { useFilteredItems } from "@src/hooks/search";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { benchmarkAgentBatchStatusAtom } from "@src/store/benchmark";
 import {
-  DEFAULT_SESSION_ORG_ID,
   type Session,
   type SessionListCategory,
   sessionLastLoadedAtom,
@@ -34,6 +33,7 @@ import {
   buildByTimeMenuItems,
   buildByWorkspaceMenuItems,
 } from "./menuSectionBuilders";
+import { sessionMatchesOrgFilter } from "./orgFilter";
 import {
   appendSessionGroup,
   getLoadMoreGroupId,
@@ -149,10 +149,13 @@ export function useSessionMenuItems({
   groupByMode,
   untitledSession,
   searchQuery = "",
-  selectedOrgId,
+  selectedOrgIds,
+  extraSessionIds,
+  excludedSessionIds,
   includeExternal,
   groupVisibleCounts,
   expandedSubagentParentIds = new Set(),
+  revealedSessionIds = new Set(),
 }: UseSessionMenuItemsParams): UseSessionMenuItemsResult {
   const { t: tCommon } = useTranslation();
   const pagination = useAtomValue(sessionPaginationAtom);
@@ -214,11 +217,14 @@ export function useSessionMenuItems({
   const visibleSessions = useMemo(
     () =>
       sortedSessions.filter((session) => {
-        const sessionOrgId = session.orgId ?? DEFAULT_SESSION_ORG_ID;
+        const explicitlyRevealed = revealedSessionIds.has(session.session_id);
         return (
           isPrimarySessionListSession(session) &&
-          (includeExternal || !isImportedHistorySession(session.session_id)) &&
-          (!selectedOrgId || sessionOrgId === selectedOrgId) &&
+          (explicitlyRevealed ||
+            ((includeExternal ||
+              !isImportedHistorySession(session.session_id)) &&
+              (sessionMatchesOrgFilter(session, selectedOrgIds) ||
+                (extraSessionIds?.has(session.session_id) ?? false)))) &&
           !benchmarkChildSessionIds.has(session.session_id) &&
           !benchmarkHistoryChildSessionIds.has(session.session_id) &&
           !benchmarkCoordinatorSessionIds.has(session.parentSessionId ?? "")
@@ -228,8 +234,10 @@ export function useSessionMenuItems({
       benchmarkChildSessionIds,
       benchmarkCoordinatorSessionIds,
       benchmarkHistoryChildSessionIds,
+      extraSessionIds,
       includeExternal,
-      selectedOrgId,
+      revealedSessionIds,
+      selectedOrgIds,
       sortedSessions,
     ]
   );
@@ -350,8 +358,22 @@ export function useSessionMenuItems({
     [childSessionsByParent]
   );
 
+  // Excluded ids leave the rendered list but stay in sessionMap so click
+  // routing (threaded cloud rows mapping to local sessions) keeps working.
+  // Subagent fetching above intentionally still covers the full visible set
+  // (visibleSessionIds), not just the listed subset.
+  const listedSessions = useMemo(
+    () =>
+      excludedSessionIds && excludedSessionIds.size > 0
+        ? visibleSessions.filter(
+            (session) => !excludedSessionIds.has(session.session_id)
+          )
+        : visibleSessions,
+    [excludedSessionIds, visibleSessions]
+  );
+
   const { filteredItems: searchedSessions, isFiltering } = useFilteredItems({
-    items: visibleSessions,
+    items: listedSessions,
     searchQuery,
     getSearchText: (session) => getSessionSearchText(session, untitledSession),
   });
@@ -425,16 +447,27 @@ export function useSessionMenuItems({
       const visibleCount = isFiltering
         ? groupSessions.length
         : (groupVisibleCounts.get(groupId) ?? DEFAULT_GROUP_VISIBLE_COUNT);
+      const revealedIndex = groupSessions.reduce(
+        (lastIndex, session, index) =>
+          revealedSessionIds.has(session.session_id) ? index : lastIndex,
+        -1
+      );
       return appendSessionGroup({
         items,
         groupId,
         groupSessions,
-        visibleCount,
+        visibleCount: Math.max(visibleCount, revealedIndex + 1),
         buildSessionRow,
         loadMoreLabel: tCommon("common:actions.loadMore"),
       });
     },
-    [buildSessionRow, groupVisibleCounts, isFiltering, tCommon]
+    [
+      buildSessionRow,
+      groupVisibleCounts,
+      isFiltering,
+      revealedSessionIds,
+      tCommon,
+    ]
   );
 
   const dateGroupLabels: Record<DateGroupKey, string> = useMemo(

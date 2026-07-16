@@ -78,14 +78,86 @@
       }
     }
   },
-  "opsControl": {
+  "kanban": {
     "sessions": "Sesje",
-    "replayBarAriaLabel": "Ops Control replay timeline",
+    "fileSearch": {
+      "placeholder": "Szukaj sesji według ścieżki pliku",
+      "noResults": "Żadna sesja nie zmieniła pasującego pliku"
+    },
+    "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Bieżący Kanban",
     "view": {
       "list": "Lista",
       "diary": "Dziennik",
-      "opsControl": "Ops Control"
+      "kanban": "Kanban",
+      "dataSource": "Źródła danych"
+    },
+    "dataSource": {
+      "title": "Źródła danych",
+      "description": "Zewnętrzne narzędzia do kodowania wykrywane przez ORGII. Aplikacje importowalne pokazują liczbę sesji i można je przeskanować ponownie; pozostałe pokazują status instalacji i lokalizację historii.",
+      "rescanAll": "Przeskanuj wszystko",
+      "rescan": "Przeskanuj",
+      "rescanning": "Skanowanie…",
+      "enable": "Włącz",
+      "disable": "Wyłącz",
+      "lastScan": "Ostatni skan {{time}}",
+      "neverScanned": "Nigdy nie skanowano",
+      "frequencyTitle": "Częstotliwość skanowania",
+      "globalFrequency": "Automatyczne skanowanie źródeł zewnętrznych",
+      "globalFrequencyDesc": "Domyślna częstotliwość skanowania źródeł zewnętrznych ustawionych na „Domyślnie”",
+      "activeSessionRefresh": "Odświeżanie otwartej sesji zewnętrznej",
+      "activeSessionRefreshDesc": "Częstotliwość odświeżania sesji zewnętrznej aktualnie otwartej w panelu czatu",
+      "activeSessionFreq": {
+        "3s": "Co 3 sekundy",
+        "5s": "Co 5 sekund",
+        "10s": "Co 10 sekund",
+        "1m": "Co minutę"
+      },
+      "col": {
+        "source": "Źródło",
+        "sessions": "Sesje",
+        "lastScan": "Ostatni skan",
+        "frequency": "Autoskan",
+        "status": "Status"
+      },
+      "freq": {
+        "default": "Domyślnie",
+        "manual": "Ręcznie",
+        "60s": "Co 60 s",
+        "5m": "Co 5 min",
+        "1h": "Co godzinę",
+        "1d": "Codziennie"
+      },
+      "openFolder": "Otwórz folder",
+      "tabs": {
+        "all": "Wszystkie",
+        "apps": "Aplikacje",
+        "clis": "CLI"
+      },
+      "views": {
+        "scanning": "Skanowanie",
+        "hooks": "Hooks"
+      },
+      "sessions_one": "{{count}} sesja",
+      "sessions_few": "{{count}} sesje",
+      "sessions_many": "{{count}} sesji",
+      "sessions_other": "{{count}} sesji",
+      "details": {
+        "path": "Ścieżka",
+        "storeType": "Typ magazynu",
+        "copyPath": "Kopiuj ścieżkę"
+      },
+      "noPath": "Nie wykryto ścieżki",
+      "notImported": "Nie zaimportowano",
+      "status": {
+        "ready": "Gotowe",
+        "empty": "Brak historii",
+        "loading": "Sprawdzanie…",
+        "error": "Błąd",
+        "installed": "Zainstalowano",
+        "notInstalled": "Nie wykryto",
+        "disabled": "Wyłączone"
+      }
     },
     "list": {
       "updated": "Zaktualizowano",
@@ -187,11 +259,6 @@
       "discarding": "Odrzucanie…",
       "confirmMessage": "Odrzucić wszystkie zmiany w tym Worktree? Tej operacji nie można cofnąć."
     },
-    "diff": {
-      "openDiffWindow": "Wyświetl różnice",
-      "windowTitle": "Różnice sesji",
-      "filesChanged": "Pliki"
-    },
     "replay": {
       "replaySession": "Powtórz"
     },
@@ -224,14 +291,12 @@
       "commits_one": "{{count}} commit",
       "commits_other": "{{count}} commitów",
       "committedRateShort": "{{percent}}% scommitowane"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     }
-  },
-  "worktreeCompare": {
-    "title": "Porównaj Worktree",
-    "button": "Porównaj",
-    "buttonTooltip": "Porównaj różnice Worktree obok siebie",
-    "noSessions": "Brak sesji do porównania.",
-    "sessionTab": "Sesja {{n}}"
   },
   "changes": {
     "scope": {
@@ -723,13 +788,17 @@
       "addApiKey": {
         "title": "Dodaj API key"
       },
+      "installLatestUpdate": {
+        "title": "Zainstaluj najnowszą aktualizację"
+      },
       "agents": {
         "title": "Agents"
       },
       "tabs": {
         "work": "Praca",
-        "explore": "Eksploruj",
-        "heatmap": "Trendy"
+        "manage": "Zarządzaj",
+        "heatmap": "Trendy",
+        "runtime": "Czas wykonania"
       },
       "heatmap": {
         "loading": "Ładowanie trendów aktywności…",
@@ -784,6 +853,7 @@
     "defaultTitle": "Czat",
     "hideChatPanel": "Ukryj panel czatu",
     "showTokenUsage": "Pokaż Token",
+    "showStatusBar": "Pokaż pasek stanu",
     "compactDisplayMode": "Tryb kompaktowy",
     "replay": {
       "follow": "Śledź"
@@ -955,21 +1025,36 @@
         "importFailed": "Nie udało się zaimportować Session JSON."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "Zmieniono {{count}} plik w tej rundzie",
-      "filesChangedCount_few": "Zmieniono {{count}} pliki w tej rundzie",
-      "filesChangedCount_many": "Zmieniono {{count}} plików w tej rundzie",
-      "filesChangedCount_other": "Zmieniono {{count}} pliku w tej rundzie",
-      "historicalRoundDiffFiles_one": "Diff poprzedniej rundy · {{count}} plik",
-      "historicalRoundDiffFiles_few": "Diff poprzedniej rundy · {{count}} pliki",
-      "historicalRoundDiffFiles_many": "Diff poprzedniej rundy · {{count}} plików",
-      "historicalRoundDiffFiles_other": "Diff poprzedniej rundy · {{count}} pliku",
+    "turnMetadata": {
+      "noChanges": "Brak zmian plików w tej rundzie",
+      "earlierRound": "Wcześniejsza runda",
+      "files_one": "{{count}} plik",
+      "files_few": "{{count}} pliki",
+      "files_many": "{{count}} plików",
+      "files_other": "{{count}} plików",
+      "reads_one": "{{count}} odczyt",
+      "reads_few": "{{count}} odczyty",
+      "reads_many": "{{count}} odczytów",
+      "reads_other": "{{count}} odczytów",
+      "searches_one": "{{count}} wyszukiwanie",
+      "searches_few": "{{count}} wyszukiwania",
+      "searches_many": "{{count}} wyszukiwań",
+      "searches_other": "{{count}} wyszukiwań",
+      "failed": "Niepowodzenie",
+      "commits_one": "{{count}} commit",
+      "commits_few": "{{count}} commity",
+      "commits_many": "{{count}} commitów",
+      "commits_other": "{{count}} commitów",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_few": "{{count}} PR-y",
+      "pullRequests_many": "{{count}} PR-ów",
+      "pullRequests_other": "{{count}} PR-ów",
       "review": "Przejrzyj",
       "showLess": "Pokaż mniej",
-      "showMore_one": "Pokaż {{count}} więcej",
-      "showMore_few": "Pokaż {{count}} więcej",
-      "showMore_many": "Pokaż {{count}} więcej",
-      "showMore_other": "Pokaż {{count}} więcej"
+      "showMore_one": "Pokaż jeszcze {{count}}",
+      "showMore_few": "Pokaż jeszcze {{count}}",
+      "showMore_many": "Pokaż jeszcze {{count}}",
+      "showMore_other": "Pokaż jeszcze {{count}}"
     },
     "manageIssues": {
       "title": "Zarządzaj issues",
@@ -1000,9 +1085,9 @@
         "sourcePrs": "PRs",
         "stateOpen": "Open",
         "stateClosed": "Closed",
-        "stateAll": "All states",
-        "assignedToMe": "Assigned to me",
-        "createdByMe": "Created by me",
+        "stateAll": "Wszystkie stany",
+        "assignedToMe": "Przypisane do mnie",
+        "createdByMe": "Utworzone przeze mnie",
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }
@@ -1104,7 +1189,7 @@
     "pathCopied": "Ścieżka skopiowana!",
     "failedToCopyPath": "Nie udało się skopiować ścieżki",
     "copyFilePath": "Kopiuj ścieżkę pliku",
-    "explore": "Eksploruj",
+    "manage": "Zarządzaj",
     "readFile": "Odczytaj plik",
     "readFileRunning": "Odczytywanie",
     "readFileDone": "Czytaj",
@@ -1198,6 +1283,7 @@
     "askUserSkipped": "Pominięto",
     "askUserQuestionsAnswered": "Pytania zostały udzielone odpowiedzi",
     "askUserQuestionsSkipped": "Pytania pominięte",
+    "explore": "Eksploruj",
     "exploreSummary": {
       "read_one": "{{count}} plik",
       "read_few": "{{count}} pliki",

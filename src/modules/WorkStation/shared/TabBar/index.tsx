@@ -158,10 +158,7 @@ const SortableTabList: React.FC<SortableTabListProps> = memo(
                   onCloseClick={onCloseClick}
                   onContextMenu={onContextMenu}
                   gitInfo={tabGitInfoMap.get(tab.id)}
-                  hideLabel={
-                    tab.pinned ||
-                    (hideInactiveTabLabels && tab.id !== activeTabId)
-                  }
+                  hideLabel={hideInactiveTabLabels && tab.id !== activeTabId}
                 />
               </NoDragRegion>
               {next && (

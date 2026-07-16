@@ -64,6 +64,16 @@ pub fn sessions_db() -> PathBuf {
     orgii_root().join("sessions.db")
 }
 
+/// Privacy-filtered session-provenance hook inbox:
+/// `~/.orgii/session-provenance/inbox/`.
+///
+/// External agent hooks write small, versioned envelopes here instead of
+/// opening `sessions.db` directly. The desktop process drains the inbox and
+/// owns all canonical SQLite writes.
+pub fn session_provenance_inbox_dir() -> PathBuf {
+    orgii_root().join("session-provenance").join("inbox")
+}
+
 /// Project & work-item SQLite database: `~/.orgii/projects/projects.db`.
 ///
 /// Kept separate from `sessions_db` so cross-device sync and manual
@@ -861,26 +871,6 @@ pub fn codex_cli_profile_root() -> PathBuf {
 /// Account-scoped Codex CLI profile dir.
 pub fn codex_cli_profile_dir(account_id: &str) -> PathBuf {
     codex_cli_profile_root().join(sanitize_path_segment(account_id))
-}
-
-/// Per-session Gemini CLI home root: `~/.orgii/gemini-cli-home/`.
-pub fn gemini_cli_home_root() -> PathBuf {
-    orgii_root().join("gemini-cli-home")
-}
-
-/// Per-session Gemini CLI home dir for one session.
-pub fn gemini_cli_home(session_id: &str) -> PathBuf {
-    gemini_cli_home_root().join(session_id)
-}
-
-/// Account-scoped Gemini CLI profile root: `~/.orgii/gemini-cli-profiles/`.
-pub fn gemini_cli_profile_root() -> PathBuf {
-    orgii_root().join("gemini-cli-profiles")
-}
-
-/// Account-scoped Gemini CLI home dir.
-pub fn gemini_cli_profile_dir(account_id: &str) -> PathBuf {
-    gemini_cli_profile_root().join(sanitize_path_segment(account_id))
 }
 
 /// Account-scoped Kiro CLI profile root: `~/.orgii/kiro-cli-profiles/`.
