@@ -1757,8 +1757,16 @@
         "on": "开启",
         "off": "关闭",
         "repair": "修复",
+        "needsApproval": "需要授权",
         "checking": "检查中…",
         "error": "错误"
+      },
+      "codexApproval": {
+        "title": "在 Codex 中授权 ORG2 hooks",
+        "description": "ORG2 hooks 已安装，但 Codex 需要你的明确授权才能运行它们。",
+        "instructions": "打开 Codex，检查 3 条 ORG2 hooks，然后选择 Trust all and continue。收到第一条真实 hook 信号后，ORG2 会自动标记为已启用。",
+        "review": "在 Codex 中检查",
+        "verified": "已通过真实 Codex hook 信号验证（{{time}}）。"
       },
       "signals": {
         "title": "最近信号",
@@ -1767,6 +1775,8 @@
         "search": "搜索信号",
         "refresh": "刷新",
         "openSession": "打开会话 {{session}}",
+        "diffLoading": "正在加载补丁…",
+        "diffEmpty": "尚未采集到补丁。Provenance 会记录文件变更 metadata；只有在该会话的编辑被导入后才会显示 diff。",
         "col": {
           "source": "工具",
           "action": "动作",

@@ -1704,8 +1704,16 @@
         "on": "Ativado",
         "off": "Desativado",
         "repair": "Reparar",
+        "needsApproval": "Requer aprovação",
         "checking": "Verificando…",
         "error": "Erro"
+      },
+      "codexApproval": {
+        "title": "Approve ORG2 hooks in Codex",
+        "description": "Codex has the ORG2 hooks installed, but Codex still needs your approval before it can run them.",
+        "instructions": "Open Codex, review the 3 ORG2 hooks, then choose Trust all and continue. ORG2 marks this active after the first real hook signal.",
+        "review": "Review in Codex",
+        "verified": "Verified by a real Codex hook signal {{time}}."
       },
       "signals": {
         "title": "Sinais recentes",
@@ -1714,6 +1722,8 @@
         "search": "Pesquisar sinais",
         "refresh": "Atualizar",
         "openSession": "Abrir sessão {{session}}",
+        "diffLoading": "Loading patch…",
+        "diffEmpty": "No patch captured. Provenance records file changes as metadata; a diff appears only once this session's edits are imported.",
         "col": {
           "source": "Ferramenta",
           "action": "Ação",
