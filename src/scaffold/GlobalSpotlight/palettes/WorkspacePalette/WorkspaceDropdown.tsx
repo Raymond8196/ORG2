@@ -207,7 +207,7 @@ export interface WorkspaceDropdownProps {
   /**
    * Row eligibility predicate (e.g. active cloud org repo scope). Applied
    * to every source — leading, workspace, and external-recent rows.
-   * Multi-repo workspaces are judged by their PRIMARY folder.
+   * Multi-repo workspaces stay visible when ANY member folder is eligible.
    */
   repoFilter?: (repo: {
     repo_url?: string | null;
@@ -281,15 +281,13 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
   // workspace name and member folder names so users can find a workspace by
   // any of its repos.
   const filteredWorkspaces = useMemo(() => {
-    // Same primary-folder rule as the palette: the primary folder is the
-    // path a session launched from this workspace reports as its repoPath.
+    // Same any-member rule as the palette: a workspace stays visible when
+    // ANY member folder is eligible for the active scope.
     const eligible = repoFilter
       ? workspaces.filter((entry) =>
-          repoFilter({
-            fs_uri:
-              entry.workspace.folders.find((folder) => folder.isPrimary)
-                ?.folderPath ?? entry.workspace.folders[0]?.folderPath,
-          })
+          entry.workspace.folders.some((folder) =>
+            repoFilter({ fs_uri: folder.folderPath })
+          )
         )
       : workspaces;
     const query = searchQuery.trim().toLowerCase();

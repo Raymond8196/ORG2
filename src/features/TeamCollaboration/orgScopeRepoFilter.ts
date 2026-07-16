@@ -2,18 +2,25 @@
  * Repo eligibility against a cloud org's repo scope (design §8.3).
  *
  * Powers the new-session workspace picker while a cloud org is the active
- * sidebar scope: only repos whose git-remote scope key falls inside the
- * org's repo scope are offered, so an out-of-scope workspace can never be
- * selected (sessions created there would land invisible in the org view).
+ * sidebar scope, and the sidebar's imported-session grouping.
  *
- * Key resolution mirrors RepoScopePicker: `repo_url` resolves synchronously
- * via normalizeRepoScopeKey; local-only checkouts resolve through the shared
- * scope-key cache (`undefined` = still resolving → treated as not eligible;
- * callers re-render via subscribeShareableScopeKeys once resolution lands).
+ * Matching is by ANY of the checkout's git-remote scope keys — a fork
+ * checkout whose upstream hits the org scope is in scope (same
+ * `pickMatchingOrgScope` semantics as autoTag / MoveToOrgDialog / the sync
+ * engine). `repo_url` resolves synchronously; local-only checkouts resolve
+ * through the shared scope-key cache.
+ *
+ * Two eligibility modes:
+ * - `repoMatchesOrgScopes` — STRICT: only a resolved match counts. Used
+ *   for session grouping, where hiding/adopting needs evidence.
+ * - `repoEligibleForOrgScopedPicker` — OPTIMISTIC: a still-resolving
+ *   checkout stays visible (and is primed) until the cache lands, then
+ *   converges. Hiding an in-scope repo behind a cold cache would make it
+ *   look permanently unselectable.
  */
 import { normalizeRepoScopeKey, pickMatchingOrgScope } from "./collabSyncUtils";
 import {
-  peekShareableScopeKey,
+  peekShareableScopeKeys,
   primeShareableScopeKey,
 } from "./repoScopeResolver";
 
@@ -22,27 +29,49 @@ export interface OrgScopeFilterRepo {
   fs_uri?: string | null;
 }
 
-export function getRepoScopeKeyForOrgFilter(
+type ScopeKeysPeek = (input: string) => string[] | null | undefined;
+type ScopePrime = (input: string) => void;
+
+export function getRepoScopeKeysForOrgFilter(
   repo: OrgScopeFilterRepo,
-  peek: (input: string) => string | null | undefined = peekShareableScopeKey
-): string | null | undefined {
-  if (repo.repo_url) return normalizeRepoScopeKey(repo.repo_url) || null;
+  peekKeys: ScopeKeysPeek = peekShareableScopeKeys
+): string[] | null | undefined {
+  if (repo.repo_url) {
+    const key = normalizeRepoScopeKey(repo.repo_url);
+    return key ? [key] : null;
+  }
   if (!repo.fs_uri) return null;
-  return peek(repo.fs_uri);
+  return peekKeys(repo.fs_uri);
 }
 
 export function repoMatchesOrgScopes(
   repo: OrgScopeFilterRepo,
   orgScopes: string[] | undefined,
-  peek: (input: string) => string | null | undefined = peekShareableScopeKey,
-  prime: (input: string) => void = primeShareableScopeKey
+  peekKeys: ScopeKeysPeek = peekShareableScopeKeys,
+  prime: ScopePrime = primeShareableScopeKey
 ): boolean {
   if (!orgScopes || orgScopes.length === 0) return false;
-  const key = getRepoScopeKeyForOrgFilter(repo, peek);
-  if (key === undefined) {
+  const keys = getRepoScopeKeysForOrgFilter(repo, peekKeys);
+  if (keys === undefined) {
     if (repo.fs_uri) prime(repo.fs_uri);
     return false;
   }
-  if (key === null) return false;
-  return pickMatchingOrgScope([key], orgScopes) !== null;
+  if (!keys || keys.length === 0) return false;
+  return pickMatchingOrgScope(keys, orgScopes) !== null;
+}
+
+export function repoEligibleForOrgScopedPicker(
+  repo: OrgScopeFilterRepo,
+  orgScopes: string[] | undefined,
+  peekKeys: ScopeKeysPeek = peekShareableScopeKeys,
+  prime: ScopePrime = primeShareableScopeKey
+): boolean {
+  if (!orgScopes || orgScopes.length === 0) return false;
+  const keys = getRepoScopeKeysForOrgFilter(repo, peekKeys);
+  if (keys === undefined) {
+    if (repo.fs_uri) prime(repo.fs_uri);
+    return true;
+  }
+  if (!keys || keys.length === 0) return false;
+  return pickMatchingOrgScope(keys, orgScopes) !== null;
 }

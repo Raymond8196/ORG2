@@ -55,9 +55,8 @@ export interface UseWorkspacePaletteWorkspaceOptions {
   /** multiRepoWorkspaceForm from useAddWorkspaceFlow — only `setEditingWorkspace` is needed */
   setEditingWorkspace: (ws: WorkspaceRecord) => void;
   /**
-   * Row eligibility predicate (e.g. active cloud org repo scope), applied
-   * to the workspace's PRIMARY folder — the path a session launched from
-   * this workspace reports as its repoPath.
+   * Row eligibility predicate (e.g. active cloud org repo scope). A
+   * workspace stays visible when ANY member folder is eligible.
    */
   repoFilter?: (repo: { fs_uri?: string | null }) => boolean;
 }
@@ -332,11 +331,7 @@ export function useWorkspacePaletteWorkspace({
   const workspaceItems = useMemo((): SpotlightItem[] => {
     const eligibleWorkspaces = repoFilter
       ? filteredWorkspaces.filter((ws) =>
-          repoFilter({
-            fs_uri:
-              ws.folders.find((folder) => folder.isPrimary)?.folderPath ??
-              ws.folders[0]?.folderPath,
-          })
+          ws.folders.some((folder) => repoFilter({ fs_uri: folder.folderPath }))
         )
       : filteredWorkspaces;
     const orderedWorkspaces = [...eligibleWorkspaces].sort(
