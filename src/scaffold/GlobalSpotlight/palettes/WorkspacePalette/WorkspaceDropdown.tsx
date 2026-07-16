@@ -204,6 +204,11 @@ export interface WorkspaceDropdownProps {
   anchorRef: React.RefObject<HTMLElement | null>;
   /** Optional first-class system path source rows. */
   leadingRepos?: readonly RepoItem[];
+  /**
+   * Row eligibility predicate (e.g. active cloud org repo scope). Applied
+   * to every source — leading, workspace, and external-recent rows.
+   */
+  repoFilter?: (repo: RepoItem) => boolean;
 }
 
 export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
@@ -213,6 +218,7 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
   currentRepoId,
   anchorRef,
   leadingRepos = [],
+  repoFilter,
 }) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -310,12 +316,13 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
   );
 
   const sections = useMemo<WorkspaceDropdownSection[]>(() => {
-    const allRepos = [...leadingRepos, ...filteredRepos];
+    const eligible = repoFilter ?? (() => true);
+    const allRepos = [...leadingRepos, ...filteredRepos].filter(eligible);
     const currentItems: DropdownRepoRowItem[] = [];
     const systemItems: DropdownRepoRowItem[] = [];
-    const externalRecentItems: DropdownRepoRowItem[] = externalRecentRepos.map(
-      (repo) => ({ kind: "repo", repo })
-    );
+    const externalRecentItems: DropdownRepoRowItem[] = externalRecentRepos
+      .filter(eligible)
+      .map((repo) => ({ kind: "repo", repo }));
     const folderWorkspaceItems: DropdownRepoRowItem[] = [];
     const repoItems: DropdownRepoRowItem[] = [];
 
@@ -463,6 +470,7 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
     currentRepoId,
     externalRecentRepos,
     leadingRepos,
+    repoFilter,
     openPathItem,
     searchQuery,
     t,
