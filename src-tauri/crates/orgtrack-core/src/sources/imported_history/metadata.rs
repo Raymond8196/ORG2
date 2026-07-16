@@ -18,6 +18,7 @@ pub const SOURCE_TRAE: &str = "trae";
 pub const SOURCE_CLINE: &str = "cline";
 pub const SOURCE_WARP: &str = "warp";
 pub const SOURCE_ZCODE: &str = "zcode";
+pub const SOURCE_QODER: &str = "qoder";
 // Hook-only sources: ORGII installs a managed PostToolUse command hook for
 // these CLIs and records their file-interaction provenance, but does not yet
 // import their session transcripts. Kept out of `is_imported_history_source`
@@ -40,6 +41,7 @@ pub fn is_imported_history_source(source: &str) -> bool {
             | SOURCE_CLINE
             | SOURCE_WARP
             | SOURCE_ZCODE
+            | SOURCE_QODER
     )
 }
 
