@@ -123,8 +123,8 @@ vi.mock("@tauri-apps/api/app", () => ({
   getVersion: mocks.getVersion,
 }));
 
-vi.mock("@tauri-apps/plugin-updater", () => ({
-  check: mocks.check,
+vi.mock("./channelCheck", () => ({
+  checkAppUpdateOnChannel: mocks.check,
 }));
 
 vi.mock("@tauri-apps/plugin-process", () => ({
@@ -210,7 +210,7 @@ describe("AppUpdater", () => {
 
     await expect(checkForUpdatesManually()).resolves.toBe(update);
 
-    expect(mocks.check).toHaveBeenCalledWith({ timeout: 30_000 });
+    expect(mocks.check).toHaveBeenCalledWith(30_000);
     expect(mocks.messageInfo).toHaveBeenCalledWith(
       expect.objectContaining({
         content: "Version 1.1.22 is ready to install.",
