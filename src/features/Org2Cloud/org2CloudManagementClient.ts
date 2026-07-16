@@ -19,6 +19,8 @@ import { z } from "zod/v4";
 
 import { ORG2_CLOUD_POSTGREST_SCHEMA, getCloudEndpoint } from "./config";
 import {
+  CLOUD_ASSIGNABLE_ROLES,
+  type CloudAssignableRole,
   type CloudInviteRecord,
   type Org2ManagementErrorCode,
   buildCloudInviteLink,
@@ -110,12 +112,12 @@ const CreateInviteResponseSchema = z.object({
 
 const AcceptInviteResponseSchema = z.object({
   orgId: z.string(),
-  role: z.string(),
+  role: z.enum(CLOUD_ASSIGNABLE_ROLES),
 });
 
 const CloudInviteWireSchema = z.object({
   inviteId: z.string(),
-  role: z.string(),
+  role: z.enum(CLOUD_ASSIGNABLE_ROLES),
   maxUses: z.number(),
   usedCount: z.number(),
   expiresAt: z.string().nullish(),
@@ -199,8 +201,7 @@ export async function leaveCloudOrg(
 
 export interface CreateCloudInviteInput {
   orgId: string;
-  /** admin | member | viewer (server rejects anything else). */
-  role: string;
+  role: CloudAssignableRole;
   maxUses: number;
   /** ISO timestamp; omitted = the invite never expires. */
   expiresAt?: string;
@@ -239,7 +240,7 @@ export async function createCloudInvite(
 export async function acceptCloudInvite(
   accessToken: string,
   inviteCode: string
-): Promise<{ orgId: string; role: string }> {
+): Promise<{ orgId: string; role: CloudAssignableRole }> {
   const payload = await callManagementRpc("accept_invite", accessToken, {
     invite_code_hash: await sha256Hex(inviteCode),
   });
@@ -284,12 +285,12 @@ export async function revokeCloudInvite(
 // Members
 // ---------------------------------------------------------------------------
 
-/** `cloud_update_member_role` — p_role ∈ admin|member|viewer (never owner). */
+/** `cloud_update_member_role` — only admin/member are assignable (never owner). */
 export async function updateCloudMemberRole(
   accessToken: string,
   orgId: string,
   userId: string,
-  role: string
+  role: CloudAssignableRole
 ): Promise<void> {
   await callManagementRpc("cloud_update_member_role", accessToken, {
     p_org_id: orgId,

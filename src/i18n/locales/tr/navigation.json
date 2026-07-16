@@ -517,7 +517,6 @@
         "expiryOptionNever": "Süresiz",
         "roleAdmin": "Yönetici",
         "roleMember": "Üye",
-        "roleViewer": "İzleyici",
         "createdAt": "Oluşturulma: {{date}}",
         "remainingUses": "Kalan kullanım: {{uses}}",
         "expires": "{{date}} tarihinde sona erer",
