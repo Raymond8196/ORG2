@@ -1004,8 +1004,8 @@
     "typingAnimationDesc": "Enable typewriter animation for Agent messages",
     "typingSpeed": "Typing Speed",
     "typingSpeedDesc": "Milliseconds per character (1ms = fastest, 50ms = slowest)",
-    "decryptEffect": "Decrypt Effect",
-    "decryptEffectDesc": "Enable decrypt animation for Agent messages",
+    "decryptEffect": "Typewriter Effect",
+    "decryptEffectDesc": "Reveal Agent messages character by character",
     "sendOnEnter": "Send messages with Enter",
     "sendOnEnterDesc": "When enabled, Enter sends and Shift+Enter inserts a new line. When disabled, Ctrl/Cmd+Enter sends"
   },
