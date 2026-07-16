@@ -21,7 +21,7 @@
  * `useCloudSessionActions` replay/fork hook). No chat/work items yet.
  */
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Cloud } from "lucide-react";
+import { Cloud, Laptop } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -87,10 +87,18 @@ import {
   ScrollFadeContainer,
 } from "@src/modules/shared/layouts/blocks";
 import { Placeholder } from "@src/modules/shared/layouts/blocks/Placeholder";
-import { openCloudOrgManagementInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
+  openCloudOrgManagementInChatPanelTabAtom,
+  openWorkspaceOverviewInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { CollabSessionAccessMode } from "@src/store/collaboration/types";
-import type { ChatPanelSelectedCloudOrg } from "@src/store/ui/chatPanelAtom";
+import { reposAtom } from "@src/store/repo";
+import {
+  type ChatPanelSelectedCloudOrg,
+  WORKSPACE_OVERVIEW_TAB,
+} from "@src/store/ui/chatPanelAtom";
+import { savedWorkspacesAtom } from "@src/store/ui/workspaceFoldersAtom";
 import { isTauriReady } from "@src/util/platform/tauri/init";
 
 import {
@@ -98,6 +106,12 @@ import {
   CloudMembersSection,
   CloudOrgSettingsSection,
 } from "./ManagementSections";
+import {
+  buildCloudOrgSelectorValue,
+  buildLocalRepoSelectorValue,
+  buildLocalWorkspaceSelectorValue,
+  parseManagementTarget,
+} from "./managementTargetSelector";
 import { useCloudOrgManagement } from "./useCloudOrgManagement";
 
 const log = createLogger("CloudOrgPanelView");
@@ -126,8 +140,13 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
   const openCloudBillingPage = useOpenCloudBilling();
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
+  const localRepos = useAtomValue(reposAtom);
+  const localWorkspaces = useAtomValue(savedWorkspacesAtom);
   const openCloudOrgManagementTab = useSetAtom(
     openCloudOrgManagementInChatPanelTabAtom
+  );
+  const openWorkspaceOverviewTab = useSetAtom(
+    openWorkspaceOverviewInChatPanelTabAtom
   );
   const [activeTab, setActiveTab] = useState<CloudOrgManagementTab>(
     CLOUD_ORG_MANAGEMENT_TAB.GENERAL
@@ -482,15 +501,28 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
       : null;
 
   const orgName = org?.name ?? "";
-  const orgOptions = useMemo(
-    () =>
-      cloudOrgs.map((cloudOrg) => ({
-        value: cloudOrg.orgId,
+  const managementTargetOptions = useMemo(
+    () => [
+      ...cloudOrgs.map((cloudOrg) => ({
+        value: buildCloudOrgSelectorValue(cloudOrg.orgId),
         label: cloudOrg.name,
         icon: <Cloud size={13} strokeWidth={2} />,
         dataTestId: `cloud-org-switch-option-${cloudOrg.orgId}`,
       })),
-    [cloudOrgs]
+      ...localWorkspaces.map((workspace) => ({
+        value: buildLocalWorkspaceSelectorValue(workspace.workspaceId),
+        label: workspace.name,
+        icon: <Laptop size={13} strokeWidth={2} />,
+        dataTestId: `local-workspace-switch-option-${workspace.workspaceId}`,
+      })),
+      ...localRepos.map((repo) => ({
+        value: buildLocalRepoSelectorValue(repo.id),
+        label: repo.name || repo.path?.split("/").pop() || t("workspace"),
+        icon: <Laptop size={13} strokeWidth={2} />,
+        dataTestId: `local-repo-switch-option-${repo.id}`,
+      })),
+    ],
+    [cloudOrgs, localRepos, localWorkspaces, t]
   );
   const managementTabs = useMemo<TabPillItem[]>(
     () => [
@@ -515,14 +547,63 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
   const handleOrgChange = useCallback(
     (value: string | number | (string | number)[]) => {
       if (Array.isArray(value)) return;
-      const nextOrgId = String(value);
-      if (nextOrgId === orgId) return;
-      openCloudOrgManagementTab({
-        cloudOrg: { orgId: nextOrgId },
-        title: t("collaboration.manageOrg"),
+      const selectorValue = String(value);
+      const target = parseManagementTarget(selectorValue);
+      if (!target) return;
+
+      if (target.kind === "cloud-org") {
+        if (target.id === orgId) return;
+        openCloudOrgManagementTab({
+          cloudOrg: { orgId: target.id },
+          title: t("collaboration.manageOrg"),
+        });
+        return;
+      }
+
+      if (target.kind === "local-repo") {
+        const repo = localRepos.find((candidate) => candidate.id === target.id);
+        if (!repo) return;
+        openWorkspaceOverviewTab({
+          workspace: {
+            kind: "repo",
+            id: repo.id,
+            name: repo.name || repo.path?.split("/").pop() || t("workspace"),
+            path: repo.path,
+          },
+          tab: WORKSPACE_OVERVIEW_TAB.DETAILS,
+        });
+        return;
+      }
+
+      const workspace = localWorkspaces.find(
+        (candidate) => candidate.workspaceId === target.id
+      );
+      if (!workspace) return;
+      const primaryFolder =
+        workspace.folders.find((folder) => folder.isPrimary) ??
+        workspace.folders[0];
+      openWorkspaceOverviewTab({
+        workspace: {
+          kind: "workspace",
+          id: workspace.workspaceId,
+          name: workspace.name,
+          path: primaryFolder?.folderPath,
+          folderCount: workspace.folders.length,
+          repoIds: workspace.folders.flatMap((folder) =>
+            folder.repoId ? [folder.repoId] : []
+          ),
+        },
+        tab: WORKSPACE_OVERVIEW_TAB.OVERVIEW,
       });
     },
-    [openCloudOrgManagementTab, orgId, t]
+    [
+      localRepos,
+      localWorkspaces,
+      openCloudOrgManagementTab,
+      openWorkspaceOverviewTab,
+      orgId,
+      t,
+    ]
   );
   // Signed out (e.g. sign-out while the panel is open) renders as an error
   // state without any effect-driven state write.
@@ -541,9 +622,10 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
         tabs={
           <div className="flex w-full min-w-0 flex-col items-start gap-2">
             <Select
-              value={orgId}
-              options={orgOptions}
+              value={buildCloudOrgSelectorValue(orgId)}
+              options={managementTargetOptions}
               onChange={handleOrgChange}
+              showSearch={managementTargetOptions.length > 8}
               variant="ghost"
               size="large"
               radius="pill"

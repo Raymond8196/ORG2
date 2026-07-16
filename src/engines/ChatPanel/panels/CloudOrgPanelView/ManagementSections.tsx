@@ -737,6 +737,7 @@ export function CloudOrgSettingsSection({
               description={t("cloud.orgManagement.settings.deleteHint", {
                 org: orgName,
               })}
+              layout="vertical"
               align="start"
             >
               <div className={`${SECTION_ACTION_GAP_CLASSES} flex-wrap`}>
