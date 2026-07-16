@@ -203,6 +203,11 @@ fn opencode_plugin_path() -> PathBuf {
 #[serde(rename_all = "camelCase", default)]
 struct HookPreferences {
     schema_version: u32,
+    /// Master switch over every managed hook. When off, all platform hooks
+    /// are uninstalled regardless of the per-platform flags below; those
+    /// flags are preserved so switching back on restores the previous
+    /// per-platform selection.
+    master_enabled: bool,
     claude_code: bool,
     codex: bool,
     cursor: bool,
@@ -223,6 +228,7 @@ impl Default for HookPreferences {
     fn default() -> Self {
         Self {
             schema_version: PREFERENCES_SCHEMA_VERSION,
+            master_enabled: true,
             claude_code: true,
             codex: true,
             cursor: true,
@@ -239,6 +245,12 @@ impl Default for HookPreferences {
 }
 
 impl HookPreferences {
+    /// Whether the hook should actually be installed for `platform`: the
+    /// per-platform flag gated by the master switch.
+    fn effective_enabled(&self, platform: SessionProvenanceHookPlatform) -> bool {
+        self.master_enabled && self.enabled(platform)
+    }
+
     fn enabled(&self, platform: SessionProvenanceHookPlatform) -> bool {
         match platform {
             SessionProvenanceHookPlatform::ClaudeCode => self.claude_code,
@@ -1514,7 +1526,9 @@ pub fn ensure_hooks_from_preferences() -> Result<(), String> {
         .map_err(|err| format!("Failed to locate ORG2 executable: {err}"))?;
     let mut errors = Vec::new();
     for platform in ALL_SESSION_PROVENANCE_HOOK_PLATFORMS {
-        if let Err(err) = update_platform(platform, preferences.enabled(platform), &executable) {
+        if let Err(err) =
+            update_platform(platform, preferences.effective_enabled(platform), &executable)
+        {
             errors.push(format!("{platform:?}: {err}"));
         }
     }
@@ -1557,8 +1571,68 @@ pub async fn session_provenance_hooks_set_enabled(
         // Persist the user's desired state before touching a provider file.
         // If a malformed or read-only config cannot be repaired immediately,
         // startup reconciliation can retry without losing the opt-out.
-        let update_error = update_platform(platform, enabled, &executable).err();
+        // The master switch gates the actual installation.
+        let update_error = update_platform(
+            platform,
+            preferences.effective_enabled(platform),
+            &executable,
+        )
+        .err();
         Ok(build_hook_status(platform, enabled, update_error))
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+/// Lock-free master-switch probe for the short-lived hook capture process.
+/// Errs on the side of capturing (true): a missing or corrupt preferences
+/// file must never silently discard signals while hooks are still installed.
+pub fn provenance_hooks_master_enabled_quick() -> bool {
+    read_preferences()
+        .map(|preferences| preferences.master_enabled)
+        .unwrap_or(true)
+}
+
+/// Whether the master switch over all managed provenance hooks is on.
+#[tauri::command]
+pub async fn session_provenance_hooks_master_enabled() -> Result<bool, String> {
+    tokio::task::spawn_blocking(|| {
+        let _guard = operation_guard()?;
+        Ok::<_, String>(read_preferences()?.master_enabled)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+/// Flip the master switch over all managed provenance hooks. Per-platform
+/// preferences are preserved: switching off uninstalls every managed hook,
+/// switching back on reinstalls the platforms that were individually enabled.
+/// Returns the refreshed per-platform statuses.
+#[tauri::command]
+pub async fn session_provenance_hooks_set_master_enabled(
+    enabled: bool,
+) -> Result<Vec<SessionProvenanceHookStatus>, String> {
+    tokio::task::spawn_blocking(move || {
+        let _guard = operation_guard()?;
+        let executable = std::env::current_exe()
+            .map_err(|err| format!("Failed to locate ORG2 executable: {err}"))?;
+        let mut preferences = read_preferences()?;
+        preferences.master_enabled = enabled;
+        write_preferences(&preferences)?;
+        Ok::<_, String>(
+            ALL_SESSION_PROVENANCE_HOOK_PLATFORMS
+                .into_iter()
+                .map(|platform| {
+                    let update_error = update_platform(
+                        platform,
+                        preferences.effective_enabled(platform),
+                        &executable,
+                    )
+                    .err();
+                    build_hook_status(platform, preferences.enabled(platform), update_error)
+                })
+                .collect::<Vec<_>>(),
+        )
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

@@ -1,8 +1,10 @@
+import { useAtomValue } from "jotai";
 import { useEffect } from "react";
 
 import { getImportedHistorySourceBySessionId } from "@src/api/tauri/externalHistory";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { createLogger } from "@src/hooks/logger";
+import { externalSessionsEnabledAtom } from "@src/store/session/dataSourceConfigAtom";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 import { getAdapterForSession } from "./types";
@@ -81,8 +83,10 @@ export function useExternalHistoryAutoRefresh(options: {
   dispatchLoadSession: DispatchSessionLoad;
 }): void {
   const { sessionId, intervalMs, dispatchLoadSession } = options;
+  const externalSessionsEnabled = useAtomValue(externalSessionsEnabledAtom);
 
   useEffect(() => {
+    if (!externalSessionsEnabled) return;
     if (!sessionId || !isImportedHistorySession(sessionId)) return;
 
     let refreshRunning = false;
@@ -116,5 +120,5 @@ export function useExternalHistoryAutoRefresh(options: {
       window.clearInterval(intervalId);
       activeController?.abort();
     };
-  }, [dispatchLoadSession, intervalMs, sessionId]);
+  }, [dispatchLoadSession, externalSessionsEnabled, intervalMs, sessionId]);
 }
