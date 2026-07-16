@@ -357,6 +357,13 @@ pub struct ExternalHistorySidebarBucketRequest {
     pub offset: usize,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySidebarSourceRequest {
+    pub source: String,
+    pub buckets: Vec<ExternalHistorySidebarBucketRequest>,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExternalHistorySidebarBucketPage {
@@ -370,6 +377,12 @@ pub struct ExternalHistorySidebarBucketPage {
 pub struct ExternalHistorySidebarResponse {
     pub source: String,
     pub buckets: Vec<ExternalHistorySidebarBucketPage>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySidebarBatchResponse {
+    pub sources: Vec<ExternalHistorySidebarResponse>,
 }
 
 // ============================================================================

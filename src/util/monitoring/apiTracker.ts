@@ -8,6 +8,7 @@ import {
   getTauriStack,
   getTimerStack,
 } from "./apiTrackerUtils";
+import { ratePerMinuteInWindow, spansRepeatedActivity } from "./hotspotRates";
 
 // Extended axios config with tracking properties
 interface TrackedAxiosConfig extends InternalAxiosRequestConfig {
@@ -670,7 +671,6 @@ export function getApiCallHotspots(windowMs = 120_000): ApiCallHotspot[] {
       );
       const firstMs = Math.min(...timestamps);
       const lastMs = Math.max(...timestamps);
-      const elapsedMs = Math.max(lastMs - firstMs, 1);
       const completedDurations = calls
         .map((call) => call.duration)
         .filter((duration): duration is number => typeof duration === "number");
@@ -678,10 +678,7 @@ export function getApiCallHotspots(windowMs = 120_000): ApiCallHotspot[] {
         ? completedDurations.reduce((sum, duration) => sum + duration, 0) /
           completedDurations.length
         : undefined;
-      const callsPerMinute =
-        calls.length === 1
-          ? 60_000 / windowMs
-          : (calls.length - 1) / (elapsedMs / 60_000);
+      const callsPerMinute = ratePerMinuteInWindow(calls.length, windowMs);
 
       return {
         key,
@@ -700,7 +697,9 @@ export function getApiCallHotspots(windowMs = 120_000): ApiCallHotspot[] {
         lineNumber: latestCall.lineNumber,
         stack: latestCall.stack,
         isLikelyPolling:
-          calls.length >= 3 && latestCall.interactionType === "auto",
+          calls.length >= 3 &&
+          latestCall.interactionType === "auto" &&
+          spansRepeatedActivity(firstMs, lastMs),
       } satisfies ApiCallHotspot;
     })
     .sort((hotspotA, hotspotB) => {
@@ -747,12 +746,7 @@ export function getTimerHotspots(windowMs = 120_000): TimerHotspot[] {
         new Date(event.timestamp).getTime()
       );
       const firstMs = Math.min(...timestamps);
-      const lastMs = Math.max(...timestamps);
-      const elapsedMs = Math.max(lastMs - firstMs, 1);
-      const firesPerMinute =
-        events.length === 1
-          ? 60_000 / windowMs
-          : (events.length - 1) / (elapsedMs / 60_000);
+      const firesPerMinute = ratePerMinuteInWindow(events.length, windowMs);
 
       return {
         key,
