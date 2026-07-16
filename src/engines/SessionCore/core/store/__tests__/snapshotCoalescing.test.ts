@@ -207,6 +207,34 @@ describe("EventStoreProxy snapshot coalescing", () => {
     expect(snapshot.events[0].displayText).toBe("fresh");
   });
 
+  it("evicts oldest sessions when cached events exceed the budget", async () => {
+    const bigSession = (sessionId: string) =>
+      makeDerivedEnvelope(
+        sessionId,
+        1,
+        Array.from({ length: 6_000 }, (_, i) =>
+          makeEvent(`${sessionId}-e${i}`, sessionId)
+        )
+      );
+
+    await deliver(bigSession("session-a"));
+    await deliver(bigSession("session-b"));
+    await advanceFrame();
+    // 12k events fits the 15k budget: both retained.
+    expect(eventStoreProxy.getMemoryStats().cachedSessions).toBe(2);
+
+    await deliver(bigSession("session-c"));
+    await advanceFrame();
+    // 18k exceeds the budget: oldest (session-a) evicted, newest kept.
+    const stats = eventStoreProxy.getMemoryStats();
+    expect(stats.cachedSessions).toBe(2);
+    expect(stats.cachedEvents).toBeLessThanOrEqual(15_000);
+    expect(
+      eventStoreProxy.getLatestSessionSnapshot("session-c")
+    ).not.toBeNull();
+    expect(eventStoreProxy.getLatestSessionSnapshot("session-a")).toBeNull();
+  });
+
   it("falls back to a full snapshot fetch on a delta base-version miss", async () => {
     const sessionId = "session-base-miss";
     const e1 = makeEvent("e1", sessionId);

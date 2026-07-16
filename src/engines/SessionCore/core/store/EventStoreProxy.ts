@@ -57,7 +57,13 @@ export type {
 } from "./EventStoreProxyTypes";
 export { isStreamingSnapshot } from "./snapshotMaterialization";
 
-const SNAPSHOT_CACHE_MAX = 20;
+const SNAPSHOT_CACHE_MAX = 8;
+
+// Total cached events across all retained snapshots. The count cap alone let
+// "20 sessions" quietly mean hundreds of MB once transcripts got long; this
+// bounds the cache by its dominant cost driver instead. Switch-back to an
+// evicted session refetches its snapshot from Rust (one IPC round trip).
+const SNAPSHOT_CACHE_EVENT_BUDGET = 15_000;
 /**
  * Grace window before a switched-away session's snapshot is released.
  * Rapid ping-ponging between sessions keeps the instant JS-cache prime and
@@ -214,6 +220,7 @@ class EventStoreProxyImpl {
       this._latestSnapshots,
       this._normalizedSnapshots,
       SNAPSHOT_CACHE_MAX,
+      SNAPSHOT_CACHE_EVENT_BUDGET,
       (evicted) => this._dropPendingFlush(evicted)
     );
   }
@@ -257,6 +264,7 @@ class EventStoreProxyImpl {
           this._latestSnapshots,
           this._normalizedSnapshots,
           SNAPSHOT_CACHE_MAX,
+          SNAPSHOT_CACHE_EVENT_BUDGET,
           (evicted) => this._dropPendingFlush(evicted)
         )
       : (this._latestSnapshots.get(sessionId) ?? null);
