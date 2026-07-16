@@ -517,7 +517,6 @@
         "expiryOptionNever": "Nigdy",
         "roleAdmin": "Administrator",
         "roleMember": "Członek",
-        "roleViewer": "Obserwator",
         "createdAt": "Utworzono {{date}}",
         "remainingUses": "Pozostałe użycia: {{uses}}",
         "expires": "Wygasa {{date}}",

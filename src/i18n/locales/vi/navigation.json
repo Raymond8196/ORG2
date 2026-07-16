@@ -517,7 +517,6 @@
         "expiryOptionNever": "Không bao giờ",
         "roleAdmin": "Quản trị viên",
         "roleMember": "Thành viên",
-        "roleViewer": "Người xem",
         "createdAt": "Tạo lúc {{date}}",
         "remainingUses": "Số lần còn lại: {{uses}}",
         "expires": "Hết hạn {{date}}",
