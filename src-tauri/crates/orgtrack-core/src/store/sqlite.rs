@@ -135,6 +135,7 @@ impl<'conn> SqliteRecordStore<'conn> {
                 workspace_path      TEXT,
                 parent_session_id   TEXT,
                 title               TEXT NOT NULL,
+                status              TEXT,
                 created_at          TEXT,
                 updated_at          TEXT,
                 completed_at        TEXT,
@@ -428,6 +429,32 @@ impl<'conn> SqliteRecordStore<'conn> {
             conn.execute(
                 "UPDATE orgtrack_core_sessions SET parent_session_id = ?1 WHERE session_id = ?2",
                 params![parent_session_id, session_id],
+            )?;
+        }
+
+        // Same migration pattern for the normalized status column: decode the
+        // canonical payload in Rust so SQLite JSON extensions stay optional.
+        ensure_column(conn, "orgtrack_core_sessions", "status", "TEXT")?;
+        let legacy_statuses = {
+            let mut statement = conn.prepare(
+                "SELECT session_id, payload_json FROM orgtrack_core_sessions
+                 WHERE status IS NULL",
+            )?;
+            let rows = statement.query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })?;
+            rows.filter_map(Result::ok)
+                .filter_map(|(session_id, payload)| {
+                    serde_json::from_str::<SessionRecord>(&payload)
+                        .ok()
+                        .and_then(|record| record.status.map(|status| (session_id, status)))
+                })
+                .collect::<Vec<_>>()
+        };
+        for (session_id, status) in legacy_statuses {
+            conn.execute(
+                "UPDATE orgtrack_core_sessions SET status = ?1 WHERE session_id = ?2",
+                params![status, session_id],
             )?;
         }
         // Existing interaction rows were created before the revision trigger.
@@ -763,15 +790,16 @@ impl RecordStore for SqliteRecordStore<'_> {
             .execute(
                 "INSERT INTO orgtrack_core_sessions (
                     session_id, source, source_session_id, workspace_path,
-                    parent_session_id, title, created_at, updated_at,
+                    parent_session_id, title, status, created_at, updated_at,
                     completed_at, branch, payload_json
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
                 ON CONFLICT(session_id) DO UPDATE SET
                     source=excluded.source,
                     source_session_id=excluded.source_session_id,
                     workspace_path=excluded.workspace_path,
                     parent_session_id=excluded.parent_session_id,
                     title=excluded.title,
+                    status=excluded.status,
                     created_at=excluded.created_at,
                     updated_at=excluded.updated_at,
                     completed_at=excluded.completed_at,
@@ -784,6 +812,7 @@ impl RecordStore for SqliteRecordStore<'_> {
                     record.workspace_path,
                     record.parent_session_id,
                     record.title,
+                    record.status,
                     record.created_at,
                     record.updated_at,
                     record.completed_at,

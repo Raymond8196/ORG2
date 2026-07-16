@@ -592,6 +592,15 @@ pub fn delete_session(session_id: &str) -> SqliteResult<bool> {
         "DELETE FROM code_sessions WHERE session_id = ?1",
         [session_id],
     )?;
+    if affected > 0 {
+        if let Err(err) =
+            crate::agent_sessions::session_directory::orgtrack_adapter::remove_mirrored_session(
+                session_id,
+            )
+        {
+            tracing::warn!(session_id, error = %err, "[cli-persistence] orgtrack delete mirror failed");
+        }
+    }
     Ok(affected > 0)
 }
 

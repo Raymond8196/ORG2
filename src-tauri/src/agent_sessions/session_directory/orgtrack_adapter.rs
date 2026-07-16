@@ -56,6 +56,25 @@ pub fn reconcile_native_session_mirror() -> Result<(), String> {
     upsert_aggregate_sessions(&native.sessions)
 }
 
+/// Drop a deleted ORGII session's mirror row. Scoped to ORGII sources so
+/// an id collision can never remove an imported-history row. Fired from the
+/// delete paths in both persistence layers (the upsert hook cannot serve
+/// deletes: re-reading a deleted session would resurrect a stub row).
+pub fn remove_mirrored_session(session_id: &str) -> Result<(), String> {
+    let conn = get_connection().map_err(|err| err.to_string())?;
+    conn.execute(
+        "DELETE FROM orgtrack_core_sessions
+         WHERE session_id = ?1 AND source IN (?2, ?3)",
+        rusqlite::params![
+            session_id,
+            SOURCE_ORGII_CLI_SESSIONS,
+            SOURCE_ORGII_RUST_AGENTS
+        ],
+    )
+    .map_err(|err| format!("remove mirrored session: {err}"))?;
+    Ok(())
+}
+
 /// Mirror one ORGII-launched CLI session into orgtrack's canonical session
 /// store. Called from the CLI persistence write path (create / status /
 /// name / model / exec-mode changes) so the mirror follows writes instead
