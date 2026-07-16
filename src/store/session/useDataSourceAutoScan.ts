@@ -22,6 +22,10 @@ import {
   externalHistoryRescanSources,
 } from "@src/api/tauri/externalHistory";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
+import {
+  isWindowFocused,
+  onWindowFocusRegained,
+} from "@src/util/core/windowFocus";
 
 import {
   FREQUENCY_INTERVAL_MS,
@@ -37,6 +41,13 @@ import { loadSidebarSessions } from "./sessionAtom/loaders";
 // so a 30s tick keeps drift small without frequent wakeups.
 const TICK_MS = 30_000;
 
+// While the window is unfocused, every source's effective cadence is stretched
+// to at least this floor (mirrors the backend git poller's focus-adaptive
+// polling): rescans + the sidebar reload they trigger are wasted while nobody
+// is looking. Regaining focus runs a pass immediately, so anything that came
+// due in the background catches up right away.
+const UNFOCUSED_SCAN_INTERVAL_MS = 10 * 60_000;
+
 let autoScanInFlight: Promise<void> | null = null;
 
 async function performDataSourceAutoScan(force: boolean): Promise<void> {
@@ -47,16 +58,20 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
   const global = store.get(dataSourceGlobalFrequencyAtom);
   const now = Date.now();
 
+  const focused = isWindowFocused();
   const dueSourceIds = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.flatMap(
     ({ sourceId }) => {
       const cfg = getSourceConfig(cfgMap, sourceId);
       if (!cfg.enabled) return [];
       const interval = FREQUENCY_INTERVAL_MS[effectiveFrequency(cfg, global)];
       if (interval == null) return [];
+      const effectiveInterval = focused
+        ? interval
+        : Math.max(interval, UNFOCUSED_SCAN_INTERVAL_MS);
       const due =
         force ||
         cfg.lastScannedAt == null ||
-        now - cfg.lastScannedAt >= interval;
+        now - cfg.lastScannedAt >= effectiveInterval;
       return due ? [sourceId] : [];
     }
   );
@@ -109,9 +124,18 @@ export function useDataSourceAutoScan(): void {
     };
 
     void scan(true);
+    // Catch-up pass the moment focus returns: the tick itself keeps running
+    // while unfocused (cheap due-check), but sources are held to the 10-minute
+    // background floor — this runs anything that came due at its normal
+    // cadence immediately. Runs outside the timer chain so it never re-arms
+    // a second timeout loop; runDataSourceAutoScan dedupes concurrent passes.
+    const unsubscribeFocus = onWindowFocusRegained(() => {
+      if (!cancelled) void runDataSourceAutoScan(false);
+    });
     return () => {
       cancelled = true;
       if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      unsubscribeFocus();
     };
   }, []);
 }

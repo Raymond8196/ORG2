@@ -134,4 +134,37 @@ describe("runDataSourceAutoScan", () => {
     await Promise.all([first, second]);
     expect(mocks.loadSidebarSessions).toHaveBeenCalledOnce();
   });
+
+  it("holds unfocused sources to the 10-minute background floor", async () => {
+    // Simulate an unfocused window (node env has no document; stub one).
+    vi.stubGlobal("document", {
+      hasFocus: () => false,
+      hidden: false,
+    });
+
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    // Overdue at its 60s cadence but well inside the 10-minute floor.
+    config.codex_app = {
+      enabled: true,
+      frequency: "60s",
+      lastScannedAt: NOW - 5 * 60_000,
+    };
+    // Past the 10-minute floor — scans even unfocused.
+    config.cline = {
+      enabled: true,
+      frequency: "60s",
+      lastScannedAt: NOW - 11 * 60_000,
+    };
+    mocks.store?.set(dataSourceConfigAtom, config);
+
+    await runDataSourceAutoScan(false);
+
+    expect(mocks.externalHistoryRescanSources).toHaveBeenCalledWith(["cline"]);
+    vi.unstubAllGlobals();
+  });
 });
