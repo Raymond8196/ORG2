@@ -148,9 +148,6 @@ agent_sessions::cli::platform_adapters::codex::oauth::start_codex_oauth_login,
 agent_sessions::cli::platform_adapters::codex::oauth::exchange_codex_oauth_code,
 agent_sessions::cli::platform_adapters::codex::oauth::create_codex_oauth_webview,
 agent_sessions::cli::platform_adapters::codex::oauth::close_codex_oauth_webview,
-// ORG2 Cloud - in-app login + billing windows (design §8)
-org2_cloud::org2_cloud_open_login,
-org2_cloud::org2_cloud_open_billing,
 // Runner commands - Kiro Credentials (PTY-driven `kiro-cli login` flow).
 // The direct-AWS-SDK SSO variant (`start_kiro_sso_login` / `cancel_kiro_sso_login`)
 // has been archived to `.archive/kiro-sso/` to drop the AWS SDK dep tree.

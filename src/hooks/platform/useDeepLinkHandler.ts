@@ -12,16 +12,21 @@
  *     tokens ride in the URL FRAGMENT (design §8). Intercepted on the RAW
  *     url BEFORE the generic route conversion (which would otherwise strip
  *     the fragment into a dead-end /orgii/auth/callback navigation).
+ *   - ORG2 Cloud billing completions (orgii://billing/complete) fired by
+ *     the billing success page after Stripe confirms the plan; re-emitted
+ *     as the `org2-cloud-billing-complete` event for the org panel.
  *
  * The hook listens for deep link events from Tauri and either routes the
  * React Router to the appropriate path or opens the matching cloud dialog.
  */
+import { emit } from "@tauri-apps/api/event";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ROUTES } from "@src/config/routes";
 import { parseAuthCallbackFragment } from "@src/features/Org2Cloud/authCallback";
+import { isBillingCompleteDeepLink } from "@src/features/Org2Cloud/billingComplete";
 import { completeOrg2CloudSignIn } from "@src/features/Org2Cloud/completeSignIn";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import {
@@ -33,7 +38,6 @@ import {
 import { org2CloudPendingInviteAtom } from "@src/features/Org2Cloud/org2CloudPendingInviteAtom";
 import { org2CloudPendingShareAtom } from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
 import { log, logDebug, logError, logWarn } from "@src/hooks/logger";
-import { useTauriListen } from "@src/hooks/platform/useTauriListen";
 import { activeStationChatVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { isTauriReady } from "@src/util/platform/tauri/init";
@@ -207,27 +211,16 @@ export function useDeepLinkHandler(): void {
     [setOrg2CloudAuth]
   );
 
-  // The in-app managed login window cannot deliver an OS deep link — Rust
-  // blocks the orgii://auth/callback navigation and instead globally emits
-  // the `org2-cloud-auth-callback` event. Handle it here at the always-mounted
-  // root hook so sign-in completes even if the user leaves Settings (which
-  // unmounts Org2CloudSection) while the login window is still open.
-  const handleOrg2CloudLoginEvent = useCallback(
-    (payload: { url: string }) => {
-      if (!handleOrg2CloudAuthUrl(payload.url)) {
-        logWarn(
-          "DeepLinkHandler",
-          "ignoring malformed auth callback from login window"
-        );
-      }
-    },
-    [handleOrg2CloudAuthUrl]
-  );
-  useTauriListen<{ url: string }>(
-    "org2-cloud-auth-callback",
-    handleOrg2CloudLoginEvent,
-    { enabled: isTauriReady() }
-  );
+  // A checkout completed in the system browser: the billing success page
+  // navigates to orgii://billing/complete. Re-emit it as the
+  // `org2-cloud-billing-complete` event the org panel already listens to.
+  // Never dedup-marked — a later checkout re-fires the IDENTICAL url.
+  const handleBillingCompleteUrl = useCallback((url: string): boolean => {
+    if (!isBillingCompleteDeepLink(url)) return false;
+    log("DeepLinkHandler", "Billing checkout completed via deep link");
+    void emit("org2-cloud-billing-complete", {});
+    return true;
+  }, []);
 
   useEffect(() => {
     // Only run in Tauri environment
@@ -256,6 +249,10 @@ export function useDeepLinkHandler(): void {
 
             if (handleOrg2CloudAuthUrl(url)) {
               processedDeepLinks.current.add(url);
+              break;
+            }
+
+            if (handleBillingCompleteUrl(url)) {
               break;
             }
 
@@ -325,7 +322,13 @@ export function useDeepLinkHandler(): void {
         hasSetupListener.current = false;
       }
     };
-  }, [navigate, routeToCloudJoin, routeToCloudShare, handleOrg2CloudAuthUrl]);
+  }, [
+    navigate,
+    routeToCloudJoin,
+    routeToCloudShare,
+    handleOrg2CloudAuthUrl,
+    handleBillingCompleteUrl,
+  ]);
 
   // Also check for deep link on initial load (app opened via deep link)
   // This effect should only run ONCE on mount, not on every location change
@@ -354,6 +357,10 @@ export function useDeepLinkHandler(): void {
 
             if (handleOrg2CloudAuthUrl(url)) {
               processedDeepLinks.current.add(url);
+              break;
+            }
+
+            if (handleBillingCompleteUrl(url)) {
               break;
             }
 
