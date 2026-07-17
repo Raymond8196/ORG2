@@ -35,6 +35,7 @@ enum ImportedHistoryLoader {
     ClaudeCode,
     Codex,
     Cursor,
+    CursorCli,
     OpenCode,
     Windsurf,
     WorkBuddy,
@@ -52,6 +53,8 @@ fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
         Some(ImportedHistoryLoader::Codex)
     } else if session_id.starts_with(super::cursor_ide::CURSORIDE_SESSION_PREFIX) {
         Some(ImportedHistoryLoader::Cursor)
+    } else if session_id.starts_with(super::cursor_cli::SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::CursorCli)
     } else if session_id.starts_with(super::opencode::history::OPENCODE_SESSION_PREFIX) {
         Some(ImportedHistoryLoader::OpenCode)
     } else if session_id.starts_with(super::windsurf::history::WINDSURF_SESSION_PREFIX) {
@@ -95,6 +98,9 @@ pub fn load_activity_chunks_for_session(
         }
         Some(ImportedHistoryLoader::Cursor) => {
             super::cursor_ide::history::load_history_for_session(session_id)?
+        }
+        Some(ImportedHistoryLoader::CursorCli) => {
+            super::cursor_cli::history::load_cursor_cli_history_for_session(conn, session_id)?
         }
         Some(ImportedHistoryLoader::OpenCode) => {
             super::opencode::history::load_opencode_history_for_session(session_id)?
@@ -722,6 +728,7 @@ mod impact_tests {
             ("claudecodeapp-id", ImportedHistoryLoader::ClaudeCode),
             ("codexapp-id", ImportedHistoryLoader::Codex),
             ("cursoride-id", ImportedHistoryLoader::Cursor),
+            ("cursorcliapp-id", ImportedHistoryLoader::CursorCli),
             ("opencodeapp-id", ImportedHistoryLoader::OpenCode),
             ("windsurfapp-id", ImportedHistoryLoader::Windsurf),
             ("workbuddyapp-id", ImportedHistoryLoader::WorkBuddy),
