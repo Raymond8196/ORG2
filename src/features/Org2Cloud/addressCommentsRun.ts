@@ -4,6 +4,8 @@ import { atom } from "jotai";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
 import { createLogger } from "@src/hooks/logger";
+import { sessionByIdAtom } from "@src/store/session/sessionAtom/atoms";
+import type { Session } from "@src/store/session/sessionAtom/types";
 import { TERMINAL_STATUSES } from "@src/types/session/session";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
@@ -27,7 +29,9 @@ import {
 
 const log = createLogger("addressCommentsRun");
 
-const STATUS_POLL_INTERVAL_MS = 4000;
+/** Sparse recovery check for a missed status-store notification. Normal
+ * completion is event-driven through `sessionByIdAtom`. */
+const STATUS_DEADMAN_INTERVAL_MS = 60_000;
 const RUN_DEADLINE_MS = 15 * 60_000;
 const FALLBACK_REPLY_MAX_CHARS = 4000;
 
@@ -45,6 +49,91 @@ export interface ActiveAddressRun {
 }
 
 const activeAddressRuns = new Map<string, ActiveAddressRun>();
+
+async function waitForAddressRunTerminal(
+  sessionId: string,
+  deadlineMs: number,
+  baselineSession: Session | undefined
+): Promise<void> {
+  // One authoritative read closes the race where the terminal backend update
+  // landed before the atom subscription was installed.
+  const initial = await SessionService.getStatus({ sessionId });
+  if (TERMINAL_STATUSES.has(String(initial.status))) return;
+
+  const store = getInstrumentedStore();
+  const statusAtom = sessionByIdAtom(sessionId);
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let unsubscribe: (() => void) | null = null;
+    let observedActiveLocalStatus = false;
+
+    const cleanup = (): void => {
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
+      unsubscribe?.();
+      unsubscribe = null;
+    };
+    const settle = (error?: Error): void => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (error) reject(error);
+      else resolve();
+    };
+    const observeLocalStatus = (): boolean => {
+      const session = store.get(statusAtom);
+      const status = session?.status;
+      if (!status) return false;
+      if (!TERMINAL_STATUSES.has(String(status))) {
+        observedActiveLocalStatus = true;
+        return false;
+      }
+      // Ignore the pre-turn terminal row. It is common for sendMessage to be
+      // accepted before the status-store's running notification arrives.
+      if (!observedActiveLocalStatus && session === baselineSession)
+        return false;
+      settle();
+      return true;
+    };
+    const scheduleDeadman = (): void => {
+      if (settled) return;
+      const remainingMs = deadlineMs - Date.now();
+      if (remainingMs <= 0) {
+        settle(new Error("address-comments run timed out"));
+        return;
+      }
+      timer = setTimeout(
+        async () => {
+          timer = null;
+          try {
+            const { status } = await SessionService.getStatus({ sessionId });
+            if (TERMINAL_STATUSES.has(String(status))) {
+              settle();
+              return;
+            }
+          } catch (error) {
+            // A transient recovery-read failure must not abort an otherwise live
+            // subscribed run. Keep waiting until the hard deadline.
+            log.warn("address-comments status recovery check failed:", error);
+          }
+          scheduleDeadman();
+        },
+        Math.min(STATUS_DEADMAN_INTERVAL_MS, remainingMs)
+      );
+    };
+
+    unsubscribe = store.sub(statusAtom, observeLocalStatus);
+    const currentSession = store.get(statusAtom);
+    if (
+      currentSession?.status &&
+      !TERMINAL_STATUSES.has(String(currentSession.status))
+    ) {
+      observedActiveLocalStatus = true;
+    }
+    scheduleDeadman();
+  });
+}
 
 /**
  * Resolve the run that owns `commentId`, restricted to the run whose
@@ -374,6 +463,9 @@ export async function runAddressCommentsRound(
       getInstrumentedStore().get(agentTaskRunnerSettingsAtom),
       orgId
     );
+    const statusBaseline = getInstrumentedStore().get(
+      sessionByIdAtom(localSessionId)
+    );
     await SessionService.sendMessage({
       sessionId: localSessionId,
       content: briefing,
@@ -385,19 +477,11 @@ export async function runAddressCommentsRound(
         ? { accountId: runnerSettings.accountId }
         : {}),
     });
-    const deadline = Date.now() + RUN_DEADLINE_MS;
-    for (;;) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, STATUS_POLL_INTERVAL_MS)
-      );
-      const { status } = await SessionService.getStatus({
-        sessionId: localSessionId,
-      });
-      if (TERMINAL_STATUSES.has(String(status))) break;
-      if (Date.now() > deadline) {
-        throw new Error("address-comments run timed out");
-      }
-    }
+    await waitForAddressRunTerminal(
+      localSessionId,
+      Date.now() + RUN_DEADLINE_MS,
+      statusBaseline
+    );
 
     const summary = (await readRunSummaryFromEventStore(localSessionId)) ?? "";
     const parsedReplies = selectFallbackReplies(

@@ -56,16 +56,25 @@ export function bumpLocalCommentsSignal(
   });
 }
 
-/** Fire-and-forget nudge that a session's comments/tasks changed: peers via broadcast, this instance via the local signal. */
-export function broadcastCommentsChanged(
+/** Notify peers without invalidating this instance's already-patched cache. */
+export function broadcastCommentsChangedToPeers(
   orgId: string,
   sessionId: string
 ): void {
-  bumpLocalCommentsSignal(orgId, sessionId);
   const sender = senders.get(orgId);
   if (!sender) {
     log.warn(`no broadcaster registered for org ${orgId} (channel not open)`);
     return;
   }
   sender(COMMENTS_CHANGED_EVENT, { sessionId });
+}
+
+/** Fire-and-forget nudge for headless writers that have not patched the local
+ * comments atom: peers via broadcast, this instance via the local signal. */
+export function broadcastCommentsChanged(
+  orgId: string,
+  sessionId: string
+): void {
+  bumpLocalCommentsSignal(orgId, sessionId);
+  broadcastCommentsChangedToPeers(orgId, sessionId);
 }

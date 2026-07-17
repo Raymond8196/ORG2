@@ -417,7 +417,6 @@
       "error": "Oturum çatallanamadı",
       "sendFailed": "Çatallandı ancak mesaj gönderilemedi — içerik giriş alanına geri yüklendi",
       "forkedChipTooltip": "{{name}} kullanıcısından çatallandı",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

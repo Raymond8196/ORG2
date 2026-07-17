@@ -509,7 +509,6 @@
       "error": "分叉工作階段失敗",
       "sendFailed": "已分叉，但訊息傳送失敗——內容已還原到輸入框",
       "forkedChipTooltip": "分叉自 {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "傳送訊息，Fork 後在 ORGII 中繼續…"
     }
   },
