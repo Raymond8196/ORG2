@@ -1,23 +1,3 @@
-/**
- * Repo eligibility against a cloud org's repo scope (design §8.3).
- *
- * Powers the new-session workspace picker while a cloud org is the active
- * sidebar scope, and the sidebar's imported-session grouping.
- *
- * Matching is by ANY of the checkout's git-remote scope keys — a fork
- * checkout whose upstream hits the org scope is in scope (same
- * `pickMatchingOrgScope` semantics as autoTag / MoveToOrgDialog / the sync
- * engine). `repo_url` resolves synchronously; local-only checkouts resolve
- * through the shared scope-key cache.
- *
- * Two eligibility modes:
- * - `repoMatchesOrgScopes` — STRICT: only a resolved match counts. Used
- *   for session grouping, where hiding/adopting needs evidence.
- * - `repoEligibleForOrgScopedPicker` — OPTIMISTIC: a still-resolving
- *   checkout stays visible (and is primed) until the cache lands, then
- *   converges. Hiding an in-scope repo behind a cold cache would make it
- *   look permanently unselectable.
- */
 import { normalizeRepoScopeKey, pickMatchingOrgScope } from "./collabSyncUtils";
 import {
   peekShareableScopeKeys,
@@ -32,46 +12,67 @@ export interface OrgScopeFilterRepo {
 type ScopeKeysPeek = (input: string) => string[] | null | undefined;
 type ScopePrime = (input: string) => void;
 
+function stripFileScheme(path: string): string {
+  return path.startsWith("file://") ? path.slice("file://".length) : path;
+}
+
 export function getRepoScopeKeysForOrgFilter(
   repo: OrgScopeFilterRepo,
   peekKeys: ScopeKeysPeek = peekShareableScopeKeys
 ): string[] | null | undefined {
+  // fs_uri resolves ALL of a checkout's remotes (origin + upstream), so a
+  // fork whose upstream hits the org scope matches; repo_url is a single
+  // remote and only a fallback when there is no checkout path.
+  if (repo.fs_uri) return peekKeys(stripFileScheme(repo.fs_uri));
   if (repo.repo_url) {
     const key = normalizeRepoScopeKey(repo.repo_url);
     return key ? [key] : null;
   }
-  if (!repo.fs_uri) return null;
-  return peekKeys(repo.fs_uri);
+  return null;
 }
 
+function evaluateOrgScope(
+  repo: OrgScopeFilterRepo,
+  orgScopes: string[] | undefined,
+  unresolvedResult: boolean,
+  peekKeys: ScopeKeysPeek,
+  prime: ScopePrime
+): boolean {
+  if (!orgScopes || orgScopes.length === 0) return false;
+  const keys = getRepoScopeKeysForOrgFilter(repo, peekKeys);
+  if (keys === undefined) {
+    if (repo.fs_uri) prime(stripFileScheme(repo.fs_uri));
+    return unresolvedResult;
+  }
+  if (!keys || keys.length === 0) return false;
+  return pickMatchingOrgScope(keys, orgScopes) !== null;
+}
+
+/** STRICT: only a resolved scope match counts (session grouping). */
 export function repoMatchesOrgScopes(
   repo: OrgScopeFilterRepo,
   orgScopes: string[] | undefined,
   peekKeys: ScopeKeysPeek = peekShareableScopeKeys,
   prime: ScopePrime = primeShareableScopeKey
 ): boolean {
-  if (!orgScopes || orgScopes.length === 0) return false;
-  const keys = getRepoScopeKeysForOrgFilter(repo, peekKeys);
-  if (keys === undefined) {
-    if (repo.fs_uri) prime(repo.fs_uri);
-    return false;
-  }
-  if (!keys || keys.length === 0) return false;
-  return pickMatchingOrgScope(keys, orgScopes) !== null;
+  return evaluateOrgScope(repo, orgScopes, false, peekKeys, prime);
 }
 
+/** OPTIMISTIC: a still-resolving checkout stays visible and is primed. */
 export function repoEligibleForOrgScopedPicker(
   repo: OrgScopeFilterRepo,
   orgScopes: string[] | undefined,
   peekKeys: ScopeKeysPeek = peekShareableScopeKeys,
   prime: ScopePrime = primeShareableScopeKey
 ): boolean {
-  if (!orgScopes || orgScopes.length === 0) return false;
-  const keys = getRepoScopeKeysForOrgFilter(repo, peekKeys);
-  if (keys === undefined) {
-    if (repo.fs_uri) prime(repo.fs_uri);
-    return true;
-  }
-  if (!keys || keys.length === 0) return false;
-  return pickMatchingOrgScope(keys, orgScopes) !== null;
+  return evaluateOrgScope(repo, orgScopes, true, peekKeys, prime);
+}
+
+/** A workspace is eligible when ANY member folder is; matches launch, which
+ * lands the session on the primary — callers must scope launch accordingly. */
+export function workspaceMatchesRepoFilter(
+  folderPaths: readonly (string | null | undefined)[],
+  predicate: (repo: OrgScopeFilterRepo) => boolean
+): boolean {
+  return folderPaths.some((path) => predicate({ fs_uri: path }));
 }

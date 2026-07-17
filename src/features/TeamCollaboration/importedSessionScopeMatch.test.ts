@@ -11,33 +11,19 @@ const PEEK = (path: string) =>
 
 const sessions = [
   {
-    session_id: "claude-code:1",
-    category: "external_history" as const,
-    orgId: undefined,
+    session_id: "claudecodeapp-1",
     repoPath: "/Users/me/org2",
   },
   {
-    session_id: "claude-code:2",
-    category: "external_history" as const,
-    orgId: undefined,
+    session_id: "codexapp-2",
     repoPath: "/Users/me/other",
   },
   {
     session_id: "native-1",
-    category: undefined,
-    orgId: undefined,
     repoPath: "/Users/me/org2",
   },
   {
-    session_id: "claude-code:3",
-    category: "external_history" as const,
-    orgId: "already-stamped",
-    repoPath: "/Users/me/org2",
-  },
-  {
-    session_id: "claude-code:4",
-    category: "external_history" as const,
-    orgId: undefined,
+    session_id: "claudecodeapp-4",
     repoPath: undefined,
   },
 ];
@@ -49,7 +35,7 @@ describe("collectScopeMatchedImportedSessionIds", () => {
       ["github.com/yorgai/org2"],
       PEEK
     );
-    expect(ids).toEqual(new Set(["claude-code:1"]));
+    expect(ids).toEqual(new Set(["claudecodeapp-1"]));
   });
 
   it("returns empty for a scope-less org", () => {
@@ -61,15 +47,29 @@ describe("collectScopeMatchedImportedSessionIds", () => {
     ).toEqual(new Set());
   });
 
-  it("skips native, stamped, and repo-less sessions", () => {
+  it("skips native and repo-less sessions", () => {
     const ids = collectScopeMatchedImportedSessionIds(
       sessions,
       ["github.com/yorgai/org2", "github.com/yorgai/other"],
       PEEK
     );
     expect(ids.has("native-1")).toBe(false);
-    expect(ids.has("claude-code:3")).toBe(false);
-    expect(ids.has("claude-code:4")).toBe(false);
+    expect(ids.has("claudecodeapp-4")).toBe(false);
+  });
+
+  it("evaluates each unique repoPath once", () => {
+    const peek = vi.fn(PEEK);
+    const ids = collectScopeMatchedImportedSessionIds(
+      [
+        { session_id: "claudecodeapp-1", repoPath: "/Users/me/org2" },
+        { session_id: "codexapp-2", repoPath: "/Users/me/org2" },
+        { session_id: "claudecodeapp-3", repoPath: "/Users/me/other" },
+      ],
+      ["github.com/yorgai/org2"],
+      peek
+    );
+    expect(ids).toEqual(new Set(["claudecodeapp-1", "codexapp-2"]));
+    expect(peek).toHaveBeenCalledTimes(2);
   });
 
   it("primes unresolved paths and defers matching", () => {

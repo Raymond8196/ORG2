@@ -502,7 +502,10 @@
       "outOfScope": "Out of scope",
       "scopeResolving": "Checking…",
       "personal": "Personal (Cá nhân)",
-      "personalBadge": "Cục bộ"
+      "personalBadge": "Cục bộ",
+      "personalOnlyHome": "Nơi duy nhất",
+      "personalUnavailable": "Không thuộc Personal",
+      "autoInScope": "Trong tổ chức theo phạm vi repo"
     },
     "orgManagement": {
       "invites": {

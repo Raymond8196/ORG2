@@ -7,7 +7,6 @@ import React, {
   useLayoutEffect,
   useMemo,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -39,10 +38,7 @@ import ForkSessionSetupDialog from "@src/features/TeamCollaboration/components/F
 import MoveToOrgDialog from "@src/features/TeamCollaboration/components/MoveToOrgDialog";
 import { useMoveToOrgDialog } from "@src/features/TeamCollaboration/components/MoveToOrgDialog/useMoveToOrgDialog";
 import { collectScopeMatchedImportedSessionIds } from "@src/features/TeamCollaboration/importedSessionScopeMatch";
-import {
-  getShareableScopeKeyVersion,
-  subscribeShareableScopeKeys,
-} from "@src/features/TeamCollaboration/repoScopeResolver";
+import { useShareableScopeKeyVersion } from "@src/features/TeamCollaboration/repoScopeResolver";
 import {
   cloudOrgIdsForSession,
   isSessionExcludedFromPersonal,
@@ -464,18 +460,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
   }, [activeCloudOrgId, setSidebarActiveCloudOrgId]);
 
   // Sessions explicitly tagged into the active cloud org (MoveToOrgDialog)
-  // match the cloud scope even without a stamped orgId. Imported CLI
-  // sessions (claude/codex/…) match by REPO SCOPE at filter time: a session
-  // whose repo is covered by this org's scope belongs in this org's view —
-  // and in every other covering org's view too.
+  // match the cloud scope even without a stamped orgId.
   const sessionOrgTags = useAtomValue(sessionOrgTagsAtom);
   const repoScopesByOrg = useAtomValue(org2CloudRepoScopesAtom);
-  // Re-derive the scope matches when an async git-remote resolution lands
-  // in the shared cache (no polling — pure subscription).
-  const scopeKeyVersion = useSyncExternalStore(
-    subscribeShareableScopeKeys,
-    getShareableScopeKeyVersion
-  );
+  const scopeKeyVersion = useShareableScopeKeyVersion();
   const cloudTaggedSessionIds = useMemo(() => {
     if (!activeCloudOrgId) return undefined;
     const ids = collectScopeMatchedImportedSessionIds(
@@ -501,10 +489,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     scopeKeyVersion,
   ]);
 
-  // Personal is a DEFAULT-ON membership: a session shows in Personal AND in
-  // every org that covers it. The only thing hidden from Personal is a
-  // session the user explicitly removed (unchecked Personal in the org-tags
-  // dialog → PERSONAL_EXCLUDED_TOKEN). Org membership never auto-removes it.
   const personalHiddenCloudTaggedIds = useMemo(() => {
     if (activeOrgId !== DEFAULT_SESSION_ORG_ID) return undefined;
     const ids = new Set<string>();
@@ -554,8 +538,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   });
 
   // Threaded position wins: mine-rows shown inside a fork thread leave the
-  // flat local list (sessionMap keeps them for click routing). Under the
-  // Personal scope, cloud-tagged sessions are excluded as well.
+  // flat local list (sessionMap keeps them for click routing).
   const sessionListExcludedIds = useMemo(() => {
     if (!personalHiddenCloudTaggedIds) return cloudThreadedLocalSessionIds;
     if (cloudThreadedLocalSessionIds.size === 0) {

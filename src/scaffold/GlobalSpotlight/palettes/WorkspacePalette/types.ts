@@ -30,11 +30,7 @@ export interface WorkspacePaletteProps extends BasePaletteProps {
   switchPathLabel?: string;
   hideActionClose?: boolean;
   leadingRepos?: readonly RepoItem[];
-  /**
-   * Row eligibility predicate (e.g. active cloud org repo scope). Applied
-   * to every source — leading, workspace, and external-recent rows.
-   * Multi-repo workspaces stay visible when ANY member folder is eligible.
-   */
+  /** Row eligibility predicate (e.g. active cloud org repo scope). */
   repoFilter?: (repo: {
     repo_url?: string | null;
     fs_uri?: string | null;

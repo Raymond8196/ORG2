@@ -504,7 +504,10 @@
       "outOfScope": "Out of scope",
       "scopeResolving": "Checking…",
       "personal": "Personal",
-      "personalBadge": "Lokal"
+      "personalBadge": "Lokal",
+      "personalOnlyHome": "Einziger Ort",
+      "personalUnavailable": "Nicht in Personal",
+      "autoInScope": "Per Repo-Bereich enthalten"
     },
     "orgManagement": {
       "invites": {

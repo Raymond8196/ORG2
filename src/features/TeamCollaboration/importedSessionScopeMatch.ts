@@ -1,54 +1,49 @@
-/**
- * View-layer cloud-org matching for imported CLI sessions (claude/codex/…).
- *
- * Imported-history sessions carry no persisted org_id. Instead of stamping
- * one org onto them at load time, the sidebar matches them against repo
- * scopes AT FILTER TIME: a session whose repo is covered by an org's scope
- * appears under EVERY such org's view, and is hidden from Personal as soon
- * as ANY member org covers it. Pure derivation over lists the sidebar
- * already holds — nothing persisted, nothing polled; async scope-key
- * resolutions land through the shared cache subscription and the memos
- * recompute.
- */
 import type { Session } from "@src/store/session";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
+import { normalizeRepoScopeKey } from "./collabSyncUtils";
 import { repoMatchesOrgScopes } from "./orgScopeRepoFilter";
 
 type ScopePeek = (input: string) => string[] | null | undefined;
 type ScopePrime = (input: string) => void;
 
+type MatchableSession = Pick<Session, "session_id" | "repoPath">;
+
 export function isScopeMatchableImportedSession(
-  session: Pick<Session, "session_id" | "category" | "orgId" | "repoPath">
-): boolean {
-  if (session.orgId) return false;
-  if (!session.repoPath) return false;
+  session: MatchableSession
+): session is MatchableSession & { repoPath: string } {
   return (
-    isImportedHistorySession(session.session_id) ||
-    session.category === "external_history" ||
-    session.category === "cursor_ide"
+    Boolean(session.repoPath) && isImportedHistorySession(session.session_id)
   );
 }
 
 /** Imported sessions whose repo falls inside THIS org's repo scope. */
 export function collectScopeMatchedImportedSessionIds(
-  sessions: readonly Pick<
-    Session,
-    "session_id" | "category" | "orgId" | "repoPath"
-  >[],
+  sessions: readonly MatchableSession[],
   orgScopes: string[] | undefined,
   peek?: ScopePeek,
   prime?: ScopePrime
 ): Set<string> {
   const ids = new Set<string>();
   if (!orgScopes || orgScopes.length === 0) return ids;
+  const normalizedScopes = orgScopes
+    .map((scope) => normalizeRepoScopeKey(scope))
+    .filter((scope) => scope.length > 0);
+  if (normalizedScopes.length === 0) return ids;
+  const verdictByRepoPath = new Map<string, boolean>();
   for (const session of sessions) {
     if (!isScopeMatchableImportedSession(session)) continue;
-    if (
-      repoMatchesOrgScopes({ fs_uri: session.repoPath }, orgScopes, peek, prime)
-    ) {
-      ids.add(session.session_id);
+    let matched = verdictByRepoPath.get(session.repoPath);
+    if (matched === undefined) {
+      matched = repoMatchesOrgScopes(
+        { fs_uri: session.repoPath },
+        normalizedScopes,
+        peek,
+        prime
+      );
+      verdictByRepoPath.set(session.repoPath, matched);
     }
+    if (matched) ids.add(session.session_id);
   }
   return ids;
 }

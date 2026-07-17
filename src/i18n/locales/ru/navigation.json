@@ -502,7 +502,10 @@
       "outOfScope": "Out of scope",
       "scopeResolving": "Checking…",
       "personal": "Personal (личное)",
-      "personalBadge": "Локально"
+      "personalBadge": "Локально",
+      "personalOnlyHome": "Единственное место",
+      "personalUnavailable": "Не в Personal",
+      "autoInScope": "В организации по области репозиториев"
     },
     "orgManagement": {
       "invites": {

@@ -20,6 +20,7 @@ import {
   listWorkspaces,
 } from "@src/api/tauri/workspace";
 import Message from "@src/components/Message";
+import { workspaceMatchesRepoFilter } from "@src/features/TeamCollaboration/orgScopeRepoFilter";
 import { createLogger } from "@src/hooks/logger";
 import { useFilteredItems } from "@src/hooks/search";
 import {
@@ -54,10 +55,7 @@ export interface UseWorkspacePaletteWorkspaceOptions {
   searchQuery: string;
   /** multiRepoWorkspaceForm from useAddWorkspaceFlow — only `setEditingWorkspace` is needed */
   setEditingWorkspace: (ws: WorkspaceRecord) => void;
-  /**
-   * Row eligibility predicate (e.g. active cloud org repo scope). A
-   * workspace stays visible when ANY member folder is eligible.
-   */
+  /** Row eligibility predicate (e.g. active cloud org repo scope). */
   repoFilter?: (repo: { fs_uri?: string | null }) => boolean;
 }
 
@@ -331,7 +329,10 @@ export function useWorkspacePaletteWorkspace({
   const workspaceItems = useMemo((): SpotlightItem[] => {
     const eligibleWorkspaces = repoFilter
       ? filteredWorkspaces.filter((ws) =>
-          ws.folders.some((folder) => repoFilter({ fs_uri: folder.folderPath }))
+          workspaceMatchesRepoFilter(
+            ws.folders.map((folder) => folder.folderPath),
+            repoFilter
+          )
         )
       : filteredWorkspaces;
     const orderedWorkspaces = [...eligibleWorkspaces].sort(
