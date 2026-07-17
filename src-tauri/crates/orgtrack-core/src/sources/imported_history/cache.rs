@@ -312,7 +312,7 @@ pub fn query_imported_sidebar_page_from_conn(
     let sql = format!(
         "SELECT session_id, name, created_at_ms, updated_at_ms, repo_path,
                 model, files_changed, lines_added, lines_removed, touched_files_json,
-                input_tokens, output_tokens
+                input_tokens, output_tokens, source_path
          FROM imported_history_session_cache
          WHERE source = ?1
            AND listable = 1
@@ -335,6 +335,7 @@ pub fn query_imported_sidebar_page_from_conn(
                 })?;
             let input_tokens: i64 = row.get(10)?;
             let output_tokens: i64 = row.get(11)?;
+            let source_path: String = row.get(12)?;
             Ok(ImportedHistorySidebarRow {
                 session_id: row.get(0)?,
                 name: row.get(1)?,
@@ -343,6 +344,7 @@ pub fn query_imported_sidebar_page_from_conn(
                 status: None,
                 is_active: None,
                 repo_path: non_empty_string(repo_path),
+                storage_path: non_empty_string(source_path),
                 model: non_empty_string(model),
                 total_tokens: input_tokens + output_tokens,
                 files_changed: row.get(6)?,
