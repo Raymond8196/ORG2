@@ -554,8 +554,10 @@ pub async fn cli_agent_message(
 ///   (`hookperm-*`, from the `permission:request` wire event). Checked
 ///   first. `always_allow` maps to a plain allow — persistent rules stay
 ///   with Claude's own permission store.
-/// - **ACP agents** (Copilot, Kiro): the backend emits an
-///   `approval_request` chunk and blocks on a per-session oneshot.
+/// - **ACP agents** (OpenCode, Copilot, Kiro): a `session/request_permission`
+///   parked in `acp_common::PENDING_APPROVALS`, keyed by `request_id`
+///   (`acpperm-*`, from the `permission:request` wire event with
+///   `origin: "acp"`), with a session-id fallback.
 #[tauri::command]
 pub async fn cli_agent_approval_response(
     session_id: String,
@@ -575,6 +577,7 @@ pub async fn cli_agent_approval_response(
     }
     crate::agent_sessions::cli::parsers::acp_common::resolve_approval(
         &session_id,
+        request_id.as_deref(),
         approved,
         always_allow.unwrap_or(false),
     )
