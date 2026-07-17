@@ -35,14 +35,6 @@ It is not just another AI coding tool; it is an experiment in human/agent organi
 
 ORG-II explores a different model: agents as persistent, observable colleagues inside a structured organization. Instead of stateless, hard-to-review AI IDE sessions, it introduces replayable agent execution, cross-session memory, AI blame, and a local-first Rust-based runtime so humans, agents, and teams can collaborate around shared context and aligned goals.
 
-## Built-in Rust harness
-
-A fast, token-saving, customizable native agent harness that works with your existing API keys and agent subscriptions. Configure agents or agent teams, switch models, manage workspaces and credentials, and monitor quota from one local-first runtime.
-
-<p align="center">
-  <img src="docs/assets/feature-wall/rust-harness.gif" alt="Run agents and manage keys, subscriptions, workspaces, and quota with the ORG-II Rust harness" width="800" />
-</p>
-
 ## Features
 
 <table>
