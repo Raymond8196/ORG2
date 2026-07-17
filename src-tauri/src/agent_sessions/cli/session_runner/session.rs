@@ -26,8 +26,8 @@ use super::command::{
 use super::context_bridge::build_context_bridge;
 use super::cursor_usage::fetch_cursor_usage_for_session;
 use super::helpers::{
-    emit_chunk, flush_and_broadcast, persist_attached_images, snapshot_cli_file_edit,
-    strip_ide_context,
+    clear_live_status, emit_chunk, flush_and_broadcast, persist_attached_images,
+    snapshot_cli_file_edit, strip_ide_context,
 };
 use super::oauth_setup::{
     is_cli_chunk_replay_unsafe, is_cli_oauth_failure_message, is_cli_oauth_stderr_retry_candidate,
@@ -477,6 +477,11 @@ pub async fn run_session(
 
     env_vars.extend(launch_profile_env(&launch_profile));
 
+    // Inherited by the CLI child and, transitively, by its hook subprocesses:
+    // lets live-status hook posts attribute directly to this managed session
+    // even before the CLI's native session id is known.
+    env_vars.insert("ORGII_SESSION_ID".to_string(), session_id.clone());
+
     if matches!(agent, ModelType::CursorCli) {
         env_vars.insert("CURSOR_CLI_COMPAT".to_string(), "1".to_string());
     }
@@ -924,11 +929,15 @@ pub async fn run_session(
             process_id: None,
             broadcast_only: false,
         };
-        if let Err(err) = persistence::insert_chunk(&user_chunk, base_sequence) {
-            tracing::error!(
-                "[CodeSession] Failed to persist user_message chunk: {}",
-                err
-            );
+        // Native-transcript sessions keep the instant user bubble
+        // (broadcast) but the CLI's own store persists the turn.
+        if persistence::session_persists_chunks(&session_id) {
+            if let Err(err) = persistence::insert_chunk(&user_chunk, base_sequence) {
+                tracing::error!(
+                    "[CodeSession] Failed to persist user_message chunk: {}",
+                    err
+                );
+            }
         }
         let ws_msg = serde_json::json!({
             "type": "code_session.activity",
@@ -1184,6 +1193,35 @@ pub async fn run_session(
                             }
 
                             let chunks = parser.parse_line(&line);
+                            // Bind the CLI's native conversation id as soon
+                            // as the parser sees it (Claude emits it in the
+                            // "system" init event) instead of only after
+                            // exit: native-transcript replay, dedup, and
+                            // live-status attribution all key on it, and a
+                            // crash mid-turn must not orphan the transcript.
+                            if cli_session_id_out.is_none() {
+                                if let Some(cli_sid) = parser.cli_session_id() {
+                                    cli_session_id_out = Some(cli_sid.clone());
+                                    if let Err(err) = persistence::update_cli_session_id_for_account(
+                                        &session_id,
+                                        account_id,
+                                        &cli_sid,
+                                    ) {
+                                        tracing::warn!(
+                                            "[CodeSession] Failed to bind early cli_session_id: {}",
+                                            err
+                                        );
+                                    }
+                                    websocket_handler::broadcast(
+                                        serde_json::json!({
+                                            "type": "code_session.cli_session_bound",
+                                            "session_id": session_id,
+                                            "cli_session_id": cli_sid,
+                                        })
+                                        .to_string(),
+                                    );
+                                }
+                            }
                             for chunk in chunks {
                                 if cli_plan_approval_gate_triggered {
                                     continue;
@@ -1326,6 +1364,13 @@ pub async fn run_session(
                                     // while the child process winds down. The final
                                     // status_changed after child exit is idempotent.
                                     flush_and_broadcast(&session_id);
+                                    // The plan card supersedes any hook-derived
+                                    // waiting/working entry for this turn.
+                                    clear_live_status(
+                                        &agent,
+                                        &session_id,
+                                        cli_session_id_out.as_deref(),
+                                    );
                                     if let Err(err) = persistence::update_status(
                                         &session_id,
                                         SessionStatus::Completed,
@@ -1466,7 +1511,11 @@ pub async fn run_session(
             }
 
             if retryable_oauth_message.is_none() && retryable_overload_message.is_none() {
-                cli_session_id_out = parser.cli_session_id();
+                // Keep an early-bound id when a retried attempt's fresh
+                // parser never saw one (don't clobber Some with None).
+                if let Some(cli_sid) = parser.cli_session_id() {
+                    cli_session_id_out = Some(cli_sid);
+                }
 
                 if let Some(ref usage) = parser.token_usage() {
                     let round_model = usage.model.as_deref().or(model);
@@ -1683,6 +1732,10 @@ pub async fn run_session(
         }
     } else if let Err(err) = persistence::update_status(&session_id, final_status) {
         tracing::error!("[CodeSession] Failed to update final status: {}", err);
+    }
+
+    if final_status.is_terminal() {
+        clear_live_status(&agent, &session_id, cli_session_id_out.as_deref());
     }
 
     // For CLI sessions that are Agent Org members, requeue any in-progress work
