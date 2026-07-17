@@ -992,6 +992,27 @@ pub async fn run_acp_protocol<A: AcpAgentAdapter>(
                 .and_then(|v| v.as_str())
             {
                 acp_session_id = sid.to_string();
+                // Bind the ACP session id NOW rather than at protocol end:
+                // native-transcript replay, imported-twin dedup, and
+                // live-status attribution all key on it, and a failed or
+                // interrupted run must not orphan the CLI-store transcript.
+                // Retries re-bind each attempt; the append-only ledger keeps
+                // every fork recognized. Fire-and-forget: a locked DB must
+                // not stall the protocol handshake.
+                {
+                    let managed_session_id = session_id.to_string();
+                    let native_id = acp_session_id.clone();
+                    tauri::async_runtime::spawn_blocking(move || {
+                        if let Err(err) =
+                            crate::agent_sessions::cli::persistence::update_cli_session_id(
+                                &managed_session_id,
+                                &native_id,
+                            )
+                        {
+                            tracing::warn!("[ACP] Early cli_session_id bind failed: {}", err);
+                        }
+                    });
+                }
                 let current_model = msg
                     .get("result")
                     .and_then(|r| r.get("configOptions"))

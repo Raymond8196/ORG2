@@ -57,8 +57,12 @@ pub fn native_transcript_binding(agent: &ModelType) -> Option<NativeTranscriptBi
 /// native mode today. Codex/OpenCode keep legacy chunks until their discovery
 /// roots and replay paths are verified end-to-end (M3); their bindings above
 /// already serve dedup and live-status id mapping.
+/// Native mode for every agent whose CLI store has an imported-history
+/// reader (the binding map). Reader-less agents (Cursor CLI, Copilot, Kiro,
+/// ...) keep legacy chunk persistence — dropping their writes would leave
+/// those GUI sessions with no transcript at all.
 pub fn native_transcript_enabled(agent: &ModelType) -> bool {
-    matches!(agent, ModelType::ClaudeCode)
+    native_transcript_binding(agent).is_some()
 }
 
 /// Managed session id → imported-history transcript id, when the session is
@@ -98,10 +102,11 @@ mod tests {
     }
 
     #[test]
-    fn only_claude_is_native_enabled_in_m2() {
+    fn bound_agents_are_native_reader_less_stay_legacy() {
         assert!(native_transcript_enabled(&ModelType::ClaudeCode));
-        assert!(!native_transcript_enabled(&ModelType::Codex));
-        assert!(!native_transcript_enabled(&ModelType::OpenCode));
+        assert!(native_transcript_enabled(&ModelType::Codex));
+        assert!(native_transcript_enabled(&ModelType::OpenCode));
+        // No imported-history reader for the cursor-agent CLI store yet.
         assert!(!native_transcript_enabled(&ModelType::CursorCli));
     }
 }
