@@ -645,6 +645,67 @@ fn load_native_transcript_chunks(session: &CodeSession) -> Option<Vec<ActivityCh
     }
 }
 
+/// Where a managed session's transcript of record lives, for display
+/// surfaces (session hover card storage row).
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CliTranscriptLocation {
+    /// True when the transcript lives in the CLI's native store
+    /// (`code_sessions.transcript_source = 'native'`), not `sessions.db`.
+    pub native: bool,
+    /// Resolved native store path (e.g. a Codex rollout jsonl), when the
+    /// imported-history cache already knows it. `None` for chunks-mode
+    /// sessions, or for native sessions not yet scanned into the cache.
+    pub path: Option<String>,
+}
+
+/// Resolve the storage location of a session's transcript of record.
+/// Chunks-mode (legacy) sessions report `native: false` — the caller keeps
+/// showing `sessions.db`. Native sessions report the CLI store file path when
+/// the imported-history cache has it, else `native: true` with no path.
+#[tauri::command]
+pub async fn cli_agent_transcript_path(
+    session_id: String,
+) -> Result<CliTranscriptLocation, String> {
+    tokio::task::spawn_blocking(move || {
+        use super::native_transcript;
+        let is_native = persistence::get_session(&session_id)
+            .map_err(|e| format!("DB error: {}", e))?
+            .is_some_and(|session| {
+                session.transcript_source == native_transcript::TRANSCRIPT_SOURCE_NATIVE
+            });
+        if !is_native {
+            return Ok(CliTranscriptLocation {
+                native: false,
+                path: None,
+            });
+        }
+        // Native session with no bound CLI id yet (first turn still running,
+        // or crash before bind): native, but no path to show.
+        let Some((binding, cli_session_id)) =
+            native_transcript::native_store_key_for_managed_session(&session_id)
+        else {
+            return Ok(CliTranscriptLocation {
+                native: true,
+                path: None,
+            });
+        };
+        let conn = database::db::get_connection()
+            .map_err(|err| format!("Failed to open orgtrack source cache DB: {err}"))?;
+        // Exact match first; Codex caches key on the rollout file stem, which
+        // only the `-`-bounded suffix variant matches.
+        let mut path = orgtrack_core::sources::imported_history::cache::
+            get_cached_source_path_from_conn(&conn, binding.source, &cli_session_id)?;
+        if path.is_none() {
+            path = orgtrack_core::sources::imported_history::cache::
+                get_cached_source_path_by_suffix_from_conn(&conn, binding.source, &cli_session_id)?;
+        }
+        Ok(CliTranscriptLocation { native: true, path })
+    })
+    .await
+    .map_err(|e| format!("Task error: {}", e))?
+}
+
 /// A failed first turn in native mode may leave no readable transcript at
 /// all; a synthesized user bubble beats a blank chat.
 fn synthesized_user_message_chunk(session: &CodeSession) -> Option<ActivityChunk> {

@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useAtomValue } from "jotai";
 import {
@@ -58,6 +59,14 @@ interface AgentSessionInfo {
 
 interface SessionHoverCardContentProps {
   sessionId: string;
+}
+
+/** Mirror of the `cli_agent_transcript_path` command payload. */
+interface CliTranscriptLocation {
+  /** True when the transcript of record lives in the CLI's native store. */
+  native: boolean;
+  /** Resolved native store path, when the imported-history cache has it. */
+  path: string | null;
 }
 
 const PATH_ROW_CLASS_NAME =
@@ -136,8 +145,13 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
       useSessionTurnOverview(sessionId);
     const repoPath = session?.repoPath;
     const storagePath = session?.storagePath;
+    const cliAgentType = session?.cliAgentType;
     const [orgtrackSummary, setOrgtrackSummary] =
       useState<CoreSessionSummary | null>(null);
+    const [transcriptLocationState, setTranscriptLocationState] = useState<{
+      sessionId: string;
+      location: CliTranscriptLocation;
+    } | null>(null);
 
     useEffect(() => {
       let cancelled = false;
@@ -158,6 +172,33 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         cancelled = true;
       };
     }, [sessionId]);
+
+    // Native-transcript sessions keep their transcript in the CLI's own
+    // store, not sessions.db — resolve the real location for the storage row.
+    useEffect(() => {
+      let cancelled = false;
+      if (!cliAgentType) return undefined;
+
+      invoke<CliTranscriptLocation>("cli_agent_transcript_path", { sessionId })
+        .then((location) => {
+          if (!cancelled) setTranscriptLocationState({ sessionId, location });
+        })
+        .catch((error: unknown) => {
+          logger.warn("failed to resolve session transcript path", {
+            error,
+            sessionId,
+          });
+        });
+
+      return () => {
+        cancelled = true;
+      };
+    }, [cliAgentType, sessionId]);
+
+    const transcriptLocation =
+      transcriptLocationState?.sessionId === sessionId
+        ? transcriptLocationState.location
+        : null;
 
     const lastModel: LastModelSelection | null = useMemo(() => {
       if (!session) return creatorDefaultLastModel;
@@ -262,6 +303,12 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
       lastModel?.listingModel || lastModel?.model || undefined;
     const modelIconAgent = lastModel?.listingModelType || undefined;
     const agentSessionInfo = getAgentSessionInfo(session);
+    // Native-transcript sessions must not claim sessions.db: show the CLI
+    // store file when resolved, else a plain "CLI native store" label.
+    const isNativeTranscript = transcriptLocation?.native === true;
+    const storageRowPath = isNativeTranscript
+      ? (transcriptLocation?.path ?? undefined)
+      : storagePath;
 
     const dateTimeLabelOptions = {
       todayLabel: t("common:relativeDate.today"),
@@ -339,16 +386,22 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
             </button>
           </HoverCardRow>
         )}
-        {storagePath && (
+        {(storageRowPath || isNativeTranscript) && (
           <HoverCardRow icon={<Save size={13} strokeWidth={1.75} />}>
-            <button
-              type="button"
-              className={PATH_ROW_CLASS_NAME}
-              title={storagePath}
-              onClick={() => handleRevealPath(storagePath)}
-            >
-              {formatCompactPath(storagePath)}
-            </button>
+            {storageRowPath ? (
+              <button
+                type="button"
+                className={PATH_ROW_CLASS_NAME}
+                title={storageRowPath}
+                onClick={() => handleRevealPath(storageRowPath)}
+              >
+                {formatCompactPath(storageRowPath)}
+              </button>
+            ) : (
+              <span className="truncate text-text-2">
+                {t("history.detail.cliNativeStore")}
+              </span>
+            )}
           </HoverCardRow>
         )}
         {impactTask && (

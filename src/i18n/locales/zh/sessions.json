@@ -23,6 +23,7 @@
       "roundCount_one": "{{count}} 轮",
       "roundCount_other": "{{count}} 轮",
       "agentWorked": "Agent 工作",
+      "cliNativeStore": "CLI 原生存储",
       "reasoningModel": "Reasoning Model",
       "codingModel": "Coding Model",
       "sessionMode": "Session 模式",
