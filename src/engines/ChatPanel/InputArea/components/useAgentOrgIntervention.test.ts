@@ -16,9 +16,11 @@ function runView(): AgentOrgRunView {
       coordinatorRole: "Lead",
       members: [],
       hierarchyMode: "flat",
+      planApprovalPolicy: "coordinator",
       rootSessionId: "session-root",
     },
     runStatus: "running",
+    runPhase: "coordinating",
     currentMemberId: "coordinator",
     members: [
       {
@@ -72,6 +74,7 @@ function runView(): AgentOrgRunView {
     ],
     tasks: [],
     inbox: [],
+    pendingPlanApprovals: [],
   };
 }
 
