@@ -34,7 +34,7 @@ export const SessionProvenanceHookPlatformSchema = z.enum([
 
 export const SessionProvenanceHookActivationStateSchema = z.enum([
   "inactive",
-  "awaiting_approval",
+  "awaiting_verification",
   "active",
 ]);
 
