@@ -19,6 +19,7 @@ import type {
   AvailableApiProvider,
   KeyInfo,
 } from "@src/api/tauri/rpc/schemas/validation";
+import { loadSharedLocalKeys } from "@src/hooks/keyVault/sharedLocalKeyStore";
 import { createLogger } from "@src/hooks/logger";
 import { agentRegistryAtom } from "@src/store/session/agentRegistryAtom";
 
@@ -212,7 +213,7 @@ export function useSessionDiscovery(
       const [apiProviders, rawAgents, allKeys] = await Promise.all([
         rpc.validation.getAvailableApiProviders(),
         rpc.validation.getAvailableAgents(),
-        rpc.validation.listKeys(),
+        loadSharedLocalKeys(),
       ]);
 
       if (!mountedRef.current) return;

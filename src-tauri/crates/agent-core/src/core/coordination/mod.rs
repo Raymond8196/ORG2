@@ -21,6 +21,7 @@
 
 pub mod agent_inbox;
 pub mod agent_member_interventions;
+pub mod agent_org_run_events;
 pub mod agent_org_runs;
 pub mod agent_org_tasks;
 pub mod agent_org_watchdog;
