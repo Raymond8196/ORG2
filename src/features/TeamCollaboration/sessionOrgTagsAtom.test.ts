@@ -8,6 +8,7 @@ import {
   isSessionTaggedToCloudOrg,
   taggedCloudOrgIds,
   withTag,
+  withoutCloudOrgTag,
   withoutTag,
 } from "./sessionOrgTagsAtom";
 
@@ -64,18 +65,48 @@ describe("sessionOrgTagsAtom helpers", () => {
   });
 
   it("personal exclusion is independent of cloud org tags", () => {
-    // Default: in Personal.
     expect(isSessionExcludedFromPersonal({}, "s1")).toBe(false);
-    // Exclude from Personal while still tagged to a cloud org — both coexist.
     let tags = withTag({}, "s1", cloudOrgToken("c1"));
     tags = withTag(tags, "s1", PERSONAL_EXCLUDED_TOKEN);
     expect(isSessionExcludedFromPersonal(tags, "s1")).toBe(true);
     expect(cloudOrgIdsForSession(tags, "s1")).toEqual(["c1"]);
-    // The personal marker is not a cloud org.
     expect(taggedCloudOrgIds(tags)).toEqual(new Set(["c1"]));
-    // Re-include in Personal; the cloud tag survives.
     tags = withoutTag(tags, "s1", PERSONAL_EXCLUDED_TOKEN);
     expect(isSessionExcludedFromPersonal(tags, "s1")).toBe(false);
     expect(cloudOrgIdsForSession(tags, "s1")).toEqual(["c1"]);
+  });
+
+  it("withoutCloudOrgTag keeps the personal exclusion while other cloud tags remain", () => {
+    let tags = withTag({}, "s1", cloudOrgToken("c1"));
+    tags = withTag(tags, "s1", cloudOrgToken("c2"));
+    tags = withTag(tags, "s1", PERSONAL_EXCLUDED_TOKEN);
+    const next = withoutCloudOrgTag(tags, "s1", "c1");
+    expect(cloudOrgIdsForSession(next, "s1")).toEqual(["c2"]);
+    expect(isSessionExcludedFromPersonal(next, "s1")).toBe(true);
+  });
+
+  it("withoutCloudOrgTag clears the personal exclusion with the last cloud tag", () => {
+    let tags = withTag({}, "s1", cloudOrgToken("c1"));
+    tags = withTag(tags, "s1", PERSONAL_EXCLUDED_TOKEN);
+    const next = withoutCloudOrgTag(tags, "s1", "c1");
+    expect(next).toEqual({});
+    expect(isSessionExcludedFromPersonal(next, "s1")).toBe(false);
+  });
+
+  it("withoutCloudOrgTag ignores legacy tokens when deciding the last cloud tag", () => {
+    let tags = withTag({}, "s1", cloudOrgToken("c1"));
+    tags = withTag(tags, "s1", LEGACY_SELF_HOSTED_TOKEN);
+    tags = withTag(tags, "s1", PERSONAL_EXCLUDED_TOKEN);
+    const next = withoutCloudOrgTag(tags, "s1", "c1");
+    expect(next).toEqual({ s1: [LEGACY_SELF_HOSTED_TOKEN] });
+    expect(isSessionExcludedFromPersonal(next, "s1")).toBe(false);
+  });
+
+  it("withoutCloudOrgTag without a personal exclusion matches withoutTag", () => {
+    const tags = { s1: [cloudOrgToken("c1")], s2: [cloudOrgToken("c2")] };
+    expect(withoutCloudOrgTag(tags, "s1", "c1")).toEqual({
+      s2: ["cloud:c2"],
+    });
+    expect(withoutCloudOrgTag(tags, "s1", "missing")).toBe(tags);
   });
 });

@@ -502,7 +502,10 @@
       "outOfScope": "Out of scope",
       "scopeResolving": "Checking…",
       "personal": "Personal(개인)",
-      "personalBadge": "로컬"
+      "personalBadge": "로컬",
+      "personalOnlyHome": "유일한 소속",
+      "personalUnavailable": "Personal 소속 아님",
+      "autoInScope": "범위에 따라 자동 포함"
     },
     "orgManagement": {
       "invites": {

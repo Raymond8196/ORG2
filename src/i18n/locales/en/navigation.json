@@ -531,7 +531,10 @@
       "outOfScope": "Out of scope",
       "scopeResolving": "Checking…",
       "personal": "Personal",
-      "personalBadge": "Local"
+      "personalBadge": "Local",
+      "personalOnlyHome": "Only home",
+      "personalUnavailable": "Not in Personal",
+      "autoInScope": "In org via scope"
     },
     "orgManagement": {
       "invites": {

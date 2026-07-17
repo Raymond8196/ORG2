@@ -39,13 +39,6 @@ export const sessionOrgTagsAtom = atomWithStorage<SessionOrgTags>(
 );
 sessionOrgTagsAtom.debugLabel = "sessionOrgTagsAtom";
 
-/**
- * Opt-OUT marker for the Personal scope. Personal is a default-on membership:
- * a session shows in Personal AND in every org that covers it, UNLESS the
- * user unchecks Personal in the org-tags dialog, which stores this token.
- * It is a local view preference only — never a cloud org, so the cloud
- * helpers (parseCloudOrgSelectorValue) skip it like any non-`cloud:` token.
- */
 export const PERSONAL_EXCLUDED_TOKEN = "personal:excluded";
 
 /** Token for a cloud org (`cloud:` prefixed). */
@@ -127,4 +120,15 @@ export function withoutTag(
     return rest;
   }
   return { ...tags, [sessionId]: next };
+}
+
+/** Removing the LAST cloud tag also clears the Personal exclusion, else the session is reachable in no scope. */
+export function withoutCloudOrgTag(
+  tags: SessionOrgTags,
+  sessionId: string,
+  orgId: string
+): SessionOrgTags {
+  const next = withoutTag(tags, sessionId, cloudOrgToken(orgId));
+  if (cloudOrgIdsForSession(next, sessionId).length > 0) return next;
+  return withoutTag(next, sessionId, PERSONAL_EXCLUDED_TOKEN);
 }

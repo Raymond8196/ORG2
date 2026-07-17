@@ -594,7 +594,10 @@
       "outOfScope": "Out of scope",
       "scopeResolving": "Checking…",
       "personal": "Personal（個人）",
-      "personalBadge": "本地"
+      "personalBadge": "本地",
+      "personalOnlyHome": "唯一歸屬",
+      "personalUnavailable": "不屬於 Personal",
+      "autoInScope": "已按範圍歸入"
     },
     "orgManagement": {
       "invites": {

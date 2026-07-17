@@ -39,12 +39,12 @@ import {
 } from "@src/features/SessionCreator/utils/systemPathSource";
 import { useActiveCloudOrgRepoFilter } from "@src/features/TeamCollaboration/useActiveCloudOrgRepoFilter";
 import { useDropdownEngine } from "@src/hooks/dropdown";
-import { useRepoState } from "@src/hooks/git/useRepoState";
 import { BranchPalette } from "@src/scaffold/GlobalSpotlight/palettes/BranchPalette";
 import { BranchDropdown } from "@src/scaffold/GlobalSpotlight/palettes/BranchPalette/BranchDropdown";
 import { WorkspacePalette } from "@src/scaffold/GlobalSpotlight/palettes/WorkspacePalette";
 import { WorkspaceDropdown } from "@src/scaffold/GlobalSpotlight/palettes/WorkspacePalette/WorkspaceDropdown";
 import { runGuardedCheckout } from "@src/services/git/operations/guardedCheckout";
+import { reposAtom } from "@src/store/repo";
 import { REPO_KIND, type RepoKind } from "@src/store/repo/types";
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
 import { modelPickerStyleAtom } from "@src/store/ui/chatPanelAtom";
@@ -371,36 +371,18 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   const systemPathSourceItems = useSystemPathRepoItems(includeSystemPaths, t);
   const branchRepoPath = selectedWorktreePath ?? repoPath ?? "";
 
-  // Active cloud org scope: the workspace picker only offers in-scope repos,
-  // and a stale out-of-scope selection (e.g. the persisted default from a
-  // personal-scope session) is swapped to the first in-scope repo — sessions
-  // created here must land visible in the org view, never silently in
-  // Personal. Event-driven: runs on scope switch / repo-list / resolution
-  // changes only.
   const orgScopeRepoFilter = useActiveCloudOrgRepoFilter();
-  const { repos: centralRepos } = useRepoState();
+  const centralRepos = useAtomValue(reposAtom);
   useEffect(() => {
-    if (!orgScopeRepoFilter || disabled) return;
+    // onRepoSelect only — onRepoChange would persist a global default repo.
+    if (!orgScopeRepoFilter || disabled || !onRepoSelect) return;
     if (!repoId || centralRepos.length === 0) return;
     const current = centralRepos.find((repo) => repo.id === repoId);
     if (!current || orgScopeRepoFilter(current)) return;
     const fallback = centralRepos.find((repo) => orgScopeRepoFilter(repo));
     if (!fallback) return;
-    // queueMicrotask: the selection callbacks set state synchronously, which
-    // the set-state-in-effect lint (correctly) rejects inline.
-    queueMicrotask(() =>
-      handleRepoSelected(fallback.id, {
-        id: fallback.id,
-        name: fallback.name,
-        description: fallback.description,
-        repo_url: fallback.repo_url,
-        branch: fallback.branch,
-        fs_uri: fallback.fs_uri,
-        workspace_uuid: fallback.workspace_uuid,
-        kind: fallback.kind,
-      })
-    );
-  }, [orgScopeRepoFilter, disabled, repoId, centralRepos, handleRepoSelected]);
+    queueMicrotask(() => onRepoSelect(fallback.id, fallback));
+  }, [orgScopeRepoFilter, disabled, repoId, centralRepos, onRepoSelect]);
 
   const handleBranchSelect = useCallback(
     async (branch: string) => {

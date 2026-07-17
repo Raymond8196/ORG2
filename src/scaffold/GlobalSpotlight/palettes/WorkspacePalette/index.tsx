@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 
 import { repoApi } from "@src/api/tauri/repo";
 import Message from "@src/components/Message";
+import { isSystemPathRepoItem } from "@src/features/SessionCreator/utils/systemPathSource";
 import { cachedReposAtom } from "@src/store/repo";
 import { addWorkspaceInitialStageAtom } from "@src/store/ui/overlayAtom";
 import {
@@ -436,75 +437,65 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
     [handleRemoveRepo, t]
   );
 
-  const eligibleFilteredRepos = useMemo(
-    () => (repoFilter ? filteredRepos.filter(repoFilter) : filteredRepos),
-    [filteredRepos, repoFilter]
-  );
-  const eligibleExternalRecentRepos = useMemo(
-    () =>
-      repoFilter ? externalRecentRepos.filter(repoFilter) : externalRecentRepos,
-    [externalRecentRepos, repoFilter]
-  );
-  const eligibleLeadingRepos = useMemo(
-    () => (repoFilter ? leadingRepos.filter(repoFilter) : leadingRepos),
-    [leadingRepos, repoFilter]
-  );
-
-  const mainItems = useMemo(
-    (): SpotlightItem[] =>
-      buildSectionedWorkspaceItems({
-        addMenuActive: !!addMenuKind,
-        sectionedAddItems,
-        workspaceItems,
-        openPathItem,
-        filteredRepos: eligibleFilteredRepos,
-        externalRecentRepos: eligibleExternalRecentRepos,
-        recentCachedRepos: cachedRepos,
-        currentRepoId,
-        isMultiRoot,
-        isManageMode,
-        leadingRepos: eligibleLeadingRepos,
-        selectedIds,
-        searchQuery,
-        paletteText,
-        onRepoAction: (repo) => {
-          if (isManageMode) {
-            toggleSelection(repo.id);
-          } else {
-            handleRepoSelectWithWorkspaceExit(repo.id, repo);
-          }
-        },
-        onLeadingRepoAction: (repo) => {
-          if (repo.id.startsWith("external-recent:")) {
-            void handleExternalRecentSelect(repo);
-          } else {
-            handleRepoSelectWithWorkspaceExit(repo.id, repo);
-          }
-        },
-        toggleSelection,
-        renderRepoTrashAction,
-      }),
-    [
-      addMenuKind,
-      cachedRepos,
-      currentRepoId,
-      eligibleExternalRecentRepos,
-      eligibleFilteredRepos,
-      handleExternalRecentSelect,
-      handleRepoSelectWithWorkspaceExit,
-      isManageMode,
-      isMultiRoot,
-      eligibleLeadingRepos,
-      openPathItem,
-      paletteText,
-      renderRepoTrashAction,
-      searchQuery,
+  const mainItems = useMemo((): SpotlightItem[] => {
+    const eligible = repoFilter
+      ? (repo: RepoItem) => isSystemPathRepoItem(repo) || repoFilter(repo)
+      : null;
+    return buildSectionedWorkspaceItems({
+      addMenuActive: !!addMenuKind,
       sectionedAddItems,
-      selectedIds,
-      toggleSelection,
       workspaceItems,
-    ]
-  );
+      openPathItem,
+      filteredRepos: eligible ? filteredRepos.filter(eligible) : filteredRepos,
+      externalRecentRepos: eligible
+        ? externalRecentRepos.filter(eligible)
+        : externalRecentRepos,
+      recentCachedRepos: cachedRepos,
+      currentRepoId,
+      isMultiRoot,
+      isManageMode,
+      leadingRepos: eligible ? leadingRepos.filter(eligible) : leadingRepos,
+      selectedIds,
+      searchQuery,
+      paletteText,
+      onRepoAction: (repo) => {
+        if (isManageMode) {
+          toggleSelection(repo.id);
+        } else {
+          handleRepoSelectWithWorkspaceExit(repo.id, repo);
+        }
+      },
+      onLeadingRepoAction: (repo) => {
+        if (repo.id.startsWith("external-recent:")) {
+          void handleExternalRecentSelect(repo);
+        } else {
+          handleRepoSelectWithWorkspaceExit(repo.id, repo);
+        }
+      },
+      toggleSelection,
+      renderRepoTrashAction,
+    });
+  }, [
+    addMenuKind,
+    cachedRepos,
+    currentRepoId,
+    externalRecentRepos,
+    filteredRepos,
+    handleExternalRecentSelect,
+    handleRepoSelectWithWorkspaceExit,
+    isManageMode,
+    isMultiRoot,
+    leadingRepos,
+    openPathItem,
+    paletteText,
+    renderRepoTrashAction,
+    repoFilter,
+    searchQuery,
+    sectionedAddItems,
+    selectedIds,
+    toggleSelection,
+    workspaceItems,
+  ]);
 
   const pinnedActionStartIndex = mainItems.length;
   const items = useMemo(

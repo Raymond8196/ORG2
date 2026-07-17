@@ -502,7 +502,10 @@
       "outOfScope": "Out of scope",
       "scopeResolving": "Checking…",
       "personal": "Personal (Kişisel)",
-      "personalBadge": "Yerel"
+      "personalBadge": "Yerel",
+      "personalOnlyHome": "Tek konum",
+      "personalUnavailable": "Personal'da değil",
+      "autoInScope": "Repo kapsamıyla dahil"
     },
     "orgManagement": {
       "invites": {
