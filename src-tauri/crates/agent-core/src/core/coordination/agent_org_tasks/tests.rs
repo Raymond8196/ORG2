@@ -3,6 +3,15 @@ use database::db::get_connection;
 use super::*;
 
 fn make_params(org_run_id: &str, id: &str, subject: &str) -> CreateTaskParams {
+    let conn = get_connection().expect("task test database");
+    let now = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "INSERT OR IGNORE INTO agent_org_runs
+         (id, org_id, coordinator_agent_id, entry_mode, status, created_at, updated_at)
+         VALUES (?1, 'task-test-org', 'task-test-coordinator', 'standalone_session', 'running', ?2, ?2)",
+        rusqlite::params![org_run_id, now],
+    )
+    .expect("seed running parent Agent Org run");
     CreateTaskParams {
         id: id.into(),
         org_run_id: org_run_id.into(),
@@ -138,6 +147,182 @@ fn create_get_round_trip() {
 }
 
 #[test]
+fn create_rolls_back_when_transactional_outbox_fails() {
+    let _sandbox = task_store_sandbox();
+    let run_id = format!("run-{}", uuid::Uuid::new_v4());
+    let result: Result<(Task, ()), String> = AgentOrgTaskStore::create_with_transactional_effects(
+        make_params(&run_id, "atomic-create", "Atomic create"),
+        TaskCreateSchedulingPolicy {
+            allow_parallel_with_unlisted_open_tasks: false,
+        },
+        |_tx, _task, _tasks| Err("injected outbox failure".to_string()),
+    );
+    assert!(result.unwrap_err().contains("injected outbox failure"));
+    assert!(AgentOrgTaskStore::get(&run_id, "atomic-create")
+        .unwrap()
+        .is_none());
+    assert!(AgentOrgTaskStore::list_history(&run_id).unwrap().is_empty());
+    assert!(
+        crate::coordination::agent_org_runs::AgentOrgRunStore::progress(&run_id)
+            .unwrap()
+            .is_none()
+    );
+}
+
+#[test]
+fn graph_create_rolls_back_every_row_when_transactional_outbox_fails() {
+    let _sandbox = task_store_sandbox();
+    let run_id = format!("run-{}", uuid::Uuid::new_v4());
+    let mut downstream = make_params(&run_id, "graph-b", "Graph B");
+    downstream.blocked_by = vec!["graph-a".to_string()];
+    let result: Result<(Vec<Task>, ()), String> =
+        AgentOrgTaskStore::create_batch_with_transactional_effects(
+            vec![make_params(&run_id, "graph-a", "Graph A"), downstream],
+            true,
+            |_tx, _created, _tasks| Err("injected graph outbox failure".to_string()),
+        );
+    assert!(result
+        .unwrap_err()
+        .contains("injected graph outbox failure"));
+    assert!(AgentOrgTaskStore::list(&run_id).unwrap().is_empty());
+    assert!(AgentOrgTaskStore::list_history(&run_id).unwrap().is_empty());
+}
+
+#[test]
+fn update_rolls_back_task_history_revision_and_outbox_together() {
+    let _sandbox = task_store_sandbox();
+    let run_id = format!("run-{}", uuid::Uuid::new_v4());
+    let created =
+        AgentOrgTaskStore::create(make_params(&run_id, "atomic-update", "Before update")).unwrap();
+    let history_before = AgentOrgTaskStore::list_history(&run_id).unwrap();
+    let revision_before = crate::coordination::agent_org_runs::AgentOrgRunStore::progress(&run_id)
+        .unwrap()
+        .unwrap()
+        .work_revision;
+
+    let result: Result<(TaskMutationOutcome, ()), String> =
+        AgentOrgTaskStore::update_with_outcome_if_unchanged_and_transactional_effects(
+            &run_id,
+            &created.id,
+            &created.updated_at,
+            UpdateTaskPatch {
+                subject: Some("After update".to_string()),
+                ..Default::default()
+            },
+            |_tx, _outcome, _tasks| Err("injected update outbox failure".to_string()),
+        );
+    assert!(result
+        .unwrap_err()
+        .contains("injected update outbox failure"));
+    assert_eq!(
+        AgentOrgTaskStore::get(&run_id, &created.id)
+            .unwrap()
+            .unwrap()
+            .subject,
+        "Before update"
+    );
+    assert_eq!(
+        AgentOrgTaskStore::list_history(&run_id).unwrap().len(),
+        history_before.len()
+    );
+    assert_eq!(
+        crate::coordination::agent_org_runs::AgentOrgRunStore::progress(&run_id)
+            .unwrap()
+            .unwrap()
+            .work_revision,
+        revision_before
+    );
+}
+
+#[test]
+fn concurrent_assignment_update_commits_exactly_one_task_assigned_outbox_row() {
+    let _sandbox = task_store_sandbox();
+    let run_id = format!("run-{}", uuid::Uuid::new_v4());
+    let created =
+        AgentOrgTaskStore::create(make_params(&run_id, "concurrent-assignment", "Assign once"))
+            .unwrap();
+    let barrier = std::sync::Arc::new(std::sync::Barrier::new(2));
+    let results = std::thread::scope(|scope| {
+        let mut handles = Vec::new();
+        for _ in 0..2 {
+            let barrier = std::sync::Arc::clone(&barrier);
+            let run_id = run_id.clone();
+            let task_id = created.id.clone();
+            let expected_updated_at = created.updated_at.clone();
+            handles.push(scope.spawn(move || {
+                barrier.wait();
+                AgentOrgTaskStore::update_with_outcome_if_unchanged_and_transactional_effects(
+                    &run_id,
+                    &task_id,
+                    &expected_updated_at,
+                    UpdateTaskPatch {
+                        owner: Some(Some("member-default".to_string())),
+                        ..Default::default()
+                    },
+                    |tx, outcome, tasks| {
+                        enqueue_task_assigned_to_with_tasks_in_tx(
+                            tx,
+                            &outcome.current,
+                            tasks,
+                            "member-agent",
+                            "member-default",
+                            crate::coordination::agent_inbox::SYSTEM_SENDER_ID,
+                            None,
+                            "Coordinator",
+                        )
+                    },
+                )
+            }));
+        }
+        handles
+            .into_iter()
+            .map(|handle| handle.join().expect("assignment thread"))
+            .collect::<Vec<_>>()
+    });
+    assert_eq!(results.iter().filter(|result| result.is_ok()).count(), 1);
+    assert_eq!(
+        results
+            .iter()
+            .filter(|result| {
+                result.as_ref().is_err_and(|error| {
+                    error.contains(
+                        crate::coordination::agent_org_tasks::TASK_MUTATION_CONFLICT_ERROR,
+                    )
+                })
+            })
+            .count(),
+        1
+    );
+    assert_eq!(
+        crate::coordination::agent_inbox::AgentInboxStore::list_unread_for_member(
+            "member-default",
+            &run_id,
+        )
+        .unwrap()
+        .len(),
+        1
+    );
+}
+
+#[test]
+fn delete_rejects_task_still_referenced_by_canonical_dependencies() {
+    let _sandbox = task_store_sandbox();
+    let run_id = format!("run-{}", uuid::Uuid::new_v4());
+    AgentOrgTaskStore::create(make_params(&run_id, "dependency", "Dependency")).unwrap();
+    let mut dependent = make_params(&run_id, "dependent", "Dependent");
+    dependent.blocked_by = vec!["dependency".to_string()];
+    AgentOrgTaskStore::create(dependent).unwrap();
+
+    let error = AgentOrgTaskStore::delete(&run_id, "dependency")
+        .expect_err("referenced dependency must not be silently removed");
+    assert!(error.contains("task_delete_has_dependents"));
+    assert!(error.contains("dependent"));
+    assert!(AgentOrgTaskStore::get(&run_id, "dependency")
+        .unwrap()
+        .is_some());
+}
+
+#[test]
 fn create_batch_rechecks_existing_open_work_inside_transaction() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
@@ -226,6 +411,22 @@ fn store_rejects_malformed_reserved_dispatch_metadata() {
         },
     }));
     let err = AgentOrgTaskStore::create(invalid_output).unwrap_err();
+    assert!(err.contains("valid RFC3339"), "got {err}");
+
+    let mut timezone_less_output = make_params(&run_id, "task-output-zone", "missing zone");
+    timezone_less_output.owner = Some("member-default".to_string());
+    timezone_less_output.status = TaskStatus::Completed;
+    timezone_less_output.metadata = Some(serde_json::json!({
+        TASK_METADATA_ELIGIBLE_MEMBER_IDS: ["member-default"],
+        TASK_METADATA_OUTPUT: {
+            "summary": "done",
+            "content": null,
+            "artifactIds": [],
+            "producedByMemberId": "member-default",
+            "producedAt": "2026-07-17 12:34:56",
+        },
+    }));
+    let err = AgentOrgTaskStore::create(timezone_less_output).unwrap_err();
     assert!(err.contains("valid RFC3339"), "got {err}");
 }
 
@@ -425,6 +626,9 @@ fn update_outcome_only_marks_ready_transition_once() {
 fn update_missing_returns_error() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
+    // The mutation invariant first verifies that the parent run exists and is
+    // mutable. Seed only that run so this test reaches the missing-task branch.
+    let _unused = make_params(&run_id, "not-created", "not created");
     let err =
         AgentOrgTaskStore::update(&run_id, "missing", UpdateTaskPatch::default()).unwrap_err();
     assert!(err.contains("task_not_found"), "got {err}");
@@ -442,27 +646,27 @@ fn create_rejects_self_dependency_cycle() {
 }
 
 #[test]
-fn update_rejects_dependency_cycle_across_blocks_and_blocked_by() {
+fn update_rejects_dependency_cycle_in_canonical_blocked_by() {
     let _sandbox = task_store_sandbox();
     let run_id = format!("run-{}", uuid::Uuid::new_v4());
-    let mut first = make_params(&run_id, "first", "first");
-    first.blocks = vec!["second".into()];
-    AgentOrgTaskStore::create(first).unwrap();
-    AgentOrgTaskStore::create(make_params(&run_id, "second", "second")).unwrap();
+    AgentOrgTaskStore::create(make_params(&run_id, "first", "first")).unwrap();
+    let mut second = make_params(&run_id, "second", "second");
+    second.blocked_by = vec!["first".into()];
+    AgentOrgTaskStore::create(second).unwrap();
 
     let err = AgentOrgTaskStore::update(
         &run_id,
-        "second",
+        "first",
         UpdateTaskPatch {
-            blocks: Some(vec!["first".into()]),
+            blocked_by: Some(vec!["second".into()]),
             ..Default::default()
         },
     )
     .unwrap_err();
     assert!(err.contains(TASK_DEPENDENCY_CYCLE_ERROR), "got {err}");
 
-    let second = AgentOrgTaskStore::get(&run_id, "second").unwrap().unwrap();
-    assert!(second.blocks.is_empty());
+    let first = AgentOrgTaskStore::get(&run_id, "first").unwrap().unwrap();
+    assert!(first.blocked_by.is_empty());
 }
 
 #[test]
@@ -471,13 +675,15 @@ fn dependency_cycle_validation_is_scoped_by_run() {
     let run_a = format!("run-a-{}", uuid::Uuid::new_v4());
     let run_b = format!("run-b-{}", uuid::Uuid::new_v4());
 
-    let mut first = make_params(&run_a, "first", "first");
-    first.blocks = vec!["second".into()];
-    AgentOrgTaskStore::create(first).unwrap();
+    AgentOrgTaskStore::create(make_params(&run_a, "first", "first")).unwrap();
+    let mut run_a_second = make_params(&run_a, "second", "second");
+    run_a_second.blocked_by = vec!["first".into()];
+    AgentOrgTaskStore::create(run_a_second).unwrap();
 
-    let mut second = make_params(&run_b, "second", "second");
-    second.blocked_by = vec!["first".into()];
-    AgentOrgTaskStore::create(second).unwrap();
+    AgentOrgTaskStore::create(make_params(&run_b, "second", "second")).unwrap();
+    let mut run_b_first = make_params(&run_b, "first", "first");
+    run_b_first.blocked_by = vec!["second".into()];
+    AgentOrgTaskStore::create(run_b_first).unwrap();
 }
 
 #[test]
@@ -488,6 +694,8 @@ fn delete_removes_row() {
 
     assert!(AgentOrgTaskStore::delete(&run_id, "t-1").unwrap());
     assert!(AgentOrgTaskStore::get(&run_id, "t-1").unwrap().is_none());
+    let history = AgentOrgTaskStore::list_history(&run_id).unwrap();
+    assert_eq!(history.last().unwrap().event_type, "deleted");
     assert!(!AgentOrgTaskStore::delete(&run_id, "t-1").unwrap());
 }
 

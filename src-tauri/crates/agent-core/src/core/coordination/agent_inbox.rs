@@ -25,7 +25,9 @@
 
 use rusqlite::{params, Connection, OptionalExtension, Result as SqliteResult};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
+use crate::coordination::agent_org_payload_limits as limits;
 use crate::session::AgentExecMode;
 use database::db::{get_connection, with_sessions_writer};
 
@@ -51,6 +53,16 @@ pub fn is_supported_agent_org_remote_mode(mode: AgentExecMode) -> bool {
 /// `agent_id` (those are UUIDs / human-chosen names).
 pub const SYSTEM_SENDER_ID: &str = "_system";
 pub const USER_SENDER_ID: &str = "_user";
+
+/// Hard ceiling for a single bounded Run View inbox snapshot. Explicit
+/// history/debug callers use cursor pages; production projections must never
+/// materialize an unbounded run history.
+pub const MAX_RUN_INBOX_SNAPSHOT_ROWS: usize = 500;
+pub const MAX_RUN_INBOX_PREVIEW_CHARS: usize = 512;
+pub const MAX_INBOX_DRAIN_ROWS: usize = 128;
+pub const MAX_INBOX_DRAIN_PAYLOAD_BYTES: usize = 1024 * 1024;
+pub const MAX_INBOX_HISTORY_PAGE_ROWS: usize = 100;
+pub const MAX_INBOX_HISTORY_PAGE_BYTES: usize = 1024 * 1024;
 
 /// Wrapper around a UUID-ish string that correlates a request to a response.
 ///
@@ -394,69 +406,82 @@ impl AgentMessage {
     /// Returns a stable error string suitable to surface back to the LLM
     /// via tool error reporting.
     pub fn validate(&self) -> Result<(), String> {
+        if let Some(request_id) = self.request_id() {
+            validate_non_empty_identifier("request_id", request_id.as_str())?;
+        }
         match self {
             Self::Plain { summary, text } => {
-                if summary.trim().is_empty() {
-                    return Err("Plain.summary must not be empty".into());
-                }
-                if text.trim().is_empty() {
-                    return Err("Plain.text must not be empty".into());
-                }
-                if summary.len() > 200 {
-                    return Err("Plain.summary must be ≤ 200 chars".into());
-                }
+                limits::validate_required_text(
+                    "Plain.summary",
+                    summary,
+                    limits::PLAIN_SUMMARY_MAX_CHARS,
+                    limits::PLAIN_SUMMARY_MAX_BYTES,
+                )?;
+                limits::validate_required_text(
+                    "Plain.text",
+                    text,
+                    limits::PLAIN_TEXT_MAX_CHARS,
+                    limits::PLAIN_TEXT_MAX_BYTES,
+                )?;
             }
-            Self::ShutdownRequest { request_id, .. }
-            | Self::ShutdownResponse { request_id, .. } => {
-                if request_id.as_str().trim().is_empty() {
-                    return Err("request_id must not be empty".into());
-                }
+            Self::ShutdownRequest { reason, .. } => {
+                limits::validate_optional_text(
+                    "ShutdownRequest.reason",
+                    reason.as_deref(),
+                    limits::SHUTDOWN_NOTE_MAX_CHARS,
+                    limits::SHUTDOWN_NOTE_MAX_BYTES,
+                )?;
+            }
+            Self::ShutdownResponse { note, .. } => {
+                limits::validate_optional_text(
+                    "ShutdownResponse.note",
+                    note.as_deref(),
+                    limits::SHUTDOWN_NOTE_MAX_CHARS,
+                    limits::SHUTDOWN_NOTE_MAX_BYTES,
+                )?;
             }
             Self::PlanApprovalRequest {
-                request_id,
                 approval_id,
                 plan_revision_id,
                 source_task_id,
                 plan_title,
                 plan_path,
                 plan_content,
+                ..
             } => {
-                if request_id.as_str().trim().is_empty() {
-                    return Err("request_id must not be empty".into());
-                }
-                if plan_title.trim().is_empty() {
-                    return Err("PlanApprovalRequest.plan_title must not be empty".into());
-                }
-                if approval_id.trim().is_empty()
-                    || plan_revision_id.trim().is_empty()
-                    || source_task_id.trim().is_empty()
-                {
-                    return Err(
-                        "PlanApprovalRequest requires approval_id, plan_revision_id, and source_task_id"
-                            .into(),
-                    );
-                }
-                if plan_path.trim().is_empty() {
-                    return Err("PlanApprovalRequest.plan_path must not be empty".into());
-                }
-                if plan_content.trim().is_empty() {
-                    return Err("PlanApprovalRequest.plan_content must not be empty".into());
-                }
-                if plan_content.chars().count() > 20_000 {
-                    return Err(
-                        "PlanApprovalRequest.plan_content must be ≤ 20000 chars; use plan_path for the full plan"
-                            .into(),
-                    );
-                }
+                limits::validate_required_text(
+                    "PlanApprovalRequest.plan_title",
+                    plan_title,
+                    limits::PLAN_TITLE_MAX_CHARS,
+                    limits::PLAN_TITLE_MAX_BYTES,
+                )?;
+                validate_non_empty_identifier("PlanApprovalRequest.approval_id", approval_id)?;
+                validate_non_empty_identifier(
+                    "PlanApprovalRequest.plan_revision_id",
+                    plan_revision_id,
+                )?;
+                validate_non_empty_identifier(
+                    "PlanApprovalRequest.source_task_id",
+                    source_task_id,
+                )?;
+                limits::validate_required_text(
+                    "PlanApprovalRequest.plan_path",
+                    plan_path,
+                    limits::PLAN_PATH_MAX_CHARS,
+                    limits::PLAN_PATH_MAX_BYTES,
+                )?;
+                limits::validate_required_text(
+                    "PlanApprovalRequest.plan_content",
+                    plan_content,
+                    limits::INLINE_PLAN_CONTENT_MAX_CHARS,
+                    limits::INLINE_PLAN_CONTENT_MAX_BYTES,
+                )?;
             }
             Self::PlanApprovalResponse {
-                request_id,
+                feedback,
                 next_mode,
                 ..
             } => {
-                if request_id.as_str().trim().is_empty() {
-                    return Err("request_id must not be empty".into());
-                }
                 if let Some(mode) = next_mode {
                     if !is_supported_agent_org_remote_mode(*mode) {
                         return Err(
@@ -465,18 +490,25 @@ impl AgentMessage {
                         );
                     }
                 }
+                limits::validate_optional_text(
+                    "PlanApprovalResponse.feedback",
+                    feedback.as_deref(),
+                    limits::PLAN_FEEDBACK_MAX_CHARS,
+                    limits::PLAN_FEEDBACK_MAX_BYTES,
+                )?;
             }
             Self::MemberTerminated {
                 member_id,
                 member_name,
                 ..
             } => {
-                if member_id.trim().is_empty() {
-                    return Err("MemberTerminated.member_id must not be empty".into());
-                }
-                if member_name.trim().is_empty() {
-                    return Err("MemberTerminated.member_name must not be empty".into());
-                }
+                validate_non_empty_identifier("MemberTerminated.member_id", member_id)?;
+                limits::validate_required_text(
+                    "MemberTerminated.member_name",
+                    member_name,
+                    limits::MEMBER_DISPLAY_NAME_MAX_CHARS,
+                    limits::MEMBER_DISPLAY_NAME_MAX_BYTES,
+                )?;
             }
             Self::MemberIdle {
                 member_id,
@@ -487,35 +519,38 @@ impl AgentMessage {
                 unfinished_task_ids,
                 ..
             } => {
-                if member_id.trim().is_empty() {
-                    return Err("MemberIdle.member_id must not be empty".into());
-                }
-                if member_name.trim().is_empty() {
-                    return Err("MemberIdle.member_name must not be empty".into());
-                }
-                if let Some(s) = summary {
-                    if s.len() > 500 {
-                        return Err("MemberIdle.summary must be ≤ 500 chars".into());
-                    }
-                }
+                validate_non_empty_identifier("MemberIdle.member_id", member_id)?;
+                limits::validate_required_text(
+                    "MemberIdle.member_name",
+                    member_name,
+                    limits::MEMBER_DISPLAY_NAME_MAX_CHARS,
+                    limits::MEMBER_DISPLAY_NAME_MAX_BYTES,
+                )?;
+                limits::validate_optional_text(
+                    "MemberIdle.summary",
+                    summary.as_deref(),
+                    limits::MEMBER_SUMMARY_MAX_CHARS,
+                    limits::MEMBER_SUMMARY_MAX_BYTES,
+                )?;
                 if unfinished_task_ids.len() > 32
                     || unfinished_task_ids
                         .iter()
                         .any(|task_id| task_id.trim().is_empty() || task_id.len() > 200)
                 {
                     return Err(
-                        "MemberIdle.unfinished_task_ids must contain at most 32 non-empty task ids of ≤ 200 chars"
+                        "MemberIdle.unfinished_task_ids must contain at most 32 non-empty task ids of <= 200 chars"
                             .into(),
                     );
                 }
                 match reason {
                     MemberIdleReason::Failed => {
                         let fr = failure_reason.as_deref().unwrap_or("").trim();
-                        if fr.is_empty() {
-                            return Err(
-                                "MemberIdle.failure_reason is required when reason='failed'".into(),
-                            );
-                        }
+                        limits::validate_required_text(
+                            "MemberIdle.failure_reason",
+                            fr,
+                            limits::MEMBER_FAILURE_REASON_MAX_CHARS,
+                            limits::MEMBER_FAILURE_REASON_MAX_BYTES,
+                        )?;
                     }
                     MemberIdleReason::Available | MemberIdleReason::Interrupted => {
                         if failure_reason.is_some() {
@@ -535,21 +570,31 @@ impl AgentMessage {
                 dependency_outputs,
                 ..
             } => {
-                if task_id.trim().is_empty() {
-                    return Err("TaskAssigned.task_id must not be empty".into());
+                validate_non_empty_identifier("TaskAssigned.task_id", task_id)?;
+                if dependency_outputs.len() > limits::TASK_DEPENDENCY_OUTPUT_MAX_COUNT {
+                    return Err(format!(
+                        "TaskAssigned.dependency_outputs must contain at most {} entries",
+                        limits::TASK_DEPENDENCY_OUTPUT_MAX_COUNT
+                    ));
                 }
-                if subject.trim().is_empty() {
-                    return Err("TaskAssigned.subject must not be empty".into());
-                }
-                if assigned_by.trim().is_empty() {
-                    return Err("TaskAssigned.assigned_by must not be empty".into());
-                }
-                if subject.len() > 200 {
-                    return Err("TaskAssigned.subject must be ≤ 200 chars".into());
-                }
-                if description.len() > 4000 {
-                    return Err("TaskAssigned.description must be ≤ 4000 chars".into());
-                }
+                limits::validate_required_text(
+                    "TaskAssigned.subject",
+                    subject,
+                    limits::TASK_SUBJECT_MAX_CHARS,
+                    limits::TASK_SUBJECT_MAX_BYTES,
+                )?;
+                limits::validate_required_text(
+                    "TaskAssigned.assigned_by",
+                    assigned_by,
+                    limits::ASSIGNED_BY_MAX_CHARS,
+                    limits::ASSIGNED_BY_MAX_BYTES,
+                )?;
+                limits::validate_text_len(
+                    "TaskAssigned.description",
+                    description,
+                    limits::TASK_DESCRIPTION_MAX_CHARS,
+                    limits::TASK_DESCRIPTION_MAX_BYTES,
+                )?;
                 for output in dependency_outputs {
                     if output.task_id.trim().is_empty()
                         || output.subject.trim().is_empty()
@@ -561,26 +606,46 @@ impl AgentMessage {
                                 .into(),
                         );
                     }
-                    if output
-                        .content
-                        .as_ref()
-                        .is_some_and(|content| content.chars().count() > 20_000)
-                    {
-                        return Err(
-                            "TaskAssigned.dependency_outputs content must be ≤ 20000 chars".into(),
-                        );
-                    }
+                    limits::validate_required_text(
+                        "TaskAssigned dependency subject",
+                        &output.subject,
+                        limits::TASK_SUBJECT_MAX_CHARS,
+                        limits::TASK_SUBJECT_MAX_BYTES,
+                    )?;
+                    limits::validate_required_text(
+                        "TaskAssigned dependency summary",
+                        &output.summary,
+                        limits::TASK_OUTPUT_SUMMARY_MAX_CHARS,
+                        limits::TASK_OUTPUT_SUMMARY_MAX_BYTES,
+                    )?;
+                    limits::validate_optional_text(
+                        "TaskAssigned dependency content",
+                        output.content.as_deref(),
+                        limits::TASK_OUTPUT_CONTENT_MAX_CHARS,
+                        limits::TASK_OUTPUT_CONTENT_MAX_BYTES,
+                    )?;
                 }
                 let total_inline_chars: usize = dependency_outputs
                     .iter()
                     .filter_map(|output| output.content.as_ref())
                     .map(|content| content.chars().count())
                     .sum();
-                if total_inline_chars > 50_000 {
-                    return Err(
-                        "TaskAssigned.dependency_outputs total inline content must be ≤ 50000 chars; use artifacts for larger handoffs"
-                            .into(),
-                    );
+                if total_inline_chars > limits::TASK_DEPENDENCY_TOTAL_CONTENT_MAX_CHARS {
+                    return Err(format!(
+                        "TaskAssigned.dependency_outputs total inline content must be <= {} chars; use artifacts for larger handoffs",
+                        limits::TASK_DEPENDENCY_TOTAL_CONTENT_MAX_CHARS
+                    ));
+                }
+                let total_inline_bytes: usize = dependency_outputs
+                    .iter()
+                    .filter_map(|output| output.content.as_ref())
+                    .map(String::len)
+                    .sum();
+                if total_inline_bytes > limits::TASK_DEPENDENCY_TOTAL_CONTENT_MAX_BYTES {
+                    return Err(format!(
+                        "TaskAssigned.dependency_outputs total inline content must be <= {} bytes; use artifacts for larger handoffs",
+                        limits::TASK_DEPENDENCY_TOTAL_CONTENT_MAX_BYTES
+                    ));
                 }
             }
             Self::TaskCompleted {
@@ -590,42 +655,45 @@ impl AgentMessage {
                 output_summary,
                 ..
             } => {
-                if task_id.trim().is_empty() {
-                    return Err("TaskCompleted.task_id must not be empty".into());
-                }
-                if subject.trim().is_empty() {
-                    return Err("TaskCompleted.subject must not be empty".into());
-                }
-                if completed_by_member_id.trim().is_empty() {
-                    return Err("TaskCompleted.completed_by_member_id must not be empty".into());
-                }
-                if output_summary
-                    .as_ref()
-                    .is_some_and(|summary| summary.chars().count() > 1_000)
-                {
-                    return Err("TaskCompleted.output_summary must be ≤ 1000 chars".into());
-                }
+                validate_non_empty_identifier("TaskCompleted.task_id", task_id)?;
+                limits::validate_required_text(
+                    "TaskCompleted.subject",
+                    subject,
+                    limits::TASK_SUBJECT_MAX_CHARS,
+                    limits::TASK_SUBJECT_MAX_BYTES,
+                )?;
+                validate_non_empty_identifier(
+                    "TaskCompleted.completed_by_member_id",
+                    completed_by_member_id,
+                )?;
+                limits::validate_optional_text(
+                    "TaskCompleted.output_summary",
+                    output_summary.as_deref(),
+                    limits::TASK_OUTPUT_SUMMARY_MAX_CHARS,
+                    limits::TASK_OUTPUT_SUMMARY_MAX_BYTES,
+                )?;
             }
-            Self::ExecModeSetRequest {
-                request_id,
-                mode,
-                reason,
-            } => {
-                if request_id.as_str().trim().is_empty() {
-                    return Err("ExecModeSetRequest.request_id must not be empty".into());
-                }
+            Self::ExecModeSetRequest { mode, reason, .. } => {
                 if !is_supported_agent_org_remote_mode(*mode) {
                     return Err("ExecModeSetRequest.mode must be one of: build, ask, plan".into());
                 }
-                if let Some(r) = reason {
-                    if r.len() > 500 {
-                        return Err("ExecModeSetRequest.reason must be ≤ 500 chars".into());
-                    }
-                }
+                limits::validate_optional_text(
+                    "ExecModeSetRequest.reason",
+                    reason.as_deref(),
+                    limits::EXEC_MODE_REASON_MAX_CHARS,
+                    limits::EXEC_MODE_REASON_MAX_BYTES,
+                )?;
             }
         }
         Ok(())
     }
+}
+
+fn validate_non_empty_identifier(field: &str, value: &str) -> Result<(), String> {
+    if value.trim().is_empty() {
+        return Err(format!("{field} must not be empty"));
+    }
+    Ok(())
 }
 
 /// Persisted inbox row.
@@ -643,6 +711,73 @@ pub struct AgentInboxRecord {
     pub request_id: Option<String>,
     pub created_at: String,
     pub read_at: Option<String>,
+}
+
+/// Aggregate inbox activity for one concrete recipient identity in a run.
+///
+/// `recipient_member_id` is canonical for materialized Agent Org members.
+/// Historical coordinator rows may only carry `recipient_agent_id`, so both
+/// identities stay available to the projection layer instead of being merged
+/// through a potentially-colliding `COALESCE` key.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentInboxRecipientCounts {
+    pub recipient_agent_id: String,
+    pub recipient_member_id: Option<String>,
+    pub activity_count: usize,
+    pub unread_count: usize,
+}
+
+/// Payload-free unread totals used by recovery and high-frequency read views.
+///
+/// This deliberately has no historical activity count: periodic paths should
+/// scan only the partial unread index, while durable history stays behind the
+/// paginated Inbox APIs.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct AgentInboxUnreadRecipientCounts {
+    pub recipient_agent_id: String,
+    pub recipient_member_id: Option<String>,
+    pub unread_count: usize,
+    /// Highest unread row id for this exact recipient identity. Together
+    /// with `unread_count` this is the payload-free identity used by recovery
+    /// budgets; keeping it in the grouped snapshot avoids one query per
+    /// member during every watchdog tick.
+    pub max_unread_id: i64,
+}
+
+/// Lightweight row used by Run View / monitoring projections.
+///
+/// Deliberately excludes `payload_json`: a plan request can legally carry a
+/// 256 KiB document, and a status panel must never retain hundreds of those
+/// documents just to render a short activity label.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentInboxPreviewRecord {
+    pub id: i64,
+    pub recipient_agent_id: String,
+    pub recipient_member_id: Option<String>,
+    pub sender_agent_id: String,
+    pub sender_member_id: Option<String>,
+    pub org_run_id: Option<String>,
+    pub payload_kind: String,
+    pub request_id: Option<String>,
+    pub created_at: String,
+    pub read_at: Option<String>,
+    pub display_preview: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AgentInboxBatch {
+    pub rows: Vec<AgentInboxRecord>,
+    pub has_more: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentInboxPage {
+    pub rows: Vec<AgentInboxRecord>,
+    pub has_more: bool,
+    pub next_cursor: Option<i64>,
 }
 
 impl AgentInboxRecord {
@@ -667,26 +802,134 @@ pub struct InsertInboxParams {
     pub message: AgentMessage,
 }
 
+const UNREAD_COUNTS_BY_RECIPIENT_SQL: &str = "SELECT recipient_agent_id,
+            recipient_member_id,
+            COUNT(*) AS unread_count,
+            MAX(id) AS max_unread_id
+     FROM agent_inbox INDEXED BY idx_agent_inbox_run_unread_recipient
+     WHERE org_run_id = ?1
+       AND read_at IS NULL
+     GROUP BY recipient_member_id, recipient_agent_id
+     ORDER BY recipient_member_id ASC, recipient_agent_id ASC";
+
 /// Initialize the `agent_inbox` table.
 ///
 /// Hot-path indexes:
 /// - `(recipient_member_id, read_at, created_at)` — materialized org member drain query.
 /// - `(recipient_agent_id, read_at, created_at)` — coordinator / legacy drain query.
-/// - `(org_run_id, created_at)` — debug / E2E "list every message in this
-///   run" view.
+/// - `(org_run_id, created_at)` — bounded debug / E2E history pages.
 /// - `(request_id)` — RPC correlation lookups.
 pub fn init_schema(conn: &Connection) -> SqliteResult<()> {
     create_agent_inbox_table(conn)?;
-    conn.execute_batch(
-        "CREATE INDEX IF NOT EXISTS idx_agent_inbox_recipient_member_unread
+    ensure_agent_inbox_column(conn, "causation_inbox_id", "INTEGER")?;
+    ensure_agent_inbox_column(conn, "display_text", "TEXT")?;
+    let schema = format!(
+        "CREATE TABLE IF NOT EXISTS agent_inbox_materializations (
+            inbox_id INTEGER PRIMARY KEY,
+            session_id TEXT NOT NULL,
+            transcript_message_id TEXT NOT NULL,
+            transcript_intent_id TEXT NOT NULL,
+            materialized_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_agent_inbox_materializations_session
+            ON agent_inbox_materializations(session_id, inbox_id);
+        CREATE INDEX IF NOT EXISTS idx_agent_inbox_recipient_member_unread
             ON agent_inbox(recipient_member_id, read_at, created_at);
         CREATE INDEX IF NOT EXISTS idx_agent_inbox_recipient_unread
             ON agent_inbox(recipient_agent_id, read_at, created_at);
         CREATE INDEX IF NOT EXISTS idx_agent_inbox_org_run
             ON agent_inbox(org_run_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_agent_inbox_org_run_id
+            ON agent_inbox(org_run_id, id);
+        CREATE INDEX IF NOT EXISTS idx_agent_inbox_run_unread_recipient
+            ON agent_inbox(org_run_id, recipient_member_id, recipient_agent_id, id)
+            WHERE read_at IS NULL;
+        CREATE INDEX IF NOT EXISTS idx_agent_inbox_run_kind_id
+            ON agent_inbox(org_run_id, payload_kind, id);
+        CREATE INDEX IF NOT EXISTS idx_agent_inbox_run_task_assignment_v4
+            ON agent_inbox(
+                org_run_id,
+                recipient_member_id,
+                json_extract(
+                    CASE WHEN length(CAST(payload_json AS BLOB))<={payload_max}
+                                   AND json_valid(payload_json)
+                         THEN payload_json ELSE '{{}}' END,
+                    '$.task_id'
+                )
+            )
+            WHERE payload_kind='task_assigned'
+              AND CASE WHEN length(CAST(payload_json AS BLOB))<={payload_max}
+                       THEN json_valid(payload_json) ELSE 0 END
+              AND json_type(
+                    CASE WHEN length(CAST(payload_json AS BLOB))<={payload_max}
+                                   AND json_valid(payload_json)
+                         THEN payload_json ELSE '{{}}' END,
+                    '$.task_id'
+                  )='text';
+        DROP INDEX IF EXISTS idx_agent_inbox_run_task_assignment_v3;
+        DROP INDEX IF EXISTS idx_agent_inbox_run_task_assignment_v2;
         CREATE INDEX IF NOT EXISTS idx_agent_inbox_request_id
-            ON agent_inbox(request_id);",
-    )
+            ON agent_inbox(request_id);
+        DROP INDEX IF EXISTS idx_agent_inbox_causation_once;
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_inbox_causation_recipient_once
+            ON agent_inbox(
+                causation_inbox_id,
+                payload_kind,
+                recipient_agent_id,
+                COALESCE(recipient_member_id, '')
+            )
+            WHERE causation_inbox_id IS NOT NULL;",
+        payload_max = limits::AGENT_INBOX_PAYLOAD_MAX_BYTES,
+    );
+    conn.execute_batch(&schema)?;
+    // Self-heal only provably dangling receipts. Source Inbox rows remain
+    // unread, allowing a healthy replacement Session to materialize them.
+    let transcript_tables_exist: bool = conn.query_row(
+        "SELECT COUNT(*)=2 FROM sqlite_master
+         WHERE type='table' AND name IN ('agent_messages', 'agent_sessions')",
+        [],
+        |row| row.get(0),
+    )?;
+    if transcript_tables_exist {
+        conn.execute(
+            "DELETE FROM agent_inbox_materializations AS receipt
+             WHERE NOT EXISTS (
+                       SELECT 1 FROM agent_inbox inbox
+                       WHERE inbox.id=receipt.inbox_id
+                         AND inbox.read_at IS NULL
+                   )
+                OR NOT EXISTS (
+                       SELECT 1 FROM agent_messages message
+                       WHERE message.id=receipt.transcript_message_id
+                         AND message.session_id=receipt.session_id
+                   )
+                OR NOT EXISTS (
+                       SELECT 1 FROM agent_sessions session
+                       WHERE session.session_id=receipt.session_id
+                   )",
+            [],
+        )?;
+    }
+    Ok(())
+}
+
+fn ensure_agent_inbox_column(
+    conn: &Connection,
+    column_name: &str,
+    column_definition: &str,
+) -> SqliteResult<()> {
+    let mut stmt = conn.prepare("PRAGMA table_info(agent_inbox)")?;
+    let columns = stmt.query_map([], |row| row.get::<_, String>(1))?;
+    for column in columns {
+        if column? == column_name {
+            return Ok(());
+        }
+    }
+    conn.execute(
+        &format!("ALTER TABLE agent_inbox ADD COLUMN {column_name} {column_definition}"),
+        [],
+    )?;
+    Ok(())
 }
 
 fn create_agent_inbox_table(conn: &Connection) -> SqliteResult<()> {
@@ -702,12 +945,41 @@ fn create_agent_inbox_table(conn: &Connection) -> SqliteResult<()> {
             payload_json TEXT NOT NULL,
             request_id TEXT,
             created_at TEXT NOT NULL,
-            read_at TEXT
+            read_at TEXT,
+            causation_inbox_id INTEGER,
+            display_text TEXT
         );",
     )
 }
 
 pub struct AgentInboxStore;
+
+fn task_assignment_lookup_sql() -> String {
+    let payload_max = limits::AGENT_INBOX_PAYLOAD_MAX_BYTES;
+    format!(
+        "SELECT payload_json
+         FROM agent_inbox INDEXED BY idx_agent_inbox_run_task_assignment_v4
+         WHERE org_run_id=?1
+           AND recipient_member_id=?2
+           AND payload_kind='task_assigned'
+           AND CASE WHEN length(CAST(payload_json AS BLOB))<={payload_max}
+                    THEN json_valid(payload_json) ELSE 0 END
+           AND json_type(
+                CASE WHEN length(CAST(payload_json AS BLOB))<={payload_max}
+                               AND json_valid(payload_json)
+                     THEN payload_json ELSE '{{}}' END,
+                '$.task_id'
+              )='text'
+           AND json_extract(
+                CASE WHEN length(CAST(payload_json AS BLOB))<={payload_max}
+                               AND json_valid(payload_json)
+                     THEN payload_json ELSE '{{}}' END,
+                '$.task_id'
+              )=?3
+         ORDER BY id DESC
+         LIMIT 1"
+    )
+}
 
 impl AgentInboxStore {
     /// Persist a message and return the inserted record. The caller is
@@ -726,6 +998,61 @@ impl AgentInboxStore {
         Ok(record)
     }
 
+    /// Atomically persist a recovery/outbox message only while its Agent Org
+    /// run is still Running. This shares the sessions writer lock and an
+    /// IMMEDIATE transaction with run finality, so a queued watchdog action
+    /// cannot insert a new unread row after pause or terminal transition.
+    pub(crate) fn insert_if_run_running(
+        params: InsertInboxParams,
+    ) -> Result<Option<AgentInboxRecord>, String> {
+        let run_id = params
+            .org_run_id
+            .as_deref()
+            .ok_or_else(|| "insert_if_run_running requires org_run_id".to_string())?
+            .to_string();
+        with_sessions_writer(|| -> Result<Option<AgentInboxRecord>, String> {
+            let mut conn = get_connection().map_err(|err| err.to_string())?;
+            let tx = conn
+                .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+                .map_err(|err| err.to_string())?;
+            let running: bool = tx
+                .query_row(
+                    "SELECT EXISTS(
+                         SELECT 1 FROM agent_org_runs WHERE id=?1 AND status='running'
+                     )",
+                    params![&run_id],
+                    |row| row.get(0),
+                )
+                .map_err(|err| err.to_string())?;
+            if !running {
+                tx.commit().map_err(|err| err.to_string())?;
+                return Ok(None);
+            }
+            let record = Self::insert_in_tx(&tx, params)?;
+            tx.commit().map_err(|err| err.to_string())?;
+            Ok(Some(record))
+        })
+    }
+
+    /// Persist a system-derived message at most once for a source inbox row.
+    ///
+    /// Inbox drain deliberately leaves source rows unread until the turn has
+    /// been durably committed. A crash in that window replays the source row.
+    /// `causation_inbox_id` makes the derived notification idempotent across
+    /// that replay without making ordinary messages globally deduplicated.
+    pub fn insert_once_for_causation(
+        params: InsertInboxParams,
+        causation_inbox_id: i64,
+    ) -> Result<(AgentInboxRecord, bool), String> {
+        if causation_inbox_id <= 0 {
+            return Err("causation_inbox_id must be a positive inbox row id".into());
+        }
+        with_sessions_writer(|| -> Result<(AgentInboxRecord, bool), String> {
+            let conn = get_connection().map_err(|err| err.to_string())?;
+            Self::insert_in_tx_with_causation(&conn, params, Some(causation_inbox_id))
+        })
+    }
+
     /// Insert an inbox row using an existing writer transaction.
     ///
     /// This keeps state transitions such as "plan changes requested" and
@@ -735,15 +1062,61 @@ impl AgentInboxStore {
         conn: &Connection,
         params: InsertInboxParams,
     ) -> Result<AgentInboxRecord, String> {
+        Self::insert_in_tx_with_causation(conn, params, None).map(|(record, _inserted)| record)
+    }
+
+    fn insert_in_tx_with_causation(
+        conn: &Connection,
+        params: InsertInboxParams,
+        causation_inbox_id: Option<i64>,
+    ) -> Result<(AgentInboxRecord, bool), String> {
+        validate_non_empty_identifier("recipient_agent_id", &params.recipient_agent_id)?;
+        validate_non_empty_identifier("sender_agent_id", &params.sender_agent_id)?;
+        for (field, value) in [
+            ("recipient_member_id", params.recipient_member_id.as_deref()),
+            ("sender_member_id", params.sender_member_id.as_deref()),
+            ("org_run_id", params.org_run_id.as_deref()),
+        ] {
+            if let Some(value) = value {
+                validate_non_empty_identifier(field, value)?;
+            }
+        }
+        if params.org_run_id.is_some() && params.recipient_member_id.is_none() {
+            return Err(
+                "Agent Org Inbox rows require recipient_member_id; legacy agent-only rows are read-only"
+                    .to_string(),
+            );
+        }
         params.message.validate()?;
 
         let kind = params.message.kind_tag().to_string();
         let request_id = params.message.request_id().map(|r| r.0.clone());
         let payload_json = serde_json::to_string(&params.message)
             .map_err(|err| format!("serialize AgentMessage failed: {err}"))?;
+        if payload_json.len() > limits::AGENT_INBOX_PAYLOAD_MAX_BYTES {
+            return Err(format!(
+                "Agent Inbox payload must be <= {} serialized bytes (got {} bytes)",
+                limits::AGENT_INBOX_PAYLOAD_MAX_BYTES,
+                payload_json.len()
+            ));
+        }
         let now = chrono::Utc::now().to_rfc3339();
 
-        conn.execute(
+        let insert_sql = if causation_inbox_id.is_some() {
+            "INSERT OR IGNORE INTO agent_inbox (
+                    recipient_agent_id,
+                    recipient_member_id,
+                    sender_agent_id,
+                    sender_member_id,
+                    org_run_id,
+                    payload_kind,
+                    payload_json,
+                    request_id,
+                    created_at,
+                    read_at,
+                    causation_inbox_id
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, NULL, ?10)"
+        } else {
             "INSERT INTO agent_inbox (
                     recipient_agent_id,
                     recipient_member_id,
@@ -754,44 +1127,91 @@ impl AgentInboxStore {
                     payload_json,
                     request_id,
                     created_at,
-                    read_at
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, NULL)",
-            params![
-                &params.recipient_agent_id,
-                params.recipient_member_id.as_deref(),
-                &params.sender_agent_id,
-                params.sender_member_id.as_deref(),
-                params.org_run_id.as_deref(),
-                &kind,
-                &payload_json,
-                request_id.as_deref(),
-                &now,
-            ],
-        )
-        .map_err(|err| err.to_string())?;
+                    read_at,
+                    causation_inbox_id
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, NULL, ?10)"
+        };
+        let inserted = conn
+            .execute(
+                insert_sql,
+                params![
+                    &params.recipient_agent_id,
+                    params.recipient_member_id.as_deref(),
+                    &params.sender_agent_id,
+                    params.sender_member_id.as_deref(),
+                    params.org_run_id.as_deref(),
+                    &kind,
+                    &payload_json,
+                    request_id.as_deref(),
+                    &now,
+                    causation_inbox_id,
+                ],
+            )
+            .map_err(|err| err.to_string())?;
+
+        if inserted == 0 {
+            let source_id = causation_inbox_id.ok_or_else(|| {
+                "ordinary Agent Inbox insert unexpectedly affected zero rows".to_string()
+            })?;
+            let existing = conn
+                .query_row(
+                    "SELECT id,
+                            recipient_agent_id,
+                            recipient_member_id,
+                            sender_agent_id,
+                            sender_member_id,
+                            org_run_id,
+                            payload_kind,
+                            payload_json,
+                            request_id,
+                            created_at,
+                            read_at
+                     FROM agent_inbox
+                     WHERE causation_inbox_id = ?1
+                       AND payload_kind = ?2
+                       AND recipient_agent_id = ?3
+                       AND COALESCE(recipient_member_id, '') = COALESCE(?4, '')
+                     LIMIT 1",
+                    params![
+                        source_id,
+                        &kind,
+                        &params.recipient_agent_id,
+                        params.recipient_member_id.as_deref(),
+                    ],
+                    row_to_record,
+                )
+                .map_err(|err| {
+                    format!(
+                        "caused Agent Inbox insert was coalesced but existing row lookup failed: {err}"
+                    )
+                })?;
+            return Ok((existing, false));
+        }
+
         let id = conn.last_insert_rowid();
-        Ok(AgentInboxRecord {
-            id,
-            recipient_agent_id: params.recipient_agent_id,
-            recipient_member_id: params.recipient_member_id,
-            sender_agent_id: params.sender_agent_id,
-            sender_member_id: params.sender_member_id,
-            org_run_id: params.org_run_id,
-            payload_kind: kind,
-            payload_json,
-            request_id,
-            created_at: now,
-            read_at: None,
-        })
+        Ok((
+            AgentInboxRecord {
+                id,
+                recipient_agent_id: params.recipient_agent_id,
+                recipient_member_id: params.recipient_member_id,
+                sender_agent_id: params.sender_agent_id,
+                sender_member_id: params.sender_member_id,
+                org_run_id: params.org_run_id,
+                payload_kind: kind,
+                payload_json,
+                request_id,
+                created_at: now,
+                read_at: None,
+            },
+            true,
+        ))
     }
 }
 
 impl AgentInboxStore {
-    /// Return every inbox row for a given Agent Org run, ordered by
-    /// insert time. Production callers:
-    ///
-    /// - `/test/agent-org/inbox/list-by-run` debug endpoint — drives
-    ///   the inter-agent E2E observability path.
+    /// Test-only convenience wrapper for assertions that intentionally seed a
+    /// tiny number of rows. Production and debug paths use bounded pages.
+    #[cfg(test)]
     pub fn list_by_run(org_run_id: &str) -> Result<Vec<AgentInboxRecord>, String> {
         let conn = get_connection().map_err(|err| err.to_string())?;
         let mut stmt = conn
@@ -821,6 +1241,443 @@ impl AgentInboxStore {
         }
         Ok(out)
     }
+
+    /// Cursor-paged full Inbox history for explicit debug/E2E inspection.
+    /// Every scalar and payload is bounded in SQL before crossing into Rust;
+    /// the page also has an aggregate serialized-byte ceiling.
+    pub fn list_page_by_run(
+        org_run_id: &str,
+        after_id: Option<i64>,
+        limit: usize,
+    ) -> Result<AgentInboxPage, String> {
+        let bounded_limit = limit.clamp(1, MAX_INBOX_HISTORY_PAGE_ROWS);
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT id,
+                        recipient_agent_id,
+                        recipient_member_id,
+                        sender_agent_id,
+                        sender_member_id,
+                        ?1,
+                        payload_kind,
+                        payload_json,
+                        request_id,
+                        created_at,
+                        read_at
+                 FROM agent_inbox
+                 WHERE org_run_id=?1 AND id>?2
+                 ORDER BY id ASC
+                 LIMIT ?3",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(
+                params![
+                    org_run_id,
+                    after_id.unwrap_or(0),
+                    (bounded_limit + 1) as i64,
+                ],
+                row_to_record,
+            )
+            .map_err(|err| err.to_string())?;
+        let mut page_rows = Vec::new();
+        let mut serialized_bytes = 2usize;
+        let mut has_more = false;
+        for row in rows {
+            let row = row.map_err(|err| err.to_string())?;
+            if page_rows.len() == bounded_limit {
+                has_more = true;
+                break;
+            }
+            let row_bytes = serde_json::to_vec(&row)
+                .map_err(|err| format!("serialize Inbox history row failed: {err}"))?
+                .len();
+            let separator = usize::from(!page_rows.is_empty());
+            if serialized_bytes
+                .saturating_add(separator)
+                .saturating_add(row_bytes)
+                > MAX_INBOX_HISTORY_PAGE_BYTES
+            {
+                has_more = true;
+                break;
+            }
+            serialized_bytes = serialized_bytes
+                .saturating_add(separator)
+                .saturating_add(row_bytes);
+            page_rows.push(row);
+        }
+        let next_cursor = has_more
+            .then(|| page_rows.last().map(|row| row.id))
+            .flatten();
+        Ok(AgentInboxPage {
+            rows: page_rows,
+            has_more,
+            next_cursor,
+        })
+    }
+
+    pub fn count_by_run(org_run_id: &str) -> Result<usize, String> {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM agent_inbox WHERE org_run_id=?1",
+                params![org_run_id],
+                |row| row.get(0),
+            )
+            .map_err(|err| err.to_string())?;
+        usize::try_from(count).map_err(|_| format!("invalid Inbox row count: {count}"))
+    }
+
+    /// Return a bounded tail of one run's inbox history in chronological
+    /// order. The inner descending query lets SQLite stop at `limit`; the
+    /// outer query restores the order expected by transcript projections.
+    #[cfg(test)]
+    pub fn list_recent_by_run(
+        org_run_id: &str,
+        limit: usize,
+    ) -> Result<Vec<AgentInboxRecord>, String> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+        let bounded_limit = limit.min(MAX_RUN_INBOX_SNAPSHOT_ROWS) as i64;
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT id,
+                        recipient_agent_id,
+                        recipient_member_id,
+                        sender_agent_id,
+                        sender_member_id,
+                        org_run_id,
+                        payload_kind,
+                        payload_json,
+                        request_id,
+                        created_at,
+                        read_at
+                 FROM (
+                     SELECT id,
+                            recipient_agent_id,
+                            recipient_member_id,
+                            sender_agent_id,
+                            sender_member_id,
+                            org_run_id,
+                            payload_kind,
+                            payload_json,
+                            request_id,
+                            created_at,
+                            read_at
+                     FROM agent_inbox
+                     WHERE org_run_id = ?1
+                     ORDER BY id DESC
+                     LIMIT ?2
+                 )
+                 ORDER BY id ASC",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(params![org_run_id, bounded_limit], row_to_record)
+            .map_err(|err| err.to_string())?;
+        let mut out = Vec::new();
+        for row in rows {
+            out.push(row.map_err(|err| err.to_string())?);
+        }
+        Ok(out)
+    }
+
+    /// Return a bounded, payload-free activity tail for Run View.
+    ///
+    /// SQLite extracts at most a small human-facing preview for message kinds
+    /// that have one. The full serialized payload never crosses the DB/API
+    /// boundary here; explicit inbox history/detail paths keep using
+    /// [`Self::list_by_run`] or the member drain query.
+    pub fn list_recent_previews_by_run(
+        org_run_id: &str,
+        limit: usize,
+    ) -> Result<Vec<AgentInboxPreviewRecord>, String> {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        Self::list_recent_previews_by_run_with_connection(&conn, org_run_id, limit)
+    }
+
+    /// Same bounded Run View projection, but on a caller-owned read snapshot.
+    pub(crate) fn list_recent_previews_by_run_with_connection(
+        conn: &Connection,
+        org_run_id: &str,
+        limit: usize,
+    ) -> Result<Vec<AgentInboxPreviewRecord>, String> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+        let bounded_limit = limit.min(MAX_RUN_INBOX_SNAPSHOT_ROWS) as i64;
+        let preview_chars = MAX_RUN_INBOX_PREVIEW_CHARS as i64;
+        let mut stmt = conn
+            .prepare(
+                "SELECT id,
+                        recipient_agent_id,
+                        recipient_member_id,
+                        sender_agent_id,
+                        sender_member_id,
+                        org_run_id,
+                        payload_kind,
+                        request_id,
+                        created_at,
+                        read_at,
+                        display_preview
+                 FROM (
+                     SELECT id,
+                            recipient_agent_id,
+                            recipient_member_id,
+                            sender_agent_id,
+                            sender_member_id,
+                            org_run_id,
+                            payload_kind,
+                            request_id,
+                            created_at,
+                            read_at,
+                            CASE WHEN length(CAST(payload_json AS BLOB))<=?4 THEN
+                              CASE WHEN json_valid(payload_json) THEN CASE payload_kind
+                                WHEN 'plain' THEN substr(
+                                    COALESCE(
+                                        json_extract(payload_json, '$.text'),
+                                        json_extract(payload_json, '$.summary')
+                                    ),
+                                    1,
+                                    ?3
+                                )
+                                WHEN 'task_assigned' THEN substr(
+                                    json_extract(payload_json, '$.subject'),
+                                    1,
+                                    ?3
+                                )
+                                WHEN 'task_completed' THEN substr(
+                                    COALESCE(
+                                        json_extract(payload_json, '$.output_summary'),
+                                        json_extract(payload_json, '$.subject')
+                                    ),
+                                    1,
+                                    ?3
+                                )
+                                WHEN 'member_idle' THEN substr(
+                                    json_extract(payload_json, '$.summary'),
+                                    1,
+                                    ?3
+                                )
+                                WHEN 'member_terminated' THEN substr(
+                                    json_extract(payload_json, '$.member_name'),
+                                    1,
+                                    ?3
+                                )
+                                WHEN 'plan_approval_request' THEN substr(
+                                    json_extract(payload_json, '$.plan_title'),
+                                    1,
+                                    ?3
+                                )
+                                ELSE NULL
+                              END ELSE NULL END
+                            ELSE NULL END AS display_preview
+                     FROM agent_inbox
+                     WHERE org_run_id = ?1
+                     ORDER BY id DESC
+                     LIMIT ?2
+                 )
+                 ORDER BY id ASC",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(
+                params![
+                    org_run_id,
+                    bounded_limit,
+                    preview_chars,
+                    limits::AGENT_INBOX_PAYLOAD_MAX_BYTES as i64,
+                ],
+                row_to_preview_record,
+            )
+            .map_err(|err| err.to_string())?;
+        let mut out = Vec::new();
+        for row in rows {
+            out.push(row.map_err(|err| err.to_string())?);
+        }
+        Ok(out)
+    }
+
+    /// Return compact activity/unread counters without loading payload JSON.
+    #[cfg(test)]
+    pub fn run_counts_by_recipient(
+        org_run_id: &str,
+    ) -> Result<Vec<AgentInboxRecipientCounts>, String> {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        Self::run_counts_by_recipient_with_connection(&conn, org_run_id)
+    }
+
+    /// Same compact counters, but on a caller-owned read snapshot.
+    #[cfg(test)]
+    pub(crate) fn run_counts_by_recipient_with_connection(
+        conn: &Connection,
+        org_run_id: &str,
+    ) -> Result<Vec<AgentInboxRecipientCounts>, String> {
+        let mut stmt = conn
+            .prepare(
+                "SELECT recipient_agent_id,
+                        recipient_member_id,
+                        COUNT(*) AS activity_count,
+                        SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) AS unread_count
+                 FROM agent_inbox
+                 WHERE org_run_id = ?1
+                 GROUP BY recipient_member_id, recipient_agent_id
+                 ORDER BY recipient_member_id ASC, recipient_agent_id ASC",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(params![org_run_id], |row| {
+                Ok(AgentInboxRecipientCounts {
+                    recipient_agent_id: row.get(0)?,
+                    recipient_member_id: row.get(1)?,
+                    activity_count: row.get::<_, i64>(2)?.max(0) as usize,
+                    unread_count: row.get::<_, i64>(3)?.max(0) as usize,
+                })
+            })
+            .map_err(|err| err.to_string())?;
+        let mut out = Vec::new();
+        for row in rows {
+            out.push(row.map_err(|err| err.to_string())?);
+        }
+        Ok(out)
+    }
+
+    /// Return only unread recipient totals using the partial unread index.
+    ///
+    /// Unlike [`Self::run_counts_by_recipient_with_connection`], this query
+    /// never walks historical read rows and is therefore safe for the
+    /// watchdog and frequently-polled Run View.
+    pub(crate) fn unread_counts_by_recipient_with_connection(
+        conn: &Connection,
+        org_run_id: &str,
+    ) -> Result<Vec<AgentInboxUnreadRecipientCounts>, String> {
+        let mut stmt = conn
+            .prepare(UNREAD_COUNTS_BY_RECIPIENT_SQL)
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(params![org_run_id], |row| {
+                Ok(AgentInboxUnreadRecipientCounts {
+                    recipient_agent_id: row.get(0)?,
+                    recipient_member_id: row.get(1)?,
+                    unread_count: row.get::<_, i64>(2)?.max(0) as usize,
+                    max_unread_id: row.get(3)?,
+                })
+            })
+            .map_err(|err| err.to_string())?;
+        let mut out = Vec::new();
+        for row in rows {
+            out.push(row.map_err(|err| err.to_string())?);
+        }
+        Ok(out)
+    }
+
+    /// Return only current open task ids whose *current owner* has a valid,
+    /// durable `TaskAssigned` envelope. The expression index turns this into
+    /// bounded lookups from the current task board instead of re-running
+    /// `json_extract` over the run's entire historical Inbox on every
+    /// watchdog tick. Rust still performs the authoritative typed decode so
+    /// a hand-edited or partially-written JSON object cannot suppress a
+    /// legitimate redelivery.
+    pub(crate) fn task_assignment_ids_for_open_tasks_with_connection(
+        conn: &Connection,
+        org_run_id: &str,
+    ) -> Result<HashSet<String>, String> {
+        const TASK_PAGE_SIZE: i64 = 200;
+        let mut task_stmt = conn
+            .prepare(
+                "SELECT id, owner
+                 FROM agent_org_tasks
+                 WHERE org_run_id=?1
+                   AND status IN ('pending','in_progress')
+                   AND owner IS NOT NULL
+                   AND id>?2
+                 ORDER BY id ASC
+                 LIMIT ?3",
+            )
+            .map_err(|err| err.to_string())?;
+
+        // Page the current board in bounded reads. SQLite does not bind an
+        // outer task.id into the third expression-index column, so one reused
+        // exact probe per current task is faster than scanning historical
+        // Inbox JSON and does not impose a run-level task capacity policy.
+        let lookup_sql = task_assignment_lookup_sql();
+        let mut assignment_stmt = conn.prepare(&lookup_sql).map_err(|err| err.to_string())?;
+        let mut task_ids = HashSet::new();
+        let mut after_task_id = String::new();
+        loop {
+            let open_tasks = task_stmt
+                .query_map(params![org_run_id, &after_task_id, TASK_PAGE_SIZE], |row| {
+                    Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+                })
+                .map_err(|err| err.to_string())?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|err| err.to_string())?;
+            if open_tasks.is_empty() {
+                break;
+            }
+            after_task_id = open_tasks
+                .last()
+                .map(|(task_id, _)| task_id.clone())
+                .unwrap_or_default();
+            for (task_id, owner) in open_tasks {
+                let payload_json = assignment_stmt
+                    .query_row(params![org_run_id, &owner, &task_id], |row| {
+                        row.get::<_, String>(0)
+                    })
+                    .optional()
+                    .map_err(|err| err.to_string())?;
+                let Some(payload_json) = payload_json else {
+                    continue;
+                };
+                let Ok(message) = serde_json::from_str::<AgentMessage>(&payload_json) else {
+                    continue;
+                };
+                if message.validate().is_err() {
+                    continue;
+                }
+                if matches!(message, AgentMessage::TaskAssigned { task_id: ref id, .. } if id == &task_id)
+                {
+                    task_ids.insert(task_id);
+                }
+            }
+        }
+        Ok(task_ids)
+    }
+
+    /// Compact identity of the current unread set without loading payloads.
+    /// Useful for coalescing/backoff decisions; `None` means no unread rows.
+    pub fn unread_fingerprint_for_member(
+        recipient_member_id: &str,
+        org_run_id: &str,
+    ) -> Result<Option<String>, String> {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        Self::unread_fingerprint_for_member_with_connection(&conn, recipient_member_id, org_run_id)
+    }
+
+    /// Same payload-free unread identity, but on a caller-owned snapshot.
+    /// Recovery uses this while classifying recipient availability so budget
+    /// state and Inbox state come from the same SQLite generation.
+    pub(crate) fn unread_fingerprint_for_member_with_connection(
+        conn: &Connection,
+        recipient_member_id: &str,
+        org_run_id: &str,
+    ) -> Result<Option<String>, String> {
+        let (max_id, count): (Option<i64>, i64) = conn
+            .query_row(
+                "SELECT MAX(id), COUNT(*)
+                 FROM agent_inbox
+                 WHERE recipient_member_id=?1
+                   AND org_run_id=?2
+                   AND read_at IS NULL",
+                params![recipient_member_id, org_run_id],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .map_err(|err| err.to_string())?;
+        Ok(max_id.map(|max_id| format!("{max_id}:{count}")))
+    }
 }
 
 fn row_to_record(row: &rusqlite::Row<'_>) -> SqliteResult<AgentInboxRecord> {
@@ -836,6 +1693,22 @@ fn row_to_record(row: &rusqlite::Row<'_>) -> SqliteResult<AgentInboxRecord> {
         request_id: row.get(8)?,
         created_at: row.get(9)?,
         read_at: row.get(10)?,
+    })
+}
+
+fn row_to_preview_record(row: &rusqlite::Row<'_>) -> SqliteResult<AgentInboxPreviewRecord> {
+    Ok(AgentInboxPreviewRecord {
+        id: row.get(0)?,
+        recipient_agent_id: row.get(1)?,
+        recipient_member_id: row.get(2)?,
+        sender_agent_id: row.get(3)?,
+        sender_member_id: row.get(4)?,
+        org_run_id: row.get(5)?,
+        payload_kind: row.get(6)?,
+        request_id: row.get(7)?,
+        created_at: row.get(8)?,
+        read_at: row.get(9)?,
+        display_preview: row.get(10)?,
     })
 }
 
@@ -861,6 +1734,7 @@ impl AgentInboxStore {
         .map_err(|err| err.to_string())
     }
 
+    #[cfg(test)]
     pub fn list_unread_for_member(
         recipient_member_id: &str,
         org_run_id: &str,
@@ -896,6 +1770,111 @@ impl AgentInboxStore {
         Ok(out)
     }
 
+    /// Highest unread row id at an acknowledgement boundary. A scalar
+    /// high-water mark keeps return-to-work memory and SQL work bounded even
+    /// when a member has a very large historical backlog.
+    pub fn unread_ack_boundary_for_member(
+        recipient_member_id: &str,
+        org_run_id: &str,
+    ) -> Result<Option<i64>, String> {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        conn.query_row(
+            "SELECT MAX(id) FROM agent_inbox
+             WHERE recipient_member_id=?1
+               AND org_run_id=?2
+               AND read_at IS NULL",
+            params![recipient_member_id, org_run_id],
+            |row| row.get(0),
+        )
+        .map_err(|err| err.to_string())
+    }
+
+    /// Count rows that were unread at or before a captured high-water mark and
+    /// remain unread now. New messages arriving after the return-to-work
+    /// request do not extend that request's acknowledgement wait.
+    pub fn unread_count_through_boundary(
+        recipient_member_id: &str,
+        org_run_id: &str,
+        boundary_id: i64,
+    ) -> Result<usize, String> {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM agent_inbox
+                 WHERE recipient_member_id=?1
+                   AND org_run_id=?2
+                   AND id<=?3
+                   AND read_at IS NULL",
+                params![recipient_member_id, org_run_id, boundary_id],
+                |row| row.get(0),
+            )
+            .map_err(|err| err.to_string())?;
+        usize::try_from(count).map_err(|_| format!("invalid unread inbox row count: {count}"))
+    }
+
+    /// Oldest-first bounded delivery batch for the production inbox drain.
+    /// The row cap bounds control-envelope work; the serialized-payload cap
+    /// bounds provider prompt growth. Full unread history remains available
+    /// to explicit diagnostics through `list_unread_for_member`.
+    pub fn list_unread_batch_for_member(
+        recipient_member_id: &str,
+        org_run_id: &str,
+    ) -> Result<AgentInboxBatch, String> {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT id,
+                        recipient_agent_id,
+                        recipient_member_id,
+                        sender_agent_id,
+                        sender_member_id,
+                        org_run_id,
+                        payload_kind,
+                        payload_json,
+                        request_id,
+                        created_at,
+                        read_at
+                 FROM agent_inbox
+                 WHERE recipient_member_id = ?1
+                   AND org_run_id = ?2
+                   AND read_at IS NULL
+                 ORDER BY id ASC
+                 LIMIT ?3",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(
+                params![
+                    recipient_member_id,
+                    org_run_id,
+                    (MAX_INBOX_DRAIN_ROWS + 1) as i64,
+                ],
+                row_to_record,
+            )
+            .map_err(|err| err.to_string())?;
+        let mut batch = Vec::new();
+        let mut payload_bytes = 0usize;
+        let mut has_more = false;
+        for row in rows {
+            let row = row.map_err(|err| err.to_string())?;
+            if batch.len() == MAX_INBOX_DRAIN_ROWS {
+                has_more = true;
+                break;
+            }
+            let next_bytes = payload_bytes.saturating_add(row.payload_json.len());
+            if next_bytes > MAX_INBOX_DRAIN_PAYLOAD_BYTES {
+                has_more = true;
+                break;
+            }
+            payload_bytes = next_bytes;
+            batch.push(row);
+        }
+        Ok(AgentInboxBatch {
+            rows: batch,
+            has_more,
+        })
+    }
+
     /// Mark a batch of inbox rows as read in a single immediate
     /// transaction. Idempotent: rows that are already read return
     /// `0` updates and do not error. Returns the total number of rows
@@ -904,42 +1883,142 @@ impl AgentInboxStore {
     /// Used by the turn-processor drain hook after rendering the
     /// attachment, so the next turn's drain returns an empty list.
     pub fn mark_many_read(ids: &[i64]) -> Result<usize, String> {
+        Self::mark_many_read_internal(ids, None)
+    }
+
+    /// Production acknowledgement for transcript-backed delivery. Only the
+    /// Session that owns every row's durable materialization receipt may mark
+    /// it read. A stale Guard from an older/replaced Session therefore cannot
+    /// acknowledge a row after ownership moved elsewhere.
+    pub fn mark_many_read_for_session(ids: &[i64], session_id: &str) -> Result<usize, String> {
+        Self::mark_many_read_internal(ids, Some(session_id))
+    }
+
+    fn mark_many_read_internal(
+        ids: &[i64],
+        materialization_session_id: Option<&str>,
+    ) -> Result<usize, String> {
         if ids.is_empty() {
             return Ok(0);
         }
         let (updated, changed_run_ids) = with_sessions_writer(
-            || -> Result<(usize, std::collections::HashSet<String>), String> {
+            || -> Result<(usize, HashSet<String>), String> {
                 let mut conn = get_connection().map_err(|err| err.to_string())?;
                 let tx = conn
                     .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
                     .map_err(|err| err.to_string())?;
                 let now = chrono::Utc::now().to_rfc3339();
                 let mut updated = 0usize;
-                let mut changed_run_ids = std::collections::HashSet::new();
+                let mut changed_run_ids = HashSet::new();
                 {
-                    let mut stmt = tx
-                        .prepare(
-                            "UPDATE agent_inbox SET read_at = ?1 WHERE id = ?2 AND read_at IS NULL",
-                        )
-                        .map_err(|err| err.to_string())?;
-                    for id in ids {
-                        let org_run_id = tx
-                        .query_row(
-                            "SELECT org_run_id FROM agent_inbox WHERE id = ?1 AND read_at IS NULL",
-                            params![id],
-                            |row| row.get::<_, Option<String>>(0),
-                        )
-                        .optional()
-                        .map_err(|err| err.to_string())?
-                        .flatten();
-                        let n = stmt
-                            .execute(params![&now, id])
+                    if let Some(session_id) = materialization_session_id {
+                        // Ownership is all-or-nothing. A stale Guard must not
+                        // acknowledge only the subset it still happens to own.
+                        let mut preflight = tx
+                            .prepare(
+                                "SELECT read_at,
+                                    EXISTS(
+                                        SELECT 1
+                                        FROM agent_inbox_materializations receipt
+                                        WHERE receipt.inbox_id=agent_inbox.id
+                                          AND receipt.session_id=?2
+                                    )
+                             FROM agent_inbox WHERE id=?1",
+                            )
                             .map_err(|err| err.to_string())?;
-                        updated += n;
-                        if n > 0 {
-                            if let Some(org_run_id) = org_run_id {
-                                changed_run_ids.insert(org_run_id);
+                        for id in ids {
+                            let state: Option<(Option<String>, bool)> = preflight
+                                .query_row(params![id, session_id], |row| {
+                                    Ok((row.get(0)?, row.get(1)?))
+                                })
+                                .optional()
+                                .map_err(|err| err.to_string())?;
+                            if matches!(state, Some((None, false))) {
+                                return Err(format!(
+                                "Agent Org Inbox row {id} has no materialization receipt owned by session {session_id}; refusing partial acknowledgement"
+                            ));
                             }
+                        }
+                        let mut stmt = tx
+                            .prepare(
+                                "UPDATE agent_inbox
+                             SET read_at=?1
+                             WHERE id=?2 AND read_at IS NULL
+                               AND EXISTS (
+                                   SELECT 1 FROM agent_inbox_materializations receipt
+                                   WHERE receipt.inbox_id=agent_inbox.id
+                                     AND receipt.session_id=?3
+                               )",
+                            )
+                            .map_err(|err| err.to_string())?;
+                        for id in ids {
+                            let org_run_id = tx
+                            .query_row(
+                                "SELECT org_run_id FROM agent_inbox WHERE id=?1 AND read_at IS NULL",
+                                params![id],
+                                |row| row.get::<_, Option<String>>(0),
+                            )
+                            .optional()
+                            .map_err(|err| err.to_string())?
+                            .flatten();
+                            let changed = stmt
+                                .execute(params![&now, id, session_id])
+                                .map_err(|err| err.to_string())?;
+                            updated += changed;
+                            if changed > 0 {
+                                if let Some(org_run_id) = org_run_id {
+                                    changed_run_ids.insert(org_run_id);
+                                }
+                            }
+                        }
+                    } else {
+                        let mut stmt = tx
+                            .prepare(
+                                "UPDATE agent_inbox
+                             SET read_at=?1
+                             WHERE id=?2 AND read_at IS NULL",
+                            )
+                            .map_err(|err| err.to_string())?;
+                        for id in ids {
+                            let org_run_id = tx
+                            .query_row(
+                                "SELECT org_run_id FROM agent_inbox WHERE id=?1 AND read_at IS NULL",
+                                params![id],
+                                |row| row.get::<_, Option<String>>(0),
+                            )
+                            .optional()
+                            .map_err(|err| err.to_string())?
+                            .flatten();
+                            let changed = stmt
+                                .execute(params![&now, id])
+                                .map_err(|err| err.to_string())?;
+                            updated += changed;
+                            if changed > 0 {
+                                if let Some(org_run_id) = org_run_id {
+                                    changed_run_ids.insert(org_run_id);
+                                }
+                            }
+                        }
+                    }
+                }
+                {
+                    if let Some(session_id) = materialization_session_id {
+                        let mut stmt = tx
+                            .prepare(
+                                "DELETE FROM agent_inbox_materializations
+                             WHERE inbox_id=?1 AND session_id=?2",
+                            )
+                            .map_err(|err| err.to_string())?;
+                        for id in ids {
+                            stmt.execute(params![id, session_id])
+                                .map_err(|err| err.to_string())?;
+                        }
+                    } else {
+                        let mut stmt = tx
+                            .prepare("DELETE FROM agent_inbox_materializations WHERE inbox_id=?1")
+                            .map_err(|err| err.to_string())?;
+                        for id in ids {
+                            stmt.execute(params![id]).map_err(|err| err.to_string())?;
                         }
                     }
                 }
@@ -970,6 +2049,40 @@ mod tests {
         let conn = get_connection().expect("open sandbox database");
         init_schema(&conn).expect("initialize agent inbox schema");
         sandbox
+    }
+
+    #[test]
+    fn init_schema_adds_group_chat_display_text_to_legacy_inbox() {
+        let conn = rusqlite::Connection::open_in_memory().expect("open in-memory database");
+        conn.execute_batch(
+            "CREATE TABLE agent_inbox (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipient_agent_id TEXT NOT NULL,
+                recipient_member_id TEXT,
+                sender_agent_id TEXT NOT NULL,
+                sender_member_id TEXT,
+                org_run_id TEXT,
+                payload_kind TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                request_id TEXT,
+                created_at TEXT NOT NULL,
+                read_at TEXT
+            );",
+        )
+        .expect("create legacy inbox table");
+
+        init_schema(&conn).expect("upgrade legacy inbox schema");
+
+        let mut stmt = conn
+            .prepare("PRAGMA table_info(agent_inbox)")
+            .expect("inspect inbox schema");
+        let columns = stmt
+            .query_map([], |row| row.get::<_, String>(1))
+            .expect("query inbox columns")
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .expect("collect inbox columns");
+        assert!(columns.iter().any(|column| column == "causation_inbox_id"));
+        assert!(columns.iter().any(|column| column == "display_text"));
     }
 
     #[test]
@@ -1175,6 +2288,560 @@ mod tests {
         assert_eq!(rows[0].payload_kind, "plain");
         assert_eq!(rows[1].payload_kind, "shutdown_request");
         assert_eq!(rows[1].request_id.as_deref(), Some("req-shut-1"));
+    }
+
+    #[test]
+    fn inbox_history_pages_are_cursor_bounded_without_gaps() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let run_id = format!("run-history-page-{}", uuid::Uuid::new_v4());
+        let payload = serde_json::to_string(&AgentMessage::Plain {
+            summary: "history".into(),
+            text: "bounded row".into(),
+        })
+        .expect("serialize history payload");
+        let mut conn = get_connection().expect("open inbox database");
+        let tx = conn.transaction().expect("begin history fixture");
+        let now = chrono::Utc::now().to_rfc3339();
+        for _ in 0..205 {
+            tx.execute(
+                "INSERT INTO agent_inbox (
+                     recipient_agent_id, recipient_member_id, sender_agent_id,
+                     sender_member_id, org_run_id, payload_kind, payload_json,
+                     request_id, created_at, read_at, causation_inbox_id
+                 ) VALUES ('worker-agent','worker-member','sender',NULL,?1,
+                           'plain',?2,NULL,?3,NULL,NULL)",
+                params![&run_id, &payload, &now],
+            )
+            .expect("seed history row");
+        }
+        tx.commit().expect("commit history fixture");
+
+        let first = AgentInboxStore::list_page_by_run(&run_id, None, usize::MAX)
+            .expect("first bounded page");
+        assert_eq!(first.rows.len(), MAX_INBOX_HISTORY_PAGE_ROWS);
+        assert!(first.has_more);
+        let second = AgentInboxStore::list_page_by_run(&run_id, first.next_cursor, usize::MAX)
+            .expect("second bounded page");
+        assert_eq!(second.rows.len(), MAX_INBOX_HISTORY_PAGE_ROWS);
+        assert!(second.has_more);
+        let third = AgentInboxStore::list_page_by_run(&run_id, second.next_cursor, usize::MAX)
+            .expect("third bounded page");
+        assert_eq!(third.rows.len(), 5);
+        assert!(!third.has_more);
+        assert!(third.next_cursor.is_none());
+
+        let ids = first
+            .rows
+            .iter()
+            .chain(second.rows.iter())
+            .chain(third.rows.iter())
+            .map(|row| row.id)
+            .collect::<Vec<_>>();
+        assert_eq!(ids.len(), 205);
+        assert!(ids.windows(2).all(|pair| pair[0] < pair[1]));
+    }
+
+    #[test]
+    fn recent_run_snapshot_is_bounded_and_counts_do_not_load_payloads() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let mut inserted_ids = Vec::new();
+        for index in 0..3 {
+            let row = AgentInboxStore::insert(InsertInboxParams {
+                recipient_agent_id: "worker-agent".into(),
+                recipient_member_id: Some("worker-member".into()),
+                sender_agent_id: "sender".into(),
+                sender_member_id: None,
+                org_run_id: Some(run_id.clone()),
+                message: AgentMessage::Plain {
+                    summary: format!("message-{index}"),
+                    text: format!("body-{index}"),
+                },
+            })
+            .expect("insert run row");
+            inserted_ids.push(row.id);
+        }
+        // Historical agent-only rows remain readable, but the production
+        // write boundary no longer permits creating new ones.
+        let conn = get_connection().expect("open inbox database for legacy fixture");
+        conn.execute(
+            "INSERT INTO agent_inbox (
+                 recipient_agent_id, recipient_member_id, sender_agent_id,
+                 sender_member_id, org_run_id, payload_kind, payload_json,
+                 request_id, created_at, read_at, causation_inbox_id
+             ) VALUES (?1,NULL,?2,NULL,?3,'plain',?4,NULL,?5,NULL,NULL)",
+            params![
+                "coordinator-agent",
+                "sender",
+                &run_id,
+                serde_json::to_string(&AgentMessage::Plain {
+                    summary: "message-3".into(),
+                    text: "body-3".into(),
+                })
+                .expect("serialize legacy payload"),
+                chrono::Utc::now().to_rfc3339(),
+            ],
+        )
+        .expect("seed legacy agent-only row");
+        inserted_ids.push(conn.last_insert_rowid());
+        AgentInboxStore::mark_many_read(&inserted_ids[..1]).expect("mark first row read");
+
+        let recent = AgentInboxStore::list_recent_by_run(&run_id, 2).expect("recent snapshot");
+        assert_eq!(
+            recent.iter().map(|row| row.id).collect::<Vec<_>>(),
+            inserted_ids[2..].to_vec(),
+            "the bounded tail must be returned in chronological order"
+        );
+        assert!(AgentInboxStore::list_recent_by_run(&run_id, 0)
+            .expect("empty snapshot")
+            .is_empty());
+
+        let counts = AgentInboxStore::run_counts_by_recipient(&run_id).expect("recipient counts");
+        let worker = counts
+            .iter()
+            .find(|count| count.recipient_member_id.as_deref() == Some("worker-member"))
+            .expect("worker aggregate");
+        assert_eq!(worker.activity_count, 3);
+        assert_eq!(worker.unread_count, 2);
+        let legacy_coordinator = counts
+            .iter()
+            .find(|count| count.recipient_member_id.is_none())
+            .expect("agent-id-only aggregate");
+        assert_eq!(legacy_coordinator.activity_count, 1);
+        assert_eq!(legacy_coordinator.unread_count, 1);
+
+        let conn = get_connection().expect("open inbox database");
+        let unread_counts =
+            AgentInboxStore::unread_counts_by_recipient_with_connection(&conn, &run_id)
+                .expect("unread-only recipient counts");
+        let unread_worker = unread_counts
+            .iter()
+            .find(|count| count.recipient_member_id.as_deref() == Some("worker-member"))
+            .expect("unread worker aggregate");
+        assert_eq!(unread_worker.unread_count, 2);
+        let unread_legacy = unread_counts
+            .iter()
+            .find(|count| count.recipient_member_id.is_none())
+            .expect("unread legacy aggregate");
+        assert_eq!(unread_legacy.unread_count, 1);
+
+        let mut query_plan = conn
+            .prepare(&format!(
+                "EXPLAIN QUERY PLAN {UNREAD_COUNTS_BY_RECIPIENT_SQL}"
+            ))
+            .expect("prepare unread query plan");
+        let details = query_plan
+            .query_map(params![&run_id], |row| row.get::<_, String>(3))
+            .expect("query unread plan")
+            .collect::<Result<Vec<_>, _>>()
+            .expect("collect unread plan");
+        assert!(
+            details
+                .iter()
+                .any(|detail| detail.contains("idx_agent_inbox_run_unread_recipient")),
+            "watchdog/run-view unread aggregation must stay on the partial unread index: {details:?}"
+        );
+        assert!(
+            details
+                .iter()
+                .all(|detail| !detail.contains("USE TEMP B-TREE")),
+            "unread aggregation order must stream from its covering index: {details:?}"
+        );
+
+        let previews = AgentInboxStore::list_recent_previews_by_run(&run_id, 4)
+            .expect("run activity previews");
+        assert_eq!(previews[0].display_preview.as_deref(), Some("body-0"));
+        assert_ne!(
+            previews[0].display_preview.as_deref(),
+            Some("message-0"),
+            "plain activity must project the delivered text, not only its label"
+        );
+    }
+
+    #[test]
+    fn new_agent_org_rows_require_a_nonblank_canonical_recipient_member() {
+        let _sandbox = sandbox_with_inbox_schema();
+        for recipient_member_id in [None, Some("".to_string()), Some("   ".to_string())] {
+            let error = AgentInboxStore::insert(InsertInboxParams {
+                recipient_agent_id: "worker-agent".into(),
+                recipient_member_id,
+                sender_agent_id: "coordinator-agent".into(),
+                sender_member_id: Some("coordinator".into()),
+                org_run_id: Some("run-write-boundary".into()),
+                message: AgentMessage::Plain {
+                    summary: "repair".into(),
+                    text: "payload".into(),
+                },
+            })
+            .expect_err("new Agent Org rows must have a canonical member recipient");
+            assert!(
+                error.contains("recipient_member_id"),
+                "unexpected validation error: {error}"
+            );
+        }
+    }
+
+    #[test]
+    fn run_preview_omits_large_plan_payload() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let sentinel = "FULL_PLAN_BODY_MUST_NOT_REACH_RUN_VIEW";
+        let plan_content = format!("{sentinel}{}", "x".repeat(18_000));
+        let row = AgentInboxStore::insert(InsertInboxParams {
+            recipient_agent_id: "coordinator-agent".into(),
+            recipient_member_id: Some("coordinator".into()),
+            sender_agent_id: "planner-agent".into(),
+            sender_member_id: Some("planner".into()),
+            org_run_id: Some(run_id.clone()),
+            message: AgentMessage::PlanApprovalRequest {
+                request_id: RequestId("request-large-plan".into()),
+                approval_id: "approval-large-plan".into(),
+                plan_revision_id: "revision-large-plan".into(),
+                source_task_id: "task-plan".into(),
+                plan_title: "Large but valid plan".into(),
+                plan_path: "/tmp/large.plan.md".into(),
+                plan_content,
+            },
+        })
+        .expect("insert large plan request");
+
+        let previews = AgentInboxStore::list_recent_previews_by_run(&run_id, 10)
+            .expect("load lightweight preview");
+        assert_eq!(previews.len(), 1);
+        assert_eq!(previews[0].id, row.id);
+        assert_eq!(
+            previews[0].display_preview.as_deref(),
+            Some("Large but valid plan")
+        );
+        let wire = serde_json::to_string(&previews).expect("serialize previews");
+        assert!(!wire.contains(sentinel));
+        assert!(
+            wire.len() < 2_000,
+            "preview unexpectedly retained payload: {wire}"
+        );
+    }
+
+    #[test]
+    fn caused_inbox_insert_coalesces_only_the_same_recipient_member() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let source_id = 42;
+        let make_params = |recipient_member_id: &str| InsertInboxParams {
+            recipient_agent_id: "shared-agent-definition".into(),
+            recipient_member_id: Some(recipient_member_id.into()),
+            sender_agent_id: SYSTEM_SENDER_ID.into(),
+            sender_member_id: None,
+            org_run_id: Some(run_id.clone()),
+            message: AgentMessage::MemberTerminated {
+                member_id: "worker".into(),
+                member_name: "Worker".into(),
+                reason: MemberTerminationReason::Shutdown,
+            },
+        };
+
+        let (first, first_inserted) =
+            AgentInboxStore::insert_once_for_causation(make_params("coordinator-a"), source_id)
+                .expect("insert first caused notification");
+        let (replayed, replay_inserted) =
+            AgentInboxStore::insert_once_for_causation(make_params("coordinator-a"), source_id)
+                .expect("coalesce exact replay");
+        let (sibling, sibling_inserted) =
+            AgentInboxStore::insert_once_for_causation(make_params("coordinator-b"), source_id)
+                .expect("insert for distinct roster member");
+
+        assert!(first_inserted);
+        assert!(!replay_inserted);
+        assert_eq!(first.id, replayed.id);
+        assert!(sibling_inserted);
+        assert_ne!(first.id, sibling.id);
+        assert_eq!(
+            AgentInboxStore::list_by_run(&run_id)
+                .expect("list caused rows")
+                .len(),
+            2
+        );
+    }
+
+    #[test]
+    fn open_assignment_snapshot_uses_current_tasks_and_expression_index() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let conn = get_connection().expect("test database");
+        crate::coordination::agent_org_tasks::init_schema(&conn).expect("task schema");
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let now = chrono::Utc::now().to_rfc3339();
+        for (task_id, status) in [("open-task", "pending"), ("done-task", "completed")] {
+            conn.execute(
+                "INSERT INTO agent_org_tasks
+                 (id, org_run_id, subject, description, status, owner,
+                  blocks_json, blocked_by_json, created_at, updated_at)
+                 VALUES (?1, ?2, ?1, '', ?3, 'member-worker', '[]', '[]', ?4, ?4)",
+                params![task_id, &run_id, status, &now],
+            )
+            .expect("seed task");
+            AgentInboxStore::insert(InsertInboxParams {
+                recipient_agent_id: "worker".into(),
+                recipient_member_id: Some("member-worker".into()),
+                sender_agent_id: "coordinator".into(),
+                sender_member_id: Some("coordinator".into()),
+                org_run_id: Some(run_id.clone()),
+                message: AgentMessage::TaskAssigned {
+                    task_id: task_id.into(),
+                    subject: task_id.into(),
+                    description: String::new(),
+                    assigned_by: "Coordinator".into(),
+                    dependency_outputs: Vec::new(),
+                    execution_mode: crate::coordination::agent_org_tasks::TaskExecutionMode::Build,
+                },
+            })
+            .expect("seed assignment");
+        }
+
+        let assigned =
+            AgentInboxStore::task_assignment_ids_for_open_tasks_with_connection(&conn, &run_id)
+                .expect("open assignment snapshot");
+        assert_eq!(assigned, HashSet::from(["open-task".to_string()]));
+
+        let mut stmt = conn
+            .prepare(&format!(
+                "EXPLAIN QUERY PLAN {}",
+                task_assignment_lookup_sql()
+            ))
+            .expect("prepare indexed assignment explain");
+        let details = stmt
+            .query_map(params![&run_id, "member-worker", "open-task"], |row| {
+                row.get::<_, String>(3)
+            })
+            .expect("query plan")
+            .collect::<Result<Vec<_>, _>>()
+            .expect("collect query plan");
+        assert!(
+            details
+                .iter()
+                .any(|detail| detail.contains("idx_agent_inbox_run_task_assignment_v4")),
+            "assignment lookup must use the expression index: {details:?}"
+        );
+        assert!(
+            details
+                .iter()
+                .all(|detail| !detail.contains("USE TEMP B-TREE")),
+            "exact assignment lookup must not allocate a temp sort: {details:?}"
+        );
+    }
+
+    #[test]
+    fn assignment_snapshot_requires_current_owner_and_valid_typed_payload() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let conn = get_connection().expect("test database");
+        crate::coordination::agent_org_tasks::init_schema(&conn).expect("task schema");
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let now = chrono::Utc::now().to_rfc3339();
+        for task_id in ["reassigned-task", "{}"] {
+            conn.execute(
+                "INSERT INTO agent_org_tasks
+                 (id, org_run_id, subject, description, status, owner,
+                  blocks_json, blocked_by_json, created_at, updated_at)
+                 VALUES (?1, ?2, ?1, '', 'pending', 'member-b', '[]', '[]', ?3, ?3)",
+                params![task_id, &run_id, &now],
+            )
+            .expect("seed reassigned task");
+        }
+
+        // A valid historical delivery to the old owner must not suppress a
+        // new delivery after the task is reassigned to member-b.
+        AgentInboxStore::insert(InsertInboxParams {
+            recipient_agent_id: "worker-a".into(),
+            recipient_member_id: Some("member-a".into()),
+            sender_agent_id: "coordinator".into(),
+            sender_member_id: Some("coordinator".into()),
+            org_run_id: Some(run_id.clone()),
+            message: AgentMessage::TaskAssigned {
+                task_id: "reassigned-task".into(),
+                subject: "old delivery".into(),
+                description: String::new(),
+                assigned_by: "Coordinator".into(),
+                dependency_outputs: Vec::new(),
+                execution_mode: crate::coordination::agent_org_tasks::TaskExecutionMode::Build,
+            },
+        })
+        .expect("seed old-owner assignment");
+
+        // Valid JSON with the right tag/id but missing required fields is not
+        // a real TaskAssigned envelope and cannot suppress recovery.
+        conn.execute(
+            "INSERT INTO agent_inbox (
+                 recipient_agent_id, recipient_member_id, sender_agent_id,
+                 org_run_id, payload_kind, payload_json, created_at
+             ) VALUES ('worker-b', 'member-b', 'coordinator', ?1,
+                       'task_assigned', ?2, ?3)",
+            params![
+                &run_id,
+                r#"{"kind":"task_assigned","task_id":"reassigned-task"}"#,
+                &now
+            ],
+        )
+        .expect("seed incomplete typed payload");
+
+        // A non-text task_id must not collide with the literal task id "{}".
+        conn.execute(
+            "INSERT INTO agent_inbox (
+                 recipient_agent_id, recipient_member_id, sender_agent_id,
+                 org_run_id, payload_kind, payload_json, created_at
+             ) VALUES ('worker-b', 'member-b', 'coordinator', ?1,
+                       'task_assigned', ?2, ?3)",
+            params![
+                &run_id,
+                r#"{"kind":"task_assigned","task_id":{},"subject":"x","description":"","assigned_by":"Coordinator"}"#,
+                &now
+            ],
+        )
+        .expect("seed non-text task id");
+
+        let assigned =
+            AgentInboxStore::task_assignment_ids_for_open_tasks_with_connection(&conn, &run_id)
+                .expect("scan invalid candidates");
+        assert!(assigned.is_empty());
+
+        AgentInboxStore::insert(InsertInboxParams {
+            recipient_agent_id: "worker-b".into(),
+            recipient_member_id: Some("member-b".into()),
+            sender_agent_id: "coordinator".into(),
+            sender_member_id: Some("coordinator".into()),
+            org_run_id: Some(run_id.clone()),
+            message: AgentMessage::TaskAssigned {
+                task_id: "reassigned-task".into(),
+                subject: "new delivery".into(),
+                description: String::new(),
+                assigned_by: "Coordinator".into(),
+                dependency_outputs: Vec::new(),
+                execution_mode: crate::coordination::agent_org_tasks::TaskExecutionMode::Build,
+            },
+        })
+        .expect("seed current-owner assignment");
+        let assigned =
+            AgentInboxStore::task_assignment_ids_for_open_tasks_with_connection(&conn, &run_id)
+                .expect("scan current-owner assignment");
+        assert_eq!(assigned, HashSet::from(["reassigned-task".to_string()]));
+    }
+
+    #[test]
+    fn production_drain_batches_leave_overflow_unread_for_next_wake() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        for index in 0..(MAX_INBOX_DRAIN_ROWS + 2) {
+            AgentInboxStore::insert(InsertInboxParams {
+                recipient_agent_id: "worker".into(),
+                recipient_member_id: Some("member-worker".into()),
+                sender_agent_id: "coordinator".into(),
+                sender_member_id: Some("coordinator".into()),
+                org_run_id: Some(run_id.clone()),
+                message: AgentMessage::Plain {
+                    summary: format!("message-{index}"),
+                    text: format!("body-{index}"),
+                },
+            })
+            .expect("insert batched inbox row");
+        }
+
+        let first = AgentInboxStore::list_unread_batch_for_member("member-worker", &run_id)
+            .expect("first drain batch");
+        assert_eq!(first.rows.len(), MAX_INBOX_DRAIN_ROWS);
+        assert!(first.has_more);
+        AgentInboxStore::mark_many_read(&first.rows.iter().map(|row| row.id).collect::<Vec<_>>())
+            .expect("commit first batch");
+        assert!(
+            AgentInboxStore::has_unread_for_member("member-worker", &run_id)
+                .expect("remaining unread probe")
+        );
+
+        let second = AgentInboxStore::list_unread_batch_for_member("member-worker", &run_id)
+            .expect("second drain batch");
+        assert_eq!(second.rows.len(), 2);
+        assert!(!second.has_more);
+        assert!(second.rows[0].id > first.rows.last().unwrap().id);
+    }
+
+    #[test]
+    fn unread_ack_queries_use_a_bounded_high_water_mark_without_loading_payloads() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let mut ids = Vec::new();
+        for index in 0..3 {
+            let row = AgentInboxStore::insert(InsertInboxParams {
+                recipient_agent_id: "worker".into(),
+                recipient_member_id: Some("member-worker".into()),
+                sender_agent_id: "coordinator".into(),
+                sender_member_id: Some("coordinator".into()),
+                org_run_id: Some(run_id.clone()),
+                message: AgentMessage::Plain {
+                    summary: format!("ack-{index}"),
+                    text: "payload must not be selected by ack polling".into(),
+                },
+            })
+            .expect("insert ack row");
+            ids.push(row.id);
+        }
+        let boundary = AgentInboxStore::unread_ack_boundary_for_member("member-worker", &run_id)
+            .expect("capture unread boundary")
+            .expect("unread boundary");
+        assert_eq!(boundary, ids[2]);
+
+        AgentInboxStore::mark_many_read(&[ids[1]]).expect("ack middle row");
+        assert_eq!(
+            AgentInboxStore::unread_count_through_boundary("member-worker", &run_id, boundary,)
+                .expect("count unread through boundary"),
+            2
+        );
+
+        let later = AgentInboxStore::insert(InsertInboxParams {
+            recipient_agent_id: "worker".into(),
+            recipient_member_id: Some("member-worker".into()),
+            sender_agent_id: "coordinator".into(),
+            sender_member_id: Some("coordinator".into()),
+            org_run_id: Some(run_id.clone()),
+            message: AgentMessage::Plain {
+                summary: "later".into(),
+                text: "does not extend the captured boundary".into(),
+            },
+        })
+        .expect("insert later row");
+        assert!(later.id > boundary);
+        assert_eq!(
+            AgentInboxStore::unread_count_through_boundary("member-worker", &run_id, boundary,)
+                .expect("later row excluded"),
+            2
+        );
+    }
+
+    #[test]
+    fn production_drain_batch_obeys_serialized_byte_budget() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let large_text = "🧭".repeat(19_000);
+        for index in 0..20 {
+            AgentInboxStore::insert(InsertInboxParams {
+                recipient_agent_id: "worker".into(),
+                recipient_member_id: Some("member-worker".into()),
+                sender_agent_id: "coordinator".into(),
+                sender_member_id: Some("coordinator".into()),
+                org_run_id: Some(run_id.clone()),
+                message: AgentMessage::Plain {
+                    summary: format!("large-{index}"),
+                    text: large_text.clone(),
+                },
+            })
+            .expect("insert large valid inbox row");
+        }
+
+        let batch = AgentInboxStore::list_unread_batch_for_member("member-worker", &run_id)
+            .expect("byte-bounded batch");
+        let bytes = batch
+            .rows
+            .iter()
+            .map(|row| row.payload_json.len())
+            .sum::<usize>();
+        assert!(bytes <= MAX_INBOX_DRAIN_PAYLOAD_BYTES);
+        assert!(batch.rows.len() < 20);
+        assert!(batch.has_more);
     }
 
     #[test]
@@ -1442,6 +3109,49 @@ mod tests {
         assert!(
             still_unread.is_empty(),
             "marked rows must vanish from the unread list"
+        );
+    }
+
+    #[test]
+    fn stale_session_cannot_ack_another_sessions_materialization() {
+        let _sandbox = sandbox_with_inbox_schema();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let row = AgentInboxStore::insert(InsertInboxParams {
+            recipient_agent_id: "worker".into(),
+            recipient_member_id: Some("member-worker".into()),
+            sender_agent_id: "coordinator".into(),
+            sender_member_id: Some("coordinator".into()),
+            org_run_id: Some(run_id.clone()),
+            message: AgentMessage::Plain {
+                summary: "ownership".into(),
+                text: "ownership".into(),
+            },
+        })
+        .expect("insert inbox row");
+        let conn = get_connection().expect("db");
+        conn.execute(
+            "INSERT INTO agent_inbox_materializations
+             (inbox_id, session_id, transcript_message_id, transcript_intent_id, materialized_at)
+             VALUES (?1, 'new-session', 'message', 'intent', ?2)",
+            params![row.id, chrono::Utc::now().to_rfc3339()],
+        )
+        .expect("seed current receipt owner");
+
+        assert!(
+            AgentInboxStore::mark_many_read_for_session(&[row.id], "old-session")
+                .expect_err("stale guard must fail the whole acknowledgement")
+                .contains("refusing partial acknowledgement")
+        );
+        assert_eq!(
+            AgentInboxStore::list_unread_for_member("member-worker", &run_id)
+                .expect("unread after stale ack")
+                .len(),
+            1
+        );
+        assert_eq!(
+            AgentInboxStore::mark_many_read_for_session(&[row.id], "new-session")
+                .expect("owner ack"),
+            1
         );
     }
 

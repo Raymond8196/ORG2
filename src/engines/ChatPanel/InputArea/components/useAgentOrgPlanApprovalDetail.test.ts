@@ -1,0 +1,129 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  type AgentOrgPlanApproval,
+  type AgentOrgPlanApprovalSummary,
+  getAgentOrgPlanApprovalDetail,
+} from "@src/api/tauri/agent";
+
+import { agentOrgPlanApprovalDetailCacheTestApi } from "./useAgentOrgPlanApprovalDetail";
+
+vi.mock("@src/api/tauri/agent", () => ({
+  getAgentOrgPlanApprovalDetail: vi.fn(),
+}));
+
+const mockedGetDetail = vi.mocked(getAgentOrgPlanApprovalDetail);
+
+function approvalSummary(): AgentOrgPlanApprovalSummary {
+  return {
+    approvalId: "approval-1",
+    planRevisionId: "revision-1",
+    requestId: "request-1",
+    orgRunId: "run-1",
+    sourceTaskId: "task-1",
+    sourceMemberId: "planner",
+    sourceSessionId: "planner-session",
+    rootSessionId: "root-session",
+    policy: "user",
+    status: "pending",
+    planTitle: "Implementation plan",
+    planContentBytes: 17,
+    createdAt: "2026-07-16T00:00:00Z",
+  };
+}
+
+function approvalDetail(): AgentOrgPlanApproval {
+  const summary = approvalSummary();
+  return {
+    ...summary,
+    planPath: "/tmp/plan.md",
+    planContent: "Build the feature.",
+  };
+}
+
+describe("Agent Org plan approval detail cache", () => {
+  beforeEach(() => {
+    agentOrgPlanApprovalDetailCacheTestApi.reset();
+    mockedGetDetail.mockReset();
+  });
+
+  afterEach(() => {
+    agentOrgPlanApprovalDetailCacheTestApi.reset();
+  });
+
+  it("coalesces concurrent loads for the same immutable revision", async () => {
+    let resolveRequest: ((detail: AgentOrgPlanApproval) => void) | undefined;
+    mockedGetDetail.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRequest = resolve;
+        })
+    );
+    const approval = approvalSummary();
+
+    const firstLoad = agentOrgPlanApprovalDetailCacheTestApi.load(
+      "root-session",
+      approval
+    );
+    const secondLoad = agentOrgPlanApprovalDetailCacheTestApi.load(
+      "root-session",
+      { ...approval }
+    );
+
+    expect(mockedGetDetail).toHaveBeenCalledTimes(1);
+    resolveRequest?.(approvalDetail());
+    await Promise.all([firstLoad, secondLoad]);
+    expect(
+      agentOrgPlanApprovalDetailCacheTestApi.getSnapshot(approval).detail
+        ?.planContent
+    ).toBe("Build the feature.");
+  });
+
+  it("reuses a cached revision without refetching on rerender", async () => {
+    mockedGetDetail.mockResolvedValue(approvalDetail());
+    const approval = approvalSummary();
+
+    await agentOrgPlanApprovalDetailCacheTestApi.load("root-session", approval);
+    await agentOrgPlanApprovalDetailCacheTestApi.load("root-session", {
+      ...approval,
+    });
+
+    expect(mockedGetDetail).toHaveBeenCalledTimes(1);
+    expect(
+      agentOrgPlanApprovalDetailCacheTestApi.getSnapshot(approval)
+    ).toMatchObject({ loading: false, error: null });
+  });
+
+  it("exposes a failed load and lets retry issue a fresh request", async () => {
+    mockedGetDetail
+      .mockRejectedValueOnce(new Error("detail unavailable"))
+      .mockResolvedValueOnce(approvalDetail());
+    const approval = approvalSummary();
+
+    await agentOrgPlanApprovalDetailCacheTestApi.load("root-session", approval);
+    expect(
+      agentOrgPlanApprovalDetailCacheTestApi.getSnapshot(approval)
+    ).toMatchObject({
+      detail: null,
+      error: "detail unavailable",
+      loading: false,
+    });
+
+    // A Run View poll returns a new summary object for the same immutable
+    // revision. That must not turn a visible failure into an automatic retry.
+    await agentOrgPlanApprovalDetailCacheTestApi.load("root-session", {
+      ...approval,
+    });
+    expect(mockedGetDetail).toHaveBeenCalledTimes(1);
+
+    await agentOrgPlanApprovalDetailCacheTestApi.load(
+      "root-session",
+      approval,
+      true
+    );
+    expect(mockedGetDetail).toHaveBeenCalledTimes(2);
+    expect(
+      agentOrgPlanApprovalDetailCacheTestApi.getSnapshot(approval)
+    ).toMatchObject({ detail: approvalDetail(), error: null, loading: false });
+  });
+});
