@@ -1,4 +1,6 @@
 pub mod cache;
+pub mod managed_mirror;
+pub mod managed_roots;
 pub mod metadata;
 pub mod paths;
 
@@ -165,6 +167,14 @@ pub struct ImportedHistorySidebarRow {
     pub name: String,
     pub created_at: String,
     pub updated_at: String,
+    /// Live status override (`running`, `waiting_for_user`, `failed`)
+    /// decorated by the desktop layer from lifecycle-hook signals or the
+    /// transcript-mtime fallback. Absent means the frontend's historical
+    /// default ("completed") applies. The core query never sets these.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_active: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

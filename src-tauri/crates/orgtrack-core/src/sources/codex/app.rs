@@ -137,7 +137,18 @@ pub fn load_codex_app_for_session(
 }
 
 fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
-    let discovered = discover_codex_app_records()?;
+    let mut discovered = discover_codex_app_records()?;
+    // Managed (GUI-launched) Codex sessions surface through their
+    // code_sessions row (`cli_agent_type = 'codex'`); the imported twin goes
+    // unlistable. Same pattern as the OpenCode/Claude readers.
+    let managed_ids = crate::sources::imported_history::managed_mirror::
+        managed_source_session_ids_from_conn(conn, "codex", SOURCE_CODEX_APP)?;
+    for record in &mut discovered {
+        crate::sources::imported_history::managed_mirror::append_managed_fingerprint(
+            &mut record.source_fingerprint,
+            managed_ids.contains(&record.source_session_id),
+        );
+    }
     let signatures = discovered
         .iter()
         .map(ImportedHistoryDiscoveredRecord::signature)
@@ -149,7 +160,10 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
     let mut inputs = Vec::new();
     for record in changed {
         if let Some(meta) = parse_codex_session_meta(record)? {
-            inputs.push(session_meta_to_cache_input(meta));
+            let is_managed_history_mirror = managed_ids.contains(&meta.source_session_id);
+            let mut input = session_meta_to_cache_input(meta);
+            input.listable = input.listable && !is_managed_history_mirror;
+            inputs.push(input);
         }
     }
     imported_cache::sync_source_cache_from_conn(
@@ -2276,7 +2290,17 @@ fn resolve_codex_session_path(conn: &Connection, file_stem: &str) -> Result<Path
 
 fn codex_sessions_dirs() -> Result<Vec<PathBuf>, String> {
     let home = dirs::home_dir().ok_or_else(|| "Home directory not found".to_string())?;
-    Ok(codex_sessions_dir_candidates(&home))
+    let mut dirs = codex_sessions_dir_candidates(&home);
+    // ORGII-managed own-key Codex runs redirect CODEX_HOME into per-account
+    // profile dirs; native-transcript mode reads those rollouts back here.
+    // (Hosted-key Codex keeps the system CODEX_HOME and is covered above.)
+    dirs.extend(
+        crate::sources::imported_history::managed_roots::profile_root_children(
+            &app_paths::codex_cli_profile_root(),
+            &["sessions"],
+        ),
+    );
+    Ok(dirs)
 }
 
 fn codex_sessions_dir_candidates(home: &Path) -> Vec<PathBuf> {

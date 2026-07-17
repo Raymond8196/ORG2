@@ -109,6 +109,26 @@ pub async fn cancel_session(session_id: &str, reason: CancelReason) -> Result<bo
     persistence::update_status(session_id, SessionStatus::Cancelled)
         .map_err(|e| format!("DB error: {}", e))?;
 
+    // Cancelled is terminal: drop any hook-derived live status so the
+    // sidebar doesn't keep a ghost working/waiting entry for this session.
+    if let Some(ref session) = session {
+        if let Some(agent) = session
+            .cli_agent_type
+            .as_deref()
+            .and_then(key_vault::key_store::ModelType::from_str)
+        {
+            super::helpers::clear_live_status(
+                &agent,
+                session_id,
+                session.cli_session_id.as_deref(),
+            );
+        } else {
+            crate::orgtrack::agent_live_status::clear(&[session_id]);
+        }
+    } else {
+        crate::orgtrack::agent_live_status::clear(&[session_id]);
+    }
+
     let status_msg = serde_json::json!({
         "type": "code_session.status_changed",
         "session_id": session_id,

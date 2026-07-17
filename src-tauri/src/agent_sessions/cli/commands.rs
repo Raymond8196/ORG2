@@ -129,6 +129,7 @@ pub async fn cli_agent_create(mut params: CreateCodeSessionParams) -> Result<Cod
     let isolate = params.isolate.unwrap_or(false);
     let repo_path = params.repo_path.clone();
     let branch_for_worktree = params.branch.clone();
+    let reuse_worktree_path = params.worktree_path.clone();
 
     let session = tokio::task::spawn_blocking({
         let sid = session_id.clone();
@@ -218,9 +219,59 @@ pub async fn cli_agent_create(mut params: CreateCodeSessionParams) -> Result<Cod
                 }
             }
         }
+    } else if let Some(worktree_path) = reuse_worktree_path
+        .as_deref()
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+    {
+        // Reuse an existing worktree checkout: pin the session's cwd and
+        // merge flow to it. The base ref is already baked into the checkout.
+        if !std::path::Path::new(worktree_path).is_dir() {
+            return Err(format!(
+                "Selected worktree path does not exist: {worktree_path}"
+            ));
+        }
+        let updated = tokio::task::spawn_blocking({
+            let sid = session_id.clone();
+            let path = worktree_path.to_string();
+            let repo = repo_path.clone();
+            move || -> Result<Option<CodeSession>, String> {
+                let worktree_branch = repo
+                    .as_deref()
+                    .filter(|repo| !repo.is_empty())
+                    .and_then(|repo| {
+                        worktree::list_all_worktrees(std::path::Path::new(repo)).ok()
+                    })
+                    .and_then(|entries| {
+                        entries
+                            .into_iter()
+                            .find(|entry| entry.path == path)
+                            .map(|entry| entry.branch)
+                    })
+                    .unwrap_or_default();
+                persistence::update_worktree_info(&sid, &path, &worktree_branch, "")
+                    .map_err(|e| format!("Failed to store worktree info: {}", e))?;
+                persistence::get_session(&sid).map_err(|e| format!("DB error: {}", e))
+            }
+        })
+        .await
+        .map_err(|e| format!("Task error: {}", e))??;
+
+        if let Some(updated_session) = updated {
+            return Ok(updated_session);
+        }
     }
 
     Ok(session)
+}
+
+/// Park a TUI-hosted session when its terminal pane goes away (PTY exit or
+/// tab close). Non-TUI sessions and already-terminal rows are left alone.
+#[tauri::command]
+pub async fn cli_agent_tui_release(session_id: String) -> Result<bool, String> {
+    tokio::task::spawn_blocking(move || super::tui_bridge::release_tui_session(&session_id))
+        .await
+        .map_err(|e| format!("Task error: {}", e))?
 }
 
 /// Run a code session (spawn CLI agent in background).
@@ -551,7 +602,69 @@ pub async fn cli_agent_list() -> Result<Vec<CodeSession>, String> {
     .map_err(|e| format!("Task error: {}", e))?
 }
 
+/// Resolve and parse a native-mode session's transcript from the CLI's own
+/// store through the imported-history loaders. `None` falls back to legacy
+/// chunks — covering pre-migration sessions, crash-before-native-write, and
+/// a store the reader can't currently open.
+fn load_native_transcript_chunks(session: &CodeSession) -> Option<Vec<ActivityChunk>> {
+    use super::native_transcript;
+    if session.transcript_source != native_transcript::TRANSCRIPT_SOURCE_NATIVE {
+        return None;
+    }
+    let agent = session
+        .cli_agent_type
+        .as_deref()
+        .and_then(key_vault::key_store::ModelType::from_str)?;
+    let binding = native_transcript::native_transcript_binding(&agent)?;
+    let cli_session_id =
+        persistence::latest_native_transcript_id(&session.session_id, binding.source)
+            .ok()
+            .flatten()
+            .or_else(|| session.cli_session_id.clone())?;
+    let imported_id = binding.imported_session_id(&cli_session_id);
+    let conn = database::db::get_connection().ok()?;
+    match orgtrack_core::sources::imported_history::load_activity_chunks_for_session(
+        &conn,
+        &imported_id,
+    ) {
+        Ok(Some(mut chunks)) if !chunks.is_empty() => {
+            // Loaders stamp the imported id; the frontend event store,
+            // WS merge, and snapshot keys all key on the managed id.
+            for chunk in &mut chunks {
+                chunk.session_id = session.session_id.clone();
+            }
+            Some(chunks)
+        }
+        Ok(_) => None,
+        Err(err) => {
+            tracing::warn!(
+                "[cli_agent_chunks] Native transcript load failed for {imported_id}: {err}"
+            );
+            None
+        }
+    }
+}
+
+/// A failed first turn in native mode may leave no readable transcript at
+/// all; a synthesized user bubble beats a blank chat.
+fn synthesized_user_message_chunk(session: &CodeSession) -> Option<ActivityChunk> {
+    let user_input = session.user_input.as_deref()?.trim();
+    if user_input.is_empty() {
+        return None;
+    }
+    let mut chunk = ActivityChunk::new(&session.session_id, "raw", "user_message");
+    chunk.chunk_id = format!("user-input-{}-synthesized", session.session_id);
+    chunk.created_at = session.created_at.clone();
+    chunk.result = serde_json::json!({
+        "type": "user",
+        "message": { "content": user_input, "role": "user" }
+    });
+    Some(chunk)
+}
+
 /// Load persisted chunks for a session (for resume/session switch).
+/// Native-transcript sessions route through the imported-history loaders;
+/// everything else (and every fallback) reads legacy `code_session_chunks`.
 #[tauri::command]
 pub async fn cli_agent_chunks(session_id: String) -> Result<Vec<ActivityChunk>, String> {
     tracing::info!(
@@ -559,7 +672,28 @@ pub async fn cli_agent_chunks(session_id: String) -> Result<Vec<ActivityChunk>, 
         session_id
     );
     let result = tokio::task::spawn_blocking(move || {
-        persistence::load_chunks(&session_id).map_err(|e| format!("DB error: {}", e))
+        let session = persistence::get_session(&session_id)
+            .map_err(|e| format!("DB error: {}", e))?;
+        if let Some(session) = session.as_ref() {
+            if let Some(chunks) = load_native_transcript_chunks(session) {
+                return Ok(chunks);
+            }
+        }
+        let chunks =
+            persistence::load_chunks(&session_id).map_err(|e| format!("DB error: {}", e))?;
+        if chunks.is_empty() {
+            if let Some(chunk) = session
+                .as_ref()
+                .filter(|session| {
+                    session.transcript_source
+                        == super::native_transcript::TRANSCRIPT_SOURCE_NATIVE
+                })
+                .and_then(synthesized_user_message_chunk)
+            {
+                return Ok(vec![chunk]);
+            }
+        }
+        Ok(chunks)
     })
     .await
     .map_err(|e| format!("Task error: {}", e))?;
