@@ -43,7 +43,7 @@ import {
 import { canConsolidate, mergeObservations } from "./utils";
 
 // ============================================
-// Error dedup helpers (pipeline-local, no blocks dependency)
+// Error detection helpers (pipeline-local, no blocks dependency)
 // ============================================
 
 function getErrorText(result: Record<string, unknown>): string | null {
@@ -95,6 +95,34 @@ function getStableActivityItemId(event: SessionEvent): string {
 // ============================================
 // Main Pipeline Function
 // ============================================
+
+function isDiffProjectionEvent(event: SessionEvent): boolean {
+  const canonical = event.uiCanonical || event.functionName;
+  if (
+    canonical === "edit_file" ||
+    canonical === "edit_file_by_replace" ||
+    canonical === "delete_file" ||
+    canonical === "apply_patch"
+  ) {
+    return true;
+  }
+
+  const action = event.args?.action;
+  return (
+    (canonical === "git" || canonical === "git_diff") &&
+    typeof action === "string" &&
+    action.toLowerCase().includes("diff")
+  );
+}
+
+function shouldSkipEvent(
+  event: SessionEvent,
+  policy: ChatItemPipelineOptions["skipPolicy"]
+): boolean {
+  if (policy === "none" || policy === undefined) return false;
+  if (policy === "diff") return isDiffProjectionEvent(event);
+  return false;
+}
 
 /**
  * Process SessionEvent[] into display-ready OptimizedChatItem[].
@@ -349,7 +377,7 @@ export function processChatItems(
   let sawManageTodo = false;
 
   for (let index = 0; index < events.length; index++) {
-    const event = events[index];
+    let event = events[index];
 
     if (
       runningChunksToSkip.has(event.id) ||
@@ -371,8 +399,9 @@ export function processChatItems(
       if (resultCallId) {
         const runningArgs = runningArgsMap.get(resultCallId);
         if (runningArgs) {
-          (event as { args: Record<string, unknown> }).args = {
-            ...runningArgs,
+          event = {
+            ...event,
+            args: { ...runningArgs },
           };
         }
       }
@@ -385,9 +414,9 @@ export function processChatItems(
       }
     }
 
-    // Caller-supplied skip predicate (e.g. drop diff events when the Diff
-    // simulator app is active).
-    if (opts.shouldSkipEvent && opts.shouldSkipEvent(event)) {
+    // Serializable caller-selected exclusion policy (for example, Diff owns
+    // file-mutation cards on surfaces where inline diff rows are hidden).
+    if (shouldSkipEvent(event, opts.skipPolicy)) {
       continue;
     }
 
@@ -513,30 +542,6 @@ export function processChatItems(
 
     // Regular event — flush all buffers and add as activity
     flushAllBuffers();
-
-    // Fold consecutive identical tool errors into a single item with a repeat count.
-    // repeatedErrorCount stores the number of extra occurrences beyond the first
-    // (i.e. total occurrences = repeatedErrorCount + 1). Stats are only counted
-    // for items that actually land in the result array, so folded duplicates are
-    // excluded — this keeps stats.failedCount consistent with result.length.
-    if (isFailedToolCall(event)) {
-      const last = result[result.length - 1];
-      if (
-        last?.type === "activity" &&
-        last.event &&
-        last.event.functionName === event.functionName &&
-        last.event.actionType === "tool_call" &&
-        isFailedToolCall(last.event) &&
-        getErrorText(last.event.result ?? {}) ===
-          getErrorText(event.result ?? {})
-      ) {
-        result[result.length - 1] = {
-          ...last,
-          repeatedErrorCount: (last.repeatedErrorCount ?? 1) + 1,
-        };
-        continue;
-      }
-    }
 
     // A todo event contains the complete checklist snapshot. Consecutive
     // updates therefore supersede each other; rendering every intermediate

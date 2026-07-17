@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "Dosya yoluna göre oturum ara",
+      "noResults": "Eşleşen bir dosyayı değiştiren oturum yok"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Mevcut Kanban",
     "view": {
@@ -99,8 +103,16 @@
       "lastScan": "Son tarama {{time}}",
       "neverScanned": "Hiç taranmadı",
       "frequencyTitle": "Otomatik tarama sıklığı",
-      "globalFrequency": "Otomatik tarama",
-      "globalFrequencyDesc": "“Varsayılan” olarak ayarlanan kaynaklar için varsayılan sıklık.",
+      "globalFrequency": "Harici kaynakları otomatik tarama",
+      "globalFrequencyDesc": "“Varsayılan” olarak ayarlanan harici kaynaklar için varsayılan tarama sıklığı",
+      "activeSessionRefresh": "Açık harici oturumu yenileme",
+      "activeSessionRefreshDesc": "Sohbet panelinde açık olan harici oturumun yenileme sıklığı",
+      "activeSessionFreq": {
+        "3s": "Her 3 saniyede",
+        "5s": "Her 5 saniyede",
+        "10s": "Her 10 saniyede",
+        "1m": "Her dakika"
+      },
       "col": {
         "source": "Kaynak",
         "sessions": "Oturumlar",
@@ -787,13 +799,6 @@
         "heatmap": "Trendler",
         "runtime": "Çalışma zamanı"
       },
-      "heatmap": {
-        "loading": "Etkinlik trendleri yükleniyor…",
-        "empty": "Henüz oturum etkinliği yok.",
-        "sessions": "Oturumlar",
-        "tokens": "Tokens",
-        "cost": "Maliyet"
-      },
       "quota": {
         "empty": "Henüz quota verisi yok. Key Vault'tan kullanımı yenileyin.",
         "refresh": "Yenile",
@@ -1012,11 +1017,20 @@
         "importFailed": "Session JSON içe aktarılamadı."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "Bu turda {{count}} dosya değişti",
-      "filesChangedCount_other": "Bu turda {{count}} dosya değişti",
-      "historicalRoundDiffFiles_one": "Önceki tur diff’i · {{count}} dosya",
-      "historicalRoundDiffFiles_other": "Önceki tur diff’i · {{count}} dosya",
+    "turnMetadata": {
+      "noChanges": "Bu turda dosya değişikliği yok",
+      "earlierRound": "Önceki tur",
+      "files_one": "{{count}} dosya",
+      "files_other": "{{count}} dosya",
+      "reads_one": "{{count}} okuma",
+      "reads_other": "{{count}} okuma",
+      "searches_one": "{{count}} arama",
+      "searches_other": "{{count}} arama",
+      "failed": "Başarısız",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commit",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PR",
       "review": "İncele",
       "showLess": "Daha az göster",
       "showMore_one": "{{count}} tane daha göster",
@@ -1959,6 +1973,14 @@
     "model": "Model",
     "source": "Hesap",
     "addContext": "Bağlam ekle",
+    "contextMenu": {
+      "filesAndFolders": "Dosyalar ve Klasörler",
+      "agentSession": "Agent Oturumu",
+      "workItems": "İş Öğeleri",
+      "back": "Geri",
+      "recent": "Son Kullanılanlar",
+      "showMore": "{{remaining}} tane daha göster"
+    },
     "slashSearchPlaceholder": "Komut ara…",
     "slashMenu": {
       "image": "Görsel",

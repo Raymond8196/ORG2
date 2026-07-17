@@ -13,6 +13,8 @@ export interface SessionTableItem {
   description?: React.ReactNode;
   statusLabel: React.ReactNode;
   statusColor?: string;
+  ownerIcon?: React.ReactNode;
+  ownerLabel?: React.ReactNode;
   agentIcon?: React.ReactNode;
   agentLabel?: React.ReactNode;
   modelIcon?: React.ReactNode;
@@ -43,6 +45,7 @@ export interface SessionTableItem {
 export type SessionTableColumnKey =
   | "name"
   | "status"
+  | "owner"
   | "agent"
   | "model"
   | "workspace"
@@ -62,6 +65,7 @@ export type SessionTableColumnKey =
 const DEFAULT_COLUMN_VISIBILITY: Record<SessionTableColumnKey, boolean> = {
   name: true,
   status: true,
+  owner: false,
   agent: true,
   model: true,
   workspace: true,
@@ -121,6 +125,7 @@ function matchesSessionSearch(
     toSearchText(item.title),
     toSearchText(item.description),
     toSearchText(item.statusLabel),
+    toSearchText(item.ownerLabel),
     toSearchText(item.agentLabel),
     toSearchText(item.modelLabel),
     toSearchText(item.workspaceLabel),
@@ -186,6 +191,21 @@ export const SessionTable: React.FC<SessionTableProps> = ({
               }}
             />
             <span className="truncate">{item.statusLabel}</span>
+          </div>
+        ),
+      },
+      {
+        key: "owner",
+        label: t("common:filters.member"),
+        width: "140px",
+        sorter: (left, right) =>
+          compareSessionText(left.ownerLabel, right.ownerLabel),
+        renderCell: (item) => (
+          <div className="flex min-w-0 items-center gap-2 text-text-2">
+            {item.ownerIcon}
+            <span className="min-w-0 truncate">
+              {item.ownerLabel ?? EMPTY_CELL}
+            </span>
           </div>
         ),
       },

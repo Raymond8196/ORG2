@@ -1685,6 +1685,8 @@
       "emptyConfigPreview": "Brak treści konfiguracji"
     },
     "sessionProvenance": {
+      "masterToggle": "Hooki pochodzenia",
+      "masterToggleDesc": "Po wyłączeniu wszystkie zarządzane hooki zostaną odinstalowane i żadne sygnały nie będą zbierane; wybory dla poszczególnych platform zostaną zachowane i przywrócone po ponownym włączeniu.",
       "title": "Pochodzenie sesji",
       "capture": "Rejestruj interakcje z plikami",
       "description": "Rejestruje odczyty i zapisy plików jako metadane. Prompty, wyniki narzędzi i zawartość plików nie są przechowywane.",
@@ -1701,8 +1703,16 @@
         "on": "Wł.",
         "off": "Wył.",
         "repair": "Napraw",
+        "awaitingVerification": "Oczekiwanie na weryfikację",
         "checking": "Sprawdzanie…",
         "error": "Błąd"
+      },
+      "codexApproval": {
+        "title": "Weryfikacja hooków ORG2 w Codex",
+        "description": "Oczekiwanie, aż Codex zatwierdzi i uruchomi bieżące hooki ORG2.",
+        "instructions": "Otwórz Codex, sprawdź hooki ORG2, a następnie wybierz Trust all and continue. Hook SessionStart automatycznie zweryfikuje aktywację po rozpoczęciu sesji.",
+        "review": "Sprawdź w Codex",
+        "verified": "Zweryfikowano prawdziwym sygnałem hooka Codex ({{time}})."
       },
       "signals": {
         "title": "Ostatnie sygnały",
@@ -1711,6 +1721,8 @@
         "search": "Szukaj sygnałów",
         "refresh": "Odśwież",
         "openSession": "Otwórz sesję {{session}}",
+        "diffLoading": "Loading patch…",
+        "diffEmpty": "No patch captured. Provenance records file changes as metadata; a diff appears only once this session's edits are imported.",
         "col": {
           "source": "Narzędzie",
           "action": "Akcja",

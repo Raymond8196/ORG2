@@ -25,7 +25,7 @@ use crate::sources::imported_history::{
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const WORKBUDDY_SESSION_PREFIX: &str = "workbuddyapp-";
+pub const WORKBUDDY_SESSION_PREFIX: &str = "workbuddyapp-";
 const WORKBUDDY_PROVIDER_SLUG: &str = "workbuddy";
 // Version 2 imports `subagents/agent-*.jsonl` and links them to their parent session.
 const WORKBUDDY_METADATA_PARSER_VERSION: i64 = 2;

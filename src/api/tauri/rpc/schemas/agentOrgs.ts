@@ -32,10 +32,18 @@ export const SessionProvenanceHookPlatformSchema = z.enum([
   "zcode",
 ]);
 
+export const SessionProvenanceHookActivationStateSchema = z.enum([
+  "inactive",
+  "awaiting_verification",
+  "active",
+]);
+
 export const SessionProvenanceHookStatusSchema = z.object({
   platform: SessionProvenanceHookPlatformSchema,
   enabled: z.boolean(),
   desiredEnabled: z.boolean(),
+  activationState: SessionProvenanceHookActivationStateSchema,
+  lastActivatedAt: z.string().nullable().optional(),
   configPath: z.string(),
   error: z.string().nullable().optional(),
 });
@@ -82,6 +90,22 @@ export const SessionProvenanceRecentSignalsInput = z.object({
   limit: z.number().int().positive().optional(),
 });
 
+// One live agent-status row, keyed by the canonical session id (equal to the
+// imported-history session id, e.g. `claudecodeapp-<uuid>`). `status` uses the
+// existing session-status vocabulary (`running`, `waiting_for_user`,
+// `completed`, `failed`) so it can be assigned onto Session rows directly.
+export const AgentLiveStatusSchema = z.object({
+  sessionId: z.string(),
+  orgiiSessionId: z.string().optional(),
+  source: z.string(),
+  status: z.string(),
+  toolName: z.string().optional(),
+  toolInputPreview: z.string().optional(),
+  interactivePrompt: z.string().optional(),
+  isInterrupt: z.boolean(),
+  updatedAtMs: z.number().int(),
+});
+
 export type SessionProvenanceHookPlatform = z.output<
   typeof SessionProvenanceHookPlatformSchema
 >;
@@ -91,6 +115,7 @@ export type SessionProvenanceHookStatus = z.output<
 export type SessionProvenanceRecentSignal = z.output<
   typeof SessionProvenanceRecentSignalSchema
 >;
+export type AgentLiveStatus = z.output<typeof AgentLiveStatusSchema>;
 export type SessionProvenanceSignalAction = z.output<
   typeof SessionProvenanceSignalActionSchema
 >;

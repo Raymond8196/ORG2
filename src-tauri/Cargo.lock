@@ -59,10 +59,12 @@ dependencies = [
  "app_platform",
  "app_utils",
  "chrono",
+ "json5",
  "rand 0.9.4",
  "rusqlite",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sha2",
  "tauri",
  "tempfile",
@@ -2846,6 +2848,7 @@ dependencies = [
  "log",
  "notify",
  "parking_lot 0.12.5",
+ "regex",
  "reqwest 0.13.4",
  "rusqlite",
  "serde",
@@ -3908,6 +3911,17 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "json5"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96b0db21af676c1ce64250b5f40f3ce2cf27e4e47cb91ed91eb6fe9350b430c1"
+dependencies = [
+ "pest",
+ "pest_derive",
+ "serde",
 ]
 
 [[package]]
@@ -5204,6 +5218,7 @@ dependencies = [
  "terminal",
  "test_helpers",
  "test_runner",
+ "time",
  "tokio",
  "tokio-rustls",
  "tokio-util",
@@ -5225,6 +5240,7 @@ dependencies = [
 name = "orgtrack_core"
 version = "0.1.0"
 dependencies = [
+ "app_paths",
  "chrono",
  "core_types",
  "dirs",
@@ -5232,6 +5248,7 @@ dependencies = [
  "orgtrack_sync",
  "prost",
  "prost-reflect",
+ "regex",
  "rusqlite",
  "serde",
  "serde_json",
@@ -7232,8 +7249,9 @@ dependencies = [
  "agent_core",
  "app_paths",
  "chrono",
+ "core_types",
  "database",
- "git",
+ "orgtrack_core",
  "rusqlite",
  "serde",
  "serde_json",

@@ -55,6 +55,8 @@ import LaunchpadActionStrip from "./LaunchpadActionStrip";
 import MacFolderIcon from "./MacFolderIcon";
 
 interface LaunchpadDashboardProps {
+  /** Optional content rendered first in the dashboard's shared scroll area. */
+  headerContent?: React.ReactNode;
   repos: Repo[];
   loading: boolean;
   /** Currently highlighted workspace card (drives the action strip). */
@@ -339,6 +341,7 @@ LaunchpadAgentActionStrip.displayName = "LaunchpadAgentActionStrip";
 
 const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
   ({
+    headerContent,
     repos,
     loading,
     selectedDashboardRepoId,
@@ -583,6 +586,8 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
           <div
             className={`flex flex-col gap-5 px-4 py-5 ${DETAIL_PANEL_TOKENS.headerWidth}`}
           >
+            {headerContent}
+
             <div className="flex flex-col gap-2">
               <LaunchpadCollapsibleSection
                 title={t("navigation:launchpad.myWorkspaces")}

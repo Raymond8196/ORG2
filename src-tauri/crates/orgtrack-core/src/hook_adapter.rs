@@ -88,7 +88,7 @@ impl HookSource {
         }
     }
 
-    fn canonical_session_id(self, source_session_id: &str, payload: &Value) -> String {
+    pub(crate) fn canonical_session_id(self, source_session_id: &str, payload: &Value) -> String {
         match self {
             Self::ClaudeCode => {
                 crate::sources::claude_code::canonical_session_id(source_session_id)
@@ -115,7 +115,11 @@ impl HookSource {
         }
     }
 
-    fn canonical_lifecycle_session_id(self, source_session_id: &str, payload: &Value) -> String {
+    pub(crate) fn canonical_lifecycle_session_id(
+        self,
+        source_session_id: &str,
+        payload: &Value,
+    ) -> String {
         if self != Self::Codex {
             return self.canonical_session_id(source_session_id, payload);
         }
@@ -351,7 +355,7 @@ fn transcript_file_stem(path: &str) -> Option<&str> {
         .filter(|value| !value.is_empty())
 }
 
-fn source_session_id(source: HookSource, payload: &Value) -> Option<String> {
+pub(crate) fn source_session_id(source: HookSource, payload: &Value) -> Option<String> {
     match source {
         HookSource::ClaudeCode
         | HookSource::Codex
@@ -426,10 +430,13 @@ fn shell_path_actions(tool_name: &str, tool_input: &Value) -> Vec<(String, Resou
         .flat_map(|(canonical_name, args)| {
             let action = match canonical_name.as_str() {
                 crate::sources::imported_history::FUNCTION_READ_FILE => ResourceAction::Read,
-                crate::sources::imported_history::FUNCTION_CODE_SEARCH
-                | crate::sources::imported_history::FUNCTION_GLOB_FILE_SEARCH => {
-                    ResourceAction::Search
-                }
+                // search-rows: shell-classified searches no longer produce
+                // interactions; they now fall through to the empty arm.
+                // Restore with the sibling `search-rows` sites.
+                // crate::sources::imported_history::FUNCTION_CODE_SEARCH
+                // | crate::sources::imported_history::FUNCTION_GLOB_FILE_SEARCH => {
+                //     ResourceAction::Search
+                // }
                 crate::sources::imported_history::FUNCTION_EDIT_FILE => ResourceAction::Write,
                 _ => return Vec::new(),
             };
@@ -454,7 +461,7 @@ fn modified_file_actions(payload: &Value) -> Vec<(String, ResourceAction)> {
         .collect()
 }
 
-fn string_field(value: &Value, fields: &[&str]) -> Option<String> {
+pub(crate) fn string_field(value: &Value, fields: &[&str]) -> Option<String> {
     fields.iter().find_map(|field| {
         value
             .get(*field)
@@ -477,11 +484,11 @@ fn first_string_array_item(value: &Value, fields: &[&str]) -> Option<String> {
     })
 }
 
-fn now_rfc3339() -> String {
+pub(crate) fn now_rfc3339() -> String {
     Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true)
 }
 
-fn normalize_rfc3339(timestamp: &str) -> Option<String> {
+pub(crate) fn normalize_rfc3339(timestamp: &str) -> Option<String> {
     chrono::DateTime::parse_from_rfc3339(timestamp)
         .ok()
         .map(|timestamp| {
@@ -555,7 +562,7 @@ mod tests {
     }
 
     #[test]
-    fn factory_droid_create_normalizes_to_a_write() {
+    fn factory_droid_create_preserves_the_create_action() {
         let envelopes = normalize_hook_payload(
             HookSource::FactoryDroid,
             &json!({
@@ -572,7 +579,7 @@ mod tests {
         assert_eq!(envelopes.len(), 1);
         assert_eq!(envelopes[0].source, "droid");
         assert_eq!(envelopes[0].session_id, "droidapp-droid-1");
-        assert_eq!(envelopes[0].action, ResourceAction::Write);
+        assert_eq!(envelopes[0].action, ResourceAction::Create);
         assert_eq!(envelopes[0].file_path, "/repo/src/new.rs");
     }
 
@@ -738,7 +745,10 @@ mod tests {
         assert!(HookSource::parse("warp").is_err());
         assert!(HookSource::parse("cline").is_err());
         assert_eq!(HookSource::parse("qwen").unwrap(), HookSource::QwenCode);
-        assert_eq!(HookSource::parse("droid").unwrap(), HookSource::FactoryDroid);
+        assert_eq!(
+            HookSource::parse("droid").unwrap(),
+            HookSource::FactoryDroid
+        );
         assert_eq!(HookSource::parse("trae").unwrap(), HookSource::Trae);
         assert_eq!(HookSource::parse("opencode").unwrap(), HookSource::OpenCode);
         assert_eq!(HookSource::parse("windsurf").unwrap(), HookSource::Windsurf);

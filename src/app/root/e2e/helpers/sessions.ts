@@ -220,6 +220,8 @@ export function createSessionHelpers(store: E2EStore) {
   const inspectOrgtrackFileSessionHistory = async (input: {
     repoPath: string;
     filePath: string;
+    limit?: number;
+    offset?: number;
   }): Promise<Result<{ history: Json }>> => {
     try {
       const history = await getOrgtrackFileSessionHistory(input);
@@ -767,6 +769,7 @@ export function createSessionHelpers(store: E2EStore) {
     seedPersistedCachedSession,
     seedChatEvents: seeders.seedChatEvents,
     seedSidebarSession: seeders.seedSidebarSession,
+    openWorkManagementTab: seeders.openWorkManagementTab,
     seedModeSwitchSession: seeders.seedModeSwitchSession,
     seedPlanCard: seeders.seedPlanCard,
     seedShellProcess: seeders.seedShellProcess,

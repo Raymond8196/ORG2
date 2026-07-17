@@ -414,7 +414,7 @@ git_api = { path = "crates/git-api" }
 # Pure leaf — depends only on the underlying `search` engine crate.
 api_search = { path = "crates/api-search" }
 
-# Session-specific SQLite persistence: event cache (FTS5), branching,
+# Session-specific SQLite persistence: event cache, branching,
 # file-change aggregation, token usage. Owns ~23 `#[tauri::command]`s
 # that the `app` crate re-registers from `commands/handler_list.inc`
 # via the bare `session_persistence::…` path. Wires concrete impls
@@ -492,6 +492,9 @@ reqwest = { workspace = true }
 # of pulling both.
 tokio-rustls = { version = "0.26", default-features = false, features = ["logging", "tls12", "ring"] }
 url = "2"                 # URL parsing for proxy routing
+# RFC3339 date formatting for updater metadata. Already in the graph via
+# tauri-plugin-updater, which exposes `Update.date` as a time::OffsetDateTime.
+time = { version = "0.3", features = ["formatting"] }
 
 # ===========================================
 # Performance Optimizations

@@ -39,6 +39,7 @@ describe("imported history source registry", () => {
   it("registers source-specific external history providers", () => {
     expect(IMPORTED_HISTORY_SOURCES.map((source) => source.sourceId)).toEqual([
       "cursor_ide",
+      "cursor_cli",
       "codex_app",
       "claude_code",
       "opencode",
@@ -48,11 +49,13 @@ describe("imported history source registry", () => {
       "cline",
       "warp",
       "zcode",
+      "qoder",
     ]);
     expect(
       IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory)
     ).toEqual([
       "external_history:cursor_ide",
+      "external_history:cursor_cli",
       "external_history:codex_app",
       "external_history:claude_code",
       "external_history:opencode",
@@ -62,6 +65,7 @@ describe("imported history source registry", () => {
       "external_history:cline",
       "external_history:warp",
       "external_history:zcode",
+      "external_history:qoder",
     ]);
     for (const source of IMPORTED_HISTORY_SOURCES) {
       expect(source.loadPreviewChunks).toBeTypeOf("function");

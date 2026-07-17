@@ -143,10 +143,6 @@ export interface AgentOrgPlanApproval {
   resolvedAt?: string | null;
 }
 
-export interface AgentOrgSessionInterventionState {
-  intervention?: AgentOrgMemberIntervention | null;
-}
-
 export interface AgentOrgDirectMemberMessageResponse {
   memberSessionId: string;
   response: {
@@ -160,6 +156,28 @@ export interface AgentOrgGroupChatMessageResponse {
   targetMemberId: string;
   targetMemberName: string;
   inboxRow: AgentOrgInboxRow;
+}
+
+type AgentOrgStateChangeSubscriber = (sessionId: string) => void;
+
+const agentOrgStateChangeSubscribers = new Set<AgentOrgStateChangeSubscriber>();
+
+function publishAgentOrgStateChange(sessionId: string): void {
+  for (const subscriber of agentOrgStateChangeSubscribers) {
+    subscriber(sessionId);
+  }
+}
+
+/**
+ * Invalidates cached Agent Org projections after a local mutation. Backend
+ * pushes cover background activity; the store keeps a slow recovery read for
+ * missed events.
+ */
+export function subscribeAgentOrgStateChanges(
+  subscriber: AgentOrgStateChangeSubscriber
+): () => void {
+  agentOrgStateChangeSubscribers.add(subscriber);
+  return () => agentOrgStateChangeSubscribers.delete(subscriber);
 }
 
 export interface AgentOrgTask {
@@ -223,26 +241,27 @@ export async function respondAgentOrgPlanApproval(input: {
 export async function enterAgentOrgSessionIntervention(
   sessionId: string
 ): Promise<boolean> {
-  return invokeTauri<boolean>("agent_org_session_enter_intervention", {
-    sessionId,
-  });
-}
-
-export async function getAgentOrgSessionInterventionState(
-  sessionId: string
-): Promise<AgentOrgSessionInterventionState> {
-  return invokeTauri<AgentOrgSessionInterventionState>(
-    "agent_org_session_intervention_state",
-    { sessionId }
+  const changed = await invokeTauri<boolean>(
+    "agent_org_session_enter_intervention",
+    {
+      sessionId,
+    }
   );
+  if (changed) publishAgentOrgStateChange(sessionId);
+  return changed;
 }
 
 export async function returnAgentOrgSessionToWork(
   sessionId: string
 ): Promise<boolean> {
-  return invokeTauri<boolean>("agent_org_session_return_to_work", {
-    sessionId,
-  });
+  const changed = await invokeTauri<boolean>(
+    "agent_org_session_return_to_work",
+    {
+      sessionId,
+    }
+  );
+  if (changed) publishAgentOrgStateChange(sessionId);
+  return changed;
 }
 
 export async function sendAgentOrgGroupChatMessage(
@@ -250,7 +269,7 @@ export async function sendAgentOrgGroupChatMessage(
   targetMemberId: string | null,
   content: string
 ): Promise<AgentOrgGroupChatMessageResponse> {
-  return invokeTauri<AgentOrgGroupChatMessageResponse>(
+  const response = await invokeTauri<AgentOrgGroupChatMessageResponse>(
     "agent_org_send_group_chat_message",
     {
       sessionId,
@@ -258,6 +277,8 @@ export async function sendAgentOrgGroupChatMessage(
       content,
     }
   );
+  publishAgentOrgStateChange(sessionId);
+  return response;
 }
 
 export async function sendAgentOrgUserMessageToMember(
@@ -265,7 +286,7 @@ export async function sendAgentOrgUserMessageToMember(
   memberId: string,
   content: string
 ): Promise<AgentOrgDirectMemberMessageResponse> {
-  return invokeTauri<AgentOrgDirectMemberMessageResponse>(
+  const response = await invokeTauri<AgentOrgDirectMemberMessageResponse>(
     "agent_org_send_user_message_to_member",
     {
       sessionId,
@@ -273,12 +294,22 @@ export async function sendAgentOrgUserMessageToMember(
       content,
     }
   );
+  publishAgentOrgStateChange(sessionId);
+  return response;
 }
 
 export async function pauseAgentOrgRun(sessionId: string): Promise<boolean> {
-  return invokeTauri<boolean>("agent_org_pause_run", { sessionId });
+  const changed = await invokeTauri<boolean>("agent_org_pause_run", {
+    sessionId,
+  });
+  if (changed) publishAgentOrgStateChange(sessionId);
+  return changed;
 }
 
 export async function resumeAgentOrgRun(sessionId: string): Promise<boolean> {
-  return invokeTauri<boolean>("agent_org_resume_run", { sessionId });
+  const changed = await invokeTauri<boolean>("agent_org_resume_run", {
+    sessionId,
+  });
+  if (changed) publishAgentOrgStateChange(sessionId);
+  return changed;
 }

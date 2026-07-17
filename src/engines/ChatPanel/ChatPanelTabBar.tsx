@@ -2,15 +2,17 @@
  * ChatPanelTabBar
  *
  * Inline tab-pill strip rendered inside the existing ChatPanelHeader row,
- * replacing the title/drag-spacer area. Uses the exact same primitives as
- * the Workstation tab bar:
+ * replacing the title/drag-spacer area. Only shown on the start page —
+ * session/terminal views keep a plain header. Uses the exact same
+ * primitives as the Workstation tab bar:
  *   - WorkStationTabPillSurface  (active/inactive pill surface)
  *   - TabPillCloseButton         (14px X close control)
  *   - TabLabelRowScrim           (gradient scrim behind close button)
  *   - TabBarTrailingIconButton   (+ button)
  *   - TAB_PAIR_SEPARATOR_SLOT_CLASS between pills
  *
- * Keyboard shortcuts (only when focus is inside the chat panel container):
+ * Keyboard shortcuts live in useChatPanelTabShortcuts (mounted by ChatPanel
+ * itself, not this strip, so they keep working while the strip is hidden):
  *   Cmd+W  — close active tab
  *   Cmd+]  — next tab    Cmd+[  — prev tab
  *   Cmd+N  — new session tab
@@ -27,6 +29,7 @@ import {
   LayoutGrid,
   MessageSquarePlus,
   Plus,
+  Settings2,
   TerminalSquare,
 } from "lucide-react";
 import React, {
@@ -105,7 +108,7 @@ const TabPill = memo(function TabPill({
 
   // When this tab becomes active (e.g. via a sidebar click), reveal it in the
   // horizontally-scrollable tab strip. `nearest` only scrolls when off-screen.
-  const pillRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLButtonElement | HTMLDivElement>(null);
   useEffect(() => {
     if (isActive) {
       pillRef.current?.scrollIntoView({
@@ -129,6 +132,7 @@ const TabPill = memo(function TabPill({
 
   const displayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
     launchpad: t("navigation:routes.launchpad"),
+    cloudOrg: t("navigation:collaboration.manageOrg"),
     workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
       projects: t("navigation:labels.projects"),
@@ -160,6 +164,14 @@ const TabPill = memo(function TabPill({
   } else if (tab.type === "workspace") {
     icon = (
       <Info
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (tab.type === "cloud-org") {
+    icon = (
+      <Settings2
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -200,44 +212,38 @@ const TabPill = memo(function TabPill({
   }
 
   const pill = (
-    <div
+    <WorkStationTabPillSurface
       ref={pillRef}
-      className="relative inline-flex min-w-0 max-w-[120px] shrink-0"
+      isActive={isActive}
+      variant="session"
+      role="tab"
+      aria-selected={isActive}
+      title={displayTitle}
+      onClick={() => onActivate(tab.id)}
+      onAuxClick={(evt) => {
+        if (evt.button === 1) onClose(tab.id);
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
     >
-      <WorkStationTabPillSurface
-        as="button"
-        isActive={isActive}
-        variant="session"
-        role="tab"
-        aria-selected={isActive}
-        title={displayTitle}
-        onClick={() => onActivate(tab.id)}
-        onAuxClick={(evt) => {
-          if (evt.button === 1) onClose(tab.id);
-        }}
-        style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
-      >
-        <div className="flex shrink-0 items-center justify-center">{icon}</div>
-        <div className="relative flex min-w-0 flex-1 items-center overflow-hidden">
+      <div className="flex shrink-0 items-center justify-center">{icon}</div>
+      <div className="relative flex min-w-0 flex-1 items-center overflow-hidden">
+        <span
+          className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] ${
+            isActive ? "text-primary-6" : "text-text-2"
+          }`}
+        >
+          {displayTitle}
+        </span>
+        {agentStatus && (
           <span
-            className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] ${
-              isActive ? "text-primary-6" : "text-text-2"
-            }`}
-          >
-            {displayTitle}
-          </span>
-          {agentStatus && (
-            <span
-              aria-hidden="true"
-              className={`ml-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${TERMINAL_AGENT_STATUS_DOT_CLASS[agentStatus]}`}
-            />
-          )}
-          <TabLabelRowScrim visible={showCloseSlot} />
-        </div>
-      </WorkStationTabPillSurface>
+            aria-hidden="true"
+            className={`ml-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${TERMINAL_AGENT_STATUS_DOT_CLASS[agentStatus]}`}
+          />
+        )}
+        <TabLabelRowScrim visible={showCloseSlot} />
+      </div>
       <TabPillCloseButton
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
@@ -252,7 +258,7 @@ const TabPill = memo(function TabPill({
             : "pointer-events-none opacity-0"
         }`}
       />
-    </div>
+    </WorkStationTabPillSurface>
   );
 
   // Session tabs with an active session get the hover card
@@ -394,22 +400,26 @@ export function ChatPanelPlusMenu({
   );
 }
 
-// ─── Main component ────────────────────────────────────────────────────────────
+// ─── Keyboard shortcuts hook ──────────────────────────────────────────────────
 
-export interface ChatPanelTabBarProps {
+export interface UseChatPanelTabShortcutsOptions {
   onNewSession: () => void;
   onNewTerminal: () => void;
   /** Ref to the outermost chat panel container for focus-scoped keyboard handling */
   containerRef?: React.RefObject<HTMLElement | null>;
 }
 
-export function ChatPanelTabBar({
+/**
+ * Chat-panel-scoped tab shortcuts (⌘W / ⌘] / ⌘[ / ⌘N) plus the global
+ * "create-chat-tab" event. Mounted by ChatPanel unconditionally so the
+ * shortcuts work even when the visual tab strip is not rendered.
+ */
+export function useChatPanelTabShortcuts({
   onNewSession,
   onNewTerminal,
   containerRef,
-}: ChatPanelTabBarProps): React.ReactNode {
+}: UseChatPanelTabShortcutsOptions): void {
   const state = useAtomValue(chatPanelTabsAtom);
-  const activateTab = useSetAtom(activateChatPanelTabAtom);
   const closeTab = useSetAtom(closeAndDestroyChatPanelTabAtom);
   const nextTab = useSetAtom(nextChatPanelTabAtom);
   const prevTab = useSetAtom(prevChatPanelTabAtom);
@@ -469,6 +479,14 @@ export function ChatPanelTabBar({
     window.addEventListener("create-chat-tab", handler);
     return () => window.removeEventListener("create-chat-tab", handler);
   }, [onNewTerminal]);
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
+
+export function ChatPanelTabBar(): React.ReactNode {
+  const state = useAtomValue(chatPanelTabsAtom);
+  const activateTab = useSetAtom(activateChatPanelTabAtom);
+  const closeTab = useSetAtom(closeAndDestroyChatPanelTabAtom);
 
   // Inline strip — no outer wrapper, fills the flex row in the header
   return (

@@ -32,12 +32,16 @@ import {
   parseCloudOrgSelectorValue,
   sidebarActiveCloudOrgIdAtom,
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import { org2CloudRepoScopesAtom } from "@src/features/Org2Cloud/org2CloudSyncAtoms";
 import ForkCheckoutPickerDialog from "@src/features/TeamCollaboration/components/ForkCheckoutPickerDialog";
 import ForkSessionSetupDialog from "@src/features/TeamCollaboration/components/ForkSessionSetupDialog";
 import MoveToOrgDialog from "@src/features/TeamCollaboration/components/MoveToOrgDialog";
 import { useMoveToOrgDialog } from "@src/features/TeamCollaboration/components/MoveToOrgDialog/useMoveToOrgDialog";
+import { collectScopeMatchedImportedSessionIds } from "@src/features/TeamCollaboration/importedSessionScopeMatch";
+import { useShareableScopeKeyVersion } from "@src/features/TeamCollaboration/repoScopeResolver";
 import {
   cloudOrgIdsForSession,
+  isSessionExcludedFromPersonal,
   sessionOrgTagsAtom,
 } from "@src/features/TeamCollaboration/sessionOrgTagsAtom";
 import { createLogger } from "@src/hooks/logger";
@@ -51,6 +55,7 @@ import {
   activeChatPanelTabAtom,
   activeWorkManagementSectionAtom,
   closeAndDestroyChatPanelTabAtom,
+  openCloudOrgManagementInChatPanelTabAtom,
   openKanbanChatPanelTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
@@ -153,7 +158,10 @@ import {
   usePinnedMenuItems,
   useSessionSidebarMenuItems,
 } from "./sidebarMenuCollections";
-import { useSidebarSessionRefreshEffects } from "./sidebarSessionRefresh";
+import {
+  rescanSidebarSessions,
+  useSidebarSessionRefreshEffects,
+} from "./sidebarSessionRefresh";
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
 import type { WorkstationSidebarKey } from "./types";
 import { useProjectsMenuItemClick } from "./useProjectsMenuItemClick";
@@ -209,6 +217,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
     workManagementProjectsViewAtom
   );
   const openKanbanTab = useSetAtom(openKanbanChatPanelTabAtom);
+  const openCloudOrgManagementTab = useSetAtom(
+    openCloudOrgManagementInChatPanelTabAtom
+  );
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
   const openOrReplaceSessionInChatPanelTab = useSetAtom(
     openOrReplaceSessionInChatPanelTabAtom
@@ -433,6 +444,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
     if (!cloudOrgId) return null;
     return cloudOrgs.find((org) => org.orgId === cloudOrgId) ?? null;
   }, [activeOrgId, cloudOrgs]);
+  // Management is a global org action, not a property of the current
+  // sidebar scope. When Personal or a local org is selected, open the first
+  // managed cloud org; the management page's switcher handles the rest.
+  const manageableCloudOrg = activeCloudOrg ?? cloudOrgs[0] ?? null;
   const activeCloudOrgId = activeCloudOrg?.orgId ?? null;
 
   const setSidebarActiveCloudOrgId = useSetAtom(sidebarActiveCloudOrgIdAtom);
@@ -447,9 +462,15 @@ export const WorkstationSidebarConnector: React.FC = () => {
   // Sessions explicitly tagged into the active cloud org (MoveToOrgDialog)
   // match the cloud scope even without a stamped orgId.
   const sessionOrgTags = useAtomValue(sessionOrgTagsAtom);
+  const repoScopesByOrg = useAtomValue(org2CloudRepoScopesAtom);
+  const scopeKeyVersion = useShareableScopeKeyVersion();
   const cloudTaggedSessionIds = useMemo(() => {
     if (!activeCloudOrgId) return undefined;
-    const ids = new Set<string>();
+    const ids = collectScopeMatchedImportedSessionIds(
+      sortedSessions,
+      repoScopesByOrg[activeCloudOrgId]
+    );
+    void scopeKeyVersion;
     for (const sessionId of Object.keys(sessionOrgTags)) {
       if (
         cloudOrgIdsForSession(sessionOrgTags, sessionId).includes(
@@ -460,7 +481,24 @@ export const WorkstationSidebarConnector: React.FC = () => {
       }
     }
     return ids;
-  }, [activeCloudOrgId, sessionOrgTags]);
+  }, [
+    activeCloudOrgId,
+    sessionOrgTags,
+    sortedSessions,
+    repoScopesByOrg,
+    scopeKeyVersion,
+  ]);
+
+  const personalHiddenCloudTaggedIds = useMemo(() => {
+    if (activeOrgId !== DEFAULT_SESSION_ORG_ID) return undefined;
+    const ids = new Set<string>();
+    for (const sessionId of Object.keys(sessionOrgTags)) {
+      if (isSessionExcludedFromPersonal(sessionOrgTags, sessionId)) {
+        ids.add(sessionId);
+      }
+    }
+    return ids.size > 0 ? ids : undefined;
+  }, [activeOrgId, sessionOrgTags]);
 
   // Per-org filter for the cloud "Team sessions" section.
   const [cloudSessionFilters, setCloudSessionFilters] = useState<
@@ -487,6 +525,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleCloudRemoteItemRemove,
     cloudMemberFilterDropdown,
     cloudRemoteRowMap,
+    cloudRemoteViewerMap,
   } = useCloudSessionsSection({
     orgId: activeCloudOrgId,
     sessions,
@@ -498,6 +537,19 @@ export const WorkstationSidebarConnector: React.FC = () => {
         : undefined,
     onFilterChange: handleCloudSessionFilterChange,
   });
+
+  // Threaded position wins: mine-rows shown inside a fork thread leave the
+  // flat local list (sessionMap keeps them for click routing).
+  const sessionListExcludedIds = useMemo(() => {
+    if (!personalHiddenCloudTaggedIds) return cloudThreadedLocalSessionIds;
+    if (cloudThreadedLocalSessionIds.size === 0) {
+      return personalHiddenCloudTaggedIds;
+    }
+    return new Set([
+      ...cloudThreadedLocalSessionIds,
+      ...personalHiddenCloudTaggedIds,
+    ]);
+  }, [cloudThreadedLocalSessionIds, personalHiddenCloudTaggedIds]);
 
   const {
     menuItems,
@@ -514,9 +566,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     searchQuery: sidebarSearchQueries.workstation,
     selectedOrgIds: sessionFilterOrgIds,
     extraSessionIds: cloudTaggedSessionIds,
-    // Threaded position wins: mine-rows shown inside a fork thread leave
-    // the flat local list (sessionMap keeps them for click routing).
-    excludedSessionIds: cloudThreadedLocalSessionIds,
+    excludedSessionIds: sessionListExcludedIds,
     includeExternal,
     groupVisibleCounts,
     expandedSubagentParentIds,
@@ -584,7 +634,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     t,
   });
   const revealCandidateMenuItems = useMemo(
-    () => [...sessionSidebarMenuItems, ...cloudMenuItems],
+    () => [...cloudMenuItems, ...sessionSidebarMenuItems],
     [cloudMenuItems, sessionSidebarMenuItems]
   );
   useEffect(() => {
@@ -828,13 +878,13 @@ export const WorkstationSidebarConnector: React.FC = () => {
   });
   const decoratedSessionSidebarMenuItems = useMemo(
     () =>
-      // Cloud scope: the fork-threaded "Team sessions" section trails the
-      // (org-filtered) local list. Appended AFTER row-action decoration —
-      // cloud rows carry their own Replay/Fork actions.
+      // Cloud scope: keep the fork-threaded "Team sessions" section above
+      // the org-filtered local list. Cloud rows already carry their own
+      // Replay/Fork actions, so only local rows need action decoration.
       cloudMenuItems.length > 0
         ? [
-            ...decorateSessionRowActions(sessionSidebarMenuItems),
             ...cloudMenuItems,
+            ...decorateSessionRowActions(sessionSidebarMenuItems),
           ]
         : decorateSessionRowActions(sessionSidebarMenuItems),
     [cloudMenuItems, decorateSessionRowActions, sessionSidebarMenuItems]
@@ -871,9 +921,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_COLLAB_ORG });
   }, [navigateChatPanel, resetWorkManagementStateForProjectsContent]);
   // UX decision (scope vs. panel): picking an org in the selector ONLY
-  // switches the sidebar scope — it never navigates the chat panel. The org
-  // management panel opens via the dropdown's explicit manage action,
-  // rendered only while a CLOUD org is the active scope.
+  // switches the sidebar scope — it never navigates the chat panel. The
+  // dropdown's explicit management action remains available from any scope.
   const handleOrgSelectorChange = useCallback(
     (orgId: string) => {
       // Picking an org ONLY switches the sidebar scope. A cloud scope shows
@@ -883,19 +932,18 @@ export const WorkstationSidebarConnector: React.FC = () => {
     },
     [setSelectedOrgId]
   );
-  const handleManageActiveOrg = useCallback(() => {
-    // Cloud orgs open the CLOUD_ORG management panel; Personal / local
-    // project orgs have no management panel and therefore no button.
-    if (!activeCloudOrg) return;
+  const handleManageOrg = useCallback(() => {
+    if (!manageableCloudOrg) return;
     resetWorkManagementStateForProjectsContent();
-    navigateChatPanel({
-      kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
-      cloudOrg: { orgId: activeCloudOrg.orgId },
+    openCloudOrgManagementTab({
+      cloudOrg: { orgId: manageableCloudOrg.orgId },
+      title: t("collaboration.manageOrg"),
     });
   }, [
-    activeCloudOrg,
-    navigateChatPanel,
+    manageableCloudOrg,
+    openCloudOrgManagementTab,
     resetWorkManagementStateForProjectsContent,
+    t,
   ]);
   const renderSessionMenuItemWrapper =
     useRenderSessionMenuItemWrapper(sessionMap);
@@ -928,6 +976,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
           <CloudSessionHoverCard
             key={item.key}
             row={cloudRemoteRowMap.get(item.id)}
+            viewers={cloudRemoteViewerMap.get(item.id)}
             position="right-start"
             mouseEnterDelay={1000}
             mouseLeaveDelay={100}
@@ -938,7 +987,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
       }
       return renderSessionMenuItemWrapper(item, node);
     },
-    [cloudRemoteRowMap, renderSessionMenuItemWrapper, t]
+    [cloudRemoteRowMap, cloudRemoteViewerMap, renderSessionMenuItemWrapper, t]
   );
   const renderProjectsMenuItemWrapper = useRenderProjectsMenuItemWrapper({
     projectsLinearWorkItemMap,
@@ -1056,7 +1105,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
     markAllSessionsVisited(sessions.map((session) => session.session_id));
   }, [sessions]);
   const handleRefreshSessions = useCallback(() => {
-    void loadSidebarSessions({ forceRefresh: true });
+    void rescanSidebarSessions().catch((error) => {
+      logger.warn("Failed to rescan sidebar sessions:", error);
+    });
   }, []);
   const isLoading =
     workItemsContentVisible || activeSidebarKey === "projects"
@@ -1134,7 +1185,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
                 manageLabel={manageOrgLabel}
                 onChange={handleOrgSelectorChange}
                 onAddOrg={handleAddOrgFromSelector}
-                onManageOrg={activeCloudOrg ? handleManageActiveOrg : undefined}
+                onManageOrg={manageableCloudOrg ? handleManageOrg : undefined}
               />
             }
             rightActions={sidebarBottomRightActions}

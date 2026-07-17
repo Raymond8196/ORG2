@@ -1685,6 +1685,8 @@
       "emptyConfigPreview": "Yapılandırma içeriği yok"
     },
     "sessionProvenance": {
+      "masterToggle": "Kaynak izleme hook'ları",
+      "masterToggleDesc": "Kapatıldığında tüm yönetilen hook'lar kaldırılır ve hiçbir sinyal yakalanmaz; platform seçimleri korunur ve yeniden açıldığında geri yüklenir.",
       "title": "Oturum kaynağı",
       "capture": "Dosya etkileşimlerini kaydet",
       "description": "Dosya okuma ve yazma işlemlerini meta veri olarak kaydeder. İstemler, araç çıktıları ve dosya içerikleri saklanmaz.",
@@ -1701,8 +1703,16 @@
         "on": "Açık",
         "off": "Kapalı",
         "repair": "Onar",
+        "awaitingVerification": "Doğrulama bekleniyor",
         "checking": "Kontrol ediliyor…",
         "error": "Hata"
+      },
+      "codexApproval": {
+        "title": "ORG2 hook'larını Codex'te doğrula",
+        "description": "Codex'in mevcut ORG2 hook'larını onaylayıp çalıştırması bekleniyor.",
+        "instructions": "Codex'i açın, ORG2 hook'larını inceleyin ve Trust all and continue seçeneğini seçin. SessionStart hook'u, oturum başladığında etkinleştirmeyi otomatik olarak doğrular.",
+        "review": "Codex'te incele",
+        "verified": "Gerçek bir Codex hook sinyaliyle doğrulandı ({{time}})."
       },
       "signals": {
         "title": "Son sinyaller",
@@ -1711,6 +1721,8 @@
         "search": "Sinyal ara",
         "refresh": "Yenile",
         "openSession": "{{session}} oturumunu aç",
+        "diffLoading": "Loading patch…",
+        "diffEmpty": "No patch captured. Provenance records file changes as metadata; a diff appears only once this session's edits are imported.",
         "col": {
           "source": "Araç",
           "action": "Eylem",

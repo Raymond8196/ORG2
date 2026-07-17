@@ -24,8 +24,6 @@ import {
   chatPanelWorkspaceOverviewTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 
-import RecentSessionsPanelView from "./RecentSessionsPanelView";
-
 interface WorkspaceOverviewPanelViewProps {
   selectedWorkspace: ChatPanelSelectedWorkspace;
 }
@@ -110,8 +108,7 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
     useEffect(() => {
       if (
         !detailsTabAvailable &&
-        (activeTab === WORKSPACE_OVERVIEW_TAB.DETAILS ||
-          activeTab === WORKSPACE_OVERVIEW_TAB.RECENT_SESSION)
+        activeTab === WORKSPACE_OVERVIEW_TAB.DETAILS
       ) {
         setActiveTab(WORKSPACE_OVERVIEW_TAB.OVERVIEW);
       }
@@ -125,16 +122,10 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
         },
       ];
       if (detailsTabAvailable) {
-        items.push(
-          {
-            key: WORKSPACE_OVERVIEW_TAB.DETAILS,
-            label: t("common:labels.details"),
-          },
-          {
-            key: WORKSPACE_OVERVIEW_TAB.RECENT_SESSION,
-            label: t("navigation:routes.sessions"),
-          }
-        );
+        items.push({
+          key: WORKSPACE_OVERVIEW_TAB.DETAILS,
+          label: t("common:labels.details"),
+        });
       }
       return items;
     }, [detailsTabAvailable, t]);
@@ -157,15 +148,6 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
     const detailsBody =
       resolvedActiveTab === WORKSPACE_OVERVIEW_TAB.DETAILS && selectedRepo ? (
         <RepoDetailPage repo={selectedRepo} />
-      ) : null;
-
-    const recentSessionBody =
-      resolvedActiveTab === WORKSPACE_OVERVIEW_TAB.RECENT_SESSION &&
-      selectedRepo?.path ? (
-        <RecentSessionsPanelView
-          repoPath={selectedRepo.path}
-          repoName={selectedRepo.name}
-        />
       ) : null;
 
     const overviewBody =
@@ -199,7 +181,6 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
           {overviewBody}
           {detailsBody}
-          {recentSessionBody}
         </div>
       </section>
     );

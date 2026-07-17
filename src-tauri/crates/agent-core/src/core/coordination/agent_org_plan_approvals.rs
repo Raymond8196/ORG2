@@ -230,7 +230,7 @@ impl AgentOrgPlanApprovalStore {
     pub fn create_pending(
         params: CreateAgentOrgPlanApprovalParams,
     ) -> Result<AgentOrgPlanApproval, String> {
-        with_sessions_writer(|| {
+        let approval = with_sessions_writer(|| -> Result<AgentOrgPlanApproval, String> {
             let mut conn = get_connection().map_err(|err| err.to_string())?;
             let tx = conn
                 .transaction_with_behavior(TransactionBehavior::Immediate)
@@ -238,7 +238,11 @@ impl AgentOrgPlanApprovalStore {
             let approval = create_pending_in_tx(&tx, params)?;
             tx.commit().map_err(|err| err.to_string())?;
             Ok(approval)
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(
+            &approval.org_run_id,
+        );
+        Ok(approval)
     }
 
     pub fn create_pending_with_request(
@@ -249,7 +253,7 @@ impl AgentOrgPlanApprovalStore {
             return Err("plan approval request delivery requires coordinator policy".to_string());
         }
         validate_delivery(&delivery)?;
-        with_sessions_writer(|| {
+        let approval = with_sessions_writer(|| -> Result<AgentOrgPlanApproval, String> {
             let mut conn = get_connection().map_err(|err| err.to_string())?;
             let tx = conn
                 .transaction_with_behavior(TransactionBehavior::Immediate)
@@ -268,7 +272,11 @@ impl AgentOrgPlanApprovalStore {
             )?;
             tx.commit().map_err(|err| err.to_string())?;
             Ok(approval)
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(
+            &approval.org_run_id,
+        );
+        Ok(approval)
     }
 
     pub fn create_and_approve_automatic(
@@ -277,7 +285,7 @@ impl AgentOrgPlanApprovalStore {
         if params.policy != PlanApprovalPolicy::Automatic {
             return Err("automatic plan approval requires automatic policy".to_string());
         }
-        with_sessions_writer(|| {
+        let approved = with_sessions_writer(|| -> Result<ApprovedAgentOrgPlan, String> {
             let mut conn = get_connection().map_err(|err| err.to_string())?;
             let tx = conn
                 .transaction_with_behavior(TransactionBehavior::Immediate)
@@ -288,7 +296,11 @@ impl AgentOrgPlanApprovalStore {
                 approve_pending_in_tx(&tx, approval, AgentOrgPlanDecisionBy::System, plan_content)?;
             tx.commit().map_err(|err| err.to_string())?;
             Ok(approved)
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(
+            &approved.approval.org_run_id,
+        );
+        Ok(approved)
     }
 
     pub fn list_pending_by_run(run_id: &str) -> Result<Vec<AgentOrgPlanApproval>, String> {
@@ -373,6 +385,11 @@ impl AgentOrgPlanApprovalStore {
                 );
             }
         }
+        if result.is_ok() {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(
+                &current.org_run_id,
+            );
+        }
         result
     }
 
@@ -388,7 +405,7 @@ impl AgentOrgPlanApprovalStore {
             return Err("request_changes requires non-empty feedback".to_string());
         }
         validate_delivery(&delivery)?;
-        with_sessions_writer(|| {
+        let result = with_sessions_writer(|| {
             let mut conn = get_connection().map_err(|err| err.to_string())?;
             let tx = conn
                 .transaction_with_behavior(TransactionBehavior::Immediate)
@@ -460,7 +477,11 @@ impl AgentOrgPlanApprovalStore {
                 },
                 inbox_record,
             ))
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(
+            &result.0.org_run_id,
+        );
+        Ok(result)
     }
 
     pub fn get(approval_id: &str) -> Result<Option<AgentOrgPlanApproval>, String> {
@@ -469,24 +490,52 @@ impl AgentOrgPlanApprovalStore {
     }
 
     pub fn cancel_pending_for_non_running_runs() -> Result<usize, String> {
-        with_sessions_writer(|| {
-            let conn = get_connection().map_err(|err| err.to_string())?;
-            conn.execute(
-                "UPDATE agent_org_plan_approvals
+        let (changed, run_ids) =
+            with_sessions_writer(|| -> Result<(usize, Vec<String>), String> {
+                let conn = get_connection().map_err(|err| err.to_string())?;
+                let run_ids = {
+                    let mut stmt = conn
+                        .prepare(
+                            "SELECT DISTINCT org_run_id
+                         FROM agent_org_plan_approvals
+                         WHERE status=?1 AND NOT EXISTS (
+                            SELECT 1 FROM agent_org_runs run
+                            WHERE run.id=agent_org_plan_approvals.org_run_id
+                              AND run.status='running'
+                         )",
+                        )
+                        .map_err(|err| err.to_string())?;
+                    let rows = stmt
+                        .query_map(
+                            params![AgentOrgPlanApprovalStatus::Pending.as_wire()],
+                            |row| row.get::<_, String>(0),
+                        )
+                        .map_err(|err| err.to_string())?;
+                    rows.collect::<Result<Vec<_>, _>>()
+                        .map_err(|err| err.to_string())?
+                };
+                let changed = conn
+                    .execute(
+                        "UPDATE agent_org_plan_approvals
                  SET status=?1, resolved_at=?2
                  WHERE status=?3 AND NOT EXISTS (
                     SELECT 1 FROM agent_org_runs run
                     WHERE run.id=agent_org_plan_approvals.org_run_id
                       AND run.status='running'
                  )",
-                params![
-                    AgentOrgPlanApprovalStatus::Cancelled.as_wire(),
-                    chrono::Utc::now().to_rfc3339(),
-                    AgentOrgPlanApprovalStatus::Pending.as_wire(),
-                ],
-            )
-            .map_err(|err| err.to_string())
-        })
+                        params![
+                            AgentOrgPlanApprovalStatus::Cancelled.as_wire(),
+                            chrono::Utc::now().to_rfc3339(),
+                            AgentOrgPlanApprovalStatus::Pending.as_wire(),
+                        ],
+                    )
+                    .map_err(|err| err.to_string())?;
+                Ok((changed, run_ids))
+            })?;
+        for run_id in run_ids {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(&run_id);
+        }
+        Ok(changed)
     }
 }
 

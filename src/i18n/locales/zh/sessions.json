@@ -23,6 +23,8 @@
       "roundCount_one": "{{count}} 轮",
       "roundCount_other": "{{count}} 轮",
       "agentWorked": "Agent 工作",
+      "cliNativeStore": "CLI 原生存储",
+      "sessionId": "会话 ID",
       "reasoningModel": "Reasoning Model",
       "codingModel": "Coding Model",
       "sessionMode": "Session 模式",
@@ -80,6 +82,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "按文件路径搜索 Session",
+      "noResults": "没有 Session 改动过匹配的文件"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "当前看板",
     "view": {
@@ -99,8 +105,18 @@
       "lastScan": "上次扫描 {{time}}",
       "neverScanned": "从未扫描",
       "frequencyTitle": "自动扫描频率",
-      "globalFrequency": "自动扫描",
-      "globalFrequencyDesc": "设为“默认”的数据源的默认频率。",
+      "externalSessionsToggle": "外部会话",
+      "externalSessionsToggleDesc": "关闭后将停止扫描和加载所有外部数据源的会话",
+      "globalFrequency": "外部数据源自动扫描",
+      "globalFrequencyDesc": "设为“默认”的外部数据源所使用的扫描频率",
+      "activeSessionRefresh": "已打开外部会话刷新",
+      "activeSessionRefreshDesc": "当前在聊天面板中打开的外部会话的刷新频率",
+      "activeSessionFreq": {
+        "3s": "每 3 秒",
+        "5s": "每 5 秒",
+        "10s": "每 10 秒",
+        "1m": "每分钟"
+      },
       "col": {
         "source": "来源",
         "sessions": "会话",
@@ -817,13 +833,6 @@
         "heatmap": "趋势",
         "runtime": "运行时"
       },
-      "heatmap": {
-        "loading": "正在加载活动趋势…",
-        "empty": "还没有会话活动。",
-        "sessions": "会话",
-        "tokens": "Tokens",
-        "cost": "成本"
-      },
       "quota": {
         "empty": "暂无配额数据。请在 Key Vault 中刷新用量。",
         "refresh": "刷新",
@@ -1042,11 +1051,20 @@
         "importFailed": "无法导入 Session JSON。"
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "本轮更改了 {{count}} 个文件",
-      "filesChangedCount_other": "本轮更改了 {{count}} 个文件",
-      "historicalRoundDiffFiles_one": "历史轮次 Diff · {{count}} 个文件",
-      "historicalRoundDiffFiles_other": "历史轮次 Diff · {{count}} 个文件",
+    "turnMetadata": {
+      "noChanges": "本轮没有文件改动",
+      "earlierRound": "历史轮次",
+      "files_one": "{{count}} 个文件",
+      "files_other": "{{count}} 个文件",
+      "reads_one": "读取 {{count}} 次",
+      "reads_other": "读取 {{count}} 次",
+      "searches_one": "搜索 {{count}} 次",
+      "searches_other": "搜索 {{count}} 次",
+      "failed": "失败",
+      "commits_one": "{{count}} 个 Commit",
+      "commits_other": "{{count}} 个 Commit",
+      "pullRequests_one": "{{count}} 个 PR",
+      "pullRequests_other": "{{count}} 个 PR",
       "review": "查看",
       "showLess": "收起",
       "showMore_one": "显示其余 {{count}} 个",
@@ -1981,6 +1999,11 @@
       "title": "缺少 Git",
       "body": "未安装 Git 或无法找到 Git。请让 ADE Manager 或 SDE Agent 为这台机器安装 Git，然后重启 ORGII。"
     },
+    "cliVersionOutdated": {
+      "title": "{{cli}} CLI 需要升级",
+      "body": "当前安装版本：{{installed}}；最新版本：{{latest}}。请自行升级 CLI，再重新扫描后使用较新的模型",
+      "unknownVersion": "未知"
+    },
     "noProvidersAvailable": "没有可用的提供者",
     "enterPublicRepoUrl": "输入公共仓库 URL",
     "repoUrlPlaceholder": "https://github.com/owner/repo",
@@ -1990,6 +2013,14 @@
     "model": "模型",
     "source": "账号",
     "addContext": "添加上下文",
+    "contextMenu": {
+      "filesAndFolders": "文件和文件夹",
+      "agentSession": "Agent 会话",
+      "workItems": "工作项",
+      "back": "返回",
+      "recent": "最近使用",
+      "showMore": "再显示 {{remaining}} 项"
+    },
     "slashSearchPlaceholder": "搜索命令…",
     "slashMenu": {
       "image": "图片",

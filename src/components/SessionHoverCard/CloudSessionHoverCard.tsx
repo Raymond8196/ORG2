@@ -1,6 +1,7 @@
 import {
   Bot,
   Clock,
+  Eye,
   GitBranch,
   GitFork,
   MessageSquare,
@@ -30,15 +31,16 @@ import HoverCardBase, {
 /**
  * Hover metadata card for "Team sessions" rows (cloudremote-* sidebar ids).
  * Local sessions render SessionHoverCard from the session store; teammate
- * rows only carry the pushed RemoteTeammateSessionMetadata, so this card
- * renders from that payload directly — no store lookup, no fetches.
+ * rows carry pushed RemoteTeammateSessionMetadata plus live viewer data from
+ * the sidebar connector. The card makes no store lookup or fetches itself.
  */
 interface CloudSessionHoverCardContentProps {
   row: RemoteTeammateSessionMetadata;
+  viewers?: readonly { displayName: string }[];
 }
 
 export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContentProps> =
-  memo(({ row }) => {
+  memo(({ row, viewers = [] }) => {
     const { t, i18n } = useTranslation(["navigation", "sessions", "common"]);
     const repoName = row.repoScopeKey
       ? basename(row.repoScopeKey)
@@ -63,6 +65,10 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
     const externalSource = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find(
       (source) => source.sourceId === externalSourceId
     );
+    const viewerNames = viewers
+      .map((viewer) => viewer.displayName)
+      .filter(Boolean)
+      .join(", ");
 
     return (
       // Fork provenance renders as the lineage row below — drop the fork
@@ -131,6 +137,17 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
             </div>
           </HoverCardRow>
         )}
+        {viewerNames && (
+          <HoverCardRow icon={<Eye size={13} strokeWidth={1.75} />}>
+            <div
+              data-testid="cloud-session-watchers"
+              className="truncate text-text-2"
+              title={viewerNames}
+            >
+              {viewerNames}
+            </div>
+          </HoverCardRow>
+        )}
         {(repoName || branchLabel) && (
           <HoverCardRow icon={<GitBranch size={13} strokeWidth={1.75} />}>
             <div className="truncate text-text-2">
@@ -192,6 +209,7 @@ CloudSessionHoverCardContent.displayName = "CloudSessionHoverCardContent";
 
 interface CloudSessionHoverCardProps {
   row?: RemoteTeammateSessionMetadata;
+  viewers?: readonly { displayName: string }[];
   children: React.ReactElement;
   position?: HoverCardPosition;
   mouseEnterDelay?: number;
@@ -200,14 +218,16 @@ interface CloudSessionHoverCardProps {
 
 const CloudSessionHoverCard: React.FC<CloudSessionHoverCardProps> = ({
   row,
+  viewers,
   children,
   position,
   mouseEnterDelay,
   mouseLeaveDelay,
 }) => {
   const renderContent = useCallback(
-    () => (row ? <CloudSessionHoverCardContent row={row} /> : null),
-    [row]
+    () =>
+      row ? <CloudSessionHoverCardContent row={row} viewers={viewers} /> : null,
+    [row, viewers]
   );
 
   return (

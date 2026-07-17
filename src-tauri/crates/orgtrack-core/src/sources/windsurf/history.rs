@@ -19,7 +19,7 @@ use crate::sources::imported_history::{
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const WINDSURF_SESSION_PREFIX: &str = "windsurfapp-";
+pub const WINDSURF_SESSION_PREFIX: &str = "windsurfapp-";
 const WINDSURF_PROVIDER_SLUG: &str = "windsurf";
 const SQLITE_IN_QUERY_CHUNK_SIZE: usize = 500;
 const BUBBLE_TYPE_USER: i64 = 1;

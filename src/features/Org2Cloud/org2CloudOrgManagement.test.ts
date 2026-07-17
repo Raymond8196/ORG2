@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CLOUD_ASSIGNABLE_ROLES,
   CLOUD_INVITE_STATE,
+  type CloudMemberLike,
   buildCloudInviteLink,
   buildCloudSessionShareLink,
   cloudManagementErrorKey,
@@ -11,6 +13,7 @@ import {
   extractOrg2ManagementErrorCode,
   generateCloudInviteCode,
   getCloudInviteRemainingUses,
+  isCloudAssignableRole,
   isCloudInviteDeepLink,
   isCloudShareDeepLink,
   parseCloudInviteDeepLink,
@@ -20,6 +23,16 @@ import {
   sha256Hex,
   wouldRemoveLastAdmin,
 } from "./org2CloudOrgManagement";
+
+describe("cloud assignable roles", () => {
+  it("only exposes admin and member", () => {
+    expect(CLOUD_ASSIGNABLE_ROLES).toEqual(["admin", "member"]);
+    expect(isCloudAssignableRole("admin")).toBe(true);
+    expect(isCloudAssignableRole("member")).toBe(true);
+    expect(isCloudAssignableRole("viewer")).toBe(false);
+    expect(isCloudAssignableRole("owner")).toBe(false);
+  });
+});
 
 describe("invite code generation + hashing", () => {
   it("mints 64-char lowercase hex codes (32 bytes of entropy)", () => {
@@ -189,7 +202,7 @@ describe("invite state derivation", () => {
 });
 
 describe("last-admin pre-check", () => {
-  const members = [
+  const members: CloudMemberLike[] = [
     { userId: "u-owner", role: "owner", status: "active" },
     { userId: "u-admin", role: "admin", status: "active" },
     { userId: "u-member", role: "member", status: "active" },
@@ -210,7 +223,7 @@ describe("last-admin pre-check", () => {
   });
 
   it("flags the last remaining admin (owner counts as admin)", () => {
-    const soloAdmin = [
+    const soloAdmin: CloudMemberLike[] = [
       { userId: "u-admin", role: "admin", status: "active" },
       { userId: "u-member", role: "member", status: "active" },
     ];
@@ -218,7 +231,7 @@ describe("last-admin pre-check", () => {
   });
 
   it("removed admins do not count toward the surviving-admin set", () => {
-    const withGhost = [
+    const withGhost: CloudMemberLike[] = [
       { userId: "u-admin", role: "admin", status: "active" },
       { userId: "u-removed-admin", role: "admin", status: "removed" },
     ];

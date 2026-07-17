@@ -317,7 +317,7 @@ impl AgentOrgTaskStore {
         let metadata_json = encode_metadata(params.metadata.as_ref())?;
         let now = now_rfc3339();
 
-        with_sessions_writer(|| -> Result<Task, String> {
+        let task = with_sessions_writer(|| -> Result<Task, String> {
             let mut conn = get_connection().map_err(|err| err.to_string())?;
             let tx = conn
                 .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
@@ -389,7 +389,9 @@ impl AgentOrgTaskStore {
             tx.commit().map_err(|err| err.to_string())?;
 
             Ok(task)
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(&task.org_run_id);
+        Ok(task)
     }
 
     /// Atomically insert a complete task graph. Every task and history row is
@@ -597,7 +599,10 @@ impl AgentOrgTaskStore {
         task_id: &str,
         patch: UpdateTaskPatch,
     ) -> Result<TaskMutationOutcome, String> {
-        with_sessions_writer(|| Self::update_inner(org_run_id, task_id, patch, None))
+        let outcome =
+            with_sessions_writer(|| Self::update_inner(org_run_id, task_id, patch, None))?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        Ok(outcome)
     }
 
     /// Apply a tool-authorized patch only if the row is still the exact
@@ -610,9 +615,11 @@ impl AgentOrgTaskStore {
         expected_updated_at: &str,
         patch: UpdateTaskPatch,
     ) -> Result<TaskMutationOutcome, String> {
-        with_sessions_writer(|| {
+        let outcome = with_sessions_writer(|| {
             Self::update_inner(org_run_id, task_id, patch, Some(expected_updated_at))
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        Ok(outcome)
     }
 
     fn update_inner(
@@ -774,7 +781,11 @@ impl AgentOrgTaskStore {
     }
 
     pub fn delete(org_run_id: &str, task_id: &str) -> Result<bool, String> {
-        with_sessions_writer(|| Self::delete_inner(org_run_id, task_id, None))
+        let deleted = with_sessions_writer(|| Self::delete_inner(org_run_id, task_id, None))?;
+        if deleted {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        }
+        Ok(deleted)
     }
 
     /// Delete only the row version that was inspected before tool-level
@@ -784,7 +795,13 @@ impl AgentOrgTaskStore {
         task_id: &str,
         expected_updated_at: &str,
     ) -> Result<bool, String> {
-        with_sessions_writer(|| Self::delete_inner(org_run_id, task_id, Some(expected_updated_at)))
+        let deleted = with_sessions_writer(|| {
+            Self::delete_inner(org_run_id, task_id, Some(expected_updated_at))
+        })?;
+        if deleted {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        }
+        Ok(deleted)
     }
 
     fn delete_inner(
@@ -838,9 +855,13 @@ impl AgentOrgTaskStore {
         org_run_id: &str,
         owner_member_id: &str,
     ) -> Result<Vec<Task>, String> {
-        with_sessions_writer(|| {
+        let tasks = with_sessions_writer(|| {
             Self::dispose_open_tasks_for_shutdown_inner(org_run_id, owner_member_id)
-        })
+        })?;
+        if !tasks.is_empty() {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        }
+        Ok(tasks)
     }
 
     fn dispose_open_tasks_for_shutdown_inner(
@@ -949,9 +970,13 @@ impl AgentOrgTaskStore {
         org_run_id: &str,
         owner_member_id: &str,
     ) -> Result<Vec<Task>, String> {
-        with_sessions_writer(|| {
+        let tasks = with_sessions_writer(|| {
             Self::requeue_in_progress_for_owner_inner(org_run_id, owner_member_id)
-        })
+        })?;
+        if !tasks.is_empty() {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        }
+        Ok(tasks)
     }
 
     fn requeue_in_progress_for_owner_inner(

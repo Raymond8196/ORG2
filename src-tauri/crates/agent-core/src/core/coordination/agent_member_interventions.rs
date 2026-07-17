@@ -149,17 +149,19 @@ impl AgentMemberInterventionStore {
             Ok(())
         })?;
 
-        Self::get(&params.org_run_id, &params.member_id)?.ok_or_else(|| {
+        let record = Self::get(&params.org_run_id, &params.member_id)?.ok_or_else(|| {
             format!(
                 "agent_member_interventions upsert did not return row for run={} member={}",
                 params.org_run_id, params.member_id
             )
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(&record.org_run_id);
+        Ok(record)
     }
 
     pub fn clear(org_run_id: &str, member_id: &str) -> Result<bool, String> {
         let now = chrono::Utc::now().to_rfc3339();
-        with_sessions_writer(|| -> Result<bool, String> {
+        let changed = with_sessions_writer(|| -> Result<bool, String> {
             let conn = get_connection().map_err(|err| err.to_string())?;
             let updated = conn
                 .execute(
@@ -170,7 +172,11 @@ impl AgentMemberInterventionStore {
                 )
                 .map_err(|err| err.to_string())?;
             Ok(updated > 0)
-        })
+        })?;
+        if changed {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        }
+        Ok(changed)
     }
 
     pub fn get(

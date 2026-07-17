@@ -1162,6 +1162,34 @@ describe("processChatItems", () => {
       expect(items.length).toBe(1);
       expect(items[0].event?.functionName).toBe("run_shell");
     });
+
+    it("preserves every repeated CLI error message", () => {
+      const first = makeSessionEvent({
+        action_type: "tool_call",
+        function: "run_shell",
+        args: { command: "codex exec" },
+        result: { success: false, error: "CLI version is too old" },
+      });
+      const second = makeSessionEvent({
+        action_type: "tool_call",
+        function: "run_shell",
+        args: { command: "codex exec" },
+        result: { success: false, error: "CLI version is too old" },
+      });
+
+      const { items, stats } = processChatItems([first, second], {
+        preFilterEmptyActivities: false,
+        groupActionSummaries: false,
+        groupTerminalActivities: false,
+      });
+
+      expect(items).toHaveLength(2);
+      expect(items.map((item) => item.event?.result?.error)).toEqual([
+        "CLI version is too old",
+        "CLI version is too old",
+      ]);
+      expect(stats.failedCount).toBe(2);
+    });
   });
 
   describe("stats tracking", () => {

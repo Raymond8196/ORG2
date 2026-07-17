@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "Tìm phiên theo đường dẫn tệp",
+      "noResults": "Không có phiên nào sửa tệp phù hợp"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Kanban hiện tại",
     "view": {
@@ -99,8 +103,16 @@
       "lastScan": "Quét lần cuối {{time}}",
       "neverScanned": "Chưa quét",
       "frequencyTitle": "Tần suất tự quét",
-      "globalFrequency": "Tự quét",
-      "globalFrequencyDesc": "Nhịp mặc định cho nguồn đặt “Mặc định”.",
+      "globalFrequency": "Tự quét nguồn bên ngoài",
+      "globalFrequencyDesc": "Tần suất quét mặc định cho nguồn bên ngoài được đặt thành “Mặc định”",
+      "activeSessionRefresh": "Làm mới phiên bên ngoài đang mở",
+      "activeSessionRefreshDesc": "Tần suất làm mới phiên bên ngoài hiện đang mở trong khung trò chuyện",
+      "activeSessionFreq": {
+        "3s": "Mỗi 3 giây",
+        "5s": "Mỗi 5 giây",
+        "10s": "Mỗi 10 giây",
+        "1m": "Mỗi phút"
+      },
       "col": {
         "source": "Nguồn",
         "sessions": "Phiên",
@@ -784,13 +796,6 @@
         "heatmap": "Xu hướng",
         "runtime": "Thời gian chạy"
       },
-      "heatmap": {
-        "loading": "Đang tải xu hướng hoạt động…",
-        "empty": "Chưa có hoạt động phiên.",
-        "sessions": "Phiên",
-        "tokens": "Tokens",
-        "cost": "Chi phí"
-      },
       "quota": {
         "empty": "Chưa có dữ liệu quota. Hãy làm mới mức sử dụng từ Key Vault.",
         "refresh": "Làm mới",
@@ -1009,15 +1014,24 @@
         "importFailed": "Không thể nhập Session JSON."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "Đã thay đổi {{count}} tệp trong vòng này",
-      "filesChangedCount_other": "Đã thay đổi {{count}} tệp trong vòng này",
-      "historicalRoundDiffFiles_one": "Diff vòng trước · {{count}} tệp",
-      "historicalRoundDiffFiles_other": "Diff vòng trước · {{count}} tệp",
+    "turnMetadata": {
+      "noChanges": "Không có thay đổi tệp trong vòng này",
+      "earlierRound": "Vòng trước",
+      "files_one": "{{count}} tệp",
+      "files_other": "{{count}} tệp",
+      "reads_one": "{{count}} lượt đọc",
+      "reads_other": "{{count}} lượt đọc",
+      "searches_one": "{{count}} lượt tìm kiếm",
+      "searches_other": "{{count}} lượt tìm kiếm",
+      "failed": "Thất bại",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commit",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PR",
       "review": "Xem lại",
-      "showLess": "Thu gọn",
-      "showMore_one": "Hiển thị thêm {{count}}",
-      "showMore_other": "Hiển thị thêm {{count}}"
+      "showLess": "Hiện ít hơn",
+      "showMore_one": "Hiện thêm {{count}}",
+      "showMore_other": "Hiện thêm {{count}}"
     },
     "manageIssues": {
       "title": "Quản lý issues",
@@ -1956,6 +1970,14 @@
     "model": "Mô hình",
     "source": "Tài khoản",
     "addContext": "Thêm ngữ cảnh",
+    "contextMenu": {
+      "filesAndFolders": "Tệp và thư mục",
+      "agentSession": "Phiên Agent",
+      "workItems": "Hạng mục công việc",
+      "back": "Quay lại",
+      "recent": "Gần đây",
+      "showMore": "Hiển thị thêm {{remaining}}"
+    },
     "slashSearchPlaceholder": "Tìm lệnh…",
     "slashMenu": {
       "image": "Hình ảnh",

@@ -74,6 +74,7 @@ export function useSpotlight(
     onOpenBranchPicker?: () => void;
     onOpenEditorPalette?: (prefix: string, mode?: EditorPaletteMode) => void;
     onOpenAgentSessionSearch?: () => void;
+    onOpenAllSessionsSearch?: () => void;
     isEditorRoute?: boolean;
     isWorkStationRoute?: boolean;
     currentRepoId?: string;
@@ -86,6 +87,7 @@ export function useSpotlight(
     onOpenBranchPicker,
     onOpenEditorPalette,
     onOpenAgentSessionSearch,
+    onOpenAllSessionsSearch,
     isEditorRoute = false,
     isWorkStationRoute = false,
     currentRepoId,
@@ -185,6 +187,7 @@ export function useSpotlight(
           );
         },
         "search-agent-sessions": () => onOpenAgentSessionSearch?.(),
+        "search-all-sessions": () => onOpenAllSessionsSearch?.(),
         "agent-control": openAgentControlSpotlight,
         "workspace-switch": () => onOpenWorkspacePicker?.("switch"),
         "workspace-add": () => onOpenWorkspacePicker?.("add"),
@@ -251,7 +254,12 @@ export function useSpotlight(
 
       fallbackHandlers[fallback]();
     },
-    [onOpenAgentSessionSearch, onOpenBranchPicker, onOpenWorkspacePicker]
+    [
+      onOpenAgentSessionSearch,
+      onOpenAllSessionsSearch,
+      onOpenBranchPicker,
+      onOpenWorkspacePicker,
+    ]
   );
 
   const handleSelectStaticAction = useCallback(

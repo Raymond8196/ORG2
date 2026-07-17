@@ -1,3 +1,4 @@
+pub mod agent_live_status;
 pub mod exporter;
 pub mod external_cli_detection;
 pub mod extraction_scheduler;
@@ -30,10 +31,23 @@ use orgtrack_core::sources::imported_history::metadata::{
 };
 use orgtrack_core::store::{sqlite::SqliteRecordStore, RecordStore};
 use serde::Serialize;
+use tauri::Emitter;
 use types::OrgtrackTier;
 
 const ORGTRACK_CALL_LOG_WINDOW: Duration = Duration::from_secs(30);
 const ORGTRACK_CALL_LOG_THRESHOLD: u64 = 10;
+
+fn drain_hook_inbox_and_emit(app: &tauri::AppHandle, context: &'static str) {
+    match session_provenance::drain_hook_inbox() {
+        Ok(drained) if drained > 0 => {
+            let _ = app.emit(session_provenance::RESOURCE_INTERACTIONS_CHANGED_EVENT, ());
+        }
+        Ok(_) => {}
+        Err(err) => {
+            tracing::warn!(error = %err, context, "[SessionProvenance] Hook inbox drain failed");
+        }
+    }
+}
 
 #[derive(Debug)]
 struct CommandCallStats {
@@ -168,28 +182,50 @@ struct FileSessionGroupAccumulator {
     participants: BTreeMap<String, FileSessionHistoryAccumulator>,
 }
 
+const DEFAULT_FILE_SESSION_HISTORY_PAGE_SIZE: usize = 30;
+const MAX_FILE_SESSION_HISTORY_PAGE_SIZE: usize = 100;
+
 #[tauri::command]
 pub async fn orgtrack_get_file_session_history(
+    app: tauri::AppHandle,
     repo_path: String,
     file_path: String,
+    limit: Option<usize>,
+    offset: Option<usize>,
 ) -> Result<types::FileSessionHistory, String> {
     record_orgtrack_command_call("orgtrack_get_file_session_history");
     tokio::task::spawn_blocking(move || {
         // Make newly emitted hook events visible in the same request that the
         // user uses to open the file history panel.
-        if let Err(err) = session_provenance::drain_hook_inbox() {
-            tracing::warn!(error = %err, "[SessionProvenance] Pre-query inbox drain failed");
-        }
+        drain_hook_inbox_and_emit(&app, "file_session_history");
 
         let resolved = session_provenance::resolve_file_resource(&repo_path, &file_path);
         let conn = get_connection().map_err(|err| err.to_string())?;
         let store = SqliteRecordStore::new(&conn);
-        let interactions = store.list_file_resource_interactions(
+        let limit = limit
+            .unwrap_or(DEFAULT_FILE_SESSION_HISTORY_PAGE_SIZE)
+            .clamp(1, MAX_FILE_SESSION_HISTORY_PAGE_SIZE);
+        let offset = offset.unwrap_or_default();
+        let mut interaction_page = store.list_file_resource_interactions_page(
+            resolved.repository_id.as_deref(),
+            &resolved.workspace_path,
+            &resolved.repo_relative_path,
+            limit,
+            offset,
+        )?;
+        let mut sessions = project_file_session_history(
+            &store,
+            std::mem::take(&mut interaction_page.interactions),
+        )?;
+        // Capture the revision before starting historical discovery. The
+        // background worker may immediately acquire a write lock while it
+        // refreshes provider caches; placing this cheap read afterward makes
+        // a cold foreground request wait behind work it intentionally queued.
+        let mut revision = store.get_file_resource_revision(
             resolved.repository_id.as_deref(),
             &resolved.workspace_path,
             &resolved.repo_relative_path,
         )?;
-        let mut sessions = project_file_session_history(&store, interactions)?;
         // Scheduling is intentionally after the foreground read. Backfill
         // owns a separate DB connection and never delays this response.
         let backfill = session_provenance::request_historical_backfill(
@@ -200,19 +236,63 @@ pub async fn orgtrack_get_file_session_history(
         // job snapshot. Re-read on terminal success so the client never sees
         // stale rows paired with a status that tells it to stop polling.
         if matches!(backfill.status.as_str(), "complete" | "partial") {
-            let interactions = store.list_file_resource_interactions(
+            interaction_page = store.list_file_resource_interactions_page(
+                resolved.repository_id.as_deref(),
+                &resolved.workspace_path,
+                &resolved.repo_relative_path,
+                limit,
+                offset,
+            )?;
+            sessions = project_file_session_history(
+                &store,
+                std::mem::take(&mut interaction_page.interactions),
+            )?;
+            revision = store.get_file_resource_revision(
                 resolved.repository_id.as_deref(),
                 &resolved.workspace_path,
                 &resolved.repo_relative_path,
             )?;
-            sessions = project_file_session_history(&store, interactions)?;
         }
         Ok(types::FileSessionHistory {
             schema_version: RESOURCE_INTERACTION_SCHEMA_VERSION,
             file_path: resolved.repo_relative_path,
+            revision,
+            page: types::FileSessionHistoryPage {
+                offset: interaction_page.offset,
+                limit: interaction_page.limit,
+                total_sessions: interaction_page.total_sessions,
+                has_more: interaction_page
+                    .offset
+                    .saturating_add(interaction_page.limit)
+                    < interaction_page.total_sessions,
+            },
             backfill,
             sessions,
         })
+    })
+    .await
+    .map_err(|err| err.to_string())?
+}
+
+/// Cheap freshness probe for an open Session Blame panel. The revision is
+/// advanced by SQLite triggers, so this remains correct across every writer
+/// and after process restarts without retaining an in-memory cache.
+#[tauri::command]
+pub async fn orgtrack_get_file_session_history_revision(
+    app: tauri::AppHandle,
+    repo_path: String,
+    file_path: String,
+) -> Result<u64, String> {
+    record_orgtrack_command_call("orgtrack_get_file_session_history_revision");
+    tokio::task::spawn_blocking(move || {
+        drain_hook_inbox_and_emit(&app, "file_session_history_revision");
+        let resolved = session_provenance::resolve_file_resource(&repo_path, &file_path);
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        SqliteRecordStore::new(&conn).get_file_resource_revision(
+            resolved.repository_id.as_deref(),
+            &resolved.workspace_path,
+            &resolved.repo_relative_path,
+        )
     })
     .await
     .map_err(|err| err.to_string())?
@@ -223,6 +303,7 @@ pub async fn orgtrack_get_file_session_history(
 #[tauri::command]
 #[allow(clippy::too_many_arguments)]
 pub async fn orgtrack_index_collaboration_session(
+    app: tauri::AppHandle,
     local_session_id: String,
     source_session_id: String,
     title: String,
@@ -234,7 +315,7 @@ pub async fn orgtrack_index_collaboration_session(
     owner_display_name: String,
 ) -> Result<usize, String> {
     record_orgtrack_command_call("orgtrack_index_collaboration_session");
-    tokio::task::spawn_blocking(move || {
+    let indexed = tokio::task::spawn_blocking(move || {
         session_provenance::index_collaboration_replay(
             &local_session_id,
             &source_session_id,
@@ -248,18 +329,27 @@ pub async fn orgtrack_index_collaboration_session(
         )
     })
     .await
-    .map_err(|err| err.to_string())?
+    .map_err(|err| err.to_string())??;
+    if indexed > 0 {
+        let _ = app.emit(session_provenance::RESOURCE_INTERACTIONS_CHANGED_EVENT, ());
+    }
+    Ok(indexed)
 }
 
 /// Drop only the derived Session Blame rows for a discarded Team Session.
 #[tauri::command]
-pub async fn orgtrack_delete_collaboration_session(local_session_id: String) -> Result<(), String> {
+pub async fn orgtrack_delete_collaboration_session(
+    app: tauri::AppHandle,
+    local_session_id: String,
+) -> Result<(), String> {
     record_orgtrack_command_call("orgtrack_delete_collaboration_session");
     tokio::task::spawn_blocking(move || {
         session_provenance::delete_collaboration_replay(&local_session_id)
     })
     .await
-    .map_err(|err| err.to_string())?
+    .map_err(|err| err.to_string())??;
+    let _ = app.emit(session_provenance::RESOURCE_INTERACTIONS_CHANGED_EVENT, ());
+    Ok(())
 }
 
 fn project_file_session_history(

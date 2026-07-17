@@ -799,7 +799,11 @@ const ChatView: React.FC<ChatViewProps> = memo(
       error: agentOrgInterventionError,
       returning: agentOrgInterventionReturning,
       returnToWork: returnAgentOrgMemberToWork,
-    } = useAgentOrgIntervention(agentOrgInteractionSessionId);
+    } = useAgentOrgIntervention(
+      agentOrgInteractionSessionId,
+      agentOrgRunView,
+      refreshAgentOrgRunView
+    );
     const isViewingAgentOrgMemberPlan =
       currentAgentOrgMember !== null && !currentAgentOrgMember.isCoordinator;
     const shouldShowCurrentPlanSurface =
@@ -842,7 +846,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
       // simulator pane entirely (chatPanelFocused guard), so switching to
       // the Diff app would have no visible effect.
       //
-      // Clear any per-round scope set by a chat `TurnFilesFooter` so this
+      // Clear any per-round scope set by a chat `TurnMetadataFooter` so this
       // composer-level entry point always shows the whole-session diff.
       setDiffScope(null);
       // Force a fresh read of the canonical diffs so the full-session view

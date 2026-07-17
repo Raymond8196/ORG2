@@ -45,6 +45,7 @@ function makeRow(sessionId: string, updatedAt: string) {
     createdAt: updatedAt,
     updatedAt,
     repoPath: "/tmp/project",
+    storagePath: `/tmp/store/${sessionId}.jsonl`,
   };
 }
 
@@ -60,50 +61,60 @@ describe("loadSidebarSessions", () => {
     mocks.sessionAggregateList.mockResolvedValue({ sessions: [] });
     mocks.externalHistorySidebarList.mockImplementation(
       async (request: {
-        source: string;
-        buckets: Array<{ bucket: string; limit: number; offset: number }>;
+        requests: Array<{
+          source: string;
+          buckets: Array<{ bucket: string; limit: number; offset: number }>;
+        }>;
       }) => {
-        const source = IMPORTED_HISTORY_SOURCES.find(
-          (candidate) => candidate.sourceId === request.source
-        );
-        if (!source) throw new Error("unknown source");
         return {
-          source: request.source,
-          buckets: request.buckets.map(({ bucket, offset }) => ({
-            bucket,
-            sessions:
-              bucket === "today"
-                ? Array.from({ length: 10 }, (_, index) =>
-                    makeRow(
-                      `${source.prefix}today-${offset + index}`,
-                      "2026-07-12T12:00:00Z"
-                    )
-                  )
-                : bucket === "yesterday"
-                  ? [
-                      makeRow(
-                        `${source.prefix}yesterday`,
-                        "2026-07-11T12:00:00Z"
-                      ),
-                    ]
-                  : [],
-            hasMore: bucket === "today",
-          })),
+          sources: request.requests.map((sourceRequest) => {
+            const source = IMPORTED_HISTORY_SOURCES.find(
+              (candidate) => candidate.sourceId === sourceRequest.source
+            );
+            if (!source) throw new Error("unknown source");
+            return {
+              source: sourceRequest.source,
+              buckets: sourceRequest.buckets.map(({ bucket, offset }) => ({
+                bucket,
+                sessions:
+                  bucket === "today"
+                    ? Array.from({ length: 10 }, (_, index) =>
+                        makeRow(
+                          `${source.prefix}today-${offset + index}`,
+                          "2026-07-12T12:00:00Z"
+                        )
+                      )
+                    : bucket === "yesterday"
+                      ? [
+                          makeRow(
+                            `${source.prefix}yesterday`,
+                            "2026-07-11T12:00:00Z"
+                          ),
+                        ]
+                      : [],
+                hasMore: bucket === "today",
+              })),
+            };
+          }),
         };
       }
     );
 
     await loadSidebarSessions({ forceRefresh: true, pageSize: 10 });
 
-    const externalCalls = mocks.externalHistorySidebarList.mock.calls.map(
-      ([request]) => request
-    );
-    expect(externalCalls).toHaveLength(IMPORTED_HISTORY_SOURCES.length);
-    expect(externalCalls.map((request) => request.source).sort()).toEqual(
+    expect(mocks.externalHistorySidebarList).toHaveBeenCalledTimes(1);
+    const externalRequest = mocks.externalHistorySidebarList.mock
+      .calls[0][0] as {
+      requests: Array<{
+        source: string;
+        buckets: Array<{ limit: number; offset: number }>;
+      }>;
+    };
+    expect(externalRequest.requests.map(({ source }) => source).sort()).toEqual(
       IMPORTED_HISTORY_SOURCES.map((source) => source.sourceId).sort()
     );
     expect(
-      externalCalls.every(
+      externalRequest.requests.every(
         (request) =>
           request.buckets.length === 4 &&
           request.buckets.every(
@@ -118,9 +129,16 @@ describe("loadSidebarSessions", () => {
       )
     ).toBe(false);
 
-    const loadedIds = new Set(
-      mocks.store?.get(sessionsAtom).map((session) => session.session_id)
-    );
+    const loaded = mocks.store?.get(sessionsAtom) ?? [];
+    const loadedIds = new Set(loaded.map((session) => session.session_id));
+    // Imported sessions live only in the source app's own store, so the
+    // sidebar row is the hover card's only chance at a storage path.
+    expect(
+      loaded.every(
+        (session) =>
+          session.storagePath === `/tmp/store/${session.session_id}.jsonl`
+      )
+    ).toBe(true);
     for (const source of IMPORTED_HISTORY_SOURCES) {
       expect(loadedIds).toContain(`${source.prefix}yesterday`);
       expect(
@@ -137,19 +155,23 @@ describe("loadSidebarSessions", () => {
     mocks.sessionAggregateList.mockResolvedValue({ sessions: [] });
     mocks.externalHistorySidebarList.mockImplementation(
       async (request: {
-        source: string;
-        buckets: Array<{ bucket: string; offset: number }>;
+        requests: Array<{
+          source: string;
+          buckets: Array<{ bucket: string; offset: number }>;
+        }>;
       }) => ({
-        source: request.source,
-        buckets: request.buckets.map(({ bucket, offset }) => ({
-          bucket,
-          sessions: [
-            makeRow(
-              `${request.source}-${bucket}-${offset}`,
-              "2026-07-12T12:00:00Z"
-            ),
-          ],
-          hasMore: bucket === "today" && offset === 0,
+        sources: request.requests.map((sourceRequest) => ({
+          source: sourceRequest.source,
+          buckets: sourceRequest.buckets.map(({ bucket, offset }) => ({
+            bucket,
+            sessions: [
+              makeRow(
+                `${sourceRequest.source}-${bucket}-${offset}`,
+                "2026-07-12T12:00:00Z"
+              ),
+            ],
+            hasMore: bucket === "today" && offset === 0,
+          })),
         })),
       })
     );
@@ -159,8 +181,9 @@ describe("loadSidebarSessions", () => {
     await loadMoreCategory(codexCategory, 10);
 
     const lastRequest = mocks.externalHistorySidebarList.mock.calls.at(-1)?.[0];
-    expect(lastRequest.source).toBe("codex_app");
-    expect(lastRequest.buckets).toEqual([
+    expect(lastRequest.requests).toHaveLength(1);
+    expect(lastRequest.requests[0].source).toBe("codex_app");
+    expect(lastRequest.requests[0].buckets).toEqual([
       expect.objectContaining({ bucket: "today", offset: 1, limit: 10 }),
     ]);
   });
@@ -170,16 +193,31 @@ describe("loadSidebarSessions", () => {
       warp: { enabled: false, frequency: "default", lastScannedAt: null },
     });
     mocks.sessionAggregateList.mockResolvedValue({ sessions: [] });
-    mocks.externalHistorySidebarList.mockResolvedValue({
-      source: "unused",
-      buckets: [],
-    });
+    mocks.externalHistorySidebarList.mockImplementation(
+      async (request: {
+        requests: Array<{
+          source: string;
+          buckets: Array<{ bucket: string }>;
+        }>;
+      }) => ({
+        sources: request.requests.map((sourceRequest) => ({
+          source: sourceRequest.source,
+          buckets: sourceRequest.buckets.map(({ bucket }) => ({
+            bucket,
+            sessions: [],
+            hasMore: false,
+          })),
+        })),
+      })
+    );
 
     await loadSidebarSessions({ forceRefresh: true, pageSize: 10 });
 
-    const requestedSources = mocks.externalHistorySidebarList.mock.calls.map(
-      ([request]) => request.source
-    );
+    expect(mocks.externalHistorySidebarList).toHaveBeenCalledTimes(1);
+    const requestedSources =
+      mocks.externalHistorySidebarList.mock.calls[0][0].requests.map(
+        ({ source }: { source: string }) => source
+      );
     expect(requestedSources).not.toContain("warp");
     expect(requestedSources).toHaveLength(IMPORTED_HISTORY_SOURCES.length - 1);
   });
@@ -203,7 +241,6 @@ describe("loadSidebarSessions", () => {
       expect.objectContaining({
         sessionIds: ["codexapp-rollout-historical"],
         includeExternalHistory: true,
-        includeStats: false,
         limit: 1,
       })
     );
@@ -212,6 +249,32 @@ describe("loadSidebarSessions", () => {
     );
     expect(mocks.externalHistorySidebarList).not.toHaveBeenCalled();
     expect(mocks.store?.get(sessionsAtom)).toContainEqual(historicalSession);
+  });
+
+  it("enriches an existing lightweight child with canonical parent metadata", async () => {
+    const lightweightChild = {
+      session_id: "codexapp-rollout-child",
+      name: "Codex child",
+      status: "completed",
+      created_at: "2026-07-15T12:00:00Z",
+      updated_at: "2026-07-15T12:01:00Z",
+    };
+    const canonicalChild = {
+      ...lightweightChild,
+      parentSessionId: "codexapp-rollout-root",
+    };
+    mocks.store?.set(sessionsAtom, [lightweightChild]);
+    mocks.sessionAggregateList.mockResolvedValue({
+      sessions: [canonicalChild],
+    });
+
+    const loaded = await loadSidebarSessionById(lightweightChild.session_id);
+
+    expect(loaded).toEqual(canonicalChild);
+    expect(mocks.sessionAggregateList).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionIds: [lightweightChild.session_id] })
+    );
+    expect(mocks.store?.get(sessionsAtom)).toContainEqual(canonicalChild);
   });
 
   it("does not erase an exact-loaded child during a provider first-page refresh", () => {
