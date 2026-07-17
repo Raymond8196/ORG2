@@ -21,8 +21,8 @@ use crate::sources::imported_history::{
         ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
         SOURCE_CODEX_APP,
     },
-    paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
-    ImportedHistorySessionRow, ImportedToolCall,
+    paths as imported_paths, strip_orgii_exec_mode_bridge, ImportedHistoryRecentPath,
+    ImportedHistorySessionPage, ImportedHistorySessionRow, ImportedToolCall,
 };
 use crate::store::{sqlite::SqliteRecordStore, RecordStore};
 
@@ -2165,20 +2165,6 @@ fn parse_rg_output_matches(output: &str) -> Vec<(String, i64, String)> {
             Some((file.to_string(), line_number, content.to_string()))
         })
         .collect()
-}
-
-/// GUI-launched runs prefix the task with an internal exec-mode briefing;
-/// strip it so titles/replay show only what the user typed.
-fn strip_orgii_exec_mode_bridge(text: &str) -> &str {
-    const OPEN: &str = "<orgii_cli_exec_mode_bridge>";
-    const CLOSE: &str = "</orgii_cli_exec_mode_bridge>";
-    let trimmed = text.trim_start();
-    if let Some(rest) = trimmed.strip_prefix(OPEN) {
-        if let Some(end) = rest.find(CLOSE) {
-            return rest[end + CLOSE.len()..].trim_start();
-        }
-    }
-    text
 }
 
 fn user_message_from_payload(payload: &Value) -> Option<String> {

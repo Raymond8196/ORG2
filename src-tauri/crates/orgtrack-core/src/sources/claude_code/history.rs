@@ -497,7 +497,13 @@ fn parse_claude_session_meta(
         if let Some(message) = parsed.message {
             if first_prompt.is_empty() && parsed.r#type == "user" {
                 if let Some(text) = claude_content_text(&message.content) {
-                    first_prompt = imported_history::truncate_name(&text, 200);
+                    // GUI-launched runs prefix the first prompt with the
+                    // exec-mode briefing; bridge-only text is no title
+                    // candidate at all.
+                    let text = imported_history::strip_orgii_exec_mode_bridge(&text);
+                    if !text.trim().is_empty() {
+                        first_prompt = imported_history::truncate_name(text, 200);
+                    }
                 }
             }
             if model.is_none()
@@ -762,14 +768,19 @@ fn load_claude_code_history_from_path(
                         }
                     }
                 } else if let Some(text) = claude_content_text(&message.content) {
-                    chunks.push(imported_history::user_message_chunk(
-                        session_id,
-                        CLAUDE_CODE_PROVIDER_SLUG,
-                        sequence,
-                        &created_at,
-                        &text,
-                    ));
-                    sequence += 1;
+                    // Strip the GUI exec-mode briefing; a bridge-only message
+                    // carries no user-authored text, so emit no bubble.
+                    let text = imported_history::strip_orgii_exec_mode_bridge(&text);
+                    if !text.trim().is_empty() {
+                        chunks.push(imported_history::user_message_chunk(
+                            session_id,
+                            CLAUDE_CODE_PROVIDER_SLUG,
+                            sequence,
+                            &created_at,
+                            text,
+                        ));
+                        sequence += 1;
+                    }
                 }
             }
             "assistant" => {
