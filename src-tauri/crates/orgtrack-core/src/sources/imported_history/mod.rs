@@ -338,6 +338,20 @@ pub fn recent_paths_from_paths(
     recent_paths
 }
 
+/// GUI-launched runs prefix the task with an internal exec-mode briefing;
+/// strip it so titles/replay show only what the user typed.
+pub fn strip_orgii_exec_mode_bridge(text: &str) -> &str {
+    const OPEN: &str = "<orgii_cli_exec_mode_bridge>";
+    const CLOSE: &str = "</orgii_cli_exec_mode_bridge>";
+    let trimmed = text.trim_start();
+    if let Some(rest) = trimmed.strip_prefix(OPEN) {
+        if let Some(end) = rest.find(CLOSE) {
+            return rest[end + CLOSE.len()..].trim_start();
+        }
+    }
+    text
+}
+
 pub fn user_message_chunk(
     session_id: &str,
     provider_slug: &str,
@@ -345,6 +359,9 @@ pub fn user_message_chunk(
     created_at: &str,
     message: &str,
 ) -> ActivityChunk {
+    // Single funnel for every imported reader's user bubbles: strip the
+    // GUI exec-mode briefing here so no source can leak it into replay.
+    let message = strip_orgii_exec_mode_bridge(message);
     let mut chunk = ActivityChunk::new(session_id, ACTION_TYPE_RAW, FUNCTION_USER_MESSAGE);
     chunk.chunk_id = format!("{provider_slug}-user-{sequence}");
     chunk.created_at = created_at.to_string();
