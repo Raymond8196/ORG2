@@ -13,6 +13,7 @@ mod historical_backfill;
 mod hook_capture;
 mod interaction_store;
 mod path_resolution;
+mod status_post;
 
 pub(crate) use collaboration_replay::{delete_collaboration_replay, index_collaboration_replay};
 pub(super) use historical_backfill::request_historical_backfill;
