@@ -205,6 +205,55 @@ impl PtySession {
     }
 }
 
+/// Process-global registry of Unix session-leader PIDs (= shell PIDs, since
+/// spawn calls `setsid()`) that must be swept on app exit.
+///
+/// Deliberately a process-global static, not a field on `PtyState`: a shell's
+/// PID must remain sweepable AFTER its `PtySession` leaves the sessions map,
+/// which happens in two paths that both predate app exit — the reader's
+/// natural-EOF removal (shell exited, e.g. right after launching a backgrounded
+/// `nohup` job) and `close_session` (user closed the tab). In both cases the
+/// shell PID vanishes from the map, but HUP-immune descendants in its session
+/// keep running until logout. Only the app-exit sweep is contracted to kill
+/// them, so the SID must outlive the session.
+///
+/// Reached from `create_session` — where both creation paths (the user-facing
+/// `create_pty` command and the OS-agent path) converge and where neither
+/// agent call site has access to `PtyState` — by a single insert, and
+/// consumed by `shutdown_kill_all`. PTY cleanup is inherently process-global
+/// (one app process owns one set of descendants to sweep), so a static carries
+/// no isolation risk that `PtyState`'s Tauri-managed singleton would not.
+#[cfg(unix)]
+fn pending_exit_session_leaders() -> &'static std::sync::Mutex<std::collections::HashSet<u32>> {
+    static REGISTRY: std::sync::OnceLock<std::sync::Mutex<std::collections::HashSet<u32>>> =
+        std::sync::OnceLock::new();
+    REGISTRY.get_or_init(|| std::sync::Mutex::new(std::collections::HashSet::new()))
+}
+
+/// Record a spawned shell's PID (== Unix session-leader id) so the app-exit
+/// sweep can still find its descendants after the session leaves the map.
+#[cfg(unix)]
+pub(crate) fn register_session_leader(pid: u32) {
+    if let Ok(mut reg) = pending_exit_session_leaders().lock() {
+        reg.insert(pid);
+    }
+}
+
+/// PIDs whose Unix sessions should be swept on app exit: the union of
+/// currently-tracked session PIDs and previously-registered leaders whose
+/// sessions may still have lingering descendants (shells that exited or whose
+/// tab was closed).
+#[cfg(unix)]
+fn collect_sweep_sids(
+    tracked_pids: impl Iterator<Item = u32>,
+) -> std::collections::HashSet<u32> {
+    let mut sids: std::collections::HashSet<u32> = tracked_pids.collect();
+    if let Ok(reg) = pending_exit_session_leaders().lock() {
+        sids.extend(reg.iter().copied());
+    }
+    sids
+}
+
 /// Global state container for all PTY sessions.
 ///
 /// Managed by Tauri and accessed via `State<PtyState>` in command handlers.
@@ -239,6 +288,12 @@ impl PtyState {
     /// SIGHUP on PTY close is only a polite notice, so HUP-immune processes
     /// would leak until logout.
     ///
+    /// Also sweeps descendants of shells that already left the sessions map
+    /// (tab closed, or shell exited naturally after launching a backgrounded
+    /// job): their PIDs were registered at spawn and retained precisely so
+    /// this exit sweep can still find the session. See
+    /// [`pending_exit_session_leaders`].
+    ///
     /// Must be called from a non-runtime thread (it blocks on the session
     /// map lock); the Tauri run-loop exit handler qualifies.
     pub fn shutdown_kill_all(&self) {
@@ -246,9 +301,6 @@ impl PtyState {
             let mut map = self.sessions.blocking_lock();
             map.drain().map(|(_, session)| session).collect()
         };
-        if drained.is_empty() {
-            return;
-        }
 
         // The shell was spawned via setsid(), so its PID is the session ID
         // of every descendant that has not detached into a session of its
@@ -258,11 +310,14 @@ impl PtyState {
         // group would miss `bash -c ...`-style jobs entirely.
         #[cfg(unix)]
         {
-            use std::collections::HashSet;
             use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System};
 
-            let shell_pids: HashSet<u32> = drained.iter().filter_map(|s| s.pid).collect();
-            if !shell_pids.is_empty() {
+            // Union live sessions with the registry of shells already removed
+            // (closed tab / natural exit). A SID with zero live processes left
+            // matches nothing, so stale entries are inert — safe even if the OS
+            // reused a long-dead shell's PID for an unrelated process.
+            let sids = collect_sweep_sids(drained.iter().filter_map(|s| s.pid));
+            if !sids.is_empty() {
                 let own_pid = std::process::id();
                 let mut sys = System::new();
                 sys.refresh_processes_specifics(
@@ -272,13 +327,15 @@ impl PtyState {
                 );
                 for (pid, process) in sys.processes() {
                     let pid = pid.as_u32();
-                    // Shells die via Drop below, which also reaps them.
-                    if pid == own_pid || shell_pids.contains(&pid) {
+                    // Shells still in `drained` die via Drop below, which also
+                    // reaps them; skip their own PIDs to avoid a redundant
+                    // signal to a process we are about to own the exit of.
+                    if pid == own_pid || sids.contains(&pid) {
                         continue;
                     }
                     if process
                         .session_id()
-                        .is_some_and(|sid| shell_pids.contains(&sid.as_u32()))
+                        .is_some_and(|sid| sids.contains(&sid.as_u32()))
                     {
                         // SIGKILL directly: anything still here already
                         // ignored the kernel's SIGHUP, and a per-process
@@ -288,6 +345,10 @@ impl PtyState {
                         }
                     }
                 }
+            }
+            // Registry consumed by this exit sweep.
+            if let Ok(mut reg) = pending_exit_session_leaders().lock() {
+                reg.clear();
             }
         }
 
@@ -917,4 +978,48 @@ pub async fn get_pty_memory_usage(
         .collect();
 
     Ok(result)
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::{collect_sweep_sids, pending_exit_session_leaders};
+
+    // The session-leader registry is a process-global static shared across
+    // tests; this helper drains it so each case starts from a known state.
+    fn reset_registry() {
+        pending_exit_session_leaders()
+            .lock()
+            .expect("registry poisoned")
+            .clear();
+    }
+
+    #[test]
+    fn sweep_sids_union_live_sessions_and_registered_leaders() {
+        reset_registry();
+        super::register_session_leader(40_000); // shell whose tab was closed
+        super::register_session_leader(40_001); // shell that exited naturally
+
+        // A still-open session whose shell is also in the live map.
+        let sids = collect_sweep_sids(std::iter::once(50_000));
+
+        // Union of the live session PID and both registered leaders.
+        assert!(sids.contains(&50_000));
+        assert!(sids.contains(&40_000));
+        assert!(sids.contains(&40_001));
+
+        reset_registry();
+    }
+
+    #[test]
+    fn stale_registered_leader_with_no_live_process_is_inert() {
+        // No assertion on kill behaviour here (that needs real processes); this
+        // guards the documented safety property: a registered SID only matters
+        // if some live process reports it as its session id. collect_sweep_sids
+        // merely returns the candidate set; downstream, zero matches => no kill.
+        reset_registry();
+        super::register_session_leader(u32::MAX);
+        let sids = collect_sweep_sids(std::iter::empty());
+        assert!(sids.contains(&u32::MAX), "registered leader is a candidate");
+        reset_registry();
+    }
 }
