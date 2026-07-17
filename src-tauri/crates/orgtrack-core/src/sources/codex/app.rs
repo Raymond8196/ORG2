@@ -21,8 +21,8 @@ use crate::sources::imported_history::{
         ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
         SOURCE_CODEX_APP,
     },
-    paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
-    ImportedHistorySessionRow, ImportedToolCall,
+    paths as imported_paths, strip_orgii_exec_mode_bridge, ImportedHistoryRecentPath,
+    ImportedHistorySessionPage, ImportedHistorySessionRow, ImportedToolCall,
 };
 use crate::store::{sqlite::SqliteRecordStore, RecordStore};
 
@@ -146,7 +146,12 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
     for record in &mut discovered {
         crate::sources::imported_history::managed_mirror::append_managed_fingerprint(
             &mut record.source_fingerprint,
-            managed_ids.contains(&record.source_session_id),
+            // Suffix match: the imported key is the rollout stem while the
+            // runner binds the bare thread uuid.
+            crate::sources::imported_history::managed_mirror::is_managed_source_session_id(
+                &managed_ids,
+                &record.source_session_id,
+            ),
         );
     }
     let signatures = discovered
@@ -160,7 +165,11 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
     let mut inputs = Vec::new();
     for record in changed {
         if let Some(meta) = parse_codex_session_meta(record)? {
-            let is_managed_history_mirror = managed_ids.contains(&meta.source_session_id);
+            let is_managed_history_mirror =
+                crate::sources::imported_history::managed_mirror::is_managed_source_session_id(
+                    &managed_ids,
+                    &meta.source_session_id,
+                );
             let mut input = session_meta_to_cache_input(meta);
             input.listable = input.listable && !is_managed_history_mirror;
             inputs.push(input);
@@ -2159,10 +2168,14 @@ fn parse_rg_output_matches(output: &str) -> Vec<(String, i64, String)> {
 }
 
 fn user_message_from_payload(payload: &Value) -> Option<String> {
-    payload
-        .get("message")
-        .and_then(Value::as_str)
-        .map(ToString::to_string)
+    let raw = payload.get("message").and_then(Value::as_str)?;
+    let stripped = strip_orgii_exec_mode_bridge(raw);
+    // Bridge-only messages carry no user-authored text: skip them entirely
+    // (no replay bubble, no title candidate).
+    if stripped.trim().is_empty() {
+        return None;
+    }
+    Some(stripped.to_string())
 }
 
 fn session_title_from_payload(payload: &Value) -> Option<String> {
@@ -2267,9 +2280,13 @@ fn resolve_codex_session_path(conn: &Connection, file_stem: &str) -> Result<Path
         }
     }
 
-    if let Some(path) =
-        imported_cache::get_cached_source_path_from_conn(conn, SOURCE_CODEX_APP, file_stem)?
-    {
+    // Suffix form: runner bindings carry the bare thread uuid while rollout
+    // stems are `rollout-<timestamp>-<thread-uuid>`.
+    if let Some(path) = imported_cache::get_cached_source_path_by_suffix_from_conn(
+        conn,
+        SOURCE_CODEX_APP,
+        file_stem,
+    )? {
         let path = PathBuf::from(path);
         if path.is_file() {
             return Ok(path);
@@ -2282,9 +2299,25 @@ fn resolve_codex_session_path(conn: &Connection, file_stem: &str) -> Result<Path
             collect_codex_session_files(&sessions_dir, &mut files)?;
         }
     }
+    let stem_matches = |stem: &str| {
+        stem == file_stem
+            || (stem.len() > file_stem.len() + 1
+                && stem.ends_with(file_stem)
+                && stem.as_bytes()[stem.len() - file_stem.len() - 1] == b'-')
+    };
     files
         .into_iter()
-        .find(|path| path.file_stem().and_then(|value| value.to_str()) == Some(file_stem))
+        .filter(|path| {
+            path.file_stem()
+                .and_then(|value| value.to_str())
+                .is_some_and(stem_matches)
+        })
+        // Newest rollout wins when several share a thread (resume forks).
+        .max_by_key(|path| {
+            std::fs::metadata(path)
+                .and_then(|meta| meta.modified())
+                .ok()
+        })
         .ok_or_else(|| format!("Codex app file not found for session: {file_stem}"))
 }
 
