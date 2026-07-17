@@ -9,16 +9,11 @@
  */
 import i18next from "i18next";
 import { useAtomValue } from "jotai";
-import { AlertCircle, Chrome, FileSymlink, Globe } from "lucide-react";
+import { Chrome, FileSymlink, Globe } from "lucide-react";
 import React from "react";
 
 import ToolCallBlock from "@src/engines/ChatPanel/blocks/ToolCallBlock";
-import {
-  EventBlockHeaderIcon,
-  EventBlockHeaderTitle,
-  SESSION_UI_TOKENS,
-  StackedBlock,
-} from "@src/engines/ChatPanel/blocks/primitives";
+import { StackedBlock } from "@src/engines/ChatPanel/blocks/primitives";
 import { streamingDeltaContentAtom } from "@src/engines/SessionCore";
 import { sessionIdAtom } from "@src/engines/SessionCore/core/atoms";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
@@ -46,8 +41,7 @@ const ActivityRow: React.FC<{
   event: SessionEvent;
   index: number;
   itemKey: string;
-  totalOccurrences?: number;
-}> = ({ event, index, itemKey, totalOccurrences }) => {
+}> = ({ event, index, itemKey }) => {
   const sessionId = useAtomValue(sessionIdAtom);
   const streamingMap = useAtomValue(streamingDeltaContentAtom);
   const liveDelta = sessionId ? streamingMap.get(sessionId) : undefined;
@@ -72,24 +66,6 @@ const ActivityRow: React.FC<{
         itemIndex={index}
         isStreaming={event.isDelta === true}
       />
-      {totalOccurrences !== undefined && totalOccurrences >= 2 && (
-        <div className={SESSION_UI_TOKENS.ROW.INLINE}>
-          <EventBlockHeaderIcon
-            icon={
-              <AlertCircle
-                size={SESSION_UI_TOKENS.ICON.SIZE_SM}
-                className="text-warning-6"
-              />
-            }
-            hasContent={false}
-          />
-          <EventBlockHeaderTitle className="text-warning-6">
-            {i18next.t("sessions:tools.repeatedErrorNotice", {
-              count: totalOccurrences,
-            })}
-          </EventBlockHeaderTitle>
-        </div>
-      )}
     </ChatItemWrap>
   );
 };
@@ -109,19 +85,8 @@ export function renderActivity(
   }
   if (!event) return null;
 
-  // repeatedErrorCount stores extra occurrences beyond the first, so total = count + 1.
-  const extraRepeats = chatItem.repeatedErrorCount;
-  const totalOccurrences =
-    extraRepeats !== undefined ? extraRepeats + 1 : undefined;
-
   return (
-    <ActivityRow
-      key={itemKey}
-      event={event}
-      index={index}
-      itemKey={itemKey}
-      totalOccurrences={totalOccurrences}
-    />
+    <ActivityRow key={itemKey} event={event} index={index} itemKey={itemKey} />
   );
 }
 
