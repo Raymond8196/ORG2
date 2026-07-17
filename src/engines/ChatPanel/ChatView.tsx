@@ -799,7 +799,11 @@ const ChatView: React.FC<ChatViewProps> = memo(
       error: agentOrgInterventionError,
       returning: agentOrgInterventionReturning,
       returnToWork: returnAgentOrgMemberToWork,
-    } = useAgentOrgIntervention(agentOrgInteractionSessionId);
+    } = useAgentOrgIntervention(
+      agentOrgInteractionSessionId,
+      agentOrgRunView,
+      refreshAgentOrgRunView
+    );
     const isViewingAgentOrgMemberPlan =
       currentAgentOrgMember !== null && !currentAgentOrgMember.isCoordinator;
     const shouldShowCurrentPlanSurface =
