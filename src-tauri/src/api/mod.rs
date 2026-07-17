@@ -7,6 +7,7 @@
 //! handler.
 
 pub mod agent;
+pub mod agent_status_ingest;
 mod server;
 pub mod websocket_handler;
 

@@ -47,6 +47,22 @@ pub fn capture_hook_stdin(source: &str) -> Result<usize, String> {
     }
     let payload: serde_json::Value = serde_json::from_slice(&payload)
         .map_err(|err| format!("Invalid session-provenance hook JSON: {err}"))?;
+    // Latency-sensitive live-status fast path first: one loopback POST that
+    // silently no-ops when the desktop is closed or the feature is off. The
+    // durable provenance spool below is unaffected either way.
+    if agent_cli::session_provenance::live_status_enabled_quick() {
+        let orgii_session_id = std::env::var("ORGII_SESSION_ID")
+            .ok()
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty());
+        if let Some(status) = orgtrack_core::status_adapter::normalize_status_payload(
+            source,
+            &payload,
+            orgii_session_id,
+        ) {
+            super::status_post::post_status_event(&status);
+        }
+    }
     let lifecycle = normalize_actor_lifecycle_payload(source, &payload)?;
     let envelopes = normalize_hook_payload(source, &payload)?;
     for envelope in &envelopes {
