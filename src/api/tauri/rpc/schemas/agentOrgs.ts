@@ -130,6 +130,11 @@ export const CliConfigFileWriteInput = CliConfigFileInput.extend({
 });
 
 export const HierarchyModeSchema = z.enum(["flat", "soft", "strict"]);
+export const PlanApprovalPolicySchema = z.enum([
+  "coordinator",
+  "user",
+  "automatic",
+]);
 export const OrgMemberRuntimeConfigSchema = z.object({
   keySource: z.enum(["own_key", "hosted_key"]).optional(),
   accountId: z.string().optional(),
@@ -155,6 +160,7 @@ export type OrgMember = {
   runtimeConfig?: OrgMemberRuntimeConfig;
   description?: string;
   hierarchyMode?: z.output<typeof HierarchyModeSchema>;
+  planApprovalPolicy?: z.output<typeof PlanApprovalPolicySchema>;
   children: OrgMember[];
 };
 
@@ -167,6 +173,7 @@ export const OrgMemberSchema: z.ZodType<OrgMember> = z.lazy(() =>
     runtimeConfig: OrgMemberRuntimeConfigSchema.optional(),
     description: z.string().optional(),
     hierarchyMode: HierarchyModeSchema.optional(),
+    planApprovalPolicy: PlanApprovalPolicySchema.optional(),
     children: z.array(OrgMemberSchema),
   })
 );
