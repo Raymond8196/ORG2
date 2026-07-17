@@ -481,3 +481,53 @@ fn edit_without_structured_patch_falls_back_to_old_new_on_args() {
     std::fs::remove_file(&path).expect("remove fixture");
     std::fs::remove_dir(&temp_dir).expect("remove temp dir");
 }
+
+#[test]
+fn captures_first_user_uuid_as_continuation_group_key() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-continuation-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("d0641111-1111-1111-1111-111111111111.jsonl");
+    // Continuation rewrites preserve message uuids; the first `type:"user"`
+    // line's uuid is the family key. Title/meta records before it must not
+    // contribute a key.
+    let content = r#"{"type":"custom-title","customTitle":"My convo","sessionId":"d0641111-1111-1111-1111-111111111111"}
+{"type":"user","uuid":"b7b5ae5f-0000-0000-0000-000000000001","sessionId":"d0641111-1111-1111-1111-111111111111","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-07-17T10:00:00.000Z","message":{"role":"user","content":"first message"}}
+{"type":"user","uuid":"b7b5ae5f-0000-0000-0000-000000000002","sessionId":"d0641111-1111-1111-1111-111111111111","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-07-17T10:01:00.000Z","message":{"role":"user","content":"second message"}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Claude").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "d0641111-1111-1111-1111-111111111111".to_string(),
+        source_path: path.clone(),
+        source_record_key: "d0641111-1111-1111-1111-111111111111".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_claude_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+    assert_eq!(
+        meta.first_user_uuid.as_deref(),
+        Some("b7b5ae5f-0000-0000-0000-000000000001")
+    );
+
+    let cache_input = session_meta_to_cache_input(meta);
+    let metadata_json = cache_input.source_metadata_json.expect("metadata json");
+    let parsed: serde_json::Value = serde_json::from_str(&metadata_json).expect("parse json");
+    assert_eq!(
+        parsed
+            .get(imported_cache::CONTINUATION_GROUP_KEY_FIELD)
+            .and_then(|value| value.as_str()),
+        Some("b7b5ae5f-0000-0000-0000-000000000001")
+    );
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
