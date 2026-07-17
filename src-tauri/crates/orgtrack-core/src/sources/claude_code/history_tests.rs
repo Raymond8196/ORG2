@@ -533,6 +533,44 @@ fn captures_first_user_uuid_as_continuation_group_key() {
 }
 
 #[test]
+fn strips_ide_context_from_claude_replay() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-ide-context-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-ide-context.jsonl");
+    // Line 1: ide_context-only user message (no user-authored text at all).
+    // Line 2: bridge + ide_context prefixed user message with real text.
+    let content = r#"{"type":"user","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:46.543Z","message":{"role":"user","content":"<ide_context>\nopen file: src/app.ts\n</ide_context>"}}
+{"type":"user","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:47.000Z","message":{"role":"user","content":"<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>\n\n<ide_context>\nopen file: src/app.ts\n</ide_context>\n\nfix the login bug"}}
+{"type":"assistant","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:49.000Z","message":{"role":"assistant","model":"claude-sonnet-4","content":[{"type":"text","text":"done"}],"usage":{"input_tokens":3,"output_tokens":5}}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    // Replay: the ide_context-only line emits no bubble; the prefixed
+    // line's bubble carries only the user-authored text.
+    let chunks =
+        load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
+    let user_chunks: Vec<_> = chunks
+        .iter()
+        .filter(|chunk| chunk.function == imported_history::FUNCTION_USER_MESSAGE)
+        .collect();
+    assert_eq!(user_chunks.len(), 1);
+    assert_eq!(
+        user_chunks[0]
+            .result
+            .get("message")
+            .and_then(|message| message.get("content"))
+            .and_then(Value::as_str),
+        Some("fix the login bug")
+    );
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn strips_orgii_exec_mode_bridge_from_claude_title_and_replay() {
     let temp_dir = std::env::temp_dir().join(format!(
         "orgii-claude-history-bridge-test-{}",

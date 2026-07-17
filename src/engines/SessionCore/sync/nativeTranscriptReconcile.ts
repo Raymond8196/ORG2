@@ -36,6 +36,13 @@ interface ReconcileDeps {
   dispatchLoadSession: (payload: {
     sessionId: string;
     events: SessionEvent[];
+    /**
+     * The native replay IS the canonical transcript: loadSessionAtom must
+     * replace the in-memory turn events (synthetic user bubble, streamed
+     * placeholders) instead of merging next to them — their ids never match
+     * the replayed rows, so a merge renders every turn twice.
+     */
+    replace?: boolean;
   }) => void;
   /** The session still on screen? Stale reconciles are dropped. */
   isSessionLive: (sessionId: string) => boolean;
@@ -56,7 +63,7 @@ export function scheduleNativeTranscriptReconcile(
     const events = await deps.loadHistory(sessionId);
     if (!deps.isSessionLive(sessionId)) return -1;
     if (events.length > 0) {
-      deps.dispatchLoadSession({ sessionId, events });
+      deps.dispatchLoadSession({ sessionId, events, replace: true });
     }
     return events.length;
   };
@@ -75,7 +82,7 @@ export function scheduleNativeTranscriptReconcile(
         events.length > Math.max(firstCount, 0) &&
         deps.isSessionLive(sessionId)
       ) {
-        deps.dispatchLoadSession({ sessionId, events });
+        deps.dispatchLoadSession({ sessionId, events, replace: true });
       }
     } catch {
       // Best-effort: the ephemeral in-memory events remain on screen; the
