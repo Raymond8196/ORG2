@@ -211,6 +211,7 @@ function importedHistoryPageResult(
         is_active: row.isActive ?? false,
         background: false,
         repoPath: row.repoPath,
+        storagePath: row.storagePath,
         agentIconId: source.iconId,
         agentDisplayName: source.displayName,
         model: row.model,

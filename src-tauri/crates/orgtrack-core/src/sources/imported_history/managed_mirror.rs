@@ -82,6 +82,27 @@ pub fn managed_source_session_ids_from_conn(
     Ok(ids)
 }
 
+/// Whether an imported record belongs to a managed session.
+///
+/// Exact match covers sources whose imported key IS the CLI-native id
+/// (Claude uuid, OpenCode `ses_*`). Codex imports key on the rollout file
+/// stem (`rollout-<timestamp>-<thread-uuid>`) while the runner binds the
+/// bare thread uuid — matched here by a `-`-bounded suffix so an unrelated
+/// id can never partially collide.
+pub fn is_managed_source_session_id(
+    managed_ids: &HashSet<String>,
+    source_session_id: &str,
+) -> bool {
+    if managed_ids.contains(source_session_id) {
+        return true;
+    }
+    managed_ids.iter().any(|id| {
+        source_session_id.len() > id.len() + 1
+            && source_session_id.ends_with(id.as_str())
+            && source_session_id.as_bytes()[source_session_id.len() - id.len() - 1] == b'-'
+    })
+}
+
 /// Fold the managed verdict into a discovery fingerprint so a session that
 /// becomes managed (or stops being) re-parses on the next scan and its
 /// `listable` flag flips.
@@ -103,6 +124,24 @@ mod tests {
         let ids = managed_source_session_ids_from_conn(&conn, "claude_code", "claude_code")
             .expect("query");
         assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn stem_suffix_matches_managed_id_with_boundary() {
+        let ids = HashSet::from(["019f6e88-3bc8-77b3".to_string()]);
+        // Exact and rollout-stem forms match.
+        assert!(is_managed_source_session_id(&ids, "019f6e88-3bc8-77b3"));
+        assert!(is_managed_source_session_id(
+            &ids,
+            "rollout-2026-07-17T13-24-09-019f6e88-3bc8-77b3"
+        ));
+        // No '-' boundary or partial overlap must NOT match.
+        assert!(!is_managed_source_session_id(
+            &ids,
+            "xx019f6e88-3bc8-77b3"
+        ));
+        assert!(!is_managed_source_session_id(&ids, "019f6e88"));
+        assert!(!is_managed_source_session_id(&HashSet::new(), "anything"));
     }
 
     #[test]

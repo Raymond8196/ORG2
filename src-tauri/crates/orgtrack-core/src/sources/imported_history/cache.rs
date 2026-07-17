@@ -312,7 +312,7 @@ pub fn query_imported_sidebar_page_from_conn(
     let sql = format!(
         "SELECT session_id, name, created_at_ms, updated_at_ms, repo_path,
                 model, files_changed, lines_added, lines_removed, touched_files_json,
-                input_tokens, output_tokens
+                input_tokens, output_tokens, source_path
          FROM imported_history_session_cache
          WHERE source = ?1
            AND listable = 1
@@ -335,6 +335,7 @@ pub fn query_imported_sidebar_page_from_conn(
                 })?;
             let input_tokens: i64 = row.get(10)?;
             let output_tokens: i64 = row.get(11)?;
+            let source_path: String = row.get(12)?;
             Ok(ImportedHistorySidebarRow {
                 session_id: row.get(0)?,
                 name: row.get(1)?,
@@ -343,6 +344,7 @@ pub fn query_imported_sidebar_page_from_conn(
                 status: None,
                 is_active: None,
                 repo_path: non_empty_string(repo_path),
+                storage_path: non_empty_string(source_path),
                 model: non_empty_string(model),
                 total_tokens: input_tokens + output_tokens,
                 files_changed: row.get(6)?,
@@ -389,6 +391,28 @@ pub fn get_cached_source_path_from_conn(
     conn.query_row(
         "SELECT source_path FROM imported_history_session_cache \
          WHERE source = ?1 AND source_session_id = ?2",
+        params![source, source_session_id],
+        |row| row.get::<_, String>(0),
+    )
+    .optional()
+    .map_err(|err| format!("Failed to query imported history source path: {err}"))
+}
+
+/// Like [`get_cached_source_path_from_conn`], but also matches a
+/// `-`-bounded suffix of the cached key. Codex imports key on the rollout
+/// file stem (`rollout-<timestamp>-<thread-uuid>`) while runner bindings
+/// carry the bare thread uuid; newest wins when several rollouts share a
+/// thread (resume forks).
+pub fn get_cached_source_path_by_suffix_from_conn(
+    conn: &Connection,
+    source: &str,
+    source_session_id: &str,
+) -> Result<Option<String>, String> {
+    conn.query_row(
+        "SELECT source_path FROM imported_history_session_cache \
+         WHERE source = ?1 \
+           AND (source_session_id = ?2 OR source_session_id LIKE '%-' || ?2) \
+         ORDER BY updated_at_ms DESC LIMIT 1",
         params![source, source_session_id],
         |row| row.get::<_, String>(0),
     )

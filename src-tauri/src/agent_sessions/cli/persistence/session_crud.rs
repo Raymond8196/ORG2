@@ -335,10 +335,13 @@ pub fn update_cli_session_id_for_account(
         // Close the dedup race window immediately (the next source scan
         // re-derives the same verdict from the ledger): the imported twin
         // must not appear in the sidebar for up to one scan cadence.
+        // Suffix form covers Codex, whose imported key is the rollout stem
+        // (`rollout-<timestamp>-<thread-uuid>`) around the bound bare uuid.
         tx.execute(
             "UPDATE imported_history_session_cache
              SET listable = 0
-             WHERE source = ?1 AND source_session_id = ?2",
+             WHERE source = ?1
+               AND (source_session_id = ?2 OR source_session_id LIKE '%-' || ?2)",
             params![binding.source, cli_session_id],
         )
         .ok();

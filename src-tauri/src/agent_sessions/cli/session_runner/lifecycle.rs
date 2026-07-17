@@ -104,10 +104,21 @@ pub async fn cancel_session(session_id: &str, reason: CancelReason) -> Result<bo
         }
     };
 
+    // Codex app-server transport: ask the running turn to interrupt
+    // gracefully (bounded wait) so codex finalizes the rollout before we
+    // kill the process tree. No-op for every other transport/agent.
+    crate::agent_sessions::cli::parsers::codex_app_server::interrupt_session_gracefully(session_id)
+        .await;
+
     let had_running = kill_running_agent(session_id).await;
 
     persistence::update_status(session_id, SessionStatus::Cancelled)
         .map_err(|e| format!("DB error: {}", e))?;
+
+    // Cancelling also wakes any parked PermissionRequest hook long-poll
+    // (no-decision) — covered again by clear_live_status below when the
+    // agent type is known, but the else branches skip it.
+    super::super::hook_approvals::unregister_session(session_id);
 
     // Cancelled is terminal: drop any hook-derived live status so the
     // sidebar doesn't keep a ghost working/waiting entry for this session.
