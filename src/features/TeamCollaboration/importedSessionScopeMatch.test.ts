@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  collectImportedSessionIdsCoveredByAnyScope,
-  collectScopeMatchedImportedSessionIds,
-} from "./importedSessionScopeMatch";
+import { collectScopeMatchedImportedSessionIds } from "./importedSessionScopeMatch";
 
 const PEEK = (path: string) =>
   path === "/Users/me/org2"
@@ -85,39 +82,5 @@ describe("collectScopeMatchedImportedSessionIds", () => {
     );
     expect(ids.size).toBe(0);
     expect(prime).toHaveBeenCalledWith("/Users/me/org2");
-  });
-});
-
-describe("collectImportedSessionIdsCoveredByAnyScope", () => {
-  it("covers a session scoped by ANY member org — no ambiguity rule", () => {
-    const ids = collectImportedSessionIdsCoveredByAnyScope(
-      sessions,
-      ["org-a", "org-b"],
-      {
-        "org-a": ["github.com/yorgai/org2"],
-        "org-b": ["github.com/yorgai/org2", "github.com/yorgai/other"],
-      },
-      PEEK
-    );
-    expect(ids).toEqual(new Set(["claude-code:1", "claude-code:2"]));
-  });
-
-  it("ignores scopes of non-member orgs", () => {
-    const ids = collectImportedSessionIdsCoveredByAnyScope(
-      sessions,
-      ["org-b"],
-      {
-        "org-a": ["github.com/yorgai/org2"],
-        "org-b": ["github.com/yorgai/other"],
-      },
-      PEEK
-    );
-    expect(ids).toEqual(new Set(["claude-code:2"]));
-  });
-
-  it("returns empty with no member orgs", () => {
-    expect(
-      collectImportedSessionIdsCoveredByAnyScope(sessions, [], {}, PEEK)
-    ).toEqual(new Set());
   });
 });

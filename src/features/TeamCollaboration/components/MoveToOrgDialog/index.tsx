@@ -33,7 +33,9 @@ import { org2CloudSyncEngine } from "../../../Org2Cloud/org2CloudSyncEngine";
 import { pickMatchingOrgScope } from "../../collabSyncUtils";
 import { resolveShareableScopeKeys } from "../../repoScopeResolver";
 import {
+  PERSONAL_EXCLUDED_TOKEN,
   cloudOrgToken,
+  isSessionExcludedFromPersonal,
   isSessionTaggedToCloudOrg,
   sessionOrgTagsAtom,
   withTag,
@@ -80,6 +82,26 @@ const MoveToOrgDialog: React.FC<MoveToOrgDialogProps> = ({
       cancelled = true;
     };
   }, [repoPath]);
+
+  const personalIncluded = session
+    ? !isSessionExcludedFromPersonal(tags, session.session_id)
+    : true;
+
+  // Personal is a purely local, default-on membership: no server sync,
+  // instant. Unchecking stores PERSONAL_EXCLUDED_TOKEN so the session drops
+  // out of the Personal scope while still living in every tagged/scoped org.
+  const togglePersonal = useCallback(
+    (nextIncluded: boolean) => {
+      if (!session) return;
+      const sessionId = session.session_id;
+      setTags((current) =>
+        nextIncluded
+          ? withoutTag(current, sessionId, PERSONAL_EXCLUDED_TOKEN)
+          : withTag(current, sessionId, PERSONAL_EXCLUDED_TOKEN)
+      );
+    },
+    [session, setTags]
+  );
 
   const toggle = useCallback(
     async (orgId: string, orgName: string, nextChecked: boolean) => {
@@ -150,6 +172,23 @@ const MoveToOrgDialog: React.FC<MoveToOrgDialogProps> = ({
           </div>
           <div className="text-[11px] text-text-3">
             {t("cloud.moveToOrg.hint")}
+          </div>
+          {/* Personal is a default-on membership; a session can live in
+              Personal AND any number of covering orgs at once. */}
+          <div
+            className="flex items-center gap-2 rounded-lg border border-border-2 bg-bg-2 px-3 py-2"
+            data-testid="session-move-org-option-personal"
+          >
+            <Checkbox
+              checked={personalIncluded}
+              onChange={(next: boolean) => togglePersonal(next)}
+            />
+            <span className="text-[13px] text-text-1">
+              {t("cloud.moveToOrg.personal")}
+            </span>
+            <span className="ml-auto text-[11px] text-text-3">
+              {t("cloud.moveToOrg.personalBadge")}
+            </span>
           </div>
           {cloudOrgs.length === 0 ? (
             <div className="text-[12px] text-text-3">

@@ -52,35 +52,3 @@ export function collectScopeMatchedImportedSessionIds(
   }
   return ids;
 }
-
-/** Imported sessions covered by ANY of the member orgs' repo scopes. */
-export function collectImportedSessionIdsCoveredByAnyScope(
-  sessions: readonly Pick<
-    Session,
-    "session_id" | "category" | "orgId" | "repoPath"
-  >[],
-  memberOrgIds: readonly string[],
-  scopesByOrg: Record<string, string[]>,
-  peek?: ScopePeek,
-  prime?: ScopePrime
-): Set<string> {
-  const ids = new Set<string>();
-  if (memberOrgIds.length === 0) return ids;
-  for (const session of sessions) {
-    if (!isScopeMatchableImportedSession(session)) continue;
-    for (const orgId of memberOrgIds) {
-      if (
-        repoMatchesOrgScopes(
-          { fs_uri: session.repoPath },
-          scopesByOrg[orgId],
-          peek,
-          prime
-        )
-      ) {
-        ids.add(session.session_id);
-        break;
-      }
-    }
-  }
-  return ids;
-}

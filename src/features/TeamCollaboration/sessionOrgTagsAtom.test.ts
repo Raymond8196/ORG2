@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  PERSONAL_EXCLUDED_TOKEN,
   cloudOrgIdsForSession,
   cloudOrgToken,
+  isSessionExcludedFromPersonal,
   isSessionTaggedToCloudOrg,
   taggedCloudOrgIds,
   withTag,
@@ -59,5 +61,21 @@ describe("sessionOrgTagsAtom helpers", () => {
     expect("s1" in next).toBe(false);
     // removing a tag that isn't present is a no-op
     expect(withoutTag(next, "s1", cloudOrgToken("c1"))).toBe(next);
+  });
+
+  it("personal exclusion is independent of cloud org tags", () => {
+    // Default: in Personal.
+    expect(isSessionExcludedFromPersonal({}, "s1")).toBe(false);
+    // Exclude from Personal while still tagged to a cloud org — both coexist.
+    let tags = withTag({}, "s1", cloudOrgToken("c1"));
+    tags = withTag(tags, "s1", PERSONAL_EXCLUDED_TOKEN);
+    expect(isSessionExcludedFromPersonal(tags, "s1")).toBe(true);
+    expect(cloudOrgIdsForSession(tags, "s1")).toEqual(["c1"]);
+    // The personal marker is not a cloud org.
+    expect(taggedCloudOrgIds(tags)).toEqual(new Set(["c1"]));
+    // Re-include in Personal; the cloud tag survives.
+    tags = withoutTag(tags, "s1", PERSONAL_EXCLUDED_TOKEN);
+    expect(isSessionExcludedFromPersonal(tags, "s1")).toBe(false);
+    expect(cloudOrgIdsForSession(tags, "s1")).toEqual(["c1"]);
   });
 });
