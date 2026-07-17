@@ -42,6 +42,7 @@ import {
   isSessionTaggedToCloudOrg,
   sessionOrgTagsAtom,
   withTag,
+  withoutCloudOrgTag,
   withoutTag,
 } from "../../sessionOrgTagsAtom";
 
@@ -148,7 +149,7 @@ const MoveToOrgDialog: React.FC<MoveToOrgDialogProps> = ({
             await deleteSession(fresh.accessToken, orgId, sessionId);
             org2CloudSyncEngine.invalidatePushedMetadataHash(orgId, sessionId);
           }
-          setTags((current) => withoutTag(current, sessionId, token));
+          setTags((current) => withoutCloudOrgTag(current, sessionId, orgId));
           Message.success(t("cloud.moveToOrg.removed", { org: orgName }));
         }
       } catch (error) {
@@ -156,7 +157,7 @@ const MoveToOrgDialog: React.FC<MoveToOrgDialogProps> = ({
         // turn. If publication fails, restore the pre-action state instead of
         // leaving a local-only "moved" badge that teammates can never see.
         if (nextChecked) {
-          setTags((current) => withoutTag(current, sessionId, token));
+          setTags((current) => withoutCloudOrgTag(current, sessionId, orgId));
         }
         log.warn("move-to-org toggle failed", error);
         Message.error(t("cloud.moveToOrg.error"));
