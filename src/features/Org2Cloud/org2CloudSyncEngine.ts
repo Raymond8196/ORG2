@@ -329,10 +329,16 @@ export class Org2CloudSyncEngine {
    * historical coalescing semantics; these resolve only once the active pass
    * and every dirty follow-up have drained. */
   private readonly passDrainWaiters: Array<() => void> = [];
-  /** Last time the inbound planes were pulled (fallback-cadence gate). */
-  private lastInboundPassAtMs = 0;
-  /** Set by a Realtime invalidation so the next pass runs inbound now. */
-  private forceInboundNextPass = false;
+  /** Per-org last inbound pull time (fallback-cadence gate). A busy org must
+   * not postpone the safety pull for every other org. */
+  private readonly lastInboundPassAtMs = new Map<string, number>();
+  /** Realtime invalidations waiting to be consumed by a pass. Keeping the org
+   * ids avoids turning one org's signal into an all-org fan-out. */
+  private readonly pendingInboundOrgIds = new Set<string>();
+  /** Reconnect/full-recovery requests. Ordinary change signals stay on the
+   * persisted delta cursor and do not reset the once-per-start latches. */
+  private readonly pendingFullInboundOrgIds = new Set<string>();
+  private forceAllInboundNextPass = false;
   /** Set by `orgii-data-changed` so the next pass drains the projects plane. */
   private forceProjectsNextPass = false;
   /** Org id → entitlement backoff deadline (epoch ms). */
@@ -464,8 +470,10 @@ export class Org2CloudSyncEngine {
     this.passRunning = false;
     this.passDirty = false;
     for (const resolve of this.passDrainWaiters.splice(0)) resolve();
-    this.lastInboundPassAtMs = 0;
-    this.forceInboundNextPass = false;
+    this.lastInboundPassAtMs.clear();
+    this.pendingInboundOrgIds.clear();
+    this.pendingFullInboundOrgIds.clear();
+    this.forceAllInboundNextPass = false;
     this.forceProjectsNextPass = false;
     this.store = null;
   }
@@ -509,36 +517,48 @@ export class Org2CloudSyncEngine {
   }
 
   /**
-   * Realtime-invalidation seam. A Postgres-changes event on an org's inbound
-   * planes (projects / work-items / comment-tasks) means "re-pull now". Drop
-   * the once-per-start full-listing latches and the repo-scope TTL for the
-   * affected org (or ALL orgs when `orgId` is omitted — the reconnect case,
-   * where events may have been missed while the socket was down) so the next
-   * pass performs a COMPLETE listing that can observe server-side tombstones,
-   * then run a pass immediately. Reuses every existing cursor / LWW / apply
-   * path — realtime only changes WHEN a pull happens, never HOW.
+   * Realtime-invalidation seam. Ordinary row changes request a cursor-based
+   * pull for exactly one org. Reconnect recovery passes `{ full: true }` (or
+   * omits orgId) to bypass cursors once, because changes may have been missed
+   * while disconnected. The request itself starts the serialized pass; callers
+   * must not follow it with a second `runSyncPass()`.
    */
-  invalidateOrgInbound(orgId?: string): void {
+  invalidateOrgInbound(orgId?: string, options: { full?: boolean } = {}): void {
     if (!this.started) return;
     if (orgId) {
       this.clearOrgBackoff(orgId);
-      this.fullCollabStateOrgIds.delete(orgId);
-      this.fullCommentTaskOrgIds.delete(orgId);
-      this.scopeHydratedAtMs.delete(orgId);
+      this.pendingInboundOrgIds.add(orgId);
+      if (options.full) {
+        this.pendingFullInboundOrgIds.add(orgId);
+        this.scopeHydratedAtMs.delete(orgId);
+      }
     } else {
       this.orgBackoffUntilMs.clear();
       this.warnedOrgIds.clear();
-      this.fullCollabStateOrgIds.clear();
-      this.fullCommentTaskOrgIds.clear();
+      this.forceAllInboundNextPass = true;
       this.scopeHydratedAtMs.clear();
     }
-    this.forceInboundNextPass = true;
     void this.runSyncPass();
+  }
+
+  /** Request one inbound pass and resolve after all work coalesced into that
+   * serialized pass has drained. This closes the old invalidate+run race that
+   * unconditionally dirtied the active pass and doubled every pull. */
+  async invalidateOrgInboundAndWait(
+    orgId?: string,
+    options: { full?: boolean } = {}
+  ): Promise<void> {
+    if (!this.started || !this.store) return;
+    const drained = new Promise<void>((resolve) => {
+      this.passDrainWaiters.push(resolve);
+    });
+    this.invalidateOrgInbound(orgId, options);
+    await drained;
   }
 
   /** Resume an org immediately after a user-controlled access/policy change. */
   resumeOrg(orgId: string): void {
-    this.invalidateOrgInbound(orgId);
+    this.invalidateOrgInbound(orgId, { full: true });
   }
 
   private schedulePass(delayMs: number): void {
@@ -899,27 +919,54 @@ export class Org2CloudSyncEngine {
     // local toggle and this run's backoff (which the session loop above may
     // have just set) gate it.
     //
-    // Inbound-fallback gate: these two planes (projects+work-items and comment
-    // tasks below) are now Realtime-driven (useOrg2CloudRealtime →
-    // invalidateOrgInbound). On an ordinary recurring pass they run only as a
-    // safety net at INBOUND_FALLBACK_INTERVAL_MS cadence; a Realtime
-    // invalidation sets forceInboundNextPass so a live event pulls immediately.
-    // The outbound push loop above is unaffected and runs every pass.
+    // Inbound-fallback gate: these planes are Realtime-driven and scoped to
+    // the invalidated org. Ordinary signals retain their delta cursors; only
+    // reconnect recovery clears the full-listing latch above. Each org owns
+    // its own fallback timestamp so a noisy org cannot starve a quiet one.
+    // Consume requests only after auth/schema/outbound setup succeeds; an
+    // offline or mismatched backend must leave them pending for the next pass.
+    const requestedInboundOrgIds = new Set(this.pendingInboundOrgIds);
+    this.pendingInboundOrgIds.clear();
+    const requestedFullInboundOrgIds = new Set(this.pendingFullInboundOrgIds);
+    this.pendingFullInboundOrgIds.clear();
+    const forceAllInbound = this.forceAllInboundNextPass;
+    this.forceAllInboundNextPass = false;
+    if (forceAllInbound) {
+      for (const org of orgs) requestedFullInboundOrgIds.add(org.orgId);
+    }
+    for (const orgId of requestedFullInboundOrgIds) {
+      requestedInboundOrgIds.add(orgId);
+      this.fullCollabStateOrgIds.delete(orgId);
+      this.fullCommentTaskOrgIds.delete(orgId);
+    }
     const nowMs = Date.now();
-    const runInbound =
-      this.forceInboundNextPass ||
-      nowMs - this.lastInboundPassAtMs >= INBOUND_FALLBACK_INTERVAL_MS;
-    this.forceInboundNextPass = false;
-    const runProjects = runInbound || this.forceProjectsNextPass;
+    const inboundOrgIds = new Set(requestedInboundOrgIds);
+    const fallbackInboundOrgIds = new Set<string>();
+    for (const org of orgs) {
+      const lastInbound = this.lastInboundPassAtMs.get(org.orgId) ?? 0;
+      if (nowMs - lastInbound >= INBOUND_FALLBACK_INTERVAL_MS) {
+        inboundOrgIds.add(org.orgId);
+        fallbackInboundOrgIds.add(org.orgId);
+      }
+    }
+    const pushProjects = this.forceProjectsNextPass;
     this.forceProjectsNextPass = false;
-    if (runProjects) {
+    const projectOrgIds = pushProjects
+      ? new Set(orgs.map((org) => org.orgId))
+      : inboundOrgIds;
+    if (projectOrgIds.size > 0) {
       for (const org of orgs) {
+        if (!projectOrgIds.has(org.orgId)) continue;
         if (this.generation !== generation) return;
         if (getCloudEndpoint().supabaseUrl !== passSupabaseUrl) return;
         if (enabledByOrg[org.orgId] === false) continue;
         if (this.isOrgBackedOff(org.orgId)) continue;
         try {
-          await this.syncOrgProjects(fresh, org, generation);
+          // Realtime-only pulls do not probe the local outbox. Local mutation
+          // requests and periodic safety passes still drain it.
+          await this.syncOrgProjects(fresh, org, generation, {
+            pushOutbox: pushProjects || fallbackInboundOrgIds.has(org.orgId),
+          });
         } catch (error) {
           if (this.generation !== generation) return;
           if (this.isBackoffError(error)) {
@@ -930,9 +977,7 @@ export class Org2CloudSyncEngine {
         }
       }
     }
-    if (runInbound) {
-      this.lastInboundPassAtMs = nowMs;
-
+    if (inboundOrgIds.size > 0) {
       // Comment agent tasks (agent-pickup Phase 5), AFTER the project plane.
       // Org-wide like work items — task visibility mirrors the session-listing
       // predicate SERVER-side, so no client-side scope selection here either.
@@ -941,6 +986,7 @@ export class Org2CloudSyncEngine {
       // membership/org errors — never ORG2_QUOTA_EXCEEDED (0002 rule: quota
       // exists only on the human-affordance create RPC).
       for (const org of orgs) {
+        if (!inboundOrgIds.has(org.orgId)) continue;
         if (this.generation !== generation) return;
         if (getCloudEndpoint().supabaseUrl !== passSupabaseUrl) return;
         if (enabledByOrg[org.orgId] === false) continue;
@@ -957,6 +1003,8 @@ export class Org2CloudSyncEngine {
             `cloud comment-task sync failed for org ${org.orgId}:`,
             error
           );
+        } finally {
+          this.lastInboundPassAtMs.set(org.orgId, nowMs);
         }
       }
     }
@@ -1060,7 +1108,8 @@ export class Org2CloudSyncEngine {
   private async syncOrgProjects(
     auth: Org2CloudAuthState,
     org: Org2CloudOrg,
-    generation: number
+    generation: number,
+    options: { pushOutbox: boolean }
   ): Promise<void> {
     const store = this.store;
     if (!store) return;
@@ -1087,10 +1136,13 @@ export class Org2CloudSyncEngine {
       ),
       bridge: this.projectSyncBridge,
     });
-    const cycle = await channel.sync({
-      org: { id: org.orgId, name: org.name, projectOrgId, createdAt: "" },
-      state: toCollabOrgState(state),
-    });
+    const cycle = await channel.sync(
+      {
+        org: { id: org.orgId, name: org.name, projectOrgId, createdAt: "" },
+        state: toCollabOrgState(state),
+      },
+      { pushOutbox: options.pushOutbox }
+    );
     if (this.generation !== generation) return;
 
     // The channel acks per-row push failures instead of throwing (Rust-side

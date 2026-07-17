@@ -7,7 +7,7 @@
  * an org doesn't refetch on every render; `refresh()` bypasses the TTL.
  * NOT persisted — retention filtering is server-side and rows go stale.
  */
-import { atom, useAtom, useAtomValue } from "jotai";
+import { atom, createStore, useAtom, useAtomValue, useStore } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 
 import { createLogger } from "@src/hooks/logger";
@@ -20,6 +20,28 @@ import { listOrgSessions } from "./org2CloudSyncClient";
 const log = createLogger("Org2CloudRemoteSessions");
 
 const REMOTE_SESSIONS_TTL_MS = 60_000;
+
+type JotaiStore = ReturnType<typeof createStore>;
+interface RemoteSessionsRequestState {
+  inFlightOrgIds: Set<string>;
+  lastFetchedVersionByOrg: Map<string, number>;
+}
+const requestStateByStore = new WeakMap<
+  JotaiStore,
+  RemoteSessionsRequestState
+>();
+
+function requestStateFor(store: JotaiStore): RemoteSessionsRequestState {
+  let state = requestStateByStore.get(store);
+  if (!state) {
+    state = {
+      inFlightOrgIds: new Set<string>(),
+      lastFetchedVersionByOrg: new Map<string, number>(),
+    };
+    requestStateByStore.set(store, state);
+  }
+  return state;
+}
 
 export type CloudRemoteSessionsFetchState =
   | "idle"
@@ -101,6 +123,8 @@ export interface UseCloudOrgRemoteSessionsResult {
 export function useCloudOrgRemoteSessions(
   orgId: string | null
 ): UseCloudOrgRemoteSessionsResult {
+  const store = useStore();
+  const requestState = requestStateFor(store);
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const [entries, setEntries] = useAtom(org2CloudRemoteSessionsAtom);
   const versionByOrg = useAtomValue(org2CloudRemoteSessionsVersionAtom);
@@ -116,17 +140,12 @@ export function useCloudOrgRemoteSessions(
     authRef.current = auth;
   }, [auth]);
   const signedIn = Boolean(auth);
-  // Background revalidation deliberately keeps state="ready", so UI state can
-  // no longer double as an in-flight lock. Track requests separately to
-  // collapse Realtime signal bursts and the fallback TTL into one fetch/org.
-  const inFlightOrgIdsRef = useRef(new Set<string>());
-
   const fetchOrgSessions = useCallback(
     async (targetOrgId: string): Promise<void> => {
-      if (inFlightOrgIdsRef.current.has(targetOrgId)) return;
+      if (requestState.inFlightOrgIds.has(targetOrgId)) return;
       const current = authRef.current;
       if (!current) return;
-      inFlightOrgIdsRef.current.add(targetOrgId);
+      requestState.inFlightOrgIds.add(targetOrgId);
       setEntries((previous) => ({
         ...previous,
         [targetOrgId]: beginRemoteSessionsFetch(previous[targetOrgId]),
@@ -154,10 +173,10 @@ export function useCloudOrgRemoteSessions(
           ),
         }));
       } finally {
-        inFlightOrgIdsRef.current.delete(targetOrgId);
+        requestState.inFlightOrgIds.delete(targetOrgId);
       }
     },
-    [setAuth, setEntries]
+    [requestState, setAuth, setEntries]
   );
 
   // Effect re-runs on: scope switch (orgId), sign-in flip, and each Realtime
@@ -165,28 +184,28 @@ export function useCloudOrgRemoteSessions(
   // signal means the server HAS newer rows. `lastFetchedVersionRef` keeps a
   // bump from re-firing after its fetch already ran (entries updates would
   // otherwise re-trigger via fetchedAt churn).
-  const lastFetchedVersionRef = useRef<Record<string, number>>({});
   useEffect(() => {
     if (!orgId || !signedIn) return;
     const entry = entriesRef.current[orgId];
-    const lastFetchedVersion = lastFetchedVersionRef.current[orgId] ?? 0;
+    const lastFetchedVersion =
+      requestState.lastFetchedVersionByOrg.get(orgId) ?? 0;
     const invalidated = invalidationVersion > lastFetchedVersion;
     const stale =
       !entry ||
       entry.state === "idle" ||
       Date.now() - entry.fetchedAt > REMOTE_SESSIONS_TTL_MS;
-    if ((!stale && !invalidated) || inFlightOrgIdsRef.current.has(orgId)) {
+    if ((!stale && !invalidated) || requestState.inFlightOrgIds.has(orgId)) {
       return;
     }
-    lastFetchedVersionRef.current[orgId] = invalidationVersion;
+    requestState.lastFetchedVersionByOrg.set(orgId, invalidationVersion);
     void fetchOrgSessions(orgId);
-  }, [orgId, signedIn, invalidationVersion, fetchOrgSessions]);
+  }, [orgId, signedIn, invalidationVersion, fetchOrgSessions, requestState]);
 
   const refresh = useCallback(() => {
     if (!orgId || !signedIn) return;
-    if (inFlightOrgIdsRef.current.has(orgId)) return;
+    if (requestState.inFlightOrgIds.has(orgId)) return;
     void fetchOrgSessions(orgId);
-  }, [orgId, signedIn, fetchOrgSessions]);
+  }, [orgId, signedIn, fetchOrgSessions, requestState]);
 
   const entry = (orgId ? entries[orgId] : undefined) ?? EMPTY_ENTRY;
   return { rows: entry.rows, state: entry.state, refresh };

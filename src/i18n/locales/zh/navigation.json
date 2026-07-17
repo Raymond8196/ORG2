@@ -509,7 +509,6 @@
       "error": "分叉会话失败",
       "sendFailed": "已分叉，但消息发送失败——内容已恢复到输入框",
       "forkedChipTooltip": "分叉自 {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "发送消息，Fork 后在 ORGII 中继续…"
     }
   },

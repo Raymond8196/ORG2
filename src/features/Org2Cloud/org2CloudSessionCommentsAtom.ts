@@ -33,7 +33,7 @@ import {
 } from "./org2CloudCommentTasksAtom";
 import type { CloudCommentTask } from "./org2CloudCommentTasksClient";
 import {
-  broadcastCommentsChanged,
+  broadcastCommentsChangedToPeers,
   org2CloudCommentsSignalAtom,
   orgCommentsKey,
   sessionCommentsKey,
@@ -424,6 +424,21 @@ export interface UseSessionCommentsResult {
  * too). A Set, so N dropped forces replay as ONE refetch.
  */
 const pendingForceRefetchKeys = new Set<string>();
+/** Signal-aware force dedup shared across hook instances. The same Realtime
+ * generation may be observed by header and transcript subscribers; it must
+ * produce one request, not one sequential request per subscriber. */
+const activeForceTokenByKey = new Map<string, string>();
+const pendingForceTokenByKey = new Map<string, string>();
+const completedForceTokenByKey = new Map<string, string>();
+const COMPLETED_FORCE_TOKEN_CACHE_MAX = 500;
+
+function rememberCompletedForceToken(key: string, token: string): void {
+  completedForceTokenByKey.delete(key);
+  completedForceTokenByKey.set(key, token);
+  if (completedForceTokenByKey.size <= COMPLETED_FORCE_TOKEN_CACHE_MAX) return;
+  const oldestKey = completedForceTokenByKey.keys().next().value;
+  if (oldestKey !== undefined) completedForceTokenByKey.delete(oldestKey);
+}
 
 export function useSessionComments(
   orgId: string | null,
@@ -440,10 +455,19 @@ export function useSessionComments(
     async (
       targetOrgId: string,
       targetSessionId: string,
-      options?: { force?: boolean }
+      options?: { force?: boolean; forceToken?: string }
     ): Promise<void> => {
       const targetKey = sessionCommentsKey(targetOrgId, targetSessionId);
       let force = Boolean(options?.force);
+      let forceToken = options?.forceToken;
+      if (
+        forceToken &&
+        (activeForceTokenByKey.get(targetKey) === forceToken ||
+          pendingForceTokenByKey.get(targetKey) === forceToken ||
+          completedForceTokenByKey.get(targetKey) === forceToken)
+      ) {
+        return;
+      }
       for (;;) {
         // Atomic claim: decide-and-mark in ONE updater against live store
         // state. Two hook instances mounting in the same commit both call in
@@ -479,9 +503,16 @@ export function useSessionComments(
           };
         });
         if (!claimed) {
-          if (queuedForce) pendingForceRefetchKeys.add(targetKey);
+          if (queuedForce) {
+            if (forceToken) {
+              pendingForceTokenByKey.set(targetKey, forceToken);
+            } else {
+              pendingForceRefetchKeys.add(targetKey);
+            }
+          }
           return;
         }
+        if (forceToken) activeForceTokenByKey.set(targetKey, forceToken);
         try {
           const accessToken = await withFreshToken();
           const { comments, tasks } = await listSessionComments(
@@ -534,11 +565,23 @@ export function useSessionComments(
               fetchedAt: Date.now(),
             },
           }));
+        } finally {
+          if (forceToken) {
+            if (activeForceTokenByKey.get(targetKey) === forceToken) {
+              activeForceTokenByKey.delete(targetKey);
+            }
+            rememberCompletedForceToken(targetKey, forceToken);
+          }
         }
         // A force that arrived while THIS fetch was in flight replays as
-        // exactly one more forced round-trip (the Set collapses N drops).
-        if (!pendingForceRefetchKeys.delete(targetKey)) return;
+        // exactly one more forced round-trip. Signal tokens additionally
+        // collapse identical requests from multiple mounted subscribers.
+        const queuedToken = pendingForceTokenByKey.get(targetKey);
+        if (queuedToken) pendingForceTokenByKey.delete(targetKey);
+        const queuedUntokened = pendingForceRefetchKeys.delete(targetKey);
+        if (!queuedToken && !queuedUntokened) return;
         force = true;
+        forceToken = queuedToken;
       }
     },
     [setEntries, withFreshToken]
@@ -599,21 +642,33 @@ export function useSessionComments(
   const orgSignalVersion = orgId
     ? (commentsSignal[orgCommentsKey(orgId)] ?? 0)
     : 0;
-  const lastSignalRef = useRef({ session: 0, org: 0 });
+  // Past generations are covered by the mount/TTL fetch. Seed from the
+  // current counters so mounting a second surface never replays old signals.
+  const lastSignalRef = useRef({
+    session: signalVersion,
+    org: orgSignalVersion,
+  });
   useEffect(() => {
     if (!orgId || !sessionId || !signedIn) return;
-    if (
-      signalVersion === lastSignalRef.current.session &&
-      orgSignalVersion === lastSignalRef.current.org
-    ) {
-      return;
-    }
+    const sessionChanged = signalVersion !== lastSignalRef.current.session;
+    const orgChanged = orgSignalVersion !== lastSignalRef.current.org;
+    if (!sessionChanged && !orgChanged) return;
     lastSignalRef.current = {
       session: signalVersion,
       org: orgSignalVersion,
     };
     if (signalVersion === 0 && orgSignalVersion === 0) return;
-    void fetchComments(orgId, sessionId, { force: true });
+    if (sessionChanged) {
+      void fetchComments(orgId, sessionId, {
+        force: true,
+        forceToken: `session:${signalVersion}`,
+      });
+      return;
+    }
+    // org_change_signals carries unrelated projects, sessions, scopes, and
+    // tasks. Let the existing TTL gate this coarse fallback instead of forcing
+    // every open session to list comments for every org-level write.
+    void fetchComments(orgId, sessionId);
   }, [
     orgId,
     sessionId,
@@ -663,7 +718,7 @@ export function useSessionComments(
       });
       // The RPC returns the row in listing shape — insert without a refetch.
       patchEntry(key, (comments) => insertComment(comments, comment));
-      broadcastCommentsChanged(orgId, sessionId);
+      broadcastCommentsChangedToPeers(orgId, sessionId);
       return comment;
     },
     [orgId, sessionId, key, withFreshToken, patchEntry]
@@ -682,7 +737,7 @@ export function useSessionComments(
       patchEntry(key, (comments) =>
         patchComment(comments, commentId, { body, editedAt })
       );
-      if (sessionId) broadcastCommentsChanged(orgId, sessionId);
+      if (sessionId) broadcastCommentsChangedToPeers(orgId, sessionId);
     },
     [orgId, sessionId, key, withFreshToken, patchEntry]
   );
@@ -699,7 +754,7 @@ export function useSessionComments(
           body: "",
         })
       );
-      if (sessionId) broadcastCommentsChanged(orgId, sessionId);
+      if (sessionId) broadcastCommentsChangedToPeers(orgId, sessionId);
     },
     [orgId, sessionId, key, withFreshToken, patchEntry]
   );
@@ -725,7 +780,7 @@ export function useSessionComments(
           resolution: resolved ? (resolution ?? "resolved") : undefined,
         })
       );
-      if (sessionId) broadcastCommentsChanged(orgId, sessionId);
+      if (sessionId) broadcastCommentsChangedToPeers(orgId, sessionId);
     },
     [orgId, sessionId, key, withFreshToken, patchEntry]
   );

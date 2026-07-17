@@ -81,6 +81,12 @@ type JotaiStore = ReturnType<typeof createStore>;
  * queue also gives two overlapping UI mutations a deterministic order.
  */
 const org2CloudOrgsConvergenceTail = new WeakMap<JotaiStore, Promise<void>>();
+/** Plain Realtime/status refreshes share one request per app store. Mutation
+ * convergence remains serialized separately because it carries a postcondition. */
+const org2CloudOrgsRefetchInFlight = new WeakMap<
+  JotaiStore,
+  Promise<Org2CloudOrg[]>
+>();
 
 export function isOrg2CloudOrgsConverging(store: JotaiStore): boolean {
   return org2CloudOrgsConvergenceTail.has(store);
@@ -378,9 +384,20 @@ export function useRefetchOrg2CloudOrgs(): (
         // Mutation convergence owns the next authoritative generation. A
         // Realtime signal arriving inside that tiny window is already covered
         // by the mutation's postcondition and must not starve it.
-        return isOrg2CloudOrgsConverging(store)
-          ? store.get(org2CloudOrgsAtom)
-          : run();
+        if (isOrg2CloudOrgsConverging(store)) {
+          return store.get(org2CloudOrgsAtom);
+        }
+        const active = org2CloudOrgsRefetchInFlight.get(store);
+        if (active) return active;
+        const request = run();
+        org2CloudOrgsRefetchInFlight.set(store, request);
+        try {
+          return await request;
+        } finally {
+          if (org2CloudOrgsRefetchInFlight.get(store) === request) {
+            org2CloudOrgsRefetchInFlight.delete(store);
+          }
+        }
       }
       return queueOrg2CloudOrgsConvergence(store, run);
     },
