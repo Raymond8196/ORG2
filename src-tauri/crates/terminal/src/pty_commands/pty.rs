@@ -22,7 +22,8 @@
 //!
 //! # Events
 //!
-//! - `pty-output-{session_id}`: Emitted when the PTY produces output (JSON: `{ bytes: number[], byte_count: number }`)
+//! - `pty-output-{session_id}`: Emitted when the PTY produces output
+//!   (JSON: `{ b64, byte_count, seq }`)
 //! - `pty-exit-{session_id}`: Emitted when the PTY session terminates
 //!
 //! # Session Lifecycle
@@ -120,9 +121,9 @@ pub struct PtySession {
     /// and `Drop` can kill it explicitly — dropping the PTY master alone does
     /// NOT reliably terminate the child on Windows ConPTY
     /// (`ClosePseudoConsole` only signals), which orphaned `conhost.exe` and
-    /// the shell across app restarts. `take()`n exactly once by whichever of
-    /// the reader's natural-exit path, `close_session`, or `Drop` runs first;
-    /// the taker kills + reaps it.
+    /// the shell across app restarts. It is atomically `take()`n by either
+    /// the reaper after a natural exit or `Drop`; the latter terminates and
+    /// reaps it.
     pub child: Arc<Mutex<Option<Box<dyn Child + Send>>>>,
     /// Shell executable being used (e.g., "/bin/zsh", "powershell.exe")
     pub shell: String,
@@ -173,19 +174,34 @@ impl Drop for PtySession {
         // kill the child on Windows ConPTY — `ClosePseudoConsole` only
         // signals — so an explicit kill is required to avoid orphaned
         // conhost/shell processes accumulating across app restarts.
-        if let Some(mut child) = self
+        let child = self
             .child
             .lock()
-            .ok()
-            .and_then(|mut guard| guard.take())
-        {
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .take();
+
+        if let Some(mut child) = child {
+            // Termination must happen synchronously: when the app is exiting,
+            // detached threads are not joined and may never get scheduled.
+            // Session-removal paths move the session out of the map before
+            // Drop, so portable-pty's Unix grace period does not hold the
+            // session-map lock. Reaping may block, and is safe to defer.
             let _ = child.kill();
-            // Reap to avoid a zombie; wait() may block briefly, so do it off
-            // the dropping thread (which may be the Tokio runtime worker).
             std::thread::spawn(move || {
                 let _ = child.wait();
             });
         }
+    }
+}
+
+impl PtySession {
+    /// Terminate a PTY child and wait until it has been reaped.
+    ///
+    /// Callers must invoke this outside the session-map lock. It may briefly
+    /// block on Unix while portable-pty escalates from SIGHUP to SIGKILL.
+    pub(crate) fn terminate_and_reap(mut child: Box<dyn Child + Send>) {
+        let _ = child.kill();
+        let _ = child.wait();
     }
 }
 
