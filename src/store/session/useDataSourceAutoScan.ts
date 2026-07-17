@@ -5,12 +5,12 @@
  * AppBootstrap so it runs regardless of whether the Data Sources panel is open.
  *
  * On app startup it immediately scans each enabled, non-manual importable source
- * once, regardless of the persisted last-scan timestamp. Subsequent ticks scan
- * only sources whose effective cadence (per-source override, else the global
- * frequency) has elapsed. Each successful scan is followed by one unified
- * sidebar cache reload and stamps `lastScannedAt` on the scanned sources. The
- * underlying reader delta-syncs by file mtime, so unchanged sessions are cheap.
- * Sources set to "manual" are never auto-scanned, including at startup.
+ * with an on-disk history store once, regardless of the persisted last-scan
+ * timestamp. Sources without a store receive only a cheap presence probe every
+ * 30 minutes; when a store appears, its importer runs immediately. Subsequent
+ * full scans use the effective per-source/global cadence. Each successful full
+ * scan is followed by one unified sidebar cache reload. Sources set to "manual"
+ * are never auto-scanned or presence-probed, including at startup.
  *
  * Config is read straight from the shared store on each tick, so the interval is
  * armed once and always sees the latest values without re-arming.
@@ -19,6 +19,7 @@ import { useEffect } from "react";
 
 import {
   IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
+  externalCliSourceProbe,
   externalHistoryRescanSources,
 } from "@src/api/tauri/externalHistory";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
@@ -31,6 +32,7 @@ import {
   FREQUENCY_INTERVAL_MS,
   dataSourceConfigAtom,
   dataSourceGlobalFrequencyAtom,
+  dataSourcePresenceAtom,
   effectiveFrequency,
   externalSessionsEnabledAtom,
   getSourceConfig,
@@ -48,6 +50,9 @@ const TICK_MS = 30_000;
 // due in the background catches up right away.
 const UNFOCUSED_SCAN_INTERVAL_MS = 10 * 60_000;
 
+/** Cadence for refreshing the lightweight store-presence snapshot. */
+const SOURCE_PRESENCE_PROBE_INTERVAL_MS = 30 * 60_000;
+
 let autoScanInFlight: Promise<void> | null = null;
 
 async function performDataSourceAutoScan(force: boolean): Promise<void> {
@@ -55,11 +60,12 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
   // Master switch: external sessions fully off — no scans, including startup.
   if (!store.get(externalSessionsEnabledAtom)) return;
   const cfgMap = store.get(dataSourceConfigAtom);
+  const previousPresence = store.get(dataSourcePresenceAtom);
   const global = store.get(dataSourceGlobalFrequencyAtom);
   const now = Date.now();
 
   const focused = isWindowFocused();
-  const dueSourceIds = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.flatMap(
+  const candidates = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.flatMap(
     ({ sourceId }) => {
       const cfg = getSourceConfig(cfgMap, sourceId);
       if (!cfg.enabled) return [];
@@ -72,11 +78,78 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
         force ||
         cfg.lastScannedAt == null ||
         now - cfg.lastScannedAt >= effectiveInterval;
-      return due ? [sourceId] : [];
+      return [{ sourceId, scanDue: due }];
     }
   );
-  if (dueSourceIds.length === 0) return;
+  if (candidates.length === 0) return;
 
+  // Presence is checked independently from the full-import cadence. Confirmed
+  // absent stores are held to a 30-minute probe; present stores are re-probed
+  // on that same cadence so an uninstall/removal eventually stops full scans.
+  const probeSourceIds = candidates.flatMap(({ sourceId }) => {
+    const presence = previousPresence[sourceId];
+    const probeDue =
+      force ||
+      presence == null ||
+      now - presence.checkedAt >= SOURCE_PRESENCE_PROBE_INTERVAL_MS;
+    return probeDue ? [sourceId] : [];
+  });
+  const probeResults = await Promise.allSettled(
+    probeSourceIds.map(async (sourceId) => ({
+      sourceId,
+      probe: await externalCliSourceProbe(sourceId),
+    }))
+  );
+  const successfulProbes = new Map<string, boolean>();
+  for (const result of probeResults) {
+    if (result.status === "fulfilled" && result.value.probe) {
+      successfulProbes.set(
+        result.value.sourceId,
+        result.value.probe.historyFound
+      );
+    }
+  }
+  if (successfulProbes.size > 0) {
+    store.set(dataSourcePresenceAtom, (previous) => {
+      const next = { ...previous };
+      for (const [sourceId, historyFound] of successfulProbes) {
+        next[sourceId] = { historyFound, checkedAt: now };
+      }
+      return next;
+    });
+  }
+
+  const currentPresence = store.get(dataSourcePresenceAtom);
+  const dueSourceIds = candidates.flatMap(({ sourceId, scanDue }) => {
+    const before = previousPresence[sourceId];
+    const presence = currentPresence[sourceId];
+    const newlyAvailable =
+      before?.historyFound === false && presence?.historyFound === true;
+    // Unknown presence is deliberately allowed through: a failed detector
+    // must degrade to the previous full-scan behavior, not hide user history.
+    const canScan = presence?.historyFound !== false;
+    return canScan && (scanDue || newlyAvailable) ? [sourceId] : [];
+  });
+
+  // A successful negative probe is still a completed scheduler check and is
+  // surfaced as "Last scan" in the Runtime pane, even though no importer ran.
+  const absentProbeIds = [...successfulProbes].flatMap(
+    ([sourceId, historyFound]) => (historyFound ? [] : [sourceId])
+  );
+  if (absentProbeIds.length > 0) {
+    store.set(dataSourceConfigAtom, (previous) => {
+      const next = { ...previous };
+      for (const sourceId of absentProbeIds) {
+        next[sourceId] = {
+          ...getSourceConfig(previous, sourceId),
+          lastScannedAt: now,
+        };
+      }
+      return next;
+    });
+  }
+
+  if (dueSourceIds.length === 0) return;
   await externalHistoryRescanSources(dueSourceIds);
   await loadSidebarSessions({ forceRefresh: true });
 
