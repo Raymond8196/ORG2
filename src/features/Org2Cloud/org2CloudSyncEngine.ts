@@ -49,50 +49,18 @@
  * stretches the SAME chain to `HIDDEN_PASS_INTERVAL_MS`, and the
  * `visibilitychange` back to visible snaps it back with one immediate pass.
  */
-import { listen } from "@tauri-apps/api/event";
-import type { UnlistenFn } from "@tauri-apps/api/event";
-
-import { getImportedHistorySourceBySessionId } from "@src/api/tauri/externalHistory";
 import Message from "@src/components/Message";
-import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
-import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge";
 import { createLogger } from "@src/hooks/logger";
 import i18n from "@src/i18n";
-import { createCollabAvatarIdentity } from "@src/store/collaboration/protocol";
-import {
-  COLLAB_IDENTITY_KIND,
-  COLLAB_ROLE,
-  COLLAB_SESSION_ACCESS_MODE,
-} from "@src/store/collaboration/types";
-import type {
-  CollabMemberRecord,
-  CollabOrgRecord,
-  RemoteTeammateSessionMetadata,
-} from "@src/store/collaboration/types";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
-import type { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
-import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
-import {
-  createDefaultAccessSettings,
-  pickMatchingOrgScope,
-  sha256Hex,
-  stableStringify,
-  toRemoteMetadata,
-} from "../TeamCollaboration/collabSyncUtils";
+import { pickMatchingOrgScope } from "../TeamCollaboration/collabSyncUtils";
 import { ProjectSyncChannel } from "../TeamCollaboration/engine/ProjectSyncChannel";
-import {
-  computeFrozenEventCount,
-  splitFrozenIntoSegments,
-} from "../TeamCollaboration/engine/collabSyncEngineHelpers";
 import type { ProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { tauriProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
-import {
-  getSessionForkedFrom,
-  getSessionTaskContext,
-} from "../TeamCollaboration/forkSession";
+import { getSessionForkedFrom } from "../TeamCollaboration/forkSession";
 import {
   peekShareableScopeKeys,
   primeShareableScopeKey,
@@ -103,9 +71,7 @@ import {
   taggedCloudOrgIds,
   withoutCloudOrgTag,
 } from "../TeamCollaboration/sessionOrgTagsAtom";
-import { computeSegmentHash } from "../TeamCollaboration/sync/collabGzip";
 import { ORG2_CLOUD_EXPECTED_SCHEMA_VERSION, getCloudEndpoint } from "./config";
-import type { CloudPushAccess } from "./org2CloudAccessSettings";
 import {
   org2CloudAccessSettingsAtom,
   org2CloudSharingFloorAtom,
@@ -132,53 +98,37 @@ import {
   isOrg2ProjectsErrorCode,
   toCollabOrgState,
 } from "./org2CloudProjectsClient";
-import type { CollabSessionPushCursor } from "./org2CloudSyncAtoms";
+import {
+  Org2CloudSessionSync,
+  type Org2CloudSyncClientDeps,
+} from "./org2CloudSessionSync";
+import { isCloudPushCandidate } from "./org2CloudSessionSync";
 import {
   org2CloudCollabStateCursorsAtom,
   org2CloudCommentTaskCursorsAtom,
-  org2CloudPushCursorsAtom,
-  org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
   org2CloudSyncEnabledAtom,
 } from "./org2CloudSyncAtoms";
 import * as org2CloudSyncClient from "./org2CloudSyncClient";
 import { isOrg2SyncErrorCode } from "./org2CloudSyncClient";
+import { Org2CloudSyncLifecycle } from "./org2CloudSyncLifecycle";
+
+export {
+  DATA_CHANGED_DEBOUNCE_MS,
+  HIDDEN_PASS_INTERVAL_MS,
+  PASS_INTERVAL_MS,
+  PROJECT_PUSH_RETRY_DELAY_MS,
+} from "./org2CloudSyncLifecycle";
+export {
+  buildCloudSessionMetadata,
+  isCloudPushCandidate,
+} from "./org2CloudSessionSync";
+export type { Org2CloudSyncClientDeps } from "./org2CloudSessionSync";
 
 const log = createLogger("Org2CloudSyncEngine");
 
-type CloudStore = ReturnType<typeof getInstrumentedStore>;
-
-/** The app's ONLY recurring timer (user CPU constraint): every recurring
- * cloud pull — sessions, projects, comment tasks — rides this one chain. */
-export const PASS_INTERVAL_MS = 60_000;
-/**
- * Hidden-document pass cadence (user-approved CPU feature): while the
- * document is hidden the SAME single timer chain merely reschedules at 5
- * minutes instead of 60s — no second timer is ever added — and the
- * `visibilitychange` back to visible collapses it into an immediate pass.
- */
-export const HIDDEN_PASS_INTERVAL_MS = 300_000;
-const ACTIVITY_DEBOUNCE_MS = 3_000;
-/** `orgii-data-changed` → projects-plane pass debounce (coalesces mutation bursts). */
-export const DATA_CHANGED_DEBOUNCE_MS = 1_500;
-/**
- * The Rust collaboration outbox's first retry slot is 30 seconds. A failed
- * push must therefore schedule one projects-plane attempt just after that
- * deadline; otherwise a hidden/background desktop instance can strand the
- * row until the five-minute inbound fallback. This is failure-driven and
- * one-shot — the single recurring cloud timer remains `schedulePass`.
- */
-export const PROJECT_PUSH_RETRY_DELAY_MS = 30_250;
 /** Repo-scope mirror refresh cadence (server truth changes rarely). */
 const SCOPE_HYDRATE_TTL_MS = 10 * 60_000;
-/**
- * Events-plane no-change gate TTL. A session whose events plane was
- * verified in sync is skipped (no full-history IPC read, no per-event
- * re-hash) until its event store signals a write — the safety TTL forces
- * a real verification periodically in case a write path ever bypasses the
- * `es:changed` subscription (imports, other windows' edge cases).
- */
-const EVENTS_CLEAN_TTL_MS = 10 * 60_000;
 /** Re-probe a schema-mismatched custom endpoint after this long (an
  * in-place backend upgrade must heal without an app relaunch). */
 const SCHEMA_MISMATCH_REPROBE_MS = 5 * 60_000;
@@ -201,17 +151,6 @@ const INBOUND_FALLBACK_INTERVAL_MS = 5 * 60_000;
  * policy signals and explicit user changes clear the deadline immediately. */
 export const ORG_BACKOFF_COOLDOWN_MS = 5 * 60_000;
 
-/** Client seam so tests inject fetch-free fakes. */
-export type Org2CloudSyncClientDeps = Pick<
-  typeof org2CloudSyncClient,
-  | "upsertSessionMetadata"
-  | "appendSessionEvents"
-  | "rewriteSessionEvents"
-  | "getSessionEvents"
-  | "getOrgRepoScopes"
-  | "deleteSession"
->;
-
 /** Projects/work-items RPC seam (Phase B), same fetch-free-fakes purpose. */
 export type Org2CloudProjectsClientDeps = CloudProjectsRpc;
 
@@ -221,145 +160,14 @@ export type Org2CloudTasksClientDeps = Pick<
   "listCommentTasks"
 >;
 
-/** Non-DOM contexts (workers, node-side tests) behave as visible. */
-function isDocumentHidden(): boolean {
-  return (
-    typeof document !== "undefined" && document.visibilityState === "hidden"
-  );
-}
-
 /** `schema_version()` probe seam (Phase C custom-endpoint gate). */
 export type Org2CloudSchemaVersionProbe = () => Promise<number | null>;
 
-/**
- * Cloud metadata reuses the EXACT `toRemoteMetadata` output shape: the cloud
- * "member" is the cloud user (userId as memberId). The `access` argument is
- * the RESOLVED per-session ladder outcome (`resolveCloudPushAccess`) — a
- * synthetic settings record carries it through `toRemoteMetadata` so the
- * wire `accessMode`/`visibility`/`replayLevel` reflect the ladder, never a
- * hardcoded FULL_REPLAY grant. The server (0010) persists both columns and
- * rejects 'off'/unknown modes — callers must only pass ladder outcomes.
- */
-export function buildCloudSessionMetadata(
-  session: Session,
-  orgId: string,
-  userId: string,
-  displayName: string,
-  scopeKey: string | null,
-  access: CloudPushAccess
-): RemoteTeammateSessionMetadata {
-  const org: CollabOrgRecord = {
-    id: orgId,
-    name: "",
-    createdAt: "",
-  };
-  const member: CollabMemberRecord = {
-    id: userId,
-    orgId,
-    displayName,
-    avatar: createCollabAvatarIdentity(displayName),
-    role: COLLAB_ROLE.MEMBER,
-    identityKind: COLLAB_IDENTITY_KIND.HUMAN,
-    joinedAt: "",
-  };
-  const settings = {
-    ...createDefaultAccessSettings(orgId, userId),
-    accessMode: access.accessMode,
-    sessionVisibility: { [session.session_id]: access.visibility },
-  };
-  // Fork lineage survives a session-list reload only in the durable
-  // fork-relay registry: `toFrontendSession` has no `forkedFrom` field, so
-  // the first `loadSessions()` after a fork strips it off the row. Restore
-  // it from the registry (same fallback the local ⑂ badge uses) before
-  // building the wire metadata — otherwise the next push overwrites the
-  // server row without lineage and every teammate loses the fork thread.
-  const withLineage: Session = {
-    ...session,
-    forkedFrom: getSessionForkedFrom(session),
-  };
-  // The comment-task backlink has the same stripping problem in a sharper
-  // form: `addressesComment` never exists on the Session row at all — its
-  // only durable local home is the fork-relay registry's `taskContext`.
-  // Restore it on EVERY push (not just the first) or the first
-  // post-`loadSessions()` push would overwrite the server row without the
-  // fork→thread provenance and every teammate loses the "Addressing
-  // comment" attribution.
-  const taskContext = getSessionTaskContext(session);
-  return toRemoteMetadata(
-    withLineage,
-    org,
-    member,
-    settings,
-    scopeKey,
-    taskContext
-      ? {
-          commentId: taskContext.commentId,
-          sourceSessionId: taskContext.sourceSessionId,
-        }
-      : undefined
-  );
-}
-
-/** True for local sessions that may ever be pushed to the cloud. */
-export function isCloudPushCandidate(session: Session): boolean {
-  // Only IMPORTED TEAMMATE COPIES are excluded: a session pulled from the
-  // cloud (`importedFrom` set) must never round-trip back out under our user
-  // id — it already lives in the cloud under its original owner. The user's
-  // OWN external history (imported Claude Code / Cursor / … CLI sessions,
-  // category "external_history", NO importedFrom) IS shareable: its full
-  // transcript is loaded from the source adapter at push time (see
-  // `loadPushEvents`), so teammates get real replay, not just metadata.
-  return !session.importedFrom;
-}
-
-export class Org2CloudSyncEngine {
-  private store: CloudStore | null = null;
-  private started = false;
-  /** Bumped on stop(); in-flight passes check it before writing. */
-  private generation = 0;
-  private timer: ReturnType<typeof setTimeout> | null = null;
-  private activityTimer: ReturnType<typeof setTimeout> | null = null;
-  private dataChangedTimer: ReturnType<typeof setTimeout> | null = null;
-  private projectPushRetryTimer: ReturnType<typeof setTimeout> | null = null;
-  private dataChangedUnlisten: Promise<UnlistenFn> | null = null;
-  private eventStoreUnsubscribe: (() => void) | null = null;
-  private passRunning = false;
-  private passDirty = false;
-  /** Explicit user-action waiters. Ordinary `runSyncPass` callers retain the
-   * historical coalescing semantics; these resolve only once the active pass
-   * and every dirty follow-up have drained. */
-  private readonly passDrainWaiters: Array<() => void> = [];
-  /** Per-org last inbound pull time (fallback-cadence gate). A busy org must
-   * not postpone the safety pull for every other org. */
-  private readonly lastInboundPassAtMs = new Map<string, number>();
-  /** Realtime invalidations waiting to be consumed by a pass. Keeping the org
-   * ids avoids turning one org's signal into an all-org fan-out. */
-  private readonly pendingInboundOrgIds = new Set<string>();
-  /** Reconnect/full-recovery requests. Ordinary change signals stay on the
-   * persisted delta cursor and do not reset the once-per-start latches. */
-  private readonly pendingFullInboundOrgIds = new Set<string>();
-  private forceAllInboundNextPass = false;
-  /** Set by `orgii-data-changed` so the next pass drains the projects plane. */
-  private forceProjectsNextPass = false;
+export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   /** Org id → entitlement backoff deadline (epoch ms). */
   private readonly orgBackoffUntilMs = new Map<string, number>();
   /** Orgs already warned during the current backoff window. */
   private readonly warnedOrgIds = new Set<string>();
-  /** `${orgId}:${sessionId}` → hash of the last upserted metadata. */
-  private readonly lastPushedMetadataHashes = new Map<string, string>();
-  /**
-   * Events-plane no-change gate (the metadata plane's dedup counterpart):
-   * sessionId → orgId → epoch ms when the plane was last VERIFIED in sync
-   * (pushed, or proven unchanged against the cursor). While an entry is
-   * live (see EVENTS_CLEAN_TTL_MS) `pushSession` skips the full-history
-   * `getPersistedEvents` read + per-event re-hash for that (org, session).
-   * Invalidated whole-session by the `es:changed` subscription.
-   */
-  private readonly cleanEventPlanes = new Map<string, Map<string, number>>();
-  /** sessionId → bump count of local event-store activity; lets a pass
-   * detect writes that landed WHILE it was reading/pushing (never mark a
-   * plane clean over a mid-push write). */
-  private readonly eventActivityStamps = new Map<string, number>();
   /** orgId → last repo-scope hydration attempt (TTL-gated per pass). */
   private readonly scopeHydratedAtMs = new Map<string, number>();
   /** Cloud orgId → aliased local project-org id (ensured once per start). */
@@ -388,6 +196,7 @@ export class Org2CloudSyncEngine {
   private readonly tasksClient: Org2CloudTasksClientDeps;
   private readonly projectSyncBridge: ProjectSyncBridge;
   private readonly probeSchemaVersion: Org2CloudSchemaVersionProbe;
+  private readonly sessionSync: Org2CloudSessionSync;
 
   constructor(
     client: Org2CloudSyncClientDeps = org2CloudSyncClient,
@@ -396,264 +205,42 @@ export class Org2CloudSyncEngine {
     projectSyncBridge: ProjectSyncBridge = tauriProjectSyncBridge,
     probeSchemaVersion: Org2CloudSchemaVersionProbe = schemaVersion
   ) {
+    super();
     this.client = client;
     this.projectsClient = projectsClient;
     this.tasksClient = tasksClient;
     this.projectSyncBridge = projectSyncBridge;
     this.probeSchemaVersion = probeSchemaVersion;
+    this.sessionSync = new Org2CloudSessionSync(() => this.store, client);
   }
 
-  /**
-   * `visibilitychange` → visible: collapse the (possibly 5-minute) hidden
-   * chain into an immediate pass. One `setTimeout(0)` through the EXISTING
-   * chain — never an extra recurring timer (user CPU constraint). Bound
-   * property so `start()`/`stop()` add/remove the same reference.
-   */
-  private readonly onVisibilityChange = (): void => {
-    if (!this.started) return;
-    if (isDocumentHidden()) return;
-    this.schedulePass(0);
-  };
-
-  /** Idempotent: subsequent calls while running are no-ops. */
-  start(store: CloudStore): void {
-    if (this.started) return;
-    this.started = true;
-    this.store = store;
-    this.eventStoreUnsubscribe = eventStoreProxy.subscribe(
-      (_snapshot, sessionId) => {
-        this.noteSessionEventActivity(sessionId);
-        this.scheduleActivityPass();
-      }
-    );
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", this.onVisibilityChange);
-    }
-    this.dataChangedUnlisten = listen("orgii-data-changed", () => {
-      this.scheduleProjectsPass();
-    });
-    this.schedulePass(0);
-  }
-
-  stop(): void {
-    if (!this.started) return;
-    this.started = false;
-    this.generation += 1;
-    if (this.timer !== null) clearTimeout(this.timer);
-    this.timer = null;
-    if (this.activityTimer !== null) clearTimeout(this.activityTimer);
-    this.activityTimer = null;
-    if (this.dataChangedTimer !== null) clearTimeout(this.dataChangedTimer);
-    this.dataChangedTimer = null;
-    if (this.projectPushRetryTimer !== null) {
-      clearTimeout(this.projectPushRetryTimer);
-    }
-    this.projectPushRetryTimer = null;
-    void this.dataChangedUnlisten?.then((unlisten) => unlisten());
-    this.dataChangedUnlisten = null;
-    this.eventStoreUnsubscribe?.();
-    this.eventStoreUnsubscribe = null;
-    if (typeof document !== "undefined") {
-      document.removeEventListener("visibilitychange", this.onVisibilityChange);
-    }
+  protected override resetSyncState(): void {
     this.orgBackoffUntilMs.clear();
     this.warnedOrgIds.clear();
-    this.lastPushedMetadataHashes.clear();
-    this.cleanEventPlanes.clear();
-    this.eventActivityStamps.clear();
+    this.sessionSync.reset();
     this.scopeHydratedAtMs.clear();
     this.projectOrgAliasIds.clear();
     this.fullCollabStateOrgIds.clear();
     this.fullCommentTaskOrgIds.clear();
     this.schemaGate = null;
     this.schemaMismatchToastedUrls.clear();
-    this.passRunning = false;
-    this.passDirty = false;
-    for (const resolve of this.passDrainWaiters.splice(0)) resolve();
-    this.lastInboundPassAtMs.clear();
-    this.pendingInboundOrgIds.clear();
-    this.pendingFullInboundOrgIds.clear();
-    this.forceAllInboundNextPass = false;
-    this.forceProjectsNextPass = false;
-    this.store = null;
   }
 
-  /** Run a pass now (test seam / manual trigger). Serialized. */
-  async runSyncPass(): Promise<void> {
-    if (!this.started || !this.store) return;
-    if (this.passRunning) {
-      this.passDirty = true;
-      return;
-    }
-    this.passRunning = true;
-    const generation = this.generation;
-    try {
-      await this.syncAllOrgs(generation);
-    } catch (error) {
-      log.warn("cloud sync pass failed:", error);
-    } finally {
-      this.passRunning = false;
-      if (this.started && this.generation === generation && this.passDirty) {
-        this.passDirty = false;
-        void this.runSyncPass();
-      } else {
-        for (const resolve of this.passDrainWaiters.splice(0)) resolve();
-      }
-    }
+  protected override clearAllOrgBackoffs(): void {
+    this.orgBackoffUntilMs.clear();
+    this.warnedOrgIds.clear();
   }
 
-  /**
-   * User-action seam: request a pass and wait until it plus any coalesced dirty
-   * follow-up has drained. Timers, Realtime invalidations and tests should keep
-   * using `runSyncPass()` so their established one-pass timing is unchanged.
-   */
-  async runSyncPassAndWaitForDrain(): Promise<void> {
-    if (!this.started || !this.store) return;
-    const drained = new Promise<void>((resolve) => {
-      this.passDrainWaiters.push(resolve);
-    });
-    void this.runSyncPass();
-    await drained;
+  protected override invalidateFullInboundState(orgId?: string): void {
+    if (orgId) this.scopeHydratedAtMs.delete(orgId);
+    else this.scopeHydratedAtMs.clear();
   }
 
-  /**
-   * Realtime-invalidation seam. Ordinary row changes request a cursor-based
-   * pull for exactly one org. Reconnect recovery passes `{ full: true }` (or
-   * omits orgId) to bypass cursors once, because changes may have been missed
-   * while disconnected. The request itself starts the serialized pass; callers
-   * must not follow it with a second `runSyncPass()`.
-   */
-  invalidateOrgInbound(orgId?: string, options: { full?: boolean } = {}): void {
-    if (!this.started) return;
-    if (orgId) {
-      this.clearOrgBackoff(orgId);
-      this.pendingInboundOrgIds.add(orgId);
-      if (options.full) {
-        this.pendingFullInboundOrgIds.add(orgId);
-        this.scopeHydratedAtMs.delete(orgId);
-      }
-    } else {
-      this.orgBackoffUntilMs.clear();
-      this.warnedOrgIds.clear();
-      this.forceAllInboundNextPass = true;
-      this.scopeHydratedAtMs.clear();
-    }
-    void this.runSyncPass();
+  protected override noteSessionEventActivity(sessionId: string): void {
+    this.sessionSync.noteSessionEventActivity(sessionId);
   }
 
-  /** Request one inbound pass and resolve after all work coalesced into that
-   * serialized pass has drained. This closes the old invalidate+run race that
-   * unconditionally dirtied the active pass and doubled every pull. */
-  async invalidateOrgInboundAndWait(
-    orgId?: string,
-    options: { full?: boolean } = {}
-  ): Promise<void> {
-    if (!this.started || !this.store) return;
-    const drained = new Promise<void>((resolve) => {
-      this.passDrainWaiters.push(resolve);
-    });
-    this.invalidateOrgInbound(orgId, options);
-    await drained;
-  }
-
-  /** Resume an org immediately after a user-controlled access/policy change. */
-  resumeOrg(orgId: string): void {
-    this.invalidateOrgInbound(orgId, { full: true });
-  }
-
-  private schedulePass(delayMs: number): void {
-    if (!this.started) return;
-    if (this.timer !== null) clearTimeout(this.timer);
-    this.timer = setTimeout(() => {
-      this.timer = null;
-      void this.runSyncPass().finally(() => {
-        // A hidden document stretches the SAME chain to the 5-minute
-        // cadence; `onVisibilityChange` snaps it back with an immediate
-        // pass. Still the app's only recurring timer (user CPU constraint).
-        this.schedulePass(
-          isDocumentHidden() ? HIDDEN_PASS_INTERVAL_MS : PASS_INTERVAL_MS
-        );
-      });
-    }, delayMs);
-  }
-
-  private scheduleActivityPass(): void {
-    if (!this.started) return;
-    // Hidden documents ride the stretched 5-minute chain ONLY (the module
-    // guarantee above): local event churn — an agent running while the
-    // window is minimized is the canonical case — must not reintroduce a
-    // ~3s-gap full-pass cadence in the background. `onVisibilityChange`
-    // already snaps back with one immediate pass on return.
-    if (isDocumentHidden()) return;
-    if (this.activityTimer !== null) clearTimeout(this.activityTimer);
-    this.activityTimer = setTimeout(() => {
-      this.activityTimer = null;
-      if (isDocumentHidden()) return; // hid during the debounce window
-      void this.runSyncPass();
-    }, ACTIVITY_DEBOUNCE_MS);
-  }
-
-  /** `orgii-data-changed` → prompt debounced projects-plane drain; the remote-apply echo self-terminates (empty outbox + advanced cursor ⇒ no re-emit). */
-  private scheduleProjectsPass(): void {
-    if (!this.started) return;
-    this.forceProjectsNextPass = true;
-    if (isDocumentHidden()) return;
-    if (this.dataChangedTimer !== null) clearTimeout(this.dataChangedTimer);
-    this.dataChangedTimer = setTimeout(() => {
-      this.dataChangedTimer = null;
-      if (isDocumentHidden()) return;
-      void this.runSyncPass();
-    }, DATA_CHANGED_DEBOUNCE_MS);
-  }
-
-  /**
-   * Revisit failed project/work-item pushes when Rust's durable outbox makes
-   * them eligible again. Unlike user-edit debouncing, this must also fire for
-   * an occluded/hidden second desktop instance: the explicit failed mutation
-   * created durable work that cannot wait for the background fallback.
-   */
-  private scheduleProjectPushRetry(): void {
-    if (!this.started || this.projectPushRetryTimer !== null) return;
-    this.projectPushRetryTimer = setTimeout(() => {
-      this.projectPushRetryTimer = null;
-      if (!this.started) return;
-      this.forceProjectsNextPass = true;
-      void this.runSyncPass();
-    }, PROJECT_PUSH_RETRY_DELAY_MS);
-  }
-
-  /** `es:changed` for a session: drop its clean markers so the next pass
-   * re-verifies, and stamp the write so a mid-push write is never masked. */
-  private noteSessionEventActivity(sessionId: string): void {
-    this.eventActivityStamps.set(
-      sessionId,
-      (this.eventActivityStamps.get(sessionId) ?? 0) + 1
-    );
-    this.cleanEventPlanes.delete(sessionId);
-  }
-
-  private isEventPlaneClean(orgId: string, sessionId: string): boolean {
-    const cleanAt = this.cleanEventPlanes.get(sessionId)?.get(orgId);
-    return cleanAt !== undefined && Date.now() - cleanAt < EVENTS_CLEAN_TTL_MS;
-  }
-
-  /** Mark (org, session) verified — unless a write landed since
-   * `stampAtRead` was taken (the pass read a now-stale history). */
-  private markEventPlaneClean(
-    orgId: string,
-    sessionId: string,
-    stampAtRead: number
-  ): void {
-    if ((this.eventActivityStamps.get(sessionId) ?? 0) !== stampAtRead) return;
-    let byOrg = this.cleanEventPlanes.get(sessionId);
-    if (!byOrg) {
-      byOrg = new Map();
-      this.cleanEventPlanes.set(sessionId, byOrg);
-    }
-    byOrg.set(orgId, Date.now());
-  }
-
-  private async syncAllOrgs(generation: number): Promise<void> {
+  protected override async syncAllOrgs(generation: number): Promise<void> {
     const store = this.store;
     if (!store) return;
     const auth = store.get(org2CloudAuthAtom);
@@ -752,9 +339,13 @@ export class Org2CloudSyncEngine {
           org.orgId
         );
         if (forkedFrom && forkedFrom.orgId !== org.orgId && !tagged) {
-          if (this.wasCloudPushed(org.orgId, session.session_id)) {
+          if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
-              await this.retractSession(fresh, org.orgId, session.session_id);
+              await this.sessionSync.retractSession(
+                fresh,
+                org.orgId,
+                session.session_id
+              );
             } catch (error) {
               if (this.generation !== generation) return;
               if (this.isBackoffError(error)) {
@@ -786,9 +377,13 @@ export class Org2CloudSyncEngine {
         const ownedByOrg =
           session.orgId === buildCloudOrgSelectorValue(org.orgId);
         if (!forkedFrom && !tagged && !ownedByOrg) {
-          if (this.wasCloudPushed(org.orgId, session.session_id)) {
+          if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
-              await this.retractSession(fresh, org.orgId, session.session_id);
+              await this.sessionSync.retractSession(
+                fresh,
+                org.orgId,
+                session.session_id
+              );
             } catch (error) {
               if (this.generation !== generation) return;
               if (this.isBackoffError(error)) {
@@ -823,9 +418,15 @@ export class Org2CloudSyncEngine {
         const matchedScope = pickMatchingOrgScope(scopeKeys, scopes);
         if (matchedScope === null) {
           if (tagged) {
-            if (this.wasCloudPushed(org.orgId, session.session_id)) {
+            if (
+              this.sessionSync.wasCloudPushed(org.orgId, session.session_id)
+            ) {
               try {
-                await this.retractSession(fresh, org.orgId, session.session_id);
+                await this.sessionSync.retractSession(
+                  fresh,
+                  org.orgId,
+                  session.session_id
+                );
               } catch (error) {
                 if (this.generation !== generation) return;
                 if (this.isBackoffError(error)) {
@@ -873,9 +474,13 @@ export class Org2CloudSyncEngine {
           // replay (strictly LESS private than picking 'Metadata only', which
           // re-pushes the lowered column). Soft-tombstone it the same way an
           // untag does. §13.4.
-          if (this.wasCloudPushed(org.orgId, session.session_id)) {
+          if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
-              await this.retractSession(fresh, org.orgId, session.session_id);
+              await this.sessionSync.retractSession(
+                fresh,
+                org.orgId,
+                session.session_id
+              );
             } catch (error) {
               if (this.generation !== generation) return;
               if (this.isBackoffError(error)) {
@@ -891,7 +496,7 @@ export class Org2CloudSyncEngine {
           continue;
         }
         try {
-          await this.pushSession(
+          await this.sessionSync.pushSession(
             fresh,
             org.orgId,
             session,
@@ -1293,7 +898,7 @@ export class Org2CloudSyncEngine {
     log.warn(`cloud sync backed off for org ${orgId}:`, error);
   }
 
-  private clearOrgBackoff(orgId: string): void {
+  protected override clearOrgBackoff(orgId: string): void {
     this.orgBackoffUntilMs.delete(orgId);
     this.warnedOrgIds.delete(orgId);
   }
@@ -1306,443 +911,14 @@ export class Org2CloudSyncEngine {
     return false;
   }
 
-  // --- Segments push (mirrors CollabSyncEngine §7.3, cloud RPC names) -------
-
-  private getCursor(
-    orgId: string,
-    sessionId: string
-  ): CollabSessionPushCursor | undefined {
-    return this.store?.get(org2CloudPushCursorsAtom)[`${orgId}:${sessionId}`];
-  }
-
-  private setCursor(cursor: CollabSessionPushCursor): void {
-    this.store?.set(org2CloudPushCursorsAtom, (current) => ({
-      ...current,
-      [`${cursor.orgId}:${cursor.sessionId}`]: cursor,
-    }));
-  }
-
-  private async computeFrozenChainHash(
-    perEventHashes: string[],
-    frozenEventCount: number
-  ): Promise<string> {
-    return sha256Hex(perEventHashes.slice(0, frozenEventCount).join("\n"));
-  }
-
-  /**
-   * Drop the pass-level metadata dedup hash for one (org, session), forcing
-   * the next pass to re-upsert even when the metadata is byte-identical.
-   * MUST be called after `deleteSession` (untag soft-tombstone): the row's
-   * `deleted_at` makes `cloud_append_session_events` throw
-   * ORG2_SESSION_NOT_FOUND (a non-backoff code), and with a stale hash the
-   * engine would skip the very upsert that clears `deleted_at` — a per-pass
-   * error loop until the metadata happens to change or the app restarts.
-   */
+  /** Force the next pass to re-upsert one session's metadata row. */
   invalidatePushedMetadataHash(orgId: string, sessionId: string): void {
-    this.lastPushedMetadataHashes.delete(`${orgId}:${sessionId}`);
+    this.sessionSync.invalidatePushedMetadataHash(orgId, sessionId);
   }
 
-  /**
-   * True when a live row for (org, session) is on the server AND survives
-   * restarts: a persisted segments cursor (any full_replay past) or the
-   * persisted metadata marker (a metadata_only rung leaves no cursor). The
-   * in-memory hash is a same-run fast path only — the persisted marker is
-   * what lets a downgrade-to-Off in a LATER run still retract. Gates the
-   * effective-off retraction so a never-pushed candidate is never needlessly
-   * deleted.
-   */
-  private wasCloudPushed(orgId: string, sessionId: string): boolean {
-    const key = `${orgId}:${sessionId}`;
-    return (
-      this.lastPushedMetadataHashes.has(key) ||
-      this.getPushedMetadataMarker(orgId, sessionId) ||
-      this.getCursor(orgId, sessionId) !== undefined
-    );
-  }
-
-  private getPushedMetadataMarker(orgId: string, sessionId: string): boolean {
-    return (
-      this.store?.get(org2CloudPushedMetadataAtom)[`${orgId}:${sessionId}`] ===
-      true
-    );
-  }
-
-  private setPushedMetadataMarker(orgId: string, sessionId: string): void {
-    this.store?.set(org2CloudPushedMetadataAtom, (current) => ({
-      ...current,
-      [`${orgId}:${sessionId}`]: true,
-    }));
-  }
-
-  private clearPushedMetadataMarker(orgId: string, sessionId: string): void {
-    const key = `${orgId}:${sessionId}`;
-    this.store?.set(org2CloudPushedMetadataAtom, (current) => {
-      if (!(key in current)) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
-  }
-
-  /** Drop the persisted segments cursor for one (org, session). */
-  private clearCursor(orgId: string, sessionId: string): void {
-    const key = `${orgId}:${sessionId}`;
-    this.store?.set(org2CloudPushCursorsAtom, (current) => {
-      if (!(key in current)) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
-  }
-
-  /**
-   * Soft-tombstone a previously-pushed session that has dropped to
-   * effective-off WITHOUT a tag (the CloudSyncLevelDialog 'Off' path). Same
-   * server delete + dedup-hash drop as the MoveToOrgDialog untag, PLUS a
-   * cursor + persisted-metadata-marker clear: a repo-scope-matched candidate
-   * stays in the pass loop every pass, so without dropping all three the
-   * delete would re-fire forever. Dropping them makes the retract fire
-   * exactly once; a later re-share re-anchors as a first push (the server
-   * keeps the segments).
-   *
-   * `ORG2_SESSION_NOT_FOUND` is swallowed as idempotent success: the
-   * persisted marker can outlive an already-deleted row (retract triggered
-   * from a marker set in a PRIOR run, or a row a teammate already removed),
-   * and re-throwing would loop the delete every pass without ever clearing
-   * the marker. The row is gone either way — clear local state and return.
-   */
-  private async retractSession(
-    auth: Org2CloudAuthState,
-    orgId: string,
-    sessionId: string
-  ): Promise<void> {
-    try {
-      await this.client.deleteSession(auth.accessToken, orgId, sessionId);
-    } catch (error) {
-      if (!isOrg2SyncErrorCode(error, "ORG2_SESSION_NOT_FOUND")) throw error;
-    }
-    this.invalidatePushedMetadataHash(orgId, sessionId);
-    this.clearPushedMetadataMarker(orgId, sessionId);
-    this.clearCursor(orgId, sessionId);
-  }
-
-  private async upsertMetadataIfChanged(
-    auth: Org2CloudAuthState,
-    orgId: string,
-    session: Session,
-    scopeKey: string | null,
-    access: CloudPushAccess
-  ): Promise<void> {
-    const displayName =
-      auth.profile?.displayName ?? auth.profile?.primaryEmail ?? auth.userId;
-    const metadata = buildCloudSessionMetadata(
-      session,
-      orgId,
-      auth.userId,
-      displayName,
-      scopeKey,
-      access
-    );
-    const key = `${orgId}:${session.session_id}`;
-    const hash = await sha256Hex(stableStringify(metadata));
-    if (this.lastPushedMetadataHashes.get(key) === hash) return;
-    await this.client.upsertSessionMetadata(
-      auth.accessToken,
-      orgId,
-      session.session_id,
-      metadata
-    );
-    this.lastPushedMetadataHashes.set(key, hash);
-    this.setPushedMetadataMarker(orgId, session.session_id);
-  }
-
-  /**
-   * The full event transcript to upload for a session.
-   *
-   * Native sessions read the persisted (SQLite-cached) ORG2 event stream. But
-   * the user's OWN external history (imported Claude Code / Cursor / Codex /
-   * … CLI sessions) has NO persisted stream — its events are reconstructed on
-   * demand from each tool's own store into a WINDOWED in-memory view, so
-   * `getPersistedEvents` returns [] for them and a full_replay push would
-   * silently ship nothing. For those we read the COMPLETE (non-windowed)
-   * transcript straight from the source adapter at push time, so shared
-   * external sessions replay in full for teammates. Imported teammate copies
-   * never reach here (excluded by `isCloudPushCandidate`).
-   */
-  private async loadPushEvents(sessionId: string): Promise<SessionEvent[]> {
-    if (isImportedHistorySession(sessionId)) {
-      const source = getImportedHistorySourceBySessionId(sessionId);
-      if (!source) return [];
-      const chunks = await source.loadFullTranscriptChunks(sessionId);
-      if (!Array.isArray(chunks) || chunks.length === 0) return [];
-      return processChunksRust(chunks, sessionId);
-    }
-    return eventStoreProxy.getPersistedEvents(sessionId);
-  }
-
-  private async pushSession(
-    auth: Org2CloudAuthState,
-    orgId: string,
-    session: Session,
-    scopeKey: string | null,
-    access: CloudPushAccess
-  ): Promise<void> {
-    const sessionId = session.session_id;
-    if (access.accessMode === COLLAB_SESSION_ACCESS_MODE.METADATA_ONLY) {
-      // Metadata-only ladder rung: the listing row updates but event
-      // segments are never shipped (mirrors the self-hosted
-      // isRemoteSessionEventsPublishAllowed gate). Segments pushed under an
-      // earlier full_replay grant stay server-side; the 0010 server already
-      // refuses to serve them (ORG2_REPLAY_NOT_AVAILABLE).
-      await this.upsertMetadataIfChanged(
-        auth,
-        orgId,
-        session,
-        scopeKey,
-        access
-      );
-      return;
-    }
-    if (this.isEventPlaneClean(orgId, sessionId)) {
-      // Events plane verified in sync and no local write since (metadata
-      // dedup counterpart): skip the full-history IPC read + per-event
-      // re-hash — an idle fully-pushed transcript must not be
-      // deserialized+hashed every pass. Metadata stays hash-gated.
-      await this.upsertMetadataIfChanged(
-        auth,
-        orgId,
-        session,
-        scopeKey,
-        access
-      );
-      return;
-    }
-    const stampAtRead = this.eventActivityStamps.get(sessionId) ?? 0;
-    const events = await this.loadPushEvents(sessionId);
-    const cursor = this.getCursor(orgId, sessionId);
-    if (!cursor && events.length === 0) {
-      // A brand-new/empty full-replay session still needs a metadata row.
-      // Returning here used to make an explicit replay share impossible to
-      // verify until the owner sent a first message: no row existed at all,
-      // even though `full_replay` was the selected policy. The server's
-      // zero-valued events summary is the canonical empty replay snapshot.
-      await this.upsertMetadataIfChanged(
-        auth,
-        orgId,
-        session,
-        scopeKey,
-        access
-      );
-      this.markEventPlaneClean(orgId, sessionId, stampAtRead);
-      return;
-    }
-    if (cursor && events.length < cursor.pushedCount) {
-      // Truncated-read guard (same as the collab engine): a persisted view
-      // shorter than what we already pushed is an incomplete cache read,
-      // never a shorter session — do not rewrite the remote copy away.
-      log.warn(
-        `persisted read for ${sessionId} returned ${events.length} events ` +
-          `but the cloud cursor covers ${cursor.pushedCount}; skipping`
-      );
-      return;
-    }
-
-    const perEventHashes = await Promise.all(
-      events.map((event) => sha256Hex(stableStringify(event)))
-    );
-    const frozenEventCount = computeFrozenEventCount(events);
-    const tailEvents = events.slice(frozenEventCount);
-    const tailHash =
-      tailEvents.length > 0 ? await computeSegmentHash(tailEvents) : null;
-    const frozenChainHash = await this.computeFrozenChainHash(
-      perEventHashes,
-      frozenEventCount
-    );
-
-    if (cursor) {
-      let frozenIntact = frozenEventCount >= cursor.frozenEventCount;
-      if (frozenIntact && cursor.frozenEventCount > 0) {
-        const chainAtCursor =
-          cursor.frozenEventCount === frozenEventCount
-            ? frozenChainHash
-            : await this.computeFrozenChainHash(
-                perEventHashes,
-                cursor.frozenEventCount
-              );
-        frozenIntact = chainAtCursor === cursor.frozenChainHash;
-      }
-
-      if (frozenIntact) {
-        const newFrozenEvents = events.slice(
-          cursor.frozenEventCount,
-          frozenEventCount
-        );
-        if (
-          newFrozenEvents.length === 0 &&
-          tailHash === cursor.tailHash &&
-          events.length === cursor.pushedCount
-        ) {
-          // Nothing changed since the last push — still refresh metadata
-          // (hash-gated, usually a no-op).
-          await this.upsertMetadataIfChanged(
-            auth,
-            orgId,
-            session,
-            scopeKey,
-            access
-          );
-          this.markEventPlaneClean(orgId, sessionId, stampAtRead);
-          return;
-        }
-        await this.upsertMetadataIfChanged(
-          auth,
-          orgId,
-          session,
-          scopeKey,
-          access
-        );
-        const frozenSegments = splitFrozenIntoSegments(
-          newFrozenEvents,
-          cursor.frozenSeq + 1
-        );
-        try {
-          await this.client.appendSessionEvents(auth.accessToken, {
-            orgId,
-            sessionId,
-            expectedEpoch: cursor.epoch,
-            expectedFrozenSeq: cursor.frozenSeq,
-            expectedTailHash: cursor.tailHash,
-            newFrozenSegments: frozenSegments,
-            tail: tailEvents.length > 0 ? tailEvents : null,
-            totalCount: events.length,
-          });
-          this.setCursor({
-            orgId,
-            sessionId,
-            epoch: cursor.epoch,
-            frozenSeq: cursor.frozenSeq + frozenSegments.length,
-            pushedCount: events.length,
-            frozenEventCount,
-            frozenChainHash,
-            tailHash,
-          });
-          this.markEventPlaneClean(orgId, sessionId, stampAtRead);
-          return;
-        } catch (error) {
-          if (!isOrg2SyncErrorCode(error, "ORG2_CONFLICT")) throw error;
-          // OCC rejection → re-anchor on the server epoch below.
-          await this.rewriteSession(auth, orgId, session, scopeKey, access, {
-            events,
-            frozenEventCount,
-            frozenChainHash,
-            tailEvents,
-            tailHash,
-            newEpoch: null,
-          });
-          this.markEventPlaneClean(orgId, sessionId, stampAtRead);
-          return;
-        }
-      }
-
-      // Frozen region mutated in place → epoch+1 full rewrite.
-      await this.rewriteSession(auth, orgId, session, scopeKey, access, {
-        events,
-        frozenEventCount,
-        frozenChainHash,
-        tailEvents,
-        tailHash,
-        newEpoch: cursor.epoch + 1,
-      });
-      this.markEventPlaneClean(orgId, sessionId, stampAtRead);
-      return;
-    }
-
-    // First push (no cursor): optimistic epoch-1 anchor; server-side OCC
-    // bounces us into the re-anchor path when state already exists.
-    await this.rewriteSession(auth, orgId, session, scopeKey, access, {
-      events,
-      frozenEventCount,
-      frozenChainHash,
-      tailEvents,
-      tailHash,
-      newEpoch: 1,
-    });
-    this.markEventPlaneClean(orgId, sessionId, stampAtRead);
-  }
-
-  /**
-   * Epoch-bumped full rewrite. `newEpoch: null` (and any ORG2_CONFLICT on a
-   * concrete epoch) re-anchors on the server epoch — read via
-   * `getSessionEvents` — exactly once; a second conflict propagates.
-   */
-  private async rewriteSession(
-    auth: Org2CloudAuthState,
-    orgId: string,
-    session: Session,
-    scopeKey: string | null,
-    access: CloudPushAccess,
-    plan: {
-      events: SessionEvent[];
-      frozenEventCount: number;
-      frozenChainHash: string;
-      tailEvents: SessionEvent[];
-      tailHash: string | null;
-      newEpoch: number | null;
-    }
-  ): Promise<void> {
-    const sessionId = session.session_id;
-    let epoch = plan.newEpoch;
-    let reanchored = epoch === null;
-    if (epoch === null) {
-      epoch = (await this.readServerEpoch(auth, orgId, sessionId)) + 1;
-    }
-    await this.upsertMetadataIfChanged(auth, orgId, session, scopeKey, access);
-    const frozenSegments = splitFrozenIntoSegments(
-      plan.events.slice(0, plan.frozenEventCount),
-      1
-    );
-    for (;;) {
-      try {
-        await this.client.rewriteSessionEvents(auth.accessToken, {
-          orgId,
-          sessionId,
-          newEpoch: epoch,
-          frozenSegments,
-          tail: plan.tailEvents.length > 0 ? plan.tailEvents : null,
-          totalCount: plan.events.length,
-        });
-        this.setCursor({
-          orgId,
-          sessionId,
-          epoch,
-          frozenSeq: frozenSegments.length,
-          pushedCount: plan.events.length,
-          frozenEventCount: plan.frozenEventCount,
-          frozenChainHash: plan.frozenChainHash,
-          tailHash: plan.tailHash,
-        });
-        return;
-      } catch (error) {
-        if (!isOrg2SyncErrorCode(error, "ORG2_CONFLICT") || reanchored) {
-          throw error;
-        }
-        reanchored = true;
-        epoch = (await this.readServerEpoch(auth, orgId, sessionId)) + 1;
-      }
-    }
-  }
-
-  private async readServerEpoch(
-    auth: Org2CloudAuthState,
-    orgId: string,
-    sessionId: string
-  ): Promise<number> {
-    const snapshot = await this.client.getSessionEvents(
-      auth.accessToken,
-      orgId,
-      sessionId
-    );
-    return snapshot.epoch ?? 0;
+  /** Retained private test seam; the session module owns the implementation. */
+  private loadPushEvents(sessionId: string): Promise<SessionEvent[]> {
+    return this.sessionSync.loadPushEvents(sessionId);
   }
 }
 
