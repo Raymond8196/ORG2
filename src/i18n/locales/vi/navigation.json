@@ -417,7 +417,6 @@
       "error": "Fork phiên thất bại",
       "sendFailed": "Đã fork nhưng gửi tin nhắn thất bại — nội dung đã được khôi phục vào ô nhập",
       "forkedChipTooltip": "Fork từ {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

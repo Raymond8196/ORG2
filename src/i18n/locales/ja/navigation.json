@@ -417,7 +417,6 @@
       "error": "セッションのフォークに失敗しました",
       "sendFailed": "フォークしましたが、メッセージの送信に失敗しました。内容は入力欄に復元されました",
       "forkedChipTooltip": "{{name}} さんからフォーク",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

@@ -1205,6 +1205,53 @@ describe("Org2CloudSyncEngine", () => {
     );
   });
 
+  it("scopes Realtime pulls to one org, preserves delta cursors, and skips the outbox probe", async () => {
+    store.set(org2CloudOrgsAtom, [
+      { orgId: "corg-1", name: "Cloud Team", role: "member" },
+      { orgId: "corg-2", name: "Other Team", role: "member" },
+    ]);
+
+    await engine.runSyncPass();
+    projectsClient.listOrgCollabState.mockClear();
+    tasksClient.listCommentTasks.mockClear();
+    bridge.drainOutbox.mockClear();
+
+    await engine.invalidateOrgInboundAndWait("corg-1");
+
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledTimes(1);
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      "2026-07-01T11:59:58.000Z"
+    );
+    expect(tasksClient.listCommentTasks).toHaveBeenCalledTimes(1);
+    expect(tasksClient.listCommentTasks).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      "2026-07-01T11:59:58.000Z"
+    );
+    expect(bridge.drainOutbox).not.toHaveBeenCalled();
+  });
+
+  it("uses a full listing only for reconnect recovery", async () => {
+    await engine.runSyncPass();
+    projectsClient.listOrgCollabState.mockClear();
+    tasksClient.listCommentTasks.mockClear();
+
+    await engine.invalidateOrgInboundAndWait("corg-1", { full: true });
+
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      undefined
+    );
+    expect(tasksClient.listCommentTasks).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      null
+    );
+  });
+
   it("syncs the project plane even for an org with no scopes or tagged sessions", async () => {
     store.set(org2CloudRepoScopesAtom, {});
     await engine.runSyncPass();
@@ -1369,10 +1416,11 @@ describe("Org2CloudSyncEngine", () => {
 
     projectsClient.listOrgCollabState.mockClear();
     bridge.drainOutbox.mockClear();
-    engine.invalidateOrgInbound("corg-1");
-    await engine.runSyncPassAndWaitForDrain();
+    await engine.invalidateOrgInboundAndWait("corg-1");
 
     expect(projectsClient.listOrgCollabState).toHaveBeenCalled();
+    // This org never completed its startup inbound cycle before backoff, so
+    // the overdue safety pass also retries its durable outbox.
     expect(bridge.drainOutbox).toHaveBeenCalled();
   });
 

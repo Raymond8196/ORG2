@@ -419,7 +419,6 @@
       "error": "Échec du fork de la session",
       "sendFailed": "Fork réussi, mais l'envoi du message a échoué — il a été restauré dans le champ de saisie",
       "forkedChipTooltip": "Forkée depuis {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

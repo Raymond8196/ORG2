@@ -36,12 +36,15 @@ import {
   sessionOrgTagsAtom,
 } from "@src/features/TeamCollaboration/sessionOrgTagsAtom";
 import { createLogger } from "@src/hooks/logger";
+import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { workstationActiveSessionIdAtom } from "@src/store/session/viewAtom";
 
 import { kickCommentTaskRunner } from "./commentTaskRunner";
-import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import { org2CloudSharingFloorAtom } from "./org2CloudAccessSettings";
+import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import { ensureFreshSession, getEntitlementState } from "./org2CloudClient";
 import {
   COMMENTS_CHANGED_EVENT,
   org2CloudCommentsSignalAtom,
@@ -80,6 +83,7 @@ const log = createLogger("Org2CloudRealtime");
  * projects / work-items / comment-tasks change.
  */
 const CHANGE_SIGNALS_TABLE = "org_change_signals";
+const ENTITLEMENT_SIGNAL_REFRESH_TTL_MS = 60_000;
 
 /**
  * Establish + maintain the inbound Realtime subscriptions for the signed-in
@@ -88,6 +92,8 @@ const CHANGE_SIGNALS_TABLE = "org_change_signals";
  */
 export function useOrg2CloudRealtime(): void {
   const auth = useAtomValue(org2CloudAuthAtom);
+  const setAuth = useSetAtom(org2CloudAuthAtom);
+  const setFloorByOrg = useSetAtom(org2CloudSharingFloorAtom);
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const setRosterVersion = useSetAtom(org2CloudRosterVersionAtom);
@@ -148,6 +154,49 @@ export function useOrg2CloudRealtime(): void {
   useEffect(() => {
     authRef.current = auth;
   }, [auth]);
+
+  // `org_change_signals` also carries rare sharing-floor changes. Refresh only
+  // the affected org's entitlement, single-flight and TTL-gated, instead of
+  // using list_my_orgs as a policy cache invalidation mechanism.
+  const entitlementRefreshStateRef = useRef(
+    new Map<string, { lastAttemptAt: number; inFlight: boolean }>()
+  );
+  const refreshOrgEntitlement = useCallback(
+    async (orgId: string): Promise<void> => {
+      const state = entitlementRefreshStateRef.current.get(orgId);
+      const now = Date.now();
+      if (
+        state?.inFlight ||
+        (state && now - state.lastAttemptAt < ENTITLEMENT_SIGNAL_REFRESH_TTL_MS)
+      ) {
+        return;
+      }
+      entitlementRefreshStateRef.current.set(orgId, {
+        lastAttemptAt: now,
+        inFlight: true,
+      });
+      try {
+        const current = authRef.current;
+        if (!current) return;
+        const fresh = await ensureFreshSession(current);
+        if (!fresh) return;
+        commitRefreshedAuth(setAuth, current, fresh);
+        const entitlement = await getEntitlementState(fresh.accessToken, orgId);
+        if (!entitlement) return;
+        const floor =
+          entitlement.orgSharingFloor ?? COLLAB_SESSION_ACCESS_MODE.OFF;
+        setFloorByOrg((previous) =>
+          previous[orgId] === floor ? previous : { ...previous, [orgId]: floor }
+        );
+      } catch (error) {
+        log.warn(`entitlement refresh failed for org ${orgId}:`, error);
+      } finally {
+        const latest = entitlementRefreshStateRef.current.get(orgId);
+        if (latest) latest.inFlight = false;
+      }
+    },
+    [setAuth, setFloorByOrg]
+  );
 
   const connectionRef = useRef<Org2CloudRealtimeConnection | null>(null);
 
@@ -213,16 +262,14 @@ export function useOrg2CloudRealtime(): void {
           table: CHANGE_SIGNALS_TABLE,
           filter: `org_id=eq.${orgId}`,
           onChange: () => {
-            // Signals include session-plane writes and sharing-floor policy
-            // changes. Refresh org entitlement first so this member's effective
-            // floor mirror is current before the queued sync republishes or
-            // retracts local sessions.
-            void refetchRef.current().finally(() => {
-              org2CloudSyncEngine.invalidateOrgInbound(orgId);
-              void org2CloudSyncEngine
-                .runSyncPassAndWaitForDrain()
-                .then(() => kickCommentTaskRunner());
-            });
+            // One scoped, cursor-based pull. The former roster refetch here
+            // re-read list_my_orgs + every org's entitlement for unrelated
+            // project/comment/session writes, and the follow-up explicit pass
+            // dirtied the just-started pass, doubling all inbound RPCs.
+            void org2CloudSyncEngine
+              .invalidateOrgInboundAndWait(orgId)
+              .then(() => kickCommentTaskRunner());
+            void refreshOrgEntitlement(orgId);
             // The signal covers cloud_sessions too — refresh the sidebar's
             // TEAM SESSIONS rows (teammate shared/forked/retracted a session).
             bumpRemoteSessionsVersion(orgId);
@@ -237,7 +284,8 @@ export function useOrg2CloudRealtime(): void {
             // tombstones (revoked projects / deleted work items / removed
             // tasks) that landed while disconnected are observed.
             if (subscribed) {
-              org2CloudSyncEngine.invalidateOrgInbound(orgId);
+              org2CloudSyncEngine.invalidateOrgInbound(orgId, { full: true });
+              void refreshOrgEntitlement(orgId);
               bumpRemoteSessionsVersion(orgId);
               bumpOrgCommentsSignal(orgId);
             }
@@ -280,6 +328,7 @@ export function useOrg2CloudRealtime(): void {
     bumpRosterVersion,
     bumpRemoteSessionsVersion,
     bumpOrgCommentsSignal,
+    refreshOrgEntitlement,
   ]);
 
   // --- Slice C: org-level presence (who is viewing what), one channel per org.

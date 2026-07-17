@@ -417,7 +417,6 @@
       "error": "Не удалось сделать форк сессии",
       "sendFailed": "Форк создан, но сообщение не отправилось — текст восстановлен в поле ввода",
       "forkedChipTooltip": "Форк от {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

@@ -419,7 +419,6 @@
       "error": "Session konnte nicht geforkt werden",
       "sendFailed": "Geforkt, aber die Nachricht konnte nicht gesendet werden — sie wurde im Eingabefeld wiederhergestellt",
       "forkedChipTooltip": "Geforkt von {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

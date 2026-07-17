@@ -1217,10 +1217,19 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     await waitForRenderedOn(
       second.client,
-      '[data-testid="session-imported-from-chip"]',
-      "secondary imported-from provenance",
+      '[data-testid="session-fork-button"]',
+      "secondary imported-session fork action",
       CLOUD_FETCH_TIMEOUT_MS
     );
+    const unexpectedSharedByChip = await executeOn(
+      second.client,
+      `return !!document.querySelector('[data-testid="session-imported-from-chip"]');`
+    );
+    if (unexpectedSharedByChip) {
+      throw new Error(
+        "imported Team Session header still shows a shared-by chip"
+      );
+    }
 
     const importedState = unwrapOn(
       await invokeOn(second.client, "inspectChatState"),
@@ -1516,8 +1525,8 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     await waitForRenderedOn(
       second.client,
-      '[data-testid="session-imported-from-chip"]',
-      "secondary imported replay provenance",
+      '[data-testid="session-fork-button"]',
+      "secondary imported replay fork action",
       CLOUD_FETCH_TIMEOUT_MS
     );
     await clickRenderedOn(
@@ -1890,8 +1899,8 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     await waitForRenderedOn(
       second.client,
-      '[data-testid="session-imported-from-chip"]',
-      "secondary link-import provenance",
+      '[data-testid="session-fork-button"]',
+      "secondary link-import fork action",
       CLOUD_FETCH_TIMEOUT_MS
     );
 
