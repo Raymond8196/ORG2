@@ -9,7 +9,6 @@
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect } from "react";
 
-import { enterAgentOrgSessionIntervention } from "@src/api/tauri/agent";
 import type { AgentExecMode } from "@src/config/sessionCreatorConfig";
 import {
   beginOptimisticTurn,
@@ -21,7 +20,6 @@ import {
   markTurnTerminal,
 } from "@src/engines/SessionCore/control/turnLifecycle";
 import { mintTurnIntentId } from "@src/engines/SessionCore/sync/adapters/shared/eventFactories";
-import { createLogger } from "@src/hooks/logger";
 import {
   type SessionRuntimeStatusSource,
   isSessionActiveAtom,
@@ -43,8 +41,6 @@ import {
   consumeRestoredStopSubmitSuppression,
 } from "./stopSubmitGuard";
 import { useMessageDispatch } from "./useMessageDispatch";
-
-const log = createLogger("useUserIntentSubmit");
 
 const sharedSubmitGuard = { current: false };
 const sharedSubmitPayload = { current: null as string | null };
@@ -238,9 +234,6 @@ export function useUserIntentSubmit({
         onBeforeDirectDispatch?.();
         await addUserMessage(displayContent, imageDataUrls, turnIntentId);
         userEventAppended = true;
-        void enterAgentOrgSessionIntervention(sessionId).catch((error) => {
-          log.warn("[useUserIntentSubmit] intervention failed:", error);
-        });
         const displayTextForDispatch =
           contentForAgent !== displayContent ? displayContent : undefined;
         dispatchStarted = true;

@@ -3,6 +3,25 @@ import { describe, expect, it } from "vitest";
 import { maybeParseCodeEditorWebSocketMessage } from "./schemas";
 
 describe("maybeParseCodeEditorWebSocketMessage", () => {
+  it("accepts Agent Org and snapshot invalidation events", () => {
+    expect(
+      maybeParseCodeEditorWebSocketMessage(
+        JSON.stringify({
+          type: "agent_org:run_changed",
+          payload: { orgRunId: "run-1" },
+        })
+      )?.type
+    ).toBe("agent_org:run_changed");
+    expect(
+      maybeParseCodeEditorWebSocketMessage(
+        JSON.stringify({
+          type: "agent:snapshot_created",
+          payload: { sessionId: "session-1" },
+        })
+      )?.type
+    ).toBe("agent:snapshot_created");
+  });
+
   it("passes session status broadcasts through with their payload fields", () => {
     // Shape mirrors the Rust runner's broadcast (session_runner/lifecycle.rs):
     // top-level payload fields, no timestamp.
