@@ -592,7 +592,9 @@
       "noRemote": "This session's repository has no git remote, so it can't match any org's repo scope.",
       "noScopes": "No repo scopes",
       "outOfScope": "Out of scope",
-      "scopeResolving": "Checking…"
+      "scopeResolving": "Checking…",
+      "personal": "Personal",
+      "personalBadge": "Local"
     },
     "orgManagement": {
       "invites": {

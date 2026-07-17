@@ -38,16 +38,14 @@ import ForkCheckoutPickerDialog from "@src/features/TeamCollaboration/components
 import ForkSessionSetupDialog from "@src/features/TeamCollaboration/components/ForkSessionSetupDialog";
 import MoveToOrgDialog from "@src/features/TeamCollaboration/components/MoveToOrgDialog";
 import { useMoveToOrgDialog } from "@src/features/TeamCollaboration/components/MoveToOrgDialog/useMoveToOrgDialog";
-import {
-  collectImportedSessionIdsCoveredByAnyScope,
-  collectScopeMatchedImportedSessionIds,
-} from "@src/features/TeamCollaboration/importedSessionScopeMatch";
+import { collectScopeMatchedImportedSessionIds } from "@src/features/TeamCollaboration/importedSessionScopeMatch";
 import {
   getShareableScopeKeyVersion,
   subscribeShareableScopeKeys,
 } from "@src/features/TeamCollaboration/repoScopeResolver";
 import {
   cloudOrgIdsForSession,
+  isSessionExcludedFromPersonal,
   sessionOrgTagsAtom,
 } from "@src/features/TeamCollaboration/sessionOrgTagsAtom";
 import { createLogger } from "@src/hooks/logger";
@@ -503,33 +501,20 @@ export const WorkstationSidebarConnector: React.FC = () => {
     scopeKeyVersion,
   ]);
 
-  // The mirror rule for the Personal scope: a session living in a cloud org
-  // — explicit tag, or an imported session covered by ANY member org's repo
-  // scope — is HIDDEN from Personal. It moves back when the tag is removed
-  // (MoveToOrgDialog / the engine's out-of-scope invalidation) or the scope
-  // stops covering its repo.
+  // Personal is a DEFAULT-ON membership: a session shows in Personal AND in
+  // every org that covers it. The only thing hidden from Personal is a
+  // session the user explicitly removed (unchecked Personal in the org-tags
+  // dialog → PERSONAL_EXCLUDED_TOKEN). Org membership never auto-removes it.
   const personalHiddenCloudTaggedIds = useMemo(() => {
     if (activeOrgId !== DEFAULT_SESSION_ORG_ID) return undefined;
-    const ids = collectImportedSessionIdsCoveredByAnyScope(
-      sortedSessions,
-      cloudOrgs.map((org) => org.orgId),
-      repoScopesByOrg
-    );
-    void scopeKeyVersion;
+    const ids = new Set<string>();
     for (const sessionId of Object.keys(sessionOrgTags)) {
-      if (cloudOrgIdsForSession(sessionOrgTags, sessionId).length > 0) {
+      if (isSessionExcludedFromPersonal(sessionOrgTags, sessionId)) {
         ids.add(sessionId);
       }
     }
     return ids.size > 0 ? ids : undefined;
-  }, [
-    activeOrgId,
-    sessionOrgTags,
-    sortedSessions,
-    cloudOrgs,
-    repoScopesByOrg,
-    scopeKeyVersion,
-  ]);
+  }, [activeOrgId, sessionOrgTags]);
 
   // Per-org filter for the cloud "Team sessions" section.
   const [cloudSessionFilters, setCloudSessionFilters] = useState<
