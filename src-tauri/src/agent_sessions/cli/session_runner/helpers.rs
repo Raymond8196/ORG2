@@ -285,6 +285,10 @@ pub(super) fn clear_live_status(
     cli_session_id: Option<&str>,
 ) {
     use key_vault::key_store::ModelType;
+    // Terminal transition: drop the launch permission-mode record and wake
+    // any parked PermissionRequest hook long-poll with a no-decision so it
+    // never outlives the session it was asking about.
+    super::super::hook_approvals::unregister_session(session_id);
     let canonical = cli_session_id.and_then(|cli_sid| match agent {
         ModelType::ClaudeCode => Some(
             orgtrack_core::sources::claude_code::canonical_session_id(cli_sid),

@@ -17,17 +17,18 @@ const CONNECT_TIMEOUT: Duration = Duration::from_millis(500);
 const IO_TIMEOUT: Duration = Duration::from_secs(1);
 
 #[derive(serde::Deserialize)]
-struct EndpointFile {
+pub(super) struct EndpointFile {
     #[serde(default)]
     version: u32,
-    port: u16,
-    token: String,
+    pub(super) port: u16,
+    pub(super) token: String,
 }
 
 /// The endpoint file is re-read on every invocation (not cached from the PTY
 /// environment) so CLI sessions that outlive an Orgii restart post to the
-/// current server and token.
-fn read_endpoint() -> Option<EndpointFile> {
+/// current server and token. Shared with `approval_gate`, which long-polls
+/// the same loopback server for permission decisions.
+pub(super) fn read_endpoint() -> Option<EndpointFile> {
     let bytes = std::fs::read(app_paths::agent_status_endpoint_path()).ok()?;
     let endpoint = serde_json::from_slice::<EndpointFile>(&bytes).ok()?;
     if endpoint.version != 1 || endpoint.token.is_empty() {
