@@ -39,6 +39,14 @@
 
 ORG-II 探索另一种模式：把 Agent 视为结构化组织中持久、可观测的同事。它不是无状态、难以审查的 AI IDE 会话，而是引入可回放的 Agent 执行、跨会话记忆、AI blame，以及 local-first 的 Rust runtime，让人类、Agent 和团队能够围绕共享上下文与对齐目标协作。
 
+## 内置 Rust Harness
+
+快速、节省 token 且可定制的原生 Agent Harness，可使用你现有的 API 密钥和 Agent 订阅。你可以在同一个 local-first runtime 中配置 Agent 或 Agent 团队、切换模型、管理工作区与凭据，并监控配额。
+
+<p align="center">
+  <img src="../assets/feature-wall/rust-harness.gif" alt="使用 ORG-II Rust Harness 运行 Agent 并管理密钥、订阅、工作区和配额" width="800" />
+</p>
+
 ## 核心能力
 
 - 支持长时间运行的会话，并提供可回放执行轨迹，用于审计、评审和调试。
