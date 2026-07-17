@@ -1,4 +1,6 @@
 pub mod cache;
+pub mod managed_mirror;
+pub mod managed_roots;
 pub mod metadata;
 pub mod paths;
 
@@ -27,6 +29,107 @@ pub const FUNCTION_EDIT_FILE: &str = "edit_file_by_replace";
 pub const FUNCTION_CODE_SEARCH: &str = "grep";
 pub const FUNCTION_GLOB_FILE_SEARCH: &str = "glob_file_search";
 pub const DEFAULT_LIST_LIMIT: usize = 200;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ImportedHistoryLoader {
+    ClaudeCode,
+    Codex,
+    Cursor,
+    CursorCli,
+    OpenCode,
+    Windsurf,
+    WorkBuddy,
+    Trae,
+    Cline,
+    Warp,
+    ZCode,
+    Qoder,
+}
+
+fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
+    if session_id.starts_with(super::claude_code::SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::ClaudeCode)
+    } else if session_id.starts_with(super::codex::SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Codex)
+    } else if session_id.starts_with(super::cursor_ide::CURSORIDE_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Cursor)
+    } else if session_id.starts_with(super::cursor_cli::SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::CursorCli)
+    } else if session_id.starts_with(super::opencode::history::OPENCODE_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::OpenCode)
+    } else if session_id.starts_with(super::windsurf::history::WINDSURF_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Windsurf)
+    } else if session_id.starts_with(super::workbuddy::WORKBUDDY_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::WorkBuddy)
+    } else if session_id.starts_with(super::trae::history::TRAE_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Trae)
+    } else if session_id.starts_with(super::cline::history::CLINE_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Cline)
+    } else if session_id.starts_with(super::warp::history::WARP_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Warp)
+    } else if session_id.starts_with(super::zcode::history::ZCODE_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::ZCode)
+    } else if session_id.starts_with(super::qoder::history::QODER_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Qoder)
+    } else {
+        None
+    }
+}
+
+/// Load one imported provider session through its existing canonical history
+/// reader. `None` means the id is not owned by an imported-history provider;
+/// `Some(empty)` is a known provider session whose source currently has no
+/// readable chunks.
+///
+/// This is the single provider router for cross-provider projections such as
+/// per-round Orgtrack metadata. It deliberately delegates parsing to the
+/// established source modules instead of introducing another transcript
+/// reader.
+pub fn load_activity_chunks_for_session(
+    conn: &rusqlite::Connection,
+    session_id: &str,
+) -> Result<Option<Vec<ActivityChunk>>, String> {
+    let chunks = match imported_history_loader(session_id) {
+        Some(ImportedHistoryLoader::ClaudeCode) => {
+            super::claude_code::history::load_claude_code_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::Codex) => {
+            super::codex::app::load_codex_app_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::Cursor) => {
+            super::cursor_ide::history::load_history_for_session(session_id)?
+        }
+        Some(ImportedHistoryLoader::CursorCli) => {
+            super::cursor_cli::history::load_cursor_cli_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::OpenCode) => {
+            super::opencode::history::load_opencode_history_for_session(session_id)?
+        }
+        Some(ImportedHistoryLoader::Windsurf) => {
+            super::windsurf::history::load_windsurf_history_for_session(session_id)?
+        }
+        Some(ImportedHistoryLoader::WorkBuddy) => {
+            super::workbuddy::load_workbuddy_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::Trae) => {
+            super::trae::history::load_trae_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::Cline) => {
+            super::cline::history::load_cline_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::Warp) => {
+            super::warp::history::load_warp_history_for_session(session_id)?
+        }
+        Some(ImportedHistoryLoader::ZCode) => {
+            super::zcode::history::load_zcode_history_for_session(session_id)?
+        }
+        Some(ImportedHistoryLoader::Qoder) => {
+            super::qoder::history::load_qoder_history_for_session(conn, session_id)?
+        }
+        None => return Ok(None),
+    };
+    Ok(Some(chunks))
+}
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -70,8 +173,21 @@ pub struct ImportedHistorySidebarRow {
     pub name: String,
     pub created_at: String,
     pub updated_at: String,
+    /// Live status override (`running`, `waiting_for_user`, `failed`)
+    /// decorated by the desktop layer from lifecycle-hook signals or the
+    /// transcript-mtime fallback. Absent means the frontend's historical
+    /// default ("completed") applies. The core query never sets these.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_active: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_path: Option<String>,
+    /// The source app's own transcript file — the store of record for an
+    /// imported session, which never has a `sessions.db` copy. Absent for
+    /// rows cached before the path was recorded.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub storage_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
     pub total_tokens: i64,
@@ -233,6 +349,57 @@ pub fn recent_paths_from_paths(
     recent_paths
 }
 
+/// Internal wrapper blocks ORGII prepends to the prompt it hands the CLI:
+/// the GUI exec-mode briefing and the IDE-context injection
+/// (`inject_ide_context_into_prompt`). The CLI's native transcript stores
+/// the full prompt verbatim, so replay readers must strip these to recover
+/// what the user actually typed.
+const INTERNAL_CONTEXT_BLOCKS: &[(&str, &str)] = &[
+    ("<orgii_cli_exec_mode_bridge>", "</orgii_cli_exec_mode_bridge>"),
+    ("<ide_context>", "</ide_context>"),
+];
+
+/// Repeatedly strip LEADING internal wrapper blocks (exec-mode briefing,
+/// IDE context) from `text`, in any order.
+///
+/// If a known tag opens but never closes (e.g. a truncated title), the whole
+/// remainder is treated as internal and `""` is returned — an unclosed
+/// internal block never carries user-authored text after it.
+pub fn strip_internal_context_blocks(text: &str) -> &str {
+    let mut remaining = text;
+    let mut stripped = false;
+    'outer: loop {
+        let candidate = remaining.trim_start();
+        for (open, close) in INTERNAL_CONTEXT_BLOCKS {
+            if let Some(rest) = candidate.strip_prefix(open) {
+                match rest.find(close) {
+                    Some(end) => {
+                        remaining = &rest[end + close.len()..];
+                        stripped = true;
+                        continue 'outer;
+                    }
+                    None => return "",
+                }
+            }
+        }
+        break;
+    }
+    if stripped {
+        remaining.trim_start()
+    } else {
+        text
+    }
+}
+
+/// GUI-launched runs prefix the task with an internal exec-mode briefing;
+/// strip it so titles/replay show only what the user typed.
+///
+/// Back-compat name: now also strips the `<ide_context>` injection via
+/// [`strip_internal_context_blocks`].
+pub fn strip_orgii_exec_mode_bridge(text: &str) -> &str {
+    strip_internal_context_blocks(text)
+}
+
 pub fn user_message_chunk(
     session_id: &str,
     provider_slug: &str,
@@ -240,6 +407,10 @@ pub fn user_message_chunk(
     created_at: &str,
     message: &str,
 ) -> ActivityChunk {
+    // Single funnel for every imported reader's user bubbles: strip the
+    // GUI exec-mode briefing and IDE-context injection here so no source
+    // can leak them into replay.
+    let message = strip_internal_context_blocks(message);
     let mut chunk = ActivityChunk::new(session_id, ACTION_TYPE_RAW, FUNCTION_USER_MESSAGE);
     chunk.chunk_id = format!("{provider_slug}-user-{sequence}");
     chunk.created_at = created_at.to_string();
@@ -550,6 +721,29 @@ pub fn truncate_name(name: &str, max_len: usize) -> String {
 #[cfg(test)]
 mod impact_tests {
     use super::*;
+
+    #[test]
+    fn routes_every_imported_provider_to_its_existing_history_loader() {
+        let cases = [
+            ("claudecodeapp-id", ImportedHistoryLoader::ClaudeCode),
+            ("codexapp-id", ImportedHistoryLoader::Codex),
+            ("cursoride-id", ImportedHistoryLoader::Cursor),
+            ("cursorcliapp-id", ImportedHistoryLoader::CursorCli),
+            ("opencodeapp-id", ImportedHistoryLoader::OpenCode),
+            ("windsurfapp-id", ImportedHistoryLoader::Windsurf),
+            ("workbuddyapp-id", ImportedHistoryLoader::WorkBuddy),
+            ("traeapp-id", ImportedHistoryLoader::Trae),
+            ("clineapp-id", ImportedHistoryLoader::Cline),
+            ("warpapp-id", ImportedHistoryLoader::Warp),
+            ("zcodeapp-id", ImportedHistoryLoader::ZCode),
+            ("qoderapp-id", ImportedHistoryLoader::Qoder),
+        ];
+
+        for (session_id, expected) in cases {
+            assert_eq!(imported_history_loader(session_id), Some(expected));
+        }
+        assert_eq!(imported_history_loader("org2-native-id"), None);
+    }
 
     #[test]
     fn impact_collector_counts_normalized_edit_and_patch_paths() {

@@ -4,6 +4,7 @@ import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 
 import DiaryDateControls from "../components/DiaryDateControls";
 import type { FactoryViewMode } from "../components/FactoryViewPill";
+import KanbanFileSearchInput from "../components/KanbanFileSearchInput";
 import KanbanHeaderFilters from "../components/KanbanHeaderFilters";
 import KanbanHeaderTrailingControls from "../components/KanbanHeaderTrailingControls";
 import type { KanbanAutoArchiveTtl, KanbanTimeFilter } from "../config";
@@ -69,6 +70,7 @@ export function useTaskKanbanHeader({
       };
     }
     return {
+      leading: <KanbanFileSearchInput />,
       trailing: (
         <div className="flex min-w-0 items-center gap-1 overflow-visible">
           <KanbanHeaderFilters />

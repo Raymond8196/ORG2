@@ -15,12 +15,12 @@
  * removal, leave, rename, ownership transfer and org deletion — state and
  * handlers in `useCloudOrgManagement`, sections in `ManagementSections`.
  *
- * Teammates' shared sessions no longer render here — they live in the LEFT
- * SIDEBAR as fork-threaded groups when the cloud org is the active scope
- * (WorkstationSidebarConnector/cloudSessionsSection + the extracted
- * `useCloudSessionActions` replay/fork hook). No chat/work items yet.
+ * Shared sessions render both in a full-width management tab and in the left
+ * sidebar's fork-threaded groups. Both surfaces reuse the same remote-session
+ * cache and `useCloudSessionActions` replay/fork behavior.
  */
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { Cloud, Laptop } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -32,6 +32,7 @@ import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Select from "@src/components/Select";
+import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import {
   floorAccessMode,
   getCloudOrgAccessSettings,
@@ -77,21 +78,40 @@ import {
   SECTION_CONTROL_STYLE,
   SECTION_DESCRIPTION_CLASSES,
   SectionContainer,
-  SectionHeading,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
-import { DETAIL_PANEL_TOKENS } from "@src/modules/shared/layouts/blocks";
+import {
+  DETAIL_PANEL_TOKENS,
+  InternalHeader,
+  ScrollFadeContainer,
+} from "@src/modules/shared/layouts/blocks";
 import { Placeholder } from "@src/modules/shared/layouts/blocks/Placeholder";
+import {
+  openCloudOrgManagementInChatPanelTabAtom,
+  openWorkspaceOverviewInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { CollabSessionAccessMode } from "@src/store/collaboration/types";
-import type { ChatPanelSelectedCloudOrg } from "@src/store/ui/chatPanelAtom";
+import { reposAtom } from "@src/store/repo";
+import {
+  type ChatPanelSelectedCloudOrg,
+  WORKSPACE_OVERVIEW_TAB,
+} from "@src/store/ui/chatPanelAtom";
+import { savedWorkspacesAtom } from "@src/store/ui/workspaceFoldersAtom";
 import { isTauriReady } from "@src/util/platform/tauri/init";
 
+import CloudSessionsSection from "./CloudSessionsSection";
 import {
   CloudInvitesCard,
   CloudMembersSection,
   CloudOrgSettingsSection,
 } from "./ManagementSections";
+import {
+  buildCloudOrgSelectorValue,
+  buildLocalRepoSelectorValue,
+  buildLocalWorkspaceSelectorValue,
+  parseManagementTarget,
+} from "./managementTargetSelector";
 import { useCloudOrgManagement } from "./useCloudOrgManagement";
 
 const log = createLogger("CloudOrgPanelView");
@@ -101,17 +121,37 @@ interface CloudOrgPanelViewProps {
 }
 
 type FetchState = "loading" | "ready" | "error";
+type CloudOrgManagementTab = "general" | "sessions" | "repo-scope" | "members";
+
+const CLOUD_ORG_MANAGEMENT_TAB = {
+  GENERAL: "general",
+  SESSIONS: "sessions",
+  REPO_SCOPE: "repo-scope",
+  MEMBERS: "members",
+} as const satisfies Record<string, CloudOrgManagementTab>;
 
 export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
   selectedCloudOrg,
 }) => {
   const { t } = useTranslation("navigation");
+  const { t: tSettings } = useTranslation("settings");
   // Billing lives on the cloud web app; this is the desktop's durable
   // upgrade surface (the sync engine's quota toast points users here — the
   // engine itself is React-free and cannot render an action button).
   const openCloudBillingPage = useOpenCloudBilling();
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
+  const localRepos = useAtomValue(reposAtom);
+  const localWorkspaces = useAtomValue(savedWorkspacesAtom);
+  const openCloudOrgManagementTab = useSetAtom(
+    openCloudOrgManagementInChatPanelTabAtom
+  );
+  const openWorkspaceOverviewTab = useSetAtom(
+    openWorkspaceOverviewInChatPanelTabAtom
+  );
+  const [activeTab, setActiveTab] = useState<CloudOrgManagementTab>(
+    CLOUD_ORG_MANAGEMENT_TAB.GENERAL
+  );
   // Live roster invalidation: the Realtime org-wide membership subscription
   // bumps this per-org counter (useOrg2CloudRealtime); keying the fetch on
   // it makes a teammate's join/leave/role-change appear without re-opening
@@ -138,10 +178,11 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
   const [savingScopes, setSavingScopes] = useState(false);
   const [scopesSaved, setScopesSaved] = useState(false);
   const [scopesError, setScopesError] = useState<string | null>(null);
-  // Bumped when a checkout completes inside the billing window
-  // (org2-cloud-billing-complete from the Rust navigation handler) so the
-  // panel re-pulls entitlement/members/scopes and the plan badge flips
-  // without reopening the panel.
+  // Bumped when a checkout completes in the system browser
+  // (org2-cloud-billing-complete, re-emitted by useDeepLinkHandler from the
+  // orgii://billing/complete deep link) so the panel re-pulls
+  // entitlement/members/scopes and the plan badge flips without reopening
+  // the panel.
   const [refreshNonce, setRefreshNonce] = useState(0);
   useTauriListen(
     "org2-cloud-billing-complete",
@@ -461,19 +502,170 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
         ))
       : null;
 
-  const orgName = org?.name ?? t("cloud.title");
+  const orgName = org?.name ?? "";
+  const managementTargetOptions = useMemo(
+    () => [
+      ...cloudOrgs.map((cloudOrg) => ({
+        value: buildCloudOrgSelectorValue(cloudOrg.orgId),
+        label: cloudOrg.name,
+        icon: <Cloud size={13} strokeWidth={2} />,
+        dataTestId: `cloud-org-switch-option-${cloudOrg.orgId}`,
+      })),
+      ...localWorkspaces.map((workspace) => ({
+        value: buildLocalWorkspaceSelectorValue(workspace.workspaceId),
+        label: workspace.name,
+        icon: <Laptop size={13} strokeWidth={2} />,
+        dataTestId: `local-workspace-switch-option-${workspace.workspaceId}`,
+      })),
+      ...localRepos.map((repo) => ({
+        value: buildLocalRepoSelectorValue(repo.id),
+        label: repo.name || repo.path?.split("/").pop() || t("workspace"),
+        icon: <Laptop size={13} strokeWidth={2} />,
+        dataTestId: `local-repo-switch-option-${repo.id}`,
+      })),
+    ],
+    [cloudOrgs, localRepos, localWorkspaces, t]
+  );
+  const managementTabs = useMemo<TabPillItem[]>(
+    () => [
+      {
+        key: CLOUD_ORG_MANAGEMENT_TAB.GENERAL,
+        label: tSettings("sections.general"),
+        dataTestId: "cloud-org-tab-general",
+      },
+      {
+        key: CLOUD_ORG_MANAGEMENT_TAB.SESSIONS,
+        label: t("routes.sessions"),
+        dataTestId: "cloud-org-tab-sessions",
+      },
+      {
+        key: CLOUD_ORG_MANAGEMENT_TAB.REPO_SCOPE,
+        label: t("cloud.orgPanel.repoScopesTitle"),
+        dataTestId: "cloud-org-tab-repo-scope",
+      },
+      {
+        key: CLOUD_ORG_MANAGEMENT_TAB.MEMBERS,
+        label: t("cloud.orgPanel.membersTitle"),
+        dataTestId: "cloud-org-tab-members",
+      },
+    ],
+    [t, tSettings]
+  );
+  const handleOrgChange = useCallback(
+    (value: string | number | (string | number)[]) => {
+      if (Array.isArray(value)) return;
+      const selectorValue = String(value);
+      const target = parseManagementTarget(selectorValue);
+      if (!target) return;
+
+      if (target.kind === "cloud-org") {
+        if (target.id === orgId) return;
+        openCloudOrgManagementTab({
+          cloudOrg: { orgId: target.id },
+          title: t("collaboration.manageOrg"),
+        });
+        return;
+      }
+
+      if (target.kind === "local-repo") {
+        const repo = localRepos.find((candidate) => candidate.id === target.id);
+        if (!repo) return;
+        openWorkspaceOverviewTab({
+          workspace: {
+            kind: "repo",
+            id: repo.id,
+            name: repo.name || repo.path?.split("/").pop() || t("workspace"),
+            path: repo.path,
+          },
+          tab: WORKSPACE_OVERVIEW_TAB.DETAILS,
+        });
+        return;
+      }
+
+      const workspace = localWorkspaces.find(
+        (candidate) => candidate.workspaceId === target.id
+      );
+      if (!workspace) return;
+      const primaryFolder =
+        workspace.folders.find((folder) => folder.isPrimary) ??
+        workspace.folders[0];
+      openWorkspaceOverviewTab({
+        workspace: {
+          kind: "workspace",
+          id: workspace.workspaceId,
+          name: workspace.name,
+          path: primaryFolder?.folderPath,
+          folderCount: workspace.folders.length,
+          repoIds: workspace.folders.flatMap((folder) =>
+            folder.repoId ? [folder.repoId] : []
+          ),
+        },
+        tab: WORKSPACE_OVERVIEW_TAB.OVERVIEW,
+      });
+    },
+    [
+      localRepos,
+      localWorkspaces,
+      openCloudOrgManagementTab,
+      openWorkspaceOverviewTab,
+      orgId,
+      t,
+    ]
+  );
   // Signed out (e.g. sign-out while the panel is open) renders as an error
   // state without any effect-driven state write.
   const viewState: FetchState = signedIn ? fetchState : "error";
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-3 scrollbar-hide"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       data-testid="cloud-org-panel"
     >
-      <div className={`${DETAIL_PANEL_TOKENS.contentWidth} flex flex-col`}>
-        <SectionHeading title={orgName} sticky={false}>
-          {viewState === "loading" ? (
+      <InternalHeader
+        noPanelHeader
+        contentPadding
+        className={DETAIL_PANEL_TOKENS.headerWidth}
+        dataTestId="cloud-org-management-header"
+        tabs={
+          <div className="flex w-full min-w-0 flex-col items-start gap-2">
+            <Select
+              value={buildCloudOrgSelectorValue(orgId)}
+              options={managementTargetOptions}
+              onChange={handleOrgChange}
+              showSearch={managementTargetOptions.length > 8}
+              variant="ghost"
+              size="large"
+              radius="pill"
+              className="-ml-4 !w-fit shrink-0 [&_.select-value>span:last-child]:!overflow-visible [&_.select-value]:!overflow-visible"
+              selectorClassName="whitespace-nowrap font-medium"
+              dataTestId="cloud-org-switcher"
+            />
+            <div className="max-w-full overflow-x-auto scrollbar-hide">
+              <TabPill
+                tabs={managementTabs}
+                activeTab={activeTab}
+                onChange={(key) => setActiveTab(key as CloudOrgManagementTab)}
+                variant="simple"
+                fillWidth={false}
+                size="large"
+              />
+            </div>
+          </div>
+        }
+      />
+      <ScrollFadeContainer
+        className={`scroll-fade-at-top ${DETAIL_PANEL_TOKENS.scrollContentNoTop}`}
+      >
+        <div
+          className={
+            activeTab === CLOUD_ORG_MANAGEMENT_TAB.SESSIONS
+              ? `min-h-full w-full ${DETAIL_PANEL_TOKENS.contentScrollBottom}`
+              : DETAIL_PANEL_TOKENS.contentWidthWithPaddingNoTop
+          }
+        >
+          {activeTab === CLOUD_ORG_MANAGEMENT_TAB.SESSIONS ? (
+            <CloudSessionsSection orgId={orgId} />
+          ) : viewState === "loading" ? (
             <Placeholder variant="loading" />
           ) : viewState === "error" ? (
             <p className="text-[12px] text-text-3">
@@ -481,277 +673,296 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
             </p>
           ) : (
             <div className="flex flex-col gap-3">
-              <div data-testid="cloud-org-plan-section">
-                <SectionContainer>
-                  {entitlement ? (
-                    <>
-                      <SectionRow
-                        label={t("cloud.orgPanel.planStatus", {
-                          plan: entitlement.plan,
-                          status: entitlement.status,
-                        })}
-                        description={
-                          entitlement.plan !== "free"
-                            ? t("cloud.orgPanel.manageBillingNote")
-                            : undefined
-                        }
-                      >
-                        {entitlement.plan === "free" ? (
-                          <Button
-                            htmlType="button"
-                            size="default"
-                            variant="primary"
-                            onClick={openCloudBillingPage}
-                            data-testid="cloud-org-plan-upgrade"
-                          >
-                            {t("cloud.orgPanel.upgrade")}
-                          </Button>
-                        ) : (
-                          <Button
-                            htmlType="button"
-                            size="default"
-                            variant="secondary"
-                            onClick={openCloudBillingPage}
-                            data-testid="cloud-org-plan-manage-billing"
-                          >
-                            {t("cloud.orgPanel.manageBilling")}
-                          </Button>
-                        )}
-                      </SectionRow>
-                      {typeof entitlement.replayRetentionDays === "number" ? (
-                        <SectionRow
-                          label={t("cloud.orgPanel.retention", {
-                            days: entitlement.replayRetentionDays,
-                          })}
-                          description={t("cloud.orgPanel.retentionNote")}
-                        />
-                      ) : null}
-                    </>
-                  ) : (
-                    <div data-testid="cloud-org-plan-error">
-                      <SectionRow label={t("cloud.orgPanel.loadError")} light />
-                    </div>
-                  )}
-                </SectionContainer>
-              </div>
-
-              {/* Org sharing FLOOR (0002 policy). Admins set the minimum level
-                every member must share at; members see it read-only. Sits
-                above the per-device default because it CONSTRAINS that
-                default. */}
-              {isAdmin ? (
-                <SectionContainer>
-                  <SectionRow
-                    label={t("cloud.sharingFloor.label")}
-                    description={t("cloud.sharingFloor.help")}
-                    align="start"
-                  >
-                    <div
-                      className="flex flex-col gap-2"
-                      data-testid="cloud-org-sharing-floor"
-                    >
-                      <Select
-                        value={orgFloor}
-                        options={floorOptions}
-                        onChange={(value) => void handleFloorChange(value)}
-                        size="default"
-                        style={SECTION_CONTROL_STYLE}
-                        disabled={savingFloor}
-                        dataTestId="cloud-org-sharing-floor-select"
-                      />
-                      {floorError ? (
-                        <span className="text-[12px] text-danger-6">
-                          {floorError}
-                        </span>
-                      ) : null}
-                    </div>
-                  </SectionRow>
-                </SectionContainer>
-              ) : orgFloor !== COLLAB_SESSION_ACCESS_MODE.OFF ? (
-                <SectionContainer>
-                  <div data-testid="cloud-org-sharing-floor-member-note">
-                    <SectionRow
-                      label={t("cloud.sharingFloor.label")}
-                      description={t("cloud.sharingFloor.memberNote", {
-                        mode:
-                          orgFloor === COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY
-                            ? t("cloud.syncLevel.modeFullReplay")
-                            : t("cloud.syncLevel.modeMetadata"),
-                      })}
-                    />
-                  </div>
-                </SectionContainer>
-              ) : null}
-
-              {/* Default per-session sync level for THIS device's sessions in
-                this org (access ladder §13.4). Sits with the sync plumbing:
-                repo scopes pick candidates, this default gates uploads. */}
-              <SectionContainer>
-                <SectionRow
-                  label={t("cloud.defaultAccess.label")}
-                  description={t("cloud.defaultAccess.help")}
-                  align="start"
-                >
-                  <div
-                    className="flex flex-col gap-2"
-                    data-testid="cloud-org-default-access"
-                  >
-                    <Select
-                      value={floorAccessMode(defaultAccessMode, orgFloor)}
-                      options={accessModeOptions}
-                      onChange={handleDefaultAccessChange}
-                      size="default"
-                      style={SECTION_CONTROL_STYLE}
-                      dataTestId="cloud-org-default-access-select"
-                    />
-                  </div>
-                </SectionRow>
-              </SectionContainer>
-
-              {isAdmin ? (
-                <CloudInvitesCard t={t} management={management} />
-              ) : null}
-
-              {members.length === 0 ? (
-                <SectionContainer title={t("cloud.orgPanel.membersTitle")}>
-                  <SectionRow label={t("cloud.orgPanel.membersEmpty")} light />
-                </SectionContainer>
-              ) : (
-                <CloudMembersSection
-                  t={t}
-                  members={members}
-                  currentUserId={currentUserId}
-                  management={management}
-                />
-              )}
-
-              <SectionContainer
-                title={
-                  scopeQuota
-                    ? `${t("cloud.orgPanel.repoScopesTitle")} · ${scopeQuota.counterLabel}`
-                    : t("cloud.orgPanel.repoScopesTitle")
-                }
-              >
-                <div data-testid="cloud-org-repo-scope">
-                  <SectionRow showHeader={false}>
-                    <p className={`m-0 ${SECTION_DESCRIPTION_CLASSES}`}>
-                      {t("cloud.orgPanel.repoScopesHelp")}
-                    </p>
-                  </SectionRow>
-                  {isAdmin ? (
-                    <>
-                      {draftScopes.length === 0 && !coolingRowsBlock ? (
-                        <SectionRow
-                          label={t("cloud.orgPanel.repoScopesEmpty")}
-                          light
-                        />
-                      ) : (
-                        draftScopes.map((path) => (
+              {activeTab === CLOUD_ORG_MANAGEMENT_TAB.GENERAL ? (
+                <>
+                  <div data-testid="cloud-org-plan-section">
+                    <SectionContainer>
+                      {entitlement ? (
+                        <>
                           <SectionRow
-                            key={path}
-                            label={<span title={path}>{path}</span>}
-                            truncateLabel
+                            label={t("cloud.orgPanel.planStatus", {
+                              plan: entitlement.plan,
+                              status: entitlement.status,
+                            })}
+                            description={
+                              entitlement.plan !== "free"
+                                ? t("cloud.orgPanel.manageBillingNote")
+                                : undefined
+                            }
                           >
-                            <Button
-                              htmlType="button"
-                              size="default"
-                              variant="secondary"
-                              onClick={() =>
-                                setDraftScopes(
-                                  draftScopes.filter((scope) => scope !== path)
-                                )
-                              }
-                            >
-                              {t("cloud.orgPanel.removeRepoScope")}
-                            </Button>
+                            {entitlement.plan === "free" ? (
+                              <Button
+                                htmlType="button"
+                                size="default"
+                                variant="primary"
+                                onClick={openCloudBillingPage}
+                                data-testid="cloud-org-plan-upgrade"
+                              >
+                                {t("cloud.orgPanel.upgrade")}
+                              </Button>
+                            ) : (
+                              <Button
+                                htmlType="button"
+                                size="default"
+                                variant="secondary"
+                                onClick={openCloudBillingPage}
+                                data-testid="cloud-org-plan-manage-billing"
+                              >
+                                {t("cloud.orgPanel.manageBilling")}
+                              </Button>
+                            )}
                           </SectionRow>
-                        ))
-                      )}
-                      {coolingRowsBlock}
-                      <SectionRow showHeader={false}>
-                        <RepoScopePicker
-                          selectedKeys={draftScopes}
-                          onChange={setDraftScopes}
-                          disabled={savingScopes || Boolean(scopeQuota?.atCap)}
-                        />
-                      </SectionRow>
-                      {scopeQuota?.atCap ? (
-                        <SectionRow showHeader={false}>
-                          <div
-                            className="flex flex-wrap items-center gap-2 rounded-lg bg-warning-1 px-3 py-2 text-[12px] text-warning-6"
-                            data-testid="cloud-org-scope-cap-upgrade"
-                          >
-                            <span>
-                              {t("cloud.orgPanel.scopeCapReached", {
-                                used: scopeQuota.used,
-                                cap: scopeQuota.cap,
+                          {typeof entitlement.replayRetentionDays ===
+                          "number" ? (
+                            <SectionRow
+                              label={t("cloud.orgPanel.retention", {
+                                days: entitlement.replayRetentionDays,
                               })}
-                            </span>
-                            <Button
-                              htmlType="button"
-                              size="default"
-                              variant="warning"
-                              appearance="ghost"
-                              onClick={openCloudBillingPage}
-                              data-testid="cloud-org-scope-cap-upgrade-link"
-                            >
-                              {t("cloud.orgPanel.upgrade")}
-                            </Button>
-                          </div>
-                        </SectionRow>
-                      ) : null}
-                      <SectionRow showHeader={false}>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            htmlType="button"
-                            size="default"
-                            variant="primary"
-                            onClick={() => void handleSaveScopes()}
-                            disabled={!scopesDirty || savingScopes}
-                            loading={savingScopes}
-                            data-testid="cloud-org-save-repo-scopes"
-                          >
-                            {t("cloud.orgPanel.saveRepoScopes")}
-                          </Button>
-                          {scopesSaved ? (
-                            <span className="text-[12px] text-success-6">
-                              {t("cloud.orgPanel.repoScopesSaved")}
-                            </span>
+                              description={t("cloud.orgPanel.retentionNote")}
+                            />
                           ) : null}
-                          {scopesError ? (
+                        </>
+                      ) : (
+                        <div data-testid="cloud-org-plan-error">
+                          <SectionRow
+                            label={t("cloud.orgPanel.loadError")}
+                            light
+                          />
+                        </div>
+                      )}
+                    </SectionContainer>
+                  </div>
+
+                  {/* Org sharing FLOOR (0002 policy). Admins set the minimum level
+                every member must share at; members see it read-only. It shares
+                a container with the per-device default because the floor
+                constrains that default. */}
+                  <SectionContainer>
+                    {isAdmin ? (
+                      <SectionRow
+                        label={t("cloud.sharingFloor.label")}
+                        description={t("cloud.sharingFloor.help")}
+                        align="start"
+                      >
+                        <div
+                          className="flex flex-col gap-2"
+                          data-testid="cloud-org-sharing-floor"
+                        >
+                          <Select
+                            value={orgFloor}
+                            options={floorOptions}
+                            onChange={(value) => void handleFloorChange(value)}
+                            size="default"
+                            style={SECTION_CONTROL_STYLE}
+                            disabled={savingFloor}
+                            dataTestId="cloud-org-sharing-floor-select"
+                          />
+                          {floorError ? (
                             <span className="text-[12px] text-danger-6">
-                              {scopesError}
+                              {floorError}
                             </span>
                           ) : null}
                         </div>
                       </SectionRow>
-                    </>
-                  ) : (
-                    <>
-                      {savedScopes.length === 0 && !coolingRowsBlock ? (
-                        <SectionRow
-                          label={t("cloud.orgPanel.repoScopesEmpty")}
-                          light
-                        />
-                      ) : (
-                        savedScopes.map((path) => (
-                          <SectionRow
-                            key={path}
-                            label={<span title={path}>{path}</span>}
-                            truncateLabel
-                          />
-                        ))
-                      )}
-                      {coolingRowsBlock}
-                    </>
-                  )}
-                </div>
-              </SectionContainer>
+                    ) : orgFloor !== COLLAB_SESSION_ACCESS_MODE.OFF ? (
+                      <SectionRow
+                        label={
+                          <span data-testid="cloud-org-sharing-floor-member-note">
+                            {t("cloud.sharingFloor.label")}
+                          </span>
+                        }
+                        description={t("cloud.sharingFloor.memberNote", {
+                          mode:
+                            orgFloor === COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY
+                              ? t("cloud.syncLevel.modeFullReplay")
+                              : t("cloud.syncLevel.modeMetadata"),
+                        })}
+                      />
+                    ) : null}
 
-              {isAdmin ? (
+                    {/* Default per-session sync level for THIS device's sessions
+                  in this org (access ladder §13.4). Repo scopes pick
+                  candidates; this default gates uploads. */}
+                    <SectionRow
+                      label={t("cloud.defaultAccess.label")}
+                      description={t("cloud.defaultAccess.help")}
+                      align="start"
+                    >
+                      <div
+                        className="flex flex-col gap-2"
+                        data-testid="cloud-org-default-access"
+                      >
+                        <Select
+                          value={floorAccessMode(defaultAccessMode, orgFloor)}
+                          options={accessModeOptions}
+                          onChange={handleDefaultAccessChange}
+                          size="default"
+                          style={SECTION_CONTROL_STYLE}
+                          dataTestId="cloud-org-default-access-select"
+                        />
+                      </div>
+                    </SectionRow>
+                  </SectionContainer>
+                </>
+              ) : null}
+
+              {activeTab === CLOUD_ORG_MANAGEMENT_TAB.MEMBERS ? (
+                <>
+                  {members.length === 0 ? (
+                    <SectionContainer title={t("cloud.orgPanel.membersTitle")}>
+                      <SectionRow
+                        label={t("cloud.orgPanel.membersEmpty")}
+                        light
+                      />
+                    </SectionContainer>
+                  ) : (
+                    <CloudMembersSection
+                      t={t}
+                      members={members}
+                      currentUserId={currentUserId}
+                      management={management}
+                    />
+                  )}
+
+                  {isAdmin ? (
+                    <CloudInvitesCard t={t} management={management} />
+                  ) : null}
+                </>
+              ) : null}
+
+              {activeTab === CLOUD_ORG_MANAGEMENT_TAB.REPO_SCOPE ? (
+                <SectionContainer
+                  title={
+                    scopeQuota
+                      ? `${t("cloud.orgPanel.repoScopesTitle")} · ${scopeQuota.counterLabel}`
+                      : t("cloud.orgPanel.repoScopesTitle")
+                  }
+                >
+                  <div data-testid="cloud-org-repo-scope">
+                    <SectionRow showHeader={false}>
+                      <p className={`m-0 ${SECTION_DESCRIPTION_CLASSES}`}>
+                        {t("cloud.orgPanel.repoScopesHelp")}
+                      </p>
+                    </SectionRow>
+                    {isAdmin ? (
+                      <>
+                        {draftScopes.length === 0 && !coolingRowsBlock ? (
+                          <SectionRow
+                            label={t("cloud.orgPanel.repoScopesEmpty")}
+                            light
+                          />
+                        ) : (
+                          draftScopes.map((path) => (
+                            <SectionRow
+                              key={path}
+                              label={<span title={path}>{path}</span>}
+                              truncateLabel
+                            >
+                              <Button
+                                htmlType="button"
+                                size="default"
+                                variant="secondary"
+                                onClick={() =>
+                                  setDraftScopes(
+                                    draftScopes.filter(
+                                      (scope) => scope !== path
+                                    )
+                                  )
+                                }
+                              >
+                                {t("cloud.orgPanel.removeRepoScope")}
+                              </Button>
+                            </SectionRow>
+                          ))
+                        )}
+                        {coolingRowsBlock}
+                        <SectionRow showHeader={false}>
+                          <RepoScopePicker
+                            selectedKeys={draftScopes}
+                            onChange={setDraftScopes}
+                            disabled={
+                              savingScopes || Boolean(scopeQuota?.atCap)
+                            }
+                          />
+                        </SectionRow>
+                        {scopeQuota?.atCap ? (
+                          <SectionRow showHeader={false}>
+                            <div
+                              className="flex flex-wrap items-center gap-2 rounded-lg bg-warning-1 px-3 py-2 text-[12px] text-warning-6"
+                              data-testid="cloud-org-scope-cap-upgrade"
+                            >
+                              <span>
+                                {t("cloud.orgPanel.scopeCapReached", {
+                                  used: scopeQuota.used,
+                                  cap: scopeQuota.cap,
+                                })}
+                              </span>
+                              <Button
+                                htmlType="button"
+                                size="default"
+                                variant="warning"
+                                appearance="ghost"
+                                onClick={openCloudBillingPage}
+                                data-testid="cloud-org-scope-cap-upgrade-link"
+                              >
+                                {t("cloud.orgPanel.upgrade")}
+                              </Button>
+                            </div>
+                          </SectionRow>
+                        ) : null}
+                        <SectionRow showHeader={false}>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                              htmlType="button"
+                              size="default"
+                              variant="primary"
+                              onClick={() => void handleSaveScopes()}
+                              disabled={!scopesDirty || savingScopes}
+                              loading={savingScopes}
+                              data-testid="cloud-org-save-repo-scopes"
+                            >
+                              {t("cloud.orgPanel.saveRepoScopes")}
+                            </Button>
+                            {scopesSaved ? (
+                              <span className="text-[12px] text-success-6">
+                                {t("cloud.orgPanel.repoScopesSaved")}
+                              </span>
+                            ) : null}
+                            {scopesError ? (
+                              <span className="text-[12px] text-danger-6">
+                                {scopesError}
+                              </span>
+                            ) : null}
+                          </div>
+                        </SectionRow>
+                      </>
+                    ) : (
+                      <>
+                        {savedScopes.length === 0 && !coolingRowsBlock ? (
+                          <SectionRow
+                            label={t("cloud.orgPanel.repoScopesEmpty")}
+                            light
+                          />
+                        ) : (
+                          savedScopes.map((path) => (
+                            <SectionRow
+                              key={path}
+                              label={<span title={path}>{path}</span>}
+                              truncateLabel
+                            />
+                          ))
+                        )}
+                        {coolingRowsBlock}
+                      </>
+                    )}
+                  </div>
+                </SectionContainer>
+              ) : null}
+
+              {activeTab === CLOUD_ORG_MANAGEMENT_TAB.GENERAL && isAdmin ? (
                 <CloudOrgSettingsSection
                   t={t}
-                  orgName={org?.name ?? ""}
+                  orgName={orgName}
                   members={members}
                   currentUserId={currentUserId}
                   management={management}
@@ -759,8 +970,8 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
               ) : null}
             </div>
           )}
-        </SectionHeading>
-      </div>
+        </div>
+      </ScrollFadeContainer>
     </div>
   );
 };

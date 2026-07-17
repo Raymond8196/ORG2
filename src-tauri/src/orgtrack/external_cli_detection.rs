@@ -52,6 +52,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "codex_app",
     "claude_code",
     "cursor_ide",
+    "cursor_cli",
     "opencode",
     "windsurf",
     "workbuddy",
@@ -59,6 +60,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "cline",
     "warp",
     "zcode",
+    "qoder",
 ];
 
 /// On-disk store format for a source's session history — the "file type" shown
@@ -69,11 +71,11 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
 fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
-        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" => "jsonl",
-        "cursor_ide" | "opencode" | "windsurf" | "warp" | "zcode" => "sqlite",
+        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" | "qoder" => "jsonl",
+        "cursor_ide" | "cursor_cli" | "opencode" | "windsurf" | "warp" | "zcode" => "sqlite",
         // Known store format, not yet imported.
         "qwen_code" | "kimi" | "pi" | "omp" | "droid" => "jsonl",
-        "cursor" | "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
+        "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
         "aider" => "markdown",
         _ => "",
     }
@@ -276,15 +278,18 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[".continue"],
     ),
     source(
-        "cursor",
+        "cursor_cli",
         "Cursor CLI",
         "cursor",
         "cursor-agent",
         &[],
         "cursor-agent",
         "cursor-agent",
-        false,
-        &[".cursor"],
+        // cursor-agent writes one SQLite store per session under
+        // `~/.cursor/chats/<workspace-hash>/<session-uuid>/store.db`,
+        // parsed by `orgtrack_core::sources::cursor_cli`.
+        true,
+        &[".cursor/chats"],
     ),
     source(
         "droid",
@@ -429,6 +434,17 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         true,
         &[],
     ),
+    source(
+        "qoder",
+        "Qoder",
+        "qoder",
+        "qoder",
+        &[],
+        "qoder",
+        "Qoder",
+        true,
+        &[".qoder"],
+    ),
 ];
 
 const fn source(
@@ -543,6 +559,9 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         "codex_app" => home_candidates(&[".codex", ".codex/sessions"]),
         "opencode" => home_candidates(&[".config/opencode", ".local/share/opencode"]),
         "cursor_ide" => platform_data_candidates(&["Cursor/User/globalStorage"]),
+        "cursor_cli" => {
+            orgtrack_core::sources::cursor_cli::history::cursor_cli_history_candidate_paths()
+        }
         "windsurf" => platform_data_candidates(&[
             "Windsurf/User/globalStorage",
             "Windsurf/User/workspaceStorage",
@@ -553,6 +572,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         "cline" => home_candidates(&[".cline/data/sessions", ".cline/data/db"]),
         "warp" => orgtrack_core::sources::warp::history::warp_history_candidate_paths(),
         "zcode" => orgtrack_core::sources::zcode::history::zcode_history_candidate_paths(),
+        "qoder" => orgtrack_core::sources::qoder::history::qoder_history_candidate_paths(),
         _ => Vec::new(),
     }
 }

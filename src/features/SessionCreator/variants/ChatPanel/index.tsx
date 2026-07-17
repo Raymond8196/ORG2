@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom, useStore } from "jotai";
-import { Airplay, Import, Network } from "lucide-react";
+import { Airplay, Network } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import { cliAgentCreateTuiSession } from "@src/api/tauri/agent/cliTerminalSession";
 import type { ModelType } from "@src/api/tauri/rpc/schemas/validation";
 import type { CliAgentType } from "@src/api/types/keys";
 import Button from "@src/components/Button";
@@ -28,17 +29,18 @@ import type {
   ChatPanelRegionNotice,
 } from "@src/engines/ChatPanel/types";
 import { useSessionCreator } from "@src/engines/SessionCore/hooks/session/useSessionCreator";
+import { getWorktreeFields } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/launchPayload";
 import type {
   SessionLaunchSuccessInfo,
   SessionLaunchWorkItemContext,
 } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
-import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import type { SessionCreatorLaunchMode } from "@src/features/SessionCreator/types";
 import {
   SYSTEM_HOME_SOURCE_ID,
   getSystemHomeSourceLabel,
   isSystemPathSourceId,
 } from "@src/features/SessionCreator/utils/systemPathSource";
+import { useCliVersions } from "@src/hooks/cliVersions/useCliVersions";
 import { useRegionCheck } from "@src/hooks/config";
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { createLogger } from "@src/hooks/logger";
@@ -173,7 +175,6 @@ const SessionCreatorChatPanelSingle: React.FC<
   resolveWorkItemContext,
 }) => {
   const { t } = useTranslation("sessions");
-  const { t: tNav } = useTranslation("navigation");
   const browserAddToConversationNav = useBrowserAddToConversationAction();
   const { registry } = useAgentCompatibility();
   const { orgs } = useAgentOrgs();
@@ -192,6 +193,17 @@ const SessionCreatorChatPanelSingle: React.FC<
   const cliAgentType = useAtomValue(cliAgentTypeAtom);
   const cliLaunchMode = useAtomValue(cliLaunchModeAtom);
   const setCliLaunchMode = useSetAtom(cliLaunchModeAtom);
+  const { getVersion, scanVersion } = useCliVersions();
+  const selectedCliVersion = cliAgentType
+    ? getVersion(cliAgentType)
+    : undefined;
+
+  useEffect(() => {
+    if (dispatchCategory !== "cli_agent" || !cliAgentType) return;
+    void scanVersion(cliAgentType).catch((error) => {
+      log.warn("CLI version scan failed", error);
+    });
+  }, [cliAgentType, dispatchCategory, scanVersion]);
 
   const selectedCliAgent = useMemo(
     () =>
@@ -205,6 +217,18 @@ const SessionCreatorChatPanelSingle: React.FC<
   const cliComposerEnabled =
     cliLaunchMode === CLI_LAUNCH_MODE.GUI &&
     (!selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui);
+  const cliVersionOutdatedAlertKey =
+    dispatchCategory === "cli_agent" &&
+    cliAgentType &&
+    selectedCliVersion?.status === "outdated"
+      ? `${cliAgentType}:${selectedCliVersion.installed_version ?? "unknown"}:${selectedCliVersion.latest_version ?? "unknown"}`
+      : null;
+  const [dismissedCliVersionAlertKey, setDismissedCliVersionAlertKey] =
+    useState<string | null>(null);
+  const showCliVersionOutdatedAlert = Boolean(
+    cliVersionOutdatedAlertKey &&
+    cliVersionOutdatedAlertKey !== dismissedCliVersionAlertKey
+  );
 
   const {
     repos: reposList,
@@ -244,7 +268,7 @@ const SessionCreatorChatPanelSingle: React.FC<
       }
       onSessionStart?.(info);
     },
-    [onSessionStart, defaultTuiMode, store]
+    [onSessionStart, defaultTuiMode, setAttachedWorkItemContext, store]
   );
 
   const {
@@ -308,6 +332,7 @@ const SessionCreatorChatPanelSingle: React.FC<
 
   const runningLocation = useAtomValue(runningLocationAtom);
   const setRunningLocation = useSetAtom(runningLocationAtom);
+  const selectedWorktreePath = useAtomValue(selectedWorktreePathAtom);
   const setSelectedWorktreePath = useSetAtom(selectedWorktreePathAtom);
   const worktreeLaunchSource = useAtomValue(worktreeLaunchSourceAtom);
   const setWorktreeLaunchSource = useSetAtom(worktreeLaunchSourceAtom);
@@ -367,8 +392,6 @@ const SessionCreatorChatPanelSingle: React.FC<
   const [openOrgMembersPanelId, setOpenOrgMembersPanelId] = useState<
     string | null
   >(null);
-  const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
-    useState(false);
   const isOrgMembersPanelOpen =
     targetKind === SESSION_TARGET_KIND.AGENT_ORG &&
     Boolean(selectedAgentOrgId) &&
@@ -504,11 +527,41 @@ const SessionCreatorChatPanelSingle: React.FC<
     ) {
       const command = selectedCliAgent.command.trim();
       if (command.length > 0) {
+        // Back the TUI terminal with a managed session row so the worktree
+        // selection is honored (cwd below) and lifecycle hooks can attribute
+        // status/transcripts via ORGII_SESSION_ID. Creation failure degrades
+        // to the old unbound repo-root terminal rather than blocking launch.
+        const repoPath = effectiveSource?.repoPath;
+        let cwd = repoPath;
+        let agentSessionId: string | undefined;
+        try {
+          const worktreeFields = getWorktreeFields({
+            runningLocation,
+            selectedWorktreePath,
+            worktreeLaunchSource,
+          });
+          const created = await cliAgentCreateTuiSession({
+            platform: cliAgentType,
+            name: selectedCliAgent.displayName,
+            repoPath,
+            isolate: worktreeFields.isolate,
+            branch: worktreeFields.branch,
+            worktreePath: worktreeFields.worktreePath,
+          });
+          agentSessionId = created.sessionId;
+          cwd = created.worktreePath || repoPath;
+        } catch (error) {
+          log.warn(
+            "TUI session create failed; opening unbound terminal",
+            error
+          );
+        }
         onOpenCliTerminal({
           cliAgentType,
           command,
           title: selectedCliAgent.displayName,
-          cwd: effectiveSource?.repoPath,
+          cwd,
+          agentSessionId,
           expectedProcess: deriveExpectedProcess(command),
         });
         setAttachedWorkItemContext(null);
@@ -523,7 +576,11 @@ const SessionCreatorChatPanelSingle: React.FC<
     isCliTuiMode,
     onOpenCliTerminal,
     originalHandleLaunch,
+    runningLocation,
     selectedCliAgent,
+    selectedWorktreePath,
+    setAttachedWorkItemContext,
+    worktreeLaunchSource,
   ]);
 
   const handleCliLaunchModeChange = useCallback(
@@ -1013,20 +1070,6 @@ const SessionCreatorChatPanelSingle: React.FC<
                     repoPath={currentRepoPath}
                     onWorkItemContextChange={setAttachedWorkItemContext}
                   />
-                  <Button
-                    variant="secondary"
-                    appearance="outline"
-                    size="small"
-                    shape="round"
-                    icon={<Import size={14} strokeWidth={1.75} />}
-                    title={tNav("cloud.share.importEntry")}
-                    aria-label={tNav("cloud.share.importEntry")}
-                    onClick={() => setIsImportSessionDialogOpen(true)}
-                    className="shrink-0"
-                    data-testid="import-session-trigger"
-                  >
-                    {tNav("cloud.share.importEntry")}
-                  </Button>
                   {selectedOrg && (
                     <Button
                       variant="secondary"
@@ -1053,6 +1096,32 @@ const SessionCreatorChatPanelSingle: React.FC<
               }
             />
           </div>
+
+          {showCliVersionOutdatedAlert && (
+            <div
+              className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+            >
+              <InlineAlert
+                type="warning"
+                onClose={() =>
+                  setDismissedCliVersionAlertKey(cliVersionOutdatedAlertKey)
+                }
+                closeAriaLabel={t("common:actions.close")}
+                title={t("creator.cliVersionOutdated.title", {
+                  cli: selectedCliAgent?.displayName ?? cliAgentType,
+                })}
+              >
+                {t("creator.cliVersionOutdated.body", {
+                  installed:
+                    selectedCliVersion?.installed_version ??
+                    t("creator.cliVersionOutdated.unknownVersion"),
+                  latest:
+                    selectedCliVersion?.latest_version ??
+                    t("creator.cliVersionOutdated.unknownVersion"),
+                })}
+              </InlineAlert>
+            </div>
+          )}
 
           <div
             ref={workItemPanelHostRef}
@@ -1124,11 +1193,6 @@ const SessionCreatorChatPanelSingle: React.FC<
           onClose={() => setScreenPickerMonitors(null)}
         />
       )}
-
-      <ImportSharedSessionDialog
-        visible={isImportSessionDialogOpen}
-        onClose={() => setIsImportSessionDialogOpen(false)}
-      />
     </div>
   );
 };

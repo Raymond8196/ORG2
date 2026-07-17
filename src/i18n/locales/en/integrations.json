@@ -2361,7 +2361,8 @@
       "forceApply": "Force Apply",
       "forceRestore": "Force Restore",
       "applySuccess": "ORGII managed config applied",
-      "restoreSuccess": "Default config restored"
+      "restoreSuccess": "Default config restored",
+      "proxyLifecycleDesc": "Keep ORGII running while using this mode. Closing the window keeps the proxy in the tray; quitting ORGII safely restores Default unless the config changed externally."
     },
     "sessionProvenance": {
       "title": "Session Provenance",
@@ -2381,7 +2382,8 @@
         "off": "Off",
         "repair": "Repair",
         "checking": "Checking…",
-        "error": "Error"
+        "error": "Error",
+        "awaitingVerification": "Awaiting verification"
       },
       "signals": {
         "title": "Recent signals",
@@ -2408,6 +2410,15 @@
           "rename": "Rename",
           "search": "Search"
         }
+      },
+      "masterToggle": "Provenance hooks",
+      "masterToggleDesc": "When off, all managed hooks are uninstalled and no signals are captured; per-platform choices are kept and restored on re-enable",
+      "codexApproval": {
+        "title": "Verify ORG2 hooks in Codex",
+        "description": "Waiting for Codex to approve and execute the current ORG2 hooks.",
+        "instructions": "Open Codex, review the ORG2 hooks, then choose Trust all and continue. The SessionStart hook verifies activation automatically when the session starts.",
+        "review": "Review in Codex",
+        "verified": "Verified by a real Codex hook signal {{time}}."
       }
     }
   },

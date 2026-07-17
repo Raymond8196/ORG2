@@ -92,8 +92,7 @@ fn load_events_by_ids(session_id: &str, ids: &[String]) -> SqliteResult<Vec<Cach
     }
 
     let conn = get_connection()?;
-    let placeholders = std::iter::repeat("?")
-        .take(ids.len())
+    let placeholders = std::iter::repeat_n("?", ids.len())
         .collect::<Vec<_>>()
         .join(",");
     let query = format!(

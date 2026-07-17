@@ -23,7 +23,7 @@
 //!   serde `tag = "kind"` on `AgentMessage` — see the `kind_tag_matches_serde_tag`
 //!   regression test below.
 
-use rusqlite::{params, Connection, Result as SqliteResult};
+use rusqlite::{params, Connection, OptionalExtension, Result as SqliteResult};
 use serde::{Deserialize, Serialize};
 
 use crate::session::AgentExecMode;
@@ -715,10 +715,15 @@ impl AgentInboxStore {
     /// more concrete `AgentId`s before calling this — the store does not
     /// fan out by itself. The router owns that resolution.
     pub fn insert(params: InsertInboxParams) -> Result<AgentInboxRecord, String> {
-        with_sessions_writer(|| -> Result<AgentInboxRecord, String> {
+        let changed_org_run_id = params.org_run_id.clone();
+        let record = with_sessions_writer(|| -> Result<AgentInboxRecord, String> {
             let conn = get_connection().map_err(|err| err.to_string())?;
             Self::insert_in_tx(&conn, params)
-        })
+        })?;
+        if let Some(org_run_id) = changed_org_run_id {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(&org_run_id);
+        }
+        Ok(record)
     }
 
     /// Insert an inbox row using an existing writer transaction.
@@ -902,29 +907,50 @@ impl AgentInboxStore {
         if ids.is_empty() {
             return Ok(0);
         }
-        with_sessions_writer(|| -> Result<usize, String> {
-            let mut conn = get_connection().map_err(|err| err.to_string())?;
-            let tx = conn
-                .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
-                .map_err(|err| err.to_string())?;
-            let now = chrono::Utc::now().to_rfc3339();
-            let mut updated = 0usize;
-            {
-                let mut stmt = tx
-                    .prepare(
-                        "UPDATE agent_inbox SET read_at = ?1 WHERE id = ?2 AND read_at IS NULL",
-                    )
+        let (updated, changed_run_ids) = with_sessions_writer(
+            || -> Result<(usize, std::collections::HashSet<String>), String> {
+                let mut conn = get_connection().map_err(|err| err.to_string())?;
+                let tx = conn
+                    .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
                     .map_err(|err| err.to_string())?;
-                for id in ids {
-                    let n = stmt
-                        .execute(params![&now, id])
+                let now = chrono::Utc::now().to_rfc3339();
+                let mut updated = 0usize;
+                let mut changed_run_ids = std::collections::HashSet::new();
+                {
+                    let mut stmt = tx
+                        .prepare(
+                            "UPDATE agent_inbox SET read_at = ?1 WHERE id = ?2 AND read_at IS NULL",
+                        )
                         .map_err(|err| err.to_string())?;
-                    updated += n;
+                    for id in ids {
+                        let org_run_id = tx
+                        .query_row(
+                            "SELECT org_run_id FROM agent_inbox WHERE id = ?1 AND read_at IS NULL",
+                            params![id],
+                            |row| row.get::<_, Option<String>>(0),
+                        )
+                        .optional()
+                        .map_err(|err| err.to_string())?
+                        .flatten();
+                        let n = stmt
+                            .execute(params![&now, id])
+                            .map_err(|err| err.to_string())?;
+                        updated += n;
+                        if n > 0 {
+                            if let Some(org_run_id) = org_run_id {
+                                changed_run_ids.insert(org_run_id);
+                            }
+                        }
+                    }
                 }
-            }
-            tx.commit().map_err(|err| err.to_string())?;
-            Ok(updated)
-        })
+                tx.commit().map_err(|err| err.to_string())?;
+                Ok((updated, changed_run_ids))
+            },
+        )?;
+        for org_run_id in changed_run_ids {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(&org_run_id);
+        }
+        Ok(updated)
     }
 }
 

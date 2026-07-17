@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Sessões",
+    "fileSearch": {
+      "placeholder": "Buscar sessões pelo caminho do arquivo",
+      "noResults": "Nenhuma sessão alterou um arquivo correspondente"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Kanban atual",
     "view": {
@@ -99,8 +103,16 @@
       "lastScan": "Última varredura {{time}}",
       "neverScanned": "Nunca verificado",
       "frequencyTitle": "Frequência de varredura",
-      "globalFrequency": "Varredura automática",
-      "globalFrequencyDesc": "Cadência padrão para fontes definidas como “Padrão”.",
+      "globalFrequency": "Varredura automática de fontes externas",
+      "globalFrequencyDesc": "Frequência de varredura padrão para fontes externas definidas como “Padrão”",
+      "activeSessionRefresh": "Atualização da sessão externa aberta",
+      "activeSessionRefreshDesc": "Frequência de atualização da sessão externa atualmente aberta no painel de chat",
+      "activeSessionFreq": {
+        "3s": "A cada 3 segundos",
+        "5s": "A cada 5 segundos",
+        "10s": "A cada 10 segundos",
+        "1m": "A cada minuto"
+      },
       "col": {
         "source": "Fonte",
         "sessions": "Sessões",
@@ -786,13 +798,6 @@
         "heatmap": "Tendências",
         "runtime": "Tempo de execução"
       },
-      "heatmap": {
-        "loading": "Carregando tendências de atividade…",
-        "empty": "Ainda não há atividade de sessões.",
-        "sessions": "Sessões",
-        "tokens": "Tokens",
-        "cost": "Custo"
-      },
       "quota": {
         "empty": "Ainda não há dados de quota. Atualize o uso no Key Vault.",
         "refresh": "Atualizar",
@@ -1011,11 +1016,20 @@
         "importFailed": "Não foi possível importar a Session JSON."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "{{count}} arquivo alterado nesta rodada",
-      "filesChangedCount_other": "{{count}} arquivos alterados nesta rodada",
-      "historicalRoundDiffFiles_one": "Diff de rodada anterior · {{count}} arquivo",
-      "historicalRoundDiffFiles_other": "Diff de rodada anterior · {{count}} arquivos",
+    "turnMetadata": {
+      "noChanges": "Nenhuma alteração de arquivo nesta rodada",
+      "earlierRound": "Rodada anterior",
+      "files_one": "{{count}} arquivo",
+      "files_other": "{{count}} arquivos",
+      "reads_one": "{{count}} leitura",
+      "reads_other": "{{count}} leituras",
+      "searches_one": "{{count}} pesquisa",
+      "searches_other": "{{count}} pesquisas",
+      "failed": "Falhou",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commits",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PRs",
       "review": "Revisar",
       "showLess": "Mostrar menos",
       "showMore_one": "Mostrar mais {{count}}",
@@ -1974,6 +1988,14 @@
     "model": "Modelo",
     "source": "Conta",
     "addContext": "Adicionar contexto",
+    "contextMenu": {
+      "filesAndFolders": "Arquivos e pastas",
+      "agentSession": "Sessão do agente",
+      "workItems": "Itens de trabalho",
+      "back": "Voltar",
+      "recent": "Recentes",
+      "showMore": "Mostrar mais {{remaining}}"
+    },
     "slashSearchPlaceholder": "Pesquisar comandos…",
     "slashMenu": {
       "image": "Imagem",

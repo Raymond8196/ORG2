@@ -3,14 +3,12 @@
  *
  * Two tabs:
  *  1. Cloud — ORG2 Cloud (managed) with the existing sign-in /
- *     sign-out control. Sign-in opens the managed cloud login page in an
- *     app-managed webview window (the `org2_cloud_open_login` Tauri
- *     command, mirroring the Codex/Gemini OAuth pattern). The login page
- *     finishes with a navigation to `orgii://auth/callback#…`, which the
- *     Rust side intercepts and forwards as the `org2-cloud-auth-callback`
- *     event handled at the always-mounted app root (useDeepLinkHandler) so
- *     it survives this section unmounting. The deep-link path in
- *     useDeepLinkHandler stays as a fallback for external browser flows.
+ *     sign-out control. Sign-in opens the managed cloud login page in the
+ *     SYSTEM browser; the login page finishes with a redirect to
+ *     `orgii://auth/callback#…`, which the OS delivers through the
+ *     deep-link plugin and useDeepLinkHandler completes at the
+ *     always-mounted app root — so sign-in survives this section
+ *     unmounting.
  *     Includes the agent task runner card (`CloudAgentRunnerCard`, agent-pickup §4 item
  *     7) — per-org account/model/mode defaults for comment-task runs;
  *     hidden until a cloud org exists.
@@ -23,7 +21,7 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import { invoke } from "@tauri-apps/api/core";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useAtom } from "jotai";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,10 +29,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import CloudAgentRunnerCard from "@src/features/Org2Cloud/CloudAgentRunnerCard";
 import CloudEndpointCard from "@src/features/Org2Cloud/CloudEndpointCard";
-import {
-  buildOrg2CloudLoginUrl,
-  getCloudEndpoint,
-} from "@src/features/Org2Cloud/config";
+import { buildOrg2CloudLoginUrl } from "@src/features/Org2Cloud/config";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { createLogger } from "@src/hooks/logger";
 
@@ -56,23 +51,10 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
 
   const handleSignIn = useCallback(() => {
-    // App-managed login window; window.open(_blank) is a no-op in the
-    // bundled WKWebView (no window-open handler is installed). The Rust
-    // command validates the URL against the CONFIGURED origin (official or
-    // custom endpoint, Phase C) — resolved here from the same settings that
-    // built the login URL.
-    invoke("org2_cloud_open_login", {
-      loginUrl: buildOrg2CloudLoginUrl(),
-      allowedOrigin: getCloudEndpoint().webOrigin,
-    }).catch((error: unknown) => {
-      log.error("failed to open ORG2 Cloud login window", error);
+    openUrl(buildOrg2CloudLoginUrl()).catch((error: unknown) => {
+      log.error("failed to open ORG2 Cloud login in system browser", error);
     });
   }, []);
-
-  // The `org2-cloud-auth-callback` event from the in-app login window is now
-  // handled at the always-mounted app root (useDeepLinkHandler), so sign-in
-  // completes even if this Settings section is unmounted while the login
-  // window is open. This section only owns the sign-in / sign-out controls.
 
   const handleSignOut = useCallback(() => {
     setAuth(null);

@@ -151,6 +151,13 @@ describe("invites", () => {
     });
   });
 
+  it("rejects the removed viewer role from invite responses", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ orgId: "org-1", role: "viewer" })
+    );
+    await expect(acceptCloudInvite("jwt-1", "plain-code")).rejects.toThrow();
+  });
+
   it("cloud_list_invites normalizes nullish expiry/revocation", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({
@@ -192,11 +199,11 @@ describe("invites", () => {
 
 describe("members", () => {
   it("cloud_update_member_role posts the target + role", async () => {
-    await updateCloudMemberRole("jwt-1", "org-1", "user-2", "viewer");
+    await updateCloudMemberRole("jwt-1", "org-1", "user-2", "admin");
     expect(lastBody()).toEqual({
       p_org_id: "org-1",
       p_user_id: "user-2",
-      p_role: "viewer",
+      p_role: "admin",
     });
   });
 

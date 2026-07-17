@@ -269,7 +269,7 @@ function removeTerminalSessionLocalOnly(
 export const editorAddTerminalSessionAtom = atom(
   null,
   (get, set, options?: AddSessionOptions) => {
-    if (!tryBeginTerminalCreation()) {
+    if (!options?.bypassCreationCooldown && !tryBeginTerminalCreation()) {
       notifyTerminalCreationCooldown();
       return get(activeTerminalIdAtom);
     }

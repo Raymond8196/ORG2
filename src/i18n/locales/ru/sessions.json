@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "Поиск сессий по пути файла",
+      "noResults": "Нет сессий, изменивших подходящий файл"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Текущий Kanban",
     "view": {
@@ -99,8 +103,16 @@
       "lastScan": "Последнее сканирование {{time}}",
       "neverScanned": "Не сканировалось",
       "frequencyTitle": "Частота сканирования",
-      "globalFrequency": "Автоскан",
-      "globalFrequencyDesc": "Частота по умолчанию для источников со значением «По умолчанию».",
+      "globalFrequency": "Автосканирование внешних источников",
+      "globalFrequencyDesc": "Частота сканирования внешних источников со значением «По умолчанию»",
+      "activeSessionRefresh": "Обновление открытого внешнего сеанса",
+      "activeSessionRefreshDesc": "Частота обновления внешнего сеанса, открытого сейчас на панели чата",
+      "activeSessionFreq": {
+        "3s": "Каждые 3 секунды",
+        "5s": "Каждые 5 секунд",
+        "10s": "Каждые 10 секунд",
+        "1m": "Каждую минуту"
+      },
       "col": {
         "source": "Источник",
         "sessions": "Сессии",
@@ -791,13 +803,6 @@
         "heatmap": "Тренды",
         "runtime": "Среда выполнения"
       },
-      "heatmap": {
-        "loading": "Загрузка трендов активности…",
-        "empty": "Активности сессий пока нет.",
-        "sessions": "Сессии",
-        "tokens": "Tokens",
-        "cost": "Стоимость"
-      },
       "quota": {
         "empty": "Данных о квоте пока нет. Обновите использование в Key Vault.",
         "refresh": "Обновить",
@@ -1016,15 +1021,30 @@
         "importFailed": "Не удалось импортировать Session JSON."
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "{{count}} файл изменён в этом раунде",
-      "filesChangedCount_few": "{{count}} файла изменено в этом раунде",
-      "filesChangedCount_many": "{{count}} файлов изменено в этом раунде",
-      "filesChangedCount_other": "{{count}} файла изменено в этом раунде",
-      "historicalRoundDiffFiles_one": "Diff предыдущего раунда · {{count}} файл",
-      "historicalRoundDiffFiles_few": "Diff предыдущего раунда · {{count}} файла",
-      "historicalRoundDiffFiles_many": "Diff предыдущего раунда · {{count}} файлов",
-      "historicalRoundDiffFiles_other": "Diff предыдущего раунда · {{count}} файла",
+    "turnMetadata": {
+      "noChanges": "В этом раунде файлы не изменялись",
+      "earlierRound": "Предыдущий раунд",
+      "files_one": "{{count}} файл",
+      "files_few": "{{count}} файла",
+      "files_many": "{{count}} файлов",
+      "files_other": "{{count}} файлов",
+      "reads_one": "{{count}} чтение",
+      "reads_few": "{{count}} чтения",
+      "reads_many": "{{count}} чтений",
+      "reads_other": "{{count}} чтений",
+      "searches_one": "{{count}} поиск",
+      "searches_few": "{{count}} поиска",
+      "searches_many": "{{count}} поисков",
+      "searches_other": "{{count}} поисков",
+      "failed": "Ошибка",
+      "commits_one": "{{count}} коммит",
+      "commits_few": "{{count}} коммита",
+      "commits_many": "{{count}} коммитов",
+      "commits_other": "{{count}} коммитов",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_few": "{{count}} PR",
+      "pullRequests_many": "{{count}} PR",
+      "pullRequests_other": "{{count}} PR",
       "review": "Просмотреть",
       "showLess": "Показать меньше",
       "showMore_one": "Показать ещё {{count}}",
@@ -1994,6 +2014,14 @@
     "model": "Модель",
     "source": "Аккаунт",
     "addContext": "Добавить контекст",
+    "contextMenu": {
+      "filesAndFolders": "Файлы и папки",
+      "agentSession": "Сеанс агента",
+      "workItems": "Рабочие элементы",
+      "back": "Назад",
+      "recent": "Недавние",
+      "showMore": "Показать ещё: {{remaining}}"
+    },
     "slashSearchPlaceholder": "Поиск команд…",
     "slashMenu": {
       "image": "Изображение",

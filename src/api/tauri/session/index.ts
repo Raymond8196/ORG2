@@ -6,21 +6,19 @@
 import { IMPORTED_HISTORY_SOURCE_DESCRIPTORS } from "@src/api/tauri/externalHistory/imported/descriptors";
 import { rpc } from "@src/api/tauri/rpc";
 import type {
-  AggregateStats,
+  ExternalHistorySidebarBatchResponse,
   ExternalHistorySidebarDateBucket,
   ExternalHistorySidebarListRequest,
   ExternalHistorySidebarResponse,
+  ExternalHistorySidebarSourceRequest,
   SessionAggregateRecord,
   SessionFilter,
-  SessionHeatmapFilter,
-  SessionHeatmapResponse,
   SessionListResponse,
-  SessionUsageSummary,
 } from "@src/api/tauri/rpc/schemas/sessionAggregate";
 import { normalizeAgentExecMode } from "@src/config/sessionCreatorConfig";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
-import type { DispatchCategory, KeySource } from "./dispatchTypes";
+import type { DispatchCategory } from "./dispatchTypes";
 
 // Re-export from zero-dep module so callers keep the same import path.
 export type { DispatchCategory, KeySource } from "./dispatchTypes";
@@ -44,16 +42,14 @@ export type {
 
 // Re-export session aggregate types from RPC schemas (single source of truth).
 export type {
-  AggregateStats,
+  ExternalHistorySidebarBatchResponse,
   ExternalHistorySidebarDateBucket,
   ExternalHistorySidebarListRequest,
   ExternalHistorySidebarResponse,
+  ExternalHistorySidebarSourceRequest,
   SessionAggregateRecord,
   SessionFilter,
-  SessionHeatmapFilter,
-  SessionHeatmapResponse,
   SessionListResponse,
-  SessionUsageSummary,
 };
 
 // ============================================================================
@@ -74,39 +70,8 @@ export async function sessionAggregateList(
 
 export async function externalHistorySidebarList(
   request: ExternalHistorySidebarListRequest
-): Promise<ExternalHistorySidebarResponse> {
+): Promise<ExternalHistorySidebarBatchResponse> {
   return rpc.sessionAggregate.externalHistorySidebarList(request);
-}
-
-/**
- * Get aggregate statistics for sessions.
- *
- * Optionally filter by session IDs or key source.
- */
-export async function sessionGetAggregateStats(
-  sessionIds?: string[],
-  keySource?: KeySource
-): Promise<AggregateStats> {
-  return rpc.sessionAggregate.getStats({
-    sessionIds,
-    keySource,
-  }) as Promise<AggregateStats>;
-}
-
-export async function sessionUsageSummary(
-  sessionId: string
-): Promise<SessionUsageSummary> {
-  return rpc.sessionAggregate.usageSummary({
-    sessionId,
-  }) as Promise<SessionUsageSummary>;
-}
-
-export async function sessionHeatmap(
-  filter?: SessionHeatmapFilter
-): Promise<SessionHeatmapResponse> {
-  return rpc.sessionAggregate.heatmap({
-    filter,
-  }) as Promise<SessionHeatmapResponse>;
 }
 
 // ============================================================================

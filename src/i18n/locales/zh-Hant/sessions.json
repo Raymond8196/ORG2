@@ -80,6 +80,10 @@
   },
   "kanban": {
     "sessions": "Session",
+    "fileSearch": {
+      "placeholder": "依檔案路徑搜尋 Session",
+      "noResults": "沒有 Session 改動過符合的檔案"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "目前看板",
     "view": {
@@ -99,8 +103,16 @@
       "lastScan": "上次掃描 {{time}}",
       "neverScanned": "從未掃描",
       "frequencyTitle": "自動掃描頻率",
-      "globalFrequency": "自動掃描",
-      "globalFrequencyDesc": "設為「預設」的來源的預設頻率。",
+      "globalFrequency": "外部資料來源自動掃描",
+      "globalFrequencyDesc": "設為「預設」的外部資料來源所使用的掃描頻率",
+      "activeSessionRefresh": "已開啟外部工作階段重新整理",
+      "activeSessionRefreshDesc": "目前在聊天面板中開啟的外部工作階段的重新整理頻率",
+      "activeSessionFreq": {
+        "3s": "每 3 秒",
+        "5s": "每 5 秒",
+        "10s": "每 10 秒",
+        "1m": "每分鐘"
+      },
       "col": {
         "source": "來源",
         "sessions": "工作階段",
@@ -790,13 +802,6 @@
         "heatmap": "趨勢",
         "runtime": "執行階段"
       },
-      "heatmap": {
-        "loading": "正在載入活動趨勢…",
-        "empty": "尚無會話活動。",
-        "sessions": "會話",
-        "tokens": "Tokens",
-        "cost": "成本"
-      },
       "quota": {
         "empty": "暫無配額資料。請在 Key Vault 中重新整理用量。",
         "refresh": "重新整理",
@@ -1015,11 +1020,20 @@
         "importFailed": "無法匯入 Session JSON。"
       }
     },
-    "turnFiles": {
-      "filesChangedCount_one": "本輪變更了 {{count}} 個檔案",
-      "filesChangedCount_other": "本輪變更了 {{count}} 個檔案",
-      "historicalRoundDiffFiles_one": "歷史輪次 Diff · {{count}} 個檔案",
-      "historicalRoundDiffFiles_other": "歷史輪次 Diff · {{count}} 個檔案",
+    "turnMetadata": {
+      "noChanges": "本輪沒有檔案改動",
+      "earlierRound": "較早輪次",
+      "files_one": "{{count}} 個檔案",
+      "files_other": "{{count}} 個檔案",
+      "reads_one": "讀取 {{count}} 次",
+      "reads_other": "讀取 {{count}} 次",
+      "searches_one": "搜尋 {{count}} 次",
+      "searches_other": "搜尋 {{count}} 次",
+      "failed": "失敗",
+      "commits_one": "{{count}} 個 Commit",
+      "commits_other": "{{count}} 個 Commit",
+      "pullRequests_one": "{{count}} 個 PR",
+      "pullRequests_other": "{{count}} 個 PR",
       "review": "檢視",
       "showLess": "收合",
       "showMore_one": "顯示其餘 {{count}} 個",
@@ -1962,6 +1976,14 @@
     "model": "模型",
     "source": "帳號",
     "addContext": "添加上下文",
+    "contextMenu": {
+      "filesAndFolders": "檔案與資料夾",
+      "agentSession": "Agent 工作階段",
+      "workItems": "工作項目",
+      "back": "返回",
+      "recent": "最近使用",
+      "showMore": "再顯示 {{remaining}} 項"
+    },
     "slashSearchPlaceholder": "搜尋指令…",
     "slashMenu": {
       "image": "圖片",

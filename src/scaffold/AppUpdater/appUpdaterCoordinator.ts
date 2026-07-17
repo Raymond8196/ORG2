@@ -28,6 +28,7 @@ export interface AppUpdateCheckResult {
 
 interface AppUpdaterCoordinatorDependencies {
   check: () => Promise<Update | null>;
+  downloadTimeoutMs: number;
   getVersion: () => Promise<string>;
   onStateChange: (state: AppUpdaterState) => void;
   minCheckIntervalMs: number;
@@ -136,7 +137,7 @@ export class AppUpdaterCoordinator {
 
     this.setState({ phase: "downloading", error: null });
     const operation = update
-      .download(onEvent)
+      .download(onEvent, { timeout: this.deps.downloadTimeoutMs })
       .then(() => {
         this.setState({ phase: "downloaded", downloaded: true });
         return update;
@@ -243,7 +244,9 @@ export class AppUpdaterCoordinator {
       if (this.state.downloaded) {
         await update.install();
       } else {
-        await update.downloadAndInstall(onEvent);
+        await update.downloadAndInstall(onEvent, {
+          timeout: this.deps.downloadTimeoutMs,
+        });
       }
       this.setState({ phase: "relaunching" });
       return true;

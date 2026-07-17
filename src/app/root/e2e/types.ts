@@ -479,6 +479,8 @@ export interface E2EHelpers {
   inspectOrgtrackFileSessionHistory: (input: {
     repoPath: string;
     filePath: string;
+    limit?: number;
+    offset?: number;
   }) => Promise<Result<{ history: Json }>>;
   inspectCliSessionStatus: (
     sessionId: string
@@ -571,7 +573,9 @@ export interface E2EHelpers {
     repoPath?: string;
     status?: string;
     orgId?: string;
+    touchedFiles?: string[];
   }) => Promise<Result<{ sessionId: string }>>;
+  openWorkManagementTab: () => Promise<Result<{ tabId: string }>>;
   seedModeSwitchSession: (input: {
     sessionId?: string;
     repoPath?: string;

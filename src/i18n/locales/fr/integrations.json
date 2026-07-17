@@ -1688,6 +1688,8 @@
       "emptyConfigPreview": "Aucun contenu de configuration"
     },
     "sessionProvenance": {
+      "masterToggle": "Hooks de provenance",
+      "masterToggleDesc": "Lorsque cette option est désactivée, tous les hooks gérés sont désinstallés et aucun signal n’est collecté ; les choix par plateforme sont conservés et restaurés à la réactivation.",
       "title": "Traçabilité des sessions",
       "capture": "Enregistrer les interactions avec les fichiers",
       "description": "Enregistre les lectures et écritures de fichiers sous forme de métadonnées. Les prompts, les sorties d’outils et le contenu des fichiers ne sont pas stockés.",
@@ -1704,8 +1706,16 @@
         "on": "Activé",
         "off": "Désactivé",
         "repair": "Réparer",
+        "awaitingVerification": "En attente de vérification",
         "checking": "Vérification…",
         "error": "Erreur"
+      },
+      "codexApproval": {
+        "title": "Vérifier les hooks ORG2 dans Codex",
+        "description": "En attente de l’approbation et de l’exécution des hooks ORG2 actuels par Codex.",
+        "instructions": "Ouvrez Codex, vérifiez les hooks ORG2, puis choisissez Trust all and continue. Le hook SessionStart vérifie automatiquement l’activation au démarrage de la session.",
+        "review": "Vérifier dans Codex",
+        "verified": "Vérifié par un signal réel de hook Codex ({{time}})."
       },
       "signals": {
         "title": "Signaux récents",
@@ -1714,6 +1724,8 @@
         "search": "Rechercher des signaux",
         "refresh": "Actualiser",
         "openSession": "Ouvrir la session {{session}}",
+        "diffLoading": "Loading patch…",
+        "diffEmpty": "No patch captured. Provenance records file changes as metadata; a diff appears only once this session's edits are imported.",
         "col": {
           "source": "Outil",
           "action": "Action",

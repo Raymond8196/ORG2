@@ -2371,7 +2371,8 @@
       "forceApply": "强制应用",
       "forceRestore": "强制恢复",
       "applySuccess": "已应用 ORGII 托管配置",
-      "restoreSuccess": "已恢复 CLI 默认配置"
+      "restoreSuccess": "已恢复 CLI 默认配置",
+      "proxyLifecycleDesc": "使用此模式时请保持 ORGII 运行。关闭窗口后代理会留在托盘；完全退出时会安全恢复默认配置，外部修改不会被覆盖。"
     },
     "sessionProvenance": {
       "title": "Session Provenance",
@@ -2391,7 +2392,8 @@
         "off": "关闭",
         "repair": "修复",
         "checking": "检查中…",
-        "error": "错误"
+        "error": "错误",
+        "awaitingVerification": "等待验证"
       },
       "signals": {
         "title": "最近信号",
@@ -2415,7 +2417,18 @@
           "delete": "删除",
           "rename": "重命名",
           "search": "搜索"
-        }
+        },
+        "diffLoading": "正在加载补丁…",
+        "diffEmpty": "尚未采集到补丁。Provenance 会记录文件变更 metadata；只有在该会话的编辑被导入后才会显示 diff。"
+      },
+      "masterToggle": "溯源 Hooks",
+      "masterToggleDesc": "关闭后将卸载所有托管 hook,不再采集任何信号;各平台的选择会保留,重新开启时恢复",
+      "codexApproval": {
+        "title": "在 Codex 中验证 ORG2 hooks",
+        "description": "正在等待 Codex 授权并执行当前的 ORG2 hooks。",
+        "instructions": "打开 Codex，检查 ORG2 hooks，然后选择 Trust all and continue。会话启动时，SessionStart hook 会自动验证是否已启用。",
+        "review": "在 Codex 中检查",
+        "verified": "已通过真实 Codex hook 信号验证（{{time}}）。"
       }
     }
   },

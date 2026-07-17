@@ -23,6 +23,8 @@
       "roundCount_one": "{{count}} round",
       "roundCount_other": "{{count}} rounds",
       "agentWorked": "Agent worked",
+      "cliNativeStore": "CLI native store",
+      "sessionId": "Session ID",
       "reasoningModel": "Reasoning Model",
       "codingModel": "Coding Model",
       "sessionMode": "Session Mode",
@@ -80,6 +82,10 @@
   },
   "kanban": {
     "sessions": "Sessions",
+    "fileSearch": {
+      "placeholder": "Search sessions by file path",
+      "noResults": "No sessions touched a matching file"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Current Kanban",
     "view": {
@@ -102,8 +108,18 @@
       "lastScan": "Last scan {{time}}",
       "neverScanned": "Never scanned",
       "frequencyTitle": "Auto-scan frequency",
-      "globalFrequency": "Auto-scan",
-      "globalFrequencyDesc": "Default cadence for sources set to Default.",
+      "externalSessionsToggle": "External sessions",
+      "externalSessionsToggleDesc": "When off, no external source is scanned or its sessions loaded",
+      "globalFrequency": "External source auto-scan",
+      "globalFrequencyDesc": "Default scan frequency for external sources set to Default",
+      "activeSessionRefresh": "Open external session refresh",
+      "activeSessionRefreshDesc": "Refresh frequency for the external session currently open in the chat pane",
+      "activeSessionFreq": {
+        "3s": "Every 3 seconds",
+        "5s": "Every 5 seconds",
+        "10s": "Every 10 seconds",
+        "1m": "Every minute"
+      },
       "col": {
         "source": "Source",
         "sessions": "Sessions",
@@ -821,13 +837,6 @@
         "heatmap": "Trends",
         "runtime": "Runtime"
       },
-      "heatmap": {
-        "loading": "Loading activity trends…",
-        "empty": "No session activity yet.",
-        "sessions": "Sessions",
-        "tokens": "Tokens",
-        "cost": "Cost"
-      },
       "quota": {
         "empty": "No quota data yet. Refresh usage from Key Vault.",
         "refresh": "Refresh",
@@ -878,16 +887,6 @@
     "showStatusBar": "Show status bar",
     "replay": {
       "follow": "Follow"
-    },
-    "turnFiles": {
-      "filesChangedCount_one": "{{count}} file changed this round",
-      "filesChangedCount_other": "{{count}} files changed this round",
-      "historicalRoundDiffFiles_one": "Earlier round diff · {{count}} file",
-      "historicalRoundDiffFiles_other": "Earlier round diff · {{count}} files",
-      "review": "Review",
-      "showLess": "Show less",
-      "showMore_one": "Show {{count}} more",
-      "showMore_other": "Show {{count}} more"
     },
     "readOnlyBannerCursorIde": "Read-only Cursor IDE history. Open Cursor to continue this chat.",
     "cursorControl": {
@@ -1055,6 +1054,25 @@
         "importReadFailed": "Failed to read the JSON file.",
         "importFailed": "Failed to import Session JSON."
       }
+    },
+    "turnMetadata": {
+      "noChanges": "No file changes this round",
+      "earlierRound": "Earlier round",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "reads_one": "{{count}} read",
+      "reads_other": "{{count}} reads",
+      "searches_one": "{{count}} search",
+      "searches_other": "{{count}} searches",
+      "failed": "Failed",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commits",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PRs",
+      "review": "Review",
+      "showLess": "Show less",
+      "showMore_one": "Show {{count}} more",
+      "showMore_other": "Show {{count}} more"
     },
     "manageIssues": {
       "title": "Manage issues",
@@ -1998,6 +2016,11 @@
       "title": "Git is missing",
       "body": "Git is not installed or could not be found. Ask ADE Manager or SDE Agent to install Git for this machine, then restart ORGII."
     },
+    "cliVersionOutdated": {
+      "title": "{{cli}} CLI needs an upgrade",
+      "body": "Installed version: {{installed}}. Latest version: {{latest}}. Upgrade the CLI, then scan it again before using newer models",
+      "unknownVersion": "unknown"
+    },
     "noProvidersAvailable": "No providers available",
     "enterPublicRepoUrl": "Enter a public repo URL",
     "repoUrlPlaceholder": "https://github.com/owner/repo",
@@ -2007,6 +2030,14 @@
     "model": "Model",
     "source": "Account",
     "addContext": "Add Context",
+    "contextMenu": {
+      "filesAndFolders": "Files & Folders",
+      "agentSession": "Agent Session",
+      "workItems": "Work Items",
+      "back": "Back",
+      "recent": "Recent",
+      "showMore": "Show {{remaining}} more"
+    },
     "slashSearchPlaceholder": "Search commands…",
     "slashMenu": {
       "image": "Image",
