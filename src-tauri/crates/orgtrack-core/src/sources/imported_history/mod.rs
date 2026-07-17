@@ -28,6 +28,7 @@ pub const FUNCTION_RUN_COMMAND_LINE: &str = "run_command_line";
 pub const FUNCTION_EDIT_FILE: &str = "edit_file_by_replace";
 pub const FUNCTION_CODE_SEARCH: &str = "grep";
 pub const FUNCTION_GLOB_FILE_SEARCH: &str = "glob_file_search";
+pub const FUNCTION_AWAIT_OUTPUT: &str = "await_output";
 pub const DEFAULT_LIST_LIMIT: usize = 200;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
