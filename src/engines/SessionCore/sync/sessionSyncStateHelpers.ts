@@ -74,6 +74,12 @@ export interface SessionEventHandlerStateActions {
   ) => void;
   /** Dismiss any existing canvas preview when a new agent turn starts. */
   dismissCanvasAtNewTurn: (sessionId: string) => void;
+  /**
+   * Replace the turn's ephemeral in-memory events with the canonical
+   * native-store parse once a terminal status lands. No-op for legacy
+   * (chunk-persisted) sessions.
+   */
+  scheduleNativeTranscriptReconcile?: (sessionId: string) => void;
 }
 
 const TERMINAL_HANDLER_STATUSES = new Set<string>([
@@ -220,6 +226,7 @@ export function createSessionEventHandlerCallbacks(
         actions.setPendingCancel(false);
         eventStoreProxy.unpinSession(sessionId);
         updateSessionStatus(sessionId, status as SessionStatus);
+        actions.scheduleNativeTranscriptReconcile?.(sessionId);
       }
       if (status === "running") {
         markTurnRunning(sessionId);
