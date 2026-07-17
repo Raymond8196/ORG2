@@ -869,16 +869,18 @@ export const cliAdapter: SessionAdapter = {
     }
 
     /**
-     * `permission:request` with `origin: "cli_hook"` — a managed CLI
-     * session's PermissionRequest hook is parked on the backend waiting
-     * for the user. Mirror of the Rust-agent adapter's
-     * handlePermissionRequest: dispatch the window CustomEvent that
-     * PermissionCard consumes, tagged so its response routes back to the
-     * hook registry (`cli_agent_approval_response`) instead of
-     * `agent_permission_response`.
+     * `permission:request` with `origin: "cli_hook"` or `"acp"` — a
+     * managed CLI session's PermissionRequest hook (Claude) or an ACP
+     * agent's `session/request_permission` (OpenCode/Copilot/Kiro) is
+     * parked on the backend waiting for the user. Mirror of the
+     * Rust-agent adapter's handlePermissionRequest: dispatch the window
+     * CustomEvent that PermissionCard consumes, tagged so its response
+     * routes back to the CLI registries (`cli_agent_approval_response`)
+     * instead of `agent_permission_response`.
      */
-    function handleCliHookPermissionRequest(raw: RawSessionEvent): void {
-      if (raw.origin !== "cli_hook") return;
+    function handleCliPermissionRequest(raw: RawSessionEvent): void {
+      const origin = raw.origin;
+      if (origin !== "cli_hook" && origin !== "acp") return;
       const requestId = rawString(raw, "requestId");
       if (!requestId) return;
       const permEvent: PermissionRequestEvent = {
@@ -890,7 +892,7 @@ export const cliAdapter: SessionAdapter = {
           raw.toolArgs && typeof raw.toolArgs === "object"
             ? (raw.toolArgs as Record<string, unknown>)
             : {},
-        origin: "cli_hook",
+        origin,
       };
       window.dispatchEvent(
         new CustomEvent("agent-permission-request", { detail: permEvent })
@@ -906,7 +908,7 @@ export const cliAdapter: SessionAdapter = {
         if (raw.type === "agent:interaction_finalized") {
           handleInteractionFinalized(raw as unknown as AgentWSEvent, sessionId);
         } else if (raw.type === "permission:request") {
-          handleCliHookPermissionRequest(raw);
+          handleCliPermissionRequest(raw);
         } else if (raw.type === "agent:plan_ready_for_approval") {
           handlePlanReadyForApproval(raw);
         } else if (raw.type === "agent:exit_plan_mode") {

@@ -81,10 +81,11 @@ const PermissionCard: React.FC<PermissionCardProps> = ({
       setIsSubmitting(true);
       const respondingId = pending.requestId;
       try {
-        if (pending.origin === "cli_hook") {
-          // Managed CLI session: the approval is parked in the hook
-          // registry (PermissionRequest hook long-poll), not the
-          // Rust-agent permission manager.
+        if (pending.origin === "cli_hook" || pending.origin === "acp") {
+          // Managed CLI session: the approval is parked in a CLI-side
+          // registry (Claude PermissionRequest hook long-poll or an ACP
+          // agent's session/request_permission), not the Rust-agent
+          // permission manager.
           await respondCliHookPermission(
             pending.sessionId ?? "",
             pending.requestId,

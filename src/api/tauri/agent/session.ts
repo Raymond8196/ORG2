@@ -221,12 +221,15 @@ export async function respondPermission(
 }
 
 /**
- * Resolve a permission request parked by a managed CLI session's
- * PermissionRequest hook (`origin: "cli_hook"` on the
- * `agent-permission-request` event). Routes to
- * `cli_agent_approval_response`, whose hook registry unblocks the hook
- * subprocess long-poll. `always_allow` is treated as a plain allow —
- * persistent rules stay with the CLI's own permission store.
+ * Resolve a permission request parked on the CLI side: a managed
+ * session's PermissionRequest hook (`origin: "cli_hook"`) or an ACP
+ * agent's `session/request_permission` (`origin: "acp"`) on the
+ * `agent-permission-request` event. Routes to
+ * `cli_agent_approval_response`, which checks the hook registry first
+ * and falls back to the ACP registry by `requestId`. For hooks,
+ * `always_allow` is treated as a plain allow — persistent rules stay
+ * with the CLI's own permission store; ACP agents receive their
+ * `allow_always` option when offered.
  */
 export async function respondCliHookPermission(
   sessionId: string,
