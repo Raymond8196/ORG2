@@ -340,6 +340,8 @@ pub fn query_imported_sidebar_page_from_conn(
                 name: row.get(1)?,
                 created_at: super::epoch_ms_to_iso(row.get(2)?),
                 updated_at: super::epoch_ms_to_iso(row.get(3)?),
+                status: None,
+                is_active: None,
                 repo_path: non_empty_string(repo_path),
                 model: non_empty_string(model),
                 total_tokens: input_tokens + output_tokens,
@@ -739,6 +741,107 @@ fn non_empty_string(value: String) -> Option<String> {
     } else {
         Some(trimmed.to_string())
     }
+}
+
+/// `source_metadata_json` field naming the continuation-family group key.
+///
+/// Context-window continuations rewrite a conversation into a NEW session
+/// file with no link field, so readers derive a family key from content that
+/// the rewrite preserves (Claude: the first user message's uuid).
+pub const CONTINUATION_GROUP_KEY_FIELD: &str = "continuationGroupKey";
+
+/// Serialize the continuation group key into `source_metadata_json` shape.
+pub fn continuation_group_metadata_json(group_key: Option<&str>) -> Option<String> {
+    let group_key = group_key.map(str::trim).filter(|key| !key.is_empty())?;
+    Some(serde_json::json!({ CONTINUATION_GROUP_KEY_FIELD: group_key }).to_string())
+}
+
+/// Demote continuation-superseded sessions: within each group of top-level
+/// sessions sharing a continuation group key, only the newest sibling (by
+/// `updated_at_ms`, then `source_session_id`) stays listable; every other
+/// currently-listable sibling flips to `listable = 0`.
+///
+/// Demote-only by design: winners are never promoted here, so a winner that
+/// is unlistable for another reason (managed mirror, subagent) stays hidden.
+/// Runs after every sync; if a demoted file later changes on disk its
+/// re-parse resets `listable = 1` and the next election re-demotes it.
+pub fn demote_superseded_continuations_from_conn(
+    conn: &Connection,
+    source: &str,
+) -> Result<usize, String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT source_session_id, source_metadata_json, updated_at_ms, listable
+             FROM imported_history_session_cache
+             WHERE source = ?1
+               AND COALESCE(parent_session_id, '') = ''
+               AND COALESCE(source_metadata_json, '') != ''",
+        )
+        .map_err(|err| format!("Failed to prepare continuation election query: {err}"))?;
+    let rows = stmt
+        .query_map([source], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, i64>(2)?,
+                row.get::<_, i64>(3)? != 0,
+            ))
+        })
+        .map_err(|err| format!("Failed to query continuation election rows: {err}"))?;
+
+    // group key -> (winner-ordering key, listable losers seen so far)
+    struct Family {
+        winner: (i64, String),
+        listable_ids: Vec<(String, (i64, String))>,
+    }
+    let mut families: HashMap<String, Family> = HashMap::new();
+    for row in rows {
+        let (source_session_id, metadata_json, updated_at_ms, listable) =
+            row.map_err(|err| format!("Failed to read continuation election row: {err}"))?;
+        let Some(group_key) = serde_json::from_str::<serde_json::Value>(&metadata_json)
+            .ok()
+            .as_ref()
+            .and_then(|metadata| metadata.get(CONTINUATION_GROUP_KEY_FIELD))
+            .and_then(serde_json::Value::as_str)
+            .map(str::trim)
+            .filter(|key| !key.is_empty())
+            .map(str::to_string)
+        else {
+            continue;
+        };
+        let ordering = (updated_at_ms, source_session_id.clone());
+        let family = families.entry(group_key).or_insert_with(|| Family {
+            winner: ordering.clone(),
+            listable_ids: Vec::new(),
+        });
+        if ordering > family.winner {
+            family.winner = ordering.clone();
+        }
+        if listable {
+            family.listable_ids.push((source_session_id, ordering));
+        }
+    }
+
+    let losers = families
+        .values()
+        .flat_map(|family| {
+            family
+                .listable_ids
+                .iter()
+                .filter(|(_, ordering)| *ordering != family.winner)
+                .map(|(id, _)| id.clone())
+        })
+        .collect::<Vec<_>>();
+    for source_session_id in &losers {
+        conn.execute(
+            "UPDATE imported_history_session_cache
+             SET listable = 0
+             WHERE source = ?1 AND source_session_id = ?2",
+            rusqlite::params![source, source_session_id],
+        )
+        .map_err(|err| format!("Failed to demote superseded continuation: {err}"))?;
+    }
+    Ok(losers.len())
 }
 
 #[cfg(test)]
