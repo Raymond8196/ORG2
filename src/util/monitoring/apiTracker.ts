@@ -8,7 +8,11 @@ import {
   getTauriStack,
   getTimerStack,
 } from "./apiTrackerUtils";
-import { ratePerMinuteInWindow, spansRepeatedActivity } from "./hotspotRates";
+import {
+  effectiveObservationWindowMs,
+  ratePerMinuteInWindow,
+  spansRepeatedActivity,
+} from "./hotspotRates";
 
 // Extended axios config with tracking properties
 interface TrackedAxiosConfig extends InternalAxiosRequestConfig {
@@ -63,6 +67,7 @@ export interface ApiCall {
 
 let apiCalls: ApiCall[] = [];
 let trackingEnabled = false;
+let trackingObservationStartedAtMs: number | null = null;
 let tracingModeEnabled = false;
 const requestStartTimes = new Map<string, number>();
 const MAX_API_CALLS = 300;
@@ -662,6 +667,11 @@ export function recordPushEvent(kind: PushKind, name: string): void {
 
 export function getPushHotspots(windowMs = 120_000): PushHotspot[] {
   const now = Date.now();
+  const observationWindowMs = effectiveObservationWindowMs(
+    windowMs,
+    trackingObservationStartedAtMs,
+    now
+  );
   const recent = pushEvents.filter(
     (event) => now - event.timestampMs <= windowMs
   );
@@ -679,7 +689,10 @@ export function getPushHotspots(windowMs = 120_000): PushHotspot[] {
       const timestamps = events.map((event) => event.timestampMs);
       const firstMs = Math.min(...timestamps);
       const lastMs = Math.max(...timestamps);
-      const eventsPerMinute = ratePerMinuteInWindow(events.length, windowMs);
+      const eventsPerMinute = ratePerMinuteInWindow(
+        events.length,
+        observationWindowMs
+      );
       return {
         key,
         kind: events[0].kind,
@@ -779,6 +792,7 @@ let cleanupTimerTracking: (() => void) | undefined;
 let cleanupFetchTracking: (() => void) | undefined;
 
 export const enableApiTracking = () => {
+  if (!trackingEnabled) trackingObservationStartedAtMs = Date.now();
   trackingEnabled = true;
   cleanupInterceptors = initializeApiTracking();
   cleanupDirectTauriInvokeTracking = installDirectTauriInvokeTracking();
@@ -848,6 +862,11 @@ export const getApiCalls = (): ApiCall[] => {
 
 export function getApiCallHotspots(windowMs = 120_000): ApiCallHotspot[] {
   const now = Date.now();
+  const observationWindowMs = effectiveObservationWindowMs(
+    windowMs,
+    trackingObservationStartedAtMs,
+    now
+  );
   const recentCalls = apiCalls.filter((call) => {
     const timestamp = new Date(call.timestamp).getTime();
     return Number.isFinite(timestamp) && now - timestamp <= windowMs;
@@ -881,7 +900,10 @@ export function getApiCallHotspots(windowMs = 120_000): ApiCallHotspot[] {
         ? completedDurations.reduce((sum, duration) => sum + duration, 0) /
           completedDurations.length
         : undefined;
-      const callsPerMinute = ratePerMinuteInWindow(calls.length, windowMs);
+      const callsPerMinute = ratePerMinuteInWindow(
+        calls.length,
+        observationWindowMs
+      );
 
       return {
         key,
@@ -924,6 +946,11 @@ export const getTimerEvents = (): TimerFireEvent[] => [...timerEvents];
 
 export function getTimerHotspots(windowMs = 120_000): TimerHotspot[] {
   const now = Date.now();
+  const observationWindowMs = effectiveObservationWindowMs(
+    windowMs,
+    trackingObservationStartedAtMs,
+    now
+  );
   const recentEvents = timerEvents.filter((event) => {
     const timestamp = new Date(event.timestamp).getTime();
     return Number.isFinite(timestamp) && now - timestamp <= windowMs;
@@ -949,7 +976,10 @@ export function getTimerHotspots(windowMs = 120_000): TimerHotspot[] {
         new Date(event.timestamp).getTime()
       );
       const firstMs = Math.min(...timestamps);
-      const firesPerMinute = ratePerMinuteInWindow(events.length, windowMs);
+      const firesPerMinute = ratePerMinuteInWindow(
+        events.length,
+        observationWindowMs
+      );
 
       return {
         key,
@@ -986,6 +1016,7 @@ export const getApiCallsForComponent = (
 };
 
 export const clearApiCalls = () => {
+  trackingObservationStartedAtMs = Date.now();
   apiCalls = [];
   timerEvents.splice(0, timerEvents.length);
   pushEvents.splice(0, pushEvents.length);

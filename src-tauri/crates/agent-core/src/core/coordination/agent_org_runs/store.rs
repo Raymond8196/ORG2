@@ -50,6 +50,7 @@ impl AgentOrgRunStore {
             insert_run(&conn, &run).map_err(|err| err.to_string())?;
             Ok(())
         })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(&run.id);
         Ok(run)
     }
 
@@ -59,7 +60,7 @@ impl AgentOrgRunStore {
         let paused = validate_status(AgentOrgRunStatus::Paused.as_str())?;
         let running = validate_status(AgentOrgRunStatus::Running.as_str())?;
         let now = chrono::Utc::now().to_rfc3339();
-        with_sessions_writer(|| -> Result<bool, String> {
+        let changed = with_sessions_writer(|| -> Result<bool, String> {
             let conn = get_connection().map_err(|err| err.to_string())?;
             let rows_changed = conn
                 .execute(
@@ -72,7 +73,11 @@ impl AgentOrgRunStore {
                 )
                 .map_err(|err| err.to_string())?;
             Ok(rows_changed > 0)
-        })
+        })?;
+        if changed {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(run_id);
+        }
+        Ok(changed)
     }
 
     /// Called once at app startup to pause every org run that was `running`
@@ -110,7 +115,7 @@ impl AgentOrgRunStore {
         let running = validate_status(AgentOrgRunStatus::Running.as_str())?;
         let paused = validate_status(AgentOrgRunStatus::Paused.as_str())?;
         let now = chrono::Utc::now().to_rfc3339();
-        with_sessions_writer(|| -> Result<bool, String> {
+        let changed = with_sessions_writer(|| -> Result<bool, String> {
             let conn = get_connection().map_err(|err| err.to_string())?;
             let rows_changed = conn
                 .execute(
@@ -123,7 +128,11 @@ impl AgentOrgRunStore {
                 )
                 .map_err(|err| err.to_string())?;
             Ok(rows_changed > 0)
-        })
+        })?;
+        if changed {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(run_id);
+        }
+        Ok(changed)
     }
 
     pub fn mark_failed(run_id: &str, error_message: &str) -> Result<(), String> {
@@ -142,7 +151,9 @@ impl AgentOrgRunStore {
             )
             .map_err(|err| err.to_string())?;
             Ok(())
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(run_id);
+        Ok(())
     }
 
     pub fn reconcile_if_terminal(run_id: &str) -> Result<Option<AgentOrgRunStatus>, String> {
@@ -209,6 +220,7 @@ impl AgentOrgRunStore {
             .map_err(|err| err.to_string())?;
             Ok(())
         })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(run_id);
         Ok(Some(next_status))
     }
 
@@ -253,6 +265,10 @@ impl AgentOrgRunStore {
         session_id: &str,
     ) -> Result<Option<String>, String> {
         Ok(Self::run_for_session_with_parent_walk(session_id)?.and_then(|run| run.root_session_id))
+    }
+
+    pub fn run_id_for_session_with_parent_walk(session_id: &str) -> Result<Option<String>, String> {
+        Ok(Self::run_for_session_with_parent_walk(session_id)?.map(|run| run.id))
     }
 
     pub fn is_root_session(org_run_id: &str, session_id: &str) -> Result<bool, String> {
@@ -363,12 +379,17 @@ impl AgentOrgRunStore {
     }
 
     pub fn delete_by_id(run_id: &str) -> Result<(), String> {
-        with_sessions_writer(|| -> Result<(), String> {
+        let deleted = with_sessions_writer(|| -> Result<bool, String> {
             let conn = get_connection().map_err(|err| err.to_string())?;
-            conn.execute("DELETE FROM agent_org_runs WHERE id = ?1", params![run_id])
+            let rows = conn
+                .execute("DELETE FROM agent_org_runs WHERE id = ?1", params![run_id])
                 .map_err(|err| err.to_string())?;
-            Ok(())
-        })
+            Ok(rows > 0)
+        })?;
+        if deleted {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(run_id);
+        }
+        Ok(())
     }
 
     /// Find the freshest materialized worker session for a canonical roster

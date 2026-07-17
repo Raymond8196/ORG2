@@ -15,10 +15,9 @@
  * removal, leave, rename, ownership transfer and org deletion — state and
  * handlers in `useCloudOrgManagement`, sections in `ManagementSections`.
  *
- * Teammates' shared sessions no longer render here — they live in the LEFT
- * SIDEBAR as fork-threaded groups when the cloud org is the active scope
- * (WorkstationSidebarConnector/cloudSessionsSection + the extracted
- * `useCloudSessionActions` replay/fork hook). No chat/work items yet.
+ * Shared sessions render both in a full-width management tab and in the left
+ * sidebar's fork-threaded groups. Both surfaces reuse the same remote-session
+ * cache and `useCloudSessionActions` replay/fork behavior.
  */
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Cloud, Laptop } from "lucide-react";
@@ -101,6 +100,7 @@ import {
 import { savedWorkspacesAtom } from "@src/store/ui/workspaceFoldersAtom";
 import { isTauriReady } from "@src/util/platform/tauri/init";
 
+import CloudSessionsSection from "./CloudSessionsSection";
 import {
   CloudInvitesCard,
   CloudMembersSection,
@@ -121,10 +121,11 @@ interface CloudOrgPanelViewProps {
 }
 
 type FetchState = "loading" | "ready" | "error";
-type CloudOrgManagementTab = "general" | "repo-scope" | "members";
+type CloudOrgManagementTab = "general" | "sessions" | "repo-scope" | "members";
 
 const CLOUD_ORG_MANAGEMENT_TAB = {
   GENERAL: "general",
+  SESSIONS: "sessions",
   REPO_SCOPE: "repo-scope",
   MEMBERS: "members",
 } as const satisfies Record<string, CloudOrgManagementTab>;
@@ -533,6 +534,11 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
         dataTestId: "cloud-org-tab-general",
       },
       {
+        key: CLOUD_ORG_MANAGEMENT_TAB.SESSIONS,
+        label: t("routes.sessions"),
+        dataTestId: "cloud-org-tab-sessions",
+      },
+      {
         key: CLOUD_ORG_MANAGEMENT_TAB.REPO_SCOPE,
         label: t("cloud.orgPanel.repoScopesTitle"),
         dataTestId: "cloud-org-tab-repo-scope",
@@ -650,8 +656,16 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
       <ScrollFadeContainer
         className={`scroll-fade-at-top ${DETAIL_PANEL_TOKENS.scrollContentNoTop}`}
       >
-        <div className={DETAIL_PANEL_TOKENS.contentWidthWithPaddingNoTop}>
-          {viewState === "loading" ? (
+        <div
+          className={
+            activeTab === CLOUD_ORG_MANAGEMENT_TAB.SESSIONS
+              ? `min-h-full w-full ${DETAIL_PANEL_TOKENS.contentScrollBottom}`
+              : DETAIL_PANEL_TOKENS.contentWidthWithPaddingNoTop
+          }
+        >
+          {activeTab === CLOUD_ORG_MANAGEMENT_TAB.SESSIONS ? (
+            <CloudSessionsSection orgId={orgId} />
+          ) : viewState === "loading" ? (
             <Placeholder variant="loading" />
           ) : viewState === "error" ? (
             <p className="text-[12px] text-text-3">
@@ -720,11 +734,11 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
                   </div>
 
                   {/* Org sharing FLOOR (0002 policy). Admins set the minimum level
-                every member must share at; members see it read-only. Sits
-                above the per-device default because it CONSTRAINS that
-                default. */}
-                  {isAdmin ? (
-                    <SectionContainer>
+                every member must share at; members see it read-only. It shares
+                a container with the per-device default because the floor
+                constrains that default. */}
+                  <SectionContainer>
+                    {isAdmin ? (
                       <SectionRow
                         label={t("cloud.sharingFloor.label")}
                         description={t("cloud.sharingFloor.help")}
@@ -750,28 +764,25 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
                           ) : null}
                         </div>
                       </SectionRow>
-                    </SectionContainer>
-                  ) : orgFloor !== COLLAB_SESSION_ACCESS_MODE.OFF ? (
-                    <SectionContainer>
-                      <div data-testid="cloud-org-sharing-floor-member-note">
-                        <SectionRow
-                          label={t("cloud.sharingFloor.label")}
-                          description={t("cloud.sharingFloor.memberNote", {
-                            mode:
-                              orgFloor ===
-                              COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY
-                                ? t("cloud.syncLevel.modeFullReplay")
-                                : t("cloud.syncLevel.modeMetadata"),
-                          })}
-                        />
-                      </div>
-                    </SectionContainer>
-                  ) : null}
+                    ) : orgFloor !== COLLAB_SESSION_ACCESS_MODE.OFF ? (
+                      <SectionRow
+                        label={
+                          <span data-testid="cloud-org-sharing-floor-member-note">
+                            {t("cloud.sharingFloor.label")}
+                          </span>
+                        }
+                        description={t("cloud.sharingFloor.memberNote", {
+                          mode:
+                            orgFloor === COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY
+                              ? t("cloud.syncLevel.modeFullReplay")
+                              : t("cloud.syncLevel.modeMetadata"),
+                        })}
+                      />
+                    ) : null}
 
-                  {/* Default per-session sync level for THIS device's sessions in
-                this org (access ladder §13.4). Sits with the sync plumbing:
-                repo scopes pick candidates, this default gates uploads. */}
-                  <SectionContainer>
+                    {/* Default per-session sync level for THIS device's sessions
+                  in this org (access ladder §13.4). Repo scopes pick
+                  candidates; this default gates uploads. */}
                     <SectionRow
                       label={t("cloud.defaultAccess.label")}
                       description={t("cloud.defaultAccess.help")}
@@ -797,10 +808,6 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
 
               {activeTab === CLOUD_ORG_MANAGEMENT_TAB.MEMBERS ? (
                 <>
-                  {isAdmin ? (
-                    <CloudInvitesCard t={t} management={management} />
-                  ) : null}
-
                   {members.length === 0 ? (
                     <SectionContainer title={t("cloud.orgPanel.membersTitle")}>
                       <SectionRow
@@ -816,6 +823,10 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
                       management={management}
                     />
                   )}
+
+                  {isAdmin ? (
+                    <CloudInvitesCard t={t} management={management} />
+                  ) : null}
                 </>
               ) : null}
 

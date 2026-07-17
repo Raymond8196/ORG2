@@ -7,7 +7,8 @@
  *                 (gated in `loadSidebarSessions` and in the Rust aggregation).
  *  - `frequency`— how often the source is auto-scanned; `"default"` inherits the
  *                 global frequency.
- *  - `lastScannedAt` — epoch ms of the last auto/manual scan; machine-written.
+ *  - `lastScannedAt` — epoch ms of the last completed importer run or confirmed
+ *                      absence check; machine-written for the Runtime UI.
  *
  * Auto-scans are cheap, incremental metadata refreshes (the imported_history
  * pipeline delta-syncs by file mtime, so only changed sessions are re-read) —
@@ -32,6 +33,16 @@ export interface DataSourceConfig {
   lastScannedAt: number | null;
 }
 
+/**
+ * Machine-owned result of the lightweight on-disk history-store probe.
+ * Kept separate from {@link DataSourceConfig}: the latter is user policy,
+ * while this state only controls whether the scheduler runs a full importer.
+ */
+export interface DataSourcePresence {
+  historyFound: boolean;
+  checkedAt: number;
+}
+
 export const DEFAULT_DATA_SOURCE_CONFIG: DataSourceConfig = {
   enabled: true,
   frequency: "default",
@@ -44,6 +55,7 @@ export const DEFAULT_GLOBAL_FREQUENCY: ScanFrequency = "60s";
 export type DataSourceConfigMap = Record<string, DataSourceConfig>;
 
 const CONFIG_STORAGE_KEY = "orgii:dataSourceConfig";
+const PRESENCE_STORAGE_KEY = "orgii:dataSourcePresence";
 const GLOBAL_FREQ_STORAGE_KEY = "orgii:dataSourceGlobalFrequency";
 const ACTIVE_SESSION_REFRESH_STORAGE_KEY =
   "orgii:activeExternalSessionRefreshFrequency";
@@ -52,6 +64,10 @@ export const dataSourceConfigAtom = atomWithStorage<DataSourceConfigMap>(
   CONFIG_STORAGE_KEY,
   {}
 );
+
+export const dataSourcePresenceAtom = atomWithStorage<
+  Record<string, DataSourcePresence>
+>(PRESENCE_STORAGE_KEY, {});
 
 const EXTERNAL_SESSIONS_ENABLED_STORAGE_KEY = "orgii:externalSessionsEnabled";
 

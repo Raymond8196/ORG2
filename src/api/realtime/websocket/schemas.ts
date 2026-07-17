@@ -326,6 +326,9 @@ export const CODE_EDITOR_WEB_SOCKET_EVENT_TYPES = [
   // useBackgroundSessionMonitor (background-session completion toasts); the
   // active session gets the same events over its own session channel.
   "code_session.status_changed",
+  // Backend-owned invalidations that replace frontend polling loops.
+  "agent_org:run_changed",
+  "agent:snapshot_created",
 ] as const;
 
 // `.passthrough()` because session broadcasts carry their payload as

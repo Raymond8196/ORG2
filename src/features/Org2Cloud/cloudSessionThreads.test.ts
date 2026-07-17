@@ -399,4 +399,16 @@ describe("cloud teammate hover card", () => {
     expect(markup).toContain("Claude Code CLI");
     expect(markup).toContain("claude-sonnet-5");
   });
+
+  it("renders a watcher row with the live viewer names", () => {
+    const markup = renderToStaticMarkup(
+      createElement(CloudSessionHoverCardContent, {
+        row: makeRow("s1"),
+        viewers: [{ displayName: "Bob" }, { displayName: "Carol" }],
+      })
+    );
+
+    expect(markup).toContain('data-testid="cloud-session-watchers"');
+    expect(markup).toContain("Bob, Carol");
+  });
 });
