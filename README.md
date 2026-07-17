@@ -49,6 +49,18 @@ A fast, token-saving, customizable native agent harness that works with your exi
 <tr>
 <td width="50%" valign="middle">
 
+### Built-in Rust harness
+
+Run fast, token-saving, customizable native agents with your existing API keys and agent subscriptions.
+
+</td>
+<td width="50%">
+  <img src="docs/assets/feature-wall/rust-harness.gif" alt="Run agents with the ORG-II Rust harness" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
 ### Manage sessions across 10+ apps &amp; CLIs
 
 Load and manage agent sessions from all your tools in one place. Scan history, inspect subagents, and control each source without switching apps.
@@ -144,17 +156,25 @@ Inspect live pages in the native WebKit browser. Select an element and send its 
 
 ## Supported Agents
 
-Use ORG-II's built-in Rust harness or launch these supported coding-agent CLIs from the desktop TUI.
+Use ORG-II's built-in Rust harness or launch these supported coding-agent CLIs from the desktop app.
+
+### GUI + TUI
 
 <p>
-  <a href="#built-in-rust-harness"><kbd><img src="src/assets/modelIcons/orgii.svg" alt="ORG-2 logo" width="16" valign="middle" /> ORG-2</kbd></a> &nbsp;
+  <a href="#built-in-rust-harness"><kbd><img src="docs/assets/org2-icon.svg" alt="ORG-2 logo" width="16" valign="middle" /> ORG-2</kbd></a> &nbsp;
   <a href="https://cursor.com/docs/cli/overview"><kbd><img src="src/assets/modelIcons/cursor.svg" alt="Cursor CLI logo" width="16" valign="middle" /> Cursor CLI</kbd></a> &nbsp;
   <a href="https://code.claude.com/docs/en/configuration"><kbd><img src="src/assets/modelIcons/claude-code.svg" alt="Claude Code logo" width="16" valign="middle" /> Claude Code</kbd></a> &nbsp;
   <a href="https://developers.openai.com/codex/config-basic"><kbd><img src="src/assets/modelIcons/openai.svg" alt="Codex logo" width="16" valign="middle" /> Codex</kbd></a> &nbsp;
   <a href="https://kiro.dev/docs/cli/installation"><kbd><img src="src/assets/modelIcons/kiro.svg" alt="Kiro CLI logo" width="16" valign="middle" /> Kiro CLI</kbd></a> &nbsp;
   <a href="https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-in-the-cli"><kbd><img src="src/assets/modelIcons/copilot.svg" alt="GitHub Copilot logo" width="16" valign="middle" /> GitHub Copilot</kbd></a> &nbsp;
-  <a href="https://www.kimi.com/code/docs/en/kimi-code-cli/configuration/configuration-files.html"><kbd><img src="src/assets/modelIcons/kimi.svg" alt="Kimi Code CLI logo" width="16" valign="middle" /> Kimi Code CLI</kbd></a> &nbsp;
   <a href="https://opencode.ai/docs/config/"><kbd><img src="src/assets/modelIcons/opencode.svg" alt="OpenCode logo" width="16" valign="middle" /> OpenCode</kbd></a> &nbsp;
+  <a href="https://antigravity.google/docs/cli/getting-started"><kbd><img src="src/assets/modelIcons/antigravity.svg" alt="Antigravity logo" width="16" valign="middle" /> Antigravity</kbd></a>
+</p>
+
+### TUI (GUI coming soon)
+
+<p>
+  <a href="https://www.kimi.com/code/docs/en/kimi-code-cli/configuration/configuration-files.html"><kbd><img src="src/assets/modelIcons/kimi.svg" alt="Kimi Code CLI logo" width="16" valign="middle" /> Kimi Code CLI</kbd></a> &nbsp;
   <a href="https://aider.chat/docs/config.html"><kbd><img src="src/assets/modelIcons/aider.svg" alt="Aider logo" width="16" valign="middle" /> Aider</kbd></a> &nbsp;
   <a href="https://goose-docs.ai/docs/category/getting-started/"><kbd><img src="src/assets/modelIcons/goose.svg" alt="Goose logo" width="16" valign="middle" /> Goose</kbd></a> &nbsp;
   <a href="https://ampcode.com/manual"><kbd><img src="src/assets/modelIcons/amp.svg" alt="Amp logo" width="16" valign="middle" /> Amp</kbd></a> &nbsp;
@@ -167,7 +187,6 @@ Use ORG-II's built-in Rust harness or launch these supported coding-agent CLIs f
   <a href="https://www.codebuff.com/docs"><kbd><img src="src/assets/modelIcons/infinity-agent.svg" alt="Codebuff logo" width="16" valign="middle" /> Codebuff</kbd></a> &nbsp;
   <a href="https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/"><kbd><img src="src/assets/modelIcons/qwen.svg" alt="Qwen Code logo" width="16" valign="middle" /> Qwen Code</kbd></a> &nbsp;
   <a href="https://mimo.xiaomi.com/mimocode/config-files"><kbd><img src="src/assets/modelIcons/xiaomimimo.svg" alt="Mimo Code logo" width="16" valign="middle" /> Mimo Code</kbd></a> &nbsp;
-  <a href="https://antigravity.google/docs/cli/getting-started"><kbd><img src="src/assets/modelIcons/antigravity.svg" alt="Antigravity logo" width="16" valign="middle" /> Antigravity</kbd></a> &nbsp;
   <a href="https://docs.continue.dev/cli/configuration"><kbd><img src="src/assets/modelIcons/continue.svg" alt="Continue logo" width="16" valign="middle" /> Continue</kbd></a> &nbsp;
   <a href="https://docs.factory.ai/cli/byok/overview"><kbd><img src="src/assets/modelIcons/droid.svg" alt="Droid logo" width="16" valign="middle" /> Droid</kbd></a> &nbsp;
   <a href="https://docs.mistral.ai/vibe/code/cli/install-setup"><kbd><img src="src/assets/modelIcons/mistral.svg" alt="Mistral Vibe logo" width="16" valign="middle" /> Mistral Vibe</kbd></a> &nbsp;
