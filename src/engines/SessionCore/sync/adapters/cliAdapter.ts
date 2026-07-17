@@ -52,6 +52,7 @@ import {
   isStoreInitialized,
 } from "@src/util/core/state/instrumentedStore";
 
+import { registerSessionTranscriptSource } from "../nativeTranscriptReconcile";
 import type {
   AdapterSendInput,
   EventHandlerCallbacks,
@@ -116,6 +117,8 @@ interface StoredSession {
   status: string;
   errorMessage?: string | null;
   totalTokens?: number;
+  /** 'chunks' (legacy DB transcript) or 'native' (CLI's own store). */
+  transcriptSource?: string;
 }
 
 type CliStatusResponse = {
@@ -348,6 +351,11 @@ export const cliAdapter: SessionAdapter = {
         { sessionId }
       );
       if (signal.aborted || !storedSession) return result;
+
+      registerSessionTranscriptSource(
+        sessionId,
+        storedSession.transcriptSource
+      );
 
       if (typeof storedSession.totalTokens === "number") {
         result.contextTokens = storedSession.totalTokens;
