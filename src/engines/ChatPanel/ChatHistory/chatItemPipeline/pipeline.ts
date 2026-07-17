@@ -43,7 +43,7 @@ import {
 import { canConsolidate, mergeObservations } from "./utils";
 
 // ============================================
-// Error dedup helpers (pipeline-local, no blocks dependency)
+// Error detection helpers (pipeline-local, no blocks dependency)
 // ============================================
 
 function getErrorText(result: Record<string, unknown>): string | null {
@@ -513,30 +513,6 @@ export function processChatItems(
 
     // Regular event — flush all buffers and add as activity
     flushAllBuffers();
-
-    // Fold consecutive identical tool errors into a single item with a repeat count.
-    // repeatedErrorCount stores the number of extra occurrences beyond the first
-    // (i.e. total occurrences = repeatedErrorCount + 1). Stats are only counted
-    // for items that actually land in the result array, so folded duplicates are
-    // excluded — this keeps stats.failedCount consistent with result.length.
-    if (isFailedToolCall(event)) {
-      const last = result[result.length - 1];
-      if (
-        last?.type === "activity" &&
-        last.event &&
-        last.event.functionName === event.functionName &&
-        last.event.actionType === "tool_call" &&
-        isFailedToolCall(last.event) &&
-        getErrorText(last.event.result ?? {}) ===
-          getErrorText(event.result ?? {})
-      ) {
-        result[result.length - 1] = {
-          ...last,
-          repeatedErrorCount: (last.repeatedErrorCount ?? 1) + 1,
-        };
-        continue;
-      }
-    }
 
     // A todo event contains the complete checklist snapshot. Consecutive
     // updates therefore supersede each other; rendering every intermediate

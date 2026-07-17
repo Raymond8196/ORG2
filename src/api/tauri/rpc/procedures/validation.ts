@@ -103,6 +103,11 @@ export const validation = {
     .output(schemas.validation.AutoDetectResultSchema)
     .build(),
 
+  scanCliVersion: defineProcedure("scan_cli_version")
+    .input(schemas.validation.ScanCliVersionInput)
+    .output(schemas.validation.CliVersionSnapshotSchema)
+    .build(),
+
   getAvailableAgents: defineProcedure("get_available_agents")
     .output(z.array(schemas.validation.AvailableAgentSchema))
     .build(),
