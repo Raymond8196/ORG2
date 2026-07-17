@@ -57,8 +57,6 @@ export interface OptimizedChatItem {
   };
   /** For consolidated partial observations */
   consolidatedParts?: number;
-  /** Number of consecutive identical errors collapsed into this item (≥2 means repeats were folded) */
-  repeatedErrorCount?: number;
   /** Internal layout-only row used to keep a collapsed turn measurable. */
   structuralOnly?: boolean;
   /** Thread selector synthetic data */

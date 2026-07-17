@@ -16,6 +16,7 @@ import type {
   AutoDetectResult,
   ClaudeCodeOauthExchangeResponse,
   ClaudeCodeOauthStartResponse,
+  CliVersionSnapshot,
   CodexOauthExchangeResponse,
   CodexOauthStartResponse,
   FullKeyResponse,
@@ -40,6 +41,7 @@ export type {
   ModelType,
   AuthMethod,
   AutoDetectResult,
+  CliVersionSnapshot,
   ClaudeCodeOauthExchangeResponse,
   ClaudeCodeOauthStartResponse,
   CodexOauthExchangeResponse,
@@ -437,4 +439,12 @@ export async function autoDetectKey(
   agentType: ModelType
 ): Promise<AutoDetectResult> {
   return rpc.validation.autoDetectKey({ agentType });
+}
+
+/** Scan the installed/latest version of one explicitly selected CLI. */
+export async function scanCliVersion(
+  agentType: import("@src/api/tauri/rpc/schemas/validation").CliAgentType,
+  force = false
+): Promise<CliVersionSnapshot> {
+  return rpc.validation.scanCliVersion({ agentType, force });
 }

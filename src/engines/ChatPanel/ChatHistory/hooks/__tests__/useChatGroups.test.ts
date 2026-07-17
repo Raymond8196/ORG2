@@ -288,7 +288,7 @@ describe("useChatGroups collapse — terminal error survival", () => {
     expect(result.groupCounts[0]).toBe(2);
   });
 
-  it("does not resurrect errors that precede the final reply", () => {
+  it("keeps errors that precede the final reply", () => {
     const history = [
       userItem("first turn"),
       errorItem("transient blip"),
@@ -300,10 +300,9 @@ describe("useChatGroups collapse — terminal error survival", () => {
     const result = useChatGroups(history, { allTurnsCollapsed: true });
 
     const texts = flatTexts(result.flatItems);
-    // The turn recovered: the pre-reply error stays collapsed away.
-    expect(texts).not.toContain("Error: transient blip");
+    expect(texts).toContain("Error: transient blip");
     expect(texts).toContain("recovered and finished");
-    expect(result.groupCounts[0]).toBe(1);
+    expect(result.groupCounts[0]).toBe(2);
   });
 
   it("collapses to the last reply only when the turn has no errors", () => {

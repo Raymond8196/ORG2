@@ -190,12 +190,14 @@ function isCompletedAssistantMessage(item: OptimizedChatItem): boolean {
   );
 }
 
-function isCollapsePinnedItem(item: OptimizedChatItem): boolean {
+function isAgentErrorItem(item: OptimizedChatItem): boolean {
   if (isUnloadedTurnItem(item) || !item.event) return false;
-  return (
-    isAgentErrorEvent(item.event) ||
-    item.event.uiCanonical === "context_compacted"
-  );
+  return isAgentErrorEvent(item.event);
+}
+
+function isCompactBoundaryItem(item: OptimizedChatItem): boolean {
+  if (isUnloadedTurnItem(item) || !item.event) return false;
+  return item.event.uiCanonical === "context_compacted";
 }
 
 function parseEpochMs(iso: string | undefined): number | null {
@@ -358,8 +360,14 @@ export function projectChatGroups(
       }
     }
     const pinnedIndices: number[] = [];
-    for (let i = Math.max(keepIndex + 1, 0); i < group.items.length; i++) {
-      if (isCollapsePinnedItem(group.items[i])) pinnedIndices.push(i);
+    for (let i = 0; i < group.items.length; i++) {
+      if (
+        isAgentErrorItem(group.items[i]) ||
+        (i >= Math.max(keepIndex + 1, 0) &&
+          isCompactBoundaryItem(group.items[i]))
+      ) {
+        pinnedIndices.push(i);
+      }
     }
 
     if (keepIndex === -1 && pinnedIndices.length > 0) {

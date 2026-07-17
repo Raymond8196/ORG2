@@ -342,6 +342,17 @@ export const AutoDetectResultSchema = z.object({
   keys: z.array(DetectedKeySchema),
 });
 
+export const CliVersionSnapshotSchema = z.object({
+  agent_type: CliAgentTypeSchema,
+  installed_version: z.string().nullable(),
+  latest_version: z.string().nullable(),
+  installed_version_error: z.string().nullable(),
+  latest_version_error: z.string().nullable(),
+  status: z.enum(["current", "outdated", "unknown"]),
+  scanned_at: z.string(),
+  stale: z.boolean(),
+});
+
 export const CliInstallMethodSchema = z.object({
   id: z.string(),
   label: z.string(),
@@ -656,6 +667,11 @@ export const AutoDetectKeyInput = z.object({
   agentType: ModelTypeSchema,
 });
 
+export const ScanCliVersionInput = z.object({
+  agentType: CliAgentTypeSchema,
+  force: z.boolean().nullable().optional(),
+});
+
 export const ExtractKeysFromTextInput = z.object({
   input: z.string(),
   agentType: z.string().nullable().optional(),
@@ -804,6 +820,7 @@ export type FullKeyResponse = z.infer<typeof FullKeyResponseSchema>;
 export type SaveKeyRequest = z.infer<typeof SaveKeyRequestSchema>;
 export type DetectedKey = z.infer<typeof DetectedKeySchema>;
 export type AutoDetectResult = z.infer<typeof AutoDetectResultSchema>;
+export type CliVersionSnapshot = z.infer<typeof CliVersionSnapshotSchema>;
 export type AvailableAgent = z.infer<typeof AvailableAgentSchema>;
 export type AvailableApiProvider = z.infer<typeof AvailableApiProviderSchema>;
 export type CliInstallMethod = z.infer<typeof CliInstallMethodSchema>;
