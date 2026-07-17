@@ -569,6 +569,10 @@ static CLI_ALIAS_MAP: LazyLock<HashMap<&'static str, AliasEntry>> = LazyLock::ne
     // same chat semantics as await_output, even though its payload uses
     // cell_id/yield_time_ms instead of handles/block_until_ms.
     m.insert("wait", AliasEntry::await_output());
+    // Newer Codex runtimes use empty write_stdin calls to await more output
+    // from a yielded exec session. Importers special-case non-empty input so
+    // interrupts and terminal interaction stay on the originating shell.
+    m.insert("write_stdin", AliasEntry::await_output());
     m.insert("awaitToolCall", AliasEntry::await_output());
     m.insert("AwaitToolCall", AliasEntry::await_output());
 
@@ -1127,6 +1131,10 @@ mod tests {
         );
         assert_eq!(
             resolve_cli_alias("wait"),
+            Some((tool_names::AWAIT_OUTPUT, tool_names::AWAIT_OUTPUT))
+        );
+        assert_eq!(
+            resolve_cli_alias("write_stdin"),
             Some((tool_names::AWAIT_OUTPUT, tool_names::AWAIT_OUTPUT))
         );
         assert_eq!(
