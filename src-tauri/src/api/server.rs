@@ -298,6 +298,19 @@ pub async fn start_server(
                 ),
             ),
         )
+        // Interactive tool-approval long-poll: a managed Claude Code
+        // `PermissionRequest` hook parks here until the user answers the
+        // desktop PermissionCard (see api::agent_approval_ingest). Same
+        // token auth as the status route; deliberately NOT behind the
+        // /agent TimeoutLayer — the park timeout is enforced in-handler.
+        .route(
+            super::agent_approval_ingest::AGENT_APPROVAL_ROUTE,
+            axum::routing::post(super::agent_approval_ingest::handle).layer(
+                axum::extract::DefaultBodyLimit::max(
+                    super::agent_approval_ingest::AGENT_APPROVAL_MAX_BODY_BYTES,
+                ),
+            ),
+        )
         // Sync framework inbound webhook route. Verifies
         // the per-(project, adapter) HMAC secret then drops the
         // delivery into the merge_external outbox so the standard

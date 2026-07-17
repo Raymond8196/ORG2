@@ -8,6 +8,7 @@
 //! This keeps hooks fast, avoids SQLite contention, and ensures raw prompts,
 //! tool responses, commands, and file contents never enter the spool.
 
+mod approval_gate;
 mod collaboration_replay;
 mod historical_backfill;
 mod hook_capture;

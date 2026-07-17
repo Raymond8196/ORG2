@@ -136,3 +136,5 @@ code-server-bin/
 BitFun/
 archive/
 **/.build/
+# Codex CLI local state (created when codex runs inside the repo)
+.codex/

@@ -3,6 +3,8 @@
  *
  * Session lifecycle, persistence, interaction, and message processing.
  */
+import { invoke } from "@tauri-apps/api/core";
+
 import { rpc } from "@src/api/tauri/rpc";
 import type { CliAgentType, NativeHarnessType } from "@src/api/types/keys";
 import type { OrgMemberLaunchOverride } from "@src/modules/MainApp/AgentOrgs/types";
@@ -215,6 +217,27 @@ export async function respondPermission(
     response,
     toolName,
     toolArgs,
+  });
+}
+
+/**
+ * Resolve a permission request parked by a managed CLI session's
+ * PermissionRequest hook (`origin: "cli_hook"` on the
+ * `agent-permission-request` event). Routes to
+ * `cli_agent_approval_response`, whose hook registry unblocks the hook
+ * subprocess long-poll. `always_allow` is treated as a plain allow —
+ * persistent rules stay with the CLI's own permission store.
+ */
+export async function respondCliHookPermission(
+  sessionId: string,
+  requestId: string,
+  response: PermissionResponseValue
+): Promise<void> {
+  return invoke("cli_agent_approval_response", {
+    sessionId,
+    requestId,
+    approved: response === "allow" || response === "always_allow",
+    alwaysAllow: response === "always_allow",
   });
 }
 
