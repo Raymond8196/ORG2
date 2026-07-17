@@ -634,7 +634,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     t,
   });
   const revealCandidateMenuItems = useMemo(
-    () => [...sessionSidebarMenuItems, ...cloudMenuItems],
+    () => [...cloudMenuItems, ...sessionSidebarMenuItems],
     [cloudMenuItems, sessionSidebarMenuItems]
   );
   useEffect(() => {
@@ -878,13 +878,13 @@ export const WorkstationSidebarConnector: React.FC = () => {
   });
   const decoratedSessionSidebarMenuItems = useMemo(
     () =>
-      // Cloud scope: the fork-threaded "Team sessions" section trails the
-      // (org-filtered) local list. Appended AFTER row-action decoration —
-      // cloud rows carry their own Replay/Fork actions.
+      // Cloud scope: keep the fork-threaded "Team sessions" section above
+      // the org-filtered local list. Cloud rows already carry their own
+      // Replay/Fork actions, so only local rows need action decoration.
       cloudMenuItems.length > 0
         ? [
-            ...decorateSessionRowActions(sessionSidebarMenuItems),
             ...cloudMenuItems,
+            ...decorateSessionRowActions(sessionSidebarMenuItems),
           ]
         : decorateSessionRowActions(sessionSidebarMenuItems),
     [cloudMenuItems, decorateSessionRowActions, sessionSidebarMenuItems]
