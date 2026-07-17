@@ -157,17 +157,37 @@ pub fn stat_cursor_cli_history_for_session(
 
 /// Candidate roots holding per-session store dirs. Exposed so the
 /// external-CLI detection layer can report the store path.
+///
+/// cursor-agent resolves its config root as `$CURSOR_CONFIG_DIR ||
+/// $XDG_CONFIG_HOME/cursor || ~/.cursor` and writes one store per session at
+/// `<config-root>/chats/<md5-of-cwd>/<session-uuid>/store.db` (verified
+/// against the 2026.01 and 2026.04 CLI builds: `getChatsRootDir()` joins
+/// `chats` directly onto `getConfigDir()` — no `.cursor` component when the
+/// config dir is overridden).
 pub fn cursor_cli_history_candidate_paths() -> Vec<PathBuf> {
     let mut roots = Vec::new();
     if let Some(home_dir) = dirs::home_dir() {
         roots.push(home_dir.join(".cursor").join("chats"));
     }
-    // ORGII-managed cursor-agent runs redirect HOME into per-account profile
-    // dirs whose stores land under `<profile>/.cursor/chats`.
+    if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
+        if !xdg.trim().is_empty() {
+            roots.push(PathBuf::from(xdg).join("cursor").join("chats"));
+        }
+    }
+    // ORGII-managed cursor-agent runs redirect CURSOR_CONFIG_DIR (not HOME):
+    // own-key sessions into per-account profile dirs, hosted-key sessions
+    // into per-session config dirs. Chats land directly under
+    // `<config-dir>/chats` in both cases.
     roots.extend(
         crate::sources::imported_history::managed_roots::profile_root_children(
             &app_paths::cursor_cli_profile_root(),
-            &[".cursor", "chats"],
+            &["chats"],
+        ),
+    );
+    roots.extend(
+        crate::sources::imported_history::managed_roots::profile_root_children(
+            &app_paths::cursor_config_root(),
+            &["chats"],
         ),
     );
     imported_paths::dedupe_paths(roots)
