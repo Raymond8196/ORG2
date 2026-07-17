@@ -429,17 +429,15 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         contentState.showCloudOrgContent ||
         contentState.showWorkspaceOverviewContent);
 
-    // Launcher chrome (tab strip + "+" menu) lives on the start page only;
-    // session/terminal/management views keep a plain session-focused header.
-    const tabStrip = startPageOpen ? <ChatPanelTabBar /> : undefined;
+    const tabStrip = <ChatPanelTabBar />;
 
-    const tabStripPlus = startPageOpen ? (
+    const tabStripPlus = (
       <ChatPanelPlusMenu
         onOpenLaunchpad={handleOpenLaunchpadTab}
         onOpenKanban={handleOpenKanbanTab}
         onNewWorkItem={handleStartPageNewWorkItem}
       />
-    ) : undefined;
+    );
 
     // Terminal / work-management tabs are not creator surfaces: the create
     // target select and presence button would be launcher noise there. Real
