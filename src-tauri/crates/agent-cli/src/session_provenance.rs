@@ -34,6 +34,58 @@ const ALL_SESSION_PROVENANCE_HOOK_PLATFORMS: [SessionProvenanceHookPlatform; 11]
 const CODEX_POST_TOOL_USE_MATCHER: &str = "Bash|apply_patch|Edit|Write|mcp__.*";
 const CLAUDE_CODE_POST_TOOL_USE_MATCHER: &str =
     "Read|Write|Edit|MultiEdit|NotebookEdit|Delete|Glob|Grep";
+// With live status on, PostToolUse widens to every tool: non-file payloads
+// yield zero provenance envelopes (no spool spam) but each one refreshes the
+// session's `working` heartbeat, so a long tool run doesn't read as stalled.
+// Exactly one managed PostToolUse group exists either way — the matcher is
+// switched, never doubled (two groups would spawn two captures per file tool).
+const CLAUDE_CODE_LIVE_STATUS_POST_TOOL_USE_MATCHER: &str = "*";
+// Lifecycle (live-status) events for Claude Code, installed alongside the
+// provenance PostToolUse hook when live status is enabled. Matcher-less
+// events are turn boundaries; tool-scoped events carry `*` so every tool
+// reports. Vocabulary mirrors the Claude Code hooks contract
+// (UserPromptSubmit/Stop/StopFailure/PermissionRequest/PreToolUse/
+// PostToolUseFailure) and maps in `orgtrack_core::status_adapter`.
+const CLAUDE_CODE_LIFECYCLE_EVENTS: &[(&str, Option<&str>)] = &[
+    ("UserPromptSubmit", None),
+    ("Stop", None),
+    ("StopFailure", None),
+    ("PermissionRequest", Some("*")),
+    ("PreToolUse", Some("*")),
+    ("PostToolUseFailure", Some("*")),
+];
+// Codex lifecycle events (all matcher-less; SessionStart doubles as the
+// resume signal and PreToolUse is the per-tool working heartbeat).
+const CODEX_LIFECYCLE_EVENTS: &[&str] = &[
+    "SessionStart",
+    "UserPromptSubmit",
+    "PreToolUse",
+    "PermissionRequest",
+    "Stop",
+];
+// Cursor lifecycle events (flat camelCase arrays; Cursor has no
+// waiting/permission vocabulary — Done comes from stop/sessionEnd).
+// (event, needs `.*` matcher)
+const CURSOR_LIFECYCLE_EVENTS: &[(&str, bool)] = &[
+    ("beforeSubmitPrompt", false),
+    ("stop", false),
+    ("preToolUse", true),
+    ("postToolUseFailure", true),
+];
+// Factory Droid emits Claude-Code-shaped lifecycle events.
+const FACTORY_DROID_LIFECYCLE_EVENTS: &[(&str, Option<&str>)] = CLAUDE_CODE_LIFECYCLE_EVENTS;
+// Antigravity lifecycle event arrays added to the owned hook group.
+const ANTIGRAVITY_LIFECYCLE_EVENTS: &[&str] = &["PreInvocation", "PostInvocation", "Stop"];
+// Kimi lifecycle `[[hooks]]` entries (Claude-family names; the
+// AskUserQuestion waiting special-case lives in the status normalizer).
+const KIMI_LIFECYCLE_EVENTS: &[&str] = &[
+    "UserPromptSubmit",
+    "PreToolUse",
+    "PostToolUseFailure",
+    "PermissionRequest",
+    "Stop",
+    "StopFailure",
+];
 // Qwen Code is a Gemini-family CLI: its file tools are snake_case
 // (`write_file`, `replace`, `read_file`, …). Scope the managed PostToolUse
 // hook to those so it does not spawn a capture process on every shell call.
@@ -208,6 +260,11 @@ struct HookPreferences {
     /// flags are preserved so switching back on restores the previous
     /// per-platform selection.
     master_enabled: bool,
+    /// Whether lifecycle (live-status) events are installed alongside the
+    /// provenance PostToolUse hooks and whether the capture subprocess posts
+    /// normalized status events to the desktop's loopback endpoint. Off keeps
+    /// provenance capture intact but removes the lifecycle event entries.
+    live_status_enabled: bool,
     claude_code: bool,
     codex: bool,
     cursor: bool,
@@ -229,6 +286,7 @@ impl Default for HookPreferences {
         Self {
             schema_version: PREFERENCES_SCHEMA_VERSION,
             master_enabled: true,
+            live_status_enabled: true,
             claude_code: true,
             codex: true,
             cursor: true,
@@ -455,6 +513,28 @@ fn update_nested_platform(
     )
 }
 
+/// Install (or remove, when `install` is false) the Claude Code lifecycle
+/// events. Always iterates the full list so flipping live status off strips
+/// previously-installed entries instead of leaving them behind.
+fn update_claude_lifecycle_events(
+    config: &mut Value,
+    install: bool,
+    unix_command: &str,
+    windows_command: &str,
+) -> Result<(), String> {
+    for (event_name, matcher) in CLAUDE_CODE_LIFECYCLE_EVENTS {
+        update_nested_event(
+            config,
+            event_name,
+            install,
+            *matcher,
+            unix_command,
+            windows_command,
+        )?;
+    }
+    Ok(())
+}
+
 fn update_nested_event(
     config: &mut Value,
     event_name: &str,
@@ -505,6 +585,7 @@ fn update_nested_event(
 fn update_codex_platform(
     config: &mut Value,
     enabled: bool,
+    live_status: bool,
     unix_command: &str,
     windows_command: &str,
 ) -> Result<(), String> {
@@ -526,12 +607,23 @@ fn update_codex_platform(
             windows_command,
         )?;
     }
+    for event_name in CODEX_LIFECYCLE_EVENTS {
+        update_nested_event(
+            config,
+            event_name,
+            enabled && live_status,
+            None,
+            unix_command,
+            windows_command,
+        )?;
+    }
     Ok(())
 }
 
 fn update_cursor_platform(
     config: &mut Value,
     enabled: bool,
+    live_status: bool,
     unix_command: &str,
 ) -> Result<(), String> {
     config
@@ -540,7 +632,16 @@ fn update_cursor_platform(
         .entry("version")
         .or_insert(json!(1));
     let hooks = hooks_object_mut(config)?;
-    for event_name in ["postToolUse", "subagentStart", "subagentStop"] {
+    let mut events: Vec<(&str, bool, bool)> = vec![
+        // (event, needs matcher, install?)
+        ("postToolUse", true, enabled),
+        ("subagentStart", false, enabled),
+        ("subagentStop", false, enabled),
+    ];
+    for (event_name, needs_matcher) in CURSOR_LIFECYCLE_EVENTS {
+        events.push((event_name, *needs_matcher, enabled && live_status));
+    }
+    for (event_name, needs_matcher, install) in events {
         if !hooks.contains_key(event_name) {
             hooks.insert(event_name.to_string(), Value::Array(Vec::new()));
         }
@@ -549,9 +650,9 @@ fn update_cursor_platform(
             .and_then(Value::as_array_mut)
             .ok_or_else(|| format!("Cursor hook config `hooks.{event_name}` must be an array"))?;
         commands.retain(|command| !command_contains_marker(command));
-        if enabled {
+        if install {
             let mut hook = json!({ "command": unix_command });
-            if event_name == "postToolUse" {
+            if needs_matcher {
                 hook.as_object_mut()
                     .expect("hook is object")
                     .insert("matcher".to_string(), json!(".*"));
@@ -689,21 +790,32 @@ fn windsurf_event_has_managed_hook(config: &Value, event_name: &str) -> bool {
 fn update_antigravity_platform(
     config: &mut Value,
     enabled: bool,
+    live_status: bool,
     command: &str,
 ) -> Result<(), String> {
     let root = config
         .as_object_mut()
         .ok_or_else(|| "Antigravity hook config root must be a JSON object".to_string())?;
     if enabled {
-        root.insert(
-            ANTIGRAVITY_HOOK_GROUP.to_string(),
-            json!({
-                "PostToolUse": [{
-                    "matcher": ANTIGRAVITY_POST_TOOL_USE_MATCHER,
-                    "hooks": [{ "type": "command", "command": command, "timeout": 5 }]
-                }]
-            }),
+        let mut group = serde_json::Map::new();
+        group.insert(
+            "PostToolUse".to_string(),
+            json!([{
+                "matcher": ANTIGRAVITY_POST_TOOL_USE_MATCHER,
+                "hooks": [{ "type": "command", "command": command, "timeout": 5 }]
+            }]),
         );
+        if live_status {
+            for event_name in ANTIGRAVITY_LIFECYCLE_EVENTS {
+                group.insert(
+                    (*event_name).to_string(),
+                    json!([{
+                        "hooks": [{ "type": "command", "command": command, "timeout": 5 }]
+                    }]),
+                );
+            }
+        }
+        root.insert(ANTIGRAVITY_HOOK_GROUP.to_string(), Value::Object(group));
     } else {
         root.remove(ANTIGRAVITY_HOOK_GROUP);
     }
@@ -735,22 +847,31 @@ fn antigravity_has_managed_hook(config: &Value) -> bool {
 /// True if the user's Kimi `config.toml` already carries our managed `[[hooks]]`
 /// entry (command contains [`HOOK_MARKER`]).
 fn kimi_config_is_managed(path: &Path) -> bool {
+    kimi_config_managed_entry_count(path) > 0
+}
+
+/// Number of ORGII-managed `[[hooks]]` entries in Kimi's `config.toml`.
+fn kimi_config_managed_entry_count(path: &Path) -> usize {
     let Ok(raw) = std::fs::read_to_string(path) else {
-        return false;
+        return 0;
     };
     let Ok(root) = toml::from_str::<toml::Value>(&raw) else {
-        return false;
+        return 0;
     };
     root.get("hooks")
         .and_then(|hooks| hooks.as_array())
-        .is_some_and(|hooks| {
-            hooks.iter().any(|entry| {
-                entry
-                    .get("command")
-                    .and_then(|command| command.as_str())
-                    .is_some_and(|command| command.contains(HOOK_MARKER))
-            })
+        .map(|hooks| {
+            hooks
+                .iter()
+                .filter(|entry| {
+                    entry
+                        .get("command")
+                        .and_then(|command| command.as_str())
+                        .is_some_and(|command| command.contains(HOOK_MARKER))
+                })
+                .count()
         })
+        .unwrap_or(0)
 }
 
 /// Rewrite Kimi's `[[hooks]]` array in place: drop any prior managed entry, then
@@ -758,6 +879,7 @@ fn kimi_config_is_managed(path: &Path) -> bool {
 fn kimi_apply_managed_hook(
     root: &mut toml::Value,
     enabled: bool,
+    live_status: bool,
     command: &str,
 ) -> Result<(), String> {
     let table = root
@@ -776,15 +898,30 @@ fn kimi_apply_managed_hook(
             .unwrap_or(true)
     });
     if enabled {
-        let mut entry = toml::map::Map::new();
-        entry.insert("event".to_string(), toml::Value::String("PostToolUse".to_string()));
-        entry.insert(
-            "matcher".to_string(),
-            toml::Value::String(KIMI_POST_TOOL_USE_MATCHER.to_string()),
-        );
-        entry.insert("command".to_string(), toml::Value::String(command.to_string()));
-        entry.insert("timeout".to_string(), toml::Value::Integer(5));
-        hooks.push(toml::Value::Table(entry));
+        let managed_entry = |event: &str, matcher: Option<&str>| {
+            let mut entry = toml::map::Map::new();
+            entry.insert("event".to_string(), toml::Value::String(event.to_string()));
+            if let Some(matcher) = matcher {
+                entry.insert(
+                    "matcher".to_string(),
+                    toml::Value::String(matcher.to_string()),
+                );
+            }
+            entry.insert(
+                "command".to_string(),
+                toml::Value::String(command.to_string()),
+            );
+            entry.insert("timeout".to_string(), toml::Value::Integer(5));
+            toml::Value::Table(entry)
+        };
+        hooks.push(managed_entry("PostToolUse", Some(KIMI_POST_TOOL_USE_MATCHER)));
+        if live_status {
+            for event in KIMI_LIFECYCLE_EVENTS {
+                // PreToolUse carries no matcher: every tool (including
+                // AskUserQuestion → waiting) must report.
+                hooks.push(managed_entry(event, None));
+            }
+        }
     }
     if hooks.is_empty() {
         table.remove("hooks");
@@ -798,9 +935,19 @@ fn kimi_apply_managed_hook(
 /// TOML round-tripping does not preserve comments, so we skip the write when the
 /// desired install state already holds — avoiding a needless rewrite of the
 /// user's main config on every reconcile.
-fn update_kimi_platform(enabled: bool, executable: &Path) -> Result<(), String> {
+fn update_kimi_platform(enabled: bool, live_status: bool, executable: &Path) -> Result<(), String> {
     let path = SessionProvenanceHookPlatform::Kimi.config_path();
-    if enabled == kimi_config_is_managed(&path) {
+    // Skip the comment-destroying rewrite only when the on-disk shape already
+    // matches the desired one — entry COUNT matters, not mere presence, or a
+    // live-status flip would never upgrade/downgrade the installed set.
+    let desired_count = if !enabled {
+        0
+    } else if live_status {
+        1 + KIMI_LIFECYCLE_EVENTS.len()
+    } else {
+        1
+    };
+    if kimi_config_managed_entry_count(&path) == desired_count {
         return Ok(());
     }
     let mut root: toml::Value = if path.exists() {
@@ -816,7 +963,7 @@ fn update_kimi_platform(enabled: bool, executable: &Path) -> Result<(), String> 
     } else {
         unix_command
     };
-    kimi_apply_managed_hook(&mut root, enabled, &command)?;
+    kimi_apply_managed_hook(&mut root, enabled, live_status, &command)?;
     let serialized = toml::to_string_pretty(&root)
         .map_err(|err| format!("Failed to serialize Kimi config: {err}"))?;
     write_atomic(&path, serialized.as_bytes())
@@ -1122,6 +1269,7 @@ fn update_zcode_plugin(enabled: bool, executable: &Path) -> Result<(), String> {
 fn update_platform(
     platform: SessionProvenanceHookPlatform,
     enabled: bool,
+    live_status: bool,
     executable: &Path,
 ) -> Result<(), String> {
     // OpenCode (plugin file), Kimi (TOML), and ZCode (plugin tree) are not JSON
@@ -1131,7 +1279,7 @@ fn update_platform(
             return update_opencode_plugin(enabled, executable);
         }
         SessionProvenanceHookPlatform::Kimi => {
-            return update_kimi_platform(enabled, executable);
+            return update_kimi_platform(enabled, live_status, executable);
         }
         SessionProvenanceHookPlatform::ZCode => {
             return update_zcode_plugin(enabled, executable);
@@ -1145,23 +1293,40 @@ fn update_platform(
     let mut config = read_config(&path)?;
     let (unix_command, windows_command) = hook_commands(executable, platform.source_arg());
     match platform {
-        SessionProvenanceHookPlatform::ClaudeCode => update_nested_platform(
+        SessionProvenanceHookPlatform::ClaudeCode => {
+            let post_tool_use_matcher = if live_status {
+                CLAUDE_CODE_LIVE_STATUS_POST_TOOL_USE_MATCHER
+            } else {
+                CLAUDE_CODE_POST_TOOL_USE_MATCHER
+            };
+            update_nested_platform(
+                &mut config,
+                enabled,
+                post_tool_use_matcher,
+                &unix_command,
+                &windows_command,
+            )?;
+            update_claude_lifecycle_events(
+                &mut config,
+                enabled && live_status,
+                &unix_command,
+                &windows_command,
+            )?;
+        }
+        SessionProvenanceHookPlatform::Codex => update_codex_platform(
             &mut config,
             enabled,
-            CLAUDE_CODE_POST_TOOL_USE_MATCHER,
+            live_status,
             &unix_command,
             &windows_command,
         )?,
-        SessionProvenanceHookPlatform::Codex => {
-            update_codex_platform(&mut config, enabled, &unix_command, &windows_command)?
-        }
         SessionProvenanceHookPlatform::Cursor => {
             let cursor_command = if cfg!(windows) {
                 &windows_command
             } else {
                 &unix_command
             };
-            update_cursor_platform(&mut config, enabled, cursor_command)?
+            update_cursor_platform(&mut config, enabled, live_status, cursor_command)?
         }
         // Qwen Code and Factory Droid consume the same Claude-Code-style nested
         // JSON `hooks.PostToolUse` schema; only the file-tool matcher differs.
@@ -1172,13 +1337,25 @@ fn update_platform(
             &unix_command,
             &windows_command,
         )?,
-        SessionProvenanceHookPlatform::FactoryDroid => update_nested_platform(
-            &mut config,
-            enabled,
-            FACTORY_DROID_POST_TOOL_USE_MATCHER,
-            &unix_command,
-            &windows_command,
-        )?,
+        SessionProvenanceHookPlatform::FactoryDroid => {
+            update_nested_platform(
+                &mut config,
+                enabled,
+                FACTORY_DROID_POST_TOOL_USE_MATCHER,
+                &unix_command,
+                &windows_command,
+            )?;
+            for (event_name, matcher) in FACTORY_DROID_LIFECYCLE_EVENTS {
+                update_nested_event(
+                    &mut config,
+                    event_name,
+                    enabled && live_status,
+                    *matcher,
+                    &unix_command,
+                    &windows_command,
+                )?;
+            }
+        }
         SessionProvenanceHookPlatform::Trae => {
             let command = if cfg!(windows) {
                 &windows_command
@@ -1196,7 +1373,7 @@ fn update_platform(
             } else {
                 &unix_command
             };
-            update_antigravity_platform(&mut config, enabled, command)?
+            update_antigravity_platform(&mut config, enabled, live_status, command)?
         }
         SessionProvenanceHookPlatform::OpenCode
         | SessionProvenanceHookPlatform::Kimi
@@ -1263,14 +1440,33 @@ fn cursor_event_has_managed_hook(config: &Value, event_name: &str, matcher: Opti
 fn config_has_complete_managed_hooks(
     config: &Value,
     platform: SessionProvenanceHookPlatform,
+    live_status: bool,
 ) -> bool {
     match platform {
-        SessionProvenanceHookPlatform::ClaudeCode => nested_event_has_managed_hook(
-            config,
-            platform,
-            "PostToolUse",
-            Some(CLAUDE_CODE_POST_TOOL_USE_MATCHER),
-        ),
+        // The expected Claude install shape depends on the live-status
+        // preference; checking the wrong shape would make startup reconcile
+        // flap between "repair" and "on".
+        SessionProvenanceHookPlatform::ClaudeCode => {
+            if live_status {
+                nested_event_has_managed_hook(
+                    config,
+                    platform,
+                    "PostToolUse",
+                    Some(CLAUDE_CODE_LIVE_STATUS_POST_TOOL_USE_MATCHER),
+                ) && CLAUDE_CODE_LIFECYCLE_EVENTS
+                    .iter()
+                    .all(|(event_name, matcher)| {
+                        nested_event_has_managed_hook(config, platform, event_name, *matcher)
+                    })
+            } else {
+                nested_event_has_managed_hook(
+                    config,
+                    platform,
+                    "PostToolUse",
+                    Some(CLAUDE_CODE_POST_TOOL_USE_MATCHER),
+                )
+            }
+        }
         SessionProvenanceHookPlatform::Codex => {
             nested_event_has_managed_hook(
                 config,
@@ -1279,11 +1475,23 @@ fn config_has_complete_managed_hooks(
                 Some(CODEX_POST_TOOL_USE_MATCHER),
             ) && nested_event_has_managed_hook(config, platform, "SubagentStart", None)
                 && nested_event_has_managed_hook(config, platform, "SubagentStop", None)
+                && (!live_status
+                    || CODEX_LIFECYCLE_EVENTS.iter().all(|event_name| {
+                        nested_event_has_managed_hook(config, platform, event_name, None)
+                    }))
         }
         SessionProvenanceHookPlatform::Cursor => {
             cursor_event_has_managed_hook(config, "postToolUse", Some(".*"))
                 && cursor_event_has_managed_hook(config, "subagentStart", None)
                 && cursor_event_has_managed_hook(config, "subagentStop", None)
+                && (!live_status
+                    || CURSOR_LIFECYCLE_EVENTS.iter().all(|(event_name, needs_matcher)| {
+                        cursor_event_has_managed_hook(
+                            config,
+                            event_name,
+                            needs_matcher.then_some(".*"),
+                        )
+                    }))
         }
         SessionProvenanceHookPlatform::QwenCode => nested_event_has_managed_hook(
             config,
@@ -1291,12 +1499,19 @@ fn config_has_complete_managed_hooks(
             "PostToolUse",
             Some(QWEN_CODE_POST_TOOL_USE_MATCHER),
         ),
-        SessionProvenanceHookPlatform::FactoryDroid => nested_event_has_managed_hook(
-            config,
-            platform,
-            "PostToolUse",
-            Some(FACTORY_DROID_POST_TOOL_USE_MATCHER),
-        ),
+        SessionProvenanceHookPlatform::FactoryDroid => {
+            nested_event_has_managed_hook(
+                config,
+                platform,
+                "PostToolUse",
+                Some(FACTORY_DROID_POST_TOOL_USE_MATCHER),
+            ) && (!live_status
+                || FACTORY_DROID_LIFECYCLE_EVENTS
+                    .iter()
+                    .all(|(event_name, matcher)| {
+                        nested_event_has_managed_hook(config, platform, event_name, *matcher)
+                    }))
+        }
         SessionProvenanceHookPlatform::Trae => nested_event_has_managed_hook(
             config,
             platform,
@@ -1307,7 +1522,16 @@ fn config_has_complete_managed_hooks(
             windsurf_event_has_managed_hook(config, "post_read_code")
                 && windsurf_event_has_managed_hook(config, "post_write_code")
         }
-        SessionProvenanceHookPlatform::Antigravity => antigravity_has_managed_hook(config),
+        SessionProvenanceHookPlatform::Antigravity => {
+            antigravity_has_managed_hook(config)
+                && (!live_status
+                    || ANTIGRAVITY_LIFECYCLE_EVENTS.iter().all(|event_name| {
+                        config
+                            .get(ANTIGRAVITY_HOOK_GROUP)
+                            .and_then(|group| group.get(*event_name))
+                            .is_some()
+                    }))
+        }
         // OpenCode (plugin file), Kimi (TOML), and ZCode (plugin tree) install
         // state is checked directly in `config_has_managed_hooks`; none reach
         // this JSON predicate.
@@ -1331,7 +1555,14 @@ fn config_has_managed_hooks(platform: SessionProvenanceHookPlatform) -> Result<b
         _ => {}
     }
     let config = read_config(&platform.config_path())?;
-    Ok(config_has_complete_managed_hooks(&config, platform))
+    // Fail-open mirror of `live_status_enabled_quick` (minus the master gate,
+    // which `update_platform`'s `enabled` already encodes at install time).
+    let live_status = read_preferences()
+        .map(|preferences| preferences.live_status_enabled)
+        .unwrap_or(true);
+    Ok(config_has_complete_managed_hooks(
+        &config, platform, live_status,
+    ))
 }
 
 /// Fingerprint only ORG2-managed definitions, so unrelated user hooks neither
@@ -1526,9 +1757,12 @@ pub fn ensure_hooks_from_preferences() -> Result<(), String> {
         .map_err(|err| format!("Failed to locate ORG2 executable: {err}"))?;
     let mut errors = Vec::new();
     for platform in ALL_SESSION_PROVENANCE_HOOK_PLATFORMS {
-        if let Err(err) =
-            update_platform(platform, preferences.effective_enabled(platform), &executable)
-        {
+        if let Err(err) = update_platform(
+            platform,
+            preferences.effective_enabled(platform),
+            preferences.live_status_enabled,
+            &executable,
+        ) {
             errors.push(format!("{platform:?}: {err}"));
         }
     }
@@ -1575,6 +1809,7 @@ pub async fn session_provenance_hooks_set_enabled(
         let update_error = update_platform(
             platform,
             preferences.effective_enabled(platform),
+            preferences.live_status_enabled,
             &executable,
         )
         .err();
@@ -1591,6 +1826,62 @@ pub fn provenance_hooks_master_enabled_quick() -> bool {
     read_preferences()
         .map(|preferences| preferences.master_enabled)
         .unwrap_or(true)
+}
+
+/// Lock-free live-status probe for the short-lived hook capture process.
+/// Same fail-open contract as the master probe: a missing/corrupt
+/// preferences file must not silently drop status posts while lifecycle
+/// hooks are still installed.
+pub fn live_status_enabled_quick() -> bool {
+    read_preferences()
+        .map(|preferences| preferences.master_enabled && preferences.live_status_enabled)
+        .unwrap_or(true)
+}
+
+/// Whether lifecycle (live-status) hook events are enabled.
+#[tauri::command]
+pub async fn session_provenance_live_status_enabled() -> Result<bool, String> {
+    tokio::task::spawn_blocking(|| {
+        let _guard = operation_guard()?;
+        Ok::<_, String>(read_preferences()?.live_status_enabled)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+/// Flip the live-status switch: reinstalls every platform's managed hooks in
+/// the matching shape (lifecycle events added or stripped; provenance
+/// PostToolUse hooks stay either way). Returns refreshed per-platform
+/// statuses.
+#[tauri::command]
+pub async fn session_provenance_set_live_status_enabled(
+    enabled: bool,
+) -> Result<Vec<SessionProvenanceHookStatus>, String> {
+    tokio::task::spawn_blocking(move || {
+        let _guard = operation_guard()?;
+        let executable = std::env::current_exe()
+            .map_err(|err| format!("Failed to locate ORG2 executable: {err}"))?;
+        let mut preferences = read_preferences()?;
+        preferences.live_status_enabled = enabled;
+        write_preferences(&preferences)?;
+        Ok::<_, String>(
+            ALL_SESSION_PROVENANCE_HOOK_PLATFORMS
+                .into_iter()
+                .map(|platform| {
+                    let update_error = update_platform(
+                        platform,
+                        preferences.effective_enabled(platform),
+                        preferences.live_status_enabled,
+                        &executable,
+                    )
+                    .err();
+                    build_hook_status(platform, preferences.enabled(platform), update_error)
+                })
+                .collect::<Vec<_>>(),
+        )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
 }
 
 /// Whether the master switch over all managed provenance hooks is on.
@@ -1626,6 +1917,7 @@ pub async fn session_provenance_hooks_set_master_enabled(
                     let update_error = update_platform(
                         platform,
                         preferences.effective_enabled(platform),
+                        preferences.live_status_enabled,
                         &executable,
                     )
                     .err();
@@ -1670,6 +1962,94 @@ mod tests {
     }
 
     #[test]
+    fn claude_lifecycle_events_install_and_remove_symmetrically() {
+        let mut config = json!({
+            "hooks": {"Stop": [{
+                "hooks": [{"type": "command", "command": "user-stop-hook"}]
+            }]},
+            "theme": "dark"
+        });
+        let unix = "orgii --session-provenance-hook claude";
+        let windows = "orgii.exe --session-provenance-hook claude";
+        update_claude_lifecycle_events(&mut config, true, unix, windows)
+            .expect("install lifecycle events");
+        for (event_name, matcher) in CLAUDE_CODE_LIFECYCLE_EVENTS {
+            assert!(
+                nested_event_has_managed_hook(
+                    &config,
+                    SessionProvenanceHookPlatform::ClaudeCode,
+                    event_name,
+                    *matcher
+                ),
+                "missing managed {event_name}"
+            );
+        }
+        // Completeness follows the live-status shape once PostToolUse widens.
+        update_nested_platform(
+            &mut config,
+            true,
+            CLAUDE_CODE_LIVE_STATUS_POST_TOOL_USE_MATCHER,
+            unix,
+            windows,
+        )
+        .expect("install live-status PostToolUse");
+        assert!(config_has_complete_managed_hooks(
+            &config,
+            SessionProvenanceHookPlatform::ClaudeCode,
+            true
+        ));
+        // Legacy shape (file matcher only) is NOT complete under live status.
+        assert!(!config_has_complete_managed_hooks(
+            &json!({"hooks": {"PostToolUse": [{
+                "matcher": CLAUDE_CODE_POST_TOOL_USE_MATCHER,
+                "hooks": [{"type": "command", "command": unix}]
+            }]}}),
+            SessionProvenanceHookPlatform::ClaudeCode,
+            true
+        ));
+
+        update_claude_lifecycle_events(&mut config, false, "unused", "unused")
+            .expect("remove lifecycle events");
+        // The user's own Stop hook survives; every managed lifecycle entry is
+        // gone (PostToolUse keeps the managed provenance hook).
+        assert_eq!(
+            config["hooks"]["Stop"][0]["hooks"][0]["command"],
+            "user-stop-hook"
+        );
+        for (event_name, matcher) in CLAUDE_CODE_LIFECYCLE_EVENTS {
+            assert!(
+                !nested_event_has_managed_hook(
+                    &config,
+                    SessionProvenanceHookPlatform::ClaudeCode,
+                    event_name,
+                    *matcher
+                ),
+                "managed {event_name} not removed"
+            );
+        }
+        assert_eq!(config["theme"], "dark");
+    }
+
+    #[test]
+    fn claude_completeness_uses_legacy_shape_when_live_status_off() {
+        let unix = "orgii --session-provenance-hook claude";
+        let legacy = json!({"hooks": {"PostToolUse": [{
+            "matcher": CLAUDE_CODE_POST_TOOL_USE_MATCHER,
+            "hooks": [{"type": "command", "command": unix}]
+        }]}});
+        assert!(config_has_complete_managed_hooks(
+            &legacy,
+            SessionProvenanceHookPlatform::ClaudeCode,
+            false
+        ));
+        assert!(!config_has_complete_managed_hooks(
+            &legacy,
+            SessionProvenanceHookPlatform::ClaudeCode,
+            true
+        ));
+    }
+
+    #[test]
     fn codex_matcher_uses_public_hook_tool_names() {
         assert!(CODEX_POST_TOOL_USE_MATCHER.contains("Bash"));
         assert!(CODEX_POST_TOOL_USE_MATCHER.contains("apply_patch"));
@@ -1689,6 +2069,7 @@ mod tests {
         update_codex_platform(
             &mut config,
             true,
+            false,
             "orgii --session-provenance-hook codex",
             "orgii.exe --session-provenance-hook codex",
         )
@@ -1702,24 +2083,28 @@ mod tests {
         assert_eq!(config["hooks"]["SubagentStop"].as_array().unwrap().len(), 2);
         assert!(config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::Codex
+            SessionProvenanceHookPlatform::Codex,
+            false
         ));
 
         config["hooks"]["SubagentStart"] = json!([]);
         assert!(!config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::Codex
+            SessionProvenanceHookPlatform::Codex,
+            false
         ));
 
         update_codex_platform(
             &mut config,
             true,
+            false,
             "orgii --session-provenance-hook codex",
             "orgii.exe --session-provenance-hook codex",
         )
         .expect("repair incomplete Codex hooks");
 
-        update_codex_platform(&mut config, false, "unused", "unused").expect("disable Codex hooks");
+        update_codex_platform(&mut config, false, false, "unused", "unused")
+            .expect("disable Codex hooks");
         assert!(config.to_string().contains("user-hook"));
         assert!(!config.to_string().contains(HOOK_MARKER));
     }
@@ -1738,6 +2123,7 @@ mod tests {
         update_codex_platform(
             &mut config,
             true,
+            false,
             "orgii --session-provenance-hook codex",
             "orgii.exe --session-provenance-hook codex",
         )
@@ -1818,7 +2204,7 @@ mod tests {
             "version": 1,
             "hooks": {"postToolUse": [{"command": "user-hook"}]}
         });
-        update_cursor_platform(&mut config, true, "orgii --session-provenance-hook cursor")
+        update_cursor_platform(&mut config, true, false, "orgii --session-provenance-hook cursor")
             .expect("enable Cursor hook");
         assert_eq!(config["hooks"]["postToolUse"].as_array().unwrap().len(), 2);
         assert_eq!(
@@ -1828,9 +2214,10 @@ mod tests {
         assert_eq!(config["hooks"]["subagentStop"].as_array().unwrap().len(), 1);
         assert!(config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::Cursor
+            SessionProvenanceHookPlatform::Cursor,
+            false
         ));
-        update_cursor_platform(&mut config, false, "unused").expect("disable Cursor hook");
+        update_cursor_platform(&mut config, false, false, "unused").expect("disable Cursor hook");
         assert_eq!(config["hooks"]["postToolUse"].as_array().unwrap().len(), 1);
         assert!(config["hooks"]["subagentStart"]
             .as_array()
@@ -1862,12 +2249,14 @@ mod tests {
         assert_eq!(config["theme"], "dark");
         assert!(config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::QwenCode
+            SessionProvenanceHookPlatform::QwenCode,
+            false
         ));
         // The managed matcher is Qwen-specific, not the Claude Code one.
         assert!(!config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::ClaudeCode
+            SessionProvenanceHookPlatform::ClaudeCode,
+            false
         ));
         update_nested_platform(&mut config, false, QWEN_CODE_POST_TOOL_USE_MATCHER, "x", "x")
             .expect("disable Qwen hook");
@@ -1888,7 +2277,8 @@ mod tests {
         .expect("enable Droid hook");
         assert!(config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::FactoryDroid
+            SessionProvenanceHookPlatform::FactoryDroid,
+            false
         ));
         assert!(config.to_string().contains(HOOK_MARKER));
         update_nested_platform(
@@ -1916,7 +2306,8 @@ mod tests {
         assert_eq!(config["version"], 1);
         assert!(config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::Trae
+            SessionProvenanceHookPlatform::Trae,
+            false
         ));
         // Trae uses a single `command` field — never `commandWindows`.
         let ours = config["hooks"]["PostToolUse"]
@@ -1958,7 +2349,8 @@ mod tests {
         );
         assert!(config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::Windsurf
+            SessionProvenanceHookPlatform::Windsurf,
+            false
         ));
         update_windsurf_platform(&mut config, false, "x", "x").expect("disable Windsurf hook");
         assert_eq!(
@@ -1979,6 +2371,7 @@ mod tests {
         update_antigravity_platform(
             &mut config,
             true,
+            false,
             "orgii --session-provenance-hook antigravity",
         )
         .expect("enable Antigravity hook");
@@ -1987,9 +2380,11 @@ mod tests {
         assert!(antigravity_has_managed_hook(&config));
         assert!(config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::Antigravity
+            SessionProvenanceHookPlatform::Antigravity,
+            false
         ));
-        update_antigravity_platform(&mut config, false, "x").expect("disable Antigravity hook");
+        update_antigravity_platform(&mut config, false, false, "x")
+            .expect("disable Antigravity hook");
         assert!(config.get(ANTIGRAVITY_HOOK_GROUP).is_none());
         assert!(config.get("orca-status").is_some());
         assert!(!config.to_string().contains(HOOK_MARKER));
@@ -2001,7 +2396,7 @@ mod tests {
             "model = \"kimi-k2\"\n\n[[hooks]]\nevent = \"Stop\"\ncommand = \"user-hook\"\n",
         )
         .expect("parse base config");
-        kimi_apply_managed_hook(&mut root, true, "orgii --session-provenance-hook kimi")
+        kimi_apply_managed_hook(&mut root, true, false, "orgii --session-provenance-hook kimi")
             .expect("enable Kimi hook");
         let serialized = toml::to_string_pretty(&root).expect("serialize");
         assert!(serialized.contains("model = \"kimi-k2\""));
@@ -2009,7 +2404,7 @@ mod tests {
         assert!(serialized.contains(HOOK_MARKER));
         assert!(serialized.contains("StrReplaceFile"));
 
-        kimi_apply_managed_hook(&mut root, false, "unused").expect("disable Kimi hook");
+        kimi_apply_managed_hook(&mut root, false, false, "unused").expect("disable Kimi hook");
         let serialized = toml::to_string_pretty(&root).expect("serialize");
         assert!(serialized.contains("user-hook"));
         assert!(!serialized.contains(HOOK_MARKER));
@@ -2276,7 +2671,8 @@ mod tests {
         let config = json!({"notes": HOOK_MARKER});
         assert!(!config_has_complete_managed_hooks(
             &config,
-            SessionProvenanceHookPlatform::ClaudeCode
+            SessionProvenanceHookPlatform::ClaudeCode,
+            false
         ));
     }
 
