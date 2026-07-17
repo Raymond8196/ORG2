@@ -323,11 +323,41 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
     orgId,
     signedIn,
     refreshNonce,
-    rosterVersion,
     setAuth,
     setRepoScopesByOrg,
     setFloorByOrg,
   ]);
+
+  // A roster signal only invalidates the member list. Keeping it out of the
+  // full panel effect prevents every teammate role/join/leave event from also
+  // re-reading entitlement and repo scopes.
+  const observedRosterVersionRef = useRef(rosterVersion);
+  useEffect(() => {
+    observedRosterVersionRef.current = rosterVersion;
+    // Only reset the watermark when switching orgs. `rosterVersion` is read
+    // deliberately but omitted so a normal bump reaches the fetch effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgId]);
+  useEffect(() => {
+    if (!signedIn) return;
+    if (observedRosterVersionRef.current === rosterVersion) return;
+    observedRosterVersionRef.current = rosterVersion;
+    let cancelled = false;
+    void (async () => {
+      const current = authRef.current;
+      if (!current) return;
+      const fresh = await ensureFreshSession(current);
+      if (!fresh || cancelled) return;
+      commitRefreshedAuth(setAuth, current, fresh);
+      const nextMembers = await listOrgMembers(fresh.accessToken, orgId);
+      if (!cancelled) setMembers(nextMembers);
+    })().catch((error: unknown) => {
+      log.warn("cloud org roster refresh failed:", error);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [orgId, signedIn, rosterVersion, setAuth]);
 
   // Re-read quota/cooling after a save attempt — a save changes occupancy
   // (success) or reveals a cooling slot (ORG2_SCOPE_COOLDOWN).

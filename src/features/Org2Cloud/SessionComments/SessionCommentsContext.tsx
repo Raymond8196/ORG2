@@ -38,7 +38,7 @@ import type { CommentTaskRunProgress } from "../commentTaskRunner";
 import { org2CloudAuthAtom } from "../org2CloudAuthAtom";
 import { createCommentTask } from "../org2CloudCommentTasksClient";
 import type { CloudCommentTask } from "../org2CloudCommentTasksClient";
-import { broadcastCommentsChanged } from "../org2CloudCommentsBus";
+import { broadcastCommentsChangedToPeers } from "../org2CloudCommentsBus";
 import type {
   CloudCommentResolution,
   CloudSessionComment,
@@ -265,7 +265,7 @@ export const SessionCommentsProvider: React.FC<
       // Tasks are wholesale-replaced per fetch (no optimistic task adds —
       // design §4): surface the new row through one forced refetch.
       refresh();
-      broadcastCommentsChanged(target.orgId, target.sessionId);
+      broadcastCommentsChangedToPeers(target.orgId, target.sessionId);
     },
     [target, withFreshToken, refresh]
   );
