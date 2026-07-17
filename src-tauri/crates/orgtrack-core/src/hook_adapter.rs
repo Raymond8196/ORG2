@@ -430,10 +430,13 @@ fn shell_path_actions(tool_name: &str, tool_input: &Value) -> Vec<(String, Resou
         .flat_map(|(canonical_name, args)| {
             let action = match canonical_name.as_str() {
                 crate::sources::imported_history::FUNCTION_READ_FILE => ResourceAction::Read,
-                crate::sources::imported_history::FUNCTION_CODE_SEARCH
-                | crate::sources::imported_history::FUNCTION_GLOB_FILE_SEARCH => {
-                    ResourceAction::Search
-                }
+                // search-rows: shell-classified searches no longer produce
+                // interactions; they now fall through to the empty arm.
+                // Restore with the sibling `search-rows` sites.
+                // crate::sources::imported_history::FUNCTION_CODE_SEARCH
+                // | crate::sources::imported_history::FUNCTION_GLOB_FILE_SEARCH => {
+                //     ResourceAction::Search
+                // }
                 crate::sources::imported_history::FUNCTION_EDIT_FILE => ResourceAction::Write,
                 _ => return Vec::new(),
             };

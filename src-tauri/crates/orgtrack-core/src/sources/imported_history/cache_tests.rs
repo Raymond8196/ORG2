@@ -85,6 +85,9 @@ fn sidebar_query_is_date_bounded_and_carries_impact_metadata() {
     let row = &page.sessions[0];
     assert_eq!(row.session_id, "codex_app-inside");
     assert_eq!(row.repo_path.as_deref(), Some("/tmp/repo-inside"));
+    // Imported sessions have no sessions.db copy — the hover card's storage
+    // row can only point at the source app's own transcript file.
+    assert_eq!(row.storage_path.as_deref(), Some("/tmp/inside.jsonl"));
     // The Kanban board and other card surfaces render these inline, so the
     // lightweight sidebar row must carry them (regression guard).
     assert_eq!(row.model.as_deref(), Some("model-a"));
