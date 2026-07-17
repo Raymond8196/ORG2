@@ -35,6 +35,13 @@ type LoadSessionPayload = {
   sessionId: string;
   events: SessionEvent[];
   isFromCache?: boolean;
+  /**
+   * The incoming events ARE the canonical transcript — replace the on-screen
+   * events instead of id-merging next to them (see loadSessionAtom). Used by
+   * native-transcript replay loads, whose replayed ids never match the
+   * ephemeral in-memory turn events.
+   */
+  replace?: boolean;
 };
 
 export interface SessionSwitchStateActions {

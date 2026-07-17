@@ -54,6 +54,14 @@ const CLAUDE_CODE_LIFECYCLE_EVENTS: &[(&str, Option<&str>)] = &[
     ("PreToolUse", Some("*")),
     ("PostToolUseFailure", Some("*")),
 ];
+// Every managed hook is observational and must return fast — except the
+// Claude Code PermissionRequest entry, which long-polls the desktop for an
+// interactive approval decision on managed Manual-mode sessions (see the
+// app's `orgtrack::session_provenance::approval_gate`). Its config timeout
+// must exceed the hook-side HTTP read timeout (130s), which itself exceeds
+// the desktop's 120s park timeout, so Claude never kills the hook mid-wait.
+const DEFAULT_HOOK_TIMEOUT_SECS: u64 = 5;
+pub const CLAUDE_PERMISSION_REQUEST_HOOK_TIMEOUT_SECS: u64 = 300;
 // Codex events required whenever provenance capture is enabled. SessionStart
 // proves that Codex accepted and executed the current managed definitions;
 // the subagent events preserve exact actor attribution.
@@ -527,16 +535,27 @@ fn update_claude_lifecycle_events(
     windows_command: &str,
 ) -> Result<(), String> {
     for (event_name, matcher) in CLAUDE_CODE_LIFECYCLE_EVENTS {
-        update_nested_event(
+        update_nested_event_with_timeout(
             config,
             event_name,
             install,
             *matcher,
             unix_command,
             windows_command,
+            claude_lifecycle_event_timeout_secs(event_name),
         )?;
     }
     Ok(())
+}
+
+/// Per-event managed hook timeout for the Claude Code lifecycle group.
+/// Only PermissionRequest blocks (interactive approval long-poll).
+fn claude_lifecycle_event_timeout_secs(event_name: &str) -> u64 {
+    if event_name == "PermissionRequest" {
+        CLAUDE_PERMISSION_REQUEST_HOOK_TIMEOUT_SECS
+    } else {
+        DEFAULT_HOOK_TIMEOUT_SECS
+    }
 }
 
 fn update_nested_event(
@@ -546,6 +565,27 @@ fn update_nested_event(
     matcher: Option<&str>,
     unix_command: &str,
     windows_command: &str,
+) -> Result<(), String> {
+    update_nested_event_with_timeout(
+        config,
+        event_name,
+        enabled,
+        matcher,
+        unix_command,
+        windows_command,
+        DEFAULT_HOOK_TIMEOUT_SECS,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn update_nested_event_with_timeout(
+    config: &mut Value,
+    event_name: &str,
+    enabled: bool,
+    matcher: Option<&str>,
+    unix_command: &str,
+    windows_command: &str,
+    timeout_secs: u64,
 ) -> Result<(), String> {
     let hooks = hooks_object_mut(config)?;
     if !hooks.contains_key(event_name) {
@@ -572,7 +612,7 @@ fn update_nested_event(
                 "type": "command",
                 "command": unix_command,
                 "commandWindows": windows_command,
-                "timeout": 5
+                "timeout": timeout_secs
             }]
         });
         if let Some(matcher) = matcher {
@@ -1419,6 +1459,44 @@ fn nested_event_has_managed_hook(
         })
 }
 
+/// True when the managed command entry for `event_name` carries exactly
+/// `timeout_secs`. Used to detect stale Claude `PermissionRequest` installs
+/// (pre-approval-bridge `timeout: 5`) so startup reconcile repairs them —
+/// a 5s cap would kill the interactive approval long-poll mid-wait.
+fn nested_event_managed_hook_has_timeout(
+    config: &Value,
+    platform: SessionProvenanceHookPlatform,
+    event_name: &str,
+    matcher: Option<&str>,
+    timeout_secs: u64,
+) -> bool {
+    config
+        .get("hooks")
+        .and_then(|hooks| hooks.get(event_name))
+        .and_then(Value::as_array)
+        .is_some_and(|groups| {
+            groups.iter().any(|group| {
+                let matcher_matches = match matcher {
+                    Some(expected) => {
+                        group.get("matcher").and_then(Value::as_str) == Some(expected)
+                    }
+                    None => group.get("matcher").is_none(),
+                };
+                matcher_matches
+                    && group
+                        .get("hooks")
+                        .and_then(Value::as_array)
+                        .is_some_and(|commands| {
+                            commands.iter().any(|command| {
+                                command_is_managed_for_platform(command, platform)
+                                    && command.get("timeout").and_then(Value::as_u64)
+                                        == Some(timeout_secs)
+                            })
+                        })
+            })
+        })
+}
+
 fn cursor_event_has_managed_hook(config: &Value, event_name: &str, matcher: Option<&str>) -> bool {
     config
         .get("hooks")
@@ -1462,6 +1540,16 @@ fn config_has_complete_managed_hooks(
                     .all(|(event_name, matcher)| {
                         nested_event_has_managed_hook(config, platform, event_name, *matcher)
                     })
+                    // The approval-bridge long-poll needs the raised
+                    // PermissionRequest timeout; a stale `timeout: 5`
+                    // entry counts as incomplete so reconcile repairs it.
+                    && nested_event_managed_hook_has_timeout(
+                        config,
+                        platform,
+                        "PermissionRequest",
+                        Some("*"),
+                        CLAUDE_PERMISSION_REQUEST_HOOK_TIMEOUT_SECS,
+                    )
             } else {
                 nested_event_has_managed_hook(
                     config,
@@ -2036,6 +2124,59 @@ mod tests {
             );
         }
         assert_eq!(config["theme"], "dark");
+    }
+
+    #[test]
+    fn claude_permission_request_hook_gets_blocking_timeout_and_stale_installs_repair() {
+        let unix = "orgii --session-provenance-hook claude";
+        let windows = "orgii.exe --session-provenance-hook claude";
+        let mut config = json!({});
+        update_claude_lifecycle_events(&mut config, true, unix, windows)
+            .expect("install lifecycle events");
+        update_nested_platform(
+            &mut config,
+            true,
+            CLAUDE_CODE_LIVE_STATUS_POST_TOOL_USE_MATCHER,
+            unix,
+            windows,
+        )
+        .expect("install live-status PostToolUse");
+
+        // Only the PermissionRequest entry carries the raised long-poll
+        // timeout; every other lifecycle event keeps the fast default.
+        for (event_name, _) in CLAUDE_CODE_LIFECYCLE_EVENTS {
+            let expected = if *event_name == "PermissionRequest" {
+                CLAUDE_PERMISSION_REQUEST_HOOK_TIMEOUT_SECS
+            } else {
+                DEFAULT_HOOK_TIMEOUT_SECS
+            };
+            let timeout = config["hooks"][*event_name][0]["hooks"][0]["timeout"]
+                .as_u64()
+                .unwrap_or_else(|| panic!("missing timeout on {event_name}"));
+            assert_eq!(timeout, expected, "wrong timeout on {event_name}");
+        }
+        assert!(config_has_complete_managed_hooks(
+            &config,
+            SessionProvenanceHookPlatform::ClaudeCode,
+            true
+        ));
+
+        // A pre-approval-bridge install (PermissionRequest at the old 5s
+        // timeout) is incomplete under live status, so startup reconcile
+        // rewrites it with the raised timeout.
+        config["hooks"]["PermissionRequest"][0]["hooks"][0]["timeout"] = json!(5);
+        assert!(!config_has_complete_managed_hooks(
+            &config,
+            SessionProvenanceHookPlatform::ClaudeCode,
+            true
+        ));
+        update_claude_lifecycle_events(&mut config, true, unix, windows)
+            .expect("repair lifecycle events");
+        assert!(config_has_complete_managed_hooks(
+            &config,
+            SessionProvenanceHookPlatform::ClaudeCode,
+            true
+        ));
     }
 
     #[test]
