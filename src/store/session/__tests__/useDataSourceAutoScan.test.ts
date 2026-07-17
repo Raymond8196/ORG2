@@ -7,10 +7,13 @@ import {
   type DataSourceConfigMap,
   dataSourceConfigAtom,
   dataSourceGlobalFrequencyAtom,
+  dataSourcePresenceAtom,
+  externalSessionsEnabledAtom,
 } from "../dataSourceConfigAtom";
 import { runDataSourceAutoScan } from "../useDataSourceAutoScan";
 
 const mocks = vi.hoisted(() => ({
+  externalCliSourceProbe: vi.fn(),
   externalHistoryRescanSources: vi.fn(),
   loadSidebarSessions: vi.fn(),
   store: undefined as ReturnType<typeof createStore> | undefined,
@@ -18,6 +21,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@src/api/tauri/externalHistory", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@src/api/tauri/externalHistory")>()),
+  externalCliSourceProbe: mocks.externalCliSourceProbe,
   externalHistoryRescanSources: mocks.externalHistoryRescanSources,
 }));
 
@@ -33,11 +37,18 @@ vi.mock("@src/util/core/state/instrumentedStore", () => ({
 }));
 
 const NOW = 1_750_000_000_000;
+const SOURCE_PRESENCE_PROBE_INTERVAL_MS = 30 * 60_000;
 
 describe("runDataSourceAutoScan", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(NOW);
     mocks.store = createStore();
+    mocks.externalCliSourceProbe
+      .mockReset()
+      .mockImplementation(async (sourceId: string) => ({
+        sourceId,
+        historyFound: true,
+      }));
     mocks.externalHistoryRescanSources.mockReset().mockResolvedValue(undefined);
     mocks.loadSidebarSessions.mockReset().mockResolvedValue(undefined);
   });
@@ -77,6 +88,165 @@ describe("runDataSourceAutoScan", () => {
     expect(
       mocks.store?.get(dataSourceConfigAtom).cline.lastScannedAt
     ).toBeNull();
+    expect(mocks.externalCliSourceProbe).not.toHaveBeenCalledWith("cline");
+    expect(mocks.externalCliSourceProbe).not.toHaveBeenCalledWith("warp");
+  });
+
+  it("presence-probes an absent source at startup without running its importer", async () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.cursor_ide = {
+      enabled: true,
+      frequency: "60s",
+      lastScannedAt: null,
+    };
+    mocks.store?.set(dataSourceConfigAtom, config);
+    mocks.externalCliSourceProbe.mockResolvedValue({
+      sourceId: "cursor_ide",
+      historyFound: false,
+    });
+
+    await runDataSourceAutoScan(true);
+
+    expect(mocks.externalCliSourceProbe).toHaveBeenCalledOnce();
+    expect(mocks.externalCliSourceProbe).toHaveBeenCalledWith("cursor_ide");
+    expect(mocks.externalHistoryRescanSources).not.toHaveBeenCalled();
+    expect(mocks.loadSidebarSessions).not.toHaveBeenCalled();
+    expect(mocks.store?.get(dataSourcePresenceAtom).cursor_ide).toEqual({
+      historyFound: false,
+      checkedAt: NOW,
+    });
+    expect(
+      mocks.store?.get(dataSourceConfigAtom).cursor_ide.lastScannedAt
+    ).toBe(NOW);
+  });
+
+  it("does not re-probe an absent source before the 30-minute interval", async () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.cursor_ide = {
+      enabled: true,
+      frequency: "60s",
+      lastScannedAt: NOW - 60_000,
+    };
+    mocks.store?.set(dataSourceConfigAtom, config);
+    mocks.store?.set(dataSourcePresenceAtom, {
+      cursor_ide: {
+        historyFound: false,
+        checkedAt: NOW - SOURCE_PRESENCE_PROBE_INTERVAL_MS + 1,
+      },
+    });
+
+    await runDataSourceAutoScan();
+
+    expect(mocks.externalCliSourceProbe).not.toHaveBeenCalled();
+    expect(mocks.externalHistoryRescanSources).not.toHaveBeenCalled();
+  });
+
+  it("re-probes an absent source after 30 minutes without running its importer", async () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.cursor_ide = {
+      enabled: true,
+      frequency: "60s",
+      lastScannedAt: NOW - 60_000,
+    };
+    mocks.store?.set(dataSourceConfigAtom, config);
+    mocks.store?.set(dataSourcePresenceAtom, {
+      cursor_ide: {
+        historyFound: false,
+        checkedAt: NOW - SOURCE_PRESENCE_PROBE_INTERVAL_MS,
+      },
+    });
+    mocks.externalCliSourceProbe.mockResolvedValue({
+      sourceId: "cursor_ide",
+      historyFound: false,
+    });
+
+    await runDataSourceAutoScan();
+
+    expect(mocks.externalCliSourceProbe).toHaveBeenCalledWith("cursor_ide");
+    expect(mocks.externalHistoryRescanSources).not.toHaveBeenCalled();
+    expect(mocks.store?.get(dataSourcePresenceAtom).cursor_ide.checkedAt).toBe(
+      NOW
+    );
+  });
+
+  it("imports immediately when a 30-minute probe discovers a new store", async () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.cursor_ide = {
+      enabled: true,
+      frequency: "1d",
+      lastScannedAt: NOW - 60_000,
+    };
+    mocks.store?.set(dataSourceConfigAtom, config);
+    mocks.store?.set(dataSourcePresenceAtom, {
+      cursor_ide: {
+        historyFound: false,
+        checkedAt: NOW - SOURCE_PRESENCE_PROBE_INTERVAL_MS,
+      },
+    });
+
+    await runDataSourceAutoScan();
+
+    expect(mocks.externalCliSourceProbe).toHaveBeenCalledWith("cursor_ide");
+    expect(mocks.externalHistoryRescanSources).toHaveBeenCalledWith([
+      "cursor_ide",
+    ]);
+    expect(mocks.loadSidebarSessions).toHaveBeenCalledOnce();
+    expect(mocks.store?.get(dataSourcePresenceAtom).cursor_ide).toEqual({
+      historyFound: true,
+      checkedAt: NOW,
+    });
+  });
+
+  it("falls back to a due full scan when the presence probe fails", async () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.cursor_ide = {
+      enabled: true,
+      frequency: "60s",
+      lastScannedAt: NOW - 60_000,
+    };
+    mocks.store?.set(dataSourceConfigAtom, config);
+    mocks.externalCliSourceProbe.mockRejectedValue(new Error("probe failed"));
+
+    await runDataSourceAutoScan();
+
+    expect(mocks.externalHistoryRescanSources).toHaveBeenCalledWith([
+      "cursor_ide",
+    ]);
+    expect(mocks.store?.get(dataSourcePresenceAtom).cursor_ide).toBeUndefined();
+  });
+
+  it("does not probe when external sessions are globally disabled", async () => {
+    mocks.store?.set(externalSessionsEnabledAtom, false);
+
+    await runDataSourceAutoScan(true);
+
+    expect(mocks.externalCliSourceProbe).not.toHaveBeenCalled();
+    expect(mocks.externalHistoryRescanSources).not.toHaveBeenCalled();
   });
 
   it("scans only sources whose configured cadence has elapsed", async () => {
@@ -128,7 +298,9 @@ describe("runDataSourceAutoScan", () => {
 
     const first = runDataSourceAutoScan(true);
     const second = runDataSourceAutoScan(true);
-    expect(mocks.externalHistoryRescanSources).toHaveBeenCalledOnce();
+    await vi.waitFor(() => {
+      expect(mocks.externalHistoryRescanSources).toHaveBeenCalledOnce();
+    });
 
     finishScan?.();
     await Promise.all([first, second]);

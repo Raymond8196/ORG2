@@ -525,6 +525,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleCloudRemoteItemRemove,
     cloudMemberFilterDropdown,
     cloudRemoteRowMap,
+    cloudRemoteViewerMap,
   } = useCloudSessionsSection({
     orgId: activeCloudOrgId,
     sessions,
@@ -975,6 +976,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
           <CloudSessionHoverCard
             key={item.key}
             row={cloudRemoteRowMap.get(item.id)}
+            viewers={cloudRemoteViewerMap.get(item.id)}
             position="right-start"
             mouseEnterDelay={1000}
             mouseLeaveDelay={100}
@@ -985,7 +987,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
       }
       return renderSessionMenuItemWrapper(item, node);
     },
-    [cloudRemoteRowMap, renderSessionMenuItemWrapper, t]
+    [cloudRemoteRowMap, cloudRemoteViewerMap, renderSessionMenuItemWrapper, t]
   );
   const renderProjectsMenuItemWrapper = useRenderProjectsMenuItemWrapper({
     projectsLinearWorkItemMap,
