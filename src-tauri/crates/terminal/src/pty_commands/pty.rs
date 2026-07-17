@@ -229,6 +229,73 @@ impl PtyState {
     pub fn sessions_arc(&self) -> Arc<AsyncMutex<HashMap<String, PtySession>>> {
         self.sessions.clone()
     }
+
+    /// Kill every tracked PTY shell together with its entire Unix process
+    /// session, then drop all sessions.
+    ///
+    /// App-exit only. Closing a single tab kills just the shell — a user may
+    /// deliberately leave `nohup`-style descendants running. Once the app
+    /// exits, though, nothing can manage those descendants: the kernel's
+    /// SIGHUP on PTY close is only a polite notice, so HUP-immune processes
+    /// would leak until logout.
+    ///
+    /// Must be called from a non-runtime thread (it blocks on the session
+    /// map lock); the Tauri run-loop exit handler qualifies.
+    pub fn shutdown_kill_all(&self) {
+        let drained: Vec<PtySession> = {
+            let mut map = self.sessions.blocking_lock();
+            map.drain().map(|(_, session)| session).collect()
+        };
+        if drained.is_empty() {
+            return;
+        }
+
+        // The shell was spawned via setsid(), so its PID is the session ID
+        // of every descendant that has not detached into a session of its
+        // own (a daemon's deliberate double-fork escape is respected). Sweep
+        // by session, not by process group: an interactive shell's job
+        // control puts each job in its own group, so killpg on the shell's
+        // group would miss `bash -c ...`-style jobs entirely.
+        #[cfg(unix)]
+        {
+            use std::collections::HashSet;
+            use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System};
+
+            let shell_pids: HashSet<u32> = drained.iter().filter_map(|s| s.pid).collect();
+            if !shell_pids.is_empty() {
+                let own_pid = std::process::id();
+                let mut sys = System::new();
+                sys.refresh_processes_specifics(
+                    ProcessesToUpdate::All,
+                    true,
+                    ProcessRefreshKind::nothing(),
+                );
+                for (pid, process) in sys.processes() {
+                    let pid = pid.as_u32();
+                    // Shells die via Drop below, which also reaps them.
+                    if pid == own_pid || shell_pids.contains(&pid) {
+                        continue;
+                    }
+                    if process
+                        .session_id()
+                        .is_some_and(|sid| shell_pids.contains(&sid.as_u32()))
+                    {
+                        // SIGKILL directly: anything still here already
+                        // ignored the kernel's SIGHUP, and a per-process
+                        // grace period would block app exit.
+                        unsafe {
+                            libc::kill(pid as i32, libc::SIGKILL);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Drop kills each shell synchronously (required at app exit, where
+        // detached threads are never joined). Windows tree cleanup beyond
+        // the shell/conhost pair would need Job Objects; not covered here.
+        drop(drained);
+    }
 }
 
 impl Default for PtyState {
