@@ -75,12 +75,17 @@ fn token_matches(candidate: &str) -> bool {
         == 0
 }
 
-pub async fn handle(headers: HeaderMap, body: Bytes) -> StatusCode {
-    let authorized = headers
+/// Shared bearer-token check for every `/hooks/*` loopback route (status
+/// ingest here, approval long-poll in `agent_approval_ingest`).
+pub(crate) fn authorize_hook_request(headers: &HeaderMap) -> bool {
+    headers
         .get(AGENT_STATUS_TOKEN_HEADER)
         .and_then(|value| value.to_str().ok())
-        .is_some_and(token_matches);
-    if !authorized {
+        .is_some_and(token_matches)
+}
+
+pub async fn handle(headers: HeaderMap, body: Bytes) -> StatusCode {
+    if !authorize_hook_request(&headers) {
         return StatusCode::UNAUTHORIZED;
     }
     let event = match serde_json::from_slice::<AgentStatusEventV1>(&body) {

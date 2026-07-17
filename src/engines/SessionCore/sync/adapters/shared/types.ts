@@ -309,6 +309,14 @@ export interface PermissionRequestEvent {
   toolCallId?: string;
   args: Record<string, unknown>;
   agentType?: RustAgentType;
+  /**
+   * Where the pending approval is parked on the backend. Default
+   * (undefined) is the Rust-agent `AgentPermissionManager`
+   * (`agent_permission_response`). `"cli_hook"` marks a managed CLI
+   * session's PermissionRequest hook long-poll, answered via
+   * `cli_agent_approval_response` instead.
+   */
+  origin?: "cli_hook";
 }
 
 export interface QuestionRequestEvent {

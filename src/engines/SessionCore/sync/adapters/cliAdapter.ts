@@ -74,7 +74,7 @@ import {
   buildToolArgsFromParsed,
   parsePartialToolArgs,
 } from "./shared/streamingParsers";
-import type { AgentWSEvent } from "./shared/types";
+import type { AgentWSEvent, PermissionRequestEvent } from "./shared/types";
 
 const log = createLogger("CliAdapter");
 
@@ -868,6 +868,35 @@ export const cliAdapter: SessionAdapter = {
       callbacks.onTokenUpdate?.(totalTokens);
     }
 
+    /**
+     * `permission:request` with `origin: "cli_hook"` — a managed CLI
+     * session's PermissionRequest hook is parked on the backend waiting
+     * for the user. Mirror of the Rust-agent adapter's
+     * handlePermissionRequest: dispatch the window CustomEvent that
+     * PermissionCard consumes, tagged so its response routes back to the
+     * hook registry (`cli_agent_approval_response`) instead of
+     * `agent_permission_response`.
+     */
+    function handleCliHookPermissionRequest(raw: RawSessionEvent): void {
+      if (raw.origin !== "cli_hook") return;
+      const requestId = rawString(raw, "requestId");
+      if (!requestId) return;
+      const permEvent: PermissionRequestEvent = {
+        requestId,
+        sessionId,
+        tool: rawString(raw, "toolName") ?? rawString(raw, "tool") ?? "unknown",
+        toolCallId: rawString(raw, "toolCallId"),
+        args:
+          raw.toolArgs && typeof raw.toolArgs === "object"
+            ? (raw.toolArgs as Record<string, unknown>)
+            : {},
+        origin: "cli_hook",
+      };
+      window.dispatchEvent(
+        new CustomEvent("agent-permission-request", { detail: permEvent })
+      );
+    }
+
     return {
       handleEvent(raw: RawSessionEvent): void {
         const msgSessionId =
@@ -876,6 +905,8 @@ export const cliAdapter: SessionAdapter = {
 
         if (raw.type === "agent:interaction_finalized") {
           handleInteractionFinalized(raw as unknown as AgentWSEvent, sessionId);
+        } else if (raw.type === "permission:request") {
+          handleCliHookPermissionRequest(raw);
         } else if (raw.type === "agent:plan_ready_for_approval") {
           handlePlanReadyForApproval(raw);
         } else if (raw.type === "agent:exit_plan_mode") {

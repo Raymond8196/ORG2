@@ -37,6 +37,9 @@ pub fn cli_launch_profile_update(
         command_override,
         args_override,
         env_override,
+        // Experimental app-server transport opt-in is not exposed in the
+        // settings UI; `None` preserves whatever the store already holds.
+        transport: None,
     })
 }
 
@@ -543,16 +546,33 @@ pub async fn cli_agent_message(
     .await
 }
 
-/// Respond to a pending approval request from an ACP agent.
+/// Respond to a pending approval request from a CLI agent.
 ///
-/// When an ACP agent (Copilot, Kiro) requests tool permission, the backend
-/// emits an `approval_request` chunk and blocks until this command is called.
+/// Two registries can be waiting on this:
+/// - **Hook approvals** (managed Claude Code shell-out sessions): a parked
+///   `PermissionRequest` hook long-poll keyed by `request_id`
+///   (`hookperm-*`, from the `permission:request` wire event). Checked
+///   first. `always_allow` maps to a plain allow — persistent rules stay
+///   with Claude's own permission store.
+/// - **ACP agents** (Copilot, Kiro): the backend emits an
+///   `approval_request` chunk and blocks on a per-session oneshot.
 #[tauri::command]
 pub async fn cli_agent_approval_response(
     session_id: String,
     approved: bool,
     always_allow: Option<bool>,
+    request_id: Option<String>,
 ) -> Result<(), String> {
+    if crate::agent_sessions::cli::hook_approvals::has_pending_hook_approval(
+        &session_id,
+        request_id.as_deref(),
+    ) {
+        return crate::agent_sessions::cli::hook_approvals::resolve_hook_approval(
+            &session_id,
+            request_id.as_deref(),
+            approved,
+        );
+    }
     crate::agent_sessions::cli::parsers::acp_common::resolve_approval(
         &session_id,
         approved,
