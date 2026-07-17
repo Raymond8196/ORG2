@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 
+const CLI_VERSION_PROBE_TIMEOUT: Duration = Duration::from_secs(5);
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CliBinaryId {
     // Original 11 agents from PR #230
@@ -62,6 +64,12 @@ pub struct CliBinaryResolution {
     pub command: String,
     pub source: CliBinaryResolutionSource,
     pub diagnostics: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CliVersionProbe {
+    pub version: Option<String>,
+    pub error: Option<String>,
 }
 
 impl CliBinaryResolution {
@@ -345,6 +353,93 @@ pub fn resolve_cli_binary(id: CliBinaryId) -> CliBinaryResolution {
 
 pub fn resolve_cli_binary_command(id: CliBinaryId) -> String {
     resolve_cli_binary(id).command
+}
+
+/// Best-effort `<resolved CLI> --version` probe.
+///
+/// Callers own the cache policy. This function resolves no credentials and
+/// returns only a normalized version number or a bounded diagnostic.
+pub async fn probe_cli_binary_version(resolution: &CliBinaryResolution) -> CliVersionProbe {
+    if !resolution.installed() {
+        return CliVersionProbe {
+            version: None,
+            error: Some("CLI executable was not found".to_string()),
+        };
+    }
+
+    let mut command = tokio::process::Command::new(&resolution.command);
+    command
+        .arg("--version")
+        .kill_on_drop(true)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    #[cfg(windows)]
+    command.creation_flags(app_platform::CREATE_NO_WINDOW);
+
+    let output = match tokio::time::timeout(CLI_VERSION_PROBE_TIMEOUT, command.output()).await {
+        Ok(Ok(output)) => output,
+        Ok(Err(error)) => {
+            return CliVersionProbe {
+                version: None,
+                error: Some(format!("Version command failed to start: {error}")),
+            };
+        }
+        Err(_) => {
+            return CliVersionProbe {
+                version: None,
+                error: Some("Version command timed out".to_string()),
+            };
+        }
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let raw = if stdout.trim().is_empty() {
+        stderr.trim()
+    } else {
+        stdout.trim()
+    };
+
+    if !output.status.success() {
+        let detail: String = raw.chars().take(500).collect();
+        return CliVersionProbe {
+            version: None,
+            error: Some(if detail.is_empty() {
+                format!("Version command exited with {}", output.status)
+            } else {
+                format!("Version command exited with {}: {detail}", output.status)
+            }),
+        };
+    }
+
+    match parse_version_string(raw) {
+        Some(version) => CliVersionProbe {
+            version: Some(version),
+            error: None,
+        },
+        None => CliVersionProbe {
+            version: None,
+            error: Some("Version command output did not contain a version number".to_string()),
+        },
+    }
+}
+
+fn parse_version_string(raw: &str) -> Option<String> {
+    raw.lines().find_map(|line| {
+        line.split_whitespace().find_map(|token| {
+            let cleaned = token
+                .trim_matches(&['"', '\'', '(', ')'] as &[char])
+                .trim_start_matches('v')
+                .trim_end_matches(&[',', ';'] as &[char]);
+            (cleaned
+                .chars()
+                .next()
+                .is_some_and(|character| character.is_ascii_digit())
+                && cleaned.contains('.'))
+            .then(|| cleaned.to_string())
+        })
+    })
 }
 
 #[derive(Debug, Clone)]
@@ -706,5 +801,18 @@ mod tests {
         let metadata = metadata_for_id(CliBinaryId::Kiro);
         assert_eq!(metadata.command, "kiro-cli");
         assert_eq!(metadata.row_id, "kiro");
+    }
+
+    #[test]
+    fn parses_common_cli_version_outputs() {
+        assert_eq!(
+            parse_version_string("codex-cli 0.143.0\n"),
+            Some("0.143.0".to_string())
+        );
+        assert_eq!(
+            parse_version_string("Claude Code v2.1.78 (stable)"),
+            Some("2.1.78".to_string())
+        );
+        assert_eq!(parse_version_string("development build"), None);
     }
 }

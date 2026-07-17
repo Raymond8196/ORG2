@@ -144,15 +144,6 @@ function isCompactBoundaryItem(item: OptimizedChatItem): boolean {
   return item.event?.uiCanonical === "context_compacted";
 }
 
-/**
- * Items that must never be hidden by turn collapse: terminal error cards
- * and compact-boundary markers. Both are load-bearing outcomes of a round,
- * not narration that can be folded away behind "Agent worked for …".
- */
-function isCollapsePinnedItem(item: OptimizedChatItem): boolean {
-  return isAgentErrorItem(item) || isCompactBoundaryItem(item);
-}
-
 interface ChatGroup {
   header: OptimizedChatItem | null;
   items: OptimizedChatItem[];
@@ -423,11 +414,16 @@ export function useChatGroups(
       // Terminal error cards (quota/rate-limit/stream-exhausted) and
       // compact-boundary markers must stay visible in the collapsed view —
       // they are the turn's actual outcome, not narration. Keep every such
-      // pinned item at/after the kept reply (or all of them when the turn
-      // produced no completed reply at all).
+      // error item regardless of position, plus compact-boundary markers at
+      // or after the kept reply. Earlier errors remain useful diagnostics even
+      // when the agent later recovers and emits a completed answer.
       const pinnedIdxs: number[] = [];
-      for (let i = Math.max(keepIdx + 1, 0); i < group.items.length; i++) {
-        if (isCollapsePinnedItem(group.items[i])) {
+      for (let i = 0; i < group.items.length; i++) {
+        if (
+          isAgentErrorItem(group.items[i]) ||
+          (i >= Math.max(keepIdx + 1, 0) &&
+            isCompactBoundaryItem(group.items[i]))
+        ) {
           pinnedIdxs.push(i);
         }
       }

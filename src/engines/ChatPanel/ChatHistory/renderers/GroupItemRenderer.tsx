@@ -153,7 +153,6 @@ function sameChatItem(
     left.type === right.type &&
     left.structuralOnly === right.structuralOnly &&
     left.consolidatedParts === right.consolidatedParts &&
-    left.repeatedErrorCount === right.repeatedErrorCount &&
     left.actionSummaryClosedByBoundary ===
       right.actionSummaryClosedByBoundary &&
     sameEventSummary(left.event, right.event) &&

@@ -40,6 +40,7 @@ import {
   getSystemHomeSourceLabel,
   isSystemPathSourceId,
 } from "@src/features/SessionCreator/utils/systemPathSource";
+import { useCliVersions } from "@src/hooks/cliVersions/useCliVersions";
 import { useRegionCheck } from "@src/hooks/config";
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { createLogger } from "@src/hooks/logger";
@@ -192,6 +193,17 @@ const SessionCreatorChatPanelSingle: React.FC<
   const cliAgentType = useAtomValue(cliAgentTypeAtom);
   const cliLaunchMode = useAtomValue(cliLaunchModeAtom);
   const setCliLaunchMode = useSetAtom(cliLaunchModeAtom);
+  const { getVersion, scanVersion } = useCliVersions();
+  const selectedCliVersion = cliAgentType
+    ? getVersion(cliAgentType)
+    : undefined;
+
+  useEffect(() => {
+    if (dispatchCategory !== "cli_agent" || !cliAgentType) return;
+    void scanVersion(cliAgentType).catch((error) => {
+      log.warn("CLI version scan failed", error);
+    });
+  }, [cliAgentType, dispatchCategory, scanVersion]);
 
   const selectedCliAgent = useMemo(
     () =>
@@ -205,6 +217,18 @@ const SessionCreatorChatPanelSingle: React.FC<
   const cliComposerEnabled =
     cliLaunchMode === CLI_LAUNCH_MODE.GUI &&
     (!selectedCliAgentGuiSupportKnown || selectedCliAgentSupportsGui);
+  const cliVersionOutdatedAlertKey =
+    dispatchCategory === "cli_agent" &&
+    cliAgentType &&
+    selectedCliVersion?.status === "outdated"
+      ? `${cliAgentType}:${selectedCliVersion.installed_version ?? "unknown"}:${selectedCliVersion.latest_version ?? "unknown"}`
+      : null;
+  const [dismissedCliVersionAlertKey, setDismissedCliVersionAlertKey] =
+    useState<string | null>(null);
+  const showCliVersionOutdatedAlert = Boolean(
+    cliVersionOutdatedAlertKey &&
+    cliVersionOutdatedAlertKey !== dismissedCliVersionAlertKey
+  );
 
   const {
     repos: reposList,
@@ -244,7 +268,7 @@ const SessionCreatorChatPanelSingle: React.FC<
       }
       onSessionStart?.(info);
     },
-    [onSessionStart, defaultTuiMode, store]
+    [onSessionStart, defaultTuiMode, setAttachedWorkItemContext, store]
   );
 
   const {
@@ -555,6 +579,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     runningLocation,
     selectedCliAgent,
     selectedWorktreePath,
+    setAttachedWorkItemContext,
     worktreeLaunchSource,
   ]);
 
@@ -1071,6 +1096,32 @@ const SessionCreatorChatPanelSingle: React.FC<
               }
             />
           </div>
+
+          {showCliVersionOutdatedAlert && (
+            <div
+              className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+            >
+              <InlineAlert
+                type="warning"
+                onClose={() =>
+                  setDismissedCliVersionAlertKey(cliVersionOutdatedAlertKey)
+                }
+                closeAriaLabel={t("common:actions.close")}
+                title={t("creator.cliVersionOutdated.title", {
+                  cli: selectedCliAgent?.displayName ?? cliAgentType,
+                })}
+              >
+                {t("creator.cliVersionOutdated.body", {
+                  installed:
+                    selectedCliVersion?.installed_version ??
+                    t("creator.cliVersionOutdated.unknownVersion"),
+                  latest:
+                    selectedCliVersion?.latest_version ??
+                    t("creator.cliVersionOutdated.unknownVersion"),
+                })}
+              </InlineAlert>
+            </div>
+          )}
 
           <div
             ref={workItemPanelHostRef}
