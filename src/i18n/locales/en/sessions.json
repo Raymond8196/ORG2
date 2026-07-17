@@ -929,6 +929,18 @@
     "copyEventJson": "Copy event JSON",
     "copyEventJsonCopied": "Copied!",
     "copyEventJsonFailed": "Copy failed",
+    "moveToWorkstation": "Move to My Workstation",
+    "moveToChatPanel": "Move to Chat Panel",
+    "rawTranscript": {
+      "title": "Raw session transcript",
+      "menuItem": "View raw transcript",
+      "guiTab": "GUI",
+      "rawTab": "Raw",
+      "entryCount_one": "{{count}} entry",
+      "entryCount_other": "{{count}} entries",
+      "copySuccess": "Raw transcript copied",
+      "copyFailed": "Could not copy the raw transcript"
+    },
     "historyTitle": "History",
     "historyEmpty": "No sessions yet",
     "historyGroupTime": "Time",

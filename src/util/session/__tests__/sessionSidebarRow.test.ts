@@ -6,7 +6,10 @@ import {
   getIconProviderFromType,
 } from "@src/components/ModelIcon/config";
 import { resolveAgentIcon } from "@src/config/agentIcons";
-import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
+import {
+  resolveSessionRowIcon,
+  resolveSessionRowIconPresentation,
+} from "@src/util/session/sessionSidebarRow";
 
 describe("resolveSessionRowIcon", () => {
   it("uses the OpenCode CLI brand icon", () => {
@@ -62,6 +65,22 @@ describe("resolveSessionRowIcon", () => {
         agentIconId: "network",
       })
     ).toBe(resolveAgentIcon("network"));
+  });
+
+  it("identifies current-color provider marks as monochrome brand icons", () => {
+    expect(
+      resolveSessionRowIconPresentation("codexapp-thread").isMonochromeBrandIcon
+    ).toBe(true);
+    expect(
+      resolveSessionRowIconPresentation("cursoride-composer")
+        .isMonochromeBrandIcon
+    ).toBe(true);
+    expect(
+      resolveSessionRowIconPresentation({
+        session_id: "sdeagent-custom",
+        agentIconId: "network",
+      }).isMonochromeBrandIcon
+    ).toBe(false);
   });
 
   it("keeps benchmark coordinator sessions on the benchmark icon", () => {

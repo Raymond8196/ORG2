@@ -76,6 +76,7 @@ import {
   streamRetryStatusAtom,
 } from "@src/store/session/cliSessionStatusAtom";
 import { pendingPlanApprovalsAtom } from "@src/store/session/planApprovalAtom";
+import type { SessionContinuation } from "@src/store/session/sessionTabPlacementAtom";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 import {
   chatPanelMaximizedAtom,
@@ -246,6 +247,12 @@ export interface ChatViewProps {
    * the IDE's current folders.
    */
   secondary?: boolean;
+  /**
+   * Retarget the owning tab after an immutable imported history is forked
+   * into a writable ORGII session. The callback must also claim/navigate the
+   * new session pipeline for its surface.
+   */
+  onSessionContinuation?: (continuation: SessionContinuation) => void;
 }
 
 const ChatView: React.FC<ChatViewProps> = memo(
@@ -258,12 +265,14 @@ const ChatView: React.FC<ChatViewProps> = memo(
     surfaceBgClass = "bg-chat-pane",
     readOnly = false,
     secondary = false,
+    onSessionContinuation,
   }) => {
     const { t } = useTranslation("sessions");
     const { t: tNavigation } = useTranslation("navigation");
     const setActiveSessionId = useSetAtom(activeSessionIdAtom);
     const claimPipelineSession = useSetAtom(claimPipelineSessionAtom);
     const store = useStore();
+    const { openSession } = useSessionView();
     const rootRef = useRef<HTMLDivElement>(null);
     const inputBoxRef = useRef<HTMLDivElement>(null);
     const [pinnedHeaderHost, setPinnedHeaderHost] =
@@ -388,7 +397,21 @@ const ChatView: React.FC<ChatViewProps> = memo(
             imageDataUrls: input.imageDataUrls,
           });
           await loadSessions({ forceRefresh: true });
-          setActiveSessionId(newSessionId);
+          const continuationSession = store.get(sessionByIdAtom(newSessionId));
+          const continuation = {
+            sessionId: newSessionId,
+            sessionName: continuationSession?.name,
+            repoPath: continuationSession?.repoPath,
+          };
+          if (onSessionContinuation) {
+            onSessionContinuation(continuation);
+          } else {
+            openSession(
+              continuation.sessionId,
+              continuation.sessionName,
+              continuation.repoPath
+            );
+          }
         } catch (error) {
           // InputArea clears a handled override. Restore the exact draft on
           // cancel/failure so choosing credentials is never destructive.
@@ -407,8 +430,9 @@ const ChatView: React.FC<ChatViewProps> = memo(
       [
         currentSession,
         isImportedHistory,
+        onSessionContinuation,
+        openSession,
         sessionId,
-        setActiveSessionId,
         store,
         tNavigation,
       ]
@@ -638,7 +662,6 @@ const ChatView: React.FC<ChatViewProps> = memo(
     // send (which SessionService wraps with the one-shot handoff digest; do
     // NOT bypass SessionService.sendMessage). There is no redundant
     // "read-only/fork" confirmation before the actionable picker.
-    const { openSession } = useSessionView();
     const setRestoreToInput = useSetAtom(restoreToInputAtom);
     const { fork: forkImportedSession } = useForkImportedSession(
       currentSession ?? null
@@ -687,7 +710,19 @@ const ChatView: React.FC<ChatViewProps> = memo(
               return true;
             }
             forkDispatchSessionIdRef.current = outcome.localSessionId;
-            openSession(outcome.localSessionId, outcome.name, outcome.repoPath);
+            if (onSessionContinuation) {
+              onSessionContinuation({
+                sessionId: outcome.localSessionId,
+                sessionName: outcome.name,
+                repoPath: outcome.repoPath,
+              });
+            } else {
+              openSession(
+                outcome.localSessionId,
+                outcome.name,
+                outcome.repoPath
+              );
+            }
             try {
               // The fork's first turn can finish before React's
               // SessionSyncProvider has registered its new IPC channel. Wait
@@ -719,6 +754,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
         forkImportedSession,
         handleGroupChatSubmitOverride,
         isImportedTeammateCopy,
+        onSessionContinuation,
         openSession,
         restorePendingDraft,
         sessionId,

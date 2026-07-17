@@ -104,7 +104,8 @@ const AppShell = React.memo(
     const showCodeEditorBottomPanelToggle =
       codeContentVisible &&
       !isAgentStation &&
-      activeWorkStationTab?.type !== "source-control";
+      activeWorkStationTab?.type !== "source-control" &&
+      activeWorkStationTab?.type !== "chat-session";
     const showSettingsButton =
       (codeContentVisible || projectContentVisible) && !isAgentStation;
 
