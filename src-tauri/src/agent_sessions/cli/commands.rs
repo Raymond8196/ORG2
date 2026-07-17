@@ -242,9 +242,7 @@ pub async fn cli_agent_create(mut params: CreateCodeSessionParams) -> Result<Cod
                 let worktree_branch = repo
                     .as_deref()
                     .filter(|repo| !repo.is_empty())
-                    .and_then(|repo| {
-                        worktree::list_all_worktrees(std::path::Path::new(repo)).ok()
-                    })
+                    .and_then(|repo| worktree::list_all_worktrees(std::path::Path::new(repo)).ok())
                     .and_then(|entries| {
                         entries
                             .into_iter()
@@ -717,8 +715,12 @@ pub async fn cli_agent_transcript_path(
             .map_err(|err| format!("Failed to open orgtrack source cache DB: {err}"))?;
         // Exact match first; Codex caches key on the rollout file stem, which
         // only the `-`-bounded suffix variant matches.
-        let mut path = orgtrack_core::sources::imported_history::cache::
-            get_cached_source_path_from_conn(&conn, binding.source, &cli_session_id)?;
+        let mut path =
+            orgtrack_core::sources::imported_history::cache::get_cached_source_path_from_conn(
+                &conn,
+                binding.source,
+                &cli_session_id,
+            )?;
         if path.is_none() {
             path = orgtrack_core::sources::imported_history::cache::
                 get_cached_source_path_by_suffix_from_conn(&conn, binding.source, &cli_session_id)?;
@@ -756,8 +758,8 @@ pub async fn cli_agent_chunks(session_id: String) -> Result<Vec<ActivityChunk>, 
         session_id
     );
     let result = tokio::task::spawn_blocking(move || {
-        let session = persistence::get_session(&session_id)
-            .map_err(|e| format!("DB error: {}", e))?;
+        let session =
+            persistence::get_session(&session_id).map_err(|e| format!("DB error: {}", e))?;
         if let Some(session) = session.as_ref() {
             if let Some(chunks) = load_native_transcript_chunks(session) {
                 return Ok(chunks);
@@ -769,8 +771,7 @@ pub async fn cli_agent_chunks(session_id: String) -> Result<Vec<ActivityChunk>, 
             if let Some(chunk) = session
                 .as_ref()
                 .filter(|session| {
-                    session.transcript_source
-                        == super::native_transcript::TRANSCRIPT_SOURCE_NATIVE
+                    session.transcript_source == super::native_transcript::TRANSCRIPT_SOURCE_NATIVE
                 })
                 .and_then(synthesized_user_message_chunk)
             {
@@ -803,8 +804,18 @@ pub async fn cli_agent_truncate_after_chunk(
     // Kill any running agent first to prevent it from writing new chunks
     session_runner::kill_running_agent(&session_id).await;
 
-    // Clean up CLI config dir so the agent starts fresh
-    session_runner::cleanup_cursor_config_dir(&session_id);
+    // Wipe the Cursor config dir so the agent starts fresh — legacy chunk mode
+    // ONLY. Under `transcript_source = 'native'` that directory IS the
+    // transcript of record (hosted-key Cursor stores its chats under the
+    // per-session config dir), so deleting it would erase the whole
+    // conversation instead of truncating it. The fork is driven by
+    // `clear_cli_resume_state_with_tx` inside the truncate below: with no
+    // resume id the CLI opens a fresh conversation, and the superseded store
+    // stays on disk hidden behind the native-transcript ledger — the same
+    // semantics Claude/Codex native forks already have.
+    if persistence::session_persists_chunks(&session_id) {
+        session_runner::cleanup_cursor_config_dir(&session_id);
+    }
 
     let should_revert_files = revert_files.unwrap_or(true);
     if should_revert_files {
