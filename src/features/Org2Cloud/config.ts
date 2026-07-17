@@ -166,3 +166,11 @@ export function buildCloudBillingLoginUrl(): string {
   url.searchParams.set("return_to", CLOUD_BILLING_PATH);
   return url.toString();
 }
+
+export const CLOUD_AUTH_BRIDGE_PATH = "/api/auth/bridge";
+
+export function buildCloudAuthBridgeUrl(
+  webOrigin: string = getCloudEndpoint().webOrigin
+): string {
+  return new URL(CLOUD_AUTH_BRIDGE_PATH, webOrigin).toString();
+}
