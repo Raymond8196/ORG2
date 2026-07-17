@@ -52,7 +52,10 @@ import {
   isStoreInitialized,
 } from "@src/util/core/state/instrumentedStore";
 
-import { registerSessionTranscriptSource } from "../nativeTranscriptReconcile";
+import {
+  isNativeTranscriptSession,
+  registerSessionTranscriptSource,
+} from "../nativeTranscriptReconcile";
 import type {
   AdapterSendInput,
   EventHandlerCallbacks,
@@ -277,8 +280,18 @@ async function refreshLoadedCliHistory(
     new AbortController().signal
   );
   if (events.length === 0) return events;
-  await eventStoreProxy.mergeEvents(events, sessionId);
-  getInstrumentedStore().set(loadSessionAtom, { sessionId, events });
+  // Native-transcript sessions render the live turn from in-memory events
+  // only (optimistic synthetic bubble + streamed broadcasts); the replay is
+  // read here purely to OBSERVE persistence for the send handshake. Merging
+  // it mid-turn would sit replay rows (`codex-user-0`, the synthesized
+  // `user-input-*-synthesized` fallback) next to the synthetic bubble under
+  // never-matching ids — the ×3 user-bubble bug. The terminal reconcile
+  // (scheduleNativeTranscriptReconcile, replace semantics) is the single
+  // point where replay becomes the transcript on screen.
+  if (!isNativeTranscriptSession(sessionId)) {
+    await eventStoreProxy.mergeEvents(events, sessionId);
+    getInstrumentedStore().set(loadSessionAtom, { sessionId, events });
+  }
   return events;
 }
 
