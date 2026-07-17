@@ -101,7 +101,7 @@ function StartPageActionCard({
   return (
     <button
       type="button"
-      className={`group flex w-full items-center gap-2 rounded-full border px-2 py-1.5 text-left shadow-sm transition-colors focus-visible:border-primary-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/20 ${START_PAGE_ACTION_TONE_CLASS[action.tone]}`}
+      className={`group flex w-full items-center gap-2 rounded-full border-2 px-2 py-1.5 text-left transition-colors focus-visible:border-primary-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/20 ${START_PAGE_ACTION_TONE_CLASS[action.tone]}`}
       onClick={action.onClick}
       data-testid={`chat-panel-start-page-${action.id}`}
     >
