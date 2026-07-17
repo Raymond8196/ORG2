@@ -71,6 +71,7 @@ fn tool_name_constants_are_stable_wire_strings() {
     assert_eq!(TASK_UPDATE, "task_update");
     assert_eq!(TASK_LIST, "task_list");
     assert_eq!(TASK_GET, "task_get");
+    assert_eq!(ORG_RUN_COMPLETE, "org_run_complete");
 
     // ── Channel workspace tools ──
     assert_eq!(LIST_KNOWN_WORKSPACES, "list_known_workspaces");

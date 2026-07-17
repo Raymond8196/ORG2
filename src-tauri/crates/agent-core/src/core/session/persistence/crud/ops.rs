@@ -301,9 +301,9 @@ pub fn mark_stale_running_sessions_abandoned() -> SqliteResult<usize> {
             params![
                 SessionStatus::Abandoned.as_str(),
                 now,
-                SessionStatus::Running.as_str(),
-                SessionStatus::WaitingForUser.as_str(),
-                SessionStatus::WaitingForFunds.as_str(),
+                SessionStatus::IN_FLIGHT[0].as_str(),
+                SessionStatus::IN_FLIGHT[1].as_str(),
+                SessionStatus::IN_FLIGHT[2].as_str(),
             ],
         )?;
         Ok(updated)
@@ -380,18 +380,19 @@ pub fn reconcile_sessions_with_terminal_turn_markers() -> SqliteResult<usize> {
         let updated = conn.execute(
             "UPDATE agent_sessions
              SET status = CASE
-                   WHEN last_terminal_turn_status = ?4 THEN ?5
-                   WHEN last_terminal_turn_status = ?6 THEN ?7
+                   WHEN last_terminal_turn_status = ?5 THEN ?6
+                   WHEN last_terminal_turn_status = ?7 THEN ?8
                    ELSE ?1
                  END,
                  updated_at = COALESCE(last_terminal_turn_at, updated_at)
-             WHERE status IN (?2, ?3)
+             WHERE status IN (?2, ?3, ?4)
                AND last_terminal_turn_id IS NOT NULL
-               AND last_terminal_turn_status IN (?4, ?6, ?8)",
+               AND last_terminal_turn_status IN (?5, ?7, ?9)",
             params![
                 SessionStatus::Completed.as_str(),
-                SessionStatus::Running.as_str(),
-                SessionStatus::WaitingForFunds.as_str(),
+                SessionStatus::IN_FLIGHT[0].as_str(),
+                SessionStatus::IN_FLIGHT[1].as_str(),
+                SessionStatus::IN_FLIGHT[2].as_str(),
                 "cancelled",
                 SessionStatus::Cancelled.as_str(),
                 "failed",
@@ -682,10 +683,14 @@ pub fn backfill_agent_definition_id(session_id: &str, definition_id: &str) -> Re
 
 /// Delete a session and all related data.
 ///
-/// Cascade order — each step is best-effort; a failure in a later step does
-/// not roll back earlier ones because the row-level cleanups are independent:
+/// Cascade order — hard-delete database rows and optional Agent Org
+/// materialization receipts are committed atomically; filesystem/lineage
+/// cleanup remains best-effort after that database boundary:
 ///
-/// 1. **Hard-delete tables** via `delete_session_cascade` (keyed by
+/// 1. Delete optional `agent_inbox_materializations` receipts when the Agent
+///    Org coordination schema is installed. Source Inbox rows stay unread so
+///    a replacement Session can retry.
+/// 2. **Hard-delete tables** via `delete_session_cascade` (keyed by
 ///    `session_id`):
 ///    - `agent_messages` (with associated image-file cleanup)
 ///    - `agent_todos`
@@ -697,16 +702,16 @@ pub fn backfill_agent_definition_id(session_id: &str, definition_id: &str) -> Re
 ///    - `events` (event-sourced history)
 ///    - `pending_plan_approvals` (Plan-mode approval state)
 ///    - `agent_sessions` (the row itself, always last)
-/// 2. **Lineage rows** via `lineage::delete_session_lineage`. Both
+/// 3. **Lineage rows** via `lineage::delete_session_lineage`. Both
 ///    `node_provenance` (keyed by `session_id`) and `commit_lineage`
 ///    (keyed by `provenance_id` → `node_provenance.id`) — `commit_lineage`
 ///    can't ride the generic cascade because it has no `session_id` column.
-/// 3. **Null-out soft references** in `learnings.source_session_id` — a
+/// 4. **Null-out soft references** in `learnings.source_session_id` — a
 ///    learning is a knowledge artefact that outlives the session that
 ///    produced it; we keep the row and only drop the back-pointer so it
 ///    never dangles to a dead session.
-/// 4. **Per-session file-history directory** under `~/.orgii/file-history/`.
-/// 5. **Agent worktree** (git worktree + `agent/<sid>` branch) under
+/// 5. **Per-session file-history directory** under `~/.orgii/file-history/`.
+/// 6. **Agent worktree** (git worktree + `agent/<sid>` branch) under
 ///    `~/.orgii/agent-worktrees/<repo_hash>/<sid>/`. Only attempted when
 ///    the session had a `workspace_path` (worktree is rooted under the
 ///    project repo). The CLI-agent path cleans up via

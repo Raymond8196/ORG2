@@ -131,9 +131,6 @@ pub fn save_events(session_id: &str, events: &[CachedEvent]) -> SqliteResult<()>
                 OR events.history_sequence IS NOT excluded.history_sequence",
         )?;
 
-        let mut time_start: Option<String> = None;
-        let mut time_end: Option<String> = None;
-
         for event in events {
             if is_ts_placeholder_id(&event.id) {
                 continue;
@@ -165,14 +162,20 @@ pub fn save_events(session_id: &str, events: &[CachedEvent]) -> SqliteResult<()>
                 event.meta_json,
                 seq,
             ])?;
-
-            if time_start.is_none() || event.created_at < *time_start.as_ref().unwrap() {
-                time_start = Some(event.created_at.clone());
-            }
-            if time_end.is_none() || event.created_at > *time_end.as_ref().unwrap() {
-                time_end = Some(event.created_at.clone());
-            }
         }
+
+        // `save_events` is incremental: callers may submit one newly
+        // materialized Agent Org inbox event after a session already contains
+        // a much older and a much newer event.  Deriving the cached range from
+        // only this batch would shrink the session metadata and make history
+        // pagination skip durable events.  Recompute from the transaction's
+        // full event set instead.
+        let (time_start, time_end): (Option<String>, Option<String>) = conn.query_row(
+            "SELECT MIN(created_at), MAX(created_at)
+             FROM events WHERE session_id=?1",
+            [session_id],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )?;
 
         let now = Utc::now().timestamp();
         conn.execute(
@@ -419,12 +422,14 @@ pub fn search_all_sessions(query: &str, limit: i64) -> SqliteResult<Vec<CrossSes
     Ok(rows
         .into_iter()
         .enumerate()
-        .map(|(idx, (session_id, content, timestamp))| CrossSessionSearchHit {
-            session_id,
-            snippet: build_excerpt(&content, query),
-            timestamp,
-            rank: idx as f64,
-        })
+        .map(
+            |(idx, (session_id, content, timestamp))| CrossSessionSearchHit {
+                session_id,
+                snippet: build_excerpt(&content, query),
+                timestamp,
+                rank: idx as f64,
+            },
+        )
         .collect())
 }
 
@@ -812,6 +817,89 @@ mod tests {
         result
     }
 
+    fn cached_event(session_id: &str, id: &str, created_at: &str) -> CachedEvent {
+        CachedEvent {
+            id: id.to_string(),
+            session_id: session_id.to_string(),
+            event_type: "raw".to_string(),
+            function_name: Some("user_message".to_string()),
+            thread_id: None,
+            args_json: "{}".to_string(),
+            result_json: "{}".to_string(),
+            content: id.to_string(),
+            created_at: created_at.to_string(),
+            meta_json: None,
+            history_sequence: None,
+        }
+    }
+
+    #[test]
+    fn save_events_incremental_batch_does_not_shrink_cached_time_range() {
+        with_temp_orgii_home(|| {
+            let conn = get_connection().expect("open sessions DB");
+            super::super::schema::init_session_tables(&conn).expect("init session schema");
+            drop(conn);
+
+            let session_id = "incremental-range-session";
+            let t1 = "2026-07-17T00:00:01.000Z";
+            let t2 = "2026-07-17T00:00:02.000Z";
+            let t3 = "2026-07-17T00:00:03.000Z";
+
+            save_events(
+                session_id,
+                &[
+                    cached_event(session_id, "event-1", t1),
+                    cached_event(session_id, "event-3", t3),
+                ],
+            )
+            .expect("seed oldest and newest events");
+            save_events(session_id, &[cached_event(session_id, "event-2", t2)])
+                .expect("save an incremental middle event");
+
+            let metadata = get_session_metadata(session_id)
+                .expect("load session metadata")
+                .expect("session metadata exists");
+            assert_eq!(metadata.event_count, 3);
+            assert_eq!(metadata.time_range_start.as_deref(), Some(t1));
+            assert_eq!(metadata.time_range_end.as_deref(), Some(t3));
+        });
+    }
+
+    #[test]
+    fn save_events_replacement_recomputes_cached_time_range_from_all_events() {
+        with_temp_orgii_home(|| {
+            let conn = get_connection().expect("open sessions DB");
+            super::super::schema::init_session_tables(&conn).expect("init session schema");
+            drop(conn);
+
+            let session_id = "replacement-range-session";
+            let t1 = "2026-07-17T00:00:01.000Z";
+            let t2 = "2026-07-17T00:00:02.000Z";
+            let t3 = "2026-07-17T00:00:03.000Z";
+            let t4 = "2026-07-17T00:00:04.000Z";
+
+            save_events(
+                session_id,
+                &[
+                    cached_event(session_id, "event-1", t1),
+                    cached_event(session_id, "event-2", t2),
+                    cached_event(session_id, "event-3", t3),
+                ],
+            )
+            .expect("seed three events");
+
+            save_events(session_id, &[cached_event(session_id, "event-1", t4)])
+                .expect("replace the oldest event with a newer timestamp");
+
+            let metadata = get_session_metadata(session_id)
+                .expect("load session metadata")
+                .expect("session metadata exists");
+            assert_eq!(metadata.event_count, 3);
+            assert_eq!(metadata.time_range_start.as_deref(), Some(t2));
+            assert_eq!(metadata.time_range_end.as_deref(), Some(t4));
+        });
+    }
+
     #[test]
     fn load_events_normalizes_legacy_writer_order_sequences() {
         with_temp_orgii_home(|| {
@@ -992,8 +1080,18 @@ mod tests {
             }
             let session_id = "upsert-noop-session";
             let batch = vec![
-                test_event("evt-a", session_id, "first message", "2026-07-16T00:00:00.000Z"),
-                test_event("evt-b", session_id, "second message", "2026-07-16T00:00:01.000Z"),
+                test_event(
+                    "evt-a",
+                    session_id,
+                    "first message",
+                    "2026-07-16T00:00:00.000Z",
+                ),
+                test_event(
+                    "evt-b",
+                    session_id,
+                    "second message",
+                    "2026-07-16T00:00:01.000Z",
+                ),
             ];
 
             save_events(session_id, &batch).expect("initial save");

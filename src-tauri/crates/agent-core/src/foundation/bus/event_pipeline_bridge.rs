@@ -141,7 +141,7 @@ pub type PersistUserMessageEventFn = fn(
     images: Option<&[String]>,
     source: PersistedUserMessageSource,
     turn_intent_id: &str,
-);
+) -> Result<(), String>;
 
 // ============================================================================
 // Slots
@@ -432,9 +432,9 @@ pub fn persist_user_message_event(
     images: Option<&[String]>,
     source: PersistedUserMessageSource,
     turn_intent_id: &str,
-) {
+) -> Result<(), String> {
     if let Some(f) = PERSIST_USER_MESSAGE_EVENT.get() {
-        f(
+        return f(
             handle,
             session_id,
             message_id,
@@ -444,10 +444,18 @@ pub fn persist_user_message_event(
             source,
             turn_intent_id,
         );
+    }
+    tracing::warn!(
+        "[event-pipeline-bridge] persist_user_message_event called before register for {}",
+        session_id
+    );
+    if source.is_agent_org_inbox_transcript() {
+        Err(format!(
+            "event pipeline is not registered; refusing to acknowledge Agent Org Inbox transcript for session {session_id}"
+        ))
     } else {
-        tracing::warn!(
-            "[event-pipeline-bridge] persist_user_message_event called before register for {}",
-            session_id
-        );
+        // Preserve the legacy non-fatal behavior for ordinary user input in
+        // unit tests and minimal runtimes that intentionally omit the UI bus.
+        Ok(())
     }
 }
