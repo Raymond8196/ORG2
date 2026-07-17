@@ -364,6 +364,14 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
     // Get the actual child process ID
     let pid: Option<u32> = child.process_id();
 
+    // Record the shell's PID (== Unix session-leader id, since spawn calls
+    // setsid()) so the app-exit sweep can still find HUP-immune descendants
+    // after this session leaves the map (closed tab or natural shell exit).
+    #[cfg(unix)]
+    if let Some(pid) = pid {
+        crate::pty_commands::pty::register_session_leader(pid);
+    }
+
     // Hold the child behind a shared Option so close_session/Drop can take()
     // and kill it. Previously the child was moved into a detached wait()
     // thread — that reaped natural exits but left NO kill path, so on Windows
