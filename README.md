@@ -65,7 +65,7 @@ Load and manage agent sessions from all your tools in one place. Scan history, i
 <tr>
 <td width="50%" valign="middle">
 
-### Review trajectories, not just PRs
+### Team up and review trajectories, not just PRs
 
 Form your team and share sessions across devices and teammates. Review the full agent trajectory, not only the resulting diff, and leave comments in context.
 
@@ -153,7 +153,7 @@ Use ORG-II's built-in Rust harness or launch these supported coding-agent CLIs f
 ### GUI + TUI
 
 <p>
-  <a href="#built-in-rust-harness"><kbd><img src="docs/assets/org2-icon.svg" alt="ORG-2 logo" width="16" valign="middle" /> ORG-2</kbd></a> &nbsp;
+  <a href="#built-in-rust-harness"><kbd><img src="docs/assets/org2-icon.svg" alt="ORG-2 logo" width="22" valign="middle" /> ORG-2</kbd></a> &nbsp;
   <a href="https://cursor.com/docs/cli/overview"><kbd><img src="src/assets/modelIcons/cursor.svg" alt="Cursor CLI logo" width="16" valign="middle" /> Cursor CLI</kbd></a> &nbsp;
   <a href="https://code.claude.com/docs/en/configuration"><kbd><img src="src/assets/modelIcons/claude-code.svg" alt="Claude Code logo" width="16" valign="middle" /> Claude Code</kbd></a> &nbsp;
   <a href="https://developers.openai.com/codex/config-basic"><kbd><img src="src/assets/modelIcons/openai.svg" alt="Codex logo" width="16" valign="middle" /> Codex</kbd></a> &nbsp;
@@ -163,7 +163,7 @@ Use ORG-II's built-in Rust harness or launch these supported coding-agent CLIs f
   <a href="https://antigravity.google/docs/cli/getting-started"><kbd><img src="src/assets/modelIcons/antigravity.svg" alt="Antigravity logo" width="16" valign="middle" /> Antigravity</kbd></a>
 </p>
 
-### TUI (GUI coming soon)
+### TUI
 
 <p>
   <a href="https://www.kimi.com/code/docs/en/kimi-code-cli/configuration/configuration-files.html"><kbd><img src="src/assets/modelIcons/kimi.svg" alt="Kimi Code CLI logo" width="16" valign="middle" /> Kimi Code CLI</kbd></a> &nbsp;
