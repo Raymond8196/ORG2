@@ -35,6 +35,14 @@ It is not just another AI coding tool; it is an experiment in human/agent organi
 
 ORG-II explores a different model: agents as persistent, observable colleagues inside a structured organization. Instead of stateless, hard-to-review AI IDE sessions, it introduces replayable agent execution, cross-session memory, AI blame, and a local-first Rust-based runtime so humans, agents, and teams can collaborate around shared context and aligned goals.
 
+## Built-in Rust harness
+
+A fast, token-saving, customizable native agent harness that works with your existing API keys and agent subscriptions. Configure agents or agent teams, switch models, manage workspaces and credentials, and monitor quota from one local-first runtime.
+
+<p align="center">
+  <img src="docs/assets/feature-wall/rust-harness.gif" alt="Run agents and manage keys, subscriptions, workspaces, and quota with the ORG-II Rust harness" width="800" />
+</p>
+
 ## Features
 
 <table>
@@ -67,7 +75,7 @@ Form your team and share sessions across devices and teammates. Review the full 
 
 ### Tool calls, now as videos
 
-Replay the work as it happened. Messages, tool calls, file edits, and command output stay synchronized in one reviewable timeline.
+Replay work from the native Rust harness and 15+ CLI agents. Messages, tool calls, file edits, and command output stay synchronized in one reviewable timeline.
 
 </td>
 <td width="50%">
@@ -126,7 +134,6 @@ Inspect live pages in the native WebKit browser. Select an element and send its 
 
 ## More capabilities
 
-- Rust-based agents that work with your existing API keys and agent subscriptions.
 - GUI, CLI, terminal, Git, browser, LSP, timeline, and database tooling.
 - Cross-session memory, cross-agent knowledge sharing, and shared workspace state.
 - Resource-aware execution that can react to CPU, RAM, and human attention availability.
@@ -135,11 +142,12 @@ Inspect live pages in the native WebKit browser. Select an element and send its 
 - Org-level alignment surfaces (issues/projects management) for coordinating humans, agents, goals, and accountability (WIP).
 - Session collaboration and group issue workflows via self-hosted Supabase (WIP).
 
-## Supported CLI agents
+## Supported Agents
 
-ORG-II includes built-in launch profiles for these coding agents, managed from the desktop TUI.
+Use ORG-II's built-in Rust harness or launch these supported coding-agent CLIs from the desktop TUI.
 
 <p>
+  <a href="#built-in-rust-harness"><kbd><img src="src/assets/modelIcons/orgii.svg" alt="ORG-2 logo" width="16" valign="middle" /> ORG-2</kbd></a> &nbsp;
   <a href="https://cursor.com/docs/cli/overview"><kbd><img src="src/assets/modelIcons/cursor.svg" alt="Cursor CLI logo" width="16" valign="middle" /> Cursor CLI</kbd></a> &nbsp;
   <a href="https://code.claude.com/docs/en/configuration"><kbd><img src="src/assets/modelIcons/claude-code.svg" alt="Claude Code logo" width="16" valign="middle" /> Claude Code</kbd></a> &nbsp;
   <a href="https://developers.openai.com/codex/config-basic"><kbd><img src="src/assets/modelIcons/openai.svg" alt="Codex logo" width="16" valign="middle" /> Codex</kbd></a> &nbsp;
