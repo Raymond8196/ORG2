@@ -355,6 +355,15 @@ fn rejects_invalid_cursor_cli_prefixed_ids() {
 fn candidate_paths_include_home_chats_root() {
     let paths = cursor_cli_history_candidate_paths();
     assert!(paths.iter().any(|path| path.ends_with(".cursor/chats")));
+    // Managed roots (`~/.orgii/cursor-cli-profiles/<account>/chats`,
+    // `~/.orgii/cursor-config/<session>/chats`) only appear when those
+    // profile dirs exist on the machine, so they can't be asserted here —
+    // but any that do appear must use the CLI's real `<config-dir>/chats`
+    // layout, never a `.cursor` component under a profile dir.
+    assert!(!paths
+        .iter()
+        .any(|path| path.to_string_lossy().contains("cursor-cli-profiles")
+            && path.to_string_lossy().contains(".cursor")));
 }
 
 #[test]
