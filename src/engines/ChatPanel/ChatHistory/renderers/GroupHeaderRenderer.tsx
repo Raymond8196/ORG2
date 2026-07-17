@@ -216,7 +216,7 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
 
     return (
       <div
-        className={`${CHAT_ITEM_PADDING_X} ${DETAIL_PANEL_TOKENS.contentWidth} bg-chat-pane ${headerPaddingBottomClass}`.trim()}
+        className={`${CHAT_ITEM_PADDING_X} ${DETAIL_PANEL_TOKENS.contentWidth} ${headerPaddingBottomClass}`.trim()}
         style={roundGap > 0 ? { marginTop: roundGap } : undefined}
       >
         {showUserPart && (
