@@ -32,12 +32,16 @@ import {
   parseCloudOrgSelectorValue,
   sidebarActiveCloudOrgIdAtom,
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import { org2CloudRepoScopesAtom } from "@src/features/Org2Cloud/org2CloudSyncAtoms";
 import ForkCheckoutPickerDialog from "@src/features/TeamCollaboration/components/ForkCheckoutPickerDialog";
 import ForkSessionSetupDialog from "@src/features/TeamCollaboration/components/ForkSessionSetupDialog";
 import MoveToOrgDialog from "@src/features/TeamCollaboration/components/MoveToOrgDialog";
 import { useMoveToOrgDialog } from "@src/features/TeamCollaboration/components/MoveToOrgDialog/useMoveToOrgDialog";
+import { collectScopeMatchedImportedSessionIds } from "@src/features/TeamCollaboration/importedSessionScopeMatch";
+import { useShareableScopeKeyVersion } from "@src/features/TeamCollaboration/repoScopeResolver";
 import {
   cloudOrgIdsForSession,
+  isSessionExcludedFromPersonal,
   sessionOrgTagsAtom,
 } from "@src/features/TeamCollaboration/sessionOrgTagsAtom";
 import { createLogger } from "@src/hooks/logger";
@@ -458,9 +462,15 @@ export const WorkstationSidebarConnector: React.FC = () => {
   // Sessions explicitly tagged into the active cloud org (MoveToOrgDialog)
   // match the cloud scope even without a stamped orgId.
   const sessionOrgTags = useAtomValue(sessionOrgTagsAtom);
+  const repoScopesByOrg = useAtomValue(org2CloudRepoScopesAtom);
+  const scopeKeyVersion = useShareableScopeKeyVersion();
   const cloudTaggedSessionIds = useMemo(() => {
     if (!activeCloudOrgId) return undefined;
-    const ids = new Set<string>();
+    const ids = collectScopeMatchedImportedSessionIds(
+      sortedSessions,
+      repoScopesByOrg[activeCloudOrgId]
+    );
+    void scopeKeyVersion;
     for (const sessionId of Object.keys(sessionOrgTags)) {
       if (
         cloudOrgIdsForSession(sessionOrgTags, sessionId).includes(
@@ -471,7 +481,24 @@ export const WorkstationSidebarConnector: React.FC = () => {
       }
     }
     return ids;
-  }, [activeCloudOrgId, sessionOrgTags]);
+  }, [
+    activeCloudOrgId,
+    sessionOrgTags,
+    sortedSessions,
+    repoScopesByOrg,
+    scopeKeyVersion,
+  ]);
+
+  const personalHiddenCloudTaggedIds = useMemo(() => {
+    if (activeOrgId !== DEFAULT_SESSION_ORG_ID) return undefined;
+    const ids = new Set<string>();
+    for (const sessionId of Object.keys(sessionOrgTags)) {
+      if (isSessionExcludedFromPersonal(sessionOrgTags, sessionId)) {
+        ids.add(sessionId);
+      }
+    }
+    return ids.size > 0 ? ids : undefined;
+  }, [activeOrgId, sessionOrgTags]);
 
   // Per-org filter for the cloud "Team sessions" section.
   const [cloudSessionFilters, setCloudSessionFilters] = useState<
@@ -510,6 +537,19 @@ export const WorkstationSidebarConnector: React.FC = () => {
     onFilterChange: handleCloudSessionFilterChange,
   });
 
+  // Threaded position wins: mine-rows shown inside a fork thread leave the
+  // flat local list (sessionMap keeps them for click routing).
+  const sessionListExcludedIds = useMemo(() => {
+    if (!personalHiddenCloudTaggedIds) return cloudThreadedLocalSessionIds;
+    if (cloudThreadedLocalSessionIds.size === 0) {
+      return personalHiddenCloudTaggedIds;
+    }
+    return new Set([
+      ...cloudThreadedLocalSessionIds,
+      ...personalHiddenCloudTaggedIds,
+    ]);
+  }, [cloudThreadedLocalSessionIds, personalHiddenCloudTaggedIds]);
+
   const {
     menuItems,
     sessionMap,
@@ -525,9 +565,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     searchQuery: sidebarSearchQueries.workstation,
     selectedOrgIds: sessionFilterOrgIds,
     extraSessionIds: cloudTaggedSessionIds,
-    // Threaded position wins: mine-rows shown inside a fork thread leave
-    // the flat local list (sessionMap keeps them for click routing).
-    excludedSessionIds: cloudThreadedLocalSessionIds,
+    excludedSessionIds: sessionListExcludedIds,
     includeExternal,
     groupVisibleCounts,
     expandedSubagentParentIds,
