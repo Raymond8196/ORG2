@@ -42,33 +42,25 @@ import Button from "@src/components/Button";
 import Message from "@src/components/Message";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useShowInteractArea } from "@src/contexts/workspace/ChatContext";
-import { AgentMessageClampProvider } from "@src/engines/ChatPanel/blocks";
 import { GroupChatPausedBanner } from "@src/engines/ChatPanel/components/ChatStatusBanners";
 import { forkExternalHistoryIntoOrgiiSession } from "@src/engines/ChatPanel/externalHistoryFork";
 import { useAgentOrgGroupChatController } from "@src/engines/ChatPanel/hooks/useAgentOrgGroupChatController";
-import { AgentOrgGroupChatLiveSessions } from "@src/engines/ChatPanel/hooks/useAgentOrgGroupChatLiveSessions";
 import { replayModeAtom } from "@src/engines/SessionCore";
 import { derivedSnapshotAtom } from "@src/engines/SessionCore/core/atoms/events";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { derivePlanApprovalViewState } from "@src/engines/SessionCore/derived/planDisplayEvents";
 import { useTodoSync } from "@src/engines/SessionCore/hooks/session/useTodoSync";
-import { waitForSessionChannelReady } from "@src/engines/SessionCore/sync/useSessionChannel";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
-import { SessionCommentsProvider } from "@src/features/Org2Cloud/SessionComments/SessionCommentsContext";
 import { ForkCancelledError } from "@src/features/TeamCollaboration/forkSession";
-import type { ForkImportedErrorKind } from "@src/features/TeamCollaboration/useForkImportedSession";
-import { useForkImportedSession } from "@src/features/TeamCollaboration/useForkImportedSession";
 import { useFileReviewSync } from "@src/hooks/fileReview";
 import { createLogger } from "@src/hooks/logger";
 import { useSessionWorkspaceSync } from "@src/hooks/session/useSessionWorkspaceSync";
-import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import {
   activeSessionIdAtom,
   claimPipelineSessionAtom,
   loadSessions,
   sessionByIdAtom,
 } from "@src/store/session";
-import type { Session } from "@src/store/session";
 import {
   isSessionActiveAtom,
   restoreToInputAtom,
@@ -82,22 +74,12 @@ import {
   chatStatusBarVisibleAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
-  dequeueMessageAtom,
-  editMessageAtom,
-  enqueueCountAtom,
-  forceSendMessageAtom,
-  messageQueueAtom,
-  queueFlushRequestAtom,
-  reorderQueueAtom,
-} from "@src/store/ui/messageQueueAtom";
-import {
   STATION_MODE,
   bumpSimulatorDiffRefreshNonceAtom,
   simulatorDiffScopeRequestAtom,
   simulatorSelectedAppAtom,
   stationModeAtom,
 } from "@src/store/ui/simulatorAtom";
-import { getFileName } from "@src/util/file/pathUtils";
 import {
   isCursorIdeSession,
   isExternalHistorySession,
@@ -105,17 +87,13 @@ import {
 } from "@src/util/session/sessionDispatch";
 
 import ChatFloatingComposer from "./ChatFloatingComposer";
-import ChatHistory, { type ScrollNavState } from "./ChatHistory";
-import { GroupChatProvider } from "./ChatHistory/GroupChatView/GroupChatContext";
-import { AgentEventsTap } from "./ChatHistory/GroupChatView/useGroupChatMergedEvents";
-import { ChatHistoryOverrideContext } from "./ChatHistoryOverrideContext";
+import { type ScrollNavState } from "./ChatHistory";
 import {
   CHAT_SESSION_CONTEXT_NONE,
   ChatSessionContext,
 } from "./ChatSessionContext";
+import { ChatViewHistorySurface } from "./ChatViewHistorySurface";
 import InputArea from "./InputArea";
-import AgentOrgOverviewPanel from "./InputArea/components/AgentOrgOverviewPanel";
-import type { FileChangesResult } from "./InputArea/components/CompactFileChanges";
 import GitDiffActionsMenu from "./InputArea/components/GitDiffActionsMenu";
 import {
   buildCompactFilesReloadKey,
@@ -126,26 +104,19 @@ import { useAgentOrgMemberSessionJump } from "./InputArea/components/useAgentOrg
 import { useAgentOrgRunView } from "./InputArea/components/useAgentOrgRunView";
 import { useComposerSections } from "./InputArea/hooks/useComposerSections";
 import { useGitDiffActions } from "./InputArea/hooks/useGitDiffActions";
-import { useQueueEditMode } from "./InputArea/hooks/useQueueEditMode";
 import { useCanvasForTurn } from "./blocks/CanvasInlineCard/useCanvasForTurn";
 import { useJumpToSimulatorCanvas } from "./blocks/CanvasInlineCard/useJumpToSimulatorCanvas";
+import { resolveInitialFileChanges } from "./chatViewFileChanges";
 import { useBrowserAddToConversationAction } from "./hooks/useBrowserAddToConversationAction";
+import { useChatViewMessageQueue } from "./hooks/useChatViewMessageQueue";
 import { useFollowAgent } from "./hooks/useFollowAgent";
+import { useImportedSessionSubmitOverride } from "./hooks/useImportedSessionSubmitOverride";
 import type { SubmitOverrideInput } from "./hooks/useInputArea/types";
-import { useUserIntentSubmit } from "./hooks/useWorkspaceChat/useUserIntentSubmit";
 
 const logger = createLogger("ChatView");
 
 const CHAT_FLOATING_COMPOSER_FALLBACK_INSET_PX = 72;
 
-const IMPORTED_FORK_ERROR_KEYS: Record<
-  Exclude<ForkImportedErrorKind, "cancelled">,
-  string
-> = {
-  retention: "collaboration.forkImported.retentionError",
-  gone: "collaboration.forkImported.goneError",
-  generic: "collaboration.forkImported.error",
-};
 const EMPTY_CHAT_EVENTS: SessionEvent[] = [];
 
 function formatPlanPillLabel(
@@ -155,66 +126,6 @@ function formatPlanPillLabel(
   if (!autoApproveAt) return "Plan";
   const seconds = Math.max(0, Math.ceil((autoApproveAt - nowMs) / 1000));
   return `Plan · ${seconds}s`;
-}
-
-function impactFileChanges(input: {
-  filesChanged?: number;
-  linesAdded?: number;
-  linesRemoved?: number;
-  touchedFiles?: readonly string[];
-}): FileChangesResult | undefined {
-  const touchedFiles = input.touchedFiles ?? [];
-  const filesChanged = input.filesChanged ?? touchedFiles.length;
-  const totalAdditions = input.linesAdded ?? 0;
-  const totalDeletions = input.linesRemoved ?? 0;
-  if (filesChanged === 0 && totalAdditions === 0 && totalDeletions === 0) {
-    return undefined;
-  }
-
-  const displayPaths =
-    touchedFiles.length > 0
-      ? touchedFiles
-      : Array.from(
-          { length: filesChanged },
-          (_unused, fileIndex) => `Changed file ${fileIndex + 1}`
-        );
-  const files = displayPaths.map((path, fileIndex) => ({
-    path,
-    fileName: getFileName(path),
-    status: "M",
-    additions: fileIndex === 0 ? totalAdditions : 0,
-    deletions: fileIndex === 0 ? totalDeletions : 0,
-    lineCount: fileIndex === 0 ? totalAdditions + totalDeletions : 0,
-  }));
-
-  return {
-    files,
-    totalAdditions,
-    totalDeletions,
-    stats: { added: 0, modified: filesChanged, deleted: 0 },
-  };
-}
-
-function sourceImpactFileChanges(
-  session: Session | undefined
-): FileChangesResult | undefined {
-  return impactFileChanges({
-    filesChanged: session?.filesChanged,
-    linesAdded: session?.linesAdded,
-    linesRemoved: session?.linesRemoved,
-    touchedFiles: session?.touchedFiles,
-  });
-}
-
-function summaryImpactFileChanges(
-  summary: CoreSessionSummary | null
-): FileChangesResult | undefined {
-  if (!summary) return undefined;
-  return impactFileChanges({
-    filesChanged: summary.filesChanged,
-    linesAdded: summary.linesAdded,
-    linesRemoved: summary.linesRemoved,
-  });
 }
 
 export interface ChatViewProps {
@@ -341,10 +252,12 @@ const ChatView: React.FC<ChatViewProps> = memo(
 
     const initialFileChanges = useMemo(
       () =>
-        isCursorIde || isExternalHistory
-          ? (summaryImpactFileChanges(orgtrackSummary) ??
-            sourceImpactFileChanges(currentSession))
-          : undefined,
+        resolveInitialFileChanges({
+          currentSession,
+          isCursorIde,
+          isExternalHistory,
+          orgtrackSummary,
+        }),
       [currentSession, isCursorIde, isExternalHistory, orgtrackSummary]
     );
 
@@ -630,161 +543,22 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const handleAgentOrgMemberSessionJump =
       useAgentOrgMemberSessionJump(sessionId);
 
-    // ── Imported-session intercept-send (fork & continue) ──────────────────
-    // Imported teammate copies (`Session.importedFrom`) keep a fully
-    // writable composer, but they have no dispatch adapter — the send is
-    // intercepted here: the fork flow opens the mandatory same-remote
-    // workspace picker, then the captured message becomes the fork's first
-    // send (which SessionService wraps with the one-shot handoff digest; do
-    // NOT bypass SessionService.sendMessage). There is no redundant
-    // "read-only/fork" confirmation before the actionable picker.
-    const { openSession } = useSessionView();
-    const setRestoreToInput = useSetAtom(restoreToInputAtom);
-    const { fork: forkImportedSession } = useForkImportedSession(
-      currentSession ?? null
-    );
-    const forkSubmitInFlightRef = useRef(false);
-    // Post-fork dispatch target: useUserIntentSubmit reads the session id
-    // through this ref so both the synthetic user event and the dispatch
-    // land in the FORKED session, not the (still-mounted) imported one.
-    const forkDispatchSessionIdRef = useRef<string | null>(null);
-    const submitIntoForkedSession = useUserIntentSubmit({
-      getSessionId: () => forkDispatchSessionIdRef.current,
+    const handleMainComposerSubmitOverride = useImportedSessionSubmitOverride({
+      sessionId,
+      currentSession,
+      onFallbackSubmit: handleGroupChatSubmitOverride,
     });
 
-    const isImportedTeammateCopy = Boolean(currentSession?.importedFrom);
-
-    const restorePendingDraft = useCallback(
-      (pending: SubmitOverrideInput, targetSessionId: string) => {
-        setRestoreToInput({
-          sessionId: targetSessionId,
-          displayContent: pending.displayText,
-          imageDataUrls: pending.imageDataUrls,
-        });
-      },
-      [setRestoreToInput]
-    );
-
-    const handleMainComposerSubmitOverride = useCallback(
-      async (input: SubmitOverrideInput): Promise<boolean> => {
-        if (isImportedTeammateCopy) {
-          if (forkSubmitInFlightRef.current) {
-            // A picker/fork is already in flight. Never clobber the captured
-            // send; retain any second submission as the imported draft.
-            restorePendingDraft(input, sessionId);
-            return true;
-          }
-          forkSubmitInFlightRef.current = true;
-          try {
-            const outcome = await forkImportedSession();
-            if (!outcome.ok) {
-              restorePendingDraft(input, sessionId);
-              if (outcome.errorKind !== "cancelled") {
-                Message.error(
-                  tNavigation(IMPORTED_FORK_ERROR_KEYS[outcome.errorKind])
-                );
-              }
-              return true;
-            }
-            forkDispatchSessionIdRef.current = outcome.localSessionId;
-            openSession(outcome.localSessionId, outcome.name, outcome.repoPath);
-            try {
-              // The fork's first turn can finish before React's
-              // SessionSyncProvider has registered its new IPC channel. Wait
-              // for that readiness edge so agent:complete cannot be lost.
-              await waitForSessionChannelReady(outcome.localSessionId);
-              await submitIntoForkedSession({
-                sessionId: outcome.localSessionId,
-                displayContent: input.displayText,
-                agentContent: input.agentContent,
-                imageDataUrls: input.imageDataUrls,
-              });
-            } catch (error) {
-              logger.error("failed to send captured message into fork", error);
-              restorePendingDraft(input, outcome.localSessionId);
-              Message.error(
-                tNavigation("collaboration.forkImported.sendFailed")
-              );
-            } finally {
-              forkDispatchSessionIdRef.current = null;
-            }
-          } finally {
-            forkSubmitInFlightRef.current = false;
-          }
-          return true;
-        }
-        return handleGroupChatSubmitOverride(input);
-      },
-      [
-        forkImportedSession,
-        handleGroupChatSubmitOverride,
-        isImportedTeammateCopy,
-        openSession,
-        restorePendingDraft,
-        sessionId,
-        submitIntoForkedSession,
-        tNavigation,
-      ]
-    );
-
-    // Message queue — keep this aligned with InputArea.sessionId so queued
-    // follow-ups written by the composer are visible on the same surface.
-    // Promoted "now" messages stay VISIBLE with a "sending now…" state: the
-    // force-send interrupt window can last seconds (provider cancelled-
-    // terminal latency), and hiding the message made Send Now look like it
-    // silently swallowed the input.
-    const messageQueue = useAtomValue(messageQueueAtom);
-    const sessionMessageQueue = useMemo(
-      () =>
-        messageQueue.filter(
-          (message) =>
-            message.sessionId === queueSessionId ||
-            message.sessionId === pipelineSessionId
-        ),
-      [messageQueue, pipelineSessionId, queueSessionId]
-    );
-    const enqueueCount = useAtomValue(enqueueCountAtom);
-    const cancelQueuedMessage = useSetAtom(dequeueMessageAtom);
-    const editQueuedMessage = useSetAtom(editMessageAtom);
-    const reorderQueue = useSetAtom(reorderQueueAtom);
-    const forceSendQueuedMessage = useSetAtom(forceSendMessageAtom);
-    const setQueueFlushRequest = useSetAtom(queueFlushRequestAtom);
-
-    const handleSendNow = useCallback(
-      (messageId: string) => {
-        const message = messageQueue.find((item) => item.id === messageId);
-        if (!message) return;
-        forceSendQueuedMessage(messageId);
-        setQueueFlushRequest((requestId) => requestId + 1);
-      },
-      [messageQueue, forceSendQueuedMessage, setQueueFlushRequest]
-    );
-
-    const handleCommitQueueEdit = useCallback(
-      (messageId: string, content: string, imageDataUrls?: string[]) => {
-        editQueuedMessage({ messageId, content, imageDataUrls });
-      },
-      [editQueuedMessage]
-    );
-
-    const handleReorderSessionQueue = useCallback(
-      (fromIndex: number, toIndex: number) => {
-        const fromMessage = sessionMessageQueue[fromIndex];
-        const toMessage = sessionMessageQueue[toIndex];
-        if (!fromMessage || !toMessage) return;
-        const globalFromIndex = messageQueue.findIndex(
-          (message) => message.id === fromMessage.id
-        );
-        const globalToIndex = messageQueue.findIndex(
-          (message) => message.id === toMessage.id
-        );
-        reorderQueue({ fromIndex: globalFromIndex, toIndex: globalToIndex });
-      },
-      [messageQueue, reorderQueue, sessionMessageQueue]
-    );
-    const queueEditProps = useQueueEditMode({
-      onCommit: handleCommitQueueEdit,
-      onCommitSendNow: handleSendNow,
+    const {
+      cancelQueuedMessage,
+      enqueueCount,
+      handleReorderSessionQueue,
+      handleSendNow,
+      queueEditProps,
+      sessionMessageQueue,
+    } = useChatViewMessageQueue({
+      pipelineSessionId,
+      queueSessionId,
     });
 
     const groupChatPausedBottomContent = groupChatRunPaused ? (
@@ -986,88 +760,36 @@ const ChatView: React.FC<ChatViewProps> = memo(
             data-chat-pinned-header-portal-host
           />
           <div className="min-h-0 min-w-0 max-w-full flex-1 overflow-hidden">
-            {/* Session comments (cloud-parity Phase F): resolves the cloud
-                comment target once per surface; null for every non-cloud
-                session, so the per-turn chrome stays inert. events=null
-                until the snapshot hydrates (presence unknown — an empty
-                pre-load set would bucket every thread as an orphan); turn
-                chrome hides in group-chat view (merged member-session
-                event ids can never anchor into this session). */}
-            <SessionCommentsProvider
-              session={currentSession ?? null}
-              events={snapshot ? chatEvents : null}
-              turnAnchorsVisible={!groupChatViewActive}
-            >
-              <ChatHistoryOverrideContext.Provider
-                value={groupChatViewActive ? groupChatMergedEvents : undefined}
-              >
-                <GroupChatProvider
-                  enabled={groupChatViewActive}
-                  coordinatorSessionId={sessionId}
-                  orgMembers={agentOrgRunView?.members ?? []}
-                >
-                  {groupChatViewActive && (
-                    <AgentOrgGroupChatLiveSessions
-                      enabled={groupChatViewActive}
-                      excludeSessionId={pipelineSessionId}
-                      members={agentOrgRunView?.members ?? []}
-                    />
-                  )}
-                  {groupChatViewActive &&
-                    groupChatAgents
-                      .filter(
-                        (agent) =>
-                          !agent.sessionId.startsWith(
-                            "agent-org-member-pending:"
-                          )
-                      )
-                      .map((agent) => (
-                        <AgentEventsTap
-                          key={agent.sessionId}
-                          sessionId={agent.sessionId}
-                          onEvents={handleGroupChatTapEvents}
-                        />
-                      ))}
-                  <AgentMessageClampProvider value={agentMessageClampEligible}>
-                    <ChatHistory
-                      surfaceBgClass={surfaceBgClass}
-                      chatPanelPosition={position}
-                      agentOrgCurrentMemberName={
-                        currentAgentOrgMember?.name ?? null
-                      }
-                      agentOrgCurrentMemberId={
-                        currentAgentOrgMember?.memberId ?? null
-                      }
-                      agentOrgMembers={agentOrgRunView?.members ?? []}
-                      mutationActionsDisabled={isReadOnlySurface}
-                      agentOrgOverviewPanel={
-                        agentOrgRunView || agentOrgRunViewError ? (
-                          <AgentOrgOverviewPanel
-                            view={agentOrgRunView}
-                            error={agentOrgRunViewError}
-                            currentSessionId={sessionId}
-                            onRefresh={refreshAgentOrgRunView}
-                          />
-                        ) : null
-                      }
-                      onAgentOrgMemberSelect={handleAgentOrgMemberSessionJump}
-                      onAgentOrgRunViewRefresh={refreshAgentOrgRunView}
-                      onScrollNavChange={handleScrollNavChange}
-                      followAgentNav={followAgentNav}
-                      browserAddToConversationNav={browserAddToConversationNav}
-                      onRegisterSearchOpen={onRegisterSearchOpen}
-                      displayMode={displayMode}
-                      turnPaginationEnabled={turnPaginationEnabled}
-                      pinnedHeaderPortalHost={pinnedHeaderHost}
-                      bottomInset={historyBottomInset}
-                      groupChatViewAvailable={groupChatViewAvailable}
-                      groupChatViewActive={groupChatViewActive}
-                      onGroupChatViewToggle={handleGroupChatViewToggle}
-                    />
-                  </AgentMessageClampProvider>
-                </GroupChatProvider>
-              </ChatHistoryOverrideContext.Provider>
-            </SessionCommentsProvider>
+            <ChatViewHistorySurface
+              sessionId={sessionId}
+              currentSession={currentSession}
+              snapshotHydrated={Boolean(snapshot)}
+              chatEvents={chatEvents}
+              groupChatViewActive={groupChatViewActive}
+              groupChatMergedEvents={groupChatMergedEvents}
+              groupChatAgents={groupChatAgents}
+              pipelineSessionId={pipelineSessionId}
+              handleGroupChatTapEvents={handleGroupChatTapEvents}
+              agentMessageClampEligible={agentMessageClampEligible}
+              surfaceBgClass={surfaceBgClass}
+              position={position}
+              currentAgentOrgMember={currentAgentOrgMember}
+              agentOrgRunView={agentOrgRunView}
+              agentOrgRunViewError={agentOrgRunViewError}
+              refreshAgentOrgRunView={refreshAgentOrgRunView}
+              handleAgentOrgMemberSessionJump={handleAgentOrgMemberSessionJump}
+              handleScrollNavChange={handleScrollNavChange}
+              followAgentNav={followAgentNav}
+              browserAddToConversationNav={browserAddToConversationNav}
+              onRegisterSearchOpen={onRegisterSearchOpen}
+              displayMode={displayMode}
+              turnPaginationEnabled={turnPaginationEnabled}
+              pinnedHeaderHost={pinnedHeaderHost}
+              historyBottomInset={historyBottomInset}
+              groupChatViewAvailable={groupChatViewAvailable}
+              handleGroupChatViewToggle={handleGroupChatViewToggle}
+              isReadOnlySurface={isReadOnlySurface}
+            />
           </div>
           {showExternalHistoryForkComposer && (
             <div
