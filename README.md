@@ -41,19 +41,7 @@ ORG-II explores a different model: agents as persistent, observable colleagues i
 <tr>
 <td width="50%" valign="middle">
 
-### Replayable execution
-
-Rewind any agent session and watch its trajectory unfold. Messages, tool calls, files, and command output stay synchronized for auditing, review, and debugging.
-
-</td>
-<td width="50%">
-  <img src="docs/assets/feature-wall/replay.gif" alt="Replay an agent session in ORG-II" width="100%" />
-</td>
-</tr>
-<tr>
-<td width="50%" valign="middle">
-
-### Sessions across 10+ apps and CLIs
+### Manage sessions across 10+ apps &amp; CLIs
 
 Load and manage agent sessions from all your tools in one place. Scan history, inspect subagents, and control each source without switching apps.
 
@@ -65,13 +53,37 @@ Load and manage agent sessions from all your tools in one place. Scan history, i
 <tr>
 <td width="50%" valign="middle">
 
-### Review trajectories together
+### Review trajectories, not just PRs
 
-Form your team and share sessions across devices and teammates. Go beyond PR diffs: review complete agent trajectories and leave comments in context.
+Form your team and share sessions across devices and teammates. Review the full agent trajectory, not only the resulting diff, and leave comments in context.
 
 </td>
 <td width="50%">
   <img src="docs/assets/feature-wall/team-trajectory-review.png" alt="Manage teammates and trajectory replay permissions in ORG-II" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### Tool calls, now as videos
+
+Replay the work as it happened. Messages, tool calls, file edits, and command output stay synchronized in one reviewable timeline.
+
+</td>
+<td width="50%">
+  <img src="docs/assets/feature-wall/replay.gif" alt="Replay an agent session in ORG-II" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### AI blame, not just Git blame
+
+Do not stop at who changed a line. Trace it back to the agent sessions, tool calls, and decisions that drove the change.
+
+</td>
+<td width="50%">
+  <img src="docs/assets/feature-wall/ai-blame.gif" alt="Trace code changes back to agent sessions and decisions in ORG-II" width="100%" />
 </td>
 </tr>
 <tr>
@@ -89,25 +101,13 @@ See how your time is spent across tasks and agent sessions. A daily activity tim
 <tr>
 <td width="50%" valign="middle">
 
-### Full development workspace
+### Full dev workspace
 
 Use the terminal, manage source control, trace Git history, and review pull requests without leaving your agent workspace.
 
 </td>
 <td width="50%">
   <img src="docs/assets/feature-wall/development-workspace.gif" alt="Source control, Git history, and code review tools in ORG-II" width="100%" />
-</td>
-</tr>
-<tr>
-<td width="50%" valign="middle">
-
-### AI blame, not just Git blame
-
-Do not stop at who changed a line. Trace it back to the agent sessions, tool calls, and decisions that drove the change.
-
-</td>
-<td width="50%">
-  <img src="docs/assets/feature-wall/ai-blame.gif" alt="Trace code changes back to agent sessions and decisions in ORG-II" width="100%" />
 </td>
 </tr>
 <tr>
