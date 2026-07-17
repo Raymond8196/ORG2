@@ -13,12 +13,12 @@
  * helpers were deleted with the in-app self-hosted track (cloud-parity
  * Phase E).
  */
-import { listKeys } from "@src/api/services/keyValidation";
 import { indexOrgtrackCollaborationSession } from "@src/api/tauri/lineage";
 import { DISPATCH_CATEGORY } from "@src/api/tauri/session/dispatchTypes";
 import type { KeyInfo } from "@src/api/types/keys";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
+import { loadSharedLocalKeys } from "@src/hooks/keyVault/sharedLocalKeyStore";
 import { createLogger } from "@src/hooks/logger";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { lastModelPairMapAtom } from "@src/store/session/creatorDefaultModelAtom";
@@ -628,7 +628,7 @@ export async function forkSession(
 
   let localKeys: KeyInfo[] | null = null;
   try {
-    localKeys = await listKeys();
+    localKeys = await loadSharedLocalKeys();
   } catch {
     localKeys = null;
   }

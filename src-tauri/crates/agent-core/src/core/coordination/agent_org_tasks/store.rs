@@ -36,7 +36,7 @@ impl AgentOrgTaskStore {
         let metadata_json = encode_metadata(params.metadata.as_ref())?;
         let now = now_rfc3339();
 
-        with_sessions_writer(|| -> Result<Task, String> {
+        let task = with_sessions_writer(|| -> Result<Task, String> {
             let mut conn = get_connection().map_err(|err| err.to_string())?;
             let tx = conn
                 .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
@@ -100,7 +100,9 @@ impl AgentOrgTaskStore {
             tx.commit().map_err(|err| err.to_string())?;
 
             Ok(task)
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(&task.org_run_id);
+        Ok(task)
     }
 
     pub fn get(org_run_id: &str, task_id: &str) -> Result<Option<Task>, String> {
@@ -146,7 +148,9 @@ impl AgentOrgTaskStore {
     /// missing row so callers can surface a clear "task_not_found" without
     /// a separate get round-trip.
     pub fn update(org_run_id: &str, task_id: &str, patch: UpdateTaskPatch) -> Result<Task, String> {
-        with_sessions_writer(|| Self::update_inner(org_run_id, task_id, patch))
+        let task = with_sessions_writer(|| Self::update_inner(org_run_id, task_id, patch))?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        Ok(task)
     }
 
     fn update_inner(
@@ -260,7 +264,7 @@ impl AgentOrgTaskStore {
     }
 
     pub fn delete(org_run_id: &str, task_id: &str) -> Result<bool, String> {
-        with_sessions_writer(|| -> Result<bool, String> {
+        let deleted = with_sessions_writer(|| -> Result<bool, String> {
             let conn = get_connection().map_err(|err| err.to_string())?;
             let n = conn
                 .execute(
@@ -269,7 +273,11 @@ impl AgentOrgTaskStore {
                 )
                 .map_err(|err| err.to_string())?;
             Ok(n > 0)
-        })
+        })?;
+        if deleted {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        }
+        Ok(deleted)
     }
 
     /// Return the first task in the run that is `pending`, `owner IS
@@ -344,9 +352,11 @@ impl AgentOrgTaskStore {
             ));
         }
 
-        with_sessions_writer(|| {
+        let task = with_sessions_writer(|| {
             Self::try_claim_inner(org_run_id, task_id, claimant_member_id, options)
-        })
+        })?;
+        crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        Ok(task)
     }
 
     fn try_claim_inner(
@@ -505,7 +515,12 @@ impl AgentOrgTaskStore {
         org_run_id: &str,
         owner_member_id: &str,
     ) -> Result<Vec<Task>, String> {
-        with_sessions_writer(|| Self::unassign_for_owner_inner(org_run_id, owner_member_id))
+        let tasks =
+            with_sessions_writer(|| Self::unassign_for_owner_inner(org_run_id, owner_member_id))?;
+        if !tasks.is_empty() {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        }
+        Ok(tasks)
     }
 
     fn unassign_for_owner_inner(
@@ -582,9 +597,13 @@ impl AgentOrgTaskStore {
         org_run_id: &str,
         owner_member_id: &str,
     ) -> Result<Vec<Task>, String> {
-        with_sessions_writer(|| {
+        let tasks = with_sessions_writer(|| {
             Self::requeue_in_progress_for_owner_inner(org_run_id, owner_member_id)
-        })
+        })?;
+        if !tasks.is_empty() {
+            crate::coordination::agent_org_run_events::notify_agent_org_run_changed(org_run_id);
+        }
+        Ok(tasks)
     }
 
     fn requeue_in_progress_for_owner_inner(

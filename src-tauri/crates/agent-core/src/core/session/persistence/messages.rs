@@ -473,6 +473,12 @@ pub fn save_snapshot(session_id: &str, tool_call_id: &str, hash: &str) -> Sqlite
         Ok(())
     })?;
     crate::tools::file_history::enforce_session_cap_after_save(session_id);
+    if crate::bus::frontend_subscriber_count() > 0 {
+        crate::bus::broadcast_event(
+            "agent:snapshot_created",
+            serde_json::json!({ "sessionId": session_id }),
+        );
+    }
     Ok(())
 }
 

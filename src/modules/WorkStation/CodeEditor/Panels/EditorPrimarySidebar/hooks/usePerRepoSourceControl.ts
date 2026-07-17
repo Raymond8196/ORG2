@@ -21,7 +21,6 @@ import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { GitWorkingDirectoryFile } from "@src/api/http/git";
-import { fetchNumstatMap } from "@src/api/http/git/diff";
 import {
   type ScopedGitApi,
   createScopedGitApi,
@@ -32,6 +31,7 @@ import { normalizeGitStatus } from "@src/config/gitStatus";
 import { useFileSelection } from "@src/hooks/git/sourceControl";
 import { generateCommitMessage } from "@src/hooks/git/sourceControl/commitMessageGeneration";
 import { useRepoStatusListener } from "@src/hooks/git/useRepoStatusListener";
+import { useWorkingTreeNumstat } from "@src/hooks/git/useWorkingTreeDiffTotals";
 import { useMounted } from "@src/hooks/lifecycle/useMounted";
 import { createLogger } from "@src/hooks/logger";
 import {
@@ -107,13 +107,17 @@ export function usePerRepoSourceControl(
   const [commitMessage, setCommitMessage] = useState("");
   const [commitLoading, setCommitLoading] = useState(false);
   const [generateLoading, setGenerateLoading] = useState(false);
-  const [numstatMap, setNumstatMap] = useState<
-    Map<string, { additions: number; deletions: number }>
-  >(new Map());
-
   const mountedRef = useMounted();
   const filesRef = useRef<GitFile[]>([]);
   const onGitFileSelectRef = useRef(onGitFileSelect);
+  const rawNumstat = useWorkingTreeNumstat(repoId, repoPath);
+  const numstatMap = useMemo(() => {
+    const decoded = new Map<string, { additions: number; deletions: number }>();
+    for (const [path, stats] of rawNumstat.files) {
+      decoded.set(decodeOctalPath(path), stats);
+    }
+    return decoded;
+  }, [rawNumstat.files]);
 
   // Scoped git API — binds repo_id/repo_path once
   const gitRef = useRef<ScopedGitApi>(createScopedGitApi(repoId, repoPath));
@@ -133,31 +137,17 @@ export function usePerRepoSourceControl(
     setInitialLoading(true);
     setError(null);
     setSelectedFileId("");
-    setNumstatMap(new Map());
   }, [repoPath]);
 
-  // Load per-file numstat (non-blocking, runs after status)
-  const fetchNumstat = useCallback(async () => {
-    const raw = await fetchNumstatMap(repoId, repoPath);
-    if (!mountedRef.current) return;
-    // fetchNumstatMap paths are raw (not octal-decoded); decode here so they
-    // match the already-decoded paths in `gitStatus`.
-    const decoded = new Map<string, { additions: number; deletions: number }>();
-    for (const [path, stats] of raw) {
-      decoded.set(decodeOctalPath(path), stats);
-    }
-    setNumstatMap(decoded);
-  }, [repoId, repoPath, mountedRef]);
-
-  // Core fetch — only sets initialLoading on first call.
-  // fetchNumstat only needs repoId/repoPath (not the status response), so
-  // both requests are fired in parallel via Promise.all.
+  // Core fetch — only sets initialLoading on first call. Per-file numstat is
+  // supplied by the shared working-tree store so every visible Git surface
+  // reuses one request rather than each issuing its own companion fetch.
   const fetchStatus = useCallback(async () => {
     try {
-      const [status] = await Promise.all([
-        getGitStatus({ repo_id: repoId, repo_path: repoPath }),
-        fetchNumstat(),
-      ]);
+      const status = await getGitStatus({
+        repo_id: repoId,
+        repo_path: repoPath,
+      });
       if (!mountedRef.current) return;
       if (status) {
         const decoded: GitStatusData = {
@@ -185,7 +175,7 @@ export function usePerRepoSourceControl(
         setInitialLoading(false);
       }
     }
-  }, [repoId, repoPath, fetchNumstat, mountedRef]);
+  }, [repoId, repoPath, mountedRef]);
 
   // Debounced fetch for WebSocket events — replaces hand-rolled timer
   const debouncedFetch = useDebouncedCallback(

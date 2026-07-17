@@ -36,6 +36,7 @@ fn notify_session_mirror(session_id: &str) {
     if let Some(hook) = SESSION_MIRROR_HOOK.get() {
         hook(session_id);
     }
+    crate::coordination::agent_org_run_events::notify_agent_org_session_changed(session_id);
 }
 
 /// Companion delete hook: the upsert-style mirror hook cannot serve deletes

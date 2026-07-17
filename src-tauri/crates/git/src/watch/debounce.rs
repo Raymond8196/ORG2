@@ -45,6 +45,14 @@ pub(crate) fn truncate_preview(s: &str, max_bytes: usize) -> String {
     format!("{}...", &s[..end])
 }
 
+/// A status push represents a new snapshot, not merely a completed poll.
+/// Periodic polling must therefore stay silent when the durable status has not
+/// changed; otherwise every polling tick fans out into redundant frontend
+/// requests for status and diff totals.
+pub(crate) fn status_snapshot_changed(previous: Option<&GitStatus>, current: &GitStatus) -> bool {
+    previous != Some(current)
+}
+
 struct PendingEvent {
     change_type: RepoChangeType,
     first_event_at: Instant,
@@ -594,6 +602,8 @@ impl DebounceManager {
                             &event_emitter,
                         );
 
+                        let status_changed = status_snapshot_changed(old_status.as_ref(), &status);
+
                         // Update cache (this resets consecutive_failures to 0)
                         state_store.update_status(repo_id, status.clone());
 
@@ -610,13 +620,18 @@ impl DebounceManager {
                             );
                         }
 
-                        // Emit status updated event
-                        event_emitter.emit_status_updated(repo_id.to_string(), status);
+                        if status_changed {
+                            // Only publish a new snapshot. The periodic poller
+                            // intentionally runs even while a repo is idle, so
+                            // emitting an unchanged value here would wake every
+                            // frontend Git listener on each tick.
+                            event_emitter.emit_status_updated(repo_id.to_string(), status);
 
-                        // Mark git change for adaptive polling
-                        if let Some(manager_lock) = super::REPO_WATCH_MANAGER.try_read() {
-                            if let Some(manager) = manager_lock.as_ref() {
-                                manager.watcher.mark_git_change(repo_id);
+                            // Mark git change for adaptive polling
+                            if let Some(manager_lock) = super::REPO_WATCH_MANAGER.try_read() {
+                                if let Some(manager) = manager_lock.as_ref() {
+                                    manager.watcher.mark_git_change(repo_id);
+                                }
                             }
                         }
                     }
