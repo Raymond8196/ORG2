@@ -54,10 +54,14 @@ const CLAUDE_CODE_LIFECYCLE_EVENTS: &[(&str, Option<&str>)] = &[
     ("PreToolUse", Some("*")),
     ("PostToolUseFailure", Some("*")),
 ];
-// Codex lifecycle events (all matcher-less; SessionStart doubles as the
-// resume signal and PreToolUse is the per-tool working heartbeat).
+// Codex events required whenever provenance capture is enabled. SessionStart
+// proves that Codex accepted and executed the current managed definitions;
+// the subagent events preserve exact actor attribution.
+const CODEX_REQUIRED_EVENTS: &[&str] = &["SessionStart", "SubagentStart", "SubagentStop"];
+// Optional Codex lifecycle events (all matcher-less). SessionStart remains
+// installed when live status is off because it also drives hook activation;
+// PreToolUse is the per-tool working heartbeat when live status is on.
 const CODEX_LIFECYCLE_EVENTS: &[&str] = &[
-    "SessionStart",
     "UserPromptSubmit",
     "PreToolUse",
     "PermissionRequest",
@@ -358,7 +362,7 @@ pub struct SessionProvenanceHookStatus {
 #[serde(rename_all = "snake_case")]
 pub enum SessionProvenanceHookActivationState {
     Inactive,
-    AwaitingApproval,
+    AwaitingVerification,
     Active,
 }
 
@@ -597,7 +601,7 @@ fn update_codex_platform(
         unix_command,
         windows_command,
     )?;
-    for event_name in ["SubagentStart", "SubagentStop"] {
+    for event_name in CODEX_REQUIRED_EVENTS {
         update_nested_event(
             config,
             event_name,
@@ -1473,8 +1477,9 @@ fn config_has_complete_managed_hooks(
                 platform,
                 "PostToolUse",
                 Some(CODEX_POST_TOOL_USE_MATCHER),
-            ) && nested_event_has_managed_hook(config, platform, "SubagentStart", None)
-                && nested_event_has_managed_hook(config, platform, "SubagentStop", None)
+            ) && CODEX_REQUIRED_EVENTS
+                .iter()
+                .all(|event_name| nested_event_has_managed_hook(config, platform, event_name, None))
                 && (!live_status
                     || CODEX_LIFECYCLE_EVENTS.iter().all(|event_name| {
                         nested_event_has_managed_hook(config, platform, event_name, None)
@@ -1642,7 +1647,10 @@ fn codex_activation_from_receipt(
             Some(receipt.activated_at),
         )
     } else {
-        (SessionProvenanceHookActivationState::AwaitingApproval, None)
+        (
+            SessionProvenanceHookActivationState::AwaitingVerification,
+            None,
+        )
     }
 }
 
@@ -1709,7 +1717,7 @@ fn build_hook_status(
 
 /// Record proof that Codex invoked the current ORG2-managed hook definition.
 /// A matching receipt is the only state that upgrades the UI from
-/// `awaiting_approval` to `active`.
+/// `awaiting_verification` to `active`.
 pub fn record_session_provenance_hook_activation(source: &str) -> Result<bool, String> {
     if source != SessionProvenanceHookPlatform::Codex.source_arg() {
         return Ok(false);
@@ -2057,7 +2065,7 @@ mod tests {
     }
 
     #[test]
-    fn codex_config_installs_and_removes_actor_lifecycle_hooks() {
+    fn codex_config_installs_and_removes_required_hooks() {
         let mut config = json!({
             "hooks": {
                 "SubagentStop": [{
@@ -2076,6 +2084,7 @@ mod tests {
         .expect("enable Codex hooks");
 
         assert_eq!(config["hooks"]["PostToolUse"].as_array().unwrap().len(), 1);
+        assert_eq!(config["hooks"]["SessionStart"].as_array().unwrap().len(), 1);
         assert_eq!(
             config["hooks"]["SubagentStart"].as_array().unwrap().len(),
             1
@@ -2087,7 +2096,7 @@ mod tests {
             false
         ));
 
-        config["hooks"]["SubagentStart"] = json!([]);
+        config["hooks"]["SessionStart"] = json!([]);
         assert!(!config_has_complete_managed_hooks(
             &config,
             SessionProvenanceHookPlatform::Codex,
@@ -2169,11 +2178,17 @@ mod tests {
         };
         assert_eq!(
             codex_activation_from_receipt("current", None),
-            (SessionProvenanceHookActivationState::AwaitingApproval, None)
+            (
+                SessionProvenanceHookActivationState::AwaitingVerification,
+                None
+            )
         );
         assert_eq!(
             codex_activation_from_receipt("stale", Some(receipt.clone())),
-            (SessionProvenanceHookActivationState::AwaitingApproval, None)
+            (
+                SessionProvenanceHookActivationState::AwaitingVerification,
+                None
+            )
         );
         assert_eq!(
             codex_activation_from_receipt("current", Some(receipt)),
