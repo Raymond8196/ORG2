@@ -493,7 +493,7 @@
     "moveToOrg": {
       "menuItem": "Organisations-Tags…",
       "title": "Organisations-Tags der Session",
-      "hint": "Fügt diese Session einer geteilten Cloud-Organisation hinzu. Sie bleibt eine normale lokale Session — sie wird dort nur sichtbar, unabhängig vom Repo-Scope.",
+      "hint": "Wähle eine oder mehrere Organisationen, um diese Session zu teilen — sie kann gleichzeitig in Personal und mehreren Organisationen sein. Sie bleibt eine normale lokale Session; das macht sie dort nur sichtbar. Nur Organisationen, deren Repo-Bereich das Repository dieser Session abdeckt, sind wählbar.",
       "noOrgs": "Noch keine Cloud-Organisationen — melde dich bei ORG2 Cloud an, um eine zu erstellen oder beizutreten.",
       "cloudBadge": "Cloud",
       "added": "Zu {{org}} hinzugefügt",
@@ -504,7 +504,7 @@
       "outOfScope": "Out of scope",
       "scopeResolving": "Checking…",
       "personal": "Personal",
-      "personalBadge": "Local"
+      "personalBadge": "Lokal"
     },
     "orgManagement": {
       "invites": {
