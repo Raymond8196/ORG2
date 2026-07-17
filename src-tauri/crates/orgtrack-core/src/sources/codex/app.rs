@@ -2167,11 +2167,29 @@ fn parse_rg_output_matches(output: &str) -> Vec<(String, i64, String)> {
         .collect()
 }
 
+/// GUI-launched runs prefix the task with an internal exec-mode briefing;
+/// strip it so titles/replay show only what the user typed.
+fn strip_orgii_exec_mode_bridge(text: &str) -> &str {
+    const OPEN: &str = "<orgii_cli_exec_mode_bridge>";
+    const CLOSE: &str = "</orgii_cli_exec_mode_bridge>";
+    let trimmed = text.trim_start();
+    if let Some(rest) = trimmed.strip_prefix(OPEN) {
+        if let Some(end) = rest.find(CLOSE) {
+            return rest[end + CLOSE.len()..].trim_start();
+        }
+    }
+    text
+}
+
 fn user_message_from_payload(payload: &Value) -> Option<String> {
-    payload
-        .get("message")
-        .and_then(Value::as_str)
-        .map(ToString::to_string)
+    let raw = payload.get("message").and_then(Value::as_str)?;
+    let stripped = strip_orgii_exec_mode_bridge(raw);
+    // Bridge-only messages carry no user-authored text: skip them entirely
+    // (no replay bubble, no title candidate).
+    if stripped.trim().is_empty() {
+        return None;
+    }
+    Some(stripped.to_string())
 }
 
 fn session_title_from_payload(payload: &Value) -> Option<String> {

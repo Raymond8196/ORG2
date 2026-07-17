@@ -929,8 +929,10 @@ pub async fn run_session(
             process_id: None,
             broadcast_only: false,
         };
-        // Native-transcript sessions keep the instant user bubble
-        // (broadcast) but the CLI's own store persists the turn.
+        // Native-transcript sessions skip both the DB insert and the
+        // broadcast: the frontend's synthetic event already renders the user
+        // bubble instantly, and the CLI's native store is the transcript of
+        // record. Broadcasting here too would render a duplicate bubble.
         if persistence::session_persists_chunks(&session_id) {
             if let Err(err) = persistence::insert_chunk(&user_chunk, base_sequence) {
                 tracing::error!(
@@ -938,13 +940,13 @@ pub async fn run_session(
                     err
                 );
             }
+            let ws_msg = serde_json::json!({
+                "type": "code_session.activity",
+                "session_id": session_id,
+                "chunk": user_chunk,
+            });
+            websocket_handler::broadcast(ws_msg.to_string());
         }
-        let ws_msg = serde_json::json!({
-            "type": "code_session.activity",
-            "session_id": session_id,
-            "chunk": user_chunk,
-        });
-        websocket_handler::broadcast(ws_msg.to_string());
     }
 
     // ═══════════════════════════════════════════════════════════
