@@ -78,8 +78,15 @@ pub async fn orgtrack_session_turn_metadata_index(
             return Err("At most 500 turn summaries can be loaded at once".to_string());
         }
         let conn = open_cache_conn()?;
+        // Managed native-transcript sessions project from the CLI's own
+        // store: remap the managed id to its imported transcript id first.
+        let transcript_session_id =
+            crate::agent_sessions::cli::native_transcript::imported_transcript_id_for_managed_session(
+                &session_id,
+            )
+            .unwrap_or_else(|| session_id.clone());
         if let Some(chunks) =
-            imported_history::load_activity_chunks_for_session(&conn, &session_id)?
+            imported_history::load_activity_chunks_for_session(&conn, &transcript_session_id)?
         {
             let projected =
                 orgtrack_core::projectors::turn_metadata::project_activity_chunks(&chunks);

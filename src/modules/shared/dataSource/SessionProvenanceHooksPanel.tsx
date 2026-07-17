@@ -158,6 +158,8 @@ const HookPlatformsTable: React.FC = () => {
 
   const [masterEnabled, setMasterEnabled] = useState(true);
   const [masterPending, setMasterPending] = useState(false);
+  const [liveStatusEnabled, setLiveStatusEnabled] = useState(true);
+  const [liveStatusPending, setLiveStatusPending] = useState(false);
 
   const handleMasterChange = useCallback(async (enabled: boolean) => {
     setMasterPending(true);
@@ -181,15 +183,40 @@ const HookPlatformsTable: React.FC = () => {
     }
   }, []);
 
+  const handleLiveStatusChange = useCallback(async (enabled: boolean) => {
+    setLiveStatusPending(true);
+    const previous = !enabled;
+    setLiveStatusEnabled(enabled);
+    try {
+      const nextStatuses =
+        await rpc.agentOrgs.sessionProvenance.setLiveStatusEnabled({ enabled });
+      setStatuses(indexStatuses(nextStatuses));
+      setErrors({});
+    } catch (error) {
+      setLiveStatusEnabled(previous);
+      const message = error instanceof Error ? error.message : String(error);
+      setErrors(
+        Object.fromEntries(
+          PLATFORMS.map(({ id }) => [id, message])
+        ) as ErrorByPlatform
+      );
+    } finally {
+      setLiveStatusPending(false);
+    }
+  }, []);
+
   const loadStatuses = useCallback(async (silent = false) => {
     if (!silent) setRefreshing(true);
     try {
-      const [nextStatuses, nextMasterEnabled] = await Promise.all([
-        rpc.agentOrgs.sessionProvenance.status(),
-        rpc.agentOrgs.sessionProvenance.masterEnabled(),
-      ]);
+      const [nextStatuses, nextMasterEnabled, nextLiveStatusEnabled] =
+        await Promise.all([
+          rpc.agentOrgs.sessionProvenance.status(),
+          rpc.agentOrgs.sessionProvenance.masterEnabled(),
+          rpc.agentOrgs.sessionProvenance.liveStatusEnabled(),
+        ]);
       setStatuses(indexStatuses(nextStatuses));
       setMasterEnabled(nextMasterEnabled);
+      setLiveStatusEnabled(nextLiveStatusEnabled);
       if (!silent) setErrors({});
     } catch (error) {
       if (silent) return;
@@ -440,6 +467,25 @@ const HookPlatformsTable: React.FC = () => {
             onChange={(enabled) => void handleMasterChange(enabled)}
             ariaLabel={t("agentOrgs.sessionProvenance.masterToggle", {
               defaultValue: "Provenance hooks",
+            })}
+          />
+        </SectionRow>
+        <SectionRow
+          label={t("agentOrgs.sessionProvenance.liveStatusToggle", {
+            defaultValue: "Live agent status",
+          })}
+          description={t("agentOrgs.sessionProvenance.liveStatusToggleDesc", {
+            defaultValue:
+              "Installs lifecycle events (prompt, tool, permission, stop) so running CLI sessions show live working/waiting status. Off keeps provenance capture only.",
+          })}
+        >
+          <Switch
+            checked={liveStatusEnabled}
+            loading={liveStatusPending}
+            disabled={!masterEnabled}
+            onChange={(enabled) => void handleLiveStatusChange(enabled)}
+            ariaLabel={t("agentOrgs.sessionProvenance.liveStatusToggle", {
+              defaultValue: "Live agent status",
             })}
           />
         </SectionRow>
