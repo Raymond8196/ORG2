@@ -24,6 +24,7 @@
       "roundCount_other": "{{count}} rounds",
       "agentWorked": "Agent worked",
       "cliNativeStore": "CLI native store",
+      "sessionId": "Session ID",
       "reasoningModel": "Reasoning Model",
       "codingModel": "Coding Model",
       "sessionMode": "Session Mode",

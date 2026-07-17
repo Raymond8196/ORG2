@@ -24,6 +24,7 @@
       "roundCount_other": "{{count}} 轮",
       "agentWorked": "Agent 工作",
       "cliNativeStore": "CLI 原生存储",
+      "sessionId": "会话 ID",
       "reasoningModel": "Reasoning Model",
       "codingModel": "Coding Model",
       "sessionMode": "Session 模式",
