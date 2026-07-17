@@ -65,12 +65,12 @@ pub fn native_transcript_enabled(agent: &ModelType) -> bool {
     native_transcript_binding(agent).is_some()
 }
 
-/// Managed session id → imported-history transcript id, when the session is
-/// native-mode and a CLI-native id has been bound. Used by cross-provider
-/// projections (turn metadata, exporter) to route a managed id into the
-/// imported loaders. `None` = not a native-mode managed session (or no
-/// binding yet) — callers fall through to their legacy path.
-pub fn imported_transcript_id_for_managed_session(session_id: &str) -> Option<String> {
+/// Managed session id → (binding, CLI-native session id), when the session is
+/// native-mode and a CLI-native id has been bound. `None` = not a native-mode
+/// managed session (or no binding yet).
+pub fn native_store_key_for_managed_session(
+    session_id: &str,
+) -> Option<(NativeTranscriptBinding, String)> {
     let session = super::persistence::get_session(session_id).ok().flatten()?;
     if session.transcript_source != TRANSCRIPT_SOURCE_NATIVE {
         return None;
@@ -84,6 +84,16 @@ pub fn imported_transcript_id_for_managed_session(session_id: &str) -> Option<St
         .ok()
         .flatten()
         .or(session.cli_session_id)?;
+    Some((binding, cli_session_id))
+}
+
+/// Managed session id → imported-history transcript id, when the session is
+/// native-mode and a CLI-native id has been bound. Used by cross-provider
+/// projections (turn metadata, exporter) to route a managed id into the
+/// imported loaders. `None` = not a native-mode managed session (or no
+/// binding yet) — callers fall through to their legacy path.
+pub fn imported_transcript_id_for_managed_session(session_id: &str) -> Option<String> {
+    let (binding, cli_session_id) = native_store_key_for_managed_session(session_id)?;
     Some(binding.imported_session_id(&cli_session_id))
 }
 
