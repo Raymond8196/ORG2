@@ -49,6 +49,8 @@ struct SessionMeta {
     model: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
     repo_path: Option<String>,
     branch: Option<String>,
     impact: ImportedHistoryImpactStats,
@@ -225,6 +227,8 @@ fn parse_session_meta(
     let mut model = None;
     let mut input_tokens = 0;
     let mut output_tokens = 0;
+    let mut cache_read_tokens = 0;
+    let mut cache_write_tokens = 0;
     let mut first_user_text = None;
 
     let file = fs::File::open(&record.source_path).map_err(|err| {
@@ -258,9 +262,11 @@ fn parse_session_meta(
             if model.is_none() && !message.model.trim().is_empty() {
                 model = Some(message.model.trim().to_string());
             }
-            let (input, output) = usage_tokens(&message.usage);
+            let (input, output, cache_read, cache_write) = usage_tokens(&message.usage);
             input_tokens += input;
             output_tokens += output;
+            cache_read_tokens += cache_read;
+            cache_write_tokens += cache_write;
             let role = effective_role(&parsed.line_type, &message.role);
             if first_user_text.is_none() && role == "user" {
                 first_user_text = first_content_text(&message.content);
@@ -295,6 +301,8 @@ fn parse_session_meta(
         model,
         input_tokens,
         output_tokens,
+        cache_read_tokens,
+        cache_write_tokens,
         repo_path,
         branch,
         impact,
@@ -321,6 +329,8 @@ fn meta_to_cache_input(
         model: meta.model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
+        cache_read_tokens: meta.cache_read_tokens,
+        cache_write_tokens: meta.cache_write_tokens,
         repo_path: meta.repo_path,
         branch: meta.branch,
         impact: meta.impact,
@@ -591,25 +601,28 @@ fn normalized_timestamp(value: &Value) -> String {
     }
 }
 
-fn usage_tokens(usage: &Value) -> (i64, i64) {
+/// Returns `(input_folded, output, cache_read, cache_write)`. `input_folded`
+/// is cache-inclusive (fresh + both cache kinds); the cache components are also
+/// returned so the usage projection can split them out.
+fn usage_tokens(usage: &Value) -> (i64, i64, i64, i64) {
     let read = |keys: &[&str]| {
         keys.iter()
             .find_map(|key| usage.get(*key).and_then(Value::as_i64))
             .unwrap_or_default()
     };
-    let input = read(&["input_tokens", "inputTokens", "input"])
-        + read(&[
-            "cache_read_input_tokens",
-            "cacheReadInputTokens",
-            "cache_read",
-        ])
-        + read(&[
-            "cache_creation_input_tokens",
-            "cacheCreationInputTokens",
-            "cache_write",
-        ]);
+    let cache_read = read(&[
+        "cache_read_input_tokens",
+        "cacheReadInputTokens",
+        "cache_read",
+    ]);
+    let cache_write = read(&[
+        "cache_creation_input_tokens",
+        "cacheCreationInputTokens",
+        "cache_write",
+    ]);
+    let input = read(&["input_tokens", "inputTokens", "input"]) + cache_read + cache_write;
     let output = read(&["output_tokens", "outputTokens", "output"]);
-    (input, output)
+    (input, output, cache_read, cache_write)
 }
 
 fn content_blocks(content: &Value) -> Vec<Value> {

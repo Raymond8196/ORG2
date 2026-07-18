@@ -31,7 +31,8 @@ use crate::sources::imported_history::{
 pub const ZCODE_SESSION_PREFIX: &str = "zcodeapp-";
 const ZCODE_PROVIDER_SLUG: &str = "zcode";
 const ZCODE_SUBAGENT_TASK_TYPE: &str = "subagent_child";
-const ZCODE_METADATA_PARSER_VERSION: i64 = 1;
+// v2: capture cache_read/cache_write tokens separately (input stays cache-inclusive).
+const ZCODE_METADATA_PARSER_VERSION: i64 = 2;
 
 pub type ZCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ZCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -50,6 +51,8 @@ struct ZCodeSessionMeta {
     model: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
     time_created: i64,
     time_updated: i64,
     parent_id: Option<String>,
@@ -204,7 +207,11 @@ fn list_all_zcode_session_meta_from_conn(
                      FROM turn_usage WHERE session_id = s.id), \
                     (SELECT model_id FROM model_usage \
                      WHERE session_id = s.id AND model_id IS NOT NULL AND model_id != '' \
-                     ORDER BY started_at DESC LIMIT 1) \
+                     ORDER BY started_at DESC LIMIT 1), \
+                    (SELECT COALESCE(SUM(cache_read_input_tokens), 0) \
+                     FROM turn_usage WHERE session_id = s.id), \
+                    (SELECT COALESCE(SUM(cache_creation_input_tokens), 0) \
+                     FROM turn_usage WHERE session_id = s.id) \
              FROM session s \
              WHERE s.time_archived IS NULL",
         )
@@ -227,6 +234,8 @@ fn list_all_zcode_session_meta_from_conn(
                     .filter(|s| !s.is_empty()),
                 input_tokens: row.get::<_, Option<i64>>(7)?.unwrap_or_default(),
                 output_tokens: row.get::<_, Option<i64>>(8)?.unwrap_or_default(),
+                cache_read_tokens: row.get::<_, Option<i64>>(10)?.unwrap_or_default(),
+                cache_write_tokens: row.get::<_, Option<i64>>(11)?.unwrap_or_default(),
                 time_created: row.get::<_, Option<i64>>(5)?.unwrap_or_default(),
                 time_updated: row.get::<_, Option<i64>>(6)?.unwrap_or_default(),
                 parent_id: row
@@ -309,6 +318,8 @@ fn session_meta_to_cache_input(meta: ZCodeSessionMeta) -> ImportedHistoryCacheIn
         model: meta.model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
+        cache_read_tokens: meta.cache_read_tokens,
+        cache_write_tokens: meta.cache_write_tokens,
         repo_path: (!meta.directory.trim().is_empty()).then_some(meta.directory),
         branch: None,
         impact: meta.impact,

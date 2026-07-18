@@ -551,6 +551,8 @@ impl<'conn> SqliteRecordStore<'conn> {
                 model               TEXT NOT NULL DEFAULT '',
                 input_tokens        INTEGER NOT NULL DEFAULT 0,
                 output_tokens       INTEGER NOT NULL DEFAULT 0,
+                cache_read_tokens   INTEGER NOT NULL DEFAULT 0,
+                cache_write_tokens  INTEGER NOT NULL DEFAULT 0,
                 repo_path           TEXT NOT NULL DEFAULT '',
                 branch              TEXT NOT NULL DEFAULT '',
                 files_changed       INTEGER NOT NULL DEFAULT 0,
@@ -616,6 +618,21 @@ impl<'conn> SqliteRecordStore<'conn> {
             "imported_history_session_cache",
             "parent_session_id",
             "TEXT NOT NULL DEFAULT ''",
+        )?;
+        // Cache portion contained within `input_tokens` (which stays
+        // cache-inclusive). The usage projection subtracts these to recover
+        // fresh input + price cache reads at the cheaper cache rate.
+        ensure_column(
+            conn,
+            "imported_history_session_cache",
+            "cache_read_tokens",
+            "INTEGER NOT NULL DEFAULT 0",
+        )?;
+        ensure_column(
+            conn,
+            "imported_history_session_cache",
+            "cache_write_tokens",
+            "INTEGER NOT NULL DEFAULT 0",
         )
     }
 

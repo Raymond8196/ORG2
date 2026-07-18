@@ -321,6 +321,8 @@ fn composer_meta_to_cache_input(meta: WindsurfComposerMeta) -> ImportedHistoryCa
         model,
         input_tokens: meta.composer.context_tokens_used.round() as i64,
         output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: metadata.repo_path,
         branch: metadata.branch,
         impact: meta.impact,

@@ -25,7 +25,8 @@ pub const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
 const OPENCODE_PROVIDER_SLUG: &str = "opencode";
 const OPENCODE_DB_FILENAME: &str = "opencode.db";
 // Version 4 adds per-session file-impact extraction from normalized edit parts.
-const OPENCODE_METADATA_PARSER_VERSION: i64 = 4;
+// v5: capture cache_read/cache_write tokens separately (input stays cache-inclusive).
+const OPENCODE_METADATA_PARSER_VERSION: i64 = 5;
 
 pub type OpenCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type OpenCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -44,6 +45,8 @@ struct OpenCodeSessionMeta {
     model: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
     time_created: i64,
     time_updated: i64,
     parent_id: Option<String>,
@@ -271,9 +274,12 @@ fn list_all_opencode_session_meta_from_conn(
         .map_err(|err| format!("Failed to prepare OpenCode session query: {err}"))?;
     let rows = stmt
         .query_map([], |row| {
+            let cache_read_tokens = row.get::<_, Option<i64>>(7)?.unwrap_or_default();
+            let cache_write_tokens = row.get::<_, Option<i64>>(8)?.unwrap_or_default();
+            // input_tokens is cache-inclusive (fresh input + both cache kinds).
             let input_tokens = row.get::<_, Option<i64>>(4)?.unwrap_or_default()
-                + row.get::<_, Option<i64>>(7)?.unwrap_or_default()
-                + row.get::<_, Option<i64>>(8)?.unwrap_or_default();
+                + cache_read_tokens
+                + cache_write_tokens;
             let output_tokens = row.get::<_, Option<i64>>(5)?.unwrap_or_default()
                 + row.get::<_, Option<i64>>(6)?.unwrap_or_default();
             Ok(OpenCodeSessionMeta {
@@ -288,6 +294,8 @@ fn list_all_opencode_session_meta_from_conn(
                 model: row.get(3)?,
                 input_tokens,
                 output_tokens,
+                cache_read_tokens,
+                cache_write_tokens,
                 time_created: row.get::<_, Option<i64>>(9)?.unwrap_or_default(),
                 time_updated: row.get::<_, Option<i64>>(10)?.unwrap_or_default(),
                 parent_id: row
@@ -378,6 +386,8 @@ fn session_meta_to_cache_input(
         model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
+        cache_read_tokens: meta.cache_read_tokens,
+        cache_write_tokens: meta.cache_write_tokens,
         repo_path: (!meta.directory.trim().is_empty()).then_some(meta.directory),
         branch: None,
         impact: meta.impact,
