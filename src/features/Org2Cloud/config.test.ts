@@ -6,6 +6,7 @@ import {
   ORG2_CLOUD_OFFICIAL_SUPABASE_URL,
   ORG2_CLOUD_OFFICIAL_WEB_ORIGIN,
   Org2CloudEndpointOverrideSchema,
+  buildCloudAuthBridgeUrl,
   buildCloudAuthCallbackUrl,
   buildCloudBillingLoginUrl,
   buildOrg2CloudLoginUrl,
@@ -157,6 +158,27 @@ describe("buildCloudBillingLoginUrl", () => {
     const url = new URL(buildCloudBillingLoginUrl());
     expect(url.origin).toBe(OVERRIDE.webOrigin);
     expect(url.pathname).toBe("/login");
+  });
+});
+
+describe("buildCloudAuthBridgeUrl", () => {
+  it("targets the official web origin by default", () => {
+    expect(buildCloudAuthBridgeUrl()).toBe(
+      `${ORG2_CLOUD_OFFICIAL_WEB_ORIGIN}/api/auth/bridge`
+    );
+  });
+
+  it("follows a custom endpoint's web origin", () => {
+    storeOverride(OVERRIDE);
+    expect(buildCloudAuthBridgeUrl()).toBe(
+      `${OVERRIDE.webOrigin}/api/auth/bridge`
+    );
+  });
+
+  it("uses an explicitly passed origin", () => {
+    expect(buildCloudAuthBridgeUrl("https://cloud.other.dev")).toBe(
+      "https://cloud.other.dev/api/auth/bridge"
+    );
   });
 });
 
