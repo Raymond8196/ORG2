@@ -935,7 +935,6 @@
     "diskCategory_toolResults": "Oversized Tool Results",
     "diskCategory_diagnostics": "Diagnostics Queue",
     "diskCategory_models": "Downloaded Models",
-    "diskCategory_codeMap": "Code Map Indexes",
     "diskCategory_semanticIndex": "Semantic Search Index",
     "diskCategory_cursorCliProfiles": "Cursor CLI Profiles",
     "diskCategory_kiroCliProfiles": "Kiro CLI Profiles",

@@ -208,11 +208,6 @@ pub fn merkle_root() -> PathBuf {
     orgii_root().join("merkle")
 }
 
-/// Code Map workspace graph indexes: `~/.orgii/code-map/`.
-pub fn code_map_root() -> PathBuf {
-    orgii_root().join("code-map")
-}
-
 /// Local embedding/model downloads: `~/.orgii/models/`.
 pub fn models_dir() -> PathBuf {
     orgii_root().join("models")
