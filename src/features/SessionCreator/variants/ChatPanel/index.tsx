@@ -8,7 +8,10 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { cliAgentCreateTuiSession } from "@src/api/tauri/agent/cliTerminalSession";
+import {
+  cliAgentCreateTuiSession,
+  resolveCliTuiCommand,
+} from "@src/api/tauri/agent/cliTerminalSession";
 import type { CliAgentType } from "@src/api/types/keys";
 import type { ScrollNavState } from "@src/engines/ChatPanel/ChatHistory";
 import { useBrowserAddToConversationAction } from "@src/engines/ChatPanel/hooks/useBrowserAddToConversationAction";
@@ -420,7 +423,10 @@ const SessionCreatorChatPanelSingle: React.FC<
       selectedCliAgent &&
       isCliAgentType(cliAgentType)
     ) {
-      const command = selectedCliAgent.command.trim();
+      const command = await resolveCliTuiCommand(
+        cliAgentType,
+        selectedCliAgent.command.trim()
+      );
       if (command.length > 0) {
         // Back the TUI terminal with a managed session row so the worktree
         // selection is honored (cwd below) and lifecycle hooks can attribute
@@ -572,8 +578,9 @@ const SessionCreatorChatPanelSingle: React.FC<
           ? {
               cliDisplayName:
                 selectedCliAgent?.displayName ?? cliAgentType ?? undefined,
-              installedVersion: selectedCliVersion?.installed_version,
-              latestVersion: selectedCliVersion?.latest_version,
+              installedVersion:
+                selectedCliVersion?.installed_version ?? undefined,
+              latestVersion: selectedCliVersion?.latest_version ?? undefined,
               onClose: () =>
                 setDismissedCliVersionAlertKey(cliVersionOutdatedAlertKey),
             }
