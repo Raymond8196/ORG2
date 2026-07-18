@@ -90,6 +90,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   const projection = useChatHistoryProjectionModel({
     activeId,
     chatHistory: historyState.chatHistory,
+    chatHistorySourceIsOverride: historyState.chatHistorySourceIsOverride,
+    chatHistorySourceSessionId: historyState.chatHistorySourceSessionId,
+    chatHistorySourceVersion: historyState.chatHistorySourceVersion,
     cursorIdeTurnSummaries,
     disableTailCollapse,
     forceCollapseAllTurns,

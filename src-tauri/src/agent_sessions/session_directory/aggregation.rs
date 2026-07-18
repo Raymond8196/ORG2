@@ -909,9 +909,9 @@ fn apply_sorting(sessions: &mut [SessionAggregateRecord], filter: Option<&Sessio
         }
         "name" => {
             if sort_desc {
-                sessions.sort_by(|a, b| b.name.to_lowercase().cmp(&a.name.to_lowercase()));
+                sessions.sort_by_key(|session| std::cmp::Reverse(session.name.to_lowercase()));
             } else {
-                sessions.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+                sessions.sort_by_key(|a| a.name.to_lowercase());
             }
         }
         _ => {

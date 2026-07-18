@@ -143,10 +143,8 @@ fn infer_display_variant(
     result: &serde_json::Value,
 ) -> EventDisplayVariant {
     // User messages
-    if action_type == "raw" || action_type == "raw_event" {
-        if raw_message_text(result).is_some() {
-            return EventDisplayVariant::Message;
-        }
+    if (action_type == "raw" || action_type == "raw_event") && raw_message_text(result).is_some() {
+        return EventDisplayVariant::Message;
     }
 
     // Thinking events
