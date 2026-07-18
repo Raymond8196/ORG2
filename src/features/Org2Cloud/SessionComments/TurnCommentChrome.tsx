@@ -12,9 +12,9 @@
  * virtualization stays correct.
  *
  * 0002 (agent-pickup design §4 item 3): a robot badge joins the toggle
- * when any thread anchored to this turn carries a LIVE task
- * (open/claimed/running) — "an agent is on this turn", visible from the
- * transcript without opening the thread.
+ * when any thread anchored to this turn carries a task. Open/expired tasks
+ * render as awaiting pickup; only a live claimed/running lease renders as an
+ * agent actively working, so queued work never impersonates execution.
  */
 import { Bot, MessageSquare } from "lucide-react";
 import React, { useCallback, useState } from "react";
@@ -24,7 +24,7 @@ import type { CloudSessionComment } from "../org2CloudCommentsClient";
 import { countLiveComments } from "../org2CloudSessionCommentsAtom";
 import CommentThreadList from "./CommentThreadList";
 import { useSessionCommentsContext } from "./SessionCommentsContext";
-import { threadsHaveLiveAgentTask } from "./commentAgentAffordances";
+import { getThreadAgentTaskBadgeState } from "./commentAgentAffordances";
 
 export interface TurnCommentChromeProps {
   /** Turn anchor: the group's leading user-message event id. */
@@ -61,7 +61,10 @@ const TurnCommentChrome: React.FC<TurnCommentChromeProps> = ({
 
   const threads = context.grouped.byEventId.get(anchorEventId) ?? [];
   const liveCount = countLiveComments(threads);
-  const agentOnTurn = threadsHaveLiveAgentTask(threads, context.taskForThread);
+  const agentTaskState = getThreadAgentTaskBadgeState(
+    threads,
+    context.taskForThread
+  );
   const toggleLabel = t("cloud.comments.toggleLabel");
 
   // The add-comment affordance rides the turn's hover-reveal button group
@@ -74,13 +77,21 @@ const TurnCommentChrome: React.FC<TurnCommentChromeProps> = ({
   return (
     <div className="mt-1 flex flex-col gap-1.5">
       <div className="flex items-center justify-end gap-1.5">
-        {agentOnTurn && (
+        {agentTaskState && (
           <span
             className="inline-flex items-center gap-1 rounded-full border border-border-2 px-1.5 py-0.5 text-[10px] leading-none text-primary-6"
             data-testid={`session-comment-agent-badge-${anchorEventId}`}
+            data-task-state={agentTaskState}
           >
             <Bot size={11} strokeWidth={2} />
-            <span>{t("cloud.comments.task.turnBadge")}</span>
+            <span>
+              {t(
+                agentTaskState === "active"
+                  ? "cloud.comments.task.activeBadge_one"
+                  : "cloud.comments.task.openBadge_one",
+                { count: 1 }
+              )}
+            </span>
           </span>
         )}
         <button

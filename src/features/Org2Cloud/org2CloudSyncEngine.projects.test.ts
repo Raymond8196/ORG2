@@ -169,6 +169,22 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     );
   });
 
+  it("resumeOrgAndWait runs exactly one serialized pass (no dirty follow-up)", async () => {
+    await engine.runSyncPass();
+    projectsClient.listOrgCollabState.mockClear();
+    const passesBefore = engine.startedPassCount;
+
+    await engine.resumeOrgAndWait("corg-1");
+
+    expect(engine.startedPassCount - passesBefore).toBe(1);
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledTimes(1);
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      undefined
+    );
+  });
+
   it("syncs the project plane even for an org with no scopes or tagged sessions", async () => {
     store.set(org2CloudRepoScopesAtom, {});
     await engine.runSyncPass();

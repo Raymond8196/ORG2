@@ -1,21 +1,3 @@
-/**
- * SessionForkHeaderExtras — chat-panel header contributions for the fork
- * relay (design §16.11), self-contained so the header prop plumbing stays a
- * single ReactNode:
- *
- * - explicit Fork button when the open session is an imported teammate copy
- *   (`Session.importedFrom`) — same relay as the collab/cloud panel row
- *   action, resolved back to the right backend by org id;
- * - "⑂ @owner" provenance chip when the open session IS a fork
- *   (`getSessionForkedFrom`, registry-backed so it survives list reloads);
- * - "Addressing comment: …" provenance chip when the fork was created by the
- *   comment-task runner (agent-pickup design §4 UI-5) — registry
- *   `taskContext` on the runner's machine, wire `addressesComment` on a
- *   teammate's imported copy of the pushed fork (see `addressingComment.ts`).
- *   Non-interactive like the ⑂ chip: the source thread lives on the SOURCE
- *   session (usually another machine's), and no cross-session thread-open
- *   navigation exists in the header — the chip is attribution, not a link.
- */
 import { useAtomValue } from "jotai";
 import { GitFork, MessageSquare } from "lucide-react";
 import React from "react";
@@ -26,7 +8,9 @@ import Message from "@src/components/Message";
 import Tag from "@src/components/Tag";
 import Tooltip from "@src/components/Tooltip";
 import { org2CloudRemoteSessionsAtom } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
+import { useCloudSessionActions } from "@src/features/Org2Cloud/useCloudSessionActions";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
+import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
 import { getSessionForkedFrom, getSessionTaskContext } from "../../forkSession";
@@ -40,6 +24,10 @@ const FORK_ERROR_KEYS: Record<
 > = {
   retention: "collaboration.forkImported.retentionError",
   gone: "collaboration.forkImported.goneError",
+  replay: "collaboration.forkImported.replayError",
+  snapshot: "collaboration.forkImported.snapshotError",
+  agent: "collaboration.forkImported.agentError",
+  backend: "collaboration.forkImported.backendError",
   generic: "collaboration.forkImported.error",
 };
 
@@ -53,10 +41,14 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
   const { t } = useTranslation("navigation");
   const { openSession } = useSessionView();
   const { fork, state } = useForkImportedSession(session);
+  const sessions = useAtomValue(sessionsAtom);
   const remoteEntries = useAtomValue(org2CloudRemoteSessionsAtom);
+  const forkedFrom = session ? getSessionForkedFrom(session) : undefined;
+  const { replaySession: openRemoteParent } = useCloudSessionActions(
+    forkedFrom?.orgId ?? null
+  );
 
   if (!session) return null;
-  const forkedFrom = getSessionForkedFrom(session);
   const addressing = resolveAddressingComment({
     taskContext: getSessionTaskContext(session),
     importedFrom: session.importedFrom,
@@ -75,6 +67,28 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
       return;
     }
     openSession(outcome.localSessionId, outcome.name, outcome.repoPath);
+  };
+
+  const handleOpenParent = async (): Promise<void> => {
+    if (!forkedFrom) return;
+    const localMatch = sessions.find(
+      (candidate) =>
+        candidate.session_id === forkedFrom.sourceSessionId ||
+        (candidate.importedFrom?.orgId === forkedFrom.orgId &&
+          candidate.importedFrom.sourceSessionId === forkedFrom.sourceSessionId)
+    );
+    if (localMatch) {
+      openSession(localMatch.session_id, localMatch.name, localMatch.repoPath);
+      return;
+    }
+    const remoteMatch = remoteEntries[forkedFrom.orgId]?.rows.find(
+      (entry) => entry.sourceSessionId === forkedFrom.sourceSessionId
+    );
+    if (remoteMatch) {
+      const outcome = await openRemoteParent(remoteMatch);
+      if (outcome === "opened") return;
+    }
+    Message.info(t("collaboration.forkImported.parentOpenUnavailable"));
   };
 
   const forkLabel = t("collaboration.forkImported.headerButton");
@@ -101,11 +115,17 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
           mouseEnterDelay={200}
           framedPanel
         >
-          {/* Tag owns the pill chrome; the wrapper span carries the testid
-              (Tag does not forward data-* props) and the header placement. */}
-          <span
+          {/* Tag owns the pill chrome; the wrapper button carries focus, testid
+              and click affordance. The control is not a link because the
+              resolver may need to open an already materialized local copy. */}
+          <button
+            type="button"
             data-testid="session-forked-from-chip"
-            className="mr-1 inline-flex"
+            className="mr-1 inline-flex cursor-pointer border-0 bg-transparent p-0"
+            onClick={() => void handleOpenParent()}
+            aria-label={t("collaboration.forkImported.openParentButton", {
+              name: forkedFrom.ownerDisplayName,
+            })}
           >
             <Tag
               size="mini"
@@ -116,7 +136,7 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
             >
               <span className="truncate">{forkedFrom.ownerDisplayName}</span>
             </Tag>
-          </span>
+          </button>
         </Tooltip>
       )}
       {addressing && (

@@ -489,7 +489,11 @@
       "forkSetupNoWorkspace": "Continue without a workspace",
       "forkSetupAccount": "Account",
       "forkSetupModel": "Model",
-      "forkSetupContinue": "Fork & continue"
+      "forkSetupContinue": "Fork & continue",
+      "forkSnapshotIncomplete": "雲端快照不完整。請讓擁有者完成同步後重試。",
+      "forkAgentUnavailable": "請先選擇本機 Agent 再分叉。",
+      "forkBackendRegistrationFailed": "歷史已複製，但可執行的分叉工作階段註冊失敗。請重試。",
+      "forkReplayUnavailable": "此工作階段尚無完整回放。請讓擁有者共享完整回放後重試。"
     },
     "repoPicker": {
       "loading": "Loading repos…",
@@ -509,7 +513,12 @@
       "error": "分叉工作階段失敗",
       "sendFailed": "已分叉，但訊息傳送失敗——內容已還原到輸入框",
       "forkedChipTooltip": "分叉自 {{name}}",
-      "continuePlaceholder": "傳送訊息，Fork 後在 ORGII 中繼續…"
+      "continuePlaceholder": "傳送訊息，Fork 後在 ORGII 中繼續…",
+      "snapshotError": "雲端快照不完整。請讓擁有者完成同步後重試。",
+      "agentError": "請先選擇本機 Agent 再分叉。",
+      "backendError": "歷史已複製，但可執行的分叉工作階段註冊失敗。請重試。",
+      "parentOpenUnavailable": "無法從此分叉開啟來源工作階段。",
+      "replayError": "此工作階段尚無完整回放。請讓擁有者共享完整回放後重試。"
     }
   },
   "cloud": {
@@ -636,7 +645,8 @@
         "youTag": "我",
         "ownerTag": "擁有者",
         "floorOff": "無最低要求",
-        "floorTooltip": "該成員的最低分享級別。與組織級最低要求取更嚴格者生效。"
+        "floorTooltip": "該成員的最低分享級別。與組織級最低要求取更嚴格者生效。",
+        "floorOrgMinimum": "組織最低要求（{{mode}}）"
       },
       "leave": {
         "action": "退出組織",
@@ -743,7 +753,14 @@
       "importPasteClipboard": "從剪貼簿貼上",
       "importSubmit": "匯入",
       "importInvalidInput": "這不是有效的分享連結或權杖。",
-      "selectAll": "所有人（{{count}}）"
+      "selectAll": "所有人（{{count}}）",
+      "incomingEndpointMismatch": "此分享來自另一套自訂雲端。請先設定對應的雲端點再匯入。",
+      "incomingConnectionError": "無法連線雲端服務。請檢查網路後重試。",
+      "incomingIncompatibleError": "雲端服務回傳了不相容的分享資料。請更新 ORGII 或檢查雲端部署。",
+      "incomingServerError": "雲端服務暫時無法解析此分享，請重試。",
+      "incomingAlreadyOnDevice": "此 session 已在本機，無需建立重複副本。",
+      "incomingOpenExisting": "開啟 session",
+      "incomingRetry": "重試"
     },
     "agentRunner": {
       "title": "Agent 任務執行器",
@@ -769,7 +786,8 @@
         "openBadge_one": "{{count}} 個待認領的 Agent 任務",
         "openBadge": "{{count}} 個待認領的 Agent 任務",
         "activeBadge_one": "{{count}} 個 Agent 正在處理此工作階段",
-        "activeBadge": "{{count}} 個 Agent 正在處理此工作階段"
+        "activeBadge": "{{count}} 個 Agent 正在處理此工作階段",
+        "mentionSuggestion": "將這則評論指派給 Agent"
       },
       "toggleLabel": "評論",
       "notesButton": "工作階段備註",

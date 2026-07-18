@@ -75,6 +75,9 @@ export const RemoteTeammateSessionMetadataSchema = z.object({
   // passengers like repoScopeKey — absent on rows from older clients.
   cliAgentType: z.string().optional(),
   agentDisplayName: z.string().optional(),
+  // Matching hint only: receivers may preselect the same LOCAL definition
+  // when installed, but must never execute an unknown remote definition id.
+  agentDefinitionId: z.string().optional(),
   model: z.string().optional(),
   origin: z
     .discriminatedUnion("kind", [

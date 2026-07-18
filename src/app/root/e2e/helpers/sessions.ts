@@ -43,6 +43,8 @@ import {
   pendingPlanApprovalsAtom,
   upsertPendingPlanApproval,
 } from "@src/store/session/planApprovalAtom";
+import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
+import { loadSessions } from "@src/store/session/sessionAtom/loaders";
 import { upsertSession } from "@src/store/session/sessionAtom/mutations";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import {
@@ -752,6 +754,22 @@ export function createSessionHelpers(store: E2EStore) {
     }
   };
 
+  const reloadSessionList = async (): Promise<
+    Result<{ count: number; sessionIds: string[] }>
+  > => {
+    try {
+      await loadSessions({ forceRefresh: true });
+      const sessions = store.get(sessionsAtom) as Session[];
+      return {
+        ok: true,
+        count: sessions.length,
+        sessionIds: sessions.map((session) => session.session_id),
+      };
+    } catch (err) {
+      return asError(err);
+    }
+  };
+
   return {
     promptDump: promptDumpHelper,
     getActiveSessionId,
@@ -761,6 +779,7 @@ export function createSessionHelpers(store: E2EStore) {
     inspectCliHistoryMutation,
     resetToNewSession,
     openSession,
+    reloadSessionList,
     launchSession,
     getSessionAggregateRow,
     getSessionAggregateRowFromList,

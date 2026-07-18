@@ -5,6 +5,7 @@ import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { computeSegmentHash } from "./collabGzip";
 import {
   decodeSegmentEvents,
+  mapSegmentsBounded,
   toFrozenSegmentWire,
   toTailWire,
 } from "./segmentCodec";
@@ -50,5 +51,40 @@ describe("segmentCodec", () => {
     const second = await toFrozenSegmentWire({ seq: 1, events });
     expect(first.segmentHash).toBe(second.segmentHash);
     expect(first.payloadGz).toBe(second.payloadGz);
+  });
+
+  it("mapSegmentsBounded stops scheduling work once the signal aborts", async () => {
+    const controller = new AbortController();
+    const processed: number[] = [];
+
+    await expect(
+      mapSegmentsBounded(
+        [1, 2, 3, 4, 5, 6, 7, 8],
+        async (item: number) => {
+          processed.push(item);
+          if (processed.length >= 4) controller.abort();
+          return item;
+        },
+        controller.signal
+      )
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof DOMException && error.name === "AbortError"
+    );
+
+    expect(processed.length).toBeLessThan(8);
+  });
+
+  it("mapSegmentsBounded rejects immediately on a pre-aborted signal", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const operation = async (item: number) => item;
+
+    await expect(
+      mapSegmentsBounded([1, 2, 3], operation, controller.signal)
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof DOMException && error.name === "AbortError"
+    );
   });
 });

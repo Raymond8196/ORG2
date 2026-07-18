@@ -61,6 +61,7 @@ import { ProjectSyncChannel } from "../TeamCollaboration/engine/ProjectSyncChann
 import type { ProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { tauriProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { getSessionForkedFrom } from "../TeamCollaboration/forkSession";
+import { isScopeMatchableImportedSession } from "../TeamCollaboration/importedSessionScopeMatch";
 import {
   peekShareableScopeKeys,
   primeShareableScopeKey,
@@ -73,6 +74,7 @@ import {
 } from "../TeamCollaboration/sessionOrgTagsAtom";
 import { ORG2_CLOUD_EXPECTED_SCHEMA_VERSION, getCloudEndpoint } from "./config";
 import {
+  hasExplicitCloudShareIntent,
   org2CloudAccessSettingsAtom,
   org2CloudSharingFloorAtom,
   resolveCloudPushAccess,
@@ -241,6 +243,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   }
 
   protected override async syncAllOrgs(generation: number): Promise<void> {
+    this.sessionSync.beginPass();
     const store = this.store;
     if (!store) return;
     const auth = store.get(org2CloudAuthAtom);
@@ -376,7 +379,18 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // already constrained untagged forks to their source org above.
         const ownedByOrg =
           session.orgId === buildCloudOrgSelectorValue(org.orgId);
-        if (!forkedFrom && !tagged && !ownedByOrg) {
+        const shareIntent = hasExplicitCloudShareIntent(
+          accessByOrg[org.orgId],
+          session.session_id
+        );
+        const scopeAutoMatched = isScopeMatchableImportedSession(session);
+        if (
+          !forkedFrom &&
+          !tagged &&
+          !ownedByOrg &&
+          !shareIntent &&
+          !scopeAutoMatched
+        ) {
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
               await this.sessionSync.retractSession(
@@ -417,31 +431,29 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // remote) is out of scope by definition.
         const matchedScope = pickMatchingOrgScope(scopeKeys, scopes);
         if (matchedScope === null) {
-          if (tagged) {
-            if (
-              this.sessionSync.wasCloudPushed(org.orgId, session.session_id)
-            ) {
-              try {
-                await this.sessionSync.retractSession(
-                  fresh,
-                  org.orgId,
-                  session.session_id
-                );
-              } catch (error) {
-                if (this.generation !== generation) return;
-                if (this.isBackoffError(error)) {
-                  this.backOffOrg(org.orgId, error);
-                  break;
-                }
-                log.warn(
-                  `cloud retract failed for out-of-scope tagged session ${session.session_id}:`,
-                  error
-                );
-                // Keep the tag: retry the retract next pass rather than
-                // orphan a live server row.
-                continue;
+          if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
+            try {
+              await this.sessionSync.retractSession(
+                fresh,
+                org.orgId,
+                session.session_id
+              );
+            } catch (error) {
+              if (this.generation !== generation) return;
+              if (this.isBackoffError(error)) {
+                this.backOffOrg(org.orgId, error);
+                break;
               }
+              log.warn(
+                `cloud retract failed for out-of-scope session ${session.session_id}:`,
+                error
+              );
+              // Keep the tag: retry the retract next pass rather than
+              // orphan a live server row.
+              continue;
             }
+          }
+          if (tagged) {
             store.set(sessionOrgTagsAtom, (current) =>
               withoutCloudOrgTag(current, session.session_id, org.orgId)
             );
@@ -458,11 +470,17 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // an effective-off session is skipped (never uploaded). A TAGGED
         // session still pushes, floored to metadata_only when its effective
         // mode is off ('off' must never reach the server — ORG2_VALIDATION).
+        // The admin sharing floor lifts only ADMITTED sessions (org-owned,
+        // tagged, fork-provenance, or explicit per-session intent). Scope
+        // candidacy alone must never let an org policy turn a merely
+        // repo-matched imported local history into an upload.
+        const floorEligible =
+          Boolean(forkedFrom) || tagged || ownedByOrg || shareIntent;
         const access = resolveCloudPushAccess(
           accessByOrg[org.orgId],
           session.session_id,
           tagged,
-          floorByOrg[org.orgId]
+          floorEligible ? floorByOrg[org.orgId] : undefined
         );
         if (!access) {
           // Effective-off and NOT tagged: the ladder grants nothing this

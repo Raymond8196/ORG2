@@ -39,6 +39,7 @@ import {
   org2CloudCollabStateCursorsAtom,
   org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
+  org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
   org2CloudSyncEnabledAtom,
 } from "./org2CloudSyncAtoms";
@@ -71,6 +72,11 @@ export function resetCloudStateForEndpointSwitch(store: JotaiStore): void {
   store.set(org2CloudRepoScopesAtom, {});
   store.set(org2CloudSyncEnabledAtom, {});
   store.set(org2CloudPushCursorsAtom, {});
+  // The pushed-metadata marker is server history ("a live metadata row
+  // exists on THIS backend"); carried across a switch it can trigger an
+  // erroneous retract against the new backend. Wipe-set must stay equal to
+  // the roster-reconcile prune-set.
+  store.set(org2CloudPushedMetadataAtom, {});
   store.set(org2CloudCollabStateCursorsAtom, {});
   // Comment agent tasks (0002): the persisted delta cursor must never be
   // replayed against a different backend (a restored-from-dump server with

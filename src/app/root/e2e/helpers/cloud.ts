@@ -48,7 +48,7 @@ import {
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import type { Org2CloudOrg } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { org2CloudPendingInviteAtom } from "@src/features/Org2Cloud/org2CloudPendingInviteAtom";
-import { org2CloudPendingShareAtom } from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
+import { queueOrg2CloudPendingShareAtom } from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
 import {
   org2CloudPresenceAtom,
   org2CloudPresenceOutboundAtom,
@@ -629,7 +629,7 @@ export function createCloudHelpers({ store }: CloudHelperDeps) {
           error: `cloudSeedPendingShare: not a valid orgii://cloud/session?share= link: ${opts.link}`,
         };
       }
-      store.set(org2CloudPendingShareAtom, parsed);
+      store.set(queueOrg2CloudPendingShareAtom, parsed);
       return { ok: true, shareToken: parsed.shareToken };
     } catch (err) {
       return asError(err);

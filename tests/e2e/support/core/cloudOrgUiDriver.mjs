@@ -27,6 +27,9 @@
  * driver (collabOrgUiDriver.mjs) is deleted in cloud-parity Phase E and must
  * not be imported here.
  */
+import { createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
+
 import {
   E2E_REPO_PATH,
   RENDER_TIMEOUT_MS,
@@ -662,7 +665,10 @@ export async function selectCloudOrgScopeFromSidebar(orgId, seedOrg = null) {
             "cloudSeedOrgs(Team sessions)"
           );
         }
-        return execJS(js.exists('[data-testid="cloud-team-sessions-empty"]'));
+        return execJS(`
+          return !!document.querySelector('[data-testid="cloud-team-sessions-empty"]') ||
+            !!document.querySelector('[data-testid^="sidebar-cloud-session-item-"]');
+        `);
       },
       {
         timeout: RENDER_TIMEOUT_MS,
@@ -726,9 +732,16 @@ export async function setCloudSessionModeViaDialog(
     await browser.waitUntil(
       async () => {
         if (await execJS(js.exists(trigger))) return true;
+        // Offline roster retries wipe seeded orgs between iterations; the
+        // wipe can also close the dialog. Re-seed AND re-open every lap so
+        // one unlucky interleave cannot exhaust the whole wait.
         unwrap(
           await invokeE2E("cloudSeedOrgs", { orgs: [seedOrg] }),
           "cloudSeedOrgs(sync-level mode)"
+        );
+        unwrap(
+          await invokeE2E("cloudOpenSyncLevelDialog", { sessionId }),
+          "cloudOpenSyncLevelDialog(re-open after seed)"
         );
         return execJS(js.exists(trigger));
       },
@@ -876,6 +889,58 @@ export async function publishCloudSessionMetadata(
       },
     }
   );
+}
+
+/**
+ * Same canonical bytes contract as the production codec (collabGzip.ts):
+ * one JSON.stringify feeds both the gzip payload and the sha256
+ * segment_hash, so server-side rows seeded here are indistinguishable from
+ * engine-pushed ones to every client-side integrity check.
+ */
+function segmentWirePayload(events) {
+  const bytes = Buffer.from(JSON.stringify(events), "utf8");
+  return {
+    payloadGz: gzipSync(bytes).toString("base64"),
+    eventCount: events.length,
+    segmentHash: createHash("sha256").update(bytes).digest("hex"),
+  };
+}
+
+/** Owner-tier epoch rewrite via `cloud_rewrite_session_events` (fixture). */
+export async function publishCloudSessionEvents(
+  env,
+  user,
+  { orgId, sessionId, epoch, frozenSegments, tail = null }
+) {
+  const frozen = frozenSegments.map(({ seq, events }) => ({
+    seq,
+    ...segmentWirePayload(events),
+  }));
+  const tailWire = tail && tail.length > 0 ? segmentWirePayload(tail) : null;
+  const totalCount =
+    frozenSegments.reduce((sum, segment) => sum + segment.events.length, 0) +
+    (tail?.length ?? 0);
+  return cloudMemberRpc(env, user.accessToken, "cloud_rewrite_session_events", {
+    p_org_id: orgId,
+    p_session_id: sessionId,
+    new_epoch: epoch,
+    frozen_segments: frozen,
+    tail: tailWire,
+    total_count: totalCount,
+  });
+}
+
+/** Raw `cloud_get_session_events` read — the p_after_seq contract probe. */
+export async function fetchCloudSessionEvents(
+  env,
+  user,
+  { orgId, sessionId, afterSeq }
+) {
+  return cloudMemberRpc(env, user.accessToken, "cloud_get_session_events", {
+    p_org_id: orgId,
+    p_session_id: sessionId,
+    ...(afterSeq !== undefined ? { p_after_seq: afterSeq } : {}),
+  });
 }
 
 /** Ground-truth task rows for the org (`cloud_list_comment_tasks`). */
@@ -1253,7 +1318,7 @@ export async function waitForSessionTasksBadge(
 export async function seedAndOpenCloudEligibleSession(
   sessionId,
   title,
-  { touchedFilePath } = {}
+  { touchedFilePath, additionalTurns = 0 } = {}
 ) {
   // The share gate resolves git remotes through the production IDE server.
   // Register this checkout before asking that resolver to prime; a bare
@@ -1342,6 +1407,55 @@ export async function seedAndOpenCloudEligibleSession(
       isDelta: false,
     },
   ];
+  for (let turn = 1; turn <= additionalTurns; turn += 1) {
+    const userId = `user-${turn}-${sessionId}`;
+    const assistantId = `assistant-${turn}-${sessionId}`;
+    events.push(
+      {
+        id: userId,
+        chunk_id: userId,
+        sessionId,
+        createdAt: new Date(base + turn * 2_000).toISOString(),
+        functionName: "user_message",
+        uiCanonical: "user_message",
+        actionType: "raw",
+        args: {},
+        result: {
+          type: "user",
+          message: `Inherited turn ${turn}`,
+          is_delta: false,
+        },
+        source: "user",
+        displayText: `Inherited turn ${turn}`,
+        displayStatus: "completed",
+        displayVariant: "message",
+        activityStatus: "processed",
+        isDelta: false,
+      },
+      {
+        id: assistantId,
+        chunk_id: assistantId,
+        sessionId,
+        createdAt: new Date(base + turn * 2_000 + 1_000).toISOString(),
+        functionName: "assistant_message",
+        uiCanonical: "agent_message",
+        actionType: "assistant",
+        args: {},
+        result: {
+          content: `Inherited answer ${turn}`,
+          observation: `Inherited answer ${turn}`,
+          is_delta: false,
+          role: "assistant",
+        },
+        source: "assistant",
+        displayText: `Inherited answer ${turn}`,
+        displayStatus: "completed",
+        displayVariant: "message",
+        activityStatus: "agent",
+        isDelta: false,
+      }
+    );
+  }
   unwrap(
     await invokeE2E("seedChatEvents", sessionId, events, {
       chatPanelMaximized: true,

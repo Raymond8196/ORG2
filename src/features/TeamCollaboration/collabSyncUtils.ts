@@ -260,6 +260,7 @@ export function toRemoteMetadata(
     // raw values — the consumer formats via formatAgentType/ModelIcon).
     cliAgentType: session.cliAgentType ?? undefined,
     agentDisplayName: session.agentDisplayName,
+    agentDefinitionId: session.agentDefinitionId,
     model: session.model,
     origin: externalHistorySource
       ? {
