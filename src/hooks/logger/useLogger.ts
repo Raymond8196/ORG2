@@ -99,7 +99,16 @@ export interface Logger {
 // Environment
 // ============================================================================
 
-const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
+export function isTauriRuntimeHost(value: unknown): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "__TAURI_INTERNALS__" in value
+  );
+}
+
+const isTauriRuntime =
+  typeof window !== "undefined" && isTauriRuntimeHost(window);
 const isDev = process.env.NODE_ENV === "development";
 const forceDebugFromUrl =
   typeof window !== "undefined" &&
@@ -180,7 +189,7 @@ function writeToBackend(
   namespace: string,
   message: string
 ): void {
-  if (backendUnavailable || !isTauri) return;
+  if (backendUnavailable || !isTauriRuntime) return;
   invoke("write_frontend_log", { level, namespace, message }).catch(() => {
     // The Rust command may not exist yet on first launch / older binary.
     // Stop trying after the first failure so we don't spam the IPC bridge.
