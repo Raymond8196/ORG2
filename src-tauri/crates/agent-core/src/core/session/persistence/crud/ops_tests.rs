@@ -177,25 +177,30 @@ fn terminal_turn_finalize_updates_session_status_and_marker() {
 }
 
 #[test]
-fn reconcile_repairs_running_rows_with_terminal_turn_markers() {
+fn reconcile_repairs_all_in_flight_rows_with_terminal_turn_markers() {
     let _sandbox = test_env::sandbox();
 
-    seed_session("sid-reconcile", SessionStatus::Running);
-    finalize_terminal_turn_status(
-        "sid-reconcile",
-        "turn-456",
-        "completed",
-        SessionStatus::Running,
-        "2026-06-05T12:30:00.000Z",
-    )
-    .expect("seed mismatched terminal marker");
+    for (index, status) in SessionStatus::IN_FLIGHT.into_iter().enumerate() {
+        let session_id = format!("sid-reconcile-{index}");
+        seed_session(&session_id, status);
+        finalize_terminal_turn_status(
+            &session_id,
+            &format!("turn-{index}"),
+            "completed",
+            status,
+            "2026-06-05T12:30:00.000Z",
+        )
+        .expect("seed mismatched terminal marker");
+    }
 
     let updated = reconcile_sessions_with_terminal_turn_markers().expect("reconcile markers");
 
-    assert_eq!(updated, 1);
-    let row = super::ops::get_session("sid-reconcile")
-        .expect("get session")
-        .expect("session exists");
-    assert_eq!(row.status, SessionStatus::Completed.as_str());
-    assert_eq!(row.updated_at, "2026-06-05T12:30:00.000Z");
+    assert_eq!(updated, SessionStatus::IN_FLIGHT.len());
+    for index in 0..SessionStatus::IN_FLIGHT.len() {
+        let row = super::ops::get_session(&format!("sid-reconcile-{index}"))
+            .expect("get session")
+            .expect("session exists");
+        assert_eq!(row.status, SessionStatus::Completed.as_str());
+        assert_eq!(row.updated_at, "2026-06-05T12:30:00.000Z");
+    }
 }

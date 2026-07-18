@@ -3,12 +3,13 @@ use std::sync::atomic::Ordering;
 
 use std::time::{Duration, Instant};
 
-use database::db::get_connection;
+use database::db::{get_connection, with_sessions_writer};
 use rusqlite::{params, OptionalExtension};
 use serde::Serialize;
 
 use crate::coordination::agent_inbox::{
-    AgentInboxRecord, AgentInboxStore, AgentMessage, InsertInboxParams, SYSTEM_SENDER_ID,
+    AgentInboxPreviewRecord, AgentInboxRecipientCounts, AgentInboxRecord, AgentInboxStore,
+    AgentInboxUnreadRecipientCounts, AgentMessage, InsertInboxParams, SYSTEM_SENDER_ID,
     USER_SENDER_ID,
 };
 use crate::coordination::agent_member_interventions::{
@@ -16,14 +17,18 @@ use crate::coordination::agent_member_interventions::{
     EnterMemberInterventionParams, DEFAULT_INTERVENTION_TTL_SECS,
 };
 use crate::coordination::agent_org_plan_approvals::{
-    enqueue_post_approval_messages, AgentOrgPlanApproval, AgentOrgPlanApprovalStore,
+    AgentOrgPlanApproval, AgentOrgPlanApprovalStore, AgentOrgPlanApprovalSummary,
     AgentOrgPlanDecisionBy, AgentOrgPlanInboxDelivery,
 };
 use crate::coordination::agent_org_runs::{
     AgentOrgContextMember, AgentOrgRunContext, AgentOrgRunStatus, AgentOrgRunStore,
     WorkerSessionRuntime, COORDINATOR_MEMBER_ID,
 };
-use crate::coordination::agent_org_tasks::{AgentOrgTaskStore, Task, TaskStatus};
+#[cfg(test)]
+use crate::coordination::agent_org_tasks::TaskStatus;
+use crate::coordination::agent_org_tasks::{
+    AgentOrgTaskStore, Task, TaskExecutionMode, TaskSummary,
+};
 use crate::definitions::orgs::AgentOrgsStore;
 use crate::persistence::AgentResponse;
 use crate::session::persistence;
@@ -37,6 +42,12 @@ use crate::state::AgentAppState;
 pub struct AgentOrgTaskRuntime {
     #[serde(flatten)]
     pub task: Task,
+    /// The frequently-polled Run View carries only a description preview.
+    /// Fetch `task_get` when this flag is true and full task context is needed.
+    pub description_truncated: bool,
+    pub blocks_truncated: bool,
+    pub blocked_by_truncated: bool,
+    pub execution_mode: TaskExecutionMode,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner_member: Option<AgentOrgContextMember>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -63,6 +74,26 @@ pub struct AgentOrgGroupChatMessageResponse {
     pub target_member_id: String,
     pub target_member_name: String,
     pub inbox_row: AgentOrgInboxRuntimeRow,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentOrgGroupChatHistoryRow {
+    pub inbox_id: i64,
+    pub target_member_id: Option<String>,
+    pub target_member_name: String,
+    pub text: String,
+    pub display_text: String,
+    pub created_at: String,
+    pub read_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentOrgGroupChatHistoryPage {
+    pub rows: Vec<AgentOrgGroupChatHistoryRow>,
+    pub has_more: bool,
+    pub next_before_id: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -95,6 +126,33 @@ pub struct AgentOrgInboxRuntimeRow {
     pub display_text: String,
 }
 
+/// Lightweight inbox activity projected in the frequently-polled Run View.
+/// The durable `payload_json` remains in `agent_inbox` and in direct command
+/// responses, but is deliberately omitted here so a large message is not
+/// copied over the Tauri bridge on every refresh.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentOrgInboxPreviewRow {
+    pub id: i64,
+    pub recipient_agent_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recipient_member_id: Option<String>,
+    pub sender_agent_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sender_member_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub org_run_id: Option<String>,
+    pub payload_kind: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub created_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub read_at: Option<String>,
+    pub recipient_name: String,
+    pub sender_name: String,
+    pub display_text: String,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AgentOrgRunView {
@@ -104,8 +162,23 @@ pub struct AgentOrgRunView {
     pub current_member_id: Option<String>,
     pub members: Vec<AgentOrgRunMemberView>,
     pub tasks: Vec<AgentOrgTaskRuntime>,
-    pub inbox: Vec<AgentOrgInboxRuntimeRow>,
-    pub pending_plan_approvals: Vec<AgentOrgPlanApproval>,
+    pub task_overview: AgentOrgRunTaskOverview,
+    pub inbox: Vec<AgentOrgInboxPreviewRow>,
+    pub unread_inbox_count: usize,
+    pub pending_plan_approvals: Vec<AgentOrgPlanApprovalSummary>,
+}
+
+/// Exact task totals plus the bounded window carried by the frequently-polled
+/// Run View. Full task detail remains available through `task_get`.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentOrgRunTaskOverview {
+    pub total: usize,
+    pub pending: usize,
+    pub in_progress: usize,
+    pub completed: usize,
+    pub visible: usize,
+    pub truncated: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -129,6 +202,14 @@ struct SessionOrgReadContext {
     member_id: Option<String>,
 }
 
+/// The Run View is a live operational snapshot, not an inbox-history API.
+/// Keep the bridge payload bounded; durable history remains available through
+/// the explicitly paginated inbox/history surfaces.
+const RUN_VIEW_INBOX_LIMIT: usize = 200;
+const RUN_VIEW_TASK_LIMIT: usize = 200;
+const GROUP_CHAT_HISTORY_PAGE_LIMIT: usize = 100;
+const GROUP_CHAT_HISTORY_PAGE_MAX_BYTES: usize = 1024 * 1024;
+
 #[tauri::command]
 pub async fn agent_org_session_run_view(
     state: tauri::State<'_, AgentAppState>,
@@ -144,98 +225,335 @@ pub async fn agent_org_session_run_view_impl(
     let Some(read_context) = session_org_read_context(state, session_id).await? else {
         return Ok(None);
     };
-    let Some(ref context) = read_context.context else {
+    let Some(context) = read_context.context.as_ref() else {
         return Ok(None);
     };
-    AgentOrgRunStore::reconcile_run_finality(&context.run_id)?;
+    let current_member_id = require_session_member_id(&read_context, session_id)?;
+    let context = context.clone();
 
-    let run_status_value =
-        AgentOrgRunStore::get_run_status(&context.run_id)?.unwrap_or(AgentOrgRunStatus::Running);
+    // Group Chat polls this command while it is visible. SQLite reads and
+    // snapshot projection are synchronous, so keep them off the async/Tauri
+    // executor. This remains a pure read: reconciliation belongs to the
+    // watchdog or an explicit completion command.
+    let view =
+        tokio::task::spawn_blocking(move || build_agent_org_run_view(&context, current_member_id))
+            .await
+            .map_err(|err| format!("Agent Org Run View worker failed: {err}"))??;
+
+    Ok(Some(view))
+}
+
+/// Read-only, cursor-paged source of truth for user messages sent through the
+/// Agent Org Group Chat. Run View deliberately carries only previews; this
+/// command is the durable reload/history surface and remains readable after a
+/// run reaches a terminal state.
+#[tauri::command]
+pub async fn agent_org_group_chat_history_page(
+    state: tauri::State<'_, AgentAppState>,
+    session_id: String,
+    before_id: Option<i64>,
+    limit: Option<usize>,
+) -> Result<AgentOrgGroupChatHistoryPage, String> {
+    agent_org_group_chat_history_page_impl(&state, &session_id, before_id, limit).await
+}
+
+pub async fn agent_org_group_chat_history_page_impl(
+    state: &AgentAppState,
+    session_id: &str,
+    before_id: Option<i64>,
+    limit: Option<usize>,
+) -> Result<AgentOrgGroupChatHistoryPage, String> {
+    if before_id.is_some_and(|id| id <= 0) {
+        return Err("before_id must be a positive Inbox row id".to_string());
+    }
+    let Some(read_context) = session_org_read_context(state, session_id).await? else {
+        return Err(format!(
+            "Session {session_id} is not part of an Agent Org run"
+        ));
+    };
+    let context = read_context
+        .context
+        .ok_or_else(|| format!("Session {session_id} has no Agent Org context"))?;
+    let bounded_limit = limit
+        .unwrap_or(GROUP_CHAT_HISTORY_PAGE_LIMIT)
+        .clamp(1, GROUP_CHAT_HISTORY_PAGE_LIMIT);
+    tokio::task::spawn_blocking(move || {
+        load_group_chat_history_page(&context, before_id, bounded_limit)
+    })
+    .await
+    .map_err(|error| format!("Agent Org Group Chat history worker failed: {error}"))?
+}
+
+fn load_group_chat_history_page(
+    context: &AgentOrgRunContext,
+    before_id: Option<i64>,
+    limit: usize,
+) -> Result<AgentOrgGroupChatHistoryPage, String> {
+    let conn = get_connection().map_err(|err| err.to_string())?;
+    let mut stmt = conn
+        .prepare(
+            "SELECT inbox.id,
+                    inbox.recipient_member_id,
+                    CASE
+                      WHEN length(CAST(inbox.payload_json AS BLOB))<=?4
+                       AND json_valid(inbox.payload_json)
+                       AND json_extract(inbox.payload_json, '$.kind')='plain'
+                       AND json_type(inbox.payload_json, '$.text')='text'
+                      THEN substr(json_extract(inbox.payload_json, '$.text'), 1, ?5)
+                      ELSE NULL
+                    END AS message_text,
+                    CASE WHEN inbox.display_text IS NOT NULL
+                                   AND length(CAST(inbox.display_text AS BLOB))<=?6
+                         THEN substr(inbox.display_text, 1, ?5)
+                         ELSE NULL END AS display_text,
+                    substr(inbox.created_at, 1, 64),
+                    CASE WHEN inbox.read_at IS NULL THEN NULL ELSE substr(inbox.read_at, 1, 64) END
+             FROM agent_inbox inbox
+             WHERE inbox.org_run_id=?1
+               AND inbox.sender_agent_id=?2
+               AND inbox.payload_kind='plain'
+               AND (?3 IS NULL OR inbox.id<?3)
+             ORDER BY inbox.id DESC
+             LIMIT ?7",
+        )
+        .map_err(|err| err.to_string())?;
+    let rows = stmt
+        .query_map(
+            params![
+                &context.run_id,
+                USER_SENDER_ID,
+                before_id,
+                crate::coordination::agent_org_payload_limits::AGENT_INBOX_PAYLOAD_MAX_BYTES as i64,
+                (crate::coordination::agent_org_payload_limits::PLAIN_TEXT_MAX_CHARS + 1) as i64,
+                crate::coordination::agent_org_payload_limits::PLAIN_TEXT_MAX_BYTES as i64,
+                (limit + 1) as i64,
+            ],
+            |row| {
+                Ok((
+                    row.get::<_, i64>(0)?,
+                    row.get::<_, Option<String>>(1)?,
+                    row.get::<_, Option<String>>(2)?,
+                    row.get::<_, Option<String>>(3)?,
+                    row.get::<_, String>(4)?,
+                    row.get::<_, Option<String>>(5)?,
+                ))
+            },
+        )
+        .map_err(|err| err.to_string())?;
+
+    let mut newest_first = Vec::new();
+    let mut serialized_bytes = 2usize;
+    let mut has_more = false;
+    for row in rows {
+        let (inbox_id, target_member_id, text, stored_display_text, created_at, read_at) =
+            row.map_err(|err| err.to_string())?;
+        if newest_first.len() == limit {
+            has_more = true;
+            break;
+        }
+        let target_member_name = target_member_id
+            .as_deref()
+            .and_then(|member_id| context.participant_display_name(member_id))
+            .or_else(|| target_member_id.clone())
+            .unwrap_or_else(|| "Unknown recipient".to_string());
+        let text = text
+            .filter(|value| {
+                crate::coordination::agent_org_payload_limits::validate_text_len(
+                    "group_chat_history.text",
+                    value,
+                    crate::coordination::agent_org_payload_limits::PLAIN_TEXT_MAX_CHARS,
+                    crate::coordination::agent_org_payload_limits::PLAIN_TEXT_MAX_BYTES,
+                )
+                .is_ok()
+            })
+            .unwrap_or_else(|| {
+                format!(
+                    "[Inbox row {inbox_id} contains an unreadable or oversized historical Group Chat message]"
+                )
+            });
+        let display_text = stored_display_text.unwrap_or_else(|| {
+            if target_member_id.as_deref() == Some(COORDINATOR_MEMBER_ID) {
+                text.clone()
+            } else {
+                format!("@{target_member_name} {text}")
+            }
+        });
+        let history_row = AgentOrgGroupChatHistoryRow {
+            inbox_id,
+            target_member_id,
+            target_member_name,
+            text,
+            display_text,
+            created_at,
+            read_at,
+        };
+        let row_bytes = serde_json::to_vec(&history_row)
+            .map_err(|err| format!("serialize Group Chat history row failed: {err}"))?
+            .len();
+        let separator = usize::from(!newest_first.is_empty());
+        if serialized_bytes
+            .saturating_add(separator)
+            .saturating_add(row_bytes)
+            > GROUP_CHAT_HISTORY_PAGE_MAX_BYTES
+        {
+            has_more = true;
+            break;
+        }
+        serialized_bytes = serialized_bytes
+            .saturating_add(separator)
+            .saturating_add(row_bytes);
+        newest_first.push(history_row);
+    }
+    newest_first.reverse();
+    let next_before_id = has_more
+        .then(|| newest_first.first().map(|row| row.inbox_id))
+        .flatten();
+    Ok(AgentOrgGroupChatHistoryPage {
+        rows: newest_first,
+        has_more,
+        next_before_id,
+    })
+}
+
+fn build_agent_org_run_view(
+    context: &AgentOrgRunContext,
+    current_member_id: String,
+) -> Result<AgentOrgRunView, String> {
+    let mut conn = get_connection().map_err(|err| err.to_string())?;
+    let tx = conn
+        .transaction_with_behavior(rusqlite::TransactionBehavior::Deferred)
+        .map_err(|err| err.to_string())?;
+    let finality = AgentOrgRunStore::finality_assessment_with_connection(&tx, &context.run_id)?;
+    let run_status_value = finality
+        .facts
+        .run_status
+        .ok_or_else(|| format!("Agent Org run {} no longer exists", context.run_id))?;
     let run_status = run_status_value.as_str().to_string();
 
-    let tasks = tasks_for_context(context)?;
-    let inbox_records = AgentInboxStore::list_by_run(&context.run_id)?;
+    let task_page = AgentOrgTaskStore::list_summary_page_with_connection(
+        &tx,
+        &context.run_id,
+        None,
+        None,
+        None,
+        RUN_VIEW_TASK_LIMIT,
+    )?;
+    let task_overview = AgentOrgRunTaskOverview {
+        total: finality.facts.task_count,
+        pending: finality.facts.pending_task_count,
+        in_progress: finality.facts.in_progress_task_count,
+        completed: finality.facts.completed_task_count,
+        visible: task_page.tasks.len(),
+        truncated: task_page.has_more,
+    };
+    let member_task_counts = task_counts_by_owner_with_connection(&tx, &context.run_id)?;
+    let inbox_records = AgentInboxStore::list_recent_previews_by_run_with_connection(
+        &tx,
+        &context.run_id,
+        RUN_VIEW_INBOX_LIMIT,
+    )?;
+    let unread_inbox_counts =
+        AgentInboxStore::unread_counts_by_recipient_with_connection(&tx, &context.run_id)?;
+    let inbox_counts = bounded_run_view_inbox_counts(&inbox_records, &unread_inbox_counts);
     let member_ids: Vec<String> = context
         .members
         .iter()
         .map(|member| member.member_id.clone())
         .collect();
     let member_runtimes: HashMap<String, WorkerSessionRuntime> =
-        AgentOrgRunStore::list_worker_sessions_by_member_ids(&context.run_id, &member_ids)?
+        AgentOrgRunStore::list_worker_sessions_by_member_ids_with_connection(
+            &tx,
+            &context.run_id,
+            &member_ids,
+        )?
+        .into_iter()
+        .filter_map(|session| {
+            session
+                .member_id
+                .clone()
+                .map(|member_id| (member_id, session))
+        })
+        .collect();
+    let active_interventions: HashMap<String, AgentMemberInterventionRecord> =
+        AgentMemberInterventionStore::list_active_with_connection(&tx, &context.run_id)?
             .into_iter()
-            .filter_map(|session| {
-                session
-                    .member_id
-                    .clone()
-                    .map(|member_id| (member_id, session))
-            })
+            .map(|record| (record.member_id.clone(), record))
             .collect();
 
-    let coordinator_intervention =
-        AgentMemberInterventionStore::active_for_member(&context.run_id, COORDINATOR_MEMBER_ID)?;
-    let coordinator_runtime = AgentOrgRunStore::find_coordinator_session_by_member_id(
-        &context.run_id,
-        COORDINATOR_MEMBER_ID,
-    )?
-    .map(|session| WorkerSessionRuntime {
-        agent_definition_id: Some(context.coordinator_agent_id.clone()),
-        cli_agent_type: None,
-        member_id: Some(COORDINATOR_MEMBER_ID.to_string()),
-        session_id: session.session_id,
-        parent_session_id: None,
-        status: session.status,
-        updated_at: session.updated_at,
-        intervention: coordinator_intervention,
-    });
+    let coordinator_runtime =
+        AgentOrgRunStore::find_coordinator_session_by_member_id_with_connection(
+            &tx,
+            &context.run_id,
+            COORDINATOR_MEMBER_ID,
+        )?
+        .map(|session| WorkerSessionRuntime {
+            agent_definition_id: Some(context.coordinator_agent_id.clone()),
+            cli_agent_type: None,
+            member_id: Some(COORDINATOR_MEMBER_ID.to_string()),
+            session_id: session.session_id,
+            parent_session_id: None,
+            status: session.status,
+            updated_at: session.updated_at,
+            intervention: None,
+        });
+
+    let tasks = tasks_for_context(context, task_page.tasks, &member_runtimes);
 
     let mut members = Vec::with_capacity(context.members.len() + 1);
     members.push(coordinator_member_view(
         context,
         coordinator_runtime,
-        &tasks,
-        &inbox_records,
+        &member_task_counts,
+        &inbox_counts,
+        &active_interventions,
     )?);
     for member in &context.members {
         members.push(member_view(
-            context,
             member,
             member_runtimes.get(&member.member_id).cloned(),
-            &tasks,
-            &inbox_records,
+            &member_task_counts,
+            &inbox_counts,
+            &active_interventions,
         )?);
     }
 
-    let inbox = enrich_inbox_rows(context, inbox_records);
-    let pending_plan_approvals = AgentOrgPlanApprovalStore::list_pending_by_run(&context.run_id)?;
+    let inbox = enrich_inbox_preview_rows(context, inbox_records);
+    let pending_plan_approvals =
+        AgentOrgPlanApprovalStore::list_pending_summaries_by_run_with_connection(
+            &tx,
+            &context.run_id,
+        )?;
 
     let run_phase = project_run_phase(
         run_status_value,
         &members,
-        &tasks,
-        &inbox,
+        &task_overview,
+        finality.facts.unread_inbox_count,
         &pending_plan_approvals,
     );
 
-    let current_member_id = require_session_member_id(&read_context, session_id)?;
+    tx.commit().map_err(|err| err.to_string())?;
 
-    Ok(Some(AgentOrgRunView {
+    Ok(AgentOrgRunView {
         current_member_id: Some(current_member_id),
         context: context.clone(),
         run_status,
         run_phase,
         members,
         tasks,
+        task_overview,
         inbox,
+        unread_inbox_count: finality.facts.unread_inbox_count,
         pending_plan_approvals,
-    }))
+    })
 }
 
 fn project_run_phase(
     run_status: AgentOrgRunStatus,
     members: &[AgentOrgRunMemberView],
-    tasks: &[AgentOrgTaskRuntime],
-    inbox: &[AgentOrgInboxRuntimeRow],
-    pending_plan_approvals: &[AgentOrgPlanApproval],
+    task_overview: &AgentOrgRunTaskOverview,
+    unread_inbox_count: usize,
+    pending_plan_approvals: &[AgentOrgPlanApprovalSummary],
 ) -> AgentOrgRunPhase {
     match run_status {
         AgentOrgRunStatus::Paused => AgentOrgRunPhase::Paused,
@@ -244,8 +562,9 @@ fn project_run_phase(
         AgentOrgRunStatus::Cancelled => AgentOrgRunPhase::Cancelled,
         AgentOrgRunStatus::Abandoned => AgentOrgRunPhase::Abandoned,
         AgentOrgRunStatus::Running => {
-            let all_tasks_completed =
-                !tasks.is_empty() && tasks.iter().all(|task| task.task.status.is_resolved());
+            let all_tasks_completed = task_overview.total > 0
+                && task_overview.pending == 0
+                && task_overview.in_progress == 0;
             if all_tasks_completed {
                 return AgentOrgRunPhase::Finalizing;
             }
@@ -265,11 +584,10 @@ fn project_run_phase(
             if !pending_plan_approvals.is_empty() {
                 return AgentOrgRunPhase::AwaitingPlanApproval;
             }
-            let has_unread = inbox.iter().any(|row| row.row.read_at.is_none());
-            if has_unread {
+            if unread_inbox_count > 0 {
                 return AgentOrgRunPhase::Dispatching;
             }
-            if tasks.iter().any(|task| !task.task.status.is_resolved()) {
+            if task_overview.pending > 0 || task_overview.in_progress > 0 {
                 AgentOrgRunPhase::Waiting
             } else {
                 AgentOrgRunPhase::Coordinating
@@ -284,6 +602,39 @@ pub enum AgentOrgPlanApprovalDecision {
     Approve,
     ApproveWithEdits,
     RequestChanges,
+}
+
+#[tauri::command]
+pub async fn agent_org_plan_approval_detail(
+    state: tauri::State<'_, AgentAppState>,
+    session_id: String,
+    approval_id: String,
+    plan_revision_id: String,
+) -> Result<AgentOrgPlanApproval, String> {
+    let Some(read_context) = session_org_read_context(&state, &session_id).await? else {
+        return Err(format!(
+            "Session {session_id} is not part of an Agent Org run"
+        ));
+    };
+    let context = read_context
+        .context
+        .ok_or_else(|| format!("Session {session_id} has no Agent Org context"))?;
+    let lookup_approval_id = approval_id.clone();
+    let lookup_revision_id = plan_revision_id.clone();
+    let lookup_run_id = context.run_id.clone();
+    let approval = tokio::task::spawn_blocking(move || {
+        AgentOrgPlanApprovalStore::get_revision_for_run(
+            &lookup_run_id,
+            &lookup_approval_id,
+            &lookup_revision_id,
+        )
+    })
+    .await
+    .map_err(|err| format!("Agent Org plan approval detail worker failed: {err}"))??
+    .ok_or_else(|| {
+        format!("Agent Org plan approval revision was not found: {approval_id}/{plan_revision_id}")
+    })?;
+    Ok(approval)
 }
 
 #[tauri::command]
@@ -308,66 +659,115 @@ pub async fn agent_org_plan_approval_respond(
     let context = read_context
         .context
         .ok_or_else(|| format!("Session {session_id} has no Agent Org context"))?;
-    let approval = AgentOrgPlanApprovalStore::get(&approval_id)?
-        .ok_or_else(|| format!("Agent Org plan approval {approval_id} was not found"))?;
-    if approval.org_run_id != context.run_id {
-        return Err("Agent Org plan approval does not belong to this run".to_string());
-    }
-
-    match decision {
-        AgentOrgPlanApprovalDecision::Approve | AgentOrgPlanApprovalDecision::ApproveWithEdits => {
-            let edited_content = match decision {
-                AgentOrgPlanApprovalDecision::ApproveWithEdits => Some(
-                    edited_content
-                        .filter(|value| !value.trim().is_empty())
-                        .ok_or_else(|| {
-                            "approve_with_edits requires non-empty edited_content".to_string()
-                        })?,
-                ),
-                _ => None,
-            };
-            let approved = AgentOrgPlanApprovalStore::approve(
-                &approval_id,
-                &plan_revision_id,
-                AgentOrgPlanDecisionBy::User,
-                edited_content,
-            )?;
-            let wake_member_ids = enqueue_post_approval_messages(&context, &approved)?;
-            for member_id in wake_member_ids {
-                wake_agent_org_member(app_handle.clone(), &member_id, &context.run_id);
-            }
-            AgentOrgRunStore::reconcile_run_finality(&context.run_id)?;
-            Ok(approved.approval)
-        }
-        AgentOrgPlanApprovalDecision::RequestChanges => {
-            let feedback = feedback
+    let edited_content = match decision {
+        AgentOrgPlanApprovalDecision::ApproveWithEdits => Some(
+            edited_content
+                .filter(|value| !value.trim().is_empty())
+                .ok_or_else(|| {
+                    "approve_with_edits requires non-empty edited_content".to_string()
+                })?,
+        ),
+        _ => None,
+    };
+    let feedback = match decision {
+        AgentOrgPlanApprovalDecision::RequestChanges => Some(
+            feedback
                 .as_deref()
                 .map(str::trim)
                 .filter(|value| !value.is_empty())
-                .ok_or_else(|| "request_changes requires non-empty feedback".to_string())?;
-            let recipient_agent_id = context
-                .participant_agent_id(&approval.source_member_id)
-                .ok_or_else(|| {
-                    format!(
-                        "Agent Org plan source member {} is not in the run roster",
-                        approval.source_member_id
-                    )
+                .ok_or_else(|| "request_changes requires non-empty feedback".to_string())?
+                .to_string(),
+        ),
+        _ => None,
+    };
+    let run_id = context.run_id.clone();
+    let blocking_run_id = run_id.clone();
+    let blocking_approval_id = approval_id.clone();
+    let blocking_revision_id = plan_revision_id.clone();
+    let blocking_context = context.clone();
+
+    // Approval edits can touch SQLite and the plan artifact. Execute the
+    // complete durable decision off Tokio's async executor; only dispatch
+    // wake signals after the store transaction has committed.
+    let (resolved, wake_member_ids, should_reconcile) = tokio::task::spawn_blocking(
+        move || -> Result<(AgentOrgPlanApproval, Vec<String>, bool), String> {
+            let approval =
+                AgentOrgPlanApprovalStore::get(&blocking_approval_id)?.ok_or_else(|| {
+                    format!("Agent Org plan approval {blocking_approval_id} was not found")
                 })?;
-            let (changed, _) = AgentOrgPlanApprovalStore::request_changes(
-                &approval_id,
-                &plan_revision_id,
-                AgentOrgPlanDecisionBy::User,
-                feedback,
-                AgentOrgPlanInboxDelivery {
-                    recipient_agent_id,
-                    sender_agent_id: USER_SENDER_ID.to_string(),
-                    sender_member_id: None,
-                },
-            )?;
-            wake_agent_org_member(app_handle, &changed.source_member_id, &context.run_id);
-            Ok(changed)
-        }
+            if approval.org_run_id != blocking_run_id {
+                return Err("Agent Org plan approval does not belong to this run".to_string());
+            }
+
+            match decision {
+                AgentOrgPlanApprovalDecision::Approve
+                | AgentOrgPlanApprovalDecision::ApproveWithEdits => {
+                    let approved = AgentOrgPlanApprovalStore::approve(
+                        &blocking_approval_id,
+                        &blocking_revision_id,
+                        AgentOrgPlanDecisionBy::User,
+                        edited_content,
+                    )?;
+                    Ok((approved.approval, approved.wake_member_ids, true))
+                }
+                AgentOrgPlanApprovalDecision::RequestChanges => {
+                    let feedback = feedback.as_deref().ok_or_else(|| {
+                        "request_changes feedback disappeared before commit".to_string()
+                    })?;
+                    let recipient_agent_id = blocking_context
+                        .participant_agent_id(&approval.source_member_id)
+                        .ok_or_else(|| {
+                            format!(
+                                "Agent Org plan source member {} is not in the run roster",
+                                approval.source_member_id
+                            )
+                        })?;
+                    let (changed, _) = AgentOrgPlanApprovalStore::request_changes(
+                        &blocking_approval_id,
+                        &blocking_revision_id,
+                        AgentOrgPlanDecisionBy::User,
+                        feedback,
+                        AgentOrgPlanInboxDelivery {
+                            recipient_agent_id,
+                            sender_agent_id: USER_SENDER_ID.to_string(),
+                            sender_member_id: None,
+                        },
+                    )?;
+                    let source_member_id = changed.source_member_id.clone();
+                    Ok((changed, vec![source_member_id], false))
+                }
+            }
+        },
+    )
+    .await
+    .map_err(|err| format!("Agent Org plan approval worker failed: {err}"))??;
+
+    for member_id in wake_member_ids {
+        wake_agent_org_member(app_handle.clone(), &member_id, &run_id);
     }
+    if should_reconcile {
+        let reconcile_run_id = run_id.clone();
+        tokio::spawn(async move {
+            match tokio::task::spawn_blocking(move || {
+                AgentOrgRunStore::reconcile_run_finality(&reconcile_run_id)
+            })
+            .await
+            {
+                Ok(Ok(_)) => {}
+                Ok(Err(err)) => tracing::warn!(
+                    run_id,
+                    error = %err,
+                    "plan approval committed, but follow-up run reconciliation failed"
+                ),
+                Err(err) => tracing::warn!(
+                    run_id,
+                    error = %err,
+                    "plan approval committed, but reconciliation worker failed"
+                ),
+            }
+        });
+    }
+    Ok(resolved)
 }
 
 #[tauri::command]
@@ -427,26 +827,31 @@ const RETURN_TO_WORK_INBOX_ACK_POLL_INTERVAL: Duration = Duration::from_millis(5
 async fn wait_for_member_inbox_rows_read(
     run_id: &str,
     member_id: &str,
-    expected_row_ids: &[i64],
+    boundary_id: Option<i64>,
 ) -> Result<(), String> {
-    if expected_row_ids.is_empty() {
+    let Some(boundary_id) = boundary_id else {
         return Ok(());
-    }
+    };
 
     let started_at = Instant::now();
     loop {
-        let unread = AgentInboxStore::list_unread_for_member(member_id, run_id)?;
-        let pending_ids: Vec<i64> = unread
-            .iter()
-            .map(|row| row.id)
-            .filter(|id| expected_row_ids.contains(id))
-            .collect();
-        if pending_ids.is_empty() {
+        let poll_run_id = run_id.to_string();
+        let poll_member_id = member_id.to_string();
+        let pending_count = tokio::task::spawn_blocking(move || {
+            AgentInboxStore::unread_count_through_boundary(
+                &poll_member_id,
+                &poll_run_id,
+                boundary_id,
+            )
+        })
+        .await
+        .map_err(|error| format!("Agent Org inbox acknowledgement poll failed: {error}"))??;
+        if pending_count == 0 {
             return Ok(());
         }
         if started_at.elapsed() >= RETURN_TO_WORK_INBOX_ACK_TIMEOUT {
             return Err(format!(
-                "Agent Org return-to-work wake did not drain inbox rows for member {member_id}: {pending_ids:?}"
+                "Agent Org return-to-work wake did not drain {pending_count} inbox rows for member {member_id} through row {boundary_id}"
             ));
         }
         tokio::time::sleep(RETURN_TO_WORK_INBOX_ACK_POLL_INTERVAL).await;
@@ -458,7 +863,22 @@ pub async fn agent_org_session_return_to_work(
     state: tauri::State<'_, AgentAppState>,
     session_id: String,
 ) -> Result<bool, String> {
-    let Some(read_context) = session_org_read_context(&state, &session_id).await? else {
+    agent_org_session_return_to_work_impl(&state, session_id).await
+}
+
+/// Production return-to-work implementation shared by the Tauri command and
+/// the debug HTTP caller-path E2E bridge.
+///
+/// Keeping the implementation here (rather than recreating it in the test
+/// API) is deliberate: both callers clear the same intervention state, enqueue
+/// through [`send_message_impl_for_org_wake`], run the real session scheduler,
+/// and wait for the production inbox drain to acknowledge exactly the rows
+/// that were pending when the wake was requested.
+pub async fn agent_org_session_return_to_work_impl(
+    state: &AgentAppState,
+    session_id: String,
+) -> Result<bool, String> {
+    let Some(read_context) = session_org_read_context(state, &session_id).await? else {
         return Ok(false);
     };
     let Some(ref context) = read_context.context else {
@@ -466,12 +886,20 @@ pub async fn agent_org_session_return_to_work(
     };
     let member_id = require_session_member_id(&read_context, &session_id)?;
 
-    let changed = AgentMemberInterventionStore::clear(&context.run_id, &member_id)?;
-    let pending_inbox = AgentInboxStore::list_unread_for_member(&member_id, &context.run_id)?;
-    let pending_inbox_ids: Vec<i64> = pending_inbox.iter().map(|row| row.id).collect();
-    if changed || !pending_inbox_ids.is_empty() {
-        send_message_impl_for_org_wake(&state, session_id, &context.run_id, &member_id).await?;
-        wait_for_member_inbox_rows_read(&context.run_id, &member_id, &pending_inbox_ids).await?;
+    let pending_member_id = member_id.clone();
+    let pending_run_id = context.run_id.clone();
+    let (changed, pending_inbox_boundary) = tokio::task::spawn_blocking(move || {
+        AgentMemberInterventionStore::clear_and_capture_unread_boundary(
+            &pending_run_id,
+            &pending_member_id,
+        )
+    })
+    .await
+    .map_err(|error| format!("Agent Org return-to-work state worker failed: {error}"))??;
+    if changed || pending_inbox_boundary.is_some() {
+        send_message_impl_for_org_wake(state, session_id, &context.run_id, &member_id).await?;
+        wait_for_member_inbox_rows_read(&context.run_id, &member_id, pending_inbox_boundary)
+            .await?;
         return Ok(true);
     }
     Ok(false)
@@ -494,13 +922,15 @@ pub async fn agent_org_send_group_chat_message(
     session_id: String,
     target_member_id: Option<String>,
     content: String,
+    display_text: Option<String>,
 ) -> Result<AgentOrgGroupChatMessageResponse, String> {
-    agent_org_send_group_chat_message_impl(
+    agent_org_send_group_chat_message_impl_with_display(
         app_handle,
         &state,
         session_id,
         target_member_id,
         content,
+        display_text,
     )
     .await
 }
@@ -511,6 +941,25 @@ pub async fn agent_org_send_group_chat_message_impl(
     session_id: String,
     target_member_id: Option<String>,
     content: String,
+) -> Result<AgentOrgGroupChatMessageResponse, String> {
+    agent_org_send_group_chat_message_impl_with_display(
+        app_handle,
+        state,
+        session_id,
+        target_member_id,
+        content,
+        None,
+    )
+    .await
+}
+
+async fn agent_org_send_group_chat_message_impl_with_display(
+    app_handle: tauri::AppHandle,
+    state: &AgentAppState,
+    session_id: String,
+    target_member_id: Option<String>,
+    content: String,
+    display_text: Option<String>,
 ) -> Result<AgentOrgGroupChatMessageResponse, String> {
     let content = content.trim();
     if content.is_empty() {
@@ -533,37 +982,143 @@ pub async fn agent_org_send_group_chat_message_impl(
             format!("Agent Org member {target_member_id} was not found for session {session_id}")
         })?;
 
-    let row = AgentInboxStore::insert(InsertInboxParams {
-        recipient_agent_id: target.agent_id.clone(),
-        recipient_member_id: Some(target.member_id.clone()),
-        sender_agent_id: USER_SENDER_ID.to_string(),
-        sender_member_id: None,
-        org_run_id: Some(view.context.run_id.clone()),
-        message: AgentMessage::Plain {
-            summary: "User group chat message".to_string(),
-            text: content.to_string(),
-        },
-    })?;
+    let durable_context = view.context.clone();
+    let durable_target_agent_id = target.agent_id.clone();
+    let durable_target_member_id = target.member_id.clone();
+    let durable_content = content.to_string();
+    let durable_display_text = display_text
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned);
+    if let Some(display_text) = durable_display_text.as_deref() {
+        crate::coordination::agent_org_payload_limits::validate_required_text(
+            "display_text",
+            display_text,
+            crate::coordination::agent_org_payload_limits::PLAIN_TEXT_MAX_CHARS,
+            crate::coordination::agent_org_payload_limits::PLAIN_TEXT_MAX_BYTES,
+        )?;
+    }
+    let row = tokio::task::spawn_blocking(move || {
+        persist_group_chat_message(
+            &durable_context,
+            &durable_target_agent_id,
+            &durable_target_member_id,
+            &durable_content,
+            durable_display_text.as_deref(),
+        )
+    })
+    .await
+    .map_err(|err| format!("Agent Org group message worker failed: {err}"))??;
 
-    clear_group_chat_target_intervention(&view.context, &target.member_id)?;
-
-    let resumed = resume_agent_org_context(&view.context, false)?;
-    if resumed {
-        clear_active_org_cancel_flags(state, &view.context).await?;
-        schedule_run_progress_wakes(app_handle.clone(), &view.context);
-    } else {
-        wake_agent_org_member(app_handle, &target.member_id, &view.context.run_id);
+    // The inbox row is already committed. Everything below is an acceleration
+    // hint; reporting a post-commit wake/resume error as "message failed"
+    // encourages callers to retry and duplicate the user's durable message.
+    match resume_agent_org_context(&view.context, false).await {
+        Ok(outcome) if outcome.transitioned => {
+            if let Err(err) = clear_active_org_cancel_flags(state, &view.context).await {
+                tracing::warn!(
+                    run_id = %view.context.run_id,
+                    error = %err,
+                    "group message committed, but clearing stale cancel flags failed"
+                );
+            }
+            schedule_run_progress_wakes(app_handle.clone(), &view.context);
+        }
+        Ok(outcome) if outcome.run_is_running => {
+            wake_agent_org_member(app_handle, &target.member_id, &view.context.run_id);
+        }
+        Ok(_) => {}
+        Err(err) => {
+            tracing::warn!(
+                run_id = %view.context.run_id,
+                error = %err,
+                "group message committed, but automatic run resume failed"
+            );
+            wake_agent_org_member(app_handle, &target.member_id, &view.context.run_id);
+        }
     }
 
-    let mut enriched = enrich_inbox_rows(&view.context, vec![row]);
-    let inbox_row = enriched
-        .pop()
-        .ok_or_else(|| "Agent Org group chat message did not produce an inbox row".to_string())?;
+    let inbox_row = enrich_inbox_row(&view.context, row);
 
     Ok(AgentOrgGroupChatMessageResponse {
         target_member_id: target.member_id.clone(),
         target_member_name: target.name.clone(),
         inbox_row,
+    })
+}
+
+/// Persist the user's Group Chat message and clear the target member's direct
+/// intervention as one state transition. The Run status is re-read inside the
+/// same IMMEDIATE transaction so a stale Run View can never write into a Run
+/// that became terminal before submission.
+fn persist_group_chat_message(
+    context: &AgentOrgRunContext,
+    target_agent_id: &str,
+    target_member_id: &str,
+    content: &str,
+    display_text: Option<&str>,
+) -> Result<AgentInboxRecord, String> {
+    with_sessions_writer(|| -> Result<AgentInboxRecord, String> {
+        let mut conn = get_connection().map_err(|err| err.to_string())?;
+        let tx = conn
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .map_err(|err| err.to_string())?;
+        let run_status: Option<String> = tx
+            .query_row(
+                "SELECT status FROM agent_org_runs WHERE id=?1",
+                params![&context.run_id],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        match run_status.as_deref() {
+            Some("running" | "paused") => {}
+            Some(status) => {
+                return Err(format!(
+                    "Agent Org run {} is {status}; terminal runs do not accept new group messages",
+                    context.run_id
+                ));
+            }
+            None => {
+                return Err(format!("Agent Org run {} no longer exists", context.run_id));
+            }
+        }
+
+        let row = AgentInboxStore::insert_in_tx(
+            &tx,
+            InsertInboxParams {
+                recipient_agent_id: target_agent_id.to_string(),
+                recipient_member_id: Some(target_member_id.to_string()),
+                sender_agent_id: USER_SENDER_ID.to_string(),
+                sender_member_id: None,
+                org_run_id: Some(context.run_id.clone()),
+                message: AgentMessage::Plain {
+                    summary: "User group chat message".to_string(),
+                    text: content.to_string(),
+                },
+            },
+        )?;
+        if let Some(display_text) = display_text {
+            tx.execute(
+                "UPDATE agent_inbox SET display_text=?1 WHERE id=?2",
+                params![display_text, row.id],
+            )
+            .map_err(|err| err.to_string())?;
+        }
+        tx.execute(
+            "UPDATE agent_member_interventions
+             SET cleared_at=?3
+             WHERE org_run_id=?1 AND member_id=?2 AND cleared_at IS NULL",
+            params![
+                &context.run_id,
+                target_member_id,
+                chrono::Utc::now().to_rfc3339()
+            ],
+        )
+        .map_err(|err| err.to_string())?;
+        tx.commit().map_err(|err| err.to_string())?;
+        Ok(row)
     })
 }
 
@@ -638,7 +1193,10 @@ pub async fn agent_org_pause_run(
     let Some(ref context) = read_context.context else {
         return Ok(false);
     };
-    let transitioned = AgentOrgRunStore::mark_paused(&context.run_id)?;
+    let run_id = context.run_id.clone();
+    let transitioned = tokio::task::spawn_blocking(move || AgentOrgRunStore::mark_paused(&run_id))
+        .await
+        .map_err(|err| format!("Agent Org pause worker failed: {err}"))??;
     cancel_active_org_turns(&state, context).await?;
     Ok(transitioned)
 }
@@ -665,19 +1223,29 @@ pub async fn agent_org_resume_run(
     let Some(ref context) = read_context.context else {
         return Ok(false);
     };
-    let resumed = resume_agent_org_context(context, true)?;
-    clear_active_org_cancel_flags(&state, context).await?;
-    if resumed {
+    let outcome = resume_agent_org_context(context, true).await?;
+    if outcome.run_is_running {
+        if let Err(err) = clear_active_org_cancel_flags(&state, context).await {
+            tracing::warn!(
+                run_id = %context.run_id,
+                error = %err,
+                "Agent Org resume committed, but clearing stale cancel flags failed"
+            );
+        }
+        // Explicit Resume is also an idempotent repair signal. Even if a
+        // previous call already transitioned the Run, rescan durable unread
+        // inbox rows so a post-commit process crash cannot leave it Running
+        // with no scheduled consumer.
         schedule_run_progress_wakes(app_handle, context);
     }
-    Ok(resumed)
+    Ok(outcome.transitioned)
 }
 
 async fn clear_active_org_cancel_flags(
     state: &AgentAppState,
     context: &AgentOrgRunContext,
 ) -> Result<(), String> {
-    let session_ids = org_session_ids(context)?;
+    let session_ids = org_session_ids(context).await?;
     for session_id in session_ids {
         if let Some(session) = state.get_session(&session_id).await {
             session.cancel_flag.store(false, Ordering::SeqCst);
@@ -686,24 +1254,29 @@ async fn clear_active_org_cancel_flags(
     Ok(())
 }
 
-fn org_session_ids(context: &AgentOrgRunContext) -> Result<Vec<String>, String> {
-    let mut session_ids = Vec::new();
-    if let Some(root_session_id) = context.root_session_id.clone() {
-        session_ids.push(root_session_id);
-    }
-    session_ids.extend(
-        AgentOrgRunStore::list_descendant_worker_sessions(&context.run_id)?
-            .into_iter()
-            .map(|session| session.session_id),
-    );
-    Ok(session_ids)
+async fn org_session_ids(context: &AgentOrgRunContext) -> Result<Vec<String>, String> {
+    let context = context.clone();
+    tokio::task::spawn_blocking(move || {
+        let mut session_ids = Vec::new();
+        if let Some(root_session_id) = context.root_session_id {
+            session_ids.push(root_session_id);
+        }
+        session_ids.extend(
+            AgentOrgRunStore::list_descendant_worker_sessions(&context.run_id)?
+                .into_iter()
+                .map(|session| session.session_id),
+        );
+        Ok(session_ids)
+    })
+    .await
+    .map_err(|err| format!("Agent Org session-list worker failed: {err}"))?
 }
 
 async fn cancel_active_org_turns(
     state: &AgentAppState,
     context: &AgentOrgRunContext,
 ) -> Result<(), String> {
-    let session_ids = org_session_ids(context)?;
+    let session_ids = org_session_ids(context).await?;
 
     for session_id in session_ids {
         state
@@ -727,23 +1300,75 @@ pub(crate) async fn resume_paused_run_for_user_message(
     let Some(ref context) = read_context.context else {
         return Ok(false);
     };
-    let resumed = resume_agent_org_context(context, false)?;
-    clear_active_org_cancel_flags(state, context).await?;
-    if resumed {
+    let outcome = resume_agent_org_context(context, false).await?;
+    if outcome.run_is_running {
+        if let Err(err) = clear_active_org_cancel_flags(state, context).await {
+            tracing::warn!(
+                run_id = %context.run_id,
+                error = %err,
+                "user-message resume committed, but clearing stale cancel flags failed"
+            );
+        }
         schedule_run_progress_wakes(app_handle, context);
     }
-    Ok(resumed)
+    Ok(outcome.transitioned)
 }
 
-fn resume_agent_org_context(
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct AgentOrgResumeOutcome {
+    transitioned: bool,
+    run_is_running: bool,
+}
+
+async fn resume_agent_org_context(
     context: &AgentOrgRunContext,
     seed_coordinator_resume_turn: bool,
-) -> Result<bool, String> {
-    let transitioned = AgentOrgRunStore::mark_resumed(&context.run_id)?;
-    if transitioned && seed_coordinator_resume_turn {
-        seed_coordinator_resume_inbox(context)?;
-    }
-    Ok(transitioned)
+) -> Result<AgentOrgResumeOutcome, String> {
+    let context = context.clone();
+    tokio::task::spawn_blocking(move || {
+        resume_agent_org_context_sync(&context, seed_coordinator_resume_turn)
+    })
+    .await
+    .map_err(|err| format!("Agent Org resume worker failed: {err}"))?
+}
+
+fn resume_agent_org_context_sync(
+    context: &AgentOrgRunContext,
+    seed_coordinator_resume_turn: bool,
+) -> Result<AgentOrgResumeOutcome, String> {
+    with_sessions_writer(|| -> Result<AgentOrgResumeOutcome, String> {
+        let mut conn = get_connection().map_err(|err| err.to_string())?;
+        let tx = conn
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .map_err(|err| err.to_string())?;
+        let status: Option<String> = tx
+            .query_row(
+                "SELECT status FROM agent_org_runs WHERE id=?1",
+                params![&context.run_id],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        let transitioned = status.as_deref() == Some("paused");
+        let run_is_running = transitioned || status.as_deref() == Some("running");
+        if transitioned {
+            tx.execute(
+                "UPDATE agent_org_runs
+                 SET status='running', updated_at=?2
+                 WHERE id=?1 AND status='paused'",
+                params![&context.run_id, chrono::Utc::now().to_rfc3339()],
+            )
+            .map_err(|err| err.to_string())?;
+        }
+        if run_is_running && seed_coordinator_resume_turn {
+            seed_coordinator_resume_inbox_in_tx(&tx, context)?;
+        }
+        tx.commit().map_err(|err| err.to_string())?;
+        Ok(AgentOrgResumeOutcome {
+            transitioned,
+            run_is_running,
+        })
+    })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -770,7 +1395,7 @@ fn collect_run_progress_wake_targets(
 ) -> Result<Vec<AgentOrgWakeTarget>, String> {
     let mut targets = Vec::new();
     for member_id in member_ids {
-        let has_unread = !AgentInboxStore::list_unread_for_member(member_id, run_id)?.is_empty();
+        let has_unread = AgentInboxStore::has_unread_for_member(member_id, run_id)?;
         if let Some(reason) = should_wake_member_for_progress(has_unread) {
             targets.push(AgentOrgWakeTarget {
                 member_id: member_id.clone(),
@@ -803,13 +1428,26 @@ fn schedule_run_progress_wakes(app_handle: tauri::AppHandle, context: &AgentOrgR
     let member_ids = org_progress_member_ids(context);
 
     tokio::spawn(async move {
-        let targets = match collect_run_progress_wake_targets(&run_id, &member_ids) {
-            Ok(targets) => targets,
-            Err(err) => {
+        let target_run_id = run_id.clone();
+        let targets = match tokio::task::spawn_blocking(move || {
+            collect_run_progress_wake_targets(&target_run_id, &member_ids)
+        })
+        .await
+        {
+            Ok(Ok(targets)) => targets,
+            Ok(Err(err)) => {
                 tracing::warn!(
                     run_id = %run_id,
                     error = %err,
                     "[agent_org_progress] failed to collect wake targets after run progress transition"
+                );
+                return;
+            }
+            Err(err) => {
+                tracing::warn!(
+                    run_id = %run_id,
+                    error = %err,
+                    "[agent_org_progress] wake-target worker failed"
                 );
                 return;
             }
@@ -826,6 +1464,7 @@ fn schedule_run_progress_wakes(app_handle: tauri::AppHandle, context: &AgentOrgR
     });
 }
 
+#[cfg(test)]
 fn clear_group_chat_target_intervention(
     context: &AgentOrgRunContext,
     target_member_id: &str,
@@ -833,42 +1472,49 @@ fn clear_group_chat_target_intervention(
     AgentMemberInterventionStore::clear(&context.run_id, target_member_id)
 }
 
-fn seed_coordinator_resume_inbox(context: &AgentOrgRunContext) -> Result<(), String> {
+fn seed_coordinator_resume_inbox_in_tx(
+    tx: &rusqlite::Transaction<'_>,
+    context: &AgentOrgRunContext,
+) -> Result<(), String> {
     let coordinator_member_id = COORDINATOR_MEMBER_ID;
-    if !AgentInboxStore::list_unread_for_member(coordinator_member_id, &context.run_id)?.is_empty()
-    {
+    let has_unread: bool = tx
+        .query_row(
+            "SELECT EXISTS(
+                 SELECT 1 FROM agent_inbox
+                 WHERE recipient_member_id=?1
+                   AND org_run_id=?2
+                   AND read_at IS NULL
+             )",
+            params![coordinator_member_id, &context.run_id],
+            |row| row.get(0),
+        )
+        .map_err(|err| err.to_string())?;
+    if has_unread {
         return Ok(());
     }
 
-    AgentInboxStore::insert(InsertInboxParams {
-        recipient_agent_id: context.coordinator_agent_id.clone(),
-        recipient_member_id: Some(coordinator_member_id.to_string()),
-        sender_agent_id: SYSTEM_SENDER_ID.to_string(),
-        sender_member_id: None,
-        org_run_id: Some(context.run_id.clone()),
-        message: AgentMessage::Plain {
-            summary: "Agent Org run resumed".to_string(),
-            text: "The Agent Org run was resumed by the user. Continue coordinating the current work from the persisted task and member state. If all assigned work is already complete, summarize the current status instead of waiting idly.".to_string(),
+    AgentInboxStore::insert_in_tx(
+        tx,
+        InsertInboxParams {
+            recipient_agent_id: context.coordinator_agent_id.clone(),
+            recipient_member_id: Some(coordinator_member_id.to_string()),
+            sender_agent_id: SYSTEM_SENDER_ID.to_string(),
+            sender_member_id: None,
+            org_run_id: Some(context.run_id.clone()),
+            message: AgentMessage::Plain {
+                summary: "Agent Org run resumed".to_string(),
+                text: "The Agent Org run was resumed by the user. Continue coordinating the current work from the persisted task and member state. If all assigned work is already complete, summarize the current status instead of waiting idly.".to_string(),
+            },
         },
-    })?;
+    )?;
     Ok(())
 }
 
-fn tasks_for_context(context: &AgentOrgRunContext) -> Result<Vec<AgentOrgTaskRuntime>, String> {
-    let tasks = AgentOrgTaskStore::list(&context.run_id)?;
-    let owner_member_ids: Vec<String> =
-        tasks.iter().filter_map(|task| task.owner.clone()).collect();
-    let owner_runtimes: HashMap<String, WorkerSessionRuntime> =
-        AgentOrgRunStore::list_worker_sessions_by_member_ids(&context.run_id, &owner_member_ids)?
-            .into_iter()
-            .filter_map(|session| {
-                session
-                    .member_id
-                    .clone()
-                    .map(|member_id| (member_id, session))
-            })
-            .collect();
-
+fn tasks_for_context(
+    context: &AgentOrgRunContext,
+    tasks: Vec<TaskSummary>,
+    owner_runtimes: &HashMap<String, WorkerSessionRuntime>,
+) -> Vec<AgentOrgTaskRuntime> {
     let members_by_id: HashMap<String, AgentOrgContextMember> = context
         .members
         .iter()
@@ -876,20 +1522,84 @@ fn tasks_for_context(context: &AgentOrgRunContext) -> Result<Vec<AgentOrgTaskRun
         .map(|member| (member.member_id.clone(), member))
         .collect();
 
-    Ok(tasks
+    tasks
         .into_iter()
-        .map(|task| AgentOrgTaskRuntime {
-            owner_member: task
+        .map(|summary| {
+            let owner_member = summary
                 .owner
                 .as_ref()
-                .and_then(|owner| members_by_id.get(owner).cloned()),
-            owner_runtime: task
+                .and_then(|owner| members_by_id.get(owner).cloned());
+            let owner_runtime = summary
                 .owner
                 .as_ref()
-                .and_then(|owner| owner_runtimes.get(owner).cloned()),
-            task,
+                .and_then(|owner| owner_runtimes.get(owner).cloned());
+            let execution_mode = summary.execution_mode;
+            let task = Task {
+                id: summary.id,
+                org_run_id: context.run_id.clone(),
+                subject: summary.subject,
+                description: summary.description,
+                active_form: summary.active_form,
+                owner: summary.owner,
+                status: summary.status,
+                blocks: summary.blocks,
+                blocked_by: summary.blocked_by,
+                // Eligibility, role and output summaries are available from
+                // `task_list`; full metadata/output content is intentionally
+                // detail-only and never crosses the polling bridge.
+                metadata: None,
+                created_at: summary.created_at,
+                updated_at: summary.updated_at,
+            };
+
+            AgentOrgTaskRuntime {
+                task,
+                description_truncated: summary.description_truncated,
+                blocks_truncated: summary.blocks_truncated,
+                blocked_by_truncated: summary.blocked_by_truncated,
+                execution_mode,
+                owner_member,
+                owner_runtime,
+            }
         })
-        .collect())
+        .collect()
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+struct MemberTaskCounts {
+    pending: usize,
+    in_progress: usize,
+    completed: usize,
+}
+
+fn task_counts_by_owner_with_connection(
+    conn: &rusqlite::Connection,
+    org_run_id: &str,
+) -> Result<HashMap<String, MemberTaskCounts>, String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT owner,
+                    COALESCE(SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status='in_progress' THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END), 0)
+             FROM agent_org_tasks
+             WHERE org_run_id=?1 AND owner IS NOT NULL
+             GROUP BY owner",
+        )
+        .map_err(|err| err.to_string())?;
+    let rows = stmt
+        .query_map(params![org_run_id], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                MemberTaskCounts {
+                    pending: row.get::<_, i64>(1)?.max(0) as usize,
+                    in_progress: row.get::<_, i64>(2)?.max(0) as usize,
+                    completed: row.get::<_, i64>(3)?.max(0) as usize,
+                },
+            ))
+        })
+        .map_err(|err| err.to_string())?;
+    rows.map(|row| row.map_err(|err| err.to_string())).collect()
 }
 
 fn inbox_display_name(
@@ -925,10 +1635,46 @@ fn inbox_display_text(row: &AgentInboxRecord, recipient_name: &str) -> String {
         .to_string()
 }
 
+#[cfg(test)]
 fn enrich_inbox_rows(
     context: &AgentOrgRunContext,
     rows: Vec<AgentInboxRecord>,
 ) -> Vec<AgentOrgInboxRuntimeRow> {
+    rows.into_iter()
+        .map(|row| enrich_inbox_row(context, row))
+        .collect()
+}
+
+fn enrich_inbox_row(
+    context: &AgentOrgRunContext,
+    row: AgentInboxRecord,
+) -> AgentOrgInboxRuntimeRow {
+    let recipient_name = inbox_display_name(
+        context,
+        row.recipient_member_id.as_deref(),
+        &row.recipient_agent_id,
+    );
+    let sender_fallback = if row.sender_agent_id == SYSTEM_SENDER_ID {
+        "system"
+    } else if row.sender_agent_id == USER_SENDER_ID {
+        "User"
+    } else {
+        row.sender_agent_id.as_str()
+    };
+    let sender_name = inbox_display_name(context, row.sender_member_id.as_deref(), sender_fallback);
+    let display_text = inbox_display_text(&row, &recipient_name);
+    AgentOrgInboxRuntimeRow {
+        recipient_name,
+        sender_name,
+        display_text,
+        row,
+    }
+}
+
+fn enrich_inbox_preview_rows(
+    context: &AgentOrgRunContext,
+    rows: Vec<AgentInboxPreviewRecord>,
+) -> Vec<AgentOrgInboxPreviewRow> {
     rows.into_iter()
         .map(|row| {
             let recipient_name = inbox_display_name(
@@ -945,12 +1691,30 @@ fn enrich_inbox_rows(
             };
             let sender_name =
                 inbox_display_name(context, row.sender_member_id.as_deref(), sender_fallback);
-            let display_text = inbox_display_text(&row, &recipient_name);
-            AgentOrgInboxRuntimeRow {
+            let mut display_text = row.display_preview.unwrap_or_default().trim().to_string();
+            if row.sender_agent_id == USER_SENDER_ID
+                && row.payload_kind == "plain"
+                && row.recipient_member_id.as_deref() != Some(COORDINATOR_MEMBER_ID)
+                && !display_text.starts_with('@')
+            {
+                display_text = format!("@{} {}", recipient_name.trim(), display_text)
+                    .trim()
+                    .to_string();
+            }
+            AgentOrgInboxPreviewRow {
+                id: row.id,
+                recipient_agent_id: row.recipient_agent_id,
+                recipient_member_id: row.recipient_member_id,
+                sender_agent_id: row.sender_agent_id,
+                sender_member_id: row.sender_member_id,
+                org_run_id: row.org_run_id,
+                payload_kind: row.payload_kind,
+                request_id: row.request_id,
+                created_at: row.created_at,
+                read_at: row.read_at,
                 recipient_name,
                 sender_name,
                 display_text,
-                row,
             }
         })
         .collect()
@@ -959,11 +1723,11 @@ fn enrich_inbox_rows(
 fn coordinator_member_view(
     context: &AgentOrgRunContext,
     runtime: Option<WorkerSessionRuntime>,
-    tasks: &[AgentOrgTaskRuntime],
-    inbox: &[AgentInboxRecord],
+    task_counts: &HashMap<String, MemberTaskCounts>,
+    inbox_counts: &[AgentInboxRecipientCounts],
+    active_interventions: &HashMap<String, AgentMemberInterventionRecord>,
 ) -> Result<AgentOrgRunMemberView, String> {
     member_view_from_parts(
-        context,
         AgentOrgMemberViewIdentity {
             member_id: COORDINATOR_MEMBER_ID.to_string(),
             name: context.coordinator_name.clone(),
@@ -973,20 +1737,20 @@ fn coordinator_member_view(
             is_coordinator: true,
         },
         runtime,
-        tasks,
-        inbox,
+        task_counts,
+        inbox_counts,
+        active_interventions,
     )
 }
 
 fn member_view(
-    context: &AgentOrgRunContext,
     member: &AgentOrgContextMember,
     runtime: Option<WorkerSessionRuntime>,
-    tasks: &[AgentOrgTaskRuntime],
-    inbox: &[AgentInboxRecord],
+    task_counts: &HashMap<String, MemberTaskCounts>,
+    inbox_counts: &[AgentInboxRecipientCounts],
+    active_interventions: &HashMap<String, AgentMemberInterventionRecord>,
 ) -> Result<AgentOrgRunMemberView, String> {
     member_view_from_parts(
-        context,
         AgentOrgMemberViewIdentity {
             member_id: member.member_id.clone(),
             name: member.name.clone(),
@@ -996,8 +1760,9 @@ fn member_view(
             is_coordinator: false,
         },
         runtime,
-        tasks,
-        inbox,
+        task_counts,
+        inbox_counts,
+        active_interventions,
     )
 }
 
@@ -1011,11 +1776,11 @@ struct AgentOrgMemberViewIdentity {
 }
 
 fn member_view_from_parts(
-    context: &AgentOrgRunContext,
     identity: AgentOrgMemberViewIdentity,
     session_runtime: Option<WorkerSessionRuntime>,
-    tasks: &[AgentOrgTaskRuntime],
-    inbox: &[AgentInboxRecord],
+    task_counts: &HashMap<String, MemberTaskCounts>,
+    inbox_counts: &[AgentInboxRecipientCounts],
+    active_interventions: &HashMap<String, AgentMemberInterventionRecord>,
 ) -> Result<AgentOrgRunMemberView, String> {
     let AgentOrgMemberViewIdentity {
         member_id,
@@ -1025,60 +1790,31 @@ fn member_view_from_parts(
         parent_member_id,
         is_coordinator,
     } = identity;
-    let inbox_activity_count = inbox
+    let (inbox_activity_count, unread_inbox_count) = inbox_counts
         .iter()
-        .filter(|row| {
-            if is_coordinator {
-                row.recipient_member_id.as_deref() == Some(COORDINATOR_MEMBER_ID)
-            } else {
-                row.recipient_member_id.as_deref() == Some(member_id.as_str())
-            }
-        })
-        .count();
-    let unread_inbox_count = inbox
-        .iter()
-        .filter(|row| {
-            row.read_at.is_none()
-                && if is_coordinator {
-                    row.recipient_member_id.as_deref() == Some(COORDINATOR_MEMBER_ID)
-                } else {
-                    row.recipient_member_id.as_deref() == Some(member_id.as_str())
-                }
-        })
-        .count();
+        .filter(|counts| counts.recipient_member_id.as_deref() == Some(member_id.as_str()))
+        .fold((0usize, 0usize), |(activity, unread), counts| {
+            (
+                activity.saturating_add(counts.activity_count),
+                unread.saturating_add(counts.unread_count),
+            )
+        });
     let task_owner_id = if is_coordinator {
         COORDINATOR_MEMBER_ID
     } else {
         member_id.as_str()
     };
-    let pending_task_count = tasks
-        .iter()
-        .filter(|item| {
-            item.task.owner.as_deref() == Some(task_owner_id)
-                && item.task.status == TaskStatus::Pending
-        })
-        .count();
-    let in_progress_task_count = tasks
-        .iter()
-        .filter(|item| {
-            item.task.owner.as_deref() == Some(task_owner_id)
-                && item.task.status == TaskStatus::InProgress
-        })
-        .count();
+    let counts = task_counts.get(task_owner_id).copied().unwrap_or_default();
+    let pending_task_count = counts.pending;
+    let in_progress_task_count = counts.in_progress;
     let active_task_count = pending_task_count + in_progress_task_count;
-    let completed_task_count = tasks
-        .iter()
-        .filter(|item| {
-            item.task.owner.as_deref() == Some(task_owner_id)
-                && item.task.status == TaskStatus::Completed
-        })
-        .count();
+    let completed_task_count = counts.completed;
     let intervention = match session_runtime
         .as_ref()
         .and_then(|runtime| runtime.intervention.clone())
     {
         Some(record) => Some(record),
-        None => AgentMemberInterventionStore::active_for_member(&context.run_id, &member_id)?,
+        None => active_interventions.get(&member_id).cloned(),
     };
 
     Ok(AgentOrgRunMemberView {
@@ -1099,67 +1835,122 @@ fn member_view_from_parts(
     })
 }
 
+fn bounded_run_view_inbox_counts(
+    recent_rows: &[AgentInboxPreviewRecord],
+    unread_counts: &[AgentInboxUnreadRecipientCounts],
+) -> Vec<AgentInboxRecipientCounts> {
+    let mut counts_by_recipient: HashMap<(String, Option<String>), AgentInboxRecipientCounts> =
+        HashMap::new();
+
+    // Activity is intentionally the bounded Run View window, not an
+    // unbounded lifetime total. Full history belongs to the paginated Inbox
+    // surface; this projection is polled every few seconds.
+    for row in recent_rows {
+        let key = (
+            row.recipient_agent_id.clone(),
+            row.recipient_member_id.clone(),
+        );
+        let counts = counts_by_recipient
+            .entry(key)
+            .or_insert_with(|| AgentInboxRecipientCounts {
+                recipient_agent_id: row.recipient_agent_id.clone(),
+                recipient_member_id: row.recipient_member_id.clone(),
+                activity_count: 0,
+                unread_count: 0,
+            });
+        counts.activity_count = counts.activity_count.saturating_add(1);
+    }
+
+    // Unread totals must remain exact even when an old unread row falls
+    // outside the recent activity window, so merge the unread-only index
+    // query separately.
+    for unread in unread_counts {
+        let key = (
+            unread.recipient_agent_id.clone(),
+            unread.recipient_member_id.clone(),
+        );
+        let counts = counts_by_recipient
+            .entry(key)
+            .or_insert_with(|| AgentInboxRecipientCounts {
+                recipient_agent_id: unread.recipient_agent_id.clone(),
+                recipient_member_id: unread.recipient_member_id.clone(),
+                activity_count: 0,
+                unread_count: 0,
+            });
+        counts.unread_count = unread.unread_count;
+    }
+
+    let mut counts = counts_by_recipient.into_values().collect::<Vec<_>>();
+    counts.sort_by(|left, right| {
+        left.recipient_member_id
+            .cmp(&right.recipient_member_id)
+            .then_with(|| left.recipient_agent_id.cmp(&right.recipient_agent_id))
+    });
+    counts
+}
+
 async fn session_org_read_context(
     state: &AgentAppState,
     session_id: &str,
 ) -> Result<Option<SessionOrgReadContext>, String> {
-    if let Some(session) = state.get_session(session_id).await {
-        if let Some(runtime) = session.runtime.read().await.clone() {
-            let context = agent_org_context_for_session(
-                state,
-                session_id,
-                runtime.agent_org_context.as_ref(),
-            )?;
-            let member_id = persistence::get_session(session_id)
+    let runtime_context = match state.get_session(session_id).await {
+        Some(session) => session
+            .runtime
+            .read()
+            .await
+            .as_ref()
+            .and_then(|runtime| runtime.agent_org_context.clone()),
+        None => None,
+    };
+    let org_store = state.app_handle.as_ref().map(|handle| {
+        use tauri::Manager;
+        handle
+            .state::<std::sync::Arc<AgentOrgsStore>>()
+            .inner()
+            .clone()
+    });
+    let session_id = session_id.to_string();
+
+    // This helper is shared by every Agent Org Tauri command. Session and
+    // parent-walk lookups are synchronous SQLite work, so resolve the whole
+    // durable identity in one blocking job instead of stalling Tokio's async
+    // executor at every call site.
+    tokio::task::spawn_blocking(move || -> Result<Option<SessionOrgReadContext>, String> {
+        let persisted = persistence::get_session(&session_id).map_err(|err| err.to_string())?;
+        let member_id = match persisted.as_ref() {
+            Some(record) => Some(record.org_member_id.clone()),
+            None => {
+                let conn = get_connection().map_err(|err| err.to_string())?;
+                conn.query_row(
+                    "SELECT org_member_id FROM code_sessions WHERE session_id = ?1",
+                    params![&session_id],
+                    |row| row.get::<_, Option<String>>(0),
+                )
+                .optional()
                 .map_err(|err| err.to_string())?
-                .and_then(|record| record.org_member_id);
-            return Ok(Some(SessionOrgReadContext { context, member_id }));
+            }
+        };
+        if persisted.is_none() && member_id.is_none() && runtime_context.is_none() {
+            return Ok(None);
         }
-    }
 
-    let persisted = persistence::get_session(session_id).map_err(|err| err.to_string())?;
-    if let Some(record) = persisted {
-        let context = agent_org_context_for_session(state, session_id, None)?;
-        return Ok(Some(SessionOrgReadContext {
+        let context = match runtime_context {
+            Some(context) => Some(context),
+            None => match org_store {
+                Some(store) => AgentOrgRunStore::context_for_session_with_parent_walk(
+                    &session_id,
+                    store.as_ref(),
+                )?,
+                None => None,
+            },
+        };
+        Ok(Some(SessionOrgReadContext {
             context,
-            member_id: record.org_member_id,
-        }));
-    }
-
-    let Some(member_id) = cli_member_id_for_session(session_id)? else {
-        return Ok(None);
-    };
-    let context = agent_org_context_for_session(state, session_id, None)?;
-    Ok(Some(SessionOrgReadContext { context, member_id }))
-}
-
-fn cli_member_id_for_session(session_id: &str) -> Result<Option<Option<String>>, String> {
-    let conn = get_connection().map_err(|err| err.to_string())?;
-    conn.query_row(
-        "SELECT org_member_id FROM code_sessions WHERE session_id = ?1",
-        params![session_id],
-        |row| row.get::<_, Option<String>>(0),
-    )
-    .optional()
-    .map_err(|err| err.to_string())
-}
-
-fn agent_org_context_for_session(
-    state: &AgentAppState,
-    session_id: &str,
-    runtime_context: Option<&AgentOrgRunContext>,
-) -> Result<Option<AgentOrgRunContext>, String> {
-    if let Some(context) = runtime_context {
-        return Ok(Some(context.clone()));
-    }
-
-    let Some(handle) = state.app_handle.as_ref() else {
-        return Ok(None);
-    };
-
-    use tauri::Manager;
-    let org_store = handle.state::<std::sync::Arc<AgentOrgsStore>>();
-    AgentOrgRunStore::context_for_session_with_parent_walk(session_id, org_store.inner())
+            member_id: member_id.flatten(),
+        }))
+    })
+    .await
+    .map_err(|err| format!("Agent Org session context worker failed: {err}"))?
 }
 
 fn require_session_member_id(
@@ -1207,6 +1998,48 @@ mod tests {
             plan_approval_policy: crate::definitions::orgs::PlanApprovalPolicy::Coordinator,
             root_session_id: Some("root-shared-agent".to_string()),
         }
+    }
+
+    fn prepare_command_run(status: &str) -> AgentOrgRunContext {
+        let context = context_with_shared_member_agent_id();
+        let conn = get_connection().expect("db connection");
+        crate::coordination::agent_org_runs::init_schema(&conn).expect("run schema");
+        crate::coordination::agent_inbox::init_schema(&conn).expect("inbox schema");
+        crate::coordination::agent_member_interventions::init_schema(&conn)
+            .expect("intervention schema");
+        let now = chrono::Utc::now().to_rfc3339();
+        conn.execute(
+            "INSERT INTO agent_org_runs (
+                 id, org_id, coordinator_agent_id, root_session_id,
+                 org_snapshot_json, entry_mode, status, work_item_id,
+                 project_slug, routine_fire_id, summary, last_error,
+                 created_at, updated_at, completed_at
+             ) VALUES (?1, ?2, ?3, ?4, NULL, 'standalone_session', ?5,
+                       NULL, NULL, NULL, NULL, NULL, ?6, ?6, NULL)",
+            params![
+                &context.run_id,
+                &context.org_id,
+                &context.coordinator_agent_id,
+                context.root_session_id.as_deref(),
+                status,
+                &now,
+            ],
+        )
+        .expect("insert command test run");
+        context
+    }
+
+    fn inbox_count_for_member(context: &AgentOrgRunContext, member_id: &str) -> usize {
+        let conn = get_connection().expect("db connection");
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM agent_inbox
+                 WHERE org_run_id=?1 AND recipient_member_id=?2",
+                params![&context.run_id, member_id],
+                |row| row.get(0),
+            )
+            .expect("count member inbox rows");
+        usize::try_from(count).expect("non-negative inbox count")
     }
 
     fn inbox_record(
@@ -1280,29 +2113,129 @@ mod tests {
 
     #[test]
     fn run_phase_projects_all_completed_running_board_as_finalizing() {
-        let task = AgentOrgTaskRuntime {
-            task: task_for_resume(Some("member-builder"), TaskStatus::Completed),
-            owner_member: None,
-            owner_runtime: None,
+        let overview = AgentOrgRunTaskOverview {
+            total: 1,
+            pending: 0,
+            in_progress: 0,
+            completed: 1,
+            visible: 1,
+            truncated: false,
         };
         assert_eq!(
-            project_run_phase(AgentOrgRunStatus::Running, &[], &[task], &[], &[]),
+            project_run_phase(AgentOrgRunStatus::Running, &[], &overview, 0, &[]),
             AgentOrgRunPhase::Finalizing
         );
         assert_eq!(
-            project_run_phase(AgentOrgRunStatus::Completed, &[], &[], &[], &[]),
+            project_run_phase(
+                AgentOrgRunStatus::Completed,
+                &[],
+                &AgentOrgRunTaskOverview {
+                    total: 0,
+                    pending: 0,
+                    in_progress: 0,
+                    completed: 0,
+                    visible: 0,
+                    truncated: false,
+                },
+                0,
+                &[],
+            ),
             AgentOrgRunPhase::Completed
         );
+    }
+
+    #[test]
+    fn task_runtime_projects_execution_mode_on_the_wire() {
+        let task = AgentOrgTaskRuntime {
+            task: task_for_resume(Some("member-planner"), TaskStatus::Pending),
+            description_truncated: false,
+            blocks_truncated: false,
+            blocked_by_truncated: false,
+            execution_mode: TaskExecutionMode::Plan,
+            owner_member: None,
+            owner_runtime: None,
+        };
+
+        let value = serde_json::to_value(task).expect("serialize task runtime");
+        assert_eq!(value["executionMode"], "plan");
+    }
+
+    #[test]
+    fn run_view_task_omits_durable_metadata_and_output() {
+        let context = context_with_shared_member_agent_id();
+        let projected = tasks_for_context(
+            &context,
+            vec![TaskSummary {
+                id: "resume-task".to_string(),
+                subject: "Resume work".to_string(),
+                description: "bounded description".to_string(),
+                description_truncated: true,
+                active_form: None,
+                owner: Some("member-builder".to_string()),
+                status: TaskStatus::Completed,
+                blocks: Vec::new(),
+                blocks_truncated: false,
+                blocked_by: Vec::new(),
+                blocked_by_truncated: false,
+                eligible_member_ids: vec!["member-builder".to_string()],
+                eligible_member_ids_truncated: false,
+                required_role: None,
+                execution_mode: TaskExecutionMode::Build,
+                output: None,
+                created_at: "2026-05-28T00:00:00Z".to_string(),
+                updated_at: "2026-05-28T00:00:00Z".to_string(),
+            }],
+            &HashMap::new(),
+        );
+        assert_eq!(projected.len(), 1);
+        assert!(projected[0].task.metadata.is_none());
+        assert_eq!(projected[0].task.description, "bounded description");
+        assert!(projected[0].description_truncated);
+    }
+
+    #[test]
+    fn run_view_inbox_preview_omits_durable_payload_json() {
+        let row = AgentOrgInboxPreviewRow {
+            id: 7,
+            recipient_agent_id: "agent-a".to_string(),
+            recipient_member_id: Some("member-a".to_string()),
+            sender_agent_id: USER_SENDER_ID.to_string(),
+            sender_member_id: None,
+            org_run_id: Some("run-a".to_string()),
+            payload_kind: "plain".to_string(),
+            request_id: None,
+            created_at: "2026-05-28T00:00:00Z".to_string(),
+            read_at: None,
+            recipient_name: "Alice".to_string(),
+            sender_name: "User".to_string(),
+            display_text: "hello".to_string(),
+        };
+
+        let value = serde_json::to_value(row).expect("serialize inbox preview");
+        assert!(value.get("payloadJson").is_none());
+        assert_eq!(value["displayText"], "hello");
     }
 
     #[test]
     fn run_phase_projects_quiet_user_plan_gate_as_awaiting_approval() {
         let task = AgentOrgTaskRuntime {
             task: task_for_resume(Some("member-planner"), TaskStatus::InProgress),
+            description_truncated: false,
+            blocks_truncated: false,
+            blocked_by_truncated: false,
+            execution_mode: TaskExecutionMode::Plan,
             owner_member: None,
             owner_runtime: None,
         };
-        let approval = AgentOrgPlanApproval {
+        let overview = AgentOrgRunTaskOverview {
+            total: 1,
+            pending: 0,
+            in_progress: 1,
+            completed: 0,
+            visible: 1,
+            truncated: false,
+        };
+        let approval = AgentOrgPlanApprovalSummary {
             approval_id: "approval-1".to_string(),
             plan_revision_id: "revision-1".to_string(),
             request_id: "request-1".to_string(),
@@ -1315,15 +2248,11 @@ mod tests {
             status:
                 crate::coordination::agent_org_plan_approvals::AgentOrgPlanApprovalStatus::Pending,
             plan_title: "Plan".to_string(),
-            plan_path: "/tmp/plan.md".to_string(),
-            plan_content: "# Plan".to_string(),
-            decision_by: None,
-            feedback: None,
+            plan_content_bytes: 6,
             created_at: "2026-05-28T00:00:00Z".to_string(),
-            resolved_at: None,
         };
         assert_eq!(
-            project_run_phase(AgentOrgRunStatus::Running, &[], &[task], &[], &[approval]),
+            project_run_phase(AgentOrgRunStatus::Running, &[], &overview, 0, &[approval]),
             AgentOrgRunPhase::AwaitingPlanApproval
         );
     }
@@ -1334,6 +2263,327 @@ mod tests {
         assert_eq!(
             should_wake_member_for_progress(true),
             Some(AgentOrgWakeReason::UnreadInbox)
+        );
+    }
+
+    #[test]
+    fn terminal_group_message_writes_neither_inbox_nor_intervention_clear() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let context = prepare_command_run("completed");
+        AgentMemberInterventionStore::enter(EnterMemberInterventionParams {
+            org_run_id: context.run_id.clone(),
+            member_id: "member-planner".to_string(),
+            agent_id: "builtin:sde".to_string(),
+            session_id: "planner-session".to_string(),
+            reason: Some("direct_user_chat".to_string()),
+            ttl_secs: 60,
+        })
+        .expect("enter intervention");
+
+        let error = persist_group_chat_message(
+            &context,
+            "builtin:sde",
+            "member-planner",
+            "This must not enter a terminal run",
+            None,
+        )
+        .expect_err("terminal run rejects group message");
+
+        assert!(error.contains("terminal runs do not accept"));
+        assert_eq!(inbox_count_for_member(&context, "member-planner"), 0);
+        assert!(
+            AgentMemberInterventionStore::active_for_member(&context.run_id, "member-planner")
+                .expect("load intervention")
+                .is_some(),
+            "a rejected terminal message must not partially clear intervention state"
+        );
+    }
+
+    #[test]
+    fn group_message_and_intervention_clear_commit_atomically() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let context = prepare_command_run("running");
+        AgentMemberInterventionStore::enter(EnterMemberInterventionParams {
+            org_run_id: context.run_id.clone(),
+            member_id: "member-planner".to_string(),
+            agent_id: "builtin:sde".to_string(),
+            session_id: "planner-session".to_string(),
+            reason: Some("direct_user_chat".to_string()),
+            ttl_secs: 60,
+        })
+        .expect("enter intervention");
+        let conn = get_connection().expect("db connection");
+        conn.execute_batch(
+            "CREATE TRIGGER reject_intervention_clear
+             BEFORE UPDATE OF cleared_at ON agent_member_interventions
+             BEGIN
+                 SELECT RAISE(ABORT, 'injected intervention clear failure');
+             END;",
+        )
+        .expect("install failure trigger");
+        drop(conn);
+
+        let error = persist_group_chat_message(
+            &context,
+            "builtin:sde",
+            "member-planner",
+            "Both writes must commit together",
+            None,
+        )
+        .expect_err("intervention-clear failure rolls back inbox insert");
+
+        assert!(error.contains("injected intervention clear failure"));
+        assert_eq!(inbox_count_for_member(&context, "member-planner"), 0);
+        assert!(
+            AgentMemberInterventionStore::active_for_member(&context.run_id, "member-planner")
+                .expect("load intervention")
+                .is_some(),
+            "the inbox insert must roll back if intervention clear cannot commit"
+        );
+    }
+
+    #[test]
+    fn group_chat_history_pages_all_rows_and_preserves_long_display_text_after_reload() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let context = prepare_command_run("running");
+        let long_body = "长".repeat(900);
+        let long_display = format!("@Planner {long_body}");
+        for index in 0..205 {
+            let (body, display) = if index == 204 {
+                (long_body.as_str(), long_display.as_str())
+            } else {
+                (
+                    "historical group message",
+                    "@Planner historical group message",
+                )
+            };
+            persist_group_chat_message(
+                &context,
+                "builtin:sde",
+                "member-planner",
+                body,
+                Some(display),
+            )
+            .expect("persist history row");
+        }
+
+        let first =
+            load_group_chat_history_page(&context, None, 100).expect("load newest history page");
+        assert_eq!(first.rows.len(), 100);
+        assert!(first.has_more);
+        assert_eq!(
+            first.rows.last().expect("newest row").display_text,
+            long_display
+        );
+        assert_eq!(first.rows.last().expect("newest row").text, long_body);
+
+        let mut all_ids = first
+            .rows
+            .iter()
+            .map(|row| row.inbox_id)
+            .collect::<Vec<_>>();
+        let mut before = first.next_before_id;
+        while let Some(cursor) = before {
+            let page = load_group_chat_history_page(&context, Some(cursor), 100)
+                .expect("load older history page");
+            all_ids.extend(page.rows.iter().map(|row| row.inbox_id));
+            before = page.next_before_id;
+            if !page.has_more {
+                break;
+            }
+        }
+        all_ids.sort_unstable();
+        all_ids.dedup();
+        assert_eq!(
+            all_ids.len(),
+            205,
+            "cursor pages must have no gaps or duplicates"
+        );
+
+        let conn = get_connection().expect("db connection");
+        conn.execute(
+            "UPDATE agent_org_runs SET status='completed' WHERE id=?1",
+            params![&context.run_id],
+        )
+        .expect("terminalize run");
+        assert_eq!(
+            load_group_chat_history_page(&context, None, 100)
+                .expect("terminal history stays readable")
+                .rows
+                .len(),
+            100
+        );
+    }
+
+    #[test]
+    fn paused_resume_and_coordinator_seed_commit_or_rollback_together() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let context = prepare_command_run("paused");
+        let conn = get_connection().expect("db connection");
+        conn.execute_batch(
+            "CREATE TRIGGER reject_resume_seed
+             BEFORE INSERT ON agent_inbox
+             BEGIN
+                 SELECT RAISE(ABORT, 'injected resume seed failure');
+             END;",
+        )
+        .expect("install failure trigger");
+        drop(conn);
+
+        let error = resume_agent_org_context_sync(&context, true)
+            .expect_err("seed failure rolls back resume transition");
+        assert!(error.contains("injected resume seed failure"));
+        let conn = get_connection().expect("db connection");
+        let status: String = conn
+            .query_row(
+                "SELECT status FROM agent_org_runs WHERE id=?1",
+                params![&context.run_id],
+                |row| row.get(0),
+            )
+            .expect("load rolled-back run status");
+        assert_eq!(status, "paused");
+        assert_eq!(inbox_count_for_member(&context, COORDINATOR_MEMBER_ID), 0);
+        conn.execute_batch("DROP TRIGGER reject_resume_seed;")
+            .expect("drop failure trigger");
+        drop(conn);
+
+        let outcome = resume_agent_org_context_sync(&context, true).expect("resume run");
+        assert_eq!(
+            outcome,
+            AgentOrgResumeOutcome {
+                transitioned: true,
+                run_is_running: true,
+            }
+        );
+        let conn = get_connection().expect("db connection");
+        let status: String = conn
+            .query_row(
+                "SELECT status FROM agent_org_runs WHERE id=?1",
+                params![&context.run_id],
+                |row| row.get(0),
+            )
+            .expect("load resumed run status");
+        assert_eq!(status, "running");
+        assert_eq!(inbox_count_for_member(&context, COORDINATOR_MEMBER_ID), 1);
+    }
+
+    #[test]
+    fn explicit_resume_of_running_run_repairs_unread_without_duplicate_seed() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let context = prepare_command_run("running");
+
+        for _ in 0..2 {
+            let outcome =
+                resume_agent_org_context_sync(&context, true).expect("idempotent explicit resume");
+            assert_eq!(
+                outcome,
+                AgentOrgResumeOutcome {
+                    transitioned: false,
+                    run_is_running: true,
+                }
+            );
+        }
+
+        assert_eq!(inbox_count_for_member(&context, COORDINATOR_MEMBER_ID), 1);
+        let targets =
+            collect_run_progress_wake_targets(&context.run_id, &org_progress_member_ids(&context))
+                .expect("rescan unread inbox rows");
+        assert_eq!(
+            targets,
+            vec![AgentOrgWakeTarget {
+                member_id: COORDINATOR_MEMBER_ID.to_string(),
+                reason: AgentOrgWakeReason::UnreadInbox,
+            }]
+        );
+    }
+
+    #[test]
+    fn return_to_work_boundary_is_not_extended_by_later_mail() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let context = prepare_command_run("running");
+        AgentMemberInterventionStore::enter(EnterMemberInterventionParams {
+            org_run_id: context.run_id.clone(),
+            member_id: "member-planner".to_string(),
+            agent_id: "builtin:sde".to_string(),
+            session_id: "planner-session".to_string(),
+            reason: Some("direct_user_chat".to_string()),
+            ttl_secs: 60,
+        })
+        .expect("enter intervention");
+        let insert = |summary: &str| {
+            AgentInboxStore::insert(InsertInboxParams {
+                recipient_agent_id: "builtin:sde".to_string(),
+                recipient_member_id: Some("member-planner".to_string()),
+                sender_agent_id: context.coordinator_agent_id.clone(),
+                sender_member_id: Some(COORDINATOR_MEMBER_ID.to_string()),
+                org_run_id: Some(context.run_id.clone()),
+                message: AgentMessage::Plain {
+                    summary: summary.to_string(),
+                    text: summary.to_string(),
+                },
+            })
+            .expect("insert inbox row")
+        };
+        let first = insert("pending at return-to-work");
+        let (changed, boundary) = AgentMemberInterventionStore::clear_and_capture_unread_boundary(
+            &context.run_id,
+            "member-planner",
+        )
+        .expect("clear and capture boundary");
+        assert!(changed);
+        let boundary = boundary.expect("boundary row");
+        assert_eq!(boundary, first.id);
+
+        let later = insert("arrived after return-to-work began");
+        assert!(later.id > boundary);
+        AgentInboxStore::mark_many_read(&[first.id]).expect("ack original boundary row");
+
+        assert_eq!(
+            AgentInboxStore::unread_count_through_boundary(
+                "member-planner",
+                &context.run_id,
+                boundary,
+            )
+            .expect("count original boundary"),
+            0,
+            "the acknowledgement wait must finish after its original rows drain"
+        );
+        assert!(
+            AgentInboxStore::has_unread_for_member("member-planner", &context.run_id)
+                .expect("later unread remains"),
+            "later mail remains unread for the next bounded drain instead of extending this wait"
+        );
+    }
+
+    #[test]
+    fn return_to_work_rolls_back_intervention_clear_when_boundary_capture_fails() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let context = prepare_command_run("running");
+        AgentMemberInterventionStore::enter(EnterMemberInterventionParams {
+            org_run_id: context.run_id.clone(),
+            member_id: "member-planner".to_string(),
+            agent_id: "builtin:sde".to_string(),
+            session_id: "planner-session".to_string(),
+            reason: Some("direct_user_chat".to_string()),
+            ttl_secs: 60,
+        })
+        .expect("enter intervention");
+        let conn = get_connection().expect("db connection");
+        conn.execute("DROP TABLE agent_inbox", [])
+            .expect("inject boundary query failure");
+        drop(conn);
+
+        let error = AgentMemberInterventionStore::clear_and_capture_unread_boundary(
+            &context.run_id,
+            "member-planner",
+        )
+        .expect_err("boundary failure must abort return-to-work transaction");
+        assert!(error.contains("agent_inbox"));
+        assert!(
+            AgentMemberInterventionStore::active_for_member(&context.run_id, "member-planner")
+                .expect("load intervention after rollback")
+                .is_some(),
+            "failed boundary capture must not partially clear intervention state"
         );
     }
 

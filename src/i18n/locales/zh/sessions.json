@@ -2281,6 +2281,7 @@
       "loadFailed": "团队概览加载失败",
       "tasks": "任务",
       "doneOf": "{{done}} / {{total}} 已完成",
+      "taskWindowTruncated": "当前显示前 {{visible}} / {{total}} 个任务；完整成果请打开任务详情。",
       "members": "成员",
       "activeOf": "{{active}} / {{total}} active",
       "inbox": "Inbox",
@@ -2305,7 +2306,9 @@
         "editLabel": "编辑已提交的计划",
         "feedbackLabel": "计划修改意见",
         "feedbackPlaceholder": "清楚告诉 Planner 哪些地方需要修改……",
-        "paused": "请先恢复本次运行，再处理这个计划。"
+        "paused": "请先恢复本次运行，再处理这个计划。",
+        "staleError": "这份计划已经处理或被新版本替换。请刷新后查看最新版本。",
+        "submitFailed": "计划审批结果未能保存，请重试。"
       },
       "phase": {
         "coordinating": "正在协调",
@@ -2522,6 +2525,8 @@
     }
   },
   "groupChat": {
+    "loadOlder": "加载更早消息",
+    "historyLoadFailed": "历史消息暂不可用",
     "senderTitle": {
       "message": "{{sender}} 发送了消息",
       "said": "{{sender}} 说"
