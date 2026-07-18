@@ -1,52 +1,15 @@
-import { RenameModal } from "@/src/scaffold/ModalSystem/variants";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { ChevronLeft, Cloud, Laptop, Search } from "lucide-react";
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
+import { ChevronLeft, Search } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { type ProjectOrg, projectApi } from "@src/api/http/project";
-import type { SelectOption } from "@src/components/Select";
-import CloudSessionHoverCard from "@src/components/SessionHoverCard/CloudSessionHoverCard";
 import { ROUTES } from "@src/config/routes";
-import CloudSessionShareDialog from "@src/features/Org2Cloud/CloudSessionShareDialog";
 import { useCloudSessionShareDialog } from "@src/features/Org2Cloud/CloudSessionShareDialog/useCloudSessionShareDialog";
-import CloudShareImportDialog from "@src/features/Org2Cloud/CloudShareImportDialog";
-import CloudSyncLevelDialog from "@src/features/Org2Cloud/CloudSyncLevelDialog";
 import { useCloudSyncLevelDialog } from "@src/features/Org2Cloud/CloudSyncLevelDialog/useCloudSyncLevelDialog";
-import JoinCloudOrgDialog from "@src/features/Org2Cloud/JoinCloudOrgDialog";
-import { CLOUD_REMOTE_ITEM_PREFIX } from "@src/features/Org2Cloud/cloudRemoteItemId";
-import {
-  ALL_CLOUD_SESSIONS_FILTER,
-  type CloudSessionFilter,
-} from "@src/features/Org2Cloud/cloudSessionFilter";
-import {
-  buildCloudOrgSelectorValue,
-  org2CloudOrgsAtom,
-  parseCloudOrgSelectorValue,
-  sidebarActiveCloudOrgIdAtom,
-} from "@src/features/Org2Cloud/org2CloudOrgsAtom";
-import { org2CloudRepoScopesAtom } from "@src/features/Org2Cloud/org2CloudSyncAtoms";
-import ForkCheckoutPickerDialog from "@src/features/TeamCollaboration/components/ForkCheckoutPickerDialog";
-import ForkSessionSetupDialog from "@src/features/TeamCollaboration/components/ForkSessionSetupDialog";
-import MoveToOrgDialog from "@src/features/TeamCollaboration/components/MoveToOrgDialog";
 import { useMoveToOrgDialog } from "@src/features/TeamCollaboration/components/MoveToOrgDialog/useMoveToOrgDialog";
-import { collectScopeMatchedImportedSessionIds } from "@src/features/TeamCollaboration/importedSessionScopeMatch";
-import { useShareableScopeKeyVersion } from "@src/features/TeamCollaboration/repoScopeResolver";
-import {
-  cloudOrgIdsForSession,
-  isSessionExcludedFromPersonal,
-  sessionOrgTagsAtom,
-} from "@src/features/TeamCollaboration/sessionOrgTagsAtom";
 import { createLogger } from "@src/hooks/logger";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
-import { useProjectDataChanged } from "@src/hooks/project";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { benchmarkAgentBatchStatusAtom } from "@src/store/benchmark";
@@ -63,7 +26,6 @@ import {
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { repoMapAtom } from "@src/store/repo";
 import {
-  DEFAULT_SESSION_ORG_ID,
   activeSessionCreatorDraftIdAtom,
   deleteSessionCreatorDraftAtom,
   loadSidebarSessionById,
@@ -124,11 +86,9 @@ import {
   sidebarGroupByAtom,
   sidebarIncludeExternalAtom,
 } from "../sidebarGroupByAtom";
-import { sidebarSelectedOrgIdAtom } from "../sidebarOrgScopeAtom";
 import { useProjectsWorkItemMenuItems } from "../useProjectsWorkItemMenuItems";
 import { useRenameSessionModal } from "../useRenameSessionModal";
 import { useSessionMenuItems } from "../useSessionMenuItems";
-import { buildSessionOrgFilterIds } from "../useSessionMenuItems/orgFilter";
 import { useWorkstationSidebarContextMenu } from "../useWorkstationSidebarContextMenu";
 import { useWorkstationSidebarHandlers } from "../useWorkstationSidebarHandlers";
 import {
@@ -138,17 +98,15 @@ import {
   getAllSectionIds,
   sortSessionsByActivity,
 } from "../workstationSidebarData";
+import { SidebarDialogs } from "./SidebarDialogs";
 import { useSidebarBottomRightActions } from "./bottomActions";
 import { useCloudSessionsSection } from "./cloudSessionsSection";
 import {
   useRenderProjectsMenuItemWrapper,
   useRenderSessionMenuItemWrapper,
+  useRenderWorkstationMenuItemWrapper,
 } from "./menuItemWrappers";
 import { resolveSelectedMenuItemIds } from "./menuSelection";
-import {
-  buildOrgSelectorEntries,
-  resolveProjectOrgScopeId,
-} from "./orgSelectorEntries";
 import { useSessionEntryActions } from "./sessionEntryActions";
 import { useDecorateSessionRowActions } from "./sessionRowActions";
 import { useWorkstationSidebarMemory } from "./sidebarMemory";
@@ -166,6 +124,10 @@ import {
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
 import type { WorkstationSidebarKey } from "./types";
 import { useProjectsMenuItemClick } from "./useProjectsMenuItemClick";
+import {
+  buildCloudOrgSelectorValue,
+  useSidebarOrgScope,
+} from "./useSidebarOrgScope";
 import {
   buildWorkItemsSidebarMenuItems,
   resolveWorkItemsSidebarMenuItemId,
@@ -191,8 +153,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
   );
   const clearSessionSidebarReveal = useSetAtom(clearSessionSidebarRevealAtom);
   const setSidebarCollapsed = useSetAtom(sidebarCollapsedAtom);
-  // Managed ORG2 Cloud orgs (the only team backend).
-  const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const visitedSessions = useAtomValue(visitedSessionsAtom);
   const sessionCreatorDrafts = useAtomValue(sessionCreatorDraftListAtom);
   const activeSessionCreatorDraftId = useAtomValue(
@@ -247,44 +207,12 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const activeSidebarSearchKey: WorkstationSidebarKey = workItemsContentVisible
     ? "projects"
     : activeSidebarKey;
-  // Fixed + floating workstation sidebars are mounted concurrently. Keep
-  // their privacy/session scope shared so either surface always reflects the
-  // user's last selection and cannot overwrite the other's active cloud org.
-  const [selectedOrgId, setSelectedOrgId] = useAtom(sidebarSelectedOrgIdAtom);
-  const [projectOrgs, setProjectOrgs] = useState<ProjectOrg[]>([]);
   const [sidebarSearchQueries, setSidebarSearchQueries] = useState<
     Record<WorkstationSidebarKey, string>
   >({ workstation: "", projects: "" });
   const handleSidebarLayerChange = useCallback((key: WorkstationSidebarKey) => {
     setActiveSidebarKey(key);
   }, []);
-
-  const fetchProjectOrgs = useCallback(async (): Promise<ProjectOrg[]> => {
-    try {
-      return await projectApi.readOrgs();
-    } catch (error) {
-      logger.error("Failed to load sidebar org selector options:", error);
-      return [];
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    void fetchProjectOrgs().then((orgs) => {
-      if (!cancelled) {
-        setProjectOrgs(orgs);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchProjectOrgs]);
-
-  useProjectDataChanged(
-    useCallback(() => {
-      void fetchProjectOrgs().then(setProjectOrgs);
-    }, [fetchProjectOrgs])
-  );
 
   const handleSidebarSearchChange = useCallback(
     (value: string) => {
@@ -306,6 +234,19 @@ export const WorkstationSidebarConnector: React.FC = () => {
     () => sortSessionsByActivity([...chatPanelTuiSessions, ...sessions]),
     [chatPanelTuiSessions, sessions]
   );
+  const {
+    activeCloudOrgId,
+    activeOrgId,
+    activeProjectOrgId,
+    cloudSessionFilter,
+    cloudTaggedSessionIds,
+    handleCloudSessionFilterChange,
+    manageableCloudOrg,
+    orgSelectorOptions,
+    personalHiddenCloudTaggedIds,
+    sessionFilterOrgIds,
+    setSelectedOrgId,
+  } = useSidebarOrgScope({ sortedSessions });
   const repoMap = useAtomValue(repoMapAtom);
   const repoPathToName = useMemo(() => buildRepoPathToName(repoMap), [repoMap]);
 
@@ -376,149 +317,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
       ? t("sidebar.search.projects")
       : t("sidebar.search.sessions");
   const noSearchResultsTitle = t("sidebar.empty.noSearchResults");
-  // Entry-building rules (alias hiding, dead-org GC, name disambiguation)
-  // live in the pure builder — see orgSelectorEntries.ts.
-  const orgSelectorOptions = useMemo(
-    () =>
-      buildOrgSelectorEntries({
-        personalOrgId: DEFAULT_SESSION_ORG_ID,
-        personalLabel: tProjects("orgs.personalOrg"),
-        localOrgs: projectOrgs,
-        cloudOrgs,
-        localSuffix: "local",
-      }).map(
-        (entry): SelectOption => ({
-          value: entry.value,
-          label: entry.label,
-          icon:
-            entry.kind === "cloud" ? (
-              <Cloud size={13} strokeWidth={2} />
-            ) : (
-              <Laptop size={13} strokeWidth={2} />
-            ),
-          ...(entry.kind === "personal"
-            ? { dataTestId: "sidebar-personal-org-option" }
-            : entry.cloudOrgId
-              ? { dataTestId: `sidebar-cloud-org-option-${entry.cloudOrgId}` }
-              : {}),
-        })
-      ),
-    [cloudOrgs, projectOrgs, tProjects]
-  );
-
-  const activeOrgId = useMemo(
-    () =>
-      orgSelectorOptions.some((option) => option.value === selectedOrgId)
-        ? selectedOrgId
-        : DEFAULT_SESSION_ORG_ID,
-    [orgSelectorOptions, selectedOrgId]
-  );
-  const activeProjectOrgId = useMemo(
-    () => resolveProjectOrgScopeId(activeOrgId, projectOrgs),
-    [activeOrgId, projectOrgs]
-  );
-
-  // A selected scope whose org disappeared (dead cloud-era entry, roster
-  // change) falls back to personal via the `activeOrgId` derivation above;
-  // leave a trace so "sharing broke" reports are diagnosable.
-  useEffect(() => {
-    if (
-      selectedOrgId === DEFAULT_SESSION_ORG_ID ||
-      selectedOrgId === activeOrgId
-    ) {
-      return;
-    }
-    logger.warn(
-      `Sidebar scope "${selectedOrgId}" no longer exists; falling back to personal scope`
-    );
-  }, [activeOrgId, selectedOrgId]);
-
-  // Cloud imports/forks are stamped with the BARE cloud org id while the
-  // selector value is namespaced (`cloud:<id>`) — accept both. See
-  // orgFilter.ts.
-  const sessionFilterOrgIds = useMemo(
-    () => buildSessionOrgFilterIds(activeOrgId),
-    [activeOrgId]
-  );
-
-  const activeCloudOrg = useMemo(() => {
-    const cloudOrgId = parseCloudOrgSelectorValue(activeOrgId);
-    if (!cloudOrgId) return null;
-    return cloudOrgs.find((org) => org.orgId === cloudOrgId) ?? null;
-  }, [activeOrgId, cloudOrgs]);
-  // Management is a global org action, not a property of the current
-  // sidebar scope. When Personal or a local org is selected, open the first
-  // managed cloud org; the management page's switcher handles the rest.
-  const manageableCloudOrg = activeCloudOrg ?? cloudOrgs[0] ?? null;
-  const activeCloudOrgId = activeCloudOrg?.orgId ?? null;
-
-  const setSidebarActiveCloudOrgId = useSetAtom(sidebarActiveCloudOrgIdAtom);
-  // Native context-menu handlers read this atom synchronously. Publish the
-  // selected privacy scope before paint so a just-switched sidebar can never
-  // expose the previous cloud org's roster for one effect tick.
-  useLayoutEffect(() => {
-    setSidebarActiveCloudOrgId(activeCloudOrgId);
-    return () => setSidebarActiveCloudOrgId(null);
-  }, [activeCloudOrgId, setSidebarActiveCloudOrgId]);
-
-  // Sessions explicitly tagged into the active cloud org (MoveToOrgDialog)
-  // match the cloud scope even without a stamped orgId.
-  const sessionOrgTags = useAtomValue(sessionOrgTagsAtom);
-  const repoScopesByOrg = useAtomValue(org2CloudRepoScopesAtom);
-  const scopeKeyVersion = useShareableScopeKeyVersion();
-  const cloudTaggedSessionIds = useMemo(() => {
-    if (!activeCloudOrgId) return undefined;
-    const ids = collectScopeMatchedImportedSessionIds(
-      sortedSessions,
-      repoScopesByOrg[activeCloudOrgId]
-    );
-    void scopeKeyVersion;
-    for (const sessionId of Object.keys(sessionOrgTags)) {
-      if (
-        cloudOrgIdsForSession(sessionOrgTags, sessionId).includes(
-          activeCloudOrgId
-        )
-      ) {
-        ids.add(sessionId);
-      }
-    }
-    return ids;
-  }, [
-    activeCloudOrgId,
-    sessionOrgTags,
-    sortedSessions,
-    repoScopesByOrg,
-    scopeKeyVersion,
-  ]);
-
-  const personalHiddenCloudTaggedIds = useMemo(() => {
-    if (activeOrgId !== DEFAULT_SESSION_ORG_ID) return undefined;
-    const ids = new Set<string>();
-    for (const sessionId of Object.keys(sessionOrgTags)) {
-      if (isSessionExcludedFromPersonal(sessionOrgTags, sessionId)) {
-        ids.add(sessionId);
-      }
-    }
-    return ids.size > 0 ? ids : undefined;
-  }, [activeOrgId, sessionOrgTags]);
-
-  // Per-org filter for the cloud "Team sessions" section.
-  const [cloudSessionFilters, setCloudSessionFilters] = useState<
-    Map<string, CloudSessionFilter>
-  >(new Map());
-  const cloudSessionFilter = activeCloudOrgId
-    ? (cloudSessionFilters.get(activeCloudOrgId) ?? ALL_CLOUD_SESSIONS_FILTER)
-    : ALL_CLOUD_SESSIONS_FILTER;
-  const handleCloudSessionFilterChange = useCallback(
-    (filter: CloudSessionFilter) => {
-      if (!activeCloudOrgId) return;
-      setCloudSessionFilters((previous) =>
-        new Map(previous).set(activeCloudOrgId, filter)
-      );
-    },
-    [activeCloudOrgId]
-  );
-
   const {
     cloudMenuItems,
     cloudThreadedLocalSessionIds,
@@ -966,48 +764,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
   ]);
   const renderSessionMenuItemWrapper =
     useRenderSessionMenuItemWrapper(sessionMap);
-  // Cloud teammate rows without published segments render disabled — the
-  // native title tooltip explains why (the row primitive has no tooltip
-  // slot of its own).
-  const renderWorkstationMenuItemWrapper = useCallback(
-    (item: NavigationMenuItem, node: React.ReactElement) => {
-      if (item.id.startsWith(CLOUD_REMOTE_ITEM_PREFIX)) {
-        if (item.disabled) {
-          // Two distinct dead-ends: the owner never published segments vs
-          // the owner shares metadata only (access ladder) — name the one
-          // that actually applies.
-          const metadataOnly =
-            cloudRemoteRowMap.get(item.id)?.accessMode === "metadata_only";
-          return (
-            <div
-              key={item.key}
-              title={t(
-                metadataOnly
-                  ? "cloud.sidebar.metadataOnly"
-                  : "cloud.sidebar.notPublished"
-              )}
-            >
-              {node}
-            </div>
-          );
-        }
-        return (
-          <CloudSessionHoverCard
-            key={item.key}
-            row={cloudRemoteRowMap.get(item.id)}
-            viewers={cloudRemoteViewerMap.get(item.id)}
-            position="right-start"
-            mouseEnterDelay={1000}
-            mouseLeaveDelay={100}
-          >
-            {node}
-          </CloudSessionHoverCard>
-        );
-      }
-      return renderSessionMenuItemWrapper(item, node);
-    },
-    [cloudRemoteRowMap, cloudRemoteViewerMap, renderSessionMenuItemWrapper, t]
-  );
+  const renderWorkstationMenuItemWrapper = useRenderWorkstationMenuItemWrapper({
+    cloudRemoteRowMap,
+    cloudRemoteViewerMap,
+    renderSessionMenuItemWrapper,
+  });
   const renderProjectsMenuItemWrapper = useRenderProjectsMenuItemWrapper({
     projectsLinearWorkItemMap,
     projectsWorkItemMap,
@@ -1226,42 +987,14 @@ export const WorkstationSidebarConnector: React.FC = () => {
             : undefined
         }
       />
-      <RenameModal
-        visible={rename.visible}
-        currentName={rename.currentName}
-        title={tCommon("actions.rename") + " " + t("routes.session")}
-        placeholder={t("sidebar.defaults.enterSessionName")}
-        loading={rename.loading}
-        onCancel={rename.onCancel}
-        onConfirm={(newName) => rename.onConfirm(newName, sessionMap)}
+      <SidebarDialogs
+        cloudMemberFilterDropdown={cloudMemberFilterDropdown}
+        cloudShare={cloudShare}
+        cloudSyncLevel={cloudSyncLevel}
+        moveToOrg={moveToOrg}
+        rename={rename}
+        sessionMap={sessionMap}
       />
-      <MoveToOrgDialog
-        session={moveToOrg.moveDialogSession}
-        onClose={moveToOrg.closeMoveToOrg}
-      />
-      {/* Per-session cloud access ladder (§13.4): Off / Metadata only /
-          Full replay + visibility, per cloud org. */}
-      <CloudSyncLevelDialog
-        session={cloudSyncLevel.syncLevelSession}
-        onClose={cloudSyncLevel.closeSyncLevel}
-      />
-      {/* Cloud per-session shares (0012): directed grants + guest links. */}
-      <CloudSessionShareDialog
-        session={cloudShare.cloudShareSession}
-        orgs={cloudShare.cloudShareOrgs}
-        onClose={cloudShare.closeCloudShare}
-      />
-      {/* Consumes orgii://cloud/session share deep links (0012): resolve →
-          confirm → read-only guest import. */}
-      <CloudShareImportDialog />
-      {/* Consumes orgii://cloud/join invite deep links (ORG2 Cloud):
-          confirm → accept_invite → refresh org2CloudOrgsAtom. */}
-      <JoinCloudOrgDialog />
-      <ForkCheckoutPickerDialog />
-      <ForkSessionSetupDialog />
-      {/* Member-filter dropdown for the cloud "Team sessions" section,
-          anchored to its section-header action button. */}
-      {cloudMemberFilterDropdown}
     </>
   );
 };

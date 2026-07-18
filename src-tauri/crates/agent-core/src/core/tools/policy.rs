@@ -78,14 +78,7 @@ pub const TOOL_GROUPS: &[(&str, &[&str])] = &[
             tool_names::MANAGE_WORKSPACE,
         ],
     ),
-    (
-        "group:search",
-        &[
-            tool_names::CODE_SEARCH,
-            tool_names::USE_CODE_MAP,
-            tool_names::MANAGE_CODE_MAP,
-        ],
-    ),
+    ("group:search", &[tool_names::CODE_SEARCH]),
     (
         "group:lsp",
         &[tool_names::QUERY_LSP, tool_names::MANAGE_LSP],
