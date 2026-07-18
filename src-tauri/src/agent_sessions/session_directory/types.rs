@@ -314,4 +314,3 @@ pub struct ExternalHistorySidebarResponse {
 pub struct ExternalHistorySidebarBatchResponse {
     pub sources: Vec<ExternalHistorySidebarResponse>,
 }
-

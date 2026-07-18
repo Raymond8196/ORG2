@@ -265,6 +265,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
 
     const activeTabHasNoSidebar =
       activeTab?.type === "agent-config" ||
+      activeTab?.type === "chat-session" ||
       activeTab?.type === "github-issue-detail" ||
       activeTab?.type === "github-pr-detail" ||
       activeTab?.type === "search-sessions";
@@ -535,7 +536,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
     // Single mount while visible — CSS grid swaps axis without unmounting EditorBottomPanel.
     const [editorRightPanelWidth, setEditorRightPanelWidth] = useState(400);
     const shouldHideSecondaryPanel =
-      activeTab?.type === "terminal" || activeTab?.type === "source-control";
+      activeTab?.type === "terminal" ||
+      activeTab?.type === "source-control" ||
+      activeTab?.type === "chat-session";
     const secondaryPanelConfig = useMemo(() => {
       if (shouldHideSecondaryPanel) return undefined;
 

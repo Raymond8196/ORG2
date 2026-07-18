@@ -419,7 +419,6 @@
       "error": "No se pudo hacer fork de la sesión",
       "sendFailed": "Fork realizado, pero el mensaje no se pudo enviar: se restauró en el editor",
       "forkedChipTooltip": "Fork de {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

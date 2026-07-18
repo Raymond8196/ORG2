@@ -40,6 +40,8 @@ export const CLI_AGENT = {
   AUTOHAND: "autohand",
   OMP: "omp",
   PI: "pi",
+  QODER_CLI: "qoder_cli",
+  TRAE_CLI: "trae_cli",
 } as const;
 
 /** CLI-based coding agents (external processes managed by the app). */
@@ -72,6 +74,8 @@ export const CliAgentTypeSchema = z.union([
   z.literal("autohand"),
   z.literal("omp"),
   z.literal("pi"),
+  z.literal("qoder_cli"),
+  z.literal("trae_cli"),
 ]);
 
 /** Direct API key providers (REST API, no child process). */
@@ -340,6 +344,17 @@ export const AutoDetectResultSchema = z.object({
   agent_type: z.string(),
   message: z.string(),
   keys: z.array(DetectedKeySchema),
+});
+
+export const CliVersionSnapshotSchema = z.object({
+  agent_type: CliAgentTypeSchema,
+  installed_version: z.string().nullable(),
+  latest_version: z.string().nullable(),
+  installed_version_error: z.string().nullable(),
+  latest_version_error: z.string().nullable(),
+  status: z.enum(["current", "outdated", "unknown"]),
+  scanned_at: z.string(),
+  stale: z.boolean(),
 });
 
 export const CliInstallMethodSchema = z.object({
@@ -656,6 +671,11 @@ export const AutoDetectKeyInput = z.object({
   agentType: ModelTypeSchema,
 });
 
+export const ScanCliVersionInput = z.object({
+  agentType: CliAgentTypeSchema,
+  force: z.boolean().nullable().optional(),
+});
+
 export const ExtractKeysFromTextInput = z.object({
   input: z.string(),
   agentType: z.string().nullable().optional(),
@@ -804,6 +824,7 @@ export type FullKeyResponse = z.infer<typeof FullKeyResponseSchema>;
 export type SaveKeyRequest = z.infer<typeof SaveKeyRequestSchema>;
 export type DetectedKey = z.infer<typeof DetectedKeySchema>;
 export type AutoDetectResult = z.infer<typeof AutoDetectResultSchema>;
+export type CliVersionSnapshot = z.infer<typeof CliVersionSnapshotSchema>;
 export type AvailableAgent = z.infer<typeof AvailableAgentSchema>;
 export type AvailableApiProvider = z.infer<typeof AvailableApiProviderSchema>;
 export type CliInstallMethod = z.infer<typeof CliInstallMethodSchema>;

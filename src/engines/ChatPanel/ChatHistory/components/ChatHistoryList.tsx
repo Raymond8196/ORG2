@@ -227,7 +227,6 @@ function sameFlatItems(
       leftItem.chunk_id === rightItem.chunk_id &&
       leftItem.type === rightItem.type &&
       leftItem.consolidatedParts === rightItem.consolidatedParts &&
-      leftItem.repeatedErrorCount === rightItem.repeatedErrorCount &&
       leftItem.structuralOnly === rightItem.structuralOnly &&
       sameEventSummary(leftItem.event, rightItem.event) &&
       sameEventList(leftItem.readFileEvents, rightItem.readFileEvents) &&

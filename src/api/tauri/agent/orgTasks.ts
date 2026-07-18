@@ -53,6 +53,7 @@ export interface AgentOrgRunContext {
   coordinatorRole: string;
   members: AgentOrgRunContextMember[];
   hierarchyMode: string;
+  planApprovalPolicy: "coordinator" | "user" | "automatic";
   /** Session ID of the coordinator (root) session. Used to navigate directly
    *  to the coordinator's chat history when the run is paused or the user
    *  is viewing a different member. `null` only before the first coordinator
@@ -89,17 +90,57 @@ export const AGENT_ORG_RUN_STATUS = {
 export type AgentOrgRunStatus =
   (typeof AGENT_ORG_RUN_STATUS)[keyof typeof AGENT_ORG_RUN_STATUS];
 
+export const AGENT_ORG_RUN_PHASE = {
+  COORDINATING: "coordinating",
+  DISPATCHING: "dispatching",
+  MEMBERS_WORKING: "members_working",
+  WAITING: "waiting",
+  AWAITING_PLAN_APPROVAL: "awaiting_plan_approval",
+  FINALIZING: "finalizing",
+  PAUSED: "paused",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  CANCELLED: "cancelled",
+  ABANDONED: "abandoned",
+} as const;
+
+export type AgentOrgRunPhase =
+  (typeof AGENT_ORG_RUN_PHASE)[keyof typeof AGENT_ORG_RUN_PHASE];
+
 export interface AgentOrgRunView {
   context: AgentOrgRunContext;
   runStatus: AgentOrgRunStatus;
+  runPhase: AgentOrgRunPhase;
   currentMemberId?: string | null;
   members: AgentOrgRunMemberView[];
   tasks: AgentOrgTask[];
   inbox: AgentOrgInboxRow[];
+  pendingPlanApprovals: AgentOrgPlanApproval[];
 }
 
-export interface AgentOrgSessionInterventionState {
-  intervention?: AgentOrgMemberIntervention | null;
+export interface AgentOrgPlanApproval {
+  approvalId: string;
+  planRevisionId: string;
+  requestId: string;
+  orgRunId: string;
+  sourceTaskId: string;
+  sourceMemberId: string;
+  sourceSessionId: string;
+  rootSessionId: string;
+  policy: "coordinator" | "user" | "automatic";
+  status:
+    | "pending"
+    | "approved"
+    | "changes_requested"
+    | "superseded"
+    | "cancelled";
+  planTitle: string;
+  planPath: string;
+  planContent: string;
+  decisionBy?: string | null;
+  feedback?: string | null;
+  createdAt: string;
+  resolvedAt?: string | null;
 }
 
 export interface AgentOrgDirectMemberMessageResponse {
@@ -117,6 +158,28 @@ export interface AgentOrgGroupChatMessageResponse {
   inboxRow: AgentOrgInboxRow;
 }
 
+type AgentOrgStateChangeSubscriber = (sessionId: string) => void;
+
+const agentOrgStateChangeSubscribers = new Set<AgentOrgStateChangeSubscriber>();
+
+function publishAgentOrgStateChange(sessionId: string): void {
+  for (const subscriber of agentOrgStateChangeSubscribers) {
+    subscriber(sessionId);
+  }
+}
+
+/**
+ * Invalidates cached Agent Org projections after a local mutation. Backend
+ * pushes cover background activity; the store keeps a slow recovery read for
+ * missed events.
+ */
+export function subscribeAgentOrgStateChanges(
+  subscriber: AgentOrgStateChangeSubscriber
+): () => void {
+  agentOrgStateChangeSubscribers.add(subscriber);
+  return () => agentOrgStateChangeSubscribers.delete(subscriber);
+}
+
 export interface AgentOrgTask {
   id: string;
   orgRunId: string;
@@ -130,6 +193,7 @@ export interface AgentOrgTask {
   blocks: string[];
   blockedBy: string[];
   metadata?: unknown;
+  executionMode?: "build" | "plan";
   createdAt: string;
   updatedAt: string;
 }
@@ -159,29 +223,45 @@ export async function getAgentOrgSessionRunView(
   });
 }
 
-export async function enterAgentOrgSessionIntervention(
-  sessionId: string
-): Promise<boolean> {
-  return invokeTauri<boolean>("agent_org_session_enter_intervention", {
-    sessionId,
+export async function respondAgentOrgPlanApproval(input: {
+  sessionId: string;
+  approvalId: string;
+  planRevisionId: string;
+  decision: "approve" | "approve_with_edits" | "request_changes";
+  editedContent?: string | null;
+  feedback?: string | null;
+}): Promise<AgentOrgPlanApproval> {
+  return invokeTauri<AgentOrgPlanApproval>("agent_org_plan_approval_respond", {
+    ...input,
+    editedContent: input.editedContent ?? null,
+    feedback: input.feedback ?? null,
   });
 }
 
-export async function getAgentOrgSessionInterventionState(
+export async function enterAgentOrgSessionIntervention(
   sessionId: string
-): Promise<AgentOrgSessionInterventionState> {
-  return invokeTauri<AgentOrgSessionInterventionState>(
-    "agent_org_session_intervention_state",
-    { sessionId }
+): Promise<boolean> {
+  const changed = await invokeTauri<boolean>(
+    "agent_org_session_enter_intervention",
+    {
+      sessionId,
+    }
   );
+  if (changed) publishAgentOrgStateChange(sessionId);
+  return changed;
 }
 
 export async function returnAgentOrgSessionToWork(
   sessionId: string
 ): Promise<boolean> {
-  return invokeTauri<boolean>("agent_org_session_return_to_work", {
-    sessionId,
-  });
+  const changed = await invokeTauri<boolean>(
+    "agent_org_session_return_to_work",
+    {
+      sessionId,
+    }
+  );
+  if (changed) publishAgentOrgStateChange(sessionId);
+  return changed;
 }
 
 export async function sendAgentOrgGroupChatMessage(
@@ -189,7 +269,7 @@ export async function sendAgentOrgGroupChatMessage(
   targetMemberId: string | null,
   content: string
 ): Promise<AgentOrgGroupChatMessageResponse> {
-  return invokeTauri<AgentOrgGroupChatMessageResponse>(
+  const response = await invokeTauri<AgentOrgGroupChatMessageResponse>(
     "agent_org_send_group_chat_message",
     {
       sessionId,
@@ -197,6 +277,8 @@ export async function sendAgentOrgGroupChatMessage(
       content,
     }
   );
+  publishAgentOrgStateChange(sessionId);
+  return response;
 }
 
 export async function sendAgentOrgUserMessageToMember(
@@ -204,7 +286,7 @@ export async function sendAgentOrgUserMessageToMember(
   memberId: string,
   content: string
 ): Promise<AgentOrgDirectMemberMessageResponse> {
-  return invokeTauri<AgentOrgDirectMemberMessageResponse>(
+  const response = await invokeTauri<AgentOrgDirectMemberMessageResponse>(
     "agent_org_send_user_message_to_member",
     {
       sessionId,
@@ -212,12 +294,22 @@ export async function sendAgentOrgUserMessageToMember(
       content,
     }
   );
+  publishAgentOrgStateChange(sessionId);
+  return response;
 }
 
 export async function pauseAgentOrgRun(sessionId: string): Promise<boolean> {
-  return invokeTauri<boolean>("agent_org_pause_run", { sessionId });
+  const changed = await invokeTauri<boolean>("agent_org_pause_run", {
+    sessionId,
+  });
+  if (changed) publishAgentOrgStateChange(sessionId);
+  return changed;
 }
 
 export async function resumeAgentOrgRun(sessionId: string): Promise<boolean> {
-  return invokeTauri<boolean>("agent_org_resume_run", { sessionId });
+  const changed = await invokeTauri<boolean>("agent_org_resume_run", {
+    sessionId,
+  });
+  if (changed) publishAgentOrgStateChange(sessionId);
+  return changed;
 }

@@ -417,7 +417,6 @@
       "error": "세션 포크에 실패했습니다",
       "sendFailed": "포크했지만 메시지 전송에 실패했습니다. 내용이 입력창에 복원되었습니다",
       "forkedChipTooltip": "{{name}} 님에게서 포크됨",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

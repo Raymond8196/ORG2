@@ -547,6 +547,12 @@
           "smartDateYesterday": "昨天",
           "senderTitle": {
             "taskCreated": "{{subject}} 创建了任务",
+            "taskCreateRunning": "{{subject}} 正在创建任务",
+            "taskCreateRejected": "{{subject}} 的任务创建需要修正",
+            "taskCreateFailed": "{{subject}} 创建任务失败",
+            "taskOperationRunning": "{{subject}} 正在执行任务操作",
+            "taskOperationRejected": "{{subject}} 的任务操作需要修正",
+            "taskOperationFailed": "{{subject}} 的任务操作失败",
             "taskUpdated": "{{subject}} 更新了任务",
             "taskDeleted": "{{subject}} 删除了任务",
             "taskViewed": "{{subject}} 查看了任务详情",
@@ -1314,45 +1320,6 @@
     "searchSymbolsRunning": "搜索符号中",
     "searchSymbolsDone": "搜索符号",
     "searchSymbolsFailed": "符号搜索失败",
-    "codeMapStatusRunning": "Checking Code Map",
-    "codeMapStatusDone": "Checked Code Map",
-    "codeMapStatusFailed": "Code Map check failed",
-    "codeMapSearchRunning": "Searching Code Map",
-    "codeMapSearchDone": "Searched Code Map",
-    "codeMapSearchFailed": "Code Map search failed",
-    "codeMapNodeRunning": "Inspecting Code Map node",
-    "codeMapNodeDone": "Inspected Code Map node",
-    "codeMapNodeFailed": "Code Map node inspection failed",
-    "codeMapCallersRunning": "Finding Code Map callers",
-    "codeMapCallersDone": "Found Code Map callers",
-    "codeMapCallersFailed": "Code Map callers failed",
-    "codeMapCalleesRunning": "Finding Code Map callees",
-    "codeMapCalleesDone": "Found Code Map callees",
-    "codeMapCalleesFailed": "Code Map callees failed",
-    "codeMapImpactRunning": "Analyzing Code Map impact",
-    "codeMapImpactDone": "Analyzed Code Map impact",
-    "codeMapImpactFailed": "Code Map impact failed",
-    "codeMapExploreRunning": "Exploring Code Map",
-    "codeMapExploreDone": "Explored Code Map",
-    "codeMapExploreFailed": "Code Map exploration failed",
-    "manageCodeMapRunning": "Managing Code Map",
-    "manageCodeMapDone": "Managed Code Map",
-    "manageCodeMapFailed": "Code Map management failed",
-    "manageCodeMapStatusRunning": "Checking Code Map index",
-    "manageCodeMapStatusDone": "Checked Code Map index",
-    "manageCodeMapStatusFailed": "Code Map index check failed",
-    "manageCodeMapIndexRunning": "Indexing Code Map",
-    "manageCodeMapIndexDone": "Indexed Code Map",
-    "manageCodeMapIndexFailed": "Code Map indexing failed",
-    "manageCodeMapReindexRunning": "Re-indexing Code Map",
-    "manageCodeMapReindexDone": "Re-indexed Code Map",
-    "manageCodeMapReindexFailed": "Code Map re-index failed",
-    "manageCodeMapCancelRunning": "Cancelling Code Map index",
-    "manageCodeMapCancelDone": "Cancelled Code Map index",
-    "manageCodeMapCancelFailed": "Code Map cancel failed",
-    "manageCodeMapClearRunning": "Clearing Code Map index",
-    "manageCodeMapClearDone": "Cleared Code Map index",
-    "manageCodeMapClearFailed": "Code Map clear failed",
     "searchCheckStatusRunning": "正在检查 Index status",
     "searchCheckStatusDone": "检查 Index status",
     "searchCheckStatusFailed": "Index status 检查失败",
@@ -1993,6 +1960,11 @@
       "title": "缺少 Git",
       "body": "未安装 Git 或无法找到 Git。请让 ADE Manager 或 SDE Agent 为这台机器安装 Git，然后重启 ORGII。"
     },
+    "cliVersionOutdated": {
+      "title": "{{cli}} CLI 需要升级",
+      "body": "当前安装版本：{{installed}}；最新版本：{{latest}}。请自行升级 CLI，再重新扫描后使用较新的模型",
+      "unknownVersion": "未知"
+    },
     "noProvidersAvailable": "没有可用的提供者",
     "enterPublicRepoUrl": "输入公共仓库 URL",
     "repoUrlPlaceholder": "https://github.com/owner/repo",
@@ -2322,7 +2294,32 @@
       "memberSessions": "成员会话",
       "pauseRun": "暂停运行",
       "resumeRun": "恢复运行",
-      "viewCoordinatorHistory": "View coordinator chat history"
+      "viewCoordinatorHistory": "查看 Coordinator 对话历史",
+      "planApproval": {
+        "title": "计划等待审批",
+        "from": "由 {{member}} 提交",
+        "approve": "批准计划",
+        "approveEdits": "批准修改版",
+        "requestChanges": "要求修改",
+        "sendFeedback": "发送修改意见",
+        "editLabel": "编辑已提交的计划",
+        "feedbackLabel": "计划修改意见",
+        "feedbackPlaceholder": "清楚告诉 Planner 哪些地方需要修改……",
+        "paused": "请先恢复本次运行，再处理这个计划。"
+      },
+      "phase": {
+        "coordinating": "正在协调",
+        "dispatching": "正在派发",
+        "members_working": "成员工作中",
+        "waiting": "等待下一步",
+        "awaiting_plan_approval": "等待计划审批",
+        "finalizing": "正在收尾",
+        "paused": "已暂停",
+        "completed": "已完成",
+        "failed": "失败",
+        "cancelled": "已取消",
+        "abandoned": "已放弃"
+      }
     },
     "agentOrgInbox": {
       "title": "Agent 消息",
@@ -2458,67 +2455,6 @@
     "myApiKeys": "我的 {{count}} 个 Key",
     "addApiKey": "添加 API Key",
     "noRepoSelected": "未选择仓库",
-    "codeMap": {
-      "title": "Code Map",
-      "statusAria": "Code Map 状态：{{status}}",
-      "neverIndexed": "从未索引",
-      "lastIndexed": "上次索引 {{time}}",
-      "progressFiles": "{{processed}} / {{total}} 个文件",
-      "errorTitle": "Code Map 错误",
-      "status": {
-        "notIndexed": "未索引",
-        "indexing": "索引中",
-        "ready": "就绪",
-        "stale": "已过期",
-        "failed": "失败",
-        "cancelled": "已取消"
-      },
-      "phase": {
-        "queued": "排队中",
-        "scanning": "扫描中",
-        "extracting": "提取中",
-        "storing": "存储中",
-        "resolving": "解析中",
-        "complete": "完成",
-        "failed": "失败",
-        "cancelled": "已取消"
-      },
-      "stats": {
-        "files": "文件",
-        "symbols": "符号",
-        "relationships": "关系",
-        "indexSize": "索引大小",
-        "unresolved": "未解析",
-        "staleFiles": "过期文件"
-      },
-      "actions": {
-        "index": "索引",
-        "reindex": "重新索引",
-        "cancel": "取消",
-        "stop": "停止",
-        "clear": "清除",
-        "refresh": "刷新"
-      },
-      "progressChanges": "新增 {{added}} · 修改 {{modified}} · 删除 {{deleted}}",
-      "browser": {
-        "title": "Code Map 浏览器",
-        "searchTitle": "搜索 Code Map",
-        "searchPlaceholder": "搜索符号、文件或签名",
-        "search": "搜索",
-        "resultSummary": "{{count}} 个结果 · {{unresolved}} 未解析 · {{stale}} 过期",
-        "noResults": "没有匹配的 Code Map 结果。",
-        "selectNode": "选择一个结果以查看源代码和关系。",
-        "loadingDetails": "正在加载 Code Map 详情…",
-        "noRelationships": "未找到关系。",
-        "incoming": "传入",
-        "outgoing": "传出",
-        "source": "源代码",
-        "confidence": "置信度：{{value}}",
-        "extraction": "提取方式：{{value}}",
-        "resolution": "解析状态：{{value}}",
-        "relationshipCounts": "{{incoming}} 传入 · {{outgoing}} 传出"
-      }
-    },
     "diff": {
       "untitledSession": "未命名 Session",
       "singleFile": "单文件",
@@ -2593,8 +2529,14 @@
     "taskHeader": {
       "createWithOwner": "{{sender}} 分配任务给 {{ownerName}}",
       "create": "{{sender}} 分配了任务",
+      "createRunning": "{{sender}} 正在创建任务",
+      "createRejected": "{{sender}} 的任务创建需要修正",
+      "createFailed": "{{sender}} 创建任务失败",
       "updateStatus": "{{sender}} 更新了任务状态",
       "updateDetail": "{{sender}} 更新了任务详情",
+      "updateRunning": "{{sender}} 正在更新任务",
+      "updateRejected": "{{sender}} 的任务更新需要修正",
+      "updateFailed": "{{sender}} 更新任务失败",
       "get": "{{sender}} 查看了任务详情",
       "list": "{{sender}} 查看了任务列表"
     },
@@ -2632,12 +2574,18 @@
   "orgTask": {
     "create": {
       "title": "分配任务",
-      "titleWithOwner": "分配任务给 {{ownerName}}"
+      "titleWithOwner": "分配任务给 {{ownerName}}",
+      "runningTitle": "正在创建任务",
+      "rejectedTitle": "任务创建需要修正",
+      "failedTitle": "任务创建失败"
     },
     "update": {
       "titleStatus": "更新任务状态",
       "titleDetail": "更新任务详情",
-      "markedAs": "标记为 {{status}}"
+      "markedAs": "标记为 {{status}}",
+      "runningTitle": "正在更新任务",
+      "rejectedTitle": "任务更新需要修正",
+      "failedTitle": "任务更新失败"
     },
     "get": {
       "title": "查看任务详情"
@@ -2651,6 +2599,11 @@
     "assignedBadge": "已分配",
     "assignedToLabel": "分配给",
     "updatedAtLabel": "更新于",
+    "outcome": {
+      "pending": "正在处理",
+      "rejected": "需要修正",
+      "failed": "失败"
+    },
     "status": {
       "pending": "待处理",
       "in_progress": "进行中",
