@@ -1032,6 +1032,12 @@ pub fn run() {
                     agent_core::coordination::work_item_recovery::mark_all_interrupted_sync();
                     // Release computer-use lock if held
                     integrations::computer_use_lock::force_release_on_exit();
+                    // Kill all PTY shells and (on Unix) their whole process
+                    // sessions — HUP-immune descendants would otherwise leak
+                    // past app exit.
+                    app_handle
+                        .state::<::terminal::pty_commands::pty::PtyState>()
+                        .shutdown_kill_all();
                 }
                 _ => {}
             }
