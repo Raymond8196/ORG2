@@ -50,6 +50,9 @@ describe("imported history source registry", () => {
       "warp",
       "zcode",
       "qoder",
+      "mimo_code",
+      "omp",
+      "qoder_cli",
     ]);
     expect(
       IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory)
@@ -66,6 +69,9 @@ describe("imported history source registry", () => {
       "external_history:warp",
       "external_history:zcode",
       "external_history:qoder",
+      "external_history:mimo_code",
+      "external_history:omp",
+      "external_history:qoder_cli",
     ]);
     for (const source of IMPORTED_HISTORY_SOURCES) {
       expect(source.loadPreviewChunks).toBeTypeOf("function");
@@ -95,6 +101,15 @@ describe("imported history source registry", () => {
     expect(
       getImportedHistorySourceBySessionId("warpapp-session-1")?.sourceId
     ).toBe("warp");
+    expect(
+      getImportedHistorySourceBySessionId("mimocodeapp-session-1")?.sourceId
+    ).toBe("mimo_code");
+    expect(
+      getImportedHistorySourceBySessionId("ompapp-session-1")?.sourceId
+    ).toBe("omp");
+    expect(
+      getImportedHistorySourceBySessionId("qodercliapp-session-1")?.sourceId
+    ).toBe("qoder_cli");
   });
 
   it("resolves source metadata by list category", () => {

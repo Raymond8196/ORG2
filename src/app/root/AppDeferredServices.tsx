@@ -12,7 +12,6 @@
  * - DeferredWindowFocusTracking
  * - DeferredGitAutoFetch      — background git remote polling
  * - DeferredProcessReconciliation — reseed shell/PTY state from Rust
- * - AutoIndexingProvider      — repo indexing scheduler
  * - AppUpdater                — Tauri auto-update poller
  * - APICallPanelProvider      — DevTools API call inspector
  * - SecretCaptureModal        — out-of-band secret capture overlay
@@ -27,13 +26,6 @@ const GlobalDragDrop = React.lazy(
   () =>
     import(
       /* webpackChunkName: "deferred-services" */ "@src/components/GlobalDragDrop"
-    )
-);
-
-const AutoIndexingProvider = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "deferred-services" */ "@src/components/System/AutoIndexingProvider"
     )
 );
 
@@ -180,9 +172,6 @@ export const AppDeferredServices: React.FC<{ ready: boolean }> = ({
       </DeferredServiceBoundary>
       <DeferredServiceBoundary>
         <DeferredTerminalPersistence />
-      </DeferredServiceBoundary>
-      <DeferredServiceBoundary>
-        <AutoIndexingProvider />
       </DeferredServiceBoundary>
       <DeferredServiceBoundary>
         <AppUpdater />

@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import React, { Suspense } from "react";
 
+import type { SessionContinuation } from "@src/store/session/sessionTabPlacementAtom";
 import { chatStatusBarVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import type {
   ChatHistoryDisplayMode,
@@ -40,6 +41,7 @@ interface ChatPanelContentProps {
   currentSessionId: string | null;
   emptyChatContent: React.ReactNode;
   handleRegisterSearchOpen: (handler: (() => void) | null) => void;
+  onSessionContinuation: (continuation: SessionContinuation) => void;
   displayMode: ChatHistoryDisplayMode;
   paginationEnabled: boolean;
   position: "left" | "right";
@@ -63,6 +65,7 @@ export function ChatPanelContent({
   currentSessionId,
   emptyChatContent,
   handleRegisterSearchOpen,
+  onSessionContinuation,
   displayMode,
   paginationEnabled,
   position,
@@ -122,6 +125,7 @@ export function ChatPanelContent({
               displayMode={displayMode}
               turnPaginationEnabled={paginationEnabled}
               position={position}
+              onSessionContinuation={onSessionContinuation}
             />
           </div>
           {statusBarVisible && <ChatStatusBar sessionId={currentSessionId} />}
