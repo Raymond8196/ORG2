@@ -102,19 +102,19 @@ const TabBarPlusMenuComponent: React.FC<TabBarPlusMenuProps> = ({
             >
               <span className="flex min-w-0 flex-1 items-center gap-2">
                 <Icon size={HEADER_ICON_SIZE.sm} />
-                <span className="truncate">{action.label}</span>
+                <span className="min-w-0 truncate">{action.label}</span>
+                {action.id === "sourceControl" &&
+                (additions > 0 || deletions > 0) ? (
+                  <DiffStatsBadge
+                    additions={additions}
+                    deletions={deletions}
+                    variant="plain"
+                    size="xs"
+                    reserveValueWidth={false}
+                    className="shrink-0"
+                  />
+                ) : null}
               </span>
-              {action.id === "sourceControl" &&
-              (additions > 0 || deletions > 0) ? (
-                <DiffStatsBadge
-                  additions={additions}
-                  deletions={deletions}
-                  variant="plain"
-                  size="xs"
-                  reserveValueWidth={false}
-                  className="shrink-0"
-                />
-              ) : null}
               {action.shortcut ? (
                 <KeyboardShortcut
                   shortcut={action.shortcut}
