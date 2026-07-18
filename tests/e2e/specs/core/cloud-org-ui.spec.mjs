@@ -83,6 +83,7 @@ import {
   execJS,
   hasAddressCommentsPill,
   invokeE2E,
+  js,
   listCloudCommentTasks,
   offlineCloudUser,
   openAddressCommentsFlyout,
@@ -624,7 +625,22 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       orgId,
       live ? null : { orgId, name: OFFLINE_ORG_NAME, role: "owner" }
     );
-    await waitForRendered(ordinaryRowSelector, "ordinary row after table view");
+    // Live listing refresh races the scope re-select; drive the section's
+    // own refresh control until the seeded rows land.
+    await browser.waitUntil(
+      async () => {
+        if (await execJS(js.exists(ordinaryRowSelector))) return true;
+        await execJS(
+          `document.querySelector('[data-testid="cloud-team-sessions-refresh"]')?.click();`
+        );
+        return execJS(js.exists(ordinaryRowSelector));
+      },
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 1_000,
+        timeoutMsg: `ordinary row after table view never rendered: ${ordinaryRowSelector}`,
+      }
+    );
     await waitForRendered(directRowSelector, "direct row after table view");
 
     await clickRendered(

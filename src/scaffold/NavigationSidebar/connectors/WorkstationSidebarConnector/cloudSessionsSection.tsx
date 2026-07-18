@@ -14,8 +14,11 @@
  * - teammate rows get `cloudremote-<orgId>|<rowId>` ids, resolved in
  *   useWorkstationSidebarHandlers BEFORE the sessionMap fallback.
  *
- * Parent-row choice: NavigationMenuParentRow already forwards label clicks
- * to onMenuItemClick, so thread roots stay natively clickable (replay/open).
+ * Parent-row choice: a thread root sets `navigableParent`, so a body/label
+ * click OPENS the source session (replay/open) while the dedicated chevron
+ * toggles the fork thread — without the flag the primitive treats a
+ * children-bearing row as a group header whose whole body only toggles,
+ * which stranded fork sources as unclickable once a fork added a child row.
  * The primitive renders hover rowActions on LEAF rows only, so Replay/Fork
  * hover buttons appear on descendants and on single-row threads (rendered
  * as leaves); a multi-row thread's root keeps click-to-replay but has no
@@ -540,6 +543,10 @@ export function useCloudSessionsSection({
               iconType: "session",
             }
           : undefined,
+        // A thread root is a real session, not just a group header: keep it
+        // openable after a fork adds child rows (the chevron toggles the
+        // thread). Only meaningful when it actually has children.
+        navigableParent: asParentOf !== undefined && !disabled,
       };
       if (!disabled) {
         item.showMoreActions = true;

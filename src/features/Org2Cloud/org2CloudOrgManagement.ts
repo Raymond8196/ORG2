@@ -10,6 +10,7 @@
  * (`cloud_list_invites`) never returns the code or even the hash — a lost
  * plaintext means minting a new invite.
  */
+import { ORG2_CLOUD_OFFICIAL_SUPABASE_URL } from "./config";
 
 // ---------------------------------------------------------------------------
 // Invite code generation / hashing
@@ -178,11 +179,19 @@ export function buildCloudSessionShareLink(
   shareToken: string,
   endpoint: CloudShareLinkEndpoint = DEFAULT_CLOUD_SHARE_LINK_ENDPOINT
 ): string {
+  // A custom endpoint override that points at the OFFICIAL deployment must
+  // mint an official link: a receiver on a stock build has no override
+  // configured, and a `custom` link would fail its endpoint-mismatch gate
+  // even though the token resolves against the managed cloud.
+  const isOfficial =
+    endpoint.isOfficial ||
+    normalizeCloudShareEndpointUrl(endpoint.supabaseUrl) ===
+      ORG2_CLOUD_OFFICIAL_SUPABASE_URL;
   const params = new URLSearchParams({
     share: shareToken,
-    endpoint: endpoint.isOfficial ? "official" : "custom",
+    endpoint: isOfficial ? "official" : "custom",
   });
-  if (!endpoint.isOfficial) {
+  if (!isOfficial) {
     const normalized = normalizeCloudShareEndpointUrl(endpoint.supabaseUrl);
     if (!normalized) throw new Error("Invalid custom cloud endpoint URL");
     params.set("endpointUrl", normalized);
@@ -230,9 +239,12 @@ export function parseCloudShareDeepLink(
     const supabaseUrl = normalizeCloudShareEndpointUrl(
       params.get("endpointUrl") ?? ""
     );
-    return supabaseUrl
-      ? { shareToken, endpoint: { kind: "custom", supabaseUrl } }
-      : null;
+    if (!supabaseUrl) return null;
+    // Heal already-minted links whose custom URL IS the official deployment.
+    if (supabaseUrl === ORG2_CLOUD_OFFICIAL_SUPABASE_URL) {
+      return { shareToken, endpoint: { kind: "official" } };
+    }
+    return { shareToken, endpoint: { kind: "custom", supabaseUrl } };
   } catch {
     return null;
   }

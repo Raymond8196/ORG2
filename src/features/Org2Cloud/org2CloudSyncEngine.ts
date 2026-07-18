@@ -344,6 +344,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         if (forkedFrom && forkedFrom.orgId !== org.orgId && !tagged) {
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
+              log.info(
+                `cloud retract [fork outside source org]: session ${session.session_id} org ${org.orgId}`
+              );
               await this.sessionSync.retractSession(
                 fresh,
                 org.orgId,
@@ -393,6 +396,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         ) {
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
+              log.info(
+                `cloud retract [ownership-gate (untagged/unowned/no-intent)]: session ${session.session_id} org ${org.orgId}`
+              );
               await this.sessionSync.retractSession(
                 fresh,
                 org.orgId,
@@ -433,6 +439,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         if (matchedScope === null) {
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
+              log.info(
+                `cloud retract [out-of-scope (no matching org scope)]: session ${session.session_id} org ${org.orgId}`
+              );
               await this.sessionSync.retractSession(
                 fresh,
                 org.orgId,
@@ -494,6 +503,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
           // untag does. §13.4.
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
+              log.info(
+                `cloud retract [effective-off ladder]: session ${session.session_id} org ${org.orgId}`
+              );
               await this.sessionSync.retractSession(
                 fresh,
                 org.orgId,

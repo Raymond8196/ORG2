@@ -41,6 +41,8 @@ interface NavigationMenuParentRowProps extends Omit<
   onRowMouseEnter: NavigationMenuRowMouseEnterHandler;
   onRowActionClick: NavigationMenuRowActionClickHandler;
   onToggleSubmenu: (key: string) => void;
+  /** Present when `item.navigableParent`: a body click selects the item. */
+  onMenuItemClick?: NavigationMenuItemClickHandler;
   compactRows: boolean;
 }
 
@@ -61,6 +63,7 @@ export const NavigationMenuParentRow = React.forwardRef<
     onRowMouseEnter,
     onRowActionClick,
     onToggleSubmenu,
+    onMenuItemClick,
     compactRows,
     onMouseEnter,
     onMouseLeave,
@@ -69,6 +72,9 @@ export const NavigationMenuParentRow = React.forwardRef<
   ref
 ): React.ReactElement {
   const iconColor = "text-text-1";
+  // Navigable parent: the row body opens the item (like a leaf); only the
+  // chevron toggles the submenu. Group headers (no flag) toggle on body.
+  const navigable = Boolean(item.navigableParent && onMenuItemClick);
   const { dragHandlers, dragState } = useNavItemDrag(item);
   const {
     cursorReset,
@@ -115,10 +121,14 @@ export const NavigationMenuParentRow = React.forwardRef<
             ? "cursor-default opacity-60"
             : `${cursorReset ? "cursor-default" : "cursor-pointer"} hover:bg-sidebar-selected`
         }`}
-        onClick={() => {
+        onClick={(event: React.MouseEvent) => {
           if (item.disabled) return;
           markClicked();
-          onToggleSubmenu(item.key);
+          if (navigable) {
+            onMenuItemClick?.(item.key, item, event);
+          } else {
+            onToggleSubmenu(item.key);
+          }
         }}
         onKeyDown={(event) => {
           if (item.disabled || (event.key !== "Enter" && event.key !== " ")) {
@@ -126,7 +136,15 @@ export const NavigationMenuParentRow = React.forwardRef<
           }
           event.preventDefault();
           markClicked();
-          onToggleSubmenu(item.key);
+          if (navigable) {
+            onMenuItemClick?.(
+              item.key,
+              item,
+              event as unknown as React.MouseEvent
+            );
+          } else {
+            onToggleSubmenu(item.key);
+          }
         }}
         onMouseEnter={(event: React.MouseEvent) =>
           onRowMouseEnter(event, item.routePath)
@@ -177,19 +195,36 @@ export const NavigationMenuParentRow = React.forwardRef<
                   : undefined
               }
             />
-            {isOpen ? (
-              <ChevronsDownUp
-                size={12}
-                strokeWidth={2}
-                className="shrink-0 text-text-2"
-              />
-            ) : (
-              <ChevronsUpDown
-                size={12}
-                strokeWidth={2}
-                className="shrink-0 text-text-2"
-              />
-            )}
+            {(() => {
+              const Chevron = isOpen ? ChevronsDownUp : ChevronsUpDown;
+              const chevron = (
+                <Chevron
+                  size={12}
+                  strokeWidth={2}
+                  className="shrink-0 text-text-2"
+                />
+              );
+              // On a navigable parent the body click NAVIGATES, so the
+              // chevron becomes the dedicated expand/collapse control.
+              return navigable ? (
+                <button
+                  type="button"
+                  aria-label={t("actions.toggle")}
+                  data-testid={
+                    item.dataTestId ? `${item.dataTestId}-toggle` : undefined
+                  }
+                  className="inline-flex shrink-0 items-center justify-center rounded p-0.5 hover:bg-fill-3"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onToggleSubmenu(item.key);
+                  }}
+                >
+                  {chevron}
+                </button>
+              ) : (
+                chevron
+              );
+            })()}
           </span>
         )}
       </div>

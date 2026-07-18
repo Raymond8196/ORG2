@@ -390,7 +390,10 @@ export async function startSecondCloudInstance() {
       path: "/",
       logLevel: process.env.WDIO_LOG_LEVEL ?? "warn",
       connectionRetryCount: 10,
-      connectionRetryTimeout: 30_000,
+      connectionRetryTimeout: Number.parseInt(
+        process.env.WDIO_CONNECTION_RETRY_TIMEOUT_MS ?? "30000",
+        10
+      ),
       capabilities: {
         timeouts: { script: 420_000 },
         "tauri:options": { binary },

@@ -80,14 +80,24 @@ describe("refreshOrgEntitlement", () => {
     expect(getEntitlementStateMock).toHaveBeenCalledTimes(2);
   });
 
-  it("a null entitlement or token leaves the mirror untouched", async () => {
+  it("a null entitlement schedules exactly one bounded retry", async () => {
     getEntitlementStateMock.mockResolvedValueOnce(null as never);
     await refreshOrgEntitlement(store, "corg-1", token);
     expect(store.get(org2CloudSharingFloorAtom)).toEqual({});
-
-    vi.advanceTimersByTime(ENTITLEMENT_REFRESH_TTL_MS + 1);
-    await refreshOrgEntitlement(store, "corg-2", async () => null);
     expect(getEntitlementStateMock).toHaveBeenCalledTimes(1);
+
+    getEntitlementStateMock.mockResolvedValueOnce(null as never);
+    await vi.advanceTimersByTimeAsync(ENTITLEMENT_REFRESH_TTL_MS + 1);
+    expect(getEntitlementStateMock).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(ENTITLEMENT_REFRESH_TTL_MS * 3);
+    expect(getEntitlementStateMock).toHaveBeenCalledTimes(2);
+    expect(store.get(org2CloudSharingFloorAtom)).toEqual({});
+  });
+
+  it("a null token never reaches the entitlement RPC", async () => {
+    await refreshOrgEntitlement(store, "corg-2", async () => null);
+    expect(getEntitlementStateMock).not.toHaveBeenCalled();
     expect(store.get(org2CloudSharingFloorAtom)).toEqual({});
   });
 });

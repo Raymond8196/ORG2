@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { ORG2_CLOUD_OFFICIAL_SUPABASE_URL } from "./config";
 import {
   CLOUD_ASSIGNABLE_ROLES,
   CLOUD_INVITE_STATE,
@@ -88,6 +89,30 @@ describe("cloud session share deep link (0012)", () => {
     const link = buildCloudSessionShareLink(token);
     expect(link).toBe(`orgii://cloud/session?share=${token}&endpoint=official`);
     expect(isCloudShareDeepLink(link)).toBe(true);
+    expect(parseCloudShareDeepLink(link)).toEqual({
+      shareToken: token,
+      endpoint: { kind: "official" },
+    });
+  });
+
+  it("normalizes an override pointing at the OFFICIAL deployment to official", () => {
+    const token = "d".repeat(64);
+    const link = buildCloudSessionShareLink(token, {
+      isOfficial: false,
+      supabaseUrl: `${ORG2_CLOUD_OFFICIAL_SUPABASE_URL}/`,
+    });
+    expect(link).toBe(`orgii://cloud/session?share=${token}&endpoint=official`);
+    expect(parseCloudShareDeepLink(link)).toEqual({
+      shareToken: token,
+      endpoint: { kind: "official" },
+    });
+  });
+
+  it("heals already-minted custom links whose URL is the official deployment", () => {
+    const token = "e".repeat(64);
+    const link = `orgii://cloud/session?share=${token}&endpoint=custom&endpointUrl=${encodeURIComponent(
+      ORG2_CLOUD_OFFICIAL_SUPABASE_URL
+    )}`;
     expect(parseCloudShareDeepLink(link)).toEqual({
       shareToken: token,
       endpoint: { kind: "official" },
