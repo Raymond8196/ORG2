@@ -8,6 +8,7 @@ pub mod importer;
 pub mod paths;
 pub mod session_provenance;
 pub mod types;
+pub mod usage_dashboard_commands;
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
