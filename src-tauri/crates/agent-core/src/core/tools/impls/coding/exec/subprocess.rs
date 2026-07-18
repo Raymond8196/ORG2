@@ -247,7 +247,7 @@ fn finish_cancelled_process(
     session_key: Option<&str>,
     log_writer: Option<&Arc<StdMutex<TerminalLogWriter>>>,
 ) -> Result<String, ToolError> {
-    if let Some(ref log) = log_writer {
+    if let Some(log) = log_writer {
         if let Ok(mut writer) = log.lock() {
             let _ = writer.finalize(LogProcessStatus::Killed, None);
         }

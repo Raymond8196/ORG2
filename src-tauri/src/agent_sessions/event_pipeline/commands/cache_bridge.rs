@@ -623,7 +623,7 @@ mod tests {
         assistant.display_text = FINAL_ASSISTANT_ANSWER.to_string();
         assistant.is_delta = Some(false);
 
-        let cached = vec![user, subagent, assistant]
+        let cached = [user, subagent, assistant]
             .iter()
             .filter(|event| !is_synthetic_persistence_artifact(event))
             .map(session_event_to_cached_event)
