@@ -30,6 +30,7 @@ import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
 import { stripCopyEventNamespace } from "../../TeamCollaboration/copyEventId";
+import { getSessionForkedFrom } from "../../TeamCollaboration/forkSession";
 import { collectAddressableThreads } from "../addressComments";
 import {
   addressRunActiveAtom,
@@ -210,6 +211,12 @@ export const SessionCommentsProvider: React.FC<
   // event id shared across all users. A fork/import copy carries namespaced
   // local ids, so anchor matching must happen in source-id space.
   const localSessionId = target ? (session?.session_id ?? null) : null;
+  // Origin attribution is for per-fork counts, so it is stamped ONLY for a
+  // writable fork. An import (read-only replay) or a plain tagged session must
+  // not create a bogus origin bucket — they coalesce to the source at count
+  // time.
+  const originSessionId =
+    session && getSessionForkedFrom(session) ? localSessionId : null;
   const toSourceEventId = useCallback(
     (eventId: string) =>
       localSessionId
@@ -233,7 +240,11 @@ export const SessionCommentsProvider: React.FC<
     editComment,
     deleteComment,
     resolveComment,
-  } = useSessionComments(target?.orgId ?? null, target?.sessionId ?? null);
+  } = useSessionComments(
+    target?.orgId ?? null,
+    target?.sessionId ?? null,
+    originSessionId
+  );
   const viewer = useSessionCommentViewer(target);
   const setPresentRegistry = useSetAtom(sessionCommentPresentEventIdsAtom);
   const withFreshToken = useCloudFreshAccessToken();

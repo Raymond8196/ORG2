@@ -94,6 +94,54 @@ describe("addSessionComment", () => {
     expect(lastBody().p_kind).toBe("agent_report");
   });
 
+  it("sends the additive origin argument only when set", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ comment: WIRE_COMMENT }));
+    await addSessionComment("jwt-1", {
+      orgId: "org-1",
+      sessionId: "sess-1",
+      body: "from a fork",
+      originSessionId: "fork-local-1",
+    });
+    expect(lastBody().p_origin_session_id).toBe("fork-local-1");
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ comment: WIRE_COMMENT }));
+    await addSessionComment("jwt-1", {
+      orgId: "org-1",
+      sessionId: "sess-1",
+      body: "from the source",
+    });
+    expect(lastBody()).not.toHaveProperty("p_origin_session_id");
+  });
+
+  it("retries without the origin arg against a pre-origin backend", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ message: "Could not find the function" }, 404)
+      )
+      .mockResolvedValueOnce(jsonResponse({ comment: WIRE_COMMENT }));
+    const comment = await addSessionComment("jwt-1", {
+      orgId: "org-1",
+      sessionId: "sess-1",
+      body: "from a fork",
+      originSessionId: "fork-local-1",
+    });
+    expect(comment.id).toBe("comment-1");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(lastBody()).not.toHaveProperty("p_origin_session_id");
+  });
+
+  it("does not retry a 404 when no origin arg was sent", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ message: "nope" }, 404));
+    await expect(
+      addSessionComment("jwt-1", {
+        orgId: "org-1",
+        sessionId: "sess-1",
+        body: "plain",
+      })
+    ).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("sends the turn anchor when provided", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({ comment: { ...WIRE_COMMENT, eventId: "evt-9" } })

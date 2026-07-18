@@ -226,6 +226,12 @@ export interface AddSessionCommentInput {
   parentId?: string;
   /** 'agent_report' is accepted by the server only from the session owner. */
   kind?: "agent_report";
+  /**
+   * Local session the comment ORIGINATED from (the fork the author is
+   * viewing). Stored server-side for per-fork count attribution; omitted /
+   * null keeps the comment counted on the source plane.
+   */
+  originSessionId?: string | null;
 }
 
 /**
@@ -247,11 +253,37 @@ export async function addSessionComment(
   // user comments so clients remain compatible with pre-extension backends;
   // only the additive agent-report path requires the newer argument.
   if (input.kind) body.p_kind = input.kind;
-  const payload = await callCommentRpc(
-    "cloud_add_session_comment",
-    accessToken,
-    body
-  );
+  // `p_origin_session_id` was added after the base comments migration (same
+  // pre-extension-compat rule as p_kind). Only forks/imports set it — a
+  // source-plane comment omits it and coalesces to the source at count time.
+  if (input.originSessionId) body.p_origin_session_id = input.originSessionId;
+  let payload: unknown;
+  try {
+    payload = await callCommentRpc(
+      "cloud_add_session_comment",
+      accessToken,
+      body
+    );
+  } catch (error) {
+    // Graceful degradation to a pre-origin backend: PostgREST answers 404
+    // when no function matches the argument set, so drop the additive origin
+    // arg and retry once. The comment still posts (counted on the source
+    // plane); per-fork attribution just waits for the migration.
+    if (
+      "p_origin_session_id" in body &&
+      error instanceof Org2CloudCommentError &&
+      error.status === 404
+    ) {
+      delete body.p_origin_session_id;
+      payload = await callCommentRpc(
+        "cloud_add_session_comment",
+        accessToken,
+        body
+      );
+    } else {
+      throw error;
+    }
+  }
   return AddCommentResultSchema.parse(payload).comment;
 }
 

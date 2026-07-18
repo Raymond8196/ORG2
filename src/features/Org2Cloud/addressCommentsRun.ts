@@ -3,9 +3,9 @@ import { atom } from "jotai";
 
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
+import { getSessionMetadata } from "@src/engines/SessionCore/storage/sqliteCache";
 import { createLogger } from "@src/hooks/logger";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom/atoms";
-import type { Session } from "@src/store/session/sessionAtom/types";
 import { TERMINAL_STATUSES } from "@src/types/session/session";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
@@ -54,15 +54,30 @@ const activeAddressRuns = new Map<string, ActiveAddressRun>();
 async function waitForAddressRunTerminal(
   sessionId: string,
   deadlineMs: number,
-  baselineSession: Session | undefined
+  baselineEventCount: number
 ): Promise<void> {
-  // One authoritative read closes the race where the terminal backend update
-  // landed before the atom subscription was installed.
-  const initial = await SessionService.getStatus({ sessionId });
-  if (TERMINAL_STATUSES.has(String(initial.status))) return;
-
   const store = getInstrumentedStore();
   const statusAtom = sessionByIdAtom(sessionId);
+  // A REAL turn appends events; sendMessage's markSessionActive bumps the row
+  // (new object, same terminal status) WITHOUT adding events. So the only
+  // trustworthy "a new turn actually produced output" signal for a terminal
+  // read is the persisted event count advancing past the pre-dispatch
+  // baseline — object identity and status value both fail (they match the
+  // pre-turn row), which is how a stale prior reply gets parsed.
+  const eventsAdvanced = async (): Promise<boolean> =>
+    ((await getSessionMetadata(sessionId).catch(() => undefined))?.eventCount ??
+      0) > baselineEventCount;
+  // One authoritative backend read closes the race where a fast turn completed
+  // before the subscription installed — accept it only once new events prove a
+  // turn ran (never on the pre-turn / markSessionActive terminal).
+  const initial = await SessionService.getStatus({ sessionId });
+  if (
+    TERMINAL_STATUSES.has(String(initial.status)) &&
+    (await eventsAdvanced())
+  ) {
+    return;
+  }
+
   await new Promise<void>((resolve, reject) => {
     let settled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -83,17 +98,17 @@ async function waitForAddressRunTerminal(
       else resolve();
     };
     const observeLocalStatus = (): boolean => {
-      const session = store.get(statusAtom);
-      const status = session?.status;
+      const status = store.get(statusAtom)?.status;
       if (!status) return false;
       if (!TERMINAL_STATUSES.has(String(status))) {
         observedActiveLocalStatus = true;
         return false;
       }
-      // Ignore the pre-turn terminal row. It is common for sendMessage to be
-      // accepted before the status-store's running notification arrives.
-      if (!observedActiveLocalStatus && session === baselineSession)
-        return false;
+      // Settle on terminal ONLY after the turn was seen running. sendMessage's
+      // markSessionActive emits a fresh terminal row before the agent starts;
+      // requiring an observed non-terminal first is what keeps that pre-turn
+      // terminal from being read as this turn's completion.
+      if (!observedActiveLocalStatus) return false;
       settle();
       return true;
     };
@@ -109,7 +124,10 @@ async function waitForAddressRunTerminal(
           timer = null;
           try {
             const { status } = await SessionService.getStatus({ sessionId });
-            if (TERMINAL_STATUSES.has(String(status))) {
+            if (
+              TERMINAL_STATUSES.has(String(status)) &&
+              (observedActiveLocalStatus || (await eventsAdvanced()))
+            ) {
               settle();
               return;
             }
@@ -473,9 +491,9 @@ export async function runAddressCommentsRound(
       getInstrumentedStore().get(agentTaskRunnerSettingsAtom),
       orgId
     );
-    const statusBaseline = getInstrumentedStore().get(
-      sessionByIdAtom(localSessionId)
-    );
+    const baselineEventCount =
+      (await getSessionMetadata(localSessionId).catch(() => undefined))
+        ?.eventCount ?? 0;
     await SessionService.sendMessage({
       sessionId: localSessionId,
       content: briefing,
@@ -490,7 +508,7 @@ export async function runAddressCommentsRound(
     await waitForAddressRunTerminal(
       localSessionId,
       Date.now() + RUN_DEADLINE_MS,
-      statusBaseline
+      baselineEventCount
     );
 
     const summary = (await readRunSummaryFromEventStore(localSessionId)) ?? "";
@@ -521,11 +539,12 @@ export async function runAddressCommentsRound(
     const effectiveHeldReply = run.heldBody ?? heldReply;
     const postedCount = toolPostedCount + toPost.length;
     const roundReplies = new Map(run.replied);
-    if (
-      holdReplyForCommentId !== undefined &&
-      effectiveHeldReply !== undefined
-    ) {
-      roundReplies.set(holdReplyForCommentId, effectiveHeldReply);
+    // Constraint: only POSTED replies may be cached for priorRoundReply reuse.
+    // The held reply is delivered as the task's completion report, not posted
+    // to the thread — caching it would let a failed-completion retry take the
+    // reuse path and mark the task done with the answer never posted anywhere.
+    if (holdReplyForCommentId !== undefined) {
+      roundReplies.delete(holdReplyForCommentId);
     }
     lastRoundReplies.set(localSessionId, roundReplies);
     log.info(

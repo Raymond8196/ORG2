@@ -43,6 +43,7 @@ import { workstationActiveSessionIdAtom } from "@src/store/session/viewAtom";
 import { kickCommentTaskRunner } from "./commentTaskRunner";
 import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import { ensureFreshSession } from "./org2CloudClient";
+import { org2CloudCommentTasksAtom } from "./org2CloudCommentTasksAtom";
 import {
   COMMENTS_CHANGED_EVENT,
   org2CloudCommentsSignalAtom,
@@ -94,6 +95,14 @@ const ROSTER_SIGNAL_REFRESH_TTL_MS = 10_000;
 export function useOrg2CloudRealtime(): void {
   const auth = useAtomValue(org2CloudAuthAtom);
   const store = useStore();
+  // A task YOU create locally (an @agent mention) lands via a forced refetch,
+  // not an inbound realtime/pull signal, so the runner would otherwise never
+  // wake for it. Kick it whenever the task set changes so a self-authored
+  // task auto-runs immediately on your own machine.
+  const commentTasks = useAtomValue(org2CloudCommentTasksAtom);
+  useEffect(() => {
+    kickCommentTaskRunner();
+  }, [commentTasks]);
   const setAuth = useSetAtom(org2CloudAuthAtom);
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const refetchOrgs = useRefetchOrg2CloudOrgs();

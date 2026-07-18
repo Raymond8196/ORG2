@@ -456,7 +456,8 @@ function rememberCompletedForceToken(key: string, token: string): void {
 
 export function useSessionComments(
   orgId: string | null,
-  sessionId: string | null
+  sessionId: string | null,
+  originSessionId: string | null = null
 ): UseSessionCommentsResult {
   const auth = useAtomValue(org2CloudAuthAtom);
   const [entries, setEntries] = useAtom(org2CloudSessionCommentsAtom);
@@ -745,13 +746,16 @@ export function useSessionComments(
         body: input.body,
         eventId: input.eventId,
         parentId: input.parentId,
+        ...(originSessionId && originSessionId !== sessionId
+          ? { originSessionId }
+          : {}),
       });
       // The RPC returns the row in listing shape — insert without a refetch.
       patchEntry(key, (comments) => insertComment(comments, comment));
       broadcastCommentsChangedToPeers(orgId, sessionId);
       return comment;
     },
-    [orgId, sessionId, key, withFreshToken, patchEntry]
+    [orgId, sessionId, originSessionId, key, withFreshToken, patchEntry]
   );
 
   const editComment = useCallback(
