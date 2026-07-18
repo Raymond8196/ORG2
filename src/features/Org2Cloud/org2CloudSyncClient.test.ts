@@ -375,4 +375,22 @@ describe("cloud_get_session_events", () => {
     );
     expect(isOrg2SyncErrorCode(error, "ORG2_RETENTION_EXPIRED")).toBe(true);
   });
+
+  it("uses an explicit endpoint without leaking it into the RPC body", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ epoch: null, segments: [] })
+    );
+    await getSessionEvents("jwt-1", "org-1", "s-1", {
+      endpoint: {
+        webOrigin: "https://app.custom.example.com",
+        supabaseUrl: "https://db.custom.example.com",
+        anonKey: "custom-anon",
+        isOfficial: false,
+      },
+    });
+    expect(lastCall().url).toBe(
+      "https://db.custom.example.com/rest/v1/rpc/cloud_get_session_events"
+    );
+    expect(lastBody()).toEqual({ p_org_id: "org-1", p_session_id: "s-1" });
+  });
 });

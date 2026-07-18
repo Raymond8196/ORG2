@@ -119,6 +119,11 @@ function makeForkOptions(
     client: { getSessionEventSegments: vi.fn() },
     orgId: "org-1",
     remoteSession: makeRemote(overrides),
+    execution: {
+      agentDefinitionId: "builtin:sde",
+      accountId: "openai-local",
+      model: "gpt-5.2-codex",
+    },
   };
 }
 
@@ -187,7 +192,11 @@ describe("forkTeammateSession (design §16.11 relay completion)", () => {
 
     request?.resolve({
       workspaceRepoPath: "/my/checkout/shared",
-      execution: { accountId: "openai-local", model: "gpt-5.2-codex" },
+      execution: {
+        agentDefinitionId: "builtin:sde",
+        accountId: "openai-local",
+        model: "gpt-5.2-codex",
+      },
     });
     await forkPromise;
 
@@ -195,6 +204,7 @@ describe("forkTeammateSession (design §16.11 relay completion)", () => {
       expect.objectContaining({
         workspaceRepoPath: "/my/checkout/shared",
         execution: {
+          agentDefinitionId: "builtin:sde",
           accountId: "openai-local",
           model: "gpt-5.2-codex",
         },
@@ -390,9 +400,11 @@ describe("forkTeammateSession (design §16.11 relay completion)", () => {
       },
     ]);
 
-    await expect(forkTeammateSession(makeForkOptions())).rejects.toThrow(
-      "ipc down"
-    );
+    await expect(forkTeammateSession(makeForkOptions())).rejects.toMatchObject({
+      kind: "backend_registration",
+      sourceSessionId: "remote-1",
+      cause: expect.objectContaining({ message: "ipc down" }),
+    });
     expect(deleteSessionMock).toHaveBeenCalledWith("agentsession-fork-1");
     expect(eventStoreMock.clear).toHaveBeenCalledWith("agentsession-fork-1");
     expect(store.get(sessionsAtom)).toEqual([]);
@@ -414,12 +426,17 @@ describe("forkTeammateSession (design §16.11 relay completion)", () => {
 
     await forkTeammateSession({
       ...makeForkOptions(),
-      execution: { accountId: "openai-local", model: "gpt-5.2-codex" },
+      execution: {
+        agentDefinitionId: "builtin:sde",
+        accountId: "openai-local",
+        model: "gpt-5.2-codex",
+      },
     });
 
     expect(forkSessionMock).toHaveBeenCalledWith(
       expect.objectContaining({
         execution: {
+          agentDefinitionId: "builtin:sde",
           accountId: "openai-local",
           model: "gpt-5.2-codex",
         },

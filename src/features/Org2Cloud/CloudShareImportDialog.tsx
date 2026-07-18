@@ -11,11 +11,11 @@
  * regardless.
  *
  * The pending atom itself is the dialog state: it stays set while the
- * confirmation is open and is consumed (cleared) exactly once on close, so a
- * re-render can never replay the hand-off. All per-link results are keyed by
- * the share token, so a newer link invalidates stale resolve/import state.
+ * confirmation is open and is consumed (cleared) exactly once on close. Each
+ * hand-off has a monotonically increasing attemptId, so reopening the same
+ * token can never reuse an earlier resolve/import result.
  * Modeled on CollabShareImportDialog (minus the combined-invite CTA — cloud
- * share links carry only the token).
+ * share links carry a token plus non-secret endpoint provenance).
  */
 import Modal from "@/src/scaffold/ModalSystem";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -34,22 +34,32 @@ import { resolveForkWorkspacePath } from "@src/features/TeamCollaboration/forkSe
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { openOrReplaceSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
+import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 
+import {
+  type CloudShareResolveErrorKind,
+  classifyCloudShareResolveError,
+  findLocalCloudShareSource,
+} from "./cloudShareImportModel";
+import type { CloudEndpoint } from "./config";
 import { buildCloudSessionFetchClient } from "./org2CloudBackendAdapter";
 import {
   consumeOrg2CloudPendingShareAtom,
   org2CloudPendingShareAtom,
 } from "./org2CloudPendingShareAtom";
+import { resolveCloudShareEndpoint } from "./org2CloudShareEndpoint";
 import { resolveCloudSessionShare } from "./org2CloudSharesClient";
 
 interface ResolveState {
-  token: string;
+  attemptId: number;
+  cycle: number;
   session: RemoteTeammateSessionMetadata | null;
-  failed: boolean;
+  endpoint: CloudEndpoint | null;
+  error: CloudShareResolveErrorKind | null;
 }
 
 interface ImportState {
-  token: string;
+  attemptId: number;
   status: "importing" | "failed";
 }
 
@@ -61,96 +71,151 @@ const CloudShareImportDialog: React.FC = () => {
   );
   const share = useAtomValue(org2CloudPendingShareAtom);
   const consumePendingShare = useSetAtom(consumeOrg2CloudPendingShareAtom);
+  const sessions = useAtomValue(sessionsAtom);
 
   const [resolveState, setResolveState] = useState<ResolveState | null>(null);
   const [importState, setImportState] = useState<ImportState | null>(null);
-  const activeTokenRef = useRef<string | null>(null);
+  const [resolveCycle, setResolveCycle] = useState(0);
+  const activeAttemptRef = useRef<number | null>(null);
   const importGenerationRef = useRef(0);
-  const shareToken = share?.shareToken ?? null;
+  const importAbortRef = useRef<AbortController | null>(null);
+  const attemptId = share?.attemptId ?? null;
 
   // Commit the current hand-off before a user can interact with the painted
   // dialog. A layout effect keeps ref access outside render while still
   // invalidating an older import before the browser paints the new token.
   useLayoutEffect(() => {
-    activeTokenRef.current = shareToken;
+    activeAttemptRef.current = attemptId;
     importGenerationRef.current += 1;
-  }, [shareToken]);
+    importAbortRef.current?.abort();
+    importAbortRef.current = null;
+  }, [attemptId]);
 
   // Resolve the token to the session projection (title/owner shown in the
-  // confirmation). State updates only happen in the async callback, keyed by
-  // token.
+  // confirmation). Resolve and segment fetches share one endpoint snapshot.
+  // State updates are keyed by attempt + retry cycle, never by token alone.
   useEffect(() => {
-    if (!shareToken) return;
+    if (!share) return;
     let cancelled = false;
-    resolveCloudSessionShare(shareToken)
-      .then((session) => {
+    const abortController = new AbortController();
+    const currentAttemptId = share.attemptId;
+    const currentCycle = resolveCycle;
+    void (async () => {
+      try {
+        const endpoint = resolveCloudShareEndpoint(share.endpoint);
+        const session = await resolveCloudSessionShare(
+          share.shareToken,
+          endpoint,
+          abortController.signal
+        );
         if (!cancelled) {
-          setResolveState({ token: shareToken, session, failed: false });
+          setResolveState({
+            attemptId: currentAttemptId,
+            cycle: currentCycle,
+            session,
+            endpoint,
+            error: null,
+          });
         }
-      })
-      .catch(() => {
+      } catch (error) {
         if (!cancelled) {
           // Terminal resolution cancels any in-flight visual state. Without
           // this, the dialog can show an invalid/revoked error beside a stale
           // spinning Import button.
           importGenerationRef.current += 1;
           setImportState(null);
-          setResolveState({ token: shareToken, session: null, failed: true });
+          setResolveState({
+            attemptId: currentAttemptId,
+            cycle: currentCycle,
+            session: null,
+            endpoint: null,
+            error: classifyCloudShareResolveError(error),
+          });
         }
-      });
+      }
+    })();
     return () => {
       cancelled = true;
+      abortController.abort();
     };
-  }, [shareToken]);
+  }, [resolveCycle, share]);
 
   const resolved =
-    share && resolveState?.token === share.shareToken ? resolveState : null;
+    share &&
+    resolveState?.attemptId === share.attemptId &&
+    resolveState.cycle === resolveCycle
+      ? resolveState
+      : null;
   const currentImport =
-    share && importState?.token === share.shareToken ? importState : null;
+    share && importState?.attemptId === share.attemptId ? importState : null;
 
   // Resolve failure = the token itself is invalid/expired/revoked/aged-out
   // (the server's answer is deliberately opaque). Import failure is
   // DIFFERENT and retryable: a transient network error, or a valid share
   // whose owner hasn't pushed event segments yet.
-  const resolveFailed = Boolean(resolved?.failed);
+  const resolveError = resolved?.error ?? null;
+  const resolveFailed = resolveError !== null;
   const isImporting = currentImport?.status === "importing";
   const importFailed = currentImport?.status === "failed" && !resolveFailed;
+  const localSource = resolved?.session
+    ? findLocalCloudShareSource(sessions, resolved.session)
+    : null;
   const canImport =
-    Boolean(resolved?.session) && !resolveFailed && !isImporting;
+    Boolean(resolved?.session && resolved.endpoint) &&
+    !resolveFailed &&
+    !isImporting;
 
   const handleClose = useCallback(() => {
-    activeTokenRef.current = null;
+    activeAttemptRef.current = null;
     importGenerationRef.current += 1;
+    // Real cancellation, not result-ignoring: stop the network read, the
+    // bounded decode and the durable apply of any in-flight import.
+    importAbortRef.current?.abort();
+    importAbortRef.current = null;
     setImportState(null);
     // One-shot consume: clears the atom so nothing can replay this link.
     consumePendingShare();
   }, [consumePendingShare]);
 
   const handleImport = useCallback(async () => {
-    if (!share || !resolved?.session || resolveFailed || isImporting) return;
+    if (
+      !share ||
+      !resolved?.session ||
+      !resolved.endpoint ||
+      resolveFailed ||
+      isImporting
+    ) {
+      return;
+    }
     const token = share.shareToken;
+    const currentAttemptId = share.attemptId;
     const generation = ++importGenerationRef.current;
-    setImportState({ token, status: "importing" });
+    importAbortRef.current?.abort();
+    const abortController = new AbortController();
+    importAbortRef.current = abortController;
+    setImportState({ attemptId: currentAttemptId, status: "importing" });
     try {
       const localRepoPath =
         (await resolveForkWorkspacePath(resolved.session)) ?? undefined;
       const result = await importRemoteSession({
         // TICKET tier: anon fetch client — the share token authenticates
         // every segments read, member or not.
-        client: buildCloudSessionFetchClient(null),
+        client: buildCloudSessionFetchClient(null, resolved.endpoint),
         orgId: resolved.session.orgId,
         remoteSession: resolved.session,
         shareToken: token,
+        shareEndpointUrl: resolved.endpoint.supabaseUrl,
         workspaceRepoPath: localRepoPath,
+        signal: abortController.signal,
       });
       if (
-        activeTokenRef.current !== token ||
+        activeAttemptRef.current !== currentAttemptId ||
         importGenerationRef.current !== generation
       ) {
         return;
       }
       if (!result) {
-        setImportState({ token, status: "failed" });
+        setImportState({ attemptId: currentAttemptId, status: "failed" });
         return;
       }
       openOrReplaceSessionTab({
@@ -162,10 +227,10 @@ const CloudShareImportDialog: React.FC = () => {
       handleClose();
     } catch {
       if (
-        activeTokenRef.current === token &&
+        activeAttemptRef.current === currentAttemptId &&
         importGenerationRef.current === generation
       ) {
-        setImportState({ token, status: "failed" });
+        setImportState({ attemptId: currentAttemptId, status: "failed" });
       }
     }
   }, [
@@ -177,6 +242,46 @@ const CloudShareImportDialog: React.FC = () => {
     resolved,
     share,
   ]);
+
+  const handleOpenExisting = useCallback(() => {
+    if (!localSource) return;
+    const sessionName = localSource.name ?? resolved?.session?.title;
+    openOrReplaceSessionTab({
+      sessionId: localSource.session_id,
+      sessionName,
+      repoPath: localSource.repoPath,
+    });
+    openSession(localSource.session_id, sessionName, localSource.repoPath);
+    handleClose();
+  }, [
+    handleClose,
+    localSource,
+    openOrReplaceSessionTab,
+    openSession,
+    resolved,
+  ]);
+
+  const handleRetryResolve = useCallback(() => {
+    importGenerationRef.current += 1;
+    setImportState(null);
+    setResolveCycle((cycle) => cycle + 1);
+  }, []);
+
+  const resolveErrorMessage = resolveError
+    ? t(
+        resolveError === "invalid"
+          ? "cloud.share.incomingError"
+          : resolveError === "endpoint_mismatch"
+            ? "cloud.share.incomingEndpointMismatch"
+            : resolveError === "connection"
+              ? "cloud.share.incomingConnectionError"
+              : resolveError === "incompatible"
+                ? "cloud.share.incomingIncompatibleError"
+                : "cloud.share.incomingServerError"
+      )
+    : null;
+  const canRetryResolve =
+    resolveError === "connection" || resolveError === "server";
 
   return (
     <Modal
@@ -191,7 +296,11 @@ const CloudShareImportDialog: React.FC = () => {
         data-testid="cloud-share-import-dialog"
       >
         {!resolved && !resolveFailed ? (
-          <div className="text-[12px] text-text-3">
+          <div
+            className="text-[12px] text-text-3"
+            role="status"
+            aria-live="polite"
+          >
             {t("cloud.share.incomingResolving")}
           </div>
         ) : null}
@@ -200,8 +309,10 @@ const CloudShareImportDialog: React.FC = () => {
           <div
             className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
             data-testid="cloud-share-import-resolve-error"
+            data-error-kind={resolveError ?? undefined}
+            role="alert"
           >
-            {t("cloud.share.incomingError")}
+            {resolveErrorMessage}
           </div>
         ) : null}
 
@@ -222,6 +333,16 @@ const CloudShareImportDialog: React.FC = () => {
           </div>
         ) : null}
 
+        {localSource && !resolveFailed ? (
+          <div
+            className="rounded-lg bg-fill-1 px-3 py-2 text-[12px] text-text-2"
+            data-testid="cloud-share-import-existing-session"
+            role="status"
+          >
+            {t("cloud.share.incomingAlreadyOnDevice")}
+          </div>
+        ) : null}
+
         {importFailed ? (
           <div
             className="rounded-lg bg-fill-1 px-3 py-2 text-[12px] text-text-3"
@@ -234,21 +355,39 @@ const CloudShareImportDialog: React.FC = () => {
         <div className="flex items-center justify-end gap-2">
           <Button
             htmlType="button"
-            variant={resolveFailed ? "primary" : "secondary"}
+            variant={
+              resolveFailed && !canRetryResolve ? "primary" : "secondary"
+            }
             onClick={handleClose}
           >
             {t("cloud.share.incomingDismiss")}
           </Button>
+          {canRetryResolve ? (
+            <Button
+              htmlType="button"
+              variant="primary"
+              onClick={handleRetryResolve}
+              data-testid="cloud-share-import-retry-resolve"
+            >
+              {t("cloud.share.incomingRetry")}
+            </Button>
+          ) : null}
           {!resolveFailed ? (
             <Button
               htmlType="button"
               variant="primary"
               loading={isImporting}
               disabled={!canImport}
-              onClick={() => void handleImport()}
+              onClick={
+                localSource ? handleOpenExisting : () => void handleImport()
+              }
               data-testid="cloud-share-import-confirm"
             >
-              {t("cloud.share.incomingImport")}
+              {t(
+                localSource
+                  ? "cloud.share.incomingOpenExisting"
+                  : "cloud.share.incomingImport"
+              )}
             </Button>
           ) : null}
         </div>

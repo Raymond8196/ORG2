@@ -60,6 +60,12 @@ export interface SessionImportedFrom {
   importedAt?: string;
   /** Share-link capability used for a later guest fork; absent for member imports. */
   shareToken?: string;
+  /**
+   * Non-secret Supabase origin that issued `shareToken`. A later guest fork
+   * resolves and fetches against this same deployment instead of whichever
+   * cloud happens to be active then. No anon key or user credential is stored.
+   */
+  shareEndpointUrl?: string;
 }
 
 /**

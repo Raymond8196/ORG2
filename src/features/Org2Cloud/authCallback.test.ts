@@ -8,6 +8,8 @@ import {
 
 const VALID_URL =
   "orgii://auth/callback#access_token=header.payload.sig&refresh_token=rt-123&expires_at=1751500000";
+const INSTANCE2_CALLBACK_URL = "orgii-instance2://auth/callback";
+const INSTANCE2_VALID_URL = VALID_URL.replace("orgii://", "orgii-instance2://");
 
 describe("isOrg2CloudAuthCallback", () => {
   it("matches orgii://auth/callback regardless of fragment validity", () => {
@@ -27,11 +29,30 @@ describe("isOrg2CloudAuthCallback", () => {
     expect(isOrg2CloudAuthCallback("https://auth/callback#a=b")).toBe(false);
     expect(isOrg2CloudAuthCallback("not a url")).toBe(false);
   });
+
+  it("matches only the isolated desktop instance's configured scheme", () => {
+    expect(
+      isOrg2CloudAuthCallback(INSTANCE2_VALID_URL, INSTANCE2_CALLBACK_URL)
+    ).toBe(true);
+    expect(isOrg2CloudAuthCallback(VALID_URL, INSTANCE2_CALLBACK_URL)).toBe(
+      false
+    );
+  });
 });
 
 describe("parseAuthCallbackFragment", () => {
   it("parses a complete fragment", () => {
     expect(parseAuthCallbackFragment(VALID_URL)).toEqual({
+      accessToken: "header.payload.sig",
+      refreshToken: "rt-123",
+      expiresAt: 1751500000,
+    });
+  });
+
+  it("parses a complete fragment for an isolated desktop instance", () => {
+    expect(
+      parseAuthCallbackFragment(INSTANCE2_VALID_URL, INSTANCE2_CALLBACK_URL)
+    ).toEqual({
       accessToken: "header.payload.sig",
       refreshToken: "rt-123",
       expiresAt: 1751500000,

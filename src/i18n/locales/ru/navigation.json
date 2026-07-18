@@ -397,7 +397,11 @@
       "forkSetupNoWorkspace": "Continue without a workspace",
       "forkSetupAccount": "Account",
       "forkSetupModel": "Model",
-      "forkSetupContinue": "Fork & continue"
+      "forkSetupContinue": "Fork & continue",
+      "forkSnapshotIncomplete": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "forkAgentUnavailable": "Choose a local agent before forking.",
+      "forkBackendRegistrationFailed": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "forkReplayUnavailable": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     },
     "repoPicker": {
       "loading": "Loading repos…",
@@ -417,7 +421,12 @@
       "error": "Не удалось сделать форк сессии",
       "sendFailed": "Форк создан, но сообщение не отправилось — текст восстановлен в поле ввода",
       "forkedChipTooltip": "Форк от {{name}}",
-      "continuePlaceholder": "Message to fork and continue in ORGII…"
+      "continuePlaceholder": "Message to fork and continue in ORGII…",
+      "snapshotError": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "agentError": "Choose a local agent before forking.",
+      "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "parentOpenUnavailable": "The source session could not be opened from this fork.",
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     }
   },
   "cloud": {
@@ -544,7 +553,8 @@
         "youTag": "Вы",
         "ownerTag": "Владелец",
         "floorOff": "Без минимума",
-        "floorTooltip": "Минимальный уровень доступа для этого участника. Действует более строгий из этого и общеорганизационного минимума."
+        "floorTooltip": "Минимальный уровень доступа для этого участника. Действует более строгий из этого и общеорганизационного минимума.",
+        "floorOrgMinimum": "Минимум организации ({{mode}})"
       },
       "leave": {
         "action": "Покинуть организацию",
@@ -651,7 +661,14 @@
       "importPasteClipboard": "Вставить из буфера обмена",
       "importSubmit": "Импортировать",
       "importInvalidInput": "Это не похоже на действительную ссылку для доступа или токен.",
-      "selectAll": "Все ({{count}})"
+      "selectAll": "Все ({{count}})",
+      "incomingEndpointMismatch": "Этот ресурс относится к другому пользовательскому облаку. Настройте его адрес перед импортом.",
+      "incomingConnectionError": "Не удалось подключиться к облачному сервису. Проверьте сеть и повторите попытку.",
+      "incomingIncompatibleError": "Облако вернуло несовместимый ответ. Обновите ORGII или проверьте развёртывание.",
+      "incomingServerError": "Облачный сервис не смог обработать этот ресурс. Повторите попытку.",
+      "incomingAlreadyOnDevice": "Эта сессия уже есть на устройстве. Откройте оригинал вместо импорта копии.",
+      "incomingOpenExisting": "Открыть сессию",
+      "incomingRetry": "Повторить"
     },
     "agentRunner": {
       "title": "Раннер задач агента",
@@ -677,7 +694,8 @@
         "openBadge_one": "Задач агента в ожидании: {{count}}",
         "openBadge": "Задач агента в ожидании: {{count}}",
         "activeBadge_one": "Агентов работает над этой сессией: {{count}}",
-        "activeBadge": "Агентов работает над этой сессией: {{count}}"
+        "activeBadge": "Агентов работает над этой сессией: {{count}}",
+        "mentionSuggestion": "Назначить этот комментарий агенту"
       },
       "toggleLabel": "Комментарии",
       "notesButton": "Заметки сессии",

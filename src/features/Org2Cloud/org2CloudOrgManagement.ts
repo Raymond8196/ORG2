@@ -132,19 +132,61 @@ export function parseCloudInviteInput(input: string): string | null {
 // Session share deep link (orgii://cloud/session?share=…, migration 0012)
 //
 // Same OS-level delivery as the invite link above. The token is the WHOLE
-// credential — no supabase coordinates ride in the link (the managed cloud
-// endpoint is baked into the app), and the resolve response carries the
-// org/session coordinates the guest needs for segment reads.
+// credential. Links also carry non-secret endpoint provenance so a receiver
+// with a custom endpoint configured does not accidentally resolve an
+// official share against the wrong cloud (or silently switch its account).
+// The resolve response carries the org/session coordinates for segment reads.
 // ---------------------------------------------------------------------------
 
 export const CLOUD_SHARE_DEEP_LINK_PATH = "session";
 
+export type CloudShareEndpointProvenance =
+  | { kind: "official" }
+  | { kind: "custom"; supabaseUrl: string }
+  | { kind: "current" };
+
 export interface CloudShareDeepLink {
   shareToken: string;
+  endpoint: CloudShareEndpointProvenance;
 }
 
-export function buildCloudSessionShareLink(shareToken: string): string {
-  const params = new URLSearchParams({ share: shareToken });
+export interface CloudShareLinkEndpoint {
+  isOfficial: boolean;
+  supabaseUrl: string;
+}
+
+const DEFAULT_CLOUD_SHARE_LINK_ENDPOINT: CloudShareLinkEndpoint = {
+  isOfficial: true,
+  supabaseUrl: "",
+};
+
+function normalizeCloudShareEndpointUrl(value: string): string | null {
+  try {
+    const url = new URL(value.trim());
+    const isSecure = url.protocol === "https:";
+    const isLoopbackHttp =
+      url.protocol === "http:" &&
+      ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if (!isSecure && !isLoopbackHttp) return null;
+    return value.trim().replace(/\/+$/, "");
+  } catch {
+    return null;
+  }
+}
+
+export function buildCloudSessionShareLink(
+  shareToken: string,
+  endpoint: CloudShareLinkEndpoint = DEFAULT_CLOUD_SHARE_LINK_ENDPOINT
+): string {
+  const params = new URLSearchParams({
+    share: shareToken,
+    endpoint: endpoint.isOfficial ? "official" : "custom",
+  });
+  if (!endpoint.isOfficial) {
+    const normalized = normalizeCloudShareEndpointUrl(endpoint.supabaseUrl);
+    if (!normalized) throw new Error("Invalid custom cloud endpoint URL");
+    params.set("endpointUrl", normalized);
+  }
   return `orgii://${CLOUD_INVITE_DEEP_LINK_HOST}/${CLOUD_SHARE_DEEP_LINK_PATH}?${params.toString()}`;
 }
 
@@ -175,8 +217,22 @@ export function parseCloudShareDeepLink(
 ): CloudShareDeepLink | null {
   if (!isCloudShareDeepLink(url)) return null;
   try {
-    const shareToken = new URL(url.trim()).searchParams.get("share")?.trim();
-    return shareToken ? { shareToken } : null;
+    const params = new URL(url.trim()).searchParams;
+    const shareToken = params.get("share")?.trim();
+    if (!shareToken) return null;
+    const endpointKind = params.get("endpoint")?.trim().toLowerCase();
+    // Pre-provenance links were emitted only during pre-release. Treat them
+    // as managed-cloud links; newly generated custom links are explicit.
+    if (!endpointKind || endpointKind === "official") {
+      return { shareToken, endpoint: { kind: "official" } };
+    }
+    if (endpointKind !== "custom") return null;
+    const supabaseUrl = normalizeCloudShareEndpointUrl(
+      params.get("endpointUrl") ?? ""
+    );
+    return supabaseUrl
+      ? { shareToken, endpoint: { kind: "custom", supabaseUrl } }
+      : null;
   } catch {
     return null;
   }
@@ -192,7 +248,7 @@ export function parseCloudShareInput(raw: string): CloudShareDeepLink | null {
     return parseCloudShareDeepLink(trimmed);
   }
   return CLOUD_SHARE_TOKEN_PATTERN.test(trimmed)
-    ? { shareToken: trimmed }
+    ? { shareToken: trimmed, endpoint: { kind: "current" } }
     : null;
 }
 

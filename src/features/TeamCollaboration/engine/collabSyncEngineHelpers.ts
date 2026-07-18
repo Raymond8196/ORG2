@@ -23,6 +23,7 @@ import { createLogger } from "@src/hooks/logger";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { lastModelPairMapAtom } from "@src/store/session/creatorDefaultModelAtom";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
+import { recordGuestImportedSession } from "@src/store/session/sessionAtom/guestImportRegistry";
 import { upsertSession } from "@src/store/session/sessionAtom/mutations";
 import { persistSessions } from "@src/store/session/sessionAtom/persistence";
 import type {
@@ -37,11 +38,18 @@ import {
   isModelRunnableWithAccount,
   resolveForkModel,
 } from "../forkModelFallback";
+import {
+  FORK_SNAPSHOT_ERROR_KIND,
+  ForkOperationError,
+  ForkSnapshotIntegrityError,
+  SegmentIntegrityError,
+} from "../forkSnapshotIntegrity";
 import type {
   CollabSyncBackendClient,
   SessionEventSegmentRecord,
   SessionEventsSegmentInput,
 } from "../sync/CollabSyncBackend";
+import { computeSegmentHash } from "../sync/collabGzip";
 
 const log = createLogger("collabSyncEngineHelpers");
 
@@ -144,10 +152,14 @@ export function computeFrozenEventCount(events: SessionEvent[]): number {
 /** Per-segment size budget (design §7.3 step 3a), measured pre-gzip. */
 const SEGMENT_MAX_BYTES = 256 * 1024;
 
+const segmentBudgetEncoder = new TextEncoder();
+
 /**
  * Greedily pack frozen events into ≤256KB segments (at least one event per
  * segment, so an oversized single event still ships). `startSeq` is the seq
- * of the first produced segment.
+ * of the first produced segment. Budget is measured in canonical UTF-8
+ * bytes — `String.length` counts UTF-16 code units and undercounts CJK/emoji
+ * payloads by up to 3×, silently blowing the wire budget.
  */
 export function splitFrozenIntoSegments(
   events: SessionEvent[],
@@ -157,7 +169,9 @@ export function splitFrozenIntoSegments(
   let current: SessionEvent[] = [];
   let currentBytes = 0;
   for (const event of events) {
-    const eventBytes = JSON.stringify(event).length;
+    const eventBytes = segmentBudgetEncoder.encode(
+      JSON.stringify(event)
+    ).byteLength;
     if (current.length > 0 && currentBytes + eventBytes > SEGMENT_MAX_BYTES) {
       segments.push({ seq: startSeq + segments.length, events: current });
       current = [];
@@ -208,6 +222,10 @@ export interface RemoteSessionFetchOptions {
    * includes the segments summary this importer diffs against.
    */
   shareToken?: string;
+  /** Non-secret issuing endpoint persisted with a guest capability. */
+  shareEndpointUrl?: string;
+  /** Cancels fetch, decode and the durable local apply. */
+  signal?: AbortSignal;
 }
 
 export interface ImportRemoteSessionOptions extends RemoteSessionFetchOptions {
@@ -240,23 +258,50 @@ interface AssembledSegments {
   tailHash: string | null;
 }
 
+function throwIfAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) {
+    throw signal.reason ?? new DOMException("Aborted", "AbortError");
+  }
+}
+
 async function fetchAndAssembleSegments(
   options: RemoteSessionFetchOptions,
   afterSeq: number,
   baseFrozenEvents: SessionEvent[],
   expectedEpoch: number | null
 ): Promise<AssembledSegments | null> {
-  const { client, orgId, remoteSession, shareToken } = options;
+  const { client, orgId, remoteSession, shareToken, signal } = options;
   const snapshot = await client.getSessionEventSegments({
     orgId,
     sessionRowId: remoteSession.id,
     afterSeq,
     shareToken,
+    signal,
   });
   if (snapshot.epoch === null || snapshot.count === null) return null;
   // The snapshot is authoritative over the (possibly stale) list summary; a
   // mid-flight epoch change invalidates the incremental base.
   if (expectedEpoch !== null && snapshot.epoch !== expectedEpoch) return null;
+
+  // Content-level proof BEFORE assembly: contiguity and totals below are
+  // structural only — a payload whose decoded events disagree with its own
+  // eventCount/segmentHash must fail closed, not splice into local history.
+  for (const segment of snapshot.segments) {
+    if (segment.events.length !== segment.eventCount) {
+      throw new SegmentIntegrityError(
+        segment.seq,
+        segment.isTail,
+        "event_count"
+      );
+    }
+    if ((await computeSegmentHash(segment.events)) !== segment.segmentHash) {
+      throw new SegmentIntegrityError(
+        segment.seq,
+        segment.isTail,
+        "content_hash"
+      );
+    }
+  }
 
   const frozen: SessionEventSegmentRecord[] = snapshot.segments
     .filter((segment) => !segment.isTail)
@@ -353,7 +398,8 @@ export async function importRemoteSession(
 async function importRemoteSessionInner(
   options: ImportRemoteSessionOptions
 ): Promise<ImportRemoteSessionResult | null> {
-  const { orgId, remoteSession, onBeforeWrite, shareToken } = options;
+  const { orgId, remoteSession, onBeforeWrite, shareToken, shareEndpointUrl } =
+    options;
   const store = getInstrumentedStore();
   const sessions = store.get(sessionsAtom) as Session[];
   const existing = findImportedSession(
@@ -439,6 +485,7 @@ async function importRemoteSessionInner(
     assembled.events,
     localSessionId
   );
+  throwIfAborted(options.signal);
   const now = new Date().toISOString();
   const importedFrom: SessionImportedFrom = {
     orgId,
@@ -456,6 +503,8 @@ async function importRemoteSessionInner(
     tailHash: assembled.tailHash ?? undefined,
     importedAt: now,
     shareToken: shareToken ?? existing?.importedFrom?.shareToken,
+    shareEndpointUrl:
+      shareEndpointUrl ?? existing?.importedFrom?.shareEndpointUrl,
   };
   // Durably cache the events BEFORE persisting the session record + cursor.
   // The cursor claims the import is complete, so if we persisted it first and
@@ -480,7 +529,7 @@ async function importRemoteSessionInner(
       `Failed to durably persist imported session ${remoteSession.sourceSessionId} (saveToCache returned ${savedCount})`
     );
   }
-  upsertSession({
+  const importedRow: Session = {
     session_id: localSessionId,
     status: "completed",
     created_at: existing?.created_at ?? now,
@@ -510,7 +559,13 @@ async function importRemoteSessionInner(
     // Retire the legacy error_message idiom for collab imports; clears any
     // leftover value on upgraded pre-M3 rows.
     error_message: undefined,
-  });
+  };
+  upsertSession(importedRow);
+  // Guest capability durability: `loadSessions()` replaces the frontend list
+  // from backend/adapter rows, and a share-token import has neither — the
+  // registry re-materializes the row (token + issuing endpoint included) so
+  // fork and parent navigation survive restart and forced refresh.
+  recordGuestImportedSession(importedRow);
   persistSessions(store.get(sessionsAtom) as Session[]);
   return { localSessionId, updated: true };
 }
@@ -553,10 +608,12 @@ export interface ForkSessionResult {
   repoPath?: string;
   model?: string;
   accountId?: string;
+  agentDefinitionId?: string;
   modelFallback?: { inheritedModel: string; fallbackModel?: string };
 }
 
 export interface ForkExecutionSelection {
+  agentDefinitionId: string;
   accountId: string;
   model: string;
 }
@@ -622,8 +679,11 @@ export async function forkSession(
     remoteSession.eventsEpoch === undefined ||
     remoteSession.eventsCount === undefined
   ) {
-    // No published segments — nothing to inherit (metadata-only session).
-    return null;
+    throw new ForkOperationError(
+      "replay_unavailable",
+      remoteSession.sourceSessionId,
+      `Source session ${remoteSession.sourceSessionId} has no replay snapshot`
+    );
   }
 
   let localKeys: KeyInfo[] | null = null;
@@ -652,9 +712,23 @@ export async function forkSession(
     ? { model: options.execution.model, fellBack: false }
     : resolveForkModel(remoteSession.model, localKeys, defaultModel);
 
-  // Full fetch from seq 0, same assembly + validation as the importer.
+  // Full fetch from seq 0, same assembly + validation as the importer. Forks
+  // additionally fail closed against the list-row summary: an internally
+  // valid tail-only response must not materialize when the row promised a
+  // larger frozen history.
   const assembled = await fetchAndAssembleSegments(options, 0, [], null);
-  if (!assembled) return null;
+  const summaryMatches =
+    assembled !== null &&
+    assembled.epoch === remoteSession.eventsEpoch &&
+    assembled.frozenSeq === (remoteSession.eventsFrozenSeq ?? 0) &&
+    assembled.events.length === remoteSession.eventsCount &&
+    assembled.tailHash === (remoteSession.eventsTailHash ?? null);
+  if (!summaryMatches) {
+    throw new ForkSnapshotIntegrityError(
+      FORK_SNAPSHOT_ERROR_KIND.SNAPSHOT_INCOMPLETE,
+      `Fork snapshot does not match source summary for ${remoteSession.sourceSessionId}`
+    );
+  }
 
   const localSessionId = createForkedSessionId();
   const localEvents = rewriteEventsForImportedSnapshot(
@@ -711,6 +785,7 @@ export async function forkSession(
     agentDisplayName: remoteSession.agentDisplayName,
     model: resolvedModel.model,
     accountId: options.execution?.accountId,
+    agentDefinitionId: options.execution?.agentDefinitionId,
     pinned: false,
     // Ownership stamp, same rule as importRemoteSession: a member's fork is
     // filed under the source org so the sidebar org selector lists it; a
@@ -729,6 +804,7 @@ export async function forkSession(
     repoPath,
     model: resolvedModel.model,
     accountId: options.execution?.accountId,
+    agentDefinitionId: options.execution?.agentDefinitionId,
     ...(resolvedModel.fellBack && remoteSession.model
       ? {
           modelFallback: {

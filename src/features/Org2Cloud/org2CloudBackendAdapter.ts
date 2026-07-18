@@ -29,7 +29,11 @@ import type {
   GetSessionEventSegmentsInput,
   SessionEventSegmentsSnapshot,
 } from "../TeamCollaboration/sync/CollabSyncBackend";
-import { decodeSegmentEvents } from "../TeamCollaboration/sync/segmentCodec";
+import {
+  decodeSegmentEvents,
+  mapSegmentsBounded,
+} from "../TeamCollaboration/sync/segmentCodec";
+import type { CloudEndpoint } from "./config";
 import { getSessionEvents } from "./org2CloudSyncClient";
 
 /** The one capability replay/fork need from a backend. */
@@ -61,38 +65,54 @@ export function cloudSessionIdFromRowId(sessionRowId: string): string {
  * into the RPC body and authenticates the read on its own (anon bearer).
  */
 export function buildCloudSessionFetchClient(
-  accessToken: string | null
+  accessToken: string | null,
+  endpoint?: CloudEndpoint
 ): CloudSessionFetchClient {
   return {
     async getSessionEventSegments(
       input: GetSessionEventSegmentsInput
     ): Promise<SessionEventSegmentsSnapshot> {
+      const afterSeq = input.afterSeq ?? 0;
       const snapshot = await getSessionEvents(
         accessToken,
         input.orgId,
         cloudSessionIdFromRowId(input.sessionRowId),
-        input.shareToken !== undefined
-          ? { shareToken: input.shareToken }
+        input.shareToken !== undefined ||
+          endpoint !== undefined ||
+          afterSeq > 0 ||
+          input.signal !== undefined
+          ? {
+              ...(input.shareToken !== undefined
+                ? { shareToken: input.shareToken }
+                : {}),
+              ...(endpoint !== undefined ? { endpoint } : {}),
+              // Server-side range read (p_after_seq): an incremental pull
+              // must not download the frozen prefix it already holds.
+              ...(afterSeq > 0 ? { afterSeq } : {}),
+              ...(input.signal !== undefined ? { signal: input.signal } : {}),
+            }
           : undefined
       );
-      const afterSeq = input.afterSeq ?? 0;
-      const segments = await Promise.all(
+      const segments = await mapSegmentsBounded(
         snapshot.segments
-          // Tail (seq 0) always included; frozen only past the cursor.
+          // Defense in depth: the server contract already excludes frozen
+          // seqs ≤ afterSeq, but a legacy/full response must not smuggle an
+          // already-held prefix back into the incremental splice.
           .filter((segment) => {
             const seq = segment.seq ?? 0;
             return seq === 0 || seq > afterSeq;
-          })
-          .map(async (segment) => {
-            const seq = segment.seq ?? 0;
-            return {
-              seq,
-              isTail: seq === 0,
-              events: await decodeSegmentEvents(segment.payloadGz),
-              eventCount: segment.eventCount,
-              segmentHash: segment.segmentHash,
-            };
-          })
+          }),
+        async (segment) => {
+          const seq = segment.seq ?? 0;
+          return {
+            seq,
+            isTail: seq === 0,
+            events: await decodeSegmentEvents(segment.payloadGz),
+            eventCount: segment.eventCount,
+            segmentHash: segment.segmentHash,
+          };
+        },
+        input.signal
       );
       return {
         epoch: snapshot.epoch,

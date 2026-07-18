@@ -92,7 +92,9 @@ import {
   postSessionNote,
   postTurnComment,
   pressEscape,
+  fetchCloudSessionEvents,
   provisionCloudUser,
+  publishCloudSessionEvents,
   publishCloudSessionMetadata,
   seedAndOpenCloudEligibleSession,
   seedCloudOrgUntilListed,
@@ -1234,6 +1236,10 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       }),
       "cloudTagSessionToOrg(task session)"
     );
+    // Live scenario G leaves ITS created org as the active sidebar scope,
+    // and the sync-level dialog only lists the ACTIVE org's row. Re-scope
+    // to the membership org before driving the dialog.
+    await selectCloudOrgScopeFromSidebar(orgId);
     await setCloudSessionModeViaDialog(taskSessionId, orgId, "full_replay");
     await publishCloudSessionMetadata(env, liveUser, {
       orgId,
@@ -1509,8 +1515,8 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
     await confirmAddressCommentsFlyout();
     await clickRendered('[data-testid="chat-send-button"]', "chat send button");
     await waitForRendered(
-      '[data-testid="comment-thread-agent-busy"]',
-      "agent addressing line",
+      '[data-testid="comment-thread-agent-status"][data-task-state="active"]',
+      "agent addressing active state",
       CLOUD_FETCH_TIMEOUT_MS
     );
     await waitForRendered(
@@ -1518,5 +1524,81 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       "agent-attributed reply (cloud.comments.agentAuthor)",
       600_000
     );
+  });
+
+  it("M. server range read honors p_after_seq (frozen prefix never re-shipped)", async function () {
+    this.timeout(120_000);
+    if (!live) {
+      console.warn(
+        "[cloud-e2e] SKIP scenario M: the p_after_seq contract needs a real cloud backend."
+      );
+      this.skip();
+    }
+    if (!orgId) throw new Error("scenario C did not establish a cloud org");
+
+    const sessionId = `agentsession-e2e-range-${RUN_ID}`;
+    const event = (id, displayStatus = "completed") => ({
+      id,
+      sessionId,
+      displayStatus,
+    });
+    await publishCloudSessionMetadata(env, liveUser, {
+      orgId,
+      sessionId,
+      title: `E2E range contract ${RUN_ID}`,
+      repoScopeKey: E2E_REPO_SCOPE_KEY,
+    });
+    await publishCloudSessionEvents(env, liveUser, {
+      orgId,
+      sessionId,
+      epoch: 1,
+      frozenSegments: [
+        { seq: 1, events: [event("e1"), event("e2")] },
+        { seq: 2, events: [event("e3")] },
+      ],
+      tail: [event("t1", "running")],
+    });
+
+    const full = await fetchCloudSessionEvents(env, liveUser, {
+      orgId,
+      sessionId,
+    });
+    const fullSeqs = (full.segments ?? [])
+      .map((segment) => segment.seq ?? 0)
+      .sort((left, right) => left - right);
+    if (JSON.stringify(fullSeqs) !== JSON.stringify([0, 1, 2])) {
+      throw new Error(`full read returned seqs ${JSON.stringify(fullSeqs)}`);
+    }
+
+    const ranged = await fetchCloudSessionEvents(env, liveUser, {
+      orgId,
+      sessionId,
+      afterSeq: 1,
+    });
+    const rangedSeqs = (ranged.segments ?? [])
+      .map((segment) => segment.seq ?? 0)
+      .sort((left, right) => left - right);
+    if (JSON.stringify(rangedSeqs) !== JSON.stringify([0, 2])) {
+      throw new Error(
+        `p_after_seq=1 still shipped the held frozen prefix: ${JSON.stringify(rangedSeqs)}`
+      );
+    }
+    if (ranged.epoch !== 1 || ranged.frozenSeq !== 2) {
+      throw new Error(
+        `range read lost the summary header: epoch=${ranged.epoch} frozenSeq=${ranged.frozenSeq}`
+      );
+    }
+
+    const head = await fetchCloudSessionEvents(env, liveUser, {
+      orgId,
+      sessionId,
+      afterSeq: 2_147_483_647,
+    });
+    const headSeqs = (head.segments ?? []).map((segment) => segment.seq ?? 0);
+    if (headSeqs.some((seq) => seq !== 0)) {
+      throw new Error(
+        `head read (afterSeq=int4 max) still shipped frozen bodies: ${JSON.stringify(headSeqs)}`
+      );
+    }
   });
 });

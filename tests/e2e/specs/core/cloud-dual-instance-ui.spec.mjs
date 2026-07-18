@@ -72,7 +72,7 @@ const REPO_SCOPE_KEY =
   process.env.E2E_REPO_SCOPE_KEY ?? "github.com/orgii/e2e-workspace";
 const FORK_E2E_MODEL = "gpt-4o-mini";
 
-async function completeForkSetupOn(client, label) {
+async function completeForkSetupOn(client, label, options = {}) {
   await waitForRenderedOn(
     client,
     '[data-testid="fork-session-setup"]',
@@ -95,10 +95,12 @@ async function completeForkSetupOn(client, label) {
       executeOn(
         client,
         `
+          const agent = document.querySelector('[data-testid="fork-setup-agent"]');
           const account = document.querySelector('[data-testid="fork-setup-account"]');
           const model = document.querySelector('[data-testid="fork-setup-model"]');
           const submit = document.querySelector('[data-testid="fork-setup-submit"]');
-          return !!account?.querySelector('.select-value')?.textContent?.trim() &&
+          return !!agent?.querySelector('.select-value')?.textContent?.trim() &&
+            !!account?.querySelector('.select-value')?.textContent?.trim() &&
             !!model?.querySelector('.select-value')?.textContent?.trim() &&
             !!submit && !submit.disabled;
         `
@@ -106,9 +108,57 @@ async function completeForkSetupOn(client, label) {
     {
       timeout: CLOUD_FETCH_TIMEOUT_MS,
       interval: 250,
-      timeoutMsg: `${label} account/model defaults never became runnable`,
+      timeoutMsg: `${label} agent/account/model defaults never became runnable`,
     }
   );
+  if (options.agentName) {
+    await clickRenderedOn(
+      client,
+      '[data-testid="fork-setup-agent"]',
+      `${label} agent picker`
+    );
+    await client.waitUntil(
+      async () =>
+        executeOn(
+          client,
+          `
+            const overlay = document.querySelector('.select-options-overlay');
+            if (!overlay) return false;
+            const target = Array.from(
+              overlay.querySelectorAll(':scope > div > div')
+            ).find((node) =>
+              (node.textContent ?? '').includes(${JSON.stringify(options.agentName)})
+            );
+            if (!target) return false;
+            target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            return true;
+          `
+        ),
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 250,
+        timeoutMsg: `${label} non-default agent option never rendered`,
+      }
+    );
+    await client.waitUntil(
+      async () =>
+        executeOn(
+          client,
+          `
+            const value = document.querySelector('[data-testid="fork-setup-agent"]')
+              ?.querySelector('.select-value')?.textContent ?? '';
+            const submit = document.querySelector('[data-testid="fork-setup-submit"]');
+            return value.includes(${JSON.stringify(options.agentName)}) &&
+              !!submit && !submit.disabled;
+          `
+        ),
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 250,
+        timeoutMsg: `${label} selected non-default agent never became runnable`,
+      }
+    );
+  }
   await clickRenderedOn(
     client,
     '[data-testid="fork-setup-submit"]',
@@ -521,13 +571,68 @@ async function createInviteFromOwner(previousLink = "") {
   `);
 }
 
-async function postCommentOn(client, body) {
-  await typeRenderedOn(
+async function assertAddressCommentsAvailableOn(client, label) {
+  const selector = '[data-testid="chat-input"] [contenteditable="true"]';
+  await waitForRenderedOn(client, selector, `${label} composer`);
+  const editor = await client.$(selector);
+  await editor.click();
+  await client.keys("/");
+  const landed = await executeOn(
     client,
-    '[data-testid="session-comment-composer"] textarea',
-    body,
-    "secondary comment body"
+    `return document.querySelector(arguments[0])?.textContent?.includes("/") === true;`,
+    [selector]
   );
+  if (!landed) {
+    await typeContentEditableOn(client, selector, "/", `${label} slash input`);
+  }
+  await waitForRenderedOn(
+    client,
+    '[data-testid="slash-command-item"][data-slash-source="org2cloud-address-comments"]',
+    `${label} Address Comments action`,
+    CLOUD_FETCH_TIMEOUT_MS
+  );
+  await pressEscapeOn(client);
+}
+
+async function postCommentOn(client, body, { useAgentSuggestion = false } = {}) {
+  const textareaSelector = '[data-testid="session-comment-composer"] textarea';
+  if (useAgentSuggestion) {
+    const brief = body.slice("@agent ".length);
+    const textarea = await client.$(textareaSelector);
+    await textarea.click();
+    await client.keys("@");
+    const landed = await executeOn(
+      client,
+      `return document.querySelector(arguments[0])?.value === "@";`,
+      [textareaSelector]
+    );
+    if (!landed) {
+      await typeRenderedOn(client, textareaSelector, "@", "secondary @ input");
+    }
+    await waitForRenderedOn(
+      client,
+      '[data-testid="session-comment-agent-suggestion"]',
+      "secondary canonical @agent suggestion"
+    );
+    await clickRenderedOn(
+      client,
+      '[data-testid="session-comment-agent-suggestion"]',
+      "secondary choose @agent suggestion"
+    );
+    await typeRenderedOn(
+      client,
+      textareaSelector,
+      `@agent ${brief}`,
+      "secondary agent comment brief"
+    );
+  } else {
+    await typeRenderedOn(
+      client,
+      textareaSelector,
+      body,
+      "secondary comment body"
+    );
+  }
   await client.waitUntil(
     async () => {
       const result = await executeOn(
@@ -1097,6 +1202,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
 
     await seedAndOpenCloudEligibleSession(SESSION_ID, SESSION_TITLE, {
       touchedFilePath: join(E2E_REPO_PATH, SESSION_BLAME_FILE),
+      additionalTurns: 2,
     });
     unwrap(
       await invokeE2E("cloudTagSessionToOrg", {
@@ -1448,7 +1554,9 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="session-comment-composer"] textarea',
       "secondary turn comment composer"
     );
-    await postCommentOn(second.client, COMMENT_BODY);
+    await postCommentOn(second.client, COMMENT_BODY, {
+      useAgentSuggestion: true,
+    });
     await waitForRendered(
       '[data-testid="session-comment-row"]',
       "owner realtime teammate comment",
@@ -1460,8 +1568,8 @@ describe("Cloud collaboration with two independent rendered app instances", func
       CLOUD_FETCH_TIMEOUT_MS
     );
     await waitForRendered(
-      `[data-testid="session-comment-agent-badge-user-${SESSION_ID}"]`,
-      "owner realtime @agent task badge",
+      `[data-testid="session-comment-agent-badge-user-${SESSION_ID}"][data-task-state="queued"]`,
+      "owner realtime @agent task queued badge",
       CLOUD_FETCH_TIMEOUT_MS
     );
 
@@ -1499,16 +1607,104 @@ describe("Cloud collaboration with two independent rendered app instances", func
     await pressEscape();
     await pressEscapeOn(second.client);
 
+    const forkAgentId = `e2e-fork-agent-${RUN_ID}`;
+    const forkAgentName = `E2E Fork Agent ${RUN_ID}`;
+    unwrapOn(
+      await invokeOn(second.client, "addAgentDef", {
+        id: forkAgentId,
+        name: forkAgentName,
+        description: "Non-default agent for fork persistence evidence.",
+        builtIn: false,
+        tier: "primary",
+        inheritsFrom: "builtin:sde",
+        capabilities: { coding: { modeSwitch: true } },
+        delegationConfig: { delegatable: true, contextBuilders: [] },
+        sessionModel: {
+          mode: "singleton",
+          processingLock: true,
+          maxIterations: 3,
+        },
+        agentPolicy: {
+          autonomy: "full",
+          workspaceOnly: true,
+          blockedCommands: [],
+          riskRules: { medium: [], high: [] },
+        },
+        tools: { userAllowedTools: [], excludedTools: [] },
+        skillsConfig: {
+          enabled: true,
+          include: [],
+          exclude: [],
+          sourceDirs: [],
+        },
+      }),
+      "secondary add non-default fork agent"
+    );
+    unwrapOn(
+      await invokeOn(second.client, "refreshAgentDefs"),
+      "secondary refresh agent defs"
+    );
     await clickRenderedOn(
       second.client,
       '[data-testid="session-fork-button"]',
       "secondary fork imported session"
     );
-    await completeForkSetupOn(second.client, "secondary explicit fork");
+    await completeForkSetupOn(second.client, "secondary explicit fork", {
+      agentName: forkAgentName,
+    });
     await waitForRenderedOn(
       second.client,
       '[data-testid="session-forked-from-chip"]',
       "secondary fork provenance",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    const forkActive = unwrapOn(
+      await invokeOn(second.client, "getActiveSessionId"),
+      "secondary fork active session"
+    );
+    const forkRow = unwrapOn(
+      await invokeOn(
+        second.client,
+        "getSessionAggregateRow",
+        forkActive.sessionId
+      ),
+      "secondary fork persisted row"
+    ).session;
+    if (forkRow?.agentDefinitionId !== forkAgentId) {
+      throw new Error(
+        `fork persisted agent_definition_id=${forkRow?.agentDefinitionId ?? "<none>"}, expected the selected ${forkAgentId}`
+      );
+    }
+    const forkState = unwrapOn(
+      await invokeOn(second.client, "inspectChatState"),
+      "secondary fork inherited history"
+    );
+    if (
+      forkState.chatEventCount < 6 ||
+      !(forkState.chatEvents ?? []).some(
+        (event) => event.displayText === SESSION_TITLE
+      ) ||
+      !(forkState.chatEvents ?? []).some(
+        (event) => event.displayText === "Inherited answer 2"
+      )
+    ) {
+      throw new Error(
+        `fork dropped the inherited source turn: ${JSON.stringify(forkState.chatEvents ?? [])}`
+      );
+    }
+    await assertAddressCommentsAvailableOn(
+      second.client,
+      "secondary writable fork"
+    );
+    await clickRenderedOn(
+      second.client,
+      '[data-testid="session-forked-from-chip"]',
+      "secondary open fork parent"
+    );
+    await waitForRenderedOn(
+      second.client,
+      '[data-testid="session-imported-from-chip"]',
+      "secondary imported parent after fork navigation",
       CLOUD_FETCH_TIMEOUT_MS
     );
   });
@@ -1834,6 +2030,89 @@ describe("Cloud collaboration with two independent rendered app instances", func
     if (!link.startsWith("orgii://cloud/session?share=")) {
       throw new Error("generated session ticket is not a valid orgii link");
     }
+    const parsedLink = new URL(link);
+    if (parsedLink.searchParams.get("endpoint") !== "official") {
+      throw new Error(
+        `managed-cloud share link has no official endpoint provenance: ${link}`
+      );
+    }
+
+    // The owner already has sourceSessionId locally. Re-entering their own
+    // link must offer to open that source, not materialize a read-only clone.
+    await pressEscape();
+    await clickRendered(
+      '[data-testid="sidebar-new-session"]',
+      "owner open New Session before self-import"
+    );
+    await waitForRendered(
+      '[data-testid="import-session-trigger"]',
+      "owner Import entry before self-import",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    await clickRendered(
+      '[data-testid="import-session-trigger"]',
+      "owner Import entry for self-import"
+    );
+    await typeRendered(
+      '[data-testid="import-session-input"]',
+      link,
+      "owner self-import share link"
+    );
+    await clickRendered(
+      '[data-testid="import-session-submit"]',
+      "owner parse self-import share link"
+    );
+    await waitForRendered(
+      '[data-testid="cloud-share-import-existing-session"]',
+      "owner existing-session explanation",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    const selfImportAction = String(
+      (await execJS(
+        `return document.querySelector('[data-testid="cloud-share-import-confirm"]')?.textContent?.trim() ?? '';`
+      )) ?? ""
+    );
+    if (!selfImportAction || /import/i.test(selfImportAction)) {
+      throw new Error(
+        `owner self-import still offers a duplicate import: ${selfImportAction}`
+      );
+    }
+    await clickRendered(
+      '[data-testid="cloud-share-import-confirm"]',
+      "owner open original session"
+    );
+    await browser.waitUntil(
+      async () => {
+        const state = unwrap(
+          await invokeE2E("inspectChatState"),
+          "owner self-import active session"
+        );
+        return state.activeSessionId === SESSION_ID;
+      },
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 250,
+        timeoutMsg: "owner self-import did not reopen the original session",
+      }
+    );
+    await clickRendered(
+      '[data-testid="chat-panel-header-more-button"]',
+      "owner more menu after self-import"
+    );
+    await clickRendered(
+      '[data-testid="cloud-session-share-settings-button"]',
+      "owner restore share settings after self-import"
+    );
+    await waitForRendered(
+      '[data-testid="cloud-session-share-created-link"]',
+      "owner retained one-shot link after self-import",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+
+    // Regression: the receiver may have an unreachable custom endpoint
+    // configured. An explicit official link must pin both resolve and segment
+    // reads to managed cloud without switching global endpoint/account state.
+    await applyCloudEndpointOn(second.client, UNREACHABLE_CLOUD_ENDPOINT);
 
     await clickRenderedOn(
       second.client,
@@ -1903,6 +2182,36 @@ describe("Cloud collaboration with two independent rendered app instances", func
       "secondary link-import fork action",
       CLOUD_FETCH_TIMEOUT_MS
     );
+    await applyCloudEndpointOn(second.client, env);
+
+    // Guest capability durability: a forced authoritative list reload used
+    // to erase the imported guest row (and with it the shareToken +
+    // issuing-endpoint capability). The durable registry must
+    // re-materialize the row and keep the replay/fork affordances working.
+    const guestListAfterReload = unwrapOn(
+      await invokeOn(second.client, "reloadSessionList"),
+      "secondary forced authoritative session reload"
+    );
+    const guestImportedId = (guestListAfterReload.sessionIds ?? []).find(
+      (id) => id.startsWith("imported-session-")
+    );
+    if (!guestImportedId) {
+      throw new Error(
+        `guest import vanished after authoritative reload: ${JSON.stringify(
+          guestListAfterReload.sessionIds ?? []
+        )}`
+      );
+    }
+    unwrapOn(
+      await invokeOn(second.client, "openSession", guestImportedId),
+      "secondary reopen guest import after reload"
+    );
+    await waitForRenderedOn(
+      second.client,
+      '[data-testid="session-fork-button"]',
+      "secondary guest fork action after reload",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
 
     await clickRendered(
       '[data-testid="cloud-session-share-created-link-revoke"]',
@@ -1940,6 +2249,23 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="import-session-submit"]',
       "secondary parse revoked share link"
     );
+    const immediateRevokedState = await executeOn(
+      second.client,
+      `
+        const dialog = document.querySelector('[data-testid="cloud-share-import-dialog"]');
+        const button = dialog?.querySelector('[data-testid="cloud-share-import-confirm"]');
+        return {
+          dialogPresent: !!dialog,
+          importEnabled: !!button && !button.disabled,
+          hasSpinner: !!dialog?.querySelector('.animate-spin'),
+        };
+      `
+    );
+    if (immediateRevokedState.importEnabled) {
+      throw new Error(
+        `reopened token reused stale success before resolve: ${JSON.stringify(immediateRevokedState)}`
+      );
+    }
     await waitForRenderedOn(
       second.client,
       '[data-testid="cloud-share-import-resolve-error"]',
@@ -1963,6 +2289,45 @@ describe("Cloud collaboration with two independent rendered app instances", func
         timeoutMsg:
           "terminal revoked-link state still rendered an Import action or spinner",
       }
+    );
+    const revokedErrorKind = await executeOn(
+      second.client,
+      `return document.querySelector('[data-testid="cloud-share-import-resolve-error"]')?.getAttribute('data-error-kind');`
+    );
+    if (revokedErrorKind !== "invalid") {
+      throw new Error(`revoked link misclassified as ${revokedErrorKind}`);
+    }
+
+    // A custom-cloud link never sends its capability to an arbitrary URL.
+    // The receiver must explicitly configure the matching deployment first.
+    await pressEscapeOn(second.client);
+    const mismatchedCustomLink = new URL(link);
+    mismatchedCustomLink.searchParams.set("endpoint", "custom");
+    mismatchedCustomLink.searchParams.set(
+      "endpointUrl",
+      "https://different-cloud.example.com"
+    );
+    await clickRenderedOn(
+      second.client,
+      '[data-testid="import-session-trigger"]',
+      "secondary Import entry for mismatched custom link"
+    );
+    await typeRenderedOn(
+      second.client,
+      '[data-testid="import-session-input"]',
+      mismatchedCustomLink.toString(),
+      "secondary mismatched custom share link"
+    );
+    await clickRenderedOn(
+      second.client,
+      '[data-testid="import-session-submit"]',
+      "secondary parse mismatched custom share link"
+    );
+    await waitForRenderedOn(
+      second.client,
+      '[data-testid="cloud-share-import-resolve-error"][data-error-kind="endpoint_mismatch"]',
+      "secondary endpoint-mismatch explanation",
+      CLOUD_FETCH_TIMEOUT_MS
     );
   });
 

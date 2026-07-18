@@ -14,11 +14,13 @@ import {
 } from "./org2CloudEndpointAtom";
 import { org2CloudOrgsAtom } from "./org2CloudOrgsAtom";
 import { org2CloudRemoteSessionsAtom } from "./org2CloudRemoteSessionsAtom";
+import { reconcileOrg2CloudPersistedState } from "./org2CloudRosterReconcile";
 import { org2CloudSessionCommentsAtom } from "./org2CloudSessionCommentsAtom";
 import {
   org2CloudCollabStateCursorsAtom,
   org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
+  org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
   org2CloudSyncEnabledAtom,
 } from "./org2CloudSyncAtoms";
@@ -74,6 +76,7 @@ describe("resetCloudStateForEndpointSwitch", () => {
         tailHash: null,
       },
     });
+    store.set(org2CloudPushedMetadataAtom, { "corg-1:session-1": true });
     store.set(org2CloudCollabStateCursorsAtom, {
       "corg-1": "2026-07-01T00:00:00.000Z",
     });
@@ -115,6 +118,7 @@ describe("resetCloudStateForEndpointSwitch", () => {
     expect(store.get(org2CloudRepoScopesAtom)).toEqual({});
     expect(store.get(org2CloudSyncEnabledAtom)).toEqual({});
     expect(store.get(org2CloudPushCursorsAtom)).toEqual({});
+    expect(store.get(org2CloudPushedMetadataAtom)).toEqual({});
     expect(store.get(org2CloudCollabStateCursorsAtom)).toEqual({});
     expect(store.get(org2CloudCommentTaskCursorsAtom)).toEqual({});
     expect(store.get(org2CloudCommentTasksAtom)).toEqual({});
@@ -128,5 +132,36 @@ describe("resetCloudStateForEndpointSwitch", () => {
     resetCloudStateForEndpointSwitch(store);
     expect(store.get(org2CloudEndpointOverrideAtom)).toEqual(OVERRIDE);
     store.set(org2CloudEndpointOverrideAtom, null);
+  });
+
+  it("wipe-set covers the roster-reconcile prune-set", () => {
+    const store = createStore();
+    store.set(org2CloudRepoScopesAtom, { "corg-dead": ["github.com/acme/a"] });
+    store.set(org2CloudSyncEnabledAtom, { "corg-dead": false });
+    store.set(org2CloudPushCursorsAtom, {
+      "corg-dead:session-1": {
+        orgId: "corg-dead",
+        sessionId: "session-1",
+        epoch: 1,
+        frozenSeq: 1,
+        pushedCount: 1,
+        frozenEventCount: 1,
+        frozenChainHash: "hash",
+        tailHash: null,
+      },
+    });
+    store.set(org2CloudPushedMetadataAtom, { "corg-dead:session-1": true });
+    store.set(org2CloudCollabStateCursorsAtom, {
+      "corg-dead": "2026-07-01T00:00:00.000Z",
+    });
+    store.set(org2CloudCommentTaskCursorsAtom, {
+      "corg-dead": "2026-07-01T00:00:00.000Z",
+    });
+
+    resetCloudStateForEndpointSwitch(store);
+
+    expect(
+      reconcileOrg2CloudPersistedState(store, new Set(["corg-live"]))
+    ).toEqual([]);
   });
 });

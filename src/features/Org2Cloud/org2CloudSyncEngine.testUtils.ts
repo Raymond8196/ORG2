@@ -28,7 +28,10 @@ import {
   ORG2_CLOUD_EXPECTED_SCHEMA_VERSION,
   ORG2_CLOUD_OFFICIAL_SUPABASE_URL,
 } from "./config";
-import { org2CloudAccessSettingsAtom } from "./org2CloudAccessSettings";
+import {
+  org2CloudAccessSettingsAtom,
+  org2CloudSharingFloorAtom,
+} from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import { org2CloudCommentTasksAtom } from "./org2CloudCommentTasksAtom";
@@ -338,6 +341,7 @@ export function createEngineFixture() {
       sessionVisibility: {},
     },
   });
+  store.set(org2CloudSharingFloorAtom, {});
   store.set(sessionsAtom, [SESSION]);
   peekMock.mockImplementation((path: string) =>
     path === REPO_PATH ? [SCOPE_KEY] : null
@@ -394,6 +398,7 @@ export const engineTestDeps = {
   PROJECT_PUSH_RETRY_DELAY_MS,
   cloudOrgToken,
   org2CloudAccessSettingsAtom,
+  org2CloudSharingFloorAtom,
   org2CloudAuthAtom,
   org2CloudCollabStateCursorsAtom,
   org2CloudCommentTaskCursorsAtom,

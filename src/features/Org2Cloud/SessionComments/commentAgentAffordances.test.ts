@@ -6,9 +6,9 @@ import type { CommentThread } from "../org2CloudSessionCommentsAtom";
 import {
   AGENT_COMPOSER_PREFIX,
   detectAgentPrefix,
-  isLiveTaskState,
+  getThreadAgentTaskBadgeState,
+  shouldShowAgentSuggestion,
   splitAgentMentionBody,
-  threadsHaveLiveAgentTask,
 } from "./commentAgentAffordances";
 
 function comment(id: string): CloudSessionComment {
@@ -44,6 +44,67 @@ function lookup(
 ): (commentId: string) => CloudCommentTask | undefined {
   return (commentId) => byCommentId[commentId];
 }
+
+describe("agent composer suggestion", () => {
+  it("offers the canonical target while typing its prefix", () => {
+    expect(shouldShowAgentSuggestion("@")).toBe(true);
+    expect(shouldShowAgentSuggestion("@a")).toBe(true);
+    expect(shouldShowAgentSuggestion("@agent")).toBe(true);
+  });
+
+  it("closes for empty, diverged, or already completed input", () => {
+    expect(shouldShowAgentSuggestion("")).toBe(false);
+    expect(shouldShowAgentSuggestion("@other")).toBe(false);
+    expect(shouldShowAgentSuggestion("@agent ")).toBe(false);
+    expect(shouldShowAgentSuggestion("@agent fix")).toBe(false);
+  });
+});
+
+describe("getThreadAgentTaskBadgeState", () => {
+  it("separates awaiting pickup from active execution", () => {
+    const threads = [thread("c-1")];
+    expect(
+      getThreadAgentTaskBadgeState(
+        threads,
+        lookup({ "c-1": task({ commentId: "c-1", state: "open" }) })
+      )
+    ).toBe("queued");
+    expect(
+      getThreadAgentTaskBadgeState(
+        threads,
+        lookup({
+          "c-1": task({
+            commentId: "c-1",
+            state: "running",
+            leaseExpired: false,
+          }),
+        })
+      )
+    ).toBe("active");
+  });
+
+  it("shows an expired active lease as queued and terminal tasks as absent", () => {
+    const threads = [thread("c-1")];
+    expect(
+      getThreadAgentTaskBadgeState(
+        threads,
+        lookup({
+          "c-1": task({
+            commentId: "c-1",
+            state: "claimed",
+            leaseExpired: true,
+          }),
+        })
+      )
+    ).toBe("queued");
+    expect(
+      getThreadAgentTaskBadgeState(
+        threads,
+        lookup({ "c-1": task({ commentId: "c-1", state: "done" }) })
+      )
+    ).toBeNull();
+  });
+});
 
 describe("detectAgentPrefix — literal, deterministic (design §1: no NL)", () => {
   it("matches the exact prefix followed by content", () => {
@@ -89,70 +150,5 @@ describe("splitAgentMentionBody — rendered mention token", () => {
   it("does not tokenize ordinary inline or incomplete text", () => {
     expect(splitAgentMentionBody("hello @agent fix this")).toBeNull();
     expect(splitAgentMentionBody("@agent ")).toBeNull();
-  });
-});
-
-describe("isLiveTaskState — open/claimed/running (design §4 item 3)", () => {
-  it("open, claimed and running are live", () => {
-    expect(isLiveTaskState("open")).toBe(true);
-    expect(isLiveTaskState("claimed")).toBe(true);
-    expect(isLiveTaskState("running")).toBe(true);
-  });
-
-  it("terminal states are not", () => {
-    expect(isLiveTaskState("done")).toBe(false);
-    expect(isLiveTaskState("failed")).toBe(false);
-  });
-});
-
-describe("threadsHaveLiveAgentTask — turn badge predicate", () => {
-  it("false with no threads or no tasks", () => {
-    expect(threadsHaveLiveAgentTask([], lookup({}))).toBe(false);
-    expect(threadsHaveLiveAgentTask([thread("c-1")], lookup({}))).toBe(false);
-  });
-
-  it("true when ANY thread's head carries a live task", () => {
-    const threads = [thread("c-1"), thread("c-2"), thread("c-3")];
-    expect(
-      threadsHaveLiveAgentTask(
-        threads,
-        lookup({ "c-2": task({ commentId: "c-2", state: "claimed" }) })
-      )
-    ).toBe(true);
-  });
-
-  it("lease-expired claimed/running still counts (state is still live)", () => {
-    expect(
-      threadsHaveLiveAgentTask(
-        [thread("c-1")],
-        lookup({
-          "c-1": task({
-            commentId: "c-1",
-            state: "running",
-            leaseExpired: true,
-          }),
-        })
-      )
-    ).toBe(true);
-  });
-
-  it("terminal tasks never light the badge", () => {
-    for (const state of ["done", "failed"] as const) {
-      expect(
-        threadsHaveLiveAgentTask(
-          [thread("c-1")],
-          lookup({ "c-1": task({ commentId: "c-1", state }) })
-        )
-      ).toBe(false);
-    }
-  });
-
-  it("looks up thread HEADS only (replies are never promoted)", () => {
-    expect(
-      threadsHaveLiveAgentTask(
-        [thread("c-1", ["r-1"])],
-        lookup({ "r-1": task({ commentId: "r-1" }) })
-      )
-    ).toBe(false);
   });
 });

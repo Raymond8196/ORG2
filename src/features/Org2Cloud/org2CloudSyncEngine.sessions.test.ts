@@ -32,6 +32,7 @@ const {
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
+  org2CloudSharingFloorAtom,
   org2CloudSyncEnabledAtom,
   sessionOrgTagsAtom,
   sessionsAtom,
@@ -362,6 +363,12 @@ describe("Org2CloudSyncEngine session publishing", () => {
 
     await engine.runSyncPass();
 
+    expect(client.getSessionEvents).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      "session-1",
+      { afterSeq: 2_147_483_647 }
+    );
     expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(2);
     const [, reanchor] = client.rewriteSessionEvents.mock.calls[1];
     expect(reanchor.newEpoch).toBe(6);
@@ -521,6 +528,49 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(client.appendSessionEvents).not.toHaveBeenCalled();
   });
 
+  it("an admin floor never uploads imported history that is only scope-matched", async () => {
+    const source = getImportedHistorySourceBySessionId("cursoride-thread-1");
+    vi.spyOn(source!, "loadFullTranscriptChunks").mockResolvedValue(
+      [] as never
+    );
+    store.set(org2CloudAccessSettingsAtom, {});
+    store.set(org2CloudSharingFloorAtom, { "corg-1": "full_replay" });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: "cursoride-thread-1", orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+
+    expect(client.upsertSessionMetadata).not.toHaveBeenCalled();
+    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(client.appendSessionEvents).not.toHaveBeenCalled();
+  });
+
+  it("the floor still lifts imported history the user explicitly shared", async () => {
+    const source = getImportedHistorySourceBySessionId("cursoride-thread-1");
+    vi.spyOn(source!, "loadFullTranscriptChunks").mockResolvedValue(
+      [] as never
+    );
+    store.set(org2CloudAccessSettingsAtom, {
+      "corg-1": {
+        defaultMode: "off",
+        sessionModes: { "cursoride-thread-1": "metadata_only" },
+        sessionVisibility: {},
+      },
+    });
+    store.set(org2CloudSharingFloorAtom, { "corg-1": "full_replay" });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: "cursoride-thread-1", orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
+    expect(client.upsertSessionMetadata.mock.calls[0][3].accessMode).toBe(
+      "full_replay"
+    );
+  });
+
   it("floors a tagged effective-off session to metadata_only (never 'off' on the wire, no segments)", async () => {
     store.set(org2CloudAccessSettingsAtom, {}); // default OFF
     // Scope stays matched (tags only work WITHIN scope); the tag is what
@@ -591,6 +641,37 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(store.get(org2CloudPushedMetadataAtom)).toEqual({
       "corg-1:session-1": true,
     });
+  });
+
+  it("prepares a multi-org session once per pass (single read + hash)", async () => {
+    store.set(org2CloudOrgsAtom, [
+      { orgId: "corg-1", name: "Cloud Team", role: "member" },
+      { orgId: "corg-2", name: "Other Team", role: "member" },
+    ]);
+    store.set(org2CloudRepoScopesAtom, {
+      "corg-1": [SCOPE_KEY],
+      "corg-2": [SCOPE_KEY],
+    });
+    store.set(org2CloudAccessSettingsAtom, {
+      "corg-1": {
+        defaultMode: "full_replay",
+        sessionModes: {},
+        sessionVisibility: {},
+      },
+      "corg-2": {
+        defaultMode: "full_replay",
+        sessionModes: {},
+        sessionVisibility: {},
+      },
+    });
+    store.set(sessionOrgTagsAtom, {
+      "session-1": [cloudOrgToken("corg-1"), cloudOrgToken("corg-2")],
+    });
+
+    await engine.runSyncPass();
+
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(2);
+    expect(eventStoreMock.getPersistedEvents).toHaveBeenCalledTimes(1);
   });
 
   // --- deleteSession resurrection-hash fix ----------------------------------

@@ -207,6 +207,8 @@ export interface RemoteTeammateSessionMetadata {
    */
   cliAgentType?: string;
   agentDisplayName?: string;
+  /** Display/matching hint only; never remote execution authority. */
+  agentDefinitionId?: string;
   model?: string;
   /**
    * First-class source provenance for replay/fork UX. Older rows omit it and

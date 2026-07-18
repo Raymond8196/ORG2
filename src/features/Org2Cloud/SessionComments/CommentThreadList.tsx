@@ -25,7 +25,7 @@
  * whose task/run is live shows one minimal "Agent is addressing…" line.
  */
 import { Bot, Check, Loader2, Pencil, Trash2 } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
@@ -47,7 +47,10 @@ import {
 } from "../org2CloudSessionCommentsAtom";
 import { useSessionCommentsContext } from "./SessionCommentsContext";
 import {
+  AGENT_COMPOSER_PREFIX,
   detectAgentPrefix,
+  getThreadAgentTaskBadgeState,
+  shouldShowAgentSuggestion,
   splitAgentMentionBody,
 } from "./commentAgentAffordances";
 
@@ -101,6 +104,7 @@ interface ComposerProps {
   submitLabel: string;
   autoFocus?: boolean;
   disabled?: boolean;
+  allowAgentMention?: boolean;
   onSubmit: (body: string) => Promise<void>;
   onCancel?: () => void;
   testId?: string;
@@ -112,6 +116,7 @@ const CommentComposer: React.FC<ComposerProps> = ({
   submitLabel,
   autoFocus = false,
   disabled = false,
+  allowAgentMention = false,
   onSubmit,
   onCancel,
   testId,
@@ -119,7 +124,10 @@ const CommentComposer: React.FC<ComposerProps> = ({
   const { t } = useTranslation("navigation");
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const trimmed = body.trim();
+  const showAgentSuggestion =
+    allowAgentMention && shouldShowAgentSuggestion(body);
 
   const submit = useCallback(async () => {
     if (!trimmed || busy || disabled) return;
@@ -138,6 +146,7 @@ const CommentComposer: React.FC<ComposerProps> = ({
   return (
     <div className="flex flex-col gap-1.5" data-testid={testId}>
       <Textarea
+        ref={textareaRef}
         value={body}
         onChange={(value) => setBody(value)}
         placeholder={placeholder}
@@ -154,6 +163,24 @@ const CommentComposer: React.FC<ComposerProps> = ({
           }
         }}
       />
+      {showAgentSuggestion ? (
+        <button
+          type="button"
+          className="flex items-center gap-1.5 rounded-md border border-border-2 bg-bg-1 px-2 py-1.5 text-left text-[11px] text-text-2 transition-colors hover:bg-fill-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30"
+          data-testid="session-comment-agent-suggestion"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => {
+            setBody(AGENT_COMPOSER_PREFIX);
+            requestAnimationFrame(() => textareaRef.current?.focus());
+          }}
+        >
+          <Bot size={12} strokeWidth={2} className="text-primary-6" />
+          <span className="font-medium">@agent</span>
+          <span className="text-text-3">
+            {t("cloud.comments.task.mentionSuggestion")}
+          </span>
+        </button>
+      ) : null}
       <div className="flex items-center justify-end gap-1.5">
         {onCancel && (
           <Button
@@ -454,14 +481,13 @@ const ThreadBlock: React.FC<ThreadBlockProps> = ({
   const [replying, setReplying] = useState(false);
   const resolution = getThreadResolution(thread);
 
-  const task = context?.taskForThread(thread.top.id);
-  const agentBusy = Boolean(
-    (task &&
-      (context?.activeTaskRuns[task.id] !== undefined ||
-        ((task.state === "claimed" || task.state === "running") &&
-          !task.leaseExpired))) ||
-    (context?.addressRunActive && resolution === null)
+  const durableTaskState = context
+    ? getThreadAgentTaskBadgeState([thread], context.taskForThread)
+    : null;
+  const localAddressRunActive = Boolean(
+    context?.addressRunActive && resolution === null
   );
+  const agentTaskState = localAddressRunActive ? "active" : durableTaskState;
 
   const setStatus = useCallback(
     (status: CommentThreadStatus): Promise<void> =>
@@ -484,13 +510,23 @@ const ThreadBlock: React.FC<ThreadBlockProps> = ({
         onDelete={onDelete}
         onSetStatus={setStatus}
       />
-      {agentBusy && (
+      {agentTaskState && (
         <div
           className="flex items-center gap-1.5 text-[11px] text-text-3"
-          data-testid="comment-thread-agent-busy"
+          data-testid="comment-thread-agent-status"
+          data-task-state={agentTaskState}
         >
-          <Loader2 size={12} strokeWidth={2} className="animate-spin" />
-          {t("cloud.comments.agentAddressing")}
+          {agentTaskState === "active" ? (
+            <Loader2 size={12} strokeWidth={2} className="animate-spin" />
+          ) : (
+            <Bot size={12} strokeWidth={2} />
+          )}
+          {t(
+            agentTaskState === "active"
+              ? "cloud.comments.task.activeBadge_one"
+              : "cloud.comments.task.openBadge_one",
+            { count: 1 }
+          )}
         </div>
       )}
       {thread.replies.map((reply) => (
@@ -588,6 +624,7 @@ const CommentThreadList: React.FC<CommentThreadListProps> = ({
       placeholder={composerPlaceholder ?? t("cloud.comments.addPlaceholder")}
       submitLabel={t("cloud.comments.send")}
       disabled={composerDisabled}
+      allowAgentMention
       onSubmit={submitTopLevel}
       testId="session-comment-composer"
     />
