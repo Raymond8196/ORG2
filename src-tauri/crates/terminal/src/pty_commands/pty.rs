@@ -229,6 +229,16 @@ impl PtySession {
 /// (one app process owns one set of descendants to sweep), so a static carries
 /// no isolation risk that `PtyState`'s Tauri-managed singleton would not.
 ///
+/// Lifetime: entries are added at shell spawn and removed only by the
+/// app-exit sweep (`shutdown_kill_all` clears the whole registry). There is
+/// intentionally NO `unregister` on natural session removal — removing an
+/// entry the moment its shell exits would discard exactly the SID needed to
+/// sweep that shell's still-living HUP-immune descendants, reintroducing the
+/// leak this registry exists to close. A safe unregister would require
+/// proving no live descendants remain, which cannot be done without a
+/// process scan at removal time. Entries are 12 bytes each and bounded by
+/// the app's lifetime terminal churn, so unbounded growth is not a concern.
+///
 /// Each entry pairs the PID with the shell's `start_time` (seconds since
 /// boot). On app-exit sweep, a registered PID is treated as a sweep candidate
 /// only if its current holder either no longer exists (shell dead, PID not
@@ -351,6 +361,16 @@ impl PtyState {
     ///
     /// Must be called from a non-runtime thread (it blocks on the session
     /// map lock); the Tauri run-loop exit handler qualifies.
+    ///
+    /// Thread-safety: `self.sessions.blocking_lock()` calls
+    /// `tokio::future::block_on`, which panics if the current thread is a
+    /// tokio runtime worker. This is safe only because the sole caller is the
+    /// `RunEvent::ExitRequested` callback, which Tauri runs synchronously on
+    /// the main (wry/tao event-loop) thread — NOT a tokio async_runtime
+    /// worker (those live in a separate thread pool). Do NOT call this from
+    /// an `async fn`, a `spawn`/`spawn_blocking` task, or any context where
+    /// a tokio runtime guard is entered; move it to a fresh `std::thread`
+    /// before blocking on the lock.
     pub fn shutdown_kill_all(&self) {
         let drained: Vec<PtySession> = {
             let mut map = self.sessions.blocking_lock();
