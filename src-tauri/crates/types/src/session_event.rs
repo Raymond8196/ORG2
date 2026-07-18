@@ -328,8 +328,6 @@ fn classify_simulator_event(event: &SessionEvent) -> SimulatorEventFilterCategor
             | "glob_file_search"
             | "find_files"
             | tool_names::QUERY_LSP
-            | tool_names::USE_CODE_MAP
-            | tool_names::MANAGE_CODE_MAP
             | tool_names::TOOL_SEARCH
     ) {
         return SimulatorEventFilterCategory::Explore;

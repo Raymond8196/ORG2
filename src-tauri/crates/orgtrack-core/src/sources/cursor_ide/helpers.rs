@@ -586,11 +586,9 @@ fn normalize_args_for_canonical(canonical: &str, cursor_name: &str, args: &mut V
         // web_fetch is renamed to web_search but keeps Cursor's `url` field.
         // `WebSearchAdapter` reads `query` only — surface the URL there too
         // so the card shows something meaningful.
-        "web_search" => {
-            if cursor_name == "web_fetch" {
-                if let Some(Value::String(url)) = obj.get("url").cloned() {
-                    obj.entry("query".to_string()).or_insert(Value::String(url));
-                }
+        "web_search" if cursor_name == "web_fetch" => {
+            if let Some(Value::String(url)) = obj.get("url").cloned() {
+                obj.entry("query".to_string()).or_insert(Value::String(url));
             }
         }
         _ => {}

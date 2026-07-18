@@ -4,7 +4,11 @@
 import { FlaskConical, type LucideIcon } from "lucide-react";
 
 import type { CliAgentType } from "@src/api/types/keys";
-import { getIconProvider } from "@src/components/ModelIcon/config";
+import {
+  THEMEABLE_ICONS,
+  getIconProvider,
+  getIconProviderFromType,
+} from "@src/components/ModelIcon/config";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { resolveSessionIconId } from "@src/util/session/sessionDispatch";
 import { sessionLabel } from "@src/util/session/sessionLabel";
@@ -50,18 +54,46 @@ type SessionRowIconInput =
  * silently mis-branding it as something it isn't.
  */
 export function resolveSessionRowIcon(input: SessionRowIconInput): LucideIcon {
+  return resolveSessionRowIconPresentation(input).Icon;
+}
+
+export interface SessionRowIconPresentation {
+  Icon: LucideIcon;
+  isMonochromeBrandIcon: boolean;
+}
+
+/** Resolve the icon together with the color behavior of provider brand marks. */
+export function resolveSessionRowIconPresentation(
+  input: SessionRowIconInput
+): SessionRowIconPresentation {
   if (typeof input !== "string") {
     if (input.user_input?.startsWith("Benchmark run coordinator")) {
-      return FlaskConical;
+      return { Icon: FlaskConical, isMonochromeBrandIcon: false };
     }
     if (input.cliAgentType) {
-      return resolveAgentIcon(getIconProvider(input.cliAgentType));
+      const iconId = getIconProvider(input.cliAgentType);
+      return {
+        Icon: resolveAgentIcon(iconId),
+        isMonochromeBrandIcon:
+          iconId !== "unknown" && THEMEABLE_ICONS.has(iconId),
+      };
     }
     if (input.agentIconId) {
-      return resolveAgentIcon(input.agentIconId);
+      const provider = getIconProviderFromType(input.agentIconId);
+      return {
+        Icon: resolveAgentIcon(input.agentIconId),
+        isMonochromeBrandIcon:
+          provider !== "unknown" && THEMEABLE_ICONS.has(provider),
+      };
     }
   }
 
   const sessionId = typeof input === "string" ? input : input.session_id;
-  return resolveAgentIcon(resolveSessionIconId(sessionId));
+  const iconId = resolveSessionIconId(sessionId);
+  const provider = getIconProviderFromType(iconId);
+  return {
+    Icon: resolveAgentIcon(iconId),
+    isMonochromeBrandIcon:
+      provider !== "unknown" && THEMEABLE_ICONS.has(provider),
+  };
 }

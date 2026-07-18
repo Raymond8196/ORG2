@@ -533,6 +533,13 @@ export function useCloudSessionsSection({
         trailingElement,
         disabled,
         children: asParentOf,
+        dragPayload: isMine
+          ? {
+              path: `session://${bareSessionId}`,
+              name: displayTitle,
+              iconType: "session",
+            }
+          : undefined,
       };
       if (!disabled) {
         item.showMoreActions = true;

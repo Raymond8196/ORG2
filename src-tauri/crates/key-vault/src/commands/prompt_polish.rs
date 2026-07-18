@@ -1148,13 +1148,11 @@ fn extract_first_json_object(text: &str) -> Option<&str> {
                 }
                 depth += 1;
             }
-            b'}' => {
-                if depth > 0 {
-                    depth -= 1;
-                    if depth == 0 {
-                        if let Some(start) = start {
-                            return text.get(start..=index);
-                        }
+            b'}' if depth > 0 => {
+                depth -= 1;
+                if depth == 0 {
+                    if let Some(start) = start {
+                        return text.get(start..=index);
                     }
                 }
             }
