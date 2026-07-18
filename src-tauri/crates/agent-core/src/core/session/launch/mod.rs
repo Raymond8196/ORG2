@@ -617,7 +617,7 @@ pub(crate) async fn launch_rust_agent_run(
                 std::path::PathBuf::from(&workspace_path_for_send),
                 account_id_for_send.clone(),
                 model_for_send.clone(),
-                native_harness_type_for_send.clone(),
+                native_harness_type_for_send,
                 content_for_send.clone(),
             );
             let send_result = send_initial_turn(
@@ -734,7 +734,7 @@ pub(crate) async fn launch_rust_agent_run(
                 std::path::PathBuf::from(&workspace_path_for_send),
                 account_id_for_send.clone(),
                 model_for_send.clone(),
-                native_harness_type_for_send.clone(),
+                native_harness_type_for_send,
                 content_for_send.clone(),
             );
 

@@ -1279,7 +1279,7 @@ pub async fn stale_worker_timeout_releases_open_tasks(cfg: &Config) -> bool {
 
     let stale_open_released = stale_open
         .and_then(|item| item.get("owner"))
-        .map_or(true, serde_json::Value::is_null)
+        .is_none_or(serde_json::Value::is_null)
         && stale_open.and_then(|item| item.get("status").and_then(|value| value.as_str()))
             == Some("pending");
     let completed_preserved = stale_completed

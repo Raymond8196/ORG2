@@ -320,10 +320,7 @@ fn load_claude_session_titles(
     {
         let entry = entry.map_err(|err| format!("Failed to read Claude session entry: {err}"))?;
         let path = entry.path();
-        if !path
-            .extension()
-            .is_some_and(|extension| extension == "json")
-        {
+        if path.extension().is_none_or(|extension| extension != "json") {
             continue;
         }
         let contents = fs::read_to_string(&path).map_err(|err| {
