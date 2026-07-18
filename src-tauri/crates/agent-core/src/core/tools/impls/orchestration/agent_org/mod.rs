@@ -16,6 +16,6 @@ pub mod tasks;
 
 pub use send_message::{NoopInboxWakeHook, NoopSelfAbortHook, OrgSendMessageTool};
 pub use tasks::{
-    TaskCreateTool, TaskGetTool, TaskGraphCreateTool, TaskListTool, TaskToolsContext,
-    TaskUpdateTool,
+    OrgRunCompleteTool, TaskCreateTool, TaskGetTool, TaskGraphCreateTool, TaskListTool,
+    TaskToolsContext, TaskUpdateTool,
 };

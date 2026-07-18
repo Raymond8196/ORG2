@@ -12,6 +12,8 @@
 //!   registration is conditional on routing direction).
 
 use async_trait::async_trait;
+use database::db::{get_connection, with_sessions_writer};
+use rusqlite::{params, OptionalExtension};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -21,8 +23,7 @@ use crate::coordination::agent_inbox::{
     is_supported_agent_org_remote_mode, AgentInboxStore, AgentMessage, InsertInboxParams, RequestId,
 };
 use crate::coordination::agent_org_plan_approvals::{
-    enqueue_post_approval_messages, AgentOrgPlanApprovalStore, AgentOrgPlanDecisionBy,
-    AgentOrgPlanInboxDelivery,
+    AgentOrgPlanApprovalStore, AgentOrgPlanDecisionBy, AgentOrgPlanInboxDelivery,
 };
 use crate::coordination::agent_org_runs::{
     AgentOrgParticipant, AgentOrgRunContext, AgentOrgRunStore, RoutingDecision,
@@ -116,7 +117,7 @@ impl SelfAbortHook for NoopSelfAbortHook {
 ///    member ids derived from the org graph.
 /// 2. `kind` selects which body fields are required (see field docs).
 /// 3. The constructed `AgentMessage::validate` runs last as a safety net.
-#[derive(Debug, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
 pub struct OrgSendMessageParams {
     /// Stable participant id inside this Agent Org run. Use only values
     /// listed in the tool description's allowed `recipient_member_id` set.
@@ -204,6 +205,194 @@ pub struct OrgSendMessageParams {
 struct OrgRecipientTarget {
     member_id: String,
     agent_id: String,
+}
+
+#[derive(Debug)]
+enum OrdinaryMessagePersistOutcome {
+    Guidance(String),
+    Delivered(Vec<(String, i64)>),
+}
+
+fn plain_work_context_guidance(
+    params: &OrgSendMessageParams,
+    message: &AgentMessage,
+    recipients: &[OrgRecipientTarget],
+    all_tasks: &[crate::coordination::agent_org_tasks::Task],
+) -> Result<Option<String>, ToolError> {
+    if !matches!(message, AgentMessage::Plain { .. })
+        || recipients
+            .iter()
+            .all(|recipient| recipient.member_id == COORDINATOR_MEMBER_ID)
+    {
+        return Ok(None);
+    }
+
+    let related_task_id = params
+        .related_task_id
+        .as_deref()
+        .map(str::trim)
+        .filter(|task_id| !task_id.is_empty());
+    let Some(related_task_id) = related_task_id else {
+        return serde_json::to_string(&json!({
+            "delivered": false,
+            "requires_task": true,
+            "reason": "plain_worker_message_requires_related_task",
+            "guidance": "Create or assign an unresolved durable task first, then retry org_send_message with related_task_id. A plain message cannot create invisible worker work.",
+            "recipient_member_ids": recipients.iter().map(|recipient| recipient.member_id.clone()).collect::<Vec<_>>(),
+        }))
+        .map(Some)
+        .map_err(|err| ToolError::ExecutionFailed(err.to_string()));
+    };
+
+    let task = all_tasks.iter().find(|task| task.id == related_task_id);
+    let invalid_reason = match task {
+        None => Some("related_task_not_found"),
+        Some(task) if task.status.is_resolved() => Some("related_task_already_completed"),
+        Some(task) if !task_dependencies_resolved(all_tasks, task) => {
+            Some("related_task_dependencies_unresolved")
+        }
+        Some(task)
+            if recipients
+                .iter()
+                .any(|recipient| task.owner.as_deref() != Some(recipient.member_id.as_str())) =>
+        {
+            Some("related_task_not_owned_by_recipient")
+        }
+        Some(_) => None,
+    };
+    let Some(reason) = invalid_reason else {
+        return Ok(None);
+    };
+
+    serde_json::to_string(&json!({
+        "delivered": false,
+        "requires_task": true,
+        "reason": reason,
+        "related_task_id": related_task_id,
+        "guidance": "Use an unresolved, dependency-ready task already owned by the recipient. If it is ownerless, the coordinator must explicitly set owner_member_id first; eligibility alone is not assignment.",
+        "recipient_member_ids": recipients.iter().map(|recipient| recipient.member_id.clone()).collect::<Vec<_>>(),
+    }))
+    .map(Some)
+    .map_err(|err| ToolError::ExecutionFailed(err.to_string()))
+}
+
+fn persist_ordinary_message_if_running(
+    run_id: &str,
+    sender: &AgentOrgParticipant,
+    params: &OrgSendMessageParams,
+    message: &AgentMessage,
+    recipients: &[OrgRecipientTarget],
+) -> Result<OrdinaryMessagePersistOutcome, ToolError> {
+    with_sessions_writer(|| {
+        let mut conn =
+            get_connection().map_err(|err| ToolError::ExecutionFailed(err.to_string()))?;
+        let tx = conn
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .map_err(|err| ToolError::ExecutionFailed(err.to_string()))?;
+        let run_status: Option<String> = tx
+            .query_row(
+                "SELECT status FROM agent_org_runs WHERE id=?1",
+                params![run_id],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(|err| ToolError::ExecutionFailed(err.to_string()))?;
+        if run_status.as_deref() != Some("running") {
+            let guidance = serde_json::to_string(&json!({
+                "delivered": false,
+                "reason": "run_not_running",
+                "org_run_id": run_id,
+                "run_status": run_status,
+                "guidance": "The Agent Org run is paused or terminal, so this message was not persisted. Resume a paused run before sending new work; terminal runs cannot be reopened.",
+            }))
+            .map_err(|err| ToolError::ExecutionFailed(err.to_string()))?;
+            tx.commit()
+                .map_err(|err| ToolError::ExecutionFailed(err.to_string()))?;
+            return Ok(OrdinaryMessagePersistOutcome::Guidance(guidance));
+        }
+
+        let all_tasks = AgentOrgTaskStore::list_with_connection(&tx, run_id)
+            .map_err(ToolError::ExecutionFailed)?;
+        if let Some(guidance) =
+            plain_work_context_guidance(params, message, recipients, &all_tasks)?
+        {
+            tx.commit()
+                .map_err(|err| ToolError::ExecutionFailed(err.to_string()))?;
+            return Ok(OrdinaryMessagePersistOutcome::Guidance(guidance));
+        }
+
+        let member_ids = recipients
+            .iter()
+            .filter(|recipient| recipient.member_id != COORDINATOR_MEMBER_ID)
+            .map(|recipient| recipient.member_id.clone())
+            .collect::<Vec<_>>();
+        let runtimes = AgentOrgRunStore::list_worker_sessions_by_member_ids_with_connection(
+            &tx,
+            run_id,
+            &member_ids,
+        )
+        .map_err(ToolError::ExecutionFailed)?;
+        for recipient in recipients {
+            if let Some(runtime) = runtimes
+                .iter()
+                .find(|runtime| runtime.member_id.as_deref() == Some(recipient.member_id.as_str()))
+            {
+                if runtime.status == SessionStatus::Archived {
+                    return Err(ToolError::InvalidParams(format!(
+                        "delivery_blocked: recipient_member_id '{}' is archived/closed (session_id='{}'); reopen the member session or start a new Agent Org run before sending",
+                        recipient.member_id, runtime.session_id
+                    )));
+                }
+            }
+        }
+
+        let mut delivered = Vec::with_capacity(recipients.len());
+        for recipient in recipients {
+            let record = AgentInboxStore::insert_in_tx(
+                &tx,
+                InsertInboxParams {
+                    recipient_agent_id: recipient.agent_id.clone(),
+                    recipient_member_id: Some(recipient.member_id.clone()),
+                    sender_agent_id: sender.agent_id.clone(),
+                    sender_member_id: Some(sender.member_id.clone()),
+                    org_run_id: Some(run_id.to_string()),
+                    message: message.clone(),
+                },
+            )
+            .map_err(ToolError::ExecutionFailed)?;
+            delivered.push((recipient.member_id.clone(), record.id));
+        }
+        tx.commit()
+            .map_err(|err| ToolError::ExecutionFailed(err.to_string()))?;
+        Ok(OrdinaryMessagePersistOutcome::Delivered(delivered))
+    })
+}
+
+fn ensure_recipients_deliverable(
+    run_id: &str,
+    recipients: &[OrgRecipientTarget],
+) -> Result<(), ToolError> {
+    let member_ids = recipients
+        .iter()
+        .filter(|recipient| recipient.member_id != COORDINATOR_MEMBER_ID)
+        .map(|recipient| recipient.member_id.clone())
+        .collect::<Vec<_>>();
+    let runtimes = AgentOrgRunStore::list_worker_sessions_by_member_ids(run_id, &member_ids)
+        .map_err(ToolError::ExecutionFailed)?;
+    for recipient in recipients {
+        if let Some(runtime) = runtimes
+            .iter()
+            .find(|runtime| runtime.member_id.as_deref() == Some(recipient.member_id.as_str()))
+        {
+            if runtime.status == SessionStatus::Archived {
+                return Err(ToolError::InvalidParams(format!(
+                    "delivery_blocked: recipient_member_id '{}' is archived/closed (session_id='{}'); reopen the member session or start a new Agent Org run before sending",
+                    recipient.member_id, runtime.session_id
+                )));
+            }
+        }
+    }
+    Ok(())
 }
 
 pub struct OrgSendMessageTool {
@@ -546,101 +735,6 @@ impl OrgSendMessageTool {
             )),
         }
     }
-
-    fn ensure_recipients_deliverable(
-        &self,
-        recipients: &[OrgRecipientTarget],
-    ) -> Result<(), ToolError> {
-        for recipient in recipients {
-            if recipient.member_id == COORDINATOR_MEMBER_ID {
-                continue;
-            }
-            let Some(info) = AgentOrgRunStore::list_worker_sessions_by_member_ids(
-                &self.org_context.run_id,
-                std::slice::from_ref(&recipient.member_id),
-            )
-            .map_err(ToolError::ExecutionFailed)?
-            .into_iter()
-            .next() else {
-                continue;
-            };
-            if info.status == SessionStatus::Archived {
-                return Err(ToolError::InvalidParams(format!(
-                    "delivery_blocked: recipient_member_id '{}' is archived/closed (session_id='{}'); reopen the member session or start a new Agent Org run before sending",
-                    recipient.member_id, info.session_id
-                )));
-            }
-        }
-        Ok(())
-    }
-
-    /// A free-form message may carry details about formal work, but it may
-    /// never *create* invisible work. Every worker-directed plain message is
-    /// therefore bound to one durable, unresolved task for that recipient.
-    fn validate_plain_work_context(
-        &self,
-        params: &OrgSendMessageParams,
-        message: &AgentMessage,
-        recipients: &[OrgRecipientTarget],
-    ) -> Result<Option<String>, ToolError> {
-        if !matches!(message, AgentMessage::Plain { .. })
-            || recipients
-                .iter()
-                .all(|recipient| recipient.member_id == COORDINATOR_MEMBER_ID)
-        {
-            return Ok(None);
-        }
-
-        let related_task_id = params
-            .related_task_id
-            .as_deref()
-            .map(str::trim)
-            .filter(|task_id| !task_id.is_empty());
-        let Some(related_task_id) = related_task_id else {
-            return serde_json::to_string(&json!({
-                "delivered": false,
-                "requires_task": true,
-                "reason": "plain_worker_message_requires_related_task",
-                "guidance": "Create or assign an unresolved durable task first, then retry org_send_message with related_task_id. A plain message cannot create invisible worker work.",
-                "recipient_member_ids": recipients.iter().map(|recipient| recipient.member_id.clone()).collect::<Vec<_>>(),
-            }))
-            .map(Some)
-            .map_err(|err| ToolError::ExecutionFailed(err.to_string()));
-        };
-
-        let all_tasks = AgentOrgTaskStore::list(&self.org_context.run_id)
-            .map_err(ToolError::ExecutionFailed)?;
-        let task = all_tasks.iter().find(|task| task.id == related_task_id);
-        let invalid_reason = match task {
-            None => Some("related_task_not_found"),
-            Some(task) if task.status.is_resolved() => Some("related_task_already_completed"),
-            Some(task) if !task_dependencies_resolved(&all_tasks, task) => {
-                Some("related_task_dependencies_unresolved")
-            }
-            Some(task)
-                if recipients.iter().any(|recipient| {
-                    task.owner.as_deref() != Some(recipient.member_id.as_str())
-                }) =>
-            {
-                Some("related_task_not_owned_by_recipient")
-            }
-            Some(_) => None,
-        };
-        let Some(reason) = invalid_reason else {
-            return Ok(None);
-        };
-
-        serde_json::to_string(&json!({
-            "delivered": false,
-            "requires_task": true,
-            "reason": reason,
-            "related_task_id": related_task_id,
-            "guidance": "Use an unresolved, dependency-ready task already owned by the recipient. If it is ownerless, the coordinator must explicitly set owner_member_id first; eligibility alone is not assignment.",
-            "recipient_member_ids": recipients.iter().map(|recipient| recipient.member_id.clone()).collect::<Vec<_>>(),
-        }))
-        .map(Some)
-        .map_err(|err| ToolError::ExecutionFailed(err.to_string()))
-    }
 }
 
 #[async_trait]
@@ -687,9 +781,6 @@ impl Tool for OrgSendMessageTool {
             .build_message(&params)
             .map_err(ToolError::InvalidParams)?;
         message.validate().map_err(ToolError::InvalidParams)?;
-        if let Some(guidance) = self.validate_plain_work_context(&params, &message, &recipients)? {
-            return Ok(guidance);
-        }
 
         // Shutdown acknowledgements are part of the coordinator/member
         // handshake and must go back to the coordinator participant.
@@ -712,13 +803,6 @@ impl Tool for OrgSendMessageTool {
                 return Err(ToolError::InvalidParams(hint));
             }
         }
-        if !matches!(
-            &message,
-            AgentMessage::PlanApprovalResponse { accepted: true, .. }
-        ) {
-            self.ensure_recipients_deliverable(&recipients)?;
-        }
-
         if let AgentMessage::PlanApprovalResponse {
             request_id,
             accepted,
@@ -726,10 +810,31 @@ impl Tool for OrgSendMessageTool {
             ..
         } = &message
         {
-            let approval = AgentOrgPlanApprovalStore::get_pending_by_request_id(
-                &self.org_context.run_id,
-                request_id.as_str(),
-            )
+            if !accepted {
+                let deliverable_run_id = self.org_context.run_id.clone();
+                let deliverable_recipients = recipients.clone();
+                tokio::task::spawn_blocking(move || {
+                    ensure_recipients_deliverable(&deliverable_run_id, &deliverable_recipients)
+                })
+                .await
+                .map_err(|err| {
+                    ToolError::ExecutionFailed(format!(
+                        "recipient-delivery validation worker failed: {err}"
+                    ))
+                })??;
+            }
+            let lookup_run_id = self.org_context.run_id.clone();
+            let lookup_request_id = request_id.as_str().to_string();
+            let approval = tokio::task::spawn_blocking(move || {
+                AgentOrgPlanApprovalStore::get_pending_by_request_id(
+                    &lookup_run_id,
+                    &lookup_request_id,
+                )
+            })
+            .await
+            .map_err(|err| {
+                ToolError::ExecutionFailed(format!("plan approval lookup worker failed: {err}"))
+            })?
             .map_err(ToolError::ExecutionFailed)?
             .ok_or_else(|| {
                 ToolError::InvalidParams(format!(
@@ -746,15 +851,22 @@ impl Tool for OrgSendMessageTool {
             }
 
             if *accepted {
-                let approved = AgentOrgPlanApprovalStore::approve(
-                    &approval.approval_id,
-                    &approval.plan_revision_id,
-                    AgentOrgPlanDecisionBy::Coordinator,
-                    None,
-                )
+                let approval_id = approval.approval_id.clone();
+                let plan_revision_id = approval.plan_revision_id.clone();
+                let approved = tokio::task::spawn_blocking(move || {
+                    AgentOrgPlanApprovalStore::approve(
+                        &approval_id,
+                        &plan_revision_id,
+                        AgentOrgPlanDecisionBy::Coordinator,
+                        None,
+                    )
+                })
+                .await
+                .map_err(|err| {
+                    ToolError::ExecutionFailed(format!("plan approval worker failed: {err}"))
+                })?
                 .map_err(ToolError::ExecutionFailed)?;
-                let wake_member_ids = enqueue_post_approval_messages(&self.org_context, &approved)
-                    .map_err(ToolError::ExecutionFailed)?;
+                let wake_member_ids = approved.wake_member_ids.clone();
                 for member_id in &wake_member_ids {
                     self.wake_hook
                         .wake_member(member_id, &self.org_context.run_id);
@@ -786,17 +898,27 @@ impl Tool for OrgSendMessageTool {
                     )
                 })?;
             let recipient = &recipients[0];
-            let (_, record) = AgentOrgPlanApprovalStore::request_changes(
-                &approval.approval_id,
-                &approval.plan_revision_id,
-                AgentOrgPlanDecisionBy::Coordinator,
-                feedback,
-                AgentOrgPlanInboxDelivery {
-                    recipient_agent_id: recipient.agent_id.clone(),
-                    sender_agent_id: self.sender.agent_id.clone(),
-                    sender_member_id: Some(self.sender.member_id.clone()),
-                },
-            )
+            let approval_id = approval.approval_id.clone();
+            let plan_revision_id = approval.plan_revision_id.clone();
+            let feedback = feedback.to_string();
+            let delivery = AgentOrgPlanInboxDelivery {
+                recipient_agent_id: recipient.agent_id.clone(),
+                sender_agent_id: self.sender.agent_id.clone(),
+                sender_member_id: Some(self.sender.member_id.clone()),
+            };
+            let (_, record) = tokio::task::spawn_blocking(move || {
+                AgentOrgPlanApprovalStore::request_changes(
+                    &approval_id,
+                    &plan_revision_id,
+                    AgentOrgPlanDecisionBy::Coordinator,
+                    &feedback,
+                    delivery,
+                )
+            })
+            .await
+            .map_err(|err| {
+                ToolError::ExecutionFailed(format!("plan changes-request worker failed: {err}"))
+            })?
             .map_err(ToolError::ExecutionFailed)?;
             self.wake_hook
                 .wake_member(&recipient.member_id, &self.org_context.run_id);
@@ -818,24 +940,40 @@ impl Tool for OrgSendMessageTool {
             });
         }
 
-        let mut delivered = Vec::with_capacity(recipients.len());
-        for recipient in recipients {
-            let record = AgentInboxStore::insert(InsertInboxParams {
-                recipient_agent_id: recipient.agent_id.clone(),
-                recipient_member_id: Some(recipient.member_id.clone()),
-                sender_agent_id: self.sender.agent_id.clone(),
-                sender_member_id: Some(self.sender.member_id.clone()),
-                org_run_id: Some(self.org_context.run_id.clone()),
-                message: message.clone(),
+        let persist_run_id = self.org_context.run_id.clone();
+        let persist_sender = self.sender.clone();
+        let persist_params = params.clone();
+        let persist_message = message.clone();
+        let persist_recipients = recipients.clone();
+        let persist_outcome = tokio::task::spawn_blocking(move || {
+            persist_ordinary_message_if_running(
+                &persist_run_id,
+                &persist_sender,
+                &persist_params,
+                &persist_message,
+                &persist_recipients,
+            )
+        })
+        .await
+        .map_err(|err| {
+            ToolError::ExecutionFailed(format!("org message persistence worker failed: {err}"))
+        })??;
+        let delivered_rows = match persist_outcome {
+            OrdinaryMessagePersistOutcome::Guidance(guidance) => return Ok(guidance),
+            OrdinaryMessagePersistOutcome::Delivered(delivered_rows) => delivered_rows,
+        };
+        let delivered = delivered_rows
+            .iter()
+            .map(|(recipient_member_id, inbox_id)| {
+                json!({
+                    "recipient_member_id": recipient_member_id,
+                    "inbox_id": inbox_id,
+                })
             })
-            .map_err(ToolError::ExecutionFailed)?;
-            delivered.push(json!({
-                "recipient_member_id": recipient.member_id,
-                "inbox_id": record.id,
-            }));
-
+            .collect::<Vec<_>>();
+        for (recipient_member_id, _) in &delivered_rows {
             self.wake_hook
-                .wake_member(&recipient.member_id, &self.org_context.run_id);
+                .wake_member(recipient_member_id, &self.org_context.run_id);
         }
 
         if let AgentMessage::ShutdownResponse { accepted: true, .. } = &message {
@@ -991,6 +1129,29 @@ mod tests {
         crate::coordination::agent_org_runs::init_schema(&conn).expect("agent org runs schema");
         crate::coordination::agent_org_tasks::init_schema(&conn).expect("agent org tasks schema");
         crate::coordination::agent_inbox::init_schema(&conn).expect("agent inbox schema");
+        crate::coordination::agent_member_interventions::init_schema(&conn)
+            .expect("member intervention schema");
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS code_sessions (
+                session_id TEXT PRIMARY KEY,
+                cli_agent_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                parent_session_id TEXT,
+                org_member_id TEXT,
+                updated_at TEXT NOT NULL
+            );",
+        )
+        .expect("CLI session schema");
+        let now = chrono::Utc::now().to_rfc3339();
+        conn.execute(
+            "INSERT INTO agent_org_runs (
+                 id, org_id, coordinator_agent_id, root_session_id,
+                 entry_mode, status, created_at, updated_at
+             ) VALUES ('run-1', 'org-1', 'agent-coord', 'root-1',
+                       'build', 'running', ?1, ?1)",
+            rusqlite::params![now],
+        )
+        .expect("seed running Agent Org run");
         sandbox
     }
 
@@ -1219,6 +1380,41 @@ mod tests {
         assert!(AgentInboxStore::list_unread_for_member("builder", "run-1")
             .expect("inbox")
             .is_empty());
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+    async fn ordinary_message_does_not_create_unread_work_after_run_is_terminal() {
+        let _sandbox = init_inbox_schema();
+        let conn = database::db::get_connection().expect("test sqlite connection");
+        conn.execute(
+            "UPDATE agent_org_runs SET status='completed' WHERE id='run-1'",
+            [],
+        )
+        .expect("complete run");
+        let wake = Arc::new(RecordingWakeHook::default());
+        let tool = OrgSendMessageTool::with_hooks(
+            context(),
+            "builder".to_string(),
+            wake.clone(),
+            Arc::new(NoopSelfAbortHook),
+        );
+
+        let result = tool
+            .execute_text(
+                params("coordinator"),
+                &crate::tools::call_context::CallContext::default(),
+            )
+            .await
+            .expect("terminal race returns structured no-delivery guidance");
+        let value: Value = serde_json::from_str(&result).expect("guidance json");
+        assert_eq!(value["delivered"], false);
+        assert_eq!(value["reason"], "run_not_running");
+        assert!(wake.snapshot().is_empty());
+        assert!(
+            AgentInboxStore::list_unread_for_member("coordinator", "run-1")
+                .expect("coordinator inbox")
+                .is_empty()
+        );
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]

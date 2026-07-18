@@ -123,6 +123,9 @@ pub const TASK_LIST: &str = "task_list";
 /// active_form, owner, status, blocks, blocked_by, metadata).
 /// Read-only. Only available inside an Agent Org run.
 pub const TASK_GET: &str = "task_get";
+/// Record a coordinator completion request at the current durable work
+/// revision. Finality checks remain authoritative.
+pub const ORG_RUN_COMPLETE: &str = "org_run_complete";
 
 // ── Channel workspace tools ─────────────────────────────────────────
 /// List known workspace paths seen in recent sessions.

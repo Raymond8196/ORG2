@@ -32,7 +32,8 @@ use crate::coordination::agent_inbox::{
 };
 use crate::coordination::agent_org_plan_approvals::AgentOrgPlanApprovalStore;
 use crate::coordination::agent_org_runs::{
-    AgentOrgRunStatus, AgentOrgRunStore, COORDINATOR_MEMBER_ID,
+    AgentOrgFinalityBlocker, AgentOrgFinalityDecision, AgentOrgRunRecord, AgentOrgRunStatus,
+    AgentOrgRunStore, COORDINATOR_MEMBER_ID,
 };
 use crate::coordination::agent_org_tasks::{self, Task, TaskStatus};
 use crate::core::session::SessionStatus;
@@ -54,11 +55,38 @@ pub fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
             attempts INTEGER NOT NULL DEFAULT 0,
             next_allowed_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
+            reservation_token TEXT,
             PRIMARY KEY (org_run_id, action_kind, target_key)
         );
         CREATE INDEX IF NOT EXISTS idx_agent_org_recovery_attempts_run
             ON agent_org_recovery_attempts(org_run_id);",
-    )
+    )?;
+    // Existing databases predate dispatch reservations. Keeping the token in
+    // the same row lets a failed/coalesced scheduler request refund only its
+    // own provisional attempt without undoing a newer recovery fingerprint.
+    ensure_recovery_attempt_column(conn, "reservation_token", "TEXT")?;
+    Ok(())
+}
+
+fn ensure_recovery_attempt_column(
+    conn: &Connection,
+    column_name: &str,
+    column_definition: &str,
+) -> rusqlite::Result<()> {
+    let mut stmt = conn.prepare("PRAGMA table_info(agent_org_recovery_attempts)")?;
+    let columns = stmt.query_map([], |row| row.get::<_, String>(1))?;
+    for column in columns {
+        if column? == column_name {
+            return Ok(());
+        }
+    }
+    conn.execute(
+        &format!(
+            "ALTER TABLE agent_org_recovery_attempts ADD COLUMN {column_name} {column_definition}"
+        ),
+        [],
+    )?;
+    Ok(())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -75,6 +103,16 @@ fn budget_disposition(
     fingerprint: &str,
 ) -> Result<BudgetDisposition, String> {
     let conn = get_connection().map_err(|err| err.to_string())?;
+    budget_disposition_with_connection(&conn, run_id, action_kind, target_key, fingerprint)
+}
+
+fn budget_disposition_with_connection(
+    conn: &Connection,
+    run_id: &str,
+    action_kind: &str,
+    target_key: &str,
+    fingerprint: &str,
+) -> Result<BudgetDisposition, String> {
     let row: Option<(String, i64, String)> = conn
         .query_row(
             "SELECT reason_fingerprint, attempts, next_allowed_at
@@ -90,9 +128,6 @@ fn budget_disposition(
     };
     if stored_fingerprint != fingerprint {
         return Ok(BudgetDisposition::Allowed);
-    }
-    if attempts >= RECOVERY_DELAYS_SECS.len() as i64 {
-        return Ok(BudgetDisposition::Exhausted);
     }
     let next_allowed_at = match DateTime::parse_from_rfc3339(&next_allowed_at) {
         Ok(parsed) => parsed.with_timezone(&Utc),
@@ -111,8 +146,15 @@ fn budget_disposition(
             return Ok(BudgetDisposition::Allowed);
         }
     };
-    Ok(if Utc::now() < next_allowed_at {
-        BudgetDisposition::Backoff
+    if Utc::now() < next_allowed_at {
+        // Every accepted attempt owns its full 1/5/15 minute cooling-off
+        // window.  In particular, the third attempt is not "exhausted"
+        // immediately after dispatch; it becomes exhausted only after its
+        // 15-minute deadline passes without recovery.
+        return Ok(BudgetDisposition::Backoff);
+    }
+    Ok(if attempts >= RECOVERY_DELAYS_SECS.len() as i64 {
+        BudgetDisposition::Exhausted
     } else {
         BudgetDisposition::Allowed
     })
@@ -129,37 +171,62 @@ fn record_attempt(
         let tx = conn
             .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
             .map_err(|err| err.to_string())?;
-        let previous: Option<(String, i64)> = tx
-            .query_row(
-                "SELECT reason_fingerprint, attempts FROM agent_org_recovery_attempts
-                 WHERE org_run_id=?1 AND action_kind=?2 AND target_key=?3",
-                params![run_id, action_kind, target_key],
-                |row| Ok((row.get(0)?, row.get(1)?)),
-            )
-            .optional()
-            .map_err(|err| err.to_string())?;
-        let attempts = match previous {
-            Some((stored, attempts)) if stored == fingerprint => attempts + 1,
-            _ => 1,
-        };
-        let delay_index =
-            (attempts.saturating_sub(1) as usize).min(RECOVERY_DELAYS_SECS.len().saturating_sub(1));
-        let now = Utc::now();
-        let next = now + ChronoDuration::seconds(RECOVERY_DELAYS_SECS[delay_index]);
-        tx.execute(
-            "INSERT INTO agent_org_recovery_attempts
-                 (org_run_id, action_kind, target_key, reason_fingerprint, attempts, next_allowed_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-             ON CONFLICT(org_run_id, action_kind, target_key) DO UPDATE SET
-                 reason_fingerprint=excluded.reason_fingerprint,
-                 attempts=excluded.attempts,
-                 next_allowed_at=excluded.next_allowed_at,
-                 updated_at=excluded.updated_at",
-            params![run_id, action_kind, target_key, fingerprint, attempts, next.to_rfc3339(), now.to_rfc3339()],
-        )
-        .map_err(|err| err.to_string())?;
+        record_attempt_with_connection(&tx, run_id, action_kind, target_key, fingerprint)?;
         tx.commit().map_err(|err| err.to_string())
     })
+}
+
+/// Record an accepted recovery dispatch using the caller's transaction.
+/// Member-Wake reservations use this before handing work to the in-memory
+/// scheduler, then commit or refund the provisional attempt by token.
+fn record_attempt_with_connection(
+    conn: &Connection,
+    run_id: &str,
+    action_kind: &str,
+    target_key: &str,
+    fingerprint: &str,
+) -> Result<(), String> {
+    let previous: Option<(String, i64)> = conn
+        .query_row(
+            "SELECT reason_fingerprint, attempts FROM agent_org_recovery_attempts
+             WHERE org_run_id=?1 AND action_kind=?2 AND target_key=?3",
+            params![run_id, action_kind, target_key],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .optional()
+        .map_err(|err| err.to_string())?;
+    let attempts = match previous {
+        Some((stored, attempts)) if stored == fingerprint => attempts
+            .clamp(0, RECOVERY_DELAYS_SECS.len() as i64)
+            .saturating_add(1),
+        _ => 1,
+    };
+    let delay_index =
+        (attempts.saturating_sub(1) as usize).min(RECOVERY_DELAYS_SECS.len().saturating_sub(1));
+    let now = Utc::now();
+    let next = now + ChronoDuration::seconds(RECOVERY_DELAYS_SECS[delay_index]);
+    conn.execute(
+        "INSERT INTO agent_org_recovery_attempts
+             (org_run_id, action_kind, target_key, reason_fingerprint, attempts, next_allowed_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+         ON CONFLICT(org_run_id, action_kind, target_key) DO UPDATE SET
+             reason_fingerprint=excluded.reason_fingerprint,
+             attempts=excluded.attempts,
+             next_allowed_at=excluded.next_allowed_at,
+             updated_at=excluded.updated_at,
+             reservation_token=NULL",
+        params![
+            run_id,
+            action_kind,
+            target_key,
+            fingerprint,
+            attempts,
+            next.to_rfc3339(),
+            now.to_rfc3339()
+        ],
+    )
+    .map_err(|err| err.to_string())?;
+    Ok(())
 }
 
 pub fn clear_rewake_budget(run_id: &str, member_id: &str) -> Result<(), String> {
@@ -175,30 +242,207 @@ pub fn clear_rewake_budget(run_id: &str, member_id: &str) -> Result<(), String> 
     })
 }
 
-pub(crate) fn record_accepted_member_rewake(
+#[derive(Debug, Clone)]
+struct RecoveryAttemptSnapshot {
+    reason_fingerprint: String,
+    attempts: i64,
+    next_allowed_at: String,
+    updated_at: String,
+    reservation_token: Option<String>,
+}
+
+/// Provisional durable claim for one scheduler dispatch.
+///
+/// SQLite and the in-memory scheduler cannot share a transaction. Reserving
+/// first closes the unsafe side of that gap: a crash can conservatively spend
+/// one cooldown, but it cannot enqueue a provider turn that was never charged
+/// to the recovery budget. Failed/coalesced requests refund by this unique
+/// token, so they cannot roll back a newer fingerprint's reservation.
+pub(crate) struct MemberRewakeReservation {
+    run_id: String,
+    member_id: String,
+    token: String,
+    previous: Option<RecoveryAttemptSnapshot>,
+}
+
+pub(crate) enum MemberRewakeReservationOutcome {
+    Reserved(MemberRewakeReservation),
+    Deferred,
+}
+
+pub(crate) fn reserve_member_rewake_dispatch(
     run_id: &str,
     member_id: &str,
-    status: SessionStatus,
+    fingerprint: &str,
+) -> Result<MemberRewakeReservationOutcome, String> {
+    with_sessions_writer(|| -> Result<MemberRewakeReservationOutcome, String> {
+        let mut conn = get_connection().map_err(|err| err.to_string())?;
+        let tx = conn
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .map_err(|err| err.to_string())?;
+        if !matches!(
+            budget_disposition_with_connection(&tx, run_id, MEMBER_REWAKE, member_id, fingerprint,)?,
+            BudgetDisposition::Allowed
+        ) {
+            tx.commit().map_err(|err| err.to_string())?;
+            return Ok(MemberRewakeReservationOutcome::Deferred);
+        }
+
+        let previous = tx
+            .query_row(
+                "SELECT reason_fingerprint, attempts, next_allowed_at, updated_at,
+                        reservation_token
+                 FROM agent_org_recovery_attempts
+                 WHERE org_run_id=?1 AND action_kind=?2 AND target_key=?3",
+                params![run_id, MEMBER_REWAKE, member_id],
+                |row| {
+                    Ok(RecoveryAttemptSnapshot {
+                        reason_fingerprint: row.get(0)?,
+                        attempts: row.get(1)?,
+                        next_allowed_at: row.get(2)?,
+                        updated_at: row.get(3)?,
+                        reservation_token: row.get(4)?,
+                    })
+                },
+            )
+            .optional()
+            .map_err(|err| err.to_string())?;
+        record_attempt_with_connection(&tx, run_id, MEMBER_REWAKE, member_id, fingerprint)?;
+        let token = uuid::Uuid::new_v4().to_string();
+        let updated = tx
+            .execute(
+                "UPDATE agent_org_recovery_attempts
+                 SET reservation_token=?1
+                 WHERE org_run_id=?2 AND action_kind=?3 AND target_key=?4
+                   AND reason_fingerprint=?5",
+                params![&token, run_id, MEMBER_REWAKE, member_id, fingerprint],
+            )
+            .map_err(|err| err.to_string())?;
+        if updated != 1 {
+            return Err("member rewake reservation disappeared before commit".to_string());
+        }
+        tx.commit().map_err(|err| err.to_string())?;
+        Ok(MemberRewakeReservationOutcome::Reserved(
+            MemberRewakeReservation {
+                run_id: run_id.to_string(),
+                member_id: member_id.to_string(),
+                token,
+                previous,
+            },
+        ))
+    })
+}
+
+pub(crate) fn commit_member_rewake_reservation(
+    reservation: &MemberRewakeReservation,
 ) -> Result<(), String> {
-    record_attempt(run_id, MEMBER_REWAKE, member_id, status.as_str())
+    with_sessions_writer(|| -> Result<(), String> {
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        conn.execute(
+            "UPDATE agent_org_recovery_attempts
+             SET reservation_token=NULL
+             WHERE org_run_id=?1 AND action_kind=?2 AND target_key=?3
+               AND reservation_token=?4",
+            params![
+                &reservation.run_id,
+                MEMBER_REWAKE,
+                &reservation.member_id,
+                &reservation.token,
+            ],
+        )
+        .map_err(|err| err.to_string())?;
+        Ok(())
+    })
+}
+
+pub(crate) fn refund_member_rewake_reservation(
+    reservation: &MemberRewakeReservation,
+) -> Result<bool, String> {
+    with_sessions_writer(|| -> Result<bool, String> {
+        let mut conn = get_connection().map_err(|err| err.to_string())?;
+        let tx = conn
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .map_err(|err| err.to_string())?;
+        let owns_current: bool = tx
+            .query_row(
+                "SELECT EXISTS(
+                     SELECT 1 FROM agent_org_recovery_attempts
+                     WHERE org_run_id=?1 AND action_kind=?2 AND target_key=?3
+                       AND reservation_token=?4
+                 )",
+                params![
+                    &reservation.run_id,
+                    MEMBER_REWAKE,
+                    &reservation.member_id,
+                    &reservation.token,
+                ],
+                |row| row.get(0),
+            )
+            .map_err(|err| err.to_string())?;
+        if !owns_current {
+            tx.commit().map_err(|err| err.to_string())?;
+            return Ok(false);
+        }
+
+        if let Some(previous) = reservation.previous.as_ref() {
+            tx.execute(
+                "UPDATE agent_org_recovery_attempts
+                 SET reason_fingerprint=?1, attempts=?2, next_allowed_at=?3,
+                     updated_at=?4, reservation_token=?5
+                 WHERE org_run_id=?6 AND action_kind=?7 AND target_key=?8
+                   AND reservation_token=?9",
+                params![
+                    &previous.reason_fingerprint,
+                    previous.attempts,
+                    &previous.next_allowed_at,
+                    &previous.updated_at,
+                    previous.reservation_token.as_deref(),
+                    &reservation.run_id,
+                    MEMBER_REWAKE,
+                    &reservation.member_id,
+                    &reservation.token,
+                ],
+            )
+            .map_err(|err| err.to_string())?;
+        } else {
+            tx.execute(
+                "DELETE FROM agent_org_recovery_attempts
+                 WHERE org_run_id=?1 AND action_kind=?2 AND target_key=?3
+                   AND reservation_token=?4",
+                params![
+                    &reservation.run_id,
+                    MEMBER_REWAKE,
+                    &reservation.member_id,
+                    &reservation.token,
+                ],
+            )
+            .map_err(|err| err.to_string())?;
+        }
+        tx.commit().map_err(|err| err.to_string())?;
+        Ok(true)
+    })
 }
 
 #[cfg(test)]
-pub fn test_only_mark_failed_rewake_attempt(run_id: &str, member_id: &str) -> bool {
-    if !delayed_rewake_allowed(run_id, member_id, SessionStatus::Failed) {
-        return false;
+pub fn test_only_mark_failed_rewake_attempt(run_id: &str, member_id: &str) -> Result<bool, String> {
+    let fingerprint = member_rewake_fingerprint(run_id, member_id, SessionStatus::Failed)?;
+    if !delayed_rewake_allowed(run_id, member_id, SessionStatus::Failed, &fingerprint)? {
+        return Ok(false);
     }
-    record_attempt(run_id, MEMBER_REWAKE, member_id, "failed").is_ok()
+    record_attempt(run_id, MEMBER_REWAKE, member_id, &fingerprint)?;
+    Ok(true)
 }
 
-fn delayed_rewake_allowed(run_id: &str, member_id: &str, status: SessionStatus) -> bool {
-    if status == SessionStatus::Idle {
-        return true;
-    }
-    matches!(
-        budget_disposition(run_id, MEMBER_REWAKE, member_id, status.as_str()),
-        Ok(BudgetDisposition::Allowed)
-    )
+fn delayed_rewake_allowed(
+    run_id: &str,
+    member_id: &str,
+    _status: SessionStatus,
+    fingerprint: &str,
+) -> Result<bool, String> {
+    Ok(matches!(
+        budget_disposition(run_id, MEMBER_REWAKE, member_id, fingerprint)?,
+        BudgetDisposition::Allowed
+    ))
 }
 
 /// Non-mutating budget probe: `true` once every rewake attempt for the
@@ -206,11 +450,15 @@ fn delayed_rewake_allowed(run_id: &str, member_id: &str, status: SessionStatus) 
 /// backoff window": an exhausted budget never recovers without a
 /// successful member turn (which clears it), so it marks the member as
 /// beyond autonomous recovery.
-fn rewake_budget_exhausted(run_id: &str, member_id: &str, status: SessionStatus) -> bool {
-    matches!(
-        budget_disposition(run_id, MEMBER_REWAKE, member_id, status.as_str()),
-        Ok(BudgetDisposition::Exhausted)
-    )
+fn rewake_budget_exhausted(
+    run_id: &str,
+    member_id: &str,
+    fingerprint: &str,
+) -> Result<bool, String> {
+    Ok(matches!(
+        budget_disposition(run_id, MEMBER_REWAKE, member_id, fingerprint)?,
+        BudgetDisposition::Exhausted
+    ))
 }
 
 fn reason_fingerprint(reason: &str) -> String {
@@ -224,19 +472,40 @@ fn reason_fingerprint(reason: &str) -> String {
 /// change to the reason payload — which every actual repair produces,
 /// since it mutates task state — resets the budget.
 #[cfg(test)]
-fn coordinator_notice_allowed(run_id: &str, reason: &str) -> bool {
+fn coordinator_notice_allowed(run_id: &str, reason: &str) -> Result<bool, String> {
     let fingerprint = reason_fingerprint(reason);
-    if !coordinator_notice_budget_allows(run_id, &fingerprint) {
-        return false;
+    if !coordinator_notice_budget_allows(run_id, &fingerprint)? {
+        return Ok(false);
     }
-    record_attempt(run_id, COORDINATOR_NOTICE, "coordinator", &fingerprint).is_ok()
+    record_attempt(run_id, COORDINATOR_NOTICE, "coordinator", &fingerprint)?;
+    Ok(true)
 }
 
-fn coordinator_notice_budget_allows(run_id: &str, fingerprint: &str) -> bool {
-    matches!(
-        budget_disposition(run_id, COORDINATOR_NOTICE, "coordinator", fingerprint),
-        Ok(BudgetDisposition::Allowed)
-    )
+fn coordinator_notice_budget_allows(run_id: &str, fingerprint: &str) -> Result<bool, String> {
+    Ok(matches!(
+        budget_disposition(run_id, COORDINATOR_NOTICE, "coordinator", fingerprint)?,
+        BudgetDisposition::Allowed
+    ))
+}
+
+pub(crate) fn member_rewake_fingerprint(
+    run_id: &str,
+    member_id: &str,
+    status: SessionStatus,
+) -> Result<String, String> {
+    Ok(member_rewake_fingerprint_from_unread(
+        status,
+        AgentInboxStore::unread_fingerprint_for_member(member_id, run_id)?.as_deref(),
+    ))
+}
+
+fn member_rewake_fingerprint_from_unread(
+    status: SessionStatus,
+    unread_fingerprint: Option<&str>,
+) -> String {
+    unread_fingerprint
+        .map(|unread| format!("unread:{unread}"))
+        .unwrap_or_else(|| format!("status:{}", status.as_str()))
 }
 
 /// Recovery actions the watchdog decided on for one quiescent run.
@@ -262,8 +531,8 @@ pub struct StallRecoveryPlan {
     /// inbox rows (an unread notice already covers redelivery via
     /// `wake_member_ids`).
     pub coordinator_repair_reason: Option<String>,
-    /// Stable hash of typed repair facts (task/reason/member ids), excluding
-    /// prose and timestamps so copy edits do not reset the retry budget.
+    /// Stable hash of the repair state keys used to reset the notice budget
+    /// when the underlying stalled board changes.
     pub coordinator_repair_fingerprint: Option<String>,
     /// Every task resolved + every worker terminal: the run can be
     /// reconciled to a terminal status.
@@ -321,10 +590,14 @@ pub fn spawn(app_handle: AppHandle) {
         loop {
             interval.tick().await;
             let handle = app_handle.clone();
-            if let Err(err) =
-                tokio::task::spawn_blocking(move || recover_all_stalled_runs(handle)).await
-            {
-                tracing::warn!(error = %err, "[agent_org_watchdog] watchdog task join failed");
+            match tokio::task::spawn_blocking(move || recover_all_stalled_runs(handle)).await {
+                Ok(Ok(())) => {}
+                Ok(Err(err)) => {
+                    tracing::warn!(error = %err, "[agent_org_watchdog] watchdog scan failed")
+                }
+                Err(err) => {
+                    tracing::warn!(error = %err, "[agent_org_watchdog] watchdog task join failed")
+                }
             }
         }
     });
@@ -332,12 +605,50 @@ pub fn spawn(app_handle: AppHandle) {
 
 fn recover_all_stalled_runs(app_handle: AppHandle) -> Result<(), String> {
     let runs = AgentOrgRunStore::list_running_runs(usize::MAX)?;
-    prune_recovery_budgets()?;
-    AgentOrgPlanApprovalStore::cancel_pending_for_non_running_runs()?;
-    for run in runs {
-        recover_stalled_run(app_handle.clone(), &run.id)?;
+    run_best_effort_cleanup("prune recovery budgets", prune_recovery_budgets);
+    run_best_effort_cleanup("cancel stale plan approvals", || {
+        AgentOrgPlanApprovalStore::cancel_pending_for_terminal_or_missing_runs().map(|_| ())
+    });
+    recover_listed_runs(app_handle, runs, recover_stalled_run)
+}
+
+/// Auxiliary cleanup is useful but cannot be a global recovery gate. One bad
+/// row must not prevent healthy runs from being inspected during this tick.
+fn run_best_effort_cleanup(label: &'static str, cleanup: impl FnOnce() -> Result<(), String>) {
+    if let Err(err) = cleanup() {
+        tracing::warn!(
+            cleanup = label,
+            error = %err,
+            "[agent_org_watchdog] maintenance failed; continuing run scan"
+        );
     }
-    Ok(())
+}
+
+fn recover_listed_runs<H: Clone, T>(
+    handle: H,
+    runs: Vec<AgentOrgRunRecord>,
+    mut recover: impl FnMut(H, &str) -> Result<T, String>,
+) -> Result<(), String> {
+    let mut failed_run_ids = Vec::new();
+    for run in runs {
+        if let Err(err) = recover(handle.clone(), &run.id) {
+            tracing::warn!(
+                run_id = %run.id,
+                error = %err,
+                "[agent_org_watchdog] recovery failed for one run; continuing scan"
+            );
+            failed_run_ids.push(run.id);
+        }
+    }
+    if failed_run_ids.is_empty() {
+        Ok(())
+    } else {
+        Err(format!(
+            "{} Agent Org run(s) failed recovery inspection: {}",
+            failed_run_ids.len(),
+            failed_run_ids.join(", ")
+        ))
+    }
 }
 
 /// Drop budget entries whose run is no longer running so the
@@ -441,7 +752,7 @@ pub fn recover_stalled_run(
             .coordinator_repair_fingerprint
             .as_deref()
             .unwrap_or(reason);
-        if coordinator_notice_budget_allows(run_id, fingerprint) {
+        if coordinator_notice_budget_allows(run_id, fingerprint)? {
             if insert_coordinator_stall_notice(run_id, reason)? {
                 record_attempt(run_id, COORDINATOR_NOTICE, "coordinator", fingerprint)?;
                 AppHandleInboxWakeHook::new(app_handle).wake_member(COORDINATOR_MEMBER_ID, run_id);
@@ -462,7 +773,9 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
         return Ok(StallRecoveryPlan::default());
     }
 
+    let finality_assessment = AgentOrgRunStore::assess_run_finality(run_id)?;
     let tasks = agent_org_tasks::AgentOrgTaskStore::list(run_id)?;
+    let task_graph = agent_org_tasks::TaskGraphIndex::new(&tasks);
     let pending_plan_task_ids = AgentOrgPlanApprovalStore::list_pending_by_run(run_id)?
         .into_iter()
         .map(|approval| approval.source_task_id)
@@ -493,13 +806,7 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
         let mut keys = Vec::new();
         for task in &tasks {
             let Some(owner) = task.owner.as_deref() else {
-                let ready = task.status == TaskStatus::Pending
-                    && task.blocked_by.iter().all(|blocker_id| {
-                        tasks
-                            .iter()
-                            .find(|candidate| &candidate.id == blocker_id)
-                            .is_some_and(|candidate| candidate.status.is_resolved())
-                    });
+                let ready = task.status == TaskStatus::Pending && task_graph.is_ready(task);
                 if ready {
                     let mut eligible = agent_org_tasks::eligible_member_ids(task);
                     eligible.sort();
@@ -553,13 +860,12 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
             .into_iter()
             .map(|task| task.id.clone())
             .collect();
-    let historically_assigned_task_ids = AgentInboxStore::list_by_run(run_id)?
-        .into_iter()
-        .filter_map(|row| match row.decode_payload().ok()? {
-            AgentMessage::TaskAssigned { task_id, .. } => Some(task_id),
-            _ => None,
-        })
-        .collect::<HashSet<_>>();
+    let assignment_conn = get_connection().map_err(|err| err.to_string())?;
+    let historically_assigned_task_ids =
+        AgentInboxStore::task_assignment_ids_for_open_tasks_with_connection(
+            &assignment_conn,
+            run_id,
+        )?;
     let mut owned_open_tasks_by_member: HashMap<&str, Vec<String>> = HashMap::new();
     let mut ready_pending_tasks_by_member: HashMap<&str, Vec<String>> = HashMap::new();
     for task in &tasks {
@@ -573,12 +879,7 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
                 .push(task.id.clone());
             if task.status == TaskStatus::Pending
                 && !historically_assigned_task_ids.contains(&task.id)
-                && task.blocked_by.iter().all(|blocker_id| {
-                    tasks
-                        .iter()
-                        .find(|candidate| &candidate.id == blocker_id)
-                        .is_some_and(|candidate| candidate.status.is_resolved())
-                })
+                && task_graph.is_ready(task)
             {
                 ready_pending_tasks_by_member
                     .entry(owner)
@@ -632,7 +933,8 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
         if !has_unread && !needs_assignment && !needs_terminal_continuation {
             continue;
         }
-        if !delayed_rewake_allowed(run_id, member_id, worker.status) {
+        let rewake_fingerprint = member_rewake_fingerprint(run_id, member_id, worker.status)?;
+        if !delayed_rewake_allowed(run_id, member_id, worker.status, &rewake_fingerprint)? {
             continue;
         }
         if !has_unread && needs_assignment {
@@ -666,8 +968,15 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
         if let Some(info) =
             AgentOrgRunStore::find_coordinator_session_by_member_id(run_id, COORDINATOR_MEMBER_ID)?
         {
+            let rewake_fingerprint =
+                member_rewake_fingerprint(run_id, COORDINATOR_MEMBER_ID, info.status)?;
             if is_wakeable_status(info.status)
-                && delayed_rewake_allowed(run_id, COORDINATOR_MEMBER_ID, info.status)
+                && delayed_rewake_allowed(
+                    run_id,
+                    COORDINATOR_MEMBER_ID,
+                    info.status,
+                    &rewake_fingerprint,
+                )?
             {
                 wake_member_ids.push(COORDINATOR_MEMBER_ID.to_string());
             }
@@ -694,9 +1003,14 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
                     "task {} is owned by unavailable member {}; reassign owner_member_id or repair eligible_member_ids",
                     task.id, owner
                 ));
-            } else if owner_status.is_some_and(|status| {
-                status.is_terminal() && rewake_budget_exhausted(run_id, owner, status)
-            }) {
+            } else if match owner_status {
+                Some(status) if status.is_terminal() => rewake_budget_exhausted(
+                    run_id,
+                    owner,
+                    &member_rewake_fingerprint(run_id, owner, status)?,
+                )?,
+                _ => false,
+            } {
                 repair_keys.push(format!("terminal_owner:{}:{}", task.id, owner));
                 needs_repair.push(format!(
                     "task {} is owned by terminal member {} whose automatic retry budget is exhausted; retry the owner, reassign owner_member_id, or repair eligible_member_ids",
@@ -760,6 +1074,46 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
         needs_repair.push(ready_unassigned_repair_reason(task));
     }
 
+    // A terminal reconciliation may legitimately decline even when every
+    // Task is resolved (for example, the coordinator has not observed the
+    // latest work revision). Convert the actionable canonical blockers into
+    // one bounded coordinator repair instead of returning an empty plan that
+    // leaves the run permanently Running.
+    for blocker in &finality_assessment.blockers {
+        match blocker {
+            AgentOrgFinalityBlocker::EmptyTaskBoardRequiresCompletionIntent => {
+                repair_keys.push("empty_board_requires_completion_intent".to_string());
+                needs_repair.push(
+                    "the Agent Org task board is empty. If the mission truly needs no durable tasks, call org_run_complete with a concise summary; otherwise create the missing task graph."
+                        .to_string(),
+                );
+            }
+            AgentOrgFinalityBlocker::StaleCompletionIntent {
+                requested_work_revision,
+                current_work_revision,
+            } => {
+                repair_keys.push(format!(
+                    "stale_completion_intent:{requested_work_revision:?}:{current_work_revision}"
+                ));
+                needs_repair.push(format!(
+                    "the previous completion request observed work revision {requested_work_revision:?}, but the board is now revision {current_work_revision}. Re-inspect the board before calling org_run_complete again."
+                ));
+            }
+            AgentOrgFinalityBlocker::CoordinatorHasNotObservedLatestWork {
+                observed_work_revision,
+                current_work_revision,
+            } if tasks.iter().all(|task| task.status.is_resolved()) => {
+                repair_keys.push(format!(
+                    "coordinator_observation:{observed_work_revision:?}:{current_work_revision}"
+                ));
+                needs_repair.push(format!(
+                    "all durable tasks are resolved, but the coordinator has only observed work revision {observed_work_revision:?}; the current revision is {current_work_revision}. Refresh task_list and produce the final user-facing synthesis."
+                ));
+            }
+            _ => {}
+        }
+    }
+
     let coordinator_repair_reason = if !needs_repair.is_empty() && !coordinator_unread {
         Some(needs_repair.join("\n"))
     } else {
@@ -770,16 +1124,10 @@ pub fn inspect_stalled_run(run_id: &str) -> Result<StallRecoveryPlan, String> {
         .as_ref()
         .map(|_| reason_fingerprint(&repair_keys.join("|")));
 
-    let has_open_tasks = tasks.iter().any(|task| !task.status.is_resolved());
-    let terminal_candidate = !tasks.is_empty()
-        && !has_open_tasks
-        && wake_member_ids.is_empty()
-        && !coordinator_unread
-        && coordinator_repair_reason.is_none()
-        && !workers.is_empty()
-        && workers
-            .iter()
-            .all(|worker| is_quiescent_completed_run_status(worker.status));
+    let terminal_candidate = matches!(
+        finality_assessment.decision,
+        AgentOrgFinalityDecision::Complete | AgentOrgFinalityDecision::Abandon
+    );
 
     Ok(StallRecoveryPlan {
         wake_member_ids,
@@ -796,23 +1144,6 @@ fn is_active_status(status: SessionStatus) -> bool {
         status,
         SessionStatus::Running | SessionStatus::WaitingForUser | SessionStatus::WaitingForFunds
     )
-}
-
-fn is_quiescent_completed_run_status(status: SessionStatus) -> bool {
-    match status {
-        SessionStatus::Idle
-        | SessionStatus::Completed
-        | SessionStatus::Failed
-        | SessionStatus::Cancelled
-        | SessionStatus::Abandoned
-        | SessionStatus::Timeout
-        | SessionStatus::Archived => true,
-        SessionStatus::Pending
-        | SessionStatus::Running
-        | SessionStatus::WaitingForUser
-        | SessionStatus::WaitingForFunds
-        | SessionStatus::Paused => false,
-    }
 }
 
 fn is_wakeable_status(status: SessionStatus) -> bool {
@@ -890,17 +1221,31 @@ fn insert_coordinator_stall_notice(run_id: &str, reason: &str) -> Result<bool, S
     })?;
     Ok(true)
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::coordination::agent_inbox::AgentInboxStore;
-    use crate::coordination::agent_org_runs::{AgentOrgRunEntryMode, CreateAgentOrgRunParams};
-    use crate::coordination::agent_org_tasks::{
-        AgentOrgTaskStore, CreateTaskParams, TASK_METADATA_ELIGIBLE_MEMBER_IDS,
-    };
-    use crate::definitions::orgs::{HierarchyMode, OrgDefinition, OrgMember, PlanApprovalPolicy};
-    use crate::session::persistence::{session_type, UnifiedSessionRecord};
+    use crate::coordination::agent_org_runs::{AgentOrgRunEntryMode, AgentOrgRunRecord};
+
+    fn fake_run(id: &str) -> AgentOrgRunRecord {
+        let now = Utc::now().to_rfc3339();
+        AgentOrgRunRecord {
+            id: id.to_string(),
+            org_id: "org".to_string(),
+            coordinator_agent_id: "coordinator-agent".to_string(),
+            root_session_id: Some(format!("root-{id}")),
+            org_snapshot_json: None,
+            entry_mode: AgentOrgRunEntryMode::StandaloneSession,
+            status: AgentOrgRunStatus::Running,
+            work_item_id: None,
+            project_slug: None,
+            routine_fire_id: None,
+            summary: None,
+            last_error: None,
+            created_at: now.clone(),
+            updated_at: now,
+            completed_at: None,
+        }
+    }
 
     #[test]
     fn wakeable_status_includes_idle_and_terminal_but_not_running() {
@@ -910,55 +1255,89 @@ mod tests {
     }
 
     #[test]
-    fn delayed_rewake_budget_limits_and_clears_failed_member_retries() {
+    fn member_rewake_reservation_is_atomic_and_refundable() {
         let _sandbox = test_helpers::test_env::sandbox();
         let conn = get_connection().expect("db");
         init_schema(&conn).expect("schema");
         let run_id = format!("run-{}", uuid::Uuid::new_v4());
-        let member_id = "member-a";
-        assert!(test_only_mark_failed_rewake_attempt(&run_id, member_id));
-        assert!(!delayed_rewake_allowed(
-            run_id.as_str(),
-            member_id,
-            SessionStatus::Failed
+        let member_id = "member-reserved";
+        let fingerprint = "unread-42";
+
+        let first = match reserve_member_rewake_dispatch(&run_id, member_id, fingerprint)
+            .expect("reserve first dispatch")
+        {
+            MemberRewakeReservationOutcome::Reserved(reservation) => reservation,
+            MemberRewakeReservationOutcome::Deferred => panic!("first dispatch must reserve"),
+        };
+        assert!(matches!(
+            reserve_member_rewake_dispatch(&run_id, member_id, fingerprint)
+                .expect("concurrent reservation gate"),
+            MemberRewakeReservationOutcome::Deferred
         ));
-        assert!(delayed_rewake_allowed(
-            run_id.as_str(),
-            member_id,
-            SessionStatus::Idle
-        ));
-        clear_rewake_budget(run_id.as_str(), member_id).unwrap();
-        assert!(delayed_rewake_allowed(
-            run_id.as_str(),
-            member_id,
-            SessionStatus::Failed
+        assert!(refund_member_rewake_reservation(&first).expect("refund failed dispatch"));
+        assert!(matches!(
+            reserve_member_rewake_dispatch(&run_id, member_id, fingerprint)
+                .expect("reserve after refund"),
+            MemberRewakeReservationOutcome::Reserved(_)
         ));
     }
 
     #[test]
-    fn corrupt_recovery_deadline_does_not_suppress_retry_forever() {
+    fn stale_rewake_refund_cannot_undo_newer_input() {
         let _sandbox = test_helpers::test_env::sandbox();
         let conn = get_connection().expect("db");
         init_schema(&conn).expect("schema");
-        conn.execute(
-            "INSERT INTO agent_org_recovery_attempts
-                 (org_run_id, action_kind, target_key, reason_fingerprint, attempts, next_allowed_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, 1, 'not-a-timestamp', ?5)",
-            params![
-                "run-corrupt-budget",
-                MEMBER_REWAKE,
-                "member-a",
-                SessionStatus::Failed.as_str(),
-                Utc::now().to_rfc3339(),
-            ],
-        )
-        .unwrap();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let member_id = "member-new-input";
+        let old = match reserve_member_rewake_dispatch(&run_id, member_id, "unread-1")
+            .expect("reserve old fingerprint")
+        {
+            MemberRewakeReservationOutcome::Reserved(reservation) => reservation,
+            MemberRewakeReservationOutcome::Deferred => panic!("old fingerprint must reserve"),
+        };
+        let current = match reserve_member_rewake_dispatch(&run_id, member_id, "unread-2")
+            .expect("new durable input resets budget")
+        {
+            MemberRewakeReservationOutcome::Reserved(reservation) => reservation,
+            MemberRewakeReservationOutcome::Deferred => {
+                panic!("new fingerprint must have its own reservation")
+            }
+        };
 
-        assert!(delayed_rewake_allowed(
-            "run-corrupt-budget",
-            "member-a",
-            SessionStatus::Failed
-        ));
+        assert!(
+            !refund_member_rewake_reservation(&old).expect("stale refund"),
+            "an old dispatch token must not roll back newer durable input"
+        );
+        commit_member_rewake_reservation(&current).expect("commit current dispatch");
+        assert_eq!(
+            budget_disposition(&run_id, MEMBER_REWAKE, member_id, "unread-2").expect("read budget"),
+            BudgetDisposition::Backoff
+        );
+    }
+
+    #[test]
+    fn one_failed_run_does_not_skip_later_runs() {
+        let first = fake_run("run-first");
+        let second = fake_run("run-second");
+        let mut inspected = Vec::new();
+
+        let error = recover_listed_runs((), vec![first, second], |(), run_id| {
+            inspected.push(run_id.to_string());
+            if run_id == "run-first" {
+                Err("injected failure".to_string())
+            } else {
+                Ok(())
+            }
+        })
+        .expect_err("aggregate error");
+
+        assert!(error.contains("run-first"));
+        assert_eq!(inspected, vec!["run-first", "run-second"]);
+    }
+
+    #[test]
+    fn maintenance_failure_is_best_effort() {
+        run_best_effort_cleanup("injected", || Err("failure".to_string()));
     }
 
     #[test]
@@ -967,673 +1346,9 @@ mod tests {
         let conn = get_connection().expect("db");
         init_schema(&conn).expect("schema");
         let run_id = format!("run-{}", uuid::Uuid::new_v4());
-        assert!(coordinator_notice_allowed(&run_id, "task a stuck"));
-        assert!(
-            !coordinator_notice_allowed(&run_id, "task a stuck"),
-            "identical reason must back off instead of nagging every tick"
-        );
-        assert!(
-            coordinator_notice_allowed(&run_id, "task b stuck"),
-            "a changed reason means board state moved; budget must reset"
-        );
-        assert!(!coordinator_notice_allowed(&run_id, "task b stuck"));
-    }
 
-    #[test]
-    fn rewake_budget_exhausted_only_after_all_attempts_consumed() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let conn = get_connection().expect("db");
-        init_schema(&conn).expect("schema");
-        let run_id = format!("run-{}", uuid::Uuid::new_v4());
-        let member_id = "member-x";
-        assert!(!rewake_budget_exhausted(
-            run_id.as_str(),
-            member_id,
-            SessionStatus::Failed
-        ));
-        conn.execute(
-            "INSERT INTO agent_org_recovery_attempts
-             (org_run_id, action_kind, target_key, reason_fingerprint, attempts, next_allowed_at, updated_at)
-             VALUES (?1, ?2, ?3, 'failed', ?4, ?5, ?5)",
-            params![run_id, MEMBER_REWAKE, member_id, RECOVERY_DELAYS_SECS.len() as i64, Utc::now().to_rfc3339()],
-        )
-        .expect("seed exhausted budget");
-        assert!(rewake_budget_exhausted(
-            run_id.as_str(),
-            member_id,
-            SessionStatus::Failed
-        ));
-        clear_rewake_budget(run_id.as_str(), member_id).unwrap();
-        assert!(!rewake_budget_exhausted(
-            run_id.as_str(),
-            member_id,
-            SessionStatus::Failed
-        ));
-    }
-
-    #[test]
-    fn prune_recovery_budgets_drops_entries_for_finished_runs() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let conn = get_connection().expect("db");
-        init_schema(&conn).expect("schema");
-        crate::coordination::agent_org_runs::init_schema(&conn).expect("run schema");
-        let live_run = format!("run-{}", uuid::Uuid::new_v4());
-        let dead_run = format!("run-{}", uuid::Uuid::new_v4());
-        let now = Utc::now().to_rfc3339();
-        for (run_id, status) in [
-            (&live_run, AgentOrgRunStatus::Running),
-            (&dead_run, AgentOrgRunStatus::Completed),
-        ] {
-            conn.execute(
-                "INSERT INTO agent_org_runs
-                 (id, org_id, coordinator_agent_id, entry_mode, status, created_at, updated_at)
-                 VALUES (?1, 'org', 'coord', 'standalone_session', ?2, ?3, ?3)",
-                params![run_id, status.as_str(), now],
-            )
-            .expect("seed run");
-        }
-        record_attempt(&live_run, MEMBER_REWAKE, "m", "failed").unwrap();
-        record_attempt(&dead_run, MEMBER_REWAKE, "m", "failed").unwrap();
-        assert!(coordinator_notice_allowed(&live_run, "reason"));
-        assert!(coordinator_notice_allowed(&dead_run, "reason"));
-
-        prune_recovery_budgets().unwrap();
-
-        let count_for = |run_id: &str| -> i64 {
-            conn.query_row(
-                "SELECT COUNT(*) FROM agent_org_recovery_attempts WHERE org_run_id=?1",
-                params![run_id],
-                |row| row.get(0),
-            )
-            .unwrap()
-        };
-        assert_eq!(count_for(&live_run), 2);
-        assert_eq!(count_for(&dead_run), 0);
-    }
-
-    #[test]
-    fn corrupt_timestamps_count_as_stale() {
-        assert!(
-            is_stale_in_progress("not-a-timestamp", None),
-            "corrupt task timestamp must escalate instead of silently exempting the task"
-        );
-        let old = (Utc::now()
-            - ChronoDuration::seconds(agent_org_tasks::STALE_MEMBER_NOTICE_SECS * 2))
-        .to_rfc3339();
-        assert!(is_stale_in_progress(&old, Some(&"garbage".to_string())));
-    }
-
-    // ==========================================================
-    // DB-backed state-machine tests for inspect_stalled_run
-    // ==========================================================
-
-    fn ensure_runtime_schemas() {
-        let conn = database::db::get_connection().expect("test sqlite connection");
-        crate::persistence::test_schema::ensure_agent_sessions_schema(&conn);
-        crate::coordination::agent_org_runs::init_schema(&conn).expect("agent org runs schema");
-        crate::coordination::agent_org_tasks::init_schema(&conn).expect("agent org tasks schema");
-        crate::coordination::agent_org_plan_approvals::init_schema(&conn)
-            .expect("agent org plan approvals schema");
-        init_schema(&conn).expect("agent org recovery schema");
-        crate::coordination::agent_inbox::init_schema(&conn).expect("agent inbox schema");
-        crate::coordination::agent_member_interventions::init_schema(&conn)
-            .expect("agent member interventions schema");
-        conn.execute_batch(
-            "CREATE TABLE IF NOT EXISTS code_sessions (
-                session_id TEXT PRIMARY KEY,
-                cli_agent_type TEXT NOT NULL,
-                status TEXT NOT NULL,
-                parent_session_id TEXT,
-                org_member_id TEXT,
-                updated_at TEXT NOT NULL
-            );",
-        )
-        .expect("cli session schema");
-    }
-
-    fn org_definition(member_ids: &[&str]) -> OrgDefinition {
-        OrgDefinition {
-            id: "org-watchdog".to_string(),
-            name: "Watchdog Org".to_string(),
-            role: "coordinator".to_string(),
-            agent_id: "builtin:coord".to_string(),
-            description: None,
-            hierarchy_mode: HierarchyMode::Soft,
-            plan_approval_policy: PlanApprovalPolicy::Coordinator,
-            children: member_ids
-                .iter()
-                .map(|member_id| OrgMember {
-                    id: (*member_id).to_string(),
-                    name: (*member_id).to_string(),
-                    role: "builder".to_string(),
-                    agent_id: "builtin:sde".to_string(),
-                    runtime_config: None,
-                    children: Vec::new(),
-                })
-                .collect(),
-        }
-    }
-
-    fn upsert_session(
-        session_id: &str,
-        session_type_value: &str,
-        status: SessionStatus,
-        org_member_id: Option<&str>,
-        parent_session_id: Option<&str>,
-    ) {
-        let now = chrono::Utc::now().to_rfc3339();
-        crate::session::persistence::upsert_session(&UnifiedSessionRecord {
-            session_id: session_id.to_string(),
-            name: session_id.to_string(),
-            status: status.as_str().to_string(),
-            session_type: session_type_value.to_string(),
-            created_at: now.clone(),
-            updated_at: now,
-            agent_definition_id: Some("builtin:sde".to_string()),
-            org_member_id: org_member_id.map(str::to_string),
-            parent_session_id: parent_session_id.map(str::to_string),
-            ..Default::default()
-        })
-        .expect("upsert session");
-    }
-
-    /// Seed a Running org run with a coordinator root session plus one
-    /// worker session per `(member_id, status)` pair. Returns the run id.
-    fn seed_run_with_workers(members: &[(&str, SessionStatus)]) -> String {
-        ensure_runtime_schemas();
-        upsert_session(
-            "root-session",
-            session_type::GENERIC,
-            SessionStatus::Idle,
-            None,
-            None,
-        );
-        for (member_id, status) in members {
-            upsert_session(
-                &format!("session-{member_id}"),
-                session_type::ORG_MEMBER,
-                *status,
-                Some(member_id),
-                Some("root-session"),
-            );
-        }
-        let member_ids: Vec<&str> = members.iter().map(|(member_id, _)| *member_id).collect();
-        let run = AgentOrgRunStore::create(CreateAgentOrgRunParams {
-            org_id: "org-watchdog".to_string(),
-            coordinator_agent_id: "builtin:coord".to_string(),
-            root_session_id: Some("root-session".to_string()),
-            org_snapshot: org_definition(&member_ids),
-            entry_mode: AgentOrgRunEntryMode::StandaloneSession,
-            status: AgentOrgRunStatus::Running,
-            work_item_id: None,
-            project_slug: None,
-            routine_fire_id: None,
-        })
-        .expect("create run");
-        run.id
-    }
-
-    fn seed_task(
-        run_id: &str,
-        task_id: &str,
-        owner: Option<&str>,
-        status: TaskStatus,
-        eligible: Option<&[&str]>,
-    ) {
-        if owner.is_none() && status == TaskStatus::Pending && eligible.is_none() {
-            let conn = get_connection().expect("db");
-            let now = Utc::now().to_rfc3339();
-            conn.execute(
-                "INSERT INTO agent_org_tasks
-                 (id, org_run_id, subject, description, status, blocks_json, blocked_by_json, created_at, updated_at)
-                 VALUES (?1, ?2, ?1, '', 'pending', '[]', '[]', ?3, ?3)",
-                params![task_id, run_id, now],
-            )
-            .expect("seed historical invalid task");
-            return;
-        }
-        AgentOrgTaskStore::create(CreateTaskParams {
-            id: task_id.to_string(),
-            org_run_id: run_id.to_string(),
-            subject: task_id.to_string(),
-            description: String::new(),
-            active_form: None,
-            owner: owner.map(str::to_string),
-            status,
-            blocks: Vec::new(),
-            blocked_by: Vec::new(),
-            metadata: eligible.map(
-                |member_ids| serde_json::json!({ TASK_METADATA_ELIGIBLE_MEMBER_IDS: member_ids }),
-            ),
-        })
-        .expect("create task");
-    }
-
-    fn seed_unread(run_id: &str, member_id: &str) {
-        AgentInboxStore::insert(InsertInboxParams {
-            recipient_agent_id: "builtin:sde".to_string(),
-            recipient_member_id: Some(member_id.to_string()),
-            sender_agent_id: SYSTEM_SENDER_ID.to_string(),
-            sender_member_id: None,
-            org_run_id: Some(run_id.to_string()),
-            message: AgentMessage::Plain {
-                summary: "note".to_string(),
-                text: "pending note".to_string(),
-            },
-        })
-        .expect("insert unread inbox row");
-    }
-
-    fn exhaust_rewake_budget(run_id: &str, member_id: &str) {
-        let conn = get_connection().expect("db");
-        conn.execute(
-            "INSERT INTO agent_org_recovery_attempts
-             (org_run_id, action_kind, target_key, reason_fingerprint, attempts, next_allowed_at, updated_at)
-             VALUES (?1, ?2, ?3, 'failed', ?4, ?5, ?5)
-             ON CONFLICT(org_run_id, action_kind, target_key) DO UPDATE SET attempts=excluded.attempts",
-            params![run_id, MEMBER_REWAKE, member_id, RECOVERY_DELAYS_SECS.len() as i64, Utc::now().to_rfc3339()],
-        )
-        .expect("exhaust recovery budget");
-    }
-
-    #[test]
-    fn wakes_idle_member_with_unread_inbox_even_without_assigned_work() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Idle)]);
-        seed_unread(&run_id, "member-a");
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert_eq!(plan.wake_member_ids, vec!["member-a".to_string()]);
-        assert!(plan.assignment_actions.is_empty());
-        assert!(plan.continuation_actions.is_empty());
-        assert_eq!(plan.coordinator_repair_reason, None);
-        assert!(!plan.terminal_candidate);
-    }
-
-    #[test]
-    fn wakes_terminal_member_that_still_owns_open_work() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Failed)]);
-        seed_task(
-            &run_id,
-            "owned-retry",
-            Some("member-a"),
-            TaskStatus::Pending,
-            Some(&["member-a"]),
-        );
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert_eq!(plan.wake_member_ids, vec!["member-a".to_string()]);
-        assert_eq!(plan.coordinator_repair_reason, None);
-    }
-
-    #[test]
-    fn recreates_typed_assignment_for_idle_owner_when_delivery_was_lost() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Idle)]);
-        seed_task(
-            &run_id,
-            "missed-assignment",
-            Some("member-a"),
-            TaskStatus::Pending,
-            Some(&["member-a"]),
-        );
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert_eq!(plan.wake_member_ids, vec!["member-a".to_string()]);
-        assert_eq!(plan.assignment_actions.len(), 1);
-        assert_eq!(
-            plan.assignment_actions[0].task_ids,
-            vec!["missed-assignment"]
-        );
-        assert!(plan.continuation_actions.is_empty());
-    }
-
-    #[test]
-    fn pending_plan_approval_is_intentionally_quiet_not_stale_work() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Idle)]);
-        AgentOrgTaskStore::create(CreateTaskParams {
-            id: "plan-awaiting-user".to_string(),
-            org_run_id: run_id.clone(),
-            subject: "Plan before build".to_string(),
-            description: String::new(),
-            active_form: None,
-            owner: Some("member-a".to_string()),
-            status: TaskStatus::InProgress,
-            blocks: Vec::new(),
-            blocked_by: Vec::new(),
-            metadata: Some(serde_json::json!({
-                agent_org_tasks::TASK_METADATA_EXECUTION_MODE: "plan"
-            })),
-        })
-        .expect("create planning task");
-        crate::coordination::agent_org_plan_approvals::AgentOrgPlanApprovalStore::create_pending(
-            crate::coordination::agent_org_plan_approvals::CreateAgentOrgPlanApprovalParams {
-                request_id: "request-awaiting-user".to_string(),
-                org_run_id: run_id.clone(),
-                source_task_id: "plan-awaiting-user".to_string(),
-                source_member_id: "member-a".to_string(),
-                source_session_id: "session-member-a".to_string(),
-                root_session_id: "root-session".to_string(),
-                policy: PlanApprovalPolicy::User,
-                plan_title: "Plan".to_string(),
-                plan_path: "/tmp/plan-awaiting-user.md".to_string(),
-                plan_content: "# Plan".to_string(),
-            },
-        )
-        .expect("create pending approval");
-        let stale = (Utc::now()
-            - ChronoDuration::seconds(agent_org_tasks::STALE_MEMBER_NOTICE_SECS * 2))
-        .to_rfc3339();
-        let conn = get_connection().expect("db");
-        conn.execute(
-            "UPDATE agent_org_tasks SET updated_at=?1 WHERE id='plan-awaiting-user'",
-            params![stale],
-        )
-        .unwrap();
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(
-            plan.is_noop(),
-            "pending approval must wait without model turns"
-        );
-    }
-
-    #[test]
-    fn owned_work_waits_during_backoff_then_escalates_only_when_exhausted() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Failed)]);
-        seed_task(
-            &run_id,
-            "owned-retry",
-            Some("member-a"),
-            TaskStatus::Pending,
-            Some(&["member-a"]),
-        );
-        assert!(test_only_mark_failed_rewake_attempt(&run_id, "member-a"));
-
-        let backoff = inspect_stalled_run(&run_id).expect("inspect backoff");
-        assert!(backoff.wake_member_ids.is_empty());
-        assert!(backoff.coordinator_repair_reason.is_none());
-
-        exhaust_rewake_budget(&run_id, "member-a");
-        let exhausted = inspect_stalled_run(&run_id).expect("inspect exhausted");
-        assert!(exhausted.wake_member_ids.is_empty());
-        assert!(exhausted
-            .coordinator_repair_reason
-            .as_deref()
-            .is_some_and(|reason| reason.contains("automatic retry budget is exhausted")));
-    }
-
-    #[test]
-    fn unread_member_wakes_but_ownerless_peer_work_waits_for_coordinator() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[
-            ("member-a", SessionStatus::Idle),
-            ("member-b", SessionStatus::Idle),
-        ]);
-        seed_unread(&run_id, "member-a");
-        seed_task(
-            &run_id,
-            "claim-me",
-            None,
-            TaskStatus::Pending,
-            Some(&["member-b"]),
-        );
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(
-            plan.wake_member_ids.contains(&"member-a".to_string()),
-            "unread member must be woken (missed delivery), got {:?}",
-            plan.wake_member_ids
-        );
-        assert!(!plan.wake_member_ids.contains(&"member-b".to_string()));
-        assert!(plan
-            .coordinator_repair_reason
-            .as_deref()
-            .is_some_and(|reason| reason.contains("claim-me") && reason.contains("no owner")));
-    }
-
-    #[test]
-    fn wakes_coordinator_with_unread_inbox() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Idle)]);
-        seed_unread(&run_id, COORDINATOR_MEMBER_ID);
-        // Keep one open task so the run is not a terminal candidate.
-        seed_task(&run_id, "open", Some("member-a"), TaskStatus::Pending, None);
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(
-            plan.wake_member_ids
-                .contains(&COORDINATOR_MEMBER_ID.to_string()),
-            "idle coordinator with unread inbox must be redelivered, got {:?}",
-            plan.wake_member_ids
-        );
-    }
-
-    #[test]
-    fn escalates_ownerless_task_without_waking_failed_candidate() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Failed)]);
-        seed_task(
-            &run_id,
-            "stuck",
-            None,
-            TaskStatus::Pending,
-            Some(&["member-a"]),
-        );
-        exhaust_rewake_budget(&run_id, "member-a");
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(plan.wake_member_ids.is_empty());
-        let reason = plan
-            .coordinator_repair_reason
-            .expect("exhausted eligible members must escalate to the coordinator");
-        assert!(reason.contains("stuck"));
-        assert!(reason.contains("member-a"));
-        assert!(!plan.terminal_candidate);
-    }
-
-    #[test]
-    fn ownerless_task_still_requires_coordinator_during_member_backoff() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Failed)]);
-        seed_task(
-            &run_id,
-            "retry-later",
-            None,
-            TaskStatus::Pending,
-            Some(&["member-a"]),
-        );
-        // One consumed attempt: inside the backoff window, not exhausted.
-        assert!(test_only_mark_failed_rewake_attempt(&run_id, "member-a"));
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(
-            plan.wake_member_ids.is_empty(),
-            "member is inside its backoff window"
-        );
-        assert!(plan
-            .coordinator_repair_reason
-            .as_deref()
-            .is_some_and(|reason| reason.contains("retry-later") && reason.contains("no owner")));
-    }
-
-    #[test]
-    fn escalates_unowned_task_without_eligibility_list() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Idle)]);
-        seed_task(&run_id, "orphan", None, TaskStatus::Pending, None);
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        let reason = plan
-            .coordinator_repair_reason
-            .expect("unowned task without eligibility must escalate");
-        assert!(reason.contains("orphan"));
-        assert!(reason.contains("no eligible_member_ids"));
-    }
-
-    #[test]
-    fn reports_terminal_candidate_when_everything_resolved() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Completed)]);
-        seed_task(
-            &run_id,
-            "done",
-            Some("member-a"),
-            TaskStatus::Completed,
-            None,
-        );
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(plan.terminal_candidate);
-        assert!(plan.wake_member_ids.is_empty());
-        assert_eq!(plan.coordinator_repair_reason, None);
-    }
-
-    #[test]
-    fn active_worker_keeps_run_untouched() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[
-            ("member-a", SessionStatus::Running),
-            ("member-b", SessionStatus::Idle),
-        ]);
-        seed_unread(&run_id, "member-b");
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(
-            plan.is_noop(),
-            "any active worker keeps the watchdog hands-off (known limitation, issue #272 E3)"
-        );
-    }
-
-    #[test]
-    fn stale_running_owner_only_generates_coordinator_notice() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[
-            ("member-a", SessionStatus::Running),
-            ("member-b", SessionStatus::Idle),
-        ]);
-        seed_task(
-            &run_id,
-            "stale-owned",
-            Some("member-a"),
-            TaskStatus::InProgress,
-            Some(&["member-a", "member-b"]),
-        );
-        seed_task(
-            &run_id,
-            "ownerless-awaiting-assignment",
-            None,
-            TaskStatus::Pending,
-            Some(&["member-b"]),
-        );
-        let old = (Utc::now()
-            - ChronoDuration::seconds(agent_org_tasks::STALE_MEMBER_NOTICE_SECS + 1))
-        .to_rfc3339();
-        let conn = get_connection().expect("db");
-        conn.execute(
-            "UPDATE agent_sessions SET updated_at=?1 WHERE session_id='session-member-a'",
-            params![&old],
-        )
-        .unwrap();
-        conn.execute(
-            "UPDATE agent_org_tasks SET updated_at=?1 WHERE org_run_id=?2 AND id='stale-owned'",
-            params![&old, &run_id],
-        )
-        .unwrap();
-
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(plan.wake_member_ids.is_empty(), "E3 suppresses peer wake");
-        assert!(plan
-            .coordinator_repair_reason
-            .as_deref()
-            .is_some_and(|reason| reason.contains("stale-owned")));
-    }
-
-    #[test]
-    fn paused_only_eligible_member_escalates_instead_of_waking() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Paused)]);
-        seed_task(
-            &run_id,
-            "paused-work",
-            None,
-            TaskStatus::Pending,
-            Some(&["member-a"]),
-        );
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(plan.wake_member_ids.is_empty());
-        assert!(plan
-            .coordinator_repair_reason
-            .as_deref()
-            .is_some_and(|reason| reason.contains("paused-work")));
-    }
-
-    #[test]
-    fn ownerless_task_waits_for_coordinator_even_when_candidate_is_pending() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = seed_run_with_workers(&[("member-a", SessionStatus::Pending)]);
-        seed_task(
-            &run_id,
-            "pending-work",
-            None,
-            TaskStatus::Pending,
-            Some(&["member-a"]),
-        );
-        let plan = inspect_stalled_run(&run_id).expect("inspect");
-        assert!(plan.wake_member_ids.is_empty());
-        assert!(plan
-            .coordinator_repair_reason
-            .as_deref()
-            .is_some_and(|reason| reason.contains("pending-work")));
-    }
-
-    #[test]
-    fn historical_cli_member_is_escalated_instead_of_rust_woken() {
-        let _sandbox = test_helpers::test_env::sandbox();
-        ensure_runtime_schemas();
-        upsert_session(
-            "root-session",
-            session_type::GENERIC,
-            SessionStatus::Idle,
-            None,
-            None,
-        );
-        let run = AgentOrgRunStore::create(CreateAgentOrgRunParams {
-            org_id: "org-watchdog".to_string(),
-            coordinator_agent_id: "builtin:coord".to_string(),
-            root_session_id: Some("root-session".to_string()),
-            org_snapshot: org_definition(&["member-cli"]),
-            entry_mode: AgentOrgRunEntryMode::StandaloneSession,
-            status: AgentOrgRunStatus::Running,
-            work_item_id: None,
-            project_slug: None,
-            routine_fire_id: None,
-        })
-        .unwrap();
-        let conn = get_connection().unwrap();
-        conn.execute(
-            "INSERT INTO code_sessions
-             (session_id, cli_agent_type, status, parent_session_id, org_member_id, updated_at)
-             VALUES ('cli-session', 'claude_code', 'idle', 'root-session', 'member-cli', ?1)",
-            params![Utc::now().to_rfc3339()],
-        )
-        .unwrap();
-        seed_task(
-            &run.id,
-            "cli-owned",
-            Some("member-cli"),
-            TaskStatus::Pending,
-            Some(&["member-cli"]),
-        );
-
-        let plan = inspect_stalled_run(&run.id).unwrap();
-        assert!(plan.wake_member_ids.is_empty());
-        assert!(plan
-            .coordinator_repair_reason
-            .as_deref()
-            .is_some_and(|reason| reason.contains("transport is unsupported")));
+        assert!(coordinator_notice_allowed(&run_id, "task a stuck").expect("notice"));
+        assert!(!coordinator_notice_allowed(&run_id, "task a stuck").expect("backoff"));
+        assert!(coordinator_notice_allowed(&run_id, "task b stuck").expect("new reason"));
     }
 }

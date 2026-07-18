@@ -308,6 +308,11 @@ export interface E2EHelpers {
   agentOrgSessionRunView: (
     sessionId: string
   ) => Promise<Result<{ view: Json | null }>>;
+  agentOrgGroupChatHistoryPage: (
+    sessionId: string,
+    beforeId?: number | null,
+    limit?: number
+  ) => Promise<Result<{ page: Json }>>;
   agentOrgSessionInterventionState: (
     sessionId: string
   ) => Promise<Result<{ state: Json }>>;

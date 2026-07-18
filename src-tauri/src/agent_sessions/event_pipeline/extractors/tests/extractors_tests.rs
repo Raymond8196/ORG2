@@ -495,6 +495,56 @@ fn test_extract_org_task_create() {
 }
 
 #[test]
+fn test_extract_org_task_graph_create_through_top_level_dispatch() {
+    let event = make_event(
+        "task_graph_create",
+        EventDisplayVariant::ToolCall,
+        serde_json::json!({
+            "tasks": [
+                {"temp_id": "draft", "subject": "Draft implementation"},
+                {
+                    "temp_id": "review",
+                    "subject": "Review implementation",
+                    "blocked_by_temp_ids": ["draft"]
+                }
+            ]
+        }),
+        serde_json::json!({"content": serde_json::json!({
+            "created": true,
+            "tasks": [
+                {
+                    "id": "task-1",
+                    "subject": "Draft implementation",
+                    "status": "pending",
+                    "blocked_by": []
+                },
+                {
+                    "id": "task-2",
+                    "subject": "Review implementation",
+                    "status": "pending",
+                    "blocked_by": ["task-1"]
+                }
+            ],
+            "total": 2,
+            "org_run_id": "run-1"
+        }).to_string()}),
+    );
+
+    let data = extract_event_data(&event).expect("graph tool should be extracted");
+    match data {
+        ExtractedData::OrgTask(org_task) => {
+            assert_eq!(org_task.action, "create");
+            assert_eq!(org_task.outcome, OrgTaskOperationOutcome::Succeeded);
+            assert_eq!(org_task.total, Some(2));
+            assert_eq!(org_task.org_run_id.as_deref(), Some("run-1"));
+            assert_eq!(org_task.tasks.len(), 2);
+            assert_eq!(org_task.tasks[1].blocked_by, vec!["task-1".to_string()]);
+        }
+        _ => panic!("Expected OrgTask variant"),
+    }
+}
+
+#[test]
 fn test_extract_org_task_create_from_args_without_result() {
     let mut event = make_event(
         "task_create",
