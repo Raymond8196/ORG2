@@ -10,6 +10,7 @@ import { createLogger } from "@src/hooks/logger";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import type { Session } from "@src/store/session";
 import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
+import type { SessionContinuation } from "@src/store/session/sessionTabPlacementAtom";
 
 import type { SubmitOverrideInput } from "./useInputArea/types";
 import { useUserIntentSubmit } from "./useWorkspaceChat/useUserIntentSubmit";
@@ -29,6 +30,7 @@ interface UseImportedSessionSubmitOverrideOptions {
   sessionId: string;
   currentSession: Session | undefined;
   onFallbackSubmit: (input: SubmitOverrideInput) => Promise<boolean>;
+  onSessionContinuation?: (continuation: SessionContinuation) => void;
 }
 
 /**
@@ -40,6 +42,7 @@ export function useImportedSessionSubmitOverride({
   sessionId,
   currentSession,
   onFallbackSubmit,
+  onSessionContinuation,
 }: UseImportedSessionSubmitOverrideOptions): (
   input: SubmitOverrideInput
 ) => Promise<boolean> {
@@ -92,7 +95,15 @@ export function useImportedSessionSubmitOverride({
         }
 
         forkDispatchSessionIdRef.current = outcome.localSessionId;
-        openSession(outcome.localSessionId, outcome.name, outcome.repoPath);
+        if (onSessionContinuation) {
+          onSessionContinuation({
+            sessionId: outcome.localSessionId,
+            sessionName: outcome.name,
+            repoPath: outcome.repoPath,
+          });
+        } else {
+          openSession(outcome.localSessionId, outcome.name, outcome.repoPath);
+        }
         try {
           // The first turn can finish before the new IPC channel is mounted.
           // Wait for readiness so agent:complete cannot be lost.
@@ -119,6 +130,7 @@ export function useImportedSessionSubmitOverride({
       currentSession?.importedFrom,
       forkImportedSession,
       onFallbackSubmit,
+      onSessionContinuation,
       openSession,
       restorePendingDraft,
       sessionId,

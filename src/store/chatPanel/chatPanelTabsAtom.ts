@@ -13,6 +13,7 @@ export {
   closeCloudOrgManagementChatPanelTabAtom,
   nextChatPanelTabAtom,
   prevChatPanelTabAtom,
+  reorderChatPanelTabsAtom,
   setChatPanelTabSessionIdAtom,
   setChatPanelTabTitleAtom,
   toggleChatPanelTabTuiModeAtom,

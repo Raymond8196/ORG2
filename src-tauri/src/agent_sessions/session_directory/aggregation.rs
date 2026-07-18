@@ -282,7 +282,9 @@ fn decorate_imported_live_status(records: &mut [SessionAggregateRecord]) {
         }
         if record.status == IMPORTED_STATUS_COMPLETED {
             let recently_updated = DateTime::parse_from_rfc3339(&record.updated_at)
-                .map(|updated| now_ms - updated.timestamp_millis() < IMPORTED_MTIME_ACTIVE_WINDOW_MS)
+                .map(|updated| {
+                    now_ms - updated.timestamp_millis() < IMPORTED_MTIME_ACTIVE_WINDOW_MS
+                })
                 .unwrap_or(false);
             if recently_updated {
                 record.status = "running".to_string();
@@ -373,7 +375,9 @@ fn load_imported_history_sessions(
 /// The filter is destructured exhaustively on purpose: adding a field to
 /// `SessionFilter` must fail compilation here so the new field's fast-path
 /// semantics are decided explicitly.
-fn plain_native_page(filter: Option<&SessionFilter>) -> Result<Option<SessionListResponse>, String> {
+fn plain_native_page(
+    filter: Option<&SessionFilter>,
+) -> Result<Option<SessionListResponse>, String> {
     let Some(filter) = filter else {
         return Ok(None);
     };
@@ -863,9 +867,9 @@ fn apply_sorting(sessions: &mut [SessionAggregateRecord], filter: Option<&Sessio
         }
         "name" => {
             if sort_desc {
-                sessions.sort_by(|a, b| b.name.to_lowercase().cmp(&a.name.to_lowercase()));
+                sessions.sort_by_key(|session| std::cmp::Reverse(session.name.to_lowercase()));
             } else {
-                sessions.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+                sessions.sort_by_key(|a| a.name.to_lowercase());
             }
         }
         _ => {

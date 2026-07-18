@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef } from "react";
 
 import type { CursorIdeTurnSummary } from "@src/api/tauri/externalHistory";
 import type { SessionLoadStatus } from "@src/engines/SessionCore";
-import { derivedSnapshotAtom } from "@src/engines/SessionCore/core/atoms/events";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { addressRunActiveAtom } from "@src/features/Org2Cloud/addressCommentsRun";
 import {
@@ -18,6 +17,7 @@ import {
 import { selectedExecutionThreadAtom } from "@src/store/ui/sessionPaginationAtom";
 
 import type { GroupChatContextValue } from "../GroupChatView/GroupChatContext";
+import { resolveChatHistoryProjectionSource } from "../projection/source";
 import { useChatProjection } from "../projection/useChatProjection";
 import type { ChatGroupsProjectionOptions } from "./useChatGroupsProjection";
 import { useChatTurnPagination } from "./useChatTurnPagination";
@@ -32,6 +32,9 @@ const DEFAULT_TURN_COLLAPSED = true;
 interface UseChatHistoryProjectionModelOptions {
   activeId: string | null;
   chatHistory: SessionEvent[];
+  chatHistorySourceIsOverride: boolean;
+  chatHistorySourceSessionId: string | null;
+  chatHistorySourceVersion: number;
   cursorIdeTurnSummaries: CursorIdeTurnSummary[];
   disableTailCollapse: boolean;
   forceCollapseAllTurns: boolean;
@@ -51,6 +54,9 @@ interface UseChatHistoryProjectionModelOptions {
 export function useChatHistoryProjectionModel({
   activeId,
   chatHistory,
+  chatHistorySourceIsOverride,
+  chatHistorySourceSessionId,
+  chatHistorySourceVersion,
   cursorIdeTurnSummaries,
   disableTailCollapse,
   forceCollapseAllTurns,
@@ -66,7 +72,6 @@ export function useChatHistoryProjectionModel({
   const turnCollapseOverrides = useAtomValue(turnCollapseOverrideAtom);
   const collapseAllCommand = useAtomValue(collapseAllCommandAtom);
   const selectedThreadId = useAtomValue(selectedExecutionThreadAtom);
-  const derivedSnapshot = useAtomValue(derivedSnapshotAtom);
   const collapseTailWhenIdle = useTailTurnCollapse({
     activeId,
     chatHistory,
@@ -76,15 +81,12 @@ export function useChatHistoryProjectionModel({
     isCursorIde,
   });
 
-  const snapshotSessionId =
-    derivedSnapshot?.lastEvent?.sessionId ??
-    derivedSnapshot?.chatEvents[0]?.sessionId ??
-    null;
-  const hasAuthoritativeSourceVersion =
-    derivedSnapshot !== null && snapshotSessionId === activeId;
-  const sourceVersion = hasAuthoritativeSourceVersion
-    ? derivedSnapshot.version
-    : chatHistory.length;
+  const projectionSource = resolveChatHistoryProjectionSource({
+    activeSessionId: activeId,
+    sourceIsOverride: chatHistorySourceIsOverride,
+    sourceSessionId: chatHistorySourceSessionId,
+    sourceVersion: chatHistorySourceVersion,
+  });
 
   const groupOptions = useMemo<ChatGroupsProjectionOptions>(
     () => ({
@@ -123,10 +125,10 @@ export function useChatHistoryProjectionModel({
   );
   const projection = useChatProjection({
     sessionId: activeId,
-    sourceVersion,
+    sourceVersion: projectionSource.sourceVersion,
     events: chatHistory,
     options: projectionOptions,
-    enabled: hasAuthoritativeSourceVersion,
+    enabled: projectionSource.enabled,
   });
   const activeProjectionHistory = projection.optimizedChatHistory;
   const {
