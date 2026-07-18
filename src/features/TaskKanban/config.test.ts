@@ -11,4 +11,16 @@ describe("Task Kanban external-history filters", () => {
       KANBAN_AGENT_TYPE_FILTER.WARP_APP
     );
   });
+
+  it("maps newly imported CLI histories to distinct filters", () => {
+    expect(EXTERNAL_HISTORY_FILTER_BY_SOURCE.mimo_code).toBe(
+      KANBAN_AGENT_TYPE_FILTER.MIMO_CODE_APP
+    );
+    expect(EXTERNAL_HISTORY_FILTER_BY_SOURCE.omp).toBe(
+      KANBAN_AGENT_TYPE_FILTER.OMP_APP
+    );
+    expect(EXTERNAL_HISTORY_FILTER_BY_SOURCE.qoder_cli).toBe(
+      KANBAN_AGENT_TYPE_FILTER.QODER_CLI_APP
+    );
+  });
 });
