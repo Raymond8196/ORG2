@@ -117,6 +117,11 @@ pub struct PtySession {
     pub reader: Arc<AsyncMutex<BufReader<Box<dyn Read + Send>>>>,
     /// Process ID of the shell (derived from session ID for display purposes)
     pub pid: Option<u32>,
+    /// Shell's `start_time` (seconds since boot, sysinfo convention). Captured
+    /// once at spawn and used by the app-exit sweep to tell our shell apart
+    /// from a later PID-reuse holder. Meaningful on Unix; 0 and unused on
+    /// Windows (whose sweep tree is shell+conhost only).
+    pub start_time: u64,
     /// Owning handle to the spawned shell process. Held so `close_session`
     /// and `Drop` can kill it explicitly — dropping the PTY master alone does
     /// NOT reliably terminate the child on Windows ConPTY
@@ -273,25 +278,32 @@ fn leader_is_sweep_candidate(registered_start: u64, holder_start: Option<u64>) -
     }
 }
 
-/// PIDs whose Unix sessions should be swept on app exit: the union of
-/// currently-tracked session PIDs and previously-registered leaders whose
-/// holders have not been displaced by PID reuse. `sys` is the process
-/// snapshot the sweep is about to iterate, so each registered PID is checked
-/// against the same view (no second snapshot race).
+/// PIDs whose Unix sessions should be swept on app exit. Tracked (in-map)
+/// and registered (already-removed) leaders are run through the SAME
+/// `leader_is_sweep_candidate` identity check: an in-map session's shell may
+/// already have been reaped (freeing its PID for reuse) while the reader
+/// task still holds the session, so a live map entry is not proof its PID is
+/// still ours.
+///
+/// `holder_start` resolves a PID to its current holder's start_time, so the
+/// predicate sees the same view the sweep loop is about to iterate. It is a
+/// closure (not `&System`) so unit tests can inject a synthetic holder map.
 #[cfg(unix)]
 fn collect_sweep_sids(
-    tracked_pids: impl Iterator<Item = u32>,
-    sys: &sysinfo::System,
+    tracked: impl Iterator<Item = (u32, u64)>,
+    holder_start: impl Fn(u32) -> Option<u64>,
 ) -> std::collections::HashSet<u32> {
-    use sysinfo::Pid;
-
-    let mut sids: std::collections::HashSet<u32> = tracked_pids.collect();
+    let mut sids: std::collections::HashSet<u32> = std::collections::HashSet::new();
     if let Ok(reg) = pending_exit_session_leaders().lock() {
         for (&pid, &registered_start) in reg.iter() {
-            let holder_start = sys.process(Pid::from_u32(pid)).map(|p| p.start_time());
-            if leader_is_sweep_candidate(registered_start, holder_start) {
+            if leader_is_sweep_candidate(registered_start, holder_start(pid)) {
                 sids.insert(pid);
             }
+        }
+    }
+    for (pid, registered_start) in tracked {
+        if leader_is_sweep_candidate(registered_start, holder_start(pid)) {
+            sids.insert(pid);
         }
     }
     sids
@@ -375,10 +387,15 @@ impl PtyState {
             );
 
             // Union live sessions with the registry of shells already removed
-            // (closed tab / natural exit). Registered leaders that the OS has
-            // recycled to a different start_time are dropped here so the loop
-            // below never matches anything against their session id.
-            let sids = collect_sweep_sids(drained.iter().filter_map(|s| s.pid), &sys);
+            // (closed tab / natural exit). BOTH paths run through the same
+            // start_time identity check: an in-map session may already have
+            // been reaped and its PID recycled, so neither is trusted blindly.
+            let sids = collect_sweep_sids(
+                drained
+                    .iter()
+                    .filter_map(|s| s.pid.map(|p| (p, s.start_time))),
+                |pid| sys.process(sysinfo::Pid::from_u32(pid)).map(|p| p.start_time()),
+            );
             if !sids.is_empty() {
                 let own_pid = std::process::id();
                 for (pid, process) in sys.processes() {
@@ -1038,7 +1055,10 @@ pub async fn get_pty_memory_usage(
 
 #[cfg(all(test, unix))]
 mod tests {
-    use super::{leader_is_sweep_candidate, pending_exit_session_leaders};
+    use super::{
+        collect_sweep_sids, leader_is_sweep_candidate, pending_exit_session_leaders,
+    };
+    use std::collections::HashMap;
 
     // The session-leader registry is a process-global static shared across
     // tests; this helper drains it so each case starts from a known state.
@@ -1069,16 +1089,58 @@ mod tests {
         assert!(!leader_is_sweep_candidate(1000, Some(2000)));
     }
 
-    // Sanity: the registry helper still stores entries for integration.
+    // The P2 race: an in-map session whose shell was already reaped AND whose
+    // PID was recycled to a different process must NOT be swept blindly. This
+    // is the exact scenario the reviewer flagged — tracked_pids used to bypass
+    // the start_time check. Both tracked and registered paths must reject it.
     #[test]
-    fn registry_stores_leader_pid_and_start_time() {
+    fn collect_sweep_sids_rejects_reused_pid_in_both_tracked_and_registered() {
         reset_registry();
-        super::register_session_leader(40_000, 9999);
-        let reg = pending_exit_session_leaders()
-            .lock()
-            .expect("registry poisoned");
-        assert_eq!(reg.get(&40_000), Some(&9999));
-        drop(reg);
+        // Registered leader: shell exited, OS reused its PID for a process
+        // with a different start_time.
+        super::register_session_leader(100, 1000);
+        // Tracked (in-map) session: shell reaped, PID recycled to a different
+        // start_time while the reader still holds the session.
+        let tracked = [(200u32, 2000u64)];
+
+        // Synthetic holder map: PID 100 and 200 now exist but with different
+        // start_times than the ones we registered — simulating PID reuse.
+        let holders: HashMap<u32, u64> = [(100, 9999u64), (200, 8888u64)].into_iter().collect();
+        let holder_start = |pid: u32| holders.get(&pid).copied();
+
+        let sids = collect_sweep_sids(tracked.into_iter(), holder_start);
+
+        assert!(
+            !sids.contains(&100),
+            "registered leader with reused PID must be excluded"
+        );
+        assert!(
+            !sids.contains(&200),
+            "tracked session with reused PID must be excluded (the P2 race)"
+        );
+
+        reset_registry();
+    }
+
+    #[test]
+    fn collect_sweep_sids_keeps_shells_with_matching_or_absent_holder() {
+        reset_registry();
+        // Registered leader whose shell is still alive (start_time matches).
+        super::register_session_leader(100, 1000);
+        // Tracked session whose shell died without PID reuse (holder absent).
+        let tracked = [(200u32, 2000u64)];
+
+        // PID 100 still ours (start_time 1000); PID 200 gone.
+        let holders: HashMap<u32, u64> = [(100, 1000u64)].into_iter().collect();
+        let holder_start = |pid: u32| holders.get(&pid).copied();
+
+        let sids = collect_sweep_sids(tracked.into_iter(), holder_start);
+        assert!(sids.contains(&100), "live shell still ours is a candidate");
+        assert!(
+            sids.contains(&200),
+            "dead shell with no PID reuse is a candidate (orphan sweep)"
+        );
+
         reset_registry();
     }
 }

@@ -364,27 +364,38 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
     // Get the actual child process ID
     let pid: Option<u32> = child.process_id();
 
+    // Capture the shell's start_time (seconds since boot) once, immediately
+    // after spawn. Used both for the exit-sweep registry and stored on the
+    // session so in-map sessions can be identity-checked the same way: the
+    // reaper may have already reaped the shell (freeing the PID for reuse)
+    // while the reader task still holds the session in the map, so a live
+    // in-map session is NOT proof its PID is still ours.
+    #[cfg(unix)]
+    let start_time: u64 = match pid {
+        Some(pid) => {
+            use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
+            let mut sys = System::new();
+            sys.refresh_processes_specifics(
+                ProcessesToUpdate::Some(&[Pid::from_u32(pid)]),
+                true,
+                ProcessRefreshKind::nothing(),
+            );
+            sys.process(Pid::from_u32(pid))
+                .map(|p| p.start_time())
+                .unwrap_or(0)
+        }
+        None => 0,
+    };
+    #[cfg(not(unix))]
+    let start_time: u64 = 0;
+
     // Record the shell's PID (== Unix session-leader id, since spawn calls
     // setsid()) together with its start_time, so the app-exit sweep can still
     // find HUP-immune descendants after this session leaves the map (closed
     // tab or natural shell exit) AND can tell our shell apart from a later
-    // PID-reuse holder. The snapshot is taken immediately after spawn so the
-    // start_time reflects this shell, not a racing reuse.
+    // PID-reuse holder.
     #[cfg(unix)]
     if let Some(pid) = pid {
-        use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
-        let mut sys = System::new();
-        sys.refresh_processes_specifics(
-            ProcessesToUpdate::Some(&[Pid::from_u32(pid)]),
-            true,
-            ProcessRefreshKind::nothing(),
-        );
-        // start_time default 0 is benign: it only matters at sweep time, and
-        // a real live shell will not have start_time 0 (boot epoch).
-        let start_time = sys
-            .process(Pid::from_u32(pid))
-            .map(|p| p.start_time())
-            .unwrap_or(0);
         crate::pty_commands::pty::register_session_leader(pid, start_time);
     }
 
@@ -446,6 +457,7 @@ pub async fn create_session(params: CreateSessionParams) -> Result<(), String> {
             reader,
         ))),
         pid,
+        start_time,
         child: Arc::clone(&child),
         shell: shell_path.clone(),
         shell_kind,
