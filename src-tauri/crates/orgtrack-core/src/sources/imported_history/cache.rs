@@ -127,12 +127,13 @@ pub fn upsert_imported_session_cache_from_conn(
                     source, source_session_id, session_id, source_path, source_record_key,
                     source_mtime_ms, source_size_bytes, source_fingerprint, parser_version,
                     name, created_at_ms, updated_at_ms, model, input_tokens, output_tokens,
+                    cache_read_tokens, cache_write_tokens,
                     repo_path, branch, files_changed, lines_added, lines_removed,
                     touched_files_json, listable, source_metadata_json, parent_session_id,
                     updated_at
                 ) VALUES (
                     ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15,
-                    ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25
+                    ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27
                 )
                 ON CONFLICT(source, source_session_id) DO UPDATE SET
                     session_id = excluded.session_id,
@@ -148,6 +149,8 @@ pub fn upsert_imported_session_cache_from_conn(
                     model = excluded.model,
                     input_tokens = excluded.input_tokens,
                     output_tokens = excluded.output_tokens,
+                    cache_read_tokens = excluded.cache_read_tokens,
+                    cache_write_tokens = excluded.cache_write_tokens,
                     repo_path = excluded.repo_path,
                     branch = excluded.branch,
                     files_changed = excluded.files_changed,
@@ -179,6 +182,8 @@ pub fn upsert_imported_session_cache_from_conn(
                 input.model.as_deref().unwrap_or_default(),
                 input.input_tokens,
                 input.output_tokens,
+                input.cache_read_tokens,
+                input.cache_write_tokens,
                 input.repo_path.as_deref().unwrap_or_default(),
                 input.branch.as_deref().unwrap_or_default(),
                 input.impact.files_changed,

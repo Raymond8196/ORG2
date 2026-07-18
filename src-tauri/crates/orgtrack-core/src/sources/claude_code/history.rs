@@ -29,7 +29,8 @@ const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // v4: read ai-title/custom-title records for the name, and derive diff stats
 // from tool_use_result.structuredPatch instead of the old_string/new_string heuristic.
 // v6: capture first-user-message uuid as the continuation dedupe group key.
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 6;
+// v7: capture cache_read/cache_write tokens separately (input stays cache-inclusive).
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 7;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -52,6 +53,8 @@ struct ClaudeCodeHistoryMeta {
     branch: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
     impact: ImportedHistoryImpactStats,
     /// Set for Task-tool subagent transcripts: the parent session's frontend
     /// id (`claudecodeapp-<parent-uuid>`). `None` for ordinary top-level
@@ -410,6 +413,8 @@ fn parse_claude_session_meta(
     let mut branch: Option<String> = None;
     let mut input_tokens = 0;
     let mut output_tokens = 0;
+    let mut cache_read_tokens = 0;
+    let mut cache_write_tokens = 0;
     // Primary impact source: exact counts from tool_use_result.structuredPatch.
     let mut impact = ImportedHistoryImpactStats::default();
     let mut touched_files = BTreeSet::new();
@@ -519,10 +524,14 @@ fn parse_claude_session_meta(
                 }
             }
             if let Some(usage) = message.usage {
+                // input_tokens stays cache-inclusive (fresh + both cache kinds);
+                // the cache portion is tracked separately for the cost split.
                 input_tokens += usage.input_tokens
                     + usage.cache_read_input_tokens
                     + usage.cache_creation_input_tokens;
                 output_tokens += usage.output_tokens;
+                cache_read_tokens += usage.cache_read_input_tokens;
+                cache_write_tokens += usage.cache_creation_input_tokens;
             }
         }
     }
@@ -578,6 +587,8 @@ fn parse_claude_session_meta(
         branch,
         input_tokens,
         output_tokens,
+        cache_read_tokens,
+        cache_write_tokens,
         impact,
         parent_session_id: parent_source_session_id
             .map(|uuid| format!("{CLAUDE_CODE_SESSION_PREFIX}{uuid}")),
@@ -602,6 +613,8 @@ fn session_meta_to_cache_input(meta: ClaudeCodeHistoryMeta) -> ImportedHistoryCa
         model: meta.model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
+        cache_read_tokens: meta.cache_read_tokens,
+        cache_write_tokens: meta.cache_write_tokens,
         repo_path: meta.repo_path,
         branch: meta.branch,
         impact: meta.impact,

@@ -487,6 +487,8 @@ fn minimal_cache_input_from_index(
         model: None,
         input_tokens: 0,
         output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: None,
         branch: None,
         impact: ImportedHistoryImpactStats::default(),
@@ -573,6 +575,8 @@ fn cache_input_from_raw(
         model,
         input_tokens: raw.context_tokens_used as i64,
         output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: workspace.repo_path,
         branch: workspace.branch,
         impact: ImportedHistoryImpactStats {

@@ -71,8 +71,16 @@ pub struct ImportedHistoryCacheInput {
     pub created_at_ms: i64,
     pub updated_at_ms: i64,
     pub model: Option<String>,
+    /// Cache-inclusive input (input + cache_read + cache_write), matching what
+    /// the source reports. The usage projection subtracts the cache fields
+    /// below to recover fresh input.
     pub input_tokens: i64,
     pub output_tokens: i64,
+    /// Cache-read tokens contained within `input_tokens` (0 when the source
+    /// does not report cache separately).
+    pub cache_read_tokens: i64,
+    /// Cache-write / creation tokens contained within `input_tokens`.
+    pub cache_write_tokens: i64,
     pub repo_path: Option<String>,
     pub branch: Option<String>,
     pub impact: ImportedHistoryImpactStats,

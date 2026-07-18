@@ -540,6 +540,9 @@ fn session_meta_to_cache_input(meta: CodexAppSessionMeta) -> ImportedHistoryCach
         model: meta.model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
+        // Codex tokens are cache-inclusive but not split by the app-server logs.
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: meta.repo_path,
         branch: None,
         impact: meta.impact,

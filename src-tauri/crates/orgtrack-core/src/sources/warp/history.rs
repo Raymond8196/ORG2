@@ -288,6 +288,8 @@ fn conversation_to_cache_input(
         model: analysis.model.or(usage_model),
         input_tokens: total_tokens,
         output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: non_empty(summary.initial_working_directory.as_deref()),
         branch: None,
         impact: analysis.impact,
