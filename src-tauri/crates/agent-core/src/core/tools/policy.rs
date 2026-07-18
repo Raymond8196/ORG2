@@ -63,6 +63,7 @@ pub const TOOL_GROUPS: &[(&str, &[&str])] = &[
         &[
             tool_names::ORG_SEND_MESSAGE,
             tool_names::TASK_CREATE,
+            tool_names::TASK_GRAPH_CREATE,
             tool_names::TASK_UPDATE,
             tool_names::TASK_LIST,
             tool_names::TASK_GET,
@@ -77,14 +78,7 @@ pub const TOOL_GROUPS: &[(&str, &[&str])] = &[
             tool_names::MANAGE_WORKSPACE,
         ],
     ),
-    (
-        "group:search",
-        &[
-            tool_names::CODE_SEARCH,
-            tool_names::USE_CODE_MAP,
-            tool_names::MANAGE_CODE_MAP,
-        ],
-    ),
+    ("group:search", &[tool_names::CODE_SEARCH]),
     (
         "group:lsp",
         &[tool_names::QUERY_LSP, tool_names::MANAGE_LSP],

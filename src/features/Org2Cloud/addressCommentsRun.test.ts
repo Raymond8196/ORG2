@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACTION_ID } from "@src/ActionSystem/actionIds";
 import { resolveTrustedDispatchParams } from "@src/engines/SessionCore/hooks/adeReplyBinding";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
+import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
+import type { Session } from "@src/store/session/sessionAtom/types";
 import {
   createInstrumentedStore,
   getInstrumentedStore,
@@ -437,5 +439,35 @@ describe("runAddressCommentsRound honors per-org runner settings", () => {
     expect(params.mode).toBe("build");
     expect("model" in params).toBe(false);
     expect("accountId" in params).toBe(false);
+  });
+
+  it("finishes from the shared session-status event without another status poll", async () => {
+    const store = getInstrumentedStore();
+    const session = {
+      session_id: "ls-event",
+      status: "completed",
+      created_at: "2026-07-18T00:00:00.000Z",
+      updated_at: "2026-07-18T00:00:00.000Z",
+      category: "rust_agent",
+    } as Session;
+    store.set(sessionsAtom, [session]);
+    vi.mocked(SessionService.getStatus).mockResolvedValue({
+      status: "running",
+    } as Awaited<ReturnType<typeof SessionService.getStatus>>);
+
+    const runPromise = runAddressCommentsRound({
+      orgId: "org-1",
+      cloudSessionId: "cs-1",
+      localSessionId: "ls-event",
+    });
+    await vi.waitFor(() => {
+      expect(SessionService.getStatus).toHaveBeenCalledTimes(1);
+    });
+
+    store.set(sessionsAtom, [{ ...session, status: "running" }]);
+    store.set(sessionsAtom, [{ ...session, status: "completed" }]);
+
+    await expect(runPromise).resolves.toMatchObject({ status: "ran" });
+    expect(SessionService.getStatus).toHaveBeenCalledTimes(1);
   });
 });

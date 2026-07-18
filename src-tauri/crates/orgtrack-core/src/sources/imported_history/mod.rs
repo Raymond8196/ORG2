@@ -28,6 +28,7 @@ pub const FUNCTION_RUN_COMMAND_LINE: &str = "run_command_line";
 pub const FUNCTION_EDIT_FILE: &str = "edit_file_by_replace";
 pub const FUNCTION_CODE_SEARCH: &str = "grep";
 pub const FUNCTION_GLOB_FILE_SEARCH: &str = "glob_file_search";
+pub const FUNCTION_AWAIT_OUTPUT: &str = "await_output";
 pub const DEFAULT_LIST_LIMIT: usize = 200;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,6 +45,9 @@ enum ImportedHistoryLoader {
     Warp,
     ZCode,
     Qoder,
+    MimoCode,
+    Omp,
+    QoderCli,
 }
 
 fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
@@ -71,6 +75,12 @@ fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
         Some(ImportedHistoryLoader::ZCode)
     } else if session_id.starts_with(super::qoder::history::QODER_SESSION_PREFIX) {
         Some(ImportedHistoryLoader::Qoder)
+    } else if session_id.starts_with(super::mimo_code::history::MIMO_CODE_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::MimoCode)
+    } else if session_id.starts_with(super::omp::history::OMP_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Omp)
+    } else if session_id.starts_with(super::qoder_cli::history::QODER_CLI_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::QoderCli)
     } else {
         None
     }
@@ -125,6 +135,15 @@ pub fn load_activity_chunks_for_session(
         }
         Some(ImportedHistoryLoader::Qoder) => {
             super::qoder::history::load_qoder_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::MimoCode) => {
+            super::mimo_code::history::load_mimo_code_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::Omp) => {
+            super::omp::history::load_omp_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::QoderCli) => {
+            super::qoder_cli::history::load_qoder_cli_history_for_session(conn, session_id)?
         }
         None => return Ok(None),
     };
@@ -737,6 +756,9 @@ mod impact_tests {
             ("warpapp-id", ImportedHistoryLoader::Warp),
             ("zcodeapp-id", ImportedHistoryLoader::ZCode),
             ("qoderapp-id", ImportedHistoryLoader::Qoder),
+            ("mimocodeapp-id", ImportedHistoryLoader::MimoCode),
+            ("ompapp-id", ImportedHistoryLoader::Omp),
+            ("qodercliapp-id", ImportedHistoryLoader::QoderCli),
         ];
 
         for (session_id, expected) in cases {

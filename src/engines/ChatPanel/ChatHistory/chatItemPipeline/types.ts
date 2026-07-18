@@ -57,8 +57,6 @@ export interface OptimizedChatItem {
   };
   /** For consolidated partial observations */
   consolidatedParts?: number;
-  /** Number of consecutive identical errors collapsed into this item (≥2 means repeats were folded) */
-  repeatedErrorCount?: number;
   /** Internal layout-only row used to keep a collapsed turn measurable. */
   structuralOnly?: boolean;
   /** Thread selector synthetic data */
@@ -81,6 +79,8 @@ export interface ChatHistoryStats {
 // Pipeline Options
 // ============================================
 
+export type ChatPipelineSkipPolicy = "none" | "diff";
+
 export interface ChatItemPipelineOptions {
   groupReadFileActivities?: boolean;
   groupActionSummaries?: boolean;
@@ -95,12 +95,8 @@ export interface ChatItemPipelineOptions {
   preFilterEmptyActivities?: boolean;
   minReadFilesToGroup?: number;
   filterManageTodo?: boolean;
-  /**
-   * Optional predicate to drop events before any grouping. Used by the
-   * Agent Desk when a simulator app (e.g. Diff) takes over a class of
-   * events so they don't double-render inline in the chat stream.
-   */
-  shouldSkipEvent?: (event: SessionEvent) => boolean;
+  /** Serializable event exclusion policy used by both main-thread and Worker projections. */
+  skipPolicy?: ChatPipelineSkipPolicy;
 }
 
 export const DEFAULT_PIPELINE_OPTIONS: ChatItemPipelineOptions = {
@@ -117,4 +113,5 @@ export const DEFAULT_PIPELINE_OPTIONS: ChatItemPipelineOptions = {
   preFilterEmptyActivities: true,
   minReadFilesToGroup: 2,
   filterManageTodo: false,
+  skipPolicy: "none",
 };

@@ -57,10 +57,20 @@ function getTimerLabel(hotspot: TimerHotspot): string {
   return `${hotspot.kind === "interval" ? "setInterval" : "setTimeout"}(${hotspot.delayMs ?? "?"}ms)`;
 }
 
+/** Keep the compact top-six summary, but never hide a group the tracker has
+ * classified as likely polling. */
+export function selectVisibleApiHotspots(
+  hotspots: ApiCallHotspot[]
+): ApiCallHotspot[] {
+  return hotspots.filter(
+    (hotspot, index) => index < 6 || hotspot.isLikelyPolling
+  );
+}
+
 const HotspotSummary: React.FC<{ hotspots: ApiCallHotspot[] }> = ({
   hotspots,
 }) => {
-  const topHotspots = hotspots.slice(0, 6);
+  const topHotspots = selectVisibleApiHotspots(hotspots);
   if (topHotspots.length === 0) return null;
 
   return (

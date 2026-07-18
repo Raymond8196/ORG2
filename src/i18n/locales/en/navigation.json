@@ -265,7 +265,6 @@
       "error": "Failed to fork the session",
       "sendFailed": "Forked, but the message failed to send — it was restored to the composer",
       "forkedChipTooltip": "Forked from {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

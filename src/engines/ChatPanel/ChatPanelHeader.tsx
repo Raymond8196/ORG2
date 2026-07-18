@@ -2,36 +2,22 @@ import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import {
   ChevronLeft,
-  Clipboard,
-  FolderOutput,
-  Link2,
   ListChevronsDownUp,
   ListChevronsUpDown,
   Maximize2,
   MonitorPlay,
-  MoreHorizontal,
   PanelRight,
   Plus,
-  RefreshCw,
-  Search,
-  Share2,
   TerminalSquare,
 } from "lucide-react";
 import React from "react";
-import { createPortal } from "react-dom";
 
 import Button from "@src/components/Button";
-import {
-  DROPDOWN_CLASSES,
-  DROPDOWN_ITEM,
-  DROPDOWN_WIDTHS,
-} from "@src/components/Dropdown/tokens";
 import Input from "@src/components/Input";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import RegionNoticeButton from "@src/components/RegionNoticeButton";
 import Select, { type SelectOption } from "@src/components/Select";
 import SessionHoverCard from "@src/components/SessionHoverCard";
-import Switch from "@src/components/Switch";
 import Tooltip from "@src/components/Tooltip";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { COLLAPSED_SIDEBAR_CHROME_OFFSET } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
@@ -46,6 +32,7 @@ import {
 } from "@src/store/ui/chatPanelAtom";
 import { isWindows } from "@src/util/platform/tauri";
 
+import { SessionHeaderActionsMenu } from "./components/SessionHeaderActionsMenu";
 import {
   CHAT_PANEL_HEADER_DRAG_STYLE,
   CHAT_PANEL_HEADER_NO_DRAG_STYLE,
@@ -74,6 +61,7 @@ interface ChatPanelHeaderProps {
   handleChatFocusToggle: () => void;
   handleCompactDisplayModeToggle: (checked: boolean) => void;
   handleCopyEventJson: () => void;
+  handleMoveToWorkstation: () => void;
   handleCreateTargetChange: (
     value: string | number | (string | number)[]
   ) => void;
@@ -81,6 +69,7 @@ interface ChatPanelHeaderProps {
   handleOpenExportSessionJson: () => void;
   handleOpenLinkWorkItem: () => void;
   handleOpenCloudShareSettings: () => void;
+  handleOpenRawTranscript: () => void;
   handleOpenSearch: () => void;
   handleNewSession: () => void;
   handlePaginationToggle: (checked: boolean) => void;
@@ -151,11 +140,13 @@ export function ChatPanelHeader({
   handleChatFocusToggle,
   handleCompactDisplayModeToggle,
   handleCopyEventJson,
+  handleMoveToWorkstation,
   handleCreateTargetChange,
   handleExploreAgentSearchToggle,
   handleOpenExportSessionJson,
   handleOpenLinkWorkItem,
   handleOpenCloudShareSettings,
+  handleOpenRawTranscript,
   handleOpenSearch,
   handleNewSession,
   handlePaginationToggle,
@@ -326,26 +317,36 @@ export function ChatPanelHeader({
       )}
       {tabStripPlus}
       {showSessionContent && (
-        <Button
-          ref={headerActionsTriggerRef as React.RefObject<HTMLButtonElement>}
-          htmlType="button"
-          variant="tertiary"
-          size="small"
-          iconOnly
-          className={isHeaderActionsOpen ? "!bg-fill-1 !text-primary-6" : ""}
-          onClick={(event) => {
-            event.stopPropagation();
-            toggleHeaderActionsMenu();
-          }}
-          aria-label={t("common:actions.more")}
-          aria-expanded={isHeaderActionsOpen}
-          data-testid="chat-panel-header-more-button"
-          icon={
-            <MoreHorizontal
-              size={CHAT_PANEL_HEADER_ICON_SIZE}
-              strokeWidth={2}
-            />
-          }
+        <SessionHeaderActionsMenu
+          activeSessionExists={activeSessionExists}
+          copyEventJsonLabel={copyEventJsonLabel}
+          currentSessionId={currentSessionId}
+          displayMode={displayMode}
+          eventsLength={eventsLength}
+          handleCompactDisplayModeToggle={handleCompactDisplayModeToggle}
+          handleCopyEventJson={handleCopyEventJson}
+          handleMoveSession={handleMoveToWorkstation}
+          handleOpenCloudShareSettings={handleOpenCloudShareSettings}
+          handleOpenExportSessionJson={handleOpenExportSessionJson}
+          handleOpenLinkWorkItem={handleOpenLinkWorkItem}
+          handleOpenRawTranscript={handleOpenRawTranscript}
+          handleOpenSearch={handleOpenSearch}
+          handlePaginationToggle={handlePaginationToggle}
+          handleReloadFromMenu={handleReloadFromMenu}
+          handleStatusBarVisibleToggle={handleStatusBarVisibleToggle}
+          handleTokenUsageVisibleToggle={handleTokenUsageVisibleToggle}
+          headerActionsDropdownRef={headerActionsDropdownRef}
+          headerActionsPosition={headerActionsPosition}
+          headerActionsTriggerRef={headerActionsTriggerRef}
+          isHeaderActionsOpen={isHeaderActionsOpen}
+          isHeaderActionsPositioned={isHeaderActionsPositioned}
+          moveTarget="workstation"
+          paginationEnabled={paginationEnabled}
+          showCloudShareSettings={showCloudShareSettings}
+          statusBarVisible={statusBarVisible}
+          tokenUsageVisible={tokenUsageVisible}
+          toggleHeaderActionsMenu={toggleHeaderActionsMenu}
+          triggerTestId="chat-panel-header-more-button"
         />
       )}
       {showChatFocusToggle && (
@@ -381,137 +382,6 @@ export function ChatPanelHeader({
           }
         />
       )}
-      {isHeaderActionsOpen &&
-        isHeaderActionsPositioned &&
-        createPortal(
-          <div
-            ref={headerActionsDropdownRef as React.RefObject<HTMLDivElement>}
-            className={`${DROPDOWN_CLASSES.menuPanelBase} ${DROPDOWN_WIDTHS.sidebarMenuClass}`}
-            style={{
-              position: "fixed",
-              top: headerActionsPosition.top ?? 0,
-              right: headerActionsPosition.right ?? 0,
-              zIndex: 9999,
-            }}
-          >
-            <button
-              type="button"
-              className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
-              onClick={handleOpenSearch}
-            >
-              <Search size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
-              <span className="flex-1 truncate">{t("chat.findInChat")}</span>
-            </button>
-            <button
-              type="button"
-              className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left disabled:cursor-not-allowed disabled:opacity-50`}
-              onClick={handleReloadFromMenu}
-              disabled={!showSessionContent}
-            >
-              <RefreshCw size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
-              <span className="flex-1 truncate">
-                {t("common:actions.reload")}
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left disabled:cursor-not-allowed disabled:opacity-50`}
-              onClick={handleCopyEventJson}
-              disabled={eventsLength === 0}
-            >
-              <Clipboard size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
-              <span className="flex-1 truncate">
-                {copyEventJsonLabel === "copied"
-                  ? t("chat.copyEventJsonCopied")
-                  : copyEventJsonLabel === "failed"
-                    ? t("chat.copyEventJsonFailed")
-                    : t("chat.copyEventJson")}
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left disabled:cursor-not-allowed disabled:opacity-50`}
-              onClick={handleOpenLinkWorkItem}
-              disabled={!currentSessionId}
-              data-testid="session-link-work-item-button"
-            >
-              <Link2 size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
-              <span className="flex-1 truncate">Link to Work Item…</span>
-            </button>
-            {showCloudShareSettings && (
-              <button
-                type="button"
-                className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
-                onClick={handleOpenCloudShareSettings}
-                data-testid="cloud-session-share-settings-button"
-              >
-                <Share2 size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
-                <span className="flex-1 truncate">
-                  {t("navigation:cloud.share.menuItem")}
-                </span>
-              </button>
-            )}
-            <button
-              type="button"
-              className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left disabled:cursor-not-allowed disabled:opacity-50`}
-              onClick={handleOpenExportSessionJson}
-              disabled={!activeSessionExists}
-            >
-              <FolderOutput size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
-              <span className="flex-1 truncate">
-                {t("chat.importExport.exportAction")}
-              </span>
-            </button>
-            <div className="my-1 border-t border-solid border-border-2" />
-            <div
-              className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
-            >
-              <span className="flex-1 truncate">
-                {t("chat.showTokenUsage")}
-              </span>
-              <Switch
-                checked={tokenUsageVisible}
-                onChange={handleTokenUsageVisibleToggle}
-                size="small"
-              />
-            </div>
-            <div
-              className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
-            >
-              <span className="flex-1 truncate">{t("chat.showStatusBar")}</span>
-              <Switch
-                checked={statusBarVisible}
-                onChange={handleStatusBarVisibleToggle}
-                size="small"
-              />
-            </div>
-            <div
-              className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
-            >
-              <span className="flex-1 truncate">
-                {t("common:pagination.title")}
-              </span>
-              <Switch
-                checked={paginationEnabled}
-                onChange={handlePaginationToggle}
-                size="small"
-              />
-            </div>
-            <div
-              className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
-            >
-              <span className="flex-1 truncate">
-                {t("chat.compactDisplayMode")}
-              </span>
-              <Switch
-                checked={displayMode === "compact"}
-                onChange={handleCompactDisplayModeToggle}
-                size="small"
-              />
-            </div>
-          </div>,
-          document.body
-        )}
     </div>
   );
 

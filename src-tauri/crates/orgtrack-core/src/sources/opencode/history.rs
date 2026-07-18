@@ -130,7 +130,12 @@ pub fn load_opencode_history_for_session(session_id: &str) -> Result<Vec<Activit
     let Some((conn, _db_path)) = open_opencode_db()? else {
         return Ok(Vec::new());
     };
-    load_opencode_history_from_conn(&conn, session_id, source_session_id)
+    load_opencode_compatible_history_from_conn(
+        &conn,
+        session_id,
+        source_session_id,
+        OPENCODE_PROVIDER_SLUG,
+    )
 }
 
 fn sync_opencode_history_cache(cache_conn: &mut Connection) -> Result<(), String> {
@@ -181,7 +186,12 @@ fn sync_opencode_history_cache(cache_conn: &mut Connection) -> Result<(), String
         .filter(|meta| changed_ids.contains(&meta.source_session_id))
     {
         let session_id = format!("{OPENCODE_SESSION_PREFIX}{}", meta.source_session_id);
-        let chunks = load_opencode_history_from_conn(&conn, &session_id, &meta.source_session_id)?;
+        let chunks = load_opencode_compatible_history_from_conn(
+            &conn,
+            &session_id,
+            &meta.source_session_id,
+            OPENCODE_PROVIDER_SLUG,
+        )?;
         meta.impact = imported_history::impact_from_edit_chunks(&chunks);
         inputs.push(session_meta_to_cache_input(
             meta,
@@ -396,19 +406,39 @@ fn parse_model_name(raw_model: &str) -> Option<String> {
     }
 }
 
+/// Parse the message/part schema shared by OpenCode-compatible stores.
+///
+/// Mimo Code persists the same normalized part records in its own SQLite
+/// database, so its importer supplies a distinct provider slug while sharing
+/// this conversion path.
+pub(crate) fn load_opencode_compatible_history_from_conn(
+    conn: &Connection,
+    session_id: &str,
+    source_session_id: &str,
+    provider_slug: &str,
+) -> Result<Vec<ActivityChunk>, String> {
+    let parts = load_ordered_parts(conn, source_session_id)?;
+    let mut chunks = Vec::new();
+    for (sequence, row) in parts.iter().enumerate() {
+        if let Some(chunk) = part_row_to_chunk(session_id, provider_slug, sequence, row) {
+            chunks.push(chunk);
+        }
+    }
+    Ok(chunks)
+}
+
+#[cfg(test)]
 fn load_opencode_history_from_conn(
     conn: &Connection,
     session_id: &str,
     source_session_id: &str,
 ) -> Result<Vec<ActivityChunk>, String> {
-    let parts = load_ordered_parts(conn, source_session_id)?;
-    let mut chunks = Vec::new();
-    for (sequence, row) in parts.iter().enumerate() {
-        if let Some(chunk) = part_row_to_chunk(session_id, sequence, row) {
-            chunks.push(chunk);
-        }
-    }
-    Ok(chunks)
+    load_opencode_compatible_history_from_conn(
+        conn,
+        session_id,
+        source_session_id,
+        OPENCODE_PROVIDER_SLUG,
+    )
 }
 
 fn load_ordered_parts(
@@ -459,20 +489,24 @@ fn load_ordered_parts(
 
 fn part_row_to_chunk(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
     match row.part.part_type.as_str() {
-        "text" if row.role == "user" => text_to_user_chunk(session_id, sequence, row),
-        "text" => text_to_assistant_chunk(session_id, sequence, row),
-        "reasoning" => reasoning_to_chunk(session_id, sequence, row),
-        "tool" => tool_to_chunk(session_id, sequence, row),
+        "text" if row.role == "user" => {
+            text_to_user_chunk_with_provider(session_id, provider_slug, sequence, row)
+        }
+        "text" => text_to_assistant_chunk(session_id, provider_slug, sequence, row),
+        "reasoning" => reasoning_to_chunk(session_id, provider_slug, sequence, row),
+        "tool" => tool_to_chunk(session_id, provider_slug, sequence, row),
         _ => None,
     }
 }
 
-fn text_to_user_chunk(
+fn text_to_user_chunk_with_provider(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
@@ -484,15 +518,25 @@ fn text_to_user_chunk(
     }
     Some(imported_history::user_message_chunk(
         session_id,
-        OPENCODE_PROVIDER_SLUG,
+        provider_slug,
         sequence,
         &row_created_at(row),
         text,
     ))
 }
 
+#[cfg(test)]
+fn text_to_user_chunk(
+    session_id: &str,
+    sequence: usize,
+    row: &OpenCodePartRow,
+) -> Option<ActivityChunk> {
+    text_to_user_chunk_with_provider(session_id, OPENCODE_PROVIDER_SLUG, sequence, row)
+}
+
 fn text_to_assistant_chunk(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
@@ -502,7 +546,7 @@ fn text_to_assistant_chunk(
     }
     Some(imported_history::assistant_message_chunk(
         session_id,
-        OPENCODE_PROVIDER_SLUG,
+        provider_slug,
         sequence,
         &row_created_at(row),
         text,
@@ -511,6 +555,7 @@ fn text_to_assistant_chunk(
 
 fn reasoning_to_chunk(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
@@ -520,7 +565,7 @@ fn reasoning_to_chunk(
     }
     Some(imported_history::thinking_chunk(
         session_id,
-        OPENCODE_PROVIDER_SLUG,
+        provider_slug,
         sequence,
         &row_created_at(row),
         text,
@@ -529,6 +574,7 @@ fn reasoning_to_chunk(
 
 fn tool_to_chunk(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
@@ -552,13 +598,8 @@ fn tool_to_chunk(
         created_at: row_created_at(row),
     };
     let output = tool_output_text(state);
-    let mut chunk = imported_history::tool_call_chunk(
-        session_id,
-        OPENCODE_PROVIDER_SLUG,
-        sequence,
-        &call,
-        &output,
-    );
+    let mut chunk =
+        imported_history::tool_call_chunk(session_id, provider_slug, sequence, &call, &output);
     if let Some(result_obj) = chunk.result.as_object_mut() {
         if !state.status.trim().is_empty() {
             result_obj.insert("status".to_string(), Value::String(state.status.clone()));

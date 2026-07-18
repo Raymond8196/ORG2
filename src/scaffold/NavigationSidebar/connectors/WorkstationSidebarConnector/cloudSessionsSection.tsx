@@ -25,7 +25,6 @@ import { MenuItem, Menu as TauriMenu } from "@tauri-apps/api/menu";
 import { useAtomValue } from "jotai";
 import {
   Bot,
-  Cloud,
   GitFork,
   ListFilter,
   MoreHorizontal,
@@ -38,6 +37,7 @@ import { useTranslation } from "react-i18next";
 import { deleteSession as deleteLocalSession } from "@src/api/tauri/agent";
 import { IMPORTED_HISTORY_SOURCE_DESCRIPTORS } from "@src/api/tauri/externalHistory";
 import { deleteOrgtrackCollaborationSession } from "@src/api/tauri/lineage";
+import Org2SessionIcon from "@src/assets/modelIcons/org2-session.svg";
 import DropdownItem from "@src/components/Dropdown/DropdownItem";
 import {
   DROPDOWN_CLASSES,
@@ -45,6 +45,7 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import Message from "@src/components/Message";
+import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
   buildCloudRemoteItemId,
   includeRevealedCloudRow,
@@ -68,6 +69,7 @@ import {
   tasksForSession,
 } from "@src/features/Org2Cloud/org2CloudCommentTasksAtom";
 import {
+  type Org2CloudPresenceEntry,
   org2CloudPresenceAtom,
   viewersForSession,
 } from "@src/features/Org2Cloud/org2CloudPresenceAtom";
@@ -78,6 +80,7 @@ import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/compone
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session";
 import { removeSession } from "@src/store/session";
+import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import { separator } from "../useSessionMenuItems/menuItemBuilders";
@@ -113,6 +116,8 @@ interface UseCloudSessionsSectionResult {
    * sidebar hover card (local "mine" rows use the session-store card instead).
    */
   cloudRemoteRowMap: ReadonlyMap<string, RemoteTeammateSessionMetadata>;
+  /** Live viewers keyed by the cloud row id used to render its hover card. */
+  cloudRemoteViewerMap: ReadonlyMap<string, readonly Org2CloudPresenceEntry[]>;
 }
 
 interface MemberFilterMenuState {
@@ -364,7 +369,7 @@ export function useCloudSessionsSection({
 
   const buildRowItem = useCallback(
     (threadRow: CloudSessionThreadRow, asParentOf?: NavigationMenuItem[]) => {
-      const { row, bareSessionId, isMine, isOrphan } = threadRow;
+      const { row, bareSessionId, isMine } = threadRow;
       const isFork = Boolean(row.forkedFrom);
       // Mine rows route to the LOCAL session and need no published segments —
       // only teammate rows require an events epoch to be clickable (the
@@ -378,21 +383,17 @@ export function useCloudSessionsSection({
         : "";
       const externalSourceId =
         row.origin?.kind === "external_history" ? row.origin.source : undefined;
-      const originLabel = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find(
+      const externalSource = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find(
         (source) => source.sourceId === externalSourceId
-      )?.displayName;
-      const ownerAndTime = [
-        originLabel,
-        `@${row.ownerDisplayName}`,
-        row.forkedFrom?.ownerDisplayName
-          ? t("cloud.sidebar.forkedFrom", {
-              name: row.forkedFrom.ownerDisplayName,
-            })
-          : null,
-        relativeTime,
-      ]
-        .filter(Boolean)
-        .join(" · ");
+      );
+      const sessionIcon = externalSource
+        ? resolveSessionRowIcon(externalSource.prefix)
+        : row.cliAgentType
+          ? resolveAgentIcon(row.cliAgentType)
+          : isFork
+            ? GitFork
+            : Bot;
+      const isOrg2Session = !externalSource && !row.cliAgentType;
       // Unresolved session-comment threads (0014 listing counters): a small
       // count chip in the trailing accessory slot. On LEAF rows the slot
       // fades on hover to reveal the Replay/Fork actions (platform
@@ -522,20 +523,23 @@ export function useCloudSessionsSection({
         label: displayTitle,
         searchText: `${displayTitle} ${row.ownerDisplayName}`,
         dataTestId: `sidebar-cloud-session-item-${bareSessionId}`,
-        icon: isFork ? GitFork : Cloud,
-        shortcut: ownerAndTime,
-        // Root aged out of the retention window — attribute the fork inline.
-        // No parent display name ⇒ omit the sublabel entirely (falling back
-        // to the fork's OWN owner would mis-attribute the parent).
-        subtitle:
-          isOrphan && row.forkedFrom?.ownerDisplayName
-            ? t("cloud.sidebar.forkedFrom", {
-                name: row.forkedFrom.ownerDisplayName,
-              })
-            : undefined,
+        // Prefer the source/agent brand used by regular sessions. Cloud
+        // scope is context, not the session's icon identity.
+        icon: sessionIcon,
+        iconElement: isOrg2Session ? (
+          <Org2SessionIcon className="size-3.5" aria-hidden="true" />
+        ) : undefined,
+        shortcut: relativeTime,
         trailingElement,
         disabled,
         children: asParentOf,
+        dragPayload: isMine
+          ? {
+              path: `session://${bareSessionId}`,
+              name: displayTitle,
+              iconType: "session",
+            }
+          : undefined,
       };
       if (!disabled) {
         item.showMoreActions = true;
@@ -655,6 +659,25 @@ export function useCloudSessionsSection({
     }
     return map;
   }, [threads]);
+
+  const cloudRemoteViewerMap = useMemo(() => {
+    const map = new Map<string, readonly Org2CloudPresenceEntry[]>();
+    for (const thread of threads) {
+      for (const threadRow of [thread.root, ...thread.descendants]) {
+        if (threadRow.isMine) continue;
+        map.set(
+          buildCloudRemoteItemId(threadRow.row.orgId, threadRow.row.id),
+          viewersForSession(
+            presenceMap,
+            threadRow.row.orgId,
+            threadRow.bareSessionId,
+            selfUserId
+          )
+        );
+      }
+    }
+    return map;
+  }, [presenceMap, selfUserId, threads]);
 
   // Everyone + distinct owners of the CURRENT rows (value = ownerUserId).
   const memberOptions = useMemo(() => {
@@ -854,5 +877,6 @@ export function useCloudSessionsSection({
     handleCloudRemoteItemRemove,
     cloudMemberFilterDropdown,
     cloudRemoteRowMap,
+    cloudRemoteViewerMap,
   };
 }

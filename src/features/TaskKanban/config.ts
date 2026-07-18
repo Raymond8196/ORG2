@@ -78,6 +78,9 @@ export const KANBAN_AGENT_TYPE_FILTER = {
   WARP_APP: "warp_app",
   ZCODE_APP: "zcode_app",
   QODER_APP: "qoder_app",
+  MIMO_CODE_APP: "mimo_code_app",
+  OMP_APP: "omp_app",
+  QODER_CLI_APP: "qoder_cli_app",
 } as const;
 
 export type KanbanBuiltInAgentTypeFilter =
@@ -100,6 +103,9 @@ export const EXTERNAL_HISTORY_FILTER_BY_SOURCE: Record<
   warp: KANBAN_AGENT_TYPE_FILTER.WARP_APP,
   zcode: KANBAN_AGENT_TYPE_FILTER.ZCODE_APP,
   qoder: KANBAN_AGENT_TYPE_FILTER.QODER_APP,
+  mimo_code: KANBAN_AGENT_TYPE_FILTER.MIMO_CODE_APP,
+  omp: KANBAN_AGENT_TYPE_FILTER.OMP_APP,
+  qoder_cli: KANBAN_AGENT_TYPE_FILTER.QODER_CLI_APP,
 };
 
 /** Widened column id used inside Agent Kanban only. */

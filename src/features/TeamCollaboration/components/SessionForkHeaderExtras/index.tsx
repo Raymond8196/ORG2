@@ -17,11 +17,10 @@
  *   navigation exists in the header — the chip is attribution, not a link.
  */
 import { useAtomValue } from "jotai";
-import { Cloud, GitFork, MessageSquare } from "lucide-react";
+import { GitFork, MessageSquare } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-import { IMPORTED_HISTORY_SOURCE_DESCRIPTORS } from "@src/api/tauri/externalHistory";
 import Button from "@src/components/Button";
 import Message from "@src/components/Message";
 import Tag from "@src/components/Tag";
@@ -64,9 +63,6 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
     remoteEntries,
   });
   const showForkButton = Boolean(session.importedFrom);
-  const externalSource = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find(
-    (source) => source.sourceId === session.importedFrom?.externalHistorySource
-  );
   if (!showForkButton && !forkedFrom && !addressing) return null;
 
   const handleFork = async (): Promise<void> => {
@@ -144,44 +140,6 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
               className="h-[20px] max-w-[180px]"
             >
               <span className="truncate">{addressingLabel}</span>
-            </Tag>
-          </span>
-        </Tooltip>
-      )}
-      {showForkButton && session.importedFrom && (
-        <Tooltip
-          content={t("collaboration.forkImported.sourceChipTooltip", {
-            name:
-              session.importedFrom.ownerDisplayName ??
-              session.importedFrom.ownerMemberId ??
-              "",
-          })}
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          {/* Provenance for an imported teammate REPLAY (not a fork): who
-              shared it. Non-interactive, mirrors the ⑂ forked-from chip. */}
-          <span
-            data-testid="session-imported-from-chip"
-            className="mr-1 inline-flex"
-          >
-            <Tag
-              size="mini"
-              pill
-              bordered
-              icon={<Cloud size={10} strokeWidth={1.75} />}
-              className="h-[20px] max-w-[140px]"
-            >
-              <span className="truncate">
-                {[
-                  externalSource?.displayName,
-                  session.importedFrom.ownerDisplayName ??
-                    session.importedFrom.ownerMemberId,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
             </Tag>
           </span>
         </Tooltip>

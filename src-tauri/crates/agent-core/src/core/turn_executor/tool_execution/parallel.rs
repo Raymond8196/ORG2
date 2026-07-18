@@ -244,7 +244,7 @@ pub(super) async fn execute_parallel_group(
     let mut results_by_index: std::collections::BTreeMap<usize, ExecResult> =
         std::collections::BTreeMap::new();
     for ((idx, raw_result, duration_ms), (_, effective_args, display_name)) in
-        exec_outputs.into_iter().zip(futures_to_run.into_iter())
+        exec_outputs.into_iter().zip(futures_to_run)
     {
         results_by_index.insert(
             idx,

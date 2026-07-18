@@ -212,8 +212,7 @@ export function CloudInvitesCard({ t, management }: CloudInvitesCardProps) {
                     <Button
                       htmlType="button"
                       size="default"
-                      variant="danger"
-                      appearance="ghost"
+                      variant="secondary"
                       disabled={Boolean(revokingInviteId)}
                       loading={revokingInviteId === invite.inviteId}
                       data-testid={`cloud-org-invite-revoke-${invite.inviteId}`}
@@ -494,8 +493,7 @@ export function CloudMembersSection({
                       <Button
                         htmlType="button"
                         size="default"
-                        variant="danger"
-                        appearance="ghost"
+                        variant="secondary"
                         disabled={Boolean(removingUserId)}
                         loading={removingUserId === member.userId}
                         data-testid={`cloud-org-member-remove-${member.userId}`}

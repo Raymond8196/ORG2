@@ -224,12 +224,6 @@ export interface E2EHelpers {
     folderPath: string,
     folderName?: string
   ) => Promise<Result<{ folderId: string; path: string }>>;
-  getCodeMapStatusForPath: (
-    workspacePath: string
-  ) => Promise<Result<{ status: Json }>>;
-  startCodeMapIndexForPath: (
-    workspacePath: string
-  ) => Promise<Result<{ status: Json }>>;
   readSessionPromptEnvironmentBlock: (
     sessionId: string
   ) => Promise<Result<{ result: Json }>>;
@@ -336,7 +330,11 @@ export interface E2EHelpers {
   ) => Promise<Result<{ transitioned: boolean }>>;
   agentOrgSimulateAppRestart: () => Promise<
     Result<{
+      intentsReconciled: number;
+      terminalSessionsReconciled: number;
       sessionsAbandoned: number;
+      tasksRequeued: number;
+      runsCompleted: number;
       runsPaused: number;
       interventionsCleared: number;
     }>

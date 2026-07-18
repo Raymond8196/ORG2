@@ -417,7 +417,6 @@
       "error": "Nie udało się utworzyć forka sesji",
       "sendFailed": "Fork utworzony, ale wysyłka wiadomości nie powiodła się — treść przywrócono do pola wpisywania",
       "forkedChipTooltip": "Fork od {{name}}",
-      "sourceChipTooltip": "Shared by {{name}}",
       "continuePlaceholder": "Message to fork and continue in ORGII…"
     }
   },

@@ -49,6 +49,7 @@ import type {
   AdvancedConfig,
   KeySource,
 } from "@src/features/SessionCreator/types";
+import { loadSharedLocalKeys } from "@src/hooks/keyVault/sharedLocalKeyStore";
 import { createLogger } from "@src/hooks/logger";
 import {
   rawSettingsAtom,
@@ -196,7 +197,7 @@ async function pruneStaleEntries(map: LastModelPairMap): Promise<{
   changed: boolean;
 }> {
   try {
-    const keys = await rpc.validation.listKeys();
+    const keys = await loadSharedLocalKeys();
     const validIds = new Set(keys.map((key) => key.id));
 
     let changed = false;

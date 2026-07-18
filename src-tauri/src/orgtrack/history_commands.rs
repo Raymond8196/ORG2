@@ -1,6 +1,7 @@
 use std::{collections::HashSet, path::Path};
 
 use database::db::get_connection;
+use orgtrack_core::pricing;
 use orgtrack_core::sources::claude_code::history as claude_code_history;
 use orgtrack_core::sources::cline::history as cline_history;
 use orgtrack_core::sources::codex::app as codex_app;
@@ -9,14 +10,16 @@ use orgtrack_core::sources::cursor_ide::{
     db as cursor_db, disk_reads as cursor_disk_reads, history as cursor_db_history,
 };
 use orgtrack_core::sources::imported_history;
+use orgtrack_core::sources::mimo_code::history as mimo_code_history;
+use orgtrack_core::sources::omp::history as omp_history;
 use orgtrack_core::sources::opencode::history as opencode_history;
 use orgtrack_core::sources::qoder::history as qoder_history;
+use orgtrack_core::sources::qoder_cli::history as qoder_cli_history;
 use orgtrack_core::sources::trae::history as trae_history;
 use orgtrack_core::sources::warp::history as warp_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
 use orgtrack_core::sources::workbuddy as workbuddy_history;
 use orgtrack_core::sources::zcode::history as zcode_history;
-use orgtrack_core::pricing;
 use session_persistence::CachedTurnSummary;
 
 use super::external_cli_detection::{self, ExternalCliSourceProbe};
@@ -136,6 +139,13 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
     paths.extend(warp_history::list_warp_recent_paths(&mut conn, 0)?);
     paths.extend(zcode_history::list_zcode_recent_paths(&mut conn, 0)?);
     paths.extend(qoder_history::list_qoder_recent_paths(&mut conn, 0)?);
+    paths.extend(mimo_code_history::list_mimo_code_recent_paths(
+        &mut conn, 0,
+    )?);
+    paths.extend(omp_history::list_omp_recent_paths(&mut conn, 0)?);
+    paths.extend(qoder_cli_history::list_qoder_cli_recent_paths(
+        &mut conn, 0,
+    )?);
     Ok(imported_history::recent_paths_from_paths(&paths))
 }
 
@@ -400,7 +410,9 @@ pub async fn imported_history_stat(
         let conn = open_cache_conn()?;
         Ok(
             imported_history::cache::stat_imported_transcript_by_session_id_from_conn(
-                &conn, &source_id, &session_id,
+                &conn,
+                &source_id,
+                &session_id,
             )?
             .map(|(mtime_ms, size_bytes)| ImportedTranscriptStat {
                 mtime_ms,
@@ -559,6 +571,81 @@ pub async fn qoder_recent_paths(
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
         qoder_history::list_qoder_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn mimo_code_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        mimo_code_history::load_mimo_code_history_for_session(&conn, &session_id)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn mimo_code_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<mimo_code_history::MimoCodeRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        mimo_code_history::list_mimo_code_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn omp_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        omp_history::load_omp_history_for_session(&conn, &session_id)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn omp_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<omp_history::OmpRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        omp_history::list_omp_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn qoder_cli_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        qoder_cli_history::load_qoder_cli_history_for_session(&conn, &session_id)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn qoder_cli_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<qoder_cli_history::QoderCliRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        qoder_cli_history::list_qoder_cli_recent_paths(&mut conn, limit)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

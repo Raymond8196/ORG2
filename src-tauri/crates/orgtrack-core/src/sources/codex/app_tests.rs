@@ -306,6 +306,257 @@ fn codex_desktop_exec_unwraps_parallel_shell_commands() {
 }
 
 #[test]
+fn codex_desktop_exec_unwraps_exec_command_arguments() {
+    let script = r#"const results = await Promise.all([
+  tools.exec_command({cmd:"git status --short --branch",workdir:"/Users/laptop-h/Documents/GitHub/ORGII",yield_time_ms:10000,max_output_tokens:3000}),
+  tools.exec_command({cmd:"git remote -v",workdir:"/Users/laptop-h/Documents/GitHub/ORGII",yield_time_ms:10000,max_output_tokens:3000})
+]); results.forEach((result) => text(result));"#;
+    let payload = json!({
+        "name": "exec",
+        "call_id": "call_exec_command",
+        "input": script,
+    });
+
+    let (_, calls) = pending_custom_tool_calls_from_payload(&payload, "2026-07-18T01:00:00Z")
+        .expect("parse custom tool call");
+
+    assert_eq!(calls.len(), 2);
+    assert!(calls
+        .iter()
+        .all(|call| { call.canonical_name == imported_history::FUNCTION_RUN_COMMAND_LINE }));
+    assert_eq!(calls[0].args["command"], "git status --short --branch");
+    assert_eq!(calls[1].args["command"], "git remote -v");
+    assert!(calls
+        .iter()
+        .all(|call| { call.args["cwd"] == "/Users/laptop-h/Documents/GitHub/ORGII" }));
+    assert!(calls.iter().all(|call| {
+        !call.args["command"]
+            .as_str()
+            .is_some_and(|command| command.contains("yield_time_ms"))
+    }));
+}
+
+#[test]
+fn codex_desktop_exec_maps_write_stdin_to_await_output() {
+    let payload = json!({
+        "name": "exec",
+        "call_id": "call_write_stdin",
+        "input": r#"const r = await tools.write_stdin({session_id:82118,chars:"",yield_time_ms:30000,max_output_tokens:16000}); text(r)"#,
+    });
+
+    let (_, calls) = pending_custom_tool_calls_from_payload(&payload, "2026-07-18T01:00:00Z")
+        .expect("parse custom tool call");
+
+    assert_eq!(calls.len(), 1);
+    assert_eq!(
+        calls[0].canonical_name,
+        imported_history::FUNCTION_AWAIT_OUTPUT
+    );
+    assert_eq!(calls[0].args["command"], "wait_for");
+    assert_eq!(calls[0].args["handle"], "82118");
+    assert_eq!(calls[0].args["handles"], json!(["82118"]));
+    assert_eq!(calls[0].args["block_until_ms"], 30000);
+    assert_eq!(calls[0].args["chars"], "");
+}
+
+#[test]
+fn codex_write_stdin_polls_merge_into_originating_exec_command() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-write-stdin-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-write-stdin.jsonl");
+    let content = [
+        json!({
+            "timestamp": "2026-07-18T01:00:00Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_shell",
+                "input": r#"const r = await tools.exec_command({cmd:"cargo test",workdir:"/tmp/project",yield_time_ms:10000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:10Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_shell",
+                "output": [
+                    { "type": "input_text", "text": "Script completed\nWall time 10.0 seconds\nOutput:\n" },
+                    { "type": "input_text", "text": r#"{"session_id":82118,"output":"Compiling\n"}"# },
+                ],
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:11Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_poll",
+                "input": r#"const r = await tools.write_stdin({session_id:82118,chars:"",yield_time_ms:30000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:41Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_poll",
+                "output": [
+                    { "type": "input_text", "text": "Script completed\nWall time 30.0 seconds\nOutput:\n" },
+                    { "type": "input_text", "text": r#"{"session_id":82118,"output":"Running tests\n"}"# },
+                ],
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:42Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_interrupt",
+                "input": r#"const r = await tools.write_stdin({session_id:82118,chars:"\u0003",yield_time_ms:1000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:43Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_interrupt",
+                "output": [
+                    { "type": "input_text", "text": "Script completed\nWall time 0.1 seconds\nOutput:\n" },
+                    { "type": "input_text", "text": r#"{"exit_code":130,"output":"Interrupted\n"}"# },
+                ],
+            }
+        }),
+    ]
+    .into_iter()
+    .map(|line| line.to_string())
+    .collect::<Vec<_>>()
+    .join("\n");
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_codex_app_from_path("codexapp-write-stdin", &path).expect("parse");
+
+    assert_eq!(chunks.len(), 1);
+    assert_eq!(
+        chunks[0].function,
+        imported_history::FUNCTION_RUN_COMMAND_LINE
+    );
+    assert_eq!(chunks[0].args["command"], "cargo test");
+    assert_eq!(
+        chunks[0].result["output"],
+        "Compiling\nRunning tests\nInterrupted\n"
+    );
+    assert_eq!(chunks[0].result["exit_code"], 130);
+    assert_eq!(chunks[0].result["success"], false);
+    assert_eq!(chunks[0].args["stdin_events"][0]["kind"], "interrupt");
+    assert_eq!(chunks[0].args["stdin_events"][0]["chars"], "\u{3}");
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn codex_write_stdin_cell_wait_still_merges_into_originating_command() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-write-stdin-cell-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-write-stdin-cell.jsonl");
+    let content = [
+        json!({
+            "timestamp": "2026-07-18T01:00:00Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_shell",
+                "input": r#"const r = await tools.exec_command({cmd:"pnpm test",workdir:"/tmp/project",yield_time_ms:10000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:10Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_shell",
+                "output": [{
+                    "type": "input_text",
+                    "text": r#"{"session_id":42,"output":"Starting\n"}"#,
+                }],
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:11Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_poll",
+                "input": r#"const r = await tools.write_stdin({session_id:42,chars:"",yield_time_ms:30000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:21Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_poll",
+                "output": "Script running with cell ID 9\nWall time 10.0 seconds\nOutput:\n",
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:22Z",
+            "type": "response_item",
+            "payload": {
+                "type": "function_call",
+                "name": "wait",
+                "call_id": "call_wait",
+                "arguments": r#"{"cell_id":"9","yield_time_ms":30000,"max_tokens":3000}"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:23Z",
+            "type": "response_item",
+            "payload": {
+                "type": "function_call_output",
+                "call_id": "call_wait",
+                "output": [{
+                    "type": "input_text",
+                    "text": r#"{"exit_code":0,"output":"Passed\n"}"#,
+                }],
+            }
+        }),
+    ]
+    .into_iter()
+    .map(|line| line.to_string())
+    .collect::<Vec<_>>()
+    .join("\n");
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_codex_app_from_path("codexapp-write-stdin-cell", &path).expect("parse");
+
+    assert_eq!(chunks.len(), 1);
+    assert_eq!(
+        chunks[0].function,
+        imported_history::FUNCTION_RUN_COMMAND_LINE
+    );
+    assert_eq!(chunks[0].args["command"], "pnpm test");
+    assert_eq!(chunks[0].result["output"], "Starting\nPassed\n");
+    assert_eq!(chunks[0].result["exit_code"], 0);
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn codex_desktop_exec_preserves_multiline_shell_script() {
     let command = "sed -n '1,180p' src/scaffold/NavigationSidebar/connectors/useSessionMenuItems/menuItemBuilders.tsx\nsed -n '250,370p' src/scaffold/NavigationSidebar/connectors/useSessionMenuItems/index.tsx\nsed -n '1,180p' src/config/agentIcons.tsx\nrg -n \"interface.*MenuItem|type.*MenuItem|renderStatusDot|agentIconId\" src/scaffold/NavigationSidebar src/scaffold -g '*.tsx' -g '*.ts' | head -200";
     let script = format!(

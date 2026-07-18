@@ -128,7 +128,7 @@ pub(super) async fn materialize_org_member_sessions(
         let rust_org_name = org_name.clone();
         let rust_model = model.clone();
         let rust_account_id = account_id.clone();
-        let rust_key_source = key_source.clone();
+        let rust_key_source = key_source;
         let rust_agent_exec_mode = agent_exec_mode.clone();
         let rust_native_harness_type = native_harness_type.clone();
         let rust_work_item_id = work_item_id.clone();
@@ -324,6 +324,7 @@ pub(super) async fn send_initial_turn(
             false,
             None,
             None,
+            None,
             source,
         )
         .await?;
@@ -359,6 +360,7 @@ pub(super) async fn send_initial_turn(
         ide_context,
         false,
         false,
+        None,
         None,
         None,
         crate::foundation::session_bridge::TurnIntentBridgeSource::AgentOrg,
