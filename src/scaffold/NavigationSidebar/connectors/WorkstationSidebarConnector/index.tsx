@@ -38,6 +38,7 @@ import {
   visitedSessionsAtom,
   workstationActiveSessionIdAtom,
 } from "@src/store/session";
+import { openSessionInWorkstationAtom } from "@src/store/session/sessionTabPlacementAtom";
 import {
   CHAT_PANEL_SURFACE_KIND,
   activeStationChatVisibleAtom,
@@ -181,6 +182,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     openCloudOrgManagementInChatPanelTabAtom
   );
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
+  const openSessionInWorkstation = useSetAtom(openSessionInWorkstationAtom);
   const openOrReplaceSessionInChatPanelTab = useSetAtom(
     openOrReplaceSessionInChatPanelTabAtom
   );
@@ -623,6 +625,22 @@ export const WorkstationSidebarConnector: React.FC = () => {
       sessionMap,
     ]
   );
+  const handleOpenInMyStation = useCallback(
+    (sessionId: string) => {
+      const session = sessionMap.get(sessionId);
+      if (!session) return;
+      activateMyStationRouteForProjectTabContent();
+      openSessionInWorkstation({
+        sessionId,
+        title: session.name,
+      });
+    },
+    [
+      activateMyStationRouteForProjectTabContent,
+      openSessionInWorkstation,
+      sessionMap,
+    ]
+  );
 
   const handleToggleSubagentExpansion = useCallback((sessionId: string) => {
     setExpandedSubagentParentIds((previousIds) => {
@@ -646,6 +664,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleDeleteDraft: deleteSessionCreatorDraft,
     handleExportMarkdown,
     handleOpenInNewTab,
+    handleOpenInMyStation,
     handleTogglePin,
     isMoveEligible: moveToOrg.isMoveEligible,
     handleOpenMoveToOrg: moveToOrg.openMoveToOrg,

@@ -32,6 +32,10 @@ import {
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import { sessionCreatorStateAtom } from "@src/store/session";
+import {
+  type SessionContinuation,
+  retargetChatPanelSessionTabAtom,
+} from "@src/store/session/sessionTabPlacementAtom";
 import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
@@ -215,6 +219,20 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       showSessionSurface,
     });
     const isManagementTabActive = activeTab?.type === "work-management";
+    const retargetChatPanelSession = useSetAtom(
+      retargetChatPanelSessionTabAtom
+    );
+    const handleSessionContinuation = useCallback(
+      (continuation: SessionContinuation) => {
+        if (activeTab?.type !== "session" || !activeTab.sessionId) return;
+        retargetChatPanelSession({
+          ...continuation,
+          sourceSessionId: activeTab.sessionId,
+          tabId: activeTab.id,
+        });
+      },
+      [activeTab, retargetChatPanelSession]
+    );
 
     // Tab shortcuts (⌘W/⌘]/⌘[/⌘N + "create-chat-tab") stay mounted here so
     // they keep working while the visual tab strip is hidden off the start page.
@@ -367,12 +385,15 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     });
 
     const {
+      handleMoveToWorkstation,
       handleOpenExportSessionJson,
       handleOpenLinkWorkItem,
       handleOpenCloudShareSettings,
+      handleOpenRawTranscript,
       showCloudShareSettings,
       sessionModals,
     } = useChatPanelSessionModals({
+      activeChatTab: activeTab,
       activeSession,
       closeHeaderActionsMenu,
       currentSession: currentSession ?? null,
@@ -493,6 +514,8 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           handleOpenExportSessionJson={handleOpenExportSessionJson}
           handleOpenLinkWorkItem={handleOpenLinkWorkItem}
           handleOpenCloudShareSettings={handleOpenCloudShareSettings}
+          handleOpenRawTranscript={handleOpenRawTranscript}
+          handleMoveToWorkstation={handleMoveToWorkstation}
           handleOpenSearch={handleOpenSearch}
           handleNewSession={handleNewSession}
           handlePaginationToggle={handlePaginationToggle}
@@ -572,6 +595,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         displayMode={displayMode}
         emptyChatContent={emptyChatContent}
         handleRegisterSearchOpen={handleRegisterSearchOpen}
+        onSessionContinuation={handleSessionContinuation}
         paginationEnabled={paginationEnabled}
         position={position}
         selectedCloudOrg={selectedCloudOrg}

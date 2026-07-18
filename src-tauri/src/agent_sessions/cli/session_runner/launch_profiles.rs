@@ -6,17 +6,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum CliPermissionMode {
     Plan,
+    #[default]
     FullPermission,
     AutoEdit,
     Manual,
-}
-
-impl Default for CliPermissionMode {
-    fn default() -> Self {
-        Self::FullPermission
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

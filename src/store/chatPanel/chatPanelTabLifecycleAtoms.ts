@@ -105,6 +105,32 @@ export const prevChatPanelTabAtom = atom(null, (get, set) => {
 });
 prevChatPanelTabAtom.debugLabel = "prevChatPanelTab";
 
+/** Reorder tabs within the Chat Panel strip without changing the active tab. */
+export const reorderChatPanelTabsAtom = atom(
+  null,
+  (
+    get,
+    set,
+    { startIndex, endIndex }: { startIndex: number; endIndex: number }
+  ) => {
+    const state = get(chatPanelTabsAtom);
+    if (
+      startIndex === endIndex ||
+      startIndex < 0 ||
+      endIndex < 0 ||
+      startIndex >= state.tabs.length ||
+      endIndex >= state.tabs.length
+    ) {
+      return;
+    }
+    const tabs = [...state.tabs];
+    const [movedTab] = tabs.splice(startIndex, 1);
+    tabs.splice(endIndex, 0, movedTab);
+    set(chatPanelTabsAtom, { ...state, tabs });
+  }
+);
+reorderChatPanelTabsAtom.debugLabel = "reorderChatPanelTabs";
+
 /** Update the session ID on the given tab (called after session launch) */
 export const setChatPanelTabSessionIdAtom = atom(
   null,

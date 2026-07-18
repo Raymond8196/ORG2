@@ -519,8 +519,8 @@ fn project_file_session_history(
     }
 
     let mut sessions = grouped
-        .into_iter()
-        .map(|(_, entry)| {
+        .into_values()
+        .map(|entry| {
             let root_replay_target = entry
                 .transcript_session_id
                 .as_deref()

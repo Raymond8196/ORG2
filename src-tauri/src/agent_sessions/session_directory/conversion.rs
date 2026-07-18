@@ -59,6 +59,12 @@ fn native_impact_fields(
     }
 }
 
+impl Default for AgentMetadataResolver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AgentMetadataResolver {
     pub fn new() -> Self {
         Self {
