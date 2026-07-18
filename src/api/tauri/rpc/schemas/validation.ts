@@ -40,6 +40,8 @@ export const CLI_AGENT = {
   AUTOHAND: "autohand",
   OMP: "omp",
   PI: "pi",
+  QODER_CLI: "qoder_cli",
+  TRAE_CLI: "trae_cli",
 } as const;
 
 /** CLI-based coding agents (external processes managed by the app). */
@@ -72,6 +74,8 @@ export const CliAgentTypeSchema = z.union([
   z.literal("autohand"),
   z.literal("omp"),
   z.literal("pi"),
+  z.literal("qoder_cli"),
+  z.literal("trae_cli"),
 ]);
 
 /** Direct API key providers (REST API, no child process). */
