@@ -376,6 +376,16 @@ describe("decideSessionCommentsFetch — force is queued, never dropped", () => 
     );
   });
 
+  it("an error entry becomes re-claimable after the short retry window", () => {
+    const errored = entry({ state: "error" });
+    expect(decideSessionCommentsFetch(errored, false, NOW + 1_000)).toBe(
+      "skip"
+    );
+    expect(decideSessionCommentsFetch(errored, false, NOW + 11_000)).toBe(
+      "claim"
+    );
+  });
+
   it("a force behind an in-flight fetch QUEUES; a plain call just skips", () => {
     const loading = entry({ state: "loading" });
     expect(decideSessionCommentsFetch(loading, true, NOW)).toBe("queue_force");

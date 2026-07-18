@@ -83,6 +83,9 @@ const log = createLogger("Org2CloudRealtime");
  */
 const CHANGE_SIGNALS_TABLE = "org_change_signals";
 
+/** Bounds signal-burst roster refetches to one list_my_orgs per window. */
+const ROSTER_SIGNAL_REFRESH_TTL_MS = 10_000;
+
 /**
  * Establish + maintain the inbound Realtime subscriptions for the signed-in
  * cloud user. No-op when signed out. Re-establishes on userId / endpoint
@@ -139,6 +142,10 @@ export function useOrg2CloudRealtime(): void {
   // Stable refs so the per-org effect and status callbacks read current values
   // without forcing the connection to rebuild.
   const refetchRef = useRef(refetchOrgs);
+  const rosterSignalRefreshAtRef = useRef(0);
+  const rosterTrailingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   useEffect(() => {
     refetchRef.current = refetchOrgs;
   }, [refetchOrgs]);
@@ -235,14 +242,39 @@ export function useOrg2CloudRealtime(): void {
           table: CHANGE_SIGNALS_TABLE,
           filter: `org_id=eq.${orgId}`,
           onChange: () => {
-            // One scoped, cursor-based pull. The former roster refetch here
-            // re-read list_my_orgs + every org's entitlement for unrelated
-            // project/comment/session writes, and the follow-up explicit pass
-            // dirtied the just-started pass, doubling all inbound RPCs.
+            // One scoped, cursor-based pull. The former unconditional roster
+            // refetch here re-read list_my_orgs + every org's entitlement for
+            // unrelated project/comment/session writes, and the follow-up
+            // explicit pass dirtied the just-started pass, doubling all
+            // inbound RPCs.
             void org2CloudSyncEngine
               .invalidateOrgInboundAndWait(orgId)
               .then(() => kickCommentTaskRunner());
             void refreshEntitlementForOrg(orgId);
+            // Server contract (cloud_rename_org): this signal row is the
+            // durable nudge that keeps member-side org names coherent — the
+            // roster must refetch on it. TTL-gated so signal bursts cost at
+            // most one list_my_orgs per window (entitlements ride their own
+            // coordinator; the refetch itself is single-flighted per store).
+            const now = Date.now();
+            if (
+              now - rosterSignalRefreshAtRef.current >=
+              ROSTER_SIGNAL_REFRESH_TTL_MS
+            ) {
+              rosterSignalRefreshAtRef.current = now;
+              void refetchRef.current();
+            } else if (!rosterTrailingTimerRef.current) {
+              // A gated signal is deferred to window expiry, never dropped —
+              // it may be the rename/policy change's only nudge.
+              const delay =
+                ROSTER_SIGNAL_REFRESH_TTL_MS -
+                (now - rosterSignalRefreshAtRef.current);
+              rosterTrailingTimerRef.current = setTimeout(() => {
+                rosterTrailingTimerRef.current = null;
+                rosterSignalRefreshAtRef.current = Date.now();
+                void refetchRef.current();
+              }, delay);
+            }
             // The signal covers cloud_sessions too — refresh the sidebar's
             // TEAM SESSIONS rows (teammate shared/forked/retracted a session).
             bumpRemoteSessionsVersion(orgId);

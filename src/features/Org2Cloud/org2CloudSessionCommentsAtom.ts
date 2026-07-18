@@ -53,6 +53,14 @@ const log = createLogger("Org2CloudSessionComments");
 
 const SESSION_COMMENTS_TTL_MS = 30_000;
 
+/**
+ * A transient listing failure (network blip, or the session row sitting in
+ * a momentary engine retract/re-upsert window) must not pin `state:"error"`
+ * for the full TTL: an error entry becomes re-claimable after this window,
+ * and a mounted consumer arms one deferred retry to actually re-run it.
+ */
+export const SESSION_COMMENTS_ERROR_RETRY_MS = 10_000;
+
 export type CloudSessionCommentsFetchState =
   | "idle"
   | "loading"
@@ -68,6 +76,8 @@ export interface CloudSessionCommentsEntry {
    */
   tasks: CloudCommentTask[];
   state: CloudSessionCommentsFetchState;
+  /** Last fetch failure (diagnostics only — UI keys on `state`). */
+  errorMessage?: string;
   /** Epoch ms of the last completed fetch attempt (0 ⇒ never fetched). */
   fetchedAt: number;
 }
@@ -149,10 +159,14 @@ export function decideSessionCommentsFetch(
   now: number
 ): SessionCommentsFetchDecision {
   if (entry?.state === "loading") return force ? "queue_force" : "skip";
+  const freshnessWindowMs =
+    entry?.state === "error"
+      ? SESSION_COMMENTS_ERROR_RETRY_MS
+      : SESSION_COMMENTS_TTL_MS;
   const fresh =
     entry !== undefined &&
     entry.state !== "idle" &&
-    now - entry.fetchedAt <= SESSION_COMMENTS_TTL_MS;
+    now - entry.fetchedAt <= freshnessWindowMs;
   if (fresh && !force) return "skip";
   return "claim";
 }
@@ -557,11 +571,14 @@ export function useSessionComments(
           // Visibility revocation EVICTS the cached bodies (0002 invariant
           // 5 for already-cached data); transient failures keep them.
           const evict = shouldEvictSessionCommentsOnError(error);
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           setEntries((previous) => ({
             ...previous,
             [targetKey]: {
               ...(evict ? EMPTY_ENTRY : (previous[targetKey] ?? EMPTY_ENTRY)),
               state: "error",
+              errorMessage,
               fetchedAt: Date.now(),
             },
           }));
@@ -630,6 +647,19 @@ export function useSessionComments(
     if (!orgId || !sessionId || !signedIn) return;
     void fetchComments(orgId, sessionId, { force: true });
   }, [orgId, sessionId, signedIn, fetchComments]);
+
+  // Error retry: one deferred re-run per error result while a consumer is
+  // mounted (the entry's fetchedAt changes on every attempt, re-arming the
+  // effect). Not a recurring timer — it exists only while an error shows.
+  const entryFetchedAt = entry.fetchedAt;
+  useEffect(() => {
+    if (!orgId || !sessionId || !signedIn) return undefined;
+    if (entryState !== "error") return undefined;
+    const timer = setTimeout(() => {
+      void fetchComments(orgId, sessionId, {});
+    }, SESSION_COMMENTS_ERROR_RETRY_MS);
+    return () => clearTimeout(timer);
+  }, [orgId, sessionId, signedIn, entryState, entryFetchedAt, fetchComments]);
 
   // --- Realtime nudge (comments bus): a peer's comment/task mutation
   // broadcast bumps this counter — force-refetch immediately so the open
