@@ -1780,6 +1780,49 @@ describe("Cloud collaboration with two independent rendered app instances", func
       "secondary imported parent after fork navigation",
       CLOUD_FETCH_TIMEOUT_MS
     );
+
+    // Coexistence / steal-back regression (event-id collision). The parent
+    // reopen above re-persists it. Before per-session id namespacing the fork
+    // and its parent import shared the source event ids (the events table PK
+    // is `id` alone), so re-persisting one STOLE the shared rows from the
+    // other — the fork's inherited history vanished the moment the parent was
+    // opened. Assert BOTH copies still hold the full inherited transcript.
+    const parentAfterReopen = unwrapOn(
+      await invokeOn(second.client, "inspectChatState"),
+      "secondary parent import after reopen"
+    );
+    if (
+      parentAfterReopen.chatEventCount < 6 ||
+      !(parentAfterReopen.chatEvents ?? []).some(
+        (event) => event.displayText === "Inherited answer 2"
+      )
+    ) {
+      throw new Error(
+        `parent import lost inherited history after fork (event-id collision): ${JSON.stringify(parentAfterReopen.chatEvents ?? [])}`
+      );
+    }
+    await invokeOn(second.client, "openSession", forkActive.sessionId);
+    await waitForRenderedOn(
+      second.client,
+      '[data-testid="session-forked-from-chip"]',
+      "secondary fork reopened after parent",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    const forkAfterParent = unwrapOn(
+      await invokeOn(second.client, "inspectChatState"),
+      "secondary fork inherited history after parent reopen"
+    );
+    if (
+      forkAfterParent.activeSessionId !== forkActive.sessionId ||
+      forkAfterParent.chatEventCount < 6 ||
+      !(forkAfterParent.chatEvents ?? []).some(
+        (event) => event.displayText === "Inherited answer 2"
+      )
+    ) {
+      throw new Error(
+        `fork lost inherited history after the parent was reopened (event-id collision steal-back): ${JSON.stringify(forkAfterParent.chatEvents ?? [])}`
+      );
+    }
   });
 
   it("D. syncs comment CRUD/status, intercepts send into a same-remote fork, and revokes directed access live", async function () {

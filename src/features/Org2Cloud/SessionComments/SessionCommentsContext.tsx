@@ -29,6 +29,7 @@ import React, {
 import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
+import { stripCopyEventNamespace } from "../../TeamCollaboration/copyEventId";
 import { collectAddressableThreads } from "../addressComments";
 import {
   addressRunActiveAtom,
@@ -83,6 +84,11 @@ export interface SessionCommentsContextValue {
   target: SessionCommentTarget;
   state: CloudSessionCommentsFetchState;
   grouped: GroupedCommentThreads;
+  /**
+   * Map a local (possibly fork/import-namespaced) event id to the source-plane
+   * event id comments anchor by. Identity for ordinary sessions.
+   */
+  toSourceEventId: (eventId: string) => string;
   /**
    * False when the rendered transcript is not this session's own stream
    * (group-chat merged view) — TurnCommentChrome renders nothing.
@@ -200,9 +206,23 @@ export const SessionCommentsProvider: React.FC<
   SessionCommentsProviderProps
 > = ({ session, events, turnAnchorsVisible = true, children }) => {
   const target = useSessionCommentTarget(session);
+  // Comments live on the SOURCE session's plane, anchored by the raw source
+  // event id shared across all users. A fork/import copy carries namespaced
+  // local ids, so anchor matching must happen in source-id space.
+  const localSessionId = target ? (session?.session_id ?? null) : null;
+  const toSourceEventId = useCallback(
+    (eventId: string) =>
+      localSessionId
+        ? stripCopyEventNamespace(localSessionId, eventId)
+        : eventId,
+    [localSessionId]
+  );
   const presentEventIds = useMemo<ReadonlySet<string> | null>(
-    () => (target && events ? new Set(events.map((event) => event.id)) : null),
-    [target, events]
+    () =>
+      target && events
+        ? new Set(events.map((event) => toSourceEventId(event.id)))
+        : null,
+    [target, events, toSourceEventId]
   );
   const {
     comments,
@@ -224,7 +244,6 @@ export const SessionCommentsProvider: React.FC<
   // session each own their sub-entry, so the first pane to unmount can
   // never delete the surviving pane's ids (readers union the instances).
   const providerId = useId();
-  const localSessionId = target ? (session?.session_id ?? null) : null;
   useEffect(() => {
     if (!localSessionId || !presentEventIds) return;
     setPresentRegistry((previous) => ({
@@ -301,6 +320,7 @@ export const SessionCommentsProvider: React.FC<
       target,
       state,
       grouped,
+      toSourceEventId,
       turnAnchorsVisible,
       canAnchorTurns: viewer.canAnchorTurns,
       viewerUserId: viewer.viewerUserId,
@@ -324,6 +344,7 @@ export const SessionCommentsProvider: React.FC<
     target,
     state,
     grouped,
+    toSourceEventId,
     turnAnchorsVisible,
     viewer,
     refresh,
