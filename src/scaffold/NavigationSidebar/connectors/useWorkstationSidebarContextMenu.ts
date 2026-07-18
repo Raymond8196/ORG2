@@ -26,6 +26,7 @@ interface UseWorkstationSidebarContextMenuParams {
   handleDeleteDraft: (draftId: string) => void;
   handleExportMarkdown: (sessionId: string) => Promise<void>;
   handleOpenInNewTab: (sessionId: string) => void;
+  handleOpenInMyStation: (sessionId: string) => void;
   handleTogglePin: (sessionId: string) => Promise<void>;
   /** Owner-side share dialog gate + opener (design §6.3, M4b). */
   /** Move-to-cloud-org (session→org tag) gate + opener. */
@@ -52,6 +53,7 @@ export function useWorkstationSidebarContextMenu({
   handleDeleteDraft,
   handleExportMarkdown,
   handleOpenInNewTab,
+  handleOpenInMyStation,
   handleTogglePin,
   isMoveEligible,
   handleOpenMoveToOrg,
@@ -108,6 +110,13 @@ export function useWorkstationSidebarContextMenu({
           text: tCommon("actions.openInNewTab", "Open in New Tab"),
           action: () => handleOpenInNewTab(item.id),
         });
+        const openInMyStationItem = await MenuItem.new({
+          text: tCommon(
+            "sessions:controlTower.sidebar.openInMyStation",
+            "Open in My Station"
+          ),
+          action: () => handleOpenInMyStation(item.id),
+        });
         const pinLabel = session?.pinned
           ? tCommon("sessions:chat.unpinSession", "Unpin")
           : tCommon("sessions:chat.pinSession", "Pin");
@@ -118,7 +127,7 @@ export function useWorkstationSidebarContextMenu({
 
         if (isCursorIde) {
           const menu = await TauriMenu.new({
-            items: [openInNewTabItem, pinItem],
+            items: [openInNewTabItem, openInMyStationItem, pinItem],
           });
           await menu.popup();
           return;
@@ -151,7 +160,12 @@ export function useWorkstationSidebarContextMenu({
         const menuSeparator = await PredefinedMenuItem.new({
           item: "Separator",
         });
-        const primaryItems = [openInNewTabItem, renameItem, exportItem];
+        const primaryItems = [
+          openInNewTabItem,
+          openInMyStationItem,
+          renameItem,
+          exportItem,
+        ];
         // Move (tag) the session into a managed cloud org, independent of
         // repo-scope auto-sharing. Owner's own pushable sessions only.
         if (session && isMoveEligible(session)) {
@@ -199,6 +213,7 @@ export function useWorkstationSidebarContextMenu({
       handleDeleteDraft,
       handleExportMarkdown,
       handleOpenInNewTab,
+      handleOpenInMyStation,
       handleTogglePin,
       handleOpenMoveToOrg,
       isMoveEligible,

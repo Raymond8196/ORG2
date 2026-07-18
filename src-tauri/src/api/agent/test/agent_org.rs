@@ -429,7 +429,7 @@ pub async fn test_agent_org_launch_coordinator(
                         agent_core::lifecycle::finalize_session(
                             &result.session_id,
                             &content_result,
-                            Some(&handle),
+                            Some(handle),
                             Some(sync_workspace_path.as_path()),
                             true,
                             Some(agent_core::lifecycle::TerminalTurnSignal {
@@ -454,7 +454,7 @@ pub async fn test_agent_org_launch_coordinator(
                         agent_core::lifecycle::finalize_session(
                             &result.session_id,
                             &content_result,
-                            Some(&handle),
+                            Some(handle),
                             Some(sync_workspace_path.as_path()),
                             true,
                             None,
@@ -479,7 +479,7 @@ pub async fn test_agent_org_launch_coordinator(
                         agent_core::lifecycle::finalize_session(
                             &result.session_id,
                             &content_result,
-                            Some(&handle),
+                            Some(handle),
                             Some(sync_workspace_path.as_path()),
                             true,
                             None,

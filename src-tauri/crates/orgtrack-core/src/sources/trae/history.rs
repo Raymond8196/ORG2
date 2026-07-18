@@ -516,7 +516,7 @@ fn parse_trae_time_ms(value: &str) -> Option<i64> {
 
 fn trae_time_to_iso(value: &str) -> String {
     parse_trae_time_ms(value)
-        .and_then(|ms| chrono::DateTime::from_timestamp_millis(ms))
+        .and_then(chrono::DateTime::from_timestamp_millis)
         .map(|dt| dt.to_rfc3339())
         .unwrap_or_else(|| chrono::Utc::now().to_rfc3339())
 }

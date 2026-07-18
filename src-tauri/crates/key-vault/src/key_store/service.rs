@@ -548,7 +548,7 @@ impl KeyService {
             let cooldown_secs = retry_after_secs
                 .and_then(|secs| i64::try_from(secs).ok())
                 .filter(|secs| *secs > 0)
-                .unwrap_or_else(|| match status {
+                .unwrap_or(match status {
                     429 => OAUTH_RATE_LIMIT_FALLBACK_SECONDS,
                     529 => OAUTH_RATE_LIMIT_FALLBACK_SECONDS * 2,
                     401 | 403 => OAUTH_TEMPORARY_UNAVAILABLE_SECONDS,

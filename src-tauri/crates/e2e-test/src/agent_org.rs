@@ -917,7 +917,7 @@ pub async fn run_view_shows_failed_member_and_released_task_state(cfg: &Config) 
         == Some(1);
     let released_task_visible = released_task
         .and_then(|task| task.get("owner"))
-        .map_or(true, serde_json::Value::is_null)
+        .is_none_or(serde_json::Value::is_null)
         && released_task.and_then(|task| task.get("status").and_then(|value| value.as_str()))
             == Some(TASK_STATUS_PENDING);
     let peer_task_visible = peer_task
