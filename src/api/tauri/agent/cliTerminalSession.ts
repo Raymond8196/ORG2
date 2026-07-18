@@ -11,7 +11,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 import { rpc } from "@src/api/tauri/rpc";
 import type { CliLaunchProfileView } from "@src/api/tauri/rpc/schemas/agentOrgs";
-import type { CliAgentType } from "@src/api/types/keys";
+import { CLI_AGENT, type CliAgentType } from "@src/api/types/keys";
 
 export interface CliTuiSessionCreateParams {
   platform: CliAgentType;
@@ -42,13 +42,18 @@ export function formatCliTuiCommand(
   const executable = profile.commandOverridden
     ? profile.command
     : detectedCommand;
-  return [executable, ...profile.requiredArgs, ...profile.args]
+  // `codex exec` is the headless runner and requires a prompt. TUI launches
+  // must start Codex's interactive CLI instead, while retaining its selected
+  // permission-mode flags (which Codex also accepts at the top level).
+  const requiredArgs =
+    profile.agentName === CLI_AGENT.CODEX ? [] : profile.requiredArgs;
+  return [executable, ...requiredArgs, ...profile.args]
     .filter((part) => part.trim().length > 0)
     .map(quotePosixShellArg)
     .join(" ");
 }
 
-/** Resolve the same required/mode arguments used by managed CLI launches. */
+/** Resolve a terminal-safe command from the managed CLI launch profile. */
 export async function resolveCliTuiCommand(
   platform: CliAgentType,
   detectedCommand: string
