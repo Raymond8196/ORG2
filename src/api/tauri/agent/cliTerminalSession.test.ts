@@ -36,6 +36,21 @@ describe("formatCliTuiCommand", () => {
     );
   });
 
+  it("omits Codex's prompt-required exec subcommand for interactive TUI launches", () => {
+    expect(
+      formatCliTuiCommand(
+        profile({
+          agentName: "codex",
+          defaultCommand: "codex",
+          command: "codex",
+          requiredArgs: ["exec"],
+          args: ["--dangerously-bypass-approvals-and-sandbox"],
+        }),
+        "codex"
+      )
+    ).toBe("codex --dangerously-bypass-approvals-and-sandbox");
+  });
+
   it("honors command and argument overrides with shell-safe quoting", () => {
     expect(
       formatCliTuiCommand(
