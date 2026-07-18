@@ -142,7 +142,79 @@
       },
       "views": {
         "scanning": "Scanning",
-        "hooks": "Hooks"
+        "hooks": "Hooks",
+        "usage": "Usage"
+      },
+      "usage": {
+        "title": "Usage & cost",
+        "subtitle": "Tokens and estimated cost across your scanned coding sessions. Read from the local database — no data leaves your machine.",
+        "allSources": "All sources",
+        "refresh": "Refresh",
+        "estimatedNote": "Cost is a list-price estimate for subscription / own-key routes; metered spend is shown when recorded.",
+        "range": {
+          "today": "Today",
+          "24h": "24h",
+          "7d": "7 days",
+          "30d": "30 days",
+          "all": "All time"
+        },
+        "bucket": {
+          "claude": "Claude",
+          "codex": "Codex",
+          "cursor": "Cursor",
+          "org2": "ORGII agents",
+          "other": "Other"
+        },
+        "cards": {
+          "realTokens": "Total tokens",
+          "cost": "Total cost (est.)",
+          "sessions": "Sessions",
+          "requests": "Requests",
+          "cacheHit": "Cache hit rate",
+          "input": "Input",
+          "output": "Output",
+          "cacheCreate": "Cache write",
+          "cacheRead": "Cache read"
+        },
+        "trends": {
+          "title": "Usage trends",
+          "input": "Input",
+          "output": "Output",
+          "cacheCreate": "Cache write",
+          "cacheRead": "Cache read",
+          "cost": "Cost"
+        },
+        "table": {
+          "title": "Sessions",
+          "name": "Session",
+          "agent": "Agent",
+          "model": "Model",
+          "tokens": "Tokens",
+          "cost": "Cost",
+          "cacheHit": "Cache hit",
+          "turns": "Turns",
+          "lastActive": "Last active",
+          "sort": {
+            "recent": "Most recent",
+            "cost": "Highest cost",
+            "tokens": "Most tokens"
+          }
+        },
+        "detail": {
+          "title": "Per-call breakdown",
+          "perTurn": "LLM calls",
+          "perTool": "Tool calls",
+          "close": "Close",
+          "noData": "This session has session-level totals only — per-call attribution is recorded for ORGII's own agent runs.",
+          "turnHeader": "Turn {{turn}}",
+          "promptTokens": "Prompt",
+          "completionTokens": "Completion"
+        },
+        "empty": {
+          "title": "No usage yet",
+          "subtitle": "Run or scan some coding sessions and their token usage will show up here."
+        },
+        "loadError": "Failed to load usage data"
       },
       "sessions_one": "{{count}} session",
       "sessions_other": "{{count}} sessions",

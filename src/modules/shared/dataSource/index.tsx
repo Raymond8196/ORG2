@@ -76,6 +76,7 @@ import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 
 import DataSourceDetailsCard from "./DataSourceDetailsCard";
 import SessionProvenanceHooksPanel from "./SessionProvenanceHooksPanel";
+import SessionUsagePanel from "./SessionUsagePanel";
 
 type DataSourceTab = "all" | "apps" | "clis";
 
@@ -122,8 +123,10 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
   // sourceId whose rescan split-menu is open (null = none).
   const [openRescanMenu, setOpenRescanMenu] = useState<string | null>(null);
   const [tab, setTab] = useState<DataSourceTab>("all");
-  // Top-level panel view: scan/import inventory vs. hook capture management.
-  const [panelView, setPanelView] = useState<"scanning" | "hooks">("scanning");
+  // Top-level panel view: scan/import inventory, hook capture, or usage stats.
+  const [panelView, setPanelView] = useState<"scanning" | "hooks" | "usage">(
+    "scanning"
+  );
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [configMap, setConfigMap] = useAtom(dataSourceConfigAtom);
@@ -619,8 +622,15 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
                 label: t("views.hooks"),
                 dataTestId: "data-source-view-hooks",
               },
+              {
+                key: "usage",
+                label: t("views.usage"),
+                dataTestId: "data-source-view-usage",
+              },
             ]}
-            onChange={(key) => setPanelView(key as "scanning" | "hooks")}
+            onChange={(key) =>
+              setPanelView(key as "scanning" | "hooks" | "usage")
+            }
             variant="simple"
             size="large"
             fillWidth={false}
@@ -755,8 +765,10 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ headerContent }) => {
                 }}
               />
             </>
-          ) : (
+          ) : panelView === "hooks" ? (
             <SessionProvenanceHooksPanel />
+          ) : (
+            <SessionUsagePanel />
           )}
         </div>
       </div>

@@ -23,6 +23,8 @@ pub mod sources;
 pub mod status_adapter;
 pub mod store;
 pub mod sync_export;
+#[cfg(feature = "sqlite")]
+pub mod usage_dashboard;
 
 pub use canonical::*;
 pub use privacy::*;
