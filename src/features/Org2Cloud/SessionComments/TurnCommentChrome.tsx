@@ -39,6 +39,7 @@ const TurnCommentChrome: React.FC<TurnCommentChromeProps> = ({
   const [open, setOpen] = useState(false);
 
   const addComment = context?.addComment;
+  const toSourceEventId = context?.toSourceEventId;
   const handleAdd = useCallback(
     async (
       body: string,
@@ -47,19 +48,28 @@ const TurnCommentChrome: React.FC<TurnCommentChromeProps> = ({
       if (!addComment) return undefined;
       // Replies inherit the parent's anchor — never send both (0014
       // contradictory-anchor rule). The created row flows back so the list
-      // can run its `@agent ` / post-submit agent affordances.
+      // can run its `@agent ` / post-submit agent affordances. Anchors ride
+      // the SOURCE plane, so a fork/import's namespaced local id is stripped.
       return addComment(
-        parentId ? { body, parentId } : { body, eventId: anchorEventId }
+        parentId
+          ? { body, parentId }
+          : {
+              body,
+              eventId: toSourceEventId
+                ? toSourceEventId(anchorEventId)
+                : anchorEventId,
+            }
       );
     },
-    [addComment, anchorEventId]
+    [addComment, toSourceEventId, anchorEventId]
   );
 
   // Hidden in group-chat view: the transcript there merges MEMBER-session
   // events whose ids can never anchor into this session's comment plane.
   if (!context || !context.turnAnchorsVisible) return null;
 
-  const threads = context.grouped.byEventId.get(anchorEventId) ?? [];
+  const sourceAnchorEventId = context.toSourceEventId(anchorEventId);
+  const threads = context.grouped.byEventId.get(sourceAnchorEventId) ?? [];
   const liveCount = countLiveComments(threads);
   const agentTaskState = getThreadAgentTaskBadgeState(
     threads,

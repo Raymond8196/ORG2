@@ -803,13 +803,15 @@ describe("forkSession (design §16.11, fork & continue)", () => {
     });
 
     expect(result?.eventCount).toBe(5);
-    const [written] = eventStoreMock.set.mock.calls[0];
+    const [written, forkId] = eventStoreMock.set.mock.calls[0];
+    // Inherited event ids are namespaced by the fork's local session id so
+    // they cannot collide (PK id) with the source or a sibling import copy.
     expect((written as SessionEvent[]).map((event) => event.id)).toEqual([
-      "turn-1-user",
-      "turn-1-agent",
-      "turn-2-user",
-      "turn-2-agent",
-      "turn-3-user",
+      `${forkId}~turn-1-user`,
+      `${forkId}~turn-1-agent`,
+      `${forkId}~turn-2-user`,
+      `${forkId}~turn-2-agent`,
+      `${forkId}~turn-3-user`,
     ]);
   });
 

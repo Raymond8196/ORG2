@@ -9,6 +9,7 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { TERMINAL_STATUSES } from "@src/types/session/session";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
+import { stripCopyEventNamespace } from "../TeamCollaboration/copyEventId";
 import {
   type AddressableThread,
   buildAddressCommentsBriefing,
@@ -289,8 +290,13 @@ export interface AddressRoundEventLike {
 
 export function attachAnchorExcerpts(
   threads: readonly AddressableThread[],
-  events: readonly AddressRoundEventLike[]
+  events: readonly AddressRoundEventLike[],
+  localSessionId?: string
 ): AddressableThread[] {
+  // Threads anchor by SOURCE event id; a fork/import's local events carry
+  // namespaced ids, so index in source-id space to match the anchors.
+  const toSourceId = (id: string) =>
+    localSessionId ? stripCopyEventNamespace(localSessionId, id) : id;
   const eventTextById = new Map<string, string>();
   const roundNumberByEventId = new Map<string, number>();
   const roundUserTextByNumber = new Map<number, string>();
@@ -302,8 +308,12 @@ export function attachAnchorExcerpts(
         roundUserTextByNumber.set(roundNumber, event.displayText);
       }
     }
-    if (roundNumber > 0) roundNumberByEventId.set(event.id, roundNumber);
-    if (event.displayText) eventTextById.set(event.id, event.displayText);
+    if (roundNumber > 0) {
+      roundNumberByEventId.set(toSourceId(event.id), roundNumber);
+    }
+    if (event.displayText) {
+      eventTextById.set(toSourceId(event.id), event.displayText);
+    }
   }
   return threads.map((thread) => {
     const eventId = thread.anchorEventId;
@@ -445,7 +455,7 @@ export async function runAddressCommentsRound(
     const anchorEvents = await eventStoreProxy
       .getPersistedEvents(localSessionId)
       .catch(() => []);
-    threads = attachAnchorExcerpts(threads, anchorEvents);
+    threads = attachAnchorExcerpts(threads, anchorEvents, localSessionId);
 
     const validIds = new Set(threads.map((thread) => thread.headId));
     const run: ActiveAddressRun = {

@@ -34,6 +34,7 @@ import type {
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import { sha256Hex } from "../collabSyncUtils";
+import { namespaceCopyEventId } from "../copyEventId";
 import {
   isModelRunnableWithAccount,
   resolveForkModel,
@@ -72,7 +73,15 @@ export function rewriteEventsForImportedSnapshot(
   events: SessionEvent[],
   localSessionId: string
 ): SessionEvent[] {
-  return events.map((event) => ({ ...event, sessionId: localSessionId }));
+  return events.map((event) => ({
+    ...event,
+    id: namespaceCopyEventId(localSessionId, event.id),
+    chunk_id:
+      event.chunk_id == null
+        ? event.chunk_id
+        : namespaceCopyEventId(localSessionId, event.chunk_id),
+    sessionId: localSessionId,
+  }));
 }
 
 /** Legacy (pre-M3) shape: import provenance JSON-encoded in error_message. */
@@ -506,6 +515,21 @@ async function importRemoteSessionInner(
     shareEndpointUrl:
       shareEndpointUrl ?? existing?.importedFrom?.shareEndpointUrl,
   };
+  // Migration: a pre-namespacing import left un-namespaced rows in SQLite.
+  // save_events UPSERTs by id, so writing the new namespaced rows would leave
+  // the old bare rows beside them as duplicate orphans (getPersistedEvents
+  // reads SQLite). Purge once when the persisted base is not yet namespaced so
+  // the id-space change replaces cleanly; steady state stays on the upsert.
+  if (existing) {
+    const priorPersisted =
+      await eventStoreProxy.getPersistedEvents(localSessionId);
+    const hasBareRows = priorPersisted.some(
+      (event) => event.id !== namespaceCopyEventId(localSessionId, event.id)
+    );
+    if (hasBareRows) {
+      await eventStoreProxy.clearPersistedHistory(localSessionId);
+    }
+  }
   // Durably cache the events BEFORE persisting the session record + cursor.
   // The cursor claims the import is complete, so if we persisted it first and
   // then the cache write failed (saveToCache swallows errors and returns 0) or
