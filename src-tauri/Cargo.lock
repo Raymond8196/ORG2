@@ -91,7 +91,6 @@ dependencies = [
  "bytes",
  "chrono",
  "chrono-tz",
- "code_map",
  "core-foundation",
  "core-graphics 0.24.0",
  "core_types",
@@ -1237,31 +1236,6 @@ dependencies = [
  "core-foundation",
  "core-graphics-types",
  "objc",
-]
-
-[[package]]
-name = "code_map"
-version = "0.1.0"
-dependencies = [
- "app_paths",
- "chrono",
- "hex",
- "ignore",
- "once_cell",
- "parking_lot 0.12.5",
- "regex",
- "rusqlite",
- "schemars 1.2.1",
- "search",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "tree-sitter",
 ]
 
 [[package]]
@@ -5152,7 +5126,6 @@ dependencies = [
  "calamine",
  "cc",
  "chrono",
- "code_map",
  "container",
  "core-foundation",
  "core-graphics 0.24.0",
