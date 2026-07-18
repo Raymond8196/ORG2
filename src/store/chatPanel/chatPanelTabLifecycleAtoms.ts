@@ -152,13 +152,19 @@ export const setChatPanelTabSessionIdAtom = atom(
 export const setChatPanelTabTitleAtom = atom(
   null,
   (_get, set, { tabId, title }: { tabId: string; title: string }) => {
-    const now = new Date().toISOString();
-    set(chatPanelTabsAtom, (prev) => ({
-      ...prev,
-      tabs: prev.tabs.map((tab) =>
-        tab.id === tabId ? { ...tab, title, updatedAt: now } : tab
-      ),
-    }));
+    set(chatPanelTabsAtom, (prev) => {
+      if (prev.tabs.some((tab) => tab.id === tabId && tab.title === title)) {
+        return prev;
+      }
+
+      const now = new Date().toISOString();
+      return {
+        ...prev,
+        tabs: prev.tabs.map((tab) =>
+          tab.id === tabId ? { ...tab, title, updatedAt: now } : tab
+        ),
+      };
+    });
   }
 );
 
