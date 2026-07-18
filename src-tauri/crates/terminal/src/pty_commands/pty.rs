@@ -223,33 +223,76 @@ impl PtySession {
 /// consumed by `shutdown_kill_all`. PTY cleanup is inherently process-global
 /// (one app process owns one set of descendants to sweep), so a static carries
 /// no isolation risk that `PtyState`'s Tauri-managed singleton would not.
+///
+/// Each entry pairs the PID with the shell's `start_time` (seconds since
+/// boot). On app-exit sweep, a registered PID is treated as a sweep candidate
+/// only if its current holder either no longer exists (shell dead, PID not
+/// reused — its orphaned descendants are safe to sweep) or still has the
+/// recorded `start_time` (our shell is still alive). If the PID now exists
+/// with a different `start_time`, the OS reused it for an unrelated process
+/// and we drop the candidate rather than risk killing the wrong session.
+/// This closes the most direct PID-reuse mis-kill path; it is NOT a complete
+/// proof — see [`shutdown_kill_all`] for the residual window.
 #[cfg(unix)]
-fn pending_exit_session_leaders() -> &'static std::sync::Mutex<std::collections::HashSet<u32>> {
-    static REGISTRY: std::sync::OnceLock<std::sync::Mutex<std::collections::HashSet<u32>>> =
-        std::sync::OnceLock::new();
-    REGISTRY.get_or_init(|| std::sync::Mutex::new(std::collections::HashSet::new()))
+fn pending_exit_session_leaders()
+    -> &'static std::sync::Mutex<std::collections::HashMap<u32, u64>> {
+    static REGISTRY: std::sync::OnceLock<
+        std::sync::Mutex<std::collections::HashMap<u32, u64>>,
+    > = std::sync::OnceLock::new();
+    REGISTRY.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()))
 }
 
-/// Record a spawned shell's PID (== Unix session-leader id) so the app-exit
-/// sweep can still find its descendants after the session leaves the map.
+/// Record a spawned shell's PID (== Unix session-leader id) together with its
+/// `start_time`, so the app-exit sweep can still find its descendants after
+/// the session leaves the map AND can tell the shell apart from a later
+/// PID-reuse holder. `start_time` is seconds since boot (sysinfo convention);
+/// callers obtain it from a fresh `System` snapshot taken immediately after
+/// spawn so it reflects this shell, not a racing reuse.
 #[cfg(unix)]
-pub(crate) fn register_session_leader(pid: u32) {
+pub(crate) fn register_session_leader(pid: u32, start_time: u64) {
     if let Ok(mut reg) = pending_exit_session_leaders().lock() {
-        reg.insert(pid);
+        reg.insert(pid, start_time);
+    }
+}
+
+/// Decide whether a registered session leader is still a safe sweep
+/// candidate given its current holder. Pure (no I/O) so it is unit-testable.
+///
+/// - `None` → the PID has no current holder: our shell died without the PID
+///   being reused, so its orphaned descendants (still reporting `SID = pid`)
+///   are safe to sweep.
+/// - `Some(holder_start)` → the PID exists. If `holder_start` matches the
+///   shell's recorded start_time it is still our shell; otherwise the OS
+///   recycled the number and we refuse the candidate (prefer leaking a known
+///   orphan over killing a stranger's session).
+#[cfg(unix)]
+fn leader_is_sweep_candidate(registered_start: u64, holder_start: Option<u64>) -> bool {
+    match holder_start {
+        None => true,
+        Some(start) => start == registered_start,
     }
 }
 
 /// PIDs whose Unix sessions should be swept on app exit: the union of
 /// currently-tracked session PIDs and previously-registered leaders whose
-/// sessions may still have lingering descendants (shells that exited or whose
-/// tab was closed).
+/// holders have not been displaced by PID reuse. `sys` is the process
+/// snapshot the sweep is about to iterate, so each registered PID is checked
+/// against the same view (no second snapshot race).
 #[cfg(unix)]
 fn collect_sweep_sids(
     tracked_pids: impl Iterator<Item = u32>,
+    sys: &sysinfo::System,
 ) -> std::collections::HashSet<u32> {
+    use sysinfo::Pid;
+
     let mut sids: std::collections::HashSet<u32> = tracked_pids.collect();
     if let Ok(reg) = pending_exit_session_leaders().lock() {
-        sids.extend(reg.iter().copied());
+        for (&pid, &registered_start) in reg.iter() {
+            let holder_start = sys.process(Pid::from_u32(pid)).map(|p| p.start_time());
+            if leader_is_sweep_candidate(registered_start, holder_start) {
+                sids.insert(pid);
+            }
+        }
     }
     sids
 }
@@ -308,23 +351,36 @@ impl PtyState {
         // by session, not by process group: an interactive shell's job
         // control puts each job in its own group, so killpg on the shell's
         // group would miss `bash -c ...`-style jobs entirely.
+        //
+        // Residual risk: the start_time guard on registered leaders closes
+        // the most direct PID-reuse mis-kill path (a live process now holds
+        // a recycled shell PID). It is NOT a complete proof. If the OS
+        // recycled a dead shell's PID to a process Q that called setsid()
+        // and forked descendants, and Q itself died before app exit, Q's
+        // descendants still report `SID = <recycled PID>` while the PID is
+        // currently free — indistinguishable from our dead shell. In that
+        // daemon / session-launcher pattern we may mis-kill Q's orphans.
+        // The policy is deliberate: when we cannot tell our orphans apart
+        // from a stranger's, prefer leaking a known orphan over killing an
+        // unrelated process's session.
         #[cfg(unix)]
         {
             use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System};
 
+            let mut sys = System::new();
+            sys.refresh_processes_specifics(
+                ProcessesToUpdate::All,
+                true,
+                ProcessRefreshKind::nothing(),
+            );
+
             // Union live sessions with the registry of shells already removed
-            // (closed tab / natural exit). A SID with zero live processes left
-            // matches nothing, so stale entries are inert — safe even if the OS
-            // reused a long-dead shell's PID for an unrelated process.
-            let sids = collect_sweep_sids(drained.iter().filter_map(|s| s.pid));
+            // (closed tab / natural exit). Registered leaders that the OS has
+            // recycled to a different start_time are dropped here so the loop
+            // below never matches anything against their session id.
+            let sids = collect_sweep_sids(drained.iter().filter_map(|s| s.pid), &sys);
             if !sids.is_empty() {
                 let own_pid = std::process::id();
-                let mut sys = System::new();
-                sys.refresh_processes_specifics(
-                    ProcessesToUpdate::All,
-                    true,
-                    ProcessRefreshKind::nothing(),
-                );
                 for (pid, process) in sys.processes() {
                     let pid = pid.as_u32();
                     // Shells still in `drained` die via Drop below, which also
@@ -982,7 +1038,7 @@ pub async fn get_pty_memory_usage(
 
 #[cfg(all(test, unix))]
 mod tests {
-    use super::{collect_sweep_sids, pending_exit_session_leaders};
+    use super::{leader_is_sweep_candidate, pending_exit_session_leaders};
 
     // The session-leader registry is a process-global static shared across
     // tests; this helper drains it so each case starts from a known state.
@@ -994,32 +1050,35 @@ mod tests {
     }
 
     #[test]
-    fn sweep_sids_union_live_sessions_and_registered_leaders() {
-        reset_registry();
-        super::register_session_leader(40_000); // shell whose tab was closed
-        super::register_session_leader(40_001); // shell that exited naturally
-
-        // A still-open session whose shell is also in the live map.
-        let sids = collect_sweep_sids(std::iter::once(50_000));
-
-        // Union of the live session PID and both registered leaders.
-        assert!(sids.contains(&50_000));
-        assert!(sids.contains(&40_000));
-        assert!(sids.contains(&40_001));
-
-        reset_registry();
+    fn sweep_candidate_when_shell_dead_and_pid_not_reused() {
+        // Shell PID gone, no holder: orphaned descendants are safe to sweep.
+        assert!(leader_is_sweep_candidate(1000, None));
     }
 
     #[test]
-    fn stale_registered_leader_with_no_live_process_is_inert() {
-        // No assertion on kill behaviour here (that needs real processes); this
-        // guards the documented safety property: a registered SID only matters
-        // if some live process reports it as its session id. collect_sweep_sids
-        // merely returns the candidate set; downstream, zero matches => no kill.
+    fn sweep_candidate_when_pid_still_held_by_our_shell() {
+        // PID exists with the same start_time: still our shell.
+        assert!(leader_is_sweep_candidate(1000, Some(1000)));
+    }
+
+    #[test]
+    fn not_a_sweep_candidate_when_pid_reused_by_a_different_process() {
+        // PID exists but start_time differs: the OS recycled the number to an
+        // unrelated process. We refuse the candidate to avoid killing the
+        // wrong session.
+        assert!(!leader_is_sweep_candidate(1000, Some(2000)));
+    }
+
+    // Sanity: the registry helper still stores entries for integration.
+    #[test]
+    fn registry_stores_leader_pid_and_start_time() {
         reset_registry();
-        super::register_session_leader(u32::MAX);
-        let sids = collect_sweep_sids(std::iter::empty());
-        assert!(sids.contains(&u32::MAX), "registered leader is a candidate");
+        super::register_session_leader(40_000, 9999);
+        let reg = pending_exit_session_leaders()
+            .lock()
+            .expect("registry poisoned");
+        assert_eq!(reg.get(&40_000), Some(&9999));
+        drop(reg);
         reset_registry();
     }
 }
