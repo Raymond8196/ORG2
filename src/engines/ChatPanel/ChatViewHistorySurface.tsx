@@ -41,6 +41,7 @@ interface ChatViewHistorySurfaceProps {
   onRegisterSearchOpen: ChatHistoryProps["onRegisterSearchOpen"];
   displayMode: ChatHistoryProps["displayMode"];
   turnPaginationEnabled: boolean;
+  paginationTrailingSlot: ChatHistoryProps["paginationTrailingSlot"];
   pinnedHeaderHost: HTMLDivElement | null;
   historyBottomInset: number;
   groupChatViewAvailable: boolean;
@@ -74,6 +75,7 @@ export function ChatViewHistorySurface({
   onRegisterSearchOpen,
   displayMode,
   turnPaginationEnabled,
+  paginationTrailingSlot,
   pinnedHeaderHost,
   historyBottomInset,
   groupChatViewAvailable,
@@ -140,6 +142,7 @@ export function ChatViewHistorySurface({
               onRegisterSearchOpen={onRegisterSearchOpen}
               displayMode={displayMode}
               turnPaginationEnabled={turnPaginationEnabled}
+              paginationTrailingSlot={paginationTrailingSlot}
               pinnedHeaderPortalHost={pinnedHeaderHost}
               bottomInset={historyBottomInset}
               groupChatViewAvailable={groupChatViewAvailable}

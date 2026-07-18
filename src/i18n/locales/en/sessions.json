@@ -2309,6 +2309,7 @@
       "loadFailed": "Team overview failed to load",
       "tasks": "Tasks",
       "doneOf": "{{done}} / {{total}} done",
+      "taskWindowTruncated": "Showing the first {{visible}} of {{total}} tasks. Open task detail for full results.",
       "members": "Members",
       "activeOf": "{{active}} / {{total}} active",
       "inbox": "Inbox",
@@ -2333,7 +2334,9 @@
         "editLabel": "Edit submitted plan",
         "feedbackLabel": "Plan revision feedback",
         "feedbackPlaceholder": "Tell the Planner exactly what must change…",
-        "paused": "Resume the run before responding to this plan."
+        "paused": "Resume the run before responding to this plan.",
+        "staleError": "This plan was already resolved or replaced. Refresh to see the latest revision.",
+        "submitFailed": "The plan response could not be saved. Please try again."
       },
       "phase": {
         "coordinating": "Coordinating",
@@ -2534,6 +2537,8 @@
     }
   },
   "groupChat": {
+    "loadOlder": "Load older messages",
+    "historyLoadFailed": "History unavailable",
     "senderTitle": {
       "message": "{{sender}} sent a message",
       "said": "{{sender}} said"

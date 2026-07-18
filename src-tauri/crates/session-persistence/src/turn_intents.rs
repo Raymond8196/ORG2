@@ -480,6 +480,26 @@ mod tests {
     }
 
     #[test]
+    fn consumed_steering_intents_reach_terminal_on_success_and_persistence_failure() {
+        with_temp_orgii_home(|| {
+            for (suffix, terminal) in [
+                ("success", TurnIntentStatus::Completed),
+                ("persistence-failure", TurnIntentStatus::Failed),
+            ] {
+                let session = format!("test-steering-{suffix}");
+                let intent = format!("intent-steering-{suffix}");
+                let _ = fresh_intent(&session, &intent);
+                update_status(&session, &intent, TurnIntentStatus::Running)
+                    .expect("consumption must transition queued -> running");
+                let record = update_status(&session, &intent, terminal)
+                    .expect("consumed steering must reach a terminal state");
+                assert_eq!(record.status, terminal);
+                assert!(record.status.is_terminal());
+            }
+        });
+    }
+
+    #[test]
     fn terminal_cannot_walk_back_to_running() {
         with_temp_orgii_home(|| {
             let session = "test-session-bad-transition";
