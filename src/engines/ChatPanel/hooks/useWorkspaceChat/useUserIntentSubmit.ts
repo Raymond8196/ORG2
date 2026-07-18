@@ -9,6 +9,7 @@
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect } from "react";
 
+import { enterAgentOrgSessionIntervention } from "@src/api/tauri/agent";
 import type { AgentExecMode } from "@src/config/sessionCreatorConfig";
 import {
   beginOptimisticTurn,
@@ -234,6 +235,9 @@ export function useUserIntentSubmit({
         onBeforeDirectDispatch?.();
         await addUserMessage(displayContent, imageDataUrls, turnIntentId);
         userEventAppended = true;
+        // This hook is the canonical user-intent boundary. The backend resolves
+        // the member from the session and ignores coordinator/non-org sessions.
+        await enterAgentOrgSessionIntervention(sessionId);
         const displayTextForDispatch =
           contentForAgent !== displayContent ? displayContent : undefined;
         dispatchStarted = true;

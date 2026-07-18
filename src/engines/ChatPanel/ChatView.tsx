@@ -554,6 +554,11 @@ const ChatView: React.FC<ChatViewProps> = memo(
       groupChatMentionOptions,
       groupChatRunPaused,
       groupChatPendingMessage,
+      groupChatHistoryHasMore,
+      groupChatHistoryLoading,
+      groupChatHistoryError,
+      loadOlderGroupChatHistory,
+      retryGroupChatHistory,
       isResumingGroupChat,
       handleResumeGroupChatRun,
       handleGroupChatViewToggle,
@@ -755,6 +760,38 @@ const ChatView: React.FC<ChatViewProps> = memo(
     // there made useMessageDispatch fail before onSubmitOverride could run
     // ("no active sessionId"), bypassing the fork-before-send flow entirely.
     const inputAreaSessionId = queueSessionId ?? sessionId;
+    const groupChatHistoryAction = groupChatViewActive ? (
+      groupChatHistoryError ? (
+        <Button
+          variant="tertiary"
+          appearance="ghost"
+          size="small"
+          onClick={retryGroupChatHistory}
+          title={`${t("sessions:groupChat.historyLoadFailed", {
+            defaultValue: "History unavailable",
+          })}: ${groupChatHistoryError}`}
+        >
+          {t("common:retry", {
+            defaultValue: "Retry",
+          })}
+        </Button>
+      ) : groupChatHistoryHasMore ? (
+        <Button
+          variant="tertiary"
+          appearance="ghost"
+          size="small"
+          loading={groupChatHistoryLoading}
+          onClick={() => void loadOlderGroupChatHistory()}
+          title={t("sessions:groupChat.loadOlder", {
+            defaultValue: "Load older messages",
+          })}
+        >
+          {t("sessions:groupChat.loadOlder", {
+            defaultValue: "Load older messages",
+          })}
+        </Button>
+      ) : null
+    ) : null;
 
     // Idle-reload signal for the composer "N Files Changed" pill. The pill's
     // count comes from the per-session-cached orgtrack final diffs, so it must
@@ -810,6 +847,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
               onRegisterSearchOpen={onRegisterSearchOpen}
               displayMode={displayMode}
               turnPaginationEnabled={turnPaginationEnabled}
+              paginationTrailingSlot={groupChatHistoryAction}
               pinnedHeaderHost={pinnedHeaderHost}
               historyBottomInset={historyBottomInset}
               groupChatViewAvailable={groupChatViewAvailable}
