@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AddressRoundResult } from "./addressCommentsRun";
 import {
   buildDefaultCommentTaskRunnerDeps,
+  resolveWritableSessionForTask,
   runInPlaceCommentTask,
+  shouldAutoRunCommentTask,
 } from "./commentTaskRunner";
 import type { CommentTaskRunnerDeps } from "./commentTaskRunner";
 import {
@@ -128,6 +130,81 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe("shouldAutoRunCommentTask (auto-run gate)", () => {
+  it("runs a SELF-authored open task without the opt-in toggle", () => {
+    expect(shouldAutoRunCommentTask({ state: "open" }, false, true)).toBe(true);
+  });
+
+  it("gates a non-self-authored (teammate) mention behind the toggle", () => {
+    expect(shouldAutoRunCommentTask({ state: "open" }, false, false)).toBe(
+      false
+    );
+    expect(shouldAutoRunCommentTask({ state: "open" }, true, false)).toBe(true);
+  });
+
+  it("never runs a non-open task, even self-authored", () => {
+    expect(shouldAutoRunCommentTask({ state: "done" }, true, true)).toBe(false);
+  });
+});
+
+describe("resolveWritableSessionForTask", () => {
+  const SOURCE = "sdeagent-source";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const s = (over: Record<string, unknown>): any => ({
+    session_id: "x",
+    updated_at: "2026-07-18T00:00:00Z",
+    ...over,
+  });
+
+  it("returns the exact source session when the OWNER holds it writable", () => {
+    const sessions = [s({ session_id: SOURCE })];
+    expect(resolveWritableSessionForTask(sessions, SOURCE)).toBe(SOURCE);
+  });
+
+  it("falls back to a local FORK of the source (forker has no source)", () => {
+    const sessions = [
+      s({
+        session_id: "agentsession-fork",
+        forkedFrom: { sourceSessionId: SOURCE },
+      }),
+    ];
+    expect(resolveWritableSessionForTask(sessions, SOURCE)).toBe(
+      "agentsession-fork"
+    );
+  });
+
+  it("matches a fork by rootSessionId too, and prefers the most recent", () => {
+    const sessions = [
+      s({
+        session_id: "fork-old",
+        updated_at: "2026-07-01T00:00:00Z",
+        forkedFrom: { sourceSessionId: "mid", rootSessionId: SOURCE },
+      }),
+      s({
+        session_id: "fork-new",
+        updated_at: "2026-07-18T09:00:00Z",
+        forkedFrom: { sourceSessionId: "mid", rootSessionId: SOURCE },
+      }),
+    ];
+    expect(resolveWritableSessionForTask(sessions, SOURCE)).toBe("fork-new");
+  });
+
+  it("never targets a read-only imported replay", () => {
+    const sessions = [
+      s({ session_id: SOURCE, importedFrom: { sourceSessionId: "up" } }),
+      s({
+        session_id: "imported-copy",
+        importedFrom: { sourceSessionId: SOURCE },
+      }),
+    ];
+    expect(resolveWritableSessionForTask(sessions, SOURCE)).toBeNull();
+  });
+
+  it("returns null when no local session continues the source", () => {
+    expect(resolveWritableSessionForTask([], SOURCE)).toBeNull();
+  });
+});
+
 describe("buildDefaultCommentTaskRunnerDeps", () => {
   it("wires the real RPC wrappers and the caller's UI hooks", () => {
     const onReportComment = vi.fn();
@@ -218,6 +295,7 @@ describe("in-place run (locally owned writable session)", () => {
       orgId: ORG_ID,
       cloudSessionId: SOURCE_SESSION_ID,
       localSessionId: SOURCE_SESSION_ID,
+      selectedHeadIds: [taskFixture().commentId],
       holdReplyForCommentId: taskFixture().commentId,
     });
     expect(deps.completeCommentTask).toHaveBeenCalledWith(

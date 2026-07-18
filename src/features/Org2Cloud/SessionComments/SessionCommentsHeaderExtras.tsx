@@ -26,6 +26,7 @@ import Button from "@src/components/Button";
 import Tooltip from "@src/components/Tooltip";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
+import { getSessionForkedFrom } from "../../TeamCollaboration/forkSession";
 import {
   countLiveComments,
   groupCommentThreads,
@@ -55,7 +56,14 @@ const SessionCommentsHeaderExtras: React.FC<
     editComment,
     deleteComment,
     resolveComment,
-  } = useSessionComments(target?.orgId ?? null, target?.sessionId ?? null);
+  } = useSessionComments(
+    target?.orgId ?? null,
+    target?.sessionId ?? null,
+    // Only a writable fork stamps an origin; imports/tagged coalesce to source.
+    session && getSessionForkedFrom(session)
+      ? (session.session_id ?? null)
+      : null
+  );
   const viewer = useSessionCommentViewer(target);
   const presentRegistry = useAtomValue(sessionCommentPresentEventIdsAtom);
   const [open, setOpen] = useState(false);

@@ -22,8 +22,10 @@
  *   writes silently while the local session continues normally.
  */
 import { getSessionMetadata } from "@src/engines/SessionCore/storage/sqliteCache";
+import { getSessionForkedFrom } from "@src/features/TeamCollaboration/forkSession";
 import { createLogger } from "@src/hooks/logger";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
+import type { Session } from "@src/store/session/sessionAtom/types";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import type {
@@ -56,6 +58,7 @@ import type { CloudCommentTask } from "./org2CloudCommentTasksClient";
 import { broadcastCommentsChanged } from "./org2CloudCommentsBus";
 import type { CloudSessionComment } from "./org2CloudCommentsClient";
 import { isOrg2SyncErrorCode } from "./org2CloudSyncClient";
+import { isSelfAgentComment } from "./selfAgentTaskRegistry";
 
 const log = createLogger("commentTaskRunner");
 
@@ -420,6 +423,7 @@ export async function runInPlaceCommentTask(
         orgId,
         cloudSessionId: task.sessionId,
         localSessionId,
+        selectedHeadIds: [task.commentId],
         // Dedupe: the task thread's parsed reply is HELD by the round and
         // delivered once, as the completion report reply below.
         holdReplyForCommentId: task.commentId,
@@ -515,6 +519,53 @@ export async function runInPlaceCommentTask(
 
 const autoRunTaskIds = new Set<string>();
 
+/**
+ * An open @agent task auto-runs on this machine when it is the viewer's OWN
+ * mention — running it spends the viewer's own account in their own local
+ * writable copy (the fork), so no opt-in is needed. A teammate's mention
+ * stays gated behind `autoRunEnabled` so it can never silently spend the
+ * viewer's tokens without explicit consent.
+ */
+export function shouldAutoRunCommentTask(
+  task: Pick<CloudCommentTask, "state">,
+  autoRunEnabled: boolean,
+  isSelfAuthored: boolean
+): boolean {
+  if (task.state !== "open") return false;
+  return autoRunEnabled || isSelfAuthored;
+}
+
+type WritableSessionCandidate = Pick<
+  Session,
+  "session_id" | "importedFrom" | "forkedFrom" | "updated_at"
+>;
+
+/**
+ * The local writable session a comment task (keyed by its SOURCE session id)
+ * runs in. The OWNER has the exact source session locally; a FORKER only has
+ * a fork of it, which continues the same thread and is equally writable — so
+ * fall back to the most recently active local fork of that source. Imported
+ * read-only replays are never writable targets.
+ */
+export function resolveWritableSessionForTask(
+  sessions: readonly WritableSessionCandidate[],
+  sourceSessionId: string
+): string | null {
+  const own = sessions.find(
+    (session) => session.session_id === sourceSessionId && !session.importedFrom
+  );
+  if (own) return own.session_id;
+  const fork = sessions
+    .filter(
+      (session) =>
+        !session.importedFrom &&
+        (session.forkedFrom?.sourceSessionId === sourceSessionId ||
+          session.forkedFrom?.rootSessionId === sourceSessionId)
+    )
+    .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? ""))[0];
+  return fork?.session_id ?? null;
+}
+
 let addressRunRekickRegistered = false;
 
 function ensureAddressRunRekick(): void {
@@ -533,24 +584,45 @@ export function kickCommentTaskRunner(): void {
   } catch {
     return;
   }
-  if (!store.get(org2CloudAuthAtom)) return;
+  const auth = store.get(org2CloudAuthAtom);
+  if (!auth) return;
+  const selfUserId = auth.userId;
   const tasksByOrg = store.get(org2CloudCommentTasksAtom);
   const settingsByOrg = store.get(agentTaskRunnerSettingsAtom);
   for (const [orgId, taskMap] of Object.entries(tasksByOrg)) {
-    // Owner opt-in gate (default OFF): without it a teammate's @agent mention
-    // would silently claim and spend the owner's tokens. Skipped orgs leave
-    // the task open server-side for the owner's explicit "Run here" consent.
-    if (!resolveAgentRunnerSettings(settingsByOrg, orgId).autoRunEnabled) {
-      continue;
-    }
+    const autoRunEnabled = resolveAgentRunnerSettings(
+      settingsByOrg,
+      orgId
+    ).autoRunEnabled;
     for (const task of Object.values(taskMap)) {
-      if (task.state !== "open") continue;
       if (autoRunTaskIds.has(task.id)) continue;
+      // Your OWN @agent mention runs without the owner opt-in. created_by is
+      // GDPR-nullable / unreliable client-side, so the durable self-authored
+      // registry (set at @agent submit) is the primary signal; the id compare
+      // is a best-effort backup when the server does surface created_by.
+      const isSelfAuthored =
+        isSelfAgentComment(task.commentId) ||
+        (task.createdByUserId !== undefined &&
+          task.createdByUserId === selfUserId);
+      const willRun = shouldAutoRunCommentTask(
+        task,
+        autoRunEnabled,
+        isSelfAuthored
+      );
+      if (task.state === "open") {
+        log.info(
+          `comment task ${task.id} gate: self=${isSelfAuthored} autoRun=${autoRunEnabled} willRun=${willRun} comment=${task.commentId}`
+        );
+      }
+      if (!willRun) continue;
       const deps = buildDefaultCommentTaskRunnerDeps({
         onReportComment: () => {},
       });
       const localSessionId =
         deps.resolveLocalWritableSessionId?.(task.sessionId) ?? null;
+      log.info(
+        `comment task ${task.id} resolve: source=${task.sessionId} local=${localSessionId ?? "<none>"}`
+      );
       if (localSessionId === null) continue;
       if (isAddressRunActive(localSessionId)) continue;
       autoRunTaskIds.add(task.id);
@@ -627,13 +699,16 @@ export function buildDefaultCommentTaskRunnerDeps(
     // IPC bridge once a minute. Lags ingestion by at most one write batch.
     countSessionEvents: async (sessionId) =>
       (await getSessionMetadata(sessionId))?.eventCount,
-    resolveLocalWritableSessionId: (sessionId) => {
-      const store = getInstrumentedStore();
-      const local = store
-        .get(sessionsAtom)
-        .find((session) => session.session_id === sessionId);
-      return local && !local.importedFrom ? sessionId : null;
-    },
+    resolveLocalWritableSessionId: (sessionId) =>
+      resolveWritableSessionForTask(
+        getInstrumentedStore()
+          .get(sessionsAtom)
+          .map((session) => ({
+            ...session,
+            forkedFrom: getSessionForkedFrom(session),
+          })),
+        sessionId
+      ),
     runAddressRound: runAddressCommentsRound,
     onReportComment: ui.onReportComment,
     onStateChange: ui.onStateChange,

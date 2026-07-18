@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACTION_ID } from "@src/ActionSystem/actionIds";
 import { resolveTrustedDispatchParams } from "@src/engines/SessionCore/hooks/adeReplyBinding";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
+import { getSessionMetadata } from "@src/engines/SessionCore/storage/sqliteCache";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import {
@@ -15,6 +16,7 @@ import type { AddressableThread } from "./addressComments";
 import type { ActiveAddressRun } from "./addressCommentsRun";
 import {
   attachAnchorExcerpts,
+  getLastRoundReply,
   partitionAddressReplies,
   replyViaActiveAddressRun,
   runAddressCommentsRound,
@@ -32,6 +34,9 @@ vi.mock("@src/engines/SessionCore/services/SessionService", () => ({
 }));
 vi.mock("@src/engines/SessionCore/core/store/EventStoreProxy", () => ({
   eventStoreProxy: { getPersistedEvents: vi.fn(async () => []) },
+}));
+vi.mock("@src/engines/SessionCore/storage/sqliteCache", () => ({
+  getSessionMetadata: vi.fn(async () => ({ eventCount: 0 })),
 }));
 vi.mock("./org2CloudClient", () => ({
   ensureFreshSession: vi.fn(async (state: unknown) => state),
@@ -392,6 +397,17 @@ describe("runAddressCommentsRound honors per-org runner settings", () => {
     vi.mocked(listSessionComments).mockResolvedValue({
       comments: [comment({ id: "head-1", body: "please fix the null check" })],
     } as Awaited<ReturnType<typeof listSessionComments>>);
+    // A real turn advances the persisted event count. The FIRST read is the
+    // pre-dispatch baseline; later reads report the post-turn count, so a
+    // terminal status now counts as completion.
+    vi.mocked(getSessionMetadata).mockReset();
+    vi.mocked(getSessionMetadata)
+      .mockResolvedValueOnce({ eventCount: 0 } as Awaited<
+        ReturnType<typeof getSessionMetadata>
+      >)
+      .mockResolvedValue({ eventCount: 1 } as Awaited<
+        ReturnType<typeof getSessionMetadata>
+      >);
     vi.useFakeTimers();
   });
 
@@ -469,5 +485,98 @@ describe("runAddressCommentsRound honors per-org runner settings", () => {
 
     await expect(runPromise).resolves.toMatchObject({ status: "ran" });
     expect(SessionService.getStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not finish on markSessionActive's pre-turn terminal (new object, same status, no new events)", async () => {
+    const store = getInstrumentedStore();
+    const baseline = {
+      session_id: "ls-idle",
+      status: "completed",
+      created_at: "2026-07-18T00:00:00.000Z",
+      updated_at: "2026-07-18T00:00:00.000Z",
+      category: "rust_agent",
+    } as Session;
+    store.set(sessionsAtom, [baseline]);
+    // Backend read is the STALE pre-turn terminal (the agent hasn't started).
+    vi.mocked(SessionService.getStatus).mockResolvedValue({
+      status: "completed",
+    } as Awaited<ReturnType<typeof SessionService.getStatus>>);
+    // The persisted event count does not advance until the turn produces events.
+    let eventCount = 5;
+    vi.mocked(getSessionMetadata).mockReset();
+    vi.mocked(getSessionMetadata).mockImplementation(
+      async () =>
+        ({ eventCount }) as Awaited<ReturnType<typeof getSessionMetadata>>
+    );
+    // The REAL sendMessage calls markSessionActive as its last step: it replaces
+    // the session row with a NEW object whose status is STILL "completed" and
+    // adds NO events, all BEFORE waitForAddressRunTerminal's initial read. This
+    // is precisely what defeated the object-identity guard.
+    vi.mocked(SessionService.sendMessage).mockImplementationOnce(async () => {
+      store.set(sessionsAtom, [
+        { ...baseline, updated_at: "2026-07-18T00:01:00.000Z" },
+      ]);
+    });
+
+    const runPromise = runAddressCommentsRound({
+      orgId: "org-1",
+      cloudSessionId: "cs-1",
+      localSessionId: "ls-idle",
+    });
+    let settled = false;
+    void runPromise.then(() => {
+      settled = true;
+    });
+
+    // Row changed (new object) and status is terminal, but NO turn ran (event
+    // count unchanged) — the round must keep waiting, not read the prior reply.
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(settled).toBe(false);
+
+    // The real turn: running, then completed WITH new events.
+    store.set(sessionsAtom, [{ ...baseline, status: "running" }]);
+    eventCount = 6;
+    store.set(sessionsAtom, [{ ...baseline, status: "completed" }]);
+    await expect(runPromise).resolves.toMatchObject({ status: "ran" });
+  });
+
+  it("caches only POSTED replies for reuse, never a HELD reply", async () => {
+    const store = getInstrumentedStore();
+    const baseline = {
+      session_id: "ls-held",
+      status: "completed",
+      created_at: "2026-07-18T00:00:00.000Z",
+      updated_at: "2026-07-18T00:00:00.000Z",
+      category: "rust_agent",
+    } as Session;
+    store.set(sessionsAtom, [baseline]);
+    vi.mocked(SessionService.getStatus).mockResolvedValue({
+      status: "running",
+    } as Awaited<ReturnType<typeof SessionService.getStatus>>);
+    vi.mocked(listSessionComments).mockResolvedValue({
+      comments: [comment({ id: "held-c" }), comment({ id: "other-c" })],
+    } as Awaited<ReturnType<typeof listSessionComments>>);
+
+    const runPromise = runAddressCommentsRound({
+      orgId: "org-1",
+      cloudSessionId: "cs-1",
+      localSessionId: "ls-held",
+      holdReplyForCommentId: "held-c",
+    });
+    // Let the run register + dispatch, then simulate the agent replying: it
+    // HOLDS its task comment's reply and POSTS a reply to the other comment.
+    await vi.waitFor(() =>
+      expect(SessionService.sendMessage).toHaveBeenCalled()
+    );
+    await replyViaActiveAddressRun("held-c", "held answer", "ls-held");
+    await replyViaActiveAddressRun("other-c", "posted answer", "ls-held");
+    store.set(sessionsAtom, [{ ...baseline, status: "running" }]);
+    store.set(sessionsAtom, [{ ...baseline, status: "completed" }]);
+    await runPromise;
+
+    // The held reply was never posted to the thread, so it must NOT be reusable
+    // (a failed-completion retry would otherwise drop it); the posted one is.
+    expect(getLastRoundReply("ls-held", "held-c")).toBeUndefined();
+    expect(getLastRoundReply("ls-held", "other-c")).toBe("posted answer");
   });
 });
