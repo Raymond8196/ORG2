@@ -23,13 +23,16 @@ use orgtrack_core::sources::cursor_ide::history::CursorIdeSessionPage;
 use orgtrack_core::sources::imported_history::cache as imported_history_cache;
 use orgtrack_core::sources::imported_history::metadata::{
     SOURCE_CLAUDE_CODE, SOURCE_CLINE, SOURCE_CODEX_APP, SOURCE_CURSOR_CLI, SOURCE_CURSOR_IDE,
-    SOURCE_OPENCODE, SOURCE_QODER, SOURCE_TRAE, SOURCE_WARP, SOURCE_WINDSURF, SOURCE_WORKBUDDY,
-    SOURCE_ZCODE,
+    SOURCE_MIMO_CODE, SOURCE_OMP, SOURCE_OPENCODE, SOURCE_QODER, SOURCE_QODER_CLI, SOURCE_TRAE,
+    SOURCE_WARP, SOURCE_WINDSURF, SOURCE_WORKBUDDY, SOURCE_ZCODE,
 };
 use orgtrack_core::sources::imported_history::ImportedHistorySessionPage;
 use orgtrack_core::sources::imported_history::IMPORTED_STATUS_COMPLETED;
+use orgtrack_core::sources::mimo_code::history as mimo_code_history;
+use orgtrack_core::sources::omp::history as omp_history;
 use orgtrack_core::sources::opencode::history as opencode_history;
 use orgtrack_core::sources::qoder::history as qoder_history;
+use orgtrack_core::sources::qoder_cli::history as qoder_cli_history;
 use orgtrack_core::sources::trae::history as trae_history;
 use orgtrack_core::sources::warp::history as warp_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
@@ -166,6 +169,33 @@ fn load_qoder_external_history_page(
         .map(ExternalHistoryPage::Imported)
 }
 
+fn load_mimo_code_external_history_page(
+    conn: &mut rusqlite::Connection,
+    limit: usize,
+    offset: usize,
+) -> Result<ExternalHistoryPage, String> {
+    mimo_code_history::list_mimo_code_history_sessions_paginated(conn, limit, offset)
+        .map(ExternalHistoryPage::Imported)
+}
+
+fn load_omp_external_history_page(
+    conn: &mut rusqlite::Connection,
+    limit: usize,
+    offset: usize,
+) -> Result<ExternalHistoryPage, String> {
+    omp_history::list_omp_history_sessions_paginated(conn, limit, offset)
+        .map(ExternalHistoryPage::Imported)
+}
+
+fn load_qoder_cli_external_history_page(
+    conn: &mut rusqlite::Connection,
+    limit: usize,
+    offset: usize,
+) -> Result<ExternalHistoryPage, String> {
+    qoder_cli_history::list_qoder_cli_history_sessions_paginated(conn, limit, offset)
+        .map(ExternalHistoryPage::Imported)
+}
+
 const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_CLAUDE_CODE,
@@ -214,6 +244,18 @@ const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_QODER,
         load_page: load_qoder_external_history_page,
+    },
+    ExternalHistorySourceLoader {
+        source: SOURCE_MIMO_CODE,
+        load_page: load_mimo_code_external_history_page,
+    },
+    ExternalHistorySourceLoader {
+        source: SOURCE_OMP,
+        load_page: load_omp_external_history_page,
+    },
+    ExternalHistorySourceLoader {
+        source: SOURCE_QODER_CLI,
+        load_page: load_qoder_cli_external_history_page,
     },
 ];
 
@@ -282,7 +324,9 @@ fn decorate_imported_live_status(records: &mut [SessionAggregateRecord]) {
         }
         if record.status == IMPORTED_STATUS_COMPLETED {
             let recently_updated = DateTime::parse_from_rfc3339(&record.updated_at)
-                .map(|updated| now_ms - updated.timestamp_millis() < IMPORTED_MTIME_ACTIVE_WINDOW_MS)
+                .map(|updated| {
+                    now_ms - updated.timestamp_millis() < IMPORTED_MTIME_ACTIVE_WINDOW_MS
+                })
                 .unwrap_or(false);
             if recently_updated {
                 record.status = "running".to_string();
@@ -373,7 +417,9 @@ fn load_imported_history_sessions(
 /// The filter is destructured exhaustively on purpose: adding a field to
 /// `SessionFilter` must fail compilation here so the new field's fast-path
 /// semantics are decided explicitly.
-fn plain_native_page(filter: Option<&SessionFilter>) -> Result<Option<SessionListResponse>, String> {
+fn plain_native_page(
+    filter: Option<&SessionFilter>,
+) -> Result<Option<SessionListResponse>, String> {
     let Some(filter) = filter else {
         return Ok(None);
     };

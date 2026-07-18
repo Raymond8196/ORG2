@@ -9,6 +9,8 @@
  */
 import { invoke } from "@tauri-apps/api/core";
 
+import { rpc } from "@src/api/tauri/rpc";
+import type { CliLaunchProfileView } from "@src/api/tauri/rpc/schemas/agentOrgs";
 import type { CliAgentType } from "@src/api/types/keys";
 
 export interface CliTuiSessionCreateParams {
@@ -26,6 +28,39 @@ export interface CliTuiSessionInfo {
   sessionId: string;
   worktreePath?: string | null;
   repoPath?: string | null;
+}
+
+function quotePosixShellArg(value: string): string {
+  if (/^[A-Za-z0-9_./:@%+=,-]+$/.test(value)) return value;
+  return `'${value.replaceAll("'", `'\\''`)}'`;
+}
+
+export function formatCliTuiCommand(
+  profile: CliLaunchProfileView,
+  detectedCommand: string
+): string {
+  const executable = profile.commandOverridden
+    ? profile.command
+    : detectedCommand;
+  return [executable, ...profile.requiredArgs, ...profile.args]
+    .filter((part) => part.trim().length > 0)
+    .map(quotePosixShellArg)
+    .join(" ");
+}
+
+/** Resolve the same required/mode arguments used by managed CLI launches. */
+export async function resolveCliTuiCommand(
+  platform: CliAgentType,
+  detectedCommand: string
+): Promise<string> {
+  try {
+    const profile = await rpc.agentOrgs.launchProfiles.get({
+      agentName: platform,
+    });
+    return formatCliTuiCommand(profile, detectedCommand);
+  } catch {
+    return detectedCommand;
+  }
 }
 
 export async function cliAgentCreateTuiSession(

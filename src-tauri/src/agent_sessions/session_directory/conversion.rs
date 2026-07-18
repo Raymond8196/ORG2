@@ -11,7 +11,8 @@ use agent_core::session::persistence as session_persistence;
 use core_types::key_source::KeySource;
 use orgtrack_core::sources::cursor_ide::history::CursorIdeSessionRow;
 use orgtrack_core::sources::imported_history::metadata::{
-    SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE, SOURCE_OPENCODE,
+    SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE, SOURCE_MIMO_CODE, SOURCE_OMP,
+    SOURCE_OPENCODE, SOURCE_QODER_CLI,
 };
 use orgtrack_core::sources::imported_history::ImportedHistorySessionRow;
 
@@ -171,6 +172,9 @@ fn imported_history_cli_agent_type(source_label: &str) -> Option<String> {
         SOURCE_CODEX_APP => Some(CliAgentType::Codex.as_str().to_string()),
         SOURCE_CURSOR_IDE => Some(CliAgentType::CursorCli.as_str().to_string()),
         SOURCE_OPENCODE => Some(CliAgentType::OpenCode.as_str().to_string()),
+        SOURCE_MIMO_CODE => Some(CliAgentType::MimoCode.as_str().to_string()),
+        SOURCE_OMP => Some(CliAgentType::Omp.as_str().to_string()),
+        SOURCE_QODER_CLI => Some(CliAgentType::QoderCli.as_str().to_string()),
         _ => None,
     }
 }

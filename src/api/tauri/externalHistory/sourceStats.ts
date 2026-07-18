@@ -7,8 +7,11 @@ import { claudeCodeRecentPaths } from "./sources/claudeCode";
 import { clineRecentPaths } from "./sources/cline";
 import { codexAppRecentPaths } from "./sources/codexApp";
 import { cursorCliRecentPaths } from "./sources/cursorCli";
+import { mimoCodeRecentPaths } from "./sources/mimoCode";
+import { ompRecentPaths } from "./sources/omp";
 import { opencodeRecentPaths } from "./sources/opencode";
 import { qoderRecentPaths } from "./sources/qoder";
+import { qoderCliRecentPaths } from "./sources/qoderCli";
 import { traeRecentPaths } from "./sources/trae";
 import { warpRecentPaths } from "./sources/warp";
 import { windsurfRecentPaths } from "./sources/windsurf";
@@ -55,6 +58,9 @@ const RECENT_PATH_FETCHERS: Partial<
   warp: () => warpRecentPaths(),
   zcode: () => zcodeRecentPaths(),
   qoder: () => qoderRecentPaths(),
+  mimo_code: () => mimoCodeRecentPaths(),
+  omp: () => ompRecentPaths(),
+  qoder_cli: () => qoderCliRecentPaths(),
 };
 
 function statsFromRecentPaths(rows: RecentPathLike[]): SourceCounts {
