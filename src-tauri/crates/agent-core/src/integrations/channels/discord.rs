@@ -161,9 +161,9 @@ impl Channel for DiscordChannel {
                                         }
                                     });
                                 }
-                                0 => {
+                                0
                                     // Dispatch event
-                                    if event_type == Some("MESSAGE_CREATE") {
+                                    if event_type == Some("MESSAGE_CREATE") => {
                                         if let Some(data) = payload.get("d") {
                                             let content = data
                                                 .get("content")
@@ -205,7 +205,6 @@ impl Channel for DiscordChannel {
                                             }
                                         }
                                     }
-                                }
                                 _ => {}
                             }
                         }

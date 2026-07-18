@@ -8,16 +8,12 @@ pub const MAX_UPLOAD_INTERVAL_HOURS: u64 = 24;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(Default)]
 pub enum DiagnosticsLevel {
     Off,
     PerformanceOnly,
+    #[default]
     Default,
-}
-
-impl Default for DiagnosticsLevel {
-    fn default() -> Self {
-        Self::Default
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
