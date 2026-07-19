@@ -5,14 +5,15 @@ import type { UsageBucket } from "@src/api/tauri/usageDashboard";
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
 
 /**
- * Visual metadata for the four source buckets the Usage dashboard scopes to.
- * `claude/codex/cursor` reuse the shared brand icons; `org2` (ORGII's own
- * agents) has no brand mark, so it uses a neutral lucide glyph.
+ * Visual metadata for the four source buckets the Usage dashboard scopes to —
+ * each reuses a shared brand icon (`org2` = the ORGII mark). Unknown buckets
+ * fall back to a neutral lucide glyph.
  */
 const BUCKET_ICON_PROVIDER: Partial<Record<UsageBucket, IconProvider>> = {
   claude: "claude",
   codex: "codex",
   cursor: "cursor",
+  org2: "orgii",
 };
 
 /** i18n key suffix under `kanban.dataSource.usage.bucket.*`. */
