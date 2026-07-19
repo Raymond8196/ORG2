@@ -54,6 +54,9 @@ fn exec_paths_for(id: &str, discovered: &Discovered) -> Result<(PathBuf, PathBuf
     if let Some(processor) = discovered.processors.iter().find(|plugin| plugin.id == id) {
         return Ok((processor.manifest_dir.clone(), processor.spec.exec_path.clone()));
     }
+    if let Some(hook) = discovered.hooks.iter().find(|plugin| plugin.id == id) {
+        return Ok((hook.manifest_dir.clone(), hook.spec.exec_path.clone()));
+    }
     Err(format!("no plugin with id '{id}' (see `orgtrack plugins list`)"))
 }
 

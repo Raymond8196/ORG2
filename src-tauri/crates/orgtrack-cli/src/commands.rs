@@ -105,6 +105,14 @@ pub(crate) fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered)
                     "kind": "formatter (template)",
                     "dir": plugin.manifest_dir.to_string_lossy(),
                 })).collect::<Vec<_>>(),
+                "hooks": discovered.hooks.iter().map(|plugin| serde_json::json!({
+                    "id": plugin.id,
+                    "label": plugin.label,
+                    "kind": "hook (exec)",
+                    "trust": plugin.trust.label(),
+                    "on": plugin.on,
+                    "dir": plugin.manifest_dir.to_string_lossy(),
+                })).collect::<Vec<_>>(),
                 "broken": discovered.broken.iter().map(|broken| serde_json::json!({
                     "dir": broken.dir.to_string_lossy(),
                     "error": broken.error,
@@ -116,6 +124,7 @@ pub(crate) fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered)
     if discovered.loaders.is_empty()
         && discovered.processors.is_empty()
         && discovered.formatters.is_empty()
+        && discovered.hooks.is_empty()
         && discovered.broken.is_empty()
     {
         println!("No plugins found. Drop a plugin.toml under ~/.orgtrack/plugins/<name>/");
@@ -148,6 +157,17 @@ pub(crate) fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered)
             plugin.id,
             "formatter (tmpl)",
             "-",
+            plugin.manifest_dir.display()
+        );
+    }
+    for plugin in &discovered.hooks {
+        let on = if plugin.on.is_empty() { "any".to_string() } else { plugin.on.join(",") };
+        println!(
+            "{:<14}  {:<18}  {:<9}  on={:<10}  {}",
+            plugin.id,
+            "hook (exec)",
+            plugin.trust.label(),
+            on,
             plugin.manifest_dir.display()
         );
     }
@@ -550,6 +570,7 @@ pub(crate) fn cmd_check(
     opts: &Options,
     plugins: &[LoaderPlugin],
     formatters: &[FormatterPlugin],
+    hooks: &[plugins::HookPlugin],
 ) -> Result<(), String> {
     let rules = load_triggers(opts)?;
     if rules.is_empty() {
@@ -584,7 +605,48 @@ pub(crate) fn cmd_check(
     let firings = triggers::evaluate(&sessions, &project_of, &rules);
 
     render_check(opts, &firings, formatters)?;
+    run_hooks(&firings, hooks, opts.timeout());
     std::process::exit(triggers::exit_code(&firings, opts.strict));
+}
+
+/// Invoke each trusted hook whose `on` severities intersect the fired ones,
+/// passing the firings JSON on stdin. An untrusted or failing hook is a stderr
+/// note, never fatal — the report and exit code stand on their own.
+fn run_hooks(firings: &[triggers::Firing], hooks: &[plugins::HookPlugin], timeout: std::time::Duration) {
+    if firings.is_empty() || hooks.is_empty() {
+        return;
+    }
+    let payload = serde_json::json!({
+        "firings": firings.iter().map(|firing| serde_json::json!({
+            "trigger": firing.trigger_id,
+            "severity": firing.severity.label(),
+            "scope": firing.scope,
+            "scopeKey": firing.scope_key,
+            "actual": firing.actual,
+            "limit": firing.limit,
+            "message": firing.message,
+        })).collect::<Vec<_>>(),
+    })
+    .to_string();
+    let fired: std::collections::HashSet<&str> =
+        firings.iter().map(|firing| firing.severity.label()).collect();
+
+    for hook in hooks {
+        if !fired.iter().any(|severity| hook.wants(severity)) {
+            continue;
+        }
+        if !hook.runnable() {
+            eprintln!(
+                "orgtrack: hook '{}' is untrusted — skipped (run `orgtrack plugins trust {}`)",
+                hook.id, hook.id
+            );
+            continue;
+        }
+        match crate::plugin_exec::run_hook(&hook.spec, &payload, timeout) {
+            Ok(()) => eprintln!("orgtrack: hook '{}' ran", hook.id),
+            Err(err) => eprintln!("orgtrack: hook '{}' failed ({err})", hook.id),
+        }
+    }
 }
 
 /// Load trigger rules from `--triggers <path>` or `~/.orgtrack/triggers.toml`.

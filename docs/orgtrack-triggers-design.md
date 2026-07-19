@@ -75,10 +75,13 @@ warn      daily-cost-cap   day=2026-07-19   $63.20     > $50    Daily spend over
    aggregate-and-evaluate engine over `total`/`day`/`source`/`project`/`session`,
    the compiled report (table/json/md), and exit codes. Pure, testable, no code
    execution.
-2. **Exec hooks (action side)** — a `kind = "hook"` exec plugin (trust-gated,
-   like loaders/processors) that receives the firings JSON on stdin and can act
-   (Slack webhook, `notify-send`, open a ticket). Reuses the existing exec +
-   content-hash-trust machinery.
+2. ✅ **Exec hooks (action side)** — a `kind = "hook"` exec plugin (trust-gated,
+   like loaders/processors) that `orgtrack check` runs when a trigger fires,
+   receiving the firings JSON on stdin so it can act (Slack webhook,
+   `notify-send`, open a ticket). `[hook].on = ["error", ...]` limits which
+   severities invoke it. Reuses the exec + content-hash-trust machinery; an
+   untrusted/failing hook is a stderr note, never fatal. _Shipped_ — see
+   `examples/plugins/hook/`.
 3. **`usage` integration** — a `⚠ N triggers fired` footer on `orgtrack usage`,
    and a `scan --check` that evaluates after indexing.
 4. **Stateful / delta triggers** — "fire only when it *newly* crosses" by

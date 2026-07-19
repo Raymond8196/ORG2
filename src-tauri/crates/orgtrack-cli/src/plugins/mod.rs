@@ -166,13 +166,38 @@ pub struct Discovered {
     pub loaders: Vec<LoaderPlugin>,
     pub processors: Vec<ProcessorPlugin>,
     pub formatters: Vec<FormatterPlugin>,
+    pub hooks: Vec<HookPlugin>,
     pub broken: Vec<BrokenPlugin>,
+}
+
+/// A validated action **hook**: an executable run by `orgtrack check` when a
+/// trigger fires, receiving the firings JSON on stdin. Runs code → trust-gated.
+pub struct HookPlugin {
+    pub id: &'static str,
+    pub label: &'static str,
+    pub spec: ExecSpec,
+    pub trust: Trust,
+    /// Severities that invoke this hook (`error`/`warn`/`info`); empty = any.
+    pub on: Vec<String>,
+    pub manifest_dir: PathBuf,
+}
+
+impl HookPlugin {
+    pub fn runnable(&self) -> bool {
+        !matches!(self.trust, Trust::Untrusted)
+    }
+
+    /// Whether this hook cares about a firing of the given severity.
+    pub fn wants(&self, severity: &str) -> bool {
+        self.on.is_empty() || self.on.iter().any(|entry| entry == severity)
+    }
 }
 
 enum Parsed {
     Loader(LoaderPlugin),
     Processor(ProcessorPlugin),
     Formatter(FormatterPlugin),
+    Hook(HookPlugin),
 }
 
 #[derive(Deserialize)]
@@ -181,6 +206,13 @@ struct Manifest {
     loader: Option<LoaderSpec>,
     processor: Option<ProcessorSpec>,
     formatter: Option<FormatterSpec>,
+    hook: Option<HookSpec>,
+}
+
+#[derive(Deserialize, Default)]
+struct HookSpec {
+    #[serde(default)]
+    on: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -276,6 +308,13 @@ pub fn discover(enabled: bool) -> Discovered {
                         found.formatters.push(plugin);
                     }
                 }
+                Ok(Parsed::Hook(plugin)) => {
+                    if id_taken(&found, plugin.id) {
+                        found.broken.push(duplicate(entry.path(), plugin.id));
+                    } else {
+                        found.hooks.push(plugin);
+                    }
+                }
                 Err(error) => found.broken.push(BrokenPlugin {
                     dir: entry.path(),
                     error,
@@ -290,6 +329,7 @@ fn id_taken(found: &Discovered, id: &str) -> bool {
     found.loaders.iter().any(|plugin| plugin.id == id)
         || found.processors.iter().any(|plugin| plugin.id == id)
         || found.formatters.iter().any(|plugin| plugin.id == id)
+        || found.hooks.iter().any(|plugin| plugin.id == id)
 }
 
 fn duplicate(dir: PathBuf, id: &str) -> BrokenPlugin {
@@ -377,8 +417,20 @@ fn load_manifest(path: &Path, trust_store: &BTreeMap<String, String>) -> Result<
                 manifest_dir,
             }))
         }
+        "hook" => {
+            let (exec, trust) = exec_spec(&manifest, &manifest_dir, path, &id, trust_store)?;
+            let spec = manifest.hook.unwrap_or_default();
+            Ok(Parsed::Hook(HookPlugin {
+                id: id_static,
+                label: label_static,
+                spec: exec,
+                trust,
+                on: spec.on,
+                manifest_dir,
+            }))
+        }
         other => Err(format!(
-            "unsupported plugin kind '{other}' (expected 'loader', 'processor', or 'formatter')"
+            "unsupported plugin kind '{other}' (loader, processor, formatter, or hook)"
         )),
     }
 }

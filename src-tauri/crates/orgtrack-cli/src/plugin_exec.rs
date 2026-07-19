@@ -72,11 +72,26 @@ pub(crate) fn run_exec_load(
 /// JSON — bounded by `timeout` (the child is killed on overrun). The
 /// environment is scrubbed (only PATH/HOME pass through) and the CWD is the
 /// manifest dir; the child never receives the SQLite handle.
+/// Run a plugin exec and return its parsed JSON stdout.
 pub(crate) fn run_plugin_exec(
     spec: &ExecSpec,
     request: &str,
     timeout: Duration,
 ) -> Result<serde_json::Value, String> {
+    let stdout = run_exec_raw(spec, request, timeout)?;
+    serde_json::from_str(&stdout).map_err(|err| format!("plugin returned invalid JSON: {err}"))
+}
+
+/// Run an action hook (a trigger hook): feed it the payload on stdin, ignore
+/// its stdout, succeed iff it exits 0.
+pub(crate) fn run_hook(spec: &ExecSpec, payload: &str, timeout: Duration) -> Result<(), String> {
+    run_exec_raw(spec, payload, timeout).map(|_| ())
+}
+
+/// Spawn a plugin exec, feed `request` on stdin (scrubbed env, manifest-dir
+/// CWD, no DB handle), and return its stdout — bounded by `timeout` (the child
+/// is killed on overrun).
+fn run_exec_raw(spec: &ExecSpec, request: &str, timeout: Duration) -> Result<String, String> {
     let mut child = Command::new(&spec.exec_path)
         .current_dir(&spec.cwd)
         .env_clear()
@@ -142,7 +157,7 @@ pub(crate) fn run_plugin_exec(
             format!("plugin exited with {code}: {detail}")
         });
     }
-    serde_json::from_str(&stdout_text).map_err(|err| format!("plugin returned invalid JSON: {err}"))
+    Ok(stdout_text)
 }
 
 /// Project one plugin session JSON object into a cache input. Missing fields
