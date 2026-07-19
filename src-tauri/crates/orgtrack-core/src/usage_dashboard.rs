@@ -58,6 +58,11 @@ pub struct UsageFilter {
     pub end_ms: Option<i64>,
     /// Restrict to a single session (for the request-log session filter).
     pub session_id: Option<String>,
+    /// When `true` and no `bucket` is set, include every source — the long-tail
+    /// providers and plugin sources that map to the `other` bucket — instead of
+    /// only the four [`SCOPED_BUCKETS`]. The desktop dashboard leaves this
+    /// `false` (its default); the CLI opts in so `usage` covers all tools.
+    pub all_sources: bool,
 }
 
 impl UsageFilter {
@@ -275,10 +280,14 @@ fn iso_to_ms(value: &str) -> Option<i64> {
 fn fetch_scoped_sessions(
     conn: &Connection,
     bucket: Option<&str>,
+    all_sources: bool,
 ) -> Result<Vec<ScopedSession>, String> {
     // The bucket predicate is the only structural difference, so build it once.
     let bucket_predicate = if bucket.is_some() {
         "outer_bucket = ?1".to_string()
+    } else if all_sources {
+        // Every source, including the `other` bucket (long-tail + plugins).
+        "1 = 1".to_string()
     } else {
         // Default "all" = the four scoped buckets (never `other`).
         let list = SCOPED_BUCKETS
@@ -455,7 +464,7 @@ pub fn usage_sessions(
     offset: usize,
     limit: usize,
 ) -> Result<Vec<UsageSessionRow>, String> {
-    let sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref())?;
+    let sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref(), filter.all_sources)?;
     let mut rows: Vec<UsageSessionRow> = sessions
         .into_iter()
         .filter(|session| filter.contains(session.last_active_ms))
@@ -683,7 +692,7 @@ fn build_round_row(
 /// round from the session totals for imported sources that have none
 /// (cursor/opencode/…). Rounds outside the time window are dropped.
 fn collect_rounds(conn: &Connection, filter: &UsageFilter) -> Result<Vec<UsageRoundRow>, String> {
-    let mut sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref())?;
+    let mut sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref(), filter.all_sources)?;
     if let Some(session_id) = filter.session_id.as_deref() {
         sessions.retain(|session| session.session_id == session_id);
     }
