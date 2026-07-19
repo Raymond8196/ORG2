@@ -408,6 +408,14 @@ const MANAGED_CONFIG_UNAVAILABLE: &[(&str, &str)] = &[
         "antigravity",
         "Antigravity uses its own account-backed runtime and has no stable local Provider config target",
     ),
+    (
+        "qoder_cli",
+        "Qoder CLI uses Qoder account/subscription authentication and does not expose a compatible Provider base URL setting",
+    ),
+    (
+        "trae_cli",
+        "Trae Agent is configured per-invocation and exposes no stable persisted config file for managed switching",
+    ),
 ];
 
 const fn managed_target(
@@ -2057,7 +2065,7 @@ shell_tool = true
     #[test]
     fn every_central_cli_registry_entry_has_an_explicit_managed_config_result() {
         let agent_names = central_cli_registry_agent_names();
-        assert_eq!(agent_names.len(), 26);
+        assert_eq!(agent_names.len(), 28);
 
         let mut supported = 0;
         let mut unavailable = 0;
@@ -2075,7 +2083,7 @@ shell_tool = true
         }
 
         assert_eq!(supported, 18);
-        assert_eq!(unavailable, 8);
+        assert_eq!(unavailable, 10);
     }
 
     #[test]
