@@ -217,7 +217,7 @@ fn run(args: &[String]) -> Result<(), String> {
                     }
                 }
                 "usage" | "stats" => cmd_usage(&opts, loaders, formatters),
-                "check" => cmd_check(&opts, loaders, formatters),
+                "check" => cmd_check(&opts, loaders, formatters, &discovered.hooks),
                 "show" => cmd_show(&opts, loaders, processors, formatters),
                 _ => Err(format!(
                     "unknown command '{other}'. Run `orgtrack help` for usage."

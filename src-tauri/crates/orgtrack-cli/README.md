@@ -196,9 +196,12 @@ orgtrack check --db ~/.orgtrack/index.db --format json | jq .
 ```
 
 A trigger fires once per scope key that crosses (per day, per source, per
-session, …). See `examples/triggers.toml` and `docs/orgtrack-triggers-design.md`
-(the exec-**hook** action side — notify on a firing — is a later phase, gated by
-the same plugin trust model).
+session, …). See `examples/triggers.toml` and `docs/orgtrack-triggers-design.md`.
+
+To **act** on firings, add an exec **hook** — a `kind = "hook"` plugin that
+`check` runs (trust-gated, like other exec plugins) with the firings JSON on
+stdin, so it can post to Slack, `notify-send`, etc. `[hook].on = ["error"]`
+limits which severities invoke it. See `examples/plugins/hook/`.
 
 ## Examples
 
