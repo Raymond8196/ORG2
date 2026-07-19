@@ -87,7 +87,7 @@ export default function UsageTrendChart({
       <h3 className="mb-3 text-[13px] font-semibold text-text-1">
         {t("usage.trends.title")}
       </h3>
-      <div className="h-[300px] w-full">
+      <div className="h-[300px] w-full [&_.recharts-surface]:outline-none [&_.recharts-wrapper]:outline-none [&_svg:focus]:outline-none">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={CHART_MARGIN}>
             <defs>
