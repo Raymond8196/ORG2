@@ -816,7 +816,7 @@ const ChatView: React.FC<ChatViewProps> = memo(
           <div
             ref={handlePinnedHeaderHostRef}
             className={
-              turnPaginationEnabled
+              turnPaginationEnabled || groupChatViewActive
                 ? "flex flex-shrink-0 flex-col"
                 : "absolute inset-x-0 top-0 z-40 flex flex-col"
             }
