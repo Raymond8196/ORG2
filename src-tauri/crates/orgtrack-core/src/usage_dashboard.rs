@@ -27,7 +27,7 @@
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension};
 use serde::Serialize;
 
 use crate::pricing;
@@ -56,6 +56,8 @@ pub struct UsageFilter {
     pub bucket: Option<String>,
     pub start_ms: Option<i64>,
     pub end_ms: Option<i64>,
+    /// Restrict to a single session (for the request-log session filter).
+    pub session_id: Option<String>,
 }
 
 impl UsageFilter {
@@ -256,7 +258,11 @@ fn iso_to_ms(value: &str) -> Option<i64> {
         return Some(dt.timestamp_millis());
     }
     // Fallbacks for non-offset timestamps (assume UTC).
-    for fmt in ["%Y-%m-%dT%H:%M:%S%.f", "%Y-%m-%d %H:%M:%S%.f", "%Y-%m-%dT%H:%M:%S"] {
+    for fmt in [
+        "%Y-%m-%dT%H:%M:%S%.f",
+        "%Y-%m-%d %H:%M:%S%.f",
+        "%Y-%m-%dT%H:%M:%S",
+    ] {
         if let Ok(naive) = chrono::NaiveDateTime::parse_from_str(trimmed, fmt) {
             return Some(naive.and_utc().timestamp_millis());
         }
@@ -380,40 +386,47 @@ fn cache_hit_rate(input: i64, cache_write: i64, cache_read: i64) -> f64 {
 // Public read APIs
 // ============================================================================
 
-/// Headline totals for the filter's scope.
+/// Headline totals for the filter's scope, aggregated from the SAME per-round
+/// set as the request log and trends so the three always agree (a session-level
+/// summary could disagree with the round table's time filter and blank the
+/// panel even when rounds exist).
 pub fn usage_summary(conn: &Connection, filter: &UsageFilter) -> Result<UsageSummary, String> {
-    let sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref())?;
+    Ok(summarize_rounds(&collect_rounds(conn, filter)?))
+}
+
+/// Fold a per-round set into the headline [`UsageSummary`].
+fn summarize_rounds(rounds: &[UsageRoundRow]) -> UsageSummary {
     let mut summary = UsageSummary::default();
     let mut per_bucket: BTreeMap<String, BucketSummary> = BTreeMap::new();
+    let mut sessions_seen: HashSet<String> = HashSet::new();
+    let mut bucket_sessions: HashMap<String, HashSet<String>> = HashMap::new();
 
-    for session in &sessions {
-        if !filter.contains(session.last_active_ms) {
-            continue;
+    for round in rounds {
+        summary.request_count += 1;
+        if sessions_seen.insert(round.session_id.clone()) {
+            summary.session_count += 1;
         }
-        summary.session_count += 1;
-        summary.request_count += if session.turn_count > 0 {
-            session.turn_count
-        } else {
-            1
-        };
-        summary.input_tokens += session.input_tokens;
-        summary.output_tokens += session.output_tokens;
-        summary.cache_read_tokens += session.cache_read_tokens;
-        summary.cache_write_tokens += session.cache_write_tokens;
-        summary.total_tokens += session.total_tokens;
-        summary.cost_usd += session.cost_usd;
-        summary.estimated_cost_usd += session.estimated_cost_usd;
-        summary.recorded_cost_usd += session.recorded_cost_usd;
+        summary.input_tokens += round.input_tokens;
+        summary.output_tokens += round.output_tokens;
+        summary.cache_read_tokens += round.cache_read_tokens;
+        summary.cache_write_tokens += round.cache_write_tokens;
+        summary.cost_usd += round.cost_usd;
 
         let entry = per_bucket
-            .entry(session.bucket.clone())
+            .entry(round.bucket.clone())
             .or_insert_with(|| BucketSummary {
-                bucket: session.bucket.clone(),
+                bucket: round.bucket.clone(),
                 ..BucketSummary::default()
             });
-        entry.session_count += 1;
-        entry.real_total_tokens += session.real_total_tokens();
-        entry.cost_usd += session.cost_usd;
+        entry.real_total_tokens += round.real_total_tokens;
+        entry.cost_usd += round.cost_usd;
+        if bucket_sessions
+            .entry(round.bucket.clone())
+            .or_default()
+            .insert(round.session_id.clone())
+        {
+            entry.session_count += 1;
+        }
     }
 
     summary.real_total_tokens = summary
@@ -421,13 +434,17 @@ pub fn usage_summary(conn: &Connection, filter: &UsageFilter) -> Result<UsageSum
         .saturating_add(summary.output_tokens)
         .saturating_add(summary.cache_read_tokens)
         .saturating_add(summary.cache_write_tokens);
+    summary.total_tokens = summary.real_total_tokens;
+    // Rounds carry list-price estimates; recorded metered spend isn't tracked
+    // per round, so the headline == estimated here.
+    summary.estimated_cost_usd = summary.cost_usd;
     summary.cache_hit_rate = cache_hit_rate(
         summary.input_tokens,
         summary.cache_write_tokens,
         summary.cache_read_tokens,
     );
     summary.by_bucket = per_bucket.into_values().collect();
-    Ok(summary)
+    summary
 }
 
 /// Per-session table rows for the filter's scope, sorted and paginated.
@@ -474,9 +491,7 @@ pub fn usage_sessions(
                 .partial_cmp(&a.cost_usd)
                 .unwrap_or(std::cmp::Ordering::Equal)
         }),
-        SessionSort::Tokens => {
-            rows.sort_by_key(|row| std::cmp::Reverse(row.real_total_tokens))
-        }
+        SessionSort::Tokens => rows.sort_by_key(|row| std::cmp::Reverse(row.real_total_tokens)),
         SessionSort::Recent => rows.sort_by_key(|row| std::cmp::Reverse(row.last_active_ms)),
     }
 
@@ -520,7 +535,13 @@ fn fetch_native_turns(conn: &Connection) -> Result<Vec<NativeTurn>, String> {
 }
 
 /// List-price cost for a token split at a model's rates.
-fn turn_cost(model: Option<&str>, input: i64, output: i64, cache_write: i64, cache_read: i64) -> f64 {
+fn turn_cost(
+    model: Option<&str>,
+    input: i64,
+    output: i64,
+    cache_write: i64,
+    cache_read: i64,
+) -> f64 {
     let pricing = pricing::resolve_pricing(model);
     let per = |tokens: i64, rate: f64| (tokens.max(0) as f64 / 1_000_000.0) * rate;
     per(input, pricing.input_per_mtok)
@@ -529,89 +550,311 @@ fn turn_cost(model: Option<&str>, input: i64, output: i64, cache_write: i64, cac
         + per(cache_read, pricing.cache_read_per_mtok)
 }
 
-/// Time-bucketed token + cost series for the filter's scope. Native sessions
-/// contribute their per-turn rows (fine curve); imported sessions contribute
-/// one lumped point at their last-activity time.
+/// One request-log row: a single assistant round / LLM call. `input_tokens` is
+/// FRESH (cache excluded); `real_total_tokens` re-adds cache.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UsageRoundRow {
+    /// `session_id#index` — stable within a fetch.
+    pub round_id: String,
+    pub session_id: String,
+    pub session_name: String,
+    pub bucket: String,
+    pub source: String,
+    pub model: Option<String>,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_read_tokens: i64,
+    pub cache_write_tokens: i64,
+    pub real_total_tokens: i64,
+    pub cost_usd: f64,
+    pub created_at_ms: i64,
+}
+
+/// One per-round row read from `imported_history_round_usage`.
+struct ImportedRound {
+    session_id: String,
+    model: Option<String>,
+    input_tokens: i64,
+    output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
+    created_at_ms: i64,
+}
+
+fn table_exists(conn: &Connection, name: &str) -> bool {
+    conn.query_row(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?1 LIMIT 1",
+        [name],
+        |_| Ok(()),
+    )
+    .optional()
+    .ok()
+    .flatten()
+    .is_some()
+}
+
+fn fetch_imported_rounds(
+    conn: &Connection,
+    start_ms: Option<i64>,
+    end_ms: Option<i64>,
+) -> Result<Vec<ImportedRound>, String> {
+    if !table_exists(conn, "imported_history_round_usage") {
+        return Ok(Vec::new());
+    }
+    // Bound the scan to the time window (created_at_ms is indexed) so a large
+    // all-time round table isn't loaded on every refresh.
+    let mut clauses: Vec<String> = Vec::new();
+    let mut params: Vec<i64> = Vec::new();
+    if let Some(start) = start_ms {
+        clauses.push(format!("created_at_ms >= ?{}", params.len() + 1));
+        params.push(start);
+    }
+    if let Some(end) = end_ms {
+        clauses.push(format!("created_at_ms <= ?{}", params.len() + 1));
+        params.push(end);
+    }
+    let where_sql = if clauses.is_empty() {
+        String::new()
+    } else {
+        format!(" WHERE {}", clauses.join(" AND "))
+    };
+    let sql = format!(
+        "SELECT session_id, model, input_tokens, output_tokens,
+                cache_read_tokens, cache_write_tokens, created_at_ms
+         FROM imported_history_round_usage{where_sql}"
+    );
+    let mut statement = conn.prepare(&sql).map_err(|err| err.to_string())?;
+    let rows = statement
+        .query_map(rusqlite::params_from_iter(params), |row| {
+            Ok(ImportedRound {
+                session_id: row.get(0)?,
+                model: row
+                    .get::<_, String>(1)
+                    .map(|model| Some(model).filter(|value| !value.is_empty()))?,
+                input_tokens: row.get(2)?,
+                output_tokens: row.get(3)?,
+                cache_read_tokens: row.get(4)?,
+                cache_write_tokens: row.get(5)?,
+                created_at_ms: row.get(6)?,
+            })
+        })
+        .map_err(|err| err.to_string())?;
+    rows.collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(|err| err.to_string())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn build_round_row(
+    session: &ScopedSession,
+    index: usize,
+    model: Option<String>,
+    input: i64,
+    output: i64,
+    cache_read: i64,
+    cache_write: i64,
+    created_at_ms: i64,
+) -> UsageRoundRow {
+    let model = model.or_else(|| session.model.clone());
+    let cost = turn_cost(model.as_deref(), input, output, cache_write, cache_read);
+    UsageRoundRow {
+        round_id: format!("{}#{index}", session.session_id),
+        session_id: session.session_id.clone(),
+        session_name: session.name.clone(),
+        bucket: session.bucket.clone(),
+        source: session.source.clone(),
+        model,
+        input_tokens: input,
+        output_tokens: output,
+        cache_read_tokens: cache_read,
+        cache_write_tokens: cache_write,
+        real_total_tokens: input
+            .saturating_add(output)
+            .saturating_add(cache_read)
+            .saturating_add(cache_write),
+        cost_usd: cost,
+        created_at_ms,
+    }
+}
+
+/// The unified per-round request log for the filter's scope: real per-round
+/// rows where a source emits them (codex/claude in `imported_history_round_usage`,
+/// native org2 turns in `session_token_usage`), and one synthesized fallback
+/// round from the session totals for imported sources that have none
+/// (cursor/opencode/…). Rounds outside the time window are dropped.
+fn collect_rounds(conn: &Connection, filter: &UsageFilter) -> Result<Vec<UsageRoundRow>, String> {
+    let mut sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref())?;
+    if let Some(session_id) = filter.session_id.as_deref() {
+        sessions.retain(|session| session.session_id == session_id);
+    }
+
+    let mut imported_by: HashMap<String, Vec<ImportedRound>> = HashMap::new();
+    for round in fetch_imported_rounds(conn, filter.start_ms, filter.end_ms)? {
+        imported_by
+            .entry(round.session_id.clone())
+            .or_default()
+            .push(round);
+    }
+    let mut native_by: HashMap<String, Vec<NativeTurn>> = HashMap::new();
+    for turn in fetch_native_turns(conn)? {
+        native_by
+            .entry(turn.session_id.clone())
+            .or_default()
+            .push(turn);
+    }
+
+    let mut rows = Vec::new();
+    for session in &sessions {
+        if let Some(mut imported) = imported_by.remove(&session.session_id) {
+            imported.sort_by_key(|round| round.created_at_ms);
+            for (index, round) in imported.into_iter().enumerate() {
+                if !filter.contains(round.created_at_ms) {
+                    continue;
+                }
+                rows.push(build_round_row(
+                    session,
+                    index,
+                    round.model,
+                    round.input_tokens,
+                    round.output_tokens,
+                    round.cache_read_tokens,
+                    round.cache_write_tokens,
+                    round.created_at_ms,
+                ));
+            }
+        } else if session.tokens_source == crate::session_usage::TOKENS_SOURCE_NATIVE {
+            let mut turns: Vec<(i64, NativeTurn)> = native_by
+                .remove(&session.session_id)
+                .unwrap_or_default()
+                .into_iter()
+                .map(|turn| (iso_to_ms(&turn.created_at).unwrap_or(0), turn))
+                .collect();
+            turns.sort_by_key(|(ms, _)| *ms);
+            for (index, (ms, turn)) in turns.into_iter().enumerate() {
+                if !filter.contains(ms) {
+                    continue;
+                }
+                rows.push(build_round_row(
+                    session,
+                    index,
+                    turn.model,
+                    turn.input_tokens,
+                    turn.output_tokens,
+                    turn.cache_read_tokens,
+                    turn.cache_write_tokens,
+                    ms,
+                ));
+            }
+        } else if session.last_active_ms > 0
+            && filter.contains(session.last_active_ms)
+            && session.real_total_tokens() > 0
+        {
+            // Fallback: one synthesized round from the session totals (the
+            // projection's input is already fresh).
+            rows.push(build_round_row(
+                session,
+                0,
+                session.model.clone(),
+                session.input_tokens,
+                session.output_tokens,
+                session.cache_read_tokens,
+                session.cache_write_tokens,
+                session.last_active_ms,
+            ));
+        }
+    }
+    Ok(rows)
+}
+
+/// Sort a per-round set in place by the chosen key (descending).
+fn sort_rounds(rows: &mut [UsageRoundRow], sort: SessionSort) {
+    match sort {
+        SessionSort::Cost => rows.sort_by(|a, b| {
+            b.cost_usd
+                .partial_cmp(&a.cost_usd)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        }),
+        SessionSort::Tokens => rows.sort_by_key(|row| std::cmp::Reverse(row.real_total_tokens)),
+        SessionSort::Recent => rows.sort_by_key(|row| std::cmp::Reverse(row.created_at_ms)),
+    }
+}
+
+/// Bucket a per-round set into a time series.
+fn bucket_rounds(rounds: &[UsageRoundRow], bucket_unit: TrendBucket) -> Vec<UsageTrendPoint> {
+    let mut points: HashMap<i64, UsageTrendPoint> = HashMap::new();
+    for round in rounds {
+        if round.created_at_ms <= 0 {
+            continue;
+        }
+        let key = bucket_unit.floor(round.created_at_ms);
+        let point = points.entry(key).or_insert_with(|| UsageTrendPoint {
+            bucket_ms: key,
+            ..UsageTrendPoint::default()
+        });
+        point.input_tokens += round.input_tokens;
+        point.output_tokens += round.output_tokens;
+        point.cache_write_tokens += round.cache_write_tokens;
+        point.cache_read_tokens += round.cache_read_tokens;
+        point.cost_usd += round.cost_usd;
+    }
+    let mut series: Vec<UsageTrendPoint> = points.into_values().collect();
+    series.sort_by_key(|point| point.bucket_ms);
+    series
+}
+
+/// Per-round request-log rows for the filter's scope, sorted and paginated.
+pub fn usage_rounds(
+    conn: &Connection,
+    filter: &UsageFilter,
+    sort: SessionSort,
+    offset: usize,
+    limit: usize,
+) -> Result<Vec<UsageRoundRow>, String> {
+    let mut rows = collect_rounds(conn, filter)?;
+    sort_rounds(&mut rows, sort);
+    Ok(rows.into_iter().skip(offset).take(limit).collect())
+}
+
+/// Time-bucketed token + cost series, aggregated from the same per-round set as
+/// the request log — a fine curve for every source.
 pub fn usage_trends(
     conn: &Connection,
     filter: &UsageFilter,
     bucket_unit: TrendBucket,
 ) -> Result<Vec<UsageTrendPoint>, String> {
-    let sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref())?;
+    Ok(bucket_rounds(&collect_rounds(conn, filter)?, bucket_unit))
+}
 
-    // Split the scoped session set by trend source so each session is counted
-    // once. Native ids drive the per-turn curve; imported sessions are lumped.
-    let native_ids: HashSet<String> = sessions
-        .iter()
-        .filter(|s| s.tokens_source == crate::session_usage::TOKENS_SOURCE_NATIVE)
-        .map(|s| s.session_id.clone())
-        .collect();
+/// Everything the dashboard needs in one shot: summary + trends + the request
+/// log page, all from a SINGLE `collect_rounds` pass. The frontend calls this
+/// instead of three separate commands, so a refresh scans the round store once
+/// (not three times).
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UsageOverview {
+    pub summary: UsageSummary,
+    pub trends: Vec<UsageTrendPoint>,
+    pub rounds: Vec<UsageRoundRow>,
+}
 
-    let mut points: HashMap<i64, UsageTrendPoint> = HashMap::new();
-    let mut add = |ts_ms: i64, input: i64, output: i64, cache_write: i64, cache_read: i64, cost: f64| {
-        let key = bucket_unit.floor(ts_ms);
-        let point = points.entry(key).or_insert_with(|| UsageTrendPoint {
-            bucket_ms: key,
-            ..UsageTrendPoint::default()
-        });
-        point.input_tokens += input;
-        point.output_tokens += output;
-        point.cache_write_tokens += cache_write;
-        point.cache_read_tokens += cache_read;
-        point.cost_usd += cost;
-    };
-
-    // Native per-turn rows (one scan of the turn store, filtered by the scoped
-    // native id set + the time window).
-    for turn in fetch_native_turns(conn)? {
-        if !native_ids.contains(&turn.session_id) {
-            continue;
-        }
-        let Some(ts_ms) = iso_to_ms(&turn.created_at) else {
-            continue;
-        };
-        if !filter.contains(ts_ms) {
-            continue;
-        }
-        let cost = turn_cost(
-            turn.model.as_deref(),
-            turn.input_tokens,
-            turn.output_tokens,
-            turn.cache_write_tokens,
-            turn.cache_read_tokens,
-        );
-        add(
-            ts_ms,
-            turn.input_tokens,
-            turn.output_tokens,
-            turn.cache_write_tokens,
-            turn.cache_read_tokens,
-            cost,
-        );
-    }
-
-    // Imported sessions: one lumped point at last activity, using the
-    // projection's session-level tokens + estimated cost.
-    for session in &sessions {
-        if session.tokens_source != crate::session_usage::TOKENS_SOURCE_IMPORTED {
-            continue;
-        }
-        if session.last_active_ms <= 0 || !filter.contains(session.last_active_ms) {
-            continue;
-        }
-        add(
-            session.last_active_ms,
-            session.input_tokens,
-            session.output_tokens,
-            session.cache_write_tokens,
-            session.cache_read_tokens,
-            session.cost_usd,
-        );
-    }
-
-    let mut series: Vec<UsageTrendPoint> = points.into_values().collect();
-    series.sort_by_key(|point| point.bucket_ms);
-    Ok(series)
+pub fn usage_overview(
+    conn: &Connection,
+    filter: &UsageFilter,
+    sort: SessionSort,
+    offset: usize,
+    limit: usize,
+    bucket_unit: TrendBucket,
+) -> Result<UsageOverview, String> {
+    let mut all = collect_rounds(conn, filter)?;
+    let summary = summarize_rounds(&all);
+    let trends = bucket_rounds(&all, bucket_unit);
+    sort_rounds(&mut all, sort);
+    let rounds = all.into_iter().skip(offset).take(limit).collect();
+    Ok(UsageOverview {
+        summary,
+        trends,
+        rounds,
+    })
 }
 
 #[cfg(test)]
@@ -691,7 +934,16 @@ mod tests {
                 (session_id, session_type, model, account_id, input_tokens, output_tokens,
                  cache_read_tokens, cache_write_tokens, total_tokens, context_tokens, created_at)
              VALUES (?1, 'code', ?2, 'acct-1', ?3, ?4, ?5, ?6, ?7, 0, ?8)",
-            params![session_id, model, input, output, cache_read, cache_write, total, created_at],
+            params![
+                session_id,
+                model,
+                input,
+                output,
+                cache_read,
+                cache_write,
+                total,
+                created_at
+            ],
         )
         .expect("insert turn");
     }
@@ -711,9 +963,116 @@ mod tests {
                 (source, source_session_id, session_id, name, model,
                  input_tokens, output_tokens, updated_at_ms, listable, updated_at)
              VALUES (?1, ?2, ?3, 'Imported Session', ?4, ?5, ?6, ?7, ?8, '2026-07-16T00:00:00Z')",
-            params![source, session_id, session_id, model, input, output, updated_at_ms, listable],
+            params![
+                source,
+                session_id,
+                session_id,
+                model,
+                input,
+                output,
+                updated_at_ms,
+                listable
+            ],
         )
         .expect("insert imported cache row");
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn insert_round(
+        conn: &Connection,
+        source: &str,
+        session_id: &str,
+        seq: i64,
+        model: &str,
+        tokens: (i64, i64, i64, i64),
+        created_at_ms: i64,
+    ) {
+        let (input, output, cache_read, cache_write) = tokens;
+        conn.execute(
+            "INSERT INTO imported_history_round_usage
+                (source, source_session_id, session_id, seq, model,
+                 input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, created_at_ms)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            params![
+                source,
+                session_id,
+                session_id,
+                seq,
+                model,
+                input,
+                output,
+                cache_read,
+                cache_write,
+                created_at_ms
+            ],
+        )
+        .expect("insert imported round row");
+    }
+
+    #[test]
+    fn rounds_fallback_when_no_round_rows() {
+        // No imported_history_round_usage rows: native sessions expand to their
+        // per-turn rows, imported codex gets one synthesized fallback round.
+        let conn = seeded_conn();
+        let rows = usage_rounds(&conn, &UsageFilter::default(), SessionSort::Recent, 0, 100)
+            .expect("rounds");
+        // claude 2 native turns + org2 1 native turn + codex 1 fallback = 4.
+        assert_eq!(rows.len(), 4);
+        assert!(rows.iter().all(|r| r.session_id != "mirror-claude"));
+        let claude: Vec<_> = rows
+            .iter()
+            .filter(|r| r.session_id == "cli-claude")
+            .collect();
+        assert_eq!(claude.len(), 2);
+        let codex: Vec<_> = rows
+            .iter()
+            .filter(|r| r.session_id == "ext-codex")
+            .collect();
+        assert_eq!(codex.len(), 1);
+    }
+
+    #[test]
+    fn rounds_use_real_rows_and_session_filter() {
+        let conn = seeded_conn();
+        // Give the imported codex session two real rounds (replaces the fallback).
+        insert_round(
+            &conn,
+            "codex_app",
+            "ext-codex",
+            0,
+            "gpt-5",
+            (100_000, 10_000, 50_000, 0),
+            ms("2026-07-18T02:00:00Z"),
+        );
+        insert_round(
+            &conn,
+            "codex_app",
+            "ext-codex",
+            1,
+            "gpt-5",
+            (120_000, 12_000, 0, 0),
+            ms("2026-07-18T02:10:00Z"),
+        );
+
+        let rows = usage_rounds(&conn, &UsageFilter::default(), SessionSort::Recent, 0, 100)
+            .expect("rounds");
+        // claude 2 + org2 1 + codex 2 real = 5.
+        assert_eq!(rows.len(), 5);
+        let codex: Vec<_> = rows
+            .iter()
+            .filter(|r| r.session_id == "ext-codex")
+            .collect();
+        assert_eq!(codex.len(), 2);
+        assert_eq!(codex.iter().map(|r| r.input_tokens).sum::<i64>(), 220_000);
+
+        // Session filter narrows to just that session's rounds.
+        let filter = UsageFilter {
+            session_id: Some("ext-codex".to_string()),
+            ..UsageFilter::default()
+        };
+        let only = usage_rounds(&conn, &filter, SessionSort::Recent, 0, 100).expect("filtered");
+        assert_eq!(only.len(), 2);
+        assert!(only.iter().all(|r| r.session_id == "ext-codex"));
     }
 
     /// Build a small realistic DB: one native claude session (2 turns), one
@@ -723,10 +1082,30 @@ mod tests {
         let conn = fixture_conn();
 
         // Native claude CLI session — 2 turns.
-        insert_code_session(&conn, "cli-claude", "claude", "Claude run", "2026-07-18T03:00:00Z");
-        insert_turn(&conn, "cli-claude", "claude-sonnet-4-5", (1_000_000, 100_000, 200_000, 50_000), "2026-07-18T03:00:00Z");
-        insert_turn(&conn, "cli-claude", "claude-sonnet-4-5", (500_000, 50_000, 0, 0), "2026-07-18T05:00:00Z");
-        recompute_session_usage(&conn, "cli-claude").unwrap().expect("claude projected");
+        insert_code_session(
+            &conn,
+            "cli-claude",
+            "claude",
+            "Claude run",
+            "2026-07-18T03:00:00Z",
+        );
+        insert_turn(
+            &conn,
+            "cli-claude",
+            "claude-sonnet-4-5",
+            (1_000_000, 100_000, 200_000, 50_000),
+            "2026-07-18T03:00:00Z",
+        );
+        insert_turn(
+            &conn,
+            "cli-claude",
+            "claude-sonnet-4-5",
+            (500_000, 50_000, 0, 0),
+            "2026-07-18T05:00:00Z",
+        );
+        recompute_session_usage(&conn, "cli-claude")
+            .unwrap()
+            .expect("claude projected");
 
         // Org2 rust-agent session — 1 turn. Owner lives in agent_sessions.
         conn.execute(
@@ -735,19 +1114,47 @@ mod tests {
             [],
         )
         .unwrap();
-        insert_turn(&conn, "agent-1", "claude-opus-4-5", (200_000, 20_000, 0, 0), "2026-07-18T04:00:00Z");
-        recompute_session_usage(&conn, "agent-1").unwrap().expect("agent projected");
+        insert_turn(
+            &conn,
+            "agent-1",
+            "claude-opus-4-5",
+            (200_000, 20_000, 0, 0),
+            "2026-07-18T04:00:00Z",
+        );
+        recompute_session_usage(&conn, "agent-1")
+            .unwrap()
+            .expect("agent projected");
 
         // Purely-imported codex session (listable=1) — session-level tokens.
         let codex_ms = ms("2026-07-18T02:00:00Z");
-        insert_imported(&conn, "codex_app", "ext-codex", "gpt-5", (400_000, 40_000), codex_ms, 1);
-        recompute_session_usage(&conn, "ext-codex").unwrap().expect("codex projected");
+        insert_imported(
+            &conn,
+            "codex_app",
+            "ext-codex",
+            "gpt-5",
+            (400_000, 40_000),
+            codex_ms,
+            1,
+        );
+        recompute_session_usage(&conn, "ext-codex")
+            .unwrap()
+            .expect("codex projected");
 
         // Managed mirror of the native claude session (listable=0, different
         // session_id) — must be excluded from every rollup.
         let mirror_ms = ms("2026-07-18T03:30:00Z");
-        insert_imported(&conn, "claude_code", "mirror-claude", "claude-sonnet-4-5", (1_500_000, 150_000), mirror_ms, 0);
-        recompute_session_usage(&conn, "mirror-claude").unwrap().expect("mirror projected");
+        insert_imported(
+            &conn,
+            "claude_code",
+            "mirror-claude",
+            "claude-sonnet-4-5",
+            (1_500_000, 150_000),
+            mirror_ms,
+            0,
+        );
+        recompute_session_usage(&conn, "mirror-claude")
+            .unwrap()
+            .expect("mirror projected");
 
         conn
     }
@@ -763,7 +1170,10 @@ mod tests {
             iso_to_ms("2026-07-18T00:00:00+00:00"),
             iso_to_ms("2026-07-18T00:00:00Z")
         );
-        assert_eq!(iso_to_ms("2026-07-18 00:00:00"), iso_to_ms("2026-07-18T00:00:00Z"));
+        assert_eq!(
+            iso_to_ms("2026-07-18 00:00:00"),
+            iso_to_ms("2026-07-18T00:00:00Z")
+        );
         assert_eq!(iso_to_ms(""), None);
         assert_eq!(iso_to_ms("not-a-date"), None);
     }
@@ -794,9 +1204,17 @@ mod tests {
         assert!(summary.cost_usd > 0.0);
 
         // Per-bucket breakdown: claude, codex, org2 (sorted).
-        let buckets: Vec<&str> = summary.by_bucket.iter().map(|b| b.bucket.as_str()).collect();
+        let buckets: Vec<&str> = summary
+            .by_bucket
+            .iter()
+            .map(|b| b.bucket.as_str())
+            .collect();
         assert_eq!(buckets, vec!["claude", "codex", "org2"]);
-        let claude = summary.by_bucket.iter().find(|b| b.bucket == "claude").unwrap();
+        let claude = summary
+            .by_bucket
+            .iter()
+            .find(|b| b.bucket == "claude")
+            .unwrap();
         assert_eq!(claude.session_count, 1);
     }
 
@@ -821,10 +1239,14 @@ mod tests {
             bucket: None,
             start_ms: Some(ms("2026-07-18T01:30:00Z")),
             end_ms: Some(ms("2026-07-18T02:30:00Z")),
+            ..UsageFilter::default()
         };
         let summary = usage_summary(&conn, &filter).expect("summary");
         assert_eq!(summary.session_count, 1);
-        assert_eq!(summary.by_bucket.first().map(|b| b.bucket.as_str()), Some("codex"));
+        assert_eq!(
+            summary.by_bucket.first().map(|b| b.bucket.as_str()),
+            Some("codex")
+        );
     }
 
     #[test]
@@ -844,7 +1266,10 @@ mod tests {
         assert_eq!(claude.name, "Claude run");
         let codex = rows.iter().find(|r| r.session_id == "ext-codex").unwrap();
         assert_eq!(codex.turn_count, 0);
-        assert_eq!(codex.tokens_source, crate::session_usage::TOKENS_SOURCE_IMPORTED);
+        assert_eq!(
+            codex.tokens_source,
+            crate::session_usage::TOKENS_SOURCE_IMPORTED
+        );
     }
 
     #[test]
@@ -858,8 +1283,8 @@ mod tests {
     #[test]
     fn trends_use_per_turn_native_and_lumped_imported() {
         let conn = seeded_conn();
-        let series = usage_trends(&conn, &UsageFilter::default(), TrendBucket::Hour)
-            .expect("trends");
+        let series =
+            usage_trends(&conn, &UsageFilter::default(), TrendBucket::Hour).expect("trends");
         // Distinct hour buckets: codex 02:00, claude 03:00, org2 04:00, claude 05:00.
         let keys: Vec<i64> = series.iter().map(|p| p.bucket_ms).collect();
         assert_eq!(
@@ -872,20 +1297,26 @@ mod tests {
             ]
         );
         // The 03:00 native claude turn carries its full split; mirror excluded.
-        let three = series.iter().find(|p| p.bucket_ms == ms("2026-07-18T03:00:00Z")).unwrap();
+        let three = series
+            .iter()
+            .find(|p| p.bucket_ms == ms("2026-07-18T03:00:00Z"))
+            .unwrap();
         assert_eq!(three.input_tokens, 1_000_000);
         assert_eq!(three.cache_read_tokens, 200_000);
         assert!(three.cost_usd > 0.0);
         // The 02:00 imported codex point is lumped session-level.
-        let two = series.iter().find(|p| p.bucket_ms == ms("2026-07-18T02:00:00Z")).unwrap();
+        let two = series
+            .iter()
+            .find(|p| p.bucket_ms == ms("2026-07-18T02:00:00Z"))
+            .unwrap();
         assert_eq!(two.input_tokens, 400_000);
     }
 
     #[test]
     fn trends_day_bucket_collapses_hours() {
         let conn = seeded_conn();
-        let series = usage_trends(&conn, &UsageFilter::default(), TrendBucket::Day)
-            .expect("trends");
+        let series =
+            usage_trends(&conn, &UsageFilter::default(), TrendBucket::Day).expect("trends");
         assert_eq!(series.len(), 1);
         assert_eq!(series[0].bucket_ms, ms("2026-07-18T00:00:00Z"));
     }
