@@ -177,7 +177,6 @@ export default function SessionUsagePanel() {
       ) : summary ? (
         <>
           <UsageStatCards summary={summary} language={language} />
-          <p className="text-[11px] text-text-3">{t("usage.estimatedNote")}</p>
           <UsageTrendChart
             points={trends}
             hourly={hourly}

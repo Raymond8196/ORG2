@@ -1,12 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type {
   UsageRoundRow,
   UsageSessionSort,
 } from "@src/api/tauri/usageDashboard";
-import Select from "@src/components/Select";
-import Table, { type TableColumn } from "@src/components/Table";
+import SettingsTable, {
+  type SettingsTableColumn,
+  type SettingsTableSelectFilter,
+} from "@src/components/SettingsTable";
 import Tooltip from "@src/components/Tooltip";
 import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
@@ -14,6 +16,9 @@ import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 import UsagePricingHint from "./UsagePricingHint";
 import { BucketIcon } from "./usageBuckets";
 import { formatCacheRW, formatTokensShort, formatUsd } from "./usageFormat";
+
+const MODEL_ALL = "__all_models__";
+const MODEL_UNKNOWN = "__unknown_model__";
 
 interface UsageRoundsTableProps {
   rows: UsageRoundRow[];
@@ -37,15 +42,17 @@ export default function UsageRoundsTable({
   onSelectSession,
 }: UsageRoundsTableProps) {
   const { t } = useTranslation("sessions", { keyPrefix: "kanban.dataSource" });
+  const { t: tCommon } = useTranslation("common");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modelFilter, setModelFilter] = useState(MODEL_ALL);
 
-  const columns = useMemo<TableColumn<UsageRoundRow>[]>(
+  const columns = useMemo<SettingsTableColumn<UsageRoundRow>[]>(
     () => [
       {
         key: "time",
-        dataIndex: "createdAtMs",
-        title: t("usage.roundsTable.time"),
+        label: t("usage.roundsTable.time"),
         width: 96,
-        render: (_value, record) =>
+        renderCell: (record) =>
           record.createdAtMs > 0 ? (
             <span className="text-text-2">
               {formatRelativeElapsedShort(new Date(record.createdAtMs))}
@@ -56,9 +63,8 @@ export default function UsageRoundsTable({
       },
       {
         key: "session",
-        dataIndex: "sessionName",
-        title: t("usage.roundsTable.session"),
-        render: (_value, record) => (
+        label: t("usage.roundsTable.session"),
+        renderCell: (record) => (
           <button
             type="button"
             onClick={() => onSelectSession(record.sessionId)}
@@ -72,11 +78,9 @@ export default function UsageRoundsTable({
       },
       {
         key: "model",
-        dataIndex: "model",
-        title: t("usage.roundsTable.model"),
+        label: t("usage.roundsTable.model"),
         width: 150,
-        hideBelow: "sm",
-        render: (_value, record) => (
+        renderCell: (record) => (
           <span
             className="block max-w-[150px] truncate text-text-3"
             title={record.model ?? ""}
@@ -87,11 +91,10 @@ export default function UsageRoundsTable({
       },
       {
         key: "input",
-        dataIndex: "inputTokens",
-        title: t("usage.roundsTable.input"),
+        label: t("usage.roundsTable.input"),
         align: "right",
         width: 120,
-        render: (_value, record) => {
+        renderCell: (record) => {
           const cache = formatCacheRW(
             record.cacheReadTokens,
             record.cacheWriteTokens
@@ -112,12 +115,10 @@ export default function UsageRoundsTable({
       },
       {
         key: "output",
-        dataIndex: "outputTokens",
-        title: t("usage.roundsTable.output"),
+        label: t("usage.roundsTable.output"),
         align: "right",
         width: 80,
-        hideBelow: "sm",
-        render: (_value, record) => (
+        renderCell: (record) => (
           <span className="tabular-nums text-text-2">
             {formatTokensShort(record.outputTokens)}
           </span>
@@ -125,13 +126,12 @@ export default function UsageRoundsTable({
       },
       {
         key: "cost",
-        dataIndex: "costUsd",
-        title: t("usage.roundsTable.cost"),
+        label: t("usage.roundsTable.cost"),
         align: "right",
         width: 88,
-        render: (_value, record) => (
+        renderCell: (record) => (
           <Tooltip
-            position="left"
+            position="bottom"
             mouseEnterDelay={500}
             content={
               <UsagePricingHint
@@ -164,24 +164,87 @@ export default function UsageRoundsTable({
     [t]
   );
 
+  const modelFilterOptions = useMemo(() => {
+    const models = Array.from(
+      new Set(rows.map((row) => row.model).filter((model) => model != null))
+    ).sort((modelA, modelB) => modelA.localeCompare(modelB));
+    const hasUnknownModel = rows.some((row) => row.model == null);
+
+    return [
+      {
+        value: MODEL_ALL,
+        label: tCommon("selectors.modelSelector.allModels"),
+      },
+      ...models.map((model) => ({ value: model, label: model })),
+      ...(hasUnknownModel
+        ? [
+            {
+              value: MODEL_UNKNOWN,
+              label: tCommon("status.unknown"),
+            },
+          ]
+        : []),
+    ];
+  }, [rows, tCommon]);
+
+  const selectFilters = useMemo<SettingsTableSelectFilter[]>(
+    () => [
+      {
+        key: "model",
+        value: modelFilter,
+        defaultValue: MODEL_ALL,
+        options: modelFilterOptions,
+        onChange: (value) => setModelFilter(String(value)),
+      },
+      {
+        key: "sort",
+        value: sort,
+        defaultValue: "recent",
+        options: sortOptions,
+        onChange: (value) => onSortChange(value as UsageSessionSort),
+      },
+    ],
+    [modelFilter, modelFilterOptions, onSortChange, sort, sortOptions]
+  );
+
+  const filteredRows = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+
+    return rows.filter((row) => {
+      const matchesModel =
+        modelFilter === MODEL_ALL ||
+        (modelFilter === MODEL_UNKNOWN
+          ? row.model == null
+          : row.model === modelFilter);
+      if (!matchesModel) return false;
+      if (!normalizedQuery) return true;
+
+      return [row.sessionName, row.model, row.source].some((value) =>
+        value?.toLocaleLowerCase().includes(normalizedQuery)
+      );
+    });
+  }, [modelFilter, rows, searchQuery]);
+
+  const isFiltered = searchQuery.trim().length > 0 || modelFilter !== MODEL_ALL;
+
   return (
-    <CollapsibleSection
-      title={`${t("usage.roundsTable.title")} (${total})`}
-      actions={
-        <Select
-          value={sort}
-          onChange={(value) => onSortChange(value as UsageSessionSort)}
-          options={sortOptions}
-          size="small"
-        />
-      }
-    >
-      <Table<UsageRoundRow>
+    <CollapsibleSection title={`${t("usage.roundsTable.title")} (${total})`}>
+      <SettingsTable<UsageRoundRow>
         columns={columns}
-        data={rows}
-        rowKey="roundId"
-        size="small"
-        pagination={false}
+        rows={filteredRows}
+        getRowKey={(row) => row.roundId}
+        inlineHeaderToolbar
+        searchBar={{
+          searchValue: searchQuery,
+          searchPlaceholder: tCommon("common.searchPlaceholder"),
+          onSearchChange: setSearchQuery,
+          onSearchClear: () => setSearchQuery(""),
+          searchInputSize: "default",
+        }}
+        selectFilters={selectFilters}
+        hover
+        headerHeight="tall"
+        emptyTitle={isFiltered ? tCommon("status.noResults") : undefined}
       />
     </CollapsibleSection>
   );

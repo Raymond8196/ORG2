@@ -7,7 +7,6 @@ import { STAT_GRID_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 import UsagePricingHint from "./UsagePricingHint";
 import {
-  formatCacheRW,
   formatInt,
   formatPercent,
   formatTokensShort,
@@ -29,7 +28,7 @@ function StatTile({ label, value, sub, emphasis, tooltip }: StatTileProps) {
     ? "text-2xl font-semibold text-text-1"
     : "text-lg font-semibold text-text-1";
   const valueNode = tooltip ? (
-    <Tooltip content={tooltip} position="top" mouseEnterDelay={500}>
+    <Tooltip content={tooltip} position="bottom" mouseEnterDelay={500}>
       <span
         className={`${valueClass} w-fit cursor-help underline decoration-text-3 decoration-dotted underline-offset-4`}
       >
@@ -104,14 +103,18 @@ export default function UsageStatCards({
         <StatTile
           label={t("usage.cards.input")}
           value={tokens(summary.inputTokens)}
-          sub={
-            formatCacheRW(summary.cacheReadTokens, summary.cacheWriteTokens) ||
-            undefined
-          }
         />
         <StatTile
           label={t("usage.cards.output")}
           value={tokens(summary.outputTokens)}
+        />
+        <StatTile
+          label={t("usage.cards.cacheCreate")}
+          value={tokens(summary.cacheWriteTokens)}
+        />
+        <StatTile
+          label={t("usage.cards.cacheRead")}
+          value={tokens(summary.cacheReadTokens)}
         />
       </div>
     </div>
