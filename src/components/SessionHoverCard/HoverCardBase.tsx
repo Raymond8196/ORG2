@@ -222,11 +222,21 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
   useLayoutEffect(() => {
     const node = cardRef.current;
     if (!node) return;
-    const rect = node.getBoundingClientRect();
-    if (rect.width !== cardSize.width || rect.height !== cardSize.height) {
-      setCardSize({ width: rect.width, height: rect.height });
-    }
-  }, [cardId, triggerRect, cardSize.height, cardSize.width]);
+
+    const updateCardSize = () => {
+      const rect = node.getBoundingClientRect();
+      setCardSize((current) =>
+        current.width === rect.width && current.height === rect.height
+          ? current
+          : { width: rect.width, height: rect.height }
+      );
+    };
+
+    updateCardSize();
+    const observer = new ResizeObserver(updateCardSize);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [cardId]);
 
   if (!triggerRect) return null;
 
@@ -236,12 +246,17 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
     cardSize.width,
     cardSize.height
   );
+  const viewport = getViewportSize();
 
   return createPortal(
     <div
       ref={cardRef}
       data-hover-card="true"
-      style={style}
+      style={{
+        ...style,
+        maxHeight: viewport.height - VIEWPORT_PADDING_PX * 2,
+        overflowY: "auto",
+      }}
       onMouseEnter={cancelPendingClose}
       onMouseLeave={() => scheduleClose(instanceId, CARD_LEAVE_DELAY_MS)}
     >
