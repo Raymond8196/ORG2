@@ -226,10 +226,10 @@ export type CloudCommentTask = z.output<typeof CloudCommentTaskWireSchema>;
 
 // Structural mirror of the comments list-entry wire (add/list parity rule)
 // plus the 0002 `kind` discriminator — `agent_report` here is stamped by
-// the complete RPC's definer-internal insert, so it is unspoofable. Kept
-// local so the complete wrapper parses independently of the comments
-// schema's own 0002 migration; the OUTPUT stays assignable to
-// `CloudSessionComment` either way (`kind` is additive-optional).
+// the complete RPC's definer-internal insert. Kept local so the complete
+// wrapper parses independently of the comments schema's own 0002 migration;
+// the OUTPUT stays assignable to `CloudSessionComment` either way (`kind` is
+// additive-optional).
 const CloudReportCommentWireSchema = z.object({
   id: z.string(),
   eventId: z
@@ -465,7 +465,7 @@ export interface CompleteCommentTaskInput {
   result: unknown;
   /**
    * 1..4000 chars. When present the server inserts ONE reply with
-   * `kind='agent_report'` — the only writer of that kind (unspoofable).
+   * `kind='agent_report'`, authored by the completing member.
    */
   reportBody?: string;
 }

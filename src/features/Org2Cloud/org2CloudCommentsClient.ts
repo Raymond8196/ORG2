@@ -21,9 +21,8 @@
  * §3/§4) additive extensions, parsed tolerantly so pre-0002 backends keep
  * working:
  * - Every comment carries `kind` ('user' | 'agent_report'); absent on
- *   pre-0002 ⇒ undefined ⇒ 'user' semantics. The add RPC accepts
- *   `agent_report` only from the session owner; task completion also stamps
- *   reports server-side.
+ *   pre-0002 ⇒ undefined ⇒ 'user' semantics. Any member who can comment on
+ *   the session may set `agent_report`; the author is recorded on the row.
  * - `cloud_list_session_comments` also returns a top-level `tasks` array
  *   (`comment_task_wire` rows for THIS session — schema imported from
  *   org2CloudCommentTasksClient so the two clients cannot drift); absent on
@@ -178,8 +177,8 @@ const CloudSessionCommentWireSchema = z.object({
     .optional(),
   /**
    * 0002 discriminator; absent on pre-0002 backends ⇒ undefined ⇒ 'user'
-   * semantics. The server restricts `agent_report` writes to the session
-   * owner (and stamps task-completion reports internally).
+   * semantics. `agent_report` is a content label any member who can comment
+   * may set; the author is recorded on the row.
    */
   kind: z
     .enum(["user", "agent_report"])
@@ -224,7 +223,7 @@ export interface AddSessionCommentInput {
   eventId?: string;
   /** Reply target: an existing TOP-LEVEL comment of the same session. */
   parentId?: string;
-  /** 'agent_report' is accepted by the server only from the session owner. */
+  /** 'agent_report' — a content label any member who can comment may set. */
   kind?: "agent_report";
   /**
    * Local session the comment ORIGINATED from (the fork the author is
