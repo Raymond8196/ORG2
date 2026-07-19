@@ -17,12 +17,12 @@ import Modal from "@/src/scaffold/ModalSystem";
 import { useAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import Button from "@src/components/Button";
 import Message from "@src/components/Message";
-import { buildSettingsPath } from "@src/config/mainAppPaths";
 import { ROUTES } from "@src/config/routes";
+import { useAppNavigation } from "@src/hooks/navigation";
 
 import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import { ensureFreshSession } from "./org2CloudClient";
@@ -34,7 +34,7 @@ import { ensureProjectOrgForCloudOrg } from "./org2CloudProjectOrgAlias";
 
 const JoinCloudOrgDialog: React.FC = () => {
   const { t } = useTranslation("navigation");
-  const navigate = useNavigate();
+  const { goToSettings } = useAppNavigation();
   const location = useLocation();
   const [pending, setPending] = useAtom(org2CloudPendingInviteAtom);
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
@@ -62,8 +62,8 @@ const JoinCloudOrgDialog: React.FC = () => {
   // Sign-in detour: keep the pending invite so the dialog re-opens once the
   // user is back on the Workstation surface after signing in.
   const handleOpenSettings = useCallback(() => {
-    navigate(buildSettingsPath({ section: "collaboration" }));
-  }, [navigate]);
+    goToSettings({ section: "collaboration" });
+  }, [goToSettings]);
 
   const handleJoin = useCallback(async () => {
     if (!pending || joining) return;
