@@ -47,7 +47,7 @@ pub struct ExecSpec {
 }
 
 /// Whether an exec plugin is allowed to run.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Trust {
     /// No trust needed (declarative, code-free).
     NotRequired,
@@ -68,7 +68,7 @@ impl Trust {
 }
 
 /// Which read stage a processor transforms.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {
     /// `list` / `search` session rows.
     Session,
@@ -601,4 +601,188 @@ fn home_dir() -> Option<PathBuf> {
 
 fn leak(value: String) -> &'static str {
     Box::leak(value.into_boxed_str())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    fn write_file(dir: &Path, name: &str, contents: &str) -> PathBuf {
+        let path = dir.join(name);
+        std::fs::File::create(&path)
+            .unwrap()
+            .write_all(contents.as_bytes())
+            .unwrap();
+        path
+    }
+
+    fn write_manifest(dir: &Path, toml: &str) -> PathBuf {
+        write_file(dir, "plugin.toml", toml)
+    }
+
+    #[test]
+    fn valid_ids() {
+        assert!(is_valid_id("my_agent1"));
+        assert!(!is_valid_id("Bad ID"));
+        assert!(!is_valid_id(""));
+        assert!(!is_valid_id("dash-not-ok"));
+    }
+
+    #[test]
+    fn stage_parse_roundtrips() {
+        assert_eq!(Stage::parse("session").unwrap().as_str(), "session");
+        assert_eq!(Stage::parse("chunk").unwrap().as_str(), "chunk");
+        assert!(Stage::parse("bogus").is_err());
+    }
+
+    #[test]
+    fn expand_path_env_and_home() {
+        std::env::set_var("ORGTRACK_TEST_ROOT", "/xyz");
+        assert_eq!(expand_path("${ORGTRACK_TEST_ROOT}/a"), "/xyz/a");
+        let home = std::env::var("HOME").unwrap();
+        assert_eq!(expand_path("~/foo"), format!("{home}/foo"));
+    }
+
+    #[test]
+    fn content_hash_rearms_on_change() {
+        let dir = tempfile::tempdir().unwrap();
+        let manifest = write_file(dir.path(), "plugin.toml", "id=1");
+        let exec = write_file(dir.path(), "scan.py", "print(1)");
+        let first = content_hash(&manifest, &exec).unwrap();
+        assert_eq!(first, content_hash(&manifest, &exec).unwrap());
+        write_file(dir.path(), "scan.py", "print(2)");
+        assert_ne!(first, content_hash(&manifest, &exec).unwrap());
+    }
+
+    #[test]
+    fn jsonl_loader_needs_no_trust() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = write_manifest(
+            dir.path(),
+            "[plugin]\nid=\"j\"\nkind=\"loader\"\nformat=\"anthropic-jsonl\"\n\
+             [loader]\nsession_prefix=\"j-\"\nroots=[\"/tmp/x\"]\n",
+        );
+        match load_manifest(&path, &BTreeMap::new()).unwrap() {
+            Parsed::Loader(plugin) => {
+                assert_eq!(plugin.id, "j");
+                assert!(matches!(plugin.imp, LoaderImpl::Jsonl(_)));
+                assert_eq!(plugin.trust, Trust::NotRequired);
+            }
+            _ => panic!("expected a loader"),
+        }
+    }
+
+    #[test]
+    fn exec_loader_trust_lifecycle() {
+        let dir = tempfile::tempdir().unwrap();
+        let exec = write_file(dir.path(), "scan.py", "#!/usr/bin/env python3\n");
+        let path = write_manifest(
+            dir.path(),
+            "[plugin]\nid=\"e\"\nkind=\"loader\"\nformat=\"exec\"\nexec=\"./scan.py\"\n\
+             [loader]\nsession_prefix=\"e-\"\n",
+        );
+
+        // Empty store → untrusted.
+        let trust = match load_manifest(&path, &BTreeMap::new()).unwrap() {
+            Parsed::Loader(plugin) => {
+                assert!(matches!(plugin.imp, LoaderImpl::Exec(_)));
+                plugin.trust
+            }
+            _ => panic!("expected a loader"),
+        };
+        assert_eq!(trust, Trust::Untrusted);
+
+        // Store carries the current content hash → trusted.
+        let mut store = BTreeMap::new();
+        store.insert("e".to_string(), content_hash(&path, &exec).unwrap());
+        let trust = match load_manifest(&path, &store).unwrap() {
+            Parsed::Loader(plugin) => plugin.trust,
+            _ => panic!(),
+        };
+        assert_eq!(trust, Trust::Trusted);
+
+        // Tampering the exec re-arms trust even with the (now stale) store.
+        write_file(dir.path(), "scan.py", "#!/usr/bin/env python3\nprint('x')\n");
+        let trust = match load_manifest(&path, &store).unwrap() {
+            Parsed::Loader(plugin) => plugin.trust,
+            _ => panic!(),
+        };
+        assert_eq!(trust, Trust::Untrusted);
+    }
+
+    #[test]
+    fn processor_parses_stage_and_scope() {
+        let dir = tempfile::tempdir().unwrap();
+        write_file(dir.path(), "p.py", "x");
+        let path = write_manifest(
+            dir.path(),
+            "[plugin]\nid=\"p\"\nkind=\"processor\"\nformat=\"exec\"\nexec=\"./p.py\"\n\
+             [processor]\nstage=\"chunk\"\nscope=[\"a\",\"b\"]\n",
+        );
+        match load_manifest(&path, &BTreeMap::new()).unwrap() {
+            Parsed::Processor(plugin) => {
+                assert_eq!(plugin.stage, Stage::Chunk);
+                assert!(plugin.applies_to("a"));
+                assert!(!plugin.applies_to("c"));
+            }
+            _ => panic!("expected a processor"),
+        }
+    }
+
+    #[test]
+    fn wildcard_scope_applies_to_all() {
+        let dir = tempfile::tempdir().unwrap();
+        write_file(dir.path(), "p.py", "x");
+        let path = write_manifest(
+            dir.path(),
+            "[plugin]\nid=\"p\"\nkind=\"processor\"\nformat=\"exec\"\nexec=\"./p.py\"\n\
+             [processor]\nstage=\"session\"\n",
+        );
+        match load_manifest(&path, &BTreeMap::new()).unwrap() {
+            Parsed::Processor(plugin) => {
+                assert!(plugin.applies_to("anything"));
+            }
+            _ => panic!(),
+        }
+    }
+
+    #[test]
+    fn formatter_parses() {
+        let dir = tempfile::tempdir().unwrap();
+        write_file(dir.path(), "t.j2", "hi");
+        let path = write_manifest(
+            dir.path(),
+            "[plugin]\nid=\"f\"\nkind=\"formatter\"\nformat=\"template\"\n\
+             [formatter]\ntemplate=\"t.j2\"\n",
+        );
+        match load_manifest(&path, &BTreeMap::new()).unwrap() {
+            Parsed::Formatter(plugin) => assert_eq!(plugin.id, "f"),
+            _ => panic!("expected a formatter"),
+        }
+    }
+
+    #[test]
+    fn rejects_bad_manifests() {
+        let dir = tempfile::tempdir().unwrap();
+        let cases = [
+            // invalid id
+            "[plugin]\nid=\"Bad\"\nkind=\"loader\"\nformat=\"anthropic-jsonl\"\n[loader]\nsession_prefix=\"x-\"\nroots=[\"/t\"]\n",
+            // unknown kind
+            "[plugin]\nid=\"a\"\nkind=\"widget\"\nformat=\"exec\"\n",
+            // unknown loader format
+            "[plugin]\nid=\"a\"\nkind=\"loader\"\nformat=\"nope\"\n[loader]\nsession_prefix=\"a-\"\n",
+            // exec missing exec path
+            "[plugin]\nid=\"a\"\nkind=\"loader\"\nformat=\"exec\"\n[loader]\nsession_prefix=\"a-\"\n",
+            // jsonl missing roots
+            "[plugin]\nid=\"a\"\nkind=\"loader\"\nformat=\"anthropic-jsonl\"\n[loader]\nsession_prefix=\"a-\"\n",
+        ];
+        for toml in cases {
+            let path = write_manifest(dir.path(), toml);
+            assert!(
+                load_manifest(&path, &BTreeMap::new()).is_err(),
+                "should reject: {toml}"
+            );
+        }
+    }
 }
