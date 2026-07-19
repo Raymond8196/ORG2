@@ -16,13 +16,12 @@
  * cancel-restore pattern (no cross-component atom needed: the composer
  * state never left this component).
  *
- * Agent surface (2026-07-11 rework): follow-ups run IN PLACE on the owning
- * session, so the per-thread task chrome is gone. What remains: the literal
- * `@agent ` prefix on the TOP-LEVEL composer creates the pickup task
- * silently (comment-first — post verbatim through the untouched add path,
- * then create; create is idempotent per comment), `kind='agent_report'`
- * replies render as ordinary replies with a tiny agent affix, and a thread
- * whose task/run is live shows one minimal "Agent is addressing…" line.
+ * Agent surface: follow-ups run IN PLACE on the owning session. The literal
+ * `@agent ` prefix on the TOP-LEVEL composer runs a personal scoped round
+ * (comment-first — the comment posts verbatim through the untouched add
+ * path, then the round fires), `kind='agent_report'` replies render as
+ * ordinary replies with a tiny agent affix, and a thread whose round is live
+ * shows one minimal "Agent is addressing…" line.
  */
 import { Bot, Check, Loader2, Pencil, Trash2 } from "lucide-react";
 import React, { useCallback, useRef, useState } from "react";

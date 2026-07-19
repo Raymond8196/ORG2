@@ -29,7 +29,6 @@ import {
 } from "./org2CloudOrgsAtom";
 import {
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
@@ -124,13 +123,6 @@ export function reconcileOrg2CloudPersistedState(
     store,
     "collabStateCursors",
     org2CloudCollabStateCursorsAtom,
-    liveOrgIds,
-    prunedByOrg
-  );
-  sweepAtom(
-    store,
-    "commentTaskCursors",
-    org2CloudCommentTaskCursorsAtom,
     liveOrgIds,
     prunedByOrg
   );
