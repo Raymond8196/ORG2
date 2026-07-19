@@ -1099,7 +1099,12 @@ fn cmd_usage(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
         eprintln!("orgtrack: usage projection incomplete ({err})");
     }
 
-    let filter = UsageFilter::default();
+    // The CLI reports usage across every source it indexed — long-tail
+    // built-ins and plugins included — not just the dashboard's four buckets.
+    let filter = UsageFilter {
+        all_sources: true,
+        ..UsageFilter::default()
+    };
     let sort = parse_sort(opts.sort.as_deref())?;
     let limit = opts.limit.unwrap_or(50);
 
