@@ -132,7 +132,7 @@ export default function UsageTrendChart({
               axisLine={false}
               tickLine={false}
               tick={CHART_AXIS_TICK}
-              tickFormatter={(value) => formatTokensShort(value, language)}
+              tickFormatter={(value) => formatTokensShort(value)}
               width={48}
             />
             <YAxis
@@ -151,7 +151,7 @@ export default function UsageTrendChart({
               formatter={(value, _name, item) =>
                 item?.dataKey === "cost"
                   ? formatUsd(Number(value), 4)
-                  : formatTokensShort(Number(value), language)
+                  : formatTokensShort(Number(value))
               }
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
