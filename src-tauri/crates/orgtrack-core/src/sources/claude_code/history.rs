@@ -18,7 +18,7 @@ use crate::sources::imported_history::{
     self, cache as imported_cache, managed_mirror,
     metadata::{
         ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
-        SOURCE_CLAUDE_CODE,
+        RoundUsage, SOURCE_CLAUDE_CODE,
     },
     paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
     ImportedHistorySessionRow, ImportedToolCall,
@@ -30,7 +30,9 @@ const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // from tool_use_result.structuredPatch instead of the old_string/new_string heuristic.
 // v6: capture first-user-message uuid as the continuation dedupe group key.
 // v7: capture cache_read/cache_write tokens separately (input stays cache-inclusive).
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 7;
+// v8: emit per-round usage rows (imported_history_round_usage).
+// v9: dedup usage by message.id (one API response spans repeated JSONL lines).
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 9;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -55,6 +57,7 @@ struct ClaudeCodeHistoryMeta {
     output_tokens: i64,
     cache_read_tokens: i64,
     cache_write_tokens: i64,
+    rounds: Vec<RoundUsage>,
     impact: ImportedHistoryImpactStats,
     /// Set for Task-tool subagent transcripts: the parent session's frontend
     /// id (`claudecodeapp-<parent-uuid>`). `None` for ordinary top-level
@@ -109,6 +112,11 @@ struct ClaudeJsonlLine {
 
 #[derive(Debug, Deserialize)]
 struct ClaudeMessage {
+    /// Assistant API-response id (`msg_…`). One response is written across
+    /// several JSONL lines that each repeat the cumulative `usage`, so tokens
+    /// are counted once per unique id.
+    #[serde(default)]
+    id: String,
     #[serde(default)]
     model: String,
     #[serde(default)]
@@ -230,9 +238,13 @@ fn sync_claude_code_history_cache(conn: &mut Connection) -> Result<(), String> {
         |record| record.signature(),
     )?;
     let mut inputs = Vec::new();
+    let mut rounds = Vec::new();
+    let mut reparsed_ids = Vec::new();
     for record in changed {
-        if let Some(meta) = parse_claude_session_meta(record)? {
+        if let Some(mut meta) = parse_claude_session_meta(record)? {
             let is_managed_history_mirror = managed_ids.contains(&meta.source_session_id);
+            reparsed_ids.push(meta.session_id.clone());
+            rounds.append(&mut meta.rounds);
             let mut input = session_meta_to_cache_input(meta);
             input.listable = input.listable && !is_managed_history_mirror;
             inputs.push(input);
@@ -244,6 +256,7 @@ fn sync_claude_code_history_cache(conn: &mut Connection) -> Result<(), String> {
         imported_cache::live_ids_from_signatures(&signatures),
         inputs,
     )?;
+    imported_cache::write_session_rounds_from_conn(conn, &reparsed_ids, &rounds)?;
     // Context-window continuations rewrite the conversation into a new
     // session file with the same first-user-message uuid; keep only the
     // newest sibling of each family listable.
@@ -415,6 +428,10 @@ fn parse_claude_session_meta(
     let mut output_tokens = 0;
     let mut cache_read_tokens = 0;
     let mut cache_write_tokens = 0;
+    let mut rounds: Vec<RoundUsage> = Vec::new();
+    // One API response spans several assistant lines that repeat the same
+    // `usage`; count each `message.id` once.
+    let mut seen_message_ids: HashSet<String> = HashSet::new();
     // Primary impact source: exact counts from tool_use_result.structuredPatch.
     let mut impact = ImportedHistoryImpactStats::default();
     let mut touched_files = BTreeSet::new();
@@ -439,6 +456,11 @@ fn parse_claude_session_meta(
             Ok(parsed) => parsed,
             Err(_) => continue,
         };
+        let line_ms = parsed
+            .timestamp
+            .as_deref()
+            .and_then(imported_history::parse_iso_to_epoch_ms_opt)
+            .unwrap_or(0);
         if let Some(timestamp) = parsed
             .timestamp
             .as_deref()
@@ -523,7 +545,10 @@ fn parse_claude_session_meta(
                     );
                 }
             }
-            if let Some(usage) = message.usage {
+            // Skip repeated lines of the same API response (same message.id),
+            // which would otherwise triple both totals and rounds.
+            let usage_is_new = message.id.is_empty() || seen_message_ids.insert(message.id.clone());
+            if let Some(usage) = message.usage.filter(|_| usage_is_new) {
                 // input_tokens stays cache-inclusive (fresh + both cache kinds);
                 // the cache portion is tracked separately for the cost split.
                 input_tokens += usage.input_tokens
@@ -532,6 +557,26 @@ fn parse_claude_session_meta(
                 output_tokens += usage.output_tokens;
                 cache_read_tokens += usage.cache_read_input_tokens;
                 cache_write_tokens += usage.cache_creation_input_tokens;
+                // One round per assistant message that reports usage. `input`
+                // here is FRESH (round convention), cache tracked separately.
+                if usage.input_tokens > 0
+                    || usage.output_tokens > 0
+                    || usage.cache_read_input_tokens > 0
+                    || usage.cache_creation_input_tokens > 0
+                {
+                    rounds.push(RoundUsage {
+                        source: SOURCE_CLAUDE_CODE,
+                        source_session_id: record.source_session_id.clone(),
+                        session_id: super::canonical_session_id(&record.source_session_id),
+                        seq: rounds.len() as i64,
+                        model: model.clone(),
+                        input_tokens: usage.input_tokens,
+                        output_tokens: usage.output_tokens,
+                        cache_read_tokens: usage.cache_read_input_tokens,
+                        cache_write_tokens: usage.cache_creation_input_tokens,
+                        created_at_ms: line_ms,
+                    });
+                }
             }
         }
     }
@@ -589,6 +634,7 @@ fn parse_claude_session_meta(
         output_tokens,
         cache_read_tokens,
         cache_write_tokens,
+        rounds,
         impact,
         parent_session_id: parent_source_session_id
             .map(|uuid| format!("{CLAUDE_CODE_SESSION_PREFIX}{uuid}")),

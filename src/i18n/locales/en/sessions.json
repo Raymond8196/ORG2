@@ -200,6 +200,27 @@
             "tokens": "Most tokens"
           }
         },
+        "roundsTable": {
+          "title": "Requests",
+          "time": "Time",
+          "session": "Session",
+          "agent": "Agent",
+          "model": "Model",
+          "input": "Input",
+          "output": "Output",
+          "cache": "Cache read",
+          "cost": "Cost",
+          "filterBySession": "Filter to this session"
+        },
+        "pricing": {
+          "input": "Input",
+          "cache": "Cache",
+          "output": "Output",
+          "total": "Total",
+          "estimate": "List-price estimate",
+          "hint": "Hover a request's cost for its breakdown.",
+          "loading": "Calculating…"
+        },
         "detail": {
           "title": "Per-call breakdown",
           "perTurn": "LLM calls",
