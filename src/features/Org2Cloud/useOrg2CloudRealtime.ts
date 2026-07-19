@@ -40,10 +40,8 @@ import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { workstationActiveSessionIdAtom } from "@src/store/session/viewAtom";
 
-import { kickCommentTaskRunner } from "./commentTaskRunner";
 import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import { ensureFreshSession } from "./org2CloudClient";
-import { org2CloudCommentTasksAtom } from "./org2CloudCommentTasksAtom";
 import {
   COMMENTS_CHANGED_EVENT,
   org2CloudCommentsSignalAtom,
@@ -95,14 +93,6 @@ const ROSTER_SIGNAL_REFRESH_TTL_MS = 10_000;
 export function useOrg2CloudRealtime(): void {
   const auth = useAtomValue(org2CloudAuthAtom);
   const store = useStore();
-  // A task YOU create locally (an @agent mention) lands via a forced refetch,
-  // not an inbound realtime/pull signal, so the runner would otherwise never
-  // wake for it. Kick it whenever the task set changes so a self-authored
-  // task auto-runs immediately on your own machine.
-  const commentTasks = useAtomValue(org2CloudCommentTasksAtom);
-  useEffect(() => {
-    kickCommentTaskRunner();
-  }, [commentTasks]);
   const setAuth = useSetAtom(org2CloudAuthAtom);
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const refetchOrgs = useRefetchOrg2CloudOrgs();
@@ -256,9 +246,7 @@ export function useOrg2CloudRealtime(): void {
             // unrelated project/comment/session writes, and the follow-up
             // explicit pass dirtied the just-started pass, doubling all
             // inbound RPCs.
-            void org2CloudSyncEngine
-              .invalidateOrgInboundAndWait(orgId)
-              .then(() => kickCommentTaskRunner());
+            void org2CloudSyncEngine.invalidateOrgInboundAndWait(orgId);
             void refreshEntitlementForOrg(orgId);
             // Server contract (cloud_rename_org): this signal row is the
             // durable nudge that keeps member-side org names coherent — the
@@ -407,7 +395,6 @@ export function useOrg2CloudRealtime(): void {
             return { ...current, [key]: (current[key] ?? 0) + 1 };
           });
           bumpRemoteSessionsVersion(orgId);
-          kickCommentTaskRunner();
         },
         onSync: (state) => {
           const byUser: Record<string, Org2CloudPresenceEntry> = {};

@@ -37,7 +37,6 @@ import {
   addressRunActiveAtom,
   runAddressCommentsRound,
 } from "../addressCommentsRun";
-import type { CommentTaskRunProgress } from "../commentTaskRunner";
 import { org2CloudAuthAtom } from "../org2CloudAuthAtom";
 import type { CloudCommentTask } from "../org2CloudCommentTasksClient";
 import type {
@@ -61,9 +60,6 @@ import {
 const log = createLogger("SessionComments");
 
 const CLOUD_ADMIN_ROLES = new Set(["owner", "admin"]);
-
-const NO_ACTIVE_TASK_RUNS: Readonly<Record<string, CommentTaskRunProgress>> =
-  Object.freeze({});
 
 /**
  * Replay-stream event ids per LOCAL session id, registered by every mounted
@@ -132,12 +128,7 @@ export interface SessionCommentsContextValue {
    * the one locally-KNOWN blocker — no signed-in cloud user.
    */
   canRunTasks: boolean;
-  /**
-   * Live LOCAL runs by task id (chip + progress line). Structurally free
-   * of coordination credentials — safe render state.
-   */
-  activeTaskRuns: Readonly<Record<string, CommentTaskRunProgress>>;
-  /** Promote a top-level comment (idempotent server-side), then refresh. */
+  /** Run a personal @agent round for this comment on the local session. */
   createTask: (commentId: string, instruction?: string) => Promise<void>;
 }
 
@@ -356,7 +347,6 @@ export const SessionCommentsProvider: React.FC<
       // Fail-open (the server gates membership/entitlement/readable); the
       // one locally-KNOWN blocker is a missing cloud sign-in.
       canRunTasks: viewer.viewerUserId !== null,
-      activeTaskRuns: NO_ACTIVE_TASK_RUNS,
       createTask,
       addressAllComments: canAddressInPlace ? addressAllCommentsImpl : null,
       addressRunActive,
