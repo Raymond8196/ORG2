@@ -468,6 +468,7 @@
     },
     "sidebar": {
       "teamSessions": "Phiên của nhóm",
+      "mySessions": "Phiên của tôi",
       "memberFilter": "Lọc theo thành viên",
       "sessionFilter": "Lọc phiên",
       "directlySharedWithMe": "Được chia sẻ trực tiếp với tôi",

@@ -468,6 +468,7 @@
     },
     "sidebar": {
       "teamSessions": "チームセッション",
+      "mySessions": "自分のセッション",
       "memberFilter": "メンバーで絞り込み",
       "sessionFilter": "セッションを絞り込み",
       "directlySharedWithMe": "自分に直接共有",

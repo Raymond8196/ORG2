@@ -468,6 +468,7 @@
     },
     "sidebar": {
       "teamSessions": "팀 세션",
+      "mySessions": "내 세션",
       "memberFilter": "멤버별 필터",
       "sessionFilter": "세션 필터",
       "directlySharedWithMe": "나에게 직접 공유됨",
