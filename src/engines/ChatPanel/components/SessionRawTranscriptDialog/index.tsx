@@ -56,11 +56,12 @@ const SessionRawTranscriptDialog: React.FC<SessionRawTranscriptDialogProps> =
       >
         <div className="flex min-h-0 flex-1 flex-col gap-2 px-4 pb-4">
           <SessionRawTranscriptContent
-            entryCount={transcript.entries.length}
             error={transcript.error}
+            filePath={
+              sessionId ? `raw-transcript-${sessionId}.json` : undefined
+            }
             loaded={Boolean(transcript.snapshot)}
             loading={transcript.loading}
-            sourceLabel={transcript.sourceLabel}
             transcriptJson={transcript.transcriptJson}
           />
         </div>

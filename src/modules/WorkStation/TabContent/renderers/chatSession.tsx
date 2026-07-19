@@ -7,15 +7,18 @@
  * without rewriting the session workspace to the Workstation's current repo.
  */
 import { useAtomValue, useSetAtom } from "jotai";
+import { Clipboard, RefreshCw } from "lucide-react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import Button from "@src/components/Button";
 import TabPill from "@src/components/TabPill";
 import { useReloadSession } from "@src/engines/ChatPanel/ChatHistory/hooks/useReloadSession";
 import ChatView from "@src/engines/ChatPanel/ChatView";
 import ChatStatusBar from "@src/engines/ChatPanel/components/ChatStatusBar";
 import { SessionHeaderActionsMenu } from "@src/engines/ChatPanel/components/SessionHeaderActionsMenu";
 import SessionIdentityIcon from "@src/engines/ChatPanel/components/SessionIdentityIcon";
+import { useSessionRawTranscript } from "@src/engines/ChatPanel/components/SessionRawTranscriptDialog/useSessionRawTranscript";
 import SessionRawTranscriptView from "@src/engines/ChatPanel/components/SessionRawTranscriptView";
 import { useSessionActionModals } from "@src/engines/ChatPanel/hooks/useSessionActionModals";
 import { useSessionHeaderActions } from "@src/engines/ChatPanel/hooks/useSessionHeaderActions";
@@ -52,6 +55,10 @@ const ChatSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
     const sessionViewMode =
       sessionViewState.sessionId === sessionId ? sessionViewState.mode : "gui";
     const session = useAtomValue(sessionByIdAtom(sessionId));
+    const transcript = useSessionRawTranscript(
+      sessionId || null,
+      sessionViewMode === "raw"
+    );
     const handleReloadSession = useReloadSession(sessionId || null);
     const retargetSessionTab = useSetAtom(retargetWorkstationSessionTabAtom);
     const moveSessionTab = useSetAtom(moveSessionTabAtom);
@@ -148,53 +155,85 @@ const ChatSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         sessionViewTabs,
       ]
     );
-    const headerMenu = (
-      <SessionHeaderActionsMenu
-        activeSessionExists={Boolean(session)}
-        copyEventJsonLabel={headerActions.copyEventJsonLabel}
-        currentSessionId={sessionId || null}
-        displayMode={headerActions.displayMode}
-        eventsLength={headerActions.eventCount}
-        handleCompactDisplayModeToggle={
-          headerActions.handleCompactDisplayModeToggle
-        }
-        handleCopyEventJson={headerActions.handleCopyEventJson}
-        handleMoveSession={handleMoveToChatPanel}
-        handleOpenCloudShareSettings={
-          sessionActions.handleOpenCloudShareSettings
-        }
-        handleOpenExportSessionJson={sessionActions.handleOpenExportSessionJson}
-        handleOpenLinkWorkItem={sessionActions.handleOpenLinkWorkItem}
-        handleOpenRawTranscript={sessionActions.handleOpenRawTranscript}
-        handleOpenSearch={headerActions.handleOpenSearch}
-        handlePaginationToggle={headerActions.handlePaginationToggle}
-        handleReloadFromMenu={headerActions.handleReloadFromMenu}
-        handleStatusBarVisibleToggle={
-          headerActions.handleStatusBarVisibleToggle
-        }
-        handleTokenUsageVisibleToggle={
-          headerActions.handleTokenUsageVisibleToggle
-        }
-        headerActionsDropdownRef={headerActions.headerActionsDropdownRef}
-        headerActionsPosition={headerActions.headerActionsPosition}
-        headerActionsTriggerRef={headerActions.headerActionsTriggerRef}
-        isHeaderActionsOpen={headerActions.isHeaderActionsOpen}
-        isHeaderActionsPositioned={headerActions.isHeaderActionsPositioned}
-        moveTarget="chat-panel"
-        paginationEnabled={headerActions.paginationEnabled}
-        showCloudShareSettings={sessionActions.showCloudShareSettings}
-        statusBarVisible={headerActions.statusBarVisible}
-        tokenUsageVisible={headerActions.tokenUsageVisible}
-        toggleHeaderActionsMenu={headerActions.toggleHeaderActionsMenu}
-        triggerTestId="workstation-session-header-more-button"
-      />
+    const refreshLabel = t("common:actions.refresh", "Refresh");
+    const copyLabel = t("common:actions.copy", "Copy");
+    const headerTrailing = (
+      <div className="flex shrink-0 items-center gap-px">
+        {sessionViewMode === "raw" ? (
+          <>
+            <Button
+              size="small"
+              variant="tertiary"
+              icon={<RefreshCw size={14} strokeWidth={2} />}
+              iconOnly
+              loading={transcript.loading}
+              aria-label={refreshLabel}
+              title={refreshLabel}
+              data-testid="workstation-session-raw-refresh-button"
+              onClick={() => void transcript.loadTranscript()}
+            />
+            <Button
+              size="small"
+              variant="tertiary"
+              icon={<Clipboard size={14} strokeWidth={2} />}
+              iconOnly
+              disabled={!transcript.snapshot || transcript.loading}
+              aria-label={copyLabel}
+              title={copyLabel}
+              data-testid="workstation-session-raw-copy-button"
+              onClick={() => void transcript.copyTranscript()}
+            />
+          </>
+        ) : null}
+        <SessionHeaderActionsMenu
+          activeSessionExists={Boolean(session)}
+          copyEventJsonLabel={headerActions.copyEventJsonLabel}
+          currentSessionId={sessionId || null}
+          displayMode={headerActions.displayMode}
+          eventsLength={headerActions.eventCount}
+          handleCompactDisplayModeToggle={
+            headerActions.handleCompactDisplayModeToggle
+          }
+          handleCopyEventJson={headerActions.handleCopyEventJson}
+          handleMoveSession={handleMoveToChatPanel}
+          handleOpenCloudShareSettings={
+            sessionActions.handleOpenCloudShareSettings
+          }
+          handleOpenExportSessionJson={
+            sessionActions.handleOpenExportSessionJson
+          }
+          handleOpenLinkWorkItem={sessionActions.handleOpenLinkWorkItem}
+          handleOpenRawTranscript={sessionActions.handleOpenRawTranscript}
+          handleOpenSearch={headerActions.handleOpenSearch}
+          handlePaginationToggle={headerActions.handlePaginationToggle}
+          handleReloadFromMenu={headerActions.handleReloadFromMenu}
+          handleStatusBarVisibleToggle={
+            headerActions.handleStatusBarVisibleToggle
+          }
+          handleTokenUsageVisibleToggle={
+            headerActions.handleTokenUsageVisibleToggle
+          }
+          headerActionsDropdownRef={headerActions.headerActionsDropdownRef}
+          headerActionsPosition={headerActions.headerActionsPosition}
+          headerActionsTriggerRef={headerActions.headerActionsTriggerRef}
+          isHeaderActionsOpen={headerActions.isHeaderActionsOpen}
+          isHeaderActionsPositioned={headerActions.isHeaderActionsPositioned}
+          moveTarget="chat-panel"
+          paginationEnabled={headerActions.paginationEnabled}
+          showCloudShareSettings={sessionActions.showCloudShareSettings}
+          statusBarVisible={headerActions.statusBarVisible}
+          tokenUsageVisible={headerActions.tokenUsageVisible}
+          toggleHeaderActionsMenu={headerActions.toggleHeaderActionsMenu}
+          triggerTestId="workstation-session-header-more-button"
+        />
+      </div>
     );
 
     usePublishWorkstationTabHeader({
       host: "code",
       content: {
         content: headerContent,
-        trailing: headerMenu,
+        trailing: headerTrailing,
         sidebarToggleDisabled: true,
       },
     });
@@ -227,7 +266,10 @@ const ChatSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
           ) : null}
         </div>
         {sessionViewMode === "raw" ? (
-          <SessionRawTranscriptView sessionId={sessionId} />
+          <SessionRawTranscriptView
+            sessionId={sessionId}
+            transcript={transcript}
+          />
         ) : null}
         {sessionActions.sessionModals}
       </div>
