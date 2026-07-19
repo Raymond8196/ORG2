@@ -316,12 +316,18 @@ order, default `--format`, trusted ids).
    discovery under `~/.orgtrack/plugins` + `$ORGTRACK_PLUGIN_PATH`, plugin-aware
    scan/list/search/show dispatch, `orgtrack plugins list`, `--no-plugins`.
    _Shipped._ (Core change: `anthropic_jsonl` is now public with owned roots.)
-3. **Trust store + `plugins trust`** — prerequisite for any exec plugin.
-4. **Tier 1 exec loaders + processors** — the full script-loader protocol and
-   the transform/enrich/redact stage.
-5. **Template + exec formatters** — user-supplied `--format <name>` via a
+3. ✅ **Trust store + `plugins trust`** — `~/.orgtrack/trust.json` keyed by
+   plugin id → sha256(manifest + exec). Exec plugins are inert until trusted;
+   trust re-arms on any change. Declarative JSONL plugins are exempt (code-free).
+   _Shipped._
+4. ✅ **Tier 1 exec loaders** — `format = "exec"`, the `scan` / `load` JSON
+   protocol over stdin/stdout, ingest via `sync_source_cache_from_conn`,
+   `show` routing, scrubbed env + CWD + timeout-kill (no orphaned children).
+   _Shipped._ (Processors — the transform/enrich/redact stage — still to come.)
+5. **Processors** — the transform/enrich/redact stage over loaded sessions.
+6. **Template + exec formatters** — user-supplied `--format <name>` via a
    sandboxed template engine or an exec plugin.
-6. **Tier 2 + schema** — document the `SourceAdapter` PR path; extract the wire
+7. **Tier 2 + schema** — document the `SourceAdapter` PR path; extract the wire
    projections into a small `orgtrack-plugin-schema` crate/JSON-Schema so plugin
    authors in any language have a spec + fixtures to test against.
 

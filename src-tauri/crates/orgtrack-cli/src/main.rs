@@ -16,10 +16,12 @@
 //! This binary is only argument parsing, orchestration, and formatting.
 
 use std::fs;
+use std::io::{Read, Write};
 use std::path::Path;
+use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 mod plugins;
 
@@ -29,7 +31,9 @@ use rusqlite::Connection;
 use orgtrack_core::session_usage;
 use orgtrack_core::sources::anthropic_jsonl::{self, AnthropicJsonlSource};
 use orgtrack_core::sources::imported_history::{
-    self, ImportedHistorySessionPage, ImportedHistorySessionRow,
+    self,
+    metadata::{ImportedHistoryCacheInput, ImportedHistoryImpactStats},
+    ImportedHistorySessionPage, ImportedHistorySessionRow,
 };
 use orgtrack_core::sources::registry;
 use orgtrack_core::store::sqlite::SqliteRecordStore;
@@ -37,7 +41,7 @@ use orgtrack_core::usage_dashboard::{
     self, SessionSort, TrendBucket, UsageFilter, UsageSessionRow, UsageSummary,
 };
 
-use plugins::LoaderPlugin;
+use plugins::{ExecSpec, LoaderImpl, LoaderPlugin};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -67,6 +71,7 @@ COMMANDS:
     usage                   Token & cost analytics (alias: stats)
     show <session-id>       Print a session's conversation/activity stream
     plugins list            Show discovered loader plugins
+    plugins trust <id>      Trust an exec plugin so it may run
     help                    Show this help (alias: --help, -h)
     version                 Show version (alias: --version, -V)
 
@@ -376,22 +381,31 @@ fn init_host_compat_tables(conn: &Connection) -> Result<(), String> {
     .map_err(|err| format!("init host-compat tables: {err}"))
 }
 
-/// A unit of scan work: a built-in provider (dispatched through the core
-/// registry by id) or a plugin loader (dispatched through the generic JSONL
-/// reader with the plugin's config). Both are `Send`, so a job moves into its
-/// worker thread.
+/// A unit of scan work, `Send` so it moves into its worker thread: a built-in
+/// provider (dispatched through the core registry), a declarative JSONL plugin
+/// (the generic reader), or an exec plugin (a subprocess).
 enum ScanJob {
     Builtin(String),
-    Plugin(AnthropicJsonlSource),
+    Jsonl(AnthropicJsonlSource),
+    Exec(ExecJob),
+}
+
+/// Everything a worker needs to run one exec plugin's `scan` and ingest it.
+struct ExecJob {
+    source: &'static str,
+    session_prefix: &'static str,
+    spec: ExecSpec,
+    timeout: Duration,
 }
 
 impl ScanJob {
     fn run(&self, conn: &mut Connection) -> Result<ImportedHistorySessionPage, String> {
         match self {
             ScanJob::Builtin(id) => registry::scan_source(conn, id, SCAN_PAGE, 0),
-            ScanJob::Plugin(config) => {
+            ScanJob::Jsonl(config) => {
                 anthropic_jsonl::list_sessions_paginated(config, conn, SCAN_PAGE, 0)
             }
+            ScanJob::Exec(job) => run_exec_scan(conn, job),
         }
     }
 }
@@ -410,21 +424,34 @@ fn target_source_ids(opts: &Options, plugins: &[LoaderPlugin]) -> Vec<String> {
     ids
 }
 
-/// The `(label, job)` pairs to scan. Errors if a `--source` names nothing —
-/// but `validate_sources` already ran, so that path is defensive only.
-fn scan_jobs(opts: &Options, plugins: &[LoaderPlugin]) -> Vec<(String, ScanJob)> {
-    target_source_ids(opts, plugins)
-        .into_iter()
-        .filter_map(|id| {
-            if registry::is_registered(&id) {
-                Some((id.clone(), ScanJob::Builtin(id)))
-            } else if let Some(plugin) = plugins.iter().find(|plugin| plugin.id == id) {
-                Some((id, ScanJob::Plugin(plugin.config.clone())))
-            } else {
-                None
+/// Resolve one source id to its scan job, or a human reason it is skipped
+/// (unknown, or an untrusted exec plugin).
+fn resolve_scan_job(
+    id: &str,
+    plugins: &[LoaderPlugin],
+    timeout: Duration,
+) -> Result<ScanJob, String> {
+    if registry::is_registered(id) {
+        return Ok(ScanJob::Builtin(id.to_string()));
+    }
+    let plugin = plugins
+        .iter()
+        .find(|plugin| plugin.id == id)
+        .ok_or_else(|| "unknown source".to_string())?;
+    match &plugin.imp {
+        LoaderImpl::Jsonl(config) => Ok(ScanJob::Jsonl(config.clone())),
+        LoaderImpl::Exec(spec) => {
+            if !plugin.runnable() {
+                return Err(format!("untrusted — run `orgtrack plugins trust {id}`"));
             }
-        })
-        .collect()
+            Ok(ScanJob::Exec(ExecJob {
+                source: plugin.id,
+                session_prefix: plugin.session_prefix,
+                spec: spec.clone(),
+                timeout,
+            }))
+        }
+    }
 }
 
 /// Reject a `--source` that names neither a built-in nor a discovered plugin.
@@ -452,17 +479,33 @@ fn validate_sources(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), Stri
 /// streams to **stderr** so a slow provider is never mistaken for a hang, while
 /// stdout/JSON stays clean.
 fn scan_all(path: &str, opts: &Options, plugins: &[LoaderPlugin]) -> Vec<ScannedRow> {
-    let jobs = scan_jobs(opts, plugins);
+    let ids = target_source_ids(opts, plugins);
     let timeout = opts.timeout();
     eprintln!(
         "Scanning {} tool(s) (per-tool budget {}s)…",
-        jobs.len(),
+        ids.len(),
         timeout.as_secs()
     );
 
     let mut scanned = Vec::new();
-    for (source, job) in jobs {
+    for source in ids {
         eprint!("  {source:<14} …");
+        let job = match resolve_scan_job(&source, plugins, timeout) {
+            Ok(job) => job,
+            Err(reason) => {
+                eprintln!("\r  {source:<14} skipped ({reason})");
+                continue;
+            }
+        };
+        // An exec plugin kills its own child at `timeout` from inside the
+        // worker; give the worker a grace buffer beyond that so we always
+        // collect its result (and the kill has happened) instead of abandoning
+        // it mid-kill and orphaning the child process. Built-in/JSONL jobs have
+        // no child, so abandoning at `timeout` only leaks a thread.
+        let recv_timeout = match &job {
+            ScanJob::Exec(_) => timeout + Duration::from_secs(5),
+            _ => timeout,
+        };
         let (tx, rx) = mpsc::channel();
         let worker_path = path.to_string();
         thread::spawn(move || {
@@ -472,7 +515,7 @@ fn scan_all(path: &str, opts: &Options, plugins: &[LoaderPlugin]) -> Vec<Scanned
             let _ = tx.send(result);
         });
 
-        match rx.recv_timeout(timeout) {
+        match rx.recv_timeout(recv_timeout) {
             Ok(Ok(page)) => {
                 eprintln!("\r  {:<14} {} sessions      ", source, page.sessions.len());
                 for row in page.sessions {
@@ -550,19 +593,230 @@ fn cached_to_row(
     }
 }
 
+// ---------------------------------------------------------------------------
+// Exec plugin protocol (kind = loader, format = exec)
+// ---------------------------------------------------------------------------
+
+/// Run a trusted exec plugin's `scan` verb, ingest the returned sessions into
+/// the cache (same primitive the built-in loaders use), and read back a page.
+fn run_exec_scan(conn: &mut Connection, job: &ExecJob) -> Result<ImportedHistorySessionPage, String> {
+    let request = serde_json::json!({ "protocol": job.spec.protocol, "verb": "scan" }).to_string();
+    let response = run_plugin_exec(&job.spec, &request, job.timeout)?;
+    let sessions = response
+        .get("sessions")
+        .and_then(|value| value.as_array())
+        .ok_or("plugin response missing a 'sessions' array")?;
+
+    let mut inputs = Vec::with_capacity(sessions.len());
+    let mut live_ids = Vec::with_capacity(sessions.len());
+    for session in sessions {
+        let input = exec_session_to_input(job, session)?;
+        live_ids.push(input.source_session_id.clone());
+        inputs.push(input);
+    }
+    imported_history::cache::sync_source_cache_from_conn(conn, job.source, live_ids, inputs)?;
+    imported_history::cache::query_imported_session_page_from_conn(conn, job.source, SCAN_PAGE, 0)
+}
+
+/// Run a trusted exec plugin's `load` verb for one session → its chunks.
+fn run_exec_load(
+    spec: &ExecSpec,
+    session_id: &str,
+    session_prefix: &str,
+    timeout: Duration,
+) -> Result<Vec<ActivityChunk>, String> {
+    let source_session_id = session_id.strip_prefix(session_prefix).unwrap_or(session_id);
+    let request = serde_json::json!({
+        "protocol": spec.protocol,
+        "verb": "load",
+        "sourceSessionId": source_session_id,
+    })
+    .to_string();
+    let response = run_plugin_exec(spec, &request, timeout)?;
+    let chunks = response
+        .get("chunks")
+        .cloned()
+        .unwrap_or_else(|| serde_json::Value::Array(Vec::new()));
+    serde_json::from_value(chunks).map_err(|err| format!("plugin 'chunks' were not valid: {err}"))
+}
+
+/// Spawn the plugin, feed it `request` on stdin, and return its parsed stdout
+/// JSON — bounded by `timeout` (the child is killed on overrun). The
+/// environment is scrubbed (only PATH/HOME pass through) and the CWD is the
+/// manifest dir; the child never receives the SQLite handle.
+fn run_plugin_exec(
+    spec: &ExecSpec,
+    request: &str,
+    timeout: Duration,
+) -> Result<serde_json::Value, String> {
+    let mut child = Command::new(&spec.exec_path)
+        .current_dir(&spec.cwd)
+        .env_clear()
+        .env("PATH", std::env::var_os("PATH").unwrap_or_default())
+        .env("HOME", std::env::var_os("HOME").unwrap_or_default())
+        .env("ORGTRACK_PROTOCOL", spec.protocol.to_string())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|err| format!("spawn {}: {err}", spec.exec_path.display()))?;
+
+    // Feed stdin and drain stdout/stderr from threads so a large exchange
+    // can't deadlock on a full pipe buffer.
+    let mut stdin = child.stdin.take().ok_or("no stdin pipe")?;
+    let request_owned = request.to_string();
+    let writer = thread::spawn(move || {
+        let _ = stdin.write_all(request_owned.as_bytes());
+        // stdin drops here, signalling EOF to the child.
+    });
+    let mut stdout = child.stdout.take().ok_or("no stdout pipe")?;
+    let out_reader = thread::spawn(move || {
+        let mut buffer = String::new();
+        let _ = stdout.read_to_string(&mut buffer);
+        buffer
+    });
+    let mut stderr = child.stderr.take().ok_or("no stderr pipe")?;
+    let err_reader = thread::spawn(move || {
+        let mut buffer = String::new();
+        let _ = stderr.read_to_string(&mut buffer);
+        buffer
+    });
+
+    let deadline = Instant::now() + timeout;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) => {
+                if Instant::now() >= deadline {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return Err(format!("plugin timed out after {}s", timeout.as_secs()));
+                }
+                thread::sleep(Duration::from_millis(40));
+            }
+            Err(err) => return Err(format!("waiting on plugin: {err}")),
+        }
+    };
+
+    let _ = writer.join();
+    let stdout_text = out_reader.join().unwrap_or_default();
+    let stderr_text = err_reader.join().unwrap_or_default();
+
+    if !status.success() {
+        let code = status
+            .code()
+            .map(|code| code.to_string())
+            .unwrap_or_else(|| "signal".to_string());
+        let detail = stderr_text.trim();
+        return Err(if detail.is_empty() {
+            format!("plugin exited with {code}")
+        } else {
+            format!("plugin exited with {code}: {detail}")
+        });
+    }
+    serde_json::from_str(&stdout_text).map_err(|err| format!("plugin returned invalid JSON: {err}"))
+}
+
+/// Project one plugin session JSON object into a cache input. Missing fields
+/// default sensibly; `sessionId` is derived (`prefix + sourceSessionId`).
+fn exec_session_to_input(
+    job: &ExecJob,
+    value: &serde_json::Value,
+) -> Result<ImportedHistoryCacheInput, String> {
+    let source_session_id = js_str(value, "sourceSessionId")
+        .ok_or("a session is missing its 'sourceSessionId'")?;
+    let updated_at_ms = js_i64(value, "updatedAtMs");
+    let source_path = js_str(value, "sourcePath").unwrap_or_default();
+    Ok(ImportedHistoryCacheInput {
+        source: job.source,
+        session_id: format!("{}{}", job.session_prefix, source_session_id),
+        source_session_id: source_session_id.clone(),
+        source_path,
+        source_record_key: source_session_id,
+        source_mtime_ms: js_i64_or(value, "sourceMtimeMs", updated_at_ms),
+        source_size_bytes: js_i64(value, "sourceSizeBytes"),
+        source_fingerprint: js_str(value, "sourceFingerprint")
+            .unwrap_or_else(|| updated_at_ms.to_string()),
+        parser_version: job.spec.parser_version,
+        name: js_str(value, "name").unwrap_or_default(),
+        created_at_ms: js_i64(value, "createdAtMs"),
+        updated_at_ms,
+        model: js_str(value, "model"),
+        input_tokens: js_i64(value, "inputTokens"),
+        output_tokens: js_i64(value, "outputTokens"),
+        cache_read_tokens: js_i64(value, "cacheReadTokens"),
+        cache_write_tokens: js_i64(value, "cacheWriteTokens"),
+        repo_path: js_str(value, "repoPath"),
+        branch: js_str(value, "branch"),
+        impact: ImportedHistoryImpactStats {
+            files_changed: js_i64(value, "filesChanged"),
+            lines_added: js_i64(value, "linesAdded"),
+            lines_removed: js_i64(value, "linesRemoved"),
+            touched_files: js_str_vec(value, "touchedFiles"),
+        },
+        listable: value.get("listable").and_then(|v| v.as_bool()).unwrap_or(true),
+        source_metadata_json: None,
+        parent_session_id: js_str(value, "parentSessionId"),
+    })
+}
+
+fn js_str(value: &serde_json::Value, key: &str) -> Option<String> {
+    value
+        .get(key)
+        .and_then(|field| field.as_str())
+        .map(str::to_string)
+        .filter(|text| !text.is_empty())
+}
+
+fn js_i64(value: &serde_json::Value, key: &str) -> i64 {
+    js_i64_or(value, key, 0)
+}
+
+fn js_i64_or(value: &serde_json::Value, key: &str, default: i64) -> i64 {
+    value.get(key).and_then(|field| field.as_i64()).unwrap_or(default)
+}
+
+fn js_str_vec(value: &serde_json::Value, key: &str) -> Vec<String> {
+    value
+        .get(key)
+        .and_then(|field| field.as_array())
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|item| item.as_str().map(str::to_string))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// Load a session's activity chunks, routing plugin sessions (matched by their
-/// `session_prefix`) through the generic JSONL loader, and everything else
-/// through core's built-in provider router. `Ok(None)` = unknown id.
+/// `session_prefix`) through the plugin's own loader (generic JSONL, or the
+/// exec plugin's `load` verb), and everything else through core's built-in
+/// provider router. `Ok(None)` = unknown id.
 fn load_session_chunks(
     conn: &Connection,
     session_id: &str,
     plugins: &[LoaderPlugin],
+    timeout: Duration,
 ) -> Result<Option<Vec<ActivityChunk>>, String> {
     if let Some(plugin) = plugins
         .iter()
         .find(|plugin| session_id.starts_with(plugin.session_prefix))
     {
-        return anthropic_jsonl::load_session(&plugin.config, conn, session_id).map(Some);
+        return match &plugin.imp {
+            LoaderImpl::Jsonl(config) => {
+                anthropic_jsonl::load_session(config, conn, session_id).map(Some)
+            }
+            LoaderImpl::Exec(spec) => {
+                if !plugin.runnable() {
+                    return Err(format!(
+                        "plugin '{}' is untrusted — run `orgtrack plugins trust {}`",
+                        plugin.id, plugin.id
+                    ));
+                }
+                run_exec_load(spec, session_id, plugin.session_prefix, timeout).map(Some)
+            }
+        };
     }
     imported_history::load_activity_chunks_for_session(conn, session_id)
 }
@@ -603,15 +857,37 @@ fn cmd_sources(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
     Ok(())
 }
 
-/// `orgtrack plugins list` — show discovered plugins and any that failed to
-/// load (with the reason), so a broken manifest is visible, not silent.
+/// `orgtrack plugins list|trust <id>` — inspect and trust plugins. `list`
+/// surfaces broken manifests (with the reason) so they are visible, not silent;
+/// `trust` pins an exec plugin's content hash so it may run.
 fn cmd_plugins(opts: &Options, discovered: &plugins::Discovered) -> Result<(), String> {
     let subcommand = opts.positionals.first().map(String::as_str).unwrap_or("list");
-    if subcommand != "list" {
-        return Err(format!(
-            "unknown `plugins` subcommand '{subcommand}' (only 'list' today)"
-        ));
+    match subcommand {
+        "list" => cmd_plugins_list(opts, discovered),
+        "trust" => {
+            let id = opts
+                .positionals
+                .get(1)
+                .ok_or("`plugins trust` needs a plugin id, e.g. `orgtrack plugins trust my_agent`")?;
+            let hash = plugins::trust(id, discovered)?;
+            println!("Trusted '{id}' (sha256 {}…).", &hash[..hash.len().min(12)]);
+            Ok(())
+        }
+        other => Err(format!(
+            "unknown `plugins` subcommand '{other}' (expected list or trust)"
+        )),
     }
+}
+
+fn trust_label(trust: plugins::Trust) -> &'static str {
+    match trust {
+        plugins::Trust::NotRequired => "-",
+        plugins::Trust::Trusted => "trusted",
+        plugins::Trust::Untrusted => "UNTRUSTED",
+    }
+}
+
+fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<(), String> {
     if opts.json {
         println!(
             "{}",
@@ -619,6 +895,8 @@ fn cmd_plugins(opts: &Options, discovered: &plugins::Discovered) -> Result<(), S
                 "loaders": discovered.loaders.iter().map(|plugin| serde_json::json!({
                     "id": plugin.id,
                     "label": plugin.label,
+                    "kind": plugin.kind_label(),
+                    "trust": trust_label(plugin.trust),
                     "sessionPrefix": plugin.session_prefix,
                     "dir": plugin.manifest_dir.to_string_lossy(),
                 })).collect::<Vec<_>>(),
@@ -637,8 +915,10 @@ fn cmd_plugins(opts: &Options, discovered: &plugins::Discovered) -> Result<(), S
     }
     for plugin in &discovered.loaders {
         println!(
-            "{:<14}  loader  prefix={:<10}  {}",
+            "{:<14}  {:<14}  {:<9}  prefix={:<10}  {}",
             plugin.id,
+            plugin.kind_label(),
+            trust_label(plugin.trust),
             plugin.session_prefix,
             plugin.manifest_dir.display()
         );
@@ -915,9 +1195,9 @@ fn cmd_show(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
     }
     let conn = open_conn(&target.path)?;
 
-    let chunks = load_session_chunks(&conn, &session_id, plugins)?.ok_or_else(|| {
-        format!("'{session_id}' is not a known imported session id (nothing to show)")
-    })?;
+    let chunks = load_session_chunks(&conn, &session_id, plugins, opts.timeout())?.ok_or_else(
+        || format!("'{session_id}' is not a known imported session id (nothing to show)"),
+    )?;
 
     match opts.format()? {
         Format::Json => println!("{}", to_json(&chunks)?),
