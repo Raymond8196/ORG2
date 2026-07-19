@@ -45,7 +45,6 @@ import {
   getThreadResolution,
   isThreadResolved,
 } from "../org2CloudSessionCommentsAtom";
-import { recordSelfAgentComment } from "../selfAgentTaskRegistry";
 import { useSessionCommentsContext } from "./SessionCommentsContext";
 import {
   AGENT_COMPOSER_PREFIX,
@@ -613,9 +612,6 @@ const CommentThreadList: React.FC<CommentThreadListProps> = ({
       // idempotent per comment (retry-safe by re-sending `@agent `).
       try {
         await createTask(comment.id);
-        // Record that YOU authored this @agent task so the runner auto-runs
-        // it on your own machine/account without the owner opt-in toggle.
-        recordSelfAgentComment(comment.id);
       } catch {
         Message.warning(t("cloud.comments.task.assignFailed"));
       }

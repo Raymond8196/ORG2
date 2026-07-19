@@ -428,6 +428,13 @@ export interface AddressRoundInput {
   selectedHeadIds?: readonly string[];
   /** Extra requester instruction appended to the briefing. */
   instruction?: string;
+  /**
+   * Post parsed replies as ordinary 'user' comments instead of 'agent_report'.
+   * `agent_report` is server-restricted to the session OWNER, so a forker
+   * running @agent on someone else's shared session (the personal @agent path)
+   * posts as a normal member comment — any member may.
+   */
+  replyAsUser?: boolean;
 }
 
 export type AddressRoundResult =
@@ -453,6 +460,7 @@ export async function runAddressCommentsRound(
     holdReplyForCommentId,
     selectedHeadIds,
     instruction,
+    replyAsUser,
   } = input;
   if (isAddressRunActive(localSessionId)) return { status: "skipped_active" };
   setAddressRunActive(localSessionId, true);
@@ -531,7 +539,7 @@ export async function runAddressCommentsRound(
         sessionId: cloudSessionId,
         body: reply.body,
         parentId: reply.commentId,
-        kind: "agent_report",
+        ...(replyAsUser ? {} : { kind: "agent_report" }),
       });
       run.replied.set(reply.commentId, reply.body);
     }
