@@ -207,6 +207,8 @@ export interface RemoteTeammateSessionMetadata {
    */
   cliAgentType?: string;
   agentDisplayName?: string;
+  /** Display/matching hint only; never remote execution authority. */
+  agentDefinitionId?: string;
   model?: string;
   /**
    * First-class source provenance for replay/fork UX. Older rows omit it and
@@ -254,13 +256,4 @@ export interface RemoteTeammateSessionMetadata {
    */
   commentCount?: number;
   unresolvedCommentCount?: number;
-  /**
-   * Agent-task counters (cloud migration 0002): open / reclaimable tasks
-   * (attention chip) and actively-leased tasks (spinner), aggregated
-   * server-side per listing row next to the comment counters above.
-   * Additive and cloud-only — absent on pre-0002 backends. Must be
-   * mirrored in RemoteTeammateSessionMetadataSchema.
-   */
-  openAgentTaskCount?: number;
-  activeAgentTaskCount?: number;
 }

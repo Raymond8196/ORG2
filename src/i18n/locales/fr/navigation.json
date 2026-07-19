@@ -399,7 +399,11 @@
       "forkSetupNoWorkspace": "Continue without a workspace",
       "forkSetupAccount": "Account",
       "forkSetupModel": "Model",
-      "forkSetupContinue": "Fork & continue"
+      "forkSetupContinue": "Fork & continue",
+      "forkSnapshotIncomplete": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "forkAgentUnavailable": "Choose a local agent before forking.",
+      "forkBackendRegistrationFailed": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "forkReplayUnavailable": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     },
     "repoPicker": {
       "loading": "Loading repos…",
@@ -419,7 +423,12 @@
       "error": "Échec du fork de la session",
       "sendFailed": "Fork réussi, mais l'envoi du message a échoué — il a été restauré dans le champ de saisie",
       "forkedChipTooltip": "Forkée depuis {{name}}",
-      "continuePlaceholder": "Message to fork and continue in ORGII…"
+      "continuePlaceholder": "Message to fork and continue in ORGII…",
+      "snapshotError": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "agentError": "Choose a local agent before forking.",
+      "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "parentOpenUnavailable": "The source session could not be opened from this fork.",
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     }
   },
   "cloud": {
@@ -546,7 +555,8 @@
         "youTag": "Vous",
         "ownerTag": "Propriétaire",
         "floorOff": "Aucun minimum",
-        "floorTooltip": "Niveau de partage minimal pour ce membre. Le plus strict entre celui-ci et le plancher de l'organisation s'applique."
+        "floorTooltip": "Niveau de partage minimal pour ce membre. Le plus strict entre celui-ci et le plancher de l'organisation s'applique.",
+        "floorOrgMinimum": "Minimum de l'organisation ({{mode}})"
       },
       "leave": {
         "action": "Quitter l'organisation",
@@ -653,7 +663,14 @@
       "importPasteClipboard": "Coller depuis le presse-papiers",
       "importSubmit": "Importer",
       "importInvalidInput": "Ceci ne ressemble pas à un lien de partage ou à un jeton valide.",
-      "selectAll": "Tout le monde ({{count}})"
+      "selectAll": "Tout le monde ({{count}})",
+      "incomingEndpointMismatch": "Ce partage appartient à un autre cloud personnalisé. Configurez ce point de terminaison avant l'import.",
+      "incomingConnectionError": "Connexion au service cloud impossible. Vérifiez le réseau et réessayez.",
+      "incomingIncompatibleError": "Ce cloud a renvoyé une réponse de partage incompatible. Mettez ORGII à jour ou vérifiez le déploiement.",
+      "incomingServerError": "Le service cloud n'a pas pu résoudre ce partage. Réessayez.",
+      "incomingAlreadyOnDevice": "Cette session est déjà sur cet appareil. Ouvrez l'original au lieu d'importer un doublon.",
+      "incomingOpenExisting": "Ouvrir la session",
+      "incomingRetry": "Réessayer"
     },
     "agentRunner": {
       "title": "Exécuteur de tâches d'agent",
@@ -672,14 +689,10 @@
       "task": {
         "assignFailed": "Commentaire publié, mais l'assignation de l'agent a échoué — réessayez depuis le fil",
         "assignUnavailableHere": "Commentaire publié — l'assignation de l'agent n'est pas disponible dans cette vue",
-        "turnBadge": "un agent travaille sur ce tour",
         "addressingChip": "Traite le commentaire : « {{excerpt}} »",
         "addressingChipGeneric": "Traite un commentaire",
         "addressingChipTooltip": "Forkée pour traiter un fil de commentaires de la session source",
-        "openBadge_one": "{{count}} tâche d'agent en attente de prise en charge",
-        "openBadge": "{{count}} tâches d'agent en attente de prise en charge",
-        "activeBadge_one": "{{count}} agent travaille sur cette session",
-        "activeBadge": "{{count}} agents travaillent sur cette session"
+        "mentionSuggestion": "Attribuer ce commentaire à un agent"
       },
       "toggleLabel": "Commentaires",
       "notesButton": "Notes de session",

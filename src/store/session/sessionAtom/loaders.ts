@@ -47,6 +47,7 @@ import {
   sessionLoadingAtom,
   sessionsAtom,
 } from "./atoms";
+import { mergeGuestImportedSessions } from "./guestImportRegistry";
 import {
   type DateBucketPaginationMap,
   SESSION_LIST_CATEGORIES,
@@ -350,8 +351,8 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
         disabledSources.length > 0 ? disabledSources : undefined,
     });
 
-    const fetched: Session[] = toFrontendSessions(
-      (response as SessionListResponse).sessions
+    const fetched: Session[] = mergeGuestImportedSessions(
+      toFrontendSessions((response as SessionListResponse).sessions)
     );
 
     fetched.sort((sessionA, sessionB) =>

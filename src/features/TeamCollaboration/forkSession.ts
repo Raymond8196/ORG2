@@ -59,7 +59,6 @@ import {
   getInstrumentedStore,
   isStoreInitialized,
 } from "@src/util/core/state/instrumentedStore";
-import { BUILTIN_SDE_DEF_ID } from "@src/util/session/sessionDispatch";
 
 import { normalizeRepoScopeKey } from "./collabSyncUtils";
 import { forkCheckoutRequestAtom } from "./components/ForkCheckoutPickerDialog";
@@ -73,6 +72,7 @@ import type {
   RemoteSessionFetchOptions,
 } from "./engine/collabSyncEngineHelpers";
 import { forkSession } from "./engine/collabSyncEngineHelpers";
+import { ForkOperationError } from "./forkSnapshotIntegrity";
 import {
   resolveLocalCheckoutForScopeKey,
   resolveShareableScopeKeys,
@@ -311,6 +311,8 @@ export interface ForkSessionSetupSource {
   sourceTitle: string;
   sourceScopeKey?: string;
   sourceModel?: string;
+  sourceAgentDisplayName?: string;
+  sourceAgentDefinitionId?: string;
 }
 
 /**
@@ -330,6 +332,8 @@ export async function requestForkSessionSetup(
         sourceTitle: source.sourceTitle,
         sourceScopeKey: source.sourceScopeKey,
         sourceModel: source.sourceModel,
+        sourceAgentDisplayName: source.sourceAgentDisplayName,
+        sourceAgentDefinitionId: source.sourceAgentDefinitionId,
         resolve,
       });
     }
@@ -359,6 +363,8 @@ async function pickForkSessionSetup(
     sourceTitle: remoteSession.title,
     sourceScopeKey: remoteSession.repoScopeKey,
     sourceModel: remoteSession.model,
+    sourceAgentDisplayName: remoteSession.agentDisplayName,
+    sourceAgentDefinitionId: remoteSession.agentDefinitionId,
   });
 }
 
@@ -478,6 +484,15 @@ export async function forkTeammateSession(
   } else {
     workspaceRepoPath = await resolveForkWorkspacePath(options.remoteSession);
   }
+  // A headless caller must provide the same explicit local execution choice
+  // as the setup dialog. Never resurrect the old implicit builtin:sde path.
+  if (!execution?.agentDefinitionId) {
+    throw new ForkOperationError(
+      "agent_unavailable",
+      options.remoteSession.sourceSessionId,
+      "No local agent was selected for this fork"
+    );
+  }
   // taskContext is registry-only provenance — keep it out of the engine call.
   const { taskContext, promptForExecution: _prompt, ...fetchOptions } = options;
   const result = await forkSession({
@@ -518,9 +533,9 @@ export async function forkTeammateSession(
     model: result.model,
     accountId: result.accountId,
     // agentsession-* has no builtin prefix mapping in agent-core, so the
-    // persisted definition id is THE thing that makes the lazy init_session
-    // on the first agent_send_message resolve an agent (see module doc).
-    agentDefinitionId: BUILTIN_SDE_DEF_ID,
+    // explicitly confirmed LOCAL definition id is the lazy-init authority.
+    // The source's wire id is only a picker hint and is never trusted here.
+    agentDefinitionId: execution.agentDefinitionId,
     sessionType: "sde",
   } as SessionMeta;
   try {
@@ -537,7 +552,12 @@ export async function forkTeammateSession(
       const store = getInstrumentedStore();
       persistSessions(store.get(sessionsAtom) as Session[]);
     }
-    throw error;
+    throw new ForkOperationError(
+      "backend_registration",
+      remoteSession.sourceSessionId,
+      "Failed to register the forked session backend",
+      error
+    );
   }
 
   writeRegistryEntry(result.localSessionId, {

@@ -193,6 +193,7 @@
     "selectRepository": "Repo auswählen",
     "all": "Alle",
     "collapse": "Einklappen",
+    "toggle": "Thread umschalten",
     "addRepo": "Repo hinzufügen",
     "addFolder": "Ordner hinzufügen",
     "resume": "Fortsetzen",

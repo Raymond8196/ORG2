@@ -29,6 +29,7 @@ import { buildCloudSessionFetchClient } from "../Org2Cloud/org2CloudBackendAdapt
 import { ensureFreshSession } from "../Org2Cloud/org2CloudClient";
 import type { Org2CloudOrg } from "../Org2Cloud/org2CloudOrgsAtom";
 import { org2CloudOrgsAtom } from "../Org2Cloud/org2CloudOrgsAtom";
+import { resolvePersistedCloudShareEndpoint } from "../Org2Cloud/org2CloudShareEndpoint";
 import {
   isOrg2ShareErrorCode,
   resolveCloudSessionShare,
@@ -42,12 +43,17 @@ import type {
   ForkTeammateSessionOptions,
 } from "./forkSession";
 import { ForkCancelledError, forkTeammateSession } from "./forkSession";
+import { classifyForkOperationError } from "./forkSnapshotIntegrity";
 
 const log = createLogger("useForkImportedSession");
 
 export type ForkImportedErrorKind =
   | "retention"
   | "gone"
+  | "replay"
+  | "snapshot"
+  | "agent"
+  | "backend"
   | "generic"
   /** User dismissed the mandatory checkout picker — silent, no toast. */
   | "cancelled";
@@ -59,7 +65,11 @@ export type ForkImportedOutcome =
 
 type ImportedOrigin = Pick<
   SessionImportedFrom,
-  "orgId" | "sourceSessionId" | "ownerMemberId" | "shareToken"
+  | "orgId"
+  | "sourceSessionId"
+  | "ownerMemberId"
+  | "shareToken"
+  | "shareEndpointUrl"
 >;
 
 // ============================================================================
@@ -68,7 +78,7 @@ type ImportedOrigin = Pick<
 
 export type ImportedForkBackendResolution =
   | { kind: "cloud"; orgId: string }
-  | { kind: "guestShare"; shareToken: string }
+  | { kind: "guestShare"; shareToken: string; shareEndpointUrl?: string }
   | { kind: "unavailable"; errorKind: ForkImportedErrorKind };
 
 /** The remote row this import came from, if it is still shared. */
@@ -96,13 +106,17 @@ export function resolveImportedSessionForkBackend(
     return { kind: "cloud", orgId: importedFrom.orgId };
   }
   if (importedFrom.shareToken) {
-    return { kind: "guestShare", shareToken: importedFrom.shareToken };
+    return {
+      kind: "guestShare",
+      shareToken: importedFrom.shareToken,
+      shareEndpointUrl: importedFrom.shareEndpointUrl,
+    };
   }
   return { kind: "unavailable", errorKind: "generic" };
 }
 
 export interface GuestShareForkDeps {
-  resolveShare: (shareToken: string) => Promise<RemoteTeammateSessionMetadata>;
+  resolveShare: typeof resolveCloudSessionShare;
   buildClient: typeof buildCloudSessionFetchClient;
   fork: (
     options: ForkTeammateSessionOptions
@@ -115,17 +129,20 @@ const GUEST_SHARE_FORK_DEPS: GuestShareForkDeps = {
   fork: forkTeammateSession,
 };
 
-/** Re-resolve and fork a share anonymously; the token is the only credential. */
+/** Re-resolve and fork anonymously against the capability's issuing cloud. */
 export async function executeGuestShareFork(
   shareToken: string,
+  shareEndpointUrl?: string,
   deps: GuestShareForkDeps = GUEST_SHARE_FORK_DEPS
 ): Promise<ForkSessionResult | null> {
-  const remoteSession = await deps.resolveShare(shareToken);
+  const endpoint = resolvePersistedCloudShareEndpoint(shareEndpointUrl);
+  const remoteSession = await deps.resolveShare(shareToken, endpoint);
   return deps.fork({
-    client: deps.buildClient(null),
+    client: deps.buildClient(null, endpoint),
     orgId: remoteSession.orgId,
     remoteSession,
     shareToken,
+    promptForExecution: true,
   });
 }
 
@@ -162,7 +179,10 @@ export function useForkImportedSession(session: Session | null | undefined) {
       }
 
       if (resolution.kind === "guestShare") {
-        const result = await executeGuestShareFork(resolution.shareToken);
+        const result = await executeGuestShareFork(
+          resolution.shareToken,
+          resolution.shareEndpointUrl
+        );
         if (!result) return fail("generic");
         setState("idle");
         return {
@@ -210,10 +230,21 @@ export function useForkImportedSession(session: Session | null | undefined) {
         setState("idle");
         return { ok: false, errorKind: "cancelled" };
       }
-      log.error("failed to fork imported session", error);
+      const operationKind = classifyForkOperationError(error);
+      log.error("failed to fork imported session", {
+        sourceSessionId: importedFrom.sourceSessionId,
+        orgId: importedFrom.orgId,
+        stage: operationKind ?? "unknown",
+        error,
+      });
       // A fork click can race past the cloud retention window even when the
       // listing still had the row — distinct message (upgrade prompt). A
       // revoked/expired guest capability is the same user-facing gone state.
+      if (operationKind === "replay_unavailable") return fail("replay");
+      if (operationKind === "snapshot_incomplete") return fail("snapshot");
+      if (operationKind === "segment_integrity") return fail("snapshot");
+      if (operationKind === "agent_unavailable") return fail("agent");
+      if (operationKind === "backend_registration") return fail("backend");
       if (isOrg2SyncErrorCode(error, "ORG2_RETENTION_EXPIRED")) {
         return fail("retention");
       }

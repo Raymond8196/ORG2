@@ -79,6 +79,11 @@ export function createSessionSeederHelpers(store: E2EStore) {
       await new Promise((resolve) => window.setTimeout(resolve, 100));
       await eventStoreProxy.set(sessionEvents, sessionId);
       store.set(loadSessionAtom, { sessionId, events: sessionEvents });
+      // Persist like production writes do: the cloud push engine reads the
+      // SQLite cache (getPersistedEvents), and a memory-only seed made it
+      // observe an EMPTY session, mark the event plane clean, and never
+      // ship segments (metadata-only rows with events_epoch=0 server-side).
+      await eventStoreProxy.saveToCache(sessionId);
 
       const snapshot = await eventStoreProxy.getSnapshot(sessionId);
       store.set(derivedSnapshotAtom, snapshot);

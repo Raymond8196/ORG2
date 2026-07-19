@@ -36,7 +36,10 @@ import {
   parseCloudShareDeepLink,
 } from "@src/features/Org2Cloud/org2CloudOrgManagement";
 import { org2CloudPendingInviteAtom } from "@src/features/Org2Cloud/org2CloudPendingInviteAtom";
-import { org2CloudPendingShareAtom } from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
+import {
+  org2CloudPendingShareAtom,
+  queueOrg2CloudPendingShareAtom,
+} from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
 import { log, logDebug, logError, logWarn } from "@src/hooks/logger";
 import { activeStationChatVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
@@ -133,7 +136,7 @@ function parseDeepLink(
 export function useDeepLinkHandler(): void {
   const navigate = useNavigate();
   const setPendingCloudInvite = useSetAtom(org2CloudPendingInviteAtom);
-  const setPendingCloudShare = useSetAtom(org2CloudPendingShareAtom);
+  const queuePendingCloudShare = useSetAtom(queueOrg2CloudPendingShareAtom);
   const pendingCloudShare = useAtomValue(org2CloudPendingShareAtom);
   const setStationMode = useSetAtom(stationModeAtom);
   const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
@@ -166,17 +169,17 @@ export function useDeepLinkHandler(): void {
   // Route an incoming CLOUD session share (orgii://cloud/session?share=…,
   // migration 0012): park the token in the one-shot pending atom (consumed
   // by CloudShareImportDialog) and surface the Workstation. The token is the
-  // whole credential — no coordinates ride in the link.
+  // whole credential; only non-secret endpoint provenance rides beside it.
   const routeToCloudShare = useCallback(
     (share: CloudShareDeepLink) => {
-      setPendingCloudShare(share);
+      queuePendingCloudShare(share);
       setStationMode("my-station");
       setStationChatVisible("my-station", true);
       if (window.location.pathname !== ROUTES.workStation.code.path) {
         navigate(ROUTES.workStation.code.path);
       }
     },
-    [navigate, setPendingCloudShare, setStationChatVisible, setStationMode]
+    [navigate, queuePendingCloudShare, setStationChatVisible, setStationMode]
   );
 
   // Route an incoming ORG2 Cloud invite (`orgii://cloud/join?invite=…`)

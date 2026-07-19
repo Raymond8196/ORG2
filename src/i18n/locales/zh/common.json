@@ -195,6 +195,7 @@
     "selectRepository": "选择仓库",
     "all": "全部",
     "collapse": "收起",
+    "toggle": "展开/收起",
     "addRepo": "添加仓库",
     "addFolder": "添加文件夹",
     "resume": "继续",
