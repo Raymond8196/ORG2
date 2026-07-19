@@ -1,406 +1,12 @@
-//! Pure utility functions and the bubble→ActivityChunk pipeline.
-//!
-//! All items are `pub(super)` — internal to `cursor_db_history` and its
-//! sibling submodules only.
+//! Bubble → ActivityChunk normalization and per-canonical field mapping.
 
-use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
-
-use rusqlite::Connection;
-use serde_json::{json, Value};
-
-use core_types::activity::ActivityChunk;
-
-use super::history::{CursorIdeSessionRow, CURSORIDE_SESSION_PREFIX, CURSOR_IDE_CATEGORY};
-use super::io::load_content_blob;
-use super::models::{
-    CursorComposerContext, CursorWorkspaceMetadata, OrderedBubble, RawBubble, RawComposerHeader,
-    RawCursorSubagentInfo, RawToolFormerData,
-};
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-const CURSOR_BUBBLE_TYPE_USER: i64 = 1;
-const CURSOR_BUBBLE_TYPE_ASSISTANT: i64 = 2;
-
-// ============================================================================
-// Session helper: list filter & cache-row conversion
-// ============================================================================
-
-pub(super) fn is_listable_cursor_session(
-    row: &super::db::CursorSession,
-    cursor_conn: Option<&Connection>,
-) -> Result<bool, String> {
-    let Some(conn) = cursor_conn else {
-        return Ok(false);
-    };
-    if row.name.trim().is_empty() {
-        return Ok(false);
-    }
-    // Fast path: single EXISTS query on cursorDiskKV.
-    // We only need to know whether the session has at least one user bubble
-    // (bubble_type == 1). Parsing the JSON value is enough — no blob reads,
-    // no diff, no full order reconstruction.
-    // load_bubble_order/load_complete_bubble_order fetches all rows AND
-    // deserialises every bubble value; that was the ~542% CPU hot path.
-    let prefix = format!("bubbleId:{}:", row.id);
-    let upper_bound = format!("bubbleId:{};", row.id);
-    let found: bool = conn
-        .query_row(
-            "SELECT EXISTS(
-                SELECT 1 FROM cursorDiskKV
-                WHERE key >= ?1 AND key < ?2
-                  AND json_extract(value, '$.type') = ?3
-                LIMIT 1
-             )",
-            rusqlite::params![prefix, upper_bound, CURSOR_BUBBLE_TYPE_USER],
-            |r| r.get(0),
-        )
-        .unwrap_or(false);
-    Ok(found)
-}
-
-/// Convert a cache row to the sidebar-ready session shape.
-///
-/// Does NOT open Cursor's `state.vscdb` — all fields come from the delta-sync
-/// cache. Hover-only fields (`repo_path`, `repo_name`, `touched_files`, `branch`)
-/// are intentionally left empty; they are fetched on demand by
-/// `cursor_ide_session_detail` when the hover card opens.
-pub(super) fn cache_row_to_session_row(
-    row: super::db::CursorSession,
-) -> Result<CursorIdeSessionRow, String> {
-    let session_id = format!("{}{}", CURSORIDE_SESSION_PREFIX, row.id);
-    let created_iso = epoch_ms_to_iso(row.created_at);
-    let updated_iso = if row.last_active_at > 0 {
-        epoch_ms_to_iso(row.last_active_at)
-    } else {
-        created_iso.clone()
-    };
-    let model = if row.model.is_empty() {
-        None
-    } else {
-        Some(row.model)
-    };
-    let repo_name = row.repo_path.as_deref().and_then(repo_name_from_path);
-    Ok(CursorIdeSessionRow {
-        session_id,
-        name: if row.name.is_empty() {
-            "Untitled Cursor session".to_string()
-        } else {
-            row.name
-        },
-        status: if row.status.is_empty() {
-            "completed".to_string()
-        } else {
-            row.status
-        },
-        created_at: created_iso,
-        updated_at: updated_iso,
-        category: CURSOR_IDE_CATEGORY,
-        read_only: true,
-        model,
-        total_tokens: row.tokens_used,
-        lines_added: row.lines_added,
-        lines_removed: row.lines_removed,
-        files_changed: row.files_changed,
-        touched_files: row.touched_files,
-        background: false,
-        is_active: false,
-        repo_path: row.repo_path,
-        storage_path: Some(row.source_path),
-        repo_name,
-        branch: row.branch,
-    })
-}
-
-/// The files a session edited, from the composer's `originalFileStates` map
-/// (a key is present for every file whose before-state was captured for a diff).
-pub(super) fn cursor_touched_files_from_states(
-    original_file_states: &std::collections::BTreeMap<
-        String,
-        super::models::RawCursorOriginalFileState,
-    >,
-) -> Vec<String> {
-    original_file_states
-        .iter()
-        .filter_map(|(uri, state)| {
-            let has_edit_marker = state.is_newly_created || !state.content_key.trim().is_empty();
-            has_edit_marker.then(|| cursor_file_uri_to_path(uri))
-        })
-        .collect()
-}
-
-fn cursor_file_uri_to_path(uri: &str) -> String {
-    uri.strip_prefix("file://")
-        .unwrap_or(uri)
-        .trim()
-        .to_string()
-}
-
-// ============================================================================
-// Workspace metadata helpers
-// ============================================================================
-
-pub(super) fn cursor_workspace_metadata_from_parts(
-    tracked_git_repos: &[super::models::RawTrackedGitRepo],
-    workspace_identifier: Option<&super::models::RawWorkspaceIdentifier>,
-) -> CursorWorkspaceMetadata {
-    let tracked_repo = tracked_git_repos.first();
-    let repo_path = tracked_repo
-        .map(|repo| repo.repo_path.trim())
-        .filter(|path| !path.is_empty())
-        .map(str::to_string)
-        .or_else(|| {
-            workspace_identifier
-                .and_then(|workspace| workspace.uri.as_ref())
-                .and_then(|uri| {
-                    let fs_path = uri.fs_path.trim();
-                    if !fs_path.is_empty() {
-                        Some(fs_path.to_string())
-                    } else {
-                        let path = uri.path.trim();
-                        (!path.is_empty()).then(|| path.to_string())
-                    }
-                })
-        });
-    let branch = tracked_repo
-        .and_then(|repo| repo.branches.first())
-        .map(|branch| branch.branch_name.trim())
-        .filter(|branch| !branch.is_empty())
-        .map(str::to_string);
-
-    CursorWorkspaceMetadata { repo_path, branch }
-}
-
-pub(super) fn repo_name_from_path(path: &str) -> Option<String> {
-    PathBuf::from(path)
-        .file_name()
-        .and_then(|name| name.to_str())
-        .map(str::trim)
-        .filter(|name| !name.is_empty())
-        .map(str::to_string)
-}
-
-// ============================================================================
-// Timestamp / text pure utilities
-// ============================================================================
-
-pub(super) fn epoch_ms_to_iso(ms: i64) -> String {
-    chrono::DateTime::<chrono::Utc>::from_timestamp_millis(ms)
-        .map(|dt| dt.to_rfc3339())
-        .unwrap_or_else(|| chrono::Utc::now().to_rfc3339())
-}
-
-pub(super) fn composer_source_updated_at(
-    conn: &Connection,
-    composer_id: &str,
-    composer: &super::models::RawComposerForOrder,
-    order: &[RawComposerHeader],
-) -> Result<i64, String> {
-    use rusqlite::OptionalExtension;
-
-    let mut source_updated_at = composer.created_at.max(composer.last_updated_at);
-    if let Some(last_header) = order.last().filter(|header| !header.bubble_id.is_empty()) {
-        let key = format!("bubbleId:{}:{}", composer_id, last_header.bubble_id);
-        let bubble_json: Option<String> = conn
-            .query_row(
-                "SELECT value FROM cursorDiskKV WHERE key = ?1",
-                [key],
-                |row| row.get::<_, Option<String>>(0),
-            )
-            .optional()
-            .map_err(|err| format!("Failed to read Cursor latest bubble timestamp: {}", err))?
-            .flatten();
-        if let Some(value) = bubble_json {
-            if let Ok(raw) = serde_json::from_str::<RawBubble>(&value) {
-                let bubble_updated_at = parse_iso_to_epoch_ms(&raw.created_at);
-                if bubble_updated_at > 0 {
-                    source_updated_at = source_updated_at.max(bubble_updated_at);
-                }
-            }
-        }
-    }
-    Ok(source_updated_at)
-}
-
-pub(super) fn parse_iso_to_epoch_ms(value: &str) -> i64 {
-    chrono::DateTime::parse_from_rfc3339(value)
-        .map(|dt| dt.timestamp_millis())
-        .unwrap_or(0)
-}
-
-pub(super) fn duration_between_iso_ms(started_at: &str, ended_at: &str) -> Option<i64> {
-    let start = chrono::DateTime::parse_from_rfc3339(started_at).ok()?;
-    let end = chrono::DateTime::parse_from_rfc3339(ended_at).ok()?;
-    Some((end - start).num_milliseconds().max(0))
-}
-
-pub(super) fn preview_text(text: &str) -> String {
-    const MAX_PREVIEW_CHARS: usize = 160;
-    let normalized = text.split_whitespace().collect::<Vec<_>>().join(" ");
-    normalized.chars().take(MAX_PREVIEW_CHARS).collect()
-}
-
-/// Cursor stores `createdAt` as ISO-8601. Pass through if it parses; otherwise
-/// fall back to "now" so downstream code that orders by timestamp doesn't
-/// crash. The canonical order is the composer header order, not timestamps,
-/// so this fallback only affects display formatting.
-pub(super) fn normalize_created_at(raw: &str) -> String {
-    if !raw.is_empty() && chrono::DateTime::parse_from_rfc3339(raw).is_ok() {
-        return raw.to_string();
-    }
-    chrono::Utc::now().to_rfc3339()
-}
-
-/// Cursor stamps every bubble in a turn with the **same** `createdAt`, so a
-/// downstream sort by `(created_at, id)` reorders the turn — e.g. the user
-/// message renders after the assistant's reply, because the tie falls to the id
-/// and `cursoride-asst-…` sorts before `cursoride-user-…`. Our chunk order is
-/// already canonical (composer header order), so rewrite tied/decreasing
-/// timestamps to be strictly increasing, encoding the true order into the
-/// timestamp itself. Bumps are ≤ (bubbles per turn) ms, far below the seconds
-/// between real turns, so displayed timing is effectively unchanged.
-pub(super) fn enforce_monotonic_created_at(chunks: &mut [ActivityChunk]) {
-    let mut prev_ms: Option<i64> = None;
-    for chunk in chunks.iter_mut() {
-        let ms = parse_iso_to_epoch_ms(&chunk.created_at);
-        let next = match prev_ms {
-            Some(previous) if ms <= previous => previous + 1,
-            _ => ms,
-        };
-        if next != ms {
-            chunk.created_at = epoch_ms_to_iso(next);
-        }
-        prev_ms = Some(next);
-    }
-}
-
-// ============================================================================
-// Placeholder chunk builders
-// ============================================================================
-
-pub(super) fn fallback_turn_created_at(
-    order: &[RawComposerHeader],
-    bubbles_by_id: &HashMap<String, OrderedBubble>,
-    index: usize,
-) -> String {
-    let next_user_index = order
-        .iter()
-        .enumerate()
-        .skip(index + 1)
-        .find(|(_, candidate)| candidate.bubble_type == CURSOR_BUBBLE_TYPE_USER)
-        .map(|(candidate_index, _)| candidate_index)
-        .unwrap_or(order.len());
-    order[index..next_user_index]
-        .iter()
-        .find_map(|header| bubbles_by_id.get(&header.bubble_id))
-        .map(|bubble| normalize_created_at(&bubble.raw.created_at))
-        .unwrap_or_default()
-}
-
-pub(super) fn build_fallback_user_chunk(
-    session_id: &str,
-    user_bubble_id: &str,
-    created_at: String,
-) -> ActivityChunk {
-    let mut chunk = ActivityChunk::new(session_id, "raw", "user_message");
-    chunk.chunk_id = format!("cursoride-user-{}", user_bubble_id);
-    chunk.created_at = created_at;
-    chunk.result = json!({
-        "type": "user",
-        "message": { "content": "User message not loaded.", "role": "user" },
-    });
-    chunk
-}
-
-pub(super) fn build_unloaded_turn_placeholder_chunk(
-    session_id: &str,
-    order: &[RawComposerHeader],
-    recent_ids: &HashSet<&str>,
-    bubbles_by_id: &HashMap<String, OrderedBubble>,
-    summaries_by_turn_id: &HashMap<String, super::models::CursorIdeTurnSummary>,
-    index: usize,
-) -> Option<ActivityChunk> {
-    let header = order.get(index)?;
-    if header.bubble_type != CURSOR_BUBBLE_TYPE_USER {
-        return None;
-    }
-
-    let next_user_index = order
-        .iter()
-        .enumerate()
-        .skip(index + 1)
-        .find(|(_, candidate)| candidate.bubble_type == CURSOR_BUBBLE_TYPE_USER)
-        .map(|(candidate_index, _)| candidate_index)
-        .unwrap_or(order.len());
-    let turn_headers = &order[index..next_user_index];
-    let has_unloaded_body = turn_headers
-        .iter()
-        .skip(1)
-        .any(|candidate| !recent_ids.contains(candidate.bubble_id.as_str()));
-
-    if !has_unloaded_body {
-        return None;
-    }
-
-    let next_user_bubble_id = if next_user_index < order.len() {
-        order
-            .get(next_user_index)
-            .map(|candidate| candidate.bubble_id.clone())
-    } else {
-        None
-    };
-    let end_header = turn_headers.last()?;
-    let end_bubble = bubbles_by_id
-        .get(&end_header.bubble_id)
-        .or_else(|| bubbles_by_id.get(&header.bubble_id))?;
-
-    let summary = summaries_by_turn_id.get(&header.bubble_id);
-    let body_event_count = summary
-        .map(|cached_summary| cached_summary.body_event_count)
-        .unwrap_or_else(|| turn_headers.len().saturating_sub(1));
-    let event_count = summary
-        .map(|cached_summary| cached_summary.event_count)
-        .unwrap_or(turn_headers.len());
-    let started_at = summary
-        .map(|cached_summary| cached_summary.started_at.clone())
-        .unwrap_or_else(|| normalize_created_at(&end_bubble.raw.created_at));
-    let ended_at = summary
-        .and_then(|cached_summary| cached_summary.ended_at.clone())
-        .unwrap_or_else(|| normalize_created_at(&end_bubble.raw.created_at));
-    let duration_ms = summary.and_then(|cached_summary| cached_summary.duration_ms);
-    let content = format!("Cursor IDE turn {} is not loaded yet.", header.bubble_id);
-    let mut chunk = ActivityChunk::new(session_id, "assistant", "assistant");
-    chunk.chunk_id = format!("cursoride-unloaded-turn-{}", header.bubble_id);
-    chunk.created_at = ended_at.clone();
-    chunk.result = json!({
-        "observation": content,
-        "content": content,
-        "role": "assistant",
-        "is_delta": false,
-        "is_full_content": true,
-        "unloadedTurn": {
-            "turnId": header.bubble_id,
-            "nextTurnId": summary
-                .and_then(|cached_summary| cached_summary.next_turn_id.clone())
-                .or(next_user_bubble_id),
-            "startedAt": started_at,
-            "endedAt": ended_at,
-            "durationMs": duration_ms,
-            "eventCount": event_count,
-            "bodyEventCount": body_event_count,
-        },
-    });
-    Some(chunk)
-}
+use super::*;
 
 // ============================================================================
 // Bubble → ActivityChunk normalization
 // ============================================================================
 
-pub(super) fn bubbles_to_chunks(
+pub(in crate::sources::cursor_ide) fn bubbles_to_chunks(
     conn: &Connection,
     session_id: &str,
     bubbles: &[OrderedBubble],
@@ -447,7 +53,7 @@ pub(super) fn bubbles_to_chunks(
     chunks
 }
 
-pub(super) fn cursor_subagent_prompt_bubble_to_chunk(
+pub(in crate::sources::cursor_ide) fn cursor_subagent_prompt_bubble_to_chunk(
     session_id: &str,
     ob: &OrderedBubble,
     subagent_info: &RawCursorSubagentInfo,
@@ -476,7 +82,10 @@ pub(super) fn cursor_subagent_prompt_bubble_to_chunk(
     Some(chunk)
 }
 
-pub(super) fn user_bubble_to_chunk(session_id: &str, ob: &OrderedBubble) -> Option<ActivityChunk> {
+pub(in crate::sources::cursor_ide) fn user_bubble_to_chunk(
+    session_id: &str,
+    ob: &OrderedBubble,
+) -> Option<ActivityChunk> {
     let text = ob.raw.text.trim();
     let content = if text.is_empty() {
         "User message not loaded."
@@ -493,7 +102,7 @@ pub(super) fn user_bubble_to_chunk(session_id: &str, ob: &OrderedBubble) -> Opti
     Some(chunk)
 }
 
-pub(super) fn assistant_text_bubble_to_chunk(
+pub(in crate::sources::cursor_ide) fn assistant_text_bubble_to_chunk(
     session_id: &str,
     ob: &OrderedBubble,
 ) -> Option<ActivityChunk> {
@@ -514,7 +123,7 @@ pub(super) fn assistant_text_bubble_to_chunk(
     Some(chunk)
 }
 
-pub(super) fn assistant_tool_bubble_to_chunk(
+pub(in crate::sources::cursor_ide) fn assistant_tool_bubble_to_chunk(
     conn: &Connection,
     session_id: &str,
     ob: &OrderedBubble,
@@ -796,7 +405,7 @@ fn move_string_field(obj: &mut serde_json::Map<String, Value>, from: &str, to: &
 ///
 /// Unknown names pass through unchanged — the alias map and registry will
 /// fall back to `tool_call` (`Fallback` block) for them.
-pub(super) fn cursor_tool_name_to_canonical(name: &str) -> &str {
+pub(in crate::sources::cursor_ide) fn cursor_tool_name_to_canonical(name: &str) -> &str {
     match name {
         "read_file_v2" => "read_file",
         "edit_file_v2" => "edit_file_by_replace",
@@ -817,7 +426,7 @@ pub(super) fn cursor_tool_name_to_canonical(name: &str) -> &str {
 /// Cursor stores tool args/result as JSON-encoded strings. Parse them, and
 /// fall back to a string-valued payload if parsing fails — never silently
 /// drop the data.
-pub(super) fn parse_inner_json(raw: &str) -> Value {
+pub(in crate::sources::cursor_ide) fn parse_inner_json(raw: &str) -> Value {
     if raw.is_empty() {
         return Value::Object(Default::default());
     }
