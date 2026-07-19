@@ -47,7 +47,6 @@ export interface ActiveAddressRun {
   holdReplyForCommentId?: string;
   heldBody?: string;
   replied: Map<string, string>;
-  replyAsUser?: boolean;
 }
 
 const activeAddressRuns = new Map<string, ActiveAddressRun>();
@@ -230,7 +229,7 @@ export async function replyViaActiveAddressRun(
     sessionId: run.cloudSessionId,
     body: trimmedBody,
     parentId: commentId,
-    ...(run.replyAsUser ? {} : { kind: "agent_report" }),
+    kind: "agent_report",
   });
   run.replied.set(commentId, trimmedBody);
   broadcastCommentsChanged(run.orgId, run.cloudSessionId);
@@ -429,13 +428,6 @@ export interface AddressRoundInput {
   selectedHeadIds?: readonly string[];
   /** Extra requester instruction appended to the briefing. */
   instruction?: string;
-  /**
-   * Post parsed replies as ordinary 'user' comments instead of 'agent_report'.
-   * `agent_report` is server-restricted to the session OWNER, so a forker
-   * running @agent on someone else's shared session (the personal @agent path)
-   * posts as a normal member comment — any member may.
-   */
-  replyAsUser?: boolean;
 }
 
 export type AddressRoundResult =
@@ -461,7 +453,6 @@ export async function runAddressCommentsRound(
     holdReplyForCommentId,
     selectedHeadIds,
     instruction,
-    replyAsUser,
   } = input;
   if (isAddressRunActive(localSessionId)) return { status: "skipped_active" };
   setAddressRunActive(localSessionId, true);
@@ -491,7 +482,6 @@ export async function runAddressCommentsRound(
       localSessionId,
       validHeadIds: validIds,
       ...(holdReplyForCommentId !== undefined ? { holdReplyForCommentId } : {}),
-      ...(replyAsUser ? { replyAsUser } : {}),
       replied: new Map(),
     };
     activeAddressRuns.set(localSessionId, run);
@@ -541,7 +531,7 @@ export async function runAddressCommentsRound(
         sessionId: cloudSessionId,
         body: reply.body,
         parentId: reply.commentId,
-        ...(replyAsUser ? {} : { kind: "agent_report" }),
+        kind: "agent_report",
       });
       run.replied.set(reply.commentId, reply.body);
     }

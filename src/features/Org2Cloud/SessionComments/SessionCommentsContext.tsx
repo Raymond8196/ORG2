@@ -277,19 +277,14 @@ export const SessionCommentsProvider: React.FC<
     async (commentId: string, instruction?: string): Promise<void> => {
       if (!target || !session) throw new Error("no cloud comment target");
       // Personal @agent: run a scoped agent round on THIS machine's local
-      // session (a fork of the shared source) for just this comment, and post
-      // the answer back as an ordinary member reply (replyAsUser — a forker
-      // isn't the source owner, so it can't post an agent_report). No cloud
-      // task / lease / pickup: a teammate's @agent runs on THEIR machine, never
-      // here. Fire in the background so the composer submit doesn't block on the
-      // whole agent turn — addressRunActive reflects the in-flight state and the
-      // refetch surfaces the reply.
+      // session for just this comment. No cloud task / lease / pickup — a
+      // teammate's @agent runs on THEIR machine, never here. Fire in the
+      // background so the composer submit doesn't block on the whole turn.
       void runAddressCommentsRound({
         orgId: target.orgId,
         cloudSessionId: target.sessionId,
         localSessionId: session.session_id,
         selectedHeadIds: [commentId],
-        replyAsUser: true,
         ...(instruction !== undefined ? { instruction } : {}),
       })
         .then(() => refresh())

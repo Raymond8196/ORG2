@@ -283,7 +283,7 @@ describe("replyViaActiveAddressRun", () => {
     }
   });
 
-  it("posts as a plain user comment (no agent_report) when replyAsUser is set", async () => {
+  it("posts the agent reply with kind agent_report for any member", async () => {
     if (!isStoreInitialized()) createInstrumentedStore();
     getInstrumentedStore().set(org2CloudAuthAtom, {
       kind: "org2_cloud",
@@ -300,7 +300,6 @@ describe("replyViaActiveAddressRun", () => {
       cloudSessionId: "cs-1",
       localSessionId: "ls-user",
       validHeadIds: new Set(["c-open"]),
-      replyAsUser: true,
       replied: new Map<string, string>(),
     };
     const cleanup = seedActiveAddressRunForTest(run);
@@ -312,9 +311,11 @@ describe("replyViaActiveAddressRun", () => {
       );
       expect(res.success).toBe(true);
       const posted = vi.mocked(addSessionComment).mock.calls.at(-1)?.[1] ?? {};
-      expect(posted).toMatchObject({ parentId: "c-open", body: "the answer" });
-      // A forker isn't the source owner, so agent_report would be FORBIDDEN.
-      expect("kind" in posted).toBe(false);
+      expect(posted).toMatchObject({
+        parentId: "c-open",
+        body: "the answer",
+        kind: "agent_report",
+      });
     } finally {
       cleanup();
       getInstrumentedStore().set(org2CloudAuthAtom, null);
