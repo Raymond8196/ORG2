@@ -1,19 +1,21 @@
-//! Loader plugins.
+//! Loader and processor plugins.
 //!
-//! A plugin is a directory containing a `plugin.toml`. Two loader kinds:
+//! A plugin is a directory containing a `plugin.toml`. Kinds:
 //!
-//! - `format = "anthropic-jsonl"` — a *no-code* source over `orgtrack_core`'s
-//!   generic JSONL reader. The manifest supplies identity + root directories;
-//!   it only reads files, so it needs no trust.
-//! - `format = "exec"` — an executable that speaks a small JSON protocol over
-//!   stdin/stdout (any language). Because it runs arbitrary code it is **inert
-//!   until trusted**: `orgtrack plugins trust <id>` pins a content hash of the
-//!   manifest + the executable; any later change re-arms the prompt.
+//! - `kind = "loader"`, `format = "anthropic-jsonl"` — a *no-code* source over
+//!   `orgtrack_core`'s generic JSONL reader (reads files only; no trust).
+//! - `kind = "loader"`, `format = "exec"` — an executable that speaks the
+//!   plugin JSON protocol (`scan` / `load`). Runs code → requires trust.
+//! - `kind = "processor"`, `format = "exec"` — an executable that transforms
+//!   the loaded data on the read/display path: `stage = "session"` reshapes the
+//!   `list`/`search` rows; `stage = "chunk"` reshapes a `show`'s chunks (redact,
+//!   enrich, filter, rename). Runs code → requires trust.
 //!
-//! Discovery is user-scoped (`~/.orgtrack/plugins`) plus an explicit
-//! `$ORGTRACK_PLUGIN_PATH`. Project-scoped plugins (`./.orgtrack/plugins`) are
-//! intentionally NOT auto-loaded — running code from a cloned repo is a
-//! supply-chain risk.
+//! Exec plugins are **inert until trusted**: `~/.orgtrack/trust.json` pins a
+//! sha256 of the manifest + executable; any change re-arms it. Discovery is
+//! user-scoped (`~/.orgtrack/plugins`) plus `$ORGTRACK_PLUGIN_PATH`.
+//! Project-scoped plugins (`./.orgtrack/plugins`) are intentionally not
+//! auto-loaded — running code from a cloned repo is a supply-chain risk.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -21,6 +23,9 @@ use std::path::{Path, PathBuf};
 use orgtrack_core::sources::anthropic_jsonl::AnthropicJsonlSource;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+
+/// The wire protocol version this build implements.
+pub const PROTOCOL_VERSION: u32 = 1;
 
 /// How a loader plugin produces sessions.
 pub enum LoaderImpl {
@@ -52,6 +57,42 @@ pub enum Trust {
     Untrusted,
 }
 
+impl Trust {
+    pub fn label(self) -> &'static str {
+        match self {
+            Trust::NotRequired => "-",
+            Trust::Trusted => "trusted",
+            Trust::Untrusted => "UNTRUSTED",
+        }
+    }
+}
+
+/// Which read stage a processor transforms.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Stage {
+    /// `list` / `search` session rows.
+    Session,
+    /// A `show`'s activity chunks.
+    Chunk,
+}
+
+impl Stage {
+    fn parse(value: &str) -> Result<Self, String> {
+        match value {
+            "session" => Ok(Stage::Session),
+            "chunk" => Ok(Stage::Chunk),
+            other => Err(format!("unknown processor stage '{other}' (session|chunk)")),
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Stage::Session => "session",
+            Stage::Chunk => "chunk",
+        }
+    }
+}
+
 /// A validated loader plugin.
 pub struct LoaderPlugin {
     pub id: &'static str,
@@ -63,8 +104,6 @@ pub struct LoaderPlugin {
 }
 
 impl LoaderPlugin {
-    /// Whether this plugin is allowed to run (declarative always; exec only
-    /// when trusted).
     pub fn runnable(&self) -> bool {
         !matches!(self.trust, Trust::Untrusted)
     }
@@ -74,6 +113,31 @@ impl LoaderPlugin {
             LoaderImpl::Jsonl(_) => "loader (jsonl)",
             LoaderImpl::Exec(_) => "loader (exec)",
         }
+    }
+}
+
+/// A validated processor plugin.
+pub struct ProcessorPlugin {
+    pub id: &'static str,
+    pub label: &'static str,
+    pub stage: Stage,
+    /// Source ids this applies to; `["*"]` = all.
+    pub scope: Vec<String>,
+    pub spec: ExecSpec,
+    pub trust: Trust,
+    pub manifest_dir: PathBuf,
+}
+
+impl ProcessorPlugin {
+    pub fn runnable(&self) -> bool {
+        !matches!(self.trust, Trust::Untrusted)
+    }
+
+    /// Whether this processor applies to the given source id.
+    pub fn applies_to(&self, source: &str) -> bool {
+        self.scope
+            .iter()
+            .any(|entry| entry == "*" || entry == source)
     }
 }
 
@@ -87,13 +151,20 @@ pub struct BrokenPlugin {
 #[derive(Default)]
 pub struct Discovered {
     pub loaders: Vec<LoaderPlugin>,
+    pub processors: Vec<ProcessorPlugin>,
     pub broken: Vec<BrokenPlugin>,
+}
+
+enum Parsed {
+    Loader(LoaderPlugin),
+    Processor(ProcessorPlugin),
 }
 
 #[derive(Deserialize)]
 struct Manifest {
     plugin: PluginMeta,
     loader: Option<LoaderSpec>,
+    processor: Option<ProcessorSpec>,
 }
 
 #[derive(Deserialize)]
@@ -122,15 +193,26 @@ struct LoaderSpec {
     exclude_subagent_dirs: bool,
 }
 
+#[derive(Deserialize)]
+struct ProcessorSpec {
+    #[serde(default = "default_stage")]
+    stage: String,
+    #[serde(default = "default_scope")]
+    scope: Vec<String>,
+}
+
 fn default_parser_version() -> i64 {
     1
 }
 fn default_protocol() -> u32 {
     1
 }
-
-/// The wire protocol version this build implements.
-pub const PROTOCOL_VERSION: u32 = 1;
+fn default_stage() -> String {
+    "session".to_string()
+}
+fn default_scope() -> Vec<String> {
+    vec!["*".to_string()]
+}
 
 /// Discover every plugin under the search path. `enabled = false` skips
 /// discovery entirely (the `--no-plugins` escape hatch).
@@ -151,14 +233,18 @@ pub fn discover(enabled: bool) -> Discovered {
                 continue;
             }
             match load_manifest(&manifest_path, &trust_store) {
-                Ok(plugin) => {
-                    if found.loaders.iter().any(|existing| existing.id == plugin.id) {
-                        found.broken.push(BrokenPlugin {
-                            dir: entry.path(),
-                            error: format!("duplicate plugin id '{}'", plugin.id),
-                        });
+                Ok(Parsed::Loader(plugin)) => {
+                    if id_taken(&found, plugin.id) {
+                        found.broken.push(duplicate(entry.path(), plugin.id));
                     } else {
                         found.loaders.push(plugin);
+                    }
+                }
+                Ok(Parsed::Processor(plugin)) => {
+                    if id_taken(&found, plugin.id) {
+                        found.broken.push(duplicate(entry.path(), plugin.id));
+                    } else {
+                        found.processors.push(plugin);
                     }
                 }
                 Err(error) => found.broken.push(BrokenPlugin {
@@ -169,6 +255,18 @@ pub fn discover(enabled: bool) -> Discovered {
         }
     }
     found
+}
+
+fn id_taken(found: &Discovered, id: &str) -> bool {
+    found.loaders.iter().any(|plugin| plugin.id == id)
+        || found.processors.iter().any(|plugin| plugin.id == id)
+}
+
+fn duplicate(dir: PathBuf, id: &str) -> BrokenPlugin {
+    BrokenPlugin {
+        dir,
+        error: format!("duplicate plugin id '{id}'"),
+    }
 }
 
 /// Search path, highest precedence first: `$ORGTRACK_PLUGIN_PATH` (colon-sep)
@@ -186,7 +284,7 @@ fn plugin_dirs() -> Vec<PathBuf> {
     dirs
 }
 
-fn load_manifest(path: &Path, trust_store: &BTreeMap<String, String>) -> Result<LoaderPlugin, String> {
+fn load_manifest(path: &Path, trust_store: &BTreeMap<String, String>) -> Result<Parsed, String> {
     let raw = std::fs::read_to_string(path).map_err(|err| format!("read: {err}"))?;
     let manifest: Manifest = toml::from_str(&raw).map_err(|err| format!("parse: {err}"))?;
     let manifest_dir = path.parent().unwrap_or(path).to_path_buf();
@@ -197,29 +295,57 @@ fn load_manifest(path: &Path, trust_store: &BTreeMap<String, String>) -> Result<
             "invalid plugin id '{id}' (use lowercase letters, digits, '_')"
         ));
     }
-    if manifest.plugin.kind != "loader" {
-        return Err(format!(
-            "unsupported plugin kind '{}' (only 'loader' today)",
-            manifest.plugin.kind
-        ));
-    }
     let label = if manifest.plugin.label.trim().is_empty() {
         id.clone()
     } else {
         manifest.plugin.label.trim().to_string()
     };
+    let id_static: &'static str = leak(id.clone());
+    let label_static: &'static str = leak(label);
+
+    match manifest.plugin.kind.as_str() {
+        "loader" => load_loader(path, &manifest, &manifest_dir, &id, id_static, label_static, trust_store)
+            .map(Parsed::Loader),
+        "processor" => {
+            let (exec, trust) = exec_spec(&manifest, &manifest_dir, path, &id, trust_store)?;
+            let spec = manifest
+                .processor
+                .ok_or_else(|| "missing [processor] section".to_string())?;
+            let stage = Stage::parse(spec.stage.trim())?;
+            Ok(Parsed::Processor(ProcessorPlugin {
+                id: id_static,
+                label: label_static,
+                stage,
+                scope: spec.scope,
+                spec: exec,
+                trust,
+                manifest_dir,
+            }))
+        }
+        other => Err(format!(
+            "unsupported plugin kind '{other}' (expected 'loader' or 'processor')"
+        )),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn load_loader(
+    path: &Path,
+    manifest: &Manifest,
+    manifest_dir: &Path,
+    id: &str,
+    id_static: &'static str,
+    label_static: &'static str,
+    trust_store: &BTreeMap<String, String>,
+) -> Result<LoaderPlugin, String> {
     let spec = manifest
         .loader
+        .as_ref()
         .ok_or_else(|| "missing [loader] section".to_string())?;
     let session_prefix = spec.session_prefix.trim().to_string();
     if session_prefix.is_empty() {
         return Err("[loader].session_prefix must not be empty".to_string());
     }
-
-    // Intern identity strings for the process lifetime (core holds
-    // `&'static str`; the plugin set per run is small and bounded).
-    let id_static: &'static str = leak(id.clone());
-    let label_static: &'static str = leak(label);
     let prefix_static: &'static str = leak(session_prefix);
 
     let (imp, trust) = match manifest.plugin.format.as_str() {
@@ -244,35 +370,8 @@ fn load_manifest(path: &Path, trust_store: &BTreeMap<String, String>) -> Result<
             (LoaderImpl::Jsonl(config), Trust::NotRequired)
         }
         "exec" => {
-            if manifest.plugin.protocol > PROTOCOL_VERSION {
-                return Err(format!(
-                    "plugin protocol {} is newer than supported {}",
-                    manifest.plugin.protocol, PROTOCOL_VERSION
-                ));
-            }
-            let exec_raw = manifest.plugin.exec.trim();
-            if exec_raw.is_empty() {
-                return Err("exec plugin needs `exec = \"…\"` in [plugin]".to_string());
-            }
-            let exec_path = resolve_exec(&manifest_dir, exec_raw);
-            if !exec_path.is_file() {
-                return Err(format!("exec not found: {}", exec_path.display()));
-            }
-            let hash = content_hash(path, &exec_path)?;
-            let trust = if trust_store.get(&id).is_some_and(|stored| *stored == hash) {
-                Trust::Trusted
-            } else {
-                Trust::Untrusted
-            };
-            (
-                LoaderImpl::Exec(ExecSpec {
-                    exec_path,
-                    cwd: manifest_dir.clone(),
-                    protocol: manifest.plugin.protocol,
-                    parser_version: spec.parser_version,
-                }),
-                trust,
-            )
+            let (exec, trust) = exec_spec(manifest, manifest_dir, path, id, trust_store)?;
+            (LoaderImpl::Exec(exec), trust)
         }
         other => {
             return Err(format!(
@@ -287,8 +386,53 @@ fn load_manifest(path: &Path, trust_store: &BTreeMap<String, String>) -> Result<
         session_prefix: prefix_static,
         imp,
         trust,
-        manifest_dir,
+        manifest_dir: manifest_dir.to_path_buf(),
     })
+}
+
+/// Build an [`ExecSpec`] from the manifest's `exec` + `protocol`, and resolve
+/// its trust state from the store.
+fn exec_spec(
+    manifest: &Manifest,
+    manifest_dir: &Path,
+    manifest_path: &Path,
+    id: &str,
+    trust_store: &BTreeMap<String, String>,
+) -> Result<(ExecSpec, Trust), String> {
+    if manifest.plugin.protocol > PROTOCOL_VERSION {
+        return Err(format!(
+            "plugin protocol {} is newer than supported {}",
+            manifest.plugin.protocol, PROTOCOL_VERSION
+        ));
+    }
+    let exec_raw = manifest.plugin.exec.trim();
+    if exec_raw.is_empty() {
+        return Err("exec plugin needs `exec = \"…\"` in [plugin]".to_string());
+    }
+    let exec_path = resolve_exec(manifest_dir, exec_raw);
+    if !exec_path.is_file() {
+        return Err(format!("exec not found: {}", exec_path.display()));
+    }
+    let hash = content_hash(manifest_path, &exec_path)?;
+    let trust = if trust_store.get(id).is_some_and(|stored| *stored == hash) {
+        Trust::Trusted
+    } else {
+        Trust::Untrusted
+    };
+    let parser_version = manifest
+        .loader
+        .as_ref()
+        .map(|spec| spec.parser_version)
+        .unwrap_or_else(default_parser_version);
+    Ok((
+        ExecSpec {
+            exec_path,
+            cwd: manifest_dir.to_path_buf(),
+            protocol: manifest.plugin.protocol,
+            parser_version,
+        },
+        trust,
+    ))
 }
 
 fn resolve_exec(manifest_dir: &Path, raw: &str) -> PathBuf {
@@ -319,25 +463,11 @@ fn load_trust_store() -> BTreeMap<String, String> {
     serde_json::from_str(&raw).unwrap_or_default()
 }
 
-/// Pin trust for one plugin id by recording its current content hash. Only
-/// exec plugins carry a hash; declarative plugins are a no-op with a clear
-/// message.
+/// Pin trust for one exec plugin (loader or processor) by recording its current
+/// content hash.
 pub fn trust(id: &str, discovered: &Discovered) -> Result<String, String> {
-    let plugin = discovered
-        .loaders
-        .iter()
-        .find(|plugin| plugin.id == id)
-        .ok_or_else(|| format!("no plugin with id '{id}' (see `orgtrack plugins list`)"))?;
-    let LoaderImpl::Exec(_) = &plugin.imp else {
-        return Err(format!(
-            "'{id}' is a declarative loader — it runs no code and needs no trust"
-        ));
-    };
-    let manifest_path = plugin.manifest_dir.join("plugin.toml");
-    let exec_path = match &plugin.imp {
-        LoaderImpl::Exec(spec) => spec.exec_path.clone(),
-        LoaderImpl::Jsonl(_) => unreachable!(),
-    };
+    let (manifest_dir, exec_path) = exec_paths_for(id, discovered)?;
+    let manifest_path = manifest_dir.join("plugin.toml");
     let hash = content_hash(&manifest_path, &exec_path)?;
 
     let mut store = load_trust_store();
@@ -349,6 +479,23 @@ pub fn trust(id: &str, discovered: &Discovered) -> Result<String, String> {
     let serialized = serde_json::to_string_pretty(&store).map_err(|err| err.to_string())?;
     std::fs::write(&path, serialized).map_err(|err| format!("write {}: {err}", path.display()))?;
     Ok(hash)
+}
+
+/// Resolve (manifest_dir, exec_path) for an exec plugin id, or an error if the
+/// id is unknown or names a declarative (code-free) loader.
+fn exec_paths_for(id: &str, discovered: &Discovered) -> Result<(PathBuf, PathBuf), String> {
+    if let Some(loader) = discovered.loaders.iter().find(|plugin| plugin.id == id) {
+        return match &loader.imp {
+            LoaderImpl::Exec(spec) => Ok((loader.manifest_dir.clone(), spec.exec_path.clone())),
+            LoaderImpl::Jsonl(_) => Err(format!(
+                "'{id}' is a declarative loader — it runs no code and needs no trust"
+            )),
+        };
+    }
+    if let Some(processor) = discovered.processors.iter().find(|plugin| plugin.id == id) {
+        return Ok((processor.manifest_dir.clone(), processor.spec.exec_path.clone()));
+    }
+    Err(format!("no plugin with id '{id}' (see `orgtrack plugins list`)"))
 }
 
 /// sha256 over the manifest bytes then the executable bytes — any edit to

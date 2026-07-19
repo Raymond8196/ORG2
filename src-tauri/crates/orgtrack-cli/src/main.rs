@@ -41,7 +41,7 @@ use orgtrack_core::usage_dashboard::{
     self, SessionSort, TrendBucket, UsageFilter, UsageSessionRow, UsageSummary,
 };
 
-use plugins::{ExecSpec, LoaderImpl, LoaderPlugin};
+use plugins::{ExecSpec, LoaderImpl, LoaderPlugin, ProcessorPlugin, Stage};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -193,20 +193,21 @@ fn run(args: &[String]) -> Result<(), String> {
             let discovered = plugins::discover(!opts.no_plugins);
             validate_sources(&opts, &discovered.loaders)?;
             let loaders = &discovered.loaders;
+            let processors = &discovered.processors;
             match other {
                 "sources" => cmd_sources(&opts, loaders),
                 "plugins" => cmd_plugins(&opts, &discovered),
                 "scan" => cmd_scan(&opts, loaders),
-                "list" | "ls" | "sessions" => cmd_list(&opts, None, loaders),
+                "list" | "ls" | "sessions" => cmd_list(&opts, None, loaders, processors),
                 "search" => {
                     let query = opts.positionals.join(" ");
                     if query.trim().is_empty() {
                         return Err("search needs a query, e.g. `orgtrack search auth`".into());
                     }
-                    cmd_list(&opts, Some(query), loaders)
+                    cmd_list(&opts, Some(query), loaders, processors)
                 }
                 "usage" | "stats" => cmd_usage(&opts, loaders),
-                "show" => cmd_show(&opts, loaders),
+                "show" => cmd_show(&opts, loaders, processors),
                 _ => Err(format!(
                     "unknown command '{other}'. Run `orgtrack help` for usage."
                 )),
@@ -821,6 +822,174 @@ fn load_session_chunks(
     imported_history::load_activity_chunks_for_session(conn, session_id)
 }
 
+/// The source id a session belongs to, resolved from a plugin `session_prefix`.
+/// Empty for built-in sessions (their prefixes aren't exposed) — so a
+/// chunk-processor scoped to a specific built-in matches nothing; use `"*"`.
+fn source_of_session(session_id: &str, plugins: &[LoaderPlugin]) -> String {
+    plugins
+        .iter()
+        .find(|plugin| session_id.starts_with(plugin.session_prefix))
+        .map(|plugin| plugin.id.to_string())
+        .unwrap_or_default()
+}
+
+/// Run session-stage processors over the display rows. Each processor sees the
+/// in-scope rows as JSON, and returns the reshaped set (it may drop, filter,
+/// rename, or annotate). A failing or untrusted processor is a no-op with a
+/// stderr note — processors never lose your data. This is a display transform;
+/// it does not touch the persisted index or `usage`.
+fn apply_session_processors(
+    mut scanned: Vec<ScannedRow>,
+    processors: &[ProcessorPlugin],
+    timeout: Duration,
+) -> Vec<ScannedRow> {
+    for processor in processors {
+        if processor.stage != Stage::Session {
+            continue;
+        }
+        let (in_scope, mut out_scope): (Vec<ScannedRow>, Vec<ScannedRow>) = scanned
+            .into_iter()
+            .partition(|row| processor.applies_to(&row.source));
+        if in_scope.is_empty() {
+            scanned = out_scope;
+            continue;
+        }
+        if !processor.runnable() {
+            eprintln!(
+                "orgtrack: processor '{}' is untrusted — skipped (run `orgtrack plugins trust {}`)",
+                processor.id, processor.id
+            );
+            out_scope.extend(in_scope);
+            scanned = out_scope;
+            continue;
+        }
+        let json_rows: Vec<serde_json::Value> = in_scope
+            .iter()
+            .map(|item| {
+                let mut value = serde_json::to_value(&item.row).unwrap_or(serde_json::Value::Null);
+                if let Some(object) = value.as_object_mut() {
+                    object.insert("source".into(), serde_json::Value::String(item.source.clone()));
+                }
+                value
+            })
+            .collect();
+        let request = serde_json::json!({
+            "protocol": processor.spec.protocol,
+            "stage": "session",
+            "sessions": json_rows,
+        })
+        .to_string();
+        match run_plugin_exec(&processor.spec, &request, timeout) {
+            Ok(response) => match response.get("sessions").and_then(|value| value.as_array()) {
+                Some(rows) => {
+                    for value in rows {
+                        if let Some(row) = scanned_row_from_json(value) {
+                            out_scope.push(row);
+                        }
+                    }
+                }
+                None => {
+                    eprintln!(
+                        "orgtrack: processor '{}' returned no 'sessions' — keeping originals",
+                        processor.id
+                    );
+                    out_scope.extend(in_scope);
+                }
+            },
+            Err(err) => {
+                eprintln!(
+                    "orgtrack: processor '{}' failed ({err}) — keeping originals",
+                    processor.id
+                );
+                out_scope.extend(in_scope);
+            }
+        }
+        scanned = out_scope;
+    }
+    scanned
+}
+
+/// Run chunk-stage processors over one session's chunks before rendering.
+fn apply_chunk_processors(
+    session_id: &str,
+    source: &str,
+    mut chunks: Vec<ActivityChunk>,
+    processors: &[ProcessorPlugin],
+    timeout: Duration,
+) -> Vec<ActivityChunk> {
+    for processor in processors {
+        if processor.stage != Stage::Chunk || !processor.applies_to(source) {
+            continue;
+        }
+        if !processor.runnable() {
+            eprintln!(
+                "orgtrack: processor '{}' is untrusted — skipped (run `orgtrack plugins trust {}`)",
+                processor.id, processor.id
+            );
+            continue;
+        }
+        let request = serde_json::json!({
+            "protocol": processor.spec.protocol,
+            "stage": "chunk",
+            "sessionId": session_id,
+            "chunks": serde_json::to_value(&chunks).unwrap_or(serde_json::Value::Array(Vec::new())),
+        })
+        .to_string();
+        match run_plugin_exec(&processor.spec, &request, timeout) {
+            Ok(response) => {
+                if let Some(value) = response.get("chunks") {
+                    match serde_json::from_value::<Vec<ActivityChunk>>(value.clone()) {
+                        Ok(parsed) => chunks = parsed,
+                        Err(err) => eprintln!(
+                            "orgtrack: processor '{}' returned invalid chunks ({err}) — keeping originals",
+                            processor.id
+                        ),
+                    }
+                }
+            }
+            Err(err) => eprintln!(
+                "orgtrack: processor '{}' failed ({err}) — keeping originals",
+                processor.id
+            ),
+        }
+    }
+    chunks
+}
+
+/// Rebuild a display row from a processor's JSON output (camelCase, the same
+/// shape `list --json` emits). Returns `None` if it lacks a `source` +
+/// `sessionId`; `category` is not round-tripped (always `imported`).
+fn scanned_row_from_json(value: &serde_json::Value) -> Option<ScannedRow> {
+    let source = js_str(value, "source")?;
+    let session_id = js_str(value, "sessionId")?;
+    let flag = |key: &str, default: bool| value.get(key).and_then(|v| v.as_bool()).unwrap_or(default);
+    Some(ScannedRow {
+        source,
+        row: ImportedHistorySessionRow {
+            session_id,
+            name: js_str(value, "name").unwrap_or_default(),
+            status: js_str(value, "status").unwrap_or_else(|| "completed".to_string()),
+            created_at: js_str(value, "createdAt").unwrap_or_default(),
+            updated_at: js_str(value, "updatedAt").unwrap_or_default(),
+            category: "imported",
+            read_only: flag("readOnly", true),
+            model: js_str(value, "model"),
+            total_tokens: js_i64(value, "totalTokens"),
+            background: flag("background", false),
+            is_active: flag("isActive", false),
+            repo_path: js_str(value, "repoPath"),
+            storage_path: js_str(value, "storagePath"),
+            repo_name: js_str(value, "repoName"),
+            branch: js_str(value, "branch"),
+            files_changed: js_i64(value, "filesChanged"),
+            lines_added: js_i64(value, "linesAdded"),
+            lines_removed: js_i64(value, "linesRemoved"),
+            touched_files: js_str_vec(value, "touchedFiles"),
+            parent_session_id: js_str(value, "parentSessionId"),
+        },
+    })
+}
+
 // ---------------------------------------------------------------------------
 // Commands
 // ---------------------------------------------------------------------------
@@ -879,14 +1048,6 @@ fn cmd_plugins(opts: &Options, discovered: &plugins::Discovered) -> Result<(), S
     }
 }
 
-fn trust_label(trust: plugins::Trust) -> &'static str {
-    match trust {
-        plugins::Trust::NotRequired => "-",
-        plugins::Trust::Trusted => "trusted",
-        plugins::Trust::Untrusted => "UNTRUSTED",
-    }
-}
-
 fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<(), String> {
     if opts.json {
         println!(
@@ -896,8 +1057,16 @@ fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<
                     "id": plugin.id,
                     "label": plugin.label,
                     "kind": plugin.kind_label(),
-                    "trust": trust_label(plugin.trust),
+                    "trust": plugin.trust.label(),
                     "sessionPrefix": plugin.session_prefix,
+                    "dir": plugin.manifest_dir.to_string_lossy(),
+                })).collect::<Vec<_>>(),
+                "processors": discovered.processors.iter().map(|plugin| serde_json::json!({
+                    "id": plugin.id,
+                    "label": plugin.label,
+                    "kind": format!("processor ({})", plugin.stage.as_str()),
+                    "trust": plugin.trust.label(),
+                    "scope": plugin.scope,
                     "dir": plugin.manifest_dir.to_string_lossy(),
                 })).collect::<Vec<_>>(),
                 "broken": discovered.broken.iter().map(|broken| serde_json::json!({
@@ -908,18 +1077,31 @@ fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<
         );
         return Ok(());
     }
-    if discovered.loaders.is_empty() && discovered.broken.is_empty() {
+    if discovered.loaders.is_empty()
+        && discovered.processors.is_empty()
+        && discovered.broken.is_empty()
+    {
         println!("No plugins found. Drop a plugin.toml under ~/.orgtrack/plugins/<name>/");
         println!("or set $ORGTRACK_PLUGIN_PATH. See docs/orgtrack-plugins-design.md.");
         return Ok(());
     }
     for plugin in &discovered.loaders {
         println!(
-            "{:<14}  {:<14}  {:<9}  prefix={:<10}  {}",
+            "{:<14}  {:<18}  {:<9}  prefix={:<10}  {}",
             plugin.id,
             plugin.kind_label(),
-            trust_label(plugin.trust),
+            plugin.trust.label(),
             plugin.session_prefix,
+            plugin.manifest_dir.display()
+        );
+    }
+    for plugin in &discovered.processors {
+        println!(
+            "{:<14}  {:<18}  {:<9}  scope={:<10}  {}",
+            plugin.id,
+            format!("processor ({})", plugin.stage.as_str()),
+            plugin.trust.label(),
+            plugin.scope.join(","),
             plugin.manifest_dir.display()
         );
     }
@@ -973,6 +1155,7 @@ fn cmd_list(
     opts: &Options,
     search: Option<String>,
     plugins: &[LoaderPlugin],
+    processors: &[ProcessorPlugin],
 ) -> Result<(), String> {
     let target = db_target(opts)?;
     let mut scanned = if opts.no_scan {
@@ -981,6 +1164,9 @@ fn cmd_list(
     } else {
         scan_all(&target.path, opts, plugins)
     };
+
+    // Session-stage processors reshape the rows before search/sort/display.
+    scanned = apply_session_processors(scanned, processors, opts.timeout());
 
     if let Some(query) = search.as_ref().map(|q| q.to_lowercase()) {
         scanned.retain(|item| row_matches(&item.row, &query));
@@ -1190,7 +1376,11 @@ fn render_usage_csv(sessions: &[UsageSessionRow]) -> String {
     out
 }
 
-fn cmd_show(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
+fn cmd_show(
+    opts: &Options,
+    plugins: &[LoaderPlugin],
+    processors: &[ProcessorPlugin],
+) -> Result<(), String> {
     let Some(session_id) = opts.positionals.first().cloned() else {
         return Err("show needs a session id, e.g. `orgtrack show claude_code-<uuid>`".into());
     };
@@ -1203,6 +1393,9 @@ fn cmd_show(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
     let chunks = load_session_chunks(&conn, &session_id, plugins, opts.timeout())?.ok_or_else(
         || format!("'{session_id}' is not a known imported session id (nothing to show)"),
     )?;
+    // Chunk-stage processors reshape the conversation before rendering.
+    let source = source_of_session(&session_id, plugins);
+    let chunks = apply_chunk_processors(&session_id, &source, chunks, processors, opts.timeout());
 
     match opts.format()? {
         Format::Json => println!("{}", to_json(&chunks)?),

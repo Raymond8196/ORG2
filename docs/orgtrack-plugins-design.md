@@ -324,7 +324,10 @@ order, default `--format`, trusted ids).
    protocol over stdin/stdout, ingest via `sync_source_cache_from_conn`,
    `show` routing, scrubbed env + CWD + timeout-kill (no orphaned children).
    _Shipped._ (Processors — the transform/enrich/redact stage — still to come.)
-5. **Processors** — the transform/enrich/redact stage over loaded sessions.
+5. ✅ **Processors** — `kind = "processor"` exec plugins, trust-gated. A
+   `session` stage reshapes `list`/`search` rows; a `chunk` stage reshapes a
+   `show`'s chunks (redact/enrich/filter/rename). Display-path only; chains in
+   order; failing/untrusted is a data-preserving no-op. _Shipped._
 6. **Template + exec formatters** — user-supplied `--format <name>` via a
    sandboxed template engine or an exec plugin.
 7. **Tier 2 + schema** — document the `SourceAdapter` PR path; extract the wire

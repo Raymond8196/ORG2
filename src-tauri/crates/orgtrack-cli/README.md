@@ -95,10 +95,33 @@ orgtrack show my_agent-<id>
 Trust re-arms automatically if the manifest or executable changes (stored in
 `~/.orgtrack/trust.json`). Exec plugins run with a scrubbed env (only
 PATH/HOME), CWD = the manifest dir, never receive the database handle, and are
-killed if they exceed `--timeout`. See `examples/plugins/` for both templates
+killed if they exceed `--timeout`. See `examples/plugins/` for templates
 (including a reference `scan.py`) and `docs/orgtrack-plugins-design.md` for the
 full protocol. Project-scoped plugins (`./.orgtrack/plugins`) are intentionally
 not auto-loaded.
+
+### Processors (transform / enrich / redact)
+
+A `kind = "processor"` plugin (exec, trusted) transforms the **read/display**
+path — it never changes the persisted index. Two stages:
+
+```toml
+[plugin]
+id = "redact-secrets"; kind = "processor"; format = "exec"; exec = "./redact.py"
+[processor]
+stage = "chunk"        # "session" reshapes list/search rows; "chunk" reshapes a show
+scope = ["*"]          # source ids, or "*" for all
+```
+
+- **`session`** runs over `list` / `search` rows before display — drop, rename,
+  or annotate sessions (e.g. tag by branch).
+- **`chunk`** runs over a `show`'s chunks — redact secrets, enrich, or filter
+  the conversation.
+
+Processors chain in discovery order; a failing or untrusted one is a no-op that
+keeps your data. A chunk processor scoped to a specific *built-in* source won't
+match (built-in prefixes aren't exposed) — use `"*"`. See
+`examples/plugins/processor/` for a reference redactor.
 
 > **Note:** `usage` analytics are scoped to the primary buckets
 > (claude / codex / cursor / org2), so long-tail built-in sources and plugin
