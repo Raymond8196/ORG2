@@ -102,7 +102,7 @@ export const OrgTaskAdapter: React.FC<UniversalEventProps> = (props) => {
         isLoading={
           props.status === "running" && props.showActiveEventPainting === true
         }
-        defaultCollapsed={false}
+        defaultCollapsed={true}
         eventId={props.eventId}
         callId={props.callId}
         sessionId={props.sessionId}
@@ -134,7 +134,7 @@ export const OrgTaskAdapter: React.FC<UniversalEventProps> = (props) => {
         args={props.args}
         result={props.result}
         isLoading={resolvedOperationOutcome === "pending"}
-        defaultCollapsed={false}
+        defaultCollapsed={true}
         eventId={props.eventId}
         callId={props.callId}
         sessionId={props.sessionId}
