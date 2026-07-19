@@ -837,6 +837,33 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
       [hideActiveGroupHeader, onActiveGroupIndexChange]
     );
 
+    // Coalesce scroll-driven active-group recomputes to one per animation
+    // frame. `reportActiveGroupIndex` runs a querySelectorAll, a
+    // getBoundingClientRect per group, and header style writes; calling it
+    // synchronously on every scroll event (60–120Hz during momentum) forced a
+    // read→write→read layout thrash on the scroll tick. Batching into a rAF
+    // keeps those reads/writes off the scroll handler.
+    const activeGroupFrameRef = useRef<number | null>(null);
+    const scheduleReportActiveGroupIndex = useCallback(
+      (scrollRoot: HTMLDivElement) => {
+        if (activeGroupFrameRef.current !== null) return;
+        activeGroupFrameRef.current = window.requestAnimationFrame(() => {
+          activeGroupFrameRef.current = null;
+          reportActiveGroupIndex(scrollRoot);
+        });
+      },
+      [reportActiveGroupIndex]
+    );
+    useEffect(
+      () => () => {
+        if (activeGroupFrameRef.current !== null) {
+          window.cancelAnimationFrame(activeGroupFrameRef.current);
+          activeGroupFrameRef.current = null;
+        }
+      },
+      []
+    );
+
     useEffect(() => {
       lastReportedGroupStateRef.current = null;
       const frameId = window.requestAnimationFrame(() => {
@@ -868,7 +895,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                 bottomInset,
               })
             );
-            reportActiveGroupIndex(element);
+            scheduleReportActiveGroupIndex(element);
           }}
         >
           <div
@@ -946,7 +973,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
             bottomInset,
           });
           onAtBottomStateChange(isAtBottom);
-          reportActiveGroupIndex(element);
+          scheduleReportActiveGroupIndex(element);
           if (isAtBottom) onEndReached();
         }}
       >
