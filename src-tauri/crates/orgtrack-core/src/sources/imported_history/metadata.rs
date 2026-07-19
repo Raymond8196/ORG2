@@ -89,6 +89,24 @@ pub struct ImportedHistoryCacheInput {
     pub parent_session_id: Option<String>,
 }
 
+/// One imported per-round (assistant round / LLM call) usage record, written to
+/// `imported_history_round_usage`. `input_tokens` is FRESH (cache excluded),
+/// matching the native `session_token_usage` grain.
+#[derive(Debug, Clone)]
+pub struct RoundUsage {
+    pub source: &'static str,
+    pub source_session_id: String,
+    pub session_id: String,
+    /// 0-based round index within the session (ordering key).
+    pub seq: i64,
+    pub model: Option<String>,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_read_tokens: i64,
+    pub cache_write_tokens: i64,
+    pub created_at_ms: i64,
+}
+
 #[derive(Debug, Clone)]
 pub struct ImportedHistoryRecordSignature {
     pub source_session_id: String,

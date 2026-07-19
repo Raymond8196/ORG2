@@ -119,6 +119,49 @@ fn parses_claude_session_metadata() {
 }
 
 #[test]
+fn counts_repeated_message_id_usage_once() {
+    // Claude Code writes one API response across several assistant lines that
+    // each repeat the cumulative usage; tokens + rounds must count it once.
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-dedup-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-dedup.jsonl");
+    let content = r#"{"type":"user","sessionId":"d","timestamp":"2026-04-01T07:06:46.543Z","message":{"role":"user","content":"hi"}}
+{"type":"assistant","sessionId":"d","timestamp":"2026-04-01T07:06:49.000Z","message":{"id":"msg_1","role":"assistant","model":"claude-sonnet-4","content":[{"type":"text","text":"a"}],"usage":{"input_tokens":10,"output_tokens":20,"cache_read_input_tokens":5,"cache_creation_input_tokens":6}}}
+{"type":"assistant","sessionId":"d","timestamp":"2026-04-01T07:06:49.010Z","message":{"id":"msg_1","role":"assistant","model":"claude-sonnet-4","content":[{"type":"tool_use","id":"t","name":"x","input":{}}],"usage":{"input_tokens":10,"output_tokens":20,"cache_read_input_tokens":5,"cache_creation_input_tokens":6}}}
+{"type":"assistant","sessionId":"d","timestamp":"2026-04-01T07:06:59.000Z","message":{"id":"msg_1","role":"assistant","content":[{"type":"text","text":"b"}],"usage":{"input_tokens":10,"output_tokens":20,"cache_read_input_tokens":5,"cache_creation_input_tokens":6}}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Claude").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "claude-dedup".to_string(),
+        source_path: path.clone(),
+        source_record_key: "claude-dedup".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_claude_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+
+    // Counted once despite three repeated lines of the same msg_1.
+    assert_eq!(meta.input_tokens, 21); // 10 + 5 + 6, cache-inclusive
+    assert_eq!(meta.output_tokens, 20);
+    assert_eq!(meta.cache_read_tokens, 5);
+    assert_eq!(meta.cache_write_tokens, 6);
+    assert_eq!(meta.rounds.len(), 1);
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn prefers_claude_session_json_name_as_name() {
     let temp_dir = std::env::temp_dir().join(format!(
         "orgii-claude-history-session-name-test-{}",
@@ -550,8 +593,7 @@ fn strips_ide_context_from_claude_replay() {
 
     // Replay: the ide_context-only line emits no bubble; the prefixed
     // line's bubble carries only the user-authored text.
-    let chunks =
-        load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
+    let chunks = load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
     let user_chunks: Vec<_> = chunks
         .iter()
         .filter(|chunk| chunk.function == imported_history::FUNCTION_USER_MESSAGE)

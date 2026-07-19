@@ -1,28 +1,17 @@
 /**
  * Formatting + time-range helpers for the Usage dashboard.
  *
- * Token counts here reach hundreds of millions / billions, so the repo's
- * `formatCompactStatNumber` (caps at M) isn't enough — this mirrors the
- * reference dashboard's locale-aware compaction (K/M/B, or 万/亿 for zh/ja).
+ * Token counts reach hundreds of millions / billions, so use compact K/M/B
+ * consistently across every locale (no 万/亿) for a single readable scale.
  */
 
-function normalizeLang(language: string): string {
-  return language.toLowerCase().replace(/_/g, "-");
-}
-
-/** Compact token count: `1.2M`, `540M`, `5.4亿`… scaled to the UI language. */
-export function formatTokensShort(value: number, language: string): string {
+/** Compact token count: `999`, `1.2K`, `540M`, `5.36B` — always K/M/B. */
+export function formatTokensShort(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return "0";
-  const lang = normalizeLang(language);
-  if (lang.startsWith("zh") || lang.startsWith("ja")) {
-    if (value >= 1e8) return `${(value / 1e8).toFixed(2)}亿`;
-    if (value >= 1e4) return `${(value / 1e4).toFixed(1)}万`;
-    return value.toLocaleString();
-  }
   if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
   if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
   if (value >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
-  return value.toLocaleString();
+  return value.toLocaleString("en-US");
 }
 
 /** USD with a fixed number of decimals. Non-finite → `$0`. */
@@ -41,4 +30,15 @@ export function formatPercent(value: number): string {
 export function formatInt(value: number, locale?: string): string {
   if (!Number.isFinite(value)) return "0";
   return new Intl.NumberFormat(locale).format(Math.trunc(value));
+}
+
+/**
+ * cc-switch-style cache breakdown shown under a fresh-input value:
+ * `R777,380·W40` (read · write), full comma integers. Empty when no cache.
+ */
+export function formatCacheRW(cacheRead: number, cacheWrite: number): string {
+  const parts: string[] = [];
+  if (cacheRead > 0) parts.push(`R${formatInt(cacheRead)}`);
+  if (cacheWrite > 0) parts.push(`W${formatInt(cacheWrite)}`);
+  return parts.join("·");
 }

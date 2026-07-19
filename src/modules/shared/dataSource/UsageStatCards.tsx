@@ -1,9 +1,13 @@
+import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { UsageSummary } from "@src/api/tauri/usageDashboard";
+import Tooltip from "@src/components/Tooltip";
 import { STAT_GRID_TOKENS } from "@src/modules/shared/layouts/blocks";
 
+import UsagePricingHint from "./UsagePricingHint";
 import {
+  formatCacheRW,
   formatInt,
   formatPercent,
   formatTokensShort,
@@ -15,22 +19,30 @@ interface StatTileProps {
   value: string;
   sub?: string;
   emphasis?: boolean;
+  /** When set, the value shows a dotted-underline and reveals this on hover. */
+  tooltip?: ReactNode;
 }
 
 /** One KPI tile — mirrors the AIImpactContent StatItem card surface. */
-function StatTile({ label, value, sub, emphasis }: StatTileProps) {
-  return (
-    <div className="flex flex-col gap-1.5 rounded-xl border border-border-1 bg-fill-2 p-4">
-      <span className="text-[12px] text-text-2">{label}</span>
+function StatTile({ label, value, sub, emphasis, tooltip }: StatTileProps) {
+  const valueClass = emphasis
+    ? "text-2xl font-semibold text-text-1"
+    : "text-lg font-semibold text-text-1";
+  const valueNode = tooltip ? (
+    <Tooltip content={tooltip} position="top" mouseEnterDelay={500}>
       <span
-        className={
-          emphasis
-            ? "text-2xl font-semibold text-text-1"
-            : "text-lg font-semibold text-text-1"
-        }
+        className={`${valueClass} w-fit cursor-help underline decoration-text-3 decoration-dotted underline-offset-4`}
       >
         {value}
       </span>
+    </Tooltip>
+  ) : (
+    <span className={valueClass}>{value}</span>
+  );
+  return (
+    <div className="flex flex-col gap-1.5 rounded-xl border border-border-1 bg-fill-2 p-4">
+      <span className="text-[12px] text-text-2">{label}</span>
+      {valueNode}
       {sub ? <span className="text-[11px] text-text-3">{sub}</span> : null}
     </div>
   );
@@ -38,7 +50,7 @@ function StatTile({ label, value, sub, emphasis }: StatTileProps) {
 
 interface UsageStatCardsProps {
   summary: UsageSummary;
-  /** Resolved UI language, for locale-aware token compaction. */
+  /** Resolved UI language, for locale-aware integer grouping. */
   language: string;
 }
 
@@ -52,7 +64,7 @@ export default function UsageStatCards({
   language,
 }: UsageStatCardsProps) {
   const { t } = useTranslation("sessions", { keyPrefix: "kanban.dataSource" });
-  const tokens = (value: number) => formatTokensShort(value, language);
+  const tokens = (value: number) => formatTokensShort(value);
 
   return (
     // @container so STAT_GRID_TOKENS.cols4's `@[600px]:grid-cols-4` resolves
@@ -70,6 +82,7 @@ export default function UsageStatCards({
           value={formatUsd(summary.costUsd, 2)}
           sub={formatUsd(summary.costUsd, 4)}
           emphasis
+          tooltip={<UsagePricingHint />}
         />
         <StatTile
           label={t("usage.cards.sessions")}
@@ -91,18 +104,14 @@ export default function UsageStatCards({
         <StatTile
           label={t("usage.cards.input")}
           value={tokens(summary.inputTokens)}
+          sub={
+            formatCacheRW(summary.cacheReadTokens, summary.cacheWriteTokens) ||
+            undefined
+          }
         />
         <StatTile
           label={t("usage.cards.output")}
           value={tokens(summary.outputTokens)}
-        />
-        <StatTile
-          label={t("usage.cards.cacheCreate")}
-          value={tokens(summary.cacheWriteTokens)}
-        />
-        <StatTile
-          label={t("usage.cards.cacheRead")}
-          value={tokens(summary.cacheReadTokens)}
         />
       </div>
     </div>

@@ -82,11 +82,67 @@ export interface UsageSessionRow {
   lastActiveMs: number;
 }
 
+/** One per-round request-log row. `inputTokens` is FRESH (cache excluded). */
+export interface UsageRoundRow {
+  roundId: string;
+  sessionId: string;
+  sessionName: string;
+  bucket: string;
+  source: string;
+  model: string | null;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  realTotalTokens: number;
+  costUsd: number;
+  createdAtMs: number;
+}
+
+/** Per-Mtok list rates for a model (for the lazy cost-breakdown tooltip). */
+export interface ModelPricing {
+  model: string | null;
+  inputPerMtok: number;
+  outputPerMtok: number;
+  cacheReadPerMtok: number;
+  cacheWritePerMtok: number;
+}
+
+const modelPricingCache = new Map<string, Promise<ModelPricing>>();
+
+/**
+ * Resolve list-price rates for a model, lazily and cached per model — a cost
+ * tooltip only calls this when it opens, and repeated hovers of the same model
+ * reuse the in-flight/settled promise.
+ */
+export async function usageDashboardModelPricing(
+  model: string | null
+): Promise<ModelPricing> {
+  const key = model ?? "";
+  let pending = modelPricingCache.get(key);
+  if (!pending) {
+    pending = invoke<ModelPricing>("usage_dashboard_model_pricing", {
+      model: model ?? null,
+    });
+    modelPricingCache.set(key, pending);
+  }
+  return pending;
+}
+
+/** Summary + trends + request-log page from one backend call. */
+export interface UsageOverview {
+  summary: UsageSummary;
+  trends: UsageTrendPoint[];
+  rounds: UsageRoundRow[];
+}
+
 /** Common scope shared by every dashboard query. `bucket: null` = all four. */
 export interface UsageScope {
   bucket?: UsageBucket | null;
   startMs?: number | null;
   endMs?: number | null;
+  /** Restrict to a single session (request-log session filter). */
+  sessionId?: string | null;
 }
 
 export async function usageDashboardSummary(
@@ -96,6 +152,7 @@ export async function usageDashboardSummary(
     bucket: scope.bucket ?? null,
     startMs: scope.startMs ?? null,
     endMs: scope.endMs ?? null,
+    sessionId: scope.sessionId ?? null,
   });
 }
 
@@ -107,7 +164,39 @@ export async function usageDashboardTrends(
     bucket: scope.bucket ?? null,
     startMs: scope.startMs ?? null,
     endMs: scope.endMs ?? null,
+    sessionId: scope.sessionId ?? null,
     bucketUnit: bucketUnit ?? null,
+  });
+}
+
+export async function usageDashboardOverview(
+  scope: UsageScope = {},
+  options?: { sort?: UsageSessionSort; offset?: number; limit?: number }
+): Promise<UsageOverview> {
+  return invoke("usage_dashboard_overview", {
+    bucket: scope.bucket ?? null,
+    startMs: scope.startMs ?? null,
+    endMs: scope.endMs ?? null,
+    sessionId: scope.sessionId ?? null,
+    sort: options?.sort ?? "recent",
+    offset: options?.offset ?? 0,
+    limit: options?.limit ?? null,
+    bucketUnit: null,
+  });
+}
+
+export async function usageDashboardRounds(
+  scope: UsageScope = {},
+  options?: { sort?: UsageSessionSort; offset?: number; limit?: number }
+): Promise<UsageRoundRow[]> {
+  return invoke("usage_dashboard_rounds", {
+    bucket: scope.bucket ?? null,
+    startMs: scope.startMs ?? null,
+    endMs: scope.endMs ?? null,
+    sessionId: scope.sessionId ?? null,
+    sort: options?.sort ?? "recent",
+    offset: options?.offset ?? 0,
+    limit: options?.limit ?? null,
   });
 }
 
@@ -119,6 +208,7 @@ export async function usageDashboardSessions(
     bucket: scope.bucket ?? null,
     startMs: scope.startMs ?? null,
     endMs: scope.endMs ?? null,
+    sessionId: scope.sessionId ?? null,
     sort: options?.sort ?? "recent",
     offset: options?.offset ?? 0,
     limit: options?.limit ?? null,
