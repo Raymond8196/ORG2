@@ -62,5 +62,12 @@ export function resolveChatPanelTabDisplayTitle(
       return tab.title;
     case "cloud-org":
       return labels.cloudOrg;
+    case "work-item":
+    case "project":
+    case "project-org":
+    case "explore":
+      // Each of these tabs stamps its entity / surface name onto `tab.title`
+      // at open time, so the stored title is the correct pill label.
+      return tab.title;
   }
 }

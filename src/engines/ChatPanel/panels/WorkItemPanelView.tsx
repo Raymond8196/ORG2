@@ -26,11 +26,13 @@ import {
 import { WORK_ITEM_PROPERTY_INLINE_FIELDS } from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties";
 import { useWorkItemOrchestrator } from "@src/modules/ProjectManager/WorkItems/hooks";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
+import {
+  openProjectInChatPanelTabAtom,
+  openProjectOrgInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { activeSessionIdAtom } from "@src/store/session";
 import {
-  CHAT_PANEL_SURFACE_KIND,
   type ChatPanelSelectedWorkItem,
-  chatPanelNavigateAtom,
   chatPanelSelectedWorkItemAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { activeWorkspaceRootPathAtom } from "@src/store/workspace";
@@ -171,7 +173,8 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
   onUpdateWorkItem,
 }) => {
   const { t } = useTranslation(["projects", "common"]);
-  const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
+  const openProjectTab = useSetAtom(openProjectInChatPanelTabAtom);
+  const openProjectOrgTab = useSetAtom(openProjectOrgInChatPanelTabAtom);
   const setSelectedWorkItem = useSetAtom(chatPanelSelectedWorkItemAtom);
   const setActiveSessionId = useSetAtom(activeSessionIdAtom);
   const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
@@ -370,32 +373,26 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
   const handleOpenOrg = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
-      navigateChatPanel({
-        kind: CHAT_PANEL_SURFACE_KIND.PROJECT_ORG,
-        projectOrg: {
-          orgId: selectedWorkItem.orgId ?? STORY_PERSONAL_ORG_FILTER_ID,
-          orgName: orgPathLabel,
-          orgScope:
-            selectedWorkItem.orgId === STORY_PERSONAL_ORG_FILTER_ID ||
-            !selectedWorkItem.orgId
-              ? STORY_ORG_SCOPE.PERSONAL_ORG
-              : STORY_ORG_SCOPE.PROJECT_ORG,
-        },
+      openProjectOrgTab({
+        orgId: selectedWorkItem.orgId ?? STORY_PERSONAL_ORG_FILTER_ID,
+        orgName: orgPathLabel,
+        orgScope:
+          selectedWorkItem.orgId === STORY_PERSONAL_ORG_FILTER_ID ||
+          !selectedWorkItem.orgId
+            ? STORY_ORG_SCOPE.PERSONAL_ORG
+            : STORY_ORG_SCOPE.PROJECT_ORG,
       });
     },
-    [navigateChatPanel, orgPathLabel, selectedWorkItem.orgId]
+    [openProjectOrgTab, orgPathLabel, selectedWorkItem.orgId]
   );
 
   const handleOpenProject = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
       if (!selectedWorkItem.sourceProject) return;
-      navigateChatPanel({
-        kind: CHAT_PANEL_SURFACE_KIND.PROJECT,
-        project: selectedWorkItem.sourceProject,
-      });
+      openProjectTab(selectedWorkItem.sourceProject);
     },
-    [navigateChatPanel, selectedWorkItem.sourceProject]
+    [openProjectTab, selectedWorkItem.sourceProject]
   );
 
   const headerBreadcrumbContent = useMemo(

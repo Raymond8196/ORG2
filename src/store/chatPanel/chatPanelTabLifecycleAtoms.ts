@@ -1,13 +1,16 @@
 import { atom } from "jotai";
 
 import { destroyChatPanelTerminalAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
-import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
+import {
+  type ChatPanelSelectedWorkItem,
+  chatPanelSelectedCloudOrgAtom,
+} from "@src/store/ui/chatPanelAtom";
 
+import { buildDefaultLaunchpadTab } from "./chatPanelTabFactories";
 import {
   activateChatPanelTabAtom,
   transitionChatPanelTabPresentationAtom,
 } from "./chatPanelTabPresentationAtoms";
-import { buildDefaultLaunchpadTab } from "./chatPanelTabsModel";
 import { chatPanelTabsAtom } from "./chatPanelTabsState";
 import { disposeWorkManagementStateAtom } from "./disposeWorkManagementStateAtom";
 
@@ -131,23 +134,6 @@ export const reorderChatPanelTabsAtom = atom(
 );
 reorderChatPanelTabsAtom.debugLabel = "reorderChatPanelTabs";
 
-/** Update the session ID on the given tab (called after session launch) */
-export const setChatPanelTabSessionIdAtom = atom(
-  null,
-  (
-    _get,
-    set,
-    { tabId, sessionId }: { tabId: string; sessionId: string | null }
-  ) => {
-    set(chatPanelTabsAtom, (prev) => ({
-      ...prev,
-      tabs: prev.tabs.map((tab) =>
-        tab.id === tabId ? { ...tab, sessionId } : tab
-      ),
-    }));
-  }
-);
-
 /** Update the title on the given tab */
 export const setChatPanelTabTitleAtom = atom(
   null,
@@ -167,6 +153,36 @@ export const setChatPanelTabTitleAtom = atom(
     });
   }
 );
+
+/**
+ * Keep a work-item tab's stored payload in sync with in-place edits made
+ * through `chatPanelSelectedWorkItemAtom` (rename / status change / refresh).
+ * Without this, switching away and back would replay the stale payload and
+ * revert the edit. Matched by `shortId`; a no-op (returns the previous state)
+ * when the payload reference is unchanged — e.g. the seed written on tab
+ * activation — so it never churns tab state or persistence.
+ */
+export const patchChatPanelWorkItemTabAtom = atom(
+  null,
+  (_get, set, workItem: ChatPanelSelectedWorkItem) => {
+    set(chatPanelTabsAtom, (prev) => {
+      const target = prev.tabs.find(
+        (tab) =>
+          tab.type === "work-item" && tab.workItem?.shortId === workItem.shortId
+      );
+      if (!target || target.workItem === workItem) return prev;
+      return {
+        ...prev,
+        tabs: prev.tabs.map((tab) =>
+          tab.id === target.id
+            ? { ...tab, workItem, title: workItem.workItem.name || tab.title }
+            : tab
+        ),
+      };
+    });
+  }
+);
+patchChatPanelWorkItemTabAtom.debugLabel = "patchChatPanelWorkItemTab";
 
 /** Toggle TUI mode on the given tab */
 export const toggleChatPanelTabTuiModeAtom = atom(
