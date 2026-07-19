@@ -141,6 +141,16 @@ impl ProcessorPlugin {
     }
 }
 
+/// A validated formatter plugin: a sandboxed template rendered against a
+/// command's result JSON. Templates run no code (no fs/network access), so no
+/// trust is required.
+pub struct FormatterPlugin {
+    pub id: &'static str,
+    pub label: &'static str,
+    pub template_path: PathBuf,
+    pub manifest_dir: PathBuf,
+}
+
 /// A plugin directory that failed to load, kept so `plugins list` can surface
 /// the reason instead of silently dropping it.
 pub struct BrokenPlugin {
@@ -152,12 +162,14 @@ pub struct BrokenPlugin {
 pub struct Discovered {
     pub loaders: Vec<LoaderPlugin>,
     pub processors: Vec<ProcessorPlugin>,
+    pub formatters: Vec<FormatterPlugin>,
     pub broken: Vec<BrokenPlugin>,
 }
 
 enum Parsed {
     Loader(LoaderPlugin),
     Processor(ProcessorPlugin),
+    Formatter(FormatterPlugin),
 }
 
 #[derive(Deserialize)]
@@ -165,6 +177,7 @@ struct Manifest {
     plugin: PluginMeta,
     loader: Option<LoaderSpec>,
     processor: Option<ProcessorSpec>,
+    formatter: Option<FormatterSpec>,
 }
 
 #[derive(Deserialize)]
@@ -199,6 +212,12 @@ struct ProcessorSpec {
     stage: String,
     #[serde(default = "default_scope")]
     scope: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct FormatterSpec {
+    #[serde(default)]
+    template: String,
 }
 
 fn default_parser_version() -> i64 {
@@ -247,6 +266,13 @@ pub fn discover(enabled: bool) -> Discovered {
                         found.processors.push(plugin);
                     }
                 }
+                Ok(Parsed::Formatter(plugin)) => {
+                    if id_taken(&found, plugin.id) {
+                        found.broken.push(duplicate(entry.path(), plugin.id));
+                    } else {
+                        found.formatters.push(plugin);
+                    }
+                }
                 Err(error) => found.broken.push(BrokenPlugin {
                     dir: entry.path(),
                     error,
@@ -260,6 +286,7 @@ pub fn discover(enabled: bool) -> Discovered {
 fn id_taken(found: &Discovered, id: &str) -> bool {
     found.loaders.iter().any(|plugin| plugin.id == id)
         || found.processors.iter().any(|plugin| plugin.id == id)
+        || found.formatters.iter().any(|plugin| plugin.id == id)
 }
 
 fn duplicate(dir: PathBuf, id: &str) -> BrokenPlugin {
@@ -322,8 +349,33 @@ fn load_manifest(path: &Path, trust_store: &BTreeMap<String, String>) -> Result<
                 manifest_dir,
             }))
         }
+        "formatter" => {
+            if manifest.plugin.format != "template" {
+                return Err(format!(
+                    "unsupported formatter format '{}' (only 'template' today)",
+                    manifest.plugin.format
+                ));
+            }
+            let spec = manifest
+                .formatter
+                .ok_or_else(|| "missing [formatter] section".to_string())?;
+            let template = spec.template.trim();
+            if template.is_empty() {
+                return Err("[formatter].template must name a template file".to_string());
+            }
+            let template_path = resolve_exec(&manifest_dir, template);
+            if !template_path.is_file() {
+                return Err(format!("template not found: {}", template_path.display()));
+            }
+            Ok(Parsed::Formatter(FormatterPlugin {
+                id: id_static,
+                label: label_static,
+                template_path,
+                manifest_dir,
+            }))
+        }
         other => Err(format!(
-            "unsupported plugin kind '{other}' (expected 'loader' or 'processor')"
+            "unsupported plugin kind '{other}' (expected 'loader', 'processor', or 'formatter')"
         )),
     }
 }

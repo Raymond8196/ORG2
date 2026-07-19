@@ -41,7 +41,7 @@ use orgtrack_core::usage_dashboard::{
     self, SessionSort, TrendBucket, UsageFilter, UsageSessionRow, UsageSummary,
 };
 
-use plugins::{ExecSpec, LoaderImpl, LoaderPlugin, ProcessorPlugin, Stage};
+use plugins::{ExecSpec, FormatterPlugin, LoaderImpl, LoaderPlugin, ProcessorPlugin, Stage};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -84,7 +84,8 @@ OPTIONS:
                             skipped. Default: 30.
     --no-scan               Skip disk scan; read an existing --db as-is.
     --no-plugins            Ignore discovered loader plugins.
-    --format <fmt>          Output format: table (default), json, md, csv.
+    --format <fmt>          Output: table (default), json, md, csv, or a
+                            formatter plugin id.
     --json                  Shorthand for --format json.
 
 PLUGINS:
@@ -194,20 +195,21 @@ fn run(args: &[String]) -> Result<(), String> {
             validate_sources(&opts, &discovered.loaders)?;
             let loaders = &discovered.loaders;
             let processors = &discovered.processors;
+            let formatters = &discovered.formatters;
             match other {
                 "sources" => cmd_sources(&opts, loaders),
                 "plugins" => cmd_plugins(&opts, &discovered),
                 "scan" => cmd_scan(&opts, loaders),
-                "list" | "ls" | "sessions" => cmd_list(&opts, None, loaders, processors),
+                "list" | "ls" | "sessions" => cmd_list(&opts, None, loaders, processors, formatters),
                 "search" => {
                     let query = opts.positionals.join(" ");
                     if query.trim().is_empty() {
                         return Err("search needs a query, e.g. `orgtrack search auth`".into());
                     }
-                    cmd_list(&opts, Some(query), loaders, processors)
+                    cmd_list(&opts, Some(query), loaders, processors, formatters)
                 }
-                "usage" | "stats" => cmd_usage(&opts, loaders),
-                "show" => cmd_show(&opts, loaders, processors),
+                "usage" | "stats" => cmd_usage(&opts, loaders, formatters),
+                "show" => cmd_show(&opts, loaders, processors, formatters),
                 _ => Err(format!(
                     "unknown command '{other}'. Run `orgtrack help` for usage."
                 )),
@@ -1069,6 +1071,12 @@ fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<
                     "scope": plugin.scope,
                     "dir": plugin.manifest_dir.to_string_lossy(),
                 })).collect::<Vec<_>>(),
+                "formatters": discovered.formatters.iter().map(|plugin| serde_json::json!({
+                    "id": plugin.id,
+                    "label": plugin.label,
+                    "kind": "formatter (template)",
+                    "dir": plugin.manifest_dir.to_string_lossy(),
+                })).collect::<Vec<_>>(),
                 "broken": discovered.broken.iter().map(|broken| serde_json::json!({
                     "dir": broken.dir.to_string_lossy(),
                     "error": broken.error,
@@ -1079,6 +1087,7 @@ fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<
     }
     if discovered.loaders.is_empty()
         && discovered.processors.is_empty()
+        && discovered.formatters.is_empty()
         && discovered.broken.is_empty()
     {
         println!("No plugins found. Drop a plugin.toml under ~/.orgtrack/plugins/<name>/");
@@ -1102,6 +1111,15 @@ fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<
             format!("processor ({})", plugin.stage.as_str()),
             plugin.trust.label(),
             plugin.scope.join(","),
+            plugin.manifest_dir.display()
+        );
+    }
+    for plugin in &discovered.formatters {
+        println!(
+            "{:<14}  {:<18}  {:<9}  {}",
+            plugin.id,
+            "formatter (tmpl)",
+            "-",
             plugin.manifest_dir.display()
         );
     }
@@ -1156,6 +1174,7 @@ fn cmd_list(
     search: Option<String>,
     plugins: &[LoaderPlugin],
     processors: &[ProcessorPlugin],
+    formatters: &[FormatterPlugin],
 ) -> Result<(), String> {
     let target = db_target(opts)?;
     let mut scanned = if opts.no_scan {
@@ -1177,6 +1196,14 @@ fn cmd_list(
     let limit = opts.limit.unwrap_or(50);
     let shown: Vec<&ScannedRow> = scanned.iter().take(limit).collect();
 
+    if let Some(formatter) = formatter_for(opts, formatters) {
+        let context = serde_json::json!({
+            "command": "list",
+            "sessions": list_rows_json(&shown),
+            "total": scanned.len(),
+        });
+        return render_template(formatter, &context);
+    }
     match opts.format()? {
         Format::Json => println!("{}", to_json(&list_rows_json(&shown))?),
         Format::Md => print!("{}", render_list_md(&shown)),
@@ -1272,7 +1299,11 @@ fn render_list_csv(shown: &[&ScannedRow]) -> String {
     out
 }
 
-fn cmd_usage(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
+fn cmd_usage(
+    opts: &Options,
+    plugins: &[LoaderPlugin],
+    formatters: &[FormatterPlugin],
+) -> Result<(), String> {
     let target = db_target(opts)?;
     if !opts.no_scan {
         scan_all(&target.path, opts, plugins);
@@ -1300,6 +1331,15 @@ fn cmd_usage(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
     // shows the headline + per-session rows.
     let overview = usage_dashboard::usage_overview(&conn, &filter, sort, 0, limit, TrendBucket::Day)?;
 
+    if let Some(formatter) = formatter_for(opts, formatters) {
+        let context = serde_json::json!({
+            "command": "usage",
+            "summary": summary,
+            "sessions": sessions,
+            "trends": overview.trends,
+        });
+        return render_template(formatter, &context);
+    }
     match opts.format()? {
         Format::Json => println!(
             "{}",
@@ -1380,6 +1420,7 @@ fn cmd_show(
     opts: &Options,
     plugins: &[LoaderPlugin],
     processors: &[ProcessorPlugin],
+    formatters: &[FormatterPlugin],
 ) -> Result<(), String> {
     let Some(session_id) = opts.positionals.first().cloned() else {
         return Err("show needs a session id, e.g. `orgtrack show claude_code-<uuid>`".into());
@@ -1397,6 +1438,14 @@ fn cmd_show(
     let source = source_of_session(&session_id, plugins);
     let chunks = apply_chunk_processors(&session_id, &source, chunks, processors, opts.timeout());
 
+    if let Some(formatter) = formatter_for(opts, formatters) {
+        let context = serde_json::json!({
+            "command": "show",
+            "sessionId": session_id,
+            "chunks": chunks,
+        });
+        return render_template(formatter, &context);
+    }
     match opts.format()? {
         Format::Json => println!("{}", to_json(&chunks)?),
         Format::Md => print!("{}", render_show_md(&session_id, &chunks)),
@@ -1670,4 +1719,38 @@ fn truncate(value: &str, max: usize) -> String {
 
 fn to_json<T: serde::Serialize>(value: &T) -> Result<String, String> {
     serde_json::to_string_pretty(value).map_err(|err| format!("json encode: {err}"))
+}
+
+/// If `--format` names a discovered formatter plugin, return it. Checked before
+/// the built-in format parser so a plugin id doesn't read as "unknown format".
+fn formatter_for<'a>(
+    opts: &Options,
+    formatters: &'a [FormatterPlugin],
+) -> Option<&'a FormatterPlugin> {
+    let name = opts.format.as_deref()?;
+    formatters.iter().find(|formatter| formatter.id == name)
+}
+
+/// Render a command's result JSON through a formatter's sandboxed template and
+/// print it. The template runs no code and gets no fs/network access.
+fn render_template(
+    formatter: &FormatterPlugin,
+    context: &serde_json::Value,
+) -> Result<(), String> {
+    let source = std::fs::read_to_string(&formatter.template_path)
+        .map_err(|err| format!("read template {}: {err}", formatter.template_path.display()))?;
+    let mut env = minijinja::Environment::new();
+    env.add_template_owned("formatter", source)
+        .map_err(|err| format!("template '{}' error: {err}", formatter.id))?;
+    let template = env
+        .get_template("formatter")
+        .map_err(|err| format!("template '{}' error: {err}", formatter.id))?;
+    let rendered = template
+        .render(context)
+        .map_err(|err| format!("formatter '{}' render error: {err}", formatter.id))?;
+    print!("{rendered}");
+    if !rendered.ends_with('\n') {
+        println!();
+    }
+    Ok(())
 }
