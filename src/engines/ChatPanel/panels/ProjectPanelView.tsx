@@ -58,10 +58,10 @@ import {
   Placeholder,
 } from "@src/modules/shared/layouts/blocks";
 import {
-  CHAT_PANEL_SURFACE_KIND,
-  type ChatPanelSelectedProject,
-  chatPanelNavigateAtom,
-} from "@src/store/ui/chatPanelAtom";
+  openProjectOrgInChatPanelTabAtom,
+  openWorkItemInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
+import { type ChatPanelSelectedProject } from "@src/store/ui/chatPanelAtom";
 import {
   STORY_ORG_SCOPE,
   STORY_PERSONAL_ORG_FILTER_ID,
@@ -89,7 +89,8 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   selectedProject,
 }) => {
   const { t } = useTranslation(["projects", "common"]);
-  const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
+  const openWorkItemTab = useSetAtom(openWorkItemInChatPanelTabAtom);
+  const openProjectOrgTab = useSetAtom(openProjectOrgInChatPanelTabAtom);
   const sidebarProjectDescription = getProjectOverviewDescription(
     selectedProject.project
   );
@@ -344,19 +345,16 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   const handleOpenOrg = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
-      navigateChatPanel({
-        kind: CHAT_PANEL_SURFACE_KIND.PROJECT_ORG,
-        projectOrg: {
-          orgId: selectedProject.orgId,
-          orgName: orgPathLabel,
-          orgScope:
-            selectedProject.orgId === STORY_PERSONAL_ORG_FILTER_ID
-              ? STORY_ORG_SCOPE.PERSONAL_ORG
-              : STORY_ORG_SCOPE.PROJECT_ORG,
-        },
+      openProjectOrgTab({
+        orgId: selectedProject.orgId,
+        orgName: orgPathLabel,
+        orgScope:
+          selectedProject.orgId === STORY_PERSONAL_ORG_FILTER_ID
+            ? STORY_ORG_SCOPE.PERSONAL_ORG
+            : STORY_ORG_SCOPE.PROJECT_ORG,
       });
     },
-    [navigateChatPanel, orgPathLabel, selectedProject.orgId]
+    [openProjectOrgTab, orgPathLabel, selectedProject.orgId]
   );
 
   const handleOpenProjectOverview = useCallback(
@@ -440,27 +438,18 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     (workItemId: string) => {
       const workItem = workItems.find((item) => item.session_id === workItemId);
       if (!workItem) return;
-      navigateChatPanel({
-        kind: CHAT_PANEL_SURFACE_KIND.WORK_ITEM,
-        workItem: {
-          workItem,
-          projectId: selectedProject.project.id,
-          projectName: selectedProject.project.name,
-          projectSlug: projectSlug ?? selectedProject.projectSlug,
-          shortId: workItemShortIds.get(workItemId) ?? workItemId,
-          orgId: selectedProject.orgId,
-          orgName: selectedProject.orgName,
-          sourceProject: selectedProject,
-        },
+      openWorkItemTab({
+        workItem,
+        projectId: selectedProject.project.id,
+        projectName: selectedProject.project.name,
+        projectSlug: projectSlug ?? selectedProject.projectSlug,
+        shortId: workItemShortIds.get(workItemId) ?? workItemId,
+        orgId: selectedProject.orgId,
+        orgName: selectedProject.orgName,
+        sourceProject: selectedProject,
       });
     },
-    [
-      projectSlug,
-      selectedProject,
-      navigateChatPanel,
-      workItemShortIds,
-      workItems,
-    ]
+    [projectSlug, selectedProject, openWorkItemTab, workItemShortIds, workItems]
   );
 
   const handleSelectWorkItemFromKanban = useCallback(
