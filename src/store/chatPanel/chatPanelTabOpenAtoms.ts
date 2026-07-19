@@ -4,6 +4,9 @@ import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import {
   CHAT_PANEL_START_PAGE_TAB,
   type ChatPanelSelectedCloudOrg,
+  type ChatPanelSelectedProject,
+  type ChatPanelSelectedProjectOrg,
+  type ChatPanelSelectedWorkItem,
   type ChatPanelSelectedWorkspace,
   type ChatPanelStartPageTab,
   type WorkspaceOverviewTab,
@@ -15,6 +18,18 @@ import {
   type WorkManagementSection,
 } from "@src/store/workstation/workstationTabBarAtoms";
 
+import {
+  createCloudOrgTab,
+  createExploreTab,
+  createLaunchpadTab,
+  createProjectOrgTab,
+  createProjectTab,
+  createSessionTab,
+  createTerminalTab,
+  createWorkItemTab,
+  createWorkManagementTab,
+  createWorkspaceTab,
+} from "./chatPanelTabFactories";
 import {
   activateChatPanelTabAtom,
   appendAndActivateChatPanelTabAtom,
@@ -29,18 +44,9 @@ import { chatPanelTabsAtom } from "./chatPanelTabsState";
 export const addChatPanelLaunchpadTabAtom = atom(
   null,
   (_get, set, title: string = "Launchpad") => {
-    const id = `launchpad-${crypto.randomUUID()}`;
-    const now = new Date().toISOString();
-    set(appendAndActivateChatPanelTabAtom, {
-      tab: {
-        id,
-        type: "start-page",
-        title,
-        createdAt: now,
-        updatedAt: now,
-      },
-    });
-    return id;
+    const tab = createLaunchpadTab({ title });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
   }
 );
 addChatPanelLaunchpadTabAtom.debugLabel = "addChatPanelLaunchpadTab";
@@ -113,18 +119,9 @@ export const openKanbanChatPanelTabAtom = atom(
       return existingTab.id;
     }
 
-    const id = "chat-work-management";
-    const now = new Date().toISOString();
-    const tab: ChatPanelTab = {
-      id,
-      type: "work-management",
-      title,
-      managementSection: section,
-      createdAt: now,
-      updatedAt: now,
-    };
+    const tab = createWorkManagementTab({ section, title });
     set(appendAndActivateChatPanelTabAtom, { tab });
-    return id;
+    return tab.id;
   }
 );
 openKanbanChatPanelTabAtom.debugLabel = "openKanbanChatPanelTab";
@@ -173,19 +170,9 @@ export const openWorkspaceOverviewInChatPanelTabAtom = atom(
       return existingTab.id;
     }
 
-    const id = `workspace-${crypto.randomUUID()}`;
-    const now = new Date().toISOString();
-    set(appendAndActivateChatPanelTabAtom, {
-      tab: {
-        id,
-        type: "workspace",
-        title: workspace.name,
-        workspace,
-        createdAt: now,
-        updatedAt: now,
-      },
-    });
-    return id;
+    const tab = createWorkspaceTab({ workspace });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
   }
 );
 openWorkspaceOverviewInChatPanelTabAtom.debugLabel =
@@ -218,19 +205,9 @@ export const openCloudOrgManagementInChatPanelTabAtom = atom(
       return existingTab.id;
     }
 
-    const id = "chat-cloud-org-management";
-    const now = new Date().toISOString();
-    set(appendAndActivateChatPanelTabAtom, {
-      tab: {
-        id,
-        type: "cloud-org",
-        title,
-        cloudOrg,
-        createdAt: now,
-        updatedAt: now,
-      },
-    });
-    return id;
+    const tab = createCloudOrgTab({ cloudOrg, title });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
   }
 );
 openCloudOrgManagementInChatPanelTabAtom.debugLabel =
@@ -254,21 +231,13 @@ export const openSessionInNewChatTabAtom = atom(
         ? { sessionId: optionsOrSessionId }
         : optionsOrSessionId;
     const { sessionId, sessionName, repoPath } = options;
-    const id = `chat-${crypto.randomUUID()}`;
-    const now = new Date().toISOString();
+    const tab = createSessionTab({ sessionId, title: sessionName });
     set(appendAndActivateChatPanelTabAtom, {
-      tab: {
-        id,
-        type: "session",
-        title: sessionName ?? "Chat",
-        createdAt: now,
-        updatedAt: now,
-        sessionId,
-      },
+      tab,
       sessionName,
       repoPath,
     });
-    return id;
+    return tab.id;
   }
 );
 openSessionInNewChatTabAtom.debugLabel = "openSessionInNewChatTab";
@@ -363,20 +332,112 @@ export const addChatPanelTerminalTabAtom = atom(
     } = typeof optionsOrId === "string"
       ? { terminalSessionId: optionsOrId }
       : optionsOrId;
-    const id = `terminal-${crypto.randomUUID()}`;
-    const now = new Date().toISOString();
-    set(appendAndActivateChatPanelTabAtom, {
-      tab: {
-        id,
-        type: "terminal",
-        title,
-        createdAt: now,
-        updatedAt: now,
-        terminalSessionId,
-        cliCommand,
-      },
-    });
-    return id;
+    const tab = createTerminalTab({ terminalSessionId, title, cliCommand });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
   }
 );
 addChatPanelTerminalTabAtom.debugLabel = "addChatPanelTerminalTab";
+
+/**
+ * Open — or focus, if already open — a dedicated tab for a work item. Each
+ * work item gets its own pill (deduped by `shortId`); activating it replays
+ * the payload into the legacy surface atoms via `chatPanelNavigateAtom` so the
+ * work-item panel renders. Re-opening refreshes the stored payload (name /
+ * status can drift) before focusing.
+ */
+export const openWorkItemInChatPanelTabAtom = atom(
+  null,
+  (get, set, workItem: ChatPanelSelectedWorkItem) => {
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) =>
+        tab.type === "work-item" && tab.workItem?.shortId === workItem.shortId
+    );
+    if (existingTab) {
+      set(chatPanelTabsAtom, (prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((tab) =>
+          tab.id === existingTab.id
+            ? { ...tab, title: workItem.workItem.name || tab.title, workItem }
+            : tab
+        ),
+      }));
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+    const tab = createWorkItemTab({ workItem });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
+  }
+);
+openWorkItemInChatPanelTabAtom.debugLabel = "openWorkItemInChatPanelTab";
+
+/** Open or focus a dedicated tab for a project (deduped by slug). */
+export const openProjectInChatPanelTabAtom = atom(
+  null,
+  (get, set, project: ChatPanelSelectedProject) => {
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) =>
+        tab.type === "project" &&
+        tab.project?.projectSlug === project.projectSlug
+    );
+    if (existingTab) {
+      set(chatPanelTabsAtom, (prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((tab) =>
+          tab.id === existingTab.id
+            ? { ...tab, title: project.project.name || tab.title, project }
+            : tab
+        ),
+      }));
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+    const tab = createProjectTab({ project });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
+  }
+);
+openProjectInChatPanelTabAtom.debugLabel = "openProjectInChatPanelTab";
+
+/** Open or focus a dedicated tab for an organization hub (deduped by orgId). */
+export const openProjectOrgInChatPanelTabAtom = atom(
+  null,
+  (get, set, projectOrg: ChatPanelSelectedProjectOrg) => {
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) =>
+        tab.type === "project-org" && tab.projectOrg?.orgId === projectOrg.orgId
+    );
+    if (existingTab) {
+      set(chatPanelTabsAtom, (prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((tab) =>
+          tab.id === existingTab.id
+            ? { ...tab, title: projectOrg.orgName, projectOrg }
+            : tab
+        ),
+      }));
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+    const tab = createProjectOrgTab({ projectOrg });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
+  }
+);
+openProjectOrgInChatPanelTabAtom.debugLabel = "openProjectOrgInChatPanelTab";
+
+/** Open or focus the singleton Explore tab. */
+export const openExploreInChatPanelTabAtom = atom(null, (get, set) => {
+  const existingTab = get(chatPanelTabsAtom).tabs.find(
+    (tab) => tab.type === "explore"
+  );
+  if (existingTab) {
+    set(activateChatPanelTabAtom, existingTab.id);
+    return existingTab.id;
+  }
+  const tab = createExploreTab();
+  set(appendAndActivateChatPanelTabAtom, { tab });
+  return tab.id;
+});
+openExploreInChatPanelTabAtom.debugLabel = "openExploreInChatPanelTab";

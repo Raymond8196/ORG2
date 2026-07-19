@@ -100,6 +100,45 @@ const syncChatPanelTabNavigationAtom = atom(
       return;
     }
 
+    // Surfaces promoted to first-class tabs: replay the tab's stored payload
+    // into the legacy surface atoms so the existing panels render. Each of
+    // these navigate commands resets sibling surfaces and clears the start
+    // page, exactly as direct navigation used to.
+    if (tab.type === "work-item" && tab.workItem) {
+      set(chatPanelNavigateAtom, {
+        kind: CHAT_PANEL_SURFACE_KIND.WORK_ITEM,
+        workItem: tab.workItem,
+      });
+      set(jumpToSessionAtom, null);
+      return;
+    }
+
+    if (tab.type === "project" && tab.project) {
+      set(chatPanelNavigateAtom, {
+        kind: CHAT_PANEL_SURFACE_KIND.PROJECT,
+        project: tab.project,
+      });
+      set(jumpToSessionAtom, null);
+      return;
+    }
+
+    if (tab.type === "project-org" && tab.projectOrg) {
+      set(chatPanelNavigateAtom, {
+        kind: CHAT_PANEL_SURFACE_KIND.PROJECT_ORG,
+        projectOrg: tab.projectOrg,
+      });
+      set(jumpToSessionAtom, null);
+      return;
+    }
+
+    if (tab.type === "explore") {
+      set(chatPanelNavigateAtom, {
+        kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE,
+      });
+      set(jumpToSessionAtom, null);
+      return;
+    }
+
     set(chatPanelStartPageOpenAtom, false);
 
     // Session is the neutral legacy surface underneath tabs whose content is
@@ -180,7 +219,11 @@ export const activateChatPanelTabAtom = atom(
       tab.type === "terminal" ||
       tab.type === "work-management" ||
       tab.type === "workspace" ||
-      tab.type === "cloud-org"
+      tab.type === "cloud-org" ||
+      tab.type === "work-item" ||
+      tab.type === "project" ||
+      tab.type === "project-org" ||
+      tab.type === "explore"
     ) {
       // Surface state for these tabs is fully driven by
       // `syncChatPanelTabNavigationAtom` above; there is no session to jump to.
