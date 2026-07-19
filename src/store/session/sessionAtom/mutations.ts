@@ -28,6 +28,9 @@
  * intentional escape hatch for "the user just did something, bump
  * the row".
  */
+import { cursorIdeTurnSummariesAtomFamily } from "@src/store/session/cursorIdeTurnSummariesAtom";
+import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
+import { clearTodosForSessionAtom } from "@src/store/ui/todoAtom";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import {
@@ -124,6 +127,15 @@ export const removeSession = (sessionId: string) => {
   store.set(sessionsAtom, (prev) =>
     prev.filter((session) => session.session_id !== sessionId)
   );
+  // A removed session has no live viewers, so free its per-session caches.
+  // Without this they accumulate one entry per session for the app lifetime —
+  // and tuiMode additionally leaves a `orgii:tuiMode:<id>` localStorage key.
+  cursorIdeTurnSummariesAtomFamily.remove(sessionId);
+  tuiModeAtom.remove(sessionId);
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem(`orgii:tuiMode:${sessionId}`);
+  }
+  store.set(clearTodosForSessionAtom, sessionId);
 };
 
 /**
