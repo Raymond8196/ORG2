@@ -17,7 +17,6 @@ import { reconcileOrg2CloudPersistedState } from "./org2CloudRosterReconcile";
 import { org2CloudSessionCommentsAtom } from "./org2CloudSessionCommentsAtom";
 import {
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
@@ -79,11 +78,6 @@ describe("resetCloudStateForEndpointSwitch", () => {
     store.set(org2CloudCollabStateCursorsAtom, {
       "corg-1": "2026-07-01T00:00:00.000Z",
     });
-    // Comment agent tasks (0002): persisted delta cursor + in-memory
-    // task/comment caches are old-backend state too.
-    store.set(org2CloudCommentTaskCursorsAtom, {
-      "corg-1": "2026-07-01T00:00:00.000Z",
-    });
     store.set(org2CloudSessionCommentsAtom, {
       "corg-1|session-1": {
         comments: [],
@@ -104,7 +98,6 @@ describe("resetCloudStateForEndpointSwitch", () => {
     expect(store.get(org2CloudPushCursorsAtom)).toEqual({});
     expect(store.get(org2CloudPushedMetadataAtom)).toEqual({});
     expect(store.get(org2CloudCollabStateCursorsAtom)).toEqual({});
-    expect(store.get(org2CloudCommentTaskCursorsAtom)).toEqual({});
     expect(store.get(org2CloudSessionCommentsAtom)).toEqual({});
     expect(store.get(org2CloudRemoteSessionsAtom)).toEqual({});
   });
@@ -135,9 +128,6 @@ describe("resetCloudStateForEndpointSwitch", () => {
     });
     store.set(org2CloudPushedMetadataAtom, { "corg-dead:session-1": true });
     store.set(org2CloudCollabStateCursorsAtom, {
-      "corg-dead": "2026-07-01T00:00:00.000Z",
-    });
-    store.set(org2CloudCommentTaskCursorsAtom, {
       "corg-dead": "2026-07-01T00:00:00.000Z",
     });
 

@@ -36,7 +36,6 @@ import { org2CloudRemoteSessionsAtom } from "./org2CloudRemoteSessionsAtom";
 import { org2CloudSessionCommentsAtom } from "./org2CloudSessionCommentsAtom";
 import {
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
@@ -77,11 +76,6 @@ export function resetCloudStateForEndpointSwitch(store: JotaiStore): void {
   // the roster-reconcile prune-set.
   store.set(org2CloudPushedMetadataAtom, {});
   store.set(org2CloudCollabStateCursorsAtom, {});
-  // Comment cursor (0002): the persisted delta cursor must never be replayed
-  // against a different backend (a restored-from-dump server with preserved
-  // org uuids would silently skip rows updated before it), and the in-memory
-  // comment caches describe old-backend rows.
-  store.set(org2CloudCommentTaskCursorsAtom, {});
   store.set(org2CloudSessionCommentsAtom, {});
   store.set(org2CloudRemoteSessionsAtom, {});
 }

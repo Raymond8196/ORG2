@@ -40,7 +40,6 @@ import type { CloudOrgCollabState } from "./org2CloudProjectsClient";
 import { Org2CloudProjectsError } from "./org2CloudProjectsClient";
 import {
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
@@ -287,7 +286,6 @@ export function createEngineFixture() {
   store.set(org2CloudPushCursorsAtom, {});
   store.set(org2CloudPushedMetadataAtom, {});
   store.set(org2CloudCollabStateCursorsAtom, {});
-  store.set(org2CloudCommentTaskCursorsAtom, {});
   store.set(sessionOrgTagsAtom, {});
   store.set(org2CloudAccessSettingsAtom, {
     "corg-1": {
@@ -354,7 +352,6 @@ export const engineTestDeps = {
   org2CloudSharingFloorAtom,
   org2CloudAuthAtom,
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudOrgsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
