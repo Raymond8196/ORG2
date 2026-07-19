@@ -5210,6 +5210,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "orgtrack_cli"
+version = "0.1.0"
+dependencies = [
+ "core_types",
+ "orgtrack_core",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "toml 0.8.2",
+]
+
+[[package]]
 name = "orgtrack_core"
 version = "0.1.0"
 dependencies = [
