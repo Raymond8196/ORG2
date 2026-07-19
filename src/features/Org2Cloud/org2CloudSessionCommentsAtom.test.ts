@@ -314,6 +314,7 @@ describe("decideSessionCommentsFetch — force is queued, never dropped", () => 
   ): CloudSessionCommentsEntry {
     return {
       comments: [],
+      viewerOwnsSession: false,
       state: "ready",
       fetchedAt: NOW,
       ...overrides,

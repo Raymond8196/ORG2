@@ -571,68 +571,37 @@ async function createInviteFromOwner(previousLink = "") {
   `);
 }
 
-async function assertAddressCommentsAvailableOn(client, label) {
+async function assertAddressCommentsUnavailableOn(client, label) {
   const selector = '[data-testid="chat-input"] [contenteditable="true"]';
   await waitForRenderedOn(client, selector, `${label} composer`);
-  const editor = await client.$(selector);
-  await editor.click();
-  await client.keys("/");
-  const landed = await executeOn(
+  await typeContentEditableOn(client, selector, "/", `${label} slash input`);
+  await client.pause(750);
+  const exposed = await executeOn(
     client,
-    `return document.querySelector(arguments[0])?.textContent?.includes("/") === true;`,
-    [selector]
+    `return !!document.querySelector('[data-testid="slash-command-item"][data-slash-source="org2cloud-address-comments"]');`
   );
-  if (!landed) {
-    await typeContentEditableOn(client, selector, "/", `${label} slash input`);
-  }
-  await waitForRenderedOn(
+  await typeContentEditableOn(
     client,
-    '[data-testid="slash-command-item"][data-slash-source="org2cloud-address-comments"]',
-    `${label} Address Comments action`,
-    CLOUD_FETCH_TIMEOUT_MS
+    selector,
+    "",
+    `${label} clear slash input`
   );
   await pressEscapeOn(client);
-}
-
-async function postCommentOn(client, body, { useAgentSuggestion = false } = {}) {
-  const textareaSelector = '[data-testid="session-comment-composer"] textarea';
-  if (useAgentSuggestion) {
-    const brief = body.slice("@agent ".length);
-    const textarea = await client.$(textareaSelector);
-    await textarea.click();
-    await client.keys("@");
-    const landed = await executeOn(
-      client,
-      `return document.querySelector(arguments[0])?.value === "@";`,
-      [textareaSelector]
-    );
-    if (!landed) {
-      await typeRenderedOn(client, textareaSelector, "@", "secondary @ input");
-    }
-    await waitForRenderedOn(
-      client,
-      '[data-testid="session-comment-agent-suggestion"]',
-      "secondary canonical @agent suggestion"
-    );
-    await clickRenderedOn(
-      client,
-      '[data-testid="session-comment-agent-suggestion"]',
-      "secondary choose @agent suggestion"
-    );
-    await typeRenderedOn(
-      client,
-      textareaSelector,
-      `@agent ${brief}`,
-      "secondary agent comment brief"
-    );
-  } else {
-    await typeRenderedOn(
-      client,
-      textareaSelector,
-      body,
-      "secondary comment body"
+  if (exposed) {
+    throw new Error(
+      `${label} exposed Address Comments even though this viewer does not own the source session`
     );
   }
+}
+
+async function postCommentOn(client, body) {
+  const textareaSelector = '[data-testid="session-comment-composer"] textarea';
+  await typeRenderedOn(
+    client,
+    textareaSelector,
+    body,
+    "secondary comment body"
+  );
   await client.waitUntil(
     async () => {
       const result = await executeOn(
@@ -1484,18 +1453,18 @@ describe("Cloud collaboration with two independent rendered app instances", func
         "secondary reopen imported replay (degraded blame path)"
       );
     } else {
-    await clickRenderedOn(
-      second.client,
-      teamBlameSelector,
-      "secondary open Team Session from blame"
-    );
-    await second.client.waitUntil(
-      async () => {
-        const [state, navigation] = await Promise.all([
-          invokeOn(second.client, "inspectChatState"),
-          executeOn(
-            second.client,
-            `
+      await clickRenderedOn(
+        second.client,
+        teamBlameSelector,
+        "secondary open Team Session from blame"
+      );
+      await second.client.waitUntil(
+        async () => {
+          const [state, navigation] = await Promise.all([
+            invokeOn(second.client, "inspectChatState"),
+            executeOn(
+              second.client,
+              `
               const scope = document.querySelector('[data-testid="sidebar-org-selector-scope"]');
               const row = document.querySelector(arguments[0]);
               return {
@@ -1504,24 +1473,24 @@ describe("Cloud collaboration with two independent rendered app instances", func
                 rowSelected: row?.getAttribute('data-selected') === 'true',
               };
             `,
-            [REMOTE_ROW_SELECTOR]
-          ),
-        ]);
-        return (
-          state.ok === true &&
-          state.activeSessionId === importedSessionId &&
-          navigation.orgId === `cloud:${teamOrgId}` &&
-          (!memberFilterApplied ||
-            (navigation.rowPresent && navigation.rowSelected))
-        );
-      },
-      {
-        timeout: CLOUD_FETCH_TIMEOUT_MS,
-        interval: 250,
-        timeoutMsg:
-          "Team Session Blame did not reveal its exact filtered cloud row",
-      }
-    );
+              [REMOTE_ROW_SELECTOR]
+            ),
+          ]);
+          return (
+            state.ok === true &&
+            state.activeSessionId === importedSessionId &&
+            navigation.orgId === `cloud:${teamOrgId}` &&
+            (!memberFilterApplied ||
+              (navigation.rowPresent && navigation.rowSelected))
+          );
+        },
+        {
+          timeout: CLOUD_FETCH_TIMEOUT_MS,
+          interval: 250,
+          timeoutMsg:
+            "Team Session Blame did not reveal its exact filtered cloud row",
+        }
+      );
     }
     if (memberFilterApplied) {
       await clickRenderedOn(
@@ -1627,9 +1596,23 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="session-comment-composer"] textarea',
       "secondary turn comment composer"
     );
-    await postCommentOn(second.client, COMMENT_BODY, {
-      useAgentSuggestion: true,
-    });
+    await typeRenderedOn(
+      second.client,
+      '[data-testid="session-comment-composer"] textarea',
+      "@",
+      "secondary non-owner @ prefix"
+    );
+    await second.client.pause(750);
+    const nonOwnerSuggestion = await executeOn(
+      second.client,
+      `return !!document.querySelector('[data-testid="session-comment-agent-suggestion"]');`
+    );
+    if (nonOwnerSuggestion) {
+      throw new Error(
+        "non-owner imported replay exposed the owner-only @agent suggestion"
+      );
+    }
+    await postCommentOn(second.client, COMMENT_BODY);
     await waitForRendered(
       '[data-testid="session-comment-row"]',
       "owner realtime teammate comment",
@@ -1639,6 +1622,11 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="comment-agent-mention-pill"]',
       "owner rendered @agent mention pill",
       CLOUD_FETCH_TIMEOUT_MS
+    );
+    await waitForGoneOn(
+      second.client,
+      '[data-testid="comment-thread-agent-status"]',
+      "non-owner @agent execution status"
     );
 
     // Session-level notes use the same durable/realtime plane but carry no
@@ -1760,7 +1748,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
         `fork dropped the inherited source turn: ${JSON.stringify(forkState.chatEvents ?? [])}`
       );
     }
-    await assertAddressCommentsAvailableOn(
+    await assertAddressCommentsUnavailableOn(
       second.client,
       "secondary writable fork"
     );
@@ -2303,8 +2291,8 @@ describe("Cloud collaboration with two independent rendered app instances", func
       await invokeOn(second.client, "reloadSessionList"),
       "secondary forced authoritative session reload"
     );
-    const guestImportedId = (guestListAfterReload.sessionIds ?? []).find(
-      (id) => id.startsWith("imported-session-")
+    const guestImportedId = (guestListAfterReload.sessionIds ?? []).find((id) =>
+      id.startsWith("imported-session-")
     );
     if (!guestImportedId) {
       throw new Error(

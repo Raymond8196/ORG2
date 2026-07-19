@@ -27,10 +27,7 @@ import {
   computeFrozenEventCount,
   splitFrozenIntoSegments,
 } from "../TeamCollaboration/engine/collabSyncEngineHelpers";
-import {
-  getSessionForkedFrom,
-  getSessionTaskContext,
-} from "../TeamCollaboration/forkSession";
+import { getSessionForkedFrom } from "../TeamCollaboration/forkSession";
 import { computeSegmentHash } from "../TeamCollaboration/sync/collabGzip";
 import type { CloudPushAccess } from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
@@ -77,8 +74,7 @@ interface PreparedPushEvents {
 }
 
 /**
- * Build the cloud metadata through the same collaboration wire shape used by
- * self-hosted sync, restoring fork/task lineage stripped from Session rows.
+ * Build cloud metadata while restoring fork lineage stripped from Session rows.
  */
 export function buildCloudSessionMetadata(
   session: Session,
@@ -107,20 +103,7 @@ export function buildCloudSessionMetadata(
     ...session,
     forkedFrom: getSessionForkedFrom(session),
   };
-  const taskContext = getSessionTaskContext(session);
-  return toRemoteMetadata(
-    withLineage,
-    org,
-    member,
-    settings,
-    scopeKey,
-    taskContext
-      ? {
-          commentId: taskContext.commentId,
-          sourceSessionId: taskContext.sourceSessionId,
-        }
-      : undefined
-  );
+  return toRemoteMetadata(withLineage, org, member, settings, scopeKey);
 }
 
 /** True for local sessions that may ever be pushed to the cloud. */

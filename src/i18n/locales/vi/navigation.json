@@ -670,19 +670,6 @@
       "incomingOpenExisting": "Mở phiên",
       "incomingRetry": "Thử lại"
     },
-    "agentRunner": {
-      "title": "Trình chạy tác vụ Agent",
-      "desc": "Cài đặt mặc định cho các tác vụ bình luận bạn chạy từ luồng phiên (“Chạy tại đây”)",
-      "machineNotice": "Các lần chạy được thực hiện trên máy này bằng token của tài khoản này",
-      "orgLabel": "Tổ chức",
-      "accountLabel": "Tài khoản",
-      "accountPlaceholder": "Tài khoản mặc định",
-      "modelLabel": "Mô hình",
-      "modelPlaceholder": "Mô hình mặc định",
-      "modeLabel": "Chế độ",
-      "autoRunLabel": "Tự động chạy tác vụ @agent",
-      "autoRunDesc": "Tự động nhận và chạy các tác vụ bình luận @agent đang mở trên các phiên bạn sở hữu. Mặc định tắt — các lượt nhắc @agent của đồng đội sẽ không tiêu tốn token của bạn cho đến khi bạn bật tính năng này."
-    },
     "comments": {
       "task": {
         "assignFailed": "Đã đăng bình luận, nhưng giao cho agent thất bại — thử lại từ luồng",

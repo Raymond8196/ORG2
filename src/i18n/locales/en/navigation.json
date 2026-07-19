@@ -699,19 +699,6 @@
       "incomingOpenExisting": "Open session",
       "incomingRetry": "Try again"
     },
-    "agentRunner": {
-      "title": "Agent task runner",
-      "desc": "Defaults for comment tasks you run from session threads (“Run here”)",
-      "machineNotice": "Runs execute on this machine with this account's tokens",
-      "orgLabel": "Organization",
-      "accountLabel": "Account",
-      "accountPlaceholder": "Default account",
-      "modelLabel": "Model",
-      "modelPlaceholder": "Default model",
-      "modeLabel": "Mode",
-      "autoRunLabel": "Auto-run @agent tasks",
-      "autoRunDesc": "Automatically claim and run open @agent comment tasks on sessions you own. Off by default — teammates' @agent mentions won't spend your tokens until you turn this on."
-    },
     "comments": {
       "task": {
         "assignFailed": "Comment posted, but assigning the agent failed — retry from the thread",

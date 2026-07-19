@@ -672,19 +672,6 @@
       "incomingOpenExisting": "Session öffnen",
       "incomingRetry": "Erneut versuchen"
     },
-    "agentRunner": {
-      "title": "Agent-Task-Runner",
-      "desc": "Voreinstellungen für Kommentar-Tasks, die aus Session-Threads gestartet werden („Hier ausführen“)",
-      "machineNotice": "Läufe werden auf dieser Maschine mit den Tokens dieses Kontos ausgeführt",
-      "orgLabel": "Organisation",
-      "accountLabel": "Konto",
-      "accountPlaceholder": "Standardkonto",
-      "modelLabel": "Modell",
-      "modelPlaceholder": "Standardmodell",
-      "modeLabel": "Modus",
-      "autoRunLabel": "@agent-Aufgaben automatisch ausführen",
-      "autoRunDesc": "Offene @agent-Kommentaraufgaben in deinen eigenen Sitzungen automatisch übernehmen und ausführen. Standardmäßig aus – @agent-Erwähnungen von Teammitgliedern verbrauchen deine Tokens erst, wenn du dies aktivierst."
-    },
     "comments": {
       "task": {
         "assignFailed": "Kommentar gepostet, aber die Zuweisung des Agents ist fehlgeschlagen — im Thread erneut versuchen",

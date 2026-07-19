@@ -203,6 +203,7 @@ const CloudShareImportDialog: React.FC = () => {
         client: buildCloudSessionFetchClient(null, resolved.endpoint),
         orgId: resolved.session.orgId,
         remoteSession: resolved.session,
+        sourceEndpointUrl: resolved.endpoint.supabaseUrl,
         shareToken: token,
         shareEndpointUrl: resolved.endpoint.supabaseUrl,
         workspaceRepoPath: localRepoPath,

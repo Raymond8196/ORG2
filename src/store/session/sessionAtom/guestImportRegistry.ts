@@ -22,6 +22,7 @@ const MAX_REGISTRY_ENTRIES = 100;
 const GuestImportedFromSchema = z.object({
   orgId: z.string(),
   sourceSessionId: z.string(),
+  sourceEndpointUrl: z.string().optional(),
   ownerMemberId: z.string(),
   epoch: z.number(),
   seq: z.number(),

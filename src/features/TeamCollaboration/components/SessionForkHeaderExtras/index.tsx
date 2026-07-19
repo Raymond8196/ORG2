@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { GitFork, MessageSquare } from "lucide-react";
+import { GitFork } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -13,10 +13,9 @@ import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
-import { getSessionForkedFrom, getSessionTaskContext } from "../../forkSession";
+import { getSessionForkedFrom } from "../../forkSession";
 import type { ForkImportedErrorKind } from "../../useForkImportedSession";
 import { useForkImportedSession } from "../../useForkImportedSession";
-import { resolveAddressingComment } from "./addressingComment";
 
 const FORK_ERROR_KEYS: Record<
   Exclude<ForkImportedErrorKind, "cancelled">,
@@ -49,13 +48,8 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
   );
 
   if (!session) return null;
-  const addressing = resolveAddressingComment({
-    taskContext: getSessionTaskContext(session),
-    importedFrom: session.importedFrom,
-    remoteEntries,
-  });
   const showForkButton = Boolean(session.importedFrom);
-  if (!showForkButton && !forkedFrom && !addressing) return null;
+  if (!showForkButton && !forkedFrom) return null;
 
   const handleFork = async (): Promise<void> => {
     if (state === "forking") return;
@@ -92,18 +86,6 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
   };
 
   const forkLabel = t("collaboration.forkImported.headerButton");
-  // The registry carrier has the bounded thread-head excerpt; the wire
-  // carrier (teammate view) deliberately does not — generic copy there.
-  const addressingLabel = addressing?.excerpt
-    ? t("cloud.comments.task.addressingChip", {
-        excerpt: addressing.excerpt,
-      })
-    : t("cloud.comments.task.addressingChipGeneric");
-  const addressingTooltip = addressing?.excerpt
-    ? // The chip truncates; the tooltip carries the full quoted excerpt.
-      addressingLabel
-    : t("cloud.comments.task.addressingChipTooltip");
-
   return (
     <>
       {forkedFrom && (
@@ -137,31 +119,6 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
               <span className="truncate">{forkedFrom.ownerDisplayName}</span>
             </Tag>
           </button>
-        </Tooltip>
-      )}
-      {addressing && (
-        <Tooltip
-          content={addressingTooltip}
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          {/* Same non-interactive Tag treatment as the ⑂ chip above — the
-              wrapper span carries the testid and header placement. */}
-          <span
-            data-testid="session-addressing-comment-chip"
-            className="mr-1 inline-flex"
-          >
-            <Tag
-              size="mini"
-              pill
-              bordered
-              icon={<MessageSquare size={10} strokeWidth={1.75} />}
-              className="h-[20px] max-w-[180px]"
-            >
-              <span className="truncate">{addressingLabel}</span>
-            </Tag>
-          </span>
         </Tooltip>
       )}
       {showForkButton && (

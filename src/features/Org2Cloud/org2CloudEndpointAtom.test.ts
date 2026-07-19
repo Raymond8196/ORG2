@@ -81,6 +81,7 @@ describe("resetCloudStateForEndpointSwitch", () => {
     store.set(org2CloudSessionCommentsAtom, {
       "corg-1|session-1": {
         comments: [],
+        viewerOwnsSession: false,
         state: "ready",
         fetchedAt: 1,
       },

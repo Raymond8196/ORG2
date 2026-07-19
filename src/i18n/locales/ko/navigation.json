@@ -670,19 +670,6 @@
       "incomingOpenExisting": "세션 열기",
       "incomingRetry": "다시 시도"
     },
-    "agentRunner": {
-      "title": "에이전트 작업 러너",
-      "desc": "세션 스레드에서 실행하는 댓글 작업(‘여기서 실행’)의 기본 설정입니다",
-      "machineNotice": "실행은 이 컴퓨터에서 이 계정의 토큰으로 진행됩니다",
-      "orgLabel": "조직",
-      "accountLabel": "계정",
-      "accountPlaceholder": "기본 계정",
-      "modelLabel": "모델",
-      "modelPlaceholder": "기본 모델",
-      "modeLabel": "모드",
-      "autoRunLabel": "@agent 작업 자동 실행",
-      "autoRunDesc": "내가 소유한 세션에서 열려 있는 @agent 댓글 작업을 자동으로 가져와 실행합니다. 기본값은 꺼짐이며, 켜기 전까지는 팀원의 @agent 멘션이 내 토큰을 사용하지 않습니다."
-    },
     "comments": {
       "task": {
         "assignFailed": "댓글은 등록되었지만 에이전트 할당에 실패했습니다 — 스레드에서 다시 시도하세요",

@@ -26,10 +26,8 @@ import {
   buildPendingForkHandoff,
   forkTeammateSession,
   getSessionForkedFrom,
-  getSessionTaskContext,
   markForkHandoffConsumed,
 } from "./forkSession";
-import type { ForkTaskContext } from "./forkSession";
 import {
   resolveLocalCheckoutForScopeKey,
   resolveShareableScopeKeys,
@@ -150,14 +148,6 @@ const FORKED_FROM: SessionForkedFrom = {
   ownerDisplayName: "Bob",
   atCount: 2,
   forkedAt: "2026-07-02T00:00:00.000Z",
-};
-
-const TASK_CONTEXT: ForkTaskContext = {
-  orgId: "org-1",
-  sourceSessionId: "remote-1",
-  commentId: "comment-1",
-  taskId: "task-1",
-  excerpt: "please look at the failing login flow",
 };
 
 beforeEach(() => {
@@ -463,41 +453,6 @@ describe("forkTeammateSession (design §16.11 relay completion)", () => {
   });
 });
 
-describe("forkTeammateSession taskContext stamping (agent-pickup design §4)", () => {
-  it("round-trips taskContext through the durable registry", async () => {
-    await forkTeammateSession({
-      ...makeForkOptions(),
-      taskContext: TASK_CONTEXT,
-    });
-
-    // The registry is the ONLY local carrier — the read must survive the
-    // localStorage JSON round-trip (which is what a restart replays).
-    expect(
-      getSessionTaskContext({ session_id: "agentsession-fork-1" })
-    ).toEqual(TASK_CONTEXT);
-    // Plain fork provenance coexists on the same entry.
-    expect(
-      getSessionForkedFrom({ session_id: "agentsession-fork-1" })
-    ).toMatchObject({ orgId: "org-1", sourceSessionId: "remote-1" });
-    // Registry-only provenance: the engine fork never sees the task fields.
-    expect(forkSessionMock.mock.calls[0][0]).not.toHaveProperty("taskContext");
-  });
-
-  it("plain forks persist NO taskContext key (additive absence, not null)", async () => {
-    await forkTeammateSession(makeForkOptions());
-
-    const raw = JSON.parse(
-      localStorage.getItem(__FORK_RELAY_INTERNALS.FORK_RELAY_STORAGE_KEY)!
-    ) as Record<string, Record<string, unknown>>;
-    // Pre-taskContext shape preserved byte-for-byte — not `taskContext: null`,
-    // which the additive-optional zod schema would reject.
-    expect("taskContext" in raw["agentsession-fork-1"]).toBe(false);
-    expect(
-      getSessionTaskContext({ session_id: "agentsession-fork-1" })
-    ).toBeUndefined();
-  });
-});
-
 describe("forkTeammateSession workspaceRepoPath key-presence (agent-pickup design §4)", () => {
   it("uses a provided path verbatim without probing the resolver", async () => {
     await forkTeammateSession({
@@ -574,71 +529,6 @@ describe("forkTeammateSession workspaceRepoPath key-presence (agent-pickup desig
     expect(forkSessionMock).toHaveBeenCalledWith(
       expect.objectContaining({ workspaceRepoPath: "/my/checkout/shared" })
     );
-  });
-});
-
-describe("fork-relay registry backward compat (agent-pickup design §5)", () => {
-  function seedRegistry(entries: Record<string, unknown>): void {
-    localStorage.setItem(
-      __FORK_RELAY_INTERNALS.FORK_RELAY_STORAGE_KEY,
-      JSON.stringify(entries)
-    );
-  }
-
-  it("still parses pre-taskContext entries (the pre-0002 shape)", () => {
-    // Persisted before the comment-task layer existed: no taskContext key.
-    // ForkRelayEntrySchema must keep accepting it — a strict parse would
-    // silently reset the whole registry to {} (readRegistry's catch).
-    seedRegistry({
-      "agentsession-pre-task": {
-        forkedFrom: FORKED_FROM,
-        handoffPending: false,
-      },
-    });
-
-    expect(
-      getSessionForkedFrom({ session_id: "agentsession-pre-task" })
-    ).toEqual(FORKED_FROM);
-    // Additive field: absent means "not a comment-task fork", not corrupt.
-    expect(
-      getSessionTaskContext({ session_id: "agentsession-pre-task" })
-    ).toBeUndefined();
-  });
-
-  it("parses entries WITH taskContext and exposes them via getSessionTaskContext", () => {
-    seedRegistry({
-      "agentsession-task-fork": {
-        forkedFrom: FORKED_FROM,
-        handoffPending: true,
-        taskContext: TASK_CONTEXT,
-      },
-    });
-
-    expect(
-      getSessionTaskContext({ session_id: "agentsession-task-fork" })
-    ).toEqual(TASK_CONTEXT);
-    // The same entry still serves plain fork provenance.
-    expect(
-      getSessionForkedFrom({ session_id: "agentsession-task-fork" })
-    ).toEqual(FORKED_FROM);
-  });
-
-  it("returns undefined for sessions with no registry entry", () => {
-    // Empty registry AND a registry holding only other sessions' entries.
-    expect(
-      getSessionTaskContext({ session_id: "agentsession-unknown" })
-    ).toBeUndefined();
-
-    seedRegistry({
-      "agentsession-task-fork": {
-        forkedFrom: FORKED_FROM,
-        handoffPending: false,
-        taskContext: TASK_CONTEXT,
-      },
-    });
-    expect(
-      getSessionTaskContext({ session_id: "agentsession-unknown" })
-    ).toBeUndefined();
   });
 });
 

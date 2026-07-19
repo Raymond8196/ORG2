@@ -41,6 +41,11 @@ const entriesByStore = new WeakMap<
   JotaiStore,
   Map<string, OrgEntitlementEntry>
 >();
+const epochByStore = new WeakMap<JotaiStore, number>();
+
+function currentEpoch(store: JotaiStore): number {
+  return epochByStore.get(store) ?? 0;
+}
 
 function entryFor(store: JotaiStore, orgId: string): OrgEntitlementEntry {
   let entries = entriesByStore.get(store);
@@ -68,6 +73,7 @@ export async function refreshOrgEntitlement(
   getAccessToken: () => Promise<string | null>,
   options: { force?: boolean; isRetry?: boolean } = {}
 ): Promise<void> {
+  const epoch = currentEpoch(store);
   const entry = entryFor(store, orgId);
   if (entry.inFlight) return entry.inFlight;
   const now = Date.now();
@@ -82,6 +88,7 @@ export async function refreshOrgEntitlement(
       const delay = ENTITLEMENT_REFRESH_TTL_MS - (now - entry.lastAttemptAt);
       entry.trailingTimer = setTimeout(() => {
         entry.trailingTimer = null;
+        if (currentEpoch(store) !== epoch) return;
         void refreshOrgEntitlement(store, orgId, getAccessToken);
       }, delay);
     }
@@ -93,9 +100,16 @@ export async function refreshOrgEntitlement(
   }
   entry.lastAttemptAt = now;
   const scheduleRetry = () => {
-    if (entry.trailingTimer || options.isRetry) return;
+    if (
+      currentEpoch(store) !== epoch ||
+      entry.trailingTimer ||
+      options.isRetry
+    ) {
+      return;
+    }
     entry.trailingTimer = setTimeout(() => {
       entry.trailingTimer = null;
+      if (currentEpoch(store) !== epoch) return;
       void refreshOrgEntitlement(store, orgId, getAccessToken, {
         isRetry: true,
       });
@@ -104,8 +118,9 @@ export async function refreshOrgEntitlement(
   const flight = (async () => {
     try {
       const accessToken = await getAccessToken();
-      if (!accessToken) return;
+      if (!accessToken || currentEpoch(store) !== epoch) return;
       const entitlement = await getEntitlementState(accessToken, orgId);
+      if (currentEpoch(store) !== epoch) return;
       if (!entitlement) {
         // Transient read failure: the signal that triggered this refresh
         // may have been the floor change's only nudge — retry once after
@@ -130,8 +145,23 @@ export async function refreshOrgEntitlement(
   }
 }
 
+/**
+ * Invalidate every in-flight/deferred read for a signed-out, switched-user or
+ * switched-endpoint store. Late promises remain harmless because their epoch
+ * can no longer commit into the new identity's UI state.
+ */
+export function resetOrgEntitlementCoordinator(store: JotaiStore): void {
+  const entries = entriesByStore.get(store);
+  if (entries) {
+    for (const entry of entries.values()) {
+      if (entry.trailingTimer) clearTimeout(entry.trailingTimer);
+      entry.trailingTimer = null;
+    }
+  }
+  entriesByStore.delete(store);
+  epochByStore.set(store, currentEpoch(store) + 1);
+}
+
 export const __ENTITLEMENT_COORDINATOR_INTERNALS = {
-  resetForStore(store: JotaiStore): void {
-    entriesByStore.delete(store);
-  },
+  resetForStore: resetOrgEntitlementCoordinator,
 };

@@ -36,6 +36,7 @@ import {
   failOptimisticTurn,
 } from "@src/engines/SessionCore/control/optimisticTurnStatus";
 import { cancelTurnForTimelineBoundary } from "@src/engines/SessionCore/control/sessionTimelineBoundary";
+import { publishTurnIntentDispatch } from "@src/engines/SessionCore/control/turnIntentDispatchLifecycle";
 import {
   beginTurnDispatch,
   confirmTurnRunning,
@@ -230,6 +231,10 @@ export function useQueueDispatch(): void {
       // Synchronous turn reserve BEFORE any await: from this instant every
       // submit and every other dispatch pass observes the session as busy.
       const dispatchGeneration = beginTurnDispatch(sessionId);
+      publishTurnIntentDispatch(msg.turnIntentId, {
+        sessionId,
+        generation: dispatchGeneration,
+      });
 
       // An explicit dispatch concludes any pending stop episode.
       if (msg.priority === "now") {

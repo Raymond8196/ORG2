@@ -28,6 +28,7 @@ import {
 } from "./config";
 import type { Org2CloudEndpointOverride } from "./config";
 import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import { resetOrgEntitlementCoordinator } from "./org2CloudEntitlementCoordinator";
 import {
   org2CloudOrgsAtom,
   org2CloudOrgsLoadedAtom,
@@ -64,6 +65,7 @@ type JotaiStore = ReturnType<typeof createStore>;
  * different server would silently skip or double-apply deltas).
  */
 export function resetCloudStateForEndpointSwitch(store: JotaiStore): void {
+  resetOrgEntitlementCoordinator(store);
   store.set(org2CloudAuthAtom, null);
   store.set(org2CloudOrgsAtom, []);
   store.set(org2CloudOrgsLoadedAtom, false);

@@ -56,17 +56,32 @@ const log = createLogger("collabSyncEngineHelpers");
 
 /**
  * Deterministic local session id for a teammate-session import, derived from
- * (orgId, sourceSessionId). A FAILED import (durable cache write returned 0)
+ * (endpoint, orgId, sourceSessionId). A FAILED import (durable cache write returned 0)
  * used to mint a fresh random id per retry, leaking one orphaned event-store
  * entry per pull cycle; a deterministic id makes every retry land on the
  * same local id, so an aborted attempt is simply overwritten.
  */
 export async function deriveImportedSessionId(
   orgId: string,
-  sourceSessionId: string
+  sourceSessionId: string,
+  sourceEndpointUrl = "unknown-cloud-endpoint"
 ): Promise<string> {
-  const digest = await sha256Hex(`${orgId}:${sourceSessionId}`);
+  const digest = await sha256Hex(
+    `${normalizeSourceEndpointUrl(sourceEndpointUrl)}:${orgId}:${sourceSessionId}`
+  );
   return `imported-session-${digest.slice(0, 32)}`;
+}
+
+export function normalizeSourceEndpointUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    url.search = "";
+    url.pathname = url.pathname.replace(/\/+$/, "");
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return value.trim().replace(/\/+$/, "").toLowerCase();
+  }
 }
 
 export function rewriteEventsForImportedSnapshot(
@@ -114,12 +129,17 @@ export function parseImportedSessionMetadata(
 export function findImportedSession(
   sessions: Session[],
   orgId: string,
-  sourceSessionId: string
+  sourceSessionId: string,
+  sourceEndpointUrl = "unknown-cloud-endpoint"
 ): Session | undefined {
+  const endpoint = normalizeSourceEndpointUrl(sourceEndpointUrl);
   return sessions.find((session) => {
     if (
       session.importedFrom?.orgId === orgId &&
-      session.importedFrom.sourceSessionId === sourceSessionId
+      session.importedFrom.sourceSessionId === sourceSessionId &&
+      normalizeSourceEndpointUrl(
+        session.importedFrom.sourceEndpointUrl ?? "unknown-cloud-endpoint"
+      ) === endpoint
     ) {
       return true;
     }
@@ -233,6 +253,8 @@ export interface RemoteSessionFetchOptions {
   shareToken?: string;
   /** Non-secret issuing endpoint persisted with a guest capability. */
   shareEndpointUrl?: string;
+  /** Deployment identity used to isolate deterministic imports and cursors. */
+  sourceEndpointUrl?: string;
   /** Cancels fetch, decode and the durable local apply. */
   signal?: AbortSignal;
 }
@@ -343,15 +365,10 @@ async function fetchAndAssembleSegments(
 }
 
 /**
- * In-flight dedup for `importRemoteSession`, keyed `${orgId}:${sourceSessionId}`.
- * The engine PullLoop and a panel replay click can race on the same remote
- * session; without dedup both run the fetch + event-store write concurrently
- * (double egress, and interleaved set/saveToCache on the same local id).
+ * Per-source serialization. Each caller keeps its own AbortSignal and result;
+ * concurrent attempts cannot interleave durable writes or cancel one another.
  */
-const inFlightRemoteSessionImports = new Map<
-  string,
-  Promise<ImportRemoteSessionResult | null>
->();
+const remoteSessionImportTails = new Map<string, Promise<void>>();
 
 /**
  * THE import path for teammate sessions — used by both the engine PullLoop
@@ -362,8 +379,8 @@ const inFlightRemoteSessionImports = new Map<
  *   validation, falling back to a full refetch on any mismatch,
  * - persistence (`saveToCache`, fix P7) and the `importedFrom` cursor.
  *
- * Concurrent calls for the same (orgId, sourceSessionId) share one in-flight
- * promise. Returns null when the owner has published no segments and nothing
+ * Concurrent calls for the same source serialize without sharing a caller's
+ * cancellation. Returns null when the owner has published no segments and nothing
  * was previously imported (callers may fall back to the snapshot-request
  * flow); THROWS when the durable cache write fails so callers treat the
  * import as retryable rather than silently absent.
@@ -371,15 +388,31 @@ const inFlightRemoteSessionImports = new Map<
 export async function importRemoteSession(
   options: ImportRemoteSessionOptions
 ): Promise<ImportRemoteSessionResult | null> {
-  const key = `${options.orgId}:${options.remoteSession.sourceSessionId}`;
-  let task = inFlightRemoteSessionImports.get(key);
-  if (!task) {
-    task = importRemoteSessionInner(options).finally(() => {
-      inFlightRemoteSessionImports.delete(key);
-    });
-    inFlightRemoteSessionImports.set(key, task);
+  const endpoint = normalizeSourceEndpointUrl(
+    options.sourceEndpointUrl ??
+      options.shareEndpointUrl ??
+      "unknown-cloud-endpoint"
+  );
+  const key = `${endpoint}:${options.orgId}:${options.remoteSession.sourceSessionId}`;
+  const previous = remoteSessionImportTails.get(key) ?? Promise.resolve();
+  const task = previous
+    .catch(() => undefined)
+    .then(() =>
+      importRemoteSessionInner({ ...options, sourceEndpointUrl: endpoint })
+    );
+  const tail = task.then(
+    () => undefined,
+    () => undefined
+  );
+  remoteSessionImportTails.set(key, tail);
+  let result: ImportRemoteSessionResult | null;
+  try {
+    result = await task;
+  } finally {
+    if (remoteSessionImportTails.get(key) === tail) {
+      remoteSessionImportTails.delete(key);
+    }
   }
-  const result = await task;
   if (result && options.workspaceRepoPath) {
     try {
       await indexOrgtrackCollaborationSession({
@@ -407,14 +440,21 @@ export async function importRemoteSession(
 async function importRemoteSessionInner(
   options: ImportRemoteSessionOptions
 ): Promise<ImportRemoteSessionResult | null> {
-  const { orgId, remoteSession, onBeforeWrite, shareToken, shareEndpointUrl } =
-    options;
+  const {
+    orgId,
+    remoteSession,
+    onBeforeWrite,
+    shareToken,
+    shareEndpointUrl,
+    sourceEndpointUrl = "unknown-cloud-endpoint",
+  } = options;
   const store = getInstrumentedStore();
   const sessions = store.get(sessionsAtom) as Session[];
   const existing = findImportedSession(
     sessions,
     orgId,
-    remoteSession.sourceSessionId
+    remoteSession.sourceSessionId,
+    sourceEndpointUrl
   );
   // Legacy (error_message) imports have no usable cursor → full refetch.
   const cursor = existing?.importedFrom ?? null;
@@ -488,7 +528,11 @@ async function importRemoteSessionInner(
   // reuse the same local id instead of leaking a new orphan per attempt.
   const localSessionId =
     existing?.session_id ??
-    (await deriveImportedSessionId(orgId, remoteSession.sourceSessionId));
+    (await deriveImportedSessionId(
+      orgId,
+      remoteSession.sourceSessionId,
+      sourceEndpointUrl
+    ));
   onBeforeWrite?.(localSessionId);
   const localEvents = rewriteEventsForImportedSnapshot(
     assembled.events,
@@ -499,6 +543,7 @@ async function importRemoteSessionInner(
   const importedFrom: SessionImportedFrom = {
     orgId,
     sourceSessionId: remoteSession.sourceSessionId,
+    sourceEndpointUrl,
     ownerMemberId: remoteSession.ownerMemberId,
     ownerDisplayName: remoteSession.ownerDisplayName,
     externalHistorySource:
@@ -515,44 +560,9 @@ async function importRemoteSessionInner(
     shareEndpointUrl:
       shareEndpointUrl ?? existing?.importedFrom?.shareEndpointUrl,
   };
-  // Migration: a pre-namespacing import left un-namespaced rows in SQLite.
-  // save_events UPSERTs by id, so writing the new namespaced rows would leave
-  // the old bare rows beside them as duplicate orphans (getPersistedEvents
-  // reads SQLite). Purge once when the persisted base is not yet namespaced so
-  // the id-space change replaces cleanly; steady state stays on the upsert.
-  if (existing) {
-    const priorPersisted =
-      await eventStoreProxy.getPersistedEvents(localSessionId);
-    const hasBareRows = priorPersisted.some(
-      (event) => event.id !== namespaceCopyEventId(localSessionId, event.id)
-    );
-    if (hasBareRows) {
-      await eventStoreProxy.clearPersistedHistory(localSessionId);
-    }
-  }
-  // Durably cache the events BEFORE persisting the session record + cursor.
-  // The cursor claims the import is complete, so if we persisted it first and
-  // then the cache write failed (saveToCache swallows errors and returns 0) or
-  // the app crashed in between, the next pull would see a matching cursor and
-  // never re-fetch — stranding a permanently empty transcript. Ordering the
-  // durable write first means a failure just leaves no record and the next
-  // pull retries cleanly.
-  await eventStoreProxy.set(localEvents, localSessionId);
-  const savedCount = await eventStoreProxy.saveToCache(localSessionId);
-  if (localEvents.length > 0 && savedCount <= 0) {
-    // Cache write failed for a non-empty import — do not persist a "complete"
-    // cursor. For a NEW import also drop the just-set events again: with no
-    // session record pointing at them they would sit as an orphaned event
-    // store entry until the retry overwrites them.
-    if (!existing) {
-      await eventStoreProxy.clear(localSessionId);
-    }
-    // Throw (not null): null means "nothing published", which callers treat
-    // as final. This failure is transient and must surface as retryable.
-    throw new Error(
-      `Failed to durably persist imported session ${remoteSession.sourceSessionId} (saveToCache returned ${savedCount})`
-    );
-  }
+  const priorPersisted = existing
+    ? await eventStoreProxy.getPersistedEvents(localSessionId)
+    : [];
   const importedRow: Session = {
     session_id: localSessionId,
     status: "completed",
@@ -584,13 +594,55 @@ async function importRemoteSessionInner(
     // leftover value on upgraded pre-M3 rows.
     error_message: undefined,
   };
-  upsertSession(importedRow);
-  // Guest capability durability: `loadSessions()` replaces the frontend list
-  // from backend/adapter rows, and a share-token import has neither — the
-  // registry re-materializes the row (token + issuing endpoint included) so
-  // fork and parent navigation survive restart and forced refresh.
-  recordGuestImportedSession(importedRow);
-  persistSessions(store.get(sessionsAtom) as Session[]);
+  let storageMutated = false;
+  try {
+    // A pre-namespacing import left bare rows in SQLite. Purge before the
+    // replacement, but keep the prior snapshot above so cancellation/error
+    // can restore the exact pre-import state.
+    const hasBareRows = priorPersisted.some(
+      (event) => event.id !== namespaceCopyEventId(localSessionId, event.id)
+    );
+    if (hasBareRows) {
+      storageMutated = true;
+      await eventStoreProxy.clearPersistedHistory(localSessionId);
+    }
+    // Durable events first, cursor/session row last. Closing the import modal
+    // after this write but before commit triggers the rollback below.
+    storageMutated = true;
+    await eventStoreProxy.set(localEvents, localSessionId);
+    const savedCount = await eventStoreProxy.saveToCache(localSessionId);
+    if (localEvents.length > 0 && savedCount <= 0) {
+      throw new Error(
+        `Failed to durably persist imported session ${remoteSession.sourceSessionId} (saveToCache returned ${savedCount})`
+      );
+    }
+    throwIfAborted(options.signal);
+    // No await after the final abort check: the session row, guest registry
+    // and persisted list commit synchronously as one local critical section.
+    upsertSession(importedRow);
+    recordGuestImportedSession(importedRow);
+    persistSessions(store.get(sessionsAtom) as Session[]);
+  } catch (error) {
+    if (storageMutated) {
+      await eventStoreProxy
+        .clearPersistedHistory(localSessionId)
+        .catch((rollbackError) =>
+          log.error("failed to clear cancelled import history", rollbackError)
+        );
+      if (priorPersisted.length > 0) {
+        await eventStoreProxy.set(priorPersisted, localSessionId);
+        const restored = await eventStoreProxy.saveToCache(localSessionId);
+        if (restored <= 0) {
+          log.error("failed to restore prior import history", {
+            localSessionId,
+          });
+        }
+      } else {
+        await eventStoreProxy.clear(localSessionId).catch(() => undefined);
+      }
+    }
+    throw error;
+  }
   return { localSessionId, updated: true };
 }
 

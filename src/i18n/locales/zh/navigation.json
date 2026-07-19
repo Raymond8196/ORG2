@@ -762,19 +762,6 @@
       "incomingOpenExisting": "打开 session",
       "incomingRetry": "重试"
     },
-    "agentRunner": {
-      "title": "Agent 任务运行器",
-      "desc": "从会话讨论串发起的评论任务（“在本机运行”）的默认设置",
-      "machineNotice": "运行在本机执行，并使用此账号的 token",
-      "orgLabel": "组织",
-      "accountLabel": "账号",
-      "accountPlaceholder": "默认账号",
-      "modelLabel": "模型",
-      "modelPlaceholder": "默认模型",
-      "modeLabel": "模式",
-      "autoRunLabel": "自动运行 @agent 任务",
-      "autoRunDesc": "在你拥有的会话中自动认领并运行未处理的 @agent 评论任务。默认关闭——在你开启之前,队友的 @agent 提及不会消耗你的令牌。"
-    },
     "comments": {
       "task": {
         "assignFailed": "评论已发布，但指派 Agent 失败——请从讨论串重试",

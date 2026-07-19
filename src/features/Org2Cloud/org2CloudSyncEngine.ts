@@ -128,7 +128,7 @@ const CURSOR_OVERLAP_MS = 2_000;
 /**
  * Inbound (cloud→local) fallback cadence. Since inbound pulls are now driven
  * by Supabase Realtime (useOrg2CloudRealtime), the recurring pass only performs
- * the inbound planes (repo scopes / projects+work-items / comment-tasks) as an
+ * the inbound planes (repo scopes / projects+work-items / comments) as an
  * eventual-consistency SAFETY NET — for when the socket is down, an event was
  * missed, or the custom backend has no Realtime. Outbound push is UNAFFECTED:
  * it stays event-driven (es:changed) with the full-cadence pass as its own

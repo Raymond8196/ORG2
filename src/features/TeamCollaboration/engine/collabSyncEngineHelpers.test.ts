@@ -40,6 +40,7 @@ vi.mock("@src/engines/SessionCore/core/store/EventStoreProxy", () => ({
     set: vi.fn(),
     saveToCache: vi.fn(),
     clear: vi.fn(),
+    clearPersistedHistory: vi.fn(),
   },
 }));
 
@@ -174,15 +175,29 @@ describe("splitFrozenIntoSegments 256KB packing", () => {
 });
 
 describe("deriveImportedSessionId", () => {
-  it("is deterministic per (orgId, sourceSessionId) and keeps the imported-session prefix", async () => {
-    const first = await deriveImportedSessionId("org-1", "remote-1");
-    const second = await deriveImportedSessionId("org-1", "remote-1");
+  it("is deterministic per (endpoint, orgId, sourceSessionId) and keeps the imported-session prefix", async () => {
+    const first = await deriveImportedSessionId(
+      "org-1",
+      "remote-1",
+      "https://cloud-a.example.com/"
+    );
+    const second = await deriveImportedSessionId(
+      "org-1",
+      "remote-1",
+      "https://cloud-a.example.com"
+    );
     const otherSession = await deriveImportedSessionId("org-1", "remote-2");
     const otherOrg = await deriveImportedSessionId("org-2", "remote-1");
+    const otherEndpoint = await deriveImportedSessionId(
+      "org-1",
+      "remote-1",
+      "https://cloud-b.example.com"
+    );
     expect(first).toBe(second);
     expect(first).toMatch(/^imported-session-[0-9a-f]{32}$/);
     expect(otherSession).not.toBe(first);
     expect(otherOrg).not.toBe(first);
+    expect(otherEndpoint).not.toBe(first);
   });
 });
 
@@ -243,6 +258,7 @@ describe("importRemoteSession", () => {
     );
     eventStoreMock.set.mockResolvedValue(undefined);
     eventStoreMock.clear.mockResolvedValue(undefined);
+    eventStoreMock.clearPersistedHistory.mockResolvedValue(undefined);
     eventStoreMock.getPersistedEvents.mockResolvedValue([]);
     eventStoreMock.saveToCache.mockResolvedValue(1);
     indexCollaborationSessionMock.mockResolvedValue(0);
@@ -556,6 +572,63 @@ describe("importRemoteSession", () => {
     expect(eventStoreMock.saveToCache).not.toHaveBeenCalled();
   });
 
+  it("rolls back durable history when cancellation arrives before the session-row commit", async () => {
+    const controller = new AbortController();
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+    eventStoreMock.saveToCache.mockImplementationOnce(async () => {
+      controller.abort();
+      return 1;
+    });
+
+    await expect(
+      importRemoteSession({
+        client,
+        orgId: "org-1",
+        remoteSession: makeRemote(),
+        signal: controller.signal,
+      })
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof DOMException && error.name === "AbortError"
+    );
+
+    const expectedId = await deriveImportedSessionId("org-1", "remote-1");
+    expect(eventStoreMock.set).toHaveBeenCalledTimes(1);
+    expect(eventStoreMock.clearPersistedHistory).toHaveBeenCalledWith(
+      expectedId
+    );
+    expect(eventStoreMock.clear).toHaveBeenCalledWith(expectedId);
+    expect(store.get(sessionsAtom)).toHaveLength(0);
+  });
+
+  it("keeps identically named remote sessions from different endpoints isolated", async () => {
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    const cloudA = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote(),
+      sourceEndpointUrl: "https://cloud-a.example.com",
+    });
+    const cloudB = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote(),
+      sourceEndpointUrl: "https://cloud-b.example.com",
+    });
+
+    expect(cloudA?.localSessionId).not.toBe(cloudB?.localSessionId);
+    const records = store.get(sessionsAtom) as Session[];
+    expect(records).toHaveLength(2);
+    expect(
+      records.map((record) => record.importedFrom?.sourceEndpointUrl).sort()
+    ).toEqual(["https://cloud-a.example.com", "https://cloud-b.example.com"]);
+  });
+
   it("fails closed when a segment's eventCount disagrees with its payload", async () => {
     const snapshot = await sealSnapshot(makeSnapshot());
     const tampered = {
@@ -619,7 +692,7 @@ describe("importRemoteSession", () => {
     );
   });
 
-  it("dedups concurrent imports of the same remote session in flight", async () => {
+  it("serializes concurrent imports without sharing a caller's promise", async () => {
     let resolveFirstFetch!: (snapshot: SessionEventSegmentsSnapshot) => void;
     const client = {
       getSessionEventSegments: vi
@@ -655,8 +728,8 @@ describe("importRemoteSession", () => {
         ),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
-    // Engine PullLoop and a panel replay click race on the same session:
-    // the second call must share the first call's in-flight promise.
+    // Engine PullLoop and a panel replay click race on the same session. The
+    // second attempt waits instead of sharing the first caller's cancellation.
     const first = importRemoteSession({
       client,
       orgId: "org-1",
@@ -667,12 +740,14 @@ describe("importRemoteSession", () => {
       orgId: "org-1",
       remoteSession: makeRemote(),
     });
+    for (let flush = 0; flush < 5; flush += 1) await Promise.resolve();
     expect(client.getSessionEventSegments).toHaveBeenCalledTimes(1);
 
     resolveFirstFetch(await sealSnapshot(makeSnapshot()));
     const [firstResult, secondResult] = await Promise.all([first, second]);
     expect(firstResult?.localSessionId).toBe(secondResult?.localSessionId);
-    expect(eventStoreMock.set).toHaveBeenCalledTimes(1);
+    expect(client.getSessionEventSegments).toHaveBeenCalledTimes(2);
+    expect(eventStoreMock.set).toHaveBeenCalledTimes(2);
 
     // The in-flight entry is cleared afterwards: a later call with a newer
     // remote summary fetches again instead of returning the stale promise.
@@ -681,7 +756,7 @@ describe("importRemoteSession", () => {
       orgId: "org-1",
       remoteSession: makeRemote({ eventsFrozenSeq: 2, eventsCount: 2 }),
     });
-    expect(client.getSessionEventSegments).toHaveBeenCalledTimes(2);
+    expect(client.getSessionEventSegments).toHaveBeenCalledTimes(3);
     expect(third?.updated).toBe(true);
   });
 });

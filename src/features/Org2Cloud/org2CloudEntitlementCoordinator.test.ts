@@ -7,6 +7,7 @@ import {
   ENTITLEMENT_REFRESH_TTL_MS,
   __ENTITLEMENT_COORDINATOR_INTERNALS,
   refreshOrgEntitlement,
+  resetOrgEntitlementCoordinator,
 } from "./org2CloudEntitlementCoordinator";
 
 vi.mock("./org2CloudClient", () => ({
@@ -99,5 +100,29 @@ describe("refreshOrgEntitlement", () => {
     await refreshOrgEntitlement(store, "corg-2", async () => null);
     expect(getEntitlementStateMock).not.toHaveBeenCalled();
     expect(store.get(org2CloudSharingFloorAtom)).toEqual({});
+  });
+
+  it("drops a late response from the previous account or endpoint epoch", async () => {
+    let release!: (value: { orgSharingFloor: string }) => void;
+    getEntitlementStateMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = resolve as never;
+        }) as never
+    );
+    const stale = refreshOrgEntitlement(store, "corg-1", token);
+    for (let flush = 0; flush < 5; flush += 1) await Promise.resolve();
+    resetOrgEntitlementCoordinator(store);
+    release({ orgSharingFloor: "full_replay" });
+    await stale;
+    expect(store.get(org2CloudSharingFloorAtom)).toEqual({});
+  });
+
+  it("cancels the trailing retry when identity resets", async () => {
+    getEntitlementStateMock.mockResolvedValueOnce(null as never);
+    await refreshOrgEntitlement(store, "corg-1", token);
+    resetOrgEntitlementCoordinator(store);
+    await vi.advanceTimersByTimeAsync(ENTITLEMENT_REFRESH_TTL_MS * 2);
+    expect(getEntitlementStateMock).toHaveBeenCalledTimes(1);
   });
 });

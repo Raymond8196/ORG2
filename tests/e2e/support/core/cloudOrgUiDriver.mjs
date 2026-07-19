@@ -66,9 +66,8 @@ export const CLOUD_FETCH_TIMEOUT_MS = Number.parseInt(
  * `ORG2_CLOUD_EXPECTED_SCHEMA_VERSION` in src/features/Org2Cloud/config.ts
  * (the app gates custom-endpoint sync on an exact match, so a drifted test
  * project would silently exercise a gated app; the suite skips instead).
- * Pre-release the backend ships as ONE consolidated baseline (version 1,
- * comment + task RPCs included), so the comment scenarios H–L have their
- * RPCs whenever the gate passes.
+ * Pre-release the backend ships as ONE consolidated baseline (version 1),
+ * so the comment scenarios H–L have their RPCs whenever the gate passes.
  */
 export const CLOUD_EXPECTED_SCHEMA_VERSION = Number.parseInt(
   process.env.E2E_CLOUD_EXPECTED_SCHEMA_VERSION ?? "1",
@@ -796,7 +795,7 @@ export async function setCloudSessionVisibilityViaDialog(
 }
 
 // ============================================================================
-// Session comments + in-place agent pickup (2026-07-11 rework)
+// Session comments + owner-local in-place agent follow-up
 // ============================================================================
 //
 // Same contract as everything above: assertions and clicks stay on the
@@ -807,13 +806,10 @@ export async function setCloudSessionVisibilityViaDialog(
 // - `publishCloudSessionMetadata` — the production push path is the sync
 //   engine's 60s pass gated on org repo scopes + the access-ladder opt-in;
 //   driving that from WebDriver would be minutes of setup for a plane the
-//   cloud integration harness already covers. The comments/tasks RPCs
+//   cloud integration harness already covers. The comment RPCs
 //   assert the session row exists and is readable, so the row is seeded
 //   server-side with the same `toRemoteMetadata` wire shape the engine
 //   pushes (accessMode full_replay: turn anchors are server-gated on it).
-// - `listCloudCommentTasks` — ground-truth read that the `@agent ` prefix
-//   created a pickup task server-side (`state`/`attempt` prove the row
-//   exists and stayed unclaimed without driving a live agent turn).
 
 /** Member-tier org2_cloud RPC as the provisioned user (throws on failure). */
 async function cloudMemberRpc(env, accessToken, functionName, body) {
@@ -941,17 +937,6 @@ export async function fetchCloudSessionEvents(
     p_session_id: sessionId,
     ...(afterSeq !== undefined ? { p_after_seq: afterSeq } : {}),
   });
-}
-
-/** Ground-truth task rows for the org (`cloud_list_comment_tasks`). */
-export async function listCloudCommentTasks(env, user, orgId) {
-  const payload = await cloudMemberRpc(
-    env,
-    user.accessToken,
-    "cloud_list_comment_tasks",
-    { p_org_id: orgId }
-  );
-  return payload?.tasks ?? [];
 }
 
 /** Turn-anchored comment toggle (TurnCommentChrome under the user turn). */

@@ -672,19 +672,6 @@
       "incomingOpenExisting": "Abrir sesión",
       "incomingRetry": "Reintentar"
     },
-    "agentRunner": {
-      "title": "Ejecutor de tareas de agente",
-      "desc": "Valores predeterminados para las tareas de comentario que ejecutas desde los hilos de sesión («Ejecutar aquí»)",
-      "machineNotice": "Las ejecuciones se realizan en esta máquina con los tokens de esta cuenta",
-      "orgLabel": "Organización",
-      "accountLabel": "Cuenta",
-      "accountPlaceholder": "Cuenta predeterminada",
-      "modelLabel": "Modelo",
-      "modelPlaceholder": "Modelo predeterminado",
-      "modeLabel": "Modo",
-      "autoRunLabel": "Ejecutar tareas de @agent automáticamente",
-      "autoRunDesc": "Reclama y ejecuta automáticamente las tareas de comentarios de @agent en las sesiones que posees. Desactivado por defecto: las menciones de @agent de tus compañeros no gastarán tus tokens hasta que lo actives."
-    },
     "comments": {
       "task": {
         "assignFailed": "El comentario se publicó, pero la asignación del agente falló — reintenta desde el hilo",

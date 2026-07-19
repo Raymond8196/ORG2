@@ -13,9 +13,8 @@
  *  - Slice B (signals):  per-org subscribe `org_change_signals` — a tiny
  *                        member-readable table that server-side triggers
  *                        touch on EVERY cloud_projects / cloud_work_items /
- *                        cloud_comment_tasks change (the data tables stay
- *                        RPC-only: cloud_comment_tasks carries lease_token
- *                        and must never be client-readable). Any signal →
+ *                        cloud_session_comments change (the data tables stay
+ *                        RPC-only). Any signal →
  *                        `engine.invalidateOrgInbound(orgId)` (reuses the
  *                        existing collab-state pull + cursor/LWW/apply).
  *
@@ -78,7 +77,7 @@ const log = createLogger("Org2CloudRealtime");
  * `REPLICA IDENTITY FULL`, membership in `supabase_realtime`, and an
  * `is_org_member(org_id)` SELECT policy — the row-level authorization
  * Realtime needs. Server triggers bump one row per org on every
- * projects / work-items / comment-tasks change.
+ * projects / work-items / comments change.
  */
 const CHANGE_SIGNALS_TABLE = "org_change_signals";
 
