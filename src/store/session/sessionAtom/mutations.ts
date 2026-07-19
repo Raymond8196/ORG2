@@ -146,11 +146,21 @@ export const updateSessionStatus = (
   status: SessionStatus
 ) => {
   const store = getStore();
-  store.set(sessionsAtom, (prev) =>
-    prev.map((session) =>
-      session.session_id === sessionId ? { ...session, status } : session
-    )
-  );
+  store.set(sessionsAtom, (prev) => {
+    // Short-circuit when the row already carries this status. Live-status
+    // pushes fire many times per second per running agent; without this guard
+    // every heartbeat allocated a fresh length-n array and invalidated the
+    // whole sidebar derivation cascade even when nothing changed.
+    let changed = false;
+    const next = prev.map((session) => {
+      if (session.session_id === sessionId && session.status !== status) {
+        changed = true;
+        return { ...session, status };
+      }
+      return session;
+    });
+    return changed ? next : prev;
+  });
 };
 
 /**
