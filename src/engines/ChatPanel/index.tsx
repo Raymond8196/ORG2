@@ -28,6 +28,7 @@ import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   closeCloudOrgManagementChatPanelTabAtom,
   openSessionInNewChatTabAtom,
+  patchChatPanelWorkItemTabAtom,
   syncActiveChatPanelTabStateAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
@@ -130,6 +131,15 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const createProjectContext = useAtomValue(
       chatPanelCreateProjectContextAtom
     );
+    const patchWorkItemTab = useSetAtom(patchChatPanelWorkItemTabAtom);
+
+    // Work-item edits flow through `chatPanelSelectedWorkItemAtom`; mirror them
+    // back onto the owning work-item tab so re-activating the tab does not
+    // replay a stale payload. No-ops when the payload reference is unchanged
+    // (e.g. the seed written on tab activation).
+    useEffect(() => {
+      if (selectedWorkItem) patchWorkItemTab(selectedWorkItem);
+    }, [selectedWorkItem, patchWorkItemTab]);
 
     const isChatFocus = useAtomValue(chatPanelMaximizedAtom);
     const syncActiveTabState = useSetAtom(syncActiveChatPanelTabStateAtom);
@@ -213,7 +223,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       isTerminalTabActive,
       terminalTabs,
     } = useChatPanelTabsController({
-      currentSessionId: currentSessionId ?? null,
       launchpadTitle: t("navigation:routes.launchpad"),
       kanbanTitle: t("sessions:simulator.tabs.kanban"),
       showSessionSurface,
@@ -598,22 +607,11 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         onSessionContinuation={handleSessionContinuation}
         paginationEnabled={paginationEnabled}
         position={position}
-        selectedCloudOrg={selectedCloudOrg}
-        selectedProject={selectedProject}
-        selectedProjectOrg={selectedProjectOrg}
-        selectedWorkItem={selectedWorkItem}
-        selectedWorkspace={selectedWorkspace}
         showBenchmarkSessionGroupContent={
           contentState.showBenchmarkSessionGroupContent
         }
-        showCloudOrgContent={contentState.showCloudOrgContent}
-        showExploreContent={contentState.showExploreContent}
         showPanelContent={contentState.showPanelContent}
-        showProjectContent={contentState.showProjectContent}
-        showProjectOrgContent={contentState.showProjectOrgContent}
         showSessionContent={contentState.showSessionContent}
-        showWorkItemContent={contentState.showWorkItemContent}
-        showWorkspaceOverviewContent={contentState.showWorkspaceOverviewContent}
       />
     );
 

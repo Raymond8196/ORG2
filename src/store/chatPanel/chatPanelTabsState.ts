@@ -3,10 +3,8 @@ import { atomWithStorage } from "jotai/utils";
 
 import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation/workstationTabBarAtoms";
 
-import {
-  type ChatPanelTabsState,
-  buildInitialChatPanelTabsState,
-} from "./chatPanelTabsModel";
+import { buildInitialChatPanelTabsState } from "./chatPanelTabFactories";
+import { type ChatPanelTabsState } from "./chatPanelTabsModel";
 
 const STORAGE_KEY = "orgii:chatPanelTabs:v2";
 const WRITE_DEBOUNCE_MS = 400;
