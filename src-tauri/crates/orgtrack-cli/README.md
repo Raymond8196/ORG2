@@ -60,26 +60,45 @@ orgtrack show  <id> --format md > session.md   # a portable, human-readable tran
 ## Plugins (custom loaders)
 
 Drop a `plugin.toml` under `~/.orgtrack/plugins/<name>/` (or a dir on
-`$ORGTRACK_PLUGIN_PATH`) to add a **no-code** source. Today one kind is
-supported — a loader over the generic Anthropic/Claude-style JSONL reader:
+`$ORGTRACK_PLUGIN_PATH`) to add a source. A plugin behaves like a built-in for
+`list` / `search` / `show`. Two loader kinds:
+
+**Declarative (no code)** — over the generic Anthropic/Claude-style JSONL
+reader. Reads files only, so no trust needed:
 
 ```toml
 [plugin]
-id     = "my_agent"
-label  = "My Agent"
-kind   = "loader"
-format = "anthropic-jsonl"
-
+id = "my_agent"; label = "My Agent"; kind = "loader"; format = "anthropic-jsonl"
 [loader]
 session_prefix = "my_agent-"
 roots = ["~/.my-agent/sessions"]   # ~ and ${ENV} expand; scanned recursively
 ```
 
-Then `orgtrack plugins list`, `orgtrack list --source my_agent`,
-`orgtrack show my_agent-<id>`. A plugin source behaves like a built-in for
-`list` / `search` / `show`. See `examples/plugins/` for a template and
-`docs/orgtrack-plugins-design.md` for the full design (script loaders,
-processors, and custom formatters are later phases).
+**Exec (a script, any language)** — an executable speaking the plugin JSON
+protocol over stdin/stdout (`scan` → sessions, `load` → chunks). Because it runs
+code it is **inert until trusted**:
+
+```toml
+[plugin]
+id = "my_agent"; kind = "loader"; format = "exec"; exec = "./scan.py"; protocol = 1
+[loader]
+session_prefix = "my_agent-"
+```
+
+```bash
+orgtrack plugins list               # shows it as UNTRUSTED
+orgtrack plugins trust my_agent     # pins a sha256 of manifest + exec
+orgtrack list --source my_agent     # now it runs
+orgtrack show my_agent-<id>
+```
+
+Trust re-arms automatically if the manifest or executable changes (stored in
+`~/.orgtrack/trust.json`). Exec plugins run with a scrubbed env (only
+PATH/HOME), CWD = the manifest dir, never receive the database handle, and are
+killed if they exceed `--timeout`. See `examples/plugins/` for both templates
+(including a reference `scan.py`) and `docs/orgtrack-plugins-design.md` for the
+full protocol. Project-scoped plugins (`./.orgtrack/plugins`) are intentionally
+not auto-loaded.
 
 > **Note:** `usage` analytics are scoped to the primary buckets
 > (claude / codex / cursor / org2), so long-tail built-in sources and plugin
@@ -120,8 +139,8 @@ Today the crate is `publish = false` because it depends on the (also
 unpublished) `orgtrack_core`, which in turn has workspace-path dependencies
 (`core_types`, `orgtrack_protocol`, `orgtrack_sync`, `app_paths`). The crate is
 deliberately dependency-light (`orgtrack_core` + `core_types` + `rusqlite` +
-`serde` + `serde_json` + `toml`) so that lifting it out is mechanical. The path
-to an independent publish:
+`serde` + `serde_json` + `toml` + `sha2`) so that lifting it out is mechanical.
+The path to an independent publish:
 
 1. Publish `orgtrack_core`'s leaf deps, then `orgtrack_core` itself, replacing
    `path = "…"` with versioned `crates.io` deps (or vendor them behind a
