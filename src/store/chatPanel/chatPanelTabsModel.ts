@@ -1,5 +1,8 @@
 import type {
   ChatPanelSelectedCloudOrg,
+  ChatPanelSelectedProject,
+  ChatPanelSelectedProjectOrg,
+  ChatPanelSelectedWorkItem,
   ChatPanelSelectedWorkspace,
 } from "@src/store/ui/chatPanelAtom";
 import {
@@ -13,7 +16,11 @@ export type ChatPanelTabType =
   | "start-page"
   | "work-management"
   | "workspace"
-  | "cloud-org";
+  | "cloud-org"
+  | "work-item"
+  | "project"
+  | "project-org"
+  | "explore";
 
 export interface ChatPanelTab {
   id: string;
@@ -57,6 +64,21 @@ export interface ChatPanelTab {
    * is activated. The management page itself provides the org switcher.
    */
   cloudOrg?: ChatPanelSelectedCloudOrg;
+  /**
+   * For "work-item" tabs: the linked work item plus its project/org context.
+   * Writable in place — the work-item panel edits/refreshes this payload.
+   */
+  workItem?: ChatPanelSelectedWorkItem;
+  /**
+   * For "project" tabs: the linked project plus its slug/org context. The
+   * panel self-fetches the project's work items from `project.projectSlug`.
+   */
+  project?: ChatPanelSelectedProject;
+  /**
+   * For "project-org" tabs: the linked local / project organization whose hub
+   * (work items etc.) this pill owns.
+   */
+  projectOrg?: ChatPanelSelectedProjectOrg;
 }
 
 export interface ChatPanelTabsState {
@@ -161,25 +183,4 @@ export function normalizePersistedChatPanelTabsState(
     ? (candidate.activeTabId as string)
     : survivingTabs[0].id;
   return { tabs: survivingTabs, activeTabId };
-}
-
-const DEFAULT_LAUNCHPAD_TAB_ID = "launchpad-default";
-
-export function buildDefaultLaunchpadTab(): ChatPanelTab {
-  const now = new Date().toISOString();
-  return {
-    id: DEFAULT_LAUNCHPAD_TAB_ID,
-    type: "start-page",
-    title: "Launchpad",
-    createdAt: now,
-    updatedAt: now,
-  };
-}
-
-export function buildInitialChatPanelTabsState(): ChatPanelTabsState {
-  const launchpad = buildDefaultLaunchpadTab();
-  return {
-    tabs: [launchpad],
-    activeTabId: launchpad.id,
-  };
 }

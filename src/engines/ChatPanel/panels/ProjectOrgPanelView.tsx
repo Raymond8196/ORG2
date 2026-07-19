@@ -9,10 +9,13 @@ import {
 import { createLogger } from "@src/hooks/logger";
 import { ProjectOrgHubContent } from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectOrgHubContent";
 import {
+  openProjectInChatPanelTabAtom,
+  openWorkItemInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
   CHAT_PANEL_SURFACE_KIND,
   type ChatPanelSelectedProjectOrg,
   chatPanelNavigateAtom,
-  chatPanelSelectedWorkItemAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
   PROJECT_ORG_SURFACE_VIEW,
@@ -29,7 +32,8 @@ export const ProjectOrgPanelView: React.FC<ProjectOrgPanelViewProps> = ({
   selectedProjectOrg,
 }) => {
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
-  const setSelectedWorkItem = useSetAtom(chatPanelSelectedWorkItemAtom);
+  const openProjectTab = useSetAtom(openProjectInChatPanelTabAtom);
+  const openWorkItemTab = useSetAtom(openWorkItemInChatPanelTabAtom);
   const [orgView, setOrgView] = useState<ProjectOrgSurfaceView>(
     PROJECT_ORG_SURFACE_VIEW.WORK_ITEMS
   );
@@ -40,17 +44,14 @@ export const ProjectOrgPanelView: React.FC<ProjectOrgPanelViewProps> = ({
 
       try {
         const projectData = await projectApi.readProject(projectSlug);
-        navigateChatPanel({
-          kind: CHAT_PANEL_SURFACE_KIND.PROJECT,
-          project: {
-            project: projectDataToUI(projectData, {
-              labelMap: new Map(),
-              memberMap: new Map(),
-            }),
-            projectSlug,
-            orgId: selectedProjectOrg.orgId,
-            orgName: selectedProjectOrg.orgName,
-          },
+        openProjectTab({
+          project: projectDataToUI(projectData, {
+            labelMap: new Map(),
+            memberMap: new Map(),
+          }),
+          projectSlug,
+          orgId: selectedProjectOrg.orgId,
+          orgName: selectedProjectOrg.orgName,
         });
       } catch (error) {
         logger.error("failed to open project from org page", error, {
@@ -60,7 +61,7 @@ export const ProjectOrgPanelView: React.FC<ProjectOrgPanelViewProps> = ({
         });
       }
     },
-    [navigateChatPanel, selectedProjectOrg.orgId, selectedProjectOrg.orgName]
+    [openProjectTab, selectedProjectOrg.orgId, selectedProjectOrg.orgName]
   );
 
   const handleCreateProject = useCallback(() => {
@@ -99,7 +100,7 @@ export const ProjectOrgPanelView: React.FC<ProjectOrgPanelViewProps> = ({
           workItemId,
           { orgId: selectedProjectOrg.orgId }
         );
-        setSelectedWorkItem({
+        openWorkItemTab({
           workItem: workItemDataToUI(workItemData, {
             labelMap: new Map(),
             memberMap: new Map(),
@@ -122,7 +123,7 @@ export const ProjectOrgPanelView: React.FC<ProjectOrgPanelViewProps> = ({
         });
       }
     },
-    [selectedProjectOrg.orgId, selectedProjectOrg.orgName, setSelectedWorkItem]
+    [selectedProjectOrg.orgId, selectedProjectOrg.orgName, openWorkItemTab]
   );
 
   return (
