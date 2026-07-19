@@ -633,6 +633,32 @@ impl<'conn> SqliteRecordStore<'conn> {
             "imported_history_session_cache",
             "cache_write_tokens",
             "INTEGER NOT NULL DEFAULT 0",
+        )?;
+
+        // Per-round token usage for imported sessions (one row per assistant
+        // round / LLM call), mirroring the native `session_token_usage` grain so
+        // the Usage dashboard can render a per-round request log. `input_tokens`
+        // is FRESH (cache excluded); the cache columns are separate.
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS imported_history_round_usage (
+                source             TEXT NOT NULL,
+                source_session_id  TEXT NOT NULL,
+                session_id         TEXT NOT NULL,
+                seq                INTEGER NOT NULL,
+                model              TEXT NOT NULL DEFAULT '',
+                input_tokens       INTEGER NOT NULL DEFAULT 0,
+                output_tokens      INTEGER NOT NULL DEFAULT 0,
+                cache_read_tokens  INTEGER NOT NULL DEFAULT 0,
+                cache_write_tokens INTEGER NOT NULL DEFAULT 0,
+                created_at_ms      INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (session_id, seq)
+            );
+            CREATE INDEX IF NOT EXISTS idx_imported_round_session
+                ON imported_history_round_usage(session_id);
+            CREATE INDEX IF NOT EXISTS idx_imported_round_created
+                ON imported_history_round_usage(created_at_ms DESC);
+            CREATE INDEX IF NOT EXISTS idx_imported_round_source
+                ON imported_history_round_usage(source);",
         )
     }
 

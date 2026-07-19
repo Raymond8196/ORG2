@@ -19,7 +19,7 @@ use crate::sources::imported_history::{
     self, cache as imported_cache,
     metadata::{
         ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
-        SOURCE_CODEX_APP,
+        RoundUsage, SOURCE_CODEX_APP,
     },
     paths as imported_paths, strip_orgii_exec_mode_bridge, ImportedHistoryRecentPath,
     ImportedHistorySessionPage, ImportedHistorySessionRow, ImportedToolCall,
@@ -38,7 +38,9 @@ const CODEX_PROVIDER_SLUG: &str = "codex";
 // v9: derive impact from authoritative `patch_apply_end` events (structured
 // `changes` map with unified diffs) instead of only scanning `apply_patch`
 // tool calls, so `exec`-wrapped and other edit paths are counted too.
-const CODEX_APP_METADATA_PARSER_VERSION: i64 = 9;
+// v10: read info.total_token_usage (was top-level), capture cache split +
+// per-round deltas.
+const CODEX_APP_METADATA_PARSER_VERSION: i64 = 10;
 
 pub type CodexAppSessionRow = ImportedHistorySessionRow;
 pub type CodexAppSessionPage = ImportedHistorySessionPage;
@@ -68,7 +70,10 @@ struct CodexAppSessionMeta {
     repo_path: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
     impact: ImportedHistoryImpactStats,
+    rounds: Vec<RoundUsage>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -148,8 +153,12 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
     // Managed (GUI-launched) Codex sessions surface through their
     // code_sessions row (`cli_agent_type = 'codex'`); the imported twin goes
     // unlistable. Same pattern as the OpenCode/Claude readers.
-    let managed_ids = crate::sources::imported_history::managed_mirror::
-        managed_source_session_ids_from_conn(conn, "codex", SOURCE_CODEX_APP)?;
+    let managed_ids =
+        crate::sources::imported_history::managed_mirror::managed_source_session_ids_from_conn(
+            conn,
+            "codex",
+            SOURCE_CODEX_APP,
+        )?;
     for record in &mut discovered {
         crate::sources::imported_history::managed_mirror::append_managed_fingerprint(
             &mut record.source_fingerprint,
@@ -170,13 +179,17 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
             record.signature()
         })?;
     let mut inputs = Vec::new();
+    let mut rounds = Vec::new();
+    let mut reparsed_ids = Vec::new();
     for record in changed {
-        if let Some(meta) = parse_codex_session_meta(record)? {
+        if let Some(mut meta) = parse_codex_session_meta(record)? {
             let is_managed_history_mirror =
                 crate::sources::imported_history::managed_mirror::is_managed_source_session_id(
                     &managed_ids,
                     &meta.source_session_id,
                 );
+            reparsed_ids.push(meta.session_id.clone());
+            rounds.append(&mut meta.rounds);
             let mut input = session_meta_to_cache_input(meta);
             input.listable = input.listable && !is_managed_history_mirror;
             inputs.push(input);
@@ -187,7 +200,8 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
         SOURCE_CODEX_APP,
         imported_cache::live_ids_from_signatures(&signatures),
         inputs,
-    )
+    )?;
+    imported_cache::write_session_rounds_from_conn(conn, &reparsed_ids, &rounds)
 }
 
 fn discover_codex_app_records() -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
@@ -389,8 +403,19 @@ fn parse_codex_session_meta(
     let mut first_prompt = String::new();
     let mut model: Option<String> = None;
     let mut repo_path: Option<String> = None;
+    // Session totals are accumulated from per-round deltas (robust to codex's
+    // cumulative resets on /compact). `input_tokens` is cache-inclusive here to
+    // match the imported-cache convention.
     let mut input_tokens = 0;
     let mut output_tokens = 0;
+    let mut cache_read_tokens = 0;
+    let mut cache_write_tokens = 0;
+    let mut rounds: Vec<RoundUsage> = Vec::new();
+    // Previous cumulative `total_token_usage` for delta computation.
+    let mut prev_input = 0i64;
+    let mut prev_cached = 0i64;
+    let mut prev_cache_write = 0i64;
+    let mut prev_output = 0i64;
     // Primary impact source: `patch_apply_end` events, which Codex emits after
     // every *successful* apply with a structured `changes` map (path ->
     // unified_diff). This covers every edit path uniformly — the `apply_patch`
@@ -453,15 +478,53 @@ fn parse_codex_session_meta(
             }
         }
         if parsed.payload.get("type").and_then(Value::as_str) == Some("token_count") {
-            if let Some(total_usage) = parsed.payload.get("total_token_usage") {
-                input_tokens = total_usage
-                    .get("input_tokens")
-                    .and_then(Value::as_i64)
-                    .unwrap_or(input_tokens);
-                output_tokens = total_usage
-                    .get("output_tokens")
-                    .and_then(Value::as_i64)
-                    .unwrap_or(output_tokens);
+            // Real rollouts nest usage under `info.total_token_usage` (cumulative).
+            if let Some(total_usage) = parsed
+                .payload
+                .get("info")
+                .and_then(|info| info.get("total_token_usage"))
+                .or_else(|| parsed.payload.get("total_token_usage"))
+            {
+                let field = |key: &str| total_usage.get(key).and_then(Value::as_i64).unwrap_or(0);
+                let cum_input = field("input_tokens"); // cache-inclusive
+                let cum_cached = field("cached_input_tokens");
+                let cum_cache_write = field("cache_write_input_tokens");
+                let cum_output = field("output_tokens") + field("reasoning_output_tokens");
+                // Per-field delta, treating a decrease (codex resets on /compact)
+                // as a fresh start so totals never go negative or undercount.
+                let delta = |cum: i64, prev: i64| if cum >= prev { cum - prev } else { cum };
+                let d_input = delta(cum_input, prev_input);
+                let d_cached = delta(cum_cached, prev_cached);
+                let d_cache_write = delta(cum_cache_write, prev_cache_write);
+                let d_output = delta(cum_output, prev_output);
+                let d_fresh = (d_input - d_cached - d_cache_write).max(0);
+                if d_input > 0 || d_output > 0 {
+                    let event_ms = parsed
+                        .timestamp
+                        .as_deref()
+                        .and_then(imported_history::parse_iso_to_epoch_ms_opt)
+                        .unwrap_or(updated_at_ms);
+                    rounds.push(RoundUsage {
+                        source: SOURCE_CODEX_APP,
+                        source_session_id: record.source_session_id.clone(),
+                        session_id: super::canonical_session_id(&record.source_session_id),
+                        seq: rounds.len() as i64,
+                        model: model.clone(),
+                        input_tokens: d_fresh,
+                        output_tokens: d_output,
+                        cache_read_tokens: d_cached,
+                        cache_write_tokens: d_cache_write,
+                        created_at_ms: event_ms,
+                    });
+                    input_tokens += d_input;
+                    output_tokens += d_output;
+                    cache_read_tokens += d_cached;
+                    cache_write_tokens += d_cache_write;
+                }
+                prev_input = cum_input;
+                prev_cached = cum_cached;
+                prev_cache_write = cum_cache_write;
+                prev_output = cum_output;
             }
         }
         collect_codex_impact_from_patch_apply_end(&parsed.payload, &mut impact, &mut touched_files);
@@ -519,7 +582,10 @@ fn parse_codex_session_meta(
         repo_path,
         input_tokens,
         output_tokens,
+        cache_read_tokens,
+        cache_write_tokens,
         impact,
+        rounds,
     }))
 }
 
@@ -540,9 +606,8 @@ fn session_meta_to_cache_input(meta: CodexAppSessionMeta) -> ImportedHistoryCach
         model: meta.model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
-        // Codex tokens are cache-inclusive but not split by the app-server logs.
-        cache_read_tokens: 0,
-        cache_write_tokens: 0,
+        cache_read_tokens: meta.cache_read_tokens,
+        cache_write_tokens: meta.cache_write_tokens,
         repo_path: meta.repo_path,
         branch: None,
         impact: meta.impact,
