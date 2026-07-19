@@ -136,7 +136,100 @@
       },
       "views": {
         "scanning": "Skanowanie",
-        "hooks": "Hooks"
+        "hooks": "Hooks",
+        "usage": "Użycie"
+      },
+      "usage": {
+        "title": "Użycie i koszt",
+        "subtitle": "Tokeny i szacowany koszt zeskanowanych sesji programistycznych. Dane są odczytywane z lokalnej bazy i nie opuszczają urządzenia.",
+        "allSources": "Wszystkie źródła",
+        "refresh": "Odśwież",
+        "estimatedNote": "Koszt jest szacunkiem według ceny katalogowej dla subskrypcji i własnych kluczy; zmierzone wydatki są wyświetlane, gdy zostały zapisane.",
+        "range": {
+          "today": "Dzisiaj",
+          "24h": "24 godziny",
+          "7d": "7 dni",
+          "30d": "30 dni",
+          "all": "Cały okres"
+        },
+        "bucket": {
+          "claude": "Claude",
+          "codex": "Codex",
+          "cursor": "Cursor",
+          "org2": "Agenci ORGII",
+          "other": "Inne"
+        },
+        "cards": {
+          "realTokens": "Łączna liczba tokenów",
+          "cost": "Łączny koszt (szac.)",
+          "sessions": "Sesje",
+          "requests": "Żądania",
+          "cacheHit": "Współczynnik trafień pamięci podręcznej",
+          "input": "Wejście",
+          "output": "Wyjście",
+          "cacheCreate": "Zapis w pamięci podręcznej",
+          "cacheRead": "Odczyt z pamięci podręcznej"
+        },
+        "trends": {
+          "title": "Trendy użycia",
+          "input": "Wejście",
+          "output": "Wyjście",
+          "cacheCreate": "Zapis w pamięci podręcznej",
+          "cacheRead": "Odczyt z pamięci podręcznej",
+          "cost": "Koszt"
+        },
+        "table": {
+          "title": "Sesje",
+          "name": "Sesja",
+          "agent": "Agent",
+          "model": "Model",
+          "tokens": "Tokeny",
+          "cost": "Koszt",
+          "cacheHit": "Trafienie pamięci podręcznej",
+          "turns": "Tury",
+          "lastActive": "Ostatnia aktywność",
+          "sort": {
+            "recent": "Najnowsze",
+            "cost": "Najwyższy koszt",
+            "tokens": "Najwięcej tokenów"
+          }
+        },
+        "roundsTable": {
+          "title": "Żądania",
+          "time": "Czas",
+          "session": "Sesja",
+          "agent": "Agent",
+          "model": "Model",
+          "input": "Wejście",
+          "output": "Wyjście",
+          "cache": "Odczyt z pamięci podręcznej",
+          "cost": "Koszt",
+          "filterBySession": "Filtruj według tej sesji"
+        },
+        "pricing": {
+          "input": "Wejście",
+          "cache": "Pamięć podręczna",
+          "output": "Wyjście",
+          "total": "Łącznie",
+          "estimate": "Szacunek według ceny katalogowej",
+          "hint": "Najedź na koszt żądania, aby zobaczyć szczegóły.",
+          "loading": "Obliczanie…"
+        },
+        "detail": {
+          "title": "Szczegóły według wywołań",
+          "perTurn": "Wywołania LLM",
+          "perTool": "Wywołania narzędzi",
+          "close": "Zamknij",
+          "noData": "Ta sesja ma tylko sumy na poziomie sesji; przypisanie do poszczególnych wywołań jest rejestrowane dla własnych agentów ORGII.",
+          "turnHeader": "Tura {{turn}}",
+          "promptTokens": "Prompt",
+          "completionTokens": "Uzupełnienie"
+        },
+        "empty": {
+          "title": "Brak danych o użyciu",
+          "subtitle": "Uruchom lub zeskanuj sesje programistyczne, aby zobaczyć tutaj ich użycie tokenów."
+        },
+        "loadError": "Nie udało się wczytać danych o użyciu"
       },
       "sessions_one": "{{count}} sesja",
       "sessions_few": "{{count}} sesje",

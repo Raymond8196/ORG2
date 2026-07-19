@@ -148,6 +148,7 @@
         "subtitle": "已扫描编码会话的 Token 与预估成本。数据读取自本地数据库，不会离开你的设备。",
         "allSources": "全部来源",
         "refresh": "刷新",
+        "estimatedNote": "成本为订阅与自有密钥路径的标价估算；如有记录，将显示实际计量支出。",
         "range": {
           "today": "今天",
           "24h": "24 小时",
@@ -182,6 +183,15 @@
           "cost": "成本"
         },
         "table": {
+          "title": "会话",
+          "name": "会话",
+          "agent": "智能体",
+          "model": "模型",
+          "tokens": "Token",
+          "cost": "成本",
+          "cacheHit": "缓存命中",
+          "turns": "轮次",
+          "lastActive": "最近活动",
           "sort": {
             "recent": "最近",
             "cost": "成本最高",
@@ -208,6 +218,16 @@
           "estimate": "列表价估算",
           "hint": "将鼠标悬停在某条请求的成本上查看明细。",
           "loading": "计算中…"
+        },
+        "detail": {
+          "title": "单次调用明细",
+          "perTurn": "LLM 调用",
+          "perTool": "工具调用",
+          "close": "关闭",
+          "noData": "此会话仅包含会话级总计；单次调用归因仅针对 ORGII 自有智能体的运行进行记录。",
+          "turnHeader": "轮次 {{turn}}",
+          "promptTokens": "提示词",
+          "completionTokens": "补全"
         },
         "empty": {
           "title": "暂无用量",

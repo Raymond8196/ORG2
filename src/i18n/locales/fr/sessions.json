@@ -136,7 +136,100 @@
       },
       "views": {
         "scanning": "Analyse",
-        "hooks": "Hooks"
+        "hooks": "Hooks",
+        "usage": "Utilisation"
+      },
+      "usage": {
+        "title": "Utilisation et coût",
+        "subtitle": "Tokens et coût estimé de vos sessions de programmation analysées. Les données sont lues depuis la base locale et ne quittent pas votre appareil.",
+        "allSources": "Toutes les sources",
+        "refresh": "Actualiser",
+        "estimatedNote": "Le coût est une estimation au tarif catalogue pour les abonnements et les clés personnelles ; la dépense mesurée est affichée lorsqu'elle est enregistrée.",
+        "range": {
+          "today": "Aujourd'hui",
+          "24h": "24 heures",
+          "7d": "7 jours",
+          "30d": "30 jours",
+          "all": "Toute la période"
+        },
+        "bucket": {
+          "claude": "Claude",
+          "codex": "Codex",
+          "cursor": "Cursor",
+          "org2": "Agents ORGII",
+          "other": "Autres"
+        },
+        "cards": {
+          "realTokens": "Total des tokens",
+          "cost": "Coût total (estimé)",
+          "sessions": "Sessions",
+          "requests": "Requêtes",
+          "cacheHit": "Taux de succès du cache",
+          "input": "Entrée",
+          "output": "Sortie",
+          "cacheCreate": "Écriture du cache",
+          "cacheRead": "Lecture du cache"
+        },
+        "trends": {
+          "title": "Tendances d'utilisation",
+          "input": "Entrée",
+          "output": "Sortie",
+          "cacheCreate": "Écriture du cache",
+          "cacheRead": "Lecture du cache",
+          "cost": "Coût"
+        },
+        "table": {
+          "title": "Sessions",
+          "name": "Session",
+          "agent": "Agent",
+          "model": "Modèle",
+          "tokens": "Tokens",
+          "cost": "Coût",
+          "cacheHit": "Succès du cache",
+          "turns": "Tours",
+          "lastActive": "Dernière activité",
+          "sort": {
+            "recent": "Plus récentes",
+            "cost": "Coût le plus élevé",
+            "tokens": "Plus de tokens"
+          }
+        },
+        "roundsTable": {
+          "title": "Requêtes",
+          "time": "Heure",
+          "session": "Session",
+          "agent": "Agent",
+          "model": "Modèle",
+          "input": "Entrée",
+          "output": "Sortie",
+          "cache": "Lecture du cache",
+          "cost": "Coût",
+          "filterBySession": "Filtrer sur cette session"
+        },
+        "pricing": {
+          "input": "Entrée",
+          "cache": "Cache",
+          "output": "Sortie",
+          "total": "Total",
+          "estimate": "Estimation au tarif catalogue",
+          "hint": "Survolez le coût d'une requête pour afficher sa répartition.",
+          "loading": "Calcul en cours…"
+        },
+        "detail": {
+          "title": "Répartition par appel",
+          "perTurn": "Appels LLM",
+          "perTool": "Appels d'outils",
+          "close": "Fermer",
+          "noData": "Cette session ne contient que des totaux globaux ; l'attribution par appel est enregistrée pour les exécutions des agents propres à ORGII.",
+          "turnHeader": "Tour {{turn}}",
+          "promptTokens": "Prompt",
+          "completionTokens": "Complétion"
+        },
+        "empty": {
+          "title": "Aucune utilisation pour le moment",
+          "subtitle": "Exécutez ou analysez des sessions de programmation pour afficher leur utilisation de tokens ici."
+        },
+        "loadError": "Impossible de charger les données d'utilisation"
       },
       "sessions_one": "{{count}} session",
       "sessions_other": "{{count}} sessions",
