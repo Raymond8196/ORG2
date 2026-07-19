@@ -317,7 +317,7 @@ describe("Chat Factories", () => {
       expect(tab.id).toBe("chat-session:session-1");
       expect(tab.type).toBe("chat-session");
       expect(tab.title).toBe("Chat Title");
-      expect(tab.icon).toBe("MessageSquare");
+      expect(tab.icon).toBeUndefined();
       expect(tab.data.workItemId).toBe("work-1");
     });
   });

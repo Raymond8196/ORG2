@@ -43,6 +43,17 @@ describe("resolveSessionRowIcon", () => {
     ).toBe(resolveAgentIcon("opencode"));
   });
 
+  it("uses the Agent Org icon instead of the coordinator agent icon", () => {
+    expect(
+      resolveSessionRowIcon({
+        session_id: "cliagent-org-coordinator",
+        agentOrgId: "org-2",
+        cliAgentType: "opencode",
+        agentIconId: "code",
+      })
+    ).toBe(resolveAgentIcon("network"));
+  });
+
   it("uses the canonical WorkBuddy brand icon for imported WorkBuddy sessions", () => {
     expect(resolveSessionRowIcon("workbuddyapp-example")).toBe(
       resolveAgentIcon("workbuddy")
@@ -65,6 +76,15 @@ describe("resolveSessionRowIcon", () => {
         agentIconId: "network",
       })
     ).toBe(resolveAgentIcon("network"));
+  });
+
+  it("uses imported app metadata when a cloud copy has no branded session id", () => {
+    expect(
+      resolveSessionRowIcon({
+        session_id: "collab-import-1",
+        importedFrom: { externalHistorySource: "codex_app" },
+      })
+    ).toBe(resolveAgentIcon("codex"));
   });
 
   it("identifies current-color provider marks as monochrome brand icons", () => {

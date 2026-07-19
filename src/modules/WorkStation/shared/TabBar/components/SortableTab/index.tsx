@@ -5,6 +5,7 @@
  * and close button with unsaved indicator.
  */
 import { useSortable } from "@dnd-kit/sortable";
+import { useAtomValue } from "jotai";
 import {
   Infinity,
   BookLock,
@@ -53,8 +54,10 @@ import {
 } from "@src/config/gitStatus";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
+import SessionIdentityIcon from "@src/engines/ChatPanel/components/SessionIdentityIcon";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
 import type { GitFileInfo } from "@src/store/git";
+import { sessionByIdAtom } from "@src/store/session";
 import {
   isPlaceholderBrowserSessionTitle,
   translatePlaceholderBrowserSessionTitle,
@@ -111,6 +114,26 @@ type WorkstationTabIconName = keyof typeof WORKSTATION_TAB_ICONS;
 function resolveWorkstationTabIcon(name: string): LucideIcon | null {
   return WORKSTATION_TAB_ICONS[name as WorkstationTabIconName] ?? null;
 }
+
+interface ChatSessionTabIconProps {
+  isActive: boolean;
+  sessionId: string;
+}
+
+const ChatSessionTabIcon: React.FC<ChatSessionTabIconProps> = memo(
+  ({ isActive, sessionId }) => {
+    const session = useAtomValue(sessionByIdAtom(sessionId));
+    return (
+      <SessionIdentityIcon
+        session={session}
+        sessionId={sessionId}
+        isSelected={isActive}
+      />
+    );
+  }
+);
+
+ChatSessionTabIcon.displayName = "ChatSessionTabIcon";
 
 export interface SortableTabProps {
   tab: WorkStationTab;
@@ -185,6 +208,15 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
             size={16}
             strokeWidth={1.75}
             className={isActive ? "text-primary-6" : "text-text-2"}
+          />
+        );
+      }
+
+      if (tab.type === "chat-session") {
+        return (
+          <ChatSessionTabIcon
+            isActive={isActive}
+            sessionId={String(tab.data.sessionId ?? "")}
           />
         );
       }
