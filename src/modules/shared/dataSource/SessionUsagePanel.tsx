@@ -1,26 +1,23 @@
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
   USAGE_BUCKETS,
   type UsageBucket,
+  type UsageRoundRow,
   type UsageScope,
-  type UsageSessionRow,
   type UsageSessionSort,
   type UsageSummary,
   type UsageTrendPoint,
-  usageDashboardSessions,
-  usageDashboardSummary,
-  usageDashboardTrends,
+  usageDashboardOverview,
 } from "@src/api/tauri/usageDashboard";
 import Button from "@src/components/Button";
 import Select from "@src/components/Select";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
-import UsageSessionDetail from "./UsageSessionDetail";
-import UsageSessionsTable from "./UsageSessionsTable";
+import UsageRoundsTable from "./UsageRoundsTable";
 import UsageStatCards from "./UsageStatCards";
 import UsageTrendChart from "./UsageTrendChart";
 import { BucketIcon, bucketLabelKey } from "./usageBuckets";
@@ -31,9 +28,14 @@ import {
 } from "./usageRange";
 
 const SOURCE_ALL = "all";
-const SESSION_ROW_LIMIT = 200;
+const ROUND_ROW_LIMIT = 500;
 
-/** Chat pane → Runtime → Usage: the usage/cost dashboard. */
+interface SelectedSession {
+  id: string;
+  name: string;
+}
+
+/** Chat pane → Runtime → Usage: the usage/cost dashboard (per-round request log). */
 export default function SessionUsagePanel() {
   const { t, i18n } = useTranslation("sessions", {
     keyPrefix: "kanban.dataSource",
@@ -44,18 +46,18 @@ export default function SessionUsagePanel() {
   const [range, setRange] = useState<UsageRangePreset>("today");
   const [sort, setSort] = useState<UsageSessionSort>("recent");
   const [refreshTick, setRefreshTick] = useState(0);
-  const [selected, setSelected] = useState<UsageSessionRow | null>(null);
+  const [session, setSession] = useState<SelectedSession | null>(null);
 
   const [summary, setSummary] = useState<UsageSummary | null>(null);
   const [trends, setTrends] = useState<UsageTrendPoint[]>([]);
-  const [rows, setRows] = useState<UsageSessionRow[]>([]);
+  const [rows, setRows] = useState<UsageRoundRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const scope = useMemo<UsageScope>(() => {
     const { startMs, endMs } = resolveUsageRange(range);
-    return { bucket, startMs, endMs };
-  }, [bucket, range]);
+    return { bucket, startMs, endMs, sessionId: session?.id ?? null };
+  }, [bucket, range, session]);
 
   const hourly = range === "today" || range === "24h";
 
@@ -68,15 +70,15 @@ export default function SessionUsagePanel() {
     setLoading(true);
     setError(null);
     try {
-      const [summaryData, trendData, rowData] = await Promise.all([
-        usageDashboardSummary(scope),
-        usageDashboardTrends(scope),
-        usageDashboardSessions(scope, { sort, limit: SESSION_ROW_LIMIT }),
-      ]);
+      // One backend call → one round-store scan (summary + trends + log).
+      const overview = await usageDashboardOverview(scope, {
+        sort,
+        limit: ROUND_ROW_LIMIT,
+      });
       if (requestId !== requestRef.current) return;
-      setSummary(summaryData);
-      setTrends(trendData);
-      setRows(rowData);
+      setSummary(overview.summary);
+      setTrends(overview.trends);
+      setRows(overview.rounds);
     } catch (err) {
       if (requestId === requestRef.current) setError(String(err));
     } finally {
@@ -144,6 +146,18 @@ export default function SessionUsagePanel() {
         </div>
       </div>
 
+      {session && (
+        <button
+          type="button"
+          onClick={() => setSession(null)}
+          className="flex w-fit items-center gap-1.5 rounded-full border border-border-1 bg-fill-2 px-2.5 py-1 text-[12px] text-text-2 hover:text-text-1"
+        >
+          <span className="text-text-3">{t("usage.roundsTable.session")}:</span>
+          <span className="max-w-[260px] truncate">{session.name}</span>
+          <X size={12} />
+        </button>
+      )}
+
       {error ? (
         <Placeholder
           variant="error"
@@ -169,26 +183,19 @@ export default function SessionUsagePanel() {
             hourly={hourly}
             language={language}
           />
-          <UsageSessionsTable
+          <UsageRoundsTable
             rows={rows}
-            total={summary.sessionCount}
+            total={rows.length}
             sort={sort}
             onSortChange={setSort}
-            onRowClick={(row) =>
-              setSelected((current) =>
-                current?.sessionId === row.sessionId ? null : row
-              )
-            }
-            language={language}
-            selectedSessionId={selected?.sessionId ?? null}
+            onSelectSession={(sessionId) => {
+              const row = rows.find((item) => item.sessionId === sessionId);
+              setSession({
+                id: sessionId,
+                name: row?.sessionName ?? sessionId,
+              });
+            }}
           />
-          {selected && (
-            <UsageSessionDetail
-              session={selected}
-              onClose={() => setSelected(null)}
-              language={language}
-            />
-          )}
         </>
       ) : null}
     </div>
