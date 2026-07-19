@@ -20,7 +20,7 @@
  * React Router to the appropriate path or opens the matching cloud dialog.
  */
 import { emit } from "@tauri-apps/api/event";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -29,6 +29,7 @@ import { parseAuthCallbackFragment } from "@src/features/Org2Cloud/authCallback"
 import { isBillingCompleteDeepLink } from "@src/features/Org2Cloud/billingComplete";
 import { completeOrg2CloudSignIn } from "@src/features/Org2Cloud/completeSignIn";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { resetOrgEntitlementCoordinator } from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
 import {
   type CloudInviteDeepLink,
   type CloudShareDeepLink,
@@ -141,6 +142,7 @@ export function useDeepLinkHandler(): void {
   const setStationMode = useSetAtom(stationModeAtom);
   const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
   const setOrg2CloudAuth = useSetAtom(org2CloudAuthAtom);
+  const store = useStore();
   const hasSetupListener = useRef(false);
   const hasProcessedInitialDeepLink = useRef(false);
   const processedDeepLinks = useRef<Set<string>>(new Set());
@@ -208,10 +210,11 @@ export function useDeepLinkHandler(): void {
       const authCallback = parseAuthCallbackFragment(url);
       if (!authCallback) return false;
       log("DeepLinkHandler", "Completing ORG2 Cloud sign-in from deep link");
+      resetOrgEntitlementCoordinator(store);
       completeOrg2CloudSignIn(authCallback, setOrg2CloudAuth);
       return true;
     },
-    [setOrg2CloudAuth]
+    [setOrg2CloudAuth, store]
   );
 
   // A checkout completed in the system browser: the billing success page

@@ -108,8 +108,9 @@ export function useCloudSessionActions(
       replayAbortRef.current?.abort();
       replayAbortRef.current = new AbortController();
       try {
+        const sourceEndpointUrl = authRef.current?.supabaseUrl;
         const accessToken = await freshAccessToken();
-        if (!accessToken) {
+        if (!accessToken || !sourceEndpointUrl) {
           Message.error(t("cloud.orgPanel.importError"));
           return "failed";
         }
@@ -121,6 +122,7 @@ export function useCloudSessionActions(
           client: buildCloudSessionFetchClient(accessToken),
           orgId,
           remoteSession,
+          sourceEndpointUrl,
           workspaceRepoPath: localRepoPath,
           signal: replayAbortRef.current?.signal,
         });

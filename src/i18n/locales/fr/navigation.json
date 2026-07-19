@@ -672,19 +672,6 @@
       "incomingOpenExisting": "Ouvrir la session",
       "incomingRetry": "Réessayer"
     },
-    "agentRunner": {
-      "title": "Exécuteur de tâches d'agent",
-      "desc": "Réglages par défaut des tâches de commentaire lancées depuis les fils de session (« Exécuter ici »)",
-      "machineNotice": "Les exécutions ont lieu sur cette machine avec les tokens de ce compte",
-      "orgLabel": "Organisation",
-      "accountLabel": "Compte",
-      "accountPlaceholder": "Compte par défaut",
-      "modelLabel": "Modèle",
-      "modelPlaceholder": "Modèle par défaut",
-      "modeLabel": "Mode",
-      "autoRunLabel": "Exécuter automatiquement les tâches @agent",
-      "autoRunDesc": "Récupère et exécute automatiquement les tâches de commentaires @agent sur les sessions que vous possédez. Désactivé par défaut : les mentions @agent de vos coéquipiers ne consommeront pas vos jetons tant que vous ne l'activez pas."
-    },
     "comments": {
       "task": {
         "assignFailed": "Commentaire publié, mais l'assignation de l'agent a échoué — réessayez depuis le fil",

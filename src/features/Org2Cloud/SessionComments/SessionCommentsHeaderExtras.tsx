@@ -1,6 +1,6 @@
 /**
  * SessionCommentsHeaderExtras — chat-panel header entry for SESSION-LEVEL
- * notes (design session-comments-design-0707 §4 UI-2), a sibling of
+ * notes (managed-cloud collaboration design), a sibling of
  * SessionForkHeaderExtras so the header prop plumbing stays one ReactNode.
  *
  * Note icon + live-note count; clicking opens a dialog with the

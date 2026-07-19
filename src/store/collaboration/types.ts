@@ -162,22 +162,6 @@ export interface RemoteSessionForkLineage {
   forkedAt?: string;
 }
 
-/**
- * Comment-task provenance carried on the wire (agent-pickup design §4).
- * Rides in the opaque session payload jsonb — no server column, the same
- * channel as `forkedFrom`. Present on forks the comment-task runner created,
- * so teammates viewing the pushed fork row can link it back to the thread it
- * addresses. Minimal by design: the task row itself (state, attempts, result)
- * lives server-side and is fetched through the task RPCs, never duplicated
- * here.
- */
-export interface RemoteSessionAddressesComment {
-  /** Top-level comment (thread head) id the fork is addressing. */
-  commentId: string;
-  /** Bare session id (owner-side) the comment thread is anchored to. */
-  sourceSessionId: string;
-}
-
 export interface RemoteTeammateSessionMetadata {
   id: string;
   orgId: string;
@@ -240,13 +224,6 @@ export interface RemoteTeammateSessionMetadata {
    * pushed by pre-lineage clients.
    */
   forkedFrom?: RemoteSessionForkLineage;
-  /**
-   * Present iff the session is a comment-task fork (agent-pickup design §4).
-   * Rides in the opaque payload jsonb like `forkedFrom` — absent on ordinary
-   * sessions and on rows pushed by pre-task clients. Must be mirrored in
-   * RemoteTeammateSessionMetadataSchema.
-   */
-  addressesComment?: RemoteSessionAddressesComment;
   deletedAt?: string;
   /**
    * Session-comment counters (cloud migration 0014): live comments /

@@ -1,6 +1,6 @@
 /**
  * TurnCommentChrome — per-turn comment affordance + inline thread panel in
- * the replay transcript (design session-comments-design-0707 §4 UI-1).
+ * the replay transcript (managed-cloud collaboration design).
  *
  * Rendered by `GroupHeaderRenderer` under each turn's user-message card;
  * the anchor id is the turn's leading user-message event id (the same

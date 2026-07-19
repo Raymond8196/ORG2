@@ -762,19 +762,6 @@
       "incomingOpenExisting": "開啟 session",
       "incomingRetry": "重試"
     },
-    "agentRunner": {
-      "title": "Agent 任務執行器",
-      "desc": "從工作階段討論串發起的評論任務（「在本機執行」）的預設設定",
-      "machineNotice": "執行會在本機進行，並使用此帳號的 token",
-      "orgLabel": "組織",
-      "accountLabel": "帳號",
-      "accountPlaceholder": "預設帳號",
-      "modelLabel": "模型",
-      "modelPlaceholder": "預設模型",
-      "modeLabel": "模式",
-      "autoRunLabel": "自動執行 @agent 任務",
-      "autoRunDesc": "在你擁有的工作階段中自動認領並執行未處理的 @agent 評論任務。預設關閉——在你開啟之前,隊友的 @agent 提及不會消耗你的權杖。"
-    },
     "comments": {
       "task": {
         "assignFailed": "評論已發布，但指派 Agent 失敗——請從討論串重試",

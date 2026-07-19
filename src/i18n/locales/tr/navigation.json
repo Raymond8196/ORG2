@@ -670,19 +670,6 @@
       "incomingOpenExisting": "Oturumu aç",
       "incomingRetry": "Yeniden dene"
     },
-    "agentRunner": {
-      "title": "Agent görev çalıştırıcısı",
-      "desc": "Oturum yorum dizilerinden çalıştırdığınız görevler için varsayılanlar (“Burada çalıştır”)",
-      "machineNotice": "Çalıştırmalar bu makinede, bu hesabın token'larıyla yürütülür",
-      "orgLabel": "Organizasyon",
-      "accountLabel": "Hesap",
-      "accountPlaceholder": "Varsayılan hesap",
-      "modelLabel": "Model",
-      "modelPlaceholder": "Varsayılan model",
-      "modeLabel": "Mod",
-      "autoRunLabel": "@agent görevlerini otomatik çalıştır",
-      "autoRunDesc": "Sahibi olduğunuz oturumlardaki açık @agent yorum görevlerini otomatik olarak üstlenip çalıştırır. Varsayılan olarak kapalıdır — siz açana kadar takım arkadaşlarınızın @agent bahsetmeleri jetonlarınızı harcamaz."
-    },
     "comments": {
       "task": {
         "assignFailed": "Yorum gönderildi ancak agent ataması başarısız oldu — diziden yeniden deneyin",

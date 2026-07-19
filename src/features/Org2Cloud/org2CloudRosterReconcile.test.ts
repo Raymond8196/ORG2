@@ -1,7 +1,6 @@
 import { createStore } from "jotai";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { agentTaskRunnerSettingsAtom } from "./agentTaskRunnerSettingsAtom";
 import {
   org2CloudAccessSettingsAtom,
   org2CloudSharingFloorAtom,
@@ -129,9 +128,6 @@ describe("reconcileOrg2CloudPersistedState", () => {
       [LIVE]: "off",
       [ZOMBIE]: "metadata_only",
     });
-    store.set(agentTaskRunnerSettingsAtom, {
-      [ZOMBIE]: { mode: "plan" },
-    });
 
     const pruned = reconcileOrg2CloudPersistedState(store, new Set([LIVE]));
 
@@ -147,9 +143,6 @@ describe("reconcileOrg2CloudPersistedState", () => {
     expect(store.get(org2CloudSharingFloorAtom)).toEqual({
       [LIVE]: "off",
       [ZOMBIE]: "metadata_only",
-    });
-    expect(store.get(agentTaskRunnerSettingsAtom)).toEqual({
-      [ZOMBIE]: { mode: "plan" },
     });
   });
 

@@ -347,6 +347,7 @@ describe("listSessionComments", () => {
   it("parses entries and normalizes nullish fields", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({
+        viewerOwnsSession: true,
         comments: [
           WIRE_COMMENT,
           {
@@ -365,7 +366,12 @@ describe("listSessionComments", () => {
         ],
       })
     );
-    const { comments } = await listSessionComments("jwt-1", "org-1", "sess-1");
+    const { comments, viewerOwnsSession } = await listSessionComments(
+      "jwt-1",
+      "org-1",
+      "sess-1"
+    );
+    expect(viewerOwnsSession).toBe(true);
     expect(lastBody()).toEqual({ p_org_id: "org-1", p_session_id: "sess-1" });
     expect(comments).toHaveLength(2);
     expect(comments[0].authorDisplayName).toBe("Alice");
@@ -396,44 +402,24 @@ describe("listSessionComments", () => {
     expect(comments[0].resolution).toBe("wont_fix");
   });
 
-  it("defaults an absent comments array (pre-0002 backend)", async () => {
+  it("defaults absent additive fields closed", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({}));
     await expect(
       listSessionComments("jwt-1", "org-1", "sess-1")
-    ).resolves.toEqual({ comments: [] });
+    ).resolves.toEqual({ comments: [], viewerOwnsSession: false });
   });
 
-  it("parses the 0002 tasks embed and per-comment kind", async () => {
+  it("parses per-comment agent attribution and ignores unknown fields", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({
         comments: [{ ...WIRE_COMMENT, kind: "agent_report" }],
-        tasks: [
-          {
-            id: "task-1",
-            sessionId: "sess-1",
-            commentId: "comment-1",
-            state: "claimed",
-            leaseExpired: false,
-            claimedByUserId: "user-b",
-            claimedByDisplayName: null,
-            createdByUserId: "user-a",
-            attempt: 1,
-            forkSessionId: null,
-            instruction: null,
-            progress: null,
-            result: null,
-            errorCode: null,
-            createdAt: "2026-07-07T10:00:00.000Z",
-            updatedAt: "2026-07-07T10:01:00.000Z",
-            // The embed never carries it (invariant 1) — but even a
-            // misbehaving backend gets stripped structurally by zod.
-            lease_token: "must-never-surface",
-          },
-        ],
+        unknownLegacyField: [{ secret: "must-never-surface" }],
       })
     );
-    const { comments } = await listSessionComments("jwt-1", "org-1", "sess-1");
+    const result = await listSessionComments("jwt-1", "org-1", "sess-1");
+    const { comments } = result;
     expect(comments[0].kind).toBe("agent_report");
+    expect(result).not.toHaveProperty("unknownLegacyField");
   });
 
   it("maps ORG2_RETENTION_EXPIRED into a coded error", async () => {

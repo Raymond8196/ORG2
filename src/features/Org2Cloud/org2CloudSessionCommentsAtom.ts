@@ -10,14 +10,6 @@
  * row in listing shape, so the insert needs no refetch (design §4
  * "optimistic insert on add"). NOT persisted — visibility is server-side
  * (readable guard + retention window) and rows go stale.
- *
- * 0002: the same fetch also carries the session's agent-task rows
- * (`tasks`, comment_task_wire shape). Comments MERGE per fetch (optimistic
- * adds survive an in-flight snapshot); tasks are WHOLESALE-REPLACED — there
- * are no optimistic task writes (create/claim surfaces call `refresh()`
- * instead), so the server snapshot is always the whole truth. Agent report
- * replies returned by the complete RPC are ordinary comments and insert
- * through the existing `insertComment`.
  */
 import { atom, useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
@@ -63,6 +55,8 @@ export type CloudSessionCommentsFetchState =
 
 export interface CloudSessionCommentsEntry {
   comments: CloudSessionComment[];
+  /** Server-derived permission for spending this session owner's local model. */
+  viewerOwnsSession: boolean;
   state: CloudSessionCommentsFetchState;
   /** Last fetch failure (diagnostics only — UI keys on `state`). */
   errorMessage?: string;
@@ -72,6 +66,7 @@ export interface CloudSessionCommentsEntry {
 
 const EMPTY_ENTRY: CloudSessionCommentsEntry = {
   comments: [],
+  viewerOwnsSession: false,
   state: "idle",
   fetchedAt: 0,
 };
@@ -123,8 +118,7 @@ export type SessionCommentsFetchDecision = "claim" | "skip" | "queue_force";
 /**
  * The atomic-claim decision, extracted pure so the force-vs-in-flight race
  * is testable: a FORCED refresh that lands while a fetch is in flight must
- * never be silently dropped — its intent (a terminal task write just
- * changed the server row) is queued and replayed once the running fetch
+ * never be silently dropped — its intent is queued and replayed once the running fetch
  * settles. Non-forced calls behind an in-flight fetch or a fresh TTL stay
  * plain skips.
  */
@@ -336,6 +330,7 @@ export interface AddCommentInput {
 
 export interface UseSessionCommentsResult {
   comments: CloudSessionComment[];
+  viewerOwnsSession: boolean;
   state: CloudSessionCommentsFetchState;
   /** Refetch now, ignoring the TTL. */
   refresh: () => void;
@@ -466,7 +461,7 @@ export function useSessionComments(
         if (forceToken) activeForceTokenByKey.set(targetKey, forceToken);
         try {
           const accessToken = await withFreshToken();
-          const { comments } = await listSessionComments(
+          const { comments, viewerOwnsSession } = await listSessionComments(
             accessToken,
             targetOrgId,
             targetSessionId
@@ -494,6 +489,7 @@ export function useSessionComments(
               ...previous,
               [targetKey]: {
                 comments: merged,
+                viewerOwnsSession,
                 state: "ready",
                 fetchedAt: Date.now(),
               },
@@ -599,7 +595,7 @@ export function useSessionComments(
       return;
     }
     // org_change_signals carries unrelated projects, sessions, scopes, and
-    // tasks. Let the existing TTL gate this coarse fallback instead of forcing
+    // comments. Let the existing TTL gate this coarse fallback instead of forcing
     // every open session to list comments for every org-level write.
     void fetchComments(orgId, sessionId);
   }, [
@@ -723,6 +719,7 @@ export function useSessionComments(
 
   return {
     comments: entry.comments,
+    viewerOwnsSession: entry.viewerOwnsSession,
     state: entry.state,
     refresh,
     insertLocalComment,

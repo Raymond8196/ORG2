@@ -670,19 +670,6 @@
       "incomingOpenExisting": "セッションを開く",
       "incomingRetry": "再試行"
     },
-    "agentRunner": {
-      "title": "エージェントタスクランナー",
-      "desc": "セッションスレッドから実行するコメントタスク（「ここで実行」）の既定設定です",
-      "machineNotice": "実行はこのマシン上で、このアカウントのトークンを使って行われます",
-      "orgLabel": "組織",
-      "accountLabel": "アカウント",
-      "accountPlaceholder": "既定のアカウント",
-      "modelLabel": "モデル",
-      "modelPlaceholder": "既定のモデル",
-      "modeLabel": "モード",
-      "autoRunLabel": "@agent タスクを自動実行",
-      "autoRunDesc": "自分が所有するセッションで、未処理の @agent コメントタスクを自動的に引き受けて実行します。デフォルトはオフです。オンにするまで、チームメンバーの @agent メンションがあなたのトークンを消費することはありません。"
-    },
     "comments": {
       "task": {
         "assignFailed": "コメントは投稿されましたが、エージェントの割り当てに失敗しました — スレッドから再試行してください",

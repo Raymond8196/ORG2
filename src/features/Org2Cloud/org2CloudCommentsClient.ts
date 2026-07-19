@@ -1,6 +1,6 @@
 /**
- * Managed-cloud session comments client (migration 0014, design
- * session-comments-design-0707 §4).
+ * Managed-cloud session comments client (canonical design:
+ * docs/architecture/managed-cloud-collaboration.md).
  *
  * Typed throwing wrappers for the five `org2_cloud` comment RPCs, in the
  * `org2CloudSharesClient` idiom (raw fetch, JWT Bearer + `Content-Profile:
@@ -17,12 +17,9 @@
  * - Tombstones ride the list with an EMPTY body + `deletedAt` (thread shape
  *   preserved; the client renders "comment deleted").
  *
- * 0002 (comment agent tasks, design session-comments-agent-pickup-design-0707
- * §3/§4) additive extensions, parsed tolerantly so pre-0002 backends keep
- * working:
- * - Every comment carries `kind` ('user' | 'agent_report'); absent on
- *   pre-0002 ⇒ undefined ⇒ 'user' semantics. Any member who can comment on
- *   the session may set `agent_report`; the author is recorded on the row.
+ * Every comment carries `kind` ('user' | 'agent_report'); absent on an older
+ * backend means ordinary user semantics. Only the cloud-session owner's
+ * authenticated client may stamp `agent_report` after its local model round.
  */
 import { z } from "zod/v4";
 
@@ -167,9 +164,8 @@ const CloudSessionCommentWireSchema = z.object({
     .transform((value) => value ?? undefined)
     .optional(),
   /**
-   * 0002 discriminator; absent on pre-0002 backends ⇒ undefined ⇒ 'user'
-   * semantics. `agent_report` is a content label any member who can comment
-   * may set; the author is recorded on the row.
+   * Agent-reply discriminator; absent on an older backend means `user`.
+   * The server accepts `agent_report` only from the cloud-session owner.
    */
   kind: z
     .enum(["user", "agent_report"])
@@ -188,6 +184,8 @@ const AddCommentResultSchema = z.object({
 
 const ListCommentsResultSchema = z.object({
   comments: z.array(CloudSessionCommentWireSchema).default([]),
+  /** Viewer-derived server capability; false for imports, forks and members. */
+  viewerOwnsSession: z.boolean().default(false),
 });
 
 const EditCommentResultSchema = z.object({
@@ -210,7 +208,7 @@ export interface AddSessionCommentInput {
   eventId?: string;
   /** Reply target: an existing TOP-LEVEL comment of the same session. */
   parentId?: string;
-  /** 'agent_report' — a content label any member who can comment may set. */
+  /** 'agent_report' — accepted only from the cloud-session owner. */
   kind?: "agent_report";
   /**
    * Local session the comment ORIGINATED from (the fork the author is
@@ -309,7 +307,7 @@ export type CloudCommentResolution = "resolved" | "wont_fix";
 /**
  * Top-level only; thread author OR session owner OR org admin. Idempotent
  * both ways (`resolved` sets, `!resolved` clears). Resolution stays
- * HUMAN-only — the task complete RPC never touches it.
+ * HUMAN-only — agent replies never change it implicitly.
  */
 export async function resolveSessionComment(
   accessToken: string,
@@ -341,6 +339,7 @@ export async function resolveSessionComment(
 
 export interface SessionCommentsListing {
   comments: CloudSessionComment[];
+  viewerOwnsSession: boolean;
 }
 
 /**

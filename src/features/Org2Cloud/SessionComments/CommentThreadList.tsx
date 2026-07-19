@@ -1,7 +1,7 @@
 /**
  * CommentThreadList — presentational thread list + composer shared by the
  * turn-anchored inline panels and the session-level notes dialog (design
- * session-comments-design-0707 §4).
+ * managed-cloud collaboration design).
  *
  * PR-review semantics: flat threads (top-level + one reply level), a
  * three-state status on thread heads (Active / Resolved / Won't fix), edit
@@ -506,7 +506,7 @@ const ThreadBlock: React.FC<ThreadBlockProps> = ({
         <div
           className="flex items-center gap-1.5 text-[11px] text-text-3"
           data-testid="comment-thread-agent-status"
-          data-task-state="active"
+          data-run-state="active"
         >
           <Loader2 size={12} strokeWidth={2} className="animate-spin" />
           {t("cloud.comments.agentAddressing")}
@@ -573,7 +573,7 @@ const CommentThreadList: React.FC<CommentThreadListProps> = ({
   const openThreads = threads.filter((thread) => !isThreadResolved(thread));
   const resolvedThreads = threads.filter(isThreadResolved);
 
-  const createTask = context?.createTask;
+  const requestAgent = context?.requestAgent;
   const submitTopLevel = useCallback(
     async (body: string): Promise<void> => {
       const comment = await onAdd(body);
@@ -581,25 +581,21 @@ const CommentThreadList: React.FC<CommentThreadListProps> = ({
       // trigger the composer's draft restore for a send that succeeded).
       if (!comment || comment.parentId) return;
       if (!detectAgentPrefix(body)) return;
-      if (!createTask || !context?.canRunTasks) {
-        // No task surface here (header notes dialog mounts outside the
-        // provider; or no cloud sign-in): the advertised `@agent ` sugar
-        // must not be SILENTLY inert — the comment posted verbatim, say
-        // that no agent was assigned instead of letting the user believe
-        // one was.
-        Message.info(t("cloud.comments.task.assignUnavailableHere"));
+      if (!requestAgent || !context?.canRunAgent) {
+        // Read-only/imported surfaces treat a manually typed @agent prefix as
+        // ordinary comment text. There is no assignment, toast or side effect.
         return;
       }
       // Comment-first (design §4 item 2): the body landed VERBATIM above,
       // so a failed create degrades to a normal thread — and create is
       // idempotent per comment (retry-safe by re-sending `@agent `).
       try {
-        await createTask(comment.id);
+        await requestAgent(comment.id);
       } catch {
         Message.warning(t("cloud.comments.task.assignFailed"));
       }
     },
-    [onAdd, createTask, context?.canRunTasks, t]
+    [onAdd, requestAgent, context?.canRunAgent, t]
   );
 
   const composer = showComposer ? (
@@ -607,7 +603,7 @@ const CommentThreadList: React.FC<CommentThreadListProps> = ({
       placeholder={composerPlaceholder ?? t("cloud.comments.addPlaceholder")}
       submitLabel={t("cloud.comments.send")}
       disabled={composerDisabled}
-      allowAgentMention
+      allowAgentMention={Boolean(requestAgent && context?.canRunAgent)}
       onSubmit={submitTopLevel}
       testId="session-comment-composer"
     />

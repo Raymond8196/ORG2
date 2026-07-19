@@ -670,19 +670,6 @@
       "incomingOpenExisting": "Otwórz sesję",
       "incomingRetry": "Spróbuj ponownie"
     },
-    "agentRunner": {
-      "title": "Runner zadań agenta",
-      "desc": "Domyślne ustawienia zadań z komentarzy uruchamianych z wątków sesji („Uruchom tutaj”)",
-      "machineNotice": "Uruchomienia odbywają się na tej maszynie z tokenami tego konta",
-      "orgLabel": "Organizacja",
-      "accountLabel": "Konto",
-      "accountPlaceholder": "Konto domyślne",
-      "modelLabel": "Model",
-      "modelPlaceholder": "Model domyślny",
-      "modeLabel": "Tryb",
-      "autoRunLabel": "Automatycznie uruchamiaj zadania @agent",
-      "autoRunDesc": "Automatycznie przejmuj i uruchamiaj otwarte zadania komentarzy @agent w sesjach, których jesteś właścicielem. Domyślnie wyłączone — wzmianki @agent od członków zespołu nie zużyją Twoich tokenów, dopóki tego nie włączysz."
-    },
     "comments": {
       "task": {
         "assignFailed": "Komentarz opublikowany, ale przypisanie agenta nie powiodło się — ponów próbę z wątku",

@@ -125,17 +125,6 @@ export const RemoteTeammateSessionMetadataSchema = z.object({
     .nullish()
     .transform((value) => value ?? undefined)
     .optional(),
-  // Comment-task provenance (agent-pickup design §4): rides in the opaque
-  // payload jsonb like forkedFrom — no server column. Absent on ordinary
-  // sessions and on rows pushed by pre-task clients.
-  addressesComment: z
-    .object({
-      commentId: z.string(),
-      sourceSessionId: z.string(),
-    })
-    .nullish()
-    .transform((value) => value ?? undefined)
-    .optional(),
   // Trailing .optional() keeps the inferred key optional (`deletedAt?:`) so
   // the persisted-atom storage type stays assignable to the interface.
   deletedAt: z

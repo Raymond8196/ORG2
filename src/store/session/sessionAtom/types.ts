@@ -38,6 +38,11 @@ export type { SessionStatus, PendingQuestion };
 export interface SessionImportedFrom {
   orgId: string;
   sourceSessionId: string;
+  /**
+   * Normalized cloud deployment that owns the source row. Import identity is
+   * `(endpoint, orgId, sourceSessionId)`, never just the latter two.
+   */
+  sourceEndpointUrl?: string;
   ownerMemberId: string;
   /** Segments epoch last applied locally. 0 = legacy snapshot import. */
   epoch: number;

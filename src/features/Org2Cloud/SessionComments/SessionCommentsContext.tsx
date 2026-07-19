@@ -1,6 +1,6 @@
 /**
  * SessionCommentsContext — one comments state per mounted chat surface
- * (design session-comments-design-0707 §4).
+ * (managed-cloud collaboration design).
  *
  * The provider lives in ChatView (which owns the Session object AND the
  * replay event stream) and resolves the cloud comment target once; the
@@ -26,6 +26,7 @@ import React, {
   useMemo,
 } from "react";
 
+import { useUserIntentSubmit } from "@src/engines/ChatPanel/hooks/useWorkspaceChat/useUserIntentSubmit";
 import { createLogger } from "@src/hooks/logger";
 import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session/sessionAtom/types";
@@ -123,9 +124,9 @@ export interface SessionCommentsContextValue {
    * (readable guard + `forkSharedSessionEnabled` at claim). False only on
    * the one locally-KNOWN blocker — no signed-in cloud user.
    */
-  canRunTasks: boolean;
+  canRunAgent: boolean;
   /** Run a personal @agent round for this comment on the local session. */
-  createTask: (commentId: string, instruction?: string) => Promise<void>;
+  requestAgent: (commentId: string, instruction?: string) => Promise<void>;
 }
 
 const SessionCommentsContext =
@@ -220,6 +221,7 @@ export const SessionCommentsProvider: React.FC<
   );
   const {
     comments,
+    viewerOwnsSession,
     state,
     refresh,
     addComment,
@@ -232,7 +234,38 @@ export const SessionCommentsProvider: React.FC<
     originSessionId
   );
   const viewer = useSessionCommentViewer(target);
+  const viewerOwnsCommentSession = Boolean(
+    session &&
+    target &&
+    !session.importedFrom &&
+    !originSessionId &&
+    session.session_id === target.sessionId &&
+    viewerOwnsSession
+  );
   const setPresentRegistry = useSetAtom(sessionCommentPresentEventIdsAtom);
+  const submitUserIntent = useUserIntentSubmit({
+    getSessionId: () => localSessionId,
+  });
+  const dispatchAddressTurn = useCallback(
+    async ({
+      displayContent,
+      agentContent,
+      turnIntentId,
+    }: {
+      displayContent: string;
+      agentContent: string;
+      turnIntentId: string;
+    }): Promise<void> => {
+      if (!localSessionId) throw new Error("no local session for @agent turn");
+      await submitUserIntent({
+        sessionId: localSessionId,
+        displayContent,
+        agentContent,
+        turnIntentId,
+      });
+    },
+    [localSessionId, submitUserIntent]
+  );
 
   // Publish the replay stream's event ids for the header notes dialog —
   // only for cloud targets, so ordinary sessions cause zero registry churn.
@@ -268,17 +301,15 @@ export const SessionCommentsProvider: React.FC<
     [comments, presentEventIds]
   );
 
-  const createTask = useCallback(
+  const requestAgent = useCallback(
     async (commentId: string, instruction?: string): Promise<void> => {
-      if (!target || !session) throw new Error("no cloud comment target");
-      // Personal @agent: run a scoped agent round on THIS machine's local
-      // session for just this comment. No cloud task / lease / pickup — a
-      // teammate's @agent runs on THEIR machine, never here. Fire in the
-      // background so the composer submit doesn't block on the whole turn.
+      if (!target || !session || !viewerOwnsCommentSession) return;
+      // Owner-only: use this session's ordinary local account/model and queue.
       void runAddressCommentsRound({
         orgId: target.orgId,
         cloudSessionId: target.sessionId,
         localSessionId: session.session_id,
+        dispatchTurn: dispatchAddressTurn,
         selectedHeadIds: [commentId],
         ...(instruction !== undefined ? { instruction } : {}),
       })
@@ -289,7 +320,7 @@ export const SessionCommentsProvider: React.FC<
           );
         });
     },
-    [target, session, refresh]
+    [target, session, viewerOwnsCommentSession, dispatchAddressTurn, refresh]
   );
 
   // --- Address comments (batch in-place follow-up) ---
@@ -302,9 +333,9 @@ export const SessionCommentsProvider: React.FC<
     [comments]
   );
   const unresolvedThreadCount = addressableThreads.length;
-  // Imported replays are read-only, so in-place runs are excluded for them.
+  // Parent comments shown on imports/forks never spend this viewer's account.
   const canAddressInPlace = Boolean(
-    session && !session.importedFrom && target && unresolvedThreadCount > 0
+    session && viewerOwnsCommentSession && target && unresolvedThreadCount > 0
   );
 
   const addressAllCommentsImpl = useCallback(async (): Promise<void> => {
@@ -313,9 +344,10 @@ export const SessionCommentsProvider: React.FC<
       orgId: target.orgId,
       cloudSessionId: target.sessionId,
       localSessionId: session.session_id,
+      dispatchTurn: dispatchAddressTurn,
     });
     refresh();
-  }, [target, session, refresh]);
+  }, [target, session, dispatchAddressTurn, refresh]);
 
   const value = useMemo<SessionCommentsContextValue | null>(() => {
     if (!target) return null;
@@ -333,10 +365,8 @@ export const SessionCommentsProvider: React.FC<
       editComment,
       deleteComment,
       resolveComment,
-      // Fail-open (the server gates membership/entitlement/readable); the
-      // one locally-KNOWN blocker is a missing cloud sign-in.
-      canRunTasks: viewer.viewerUserId !== null,
-      createTask,
+      canRunAgent: viewer.viewerUserId !== null && viewerOwnsCommentSession,
+      requestAgent,
       addressAllComments: canAddressInPlace ? addressAllCommentsImpl : null,
       addressRunActive,
       unresolvedThreadCount,
@@ -353,7 +383,8 @@ export const SessionCommentsProvider: React.FC<
     editComment,
     deleteComment,
     resolveComment,
-    createTask,
+    requestAgent,
+    viewerOwnsCommentSession,
     canAddressInPlace,
     addressAllCommentsImpl,
     addressRunActive,

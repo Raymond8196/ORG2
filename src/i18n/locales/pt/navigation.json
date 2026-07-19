@@ -672,19 +672,6 @@
       "incomingOpenExisting": "Abrir sessão",
       "incomingRetry": "Tentar novamente"
     },
-    "agentRunner": {
-      "title": "Executor de tarefas de agente",
-      "desc": "Padrões para tarefas de comentário executadas a partir de threads de sessão (“Executar aqui”)",
-      "machineNotice": "As execuções acontecem nesta máquina com os tokens desta conta",
-      "orgLabel": "Organização",
-      "accountLabel": "Conta",
-      "accountPlaceholder": "Conta padrão",
-      "modelLabel": "Modelo",
-      "modelPlaceholder": "Modelo padrão",
-      "modeLabel": "Modo",
-      "autoRunLabel": "Executar tarefas @agent automaticamente",
-      "autoRunDesc": "Reivindica e executa automaticamente tarefas de comentários @agent nas sessões que você possui. Desativado por padrão — as menções @agent de colegas não gastarão seus tokens até você ativar isto."
-    },
     "comments": {
       "task": {
         "assignFailed": "O comentário foi publicado, mas a atribuição do agente falhou — tente novamente pela thread",

@@ -34,21 +34,19 @@ import { execFileSync } from "node:child_process";
  *   E2E_CLOUD_SUPABASE_URL, E2E_CLOUD_ANON_KEY — throwaway Supabase project
  *   provisioned with the ORGII-cloud-infra migrations (schema_version must
  *   match the app's ORG2_CLOUD_EXPECTED_SCHEMA_VERSION — consolidated
- *   baseline v1, comment + task RPCs included, so the comment scenarios
- *   H–L have their RPCs when live).
+ *   baseline v1, including the comment RPCs used by scenarios H–L).
  *   Plus ONE of:
  *   E2E_CLOUD_SERVICE_KEY                       — mint + clean up a user
  *   E2E_CLOUD_EMAIL + E2E_CLOUD_PASSWORD        — pre-provisioned user
  *
- * COMMENT AGENT SCENARIOS (H, J–L; task-display layer removed 2026-07-19):
- * the comment plane runs LIVE-only (comments/tasks are real RPCs against a
+ * COMMENT AGENT SCENARIOS (H, J–L):
+ * the comment plane runs LIVE-only (comments are real RPCs against a
  * session row seeded server-side — see publishCloudSessionMetadata in the
- * driver). Follow-ups run IN PLACE on the owning session — there is no
- * fork runner, no task card, no Run-here dialog:
+ * driver). Follow-ups enter the owning session's ordinary local queue —
+ * there is no cloud task plane, fork runner, task card, or Run-here dialog:
  *   - H posts an `@agent ` comment through the production composer and
- *     asserts the open pickup task server-side; the task STAYS
- *     open/unclaimed because the per-org owner auto-run opt-in
- *     (`autoRunEnabled`) defaults OFF.
+ *     asserts the durable owner-side thread. In OAuth-live mode the same
+ *     submit also exercises the owner's real local model account.
  *   - J drives the tri-state thread status (Active / Resolved / Won't fix)
  *     through the head-row control.
  *   - K posts a session-level note, opens the slash "Address comments"
@@ -80,10 +78,10 @@ import {
   confirmAddressCommentsFlyout,
   ensureCloudSchemaReady,
   execJS,
+  fetchCloudSessionEvents,
   hasAddressCommentsPill,
   invokeE2E,
   js,
-  listCloudCommentTasks,
   offlineCloudUser,
   openAddressCommentsFlyout,
   openCloudOrgPanelFromSidebar,
@@ -92,7 +90,6 @@ import {
   postSessionNote,
   postTurnComment,
   pressEscape,
-  fetchCloudSessionEvents,
   provisionCloudUser,
   publishCloudSessionEvents,
   publishCloudSessionMetadata,
@@ -128,12 +125,12 @@ const SIGNED_OUT_ALIAS_NAME = `Signed-out cloud workspace ${RUN_ID}`;
 const LIVE_CREATED_ORG_NAME = `E2E Cloud Created ${RUN_ID}`;
 const SYNC_LEVEL_SESSION_ID = `e2e-cloud-sync-${RUN_ID}`;
 const SHARE_SESSION_ID = `e2e-cloud-share-${RUN_ID}`;
-const TASK_SESSION_ID = `e2e-cloud-task-${RUN_ID}`;
-const TASK_SESSION_TITLE = `E2E cloud task ${RUN_ID}`;
-const TASK_COMMENT_BODY = `@agent E2E agent task ${RUN_ID}: tighten the error handling in this turn`;
+const AGENT_SESSION_ID = `e2e-cloud-task-${RUN_ID}`;
+const AGENT_SESSION_TITLE = `E2E cloud task ${RUN_ID}`;
+const AGENT_COMMENT_BODY = `@agent E2E owner follow-up ${RUN_ID}: tighten the error handling in this turn`;
 const SESSION_NOTE_BODY = `E2E session-level note ${RUN_ID}: verify the overall outcome`;
-const TASK_TURN_ANCHOR_ID = `user-${TASK_SESSION_ID}`;
-const TASK_AGENT_BOOTSTRAP_PROMPT = `Reply exactly CLOUD_AGENT_READY_${RUN_ID} and do not call tools.`;
+const AGENT_TURN_ANCHOR_ID = `user-${AGENT_SESSION_ID}`;
+const AGENT_BOOTSTRAP_PROMPT = `Reply exactly CLOUD_AGENT_READY_${RUN_ID} and do not call tools.`;
 const LIVE_AGENT_ROUND = process.env.E2E_CLOUD_LIVE === "1";
 const E2E_REPO_SCOPE_KEY =
   process.env.E2E_REPO_SCOPE_KEY ?? "github.com/orgii/e2e-workspace";
@@ -145,9 +142,8 @@ async function selectCloudOrgManagementTab(tab, label) {
   );
 }
 
-// Removed with the fork runner: the Run-here dialog scenario and the
-// E2E_CLOUD_RUN claim→release leg (tasks now run in place on the owner's
-// machine; there is no teammate-machine fork pickup to drive).
+// There is deliberately no teammate-machine pickup leg: only the cloud
+// session owner may spend their own local model account.
 describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
   /** Non-null only when the LIVE gates all passed. */
   let env = null;
@@ -155,12 +151,12 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
   let live = false;
   /** Org the scope/panel/dialog scenarios run under (live: personal org). */
   let orgId = null;
-  /** Set by scenario H once the agent task exists (gates J–L). */
-  let taskAssigned = false;
+  /** Set by scenario H once the owner-side comment thread exists (gates J–L). */
+  let agentThreadReady = false;
   /** H–L use seeded ids normally and the real durable ids in OAuth-live mode. */
-  let taskSessionId = TASK_SESSION_ID;
-  let taskTurnAnchorId = TASK_TURN_ANCHOR_ID;
-  let taskSessionTitle = TASK_SESSION_TITLE;
+  let agentSessionId = AGENT_SESSION_ID;
+  let agentTurnAnchorId = AGENT_TURN_ANCHOR_ID;
+  let agentSessionTitle = AGENT_SESSION_TITLE;
   /** Preserve the user's clipboard around the explicit system-copy proof. */
   let originalSystemClipboard = null;
 
@@ -1142,11 +1138,11 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
     );
   });
 
-  it("H. posts an @agent comment that creates an open pickup task (gated: real backend)", async function () {
+  it("H. posts an owner-only @agent comment through the ordinary local queue (gated: real backend)", async function () {
     this.timeout(720_000);
     if (!live) {
       console.warn(
-        "[cloud-e2e] SKIP scenario H: set E2E_CLOUD_* in tests/e2e/.env — the comment/task RPCs need a real org2_cloud backend."
+        "[cloud-e2e] SKIP scenario H: set E2E_CLOUD_* in tests/e2e/.env — the comment RPCs need a real org2_cloud backend."
       );
       this.skip();
     }
@@ -1177,9 +1173,9 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       });
       await typeAndClickSend(
         '[data-testid="chat-input"] [contenteditable="true"]',
-        TASK_AGENT_BOOTSTRAP_PROMPT
+        AGENT_BOOTSTRAP_PROMPT
       );
-      await waitForChatLaunched(TASK_AGENT_BOOTSTRAP_PROMPT);
+      await waitForChatLaunched(AGENT_BOOTSTRAP_PROMPT);
 
       let completedState = null;
       await browser.waitUntil(
@@ -1224,9 +1220,7 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
         .filter(
           (event) =>
             event.source === "user" &&
-            String(event.displayText ?? "").includes(
-              TASK_AGENT_BOOTSTRAP_PROMPT
-            )
+            String(event.displayText ?? "").includes(AGENT_BOOTSTRAP_PROMPT)
         )
         .at(-1);
       if (!active.sessionId || !promptEvent?.id) {
@@ -1234,16 +1228,16 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
           `real cloud task session is missing its session/event identity: ${JSON.stringify({ sessionId: active.sessionId, promptEvent })}`
         );
       }
-      taskSessionId = active.sessionId;
-      taskTurnAnchorId = promptEvent.id;
-      taskSessionTitle = `E2E cloud live task ${RUN_ID}`;
+      agentSessionId = active.sessionId;
+      agentTurnAnchorId = promptEvent.id;
+      agentSessionTitle = `E2E cloud live task ${RUN_ID}`;
     } else {
-      await seedAndOpenCloudEligibleSession(taskSessionId, taskSessionTitle);
+      await seedAndOpenCloudEligibleSession(agentSessionId, agentSessionTitle);
     }
 
     unwrap(
       await invokeE2E("cloudTagSessionToOrg", {
-        sessionId: taskSessionId,
+        sessionId: agentSessionId,
         orgId,
       }),
       "cloudTagSessionToOrg(task session)"
@@ -1252,38 +1246,23 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
     // and the sync-level dialog only lists the ACTIVE org's row. Re-scope
     // to the membership org before driving the dialog.
     await selectCloudOrgScopeFromSidebar(orgId);
-    await setCloudSessionModeViaDialog(taskSessionId, orgId, "full_replay");
+    await setCloudSessionModeViaDialog(agentSessionId, orgId, "full_replay");
     await publishCloudSessionMetadata(env, liveUser, {
       orgId,
-      sessionId: taskSessionId,
-      title: taskSessionTitle,
+      sessionId: agentSessionId,
+      title: agentSessionTitle,
       repoScopeKey: E2E_REPO_SCOPE_KEY,
     });
 
-    await openTurnCommentPanel(taskTurnAnchorId);
-    await postTurnComment(TASK_COMMENT_BODY);
+    await openTurnCommentPanel(agentTurnAnchorId);
+    await postTurnComment(AGENT_COMMENT_BODY);
 
-    let taskRow = null;
-    await browser.waitUntil(
-      async () => {
-        const tasks = await listCloudCommentTasks(env, liveUser, orgId);
-        taskRow =
-          tasks.find((task) => task?.sessionId === taskSessionId) ?? null;
-        return Boolean(taskRow && taskRow.state === "open");
-      },
-      {
-        timeout: CLOUD_FETCH_TIMEOUT_MS,
-        interval: 1_000,
-        timeoutMsg:
-          "@agent comment never produced an open pickup task server-side",
-      }
+    await waitForRendered(
+      '[data-testid="comment-agent-mention-pill"]',
+      "durable owner @agent comment",
+      CLOUD_FETCH_TIMEOUT_MS
     );
-    if (taskRow.attempt !== 0) {
-      throw new Error(
-        `fresh pickup task should stay unclaimed (autoRunEnabled defaults OFF): ${JSON.stringify(taskRow)}`
-      );
-    }
-    taskAssigned = true;
+    agentThreadReady = true;
   });
 
   it("J. cycles the thread tri-state status through the head-row control (gated: real backend)", async function () {
@@ -1294,17 +1273,18 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       );
       this.skip();
     }
-    if (!taskAssigned) throw new Error("scenario H did not create the thread");
+    if (!agentThreadReady)
+      throw new Error("scenario H did not create the thread");
 
     if (LIVE_AGENT_ROUND) {
       unwrap(
-        await invokeE2E("openSession", taskSessionId),
+        await invokeE2E("openSession", agentSessionId),
         "openSession(real cloud task for status)"
       );
     } else {
-      await seedAndOpenCloudEligibleSession(taskSessionId, taskSessionTitle);
+      await seedAndOpenCloudEligibleSession(agentSessionId, agentSessionTitle);
     }
-    await openTurnCommentPanel(taskTurnAnchorId);
+    await openTurnCommentPanel(agentTurnAnchorId);
     await waitForRendered(
       '[data-testid="session-comment-row"]',
       "scenario H thread row",
@@ -1350,15 +1330,16 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       );
       this.skip();
     }
-    if (!taskAssigned) throw new Error("scenario H did not create the thread");
+    if (!agentThreadReady)
+      throw new Error("scenario H did not create the thread");
 
     if (LIVE_AGENT_ROUND) {
       unwrap(
-        await invokeE2E("openSession", taskSessionId),
+        await invokeE2E("openSession", agentSessionId),
         "openSession(real cloud task for Address comments)"
       );
     } else {
-      await seedAndOpenCloudEligibleSession(taskSessionId, taskSessionTitle);
+      await seedAndOpenCloudEligibleSession(agentSessionId, agentSessionTitle);
     }
 
     await postSessionNote(SESSION_NOTE_BODY);
@@ -1367,14 +1348,14 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       '[data-testid="session-comment-composer"] textarea',
       "session note modal before opening the round thread"
     );
-    await openTurnCommentPanel(taskTurnAnchorId);
+    await openTurnCommentPanel(agentTurnAnchorId);
     await waitForRendered(
       '[data-testid="session-comment-row"]',
       "scenario H thread row",
       CLOUD_FETCH_TIMEOUT_MS
     );
     await clickRendered(
-      `[data-testid="session-comment-toggle-${taskTurnAnchorId}"]`,
+      `[data-testid="session-comment-toggle-${agentTurnAnchorId}"]`,
       "close turn comment panel before using the main composer"
     );
     await waitForGone(
@@ -1433,18 +1414,19 @@ describe("Cloud org rendered UI (managed ORG2 Cloud)", function () {
       );
       this.skip();
     }
-    if (!taskAssigned) throw new Error("scenario H did not create the task");
+    if (!agentThreadReady)
+      throw new Error("scenario H did not create the thread");
 
     unwrap(
-      await invokeE2E("openSession", taskSessionId),
+      await invokeE2E("openSession", agentSessionId),
       "openSession(real cloud task for agent round)"
     );
-    await openTurnCommentPanel(taskTurnAnchorId);
+    await openTurnCommentPanel(agentTurnAnchorId);
     await openAddressCommentsFlyout();
     await confirmAddressCommentsFlyout();
     await clickRendered('[data-testid="chat-send-button"]', "chat send button");
     await waitForRendered(
-      '[data-testid="comment-thread-agent-status"][data-task-state="active"]',
+      '[data-testid="comment-thread-agent-status"][data-run-state="active"]',
       "agent addressing active state",
       CLOUD_FETCH_TIMEOUT_MS
     );
