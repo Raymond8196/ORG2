@@ -4,6 +4,7 @@ import { destroyChatPanelTerminalAtom } from "@src/store/chatPanel/chatPanelTerm
 import {
   type ChatPanelSelectedWorkItem,
   chatPanelSelectedCloudOrgAtom,
+  chatPanelSelectedWorkItemAtom,
 } from "@src/store/ui/chatPanelAtom";
 
 import { buildDefaultLaunchpadTab } from "./chatPanelTabFactories";
@@ -89,6 +90,32 @@ export const closeCloudOrgManagementChatPanelTabAtom = atom(
 );
 closeCloudOrgManagementChatPanelTabAtom.debugLabel =
   "closeCloudOrgManagementChatPanelTab";
+
+/**
+ * Close the tab that owns a deleted Work Item. Remote item tombstones and
+ * project cascades must remove the durable tab payload as well as the legacy
+ * selected-work-item mirror; clearing only the mirror leaves an editable ghost
+ * because `WorkItemSurfaceRenderer` is keyed by the tab.
+ */
+export const closeWorkItemChatPanelTabAtom = atom(
+  null,
+  (get, set, shortId: string) => {
+    const tab = get(chatPanelTabsAtom).tabs.find(
+      (candidate) =>
+        candidate.type === "work-item" &&
+        candidate.workItem?.shortId === shortId
+    );
+    if (tab) {
+      set(closeChatPanelTabAtom, tab.id);
+      return;
+    }
+    const selected = get(chatPanelSelectedWorkItemAtom);
+    if (selected?.shortId === shortId) {
+      set(chatPanelSelectedWorkItemAtom, null);
+    }
+  }
+);
+closeWorkItemChatPanelTabAtom.debugLabel = "closeWorkItemChatPanelTab";
 
 /** Navigate to the next tab (wraps around) */
 export const nextChatPanelTabAtom = atom(null, (get, set) => {

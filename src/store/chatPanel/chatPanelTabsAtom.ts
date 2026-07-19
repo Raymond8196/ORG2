@@ -12,6 +12,7 @@ export {
   closeChatPanelTabAtom,
   closeCloudOrgManagementChatPanelTabAtom,
   closeOtherChatPanelTabsAtom,
+  closeWorkItemChatPanelTabAtom,
   nextChatPanelTabAtom,
   patchChatPanelWorkItemTabAtom,
   prevChatPanelTabAtom,

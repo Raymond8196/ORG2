@@ -354,7 +354,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handleReturnToSessionCreator,
       sessionCreatorAvailable: Boolean(SessionCreatorSlot),
       setActiveSessionId,
-      setContentMode,
       setCreateTarget,
       setSelectedProject,
       setSelectedWorkItem,

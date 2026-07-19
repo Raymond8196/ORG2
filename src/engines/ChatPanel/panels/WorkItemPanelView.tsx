@@ -29,6 +29,9 @@ import { PropertiesRailFrame } from "@src/modules/ProjectManager/shared";
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
 import { VerticalResizeHandle } from "@src/scaffold/Resize";
+import {
+  closeWorkItemChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { activeSessionIdAtom } from "@src/store/session";
 import {
   type ChatPanelSelectedWorkItem,
@@ -171,6 +174,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
   onUpdateWorkItem,
 }) => {
   const { t } = useTranslation(["projects", "common"]);
+  const closeWorkItemTab = useSetAtom(closeWorkItemChatPanelTabAtom);
   const setSelectedWorkItem = useSetAtom(chatPanelSelectedWorkItemAtom);
   const setActiveSessionId = useSetAtom(activeSessionIdAtom);
   const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
@@ -283,7 +287,9 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
           // Reading the deleted project's items throws before it can return an
           // empty list, so detect the parent tombstone explicitly. The local
           // project store is authoritative even when cloud transport is down.
-          setSelectedWorkItem(null);
+          // Close the owning tab too: its payload, not the legacy selection
+          // atom, is what keeps the detail surface mounted.
+          closeWorkItemTab(selectedWorkItem.shortId);
           return;
         }
         const items = await projectApi.readWorkItemsEnriched(
@@ -296,7 +302,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
         if (!fresh) {
           // A collaborator may delete the item itself or its parent project
           // while this detail is open. Do not leave an editable ghost surface.
-          setSelectedWorkItem(null);
+          closeWorkItemTab(selectedWorkItem.shortId);
           return;
         }
         setSelectedWorkItem((current) =>
@@ -327,7 +333,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
     } catch (error) {
       logger.warn("Failed to refresh chat panel work item", error);
     }
-  }, [selectedWorkItem, setSelectedWorkItem]);
+  }, [closeWorkItemTab, selectedWorkItem, setSelectedWorkItem]);
 
   useProjectDataChanged(
     useCallback(() => {
