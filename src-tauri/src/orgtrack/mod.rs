@@ -275,30 +275,6 @@ pub async fn orgtrack_get_file_session_history(
     .map_err(|err| err.to_string())?
 }
 
-/// Cheap freshness probe for an open Session Blame panel. The revision is
-/// advanced by SQLite triggers, so this remains correct across every writer
-/// and after process restarts without retaining an in-memory cache.
-#[tauri::command]
-pub async fn orgtrack_get_file_session_history_revision(
-    app: tauri::AppHandle,
-    repo_path: String,
-    file_path: String,
-) -> Result<u64, String> {
-    record_orgtrack_command_call("orgtrack_get_file_session_history_revision");
-    tokio::task::spawn_blocking(move || {
-        drain_hook_inbox_and_emit(&app, "file_session_history_revision");
-        let resolved = session_provenance::resolve_file_resource(&repo_path, &file_path);
-        let conn = get_connection().map_err(|err| err.to_string())?;
-        SqliteRecordStore::new(&conn).get_file_resource_revision(
-            resolved.repository_id.as_deref(),
-            &resolved.workspace_path,
-            &resolved.repo_relative_path,
-        )
-    })
-    .await
-    .map_err(|err| err.to_string())?
-}
-
 /// Index an already-authorized, locally cached collaboration replay into the
 /// same Session Blame read model used by native and external sessions.
 #[tauri::command]
