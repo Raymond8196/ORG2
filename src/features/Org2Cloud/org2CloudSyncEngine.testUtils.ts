@@ -34,12 +34,6 @@ import {
 } from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
-import { org2CloudCommentTasksAtom } from "./org2CloudCommentTasksAtom";
-import type {
-  CloudCommentTask,
-  ListCommentTasksResult,
-} from "./org2CloudCommentTasksClient";
-import { Org2CloudTaskError } from "./org2CloudCommentTasksClient";
 import { org2CloudOrgsAtom } from "./org2CloudOrgsAtom";
 import { ensureProjectOrgForCloudOrg } from "./org2CloudProjectOrgAlias";
 import type { CloudOrgCollabState } from "./org2CloudProjectsClient";
@@ -251,38 +245,6 @@ export function makeProjectsClient() {
   };
 }
 
-export function makeTasksClient() {
-  return {
-    listCommentTasks: vi.fn(
-      async (
-        _token: string,
-        _orgId: string,
-        _since: string | null
-      ): Promise<ListCommentTasksResult> => ({
-        serverTime: "2026-07-01T12:00:00.000Z",
-        tasks: [],
-      })
-    ),
-  };
-}
-
-export function makeTask(
-  id: string,
-  overrides: Partial<CloudCommentTask> = {}
-): CloudCommentTask {
-  return {
-    id,
-    sessionId: "session-1",
-    commentId: `comment-${id}`,
-    state: "open",
-    leaseExpired: false,
-    attempt: 0,
-    createdAt: "2026-07-01T10:00:00.000Z",
-    updatedAt: "2026-07-01T10:00:00.000Z",
-    ...overrides,
-  };
-}
-
 export function makeBridge() {
   return {
     drainOutbox: vi.fn(async () => [] as CollabOutboxPushItem[]),
@@ -312,14 +274,8 @@ export function createEngineFixture() {
   const store = createInstrumentedStore();
   const client = makeClient();
   const projectsClient = makeProjectsClient();
-  const tasksClient = makeTasksClient();
   const bridge = makeBridge();
-  const engine = new Org2CloudSyncEngine(
-    client,
-    projectsClient,
-    tasksClient,
-    bridge
-  );
+  const engine = new Org2CloudSyncEngine(client, projectsClient, bridge);
 
   tauriEventListeners.clear();
   store.set(org2CloudAuthAtom, AUTH);
@@ -332,7 +288,6 @@ export function createEngineFixture() {
   store.set(org2CloudPushedMetadataAtom, {});
   store.set(org2CloudCollabStateCursorsAtom, {});
   store.set(org2CloudCommentTaskCursorsAtom, {});
-  store.set(org2CloudCommentTasksAtom, {});
   store.set(sessionOrgTagsAtom, {});
   store.set(org2CloudAccessSettingsAtom, {
     "corg-1": {
@@ -363,11 +318,10 @@ export function createEngineFixture() {
   vi.useFakeTimers();
   engine.start(store);
 
-  return { store, client, projectsClient, tasksClient, bridge, engine };
+  return { store, client, projectsClient, bridge, engine };
 }
 
 export type EngineFixture = ReturnType<typeof createEngineFixture>;
-export type { ListCommentTasksResult };
 
 export function cleanupEngineFixture(engine: Org2CloudSyncEngine): void {
   engine.stop();
@@ -392,7 +346,6 @@ export const engineTestDeps = {
   Org2CloudProjectsError,
   Org2CloudSyncEngine,
   Org2CloudSyncError,
-  Org2CloudTaskError,
   PASS_INTERVAL_MS,
   PERSONAL_EXCLUDED_TOKEN,
   PROJECT_PUSH_RETRY_DELAY_MS,
@@ -402,7 +355,6 @@ export const engineTestDeps = {
   org2CloudAuthAtom,
   org2CloudCollabStateCursorsAtom,
   org2CloudCommentTaskCursorsAtom,
-  org2CloudCommentTasksAtom,
   org2CloudOrgsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,

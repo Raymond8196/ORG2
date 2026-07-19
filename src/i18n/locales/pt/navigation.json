@@ -689,14 +689,9 @@
       "task": {
         "assignFailed": "O comentário foi publicado, mas a atribuição do agente falhou — tente novamente pela thread",
         "assignUnavailableHere": "O comentário foi publicado — a atribuição do agente não está disponível nesta visualização",
-        "turnBadge": "um agente está neste turno",
         "addressingChip": "Tratando o comentário: “{{excerpt}}”",
         "addressingChipGeneric": "Tratando um comentário",
         "addressingChipTooltip": "Fork criado para tratar uma thread de comentários da sessão de origem",
-        "openBadge_one": "{{count}} tarefa de agente aguardando atendimento",
-        "openBadge": "{{count}} tarefas de agente aguardando atendimento",
-        "activeBadge_one": "{{count}} agente está trabalhando nesta sessão",
-        "activeBadge": "{{count}} agentes estão trabalhando nesta sessão",
         "mentionSuggestion": "Atribuir este comentário a um agente"
       },
       "toggleLabel": "Comentários",

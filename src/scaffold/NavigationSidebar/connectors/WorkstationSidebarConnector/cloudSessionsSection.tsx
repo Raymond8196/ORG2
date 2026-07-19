@@ -58,7 +58,6 @@ import {
   type CloudSessionFilter,
   filterCloudSessionRows,
 } from "@src/features/Org2Cloud/cloudSessionFilter";
-import { resolveSessionTaskCounts } from "@src/features/Org2Cloud/cloudSessionTaskCounts";
 import {
   type CloudSessionThreadRow,
   buildCloudSessionThreads,
@@ -67,10 +66,6 @@ import {
 } from "@src/features/Org2Cloud/cloudSessionThreads";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { cloudSessionIdFromRowId } from "@src/features/Org2Cloud/org2CloudBackendAdapter";
-import {
-  org2CloudCommentTasksAtom,
-  tasksForSession,
-} from "@src/features/Org2Cloud/org2CloudCommentTasksAtom";
 import {
   type Org2CloudPresenceEntry,
   org2CloudPresenceAtom,
@@ -163,10 +158,6 @@ export function useCloudSessionsSection({
   const { replaySession, forkSession, busySessionRowId } =
     useCloudSessionActions(orgId);
   const openBilling = useOpenCloudBilling();
-  // Engine-fed task map (agent-pickup design §4): read-only here — the
-  // section renders whatever the atoms already hold; the 60s sync pass is
-  // the only thing that refreshes it. No fetches, no timers.
-  const commentTaskMap = useAtomValue(org2CloudCommentTasksAtom);
   const presenceMap = useAtomValue(org2CloudPresenceAtom);
   const selfUserId = useAtomValue(org2CloudAuthAtom)?.userId ?? null;
   const [memberMenu, setMemberMenu] = useState<MemberFilterMenuState | null>(
@@ -420,54 +411,6 @@ export function useCloudSessionsSection({
             {unresolvedComments}
           </span>
         ) : undefined;
-      // Agent-task dual chips (0002 listing counters; agent-pickup design
-      // §4 UI item 6) next to the comments badge. Per-row server counters
-      // are primary; the engine-fed task map is the cross-scope fallback
-      // for pre-0002 backends that omit both keys. Both chips share the
-      // `session-tasks-badge` testid, split by `data-variant`.
-      const taskCounts = resolveSessionTaskCounts(
-        row,
-        tasksForSession(commentTaskMap, row.orgId, bareSessionId)
-      );
-      const openTasksLabel = t("cloud.comments.task.openBadge", {
-        count: taskCounts.open,
-        defaultValue_one: "{{count}} agent task awaiting pickup",
-        defaultValue_other: "{{count}} agent tasks awaiting pickup",
-      });
-      const openTasksChip =
-        taskCounts.open > 0 ? (
-          <span
-            data-testid="session-tasks-badge"
-            data-variant="attention"
-            data-count={taskCounts.open}
-            aria-label={openTasksLabel}
-            title={openTasksLabel}
-            className="inline-flex h-3.5 min-w-3.5 items-center justify-center gap-0.5 rounded-full bg-warning-6 px-1 text-[9px] font-medium leading-none text-white"
-          >
-            <Bot size={9} strokeWidth={2.5} />
-            {taskCounts.open}
-          </span>
-        ) : undefined;
-      const activeTasksLabel = t("cloud.comments.task.activeBadge", {
-        count: taskCounts.active,
-        defaultValue_one: "an agent is working on this session",
-        defaultValue_other: "{{count}} agents are working on this session",
-      });
-      // Subtle pulse, no number: "an agent is working" is presence, not a
-      // count the viewer must act on (the attention chip carries counts).
-      const activeTasksChip =
-        taskCounts.active > 0 ? (
-          <span
-            data-testid="session-tasks-badge"
-            data-variant="active"
-            data-count={taskCounts.active}
-            aria-label={activeTasksLabel}
-            title={activeTasksLabel}
-            className="inline-flex h-3.5 items-center justify-center text-primary-6 motion-safe:animate-pulse motion-reduce:opacity-80"
-          >
-            <Bot size={11} strokeWidth={2} />
-          </span>
-        ) : undefined;
       // Live viewers: other org members currently viewing this session.
       const viewers = viewersForSession(
         presenceMap,
@@ -510,12 +453,10 @@ export function useCloudSessionsSection({
           </span>
         ) : undefined;
       const trailingElement =
-        viewerChips || commentsBadge || openTasksChip || activeTasksChip ? (
+        viewerChips || commentsBadge ? (
           <span className="inline-flex items-center gap-1">
             {viewerChips}
             {commentsBadge}
-            {openTasksChip}
-            {activeTasksChip}
           </span>
         ) : undefined;
       // Strip fork glyph(s) baked into pushed titles; the GitFork icon carries provenance.
@@ -577,15 +518,7 @@ export function useCloudSessionsSection({
       }
       return item;
     },
-    [
-      commentTaskMap,
-      hideRemoteSession,
-      presenceMap,
-      runFork,
-      selfUserId,
-      t,
-      tCommon,
-    ]
+    [hideRemoteSession, presenceMap, runFork, selfUserId, t, tCommon]
   );
 
   const cloudMenuItems = useMemo<NavigationMenuItem[]>(() => {

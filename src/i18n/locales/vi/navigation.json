@@ -687,14 +687,9 @@
       "task": {
         "assignFailed": "Đã đăng bình luận, nhưng giao cho agent thất bại — thử lại từ luồng",
         "assignUnavailableHere": "Đã đăng bình luận — không thể giao cho agent trong chế độ xem này",
-        "turnBadge": "một agent đang xử lý lượt này",
         "addressingChip": "Đang xử lý bình luận: “{{excerpt}}”",
         "addressingChipGeneric": "Đang xử lý một bình luận",
         "addressingChipTooltip": "Được fork để xử lý một luồng bình luận trên phiên gốc",
-        "openBadge_one": "{{count}} tác vụ agent đang chờ xử lý",
-        "openBadge": "{{count}} tác vụ agent đang chờ xử lý",
-        "activeBadge_one": "{{count}} agent đang làm việc trong phiên này",
-        "activeBadge": "{{count}} agent đang làm việc trong phiên này",
         "mentionSuggestion": "Giao bình luận này cho agent"
       },
       "toggleLabel": "Bình luận",

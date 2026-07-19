@@ -1,49 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { CloudCommentTask } from "../org2CloudCommentTasksClient";
-import type { CloudSessionComment } from "../org2CloudCommentsClient";
-import type { CommentThread } from "../org2CloudSessionCommentsAtom";
 import {
   AGENT_COMPOSER_PREFIX,
   detectAgentPrefix,
-  getThreadAgentTaskBadgeState,
   shouldShowAgentSuggestion,
   splitAgentMentionBody,
 } from "./commentAgentAffordances";
-
-function comment(id: string): CloudSessionComment {
-  return {
-    id,
-    authorUserId: "user-1",
-    body: "b",
-    createdAt: "2026-07-08T09:00:00Z",
-  };
-}
-
-function thread(headId: string, replyIds: string[] = []): CommentThread {
-  return { top: comment(headId), replies: replyIds.map(comment) };
-}
-
-function task(overrides: Partial<CloudCommentTask> = {}): CloudCommentTask {
-  return {
-    id: "task-1",
-    sessionId: "agentsession-src-1",
-    commentId: "c-head",
-    state: "open",
-    leaseExpired: false,
-    attempt: 0,
-    createdAt: "2026-07-08T09:00:00Z",
-    updatedAt: "2026-07-08T09:00:00Z",
-    ...overrides,
-  };
-}
-
-/** Map-backed stand-in for the context's `taskForThread` selector. */
-function lookup(
-  byCommentId: Record<string, CloudCommentTask>
-): (commentId: string) => CloudCommentTask | undefined {
-  return (commentId) => byCommentId[commentId];
-}
 
 describe("agent composer suggestion", () => {
   it("offers the canonical target while typing its prefix", () => {
@@ -57,52 +19,6 @@ describe("agent composer suggestion", () => {
     expect(shouldShowAgentSuggestion("@other")).toBe(false);
     expect(shouldShowAgentSuggestion("@agent ")).toBe(false);
     expect(shouldShowAgentSuggestion("@agent fix")).toBe(false);
-  });
-});
-
-describe("getThreadAgentTaskBadgeState", () => {
-  it("separates awaiting pickup from active execution", () => {
-    const threads = [thread("c-1")];
-    expect(
-      getThreadAgentTaskBadgeState(
-        threads,
-        lookup({ "c-1": task({ commentId: "c-1", state: "open" }) })
-      )
-    ).toBe("queued");
-    expect(
-      getThreadAgentTaskBadgeState(
-        threads,
-        lookup({
-          "c-1": task({
-            commentId: "c-1",
-            state: "running",
-            leaseExpired: false,
-          }),
-        })
-      )
-    ).toBe("active");
-  });
-
-  it("shows an expired active lease as queued and terminal tasks as absent", () => {
-    const threads = [thread("c-1")];
-    expect(
-      getThreadAgentTaskBadgeState(
-        threads,
-        lookup({
-          "c-1": task({
-            commentId: "c-1",
-            state: "claimed",
-            leaseExpired: true,
-          }),
-        })
-      )
-    ).toBe("queued");
-    expect(
-      getThreadAgentTaskBadgeState(
-        threads,
-        lookup({ "c-1": task({ commentId: "c-1", state: "done" }) })
-      )
-    ).toBeNull();
   });
 });
 

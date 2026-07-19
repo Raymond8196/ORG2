@@ -689,14 +689,9 @@
       "task": {
         "assignFailed": "Kommentar gepostet, aber die Zuweisung des Agents ist fehlgeschlagen — im Thread erneut versuchen",
         "assignUnavailableHere": "Kommentar gepostet — die Agent-Zuweisung ist in dieser Ansicht nicht verfügbar",
-        "turnBadge": "ein Agent arbeitet an diesem Turn",
         "addressingChip": "Bearbeitet Kommentar: „{{excerpt}}“",
         "addressingChipGeneric": "Bearbeitet einen Kommentar",
         "addressingChipTooltip": "Geforkt, um einen Kommentar-Thread der Quell-Session zu bearbeiten",
-        "openBadge_one": "{{count}} Agent-Task wartet auf Übernahme",
-        "openBadge": "{{count}} Agent-Tasks warten auf Übernahme",
-        "activeBadge_one": "Ein Agent arbeitet an dieser Session",
-        "activeBadge": "{{count}} Agenten arbeiten an dieser Session",
         "mentionSuggestion": "Diesen Kommentar einem Agent zuweisen"
       },
       "toggleLabel": "Kommentare",

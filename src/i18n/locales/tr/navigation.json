@@ -687,14 +687,9 @@
       "task": {
         "assignFailed": "Yorum gönderildi ancak agent ataması başarısız oldu — diziden yeniden deneyin",
         "assignUnavailableHere": "Yorum gönderildi — bu görünümde agent ataması kullanılamıyor",
-        "turnBadge": "bu turda bir agent çalışıyor",
         "addressingChip": "Ele alınan yorum: “{{excerpt}}”",
         "addressingChipGeneric": "Bir yorum ele alınıyor",
         "addressingChipTooltip": "Kaynak oturumdaki bir yorum dizisini ele almak için çatallandı",
-        "openBadge_one": "{{count}} agent görevi ele alınmayı bekliyor",
-        "openBadge": "{{count}} agent görevi ele alınmayı bekliyor",
-        "activeBadge_one": "{{count}} agent bu oturumda çalışıyor",
-        "activeBadge": "{{count}} agent bu oturumda çalışıyor",
         "mentionSuggestion": "Bu yorumu bir agent'a ata"
       },
       "toggleLabel": "Yorumlar",

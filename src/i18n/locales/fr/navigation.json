@@ -689,14 +689,9 @@
       "task": {
         "assignFailed": "Commentaire publié, mais l'assignation de l'agent a échoué — réessayez depuis le fil",
         "assignUnavailableHere": "Commentaire publié — l'assignation de l'agent n'est pas disponible dans cette vue",
-        "turnBadge": "un agent travaille sur ce tour",
         "addressingChip": "Traite le commentaire : « {{excerpt}} »",
         "addressingChipGeneric": "Traite un commentaire",
         "addressingChipTooltip": "Forkée pour traiter un fil de commentaires de la session source",
-        "openBadge_one": "{{count}} tâche d'agent en attente de prise en charge",
-        "openBadge": "{{count}} tâches d'agent en attente de prise en charge",
-        "activeBadge_one": "{{count}} agent travaille sur cette session",
-        "activeBadge": "{{count}} agents travaillent sur cette session",
         "mentionSuggestion": "Attribuer ce commentaire à un agent"
       },
       "toggleLabel": "Commentaires",

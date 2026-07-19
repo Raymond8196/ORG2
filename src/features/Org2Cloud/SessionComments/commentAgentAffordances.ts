@@ -1,6 +1,4 @@
 /** Pure predicates behind the thread-list / turn-chrome agent affordances. */
-import type { CloudCommentTask } from "../org2CloudCommentTasksClient";
-import type { CommentThread } from "../org2CloudSessionCommentsAtom";
 
 /**
  * The composer sugar token (design §1): promotion is EXPLICIT — a literal
@@ -40,37 +38,6 @@ export function shouldShowAgentSuggestion(body: string): boolean {
     body.length <= "@agent".length &&
     "@agent".startsWith(body)
   );
-}
-
-export type ThreadAgentTaskBadgeState = "queued" | "active" | null;
-
-/**
- * Open means queued/awaiting pickup, not active execution. Only a non-expired
- * claimed/running lease can truthfully say an agent is working.
- */
-export function getThreadAgentTaskBadgeState(
-  threads: readonly CommentThread[],
-  taskForThread: (commentId: string) => CloudCommentTask | undefined
-): ThreadAgentTaskBadgeState {
-  let queued = false;
-  for (const thread of threads) {
-    const task = taskForThread(thread.top.id);
-    if (!task) continue;
-    if (
-      (task.state === "claimed" || task.state === "running") &&
-      !task.leaseExpired
-    ) {
-      return "active";
-    }
-    if (
-      task.state === "open" ||
-      ((task.state === "claimed" || task.state === "running") &&
-        task.leaseExpired)
-    ) {
-      queued = true;
-    }
-  }
-  return queued ? "queued" : null;
 }
 
 /**

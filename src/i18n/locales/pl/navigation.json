@@ -687,14 +687,9 @@
       "task": {
         "assignFailed": "Komentarz opublikowany, ale przypisanie agenta nie powiodło się — ponów próbę z wątku",
         "assignUnavailableHere": "Komentarz opublikowany — przypisanie agenta nie jest dostępne w tym widoku",
-        "turnBadge": "agent pracuje nad tą turą",
         "addressingChip": "Obsługiwany komentarz: „{{excerpt}}”",
         "addressingChipGeneric": "Obsługa komentarza",
         "addressingChipTooltip": "Fork utworzony, aby obsłużyć wątek komentarzy sesji źródłowej",
-        "openBadge_one": "Zadania agenta oczekujące na podjęcie: {{count}}",
-        "openBadge": "Zadania agenta oczekujące na podjęcie: {{count}}",
-        "activeBadge_one": "Agenci pracujący nad tą sesją: {{count}}",
-        "activeBadge": "Agenci pracujący nad tą sesją: {{count}}",
         "mentionSuggestion": "Przypisz ten komentarz agentowi"
       },
       "toggleLabel": "Komentarze",

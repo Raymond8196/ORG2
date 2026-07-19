@@ -43,13 +43,12 @@ describe("Org2CloudSyncEngine session publishing", () => {
   let store: EngineFixture["store"];
   let client: EngineFixture["client"];
   let projectsClient: EngineFixture["projectsClient"];
-  let tasksClient: EngineFixture["tasksClient"];
   let bridge: EngineFixture["bridge"];
   let engine: EngineFixture["engine"];
 
   beforeEach(() => {
     fixture = createEngineFixture();
-    ({ store, client, projectsClient, tasksClient, bridge, engine } = fixture);
+    ({ store, client, projectsClient, bridge, engine } = fixture);
   });
 
   afterEach(() => {
@@ -811,12 +810,7 @@ describe("Org2CloudSyncEngine session publishing", () => {
     // Simulate an app restart: a fresh engine has an EMPTY in-memory
     // wasCloudPushed cache. Only the persisted marker survives.
     engine.stop();
-    engine = new Org2CloudSyncEngine(
-      client,
-      projectsClient,
-      tasksClient,
-      bridge
-    );
+    engine = new Org2CloudSyncEngine(client, projectsClient, bridge);
     engine.start(store);
 
     // Downgrade to Off (default off, no tag). The retract must fire off the

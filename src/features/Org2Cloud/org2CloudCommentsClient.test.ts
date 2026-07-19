@@ -396,11 +396,11 @@ describe("listSessionComments", () => {
     expect(comments[0].resolution).toBe("wont_fix");
   });
 
-  it("defaults absent comments AND tasks arrays (pre-0002 backend)", async () => {
+  it("defaults an absent comments array (pre-0002 backend)", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({}));
     await expect(
       listSessionComments("jwt-1", "org-1", "sess-1")
-    ).resolves.toEqual({ comments: [], tasks: [] });
+    ).resolves.toEqual({ comments: [] });
   });
 
   it("parses the 0002 tasks embed and per-comment kind", async () => {
@@ -432,19 +432,8 @@ describe("listSessionComments", () => {
         ],
       })
     );
-    const { comments, tasks } = await listSessionComments(
-      "jwt-1",
-      "org-1",
-      "sess-1"
-    );
+    const { comments } = await listSessionComments("jwt-1", "org-1", "sess-1");
     expect(comments[0].kind).toBe("agent_report");
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0].commentId).toBe("comment-1");
-    expect(tasks[0].state).toBe("claimed");
-    expect(tasks[0].claimedByDisplayName).toBeUndefined();
-    // Structural lease-token strip: no key survives parsing.
-    expect(Object.keys(tasks[0])).not.toContain("lease_token");
-    expect(Object.keys(tasks[0])).not.toContain("leaseToken");
   });
 
   it("maps ORG2_RETENTION_EXPIRED into a coded error", async () => {

@@ -1027,21 +1027,6 @@ export async function postSessionNote(body) {
 const CHAT_COMPOSER_SELECTOR =
   '[data-testid="chat-input"] [contenteditable="true"]';
 
-export function agentTurnBadgeSelector(anchorEventId) {
-  return `[data-testid="session-comment-agent-badge-${anchorEventId}"]`;
-}
-
-export async function waitForAgentTurnBadge(
-  anchorEventId,
-  timeout = CLOUD_FETCH_TIMEOUT_MS
-) {
-  await waitForRendered(
-    agentTurnBadgeSelector(anchorEventId),
-    `agent turn badge (${anchorEventId})`,
-    timeout
-  );
-}
-
 export function threadStatusSelector(status) {
   return `[data-testid="session-comment-status-${status}"]`;
 }
@@ -1215,14 +1200,6 @@ export function cloudSessionRowSelector(sessionId) {
 }
 
 /**
- * Agent-task chip inside the row's trailing accessory slot; variant is
- * "attention" (open count) or "active" (live-lease pulse).
- */
-export function sessionTasksBadgeSelector(sessionId, variant) {
-  return `${cloudSessionRowSelector(sessionId)} [data-testid="session-tasks-badge"][data-variant="${variant}"]`;
-}
-
-/**
  * Clicks every sidebar section-header refresh action. The cloud
  * Team-sessions section's refresh is the production TTL-bypass for its
  * listing (the atom caches for 60s); the buttons are hover-revealed but
@@ -1243,67 +1220,6 @@ export async function clickSidebarSectionRefreshActions() {
     buttons.forEach((button) => button.click());
     return buttons.length;
   `);
-}
-
-/**
- * Waits for the session row's agent-task chip under the ACTIVE cloud
- * scope, re-clicking the section refresh each poll (the listing was
- * typically fetched BEFORE the task existed, and its TTL would otherwise
- * serve the stale rows for up to 60s). Resolves with the chip's rendered
- * text (the open-count for the "attention" variant).
- */
-export async function waitForSessionTasksBadge(
-  sessionId,
-  variant,
-  timeout = CLOUD_FETCH_TIMEOUT_MS
-) {
-  const selector = sessionTasksBadgeSelector(sessionId, variant);
-  // Capture the count in the SAME DOM read that proves the badge exists.
-  // A background cloud-list refresh can legitimately replace the row between
-  // `waitUntil` resolving and a follow-up query; doing a second read here
-  // turned a rendered, asserted badge into a flaky `null` (TOCTOU).
-  let renderedCount = null;
-  try {
-    await browser.waitUntil(
-      async () => {
-        const count = await execJS(`
-          return document.querySelector(${JSON.stringify(selector)})?.getAttribute('data-count') ?? null;
-        `);
-        if (count !== null) {
-          renderedCount = count;
-          return true;
-        }
-        await clickSidebarSectionRefreshActions();
-        const refreshedCount = await execJS(`
-          return document.querySelector(${JSON.stringify(selector)})?.getAttribute('data-count') ?? null;
-        `);
-        if (refreshedCount !== null) renderedCount = refreshedCount;
-        return refreshedCount !== null;
-      },
-      {
-        timeout,
-        interval: 2_000,
-        timeoutMsg: `session tasks badge (${variant}) never rendered for ${sessionId}: ${selector}`,
-      }
-    );
-  } catch (error) {
-    const debug = unwrap(
-      await invokeE2E("cloudInspectDebugState", { sessionId }),
-      "cloudInspectDebugState(session tasks badge)"
-    ).debug;
-    const diagnostic = await execJS(`
-      return {
-        refreshCount: document.querySelectorAll('[data-testid="cloud-team-sessions-refresh"]').length,
-        rowCount: document.querySelectorAll('[data-testid^="sidebar-cloud-session-item-"]').length,
-        targetRowText: document.querySelector(${JSON.stringify(cloudSessionRowSelector(sessionId))})?.textContent?.trim() ?? null,
-        sectionText: document.querySelector('[data-testid="cloud-team-sessions-empty"]')?.textContent?.trim() ?? null,
-      };
-    `);
-    throw new Error(
-      `${error instanceof Error ? error.message : String(error)}; sidebar=${JSON.stringify(diagnostic)}; cloud=${JSON.stringify(debug)}`
-    );
-  }
-  return renderedCount;
 }
 
 // ============================================================================

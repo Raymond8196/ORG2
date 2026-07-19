@@ -1640,11 +1640,6 @@ describe("Cloud collaboration with two independent rendered app instances", func
       "owner rendered @agent mention pill",
       CLOUD_FETCH_TIMEOUT_MS
     );
-    await waitForRendered(
-      `[data-testid="session-comment-agent-badge-user-${SESSION_ID}"][data-task-state="queued"]`,
-      "owner realtime @agent task queued badge",
-      CLOUD_FETCH_TIMEOUT_MS
-    );
 
     // Session-level notes use the same durable/realtime plane but carry no
     // round event id. Prove the second instance can post one and the owner

@@ -433,7 +433,6 @@ export function createCloudHelpers({ store }: CloudHelperDeps) {
               accessMode: row.accessMode ?? null,
               eventsEpoch: row.eventsEpoch ?? null,
               unresolvedCommentCount: row.unresolvedCommentCount ?? null,
-              openAgentTaskCount: row.openAgentTaskCount ?? null,
             })),
           },
         ])

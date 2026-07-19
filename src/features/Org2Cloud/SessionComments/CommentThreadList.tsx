@@ -49,7 +49,6 @@ import { useSessionCommentsContext } from "./SessionCommentsContext";
 import {
   AGENT_COMPOSER_PREFIX,
   detectAgentPrefix,
-  getThreadAgentTaskBadgeState,
   shouldShowAgentSuggestion,
   splitAgentMentionBody,
 } from "./commentAgentAffordances";
@@ -481,13 +480,7 @@ const ThreadBlock: React.FC<ThreadBlockProps> = ({
   const [replying, setReplying] = useState(false);
   const resolution = getThreadResolution(thread);
 
-  const durableTaskState = context
-    ? getThreadAgentTaskBadgeState([thread], context.taskForThread)
-    : null;
-  const localAddressRunActive = Boolean(
-    context?.addressRunActive && resolution === null
-  );
-  const agentTaskState = localAddressRunActive ? "active" : durableTaskState;
+  const addressing = Boolean(context?.addressRunActive && resolution === null);
 
   const setStatus = useCallback(
     (status: CommentThreadStatus): Promise<void> =>
@@ -510,23 +503,14 @@ const ThreadBlock: React.FC<ThreadBlockProps> = ({
         onDelete={onDelete}
         onSetStatus={setStatus}
       />
-      {agentTaskState && (
+      {addressing && (
         <div
           className="flex items-center gap-1.5 text-[11px] text-text-3"
           data-testid="comment-thread-agent-status"
-          data-task-state={agentTaskState}
+          data-task-state="active"
         >
-          {agentTaskState === "active" ? (
-            <Loader2 size={12} strokeWidth={2} className="animate-spin" />
-          ) : (
-            <Bot size={12} strokeWidth={2} />
-          )}
-          {t(
-            agentTaskState === "active"
-              ? "cloud.comments.task.activeBadge_one"
-              : "cloud.comments.task.openBadge_one",
-            { count: 1 }
-          )}
+          <Loader2 size={12} strokeWidth={2} className="animate-spin" />
+          {t("cloud.comments.agentAddressing")}
         </div>
       )}
       {thread.replies.map((reply) => (

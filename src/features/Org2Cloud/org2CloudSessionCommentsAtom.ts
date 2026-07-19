@@ -20,18 +20,12 @@
  * through the existing `insertComment`.
  */
 import { atom, useAtom, useAtomValue } from "jotai";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { createLogger } from "@src/hooks/logger";
 
 import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import { ensureFreshSession } from "./org2CloudClient";
-import {
-  isNewerTaskUpdate,
-  org2CloudCommentTasksAtom,
-  tasksForSession,
-} from "./org2CloudCommentTasksAtom";
-import type { CloudCommentTask } from "./org2CloudCommentTasksClient";
 import {
   broadcastCommentsChangedToPeers,
   org2CloudCommentsSignalAtom,
@@ -69,12 +63,6 @@ export type CloudSessionCommentsFetchState =
 
 export interface CloudSessionCommentsEntry {
   comments: CloudSessionComment[];
-  /**
-   * This session's agent tasks (0002 embed; [] on pre-0002 backends).
-   * Wholesale-replaced on every completed fetch — never optimistically
-   * patched. Structurally lease-token-free (invariant 1): safe for render.
-   */
-  tasks: CloudCommentTask[];
   state: CloudSessionCommentsFetchState;
   /** Last fetch failure (diagnostics only — UI keys on `state`). */
   errorMessage?: string;
@@ -84,7 +72,6 @@ export interface CloudSessionCommentsEntry {
 
 const EMPTY_ENTRY: CloudSessionCommentsEntry = {
   comments: [],
-  tasks: [],
   state: "idle",
   fetchedAt: 0,
 };
@@ -131,18 +118,6 @@ export function patchComment(
   );
 }
 
-/**
- * The thread head's task, if the thread was promoted (UNIQUE `comment_id`
- * server-side ⇒ at most one — reruns go through reopen, never a second
- * task). Undefined for never-promoted threads and on pre-0002 backends.
- */
-export function findTaskForThread(
-  tasks: readonly CloudCommentTask[],
-  commentId: string
-): CloudCommentTask | undefined {
-  return tasks.find((task) => task.commentId === commentId);
-}
-
 export type SessionCommentsFetchDecision = "claim" | "skip" | "queue_force";
 
 /**
@@ -185,37 +160,6 @@ export function shouldEvictSessionCommentsOnError(error: unknown): boolean {
     isOrg2CommentErrorCode(error, "ORG2_FORBIDDEN") ||
     isOrg2CommentErrorCode(error, "ORG2_SESSION_NOT_FOUND")
   );
-}
-
-/**
- * Engine-poll reconciliation probe: signature of the engine's per-org task
- * rows (60s `cloud_list_comment_tasks` pull) that are STRICTLY newer than —
- * or unknown to — the per-session comments/tasks embed. `null` = the embed
- * is current. A non-null signature triggers ONE forced embed refetch (the
- * embed stays the single render source; the engine atom is only an
- * invalidation signal), and the caller latches the signature so a server
- * that keeps the row out of the embed (visibility skew) can never loop the
- * fetch. Engine rows MISSING from the embed's id set are counted (new task
- * created elsewhere); embed rows missing from the engine map are not — the
- * engine map lingers cascade-deleted rows until its full-listing rebuild.
- */
-export function findNewerEngineTaskSignature(
-  embedTasks: readonly CloudCommentTask[],
-  engineTasks: readonly CloudCommentTask[]
-): string | null {
-  if (engineTasks.length === 0) return null;
-  const embedById = new Map(embedTasks.map((task) => [task.id, task]));
-  const newer = engineTasks.filter((task) => {
-    const known = embedById.get(task.id);
-    return (
-      known === undefined || isNewerTaskUpdate(task.updatedAt, known.updatedAt)
-    );
-  });
-  if (newer.length === 0) return null;
-  return newer
-    .map((task) => `${task.id}:${task.updatedAt}`)
-    .sort()
-    .join("|");
 }
 
 // ---------------------------------------------------------------------------
@@ -392,17 +336,9 @@ export interface AddCommentInput {
 
 export interface UseSessionCommentsResult {
   comments: CloudSessionComment[];
-  /** This session's agent tasks (0002; [] on pre-0002 backends). */
-  tasks: CloudCommentTask[];
   state: CloudSessionCommentsFetchState;
   /** Refetch now, ignoring the TTL. */
   refresh: () => void;
-  /**
-   * The thread head's task (UNIQUE comment_id ⇒ at most one), or undefined
-   * for never-promoted threads. Read-side selector only — task mutations go
-   * through the tasks client, then `refresh()`.
-   */
-  taskForThread: (commentId: string) => CloudCommentTask | undefined;
   /**
    * Local-only insert of a server-shaped comment row — the complete RPC
    * returns its `agent_report` reply byte-identical to a list entry
@@ -530,7 +466,7 @@ export function useSessionComments(
         if (forceToken) activeForceTokenByKey.set(targetKey, forceToken);
         try {
           const accessToken = await withFreshToken();
-          const { comments, tasks } = await listSessionComments(
+          const { comments } = await listSessionComments(
             accessToken,
             targetOrgId,
             targetSessionId
@@ -541,9 +477,6 @@ export function useSessionComments(
           // that WAS known at start but is missing from the response was
           // deleted server-side (e.g. GDPR erasure) and is dropped — merging
           // it back would make it immortal.
-          // Tasks, by contrast, ARE wholesale-replaced: nothing writes them
-          // optimistically (design §4), so the fetched embed is the whole
-          // truth and merging could only resurrect stale rows.
           setEntries((previous) => {
             const existing = previous[targetKey]?.comments ?? [];
             const fetchedIds = new Set(comments.map((comment) => comment.id));
@@ -561,7 +494,6 @@ export function useSessionComments(
               ...previous,
               [targetKey]: {
                 comments: merged,
-                tasks,
                 state: "ready",
                 fetchedAt: Date.now(),
               },
@@ -611,38 +543,8 @@ export function useSessionComments(
     void fetchComments(orgId, sessionId);
   }, [orgId, sessionId, signedIn, fetchComments]);
 
-  // --- Engine-poll reconciliation (the ONLY recurring pull, CPU rule) -----
-  // The sync engine's 60s pass merges `cloud_list_comment_tasks` into
-  // org2CloudCommentTasksAtom; nothing else refetches this atom's embed
-  // while a session stays open. When the engine reports a row for THIS
-  // session that the embed doesn't know (or knows older), force ONE
-  // TTL-bypassing refetch so card state, turn badges, resolve nudges AND
-  // report replies converge — no second timer is ever added, and the
-  // signature latch bounds it to one refetch per distinct engine snapshot.
   const entry = (key ? entries[key] : undefined) ?? EMPTY_ENTRY;
-  const engineTasksByOrg = useAtomValue(org2CloudCommentTasksAtom);
-  const engineTasks = useMemo(
-    () =>
-      orgId && sessionId
-        ? tasksForSession(engineTasksByOrg, orgId, sessionId)
-        : [],
-    [engineTasksByOrg, orgId, sessionId]
-  );
-  const staleSignature = useMemo(
-    () => findNewerEngineTaskSignature(entry.tasks, engineTasks),
-    [entry.tasks, engineTasks]
-  );
   const entryState = entry.state;
-  const forcedSignatureRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!orgId || !sessionId || !signedIn || staleSignature === null) return;
-    // idle/loading: the mount fetch (or the in-flight one) is about to
-    // deliver an embed at least as fresh as the engine snapshot.
-    if (entryState !== "ready" && entryState !== "error") return;
-    if (forcedSignatureRef.current === staleSignature) return;
-    forcedSignatureRef.current = staleSignature;
-    void fetchComments(orgId, sessionId, { force: true });
-  }, [orgId, sessionId, signedIn, staleSignature, entryState, fetchComments]);
 
   const refresh = useCallback(() => {
     if (!orgId || !sessionId || !signedIn) return;
@@ -819,18 +721,10 @@ export function useSessionComments(
     [orgId, sessionId, key, withFreshToken, patchEntry]
   );
 
-  const entryTasks = entry.tasks;
-  const taskForThread = useCallback(
-    (commentId: string): CloudCommentTask | undefined =>
-      findTaskForThread(entryTasks, commentId),
-    [entryTasks]
-  );
   return {
     comments: entry.comments,
-    tasks: entry.tasks,
     state: entry.state,
     refresh,
-    taskForThread,
     insertLocalComment,
     addComment,
     editComment,
