@@ -468,6 +468,7 @@
     },
     "sidebar": {
       "teamSessions": "Сессии команды",
+      "mySessions": "Мои сессии",
       "memberFilter": "Фильтр по участнику",
       "sessionFilter": "Фильтр сеансов",
       "directlySharedWithMe": "Доступ предоставлен лично мне",

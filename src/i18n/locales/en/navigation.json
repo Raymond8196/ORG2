@@ -497,6 +497,7 @@
     },
     "sidebar": {
       "teamSessions": "Team sessions",
+      "mySessions": "My sessions",
       "memberFilter": "Filter by member",
       "sessionFilter": "Filter sessions",
       "directlySharedWithMe": "Shared directly with me",

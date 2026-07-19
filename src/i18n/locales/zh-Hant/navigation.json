@@ -560,6 +560,7 @@
     },
     "sidebar": {
       "teamSessions": "團隊工作階段",
+      "mySessions": "我的工作階段",
       "memberFilter": "依成員篩選",
       "sessionFilter": "篩選工作階段",
       "directlySharedWithMe": "指定分享給我的",

@@ -468,6 +468,7 @@
     },
     "sidebar": {
       "teamSessions": "Ekip oturumları",
+      "mySessions": "Oturumlarım",
       "memberFilter": "Üyeye göre filtrele",
       "sessionFilter": "Oturumları filtrele",
       "directlySharedWithMe": "Doğrudan benimle paylaşılanlar",

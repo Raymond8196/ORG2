@@ -468,6 +468,7 @@
     },
     "sidebar": {
       "teamSessions": "Sesje zespołu",
+      "mySessions": "Moje sesje",
       "memberFilter": "Filtruj według członka",
       "sessionFilter": "Filtruj sesje",
       "directlySharedWithMe": "Udostępnione bezpośrednio mnie",
