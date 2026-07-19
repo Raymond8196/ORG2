@@ -314,7 +314,15 @@ const FileSessionHistorySessionView: React.FC<FileSessionHistorySessionProps> =
           `${t(`labels.sessionBlameAction.${action}`, { defaultValue: action })} ${count}`
       )
       .join(" · ");
+    const collaborationOwner =
+      session.collaborationOrigin?.ownerDisplayName.trim();
+    const collaborationOwnerLabel = collaborationOwner
+      ? collaborationOwner.startsWith("@")
+        ? collaborationOwner
+        : `@${collaborationOwner}`
+      : null;
     const meta = [
+      collaborationOwnerLabel,
       formatRelativeTime(session.lastInteractionAt, "compact"),
       actionSummary,
     ].filter(Boolean);

@@ -527,11 +527,11 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(client.appendSessionEvents).not.toHaveBeenCalled();
   });
 
-  it("an admin floor never uploads imported history that is only scope-matched", async () => {
+  it("applies the admin floor to scope-matched imported history", async () => {
     const source = getImportedHistorySourceBySessionId("cursoride-thread-1");
-    vi.spyOn(source!, "loadFullTranscriptChunks").mockResolvedValue(
-      [] as never
-    );
+    const loadFullTranscriptChunks = vi
+      .spyOn(source!, "loadFullTranscriptChunks")
+      .mockResolvedValue([] as never);
     store.set(org2CloudAccessSettingsAtom, {});
     store.set(org2CloudSharingFloorAtom, { "corg-1": "full_replay" });
     store.set(sessionsAtom, [
@@ -540,9 +540,11 @@ describe("Org2CloudSyncEngine session publishing", () => {
 
     await engine.runSyncPass();
 
-    expect(client.upsertSessionMetadata).not.toHaveBeenCalled();
-    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
-    expect(client.appendSessionEvents).not.toHaveBeenCalled();
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
+    expect(client.upsertSessionMetadata.mock.calls[0][3].accessMode).toBe(
+      "full_replay"
+    );
+    expect(loadFullTranscriptChunks).toHaveBeenCalledWith("cursoride-thread-1");
   });
 
   it("the floor still lifts imported history the user explicitly shared", async () => {

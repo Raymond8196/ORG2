@@ -455,12 +455,18 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // an effective-off session is skipped (never uploaded). A TAGGED
         // session still pushes, floored to metadata_only when its effective
         // mode is off ('off' must never reach the server — ORG2_VALIDATION).
-        // The admin sharing floor lifts only ADMITTED sessions (org-owned,
-        // tagged, fork-provenance, or explicit per-session intent). Scope
-        // candidacy alone must never let an org policy turn a merely
-        // repo-matched imported local history into an upload.
+        // The admin sharing floor lifts every ADMITTED session. Imported CLI
+        // history is admitted by repo-scope matching above: the sidebar groups
+        // it into that org automatically, so showing the effective floor in
+        // Settings while withholding the matching cloud push would make the
+        // rendered policy lie. Ordinary Personal sessions still require org
+        // ownership, a tag, fork provenance, or explicit share intent.
         const floorEligible =
-          Boolean(forkedFrom) || tagged || ownedByOrg || shareIntent;
+          Boolean(forkedFrom) ||
+          tagged ||
+          ownedByOrg ||
+          shareIntent ||
+          scopeAutoMatched;
         const access = resolveCloudPushAccess(
           accessByOrg[org.orgId],
           session.session_id,

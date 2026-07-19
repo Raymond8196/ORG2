@@ -224,10 +224,11 @@ export interface CloudPushAccess {
  * 'off' / undefined is a no-op. The server backstops this at push time.
  *
  * CALLER CONTRACT: pass `floor` only for ADMITTED sessions (org-owned,
- * tagged, fork-provenance, or explicit per-session intent). A session that
- * is merely a repo-scope candidate — e.g. imported local CLI history under a
- * matching checkout — must be resolved WITHOUT the floor, otherwise an admin
- * policy silently becomes the first share intent for private local data.
+ * tagged, fork-provenance, explicit per-session intent, or imported local CLI
+ * history whose checkout matches an admin-configured repo scope). Ordinary
+ * Personal sessions are not admitted by scope alone. Imported histories are:
+ * the org sidebar already includes them automatically, so the effective admin
+ * policy shown in Settings must drive the same upload behavior.
  */
 export function resolveCloudPushAccess(
   settings: CloudOrgAccessSettings | undefined,
