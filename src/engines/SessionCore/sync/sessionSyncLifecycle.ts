@@ -14,9 +14,26 @@ function saveSessionEventsToCache(sessionId: string): void {
 export function useEventStoreCacheSync(sessionId: string | null): void {
   useEffect(() => {
     if (!sessionId || isImportedHistorySession(sessionId)) return;
-    const interval = setInterval(() => {
+
+    // Dirty-check gate. The previous unconditional tick serialized the whole
+    // event store and wrote SQLite every 30s even for a fully idle, unchanged
+    // session — the single largest source of idle-session background work.
+    // The snapshot `version` is monotonic per applied envelope, so an
+    // unchanged session keeps the same value and we can skip the write.
+    // This hook only runs for the active session (SessionSyncProvider), which
+    // always has a live snapshot and is never LRU-evicted, so a null version
+    // means "still loading" rather than "evicted" — nothing to persist.
+    let lastSavedVersion: number | null = null;
+
+    const tick = (): void => {
+      const version =
+        eventStoreProxy.getLatestSessionSnapshot(sessionId)?.version ?? null;
+      if (version === null || version === lastSavedVersion) return;
+      lastSavedVersion = version;
       saveSessionEventsToCache(sessionId);
-    }, EVENT_STORE_CACHE_SYNC_INTERVAL_MS);
+    };
+
+    const interval = setInterval(tick, EVENT_STORE_CACHE_SYNC_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [sessionId]);
 }
