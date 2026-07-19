@@ -136,7 +136,100 @@
       },
       "views": {
         "scanning": "スキャン",
-        "hooks": "フック"
+        "hooks": "フック",
+        "usage": "使用量"
+      },
+      "usage": {
+        "title": "使用量とコスト",
+        "subtitle": "スキャン済みのコーディングセッションにおけるトークン数と推定コストです。データはローカルデータベースから読み取られ、デバイスの外部には送信されません。",
+        "allSources": "すべてのソース",
+        "refresh": "更新",
+        "estimatedNote": "コストはサブスクリプションおよび独自キー経由の定価見積もりです。従量課金額が記録されている場合は、その金額を表示します。",
+        "range": {
+          "today": "今日",
+          "24h": "24時間",
+          "7d": "7日間",
+          "30d": "30日間",
+          "all": "全期間"
+        },
+        "bucket": {
+          "claude": "Claude",
+          "codex": "Codex",
+          "cursor": "Cursor",
+          "org2": "ORGII エージェント",
+          "other": "その他"
+        },
+        "cards": {
+          "realTokens": "合計トークン",
+          "cost": "合計コスト（推定）",
+          "sessions": "セッション",
+          "requests": "リクエスト",
+          "cacheHit": "キャッシュヒット率",
+          "input": "入力",
+          "output": "出力",
+          "cacheCreate": "キャッシュ書き込み",
+          "cacheRead": "キャッシュ読み取り"
+        },
+        "trends": {
+          "title": "使用量の推移",
+          "input": "入力",
+          "output": "出力",
+          "cacheCreate": "キャッシュ書き込み",
+          "cacheRead": "キャッシュ読み取り",
+          "cost": "コスト"
+        },
+        "table": {
+          "title": "セッション",
+          "name": "セッション",
+          "agent": "エージェント",
+          "model": "モデル",
+          "tokens": "トークン",
+          "cost": "コスト",
+          "cacheHit": "キャッシュヒット",
+          "turns": "ターン",
+          "lastActive": "最終アクティブ",
+          "sort": {
+            "recent": "新しい順",
+            "cost": "コストが高い順",
+            "tokens": "トークンが多い順"
+          }
+        },
+        "roundsTable": {
+          "title": "リクエスト",
+          "time": "時刻",
+          "session": "セッション",
+          "agent": "エージェント",
+          "model": "モデル",
+          "input": "入力",
+          "output": "出力",
+          "cache": "キャッシュ読み取り",
+          "cost": "コスト",
+          "filterBySession": "このセッションで絞り込む"
+        },
+        "pricing": {
+          "input": "入力",
+          "cache": "キャッシュ",
+          "output": "出力",
+          "total": "合計",
+          "estimate": "定価による見積もり",
+          "hint": "リクエストのコストにカーソルを合わせると内訳が表示されます。",
+          "loading": "計算中…"
+        },
+        "detail": {
+          "title": "呼び出しごとの内訳",
+          "perTurn": "LLM 呼び出し",
+          "perTool": "ツール呼び出し",
+          "close": "閉じる",
+          "noData": "このセッションにはセッション単位の合計のみがあります。呼び出し単位の内訳は、ORGII 独自エージェントの実行で記録されます。",
+          "turnHeader": "ターン {{turn}}",
+          "promptTokens": "プロンプト",
+          "completionTokens": "補完"
+        },
+        "empty": {
+          "title": "使用量はまだありません",
+          "subtitle": "コーディングセッションを実行またはスキャンすると、トークン使用量がここに表示されます。"
+        },
+        "loadError": "使用量データを読み込めませんでした"
       },
       "sessions_other": "{{count}} 件のセッション",
       "details": {

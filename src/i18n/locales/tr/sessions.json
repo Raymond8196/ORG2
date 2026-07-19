@@ -136,7 +136,100 @@
       },
       "views": {
         "scanning": "Tarama",
-        "hooks": "Hooks"
+        "hooks": "Hooks",
+        "usage": "Kullanım"
+      },
+      "usage": {
+        "title": "Kullanım ve maliyet",
+        "subtitle": "Taranan kodlama oturumlarınızdaki token'lar ve tahmini maliyet. Veriler yerel veritabanından okunur ve cihazınızdan ayrılmaz.",
+        "allSources": "Tüm kaynaklar",
+        "refresh": "Yenile",
+        "estimatedNote": "Maliyet, abonelikler ve kendi anahtarlarınız için liste fiyatı tahminidir; ölçülen harcama kaydedildiğinde gösterilir.",
+        "range": {
+          "today": "Bugün",
+          "24h": "24 saat",
+          "7d": "7 gün",
+          "30d": "30 gün",
+          "all": "Tüm zamanlar"
+        },
+        "bucket": {
+          "claude": "Claude",
+          "codex": "Codex",
+          "cursor": "Cursor",
+          "org2": "ORGII agent'ları",
+          "other": "Diğer"
+        },
+        "cards": {
+          "realTokens": "Toplam token",
+          "cost": "Toplam maliyet (tah.)",
+          "sessions": "Oturumlar",
+          "requests": "İstekler",
+          "cacheHit": "Önbellek isabet oranı",
+          "input": "Girdi",
+          "output": "Çıktı",
+          "cacheCreate": "Önbelleğe yazma",
+          "cacheRead": "Önbellekten okuma"
+        },
+        "trends": {
+          "title": "Kullanım eğilimleri",
+          "input": "Girdi",
+          "output": "Çıktı",
+          "cacheCreate": "Önbelleğe yazma",
+          "cacheRead": "Önbellekten okuma",
+          "cost": "Maliyet"
+        },
+        "table": {
+          "title": "Oturumlar",
+          "name": "Oturum",
+          "agent": "Agent",
+          "model": "Model",
+          "tokens": "Token'lar",
+          "cost": "Maliyet",
+          "cacheHit": "Önbellek isabeti",
+          "turns": "Turlar",
+          "lastActive": "Son etkinlik",
+          "sort": {
+            "recent": "En yeni",
+            "cost": "En yüksek maliyet",
+            "tokens": "En fazla token"
+          }
+        },
+        "roundsTable": {
+          "title": "İstekler",
+          "time": "Zaman",
+          "session": "Oturum",
+          "agent": "Agent",
+          "model": "Model",
+          "input": "Girdi",
+          "output": "Çıktı",
+          "cache": "Önbellekten okuma",
+          "cost": "Maliyet",
+          "filterBySession": "Bu oturuma göre filtrele"
+        },
+        "pricing": {
+          "input": "Girdi",
+          "cache": "Önbellek",
+          "output": "Çıktı",
+          "total": "Toplam",
+          "estimate": "Liste fiyatı tahmini",
+          "hint": "Ayrıntıları görmek için imleci bir isteğin maliyetinin üzerine getirin.",
+          "loading": "Hesaplanıyor…"
+        },
+        "detail": {
+          "title": "Çağrı başına döküm",
+          "perTurn": "LLM çağrıları",
+          "perTool": "Araç çağrıları",
+          "close": "Kapat",
+          "noData": "Bu oturumda yalnızca oturum düzeyi toplamlar var; çağrı başına ilişkilendirme ORGII'nin kendi agent çalıştırmaları için kaydedilir.",
+          "turnHeader": "Tur {{turn}}",
+          "promptTokens": "Prompt",
+          "completionTokens": "Tamamlama"
+        },
+        "empty": {
+          "title": "Henüz kullanım yok",
+          "subtitle": "Kodlama oturumlarını çalıştırın veya tarayın; token kullanımları burada görünsün."
+        },
+        "loadError": "Kullanım verileri yüklenemedi"
       },
       "sessions_one": "{{count}} oturum",
       "sessions_other": "{{count}} oturum",
