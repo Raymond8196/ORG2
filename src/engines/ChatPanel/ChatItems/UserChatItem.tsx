@@ -173,9 +173,16 @@ CachedFileChip.displayName = "CachedFileChip";
 // Styles
 // ============================================
 
-/** Layout-only; border/hover/focus ring added per-row below */
+/**
+ * Layout-only; border/hover/focus ring added per-row below.
+ *
+ * Uses a NAMED group (`group/msg`) so the hover toolbar reveals only when its
+ * own bubble is hovered. An unnamed `group` here would also match any ancestor
+ * carrying a bare `group` class (e.g. the WorkStation AppShell), which made
+ * every message's toolbar reveal whenever the mouse was anywhere in the pane.
+ */
 const DISPLAY_CONTAINER_BASE =
-  "group relative w-fit max-w-[min(600px,100%)] rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
+  "group/msg relative w-fit max-w-[min(600px,100%)] rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
 
 // ============================================
 // Component
@@ -376,7 +383,7 @@ const UserChatItem = ({
         onClick={isEditableDisplay ? handleEditClick : undefined}
       >
         {fullContent && (
-          <div className="absolute right-full top-1/2 z-10 mr-1 -translate-y-1/2 translate-x-2 opacity-0 transition-[opacity,transform] duration-150 ease-out focus-within:translate-x-0 focus-within:opacity-100 group-hover:translate-x-0 group-hover:opacity-100 motion-reduce:translate-x-0 motion-reduce:transition-none">
+          <div className="absolute right-full top-1/2 z-10 mr-1 -translate-y-1/2 translate-x-2 opacity-0 transition-[opacity,transform] duration-150 ease-out focus-within:translate-x-0 focus-within:opacity-100 group-hover/msg:translate-x-0 group-hover/msg:opacity-100 motion-reduce:translate-x-0 motion-reduce:transition-none">
             <div className="flex items-center gap-1 px-1 py-0.5">
               <ChatBubbleCopyButton content={fullContent} placement="toolbar" />
               {isEditableDisplay && onRestoreCheckpoint && (

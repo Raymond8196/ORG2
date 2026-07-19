@@ -122,7 +122,7 @@ const AppShell = React.memo(
 
     const showStatusBar = !statusBarHidden && !isAgentStation;
     return (
-      <div className="group relative flex h-full w-full min-w-0 flex-col overflow-hidden bg-workstation-bg">
+      <div className="relative flex h-full w-full min-w-0 flex-col overflow-hidden bg-workstation-bg">
         {isAgentStation && <AgentStationTopHeader />}
         <AgentStationChromeFrame
           enabled={followAgentHighlightEnabled && isAgentStation}
