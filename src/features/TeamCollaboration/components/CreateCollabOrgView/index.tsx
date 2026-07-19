@@ -2,14 +2,12 @@ import { useAtom, useSetAtom } from "jotai";
 import { Cloud, Laptop, LogIn, Plus } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 
 import { projectApi } from "@src/api/http/project";
 import type { ProjectOrg } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Message from "@src/components/Message";
-import { buildSettingsPath } from "@src/config/mainAppPaths";
 import {
   commitRefreshedAuth,
   org2CloudAuthAtom,
@@ -26,6 +24,7 @@ import {
 } from "@src/features/Org2Cloud/org2CloudOrgManagement";
 import { useRefetchOrg2CloudOrgs } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { ensureProjectOrgForCloudOrg } from "@src/features/Org2Cloud/org2CloudProjectOrgAlias";
+import { useAppNavigation } from "@src/hooks/navigation";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SectionContainer,
@@ -78,15 +77,15 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
   const [inviteInput, setInviteInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const { goToSettings } = useAppNavigation();
   const openCloudOrgManagementTab = useSetAtom(
     openCloudOrgManagementInChatPanelTabAtom
   );
 
   // "Use ORG2 Cloud" opens the Collaboration section where managed sign-in lives.
   const handleUseOrg2Cloud = useCallback(() => {
-    navigate(buildSettingsPath({ section: "collaboration" }));
-  }, [navigate]);
+    goToSettings({ section: "collaboration" });
+  }, [goToSettings]);
 
   const sourceOptions = useMemo<SelectionGridOption<CreateOrgSource>[]>(
     () => [
