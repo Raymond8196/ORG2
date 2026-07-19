@@ -2,6 +2,7 @@
 //! `list`/`search`, `usage`, `show`) plus their table/markdown/CSV renderers.
 
 use core_types::activity::ActivityChunk;
+use rusqlite::Connection;
 
 use orgtrack_core::session_usage;
 use orgtrack_core::sources::registry;
@@ -20,6 +21,7 @@ use crate::plugin_exec::{
 use crate::plugins::{self, FormatterPlugin, LoaderPlugin, ProcessorPlugin};
 use crate::scan::{counts_by_source, read_cached, scan_all};
 use crate::store::{count_usage_rows, db_target, open_conn};
+use crate::triggers;
 use crate::{Format, Options, ScannedRow, SCAN_PAGE};
 
 pub(crate) fn cmd_sources(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
@@ -539,6 +541,194 @@ pub(crate) fn render_usage_csv(sessions: &[UsageSessionRow]) -> String {
         ]));
     }
     out
+}
+
+/// `orgtrack check`: evaluate usage/behavior triggers and compile the firings
+/// into a report. Exits 2 if any `error` fired, 1 if `--strict` and any `warn`
+/// fired, else 0 — so it composes with CI and cron.
+pub(crate) fn cmd_check(
+    opts: &Options,
+    plugins: &[LoaderPlugin],
+    formatters: &[FormatterPlugin],
+) -> Result<(), String> {
+    let rules = load_triggers(opts)?;
+    if rules.is_empty() {
+        println!("No triggers configured.");
+        println!(
+            "Add rules to ~/.orgtrack/triggers.toml (or pass --triggers <path>). \
+             See docs/orgtrack-triggers-design.md."
+        );
+        return Ok(());
+    }
+
+    let target = db_target(opts)?;
+    if !opts.no_scan {
+        scan_all(&target.path, opts, plugins);
+    }
+    let conn = open_conn(&target.path)?;
+    if let Err(err) = session_usage::backfill_session_usage(&conn, SCAN_PAGE) {
+        eprintln!("orgtrack: usage projection incomplete ({err})");
+    }
+
+    let filter = UsageFilter {
+        all_sources: true,
+        ..UsageFilter::default()
+    };
+    let mut sessions =
+        usage_dashboard::usage_sessions(&conn, &filter, usage_dashboard::SessionSort::Recent, 0, SCAN_PAGE)?;
+    if !opts.sources.is_empty() {
+        sessions.retain(|row| opts.sources.iter().any(|source| source == &row.source));
+    }
+
+    let project_of = project_map(&conn);
+    let firings = triggers::evaluate(&sessions, &project_of, &rules);
+
+    render_check(opts, &firings, formatters)?;
+    std::process::exit(triggers::exit_code(&firings, opts.strict));
+}
+
+/// Load trigger rules from `--triggers <path>` or `~/.orgtrack/triggers.toml`.
+fn load_triggers(opts: &Options) -> Result<Vec<triggers::Trigger>, String> {
+    let (path, explicit) = match &opts.triggers {
+        Some(path) => (std::path::PathBuf::from(path), true),
+        None => match std::env::var_os("HOME") {
+            Some(home) => (
+                std::path::Path::new(&home).join(".orgtrack/triggers.toml"),
+                false,
+            ),
+            None => return Ok(Vec::new()),
+        },
+    };
+    if !path.is_file() {
+        if explicit {
+            return Err(format!("triggers file not found: {}", path.display()));
+        }
+        return Ok(Vec::new());
+    }
+    let text = std::fs::read_to_string(&path).map_err(|err| format!("read {}: {err}", path.display()))?;
+    triggers::parse(&text)
+}
+
+/// `session_id → project slug`, for `scope = "project"` triggers.
+fn project_map(conn: &Connection) -> std::collections::BTreeMap<String, String> {
+    let mut map = std::collections::BTreeMap::new();
+    let Ok(mut stmt) = conn.prepare(
+        "SELECT session_id, repo_path FROM imported_history_session_cache
+         WHERE listable = 1 AND repo_path IS NOT NULL AND repo_path != ''",
+    ) else {
+        return map;
+    };
+    let Ok(rows) = stmt.query_map([], |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+    }) else {
+        return map;
+    };
+    for (session_id, repo_path) in rows.flatten() {
+        if let Some(project) = crate::project::identify_cached(&repo_path) {
+            map.insert(session_id, project.slug);
+        }
+    }
+    map
+}
+
+fn render_check(
+    opts: &Options,
+    firings: &[triggers::Firing],
+    formatters: &[FormatterPlugin],
+) -> Result<(), String> {
+    let firings_json: Vec<serde_json::Value> = firings
+        .iter()
+        .map(|firing| {
+            serde_json::json!({
+                "trigger": firing.trigger_id,
+                "severity": firing.severity.label(),
+                "scope": firing.scope,
+                "scopeKey": firing.scope_key,
+                "op": firing.op.symbol(),
+                "actual": firing.actual,
+                "limit": firing.limit,
+                "message": firing.message,
+            })
+        })
+        .collect();
+
+    if let Some(formatter) = formatter_for(opts, formatters) {
+        let context = serde_json::json!({ "command": "check", "firings": firings_json });
+        return render_template(formatter, &context);
+    }
+    match opts.format()? {
+        Format::Json => println!("{}", to_json(&firings_json)?),
+        Format::Md => {
+            print!("# orgtrack triggers\n\n");
+            if firings.is_empty() {
+                println!("All triggers passed.");
+            }
+            for firing in firings {
+                println!(
+                    "- **{}** `{}` — {} {} {} ({}={}) — {}",
+                    firing.severity.label(),
+                    firing.trigger_id,
+                    triggers::format_value(firing.actual, firing.is_ratio),
+                    firing.op.symbol(),
+                    triggers::format_value(firing.limit, firing.is_ratio),
+                    firing.scope,
+                    md_cell(&firing.scope_key),
+                    md_cell(&firing.message),
+                );
+            }
+        }
+        Format::Csv => {
+            println!("severity,trigger,scope,scope_key,actual,op,limit,message");
+            for firing in firings {
+                print!(
+                    "{}",
+                    csv_row(&[
+                        firing.severity.label(),
+                        &firing.trigger_id,
+                        firing.scope,
+                        &firing.scope_key,
+                        &triggers::format_value(firing.actual, firing.is_ratio),
+                        firing.op.symbol(),
+                        &triggers::format_value(firing.limit, firing.is_ratio),
+                        &firing.message,
+                    ])
+                );
+            }
+        }
+        Format::Table => {
+            if firings.is_empty() {
+                println!("All triggers passed.");
+                return Ok(());
+            }
+            println!(
+                "{:<8}  {:<16}  {:<22}  {:>10}  {:<8}  MESSAGE",
+                "SEVERITY", "TRIGGER", "SCOPE", "ACTUAL", "LIMIT"
+            );
+            println!("{}", "-".repeat(100));
+            for firing in firings {
+                println!(
+                    "{:<8}  {:<16}  {:<22}  {:>10}  {:<8}  {}",
+                    firing.severity.label(),
+                    truncate(&firing.trigger_id, 16),
+                    truncate(&format!("{}={}", firing.scope, firing.scope_key), 22),
+                    triggers::format_value(firing.actual, firing.is_ratio),
+                    format!(
+                        "{} {}",
+                        firing.op.symbol(),
+                        triggers::format_value(firing.limit, firing.is_ratio)
+                    ),
+                    truncate(&firing.message, 40),
+                );
+            }
+            let errors = firings.iter().filter(|f| f.severity.label() == "error").count();
+            let warns = firings.iter().filter(|f| f.severity.label() == "warn").count();
+            println!(
+                "\n{} trigger(s) fired ({errors} error, {warns} warn).",
+                firings.len()
+            );
+        }
+    }
+    Ok(())
 }
 
 pub(crate) fn cmd_show(

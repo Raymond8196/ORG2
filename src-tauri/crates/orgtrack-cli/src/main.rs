@@ -27,9 +27,10 @@ mod plugins;
 mod project;
 mod scan;
 mod store;
+mod triggers;
 
 use crate::commands::{
-    cmd_list, cmd_plugins, cmd_scan, cmd_search_content, cmd_show, cmd_sources, cmd_usage,
+    cmd_check, cmd_list, cmd_plugins, cmd_scan, cmd_search_content, cmd_show, cmd_sources, cmd_usage,
 };
 use crate::scan::validate_sources;
 
@@ -60,6 +61,7 @@ COMMANDS:
     search <query>          Search sessions by name/repo/file/model, or add
                             --content for full-text search inside conversations
     usage                   Token & cost analytics (alias: stats)
+    check                   Evaluate usage triggers; exit non-zero on error
     show <session-id>       Print a session's conversation/activity stream
     plugins list            Show discovered loader plugins
     plugins trust <id>      Trust an exec plugin so it may run
@@ -73,6 +75,8 @@ OPTIONS:
     --sort <recent|cost|tokens>   Sort for `usage`. Default: recent.
     --timeout <secs>        Per-tool scan budget; a tool that exceeds it is
                             skipped. Default: 30.
+    --triggers <path>       Trigger rules for `check` (default ~/.orgtrack/triggers.toml).
+    --strict                `check` exits non-zero on `warn`, not just `error`.
     --content               `search` inside conversations (FTS5); wants --db.
     --project <query>       Filter to a project (git-remote slug or id; stable
                             across machines). Shows in `list --json`.
@@ -125,9 +129,11 @@ pub(crate) struct Options {
     pub(crate) timeout: Option<u64>,
     pub(crate) format: Option<String>,
     pub(crate) project: Option<String>,
+    pub(crate) triggers: Option<String>,
     pub(crate) no_scan: bool,
     pub(crate) no_plugins: bool,
     pub(crate) content: bool,
+    pub(crate) strict: bool,
     pub(crate) json: bool,
 }
 
@@ -211,6 +217,7 @@ fn run(args: &[String]) -> Result<(), String> {
                     }
                 }
                 "usage" | "stats" => cmd_usage(&opts, loaders, formatters),
+                "check" => cmd_check(&opts, loaders, formatters),
                 "show" => cmd_show(&opts, loaders, processors, formatters),
                 _ => Err(format!(
                     "unknown command '{other}'. Run `orgtrack help` for usage."
@@ -243,7 +250,9 @@ fn parse_options(args: &[String]) -> Result<Options, String> {
             "--sort" => opts.sort = Some(next_value(&mut iter, "--sort")?.to_string()),
             "--format" => opts.format = Some(next_value(&mut iter, "--format")?.to_string()),
             "--project" => opts.project = Some(next_value(&mut iter, "--project")?.to_string()),
+            "--triggers" => opts.triggers = Some(next_value(&mut iter, "--triggers")?.to_string()),
             "--content" => opts.content = true,
+            "--strict" => opts.strict = true,
             "--timeout" => {
                 let raw = next_value(&mut iter, "--timeout")?;
                 opts.timeout = Some(

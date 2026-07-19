@@ -30,6 +30,7 @@ self-contained — no system libsqlite required.
 | `orgtrack list` (`ls`)      | List indexed sessions                                               |
 | `orgtrack search <query>`   | Search by name/repo/file/model — add `--content` for full-text search *inside* conversations (FTS5) |
 | `orgtrack usage` (`stats`)  | Token & cost analytics (headline + per-session + daily trend)       |
+| `orgtrack check`            | Evaluate usage/behavior **triggers**; exit non-zero on error (CI/cron) |
 | `orgtrack show <id>`        | Print a session's conversation / activity stream                    |
 | `orgtrack plugins list`     | Show discovered loader plugins (and any that failed to load)        |
 
@@ -44,6 +45,8 @@ self-contained — no system libsqlite required.
 | `--timeout <secs>`    | Per-tool scan budget before it's skipped. Default 30.                  |
 | `--content`           | Make `search` full-text over conversations (FTS5 index in `--db`).     |
 | `--project <query>`   | Filter to a project by its git-remote slug/id (stable across machines).|
+| `--triggers <path>`   | Trigger rules for `check` (default `~/.orgtrack/triggers.toml`).        |
+| `--strict`            | `check` also exits non-zero on `warn`, not just `error`.               |
 | `--no-scan`           | Skip the disk scan; read an existing `--db` index as-is.               |
 | `--no-plugins`        | Ignore discovered loader plugins.                                      |
 | `--format <fmt>`      | `table` (default), `json`, `md`, `csv`. Applies to `list`/`usage`/`show`. |
@@ -169,6 +172,33 @@ reference template.
   reader guard the desktop app's own tables with `table_exists`; this CLI
   creates empty stand-ins for the three the analytics reader references
   unconditionally (`session_token_usage`, `code_sessions`, `agent_sessions`).
+
+## Triggers (`check`)
+
+Define threshold rules over usage/behavior metrics; `orgtrack check` fires the
+ones that cross and exits non-zero so it drops into CI or a cron. Rules are pure
+config (no code) at `~/.orgtrack/triggers.toml` or `--triggers <path>`:
+
+```toml
+[[trigger]]
+id = "daily-spend-cap"
+metric = "cost_usd"   # cost_usd | tokens | *_tokens | session_count | cache_hit_rate
+scope  = "day"        # total | day | source | project | session
+op     = ">"
+value  = 50
+severity = "warn"     # info | warn | error
+message  = "Daily spend over $50 ({actual})"
+```
+
+```bash
+orgtrack check --db ~/.orgtrack/index.db          # table report; exit 2 on error, 1 on --strict warn
+orgtrack check --db ~/.orgtrack/index.db --format json | jq .
+```
+
+A trigger fires once per scope key that crosses (per day, per source, per
+session, …). See `examples/triggers.toml` and `docs/orgtrack-triggers-design.md`
+(the exec-**hook** action side — notify on a firing — is a later phase, gated by
+the same plugin trust model).
 
 ## Examples
 
