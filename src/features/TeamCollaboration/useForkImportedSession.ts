@@ -15,7 +15,6 @@ import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useState } from "react";
 
 import { createLogger } from "@src/hooks/logger";
-import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import type {
   Session,
   SessionImportedFrom,
@@ -34,10 +33,8 @@ import {
   isOrg2ShareErrorCode,
   resolveCloudSessionShare,
 } from "../Org2Cloud/org2CloudSharesClient";
-import {
-  isOrg2SyncErrorCode,
-  listOrgSessions,
-} from "../Org2Cloud/org2CloudSyncClient";
+import { isOrg2SyncErrorCode } from "../Org2Cloud/org2CloudSyncClient";
+import { executeAuthenticatedCloudSessionFork } from "./cloudSessionFork";
 import type {
   ForkSessionResult,
   ForkTeammateSessionOptions,
@@ -80,19 +77,6 @@ export type ImportedForkBackendResolution =
   | { kind: "cloud"; orgId: string }
   | { kind: "guestShare"; shareToken: string; shareEndpointUrl?: string }
   | { kind: "unavailable"; errorKind: ForkImportedErrorKind };
-
-/** The remote row this import came from, if it is still shared. */
-export function pickImportedRemoteSession(
-  remoteSessions: readonly RemoteTeammateSessionMetadata[],
-  importedFrom: ImportedOrigin
-): RemoteTeammateSessionMetadata | undefined {
-  return remoteSessions.find(
-    (session) =>
-      session.orgId === importedFrom.orgId &&
-      session.sourceSessionId === importedFrom.sourceSessionId &&
-      !session.deletedAt
-  );
-}
 
 /**
  * Membership wins when available. Otherwise, a persisted share capability
@@ -198,19 +182,15 @@ export function useForkImportedSession(session: Session | null | undefined) {
       if (!fresh) return fail("generic");
       commitRefreshedAuth(setAuth, auth, fresh);
       // Server-side retention filter: a row that aged out simply is not
-      // listed anymore → 'gone'.
-      const { sessions } = await listOrgSessions(
+      // listed anymore → 'gone'. The same helper powers owner @agent on
+      // immutable external histories, keeping every cloud-source fork on one
+      // implementation.
+      const outcome = await executeAuthenticatedCloudSessionFork(
         fresh.accessToken,
-        resolution.orgId
+        importedFrom
       );
-      const remoteSession = pickImportedRemoteSession(sessions, importedFrom);
-      if (!remoteSession) return fail("gone");
-      const result: ForkSessionResult | null = await forkTeammateSession({
-        client: buildCloudSessionFetchClient(fresh.accessToken),
-        orgId: resolution.orgId,
-        remoteSession,
-        promptForExecution: true,
-      });
+      if (outcome.status === "gone") return fail("gone");
+      const { result } = outcome;
       if (!result) {
         // Owner has published no segments — nothing to inherit.
         return fail("generic");
