@@ -28,7 +28,7 @@ self-contained — no system libsqlite required.
 | `orgtrack sources`          | List every tool orgtrack can read (15 today)                        |
 | `orgtrack scan`             | Discover sessions from disk and index them into SQLite              |
 | `orgtrack list` (`ls`)      | List indexed sessions                                               |
-| `orgtrack search <query>`   | Search sessions by name / repo / touched file / model               |
+| `orgtrack search <query>`   | Search by name/repo/file/model — add `--content` for full-text search *inside* conversations (FTS5) |
 | `orgtrack usage` (`stats`)  | Token & cost analytics (headline + per-session + daily trend)       |
 | `orgtrack show <id>`        | Print a session's conversation / activity stream                    |
 | `orgtrack plugins list`     | Show discovered loader plugins (and any that failed to load)        |
@@ -42,6 +42,8 @@ self-contained — no system libsqlite required.
 | `--limit <n>`         | Max rows to display (`list`/`search`/`usage`). Default 50.             |
 | `--sort <recent\|cost\|tokens>` | Sort for `usage`. Default `recent`.                          |
 | `--timeout <secs>`    | Per-tool scan budget before it's skipped. Default 30.                  |
+| `--content`           | Make `search` full-text over conversations (FTS5 index in `--db`).     |
+| `--project <query>`   | Filter to a project by its git-remote slug/id (stable across machines).|
 | `--no-scan`           | Skip the disk scan; read an existing `--db` index as-is.               |
 | `--no-plugins`        | Ignore discovered loader plugins.                                      |
 | `--format <fmt>`      | `table` (default), `json`, `md`, `csv`. Applies to `list`/`usage`/`show`. |
@@ -175,6 +177,8 @@ orgtrack sources
 orgtrack scan --db ~/.orgtrack/index.db
 orgtrack list --source claude_code --limit 20
 orgtrack search auth --json
+orgtrack search "rate limit" --content --db ~/.orgtrack/index.db   # full-text, inside conversations
+orgtrack list --project github.com/acme/app --db ~/.orgtrack/index.db --no-scan
 orgtrack usage --sort cost --db ~/.orgtrack/index.db --no-scan
 orgtrack show claude_code-<uuid> --db ~/.orgtrack/index.db --no-scan
 ```

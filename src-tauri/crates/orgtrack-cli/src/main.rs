@@ -20,13 +20,17 @@ use std::time::Duration;
 use orgtrack_core::sources::imported_history::ImportedHistorySessionRow;
 
 mod commands;
+mod content_index;
 mod output;
 mod plugin_exec;
 mod plugins;
+mod project;
 mod scan;
 mod store;
 
-use crate::commands::{cmd_list, cmd_plugins, cmd_scan, cmd_show, cmd_sources, cmd_usage};
+use crate::commands::{
+    cmd_list, cmd_plugins, cmd_scan, cmd_search_content, cmd_show, cmd_sources, cmd_usage,
+};
 use crate::scan::validate_sources;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -53,7 +57,8 @@ COMMANDS:
     sources                 List every tool orgtrack can read
     scan                    Discover sessions from disk and index them
     list                    List indexed sessions (alias: ls, sessions)
-    search <query>          Search indexed sessions by name / repo / file / model
+    search <query>          Search sessions by name/repo/file/model, or add
+                            --content for full-text search inside conversations
     usage                   Token & cost analytics (alias: stats)
     show <session-id>       Print a session's conversation/activity stream
     plugins list            Show discovered loader plugins
@@ -68,6 +73,9 @@ OPTIONS:
     --sort <recent|cost|tokens>   Sort for `usage`. Default: recent.
     --timeout <secs>        Per-tool scan budget; a tool that exceeds it is
                             skipped. Default: 30.
+    --content               `search` inside conversations (FTS5); wants --db.
+    --project <query>       Filter to a project (git-remote slug or id; stable
+                            across machines). Shows in `list --json`.
     --no-scan               Skip disk scan; read an existing --db as-is.
     --no-plugins            Ignore discovered loader plugins.
     --format <fmt>          Output: table (default), json, md, csv, or a
@@ -84,6 +92,8 @@ EXAMPLES:
     orgtrack scan --db ~/.orgtrack/index.db
     orgtrack list --source claude_code --limit 20
     orgtrack search auth --json
+    orgtrack search \"rate limit\" --content --db ~/.orgtrack/index.db
+    orgtrack list --project github.com/acme/app --db ~/.orgtrack/index.db
     orgtrack usage --sort cost --db ~/.orgtrack/index.db
     orgtrack list --format md > sessions.md
     orgtrack usage --format csv > usage.csv
@@ -114,8 +124,10 @@ pub(crate) struct Options {
     pub(crate) sort: Option<String>,
     pub(crate) timeout: Option<u64>,
     pub(crate) format: Option<String>,
+    pub(crate) project: Option<String>,
     pub(crate) no_scan: bool,
     pub(crate) no_plugins: bool,
+    pub(crate) content: bool,
     pub(crate) json: bool,
 }
 
@@ -192,7 +204,11 @@ fn run(args: &[String]) -> Result<(), String> {
                     if query.trim().is_empty() {
                         return Err("search needs a query, e.g. `orgtrack search auth`".into());
                     }
-                    cmd_list(&opts, Some(query), loaders, processors, formatters)
+                    if opts.content {
+                        cmd_search_content(&opts, &query, loaders, formatters)
+                    } else {
+                        cmd_list(&opts, Some(query), loaders, processors, formatters)
+                    }
                 }
                 "usage" | "stats" => cmd_usage(&opts, loaders, formatters),
                 "show" => cmd_show(&opts, loaders, processors, formatters),
@@ -226,6 +242,8 @@ fn parse_options(args: &[String]) -> Result<Options, String> {
             }
             "--sort" => opts.sort = Some(next_value(&mut iter, "--sort")?.to_string()),
             "--format" => opts.format = Some(next_value(&mut iter, "--format")?.to_string()),
+            "--project" => opts.project = Some(next_value(&mut iter, "--project")?.to_string()),
+            "--content" => opts.content = true,
             "--timeout" => {
                 let raw = next_value(&mut iter, "--timeout")?;
                 opts.timeout = Some(

@@ -46,14 +46,15 @@ binary (see the crate README "Publishing" section for the extraction path).
 
 ## Roadmap
 
-1. **FTS5 full-text search over session bodies.** Today `orgtrack search` is a
-   substring match over titles / repo / touched files / model — good, but not
-   content search. A `sessions_fts(name, body)` FTS5 virtual table built from
-   `load_activity_chunks_for_session` output would make `orgtrack search` a real
-   content search and could back an in-app search box too. UX patterns worth
-   applying: fire at 2+ chars, fetch highlighted `snippet()` lazily for only the
-   visible rows, cancel the prior in-flight query per keystroke, WAL + multiple
-   reader connections so one broad query can't starve the UI.
+1. ✅ **FTS5 full-text search over session bodies.** `orgtrack search --content`
+   builds an `orgtrack_fts(name, body)` FTS5 index from
+   `load_activity_chunks_for_session` output and returns ranked hits with
+   highlighted `snippet()`s. Kept RAM/CPU-light: incremental (an
+   `orgtrack_fts_state` fingerprint table re-parses only changed sessions —
+   repeat searches are ~instant), per-session streaming, a bounded per-session
+   body (256 KB), batched write transactions, and disk-backed queries. _Shipped
+   in the CLI (`content_index.rs`); an in-app search box could reuse the same
+   index._
 2. **Markdown / neutral-schema export & portability.** We already normalize
    every provider to `ActivityChunk`; an `orgtrack export --format md` that
    writes a portable, human-readable transcript (plus a JSON neutral schema) is
@@ -62,10 +63,13 @@ binary (see the crate README "Publishing" section for the extraction path).
    format from the neutral schema so a session can resume in a different agent.
    This lands naturally on the plugin **formatter** tier (see
    `orgtrack-plugins-design.md`).
-3. **Stable cross-machine project identity.** Key the index by
-   `sha256(normalized git remote)` with a path fallback and a git-root walk-up
-   (monorepo-safe) so a shared index lines up across machines. Confirm the
-   existing `repo_sync` identity already derives the same way.
+3. ✅ **Stable cross-machine project identity.** `project.rs` derives a project
+   id = `sha256(normalized git remote)[..12]` with a git-root walk-up and a
+   path fallback, by reading `.git/config` directly (no `git` subprocess),
+   memoized per repo. Surfaced as `list --project <slug|id>` and
+   `projectId`/`projectSlug` in `list --json`, so sessions line up across
+   machines/clones regardless of local path. (`orgtrack_core::repo_sync` does
+   not derive this today, so the CLI owns it.)
 4. **Cursor reader hardening.** The known-hard areas if the Cursor loaders hit
    walls: reverse-mapping Cursor's `md5(cwd)` hashed dirs from other providers'
    known cwds, DAG-sorting Cursor blob records, and reassembling VS Code
