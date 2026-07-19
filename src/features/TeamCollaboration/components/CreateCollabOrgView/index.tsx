@@ -15,7 +15,6 @@ import {
 import { ensureFreshSession } from "@src/features/Org2Cloud/org2CloudClient";
 import {
   acceptCloudInvite,
-  createCloudInvite,
   createCloudOrg,
 } from "@src/features/Org2Cloud/org2CloudManagementClient";
 import {
@@ -33,10 +32,6 @@ import {
 import SelectionGrid from "@src/scaffold/WizardSystem/primitives/SelectionGrid";
 import type { SelectionGridOption } from "@src/scaffold/WizardSystem/primitives/SelectionGrid";
 import { openCloudOrgManagementInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
-import {
-  INVITE_KIND,
-  createInviteDefaults,
-} from "@src/store/collaboration/inviteDefaults";
 
 const LOCAL_SOURCE = "local";
 // Managed ORG2 Cloud org (create_org / accept_invite against the managed
@@ -169,21 +164,6 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
         await ensureProjectOrgForCloudOrg({ orgId, name: orgName.trim() });
       } catch {
         // Non-fatal: the engine's per-org pass self-heals the alias.
-      }
-      // Bootstrap invite (design §8.1): multi-use so pasting the link into a
-      // team channel doesn't lock out member #2. Listed in the org panel's
-      // Invites section, which opens right below.
-      try {
-        const defaults = createInviteDefaults(INVITE_KIND.BOOTSTRAP);
-        await createCloudInvite(fresh.accessToken, {
-          orgId,
-          role: defaults.role,
-          maxUses: defaults.usageLimit,
-          expiresAt: defaults.expiresAt,
-        });
-      } catch {
-        // Org creation already succeeded; invites can be minted later from
-        // the org panel.
       }
       await refetchCloudOrgs({
         until: (orgs) => orgs.some((org) => org.orgId === orgId),
