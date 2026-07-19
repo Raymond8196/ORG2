@@ -26,6 +26,7 @@ import React, {
   useMemo,
 } from "react";
 
+import { createLogger } from "@src/hooks/logger";
 import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
@@ -38,9 +39,7 @@ import {
 } from "../addressCommentsRun";
 import type { CommentTaskRunProgress } from "../commentTaskRunner";
 import { org2CloudAuthAtom } from "../org2CloudAuthAtom";
-import { createCommentTask } from "../org2CloudCommentTasksClient";
 import type { CloudCommentTask } from "../org2CloudCommentTasksClient";
-import { broadcastCommentsChangedToPeers } from "../org2CloudCommentsBus";
 import type {
   CloudCommentResolution,
   CloudSessionComment,
@@ -52,13 +51,14 @@ import {
   type CloudSessionCommentsFetchState,
   type GroupedCommentThreads,
   groupCommentThreads,
-  useCloudFreshAccessToken,
   useSessionComments,
 } from "../org2CloudSessionCommentsAtom";
 import {
   type SessionCommentTarget,
   useSessionCommentTarget,
 } from "../sessionCommentTarget";
+
+const log = createLogger("SessionComments");
 
 const CLOUD_ADMIN_ROLES = new Set(["owner", "admin"]);
 
@@ -247,7 +247,6 @@ export const SessionCommentsProvider: React.FC<
   );
   const viewer = useSessionCommentViewer(target);
   const setPresentRegistry = useSetAtom(sessionCommentPresentEventIdsAtom);
-  const withFreshToken = useCloudFreshAccessToken();
 
   // Publish the replay stream's event ids for the header notes dialog —
   // only for cloud targets, so ordinary sessions cause zero registry churn.
@@ -285,19 +284,31 @@ export const SessionCommentsProvider: React.FC<
 
   const createTask = useCallback(
     async (commentId: string, instruction?: string): Promise<void> => {
-      if (!target) throw new Error("no cloud comment target");
-      const accessToken = await withFreshToken();
-      await createCommentTask(accessToken, {
+      if (!target || !session) throw new Error("no cloud comment target");
+      // Personal @agent: run a scoped agent round on THIS machine's local
+      // session (a fork of the shared source) for just this comment, and post
+      // the answer back as an ordinary member reply (replyAsUser — a forker
+      // isn't the source owner, so it can't post an agent_report). No cloud
+      // task / lease / pickup: a teammate's @agent runs on THEIR machine, never
+      // here. Fire in the background so the composer submit doesn't block on the
+      // whole agent turn — addressRunActive reflects the in-flight state and the
+      // refetch surfaces the reply.
+      void runAddressCommentsRound({
         orgId: target.orgId,
-        commentId,
+        cloudSessionId: target.sessionId,
+        localSessionId: session.session_id,
+        selectedHeadIds: [commentId],
+        replyAsUser: true,
         ...(instruction !== undefined ? { instruction } : {}),
-      });
-      // Tasks are wholesale-replaced per fetch (no optimistic task adds —
-      // design §4): surface the new row through one forced refetch.
-      refresh();
-      broadcastCommentsChangedToPeers(target.orgId, target.sessionId);
+      })
+        .then(() => refresh())
+        .catch((error) => {
+          log.warn(
+            `personal @agent round failed for ${commentId}: ${error instanceof Error ? error.message : String(error)}`
+          );
+        });
     },
-    [target, withFreshToken, refresh]
+    [target, session, refresh]
   );
 
   // --- Address comments (batch in-place follow-up) ---
