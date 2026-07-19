@@ -29,3 +29,5 @@ serde_json = "1.0"
 toml = "0.8"
 # Content hashing for the exec-plugin trust store.
 sha2 = "0.10"
+# Sandboxed template engine for `format = "template"` formatter plugins.
+minijinja = "2"

@@ -328,8 +328,11 @@ order, default `--format`, trusted ids).
    `session` stage reshapes `list`/`search` rows; a `chunk` stage reshapes a
    `show`'s chunks (redact/enrich/filter/rename). Display-path only; chains in
    order; failing/untrusted is a data-preserving no-op. _Shipped._
-6. **Template + exec formatters** — user-supplied `--format <name>` via a
-   sandboxed template engine or an exec plugin.
+6. ✅ **Template formatters** — `kind = "formatter"`, `format = "template"`:
+   `--format <id>` renders the command's result JSON through a sandboxed
+   minijinja template (no code, no fs/network → no trust). Context is the
+   `--format json` shape per command. _Shipped._ (Exec formatters remain
+   redundant with piping `--format json`; skipped.)
 7. **Tier 2 + schema** — document the `SourceAdapter` PR path; extract the wire
    projections into a small `orgtrack-plugin-schema` crate/JSON-Schema so plugin
    authors in any language have a spec + fixtures to test against.

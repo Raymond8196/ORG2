@@ -123,6 +123,29 @@ keeps your data. A chunk processor scoped to a specific *built-in* source won't
 match (built-in prefixes aren't exposed) — use `"*"`. See
 `examples/plugins/processor/` for a reference redactor.
 
+### Custom formats (formatter plugins)
+
+A `kind = "formatter"` plugin renders a command's result through a sandboxed
+[minijinja](https://docs.rs/minijinja) template — no-code custom output (HTML,
+text, a bespoke markdown). Templates run no code and get no fs/network access,
+so **no trust** is required.
+
+```toml
+[plugin]
+id = "sessions_html"; kind = "formatter"; format = "template"
+[formatter]
+template = "sessions.html.j2"
+```
+
+```bash
+orgtrack list --format sessions_html > sessions.html
+```
+
+The template context matches `--format json` per command: `list`/`search` →
+`{ command, sessions[], total }`, `usage` → `{ summary, sessions[], trends[] }`,
+`show` → `{ sessionId, chunks[] }`. See `examples/plugins/formatter/` for a
+reference template.
+
 > **Note:** `usage` analytics are scoped to the primary buckets
 > (claude / codex / cursor / org2), so long-tail built-in sources and plugin
 > sources are indexed and appear in `list` / `search` / `show` but not yet in
@@ -162,8 +185,8 @@ Today the crate is `publish = false` because it depends on the (also
 unpublished) `orgtrack_core`, which in turn has workspace-path dependencies
 (`core_types`, `orgtrack_protocol`, `orgtrack_sync`, `app_paths`). The crate is
 deliberately dependency-light (`orgtrack_core` + `core_types` + `rusqlite` +
-`serde` + `serde_json` + `toml` + `sha2`) so that lifting it out is mechanical.
-The path to an independent publish:
+`serde` + `serde_json` + `toml` + `sha2` + `minijinja`) so that lifting it out
+is mechanical. The path to an independent publish:
 
 1. Publish `orgtrack_core`'s leaf deps, then `orgtrack_core` itself, replacing
    `path = "…"` with versioned `crates.io` deps (or vendor them behind a
