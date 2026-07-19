@@ -69,10 +69,9 @@ const TurnCommentChrome: React.FC<TurnCommentChromeProps> = ({
 
   // The add-comment affordance rides the turn's hover-reveal button group
   // (icon-only, primary tint) — kept out of the resting transcript like the
-  // copy/edit toolbar. Turns that already carry state (an open panel, live
-  // comments, or an agent working the turn) stay pinned visible so nothing
-  // persistent hides behind a hover.
-  const persistent = open || liveCount > 0 || agentOnTurn;
+  // copy/edit toolbar. Turns that already carry state (an open panel or live
+  // comments) stay pinned visible so nothing persistent hides behind a hover.
+  const persistent = open || liveCount > 0;
 
   return (
     <div className="mt-1 flex flex-col gap-1.5">
