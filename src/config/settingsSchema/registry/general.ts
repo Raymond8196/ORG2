@@ -170,7 +170,7 @@ export const GENERAL_SETTINGS_REGISTRY = {
   },
   "general.chatTurnPaginationEnabled": {
     schema: z.boolean(),
-    default: true,
+    default: false,
     description:
       "Show chat history as turn-based rounds instead of one continuous list",
     category: "general",
