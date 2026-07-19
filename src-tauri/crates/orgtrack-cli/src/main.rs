@@ -1754,3 +1754,142 @@ fn render_template(
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn exec_job() -> ExecJob {
+        ExecJob {
+            source: "s",
+            session_prefix: "s-",
+            spec: ExecSpec {
+                exec_path: PathBuf::from("/x"),
+                cwd: PathBuf::from("/"),
+                protocol: 1,
+                parser_version: 7,
+            },
+            timeout: Duration::from_secs(1),
+        }
+    }
+
+    #[test]
+    fn truncate_adds_ellipsis_only_when_needed() {
+        assert_eq!(truncate("hello", 10), "hello");
+        assert_eq!(truncate("hello", 3), "he…");
+        assert_eq!(truncate("hi", 2), "hi");
+    }
+
+    #[test]
+    fn md_cell_escapes_pipes_and_newlines() {
+        assert_eq!(md_cell("a|b\nc"), "a\\|b c");
+    }
+
+    #[test]
+    fn csv_row_quotes_when_needed() {
+        assert_eq!(csv_row(&["a", "b"]), "a,b\n");
+        assert_eq!(csv_row(&["a,b", "c\"d"]), "\"a,b\",\"c\"\"d\"\n");
+    }
+
+    #[test]
+    fn format_parse_accepts_known_and_rejects_unknown() {
+        assert!(matches!(Format::parse("table").unwrap(), Format::Table));
+        assert!(matches!(Format::parse("json").unwrap(), Format::Json));
+        assert!(matches!(Format::parse("md").unwrap(), Format::Md));
+        assert!(matches!(Format::parse("markdown").unwrap(), Format::Md));
+        assert!(matches!(Format::parse("csv").unwrap(), Format::Csv));
+        assert!(Format::parse("xml").is_err());
+    }
+
+    #[test]
+    fn sort_parse_defaults_to_recent() {
+        assert!(matches!(parse_sort(Some("cost")).unwrap(), SessionSort::Cost));
+        assert!(matches!(parse_sort(Some("tokens")).unwrap(), SessionSort::Tokens));
+        assert!(matches!(parse_sort(None).unwrap(), SessionSort::Recent));
+        assert!(parse_sort(Some("bogus")).is_err());
+    }
+
+    #[test]
+    fn json_helpers_read_and_default() {
+        let value = serde_json::json!({"a": "x", "n": 5, "arr": ["p", "q"], "empty": ""});
+        assert_eq!(js_str(&value, "a").as_deref(), Some("x"));
+        assert_eq!(js_str(&value, "empty"), None);
+        assert_eq!(js_str(&value, "missing"), None);
+        assert_eq!(js_i64(&value, "n"), 5);
+        assert_eq!(js_i64(&value, "missing"), 0);
+        assert_eq!(js_str_vec(&value, "arr"), vec!["p", "q"]);
+        assert!(js_str_vec(&value, "missing").is_empty());
+    }
+
+    #[test]
+    fn preview_collapses_and_body_preserves_newlines() {
+        let msg = serde_json::json!({"message": {"content": "hello\nworld", "role": "user"}});
+        assert_eq!(preview_of(&msg).unwrap(), "hello world");
+        assert_eq!(chunk_body(&msg).unwrap(), "hello\nworld");
+
+        assert!(preview_of(&serde_json::json!({})).is_none());
+        assert_eq!(preview_of(&serde_json::json!({"content": "c"})).unwrap(), "c");
+        assert_eq!(
+            preview_of(&serde_json::json!({"observation": "obs"})).unwrap(),
+            "obs"
+        );
+        assert_eq!(preview_of(&serde_json::json!({"cmd": "ls"})).unwrap(), "ls");
+    }
+
+    #[test]
+    fn exec_session_maps_all_fields() {
+        let job = exec_job();
+        let value = serde_json::json!({
+            "sourceSessionId": "abc",
+            "name": "hi",
+            "createdAtMs": 100, "updatedAtMs": 200,
+            "model": "m",
+            "inputTokens": 10, "outputTokens": 5,
+            "cacheReadTokens": 3, "cacheWriteTokens": 2,
+            "repoPath": "/r", "branch": "main",
+            "filesChanged": 4, "linesAdded": 20, "linesRemoved": 1,
+            "touchedFiles": ["a", "b"], "sourcePath": "/p",
+            "listable": true, "parentSessionId": "par",
+        });
+        let input = exec_session_to_input(&job, &value).unwrap();
+        assert_eq!(input.source, "s");
+        assert_eq!(input.session_id, "s-abc");
+        assert_eq!(input.source_session_id, "abc");
+        assert_eq!(input.parser_version, 7);
+        assert_eq!(input.updated_at_ms, 200);
+        assert_eq!(input.input_tokens, 10);
+        assert_eq!(input.output_tokens, 5);
+        assert_eq!(input.cache_read_tokens, 3);
+        assert_eq!(input.impact.files_changed, 4);
+        assert_eq!(input.impact.touched_files, vec!["a", "b"]);
+        assert_eq!(input.parent_session_id.as_deref(), Some("par"));
+        // Fingerprint defaults to the update time when the plugin omits it.
+        assert_eq!(input.source_fingerprint, "200");
+        assert!(input.listable);
+    }
+
+    #[test]
+    fn exec_session_requires_source_session_id() {
+        let job = exec_job();
+        assert!(exec_session_to_input(&job, &serde_json::json!({"name": "x"})).is_err());
+    }
+
+    #[test]
+    fn scanned_row_reconstructs_from_json() {
+        let value = serde_json::json!({
+            "source": "s", "sessionId": "id", "name": "n",
+            "totalTokens": 42, "filesChanged": 3, "touchedFiles": ["x"],
+        });
+        let row = scanned_row_from_json(&value).unwrap();
+        assert_eq!(row.source, "s");
+        assert_eq!(row.row.session_id, "id");
+        assert_eq!(row.row.name, "n");
+        assert_eq!(row.row.total_tokens, 42);
+        assert_eq!(row.row.files_changed, 3);
+        assert_eq!(row.row.category, "imported");
+        // Missing source or sessionId → not reconstructable.
+        assert!(scanned_row_from_json(&serde_json::json!({"sessionId": "x"})).is_none());
+        assert!(scanned_row_from_json(&serde_json::json!({"source": "x"})).is_none());
+    }
+}
