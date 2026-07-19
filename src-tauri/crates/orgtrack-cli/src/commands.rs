@@ -213,6 +213,18 @@ pub(crate) fn cmd_list(
     // Session-stage processors reshape the rows before search/sort/display.
     scanned = apply_session_processors(scanned, processors, opts.timeout());
 
+    // Cross-machine project filter: match the git-remote-derived slug or id.
+    if let Some(project_query) = opts.project.as_ref().map(|value| value.to_lowercase()) {
+        scanned.retain(|item| {
+            let repo = item.row.repo_path.as_deref().unwrap_or("");
+            crate::project::identify_cached(repo)
+                .map(|project| {
+                    project.slug.contains(&project_query) || project.id.contains(&project_query)
+                })
+                .unwrap_or(false)
+        });
+    }
+
     if let Some(query) = search.as_ref().map(|q| q.to_lowercase()) {
         scanned.retain(|item| row_matches(&item.row, &query));
     }
@@ -239,6 +251,87 @@ pub(crate) fn cmd_list(
     Ok(())
 }
 
+/// `search --content`: full-text search inside conversations (SQLite FTS5),
+/// not just titles/paths. Refreshes the cache, incrementally (re)indexes only
+/// changed sessions, then runs the ranked `MATCH` query with highlighted
+/// snippets. Wants a persistent `--db` so the index survives between runs.
+pub(crate) fn cmd_search_content(
+    opts: &Options,
+    query: &str,
+    plugins: &[LoaderPlugin],
+    formatters: &[FormatterPlugin],
+) -> Result<(), String> {
+    let target = db_target(opts)?;
+    if target.temp {
+        eprintln!(
+            "orgtrack: content search re-indexes from scratch without --db; \
+             pass --db <path> to persist the index and make repeat searches fast."
+        );
+    }
+    if !opts.no_scan {
+        scan_all(&target.path, opts, plugins);
+    }
+    let mut conn = open_conn(&target.path)?;
+    crate::content_index::update(&mut conn, opts, plugins, opts.timeout())?;
+
+    let limit = opts.limit.unwrap_or(50);
+    let hits = crate::content_index::search(&conn, query, limit)?;
+    let hits_json: Vec<serde_json::Value> = hits
+        .iter()
+        .map(|hit| {
+            serde_json::json!({
+                "sessionId": hit.session_id,
+                "source": hit.source,
+                "name": hit.name,
+                "snippet": hit.snippet,
+            })
+        })
+        .collect();
+
+    if let Some(formatter) = formatter_for(opts, formatters) {
+        let context = serde_json::json!({ "command": "search", "query": query, "hits": hits_json });
+        return render_template(formatter, &context);
+    }
+    match opts.format()? {
+        Format::Json => println!("{}", to_json(&hits_json)?),
+        Format::Md => {
+            print!("# orgtrack content search: {query}\n\n");
+            for hit in &hits {
+                println!(
+                    "- **{}** ({}) — {}",
+                    md_cell(&hit.name),
+                    md_cell(&hit.source),
+                    md_cell(&hit.snippet)
+                );
+            }
+        }
+        Format::Csv => {
+            println!("source,name,snippet,session_id");
+            for hit in &hits {
+                print!("{}", csv_row(&[&hit.source, &hit.name, &hit.snippet, &hit.session_id]));
+            }
+        }
+        Format::Table => {
+            if hits.is_empty() {
+                println!("No content matches for '{query}'.");
+                return Ok(());
+            }
+            println!("{:<12}  {:<32}  MATCH", "TOOL", "SESSION");
+            println!("{}", "-".repeat(96));
+            for hit in &hits {
+                println!(
+                    "{:<12}  {:<32}  {}",
+                    truncate(&hit.source, 12),
+                    truncate(&hit.name, 32),
+                    truncate(&hit.snippet.replace('\n', " "), 46),
+                );
+            }
+            println!("\n{} match(es).", hits.len());
+        }
+    }
+    Ok(())
+}
+
 /// Session rows as JSON, each tagged with its `source`.
 pub(crate) fn list_rows_json(shown: &[&ScannedRow]) -> Vec<serde_json::Value> {
     shown
@@ -247,6 +340,12 @@ pub(crate) fn list_rows_json(shown: &[&ScannedRow]) -> Vec<serde_json::Value> {
             let mut value = serde_json::to_value(&item.row).unwrap_or(serde_json::Value::Null);
             if let Some(object) = value.as_object_mut() {
                 object.insert("source".into(), serde_json::Value::String(item.source.clone()));
+                if let Some(project) =
+                    crate::project::identify_cached(item.row.repo_path.as_deref().unwrap_or(""))
+                {
+                    object.insert("projectId".into(), serde_json::Value::String(project.id));
+                    object.insert("projectSlug".into(), serde_json::Value::String(project.slug));
+                }
             }
             value
         })
