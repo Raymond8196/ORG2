@@ -1,6 +1,12 @@
+import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
+import {
+  openProjectInChatPanelTabAtom,
+  openProjectOrgInChatPanelTabAtom,
+  openWorkItemInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { SESSION_SIDEBAR_PAGE_SIZE } from "@src/store/session";
 import {
   CHAT_PANEL_SURFACE_KIND,
@@ -85,6 +91,12 @@ export function useProjectsMenuItemClick<
   LinearOrg,
   LinearWorkItem
 >): (key: string, item: NavigationMenuItem) => void {
+  // Detail surfaces (org hub / project / work item) open as dedicated chat-pane
+  // tabs. Creator surfaces (NEW_*) stay on `navigateChatPanel` — they are
+  // hosted inside the Launchpad, not promoted to pills.
+  const openWorkItemTab = useSetAtom(openWorkItemInChatPanelTabAtom);
+  const openProjectTab = useSetAtom(openProjectInChatPanelTabAtom);
+  const openProjectOrgTab = useSetAtom(openProjectOrgInChatPanelTabAtom);
   return useCallback(
     (_key: string, item: NavigationMenuItem) => {
       if (item.id === COLLAB_ADD_ORG_MENU_ITEM_ID) {
@@ -125,14 +137,11 @@ export function useProjectsMenuItemClick<
         if (!localOrg) return;
         activateMyStationRouteForProjectsContent();
         setProjectsSelectedMenuItemId(item.id);
-        navigateChatPanel({
-          kind: CHAT_PANEL_SURFACE_KIND.PROJECT_ORG,
-          projectOrg: {
-            orgId: localOrg.id,
-            orgName: localOrg.name,
-            orgScope: STORY_ORG_SCOPE.PROJECT_ORG,
-            orgSyncProvider: localOrg.sync_provider,
-          },
+        openProjectOrgTab({
+          orgId: localOrg.id,
+          orgName: localOrg.name,
+          orgScope: STORY_ORG_SCOPE.PROJECT_ORG,
+          orgSyncProvider: localOrg.sync_provider,
         });
         return;
       }
@@ -185,10 +194,7 @@ export function useProjectsMenuItemClick<
         if (!project) return;
         activateMyStationRouteForProjectsContent();
         setProjectsSelectedMenuItemId(item.id);
-        navigateChatPanel({
-          kind: CHAT_PANEL_SURFACE_KIND.PROJECT,
-          project: toChatPanelProject(project),
-        });
+        openProjectTab(toChatPanelProject(project));
         return;
       }
 
@@ -209,10 +215,7 @@ export function useProjectsMenuItemClick<
       const chatPanelWorkItem = toChatPanelWorkItem(workItem);
       activateMyStationRouteForProjectsContent();
       setProjectsSelectedMenuItemId(item.id);
-      navigateChatPanel({
-        kind: CHAT_PANEL_SURFACE_KIND.WORK_ITEM,
-        workItem: chatPanelWorkItem,
-      });
+      openWorkItemTab(chatPanelWorkItem);
     },
     [
       activateMyStationRouteForProjectTabContent,
@@ -220,8 +223,11 @@ export function useProjectsMenuItemClick<
       getProjectsLoadMoreGroupId,
       loadProjectsLinearOrgWorkItems,
       navigateChatPanel,
+      openProjectOrgTab,
+      openProjectTab,
       openProjectsLinearOrg,
       openProjectsLinearWorkItem,
+      openWorkItemTab,
       projectsLinearOrgMap,
       projectsLinearWorkItemMap,
       projectsLocalOrgMap,

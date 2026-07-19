@@ -12,9 +12,9 @@ export {
   closeChatPanelTabAtom,
   closeCloudOrgManagementChatPanelTabAtom,
   nextChatPanelTabAtom,
+  patchChatPanelWorkItemTabAtom,
   prevChatPanelTabAtom,
   reorderChatPanelTabsAtom,
-  setChatPanelTabSessionIdAtom,
   setChatPanelTabTitleAtom,
   toggleChatPanelTabTuiModeAtom,
 } from "./chatPanelTabLifecycleAtoms";
@@ -22,14 +22,34 @@ export {
   addChatPanelLaunchpadTabAtom,
   addChatPanelTerminalTabAtom,
   openCloudOrgManagementInChatPanelTabAtom,
+  openExploreInChatPanelTabAtom,
   openKanbanChatPanelTabAtom,
   openOrFocusChatPanelManageTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrFocusSessionInChatPanelTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
+  openProjectInChatPanelTabAtom,
+  openProjectOrgInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
+  openWorkItemInChatPanelTabAtom,
   openWorkspaceOverviewInChatPanelTabAtom,
 } from "./chatPanelTabOpenAtoms";
+export {
+  buildDefaultLaunchpadTab,
+  buildInitialChatPanelTabsState,
+  createCloudOrgTab,
+  createLaunchpadTab,
+  createSessionTab,
+  createTerminalTab,
+  createWorkManagementTab,
+  createWorkspaceTab,
+} from "./chatPanelTabFactories";
+export {
+  defineChatPanelTabFactory,
+  type ChatPanelTabFactoryConfig,
+  type ChatPanelTabIdStrategy,
+  type ChatPanelTabPayload,
+} from "./chatPanelTabFactory";
 export {
   activateChatPanelTabAtom,
   syncActiveChatPanelTabStateAtom,

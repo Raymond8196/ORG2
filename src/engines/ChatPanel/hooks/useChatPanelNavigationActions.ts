@@ -2,6 +2,7 @@ import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 
 import { clearSessionAtom } from "@src/engines/SessionCore/core/atoms";
+import { openExploreInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
   activeSessionIdAtom,
   workstationActiveSessionIdAtom,
@@ -15,6 +16,7 @@ import {
 export function useChatPanelNavigationActions() {
   const setStartPageOpen = useSetAtom(chatPanelStartPageOpenAtom);
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
+  const openExploreTab = useSetAtom(openExploreInChatPanelTabAtom);
   const dispatchClearSession = useSetAtom(clearSessionAtom);
   const setWorkstationActiveSessionId = useSetAtom(
     workstationActiveSessionIdAtom
@@ -44,10 +46,9 @@ export function useChatPanelNavigationActions() {
   }, [navigateChatPanel, resetActiveSession, setStartPageOpen]);
 
   const openWorkspaceExplore = useCallback(() => {
-    setStartPageOpen(false);
-    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE });
+    openExploreTab();
     resetActiveSession();
-  }, [navigateChatPanel, resetActiveSession, setStartPageOpen]);
+  }, [openExploreTab, resetActiveSession]);
 
   return {
     dispatchClearSession,
