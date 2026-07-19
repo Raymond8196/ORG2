@@ -64,6 +64,13 @@ const TurnCommentChrome: React.FC<TurnCommentChromeProps> = ({
   const agentOnTurn = threadsHaveLiveAgentTask(threads, context.taskForThread);
   const toggleLabel = t("cloud.comments.toggleLabel");
 
+  // The add-comment affordance rides the turn's hover-reveal button group
+  // (icon-only, primary tint) — kept out of the resting transcript like the
+  // copy/edit toolbar. Turns that already carry state (an open panel, live
+  // comments, or an agent working the turn) stay pinned visible so nothing
+  // persistent hides behind a hover.
+  const persistent = open || liveCount > 0 || agentOnTurn;
+
   return (
     <div className="mt-1 flex flex-col gap-1.5">
       <div className="flex items-center justify-end gap-1.5">
@@ -78,19 +85,20 @@ const TurnCommentChrome: React.FC<TurnCommentChromeProps> = ({
         )}
         <button
           type="button"
-          className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] leading-none transition-colors hover:bg-fill-2 hover:text-text-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 ${
-            liveCount > 0 || open ? "text-text-2" : "text-text-3 opacity-70"
+          className={`inline-flex items-center justify-center gap-1 rounded-md p-1 leading-none text-primary-6 transition-[opacity,background-color] hover:bg-fill-2 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 ${
+            persistent
+              ? "opacity-100"
+              : "opacity-0 group-hover/turn:opacity-100"
           }`}
           aria-label={toggleLabel}
+          title={toggleLabel}
           aria-expanded={open}
           data-testid={`session-comment-toggle-${anchorEventId}`}
           onClick={() => setOpen((current) => !current)}
         >
-          <MessageSquare size={12} strokeWidth={2} />
-          {liveCount > 0 ? (
-            <span>{liveCount}</span>
-          ) : (
-            <span>{toggleLabel}</span>
+          <MessageSquare size={14} strokeWidth={2} />
+          {liveCount > 0 && (
+            <span className="text-[11px] leading-none">{liveCount}</span>
           )}
         </button>
       </div>
