@@ -47,6 +47,7 @@ export interface ActiveAddressRun {
   holdReplyForCommentId?: string;
   heldBody?: string;
   replied: Map<string, string>;
+  replyAsUser?: boolean;
 }
 
 const activeAddressRuns = new Map<string, ActiveAddressRun>();
@@ -229,7 +230,7 @@ export async function replyViaActiveAddressRun(
     sessionId: run.cloudSessionId,
     body: trimmedBody,
     parentId: commentId,
-    kind: "agent_report",
+    ...(run.replyAsUser ? {} : { kind: "agent_report" }),
   });
   run.replied.set(commentId, trimmedBody);
   broadcastCommentsChanged(run.orgId, run.cloudSessionId);
@@ -490,6 +491,7 @@ export async function runAddressCommentsRound(
       localSessionId,
       validHeadIds: validIds,
       ...(holdReplyForCommentId !== undefined ? { holdReplyForCommentId } : {}),
+      ...(replyAsUser ? { replyAsUser } : {}),
       replied: new Map(),
     };
     activeAddressRuns.set(localSessionId, run);

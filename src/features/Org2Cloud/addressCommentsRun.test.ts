@@ -26,7 +26,10 @@ import {
 import { agentTaskRunnerSettingsAtom } from "./agentTaskRunnerSettingsAtom";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
-import { listSessionComments } from "./org2CloudCommentsClient";
+import {
+  addSessionComment,
+  listSessionComments,
+} from "./org2CloudCommentsClient";
 import type { CloudSessionComment } from "./org2CloudCommentsClient";
 
 vi.mock("@src/engines/SessionCore/services/SessionService", () => ({
@@ -277,6 +280,44 @@ describe("replyViaActiveAddressRun", () => {
       expect(second.message).toContain("already");
     } finally {
       cleanup();
+    }
+  });
+
+  it("posts as a plain user comment (no agent_report) when replyAsUser is set", async () => {
+    if (!isStoreInitialized()) createInstrumentedStore();
+    getInstrumentedStore().set(org2CloudAuthAtom, {
+      kind: "org2_cloud",
+      supabaseUrl: "https://cloud.example.co",
+      supabaseAnonKey: "anon",
+      userId: "u",
+      accessToken: "jwt-1",
+      refreshToken: "rt-1",
+      expiresAt: Math.floor(Date.now() / 1000) + 3600,
+    } as Org2CloudAuthState);
+    vi.mocked(addSessionComment).mockClear();
+    const run: ActiveAddressRun = {
+      orgId: "org-1",
+      cloudSessionId: "cs-1",
+      localSessionId: "ls-user",
+      validHeadIds: new Set(["c-open"]),
+      replyAsUser: true,
+      replied: new Map<string, string>(),
+    };
+    const cleanup = seedActiveAddressRunForTest(run);
+    try {
+      const res = await replyViaActiveAddressRun(
+        "c-open",
+        "the answer",
+        "ls-user"
+      );
+      expect(res.success).toBe(true);
+      const posted = vi.mocked(addSessionComment).mock.calls.at(-1)?.[1] ?? {};
+      expect(posted).toMatchObject({ parentId: "c-open", body: "the answer" });
+      // A forker isn't the source owner, so agent_report would be FORBIDDEN.
+      expect("kind" in posted).toBe(false);
+    } finally {
+      cleanup();
+      getInstrumentedStore().set(org2CloudAuthAtom, null);
     }
   });
 });
