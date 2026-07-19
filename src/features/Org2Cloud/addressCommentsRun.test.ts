@@ -9,6 +9,7 @@ import {
   markTurnTerminal,
   resetTurnLifecycleForTests,
 } from "@src/engines/SessionCore/control/turnLifecycle";
+import * as forkSession from "@src/features/TeamCollaboration/forkSession";
 import {
   createInstrumentedStore,
   getInstrumentedStore,
@@ -196,7 +197,7 @@ describe("runAddressCommentsRound", () => {
     expect(result).toEqual({ status: "ran", threadCount: 1, replyCount: 0 });
   });
 
-  it("lets the dispatched agent reply only after its run is registered", async () => {
+  it("registers the run before dispatch so an immediate tool reply succeeds", async () => {
     vi.mocked(listSessionComments).mockResolvedValue({
       comments: [comment({ id: "c-1" })],
       viewerOwnsSession: true,
@@ -211,10 +212,8 @@ describe("runAddressCommentsRound", () => {
           sessionId: "local-1",
           generation,
         });
-        setTimeout(async () => {
-          await replyViaActiveAddressRun("c-1", "done", "local-1");
-          markTurnTerminal("local-1", "completed", { generation });
-        }, 0);
+        await replyViaActiveAddressRun("c-1", "done", "local-1");
+        markTurnTerminal("local-1", "completed", { generation });
       },
     });
     expect(result).toEqual({ status: "ran", threadCount: 1, replyCount: 1 });
@@ -269,7 +268,47 @@ describe("runAddressCommentsRound", () => {
         localSessionId: "fork-session-1",
         dispatchTurn,
       })
-    ).rejects.toThrow(/owner's source session/);
+    ).rejects.toThrow(/verified local fork/);
     expect(dispatchTurn).not.toHaveBeenCalled();
+  });
+
+  it("allows a verified local fork to address its owner's source comments", async () => {
+    vi.mocked(listSessionComments).mockResolvedValue({
+      comments: [comment({ id: "c-1" })],
+      viewerOwnsSession: true,
+    });
+    const provenance = vi
+      .spyOn(forkSession, "getSessionForkedFrom")
+      .mockReturnValue({
+        orgId: "org-1",
+        sourceSessionId: "cloud-session-1",
+        ownerMemberId: "member-1",
+        ownerDisplayName: "Alice",
+        atCount: 1,
+        forkedAt: "2026-07-19T00:00:00.000Z",
+      });
+    try {
+      await expect(
+        runAddressCommentsRound({
+          orgId: "org-1",
+          cloudSessionId: "cloud-session-1",
+          localSessionId: "fork-session-1",
+          dispatchTurn: async ({ turnIntentId }) => {
+            const generation = beginTurnDispatch("fork-session-1");
+            publishTurnIntentDispatch(turnIntentId, {
+              sessionId: "fork-session-1",
+              generation,
+            });
+            markTurnTerminal("fork-session-1", "completed", { generation });
+          },
+        })
+      ).resolves.toEqual({
+        status: "ran",
+        threadCount: 1,
+        replyCount: 0,
+      });
+    } finally {
+      provenance.mockRestore();
+    }
   });
 });
