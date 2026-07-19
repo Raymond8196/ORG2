@@ -75,6 +75,9 @@ export const RemoteTeammateSessionMetadataSchema = z.object({
   // passengers like repoScopeKey — absent on rows from older clients.
   cliAgentType: z.string().optional(),
   agentDisplayName: z.string().optional(),
+  // Matching hint only: receivers may preselect the same LOCAL definition
+  // when installed, but must never execute an unknown remote definition id.
+  agentDefinitionId: z.string().optional(),
   model: z.string().optional(),
   origin: z
     .discriminatedUnion("kind", [
@@ -149,19 +152,6 @@ export const RemoteTeammateSessionMetadataSchema = z.object({
     .transform((value) => value ?? undefined)
     .optional(),
   unresolvedCommentCount: z
-    .number()
-    .nullish()
-    .transform((value) => value ?? undefined)
-    .optional(),
-  // Agent-task counters (cloud migration 0002): server-side lateral
-  // aggregates next to the comment counters above. Additive — absent on
-  // pre-0002 backends and simply stay undefined.
-  openAgentTaskCount: z
-    .number()
-    .nullish()
-    .transform((value) => value ?? undefined)
-    .optional(),
-  activeAgentTaskCount: z
     .number()
     .nullish()
     .transform((value) => value ?? undefined)

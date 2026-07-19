@@ -15,7 +15,6 @@ import {
 import {
   type CollabSessionPushCursor,
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
@@ -93,9 +92,6 @@ describe("reconcileOrg2CloudPersistedState", () => {
       [LIVE]: "2026-07-01T00:00:00Z",
       [ZOMBIE]: "2026-01-01T00:00:00Z",
     });
-    store.set(org2CloudCommentTaskCursorsAtom, {
-      [ZOMBIE]: "2026-01-01T00:00:00Z",
-    });
 
     const pruned = reconcileOrg2CloudPersistedState(store, new Set([LIVE]));
 
@@ -113,7 +109,6 @@ describe("reconcileOrg2CloudPersistedState", () => {
     expect(store.get(org2CloudCollabStateCursorsAtom)).toEqual({
       [LIVE]: "2026-07-01T00:00:00Z",
     });
-    expect(store.get(org2CloudCommentTaskCursorsAtom)).toEqual({});
   });
 
   it("preserves the ratchet atoms endpoint-switch keeps, even for orgs absent from the current roster", () => {

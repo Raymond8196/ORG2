@@ -65,6 +65,15 @@ export interface NavigationMenuItem {
   /** Tab type for proper tab handling */
   tabType?: "app" | "terminal" | "browser" | "editor";
   children?: NavigationMenuItem[];
+  /**
+   * For a row that has `children` (renders as an expandable parent): the row
+   * is ITSELF a navigable target, not just a group header. A body/label click
+   * selects the item (like a leaf); only the dedicated chevron toggles the
+   * submenu. Cloud fork-thread roots set this so the source session stays
+   * openable after a fork adds child rows. Default (group headers such as the
+   * Work Items list) keeps body-click = toggle.
+   */
+  navigableParent?: boolean;
   shortcut?: string;
   disabled?: boolean;
   dataTestId?: string;

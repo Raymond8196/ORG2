@@ -19,7 +19,11 @@ import { z } from "zod/v4";
 import { RemoteTeammateSessionMetadataSchema } from "@src/store/collaboration/protocol";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 
-import { ORG2_CLOUD_POSTGREST_SCHEMA, getCloudEndpoint } from "./config";
+import {
+  type CloudEndpoint,
+  ORG2_CLOUD_POSTGREST_SCHEMA,
+  getCloudEndpoint,
+} from "./config";
 import { sha256Hex } from "./org2CloudOrgManagement";
 
 // ---------------------------------------------------------------------------
@@ -73,9 +77,10 @@ export function isOrg2ShareErrorCode(
 async function callShareRpc(
   functionName: string,
   accessToken: string | null,
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
+  endpoint: CloudEndpoint = getCloudEndpoint(),
+  signal?: AbortSignal
 ): Promise<unknown> {
-  const endpoint = getCloudEndpoint();
   const response = await fetch(
     `${endpoint.supabaseUrl}/rest/v1/rpc/${functionName}`,
     {
@@ -87,6 +92,7 @@ async function callShareRpc(
         "content-profile": ORG2_CLOUD_POSTGREST_SCHEMA,
       },
       body: JSON.stringify(body),
+      signal,
     }
   );
   const text = await response.text();
@@ -250,10 +256,16 @@ export async function listCloudSessionShares(
  * throws with the opaque ORG2_UNAUTHORIZED.
  */
 export async function resolveCloudSessionShare(
-  shareToken: string
+  shareToken: string,
+  endpoint?: CloudEndpoint,
+  signal?: AbortSignal
 ): Promise<RemoteTeammateSessionMetadata> {
-  const payload = await callShareRpc("cloud_resolve_session_share", null, {
-    p_share_token: shareToken,
-  });
+  const payload = await callShareRpc(
+    "cloud_resolve_session_share",
+    null,
+    { p_share_token: shareToken },
+    endpoint,
+    signal
+  );
   return RemoteTeammateSessionMetadataSchema.parse(payload);
 }

@@ -173,6 +173,34 @@ describe("resolveCloudSessionShare (ticket tier)", () => {
     expect(session.eventsEpoch).toBe(1);
   });
 
+  it("uses an explicit endpoint snapshot for the share resolve", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        id: "org-1:user-a:sess-1",
+        orgId: "org-1",
+        ownerMemberId: "user-a",
+        ownerUserId: "user-a",
+        ownerDisplayName: "Alice",
+        ownerIdentityKind: "human",
+        sourceSessionId: "sess-1",
+        title: "Shared session",
+      })
+    );
+    await resolveCloudSessionShare("t".repeat(64), {
+      webOrigin: "https://app.custom.example.com",
+      supabaseUrl: "https://db.custom.example.com",
+      anonKey: "custom-anon",
+      isOfficial: false,
+    });
+    const { url, init } = lastCall();
+    expect(url).toBe(
+      "https://db.custom.example.com/rest/v1/rpc/cloud_resolve_session_share"
+    );
+    expect((init.headers as Record<string, string>).authorization).toBe(
+      "Bearer custom-anon"
+    );
+  });
+
   it("surfaces the opaque code on failure", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({ message: "ORG2_UNAUTHORIZED" }, 400)

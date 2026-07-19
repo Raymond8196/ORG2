@@ -397,7 +397,11 @@
       "forkSetupNoWorkspace": "Continue without a workspace",
       "forkSetupAccount": "Account",
       "forkSetupModel": "Model",
-      "forkSetupContinue": "Fork & continue"
+      "forkSetupContinue": "Fork & continue",
+      "forkSnapshotIncomplete": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "forkAgentUnavailable": "Choose a local agent before forking.",
+      "forkBackendRegistrationFailed": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "forkReplayUnavailable": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     },
     "repoPicker": {
       "loading": "Loading repos…",
@@ -417,7 +421,12 @@
       "error": "Oturum çatallanamadı",
       "sendFailed": "Çatallandı ancak mesaj gönderilemedi — içerik giriş alanına geri yüklendi",
       "forkedChipTooltip": "{{name}} kullanıcısından çatallandı",
-      "continuePlaceholder": "Message to fork and continue in ORGII…"
+      "continuePlaceholder": "Message to fork and continue in ORGII…",
+      "snapshotError": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "agentError": "Choose a local agent before forking.",
+      "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "parentOpenUnavailable": "The source session could not be opened from this fork.",
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     }
   },
   "cloud": {
@@ -544,7 +553,8 @@
         "youTag": "Sen",
         "ownerTag": "Sahip",
         "floorOff": "Minimum yok",
-        "floorTooltip": "Bu üye için minimum paylaşım düzeyi. Bununla kuruluş genelindeki alt sınırdan hangisi daha katıysa o uygulanır."
+        "floorTooltip": "Bu üye için minimum paylaşım düzeyi. Bununla kuruluş genelindeki alt sınırdan hangisi daha katıysa o uygulanır.",
+        "floorOrgMinimum": "Kuruluş minimumu ({{mode}})"
       },
       "leave": {
         "action": "Organizasyondan ayrıl",
@@ -651,7 +661,14 @@
       "importPasteClipboard": "Panodan yapıştır",
       "importSubmit": "İçe aktar",
       "importInvalidInput": "Bu, geçerli bir paylaşım bağlantısı veya belirteç gibi görünmüyor.",
-      "selectAll": "Herkes ({{count}})"
+      "selectAll": "Herkes ({{count}})",
+      "incomingEndpointMismatch": "Bu paylaşım farklı bir özel buluta ait. İçe aktarmadan önce o bulut uç noktasını yapılandırın.",
+      "incomingConnectionError": "Bulut hizmetine bağlanılamadı. Ağınızı kontrol edip yeniden deneyin.",
+      "incomingIncompatibleError": "Bulut uyumsuz bir paylaşım yanıtı döndürdü. ORGII'yi güncelleyin veya dağıtımı kontrol edin.",
+      "incomingServerError": "Bulut hizmeti bu paylaşımı çözemedi. Yeniden deneyin.",
+      "incomingAlreadyOnDevice": "Bu oturum zaten bu cihazda. Yinelenen kopya yerine özgün oturumu açın.",
+      "incomingOpenExisting": "Oturumu aç",
+      "incomingRetry": "Yeniden dene"
     },
     "agentRunner": {
       "title": "Agent görev çalıştırıcısı",
@@ -670,14 +687,10 @@
       "task": {
         "assignFailed": "Yorum gönderildi ancak agent ataması başarısız oldu — diziden yeniden deneyin",
         "assignUnavailableHere": "Yorum gönderildi — bu görünümde agent ataması kullanılamıyor",
-        "turnBadge": "bu turda bir agent çalışıyor",
         "addressingChip": "Ele alınan yorum: “{{excerpt}}”",
         "addressingChipGeneric": "Bir yorum ele alınıyor",
         "addressingChipTooltip": "Kaynak oturumdaki bir yorum dizisini ele almak için çatallandı",
-        "openBadge_one": "{{count}} agent görevi ele alınmayı bekliyor",
-        "openBadge": "{{count}} agent görevi ele alınmayı bekliyor",
-        "activeBadge_one": "{{count}} agent bu oturumda çalışıyor",
-        "activeBadge": "{{count}} agent bu oturumda çalışıyor"
+        "mentionSuggestion": "Bu yorumu bir agent'a ata"
       },
       "toggleLabel": "Yorumlar",
       "notesButton": "Oturum notları",

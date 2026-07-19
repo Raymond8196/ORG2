@@ -28,7 +28,7 @@
  * (roster refetch for A; `invalidateOrgInbound` for B) to recover any events
  * missed while disconnected.
  */
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import {
@@ -36,15 +36,12 @@ import {
   sessionOrgTagsAtom,
 } from "@src/features/TeamCollaboration/sessionOrgTagsAtom";
 import { createLogger } from "@src/hooks/logger";
-import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { workstationActiveSessionIdAtom } from "@src/store/session/viewAtom";
 
-import { kickCommentTaskRunner } from "./commentTaskRunner";
-import { org2CloudSharingFloorAtom } from "./org2CloudAccessSettings";
 import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
-import { ensureFreshSession, getEntitlementState } from "./org2CloudClient";
+import { ensureFreshSession } from "./org2CloudClient";
 import {
   COMMENTS_CHANGED_EVENT,
   org2CloudCommentsSignalAtom,
@@ -52,6 +49,7 @@ import {
   registerCommentsBroadcaster,
   sessionCommentsKey,
 } from "./org2CloudCommentsBus";
+import { refreshOrgEntitlement } from "./org2CloudEntitlementCoordinator";
 import {
   org2CloudOrgsAtom,
   org2CloudRosterVersionAtom,
@@ -83,7 +81,9 @@ const log = createLogger("Org2CloudRealtime");
  * projects / work-items / comment-tasks change.
  */
 const CHANGE_SIGNALS_TABLE = "org_change_signals";
-const ENTITLEMENT_SIGNAL_REFRESH_TTL_MS = 60_000;
+
+/** Bounds signal-burst roster refetches to one list_my_orgs per window. */
+const ROSTER_SIGNAL_REFRESH_TTL_MS = 10_000;
 
 /**
  * Establish + maintain the inbound Realtime subscriptions for the signed-in
@@ -92,8 +92,8 @@ const ENTITLEMENT_SIGNAL_REFRESH_TTL_MS = 60_000;
  */
 export function useOrg2CloudRealtime(): void {
   const auth = useAtomValue(org2CloudAuthAtom);
+  const store = useStore();
   const setAuth = useSetAtom(org2CloudAuthAtom);
-  const setFloorByOrg = useSetAtom(org2CloudSharingFloorAtom);
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const setRosterVersion = useSetAtom(org2CloudRosterVersionAtom);
@@ -141,6 +141,10 @@ export function useOrg2CloudRealtime(): void {
   // Stable refs so the per-org effect and status callbacks read current values
   // without forcing the connection to rebuild.
   const refetchRef = useRef(refetchOrgs);
+  const rosterSignalRefreshAtRef = useRef(0);
+  const rosterTrailingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   useEffect(() => {
     refetchRef.current = refetchOrgs;
   }, [refetchOrgs]);
@@ -156,46 +160,21 @@ export function useOrg2CloudRealtime(): void {
   }, [auth]);
 
   // `org_change_signals` also carries rare sharing-floor changes. Refresh only
-  // the affected org's entitlement, single-flight and TTL-gated, instead of
-  // using list_my_orgs as a policy cache invalidation mechanism.
-  const entitlementRefreshStateRef = useRef(
-    new Map<string, { lastAttemptAt: number; inFlight: boolean }>()
-  );
-  const refreshOrgEntitlement = useCallback(
+  // the affected org's entitlement through the shared coordinator
+  // (store-keyed single-flight + TTL) instead of using list_my_orgs as a
+  // policy cache invalidation mechanism.
+  const refreshEntitlementForOrg = useCallback(
     async (orgId: string): Promise<void> => {
-      const state = entitlementRefreshStateRef.current.get(orgId);
-      const now = Date.now();
-      if (
-        state?.inFlight ||
-        (state && now - state.lastAttemptAt < ENTITLEMENT_SIGNAL_REFRESH_TTL_MS)
-      ) {
-        return;
-      }
-      entitlementRefreshStateRef.current.set(orgId, {
-        lastAttemptAt: now,
-        inFlight: true,
-      });
-      try {
+      await refreshOrgEntitlement(store, orgId, async () => {
         const current = authRef.current;
-        if (!current) return;
+        if (!current) return null;
         const fresh = await ensureFreshSession(current);
-        if (!fresh) return;
+        if (!fresh) return null;
         commitRefreshedAuth(setAuth, current, fresh);
-        const entitlement = await getEntitlementState(fresh.accessToken, orgId);
-        if (!entitlement) return;
-        const floor =
-          entitlement.orgSharingFloor ?? COLLAB_SESSION_ACCESS_MODE.OFF;
-        setFloorByOrg((previous) =>
-          previous[orgId] === floor ? previous : { ...previous, [orgId]: floor }
-        );
-      } catch (error) {
-        log.warn(`entitlement refresh failed for org ${orgId}:`, error);
-      } finally {
-        const latest = entitlementRefreshStateRef.current.get(orgId);
-        if (latest) latest.inFlight = false;
-      }
+        return fresh.accessToken;
+      });
     },
-    [setAuth, setFloorByOrg]
+    [setAuth, store]
   );
 
   const connectionRef = useRef<Org2CloudRealtimeConnection | null>(null);
@@ -262,14 +241,37 @@ export function useOrg2CloudRealtime(): void {
           table: CHANGE_SIGNALS_TABLE,
           filter: `org_id=eq.${orgId}`,
           onChange: () => {
-            // One scoped, cursor-based pull. The former roster refetch here
-            // re-read list_my_orgs + every org's entitlement for unrelated
-            // project/comment/session writes, and the follow-up explicit pass
-            // dirtied the just-started pass, doubling all inbound RPCs.
-            void org2CloudSyncEngine
-              .invalidateOrgInboundAndWait(orgId)
-              .then(() => kickCommentTaskRunner());
-            void refreshOrgEntitlement(orgId);
+            // One scoped, cursor-based pull. The former unconditional roster
+            // refetch here re-read list_my_orgs + every org's entitlement for
+            // unrelated project/comment/session writes, and the follow-up
+            // explicit pass dirtied the just-started pass, doubling all
+            // inbound RPCs.
+            void org2CloudSyncEngine.invalidateOrgInboundAndWait(orgId);
+            void refreshEntitlementForOrg(orgId);
+            // Server contract (cloud_rename_org): this signal row is the
+            // durable nudge that keeps member-side org names coherent — the
+            // roster must refetch on it. TTL-gated so signal bursts cost at
+            // most one list_my_orgs per window (entitlements ride their own
+            // coordinator; the refetch itself is single-flighted per store).
+            const now = Date.now();
+            if (
+              now - rosterSignalRefreshAtRef.current >=
+              ROSTER_SIGNAL_REFRESH_TTL_MS
+            ) {
+              rosterSignalRefreshAtRef.current = now;
+              void refetchRef.current();
+            } else if (!rosterTrailingTimerRef.current) {
+              // A gated signal is deferred to window expiry, never dropped —
+              // it may be the rename/policy change's only nudge.
+              const delay =
+                ROSTER_SIGNAL_REFRESH_TTL_MS -
+                (now - rosterSignalRefreshAtRef.current);
+              rosterTrailingTimerRef.current = setTimeout(() => {
+                rosterTrailingTimerRef.current = null;
+                rosterSignalRefreshAtRef.current = Date.now();
+                void refetchRef.current();
+              }, delay);
+            }
             // The signal covers cloud_sessions too — refresh the sidebar's
             // TEAM SESSIONS rows (teammate shared/forked/retracted a session).
             bumpRemoteSessionsVersion(orgId);
@@ -285,7 +287,7 @@ export function useOrg2CloudRealtime(): void {
             // tasks) that landed while disconnected are observed.
             if (subscribed) {
               org2CloudSyncEngine.invalidateOrgInbound(orgId, { full: true });
-              void refreshOrgEntitlement(orgId);
+              void refreshEntitlementForOrg(orgId);
               bumpRemoteSessionsVersion(orgId);
               bumpOrgCommentsSignal(orgId);
             }
@@ -328,7 +330,7 @@ export function useOrg2CloudRealtime(): void {
     bumpRosterVersion,
     bumpRemoteSessionsVersion,
     bumpOrgCommentsSignal,
-    refreshOrgEntitlement,
+    refreshEntitlementForOrg,
   ]);
 
   // --- Slice C: org-level presence (who is viewing what), one channel per org.
@@ -393,7 +395,6 @@ export function useOrg2CloudRealtime(): void {
             return { ...current, [key]: (current[key] ?? 0) + 1 };
           });
           bumpRemoteSessionsVersion(orgId);
-          kickCommentTaskRunner();
         },
         onSync: (state) => {
           const byUser: Record<string, Org2CloudPresenceEntry> = {};
