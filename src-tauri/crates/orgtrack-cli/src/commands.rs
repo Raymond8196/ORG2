@@ -1,0 +1,543 @@
+//! Command handlers: one function per subcommand (`sources`, `plugins`, `scan`,
+//! `list`/`search`, `usage`, `show`) plus their table/markdown/CSV renderers.
+
+use core_types::activity::ActivityChunk;
+
+use orgtrack_core::session_usage;
+use orgtrack_core::sources::registry;
+use orgtrack_core::usage_dashboard::{
+    self, TrendBucket, UsageFilter, UsageSessionRow, UsageSummary,
+};
+
+use crate::output::{
+    csv_row, formatter_for, md_cell, parse_sort, preview_of, print_usage_session_row,
+    print_usage_summary, render_template, row_matches, session_label, to_json, truncate,
+};
+use crate::output::chunk_body;
+use crate::plugin_exec::{
+    apply_chunk_processors, apply_session_processors, load_session_chunks, source_of_session,
+};
+use crate::plugins::{self, FormatterPlugin, LoaderPlugin, ProcessorPlugin};
+use crate::scan::{counts_by_source, read_cached, scan_all};
+use crate::store::{count_usage_rows, db_target, open_conn};
+use crate::{Format, Options, ScannedRow, SCAN_PAGE};
+
+pub(crate) fn cmd_sources(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
+    let builtins = registry::registered_sources();
+    if opts.json {
+        let mut json: Vec<_> = builtins
+            .iter()
+            .map(|source| {
+                serde_json::json!({ "id": source.id, "label": source.label, "kind": "builtin" })
+            })
+            .collect();
+        json.extend(plugins.iter().map(|plugin| {
+            serde_json::json!({ "id": plugin.id, "label": plugin.label, "kind": "plugin" })
+        }));
+        println!("{}", to_json(&json)?);
+        return Ok(());
+    }
+    println!("{:<14}  {:<8}  TOOL", "ID", "KIND");
+    println!("{}", "-".repeat(48));
+    for source in builtins {
+        println!("{:<14}  {:<8}  {}", source.id, "built-in", source.label);
+    }
+    for plugin in plugins {
+        println!("{:<14}  {:<8}  {}", plugin.id, "plugin", plugin.label);
+    }
+    println!(
+        "\n{} tools ({} built-in, {} plugin).",
+        builtins.len() + plugins.len(),
+        builtins.len(),
+        plugins.len()
+    );
+    Ok(())
+}
+
+/// `orgtrack plugins list|trust <id>` — inspect and trust plugins. `list`
+/// surfaces broken manifests (with the reason) so they are visible, not silent;
+/// `trust` pins an exec plugin's content hash so it may run.
+pub(crate) fn cmd_plugins(opts: &Options, discovered: &plugins::Discovered) -> Result<(), String> {
+    let subcommand = opts.positionals.first().map(String::as_str).unwrap_or("list");
+    match subcommand {
+        "list" => cmd_plugins_list(opts, discovered),
+        "trust" => {
+            let id = opts
+                .positionals
+                .get(1)
+                .ok_or("`plugins trust` needs a plugin id, e.g. `orgtrack plugins trust my_agent`")?;
+            let hash = plugins::trust(id, discovered)?;
+            println!("Trusted '{id}' (sha256 {}…).", &hash[..hash.len().min(12)]);
+            Ok(())
+        }
+        other => Err(format!(
+            "unknown `plugins` subcommand '{other}' (expected list or trust)"
+        )),
+    }
+}
+
+pub(crate) fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<(), String> {
+    if opts.json {
+        println!(
+            "{}",
+            to_json(&serde_json::json!({
+                "loaders": discovered.loaders.iter().map(|plugin| serde_json::json!({
+                    "id": plugin.id,
+                    "label": plugin.label,
+                    "kind": plugin.kind_label(),
+                    "trust": plugin.trust.label(),
+                    "sessionPrefix": plugin.session_prefix,
+                    "dir": plugin.manifest_dir.to_string_lossy(),
+                })).collect::<Vec<_>>(),
+                "processors": discovered.processors.iter().map(|plugin| serde_json::json!({
+                    "id": plugin.id,
+                    "label": plugin.label,
+                    "kind": format!("processor ({})", plugin.stage.as_str()),
+                    "trust": plugin.trust.label(),
+                    "scope": plugin.scope,
+                    "dir": plugin.manifest_dir.to_string_lossy(),
+                })).collect::<Vec<_>>(),
+                "formatters": discovered.formatters.iter().map(|plugin| serde_json::json!({
+                    "id": plugin.id,
+                    "label": plugin.label,
+                    "kind": "formatter (template)",
+                    "dir": plugin.manifest_dir.to_string_lossy(),
+                })).collect::<Vec<_>>(),
+                "broken": discovered.broken.iter().map(|broken| serde_json::json!({
+                    "dir": broken.dir.to_string_lossy(),
+                    "error": broken.error,
+                })).collect::<Vec<_>>(),
+            }))?
+        );
+        return Ok(());
+    }
+    if discovered.loaders.is_empty()
+        && discovered.processors.is_empty()
+        && discovered.formatters.is_empty()
+        && discovered.broken.is_empty()
+    {
+        println!("No plugins found. Drop a plugin.toml under ~/.orgtrack/plugins/<name>/");
+        println!("or set $ORGTRACK_PLUGIN_PATH. See docs/orgtrack-plugins-design.md.");
+        return Ok(());
+    }
+    for plugin in &discovered.loaders {
+        println!(
+            "{:<14}  {:<18}  {:<9}  prefix={:<10}  {}",
+            plugin.id,
+            plugin.kind_label(),
+            plugin.trust.label(),
+            plugin.session_prefix,
+            plugin.manifest_dir.display()
+        );
+    }
+    for plugin in &discovered.processors {
+        println!(
+            "{:<14}  {:<18}  {:<9}  scope={:<10}  {}",
+            plugin.id,
+            format!("processor ({})", plugin.stage.as_str()),
+            plugin.trust.label(),
+            plugin.scope.join(","),
+            plugin.manifest_dir.display()
+        );
+    }
+    for plugin in &discovered.formatters {
+        println!(
+            "{:<14}  {:<18}  {:<9}  {}",
+            plugin.id,
+            "formatter (tmpl)",
+            "-",
+            plugin.manifest_dir.display()
+        );
+    }
+    for broken in &discovered.broken {
+        println!("{}  INVALID  {}", broken.dir.display(), broken.error);
+    }
+    Ok(())
+}
+
+pub(crate) fn cmd_scan(opts: &Options, plugins: &[LoaderPlugin]) -> Result<(), String> {
+    let target = db_target(opts)?;
+    let scanned = scan_all(&target.path, opts, plugins);
+
+    // Bridge the imported caches into the usage projection so a later `usage`
+    // run against the same --db sees these sessions without rescanning. A
+    // per-session recompute failure is non-fatal (and makes `backfill` return
+    // Err even though it projected the rest), so report the real row count from
+    // the table rather than the call's Ok/Err.
+    let conn = open_conn(&target.path)?;
+    if let Err(err) = session_usage::backfill_session_usage(&conn, SCAN_PAGE) {
+        eprintln!("orgtrack: some sessions could not be projected ({err})");
+    }
+    let projected = count_usage_rows(&conn);
+
+    if opts.json {
+        println!(
+            "{}",
+            to_json(&serde_json::json!({
+                "indexed": scanned.len(),
+                "projected": projected,
+                "bySource": counts_by_source(&scanned),
+                "db": opts.db.clone().unwrap_or_else(|| ":memory:".into()),
+            }))?
+        );
+        return Ok(());
+    }
+
+    println!(
+        "\nIndexed {} sessions ({} with usage projected).",
+        scanned.len(),
+        projected
+    );
+    match &opts.db {
+        Some(path) if path != ":memory:" => println!("Index written to {path}"),
+        _ => println!("(in-memory index — pass --db <path> to persist)"),
+    }
+    Ok(())
+}
+
+pub(crate) fn cmd_list(
+    opts: &Options,
+    search: Option<String>,
+    plugins: &[LoaderPlugin],
+    processors: &[ProcessorPlugin],
+    formatters: &[FormatterPlugin],
+) -> Result<(), String> {
+    let target = db_target(opts)?;
+    let mut scanned = if opts.no_scan {
+        let conn = open_conn(&target.path)?;
+        read_cached(&conn, opts, plugins)?
+    } else {
+        scan_all(&target.path, opts, plugins)
+    };
+
+    // Session-stage processors reshape the rows before search/sort/display.
+    scanned = apply_session_processors(scanned, processors, opts.timeout());
+
+    if let Some(query) = search.as_ref().map(|q| q.to_lowercase()) {
+        scanned.retain(|item| row_matches(&item.row, &query));
+    }
+    // Newest first.
+    scanned.sort_by(|a, b| b.row.updated_at.cmp(&a.row.updated_at));
+
+    let limit = opts.limit.unwrap_or(50);
+    let shown: Vec<&ScannedRow> = scanned.iter().take(limit).collect();
+
+    if let Some(formatter) = formatter_for(opts, formatters) {
+        let context = serde_json::json!({
+            "command": "list",
+            "sessions": list_rows_json(&shown),
+            "total": scanned.len(),
+        });
+        return render_template(formatter, &context);
+    }
+    match opts.format()? {
+        Format::Json => println!("{}", to_json(&list_rows_json(&shown))?),
+        Format::Md => print!("{}", render_list_md(&shown)),
+        Format::Csv => print!("{}", render_list_csv(&shown)),
+        Format::Table => render_list_table(&shown, scanned.len()),
+    }
+    Ok(())
+}
+
+/// Session rows as JSON, each tagged with its `source`.
+pub(crate) fn list_rows_json(shown: &[&ScannedRow]) -> Vec<serde_json::Value> {
+    shown
+        .iter()
+        .map(|item| {
+            let mut value = serde_json::to_value(&item.row).unwrap_or(serde_json::Value::Null);
+            if let Some(object) = value.as_object_mut() {
+                object.insert("source".into(), serde_json::Value::String(item.source.clone()));
+            }
+            value
+        })
+        .collect()
+}
+
+pub(crate) fn render_list_table(shown: &[&ScannedRow], total: usize) {
+    if shown.is_empty() {
+        println!("No sessions found.");
+        return;
+    }
+    println!(
+        "{:<14}  {:<19}  {:<10}  {:>8}  {:>5}  SESSION",
+        "TOOL", "UPDATED", "MODEL", "TOKENS", "FILES"
+    );
+    println!("{}", "-".repeat(96));
+    for item in shown {
+        let row = &item.row;
+        println!(
+            "{:<14}  {:<19}  {:<10}  {:>8}  {:>5}  {}",
+            truncate(&item.source, 14),
+            truncate(&row.updated_at, 19),
+            truncate(row.model.as_deref().unwrap_or("-"), 10),
+            row.total_tokens,
+            row.files_changed,
+            truncate(&session_label(row), 44),
+        );
+    }
+    println!(
+        "\n{} shown{}.",
+        shown.len(),
+        if total > shown.len() {
+            format!(" of {total} (use --limit)")
+        } else {
+            String::new()
+        }
+    );
+}
+
+pub(crate) fn render_list_md(shown: &[&ScannedRow]) -> String {
+    let mut out = String::from("# orgtrack sessions\n\n");
+    out.push_str("| Tool | Updated | Model | Tokens | Files | Session | Repo |\n");
+    out.push_str("|---|---|---|--:|--:|---|---|\n");
+    for item in shown {
+        let row = &item.row;
+        out.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} | {} |\n",
+            md_cell(&item.source),
+            md_cell(&row.updated_at),
+            md_cell(row.model.as_deref().unwrap_or("-")),
+            row.total_tokens,
+            row.files_changed,
+            md_cell(&row.name),
+            md_cell(row.repo_name.as_deref().unwrap_or("")),
+        ));
+    }
+    out
+}
+
+pub(crate) fn render_list_csv(shown: &[&ScannedRow]) -> String {
+    let mut out =
+        String::from("source,updated_at,model,total_tokens,files_changed,name,repo_name,session_id\n");
+    for item in shown {
+        let row = &item.row;
+        out.push_str(&csv_row(&[
+            &item.source,
+            &row.updated_at,
+            row.model.as_deref().unwrap_or(""),
+            &row.total_tokens.to_string(),
+            &row.files_changed.to_string(),
+            &row.name,
+            row.repo_name.as_deref().unwrap_or(""),
+            &row.session_id,
+        ]));
+    }
+    out
+}
+
+pub(crate) fn cmd_usage(
+    opts: &Options,
+    plugins: &[LoaderPlugin],
+    formatters: &[FormatterPlugin],
+) -> Result<(), String> {
+    let target = db_target(opts)?;
+    if !opts.no_scan {
+        scan_all(&target.path, opts, plugins);
+    }
+    let conn = open_conn(&target.path)?;
+    // Non-fatal: analytics should still render on whatever is already
+    // projected even if a transient lock (e.g. an abandoned scan worker)
+    // interrupts the bridge.
+    if let Err(err) = session_usage::backfill_session_usage(&conn, SCAN_PAGE) {
+        eprintln!("orgtrack: usage projection incomplete ({err})");
+    }
+
+    // The CLI reports usage across every source it indexed — long-tail
+    // built-ins and plugins included — not just the dashboard's four buckets.
+    let filter = UsageFilter {
+        all_sources: true,
+        ..UsageFilter::default()
+    };
+    let sort = parse_sort(opts.sort.as_deref())?;
+    let limit = opts.limit.unwrap_or(50);
+
+    let summary = usage_dashboard::usage_summary(&conn, &filter)?;
+    let sessions = usage_dashboard::usage_sessions(&conn, &filter, sort, 0, limit)?;
+    // Trend series (daily) is computed for JSON consumers; the table view
+    // shows the headline + per-session rows.
+    let overview = usage_dashboard::usage_overview(&conn, &filter, sort, 0, limit, TrendBucket::Day)?;
+
+    if let Some(formatter) = formatter_for(opts, formatters) {
+        let context = serde_json::json!({
+            "command": "usage",
+            "summary": summary,
+            "sessions": sessions,
+            "trends": overview.trends,
+        });
+        return render_template(formatter, &context);
+    }
+    match opts.format()? {
+        Format::Json => println!(
+            "{}",
+            to_json(&serde_json::json!({
+                "summary": summary,
+                "sessions": sessions,
+                "trends": overview.trends,
+            }))?
+        ),
+        Format::Md => print!("{}", render_usage_md(&summary, &sessions)),
+        Format::Csv => print!("{}", render_usage_csv(&sessions)),
+        Format::Table => {
+            print_usage_summary(&summary);
+            if sessions.is_empty() {
+                println!("\nNo per-session usage rows (no token-bearing sessions found).");
+                return Ok(());
+            }
+            println!(
+                "\n{:<12}  {:<10}  {:>10}  {:>9}  SESSION",
+                "SOURCE", "MODEL", "TOKENS", "COST($)"
+            );
+            println!("{}", "-".repeat(88));
+            for row in &sessions {
+                print_usage_session_row(row);
+            }
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn render_usage_md(summary: &UsageSummary, sessions: &[UsageSessionRow]) -> String {
+    let mut out = String::from("# orgtrack usage\n\n");
+    out.push_str(&format!(
+        "- **sessions:** {}\n- **requests:** {}\n- **total tokens:** {}\n- **estimated cost:** ${:.2}\n- **cache hit rate:** {:.1}%\n\n",
+        summary.session_count,
+        summary.request_count,
+        summary.real_total_tokens,
+        summary.cost_usd,
+        summary.cache_hit_rate * 100.0
+    ));
+    out.push_str("| Source | Model | Tokens | Cost ($) | Session |\n");
+    out.push_str("|---|---|--:|--:|---|\n");
+    for row in sessions {
+        out.push_str(&format!(
+            "| {} | {} | {} | {:.2} | {} |\n",
+            md_cell(&row.source),
+            md_cell(row.model.as_deref().unwrap_or("-")),
+            row.real_total_tokens,
+            row.cost_usd,
+            md_cell(&row.name),
+        ));
+    }
+    out
+}
+
+pub(crate) fn render_usage_csv(sessions: &[UsageSessionRow]) -> String {
+    let mut out = String::from(
+        "source,model,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,total_tokens,cost_usd,name,session_id\n",
+    );
+    for row in sessions {
+        out.push_str(&csv_row(&[
+            &row.source,
+            row.model.as_deref().unwrap_or(""),
+            &row.input_tokens.to_string(),
+            &row.output_tokens.to_string(),
+            &row.cache_read_tokens.to_string(),
+            &row.cache_write_tokens.to_string(),
+            &row.real_total_tokens.to_string(),
+            &format!("{:.4}", row.cost_usd),
+            &row.name,
+            &row.session_id,
+        ]));
+    }
+    out
+}
+
+pub(crate) fn cmd_show(
+    opts: &Options,
+    plugins: &[LoaderPlugin],
+    processors: &[ProcessorPlugin],
+    formatters: &[FormatterPlugin],
+) -> Result<(), String> {
+    let Some(session_id) = opts.positionals.first().cloned() else {
+        return Err("show needs a session id, e.g. `orgtrack show claude_code-<uuid>`".into());
+    };
+    let target = db_target(opts)?;
+    if !opts.no_scan {
+        scan_all(&target.path, opts, plugins);
+    }
+    let conn = open_conn(&target.path)?;
+    let chunks = load_session_chunks(&conn, &session_id, plugins, opts.timeout())?.ok_or_else(
+        || format!("'{session_id}' is not a known imported session id (nothing to show)"),
+    )?;
+    // Chunk-stage processors reshape the conversation before rendering.
+    let source = source_of_session(&session_id, plugins);
+    let chunks = apply_chunk_processors(&session_id, &source, chunks, processors, opts.timeout());
+
+    if let Some(formatter) = formatter_for(opts, formatters) {
+        let context = serde_json::json!({
+            "command": "show",
+            "sessionId": session_id,
+            "chunks": chunks,
+        });
+        return render_template(formatter, &context);
+    }
+    match opts.format()? {
+        Format::Json => println!("{}", to_json(&chunks)?),
+        Format::Md => print!("{}", render_show_md(&session_id, &chunks)),
+        Format::Csv => print!("{}", render_show_csv(&chunks)),
+        Format::Table => {
+            println!("Session {session_id} — {} activity chunks\n", chunks.len());
+            for chunk in &chunks {
+                let label = if chunk.function.is_empty() {
+                    chunk.action_type.clone()
+                } else {
+                    format!("{}:{}", chunk.action_type, chunk.function)
+                };
+                println!("[{}] {}", truncate(&chunk.created_at, 19), label);
+                if let Some(text) = preview_of(&chunk.args).or_else(|| preview_of(&chunk.result)) {
+                    println!("    {}", truncate(&text, 160));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Portable markdown transcript of a session — the export format. Message
+/// bodies render as prose; tool calls render as fenced code so a transcript
+/// round-trips into any markdown viewer.
+pub(crate) fn render_show_md(session_id: &str, chunks: &[ActivityChunk]) -> String {
+    let mut out = format!("# Session {session_id}\n\n");
+    for chunk in chunks {
+        let role = chunk_role(chunk);
+        out.push_str(&format!("**{role}** · {}\n\n", truncate(&chunk.created_at, 19)));
+        let body = chunk_body(&chunk.args).or_else(|| chunk_body(&chunk.result));
+        match body {
+            Some(text) if chunk.action_type == "tool_call" => {
+                out.push_str(&format!("```\n{}\n```\n\n", text.trim_end()))
+            }
+            Some(text) => out.push_str(&format!("{}\n\n", text.trim_end())),
+            None => out.push_str("_(no content)_\n\n"),
+        }
+    }
+    out
+}
+
+pub(crate) fn render_show_csv(chunks: &[ActivityChunk]) -> String {
+    let mut out = String::from("created_at,role,action_type,function,preview\n");
+    for chunk in chunks {
+        let preview = preview_of(&chunk.args)
+            .or_else(|| preview_of(&chunk.result))
+            .unwrap_or_default();
+        out.push_str(&csv_row(&[
+            &chunk.created_at,
+            &chunk_role(chunk),
+            &chunk.action_type,
+            &chunk.function,
+            &preview,
+        ]));
+    }
+    out
+}
+
+/// Human role label for a chunk: `user`, `assistant`, `assistant (thinking)`,
+/// or `tool: <name>`.
+pub(crate) fn chunk_role(chunk: &ActivityChunk) -> String {
+    match chunk.action_type.as_str() {
+        "raw" if chunk.function.contains("user") => "user".to_string(),
+        "assistant" => "assistant".to_string(),
+        "thinking" => "assistant (thinking)".to_string(),
+        "tool_call" => format!("tool: {}", chunk.function),
+        other => other.to_string(),
+    }
+}
