@@ -779,14 +779,9 @@
       "task": {
         "assignFailed": "评论已发布，但指派 Agent 失败——请从讨论串重试",
         "assignUnavailableHere": "评论已发布——当前视图不支持指派 Agent",
-        "turnBadge": "有 Agent 正在处理此回合",
         "addressingChip": "正在处理评论：“{{excerpt}}”",
         "addressingChipGeneric": "正在处理一条评论",
         "addressingChipTooltip": "为处理源会话的评论讨论串而分叉",
-        "openBadge_one": "{{count}} 个待认领的 Agent 任务",
-        "openBadge": "{{count}} 个待认领的 Agent 任务",
-        "activeBadge_one": "{{count}} 个 Agent 正在处理此会话",
-        "activeBadge": "{{count}} 个 Agent 正在处理此会话",
         "mentionSuggestion": "将这条评论指派给 Agent"
       },
       "toggleLabel": "评论",

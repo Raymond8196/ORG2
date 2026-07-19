@@ -23,19 +23,10 @@
  * - Every comment carries `kind` ('user' | 'agent_report'); absent on
  *   pre-0002 ⇒ undefined ⇒ 'user' semantics. Any member who can comment on
  *   the session may set `agent_report`; the author is recorded on the row.
- * - `cloud_list_session_comments` also returns a top-level `tasks` array
- *   (`comment_task_wire` rows for THIS session — schema imported from
- *   org2CloudCommentTasksClient so the two clients cannot drift); absent on
- *   pre-0002 ⇒ []. It NEVER carries a lease token (invariant 1) — the claim
- *   response is the only carrier.
  */
 import { z } from "zod/v4";
 
 import { ORG2_CLOUD_POSTGREST_SCHEMA, getCloudEndpoint } from "./config";
-import {
-  type CloudCommentTask,
-  CloudCommentTaskWireSchema,
-} from "./org2CloudCommentTasksClient";
 
 /** RPC-enforced body bound (0014 SIZE note) — mirrored in composers. */
 export const CLOUD_COMMENT_MAX_BODY_LENGTH = 4000;
@@ -197,10 +188,6 @@ const AddCommentResultSchema = z.object({
 
 const ListCommentsResultSchema = z.object({
   comments: z.array(CloudSessionCommentWireSchema).default([]),
-  // 0002 embed: this session's `comment_task_wire` rows (structurally no
-  // lease_token — zod strips unknown keys anyway). Absent on pre-0002
-  // backends — default to [] so callers never branch on backend age.
-  tasks: z.array(CloudCommentTaskWireSchema).default([]),
 });
 
 const EditCommentResultSchema = z.object({
@@ -354,20 +341,11 @@ export async function resolveSessionComment(
 
 export interface SessionCommentsListing {
   comments: CloudSessionComment[];
-  /**
-   * This session's agent tasks (0002 `comment_task_wire` embed,
-   * `created_at` asc; one per thread head — UNIQUE comment_id). [] on
-   * pre-0002 backends. NEVER carries a lease token — the claim response
-   * is the only carrier.
-   */
-  tasks: CloudCommentTask[];
 }
 
 /**
  * Full thread list for one readable session, `created_at` asc (no
  * pagination — the 500-row cap bounds the response). Tombstones included.
- * 0002 embeds the session's task rows in the SAME fetch, so thread UIs get
- * task state riding the existing 30s TTL machinery without a second RPC.
  */
 export async function listSessionComments(
   accessToken: string,

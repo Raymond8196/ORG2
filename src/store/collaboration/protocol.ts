@@ -156,19 +156,6 @@ export const RemoteTeammateSessionMetadataSchema = z.object({
     .nullish()
     .transform((value) => value ?? undefined)
     .optional(),
-  // Agent-task counters (cloud migration 0002): server-side lateral
-  // aggregates next to the comment counters above. Additive — absent on
-  // pre-0002 backends and simply stay undefined.
-  openAgentTaskCount: z
-    .number()
-    .nullish()
-    .transform((value) => value ?? undefined)
-    .optional(),
-  activeAgentTaskCount: z
-    .number()
-    .nullish()
-    .transform((value) => value ?? undefined)
-    .optional(),
 }) satisfies z.ZodType<RemoteTeammateSessionMetadata>;
 
 export function createCollabAvatarIdentity(

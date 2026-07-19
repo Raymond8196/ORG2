@@ -779,14 +779,9 @@
       "task": {
         "assignFailed": "評論已發布，但指派 Agent 失敗——請從討論串重試",
         "assignUnavailableHere": "評論已發布——目前檢視不支援指派 Agent",
-        "turnBadge": "有 Agent 正在處理此回合",
         "addressingChip": "正在處理評論：「{{excerpt}}」",
         "addressingChipGeneric": "正在處理一則評論",
         "addressingChipTooltip": "為處理來源工作階段的評論討論串而分叉",
-        "openBadge_one": "{{count}} 個待認領的 Agent 任務",
-        "openBadge": "{{count}} 個待認領的 Agent 任務",
-        "activeBadge_one": "{{count}} 個 Agent 正在處理此工作階段",
-        "activeBadge": "{{count}} 個 Agent 正在處理此工作階段",
         "mentionSuggestion": "將這則評論指派給 Agent"
       },
       "toggleLabel": "評論",

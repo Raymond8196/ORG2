@@ -7,7 +7,6 @@ import {
 } from "./config";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
-import { org2CloudCommentTasksAtom } from "./org2CloudCommentTasksAtom";
 import {
   org2CloudEndpointOverrideAtom,
   resetCloudStateForEndpointSwitch,
@@ -85,24 +84,9 @@ describe("resetCloudStateForEndpointSwitch", () => {
     store.set(org2CloudCommentTaskCursorsAtom, {
       "corg-1": "2026-07-01T00:00:00.000Z",
     });
-    store.set(org2CloudCommentTasksAtom, {
-      "corg-1": {
-        "task-1": {
-          id: "task-1",
-          sessionId: "session-1",
-          commentId: "comment-1",
-          state: "open",
-          leaseExpired: false,
-          attempt: 0,
-          createdAt: "2026-07-01T00:00:00.000Z",
-          updatedAt: "2026-07-01T00:00:00.000Z",
-        },
-      },
-    });
     store.set(org2CloudSessionCommentsAtom, {
       "corg-1|session-1": {
         comments: [],
-        tasks: [],
         state: "ready",
         fetchedAt: 1,
       },
@@ -121,7 +105,6 @@ describe("resetCloudStateForEndpointSwitch", () => {
     expect(store.get(org2CloudPushedMetadataAtom)).toEqual({});
     expect(store.get(org2CloudCollabStateCursorsAtom)).toEqual({});
     expect(store.get(org2CloudCommentTaskCursorsAtom)).toEqual({});
-    expect(store.get(org2CloudCommentTasksAtom)).toEqual({});
     expect(store.get(org2CloudSessionCommentsAtom)).toEqual({});
     expect(store.get(org2CloudRemoteSessionsAtom)).toEqual({});
   });

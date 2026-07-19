@@ -687,14 +687,9 @@
       "task": {
         "assignFailed": "コメントは投稿されましたが、エージェントの割り当てに失敗しました — スレッドから再試行してください",
         "assignUnavailableHere": "コメントは投稿されました — このビューではエージェントの割り当ては利用できません",
-        "turnBadge": "エージェントがこのターンを対応中",
         "addressingChip": "対応中のコメント:「{{excerpt}}」",
         "addressingChipGeneric": "コメントに対応中",
         "addressingChipTooltip": "元セッションのコメントスレッドに対応するためにフォークされました",
-        "openBadge_one": "対応待ちのエージェントタスク {{count}} 件",
-        "openBadge": "対応待ちのエージェントタスク {{count}} 件",
-        "activeBadge_one": "このセッションで {{count}} 個のエージェントが作業中",
-        "activeBadge": "このセッションで {{count}} 個のエージェントが作業中",
         "mentionSuggestion": "このコメントをエージェントに割り当てる"
       },
       "toggleLabel": "コメント",

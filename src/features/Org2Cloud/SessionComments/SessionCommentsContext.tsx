@@ -38,7 +38,6 @@ import {
   runAddressCommentsRound,
 } from "../addressCommentsRun";
 import { org2CloudAuthAtom } from "../org2CloudAuthAtom";
-import type { CloudCommentTask } from "../org2CloudCommentTasksClient";
 import type {
   CloudCommentResolution,
   CloudSessionComment,
@@ -119,9 +118,6 @@ export interface SessionCommentsContextValue {
     resolution?: CloudCommentResolution
   ) => Promise<void>;
 
-  // ---- Agent tasks (0002, agent-pickup design §4 items 1+4) ------------
-  /** The thread head's task (UNIQUE comment_id ⇒ at most one). */
-  taskForThread: (commentId: string) => CloudCommentTask | undefined;
   /**
    * Fail-open like `canAnchorTurns`: the server is the real gate
    * (readable guard + `forkSharedSessionEnabled` at claim). False only on
@@ -226,7 +222,6 @@ export const SessionCommentsProvider: React.FC<
     comments,
     state,
     refresh,
-    taskForThread,
     addComment,
     editComment,
     deleteComment,
@@ -338,7 +333,6 @@ export const SessionCommentsProvider: React.FC<
       editComment,
       deleteComment,
       resolveComment,
-      taskForThread,
       // Fail-open (the server gates membership/entitlement/readable); the
       // one locally-KNOWN blocker is a missing cloud sign-in.
       canRunTasks: viewer.viewerUserId !== null,
@@ -359,7 +353,6 @@ export const SessionCommentsProvider: React.FC<
     editComment,
     deleteComment,
     resolveComment,
-    taskForThread,
     createTask,
     canAddressInPlace,
     addressAllCommentsImpl,

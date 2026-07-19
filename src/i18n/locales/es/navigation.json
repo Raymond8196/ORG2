@@ -689,14 +689,9 @@
       "task": {
         "assignFailed": "El comentario se publicó, pero la asignación del agente falló — reintenta desde el hilo",
         "assignUnavailableHere": "El comentario se publicó — la asignación del agente no está disponible en esta vista",
-        "turnBadge": "un agente está en este turno",
         "addressingChip": "Atendiendo el comentario: «{{excerpt}}»",
         "addressingChipGeneric": "Atendiendo un comentario",
         "addressingChipTooltip": "Bifurcada para atender un hilo de comentarios de la sesión de origen",
-        "openBadge_one": "{{count}} tarea de agente en espera de ser atendida",
-        "openBadge": "{{count}} tareas de agente en espera de ser atendidas",
-        "activeBadge_one": "{{count}} agente está trabajando en esta sesión",
-        "activeBadge": "{{count}} agentes están trabajando en esta sesión",
         "mentionSuggestion": "Asignar este comentario a un agente"
       },
       "toggleLabel": "Comentarios",

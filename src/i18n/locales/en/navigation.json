@@ -716,14 +716,9 @@
       "task": {
         "assignFailed": "Comment posted, but assigning the agent failed — retry from the thread",
         "assignUnavailableHere": "Comment posted — agent assignment isn't available in this view",
-        "turnBadge": "an agent is on this turn",
         "addressingChip": "Addressing comment: “{{excerpt}}”",
         "addressingChipGeneric": "Addressing a comment",
         "addressingChipTooltip": "Forked to address a comment thread on the source session",
-        "openBadge_one": "{{count}} agent task awaiting pickup",
-        "openBadge": "{{count}} agent tasks awaiting pickup",
-        "activeBadge_one": "an agent is working on this session",
-        "activeBadge": "{{count}} agents are working on this session",
         "mentionSuggestion": "Assign this comment to an agent"
       },
       "toggleLabel": "Comments",
