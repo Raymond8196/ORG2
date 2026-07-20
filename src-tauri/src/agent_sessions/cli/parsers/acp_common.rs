@@ -62,8 +62,7 @@ pub async fn resolve_approval(
                 .find(|(_, entry)| entry.session_id == session_id)
                 .map(|(key, _)| key.clone()),
         };
-        let key = key
-            .ok_or_else(|| format!("No pending approval for session {}", session_id))?;
+        let key = key.ok_or_else(|| format!("No pending approval for session {}", session_id))?;
         pending.remove(&key).expect("key was just found")
     };
     entry
@@ -906,7 +905,10 @@ fn extract_permission_request_info<A: AcpAgentAdapter>(
         .and_then(|v| v.as_str())
         .unwrap_or("");
 
-    let tool_name = match tool_call.and_then(|tc| tc.get("kind")).and_then(|v| v.as_str()) {
+    let tool_name = match tool_call
+        .and_then(|tc| tc.get("kind"))
+        .and_then(|v| v.as_str())
+    {
         Some(kind) => adapter.map_tool_kind(kind, &raw_input),
         None => legacy_tool.unwrap_or("unknown_tool").to_string(),
     };
@@ -922,7 +924,10 @@ fn extract_permission_request_info<A: AcpAgentAdapter>(
     } else {
         let mut obj = serde_json::Map::new();
         if !description.is_empty() {
-            obj.insert("description".to_string(), Value::String(description.clone()));
+            obj.insert(
+                "description".to_string(),
+                Value::String(description.clone()),
+            );
         }
         Value::Object(obj)
     };
@@ -951,9 +956,9 @@ fn select_acp_option_id(params: &Value, approved: bool, always_allow: bool) -> S
     };
     if let Some(options) = params.get("options").and_then(|v| v.as_array()) {
         for kind in desired_kinds {
-            let matched = options.iter().find(|opt| {
-                opt.get("kind").and_then(|v| v.as_str()) == Some(*kind)
-            });
+            let matched = options
+                .iter()
+                .find(|opt| opt.get("kind").and_then(|v| v.as_str()) == Some(*kind));
             if let Some(id) = matched
                 .and_then(|opt| opt.get("optionId"))
                 .and_then(|v| v.as_str())
@@ -1397,7 +1402,8 @@ async fn process_notification<A: AcpAgentAdapter>(
                 // 5-minute timeout for user response; auto-approve on timeout
                 let response = await_acp_approval(&request_id, rx, ACP_APPROVAL_TIMEOUT).await;
 
-                let option_id = select_acp_option_id(&params, response.approved, response.always_allow);
+                let option_id =
+                    select_acp_option_id(&params, response.approved, response.always_allow);
 
                 acp_respond(
                     stdin,

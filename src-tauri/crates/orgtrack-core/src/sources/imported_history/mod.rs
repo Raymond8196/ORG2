@@ -374,7 +374,10 @@ pub fn recent_paths_from_paths(
 /// the full prompt verbatim, so replay readers must strip these to recover
 /// what the user actually typed.
 const INTERNAL_CONTEXT_BLOCKS: &[(&str, &str)] = &[
-    ("<orgii_cli_exec_mode_bridge>", "</orgii_cli_exec_mode_bridge>"),
+    (
+        "<orgii_cli_exec_mode_bridge>",
+        "</orgii_cli_exec_mode_bridge>",
+    ),
     ("<ide_context>", "</ide_context>"),
 ];
 

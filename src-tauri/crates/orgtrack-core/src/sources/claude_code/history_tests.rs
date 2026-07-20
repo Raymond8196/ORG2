@@ -550,8 +550,7 @@ fn strips_ide_context_from_claude_replay() {
 
     // Replay: the ide_context-only line emits no bubble; the prefixed
     // line's bubble carries only the user-authored text.
-    let chunks =
-        load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
+    let chunks = load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
     let user_chunks: Vec<_> = chunks
         .iter()
         .filter(|chunk| chunk.function == imported_history::FUNCTION_USER_MESSAGE)

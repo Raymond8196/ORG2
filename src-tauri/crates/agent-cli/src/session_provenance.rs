@@ -711,11 +711,7 @@ fn update_cursor_platform(
 /// Claude-Code-style nested `hooks.PostToolUse[]` shape — but a single
 /// `command` string per hook (no `commandWindows`). The caller passes the
 /// platform-appropriate command.
-fn update_trae_platform(
-    config: &mut Value,
-    enabled: bool,
-    command: &str,
-) -> Result<(), String> {
+fn update_trae_platform(config: &mut Value, enabled: bool, command: &str) -> Result<(), String> {
     config
         .as_object_mut()
         .ok_or_else(|| "Trae hook config root must be a JSON object".to_string())?
@@ -782,7 +778,8 @@ fn update_opencode_plugin(enabled: bool, executable: &Path) -> Result<(), String
         }
         return Ok(());
     }
-    let contents = OPENCODE_PLUGIN_TEMPLATE.replace("__ORGII_BINARY__", &js_escaped_path(executable));
+    let contents =
+        OPENCODE_PLUGIN_TEMPLATE.replace("__ORGII_BINARY__", &js_escaped_path(executable));
     write_atomic(&path, contents.as_bytes())
 }
 
@@ -958,7 +955,10 @@ fn kimi_apply_managed_hook(
             entry.insert("timeout".to_string(), toml::Value::Integer(5));
             toml::Value::Table(entry)
         };
-        hooks.push(managed_entry("PostToolUse", Some(KIMI_POST_TOOL_USE_MATCHER)));
+        hooks.push(managed_entry(
+            "PostToolUse",
+            Some(KIMI_POST_TOOL_USE_MATCHER),
+        ));
         if live_status {
             for event in KIMI_LIFECYCLE_EVENTS {
                 // PreToolUse carries no matcher: every tool (including
@@ -1091,10 +1091,7 @@ fn zcode_registry_has_plugin(config: &Value) -> bool {
 
 /// Pure transform: remove our plugin's entry from a registry value.
 fn zcode_remove_plugin_from_registry_value(config: &mut Value) {
-    if let Some(map) = config
-        .get_mut("plugins")
-        .and_then(Value::as_object_mut)
-    {
+    if let Some(map) = config.get_mut("plugins").and_then(Value::as_object_mut) {
         map.remove(zcode_plugin_id());
     }
 }
@@ -1578,13 +1575,15 @@ fn config_has_complete_managed_hooks(
                 && cursor_event_has_managed_hook(config, "subagentStart", None)
                 && cursor_event_has_managed_hook(config, "subagentStop", None)
                 && (!live_status
-                    || CURSOR_LIFECYCLE_EVENTS.iter().all(|(event_name, needs_matcher)| {
-                        cursor_event_has_managed_hook(
-                            config,
-                            event_name,
-                            needs_matcher.then_some(".*"),
-                        )
-                    }))
+                    || CURSOR_LIFECYCLE_EVENTS
+                        .iter()
+                        .all(|(event_name, needs_matcher)| {
+                            cursor_event_has_managed_hook(
+                                config,
+                                event_name,
+                                needs_matcher.then_some(".*"),
+                            )
+                        }))
         }
         SessionProvenanceHookPlatform::QwenCode => nested_event_has_managed_hook(
             config,
@@ -1654,7 +1653,9 @@ fn config_has_managed_hooks(platform: SessionProvenanceHookPlatform) -> Result<b
         .map(|preferences| preferences.live_status_enabled)
         .unwrap_or(true);
     Ok(config_has_complete_managed_hooks(
-        &config, platform, live_status,
+        &config,
+        platform,
+        live_status,
     ))
 }
 
@@ -2360,8 +2361,13 @@ mod tests {
             "version": 1,
             "hooks": {"postToolUse": [{"command": "user-hook"}]}
         });
-        update_cursor_platform(&mut config, true, false, "orgii --session-provenance-hook cursor")
-            .expect("enable Cursor hook");
+        update_cursor_platform(
+            &mut config,
+            true,
+            false,
+            "orgii --session-provenance-hook cursor",
+        )
+        .expect("enable Cursor hook");
         assert_eq!(config["hooks"]["postToolUse"].as_array().unwrap().len(), 2);
         assert_eq!(
             config["hooks"]["subagentStart"].as_array().unwrap().len(),
@@ -2414,8 +2420,14 @@ mod tests {
             SessionProvenanceHookPlatform::ClaudeCode,
             false
         ));
-        update_nested_platform(&mut config, false, QWEN_CODE_POST_TOOL_USE_MATCHER, "x", "x")
-            .expect("disable Qwen hook");
+        update_nested_platform(
+            &mut config,
+            false,
+            QWEN_CODE_POST_TOOL_USE_MATCHER,
+            "x",
+            "x",
+        )
+        .expect("disable Qwen hook");
         assert!(config.to_string().contains("user-hook"));
         assert!(!config.to_string().contains(HOOK_MARKER));
     }
@@ -2552,8 +2564,13 @@ mod tests {
             "model = \"kimi-k2\"\n\n[[hooks]]\nevent = \"Stop\"\ncommand = \"user-hook\"\n",
         )
         .expect("parse base config");
-        kimi_apply_managed_hook(&mut root, true, false, "orgii --session-provenance-hook kimi")
-            .expect("enable Kimi hook");
+        kimi_apply_managed_hook(
+            &mut root,
+            true,
+            false,
+            "orgii --session-provenance-hook kimi",
+        )
+        .expect("enable Kimi hook");
         let serialized = toml::to_string_pretty(&root).expect("serialize");
         assert!(serialized.contains("model = \"kimi-k2\""));
         assert!(serialized.contains("user-hook"));
@@ -2585,8 +2602,10 @@ mod tests {
 
     #[test]
     fn opencode_plugin_template_embeds_binary_and_marker() {
-        let rendered = OPENCODE_PLUGIN_TEMPLATE
-            .replace("__ORGII_BINARY__", &js_escaped_path(Path::new("/Apps/ORG2/orgii")));
+        let rendered = OPENCODE_PLUGIN_TEMPLATE.replace(
+            "__ORGII_BINARY__",
+            &js_escaped_path(Path::new("/Apps/ORG2/orgii")),
+        );
         assert!(rendered.contains("/Apps/ORG2/orgii"));
         assert!(rendered.contains(HOOK_MARKER));
         assert!(rendered.contains("tool.execute.after"));
@@ -2605,8 +2624,11 @@ mod tests {
     fn opencode_managed_detection_only_matches_our_plugin() {
         let temp = tempfile::tempdir().expect("temp dir");
         let managed = temp.path().join("orgii-session-provenance.js");
-        std::fs::write(&managed, format!("// {HOOK_MARKER} opencode\nexport const X = 1;"))
-            .expect("write managed plugin");
+        std::fs::write(
+            &managed,
+            format!("// {HOOK_MARKER} opencode\nexport const X = 1;"),
+        )
+        .expect("write managed plugin");
         assert!(opencode_plugin_is_managed(&managed));
 
         let user = temp.path().join("user-plugin.js");
@@ -2720,7 +2742,10 @@ mod tests {
             serde_json::from_str(&std::fs::read_to_string(&config_path).unwrap()).unwrap();
         assert_eq!(written["model"], "glm-5");
         assert_eq!(written["plugins"]["enabledPlugins"]["other-plugin"], true);
-        assert_eq!(written["plugins"]["enabledPlugins"][zcode_plugin_id()], true);
+        assert_eq!(
+            written["plugins"]["enabledPlugins"][zcode_plugin_id()],
+            true
+        );
 
         // Disabling leaves the unrelated plugin and top-level keys intact.
         zcode_set_plugin_enabled_at(&config_path, false).expect("disable on disk");
@@ -2750,7 +2775,11 @@ mod tests {
     fn zcode_registry_round_trip_adds_and_removes_entry() {
         let temp = tempfile::tempdir().expect("temp registry dir");
         let registry_path = temp.path().join("installed_plugins.json");
-        let cache_path = temp.path().join("cache").join("session-provenance").join("0.1.0");
+        let cache_path = temp
+            .path()
+            .join("cache")
+            .join("session-provenance")
+            .join("0.1.0");
 
         // Start from a registry that already lists an unrelated plugin.
         let seed = json!({
