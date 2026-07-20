@@ -887,6 +887,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "세션",
+        "workItem": "작업 항목",
+        "more": "더 보기",
         "work": "작업",
         "manage": "관리",
         "heatmap": "추세",

@@ -885,6 +885,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "Phiên",
+        "workItem": "Hạng mục công việc",
+        "more": "Thêm",
         "work": "Làm việc",
         "manage": "Quản lý",
         "heatmap": "Xu hướng",

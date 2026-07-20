@@ -922,6 +922,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "会话",
+        "workItem": "工作项",
+        "more": "更多",
         "work": "工作",
         "manage": "管理",
         "heatmap": "趋势",

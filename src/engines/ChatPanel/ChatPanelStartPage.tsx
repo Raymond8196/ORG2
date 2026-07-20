@@ -1,6 +1,5 @@
 import type { TFunction } from "i18next";
 import {
-  BriefcaseBusiness,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -9,11 +8,13 @@ import {
 } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
+import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 
 type StartPageActionTone = "primary" | "neutral" | "success" | "warning";
+type StartPageView = "session" | "more";
 
 interface ChatPanelStartPageAction {
   id: string;
@@ -42,6 +43,7 @@ interface StartPageHint {
 
 interface ChatPanelStartPageProps {
   className?: string;
+  initialView?: StartPageView;
   onAddApiKey: () => void;
   onInstallLatestUpdate: () => void;
   onNewWorkItem: () => void;
@@ -181,22 +183,17 @@ function StartPageHintLine({
 
 export function ChatPanelStartPage({
   className,
+  initialView = "session",
   onAddApiKey,
   onInstallLatestUpdate,
   onNewWorkItem,
   sessionLauncher,
   t,
 }: ChatPanelStartPageProps): React.ReactNode {
+  const [activeView, setActiveView] = useState<StartPageView>(initialView);
   const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
     useState(false);
   const availableUpdate = useAvailableAppUpdate();
-  const newWorkItemAction: ChatPanelStartPageAction = {
-    id: "new-work-item",
-    title: t("chat.startPage.newWorkItem.title"),
-    icon: <BriefcaseBusiness size={16} strokeWidth={1.8} />,
-    onClick: onNewWorkItem,
-    tone: "neutral",
-  };
   const importSessionAction: ChatPanelStartPageAction = {
     id: "import-session",
     title: t("navigation:cloud.share.importEntry"),
@@ -211,7 +208,7 @@ export function ChatPanelStartPage({
     onClick: onAddApiKey,
     tone: "neutral",
   };
-  const workActions: ChatPanelStartPageAction[] = availableUpdate?.available
+  const moreActions: ChatPanelStartPageAction[] = availableUpdate?.available
     ? [
         {
           id: "install-latest-update",
@@ -221,42 +218,92 @@ export function ChatPanelStartPage({
           tone: "warning",
         },
         importSessionAction,
-        newWorkItemAction,
         addApiKeyAction,
       ]
-    : [importSessionAction, newWorkItemAction, addApiKeyAction];
+    : [importSessionAction, addApiKeyAction];
+  const activeActions = activeView === "more" ? moreActions : [];
+  const handleViewChange = useCallback(
+    (key: string) => {
+      if (key === "work-item") {
+        onNewWorkItem();
+        return;
+      }
+      if (key === "session" || key === "more") {
+        setActiveView(key);
+      }
+    },
+    [onNewWorkItem]
+  );
+
   return (
     <div
       className={`flex w-full flex-col overflow-hidden ${className ?? ""}`}
       data-testid="chat-panel-start-page"
     >
+      <div
+        className="shrink-0 bg-chat-pane"
+        data-testid="chat-panel-start-page-tabs"
+      >
+        <div className="mx-auto flex h-full w-full max-w-[932px] justify-center px-4 pb-3 pt-4">
+          <TabPill
+            activeTab={activeView}
+            tabs={[
+              {
+                key: "session",
+                label: t("chat.startPage.tabs.session"),
+                dataTestId: "chat-panel-start-page-tab-session",
+              },
+              {
+                key: "work-item",
+                label: t("chat.startPage.tabs.workItem"),
+                dataTestId: "chat-panel-start-page-tab-work-item",
+              },
+              {
+                key: "more",
+                label: t("chat.startPage.tabs.more"),
+                dataTestId: "chat-panel-start-page-tab-more",
+              },
+            ]}
+            onChange={handleViewChange}
+            variant="simple"
+            size="large"
+            fillWidth={false}
+          />
+        </div>
+      </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center">
-          {sessionLauncher ? (
+          {activeView === "session" && sessionLauncher ? (
             <div
               className="w-full"
               data-testid="chat-panel-start-page-session-launcher"
             >
               {sessionLauncher}
             </div>
+          ) : activeActions.length > 0 ? (
+            <div
+              className={`w-full px-4 py-6 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+              data-testid="chat-panel-start-page-actions"
+            >
+              <div className="@container/startactions">
+                <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3">
+                  {activeActions.map((action) => (
+                    <StartPageActionCard key={action.id} action={action} />
+                  ))}
+                </div>
+              </div>
+            </div>
           ) : null}
         </div>
       </div>
-      <div
-        className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-        data-testid="chat-panel-start-page-actions"
-      >
-        <div className="flex w-full flex-col gap-3">
+      {activeView === "session" ? (
+        <div
+          className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+          data-testid="chat-panel-start-page-hints"
+        >
           <StartPageHintLine t={t} />
-          <div className="@container/startactions">
-            <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-4">
-              {workActions.map((action) => (
-                <StartPageActionCard key={action.id} action={action} />
-              ))}
-            </div>
-          </div>
         </div>
-      </div>
+      ) : null}
       {isImportSessionDialogOpen && (
         <ImportSharedSessionDialog
           visible

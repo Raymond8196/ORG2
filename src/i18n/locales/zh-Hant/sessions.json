@@ -891,6 +891,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "工作階段",
+        "workItem": "工作項目",
+        "more": "更多",
         "work": "工作",
         "manage": "管理",
         "heatmap": "趨勢",

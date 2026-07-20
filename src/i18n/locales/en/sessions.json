@@ -926,6 +926,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "Session",
+        "workItem": "Work Item",
+        "more": "More",
         "work": "Work",
         "manage": "Manage",
         "heatmap": "Trends",
