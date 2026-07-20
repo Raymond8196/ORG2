@@ -116,7 +116,7 @@ describe("ChatPanelStartPage", () => {
     expect(markup).not.toContain("group-hover:bg-fill-3");
   });
 
-  it("centers the session launcher and keeps Work actions at the bottom", () => {
+  it("centers the session launcher, keeps actions at the bottom, and has no inner tabs", () => {
     mocks.useAvailableAppUpdate.mockReturnValue(null);
     const t = ((key: string) => key) as TFunction<
       ["sessions", "common", "projects", "navigation"]
@@ -135,10 +135,9 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-session-launcher"'
     );
-    expect(markup).toContain('data-testid="chat-panel-start-page-tabs"');
-    expect(markup).toContain('data-testid="chat-panel-start-page-tab-runtime"');
-    expect(markup).toContain("chat.startPage.tabs.manage");
-    expect(markup).not.toContain("chat.startPage.tabs.explore");
+    expect(markup).not.toContain('data-testid="chat-panel-start-page-tabs"');
+    expect(markup).not.toContain("chat.startPage.tabs.manage");
+    expect(markup).not.toContain("chat.startPage.tabs.runtime");
     expect(markup).toContain('data-testid="chat-panel-start-page-actions"');
     expect(markup).toContain("Session launcher");
     expect(markup).not.toContain(
