@@ -936,7 +936,6 @@
     "defaultTitle": "Chat",
     "hideChatPanel": "Chat-Panel ausblenden",
     "showTokenUsage": "Token anzeigen",
-    "showStatusBar": "Statusleiste anzeigen",
     "compactDisplayMode": "Kompakter Modus",
     "replay": {
       "follow": "Folgen"
