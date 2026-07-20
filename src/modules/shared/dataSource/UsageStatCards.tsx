@@ -39,7 +39,7 @@ function StatTile({ label, value, sub, emphasis, tooltip }: StatTileProps) {
     <span className={valueClass}>{value}</span>
   );
   return (
-    <div className="flex flex-col gap-1.5 rounded-xl border border-border-1 bg-fill-2 p-4">
+    <div className="flex flex-col gap-1.5 rounded-xl border border-border-1 bg-primary-container p-4">
       <span className="text-[12px] text-text-2">{label}</span>
       {valueNode}
       {sub ? <span className="text-[11px] text-text-3">{sub}</span> : null}
