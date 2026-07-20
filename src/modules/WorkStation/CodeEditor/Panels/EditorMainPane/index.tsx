@@ -40,7 +40,6 @@ import {
 } from "@src/hooks/workStation";
 import UnifiedTabContent from "@src/modules/WorkStation/TabContent/UnifiedTabContent";
 import { NoTabsPlaceholder } from "@src/modules/WorkStation/shared";
-import { useStickyMount } from "@src/modules/shared/hooks/useStickyMount";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { workStationPrimarySidebarCollapsedAtom } from "@src/store/ui/workStationAtom";
 import { workstationSelectedIssueAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
@@ -50,7 +49,6 @@ import type { GitFile } from "@src/types/git/types";
 import { CodeEditorDefaultHeader } from "./components/CodeEditorDefaultHeader";
 import { SourceControlHeaderContent } from "./components/SourceControlHeaderContent";
 import { createEditorQuickActions } from "./config";
-import SourceControlMainPane from "./content/SourceControlMainPane";
 import type { SourceControlMainTabData } from "./content/sourceControlMainProps";
 import {
   type EditorHostContextValue,
@@ -76,6 +74,9 @@ const TerminalMainContent = React.lazy(
 // `!activeTab` branch.
 const CodeViewerContent = React.lazy(
   () => import("./content/CodeViewerContent")
+);
+const SourceControlMainPane = React.lazy(
+  () => import("./content/SourceControlMainPane")
 );
 
 /** Lightweight fallback shown while lazy chunks load */
@@ -167,34 +168,16 @@ const EditorContent: React.FC<EditorContentProps> = memo(
     // its fast interval; otherwise it relaxes to halve idle git load.
     useSourceControlAttention(isSourceControlActive);
 
-    // The Source Control tab is pinned, so this is normally always present. We
-    // drive the keep-alive main pane from the persisted tab (not `activeTab`)
-    // so its diff/scroll survive navigating to a file tab and back (issue #16).
-    const sourceControlTab = useMemo(
-      () => tabs.find((tab) => tab.type === "source-control") ?? null,
-      [tabs]
-    );
+    const sourceControlTab = isSourceControlActive ? activeTab : null;
 
-    // Mount the keep-alive Source Control pane lazily — only after the user has
-    // opened it at least once — so users who never touch Source Control don't
-    // pay the heavy chunk's parse/render cost. Once visited it stays mounted.
-    const hasVisitedSourceControl = useStickyMount(isSourceControlActive);
-
-    // Computed whenever the Source Control pane is (or has been) mounted so the
-    // file list stays populated while the pane is hidden — otherwise returning
-    // to it would flash empty and reset scroll.
+    // Only build the All Changes input while Source Control is visible. Leaving
+    // the tab unmounts its editors, content cache, and subscriptions.
     const sourceControlBaseFiles = useMemo(() => {
       if (!sourceControlTab) return [];
-      if (!isSourceControlActive && !hasVisitedSourceControl) return [];
       const gitStatusFiles = Array.from(gitFilesByPath.values());
       if (gitStatusFiles.length > 0) return gitStatusFiles;
       return (sourceControlTab.data.files ?? []) as GitFile[];
-    }, [
-      sourceControlTab,
-      isSourceControlActive,
-      hasVisitedSourceControl,
-      gitFilesByPath,
-    ]);
+    }, [sourceControlTab, gitFilesByPath]);
 
     // ============================================
     // Tab Content Sync (extracted hook - side effects only)
@@ -471,40 +454,27 @@ const EditorContent: React.FC<EditorContentProps> = memo(
               </div>
             )}
 
-            {/*
-            Keep-alive Source Control main pane. Mounted once the tab has been
-            visited, then shown/hidden (instead of unmounted) so the diff view,
-            scroll position, and lazy chunk survive navigating to a file tab and
-            back. Sits above the TabContentRenderer layer when active; the
-            `source-control` case in TabContentRenderer is a no-op so this owns
-            the rendering. (Issue #16)
-          */}
-            {hasVisitedSourceControl && sourceControlTab && (
-              <div
-                className={`absolute inset-0 flex min-h-0 flex-col ${
-                  isSourceControlActive && !isTerminalTabActive
-                    ? "z-20 opacity-100"
-                    : "pointer-events-none z-0 opacity-0"
-                }`}
-                aria-hidden={!(isSourceControlActive && !isTerminalTabActive)}
-              >
-                <SourceControlMainPane
-                  tabData={sourceControlTab.data as SourceControlMainTabData}
-                  repoPath={repoPath}
-                  repoId={repoId ?? null}
-                  gitFilesByPath={gitFilesByPath}
-                  sourceControlFiles={sourceControlBaseFiles}
-                  sourceControlFilterMode={sourceControlFilterMode}
-                  gitDiffLoading={gitDiffLoading}
-                  sourceControlCollapseAllSignal={
-                    sourceControlCollapseAllSignal
-                  }
-                  sourceControlQuickActions={sourceControlQuickActions}
-                  onForceReload={forceRefresh}
-                  onFileSelect={onFileSelect}
-                  onCloseFocus={handleSourceControlCloseFocus}
-                  onGitDiffUnsavedChange={handleGitDiffUnsavedChange}
-                />
+            {isSourceControlActive && sourceControlTab && (
+              <div className="absolute inset-0 z-20 flex min-h-0 flex-col">
+                <Suspense fallback={<LazyFallback />}>
+                  <SourceControlMainPane
+                    tabData={sourceControlTab.data as SourceControlMainTabData}
+                    repoPath={repoPath}
+                    repoId={repoId ?? null}
+                    gitFilesByPath={gitFilesByPath}
+                    sourceControlFiles={sourceControlBaseFiles}
+                    sourceControlFilterMode={sourceControlFilterMode}
+                    gitDiffLoading={gitDiffLoading}
+                    sourceControlCollapseAllSignal={
+                      sourceControlCollapseAllSignal
+                    }
+                    sourceControlQuickActions={sourceControlQuickActions}
+                    onForceReload={forceRefresh}
+                    onFileSelect={onFileSelect}
+                    onCloseFocus={handleSourceControlCloseFocus}
+                    onGitDiffUnsavedChange={handleGitDiffUnsavedChange}
+                  />
+                </Suspense>
               </div>
             )}
           </div>

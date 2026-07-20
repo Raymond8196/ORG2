@@ -23,10 +23,10 @@ import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 const logger = createLogger("StartPageQuotaGrid");
 
 // Quota cards live in the Manage dashboard, so they use the standard settings
-// surface (bg-surface-container) to match its other management sections rather
+// surface (bg-primary-container) to match its other management sections rather
 // than the translucent trend surface.
 const START_PAGE_QUOTA_SURFACE_CLASS =
-  "rounded-lg border border-border-1 bg-surface-container";
+  "rounded-lg border border-border-1 bg-primary-container";
 
 const REFRESH_AGO_TICK_MS = 30_000;
 const QUOTA_REFRESH_GAP_MS = 1_000;
