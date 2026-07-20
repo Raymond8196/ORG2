@@ -9,9 +9,6 @@
  *     deep-link plugin and useDeepLinkHandler completes at the
  *     always-mounted app root — so sign-in survives this section
  *     unmounting.
- *     Includes the agent task runner card (`CloudAgentRunnerCard`, agent-pickup §4 item
- *     7) — per-org account/model/mode defaults for comment-task runs;
- *     hidden until a cloud org exists.
  *  2. Self-hosted — the custom ORG2 Cloud backend card (`CloudEndpointCard`,
  *     cloud-parity Phase C): self-hosting means deploying the SAME stack
  *     and pointing the app at it.
@@ -22,15 +19,15 @@ import {
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useAtom } from "jotai";
+import { useAtom, useStore } from "jotai";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
-import CloudAgentRunnerCard from "@src/features/Org2Cloud/CloudAgentRunnerCard";
 import CloudEndpointCard from "@src/features/Org2Cloud/CloudEndpointCard";
 import { buildOrg2CloudLoginUrl } from "@src/features/Org2Cloud/config";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { resetOrgEntitlementCoordinator } from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
 import { createLogger } from "@src/hooks/logger";
 
 const log = createLogger("Org2CloudSection");
@@ -49,6 +46,7 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
 }) => {
   const { t } = useTranslation("navigation");
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
+  const store = useStore();
 
   const handleSignIn = useCallback(() => {
     openUrl(buildOrg2CloudLoginUrl()).catch((error: unknown) => {
@@ -57,8 +55,9 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
   }, []);
 
   const handleSignOut = useCallback(() => {
+    resetOrgEntitlementCoordinator(store);
     setAuth(null);
-  }, [setAuth]);
+  }, [setAuth, store]);
 
   if (activeTab === COLLABORATION_TAB_KEYS.SELF_HOSTED) {
     return <CloudEndpointCard />;
@@ -100,9 +99,6 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
           </div>
         </SectionRow>
       </SectionContainer>
-
-      {/* Per-org agent-task runner defaults; hidden until an org exists. */}
-      <CloudAgentRunnerCard />
     </>
   );
 };

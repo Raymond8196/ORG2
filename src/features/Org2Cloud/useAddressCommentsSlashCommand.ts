@@ -4,17 +4,15 @@ import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
+import { useUserIntentSubmit } from "@src/engines/ChatPanel/hooks/useWorkspaceChat/useUserIntentSubmit";
+import { getSessionForkedFrom } from "@src/features/TeamCollaboration/forkSession";
 import { createLogger } from "@src/hooks/logger";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { SlashItem } from "@src/types/extensions";
-import { isTerminalStatus } from "@src/types/session/session";
 
 import { collectAddressableThreads } from "./addressComments";
 import type { AddressCommentScope } from "./addressComments";
-import {
-  addressRunActiveAtom,
-  runAddressCommentsRound,
-} from "./addressCommentsRun";
+import { runAddressCommentsRound } from "./addressCommentsRun";
 import { sessionCommentsKey } from "./org2CloudCommentsBus";
 import { org2CloudSessionCommentsAtom } from "./org2CloudSessionCommentsAtom";
 import { useSessionCommentTarget } from "./sessionCommentTarget";
@@ -48,7 +46,9 @@ export function useAddressCommentsSlashCommand(
   const { t } = useTranslation("navigation");
   const sessions = useAtomValue(sessionsAtom);
   const commentEntries = useAtomValue(org2CloudSessionCommentsAtom);
-  const runActiveMap = useAtomValue(addressRunActiveAtom);
+  const submitUserIntent = useUserIntentSubmit({
+    getSessionId: () => sessionId ?? null,
+  });
 
   const session = useMemo(
     () =>
@@ -59,11 +59,13 @@ export function useAddressCommentsSlashCommand(
     [sessions, sessionId]
   );
   const target = useSessionCommentTarget(session);
+  const commentEntry = target
+    ? commentEntries[sessionCommentsKey(target.orgId, target.sessionId)]
+    : undefined;
 
   const threads = useMemo<AddressCommentsThreadOption[]>(() => {
     if (!target) return [];
-    const entry =
-      commentEntries[sessionCommentsKey(target.orgId, target.sessionId)];
+    const entry = commentEntry;
     if (!entry) return [];
     return collectAddressableThreads(entry.comments).map((thread) => ({
       id: thread.headId,
@@ -71,16 +73,15 @@ export function useAddressCommentsSlashCommand(
       body: thread.headBody,
       scope: thread.scope,
     }));
-  }, [target, commentEntries]);
+  }, [target, commentEntry]);
 
-  const runActive = Boolean(session && runActiveMap[session.session_id]);
   const available = Boolean(
     session &&
     !session.importedFrom &&
-    target &&
-    threads.length > 0 &&
-    !runActive &&
-    isTerminalStatus(String(session.status))
+    !getSessionForkedFrom(session) &&
+    session.session_id === target?.sessionId &&
+    commentEntry?.viewerOwnsSession &&
+    threads.length > 0
   );
 
   const item = useMemo<SlashItem | null>(
@@ -104,6 +105,13 @@ export function useAddressCommentsSlashCommand(
         orgId: target.orgId,
         cloudSessionId: target.sessionId,
         localSessionId: session.session_id,
+        dispatchTurn: ({ displayContent, agentContent, turnIntentId }) =>
+          submitUserIntent({
+            sessionId: session.session_id,
+            displayContent,
+            agentContent,
+            turnIntentId,
+          }),
         ...(options?.selectedHeadIds !== undefined
           ? { selectedHeadIds: options.selectedHeadIds }
           : {}),
@@ -115,7 +123,7 @@ export function useAddressCommentsSlashCommand(
         Message.error(t("cloud.comments.actionError"));
       });
     },
-    [target, session, t]
+    [target, session, submitUserIntent, t]
   );
 
   return { item, available, threads, run };

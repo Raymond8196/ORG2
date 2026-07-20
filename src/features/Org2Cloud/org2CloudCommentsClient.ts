@@ -1,6 +1,6 @@
 /**
- * Managed-cloud session comments client (migration 0014, design
- * session-comments-design-0707 §4).
+ * Managed-cloud session comments client (canonical design:
+ * docs/architecture/managed-cloud-collaboration.md).
  *
  * Typed throwing wrappers for the five `org2_cloud` comment RPCs, in the
  * `org2CloudSharesClient` idiom (raw fetch, JWT Bearer + `Content-Profile:
@@ -17,26 +17,13 @@
  * - Tombstones ride the list with an EMPTY body + `deletedAt` (thread shape
  *   preserved; the client renders "comment deleted").
  *
- * 0002 (comment agent tasks, design session-comments-agent-pickup-design-0707
- * §3/§4) additive extensions, parsed tolerantly so pre-0002 backends keep
- * working:
- * - Every comment carries `kind` ('user' | 'agent_report'); absent on
- *   pre-0002 ⇒ undefined ⇒ 'user' semantics. The add RPC accepts
- *   `agent_report` only from the session owner; task completion also stamps
- *   reports server-side.
- * - `cloud_list_session_comments` also returns a top-level `tasks` array
- *   (`comment_task_wire` rows for THIS session — schema imported from
- *   org2CloudCommentTasksClient so the two clients cannot drift); absent on
- *   pre-0002 ⇒ []. It NEVER carries a lease token (invariant 1) — the claim
- *   response is the only carrier.
+ * Every comment carries `kind` ('user' | 'agent_report'); absent on an older
+ * backend means ordinary user semantics. Only the cloud-session owner's
+ * authenticated client may stamp `agent_report` after its local model round.
  */
 import { z } from "zod/v4";
 
 import { ORG2_CLOUD_POSTGREST_SCHEMA, getCloudEndpoint } from "./config";
-import {
-  type CloudCommentTask,
-  CloudCommentTaskWireSchema,
-} from "./org2CloudCommentTasksClient";
 
 /** RPC-enforced body bound (0014 SIZE note) — mirrored in composers. */
 export const CLOUD_COMMENT_MAX_BODY_LENGTH = 4000;
@@ -177,9 +164,8 @@ const CloudSessionCommentWireSchema = z.object({
     .transform((value) => value ?? undefined)
     .optional(),
   /**
-   * 0002 discriminator; absent on pre-0002 backends ⇒ undefined ⇒ 'user'
-   * semantics. The server restricts `agent_report` writes to the session
-   * owner (and stamps task-completion reports internally).
+   * Agent-reply discriminator; absent on an older backend means `user`.
+   * The server accepts `agent_report` only from the cloud-session owner.
    */
   kind: z
     .enum(["user", "agent_report"])
@@ -198,10 +184,8 @@ const AddCommentResultSchema = z.object({
 
 const ListCommentsResultSchema = z.object({
   comments: z.array(CloudSessionCommentWireSchema).default([]),
-  // 0002 embed: this session's `comment_task_wire` rows (structurally no
-  // lease_token — zod strips unknown keys anyway). Absent on pre-0002
-  // backends — default to [] so callers never branch on backend age.
-  tasks: z.array(CloudCommentTaskWireSchema).default([]),
+  /** Viewer-derived server capability; false for imports, forks and members. */
+  viewerOwnsSession: z.boolean().default(false),
 });
 
 const EditCommentResultSchema = z.object({
@@ -224,8 +208,14 @@ export interface AddSessionCommentInput {
   eventId?: string;
   /** Reply target: an existing TOP-LEVEL comment of the same session. */
   parentId?: string;
-  /** 'agent_report' is accepted by the server only from the session owner. */
+  /** 'agent_report' — accepted only from the cloud-session owner. */
   kind?: "agent_report";
+  /**
+   * Local session the comment ORIGINATED from (the fork the author is
+   * viewing). Stored server-side for per-fork count attribution; omitted /
+   * null keeps the comment counted on the source plane.
+   */
+  originSessionId?: string | null;
 }
 
 /**
@@ -247,11 +237,37 @@ export async function addSessionComment(
   // user comments so clients remain compatible with pre-extension backends;
   // only the additive agent-report path requires the newer argument.
   if (input.kind) body.p_kind = input.kind;
-  const payload = await callCommentRpc(
-    "cloud_add_session_comment",
-    accessToken,
-    body
-  );
+  // `p_origin_session_id` was added after the base comments migration (same
+  // pre-extension-compat rule as p_kind). Only forks/imports set it — a
+  // source-plane comment omits it and coalesces to the source at count time.
+  if (input.originSessionId) body.p_origin_session_id = input.originSessionId;
+  let payload: unknown;
+  try {
+    payload = await callCommentRpc(
+      "cloud_add_session_comment",
+      accessToken,
+      body
+    );
+  } catch (error) {
+    // Graceful degradation to a pre-origin backend: PostgREST answers 404
+    // when no function matches the argument set, so drop the additive origin
+    // arg and retry once. The comment still posts (counted on the source
+    // plane); per-fork attribution just waits for the migration.
+    if (
+      "p_origin_session_id" in body &&
+      error instanceof Org2CloudCommentError &&
+      error.status === 404
+    ) {
+      delete body.p_origin_session_id;
+      payload = await callCommentRpc(
+        "cloud_add_session_comment",
+        accessToken,
+        body
+      );
+    } else {
+      throw error;
+    }
+  }
   return AddCommentResultSchema.parse(payload).comment;
 }
 
@@ -291,7 +307,7 @@ export type CloudCommentResolution = "resolved" | "wont_fix";
 /**
  * Top-level only; thread author OR session owner OR org admin. Idempotent
  * both ways (`resolved` sets, `!resolved` clears). Resolution stays
- * HUMAN-only — the task complete RPC never touches it.
+ * HUMAN-only — agent replies never change it implicitly.
  */
 export async function resolveSessionComment(
   accessToken: string,
@@ -323,20 +339,12 @@ export async function resolveSessionComment(
 
 export interface SessionCommentsListing {
   comments: CloudSessionComment[];
-  /**
-   * This session's agent tasks (0002 `comment_task_wire` embed,
-   * `created_at` asc; one per thread head — UNIQUE comment_id). [] on
-   * pre-0002 backends. NEVER carries a lease token — the claim response
-   * is the only carrier.
-   */
-  tasks: CloudCommentTask[];
+  viewerOwnsSession: boolean;
 }
 
 /**
  * Full thread list for one readable session, `created_at` asc (no
  * pagination — the 500-row cap bounds the response). Tombstones included.
- * 0002 embeds the session's task rows in the SAME fetch, so thread UIs get
- * task state riding the existing 30s TTL machinery without a second RPC.
  */
 export async function listSessionComments(
   accessToken: string,

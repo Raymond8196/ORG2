@@ -23,6 +23,10 @@ const IMPORTED_FORK_ERROR_KEYS: Record<
 > = {
   retention: "collaboration.forkImported.retentionError",
   gone: "collaboration.forkImported.goneError",
+  replay: "collaboration.forkImported.replayError",
+  snapshot: "collaboration.forkImported.snapshotError",
+  agent: "collaboration.forkImported.agentError",
+  backend: "collaboration.forkImported.backendError",
   generic: "collaboration.forkImported.error",
 };
 

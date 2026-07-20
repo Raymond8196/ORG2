@@ -58,8 +58,6 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         })
       : "";
     const unresolvedComments = row.unresolvedCommentCount ?? 0;
-    const openTasks = row.openAgentTaskCount ?? 0;
-    const activeTasks = row.activeAgentTaskCount ?? 0;
     const externalSourceId =
       row.origin?.kind === "external_history" ? row.origin.source : undefined;
     const externalSource = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find(
@@ -165,28 +163,6 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
               {t("navigation:cloud.comments.unresolvedBadge", {
                 count: unresolvedComments,
               })}
-            </div>
-          </HoverCardRow>
-        )}
-        {(openTasks > 0 || activeTasks > 0) && (
-          <HoverCardRow icon={<Bot size={13} strokeWidth={1.75} />}>
-            <div className="truncate text-text-2">
-              {openTasks > 0 &&
-                t("navigation:cloud.comments.task.openBadge", {
-                  count: openTasks,
-                  defaultValue_one: "{{count}} agent task awaiting pickup",
-                  defaultValue_other: "{{count}} agent tasks awaiting pickup",
-                })}
-              {openTasks > 0 && activeTasks > 0 && (
-                <span className="mx-1 text-text-4">·</span>
-              )}
-              {activeTasks > 0 &&
-                t("navigation:cloud.comments.task.activeBadge", {
-                  count: activeTasks,
-                  defaultValue_one: "an agent is working on this session",
-                  defaultValue_other:
-                    "{{count}} agents are working on this session",
-                })}
             </div>
           </HoverCardRow>
         )}

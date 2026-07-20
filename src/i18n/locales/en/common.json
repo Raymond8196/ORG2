@@ -194,6 +194,7 @@
     "viewOnGitHub": "View on GitHub",
     "selectRepository": "Select Repo",
     "collapse": "Collapse",
+    "toggle": "Toggle thread",
     "addRepo": "Add Repo",
     "addFolder": "Add Folder",
     "resume": "Resume",

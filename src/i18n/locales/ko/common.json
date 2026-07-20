@@ -193,6 +193,7 @@
     "selectRepository": "리포지토리 선택",
     "all": "전체",
     "collapse": "접기",
+    "toggle": "스레드 토글",
     "addRepo": "리포지토리 추가",
     "addFolder": "폴더 추가",
     "resume": "이어서",

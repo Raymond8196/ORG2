@@ -397,7 +397,11 @@
       "forkSetupNoWorkspace": "Continue without a workspace",
       "forkSetupAccount": "Account",
       "forkSetupModel": "Model",
-      "forkSetupContinue": "Fork & continue"
+      "forkSetupContinue": "Fork & continue",
+      "forkSnapshotIncomplete": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "forkAgentUnavailable": "Choose a local agent before forking.",
+      "forkBackendRegistrationFailed": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "forkReplayUnavailable": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     },
     "repoPicker": {
       "loading": "Loading repos…",
@@ -417,7 +421,12 @@
       "error": "Nie udało się utworzyć forka sesji",
       "sendFailed": "Fork utworzony, ale wysyłka wiadomości nie powiodła się — treść przywrócono do pola wpisywania",
       "forkedChipTooltip": "Fork od {{name}}",
-      "continuePlaceholder": "Message to fork and continue in ORGII…"
+      "continuePlaceholder": "Message to fork and continue in ORGII…",
+      "snapshotError": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "agentError": "Choose a local agent before forking.",
+      "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "parentOpenUnavailable": "The source session could not be opened from this fork.",
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     }
   },
   "cloud": {
@@ -544,7 +553,8 @@
         "youTag": "Ty",
         "ownerTag": "Właściciel",
         "floorOff": "Brak minimum",
-        "floorTooltip": "Minimalny poziom udostępniania dla tego członka. Obowiązuje bardziej rygorystyczne z tego i ogólnoorganizacyjnego minimum."
+        "floorTooltip": "Minimalny poziom udostępniania dla tego członka. Obowiązuje bardziej rygorystyczne z tego i ogólnoorganizacyjnego minimum.",
+        "floorOrgMinimum": "Minimum organizacji ({{mode}})"
       },
       "leave": {
         "action": "Opuść organizację",
@@ -651,33 +661,23 @@
       "importPasteClipboard": "Wklej ze schowka",
       "importSubmit": "Importuj",
       "importInvalidInput": "To nie wygląda na prawidłowy link udostępniania ani token.",
-      "selectAll": "Wszyscy ({{count}})"
-    },
-    "agentRunner": {
-      "title": "Runner zadań agenta",
-      "desc": "Domyślne ustawienia zadań z komentarzy uruchamianych z wątków sesji („Uruchom tutaj”)",
-      "machineNotice": "Uruchomienia odbywają się na tej maszynie z tokenami tego konta",
-      "orgLabel": "Organizacja",
-      "accountLabel": "Konto",
-      "accountPlaceholder": "Konto domyślne",
-      "modelLabel": "Model",
-      "modelPlaceholder": "Model domyślny",
-      "modeLabel": "Tryb",
-      "autoRunLabel": "Automatycznie uruchamiaj zadania @agent",
-      "autoRunDesc": "Automatycznie przejmuj i uruchamiaj otwarte zadania komentarzy @agent w sesjach, których jesteś właścicielem. Domyślnie wyłączone — wzmianki @agent od członków zespołu nie zużyją Twoich tokenów, dopóki tego nie włączysz."
+      "selectAll": "Wszyscy ({{count}})",
+      "incomingEndpointMismatch": "To udostępnienie należy do innej chmury niestandardowej. Skonfiguruj jej punkt końcowy przed importem.",
+      "incomingConnectionError": "Nie udało się połączyć z usługą chmurową. Sprawdź sieć i spróbuj ponownie.",
+      "incomingIncompatibleError": "Chmura zwróciła niezgodną odpowiedź udostępnienia. Zaktualizuj ORGII lub sprawdź wdrożenie.",
+      "incomingServerError": "Usługa chmurowa nie mogła rozpoznać tego udostępnienia. Spróbuj ponownie.",
+      "incomingAlreadyOnDevice": "Ta sesja jest już na tym urządzeniu. Otwórz oryginał zamiast importować duplikat.",
+      "incomingOpenExisting": "Otwórz sesję",
+      "incomingRetry": "Spróbuj ponownie"
     },
     "comments": {
       "task": {
         "assignFailed": "Komentarz opublikowany, ale przypisanie agenta nie powiodło się — ponów próbę z wątku",
         "assignUnavailableHere": "Komentarz opublikowany — przypisanie agenta nie jest dostępne w tym widoku",
-        "turnBadge": "agent pracuje nad tą turą",
         "addressingChip": "Obsługiwany komentarz: „{{excerpt}}”",
         "addressingChipGeneric": "Obsługa komentarza",
         "addressingChipTooltip": "Fork utworzony, aby obsłużyć wątek komentarzy sesji źródłowej",
-        "openBadge_one": "Zadania agenta oczekujące na podjęcie: {{count}}",
-        "openBadge": "Zadania agenta oczekujące na podjęcie: {{count}}",
-        "activeBadge_one": "Agenci pracujący nad tą sesją: {{count}}",
-        "activeBadge": "Agenci pracujący nad tą sesją: {{count}}"
+        "mentionSuggestion": "Przypisz ten komentarz agentowi"
       },
       "toggleLabel": "Komentarze",
       "notesButton": "Notatki sesji",

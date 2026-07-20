@@ -30,7 +30,7 @@ const RootLayout = () => {
   useOrg2CloudRosterReconcile();
   // Managed-cloud session push (Phase 6): scope-matched local sessions.
   useOrg2CloudSyncEngine();
-  // Inbound Realtime: roster / projects / work-items / comment-tasks
+  // Inbound Realtime: roster / projects / work-items / comments
   // subscriptions replace 60s polling as the primary inbound trigger.
   useOrg2CloudRealtime();
 

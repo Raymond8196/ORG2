@@ -529,6 +529,9 @@ export interface E2EHelpers {
     content: string
   ) => Promise<Result<{ result: Json }>>;
   launchSession: (params: Json) => Promise<Result<{ result: Json }>>;
+  reloadSessionList: () => Promise<
+    Result<{ count: number; sessionIds: string[] }>
+  >;
   getSessionAggregateRow: (
     sessionId: string
   ) => Promise<Result<{ session: Json | null }>>;

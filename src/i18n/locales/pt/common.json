@@ -193,6 +193,7 @@
     "viewOnGitHub": "Ver no GitHub",
     "selectRepository": "Selecionar Repo",
     "collapse": "Recolher",
+    "toggle": "Alternar tópico",
     "addRepo": "Adicionar Repo",
     "addFolder": "Adicionar pasta",
     "resume": "Retomar",

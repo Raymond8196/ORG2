@@ -44,6 +44,8 @@ export abstract class Org2CloudSyncLifecycle {
   private eventStoreUnsubscribe: (() => void) | null = null;
   private passRunning = false;
   private passDirty = false;
+  /** Serialized passes actually started (test seam for pass-count budgets). */
+  startedPassCount = 0;
   /** Explicit user-action waiters resolve after the active and dirty passes drain. */
   private readonly passDrainWaiters: Array<() => void> = [];
 
@@ -134,6 +136,7 @@ export abstract class Org2CloudSyncLifecycle {
       return;
     }
     this.passRunning = true;
+    this.startedPassCount += 1;
     const generation = this.generation;
     try {
       await this.syncAllOrgs(generation);
@@ -194,6 +197,11 @@ export abstract class Org2CloudSyncLifecycle {
   /** Resume immediately after a user-controlled access or policy change. */
   resumeOrg(orgId: string): void {
     this.invalidateOrgInbound(orgId, { full: true });
+  }
+
+  /** Resume an org and wait for the resulting serialized pass to drain. */
+  async resumeOrgAndWait(orgId: string): Promise<void> {
+    await this.invalidateOrgInboundAndWait(orgId, { full: true });
   }
 
   private schedulePass(delayMs: number): void {

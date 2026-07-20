@@ -8,8 +8,8 @@
  *
  * Prune-set MUST equal `resetCloudStateForEndpointSwitch`'s wipe-set. The
  * ratchet atoms that endpoint-switch DELIBERATELY preserves
- * (`org2CloudAccessSettingsAtom`, `org2CloudSharingFloorAtom`,
- * `agentTaskRunnerSettingsAtom`) are excluded here too: they describe the
+ * (`org2CloudAccessSettingsAtom`, `org2CloudSharingFloorAtom`) are excluded
+ * here too: they describe the
  * OTHER endpoint's orgs across a switch, so pruning them by the current
  * roster would silently drop the privacy ladder / runner intent the switch
  * kept. Org ids are uuids, so a genuinely-dead entry never collides.
@@ -29,7 +29,6 @@ import {
 } from "./org2CloudOrgsAtom";
 import {
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
@@ -124,13 +123,6 @@ export function reconcileOrg2CloudPersistedState(
     store,
     "collabStateCursors",
     org2CloudCollabStateCursorsAtom,
-    liveOrgIds,
-    prunedByOrg
-  );
-  sweepAtom(
-    store,
-    "commentTaskCursors",
-    org2CloudCommentTaskCursorsAtom,
     liveOrgIds,
     prunedByOrg
   );
