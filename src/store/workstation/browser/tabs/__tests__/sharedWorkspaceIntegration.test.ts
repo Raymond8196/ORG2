@@ -9,11 +9,7 @@ import type {
   WorkstationWorkspaceState,
 } from "@src/store/workstation/tabs/types";
 
-import {
-  browserTabsAtom,
-  createBrowserSessionTab,
-  createTokenCategoryTab,
-} from "../index";
+import { browserTabsAtom, createBrowserSessionTab } from "../index";
 
 function localWorkspace(tabId: string): WorkstationWorkspaceState {
   const tab: WorkStationTab = {
@@ -69,14 +65,13 @@ describe("browserTabsAtom shared-resource integration", () => {
     const browserTab = createBrowserSessionTab("browser-1", "Example", {
       url: "https://example.com",
     });
-    const tokenTab = createTokenCategoryTab("colors");
     store.set(browserTabsAtom, {
-      tabs: [browserTab, tokenTab],
+      tabs: [browserTab],
       activeTabId: browserTab.id,
     });
 
     const next = store.get(workstationTabsStateAtom);
-    expect(next.shared.tabs).toEqual([browserTab, tokenTab]);
+    expect(next.shared.tabs).toEqual([browserTab]);
     expect(next.sessionWorkspaces.A.tabs[0]?.id).toBe("file:/a.ts");
     expect(next.sessionWorkspaces.B.tabs[0]?.id).toBe("file:/b.ts");
     expect(next.sessionWorkspaces.A.activeTabRef).toEqual({
