@@ -373,7 +373,9 @@ fn continuation_group_metadata_json_shapes() {
     let json = continuation_group_metadata_json(Some("uuid-1")).expect("json");
     let parsed: serde_json::Value = serde_json::from_str(&json).expect("parse");
     assert_eq!(
-        parsed.get(CONTINUATION_GROUP_KEY_FIELD).and_then(|v| v.as_str()),
+        parsed
+            .get(CONTINUATION_GROUP_KEY_FIELD)
+            .and_then(|v| v.as_str()),
         Some("uuid-1")
     );
 }

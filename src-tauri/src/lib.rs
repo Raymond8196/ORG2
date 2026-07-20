@@ -200,6 +200,24 @@ pub fn run() {
     // `agent_sessions::event_pipeline::commands`.
     register_event_pipeline_bridge();
 
+    // A process crash can leave the last append-only shell frame torn and
+    // its manifest marked `running`. Repair indexes before any Session can be
+    // replayed, and make every such artifact explicitly incomplete.
+    match agent_core::tools::impls::coding::exec::shell_replay::recover_incomplete_replays() {
+        Ok(0) => {}
+        Ok(count) => tracing::info!(count, "recovered incomplete shell replay artifacts"),
+        Err(err) => tracing::warn!(error = %err, "shell replay startup recovery failed"),
+    }
+    match agent_core::tools::impls::coding::exec::shell_replay::retry_pending_replay_cleanups() {
+        Ok((0, 0)) => {}
+        Ok((completed, failed)) => tracing::info!(
+            completed,
+            failed,
+            "processed pending shell replay cleanup jobs"
+        ),
+        Err(err) => tracing::warn!(error = %err, "shell replay cleanup recovery failed"),
+    }
+
     // Wire the persistence bridge so `agent_core` (memory, consolidation,
     // reflection, learnings) can open SQLite connections without
     // depending on `session_persistence::get_connection`.
