@@ -11,9 +11,8 @@
  * - Accept/reject changes
  * - Collapse unchanged regions
  *
- * Performance: unified and split editors are each created once and kept alive.
- * Switching viewMode is instant — only CSS visibility changes, no rebuild.
- * Content updates are dispatched into the live editor without recreation.
+ * Performance: only the active view mode is constructed. Switching modes
+ * destroys the previous editor before creating the requested one.
  */
 import { history } from "@codemirror/commands";
 import { bracketMatching, indentUnit } from "@codemirror/language";
@@ -197,7 +196,8 @@ export const CodeMirrorDiff: React.FC<CodeMirrorDiffProps> = ({
   const unifiedDocumentValue = isFullDeletion ? "" : newValue;
   const unifiedOriginalValue = oldValue;
 
-  // Two separate DOM containers — one per view mode, kept alive simultaneously
+  // Separate refs are retained for each implementation, but only the active
+  // mode has a mounted DOM container or live editor instance.
   const unifiedContainerRef = useRef<HTMLDivElement>(null);
   const splitContainerRef = useRef<HTMLDivElement>(null);
 
@@ -323,6 +323,7 @@ export const CodeMirrorDiff: React.FC<CodeMirrorDiffProps> = ({
   // ── Unified view lifecycle ────────────────────────────────────────────────
 
   useEffect(() => {
+    if (viewMode !== "unified") return;
     if (!unifiedContainerRef.current) return;
 
     // `unifiedMergeView` binds `original` at creation time. Rebuild when
@@ -428,9 +429,9 @@ export const CodeMirrorDiff: React.FC<CodeMirrorDiffProps> = ({
       unifiedContentRef.current = null;
     };
     // Rebuild when content, settings, or theme changes.
-    // viewMode is intentionally excluded — visibility is handled by CSS only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    viewMode,
     oldValue,
     newValue,
     changeType,
@@ -449,26 +450,10 @@ export const CodeMirrorDiff: React.FC<CodeMirrorDiffProps> = ({
     selectionExtension,
   ]);
 
-  useEffect(() => {
-    const activeView =
-      viewMode === "unified"
-        ? unifiedViewRef.current
-        : splitMergeViewRef.current?.b;
-
-    if (!activeView) return;
-
-    EditorService.setEditorView(activeView);
-
-    return () => {
-      if (EditorService.getEditorView() === activeView) {
-        EditorService.clearEditorView();
-      }
-    };
-  }, [viewMode, oldValue, newValue, changeType, newStartLine]);
-
   // ── Split view lifecycle ──────────────────────────────────────────────────
 
   useEffect(() => {
+    if (viewMode !== "split") return;
     if (!splitContainerRef.current) return;
 
     // If the instance already exists, dispatch content updates
@@ -573,6 +558,7 @@ export const CodeMirrorDiff: React.FC<CodeMirrorDiffProps> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    viewMode,
     oldValue,
     newValue,
     oldStartLine,
@@ -590,9 +576,25 @@ export const CodeMirrorDiff: React.FC<CodeMirrorDiffProps> = ({
     selectionExtension,
   ]);
 
+  useEffect(() => {
+    const activeView =
+      viewMode === "unified"
+        ? unifiedViewRef.current
+        : splitMergeViewRef.current?.b;
+
+    if (!activeView) return;
+
+    EditorService.setEditorView(activeView);
+
+    return () => {
+      if (EditorService.getEditorView() === activeView) {
+        EditorService.clearEditorView();
+      }
+    };
+  }, [viewMode, oldValue, newValue, changeType, newStartLine]);
+
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const unifiedVisible = viewMode === "unified";
   const isUnifiedFullDeletion = isFullDeletion;
   const wrapperStyle: React.CSSProperties = autoHeight
     ? { position: "relative" }
@@ -600,36 +602,32 @@ export const CodeMirrorDiff: React.FC<CodeMirrorDiffProps> = ({
   const visiblePaneStyle: React.CSSProperties = autoHeight
     ? { position: "relative" }
     : { position: "absolute", inset: 0 };
-  const hiddenPaneStyle: React.CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    visibility: "hidden",
-    pointerEvents: "none",
-  };
-
   return (
     <div
       className={`codemirror-diff-wrapper ${autoHeight ? "codemirror-diff-wrapper--auto-height" : ""} ${isUnifiedFullDeletion ? "codemirror-diff-wrapper--full-deletion" : ""} ${className}`}
       style={wrapperStyle}
     >
-      {/* Unified view — always mounted, hidden when split is active */}
-      <div
-        ref={unifiedContainerRef}
-        className="codemirror-diff codemirror-diff--unified"
-        spellCheck={false}
-        style={unifiedVisible ? visiblePaneStyle : hiddenPaneStyle}
-      />
-      {/* Split view — always mounted, hidden when unified is active */}
-      <div
-        ref={splitContainerRef}
-        className={`codemirror-diff codemirror-diff--split${noBottomPadding ? "codemirror-diff--no-bottom-padding" : ""}`}
-        spellCheck={false}
-        style={!unifiedVisible ? visiblePaneStyle : hiddenPaneStyle}
-      />
+      {viewMode === "unified" ? (
+        <div
+          ref={unifiedContainerRef}
+          className="codemirror-diff codemirror-diff--unified"
+          spellCheck={false}
+          style={visiblePaneStyle}
+        />
+      ) : (
+        <div
+          ref={splitContainerRef}
+          className={`codemirror-diff codemirror-diff--split${noBottomPadding ? "codemirror-diff--no-bottom-padding" : ""}`}
+          spellCheck={false}
+          style={visiblePaneStyle}
+        />
+      )}
       {!autoHeight && (
         <CustomScrollbar
-          scrollElement={unifiedVisible ? unifiedScrollEl : splitScrollEl}
-          totalLines={unifiedVisible ? unifiedLines : splitLines}
+          scrollElement={
+            viewMode === "unified" ? unifiedScrollEl : splitScrollEl
+          }
+          totalLines={viewMode === "unified" ? unifiedLines : splitLines}
         />
       )}
     </div>

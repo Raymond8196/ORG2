@@ -50,7 +50,12 @@ export type {
 export function useSourceControlState(
   options: UseSourceControlStateOptions
 ): UseSourceControlStateResult {
-  const { repoPath, repoId, onGitFileSelect } = options;
+  const {
+    repoPath,
+    repoId,
+    onGitFileSelect,
+    autoLoadStashes = false,
+  } = options;
 
   // Local state for file selection
   const [selectedFileId, setSelectedFileId] = useState<string>("");
@@ -214,7 +219,7 @@ export function useSourceControlState(
   } = useStashState({
     repoId: selectedRepoId || "",
     repoPath,
-    autoLoad: true,
+    autoLoad: autoLoadStashes,
     onStashChange: async () => {
       await fetchGitStatus();
     },
