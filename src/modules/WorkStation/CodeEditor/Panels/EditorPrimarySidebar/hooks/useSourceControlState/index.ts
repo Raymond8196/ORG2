@@ -15,7 +15,6 @@ import { DetachedHeadDialog } from "@src/components/GitDialogs";
 import { useGitStatus } from "@src/contexts/git";
 import {
   useCommitForm,
-  useDiffCache,
   useFileSelection,
   useGitFiles,
 } from "@src/hooks/git/sourceControl";
@@ -107,16 +106,10 @@ export function useSourceControlState(
     setLastRefreshTime(now);
   }, [originalFetchGitStatus]);
 
-  // Hook 2: Diff caching and batch loading
-  useDiffCache({
-    selectedRepoId: selectedRepoId,
-    repoPath,
-    files: gitFiles,
-    setFiles: setGitFiles,
-    selectedFileId,
-  });
+  // Diff content is owned by the rendered Focus or All Changes surface.
+  // Keeping this sidebar hook metadata-only avoids duplicate full-body loads.
 
-  // Hook 3: File selection and filtering
+  // Hook 2: File selection and filtering
   const {
     searchQuery: gitSearchQuery,
     setSearchQuery: setGitSearchQuery,
