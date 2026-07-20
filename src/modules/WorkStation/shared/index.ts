@@ -88,15 +88,12 @@ export type {
 
 // Reusable sidebar modules (tab-specific sidebar substrate)
 export {
-  useSourceControlSidebarModule,
   SourceControlTabSidebar,
   registerTabSidebar,
   getTabSidebarDescriptor,
   hasTabSidebar,
   SidebarSlot,
   useTabSidebar,
-  type UseSourceControlSidebarModuleOptions,
-  type UseSourceControlSidebarModuleResult,
   type TabSidebarComponent,
   type TabSidebarDescriptor,
   type TabSidebarProps,
