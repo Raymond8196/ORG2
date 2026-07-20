@@ -19,6 +19,7 @@ import {
 import type { AddressableThread } from "./addressComments";
 import {
   type ActiveAddressRun,
+  addressRunActiveAtom,
   attachAnchorExcerpts,
   replyViaActiveAddressRun,
   runAddressCommentsRound,
@@ -180,6 +181,9 @@ describe("runAddressCommentsRound", () => {
       localSessionId: "local-1",
       selectedHeadIds: ["c-1"],
       dispatchTurn: async ({ displayContent, agentContent, turnIntentId }) => {
+        expect(
+          getInstrumentedStore().get(addressRunActiveAtom)["local-1"]
+        ).toEqual({ selectedHeadIds: ["c-1"] });
         expect(displayContent).toBe("@agent fix this");
         dispatchedAgentContent = agentContent;
         const generation = beginTurnDispatch("local-1");
@@ -195,6 +199,9 @@ describe("runAddressCommentsRound", () => {
     });
     expect(dispatchedAgentContent).toContain("id: c-1");
     expect(result).toEqual({ status: "ran", threadCount: 1, replyCount: 0 });
+    expect(
+      getInstrumentedStore().get(addressRunActiveAtom)["local-1"]
+    ).toBeUndefined();
   });
 
   it("registers the run before dispatch so an immediate tool reply succeeds", async () => {

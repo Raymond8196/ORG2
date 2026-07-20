@@ -13,8 +13,8 @@
  * scope key matches a scope is a push CANDIDATE. Whether a candidate is
  * actually uploaded — and at what level — is decided by the per-session
  * access ladder (`org2CloudAccessSettingsAtom`, design §13.4):
- * repo-scope matching SELECTS candidates, the org-default / per-session
- * override ladder GATES the upload (effective 'off' ⇒ skipped entirely,
+ * repo-scope matching SELECTS candidates, while the org minimum plus any
+ * per-session override GATE the upload (effective 'off' ⇒ skipped entirely,
  * 'metadata_only' ⇒ metadata upsert only, 'full_replay' ⇒ metadata +
  * segments). A candidate that passes the ladder is pushed:
  *
@@ -50,7 +50,6 @@ import i18n from "@src/i18n";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
-import { pickMatchingOrgScope } from "../TeamCollaboration/collabSyncUtils";
 import { ProjectSyncChannel } from "../TeamCollaboration/engine/ProjectSyncChannel";
 import type { ProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { tauriProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
@@ -59,6 +58,7 @@ import { isScopeMatchableImportedSession } from "../TeamCollaboration/importedSe
 import {
   peekShareableScopeKeys,
   primeShareableScopeKey,
+  resolveMatchingOrgRepoScope,
 } from "../TeamCollaboration/repoScopeResolver";
 import {
   isSessionTaggedToCloudOrg,
@@ -235,7 +235,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     const tags = store.get(sessionOrgTagsAtom);
     // Access ladder (§13.4): read the PERSISTED settings every pass — the
     // ratchet lives here. A per-session override (mode or restricted
-    // visibility) is always honored over the org default, so an automated
+    // visibility) is always honored before applying the org minimum, so an automated
     // re-push can never rebuild metadata "from defaults" and silently flip
     // a session back to org/full_replay.
     const accessByOrg = store.get(org2CloudAccessSettingsAtom);
@@ -411,7 +411,10 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // retract the server row if we ever pushed it, then drop the tag so
         // the org falls out of the target set. scopeKeys null (no git
         // remote) is out of scope by definition.
-        const matchedScope = pickMatchingOrgScope(scopeKeys, scopes);
+        const matchedScope = await resolveMatchingOrgRepoScope(
+          scopeKeys,
+          scopes
+        );
         if (matchedScope === null) {
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
@@ -451,7 +454,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // BEHAVIOR CHANGE (intended, §13.4): scope matching only made this
         // session a CANDIDATE — adding a repo scope no longer auto-uploads
         // at full replay. The access ladder gates the actual upload: the
-        // org default is OFF until raised, per-session overrides win, and
+        // local mode is OFF until overridden or raised by the org minimum, and
         // an effective-off session is skipped (never uploaded). A TAGGED
         // session still pushes, floored to metadata_only when its effective
         // mode is off ('off' must never reach the server — ORG2_VALIDATION).
@@ -588,6 +591,13 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
           if (this.isBackoffError(error)) {
             this.backOffOrg(org.orgId, error);
             continue;
+          }
+          // A listing can fail before ProjectSyncChannel gets far enough to
+          // return per-row pushErrors. When this pass was supposed to drain
+          // the durable outbox, keep the same bounded retry guarantee rather
+          // than stranding the write until the minute fallback cadence.
+          if (pushProjects || fallbackInboundOrgIds.has(org.orgId)) {
+            this.scheduleProjectPushRetry();
           }
           log.warn(`cloud project sync failed for org ${org.orgId}:`, error);
         }

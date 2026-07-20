@@ -20,6 +20,7 @@ import { normalizeRepoScopeKey } from "../../collabSyncUtils";
 import type { ForkExecutionSelection } from "../../engine/collabSyncEngineHelpers";
 import {
   getShareableScopeKeyVersion,
+  peekMatchingOrgRepoScope,
   peekShareableScopeKeys,
   primeShareableScopeKey,
   subscribeShareableScopeKeys,
@@ -209,9 +210,7 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
 
   const matchingRepos = repos.filter((repo) => {
     if (!targetKey) return Boolean(repo.fs_uri);
-    return repoScopeKeys(repo)?.some(
-      (key) => normalizeRepoScopeKey(key) === targetKey
-    );
+    return Boolean(peekMatchingOrgRepoScope(repoScopeKeys(repo), [targetKey]));
   });
   const sourceAgentLabel =
     request.sourceAgentDisplayName ?? request.sourceTitle;

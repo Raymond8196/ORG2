@@ -187,21 +187,22 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
       until: (items) => items.some((org) => org.orgId === result.orgId),
     });
     const joined = orgs.find((org) => org.orgId === result.orgId);
-    if (joined) {
-      // Project-org alias on join (cloud-parity Phase B); best-effort, the
-      // engine re-ensures it per start (also covers `joined` not found).
-      try {
-        await ensureProjectOrgForCloudOrg(joined);
-      } catch {
-        // Non-fatal: the engine's per-org pass self-heals the alias.
-      }
+    if (!joined) {
+      // Do not close the form or show a success toast unless the refreshed
+      // roster confirms that the invite produced an active membership.
+      throw new Error(t("navigation:cloud.orgPanel.loadError"));
+    }
+    // Project-org alias on join (cloud-parity Phase B); best-effort, the
+    // engine re-ensures it per start.
+    try {
+      await ensureProjectOrgForCloudOrg(joined);
+    } catch {
+      // Non-fatal: the engine's per-org pass self-heals the alias.
     }
     Message.success(
-      joined
-        ? t("navigation:cloud.orgManagement.join.joinedToast", {
-            org: joined.name,
-          })
-        : t("navigation:cloud.orgManagement.join.joinedFallbackToast")
+      t("navigation:cloud.orgManagement.join.joinedToast", {
+        org: joined.name,
+      })
     );
     onCancel();
   }, [

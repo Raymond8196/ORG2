@@ -104,6 +104,8 @@ export interface SessionCommentsContextValue {
    */
   addressAllComments: (() => Promise<void>) | null;
   addressRunActive: boolean;
+  /** Null means every unresolved thread; otherwise only these heads are live. */
+  addressRunSelectedHeadIds: ReadonlySet<string> | null;
   unresolvedThreadCount: number;
   editComment: (commentId: string, body: string) => Promise<void>;
   deleteComment: (commentId: string) => Promise<void>;
@@ -284,8 +286,17 @@ export const SessionCommentsProvider: React.FC<
 
   // --- Address comments (batch owner-only follow-up) ---
   const addressRunActiveMap = useAtomValue(addressRunActiveAtom);
-  const addressRunActive = Boolean(
-    localSessionId && addressRunActiveMap[localSessionId]
+  const addressRunActivity = localSessionId
+    ? addressRunActiveMap[localSessionId]
+    : undefined;
+  const addressRunActive = addressRunActivity !== undefined;
+  const addressRunSelectedHeadIds = useMemo(
+    () =>
+      addressRunActivity?.selectedHeadIds === null ||
+      addressRunActivity === undefined
+        ? null
+        : new Set(addressRunActivity.selectedHeadIds),
+    [addressRunActivity]
   );
   const addressableThreads = useMemo(
     () => collectAddressableThreads(comments),
@@ -320,6 +331,7 @@ export const SessionCommentsProvider: React.FC<
       requestAgent,
       addressAllComments: canAddressComments ? addressAllCommentsImpl : null,
       addressRunActive,
+      addressRunSelectedHeadIds,
       unresolvedThreadCount,
     };
   }, [
@@ -339,6 +351,7 @@ export const SessionCommentsProvider: React.FC<
     canAddressComments,
     addressAllCommentsImpl,
     addressRunActive,
+    addressRunSelectedHeadIds,
     unresolvedThreadCount,
   ]);
 

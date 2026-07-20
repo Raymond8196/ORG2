@@ -432,12 +432,15 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
         selectedWorkItem.projectSlug,
         selectedWorkItem.shortId
       );
-      setSelectedWorkItem(null);
+      // The tab payload owns this surface. Clearing only the legacy selection
+      // mirror leaves the deleted detail mounted until another data-change
+      // refresh happens, and a later cascade can fall back to that ghost tab.
+      closeWorkItemTab(selectedWorkItem.shortId);
       await emit("orgii-data-changed");
     } catch (error) {
       logger.error("Failed to delete chat panel work item", error);
     }
-  }, [selectedWorkItem, setSelectedWorkItem, t]);
+  }, [closeWorkItemTab, selectedWorkItem, t]);
 
   const headerActions = useMemo(
     () => (
