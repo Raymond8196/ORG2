@@ -888,6 +888,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "Oturum",
+        "workItem": "İş öğesi",
+        "more": "Daha fazla",
         "work": "Çalışma",
         "manage": "Yönet",
         "heatmap": "Trendler",

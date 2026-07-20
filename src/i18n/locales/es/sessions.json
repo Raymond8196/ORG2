@@ -888,6 +888,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "Sesión",
+        "workItem": "Elemento de trabajo",
+        "more": "Más",
         "work": "Trabajo",
         "manage": "Gestionar",
         "heatmap": "Tendencias",
