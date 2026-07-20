@@ -20,16 +20,7 @@
  * - types.ts     - TypeScript types
  * - config.ts    - Constants and configuration
  */
-import { useAtomValue, useSetAtom } from "jotai";
-import {
-  ArrowLeft,
-  ArrowRight,
-  ArrowUpRight,
-  CircleDot,
-  ExternalLink,
-  ListChevronsDownUp,
-  RefreshCw,
-} from "lucide-react";
+import { useAtomValue } from "jotai";
 import React, {
   Suspense,
   memo,
@@ -37,46 +28,28 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useActionSystem } from "@src/ActionSystem";
-import Button from "@src/components/Button";
-import TabPill from "@src/components/TabPill";
 import { useGitStatus } from "@src/contexts/git";
 import { useSourceControlAttention } from "@src/hooks/git/useSourceControlAttention";
-import { useRefreshSpin } from "@src/hooks/ui";
 import {
   usePublishWorkstationTabHeader,
   useWorkStationTabShortcutBridge,
 } from "@src/hooks/workStation";
 import UnifiedTabContent from "@src/modules/WorkStation/TabContent/UnifiedTabContent";
 import { NoTabsPlaceholder } from "@src/modules/WorkStation/shared";
-import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { useStickyMount } from "@src/modules/shared/hooks/useStickyMount";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
-import {
-  workStationPrimarySidebarCollapsedAtom,
-  workStationPrimarySidebarCollapsedPersistAtom,
-} from "@src/store/ui/workStationAtom";
-import { gitReviewNavigationAtom } from "@src/store/workstation/codeEditor/gitReviewNavigationAtom";
-import { sourceControlFilterModeHandlerAtom } from "@src/store/workstation/codeEditor/sourceControlFilterModeAtom";
+import { workStationPrimarySidebarCollapsedAtom } from "@src/store/ui/workStationAtom";
 import { workstationSelectedIssueAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
 import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
-import {
-  type SourceControlHistorySelection,
-  createGitCommitDetailTab,
-  createStashDetailTab,
-} from "@src/store/workstation/tabs";
 import type { GitFile } from "@src/types/git/types";
 
 import { CodeEditorDefaultHeader } from "./components/CodeEditorDefaultHeader";
-import {
-  createEditorQuickActions,
-  createSourceControlQuickActions,
-} from "./config";
-import type { SourceControlDestination } from "./config";
+import { SourceControlHeaderContent } from "./components/SourceControlHeaderContent";
+import { createEditorQuickActions } from "./config";
 import SourceControlMainPane from "./content/SourceControlMainPane";
 import type { SourceControlMainTabData } from "./content/sourceControlMainProps";
 import {
@@ -84,9 +57,12 @@ import {
   EditorHostProvider,
 } from "./context/editorHostContext";
 import {
+  type UseFileContentManagerReturn,
   useEditorPaneState,
   useFileContentManager,
+  useSourceControlPaneActions,
   useTabContentSync,
+  useUnsavedChangeHandlers,
 } from "./hooks";
 import "./index.scss";
 import type { EditorContentProps } from "./types";
@@ -135,40 +111,37 @@ const EditorContent: React.FC<EditorContentProps> = memo(
     const { t } = useTranslation();
     const { dispatch } = useActionSystem();
     const { forceRefresh } = useGitStatus();
-    const refreshSourceControl = useCallback(() => {
-      void forceRefresh();
-    }, [forceRefresh]);
-    const {
-      spinClass: sourceControlRefreshSpinClass,
-      handleClick: handleSourceControlRefresh,
-    } = useRefreshSpin(
-      refreshSourceControl,
-      gitDiffLoading,
-      "source-control-main"
-    );
     const scopeKey = workstationRepoScopeKey(repoId, repoPath);
     const selectedIssueState = useAtomValue(
       workstationSelectedIssueAtomFamily(scopeKey)
     );
-    const sourceControlFilterModeHandler = useAtomValue(
-      sourceControlFilterModeHandlerAtom
+
+    // ============================================
+    // Pane State Management (extracted hook)
+    // ============================================
+
+    // Refs for the pane state hook (needed for save-on-close). Declared ahead
+    // of it so the hook is called exactly once: they are only dereferenced
+    // inside closeTab's async body, never during render, so the effect below
+    // populates them well before any user interaction can reach them.
+    const fileContentStateRef = useRef<UseFileContentManagerReturn | null>(
+      null
     );
-    const setSidebarCollapsed = useSetAtom(
-      workStationPrimarySidebarCollapsedPersistAtom
-    );
+    const forceRefreshRef = useRef(forceRefresh);
+
+    const { tabs, activeTabId, activeTab, closeTab, updatePaneState } =
+      useEditorPaneState(fileContentStateRef, forceRefreshRef);
 
     // ============================================
     // File Content Manager (extracted hook)
     // ============================================
 
-    // We need activeFilePath first, so get pane state to determine it
-    const paneStateForPath = useEditorPaneState();
     const activeFilePath = useMemo(() => {
-      if (paneStateForPath.activeTab?.type === "file") {
-        return paneStateForPath.activeTab.data.filePath as string;
+      if (activeTab?.type === "file") {
+        return activeTab.data.filePath as string;
       }
       return null;
-    }, [paneStateForPath.activeTab]);
+    }, [activeTab]);
 
     const activeFileIsCsvTable = useMemo(() => {
       if (!activeFilePath) return false;
@@ -182,22 +155,12 @@ const EditorContent: React.FC<EditorContentProps> = memo(
       onSaveSuccess: forceRefresh,
     });
 
-    // Refs for pane state hook (needed for save-on-close)
-    const fileContentStateRef = useRef(fileContentManager);
-    const forceRefreshRef = useRef(forceRefresh);
-
     // Update refs in effect (not during render)
     useEffect(() => {
       fileContentStateRef.current = fileContentManager;
       forceRefreshRef.current = forceRefresh;
     });
 
-    // ============================================
-    // Pane State Management (extracted hook)
-    // ============================================
-
-    const { tabs, activeTabId, activeTab, closeTab, updatePaneState } =
-      useEditorPaneState(fileContentStateRef, forceRefreshRef);
     const isTerminalTabActive = activeTab?.type === "terminal";
     const isSourceControlActive = activeTab?.type === "source-control";
     // While the Source Control page is on screen, the git watcher polls at
@@ -293,313 +256,56 @@ const EditorContent: React.FC<EditorContentProps> = memo(
       [updatePaneState]
     );
 
-    const handleGitDiffUnsavedChange = useCallback(
-      (hasUnsaved: boolean) => {
-        updatePaneState((state) => {
-          const currentId = activeTabId;
-          if (!currentId) return state;
-          const targetTab = state.tabs.find((tab) => tab.id === currentId);
-          if (!targetTab) return state;
-          if (
-            targetTab.type !== "git-diff" &&
-            targetTab.type !== "source-control"
-          ) {
-            return state;
-          }
-          if (targetTab.hasUnsavedChanges === hasUnsaved) return state;
-          return {
-            ...state,
-            tabs: state.tabs.map((tab) =>
-              tab.id === currentId
-                ? { ...tab, hasUnsavedChanges: hasUnsaved }
-                : tab
-            ),
-          };
-        });
-      },
-      [updatePaneState, activeTabId]
-    );
+    const { handleGitDiffUnsavedChange, handleBinaryUnsavedChange } =
+      useUnsavedChangeHandlers({ activeTabId, updatePaneState });
 
-    const handleBinaryUnsavedChange = useCallback(
-      (hasUnsaved: boolean) => {
-        updatePaneState((state) => {
-          const currentId = activeTabId;
-          if (!currentId) return state;
-          const targetTab = state.tabs.find((tab) => tab.id === currentId);
-          if (!targetTab || targetTab.type !== "file") return state;
-          if (targetTab.hasUnsavedChanges === hasUnsaved) return state;
-          return {
-            ...state,
-            tabs: state.tabs.map((tab) =>
-              tab.id === currentId
-                ? { ...tab, hasUnsavedChanges: hasUnsaved }
-                : tab
-            ),
-          };
-        });
-      },
-      [activeTabId, updatePaneState]
-    );
+    // ============================================
+    // Source Control actions (extracted hook)
+    // ============================================
 
-    const [sourceControlCollapseAllSignal, setSourceControlCollapseAllSignal] =
-      useState(0);
+    const {
+      sourceControlRefreshSpinClass,
+      handleSourceControlRefresh,
+      sourceControlCollapseAllSignal,
+      handleSourceControlModeChange,
+      handleSourceControlCollapseAll,
+      handleSourceControlCloseFocus,
+      gitReviewNavigation,
+      handleReviewPrevFile,
+      handleReviewNextFile,
+      handleOpenSourceControlHistoryInNewTab,
+      sourceControlQuickActions,
+    } = useSourceControlPaneActions({
+      t,
+      updatePaneState,
+      forceRefresh,
+      gitDiffLoading,
+      sourceControlFilterMode,
+    });
 
-    const handleSourceControlModeChange = useCallback(
-      (mode: "focus" | "all-changes") => {
-        updatePaneState((state) => {
-          const tabIndex = state.tabs.findIndex(
-            (item) => item.type === "source-control"
-          );
-          if (tabIndex === -1) return state;
-          const existing = state.tabs[tabIndex];
-          if (existing.data.mode === mode && !existing.data.historySelection) {
-            return state;
-          }
-          const nextTabs = [...state.tabs];
-          nextTabs[tabIndex] = {
-            ...existing,
-            data: {
-              ...existing.data,
-              mode,
-              historySelection: null,
-            },
-          };
-          return { ...state, tabs: nextTabs };
-        });
-      },
-      [updatePaneState]
-    );
-
-    const handleSourceControlCollapseAll = useCallback(() => {
-      setSourceControlCollapseAllSignal((prev) => prev + 1);
-    }, []);
-
-    const handleSourceControlCloseFocus = useCallback(() => {
-      updatePaneState((state) => {
-        const tabIndex = state.tabs.findIndex(
-          (item) => item.type === "source-control"
-        );
-        if (tabIndex === -1) return state;
-
-        const existing = state.tabs[tabIndex];
-        if (!existing.data.focusPath) return state;
-
-        const nextTabs = [...state.tabs];
-        nextTabs[tabIndex] = {
-          ...existing,
-          data: {
-            ...existing.data,
-            focusPath: null,
-          },
-        };
-        return { ...state, tabs: nextTabs };
-      });
-    }, [updatePaneState]);
-
-    const gitReviewNavigation = useAtomValue(gitReviewNavigationAtom);
-
-    const handleReviewPrevFile = useCallback(() => {
-      document.dispatchEvent(new CustomEvent("review-prev-file"));
-    }, []);
-
-    const handleReviewNextFile = useCallback(() => {
-      document.dispatchEvent(new CustomEvent("review-next-file"));
-    }, []);
-
-    const handleOpenSourceControlHistoryInNewTab = useCallback(
-      (selection: SourceControlHistorySelection) => {
-        if (selection.type === "pr" || selection.type === "issue") return;
-
-        const nextTab =
-          selection.type === "stash"
-            ? createStashDetailTab(
-                selection.stashIndex,
-                selection.commitMessage,
-                selection.stashCommitSha
-              )
-            : createGitCommitDetailTab(
-                selection.commitSha,
-                selection.shortSha,
-                selection.commitMessage
-              );
-
-        updatePaneState((state) => {
-          const existing = state.tabs.find((tab) => tab.id === nextTab.id);
-          const tabs = existing ? state.tabs : [...state.tabs, nextTab];
-          return { ...state, tabs, activeTabId: nextTab.id };
-        });
-      },
-      [updatePaneState]
-    );
-
+    // Memoized so `usePublishWorkstationTabHeader` sees a stable `content`
+    // identity — a fresh element every render would re-publish the global
+    // header slot on each pass.
     const sourceControlHeaderContent = useMemo(() => {
       if (activeTab?.type !== "source-control") return null;
-      const hasFocusPath = Boolean(activeTab.data.focusPath);
-      const mode =
-        activeTab.data.mode === "all-changes" ? "all-changes" : "focus";
-      const historySelection = activeTab.data.historySelection as
-        | SourceControlHistorySelection
-        | null
-        | undefined;
-      const isIssuesMode = sourceControlFilterMode === "issues";
-      const showModePill =
-        showSourceControlModePill && !isIssuesMode && !historySelection;
-      const sourceControlModeTabs = [
-        { key: "focus", label: t("sourceControl.pill.focus") },
-        {
-          key: "all-changes",
-          label: t("sourceControl.pill.allChanges"),
-        },
-      ];
-      const showCollapseAll =
-        showModePill && mode === "all-changes" && !historySelection;
-      const showReviewNavigation =
-        showModePill &&
-        mode === "focus" &&
-        !historySelection &&
-        hasFocusPath &&
-        gitReviewNavigation.total > 0;
-      const selectedIssue = selectedIssueState.issue;
-      const showIssueHeader = isIssuesMode && selectedIssue;
       return (
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
-          {sourceControlHeaderLeadingSlot}
-          {sourceControlHeaderLeadingSlot && sourceControlHeaderTrailingSlot ? (
-            <span
-              className="pointer-events-none mx-0.5 h-4 w-px shrink-0 bg-border-2"
-              aria-hidden
-            />
-          ) : null}
-          {sourceControlHeaderTrailingSlot}
-          {showIssueHeader && (
-            <div className="flex min-w-0 flex-1 items-center gap-2 pl-1">
-              <span
-                className={`shrink-0 ${selectedIssue.state === "open" ? "text-success-6" : "text-text-3"}`}
-              >
-                <CircleDot size={HEADER_ICON_SIZE.sm} strokeWidth={2} />
-              </span>
-              <span className="shrink-0 font-mono text-[11px] text-text-3">
-                #{selectedIssue.number}
-              </span>
-              <span
-                className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-1"
-                title={selectedIssue.title}
-              >
-                {selectedIssue.title}
-              </span>
-            </div>
-          )}
-          {showModePill && (
-            <>
-              <span
-                className="pointer-events-none mx-1.5 h-4 w-px shrink-0 bg-border-2"
-                aria-hidden
-              />
-              <TabPill
-                activeTab={mode}
-                tabs={sourceControlModeTabs}
-                onChange={(key) =>
-                  handleSourceControlModeChange(key as "focus" | "all-changes")
-                }
-                variant="pill"
-                color="fill"
-                fillWidth={false}
-                size="small"
-              />
-            </>
-          )}
-
-          <span className="ml-auto flex h-7 flex-shrink-0 items-center gap-px">
-            {showIssueHeader && (
-              <a
-                href={selectedIssue.html_url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex h-7 w-7 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
-                title={t("common:actions.openOnGitHub", "Open on GitHub")}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ExternalLink size={HEADER_ICON_SIZE.sm} />
-              </a>
-            )}
-            {historySelection &&
-              (historySelection.type === "commit" ||
-                historySelection.type === "stash") && (
-                <Button
-                  htmlType="button"
-                  variant="tertiary"
-                  size="small"
-                  iconOnly
-                  className="flex-shrink-0"
-                  onClick={() =>
-                    handleOpenSourceControlHistoryInNewTab(historySelection)
-                  }
-                  title={t("common:actions.openInNewTab")}
-                  icon={<ArrowUpRight size={HEADER_ICON_SIZE.sm} />}
-                />
-              )}
-
-            {showReviewNavigation && (
-              <>
-                <Button
-                  htmlType="button"
-                  variant="tertiary"
-                  size="small"
-                  iconOnly
-                  onClick={handleReviewPrevFile}
-                  title={t("common:actions.reviewPreviousFile")}
-                  aria-label={t("common:actions.reviewPreviousFile")}
-                  className="shrink-0"
-                  icon={
-                    <ArrowLeft size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
-                  }
-                />
-                <Button
-                  htmlType="button"
-                  variant="tertiary"
-                  size="small"
-                  iconOnly
-                  onClick={handleReviewNextFile}
-                  title={t("common:actions.reviewNextFile")}
-                  aria-label={t("common:actions.reviewNextFile")}
-                  className="shrink-0"
-                  icon={
-                    <ArrowRight size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
-                  }
-                />
-              </>
-            )}
-
-            {showCollapseAll && (
-              <Button
-                htmlType="button"
-                variant="tertiary"
-                size="small"
-                iconOnly
-                className="flex-shrink-0"
-                onClick={handleSourceControlCollapseAll}
-                title={t("actions.collapseAll")}
-                icon={<ListChevronsDownUp size={HEADER_ICON_SIZE.md} />}
-              />
-            )}
-            <Button
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              className="flex-shrink-0"
-              onClick={handleSourceControlRefresh}
-              title={t("common:actions.refresh")}
-              aria-label={t("common:actions.refresh")}
-              icon={
-                <RefreshCw
-                  size={HEADER_ICON_SIZE.sm}
-                  className={sourceControlRefreshSpinClass}
-                />
-              }
-            />
-          </span>
-        </div>
+        <SourceControlHeaderContent
+          activeTab={activeTab}
+          sourceControlFilterMode={sourceControlFilterMode}
+          showSourceControlModePill={showSourceControlModePill}
+          gitReviewNavigationTotal={gitReviewNavigation.total}
+          selectedIssue={selectedIssueState.issue}
+          sourceControlHeaderLeadingSlot={sourceControlHeaderLeadingSlot}
+          sourceControlHeaderTrailingSlot={sourceControlHeaderTrailingSlot}
+          sourceControlRefreshSpinClass={sourceControlRefreshSpinClass}
+          t={t}
+          onModeChange={handleSourceControlModeChange}
+          onOpenHistoryInNewTab={handleOpenSourceControlHistoryInNewTab}
+          onReviewPrevFile={handleReviewPrevFile}
+          onReviewNextFile={handleReviewNextFile}
+          onCollapseAll={handleSourceControlCollapseAll}
+          onRefresh={handleSourceControlRefresh}
+        />
       );
     }, [
       activeTab,
@@ -641,24 +347,6 @@ const EditorContent: React.FC<EditorContentProps> = memo(
           sidebarCollapsed,
         }),
       [t, dispatch, sidebarCollapsed]
-    );
-
-    const handleSourceControlNavigation = useCallback(
-      (destination: SourceControlDestination) => {
-        sourceControlFilterModeHandler?.(destination);
-        setSidebarCollapsed(false);
-      },
-      [setSidebarCollapsed, sourceControlFilterModeHandler]
-    );
-
-    const sourceControlQuickActions = useMemo(
-      () =>
-        createSourceControlQuickActions({
-          t,
-          activeMode: sourceControlFilterMode,
-          onNavigate: handleSourceControlNavigation,
-        }),
-      [handleSourceControlNavigation, sourceControlFilterMode, t]
     );
 
     // ============================================
