@@ -300,7 +300,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
           {showAiModePanel ? (
             <div className="border-b border-solid border-border-1 px-4 py-2">
               <div
-                className="flex items-center justify-between gap-3 rounded-xl bg-surface-container px-3 py-2"
+                className="flex items-center justify-between gap-3 rounded-xl bg-primary-container px-3 py-2"
                 data-testid="create-work-item-mode-panel"
               >
                 <span className="text-[12px] font-medium text-text-1">
