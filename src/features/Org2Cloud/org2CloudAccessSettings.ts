@@ -181,6 +181,22 @@ export function getCloudSessionVisibility(
   );
 }
 
+/**
+ * An explicit per-session sharing override (metadata_only/full_replay) set in
+ * CloudSyncLevelDialog is the same "share THIS session to org X" intent as an
+ * explicit tag. The engine's org-ownership gate accepts it so the dialog's
+ * choice is never silently dropped for a session that is neither org-owned
+ * nor tagged. An explicit OFF override is NOT intent — it must keep the
+ * retract semantics of the ownership gate.
+ */
+export function hasExplicitCloudShareIntent(
+  settings: CloudOrgAccessSettings | undefined,
+  sessionId: string
+): boolean {
+  const mode = settings?.sessionModes[sessionId];
+  return mode !== undefined && mode !== COLLAB_SESSION_ACCESS_MODE.OFF;
+}
+
 /** What one push pass sends for one session (never 'off' on the wire). */
 export interface CloudPushAccess {
   accessMode:
@@ -206,6 +222,12 @@ export interface CloudPushAccess {
  * (the member can no longer go dark on the org's repos), and a floor of
  * 'full_replay' lifts a metadata_only session to full replay. A floor of
  * 'off' / undefined is a no-op. The server backstops this at push time.
+ *
+ * CALLER CONTRACT: pass `floor` only for ADMITTED sessions (org-owned,
+ * tagged, fork-provenance, or explicit per-session intent). A session that
+ * is merely a repo-scope candidate — e.g. imported local CLI history under a
+ * matching checkout — must be resolved WITHOUT the floor, otherwise an admin
+ * policy silently becomes the first share intent for private local data.
  */
 export function resolveCloudPushAccess(
   settings: CloudOrgAccessSettings | undefined,

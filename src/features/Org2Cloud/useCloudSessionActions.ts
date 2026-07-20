@@ -19,6 +19,7 @@ import {
   forkTeammateSession,
   resolveForkWorkspacePath,
 } from "@src/features/TeamCollaboration/forkSession";
+import { classifyForkOperationError } from "@src/features/TeamCollaboration/forkSnapshotIntegrity";
 import { createLogger } from "@src/hooks/logger";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { openOrReplaceSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -73,6 +74,16 @@ export function useCloudSessionActions(
     authRef.current = auth;
   }, [auth]);
 
+  // One controller per replay click; unmount aborts the fetch/decode/apply
+  // instead of merely ignoring the result.
+  const replayAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    return () => {
+      replayAbortRef.current?.abort();
+      replayAbortRef.current = null;
+    };
+  }, []);
+
   /** Fresh JWT for a user action (same refresh idiom as the panel). */
   const freshAccessToken = useCallback(async (): Promise<string | null> => {
     const current = authRef.current;
@@ -94,9 +105,12 @@ export function useCloudSessionActions(
       if (!orgId || remoteSession.eventsEpoch === undefined) return "noop";
       if (busySessionRowId) return "noop";
       setBusySessionRowId(remoteSession.id);
+      replayAbortRef.current?.abort();
+      replayAbortRef.current = new AbortController();
       try {
+        const sourceEndpointUrl = authRef.current?.supabaseUrl;
         const accessToken = await freshAccessToken();
-        if (!accessToken) {
+        if (!accessToken || !sourceEndpointUrl) {
           Message.error(t("cloud.orgPanel.importError"));
           return "failed";
         }
@@ -108,7 +122,9 @@ export function useCloudSessionActions(
           client: buildCloudSessionFetchClient(accessToken),
           orgId,
           remoteSession,
+          sourceEndpointUrl,
           workspaceRepoPath: localRepoPath,
+          signal: replayAbortRef.current?.signal,
         });
         if (result) {
           openOrReplaceSessionTab({
@@ -207,8 +223,26 @@ export function useCloudSessionActions(
           Message.error(t("cloud.sidebar.metadataOnly"));
           return "failed";
         }
-        log.error("cloud session fork failed", error);
-        Message.error(t("collaboration.session.forkFailed"));
+        const forkErrorKind = classifyForkOperationError(error);
+        log.error("cloud session fork failed", {
+          sourceSessionId: remoteSession.sourceSessionId,
+          orgId,
+          stage: forkErrorKind ?? "unknown",
+          error,
+        });
+        Message.error(
+          t(
+            forkErrorKind === "replay_unavailable"
+              ? "collaboration.session.forkReplayUnavailable"
+              : forkErrorKind === "snapshot_incomplete"
+                ? "collaboration.session.forkSnapshotIncomplete"
+                : forkErrorKind === "agent_unavailable"
+                  ? "collaboration.session.forkAgentUnavailable"
+                  : forkErrorKind === "backend_registration"
+                    ? "collaboration.session.forkBackendRegistrationFailed"
+                    : "collaboration.session.forkFailed"
+          )
+        );
         return "failed";
       } finally {
         setBusySessionRowId(null);

@@ -11,6 +11,7 @@ use rusqlite::{
 
 use super::metadata::{
     ImportedHistoryCacheInput, ImportedHistoryImpactStats, ImportedHistoryRecordSignature,
+    RoundUsage,
 };
 use super::{
     effective_limit, recent_paths_from_rows, row_from_input, ImportedHistoryRecentPath,
@@ -127,12 +128,13 @@ pub fn upsert_imported_session_cache_from_conn(
                     source, source_session_id, session_id, source_path, source_record_key,
                     source_mtime_ms, source_size_bytes, source_fingerprint, parser_version,
                     name, created_at_ms, updated_at_ms, model, input_tokens, output_tokens,
+                    cache_read_tokens, cache_write_tokens,
                     repo_path, branch, files_changed, lines_added, lines_removed,
                     touched_files_json, listable, source_metadata_json, parent_session_id,
                     updated_at
                 ) VALUES (
                     ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15,
-                    ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25
+                    ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27
                 )
                 ON CONFLICT(source, source_session_id) DO UPDATE SET
                     session_id = excluded.session_id,
@@ -148,6 +150,8 @@ pub fn upsert_imported_session_cache_from_conn(
                     model = excluded.model,
                     input_tokens = excluded.input_tokens,
                     output_tokens = excluded.output_tokens,
+                    cache_read_tokens = excluded.cache_read_tokens,
+                    cache_write_tokens = excluded.cache_write_tokens,
                     repo_path = excluded.repo_path,
                     branch = excluded.branch,
                     files_changed = excluded.files_changed,
@@ -179,6 +183,8 @@ pub fn upsert_imported_session_cache_from_conn(
                 input.model.as_deref().unwrap_or_default(),
                 input.input_tokens,
                 input.output_tokens,
+                input.cache_read_tokens,
+                input.cache_write_tokens,
                 input.repo_path.as_deref().unwrap_or_default(),
                 input.branch.as_deref().unwrap_or_default(),
                 input.impact.files_changed,
@@ -237,6 +243,64 @@ fn core_session_record_from_imported_input(input: &ImportedHistoryCacheInput) ->
     }
 }
 
+/// Replace the per-round usage rows for the given (re-parsed) sessions: delete
+/// any existing rounds for those `session_id`s, then insert `rounds`. Called
+/// once per scan with the sessions that were actually re-parsed, so unchanged
+/// sessions keep their rounds.
+pub fn write_session_rounds_from_conn(
+    conn: &Connection,
+    reparsed_session_ids: &[String],
+    rounds: &[RoundUsage],
+) -> Result<(), String> {
+    if reparsed_session_ids.is_empty() && rounds.is_empty() {
+        return Ok(());
+    }
+    let tx = conn
+        .unchecked_transaction()
+        .map_err(|err| format!("Failed to start round-usage transaction: {err}"))?;
+    for chunk in reparsed_session_ids.chunks(400) {
+        let placeholders = (1..=chunk.len())
+            .map(|index| format!("?{index}"))
+            .collect::<Vec<_>>()
+            .join(",");
+        tx.execute(
+            &format!(
+                "DELETE FROM imported_history_round_usage WHERE session_id IN ({placeholders})"
+            ),
+            params_from_iter(chunk.iter().map(String::as_str)),
+        )
+        .map_err(|err| format!("Failed to clear stale imported rounds: {err}"))?;
+    }
+    {
+        let mut stmt = tx
+            .prepare(
+                "INSERT OR REPLACE INTO imported_history_round_usage (
+                    source, source_session_id, session_id, seq, model,
+                    input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
+                    created_at_ms
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            )
+            .map_err(|err| format!("Failed to prepare imported round insert: {err}"))?;
+        for round in rounds {
+            stmt.execute(params![
+                round.source,
+                round.source_session_id,
+                round.session_id,
+                round.seq,
+                round.model.as_deref().unwrap_or_default(),
+                round.input_tokens,
+                round.output_tokens,
+                round.cache_read_tokens,
+                round.cache_write_tokens,
+                round.created_at_ms,
+            ])
+            .map_err(|err| format!("Failed to insert imported round: {err}"))?;
+        }
+    }
+    tx.commit()
+        .map_err(|err| format!("Failed to commit imported rounds: {err}"))
+}
+
 pub fn prune_missing_records_from_conn(
     conn: &Connection,
     source: &str,
@@ -248,6 +312,11 @@ pub fn prune_missing_records_from_conn(
             [source],
         )
         .map_err(|err| format!("Failed to prune imported history cache source {source}: {err}"))?;
+        conn.execute(
+            "DELETE FROM imported_history_round_usage WHERE source = ?1",
+            [source],
+        )
+        .ok();
         return Ok(());
     }
 
@@ -264,6 +333,14 @@ pub fn prune_missing_records_from_conn(
         .collect::<Vec<_>>();
     conn.execute(&sql, params_from_iter(params))
         .map_err(|err| format!("Failed to prune imported history cache source {source}: {err}"))?;
+    // Drop rounds whose owning session was just pruned.
+    conn.execute(
+        "DELETE FROM imported_history_round_usage \
+         WHERE source = ?1 AND session_id NOT IN \
+             (SELECT session_id FROM imported_history_session_cache WHERE source = ?1)",
+        [source],
+    )
+    .ok();
     Ok(())
 }
 

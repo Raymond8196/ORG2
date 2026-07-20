@@ -37,6 +37,10 @@ import {
 
 import { shouldLoadTerminalWebgl } from "../TerminalInteractive/terminalRendererPolicy";
 import { getXTermTheme } from "../TerminalInteractive/utils";
+import {
+  acquireWebglSlot,
+  releaseWebglSlot,
+} from "../TerminalInteractive/webglContextManager";
 import "./index.scss";
 
 const logger = createLogger("XtermOutput");
@@ -68,6 +72,9 @@ const XtermOutput = memo(function XtermOutput({
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const webglAddonRef = useRef<WebglAddon | null>(null);
+  // Tracks whether this instance holds one of the shared WebGL context slots,
+  // so it is released exactly once (context-loss / create-failure / unmount).
+  const webglSlotHeldRef = useRef(false);
   const contentWrittenRef = useRef<string>("");
   const [computedHeight, setComputedHeight] = useState(MIN_HEIGHT);
 
@@ -117,17 +124,30 @@ const XtermOutput = memo(function XtermOutput({
 
     terminal.open(container);
 
-    if (shouldLoadTerminalWebgl()) {
+    // Route through the shared WebGL context budget (macOS hard-caps live
+    // contexts to ~16). Chat TUI blocks previously created uncounted contexts,
+    // risking a context-loss cascade when combined with interactive terminals.
+    const releaseWebglSlotIfHeld = () => {
+      if (webglSlotHeldRef.current) {
+        webglSlotHeldRef.current = false;
+        releaseWebglSlot();
+      }
+    };
+    if (shouldLoadTerminalWebgl() && acquireWebglSlot()) {
+      webglSlotHeldRef.current = true;
       try {
         const webglAddon = new WebglAddon();
         webglAddon.onContextLoss(() => {
           webglAddon.dispose();
           webglAddonRef.current = null;
+          releaseWebglSlotIfHeld();
         });
         terminal.loadAddon(webglAddon);
         webglAddonRef.current = webglAddon;
       } catch (error) {
         logger.warn("WebGL unavailable for XtermOutput, using canvas:", error);
+        webglAddonRef.current = null;
+        releaseWebglSlotIfHeld();
       }
     }
 
@@ -147,6 +167,7 @@ const XtermOutput = memo(function XtermOutput({
     return () => {
       webglAddonRef.current?.dispose();
       webglAddonRef.current = null;
+      releaseWebglSlotIfHeld();
       terminal.dispose();
       terminalRef.current = null;
       fitAddonRef.current = null;

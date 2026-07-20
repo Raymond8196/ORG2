@@ -308,6 +308,11 @@ export interface E2EHelpers {
   agentOrgSessionRunView: (
     sessionId: string
   ) => Promise<Result<{ view: Json | null }>>;
+  agentOrgGroupChatHistoryPage: (
+    sessionId: string,
+    beforeId?: number | null,
+    limit?: number
+  ) => Promise<Result<{ page: Json }>>;
   agentOrgSessionInterventionState: (
     sessionId: string
   ) => Promise<Result<{ state: Json }>>;
@@ -524,6 +529,9 @@ export interface E2EHelpers {
     content: string
   ) => Promise<Result<{ result: Json }>>;
   launchSession: (params: Json) => Promise<Result<{ result: Json }>>;
+  reloadSessionList: () => Promise<
+    Result<{ count: number; sessionIds: string[] }>
+  >;
   getSessionAggregateRow: (
     sessionId: string
   ) => Promise<Result<{ session: Json | null }>>;

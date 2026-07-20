@@ -193,6 +193,7 @@
     "selectRepository": "Sélectionner le dépôt",
     "all": "Tous",
     "collapse": "Réduire",
+    "toggle": "Basculer le fil",
     "addRepo": "Ajouter un dépôt",
     "addFolder": "Ajouter un dossier",
     "resume": "Reprendre",

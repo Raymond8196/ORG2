@@ -18,6 +18,7 @@ export {
   lastEventAtom,
   streamingDeltaContentAtom,
 } from "./events";
+export type { StreamingDeltaContent, StreamingDeltaKind } from "./events";
 
 // Replay State
 export {

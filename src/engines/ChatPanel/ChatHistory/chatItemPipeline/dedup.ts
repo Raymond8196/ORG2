@@ -198,7 +198,21 @@ function isThinkingMessage(event: SessionEvent): boolean {
   );
 }
 
+const assistantTextCache = new WeakMap<SessionEvent, string>();
+
+// Memoized on the (immutable) event: `extractAssistantText` is called once per
+// event in each of `buildTextSegment` and `buildAssistantDedupSet`, and the
+// whole dedup pass re-runs on every projection. Caching keeps the trim/read
+// off already-seen events so a re-projection only pays for the changed tail.
 function extractAssistantText(event: SessionEvent): string {
+  const cached = assistantTextCache.get(event);
+  if (cached !== undefined) return cached;
+  const text = computeAssistantText(event);
+  assistantTextCache.set(event, text);
+  return text;
+}
+
+function computeAssistantText(event: SessionEvent): string {
   const result = event.result;
   if (!result) return event.displayText?.trim() ?? "";
   const content =

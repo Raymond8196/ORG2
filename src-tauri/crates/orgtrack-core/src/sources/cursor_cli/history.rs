@@ -367,6 +367,8 @@ fn session_meta_to_cache_input(meta: CursorCliHistoryMeta) -> ImportedHistoryCac
         // surface it as the session total on the input side.
         input_tokens: meta.input_tokens,
         output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: meta.repo_path,
         branch: None,
         impact: meta.impact,

@@ -36,12 +36,6 @@
  * that leaves the visible set without a tombstone can only be proven absent
  * against the full state. Work items are org-wide: no repo-scope selection.
  *
- * Comment agent tasks (agent-pickup Phase 5): after the project plane,
- * every org pulls `cloud_list_comment_tasks` behind its own persisted
- * cursor (`org2CloudCommentTaskCursorsAtom`, same serverTime − 2s overlap
- * discipline, full listing once per engine start) and `updated_at`
- * LWW-merges the rows into the in-memory `org2CloudCommentTasksAtom`.
- *
  * Cadence: fixed 60s timer chain plus a debounced pass on local event
  * writes (same `eventStoreProxy.subscribe` trigger the collab engine uses).
  * This chain is the app's ONLY recurring timer (user CPU constraint —
@@ -61,6 +55,7 @@ import { ProjectSyncChannel } from "../TeamCollaboration/engine/ProjectSyncChann
 import type { ProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { tauriProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { getSessionForkedFrom } from "../TeamCollaboration/forkSession";
+import { isScopeMatchableImportedSession } from "../TeamCollaboration/importedSessionScopeMatch";
 import {
   peekShareableScopeKeys,
   primeShareableScopeKey,
@@ -73,6 +68,7 @@ import {
 } from "../TeamCollaboration/sessionOrgTagsAtom";
 import { ORG2_CLOUD_EXPECTED_SCHEMA_VERSION, getCloudEndpoint } from "./config";
 import {
+  hasExplicitCloudShareIntent,
   org2CloudAccessSettingsAtom,
   org2CloudSharingFloorAtom,
   resolveCloudPushAccess,
@@ -80,11 +76,6 @@ import {
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import { ensureFreshSession, schemaVersion } from "./org2CloudClient";
-import {
-  mergeCommentTasks,
-  org2CloudCommentTasksAtom,
-} from "./org2CloudCommentTasksAtom";
-import * as org2CloudCommentTasksClient from "./org2CloudCommentTasksClient";
 import {
   buildCloudOrgSelectorValue,
   org2CloudOrgsAtom,
@@ -105,7 +96,6 @@ import {
 import { isCloudPushCandidate } from "./org2CloudSessionSync";
 import {
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudRepoScopesAtom,
   org2CloudSyncEnabledAtom,
 } from "./org2CloudSyncAtoms";
@@ -138,7 +128,7 @@ const CURSOR_OVERLAP_MS = 2_000;
 /**
  * Inbound (cloud→local) fallback cadence. Since inbound pulls are now driven
  * by Supabase Realtime (useOrg2CloudRealtime), the recurring pass only performs
- * the inbound planes (repo scopes / projects+work-items / comment-tasks) as an
+ * the inbound planes (repo scopes / projects+work-items / comments) as an
  * eventual-consistency SAFETY NET — for when the socket is down, an event was
  * missed, or the custom backend has no Realtime. Outbound push is UNAFFECTED:
  * it stays event-driven (es:changed) with the full-cadence pass as its own
@@ -154,12 +144,6 @@ export const ORG_BACKOFF_COOLDOWN_MS = 5 * 60_000;
 /** Projects/work-items RPC seam (Phase B), same fetch-free-fakes purpose. */
 export type Org2CloudProjectsClientDeps = CloudProjectsRpc;
 
-/** Comment agent-task listing seam (agent-pickup Phase 5), same purpose. */
-export type Org2CloudTasksClientDeps = Pick<
-  typeof org2CloudCommentTasksClient,
-  "listCommentTasks"
->;
-
 /** `schema_version()` probe seam (Phase C custom-endpoint gate). */
 export type Org2CloudSchemaVersionProbe = () => Promise<number | null>;
 
@@ -174,8 +158,6 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   private readonly projectOrgAliasIds = new Map<string, string>();
   /** Orgs whose CURRENT start already pulled one COMPLETE collab-state listing. */
   private readonly fullCollabStateOrgIds = new Set<string>();
-  /** Same once-per-start full-listing latch for the comment-task plane. */
-  private readonly fullCommentTaskOrgIds = new Set<string>();
   /**
    * Custom-endpoint schema gate (Phase C), KEYED BY the probed supabaseUrl:
    * the engine singleton is never stopped in production, so an endpoint
@@ -193,7 +175,6 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
 
   private readonly client: Org2CloudSyncClientDeps;
   private readonly projectsClient: Org2CloudProjectsClientDeps;
-  private readonly tasksClient: Org2CloudTasksClientDeps;
   private readonly projectSyncBridge: ProjectSyncBridge;
   private readonly probeSchemaVersion: Org2CloudSchemaVersionProbe;
   private readonly sessionSync: Org2CloudSessionSync;
@@ -201,14 +182,12 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   constructor(
     client: Org2CloudSyncClientDeps = org2CloudSyncClient,
     projectsClient: Org2CloudProjectsClientDeps = org2CloudProjectsClient,
-    tasksClient: Org2CloudTasksClientDeps = org2CloudCommentTasksClient,
     projectSyncBridge: ProjectSyncBridge = tauriProjectSyncBridge,
     probeSchemaVersion: Org2CloudSchemaVersionProbe = schemaVersion
   ) {
     super();
     this.client = client;
     this.projectsClient = projectsClient;
-    this.tasksClient = tasksClient;
     this.projectSyncBridge = projectSyncBridge;
     this.probeSchemaVersion = probeSchemaVersion;
     this.sessionSync = new Org2CloudSessionSync(() => this.store, client);
@@ -221,7 +200,6 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     this.scopeHydratedAtMs.clear();
     this.projectOrgAliasIds.clear();
     this.fullCollabStateOrgIds.clear();
-    this.fullCommentTaskOrgIds.clear();
     this.schemaGate = null;
     this.schemaMismatchToastedUrls.clear();
   }
@@ -241,6 +219,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   }
 
   protected override async syncAllOrgs(generation: number): Promise<void> {
+    this.sessionSync.beginPass();
     const store = this.store;
     if (!store) return;
     const auth = store.get(org2CloudAuthAtom);
@@ -341,6 +320,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         if (forkedFrom && forkedFrom.orgId !== org.orgId && !tagged) {
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
+              log.info(
+                `cloud retract [fork outside source org]: session ${session.session_id} org ${org.orgId}`
+              );
               await this.sessionSync.retractSession(
                 fresh,
                 org.orgId,
@@ -376,9 +358,23 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // already constrained untagged forks to their source org above.
         const ownedByOrg =
           session.orgId === buildCloudOrgSelectorValue(org.orgId);
-        if (!forkedFrom && !tagged && !ownedByOrg) {
+        const shareIntent = hasExplicitCloudShareIntent(
+          accessByOrg[org.orgId],
+          session.session_id
+        );
+        const scopeAutoMatched = isScopeMatchableImportedSession(session);
+        if (
+          !forkedFrom &&
+          !tagged &&
+          !ownedByOrg &&
+          !shareIntent &&
+          !scopeAutoMatched
+        ) {
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
+              log.info(
+                `cloud retract [ownership-gate (untagged/unowned/no-intent)]: session ${session.session_id} org ${org.orgId}`
+              );
               await this.sessionSync.retractSession(
                 fresh,
                 org.orgId,
@@ -417,31 +413,32 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // remote) is out of scope by definition.
         const matchedScope = pickMatchingOrgScope(scopeKeys, scopes);
         if (matchedScope === null) {
-          if (tagged) {
-            if (
-              this.sessionSync.wasCloudPushed(org.orgId, session.session_id)
-            ) {
-              try {
-                await this.sessionSync.retractSession(
-                  fresh,
-                  org.orgId,
-                  session.session_id
-                );
-              } catch (error) {
-                if (this.generation !== generation) return;
-                if (this.isBackoffError(error)) {
-                  this.backOffOrg(org.orgId, error);
-                  break;
-                }
-                log.warn(
-                  `cloud retract failed for out-of-scope tagged session ${session.session_id}:`,
-                  error
-                );
-                // Keep the tag: retry the retract next pass rather than
-                // orphan a live server row.
-                continue;
+          if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
+            try {
+              log.info(
+                `cloud retract [out-of-scope (no matching org scope)]: session ${session.session_id} org ${org.orgId}`
+              );
+              await this.sessionSync.retractSession(
+                fresh,
+                org.orgId,
+                session.session_id
+              );
+            } catch (error) {
+              if (this.generation !== generation) return;
+              if (this.isBackoffError(error)) {
+                this.backOffOrg(org.orgId, error);
+                break;
               }
+              log.warn(
+                `cloud retract failed for out-of-scope session ${session.session_id}:`,
+                error
+              );
+              // Keep the tag: retry the retract next pass rather than
+              // orphan a live server row.
+              continue;
             }
+          }
+          if (tagged) {
             store.set(sessionOrgTagsAtom, (current) =>
               withoutCloudOrgTag(current, session.session_id, org.orgId)
             );
@@ -458,11 +455,17 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // an effective-off session is skipped (never uploaded). A TAGGED
         // session still pushes, floored to metadata_only when its effective
         // mode is off ('off' must never reach the server — ORG2_VALIDATION).
+        // The admin sharing floor lifts only ADMITTED sessions (org-owned,
+        // tagged, fork-provenance, or explicit per-session intent). Scope
+        // candidacy alone must never let an org policy turn a merely
+        // repo-matched imported local history into an upload.
+        const floorEligible =
+          Boolean(forkedFrom) || tagged || ownedByOrg || shareIntent;
         const access = resolveCloudPushAccess(
           accessByOrg[org.orgId],
           session.session_id,
           tagged,
-          floorByOrg[org.orgId]
+          floorEligible ? floorByOrg[org.orgId] : undefined
         );
         if (!access) {
           // Effective-off and NOT tagged: the ladder grants nothing this
@@ -476,6 +479,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
           // untag does. §13.4.
           if (this.sessionSync.wasCloudPushed(org.orgId, session.session_id)) {
             try {
+              log.info(
+                `cloud retract [effective-off ladder]: session ${session.session_id} org ${org.orgId}`
+              );
               await this.sessionSync.retractSession(
                 fresh,
                 org.orgId,
@@ -542,7 +548,6 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     for (const orgId of requestedFullInboundOrgIds) {
       requestedInboundOrgIds.add(orgId);
       this.fullCollabStateOrgIds.delete(orgId);
-      this.fullCommentTaskOrgIds.delete(orgId);
     }
     const nowMs = Date.now();
     const inboundOrgIds = new Set(requestedInboundOrgIds);
@@ -583,34 +588,14 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
       }
     }
     if (inboundOrgIds.size > 0) {
-      // Comment agent tasks (agent-pickup Phase 5), AFTER the project plane.
-      // Org-wide like work items — task visibility mirrors the session-listing
-      // predicate SERVER-side, so no client-side scope selection here either.
-      // The `isBackoffError` classification is kept for consistency with the
-      // other planes even though `cloud_list_comment_tasks` can only raise
-      // membership/org errors — never ORG2_QUOTA_EXCEEDED (0002 rule: quota
-      // exists only on the human-affordance create RPC).
+      // Constraint: marks each inbound-due org's pass timestamp so the
+      // projects-plane inbound-fallback cadence (lastInboundPassAtMs, read
+      // above) stays gated. Same enabled/backoff predicate the pull used.
       for (const org of orgs) {
         if (!inboundOrgIds.has(org.orgId)) continue;
-        if (this.generation !== generation) return;
-        if (getCloudEndpoint().supabaseUrl !== passSupabaseUrl) return;
         if (enabledByOrg[org.orgId] === false) continue;
         if (this.isOrgBackedOff(org.orgId)) continue;
-        try {
-          await this.syncCommentTasks(fresh, org, generation);
-        } catch (error) {
-          if (this.generation !== generation) return;
-          if (this.isBackoffError(error)) {
-            this.backOffOrg(org.orgId, error);
-            continue;
-          }
-          log.warn(
-            `cloud comment-task sync failed for org ${org.orgId}:`,
-            error
-          );
-        } finally {
-          this.lastInboundPassAtMs.set(org.orgId, nowMs);
-        }
+        this.lastInboundPassAtMs.set(org.orgId, nowMs);
       }
     }
   }
@@ -773,61 +758,6 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         ).toISOString()
       : new Date().toISOString();
     store.set(org2CloudCollabStateCursorsAtom, (current) => ({
-      ...current,
-      [org.orgId]: cursorAt,
-    }));
-  }
-
-  // --- Comment agent tasks (agent-pickup design §4, Phase 5) ----------------
-
-  /**
-   * One org's comment agent-task pull: `cloud_list_comment_tasks` delta →
-   * `updated_at` LWW merge into the in-memory task map → advance the
-   * persisted cursor (serverTime − CURSOR_OVERLAP_MS, the collab-state
-   * cursor discipline). Once per engine start the cursor is bypassed and
-   * the org's map is REBUILT from the complete listing
-   * (`mergeCommentTasks({}, tasks)`): a task whose session was hard-deleted
-   * or whose visibility was revoked leaves the listing without a tombstone
-   * and can only be proven absent against the full state (same rationale as
-   * the collab-state listing). Rows here can never carry a lease token —
-   * structurally, via `CloudCommentTaskWireSchema` (0002 invariant 1).
-   */
-  private async syncCommentTasks(
-    auth: Org2CloudAuthState,
-    org: Org2CloudOrg,
-    generation: number
-  ): Promise<void> {
-    const store = this.store;
-    if (!store) return;
-    const isFullListing = !this.fullCommentTaskOrgIds.has(org.orgId);
-    const since = isFullListing
-      ? null
-      : (store.get(org2CloudCommentTaskCursorsAtom)[org.orgId] ?? null);
-    const listing = await this.tasksClient.listCommentTasks(
-      auth.accessToken,
-      org.orgId,
-      since
-    );
-    if (this.generation !== generation) return;
-
-    this.fullCommentTaskOrgIds.add(org.orgId);
-    store.set(org2CloudCommentTasksAtom, (current) => {
-      // Full listing rebuilds from {} (revocation-absence rationale above);
-      // a delta merges LWW into the existing map. `mergeCommentTasks` is
-      // identity-stable, so an empty delta never churns the atom.
-      const existing = isFullListing ? {} : (current[org.orgId] ?? {});
-      const merged = mergeCommentTasks(existing, listing.tasks);
-      if (merged === current[org.orgId]) return current;
-      return { ...current, [org.orgId]: merged };
-    });
-    // Anchor the delta cursor on the server clock minus a safety overlap so
-    // client skew cannot skip rows (the merge is an idempotent LWW).
-    const cursorAt = listing.serverTime
-      ? new Date(
-          new Date(listing.serverTime).getTime() - CURSOR_OVERLAP_MS
-        ).toISOString()
-      : new Date().toISOString();
-    store.set(org2CloudCommentTaskCursorsAtom, (current) => ({
       ...current,
       [org.orgId]: cursorAt,
     }));

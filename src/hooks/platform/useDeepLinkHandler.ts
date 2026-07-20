@@ -20,7 +20,7 @@
  * React Router to the appropriate path or opens the matching cloud dialog.
  */
 import { emit } from "@tauri-apps/api/event";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -29,6 +29,7 @@ import { parseAuthCallbackFragment } from "@src/features/Org2Cloud/authCallback"
 import { isBillingCompleteDeepLink } from "@src/features/Org2Cloud/billingComplete";
 import { completeOrg2CloudSignIn } from "@src/features/Org2Cloud/completeSignIn";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { resetOrgEntitlementCoordinator } from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
 import {
   type CloudInviteDeepLink,
   type CloudShareDeepLink,
@@ -36,7 +37,10 @@ import {
   parseCloudShareDeepLink,
 } from "@src/features/Org2Cloud/org2CloudOrgManagement";
 import { org2CloudPendingInviteAtom } from "@src/features/Org2Cloud/org2CloudPendingInviteAtom";
-import { org2CloudPendingShareAtom } from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
+import {
+  org2CloudPendingShareAtom,
+  queueOrg2CloudPendingShareAtom,
+} from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
 import { log, logDebug, logError, logWarn } from "@src/hooks/logger";
 import { activeStationChatVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
@@ -133,11 +137,12 @@ function parseDeepLink(
 export function useDeepLinkHandler(): void {
   const navigate = useNavigate();
   const setPendingCloudInvite = useSetAtom(org2CloudPendingInviteAtom);
-  const setPendingCloudShare = useSetAtom(org2CloudPendingShareAtom);
+  const queuePendingCloudShare = useSetAtom(queueOrg2CloudPendingShareAtom);
   const pendingCloudShare = useAtomValue(org2CloudPendingShareAtom);
   const setStationMode = useSetAtom(stationModeAtom);
   const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
   const setOrg2CloudAuth = useSetAtom(org2CloudAuthAtom);
+  const store = useStore();
   const hasSetupListener = useRef(false);
   const hasProcessedInitialDeepLink = useRef(false);
   const processedDeepLinks = useRef<Set<string>>(new Set());
@@ -166,17 +171,17 @@ export function useDeepLinkHandler(): void {
   // Route an incoming CLOUD session share (orgii://cloud/session?share=…,
   // migration 0012): park the token in the one-shot pending atom (consumed
   // by CloudShareImportDialog) and surface the Workstation. The token is the
-  // whole credential — no coordinates ride in the link.
+  // whole credential; only non-secret endpoint provenance rides beside it.
   const routeToCloudShare = useCallback(
     (share: CloudShareDeepLink) => {
-      setPendingCloudShare(share);
+      queuePendingCloudShare(share);
       setStationMode("my-station");
       setStationChatVisible("my-station", true);
       if (window.location.pathname !== ROUTES.workStation.code.path) {
         navigate(ROUTES.workStation.code.path);
       }
     },
-    [navigate, setPendingCloudShare, setStationChatVisible, setStationMode]
+    [navigate, queuePendingCloudShare, setStationChatVisible, setStationMode]
   );
 
   // Route an incoming ORG2 Cloud invite (`orgii://cloud/join?invite=…`)
@@ -205,10 +210,11 @@ export function useDeepLinkHandler(): void {
       const authCallback = parseAuthCallbackFragment(url);
       if (!authCallback) return false;
       log("DeepLinkHandler", "Completing ORG2 Cloud sign-in from deep link");
+      resetOrgEntitlementCoordinator(store);
       completeOrg2CloudSignIn(authCallback, setOrg2CloudAuth);
       return true;
     },
-    [setOrg2CloudAuth]
+    [setOrg2CloudAuth, store]
   );
 
   // A checkout completed in the system browser: the billing success page

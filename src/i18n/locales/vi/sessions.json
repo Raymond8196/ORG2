@@ -136,7 +136,100 @@
       },
       "views": {
         "scanning": "Quét",
-        "hooks": "Hooks"
+        "hooks": "Hooks",
+        "usage": "Mức sử dụng"
+      },
+      "usage": {
+        "title": "Mức sử dụng và chi phí",
+        "subtitle": "Token và chi phí ước tính trong các phiên lập trình đã quét. Dữ liệu được đọc từ cơ sở dữ liệu cục bộ và không rời khỏi thiết bị của bạn.",
+        "allSources": "Tất cả nguồn",
+        "refresh": "Làm mới",
+        "estimatedNote": "Chi phí là ước tính theo giá niêm yết cho gói đăng ký và khóa riêng; khoản chi đo được sẽ hiển thị khi đã được ghi nhận.",
+        "range": {
+          "today": "Hôm nay",
+          "24h": "24 giờ",
+          "7d": "7 ngày",
+          "30d": "30 ngày",
+          "all": "Toàn bộ thời gian"
+        },
+        "bucket": {
+          "claude": "Claude",
+          "codex": "Codex",
+          "cursor": "Cursor",
+          "org2": "Agent ORGII",
+          "other": "Khác"
+        },
+        "cards": {
+          "realTokens": "Tổng số token",
+          "cost": "Tổng chi phí (ước tính)",
+          "sessions": "Phiên",
+          "requests": "Yêu cầu",
+          "cacheHit": "Tỷ lệ trúng bộ nhớ đệm",
+          "input": "Đầu vào",
+          "output": "Đầu ra",
+          "cacheCreate": "Ghi bộ nhớ đệm",
+          "cacheRead": "Đọc bộ nhớ đệm"
+        },
+        "trends": {
+          "title": "Xu hướng sử dụng",
+          "input": "Đầu vào",
+          "output": "Đầu ra",
+          "cacheCreate": "Ghi bộ nhớ đệm",
+          "cacheRead": "Đọc bộ nhớ đệm",
+          "cost": "Chi phí"
+        },
+        "table": {
+          "title": "Phiên",
+          "name": "Phiên",
+          "agent": "Agent",
+          "model": "Mô hình",
+          "tokens": "Token",
+          "cost": "Chi phí",
+          "cacheHit": "Trúng bộ nhớ đệm",
+          "turns": "Lượt",
+          "lastActive": "Hoạt động gần nhất",
+          "sort": {
+            "recent": "Gần đây nhất",
+            "cost": "Chi phí cao nhất",
+            "tokens": "Nhiều token nhất"
+          }
+        },
+        "roundsTable": {
+          "title": "Yêu cầu",
+          "time": "Thời gian",
+          "session": "Phiên",
+          "agent": "Agent",
+          "model": "Mô hình",
+          "input": "Đầu vào",
+          "output": "Đầu ra",
+          "cache": "Đọc bộ nhớ đệm",
+          "cost": "Chi phí",
+          "filterBySession": "Lọc theo phiên này"
+        },
+        "pricing": {
+          "input": "Đầu vào",
+          "cache": "Bộ nhớ đệm",
+          "output": "Đầu ra",
+          "total": "Tổng cộng",
+          "estimate": "Ước tính theo giá niêm yết",
+          "hint": "Di chuột lên chi phí của một yêu cầu để xem chi tiết.",
+          "loading": "Đang tính…"
+        },
+        "detail": {
+          "title": "Chi tiết theo từng lệnh gọi",
+          "perTurn": "Lệnh gọi LLM",
+          "perTool": "Lệnh gọi công cụ",
+          "close": "Đóng",
+          "noData": "Phiên này chỉ có tổng số liệu ở cấp phiên; dữ liệu theo từng lệnh gọi được ghi nhận cho các lượt chạy agent riêng của ORGII.",
+          "turnHeader": "Lượt {{turn}}",
+          "promptTokens": "Prompt",
+          "completionTokens": "Hoàn thành"
+        },
+        "empty": {
+          "title": "Chưa có dữ liệu sử dụng",
+          "subtitle": "Chạy hoặc quét một số phiên lập trình để mức sử dụng token xuất hiện tại đây."
+        },
+        "loadError": "Không thể tải dữ liệu sử dụng"
       },
       "sessions_other": "{{count}} phiên",
       "details": {

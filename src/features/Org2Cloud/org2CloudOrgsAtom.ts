@@ -11,21 +11,15 @@
  * `useDeepLinkHandler`). Cleared to `[]` on sign-out. Offline / fetch
  * failure degrades to `[]` (no crash, no stale cache).
  */
-import { atom, createStore, useAtom, useSetAtom, useStore } from "jotai";
+import { atom, createStore, useAtom, useStore } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 
 import { createLogger } from "@src/hooks/logger";
-import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
-import type { CollabSessionAccessMode } from "@src/store/collaboration/types";
 
 import { enrichOrg2CloudProfile } from "./completeSignIn";
-import { org2CloudSharingFloorAtom } from "./org2CloudAccessSettings";
 import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
-import {
-  ensureFreshSession,
-  getEntitlementState,
-  listMyOrgs,
-} from "./org2CloudClient";
+import { ensureFreshSession, listMyOrgs } from "./org2CloudClient";
+import { refreshOrgEntitlement } from "./org2CloudEntitlementCoordinator";
 
 const log = createLogger("Org2CloudOrgs");
 
@@ -186,7 +180,6 @@ export function parseCloudOrgSelectorValue(value: string): string | null {
 export function useOrg2CloudOrgs(): void {
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const store = useStore();
-  const setFloorByOrg = useSetAtom(org2CloudSharingFloorAtom);
   const authRef = useRef(auth);
   useEffect(() => {
     authRef.current = auth;
@@ -258,38 +251,20 @@ export function useOrg2CloudOrgs(): void {
       // context menu, without ever visiting the org panel — can gate its
       // options against the floor. Non-blocking; per-org failures (null) just
       // leave that org's persisted mirror untouched (server still enforces).
-      void (async () => {
-        const entries = await Promise.all(
-          orgs.map(async (o) => {
-            const ent = await getEntitlementState(fresh.accessToken, o.orgId);
-            return ent
-              ? ([
-                  o.orgId,
-                  ent.orgSharingFloor ?? COLLAB_SESSION_ACCESS_MODE.OFF,
-                ] as const)
-              : null;
-          })
-        );
-        if (cancelled || !isCurrentOrg2CloudOrgsRequest(store, requestEpoch)) {
-          return;
-        }
-        const known = entries.filter(
-          (e): e is readonly [string, CollabSessionAccessMode] => e !== null
-        );
-        if (known.length === 0) return;
-        setFloorByOrg((prev) => {
-          const next = { ...prev };
-          for (const [orgId, floor] of known) next[orgId] = floor;
-          return next;
-        });
-      })();
+      // Reads go through the shared entitlement coordinator (single-flight +
+      // TTL per org) — never a second cache owner.
+      void Promise.all(
+        orgs.map((o) =>
+          refreshOrgEntitlement(store, o.orgId, async () => fresh.accessToken)
+        )
+      );
     };
     void runAttempt(0);
     return () => {
       cancelled = true;
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [userId, setAuth, setFloorByOrg, store]);
+  }, [userId, setAuth, store]);
 }
 
 /**
@@ -305,7 +280,6 @@ export function useRefetchOrg2CloudOrgs(): (
 ) => Promise<Org2CloudOrg[]> {
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const store = useStore();
-  const setFloorByOrg = useSetAtom(org2CloudSharingFloorAtom);
   const authRef = useRef(auth);
   useEffect(() => {
     authRef.current = auth;
@@ -343,33 +317,17 @@ export function useRefetchOrg2CloudOrgs(): (
             } else if (commitOrg2CloudOrgsRequest(store, requestEpoch, orgs)) {
               latest = orgs;
               // Entitlement hydration is enrichment, not part of roster
-              // convergence. Do it in the background so a connection rebuild
-              // cannot make a successful mutation await unrelated floor RPCs.
-              void (async () => {
-                const floorEntries = await Promise.all(
-                  orgs.map(async (org) => {
-                    const entitlement = await getEntitlementState(
-                      fresh.accessToken,
-                      org.orgId
-                    );
-                    return entitlement
-                      ? ([
-                          org.orgId,
-                          entitlement.orgSharingFloor ??
-                            COLLAB_SESSION_ACCESS_MODE.OFF,
-                        ] as const)
-                      : null;
-                  })
-                );
-                if (!isCurrentOrg2CloudOrgsRequest(store, requestEpoch)) return;
-                setFloorByOrg((previous) => {
-                  const next = { ...previous };
-                  for (const entry of floorEntries) {
-                    if (entry) next[entry[0]] = entry[1];
-                  }
-                  return next;
-                });
-              })();
+              // convergence. Background per-org reads through the shared
+              // coordinator: single-flight + TTL, no second cache owner.
+              void Promise.all(
+                orgs.map((org) =>
+                  refreshOrgEntitlement(
+                    store,
+                    org.orgId,
+                    async () => fresh.accessToken
+                  )
+                )
+              );
             } else {
               latest = store.get(org2CloudOrgsAtom);
             }
@@ -401,6 +359,6 @@ export function useRefetchOrg2CloudOrgs(): (
       }
       return queueOrg2CloudOrgsConvergence(store, run);
     },
-    [setAuth, setFloorByOrg, store]
+    [setAuth, store]
   );
 }

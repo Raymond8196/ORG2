@@ -35,13 +35,12 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
   let store: EngineFixture["store"];
   let client: EngineFixture["client"];
   let projectsClient: EngineFixture["projectsClient"];
-  let tasksClient: EngineFixture["tasksClient"];
   let bridge: EngineFixture["bridge"];
   let engine: EngineFixture["engine"];
 
   beforeEach(() => {
     fixture = createEngineFixture();
-    ({ store, client, projectsClient, tasksClient, bridge, engine } = fixture);
+    ({ store, client, projectsClient, bridge, engine } = fixture);
   });
 
   afterEach(() => {
@@ -60,13 +59,7 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     );
     store.set(org2CloudAuthAtom, { ...AUTH, supabaseUrl: CUSTOM_SUPABASE_URL });
     engine.stop();
-    engine = new Org2CloudSyncEngine(
-      client,
-      projectsClient,
-      tasksClient,
-      bridge,
-      probe
-    );
+    engine = new Org2CloudSyncEngine(client, projectsClient, bridge, probe);
     engine.start(store);
   }
 
@@ -130,7 +123,6 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
 
     await engine.runSyncPass();
     projectsClient.listOrgCollabState.mockClear();
-    tasksClient.listCommentTasks.mockClear();
     bridge.drainOutbox.mockClear();
 
     await engine.invalidateOrgInboundAndWait("corg-1");
@@ -141,19 +133,12 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
       "corg-1",
       "2026-07-01T11:59:58.000Z"
     );
-    expect(tasksClient.listCommentTasks).toHaveBeenCalledTimes(1);
-    expect(tasksClient.listCommentTasks).toHaveBeenCalledWith(
-      "jwt-1",
-      "corg-1",
-      "2026-07-01T11:59:58.000Z"
-    );
     expect(bridge.drainOutbox).not.toHaveBeenCalled();
   });
 
   it("uses a full listing only for reconnect recovery", async () => {
     await engine.runSyncPass();
     projectsClient.listOrgCollabState.mockClear();
-    tasksClient.listCommentTasks.mockClear();
 
     await engine.invalidateOrgInboundAndWait("corg-1", { full: true });
 
@@ -162,10 +147,21 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
       "corg-1",
       undefined
     );
-    expect(tasksClient.listCommentTasks).toHaveBeenCalledWith(
+  });
+
+  it("resumeOrgAndWait runs exactly one serialized pass (no dirty follow-up)", async () => {
+    await engine.runSyncPass();
+    projectsClient.listOrgCollabState.mockClear();
+    const passesBefore = engine.startedPassCount;
+
+    await engine.resumeOrgAndWait("corg-1");
+
+    expect(engine.startedPassCount - passesBefore).toBe(1);
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledTimes(1);
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledWith(
       "jwt-1",
       "corg-1",
-      null
+      undefined
     );
   });
 
@@ -354,7 +350,6 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     await engine.runSyncPass(); // consumes the start-up inbound pull
     projectsClient.listOrgCollabState.mockClear();
     bridge.drainOutbox.mockClear();
-    tasksClient.listCommentTasks.mockClear();
 
     // Gate holds on an ordinary pass: no event, no inbound window elapsed.
     await engine.runSyncPass();
@@ -367,8 +362,6 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     await vi.advanceTimersByTimeAsync(DATA_CHANGED_DEBOUNCE_MS);
     expect(bridge.drainOutbox).toHaveBeenCalledTimes(1);
     expect(projectsClient.listOrgCollabState).toHaveBeenCalledTimes(1);
-    // Narrow flag: the comment-task plane stays on the inbound fallback.
-    expect(tasksClient.listCommentTasks).not.toHaveBeenCalled();
   });
 
   it("retries a failed durable project push after Rust's first backoff even while hidden", async () => {
@@ -511,13 +504,7 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
   it("never probes the official endpoint (gate is custom-only)", async () => {
     const probe = vi.fn(async () => 0);
     engine.stop();
-    engine = new Org2CloudSyncEngine(
-      client,
-      projectsClient,
-      tasksClient,
-      bridge,
-      probe
-    );
+    engine = new Org2CloudSyncEngine(client, projectsClient, bridge, probe);
     engine.start(store);
 
     await engine.runSyncPass();
@@ -547,6 +534,5 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     expect(client.appendSessionEvents).not.toHaveBeenCalled();
     expect(projectsClient.listOrgCollabState).not.toHaveBeenCalled();
     expect(bridge.drainOutbox).not.toHaveBeenCalled();
-    expect(tasksClient.listCommentTasks).not.toHaveBeenCalled();
   });
 });

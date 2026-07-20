@@ -140,7 +140,100 @@
       },
       "views": {
         "scanning": "扫描",
-        "hooks": "钩子"
+        "hooks": "钩子",
+        "usage": "用量"
+      },
+      "usage": {
+        "title": "用量与成本",
+        "subtitle": "已扫描编码会话的 Token 与预估成本。数据读取自本地数据库，不会离开你的设备。",
+        "allSources": "全部来源",
+        "refresh": "刷新",
+        "estimatedNote": "成本为订阅与自有密钥路径的标价估算；如有记录，将显示实际计量支出。",
+        "range": {
+          "today": "今天",
+          "24h": "24 小时",
+          "7d": "7 天",
+          "30d": "30 天",
+          "all": "全部"
+        },
+        "bucket": {
+          "claude": "Claude",
+          "codex": "Codex",
+          "cursor": "Cursor",
+          "org2": "ORGII 智能体",
+          "other": "其他"
+        },
+        "cards": {
+          "realTokens": "总 Tokens",
+          "cost": "总成本（估算）",
+          "sessions": "会话",
+          "requests": "请求",
+          "cacheHit": "缓存命中率",
+          "input": "输入",
+          "output": "输出",
+          "cacheCreate": "缓存写入",
+          "cacheRead": "缓存读取"
+        },
+        "trends": {
+          "title": "使用趋势",
+          "input": "输入",
+          "output": "输出",
+          "cacheCreate": "缓存写入",
+          "cacheRead": "缓存读取",
+          "cost": "成本"
+        },
+        "table": {
+          "title": "会话",
+          "name": "会话",
+          "agent": "智能体",
+          "model": "模型",
+          "tokens": "Token",
+          "cost": "成本",
+          "cacheHit": "缓存命中",
+          "turns": "轮次",
+          "lastActive": "最近活动",
+          "sort": {
+            "recent": "最近",
+            "cost": "成本最高",
+            "tokens": "Token 最多"
+          }
+        },
+        "roundsTable": {
+          "title": "请求",
+          "time": "时间",
+          "session": "会话",
+          "agent": "来源",
+          "model": "模型",
+          "input": "输入",
+          "output": "输出",
+          "cache": "缓存读取",
+          "cost": "成本",
+          "filterBySession": "筛选此会话"
+        },
+        "pricing": {
+          "input": "输入",
+          "cache": "缓存",
+          "output": "输出",
+          "total": "合计",
+          "estimate": "列表价估算",
+          "hint": "将鼠标悬停在某条请求的成本上查看明细。",
+          "loading": "计算中…"
+        },
+        "detail": {
+          "title": "单次调用明细",
+          "perTurn": "LLM 调用",
+          "perTool": "工具调用",
+          "close": "关闭",
+          "noData": "此会话仅包含会话级总计；单次调用归因仅针对 ORGII 自有智能体的运行进行记录。",
+          "turnHeader": "轮次 {{turn}}",
+          "promptTokens": "提示词",
+          "completionTokens": "补全"
+        },
+        "empty": {
+          "title": "暂无用量",
+          "subtitle": "运行或扫描一些编码会话后，其 Token 用量会显示在这里。"
+        },
+        "loadError": "加载用量数据失败"
       },
       "sessions_other": "{{count}} 个会话",
       "details": {
@@ -2281,6 +2374,7 @@
       "loadFailed": "团队概览加载失败",
       "tasks": "任务",
       "doneOf": "{{done}} / {{total}} 已完成",
+      "taskWindowTruncated": "当前显示前 {{visible}} / {{total}} 个任务；完整成果请打开任务详情。",
       "members": "成员",
       "activeOf": "{{active}} / {{total}} active",
       "inbox": "Inbox",
@@ -2305,7 +2399,9 @@
         "editLabel": "编辑已提交的计划",
         "feedbackLabel": "计划修改意见",
         "feedbackPlaceholder": "清楚告诉 Planner 哪些地方需要修改……",
-        "paused": "请先恢复本次运行，再处理这个计划。"
+        "paused": "请先恢复本次运行，再处理这个计划。",
+        "staleError": "这份计划已经处理或被新版本替换。请刷新后查看最新版本。",
+        "submitFailed": "计划审批结果未能保存，请重试。"
       },
       "phase": {
         "coordinating": "正在协调",
@@ -2522,6 +2618,8 @@
     }
   },
   "groupChat": {
+    "loadOlder": "加载更早消息",
+    "historyLoadFailed": "历史消息暂不可用",
     "senderTitle": {
       "message": "{{sender}} 发送了消息",
       "said": "{{sender}} 说"

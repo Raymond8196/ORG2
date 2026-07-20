@@ -20,6 +20,7 @@ import React, { useMemo, useState } from "react";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
+import { isAccessModeAtLeast } from "@src/features/Org2Cloud/org2CloudAccessSettings";
 import type { CloudOrgMember } from "@src/features/Org2Cloud/org2CloudClient";
 import {
   CLOUD_ASSIGNABLE_ROLES,
@@ -318,6 +319,8 @@ interface CloudMembersSectionProps {
   members: CloudOrgMember[];
   currentUserId: string | null;
   management: CloudOrgManagement;
+  /** Org-wide sharing floor; composed into the per-member override display. */
+  orgFloor: CollabSessionAccessMode;
 }
 
 export function CloudMembersSection({
@@ -325,6 +328,7 @@ export function CloudMembersSection({
   members,
   currentUserId,
   management,
+  orgFloor,
 }: CloudMembersSectionProps) {
   const {
     isAdmin,
@@ -352,28 +356,45 @@ export function CloudMembersSection({
     [t]
   );
 
-  // Per-member sharing floor options: 'off' = no member-level minimum (the
-  // org-wide floor still applies — this dropdown is the OVERRIDE on top).
-  const memberFloorOptions = useMemo(
-    () => [
+  // Per-member sharing floor options: 'off' = no member-level minimum. When
+  // the org-wide floor is set, 'off' is NOT "no requirement" — the org floor
+  // still applies — so the sentinel label surfaces the effective org minimum
+  // and sub-floor overrides (which the org floor would mask anyway) are
+  // dropped from the picker.
+  const memberFloorOptions = useMemo(() => {
+    const hasOrgFloor = orgFloor !== COLLAB_SESSION_ACCESS_MODE.OFF;
+    const modeLabel = (mode: CollabSessionAccessMode) =>
+      mode === COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY
+        ? t("cloud.syncLevel.modeFullReplay")
+        : t("cloud.syncLevel.modeMetadata");
+    return [
       {
         value: COLLAB_SESSION_ACCESS_MODE.OFF,
-        label: t("cloud.orgManagement.members.floorOff"),
+        label: hasOrgFloor
+          ? t("cloud.orgManagement.members.floorOrgMinimum", {
+              mode: modeLabel(orgFloor),
+            })
+          : t("cloud.orgManagement.members.floorOff"),
         dataTestId: "cloud-org-member-floor-option-off",
       },
-      {
-        value: COLLAB_SESSION_ACCESS_MODE.METADATA_ONLY,
-        label: t("cloud.syncLevel.modeMetadata"),
-        dataTestId: "cloud-org-member-floor-option-metadata",
-      },
-      {
-        value: COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY,
-        label: t("cloud.syncLevel.modeFullReplay"),
-        dataTestId: "cloud-org-member-floor-option-full",
-      },
-    ],
-    [t]
-  );
+      ...(
+        [
+          COLLAB_SESSION_ACCESS_MODE.METADATA_ONLY,
+          COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY,
+        ] as const
+      )
+        .filter((mode) => isAccessModeAtLeast(mode, orgFloor))
+        .map((mode) => ({
+          value: mode,
+          label: modeLabel(mode),
+          dataTestId: `cloud-org-member-floor-option-${
+            mode === COLLAB_SESSION_ACCESS_MODE.METADATA_ONLY
+              ? "metadata"
+              : "full"
+          }`,
+        })),
+    ];
+  }, [orgFloor, t]);
 
   const handleRoleChange = async (
     member: CloudOrgMember,
@@ -460,8 +481,13 @@ export function CloudMembersSection({
                         <Select
                           size="default"
                           value={
-                            member.sharingFloor ??
-                            COLLAB_SESSION_ACCESS_MODE.OFF
+                            // A member override below the org floor is masked
+                            // by it; show the org-minimum sentinel instead of
+                            // a hidden sub-floor option.
+                            member.sharingFloor &&
+                            isAccessModeAtLeast(member.sharingFloor, orgFloor)
+                              ? member.sharingFloor
+                              : COLLAB_SESSION_ACCESS_MODE.OFF
                           }
                           options={memberFloorOptions}
                           style={MEMBER_ROLE_CONTROL_STYLE}

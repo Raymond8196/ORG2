@@ -2,9 +2,8 @@
 //!
 //! These pin the `OrgSendMessageTool` contract exercised by the
 //! `/agent/test/agent-org/send-message-direct` helper-isolation probe
-//! and cross-checked against the `/agent/test/agent-org/inbox/list-by-run`
-//! helper-isolation probe (which reads via `AgentInboxStore::list_by_run`
-//! directly, not through the production drain). All scenarios are
+//! and cross-checked against the bounded
+//! `/agent/test/agent-org/inbox/list-by-run` helper-isolation probe. All scenarios are
 //! deterministic — they bypass the coordinator-launch / LLM cycle
 //! (~30s/turn) and exercise only the synchronous Rust path:
 //! `recipient` resolution, payload validation, and `agent_inbox` row
@@ -13,9 +12,6 @@
 //! Pairing strategy: positive AND negative pins per behavior. Every
 //! successful send is followed by a `list-by-run` read so a future
 //! refactor of either side surfaces here, not just in unit tests.
-//! Caller-path coverage of the production drain is provided by
-//! `agent_org_tasks_and_exec_mode.rs`; full LLM coordinator launches
-//! belong in rendered UI E2E, not this deterministic runtime contract suite.
 
 use super::config::Config;
 use super::harness;
@@ -27,6 +23,8 @@ const CHECK_MEMBER_SPAWN_GATE_PATH: &str = "/agent/test/agent-org/check-member-s
 const POST_MEMBER_IDLE_PATH: &str = "/agent/test/agent-org/post-member-idle";
 const SEED_ORG_PATH: &str = "/agent/test/agent-org/seed";
 const LAUNCH_COORDINATOR_PATH: &str = "/agent/test/agent-org/launch-coordinator";
+const RUN_SEED_PATH: &str = "/agent/test/agent-org/run/seed";
+const E2E_RUN_FIXTURE_ORG_PREFIX: &str = "e2e-agent-org-fixture:";
 const RUN_VIEW_PATH: &str = "/agent/test/agent-org/run-view";
 const DURABLE_INVARIANTS_PATH: &str = "/agent/test/agent-org/durable-invariants";
 const FIND_WORKER_SESSION_PATH: &str = "/agent/test/agent-org/find-worker-session";
@@ -174,7 +172,7 @@ pub(super) fn unique_run_id(label: &str) -> String {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
-    format!("e2e-{label}-{ts}")
+    format!("{E2E_RUN_FIXTURE_ORG_PREFIX}{label}-{ts}")
 }
 
 fn member_id_for_legacy_recipient_name(name: &str) -> &str {
@@ -264,6 +262,46 @@ async fn post_agent_org_json(
         .map_err(|err| format!("JSON parse error ({path}): {err}"))
 }
 
+/// Agent Org member sessions are materialized in a background task after the
+/// coordinator launch commits. Runtime scenarios must therefore wait for the
+/// durable member row instead of treating the first `found: false` response as
+/// a product failure.
+async fn wait_for_worker_session(
+    cfg: &Config,
+    org_run_id: &str,
+    member_id: &str,
+) -> Result<serde_json::Value, String> {
+    const TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+    const POLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(25);
+
+    let started_at = std::time::Instant::now();
+    loop {
+        let response = post_agent_org_json(
+            cfg,
+            FIND_WORKER_SESSION_PATH,
+            serde_json::json!({
+                "org_run_id": org_run_id,
+                "member_id": member_id,
+            }),
+        )
+        .await?;
+        if response.get("ok").and_then(serde_json::Value::as_bool) != Some(true) {
+            return Err(format!(
+                "worker-session lookup failed for member {member_id}: {response}"
+            ));
+        }
+        if response.get("found").and_then(serde_json::Value::as_bool) == Some(true) {
+            return Ok(response);
+        }
+        if started_at.elapsed() >= TIMEOUT {
+            return Err(format!(
+                "timed out waiting for member session materialization: run={org_run_id} member={member_id} last_response={response}"
+            ));
+        }
+        tokio::time::sleep(POLL_INTERVAL).await;
+    }
+}
+
 async fn seed_task(
     cfg: &Config,
     run_id: &str,
@@ -315,6 +353,75 @@ async fn seed_task_with_owner(
         return Err(format!("tasks/seed rejected payload: {resp}"));
     }
     Ok(resp)
+}
+
+/// Create the durable Running run required by production message guards, then
+/// pin it open with one real pending task so the background finality pass
+/// cannot legitimately complete an otherwise empty synthetic fixture.
+async fn seed_default_running_run(
+    cfg: &Config,
+    label: &str,
+    pending_plan_request_id: Option<&str>,
+) -> Result<String, String> {
+    let fixture_id = unique_run_id(label);
+    let mut body = default_context(&fixture_id, "");
+    let obj = body
+        .as_object_mut()
+        .expect("default_context returns object");
+    obj.remove("sender_agent_id");
+    obj.insert(
+        "org_id".to_string(),
+        serde_json::Value::String(fixture_id.clone()),
+    );
+    let response = post_agent_org_json(cfg, RUN_SEED_PATH, body).await?;
+    if response.get("ok").and_then(serde_json::Value::as_bool) != Some(true) {
+        return Err(format!("run/seed rejected payload: {response}"));
+    }
+    let run_id = response
+        .get("org_run_id")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| format!("run/seed omitted org_run_id: {response}"))?;
+
+    let keep_open_task_id = format!("keep-open-{fixture_id}");
+    if let Some(request_id) = pending_plan_request_id {
+        let approval_seed = post_agent_org_json(
+            cfg,
+            TASKS_SEED_PATH,
+            serde_json::json!({
+                "id": keep_open_task_id,
+                "org_run_id": run_id,
+                "subject": "Plan deterministic typed-message fixture",
+                "description": "Create one durable pending plan approval",
+                "owner": "m1",
+                "status": TASK_STATUS_IN_PROGRESS,
+                "blocks": [],
+                "blocked_by": [],
+                "execution_mode": "plan",
+                "pending_plan_approval": {
+                    "request_id": request_id,
+                    "source_member_id": "m1"
+                }
+            }),
+        )
+        .await?;
+        if approval_seed.get("ok").and_then(serde_json::Value::as_bool) != Some(true) {
+            return Err(format!(
+                "tasks/seed could not create pending plan approval: {approval_seed}"
+            ));
+        }
+    } else {
+        seed_task(
+            cfg,
+            &run_id,
+            &keep_open_task_id,
+            "Keep deterministic message fixture open",
+            "m2",
+            TASK_STATUS_PENDING,
+        )
+        .await?;
+    }
+    Ok(run_id)
 }
 
 async fn set_session_status(
@@ -425,29 +532,11 @@ pub async fn launch_materializes_member_sessions_in_run_view(cfg: &Config) -> bo
         _ => return harness::print_error(label, &launch_resp.to_string()),
     };
 
-    let alice_lookup = match post_agent_org_json(
-        cfg,
-        FIND_WORKER_SESSION_PATH,
-        serde_json::json!({
-            "org_run_id": org_run_id,
-            "member_id": "m-alice"
-        }),
-    )
-    .await
-    {
+    let alice_lookup = match wait_for_worker_session(cfg, &org_run_id, "m-alice").await {
         Err(err) => return harness::print_error(label, &err),
         Ok(json) => json,
     };
-    let bob_lookup = match post_agent_org_json(
-        cfg,
-        FIND_WORKER_SESSION_PATH,
-        serde_json::json!({
-            "org_run_id": org_run_id,
-            "member_id": "m-bob"
-        }),
-    )
-    .await
-    {
+    let bob_lookup = match wait_for_worker_session(cfg, &org_run_id, "m-bob").await {
         Err(err) => return harness::print_error(label, &err),
         Ok(json) => json,
     };
@@ -509,10 +598,6 @@ pub async fn launch_materializes_member_sessions_in_run_view(cfg: &Config) -> bo
     )
 }
 
-/// Run-view task counts distinguish queued owned work from the currently active
-/// task. This pins the read model needed for running members: assigning more
-/// work to a member that already has an in-progress task must be visible as a
-/// pending queue, not as a second active turn.
 pub async fn run_view_distinguishes_pending_and_in_progress_tasks(cfg: &Config) -> bool {
     let label = "Agent-Org: run view separates pending and in-progress tasks";
     let org_id = unique_run_id("task-count-org");
@@ -717,16 +802,7 @@ pub async fn run_view_shows_failed_member_and_released_task_state(cfg: &Config) 
         _ => return harness::print_error(label, &launch_resp.to_string()),
     };
 
-    let alice_lookup = match post_agent_org_json(
-        cfg,
-        FIND_WORKER_SESSION_PATH,
-        serde_json::json!({
-            "org_run_id": org_run_id,
-            "member_id": "m-alice"
-        }),
-    )
-    .await
-    {
+    let alice_lookup = match wait_for_worker_session(cfg, &org_run_id, "m-alice").await {
         Err(err) => return harness::print_error(label, &err),
         Ok(json) => json,
     };
@@ -893,15 +969,16 @@ pub async fn run_view_shows_failed_member_and_released_task_state(cfg: &Config) 
     )
 }
 
-/// P2 guardrail for read-time finality reconciliation.
+/// Guardrail for the Run View's pure-read contract.
 ///
-/// This intentionally reads raw durable state before and after opening the
-/// production run-view. The first read proves the post-control state can still
-/// contain `running + no live worker + open work`; the second read proves that
-/// read-time reconciliation repairs the run status instead of letting rendered
-/// UI assertions masquerade as runtime invariants.
-pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) -> bool {
-    let label = "Agent-Org: control-after raw state reconciles only after run view";
+/// A failed coordinator and failed workers with unread recovery input may
+/// legitimately remain `running`: the watchdog still has a path to wake or
+/// escalate them. Opening a UI view must not acquire the writer lock or turn
+/// that recoverable state into a terminal run. This scenario reads the raw
+/// durable state before and after Run View, then proves the unread row remains
+/// independently drainable.
+pub async fn control_after_state_run_view_is_pure_read(cfg: &Config) -> bool {
+    let label = "Agent-Org: control-after run view is pure read";
     let org_id = unique_run_id("control-after-finality-org");
     let alice_agent = "builtin:explore";
     let bob_agent = "builtin:sde";
@@ -962,23 +1039,11 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
         _ => return harness::print_error(label, &launch_resp.to_string()),
     };
 
-    let alice_lookup = match post_agent_org_json(
-        cfg,
-        FIND_WORKER_SESSION_PATH,
-        serde_json::json!({ "org_run_id": org_run_id, "member_id": "m-alice" }),
-    )
-    .await
-    {
+    let alice_lookup = match wait_for_worker_session(cfg, &org_run_id, "m-alice").await {
         Err(err) => return harness::print_error(label, &err),
         Ok(json) => json,
     };
-    let bob_lookup = match post_agent_org_json(
-        cfg,
-        FIND_WORKER_SESSION_PATH,
-        serde_json::json!({ "org_run_id": org_run_id, "member_id": "m-bob" }),
-    )
-    .await
-    {
+    let bob_lookup = match wait_for_worker_session(cfg, &org_run_id, "m-bob").await {
         Err(err) => return harness::print_error(label, &err),
         Ok(json) => json,
     };
@@ -995,11 +1060,12 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
         return harness::print_error(label, &bob_lookup.to_string());
     };
 
-    if let Err(err) = seed_unowned_task(
+    if let Err(err) = seed_task(
         cfg,
         &org_run_id,
         "task-pending-after-control",
         "Pending work after control action",
+        "m-alice",
         TASK_STATUS_PENDING,
     )
     .await
@@ -1038,7 +1104,8 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
                 "recipient_member_id": "m-alice",
                 "kind": "plain",
                 "summary": "resume after control",
-                "text": "Please resume after rewind/truncate control state."
+                "text": "Please resume after rewind/truncate control state.",
+                "related_task_id": "task-pending-after-control"
             }
         }),
     )
@@ -1065,8 +1132,8 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
         Err(err) => return harness::print_error(label, &err),
         Ok(json) => json,
     };
-    let before_is_unreconciled_control_state = before_raw
-        .get("invalidRunningOpenWork")
+    let before_is_recoverable_control_state = before_raw
+        .get("runningOpenWorkWithoutLiveWorker")
         .and_then(|value| value.as_bool())
         == Some(true)
         && before_raw
@@ -1093,12 +1160,11 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
         Err(err) => return harness::print_error(label, &err),
         Ok(json) => json,
     };
-    let after_reconciled_abandoned = after_raw.get("runStatus").and_then(|value| value.as_str())
-        == Some("abandoned")
-        && after_raw
-            .get("invalidRunningOpenWork")
-            .and_then(|value| value.as_bool())
-            == Some(false);
+    let run_view_left_durable_state_unchanged = after_raw.get("runStatus")
+        == before_raw.get("runStatus")
+        && after_raw.get("openTaskCount") == before_raw.get("openTaskCount")
+        && after_raw.get("unreadInboxCount") == before_raw.get("unreadInboxCount")
+        && after_raw.get("liveWorkerCount") == before_raw.get("liveWorkerCount");
 
     let drain_resp = match drain_inbox_with_body(
         cfg,
@@ -1145,8 +1211,8 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
         &output.to_string(),
         &[
             (
-                "raw post-control DB state exposes running + no live worker + open work before run view",
-                before_is_unreconciled_control_state,
+                "raw post-control DB state is recoverable running + no live worker + open work",
+                before_is_recoverable_control_state,
             ),
             (
                 "run view endpoint returned a view",
@@ -1154,8 +1220,8 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
                     && run_view_resp.get("found").and_then(|value| value.as_bool()) == Some(true),
             ),
             (
-                "opening run view reconciles run status to abandoned",
-                after_reconciled_abandoned,
+                "opening run view leaves durable state unchanged",
+                run_view_left_durable_state_unchanged,
             ),
             (
                 "pending/in_progress tasks remain legal after control state",
@@ -1165,6 +1231,10 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
                     == Some(0),
             ),
             ("unread inbox row remains drainable", inbox_drainable),
+            (
+                "draining recovery input does not falsely abandon the run",
+                final_raw.get("runStatus").and_then(|value| value.as_str()) == Some("running"),
+            ),
         ],
     )
 }
@@ -1173,7 +1243,23 @@ pub async fn control_after_state_reconciles_when_run_view_opens(cfg: &Config) ->
 /// Asserts the inbox row landed under the named worker's `agent_id`,
 /// `payload_kind = "plain"`, and the decoded payload preserves text/summary.
 pub async fn send_plain_by_name(cfg: &Config) -> bool {
-    let run_id = unique_run_id("send-by-name");
+    let run_id = match seed_default_running_run(cfg, "send-by-name", None).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error("Agent-Org: send by name", &err),
+    };
+    let related_task_id = format!("send-by-name-task-{run_id}");
+    if let Err(err) = seed_task(
+        cfg,
+        &run_id,
+        &related_task_id,
+        "Alice message fixture",
+        "m1",
+        TASK_STATUS_PENDING,
+    )
+    .await
+    {
+        return harness::print_error("Agent-Org: send by name", &err);
+    }
     let body = build_send_body(
         &run_id,
         "coord",
@@ -1182,6 +1268,7 @@ pub async fn send_plain_by_name(cfg: &Config) -> bool {
             "kind": "plain",
             "summary": "ping",
             "text": "please look up X",
+            "related_task_id": related_task_id,
         }),
     );
 
@@ -1233,7 +1320,23 @@ pub async fn send_plain_by_name(cfg: &Config) -> bool {
 /// Coordinator sends by `recipient_agent_id` (bypasses name lookup).
 /// Pins the agent-id resolution path independently from the name path.
 pub async fn send_plain_by_agent_id(cfg: &Config) -> bool {
-    let run_id = unique_run_id("send-by-id");
+    let run_id = match seed_default_running_run(cfg, "send-by-id", None).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error("Agent-Org: send by agent_id", &err),
+    };
+    let related_task_id = format!("send-by-id-task-{run_id}");
+    if let Err(err) = seed_task(
+        cfg,
+        &run_id,
+        &related_task_id,
+        "Bob message fixture",
+        "m2",
+        TASK_STATUS_PENDING,
+    )
+    .await
+    {
+        return harness::print_error("Agent-Org: send by agent_id", &err);
+    }
     let body = build_send_body(
         &run_id,
         "coord",
@@ -1242,6 +1345,7 @@ pub async fn send_plain_by_agent_id(cfg: &Config) -> bool {
             "kind": "plain",
             "summary": "hello bob",
             "text": "status update?",
+            "related_task_id": related_task_id,
         }),
     );
 
@@ -1284,7 +1388,10 @@ pub async fn send_plain_by_agent_id(cfg: &Config) -> bool {
 /// coordinator's display name. Pins the worker-as-sender code path
 /// (`addressable_agents` includes the coordinator).
 pub async fn worker_addresses_coordinator(cfg: &Config) -> bool {
-    let run_id = unique_run_id("worker-to-coord");
+    let run_id = match seed_default_running_run(cfg, "worker-to-coord", None).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error("Agent-Org: worker → coord", &err),
+    };
     let body = build_send_body(
         &run_id,
         "alice-agent",
@@ -1340,7 +1447,10 @@ pub async fn worker_addresses_coordinator(cfg: &Config) -> bool {
 /// its serde tag — pins the `kind_tag_matches_serde_tag` invariant from
 /// the unit tests at the wire boundary.
 pub async fn typed_kinds_round_trip(cfg: &Config) -> bool {
-    let run_id = unique_run_id("typed-kinds");
+    let run_id = match seed_default_running_run(cfg, "typed-kinds", Some("plan-req-1")).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error("Agent-Org: typed kinds round-trip", &err),
+    };
 
     // There are 5 typed kinds with in-process listeners:
     // `plain`, `shutdown_request`, `shutdown_response`,
@@ -1385,8 +1495,8 @@ pub async fn typed_kinds_round_trip(cfg: &Config) -> bool {
                 "recipient_agent_id": "alice-agent",
                 "kind": "plan_approval_response",
                 "request_id": "plan-req-1",
-                "accepted": true,
-                "feedback": "looks good, proceed",
+                "accepted": false,
+                "feedback": "please revise the plan",
             }),
         ),
     ];
@@ -1762,7 +1872,10 @@ pub async fn rejects_shutdown_response_rejection_without_note(cfg: &Config) -> b
 ///    (unread) for the coordinator's next turn.
 pub async fn accepted_shutdown_response_yields_member_terminated_row(cfg: &Config) -> bool {
     let label = "Agent-Org: accepted shutdown_response → coord inbox MemberTerminated row";
-    let run_id = unique_run_id("shutdown-handshake-accepted");
+    let run_id = match seed_default_running_run(cfg, "shutdown-handshake-accepted", None).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error(label, &err),
+    };
 
     // Step 1 — Alice acks the shutdown.
     let body = build_send_body(
@@ -1915,7 +2028,10 @@ pub async fn accepted_shutdown_response_yields_member_terminated_row(cfg: &Confi
 /// every rejection.
 pub async fn rejected_shutdown_response_does_not_yield_member_terminated(cfg: &Config) -> bool {
     let label = "Agent-Org: rejected shutdown_response leaves coord inbox without MemberTerminated";
-    let run_id = unique_run_id("shutdown-handshake-rejected");
+    let run_id = match seed_default_running_run(cfg, "shutdown-handshake-rejected", None).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error(label, &err),
+    };
 
     let body = build_send_body(
         &run_id,
@@ -2285,7 +2401,10 @@ async fn post_member_idle_with_failure_reason(
 ///    will see it and render `<member_idle .../>` into the prompt.
 pub async fn member_idle_emit_lands_in_coord_inbox(cfg: &Config) -> bool {
     let label = "Agent-Org: maybe_emit_member_idle → coord inbox member_idle row";
-    let run_id = unique_run_id("member-idle-emit");
+    let run_id = match seed_default_running_run(cfg, "member-idle-emit", None).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error(label, &err),
+    };
 
     let resp = match post_member_idle(cfg, &run_id, "alice-agent", "available").await {
         Err(err) => return harness::print_error(label, &err),
@@ -2455,7 +2574,10 @@ pub async fn member_idle_emit_skips_coordinator(cfg: &Config) -> bool {
 /// through the hook → store round-trip.
 pub async fn member_idle_emit_propagates_interrupted(cfg: &Config) -> bool {
     let label = "Agent-Org: member_idle reason=interrupted round-trips through inbox";
-    let run_id = unique_run_id("member-idle-emit-interrupted");
+    let run_id = match seed_default_running_run(cfg, "member-idle-emit-interrupted", None).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error(label, &err),
+    };
 
     let resp = match post_member_idle(cfg, &run_id, "alice-agent", "interrupted").await {
         Err(err) => return harness::print_error(label, &err),
@@ -2501,7 +2623,10 @@ pub async fn member_idle_emit_propagates_interrupted(cfg: &Config) -> bool {
 /// make an explicit recovery decision instead of seeing a generic idle event.
 pub async fn member_idle_emit_propagates_failed_reason(cfg: &Config) -> bool {
     let label = "Agent-Org: member_idle reason=failed carries failure_reason";
-    let run_id = unique_run_id("member-idle-emit-failed");
+    let run_id = match seed_default_running_run(cfg, "member-idle-emit-failed", None).await {
+        Ok(run_id) => run_id,
+        Err(err) => return harness::print_error(label, &err),
+    };
     let failure_reason = "HTTP 429: rate limit exceeded";
 
     let resp = match post_member_idle_with_failure_reason(
@@ -2628,6 +2753,18 @@ pub async fn run_pause_resume_toggles_status(cfg: &Config) -> bool {
         Some(value) if !value.is_empty() => value.to_string(),
         _ => return harness::print_error(label, "seed did not return root_session_id"),
     };
+    if let Err(err) = seed_task(
+        cfg,
+        &org_run_id,
+        &format!("pause-keep-open-{org_run_id}"),
+        "Keep pause/resume fixture open",
+        "m-pr",
+        TASK_STATUS_PENDING,
+    )
+    .await
+    {
+        return harness::print_error(label, &err);
+    }
 
     // (2) First pause — should transition
     let pause1 = match post_agent_org_json(
@@ -2772,30 +2909,14 @@ pub async fn run_pause_resume_toggles_status(cfg: &Config) -> bool {
 pub async fn app_restart_transitions_running_runs_to_paused(cfg: &Config) -> bool {
     let label = "app-restart-transitions-running-runs-to-paused";
 
-    let post_agent_org_json = |path: &'static str, body: serde_json::Value| {
-        let base = cfg.base_url.clone();
-        async move {
-            let client = http_client();
-            let url = format!("{base}/agent{path}");
-            client
-                .post(&url)
-                .json(&body)
-                .send()
-                .await
-                .map_err(|err| format!("POST {path} failed: {err}"))?
-                .json::<serde_json::Value>()
-                .await
-                .map_err(|err| format!("POST {path} json decode failed: {err}"))
-        }
-    };
-
     // (1) Seed a fresh running org run.
     let seed_resp = match post_agent_org_json(
-        SEED_ORG_PATH,
+        cfg,
+        SEED_CLI_MEMBER_RUN_PATH,
         serde_json::json!({
-            "org_id": "restart-test-org",
-            "coordinator_agent_id": "restart-coord-agent",
-            "run_status": "running",
+            "cli_agent_type": "claude_code",
+            "member_id": "m-restart",
+            "status": "idle"
         }),
     )
     .await
@@ -2812,9 +2933,22 @@ pub async fn app_restart_transitions_running_runs_to_paused(cfg: &Config) -> boo
         Some(value) if !value.is_empty() => value.to_string(),
         _ => return harness::print_error(label, "seed did not return root_session_id"),
     };
+    if let Err(err) = seed_task(
+        cfg,
+        &org_run_id,
+        &format!("restart-keep-open-{org_run_id}"),
+        "Keep restart fixture open",
+        "m-restart",
+        TASK_STATUS_PENDING,
+    )
+    .await
+    {
+        return harness::print_error(label, &err);
+    }
 
     // (2) Confirm run starts as `running`.
     let inv_before_restart = match post_agent_org_json(
+        cfg,
         DURABLE_INVARIANTS_PATH,
         serde_json::json!({ "org_run_id": org_run_id, "root_session_id": root_session_id }),
     )
@@ -2830,7 +2964,7 @@ pub async fn app_restart_transitions_running_runs_to_paused(cfg: &Config) -> boo
 
     // (3) Simulate app restart.
     let restart_resp =
-        match post_agent_org_json(SIMULATE_APP_RESTART_PATH, serde_json::json!({})).await {
+        match post_agent_org_json(cfg, SIMULATE_APP_RESTART_PATH, serde_json::json!({})).await {
             Err(err) => return harness::print_error(label, &err),
             Ok(json) => json,
         };
@@ -2842,6 +2976,7 @@ pub async fn app_restart_transitions_running_runs_to_paused(cfg: &Config) -> boo
 
     // (4) Confirm run is now `paused` (non-terminal).
     let inv_after_restart = match post_agent_org_json(
+        cfg,
         DURABLE_INVARIANTS_PATH,
         serde_json::json!({ "org_run_id": org_run_id, "root_session_id": root_session_id }),
     )
@@ -2858,6 +2993,7 @@ pub async fn app_restart_transitions_running_runs_to_paused(cfg: &Config) -> boo
     // (5) Reconcile should be a no-op for paused runs (status stays paused,
     //     run is NOT auto-terminated even though sessions are now abandoned).
     let run_view_resp = match post_agent_org_json(
+        cfg,
         RUN_VIEW_PATH,
         serde_json::json!({ "session_id": root_session_id }),
     )
@@ -2867,12 +3003,14 @@ pub async fn app_restart_transitions_running_runs_to_paused(cfg: &Config) -> boo
         Ok(json) => json,
     };
     let run_status_after_view_poll = run_view_resp
-        .get("runStatus")
+        .get("view")
+        .and_then(|value| value.get("runStatus"))
         .and_then(|v| v.as_str())
         .unwrap_or("unknown");
 
     // (6) User can resume from UI — full round trip.
     let resume_resp = match post_agent_org_json(
+        cfg,
         RESUME_RUN_PATH,
         serde_json::json!({ "org_run_id": org_run_id }),
     )
@@ -2886,6 +3024,7 @@ pub async fn app_restart_transitions_running_runs_to_paused(cfg: &Config) -> boo
         resume_resp.get("transitioned").and_then(|v| v.as_bool()) == Some(true);
 
     let inv_after_resume = match post_agent_org_json(
+        cfg,
         DURABLE_INVARIANTS_PATH,
         serde_json::json!({ "org_run_id": org_run_id, "root_session_id": root_session_id }),
     )

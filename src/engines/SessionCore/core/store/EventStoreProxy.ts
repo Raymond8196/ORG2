@@ -720,6 +720,11 @@ class EventStoreProxyImpl {
     }
   }
 
+  /** Delete a session's persisted SQLite events, keeping the session record. */
+  async clearPersistedHistory(sessionId: string): Promise<void> {
+    await rpc.sessionCore.cache.clearSessionHistory({ sessionId });
+  }
+
   // =========================================================================
   // Batch Update Operations
   // =========================================================================
