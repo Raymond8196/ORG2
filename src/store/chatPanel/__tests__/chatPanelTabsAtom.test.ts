@@ -44,6 +44,7 @@ async function loadChatPanelTabAtoms() {
     chatPanelTabsAtom,
     closeChatPanelTabAtom,
     closeOtherChatPanelTabsAtom,
+    closeProjectOrgChatPanelTabsAtom,
     closeWorkItemChatPanelTabAtom,
     normalizePersistedChatPanelTabsState,
     openCloudOrgManagementInChatPanelTabAtom,
@@ -53,6 +54,8 @@ async function loadChatPanelTabAtoms() {
     openRuntimeInChatPanelTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
     openOrReplaceSessionInChatPanelTabAtom,
+    openProjectInChatPanelTabAtom,
+    openProjectOrgInChatPanelTabAtom,
     openSessionInNewChatTabAtom,
     openWorkItemInChatPanelTabAtom,
     prevChatPanelTabAtom,
@@ -99,6 +102,7 @@ async function loadChatPanelTabAtoms() {
     chatPanelStartPageOpenAtom,
     closeChatPanelTabAtom,
     closeOtherChatPanelTabsAtom,
+    closeProjectOrgChatPanelTabsAtom,
     closeWorkItemChatPanelTabAtom,
     createChatPanelTerminalAtom,
     kanbanDetailPanelVisibleAtom,
@@ -117,6 +121,8 @@ async function loadChatPanelTabAtoms() {
     openRuntimeInChatPanelTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
     openOrReplaceSessionInChatPanelTabAtom,
+    openProjectInChatPanelTabAtom,
+    openProjectOrgInChatPanelTabAtom,
     WORK_MANAGEMENT_SECTION,
     WORK_MANAGEMENT_PROJECTS_VIEW,
     workManagementCreatorVisibleAtom,
@@ -386,6 +392,72 @@ describe("closeWorkItemChatPanelTabAtom", () => {
         .tabs.some((tab) => tab.workItem?.shortId === "ORG-1")
     ).toBe(false);
     expect(store.get(chatPanelSelectedWorkItemAtom)).toBeNull();
+  });
+});
+
+describe("closeProjectOrgChatPanelTabsAtom", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("removes every cached project surface for a revoked org only", async () => {
+    const {
+      chatPanelTabsAtom,
+      closeProjectOrgChatPanelTabsAtom,
+      openProjectInChatPanelTabAtom,
+      openProjectOrgInChatPanelTabAtom,
+      openWorkItemInChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+
+    store.set(openProjectOrgInChatPanelTabAtom, {
+      orgId: "revoked-org",
+      orgName: "Revoked Team",
+      orgScope: "project_org",
+    });
+    store.set(openProjectInChatPanelTabAtom, {
+      project: { id: "revoked-project", name: "Revoked Project" },
+      projectSlug: "revoked-project",
+      orgId: "revoked-org",
+      orgName: "Revoked Team",
+    } as never);
+    store.set(openWorkItemInChatPanelTabAtom, {
+      shortId: "REV-1",
+      projectSlug: "revoked-project",
+      projectId: "revoked-project",
+      projectName: "Revoked Project",
+      orgId: "revoked-org",
+      orgName: "Revoked Team",
+      workItem: { session_id: "REV-1", name: "Revoked Item" },
+    } as never);
+    store.set(openWorkItemInChatPanelTabAtom, {
+      shortId: "LIVE-1",
+      projectSlug: "live-project",
+      projectId: "live-project",
+      projectName: "Live Project",
+      orgId: "live-org",
+      orgName: "Live Team",
+      workItem: { session_id: "LIVE-1", name: "Live Item" },
+    } as never);
+
+    store.set(closeProjectOrgChatPanelTabsAtom, ["revoked-org"]);
+
+    const tabs = store.get(chatPanelTabsAtom).tabs;
+    expect(
+      tabs.some(
+        (tab) =>
+          tab.workItem?.orgId === "revoked-org" ||
+          tab.project?.orgId === "revoked-org" ||
+          tab.projectOrg?.orgId === "revoked-org"
+      )
+    ).toBe(false);
+    expect(tabs.some((tab) => tab.workItem?.shortId === "LIVE-1")).toBe(true);
   });
 });
 

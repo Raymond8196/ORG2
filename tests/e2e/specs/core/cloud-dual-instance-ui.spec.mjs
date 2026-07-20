@@ -3182,21 +3182,15 @@ describe("Cloud collaboration with two independent rendered app instances", func
         `${error.message}\nmember floor mirror: ${JSON.stringify(memberDebug?.debug?.sharingFloorByOrg ?? memberDebug)}\nowner floor mirror: ${JSON.stringify(ownerDebug?.debug?.sharingFloorByOrg ?? ownerDebug)}`
       );
     });
-    await clickRenderedOn(
+    const duplicateDefaultControlVisible = await executeOn(
       second.client,
-      '[data-testid="cloud-org-default-access-select"]',
-      "member default sharing level"
+      `return !!document.querySelector('[data-testid="cloud-org-default-access"]');`
     );
-    const belowOrgFloorVisible = await executeOn(
-      second.client,
-      `return !!document.querySelector('[data-testid="cloud-org-default-access-off"]');`
-    );
-    if (belowOrgFloorVisible) {
+    if (duplicateDefaultControlVisible) {
       throw new Error(
-        "member could select a default below the org sharing floor"
+        "member General still rendered a duplicate default sync level"
       );
     }
-    await pressEscapeOn(second.client);
 
     await selectPrimaryCloudOrgManagementTab(
       "members",
@@ -3214,7 +3208,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       async () =>
         executeOn(
           second.client,
-          `return document.querySelector('[data-testid="cloud-org-default-access-select"]')?.textContent?.includes('Full replay') === true;`
+          `return document.querySelector('[data-testid="cloud-org-sharing-floor-member-note"]')?.parentElement?.textContent?.includes('Full replay') === true;`
         ),
       {
         timeout: CLOUD_FETCH_TIMEOUT_MS,
@@ -3235,7 +3229,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       async () =>
         executeOn(
           second.client,
-          `return document.querySelector('[data-testid="cloud-org-default-access-select"]')?.textContent?.includes('Metadata') === true;`
+          `return document.querySelector('[data-testid="cloud-org-sharing-floor-member-note"]')?.parentElement?.textContent?.includes('Metadata') === true;`
         ),
       {
         timeout: CLOUD_FETCH_TIMEOUT_MS,
@@ -3293,16 +3287,13 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     await browser.waitUntil(
       async () =>
-        execJS(
-          `
-            const row = document.querySelector('[data-testid="cloud-org-member-row"][data-member-id=${JSON.stringify(teammate.userId)}]');
-            return row?.textContent?.includes('removed') === true;
-          `
+        !execJS(
+          `return Boolean(document.querySelector('[data-testid="cloud-org-member-row"][data-member-id=${JSON.stringify(teammate.userId)}]'));`
         ),
       {
         timeout: CLOUD_FETCH_TIMEOUT_MS,
         interval: 250,
-        timeoutMsg: "owner roster did not receive the member leave live",
+        timeoutMsg: "departed member remained in the owner roster",
       }
     );
 
@@ -3938,6 +3929,24 @@ describe("Cloud collaboration with two independent rendered app instances", func
         timeoutMsg: "removed member retained the workspace",
       }
     );
+    await waitForGoneOn(
+      second.client,
+      `[data-testid="sidebar-cloud-org-option-${teamOrgId}"]`,
+      "removed teammate sidebar org",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    await waitForGoneOn(
+      second.client,
+      '[data-testid="cloud-org-panel"]',
+      "removed teammate management surface",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    await waitForGoneOn(
+      second.client,
+      '[data-testid="cloud-team-sessions-filter"]',
+      "removed teammate team sessions",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
 
     // A removed membership is intentionally reactivatable through a fresh,
     // valid invite; this is distinct from the exhausted-link case in H.
@@ -3962,6 +3971,16 @@ describe("Cloud collaboration with two independent rendered app instances", func
       second.client,
       '[data-testid="cloud-join-org-dialog"]',
       "removed teammate reactivated",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    await waitForGone(
+      `[data-testid="cloud-org-invite-revoke-${removalRecoveryInvite.inviteId}"]`,
+      "owner recovery invite exhausted after teammate reactivation",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    await waitForGone(
+      '[data-testid="cloud-org-invite-link"]',
+      "owner exhausted recovery invite copy window",
       CLOUD_FETCH_TIMEOUT_MS
     );
     const rosterDiagnostic = unwrapOn(

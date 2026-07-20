@@ -4,6 +4,8 @@ import { destroyChatPanelTerminalAtom } from "@src/store/chatPanel/chatPanelTerm
 import {
   type ChatPanelSelectedWorkItem,
   chatPanelSelectedCloudOrgAtom,
+  chatPanelSelectedProjectAtom,
+  chatPanelSelectedProjectOrgAtom,
   chatPanelSelectedWorkItemAtom,
 } from "@src/store/ui/chatPanelAtom";
 
@@ -116,6 +118,54 @@ export const closeWorkItemChatPanelTabAtom = atom(
   }
 );
 closeWorkItemChatPanelTabAtom.debugLabel = "closeWorkItemChatPanelTab";
+
+/**
+ * Close every project/org/work-item tab backed by a project org whose remote
+ * membership was revoked. The tab payload is the durable owner of these
+ * surfaces, so clearing only sidebar selection would leave cached Team data
+ * visible and editable after the authoritative cloud roster removed it.
+ */
+export const closeProjectOrgChatPanelTabsAtom = atom(
+  null,
+  (get, set, orgIds: readonly string[]) => {
+    if (orgIds.length === 0) return;
+    const revoked = new Set(orgIds);
+    const tabIds = get(chatPanelTabsAtom)
+      .tabs.filter((tab) => {
+        if (tab.type === "work-item") {
+          return Boolean(
+            tab.workItem?.orgId && revoked.has(tab.workItem.orgId)
+          );
+        }
+        if (tab.type === "project") {
+          return Boolean(tab.project?.orgId && revoked.has(tab.project.orgId));
+        }
+        if (tab.type === "project-org") {
+          return Boolean(
+            tab.projectOrg?.orgId && revoked.has(tab.projectOrg.orgId)
+          );
+        }
+        return false;
+      })
+      .map((tab) => tab.id);
+
+    for (const tabId of tabIds) set(closeChatPanelTabAtom, tabId);
+
+    const selectedWorkItem = get(chatPanelSelectedWorkItemAtom);
+    if (selectedWorkItem?.orgId && revoked.has(selectedWorkItem.orgId)) {
+      set(chatPanelSelectedWorkItemAtom, null);
+    }
+    const selectedProject = get(chatPanelSelectedProjectAtom);
+    if (selectedProject?.orgId && revoked.has(selectedProject.orgId)) {
+      set(chatPanelSelectedProjectAtom, null);
+    }
+    const selectedProjectOrg = get(chatPanelSelectedProjectOrgAtom);
+    if (revoked.has(selectedProjectOrg?.orgId ?? "")) {
+      set(chatPanelSelectedProjectOrgAtom, null);
+    }
+  }
+);
+closeProjectOrgChatPanelTabsAtom.debugLabel = "closeProjectOrgChatPanelTabs";
 
 /** Navigate to the next tab (wraps around) */
 export const nextChatPanelTabAtom = atom(null, (get, set) => {

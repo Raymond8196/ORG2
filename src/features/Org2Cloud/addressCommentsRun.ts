@@ -40,7 +40,14 @@ import {
 const log = createLogger("addressCommentsRun");
 const RUN_DEADLINE_MS = 15 * 60_000;
 
-export const addressRunActiveAtom = atom<Record<string, boolean>>({});
+export interface AddressRunActivity {
+  /** Null means the run targets every currently addressable thread. */
+  selectedHeadIds: readonly string[] | null;
+}
+
+export const addressRunActiveAtom = atom<Record<string, AddressRunActivity>>(
+  {}
+);
 addressRunActiveAtom.debugLabel = "addressRunActiveAtom";
 
 export interface ActiveAddressRun {
@@ -52,21 +59,52 @@ export interface ActiveAddressRun {
 }
 
 const activeAddressRuns = new Map<string, ActiveAddressRun>();
-const scheduledRunsBySession = new Map<string, number>();
+interface ScheduledAddressRun {
+  token: symbol;
+  selectedHeadIds: ReadonlySet<string> | null;
+}
 
-function updateRunActive(localSessionId: string, delta: 1 | -1): void {
-  const next = Math.max(
-    0,
-    (scheduledRunsBySession.get(localSessionId) ?? 0) + delta
-  );
-  if (next === 0) scheduledRunsBySession.delete(localSessionId);
-  else scheduledRunsBySession.set(localSessionId, next);
+const scheduledRunsBySession = new Map<string, ScheduledAddressRun[]>();
+
+function publishRunActivity(localSessionId: string): void {
+  const runs = scheduledRunsBySession.get(localSessionId) ?? [];
+  const selected = new Set<string>();
+  for (const run of runs) {
+    for (const headId of run.selectedHeadIds ?? []) selected.add(headId);
+  }
+  const selectedHeadIds = runs.some((run) => run.selectedHeadIds === null)
+    ? null
+    : [...selected];
   getInstrumentedStore().set(addressRunActiveAtom, (current) => {
-    if (next > 0) return { ...current, [localSessionId]: true };
-    if (!(localSessionId in current)) return current;
-    const { [localSessionId]: _removed, ...rest } = current;
-    return rest;
+    if (runs.length === 0) {
+      if (!(localSessionId in current)) return current;
+      const { [localSessionId]: _removed, ...rest } = current;
+      return rest;
+    }
+    return { ...current, [localSessionId]: { selectedHeadIds } };
   });
+}
+
+function beginRunActivity(
+  localSessionId: string,
+  selectedHeadIds: readonly string[] | undefined
+): () => void {
+  const run: ScheduledAddressRun = {
+    token: Symbol("address-comments-run"),
+    selectedHeadIds:
+      selectedHeadIds === undefined ? null : new Set(selectedHeadIds),
+  };
+  const current = scheduledRunsBySession.get(localSessionId) ?? [];
+  scheduledRunsBySession.set(localSessionId, [...current, run]);
+  publishRunActivity(localSessionId);
+  return () => {
+    const remaining = (scheduledRunsBySession.get(localSessionId) ?? []).filter(
+      (candidate) => candidate.token !== run.token
+    );
+    if (remaining.length === 0) scheduledRunsBySession.delete(localSessionId);
+    else scheduledRunsBySession.set(localSessionId, remaining);
+    publishRunActivity(localSessionId);
+  };
 }
 
 async function waitForTurnTerminal(
@@ -178,7 +216,7 @@ function notifyAddressRunFinished(): void {
 }
 
 export function isAddressRunActive(localSessionId: string): boolean {
-  return (scheduledRunsBySession.get(localSessionId) ?? 0) > 0;
+  return (scheduledRunsBySession.get(localSessionId)?.length ?? 0) > 0;
 }
 
 async function freshAccessToken(): Promise<string> {
@@ -293,7 +331,7 @@ export async function runAddressCommentsRound(
     selectedHeadIds,
     instruction,
   } = input;
-  updateRunActive(localSessionId, 1);
+  const finishRunActivity = beginRunActivity(localSessionId, selectedHeadIds);
   let run: ActiveAddressRun | null = null;
   try {
     const listToken = await freshAccessToken();
@@ -372,7 +410,7 @@ export async function runAddressCommentsRound(
     if (run && activeAddressRuns.get(localSessionId) === run) {
       activeAddressRuns.delete(localSessionId);
     }
-    updateRunActive(localSessionId, -1);
+    finishRunActivity();
     notifyAddressRunFinished();
   }
 }

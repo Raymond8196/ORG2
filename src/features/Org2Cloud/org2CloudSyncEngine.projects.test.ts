@@ -411,6 +411,48 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     documentStub.visibilityState = "visible";
   });
 
+  it("forces an outbox-draining recovery pass when the browser comes online", async () => {
+    // This suite normally runs in Vitest's node environment. Install a
+    // minimal browser event target before start() so the production listener
+    // itself (including stop() cleanup) is exercised.
+    engine.stop();
+    const browserWindow = new EventTarget();
+    vi.stubGlobal("window", browserWindow);
+    engine = new Org2CloudSyncEngine(client, projectsClient, bridge);
+    engine.start(store);
+    try {
+      await engine.runSyncPass();
+      projectsClient.listOrgCollabState.mockClear();
+      bridge.drainOutbox.mockClear();
+
+      browserWindow.dispatchEvent(new Event("online"));
+      await engine.runSyncPassAndWaitForDrain();
+
+      expect(projectsClient.listOrgCollabState).toHaveBeenCalledTimes(1);
+      expect(bridge.drainOutbox).toHaveBeenCalledTimes(1);
+    } finally {
+      engine.stop();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("retries when the project listing fails before the outbox can drain", async () => {
+    projectsClient.listOrgCollabState.mockRejectedValueOnce(
+      new TypeError("fetch failed")
+    );
+
+    await engine.runSyncPass();
+    await vi.advanceTimersByTimeAsync(0);
+    projectsClient.listOrgCollabState.mockClear();
+    bridge.drainOutbox.mockClear();
+
+    await vi.advanceTimersByTimeAsync(PROJECT_PUSH_RETRY_DELAY_MS);
+    await engine.runSyncPassAndWaitForDrain();
+
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledTimes(1);
+    expect(bridge.drainOutbox).toHaveBeenCalledTimes(1);
+  });
+
   it("bounds the remote-apply echo emission to one extra cheap pass", async () => {
     // Production wiring: applyPulledState → notifyDataChanged emits the SAME
     // orgii-data-changed event the engine subscribes to.

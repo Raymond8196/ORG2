@@ -83,19 +83,21 @@ const JoinCloudOrgDialog: React.FC = () => {
         until: (items) => items.some((org) => org.orgId === result.orgId),
       });
       const joinedOrg = orgs.find((org) => org.orgId === result.orgId);
-      if (joinedOrg) {
-        // Project-org alias on join (cloud-parity Phase B); best-effort —
-        // the sync engine re-ensures it once per start.
-        try {
-          await ensureProjectOrgForCloudOrg(joinedOrg);
-        } catch {
-          // Non-fatal: the engine's per-org pass self-heals the alias.
-        }
+      if (!joinedOrg) {
+        // Never consume the dialog or claim success unless list_my_orgs
+        // confirms an active membership. This also catches a broken backend
+        // that consumes an invite without reactivating a removed member.
+        throw new Error(t("cloud.orgPanel.loadError"));
+      }
+      // Project-org alias on join (cloud-parity Phase B); best-effort —
+      // the sync engine re-ensures it once per start.
+      try {
+        await ensureProjectOrgForCloudOrg(joinedOrg);
+      } catch {
+        // Non-fatal: the engine's per-org pass self-heals the alias.
       }
       Message.success(
-        joinedOrg
-          ? t("cloud.orgManagement.join.joinedToast", { org: joinedOrg.name })
-          : t("cloud.orgManagement.join.joinedFallbackToast")
+        t("cloud.orgManagement.join.joinedToast", { org: joinedOrg.name })
       );
       setPending(null);
     } catch (caught) {
