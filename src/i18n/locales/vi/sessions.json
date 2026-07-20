@@ -137,7 +137,8 @@
       "views": {
         "scanning": "Quét",
         "hooks": "Hooks",
-        "usage": "Mức sử dụng"
+        "usage": "Mức sử dụng",
+        "assets": "Tài sản"
       },
       "usage": {
         "title": "Mức sử dụng và chi phí",

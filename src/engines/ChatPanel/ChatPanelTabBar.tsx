@@ -2,8 +2,8 @@
  * ChatPanelTabBar
  *
  * Inline tab-pill strip rendered inside the existing ChatPanelHeader row,
- * replacing the title/drag-spacer area. Only shown on the start page —
- * session/terminal views keep a plain header. Uses the exact same
+ * replacing the title/drag-spacer area for the unified chat-pane tabs. Uses
+ * the exact same
  * primitives as the Workstation tab bar:
  *   - WorkStationTabPillSurface  (active/inactive pill surface)
  *   - TabPillCloseButton         (14px X close control)
@@ -40,6 +40,7 @@ import {
   BriefcaseBusiness,
   CircleDot,
   Columns3,
+  Gauge,
   GitPullRequest,
   Info,
   LayoutGrid,
@@ -177,6 +178,7 @@ const TabPill = memo(function TabPill({
 
   const displayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
     launchpad: t("navigation:routes.launchpad"),
+    runtime: t("sessions:chat.startPage.tabs.runtime"),
     cloudOrg: t("navigation:collaboration.manageOrg"),
     workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
@@ -201,6 +203,14 @@ const TabPill = memo(function TabPill({
   } else if (tab.type === "start-page") {
     icon = (
       <LayoutGrid
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (tab.type === "runtime") {
+    icon = (
+      <Gauge
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -328,13 +338,15 @@ const TabPill = memo(function TabPill({
 interface PlusMenuContentProps {
   onOpenLaunchpad: () => void;
   onOpenKanban: () => void;
+  onOpenRuntime: () => void;
   onNewWorkItem: () => void;
   onClose: () => void;
 }
 
-function PlusMenuContent({
+export function PlusMenuContent({
   onOpenLaunchpad,
   onOpenKanban,
+  onOpenRuntime,
   onNewWorkItem,
   onClose,
 }: PlusMenuContentProps) {
@@ -357,6 +369,12 @@ function PlusMenuContent({
       icon: <Columns3 size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
       label: t("sessions:simulator.tabs.kanban"),
       onClick: onOpenKanban,
+    },
+    {
+      id: "runtime",
+      icon: <Gauge size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:chat.startPage.tabs.runtime"),
+      onClick: onOpenRuntime,
     },
     {
       id: "new-work-item",
@@ -403,12 +421,14 @@ function PlusMenuContent({
 export interface ChatPanelPlusMenuProps {
   onOpenLaunchpad: () => void;
   onOpenKanban: () => void;
+  onOpenRuntime: () => void;
   onNewWorkItem: () => void;
 }
 
 export function ChatPanelPlusMenu({
   onOpenLaunchpad,
   onOpenKanban,
+  onOpenRuntime,
   onNewWorkItem,
 }: ChatPanelPlusMenuProps): React.ReactNode {
   const { t } = useTranslation("sessions");
@@ -422,6 +442,7 @@ export function ChatPanelPlusMenu({
         <PlusMenuContent
           onOpenLaunchpad={onOpenLaunchpad}
           onOpenKanban={onOpenKanban}
+          onOpenRuntime={onOpenRuntime}
           onNewWorkItem={onNewWorkItem}
           onClose={closeMenu}
         />

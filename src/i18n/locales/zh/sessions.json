@@ -141,7 +141,8 @@
       "views": {
         "scanning": "扫描",
         "hooks": "钩子",
-        "usage": "用量"
+        "usage": "用量",
+        "assets": "资产"
       },
       "usage": {
         "title": "用量与成本",

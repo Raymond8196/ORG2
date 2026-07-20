@@ -137,7 +137,8 @@
       "views": {
         "scanning": "Scannen",
         "hooks": "Hooks",
-        "usage": "Nutzung"
+        "usage": "Nutzung",
+        "assets": "Ressourcen"
       },
       "usage": {
         "title": "Nutzung & Kosten",

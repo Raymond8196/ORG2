@@ -137,7 +137,8 @@
       "views": {
         "scanning": "Tarama",
         "hooks": "Hooks",
-        "usage": "Kullanım"
+        "usage": "Kullanım",
+        "assets": "Varlıklar"
       },
       "usage": {
         "title": "Kullanım ve maliyet",

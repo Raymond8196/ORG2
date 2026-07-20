@@ -2,15 +2,12 @@ import { atom } from "jotai";
 
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import {
-  CHAT_PANEL_START_PAGE_TAB,
   type ChatPanelSelectedCloudOrg,
   type ChatPanelSelectedProject,
   type ChatPanelSelectedProjectOrg,
   type ChatPanelSelectedWorkItem,
   type ChatPanelSelectedWorkspace,
-  type ChatPanelStartPageTab,
   type WorkspaceOverviewTab,
-  chatPanelStartPageTabAtom,
   chatPanelWorkspaceOverviewTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
@@ -24,6 +21,7 @@ import {
   createLaunchpadTab,
   createProjectOrgTab,
   createProjectTab,
+  createRuntimeTab,
   createSessionTab,
   createTerminalTab,
   createWorkItemTab,
@@ -40,7 +38,7 @@ import {
 } from "./chatPanelTabsModel";
 import { chatPanelTabsAtom } from "./chatPanelTabsState";
 
-/** Add a standalone Launchpad tab and show its Work / Manage / Trend page. */
+/** Add a standalone Launchpad tab and show its Work page. */
 export const addChatPanelLaunchpadTabAtom = atom(
   null,
   (_get, set, title: string = "Launchpad") => {
@@ -52,22 +50,19 @@ export const addChatPanelLaunchpadTabAtom = atom(
 addChatPanelLaunchpadTabAtom.debugLabel = "addChatPanelLaunchpadTab";
 
 interface OpenOrFocusStartPageTabOptions {
-  section?: ChatPanelStartPageTab;
   title?: string;
 }
 
 /**
- * Focus the singleton Launchpad start-page tab at the requested section, or
- * create it when none is open. This is the one entry point new-session and
+ * Focus the singleton Launchpad start-page tab, or create it when none is
+ * open. This is the one entry point new-session and
  * launchpad triggers should use so they reuse the existing tab instead of
  * stacking duplicates.
  */
 export const openOrFocusChatPanelStartPageTabAtom = atom(
   null,
   (get, set, options: OpenOrFocusStartPageTabOptions = {}) => {
-    const { section = CHAT_PANEL_START_PAGE_TAB.WORK, title = "Launchpad" } =
-      options;
-    set(chatPanelStartPageTabAtom, section);
+    const { title = "Launchpad" } = options;
     const existingTab = get(chatPanelTabsAtom).tabs.find(
       (tab) => tab.type === "start-page"
     );
@@ -81,13 +76,24 @@ export const openOrFocusChatPanelStartPageTabAtom = atom(
 openOrFocusChatPanelStartPageTabAtom.debugLabel =
   "openOrFocusChatPanelStartPageTab";
 
-/** Focus the existing Launchpad at Manage, or create it when none is open. */
-export const openOrFocusChatPanelManageTabAtom = atom(null, (_get, set) =>
-  set(openOrFocusChatPanelStartPageTabAtom, {
-    section: CHAT_PANEL_START_PAGE_TAB.MANAGE,
-  })
+/** Open or focus the singleton Runtime tab. */
+export const openRuntimeInChatPanelTabAtom = atom(
+  null,
+  (get, set, title: string = "Runtime") => {
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) => tab.type === "runtime"
+    );
+    if (existingTab) {
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+
+    const tab = createRuntimeTab({ title });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
+  }
 );
-openOrFocusChatPanelManageTabAtom.debugLabel = "openOrFocusChatPanelManageTab";
+openRuntimeInChatPanelTabAtom.debugLabel = "openRuntimeInChatPanelTab";
 
 interface OpenKanbanTabOptions {
   section?: WorkManagementSection;
