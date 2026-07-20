@@ -847,3 +847,47 @@ fn atomic_write_replaces_an_existing_config() {
 
     assert_eq!(std::fs::read(&path).unwrap(), b"new");
 }
+
+#[cfg(unix)]
+#[test]
+fn atomic_write_leaves_an_unchanged_config_in_place() {
+    use std::os::unix::fs::MetadataExt;
+
+    let temp = tempfile::tempdir().expect("temporary config dir");
+    let path = temp.path().join("hooks.json");
+    std::fs::write(&path, b"same").expect("existing config");
+    let inode_before = std::fs::metadata(&path).expect("metadata before").ino();
+
+    write_atomic(&path, b"same").expect("unchanged config is a no-op");
+
+    let inode_after = std::fs::metadata(&path).expect("metadata after").ino();
+    assert_eq!(inode_after, inode_before);
+    assert_eq!(std::fs::read(&path).unwrap(), b"same");
+}
+
+#[test]
+fn codex_session_activation_is_scoped_to_task_and_hook_fingerprint() {
+    let receipt = HookSessionActivationReceipt {
+        schema_version: ACTIVATION_RECEIPT_SCHEMA_VERSION,
+        platform: SessionProvenanceHookPlatform::Codex,
+        source_session_id: "task-a".to_string(),
+        hook_fingerprint: "fingerprint-a".to_string(),
+        activated_at: "2026-07-20T12:00:00.000Z".to_string(),
+    };
+
+    assert!(session_activation_matches(
+        "fingerprint-a",
+        "task-a",
+        Some(receipt.clone())
+    ));
+    assert!(!session_activation_matches(
+        "fingerprint-a",
+        "task-b",
+        Some(receipt.clone())
+    ));
+    assert!(!session_activation_matches(
+        "fingerprint-b",
+        "task-a",
+        Some(receipt)
+    ));
+}

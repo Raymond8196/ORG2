@@ -682,6 +682,55 @@ fn codex_desktop_exec_unwraps_apply_patch_variable() {
 }
 
 #[test]
+fn codex_rollout_without_session_start_still_recovers_exec_apply_patch() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-missing-session-start-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-missing-session-start.jsonl");
+    let patch = "*** Begin Patch\n*** Update File: src/app.ts\n@@\n-old\n+new\n*** End Patch";
+    let script = format!(
+        "const patch = {}; const r = await tools.apply_patch(patch); text(r)",
+        serde_json::to_string(patch).expect("encode patch")
+    );
+    let content = format!(
+        "{}\n{}\n",
+        json!({
+            "timestamp": "2026-07-20T12:49:00.000Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_missed_hook_patch",
+                "input": script,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-20T12:49:00.100Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_missed_hook_patch",
+                "output": "Success",
+            }
+        })
+    );
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_codex_app_from_path("codexapp-missing-session-start", &path)
+        .expect("parse rollout without lifecycle hooks");
+
+    assert_eq!(chunks.len(), 1);
+    assert_eq!(chunks[0].function, imported_history::FUNCTION_EDIT_FILE);
+    assert_eq!(chunks[0].args["file_path"], "src/app.ts");
+    assert_eq!(chunks[0].args["patch_text"], patch);
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn codex_desktop_exec_unwraps_web_search_query() {
     let payload = json!({
         "name": "exec",
