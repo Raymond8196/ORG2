@@ -42,7 +42,6 @@ export interface SessionHeaderActionsMenuProps {
   handleOpenSearch: () => void;
   handlePaginationToggle: (checked: boolean) => void;
   handleReloadFromMenu: () => void;
-  handleStatusBarVisibleToggle: (checked: boolean) => void;
   handleTokenUsageVisibleToggle: (checked: boolean) => void;
   headerActionsDropdownRef: React.RefObject<HTMLDivElement | null>;
   headerActionsPosition: DropdownEnginePosition;
@@ -52,7 +51,6 @@ export interface SessionHeaderActionsMenuProps {
   moveTarget: "chat-panel" | "workstation";
   paginationEnabled: boolean;
   showCloudShareSettings: boolean;
-  statusBarVisible: boolean;
   tokenUsageVisible: boolean;
   toggleHeaderActionsMenu: () => void;
   triggerTestId: string;
@@ -77,7 +75,6 @@ export const SessionHeaderActionsMenu: React.FC<
   handleOpenSearch,
   handlePaginationToggle,
   handleReloadFromMenu,
-  handleStatusBarVisibleToggle,
   handleTokenUsageVisibleToggle,
   headerActionsDropdownRef,
   headerActionsPosition,
@@ -87,7 +84,6 @@ export const SessionHeaderActionsMenu: React.FC<
   moveTarget,
   paginationEnabled,
   showCloudShareSettings,
-  statusBarVisible,
   tokenUsageVisible,
   toggleHeaderActionsMenu,
   triggerTestId,
@@ -246,17 +242,6 @@ export const SessionHeaderActionsMenu: React.FC<
                 onChange={handleTokenUsageVisibleToggle}
                 size="small"
                 ariaLabel={t("chat.showTokenUsage")}
-              />
-            </div>
-            <div
-              className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
-            >
-              <span className="flex-1 truncate">{t("chat.showStatusBar")}</span>
-              <Switch
-                checked={statusBarVisible}
-                onChange={handleStatusBarVisibleToggle}
-                size="small"
-                ariaLabel={t("chat.showStatusBar")}
               />
             </div>
             <div

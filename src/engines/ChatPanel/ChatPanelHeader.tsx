@@ -76,7 +76,6 @@ interface ChatPanelHeaderProps {
   handleProjectAgentCreatorToggle: (enabled: boolean) => void;
   handleProjectTitleChange: (title: string) => void;
   handleReloadFromMenu: () => void;
-  handleStatusBarVisibleToggle: (checked: boolean) => void;
   handleToggleAllBlocksCollapsed: () => void;
   handleTokenUsageVisibleToggle: (checked: boolean) => void;
   handleWorkItemAgentCreatorToggle: (enabled: boolean) => void;
@@ -91,7 +90,6 @@ interface ChatPanelHeaderProps {
   isHeaderActionsPositioned: boolean;
   isProjectTarget: boolean;
   paginationEnabled: boolean;
-  statusBarVisible: boolean;
   tokenUsageVisible: boolean;
   showStartPageBackButton: boolean;
   selectedProjectVisible: boolean;
@@ -153,7 +151,6 @@ export function ChatPanelHeader({
   handleProjectAgentCreatorToggle,
   handleProjectTitleChange,
   handleReloadFromMenu,
-  handleStatusBarVisibleToggle,
   handleToggleAllBlocksCollapsed,
   handleTokenUsageVisibleToggle,
   handleWorkItemAgentCreatorToggle,
@@ -168,7 +165,6 @@ export function ChatPanelHeader({
   isHeaderActionsPositioned,
   isProjectTarget,
   paginationEnabled,
-  statusBarVisible,
   tokenUsageVisible,
   showStartPageBackButton,
   selectedProjectVisible,
@@ -333,7 +329,6 @@ export function ChatPanelHeader({
           handleOpenSearch={handleOpenSearch}
           handlePaginationToggle={handlePaginationToggle}
           handleReloadFromMenu={handleReloadFromMenu}
-          handleStatusBarVisibleToggle={handleStatusBarVisibleToggle}
           handleTokenUsageVisibleToggle={handleTokenUsageVisibleToggle}
           headerActionsDropdownRef={headerActionsDropdownRef}
           headerActionsPosition={headerActionsPosition}
@@ -343,7 +338,6 @@ export function ChatPanelHeader({
           moveTarget="workstation"
           paginationEnabled={paginationEnabled}
           showCloudShareSettings={showCloudShareSettings}
-          statusBarVisible={statusBarVisible}
           tokenUsageVisible={tokenUsageVisible}
           toggleHeaderActionsMenu={toggleHeaderActionsMenu}
           triggerTestId="chat-panel-header-more-button"

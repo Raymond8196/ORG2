@@ -15,7 +15,6 @@ import Button from "@src/components/Button";
 import TabPill from "@src/components/TabPill";
 import { useReloadSession } from "@src/engines/ChatPanel/ChatHistory/hooks/useReloadSession";
 import ChatView from "@src/engines/ChatPanel/ChatView";
-import ChatStatusBar from "@src/engines/ChatPanel/components/ChatStatusBar";
 import { SessionHeaderActionsMenu } from "@src/engines/ChatPanel/components/SessionHeaderActionsMenu";
 import SessionIdentityIcon from "@src/engines/ChatPanel/components/SessionIdentityIcon";
 import { useSessionRawTranscript } from "@src/engines/ChatPanel/components/SessionRawTranscriptDialog/useSessionRawTranscript";
@@ -207,9 +206,6 @@ const ChatSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
           handleOpenSearch={headerActions.handleOpenSearch}
           handlePaginationToggle={headerActions.handlePaginationToggle}
           handleReloadFromMenu={headerActions.handleReloadFromMenu}
-          handleStatusBarVisibleToggle={
-            headerActions.handleStatusBarVisibleToggle
-          }
           handleTokenUsageVisibleToggle={
             headerActions.handleTokenUsageVisibleToggle
           }
@@ -221,7 +217,6 @@ const ChatSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
           moveTarget="chat-panel"
           paginationEnabled={headerActions.paginationEnabled}
           showCloudShareSettings={sessionActions.showCloudShareSettings}
-          statusBarVisible={headerActions.statusBarVisible}
           tokenUsageVisible={headerActions.tokenUsageVisible}
           toggleHeaderActionsMenu={headerActions.toggleHeaderActionsMenu}
           triggerTestId="workstation-session-header-more-button"
@@ -261,9 +256,6 @@ const ChatSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
             onSessionContinuation={handleSessionContinuation}
             turnPaginationEnabled={headerActions.paginationEnabled}
           />
-          {headerActions.statusBarVisible ? (
-            <ChatStatusBar sessionId={sessionId} />
-          ) : null}
         </div>
         {sessionViewMode === "raw" ? (
           <SessionRawTranscriptView
