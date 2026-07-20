@@ -942,7 +942,6 @@
     "defaultTitle": "Чат",
     "hideChatPanel": "Скрыть панель чата",
     "showTokenUsage": "Показывать Token",
-    "showStatusBar": "Показывать строку состояния",
     "compactDisplayMode": "Компактный режим",
     "replay": {
       "follow": "Следовать"

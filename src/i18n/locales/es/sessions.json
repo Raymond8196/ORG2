@@ -938,7 +938,6 @@
     "defaultTitle": "Chat",
     "hideChatPanel": "Ocultar panel de chat",
     "showTokenUsage": "Mostrar Token",
-    "showStatusBar": "Mostrar barra de estado",
     "compactDisplayMode": "Modo compacto",
     "replay": {
       "follow": "Seguir"

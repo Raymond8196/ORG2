@@ -212,15 +212,6 @@ export const chatTokenUsageVisibleAtom = atomWithStorage<boolean>(
 );
 chatTokenUsageVisibleAtom.debugLabel = "chatTokenUsageVisibleAtom";
 
-/** Whether the chat pane's bottom status bar (repo · branch · context) shows. */
-export const chatStatusBarVisibleAtom = atomWithStorage<boolean>(
-  "orgii:chatStatusBarVisible",
-  false,
-  undefined,
-  { getOnInit: true }
-);
-chatStatusBarVisibleAtom.debugLabel = "chatStatusBarVisibleAtom";
-
 /** Presentation style for the chat panel model picker. */
 export type ModelPickerStyle = "spotlight" | "dropdown";
 
