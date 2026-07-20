@@ -397,7 +397,11 @@
       "forkSetupNoWorkspace": "Continue without a workspace",
       "forkSetupAccount": "Account",
       "forkSetupModel": "Model",
-      "forkSetupContinue": "Fork & continue"
+      "forkSetupContinue": "Fork & continue",
+      "forkSnapshotIncomplete": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "forkAgentUnavailable": "Choose a local agent before forking.",
+      "forkBackendRegistrationFailed": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "forkReplayUnavailable": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     },
     "repoPicker": {
       "loading": "Loading repos…",
@@ -417,7 +421,12 @@
       "error": "Fork phiên thất bại",
       "sendFailed": "Đã fork nhưng gửi tin nhắn thất bại — nội dung đã được khôi phục vào ô nhập",
       "forkedChipTooltip": "Fork từ {{name}}",
-      "continuePlaceholder": "Message to fork and continue in ORGII…"
+      "continuePlaceholder": "Message to fork and continue in ORGII…",
+      "snapshotError": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
+      "agentError": "Choose a local agent before forking.",
+      "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
+      "parentOpenUnavailable": "The source session could not be opened from this fork.",
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
     }
   },
   "cloud": {
@@ -544,7 +553,8 @@
         "youTag": "Bạn",
         "ownerTag": "Chủ sở hữu",
         "floorOff": "Không có mức tối thiểu",
-        "floorTooltip": "Mức chia sẻ tối thiểu cho thành viên này. Áp dụng mức nghiêm ngặt hơn giữa mức này và mức sàn của toàn tổ chức."
+        "floorTooltip": "Mức chia sẻ tối thiểu cho thành viên này. Áp dụng mức nghiêm ngặt hơn giữa mức này và mức sàn của toàn tổ chức.",
+        "floorOrgMinimum": "Mức tối thiểu của tổ chức ({{mode}})"
       },
       "leave": {
         "action": "Rời tổ chức",
@@ -651,33 +661,23 @@
       "importPasteClipboard": "Dán từ bộ nhớ tạm",
       "importSubmit": "Nhập",
       "importInvalidInput": "Đây có vẻ không phải là liên kết chia sẻ hoặc mã token hợp lệ.",
-      "selectAll": "Tất cả ({{count}})"
-    },
-    "agentRunner": {
-      "title": "Trình chạy tác vụ Agent",
-      "desc": "Cài đặt mặc định cho các tác vụ bình luận bạn chạy từ luồng phiên (“Chạy tại đây”)",
-      "machineNotice": "Các lần chạy được thực hiện trên máy này bằng token của tài khoản này",
-      "orgLabel": "Tổ chức",
-      "accountLabel": "Tài khoản",
-      "accountPlaceholder": "Tài khoản mặc định",
-      "modelLabel": "Mô hình",
-      "modelPlaceholder": "Mô hình mặc định",
-      "modeLabel": "Chế độ",
-      "autoRunLabel": "Tự động chạy tác vụ @agent",
-      "autoRunDesc": "Tự động nhận và chạy các tác vụ bình luận @agent đang mở trên các phiên bạn sở hữu. Mặc định tắt — các lượt nhắc @agent của đồng đội sẽ không tiêu tốn token của bạn cho đến khi bạn bật tính năng này."
+      "selectAll": "Tất cả ({{count}})",
+      "incomingEndpointMismatch": "Nội dung chia sẻ thuộc một đám mây tùy chỉnh khác. Hãy cấu hình endpoint đó trước khi nhập.",
+      "incomingConnectionError": "Không thể kết nối dịch vụ đám mây. Hãy kiểm tra mạng và thử lại.",
+      "incomingIncompatibleError": "Đám mây trả về phản hồi chia sẻ không tương thích. Hãy cập nhật ORGII hoặc kiểm tra bản triển khai.",
+      "incomingServerError": "Dịch vụ đám mây không thể xử lý nội dung chia sẻ này. Hãy thử lại.",
+      "incomingAlreadyOnDevice": "Phiên này đã có trên thiết bị. Hãy mở bản gốc thay vì nhập một bản trùng lặp.",
+      "incomingOpenExisting": "Mở phiên",
+      "incomingRetry": "Thử lại"
     },
     "comments": {
       "task": {
         "assignFailed": "Đã đăng bình luận, nhưng giao cho agent thất bại — thử lại từ luồng",
         "assignUnavailableHere": "Đã đăng bình luận — không thể giao cho agent trong chế độ xem này",
-        "turnBadge": "một agent đang xử lý lượt này",
         "addressingChip": "Đang xử lý bình luận: “{{excerpt}}”",
         "addressingChipGeneric": "Đang xử lý một bình luận",
         "addressingChipTooltip": "Được fork để xử lý một luồng bình luận trên phiên gốc",
-        "openBadge_one": "{{count}} tác vụ agent đang chờ xử lý",
-        "openBadge": "{{count}} tác vụ agent đang chờ xử lý",
-        "activeBadge_one": "{{count}} agent đang làm việc trong phiên này",
-        "activeBadge": "{{count}} agent đang làm việc trong phiên này"
+        "mentionSuggestion": "Giao bình luận này cho agent"
       },
       "toggleLabel": "Bình luận",
       "notesButton": "Ghi chú phiên",

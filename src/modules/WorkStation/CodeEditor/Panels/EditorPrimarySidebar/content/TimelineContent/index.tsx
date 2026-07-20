@@ -19,6 +19,7 @@ import { buildCloudRemoteItemId } from "@src/features/Org2Cloud/cloudRemoteItemI
 import { useFileHistory } from "@src/hooks/git/useFileHistory";
 import { useOrgtrackFileSessionHistory } from "@src/hooks/git/useOrgtrackFileSessionHistory";
 import { useOrgtrackFileTimeline } from "@src/hooks/git/useOrgtrackFileTimeline";
+import { useRefreshSpin } from "@src/hooks/ui";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { getBasename } from "@src/modules/WorkStation/CodeEditor/SessionReplay/CodePanel/pathUtils";
 import {
@@ -466,6 +467,7 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
       history: fileSessionHistory,
       loading: sessionHistoryLoading,
       error: sessionHistoryError,
+      refresh: refreshFileSessions,
       loadMore: loadMoreFileSessions,
       loadingMore: fileSessionsLoadingMore,
       hasMore: hasMoreFileSessions,
@@ -474,6 +476,15 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
       filePath: relativeFilePath,
       autoLoad: variant === "session",
     });
+
+    // Session history loads once on mount and only refreshes on demand — this
+    // button (and the empty/error-state actions below) is the sole refresh
+    // path now that the 5s revision poll is gone.
+    const {
+      spinClass: sessionRefreshSpinClass,
+      handleClick: handleSessionRefresh,
+    } = useRefreshSpin(refreshFileSessions, sessionHistoryLoading);
+    const SessionRefreshIcon = TIMELINE_ICONS.refresh;
 
     const handleCommitClick = useCallback(
       (commitInfo: TimelineCommitInfo) => {
@@ -576,6 +587,7 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
           variant="error"
           title={t("placeholders.failedToLoadHistory")}
           subtitle={timelineError ?? t("placeholders.failedToLoadHistory")}
+          onRetry={isGitTimeline ? undefined : handleSessionRefresh}
         />
       );
     }
@@ -598,6 +610,16 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
                   defaultValue: `No session activity found for ${getBasename(filePath)}`,
                 })
           }
+          action={
+            isGitTimeline
+              ? undefined
+              : {
+                  label: t("actions.refresh"),
+                  onClick: handleSessionRefresh,
+                  disabled: sessionHistoryLoading,
+                  dataTestId: "session-blame-refresh-empty",
+                }
+          }
         />
       );
     }
@@ -612,6 +634,23 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
             data-loaded-sessions={fileSessions.length}
             data-total-sessions={fileSessionHistory?.page.totalSessions ?? 0}
           >
+            <div className="flex items-center justify-end px-2 pb-1">
+              <button
+                type="button"
+                className={HEADER_BUTTON.actionDisabled}
+                disabled={sessionHistoryLoading}
+                onClick={handleSessionRefresh}
+                title={t("actions.refresh")}
+                aria-label={t("actions.refresh")}
+                data-testid="session-blame-refresh"
+              >
+                <SessionRefreshIcon
+                  size={13}
+                  strokeWidth={1.75}
+                  className={sessionRefreshSpinClass}
+                />
+              </button>
+            </div>
             {sessionBackfill &&
               (isSessionBackfillActive ||
                 sessionBackfill.status === "partial" ||

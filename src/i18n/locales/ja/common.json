@@ -193,6 +193,7 @@
     "selectRepository": "リポジトリを選択",
     "all": "すべて",
     "collapse": "折りたたむ",
+    "toggle": "スレッドを開閉",
     "addRepo": "リポジトリを追加",
     "addFolder": "フォルダを追加",
     "resume": "再開",

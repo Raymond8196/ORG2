@@ -193,6 +193,7 @@
     "selectRepository": "Depo Seç",
     "all": "Tümü",
     "collapse": "Daralt",
+    "toggle": "Konuyu aç/kapat",
     "addRepo": "Depo Ekle",
     "addFolder": "Klasör Ekle",
     "resume": "Devam Et",

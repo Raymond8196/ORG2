@@ -111,6 +111,16 @@ const OFFICIAL_ENDPOINT: CloudEndpoint = {
 };
 
 /**
+ * The immutable coordinates of the managed ORG2 Cloud. Share-link imports
+ * use this snapshot when a link explicitly says it came from the official
+ * service, even if the receiving app currently has a custom endpoint
+ * configured. This does not mutate the receiver's active endpoint or auth.
+ */
+export function getOfficialCloudEndpoint(): CloudEndpoint {
+  return OFFICIAL_ENDPOINT;
+}
+
+/**
  * Read the persisted override directly from localStorage — the SAME key and
  * schema `org2CloudEndpointOverrideAtom` writes through, so non-React code
  * (raw-fetch clients, the sync engine) resolves the endpoint without a store

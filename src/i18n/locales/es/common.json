@@ -193,6 +193,7 @@
     "selectRepository": "Seleccionar repo",
     "all": "Todos",
     "collapse": "Colapsar",
+    "toggle": "Alternar hilo",
     "addRepo": "Agregar repo",
     "addFolder": "Agregar carpeta",
     "resume": "Reanudar",
