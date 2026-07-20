@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import Message from "@src/components/Message";
 import Switch from "@src/components/Switch";
+import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useKeyboardSave } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
 import { DetailSplitLayout } from "@src/modules/ProjectManager/shared";
@@ -298,9 +299,9 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
       leftContent={
         <div className="flex h-full min-h-0 flex-col overflow-hidden">
           {showAiModePanel ? (
-            <div className="border-b border-solid border-border-1 px-4 py-2">
+            <div className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 py-2`}>
               <div
-                className="flex items-center justify-between gap-3 rounded-xl bg-primary-container px-3 py-2"
+                className="flex items-center justify-between gap-3 px-3 py-2"
                 data-testid="create-work-item-mode-panel"
               >
                 <span className="text-[12px] font-medium text-text-1">
@@ -316,7 +317,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
               </div>
             </div>
           ) : null}
-          <div className="mx-auto h-full w-full max-w-[932px] px-4">
+          <div className={`${DETAIL_PANEL_TOKENS.headerWidth} h-full px-4`}>
             <InlineCreateWorkItemFields state={inlineFields} />
           </div>
         </div>

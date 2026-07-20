@@ -1,13 +1,9 @@
-// @vitest-environment jsdom
 import type { TFunction } from "i18next";
-import { act, createElement } from "react";
-import { createRoot } from "react-dom/client";
+import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { ChatPanelStartPage } from "./ChatPanelStartPage";
-
-Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 const mocks = vi.hoisted(() => ({
   useAvailableAppUpdate: vi.fn(),
@@ -35,7 +31,6 @@ describe("ChatPanelStartPage", () => {
         initialView: "more",
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
-        onNewWorkItem: vi.fn(),
         t,
       })
     );
@@ -81,7 +76,6 @@ describe("ChatPanelStartPage", () => {
         initialView: "more",
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
-        onNewWorkItem: vi.fn(),
         t,
       })
     );
@@ -102,7 +96,6 @@ describe("ChatPanelStartPage", () => {
         initialView: "more",
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
-        onNewWorkItem: vi.fn(),
         t,
       })
     );
@@ -122,46 +115,34 @@ describe("ChatPanelStartPage", () => {
     expect(markup).not.toContain("group-hover:bg-fill-3");
   });
 
-  it("opens the existing work-item creator from the Work Item tab", () => {
+  it("renders the full work-item creator inside the Work Item tab", () => {
     mocks.useAvailableAppUpdate.mockReturnValue(null);
     const t = ((key: string) => key) as TFunction<
       ["sessions", "common", "projects", "navigation"]
     >;
 
-    const onNewWorkItem = vi.fn();
-    const container = document.createElement("div");
-    const root = createRoot(container);
-
-    act(() => {
-      root.render(
-        createElement(ChatPanelStartPage, {
-          onAddApiKey: vi.fn(),
-          onInstallLatestUpdate: vi.fn(),
-          onNewWorkItem,
-          t,
-        })
-      );
-    });
-
-    const workItemTab = container.querySelector<HTMLButtonElement>(
-      '[data-testid="chat-panel-start-page-tab-work-item"]'
+    const markup = renderToStaticMarkup(
+      createElement(ChatPanelStartPage, {
+        initialView: "work-item",
+        onAddApiKey: vi.fn(),
+        onInstallLatestUpdate: vi.fn(),
+        t,
+        workItemLauncher: createElement(
+          "div",
+          { "data-testid": "full-work-item-creator" },
+          "Full work item creator"
+        ),
+      })
     );
-    expect(workItemTab).not.toBeNull();
 
-    act(() => {
-      workItemTab?.click();
-    });
-
-    expect(onNewWorkItem).toHaveBeenCalledOnce();
-    expect(
-      container.querySelector(
-        '[data-testid="chat-panel-start-page-new-work-item"]'
-      )
-    ).toBeNull();
-
-    act(() => {
-      root.unmount();
-    });
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-work-item-launcher"'
+    );
+    expect(markup).toContain('data-testid="full-work-item-creator"');
+    expect(markup).toContain("Full work item creator");
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-new-work-item"'
+    );
   });
 
   it("centers the Session, Work Item, and More tabs above the launcher", () => {
@@ -174,7 +155,6 @@ describe("ChatPanelStartPage", () => {
       createElement(ChatPanelStartPage, {
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
-        onNewWorkItem: vi.fn(),
         sessionLauncher: createElement("div", null, "Session launcher"),
         t,
       })

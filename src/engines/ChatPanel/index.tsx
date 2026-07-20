@@ -440,7 +440,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageInstallLatestUpdate={handleStartPageInstallLatestUpdate}
         handleStartPageSessionStart={handleStartPageSessionStart}
-        handleStartPageNewWorkItem={handleStartPageNewWorkItem}
         handleWorkItemAgentCreatorToggle={handleWorkItemAgentCreatorToggle}
         resolveAiWorkItemContext={resolveAiWorkItemContext}
         SessionCreatorSlot={SessionCreatorSlot}
