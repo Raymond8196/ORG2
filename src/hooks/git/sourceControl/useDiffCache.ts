@@ -52,7 +52,7 @@ export function useDiffCache(options: UseDiffCacheOptions): UseDiffCacheResult {
   const { selectedRepoId, repoPath, files, setFiles, selectedFileId } = options;
 
   // Cache for loaded diffs to avoid re-fetching (capped to prevent memory growth)
-  const MAX_DIFF_CACHE_SIZE = 100;
+  const MAX_DIFF_CACHE_SIZE = 8;
   const diffCacheRef = useRef<Map<string, GitFile>>(new Map());
 
   // Track which file is currently loading
@@ -258,7 +258,27 @@ export function useDiffCache(options: UseDiffCacheOptions): UseDiffCacheResult {
     [selectedRepoId, repoPath, setFiles]
   );
 
-  // Load diff when file is selected - prioritize selected file, then prefetch nearby.
+  // Keep full content on the selected file only. The small cache preserves
+  // quick back-navigation without retaining every file opened this session.
+  useEffect(() => {
+    if (!selectedFileId) return;
+    setFiles((prev) => {
+      let changed = false;
+      const next = prev.map((file) => {
+        if (
+          file.id === selectedFileId ||
+          (file.oldContent === undefined && file.newContent === undefined)
+        ) {
+          return file;
+        }
+        changed = true;
+        return { ...file, oldContent: undefined, newContent: undefined };
+      });
+      return changed ? next : prev;
+    });
+  }, [selectedFileId, setFiles]);
+
+  // Load diff only when a file is selected.
   // Uses filesRef to read current files without depending on the array reference,
   // preventing redundant effect runs when gitStatusAtom produces a new array.
   useEffect(() => {
@@ -293,38 +313,19 @@ export function useDiffCache(options: UseDiffCacheOptions): UseDiffCacheResult {
     // Prevent concurrent batch loads
     if (batchLoadingRef.current) return;
 
-    // Strategy: Load selected file immediately, then prefetch nearby files
-    const loadSelectedAndPrefetch = async () => {
+    const loadSelected = async () => {
       batchLoadingRef.current = true;
       setLoadingFileId(selectedFileId);
 
       try {
         await batchLoadFileDiffs([selectedFile]);
-
-        const filesToPrefetch: GitFile[] = [];
-        for (let offset = 1; offset <= 4; offset++) {
-          const file = currentFiles[selectedIndex + offset];
-          if (
-            file &&
-            file.oldContent === undefined &&
-            !diffCacheRef.current.get(file.id)
-          ) {
-            filesToPrefetch.push(file);
-          }
-        }
-
-        if (filesToPrefetch.length > 0) {
-          batchLoadFileDiffs(filesToPrefetch).catch((error) => {
-            log.warn("[useDiffCache] Prefetch failed:", error);
-          });
-        }
       } finally {
         batchLoadingRef.current = false;
         setLoadingFileId(null);
       }
     };
 
-    loadSelectedAndPrefetch();
+    loadSelected();
   }, [selectedFileId, selectedRepoId, batchLoadFileDiffs, setFiles]);
 
   // Clear cache when repo changes
