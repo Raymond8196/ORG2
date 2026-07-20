@@ -100,6 +100,7 @@ import {
 } from "../workstationSidebarData";
 import { SidebarDialogs } from "./SidebarDialogs";
 import { useSidebarBottomRightActions } from "./bottomActions";
+import { buildCloudScopedMenuItems } from "./cloudScopedMenuItems";
 import { useCloudSessionsSection } from "./cloudSessionsSection";
 import {
   useRenderProjectsMenuItemWrapper,
@@ -695,16 +696,14 @@ export const WorkstationSidebarConnector: React.FC = () => {
   });
   const decoratedSessionSidebarMenuItems = useMemo(
     () =>
-      // Cloud scope: keep the fork-threaded "Team sessions" section above
-      // the org-filtered local list. Cloud rows already carry their own
-      // Replay/Fork actions, so only local rows need action decoration.
-      cloudMenuItems.length > 0
-        ? [
-            ...cloudMenuItems,
-            ...decorateSessionRowActions(sessionSidebarMenuItems),
-          ]
-        : decorateSessionRowActions(sessionSidebarMenuItems),
-    [cloudMenuItems, decorateSessionRowActions, sessionSidebarMenuItems]
+      buildCloudScopedMenuItems({
+        cloudMenuItems,
+        // Cloud rows already carry Replay/Fork actions, so only local rows
+        // use the regular session action decoration.
+        sessionMenuItems: decorateSessionRowActions(sessionSidebarMenuItems),
+        mySessionsLabel: t("cloud.sidebar.mySessions"),
+      }),
+    [cloudMenuItems, decorateSessionRowActions, sessionSidebarMenuItems, t]
   );
   const sidebarMenuItems =
     activeSidebarKey === "projects" || workItemsContentVisible

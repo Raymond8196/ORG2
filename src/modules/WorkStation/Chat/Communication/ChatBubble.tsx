@@ -36,7 +36,7 @@ import UserMessageContent from "@src/engines/ChatPanel/ChatHistory/components/Us
 import { stripExpandedPillContent } from "@src/engines/ChatPanel/InputArea/utils/pillContentParser";
 import MessageReferenceCards from "@src/engines/ChatPanel/blocks/MessageReferenceCards";
 import { SESSION_UI_TOKENS } from "@src/engines/ChatPanel/blocks/primitives/config";
-import { streamingDeltaContentAtom } from "@src/engines/SessionCore/core/atoms";
+import { useStreamingDeltaForSession } from "@src/engines/SessionCore";
 import { extractTodoData } from "@src/engines/SessionCore/rendering/props";
 import type { ExtractedTodoData } from "@src/engines/SessionCore/rendering/types/universalProps";
 import { normalizeActivity } from "@src/lib/activityData";
@@ -689,7 +689,7 @@ export const PlanBubble: React.FC<{
 ));
 PlanBubble.displayName = "PlanBubble";
 
-export const ChatBubble: React.FC<{
+interface ChatBubbleProps {
   message: MessageEntry;
   index: number;
   isLatest?: boolean;
@@ -702,7 +702,17 @@ export const ChatBubble: React.FC<{
    * the session is not in the roster.
    */
   orgMembers?: ReadonlyArray<AgentOrgRunMemberView>;
-}> = memo(
+}
+
+/**
+ * Presentational chat bubble. Never subscribes to streaming state — any live
+ * token content is passed in via `liveContent` by the `ChatBubble` wrapper,
+ * so only the single synthetic-live bubble re-renders on each ≤20Hz token
+ * flush instead of every mounted bubble in the conversation.
+ */
+const ChatBubbleView: React.FC<
+  ChatBubbleProps & { liveContent: string | null }
+> = memo(
   ({
     message,
     index,
@@ -710,6 +720,7 @@ export const ChatBubble: React.FC<{
     onClick,
     showChrome = true,
     orgMembers,
+    liveContent,
   }) => {
     const { t, i18n } = useTranslation(["common", "projects", "sessions"]);
     const isUser = message.sender === "user";
@@ -718,12 +729,6 @@ export const ChatBubble: React.FC<{
       orgMembers
     );
     const agentSenderName = rawAgentName;
-    const streamingMap = useAtomValue(streamingDeltaContentAtom);
-    const liveDelta = isSyntheticLiveAssistantEvent(message)
-      ? (streamingMap.get(message.event.sessionId) ?? null)
-      : null;
-    const liveContent =
-      liveDelta?.kind === "message" ? liveDelta.content : null;
     const resolvedContent = liveContent ?? message.content;
 
     const rawContent =
@@ -805,5 +810,26 @@ export const ChatBubble: React.FC<{
       </ChatBubbleLayout>
     );
   }
+);
+ChatBubbleView.displayName = "ChatBubbleView";
+
+/**
+ * Subscribes to the streaming delta for its session and feeds the live token
+ * text to the presentational bubble. Rendered only for the synthetic-live
+ * assistant message (always the latest), so historical bubbles never open a
+ * streaming subscription.
+ */
+const LiveChatBubble: React.FC<ChatBubbleProps> = (props) => {
+  const delta = useStreamingDeltaForSession(props.message.event.sessionId);
+  const liveContent = delta?.kind === "message" ? delta.content : null;
+  return <ChatBubbleView {...props} liveContent={liveContent} />;
+};
+
+export const ChatBubble: React.FC<ChatBubbleProps> = memo((props) =>
+  isSyntheticLiveAssistantEvent(props.message) ? (
+    <LiveChatBubble {...props} />
+  ) : (
+    <ChatBubbleView {...props} liveContent={null} />
+  )
 );
 ChatBubble.displayName = "ChatBubble";

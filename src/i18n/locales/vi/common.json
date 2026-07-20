@@ -193,6 +193,7 @@
     "selectRepository": "Chọn kho lưu trữ",
     "all": "Tất cả",
     "collapse": "Thu gọn",
+    "toggle": "Bật/tắt luồng",
     "addRepo": "Thêm repo",
     "addFolder": "Thêm thư mục",
     "resume": "Tiếp tục",

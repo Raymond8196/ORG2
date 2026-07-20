@@ -89,6 +89,8 @@ export interface GetSessionEventSegmentsInput {
    * read the one session the token is bound to.
    */
   shareToken?: string;
+  /** Cancels the fetch + decode (dialog close / attempt supersession). */
+  signal?: AbortSignal;
 }
 
 export interface SessionEventSegmentRecord {

@@ -3,13 +3,21 @@
 //! A run records that an Agent Org launched through the normal Rust session
 //! stack, while the root session remains the transcript source of truth.
 
+mod finality;
 mod helpers;
+mod progress;
 mod store;
 mod worker;
 
 #[cfg(test)]
 mod tests;
 
+pub use finality::{
+    AgentOrgFinalityAssessment, AgentOrgFinalityBlocker, AgentOrgFinalityDecision,
+    AgentOrgFinalityFacts, AgentOrgFinalitySessionFact,
+};
+pub(crate) use progress::bump_work_revision_in_tx;
+pub use progress::AgentOrgRunProgress;
 pub use store::AgentOrgRunStore;
 pub use worker::{WorkerSessionInfo, WorkerSessionRuntime};
 
@@ -127,17 +135,11 @@ pub struct AgentOrgParticipant {
     pub is_coordinator: bool,
 }
 
-/// One transactionally consistent read of every durable signal that can
-/// prevent an Agent Org run from being safely announced as complete.
-#[derive(Debug, Clone)]
-pub struct AgentOrgCompletionSnapshot {
-    pub run_status: Option<AgentOrgRunStatus>,
-    pub tasks: Vec<crate::coordination::agent_org_tasks::Task>,
-    pub active_member_ids: Vec<String>,
-    pub active_intervention_member_ids: Vec<String>,
-    pub pending_worker_turn_intent_count: usize,
-    pub unread_inbox_count: usize,
-    pub pending_plan_approval_count: usize,
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "outcome", rename_all = "snake_case")]
+pub enum AgentOrgCompletionRequestOutcome {
+    Recorded { progress: AgentOrgRunProgress },
+    OpenTasks { unresolved_task_ids: Vec<String> },
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -446,5 +448,6 @@ pub fn init_schema(conn: &Connection) -> SqliteResult<()> {
         CREATE INDEX IF NOT EXISTS idx_agent_org_runs_status
             ON agent_org_runs(status);",
     )?;
+    progress::init_schema(conn)?;
     Ok(())
 }

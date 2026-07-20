@@ -34,7 +34,7 @@ import {
   getEventBlockContentClasses,
   useEventBlockHeader,
 } from "@src/engines/ChatPanel/blocks/primitives";
-import { streamingDeltaContentAtom } from "@src/engines/SessionCore";
+import { useStreamingDeltaForSession } from "@src/engines/SessionCore";
 import { eventsAtom, sessionIdAtom } from "@src/engines/SessionCore/core/atoms";
 import {
   type RawEventInput,
@@ -359,8 +359,7 @@ function useAdjacentCanvasUrls(
 export const AgentMessageEvent: React.FC<AgentMessageEventProps> = (props) => {
   const normalizedProps = useNormalizedEventProps(props, "agent_message");
   const sessionId = useAtomValue(sessionIdAtom);
-  const streamingMap = useAtomValue(streamingDeltaContentAtom);
-  const liveDelta = sessionId ? (streamingMap.get(sessionId) ?? null) : null;
+  const liveDelta = useStreamingDeltaForSession(sessionId);
   const directStreamContent =
     liveDelta?.kind === "message" ? liveDelta.content : null;
 

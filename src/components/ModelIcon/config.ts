@@ -58,7 +58,7 @@ import OpenAIIcon from "@src/assets/modelIcons/openai.svg";
 import OpenClawIcon from "@src/assets/modelIcons/openclaw.svg";
 import OpenCodeIcon from "@src/assets/modelIcons/opencode.svg";
 import OpenRouterIcon from "@src/assets/modelIcons/openrouter.svg";
-import OrgiiIcon from "@src/assets/modelIcons/orgii.svg";
+import OrgiiIcon from "@src/assets/modelIcons/org2-session.svg";
 import PerplexityIcon from "@src/assets/modelIcons/perplexity.svg";
 import PiIcon from "@src/assets/modelIcons/pi.svg";
 import QoderIcon from "@src/assets/modelIcons/qoder.svg";

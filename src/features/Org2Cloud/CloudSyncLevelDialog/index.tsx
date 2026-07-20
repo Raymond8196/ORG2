@@ -111,7 +111,6 @@ const CloudSyncLevelDialog: React.FC<CloudSyncLevelDialogProps> = ({
         )
       );
       org2CloudSyncEngine.resumeOrg(orgId);
-      void org2CloudSyncEngine.runSyncPassAndWaitForDrain();
     },
     [session, setAccessByOrg]
   );
@@ -128,7 +127,6 @@ const CloudSyncLevelDialog: React.FC<CloudSyncLevelDialogProps> = ({
         )
       );
       org2CloudSyncEngine.resumeOrg(orgId);
-      void org2CloudSyncEngine.runSyncPassAndWaitForDrain();
     },
     [session, setAccessByOrg]
   );

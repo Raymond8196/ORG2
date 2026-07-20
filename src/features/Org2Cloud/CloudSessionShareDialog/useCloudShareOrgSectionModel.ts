@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { copyText } from "@src/util/data/clipboard";
 
+import { getCloudEndpoint } from "../config";
 import { org2CloudAccessSettingsAtom } from "../org2CloudAccessSettings";
 import { commitRefreshedAuth, org2CloudAuthAtom } from "../org2CloudAuthAtom";
 import {
@@ -209,8 +210,7 @@ export function useCloudShareOrgSectionModel({
     );
     store.set(org2CloudAccessSettingsAtom, next);
     try {
-      org2CloudSyncEngine.resumeOrg(org.orgId);
-      await org2CloudSyncEngine.runSyncPassAndWaitForDrain();
+      await org2CloudSyncEngine.resumeOrgAndWait(org.orgId);
       const accessToken = await freshAccessToken();
       if (!accessToken) throw new Error("Not signed in");
       const ownerUserId = authRef.current?.userId;
@@ -231,8 +231,7 @@ export function useCloudShareOrgSectionModel({
           snapshot
         )
       );
-      org2CloudSyncEngine.resumeOrg(org.orgId);
-      await org2CloudSyncEngine.runSyncPassAndWaitForDrain().catch(() => {});
+      await org2CloudSyncEngine.resumeOrgAndWait(org.orgId).catch(() => {});
       throw error;
     }
   }, [freshAccessToken, org.orgId, session.session_id, store]);
@@ -247,8 +246,7 @@ export function useCloudShareOrgSectionModel({
           snapshot
         )
       );
-      org2CloudSyncEngine.resumeOrg(org.orgId);
-      await org2CloudSyncEngine.runSyncPassAndWaitForDrain();
+      await org2CloudSyncEngine.resumeOrgAndWait(org.orgId);
     },
     [org.orgId, session.session_id, store]
   );
@@ -325,7 +323,7 @@ export function useCloudShareOrgSectionModel({
         throw new Error("Share token missing");
       }
       grantCreated = true;
-      const link = buildCloudSessionShareLink(shareToken);
+      const link = buildCloudSessionShareLink(shareToken, getCloudEndpoint());
       // The plaintext exists only here. Keep it visible until the dialog
       // closes and let the user copy explicitly; clipboard permissions can
       // reject a background/implicit write, and a visible retry action is

@@ -55,11 +55,7 @@ fn ensure_runtime_schemas() {
     crate::foundation::persistence::session_snapshots::ensure_tables_with(&conn)
         .expect("agent sessions schema");
     crate::session::persistence::init(&conn).expect("unified session schema");
-    init_schema(&conn).expect("agent org runs schema");
-    crate::coordination::agent_member_interventions::init_schema(&conn)
-        .expect("member intervention schema");
-    crate::coordination::agent_inbox::init_schema(&conn).expect("agent inbox schema");
-    crate::coordination::agent_org_tasks::init_schema(&conn).expect("agent team tasks schema");
+    crate::coordination::init_agent_org_schemas(&conn).expect("Agent Org runtime schemas");
     conn.execute_batch(
         "CREATE TABLE IF NOT EXISTS code_sessions (
             session_id TEXT PRIMARY KEY,
@@ -97,6 +93,133 @@ fn create_run_for_root(org: &OrgDefinition, root_session_id: &str) -> AgentOrgRu
         routine_fire_id: None,
     })
     .expect("create run")
+}
+
+#[test]
+fn delete_by_id_cascades_all_run_owned_state_and_plan_artifact() {
+    let sandbox = test_helpers::test_env::sandbox();
+    let org = sample_org();
+    let run = create_run_for_root(&org, "root-delete-cascade");
+    upsert_session_row("root-delete-cascade", None);
+    upsert_session_row_for_member(
+        "worker-delete-cascade",
+        Some("root-delete-cascade"),
+        Some("agent-w1"),
+        Some("member-w1"),
+        "idle",
+    );
+    crate::coordination::agent_org_tasks::AgentOrgTaskStore::create(
+        crate::coordination::agent_org_tasks::CreateTaskParams {
+            id: "delete-task".to_string(),
+            org_run_id: run.id.clone(),
+            subject: "Delete me".to_string(),
+            description: String::new(),
+            active_form: None,
+            owner: Some("member-w1".to_string()),
+            status: crate::coordination::agent_org_tasks::TaskStatus::Pending,
+            blocks: Vec::new(),
+            blocked_by: Vec::new(),
+            metadata: None,
+        },
+    )
+    .unwrap();
+    crate::coordination::agent_inbox::AgentInboxStore::insert(
+        crate::coordination::agent_inbox::InsertInboxParams {
+            recipient_agent_id: "agent-w1".to_string(),
+            recipient_member_id: Some("member-w1".to_string()),
+            sender_agent_id: crate::coordination::agent_inbox::SYSTEM_SENDER_ID.to_string(),
+            sender_member_id: None,
+            org_run_id: Some(run.id.clone()),
+            message: crate::coordination::agent_inbox::AgentMessage::Plain {
+                summary: "delete".to_string(),
+                text: "delete".to_string(),
+            },
+        },
+    )
+    .unwrap();
+    crate::coordination::agent_member_interventions::AgentMemberInterventionStore::enter(
+        crate::coordination::agent_member_interventions::EnterMemberInterventionParams {
+            org_run_id: run.id.clone(),
+            member_id: "member-w1".to_string(),
+            agent_id: "agent-w1".to_string(),
+            session_id: "worker-delete-cascade".to_string(),
+            reason: Some("delete".to_string()),
+            ttl_secs: 60,
+        },
+    )
+    .unwrap();
+    let workspace = sandbox.path().join("delete-workspace");
+    let plan_root = workspace.join(".orgii").join("plans");
+    std::fs::create_dir_all(&plan_root).expect("create managed Plan root");
+    let plan_path = plan_root.join("delete-cascade.plan.md");
+    std::fs::write(&plan_path, "# disposable plan").unwrap();
+    let conn = database::db::get_connection().unwrap();
+    conn.execute(
+        "UPDATE agent_sessions SET workspace_path=?1 WHERE session_id='worker-delete-cascade'",
+        params![workspace.to_string_lossy().as_ref()],
+    )
+    .expect("attach managed workspace to source session");
+    let now = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "INSERT INTO agent_org_plan_approvals (
+            approval_id, plan_revision_id, request_id, org_run_id,
+            source_task_id, source_member_id, source_session_id,
+            root_session_id, policy, status, plan_title, plan_path,
+            plan_content, created_at
+         ) VALUES ('delete-approval','delete-revision','delete-request',?1,
+                   'delete-task','member-w1','worker-delete-cascade',
+                   'root-delete-cascade','coordinator','pending','Delete plan',?2,
+                   '# disposable plan',?3)",
+        params![&run.id, plan_path.to_string_lossy().as_ref(), &now],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agent_org_recovery_attempts
+         (org_run_id, action_kind, target_key, reason_fingerprint, attempts,
+          next_allowed_at, updated_at)
+         VALUES (?1,'member_rewake','member-w1','delete',1,?2,?2)",
+        params![&run.id, &now],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO session_turn_intents
+         (session_id,turn_intent_id,source,status,created_at,updated_at)
+         VALUES ('worker-delete-cascade','delete-intent','resume','queued',?1,?1)",
+        params![&now],
+    )
+    .unwrap();
+
+    AgentOrgRunStore::delete_by_id(&run.id).expect("delete run-owned state");
+
+    for table in [
+        "agent_org_run_progress",
+        "agent_org_tasks",
+        "agent_org_task_events",
+        "agent_inbox",
+        "agent_member_interventions",
+        "agent_org_plan_approvals",
+        "agent_org_recovery_attempts",
+    ] {
+        let count: i64 = conn
+            .query_row(
+                &format!("SELECT COUNT(*) FROM {table} WHERE org_run_id=?1"),
+                params![&run.id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 0, "{table} retained run-owned rows");
+    }
+    assert!(load_by_id(&run.id).unwrap().is_none());
+    let intent_count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM session_turn_intents
+             WHERE turn_intent_id='delete-intent'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(intent_count, 0);
+    assert!(!plan_path.exists());
 }
 
 fn upsert_session_row(session_id: &str, parent_session_id: Option<&str>) {
@@ -154,6 +277,14 @@ fn stamp_coordinator_terminal_turn(session_id: &str) {
         params![session_id, chrono::Utc::now().to_rfc3339()],
     )
     .expect("stamp coordinator terminal turn");
+}
+
+fn mark_coordinator_observed_current_work(run_id: &str) {
+    let revision = AgentOrgRunStore::stage_coordinator_work_revision(run_id)
+        .expect("stage coordinator work revision")
+        .expect("running run has a work revision");
+    AgentOrgRunStore::mark_coordinator_observed_work_revision(run_id, revision)
+        .expect("mark coordinator observed revision");
 }
 
 fn upsert_cli_session_row_for_member(
@@ -460,6 +591,102 @@ fn find_worker_session_by_member_id_picks_most_recent_when_multi_instance() {
 }
 
 #[test]
+fn cross_transport_duplicate_member_uses_fresh_rust_session_and_does_not_block_finality() {
+    use crate::coordination::agent_org_tasks::{AgentOrgTaskStore, CreateTaskParams, TaskStatus};
+
+    let _sandbox = test_helpers::test_env::sandbox();
+    let org = sample_org();
+    let run = create_run_for_root(&org, "coord-root-cross-transport");
+    upsert_session_row_full(
+        "coord-root-cross-transport",
+        None,
+        Some("agent-coord"),
+        "idle",
+    );
+    upsert_session_row_for_member(
+        "rust-worker-current",
+        Some("coord-root-cross-transport"),
+        Some("agent-w1"),
+        Some("member-w1"),
+        "idle",
+    );
+    upsert_cli_session_row_for_member(
+        "cli-worker-stale",
+        "coord-root-cross-transport",
+        "claude_code",
+        "member-w1",
+        "running",
+    );
+
+    let conn = database::db::get_connection().expect("test sqlite connection");
+    let rust_timestamp = "2026-07-17T10:00:01Z";
+    let older_cli_timestamp = "2026-07-17T10:00:00Z";
+    conn.execute(
+        "UPDATE agent_sessions SET updated_at=?1 WHERE session_id='rust-worker-current'",
+        params![rust_timestamp],
+    )
+    .expect("stamp current Rust worker");
+    conn.execute(
+        "UPDATE code_sessions SET updated_at=?1 WHERE session_id='cli-worker-stale'",
+        params![older_cli_timestamp],
+    )
+    .expect("stamp stale CLI worker");
+
+    let current = AgentOrgRunStore::list_descendant_worker_sessions(&run.id)
+        .expect("load current canonical worker");
+    assert_eq!(current.len(), 1, "one member must yield one runtime");
+    assert_eq!(current[0].session_id, "rust-worker-current");
+    assert_eq!(current[0].status, SessionStatus::Idle);
+    assert!(current[0].cli_agent_type.is_none());
+
+    conn.execute(
+        "UPDATE code_sessions SET updated_at=?1 WHERE session_id='cli-worker-stale'",
+        params![rust_timestamp],
+    )
+    .expect("create exact cross-transport timestamp tie");
+    let tied = AgentOrgRunStore::list_descendant_worker_sessions(&run.id)
+        .expect("load tie-broken canonical worker");
+    assert_eq!(tied.len(), 1);
+    assert_eq!(
+        tied[0].session_id, "rust-worker-current",
+        "Rust is the supported Agent Org transport and must win an exact timestamp tie"
+    );
+    assert_eq!(tied[0].status, SessionStatus::Idle);
+
+    AgentOrgTaskStore::create(CreateTaskParams {
+        id: "cross-transport-done".to_string(),
+        org_run_id: run.id.clone(),
+        subject: "done".to_string(),
+        description: String::new(),
+        active_form: None,
+        owner: Some("member-w1".to_string()),
+        status: TaskStatus::Completed,
+        blocks: Vec::new(),
+        blocked_by: Vec::new(),
+        metadata: Some(serde_json::json!({
+            crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS:
+                ["member-w1"],
+        })),
+    })
+    .expect("create completed task");
+    mark_coordinator_observed_current_work(&run.id);
+    stamp_coordinator_terminal_turn("coord-root-cross-transport");
+
+    let assessment = AgentOrgRunStore::assess_run_finality(&run.id).expect("assess finality");
+    assert_eq!(assessment.facts.worker_sessions.len(), 1);
+    assert_eq!(
+        assessment.facts.worker_sessions[0].session_id,
+        "rust-worker-current"
+    );
+    assert_eq!(assessment.decision, AgentOrgFinalityDecision::Complete);
+    assert_eq!(
+        AgentOrgRunStore::reconcile_run_finality(&run.id).expect("reconcile finality"),
+        Some(AgentOrgRunStatus::Completed),
+        "the stale CLI Running row must not keep the run falsely active"
+    );
+}
+
+#[test]
 fn find_worker_session_by_member_id_returns_none_when_materialized_session_missing() {
     let _sandbox = test_helpers::test_env::sandbox();
     let org = sample_org();
@@ -478,6 +705,56 @@ fn find_worker_session_by_member_id_returns_none_for_unknown_run() {
     let info = AgentOrgRunStore::find_worker_session_by_member_id("nope-run", "member-w1")
         .expect("query ok on unknown run");
     assert!(info.is_none());
+}
+
+#[test]
+fn coordinator_observation_records_only_the_exact_presented_revision() {
+    use crate::coordination::agent_org_tasks::{AgentOrgTaskStore, CreateTaskParams, TaskStatus};
+
+    let _sandbox = test_helpers::test_env::sandbox();
+    let org = sample_org();
+    let run = create_run_for_root(&org, "coord-root-exact-observation");
+    let create_task = |id: &str| {
+        AgentOrgTaskStore::create(CreateTaskParams {
+            id: id.to_string(),
+            org_run_id: run.id.clone(),
+            subject: id.to_string(),
+            description: String::new(),
+            active_form: None,
+            owner: Some("member-w1".to_string()),
+            status: TaskStatus::Pending,
+            blocks: Vec::new(),
+            blocked_by: Vec::new(),
+            metadata: Some(serde_json::json!({
+                crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS:
+                    ["member-w1"],
+            })),
+        })
+        .expect("create task");
+    };
+
+    create_task("presented-task");
+    let presented_revision = AgentOrgRunStore::stage_coordinator_work_revision(&run.id)
+        .expect("stage coordinator work revision")
+        .expect("running run has a work revision");
+    create_task("newer-unseen-task");
+
+    let observed =
+        AgentOrgRunStore::mark_coordinator_observed_work_revision(&run.id, presented_revision)
+            .expect("record exact observed revision");
+    let progress = AgentOrgRunStore::progress(&run.id)
+        .expect("load progress")
+        .expect("progress exists");
+
+    assert_eq!(observed, Some(presented_revision));
+    assert_eq!(
+        progress.coordinator_observed_work_revision,
+        Some(presented_revision)
+    );
+    assert!(
+        progress.work_revision > presented_revision,
+        "a task mutation after prompt staging must remain unobserved"
+    );
 }
 
 #[test]
@@ -524,6 +801,7 @@ fn reconcile_run_finality_completes_run_when_all_tasks_completed() {
         })),
     })
     .expect("create completed task");
+    mark_coordinator_observed_current_work(&run.id);
     stamp_coordinator_terminal_turn("coord-root-final-complete");
 
     let conn = database::db::get_connection().expect("test sqlite connection");
@@ -589,6 +867,11 @@ fn reconcile_run_finality_completes_run_when_all_tasks_completed() {
     .expect("seed legacy coordinator intervention");
 
     assert_eq!(
+        crate::coordination::agent_member_interventions::AgentMemberInterventionStore::clear_all_active_on_startup()
+            .expect("startup intervention cleanup"),
+        1
+    );
+    assert_eq!(
         AgentOrgRunStore::reconcile_resolved_running_runs_on_startup()
             .expect("startup reconcile ok"),
         1
@@ -649,6 +932,7 @@ fn reconcile_completes_normal_idle_run_only_after_inbox_is_drained() {
         metadata: None,
     })
     .unwrap();
+    mark_coordinator_observed_current_work(&run.id);
     let row = AgentInboxStore::insert(InsertInboxParams {
         recipient_agent_id: "agent-coord".to_string(),
         recipient_member_id: Some(COORDINATOR_MEMBER_ID.to_string()),
@@ -677,7 +961,36 @@ fn reconcile_completes_normal_idle_run_only_after_inbox_is_drained() {
 }
 
 #[test]
-fn reconcile_run_finality_abandons_run_with_open_work_after_all_sessions_terminal() {
+fn startup_reconcile_completes_empty_board_with_explicit_completion_intent() {
+    let _sandbox = test_helpers::test_env::sandbox();
+    let org = sample_org();
+    let run = create_run_for_root(&org, "coord-root-empty-complete");
+    upsert_session_row_full(
+        "coord-root-empty-complete",
+        None,
+        Some("agent-coord"),
+        "idle",
+    );
+    mark_coordinator_observed_current_work(&run.id);
+    AgentOrgRunStore::request_completion(&run.id, "No durable tasks were required.")
+        .expect("record explicit empty-board completion intent");
+
+    assert_eq!(
+        AgentOrgRunStore::reconcile_resolved_running_runs_on_startup()
+            .expect("startup reconcile empty board"),
+        1
+    );
+    assert_eq!(
+        load_by_id(&run.id)
+            .expect("load run")
+            .expect("run exists")
+            .status,
+        AgentOrgRunStatus::Completed
+    );
+}
+
+#[test]
+fn reconcile_run_finality_abandons_run_with_open_work_only_after_all_sessions_archived() {
     use crate::coordination::agent_org_tasks::{AgentOrgTaskStore, CreateTaskParams, TaskStatus};
 
     let _sandbox = test_helpers::test_env::sandbox();
@@ -687,12 +1000,12 @@ fn reconcile_run_finality_abandons_run_with_open_work_after_all_sessions_termina
         "coord-root-final-abandoned",
         None,
         Some("agent-coord"),
-        "completed",
+        "archived",
     );
     upsert_session(&UnifiedSessionRecord {
         session_id: "worker-final-abandoned".to_string(),
         name: "worker final abandoned".to_string(),
-        status: crate::core::session::SessionStatus::Completed
+        status: crate::core::session::SessionStatus::Archived
             .as_str()
             .to_string(),
         session_type: crate::core::session::persistence::session_type::ORG_MEMBER.to_string(),
@@ -749,6 +1062,49 @@ fn reconcile_run_finality_abandons_run_with_open_work_after_all_sessions_termina
 }
 
 #[test]
+fn failed_or_cancelled_sessions_do_not_abandon_recoverable_open_work() {
+    use crate::coordination::agent_org_tasks::{AgentOrgTaskStore, CreateTaskParams, TaskStatus};
+
+    let _sandbox = test_helpers::test_env::sandbox();
+    let org = sample_org();
+    let run = create_run_for_root(&org, "coord-root-recoverable-failure");
+    upsert_session_row_full(
+        "coord-root-recoverable-failure",
+        None,
+        Some("agent-coord"),
+        SessionStatus::Failed.as_str(),
+    );
+    upsert_session_row_for_member(
+        "worker-recoverable-failure",
+        Some("coord-root-recoverable-failure"),
+        Some("agent-w1"),
+        Some("member-w1"),
+        SessionStatus::Cancelled.as_str(),
+    );
+    AgentOrgTaskStore::create(CreateTaskParams {
+        id: "recoverable-open-task".to_string(),
+        org_run_id: run.id.clone(),
+        subject: "recoverable".to_string(),
+        description: String::new(),
+        active_form: None,
+        owner: Some("member-w1".to_string()),
+        status: TaskStatus::Pending,
+        blocks: Vec::new(),
+        blocked_by: Vec::new(),
+        metadata: Some(serde_json::json!({
+            crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS:
+                ["member-w1"],
+        })),
+    })
+    .expect("create recoverable task");
+
+    assert_eq!(
+        AgentOrgRunStore::reconcile_run_finality(&run.id).expect("reconcile"),
+        Some(AgentOrgRunStatus::Running)
+    );
+}
+
+#[test]
 fn reconcile_and_task_create_have_one_serializable_outcome() {
     use std::sync::{Arc, Barrier};
 
@@ -789,6 +1145,7 @@ fn reconcile_and_task_create_have_one_serializable_outcome() {
         metadata: None,
     })
     .unwrap();
+    mark_coordinator_observed_current_work(&run.id);
     stamp_coordinator_terminal_turn("coord-root-finality-race");
 
     let barrier = Arc::new(Barrier::new(2));
@@ -825,7 +1182,10 @@ fn reconcile_and_task_create_have_one_serializable_outcome() {
         (AgentOrgRunStatus::Completed, Err(error)) => {
             assert!(error.contains("agent_org_run_not_mutable"), "got {error}");
         }
-        (AgentOrgRunStatus::Abandoned, Ok(task)) => assert_eq!(task.id, "racing-task"),
+        // The create committed first. Reconcile then sees recoverable open
+        // work and correctly leaves the Run Running; this is the other valid
+        // serial order. Abandoning here would lose a newly-created task.
+        (AgentOrgRunStatus::Running, Ok(task)) => assert_eq!(task.id, "racing-task"),
         (status, result) => panic!("non-serializable finality result: {status:?}, {result:?}"),
     }
 }

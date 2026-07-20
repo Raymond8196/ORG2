@@ -25,7 +25,10 @@ import type { Atom } from "jotai";
 import { useStore } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 
-import { getSession } from "@src/api/tauri/agent";
+import {
+  enterAgentOrgSessionIntervention,
+  getSession,
+} from "@src/api/tauri/agent";
 import { Message } from "@src/components/Message";
 import type { AgentExecMode } from "@src/config/sessionCreatorConfig";
 import {
@@ -33,6 +36,7 @@ import {
   failOptimisticTurn,
 } from "@src/engines/SessionCore/control/optimisticTurnStatus";
 import { cancelTurnForTimelineBoundary } from "@src/engines/SessionCore/control/sessionTimelineBoundary";
+import { publishTurnIntentDispatch } from "@src/engines/SessionCore/control/turnIntentDispatchLifecycle";
 import {
   beginTurnDispatch,
   confirmTurnRunning,
@@ -227,6 +231,10 @@ export function useQueueDispatch(): void {
       // Synchronous turn reserve BEFORE any await: from this instant every
       // submit and every other dispatch pass observes the session as busy.
       const dispatchGeneration = beginTurnDispatch(sessionId);
+      publishTurnIntentDispatch(msg.turnIntentId, {
+        sessionId,
+        generation: dispatchGeneration,
+      });
 
       // An explicit dispatch concludes any pending stop episode.
       if (msg.priority === "now") {
@@ -253,6 +261,9 @@ export function useQueueDispatch(): void {
             }
           );
           await eventStoreProxy.append([userEvent], sessionId);
+          // A queued user turn becomes a takeover only when it is actually
+          // dispatched. Merely waiting in the queue must not suppress Wake.
+          await enterAgentOrgSessionIntervention(sessionId);
           // Pass displayContent as displayText when it differs from content
           // (i.e. skill pills were expanded) so the persisted event stores
           // the pill format and re-editing shows the pill, not the YAML.

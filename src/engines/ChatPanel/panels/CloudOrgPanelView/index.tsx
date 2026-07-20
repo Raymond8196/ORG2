@@ -127,6 +127,7 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
                       members={panelState.members}
                       currentUserId={panelState.currentUserId}
                       management={management}
+                      orgFloor={panelState.orgFloor}
                     />
                   )}
                   {isAdmin ? (

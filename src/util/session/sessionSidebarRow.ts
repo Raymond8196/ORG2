@@ -3,6 +3,7 @@
  */
 import { FlaskConical, type LucideIcon } from "lucide-react";
 
+import { IMPORTED_HISTORY_SOURCE_DESCRIPTORS } from "@src/api/tauri/externalHistory/imported/descriptors";
 import type { CliAgentType } from "@src/api/types/keys";
 import {
   THEMEABLE_ICONS,
@@ -26,8 +27,12 @@ type SessionRowIconInput =
   | {
       session_id: string;
       user_input?: string;
+      agentOrgId?: string;
       agentIconId?: string;
       cliAgentType?: CliAgentType;
+      importedFrom?: {
+        externalHistorySource?: string;
+      };
     };
 
 /**
@@ -35,14 +40,18 @@ type SessionRowIconInput =
  *
  * Resolution priority (most specific → most generic):
  *
- *  1. **`cliAgentType`** → brand icon via `getIconProvider`. Covers all
+ *  1. **`agentOrgId`** → Agent Org icon. Org-run sessions keep the org
+ *     identity even when their coordinator uses a specific CLI/provider.
+ *  2. **`cliAgentType`** → brand icon via `getIconProvider`. Covers all
  *     CLI sessions (Cursor CLI, Claude Code, Codex, Gemini, Copilot,
  *     Kiro, Kimi, OpenCode, Qwen) and prevents stale `agentIconId` values
  *     from overriding the CLI provider identity.
- *  2. **`agentIconId`** — explicit per-session brand assignment. Used by
+ *  3. **`agentIconId`** — explicit per-session brand assignment. Used by
  *     Rust agent definitions (built-in + custom), where the definition
  *     carries an `iconId`.
- *  3. **Prefix-based** fallback (`resolveSessionIconId`) — last resort
+ *  4. **Imported app metadata** — preserves the source brand on cloud copies
+ *     whose local session ID no longer carries the original app prefix.
+ *  5. **Prefix-based** fallback (`resolveSessionIconId`) — last resort
  *     for sessions where neither of the above applies. Maps prefix →
  *     generic Lucide slug (e.g. `cursoride-` → `cursor`, `osagent-` →
  *     `omega`). Also the only path available for the string-only
@@ -70,6 +79,12 @@ export function resolveSessionRowIconPresentation(
     if (input.user_input?.startsWith("Benchmark run coordinator")) {
       return { Icon: FlaskConical, isMonochromeBrandIcon: false };
     }
+    if (input.agentOrgId) {
+      return {
+        Icon: resolveAgentIcon("network"),
+        isMonochromeBrandIcon: false,
+      };
+    }
     if (input.cliAgentType) {
       const iconId = getIconProvider(input.cliAgentType);
       return {
@@ -85,6 +100,20 @@ export function resolveSessionRowIconPresentation(
         isMonochromeBrandIcon:
           provider !== "unknown" && THEMEABLE_ICONS.has(provider),
       };
+    }
+    const externalHistorySource = input.importedFrom?.externalHistorySource;
+    if (externalHistorySource) {
+      const descriptor = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find(
+        (source) => source.sourceId === externalHistorySource
+      );
+      if (descriptor) {
+        const provider = getIconProviderFromType(descriptor.iconId);
+        return {
+          Icon: resolveAgentIcon(descriptor.iconId),
+          isMonochromeBrandIcon:
+            provider !== "unknown" && THEMEABLE_ICONS.has(provider),
+        };
+      }
     }
   }
 

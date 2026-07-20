@@ -51,8 +51,14 @@ async function loadChatPanelTabAtoms() {
     openOrReplaceSessionInChatPanelTabAtom,
     openSessionInNewChatTabAtom,
     prevChatPanelTabAtom,
+    setChatPanelTabTitleAtom,
     syncActiveChatPanelTabStateAtom,
   } = await import("../chatPanelTabsAtom");
+  const {
+    createChatPanelTerminalAtom,
+    terminalSessionsAtom,
+    updateTerminalSessionInfoAtom,
+  } = await import("../chatPanelTerminalAtom");
   const {
     activeChatPanelSurfaceAtom,
     chatPanelMaximizedAtom,
@@ -82,6 +88,7 @@ async function loadChatPanelTabAtoms() {
     chatPanelStartPageOpenAtom,
     chatPanelStartPageTabAtom,
     closeChatPanelTabAtom,
+    createChatPanelTerminalAtom,
     kanbanDetailPanelVisibleAtom,
     kanbanReplayBoundsAtom,
     kanbanReplayCursorAtom,
@@ -103,7 +110,10 @@ async function loadChatPanelTabAtoms() {
     workManagementProjectsViewAtom,
     openSessionInNewChatTabAtom,
     prevChatPanelTabAtom,
+    setChatPanelTabTitleAtom,
     syncActiveChatPanelTabStateAtom,
+    terminalSessionsAtom,
+    updateTerminalSessionInfoAtom,
     sessionViewAtom,
     sessionsAtom,
     store,
@@ -948,5 +958,76 @@ describe("openOrReplaceSessionInChatPanelTabAtom", () => {
         }),
       ])
     );
+  });
+});
+
+describe("managed TUI terminal state", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps the PTY environment reference across terminal metadata updates", async () => {
+    const {
+      createChatPanelTerminalAtom,
+      store,
+      terminalSessionsAtom,
+      updateTerminalSessionInfoAtom,
+    } = await loadChatPanelTabAtoms();
+    const terminalId = store.set(createChatPanelTerminalAtom, {
+      name: "Codex",
+      agentCommand: "codex",
+      agentSessionId: "managed-session",
+    });
+    const initialSession = store
+      .get(terminalSessionsAtom)
+      .find((session) => session.id === terminalId);
+
+    store.set(updateTerminalSessionInfoAtom, {
+      sessionId: terminalId,
+      info: { processName: "codex" },
+    });
+
+    const updatedSession = store
+      .get(terminalSessionsAtom)
+      .find((session) => session.id === terminalId);
+    expect(updatedSession?.envOverride).toBe(initialSession?.envOverride);
+    expect(updatedSession?.envOverride).toEqual({
+      ORGII_SESSION_ID: "managed-session",
+    });
+  });
+});
+
+describe("setChatPanelTabTitleAtom", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("does not write tab state when the title is unchanged", async () => {
+    const { chatPanelTabsAtom, setChatPanelTabTitleAtom, store } =
+      await loadChatPanelTabAtoms();
+    const stateBefore = store.get(chatPanelTabsAtom);
+    const activeTab = stateBefore.tabs.find(
+      (tab) => tab.id === stateBefore.activeTabId
+    );
+    expect(activeTab).toBeDefined();
+
+    store.set(setChatPanelTabTitleAtom, {
+      tabId: stateBefore.activeTabId,
+      title: activeTab?.title ?? "",
+    });
+
+    expect(store.get(chatPanelTabsAtom)).toBe(stateBefore);
   });
 });

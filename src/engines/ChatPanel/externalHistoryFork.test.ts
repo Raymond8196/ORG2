@@ -98,7 +98,11 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
     ]);
     vi.mocked(requestForkSessionSetup).mockResolvedValue({
       workspaceRepoPath: "/local/repo",
-      execution: { accountId: "openai", model: "gpt-test" },
+      execution: {
+        agentDefinitionId: "custom:security-auditor",
+        accountId: "openai",
+        model: "gpt-test",
+      },
     });
     loadFullTranscriptChunks.mockResolvedValue([
       chunk("u1", "user_message", "user_message", { message: "old ask" }),
@@ -114,7 +118,11 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
       callOrder.push("setup");
       return {
         workspaceRepoPath: "/local/repo",
-        execution: { accountId: "openai", model: "gpt-test" },
+        execution: {
+          agentDefinitionId: "custom:security-auditor",
+          accountId: "openai",
+          model: "gpt-test",
+        },
       };
     });
     loadFullTranscriptChunks.mockImplementation(async () => {
@@ -158,6 +166,7 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
         model: "gpt-test",
         accountId: "openai",
         keySource: "own_key",
+        agentDefinitionId: "custom:security-auditor",
         mode: "build",
         parentSessionId: "codexapp-source-1",
         task: expect.stringContaining("continue and run tests"),

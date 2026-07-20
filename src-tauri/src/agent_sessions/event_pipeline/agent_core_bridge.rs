@@ -408,7 +408,7 @@ fn persist_user_message_event_adapter(
     images: Option<&[String]>,
     source: bridge::PersistedUserMessageSource,
     turn_intent_id: &str,
-) {
+) -> Result<(), String> {
     let mut result = serde_json::json!({
         "type": "user",
         "message": { "content": content, "role": "user" },
@@ -451,11 +451,27 @@ fn persist_user_message_event_adapter(
         .unwrap_or(content)
         .to_string();
 
+    let created_at = if source.is_agent_org_inbox_transcript() {
+        agent_core::session::persistence::message_created_at(session_id, message_id)
+            .map_err(|err| {
+                format!(
+                    "load durable Agent Org inbox transcript timestamp for {message_id} failed: {err}"
+                )
+            })?
+            .ok_or_else(|| {
+                format!(
+                    "durable Agent Org inbox transcript {message_id} disappeared before event persistence"
+                )
+            })?
+    } else {
+        Utc::now().to_rfc3339()
+    };
+
     let mut event = SessionEvent {
         id: format!("user-message-{message_id}"),
         chunk_id: Some(format!("user-message-{message_id}")),
         session_id: session_id.to_string(),
-        created_at: Utc::now().to_rfc3339(),
+        created_at,
         function_name: "user_message".to_string(),
         ui_canonical: "user_message".to_string(),
         action_type: "raw".to_string(),
@@ -483,15 +499,19 @@ fn persist_user_message_event_adapter(
     event.recompute_extracted();
 
     let cached = session_event_to_cached_event(&event);
-    let state = handle.state::<EventStoreState>();
-    state.with_store_mut(session_id, |store| store.merge_events(vec![event]));
-    schedule_notify(handle, &state, session_id);
-    let _ = save_events_retry(
+    // Persist first. If SQLite fails, callers must not invoke the provider or
+    // acknowledge source Inbox rows; the next retry can ensure this same
+    // stable event without duplicating the transcript message.
+    save_events_retry(
         "persist_user_message_event",
         session_id,
         &[cached],
         BULK_WRITE_MAX_RETRIES,
-    );
+    )?;
+    let state = handle.state::<EventStoreState>();
+    state.with_store_mut(session_id, |store| store.merge_events(vec![event]));
+    schedule_notify(handle, &state, session_id);
+    Ok(())
 }
 
 /// One-shot startup repair: finalize historically stranded `awaiting_user`

@@ -410,11 +410,11 @@ const MANAGED_CONFIG_UNAVAILABLE: &[(&str, &str)] = &[
     ),
     (
         "qoder_cli",
-        "Qoder CLI uses its own account-backed runtime and does not expose a compatible Provider base URL setting",
+        "Qoder CLI uses Qoder account/subscription authentication and does not expose a compatible Provider base URL setting",
     ),
     (
         "trae_cli",
-        "Trae Agent does not currently register a stable local Provider config file for managed switching",
+        "Trae Agent is configured per-invocation and exposes no stable persisted config file for managed switching",
     ),
 ];
 

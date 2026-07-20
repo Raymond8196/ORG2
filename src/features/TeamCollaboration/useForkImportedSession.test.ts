@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { ORG2_CLOUD_OFFICIAL_SUPABASE_URL } from "@src/features/Org2Cloud/config";
 import type { Org2CloudOrg } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { COLLAB_IDENTITY_KIND } from "@src/store/collaboration/types";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
@@ -84,10 +85,18 @@ describe("resolveImportedSessionForkBackend", () => {
   it("uses a persisted share token when the importer is not a member", () => {
     expect(
       resolveImportedSessionForkBackend(
-        { ...IMPORTED_FROM, shareToken: "tok-1" },
+        {
+          ...IMPORTED_FROM,
+          shareToken: "tok-1",
+          shareEndpointUrl: "https://cloud.example.com",
+        },
         []
       )
-    ).toEqual({ kind: "guestShare", shareToken: "tok-1" });
+    ).toEqual({
+      kind: "guestShare",
+      shareToken: "tok-1",
+      shareEndpointUrl: "https://cloud.example.com",
+    });
   });
 
   it("prefers membership over a persisted share token", () => {
@@ -134,9 +143,23 @@ describe("executeGuestShareFork", () => {
   it("forks with an anonymous client and the share token", async () => {
     const { client, deps } = makeDeps();
 
-    await expect(executeGuestShareFork("tok-1", deps)).resolves.toEqual(result);
-    expect(deps.resolveShare).toHaveBeenCalledWith("tok-1");
-    expect(deps.buildClient).toHaveBeenCalledWith(null);
+    await expect(
+      executeGuestShareFork("tok-1", ORG2_CLOUD_OFFICIAL_SUPABASE_URL, deps)
+    ).resolves.toEqual(result);
+    expect(deps.resolveShare).toHaveBeenCalledWith(
+      "tok-1",
+      expect.objectContaining({
+        isOfficial: true,
+        supabaseUrl: ORG2_CLOUD_OFFICIAL_SUPABASE_URL,
+      })
+    );
+    expect(deps.buildClient).toHaveBeenCalledWith(
+      null,
+      expect.objectContaining({
+        isOfficial: true,
+        supabaseUrl: ORG2_CLOUD_OFFICIAL_SUPABASE_URL,
+      })
+    );
     expect(deps.fork).toHaveBeenCalledWith(
       expect.objectContaining({
         client,
@@ -149,9 +172,9 @@ describe("executeGuestShareFork", () => {
   it("propagates a revoked share without attempting a fork", async () => {
     const { deps } = makeDeps();
     deps.resolveShare.mockRejectedValueOnce(new Error("ORG2_UNAUTHORIZED"));
-    await expect(executeGuestShareFork("tok-1", deps)).rejects.toThrow(
-      "ORG2_UNAUTHORIZED"
-    );
+    await expect(
+      executeGuestShareFork("tok-1", undefined, deps)
+    ).rejects.toThrow("ORG2_UNAUTHORIZED");
     expect(deps.fork).not.toHaveBeenCalled();
   });
 });

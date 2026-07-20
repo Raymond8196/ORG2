@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 
 import type { AgentOrgRunMemberView, AgentOrgTask } from "@src/api/tauri/agent";
 import Button from "@src/components/Button";
-import { streamingDeltaContentAtom } from "@src/engines/SessionCore/core/atoms";
+import { useStreamingDeltaForSession } from "@src/engines/SessionCore";
 import {
   derivePlanApprovalViewState,
   isPlanDisplayEvent,
@@ -168,12 +168,12 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
   const canLoadMoreMessages = hiddenMessageCount > 0;
   const totalVisibleMessages = visibleMessages.length;
   const showNewMessageDivider = viewMode === "chat" && totalVisibleMessages > 0;
-  const streamingMap = useAtomValue(streamingDeltaContentAtom);
   const latestVisibleMessage = visibleMessages[visibleMessages.length - 1];
-  const latestLiveDelta =
+  const latestLiveDelta = useStreamingDeltaForSession(
     latestVisibleMessage?.event.args?.syntheticLive === true
-      ? streamingMap.get(latestVisibleMessage.event.sessionId)
-      : undefined;
+      ? latestVisibleMessage.event.sessionId
+      : null
+  );
   const liveContentLength =
     latestLiveDelta?.kind === "message" ? latestLiveDelta.content.length : 0;
 

@@ -16,9 +16,11 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 
+import { formatAgentType } from "@src/assets/providers";
 import { navigateToEventAtom } from "@src/engines/SessionCore/core/atoms/actions";
 import { chatEventsForSessionAtomFamily } from "@src/engines/SessionCore/derived/sessionScopedChatEvents";
 import type { UniversalEventProps } from "@src/engines/SessionCore/rendering/types/universalProps";
+import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import {
   focusedSubagentCellAtom,
@@ -122,6 +124,20 @@ export const SubagentAdapter: React.FC<UniversalEventProps> = (props) => {
   const isAwaitingPrompt =
     Boolean(data.subagentSessionId) && !hasPrompt && childEvents.length === 0;
 
+  // Resolve the delegated agent's identity from its own (child) session so
+  // the bubble can render "@{agentName}" with the agent's avatar — matching
+  // the Agent Team message bubbles. Falls back to a formatted subagent_type
+  // (e.g. "general-purpose" → "General Purpose") while the child session row
+  // is still loading, and to a generic label in SubagentBlock otherwise.
+  const subagentSession = useAtomValue(
+    sessionByIdAtom(data.subagentSessionId ?? EMPTY_SUBAGENT_SESSION_ID)
+  );
+  const agentName =
+    subagentSession?.agentDisplayName?.trim() ||
+    (data.subagentType ? formatAgentType(data.subagentType) : "") ||
+    undefined;
+  const agentIconId = subagentSession?.agentIconId;
+
   const setFocusedCell = useSetAtom(focusedSubagentCellAtom);
   const setPanelReveal = useSetAtom(subagentPanelRevealRequestAtom);
   const setChatPanelMaximized = useSetAtom(chatPanelMaximizedAtom);
@@ -156,6 +172,8 @@ export const SubagentAdapter: React.FC<UniversalEventProps> = (props) => {
       <SubagentBlock
         description={data.description}
         subagentType={data.subagentType}
+        agentName={agentName}
+        agentIconId={agentIconId}
         resultContent={data.resultContent}
         resultSummary={data.resultSummary}
         isLoading={

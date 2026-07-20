@@ -104,6 +104,7 @@ fn extract_tool_call_data(
     let org_task_tool = if matches!(
         tool,
         tool_names::TASK_CREATE
+            | tool_names::TASK_GRAPH_CREATE
             | tool_names::TASK_UPDATE
             | tool_names::TASK_LIST
             | tool_names::TASK_GET
@@ -112,6 +113,7 @@ fn extract_tool_call_data(
     } else if matches!(
         event.function_name.as_str(),
         tool_names::TASK_CREATE
+            | tool_names::TASK_GRAPH_CREATE
             | tool_names::TASK_UPDATE
             | tool_names::TASK_LIST
             | tool_names::TASK_GET

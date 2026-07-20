@@ -4,7 +4,6 @@ import { requestForkSessionSetup } from "@src/features/TeamCollaboration/forkSes
 import { resolveShareableScopeKeys } from "@src/features/TeamCollaboration/repoScopeResolver";
 import type { Session } from "@src/store/session";
 import type { ActivityChunk } from "@src/types/session/session";
-import { BUILTIN_SDE_DEF_ID } from "@src/util/session/sessionDispatch";
 
 const MAX_HISTORY_ITEMS = 80;
 const MAX_TEXT_LENGTH = 1200;
@@ -146,7 +145,7 @@ export async function forkExternalHistoryIntoOrgiiSession(params: {
     model: setup.execution.model,
     accountId: setup.execution.accountId,
     keySource: "own_key",
-    agentDefinitionId: BUILTIN_SDE_DEF_ID,
+    agentDefinitionId: setup.execution.agentDefinitionId,
     mode: "build",
     parentSessionId: params.sourceSessionId,
   });

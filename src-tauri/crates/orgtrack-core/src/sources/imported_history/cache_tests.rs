@@ -35,6 +35,8 @@ fn input(
         model: Some("model-a".to_string()),
         input_tokens: 3,
         output_tokens: 4,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: Some(format!("/tmp/repo-{source_session_id}")),
         branch: Some("main".to_string()),
         impact: ImportedHistoryImpactStats::default(),

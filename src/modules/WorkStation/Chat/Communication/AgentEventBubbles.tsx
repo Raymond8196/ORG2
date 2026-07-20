@@ -32,6 +32,7 @@ import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { AgentOrgRunMemberView } from "@src/api/tauri/agent";
+import { TOOL_NAMES } from "@src/api/tauri/agent";
 import {
   CHAT_BUBBLE_WIDTH_TOKENS,
   ChatBubbleAvatar,
@@ -70,11 +71,12 @@ const EMPTY_EVENT_PAYLOAD: Record<string, unknown> = {};
  * decision here so both `MessageBubbleRenderer` and downstream filters
  * can share the same predicate.
  */
-const ORG_TASK_FUNCTION_NAMES = new Set([
-  "task_create",
-  "task_update",
-  "task_list",
-  "task_get",
+const ORG_TASK_FUNCTION_NAMES = new Set<string>([
+  TOOL_NAMES.TASK_CREATE,
+  TOOL_NAMES.TASK_GRAPH_CREATE,
+  TOOL_NAMES.TASK_UPDATE,
+  TOOL_NAMES.TASK_LIST,
+  TOOL_NAMES.TASK_GET,
 ]);
 
 export function isOrgTaskEvent(event: SessionEvent): boolean {
@@ -247,10 +249,14 @@ function resolveOrgTaskTitle(
       : (() => {
           // Fall back to function name when extracted payload is missing
           // (e.g. an older replay frame): map task_* → coarse action.
-          if (event.functionName === "task_create") return "create";
-          if (event.functionName === "task_update") return "update";
-          if (event.functionName === "task_get") return "get";
-          if (event.functionName === "task_list") return "list";
+          if (
+            event.functionName === TOOL_NAMES.TASK_CREATE ||
+            event.functionName === TOOL_NAMES.TASK_GRAPH_CREATE
+          )
+            return "create";
+          if (event.functionName === TOOL_NAMES.TASK_UPDATE) return "update";
+          if (event.functionName === TOOL_NAMES.TASK_GET) return "get";
+          if (event.functionName === TOOL_NAMES.TASK_LIST) return "list";
           return null;
         })();
 

@@ -28,6 +28,7 @@ import { invalidateProjectCache, projectApi } from "@src/api/http/project";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { cloudSyncLevelSessionAtom } from "@src/features/Org2Cloud/CloudSyncLevelDialog/useCloudSyncLevelDialog";
 import { collectAddressableThreads } from "@src/features/Org2Cloud/addressComments";
+import { org2CloudSharingFloorAtom } from "@src/features/Org2Cloud/org2CloudAccessSettings";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import type { Org2CloudAuthState } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { listMyOrgs } from "@src/features/Org2Cloud/org2CloudClient";
@@ -48,7 +49,7 @@ import {
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import type { Org2CloudOrg } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { org2CloudPendingInviteAtom } from "@src/features/Org2Cloud/org2CloudPendingInviteAtom";
-import { org2CloudPendingShareAtom } from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
+import { queueOrg2CloudPendingShareAtom } from "@src/features/Org2Cloud/org2CloudPendingShareAtom";
 import {
   org2CloudPresenceAtom,
   org2CloudPresenceOutboundAtom,
@@ -419,6 +420,7 @@ export function createCloudHelpers({ store }: CloudHelperDeps) {
     sessionId?: string;
   }): Promise<Result<{ debug: Json }>> => {
     try {
+      const sharingFloorByOrg = store.get(org2CloudSharingFloorAtom);
       const remoteEntries = store.get(org2CloudRemoteSessionsAtom);
       const remote = Object.fromEntries(
         Object.entries(remoteEntries).map(([orgId, entry]) => [
@@ -431,12 +433,13 @@ export function createCloudHelpers({ store }: CloudHelperDeps) {
               accessMode: row.accessMode ?? null,
               eventsEpoch: row.eventsEpoch ?? null,
               unresolvedCommentCount: row.unresolvedCommentCount ?? null,
-              openAgentTaskCount: row.openAgentTaskCount ?? null,
             })),
           },
         ])
       );
-      if (!opts.sessionId) return { ok: true, debug: { remote } };
+      if (!opts.sessionId) {
+        return { ok: true, debug: { remote, sharingFloorByOrg } };
+      }
 
       const session = store
         .get(sessionsAtom)
@@ -478,6 +481,7 @@ export function createCloudHelpers({ store }: CloudHelperDeps) {
           comments: commentEntry
             ? {
                 state: commentEntry.state,
+                errorMessage: commentEntry.errorMessage ?? null,
                 count: commentEntry.comments.length,
                 rows: commentEntry.comments.map((comment) => ({
                   id: comment.id,
@@ -629,7 +633,7 @@ export function createCloudHelpers({ store }: CloudHelperDeps) {
           error: `cloudSeedPendingShare: not a valid orgii://cloud/session?share= link: ${opts.link}`,
         };
       }
-      store.set(org2CloudPendingShareAtom, parsed);
+      store.set(queueOrg2CloudPendingShareAtom, parsed);
       return { ok: true, shareToken: parsed.shareToken };
     } catch (err) {
       return asError(err);

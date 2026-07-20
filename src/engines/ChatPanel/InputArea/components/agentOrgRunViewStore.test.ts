@@ -193,6 +193,74 @@ describe("Agent Org run-view store", () => {
     expect(mocks.unsubscribeBackendChanges).toHaveBeenCalledTimes(3);
   });
 
+  it("keeps a borrowed member snapshot referentially stable before subscribe", async () => {
+    mocks.subscribeAgentOrgStateChanges.mockReturnValue(
+      mocks.unsubscribeStateChanges
+    );
+    mocks.getAgentOrgSessionRunView.mockResolvedValue(runView("running"));
+
+    const unsubscribeRoot = subscribeAgentOrgRunView("session-root", vi.fn());
+    await flushPromises();
+
+    // React reads getSnapshot before subscribe. Repeated reads must return the
+    // same wrapper until the backend actually publishes a different view.
+    const first = getAgentOrgRunViewSnapshot("session-worker");
+    const second = getAgentOrgRunViewSnapshot("session-worker");
+    expect(second).toBe(first);
+    expect(first.view?.currentMemberId).toBe("worker");
+
+    const unsubscribeWorker = subscribeAgentOrgRunView(
+      "session-worker",
+      vi.fn()
+    );
+    expect(getAgentOrgRunViewSnapshot("session-worker")).toBe(first);
+    expect(mocks.getAgentOrgSessionRunView).toHaveBeenCalledTimes(1);
+
+    unsubscribeWorker();
+    unsubscribeRoot();
+  });
+
+  it("preserves the bounded-description signal in a shared snapshot", async () => {
+    const compactView = {
+      ...runView("running"),
+      tasks: [
+        {
+          id: "task-1",
+          orgRunId: "run-1",
+          subject: "Compact task",
+          description: "bounded preview",
+          descriptionTruncated: true,
+          owner: "worker",
+          status: "pending",
+          blocks: [],
+          blockedBy: [],
+          executionMode: "build",
+          createdAt: "2026-07-17T00:00:00Z",
+          updatedAt: "2026-07-17T00:00:00Z",
+        },
+      ],
+    };
+    mocks.subscribeAgentOrgStateChanges.mockReturnValue(
+      mocks.unsubscribeStateChanges
+    );
+    mocks.getAgentOrgSessionRunView.mockResolvedValue(compactView);
+
+    const unsubscribeRoot = subscribeAgentOrgRunView("session-root", vi.fn());
+    await flushPromises();
+    const unsubscribeWorker = subscribeAgentOrgRunView(
+      "session-worker",
+      vi.fn()
+    );
+
+    expect(
+      getAgentOrgRunViewSnapshot("session-worker").view?.tasks[0]
+        .descriptionTruncated
+    ).toBe(true);
+
+    unsubscribeWorker();
+    unsubscribeRoot();
+  });
+
   it("stops probing a non-org session after its initial discovery", async () => {
     vi.useFakeTimers();
     mocks.subscribeAgentOrgStateChanges.mockReturnValue(
