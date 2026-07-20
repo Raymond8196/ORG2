@@ -419,12 +419,14 @@ pub fn search_all_sessions(query: &str, limit: i64) -> SqliteResult<Vec<CrossSes
     Ok(rows
         .into_iter()
         .enumerate()
-        .map(|(idx, (session_id, content, timestamp))| CrossSessionSearchHit {
-            session_id,
-            snippet: build_excerpt(&content, query),
-            timestamp,
-            rank: idx as f64,
-        })
+        .map(
+            |(idx, (session_id, content, timestamp))| CrossSessionSearchHit {
+                session_id,
+                snippet: build_excerpt(&content, query),
+                timestamp,
+                rank: idx as f64,
+            },
+        )
         .collect())
 }
 
@@ -992,8 +994,18 @@ mod tests {
             }
             let session_id = "upsert-noop-session";
             let batch = vec![
-                test_event("evt-a", session_id, "first message", "2026-07-16T00:00:00.000Z"),
-                test_event("evt-b", session_id, "second message", "2026-07-16T00:00:01.000Z"),
+                test_event(
+                    "evt-a",
+                    session_id,
+                    "first message",
+                    "2026-07-16T00:00:00.000Z",
+                ),
+                test_event(
+                    "evt-b",
+                    session_id,
+                    "second message",
+                    "2026-07-16T00:00:01.000Z",
+                ),
             ];
 
             save_events(session_id, &batch).expect("initial save");

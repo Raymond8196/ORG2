@@ -160,12 +160,7 @@ pub(in crate::orgtrack) fn request_historical_backfill(
                 < BACKFILL_RECHECK_TTL_MS;
             if is_terminal
                 && is_fresh
-                && !priority_file_needs_backfill(
-                    &conn,
-                    repo_path,
-                    &canonical_repo,
-                    priority_file,
-                )
+                && !priority_file_needs_backfill(&conn, repo_path, &canonical_repo, priority_file)
             {
                 return job.snapshot();
             }
@@ -449,11 +444,8 @@ fn reconcile_historical_interactions(
         imported_sessions.into_iter().partition(|(_, session)| {
             session_touches_priority_file(session, &canonical_repo, priority_file)
         });
-    let backlog_pending = backlog_sessions_needing_work(
-        conn,
-        backlog_sessions,
-        BACKFILL_BACKLOG_BATCH_PER_RUN,
-    );
+    let backlog_pending =
+        backlog_sessions_needing_work(conn, backlog_sessions, BACKFILL_BACKLOG_BATCH_PER_RUN);
     let imported_sessions: Vec<_> = priority_sessions
         .into_iter()
         .chain(backlog_pending)

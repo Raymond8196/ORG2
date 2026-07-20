@@ -148,8 +148,12 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
     // Managed (GUI-launched) Codex sessions surface through their
     // code_sessions row (`cli_agent_type = 'codex'`); the imported twin goes
     // unlistable. Same pattern as the OpenCode/Claude readers.
-    let managed_ids = crate::sources::imported_history::managed_mirror::
-        managed_source_session_ids_from_conn(conn, "codex", SOURCE_CODEX_APP)?;
+    let managed_ids =
+        crate::sources::imported_history::managed_mirror::managed_source_session_ids_from_conn(
+            conn,
+            "codex",
+            SOURCE_CODEX_APP,
+        )?;
     for record in &mut discovered {
         crate::sources::imported_history::managed_mirror::append_managed_fingerprint(
             &mut record.source_fingerprint,

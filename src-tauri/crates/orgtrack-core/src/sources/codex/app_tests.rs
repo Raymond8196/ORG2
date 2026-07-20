@@ -1478,7 +1478,8 @@ fn strips_orgii_exec_mode_bridge_from_codex_user_text() {
     );
 
     // Bridge-only message → empty.
-    let bridge_only = "<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>";
+    let bridge_only =
+        "<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>";
     assert_eq!(strip_orgii_exec_mode_bridge(bridge_only), "");
 
     // No bridge → unchanged.
