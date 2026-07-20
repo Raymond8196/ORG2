@@ -15,9 +15,12 @@ import {
 import Button from "@src/components/Button";
 import Select from "@src/components/Select";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import { DEBOUNCE_DELAYS, useDebouncedCallback } from "@src/hooks/perf";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
-import UsageRoundsTable from "./UsageRoundsTable";
+import UsageRoundsTable, {
+  USAGE_ROUNDS_DEFAULT_PAGE_SIZE,
+} from "./UsageRoundsTable";
 import UsageStatCards from "./UsageStatCards";
 import UsageTrendChart from "./UsageTrendChart";
 import { BucketIcon, bucketLabelKey } from "./usageBuckets";
@@ -28,7 +31,6 @@ import {
 } from "./usageRange";
 
 const SOURCE_ALL = "all";
-const ROUND_ROW_LIMIT = 500;
 
 interface SelectedSession {
   id: string;
@@ -51,6 +53,19 @@ export default function SessionUsagePanel() {
   const [summary, setSummary] = useState<UsageSummary | null>(null);
   const [trends, setTrends] = useState<UsageTrendPoint[]>([]);
   const [rows, setRows] = useState<UsageRoundRow[]>([]);
+  const [roundTotal, setRoundTotal] = useState(0);
+  const [roundModels, setRoundModels] = useState<string[]>([]);
+  const [hasUnknownRoundModel, setHasUnknownRoundModel] = useState(false);
+  // undefined = all models; null = unknown model; string = exact model.
+  const [roundModelFilter, setRoundModelFilter] = useState<
+    string | null | undefined
+  >(undefined);
+  const [roundSearchQuery, setRoundSearchQuery] = useState("");
+  const [appliedRoundSearchQuery, setAppliedRoundSearchQuery] = useState("");
+  const [roundPageIndex, setRoundPageIndex] = useState(0);
+  const [roundPageSize, setRoundPageSize] = useState(
+    USAGE_ROUNDS_DEFAULT_PAGE_SIZE
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,11 +75,44 @@ export default function SessionUsagePanel() {
   }, [bucket, range, session]);
 
   const hourly = range === "today" || range === "24h";
+  const trendEndMs = useMemo(() => {
+    if (range !== "today" || scope.startMs == null) {
+      return scope.endMs ?? null;
+    }
+
+    // The query stops at now, but Today's chart always displays the full
+    // calendar day so empty/future hours remain visible as zeroes.
+    const nextDay = new Date(scope.startMs);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return nextDay.getTime() - 1;
+  }, [range, scope.startMs, scope.endMs]);
 
   // Monotonic request token so a slow response from a stale scope/sort can't
   // overwrite a newer one. setState lives in this callback (not the effect
   // body) to satisfy react-hooks/set-state-in-effect.
   const requestRef = useRef(0);
+  useEffect(
+    () => () => {
+      // Tauri invokes are not abortable, so invalidate their generation. Late
+      // completions cannot apply state after this tab unmounts.
+      requestRef.current += 1;
+    },
+    []
+  );
+
+  const applyRoundSearch = useDebouncedCallback((query: string) => {
+    setAppliedRoundSearchQuery(query);
+  }, DEBOUNCE_DELAYS.API);
+
+  const handleRoundSearchChange = useCallback(
+    (query: string) => {
+      setRoundSearchQuery(query);
+      setRoundPageIndex(0);
+      applyRoundSearch(query);
+    },
+    [applyRoundSearch]
+  );
+
   const load = useCallback(async () => {
     const requestId = ++requestRef.current;
     setLoading(true);
@@ -73,18 +121,43 @@ export default function SessionUsagePanel() {
       // One backend call → one round-store scan (summary + trends + log).
       const overview = await usageDashboardOverview(scope, {
         sort,
-        limit: ROUND_ROW_LIMIT,
+        offset: roundPageIndex * roundPageSize,
+        limit: roundPageSize,
+        model:
+          typeof roundModelFilter === "string" ? roundModelFilter : undefined,
+        unknownModel: roundModelFilter === null,
+        search: appliedRoundSearchQuery.trim() || undefined,
       });
       if (requestId !== requestRef.current) return;
       setSummary(overview.summary);
       setTrends(overview.trends);
-      setRows(overview.rounds);
+      setRoundTotal(overview.roundTotal);
+      setRoundModels(overview.roundModels);
+      setHasUnknownRoundModel(overview.hasUnknownRoundModel);
+
+      const lastPageIndex = Math.max(
+        0,
+        Math.ceil(overview.roundTotal / roundPageSize) - 1
+      );
+      if (roundPageIndex > lastPageIndex) {
+        setRoundPageIndex(lastPageIndex);
+        setRows([]);
+      } else {
+        setRows(overview.rounds);
+      }
     } catch (err) {
       if (requestId === requestRef.current) setError(String(err));
     } finally {
       if (requestId === requestRef.current) setLoading(false);
     }
-  }, [scope, sort]);
+  }, [
+    appliedRoundSearchQuery,
+    roundModelFilter,
+    roundPageIndex,
+    roundPageSize,
+    scope,
+    sort,
+  ]);
 
   useEffect(() => {
     void load();
@@ -119,9 +192,11 @@ export default function SessionUsagePanel() {
         <TabPill
           activeTab={bucket ?? SOURCE_ALL}
           tabs={sourceTabs}
-          onChange={(key) =>
-            setBucket(key === SOURCE_ALL ? null : (key as UsageBucket))
-          }
+          onChange={(key) => {
+            setBucket(key === SOURCE_ALL ? null : (key as UsageBucket));
+            setRoundModelFilter(undefined);
+            setRoundPageIndex(0);
+          }}
           variant="simple"
           size="default"
           fillWidth={false}
@@ -129,7 +204,11 @@ export default function SessionUsagePanel() {
         <div className="flex items-center gap-2">
           <Select
             value={range}
-            onChange={(value) => setRange(value as UsageRangePreset)}
+            onChange={(value) => {
+              setRange(value as UsageRangePreset);
+              setRoundModelFilter(undefined);
+              setRoundPageIndex(0);
+            }}
             options={rangeOptions}
             size="small"
           />
@@ -149,7 +228,11 @@ export default function SessionUsagePanel() {
       {session && (
         <button
           type="button"
-          onClick={() => setSession(null)}
+          onClick={() => {
+            setSession(null);
+            setRoundModelFilter(undefined);
+            setRoundPageIndex(0);
+          }}
           className="flex w-fit items-center gap-1.5 rounded-full border border-border-1 bg-fill-2 px-2.5 py-1 text-[12px] text-text-2 hover:text-text-1"
         >
           <span className="text-text-3">{t("usage.roundsTable.session")}:</span>
@@ -180,19 +263,43 @@ export default function SessionUsagePanel() {
           <UsageTrendChart
             points={trends}
             hourly={hourly}
+            startMs={scope.startMs ?? null}
+            endMs={trendEndMs}
             language={language}
           />
           <UsageRoundsTable
             rows={rows}
-            total={rows.length}
+            total={roundTotal}
+            availableModels={roundModels}
+            hasUnknownModel={hasUnknownRoundModel}
+            modelFilter={roundModelFilter}
+            onModelFilterChange={(model) => {
+              setRoundModelFilter(model);
+              setRoundPageIndex(0);
+            }}
+            searchQuery={roundSearchQuery}
+            onSearchQueryChange={handleRoundSearchChange}
             sort={sort}
-            onSortChange={setSort}
+            onSortChange={(nextSort) => {
+              setSort(nextSort);
+              setRoundPageIndex(0);
+            }}
+            pageIndex={roundPageIndex}
+            pageSize={roundPageSize}
+            onPageChange={setRoundPageIndex}
+            onPageSizeChange={(pageSize) => {
+              setRoundPageSize(pageSize);
+              setRoundPageIndex(0);
+            }}
+            loading={loading}
             onSelectSession={(sessionId) => {
               const row = rows.find((item) => item.sessionId === sessionId);
               setSession({
                 id: sessionId,
                 name: row?.sessionName ?? sessionId,
               });
+              setRoundModelFilter(undefined);
+              setRoundPageIndex(0);
             }}
           />
         </>

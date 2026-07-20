@@ -91,7 +91,6 @@ interface ChatPanelEmptyContentProps {
   handleStartPageAddApiKey: () => void;
   handleStartPageInstallLatestUpdate: () => void;
   handleStartPageSessionStart: (info: SessionLaunchSuccessInfo) => void;
-  handleStartPageNewWorkItem: () => void;
   handleWorkItemAgentCreatorToggle: (enabled: boolean) => void;
   resolveAiWorkItemContext: NonNullable<
     React.ComponentProps<SessionCreatorSlot>["resolveWorkItemContext"]
@@ -121,7 +120,6 @@ export function ChatPanelEmptyContent({
   handleStartPageAddApiKey,
   handleStartPageInstallLatestUpdate,
   handleStartPageSessionStart,
-  handleStartPageNewWorkItem,
   handleWorkItemAgentCreatorToggle,
   resolveAiWorkItemContext,
   SessionCreatorSlot,
@@ -132,6 +130,76 @@ export function ChatPanelEmptyContent({
 }: ChatPanelEmptyContentProps): React.ReactNode {
   const projectDrafts = useAtomValue(projectDraftsAtom);
   const projectDraftOrgId = projectDrafts.get(PROJECT_CREATOR_DRAFT_ID)?.orgId;
+  const renderWorkItemCreator = (showInlineAiModePanel: boolean) => {
+    const sessionCreatorContent =
+      showWorkItemAgentCreator && SessionCreatorSlot ? (
+        <SessionCreatorSlot
+          className="min-h-0 flex-1"
+          variant={creatorVariant}
+          centerFullScreenContent
+          hidePresenceButton
+          launchMode={SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND}
+          onOpenCliTerminal={handleOpenCliTerminal}
+          onRegionNoticeChange={handleRegionNoticeChange}
+          onSessionStart={handleAiWorkItemSessionStart}
+          resolveWorkItemContext={resolveAiWorkItemContext}
+        />
+      ) : null;
+
+    return (
+      <WorkspaceScopedContent>
+        {({ workspacePath }) => {
+          const workItemCreator = (
+            <Suspense fallback={null}>
+              <CreateWorkItemView
+                orgId={createProjectContext?.orgId}
+                scopeBreadcrumbLabel={
+                  createProjectContext?.scopeBreadcrumbLabel
+                }
+                repoPath={workspacePath}
+                onCancel={handleCancelWorkItemCreate}
+                onSetUnsaved={() => undefined}
+                onWorkItemCreated={handleChatPanelWorkItemCreated}
+                onDraftChange={setWorkItemCreateDraft}
+                showCloseAction={false}
+                propertiesOpen={false}
+                showPropertiesAction={false}
+                aiGenerateMode={showWorkItemAgentCreator}
+                onAiGenerateModeChange={handleWorkItemAgentCreatorToggle}
+                showAiModePanel={showInlineAiModePanel}
+                showFooter
+                chatPanelFooter
+                defaultAiAssignee={defaultAiWorkItemAssignee}
+              />
+            </Suspense>
+          );
+
+          if (sessionCreatorContent) {
+            return (
+              <div
+                className={`flex w-full min-w-0 flex-col overflow-hidden ${creatorClassName}`}
+              >
+                <div className="shrink-0 overflow-hidden">
+                  {workItemCreator}
+                </div>
+                <div className="min-h-0 flex-1 overflow-hidden pt-6">
+                  {sessionCreatorContent}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              className={`flex w-full min-w-0 overflow-hidden ${creatorClassName}`}
+            >
+              {workItemCreator}
+            </div>
+          );
+        }}
+      </WorkspaceScopedContent>
+    );
+  };
 
   if (showStartPage) {
     const sessionLauncher = SessionCreatorSlot ? (
@@ -151,9 +219,9 @@ export function ChatPanelEmptyContent({
         className={creatorClassName}
         onAddApiKey={handleStartPageAddApiKey}
         onInstallLatestUpdate={handleStartPageInstallLatestUpdate}
-        onNewWorkItem={handleStartPageNewWorkItem}
         sessionLauncher={sessionLauncher}
         t={t}
+        workItemLauncher={renderWorkItemCreator(true)}
       />
     );
   }
@@ -239,74 +307,7 @@ export function ChatPanelEmptyContent({
   }
 
   if (createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM) {
-    const sessionCreatorContent =
-      showWorkItemAgentCreator && SessionCreatorSlot ? (
-        <SessionCreatorSlot
-          className="min-h-0 flex-1"
-          variant={creatorVariant}
-          centerFullScreenContent
-          hidePresenceButton
-          launchMode={SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND}
-          onOpenCliTerminal={handleOpenCliTerminal}
-          onRegionNoticeChange={handleRegionNoticeChange}
-          onSessionStart={handleAiWorkItemSessionStart}
-          resolveWorkItemContext={resolveAiWorkItemContext}
-        />
-      ) : null;
-
-    return (
-      <WorkspaceScopedContent>
-        {({ workspacePath }) => {
-          const workItemCreator = (
-            <Suspense fallback={null}>
-              <CreateWorkItemView
-                orgId={createProjectContext?.orgId}
-                scopeBreadcrumbLabel={
-                  createProjectContext?.scopeBreadcrumbLabel
-                }
-                repoPath={workspacePath}
-                onCancel={handleCancelWorkItemCreate}
-                onSetUnsaved={() => undefined}
-                onWorkItemCreated={handleChatPanelWorkItemCreated}
-                onDraftChange={setWorkItemCreateDraft}
-                showCloseAction={false}
-                propertiesOpen={false}
-                showPropertiesAction={false}
-                aiGenerateMode={showWorkItemAgentCreator}
-                onAiGenerateModeChange={handleWorkItemAgentCreatorToggle}
-                showAiModePanel={false}
-                showFooter
-                chatPanelFooter
-                defaultAiAssignee={defaultAiWorkItemAssignee}
-              />
-            </Suspense>
-          );
-
-          if (sessionCreatorContent) {
-            return (
-              <div
-                className={`flex w-full min-w-0 flex-col overflow-hidden ${creatorClassName}`}
-              >
-                <div className="shrink-0 overflow-hidden">
-                  {workItemCreator}
-                </div>
-                <div className="min-h-0 flex-1 overflow-hidden pt-6">
-                  {sessionCreatorContent}
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div
-              className={`flex w-full min-w-0 overflow-hidden ${creatorClassName}`}
-            >
-              {workItemCreator}
-            </div>
-          );
-        }}
-      </WorkspaceScopedContent>
-    );
+    return renderWorkItemCreator(false);
   }
 
   if (createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG) {

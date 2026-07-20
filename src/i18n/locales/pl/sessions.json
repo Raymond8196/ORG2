@@ -137,7 +137,8 @@
       "views": {
         "scanning": "Skanowanie",
         "hooks": "Hooks",
-        "usage": "Użycie"
+        "usage": "Użycie",
+        "assets": "Zasoby"
       },
       "usage": {
         "title": "Użycie i koszt",
@@ -888,6 +889,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "Sesja",
+        "workItem": "Element pracy",
+        "more": "Więcej",
         "work": "Praca",
         "manage": "Zarządzaj",
         "heatmap": "Trendy",

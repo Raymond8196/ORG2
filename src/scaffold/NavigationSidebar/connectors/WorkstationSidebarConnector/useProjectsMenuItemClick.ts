@@ -60,6 +60,22 @@ interface UseProjectsMenuItemClickParams<
   toChatPanelWorkItem: (workItem: WorkItem) => ChatPanelSelectedWorkItem;
 }
 
+interface OpenNewWorkItemFromSidebarParams {
+  navigateChatPanel: (command: ChatPanelNavigateCommand) => void;
+  resetWorkManagementStateForProjectsContent: () => void;
+  setProjectsSelectedMenuItemId: (id: string) => void;
+}
+
+export function openNewWorkItemFromSidebar({
+  navigateChatPanel,
+  resetWorkManagementStateForProjectsContent,
+  setProjectsSelectedMenuItemId,
+}: OpenNewWorkItemFromSidebarParams): void {
+  resetWorkManagementStateForProjectsContent();
+  setProjectsSelectedMenuItemId(PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID);
+  navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM });
+}
+
 export function useProjectsMenuItemClick<
   Project,
   WorkItem,
@@ -125,9 +141,11 @@ export function useProjectsMenuItemClick<
       }
 
       if (item.id === PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID) {
-        resetWorkManagementStateForProjectsContent();
-        setProjectsSelectedMenuItemId(PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID);
-        navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM });
+        openNewWorkItemFromSidebar({
+          navigateChatPanel,
+          resetWorkManagementStateForProjectsContent,
+          setProjectsSelectedMenuItemId,
+        });
         return;
       }
 

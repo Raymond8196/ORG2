@@ -20,6 +20,7 @@ import {
 } from "@src/components/Chart";
 
 import { formatTokensShort, formatUsd } from "./usageFormat";
+import { fillHourlyUsageTrend } from "./usageTrendData";
 
 /** Series colors, drawn from the semantic token palette (theme-aware). */
 const SERIES = {
@@ -34,6 +35,9 @@ interface UsageTrendChartProps {
   points: UsageTrendPoint[];
   /** Hourly x-axis labels (else daily). */
   hourly: boolean;
+  /** Inclusive bounds used to render zero-valued hourly buckets. */
+  startMs: number | null;
+  endMs: number | null;
   language: string;
 }
 
@@ -65,25 +69,30 @@ function formatBucketLabel(
 export default function UsageTrendChart({
   points,
   hourly,
+  startMs,
+  endMs,
   language,
 }: UsageTrendChartProps) {
   const { t } = useTranslation("sessions", { keyPrefix: "kanban.dataSource" });
 
-  const data = useMemo<ChartDatum[]>(
-    () =>
-      points.map((point) => ({
-        label: formatBucketLabel(point.bucketMs, hourly, language),
-        input: point.inputTokens,
-        output: point.outputTokens,
-        cacheCreate: point.cacheWriteTokens,
-        cacheRead: point.cacheReadTokens,
-        cost: point.costUsd,
-      })),
-    [points, hourly, language]
-  );
+  const data = useMemo<ChartDatum[]>(() => {
+    const chartPoints =
+      hourly && startMs !== null && endMs !== null
+        ? fillHourlyUsageTrend(points, startMs, endMs)
+        : points;
+
+    return chartPoints.map((point) => ({
+      label: formatBucketLabel(point.bucketMs, hourly, language),
+      input: point.inputTokens,
+      output: point.outputTokens,
+      cacheCreate: point.cacheWriteTokens,
+      cacheRead: point.cacheReadTokens,
+      cost: point.costUsd,
+    }));
+  }, [points, hourly, startMs, endMs, language]);
 
   return (
-    <div className="rounded-xl border border-border-1 bg-fill-2 p-4">
+    <div className="rounded-xl border border-border-1 bg-primary-container p-4">
       <h3 className="mb-3 text-[13px] font-semibold text-text-1">
         {t("usage.trends.title")}
       </h3>

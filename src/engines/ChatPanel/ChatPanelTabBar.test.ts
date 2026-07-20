@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { chatPanelTabsAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 
-import { ChatPanelTabBar } from "./ChatPanelTabBar";
+import { ChatPanelTabBar, PlusMenuContent } from "./ChatPanelTabBar";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -33,5 +33,19 @@ describe("ChatPanelTabBar", () => {
       /<div[^>]*work-station-editor-tab[^>]*role="tab"[^>]*>.*<button type="button"/s
     );
     expect(markup.match(/<button type="button"/g)).toHaveLength(1);
+  });
+
+  it("offers Runtime in the new-tab menu", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PlusMenuContent, {
+        onOpenLaunchpad: vi.fn(),
+        onOpenKanban: vi.fn(),
+        onOpenRuntime: vi.fn(),
+        onNewWorkItem: vi.fn(),
+        onClose: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain("sessions:chat.startPage.tabs.runtime");
   });
 });

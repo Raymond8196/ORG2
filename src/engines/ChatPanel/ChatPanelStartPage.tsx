@@ -1,36 +1,20 @@
 import type { TFunction } from "i18next";
-import { useAtom } from "jotai";
 import {
-  BriefcaseBusiness,
   ChevronLeft,
   ChevronRight,
   Download,
   Import,
   KeyRound,
 } from "lucide-react";
-import React, { Suspense, useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
-import {
-  CHAT_PANEL_START_PAGE_TAB,
-  chatPanelStartPageTabAtom,
-} from "@src/store/ui/chatPanelAtom";
-
-const WorkspaceDashboardPanelView = React.lazy(
-  () => import("./panels/WorkspaceDashboardPanelView")
-);
-
-// The "Runtime" tab reuses the same data-source inventory table shown under
-// Kanban → Data source. The panel lives in a shared module so both surfaces
-// render the identical component.
-const DataSourcePanel = React.lazy(
-  () => import("@src/modules/shared/dataSource")
-);
 
 type StartPageActionTone = "primary" | "neutral" | "success" | "warning";
+type StartPageView = "session" | "work-item" | "more";
 
 interface ChatPanelStartPageAction {
   id: string;
@@ -59,11 +43,12 @@ interface StartPageHint {
 
 interface ChatPanelStartPageProps {
   className?: string;
+  initialView?: StartPageView;
   onAddApiKey: () => void;
   onInstallLatestUpdate: () => void;
-  onNewWorkItem: () => void;
   sessionLauncher?: React.ReactNode;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
+  workItemLauncher?: React.ReactNode;
 }
 
 const START_PAGE_HINTS: StartPageHint[] = [
@@ -198,51 +183,17 @@ function StartPageHintLine({
 
 export function ChatPanelStartPage({
   className,
+  initialView = "session",
   onAddApiKey,
   onInstallLatestUpdate,
-  onNewWorkItem,
   sessionLauncher,
   t,
+  workItemLauncher,
 }: ChatPanelStartPageProps): React.ReactNode {
-  const [activeTab, setActiveTab] = useAtom(chatPanelStartPageTabAtom);
+  const [activeView, setActiveView] = useState<StartPageView>(initialView);
   const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
     useState(false);
   const availableUpdate = useAvailableAppUpdate();
-  const tabs = useMemo(
-    () => [
-      {
-        key: CHAT_PANEL_START_PAGE_TAB.WORK,
-        label: t("chat.startPage.tabs.work"),
-        dataTestId: "chat-panel-start-page-tab-work",
-      },
-      {
-        key: CHAT_PANEL_START_PAGE_TAB.MANAGE,
-        label: t("chat.startPage.tabs.manage"),
-        dataTestId: "chat-panel-start-page-tab-manage",
-      },
-      {
-        key: CHAT_PANEL_START_PAGE_TAB.RUNTIME,
-        label: t("chat.startPage.tabs.runtime"),
-        dataTestId: "chat-panel-start-page-tab-runtime",
-      },
-    ],
-    [t]
-  );
-
-  const handleTabChange = useCallback(
-    (key: string) => {
-      setActiveTab(key as typeof activeTab);
-    },
-    [setActiveTab]
-  );
-
-  const newWorkItemAction: ChatPanelStartPageAction = {
-    id: "new-work-item",
-    title: t("chat.startPage.newWorkItem.title"),
-    icon: <BriefcaseBusiness size={16} strokeWidth={1.8} />,
-    onClick: onNewWorkItem,
-    tone: "neutral",
-  };
   const importSessionAction: ChatPanelStartPageAction = {
     id: "import-session",
     title: t("navigation:cloud.share.importEntry"),
@@ -257,7 +208,7 @@ export function ChatPanelStartPage({
     onClick: onAddApiKey,
     tone: "neutral",
   };
-  const workActions: ChatPanelStartPageAction[] = availableUpdate?.available
+  const moreActions: ChatPanelStartPageAction[] = availableUpdate?.available
     ? [
         {
           id: "install-latest-update",
@@ -267,17 +218,15 @@ export function ChatPanelStartPage({
           tone: "warning",
         },
         importSessionAction,
-        newWorkItemAction,
         addApiKeyAction,
       ]
-    : [importSessionAction, newWorkItemAction, addApiKeyAction];
-  const manageTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.MANAGE;
-  const runtimeTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.RUNTIME;
-  // The Manage dashboard and the Runtime data-source panel both scroll
-  // internally (they fill their container), so the body wrapper must not add
-  // its own scrollbar for those tabs.
-  const bodyOverflowClass =
-    manageTabActive || runtimeTabActive ? "overflow-hidden" : "overflow-y-auto";
+    : [importSessionAction, addApiKeyAction];
+  const activeActions = activeView === "more" ? moreActions : [];
+  const handleViewChange = useCallback((key: string) => {
+    if (key === "session" || key === "work-item" || key === "more") {
+      setActiveView(key);
+    }
+  }, []);
 
   return (
     <div
@@ -285,60 +234,80 @@ export function ChatPanelStartPage({
       data-testid="chat-panel-start-page"
     >
       <div
-        className={`flex shrink-0 justify-center px-4 pb-2 pt-4 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+        className="shrink-0 bg-chat-pane"
         data-testid="chat-panel-start-page-tabs"
       >
-        <TabPill
-          variant="simple"
-          size="large"
-          fillWidth={false}
-          tabs={tabs}
-          activeTab={activeTab}
-          onChange={handleTabChange}
-        />
+        <div className="mx-auto flex h-full w-full max-w-[932px] justify-center px-4 pb-3 pt-4">
+          <TabPill
+            activeTab={activeView}
+            tabs={[
+              {
+                key: "session",
+                label: t("chat.startPage.tabs.session"),
+                dataTestId: "chat-panel-start-page-tab-session",
+              },
+              {
+                key: "work-item",
+                label: t("chat.startPage.tabs.workItem"),
+                dataTestId: "chat-panel-start-page-tab-work-item",
+              },
+              {
+                key: "more",
+                label: t("chat.startPage.tabs.more"),
+                dataTestId: "chat-panel-start-page-tab-more",
+              },
+            ]}
+            onChange={handleViewChange}
+            variant="simple"
+            size="large"
+            fillWidth={false}
+          />
+        </div>
       </div>
-      <div className={`min-h-0 flex-1 ${bodyOverflowClass}`}>
-        {manageTabActive ? (
-          <Suspense fallback={null}>
-            <WorkspaceDashboardPanelView />
-          </Suspense>
-        ) : runtimeTabActive ? (
+      <div
+        className={`min-h-0 flex-1 ${
+          activeView === "work-item" ? "overflow-hidden" : "overflow-y-auto"
+        }`}
+      >
+        {activeView === "work-item" ? (
           <div
-            className="relative h-full w-full"
-            data-testid="chat-panel-start-page-runtime"
+            className="flex h-full min-h-0 w-full"
+            data-testid="chat-panel-start-page-work-item-launcher"
           >
-            <Suspense fallback={null}>
-              <DataSourcePanel />
-            </Suspense>
+            {workItemLauncher}
           </div>
         ) : (
           <div className="flex min-h-full items-center justify-center">
-            {activeTab === CHAT_PANEL_START_PAGE_TAB.WORK && sessionLauncher ? (
+            {activeView === "session" && sessionLauncher ? (
               <div
                 className="w-full"
                 data-testid="chat-panel-start-page-session-launcher"
               >
                 {sessionLauncher}
               </div>
+            ) : activeActions.length > 0 ? (
+              <div
+                className={`w-full px-4 py-6 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+                data-testid="chat-panel-start-page-actions"
+              >
+                <div className="@container/startactions">
+                  <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3">
+                    {activeActions.map((action) => (
+                      <StartPageActionCard key={action.id} action={action} />
+                    ))}
+                  </div>
+                </div>
+              </div>
             ) : null}
           </div>
         )}
       </div>
-      {activeTab === CHAT_PANEL_START_PAGE_TAB.WORK ? (
+      {activeView === "session" ? (
         <div
           className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-          data-testid="chat-panel-start-page-actions"
+          data-testid="chat-panel-start-page-hints"
         >
-          <div className="flex w-full flex-col gap-3">
-            <StartPageHintLine t={t} />
-            <div className="@container/startactions">
-              <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-4">
-                {workActions.map((action) => (
-                  <StartPageActionCard key={action.id} action={action} />
-                ))}
-              </div>
-            </div>
-          </div>
+          <StartPageHintLine t={t} />
         </div>
       ) : null}
       {isImportSessionDialogOpen && (
