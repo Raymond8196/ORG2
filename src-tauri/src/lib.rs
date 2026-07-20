@@ -530,6 +530,9 @@ pub fn run() {
                 }
             });
             orgtrack::session_provenance::spawn_hook_inbox_drain_loop(app.handle().clone());
+            orgtrack::session_provenance::spawn_codex_write_reconciliation_loop(
+                app.handle().clone(),
+            );
 
             // Live agent-status registry: frontend fanout handle + restart
             // continuity from the last-status cache (TTL-filtered).

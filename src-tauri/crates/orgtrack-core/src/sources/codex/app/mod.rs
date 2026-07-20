@@ -22,7 +22,9 @@ mod transcript;
 
 // Public API — preserved at `...::sources::codex::app::*`.
 pub use index::{
-    list_codex_app_recent_paths, list_codex_app_sessions_paginated, load_codex_app_for_session,
+    codex_thread_id_from_file_stem, list_codex_app_recent_paths,
+    list_codex_app_reconciliation_sessions, list_codex_app_sessions_paginated,
+    load_codex_app_for_session,
 };
 pub use meta::{resolve_codex_transcript_for_thread_id_near_path, CodexTranscriptLocator};
 pub use transcript::load_codex_app_from_path;
