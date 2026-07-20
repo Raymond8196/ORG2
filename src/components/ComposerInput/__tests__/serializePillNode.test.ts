@@ -83,6 +83,17 @@ describe("serializePillNode", () => {
     );
   });
 
+  it("serializes a generic HTTP URL as a link pill token", () => {
+    const serialized = serializePillNode({
+      filePath: "https://example.com/docs/getting-started?view=full#install",
+      fileName: "example.com/docs/getting-started?view=full#install",
+      iconType: "link",
+    });
+    expect(serialized).toBe(
+      "example.com/docs/getting-started?view=full#install [link:https://example.com/docs/getting-started?view=full#install]"
+    );
+  });
+
   it("serializes browser-inspect DOM component pills with stored paste content", () => {
     window.__orgiiTerminalPillTexts = {
       "paste://inspect-1": '{"cssSelector":"button.primary"}',
