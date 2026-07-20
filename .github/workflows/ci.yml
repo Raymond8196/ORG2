@@ -100,7 +100,11 @@ jobs:
   # macOS-only.
   shell-replay-windows:
     name: Shell replay (Windows)
-    runs-on: windows-latest
+    # Keep the required portability lane on the stable VS2022 image. The
+    # floating windows-latest label currently resolves to Windows 2025 +
+    # VS2026, where the agent_core test binary fails in the OS loader before
+    # the Rust test harness starts (STATUS_ENTRYPOINT_NOT_FOUND).
+    runs-on: windows-2022
 
     steps:
       - name: Checkout
@@ -113,7 +117,7 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: "./src-tauri -> target"
-          shared-key: "ci-windows-shell-replay"
+          shared-key: "ci-windows-2022-shell-replay"
 
       - name: Check shell replay dependency chain
         working-directory: src-tauri
