@@ -489,36 +489,6 @@ class EventStoreProxyImpl {
     });
   }
 
-  /** Update streamOutput on the last shell tool_call. Returns event ID if found. */
-  async updateLastShellOutput(
-    streamOutput: string,
-    sessionId?: string
-  ): Promise<string | null> {
-    return rpc.sessionCore.eventStore.updateLastShellOutput({
-      streamOutput,
-      sessionId: sessionId ?? null,
-    });
-  }
-
-  /**
-   * Update shell process info (pid, status, exit_code, log_path) on the last shell tool_call.
-   */
-  updateLastShellProcess(
-    pid: number,
-    status: "running" | "background" | "exited" | "killed",
-    exitCode?: number,
-    logPath?: string,
-    sessionId?: string
-  ): void {
-    void rpc.sessionCore.eventStore.updateLastShellProcess({
-      pid,
-      status,
-      exitCode: exitCode ?? null,
-      logPath: logPath ?? null,
-      sessionId: sessionId ?? null,
-    });
-  }
-
   /** Check if there is an active spawning tool_call in the store. */
   async hasActiveTask(
     functionNames?: string[],

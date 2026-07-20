@@ -45,6 +45,12 @@
     line-height: var(--simulator-shell-line-height) !important;
   }
 
+  .simulator-shell-visual-row {
+    min-height: calc(
+      var(--simulator-shell-font-size) * var(--simulator-shell-line-height)
+    );
+  }
+
   .simulator-shell-loading__dots {
     display: inline-flex;
     gap: 0.25em;
