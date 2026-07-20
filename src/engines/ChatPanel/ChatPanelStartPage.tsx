@@ -14,7 +14,7 @@ import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessi
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 
 type StartPageActionTone = "primary" | "neutral" | "success" | "warning";
-type StartPageView = "session" | "more";
+type StartPageView = "session" | "work-item" | "more";
 
 interface ChatPanelStartPageAction {
   id: string;
@@ -46,9 +46,9 @@ interface ChatPanelStartPageProps {
   initialView?: StartPageView;
   onAddApiKey: () => void;
   onInstallLatestUpdate: () => void;
-  onNewWorkItem: () => void;
   sessionLauncher?: React.ReactNode;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
+  workItemLauncher?: React.ReactNode;
 }
 
 const START_PAGE_HINTS: StartPageHint[] = [
@@ -186,9 +186,9 @@ export function ChatPanelStartPage({
   initialView = "session",
   onAddApiKey,
   onInstallLatestUpdate,
-  onNewWorkItem,
   sessionLauncher,
   t,
+  workItemLauncher,
 }: ChatPanelStartPageProps): React.ReactNode {
   const [activeView, setActiveView] = useState<StartPageView>(initialView);
   const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
@@ -222,18 +222,11 @@ export function ChatPanelStartPage({
       ]
     : [importSessionAction, addApiKeyAction];
   const activeActions = activeView === "more" ? moreActions : [];
-  const handleViewChange = useCallback(
-    (key: string) => {
-      if (key === "work-item") {
-        onNewWorkItem();
-        return;
-      }
-      if (key === "session" || key === "more") {
-        setActiveView(key);
-      }
-    },
-    [onNewWorkItem]
-  );
+  const handleViewChange = useCallback((key: string) => {
+    if (key === "session" || key === "work-item" || key === "more") {
+      setActiveView(key);
+    }
+  }, []);
 
   return (
     <div
@@ -271,30 +264,43 @@ export function ChatPanelStartPage({
           />
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center">
-          {activeView === "session" && sessionLauncher ? (
-            <div
-              className="w-full"
-              data-testid="chat-panel-start-page-session-launcher"
-            >
-              {sessionLauncher}
-            </div>
-          ) : activeActions.length > 0 ? (
-            <div
-              className={`w-full px-4 py-6 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-              data-testid="chat-panel-start-page-actions"
-            >
-              <div className="@container/startactions">
-                <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3">
-                  {activeActions.map((action) => (
-                    <StartPageActionCard key={action.id} action={action} />
-                  ))}
+      <div
+        className={`min-h-0 flex-1 ${
+          activeView === "work-item" ? "overflow-hidden" : "overflow-y-auto"
+        }`}
+      >
+        {activeView === "work-item" ? (
+          <div
+            className="flex h-full min-h-0 w-full"
+            data-testid="chat-panel-start-page-work-item-launcher"
+          >
+            {workItemLauncher}
+          </div>
+        ) : (
+          <div className="flex min-h-full items-center justify-center">
+            {activeView === "session" && sessionLauncher ? (
+              <div
+                className="w-full"
+                data-testid="chat-panel-start-page-session-launcher"
+              >
+                {sessionLauncher}
+              </div>
+            ) : activeActions.length > 0 ? (
+              <div
+                className={`w-full px-4 py-6 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+                data-testid="chat-panel-start-page-actions"
+              >
+                <div className="@container/startactions">
+                  <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3">
+                    {activeActions.map((action) => (
+                      <StartPageActionCard key={action.id} action={action} />
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : null}
-        </div>
+            ) : null}
+          </div>
+        )}
       </div>
       {activeView === "session" ? (
         <div
