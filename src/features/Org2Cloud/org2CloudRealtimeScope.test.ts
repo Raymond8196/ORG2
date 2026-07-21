@@ -16,4 +16,12 @@ describe("resolveActiveRealtimeOrgId", () => {
   it("does not subscribe a removed or stale selected org", () => {
     expect(resolveActiveRealtimeOrgId(ORGS, "org-removed")).toBeNull();
   });
+
+  it("prioritizes the visible management org over the sidebar filter", () => {
+    expect(resolveActiveRealtimeOrgId(ORGS, "org-1", "org-2")).toBe("org-2");
+  });
+
+  it("rejects a stale management org instead of falling through silently", () => {
+    expect(resolveActiveRealtimeOrgId(ORGS, "org-1", "org-removed")).toBeNull();
+  });
 });

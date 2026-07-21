@@ -8,8 +8,13 @@ import type { Org2CloudOrg } from "./org2CloudOrgsAtom";
  */
 export function resolveActiveRealtimeOrgId(
   cloudOrgs: readonly Pick<Org2CloudOrg, "orgId">[],
-  requestedOrgId: string | null
+  sidebarOrgId: string | null,
+  managementOrgId: string | null = null
 ): string | null {
+  // The visible management surface is the strongest demand signal. Creating
+  // or opening an org panel does not implicitly mutate the sidebar filter,
+  // but its roster/policy UI still needs that org's live invalidations.
+  const requestedOrgId = managementOrgId ?? sidebarOrgId;
   if (!requestedOrgId) return null;
   return cloudOrgs.some((org) => org.orgId === requestedOrgId)
     ? requestedOrgId

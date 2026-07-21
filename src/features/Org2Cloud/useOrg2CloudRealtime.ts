@@ -46,6 +46,7 @@ import { createLogger } from "@src/hooks/logger";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";
+import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 
 import {
   commitRefreshedAuth,
@@ -121,9 +122,12 @@ export function useOrg2CloudRealtime(): void {
   const setAuth = useSetAtom(org2CloudAuthAtom);
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const requestedActiveCloudOrgId = useAtomValue(sidebarActiveCloudOrgIdAtom);
+  const managedCloudOrgId =
+    useAtomValue(chatPanelSelectedCloudOrgAtom)?.orgId ?? null;
   const activeRealtimeOrgId = resolveActiveRealtimeOrgId(
     cloudOrgs,
-    requestedActiveCloudOrgId
+    requestedActiveCloudOrgId,
+    managedCloudOrgId
   );
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const setRosterVersion = useSetAtom(org2CloudRosterVersionAtom);
