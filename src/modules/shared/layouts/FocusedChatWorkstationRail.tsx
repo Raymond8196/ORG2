@@ -5,6 +5,7 @@ import {
   File,
   FileDiff,
   Folder,
+  GitBranch,
   Globe,
   type LucideIcon,
   SquareTerminal,
@@ -23,6 +24,7 @@ import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { ROUTES } from "@src/config/routes";
 import { getTerminalDisplayTitle } from "@src/engines/TerminalCore/types";
 import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
+import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
 import { useCloseTabWithGuard } from "@src/hooks/workStation/tabs/useCloseTabWithGuard";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
@@ -124,6 +126,9 @@ export function FocusedChatWorkstationRail() {
     chatPanelSurface.kind === CHAT_PANEL_SURFACE_KIND.WORK_ITEM;
 
   const activeWorkspaceRoot = useAtomValue(activeWorkspaceRootAtom);
+  const workspacePath = activeWorkspaceRoot?.path;
+  const { currentBranch } = useRepoSelection({ autoLoad: false });
+  const branchName = currentBranch || undefined;
 
   // Working-tree +/- shown on the Review row, matching the branch pill's badge.
   const { repoId, repoPath } = useActiveRepoRef();
@@ -378,6 +383,26 @@ export function FocusedChatWorkstationRail() {
                 <div className="text-text-tertiary mb-1.5 px-1 text-[11px] font-medium uppercase tracking-wide">
                   {section.label}
                 </div>
+                {section.key === "workspace" &&
+                  (branchName || workspacePath) && (
+                    <div className="mb-1.5 space-y-0.5">
+                      {branchName && (
+                        <div className="text-text-tertiary flex h-6 min-w-0 items-center gap-1.5 truncate rounded-lg px-2 text-[11px]">
+                          <GitBranch size={11} className="shrink-0" />
+                          <span className="truncate">{branchName}</span>
+                        </div>
+                      )}
+                      {workspacePath && (
+                        <div
+                          className="text-text-tertiary flex h-6 min-w-0 items-center gap-1.5 truncate rounded-lg px-2 text-[11px]"
+                          title={workspacePath}
+                        >
+                          <Folder size={11} className="shrink-0" />
+                          <span className="truncate">{workspacePath}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 <div className="space-y-1">
                   {section.items.map((item) => {
                     const Icon = item.icon;
