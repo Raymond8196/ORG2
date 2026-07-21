@@ -16,10 +16,6 @@ import {
 } from "@src/api/http/project";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
-import {
-  ChatPanelHeaderBreadcrumb,
-  usePublishChatPanelHeader,
-} from "@src/engines/ChatPanel/header";
 import KanbanBoard from "@src/features/KanbanBoard";
 import type { KanbanTask, TaskStatus } from "@src/features/KanbanBoard";
 import { allocateCloudAwareWorkItemId } from "@src/features/Org2Cloud/cloudShortId";
@@ -57,15 +53,8 @@ import {
   DetailPanelContainer,
   Placeholder,
 } from "@src/modules/shared/layouts/blocks";
-import {
-  openProjectOrgInChatPanelTabAtom,
-  openWorkItemInChatPanelTabAtom,
-} from "@src/store/chatPanel/chatPanelTabsAtom";
+import { openWorkItemInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { type ChatPanelSelectedProject } from "@src/store/ui/chatPanelAtom";
-import {
-  STORY_ORG_SCOPE,
-  STORY_PERSONAL_ORG_FILTER_ID,
-} from "@src/store/workstation";
 import type { WorkItem } from "@src/types/core/workItem";
 
 const logger = createLogger("ProjectPanelView");
@@ -90,7 +79,6 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
 }) => {
   const { t } = useTranslation(["projects", "common"]);
   const openWorkItemTab = useSetAtom(openWorkItemInChatPanelTabAtom);
-  const openProjectOrgTab = useSetAtom(openProjectOrgInChatPanelTabAtom);
   const sidebarProjectDescription = getProjectOverviewDescription(
     selectedProject.project
   );
@@ -113,8 +101,6 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   const [workItemsError, setWorkItemsError] = useState<string | null>(null);
   const propertiesRef = useRef<HTMLDivElement>(null);
 
-  const orgPathLabel =
-    selectedProject.orgName || t("projects:orgs.personalOrg");
   const projectProperties = useMemo<ProjectData>(
     () => ({
       id: selectedProject.project.id,
@@ -340,58 +326,6 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     projectSlug,
     getShortId: getWorkItemShortId,
     onBatchDeleteComplete: loadProjectWorkItems,
-  });
-
-  const handleOpenOrg = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
-      openProjectOrgTab({
-        orgId: selectedProject.orgId,
-        orgName: orgPathLabel,
-        orgScope:
-          selectedProject.orgId === STORY_PERSONAL_ORG_FILTER_ID
-            ? STORY_ORG_SCOPE.PERSONAL_ORG
-            : STORY_ORG_SCOPE.PROJECT_ORG,
-      });
-    },
-    [openProjectOrgTab, orgPathLabel, selectedProject.orgId]
-  );
-
-  const handleOpenProjectOverview = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
-      setActivePanelTab("overview");
-    },
-    []
-  );
-
-  const headerBreadcrumbContent = useMemo(
-    () => (
-      <ChatPanelHeaderBreadcrumb
-        items={[
-          {
-            key: "org",
-            label: orgPathLabel,
-            onClick: handleOpenOrg,
-          },
-          {
-            key: "project",
-            label: selectedProject.project.name,
-            onClick: handleOpenProjectOverview,
-          },
-        ]}
-      />
-    ),
-    [
-      handleOpenOrg,
-      handleOpenProjectOverview,
-      orgPathLabel,
-      selectedProject.project.name,
-    ]
-  );
-
-  usePublishChatPanelHeader({
-    content: { content: headerBreadcrumbContent },
   });
 
   const inlineProperties = (

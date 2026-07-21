@@ -19,6 +19,7 @@ import {
   activeWorkManagementSectionAtom,
   closeAndDestroyChatPanelTabAtom,
   openCloudOrgManagementInChatPanelTabAtom,
+  openCreateTargetInChatPanelStartPageAtom,
   openKanbanChatPanelTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
@@ -41,6 +42,7 @@ import {
 } from "@src/store/session";
 import { openSessionInWorkstationAtom } from "@src/store/session/sessionTabPlacementAtom";
 import {
+  CHAT_PANEL_CREATE_TARGET,
   CHAT_PANEL_SURFACE_KIND,
   activeStationChatVisibleAtom,
   chatPanelContentModeAtom,
@@ -191,6 +193,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
   );
   const activateChatPanelTab = useSetAtom(activateChatPanelTabAtom);
   const openStartPageTab = useSetAtom(openOrFocusChatPanelStartPageTabAtom);
+  const openCreateTargetInStartPage = useSetAtom(
+    openCreateTargetInChatPanelStartPageAtom
+  );
   const openRuntimeTab = useSetAtom(openRuntimeInChatPanelTabAtom);
   const closeAndDestroyChatPanelTab = useSetAtom(
     closeAndDestroyChatPanelTabAtom
@@ -719,7 +724,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     activateMyStationRouteForProjectsContent,
     getProjectsLoadMoreGroupId,
     loadProjectsLinearOrgWorkItems,
-    navigateChatPanel,
     openProjectsLinearOrg,
     openProjectsLinearWorkItem: openProjectsLinearWorkItem,
     projectsLinearOrgMap,
@@ -739,8 +743,16 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const handleAddOrgFromSelector = useCallback(() => {
     resetWorkManagementStateForProjectsContent();
     setProjectsSelectedMenuItemId(COLLAB_ADD_ORG_MENU_ITEM_ID);
-    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_COLLAB_ORG });
-  }, [navigateChatPanel, resetWorkManagementStateForProjectsContent]);
+    openCreateTargetInStartPage({
+      target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
+      title: t("routes.launchpad"),
+    });
+  }, [
+    openCreateTargetInStartPage,
+    resetWorkManagementStateForProjectsContent,
+    setProjectsSelectedMenuItemId,
+    t,
+  ]);
   // UX decision (scope vs. panel): picking an org in the selector ONLY
   // switches the sidebar scope — it never navigates the chat panel. The
   // dropdown's explicit management action remains available from any scope.

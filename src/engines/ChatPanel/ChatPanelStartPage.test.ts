@@ -27,6 +27,7 @@ const createTargetProps = {
       value: CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT,
       label: "GitHub Issues project",
     },
+    { value: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG, label: "Add ORG" },
   ],
   onCreateTarget: vi.fn(),
 };
@@ -47,7 +48,6 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
-        initialView: "more",
         moreLauncher: createElement(
           "div",
           { "data-testid": "embedded-more-creator" },
@@ -73,7 +73,22 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-create-target-select"'
     );
+    expect(markup).toContain("select-size-large");
+    expect(markup).toContain("select-ghost-text-only");
     expect(markup).toContain("Create project");
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-more-separator"'
+    );
+    expect(
+      markup.indexOf('data-testid="chat-panel-start-page-tab-more"')
+    ).toBeLessThan(
+      markup.indexOf('data-testid="chat-panel-start-page-more-separator"')
+    );
+    expect(
+      markup.indexOf('data-testid="chat-panel-start-page-more-separator"')
+    ).toBeLessThan(
+      markup.indexOf('data-testid="chat-panel-start-page-create-target-select"')
+    );
     expect(markup).not.toContain("Agent session");
     expect(markup).not.toContain("Create Work Item");
     expect(markup).toContain(
@@ -108,7 +123,6 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
-        initialView: "more",
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         t,
@@ -129,7 +143,6 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
-        initialView: "more",
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         t,
@@ -163,7 +176,7 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
-        initialView: "work-item",
+        createTarget: CHAT_PANEL_CREATE_TARGET.WORK_ITEM,
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         t,
@@ -204,6 +217,7 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
+        createTarget: CHAT_PANEL_CREATE_TARGET.AGENT_SESSION,
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         sessionLauncher: createElement("div", null, "Session launcher"),

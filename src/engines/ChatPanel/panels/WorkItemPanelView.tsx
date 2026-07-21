@@ -13,10 +13,7 @@ import {
 } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
-import {
-  ChatPanelHeaderBreadcrumb,
-  usePublishChatPanelHeader,
-} from "@src/engines/ChatPanel/header";
+import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
 import {
@@ -26,20 +23,12 @@ import {
 import { WORK_ITEM_PROPERTY_INLINE_FIELDS } from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties";
 import { useWorkItemOrchestrator } from "@src/modules/ProjectManager/WorkItems/hooks";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
-import {
-  openProjectInChatPanelTabAtom,
-  openProjectOrgInChatPanelTabAtom,
-} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { activeSessionIdAtom } from "@src/store/session";
 import {
   type ChatPanelSelectedWorkItem,
   chatPanelSelectedWorkItemAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { activeWorkspaceRootPathAtom } from "@src/store/workspace";
-import {
-  STORY_ORG_SCOPE,
-  STORY_PERSONAL_ORG_FILTER_ID,
-} from "@src/store/workstation";
 import type { WorkItem } from "@src/types/core/workItem";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
 
@@ -173,8 +162,6 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
   onUpdateWorkItem,
 }) => {
   const { t } = useTranslation(["projects", "common"]);
-  const openProjectTab = useSetAtom(openProjectInChatPanelTabAtom);
-  const openProjectOrgTab = useSetAtom(openProjectOrgInChatPanelTabAtom);
   const setSelectedWorkItem = useSetAtom(chatPanelSelectedWorkItemAtom);
   const setActiveSessionId = useSetAtom(activeSessionIdAtom);
   const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
@@ -362,72 +349,6 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
   const workItemContentKey = `${selectedWorkItem.projectSlug}:${
     selectedWorkItem.shortId || selectedWorkItem.workItem.session_id
   }`;
-  const orgPathLabel =
-    selectedWorkItem.orgName || t("projects:orgs.personalOrg");
-  const projectPathLabel =
-    selectedWorkItem.projectName ||
-    selectedWorkItem.workItem.project?.name ||
-    t("projects.dashboardTitle");
-  const workItemTitle = selectedWorkItem.workItem.name || "Work item";
-
-  const handleOpenOrg = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
-      openProjectOrgTab({
-        orgId: selectedWorkItem.orgId ?? STORY_PERSONAL_ORG_FILTER_ID,
-        orgName: orgPathLabel,
-        orgScope:
-          selectedWorkItem.orgId === STORY_PERSONAL_ORG_FILTER_ID ||
-          !selectedWorkItem.orgId
-            ? STORY_ORG_SCOPE.PERSONAL_ORG
-            : STORY_ORG_SCOPE.PROJECT_ORG,
-      });
-    },
-    [openProjectOrgTab, orgPathLabel, selectedWorkItem.orgId]
-  );
-
-  const handleOpenProject = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
-      if (!selectedWorkItem.sourceProject) return;
-      openProjectTab(selectedWorkItem.sourceProject);
-    },
-    [openProjectTab, selectedWorkItem.sourceProject]
-  );
-
-  const headerBreadcrumbContent = useMemo(
-    () => (
-      <ChatPanelHeaderBreadcrumb
-        items={[
-          {
-            key: "org",
-            label: orgPathLabel,
-            onClick: handleOpenOrg,
-          },
-          {
-            key: "project",
-            label: projectPathLabel,
-            onClick: selectedWorkItem.sourceProject
-              ? handleOpenProject
-              : undefined,
-          },
-          {
-            key: "work-item",
-            label: workItemTitle,
-          },
-        ]}
-      />
-    ),
-    [
-      handleOpenOrg,
-      handleOpenProject,
-      orgPathLabel,
-      projectPathLabel,
-      selectedWorkItem.sourceProject,
-      workItemTitle,
-    ]
-  );
-
   const handleDeleteWorkItem = useCallback(async () => {
     if (!selectedWorkItem.projectSlug) return;
 
@@ -475,10 +396,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
   );
 
   usePublishChatPanelHeader({
-    content: {
-      content: headerBreadcrumbContent,
-      trailing: headerDeleteAction,
-    },
+    content: { trailing: headerDeleteAction },
   });
 
   const inlineProperties = (

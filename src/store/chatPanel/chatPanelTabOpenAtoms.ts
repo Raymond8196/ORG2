@@ -2,12 +2,17 @@ import { atom } from "jotai";
 
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import {
+  type ChatPanelCreateProjectContext,
+  type ChatPanelCreateTarget,
   type ChatPanelSelectedCloudOrg,
   type ChatPanelSelectedProject,
   type ChatPanelSelectedProjectOrg,
   type ChatPanelSelectedWorkItem,
   type ChatPanelSelectedWorkspace,
   type WorkspaceOverviewTab,
+  chatPanelCreateProjectContextAtom,
+  chatPanelCreateTargetAtom,
+  chatPanelStartPageOpenAtom,
   chatPanelWorkspaceOverviewTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
@@ -75,6 +80,31 @@ export const openOrFocusChatPanelStartPageTabAtom = atom(
 );
 openOrFocusChatPanelStartPageTabAtom.debugLabel =
   "openOrFocusChatPanelStartPageTab";
+
+interface OpenCreateTargetInStartPageOptions {
+  target: ChatPanelCreateTarget;
+  title?: string;
+  createProjectContext?: ChatPanelCreateProjectContext | null;
+}
+
+/** Focus Launchpad and show a creator inside its pinned inner navigation. */
+export const openCreateTargetInChatPanelStartPageAtom = atom(
+  null,
+  (_get, set, options: OpenCreateTargetInStartPageOptions) => {
+    const tabId = set(openOrFocusChatPanelStartPageTabAtom, {
+      title: options.title,
+    });
+    set(chatPanelCreateTargetAtom, options.target);
+    set(
+      chatPanelCreateProjectContextAtom,
+      options.createProjectContext ?? null
+    );
+    set(chatPanelStartPageOpenAtom, true);
+    return tabId;
+  }
+);
+openCreateTargetInChatPanelStartPageAtom.debugLabel =
+  "openCreateTargetInChatPanelStartPage";
 
 /** Open or focus the singleton Runtime tab. */
 export const openRuntimeInChatPanelTabAtom = atom(

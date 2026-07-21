@@ -108,6 +108,23 @@
   background: var(--select-ghost-open-bg, var(--color-fill-2));
 }
 
+.select-ghost.select-ghost-text-only .select-selector {
+  color: var(--color-text-2);
+  font-weight: 400;
+}
+
+.select-ghost.select-ghost-text-only:hover:not(.select-disabled)
+  .select-selector,
+.select-ghost.select-ghost-text-only.select-open .select-selector {
+  color: var(--color-text-1);
+  background: transparent;
+}
+
+.select-ghost.select-ghost-text-only:hover:not(.select-disabled) .select-arrow,
+.select-ghost.select-ghost-text-only.select-open .select-arrow {
+  color: currentColor;
+}
+
 .select-ghost .select-suffix {
   color: currentColor;
 }
