@@ -464,7 +464,7 @@
     "createOrg": "创建",
     "joinOrg": "加入",
     "orgSource": "组织来源",
-    "localOrg": "Local",
+    "localOrg": "本地",
     "orgName": "ORG 名称",
     "orgNamePlaceholder": "Team Alpha",
     "inviteCode": "邀请链接或代码",
@@ -687,7 +687,7 @@
         "joinedFallbackToast": "已加入云端组织"
       },
       "create": {
-        "sourceCloud": "ORG2 云（托管）",
+        "sourceCloud": "云端",
         "signInFirst": "登录 ORG2 云以创建或加入托管组织。",
         "openSettings": "打开登录设置",
         "createdToast": "云端组织已创建"

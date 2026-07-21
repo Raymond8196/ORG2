@@ -372,7 +372,7 @@
     "createOrg": "Создать",
     "joinOrg": "Присоединиться",
     "orgSource": "Источник организации",
-    "localOrg": "Local",
+    "localOrg": "Локально",
     "orgName": "Название ORG",
     "orgNamePlaceholder": "Team Alpha",
     "inviteCode": "Ссылка или код приглашения",
@@ -595,7 +595,7 @@
         "joinedFallbackToast": "Вы присоединились к облачной организации"
       },
       "create": {
-        "sourceCloud": "ORG2 Cloud (управляемый)",
+        "sourceCloud": "Облако",
         "signInFirst": "Войдите в ORG2 Cloud, чтобы создать управляемую организацию или присоединиться к ней.",
         "openSettings": "Открыть настройки входа",
         "createdToast": "Облачная организация создана"

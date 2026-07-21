@@ -597,7 +597,7 @@
         "joinedFallbackToast": "Te uniste a la organización en la nube"
       },
       "create": {
-        "sourceCloud": "ORG2 Cloud (gestionado)",
+        "sourceCloud": "Nube",
         "signInFirst": "Inicia sesión en ORG2 Cloud para crear o unirte a una organización gestionada.",
         "openSettings": "Abrir ajustes de inicio de sesión",
         "createdToast": "Organización en la nube creada"
