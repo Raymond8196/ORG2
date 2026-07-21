@@ -1,6 +1,6 @@
 import { emit } from "@tauri-apps/api/event";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ExternalLink, Info, Trash2, X } from "lucide-react";
+import { ExternalLink, Info, ListChecks, Trash2, X } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -25,6 +25,7 @@ import {
 } from "@src/modules/ProjectManager/WorkItems/components";
 import { useWorkItemOrchestrator } from "@src/modules/ProjectManager/WorkItems/hooks";
 import { PropertiesRailFrame } from "@src/modules/ProjectManager/shared";
+import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
 import { VerticalResizeHandle } from "@src/scaffold/Resize";
 import { activeSessionIdAtom } from "@src/store/session";
@@ -490,8 +491,29 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
     ]
   );
 
+  const headerContent = useMemo(
+    () => (
+      <ProjectManagerBreadcrumb
+        segments={[
+          { label: selectedWorkItem.projectName },
+          {
+            label: selectedWorkItem.shortId
+              ? `${selectedWorkItem.shortId} · ${selectedWorkItem.workItem.name}`
+              : selectedWorkItem.workItem.name,
+            icon: <ListChecks size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />,
+          },
+        ]}
+      />
+    ),
+    [
+      selectedWorkItem.projectName,
+      selectedWorkItem.shortId,
+      selectedWorkItem.workItem.name,
+    ]
+  );
+
   usePublishChatPanelHeader({
-    content: { trailing: headerActions },
+    content: { content: headerContent, trailing: headerActions },
   });
 
   const propertiesContent = (
