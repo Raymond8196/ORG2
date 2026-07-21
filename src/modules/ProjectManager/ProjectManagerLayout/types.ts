@@ -35,7 +35,8 @@ export type ExpandWorkItemToTabHandler = (
   projectSlug: string | undefined,
   workItemId: string,
   workItemName: string,
-  pendingUpdates?: Record<string, unknown>
+  pendingUpdates?: Record<string, unknown>,
+  workItemStatus?: string
 ) => void;
 
 export type OpenChatSessionHandler = (

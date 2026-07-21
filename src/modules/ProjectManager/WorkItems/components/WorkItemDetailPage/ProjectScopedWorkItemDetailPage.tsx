@@ -7,6 +7,7 @@ import { activeWorkspaceRootPathAtom } from "@src/store/workspace";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import { useWorkItems } from "../../hooks/useWorkItems";
+import { isDeletedWorkItem } from "../../workItemsViewModel";
 import WorkItemDetail from "../WorkItemDetail";
 import { getAdjacentWorkItemId, getWorkItemNavigationState } from "./model";
 import type { WorkItemDetailPageProps } from "./types";
@@ -21,6 +22,7 @@ export function ProjectScopedWorkItemDetailPage({
   pendingUpdates,
   publishHeaderToWorkstation = false,
   onWorkItemNameUpdated,
+  onWorkItemStatusResolved,
 }: WorkItemDetailPageProps) {
   const { t } = useTranslation("projects");
   const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
@@ -47,6 +49,12 @@ export function ProjectScopedWorkItemDetailPage({
       null,
     [activeWorkItemId, data.workItems]
   );
+  const workItemDeleted = workItem ? isDeletedWorkItem(workItem) : false;
+
+  useEffect(() => {
+    const workItemStatus = workItem?.workItemStatus ?? workItem?.status;
+    if (workItemStatus) onWorkItemStatusResolved?.(workItemStatus);
+  }, [onWorkItemStatusResolved, workItem]);
   const navigation = useMemo(
     () => getWorkItemNavigationState(data.workItems, activeWorkItemId),
     [activeWorkItemId, data.workItems]
@@ -81,7 +89,11 @@ export function ProjectScopedWorkItemDetailPage({
     [activeWorkItemId, handlers, onWorkItemNameUpdated]
   );
 
-  if (!workItem) {
+  useEffect(() => {
+    if (workItemDeleted) onClose();
+  }, [onClose, workItemDeleted]);
+
+  if (!workItem || workItemDeleted) {
     return (
       <Placeholder
         variant={projectData.loading ? "loading" : "empty"}

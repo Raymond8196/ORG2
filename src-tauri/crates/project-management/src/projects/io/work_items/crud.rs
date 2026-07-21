@@ -13,7 +13,7 @@ use super::history::{append_deleted_event, append_restored_event, ensure_created
 use super::mapping::{
     assemble_work_item, read_extras_for, read_labels_for, row_to_core, ConnectionLike,
 };
-use crate::projects::types::{WorkItemData, WorkItemFrontmatter};
+use crate::projects::types::{WorkItemData, WorkItemFrontmatter, WorkItemReadBucket};
 
 const WORK_ITEM_PREFIX_LENGTH: usize = 3;
 
@@ -31,6 +31,14 @@ pub fn read_all_work_items_scoped(
     project_slug: &str,
     org_id: Option<&str>,
 ) -> Result<Vec<WorkItemData>, String> {
+    read_all_work_items_scoped_filtered(project_slug, org_id, None)
+}
+
+pub fn read_all_work_items_scoped_filtered(
+    project_slug: &str,
+    org_id: Option<&str>,
+    read_bucket: Option<WorkItemReadBucket>,
+) -> Result<Vec<WorkItemData>, String> {
     let connection = conn()?;
     let project_id = resolve_project_id_scoped(&connection, project_slug, org_id)?;
 
@@ -46,6 +54,12 @@ pub fn read_all_work_items_scoped(
     let mut out = Vec::new();
     for entry in rows {
         let core = map_db(entry)?;
+        if read_bucket
+            .map(|bucket| !bucket.matches(&core.status))
+            .unwrap_or(false)
+        {
+            continue;
+        }
         let labels = read_labels_for(&connection, &core.work_item_id)?;
         let extras = read_extras_for(&connection, &core.work_item_id)?;
         out.push(assemble_work_item(core, labels, extras));
@@ -86,6 +100,13 @@ pub fn read_work_item_scoped(
 }
 
 pub fn read_standalone_work_items(org_id: Option<&str>) -> Result<Vec<WorkItemData>, String> {
+    read_standalone_work_items_filtered(org_id, None)
+}
+
+pub fn read_standalone_work_items_filtered(
+    org_id: Option<&str>,
+    read_bucket: Option<WorkItemReadBucket>,
+) -> Result<Vec<WorkItemData>, String> {
     let connection = conn()?;
     let org_id = org_id.unwrap_or("personal-org");
     let mut stmt = map_db(connection.prepare(
@@ -100,6 +121,12 @@ pub fn read_standalone_work_items(org_id: Option<&str>) -> Result<Vec<WorkItemDa
     let mut out = Vec::new();
     for entry in rows {
         let core = map_db(entry)?;
+        if read_bucket
+            .map(|bucket| !bucket.matches(&core.status))
+            .unwrap_or(false)
+        {
+            continue;
+        }
         let labels = read_labels_for(&connection, &core.work_item_id)?;
         let extras = read_extras_for(&connection, &core.work_item_id)?;
         out.push(assemble_work_item(core, labels, extras));

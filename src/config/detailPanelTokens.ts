@@ -88,13 +88,13 @@ export const DETAIL_PANEL_TOKENS = {
   primaryContainer:
     "rounded-xl border border-border-1 bg-primary-container p-4",
   /** Raw max-width constraint shared by all content areas and overlays */
-  contentMaxWidth: "max-w-[900px]",
+  contentMaxWidth: "max-w-[1200px]",
   /** Content width wrapper — centered with max-width */
-  contentWidth: "mx-auto w-full max-w-[900px]",
+  contentWidth: "mx-auto w-full max-w-[1200px]",
   /** Content width + vertical padding — use as inner wrapper inside scrollContent (wizard format) */
-  contentWidthWithPadding: "mx-auto w-full max-w-[900px] py-4 pb-[50vh]",
+  contentWidthWithPadding: "mx-auto w-full max-w-[1200px] py-4 pb-[50vh]",
   /** Content width + bottom padding — use with scrollContentNoTop (header above) */
-  contentWidthWithPaddingNoTop: "mx-auto w-full max-w-[900px] pb-6 pb-[50vh]",
+  contentWidthWithPaddingNoTop: "mx-auto w-full max-w-[1200px] pb-6 pb-[50vh]",
   /**
    * Bottom inset on scrollable wizard / settings-style bodies so the last block
    * clears the footer (matches SETTINGS_MAIN_CONTENT_WRAPPER_CLASSES).
@@ -102,9 +102,9 @@ export const DETAIL_PANEL_TOKENS = {
   contentScrollBottom: "pb-6 pb-[50vh]",
   /**
    * Width for InternalHeader when used with contentPadding (px-4 = 16px × 2).
-   * 932px so the inner area after padding equals contentWidth's 900px.
+   * 1232px so the inner area after padding equals contentWidth's 1200px.
    */
-  headerWidth: "mx-auto w-full max-w-[932px]",
+  headerWidth: "mx-auto w-full max-w-[1232px]",
 } as const;
 
 // ============================================

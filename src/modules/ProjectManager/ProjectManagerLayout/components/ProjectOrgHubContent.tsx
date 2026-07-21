@@ -10,6 +10,7 @@ import {
 
 import type { LinearProjectSelection } from "../../Panels/ProjectManagerSidebar/content/WorkspaceTreeContent";
 import { useProjectOrgCatalogData } from "../hooks/useProjectOrgCatalogData";
+import type { ExpandWorkItemToTabHandler } from "../types";
 import { STORY_MANAGER_SUSPENSE_LOADING_FALLBACK } from "./ProjectManagerContentRouter";
 import { ProjectOrgHubHeader } from "./ProjectOrgHubHeader";
 import { ProjectOrgSettingsPane } from "./ProjectOrgSettingsPane";
@@ -33,14 +34,7 @@ export interface ProjectOrgHubContentProps {
   ) => void;
   onCreateProject: () => void;
   onCreateWorkItem: () => void;
-  onExpandWorkItemToTab: (
-    projectId: string | undefined,
-    projectName: string | undefined,
-    projectSlug: string | undefined,
-    workItemId: string,
-    workItemName: string,
-    pendingUpdates?: Record<string, unknown>
-  ) => void;
+  onExpandWorkItemToTab: ExpandWorkItemToTabHandler;
   onOpenLinearProjects?: (selection?: LinearProjectSelection) => void;
 }
 
@@ -133,7 +127,9 @@ export const ProjectOrgHubContent: React.FC<ProjectOrgHubContentProps> = ({
                 selection.projectName,
                 selection.projectSlug,
                 selection.workItem.session_id,
-                selection.workItem.name
+                selection.workItem.name,
+                undefined,
+                selection.workItem.workItemStatus ?? selection.workItem.status
               )
             }
             onOpenLinearProject={onOpenLinearProjects}

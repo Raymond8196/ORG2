@@ -24,6 +24,7 @@ export function StandaloneWorkItemDetailPage({
   pendingUpdates,
   publishHeaderToWorkstation = false,
   onWorkItemNameUpdated,
+  onWorkItemStatusResolved,
 }: WorkItemDetailPageProps) {
   const { t } = useTranslation("projects");
   const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
@@ -44,6 +45,11 @@ export function StandaloneWorkItemDetailPage({
   useEffect(() => {
     void loadWorkItem();
   }, [loadWorkItem]);
+
+  useEffect(() => {
+    const workItemStatus = workItem?.workItemStatus ?? workItem?.status;
+    if (workItemStatus) onWorkItemStatusResolved?.(workItemStatus);
+  }, [onWorkItemStatusResolved, workItem]);
 
   const handleUpdateWorkItem = useCallback(
     async (updates: Partial<WorkItem>) => {

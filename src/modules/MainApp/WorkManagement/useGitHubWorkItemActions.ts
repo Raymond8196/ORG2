@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { GitHubIssue } from "@src/api/tauri/github";
 import Message from "@src/components/Message";
 import { useWorkStationTabs } from "@src/hooks/workStation/tabs";
-import { fetchIssueComments } from "@src/services/git/operations/githubIssues";
+import { fetchIssueTimeline } from "@src/services/git/operations/githubIssues";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { addToAgentAtom } from "@src/store/ui/addToAgentAtom";
 import { workstationSelectedIssueAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
@@ -48,9 +48,9 @@ export function useGitHubWorkItemActions() {
       );
       store.set(selectedIssueAtom, {
         issue: issue.rawIssue,
-        comments: [],
+        timeline: [],
         loading: false,
-        commentsLoading: true,
+        timelineLoading: true,
         error: null,
         submittingComment: false,
       });
@@ -62,7 +62,7 @@ export function useGitHubWorkItemActions() {
           issue.remoteUrl
         )
       );
-      void fetchIssueComments({
+      void fetchIssueTimeline({
         remoteUrl: issue.remoteUrl,
         issueNumber: issue.id,
       }).then((result) => {
@@ -71,8 +71,8 @@ export function useGitHubWorkItemActions() {
             return current;
           return {
             ...current,
-            comments: result.data ?? [],
-            commentsLoading: false,
+            timeline: result.data ?? [],
+            timelineLoading: false,
             error: result.error ?? null,
           };
         });
