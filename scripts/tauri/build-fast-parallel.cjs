@@ -34,6 +34,7 @@ const {
   applyDefaultDiagnosticsEndpoint,
 } = require("./diagnostics-endpoint.cjs");
 const { createInstanceProfile } = require("./instance-profile.cjs");
+const { verifyWebpackRuntimeGuards } = require("./verify-webpack-runtime.cjs");
 
 const rootDir = path.join(__dirname, "..", "..");
 const rawArgs = process.argv.slice(2);
@@ -213,6 +214,12 @@ async function main() {
     console.log(
       "\x1b[1m[build-fast-parallel] Phase 1: reusing existing webpack output\x1b[0m"
     );
+    const verification = verifyWebpackRuntimeGuards(
+      path.join(rootDir, "build")
+    );
+    console.log(
+      `[build-fast-parallel] Webpack runtime verified: ${verification.runtimeId}`
+    );
   } else {
     console.log("\x1b[1m[build-fast-parallel] Phase 1: webpack\x1b[0m");
     const webpackCommand = createPackageCliCommand("webpack", "webpack", [
@@ -233,6 +240,12 @@ async function main() {
     );
 
     if (webpackCode !== 0) process.exit(webpackCode);
+    const verification = verifyWebpackRuntimeGuards(
+      path.join(rootDir, "build")
+    );
+    console.log(
+      `[build-fast-parallel] Webpack runtime verified: ${verification.runtimeId}`
+    );
   }
 
   if (frontendOnly) {
