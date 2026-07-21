@@ -5,12 +5,14 @@ import { useTranslation } from "react-i18next";
 
 import Tooltip from "@src/components/Tooltip";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { sidebarActiveCloudOrgIdAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import {
   type Org2CloudPresenceEntry,
   org2CloudPresenceAtom,
   resolveCloudSessionRefs,
   viewersForSession,
 } from "@src/features/Org2Cloud/org2CloudPresenceAtom";
+import { org2CloudRemoteSessionsAtom } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
 import {
   cloudOrgIdsForSession,
   sessionOrgTagsAtom,
@@ -31,21 +33,26 @@ const SessionViewersIndicator: React.FC<SessionViewersIndicatorProps> = ({
   const { t } = useTranslation("navigation");
   const presenceMap = useAtomValue(org2CloudPresenceAtom);
   const selfUserId = useAtomValue(org2CloudAuthAtom)?.userId ?? null;
+  const activeCloudOrgId = useAtomValue(sidebarActiveCloudOrgIdAtom);
   const sessions = useAtomValue(sessionsAtom) as Session[];
   const sessionOrgTags = useAtomValue(sessionOrgTagsAtom);
+  const remoteSessions = useAtomValue(org2CloudRemoteSessionsAtom);
 
   const viewers = useMemo(() => {
-    if (!sessionId) return [];
+    if (!sessionId || !activeCloudOrgId) return [];
     const session = sessions.find(
       (candidate) => candidate.session_id === sessionId
     );
     if (!session) return [];
     const refs = resolveCloudSessionRefs(
       session,
-      cloudOrgIdsForSession(sessionOrgTags, session.session_id)
+      cloudOrgIdsForSession(sessionOrgTags, session.session_id),
+      Object.values(remoteSessions).flatMap((entry) => entry.rows),
+      selfUserId
     );
     const byUser = new Map<string, Org2CloudPresenceEntry>();
     for (const ref of refs) {
+      if (ref.orgId !== activeCloudOrgId) continue;
       for (const viewer of viewersForSession(
         presenceMap,
         ref.orgId,
@@ -56,7 +63,15 @@ const SessionViewersIndicator: React.FC<SessionViewersIndicatorProps> = ({
       }
     }
     return [...byUser.values()];
-  }, [presenceMap, selfUserId, sessionId, sessionOrgTags, sessions]);
+  }, [
+    presenceMap,
+    remoteSessions,
+    activeCloudOrgId,
+    selfUserId,
+    sessionId,
+    sessionOrgTags,
+    sessions,
+  ]);
 
   if (viewers.length === 0) return null;
 
