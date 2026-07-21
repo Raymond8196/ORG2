@@ -138,6 +138,7 @@
         "scanning": "Quét",
         "hooks": "Hooks",
         "usage": "Mức sử dụng",
+        "quota": "Hạn mức",
         "assets": "Tài sản"
       },
       "usage": {
@@ -157,7 +158,7 @@
           "claude": "Claude",
           "codex": "Codex",
           "cursor": "Cursor",
-          "org2": "Agent ORGII",
+          "org2": "ORG2",
           "other": "Khác"
         },
         "cards": {

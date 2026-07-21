@@ -17,28 +17,31 @@ vi.mock("./SessionUsagePanel", () => ({
 }));
 
 describe("Runtime DataSourcePanel navigation", () => {
-  it("keeps its four sections in a separate row below the chat header", () => {
+  it("keeps its five sections ordered below the chat header", () => {
     const markup = renderToStaticMarkup(
       createElement(
         Provider,
         { store: createStore() },
         createElement(DataSourcePanel, {
           assetsContent: createElement("div", null, "Assets content"),
-          usageHeaderContent: createElement("div", null, "Quota content"),
+          quotaContent: createElement("div", null, "Quota content"),
         })
       )
     );
 
     const usage = markup.indexOf("data-source-view-usage");
+    const quota = markup.indexOf("data-source-view-quota");
     const scanning = markup.indexOf("data-source-view-scanning");
     const hooks = markup.indexOf("data-source-view-hooks");
     const assets = markup.indexOf("data-source-view-assets");
 
     expect(usage).toBeGreaterThanOrEqual(0);
-    expect(scanning).toBeGreaterThan(usage);
+    expect(quota).toBeGreaterThan(usage);
+    expect(scanning).toBeGreaterThan(quota);
     expect(hooks).toBeGreaterThan(scanning);
     expect(assets).toBeGreaterThan(hooks);
-    expect(markup).toContain("Quota content");
+    expect(markup).toContain("Usage dashboard");
+    expect(markup).not.toContain("Quota content");
     expect(markup).toContain("justify-center");
     expect(markup).not.toContain("chat-panel-header");
   });
