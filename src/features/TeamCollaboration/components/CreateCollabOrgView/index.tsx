@@ -8,6 +8,7 @@ import type { ProjectOrg } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Message from "@src/components/Message";
+import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import {
   commitRefreshedAuth,
   org2CloudAuthAtom,
@@ -248,7 +249,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
     <div className="flex h-full w-full min-w-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-hidden">
         <div
-          className="mx-auto flex h-full w-full max-w-[932px] flex-col gap-4 overflow-y-auto px-4"
+          className={`${DETAIL_PANEL_TOKENS.headerWidth} flex h-full flex-col gap-4 overflow-y-auto px-4`}
           data-testid="create-collab-org-body"
         >
           <SectionContainer>

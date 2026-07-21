@@ -14,9 +14,10 @@ import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
+import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 
 export const CHAT_BUBBLE_WIDTH_TOKENS = {
-  row: "flex gap-3 mx-auto w-full max-w-[900px] min-w-0 overflow-hidden",
+  row: `mx-auto flex w-full min-w-0 gap-3 overflow-hidden ${DETAIL_PANEL_TOKENS.contentMaxWidth}`,
   content: "w-full min-w-0 max-w-full overflow-hidden",
   body: "inline-block min-w-0 max-w-full overflow-hidden",
   userBody: "inline-block min-w-0 max-w-full overflow-hidden",
