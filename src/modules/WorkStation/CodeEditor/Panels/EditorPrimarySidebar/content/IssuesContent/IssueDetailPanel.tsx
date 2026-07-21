@@ -11,7 +11,7 @@ import Button from "@src/components/Button";
 import IntegrationIcon from "@src/components/IntegrationIcon";
 import Tag from "@src/components/Tag";
 import Textarea from "@src/components/Textarea";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { ISSUE_DETAIL_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import {
   HEADER_CLASSES,
   HEADER_ICON_SIZE,
@@ -248,7 +248,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
         {showBackTitleHeader ? (
           <div className={`shrink-0 ${horizontalPaddingClass}`}>
             <div
-              className={`${DETAIL_PANEL_TOKENS.headerWidth} flex items-center gap-2 border-b border-border-1 py-2`}
+              className={`${ISSUE_DETAIL_PANEL_WIDTH_TOKENS.headerWidth} flex items-center gap-2 border-b border-border-1 py-2`}
             >
               <Button
                 htmlType="button"
@@ -267,7 +267,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
 
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
           <div
-            className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-col ${horizontalPaddingClass} py-4`}
+            className={`${ISSUE_DETAIL_PANEL_WIDTH_TOKENS.headerWidth} flex flex-col ${horizontalPaddingClass} py-4`}
           >
             <div className="mb-4 flex min-w-0 flex-col gap-2 border-b border-border-1 pb-4">
               <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[12px] text-text-3">
@@ -343,7 +343,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
           className={`bg-surface-1 flex-shrink-0 border-t border-border-1 ${horizontalPaddingClass} py-3`}
         >
           <div
-            className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-col gap-2`}
+            className={`${ISSUE_DETAIL_PANEL_WIDTH_TOKENS.headerWidth} flex flex-col gap-2`}
           >
             <Textarea
               value={commentBody}
