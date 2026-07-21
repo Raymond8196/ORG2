@@ -42,4 +42,23 @@ describe("ProjectManagerBreadcrumb", () => {
 
     expect(markup).toContain(">Research/Planning</span>");
   });
+
+  it("renders a supplied identity icon only on the first segment", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(ProjectManagerBreadcrumb, {
+        segments: [
+          { label: "Parent" },
+          {
+            label: "Child",
+            icon: React.createElement("span", { "data-header-icon": true }),
+          },
+        ],
+      })
+    );
+
+    expect(markup.match(/data-header-icon/g)).toHaveLength(1);
+    expect(markup.indexOf("data-header-icon")).toBeLessThan(
+      markup.indexOf(">Parent</span>")
+    );
+  });
 });

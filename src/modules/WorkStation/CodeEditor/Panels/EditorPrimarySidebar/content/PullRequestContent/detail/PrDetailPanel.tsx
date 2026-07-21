@@ -14,6 +14,8 @@ import { ArrowUpRight, GitPullRequest } from "lucide-react";
 import React, { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import IntegrationIcon from "@src/components/IntegrationIcon";
+import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { getPrStatusVariant } from "@src/shared/pr/prStatus";
 import {
@@ -67,6 +69,11 @@ export function PrDetailHeaderContent({
 
   return (
     <>
+      <IntegrationIcon
+        type="github"
+        size={HEADER_ICON_SIZE.sm}
+        className="shrink-0"
+      />
       <span
         className={`inline-flex h-5 shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-medium ${statusVariant.badgeClass}`}
       >
