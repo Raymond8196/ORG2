@@ -120,7 +120,7 @@ const ChatSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
     ]);
     const headerContent = useMemo(
       () => (
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 px-1">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <SessionHeaderBreadcrumb
             session={session}
             sessionId={sessionId}

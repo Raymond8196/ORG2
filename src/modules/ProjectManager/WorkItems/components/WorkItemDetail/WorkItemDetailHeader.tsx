@@ -2,10 +2,12 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpRight,
+  Box,
   Info,
   ListChecks,
   Trash2,
 } from "lucide-react";
+import type { ReactNode } from "react";
 
 import Button from "@src/components/Button";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
@@ -17,6 +19,7 @@ export interface WorkItemDetailHeaderProps {
   workItem: WorkItemExtended;
   pendingUpdates: Partial<WorkItemExtended>;
   breadcrumbProjectName?: string;
+  breadcrumbIcon?: ReactNode;
   shortId?: string | null;
   propertiesOpen: boolean;
   hasPrev: boolean;
@@ -31,12 +34,18 @@ export interface WorkItemDetailHeaderProps {
 
 type WorkItemDetailHeaderBreadcrumbProps = Pick<
   WorkItemDetailHeaderProps,
-  "workItem" | "breadcrumbProjectName" | "shortId" | "onClose" | "t"
+  | "workItem"
+  | "breadcrumbProjectName"
+  | "breadcrumbIcon"
+  | "shortId"
+  | "onClose"
+  | "t"
 >;
 
 export function WorkItemDetailHeaderBreadcrumb({
   workItem,
   breadcrumbProjectName,
+  breadcrumbIcon,
   shortId,
   onClose,
   t,
@@ -52,7 +61,9 @@ export function WorkItemDetailHeaderBreadcrumb({
         },
         {
           label: title,
-          icon: <ListChecks size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />,
+          icon: breadcrumbIcon ?? (
+            <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+          ),
         },
       ]
     : [
@@ -67,7 +78,7 @@ export function WorkItemDetailHeaderBreadcrumb({
 
 type WorkItemDetailHeaderActionsProps = Omit<
   WorkItemDetailHeaderProps,
-  "breadcrumbProjectName" | "shortId" | "onClose"
+  "breadcrumbProjectName" | "breadcrumbIcon" | "shortId" | "onClose"
 >;
 
 export function WorkItemDetailHeaderActions({
@@ -175,6 +186,7 @@ export function WorkItemDetailHeaderActions({
 export function WorkItemDetailHeader(props: WorkItemDetailHeaderProps) {
   const {
     breadcrumbProjectName,
+    breadcrumbIcon,
     shortId,
     onClose,
     workItem,
@@ -187,6 +199,7 @@ export function WorkItemDetailHeader(props: WorkItemDetailHeaderProps) {
       <WorkItemDetailHeaderBreadcrumb
         workItem={workItem}
         breadcrumbProjectName={breadcrumbProjectName}
+        breadcrumbIcon={breadcrumbIcon}
         shortId={shortId}
         onClose={onClose}
         t={t}
