@@ -216,6 +216,36 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     expect(bridge.drainOutbox).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps project tombstones draining while session replay is over quota", async () => {
+    client.rewriteSessionEvents.mockRejectedValue(
+      new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
+    );
+
+    await engine.runSyncPass();
+
+    expect(messageMock.warning).toHaveBeenCalledWith(
+      "navigation:cloud.sync.quotaExceededToast"
+    );
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledTimes(1);
+    expect(bridge.drainOutbox).toHaveBeenCalledTimes(1);
+
+    // The org remains session-backed-off, but a later local deletion still
+    // schedules and drains the independent projects/work-items control plane.
+    await vi.advanceTimersByTimeAsync(0);
+    await engine.runSyncPassAndWaitForDrain();
+    client.rewriteSessionEvents.mockClear();
+    projectsClient.listOrgCollabState.mockClear();
+    bridge.drainOutbox.mockClear();
+
+    emitDataChanged();
+    await vi.advanceTimersByTimeAsync(DATA_CHANGED_DEBOUNCE_MS);
+    await engine.runSyncPassAndWaitForDrain();
+
+    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledTimes(1);
+    expect(bridge.drainOutbox).toHaveBeenCalledTimes(1);
+  });
+
   it("ensures the project-org alias for EVERY member org, even ones the sync planes skip", async () => {
     const aliasMock = vi.mocked(ensureProjectOrgForCloudOrg);
     store.set(org2CloudOrgsAtom, [

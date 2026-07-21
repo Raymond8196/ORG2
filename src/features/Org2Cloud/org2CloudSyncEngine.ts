@@ -150,6 +150,15 @@ export type Org2CloudSchemaVersionProbe = () => Promise<number | null>;
 export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   /** Org id → entitlement backoff deadline (epoch ms). */
   private readonly orgBackoffUntilMs = new Map<string, number>();
+  /**
+   * Org id → plane that caused the entitlement backoff. Session replay quota
+   * must not block the projects/work-items control plane: users still need to
+   * delete shared data while replay uploads are over quota.
+   */
+  private readonly orgBackoffKinds = new Map<
+    string,
+    "session_quota" | "sync_disabled"
+  >();
   /** Orgs already warned during the current backoff window. */
   private readonly warnedOrgIds = new Set<string>();
   /** orgId → last repo-scope hydration attempt (TTL-gated per pass). */
@@ -195,6 +204,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
 
   protected override resetSyncState(): void {
     this.orgBackoffUntilMs.clear();
+    this.orgBackoffKinds.clear();
     this.warnedOrgIds.clear();
     this.sessionSync.reset();
     this.scopeHydratedAtMs.clear();
@@ -206,6 +216,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
 
   protected override clearAllOrgBackoffs(): void {
     this.orgBackoffUntilMs.clear();
+    this.orgBackoffKinds.clear();
     this.warnedOrgIds.clear();
   }
 
@@ -536,8 +547,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     // Deliberately over ALL orgs, not the session `targets`: shared work
     // items are org-wide (no repo-scope selection), so an org with neither
     // scopes nor tagged sessions still syncs its project plane. Only the
-    // local toggle and this run's backoff (which the session loop above may
-    // have just set) gate it.
+    // local toggle and entitlement-disable backoff gate it. Session replay
+    // quota backoff deliberately does NOT: project/work-item tombstones are
+    // a control-plane operation and must still drain while uploads are full.
     //
     // Inbound-fallback gate: these planes are Realtime-driven and scoped to
     // the invalidated org. Ordinary signals retain their delta cursors; only
@@ -579,7 +591,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         if (this.generation !== generation) return;
         if (getCloudEndpoint().supabaseUrl !== passSupabaseUrl) return;
         if (enabledByOrg[org.orgId] === false) continue;
-        if (this.isOrgBackedOff(org.orgId)) continue;
+        if (this.isOrgProjectBackedOff(org.orgId)) continue;
         try {
           // Realtime-only pulls do not probe the local outbox. Local mutation
           // requests and periodic safety passes still drain it.
@@ -610,7 +622,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
       for (const org of orgs) {
         if (!inboundOrgIds.has(org.orgId)) continue;
         if (enabledByOrg[org.orgId] === false) continue;
-        if (this.isOrgBackedOff(org.orgId)) continue;
+        if (this.isOrgProjectBackedOff(org.orgId)) continue;
         this.lastInboundPassAtMs.set(org.orgId, nowMs);
       }
     }
@@ -835,6 +847,12 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
 
   private backOffOrg(orgId: string, error: unknown): void {
     this.orgBackoffUntilMs.set(orgId, Date.now() + ORG_BACKOFF_COOLDOWN_MS);
+    this.orgBackoffKinds.set(
+      orgId,
+      isOrg2SyncErrorCode(error, "ORG2_QUOTA_EXCEEDED")
+        ? "session_quota"
+        : "sync_disabled"
+    );
     if (this.warnedOrgIds.has(orgId)) return;
     this.warnedOrgIds.add(orgId);
     const key = isOrg2SyncErrorCode(error, "ORG2_QUOTA_EXCEEDED")
@@ -846,6 +864,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
 
   protected override clearOrgBackoff(orgId: string): void {
     this.orgBackoffUntilMs.delete(orgId);
+    this.orgBackoffKinds.delete(orgId);
     this.warnedOrgIds.delete(orgId);
   }
 
@@ -855,6 +874,13 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     if (Date.now() < untilMs) return true;
     this.clearOrgBackoff(orgId);
     return false;
+  }
+
+  /** Session replay quota pauses only the session plane. Sync-disabled is an
+   * org-wide entitlement gate and therefore still pauses project RPCs. */
+  private isOrgProjectBackedOff(orgId: string): boolean {
+    if (!this.isOrgBackedOff(orgId)) return false;
+    return this.orgBackoffKinds.get(orgId) !== "session_quota";
   }
 
   /** Force the next pass to re-upsert one session's metadata row. */
