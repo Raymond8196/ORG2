@@ -299,9 +299,11 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
         const fresh = items.find(
           (item) => item.shortId === selectedWorkItem.shortId
         );
-        if (!fresh) {
+        if (!fresh || fresh.deletedAt) {
           // A collaborator may delete the item itself or its parent project
-          // while this detail is open. Do not leave an editable ghost surface.
+          // while this detail is open. Enriched reads intentionally retain
+          // soft-deleted rows, so a tombstone must be treated as absent too;
+          // otherwise the sidebar disappears while an editable ghost remains.
           closeWorkItemTab(selectedWorkItem.shortId);
           return;
         }
