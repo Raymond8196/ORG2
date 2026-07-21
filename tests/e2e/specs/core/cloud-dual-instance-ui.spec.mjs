@@ -2,6 +2,10 @@
 import { join } from "node:path";
 
 import {
+  getApiAccount,
+  selectPreferredModel,
+} from "../../support/core/agentOrgUiDriver.mjs";
+import {
   CLOUD_CREATE_ORG_TIMEOUT_MS,
   CLOUD_FETCH_TIMEOUT_MS,
   E2E_REPO_PATH,
@@ -49,7 +53,7 @@ import {
 
 const TEAM_NAME = `Dual-instance Team ${RUN_ID}`;
 const RENAMED_TEAM_NAME = `Renamed dual team ${RUN_ID}`;
-const SESSION_ID = `dual-instance-session-${RUN_ID}`;
+let sessionId = `dual-instance-session-${RUN_ID}`;
 const SESSION_TITLE = `Dual instance restricted share ${RUN_ID}`;
 const SESSION_BLAME_FILE = "package.json";
 const COMMENT_BODY = `@agent dual-instance task ${RUN_ID}`;
@@ -71,10 +75,80 @@ const UNREACHABLE_CLOUD_ENDPOINT = {
   supabaseUrl: "http://127.0.0.1:1",
   anonKey: "offline-anon-key",
 };
-const REMOTE_ROW_SELECTOR = `[data-testid="sidebar-cloud-session-item-${SESSION_ID}"]`;
-const REPO_SCOPE_KEY =
-  process.env.E2E_REPO_SCOPE_KEY ?? "github.com/orgii/e2e-workspace";
+let remoteRowSelector = `[data-testid="sidebar-cloud-session-item-${sessionId}"]`;
+const EXPECTED_REPO_NETWORK_SCOPE =
+  process.env.E2E_EXPECTED_REPO_SCOPE ??
+  process.env.E2E_REPO_SCOPE_KEY ??
+  "github.com/orgii/e2e-workspace";
+let repoScopeKey = EXPECTED_REPO_NETWORK_SCOPE;
+const SECONDARY_E2E_REPO_PATH =
+  process.env.E2E_SECONDARY_REPO_PATH ?? E2E_REPO_PATH;
+const E2E_PROVIDER_MODE = process.env.E2E_PROVIDER_MODE ?? "mock";
 const FORK_E2E_MODEL = "gpt-4o-mini";
+let secondaryImportedTurnToggleSelector =
+  `[data-testid^="session-comment-toggle-"]` +
+  `[data-testid$="~user-${sessionId}"]`;
+
+function bindRunnableSourceSession(nextSessionId) {
+  sessionId = nextSessionId;
+  remoteRowSelector = `[data-testid="sidebar-cloud-session-item-${sessionId}"]`;
+  secondaryImportedTurnToggleSelector =
+    `[data-testid^="session-comment-toggle-"]` +
+    `[data-testid$="~user-${sessionId}"]`;
+}
+
+async function openPrimaryImportSession(label) {
+  await clickRendered(
+    '[data-testid="chat-panel-start-page-tab-more"]',
+    `${label} More tab`
+  );
+  await clickRendered(
+    '[data-testid="chat-panel-start-page-import-session"]',
+    label
+  );
+}
+
+async function openImportSessionOn(client, label) {
+  await clickRenderedOn(
+    client,
+    '[data-testid="chat-panel-start-page-tab-more"]',
+    `${label} More tab`
+  );
+  await clickRenderedOn(
+    client,
+    '[data-testid="chat-panel-start-page-import-session"]',
+    label
+  );
+}
+
+async function getSecondaryForkAccount(client) {
+  const accounts = unwrapOn(
+    await invokeOn(client, "listAccounts"),
+    "secondary list real fork accounts"
+  ).accounts;
+  const requested = (process.env.E2E_SECONDARY_ACCOUNT ?? "").trim();
+  const account = accounts.find(
+    (row) =>
+      row.enabled &&
+      (row.has_api_key || row.has_session_token) &&
+      (row.enabled_models ?? []).length > 0 &&
+      (!requested || row.id === requested || row.name === requested)
+  );
+  if (!account) {
+    throw new Error(
+      `No runnable second-instance account found. requested=${requested || "<any>"} rows=${JSON.stringify(
+        accounts.map((row) => ({
+          id: row.id,
+          name: row.name,
+          type: row.agent_type,
+          enabled: row.enabled,
+          models: row.enabled_models,
+        }))
+      )}`
+    );
+  }
+  return account;
+}
 
 async function completeForkSetupOn(client, label, options = {}) {
   await waitForRenderedOn(
@@ -1126,39 +1200,69 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
 
     // The owner's already-open panel must receive roster invalidation live.
-    await browser.waitUntil(
-      async () =>
-        execJS(
-          `return document.querySelectorAll('[data-testid="cloud-org-member-row"]').length >= 2;`
-        ),
-      {
-        timeout: CLOUD_FETCH_TIMEOUT_MS,
-        interval: 500,
-        timeoutMsg: "owner panel did not receive the joined teammate live",
-      }
-    );
+    try {
+      await browser.waitUntil(
+        async () =>
+          execJS(
+            `return document.querySelectorAll('[data-testid="cloud-org-member-row"]').length >= 2;`
+          ),
+        {
+          timeout: CLOUD_FETCH_TIMEOUT_MS,
+          interval: 500,
+          timeoutMsg: "owner panel did not receive the joined teammate live",
+        }
+      );
+    } catch (error) {
+      const roster = unwrap(
+        await invokeE2E("cloudInspectMemberRoster", { orgId: teamOrgId }),
+        "inspect owner member roster after live timeout"
+      );
+      const renderedRows = await execJS(`
+        return [...document.querySelectorAll('[data-testid="cloud-org-member-row"]')].map((row) => ({
+          memberId: row.getAttribute('data-member-id'),
+          text: row.textContent?.trim() ?? '',
+        }));
+      `);
+      throw new Error(
+        `${error instanceof Error ? error.message : String(error)}; diagnostic=${JSON.stringify({ roster, renderedRows })}`
+      );
+    }
   });
 
   it("C. directly shares a restricted replay without a link; teammate receives, filters, imports, forks, and comments", async function () {
-    this.timeout(360_000);
+    this.timeout(
+      E2E_PROVIDER_MODE === "oauth-live" ||
+        process.env.E2E_COMPUTER_USE_MANUAL === "1"
+        ? 900_000
+        : 360_000
+    );
     unwrap(
       await invokeE2E("ensureRepoSelected", { repoPath: E2E_REPO_PATH }),
       "primary ensure shared repository"
     );
     unwrapOn(
       await invokeOn(second.client, "ensureRepoSelected", {
-        repoPath: E2E_REPO_PATH,
+        repoPath: SECONDARY_E2E_REPO_PATH,
       }),
       "secondary ensure shared repository"
     );
-    unwrapOn(
-      await invokeOn(second.client, "addAccount", {
-        openaiApiKey: "sk-orgii-rendered-e2e-not-sent",
-        model: FORK_E2E_MODEL,
-        accountName: `Cloud fork rendered E2E ${RUN_ID}`,
-      }),
-      "secondary seed rendered fork account"
-    );
+    if (E2E_PROVIDER_MODE === "mock") {
+      unwrapOn(
+        await invokeOn(second.client, "addAccount", {
+          openaiApiKey: "sk-orgii-rendered-e2e-not-sent",
+          model: FORK_E2E_MODEL,
+          accountName: `Cloud fork rendered E2E ${RUN_ID}`,
+        }),
+        "secondary seed rendered mock fork account"
+      );
+    } else {
+      const secondaryAccount = await getSecondaryForkAccount(second.client);
+      if (secondaryAccount.name !== second.seededAccountName) {
+        throw new Error(
+          `Second app selected ${secondaryAccount.name ?? secondaryAccount.id}, expected isolated ${second.seededAccountName}`
+        );
+      }
+    }
 
     await openCloudOrgPanelFromSidebar(teamOrgId);
     await selectPrimaryCloudOrgManagementTab(
@@ -1170,16 +1274,42 @@ describe("Cloud collaboration with two independent rendered app instances", func
       "primary team repo scope",
       CLOUD_FETCH_TIMEOUT_MS
     );
+    const primaryScopeResolution = unwrap(
+      await invokeE2E("cloudResolveRepoScopeKeys", {
+        repoPath: E2E_REPO_PATH,
+      }),
+      "resolve primary fork remotes"
+    );
+    const secondaryScopeResolution = unwrapOn(
+      await invokeOn(second.client, "cloudResolveRepoScopeKeys", {
+        repoPath: SECONDARY_E2E_REPO_PATH,
+      }),
+      "resolve secondary upstream remotes"
+    );
+    if (
+      !primaryScopeResolution.keys?.includes(EXPECTED_REPO_NETWORK_SCOPE) ||
+      !secondaryScopeResolution.keys?.includes(EXPECTED_REPO_NETWORK_SCOPE)
+    ) {
+      throw new Error(
+        `real fork checkouts do not share expected upstream ${EXPECTED_REPO_NETWORK_SCOPE}: ${JSON.stringify({ primary: primaryScopeResolution.keys, secondary: secondaryScopeResolution.keys })}`
+      );
+    }
     await browser.waitUntil(
-      async () =>
-        execJS(
-          `
-            const expected = ${JSON.stringify(REPO_SCOPE_KEY)};
-            const labels = [...document.querySelectorAll('[data-testid="cloud-org-repo-scope"] button span[title]')];
-            const button = labels.find((label) => label.getAttribute('title') === expected)?.closest('button');
-            return !!button && !button.disabled;
-          `
-        ),
+      async () => {
+        const selectable = await execJS(`
+          return [...document.querySelectorAll('[data-testid="cloud-org-repo-scope"] button span[title]')]
+            .map((label) => ({
+              key: label.getAttribute('title'),
+              disabled: !!label.closest('button')?.disabled,
+            }));
+        `);
+        const available = selectable.find(
+          (entry) =>
+            !entry.disabled && primaryScopeResolution.keys?.includes(entry.key)
+        );
+        if (available?.key) repoScopeKey = available.key;
+        return Boolean(available);
+      },
       {
         timeout: CLOUD_FETCH_TIMEOUT_MS,
         interval: 500,
@@ -1187,7 +1317,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       }
     );
     await execJS(`
-      const expected = ${JSON.stringify(REPO_SCOPE_KEY)};
+      const expected = ${JSON.stringify(repoScopeKey)};
       const labels = [...document.querySelectorAll('[data-testid="cloud-org-repo-scope"] button span[title]')];
       labels.find((label) => label.getAttribute('title') === expected)?.closest('button')?.click();
       return true;
@@ -1215,7 +1345,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
           `
             const section = document.querySelector('[data-testid="cloud-org-repo-scope"]');
             const save = document.querySelector('[data-testid="cloud-org-save-repo-scopes"]');
-            return !!section && !!save && save.disabled && section.textContent.includes(${JSON.stringify(REPO_SCOPE_KEY)});
+            return !!section && !!save && save.disabled && section.textContent.includes(${JSON.stringify(repoScopeKey)});
           `
         ),
       {
@@ -1225,13 +1355,97 @@ describe("Cloud collaboration with two independent rendered app instances", func
       }
     );
 
-    await seedAndOpenCloudEligibleSession(SESSION_ID, SESSION_TITLE, {
+    const ownerAgentAccount = await getApiAccount();
+    const ownerAgentModel = selectPreferredModel(ownerAgentAccount);
+    const ownerAgentConfig = unwrap(
+      await invokeE2E("configureWithExistingKey", {
+        accountName: ownerAgentAccount.name ?? ownerAgentAccount.id,
+        model: ownerAgentModel,
+        agentType: ownerAgentAccount.agent_type,
+        category: "rust_agent",
+        agentDefinitionId: "builtin:sde",
+        repoPath: E2E_REPO_PATH,
+      }),
+      "configure runnable owner agent for comment addressing"
+    );
+    if (ownerAgentConfig.modelId !== ownerAgentModel) {
+      throw new Error(
+        `owner comment agent selected ${ownerAgentConfig.modelId}, expected ${ownerAgentModel}`
+      );
+    }
+    // Materialize a real persisted provider-backed session through the same
+    // launch bridge as production before installing deterministic shared
+    // history. The rendered model pill and tool snapshot below prove that the
+    // later @agent and Address Comments assertions exercise a runnable source.
+    const launchedOwnerSession = unwrap(
+      await invokeE2E("launchSession", {
+        category: "rust_agent",
+        content: `Prepare rendered cloud-comment source ${RUN_ID}. Reply briefly.`,
+        workspacePath: E2E_REPO_PATH,
+        keySource: "own_key",
+        accountId: ownerAgentConfig.accountId,
+        model: ownerAgentConfig.modelId,
+        agentDefinitionId: "builtin:sde",
+        mode: "build",
+        background: false,
+      }),
+      "launch runnable owner comment source"
+    ).result;
+    const launchedOwnerSessionId =
+      launchedOwnerSession?.sessionId ?? launchedOwnerSession?.session_id;
+    if (!launchedOwnerSessionId) {
+      throw new Error(
+        `runnable owner launch returned no session id: ${JSON.stringify(launchedOwnerSession)}`
+      );
+    }
+    if (
+      launchedOwnerSession?.model !== ownerAgentModel ||
+      launchedOwnerSession?.accountId !== ownerAgentConfig.accountId
+    ) {
+      throw new Error(
+        `runnable owner launch lost model/account: ${JSON.stringify(launchedOwnerSession)}`
+      );
+    }
+    bindRunnableSourceSession(launchedOwnerSessionId);
+    await seedAndOpenCloudEligibleSession(sessionId, SESSION_TITLE, {
       touchedFilePath: join(E2E_REPO_PATH, SESSION_BLAME_FILE),
       additionalTurns: 2,
     });
+    await waitForRendered(
+      '[data-testid="chat-model-pill-model"]',
+      "owner runnable model pill",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
+    const ownerModelPill = String(
+      (await execJS(
+        `return document.querySelector('[data-testid="chat-model-pill-model"]')?.textContent?.trim() ?? '';`
+      )) ?? ""
+    );
+    if (!ownerModelPill || /select model/i.test(ownerModelPill)) {
+      throw new Error(
+        `owner source session is not runnable before @agent: ${ownerModelPill}`
+      );
+    }
+    const ownerToolSnapshot = unwrap(
+      await invokeE2E("debugSessionToolsSnapshot", sessionId),
+      "inspect owner comment tool contract"
+    ).snapshot;
+    const registeredOwnerTools = ownerToolSnapshot?.registeredToolNames ?? [];
+    const promptedOwnerTools = ownerToolSnapshot?.promptToolNames ?? [];
+    if (
+      !registeredOwnerTools.includes("reply_session_comment") ||
+      !promptedOwnerTools.includes("reply_session_comment")
+    ) {
+      throw new Error(
+        `owner source session cannot address cloud comments: ${JSON.stringify({
+          registered: registeredOwnerTools,
+          prompted: promptedOwnerTools,
+        })}`
+      );
+    }
     unwrap(
       await invokeE2E("cloudTagSessionToOrg", {
-        sessionId: SESSION_ID,
+        sessionId,
         orgId: teamOrgId,
       }),
       "tag owner session to team"
@@ -1239,17 +1453,17 @@ describe("Cloud collaboration with two independent rendered app instances", func
     // Start at metadata-only: the rendered directed-share button must promote
     // and publish the full replay itself before creating the grant. This is
     // the one-click UX contract; no hidden pre-share sync-level step.
-    await setCloudSessionModeViaDialog(SESSION_ID, teamOrgId, "metadata_only");
+    await setCloudSessionModeViaDialog(sessionId, teamOrgId, "metadata_only");
     await setCloudSessionVisibilityViaDialog(
-      SESSION_ID,
+      sessionId,
       teamOrgId,
       "restricted"
     );
     await publishCloudSessionMetadata(env, owner, {
       orgId: teamOrgId,
-      sessionId: SESSION_ID,
+      sessionId,
       title: SESSION_TITLE,
-      repoScopeKey: REPO_SCOPE_KEY,
+      repoScopeKey,
       visibility: "restricted",
       accessMode: "metadata_only",
     });
@@ -1264,7 +1478,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     const leakedBeforeShare = await executeOn(
       second.client,
       "return !!document.querySelector(arguments[0]);",
-      [`[data-testid="sidebar-cloud-session-item-${SESSION_ID}"]`]
+      [`[data-testid="sidebar-cloud-session-item-${sessionId}"]`]
     );
     if (leakedBeforeShare) {
       throw new Error("restricted session leaked to teammate before sharing");
@@ -1321,7 +1535,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
 
     await waitForRenderedOn(
       second.client,
-      REMOTE_ROW_SELECTOR,
+      remoteRowSelector,
       "secondary realtime directed session",
       CLOUD_FETCH_TIMEOUT_MS
     );
@@ -1337,13 +1551,13 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     await waitForRenderedOn(
       second.client,
-      REMOTE_ROW_SELECTOR,
+      remoteRowSelector,
       "directed session under Shared with me filter"
     );
 
     await clickRenderedOn(
       second.client,
-      REMOTE_ROW_SELECTOR,
+      remoteRowSelector,
       "secondary import/replay shared session"
     );
     await waitForRenderedOn(
@@ -1367,7 +1581,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       "secondary imported replay state"
     );
     const importedSessionId = importedState.activeSessionId;
-    if (!importedSessionId || importedSessionId === SESSION_ID) {
+    if (!importedSessionId || importedSessionId === sessionId) {
       throw new Error(
         `secondary replay did not materialize a distinct local session: ${JSON.stringify(importedState)}`
       );
@@ -1381,7 +1595,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       async () => {
         const result = unwrapOn(
           await invokeOn(second.client, "inspectOrgtrackFileSessionHistory", {
-            repoPath: E2E_REPO_PATH,
+            repoPath: SECONDARY_E2E_REPO_PATH,
             filePath: SESSION_BLAME_FILE,
           }),
           "secondary Team Session Blame projection"
@@ -1402,7 +1616,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     if (
       collaborationHistory.collaborationOrigin?.orgId !== teamOrgId ||
       collaborationHistory.collaborationOrigin?.sessionRowId !==
-        `${teamOrgId}:${owner.userId}:${SESSION_ID}` ||
+        `${teamOrgId}:${owner.userId}:${sessionId}` ||
       collaborationHistory.collaborationOrigin?.ownerDisplayName !==
         "Dual Owner" ||
       collaborationHistory.actionCounts?.read !== 1
@@ -1422,49 +1636,48 @@ describe("Cloud collaboration with two independent rendered app instances", func
       orgId: teamOrgId,
       sessionId: teammateRowSessionId,
       title: `Teammate filter row ${RUN_ID}`,
-      repoScopeKey: REPO_SCOPE_KEY,
+      repoScopeKey,
     });
-    await second.client.waitUntil(
-      async () => {
-        if (
-          await executeOn(
-            second.client,
-            `return !!document.querySelector('[data-testid="sidebar-cloud-session-item-${teammateRowSessionId}"]');`
-          )
-        ) {
-          return true;
-        }
-        await executeOn(
-          second.client,
-          `document.querySelector('[data-testid="cloud-team-sessions-refresh"]')?.click();`
-        );
-        return false;
-      },
-      {
-        timeout: CLOUD_FETCH_TIMEOUT_MS,
-        interval: 1_000,
-        timeoutMsg: "teammate row never rendered for the member filter",
-      }
+    // C deliberately left "Shared with me" active, so the teammate's own
+    // row must remain hidden until the member filter changes. Refresh the
+    // complete inventory first; waiting for that row under the old filter
+    // would assert the opposite of the production UX.
+    await clickRenderedOn(
+      second.client,
+      '[data-testid="cloud-team-sessions-refresh"]',
+      "secondary refresh Team sessions before member filter"
     );
     await clickRenderedOn(
       second.client,
       '[data-testid="cloud-team-sessions-filter"]',
       "secondary Team filter before blame navigation"
     );
+    await waitForRenderedOn(
+      second.client,
+      `[data-testid="sidebar-cloud-filter-member-${teammate.userId}"]`,
+      "secondary teammate member filter option",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
     await clickRenderedOn(
       second.client,
       `[data-testid="sidebar-cloud-filter-member-${teammate.userId}"]`,
       "secondary filter to own sessions"
     );
+    await waitForRenderedOn(
+      second.client,
+      `[data-testid="sidebar-cloud-session-item-${teammateRowSessionId}"]`,
+      "teammate row under teammate-only filter",
+      CLOUD_FETCH_TIMEOUT_MS
+    );
     await waitForGoneOn(
       second.client,
-      REMOTE_ROW_SELECTOR,
+      remoteRowSelector,
       "owner row under teammate-only filter"
     );
     await selectCloudOrgOn(second.client, teammatePersonalOrgId);
     await openFileTimelineOn(
       second.client,
-      join(E2E_REPO_PATH, SESSION_BLAME_FILE)
+      join(SECONDARY_E2E_REPO_PATH, SESSION_BLAME_FILE)
     );
     const teamBlameSelector =
       `[data-testid="session-blame-session"]` +
@@ -1505,7 +1718,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
                 rowSelected: row?.getAttribute('data-selected') === 'true',
               };
             `,
-            [REMOTE_ROW_SELECTOR]
+            [remoteRowSelector]
           ),
         ]);
         return (
@@ -1570,14 +1783,37 @@ describe("Cloud collaboration with two independent rendered app instances", func
     if (!String(viewerLabel).includes("Dual Owner")) {
       throw new Error(`viewer chip did not identify the owner: ${viewerLabel}`);
     }
-    unwrap(await invokeE2E("resetToNewSession"), "owner leave shared session");
-    await waitForGoneOn(
+    const viewerLivesInPublishedHeader = await executeOn(
       second.client,
-      ownerViewerChip,
-      "secondary owner viewer chip after owner leaves",
-      CLOUD_FETCH_TIMEOUT_MS
+      `return !!document.querySelector(
+        '[data-testid="chat-panel-published-header"] [data-testid="session-viewers-indicator"]'
+      );`
     );
-    unwrap(await invokeE2E("openSession", SESSION_ID), "owner reopen session");
+    if (!viewerLivesInPublishedHeader) {
+      throw new Error(
+        "viewer chip rendered outside the published session header"
+      );
+    }
+    unwrap(await invokeE2E("resetToNewSession"), "owner leave shared session");
+    try {
+      await waitForGoneOn(
+        second.client,
+        ownerViewerChip,
+        "secondary owner viewer chip after owner leaves",
+        CLOUD_FETCH_TIMEOUT_MS
+      );
+    } catch (error) {
+      const [ownerPresence, teammatePresence] = await Promise.all([
+        invokeE2E("cloudInspectPresence"),
+        invokeOn(second.client, "cloudInspectPresence"),
+      ]);
+      throw new Error(
+        `${error instanceof Error ? error.message : String(error)}\n` +
+          `owner presence after leave: ${JSON.stringify(ownerPresence)}\n` +
+          `teammate presence after owner leave: ${JSON.stringify(teammatePresence)}`
+      );
+    }
+    unwrap(await invokeE2E("openSession", sessionId), "owner reopen session");
     try {
       await waitForRenderedOn(
         second.client,
@@ -1599,9 +1835,9 @@ describe("Cloud collaboration with two independent rendered app instances", func
 
     // Keep the owner's comment panel open before the teammate writes; the
     // new row must arrive without a refresh or re-open.
-    await openTurnCommentPanel(`user-${SESSION_ID}`).catch(async (error) => {
+    await openTurnCommentPanel(`user-${sessionId}`).catch(async (error) => {
       const [debug, chat] = await Promise.all([
-        invokeE2E("cloudInspectDebugState", { sessionId: SESSION_ID }),
+        invokeE2E("cloudInspectDebugState", { sessionId }),
         invokeE2E("inspectChatState"),
       ]);
       const groupView = await execJS(`
@@ -1617,7 +1853,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     });
     await clickRenderedOn(
       second.client,
-      `[data-testid="session-comment-toggle-user-${SESSION_ID}"]`,
+      secondaryImportedTurnToggleSelector,
       "secondary turn comment toggle"
     );
     await waitForRenderedOn(
@@ -1721,7 +1957,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     // reply lands in each selected scope while the earlier owner-only thread
     // remains single-addressed.
     await clickRendered(
-      `[data-testid="session-comment-toggle-user-${SESSION_ID}"]`,
+      `[data-testid="session-comment-toggle-user-${sessionId}"]`,
       "owner close turn comments before Address Comments"
     );
     await waitForGone(
@@ -1793,7 +2029,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       }
     );
     await pressEscape();
-    await openTurnCommentPanel(`user-${SESSION_ID}`);
+    await openTurnCommentPanel(`user-${sessionId}`);
     await browser.waitUntil(
       async () =>
         execJS(`
@@ -1964,7 +2200,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     // imported replay before exercising edit/status and intercept-send.
     await clickRenderedOn(
       second.client,
-      REMOTE_ROW_SELECTOR,
+      remoteRowSelector,
       "secondary reopen imported replay"
     );
     await waitForRenderedOn(
@@ -1975,7 +2211,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     await clickRenderedOn(
       second.client,
-      `[data-testid="session-comment-toggle-user-${SESSION_ID}"]`,
+      secondaryImportedTurnToggleSelector,
       "secondary reopen turn comment panel"
     );
     await waitForRenderedOn(
@@ -2017,9 +2253,9 @@ describe("Cloud collaboration with two independent rendered app instances", func
       );
     } catch (error) {
       const [ownerDebug, teammateDebug] = await Promise.all([
-        invokeE2E("cloudInspectDebugState", { sessionId: SESSION_ID }),
+        invokeE2E("cloudInspectDebugState", { sessionId }),
         invokeOn(second.client, "cloudInspectDebugState", {
-          sessionId: SESSION_ID,
+          sessionId,
         }),
       ]);
       throw new Error(
@@ -2100,9 +2336,9 @@ describe("Cloud collaboration with two independent rendered app instances", func
       ).sessionId;
       const [primaryDebug, secondaryDebug, secondaryCommentText] =
         await Promise.all([
-          invokeE2E("cloudInspectDebugState", { sessionId: SESSION_ID }),
+          invokeE2E("cloudInspectDebugState", { sessionId }),
           invokeOn(second.client, "cloudInspectDebugState", {
-            sessionId: secondaryActive ?? SESSION_ID,
+            sessionId: secondaryActive ?? sessionId,
           }),
           executeOn(
             second.client,
@@ -2321,7 +2557,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     await waitForGoneOn(
       second.client,
-      REMOTE_ROW_SELECTOR,
+      remoteRowSelector,
       "secondary restricted row after revoke",
       CLOUD_FETCH_TIMEOUT_MS
     );
@@ -2387,15 +2623,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="sidebar-new-session"]',
       "owner open New Session before self-import"
     );
-    await waitForRendered(
-      '[data-testid="chat-panel-start-page-import-session"]',
-      "owner Import entry before self-import",
-      CLOUD_FETCH_TIMEOUT_MS
-    );
-    await clickRendered(
-      '[data-testid="chat-panel-start-page-import-session"]',
-      "owner Import entry for self-import"
-    );
+    await openPrimaryImportSession("owner Import entry for self-import");
     await typeRendered(
       '[data-testid="import-session-input"]',
       link,
@@ -2430,7 +2658,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
           await invokeE2E("inspectChatState"),
           "owner self-import active session"
         );
-        return state.activeSessionId === SESSION_ID;
+        return state.activeSessionId === sessionId;
       },
       {
         timeout: CLOUD_FETCH_TIMEOUT_MS,
@@ -2462,17 +2690,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="sidebar-new-session"]',
       "secondary open a real New Session"
     );
-    await waitForRenderedOn(
-      second.client,
-      '[data-testid="chat-panel-start-page-import-session"]',
-      "secondary Import entry after New Session",
-      CLOUD_FETCH_TIMEOUT_MS
-    );
-    await clickRenderedOn(
-      second.client,
-      '[data-testid="chat-panel-start-page-import-session"]',
-      "secondary Import entry"
-    );
+    await openImportSessionOn(second.client, "secondary Import entry");
     await typeRenderedOn(
       second.client,
       '[data-testid="import-session-input"]',
@@ -2570,15 +2788,8 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="sidebar-new-session"]',
       "secondary New Session before revoked-link retry"
     );
-    await waitForRenderedOn(
+    await openImportSessionOn(
       second.client,
-      '[data-testid="chat-panel-start-page-import-session"]',
-      "secondary Import entry for revoked-link retry",
-      CLOUD_FETCH_TIMEOUT_MS
-    );
-    await clickRenderedOn(
-      second.client,
-      '[data-testid="chat-panel-start-page-import-session"]',
       "secondary Import entry for revoked link"
     );
     await typeRenderedOn(
@@ -2650,9 +2861,8 @@ describe("Cloud collaboration with two independent rendered app instances", func
       "endpointUrl",
       "https://different-cloud.example.com"
     );
-    await clickRenderedOn(
+    await openImportSessionOn(
       second.client,
-      '[data-testid="chat-panel-start-page-import-session"]',
       "secondary Import entry for mismatched custom link"
     );
     await typeRenderedOn(
@@ -2685,7 +2895,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     unwrapOn(
       await invokeOn(second.client, "ensureRepoSelected", {
-        repoPath: E2E_REPO_PATH,
+        repoPath: SECONDARY_E2E_REPO_PATH,
       }),
       "secondary ensure Project workspace"
     );

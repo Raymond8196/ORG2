@@ -30,7 +30,13 @@
  * missed while disconnected.
  */
 import { useAtomValue, useSetAtom, useStore } from "jotai";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
 
 import {
   cloudOrgIdsForSession,
@@ -41,16 +47,23 @@ import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 
-import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import {
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "./org2CloudAuthAtom";
 import { ensureFreshSession } from "./org2CloudClient";
 import {
   COMMENTS_CHANGED_EVENT,
+  bumpCommentsSignalKey,
   org2CloudCommentsSignalAtom,
   orgCommentsKey,
   registerCommentsBroadcaster,
   sessionCommentsKey,
 } from "./org2CloudCommentsBus";
 import { refreshOrgEntitlement } from "./org2CloudEntitlementCoordinator";
+import { org2CloudMemberNamesAtom } from "./org2CloudMemberNamesAtom";
+import { clearCloudOrgMembersCache } from "./org2CloudMembersCoordinator";
 import {
   org2CloudOrgsAtom,
   org2CloudRosterVersionAtom,
@@ -59,9 +72,12 @@ import {
 } from "./org2CloudOrgsAtom";
 import {
   type Org2CloudPresenceEntry,
+  type Org2CloudPresencePayload,
   latestPresenceMeta,
   org2CloudPresenceAtom,
   org2CloudPresenceOutboundAtom,
+  org2CloudPresencePayloadKey,
+  org2CloudPresenceRosterEquals,
   resolveCloudSessionRefs,
 } from "./org2CloudPresenceAtom";
 import {
@@ -73,7 +89,9 @@ import { resolveActiveRealtimeOrgId } from "./org2CloudRealtimeScope";
 import {
   org2CloudRemoteSessionsAtom,
   org2CloudRemoteSessionsVersionAtom,
+  remoteSessionsEntryForIdentity,
 } from "./org2CloudRemoteSessionsAtom";
+import { org2CloudSessionCommentsAtom } from "./org2CloudSessionCommentsAtom";
 import { org2CloudSyncEngine } from "./org2CloudSyncEngine";
 
 const log = createLogger("Org2CloudRealtime");
@@ -122,12 +140,15 @@ export function useOrg2CloudRealtime(): void {
     org2CloudRemoteSessionsVersionAtom
   );
   const setCommentsSignal = useSetAtom(org2CloudCommentsSignalAtom);
+  const setSessionComments = useSetAtom(org2CloudSessionCommentsAtom);
+  const setPresence = useSetAtom(org2CloudPresenceAtom);
+  const setOutboundPresence = useSetAtom(org2CloudPresenceOutboundAtom);
+  const setRemoteSessions = useSetAtom(org2CloudRemoteSessionsAtom);
   const bumpOrgCommentsSignal = useCallback(
     (orgId: string) => {
-      setCommentsSignal((current) => {
-        const key = orgCommentsKey(orgId);
-        return { ...current, [key]: (current[key] ?? 0) + 1 };
-      });
+      setCommentsSignal((current) =>
+        bumpCommentsSignalKey(current, orgCommentsKey(orgId))
+      );
     },
     [setCommentsSignal]
   );
@@ -143,6 +164,32 @@ export function useOrg2CloudRealtime(): void {
 
   const userId = auth?.userId ?? null;
   const endpointUrl = auth?.supabaseUrl ?? null;
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
+  const setMemberNames = useSetAtom(org2CloudMemberNamesAtom);
+  useLayoutEffect(() => {
+    // Cached rosters and derived display names are identity-owned. Evict them
+    // on sign-out/account/endpoint changes instead of merely hiding old rows.
+    clearCloudOrgMembersCache(store);
+    setMemberNames({});
+    setRosterVersion({});
+    setRemoteSessions({});
+    setRemoteSessionsVersion({});
+    setSessionComments({});
+    setCommentsSignal({});
+    setPresence({});
+    setOutboundPresence({});
+  }, [
+    authIdentityKey,
+    setCommentsSignal,
+    setMemberNames,
+    setOutboundPresence,
+    setPresence,
+    setRemoteSessions,
+    setRemoteSessionsVersion,
+    setRosterVersion,
+    setSessionComments,
+    store,
+  ]);
   // Stable refs so the per-org effect and status callbacks read current values
   // without forcing the connection to rebuild.
   const refetchRef = useRef(refetchOrgs);
@@ -338,8 +385,6 @@ export function useOrg2CloudRealtime(): void {
   ]);
 
   // --- Slice C: org-level presence for the actively-used org only.
-  const setPresence = useSetAtom(org2CloudPresenceAtom);
-  const setOutboundPresence = useSetAtom(org2CloudPresenceOutboundAtom);
   // Presence follows the session the shared Chat pipeline is actually
   // rendering. Secondary/imported tabs intentionally diverge from the
   // WorkStation's remembered selection, so publishing that remembered id
@@ -359,12 +404,16 @@ export function useOrg2CloudRealtime(): void {
     return resolveCloudSessionRefs(
       session,
       cloudOrgIdsForSession(sessionOrgTags, session.session_id),
-      remoteSessions[activeRealtimeOrgId]?.rows ?? [],
+      remoteSessionsEntryForIdentity(
+        remoteSessions[activeRealtimeOrgId],
+        authIdentityKey
+      )?.rows ?? [],
       userId
     ).filter((ref) => ref.orgId === activeRealtimeOrgId);
   }, [
     activeRealtimeOrgId,
     activeSessionId,
+    authIdentityKey,
     remoteSessions,
     sessionOrgTags,
     sessions,
@@ -374,8 +423,9 @@ export function useOrg2CloudRealtime(): void {
   viewingRef.current = viewing;
 
   const presenceHandlesRef = useRef(new Map<string, Org2CloudPresenceHandle>());
+  const presencePayloadKeysRef = useRef(new Map<string, string | null>());
   const buildPayload = useCallback(
-    (orgId: string): Record<string, unknown> | null => {
+    (orgId: string): Org2CloudPresencePayload | null => {
       const current = (viewingRef.current ?? []).find(
         (ref) => ref.orgId === orgId
       );
@@ -395,20 +445,21 @@ export function useOrg2CloudRealtime(): void {
     const connection = connectionRef.current;
     if (!connection || !userId || !activeRealtimeOrgId) return undefined;
     const handles = presenceHandlesRef.current;
+    const payloadKeys = presencePayloadKeysRef.current;
     const unregisters: Array<() => void> = [];
     const orgId = activeRealtimeOrgId;
+    const initialPayload = buildPayload(orgId);
     const handle = connection.joinPresence({
       scope: `org:${orgId}`,
       key: userId,
-      payload: buildPayload(orgId),
+      payload: initialPayload,
       onBroadcast: (event, payload) => {
         if (event !== COMMENTS_CHANGED_EVENT) return;
         const sessionId = payload.sessionId;
         if (typeof sessionId !== "string" || !sessionId) return;
-        setCommentsSignal((current) => {
-          const key = sessionCommentsKey(orgId, sessionId);
-          return { ...current, [key]: (current[key] ?? 0) + 1 };
-        });
+        setCommentsSignal((current) =>
+          bumpCommentsSignalKey(current, sessionCommentsKey(orgId, sessionId))
+        );
         bumpRemoteSessionsVersion(orgId);
       },
       onSync: (state) => {
@@ -427,10 +478,27 @@ export function useOrg2CloudRealtime(): void {
               : undefined,
           };
         }
-        setPresence((current) => ({ ...current, [orgId]: byUser }));
+        // Presence sync fires for reconnects and same-truth re-tracks too.
+        // Keep the previous atom value when the who-views-what roster is
+        // semantically unchanged so every presence consumer (sidebar menu
+        // tree, viewer chips) skips a full rebuild.
+        setPresence((current) =>
+          org2CloudPresenceRosterEquals(current[orgId], byUser)
+            ? current
+            : { ...current, [orgId]: byUser }
+        );
       },
     });
     handles.set(orgId, handle);
+    payloadKeys.set(orgId, org2CloudPresencePayloadKey(initialPayload));
+    setOutboundPresence((current) => ({
+      ...current,
+      [orgId]: {
+        viewingSessionId: initialPayload?.viewingSessionId ?? null,
+        updatedAt: initialPayload?.updatedAt ?? Date.now(),
+        updateCount: (current[orgId]?.updateCount ?? 0) + 1,
+      },
+    }));
     const unregister = registerCommentsBroadcaster(orgId, (event, payload) =>
       handle.send(event, payload)
     );
@@ -451,6 +519,7 @@ export function useOrg2CloudRealtime(): void {
         });
       }
       handles.clear();
+      payloadKeys.clear();
     };
     // Same lifetime contract as Slice B (connection identity via Slice A).
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -473,6 +542,14 @@ export function useOrg2CloudRealtime(): void {
   useEffect(() => {
     for (const [orgId, handle] of presenceHandlesRef.current) {
       const payload = buildPayload(orgId);
+      const payloadKey = org2CloudPresencePayloadKey(payload);
+      if (
+        presencePayloadKeysRef.current.has(orgId) &&
+        presencePayloadKeysRef.current.get(orgId) === payloadKey
+      ) {
+        continue;
+      }
+      presencePayloadKeysRef.current.set(orgId, payloadKey);
       handle.update(payload);
       setOutboundPresence((current) => ({
         ...current,

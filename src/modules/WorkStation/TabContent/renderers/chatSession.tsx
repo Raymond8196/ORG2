@@ -21,6 +21,7 @@ import { useSessionRawTranscript } from "@src/engines/ChatPanel/components/Sessi
 import SessionRawTranscriptView from "@src/engines/ChatPanel/components/SessionRawTranscriptView";
 import { useSessionActionModals } from "@src/engines/ChatPanel/hooks/useSessionActionModals";
 import { useSessionHeaderActions } from "@src/engines/ChatPanel/hooks/useSessionHeaderActions";
+import SessionViewersIndicator from "@src/features/Org2Cloud/SessionViewersIndicator";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import { sessionByIdAtom } from "@src/store/session";
 import type { SessionContinuation } from "@src/store/session/sessionTabPlacementAtom";
@@ -156,6 +157,7 @@ const ChatSessionTabRenderer: React.FC<UnifiedTabContentProps> = memo(
     const copyLabel = t("common:actions.copy", "Copy");
     const headerTrailing = (
       <div className="flex shrink-0 items-center gap-px">
+        <SessionViewersIndicator sessionId={sessionId || null} />
         {sessionViewMode === "raw" ? (
           <>
             <Button

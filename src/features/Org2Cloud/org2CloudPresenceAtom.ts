@@ -21,6 +21,12 @@ export interface Org2CloudSessionRef {
   bareSessionId: string;
 }
 
+export interface Org2CloudPresencePayload extends Record<string, unknown> {
+  displayName: string;
+  viewingSessionId: string;
+  updatedAt: number;
+}
+
 /** orgId → userId → presence entry (last-write-wins per user key). */
 export const org2CloudPresenceAtom = atom<
   Record<string, Record<string, Org2CloudPresenceEntry>>
@@ -33,6 +39,48 @@ export const org2CloudPresenceOutboundAtom = atom<
     { viewingSessionId: string | null; updatedAt: number; updateCount: number }
   >
 >({});
+
+/**
+ * Stable identity for the desired Presence state. `updatedAt` deliberately
+ * does not participate: recalculating the same view must not consume another
+ * rate-limited track call merely to refresh its sender clock.
+ */
+export function org2CloudPresencePayloadKey(
+  payload: Org2CloudPresencePayload | null
+): string | null {
+  return payload
+    ? JSON.stringify([payload.displayName, payload.viewingSessionId])
+    : null;
+}
+
+/**
+ * Semantic equality for one org's presence roster. `updatedAt` deliberately
+ * does not participate (it is a sender clock used only for meta collapse):
+ * a reconnect or duplicate-device sync that reproduces the same
+ * who-views-what truth must not produce a new atom value and re-render every
+ * presence consumer (sidebar rows, viewer chips) for nothing.
+ */
+export function org2CloudPresenceRosterEquals(
+  left: Record<string, Org2CloudPresenceEntry> | undefined,
+  right: Record<string, Org2CloudPresenceEntry>
+): boolean {
+  if (!left) return false;
+  const leftKeys = Object.keys(left);
+  if (leftKeys.length !== Object.keys(right).length) return false;
+  for (const key of leftKeys) {
+    const a = left[key];
+    const b = right[key];
+    if (
+      !b ||
+      a.userId !== b.userId ||
+      a.displayName !== b.displayName ||
+      a.viewingSessionId !== b.viewingSessionId
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
 
 /**
  * Presence can contain multiple metas for one user (re-track overlap or the

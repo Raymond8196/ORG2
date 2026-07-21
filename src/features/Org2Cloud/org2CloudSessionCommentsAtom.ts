@@ -16,7 +16,11 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { createLogger } from "@src/hooks/logger";
 
-import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import {
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "./org2CloudAuthAtom";
 import { ensureFreshSession } from "./org2CloudClient";
 import {
   broadcastCommentsChangedToPeers,
@@ -38,6 +42,7 @@ import {
 const log = createLogger("Org2CloudSessionComments");
 
 const SESSION_COMMENTS_TTL_MS = 30_000;
+export const MAX_SESSION_COMMENT_CACHE_ENTRIES = 128;
 
 /**
  * A transient listing failure (network blip, or the session row sitting in
@@ -54,6 +59,8 @@ export type CloudSessionCommentsFetchState =
   | "error";
 
 export interface CloudSessionCommentsEntry {
+  /** Prevents cached bodies from crossing an account or endpoint switch. */
+  identityKey?: string;
   comments: CloudSessionComment[];
   /** Server-derived permission for spending this session owner's local model. */
   viewerOwnsSession: boolean;
@@ -70,6 +77,29 @@ const EMPTY_ENTRY: CloudSessionCommentsEntry = {
   state: "idle",
   fetchedAt: 0,
 };
+
+export function sessionCommentsEntryForIdentity(
+  entry: CloudSessionCommentsEntry | undefined,
+  identityKey: string | null
+): CloudSessionCommentsEntry | undefined {
+  return identityKey && entry?.identityKey === identityKey ? entry : undefined;
+}
+
+export function writeSessionCommentsEntry(
+  entries: Record<string, CloudSessionCommentsEntry>,
+  key: string,
+  entry: CloudSessionCommentsEntry
+): Record<string, CloudSessionCommentsEntry> {
+  const next = { ...entries };
+  delete next[key];
+  next[key] = entry;
+  const keys = Object.keys(next);
+  while (keys.length > MAX_SESSION_COMMENT_CACHE_ENTRIES) {
+    const oldest = keys.shift();
+    if (oldest) delete next[oldest];
+  }
+  return next;
+}
 
 export const org2CloudSessionCommentsAtom = atom<
   Record<string, CloudSessionCommentsEntry>
@@ -385,12 +415,22 @@ function rememberCompletedForceToken(key: string, token: string): void {
   if (oldestKey !== undefined) completedForceTokenByKey.delete(oldestKey);
 }
 
+function dropPendingForce(key: string): void {
+  pendingForceTokenByKey.delete(key);
+  pendingForceRefetchKeys.delete(key);
+}
+
 export function useSessionComments(
   orgId: string | null,
   sessionId: string | null,
   originSessionId: string | null = null
 ): UseSessionCommentsResult {
   const auth = useAtomValue(org2CloudAuthAtom);
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
+  const authRef = useRef(auth);
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
   const [entries, setEntries] = useAtom(org2CloudSessionCommentsAtom);
   const signedIn = Boolean(auth);
   const key = orgId && sessionId ? sessionCommentsKey(orgId, sessionId) : null;
@@ -404,13 +444,16 @@ export function useSessionComments(
       options?: { force?: boolean; forceToken?: string }
     ): Promise<void> => {
       const targetKey = sessionCommentsKey(targetOrgId, targetSessionId);
+      const requestIdentityKey = authIdentityKey;
+      if (!requestIdentityKey) return;
+      const requestKey = `${requestIdentityKey}\u001f${targetKey}`;
       let force = Boolean(options?.force);
       let forceToken = options?.forceToken;
       if (
         forceToken &&
-        (activeForceTokenByKey.get(targetKey) === forceToken ||
-          pendingForceTokenByKey.get(targetKey) === forceToken ||
-          completedForceTokenByKey.get(targetKey) === forceToken)
+        (activeForceTokenByKey.get(requestKey) === forceToken ||
+          pendingForceTokenByKey.get(requestKey) === forceToken ||
+          completedForceTokenByKey.get(requestKey) === forceToken)
       ) {
         return;
       }
@@ -426,7 +469,9 @@ export function useSessionComments(
         let queuedForce = false;
         let knownIdsAtStart = new Set<string>();
         setEntries((previous) => {
-          const entry = previous[targetKey];
+          const stored = previous[targetKey];
+          const entry =
+            stored?.identityKey === requestIdentityKey ? stored : undefined;
           const decision = decideSessionCommentsFetch(entry, force, Date.now());
           if (decision !== "claim") {
             // A force behind an in-flight fetch is QUEUED, never dropped:
@@ -440,32 +485,46 @@ export function useSessionComments(
           knownIdsAtStart = new Set(
             (entry?.comments ?? []).map((comment) => comment.id)
           );
-          return {
-            ...previous,
-            [targetKey]: {
-              ...(entry ?? EMPTY_ENTRY),
-              state: "loading",
-            },
-          };
+          return writeSessionCommentsEntry(previous, targetKey, {
+            ...(entry ?? EMPTY_ENTRY),
+            identityKey: requestIdentityKey,
+            state: "loading",
+          });
         });
         if (!claimed) {
           if (queuedForce) {
             if (forceToken) {
-              pendingForceTokenByKey.set(targetKey, forceToken);
+              pendingForceTokenByKey.set(requestKey, forceToken);
             } else {
-              pendingForceRefetchKeys.add(targetKey);
+              pendingForceRefetchKeys.add(requestKey);
             }
           }
           return;
         }
-        if (forceToken) activeForceTokenByKey.set(targetKey, forceToken);
+        if (forceToken) activeForceTokenByKey.set(requestKey, forceToken);
         try {
           const accessToken = await withFreshToken();
+          const currentAuth = authRef.current;
+          if (
+            !currentAuth ||
+            org2CloudAuthIdentityKey(currentAuth) !== requestIdentityKey
+          ) {
+            dropPendingForce(requestKey);
+            return;
+          }
           const { comments, viewerOwnsSession } = await listSessionComments(
             accessToken,
             targetOrgId,
             targetSessionId
           );
+          const latestAfterFetch = authRef.current;
+          if (
+            !latestAfterFetch ||
+            org2CloudAuthIdentityKey(latestAfterFetch) !== requestIdentityKey
+          ) {
+            dropPendingForce(requestKey);
+            return;
+          }
           // MERGE, not wholesale-replace: preserve ONLY rows that appeared
           // locally AFTER the fetch was claimed (optimistic adds the server
           // snapshot predates — their id is not in knownIdsAtStart). A row
@@ -473,7 +532,16 @@ export function useSessionComments(
           // deleted server-side (e.g. GDPR erasure) and is dropped — merging
           // it back would make it immortal.
           setEntries((previous) => {
-            const existing = previous[targetKey]?.comments ?? [];
+            const latestAuth = authRef.current;
+            if (
+              !latestAuth ||
+              org2CloudAuthIdentityKey(latestAuth) !== requestIdentityKey
+            ) {
+              return previous;
+            }
+            const stored = previous[targetKey];
+            const existing =
+              stored?.identityKey === requestIdentityKey ? stored.comments : [];
             const fetchedIds = new Set(comments.map((comment) => comment.id));
             const merged = existing
               .filter(
@@ -485,52 +553,62 @@ export function useSessionComments(
                 (list, comment) => insertComment(list, comment),
                 comments
               );
-            return {
-              ...previous,
-              [targetKey]: {
-                comments: merged,
-                viewerOwnsSession,
-                state: "ready",
-                fetchedAt: Date.now(),
-              },
-            };
+            return writeSessionCommentsEntry(previous, targetKey, {
+              identityKey: requestIdentityKey,
+              comments: merged,
+              viewerOwnsSession,
+              state: "ready",
+              fetchedAt: Date.now(),
+            });
           });
         } catch (error) {
+          const latestAuth = authRef.current;
+          if (
+            !latestAuth ||
+            org2CloudAuthIdentityKey(latestAuth) !== requestIdentityKey
+          ) {
+            dropPendingForce(requestKey);
+            return;
+          }
           log.warn("cloud_list_session_comments failed:", error);
           // Visibility revocation EVICTS the cached bodies (0002 invariant
           // 5 for already-cached data); transient failures keep them.
           const evict = shouldEvictSessionCommentsOnError(error);
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          setEntries((previous) => ({
-            ...previous,
-            [targetKey]: {
-              ...(evict ? EMPTY_ENTRY : (previous[targetKey] ?? EMPTY_ENTRY)),
+          setEntries((previous) =>
+            writeSessionCommentsEntry(previous, targetKey, {
+              ...(evict
+                ? EMPTY_ENTRY
+                : previous[targetKey]?.identityKey === requestIdentityKey
+                  ? previous[targetKey]
+                  : EMPTY_ENTRY),
+              identityKey: requestIdentityKey,
               state: "error",
               errorMessage,
               fetchedAt: Date.now(),
-            },
-          }));
+            })
+          );
         } finally {
           if (forceToken) {
-            if (activeForceTokenByKey.get(targetKey) === forceToken) {
-              activeForceTokenByKey.delete(targetKey);
+            if (activeForceTokenByKey.get(requestKey) === forceToken) {
+              activeForceTokenByKey.delete(requestKey);
             }
-            rememberCompletedForceToken(targetKey, forceToken);
+            rememberCompletedForceToken(requestKey, forceToken);
           }
         }
         // A force that arrived while THIS fetch was in flight replays as
         // exactly one more forced round-trip. Signal tokens additionally
         // collapse identical requests from multiple mounted subscribers.
-        const queuedToken = pendingForceTokenByKey.get(targetKey);
-        if (queuedToken) pendingForceTokenByKey.delete(targetKey);
-        const queuedUntokened = pendingForceRefetchKeys.delete(targetKey);
+        const queuedToken = pendingForceTokenByKey.get(requestKey);
+        if (queuedToken) pendingForceTokenByKey.delete(requestKey);
+        const queuedUntokened = pendingForceRefetchKeys.delete(requestKey);
         if (!queuedToken && !queuedUntokened) return;
         force = true;
         forceToken = queuedToken;
       }
     },
-    [setEntries, withFreshToken]
+    [authIdentityKey, setEntries, withFreshToken]
   );
 
   useEffect(() => {
@@ -539,7 +617,10 @@ export function useSessionComments(
     void fetchComments(orgId, sessionId);
   }, [orgId, sessionId, signedIn, fetchComments]);
 
-  const entry = (key ? entries[key] : undefined) ?? EMPTY_ENTRY;
+  const storedEntry = key ? entries[key] : undefined;
+  const entry =
+    sessionCommentsEntryForIdentity(storedEntry, authIdentityKey) ??
+    EMPTY_ENTRY;
   const entryState = entry.state;
 
   const refresh = useCallback(() => {
@@ -613,15 +694,27 @@ export function useSessionComments(
       targetKey: string,
       transform: (comments: CloudSessionComment[]) => CloudSessionComment[]
     ) => {
+      const identityKey = authIdentityKey;
+      if (!identityKey) return;
       setEntries((previous) => {
-        const entry = previous[targetKey] ?? EMPTY_ENTRY;
-        return {
-          ...previous,
-          [targetKey]: { ...entry, comments: transform(entry.comments) },
-        };
+        const latestAuth = authRef.current;
+        if (
+          !latestAuth ||
+          org2CloudAuthIdentityKey(latestAuth) !== identityKey
+        ) {
+          return previous;
+        }
+        const stored = previous[targetKey];
+        const entry =
+          stored?.identityKey === identityKey ? stored : EMPTY_ENTRY;
+        return writeSessionCommentsEntry(previous, targetKey, {
+          ...entry,
+          identityKey,
+          comments: transform(entry.comments),
+        });
       });
     },
-    [setEntries]
+    [authIdentityKey, setEntries]
   );
 
   const insertLocalComment = useCallback(
@@ -632,12 +725,30 @@ export function useSessionComments(
     [key, patchEntry]
   );
 
+  const freshTokenForCurrentIdentity = useCallback(async () => {
+    const identityKey = authIdentityKey;
+    if (!identityKey) throw new Error("not signed in to ORG2 Cloud");
+    const accessToken = await withFreshToken();
+    const latestAuth = authRef.current;
+    if (!latestAuth || org2CloudAuthIdentityKey(latestAuth) !== identityKey) {
+      throw new Error("ORG2 Cloud identity changed during the request");
+    }
+    return { accessToken, identityKey };
+  }, [authIdentityKey, withFreshToken]);
+
+  const isCurrentIdentity = useCallback((identityKey: string): boolean => {
+    const latestAuth = authRef.current;
+    return Boolean(
+      latestAuth && org2CloudAuthIdentityKey(latestAuth) === identityKey
+    );
+  }, []);
+
   const addComment = useCallback(
     async (input: AddCommentInput): Promise<CloudSessionComment> => {
       if (!orgId || !sessionId || !key) {
         throw new Error("no cloud comment target");
       }
-      const accessToken = await withFreshToken();
+      const { accessToken, identityKey } = await freshTokenForCurrentIdentity();
       const comment = await addSessionComment(accessToken, {
         orgId,
         sessionId,
@@ -648,37 +759,55 @@ export function useSessionComments(
           ? { originSessionId }
           : {}),
       });
+      if (!isCurrentIdentity(identityKey)) return comment;
       // The RPC returns the row in listing shape — insert without a refetch.
       patchEntry(key, (comments) => insertComment(comments, comment));
       broadcastCommentsChangedToPeers(orgId, sessionId);
       return comment;
     },
-    [orgId, sessionId, originSessionId, key, withFreshToken, patchEntry]
+    [
+      orgId,
+      sessionId,
+      originSessionId,
+      key,
+      freshTokenForCurrentIdentity,
+      isCurrentIdentity,
+      patchEntry,
+    ]
   );
 
   const editComment = useCallback(
     async (commentId: string, body: string): Promise<void> => {
       if (!orgId || !key) throw new Error("no cloud comment target");
-      const accessToken = await withFreshToken();
+      const { accessToken, identityKey } = await freshTokenForCurrentIdentity();
       const editedAt = await editSessionComment(
         accessToken,
         orgId,
         commentId,
         body
       );
+      if (!isCurrentIdentity(identityKey)) return;
       patchEntry(key, (comments) =>
         patchComment(comments, commentId, { body, editedAt })
       );
       if (sessionId) broadcastCommentsChangedToPeers(orgId, sessionId);
     },
-    [orgId, sessionId, key, withFreshToken, patchEntry]
+    [
+      orgId,
+      sessionId,
+      key,
+      freshTokenForCurrentIdentity,
+      isCurrentIdentity,
+      patchEntry,
+    ]
   );
 
   const deleteComment = useCallback(
     async (commentId: string): Promise<void> => {
       if (!orgId || !key) throw new Error("no cloud comment target");
-      const accessToken = await withFreshToken();
+      const { accessToken, identityKey } = await freshTokenForCurrentIdentity();
       await deleteSessionComment(accessToken, orgId, commentId);
+      if (!isCurrentIdentity(identityKey)) return;
       // Mirror the server's soft delete: stamp + blank body (tombstone).
       patchEntry(key, (comments) =>
         patchComment(comments, commentId, {
@@ -688,7 +817,14 @@ export function useSessionComments(
       );
       if (sessionId) broadcastCommentsChangedToPeers(orgId, sessionId);
     },
-    [orgId, sessionId, key, withFreshToken, patchEntry]
+    [
+      orgId,
+      sessionId,
+      key,
+      freshTokenForCurrentIdentity,
+      isCurrentIdentity,
+      patchEntry,
+    ]
   );
 
   const resolveComment = useCallback(
@@ -698,7 +834,7 @@ export function useSessionComments(
       resolution?: CloudCommentResolution
     ): Promise<void> => {
       if (!orgId || !key) throw new Error("no cloud comment target");
-      const accessToken = await withFreshToken();
+      const { accessToken, identityKey } = await freshTokenForCurrentIdentity();
       await resolveSessionComment(
         accessToken,
         orgId,
@@ -706,6 +842,7 @@ export function useSessionComments(
         resolved,
         resolution
       );
+      if (!isCurrentIdentity(identityKey)) return;
       patchEntry(key, (comments) =>
         patchComment(comments, commentId, {
           resolvedAt: resolved ? new Date().toISOString() : undefined,
@@ -714,7 +851,14 @@ export function useSessionComments(
       );
       if (sessionId) broadcastCommentsChangedToPeers(orgId, sessionId);
     },
-    [orgId, sessionId, key, withFreshToken, patchEntry]
+    [
+      orgId,
+      sessionId,
+      key,
+      freshTokenForCurrentIdentity,
+      isCurrentIdentity,
+      patchEntry,
+    ]
   );
 
   return {

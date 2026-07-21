@@ -12,12 +12,16 @@
  * failure degrades to `[]` (no crash, no stale cache).
  */
 import { atom, createStore, useAtom, useStore } from "jotai";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 import { createLogger } from "@src/hooks/logger";
 
 import { enrichOrg2CloudProfile } from "./completeSignIn";
-import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import {
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "./org2CloudAuthAtom";
 import { ensureFreshSession, listMyOrgs } from "./org2CloudClient";
 import { refreshOrgEntitlement } from "./org2CloudEntitlementCoordinator";
 
@@ -137,8 +141,8 @@ export function commitOrg2CloudOrgsRequest(
  * `org_memberships` subscription (useOrg2CloudRealtime). Consumers that
  * display the member list (CloudOrgPanelView) put their org's counter in a
  * fetch-effect dependency so a teammate joining/leaving/changing role
- * refreshes the list live — without this the members section only updated
- * on panel re-open.
+ * refreshes the list live. The open panel also performs a low-frequency
+ * authoritative fallback for deployments where the channel is unavailable.
  */
 export const org2CloudRosterVersionAtom = atom<Record<string, number>>({});
 org2CloudRosterVersionAtom.debugLabel = "org2CloudRosterVersionAtom";
@@ -174,8 +178,9 @@ export function parseCloudOrgSelectorValue(value: string): string | null {
 
 /**
  * Populate `org2CloudOrgsAtom` whenever a cloud user is signed in; clear it
- * on sign-out. Keyed on `userId` (not the whole auth object) so the
- * token-refresh write inside the effect does not retrigger the fetch.
+ * on sign-out. Keyed on endpoint + `userId` (not the whole auth object) so a
+ * token-refresh write does not retrigger the fetch while an endpoint/account
+ * switch can never retain the previous deployment's roster.
  */
 export function useOrg2CloudOrgs(): void {
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
@@ -184,15 +189,20 @@ export function useOrg2CloudOrgs(): void {
   useEffect(() => {
     authRef.current = auth;
   }, [auth]);
-  const userId = auth?.userId ?? null;
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
+
+  useLayoutEffect(() => {
+    // Identity changes are a hard visibility boundary. Clear the prior
+    // deployment/account roster before paint; otherwise the selector and
+    // Realtime manager can briefly treat old org ids as belonging to the new
+    // account while the first token refresh/list request is pending.
+    beginOrg2CloudOrgsRequest(store);
+    store.set(org2CloudOrgsAtom, []);
+    store.set(org2CloudOrgsLoadedAtom, false);
+  }, [authIdentityKey, store]);
 
   useEffect(() => {
-    if (!userId) {
-      beginOrg2CloudOrgsRequest(store);
-      store.set(org2CloudOrgsAtom, []);
-      store.set(org2CloudOrgsLoadedAtom, false);
-      return;
-    }
+    if (!authIdentityKey) return;
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     // Bounded auto-retry with backoff. A TRANSIENT token-refresh /
@@ -273,7 +283,7 @@ export function useOrg2CloudOrgs(): void {
       cancelled = true;
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [userId, setAuth, store]);
+  }, [authIdentityKey, setAuth, store]);
 }
 
 /**

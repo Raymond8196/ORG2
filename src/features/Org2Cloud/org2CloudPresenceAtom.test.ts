@@ -4,6 +4,7 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 
 import {
   latestPresenceMeta,
+  org2CloudPresencePayloadKey,
   resolveCloudSessionRefs,
   viewersForSession,
 } from "./org2CloudPresenceAtom";
@@ -42,6 +43,47 @@ describe("viewersForSession", () => {
   it("keeps everyone when self is not in the org (null self)", () => {
     const viewers = viewersForSession(PRESENCE, "org-1", "s-1", null);
     expect(viewers).toHaveLength(2);
+  });
+});
+
+describe("org2CloudPresencePayloadKey", () => {
+  it("deduplicates sender-clock refreshes for the same semantic view", () => {
+    expect(
+      org2CloudPresencePayloadKey({
+        displayName: "Ada",
+        viewingSessionId: "s-1",
+        updatedAt: 1,
+      })
+    ).toBe(
+      org2CloudPresencePayloadKey({
+        displayName: "Ada",
+        viewingSessionId: "s-1",
+        updatedAt: 999,
+      })
+    );
+  });
+
+  it("changes when the user or viewed session changes", () => {
+    const current = org2CloudPresencePayloadKey({
+      displayName: "Ada",
+      viewingSessionId: "s-1",
+      updatedAt: 1,
+    });
+    expect(
+      org2CloudPresencePayloadKey({
+        displayName: "Bea",
+        viewingSessionId: "s-1",
+        updatedAt: 2,
+      })
+    ).not.toBe(current);
+    expect(
+      org2CloudPresencePayloadKey({
+        displayName: "Ada",
+        viewingSessionId: "s-2",
+        updatedAt: 2,
+      })
+    ).not.toBe(current);
+    expect(org2CloudPresencePayloadKey(null)).toBeNull();
   });
 });
 

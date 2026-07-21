@@ -58,11 +58,11 @@ describe("shouldReconcileRoster", () => {
     expect(shouldReconcileRoster(false, 3)).toBe(false);
   });
 
-  it("never prunes on an empty roster, even when loaded", () => {
-    expect(shouldReconcileRoster(true, 0)).toBe(false);
+  it("prunes on an authoritatively empty roster", () => {
+    expect(shouldReconcileRoster(true, 0)).toBe(true);
   });
 
-  it("prunes only when loaded with a non-empty roster", () => {
+  it("prunes when loaded with a non-empty roster", () => {
     expect(shouldReconcileRoster(true, 1)).toBe(true);
   });
 });
