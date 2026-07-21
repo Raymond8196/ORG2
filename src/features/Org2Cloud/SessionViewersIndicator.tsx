@@ -17,22 +17,27 @@ import {
 } from "@src/features/TeamCollaboration/sessionOrgTagsAtom";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
-import { workstationActiveSessionIdAtom } from "@src/store/session/viewAtom";
 
 const MAX_AVATARS = 3;
 
-const SessionViewersIndicator: React.FC = () => {
+interface SessionViewersIndicatorProps {
+  /** Session rendered by this ChatHistory surface. */
+  sessionId: string | null;
+}
+
+const SessionViewersIndicator: React.FC<SessionViewersIndicatorProps> = ({
+  sessionId,
+}) => {
   const { t } = useTranslation("navigation");
   const presenceMap = useAtomValue(org2CloudPresenceAtom);
   const selfUserId = useAtomValue(org2CloudAuthAtom)?.userId ?? null;
-  const activeSessionId = useAtomValue(workstationActiveSessionIdAtom) ?? "";
   const sessions = useAtomValue(sessionsAtom) as Session[];
   const sessionOrgTags = useAtomValue(sessionOrgTagsAtom);
 
   const viewers = useMemo(() => {
-    if (!activeSessionId) return [];
+    if (!sessionId) return [];
     const session = sessions.find(
-      (candidate) => candidate.session_id === activeSessionId
+      (candidate) => candidate.session_id === sessionId
     );
     if (!session) return [];
     const refs = resolveCloudSessionRefs(
@@ -51,7 +56,7 @@ const SessionViewersIndicator: React.FC = () => {
       }
     }
     return [...byUser.values()];
-  }, [activeSessionId, presenceMap, selfUserId, sessionOrgTags, sessions]);
+  }, [presenceMap, selfUserId, sessionId, sessionOrgTags, sessions]);
 
   if (viewers.length === 0) return null;
 

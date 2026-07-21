@@ -316,7 +316,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
           className={`flex items-center justify-between ${DETAIL_PANEL_TOKENS.contentWidth}`}
         >
           <SessionHeader sessionInfo={sessionInfo} />
-          <SessionViewersIndicator />
+          <SessionViewersIndicator sessionId={activeId} />
         </div>
 
         <ChatSearchBar

@@ -65,13 +65,12 @@ function agentDisplayLabel(agent: AgentDefinition): string {
     : agent.name;
 }
 
-function isAgentRunnableWithModel(
+function agentPrefersModel(
   agent: AgentDefinition,
   model: string | undefined
 ): boolean {
   if (!model) return false;
-  const agentModel = agent.selectedModelId ?? null;
-  return !agentModel || agentModel === model;
+  return agent.selectedModelId === model;
 }
 
 const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
@@ -129,9 +128,7 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
       : undefined;
     if (sourceAgent) return sourceAgent;
     if (sourceModel) {
-      return allAgents.find((agent) =>
-        isAgentRunnableWithModel(agent, sourceModel)
-      );
+      return allAgents.find((agent) => agentPrefersModel(agent, sourceModel));
     }
     return (
       allAgents.find((agent) => agent.id === "builtin:sde") ?? allAgents[0]
@@ -175,12 +172,19 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
   const modelOptions = useMemo<SelectOption[]>(() => {
     if (!selectedAccount) return [];
     return accountModelIds(selectedAccount)
+      .filter((modelId) => accountHasModel(selectedAccount, modelId))
       .sort((left, right) => left.localeCompare(right))
       .map((modelId) => ({ value: modelId, label: modelId }));
   }, [selectedAccount]);
+  const preferredAgentModel =
+    selectedAgent?.selectedModelId &&
+    selectedAccount &&
+    accountHasModel(selectedAccount, selectedAgent.selectedModelId)
+      ? selectedAgent.selectedModelId
+      : undefined;
   const model =
     chosenModel ||
-    selectedAgent?.selectedModelId ||
+    preferredAgentModel ||
     (sourceModel &&
     selectedAccount &&
     accountHasModel(selectedAccount, sourceModel)
@@ -190,12 +194,9 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
     ? normalizeRepoScopeKey(request.sourceScopeKey)
     : null;
   const workspaceRequired = Boolean(targetKey);
-  const agentCompatible = selectedAgent
-    ? isAgentRunnableWithModel(selectedAgent, model)
-    : false;
   const canContinue =
     Boolean(selectedAccount && accountId && model && selectedAgent) &&
-    agentCompatible &&
+    Boolean(selectedAccount && accountHasModel(selectedAccount, model)) &&
     (!workspaceRequired || Boolean(workspaceRepoPath));
 
   useEffect(() => {
@@ -351,12 +352,6 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
             />
           </label>
         </div>
-
-        {!agentCompatible ? (
-          <div className="rounded-lg bg-warning-1 px-3 py-2 text-xs text-warning-6">
-            Selected agent cannot run the chosen model.
-          </div>
-        ) : null}
 
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={cancel}>
