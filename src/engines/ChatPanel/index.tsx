@@ -210,7 +210,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       resetActiveSession,
       resetToSessionSurface,
       setActiveSessionId,
-      setStartPageOpen,
       setWorkstationActiveSessionId,
       showSessionSurface,
     } = useChatPanelNavigationActions();
@@ -322,6 +321,18 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       void installAvailableAppUpdate();
     }, []);
 
+    const { createTargetOptions, handleCreateTargetChange } =
+      useChatPanelCreateTarget({
+        allAgentDefs,
+        sessionCreatorAvailable: Boolean(SessionCreatorSlot),
+        setCreateTarget,
+        setCreatorState,
+        setShowProjectAgentCreator,
+        setShowWorkItemAgentCreator,
+        setWorkItemCreateDraft,
+        t,
+      });
+
     const sessionSidebarVisible = sessionSidebarWidth > 0;
     const contentState = useChatPanelContentState({
       active,
@@ -426,12 +437,14 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       <ChatPanelEmptyContent
         createProjectContext={createProjectContext}
         createTarget={createTarget}
+        createTargetOptions={createTargetOptions}
         creatorClassName={creatorClassName}
         creatorVariant={creatorVariant}
         defaultAiWorkItemAssignee={defaultAiWorkItemAssignee}
         handleAiWorkItemSessionStart={handleAiWorkItemSessionStart}
         handleCancelWorkItemCreate={handleCancelWorkItemCreate}
         handleCancelCollabOrgCreate={handleCancelCollabOrgCreate}
+        handleCreateTargetChange={handleCreateTargetChange}
         handleChatPanelProjectCreated={handleChatPanelProjectCreated}
         handleChatPanelCollabOrgCreated={handleChatPanelCollabOrgCreated}
         handleChatPanelWorkItemCreated={handleChatPanelWorkItemCreated}
@@ -472,27 +485,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       />
     );
 
-    // Terminal / work-management tabs are not creator surfaces: the create
-    // target select and presence button would be launcher noise there. Real
-    // creator surfaces (new work item / project / collab org) keep them.
+    // Terminal / work-management tabs are not creator surfaces, so contextual
+    // creator controls such as presence and Agent mode stay hidden there.
     const showCreatorHeaderControls =
       contentState.showNonSessionContent &&
       !isTerminalTabActive &&
       !isStandaloneToolTabActive;
-
-    const { createTargetOptions, handleCreateTargetChange } =
-      useChatPanelCreateTarget({
-        allAgentDefs,
-        handleNewSession,
-        sessionCreatorAvailable: Boolean(SessionCreatorSlot),
-        setCreateTarget,
-        setCreatorState,
-        setStartPageOpen,
-        setShowProjectAgentCreator,
-        setShowWorkItemAgentCreator,
-        setWorkItemCreateDraft,
-        t,
-      });
 
     const headerSection = (
       <>
@@ -513,7 +511,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           collapseToggleLabel={collapseToggleLabel}
           copyEventJsonLabel={copyEventJsonLabel}
           createTarget={createTarget}
-          createTargetOptions={createTargetOptions}
           currentSessionId={currentSessionId ?? null}
           displayMode={displayMode}
           eventsLength={eventCount}
@@ -521,7 +518,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           handleChatFocusToggle={handleChatFocusToggle}
           handleCompactDisplayModeToggle={handleCompactDisplayModeToggle}
           handleCopyEventJson={handleCopyEventJson}
-          handleCreateTargetChange={handleCreateTargetChange}
           handleExploreAgentSearchToggle={handleExploreAgentSearchToggle}
           handleOpenExportSessionJson={handleOpenExportSessionJson}
           handleOpenLinkWorkItem={handleOpenLinkWorkItem}

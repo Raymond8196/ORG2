@@ -16,7 +16,6 @@ import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import RegionNoticeButton from "@src/components/RegionNoticeButton";
-import Select, { type SelectOption } from "@src/components/Select";
 import SessionHoverCard from "@src/components/SessionHoverCard";
 import Tooltip from "@src/components/Tooltip";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
@@ -53,7 +52,6 @@ interface ChatPanelHeaderProps {
   collapseToggleLabel: string;
   copyEventJsonLabel: "idle" | "copied" | "failed";
   createTarget: ChatPanelCreateTarget;
-  createTargetOptions: SelectOption[];
   currentSessionId: string | null;
   displayMode: ChatHistoryDisplayMode;
   eventsLength: number;
@@ -62,9 +60,6 @@ interface ChatPanelHeaderProps {
   handleCompactDisplayModeToggle: (checked: boolean) => void;
   handleCopyEventJson: () => void;
   handleMoveToWorkstation: () => void;
-  handleCreateTargetChange: (
-    value: string | number | (string | number)[]
-  ) => void;
   handleExploreAgentSearchToggle: (enabled: boolean) => void;
   handleOpenExportSessionJson: () => void;
   handleOpenLinkWorkItem: () => void;
@@ -130,7 +125,6 @@ export function ChatPanelHeader({
   collapseToggleLabel,
   copyEventJsonLabel,
   createTarget,
-  createTargetOptions,
   currentSessionId,
   displayMode,
   eventsLength,
@@ -139,7 +133,6 @@ export function ChatPanelHeader({
   handleCompactDisplayModeToggle,
   handleCopyEventJson,
   handleMoveToWorkstation,
-  handleCreateTargetChange,
   handleExploreAgentSearchToggle,
   handleOpenExportSessionJson,
   handleOpenLinkWorkItem,
@@ -442,39 +435,29 @@ export function ChatPanelHeader({
           >
             {showStaticCollabCreateTitle ? (
               <ChatPanelHeaderTitlePill>{headerTitle}</ChatPanelHeaderTitlePill>
-            ) : (
-              <Select
-                value={createTarget}
-                options={createTargetOptions}
-                onChange={handleCreateTargetChange}
-                size="small"
-                variant="ghost"
-                radius="pill"
-                dropdownMinWidth={168}
-                dropdownWidthMode="auto"
-                className="w-auto"
-                selectorClassName="!h-7 max-w-[180px] !gap-1.5 !rounded-lg !border-0 !bg-transparent !px-1.5 !text-[13px] font-medium !text-text-1 hover:!bg-surface-hover [&_.select-suffix]:!ml-0 [&_.select-value]:-translate-y-[0.5px]"
-                dataTestId="chat-panel-create-target-select"
-              />
-            )}
+            ) : null}
             {showCreatorPresenceInHeader && (
               <>
-                <div
-                  className="mx-1 h-4 w-px shrink-0 bg-border-2"
-                  role="separator"
-                  aria-hidden
-                />
+                {showStaticCollabCreateTitle ? (
+                  <div
+                    className="mx-1 h-4 w-px shrink-0 bg-border-2"
+                    role="separator"
+                    aria-hidden
+                  />
+                ) : null}
                 <PresenceMenuButton dropdownPosition="bottom-end" />
               </>
             )}
             {(showWorkItemAgentSwitchInHeader ||
               showProjectAgentSwitchInHeader) && (
               <>
-                <div
-                  className="mx-1 h-4 w-px shrink-0 bg-border-2"
-                  role="separator"
-                  aria-hidden
-                />
+                {showStaticCollabCreateTitle || showCreatorPresenceInHeader ? (
+                  <div
+                    className="mx-1 h-4 w-px shrink-0 bg-border-2"
+                    role="separator"
+                    aria-hidden
+                  />
+                ) : null}
                 <ChatPanelHeaderAgentSwitch
                   checked={
                     isProjectTarget

@@ -3,6 +3,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import { CHAT_PANEL_CREATE_TARGET } from "@src/store/ui/chatPanelAtom";
+
 import { ChatPanelStartPage } from "./ChatPanelStartPage";
 
 const mocks = vi.hoisted(() => ({
@@ -12,6 +14,22 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@src/scaffold/AppUpdater", () => ({
   useAvailableAppUpdate: mocks.useAvailableAppUpdate,
 }));
+
+const createTargetProps = {
+  createTarget: CHAT_PANEL_CREATE_TARGET.PROJECT,
+  createTargetOptions: [
+    { value: CHAT_PANEL_CREATE_TARGET.PROJECT, label: "Create project" },
+    {
+      value: CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS,
+      label: "Manage Agents / Skills",
+    },
+    {
+      value: CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT,
+      label: "GitHub Issues project",
+    },
+  ],
+  onCreateTarget: vi.fn(),
+};
 
 describe("ChatPanelStartPage", () => {
   it("renders the install-latest-update action in More", () => {
@@ -28,7 +46,13 @@ describe("ChatPanelStartPage", () => {
 
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
+        ...createTargetProps,
         initialView: "more",
+        moreLauncher: createElement(
+          "div",
+          { "data-testid": "embedded-more-creator" },
+          "Embedded creator"
+        ),
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         t,
@@ -46,6 +70,16 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain("p-2");
     expect(markup).toContain("bg-warning-6/5");
     expect(markup).toContain("@[800px]/startactions:grid-cols-3");
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-create-target-select"'
+    );
+    expect(markup).toContain("Create project");
+    expect(markup).not.toContain("Agent session");
+    expect(markup).not.toContain("Create Work Item");
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-more-launcher"'
+    );
+    expect(markup).toContain('data-testid="embedded-more-creator"');
 
     const updateIndex = markup.indexOf(
       'data-testid="chat-panel-start-page-install-latest-update"'
@@ -73,6 +107,7 @@ describe("ChatPanelStartPage", () => {
 
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
+        ...createTargetProps,
         initialView: "more",
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
@@ -93,6 +128,7 @@ describe("ChatPanelStartPage", () => {
 
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
+        ...createTargetProps,
         initialView: "more",
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
@@ -110,19 +146,23 @@ describe("ChatPanelStartPage", () => {
     expect(importSessionIndex).toBeGreaterThanOrEqual(0);
     expect(addApiKeyIndex).toBeGreaterThan(importSessionIndex);
     expect(markup).toContain("navigation:cloud.share.importEntry");
-    expect(markup.match(/border-border-2/g)).toHaveLength(2);
-    expect(markup.match(/hover:border-border-3/g)).toHaveLength(2);
+    expect(markup).toContain("border-border-2");
+    expect(markup).toContain("hover:border-border-3");
     expect(markup).not.toContain("group-hover:bg-fill-3");
   });
 
   it("renders the full work-item creator inside the Work Item tab", () => {
-    mocks.useAvailableAppUpdate.mockReturnValue(null);
+    mocks.useAvailableAppUpdate.mockReturnValue({
+      available: true,
+      version: "1.1.20",
+    });
     const t = ((key: string) => key) as TFunction<
       ["sessions", "common", "projects", "navigation"]
     >;
 
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
+        ...createTargetProps,
         initialView: "work-item",
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
@@ -140,6 +180,16 @@ describe("ChatPanelStartPage", () => {
     );
     expect(markup).toContain('data-testid="full-work-item-creator"');
     expect(markup).toContain("Full work item creator");
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-utility-actions"'
+    );
+    expect(markup).toContain('data-testid="chat-panel-start-page-add-api-key"');
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-import-session"'
+    );
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-install-latest-update"'
+    );
     expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-new-work-item"'
     );
@@ -153,6 +203,7 @@ describe("ChatPanelStartPage", () => {
 
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
+        ...createTargetProps,
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         sessionLauncher: createElement("div", null, "Session launcher"),
@@ -175,7 +226,14 @@ describe("ChatPanelStartPage", () => {
     expect(markup).not.toContain("chat.startPage.tabs.manage");
     expect(markup).not.toContain("chat.startPage.tabs.runtime");
     expect(markup).toContain('data-testid="chat-panel-start-page-hints"');
-    expect(markup).not.toContain('data-testid="chat-panel-start-page-actions"');
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-utility-actions"'
+    );
+    expect(markup).toContain('data-testid="chat-panel-start-page-actions"');
+    expect(markup).toContain('data-testid="chat-panel-start-page-add-api-key"');
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-import-session"'
+    );
     expect(markup).toContain("Session launcher");
     expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-new-session"'
