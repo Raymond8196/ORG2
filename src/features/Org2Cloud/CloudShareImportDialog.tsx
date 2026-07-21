@@ -50,7 +50,10 @@ import {
   consumeOrg2CloudPendingShareAtom,
   org2CloudPendingShareAtom,
 } from "./org2CloudPendingShareAtom";
-import { resolveCloudShareEndpoint } from "./org2CloudShareEndpoint";
+import {
+  requireCloudShareAuthEndpoint,
+  resolveCloudShareEndpoint,
+} from "./org2CloudShareEndpoint";
 import { resolveCloudSessionShare } from "./org2CloudSharesClient";
 
 interface ResolveState {
@@ -118,7 +121,10 @@ const CloudShareImportDialog: React.FC = () => {
         });
         if (!fresh) throw new TypeError("Cloud session refresh failed");
         if (!commitRefreshedAuth(setAuth, currentAuth, fresh)) return;
-        const endpoint = resolveCloudShareEndpoint(share.endpoint);
+        const endpoint = requireCloudShareAuthEndpoint(
+          resolveCloudShareEndpoint(share.endpoint),
+          fresh.supabaseUrl
+        );
         const session = await resolveCloudSessionShare(
           fresh.accessToken,
           share.shareToken,

@@ -168,6 +168,14 @@ pub fn run() {
             std::env::set_var("ORGII_HOME", data_home);
         }
     }
+    if std::env::var_os("ORGII_EXTERNAL_HISTORY_HOME").is_none() {
+        let resolved_orgii_home = app_paths::orgii_home_dir();
+        if let Some(external_history_home) =
+            runtime_profile.default_external_history_home(&resolved_orgii_home)
+        {
+            std::env::set_var("ORGII_EXTERNAL_HISTORY_HOME", external_history_home);
+        }
+    }
 
     apply_linux_webkit_cpu_guards();
 

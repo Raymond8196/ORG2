@@ -23,8 +23,9 @@ const REMOTE_SESSIONS_TTL_MS = 60_000;
 
 type JotaiStore = ReturnType<typeof createStore>;
 interface RemoteSessionsRequestState {
-  inFlightOrgIds: Set<string>;
-  lastFetchedVersionByOrg: Map<string, number>;
+  inFlightKeys: Set<string>;
+  lastFetchedVersionByKey: Map<string, number>;
+  activeIdentityKey: string | null;
 }
 const requestStateByStore = new WeakMap<
   JotaiStore,
@@ -35,8 +36,9 @@ function requestStateFor(store: JotaiStore): RemoteSessionsRequestState {
   let state = requestStateByStore.get(store);
   if (!state) {
     state = {
-      inFlightOrgIds: new Set<string>(),
-      lastFetchedVersionByOrg: new Map<string, number>(),
+      inFlightKeys: new Set<string>(),
+      lastFetchedVersionByKey: new Map<string, number>(),
+      activeIdentityKey: null,
     };
     requestStateByStore.set(store, state);
   }
@@ -50,6 +52,8 @@ export type CloudRemoteSessionsFetchState =
   | "error";
 
 export interface CloudOrgRemoteSessionsEntry {
+  /** Prevents app-lifetime rows from crossing a sign-out/account switch. */
+  identityKey?: string;
   rows: RemoteTeammateSessionMetadata[];
   state: CloudRemoteSessionsFetchState;
   /** Epoch ms of the last completed fetch attempt (0 ⇒ never fetched). */
@@ -63,16 +67,29 @@ const EMPTY_ENTRY: CloudOrgRemoteSessionsEntry = {
 };
 
 export function beginRemoteSessionsFetch(
-  entry: CloudOrgRemoteSessionsEntry | undefined
+  entry: CloudOrgRemoteSessionsEntry | undefined,
+  identityKey?: string
 ): CloudOrgRemoteSessionsEntry {
-  const current = entry ?? EMPTY_ENTRY;
+  const current =
+    identityKey && entry?.identityKey !== identityKey
+      ? EMPTY_ENTRY
+      : (entry ?? EMPTY_ENTRY);
   return {
     ...current,
+    ...(identityKey ? { identityKey } : {}),
     // "loading" is an INITIAL-load UI state only. Realtime invalidations and
     // the 60s safety TTL are background revalidations: keep the last ready
     // snapshot visible instead of flashing an empty/loading row every time.
     state: current.fetchedAt === 0 ? "loading" : current.state,
   };
+}
+
+export function remoteSessionsEntryForIdentity(
+  entry: CloudOrgRemoteSessionsEntry | undefined,
+  identityKey: string | null
+): CloudOrgRemoteSessionsEntry | undefined {
+  if (!identityKey || entry?.identityKey !== identityKey) return undefined;
+  return entry;
 }
 
 export function failRemoteSessionsFetch(
@@ -140,25 +157,52 @@ export function useCloudOrgRemoteSessions(
     authRef.current = auth;
   }, [auth]);
   const signedIn = Boolean(auth);
-  const entrySnapshot = orgId ? entries[orgId] : undefined;
+  const authIdentityKey = auth
+    ? `${auth.supabaseUrl.replace(/\/+$/, "")}|${auth.userId}`
+    : null;
+  useEffect(() => {
+    if (requestState.activeIdentityKey === authIdentityKey) return;
+    requestState.activeIdentityKey = authIdentityKey;
+    requestState.lastFetchedVersionByKey.clear();
+    // Rows are server-authorized. Drop the previous identity's snapshots
+    // immediately instead of retaining invisible data for the app lifetime.
+    setEntries({});
+  }, [authIdentityKey, requestState, setEntries]);
+  const entrySnapshot = orgId
+    ? remoteSessionsEntryForIdentity(entries[orgId], authIdentityKey)
+    : undefined;
   const fetchOrgSessions = useCallback(
     async (targetOrgId: string): Promise<void> => {
-      if (requestState.inFlightOrgIds.has(targetOrgId)) return;
       const current = authRef.current;
       if (!current) return;
-      requestState.inFlightOrgIds.add(targetOrgId);
+      const identityKey = `${current.supabaseUrl.replace(/\/+$/, "")}|${current.userId}`;
+      const requestKey = `${identityKey}|${targetOrgId}`;
+      if (requestState.inFlightKeys.has(requestKey)) return;
+      requestState.inFlightKeys.add(requestKey);
       setEntries((previous) => ({
         ...previous,
-        [targetOrgId]: beginRemoteSessionsFetch(previous[targetOrgId]),
+        [targetOrgId]: beginRemoteSessionsFetch(
+          previous[targetOrgId],
+          identityKey
+        ),
       }));
       try {
         const fresh = await ensureFreshSession(current);
         if (!fresh) throw new Error("token refresh failed");
         commitRefreshedAuth(setAuth, current, fresh);
         const result = await listOrgSessions(fresh.accessToken, targetOrgId);
+        const latest = authRef.current;
+        if (
+          !latest ||
+          `${latest.supabaseUrl.replace(/\/+$/, "")}|${latest.userId}` !==
+            identityKey
+        ) {
+          return;
+        }
         setEntries((previous) => ({
           ...previous,
           [targetOrgId]: {
+            identityKey,
             rows: result.sessions,
             state: "ready",
             fetchedAt: Date.now(),
@@ -168,13 +212,17 @@ export function useCloudOrgRemoteSessions(
         log.warn("cloud_list_org_sessions failed:", error);
         setEntries((previous) => ({
           ...previous,
-          [targetOrgId]: failRemoteSessionsFetch(
-            previous[targetOrgId],
-            Date.now()
-          ),
+          ...(previous[targetOrgId]?.identityKey === identityKey
+            ? {
+                [targetOrgId]: failRemoteSessionsFetch(
+                  previous[targetOrgId],
+                  Date.now()
+                ),
+              }
+            : {}),
         }));
       } finally {
-        requestState.inFlightOrgIds.delete(targetOrgId);
+        requestState.inFlightKeys.delete(requestKey);
       }
     },
     [requestState, setAuth, setEntries]
@@ -182,40 +230,45 @@ export function useCloudOrgRemoteSessions(
 
   // Effect re-runs on: scope switch (orgId), sign-in flip, and each Realtime
   // invalidation bump. On a bump the fetch runs regardless of TTL — the
-  // signal means the server HAS newer rows. `lastFetchedVersionByOrg` keeps a
-  // bump from re-firing after its fetch already ran. `entrySnapshot` is
+  // signal means the server HAS newer rows. The identity-keyed fetched-version
+  // map keeps a bump from re-firing after its fetch already ran. `entrySnapshot` is
   // intentionally a dependency: when a newer invalidation arrives during an
   // older in-flight request, that request's completion wakes this effect and
   // lets the queued version fetch instead of stranding it until the 60s TTL.
   useEffect(() => {
-    if (!orgId || !signedIn) return;
-    const entry = entriesRef.current[orgId];
+    if (!orgId || !signedIn || !authIdentityKey) return;
+    const entry = remoteSessionsEntryForIdentity(
+      entriesRef.current[orgId],
+      authIdentityKey
+    );
+    const requestKey = `${authIdentityKey}|${orgId}`;
     const lastFetchedVersion =
-      requestState.lastFetchedVersionByOrg.get(orgId) ?? 0;
+      requestState.lastFetchedVersionByKey.get(requestKey) ?? 0;
     const invalidated = invalidationVersion > lastFetchedVersion;
     const stale =
       !entry ||
       entry.state === "idle" ||
       Date.now() - entry.fetchedAt > REMOTE_SESSIONS_TTL_MS;
-    if ((!stale && !invalidated) || requestState.inFlightOrgIds.has(orgId)) {
+    if ((!stale && !invalidated) || requestState.inFlightKeys.has(requestKey)) {
       return;
     }
-    requestState.lastFetchedVersionByOrg.set(orgId, invalidationVersion);
+    requestState.lastFetchedVersionByKey.set(requestKey, invalidationVersion);
     void fetchOrgSessions(orgId);
   }, [
     orgId,
     signedIn,
     invalidationVersion,
     entrySnapshot,
+    authIdentityKey,
     fetchOrgSessions,
     requestState,
   ]);
 
   const refresh = useCallback(() => {
-    if (!orgId || !signedIn) return;
-    if (requestState.inFlightOrgIds.has(orgId)) return;
+    if (!orgId || !signedIn || !authIdentityKey) return;
+    if (requestState.inFlightKeys.has(`${authIdentityKey}|${orgId}`)) return;
     void fetchOrgSessions(orgId);
-  }, [orgId, signedIn, fetchOrgSessions, requestState]);
+  }, [orgId, signedIn, authIdentityKey, fetchOrgSessions, requestState]);
 
   const entry = entrySnapshot ?? EMPTY_ENTRY;
   return { rows: entry.rows, state: entry.state, refresh };

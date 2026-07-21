@@ -26,7 +26,10 @@ import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 import { classifyCloudShareResolveError } from "./cloudShareImportModel";
 import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import { ensureFreshSession } from "./org2CloudClient";
-import { resolvePersistedCloudShareEndpoint } from "./org2CloudShareEndpoint";
+import {
+  requireCloudShareAuthEndpoint,
+  resolvePersistedCloudShareEndpoint,
+} from "./org2CloudShareEndpoint";
 import { resolveCloudSessionShare } from "./org2CloudSharesClient";
 
 const log = createLogger("Org2CloudGuestShareAccess");
@@ -158,8 +161,9 @@ export function useOrg2CloudGuestShareAccess(): void {
         for (const capability of targets) {
           if (signal?.aborted) return;
           try {
-            const endpoint = resolvePersistedCloudShareEndpoint(
-              capability.shareEndpointUrl
+            const endpoint = requireCloudShareAuthEndpoint(
+              resolvePersistedCloudShareEndpoint(capability.shareEndpointUrl),
+              fresh.supabaseUrl
             );
             await resolveCloudSessionShare(
               fresh.accessToken,
@@ -191,23 +195,52 @@ export function useOrg2CloudGuestShareAccess(): void {
   useEffect(() => {
     if (!isAuthenticated || capabilities.length === 0) return undefined;
     const abortController = new AbortController();
-    const runAll = () => void validate("all", abortController.signal);
-    const runActive = () => void validate("active", abortController.signal);
+    let timer: number | null = null;
+    let lastAllValidationAt = 0;
+    const clearTimer = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      timer = null;
+    };
+    const isVisible = () => document.visibilityState !== "hidden";
+    const runAll = () => {
+      if (!isVisible()) return;
+      lastAllValidationAt = Date.now();
+      void validate("all", abortController.signal);
+    };
+    const schedule = () => {
+      clearTimer();
+      if (!isVisible()) return;
+      timer = window.setTimeout(() => {
+        timer = null;
+        if (Date.now() - lastAllValidationAt >= ALL_REVALIDATE_MS) runAll();
+        else void validate("active", abortController.signal);
+        schedule();
+      }, ACTIVE_REVALIDATE_MS);
+    };
     const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") runAll();
+      if (!isVisible()) {
+        clearTimer();
+        return;
+      }
+      runAll();
+      schedule();
+    };
+    const onFocus = () => {
+      runAll();
+      schedule();
     };
 
-    runAll();
-    const activeTimer = window.setInterval(runActive, ACTIVE_REVALIDATE_MS);
-    const allTimer = window.setInterval(runAll, ALL_REVALIDATE_MS);
-    window.addEventListener("focus", runAll);
+    if (isVisible()) {
+      runAll();
+      schedule();
+    }
+    window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       abortController.abort();
-      window.clearInterval(activeTimer);
-      window.clearInterval(allTimer);
-      window.removeEventListener("focus", runAll);
+      clearTimer();
+      window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [capabilityKey, capabilities.length, isAuthenticated, validate]);

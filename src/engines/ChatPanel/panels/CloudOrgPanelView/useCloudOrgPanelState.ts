@@ -15,8 +15,8 @@ import {
   type CloudOrgMember,
   ensureFreshSession,
   getEntitlementState,
-  listOrgMembers,
 } from "@src/features/Org2Cloud/org2CloudClient";
+import { loadCloudOrgMembers } from "@src/features/Org2Cloud/org2CloudMembersCoordinator";
 import { org2CloudRosterVersionAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import {
   deriveScopeQuotaView,
@@ -80,6 +80,8 @@ export function useCloudOrgPanelState(orgId: string) {
   );
 
   const rosterVersion = rosterVersionByOrg[orgId] ?? 0;
+  const rosterVersionRef = useRef(rosterVersion);
+  rosterVersionRef.current = rosterVersion;
   const signedIn = Boolean(auth);
   const currentUserId = auth?.userId ?? null;
   const savedScopes = useMemo(
@@ -139,16 +141,17 @@ export function useCloudOrgPanelState(orgId: string) {
         return;
       }
       commitRefreshedAuth(setAuth, current, fresh);
-      const [entitlementResult, membersResult, scopeStateResult] =
+      const [entitlementResult, membersLoadResult, scopeStateResult] =
         await Promise.all([
           getEntitlementState(fresh.accessToken, orgId),
-          listOrgMembers(fresh.accessToken, orgId),
+          loadCloudOrgMembers(fresh, orgId, rosterVersionRef.current),
           getOrgRepoScopes(fresh.accessToken, orgId).catch((error: unknown) => {
             log.warn("cloud_get_org_repo_scopes failed:", error);
             return null;
           }),
         ]);
       if (cancelled) return;
+      const membersResult = membersLoadResult?.members ?? [];
       setEntitlement(entitlementResult);
       if (entitlementResult) {
         const nextFloor =
@@ -200,11 +203,10 @@ export function useCloudOrgPanelState(orgId: string) {
     void (async () => {
       const current = authRef.current;
       if (!current) return;
-      const fresh = await ensureFreshSession(current);
-      if (!fresh || cancelled) return;
-      commitRefreshedAuth(setAuth, current, fresh);
-      const nextMembers = await listOrgMembers(fresh.accessToken, orgId);
-      if (!cancelled) setMembers(nextMembers);
+      const loaded = await loadCloudOrgMembers(current, orgId, rosterVersion);
+      if (!loaded || cancelled) return;
+      commitRefreshedAuth(setAuth, current, loaded.auth);
+      setMembers(loaded.members);
     })().catch((error: unknown) => {
       log.warn("cloud org roster refresh failed:", error);
     });
