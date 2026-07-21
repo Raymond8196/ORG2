@@ -1,13 +1,14 @@
-import { CheckCircle2, CircleDot, GitPullRequest } from "lucide-react";
-import React, { useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
-import IntegrationIcon from "@src/components/IntegrationIcon";
+import {
+  DROPDOWN_CLASSES,
+  DROPDOWN_WIDTHS,
+} from "@src/components/Dropdown/exports";
 import { SearchInput } from "@src/components/SearchInput";
 import type { SelectOption } from "@src/components/Select";
-import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import {
   IssueDetailHeaderContent,
@@ -27,7 +28,7 @@ import {
 import {
   GitHubWorkItemListFrame,
   GitHubWorkItemPagination,
-  GitHubWorkItemSummary,
+  GitHubWorkItemStateTabs,
   GitHubWorkItemToolbarActions,
 } from "./GitHubWorkItemList";
 import {
@@ -62,13 +63,6 @@ interface GitHubWorkItemsViewProps {
   parsedSearchQuery: ParsedGitHubSearchQuery;
   issuePersonalFilterOptions: SelectOption[];
   selectedIssuePersonalFilters: string[];
-  issueStateCounts: { open: number; closed: number };
-  openIssuesLoaded: boolean;
-  closedIssuesLoaded: boolean;
-  openPrCount: number;
-  closedPrCount: number;
-  openPrLoaded: boolean;
-  closedPrLoaded: boolean;
   currentPage: number;
   totalLoadedPages: number;
   hasMoreFilteredIssues: boolean;
@@ -116,13 +110,6 @@ export function GitHubWorkItemsView({
   parsedSearchQuery,
   issuePersonalFilterOptions,
   selectedIssuePersonalFilters,
-  issueStateCounts,
-  openIssuesLoaded,
-  closedIssuesLoaded,
-  openPrCount,
-  closedPrCount,
-  openPrLoaded,
-  closedPrLoaded,
   currentPage,
   totalLoadedPages,
   hasMoreFilteredIssues,
@@ -151,6 +138,38 @@ export function GitHubWorkItemsView({
 }: GitHubWorkItemsViewProps): React.ReactNode {
   const { t } = useTranslation(["sessions", "common"]);
   const listScrollRef = useRef<HTMLDivElement>(null);
+  const activeState =
+    scope === GITHUB_QUERY_SCOPE.PR &&
+    parsedSearchQuery.state === GITHUB_QUERY_STATE.MERGED
+      ? GITHUB_QUERY_STATE.CLOSED
+      : (parsedSearchQuery.state ?? GITHUB_QUERY_STATE.OPEN);
+  const stateTabs = useMemo(
+    () => [
+      {
+        key: GITHUB_QUERY_STATE.OPEN,
+        label: t("chat.panels.manageIssues.stateOpen"),
+      },
+      {
+        key: GITHUB_QUERY_STATE.CLOSED,
+        label: t("chat.panels.manageIssues.stateClosed"),
+      },
+    ],
+    [t]
+  );
+  const handleStateChange = useCallback(
+    (state: string) => {
+      if (
+        state !== GITHUB_QUERY_STATE.OPEN &&
+        state !== GITHUB_QUERY_STATE.CLOSED
+      ) {
+        return;
+      }
+      updateSearchQuery((query) => {
+        query.state = state;
+      });
+    },
+    [updateSearchQuery]
+  );
 
   const headerContent = useMemo(
     () =>
@@ -160,10 +179,10 @@ export function GitHubWorkItemsView({
         </span>
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <IntegrationIcon
-            type="github"
-            size={HEADER_ICON_SIZE.sm}
-            className="shrink-0"
+          <GitHubWorkItemStateTabs
+            tabs={stateTabs}
+            activeTab={activeState}
+            onChange={handleStateChange}
           />
           <RepoFilterPill
             options={repoOptions}
@@ -171,68 +190,80 @@ export function GitHubWorkItemsView({
             allReposLabel={t("chat.manageIssues.allRepositories")}
             onSelectRepo={onRepoSelect}
           />
-          <SearchInput
-            value={searchQuery}
-            onChange={onSearchQueryChange}
-            placeholder={t("chat.panels.manageIssues.searchPlaceholder")}
-            ariaLabel={t("chat.panels.manageIssues.searchPlaceholder")}
-            variant="panel"
-            surface="transparent"
-            hideChevron
-            showClearButton
-            inputBoxClassName="flex-1"
-            className="min-w-0 flex-1"
-          />
         </div>
       ),
     [
       effectiveSelectedRepo,
+      activeState,
+      handleStateChange,
       issueDetail,
+      stateTabs,
       onRepoSelect,
-      onSearchQueryChange,
       repoOptions,
-      searchQuery,
       t,
     ]
   );
   const headerTrailing = useMemo(
     () =>
       issueDetail ? null : (
-        <GitHubWorkItemToolbarActions
-          openHref={
-            selectedRepoSourceForCreate
-              ? `https://github.com/${selectedRepoSourceForCreate.repoFullName}`
-              : null
-          }
-          openLabel={t("chat.panels.manageIssues.openInGitHub")}
-          refreshLabel={t("common:actions.refresh")}
-          refreshing={loading}
-          createAction={
-            scope === GITHUB_QUERY_SCOPE.ISSUE
-              ? {
-                  label: t("chat.panels.manageIssues.createIssueTrigger"),
-                  disabled: repoSources.length === 0,
-                  onClick: () => onSetCreateFormOpen(true),
-                }
-              : undefined
-          }
-          onRefresh={onRefresh}
-        />
+        <div className="flex shrink-0 items-center gap-px">
+          {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
+            <Dropdown
+              options={issuePersonalFilterOptions}
+              value={selectedIssuePersonalFilters}
+              mode="multiple"
+              position="bottom-end"
+              className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.menuClass}`}
+              onSelect={(value) =>
+                onIssuePersonalFiltersSelect(
+                  Array.isArray(value) ? value : [value]
+                )
+              }
+            >
+              <Button htmlType="button" variant="secondary" size="small">
+                {t("common:actions.filter")}
+                {selectedIssuePersonalFilters.length > 0
+                  ? ` (${selectedIssuePersonalFilters.length})`
+                  : ""}
+              </Button>
+            </Dropdown>
+          ) : null}
+          <GitHubWorkItemToolbarActions
+            refreshLabel={t("common:actions.refresh")}
+            refreshing={loading}
+            createAction={
+              scope === GITHUB_QUERY_SCOPE.ISSUE
+                ? {
+                    label: t("chat.panels.manageIssues.createIssueTrigger"),
+                    disabled: repoSources.length === 0,
+                    onClick: () => onSetCreateFormOpen(true),
+                  }
+                : undefined
+            }
+            onRefresh={onRefresh}
+          />
+        </div>
       ),
     [
       issueDetail,
+      issuePersonalFilterOptions,
       loading,
+      onIssuePersonalFiltersSelect,
       onRefresh,
       onSetCreateFormOpen,
       repoSources.length,
       scope,
-      selectedRepoSourceForCreate,
+      selectedIssuePersonalFilters,
       t,
     ]
   );
   const headerContribution = useMemo(
-    () => ({ content: headerContent, trailing: headerTrailing }),
-    [headerContent, headerTrailing]
+    () => ({
+      content: headerContent,
+      trailing: headerTrailing,
+      joinWithFollowingRow: !issueDetail,
+    }),
+    [headerContent, headerTrailing, issueDetail]
   );
   usePublishWorkstationTabHeader({
     host: "workManagement",
@@ -287,96 +318,8 @@ export function GitHubWorkItemsView({
       return <Placeholder variant="no-results" fillParentHeight />;
     }
 
-    const summary = (
-      <GitHubWorkItemSummary
-        tabs={
-          scope === GITHUB_QUERY_SCOPE.ISSUE
-            ? [
-                {
-                  key: GITHUB_QUERY_STATE.OPEN,
-                  label: t("chat.panels.manageIssues.stateOpen"),
-                  count: openIssuesLoaded ? issueStateCounts.open : null,
-                  icon: <CircleDot size={13} strokeWidth={1.8} />,
-                  active: parsedSearchQuery.state === GITHUB_QUERY_STATE.OPEN,
-                  onSelect: () =>
-                    updateSearchQuery((query) => {
-                      query.state = GITHUB_QUERY_STATE.OPEN;
-                    }),
-                },
-                {
-                  key: GITHUB_QUERY_STATE.CLOSED,
-                  label: t("chat.panels.manageIssues.stateClosed"),
-                  count: closedIssuesLoaded ? issueStateCounts.closed : null,
-                  icon: <CheckCircle2 size={13} strokeWidth={1.8} />,
-                  active: parsedSearchQuery.state === GITHUB_QUERY_STATE.CLOSED,
-                  onSelect: () =>
-                    updateSearchQuery((query) => {
-                      query.state = GITHUB_QUERY_STATE.CLOSED;
-                    }),
-                },
-              ]
-            : [
-                {
-                  key: GITHUB_QUERY_STATE.OPEN,
-                  label: t("chat.panels.manageIssues.stateOpen"),
-                  count: openPrLoaded ? openPrCount : null,
-                  icon: <GitPullRequest size={13} strokeWidth={1.8} />,
-                  active:
-                    parsedSearchQuery.state === null ||
-                    parsedSearchQuery.state === GITHUB_QUERY_STATE.OPEN,
-                  onSelect: () =>
-                    updateSearchQuery((query) => {
-                      query.state = GITHUB_QUERY_STATE.OPEN;
-                    }),
-                },
-                {
-                  key: GITHUB_QUERY_STATE.CLOSED,
-                  label: t("chat.panels.manageIssues.stateClosed"),
-                  count: closedPrLoaded ? closedPrCount : null,
-                  icon: <CheckCircle2 size={13} strokeWidth={1.8} />,
-                  active:
-                    parsedSearchQuery.state === GITHUB_QUERY_STATE.CLOSED ||
-                    parsedSearchQuery.state === GITHUB_QUERY_STATE.MERGED,
-                  onSelect: () =>
-                    updateSearchQuery((query) => {
-                      query.state = GITHUB_QUERY_STATE.CLOSED;
-                    }),
-                },
-              ]
-        }
-        actions={
-          scope === GITHUB_QUERY_SCOPE.ISSUE ? (
-            <Dropdown
-              options={issuePersonalFilterOptions}
-              value={selectedIssuePersonalFilters}
-              mode="multiple"
-              position="bottom-end"
-              onSelect={(value) =>
-                onIssuePersonalFiltersSelect(
-                  Array.isArray(value) ? value : [value]
-                )
-              }
-            >
-              <Button
-                htmlType="button"
-                variant="secondary"
-                appearance="outline"
-                size="small"
-              >
-                {t("common:actions.filter")}
-                {selectedIssuePersonalFilters.length > 0
-                  ? ` (${selectedIssuePersonalFilters.length})`
-                  : ""}
-              </Button>
-            </Dropdown>
-          ) : undefined
-        }
-      />
-    );
-
     return (
       <GitHubWorkItemListFrame
-        summary={summary}
         height={
           scope === GITHUB_QUERY_SCOPE.PR && filteredItems.length === 0
             ? 180
@@ -488,6 +431,22 @@ export function GitHubWorkItemsView({
           <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
             {issueDetailContent ?? (
               <>
+                <div className="flex h-10 shrink-0 items-center border-b border-border-2 px-3">
+                  <SearchInput
+                    value={searchQuery}
+                    onChange={onSearchQueryChange}
+                    placeholder={t(
+                      "chat.panels.manageIssues.searchPlaceholder"
+                    )}
+                    ariaLabel={t("chat.panels.manageIssues.searchPlaceholder")}
+                    variant="panel"
+                    surface="transparent"
+                    hideChevron
+                    showClearButton
+                    inputBoxClassName="flex-1"
+                    className="min-w-0 flex-1"
+                  />
+                </div>
                 <div
                   ref={listScrollRef}
                   className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-hide"
