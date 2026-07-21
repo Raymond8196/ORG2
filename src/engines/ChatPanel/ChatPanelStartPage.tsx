@@ -13,7 +13,10 @@ import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
-import type { ChatPanelCreateTarget } from "@src/store/ui/chatPanelAtom";
+import {
+  CHAT_PANEL_CREATE_TARGET,
+  type ChatPanelCreateTarget,
+} from "@src/store/ui/chatPanelAtom";
 
 type StartPageActionTone = "primary" | "neutral" | "success" | "warning";
 type StartPageView = "session" | "work-item" | "more";
@@ -47,7 +50,6 @@ interface ChatPanelStartPageProps {
   className?: string;
   createTarget: ChatPanelCreateTarget;
   createTargetOptions: SelectOption[];
-  initialView?: StartPageView;
   moreLauncher?: React.ReactNode;
   onAddApiKey: () => void;
   onCreateTarget: (target: ChatPanelCreateTarget) => void;
@@ -191,7 +193,6 @@ export function ChatPanelStartPage({
   className,
   createTarget,
   createTargetOptions,
-  initialView = "session",
   moreLauncher,
   onAddApiKey,
   onCreateTarget,
@@ -200,7 +201,6 @@ export function ChatPanelStartPage({
   t,
   workItemLauncher,
 }: ChatPanelStartPageProps): React.ReactNode {
-  const [activeView, setActiveView] = useState<StartPageView>(initialView);
   const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
     useState(false);
   const availableUpdate = useAvailableAppUpdate();
@@ -236,10 +236,21 @@ export function ChatPanelStartPage({
   )
     ? createTarget
     : createTargetOptions[0]?.value;
+  const activeView: StartPageView =
+    createTarget === CHAT_PANEL_CREATE_TARGET.AGENT_SESSION
+      ? "session"
+      : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
+        ? "work-item"
+        : "more";
   const handleViewChange = useCallback(
     (key: string) => {
-      if (key === "session" || key === "work-item" || key === "more") {
-        setActiveView(key);
+      if (key === "session") {
+        onCreateTarget(CHAT_PANEL_CREATE_TARGET.AGENT_SESSION);
+        return;
+      }
+      if (key === "work-item") {
+        onCreateTarget(CHAT_PANEL_CREATE_TARGET.WORK_ITEM);
+        return;
       }
       if (
         key === "more" &&
@@ -263,7 +274,7 @@ export function ChatPanelStartPage({
         className="shrink-0 bg-chat-pane"
         data-testid="chat-panel-start-page-tabs"
       >
-        <div className="mx-auto flex h-full w-full max-w-[932px] justify-center px-4 pb-3 pt-4">
+        <div className="mx-auto flex h-14 w-full max-w-[932px] items-center justify-center gap-3 px-4 pt-1">
           <TabPill
             activeTab={activeView}
             tabs={[
@@ -287,7 +298,36 @@ export function ChatPanelStartPage({
             variant="simple"
             size="large"
             fillWidth={false}
+            className="h-10"
           />
+          {activeView === "more" ? (
+            <div className="flex -translate-y-1 items-center gap-2">
+              <span
+                className="h-5 w-px shrink-0 bg-border-2"
+                role="separator"
+                aria-hidden
+                data-testid="chat-panel-start-page-more-separator"
+              />
+              <Select
+                value={selectedMoreTarget}
+                options={createTargetOptions}
+                onChange={(value) => {
+                  if (!Array.isArray(value)) {
+                    onCreateTarget(value as ChatPanelCreateTarget);
+                  }
+                }}
+                size="large"
+                variant="ghost"
+                ghostTextOnly
+                radius="pill"
+                dropdownMinWidth={168}
+                dropdownWidthMode="auto"
+                className="w-auto"
+                selectorClassName="max-w-[240px] !gap-2 !px-1 !text-[16px] !leading-6 [&_.select-suffix]:!ml-0"
+                dataTestId="chat-panel-start-page-create-target-select"
+              />
+            </div>
+          ) : null}
         </div>
       </div>
       <div
@@ -309,29 +349,6 @@ export function ChatPanelStartPage({
             className="flex h-full min-h-0 w-full flex-col overflow-hidden"
             data-testid="chat-panel-start-page-more-launcher"
           >
-            <div
-              className={`shrink-0 px-4 py-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-            >
-              <div className="flex justify-center">
-                <Select
-                  value={selectedMoreTarget}
-                  options={createTargetOptions}
-                  onChange={(value) => {
-                    if (!Array.isArray(value)) {
-                      onCreateTarget(value as ChatPanelCreateTarget);
-                    }
-                  }}
-                  size="small"
-                  variant="ghost"
-                  radius="pill"
-                  dropdownMinWidth={168}
-                  dropdownWidthMode="auto"
-                  className="w-auto"
-                  selectorClassName="!h-7 max-w-[180px] !gap-1.5 !rounded-lg !border-0 !bg-transparent !px-1.5 !text-[13px] font-medium !text-text-1 hover:!bg-surface-hover [&_.select-suffix]:!ml-0 [&_.select-value]:-translate-y-[0.5px]"
-                  dataTestId="chat-panel-start-page-create-target-select"
-                />
-              </div>
-            </div>
             <div className="min-h-0 flex-1 overflow-hidden">{moreLauncher}</div>
           </div>
         ) : (

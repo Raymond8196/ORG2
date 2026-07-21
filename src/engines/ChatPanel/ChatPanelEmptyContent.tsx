@@ -83,6 +83,7 @@ interface ChatPanelEmptyContentProps {
   >;
   handleCancelWorkItemCreate: () => void;
   handleCancelCollabOrgCreate: () => void;
+  handleCancelProjectCreate: () => void;
   handleChatPanelProjectCreated: (options?: { keepOpen?: boolean }) => void;
   handleChatPanelCollabOrgCreated: (result: CreatedOrgResult) => void;
   handleChatPanelWorkItemCreated: (result?: CreatedWorkItemResult) => void;
@@ -116,6 +117,7 @@ export function ChatPanelEmptyContent({
   handleAiWorkItemSessionStart,
   handleCancelWorkItemCreate,
   handleCancelCollabOrgCreate,
+  handleCancelProjectCreate,
   handleChatPanelProjectCreated,
   handleChatPanelCollabOrgCreated,
   handleChatPanelWorkItemCreated,
@@ -274,7 +276,7 @@ export function ChatPanelEmptyContent({
               orgId={
                 createProjectContext?.orgId ?? STORY_PERSONAL_ORG_FILTER_ID
               }
-              onCancel={() => handleChatPanelProjectCreated()}
+              onCancel={handleCancelProjectCreate}
               onProjectCreated={handleChatPanelProjectCreated}
             />
           </Suspense>
@@ -283,12 +285,24 @@ export function ChatPanelEmptyContent({
     </WorkspaceScopedContent>
   );
 
+  const renderCollabOrgCreator = () => (
+    <div className={`flex w-full min-w-0 overflow-hidden ${creatorClassName}`}>
+      <Suspense fallback={null}>
+        <CreateCollabOrgView
+          onCancel={handleCancelCollabOrgCreate}
+          onCreated={handleChatPanelCollabOrgCreated}
+        />
+      </Suspense>
+    </div>
+  );
+
   if (showStartPage) {
     const sessionLauncher = renderSessionLauncher("shrink-0");
     const moreCreateTarget =
       createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT ||
       createTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT ||
-      createTarget === CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS
+      createTarget === CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS ||
+      createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
         ? createTarget
         : CHAT_PANEL_CREATE_TARGET.PROJECT;
     const moreLauncher =
@@ -296,7 +310,9 @@ export function ChatPanelEmptyContent({
         ? renderProjectCreator()
         : moreCreateTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT
           ? renderGithubIssuesCreator()
-          : renderSessionLauncher("min-h-0 flex-1");
+          : moreCreateTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
+            ? renderCollabOrgCreator()
+            : renderSessionLauncher("min-h-0 flex-1");
 
     return (
       <ChatPanelStartPage
@@ -327,18 +343,7 @@ export function ChatPanelEmptyContent({
   }
 
   if (createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG) {
-    return (
-      <div
-        className={`flex w-full min-w-0 overflow-hidden ${creatorClassName}`}
-      >
-        <Suspense fallback={null}>
-          <CreateCollabOrgView
-            onCancel={handleCancelCollabOrgCreate}
-            onCreated={handleChatPanelCollabOrgCreated}
-          />
-        </Suspense>
-      </div>
-    );
+    return renderCollabOrgCreator();
   }
 
   if (createTarget === CHAT_PANEL_CREATE_TARGET.BENCHMARK) {

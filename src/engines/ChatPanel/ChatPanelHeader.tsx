@@ -1,118 +1,74 @@
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import {
-  ChevronLeft,
-  ListChevronsDownUp,
-  ListChevronsUpDown,
   Maximize2,
   MonitorPlay,
   PanelRight,
-  Plus,
   TerminalSquare,
 } from "lucide-react";
 import React from "react";
 
 import Button from "@src/components/Button";
-import Input from "@src/components/Input";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import RegionNoticeButton from "@src/components/RegionNoticeButton";
-import SessionHoverCard from "@src/components/SessionHoverCard";
 import Tooltip from "@src/components/Tooltip";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { COLLAPSED_SIDEBAR_CHROME_OFFSET } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { CollapsedSidebarButton } from "@src/scaffold/NavigationSidebar/CollapsedSidebarButton";
-import { PresenceMenuButton } from "@src/scaffold/NavigationSidebar/blocks/SidebarBottomBar";
-import {
-  CHAT_PANEL_CREATE_TARGET,
-  type ChatHistoryDisplayMode,
-  type ChatPanelCreateTarget,
-} from "@src/store/ui/chatPanelAtom";
+import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 import { isWindows } from "@src/util/platform/tauri";
 
 import { SessionHeaderActionsMenu } from "./components/SessionHeaderActionsMenu";
 import {
   CHAT_PANEL_HEADER_DRAG_STYLE,
   CHAT_PANEL_HEADER_NO_DRAG_STYLE,
-  ChatPanelHeaderAgentSwitch,
-  ChatPanelHeaderDragSpacer,
-  ChatPanelHeaderSlotsView,
-  ChatPanelHeaderTitlePill,
   chatPanelHeaderSlotsAtom,
 } from "./header";
 import type { ChatPanelRegionNotice } from "./types";
 
 const CHAT_PANEL_HEADER_ICON_SIZE = 14;
-const CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE = 16;
 
 interface ChatPanelHeaderProps {
   activeSessionExists: boolean;
-  allBlocksCollapsed: boolean;
-  collapseToggleLabel: string;
   copyEventJsonLabel: "idle" | "copied" | "failed";
-  createTarget: ChatPanelCreateTarget;
   currentSessionId: string | null;
   displayMode: ChatHistoryDisplayMode;
   eventsLength: number;
-  exploreAgentSearchEnabled: boolean;
   handleChatFocusToggle: () => void;
   handleCompactDisplayModeToggle: (checked: boolean) => void;
   handleCopyEventJson: () => void;
   handleMoveToWorkstation: () => void;
-  handleExploreAgentSearchToggle: (enabled: boolean) => void;
   handleOpenExportSessionJson: () => void;
   handleOpenLinkWorkItem: () => void;
   handleOpenCloudShareSettings: () => void;
   handleOpenRawTranscript: () => void;
   handleOpenSearch: () => void;
-  handleNewSession: () => void;
   handlePaginationToggle: (checked: boolean) => void;
-  handleProjectAgentCreatorToggle: (enabled: boolean) => void;
-  handleProjectTitleChange: (title: string) => void;
   handleReloadFromMenu: () => void;
-  handleToggleAllBlocksCollapsed: () => void;
   handleTokenUsageVisibleToggle: (checked: boolean) => void;
-  handleWorkItemAgentCreatorToggle: (enabled: boolean) => void;
-  handleWorkItemTitleChange: (title: string) => void;
   headerActionsDropdownRef: React.RefObject<HTMLDivElement | null>;
   headerActionsPosition: DropdownEnginePosition;
   headerActionsTriggerRef: React.RefObject<HTMLButtonElement | null>;
-  headerTitle: string;
-  headerTitleContent?: React.ReactNode;
   isChatFocus: boolean;
   isHeaderActionsOpen: boolean;
   isHeaderActionsPositioned: boolean;
-  isProjectTarget: boolean;
   paginationEnabled: boolean;
   tokenUsageVisible: boolean;
-  showStartPageBackButton: boolean;
-  selectedProjectVisible: boolean;
-  selectedWorkItemVisible: boolean;
   shouldOffsetHeaderForCollapsedSidebar: boolean;
-  showBenchmarkSessionGroupContent: boolean;
   showChatFocusToggle: boolean;
-  showCreatorPresenceInHeader: boolean;
   showHeader: boolean;
-  showExploreAgentSwitchInHeader: boolean;
-  showNewSessionButton: boolean;
-  showNonSessionContent: boolean;
-  showProjectAgentCreator: boolean;
-  showProjectAgentSwitchInHeader: boolean;
   showSessionContent: boolean;
   /** Owner-side share entry gate (design §6.3): own session + org in scope. */
   showCloudShareSettings: boolean;
-  showStartPage: boolean;
-  showWorkItemAgentCreator: boolean;
-  showWorkItemAgentSwitchInHeader: boolean;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
   toggleHeaderActionsMenu: () => void;
   visibleRegionNotice: ChatPanelRegionNotice | null;
   showTuiModeToggle: boolean;
   tuiMode: boolean;
   handleTuiModeToggle: () => void;
-  /** When provided, replaces the title/drag-spacer area with the tab strip */
-  tabStrip?: React.ReactNode;
+  tabStrip: React.ReactNode;
   /** When provided, rendered before the ... button (tab-strip + menu replacement) */
   tabStripPlus?: React.ReactNode;
   /** Session-scoped extras (fork button / provenance chip), leading the toolbar */
@@ -121,62 +77,35 @@ interface ChatPanelHeaderProps {
 
 export function ChatPanelHeader({
   activeSessionExists,
-  allBlocksCollapsed,
-  collapseToggleLabel,
   copyEventJsonLabel,
-  createTarget,
   currentSessionId,
   displayMode,
   eventsLength,
-  exploreAgentSearchEnabled,
   handleChatFocusToggle,
   handleCompactDisplayModeToggle,
   handleCopyEventJson,
   handleMoveToWorkstation,
-  handleExploreAgentSearchToggle,
   handleOpenExportSessionJson,
   handleOpenLinkWorkItem,
   handleOpenCloudShareSettings,
   handleOpenRawTranscript,
   handleOpenSearch,
-  handleNewSession,
   handlePaginationToggle,
-  handleProjectAgentCreatorToggle,
-  handleProjectTitleChange,
   handleReloadFromMenu,
-  handleToggleAllBlocksCollapsed,
   handleTokenUsageVisibleToggle,
-  handleWorkItemAgentCreatorToggle,
-  handleWorkItemTitleChange,
   headerActionsDropdownRef,
   headerActionsPosition,
   headerActionsTriggerRef,
-  headerTitle,
-  headerTitleContent,
   isChatFocus,
   isHeaderActionsOpen,
   isHeaderActionsPositioned,
-  isProjectTarget,
   paginationEnabled,
   tokenUsageVisible,
-  showStartPageBackButton,
-  selectedProjectVisible,
-  selectedWorkItemVisible,
   shouldOffsetHeaderForCollapsedSidebar,
-  showBenchmarkSessionGroupContent,
   showChatFocusToggle,
-  showCreatorPresenceInHeader,
   showHeader,
-  showExploreAgentSwitchInHeader,
-  showNewSessionButton,
-  showNonSessionContent,
-  showProjectAgentCreator,
-  showProjectAgentSwitchInHeader,
   showSessionContent,
   showCloudShareSettings,
-  showStartPage,
-  showWorkItemAgentCreator,
-  showWorkItemAgentSwitchInHeader,
   t,
   toggleHeaderActionsMenu,
   visibleRegionNotice,
@@ -191,26 +120,10 @@ export function ChatPanelHeader({
   const windowsHost = isWindows();
   if (!showHeader) return null;
 
-  const nestedBackAction = publishedHeaderSlots?.backAction ?? null;
-  const nestedBackLabel = publishedHeaderSlots?.backLabel ?? t("actions.back");
-  const headerBackLabel = nestedBackAction
-    ? nestedBackLabel
-    : t("chat.startPage.back");
-
-  const showStaticCollabCreateTitle =
-    showNonSessionContent &&
-    !selectedWorkItemVisible &&
-    !selectedProjectVisible &&
-    createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG;
-
   const chatFocusLabel = isChatFocus
     ? t("chat.showWorkstation")
     : t("chat.maximizeChatPanel");
   const shrinkToWorkstationLabel = t("chat.showWorkstation");
-  const agentSwitchLabel = t("navigation:labels.agent", {
-    defaultValue: "Agent",
-  });
-
   const tuiModeLabel = tuiMode ? t("chat.tuiModeOn") : t("chat.tuiModeOff");
 
   const headerToolbar = (
@@ -255,40 +168,6 @@ export function ChatPanelHeader({
           </span>
         </Tooltip>
       )}
-      {!tabStrip && showSessionContent && (
-        <Tooltip
-          content={
-            <KeyboardShortcutTooltipContent label={collapseToggleLabel} />
-          }
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex">
-            <Button
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              onClick={handleToggleAllBlocksCollapsed}
-              aria-label={collapseToggleLabel}
-              icon={
-                allBlocksCollapsed ? (
-                  <ListChevronsUpDown
-                    size={CHAT_PANEL_HEADER_ICON_SIZE}
-                    strokeWidth={2}
-                  />
-                ) : (
-                  <ListChevronsDownUp
-                    size={CHAT_PANEL_HEADER_ICON_SIZE}
-                    strokeWidth={2}
-                  />
-                )
-              }
-            />
-          </span>
-        </Tooltip>
-      )}
       {visibleRegionNotice && (
         <RegionNoticeButton
           title={visibleRegionNotice.title}
@@ -296,7 +175,7 @@ export function ChatPanelHeader({
           alertClassName="!border-border-2 !bg-chat-container !text-text-1 shadow-lg"
         />
       )}
-      {tabStrip && publishedHeaderSlots?.trailing && (
+      {publishedHeaderSlots?.trailing && (
         <div
           className="flex shrink-0 items-center gap-px"
           style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
@@ -353,22 +232,6 @@ export function ChatPanelHeader({
           </TabBarTrailingIconButton>
         </span>
       )}
-      {!tabStrip && showNewSessionButton && (
-        <Button
-          htmlType="button"
-          variant="tertiary"
-          size="small"
-          iconOnly
-          onClick={handleNewSession}
-          aria-label={t("chat.newSession")}
-          icon={
-            <Plus
-              size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
-              strokeWidth={2}
-            />
-          }
-        />
-      )}
     </div>
   );
 
@@ -393,167 +256,7 @@ export function ChatPanelHeader({
           <CollapsedSidebarButton />
         </div>
       ) : null}
-      {showStartPageBackButton && nestedBackAction ? (
-        <Tooltip
-          content={
-            <KeyboardShortcutTooltipContent
-              label={headerBackLabel}
-              noShortcut
-            />
-          }
-          position="bottom-start"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex" style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}>
-            <Button
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              onClick={nestedBackAction}
-              aria-label={headerBackLabel}
-              data-testid="chat-panel-start-page-back-button"
-              icon={
-                <ChevronLeft
-                  size={CHAT_PANEL_HEADER_PROMINENT_ICON_SIZE}
-                  strokeWidth={2}
-                />
-              }
-            />
-          </span>
-        </Tooltip>
-      ) : null}
-      {tabStrip ?? null}
-      {showNonSessionContent &&
-        !showStartPage &&
-        !selectedWorkItemVisible &&
-        !selectedProjectVisible && (
-          <div
-            className="flex h-9 w-auto flex-shrink-0 items-center"
-            style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
-          >
-            {showStaticCollabCreateTitle ? (
-              <ChatPanelHeaderTitlePill>{headerTitle}</ChatPanelHeaderTitlePill>
-            ) : null}
-            {showCreatorPresenceInHeader && (
-              <>
-                {showStaticCollabCreateTitle ? (
-                  <div
-                    className="mx-1 h-4 w-px shrink-0 bg-border-2"
-                    role="separator"
-                    aria-hidden
-                  />
-                ) : null}
-                <PresenceMenuButton dropdownPosition="bottom-end" />
-              </>
-            )}
-            {(showWorkItemAgentSwitchInHeader ||
-              showProjectAgentSwitchInHeader) && (
-              <>
-                {showStaticCollabCreateTitle || showCreatorPresenceInHeader ? (
-                  <div
-                    className="mx-1 h-4 w-px shrink-0 bg-border-2"
-                    role="separator"
-                    aria-hidden
-                  />
-                ) : null}
-                <ChatPanelHeaderAgentSwitch
-                  checked={
-                    isProjectTarget
-                      ? showProjectAgentCreator
-                      : showWorkItemAgentCreator
-                  }
-                  label={agentSwitchLabel}
-                  onChange={
-                    isProjectTarget
-                      ? handleProjectAgentCreatorToggle
-                      : handleWorkItemAgentCreatorToggle
-                  }
-                  dataTestId={
-                    isProjectTarget
-                      ? "chat-panel-project-agent-switch"
-                      : "chat-panel-work-item-agent-switch"
-                  }
-                />
-              </>
-            )}
-          </div>
-        )}
-      {!tabStrip &&
-        (publishedHeaderSlots ? (
-          <div className="flex h-9 min-w-0 flex-1 items-center">
-            <ChatPanelHeaderSlotsView slots={publishedHeaderSlots} />
-          </div>
-        ) : showBenchmarkSessionGroupContent ||
-          showSessionContent ||
-          selectedWorkItemVisible ||
-          selectedProjectVisible ||
-          headerTitleContent ? (
-          <>
-            <div
-              className="flex h-9 min-w-0 shrink items-center"
-              style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
-            >
-              {showBenchmarkSessionGroupContent ? (
-                <ChatPanelHeaderTitlePill>
-                  {headerTitle}
-                </ChatPanelHeaderTitlePill>
-              ) : headerTitleContent ? (
-                <span
-                  className="flex min-w-0 max-w-full items-center gap-2"
-                  data-testid="chat-panel-header-title"
-                >
-                  {headerTitleContent}
-                  {showExploreAgentSwitchInHeader ? (
-                    <>
-                      <div
-                        className="h-4 w-px shrink-0 bg-border-2"
-                        role="separator"
-                        aria-hidden
-                      />
-                      <ChatPanelHeaderAgentSwitch
-                        checked={exploreAgentSearchEnabled}
-                        label={agentSwitchLabel}
-                        onChange={handleExploreAgentSearchToggle}
-                        dataTestId="chat-panel-explore-agent-search-switch"
-                      />
-                    </>
-                  ) : null}
-                </span>
-              ) : showSessionContent ||
-                (selectedWorkItemVisible && currentSessionId) ? (
-                <SessionHoverCard sessionId={currentSessionId}>
-                  <ChatPanelHeaderTitlePill>
-                    {headerTitle}
-                  </ChatPanelHeaderTitlePill>
-                </SessionHoverCard>
-              ) : selectedProjectVisible ? (
-                <Input
-                  type="text"
-                  value={headerTitle}
-                  onChange={handleProjectTitleChange}
-                  fieldVariant="ghost"
-                  size="small"
-                  data-testid="chat-panel-header-title-input"
-                />
-              ) : (
-                <Input
-                  type="text"
-                  value={headerTitle}
-                  onChange={handleWorkItemTitleChange}
-                  readOnly={!selectedWorkItemVisible}
-                  fieldVariant="ghost"
-                  size="small"
-                  data-testid="chat-panel-header-title-input"
-                />
-              )}
-            </div>
-            <ChatPanelHeaderDragSpacer />
-          </>
-        ) : (
-          <ChatPanelHeaderDragSpacer />
-        ))}
+      {tabStrip}
       {headerToolbar}
     </div>
   );

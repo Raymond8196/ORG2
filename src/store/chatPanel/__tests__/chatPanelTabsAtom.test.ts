@@ -44,6 +44,7 @@ async function loadChatPanelTabAtoms() {
     closeChatPanelTabAtom,
     normalizePersistedChatPanelTabsState,
     openCloudOrgManagementInChatPanelTabAtom,
+    openCreateTargetInChatPanelStartPageAtom,
     openKanbanChatPanelTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openRuntimeInChatPanelTabAtom,
@@ -61,10 +62,13 @@ async function loadChatPanelTabAtoms() {
   } = await import("../chatPanelTerminalAtom");
   const {
     activeChatPanelSurfaceAtom,
+    chatPanelCreateProjectContextAtom,
+    chatPanelCreateTargetAtom,
     chatPanelMaximizedAtom,
     chatPanelNavigateAtom,
     chatPanelStartPageOpenAtom,
     CHAT_PANEL_SURFACE_KIND,
+    CHAT_PANEL_CREATE_TARGET,
   } = await import("@src/store/ui/chatPanelAtom");
   const {
     WORK_MANAGEMENT_SECTION,
@@ -79,10 +83,13 @@ async function loadChatPanelTabAtoms() {
     activeChatPanelSurfaceAtom,
     activeSessionIdAtom,
     addChatPanelLaunchpadTabAtom,
+    CHAT_PANEL_CREATE_TARGET,
     CHAT_PANEL_SURFACE_KIND,
     chatPanelTabsAtom,
     chatPanelMaximizedAtom,
     chatPanelNavigateAtom,
+    chatPanelCreateProjectContextAtom,
+    chatPanelCreateTargetAtom,
     chatPanelStartPageOpenAtom,
     closeChatPanelTabAtom,
     createChatPanelTerminalAtom,
@@ -96,6 +103,7 @@ async function loadChatPanelTabAtoms() {
     kanbanSelectedTaskIdAtom,
     normalizePersistedChatPanelTabsState,
     openCloudOrgManagementInChatPanelTabAtom,
+    openCreateTargetInChatPanelStartPageAtom,
     openKanbanChatPanelTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openRuntimeInChatPanelTabAtom,
@@ -652,6 +660,49 @@ describe("ChatPanel navigation tabs", () => {
     expect(firstId).toBe(launchpadTabId);
     expect(secondId).toBe(launchpadTabId);
     expect(store.get(chatPanelTabsAtom).activeTabId).toBe(launchpadTabId);
+    expect(
+      store
+        .get(chatPanelTabsAtom)
+        .tabs.filter((tab) => tab.type === "start-page")
+    ).toHaveLength(1);
+  });
+
+  it("opens creator targets inside the singleton start page", async () => {
+    const {
+      CHAT_PANEL_CREATE_TARGET,
+      chatPanelCreateProjectContextAtom,
+      chatPanelCreateTargetAtom,
+      chatPanelStartPageOpenAtom,
+      chatPanelTabsAtom,
+      openCreateTargetInChatPanelStartPageAtom,
+      openSessionInNewChatTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+    const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
+
+    store.set(openSessionInNewChatTabAtom, {
+      sessionId: "session-a",
+      sessionName: "Session A",
+    });
+    const openedTabId = store.set(openCreateTargetInChatPanelStartPageAtom, {
+      target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
+      title: "Launchpad",
+      createProjectContext: {
+        orgId: "org-a",
+        scopeBreadcrumbLabel: "ORG A",
+      },
+    });
+
+    expect(openedTabId).toBe(launchpadTabId);
+    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(launchpadTabId);
+    expect(store.get(chatPanelCreateTargetAtom)).toBe(
+      CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
+    );
+    expect(store.get(chatPanelCreateProjectContextAtom)).toEqual({
+      orgId: "org-a",
+      scopeBreadcrumbLabel: "ORG A",
+    });
+    expect(store.get(chatPanelStartPageOpenAtom)).toBe(true);
     expect(
       store
         .get(chatPanelTabsAtom)

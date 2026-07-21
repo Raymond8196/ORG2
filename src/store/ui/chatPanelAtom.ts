@@ -374,10 +374,6 @@ chatPanelSelectedCloudOrgAtom.debugLabel = "chatPanelSelectedCloudOrgAtom";
 export const chatPanelExploreOpenAtom = atom<boolean>(false);
 chatPanelExploreOpenAtom.debugLabel = "chatPanelExploreOpenAtom";
 
-export const chatPanelExploreAgentSearchEnabledAtom = atom<boolean>(false);
-chatPanelExploreAgentSearchEnabledAtom.debugLabel =
-  "chatPanelExploreAgentSearchEnabledAtom";
-
 /**
  * Selected tab on the chat-panel workspace overview surface
  * (`WorkspaceOverviewPanelView`). The overview/details split is

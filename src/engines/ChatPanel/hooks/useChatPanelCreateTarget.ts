@@ -53,6 +53,11 @@ export function useChatPanelCreateTarget({
         label: t("projects:githubIssuesImport.createTarget"),
         dataTestId: "chat-panel-create-target-github-issues-project-option",
       },
+      {
+        value: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
+        label: t("navigation:collaboration.addOrg"),
+        dataTestId: "chat-panel-create-target-collab-org-option",
+      },
     ],
     [t]
   );

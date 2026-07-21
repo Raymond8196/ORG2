@@ -71,6 +71,11 @@ export interface SelectProps {
   radius?: "none" | "sm" | "md" | "lg" | "pill";
   /** @default 'default' */
   variant?: "default" | "ghost";
+  /**
+   * Use a normal-weight, text-only interaction for ghost triggers. The label
+   * is muted at rest and changes color on hover/open without a background.
+   */
+  ghostTextOnly?: boolean;
   /** Stable selector for rendered UI tests. */
   dataTestId?: string;
 }

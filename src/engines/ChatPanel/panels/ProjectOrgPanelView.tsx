@@ -9,13 +9,13 @@ import {
 import { createLogger } from "@src/hooks/logger";
 import { ProjectOrgHubContent } from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectOrgHubContent";
 import {
+  openCreateTargetInChatPanelStartPageAtom,
   openProjectInChatPanelTabAtom,
   openWorkItemInChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
-  CHAT_PANEL_SURFACE_KIND,
+  CHAT_PANEL_CREATE_TARGET,
   type ChatPanelSelectedProjectOrg,
-  chatPanelNavigateAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
   PROJECT_ORG_SURFACE_VIEW,
@@ -31,7 +31,9 @@ interface ProjectOrgPanelViewProps {
 export const ProjectOrgPanelView: React.FC<ProjectOrgPanelViewProps> = ({
   selectedProjectOrg,
 }) => {
-  const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
+  const openCreateTargetInStartPage = useSetAtom(
+    openCreateTargetInChatPanelStartPageAtom
+  );
   const openProjectTab = useSetAtom(openProjectInChatPanelTabAtom);
   const openWorkItemTab = useSetAtom(openWorkItemInChatPanelTabAtom);
   const [orgView, setOrgView] = useState<ProjectOrgSurfaceView>(
@@ -65,24 +67,32 @@ export const ProjectOrgPanelView: React.FC<ProjectOrgPanelViewProps> = ({
   );
 
   const handleCreateProject = useCallback(() => {
-    navigateChatPanel({
-      kind: CHAT_PANEL_SURFACE_KIND.NEW_PROJECT,
+    openCreateTargetInStartPage({
+      target: CHAT_PANEL_CREATE_TARGET.PROJECT,
       createProjectContext: {
         orgId: selectedProjectOrg.orgId,
         scopeBreadcrumbLabel: selectedProjectOrg.orgName,
       },
     });
-  }, [navigateChatPanel, selectedProjectOrg.orgId, selectedProjectOrg.orgName]);
+  }, [
+    openCreateTargetInStartPage,
+    selectedProjectOrg.orgId,
+    selectedProjectOrg.orgName,
+  ]);
 
   const handleCreateWorkItem = useCallback(() => {
-    navigateChatPanel({
-      kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM,
+    openCreateTargetInStartPage({
+      target: CHAT_PANEL_CREATE_TARGET.WORK_ITEM,
       createProjectContext: {
         orgId: selectedProjectOrg.orgId,
         scopeBreadcrumbLabel: selectedProjectOrg.orgName,
       },
     });
-  }, [navigateChatPanel, selectedProjectOrg.orgId, selectedProjectOrg.orgName]);
+  }, [
+    openCreateTargetInStartPage,
+    selectedProjectOrg.orgId,
+    selectedProjectOrg.orgName,
+  ]);
 
   const handleExpandWorkItemToTab = useCallback(
     async (

@@ -22,6 +22,7 @@ export {
   addChatPanelLaunchpadTabAtom,
   addChatPanelTerminalTabAtom,
   openCloudOrgManagementInChatPanelTabAtom,
+  openCreateTargetInChatPanelStartPageAtom,
   openExploreInChatPanelTabAtom,
   openKanbanChatPanelTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
