@@ -27,6 +27,7 @@ export type PillIconType =
   | "skill"
   | "member"
   | "paste"
+  | "link"
   | "pr"
   | "issue";
 
