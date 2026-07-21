@@ -158,7 +158,7 @@ describe("createOrg2CloudRealtimeConnection presence privacy", () => {
     });
   });
 
-  it("does not track inactive orgs and untracks only after a published view", async () => {
+  it("does not track before a view and publishes an explicit idle view on close", async () => {
     const conn = createOrg2CloudRealtimeConnection("token-abc");
     const handle = conn.joinPresence({
       scope: "org:org-123",
@@ -177,7 +177,11 @@ describe("createOrg2CloudRealtimeConnection presence privacy", () => {
     await vi.waitFor(() => expect(channel?.track).toHaveBeenCalledTimes(1));
 
     handle.update(null);
-    await vi.waitFor(() => expect(channel?.untrack).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(channel?.track).toHaveBeenCalledTimes(2));
+    expect(channel?.untrack).not.toHaveBeenCalled();
+    expect(channel?.track.mock.calls.at(-1)?.[0]).toMatchObject({
+      viewingSessionId: null,
+    });
   });
 
   it("queues broadcasts sent while the private channel is reconnecting", async () => {

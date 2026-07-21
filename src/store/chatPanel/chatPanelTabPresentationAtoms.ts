@@ -4,6 +4,7 @@ import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import {
   activeSessionIdAtom,
   jumpToSessionAtom,
+  releasePipelineSessionAtom,
   workstationActiveSessionIdAtom,
 } from "@src/store/session/viewAtom";
 import {
@@ -211,9 +212,13 @@ export const activateChatPanelTabAtom = atom(
 
     set(syncChatPanelTabNavigationAtom, tab);
 
-    if (tab.type === "start-page") {
-      return;
-    }
+    // The active tab is the visibility authority. Once a non-session surface
+    // takes over, release the singleton event pipeline while retaining the
+    // WorkStation's remembered session so switching back to an open session
+    // tab remains instant and deterministic.
+    if (tab.type !== "session") set(releasePipelineSessionAtom);
+
+    if (tab.type === "start-page") return;
 
     if (
       tab.type === "terminal" ||

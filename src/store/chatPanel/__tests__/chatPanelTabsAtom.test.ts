@@ -189,6 +189,29 @@ describe("closeChatPanelTabAtom", () => {
     expect(store.get(chatPanelTabsAtom).tabs[0].type).toBe("start-page");
   }, 30_000);
 
+  it("releases the pipeline when Launchpad replaces the active session", async () => {
+    const {
+      activeSessionIdAtom,
+      chatPanelTabsAtom,
+      closeChatPanelTabAtom,
+      openSessionInNewChatTabAtom,
+      sessionViewAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+    const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
+    const sessionTabId = store.set(openSessionInNewChatTabAtom, {
+      sessionId: "session-heavy-replay",
+      sessionName: "Heavy replay",
+    });
+
+    expect(store.get(activeSessionIdAtom)).toBe("session-heavy-replay");
+    store.set(closeChatPanelTabAtom, sessionTabId);
+
+    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(launchpadTabId);
+    expect(store.get(activeSessionIdAtom)).toBeNull();
+    expect(store.get(sessionViewAtom).activeSessionId).toBeNull();
+  });
+
   it("restores docked presentation when the final management tab closes", async () => {
     const {
       chatPanelMaximizedAtom,

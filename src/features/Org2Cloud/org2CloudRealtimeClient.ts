@@ -103,7 +103,7 @@ export interface Org2CloudPresenceOptions {
 }
 
 export interface Org2CloudPresenceHandle {
-  /** Re-track with a payload, or untrack when no session in this org is open. */
+  /** Re-track with a payload, or publish an explicit idle view when no session is open. */
   update(payload: Record<string, unknown> | null): void;
   /** Fire-and-forget broadcast to every other peer on this channel. */
   send(event: string, payload: Record<string, unknown>): void;
@@ -268,6 +268,12 @@ export function createOrg2CloudRealtimeConnection(
       config: { private: true, presence: { key } },
     });
     let latestPayload: Record<string, unknown> | null = payload;
+    // Keep enough identity metadata to publish an explicit "online, not
+    // viewing" state. Repeated untrack -> track cycles on a private channel
+    // can leave peers holding the previous meta even after untrack resolves
+    // `ok`; replacing the meta is both observable and matches org Presence's
+    // online/viewing dual purpose.
+    let lastTrackedPayload: Record<string, unknown> | null = payload;
     let subscribed = false;
     let published = false;
     let desiredTrackVersion = 1;
@@ -356,22 +362,28 @@ export function createOrg2CloudRealtimeConnection(
         while (subscribed && appliedTrackVersion < desiredTrackVersion) {
           const version = desiredTrackVersion;
           const nextPayload = latestPayload;
-          // Listening on an inactive org is intentionally untracked. If no
-          // presence was published, applying null is a local no-op and must
-          // not consume one of the five server calls.
+          // Listening before this client has published a view is intentionally
+          // untracked. Applying null is then a local no-op and must not consume
+          // one of the five server calls.
           if (nextPayload === null && !published) {
             appliedTrackVersion = version;
             continue;
           }
+          const wirePayload =
+            nextPayload === null
+              ? {
+                  ...(lastTrackedPayload ?? {}),
+                  viewingSessionId: null,
+                  updatedAt: Date.now(),
+                }
+              : nextPayload;
           try {
             const result = await schedulePresenceCall(async () => {
               if (!subscribed) return "ok" as const;
               let timeout: ReturnType<typeof setTimeout> | undefined;
               try {
                 return await Promise.race([
-                  nextPayload === null
-                    ? channel.untrack()
-                    : channel.track(nextPayload),
+                  channel.track(wirePayload),
                   new Promise<"timed out">((resolve) => {
                     timeout = setTimeout(
                       () => resolve("timed out"),
@@ -386,7 +398,8 @@ export function createOrg2CloudRealtimeConnection(
             if (result !== "ok") {
               throw new Error(`presence call returned ${String(result)}`);
             }
-            published = nextPayload !== null;
+            published = true;
+            lastTrackedPayload = wirePayload;
             appliedTrackVersion = version;
             trackFailureStreak = 0;
           } catch (error) {

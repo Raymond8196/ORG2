@@ -3,11 +3,72 @@ import { describe, expect, it } from "vitest";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
 import {
+  applyOrg2CloudPresenceViewChanged,
   latestPresenceMeta,
   org2CloudPresencePayloadKey,
   resolveCloudSessionRefs,
   viewersForSession,
 } from "./org2CloudPresenceAtom";
+
+describe("applyOrg2CloudPresenceViewChanged", () => {
+  it("clears an existing viewer from a newer private-channel nudge", () => {
+    const current = {
+      "org-1": {
+        "user-b": {
+          userId: "user-b",
+          displayName: "Bee",
+          viewingSessionId: "s-1",
+          updatedAt: 10,
+        },
+      },
+    };
+
+    expect(
+      applyOrg2CloudPresenceViewChanged(current, "org-1", {
+        userId: "user-b",
+        viewingSessionId: null,
+        updatedAt: 11,
+      })
+    ).toEqual({
+      "org-1": {
+        "user-b": {
+          userId: "user-b",
+          displayName: "Bee",
+          viewingSessionId: null,
+          updatedAt: 11,
+        },
+      },
+    });
+  });
+
+  it("cannot invent a roster member or overwrite newer Presence truth", () => {
+    const current = {
+      "org-1": {
+        "user-b": {
+          userId: "user-b",
+          displayName: "Bee",
+          viewingSessionId: "s-2",
+          updatedAt: 20,
+        },
+      },
+    };
+
+    expect(
+      applyOrg2CloudPresenceViewChanged(current, "org-1", {
+        userId: "missing",
+        viewingSessionId: "s-1",
+        updatedAt: 21,
+      })
+    ).toBe(current);
+    expect(
+      applyOrg2CloudPresenceViewChanged(current, "org-1", {
+        userId: "user-b",
+        viewingSessionId: null,
+        updatedAt: 19,
+      })
+    ).toBe(current);
+  });
+});
 
 const PRESENCE = {
   "org-1": {
