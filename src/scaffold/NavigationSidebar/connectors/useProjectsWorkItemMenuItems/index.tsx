@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { projectApi } from "@src/api/http/project";
 import type { ProjectOrg } from "@src/api/http/project";
+import { projectSyncApi } from "@src/api/http/project/sync";
 import { COLLAB_SYNC_PROVIDER } from "@src/features/Org2Cloud/org2CloudProjectOrgAlias";
 import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
@@ -35,6 +36,7 @@ import {
   isProjectsWorkItemLoadMoreId,
 } from "./idHelpers";
 import { getErrorMessage } from "./linearHelpers";
+import { getNavigableLinkedSessions } from "./menuRows";
 import type {
   LinearOrgLoadState,
   LinearOrgRecord,
@@ -82,6 +84,25 @@ export function useProjectsWorkItemMenuItems({
     Map<string, LinearOrgLoadState>
   >(new Map());
   const [loading, setLoading] = useState(false);
+  const [
+    expandedLinkedSessionWorkItemIds,
+    setExpandedLinkedSessionWorkItemIds,
+  ] = useState<Set<string>>(() => new Set());
+
+  const handleToggleLinkedSessionExpansion = useCallback(
+    (workItemId: string) => {
+      setExpandedLinkedSessionWorkItemIds((previousIds) => {
+        const nextIds = new Set(previousIds);
+        if (nextIds.has(workItemId)) {
+          nextIds.delete(workItemId);
+        } else {
+          nextIds.add(workItemId);
+        }
+        return nextIds;
+      });
+    },
+    []
+  );
 
   /** Org ids accepted by the selector filter. */
   const selectedOrgIdSet = useMemo(() => {
@@ -125,11 +146,13 @@ export function useProjectsWorkItemMenuItems({
       ]);
       const projectResults = await Promise.all(
         projects.map(async (project) => {
-          const [viewData, labelsFile, membersFile] = await Promise.all([
-            projectApi.readWorkItemsViewData(project.slug),
-            projectApi.readLabels(project.slug),
-            projectApi.readMembers(project.slug),
-          ]);
+          const [viewData, labelsFile, membersFile, syncStatus] =
+            await Promise.all([
+              projectApi.readWorkItemsViewData(project.slug),
+              projectApi.readLabels(project.slug),
+              projectApi.readMembers(project.slug),
+              projectSyncApi.status(project.slug).catch(() => null),
+            ]);
           const labelMap = new Map(
             labelsFile.labels.map((label) => [label.id, label])
           );
@@ -158,6 +181,7 @@ export function useProjectsWorkItemMenuItems({
               projectSlug: project.slug,
               orgId,
               orgName,
+              projectSyncAdapterId: syncStatus?.adapter_id ?? null,
               source: "local",
             }));
           return { projectEntry, projectWorkItems };
@@ -337,6 +361,18 @@ export function useProjectsWorkItemMenuItems({
     [scopedWorkItems]
   );
 
+  const linkedSessionIds = useMemo(
+    () =>
+      new Set(
+        scopedWorkItems.flatMap((workItem) =>
+          getNavigableLinkedSessions(workItem).map(
+            (session) => session.session_id
+          )
+        )
+      ),
+    [scopedWorkItems]
+  );
+
   const collabOrgIds = useMemo(
     () =>
       localOrgs
@@ -360,6 +396,8 @@ export function useProjectsWorkItemMenuItems({
           projectIds: pendingProjectIds,
           workItemIds: pendingWorkItemIds,
         },
+        expandedLinkedSessionWorkItemIds,
+        onToggleLinkedSessionExpansion: handleToggleLinkedSessionExpansion,
       }),
     [
       allWorkItems,
@@ -369,6 +407,8 @@ export function useProjectsWorkItemMenuItems({
       scopedLocalProjects,
       pendingProjectIds,
       pendingWorkItemIds,
+      expandedLinkedSessionWorkItemIds,
+      handleToggleLinkedSessionExpansion,
     ]
   );
 
@@ -435,6 +475,7 @@ export function useProjectsWorkItemMenuItems({
     localOrgMap,
     linearOrgMap,
     loading,
+    linkedSessionIds,
     getLoadMoreGroupId: isProjectsWorkItemLoadMoreId,
     loadLinearOrgWorkItems: loadLinearOrgWorkItemsById,
     toChatPanelProject,
