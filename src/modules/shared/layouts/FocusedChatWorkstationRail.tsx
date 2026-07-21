@@ -22,6 +22,7 @@ import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut
 import Tooltip from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { ROUTES } from "@src/config/routes";
+import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
 import { getTerminalDisplayTitle } from "@src/engines/TerminalCore/types";
 import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
@@ -327,7 +328,7 @@ export function FocusedChatWorkstationRail() {
   return (
     <div className="pointer-events-none absolute right-1 top-[88px] z-20 hidden xl:flex">
       <div
-        className={`pointer-events-auto flex bg-[var(--cm-editor-background)] transition-all ${
+        className={`pointer-events-auto flex transition-all ${EDITOR_TAB_CANVAS_BG_CLASS} ${
           collapsed
             ? "flex-col items-center rounded-xl border-[1px] border-border-1 p-1"
             : "w-64 flex-col rounded-xl border-[1px] border-border-1 p-1"
