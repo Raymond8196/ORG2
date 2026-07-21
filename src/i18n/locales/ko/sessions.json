@@ -1138,6 +1138,8 @@
     "turnMetadata": {
       "noChanges": "이번 라운드에는 파일 변경 없음",
       "earlierRound": "이전 라운드",
+      "editsTab": "편집",
+      "readsTab": "읽기",
       "files_one": "파일 {{count}}개",
       "files_other": "파일 {{count}}개",
       "reads_one": "읽기 {{count}}회",

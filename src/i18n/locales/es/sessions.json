@@ -1139,6 +1139,8 @@
     "turnMetadata": {
       "noChanges": "No hubo cambios de archivos en esta ronda",
       "earlierRound": "Ronda anterior",
+      "editsTab": "Ediciones",
+      "readsTab": "Lecturas",
       "files_one": "{{count}} archivo",
       "files_other": "{{count}} archivos",
       "reads_one": "{{count}} lectura",

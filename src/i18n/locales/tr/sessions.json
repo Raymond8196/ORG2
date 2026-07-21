@@ -1139,6 +1139,8 @@
     "turnMetadata": {
       "noChanges": "Bu turda dosya değişikliği yok",
       "earlierRound": "Önceki tur",
+      "editsTab": "Düzenlemeler",
+      "readsTab": "Okumalar",
       "files_one": "{{count}} dosya",
       "files_other": "{{count}} dosya",
       "reads_one": "{{count}} okuma",

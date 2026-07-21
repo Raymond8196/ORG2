@@ -1143,6 +1143,8 @@
     "turnMetadata": {
       "noChanges": "В этом раунде файлы не изменялись",
       "earlierRound": "Предыдущий раунд",
+      "editsTab": "Правки",
+      "readsTab": "Чтения",
       "files_one": "{{count}} файл",
       "files_few": "{{count}} файла",
       "files_many": "{{count}} файлов",
