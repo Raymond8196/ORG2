@@ -390,6 +390,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     localOrgMap: projectsLocalOrgMap,
     linearOrgMap: projectsLinearOrgMap,
     loading: projectsWorkItemsLoading,
+    linkedSessionIds: projectsLinkedSessionIds,
     getLoadMoreGroupId: getProjectsLoadMoreGroupId,
     loadLinearOrgWorkItems: loadProjectsLinearOrgWorkItems,
     toChatPanelProject,
@@ -653,6 +654,26 @@ export const WorkstationSidebarConnector: React.FC = () => {
     ]
   );
 
+  const handleOpenLinkedWorkItemSession = useCallback(
+    (item: NavigationMenuItem) => {
+      if (sessionMap.has(item.id)) {
+        handleMenuItemClick(item.key, item);
+        return;
+      }
+      activateMyStationRouteForProjectTabContent();
+      openSessionInWorkstation({
+        sessionId: item.id,
+        title: item.label,
+      });
+    },
+    [
+      activateMyStationRouteForProjectTabContent,
+      handleMenuItemClick,
+      openSessionInWorkstation,
+      sessionMap,
+    ]
+  );
+
   const handleToggleSubagentExpansion = useCallback((sessionId: string) => {
     setExpandedSubagentParentIds((previousIds) => {
       const nextIds = new Set(previousIds);
@@ -731,6 +752,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     projectsLocalOrgMap,
     projectsProjectMap,
     projectsWorkItemMap,
+    linkedSessionIds: projectsLinkedSessionIds,
+    openLinkedSession: handleOpenLinkedWorkItemSession,
     resetWorkManagementStateForProjectsContent,
     setProjectsGroupVisibleCounts,
     setProjectsSelectedMenuItemId,

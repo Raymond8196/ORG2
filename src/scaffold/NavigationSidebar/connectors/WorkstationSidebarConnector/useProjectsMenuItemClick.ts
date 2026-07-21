@@ -50,6 +50,8 @@ interface UseProjectsMenuItemClickParams<
   projectsLocalOrgMap: ReadonlyMap<string, LocalOrg>;
   projectsProjectMap: ReadonlyMap<string, Project>;
   projectsWorkItemMap: ReadonlyMap<string, WorkItem>;
+  linkedSessionIds: ReadonlySet<string>;
+  openLinkedSession: (item: NavigationMenuItem) => void;
   resetWorkManagementStateForProjectsContent: () => void;
   setProjectsGroupVisibleCounts: React.Dispatch<
     React.SetStateAction<Map<string, number>>
@@ -63,6 +65,25 @@ interface OpenNewWorkItemFromSidebarParams {
   openWorkItemCreator: () => void;
   resetWorkManagementStateForProjectsContent: () => void;
   setProjectsSelectedMenuItemId: (id: string) => void;
+}
+
+interface TryOpenLinkedSessionFromSidebarParams {
+  item: NavigationMenuItem;
+  linkedSessionIds: ReadonlySet<string>;
+  setProjectsSelectedMenuItemId: (id: string) => void;
+  openLinkedSession: (item: NavigationMenuItem) => void;
+}
+
+export function tryOpenLinkedSessionFromSidebar({
+  item,
+  linkedSessionIds,
+  setProjectsSelectedMenuItemId,
+  openLinkedSession,
+}: TryOpenLinkedSessionFromSidebarParams): boolean {
+  if (!linkedSessionIds.has(item.id)) return false;
+  setProjectsSelectedMenuItemId(item.key);
+  openLinkedSession(item);
+  return true;
 }
 
 export function openNewWorkItemFromSidebar({
@@ -93,6 +114,8 @@ export function useProjectsMenuItemClick<
   projectsLocalOrgMap,
   projectsProjectMap,
   projectsWorkItemMap,
+  linkedSessionIds,
+  openLinkedSession,
   resetWorkManagementStateForProjectsContent,
   setProjectsGroupVisibleCounts,
   setProjectsSelectedMenuItemId,
@@ -155,6 +178,16 @@ export function useProjectsMenuItemClick<
         });
         return;
       }
+
+      if (
+        tryOpenLinkedSessionFromSidebar({
+          item,
+          linkedSessionIds,
+          setProjectsSelectedMenuItemId,
+          openLinkedSession,
+        })
+      )
+        return;
 
       const localOrgId = getProjectsLocalOrgId(item.id);
       if (localOrgId) {
@@ -247,11 +280,13 @@ export function useProjectsMenuItemClick<
       activateMyStationRouteForProjectsContent,
       getProjectsLoadMoreGroupId,
       loadProjectsLinearOrgWorkItems,
+      linkedSessionIds,
       openCreateTargetInStartPage,
       openProjectOrgTab,
       openProjectTab,
       openProjectsLinearOrg,
       openProjectsLinearWorkItem,
+      openLinkedSession,
       openWorkItemTab,
       projectsLinearOrgMap,
       projectsLinearWorkItemMap,
