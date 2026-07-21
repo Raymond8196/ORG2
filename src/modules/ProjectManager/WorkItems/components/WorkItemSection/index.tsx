@@ -19,6 +19,7 @@ interface WorkItemSectionProps {
   addButtonTitle?: string;
   onAddItem?: () => void;
   compact?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
 const WorkItemSection: React.FC<WorkItemSectionProps> = ({
@@ -30,6 +31,7 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
   addButtonTitle,
   onAddItem,
   compact = false,
+  onExpandedChange,
 }) => {
   const { t } = useTranslation(["projects", "common"]);
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -40,6 +42,11 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
     t("workItems.addStatusItem", {
       status: sectionLabel,
     });
+  const toggleExpanded = () => {
+    const nextExpanded = !isExpanded;
+    setIsExpanded(nextExpanded);
+    onExpandedChange?.(nextExpanded);
+  };
   return (
     <div
       className={`${compact ? "mb-2 px-0" : "mb-3 px-2 first:pt-2"} flex flex-col gap-1`}
@@ -47,12 +54,13 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
       <div
         role="button"
         tabIndex={0}
+        aria-expanded={isExpanded}
         className={`group sticky top-0 z-10 flex w-full cursor-pointer items-center gap-1 rounded-lg border-[0.5px] border-border-1 text-left transition-colors ${compact ? "h-8 bg-fill-2 px-1.5 hover:bg-fill-3" : "h-9 bg-workstation-bg px-2 hover:bg-surface-hover"}`}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={toggleExpanded}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            setIsExpanded(!isExpanded);
+            toggleExpanded();
           }
         }}
       >

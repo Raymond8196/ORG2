@@ -53,6 +53,10 @@ interface WorkItemsListContentProps {
   disableProjectEdit?: boolean;
   compactRows?: boolean;
   scrollMode?: "internal" | "page";
+  showEmptySections?: boolean;
+  defaultCollapsedStatuses?: readonly string[];
+  renderSectionPlaceholder?: (status: string) => ReactNode | undefined;
+  onSectionExpandedChange?: (status: string, expanded: boolean) => void;
 }
 
 const EMPTY_CHECKED_WORK_ITEM_IDS = new Set<string>();
@@ -85,6 +89,10 @@ const WorkItemsListContent: FC<WorkItemsListContentProps> = ({
   disableProjectEdit = false,
   compactRows = false,
   scrollMode = "internal",
+  showEmptySections = false,
+  defaultCollapsedStatuses = [],
+  renderSectionPlaceholder,
+  onSectionExpandedChange,
 }) => {
   const { t } = useTranslation("projects");
 
@@ -102,11 +110,14 @@ const WorkItemsListContent: FC<WorkItemsListContentProps> = ({
     scrollMode === "page"
       ? "overflow-visible"
       : "min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide";
+  const shouldRenderSections =
+    groupedWorkItems.length > 0 &&
+    (filteredWorkItems.length > 0 || showEmptySections);
 
   return (
     <div className={rootClassName}>
       <div className={bodyClassName}>
-        {filteredWorkItems.length === 0 ? (
+        {!shouldRenderSections ? (
           workItems.length === 0 ? (
             (emptyListPlaceholder ?? (
               <Placeholder
@@ -141,13 +152,20 @@ const WorkItemsListContent: FC<WorkItemsListContentProps> = ({
           <div className={`flex flex-col ${compactRows ? "pb-2" : "pb-3"}`}>
             {groupedWorkItems.map((group) => {
               const isDeletedGroup = group.status === "deleted";
+              const sectionPlaceholder = renderSectionPlaceholder?.(
+                group.status
+              );
               return (
                 <WorkItemSection
                   key={`${group.status}:${collapseAllSignal}`}
                   status={group.status}
                   statusConfig={group.config}
                   count={group.items.length}
-                  defaultExpanded={!isDeletedGroup && collapseAllSignal === 0}
+                  defaultExpanded={
+                    !isDeletedGroup &&
+                    !defaultCollapsedStatuses.includes(group.status) &&
+                    collapseAllSignal === 0
+                  }
                   label={
                     isDeletedGroup ? t("workItems.deleteBin.title") : undefined
                   }
@@ -159,47 +177,51 @@ const WorkItemsListContent: FC<WorkItemsListContentProps> = ({
                       : undefined
                   }
                   compact={compactRows}
+                  onExpandedChange={(expanded) =>
+                    onSectionExpandedChange?.(group.status, expanded)
+                  }
                 >
-                  {group.items.map((workItem) => (
-                    <WorkItemRow
-                      key={workItem.session_id}
-                      workItem={workItem}
-                      isSelected={selectedWorkItemId === workItem.session_id}
-                      onSelect={onSelectWorkItem}
-                      onUpdate={onUpdateWorkItem}
-                      onDelete={onDeleteWorkItem}
-                      onRestore={onRestoreWorkItem}
-                      readonly={readonly}
-                      compact={compactRows}
-                      availableMembers={availableMembers}
-                      availableProjects={availableProjects}
-                      availableMilestones={availableMilestones}
-                      availableLabels={availableLabels}
-                      isChecked={
-                        hasControlledCheckboxes
-                          ? checkedWorkItemIds.has(workItem.session_id)
-                          : undefined
-                      }
-                      onCheckedChange={onCheckedChange}
-                      workItemPrefix={workItemPrefix}
-                      showCheckboxes={
-                        showCheckboxesOnAllRows && !isDeletedGroup
-                      }
-                      externalStatusValue={getExternalStatusValue?.(workItem)}
-                      externalStatusOptions={externalStatusOptions}
-                      onExternalStatusChange={
-                        onExternalStatusChange
-                          ? (statusId) =>
-                              onExternalStatusChange(
-                                workItem.session_id,
-                                statusId
-                              )
-                          : undefined
-                      }
-                      statusDisabled={statusDisabled || isDeletedGroup}
-                      disableProjectEdit={disableProjectEdit}
-                    />
-                  ))}
+                  {sectionPlaceholder ??
+                    group.items.map((workItem) => (
+                      <WorkItemRow
+                        key={workItem.session_id}
+                        workItem={workItem}
+                        isSelected={selectedWorkItemId === workItem.session_id}
+                        onSelect={onSelectWorkItem}
+                        onUpdate={onUpdateWorkItem}
+                        onDelete={onDeleteWorkItem}
+                        onRestore={onRestoreWorkItem}
+                        readonly={readonly}
+                        compact={compactRows}
+                        availableMembers={availableMembers}
+                        availableProjects={availableProjects}
+                        availableMilestones={availableMilestones}
+                        availableLabels={availableLabels}
+                        isChecked={
+                          hasControlledCheckboxes
+                            ? checkedWorkItemIds.has(workItem.session_id)
+                            : undefined
+                        }
+                        onCheckedChange={onCheckedChange}
+                        workItemPrefix={workItemPrefix}
+                        showCheckboxes={
+                          showCheckboxesOnAllRows && !isDeletedGroup
+                        }
+                        externalStatusValue={getExternalStatusValue?.(workItem)}
+                        externalStatusOptions={externalStatusOptions}
+                        onExternalStatusChange={
+                          onExternalStatusChange
+                            ? (statusId) =>
+                                onExternalStatusChange(
+                                  workItem.session_id,
+                                  statusId
+                                )
+                            : undefined
+                        }
+                        statusDisabled={statusDisabled || isDeletedGroup}
+                        disableProjectEdit={disableProjectEdit}
+                      />
+                    ))}
                 </WorkItemSection>
               );
             })}
