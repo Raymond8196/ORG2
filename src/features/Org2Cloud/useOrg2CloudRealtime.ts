@@ -74,6 +74,8 @@ import {
 import {
   type Org2CloudPresenceEntry,
   type Org2CloudPresencePayload,
+  PRESENCE_VIEW_CHANGED_EVENT,
+  applyOrg2CloudPresenceViewChanged,
   latestPresenceMeta,
   org2CloudPresenceAtom,
   org2CloudPresenceOutboundAtom,
@@ -458,6 +460,12 @@ export function useOrg2CloudRealtime(): void {
       key: userId,
       payload: initialPayload,
       onBroadcast: (event, payload) => {
+        if (event === PRESENCE_VIEW_CHANGED_EVENT) {
+          setPresence((current) =>
+            applyOrg2CloudPresenceViewChanged(current, orgId, payload)
+          );
+          return;
+        }
         if (event !== COMMENTS_CHANGED_EVENT) return;
         const sessionId = payload.sessionId;
         if (typeof sessionId !== "string" || !sessionId) return;
@@ -555,6 +563,12 @@ export function useOrg2CloudRealtime(): void {
       }
       presencePayloadKeysRef.current.set(orgId, payloadKey);
       handle.update(payload);
+      const updatedAt = payload?.updatedAt ?? Date.now();
+      handle.send(PRESENCE_VIEW_CHANGED_EVENT, {
+        userId,
+        viewingSessionId: payload?.viewingSessionId ?? null,
+        updatedAt,
+      });
       setOutboundPresence((current) => ({
         ...current,
         [orgId]: {
@@ -562,10 +576,10 @@ export function useOrg2CloudRealtime(): void {
             payload && typeof payload.viewingSessionId === "string"
               ? payload.viewingSessionId
               : null,
-          updatedAt: payload ? Number(payload.updatedAt) : Date.now(),
+          updatedAt,
           updateCount: (current[orgId]?.updateCount ?? 0) + 1,
         },
       }));
     }
-  }, [viewing, displayName, buildPayload, setOutboundPresence]);
+  }, [viewing, displayName, userId, buildPayload, setOutboundPresence]);
 }

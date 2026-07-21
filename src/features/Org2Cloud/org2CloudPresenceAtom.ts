@@ -27,6 +27,18 @@ export interface Org2CloudPresencePayload extends Record<string, unknown> {
   updatedAt: number;
 }
 
+/** Low-latency metadata nudge sent over the same private org channel. */
+export const PRESENCE_VIEW_CHANGED_EVENT = "presence-view-changed";
+
+export interface Org2CloudPresenceViewChangedPayload extends Record<
+  string,
+  unknown
+> {
+  userId: string;
+  viewingSessionId: string | null;
+  updatedAt: number;
+}
+
 /** orgId → userId → presence entry (last-write-wins per user key). */
 export const org2CloudPresenceAtom = atom<
   Record<string, Record<string, Org2CloudPresenceEntry>>
@@ -39,6 +51,48 @@ export const org2CloudPresenceOutboundAtom = atom<
     { viewingSessionId: string | null; updatedAt: number; updateCount: number }
   >
 >({});
+
+/**
+ * Apply a private-channel view nudge only to an already-authoritative
+ * Presence member. Broadcasts can make metadata changes visible immediately,
+ * but cannot invent roster users, and an older frame cannot overwrite a newer
+ * Presence sync.
+ */
+export function applyOrg2CloudPresenceViewChanged(
+  current: Record<string, Record<string, Org2CloudPresenceEntry>>,
+  orgId: string,
+  payload: Record<string, unknown>
+): Record<string, Record<string, Org2CloudPresenceEntry>> {
+  const userId = payload.userId;
+  const viewingSessionId = payload.viewingSessionId;
+  const updatedAt = Number(payload.updatedAt);
+  if (
+    typeof userId !== "string" ||
+    !userId ||
+    (viewingSessionId !== null && typeof viewingSessionId !== "string") ||
+    !Number.isFinite(updatedAt)
+  ) {
+    return current;
+  }
+  const orgPresence = current[orgId];
+  const entry = orgPresence?.[userId];
+  if (!entry || (entry.updatedAt ?? Number.NEGATIVE_INFINITY) > updatedAt) {
+    return current;
+  }
+  if (
+    entry.viewingSessionId === viewingSessionId &&
+    entry.updatedAt === updatedAt
+  ) {
+    return current;
+  }
+  return {
+    ...current,
+    [orgId]: {
+      ...orgPresence,
+      [userId]: { ...entry, viewingSessionId, updatedAt },
+    },
+  };
+}
 
 /**
  * Stable identity for the desired Presence state. `updatedAt` deliberately
