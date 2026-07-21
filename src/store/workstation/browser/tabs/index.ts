@@ -17,11 +17,14 @@ import { atom } from "jotai";
 
 import { getSiteNameFromUrl } from "@src/store/ui/navigationSidebarTabsAtom";
 import type { PanelState } from "@src/store/workstation/tabs";
-import { workstationLayoutAtom } from "@src/store/workstation/tabs/atoms";
+import {
+  removeSharedWorkstationTabAtom,
+  workstationLayoutAtom,
+  workstationTabsStateAtom,
+} from "@src/store/workstation/tabs/atoms";
 import {
   closeOtherTabs as closeOtherTabsMutation,
   closeSavedTabs as closeSavedTabsMutation,
-  closeTab as closeTabMutation,
   openTab as openTabMutation,
   reorderTabs as reorderTabsMutation,
   switchTab as switchTabMutation,
@@ -275,6 +278,12 @@ export const browserTabsAtom = atom(
 );
 browserTabsAtom.debugLabel = "browserTabsAtom";
 
+/** Global browser resources, independent of which workspace currently shows them. */
+export const sharedBrowserTabsAtom = atom((get): WorkStationTab[] =>
+  get(workstationTabsStateAtom).shared.tabs.filter(isBrowserFamilyTab)
+);
+sharedBrowserTabsAtom.debugLabel = "sharedBrowserTabsAtom";
+
 // ============================================
 // Derived Atoms
 // ============================================
@@ -319,12 +328,19 @@ export const openBrowserTabAtom = atom(
   }
 );
 
+export const removeBrowserResourceTabAtom = atom(
+  null,
+  (_get, set, tabId: string) => {
+    set(removeSharedWorkstationTabAtom, tabId);
+  }
+);
+
 /**
- * Close a tab
+ * Close a browser tab in the current workspace. The live BrowserContext owner
+ * observes the disappearance and then removes the global resource explicitly.
  */
-export const closeBrowserTabAtom = atom(null, (get, set, tabId: string) => {
-  const state = get(browserTabsAtom);
-  set(browserTabsAtom, closeTabMutation(state, tabId));
+export const closeBrowserTabAtom = atom(null, (_get, set, tabId: string) => {
+  set(removeBrowserResourceTabAtom, tabId);
 });
 
 /**

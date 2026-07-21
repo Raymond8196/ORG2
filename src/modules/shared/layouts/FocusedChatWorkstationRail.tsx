@@ -40,7 +40,10 @@ import {
   setActiveTerminalAtom,
   terminalSessionsAtom,
 } from "@src/store/workstation/codeEditor/terminal";
-import { codeEditorTerminalTargetAtom } from "@src/store/workstation/codeEditor/terminalTargetAtom";
+import {
+  clearTerminalTargetReferencesAtom,
+  codeEditorTerminalTargetAtom,
+} from "@src/store/workstation/codeEditor/terminalTargetAtom";
 import {
   type WorkstationTabHost,
   tabToHost,
@@ -137,7 +140,9 @@ export function FocusedChatWorkstationRail() {
   const setFocusedTab = useSetAtom(focusTabAtom);
   const setActiveTerminal = useSetAtom(setActiveTerminalAtom);
   const setTerminalTarget = useSetAtom(codeEditorTerminalTargetAtom);
-  const terminalTarget = useAtomValue(codeEditorTerminalTargetAtom);
+  const clearTerminalTargetReferences = useSetAtom(
+    clearTerminalTargetReferencesAtom
+  );
   const closeTerminalSession = useSetAtom(closeTerminalSessionAtom);
   const setStationMode = useSetAtom(stationModeAtom);
   const setChatPanelMaximized = useSetAtom(chatPanelMaximizedAtom);
@@ -186,14 +191,9 @@ export function FocusedChatWorkstationRail() {
   const closePtySession = useCallback(
     (sessionId: string) => {
       void closeTerminalSession(sessionId);
-      if (
-        terminalTarget?.kind === "pty" &&
-        terminalTarget.ptySessionId === sessionId
-      ) {
-        setTerminalTarget(null);
-      }
+      clearTerminalTargetReferences(sessionId);
     },
-    [closeTerminalSession, setTerminalTarget, terminalTarget]
+    [clearTerminalTargetReferences, closeTerminalSession]
   );
 
   const openTabItems = useMemo<FocusedChatRailItem[]>(() => {

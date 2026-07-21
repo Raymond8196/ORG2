@@ -53,6 +53,7 @@ export {
   disposeWorkstationWorkspaceAtom,
   openWorkstationTabAtom,
   closeWorkstationTabAtom,
+  removeSharedWorkstationTabAtom,
   focusWorkstationTabAtom,
   updateWorkstationTabDataAtom,
   reorderWorkstationTabsAtom,

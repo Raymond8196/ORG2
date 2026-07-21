@@ -2,11 +2,17 @@ import { createStore } from "jotai/vanilla";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { workstationActiveSessionIdAtom } from "@src/store/session/viewAtom";
+import {
+  codeEditorTerminalTargetAtom,
+  codeEditorTerminalTargetsAtom,
+} from "@src/store/workstation/codeEditor/terminalTargetAtom";
 
 import {
   GLOBAL_WORKSTATION_WORKSPACE_KEY,
   claimLegacyWorkstationSeedAtom,
+  disposeWorkstationWorkspaceAtom,
   openWorkstationTabAtom,
+  removeSharedWorkstationTabAtom,
   selectWorkstationPanel,
   sessionWorkstationWorkspaceKey,
   workstationTabsStateAtom,
@@ -40,14 +46,10 @@ const EXPECTED_OWNERSHIP: Record<WorkStationTabType, WorkstationTabOwnership> =
     search: "workspace-local",
     "lint-scan": "workspace-local",
     "ai-impact": "workspace-local",
+    "search-sessions": "workspace-local",
     benchmark: "shared-resource",
     "url-preview": "workspace-local",
-    table: "shared-resource",
-    query: "shared-resource",
-    schema: "shared-resource",
-    "add-connection": "shared-resource",
     "browser-session": "shared-resource",
-    "token-category": "shared-resource",
     devtools: "shared-resource",
     "project-dashboard": "shared-resource",
     "project-work-items": "shared-resource",
@@ -65,6 +67,7 @@ const EXPECTED_OWNERSHIP: Record<WorkStationTabType, WorkstationTabOwnership> =
     "canvas-preview": "workspace-local",
     "github-issue-detail": "workspace-local",
     "github-pr-detail": "workspace-local",
+    start: "shared-resource",
   };
 
 function tab(
@@ -115,7 +118,7 @@ describe("WorkStation tab ownership policy", () => {
       })
     );
 
-    expect(results).toHaveLength(42);
+    expect(results).toHaveLength(39);
     expect(results.every(({ actual, expected }) => actual === expected)).toBe(
       true
     );
@@ -212,6 +215,74 @@ describe("workspace projection and isolation", () => {
       selectWorkstationPanel(state, sessionWorkstationWorkspaceKey("B"))
         .activeTabId
     ).toBe("file:/b-active.ts");
+  });
+
+  it("keeps shared resources hidden until each workspace explicitly opens them", () => {
+    const store = createStore();
+    store.set(workstationTabsStateAtom, stateWithWorkspaces());
+    const settings = tab("settings:main", "settings");
+
+    store.set(openWorkstationTabAtom, {
+      workspace: sessionWorkstationWorkspaceKey("A"),
+      tab: settings,
+    });
+
+    const state = store.get(workstationTabsStateAtom);
+    expect(
+      selectWorkstationPanel(state, sessionWorkstationWorkspaceKey("A")).tabs
+    ).toContainEqual(settings);
+    expect(
+      selectWorkstationPanel(state, sessionWorkstationWorkspaceKey("B")).tabs
+    ).not.toContainEqual(settings);
+  });
+
+  it("removes a shared resource and all workspace references explicitly", () => {
+    const store = createStore();
+    store.set(workstationTabsStateAtom, stateWithWorkspaces());
+    const settings = tab("settings:main", "settings");
+
+    for (const sessionId of ["A", "B"]) {
+      store.set(openWorkstationTabAtom, {
+        workspace: sessionWorkstationWorkspaceKey(sessionId),
+        tab: settings,
+      });
+    }
+    store.set(removeSharedWorkstationTabAtom, settings.id);
+
+    const state = store.get(workstationTabsStateAtom);
+    expect(state.shared.tabs).toEqual([]);
+    expect(state.sessionWorkspaces.A.tabOrder).not.toContainEqual({
+      partition: "shared",
+      tabId: settings.id,
+    });
+    expect(state.sessionWorkspaces.B.tabOrder).not.toContainEqual({
+      partition: "shared",
+      tabId: settings.id,
+    });
+  });
+  it("disposes workspace tabs and its remembered Terminal target together", () => {
+    const store = createStore();
+    const state = stateWithWorkspaces();
+    store.set(workstationTabsStateAtom, state);
+    store.set(workstationActiveSessionIdAtom, "A");
+    store.set(codeEditorTerminalTargetAtom, {
+      kind: "agent",
+      sessionId: "agent-A",
+    });
+    store.set(workstationActiveSessionIdAtom, "B");
+    store.set(codeEditorTerminalTargetAtom, {
+      kind: "agent",
+      sessionId: "agent-B",
+    });
+
+    store.set(disposeWorkstationWorkspaceAtom, "A");
+
+    expect(
+      store.get(workstationTabsStateAtom).sessionWorkspaces.A
+    ).toBeUndefined();
+    expect(store.get(codeEditorTerminalTargetsAtom)).toEqual({
+      "session:B": { kind: "agent", sessionId: "agent-B" },
+    });
   });
 });
 
