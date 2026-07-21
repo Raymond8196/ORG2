@@ -4,8 +4,10 @@ import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
+import IntegrationIcon from "@src/components/IntegrationIcon";
 import { SearchInput } from "@src/components/SearchInput";
 import type { SelectOption } from "@src/components/Select";
+import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import {
   IssueDetailHeaderContent,
@@ -158,6 +160,11 @@ export function GitHubWorkItemsView({
         </span>
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-2">
+          <IntegrationIcon
+            type="github"
+            size={HEADER_ICON_SIZE.sm}
+            className="shrink-0"
+          />
           <RepoFilterPill
             options={repoOptions}
             selectedRepo={effectiveSelectedRepo}

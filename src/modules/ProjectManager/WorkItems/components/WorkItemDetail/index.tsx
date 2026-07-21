@@ -70,6 +70,7 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
   initialPendingUpdates,
   surface = WORK_ITEM_DETAIL_SURFACE.main,
   breadcrumbProjectName,
+  breadcrumbIcon,
   propertiesOpen: controlledPropertiesOpen,
   onToggleProperties,
   publishHeaderToWorkstation = false,
@@ -288,12 +289,13 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
       <WorkItemDetailHeaderBreadcrumb
         workItem={workItem}
         breadcrumbProjectName={breadcrumbProjectName}
+        breadcrumbIcon={breadcrumbIcon}
         shortId={shortId}
         onClose={_onClose}
         t={t}
       />
     ),
-    [workItem, breadcrumbProjectName, shortId, _onClose, t]
+    [workItem, breadcrumbProjectName, breadcrumbIcon, shortId, _onClose, t]
   );
 
   const headerTrailing = useMemo(

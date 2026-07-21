@@ -9,12 +9,15 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
 import {
   type MemberEntry,
   type WorkItemFrontmatter,
   enrichedWorkItemToUI,
   projectApi,
 } from "@src/api/http/project";
+import { projectSyncApi } from "@src/api/http/project/sync";
+import IntegrationIcon from "@src/components/IntegrationIcon";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
@@ -103,6 +106,10 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   );
   const [workItemsLoading, setWorkItemsLoading] = useState(false);
   const [workItemsError, setWorkItemsError] = useState<string | null>(null);
+  const [projectSyncAdapter, setProjectSyncAdapter] = useState<{
+    projectSlug: string;
+    adapterId: string | null;
+  } | null>(null);
   const propertiesRef = useRef<HTMLDivElement>(null);
 
   const projectProperties = useMemo<ProjectData>(
@@ -134,6 +141,12 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   const projectSlug =
     selectedProject.projectSlug || selectedProject.project.slug;
   const repoPath = selectedProject.project.linkedRepos?.[0]?.path ?? null;
+  const projectSyncAdapterId =
+    projectSyncAdapter && projectSyncAdapter.projectSlug === projectSlug
+      ? projectSyncAdapter.adapterId
+      : undefined;
+  const isGitHubSyncedProject =
+    projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB;
   const headerContent = useMemo(
     () => (
       <ProjectManagerBreadcrumb
@@ -143,17 +156,53 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
             : []),
           {
             label: selectedProject.project.name,
-            icon: <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />,
+            icon: isGitHubSyncedProject ? (
+              <IntegrationIcon
+                type={STORY_SYNC_ADAPTER.GITHUB}
+                size={HEADER_ICON_SIZE.sm}
+              />
+            ) : (
+              <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+            ),
           },
         ]}
       />
     ),
-    [selectedProject.orgName, selectedProject.project.name]
+    [
+      isGitHubSyncedProject,
+      selectedProject.orgName,
+      selectedProject.project.name,
+    ]
   );
 
   usePublishChatPanelHeader({
     content: { content: headerContent },
   });
+
+  useEffect(() => {
+    if (!projectSlug) return;
+
+    let cancelled = false;
+    void projectSyncApi
+      .status(projectSlug)
+      .then((status) => {
+        if (!cancelled) {
+          setProjectSyncAdapter({
+            projectSlug,
+            adapterId: status.adapter_id,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProjectSyncAdapter({ projectSlug, adapterId: null });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectSlug]);
 
   useEffect(() => {
     let cancelled = false;
