@@ -47,14 +47,17 @@ export function useChatProjection({
   options,
   enabled = true,
 }: UseChatProjectionOptions): UseChatProjectionResult {
+  const projectionEnabled = enabled && Boolean(sessionId);
   const shouldUseWorker =
-    enabled &&
-    Boolean(sessionId) &&
+    projectionEnabled &&
     events.length >= CHAT_PROJECTION_WORKER_THRESHOLD &&
     chatProjectionClient.isSupported();
   const synchronous = useMemo(
-    () => (shouldUseWorker ? null : projectChatHistory(events, options)),
-    [events, options, shouldUseWorker]
+    () =>
+      !projectionEnabled || shouldUseWorker
+        ? null
+        : projectChatHistory(events, options),
+    [events, options, projectionEnabled, shouldUseWorker]
   );
   const [workerState, setWorkerState] = useState<{
     sessionId: string;
@@ -97,6 +100,18 @@ export function useChatProjection({
     events: SessionEvent[];
     options: ChatHistoryProjectionOptions;
   } | null>(null);
+
+  useEffect(() => {
+    if (projectionEnabled) return;
+
+    // ChatHistory stays mounted while Launchpad and other non-session tabs are
+    // active. Drop every React-side reference to the previous replay here;
+    // disposing the Worker session alone does not release these event and
+    // projection graphs.
+    requestIdentityRef.current += 1;
+    previousWorkerInputRef.current = null;
+    setWorkerState(null);
+  }, [projectionEnabled]);
 
   useEffect(() => {
     if (!shouldUseWorker || !sessionId || !workerSessionKey) return;
@@ -192,6 +207,18 @@ export function useChatProjection({
   );
 
   const active = workerProjection ?? retainedProjection ?? synchronous;
+  if (!projectionEnabled) {
+    return {
+      optimizedChatHistory: [],
+      sessionInfo: null,
+      groups: undefined,
+      projectionRevision: 0,
+      groupShapeDigest: "disabled",
+      itemShapeDigest: "disabled",
+      pending: false,
+      execution: "main",
+    };
+  }
   if (!active) {
     return {
       optimizedChatHistory: [],
