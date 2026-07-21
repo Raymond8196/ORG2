@@ -2,7 +2,11 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { ManagedPrRow } from "./GitHubWorkItemControls";
+import {
+  IssuePersonalFilterDropdown,
+  ManagedPrRow,
+  RepoFilterPill,
+} from "./GitHubWorkItemControls";
 import { GITHUB_ITEM_KIND, type ManagedPrItem } from "./githubWorkItemsModel";
 
 const draftPr: ManagedPrItem = {
@@ -45,5 +49,39 @@ describe("ManagedPrRow", () => {
 
     expect(markup).toContain("lucide-git-pull-request-draft");
     expect(markup).not.toContain(">Draft<");
+  });
+});
+
+describe("GitHub work-item header controls", () => {
+  it("uses the Select option icon contract for repository choices", () => {
+    const markup = renderToStaticMarkup(
+      createElement(RepoFilterPill, {
+        options: [
+          { key: "all", label: "All repositories" },
+          { key: "yorgai/ORG2", label: "yorgai/ORG2" },
+        ],
+        selectedRepo: "yorgai/ORG2",
+        allReposLabel: "All repositories",
+        onSelectRepo: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain("lucide-code-xml");
+    expect(markup).toContain("yorgai/ORG2");
+  });
+
+  it("renders Filter as a secondary icon-only button", () => {
+    const markup = renderToStaticMarkup(
+      createElement(IssuePersonalFilterDropdown, {
+        options: [{ value: "byMe", label: "Created by me" }],
+        selectedFilters: ["byMe"],
+        filterLabel: "Filter",
+        onSelect: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain("lucide-funnel");
+    expect(markup).toContain('aria-label="Filter (1)"');
+    expect(markup).not.toContain(">Filter<");
   });
 });
