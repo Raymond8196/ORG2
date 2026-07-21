@@ -4,6 +4,8 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::github::client::GitHubClient;
+
 use super::shared::make_client;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -35,6 +37,8 @@ pub struct GitHubIssue {
     pub labels: Vec<IssueLabel>,
     pub assignees: Vec<IssueUser>,
     pub comments: u64,
+    #[serde(default)]
+    pub linked_pull_requests_count: u64,
     pub milestone: Option<String>,
 }
 
@@ -137,7 +141,66 @@ fn parse_issue(v: &Value) -> GitHubIssue {
             .map(|arr| arr.iter().map(parse_issue_user).collect())
             .unwrap_or_default(),
         comments: v["comments"].as_u64().unwrap_or(0),
+        linked_pull_requests_count: 0,
         milestone: v["milestone"]["title"].as_str().map(|s| s.to_string()),
+    }
+}
+
+fn linked_pull_requests_query(issues: &[GitHubIssue]) -> String {
+    let issue_fields = issues
+        .iter()
+        .map(|issue| {
+            format!(
+                "issue_{}: issue(number: {}) {{ closedByPullRequestsReferences(first: 1, includeClosedPrs: true) {{ totalCount }} }}",
+                issue.number, issue.number
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    format!(
+        "query($owner: String!, $name: String!) {{ repository(owner: $owner, name: $name) {{ {issue_fields} }} }}"
+    )
+}
+
+fn apply_linked_pull_request_counts(issues: &mut [GitHubIssue], response: &Value) {
+    let repository = &response["data"]["repository"];
+    for issue in issues {
+        issue.linked_pull_requests_count = repository[format!("issue_{}", issue.number)]
+            ["closedByPullRequestsReferences"]["totalCount"]
+            .as_u64()
+            .unwrap_or(0);
+    }
+}
+
+async fn enrich_linked_pull_request_counts(
+    client: &GitHubClient,
+    repo_full_name: &str,
+    issues: &mut [GitHubIssue],
+) {
+    if issues.is_empty() {
+        return;
+    }
+    let Some((owner, name)) = repo_full_name.split_once('/') else {
+        log::warn!("[GitHub][Cmd] cannot resolve linked PRs for malformed repo {repo_full_name}");
+        return;
+    };
+    let variables = serde_json::json!({ "owner": owner, "name": name });
+    match client
+        .graphql(&linked_pull_requests_query(issues), variables)
+        .await
+    {
+        Ok(response) => {
+            if response["errors"].is_array() {
+                log::warn!(
+                    "[GitHub][Cmd] linked PR GraphQL query returned errors for {repo_full_name}"
+                );
+            }
+            apply_linked_pull_request_counts(issues, &response);
+        }
+        Err(error) => {
+            log::warn!("[GitHub][Cmd] linked PR enrichment failed for {repo_full_name}: {error}");
+        }
     }
 }
 
@@ -275,6 +338,7 @@ pub async fn github_list_issues(
         "[GitHub][Cmd] list_issues returned {} issues (has_more={has_more})",
         issues.len()
     );
+    enrich_linked_pull_request_counts(&client, &repo_full_name, &mut issues).await;
     Ok(GitHubIssueListResponse {
         total_count: issues.len() as u64,
         issues,
@@ -480,7 +544,41 @@ pub async fn github_list_repo_collaborators(
 mod issue_timeline_tests {
     use serde_json::json;
 
-    use super::parse_issue_timeline_item;
+    use super::{
+        apply_linked_pull_request_counts, linked_pull_requests_query, parse_issue,
+        parse_issue_timeline_item,
+    };
+
+    #[test]
+    fn maps_batched_linked_pull_request_counts_to_issues() {
+        let mut issues = vec![
+            parse_issue(&json!({ "number": 42 })),
+            parse_issue(&json!({ "number": 77 })),
+        ];
+        let query = linked_pull_requests_query(&issues);
+
+        assert!(query.contains("issue_42: issue(number: 42)"));
+        assert!(query.contains("includeClosedPrs: true"));
+
+        apply_linked_pull_request_counts(
+            &mut issues,
+            &json!({
+                "data": {
+                    "repository": {
+                        "issue_42": {
+                            "closedByPullRequestsReferences": { "totalCount": 2 }
+                        },
+                        "issue_77": {
+                            "closedByPullRequestsReferences": { "totalCount": 1 }
+                        }
+                    }
+                }
+            }),
+        );
+
+        assert_eq!(issues[0].linked_pull_requests_count, 2);
+        assert_eq!(issues[1].linked_pull_requests_count, 1);
+    }
 
     #[test]
     fn normalizes_comment_and_actor() {

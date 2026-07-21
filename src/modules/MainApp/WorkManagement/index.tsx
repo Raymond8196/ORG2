@@ -21,6 +21,7 @@ import Button from "@src/components/Button";
 import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import TaskKanban from "@src/features/TaskKanban";
 import FactoryViewPill from "@src/features/TaskKanban/components/FactoryViewPill";
+import { useElementDimensions } from "@src/hooks/ui/layout";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import {
   WorkstationHeaderSectionSeparator,
@@ -32,6 +33,7 @@ import {
   workstationTabHeaderAtomByHost,
 } from "@src/store/workstation";
 
+import { shouldUseSingleRowGitHubWorkItemsHeader } from "./GitHubWorkItemList";
 import GitHubWorkItemsSurface from "./GitHubWorkItemsSurface";
 import WorkManagementProjectsSurface from "./WorkManagementProjectsSurface";
 import WorkManagementTaskCreator from "./WorkManagementTaskCreator";
@@ -50,6 +52,12 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   embedded = false,
 }) => {
   const { t } = useTranslation("common");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerWidth = useElementDimensions(containerRef, {
+    dimension: "width",
+  });
+  const singleRowGitHubHeader =
+    shouldUseSingleRowGitHubWorkItemsHeader(containerWidth);
   const activeHomeTab = useAtomValue(activeWorkManagementSectionAtom);
   const headerSlots = useAtomValue(
     workstationTabHeaderAtomByHost.workManagement
@@ -140,11 +148,13 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
         ) : activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_ISSUES ? (
           <GitHubWorkItemsSurface
             scope="issue"
+            singleRowHeader={singleRowGitHubHeader}
             onDetailViewChange={handleGitHubDetailViewChange}
           />
         ) : activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_PRS ? (
           <GitHubWorkItemsSurface
             scope="pr"
+            singleRowHeader={singleRowGitHubHeader}
             onDetailViewChange={handleGitHubDetailViewChange}
           />
         ) : (
@@ -157,7 +167,11 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
     </div>
   );
 
-  return <div className="h-full min-h-0 w-full">{mainContent}</div>;
+  return (
+    <div ref={containerRef} className="h-full min-h-0 w-full">
+      {mainContent}
+    </div>
+  );
 };
 
 export default WorkManagementPage;

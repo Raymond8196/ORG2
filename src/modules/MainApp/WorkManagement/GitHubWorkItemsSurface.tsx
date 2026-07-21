@@ -28,11 +28,13 @@ import {
 
 interface GitHubWorkItemsSurfaceProps {
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
+  singleRowHeader: boolean;
   onDetailViewChange: (open: boolean, onBack: (() => void) | null) => void;
 }
 
 const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   scope,
+  singleRowHeader,
   onDetailViewChange,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
@@ -190,6 +192,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   return (
     <GitHubWorkItemsView
       scope={scope}
+      singleRowHeader={singleRowHeader}
       loading={loading}
       loadError={loadError}
       loadingMore={loadingMore}

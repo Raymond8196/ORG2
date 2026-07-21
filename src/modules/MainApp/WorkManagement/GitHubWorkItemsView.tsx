@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { SearchInput } from "@src/components/SearchInput";
 import type { SelectOption } from "@src/components/Select";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import {
@@ -24,7 +23,9 @@ import {
 import {
   GitHubWorkItemListFrame,
   GitHubWorkItemPagination,
+  GitHubWorkItemSearch,
   GitHubWorkItemStateTabs,
+  GitHubWorkItemTableSurface,
   GitHubWorkItemToolbarActions,
 } from "./GitHubWorkItemList";
 import {
@@ -45,6 +46,7 @@ import type { IssueDetailState } from "./useGitHubIssueDetail";
 
 interface GitHubWorkItemsViewProps {
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
+  singleRowHeader: boolean;
   loading: boolean;
   loadError: string | null;
   loadingMore: boolean;
@@ -92,6 +94,7 @@ interface GitHubWorkItemsViewProps {
 
 export function GitHubWorkItemsView({
   scope,
+  singleRowHeader,
   loading,
   loadError,
   loadingMore,
@@ -194,6 +197,13 @@ export function GitHubWorkItemsView({
               onSelect={onIssuePersonalFiltersSelect}
             />
           ) : null}
+          {singleRowHeader ? (
+            <GitHubWorkItemSearch
+              value={searchQuery}
+              onChange={onSearchQueryChange}
+              placeholder={t("chat.panels.manageIssues.searchPlaceholder")}
+            />
+          ) : null}
         </div>
       ),
     [
@@ -202,10 +212,13 @@ export function GitHubWorkItemsView({
       handleStateChange,
       issuePersonalFilterOptions,
       issueDetail,
+      singleRowHeader,
+      onSearchQueryChange,
       onIssuePersonalFiltersSelect,
       stateTabs,
       onRepoSelect,
       repoOptions,
+      searchQuery,
       scope,
       selectedIssuePersonalFilters,
       t,
@@ -247,9 +260,9 @@ export function GitHubWorkItemsView({
     () => ({
       content: headerContent,
       trailing: headerTrailing,
-      joinWithFollowingRow: !issueDetail,
+      joinWithFollowingRow: !issueDetail && !singleRowHeader,
     }),
-    [headerContent, headerTrailing, issueDetail]
+    [headerContent, headerTrailing, issueDetail, singleRowHeader]
   );
   usePublishWorkstationTabHeader({
     host: "workManagement",
@@ -345,7 +358,9 @@ export function GitHubWorkItemsView({
                     issue={item}
                     addLabel={t("chat.panels.manageIssues.addToChat")}
                     openInBrowserLabel={t("common:previews.openInBrowser")}
-                    openInMyStationLabel={t("layout.sidebar.openInMyStation")}
+                    openInMyStationLabel={t(
+                      "controlTower.sidebar.openInMyStation"
+                    )}
                     moreActionsLabel={t("common:actions.moreActions")}
                     onOpenIssue={onOpenIssue}
                     onOpenIssueInBrowser={onOpenIssueInBrowser}
@@ -417,28 +432,25 @@ export function GitHubWorkItemsView({
           <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
             {issueDetailContent ?? (
               <>
-                <div className="flex h-10 shrink-0 items-center border-b border-border-2 px-3">
-                  <SearchInput
-                    value={searchQuery}
-                    onChange={onSearchQueryChange}
-                    placeholder={t(
-                      "chat.panels.manageIssues.searchPlaceholder"
-                    )}
-                    ariaLabel={t("chat.panels.manageIssues.searchPlaceholder")}
-                    variant="panel"
-                    surface="transparent"
-                    hideChevron
-                    showClearButton
-                    inputBoxClassName="flex-1"
-                    className="min-w-0 flex-1"
-                  />
-                </div>
-                <div
-                  ref={listScrollRef}
-                  className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-hide"
-                >
-                  {listContent}
-                </div>
+                {!singleRowHeader ? (
+                  <div className="flex h-10 shrink-0 items-center border-b border-border-2 px-3">
+                    <GitHubWorkItemSearch
+                      value={searchQuery}
+                      onChange={onSearchQueryChange}
+                      placeholder={t(
+                        "chat.panels.manageIssues.searchPlaceholder"
+                      )}
+                    />
+                  </div>
+                ) : null}
+                <GitHubWorkItemTableSurface>
+                  <div
+                    ref={listScrollRef}
+                    className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-hide"
+                  >
+                    {listContent}
+                  </div>
+                </GitHubWorkItemTableSurface>
                 {filteredItems.length > 0 ? (
                   <GitHubWorkItemPagination
                     totalLabel={t("common:pagination.pageOf", {

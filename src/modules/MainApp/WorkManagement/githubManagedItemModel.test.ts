@@ -27,6 +27,7 @@ const issue = {
   state: "open",
   updated_at: "2026-07-20T11:59:00.000Z",
   comments: 2,
+  linked_pull_requests_count: 3,
   labels: [{ name: "bug", color: "ff0000" }],
   assignees: [{ login: "viewer" }],
   user: { login: "author", avatar_url: "avatar" },
@@ -51,6 +52,7 @@ describe("GitHub managed-item model", () => {
       repo: "acme/repo",
       author: "author",
       timeAgo: "1m ago",
+      linkedPullRequests: 3,
     });
     expect(mapPrToManagedItem(pr, source)).toMatchObject({
       kind: GITHUB_ITEM_KIND.PR,
