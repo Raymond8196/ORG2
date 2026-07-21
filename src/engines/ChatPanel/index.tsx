@@ -27,6 +27,7 @@ import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewCon
 import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   closeCloudOrgManagementChatPanelTabAtom,
+  openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
   patchChatPanelWorkItemTabAtom,
   syncActiveChatPanelTabStateAtom,
@@ -132,6 +133,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       chatPanelCreateProjectContextAtom
     );
     const patchWorkItemTab = useSetAtom(patchChatPanelWorkItemTabAtom);
+    const openRuntimeTab = useSetAtom(openRuntimeInChatPanelTabAtom);
 
     // Work-item edits flow through `chatPanelSelectedWorkItemAtom`; mirror them
     // back onto the owning work-item tab so re-activating the tab does not
@@ -208,7 +210,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       resetActiveSession,
       resetToSessionSurface,
       setActiveSessionId,
-      setStartPageOpen,
       setWorkstationActiveSessionId,
       showSessionSurface,
     } = useChatPanelNavigationActions();
@@ -227,7 +228,8 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       kanbanTitle: t("sessions:simulator.tabs.kanban"),
       showSessionSurface,
     });
-    const isManagementTabActive = activeTab?.type === "work-management";
+    const isStandaloneToolTabActive =
+      activeTab?.type === "work-management" || activeTab?.type === "runtime";
     const retargetChatPanelSession = useSetAtom(
       retargetChatPanelSessionTabAtom
     );
@@ -318,6 +320,18 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const handleStartPageInstallLatestUpdate = useCallback(() => {
       void installAvailableAppUpdate();
     }, []);
+
+    const { createTargetOptions, handleCreateTargetChange } =
+      useChatPanelCreateTarget({
+        allAgentDefs,
+        sessionCreatorAvailable: Boolean(SessionCreatorSlot),
+        setCreateTarget,
+        setCreatorState,
+        setShowProjectAgentCreator,
+        setShowWorkItemAgentCreator,
+        setWorkItemCreateDraft,
+        t,
+      });
 
     const sessionSidebarVisible = sessionSidebarWidth > 0;
     const contentState = useChatPanelContentState({
@@ -423,12 +437,14 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       <ChatPanelEmptyContent
         createProjectContext={createProjectContext}
         createTarget={createTarget}
+        createTargetOptions={createTargetOptions}
         creatorClassName={creatorClassName}
         creatorVariant={creatorVariant}
         defaultAiWorkItemAssignee={defaultAiWorkItemAssignee}
         handleAiWorkItemSessionStart={handleAiWorkItemSessionStart}
         handleCancelWorkItemCreate={handleCancelWorkItemCreate}
         handleCancelCollabOrgCreate={handleCancelCollabOrgCreate}
+        handleCreateTargetChange={handleCreateTargetChange}
         handleChatPanelProjectCreated={handleChatPanelProjectCreated}
         handleChatPanelCollabOrgCreated={handleChatPanelCollabOrgCreated}
         handleChatPanelWorkItemCreated={handleChatPanelWorkItemCreated}
@@ -437,7 +453,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageInstallLatestUpdate={handleStartPageInstallLatestUpdate}
         handleStartPageSessionStart={handleStartPageSessionStart}
-        handleStartPageNewWorkItem={handleStartPageNewWorkItem}
         handleWorkItemAgentCreatorToggle={handleWorkItemAgentCreatorToggle}
         resolveAiWorkItemContext={resolveAiWorkItemContext}
         SessionCreatorSlot={SessionCreatorSlot}
@@ -450,7 +465,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     );
 
     const publishSurfaceHeader =
-      !isManagementTabActive &&
+      !isStandaloneToolTabActive &&
       (startPageOpen ||
         contentState.showBenchmarkSessionGroupContent ||
         contentState.showExploreContent ||
@@ -463,31 +478,19 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       <ChatPanelPlusMenu
         onOpenLaunchpad={handleOpenLaunchpadTab}
         onOpenKanban={handleOpenKanbanTab}
+        onOpenRuntime={() =>
+          openRuntimeTab(t("sessions:chat.startPage.tabs.runtime"))
+        }
         onNewWorkItem={handleStartPageNewWorkItem}
       />
     );
 
-    // Terminal / work-management tabs are not creator surfaces: the create
-    // target select and presence button would be launcher noise there. Real
-    // creator surfaces (new work item / project / collab org) keep them.
+    // Terminal / work-management tabs are not creator surfaces, so contextual
+    // creator controls such as presence and Agent mode stay hidden there.
     const showCreatorHeaderControls =
       contentState.showNonSessionContent &&
       !isTerminalTabActive &&
-      !isManagementTabActive;
-
-    const { createTargetOptions, handleCreateTargetChange } =
-      useChatPanelCreateTarget({
-        allAgentDefs,
-        handleNewSession,
-        sessionCreatorAvailable: Boolean(SessionCreatorSlot),
-        setCreateTarget,
-        setCreatorState,
-        setStartPageOpen,
-        setShowProjectAgentCreator,
-        setShowWorkItemAgentCreator,
-        setWorkItemCreateDraft,
-        t,
-      });
+      !isStandaloneToolTabActive;
 
     const headerSection = (
       <>
@@ -508,7 +511,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           collapseToggleLabel={collapseToggleLabel}
           copyEventJsonLabel={copyEventJsonLabel}
           createTarget={createTarget}
-          createTargetOptions={createTargetOptions}
           currentSessionId={currentSessionId ?? null}
           displayMode={displayMode}
           eventsLength={eventCount}
@@ -516,7 +518,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           handleChatFocusToggle={handleChatFocusToggle}
           handleCompactDisplayModeToggle={handleCompactDisplayModeToggle}
           handleCopyEventJson={handleCopyEventJson}
-          handleCreateTargetChange={handleCreateTargetChange}
           handleExploreAgentSearchToggle={handleExploreAgentSearchToggle}
           handleOpenExportSessionJson={handleOpenExportSessionJson}
           handleOpenLinkWorkItem={handleOpenLinkWorkItem}
@@ -557,7 +558,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           }
           showChatFocusToggle={showChatFocusToggle}
           showCreatorPresenceInHeader={contentState.showCreatorPresenceInHeader}
-          showHeader={contentState.showHeader || isManagementTabActive}
+          showHeader={contentState.showHeader || isStandaloneToolTabActive}
           showExploreAgentSwitchInHeader={contentState.showExploreContent}
           showNewSessionButton={contentState.showNewSessionButton}
           showNonSessionContent={showCreatorHeaderControls}
@@ -566,7 +567,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
             contentState.showProjectAgentSwitchInHeader
           }
           showSessionContent={
-            contentState.showSessionContent && !isManagementTabActive
+            contentState.showSessionContent && !isStandaloneToolTabActive
           }
           showCloudShareSettings={showCloudShareSettings}
           showStartPage={startPageOpen}

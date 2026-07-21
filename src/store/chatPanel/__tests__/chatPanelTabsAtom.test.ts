@@ -45,8 +45,8 @@ async function loadChatPanelTabAtoms() {
     normalizePersistedChatPanelTabsState,
     openCloudOrgManagementInChatPanelTabAtom,
     openKanbanChatPanelTabAtom,
-    openOrFocusChatPanelManageTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
+    openRuntimeInChatPanelTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
     openOrReplaceSessionInChatPanelTabAtom,
     openSessionInNewChatTabAtom,
@@ -64,9 +64,7 @@ async function loadChatPanelTabAtoms() {
     chatPanelMaximizedAtom,
     chatPanelNavigateAtom,
     chatPanelStartPageOpenAtom,
-    chatPanelStartPageTabAtom,
     CHAT_PANEL_SURFACE_KIND,
-    CHAT_PANEL_START_PAGE_TAB,
   } = await import("@src/store/ui/chatPanelAtom");
   const {
     WORK_MANAGEMENT_SECTION,
@@ -86,7 +84,6 @@ async function loadChatPanelTabAtoms() {
     chatPanelMaximizedAtom,
     chatPanelNavigateAtom,
     chatPanelStartPageOpenAtom,
-    chatPanelStartPageTabAtom,
     closeChatPanelTabAtom,
     createChatPanelTerminalAtom,
     kanbanDetailPanelVisibleAtom,
@@ -100,8 +97,8 @@ async function loadChatPanelTabAtoms() {
     normalizePersistedChatPanelTabsState,
     openCloudOrgManagementInChatPanelTabAtom,
     openKanbanChatPanelTabAtom,
-    openOrFocusChatPanelManageTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
+    openRuntimeInChatPanelTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
     openOrReplaceSessionInChatPanelTabAtom,
     WORK_MANAGEMENT_SECTION,
@@ -117,7 +114,6 @@ async function loadChatPanelTabAtoms() {
     sessionViewAtom,
     sessionsAtom,
     store,
-    CHAT_PANEL_START_PAGE_TAB,
     workstationTabHeaderAtomByHost,
   };
 }
@@ -470,7 +466,7 @@ describe("ChatPanel navigation tabs", () => {
     vi.useRealTimers();
   });
 
-  it("opens the three-section Launchpad in a separate tab", async () => {
+  it("opens the Work launchpad in a separate tab", async () => {
     const {
       activeChatPanelSurfaceAtom,
       addChatPanelLaunchpadTabAtom,
@@ -550,27 +546,29 @@ describe("ChatPanel navigation tabs", () => {
     ).toHaveLength(1);
   });
 
-  it("focuses Launchpad Manage without creating a duplicate tab", async () => {
+  it("opens Runtime as its own singleton tab without replacing or maximizing other tabs", async () => {
     const {
-      chatPanelStartPageTabAtom,
+      chatPanelMaximizedAtom,
       chatPanelTabsAtom,
-      openOrFocusChatPanelManageTabAtom,
-      CHAT_PANEL_START_PAGE_TAB,
+      openRuntimeInChatPanelTabAtom,
       store,
     } = await loadChatPanelTabAtoms();
-    const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
 
-    const focusedTabId = store.set(openOrFocusChatPanelManageTabAtom);
+    const existingTabIds = store
+      .get(chatPanelTabsAtom)
+      .tabs.map((tab) => tab.id);
+    const runtimeTabId = store.set(openRuntimeInChatPanelTabAtom, "Runtime");
+    const focusedTabId = store.set(openRuntimeInChatPanelTabAtom, "Runtime");
 
-    expect(focusedTabId).toBe(launchpadTabId);
-    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(launchpadTabId);
-    expect(store.get(chatPanelStartPageTabAtom)).toBe(
-      CHAT_PANEL_START_PAGE_TAB.MANAGE
-    );
+    expect(focusedTabId).toBe(runtimeTabId);
+    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(runtimeTabId);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
+    expect(store.get(chatPanelTabsAtom).tabs.map((tab) => tab.id)).toEqual([
+      ...existingTabIds,
+      runtimeTabId,
+    ]);
     expect(
-      store
-        .get(chatPanelTabsAtom)
-        .tabs.filter((tab) => tab.type === "start-page")
+      store.get(chatPanelTabsAtom).tabs.filter((tab) => tab.type === "runtime")
     ).toHaveLength(1);
   });
 
@@ -630,11 +628,9 @@ describe("ChatPanel navigation tabs", () => {
 
   it("reuses the singleton start page instead of stacking new-session tabs", async () => {
     const {
-      chatPanelStartPageTabAtom,
       chatPanelTabsAtom,
       openOrFocusChatPanelStartPageTabAtom,
       openSessionInNewChatTabAtom,
-      CHAT_PANEL_START_PAGE_TAB,
       store,
     } = await loadChatPanelTabAtoms();
     const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
@@ -656,9 +652,6 @@ describe("ChatPanel navigation tabs", () => {
     expect(firstId).toBe(launchpadTabId);
     expect(secondId).toBe(launchpadTabId);
     expect(store.get(chatPanelTabsAtom).activeTabId).toBe(launchpadTabId);
-    expect(store.get(chatPanelStartPageTabAtom)).toBe(
-      CHAT_PANEL_START_PAGE_TAB.WORK
-    );
     expect(
       store
         .get(chatPanelTabsAtom)
@@ -687,6 +680,25 @@ describe("ChatPanel navigation tabs", () => {
       "start-b"
     );
     expect(normalized?.activeTabId).toBe("start-b");
+  });
+
+  it("collapses persisted duplicate Runtime tabs into one", async () => {
+    const { normalizePersistedChatPanelTabsState } =
+      await loadChatPanelTabAtoms();
+
+    const normalized = normalizePersistedChatPanelTabsState({
+      activeTabId: "runtime-b",
+      tabs: [
+        { id: "start", type: "start-page", title: "Launchpad" },
+        { id: "runtime-a", type: "runtime", title: "Runtime" },
+        { id: "runtime-b", type: "runtime", title: "Runtime" },
+      ],
+    });
+
+    expect(
+      normalized?.tabs.filter((tab) => tab.type === "runtime")
+    ).toHaveLength(1);
+    expect(normalized?.activeTabId).toBe("runtime-b");
   });
 
   it("migrates persisted legacy Launchpad tabs to the start page", async () => {

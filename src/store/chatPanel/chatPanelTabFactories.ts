@@ -28,6 +28,8 @@ import {
 export const DEFAULT_LAUNCHPAD_TAB_ID = "launchpad-default";
 /** Fixed id of the singleton Kanban / Work Management tab. */
 export const WORK_MANAGEMENT_TAB_ID = "chat-work-management";
+/** Fixed id of the singleton Runtime tab. */
+export const RUNTIME_TAB_ID = "chat-runtime";
 /** Fixed id of the singleton managed-cloud-org management tab. */
 export const CLOUD_ORG_TAB_ID = "chat-cloud-org-management";
 
@@ -64,6 +66,16 @@ export const createWorkManagementTab = defineChatPanelTabFactory<{
   getTitle: (data) =>
     data.title ?? getWorkManagementFallbackTitle(data.section),
   toPayload: (data) => ({ managementSection: data.section }),
+});
+
+// ---------------------------------------------------------------------------
+// runtime — singleton
+// ---------------------------------------------------------------------------
+
+export const createRuntimeTab = defineChatPanelTabFactory<{ title?: string }>({
+  tabType: "runtime",
+  idStrategy: { type: "fixed", id: RUNTIME_TAB_ID },
+  getTitle: (data) => data.title ?? "Runtime",
 });
 
 // ---------------------------------------------------------------------------

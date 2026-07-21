@@ -22,6 +22,7 @@ import {
   openKanbanChatPanelTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
+  openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { repoMapAtom } from "@src/store/repo";
@@ -75,6 +76,7 @@ import {
   COLLAB_ADD_ORG_MENU_ITEM_ID,
   KANBAN_MENU_ITEM_ID,
   NEW_SESSION_MENU_ITEM_ID,
+  RUNTIME_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
@@ -189,6 +191,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   );
   const activateChatPanelTab = useSetAtom(activateChatPanelTabAtom);
   const openStartPageTab = useSetAtom(openOrFocusChatPanelStartPageTabAtom);
+  const openRuntimeTab = useSetAtom(openRuntimeInChatPanelTabAtom);
   const closeAndDestroyChatPanelTab = useSetAtom(
     closeAndDestroyChatPanelTabAtom
   );
@@ -310,6 +313,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const createProjectLabel = tProjects("projects.createProject");
   const createWorkItemLabel = tProjects("workItems.createWorkItem");
   const workItemsLabel = t("labels.workItems");
+  const runtimeLabel = tSessions("chat.startPage.tabs.runtime");
   const importGithubIssuesLabel = tProjects("githubIssuesImport.menuLabel");
   const addOrgLabel = t("collaboration.addOrg");
   const manageOrgLabel = t("collaboration.manageOrg");
@@ -426,6 +430,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     importGithubIssuesLabel,
     kanbanLabel: tSessions("simulator.tabs.kanban"),
     newSessionLabel,
+    runtimeLabel,
     workItemDestinations: workItemsSidebarMenuItems,
     t,
   });
@@ -801,6 +806,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
         handleWorkManagementMenuItemClick(key, item);
         return;
       }
+      if (item.id === RUNTIME_MENU_ITEM_ID) {
+        openRuntimeTab(runtimeLabel);
+        return;
+      }
       if (isChatTerminalSidebarItem(item.id)) {
         activateChatPanelTab(getChatTerminalTabId(item.id));
         return;
@@ -832,6 +841,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
       handleWorkManagementMenuItemClick,
       handleProjectsMenuItemClick,
       handleOpenInNewTab,
+      openRuntimeTab,
+      runtimeLabel,
       sessionMap,
       workItemsContentVisible,
     ]

@@ -137,7 +137,8 @@
       "views": {
         "scanning": "Tarama",
         "hooks": "Hooks",
-        "usage": "Kullanım"
+        "usage": "Kullanım",
+        "assets": "Varlıklar"
       },
       "usage": {
         "title": "Kullanım ve maliyet",
@@ -887,6 +888,9 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "Oturum",
+        "workItem": "İş öğesi",
+        "more": "Daha fazla",
         "work": "Çalışma",
         "manage": "Yönet",
         "heatmap": "Trendler",
