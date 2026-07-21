@@ -988,6 +988,28 @@
     "copyEventJson": "Olay JSON'unu kopyala",
     "copyEventJsonCopied": "Kopyalandı!",
     "copyEventJsonFailed": "Kopyalama başarısız",
+    "moveToWorkstation": "Workstation'ıma taşı",
+    "moveToChatPanel": "Sohbet paneline taşı",
+    "rawTranscript": {
+      "title": "Ham oturum dökümü",
+      "menuItem": "Ham dökümü görüntüle",
+      "guiTab": "GUI",
+      "rawTab": "Ham veri",
+      "entryCount_one": "{{count}} girdi",
+      "entryCount_other": "{{count}} girdi",
+      "copySuccess": "Ham döküm kopyalandı",
+      "copyFailed": "Ham döküm kopyalanamadı"
+    },
+    "linkWorkItem": {
+      "menuItem": "Work Item'a bağla…",
+      "title": "Oturumu Work Item'a bağla",
+      "description": "Bu oturumun gösterileceği Work Item'ı seçin.",
+      "searchPlaceholder": "Work Item kimliği, başlığı, durumu veya projesine göre ara",
+      "loading": "Work Items yükleniyor…",
+      "empty": "Work Item bulunamadı.",
+      "linking": "Bağlanıyor…",
+      "link": "Bağla"
+    },
     "historyTitle": "Geçmiş",
     "historyEmpty": "Henüz oturum yok",
     "historyGroupTime": "Zaman",

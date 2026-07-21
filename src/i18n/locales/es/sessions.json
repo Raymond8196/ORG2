@@ -988,6 +988,28 @@
     "copyEventJson": "Copiar JSON de eventos",
     "copyEventJsonCopied": "¡Copiado!",
     "copyEventJsonFailed": "Error al copiar",
+    "moveToWorkstation": "Mover a Mi Workstation",
+    "moveToChatPanel": "Mover al panel de chat",
+    "rawTranscript": {
+      "title": "Transcripción sin procesar de la sesión",
+      "menuItem": "Ver transcripción sin procesar",
+      "guiTab": "GUI",
+      "rawTab": "Sin procesar",
+      "entryCount_one": "{{count}} entrada",
+      "entryCount_other": "{{count}} entradas",
+      "copySuccess": "Transcripción sin procesar copiada",
+      "copyFailed": "No se pudo copiar la transcripción sin procesar"
+    },
+    "linkWorkItem": {
+      "menuItem": "Vincular a un Work Item…",
+      "title": "Vincular sesión a un Work Item",
+      "description": "Selecciona el Work Item en el que debe aparecer esta sesión.",
+      "searchPlaceholder": "Buscar por ID, título, estado o proyecto del Work Item",
+      "loading": "Cargando Work Items…",
+      "empty": "No se encontraron Work Items.",
+      "linking": "Vinculando…",
+      "link": "Vincular"
+    },
     "historyTitle": "Historial",
     "historyEmpty": "Aún no hay sesiones",
     "historyGroupTime": "Tiempo",

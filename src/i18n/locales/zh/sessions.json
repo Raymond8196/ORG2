@@ -1022,6 +1022,28 @@
     "copyEventJson": "复制事件 JSON",
     "copyEventJsonCopied": "复制！",
     "copyEventJsonFailed": "复制失败",
+    "moveToWorkstation": "移动到我的工作站",
+    "moveToChatPanel": "移动到聊天面板",
+    "rawTranscript": {
+      "title": "原始会话记录",
+      "menuItem": "查看原始记录",
+      "guiTab": "图形界面",
+      "rawTab": "原始数据",
+      "entryCount_one": "{{count}} 条记录",
+      "entryCount_other": "{{count}} 条记录",
+      "copySuccess": "已复制原始记录",
+      "copyFailed": "无法复制原始记录"
+    },
+    "linkWorkItem": {
+      "menuItem": "关联到工作项…",
+      "title": "将会话关联到工作项",
+      "description": "选择要显示此会话的工作项。",
+      "searchPlaceholder": "按工作项 ID、标题、状态或项目搜索",
+      "loading": "正在加载工作项…",
+      "empty": "未找到工作项。",
+      "linking": "正在关联…",
+      "link": "关联"
+    },
     "historyTitle": "历史",
     "historyEmpty": "暂无会话",
     "historyGroupTime": "时间",
