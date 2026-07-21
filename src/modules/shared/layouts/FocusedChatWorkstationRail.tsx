@@ -320,9 +320,9 @@ export function FocusedChatWorkstationRail() {
   }
 
   return (
-    <div className="pointer-events-none absolute right-1 top-12 z-20 hidden xl:flex">
+    <div className="pointer-events-none absolute right-1 top-[88px] z-20 hidden xl:flex">
       <div
-        className={`pointer-events-auto flex bg-bg-2/90 transition-all ${
+        className={`pointer-events-auto flex bg-[var(--cm-editor-background)] transition-all ${
           collapsed
             ? "flex-col items-center rounded-xl border-[1px] border-border-1 p-1"
             : "w-64 flex-col rounded-xl border-[1px] border-border-1 p-1"

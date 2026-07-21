@@ -49,4 +49,23 @@ describe("Runtime DataSourcePanel navigation", () => {
     expect(markup).toContain('data-testid="data-source-scroll-region"');
     expect(markup).toContain("overflow-y-auto");
   });
+
+  it("supports a shell-published header with controlled panel navigation", () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        Provider,
+        { store: createStore() },
+        createElement(DataSourcePanel, {
+          activePanelView: "quota",
+          onPanelViewChange: vi.fn(),
+          hideHeader: true,
+          quotaContent: createElement("div", null, "Quota content"),
+        })
+      )
+    );
+
+    expect(markup).toContain("Quota content");
+    expect(markup).not.toContain("data-source-view-usage");
+    expect(markup).not.toContain("data-source-view-quota");
+  });
 });

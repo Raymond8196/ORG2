@@ -1,4 +1,3 @@
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckCircle2, CircleDot, GitPullRequest } from "lucide-react";
 import React, { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -150,34 +149,83 @@ export function GitHubWorkItemsView({
 }: GitHubWorkItemsViewProps): React.ReactNode {
   const { t } = useTranslation(["sessions", "common"]);
   const listScrollRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual exposes imperative helpers that cannot be memoized safely.
-  const itemVirtualizer = useVirtualizer({
-    count: pagedItems.length,
-    getScrollElement: () => listScrollRef.current,
-    estimateSize: () => (scope === GITHUB_QUERY_SCOPE.ISSUE ? 72 : 82),
-    overscan: 8,
-  });
-  const virtualItems = itemVirtualizer.getVirtualItems();
 
-  const surfaceTitle =
-    scope === GITHUB_QUERY_SCOPE.PR
-      ? t("sessions:kanban.sidebar.githubPrs")
-      : t("sessions:kanban.sidebar.githubIssues");
   const headerContent = useMemo(
-    () => (
-      <span className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-text-1">
-        {issueDetail ? (
+    () =>
+      issueDetail ? (
+        <span className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-text-1">
           <IssueDetailHeaderContent issue={issueDetail.issue} />
-        ) : (
-          surfaceTitle
-        )}
-      </span>
-    ),
-    [issueDetail, surfaceTitle]
+        </span>
+      ) : (
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <RepoFilterPill
+            options={repoOptions}
+            selectedRepo={effectiveSelectedRepo}
+            allReposLabel={t("chat.manageIssues.allRepositories")}
+            onSelectRepo={onRepoSelect}
+          />
+          <SearchInput
+            value={searchQuery}
+            onChange={onSearchQueryChange}
+            placeholder={t("chat.panels.manageIssues.searchPlaceholder")}
+            ariaLabel={t("chat.panels.manageIssues.searchPlaceholder")}
+            variant="panel"
+            surface="transparent"
+            hideChevron
+            showClearButton
+            inputBoxClassName="flex-1"
+            className="min-w-0 flex-1"
+          />
+        </div>
+      ),
+    [
+      effectiveSelectedRepo,
+      issueDetail,
+      onRepoSelect,
+      onSearchQueryChange,
+      repoOptions,
+      searchQuery,
+      t,
+    ]
+  );
+  const headerTrailing = useMemo(
+    () =>
+      issueDetail ? null : (
+        <GitHubWorkItemToolbarActions
+          openHref={
+            selectedRepoSourceForCreate
+              ? `https://github.com/${selectedRepoSourceForCreate.repoFullName}`
+              : null
+          }
+          openLabel={t("chat.panels.manageIssues.openInGitHub")}
+          refreshLabel={t("common:actions.refresh")}
+          refreshing={loading}
+          createAction={
+            scope === GITHUB_QUERY_SCOPE.ISSUE
+              ? {
+                  label: t("chat.panels.manageIssues.createIssueTrigger"),
+                  disabled: repoSources.length === 0,
+                  onClick: () => onSetCreateFormOpen(true),
+                }
+              : undefined
+          }
+          onRefresh={onRefresh}
+        />
+      ),
+    [
+      issueDetail,
+      loading,
+      onRefresh,
+      onSetCreateFormOpen,
+      repoSources.length,
+      scope,
+      selectedRepoSourceForCreate,
+      t,
+    ]
   );
   const headerContribution = useMemo(
-    () => ({ content: headerContent }),
-    [headerContent]
+    () => ({ content: headerContent, trailing: headerTrailing }),
+    [headerContent, headerTrailing]
   );
   usePublishWorkstationTabHeader({
     host: "workManagement",
@@ -325,7 +373,7 @@ export function GitHubWorkItemsView({
         height={
           scope === GITHUB_QUERY_SCOPE.PR && filteredItems.length === 0
             ? 180
-            : itemVirtualizer.getTotalSize()
+            : undefined
         }
       >
         {scope === GITHUB_QUERY_SCOPE.PR && filteredItems.length === 0 ? (
@@ -343,19 +391,18 @@ export function GitHubWorkItemsView({
             fillParentHeight
           />
         ) : (
-          virtualItems.map((virtualItem) => {
-            const item = pagedItems[virtualItem.index];
+          // Keep paginated rows in normal document flow. Their wrapped titles
+          // and metadata have dynamic heights, and native WebView zoom can put
+          // virtualizer measurements in a different coordinate space.
+          pagedItems.map((item, index) => {
             return (
               <div
                 key={`${item.kind}-${item.repo}-${item.id}`}
-                ref={itemVirtualizer.measureElement}
-                data-index={virtualItem.index}
-                className={`absolute left-0 top-0 w-full ${
-                  virtualItem.index < pagedItems.length - 1
+                className={`w-full ${
+                  index < pagedItems.length - 1
                     ? "border-b border-border-2"
                     : ""
                 }`}
-                style={{ transform: `translateY(${virtualItem.start}px)` }}
               >
                 {item.kind === GITHUB_ITEM_KIND.ISSUE ? (
                   <ManagedIssueRow
@@ -434,49 +481,6 @@ export function GitHubWorkItemsView({
           <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
             {issueDetailContent ?? (
               <>
-                <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border-2 px-3">
-                  <RepoFilterPill
-                    options={repoOptions}
-                    selectedRepo={effectiveSelectedRepo}
-                    allReposLabel={t("chat.manageIssues.allRepositories")}
-                    onSelectRepo={onRepoSelect}
-                  />
-                  <SearchInput
-                    value={searchQuery}
-                    onChange={onSearchQueryChange}
-                    placeholder={t(
-                      "chat.panels.manageIssues.searchPlaceholder"
-                    )}
-                    variant="panel"
-                    surface="pane"
-                    hideChevron
-                    showClearButton
-                    inputBoxClassName="flex-1"
-                    className="min-w-0 flex-1"
-                  />
-                  <GitHubWorkItemToolbarActions
-                    openHref={
-                      selectedRepoSourceForCreate
-                        ? `https://github.com/${selectedRepoSourceForCreate.repoFullName}`
-                        : null
-                    }
-                    openLabel={t("chat.panels.manageIssues.openInGitHub")}
-                    refreshLabel={t("common:actions.refresh")}
-                    refreshing={loading}
-                    createAction={
-                      scope === GITHUB_QUERY_SCOPE.ISSUE
-                        ? {
-                            label: t(
-                              "chat.panels.manageIssues.createIssueTrigger"
-                            ),
-                            disabled: repoSources.length === 0,
-                            onClick: () => onSetCreateFormOpen(true),
-                          }
-                        : undefined
-                    }
-                    onRefresh={onRefresh}
-                  />
-                </div>
                 <div
                   ref={listScrollRef}
                   className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-hide"
