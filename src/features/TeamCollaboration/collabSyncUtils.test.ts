@@ -20,9 +20,9 @@ import {
 
 describe("isLocalRepoPath", () => {
   it("recognizes Windows drive, UNC, and canonical verbatim paths", () => {
-    expect(isLocalRepoPath("C:\\Projects\\ORGII")).toBe(true);
+    expect(isLocalRepoPath("C:\\Repos\\ORGII")).toBe(true);
     expect(isLocalRepoPath("\\\\server\\share\\ORGII")).toBe(true);
-    expect(isLocalRepoPath("\\\\?\\C:\\Projects\\ORGII")).toBe(true);
+    expect(isLocalRepoPath("\\\\?\\C:\\Repos\\ORGII")).toBe(true);
     expect(isLocalRepoPath("\\\\?\\UNC\\server\\share\\ORGII")).toBe(true);
     expect(isLocalRepoPath("github.com/yorgai/ORG2")).toBe(false);
   });

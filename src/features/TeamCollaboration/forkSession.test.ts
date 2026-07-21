@@ -190,10 +190,10 @@ describe("resolveForkWorkspacePath", () => {
   it("ignores stale imported paths and probes only checkouts that exist locally", async () => {
     store.set(sessionsAtom, [
       { session_id: "stale", repoPath: "/Users/owner/ORG2" } as Session,
-      { session_id: "local", repoPath: "C:\\Projects\\ORGII" } as Session,
+      { session_id: "local", repoPath: "C:\\Repos\\ORGII" } as Session,
     ]);
     existsMock.mockImplementation(async (path) =>
-      String(path).startsWith("C:\\Projects\\ORGII")
+      String(path).startsWith("C:\\Repos\\ORGII")
     );
     resolveCheckoutMock.mockImplementation(
       async (_scopeKey, candidates) => candidates[0] ?? null
@@ -203,9 +203,9 @@ describe("resolveForkWorkspacePath", () => {
       resolveForkWorkspacePath(
         makeRemote({ repoScopeKey: "github.com/yorgai/ORG2" })
       )
-    ).resolves.toBe("C:\\Projects\\ORGII");
+    ).resolves.toBe("C:\\Repos\\ORGII");
     expect(resolveCheckoutMock).toHaveBeenCalledWith("github.com/yorgai/ORG2", [
-      "C:\\Projects\\ORGII",
+      "C:\\Repos\\ORGII",
     ]);
   });
 
@@ -264,7 +264,7 @@ describe("forkTeammateSession (design §16.11 relay completion)", () => {
       promptForExecution: true,
     });
     store.get(forkSessionSetupRequestAtom)?.resolve({
-      workspaceRepoPath: "C:\\Projects\\ORGII",
+      workspaceRepoPath: "C:\\Repos\\ORGII",
       execution: {
         agentDefinitionId: "builtin:sde",
         accountId: "openai-local",
@@ -279,7 +279,7 @@ describe("forkTeammateSession (design §16.11 relay completion)", () => {
       ["github.com/vantanode/org2"]
     );
     expect(forkSessionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ workspaceRepoPath: "C:\\Projects\\ORGII" })
+      expect.objectContaining({ workspaceRepoPath: "C:\\Repos\\ORGII" })
     );
   });
 

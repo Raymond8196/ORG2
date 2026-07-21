@@ -120,13 +120,13 @@ fn github_remote_parser_rejects_non_github_urls() {
 #[test]
 fn repo_network_identity_uses_source_for_a_fork() {
     let identity = parse_repo_network_identity(&json!({
-        "full_name": "VantaNode/ORG2",
+        "full_name": "example-user/ORG2",
         "fork": true,
         "parent": { "full_name": "yorgai/ORG2" },
         "source": { "full_name": "yorgai/ORG2" }
     }))
     .expect("identity");
-    assert_eq!(identity.full_name, "VantaNode/ORG2");
+    assert_eq!(identity.full_name, "example-user/ORG2");
     assert_eq!(identity.source_full_name, "yorgai/ORG2");
 }
 
