@@ -70,11 +70,8 @@ import {
   org2CloudAuthAtom,
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { cloudSessionIdFromRowId } from "@src/features/Org2Cloud/org2CloudBackendAdapter";
-import {
-  type CloudOrgMember,
-  ensureFreshSession,
-  listOrgMembers,
-} from "@src/features/Org2Cloud/org2CloudClient";
+import { type CloudOrgMember } from "@src/features/Org2Cloud/org2CloudClient";
+import { loadCloudOrgMembers } from "@src/features/Org2Cloud/org2CloudMembersCoordinator";
 import { org2CloudRosterVersionAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import {
   type Org2CloudPresenceEntry,
@@ -190,11 +187,10 @@ export function useCloudSessionsSection({
     void (async () => {
       const current = authRef.current;
       if (!current) return;
-      const fresh = await ensureFreshSession(current);
-      if (!fresh || cancelled) return;
-      if (!commitRefreshedAuth(setAuth, current, fresh)) return;
-      const members = await listOrgMembers(fresh.accessToken, orgId);
-      if (!cancelled) setRosterSnapshot({ orgId, members });
+      const loaded = await loadCloudOrgMembers(current, orgId, rosterVersion);
+      if (!loaded || cancelled) return;
+      commitRefreshedAuth(setAuth, current, loaded.auth);
+      setRosterSnapshot({ orgId, members: loaded.members });
     })();
     return () => {
       cancelled = true;

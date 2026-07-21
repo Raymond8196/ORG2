@@ -1424,57 +1424,43 @@ describe("Cloud collaboration with two independent rendered app instances", func
       title: `Teammate filter row ${RUN_ID}`,
       repoScopeKey: REPO_SCOPE_KEY,
     });
-    // Best-effort: the teammate row is confirmed in the remote-sessions atom
-    // but is currently dropped before the rendered item list (open rendering
-    // question — see the dual-instance greening follow-up). When it does not
-    // list, keep the blame-navigation coverage and skip only the
-    // filter-persistence assertions.
-    let memberFilterApplied = false;
-    const teammateRowListed = await second.client
-      .waitUntil(
-        async () => {
-          if (
-            await executeOn(
-              second.client,
-              `return !!document.querySelector('[data-testid="sidebar-cloud-session-item-${teammateRowSessionId}"]');`
-            )
-          ) {
-            return true;
-          }
+    await second.client.waitUntil(
+      async () => {
+        if (
           await executeOn(
             second.client,
-            `document.querySelector('[data-testid="cloud-team-sessions-refresh"]')?.click();`
-          );
-          return false;
-        },
-        { timeout: 10_000, interval: 1_000 }
-      )
-      .then(
-        () => true,
-        () => false
-      );
-    if (teammateRowListed) {
-      await clickRenderedOn(
-        second.client,
-        '[data-testid="cloud-team-sessions-filter"]',
-        "secondary Team filter before blame navigation"
-      );
-      await clickRenderedOn(
-        second.client,
-        `[data-testid="sidebar-cloud-filter-member-${teammate.userId}"]`,
-        "secondary filter to own sessions"
-      );
-      await waitForGoneOn(
-        second.client,
-        REMOTE_ROW_SELECTOR,
-        "owner row under teammate-only filter"
-      );
-      memberFilterApplied = true;
-    } else {
-      console.warn(
-        "[dual-e2e] SKIP member-filter persistence sub-step: teammate row present in atom but not rendered (tracked follow-up)."
-      );
-    }
+            `return !!document.querySelector('[data-testid="sidebar-cloud-session-item-${teammateRowSessionId}"]');`
+          )
+        ) {
+          return true;
+        }
+        await executeOn(
+          second.client,
+          `document.querySelector('[data-testid="cloud-team-sessions-refresh"]')?.click();`
+        );
+        return false;
+      },
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 1_000,
+        timeoutMsg: "teammate row never rendered for the member filter",
+      }
+    );
+    await clickRenderedOn(
+      second.client,
+      '[data-testid="cloud-team-sessions-filter"]',
+      "secondary Team filter before blame navigation"
+    );
+    await clickRenderedOn(
+      second.client,
+      `[data-testid="sidebar-cloud-filter-member-${teammate.userId}"]`,
+      "secondary filter to own sessions"
+    );
+    await waitForGoneOn(
+      second.client,
+      REMOTE_ROW_SELECTOR,
+      "owner row under teammate-only filter"
+    );
     await selectCloudOrgOn(second.client, teammatePersonalOrgId);
     await openFileTimelineOn(
       second.client,
@@ -1499,28 +1485,18 @@ describe("Cloud collaboration with two independent rendered app instances", func
     if (!String(blameText).includes("@Dual Owner")) {
       throw new Error(`Team Session Blame lost owner identity: ${blameText}`);
     }
-    if (!memberFilterApplied) {
-      console.warn(
-        "[dual-e2e] SKIP blame-navigation sub-step (degraded: member filter unavailable); blame row render + owner identity already asserted."
-      );
-      await selectCloudOrgOn(second.client, teamOrgId);
-      unwrapOn(
-        await invokeOn(second.client, "openSession", importedSessionId),
-        "secondary reopen imported replay (degraded blame path)"
-      );
-    } else {
-      await clickRenderedOn(
-        second.client,
-        teamBlameSelector,
-        "secondary open Team Session from blame"
-      );
-      await second.client.waitUntil(
-        async () => {
-          const [state, navigation] = await Promise.all([
-            invokeOn(second.client, "inspectChatState"),
-            executeOn(
-              second.client,
-              `
+    await clickRenderedOn(
+      second.client,
+      teamBlameSelector,
+      "secondary open Team Session from blame"
+    );
+    await second.client.waitUntil(
+      async () => {
+        const [state, navigation] = await Promise.all([
+          invokeOn(second.client, "inspectChatState"),
+          executeOn(
+            second.client,
+            `
               const scope = document.querySelector('[data-testid="sidebar-org-selector-scope"]');
               const row = document.querySelector(arguments[0]);
               return {
@@ -1529,43 +1505,40 @@ describe("Cloud collaboration with two independent rendered app instances", func
                 rowSelected: row?.getAttribute('data-selected') === 'true',
               };
             `,
-              [REMOTE_ROW_SELECTOR]
-            ),
-          ]);
-          return (
-            state.ok === true &&
-            state.activeSessionId === importedSessionId &&
-            navigation.orgId === `cloud:${teamOrgId}` &&
-            (!memberFilterApplied ||
-              (navigation.rowPresent && navigation.rowSelected))
-          );
-        },
-        {
-          timeout: CLOUD_FETCH_TIMEOUT_MS,
-          interval: 250,
-          timeoutMsg:
-            "Team Session Blame did not reveal its exact filtered cloud row",
-        }
-      );
-    }
-    if (memberFilterApplied) {
-      await clickRenderedOn(
-        second.client,
-        '[data-testid="cloud-team-sessions-filter"]',
-        "secondary inspect preserved Team filter"
-      );
-      const filterPreserved = await executeOn(
-        second.client,
-        `return document.querySelector(arguments[0])?.getAttribute('aria-selected') === 'true';`,
-        [`[data-testid="sidebar-cloud-filter-member-${teammate.userId}"]`]
-      );
-      if (!filterPreserved) {
-        throw new Error(
-          "blame navigation mutated the saved Team Sessions filter"
+            [REMOTE_ROW_SELECTOR]
+          ),
+        ]);
+        return (
+          state.ok === true &&
+          state.activeSessionId === importedSessionId &&
+          navigation.orgId === `cloud:${teamOrgId}` &&
+          navigation.rowPresent &&
+          navigation.rowSelected
         );
+      },
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 250,
+        timeoutMsg:
+          "Team Session Blame did not reveal its exact filtered cloud row",
       }
-      await pressEscapeOn(second.client);
+    );
+    await clickRenderedOn(
+      second.client,
+      '[data-testid="cloud-team-sessions-filter"]',
+      "secondary inspect preserved Team filter"
+    );
+    const filterPreserved = await executeOn(
+      second.client,
+      `return document.querySelector(arguments[0])?.getAttribute('aria-selected') === 'true';`,
+      [`[data-testid="sidebar-cloud-filter-member-${teammate.userId}"]`]
+    );
+    if (!filterPreserved) {
+      throw new Error(
+        "blame navigation mutated the saved Team Sessions filter"
+      );
     }
+    await pressEscapeOn(second.client);
 
     // Presence is a separate, ephemeral plane: the teammate must see the
     // owner viewing the same cloud session, lose the chip when the owner

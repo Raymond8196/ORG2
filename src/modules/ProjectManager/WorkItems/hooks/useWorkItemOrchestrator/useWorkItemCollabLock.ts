@@ -23,6 +23,7 @@ import {
 } from "@src/features/Org2Cloud/cloudWorkItemLock";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import {
+  cloudMemberNamesIdentityKey,
   ensureCloudMemberNames,
   org2CloudMemberNamesAtom,
   resolveCloudMemberName,
@@ -272,7 +273,12 @@ export function useWorkItemCollabLock(
 
   const holderDisplayName =
     cloudOrgId && lockedByMemberId
-      ? resolveCloudMemberName(memberNames, cloudOrgId, lockedByMemberId)
+      ? resolveCloudMemberName(
+          memberNames,
+          cloudOrgId,
+          lockedByMemberId,
+          cloudAuth ? cloudMemberNamesIdentityKey(cloudAuth) : undefined
+        )
       : null;
 
   const holder = useMemo(

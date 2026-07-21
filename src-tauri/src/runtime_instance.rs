@@ -36,6 +36,16 @@ impl RuntimeInstanceProfile {
         (self.instance_id > 1)
             .then(|| user_home.join(format!(".orgii-instance{}", self.instance_id)))
     }
+
+    /// Secondary identities must not scan the real user's Codex/Claude
+    /// histories. Launch helpers normally provide an explicit override, but
+    /// direct executable launches need the same isolation guarantee.
+    pub(crate) fn default_external_history_home(
+        self,
+        resolved_orgii_home: &Path,
+    ) -> Option<PathBuf> {
+        (self.instance_id > 1).then(|| resolved_orgii_home.join("external-history-home"))
+    }
 }
 
 fn parse_instance_id(identifier: &str) -> Option<u16> {
@@ -76,6 +86,14 @@ mod tests {
         assert_eq!(
             profile.default_orgii_home(Path::new("C:/Users/Test")),
             Some(PathBuf::from("C:/Users/Test/.orgii-instance2"))
+        );
+        assert_eq!(
+            profile.default_external_history_home(Path::new(
+                "C:/Users/Test/.orgii-instance2"
+            )),
+            Some(PathBuf::from(
+                "C:/Users/Test/.orgii-instance2/external-history-home"
+            ))
         );
     }
 

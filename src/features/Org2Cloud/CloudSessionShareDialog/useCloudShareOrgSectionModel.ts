@@ -9,7 +9,7 @@
  * this session", and the server's resolve path only honors replay link
  * shares anyway.
  */
-import { useAtom, useStore } from "jotai";
+import { useAtom, useAtomValue, useStore } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { Session } from "@src/store/session/sessionAtom/types";
@@ -18,13 +18,13 @@ import { copyText } from "@src/util/data/clipboard";
 import { getCloudEndpoint } from "../config";
 import { org2CloudAccessSettingsAtom } from "../org2CloudAccessSettings";
 import { commitRefreshedAuth, org2CloudAuthAtom } from "../org2CloudAuthAtom";
-import {
-  type CloudOrgMember,
-  ensureFreshSession,
-  listOrgMembers,
-} from "../org2CloudClient";
+import { type CloudOrgMember, ensureFreshSession } from "../org2CloudClient";
+import { loadCloudOrgMembers } from "../org2CloudMembersCoordinator";
 import { buildCloudSessionShareLink } from "../org2CloudOrgManagement";
-import type { Org2CloudOrg } from "../org2CloudOrgsAtom";
+import {
+  type Org2CloudOrg,
+  org2CloudRosterVersionAtom,
+} from "../org2CloudOrgsAtom";
 import {
   CLOUD_SHARE_LEVEL,
   type CloudSessionShareRecord,
@@ -69,6 +69,8 @@ export function useCloudShareOrgSectionModel({
 }) {
   const store = useStore();
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
+  const rosterVersionByOrg = useAtomValue(org2CloudRosterVersionAtom);
+  const rosterVersion = rosterVersionByOrg[org.orgId] ?? 0;
   const [shares, setShares] = useState<CloudSessionShareRecord[]>([]);
   const [members, setMembers] = useState<CloudOrgMember[]>([]);
   const [membersLoading, setMembersLoading] = useState(true);
@@ -121,20 +123,25 @@ export function useCloudShareOrgSectionModel({
     void refreshShares();
   }, [refreshShares]);
 
-  // Roster for the directed multi-select. `[]` on failure (listOrgMembers
-  // swallows errors by design) — the picker just renders empty.
+  // Roster for the directed multi-select. The shared coordinator coalesces
+  // this read with the sidebar and management panel.
   useEffect(() => {
     let cancelled = false;
     setMembersLoading(true);
     void (async () => {
-      const accessToken = await freshAccessToken();
-      if (!accessToken) {
+      const current = authRef.current;
+      if (!current) {
         if (!cancelled) setMembersLoading(false);
         return;
       }
       try {
-        const roster = await listOrgMembers(accessToken, org.orgId);
-        if (!cancelled) setMembers(roster);
+        const loaded = await loadCloudOrgMembers(
+          current,
+          org.orgId,
+          rosterVersion
+        );
+        if (loaded) commitRefreshedAuth(setAuth, current, loaded.auth);
+        if (!cancelled && loaded) setMembers(loaded.members);
       } finally {
         if (!cancelled) setMembersLoading(false);
       }
@@ -142,7 +149,7 @@ export function useCloudShareOrgSectionModel({
     return () => {
       cancelled = true;
     };
-  }, [freshAccessToken, org.orgId]);
+  }, [org.orgId, rosterVersion, setAuth]);
 
   const activeGranteeIds = useMemo(
     () =>
