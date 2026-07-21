@@ -144,7 +144,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   const projectSyncAdapterId =
     projectSyncAdapter && projectSyncAdapter.projectSlug === projectSlug
       ? projectSyncAdapter.adapterId
-      : undefined;
+      : selectedProject.projectSyncAdapterId;
   const isGitHubSyncedProject =
     projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB;
   const headerContent = useMemo(
@@ -681,7 +681,9 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     >
       <DetailPanelContainer className="relative">
         <WorkItemContentStack
-          propertiesContent={inlineProperties}
+          propertiesContent={
+            isGitHubSyncedProject ? undefined : inlineProperties
+          }
           descriptionContent={descriptionContent}
           descriptionFlexible
           descriptionClassName="min-h-0 flex flex-1 flex-col px-4 py-4"
