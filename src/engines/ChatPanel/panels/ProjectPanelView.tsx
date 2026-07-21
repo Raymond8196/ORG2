@@ -1,4 +1,5 @@
 import { useSetAtom } from "jotai";
+import { Box } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -16,6 +17,8 @@ import {
 } from "@src/api/http/project";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
+import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import KanbanBoard from "@src/features/KanbanBoard";
 import type { KanbanTask, TaskStatus } from "@src/features/KanbanBoard";
 import { allocateCloudAwareWorkItemId } from "@src/features/Org2Cloud/cloudShortId";
@@ -49,6 +52,7 @@ import {
   type ProjectData,
   ProjectPropertyFields,
 } from "@src/modules/ProjectManager/shared";
+import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import {
   DetailPanelContainer,
   Placeholder,
@@ -130,6 +134,26 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   const projectSlug =
     selectedProject.projectSlug || selectedProject.project.slug;
   const repoPath = selectedProject.project.linkedRepos?.[0]?.path ?? null;
+  const headerContent = useMemo(
+    () => (
+      <ProjectManagerBreadcrumb
+        segments={[
+          ...(selectedProject.orgName
+            ? [{ label: selectedProject.orgName }]
+            : []),
+          {
+            label: selectedProject.project.name,
+            icon: <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />,
+          },
+        ]}
+      />
+    ),
+    [selectedProject.orgName, selectedProject.project.name]
+  );
+
+  usePublishChatPanelHeader({
+    content: { content: headerContent },
+  });
 
   useEffect(() => {
     let cancelled = false;
