@@ -1,6 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, {
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
@@ -105,6 +106,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     query.scope = scope;
     return query;
   }, [scope, searchQuery]);
+  const deferredParsedSearchQuery = useDeferredValue(parsedSearchQuery);
   const selectedIssueListStates = useMemo(
     () => getIssuePageStatesForQuery(parsedSearchQuery),
     [parsedSearchQuery]
@@ -415,9 +417,9 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     () =>
       allItems.filter((item) => {
         if (!itemMatchesRepo(item, effectiveSelectedRepo)) return false;
-        return itemMatchesParsedQuery(item, parsedSearchQuery);
+        return itemMatchesParsedQuery(item, deferredParsedSearchQuery);
       }),
-    [allItems, effectiveSelectedRepo, parsedSearchQuery]
+    [allItems, deferredParsedSearchQuery, effectiveSelectedRepo]
   );
 
   const pageStates = useMemo(
