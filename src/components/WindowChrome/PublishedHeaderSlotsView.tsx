@@ -8,6 +8,8 @@ export interface PublishedHeaderSlots {
   leading?: ReactNode;
   content?: ReactNode;
   trailing?: ReactNode;
+  /** Visually joins this 40px header to a following pane-owned row. */
+  joinWithFollowingRow?: boolean;
 }
 
 interface PublishedHeaderSlotsViewProps {
@@ -21,7 +23,7 @@ interface PublishedHeaderSlotsViewProps {
 export const PublishedHeaderSlotsView: React.FC<PublishedHeaderSlotsViewProps> =
   memo(({ slots }) => {
     return (
-      <div className="flex min-w-0 flex-1 items-center">
+      <div className="flex min-w-0 flex-1 items-center pl-2">
         {slots?.leading && (
           <NoDragRegion className="flex shrink-0 items-center">
             {slots.leading}
