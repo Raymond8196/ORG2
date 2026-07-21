@@ -90,12 +90,23 @@ export function RepoFilterPill({
 }): React.ReactNode {
   const selectOptions = useMemo<SelectOption[]>(
     () =>
-      options.map((option) => ({
-        value: option.key,
-        label: option.label,
-        triggerLabel: option.label,
-        icon: <CodeXml size={13} strokeWidth={1.8} />,
-      })),
+      options.map((option) => {
+        const isRepository = option.key.includes("/");
+        const repositoryName = isRepository
+          ? (option.key.split("/").at(-1) ?? option.label)
+          : option.label;
+        const triggerText =
+          isRepository && repositoryName.length > 15
+            ? `${repositoryName.slice(0, 15)}…`
+            : repositoryName;
+
+        return {
+          value: option.key,
+          label: option.label,
+          triggerLabel: <span title={repositoryName}>{triggerText}</span>,
+          icon: <CodeXml size={13} strokeWidth={1.8} />,
+        };
+      }),
     [options]
   );
 
@@ -108,9 +119,11 @@ export function RepoFilterPill({
       showSearch
       variant="default"
       radius="lg"
-      dropdownWidthMode="match"
-      className="min-w-[190px] max-w-[260px]"
+      dropdownWidthMode="auto"
+      dropdownMinWidth={190}
+      className="!w-fit shrink-0"
       selectorClassName="h-7"
+      style={{ width: "fit-content" }}
       onChange={(value) => onSelectRepo(String(value))}
     />
   );
@@ -240,6 +253,16 @@ export function ManagedIssueRow({
       }
       trailing={
         <>
+          {issue.linkedPullRequests > 0 ? (
+            <span
+              className="mt-1 flex shrink-0 items-center gap-1 text-[11px] text-text-3"
+              aria-label={`${issue.linkedPullRequests} linked pull request${issue.linkedPullRequests === 1 ? "" : "s"}`}
+              title={`${issue.linkedPullRequests} linked pull request${issue.linkedPullRequests === 1 ? "" : "s"}`}
+            >
+              <GitPullRequest size={12} strokeWidth={1.8} />
+              {issue.linkedPullRequests}
+            </span>
+          ) : null}
           {issue.comments > 0 ? (
             <span className="mt-1 flex shrink-0 items-center gap-1 text-[11px] text-text-3">
               <MessageSquare size={12} strokeWidth={1.8} />

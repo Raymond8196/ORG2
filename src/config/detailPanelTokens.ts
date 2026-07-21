@@ -68,8 +68,8 @@ export const DETAIL_PANEL_WIDTH_TOKENS = {
   headerWidth: "mx-auto w-full max-w-[932px]",
 } as const;
 
-/** Wide 1200px content / 1232px padded-shell width reserved for issues. */
-export const ISSUE_DETAIL_PANEL_WIDTH_TOKENS = {
+/** Wide 1200px content / 1232px padded-shell width reserved for issue surfaces. */
+export const ISSUE_PANEL_WIDTH_TOKENS = {
   contentMaxWidth: "max-w-[1200px]",
   contentWidth: "mx-auto w-full max-w-[1200px]",
   contentWidthWithPadding: "mx-auto w-full max-w-[1200px] py-4 pb-[50vh]",

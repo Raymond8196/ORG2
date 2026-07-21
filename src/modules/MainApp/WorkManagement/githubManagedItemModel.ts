@@ -29,6 +29,7 @@ export interface ManagedIssueItem {
   state: GitHubIssue["state"];
   labels: ManagedIssueLabel[];
   comments: number;
+  linkedPullRequests: number;
   updatedAt: string;
 }
 
@@ -87,6 +88,7 @@ export function mapIssueToManagedItem(
     state: issue.state,
     labels: issue.labels,
     comments: issue.comments,
+    linkedPullRequests: issue.linked_pull_requests_count ?? 0,
     updatedAt: issue.updated_at,
   };
 }

@@ -656,6 +656,8 @@ export interface GitHubIssue {
   labels: GitHubIssueLabel[];
   assignees: GitHubIssueUser[];
   comments: number;
+  /** Number of open or closed PRs linked through GitHub's issue development metadata. */
+  linked_pull_requests_count?: number;
   milestone: string | null;
 }
 
