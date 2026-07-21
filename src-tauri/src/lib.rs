@@ -169,7 +169,7 @@ pub fn run() {
         }
     }
     if std::env::var_os("ORGII_EXTERNAL_HISTORY_HOME").is_none() {
-        let resolved_orgii_home = app_paths::orgii_home_dir();
+        let resolved_orgii_home = app_paths::orgii_root();
         if let Some(external_history_home) =
             runtime_profile.default_external_history_home(&resolved_orgii_home)
         {
