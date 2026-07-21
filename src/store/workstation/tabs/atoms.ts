@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 
 import { workstationActiveSessionIdAtom } from "@src/store/session/viewAtom";
+import { clearTerminalTargetForWorkspaceAtom } from "@src/store/workstation/codeEditor/terminalTargetAtom";
 
 import {
   deletePersistedWorkstationWorkspace,
@@ -91,13 +92,6 @@ function composePanel(
     seen.add(identity);
     tabs.push(tab);
   }
-  for (const tab of state.shared.tabs) {
-    const identity = `shared:${tab.id}`;
-    if (!seen.has(identity)) {
-      seen.add(identity);
-      tabs.push(tab);
-    }
-  }
   for (const tab of workspace.tabs) {
     const identity = `workspace:${tab.id}`;
     if (!seen.has(identity)) {
@@ -147,6 +141,9 @@ function splitPanel(
         tabId: activeTab.id,
       }
     : null;
+  const sharedById = new Map(previous.shared.tabs.map((tab) => [tab.id, tab]));
+  for (const tab of sharedTabs) sharedById.set(tab.id, tab);
+  const nextSharedTabs = [...sharedById.values()];
   const nextWorkspace: WorkstationWorkspaceState = {
     tabs: localTabs,
     activeTabRef,
@@ -155,12 +152,12 @@ function splitPanel(
   return key.kind === "global"
     ? {
         ...previous,
-        shared: { tabs: sharedTabs },
+        shared: { tabs: nextSharedTabs },
         globalWorkspace: nextWorkspace,
       }
     : {
         ...previous,
-        shared: { tabs: sharedTabs },
+        shared: { tabs: nextSharedTabs },
         sessionWorkspaces: {
           ...previous.sessionWorkspaces,
           [key.sessionId]: nextWorkspace,
@@ -238,6 +235,7 @@ export const disposeWorkstationWorkspaceAtom = atom(
     // Always remove the physical key: a stale key may survive a prior crash
     // even when the manifest/in-memory registry no longer references it.
     deletePersistedWorkstationWorkspace(sessionId);
+    set(clearTerminalTargetForWorkspaceAtom, sessionId);
     if (!state.sessionWorkspaces[sessionId]) return;
     const sessionWorkspaces = { ...state.sessionWorkspaces };
     delete sessionWorkspaces[sessionId];
@@ -299,6 +297,46 @@ export const closeWorkstationTabAtom = atom(
   }
 );
 closeWorkstationTabAtom.debugLabel = "closeWorkstationTabAtom";
+
+/**
+ * Tear down a global resource rather than merely hiding it from one workspace.
+ * Resource owners (Browser/Terminal) use this after their durable resource is
+ * explicitly closed.
+ */
+export const removeSharedWorkstationTabAtom = atom(
+  null,
+  (get, set, tabId: string) => {
+    const state = get(workstationTabsStateAtom);
+    if (!state.shared.tabs.some((tab) => tab.id === tabId)) return;
+    const removeRef = (workspace: WorkstationWorkspaceState) => {
+      const tabOrder = workspace.tabOrder.filter(
+        (ref) => !(ref.partition === "shared" && ref.tabId === tabId)
+      );
+      return {
+        ...workspace,
+        activeTabRef:
+          workspace.activeTabRef?.partition === "shared" &&
+          workspace.activeTabRef.tabId === tabId
+            ? (tabOrder[0] ?? null)
+            : workspace.activeTabRef,
+        tabOrder,
+      };
+    };
+    setAndPersist(set, {
+      ...state,
+      shared: {
+        tabs: state.shared.tabs.filter((tab) => tab.id !== tabId),
+      },
+      globalWorkspace: removeRef(state.globalWorkspace),
+      sessionWorkspaces: Object.fromEntries(
+        Object.entries(state.sessionWorkspaces).map(
+          ([sessionId, workspace]) => [sessionId, removeRef(workspace)]
+        )
+      ),
+    });
+  }
+);
+removeSharedWorkstationTabAtom.debugLabel = "removeSharedWorkstationTabAtom";
 
 export const focusWorkstationTabAtom = atom(
   null,

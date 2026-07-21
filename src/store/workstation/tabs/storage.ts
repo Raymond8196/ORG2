@@ -39,14 +39,10 @@ const VALID_WORKSTATION_TAB_TYPES = new Set<WorkStationTabType>([
   "search",
   "lint-scan",
   "ai-impact",
+  "search-sessions",
   "benchmark",
   "url-preview",
-  "table",
-  "query",
-  "schema",
-  "add-connection",
   "browser-session",
-  "token-category",
   "devtools",
   "project-dashboard",
   "project-work-items",
@@ -64,6 +60,7 @@ const VALID_WORKSTATION_TAB_TYPES = new Set<WorkStationTabType>([
   "canvas-preview",
   "github-issue-detail",
   "github-pr-detail",
+  "start",
 ]);
 
 const MAX_TABS_PER_PARTITION = 200;

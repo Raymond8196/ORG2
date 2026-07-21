@@ -230,6 +230,7 @@ export function getWorkstationTabOwnership(
     case "search":
     case "lint-scan":
     case "ai-impact":
+    case "search-sessions":
     case "url-preview":
     case "subagent-detail":
     case "canvas-preview":
@@ -240,12 +241,7 @@ export function getWorkstationTabOwnership(
     case "terminal":
     case "settings":
     case "benchmark":
-    case "table":
-    case "query":
-    case "schema":
-    case "add-connection":
     case "browser-session":
-    case "token-category":
     case "devtools":
     case "project-dashboard":
     case "project-work-items":
@@ -259,6 +255,7 @@ export function getWorkstationTabOwnership(
     case "workItem-detail":
     case "chat-session":
     case "agent-config":
+    case "start":
       return "shared-resource";
   }
 }
