@@ -586,24 +586,6 @@ const MarkdownComponent: React.FC<MarkdownProps> = ({
               </code>
             );
           }
-
-          if (codeType === "identifier") {
-            return (
-              <code
-                {...props}
-                className="clickable-code identifier"
-                title={`Search for ${text}`}
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  // For identifiers, we can search for them
-                  openFileInEditor(text, false);
-                }}
-              >
-                {children}
-              </code>
-            );
-          }
         }
 
         // Regular inline code
