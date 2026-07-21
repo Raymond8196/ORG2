@@ -320,6 +320,7 @@ chatPanelSelectedWorkItemAtom.debugLabel = "chatPanelSelectedWorkItemAtom";
 export interface ChatPanelSelectedProject {
   project: Project;
   projectSlug: string;
+  projectSyncAdapterId?: string | null;
   orgId: string;
   orgName?: string;
 }

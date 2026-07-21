@@ -68,6 +68,7 @@ import {
   ChatPanelTabBar,
   useChatPanelTabShortcuts,
 } from "./ChatPanelTabBar";
+import SessionHeaderBreadcrumb from "./components/SessionHeaderBreadcrumb";
 import { useAiWorkItemCreator } from "./hooks/useAiWorkItemCreator";
 import { useChatPanelContentState } from "./hooks/useChatPanelContentState";
 import { useChatPanelCreateTarget } from "./hooks/useChatPanelCreateTarget";
@@ -100,7 +101,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       useShouldOffsetChatPanelHeader({ position, useExternalWidth });
     const navigate = useNavigate();
     const viewMode = useRouteViewMode();
-    const { currentSessionId, currentSession } = usePanelTitle();
+    const { currentSessionId, currentSession, panelTitle } = usePanelTitle();
     const activeSession = currentSession ?? undefined;
     const handleReloadSession = useReloadSession(currentSessionId ?? null);
 
@@ -504,6 +505,18 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
             <SessionCommentsHeaderExtras session={currentSession ?? null} />
             <SessionForkHeaderExtras session={currentSession ?? null} />
           </>
+        }
+        sessionHeaderContent={
+          contentState.showSessionContent &&
+          !isStandaloneToolTabActive &&
+          currentSessionId ? (
+            <SessionHeaderBreadcrumb
+              session={currentSession}
+              sessionId={currentSessionId}
+              fallbackName={panelTitle}
+              onParentSessionClick={handleSessionContinuation}
+            />
+          ) : null
         }
         t={t}
         toggleHeaderActionsMenu={toggleHeaderActionsMenu}

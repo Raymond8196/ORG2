@@ -989,6 +989,28 @@
     "copyEventJson": "Kopiuj JSON zdarzeń",
     "copyEventJsonCopied": "Skopiowano!",
     "copyEventJsonFailed": "Błąd kopiowania",
+    "moveToWorkstation": "Przenieś do mojej Workstation",
+    "moveToChatPanel": "Przenieś do panelu czatu",
+    "rawTranscript": {
+      "title": "Surowy zapis sesji",
+      "menuItem": "Wyświetl surowy zapis",
+      "guiTab": "GUI",
+      "rawTab": "Surowe dane",
+      "entryCount_one": "{{count}} wpis",
+      "entryCount_other": "{{count}} wpisów",
+      "copySuccess": "Skopiowano surowy zapis",
+      "copyFailed": "Nie udało się skopiować surowego zapisu"
+    },
+    "linkWorkItem": {
+      "menuItem": "Połącz z Work Item…",
+      "title": "Połącz sesję z Work Item",
+      "description": "Wybierz Work Item, w którym ma być widoczna ta sesja.",
+      "searchPlaceholder": "Szukaj według ID, tytułu, statusu lub projektu Work Item",
+      "loading": "Wczytywanie Work Items…",
+      "empty": "Nie znaleziono Work Items.",
+      "linking": "Łączenie…",
+      "link": "Połącz"
+    },
     "historyTitle": "Historia",
     "historyEmpty": "Brak sesji",
     "historyGroupTime": "Czas",
@@ -1118,6 +1140,8 @@
     "turnMetadata": {
       "noChanges": "Brak zmian plików w tej rundzie",
       "earlierRound": "Wcześniejsza runda",
+      "editsTab": "Edycje",
+      "readsTab": "Odczyty",
       "files_one": "{{count}} plik",
       "files_few": "{{count}} pliki",
       "files_many": "{{count}} plików",

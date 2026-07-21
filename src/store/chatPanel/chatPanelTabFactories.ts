@@ -26,8 +26,8 @@ import {
 
 /** Fixed id of the singleton default Launchpad seeded on empty / restart. */
 export const DEFAULT_LAUNCHPAD_TAB_ID = "launchpad-default";
-/** Fixed id of the singleton Kanban / Work Management tab. */
-export const WORK_MANAGEMENT_TAB_ID = "chat-work-management";
+/** Prefix for section-keyed Work Management tabs. */
+export const WORK_MANAGEMENT_TAB_ID_PREFIX = "chat-work-management";
 /** Fixed id of the singleton Runtime tab. */
 export const RUNTIME_TAB_ID = "chat-runtime";
 /** Fixed id of the singleton managed-cloud-org management tab. */
@@ -54,7 +54,7 @@ export const createLaunchpadTab = defineChatPanelTabFactory<{ title?: string }>(
 );
 
 // ---------------------------------------------------------------------------
-// work-management (Kanban) — singleton
+// work-management — one tab per sidebar section
 // ---------------------------------------------------------------------------
 
 export const createWorkManagementTab = defineChatPanelTabFactory<{
@@ -62,7 +62,11 @@ export const createWorkManagementTab = defineChatPanelTabFactory<{
   title?: string;
 }>({
   tabType: "work-management",
-  idStrategy: { type: "fixed", id: WORK_MANAGEMENT_TAB_ID },
+  idStrategy: {
+    type: "keyed",
+    prefix: WORK_MANAGEMENT_TAB_ID_PREFIX,
+    getKey: (data) => data.section,
+  },
   getTitle: (data) =>
     data.title ?? getWorkManagementFallbackTitle(data.section),
   toPayload: (data) => ({ managementSection: data.section }),

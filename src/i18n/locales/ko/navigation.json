@@ -12,6 +12,7 @@
     "drafts": "초안",
     "browser": "브라우저",
     "editor": "편집기",
+    "environment": "환경",
     "workspace": "작업 공간",
     "codeEditor": "코드 편집기",
     "databaseManager": "DB 관리자",

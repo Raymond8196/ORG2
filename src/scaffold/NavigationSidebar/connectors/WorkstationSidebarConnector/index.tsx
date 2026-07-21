@@ -20,11 +20,11 @@ import {
   closeAndDestroyChatPanelTabAtom,
   openCloudOrgManagementInChatPanelTabAtom,
   openCreateTargetInChatPanelStartPageAtom,
-  openKanbanChatPanelTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
   openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
+  openWorkManagementChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { repoMapAtom } from "@src/store/repo";
 import {
@@ -182,7 +182,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const [workManagementProjectsView, setWorkManagementProjectsView] = useAtom(
     workManagementProjectsViewAtom
   );
-  const openKanbanTab = useSetAtom(openKanbanChatPanelTabAtom);
+  const openWorkManagementTab = useSetAtom(openWorkManagementChatPanelTabAtom);
   const openCloudOrgManagementTab = useSetAtom(
     openCloudOrgManagementInChatPanelTabAtom
   );
@@ -390,6 +390,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     localOrgMap: projectsLocalOrgMap,
     linearOrgMap: projectsLinearOrgMap,
     loading: projectsWorkItemsLoading,
+    linkedSessionIds: projectsLinkedSessionIds,
     getLoadMoreGroupId: getProjectsLoadMoreGroupId,
     loadLinearOrgWorkItems: loadProjectsLinearOrgWorkItems,
     toChatPanelProject,
@@ -653,6 +654,26 @@ export const WorkstationSidebarConnector: React.FC = () => {
     ]
   );
 
+  const handleOpenLinkedWorkItemSession = useCallback(
+    (item: NavigationMenuItem) => {
+      if (sessionMap.has(item.id)) {
+        handleMenuItemClick(item.key, item);
+        return;
+      }
+      activateMyStationRouteForProjectTabContent();
+      openSessionInWorkstation({
+        sessionId: item.id,
+        title: item.label,
+      });
+    },
+    [
+      activateMyStationRouteForProjectTabContent,
+      handleMenuItemClick,
+      openSessionInWorkstation,
+      sessionMap,
+    ]
+  );
+
   const handleToggleSubagentExpansion = useCallback((sessionId: string) => {
     setExpandedSubagentParentIds((previousIds) => {
       const nextIds = new Set(previousIds);
@@ -731,6 +752,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     projectsLocalOrgMap,
     projectsProjectMap,
     projectsWorkItemMap,
+    linkedSessionIds: projectsLinkedSessionIds,
+    openLinkedSession: handleOpenLinkedWorkItemSession,
     resetWorkManagementStateForProjectsContent,
     setProjectsGroupVisibleCounts,
     setProjectsSelectedMenuItemId,
@@ -807,9 +830,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
       } else if (item.id !== KANBAN_MENU_ITEM_ID) {
         return;
       }
-      openKanbanTab({ section, title });
+      openWorkManagementTab({ section, title });
     },
-    [openKanbanTab, setWorkManagementProjectsView, t, tSessions]
+    [openWorkManagementTab, setWorkManagementProjectsView, t, tSessions]
   );
 
   const handleSessionMenuItemClick = useCallback(

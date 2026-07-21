@@ -429,15 +429,31 @@ fn init_source_cache_tables_upgrades_legacy_table_missing_columns() {
         );",
     )
     .expect("create legacy table");
-    assert!(!table_has_column(&conn, "imported_history_session_cache", "parent_session_id"));
-    assert!(!table_has_column(&conn, "imported_history_session_cache", "listable"));
+    assert!(!table_has_column(
+        &conn,
+        "imported_history_session_cache",
+        "parent_session_id"
+    ));
+    assert!(!table_has_column(
+        &conn,
+        "imported_history_session_cache",
+        "listable"
+    ));
 
     // This previously errored with "no such column: parent_session_id".
     crate::store::sqlite::SqliteRecordStore::init_source_cache_tables(&conn)
         .expect("init source cache tables on legacy schema");
 
-    assert!(table_has_column(&conn, "imported_history_session_cache", "parent_session_id"));
-    assert!(table_has_column(&conn, "imported_history_session_cache", "listable"));
+    assert!(table_has_column(
+        &conn,
+        "imported_history_session_cache",
+        "parent_session_id"
+    ));
+    assert!(table_has_column(
+        &conn,
+        "imported_history_session_cache",
+        "listable"
+    ));
     let index_exists: bool = conn
         .query_row(
             "SELECT COUNT(*) FROM sqlite_master
@@ -446,5 +462,8 @@ fn init_source_cache_tables_upgrades_legacy_table_missing_columns() {
             |row| Ok(row.get::<_, i64>(0)? == 1),
         )
         .expect("query index presence");
-    assert!(index_exists, "sidebar-order partial index should be created");
+    assert!(
+        index_exists,
+        "sidebar-order partial index should be created"
+    );
 }
