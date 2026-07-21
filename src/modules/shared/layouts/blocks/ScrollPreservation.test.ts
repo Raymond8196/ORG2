@@ -3,7 +3,9 @@ import { act, createElement, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 
-import ScrollPreservation from "./ScrollPreservation";
+import ScrollPreservation, {
+  type ScrollPreservationProps,
+} from "./ScrollPreservation";
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -12,9 +14,10 @@ import ScrollPreservation from "./ScrollPreservation";
 function PaginationHarness() {
   const [page, setPage] = useState(1);
 
+  // React's createElement overload does not infer required children from its trailing arguments.
   return createElement(
     ScrollPreservation,
-    { "data-testid": "scroll-region" },
+    { id: "scroll-region" } as ScrollPreservationProps,
     createElement(
       "button",
       {
@@ -53,9 +56,7 @@ describe("ScrollPreservation", () => {
     roots.push(root);
     await act(async () => root.render(createElement(PaginationHarness)));
 
-    const scrollRegion = container.querySelector<HTMLElement>(
-      '[data-testid="scroll-region"]'
-    );
+    const scrollRegion = container.querySelector<HTMLElement>("#scroll-region");
     const nextButton = container.querySelector<HTMLButtonElement>("button");
     expect(scrollRegion).not.toBeNull();
     expect(nextButton).not.toBeNull();
