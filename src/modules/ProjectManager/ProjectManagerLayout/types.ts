@@ -51,6 +51,7 @@ export interface ProjectManagerContentRouterProps {
   activeTab: WorkStationTab | null;
   projectQuickActions: QuickAction[];
   onSelectProject: SelectProjectHandler;
+  onOpenProjects: () => void;
   onCreateProject: () => void;
   onCreateWorkItem: CreateWorkItemHandler;
   onOpenLinearProjects: (selection?: LinearProjectSelection) => void;

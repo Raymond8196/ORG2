@@ -83,6 +83,8 @@ export interface WorkItemsPageProps {
   onProjectViewChange?: (view: ProjectDetailSurfaceView) => void;
   /** Called when the resolved project slug is known, so the layout can persist it to the tab */
   onProjectSlugResolved?: (slug: string) => void;
+  /** Navigate back to the Projects index from the breadcrumb. */
+  onOpenProjects?: () => void;
   /** Callback to open the "New Project" modal */
   onCreateProject?: () => void;
   /** Callback to open a "New Work Item" tab */
@@ -139,6 +141,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
   projectView = PROJECT_DETAIL_SURFACE_VIEW.WORK_ITEMS,
   onProjectViewChange,
   onProjectSlugResolved,
+  onOpenProjects,
   onCreateProject,
   onCreateWorkItem,
   onProjectDeleted,
@@ -549,6 +552,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
         <WorkItemsPageHeader
           projectName={headerTitle}
           breadcrumbSegments={breadcrumbSegments}
+          onOpenProjects={onOpenProjects}
           activeTab={state.activeTab}
           leadingControls={projectSurfaceControls}
           statusFilter={isWorkItemsSurface ? state.statusFilter : undefined}
