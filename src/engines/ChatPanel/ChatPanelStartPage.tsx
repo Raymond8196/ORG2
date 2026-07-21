@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 import {
+  ArrowLeftRight,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -8,6 +9,7 @@ import {
 } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
+import Button from "@src/components/Button";
 import Select, { type SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
@@ -54,8 +56,10 @@ interface ChatPanelStartPageProps {
   onAddApiKey: () => void;
   onCreateTarget: (target: ChatPanelCreateTarget) => void;
   onInstallLatestUpdate: () => void;
+  onWorkItemAgentModeChange: (enabled: boolean) => void;
   sessionLauncher?: React.ReactNode;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
+  workItemAgentMode: boolean;
   workItemLauncher?: React.ReactNode;
 }
 
@@ -197,8 +201,10 @@ export function ChatPanelStartPage({
   onAddApiKey,
   onCreateTarget,
   onInstallLatestUpdate,
+  onWorkItemAgentModeChange,
   sessionLauncher,
   t,
+  workItemAgentMode,
   workItemLauncher,
 }: ChatPanelStartPageProps): React.ReactNode {
   const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
@@ -300,32 +306,56 @@ export function ChatPanelStartPage({
             fillWidth={false}
             className="h-10"
           />
-          {activeView === "more" ? (
-            <div className="flex -translate-y-1 items-center gap-2">
+          {activeView === "more" || activeView === "work-item" ? (
+            <div
+              className="flex -translate-y-1 items-center gap-2"
+              data-testid="chat-panel-start-page-trailing-control"
+            >
               <span
                 className="h-5 w-px shrink-0 bg-border-2"
                 role="separator"
                 aria-hidden
-                data-testid="chat-panel-start-page-more-separator"
+                data-testid="chat-panel-start-page-trailing-separator"
               />
-              <Select
-                value={selectedMoreTarget}
-                options={createTargetOptions}
-                onChange={(value) => {
-                  if (!Array.isArray(value)) {
-                    onCreateTarget(value as ChatPanelCreateTarget);
+              {activeView === "more" ? (
+                <Select
+                  value={selectedMoreTarget}
+                  options={createTargetOptions}
+                  onChange={(value) => {
+                    if (!Array.isArray(value)) {
+                      onCreateTarget(value as ChatPanelCreateTarget);
+                    }
+                  }}
+                  size="large"
+                  variant="ghost"
+                  radius="pill"
+                  dropdownMinWidth={168}
+                  dropdownWidthMode="auto"
+                  className="w-auto"
+                  selectorClassName="max-w-[240px] !gap-2 !px-1 !text-[16px] !leading-6 [&_.select-suffix]:!ml-0"
+                  dataTestId="chat-panel-start-page-create-target-select"
+                />
+              ) : (
+                <Button
+                  htmlType="button"
+                  variant="tertiary"
+                  appearance="ghost"
+                  size="large"
+                  shape="round"
+                  iconPosition="right"
+                  icon={
+                    <ArrowLeftRight size={12} strokeWidth={1.8} aria-hidden />
                   }
-                }}
-                size="large"
-                variant="ghost"
-                ghostTextOnly
-                radius="pill"
-                dropdownMinWidth={168}
-                dropdownWidthMode="auto"
-                className="w-auto"
-                selectorClassName="max-w-[240px] !gap-2 !px-1 !text-[16px] !leading-6 [&_.select-suffix]:!ml-0"
-                dataTestId="chat-panel-start-page-create-target-select"
-              />
+                  onClick={() => onWorkItemAgentModeChange(!workItemAgentMode)}
+                  className="!h-9 !px-1 !text-[16px] !font-normal text-text-2"
+                  aria-pressed={workItemAgentMode}
+                  data-testid="chat-panel-start-page-work-item-mode-toggle"
+                >
+                  {workItemAgentMode
+                    ? t("common:terminology.agent")
+                    : t("common:tooltips.manual")}
+                </Button>
+              )}
             </div>
           ) : null}
         </div>

@@ -30,6 +30,8 @@ const createTargetProps = {
     { value: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG, label: "Add ORG" },
   ],
   onCreateTarget: vi.fn(),
+  onWorkItemAgentModeChange: vi.fn(),
+  workItemAgentMode: true,
 };
 
 describe("ChatPanelStartPage", () => {
@@ -74,21 +76,27 @@ describe("ChatPanelStartPage", () => {
       'data-testid="chat-panel-start-page-create-target-select"'
     );
     expect(markup).toContain("select-size-large");
-    expect(markup).toContain("select-ghost-text-only");
+    expect(markup).toContain("select-ghost");
     expect(markup).toContain("Create project");
     expect(markup).toContain(
-      'data-testid="chat-panel-start-page-more-separator"'
+      'data-testid="chat-panel-start-page-trailing-control"'
+    );
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-trailing-separator"'
     );
     expect(
       markup.indexOf('data-testid="chat-panel-start-page-tab-more"')
     ).toBeLessThan(
-      markup.indexOf('data-testid="chat-panel-start-page-more-separator"')
+      markup.indexOf('data-testid="chat-panel-start-page-trailing-control"')
     );
     expect(
-      markup.indexOf('data-testid="chat-panel-start-page-more-separator"')
+      markup.indexOf('data-testid="chat-panel-start-page-trailing-control"')
     ).toBeLessThan(
       markup.indexOf('data-testid="chat-panel-start-page-create-target-select"')
     );
+    expect(
+      markup.match(/data-testid="chat-panel-start-page-trailing-separator"/g)
+    ).toHaveLength(1);
     expect(markup).not.toContain("Agent session");
     expect(markup).not.toContain("Create Work Item");
     expect(markup).toContain(
@@ -180,6 +188,7 @@ describe("ChatPanelStartPage", () => {
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         t,
+        workItemAgentMode: false,
         workItemLauncher: createElement(
           "div",
           { "data-testid": "full-work-item-creator" },
@@ -193,6 +202,20 @@ describe("ChatPanelStartPage", () => {
     );
     expect(markup).toContain('data-testid="full-work-item-creator"');
     expect(markup).toContain("Full work item creator");
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-trailing-control"'
+    );
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-trailing-separator"'
+    );
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-work-item-mode-toggle"'
+    );
+    expect(markup).toContain("common:tooltips.manual");
+    expect(markup).toContain('aria-pressed="false"');
+    expect(
+      markup.match(/data-testid="chat-panel-start-page-trailing-separator"/g)
+    ).toHaveLength(1);
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-utility-actions"'
     );

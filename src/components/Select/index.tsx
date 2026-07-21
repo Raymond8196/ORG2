@@ -89,7 +89,6 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
       panelZIndex,
       radius = SELECT_DEFAULTS.radius,
       variant = "default",
-      ghostTextOnly = false,
       dataTestId,
     },
     ref
@@ -290,7 +289,6 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
       "select-wrapper",
       `select-size-${size}`,
       variant === "ghost" && "select-ghost",
-      variant === "ghost" && ghostTextOnly && "select-ghost-text-only",
       error && "select-error",
       disabled && "select-disabled",
       currentPopupVisible && "select-open",

@@ -56,6 +56,14 @@ describe("StartPageQuotaGrid", () => {
     expect(markup).not.toContain("chat-panel-start-page-quota-toggle");
     expect(refreshIndex).toBeGreaterThanOrEqual(0);
     expect(quotaCardIndex).toBeGreaterThan(refreshIndex);
+    expect(markup).toContain('data-testid="quota-refresh-controls"');
+    expect(markup).toContain(
+      'class="sticky top-0 z-20 -mx-4 bg-chat-pane px-4 pb-1"'
+    );
+    expect(markup).toContain("flex flex-col gap-3");
+    expect(markup).toContain("kanban.dataSource.views.quota");
+    expect(markup).toContain("flex min-h-9 items-center justify-end");
+    expect(markup).toContain("border-0 bg-transparent text-text-2");
   });
 
   it("renders every quota card without pagination", () => {

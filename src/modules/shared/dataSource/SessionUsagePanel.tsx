@@ -17,6 +17,10 @@ import Select from "@src/components/Select";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { DEBOUNCE_DELAYS, useDebouncedCallback } from "@src/hooks/perf";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  SECTION_GAP_CLASSES,
+  SECTION_SUBHEADING_CLASSES,
+} from "@src/modules/shared/layouts/SectionLayout";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import UsageRoundsTable, {
@@ -193,41 +197,48 @@ export default function SessionUsagePanel() {
   const isEmpty = !loading && !error && (summary?.sessionCount ?? 0) === 0;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <TabPill
-          activeTab={bucket ?? SOURCE_ALL}
-          tabs={sourceTabs}
-          onChange={(key) => {
-            setBucket(key === SOURCE_ALL ? null : (key as UsageBucket));
-            setRoundModelFilter(undefined);
-            setRoundPageIndex(0);
-          }}
-          variant="simple"
-          size="default"
-          fillWidth={false}
-        />
-        <div className="flex items-center gap-2">
-          <Select
-            value={range}
-            onChange={(value) => {
-              setRange(value as UsageRangePreset);
+    <div className={SECTION_GAP_CLASSES}>
+      <div
+        className="sticky top-0 z-20 -mx-4 bg-chat-pane px-4 pb-1"
+        data-testid="usage-source-controls"
+      >
+        <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
+          <TabPill
+            activeTab={bucket ?? SOURCE_ALL}
+            tabs={sourceTabs}
+            onChange={(key) => {
+              setBucket(key === SOURCE_ALL ? null : (key as UsageBucket));
               setRoundModelFilter(undefined);
               setRoundPageIndex(0);
             }}
-            options={rangeOptions}
-            size="small"
+            variant="pill"
+            size="mini"
+            colorScheme="ghost"
+            fillWidth={false}
           />
-          <Button
-            variant="secondary"
-            appearance="outline"
-            size="small"
-            icon={<RefreshCw size={14} className={refreshSpinClass} />}
-            disabled={loading}
-            onClick={handleRefreshClick}
-          >
-            {t("usage.refresh")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select
+              value={range}
+              onChange={(value) => {
+                setRange(value as UsageRangePreset);
+                setRoundModelFilter(undefined);
+                setRoundPageIndex(0);
+              }}
+              options={rangeOptions}
+              variant="ghost"
+              size="mini"
+            />
+            <Button
+              variant="tertiary"
+              appearance="ghost"
+              size="small"
+              icon={<RefreshCw size={14} className={refreshSpinClass} />}
+              disabled={loading}
+              onClick={handleRefreshClick}
+            >
+              {t("usage.refresh")}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -265,7 +276,10 @@ export default function SessionUsagePanel() {
         <Placeholder variant="loading" placement="detail-panel" />
       ) : summary ? (
         <>
-          <UsageStatCards summary={summary} language={language} />
+          <div className={SECTION_GAP_CLASSES}>
+            <h3 className={SECTION_SUBHEADING_CLASSES}>{t("usage.title")}</h3>
+            <UsageStatCards summary={summary} language={language} />
+          </div>
           <UsageTrendChart
             points={trends}
             hourly={hourly}

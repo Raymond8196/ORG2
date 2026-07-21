@@ -181,7 +181,7 @@ export function CloudOrgPanelHeader({
             size="large"
             radius="pill"
             className="-ml-4 !w-fit shrink-0 [&_.select-value>span:last-child]:!overflow-visible [&_.select-value]:!overflow-visible"
-            selectorClassName="whitespace-nowrap font-medium"
+            selectorClassName="whitespace-nowrap"
             dataTestId="cloud-org-switcher"
           />
           <div className="max-w-full overflow-x-auto scrollbar-hide">

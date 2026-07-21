@@ -73,6 +73,8 @@ export interface CreateWorkItemViewProps {
   showFooter?: boolean;
   showSubmitAction?: boolean;
   chatPanelFooter?: boolean;
+  /** Center the Launchpad toggle and composer as one stack. */
+  centerLauncherContent?: boolean;
   /** Render Session Creator in Agent mode with Work Item fields attached above it. */
   renderAgentComposer?: (headerContent: React.ReactNode) => React.ReactNode;
   defaultAiAssignee?: {
@@ -111,6 +113,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
   showFooter = true,
   showSubmitAction = true,
   chatPanelFooter = false,
+  centerLauncherContent = false,
   renderAgentComposer,
   defaultAiAssignee = null,
 }) => {
@@ -332,81 +335,112 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
         </>
       }
       leftContent={
-        <div className="flex h-full min-h-0 flex-col overflow-hidden">
-          {showAiModePanel ? (
-            <div className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 py-2`}>
-              <div
-                className="flex items-center justify-center gap-2 px-3 py-2"
-                data-testid="create-work-item-mode-panel"
-              >
-                <span className="text-[12px] font-medium text-text-1">
-                  Agent
-                </span>
-                <Switch
-                  size="small"
-                  checked={resolvedAiGenerateMode}
-                  onChange={handleAiGenerateModeChange}
-                  ariaLabel="Agent"
-                  dataTestId="create-work-item-mode-ai-switch"
-                />
-              </div>
-            </div>
-          ) : null}
-          {resolvedAiGenerateMode && renderAgentComposer ? (
-            <div className="min-h-0 flex-1 overflow-hidden pt-6">
-              {renderAgentComposer(composerHeaderContent)}
-            </div>
-          ) : renderAgentComposer ? (
-            <div className="session-creator-chat-panel-wrapper min-h-0 flex-1 overflow-hidden pt-6">
-              <div
-                className={`mx-auto flex min-h-0 w-full flex-col ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-              >
-                <div className="session-creator-chat-panel-fullscreen-composer relative w-full">
-                  <div className="session-creator-chat-panel-fullscreen-header-row px-1 pb-3 pt-2">
-                    {composerHeaderContent}
-                  </div>
-                  <ComposerShell className="session-creator-chat-panel-fullscreen-input-shell relative z-10">
-                    <div className="min-h-0 px-1">
-                      {inlineFields.descriptionSection}
-                    </div>
-                    <ComposerBar
-                      onAddContent={() => editorRef.current?.triggerAtMention()}
-                      onUpload={() => manualFileInputRef.current?.click()}
-                      onOpenSkillsTools={() =>
-                        editorRef.current?.triggerSlashContext()
-                      }
-                      dropdownDirection="down"
-                      toolbarItemGap={false}
-                      showContextInfo={false}
-                      submitButton={
-                        <LaunchButton
-                          ariaLabel={t("common:actions.save")}
-                          disabled={!draft.name.trim() || saving}
-                          loading={saving}
-                          onClick={() => {
-                            void handleCreate();
-                          }}
-                        />
-                      }
-                    />
-                    <input
-                      ref={manualFileInputRef}
-                      type="file"
-                      multiple
-                      className="hidden"
-                      onChange={handleManualFileUpload}
-                      tabIndex={-1}
-                      aria-hidden
-                    />
-                  </ComposerShell>
+        <div
+          className={`flex h-full min-h-0 flex-col ${
+            centerLauncherContent ? "overflow-y-auto" : "overflow-hidden"
+          }`}
+        >
+          <div
+            className={
+              centerLauncherContent
+                ? "my-auto flex w-full shrink-0 flex-col"
+                : "contents"
+            }
+            data-testid={
+              centerLauncherContent
+                ? "create-work-item-centered-launcher"
+                : undefined
+            }
+          >
+            {showAiModePanel ? (
+              <div className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 py-2`}>
+                <div
+                  className="flex items-center justify-center gap-2 px-3 py-2"
+                  data-testid="create-work-item-mode-panel"
+                >
+                  <span className="text-[12px] font-medium text-text-1">
+                    Agent
+                  </span>
+                  <Switch
+                    size="small"
+                    checked={resolvedAiGenerateMode}
+                    onChange={handleAiGenerateModeChange}
+                    ariaLabel="Agent"
+                    dataTestId="create-work-item-mode-ai-switch"
+                  />
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className={`${DETAIL_PANEL_TOKENS.headerWidth} h-full px-4`}>
-              <InlineCreateWorkItemFields state={inlineFields} />
-            </div>
-          )}
+            ) : null}
+            {resolvedAiGenerateMode && renderAgentComposer ? (
+              <div
+                className={
+                  centerLauncherContent
+                    ? "shrink-0 pt-6"
+                    : "min-h-0 flex-1 overflow-hidden pt-6"
+                }
+              >
+                {renderAgentComposer(composerHeaderContent)}
+              </div>
+            ) : renderAgentComposer ? (
+              <div
+                className={`session-creator-chat-panel-wrapper pt-6 ${
+                  centerLauncherContent
+                    ? `${DETAIL_PANEL_TOKENS.headerWidth} shrink-0 px-4`
+                    : "min-h-0 flex-1 overflow-hidden"
+                }`}
+              >
+                <div
+                  className={`mx-auto flex min-h-0 w-full flex-col ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+                >
+                  <div className="session-creator-chat-panel-fullscreen-composer relative w-full">
+                    <div className="session-creator-chat-panel-fullscreen-header-row px-1 pb-3 pt-2">
+                      {composerHeaderContent}
+                    </div>
+                    <ComposerShell className="session-creator-chat-panel-fullscreen-input-shell relative z-10">
+                      <div className="min-h-0 px-1">
+                        {inlineFields.descriptionSection}
+                      </div>
+                      <ComposerBar
+                        onAddContent={() =>
+                          editorRef.current?.triggerAtMention()
+                        }
+                        onUpload={() => manualFileInputRef.current?.click()}
+                        onOpenSkillsTools={() =>
+                          editorRef.current?.triggerSlashContext()
+                        }
+                        dropdownDirection="down"
+                        toolbarItemGap={false}
+                        showContextInfo={false}
+                        submitButton={
+                          <LaunchButton
+                            ariaLabel={t("common:actions.save")}
+                            disabled={!draft.name.trim() || saving}
+                            loading={saving}
+                            onClick={() => {
+                              void handleCreate();
+                            }}
+                          />
+                        }
+                      />
+                      <input
+                        ref={manualFileInputRef}
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={handleManualFileUpload}
+                        tabIndex={-1}
+                        aria-hidden
+                      />
+                    </ComposerShell>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className={`${DETAIL_PANEL_TOKENS.headerWidth} h-full px-4`}>
+                <InlineCreateWorkItemFields state={inlineFields} />
+              </div>
+            )}
+          </div>
         </div>
       }
       rightContent={
