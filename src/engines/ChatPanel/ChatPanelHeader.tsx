@@ -218,6 +218,8 @@ export function ChatPanelHeader({
       ? {
           leading: publishedHeaderSlots?.leading,
           content: publishedHeaderSlots?.content ?? sessionHeaderContent,
+          joinWithFollowingRow:
+            publishedHeaderSlots?.joinWithFollowingRow ?? false,
           trailing:
             publishedHeaderSlots?.trailing || sessionPublishedActions ? (
               <div className="flex shrink-0 items-center gap-px">

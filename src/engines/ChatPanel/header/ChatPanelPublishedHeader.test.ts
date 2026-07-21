@@ -23,9 +23,26 @@ describe("ChatPanelPublishedHeader", () => {
 
     expect(markup).toContain('data-testid="chat-panel-published-header"');
     expect(markup).toContain("h-10");
+    expect(markup).toContain("pl-2");
+    expect(markup).toContain("border-b border-border-2");
     expect(markup).toContain("Leading");
     expect(markup).toContain("Content");
     expect(markup).toContain("Trailing");
+  });
+
+  it("omits the divider when the pane joins a following row", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(ChatPanelPublishedHeader, {
+        windowsHost: false,
+        slots: {
+          content: React.createElement("span", null, "Joined content"),
+          joinWithFollowingRow: true,
+        },
+      })
+    );
+
+    expect(markup).toContain("Joined content");
+    expect(markup).not.toContain("border-b border-border-2");
   });
 
   it("does not add an empty row when no pane has published controls", () => {

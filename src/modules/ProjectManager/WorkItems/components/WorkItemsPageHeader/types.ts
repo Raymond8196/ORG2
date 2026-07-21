@@ -14,6 +14,8 @@ export type { StatusCounts, WorkItemsViewTab } from "../../types";
 export interface WorkItemsPageHeaderProps {
   projectName: string;
   breadcrumbSegments?: readonly ProjectManagerBreadcrumbSegment[];
+  /** Provider/type icon rendered before the final breadcrumb segment. */
+  identityIcon?: React.ReactNode;
   onOpenProjects?: () => void;
   activeTab: WorkItemsViewTab;
   onTabChange?: (tab: WorkItemsViewTab) => void;

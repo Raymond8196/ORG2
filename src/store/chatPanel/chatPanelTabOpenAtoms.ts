@@ -125,32 +125,33 @@ export const openRuntimeInChatPanelTabAtom = atom(
 );
 openRuntimeInChatPanelTabAtom.debugLabel = "openRuntimeInChatPanelTab";
 
-interface OpenKanbanTabOptions {
+interface OpenWorkManagementTabOptions {
   section?: WorkManagementSection;
   title?: string;
 }
 
-/** Open or focus the singleton Kanban tab at the requested section. */
-export const openKanbanChatPanelTabAtom = atom(
+/** Open or focus the Work Management tab for the requested sidebar section. */
+export const openWorkManagementChatPanelTabAtom = atom(
   null,
-  (get, set, options: OpenKanbanTabOptions = {}) => {
+  (get, set, options: OpenWorkManagementTabOptions = {}) => {
     const {
       section = WORK_MANAGEMENT_SECTION.KANBAN,
       title = getWorkManagementFallbackTitle(section),
     } = options;
     const state = get(chatPanelTabsAtom);
     const existingTab = state.tabs.find(
-      (tab) => tab.type === "work-management"
+      (tab) =>
+        tab.type === "work-management" && tab.managementSection === section
     );
     if (existingTab) {
-      set(chatPanelTabsAtom, {
-        ...state,
-        tabs: state.tabs.map((tab) =>
-          tab.id === existingTab.id
-            ? { ...tab, title, managementSection: section }
-            : tab
-        ),
-      });
+      if (existingTab.title !== title) {
+        set(chatPanelTabsAtom, {
+          ...state,
+          tabs: state.tabs.map((tab) =>
+            tab.id === existingTab.id ? { ...tab, title } : tab
+          ),
+        });
+      }
       set(activateChatPanelTabAtom, existingTab.id);
       return existingTab.id;
     }
@@ -160,7 +161,8 @@ export const openKanbanChatPanelTabAtom = atom(
     return tab.id;
   }
 );
-openKanbanChatPanelTabAtom.debugLabel = "openKanbanChatPanelTab";
+openWorkManagementChatPanelTabAtom.debugLabel =
+  "openWorkManagementChatPanelTab";
 
 interface OpenWorkspaceOverviewTabOptions {
   workspace: ChatPanelSelectedWorkspace;

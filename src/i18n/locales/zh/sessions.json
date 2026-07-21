@@ -1173,6 +1173,8 @@
     "turnMetadata": {
       "noChanges": "本轮没有文件改动",
       "earlierRound": "历史轮次",
+      "editsTab": "编辑",
+      "readsTab": "读取",
       "files_one": "{{count}} 个文件",
       "files_other": "{{count}} 个文件",
       "reads_one": "读取 {{count}} 次",

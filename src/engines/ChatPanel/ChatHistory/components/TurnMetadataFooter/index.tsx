@@ -111,7 +111,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
       () => [
         {
           key: "edits",
-          label: t("chat.turnMetadata.editsTab", { defaultValue: "Edits" }),
+          label: t("chat.turnMetadata.editsTab"),
           icon: <FileCode2 size={13} />,
           badge: (
             <span
@@ -126,7 +126,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
         },
         {
           key: "reads",
-          label: t("chat.turnMetadata.readsTab", { defaultValue: "Reads" }),
+          label: t("chat.turnMetadata.readsTab"),
           icon: <BookOpenText size={13} />,
           badge: (
             <span

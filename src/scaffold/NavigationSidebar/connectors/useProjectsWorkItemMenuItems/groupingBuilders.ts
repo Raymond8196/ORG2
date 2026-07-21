@@ -142,7 +142,8 @@ export function buildByOrgMenuItems(
           context.t,
           project.projectData.slug,
           project.projectData.meta.name,
-          isProjectPendingSync(context, project)
+          isProjectPendingSync(context, project),
+          project.projectSyncAdapterId
         )
       );
     }
@@ -167,7 +168,8 @@ export function buildByOrgMenuItems(
           context.t,
           project.projectData.slug,
           projectName,
-          isProjectPendingSync(context, project)
+          isProjectPendingSync(context, project),
+          project.projectSyncAdapterId
         )
       );
     }
@@ -214,13 +216,22 @@ export function buildByProjectMenuItems(
     const groupItems = groups.get(key) ?? [];
     if (groupItems.length === 0) continue;
     const groupId = `${PROJECTS_WORK_ITEM_GROUP_PREFIX}project:${key}`;
-    const projectSlug = groupItems.find(
+    const localProjectItem = groupItems.find(
       (item): item is SidebarWorkItem => item.source === "local"
-    )?.projectSlug;
+    );
+    const projectSlug = localProjectItem?.projectSlug;
+    const projectSyncAdapterId = localProjectItem?.projectSyncAdapterId;
     items.push(separator(groupId, groupItems[0]?.projectName ?? key));
     if (projectSlug) {
       const projectName = groupItems[0]?.projectName ?? undefined;
-      items.push(buildProjectOverviewRow(context.t, projectSlug, projectName));
+      items.push(
+        buildProjectOverviewRow(
+          context.t,
+          projectSlug,
+          projectName,
+          projectSyncAdapterId
+        )
+      );
     }
     appendGroupItems(items, groupId, groupItems, context);
   }

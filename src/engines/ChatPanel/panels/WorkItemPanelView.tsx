@@ -14,6 +14,7 @@ import {
 } from "@src/api/http/project";
 import { projectSyncApi } from "@src/api/http/project/sync";
 import Button from "@src/components/Button";
+import IntegrationIcon from "@src/components/IntegrationIcon";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import { createLogger } from "@src/hooks/logger";
@@ -500,7 +501,14 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
             label: selectedWorkItem.shortId
               ? `${selectedWorkItem.shortId} · ${selectedWorkItem.workItem.name}`
               : selectedWorkItem.workItem.name,
-            icon: <ListChecks size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />,
+            icon: isGitHubSyncedProject ? (
+              <IntegrationIcon
+                type={STORY_SYNC_ADAPTER.GITHUB}
+                size={HEADER_ICON_SIZE.sm}
+              />
+            ) : (
+              <ListChecks size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+            ),
           },
         ]}
       />
@@ -509,6 +517,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
       selectedWorkItem.projectName,
       selectedWorkItem.shortId,
       selectedWorkItem.workItem.name,
+      isGitHubSyncedProject,
     ]
   );
 

@@ -151,15 +151,20 @@ export function createWorkItemRow(
 export function buildProjectOverviewRow(
   t: TFunction,
   projectSlug: string,
-  projectName?: string
+  projectName?: string,
+  projectSyncAdapterId?: string | null
 ): NavigationMenuItem {
   const id = getProjectOverviewMenuItemId(projectSlug);
+  const isGitHubProject = projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB;
   return {
     id,
     key: id,
     label: t("projects:orgs.management.overview"),
-    icon: Box,
-    iconName: "box",
+    icon: isGitHubProject ? undefined : Box,
+    iconName: isGitHubProject ? undefined : "box",
+    iconElement: isGitHubProject ? (
+      <IntegrationIcon type={STORY_SYNC_ADAPTER.GITHUB} size={14} />
+    ) : undefined,
     visualTone: "secondary",
     dataTestId: `sidebar-project-overview-${projectSlug}`,
     dragPayload: {
@@ -188,15 +193,20 @@ export function buildProjectRow(
   t: TFunction,
   projectSlug: string,
   projectName: string,
-  pendingSync = false
+  pendingSync = false,
+  projectSyncAdapterId?: string | null
 ): NavigationMenuItem {
   const id = getProjectOverviewMenuItemId(projectSlug);
+  const isGitHubProject = projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB;
   return {
     id,
     key: id,
     label: projectName,
-    icon: Box,
-    iconName: "box",
+    icon: isGitHubProject ? undefined : Box,
+    iconName: isGitHubProject ? undefined : "box",
+    iconElement: isGitHubProject ? (
+      <IntegrationIcon type={STORY_SYNC_ADAPTER.GITHUB} size={14} />
+    ) : undefined,
     visualTone: "secondary",
     dataTestId: `sidebar-project-overview-${projectSlug}`,
     workingIndicator: pendingSync ? pendingSyncIndicator(t) : undefined,

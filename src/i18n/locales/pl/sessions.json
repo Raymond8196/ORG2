@@ -1140,6 +1140,8 @@
     "turnMetadata": {
       "noChanges": "Brak zmian plików w tej rundzie",
       "earlierRound": "Wcześniejsza runda",
+      "editsTab": "Edycje",
+      "readsTab": "Odczyty",
       "files_one": "{{count}} plik",
       "files_few": "{{count}} pliki",
       "files_many": "{{count}} plików",

@@ -96,7 +96,6 @@ const SessionHeaderBreadcrumb: React.FC<SessionHeaderBreadcrumbProps> = memo(
           <SessionIdentityIcon session={session} sessionId={sessionId} />
         }
         disableNavigation
-        className="px-1"
       />
     );
   }

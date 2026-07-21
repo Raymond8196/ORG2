@@ -33,6 +33,7 @@ export const ProjectManagerBreadcrumb: React.FC<
   ProjectManagerBreadcrumbProps
 > = ({ segments, trailingNode }) => {
   const visibleSegments = segments.filter((segment) => segment.label.trim());
+  const breadcrumbIcon = visibleSegments.find((segment) => segment.icon)?.icon;
   const displaySegments = visibleSegments.map((segment, index) => {
     const isLeaf = index === visibleSegments.length - 1;
     const defaultMaxCharacters =
@@ -44,6 +45,7 @@ export const ProjectManagerBreadcrumb: React.FC<
 
     return {
       ...segment,
+      icon: index === 0 ? breadcrumbIcon : undefined,
       label: truncateProjectManagerHeaderLabel(
         segment.label,
         segment.maxCharacters ?? defaultMaxCharacters

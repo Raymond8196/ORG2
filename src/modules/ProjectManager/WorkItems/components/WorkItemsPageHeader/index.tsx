@@ -17,6 +17,7 @@ export type { StatusCounts, WorkItemsViewTab } from "./types";
 const WorkItemsPageHeader = ({
   projectName,
   breadcrumbSegments,
+  identityIcon,
   onOpenProjects,
   activeTab,
   onTabChange: _onTabChange,
@@ -51,7 +52,7 @@ const WorkItemsPageHeader = ({
       if (index === segments.length - 1) {
         return {
           ...segment,
-          icon: segment.icon ?? (
+          icon: segment.icon ?? identityIcon ?? (
             <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
           ),
         };
@@ -61,7 +62,7 @@ const WorkItemsPageHeader = ({
       }
       return segment;
     });
-  }, [breadcrumbSegments, onOpenProjects, projectName, t]);
+  }, [breadcrumbSegments, identityIcon, onOpenProjects, projectName, t]);
 
   const sharedContentProps = {
     activeTab,

@@ -1138,6 +1138,8 @@
     "turnMetadata": {
       "noChanges": "このラウンドではファイル変更なし",
       "earlierRound": "以前のラウンド",
+      "editsTab": "編集",
+      "readsTab": "読み取り",
       "files_one": "{{count}} ファイル",
       "files_other": "{{count}} ファイル",
       "reads_one": "{{count}} 回読み取り",
