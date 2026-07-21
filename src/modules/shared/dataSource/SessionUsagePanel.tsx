@@ -16,6 +16,7 @@ import Button from "@src/components/Button";
 import Select from "@src/components/Select";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { DEBOUNCE_DELAYS, useDebouncedCallback } from "@src/hooks/perf";
+import { useRefreshSpin } from "@src/hooks/ui";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import UsageRoundsTable, {
@@ -23,7 +24,7 @@ import UsageRoundsTable, {
 } from "./UsageRoundsTable";
 import UsageStatCards from "./UsageStatCards";
 import UsageTrendChart from "./UsageTrendChart";
-import { BucketIcon, bucketLabelKey } from "./usageBuckets";
+import { bucketLabelKey } from "./usageBuckets";
 import {
   USAGE_RANGE_PRESETS,
   type UsageRangePreset,
@@ -80,8 +81,8 @@ export default function SessionUsagePanel() {
       return scope.endMs ?? null;
     }
 
-    // The query stops at now, but Today's chart always displays the full
-    // calendar day so empty/future hours remain visible as zeroes.
+    // Keep the full day visible; UsageTrendChart masks buckets after now so
+    // the axis continues into the evening without plotting future zeroes.
     const nextDay = new Date(scope.startMs);
     nextDay.setDate(nextDay.getDate() + 1);
     return nextDay.getTime() - 1;
@@ -163,13 +164,18 @@ export default function SessionUsagePanel() {
     void load();
   }, [load, refreshTick]);
 
+  const handleRefresh = useCallback(() => {
+    setRefreshTick((tick) => tick + 1);
+  }, []);
+  const { spinClass: refreshSpinClass, handleClick: handleRefreshClick } =
+    useRefreshSpin(handleRefresh, loading);
+
   const sourceTabs = useMemo<TabPillItem[]>(
     () => [
       { key: SOURCE_ALL, label: t("usage.allSources") },
       ...USAGE_BUCKETS.map((source) => ({
         key: source,
         label: t(bucketLabelKey(source)),
-        icon: <BucketIcon bucket={source} size={14} />,
       })),
     ],
     [t]
@@ -216,9 +222,9 @@ export default function SessionUsagePanel() {
             variant="secondary"
             appearance="outline"
             size="small"
-            icon={<RefreshCw size={14} />}
-            loading={loading}
-            onClick={() => setRefreshTick((tick) => tick + 1)}
+            icon={<RefreshCw size={14} className={refreshSpinClass} />}
+            disabled={loading}
+            onClick={handleRefreshClick}
           >
             {t("usage.refresh")}
           </Button>
@@ -265,6 +271,7 @@ export default function SessionUsagePanel() {
             hourly={hourly}
             startMs={scope.startMs ?? null}
             endMs={trendEndMs}
+            dataEndMs={scope.endMs ?? null}
             language={language}
           />
           <UsageRoundsTable

@@ -138,6 +138,7 @@
         "scanning": "Scannen",
         "hooks": "Hooks",
         "usage": "Nutzung",
+        "quota": "Kontingent",
         "assets": "Ressourcen"
       },
       "usage": {
@@ -157,7 +158,7 @@
           "claude": "Claude",
           "codex": "Codex",
           "cursor": "Cursor",
-          "org2": "ORGII-Agenten",
+          "org2": "ORG2",
           "other": "Sonstige"
         },
         "cards": {

@@ -426,7 +426,7 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
           })}
           description={t("agentOrgs.sessionProvenance.liveStatusToggleDesc", {
             defaultValue:
-              "Installs lifecycle events (prompt, tool, permission, stop) so running CLI sessions show live working/waiting status. Off keeps provenance capture only.",
+              "Shows when running CLI agents are working or waiting. Off keeps provenance capture on.",
           })}
         >
           <Switch

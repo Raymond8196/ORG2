@@ -138,6 +138,7 @@
         "scanning": "Escaneo",
         "hooks": "Hooks",
         "usage": "Uso",
+        "quota": "Cuota",
         "assets": "Activos"
       },
       "usage": {
@@ -157,7 +158,7 @@
           "claude": "Claude",
           "codex": "Codex",
           "cursor": "Cursor",
-          "org2": "Agentes de ORGII",
+          "org2": "ORG2",
           "other": "Otros"
         },
         "cards": {

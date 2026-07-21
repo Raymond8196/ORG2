@@ -79,7 +79,7 @@ import SessionProvenanceHooksPanel from "./SessionProvenanceHooksPanel";
 import SessionUsagePanel from "./SessionUsagePanel";
 
 type DataSourceTab = "all" | "apps" | "clis";
-type DataSourcePanelView = "scanning" | "hooks" | "usage" | "assets";
+type DataSourcePanelView = "scanning" | "hooks" | "usage" | "quota" | "assets";
 
 // The sources ORGII imports history from (have a cache + support Rescan).
 const IMPORTABLE_SOURCE_IDS = new Set<ImportedHistorySourceId>(
@@ -110,13 +110,13 @@ const SourceIcon: React.FC<{ probe: ExternalCliSourceProbe }> = ({ probe }) => (
 interface DataSourcePanelProps {
   /** Optional Runtime-only content appended as the final Assets view. */
   assetsContent?: React.ReactNode;
-  /** Optional Runtime-only content rendered above the usage dashboard. */
-  usageHeaderContent?: React.ReactNode;
+  /** Optional Runtime-only content rendered in a dedicated Quota view. */
+  quotaContent?: React.ReactNode;
 }
 
 const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
   assetsContent,
-  usageHeaderContent,
+  quotaContent,
 }) => {
   const { t } = useTranslation("sessions", {
     keyPrefix: "kanban.dataSource",
@@ -127,8 +127,8 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
   // sourceId whose rescan split-menu is open (null = none).
   const [openRescanMenu, setOpenRescanMenu] = useState<string | null>(null);
   const [tab, setTab] = useState<DataSourceTab>("all");
-  // Top-level panel view: scan/import inventory, hook capture, usage stats,
-  // and (only in Runtime) the consolidated assets dashboard.
+  // Top-level panel view: usage stats, Runtime quota, scan/import inventory,
+  // hook capture, and (only in Runtime) the consolidated assets dashboard.
   const [panelView, setPanelView] = useState<DataSourcePanelView>("usage");
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -632,6 +632,15 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                 label: t("views.usage"),
                 dataTestId: "data-source-view-usage",
               },
+              ...(quotaContent
+                ? [
+                    {
+                      key: "quota",
+                      label: t("views.quota"),
+                      dataTestId: "data-source-view-quota",
+                    },
+                  ]
+                : []),
               {
                 key: "scanning",
                 label: t("views.scanning"),
@@ -794,11 +803,10 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
               </>
             ) : panelView === "hooks" ? (
               <SessionProvenanceHooksPanel />
+            ) : panelView === "quota" ? (
+              quotaContent
             ) : (
-              <>
-                {usageHeaderContent}
-                <SessionUsagePanel />
-              </>
+              <SessionUsagePanel />
             )}
           </div>
         )}
