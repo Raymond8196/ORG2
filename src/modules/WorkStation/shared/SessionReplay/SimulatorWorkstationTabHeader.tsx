@@ -27,12 +27,14 @@
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 
+import {
+  NoDragRegion,
+  PublishedHeaderSlotsView,
+} from "@src/components/WindowChrome";
 import { workstationTabHeaderAtomByHost } from "@src/store/workstation";
 
-import { NoDragRegion } from "../NoDragRegion";
 import { SimulatorSidebarToggleButton } from "../SidebarToggleButton";
 import { WorkstationHeaderSectionSeparator } from "../WorkstationHeaderSectionSeparator";
-import { WorkstationTabHeaderSlotsView } from "../WorkstationTabHeaderSlotsView";
 
 export interface SimulatorWorkstationTabHeaderProps {
   showSidebarToggle?: boolean;
@@ -61,7 +63,7 @@ const SimulatorWorkstationTabHeaderComponent: React.FC<
         ) : null}
       </NoDragRegion>
       <WorkstationHeaderSectionSeparator />
-      <WorkstationTabHeaderSlotsView slots={headerSlots} />
+      <PublishedHeaderSlotsView slots={headerSlots} />
     </div>
   );
 };

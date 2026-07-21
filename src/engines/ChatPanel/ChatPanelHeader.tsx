@@ -24,6 +24,7 @@ import { SessionHeaderActionsMenu } from "./components/SessionHeaderActionsMenu"
 import {
   CHAT_PANEL_HEADER_DRAG_STYLE,
   CHAT_PANEL_HEADER_NO_DRAG_STYLE,
+  ChatPanelPublishedHeader,
   chatPanelHeaderSlotsAtom,
 } from "./header";
 import type { ChatPanelRegionNotice } from "./types";
@@ -73,6 +74,8 @@ interface ChatPanelHeaderProps {
   tabStripPlus?: React.ReactNode;
   /** Session-scoped extras (fork button / provenance chip), leading the toolbar */
   sessionHeaderExtras?: React.ReactNode;
+  /** Canonical session-name breadcrumb rendered in the published 40px row. */
+  sessionHeaderContent?: React.ReactNode;
 }
 
 export function ChatPanelHeader({
@@ -115,6 +118,7 @@ export function ChatPanelHeader({
   tabStrip,
   tabStripPlus,
   sessionHeaderExtras,
+  sessionHeaderContent,
 }: ChatPanelHeaderProps): React.ReactNode {
   const publishedHeaderSlots = useAtomValue(chatPanelHeaderSlotsAtom);
   const windowsHost = isWindows();
@@ -126,95 +130,110 @@ export function ChatPanelHeader({
   const shrinkToWorkstationLabel = t("chat.showWorkstation");
   const tuiModeLabel = tuiMode ? t("chat.tuiModeOn") : t("chat.tuiModeOff");
 
-  const headerToolbar = (
+  const sessionPublishedActions =
+    showSessionContent || showTuiModeToggle || visibleRegionNotice ? (
+      <div
+        className="flex h-7 flex-shrink-0 items-center gap-px"
+        style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
+      >
+        {showSessionContent && sessionHeaderExtras}
+        {showTuiModeToggle && (
+          <Tooltip
+            content={
+              <KeyboardShortcutTooltipContent label={tuiModeLabel} noShortcut />
+            }
+            position="bottom-end"
+            mouseEnterDelay={200}
+            framedPanel
+          >
+            <span className="inline-flex">
+              <Button
+                htmlType="button"
+                variant="tertiary"
+                size="small"
+                iconOnly
+                onClick={handleTuiModeToggle}
+                aria-label={tuiModeLabel}
+                aria-pressed={tuiMode}
+                className={tuiMode ? "!text-primary-6" : ""}
+                icon={
+                  tuiMode ? (
+                    <MonitorPlay
+                      size={CHAT_PANEL_HEADER_ICON_SIZE}
+                      strokeWidth={2}
+                    />
+                  ) : (
+                    <TerminalSquare
+                      size={CHAT_PANEL_HEADER_ICON_SIZE}
+                      strokeWidth={2}
+                    />
+                  )
+                }
+              />
+            </span>
+          </Tooltip>
+        )}
+        {visibleRegionNotice && (
+          <RegionNoticeButton
+            title={visibleRegionNotice.title}
+            body={<p className="m-0">{visibleRegionNotice.body}</p>}
+            alertClassName="!border-border-2 !bg-chat-container !text-text-1 shadow-lg"
+          />
+        )}
+        {showSessionContent && (
+          <SessionHeaderActionsMenu
+            activeSessionExists={activeSessionExists}
+            copyEventJsonLabel={copyEventJsonLabel}
+            currentSessionId={currentSessionId}
+            displayMode={displayMode}
+            eventsLength={eventsLength}
+            handleCompactDisplayModeToggle={handleCompactDisplayModeToggle}
+            handleCopyEventJson={handleCopyEventJson}
+            handleMoveSession={handleMoveToWorkstation}
+            handleOpenCloudShareSettings={handleOpenCloudShareSettings}
+            handleOpenExportSessionJson={handleOpenExportSessionJson}
+            handleOpenLinkWorkItem={handleOpenLinkWorkItem}
+            handleOpenRawTranscript={handleOpenRawTranscript}
+            handleOpenSearch={handleOpenSearch}
+            handlePaginationToggle={handlePaginationToggle}
+            handleReloadFromMenu={handleReloadFromMenu}
+            handleTokenUsageVisibleToggle={handleTokenUsageVisibleToggle}
+            headerActionsDropdownRef={headerActionsDropdownRef}
+            headerActionsPosition={headerActionsPosition}
+            headerActionsTriggerRef={headerActionsTriggerRef}
+            isHeaderActionsOpen={isHeaderActionsOpen}
+            isHeaderActionsPositioned={isHeaderActionsPositioned}
+            moveTarget="workstation"
+            paginationEnabled={paginationEnabled}
+            showCloudShareSettings={showCloudShareSettings}
+            tokenUsageVisible={tokenUsageVisible}
+            toggleHeaderActionsMenu={toggleHeaderActionsMenu}
+            triggerTestId="chat-panel-header-more-button"
+          />
+        )}
+      </div>
+    ) : null;
+  const effectivePublishedHeaderSlots =
+    publishedHeaderSlots || sessionHeaderContent || sessionPublishedActions
+      ? {
+          leading: publishedHeaderSlots?.leading,
+          content: publishedHeaderSlots?.content ?? sessionHeaderContent,
+          trailing:
+            publishedHeaderSlots?.trailing || sessionPublishedActions ? (
+              <div className="flex shrink-0 items-center gap-px">
+                {publishedHeaderSlots?.trailing}
+                {sessionPublishedActions}
+              </div>
+            ) : null,
+        }
+      : null;
+
+  const tabBarToolbar = (
     <div
       className="flex h-9 flex-shrink-0 items-center gap-px"
       style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
     >
-      {showSessionContent && sessionHeaderExtras}
-      {showTuiModeToggle && (
-        <Tooltip
-          content={
-            <KeyboardShortcutTooltipContent label={tuiModeLabel} noShortcut />
-          }
-          position="bottom-end"
-          mouseEnterDelay={200}
-          framedPanel
-        >
-          <span className="inline-flex">
-            <Button
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              iconOnly
-              onClick={handleTuiModeToggle}
-              aria-label={tuiModeLabel}
-              aria-pressed={tuiMode}
-              className={tuiMode ? "!text-primary-6" : ""}
-              icon={
-                tuiMode ? (
-                  <MonitorPlay
-                    size={CHAT_PANEL_HEADER_ICON_SIZE}
-                    strokeWidth={2}
-                  />
-                ) : (
-                  <TerminalSquare
-                    size={CHAT_PANEL_HEADER_ICON_SIZE}
-                    strokeWidth={2}
-                  />
-                )
-              }
-            />
-          </span>
-        </Tooltip>
-      )}
-      {visibleRegionNotice && (
-        <RegionNoticeButton
-          title={visibleRegionNotice.title}
-          body={<p className="m-0">{visibleRegionNotice.body}</p>}
-          alertClassName="!border-border-2 !bg-chat-container !text-text-1 shadow-lg"
-        />
-      )}
-      {publishedHeaderSlots?.trailing && (
-        <div
-          className="flex shrink-0 items-center gap-px"
-          style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
-        >
-          {publishedHeaderSlots.trailing}
-        </div>
-      )}
       {tabStripPlus}
-      {showSessionContent && (
-        <SessionHeaderActionsMenu
-          activeSessionExists={activeSessionExists}
-          copyEventJsonLabel={copyEventJsonLabel}
-          currentSessionId={currentSessionId}
-          displayMode={displayMode}
-          eventsLength={eventsLength}
-          handleCompactDisplayModeToggle={handleCompactDisplayModeToggle}
-          handleCopyEventJson={handleCopyEventJson}
-          handleMoveSession={handleMoveToWorkstation}
-          handleOpenCloudShareSettings={handleOpenCloudShareSettings}
-          handleOpenExportSessionJson={handleOpenExportSessionJson}
-          handleOpenLinkWorkItem={handleOpenLinkWorkItem}
-          handleOpenRawTranscript={handleOpenRawTranscript}
-          handleOpenSearch={handleOpenSearch}
-          handlePaginationToggle={handlePaginationToggle}
-          handleReloadFromMenu={handleReloadFromMenu}
-          handleTokenUsageVisibleToggle={handleTokenUsageVisibleToggle}
-          headerActionsDropdownRef={headerActionsDropdownRef}
-          headerActionsPosition={headerActionsPosition}
-          headerActionsTriggerRef={headerActionsTriggerRef}
-          isHeaderActionsOpen={isHeaderActionsOpen}
-          isHeaderActionsPositioned={isHeaderActionsPositioned}
-          moveTarget="workstation"
-          paginationEnabled={paginationEnabled}
-          showCloudShareSettings={showCloudShareSettings}
-          tokenUsageVisible={tokenUsageVisible}
-          toggleHeaderActionsMenu={toggleHeaderActionsMenu}
-          triggerTestId="chat-panel-header-more-button"
-        />
-      )}
       {showChatFocusToggle && (
         <span className="inline-flex">
           <TabBarTrailingIconButton
@@ -236,28 +255,34 @@ export function ChatPanelHeader({
   );
 
   return (
-    <div
-      className="workspace-header header-tab-group relative flex h-11 min-h-11 flex-shrink-0 items-center gap-1.5 pl-2 pr-[7px] pt-2"
-      data-testid="chat-panel-header"
-      data-tauri-drag-region={windowsHost ? undefined : true}
-      style={
-        {
-          paddingLeft: shouldOffsetHeaderForCollapsedSidebar
-            ? COLLAPSED_SIDEBAR_CHROME_OFFSET
-            : undefined,
-          ...(windowsHost
-            ? CHAT_PANEL_HEADER_NO_DRAG_STYLE
-            : CHAT_PANEL_HEADER_DRAG_STYLE),
-        } as React.CSSProperties
-      }
-    >
-      {shouldOffsetHeaderForCollapsedSidebar ? (
-        <div style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}>
-          <CollapsedSidebarButton />
-        </div>
-      ) : null}
-      {tabStrip}
-      {headerToolbar}
-    </div>
+    <>
+      <div
+        className="workspace-header header-tab-group relative flex h-11 min-h-11 flex-shrink-0 items-center gap-1.5 pl-2 pr-[7px] pt-2"
+        data-testid="chat-panel-header"
+        data-tauri-drag-region={windowsHost ? undefined : true}
+        style={
+          {
+            paddingLeft: shouldOffsetHeaderForCollapsedSidebar
+              ? COLLAPSED_SIDEBAR_CHROME_OFFSET
+              : undefined,
+            ...(windowsHost
+              ? CHAT_PANEL_HEADER_NO_DRAG_STYLE
+              : CHAT_PANEL_HEADER_DRAG_STYLE),
+          } as React.CSSProperties
+        }
+      >
+        {shouldOffsetHeaderForCollapsedSidebar ? (
+          <div style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}>
+            <CollapsedSidebarButton />
+          </div>
+        ) : null}
+        {tabStrip}
+        {tabBarToolbar}
+      </div>
+      <ChatPanelPublishedHeader
+        slots={effectivePublishedHeaderSlots}
+        windowsHost={windowsHost}
+      />
+    </>
   );
 }

@@ -127,13 +127,16 @@ export function GitHubWorkItemListFrame({
   children,
 }: {
   summary?: ReactNode;
-  height: number;
+  height?: number;
   children: ReactNode;
 }): ReactNode {
   return (
     <div className="bg-bg-0 overflow-hidden rounded-lg border border-border-2">
       {summary}
-      <div className="relative w-full" style={{ height }}>
+      <div
+        className="w-full"
+        style={height === undefined ? undefined : { height }}
+      >
         {children}
       </div>
     </div>

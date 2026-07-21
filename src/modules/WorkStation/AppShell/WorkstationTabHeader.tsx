@@ -21,16 +21,18 @@
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 
+import {
+  NoDragRegion,
+  PublishedHeaderSlotsView,
+} from "@src/components/WindowChrome";
 import { activeStatusBarAppAtom } from "@src/store/ui/workStationLayout/statusBarAtoms";
 import { activeWorkstationTabHeaderAtom } from "@src/store/workstation";
 import { activeWorkStationTabAtom } from "@src/store/workstation/tabs";
 import { isWindows } from "@src/util/platform/tauri";
 
 import {
-  NoDragRegion,
   WorkStationSidebarToggleButton,
   WorkstationHeaderSectionSeparator,
-  WorkstationTabHeaderSlotsView,
 } from "../shared";
 import { CodeSidebarHeaderActions } from "./CodeSidebarHeaderActions";
 import { SourceControlHeaderActions } from "./SourceControlHeaderActions";
@@ -68,7 +70,7 @@ const WorkstationTabHeader: React.FC = memo(() => {
         <SourceControlHeaderActions />
       </NoDragRegion>
       {!isSourceControlTab && <WorkstationHeaderSectionSeparator />}
-      <WorkstationTabHeaderSlotsView slots={headerSlots} />
+      <PublishedHeaderSlotsView slots={headerSlots} />
     </div>
   );
 });

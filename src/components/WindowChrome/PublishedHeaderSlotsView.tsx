@@ -1,14 +1,24 @@
+import type { ReactNode } from "react";
 import React, { memo } from "react";
-
-import type { WorkstationTabHeaderSlots } from "@src/store/workstation";
 
 import { NoDragRegion } from "./NoDragRegion";
 
-interface WorkstationTabHeaderSlotsViewProps {
-  slots: WorkstationTabHeaderSlots | null;
+/** Shared slot shape for the 40px published header bars. */
+export interface PublishedHeaderSlots {
+  leading?: ReactNode;
+  content?: ReactNode;
+  trailing?: ReactNode;
 }
 
-export const WorkstationTabHeaderSlotsView: React.FC<WorkstationTabHeaderSlotsViewProps> =
+interface PublishedHeaderSlotsViewProps {
+  slots: PublishedHeaderSlots | null;
+}
+
+/**
+ * Renders pane-owned controls into a shell-owned header row. My Station,
+ * Agent Station replay, and the chat pane share this exact slot layout.
+ */
+export const PublishedHeaderSlotsView: React.FC<PublishedHeaderSlotsViewProps> =
   memo(({ slots }) => {
     return (
       <div className="flex min-w-0 flex-1 items-center">
@@ -29,4 +39,4 @@ export const WorkstationTabHeaderSlotsView: React.FC<WorkstationTabHeaderSlotsVi
     );
   });
 
-WorkstationTabHeaderSlotsView.displayName = "WorkstationTabHeaderSlotsView";
+PublishedHeaderSlotsView.displayName = "PublishedHeaderSlotsView";

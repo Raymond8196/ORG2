@@ -29,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import IconButton from "@src/components/IconButton";
 import TabPill from "@src/components/TabPill";
+import { NoDragRegion } from "@src/components/WindowChrome";
 import { SIMULATOR_PRIMARY_SIDEBAR } from "@src/config/simulatorPrimarySidebar";
 import CanvasPreviewSurface from "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasPreviewSurface";
 import type { CanvasInlineMode } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
@@ -36,7 +37,6 @@ import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import { SessionReplayCodeMirrorViewer } from "@src/modules/WorkStation/CodeEditor/SessionReplay/CodePanel/SessionReplayCodeMirrorViewer";
 import {
-  NoDragRegion,
   PrimarySidebarLayoutWithSections,
   SimulatorReplayChrome,
   WorkStationShell,
