@@ -1139,6 +1139,8 @@
     "turnMetadata": {
       "noChanges": "Aucun fichier modifié pendant ce tour",
       "earlierRound": "Tour précédent",
+      "editsTab": "Modifications",
+      "readsTab": "Lectures",
       "files_one": "{{count}} fichier",
       "files_other": "{{count}} fichiers",
       "reads_one": "{{count}} lecture",

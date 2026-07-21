@@ -100,13 +100,6 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     hasMoreFilteredIssues,
     totalLoadedPages,
     pagedItems,
-    issueStateCounts,
-    openIssuesLoaded,
-    closedIssuesLoaded,
-    openPrCount,
-    closedPrCount,
-    openPrLoaded,
-    closedPrLoaded,
   } = useGitHubWorkItemsDerivedState({
     repoSources,
     repoIssueMap,
@@ -211,13 +204,6 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       parsedSearchQuery={parsedSearchQuery}
       issuePersonalFilterOptions={issuePersonalFilterOptions}
       selectedIssuePersonalFilters={selectedIssuePersonalFilters}
-      issueStateCounts={issueStateCounts}
-      openIssuesLoaded={openIssuesLoaded}
-      closedIssuesLoaded={closedIssuesLoaded}
-      openPrCount={openPrCount}
-      closedPrCount={closedPrCount}
-      openPrLoaded={openPrLoaded}
-      closedPrLoaded={closedPrLoaded}
       currentPage={currentPage}
       totalLoadedPages={totalLoadedPages}
       hasMoreFilteredIssues={hasMoreFilteredIssues}

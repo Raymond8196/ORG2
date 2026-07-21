@@ -12,6 +12,7 @@
     "drafts": "Drafts",
     "browser": "Browser",
     "editor": "Editor",
+    "environment": "Environment",
     "workspace": "Workspace",
     "codeEditor": "Code Editor",
     "databaseManager": "Database Manager",

@@ -39,13 +39,15 @@ async function loadChatPanelTabAtoms() {
   const {
     activateChatPanelTabAtom,
     activeWorkManagementSectionAtom,
+    addChatPanelTerminalTabAtom,
     addChatPanelLaunchpadTabAtom,
     chatPanelTabsAtom,
     closeChatPanelTabAtom,
+    closeOtherChatPanelTabsAtom,
     normalizePersistedChatPanelTabsState,
     openCloudOrgManagementInChatPanelTabAtom,
     openCreateTargetInChatPanelStartPageAtom,
-    openKanbanChatPanelTabAtom,
+    openWorkManagementChatPanelTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openRuntimeInChatPanelTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
@@ -80,6 +82,7 @@ async function loadChatPanelTabAtoms() {
   return {
     activateChatPanelTabAtom,
     activeWorkManagementSectionAtom,
+    addChatPanelTerminalTabAtom,
     activeChatPanelSurfaceAtom,
     activeSessionIdAtom,
     addChatPanelLaunchpadTabAtom,
@@ -92,6 +95,7 @@ async function loadChatPanelTabAtoms() {
     chatPanelCreateTargetAtom,
     chatPanelStartPageOpenAtom,
     closeChatPanelTabAtom,
+    closeOtherChatPanelTabsAtom,
     createChatPanelTerminalAtom,
     kanbanDetailPanelVisibleAtom,
     kanbanReplayBoundsAtom,
@@ -104,7 +108,7 @@ async function loadChatPanelTabAtoms() {
     normalizePersistedChatPanelTabsState,
     openCloudOrgManagementInChatPanelTabAtom,
     openCreateTargetInChatPanelStartPageAtom,
-    openKanbanChatPanelTabAtom,
+    openWorkManagementChatPanelTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openRuntimeInChatPanelTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
@@ -178,11 +182,11 @@ describe("closeChatPanelTabAtom", () => {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
       closeChatPanelTabAtom,
-      openKanbanChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       store,
     } = await loadChatPanelTabAtoms();
     const initialTabId = store.get(chatPanelTabsAtom).activeTabId;
-    const managementTabId = store.set(openKanbanChatPanelTabAtom, {});
+    const managementTabId = store.set(openWorkManagementChatPanelTabAtom, {});
 
     store.set(closeChatPanelTabAtom, initialTabId);
     store.set(closeChatPanelTabAtom, managementTabId);
@@ -203,14 +207,17 @@ describe("closeChatPanelTabAtom", () => {
       kanbanReplayPlayingAtom,
       kanbanReplaySpeedAtom,
       kanbanSelectedTaskIdAtom,
-      openKanbanChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       WORK_MANAGEMENT_PROJECTS_VIEW,
       workManagementCreatorVisibleAtom,
       workManagementProjectsViewAtom,
       store,
       workstationTabHeaderAtomByHost,
     } = await loadChatPanelTabAtoms();
-    const workManagementTabId = store.set(openKanbanChatPanelTabAtom, {});
+    const workManagementTabId = store.set(
+      openWorkManagementChatPanelTabAtom,
+      {}
+    );
     const retainedEvents = [
       { id: "session-1:created", ts: 1, kind: "created", task: {} },
     ] as unknown as KanbanReplayEvent[];
@@ -253,9 +260,81 @@ describe("closeChatPanelTabAtom", () => {
     expect(store.get(kanbanReplaySpeedAtom)).toBe(1);
     expect(store.get(workstationTabHeaderAtomByHost.workManagement)).toBeNull();
   });
+
+  it("retains shared management state until the last management tab closes", async () => {
+    const {
+      chatPanelTabsAtom,
+      closeChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
+      store,
+      workManagementCreatorVisibleAtom,
+      workstationTabHeaderAtomByHost,
+      WORK_MANAGEMENT_SECTION,
+    } = await loadChatPanelTabAtoms();
+
+    const issuesTabId = store.set(openWorkManagementChatPanelTabAtom, {
+      section: WORK_MANAGEMENT_SECTION.GITHUB_ISSUES,
+    });
+    const prsTabId = store.set(openWorkManagementChatPanelTabAtom, {
+      section: WORK_MANAGEMENT_SECTION.GITHUB_PRS,
+    });
+    store.set(workManagementCreatorVisibleAtom, true);
+    store.set(workstationTabHeaderAtomByHost.workManagement, {
+      trailing: "retained header",
+    });
+
+    store.set(closeChatPanelTabAtom, prsTabId);
+
+    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(issuesTabId);
+    expect(store.get(workManagementCreatorVisibleAtom)).toBe(true);
+    expect(store.get(workstationTabHeaderAtomByHost.workManagement)).toEqual({
+      trailing: "retained header",
+    });
+  });
 });
 
-describe("openKanbanChatPanelTabAtom", () => {
+describe("closeOtherChatPanelTabsAtom", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("retains and activates the selected tab while destroying other terminals", async () => {
+    const {
+      addChatPanelTerminalTabAtom,
+      chatPanelTabsAtom,
+      closeOtherChatPanelTabsAtom,
+      createChatPanelTerminalAtom,
+      store,
+      terminalSessionsAtom,
+    } = await loadChatPanelTabAtoms();
+    const retainedTabId = store.get(chatPanelTabsAtom).activeTabId;
+    const terminalSessionId = store.set(
+      createChatPanelTerminalAtom,
+      "Terminal"
+    );
+    store.set(addChatPanelTerminalTabAtom, terminalSessionId);
+
+    await store.set(closeOtherChatPanelTabsAtom, retainedTabId);
+
+    expect(store.get(chatPanelTabsAtom)).toMatchObject({
+      tabs: [{ id: retainedTabId }],
+      activeTabId: retainedTabId,
+    });
+    expect(
+      store
+        .get(terminalSessionsAtom)
+        .some((session) => session.id === terminalSessionId)
+    ).toBe(false);
+  });
+});
+
+describe("openWorkManagementChatPanelTabAtom", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.resetModules();
@@ -271,13 +350,13 @@ describe("openKanbanChatPanelTabAtom", () => {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
       activeWorkManagementSectionAtom,
-      openKanbanChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       WORK_MANAGEMENT_SECTION,
       store,
     } = await loadChatPanelTabAtoms();
 
-    const firstId = store.set(openKanbanChatPanelTabAtom, {});
-    const secondId = store.set(openKanbanChatPanelTabAtom, {});
+    const firstId = store.set(openWorkManagementChatPanelTabAtom, {});
+    const secondId = store.set(openWorkManagementChatPanelTabAtom, {});
 
     expect(secondId).toBe(firstId);
     expect(
@@ -294,12 +373,12 @@ describe("openKanbanChatPanelTabAtom", () => {
   it("keeps a manual Workstation restore while Kanban remains active", async () => {
     const {
       chatPanelMaximizedAtom,
-      openKanbanChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       store,
       syncActiveChatPanelTabStateAtom,
     } = await loadChatPanelTabAtoms();
 
-    store.set(openKanbanChatPanelTabAtom, {});
+    store.set(openWorkManagementChatPanelTabAtom, {});
     expect(store.get(chatPanelMaximizedAtom)).toBe(true);
 
     store.set(chatPanelMaximizedAtom, false);
@@ -313,20 +392,20 @@ describe("openKanbanChatPanelTabAtom", () => {
       activateChatPanelTabAtom,
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
-      openKanbanChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       store,
     } = await loadChatPanelTabAtoms();
     const primaryTabId = store.get(chatPanelTabsAtom).activeTabId;
 
     store.set(chatPanelMaximizedAtom, true);
-    store.set(openKanbanChatPanelTabAtom, {});
+    store.set(openWorkManagementChatPanelTabAtom, {});
     store.set(chatPanelMaximizedAtom, false);
     store.set(activateChatPanelTabAtom, primaryTabId);
 
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
   });
 
-  it("keeps management tab, surface header, and sidebar selection correlated", async () => {
+  it("opens each management section in a separate tab and focuses it on reselect", async () => {
     const {
       activateChatPanelTabAtom,
       activeChatPanelSurfaceAtom,
@@ -335,7 +414,7 @@ describe("openKanbanChatPanelTabAtom", () => {
       CHAT_PANEL_SURFACE_KIND,
       chatPanelStartPageOpenAtom,
       chatPanelTabsAtom,
-      openKanbanChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       WORK_MANAGEMENT_SECTION,
       store,
     } = await loadChatPanelTabAtoms();
@@ -343,7 +422,10 @@ describe("openKanbanChatPanelTabAtom", () => {
     store.set(addChatPanelLaunchpadTabAtom, "Launchpad");
     expect(store.get(chatPanelStartPageOpenAtom)).toBe(true);
 
-    const workManagementTabId = store.set(openKanbanChatPanelTabAtom, {});
+    const workManagementTabId = store.set(
+      openWorkManagementChatPanelTabAtom,
+      {}
+    );
     expect(store.get(chatPanelTabsAtom)).toMatchObject({
       activeTabId: workManagementTabId,
       tabs: expect.arrayContaining([
@@ -362,51 +444,63 @@ describe("openKanbanChatPanelTabAtom", () => {
       WORK_MANAGEMENT_SECTION.KANBAN
     );
 
-    const projectsTabId = store.set(openKanbanChatPanelTabAtom, {
+    const projectsTabId = store.set(openWorkManagementChatPanelTabAtom, {
       section: WORK_MANAGEMENT_SECTION.PROJECTS,
     });
-    expect(projectsTabId).toBe(workManagementTabId);
+    expect(projectsTabId).not.toBe(workManagementTabId);
     expect(
       store
         .get(chatPanelTabsAtom)
         .tabs.filter((tab) => tab.type === "work-management")
-    ).toHaveLength(1);
+    ).toHaveLength(2);
     expect(store.get(activeWorkManagementSectionAtom)).toBe(
       WORK_MANAGEMENT_SECTION.PROJECTS
     );
     expect(
-      store
-        .get(chatPanelTabsAtom)
-        .tabs.find((tab) => tab.id === workManagementTabId)?.title
+      store.get(chatPanelTabsAtom).tabs.find((tab) => tab.id === projectsTabId)
+        ?.title
     ).toBe("Projects");
 
-    store.set(openKanbanChatPanelTabAtom, {
+    const issuesTabId = store.set(openWorkManagementChatPanelTabAtom, {
       section: WORK_MANAGEMENT_SECTION.GITHUB_ISSUES,
     });
     expect(store.get(activeWorkManagementSectionAtom)).toBe(
       WORK_MANAGEMENT_SECTION.GITHUB_ISSUES
     );
     expect(
-      store
-        .get(chatPanelTabsAtom)
-        .tabs.find((tab) => tab.id === workManagementTabId)?.title
+      store.get(chatPanelTabsAtom).tabs.find((tab) => tab.id === issuesTabId)
+        ?.title
     ).toBe("GitHub Issues");
 
-    store.set(openKanbanChatPanelTabAtom, {
+    const prsTabId = store.set(openWorkManagementChatPanelTabAtom, {
       section: WORK_MANAGEMENT_SECTION.GITHUB_PRS,
     });
+    expect(prsTabId).not.toBe(issuesTabId);
     expect(store.get(activeWorkManagementSectionAtom)).toBe(
       WORK_MANAGEMENT_SECTION.GITHUB_PRS
     );
     expect(
+      store.get(chatPanelTabsAtom).tabs.find((tab) => tab.id === prsTabId)
+        ?.title
+    ).toBe("GitHub PRs");
+    expect(
       store
         .get(chatPanelTabsAtom)
-        .tabs.find((tab) => tab.id === workManagementTabId)?.title
-    ).toBe("GitHub PRs");
+        .tabs.filter((tab) => tab.type === "work-management")
+    ).toHaveLength(4);
+
+    const focusedIssuesTabId = store.set(openWorkManagementChatPanelTabAtom, {
+      section: WORK_MANAGEMENT_SECTION.GITHUB_ISSUES,
+    });
+    expect(focusedIssuesTabId).toBe(issuesTabId);
+    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(issuesTabId);
+    expect(store.get(activeWorkManagementSectionAtom)).toBe(
+      WORK_MANAGEMENT_SECTION.GITHUB_ISSUES
+    );
 
     store.set(activateChatPanelTabAtom, workManagementTabId);
     expect(store.get(activeWorkManagementSectionAtom)).toBe(
-      WORK_MANAGEMENT_SECTION.GITHUB_PRS
+      WORK_MANAGEMENT_SECTION.KANBAN
     );
   });
 
@@ -415,13 +509,13 @@ describe("openKanbanChatPanelTabAtom", () => {
       activateChatPanelTabAtom,
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
-      openKanbanChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       WORK_MANAGEMENT_SECTION,
       store,
     } = await loadChatPanelTabAtoms();
     const primaryTabId = store.get(chatPanelTabsAtom).activeTabId;
 
-    store.set(openKanbanChatPanelTabAtom, {
+    store.set(openWorkManagementChatPanelTabAtom, {
       section: WORK_MANAGEMENT_SECTION.PROJECTS,
     });
     expect(store.get(chatPanelMaximizedAtom)).toBe(true);
@@ -437,14 +531,14 @@ describe("openKanbanChatPanelTabAtom", () => {
       CHAT_PANEL_SURFACE_KIND,
       chatPanelNavigateAtom,
       chatPanelStartPageOpenAtom,
-      openKanbanChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       openOrFocusChatPanelStartPageTabAtom,
       store,
       syncActiveChatPanelTabStateAtom,
       WORK_MANAGEMENT_SECTION,
     } = await loadChatPanelTabAtoms();
 
-    store.set(openKanbanChatPanelTabAtom, {
+    store.set(openWorkManagementChatPanelTabAtom, {
       section: WORK_MANAGEMENT_SECTION.PROJECTS,
     });
     store.set(openOrFocusChatPanelStartPageTabAtom, {});
@@ -731,6 +825,47 @@ describe("ChatPanel navigation tabs", () => {
       "start-b"
     );
     expect(normalized?.activeTabId).toBe("start-b");
+  });
+
+  it("keeps one persisted management tab per sidebar section", async () => {
+    const { normalizePersistedChatPanelTabsState, WORK_MANAGEMENT_SECTION } =
+      await loadChatPanelTabAtoms();
+
+    const normalized = normalizePersistedChatPanelTabsState({
+      activeTabId: "issues-b",
+      tabs: [
+        { id: "start", type: "start-page", title: "Launchpad" },
+        {
+          id: "issues-a",
+          type: "work-management",
+          title: "GitHub Issues",
+          managementSection: WORK_MANAGEMENT_SECTION.GITHUB_ISSUES,
+        },
+        {
+          id: "issues-b",
+          type: "work-management",
+          title: "GitHub Issues",
+          managementSection: WORK_MANAGEMENT_SECTION.GITHUB_ISSUES,
+        },
+        {
+          id: "prs",
+          type: "work-management",
+          title: "GitHub PRs",
+          managementSection: WORK_MANAGEMENT_SECTION.GITHUB_PRS,
+        },
+      ],
+    });
+
+    expect(
+      normalized?.tabs.filter((tab) => tab.type === "work-management")
+    ).toHaveLength(2);
+    expect(normalized?.tabs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "issues-b" }),
+        expect.objectContaining({ id: "prs" }),
+      ])
+    );
+    expect(normalized?.activeTabId).toBe("issues-b");
   });
 
   it("collapses persisted duplicate Runtime tabs into one", async () => {

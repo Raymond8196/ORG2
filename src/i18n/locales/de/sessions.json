@@ -1137,6 +1137,8 @@
     "turnMetadata": {
       "noChanges": "Keine Dateiänderungen in dieser Runde",
       "earlierRound": "Frühere Runde",
+      "editsTab": "Änderungen",
+      "readsTab": "Lesezugriffe",
       "files_one": "{{count}} Datei",
       "files_other": "{{count}} Dateien",
       "reads_one": "{{count}} Lesezugriff",

@@ -16,6 +16,7 @@ import type {
 
 export interface SidebarProject {
   projectData: ProjectData;
+  projectSyncAdapterId: string | null;
   orgId: string;
   orgName: string;
   labelMap: Map<string, LabelEntry>;

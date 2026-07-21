@@ -167,6 +167,7 @@ export function useProjectsWorkItemMenuItems({
               : t("navigation:labels.org", "Org"));
           const projectEntry: SidebarProject = {
             projectData: project,
+            projectSyncAdapterId: syncStatus?.adapter_id ?? null,
             orgId,
             orgName,
             labelMap,
