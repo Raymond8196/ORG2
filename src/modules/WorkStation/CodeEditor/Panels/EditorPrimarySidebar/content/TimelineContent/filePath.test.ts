@@ -6,9 +6,9 @@ describe("toTimelineRepoRelativePath", () => {
   it("strips a Windows repo root and normalizes separators", () => {
     expect(
       toTimelineRepoRelativePath(
-        "C:\\Projects\\ORGII\\src\\package.json",
-        "\\\\?\\C:\\Projects\\ORGII",
-        "C:\\Projects\\ORGII"
+        "C:\\Repos\\ORGII\\src\\package.json",
+        "\\\\?\\C:\\Repos\\ORGII",
+        "C:\\Repos\\ORGII"
       )
     ).toBe("src/package.json");
   });
@@ -16,9 +16,9 @@ describe("toTimelineRepoRelativePath", () => {
   it("strips a POSIX repo root", () => {
     expect(
       toTimelineRepoRelativePath(
-        "/Users/vince/ORGII/src/package.json",
-        "/Users/vince/ORGII",
-        "/Users/vince/ORGII"
+        "/Users/example/ORGII/src/package.json",
+        "/Users/example/ORGII",
+        "/Users/example/ORGII"
       )
     ).toBe("src/package.json");
   });
@@ -27,8 +27,8 @@ describe("toTimelineRepoRelativePath", () => {
     expect(
       toTimelineRepoRelativePath(
         "D:\\other\\package.json",
-        "C:\\Projects\\ORGII",
-        "C:\\Projects\\ORGII"
+        "C:\\Repos\\ORGII",
+        "C:\\Repos\\ORGII"
       )
     ).toBe("D:\\other\\package.json");
   });

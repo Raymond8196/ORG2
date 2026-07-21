@@ -122,13 +122,13 @@ fn test_registered_root_allows_only_itself_and_descendants() {
 #[cfg(windows)]
 #[test]
 fn test_registered_windows_root_accepts_verbatim_paths_case_insensitively() {
-    let roots = vec![std::path::PathBuf::from(r"\\?\C:\Projects\ORGII")];
+    let roots = vec![std::path::PathBuf::from(r"\\?\C:\Repos\ORGII")];
     assert!(is_path_within_roots(
         std::path::Path::new(r"c:\projects\orgii\src\main.rs"),
         &roots
     ));
     assert!(!is_path_within_roots(
-        std::path::Path::new(r"C:\Projects\ORGII-other"),
+        std::path::Path::new(r"C:\Repos\ORGII-other"),
         &roots
     ));
 }

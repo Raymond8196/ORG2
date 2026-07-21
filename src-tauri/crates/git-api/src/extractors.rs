@@ -128,7 +128,7 @@ fn is_path_allowed(path: &StdPath) -> bool {
 
     // A repo explicitly added by the user is also an authorized filesystem
     // boundary. This is what permits normal Windows layouts such as
-    // C:\Projects\ORGII without broadly allowing the whole drive.
+    // C:\Repos\ORGII without broadly allowing the whole drive.
     let registered_roots = registered_repo_roots();
     is_path_within_roots(path, &registered_roots)
 }

@@ -29,7 +29,7 @@ describe("getGitRemotes", () => {
       );
 
       await expect(
-        getGitRemotes({ repo_id: "C:\\Projects\\ORGII" })
+        getGitRemotes({ repo_id: "C:\\Repos\\ORGII" })
       ).resolves.toBeUndefined();
     }
   );

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { resolvePath } from "./utils";
 
 describe("resolvePath", () => {
-  const windowsRepo = "C:\\Projects\\ORGII";
+  const windowsRepo = "C:\\Repos\\ORGII";
 
   it("keeps POSIX absolute paths unchanged", () => {
     expect(resolvePath("/tmp/project/package.json", windowsRepo)).toBe(
@@ -12,8 +12,8 @@ describe("resolvePath", () => {
   });
 
   it("keeps Windows drive-letter paths unchanged", () => {
-    expect(resolvePath("C:\\Projects\\ORGII\\package.json", windowsRepo)).toBe(
-      "C:\\Projects\\ORGII\\package.json"
+    expect(resolvePath("C:\\Repos\\ORGII\\package.json", windowsRepo)).toBe(
+      "C:\\Repos\\ORGII\\package.json"
     );
     expect(resolvePath("C:/Projects/ORGII/package.json", windowsRepo)).toBe(
       "C:/Projects/ORGII/package.json"
@@ -25,13 +25,13 @@ describe("resolvePath", () => {
       "\\\\server\\share\\package.json"
     );
     expect(
-      resolvePath("\\\\?\\C:\\Projects\\ORGII\\package.json", windowsRepo)
-    ).toBe("\\\\?\\C:\\Projects\\ORGII\\package.json");
+      resolvePath("\\\\?\\C:\\Repos\\ORGII\\package.json", windowsRepo)
+    ).toBe("\\\\?\\C:\\Repos\\ORGII\\package.json");
   });
 
   it("resolves relative paths against the repository", () => {
     expect(resolvePath("src/index.ts", windowsRepo)).toBe(
-      "C:\\Projects\\ORGII/src/index.ts"
+      "C:\\Repos\\ORGII/src/index.ts"
     );
   });
 });

@@ -200,16 +200,16 @@ describe("resolveLocalCheckoutForScopeKey (fork relay: scope key → local path)
       source_full_name: "yorgai/ORG2",
     }));
     const resolve = resolverFor({
-      "C:\\Projects\\ORGII": ["github.com/yorgai/org2"],
+      "C:\\Repos\\ORGII": ["github.com/yorgai/org2"],
     });
 
     await expect(
       resolveLocalCheckoutForScopeKey(
         "github.com/vantanode/org2",
-        ["C:\\Projects\\ORGII"],
+        ["C:\\Repos\\ORGII"],
         resolve
       )
-    ).resolves.toBe("C:\\Projects\\ORGII");
+    ).resolves.toBe("C:\\Repos\\ORGII");
     expect(networkIdentityMock).toHaveBeenCalledWith("yorgai/org2");
     expect(networkIdentityMock).toHaveBeenCalledWith("vantanode/org2");
   });
