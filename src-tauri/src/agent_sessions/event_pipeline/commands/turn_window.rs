@@ -19,6 +19,8 @@ use super::{
     EventStoreState,
 };
 
+const DEFAULT_RECENT_TURN_BODY_COUNT: usize = 1;
+
 // ============================================================================
 // Turn Window Types
 // ============================================================================
@@ -197,7 +199,7 @@ pub(super) async fn load_initial_turn_window_events(
     recent_turn_count: Option<usize>,
 ) -> Result<SessionInitialTurnWindow, String> {
     let sid = session_id.to_string();
-    let recent_count = recent_turn_count.unwrap_or(5);
+    let recent_count = recent_turn_count.unwrap_or(DEFAULT_RECENT_TURN_BODY_COUNT);
     let window = tokio::task::spawn_blocking(move || {
         sqlite_cache::load_initial_turn_window(&sid, recent_count)
     })
