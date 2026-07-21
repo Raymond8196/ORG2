@@ -19,6 +19,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
 import { RefreshCw, Terminal } from "lucide-react";
 import React, {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -49,7 +50,10 @@ import SettingsTable, {
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
 import Switch from "@src/components/Switch";
-import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import TabPill, {
+  type TabPillItem,
+  type TabPillProps,
+} from "@src/components/TabPill";
 import Tag, { type TagProps } from "@src/components/Tag";
 import {
   SECTION_CONTROL_STYLE,
@@ -86,7 +90,12 @@ import SessionProvenanceHooksPanel from "./SessionProvenanceHooksPanel";
 import SessionUsagePanel from "./SessionUsagePanel";
 
 type DataSourceTab = "all" | "apps" | "clis";
-type DataSourcePanelView = "scanning" | "hooks" | "usage" | "quota" | "assets";
+export type DataSourcePanelView =
+  | "scanning"
+  | "hooks"
+  | "usage"
+  | "quota"
+  | "assets";
 
 // The sources ORGII imports history from (have a cache + support Rescan).
 const IMPORTABLE_SOURCE_IDS = new Set<ImportedHistorySourceId>(
@@ -119,11 +128,83 @@ interface DataSourcePanelProps {
   assetsContent?: React.ReactNode;
   /** Optional Runtime-only content rendered in a dedicated Quota view. */
   quotaContent?: React.ReactNode;
+  activePanelView?: DataSourcePanelView;
+  onPanelViewChange?: (view: DataSourcePanelView) => void;
+  hideHeader?: boolean;
 }
+
+interface DataSourcePanelViewTabsProps {
+  activeView: DataSourcePanelView;
+  showAssets: boolean;
+  showQuota: boolean;
+  size?: TabPillProps["size"];
+  onChange: (view: DataSourcePanelView) => void;
+}
+
+export const DataSourcePanelViewTabs: React.FC<DataSourcePanelViewTabsProps> =
+  memo(({ activeView, showAssets, showQuota, size = "large", onChange }) => {
+    const { t } = useTranslation("sessions", {
+      keyPrefix: "kanban.dataSource",
+    });
+    const viewTabs = useMemo<TabPillItem[]>(
+      () => [
+        {
+          key: "usage",
+          label: t("views.usage"),
+          dataTestId: "data-source-view-usage",
+        },
+        ...(showQuota
+          ? [
+              {
+                key: "quota",
+                label: t("views.quota"),
+                dataTestId: "data-source-view-quota",
+              },
+            ]
+          : []),
+        {
+          key: "scanning",
+          label: t("views.scanning"),
+          dataTestId: "data-source-view-scanning",
+        },
+        {
+          key: "hooks",
+          label: t("views.hooks"),
+          dataTestId: "data-source-view-hooks",
+        },
+        ...(showAssets
+          ? [
+              {
+                key: "assets",
+                label: t("views.assets"),
+                dataTestId: "data-source-view-assets",
+              },
+            ]
+          : []),
+      ],
+      [showAssets, showQuota, t]
+    );
+
+    return (
+      <TabPill
+        activeTab={activeView}
+        tabs={viewTabs}
+        onChange={(key) => onChange(key as DataSourcePanelView)}
+        variant="simple"
+        size={size}
+        fillWidth={false}
+      />
+    );
+  });
+
+DataSourcePanelViewTabs.displayName = "DataSourcePanelViewTabs";
 
 const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
   assetsContent,
   quotaContent,
+  activePanelView,
+  onPanelViewChange,
+  hideHeader = false,
 }) => {
   const { t } = useTranslation("sessions", {
     keyPrefix: "kanban.dataSource",
@@ -136,7 +217,19 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
   const [tab, setTab] = useState<DataSourceTab>("all");
   // Top-level panel view: usage stats, Runtime quota, scan/import inventory,
   // hook capture, and (only in Runtime) the consolidated assets dashboard.
-  const [panelView, setPanelView] = useState<DataSourcePanelView>("usage");
+  const [internalPanelView, setInternalPanelView] =
+    useState<DataSourcePanelView>("usage");
+  const panelView = activePanelView ?? internalPanelView;
+  const handlePanelViewChange = useCallback(
+    (nextView: DataSourcePanelView) => {
+      if (onPanelViewChange) {
+        onPanelViewChange(nextView);
+        return;
+      }
+      setInternalPanelView(nextView);
+    },
+    [onPanelViewChange]
+  );
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [configMap, setConfigMap] = useAtom(dataSourceConfigAtom);
@@ -626,59 +719,25 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
 
   return (
     <div className="absolute inset-0 flex min-h-0 flex-col overflow-hidden">
-      {/* Match the Settings page header geometry while keeping the view tabs
-          outside the preserved scroll region. */}
-      <InternalHeader
-        noPanelHeader
-        contentPadding
-        className={DETAIL_PANEL_TOKENS.headerWidth}
-        tabs={
-          <div className="flex w-full justify-center">
-            <TabPill
-              activeTab={panelView}
-              tabs={[
-                {
-                  key: "usage",
-                  label: t("views.usage"),
-                  dataTestId: "data-source-view-usage",
-                },
-                ...(quotaContent
-                  ? [
-                      {
-                        key: "quota",
-                        label: t("views.quota"),
-                        dataTestId: "data-source-view-quota",
-                      },
-                    ]
-                  : []),
-                {
-                  key: "scanning",
-                  label: t("views.scanning"),
-                  dataTestId: "data-source-view-scanning",
-                },
-                {
-                  key: "hooks",
-                  label: t("views.hooks"),
-                  dataTestId: "data-source-view-hooks",
-                },
-                ...(assetsContent
-                  ? [
-                      {
-                        key: "assets",
-                        label: t("views.assets"),
-                        dataTestId: "data-source-view-assets",
-                      },
-                    ]
-                  : []),
-              ]}
-              onChange={(key) => setPanelView(key as DataSourcePanelView)}
-              variant="simple"
-              size="large"
-              fillWidth={false}
-            />
-          </div>
-        }
-      />
+      {/* Inline hosts match the Settings header geometry. Runtime hides this
+          row and publishes the same controlled tabs into the chat header. */}
+      {!hideHeader ? (
+        <InternalHeader
+          noPanelHeader
+          contentPadding
+          className={DETAIL_PANEL_TOKENS.headerWidth}
+          tabs={
+            <div className="flex w-full justify-center">
+              <DataSourcePanelViewTabs
+                activeView={panelView}
+                showQuota={Boolean(quotaContent)}
+                showAssets={Boolean(assetsContent)}
+                onChange={handlePanelViewChange}
+              />
+            </div>
+          }
+        />
+      ) : null}
 
       <ScrollPreservation
         data-testid="data-source-scroll-region"

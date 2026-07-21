@@ -1038,6 +1038,16 @@
       "copySuccess": "Raw transcript copied",
       "copyFailed": "Could not copy the raw transcript"
     },
+    "linkWorkItem": {
+      "menuItem": "Link to Work Item…",
+      "title": "Link session to Work Item",
+      "description": "Select the Work Item that should show this session.",
+      "searchPlaceholder": "Search by Work Item ID, title, status, or project",
+      "loading": "Loading Work Items…",
+      "empty": "No Work Items found.",
+      "linking": "Linking…",
+      "link": "Link"
+    },
     "historyTitle": "History",
     "historyEmpty": "No sessions yet",
     "historyGroupTime": "Time",
@@ -1167,6 +1177,8 @@
     "turnMetadata": {
       "noChanges": "No file changes this round",
       "earlierRound": "Earlier round",
+      "editsTab": "Edits",
+      "readsTab": "Reads",
       "files_one": "{{count}} file",
       "files_other": "{{count}} files",
       "reads_one": "{{count}} read",

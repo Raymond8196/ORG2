@@ -1,9 +1,8 @@
 import { atom } from "jotai";
-import type { ReactNode } from "react";
 
-export interface ChatPanelHeaderSlots {
-  trailing?: ReactNode;
-}
+import type { PublishedHeaderSlots } from "@src/components/WindowChrome";
+
+export type ChatPanelHeaderSlots = PublishedHeaderSlots;
 
 export type ChatPanelHeaderContribution = ChatPanelHeaderSlots | null;
 
