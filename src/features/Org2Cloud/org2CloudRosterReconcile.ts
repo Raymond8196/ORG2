@@ -14,15 +14,20 @@
  * roster would silently drop the privacy ladder / runner intent the switch
  * kept. Org ids are uuids, so a genuinely-dead entry never collides.
  *
- * Conservative by design: runs only when the roster loaded successfully AND
- * is non-empty — a transient `[]` from a failed fetch keeps the loaded flag
- * FALSE and never prunes.
+ * Conservative by design: runs only when the roster loaded successfully. An
+ * authoritatively empty roster is still a valid result and must prune the
+ * previous account's backend-owned state; a transient failure keeps the
+ * loaded flag FALSE and never prunes.
  */
 import { type WritableAtom, createStore, useAtomValue, useStore } from "jotai";
 import { useEffect, useRef } from "react";
 
 import { createLogger } from "@src/hooks/logger";
 
+import {
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "./org2CloudAuthAtom";
 import {
   org2CloudOrgsAtom,
   org2CloudOrgsLoadedAtom,
@@ -136,23 +141,34 @@ export function reconcileOrg2CloudPersistedState(
 
 export function shouldReconcileRoster(
   loaded: boolean,
-  orgCount: number
+  _orgCount: number
 ): boolean {
-  return loaded && orgCount > 0;
+  return loaded;
 }
 
 export function useOrg2CloudRosterReconcile(): void {
   const store = useStore();
+  const auth = useAtomValue(org2CloudAuthAtom);
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
   const loaded = useAtomValue(org2CloudOrgsLoadedAtom);
   const orgs = useAtomValue(org2CloudOrgsAtom);
-  const doneRef = useRef(false);
+  const reconciledIdentityRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (doneRef.current || !shouldReconcileRoster(loaded, orgs.length)) return;
-    doneRef.current = true;
+    if (!authIdentityKey) {
+      reconciledIdentityRef.current = null;
+      return;
+    }
+    if (
+      reconciledIdentityRef.current === authIdentityKey ||
+      !shouldReconcileRoster(loaded, orgs.length)
+    ) {
+      return;
+    }
+    reconciledIdentityRef.current = authIdentityKey;
     reconcileOrg2CloudPersistedState(
       store,
       new Set(orgs.map((org) => org.orgId))
     );
-  }, [loaded, orgs, store]);
+  }, [authIdentityKey, loaded, orgs, store]);
 }

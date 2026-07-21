@@ -17,6 +17,7 @@ import {
   resolveCloudMemberName,
 } from "./org2CloudMemberNamesAtom";
 import { loadCloudOrgMembers } from "./org2CloudMembersCoordinator";
+import { org2CloudRosterVersionAtom } from "./org2CloudOrgsAtom";
 
 vi.mock("./org2CloudMembersCoordinator", () => ({
   loadCloudOrgMembers: vi.fn(),
@@ -38,6 +39,7 @@ beforeEach(() => {
   if (!isStoreInitialized()) createInstrumentedStore();
   getInstrumentedStore().set(org2CloudMemberNamesAtom, {});
   getInstrumentedStore().set(org2CloudAuthAtom, AUTH);
+  getInstrumentedStore().set(org2CloudRosterVersionAtom, {});
   loadCloudOrgMembersMock.mockResolvedValue({
     auth: AUTH,
     members: [
@@ -55,6 +57,7 @@ beforeEach(() => {
 afterEach(() => {
   getInstrumentedStore().set(org2CloudMemberNamesAtom, {});
   getInstrumentedStore().set(org2CloudAuthAtom, null);
+  getInstrumentedStore().set(org2CloudRosterVersionAtom, {});
   vi.clearAllMocks();
 });
 
@@ -97,6 +100,54 @@ describe("ensureCloudMemberNames", () => {
       ensureCloudMemberNames("corg-1"),
     ]);
     expect(loadCloudOrgMembersMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects an older roster completion after a version bump", async () => {
+    let resolveOld!: (
+      value: Awaited<ReturnType<typeof loadCloudOrgMembers>>
+    ) => void;
+    loadCloudOrgMembersMock
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOld = resolve;
+          })
+      )
+      .mockResolvedValueOnce({
+        auth: AUTH,
+        members: [
+          {
+            userId: "user-1",
+            displayName: "Current Name",
+            role: "member",
+            status: "active",
+          },
+        ],
+      });
+
+    const oldRequest = ensureCloudMemberNames("corg-1");
+    await vi.waitFor(() =>
+      expect(loadCloudOrgMembersMock).toHaveBeenCalledTimes(1)
+    );
+    getInstrumentedStore().set(org2CloudRosterVersionAtom, { "corg-1": 1 });
+    await ensureCloudMemberNames("corg-1");
+    resolveOld({
+      auth: AUTH,
+      members: [
+        {
+          userId: "user-1",
+          displayName: "Stale Name",
+          role: "member",
+          status: "active",
+        },
+      ],
+    });
+    await oldRequest;
+
+    const names = getInstrumentedStore().get(org2CloudMemberNamesAtom);
+    expect(resolveCloudMemberName(names, "corg-1", "user-1")).toBe(
+      "Current Name"
+    );
   });
 
   it("bounds names retained across many orgs", async () => {

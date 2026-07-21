@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useStore } from "jotai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +9,7 @@ import {
 import {
   commitRefreshedAuth,
   org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import {
   type CloudEntitlementState,
@@ -42,6 +43,9 @@ import { isTauriReady } from "@src/util/platform/tauri/init";
 import type { SelectValue } from "./cloudOrgPanelTypes";
 
 const log = createLogger("CloudOrgPanelView");
+const MEMBER_ROSTER_FALLBACK_MS = 30_000;
+/** Stable reference for the identity-mismatch window (no re-render churn). */
+const NO_VISIBLE_MEMBERS: CloudOrgMember[] = [];
 
 type FetchState = "loading" | "ready" | "error";
 
@@ -51,12 +55,17 @@ type FetchState = "loading" | "ready" | "error";
  */
 export function useCloudOrgPanelState(orgId: string) {
   const { t } = useTranslation("navigation");
+  const store = useStore();
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const rosterVersionByOrg = useAtomValue(org2CloudRosterVersionAtom);
   const [entitlement, setEntitlement] = useState<CloudEntitlementState | null>(
     null
   );
   const [members, setMembers] = useState<CloudOrgMember[]>([]);
+  const [membersIdentityKey, setMembersIdentityKey] = useState<string | null>(
+    null
+  );
+  const membersRequestEpochRef = useRef(0);
   const [fetchState, setFetchState] = useState<FetchState>("loading");
   const [repoScopesByOrg, setRepoScopesByOrg] = useAtom(
     org2CloudRepoScopesAtom
@@ -69,6 +78,7 @@ export function useCloudOrgPanelState(orgId: string) {
   const [scopesSaved, setScopesSaved] = useState(false);
   const [scopesError, setScopesError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
+  const [membersFallbackVersion, setMembersFallbackVersion] = useState(0);
 
   useTauriListen(
     "org2-cloud-billing-complete",
@@ -83,6 +93,9 @@ export function useCloudOrgPanelState(orgId: string) {
   const rosterVersionRef = useRef(rosterVersion);
   rosterVersionRef.current = rosterVersion;
   const signedIn = Boolean(auth);
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
+  const visibleMembers =
+    membersIdentityKey === authIdentityKey ? members : NO_VISIBLE_MEMBERS;
   const currentUserId = auth?.userId ?? null;
   const savedScopes = useMemo(
     () => repoScopesByOrg[orgId] ?? [],
@@ -125,6 +138,21 @@ export function useCloudOrgPanelState(orgId: string) {
   }, [auth]);
 
   useEffect(() => {
+    if (!signedIn) return undefined;
+    const refreshWhenVisible = () => {
+      if (document.visibilityState !== "hidden") {
+        setMembersFallbackVersion((version) => version + 1);
+      }
+    };
+    const timer = setInterval(refreshWhenVisible, MEMBER_ROSTER_FALLBACK_MS);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [signedIn, authIdentityKey, orgId]);
+
+  useEffect(() => {
     if (!signedIn) return;
     let cancelled = false;
     void (async () => {
@@ -141,16 +169,25 @@ export function useCloudOrgPanelState(orgId: string) {
         return;
       }
       commitRefreshedAuth(setAuth, current, fresh);
+      const currentIdentityKey = org2CloudAuthIdentityKey(current);
+      const membersRequestEpoch = ++membersRequestEpochRef.current;
       const [entitlementResult, membersLoadResult, scopeStateResult] =
         await Promise.all([
           getEntitlementState(fresh.accessToken, orgId),
-          loadCloudOrgMembers(fresh, orgId, rosterVersionRef.current),
+          loadCloudOrgMembers(store, fresh, orgId, rosterVersionRef.current),
           getOrgRepoScopes(fresh.accessToken, orgId).catch((error: unknown) => {
             log.warn("cloud_get_org_repo_scopes failed:", error);
             return null;
           }),
         ]);
-      if (cancelled) return;
+      const latestAuth = authRef.current;
+      if (
+        cancelled ||
+        !latestAuth ||
+        org2CloudAuthIdentityKey(latestAuth) !== currentIdentityKey
+      ) {
+        return;
+      }
       const membersResult = membersLoadResult?.members ?? [];
       setEntitlement(entitlementResult);
       if (entitlementResult) {
@@ -162,7 +199,10 @@ export function useCloudOrgPanelState(orgId: string) {
             : { ...previous, [orgId]: nextFloor }
         );
       }
-      setMembers(membersResult);
+      if (membersRequestEpochRef.current === membersRequestEpoch) {
+        setMembers(membersResult);
+        setMembersIdentityKey(currentIdentityKey);
+      }
       if (scopeStateResult) {
         setScopeState(scopeStateResult);
         setRepoScopesByOrg((previous) => ({
@@ -183,37 +223,70 @@ export function useCloudOrgPanelState(orgId: string) {
   }, [
     orgId,
     signedIn,
+    authIdentityKey,
     refreshNonce,
     setAuth,
     setRepoScopesByOrg,
     setFloorByOrg,
+    store,
   ]);
 
   const observedRosterVersionRef = useRef(rosterVersion);
+  const observedMembersFallbackVersionRef = useRef(membersFallbackVersion);
   useEffect(() => {
     observedRosterVersionRef.current = rosterVersion;
+    observedMembersFallbackVersionRef.current = membersFallbackVersion;
     // A normal roster bump must reach the member-only fetch below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgId]);
   useEffect(() => {
     if (!signedIn) return;
-    if (observedRosterVersionRef.current === rosterVersion) return;
+    const rosterChanged = observedRosterVersionRef.current !== rosterVersion;
+    const fallbackChanged =
+      observedMembersFallbackVersionRef.current !== membersFallbackVersion;
+    if (!rosterChanged && !fallbackChanged) return;
     observedRosterVersionRef.current = rosterVersion;
+    observedMembersFallbackVersionRef.current = membersFallbackVersion;
     let cancelled = false;
+    const membersRequestEpoch = ++membersRequestEpochRef.current;
     void (async () => {
       const current = authRef.current;
       if (!current) return;
-      const loaded = await loadCloudOrgMembers(current, orgId, rosterVersion);
-      if (!loaded || cancelled) return;
+      const currentIdentityKey = org2CloudAuthIdentityKey(current);
+      const loaded = await loadCloudOrgMembers(
+        store,
+        current,
+        orgId,
+        rosterVersion,
+        { force: fallbackChanged }
+      );
+      if (
+        !loaded ||
+        cancelled ||
+        membersRequestEpochRef.current !== membersRequestEpoch ||
+        !authRef.current ||
+        org2CloudAuthIdentityKey(authRef.current) !== currentIdentityKey
+      ) {
+        return;
+      }
       commitRefreshedAuth(setAuth, current, loaded.auth);
       setMembers(loaded.members);
+      setMembersIdentityKey(currentIdentityKey);
     })().catch((error: unknown) => {
       log.warn("cloud org roster refresh failed:", error);
     });
     return () => {
       cancelled = true;
     };
-  }, [orgId, signedIn, rosterVersion, setAuth]);
+  }, [
+    orgId,
+    signedIn,
+    authIdentityKey,
+    rosterVersion,
+    membersFallbackVersion,
+    setAuth,
+    store,
+  ]);
 
   const refreshScopeState = async (accessToken: string): Promise<void> => {
     try {
@@ -301,7 +374,7 @@ export function useCloudOrgPanelState(orgId: string) {
   return {
     currentUserId,
     entitlement,
-    members,
+    members: visibleMembers,
     setMembers,
     viewState: signedIn ? fetchState : ("error" as const),
     savedScopes,

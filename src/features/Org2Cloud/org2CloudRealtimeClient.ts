@@ -29,7 +29,13 @@ import { getCloudEndpoint } from "./config";
 const log = createLogger("Org2CloudRealtime");
 const PRESENCE_TRACK_TIMEOUT_MS = 5_000;
 const PRESENCE_TRACK_RETRY_MS = 1_000;
+/** Ceiling for the presence-track retry backoff: a persistent server-side
+ * rejection (RLS/policy) must idle near this cadence, not spin at 1 Hz. */
+const PRESENCE_TRACK_RETRY_MAX_MS = 30_000;
 const BROADCAST_RETRY_MS = 1_000;
+/** Same ceiling rationale as presence-track: persistent broadcast failure
+ * (rate limit, policy) idles near this cadence instead of spinning at 1 Hz. */
+const BROADCAST_RETRY_MAX_MS = 30_000;
 const MAX_PENDING_BROADCASTS = 100;
 // Supabase Realtime's self-hosted/default client guard allows five Presence
 // calls per WebSocket connection in a rolling 30-second window. This is
@@ -249,6 +255,15 @@ export function createOrg2CloudRealtimeConnection(
     // Private: presence roster + broadcast nudges are org-scoped, gated by the
     // RLS policy on realtime.messages for topic `presence:<scope>` (setAuth
     // carries the JWT the authorization check needs).
+    //
+    // CONTRACT: unlike postgres channels, the presence topic CANNOT carry a
+    // connection-local sequence suffix — peers only see each other when they
+    // join the exact same topic, and the RLS policy authorizes that exact
+    // topic string. joinPresence therefore must not be called again for a
+    // scope whose previous handle has not finished leaving ON THE SAME
+    // CONNECTION; the one production caller (useOrg2CloudRealtime) satisfies
+    // this by rebuilding the whole connection on every user/endpoint/org
+    // change instead of rejoining in place.
     const channel = client.channel(`presence:${scope}`, {
       config: { private: true, presence: { key } },
     });
@@ -265,12 +280,17 @@ export function createOrg2CloudRealtimeConnection(
     >();
     let broadcasting = false;
     let broadcastRetryTimer: ReturnType<typeof setTimeout> | null = null;
+    let broadcastFailureStreak = 0;
     const scheduleBroadcastRetry = () => {
       if (!subscribed || broadcastRetryTimer !== null) return;
+      const delay = Math.min(
+        BROADCAST_RETRY_MS * 2 ** Math.min(broadcastFailureStreak, 10),
+        BROADCAST_RETRY_MAX_MS
+      );
       broadcastRetryTimer = setTimeout(() => {
         broadcastRetryTimer = null;
         void flushPendingBroadcasts();
-      }, BROADCAST_RETRY_MS);
+      }, delay);
     };
     const flushPendingBroadcasts = async (): Promise<void> => {
       if (!subscribed || broadcasting || pendingBroadcasts.size === 0) return;
@@ -292,13 +312,18 @@ export function createOrg2CloudRealtimeConnection(
               log.warn(
                 `broadcast ${frame.event} failed for ${scope}: ${String(result)}`
               );
+              // Schedule BEFORE bumping the streak: the first retry stays at
+              // the fast base delay; only consecutive failures back off.
               scheduleBroadcastRetry();
+              broadcastFailureStreak += 1;
               return;
             }
             pendingBroadcasts.delete(id);
+            broadcastFailureStreak = 0;
           } catch (error) {
             log.warn(`broadcast ${frame.event} failed for ${scope}:`, error);
             scheduleBroadcastRetry();
+            broadcastFailureStreak += 1;
             return;
           }
         }
@@ -306,12 +331,20 @@ export function createOrg2CloudRealtimeConnection(
         broadcasting = false;
       }
     };
+    let trackFailureStreak = 0;
     const scheduleTrackRetry = () => {
       if (!subscribed || retryTimer !== null) return;
+      // Exponential backoff, capped: transient blips retry fast, a
+      // persistently rejected track (bad policy/token) settles at the
+      // ceiling instead of retrying at 1 Hz for the channel's lifetime.
+      const delay = Math.min(
+        PRESENCE_TRACK_RETRY_MS * 2 ** Math.min(trackFailureStreak, 10),
+        PRESENCE_TRACK_RETRY_MAX_MS
+      );
       retryTimer = setTimeout(() => {
         retryTimer = null;
         void flushLatestPayload();
-      }, PRESENCE_TRACK_RETRY_MS);
+      }, delay);
     };
     const flushLatestPayload = async (): Promise<void> => {
       if (!subscribed || tracking) return;
@@ -355,15 +388,20 @@ export function createOrg2CloudRealtimeConnection(
             }
             published = nextPayload !== null;
             appliedTrackVersion = version;
+            trackFailureStreak = 0;
           } catch (error) {
             log.warn(`presence track failed for ${scope}:`, error);
             if (desiredTrackVersion > version) {
               // A newer payload is already waiting. Retire only this failed
               // attempt and continue immediately with the current truth.
+              trackFailureStreak += 1;
               appliedTrackVersion = version;
               continue;
             }
+            // Schedule BEFORE bumping the streak: the first retry stays at
+            // the fast base delay; only consecutive failures back off.
             scheduleTrackRetry();
+            trackFailureStreak += 1;
             return;
           }
         }
@@ -406,6 +444,10 @@ export function createOrg2CloudRealtimeConnection(
       if (status === "SUBSCRIBED") {
         subscribed = true;
         published = false;
+        // A fresh SUBSCRIBED edge means the transport recovered; retry fast
+        // again instead of inheriting the previous failure streak's ceiling.
+        trackFailureStreak = 0;
+        broadcastFailureStreak = 0;
         if (wasEverTimedOut) {
           log.info(`presence channel ${scope} recovered (SUBSCRIBED)`);
         }

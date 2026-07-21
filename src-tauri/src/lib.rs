@@ -160,9 +160,8 @@ pub fn run() {
     // secondary data root from the same identity that owns its WebView profile
     // and service ports.
     let context = tauri::generate_context!();
-    let runtime_profile = runtime_instance::RuntimeInstanceProfile::from_identifier(
-        &context.config().identifier,
-    );
+    let runtime_profile =
+        runtime_instance::RuntimeInstanceProfile::from_identifier(&context.config().identifier);
     if std::env::var_os("ORGII_HOME").is_none() {
         if let Some(data_home) = runtime_profile.default_orgii_home(&app_paths::home_dir()) {
             std::env::set_var("ORGII_HOME", data_home);

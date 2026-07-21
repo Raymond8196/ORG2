@@ -33,13 +33,19 @@ import { stripCopyEventNamespace } from "../../TeamCollaboration/copyEventId";
 import { getSessionForkedFrom } from "../../TeamCollaboration/forkSession";
 import { collectAddressableThreads } from "../addressComments";
 import { addressRunActiveAtom } from "../addressCommentsRun";
-import { org2CloudAuthAtom } from "../org2CloudAuthAtom";
+import {
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "../org2CloudAuthAtom";
 import type {
   CloudCommentResolution,
   CloudSessionComment,
 } from "../org2CloudCommentsClient";
 import { org2CloudOrgsAtom } from "../org2CloudOrgsAtom";
-import { org2CloudRemoteSessionsAtom } from "../org2CloudRemoteSessionsAtom";
+import {
+  org2CloudRemoteSessionsAtom,
+  remoteSessionsEntryForIdentity,
+} from "../org2CloudRemoteSessionsAtom";
 import {
   type AddCommentInput,
   type CloudSessionCommentsFetchState,
@@ -149,8 +155,14 @@ export function useSessionCommentViewer(target: SessionCommentTarget | null): {
     const role = target
       ? cloudOrgs.find((org) => org.orgId === target.orgId)?.role
       : undefined;
+    // Identity-filtered like every other remote-sessions read: a stale row
+    // from a previous account must not decide anchor capability (fail-open
+    // covers the filtered-out case).
     const row = target
-      ? remoteEntries[target.orgId]?.rows.find(
+      ? remoteSessionsEntryForIdentity(
+          remoteEntries[target.orgId],
+          auth ? org2CloudAuthIdentityKey(auth) : null
+        )?.rows.find(
           (candidate) => candidate.sourceSessionId === target.sessionId
         )
       : undefined;

@@ -1,4 +1,9 @@
-import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
+import type { createStore } from "jotai";
+
+import {
+  type Org2CloudAuthState,
+  org2CloudAuthIdentityKey,
+} from "./org2CloudAuthAtom";
 import {
   type CloudOrgMember,
   ensureFreshSession,
@@ -6,7 +11,9 @@ import {
 } from "./org2CloudClient";
 
 const ROSTER_CACHE_TTL_MS = 60_000;
-const MAX_ROSTER_CACHE_ENTRIES = 64;
+export const MAX_ROSTER_CACHE_ENTRIES = 64;
+
+type JotaiStore = ReturnType<typeof createStore>;
 
 interface RosterCacheEntry {
   members: CloudOrgMember[];
@@ -19,25 +26,50 @@ export interface CloudOrgMembersResult {
   members: CloudOrgMember[];
 }
 
+export interface LoadCloudOrgMembersOptions {
+  /**
+   * Ignore a completed TTL cache entry, while still joining an equal/newer
+   * in-flight request. Used by the open-panel dropped-Realtime fallback.
+   */
+  force?: boolean;
+}
+
 interface InFlightRosterRequest {
   rosterVersion: number;
   promise: Promise<CloudOrgMembersResult | null>;
 }
 
-const rosterCache = new Map<string, RosterCacheEntry>();
-const rosterInFlight = new Map<string, InFlightRosterRequest>();
-
-function rosterKey(auth: Org2CloudAuthState, orgId: string): string {
-  return `${auth.supabaseUrl.replace(/\/+$/, "")}|${auth.userId}|${orgId}`;
+interface RosterCoordinatorState {
+  cache: Map<string, RosterCacheEntry>;
+  inFlight: Map<string, InFlightRosterRequest>;
 }
 
-function cacheRoster(key: string, entry: RosterCacheEntry): void {
-  rosterCache.delete(key);
-  rosterCache.set(key, entry);
-  while (rosterCache.size > MAX_ROSTER_CACHE_ENTRIES) {
-    const oldest = rosterCache.keys().next().value as string | undefined;
+let stateByStore = new WeakMap<JotaiStore, RosterCoordinatorState>();
+
+function stateFor(store: JotaiStore): RosterCoordinatorState {
+  let state = stateByStore.get(store);
+  if (!state) {
+    state = { cache: new Map(), inFlight: new Map() };
+    stateByStore.set(store, state);
+  }
+  return state;
+}
+
+function rosterKey(auth: Org2CloudAuthState, orgId: string): string {
+  return `${org2CloudAuthIdentityKey(auth)}|${orgId}`;
+}
+
+function cacheRoster(
+  cache: Map<string, RosterCacheEntry>,
+  key: string,
+  entry: RosterCacheEntry
+): void {
+  cache.delete(key);
+  cache.set(key, entry);
+  while (cache.size > MAX_ROSTER_CACHE_ENTRIES) {
+    const oldest = cache.keys().next().value as string | undefined;
     if (!oldest) break;
-    rosterCache.delete(oldest);
+    cache.delete(oldest);
   }
 }
 
@@ -47,23 +79,27 @@ function cacheRoster(key: string, entry: RosterCacheEntry): void {
  * together without issuing duplicate list_org_members requests.
  */
 export async function loadCloudOrgMembers(
+  store: JotaiStore,
   auth: Org2CloudAuthState,
   orgId: string,
-  rosterVersion = 0
+  rosterVersion = 0,
+  options: LoadCloudOrgMembersOptions = {}
 ): Promise<CloudOrgMembersResult | null> {
+  const state = stateFor(store);
   const key = rosterKey(auth, orgId);
-  const cached = rosterCache.get(key);
+  const cached = state.cache.get(key);
   if (
+    !options.force &&
     cached &&
     cached.expiresAt > Date.now() &&
     cached.rosterVersion >= rosterVersion
   ) {
-    rosterCache.delete(key);
-    rosterCache.set(key, cached);
+    state.cache.delete(key);
+    state.cache.set(key, cached);
     return { auth, members: cached.members };
   }
 
-  const pending = rosterInFlight.get(key);
+  const pending = state.inFlight.get(key);
   if (pending && pending.rosterVersion >= rosterVersion) {
     return pending.promise;
   }
@@ -76,8 +112,8 @@ export async function loadCloudOrgMembers(
     const fresh = await ensureFreshSession(auth);
     if (!fresh) return null;
     const members = await listOrgMembers(fresh.accessToken, orgId);
-    if (rosterInFlight.get(key) === request) {
-      cacheRoster(key, {
+    if (state.inFlight.get(key) === request) {
+      cacheRoster(state.cache, key, {
         members,
         rosterVersion,
         expiresAt: Date.now() + ROSTER_CACHE_TTL_MS,
@@ -85,16 +121,19 @@ export async function loadCloudOrgMembers(
     }
     return { auth: fresh, members };
   })().finally(() => {
-    if (rosterInFlight.get(key) === request) {
-      rosterInFlight.delete(key);
+    if (state.inFlight.get(key) === request) {
+      state.inFlight.delete(key);
     }
   });
-  rosterInFlight.set(key, request);
+  state.inFlight.set(key, request);
   return request.promise;
 }
 
-/** Test/sign-out support; identity-keying prevents cross-account reads. */
-export function clearCloudOrgMembersCache(): void {
-  rosterCache.clear();
-  rosterInFlight.clear();
+/** Test/store-disposal support; identity-keying prevents cross-account reads. */
+export function clearCloudOrgMembersCache(store?: JotaiStore): void {
+  if (store) {
+    stateByStore.delete(store);
+    return;
+  }
+  stateByStore = new WeakMap<JotaiStore, RosterCoordinatorState>();
 }
