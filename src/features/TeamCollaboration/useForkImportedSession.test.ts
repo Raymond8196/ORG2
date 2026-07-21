@@ -143,13 +143,19 @@ describe("executeGuestShareFork", () => {
     };
   }
 
-  it("forks with an anonymous client and the share token", async () => {
+  it("forks with a registered-user client and the share token", async () => {
     const { client, deps } = makeDeps();
 
     await expect(
-      executeGuestShareFork("tok-1", ORG2_CLOUD_OFFICIAL_SUPABASE_URL, deps)
+      executeGuestShareFork(
+        "jwt-non-member",
+        "tok-1",
+        ORG2_CLOUD_OFFICIAL_SUPABASE_URL,
+        deps
+      )
     ).resolves.toEqual(result);
     expect(deps.resolveShare).toHaveBeenCalledWith(
+      "jwt-non-member",
       "tok-1",
       expect.objectContaining({
         isOfficial: true,
@@ -157,7 +163,7 @@ describe("executeGuestShareFork", () => {
       })
     );
     expect(deps.buildClient).toHaveBeenCalledWith(
-      null,
+      "jwt-non-member",
       expect.objectContaining({
         isOfficial: true,
         supabaseUrl: ORG2_CLOUD_OFFICIAL_SUPABASE_URL,
@@ -176,7 +182,7 @@ describe("executeGuestShareFork", () => {
     const { deps } = makeDeps();
     deps.resolveShare.mockRejectedValueOnce(new Error("ORG2_UNAUTHORIZED"));
     await expect(
-      executeGuestShareFork("tok-1", undefined, deps)
+      executeGuestShareFork("jwt-non-member", "tok-1", undefined, deps)
     ).rejects.toThrow("ORG2_UNAUTHORIZED");
     expect(deps.fork).not.toHaveBeenCalled();
   });

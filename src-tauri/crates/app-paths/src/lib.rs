@@ -12,6 +12,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
 #[cfg(unix)]
@@ -341,12 +342,30 @@ pub fn file_history_dir(session_id: &str) -> PathBuf {
     file_history_root().join(session_id)
 }
 
+// Git for Windows can take longer than 750 ms to cold-start while Defender or
+// a concurrent build is busy. Treating that transient delay as "Git missing"
+// blocks every repo-backed flow even though the executable is installed and
+// the real operation would have succeeded. Probe generously once, then reuse
+// the successful path for the lifetime of the process.
+#[cfg(windows)]
+const SYSTEM_GIT_PROBE_TIMEOUT: Duration = Duration::from_secs(5);
+#[cfg(not(windows))]
 const SYSTEM_GIT_PROBE_TIMEOUT: Duration = Duration::from_millis(750);
 
+static RESOLVED_SYSTEM_GIT: OnceLock<PathBuf> = OnceLock::new();
+
 pub fn system_git_executable() -> Option<PathBuf> {
-    system_git_candidate_paths()
+    if let Some(path) = RESOLVED_SYSTEM_GIT.get() {
+        return Some(path.clone());
+    }
+
+    let resolved = system_git_candidate_paths()
         .into_iter()
-        .find(|path| git_version_succeeds(path))
+        .find(|path| git_version_succeeds(path));
+    if let Some(path) = resolved.as_ref() {
+        let _ = RESOLVED_SYSTEM_GIT.set(path.clone());
+    }
+    resolved
 }
 
 pub fn system_git_candidate_paths() -> Vec<PathBuf> {

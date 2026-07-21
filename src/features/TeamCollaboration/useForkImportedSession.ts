@@ -7,9 +7,9 @@
  * read-only replay copies with NO dispatch adapter — sending into them fails
  * at SessionService. The way forward is the same relay the cloud panel uses:
  * re-fetch the remote row for `importedFrom.sourceSessionId` and run
- * `forkTeammateSession` against the cloud backend. A member uses their JWT;
- * a guest import uses its persisted share capability anonymously and keeps
- * the writable fork in Personal.
+ * `forkTeammateSession` against the cloud backend. Members and registered
+ * non-members both use their JWT; a non-member import additionally uses its
+ * persisted share capability and keeps the writable fork in Personal.
  */
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useState } from "react";
@@ -80,7 +80,7 @@ export type ImportedForkBackendResolution =
 
 /**
  * Membership wins when available. Otherwise, a persisted share capability
- * enables the anonymous guest fork path.
+ * enables the registered non-member fork path.
  */
 export function resolveImportedSessionForkBackend(
   importedFrom: ImportedOrigin,
@@ -113,16 +113,21 @@ const GUEST_SHARE_FORK_DEPS: GuestShareForkDeps = {
   fork: forkTeammateSession,
 };
 
-/** Re-resolve and fork anonymously against the capability's issuing cloud. */
+/** Re-resolve and fork as a registered non-member against the issuing cloud. */
 export async function executeGuestShareFork(
+  accessToken: string,
   shareToken: string,
   shareEndpointUrl?: string,
   deps: GuestShareForkDeps = GUEST_SHARE_FORK_DEPS
 ): Promise<ForkSessionResult | null> {
   const endpoint = resolvePersistedCloudShareEndpoint(shareEndpointUrl);
-  const remoteSession = await deps.resolveShare(shareToken, endpoint);
+  const remoteSession = await deps.resolveShare(
+    accessToken,
+    shareToken,
+    endpoint
+  );
   return deps.fork({
-    client: deps.buildClient(null, endpoint),
+    client: deps.buildClient(accessToken, endpoint),
     orgId: remoteSession.orgId,
     remoteSession,
     shareToken,
@@ -162,8 +167,14 @@ export function useForkImportedSession(session: Session | null | undefined) {
         return fail(resolution.errorKind);
       }
 
+      if (!auth) return fail("generic");
+      const fresh = await ensureFreshSession(auth);
+      if (!fresh) return fail("generic");
+      if (!commitRefreshedAuth(setAuth, auth, fresh)) return fail("generic");
+
       if (resolution.kind === "guestShare") {
         const result = await executeGuestShareFork(
+          fresh.accessToken,
           resolution.shareToken,
           resolution.shareEndpointUrl
         );
@@ -177,10 +188,6 @@ export function useForkImportedSession(session: Session | null | undefined) {
         };
       }
 
-      if (!auth) return fail("generic");
-      const fresh = await ensureFreshSession(auth);
-      if (!fresh) return fail("generic");
-      commitRefreshedAuth(setAuth, auth, fresh);
       // Server-side retention filter: a row that aged out simply is not
       // listed anymore → 'gone'. The same helper powers owner @agent on
       // immutable external histories, keeping every cloud-source fork on one
