@@ -81,6 +81,8 @@ export interface WorkItemsPageHeaderProps {
   /** Current project name to display in breadcrumb */
   projectName: string;
   breadcrumbSegments?: readonly ProjectManagerBreadcrumbSegment[];
+  /** Provider/type icon rendered before the first breadcrumb segment. */
+  identityIcon?: React.ReactNode;
   /** Navigate back to the Projects list from the breadcrumb */
   onOpenProjects?: () => void;
   /** Currently selected view tab */
@@ -268,6 +270,7 @@ const AddActionsButton: React.FC<AddActionsButtonProps> = ({
 const WorkItemsPageHeader: React.FC<WorkItemsPageHeaderProps> = ({
   projectName,
   breadcrumbSegments,
+  identityIcon,
   onOpenProjects,
   activeTab,
   onTabChange: _onTabChange,
@@ -302,7 +305,7 @@ const WorkItemsPageHeader: React.FC<WorkItemsPageHeaderProps> = ({
       if (index === segments.length - 1) {
         return {
           ...segment,
-          icon: segment.icon ?? (
+          icon: segment.icon ?? identityIcon ?? (
             <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
           ),
         };
@@ -312,7 +315,7 @@ const WorkItemsPageHeader: React.FC<WorkItemsPageHeaderProps> = ({
       }
       return segment;
     });
-  }, [breadcrumbSegments, onOpenProjects, projectName, t]);
+  }, [breadcrumbSegments, identityIcon, onOpenProjects, projectName, t]);
 
   const activeTabSupportsStatusFilter =
     activeTab === "List" || activeTab === "Kanban";
