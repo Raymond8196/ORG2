@@ -85,16 +85,72 @@ const SECONDARY_E2E_REPO_PATH =
   process.env.E2E_SECONDARY_REPO_PATH ?? E2E_REPO_PATH;
 const E2E_PROVIDER_MODE = process.env.E2E_PROVIDER_MODE ?? "mock";
 const FORK_E2E_MODEL = "gpt-4o-mini";
-let secondaryImportedTurnToggleSelector =
-  `[data-testid^="session-comment-toggle-"]` +
-  `[data-testid$="~user-${sessionId}"]`;
+let sourceTurnAnchorEventId = null;
+let secondaryImportedTurnToggleSelector = null;
+let secondaryImportedSessionId = null;
 
 function bindRunnableSourceSession(nextSessionId) {
   sessionId = nextSessionId;
   remoteRowSelector = `[data-testid="sidebar-cloud-session-item-${sessionId}"]`;
+  sourceTurnAnchorEventId = null;
+  secondaryImportedTurnToggleSelector = null;
+}
+
+async function captureRenderedSourceTurnAnchor() {
+  const togglePrefix = "session-comment-toggle-";
+  await waitForRendered(
+    `[data-testid^="${togglePrefix}"]`,
+    "owner rendered source-turn comment toggle",
+    CLOUD_FETCH_TIMEOUT_MS
+  );
+  const renderedTestIds = await execJS(`
+    return Array.from(document.querySelectorAll('[data-testid^="${togglePrefix}"]'))
+      .filter((element) => element.getClientRects().length > 0)
+      .map((element) => element.getAttribute('data-testid'))
+      .filter(Boolean);
+  `);
+  const state = unwrap(
+    await invokeE2E("inspectChatState"),
+    "inspect rendered source-turn anchor"
+  );
+  const userEventIds = (state.chatEvents ?? [])
+    .filter(
+      (event) =>
+        event.source === "user" || event.functionName === "user_message"
+    )
+    .map((event) => event.id)
+    .filter(Boolean);
+  const renderedAnchorIds = renderedTestIds.map((testId) =>
+    testId.slice(togglePrefix.length)
+  );
+  const invalidAnchorIds = renderedAnchorIds.filter(
+    (anchorId) => !userEventIds.includes(anchorId)
+  );
+  const latestUserEventId = userEventIds.at(-1) ?? null;
+  const renderedLatestAnchorId = renderedAnchorIds.at(-1) ?? null;
+  if (
+    state.activeSessionId !== sessionId ||
+    !renderedLatestAnchorId ||
+    invalidAnchorIds.length > 0 ||
+    renderedLatestAnchorId !== latestUserEventId
+  ) {
+    throw new Error(
+      `rendered source-turn comment anchor does not match the active session's latest user event: ${JSON.stringify(
+        {
+          activeSessionId: state.activeSessionId,
+          expectedSessionId: sessionId,
+          renderedAnchorIds,
+          userEventIds,
+          invalidAnchorIds,
+        }
+      )}`
+    );
+  }
+  sourceTurnAnchorEventId = renderedLatestAnchorId;
   secondaryImportedTurnToggleSelector =
     `[data-testid^="session-comment-toggle-"]` +
-    `[data-testid$="~user-${sessionId}"]`;
+    `[data-testid$="~${sourceTurnAnchorEventId}"]`;
+  return sourceTurnAnchorEventId;
 }
 
 async function openPrimaryImportSession(label) {
@@ -127,13 +183,20 @@ async function getSecondaryForkAccount(client) {
     "secondary list real fork accounts"
   ).accounts;
   const requested = (process.env.E2E_SECONDARY_ACCOUNT ?? "").trim();
-  const account = accounts.find(
-    (row) =>
+  const account = accounts.find((row) => {
+    const hasRequiredCredential =
+      row.auth_method === "oauth"
+        ? row.has_session_token
+        : row.has_api_key || row.has_session_token;
+    return (
       row.enabled &&
-      (row.has_api_key || row.has_session_token) &&
+      row.health_status !== "invalid" &&
+      row.supports_rust_agents !== false &&
+      hasRequiredCredential &&
       (row.enabled_models ?? []).length > 0 &&
       (!requested || row.id === requested || row.name === requested)
-  );
+    );
+  });
   if (!account) {
     throw new Error(
       `No runnable second-instance account found. requested=${requested || "<any>"} rows=${JSON.stringify(
@@ -142,6 +205,11 @@ async function getSecondaryForkAccount(client) {
           name: row.name,
           type: row.agent_type,
           enabled: row.enabled,
+          authMethod: row.auth_method,
+          health: row.health_status,
+          supportsRustAgents: row.supports_rust_agents,
+          hasApiKey: row.has_api_key,
+          hasSessionToken: row.has_session_token,
           models: row.enabled_models,
         }))
       )}`
@@ -176,7 +244,7 @@ async function completeForkSetupOn(client, label, options = {}) {
           const agent = document.querySelector('[data-testid="fork-setup-agent"]');
           const account = document.querySelector('[data-testid="fork-setup-account"]');
           const model = document.querySelector('[data-testid="fork-setup-model"]');
-          const submit = document.querySelector('[data-testid="fork-setup-submit"]');
+          const submit = document.querySelector('[data-testid="fork-session-setup-submit"]');
           return !!agent?.querySelector('.select-value')?.textContent?.trim() &&
             !!account?.querySelector('.select-value')?.textContent?.trim() &&
             !!model?.querySelector('.select-value')?.textContent?.trim() &&
@@ -225,7 +293,7 @@ async function completeForkSetupOn(client, label, options = {}) {
           `
             const value = document.querySelector('[data-testid="fork-setup-agent"]')
               ?.querySelector('.select-value')?.textContent ?? '';
-            const submit = document.querySelector('[data-testid="fork-setup-submit"]');
+            const submit = document.querySelector('[data-testid="fork-session-setup-submit"]');
             return value.includes(${JSON.stringify(options.agentName)}) &&
               !!submit && !submit.disabled;
           `
@@ -239,7 +307,7 @@ async function completeForkSetupOn(client, label, options = {}) {
   }
   await clickRenderedOn(
     client,
-    '[data-testid="fork-setup-submit"]',
+    '[data-testid="fork-session-setup-submit"]',
     `${label} submit`
   );
 }
@@ -689,7 +757,17 @@ async function postCommentOn(client, body) {
       const result = await executeOn(
         client,
         `
-          const button = document.querySelector('[data-testid="session-comment-composer"] button');
+          const textareas = Array.from(
+            document.querySelectorAll('[data-testid="session-comment-composer"] textarea')
+          );
+          const visibleTextareas = textareas.filter((textarea) => {
+            const rect = textarea.getBoundingClientRect();
+            const style = window.getComputedStyle(textarea);
+            return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+          });
+          const textarea = visibleTextareas[visibleTextareas.length - 1] ?? null;
+          const composer = textarea?.closest('[data-testid="session-comment-composer"]') ?? null;
+          const button = composer?.querySelector('[data-testid="session-comment-composer-submit"]') ?? null;
           if (!button || button.disabled) return false;
           button.click();
           return true;
@@ -1406,6 +1484,40 @@ describe("Cloud collaboration with two independent rendered app instances", func
         `runnable owner launch lost model/account: ${JSON.stringify(launchedOwnerSession)}`
       );
     }
+    // launchSession returns as soon as the real provider turn is queued. Wait
+    // for that turn to finish before replacing its transcript with the
+    // deterministic sharing fixture; otherwise a late native event can race
+    // in after seedChatEvents and change the visible/latest comment anchor.
+    await browser.waitUntil(
+      async () => {
+        const state = unwrap(
+          await invokeE2E("inspectChatState"),
+          "inspect runnable owner launch completion"
+        );
+        const providerReplied = (state.chatEvents ?? []).some(
+          (event) =>
+            event.source === "assistant" &&
+            typeof event.displayText === "string" &&
+            event.displayText.trim().length > 0
+        );
+        const terminal =
+          state.runtimeStatus !== "running" &&
+          state.runtimeStatus !== "installing" &&
+          state.turnPhase === "idle" &&
+          !state.isSessionActive;
+        return (
+          state.activeSessionId === launchedOwnerSessionId &&
+          providerReplied &&
+          terminal
+        );
+      },
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 250,
+        timeoutMsg:
+          "real owner provider turn did not complete before deterministic sharing seed",
+      }
+    );
     bindRunnableSourceSession(launchedOwnerSessionId);
     await seedAndOpenCloudEligibleSession(sessionId, SESSION_TITLE, {
       touchedFilePath: join(E2E_REPO_PATH, SESSION_BLAME_FILE),
@@ -1580,8 +1692,11 @@ describe("Cloud collaboration with two independent rendered app instances", func
       await invokeOn(second.client, "inspectChatState"),
       "secondary imported replay state"
     );
-    const importedSessionId = importedState.activeSessionId;
-    if (!importedSessionId || importedSessionId === sessionId) {
+    secondaryImportedSessionId = importedState.activeSessionId;
+    if (
+      !secondaryImportedSessionId ||
+      secondaryImportedSessionId === sessionId
+    ) {
       throw new Error(
         `secondary replay did not materialize a distinct local session: ${JSON.stringify(importedState)}`
       );
@@ -1602,7 +1717,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
         );
         collaborationHistory = result.history?.sessions?.find(
           (session) =>
-            session.sessionId === importedSessionId &&
+            session.sessionId === secondaryImportedSessionId &&
             session.source === "orgii_cloud_replay"
         );
         return Boolean(collaborationHistory);
@@ -1681,7 +1796,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     );
     const teamBlameSelector =
       `[data-testid="session-blame-session"]` +
-      `[data-session-id="${importedSessionId}"]` +
+      `[data-session-id="${secondaryImportedSessionId}"]` +
       `[data-session-source="orgii_cloud_replay"]` +
       ` [data-testid="session-blame-session-header"]`;
     await waitForRenderedOn(
@@ -1723,7 +1838,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
         ]);
         return (
           state.ok === true &&
-          state.activeSessionId === importedSessionId &&
+          state.activeSessionId === secondaryImportedSessionId &&
           navigation.orgId === `cloud:${teamOrgId}` &&
           navigation.rowPresent &&
           navigation.rowSelected
@@ -1835,22 +1950,25 @@ describe("Cloud collaboration with two independent rendered app instances", func
 
     // Keep the owner's comment panel open before the teammate writes; the
     // new row must arrive without a refresh or re-open.
-    await openTurnCommentPanel(`user-${sessionId}`).catch(async (error) => {
-      const [debug, chat] = await Promise.all([
-        invokeE2E("cloudInspectDebugState", { sessionId }),
-        invokeE2E("inspectChatState"),
-      ]);
-      const groupView = await execJS(`
+    const renderedSourceTurnAnchor = await captureRenderedSourceTurnAnchor();
+    await openTurnCommentPanel(renderedSourceTurnAnchor).catch(
+      async (error) => {
+        const [debug, chat] = await Promise.all([
+          invokeE2E("cloudInspectDebugState", { sessionId }),
+          invokeE2E("inspectChatState"),
+        ]);
+        const groupView = await execJS(`
         return {
           groupPending: !!document.querySelector('[data-testid="agent-org-group-chat-pending"]'),
           anchors: document.querySelectorAll('[data-testid^="session-comment-toggle-"]').length,
           turnRows: document.querySelectorAll('[data-testid="chat-message-user-editable"]').length,
         };
       `);
-      throw new Error(
-        `${error.message}\nowner comment debug: ${JSON.stringify(debug?.debug ?? debug).slice(0, 900)}\nowner chat state: ${JSON.stringify({ active: chat?.activeSessionId, events: chat?.chatEventCount, ids: (chat?.chatEvents ?? []).slice(0, 4).map((e) => e.id) })}\ngroup view probe: ${JSON.stringify(groupView)}`
-      );
-    });
+        throw new Error(
+          `${error.message}\nowner comment debug: ${JSON.stringify(debug?.debug ?? debug).slice(0, 900)}\nowner chat state: ${JSON.stringify({ active: chat?.activeSessionId, events: chat?.chatEventCount, ids: (chat?.chatEvents ?? []).slice(0, 4).map((e) => e.id) })}\ngroup view probe: ${JSON.stringify(groupView)}`
+        );
+      }
+    );
     await clickRenderedOn(
       second.client,
       secondaryImportedTurnToggleSelector,
@@ -1957,7 +2075,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
     // reply lands in each selected scope while the earlier owner-only thread
     // remains single-addressed.
     await clickRendered(
-      `[data-testid="session-comment-toggle-user-${sessionId}"]`,
+      `[data-testid="session-comment-toggle-${sourceTurnAnchorEventId}"]`,
       "owner close turn comments before Address Comments"
     );
     await waitForGone(
@@ -2029,7 +2147,7 @@ describe("Cloud collaboration with two independent rendered app instances", func
       }
     );
     await pressEscape();
-    await openTurnCommentPanel(`user-${sessionId}`);
+    await openTurnCommentPanel(sourceTurnAnchorEventId);
     await browser.waitUntil(
       async () =>
         execJS(`
@@ -2142,11 +2260,31 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="session-forked-from-chip"]',
       "secondary open fork parent"
     );
-    await waitForRenderedOn(
-      second.client,
-      '[data-testid="session-imported-from-chip"]',
-      "secondary imported parent after fork navigation",
-      CLOUD_FETCH_TIMEOUT_MS
+    await second.client.waitUntil(
+      async () => {
+        const state = unwrapOn(
+          await invokeOn(second.client, "inspectChatState"),
+          "secondary imported parent after fork navigation"
+        );
+        const header = await executeOn(
+          second.client,
+          `return {
+            forkAction: !!document.querySelector('[data-testid="session-fork-button"]'),
+            forkProvenance: !!document.querySelector('[data-testid="session-forked-from-chip"]'),
+          };`
+        );
+        return (
+          state.activeSessionId === secondaryImportedSessionId &&
+          header.forkAction &&
+          !header.forkProvenance
+        );
+      },
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 250,
+        timeoutMsg:
+          "secondary fork parent did not become the active imported replay",
+      }
     );
 
     // Coexistence / steal-back regression (event-id collision). The parent
@@ -2490,11 +2628,31 @@ describe("Cloud collaboration with two independent rendered app instances", func
       '[data-testid="session-forked-from-chip"]',
       "secondary open send-created fork parent"
     );
-    await waitForRenderedOn(
-      second.client,
-      '[data-testid="session-imported-from-chip"]',
-      "secondary send-created fork parent",
-      CLOUD_FETCH_TIMEOUT_MS
+    await second.client.waitUntil(
+      async () => {
+        const state = unwrapOn(
+          await invokeOn(second.client, "inspectChatState"),
+          "secondary send-created fork parent"
+        );
+        const header = await executeOn(
+          second.client,
+          `return {
+            forkAction: !!document.querySelector('[data-testid="session-fork-button"]'),
+            forkProvenance: !!document.querySelector('[data-testid="session-forked-from-chip"]'),
+          };`
+        );
+        return (
+          state.activeSessionId === secondaryImportedSessionId &&
+          header.forkAction &&
+          !header.forkProvenance
+        );
+      },
+      {
+        timeout: CLOUD_FETCH_TIMEOUT_MS,
+        interval: 250,
+        timeoutMsg:
+          "secondary send-created fork parent did not become the active imported replay",
+      }
     );
     const parentAfterForkSend = unwrapOn(
       await invokeOn(second.client, "inspectChatState"),
