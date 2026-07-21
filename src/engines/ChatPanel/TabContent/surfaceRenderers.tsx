@@ -7,9 +7,13 @@
  * themselves are unchanged — the renderer just supplies their props from the
  * tab. Panels are lazy-loaded to preserve code-splitting.
  */
-import React, { Suspense } from "react";
+import { useSetAtom } from "jotai";
+import React, { Suspense, useCallback } from "react";
 
-import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
+  type ChatPanelTab,
+  closeAndDestroyChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 
 const WorkItemPanelView = React.lazy(() =>
   import("../panels/WorkItemPanelView").then((m) => ({
@@ -44,10 +48,18 @@ export interface ChatPanelSurfaceRendererProps {
 export function WorkItemSurfaceRenderer({
   tab,
 }: ChatPanelSurfaceRendererProps): React.ReactNode {
+  const closeTab = useSetAtom(closeAndDestroyChatPanelTabAtom);
+  const handleClose = useCallback(() => {
+    void closeTab(tab.id);
+  }, [closeTab, tab.id]);
+
   if (!tab.workItem) return null;
   return (
     <Suspense fallback={null}>
-      <WorkItemPanelView selectedWorkItem={tab.workItem} />
+      <WorkItemPanelView
+        selectedWorkItem={tab.workItem}
+        onClose={handleClose}
+      />
     </Suspense>
   );
 }
