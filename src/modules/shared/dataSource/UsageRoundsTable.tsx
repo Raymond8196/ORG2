@@ -11,6 +11,7 @@ import SettingsTable, {
   type SettingsTableSelectFilter,
 } from "@src/components/SettingsTable";
 import Tooltip from "@src/components/Tooltip";
+import { SECTION_SUBHEADING_CLASSES } from "@src/modules/shared/layouts/SectionLayout";
 import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";
 
@@ -254,7 +255,11 @@ export default function UsageRoundsTable({
   const showPagination = total > Math.min(...PAGE_SIZE_OPTIONS);
 
   return (
-    <CollapsibleSection title={`${t("usage.roundsTable.title")} (${total})`}>
+    <CollapsibleSection
+      title={`${t("usage.roundsTable.title")} (${total})`}
+      compact
+      titleClassName={SECTION_SUBHEADING_CLASSES}
+    >
       <SettingsTable<UsageRoundRow>
         columns={columns}
         rows={rows}

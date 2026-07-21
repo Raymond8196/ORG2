@@ -25,6 +25,7 @@ import Switch from "@src/components/Switch";
 import Tag, { type TagProps } from "@src/components/Tag";
 import { INFO_CARD_TOKENS } from "@src/config/detailPanelTokens";
 import {
+  SECTION_GAP_CLASSES,
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
@@ -400,7 +401,7 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={SECTION_GAP_CLASSES}>
       <SectionContainer>
         <SectionRow
           label={t("agentOrgs.sessionProvenance.masterToggle", {

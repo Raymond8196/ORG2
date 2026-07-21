@@ -53,9 +53,16 @@ import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import Tag, { type TagProps } from "@src/components/Tag";
 import {
   SECTION_CONTROL_STYLE,
+  SECTION_GAP_CLASSES,
+  SECTION_SUBHEADING_CLASSES,
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
+import {
+  DETAIL_PANEL_TOKENS,
+  InternalHeader,
+  ScrollPreservation,
+} from "@src/modules/shared/layouts/blocks";
 import { loadSidebarSessions } from "@src/store/session";
 import {
   ACTIVE_EXTERNAL_SESSION_REFRESH_FREQUENCIES,
@@ -619,11 +626,13 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
 
   return (
     <div className="absolute inset-0 flex min-h-0 flex-col overflow-hidden">
-      {/* Keep the view tabs outside the scrolling content, matching Settings.
-          `bg-chat-pane` resolves to the correct Chat Panel or My Station
-          surface color in each host. */}
-      <div className="shrink-0 bg-chat-pane">
-        <div className="mx-auto flex h-full w-full max-w-[932px] justify-center px-4 pb-3 pt-4">
+      {/* Match the Settings page header geometry while keeping the view tabs
+          outside the preserved scroll region. */}
+      <InternalHeader
+        noPanelHeader
+        contentPadding
+        className={DETAIL_PANEL_TOKENS.headerWidth}
+        tabs={
           <TabPill
             activeTab={panelView}
             tabs={[
@@ -666,20 +675,26 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
             size="large"
             fillWidth={false}
           />
-        </div>
-      </div>
+        }
+      />
 
-      <div
-        className={`min-h-0 flex-1 scrollbar-hide ${
-          panelView === "assets" ? "overflow-hidden" : "overflow-y-auto"
-        }`}
+      <ScrollPreservation
+        data-testid="data-source-scroll-region"
+        className={
+          panelView === "assets"
+            ? "min-h-0 flex-1 overflow-hidden scrollbar-hide"
+            : DETAIL_PANEL_TOKENS.scrollContentNoTop
+        }
       >
         {panelView === "assets" ? (
           assetsContent
         ) : (
-          <div className="mx-auto flex w-full max-w-[932px] flex-col gap-3 px-4 pb-4">
+          <div
+            className={`${DETAIL_PANEL_TOKENS.contentWidthWithPaddingNoTop} ${SECTION_GAP_CLASSES}`}
+          >
             {panelView === "scanning" ? (
               <>
+                <h3 className={SECTION_SUBHEADING_CLASSES}>{t("title")}</h3>
                 {importableCount > 0 && (
                   <SectionContainer>
                     <SectionRow
@@ -810,7 +825,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
             )}
           </div>
         )}
-      </div>
+      </ScrollPreservation>
     </div>
   );
 };

@@ -42,7 +42,11 @@ describe("Runtime DataSourcePanel navigation", () => {
     expect(assets).toBeGreaterThan(hooks);
     expect(markup).toContain("Usage dashboard");
     expect(markup).not.toContain("Quota content");
-    expect(markup).toContain("justify-center");
+    expect(markup).toContain("max-w-[932px]");
+    expect(markup).toContain("max-w-[900px]");
+    expect(markup).toContain("flex flex-col gap-3");
     expect(markup).not.toContain("chat-panel-header");
+    expect(markup).toContain('data-testid="data-source-scroll-region"');
+    expect(markup).toContain("overflow-y-auto");
   });
 });

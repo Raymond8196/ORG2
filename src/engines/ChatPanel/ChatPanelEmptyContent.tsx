@@ -161,17 +161,25 @@ export function ChatPanelEmptyContent({
                   showPropertiesAction={false}
                   aiGenerateMode={showWorkItemAgentCreator}
                   onAiGenerateModeChange={handleWorkItemAgentCreatorToggle}
-                  showAiModePanel={showInlineAiModePanel}
+                  showAiModePanel={false}
+                  centerLauncherContent={showInlineAiModePanel}
                   showFooter
                   chatPanelFooter
                   renderAgentComposer={
                     SessionCreatorSlot
                       ? (headerContent) => (
                           <SessionCreatorSlot
-                            className="min-h-0 flex-1"
+                            className={
+                              showInlineAiModePanel
+                                ? "shrink-0"
+                                : "min-h-0 flex-1"
+                            }
                             variant={creatorVariant}
                             centerFullScreenContent
                             composerHeaderContent={headerContent}
+                            innerClassName={
+                              showInlineAiModePanel ? "pb-2 pt-1" : undefined
+                            }
                             hidePresenceButton
                             launchMode={
                               SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND
@@ -322,9 +330,11 @@ export function ChatPanelEmptyContent({
         onAddApiKey={handleStartPageAddApiKey}
         onCreateTarget={handleCreateTargetChange}
         onInstallLatestUpdate={handleStartPageInstallLatestUpdate}
+        onWorkItemAgentModeChange={handleWorkItemAgentCreatorToggle}
         moreLauncher={moreLauncher}
         sessionLauncher={sessionLauncher}
         t={t}
+        workItemAgentMode={showWorkItemAgentCreator}
         workItemLauncher={renderWorkItemCreator(true)}
       />
     );

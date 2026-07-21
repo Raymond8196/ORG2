@@ -17,6 +17,10 @@ import {
 } from "@src/hooks/keyVault/accountQuotaDisplay";
 import { createLogger } from "@src/hooks/logger";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  SECTION_GAP_CLASSES,
+  SECTION_SUBHEADING_CLASSES,
+} from "@src/modules/shared/layouts/SectionLayout";
 
 const logger = createLogger("StartPageQuotaGrid");
 
@@ -163,22 +167,30 @@ export function StartPageQuotaGrid({
   );
 
   return (
-    <div className={`flex flex-col gap-4 ${className ?? ""}`}>
-      <div className="flex justify-end">
-        <Button
-          htmlType="button"
-          variant="secondary"
-          appearance="outline"
-          size="small"
-          disabled={refreshing || entries.length === 0}
-          aria-label={t("chat.startPage.quota.refresh")}
-          title={t("chat.startPage.quota.refresh")}
-          onClick={handleRefreshClick}
-          icon={<RefreshCw size={14} className={spinClass} />}
-        >
-          {t("chat.startPage.quota.refresh")}
-        </Button>
+    <div className={`${SECTION_GAP_CLASSES} ${className ?? ""}`}>
+      <div
+        className="sticky top-0 z-20 -mx-4 bg-chat-pane px-4 pb-1"
+        data-testid="quota-refresh-controls"
+      >
+        <div className="flex min-h-9 items-center justify-end">
+          <Button
+            htmlType="button"
+            variant="tertiary"
+            appearance="ghost"
+            size="small"
+            disabled={refreshing || entries.length === 0}
+            aria-label={t("chat.startPage.quota.refresh")}
+            title={t("chat.startPage.quota.refresh")}
+            onClick={handleRefreshClick}
+            icon={<RefreshCw size={14} className={spinClass} />}
+          >
+            {t("chat.startPage.quota.refresh")}
+          </Button>
+        </div>
       </div>
+      <h3 className={SECTION_SUBHEADING_CLASSES}>
+        {t("kanban.dataSource.views.quota")}
+      </h3>
       {entries.length === 0 ? (
         <p className="px-1 text-center text-[13px] text-text-3">
           {t("chat.startPage.quota.empty")}
