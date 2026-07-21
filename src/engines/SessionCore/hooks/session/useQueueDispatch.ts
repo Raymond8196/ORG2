@@ -74,7 +74,11 @@ import {
   isCliSession,
   isCursorIdeSession,
 } from "@src/util/session/sessionDispatch";
-import { isSessionEngineActiveStatus } from "@src/util/session/sessionRuntimeExecuting";
+
+import {
+  type BackendDispatchVerdict,
+  classifyBackendSessionStatus,
+} from "./backendDispatchVerdict";
 
 const log = createLogger("useQueueDispatch");
 
@@ -91,42 +95,6 @@ function queuedMessageAgeMs(message: QueuedMessage): number {
   const createdAtMs = Date.parse(message.createdAt);
   if (!Number.isFinite(createdAtMs)) return MIN_QUEUE_VISIBLE_MS;
   return Date.now() - createdAtMs;
-}
-
-/**
- * Failure-class terminal statuses: the session is dead and the backend will
- * accept-but-swallow any message sent to it (no scheduler turn ever runs).
- * Natural drain must park instead of dispatch — observed 2026-06-11 when six
- * queued messages were flushed into a panicked subagent 20 minutes after it
- * failed and silently vanished.
- *
- * `completed` is deliberately NOT here: a completed turn is the normal
- * drain trigger (finish turn → status completed → dispatch next queued
- * message). `cancelled` is also dispatchable — a user Stop already parks
- * via `holdSessionQueueForStopAtom`, and a follow-up resumes the session.
- */
-const BACKEND_DEAD_STATUSES = new Set([
-  "failed",
-  "error",
-  "timeout",
-  "killed",
-  "abandoned",
-  "archived",
-]);
-
-export type BackendDispatchVerdict = "busy" | "dead" | "ready";
-
-/**
- * Pure classifier for a backend-reported session status.
- * Exported for tests — the async wrapper below owns the RPC plumbing.
- */
-export function classifyBackendSessionStatus(
-  status: string | undefined | null
-): BackendDispatchVerdict {
-  if (!status) return "ready";
-  if (isSessionEngineActiveStatus(status)) return "busy";
-  if (BACKEND_DEAD_STATUSES.has(status)) return "dead";
-  return "ready";
 }
 
 /** Re-check cadence while the backend reports the session still busy. */
