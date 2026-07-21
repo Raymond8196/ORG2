@@ -6,6 +6,7 @@ import {
   projectDataToUI,
   workItemDataToUI,
 } from "@src/api/http/project";
+import { projectSyncApi } from "@src/api/http/project/sync";
 import { createLogger } from "@src/hooks/logger";
 import { ProjectOrgHubContent } from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectOrgHubContent";
 import {
@@ -45,13 +46,17 @@ export const ProjectOrgPanelView: React.FC<ProjectOrgPanelViewProps> = ({
       if (!projectSlug) return;
 
       try {
-        const projectData = await projectApi.readProject(projectSlug);
+        const [projectData, syncStatus] = await Promise.all([
+          projectApi.readProject(projectSlug),
+          projectSyncApi.status(projectSlug).catch(() => null),
+        ]);
         openProjectTab({
           project: projectDataToUI(projectData, {
             labelMap: new Map(),
             memberMap: new Map(),
           }),
           projectSlug,
+          projectSyncAdapterId: syncStatus?.adapter_id ?? null,
           orgId: selectedProjectOrg.orgId,
           orgName: selectedProjectOrg.orgName,
         });

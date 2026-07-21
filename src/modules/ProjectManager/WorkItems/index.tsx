@@ -676,6 +676,9 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
           projectName={displayProject.name}
           projectDescription={resolvedProjectDescription}
           projectProperties={displayProject}
+          hideProjectPropertiesRow={
+            projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB
+          }
           repoPath={repoPath}
           availableMembers={projectData.availableMembers}
           availableTeams={projectData.availableTeams}

@@ -2,7 +2,12 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { buildLinkedSessionRows, buildWorkItemRow } from "./menuRows";
+import {
+  buildLinkedSessionRows,
+  buildProjectOverviewRow,
+  buildProjectRow,
+  buildWorkItemRow,
+} from "./menuRows";
 import type { SidebarWorkItem } from "./types";
 
 vi.mock("@src/components/IntegrationIcon", () => ({
@@ -129,5 +134,40 @@ describe("buildWorkItemRow", () => {
     expect(rows[1]?.trailingElement).toBeDefined();
     expect(rows[1]?.label).toBe("123456789012345678901234567890");
     expect(rows[0]?.dragPayload?.path).toBe("session://session-running");
+  });
+});
+
+describe("project rows", () => {
+  it("uses the GitHub SVG for imported projects", () => {
+    const row = buildProjectRow(
+      t,
+      "orgii-issues",
+      "ORGII issues",
+      false,
+      "github"
+    );
+    const overviewRow = buildProjectOverviewRow(
+      t,
+      "orgii-issues",
+      "ORGII issues",
+      "github"
+    );
+
+    for (const projectRow of [row, overviewRow]) {
+      const markup = renderToStaticMarkup(
+        createElement("div", null, projectRow.iconElement)
+      );
+      expect(markup).toContain('data-integration-icon="github"');
+      expect(projectRow.icon).toBeUndefined();
+      expect(projectRow.iconName).toBeUndefined();
+    }
+  });
+
+  it("keeps the default project icon for local projects", () => {
+    const row = buildProjectRow(t, "local-project", "Local project");
+
+    expect(row.icon).toBeDefined();
+    expect(row.iconName).toBe("box");
+    expect(row.iconElement).toBeUndefined();
   });
 });

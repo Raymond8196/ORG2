@@ -60,11 +60,13 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import IntegrationIcon from "@src/components/IntegrationIcon";
 import SessionHoverCard from "@src/components/SessionHoverCard";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
@@ -246,6 +248,17 @@ const TabPill = memo(function TabPill({
       strokeWidth: 1.75,
       className: `shrink-0 ${iconColorClass}`,
     });
+  } else if (
+    tab.type === "project" &&
+    tab.project?.projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB
+  ) {
+    icon = (
+      <IntegrationIcon
+        type={STORY_SYNC_ADAPTER.GITHUB}
+        size={16}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
   } else if (tab.type === "session" && tab.sessionId) {
     icon = (
       <SessionIdentityIcon
