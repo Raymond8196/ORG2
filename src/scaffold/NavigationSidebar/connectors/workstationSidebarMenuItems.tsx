@@ -71,6 +71,14 @@ export function buildPinnedMenuItems({
       shortcut: kanbanShortcut,
     },
     {
+      id: RUNTIME_MENU_ITEM_ID,
+      key: RUNTIME_MENU_ITEM_ID,
+      label: runtimeLabel,
+      icon: Gauge,
+      iconName: "gauge",
+      dataTestId: "sidebar-runtime",
+    },
+    {
       id: WORK_ITEMS_MENU_ITEM_ID,
       key: WORK_ITEMS_MENU_ITEM_ID,
       label: workItemsLabel,
@@ -78,14 +86,6 @@ export function buildPinnedMenuItems({
       iconName: "list-todo",
       children: workItemDestinations,
       dataTestId: "sidebar-toggle-work-items",
-    },
-    {
-      id: RUNTIME_MENU_ITEM_ID,
-      key: RUNTIME_MENU_ITEM_ID,
-      label: runtimeLabel,
-      icon: Gauge,
-      iconName: "gauge",
-      dataTestId: "sidebar-runtime",
     },
   ];
 }

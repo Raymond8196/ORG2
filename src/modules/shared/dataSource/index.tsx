@@ -633,48 +633,50 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
         contentPadding
         className={DETAIL_PANEL_TOKENS.headerWidth}
         tabs={
-          <TabPill
-            activeTab={panelView}
-            tabs={[
-              {
-                key: "usage",
-                label: t("views.usage"),
-                dataTestId: "data-source-view-usage",
-              },
-              ...(quotaContent
-                ? [
-                    {
-                      key: "quota",
-                      label: t("views.quota"),
-                      dataTestId: "data-source-view-quota",
-                    },
-                  ]
-                : []),
-              {
-                key: "scanning",
-                label: t("views.scanning"),
-                dataTestId: "data-source-view-scanning",
-              },
-              {
-                key: "hooks",
-                label: t("views.hooks"),
-                dataTestId: "data-source-view-hooks",
-              },
-              ...(assetsContent
-                ? [
-                    {
-                      key: "assets",
-                      label: t("views.assets"),
-                      dataTestId: "data-source-view-assets",
-                    },
-                  ]
-                : []),
-            ]}
-            onChange={(key) => setPanelView(key as DataSourcePanelView)}
-            variant="simple"
-            size="large"
-            fillWidth={false}
-          />
+          <div className="flex w-full justify-center">
+            <TabPill
+              activeTab={panelView}
+              tabs={[
+                {
+                  key: "usage",
+                  label: t("views.usage"),
+                  dataTestId: "data-source-view-usage",
+                },
+                ...(quotaContent
+                  ? [
+                      {
+                        key: "quota",
+                        label: t("views.quota"),
+                        dataTestId: "data-source-view-quota",
+                      },
+                    ]
+                  : []),
+                {
+                  key: "scanning",
+                  label: t("views.scanning"),
+                  dataTestId: "data-source-view-scanning",
+                },
+                {
+                  key: "hooks",
+                  label: t("views.hooks"),
+                  dataTestId: "data-source-view-hooks",
+                },
+                ...(assetsContent
+                  ? [
+                      {
+                        key: "assets",
+                        label: t("views.assets"),
+                        dataTestId: "data-source-view-assets",
+                      },
+                    ]
+                  : []),
+              ]}
+              onChange={(key) => setPanelView(key as DataSourcePanelView)}
+              variant="simple"
+              size="large"
+              fillWidth={false}
+            />
+          </div>
         }
       />
 
