@@ -445,7 +445,7 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
     : ["canvas", "source"];
 
   return (
-    <NoDragRegion className="flex min-w-0 flex-1 items-center gap-2 px-2">
+    <NoDragRegion className="flex min-w-0 flex-1 items-center gap-2">
       <Layout size={13} className="shrink-0 text-primary-6" />
       <span className="min-w-0 truncate text-xs font-medium text-text-2">
         {title}

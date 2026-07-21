@@ -103,6 +103,7 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
       content: headerSlots?.content ?? null,
       trailing: headerSlots?.trailing ?? null,
       sidebarToggleDisabled: true,
+      joinWithFollowingRow: headerSlots?.joinWithFollowingRow ?? false,
     }),
     [headerLeading, headerSlots]
   );
@@ -122,6 +123,7 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
       ) : null,
       content: headerSlots?.content ?? null,
       trailing: headerSlots?.trailing ?? null,
+      joinWithFollowingRow: headerSlots?.joinWithFollowingRow ?? false,
     }),
     [headerLeading, headerSlots]
   );
