@@ -10,7 +10,7 @@
 import React, { useCallback, useLayoutEffect, useRef } from "react";
 
 export interface ScrollPreservationProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
+  "data-testid"?: string;
 }
 
 const JUMP_THRESHOLD = 1;

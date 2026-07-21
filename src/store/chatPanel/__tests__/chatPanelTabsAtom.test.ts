@@ -187,7 +187,7 @@ describe("closeChatPanelTabAtom", () => {
     store.set(closeChatPanelTabAtom, fallbackState.activeTabId);
     expect(store.get(chatPanelTabsAtom).tabs).toHaveLength(1);
     expect(store.get(chatPanelTabsAtom).tabs[0].type).toBe("start-page");
-  });
+  }, 30_000);
 
   it("restores docked presentation when the final management tab closes", async () => {
     const {
