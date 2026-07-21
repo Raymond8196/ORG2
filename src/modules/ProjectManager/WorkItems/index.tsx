@@ -109,7 +109,8 @@ export interface WorkItemsPageProps {
   onExpandWorkItemToTab?: (
     workItemId: string,
     workItemName: string,
-    pendingUpdates?: Record<string, unknown>
+    pendingUpdates?: Record<string, unknown>,
+    workItemStatus?: string
   ) => void;
   /** Notify parent tab system when the embedded work item title changes */
   onEmbeddedWorkItemNameUpdated?: (workItemName: string) => void;
@@ -421,6 +422,10 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       onExpandWorkItemToTab={onExpandWorkItemToTab}
       breadcrumbProjectName={headerTitle}
       breadcrumbIcon={projectIdentityIcon}
+      titleEditable={
+        projectSyncAdapterId !== undefined &&
+        projectSyncAdapterId !== STORY_SYNC_ADAPTER.GITHUB
+      }
       propertiesOpen={workItemPropertiesOpen}
       onToggleProperties={() => setWorkItemPropertiesOpen((prev) => !prev)}
       publishHeaderToWorkstation={tabBarActionsInStationTabBar && isActive}

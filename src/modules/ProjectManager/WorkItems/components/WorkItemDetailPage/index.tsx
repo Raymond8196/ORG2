@@ -38,6 +38,8 @@ interface WorkItemDetailPageProps {
   publishHeaderToWorkstation?: boolean;
   /** Notify parent tab system when the work item title changes */
   onWorkItemNameUpdated?: (workItemName: string) => void;
+  /** Publish source status so persisted tabs can restore the correct icon. */
+  onWorkItemStatusResolved?: (workItemStatus: string) => void;
 }
 
 const ProjectScopedWorkItemDetailPage: React.FC<WorkItemDetailPageProps> = ({
@@ -50,6 +52,7 @@ const ProjectScopedWorkItemDetailPage: React.FC<WorkItemDetailPageProps> = ({
   pendingUpdates,
   publishHeaderToWorkstation = false,
   onWorkItemNameUpdated,
+  onWorkItemStatusResolved,
 }) => {
   const { t } = useTranslation("projects");
   const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
@@ -70,6 +73,11 @@ const ProjectScopedWorkItemDetailPage: React.FC<WorkItemDetailPageProps> = ({
     [data.workItems, workItemId]
   );
   const workItemDeleted = workItem ? isDeletedWorkItem(workItem) : false;
+
+  useEffect(() => {
+    const workItemStatus = workItem?.workItemStatus ?? workItem?.status;
+    if (workItemStatus) onWorkItemStatusResolved?.(workItemStatus);
+  }, [onWorkItemStatusResolved, workItem]);
 
   const workItemIndex = useMemo(
     () => data.workItems.findIndex((item) => item.session_id === workItemId),
@@ -188,6 +196,7 @@ const StandaloneWorkItemDetailPage: React.FC<WorkItemDetailPageProps> = ({
   pendingUpdates,
   publishHeaderToWorkstation = false,
   onWorkItemNameUpdated,
+  onWorkItemStatusResolved,
 }) => {
   const { t } = useTranslation("projects");
   const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
@@ -215,6 +224,11 @@ const StandaloneWorkItemDetailPage: React.FC<WorkItemDetailPageProps> = ({
   useEffect(() => {
     void loadWorkItem();
   }, [loadWorkItem]);
+
+  useEffect(() => {
+    const workItemStatus = workItem?.workItemStatus ?? workItem?.status;
+    if (workItemStatus) onWorkItemStatusResolved?.(workItemStatus);
+  }, [onWorkItemStatusResolved, workItem]);
 
   const handleRegisterActions = useCallback(
     (actions: WorkItemDetailActions) => {

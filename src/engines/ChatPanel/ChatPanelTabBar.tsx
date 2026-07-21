@@ -71,6 +71,7 @@ import SessionHoverCard from "@src/components/SessionHoverCard";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { TERMINAL_AGENT_STATUS } from "@src/engines/TerminalCore/types";
+import { isGitHubIssueStatus } from "@src/modules/ProjectManager/WorkItems/workItemIdentity";
 import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared/TabBar/components/TabBarTrailingIconButton";
 import { TabLabelRowScrim } from "@src/modules/WorkStation/shared/TabBar/components/TabLabelRowScrim";
 import { TabPillCloseButton } from "@src/modules/WorkStation/shared/TabBar/components/TabPillCloseButton";
@@ -196,6 +197,11 @@ const TabPill = memo(function TabPill({
   });
 
   const iconColorClass = isActive ? "text-primary-6" : "text-text-2";
+  const isGitHubIssueTab =
+    tab.type === "work-item" &&
+    isGitHubIssueStatus(
+      tab.workItem?.workItem.workItemStatus ?? tab.workItem?.workItem.status
+    );
 
   let icon: React.ReactNode;
   if (tab.type === "terminal") {
@@ -256,6 +262,14 @@ const TabPill = memo(function TabPill({
     tab.type === "project" &&
     tab.project?.projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB
   ) {
+    icon = (
+      <IntegrationIcon
+        type={STORY_SYNC_ADAPTER.GITHUB}
+        size={16}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (isGitHubIssueTab) {
     icon = (
       <IntegrationIcon
         type={STORY_SYNC_ADAPTER.GITHUB}
