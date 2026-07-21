@@ -267,7 +267,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
           data-testid="create-collab-org-body"
         >
           <>
-            <SectionContainer bare>
+            <SectionContainer>
               <SectionRow
                 label={t("navigation:collaboration.orgSource")}
                 layout="vertical"
@@ -285,7 +285,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
             </SectionContainer>
 
             {source === CLOUD_SOURCE && (
-              <SectionContainer bare>
+              <SectionContainer>
                 <SectionRow
                   label={t("navigation:collaboration.setupMode")}
                   layout="vertical"
@@ -303,7 +303,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
             )}
 
             {source === CLOUD_SOURCE && !cloudAuth && (
-              <SectionContainer bare>
+              <SectionContainer>
                 <div
                   className="flex flex-wrap items-center gap-2 rounded-md border border-border-1 bg-fill-2 px-3 py-2"
                   data-testid="create-cloud-org-sign-in-hint"
@@ -319,7 +319,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
             )}
 
             {source !== null && (
-              <SectionContainer bare>
+              <SectionContainer>
                 {mode === CREATE_MODE || source === LOCAL_SOURCE ? (
                   <SectionRow
                     label={t("navigation:collaboration.orgName")}
