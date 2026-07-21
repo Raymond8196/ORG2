@@ -35,7 +35,10 @@ import {
 } from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
-import { org2CloudOrgsAtom } from "./org2CloudOrgsAtom";
+import {
+  org2CloudOrgsAtom,
+  sidebarActiveCloudOrgIdAtom,
+} from "./org2CloudOrgsAtom";
 import { ensureProjectOrgForCloudOrg } from "./org2CloudProjectOrgAlias";
 import type { CloudOrgCollabState } from "./org2CloudProjectsClient";
 import { Org2CloudProjectsError } from "./org2CloudProjectsClient";
@@ -56,6 +59,7 @@ import { Org2CloudSyncError } from "./org2CloudSyncClient";
 import {
   DATA_CHANGED_DEBOUNCE_MS,
   HIDDEN_PASS_INTERVAL_MS,
+  INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG_BACKOFF_COOLDOWN_MS,
   Org2CloudSyncEngine,
   PASS_INTERVAL_MS,
@@ -343,6 +347,7 @@ export const engineTestDeps = {
   ensureProjectOrgForCloudOrg,
   getImportedHistorySourceBySessionId,
   HIDDEN_PASS_INTERVAL_MS,
+  INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG2_CLOUD_ENDPOINT_OVERRIDE_STORAGE_KEY,
   ORG2_CLOUD_EXPECTED_SCHEMA_VERSION,
   ORG_BACKOFF_COOLDOWN_MS,
@@ -362,6 +367,7 @@ export const engineTestDeps = {
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
   org2CloudSyncEnabledAtom,
+  sidebarActiveCloudOrgIdAtom,
   sessionOrgTagsAtom,
   sessionsAtom,
 };

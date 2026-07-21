@@ -25,7 +25,8 @@
  *
  * ORG2_CONFLICT → re-anchor via epoch-bumped rewrite (server epoch read
  * through `getSessionEvents`). ORG2_QUOTA_EXCEEDED / ORG2_SYNC_DISABLED →
- * one-time warning toast + back off that org until the next engine start.
+ * bounded per-org backoff. Only the actively viewed org surfaces a warning;
+ * inactive orgs retry quietly at a slower cadence.
  *
  * Projects/work-items (cloud-parity Phase B): after the session push, every
  * org drives the SAME `ProjectSyncChannel` + Rust bridge as the self-hosted
@@ -79,6 +80,7 @@ import { ensureFreshSession, schemaVersion } from "./org2CloudClient";
 import {
   buildCloudOrgSelectorValue,
   org2CloudOrgsAtom,
+  sidebarActiveCloudOrgIdAtom,
 } from "./org2CloudOrgsAtom";
 import type { Org2CloudOrg } from "./org2CloudOrgsAtom";
 import { ensureProjectOrgForCloudOrg } from "./org2CloudProjectOrgAlias";
@@ -140,6 +142,10 @@ const INBOUND_FALLBACK_INTERVAL_MS = 5 * 60_000;
 /** Entitlement failures are retried after this bounded cool-down. Realtime
  * policy signals and explicit user changes clear the deadline immediately. */
 export const ORG_BACKOFF_COOLDOWN_MS = 5 * 60_000;
+/** A background org should not wake the app every five minutes for a quota
+ * condition the user is not currently looking at. Selecting or explicitly
+ * changing that org still clears this deadline immediately. */
+export const INACTIVE_ORG_BACKOFF_COOLDOWN_MS = 30 * 60_000;
 
 /** Projects/work-items RPC seam (Phase B), same fetch-free-fakes purpose. */
 export type Org2CloudProjectsClientDeps = CloudProjectsRpc;
@@ -159,8 +165,19 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     string,
     "session_quota" | "sync_disabled"
   >();
-  /** Orgs already warned during the current backoff window. */
-  private readonly warnedOrgIds = new Set<string>();
+  /** Whether the current deadline was established while the org was visible.
+   * Selecting an org whose deadline came from a background pass resumes it. */
+  private readonly orgBackoffAudiences = new Map<
+    string,
+    "active" | "inactive"
+  >();
+  /** Strongest report already emitted for the current entitlement episode.
+   * An inactive log can be upgraded once to an active toast; automatic expiry
+   * otherwise preserves the marker so persistent failures cannot make noise. */
+  private readonly reportedBackoffAudiences = new Map<
+    string,
+    "active" | "inactive"
+  >();
   /** orgId → last repo-scope hydration attempt (TTL-gated per pass). */
   private readonly scopeHydratedAtMs = new Map<string, number>();
   /** Cloud orgId → aliased local project-org id (ensured once per start). */
@@ -205,7 +222,8 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   protected override resetSyncState(): void {
     this.orgBackoffUntilMs.clear();
     this.orgBackoffKinds.clear();
-    this.warnedOrgIds.clear();
+    this.orgBackoffAudiences.clear();
+    this.reportedBackoffAudiences.clear();
     this.sessionSync.reset();
     this.scopeHydratedAtMs.clear();
     this.projectOrgAliasIds.clear();
@@ -217,7 +235,8 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   protected override clearAllOrgBackoffs(): void {
     this.orgBackoffUntilMs.clear();
     this.orgBackoffKinds.clear();
-    this.warnedOrgIds.clear();
+    this.orgBackoffAudiences.clear();
+    this.reportedBackoffAudiences.clear();
   }
 
   protected override invalidateFullInboundState(orgId?: string): void {
@@ -236,6 +255,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     const auth = store.get(org2CloudAuthAtom);
     if (!auth) return;
     const orgs = store.get(org2CloudOrgsAtom);
+    this.pruneRemovedOrgBackoffs(orgs);
     if (orgs.length === 0) return;
     for (const org of orgs) {
       if (this.generation !== generation) return;
@@ -846,33 +866,84 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   }
 
   private backOffOrg(orgId: string, error: unknown): void {
-    this.orgBackoffUntilMs.set(orgId, Date.now() + ORG_BACKOFF_COOLDOWN_MS);
+    const isActiveOrg = this.store?.get(sidebarActiveCloudOrgIdAtom) === orgId;
+    const cooldownMs = isActiveOrg
+      ? ORG_BACKOFF_COOLDOWN_MS
+      : INACTIVE_ORG_BACKOFF_COOLDOWN_MS;
+    this.orgBackoffUntilMs.set(orgId, Date.now() + cooldownMs);
+    this.orgBackoffAudiences.set(orgId, isActiveOrg ? "active" : "inactive");
     this.orgBackoffKinds.set(
       orgId,
       isOrg2SyncErrorCode(error, "ORG2_QUOTA_EXCEEDED")
         ? "session_quota"
         : "sync_disabled"
     );
-    if (this.warnedOrgIds.has(orgId)) return;
-    this.warnedOrgIds.add(orgId);
+    const previousAudience = this.reportedBackoffAudiences.get(orgId);
+    if (previousAudience === "active" || (!isActiveOrg && previousAudience)) {
+      return;
+    }
+    this.reportedBackoffAudiences.set(
+      orgId,
+      isActiveOrg ? "active" : "inactive"
+    );
     const key = isOrg2SyncErrorCode(error, "ORG2_QUOTA_EXCEEDED")
       ? "navigation:cloud.sync.quotaExceededToast"
       : "navigation:cloud.sync.syncDisabledToast";
-    Message.warning(i18n.t(key));
-    log.warn(`cloud sync backed off for org ${orgId}:`, error);
+    if (isActiveOrg) Message.warning(i18n.t(key));
+    log.warn(
+      `cloud sync backed off for ${isActiveOrg ? "active" : "inactive"} org ${orgId} for ${cooldownMs} ms:`,
+      error
+    );
   }
 
   protected override clearOrgBackoff(orgId: string): void {
     this.orgBackoffUntilMs.delete(orgId);
     this.orgBackoffKinds.delete(orgId);
-    this.warnedOrgIds.delete(orgId);
+    this.orgBackoffAudiences.delete(orgId);
+    this.reportedBackoffAudiences.delete(orgId);
+  }
+
+  /** Automatic expiry permits one bounded retry without starting a new
+   * notification episode. A persistent entitlement error therefore remains
+   * silent until a meaningful external/user signal calls clearOrgBackoff(). */
+  private expireOrgBackoff(orgId: string): void {
+    this.orgBackoffUntilMs.delete(orgId);
+    this.orgBackoffKinds.delete(orgId);
+    this.orgBackoffAudiences.delete(orgId);
+  }
+
+  /** The engine singleton outlives individual memberships. Keep every
+   * app-lifetime backoff structure bounded by the current cloud-org roster. */
+  private pruneRemovedOrgBackoffs(orgs: readonly Org2CloudOrg[]): void {
+    const currentOrgIds = new Set(orgs.map((org) => org.orgId));
+    for (const orgId of this.orgBackoffUntilMs.keys()) {
+      if (!currentOrgIds.has(orgId)) this.orgBackoffUntilMs.delete(orgId);
+    }
+    for (const orgId of this.orgBackoffKinds.keys()) {
+      if (!currentOrgIds.has(orgId)) this.orgBackoffKinds.delete(orgId);
+    }
+    for (const orgId of this.orgBackoffAudiences.keys()) {
+      if (!currentOrgIds.has(orgId)) this.orgBackoffAudiences.delete(orgId);
+    }
+    for (const orgId of this.reportedBackoffAudiences.keys()) {
+      if (!currentOrgIds.has(orgId)) {
+        this.reportedBackoffAudiences.delete(orgId);
+      }
+    }
   }
 
   private isOrgBackedOff(orgId: string): boolean {
     const untilMs = this.orgBackoffUntilMs.get(orgId);
     if (untilMs === undefined) return false;
+    if (
+      this.store?.get(sidebarActiveCloudOrgIdAtom) === orgId &&
+      this.orgBackoffAudiences.get(orgId) === "inactive"
+    ) {
+      this.expireOrgBackoff(orgId);
+      return false;
+    }
     if (Date.now() < untilMs) return true;
-    this.clearOrgBackoff(orgId);
+    this.expireOrgBackoff(orgId);
     return false;
   }
 
