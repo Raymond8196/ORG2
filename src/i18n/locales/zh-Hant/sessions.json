@@ -1142,6 +1142,8 @@
     "turnMetadata": {
       "noChanges": "本輪沒有檔案改動",
       "earlierRound": "較早輪次",
+      "editsTab": "編輯",
+      "readsTab": "讀取",
       "files_one": "{{count}} 個檔案",
       "files_other": "{{count}} 個檔案",
       "reads_one": "讀取 {{count}} 次",

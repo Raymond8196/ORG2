@@ -12,6 +12,7 @@
     "drafts": "Черновики",
     "browser": "Браузер",
     "editor": "Редактор",
+    "environment": "Окружение",
     "workspace": "Рабочее пространство",
     "codeEditor": "Редактор кода",
     "databaseManager": "Менеджер БД",

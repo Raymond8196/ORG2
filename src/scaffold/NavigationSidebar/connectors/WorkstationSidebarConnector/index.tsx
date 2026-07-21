@@ -20,11 +20,11 @@ import {
   closeAndDestroyChatPanelTabAtom,
   openCloudOrgManagementInChatPanelTabAtom,
   openCreateTargetInChatPanelStartPageAtom,
-  openKanbanChatPanelTabAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
   openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
+  openWorkManagementChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { repoMapAtom } from "@src/store/repo";
 import {
@@ -182,7 +182,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const [workManagementProjectsView, setWorkManagementProjectsView] = useAtom(
     workManagementProjectsViewAtom
   );
-  const openKanbanTab = useSetAtom(openKanbanChatPanelTabAtom);
+  const openWorkManagementTab = useSetAtom(openWorkManagementChatPanelTabAtom);
   const openCloudOrgManagementTab = useSetAtom(
     openCloudOrgManagementInChatPanelTabAtom
   );
@@ -830,9 +830,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
       } else if (item.id !== KANBAN_MENU_ITEM_ID) {
         return;
       }
-      openKanbanTab({ section, title });
+      openWorkManagementTab({ section, title });
     },
-    [openKanbanTab, setWorkManagementProjectsView, t, tSessions]
+    [openWorkManagementTab, setWorkManagementProjectsView, t, tSessions]
   );
 
   const handleSessionMenuItemClick = useCallback(

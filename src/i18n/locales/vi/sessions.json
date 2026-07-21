@@ -1136,6 +1136,8 @@
     "turnMetadata": {
       "noChanges": "Không có thay đổi tệp trong vòng này",
       "earlierRound": "Vòng trước",
+      "editsTab": "Chỉnh sửa",
+      "readsTab": "Lượt đọc",
       "files_one": "{{count}} tệp",
       "files_other": "{{count}} tệp",
       "reads_one": "{{count}} lượt đọc",

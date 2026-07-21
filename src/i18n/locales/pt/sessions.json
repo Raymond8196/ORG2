@@ -1138,6 +1138,8 @@
     "turnMetadata": {
       "noChanges": "Nenhuma alteração de arquivo nesta rodada",
       "earlierRound": "Rodada anterior",
+      "editsTab": "Edições",
+      "readsTab": "Leituras",
       "files_one": "{{count}} arquivo",
       "files_other": "{{count}} arquivos",
       "reads_one": "{{count}} leitura",

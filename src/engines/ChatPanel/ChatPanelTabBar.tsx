@@ -90,6 +90,7 @@ import {
   activateChatPanelTabAtom,
   chatPanelTabsAtom,
   closeAndDestroyChatPanelTabAtom,
+  closeOtherChatPanelTabsAtom,
   nextChatPanelTabAtom,
   prevChatPanelTabAtom,
   reorderChatPanelTabsAtom,
@@ -100,6 +101,7 @@ import { moveSessionTabAtom } from "@src/store/session/sessionTabPlacementAtom";
 import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 import { isWindows } from "@src/util/platform/tauri";
 
+import ChatPanelTabContextMenu from "./ChatPanelTabContextMenu";
 import { resolveChatPanelTabDisplayTitle } from "./chatPanelTabDisplay";
 import SessionIdentityIcon from "./components/SessionIdentityIcon";
 import {
@@ -125,6 +127,7 @@ interface TabPillProps {
   isActive: boolean;
   onActivate: (id: string) => void;
   onClose: (id: string) => void;
+  onContextMenu: (event: React.MouseEvent, id: string) => void;
 }
 
 const TabPill = memo(function TabPill({
@@ -132,6 +135,7 @@ const TabPill = memo(function TabPill({
   isActive,
   onActivate,
   onClose,
+  onContextMenu,
 }: TabPillProps) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
@@ -278,6 +282,7 @@ const TabPill = memo(function TabPill({
       onAuxClick={(evt) => {
         if (evt.button === 1) onClose(tab.id);
       }}
+      onContextMenu={(event) => onContextMenu(event, tab.id)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -558,6 +563,7 @@ export function ChatPanelTabBar(): React.ReactNode {
   const state = useAtomValue(chatPanelTabsAtom);
   const activateTab = useSetAtom(activateChatPanelTabAtom);
   const closeTab = useSetAtom(closeAndDestroyChatPanelTabAtom);
+  const closeOtherTabs = useSetAtom(closeOtherChatPanelTabsAtom);
   const reorderTabs = useSetAtom(reorderChatPanelTabsAtom);
   const moveSessionTab = useSetAtom(moveSessionTabAtom);
   const barRef = useRef<HTMLDivElement>(null);
@@ -566,6 +572,7 @@ export function ChatPanelTabBar(): React.ReactNode {
     null
   );
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
+  const [contextMenuTabId, setContextMenuTabId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
@@ -674,80 +681,108 @@ export function ChatPanelTabBar(): React.ReactNode {
     dispatchSessionTabDragCancel();
   }, [removePointerTracker]);
 
+  const handleContextMenu = useCallback(
+    (event: React.MouseEvent, tabId: string) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setContextMenuTabId(tabId);
+    },
+    []
+  );
+  const handleDismissContextMenu = useCallback(
+    () => setContextMenuTabId(null),
+    []
+  );
+
   // Inline strip — no outer wrapper, fills the flex row in the header
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <SortableContext items={tabIds} strategy={horizontalListSortingStrategy}>
-        <div
-          ref={barRef}
-          className="relative flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden scrollbar-hide"
-          data-session-tab-drop-target="chat-panel"
-          data-tauri-drag-region
-          style={CHAT_PANEL_HEADER_DRAG_STYLE}
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        <SortableContext
+          items={tabIds}
+          strategy={horizontalListSortingStrategy}
         >
-          {isSessionDragOver ? (
-            <div
-              className={`${SESSION_TAB_DROP_TARGET_HIGHLIGHT_CLASS} inset-0`}
-              aria-hidden
-            />
-          ) : null}
-          <span
-            className={`${TAB_PAIR_SEPARATOR_SLOT_CLASS} bg-transparent`}
-            aria-hidden
+          <div
+            ref={barRef}
+            className="relative flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden scrollbar-hide"
+            data-session-tab-drop-target="chat-panel"
             data-tauri-drag-region
             style={CHAT_PANEL_HEADER_DRAG_STYLE}
-          />
+          >
+            {isSessionDragOver ? (
+              <div
+                className={`${SESSION_TAB_DROP_TARGET_HIGHLIGHT_CLASS} inset-0`}
+                aria-hidden
+              />
+            ) : null}
+            <span
+              className={`${TAB_PAIR_SEPARATOR_SLOT_CLASS} bg-transparent`}
+              aria-hidden
+              data-tauri-drag-region
+              style={CHAT_PANEL_HEADER_DRAG_STYLE}
+            />
 
-          {state.tabs.map((tab, i) => {
-            const next = state.tabs[i + 1];
-            const isActive = tab.id === state.activeTabId;
-            const nextIsActive = next?.id === state.activeTabId;
-            const separatorVisible = !!next && !isActive && !nextIsActive;
+            {state.tabs.map((tab, i) => {
+              const next = state.tabs[i + 1];
+              const isActive = tab.id === state.activeTabId;
+              const nextIsActive = next?.id === state.activeTabId;
+              const separatorVisible = !!next && !isActive && !nextIsActive;
 
-            return (
-              <Fragment key={tab.id}>
-                <TabPill
-                  tab={tab}
-                  isActive={isActive}
-                  onActivate={activateTab}
-                  onClose={closeTab}
-                />
-                {next && (
-                  <span
-                    className={`${TAB_PAIR_SEPARATOR_SLOT_CLASS} ${
-                      separatorVisible ? "bg-border-2" : "bg-transparent"
-                    }`}
-                    aria-hidden
-                    data-tauri-drag-region
-                    style={CHAT_PANEL_HEADER_DRAG_STYLE}
+              return (
+                <Fragment key={tab.id}>
+                  <TabPill
+                    tab={tab}
+                    isActive={isActive}
+                    onActivate={activateTab}
+                    onClose={closeTab}
+                    onContextMenu={handleContextMenu}
                   />
-                )}
-              </Fragment>
-            );
-          })}
-        </div>
-      </SortableContext>
-      {typeof document !== "undefined"
-        ? createPortal(
-            <DragOverlay dropAnimation={null}>
-              {draggingTab ? (
-                <div className={WORK_STATION_TAB_PILL_DRAG_OVERLAY_CLASS}>
-                  <MessageSquarePlus size={16} strokeWidth={1.75} />
-                  <span className="truncate text-primary-6">
-                    {draggingTab.title}
-                  </span>
-                </div>
-              ) : null}
-            </DragOverlay>,
-            document.body
-          )
-        : null}
-    </DndContext>
+                  {next && (
+                    <span
+                      className={`${TAB_PAIR_SEPARATOR_SLOT_CLASS} ${
+                        separatorVisible ? "bg-border-2" : "bg-transparent"
+                      }`}
+                      aria-hidden
+                      data-tauri-drag-region
+                      style={CHAT_PANEL_HEADER_DRAG_STYLE}
+                    />
+                  )}
+                </Fragment>
+              );
+            })}
+          </div>
+        </SortableContext>
+        {typeof document !== "undefined"
+          ? createPortal(
+              <DragOverlay dropAnimation={null}>
+                {draggingTab ? (
+                  <div className={WORK_STATION_TAB_PILL_DRAG_OVERLAY_CLASS}>
+                    <MessageSquarePlus size={16} strokeWidth={1.75} />
+                    <span className="truncate text-primary-6">
+                      {draggingTab.title}
+                    </span>
+                  </div>
+                ) : null}
+              </DragOverlay>,
+              document.body
+            )
+          : null}
+      </DndContext>
+      {contextMenuTabId ? (
+        <ChatPanelTabContextMenu
+          key={contextMenuTabId}
+          tabId={contextMenuTabId}
+          onCloseTab={closeTab}
+          onCloseOtherTabs={closeOtherTabs}
+          onDismiss={handleDismissContextMenu}
+        />
+      ) : null}
+    </>
   );
 }
