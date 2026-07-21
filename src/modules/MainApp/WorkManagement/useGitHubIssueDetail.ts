@@ -1,12 +1,16 @@
 import { useStore } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 
-import type { GitHubIssue, GitHubIssueComment } from "@src/api/tauri/github";
+import type {
+  GitHubIssue,
+  GitHubIssueTimelineItem,
+} from "@src/api/tauri/github";
 import { useWorkStationTabs } from "@src/hooks/workStation/tabs";
 import {
   addIssueComment,
   closeIssue,
-  fetchIssueComments,
+  fetchIssueTimeline,
+  issueCommentToTimelineItem,
   reopenIssue,
 } from "@src/services/git/operations/githubIssues";
 import { workstationSelectedIssueAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
@@ -18,8 +22,8 @@ import type { ManagedIssueItem } from "./githubWorkItemsModel";
 export interface IssueDetailState {
   source: ManagedIssueItem;
   issue: GitHubIssue;
-  comments: GitHubIssueComment[];
-  commentsLoading: boolean;
+  timeline: GitHubIssueTimelineItem[];
+  timelineLoading: boolean;
   submittingComment: boolean;
   error: string | null;
 }
@@ -54,14 +58,14 @@ export function useGitHubIssueDetail(
     setIssueDetail({
       source: issue,
       issue: issue.rawIssue,
-      comments: [],
-      commentsLoading: true,
+      timeline: [],
+      timelineLoading: true,
       submittingComment: false,
       error: null,
     });
 
     void (async () => {
-      const result = await fetchIssueComments({
+      const result = await fetchIssueTimeline({
         remoteUrl: issue.remoteUrl,
         issueNumber: issue.id,
       });
@@ -71,8 +75,8 @@ export function useGitHubIssueDetail(
         }
         return {
           ...current,
-          comments: result.data ?? [],
-          commentsLoading: false,
+          timeline: result.data ?? [],
+          timelineLoading: false,
           error: result.error ?? null,
         };
       });
@@ -86,9 +90,9 @@ export function useGitHubIssueDetail(
       );
       store.set(selectedIssueAtom, {
         issue: issue.rawIssue,
-        comments: [],
+        timeline: [],
         loading: false,
-        commentsLoading: true,
+        timelineLoading: true,
         error: null,
         submittingComment: false,
       });
@@ -102,7 +106,7 @@ export function useGitHubIssueDetail(
       );
 
       void (async () => {
-        const result = await fetchIssueComments({
+        const result = await fetchIssueTimeline({
           remoteUrl: issue.remoteUrl,
           issueNumber: issue.id,
         });
@@ -112,8 +116,8 @@ export function useGitHubIssueDetail(
           }
           return {
             ...current,
-            comments: result.data ?? [],
-            commentsLoading: false,
+            timeline: result.data ?? [],
+            timelineLoading: false,
             error: result.error ?? null,
           };
         });
@@ -182,7 +186,10 @@ export function useGitHubIssueDetail(
                   ...current.issue,
                   comments: current.issue.comments + 1,
                 },
-                comments: [...current.comments, comment],
+                timeline: [
+                  ...current.timeline,
+                  issueCommentToTimelineItem(comment),
+                ],
                 submittingComment: false,
                 error: null,
               }

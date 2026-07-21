@@ -31,6 +31,7 @@ import Input from "@src/components/Input";
 import Message from "@src/components/Message";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
+import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { org2CloudOrgsAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { useKeyboardSave } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
@@ -193,7 +194,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
   );
 
   const handleDescriptionChange = useCallback(
-    (html: string, _text: string) => updateDraft({ description: html }),
+    (markdown: string, _text: string) => updateDraft({ description: markdown }),
     [updateDraft]
   );
 
@@ -256,9 +257,9 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
     setSaving(true);
     try {
       const name = draft.name.trim();
-      const descriptionText =
-        editorRef.current?.getDescriptionText()?.trim() ?? "";
-      const parts = [draft.summary.trim(), descriptionText].filter(Boolean);
+      const descriptionMarkdown =
+        editorRef.current?.getMarkdown()?.trim() ?? "";
+      const parts = [draft.summary.trim(), descriptionMarkdown].filter(Boolean);
       const description = parts.join("\n\n");
 
       const slug = name
@@ -406,7 +407,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
       hideHeader
       publishHeaderToWorkstation={publishHeaderToWorkstation}
       leftContent={
-        <div className="mx-auto h-full w-full max-w-[932px] px-4">
+        <div className={`${DETAIL_PANEL_TOKENS.headerWidth} h-full px-4`}>
           <WorkItemContentStack
             className="h-full w-full"
             titleContent={titleSection}
