@@ -47,5 +47,6 @@ describe("ChatPanelTabBar", () => {
     );
 
     expect(markup).toContain("sessions:chat.startPage.tabs.runtime");
+    expect(markup).toContain("chat.startPage.newWorkItem.title");
   });
 });
