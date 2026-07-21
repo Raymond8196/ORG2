@@ -31,6 +31,7 @@ import { activeWorkspaceRootAtom } from "@src/store/workspace";
 import { copyText } from "@src/util/data/clipboard";
 import { openFileInWorkStation } from "@src/util/ui/openFileInWorkStation";
 
+import LinkHoverCard from "./LinkHoverCard";
 import MermaidBlock from "./MermaidBlock";
 import "./index.scss";
 import {
@@ -612,14 +613,16 @@ const MarkdownComponent: React.FC<MarkdownProps> = ({
       a({ children, href, ...props }) {
         const url = href ?? "";
         return (
-          <a
-            {...props}
-            href={url}
-            title={undefined}
-            onClick={(event) => handleLinkClick(event, url)}
-          >
-            {children}
-          </a>
+          <LinkHoverCard url={url}>
+            <a
+              {...props}
+              href={url}
+              title={undefined}
+              onClick={(event) => handleLinkClick(event, url)}
+            >
+              {children}
+            </a>
+          </LinkHoverCard>
         );
       },
       ul({ children, ...props }) {
