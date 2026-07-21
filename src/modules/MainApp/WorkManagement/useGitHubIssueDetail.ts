@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 
-import type { GitHubIssue, GitHubIssueComment } from "@src/api/tauri/github";
+import type {
+  GitHubIssue,
+  GitHubIssueTimelineItem,
+} from "@src/api/tauri/github";
 import {
   addIssueComment,
   closeIssue,
-  fetchIssueComments,
+  fetchIssueTimeline,
+  issueCommentToTimelineItem,
   reopenIssue,
 } from "@src/services/git/operations/githubIssues";
 
@@ -13,8 +17,8 @@ import type { ManagedIssueItem } from "./githubManagedItemModel";
 export interface IssueDetailState {
   source: ManagedIssueItem;
   issue: GitHubIssue;
-  comments: GitHubIssueComment[];
-  commentsLoading: boolean;
+  timeline: GitHubIssueTimelineItem[];
+  timelineLoading: boolean;
   submittingComment: boolean;
   error: string | null;
 }
@@ -43,26 +47,29 @@ export function useGitHubIssueDetail({
     setDetail({
       source: issue,
       issue: issue.rawIssue,
-      comments: [],
-      commentsLoading: true,
+      timeline: [],
+      timelineLoading: true,
       submittingComment: false,
       error: null,
     });
 
-    void fetchIssueComments({
-      remoteUrl: issue.remoteUrl,
-      issueNumber: issue.id,
-    }).then((result) => {
+    void (async () => {
+      const result = await fetchIssueTimeline({
+        remoteUrl: issue.remoteUrl,
+        issueNumber: issue.id,
+      });
       setDetail((current) => {
-        if (current?.issue.html_url !== issue.rawIssue.html_url) return current;
+        if (current?.issue.html_url !== issue.rawIssue.html_url) {
+          return current;
+        }
         return {
           ...current,
-          comments: result.data ?? [],
-          commentsLoading: false,
+          timeline: result.data ?? [],
+          timelineLoading: false,
           error: result.error ?? null,
         };
       });
-    });
+    })();
   }, []);
 
   const closeCurrentIssue = useCallback(async () => {
@@ -121,7 +128,10 @@ export function useGitHubIssueDetail({
                   ...current.issue,
                   comments: current.issue.comments + 1,
                 },
-                comments: [...current.comments, comment],
+                timeline: [
+                  ...current.timeline,
+                  issueCommentToTimelineItem(comment),
+                ],
                 submittingComment: false,
                 error: null,
               }

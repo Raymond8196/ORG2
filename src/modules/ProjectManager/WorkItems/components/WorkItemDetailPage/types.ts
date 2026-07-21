@@ -12,4 +12,6 @@ export interface WorkItemDetailPageProps {
   publishHeaderToWorkstation?: boolean;
   /** Notify the parent tab system when the work item title changes. */
   onWorkItemNameUpdated?: (workItemName: string) => void;
+  /** Publish source status so persisted tabs can restore the correct icon. */
+  onWorkItemStatusResolved?: (workItemStatus: string) => void;
 }

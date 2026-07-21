@@ -188,6 +188,12 @@ export interface ProjectScopeOptions {
   orgId?: string | null;
 }
 
+export type WorkItemReadBucket = "active" | "completed";
+
+export interface WorkItemsReadOptions extends ProjectScopeOptions {
+  readBucket?: WorkItemReadBucket;
+}
+
 function scopeCacheSegment(options?: ProjectScopeOptions): string {
   return options?.orgId ? `org:${options.orgId}` : "all";
 }
@@ -324,13 +330,22 @@ export async function readWorkItems(
 
 export async function readWorkItemsEnriched(
   projectSlug: string,
-  options?: ProjectScopeOptions
+  options?: WorkItemsReadOptions
 ): Promise<EnrichedWorkItem[]> {
+  const readBucket = options?.readBucket;
+  if (readBucket) {
+    return invoke("project_read_work_items_enriched", {
+      projectSlug,
+      ...scopeInvokePayload(options),
+      readBucket,
+    });
+  }
   const scopeSegment = scopeCacheSegment(options);
   return cachedRead(`${projectSlug}:workitems-enriched:${scopeSegment}`, () =>
     invoke("project_read_work_items_enriched", {
       projectSlug,
       ...scopeInvokePayload(options),
+      readBucket: null,
     })
   );
 }
@@ -392,12 +407,20 @@ export async function readWorkItem(
 }
 
 export async function readStandaloneWorkItems(
-  options?: ProjectScopeOptions
+  options?: WorkItemsReadOptions
 ): Promise<WorkItemData[]> {
+  const readBucket = options?.readBucket;
+  if (readBucket) {
+    return invoke("work_item_read_standalone_items", {
+      ...scopeInvokePayload(options),
+      readBucket,
+    });
+  }
   const scopeSegment = scopeCacheSegment(options);
   return cachedRead(`standalone:workitems:${scopeSegment}`, () =>
     invoke("work_item_read_standalone_items", {
       ...scopeInvokePayload(options),
+      readBucket: null,
     })
   );
 }

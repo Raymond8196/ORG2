@@ -1,16 +1,11 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
-import Dropdown from "@src/components/Dropdown";
-import {
-  DROPDOWN_CLASSES,
-  DROPDOWN_WIDTHS,
-} from "@src/components/Dropdown/exports";
 import { SearchInput } from "@src/components/SearchInput";
 import type { SelectOption } from "@src/components/Select";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import {
+  IssueDetailExternalLinkButton,
   IssueDetailHeaderContent,
   IssueDetailPanel,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
@@ -21,6 +16,7 @@ import {
 
 import {
   CreateIssueModal,
+  IssuePersonalFilterDropdown,
   ManagedIssueRow,
   ManagedPrRow,
   RepoFilterPill,
@@ -190,44 +186,37 @@ export function GitHubWorkItemsView({
             allReposLabel={t("chat.manageIssues.allRepositories")}
             onSelectRepo={onRepoSelect}
           />
+          {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
+            <IssuePersonalFilterDropdown
+              options={issuePersonalFilterOptions}
+              selectedFilters={selectedIssuePersonalFilters}
+              filterLabel={t("common:actions.filter")}
+              onSelect={onIssuePersonalFiltersSelect}
+            />
+          ) : null}
         </div>
       ),
     [
       effectiveSelectedRepo,
       activeState,
       handleStateChange,
+      issuePersonalFilterOptions,
       issueDetail,
+      onIssuePersonalFiltersSelect,
       stateTabs,
       onRepoSelect,
       repoOptions,
+      scope,
+      selectedIssuePersonalFilters,
       t,
     ]
   );
   const headerTrailing = useMemo(
     () =>
-      issueDetail ? null : (
+      issueDetail ? (
+        <IssueDetailExternalLinkButton issue={issueDetail.issue} />
+      ) : (
         <div className="flex shrink-0 items-center gap-px">
-          {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
-            <Dropdown
-              options={issuePersonalFilterOptions}
-              value={selectedIssuePersonalFilters}
-              mode="multiple"
-              position="bottom-end"
-              className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.menuClass}`}
-              onSelect={(value) =>
-                onIssuePersonalFiltersSelect(
-                  Array.isArray(value) ? value : [value]
-                )
-              }
-            >
-              <Button htmlType="button" variant="secondary" size="small">
-                {t("common:actions.filter")}
-                {selectedIssuePersonalFilters.length > 0
-                  ? ` (${selectedIssuePersonalFilters.length})`
-                  : ""}
-              </Button>
-            </Dropdown>
-          ) : null}
           <GitHubWorkItemToolbarActions
             refreshLabel={t("common:actions.refresh")}
             refreshing={loading}
@@ -246,14 +235,11 @@ export function GitHubWorkItemsView({
       ),
     [
       issueDetail,
-      issuePersonalFilterOptions,
       loading,
-      onIssuePersonalFiltersSelect,
       onRefresh,
       onSetCreateFormOpen,
       repoSources.length,
       scope,
-      selectedIssuePersonalFilters,
       t,
     ]
   );
@@ -385,8 +371,8 @@ export function GitHubWorkItemsView({
   const issueDetailContent = issueDetail ? (
     <IssueDetailPanel
       issue={issueDetail.issue}
-      comments={issueDetail.comments}
-      commentsLoading={issueDetail.commentsLoading}
+      timeline={issueDetail.timeline}
+      timelineLoading={issueDetail.timelineLoading}
       submittingComment={issueDetail.submittingComment}
       showHeader={false}
       contentPadding="default"

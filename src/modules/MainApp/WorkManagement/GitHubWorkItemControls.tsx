@@ -1,6 +1,8 @@
 import {
   CheckCircle2,
   CircleDot,
+  CodeXml,
+  Funnel,
   GitMerge,
   GitPullRequest,
   GitPullRequestClosed,
@@ -13,7 +15,10 @@ import React, { useCallback, useMemo, useState } from "react";
 
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
-import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
+import {
+  DROPDOWN_CLASSES,
+  DROPDOWN_WIDTHS,
+} from "@src/components/Dropdown/tokens";
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
@@ -89,6 +94,7 @@ export function RepoFilterPill({
         value: option.key,
         label: option.label,
         triggerLabel: option.label,
+        icon: <CodeXml size={13} strokeWidth={1.8} />,
       })),
     [options]
   );
@@ -107,6 +113,45 @@ export function RepoFilterPill({
       selectorClassName="h-7"
       onChange={(value) => onSelectRepo(String(value))}
     />
+  );
+}
+
+export function IssuePersonalFilterDropdown({
+  options,
+  selectedFilters,
+  filterLabel,
+  onSelect,
+}: {
+  options: SelectOption[];
+  selectedFilters: string[];
+  filterLabel: string;
+  onSelect: (values: (string | number)[]) => void;
+}): React.ReactNode {
+  const accessibleLabel =
+    selectedFilters.length > 0
+      ? `${filterLabel} (${selectedFilters.length})`
+      : filterLabel;
+
+  return (
+    <Dropdown
+      options={options}
+      value={selectedFilters}
+      mode="multiple"
+      position="bottom-end"
+      className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.menuClass}`}
+      onSelect={(value) => onSelect(Array.isArray(value) ? value : [value])}
+    >
+      <Button
+        htmlType="button"
+        variant="secondary"
+        size="small"
+        icon={<Funnel size={13} strokeWidth={1.8} />}
+        iconOnly
+        className="h-7 w-7"
+        aria-label={accessibleLabel}
+        title={accessibleLabel}
+      />
+    </Dropdown>
   );
 }
 
