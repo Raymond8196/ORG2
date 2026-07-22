@@ -748,7 +748,7 @@ const SessionCreatorChatPanelSingle: React.FC<
       heroContent={heroContent}
       heroIcon={heroIcon}
       hidePresenceButton={hidePresenceButton}
-      hideRepoLine={isHumanMode || hideRepoLine}
+      hideRepoLine={hideRepoLine}
       innerClassName={innerClassName}
       isCategorySelectorOpen={isCategorySelectorOpen}
       isCliTuiMode={isCliTuiMode}

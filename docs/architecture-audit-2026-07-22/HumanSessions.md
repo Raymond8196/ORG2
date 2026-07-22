@@ -71,7 +71,7 @@ No Human field is reused as an agent prompt, transcript event, or runtime status
 
 - Human entry validation and writes stay in `agent_sessions::human`.
 - Shared persistence knows only the new child table and its foreign-key cascade.
-- Shared frontend extensions are domain-neutral: the design-system `Input` and its ghost-placeholder token, an accessible icon-button label, optional composer capability flags, a session-content resolver, and a clearly named `hideSessionSetupControls` creator flag. Work logs retain the shared creator's regular plus and round-arrow actions. The read surface composes the existing shared Work-item activity-timeline primitives without changing their contracts.
+- Shared frontend extensions are domain-neutral: the design-system `Input` and its ghost-placeholder token, an accessible icon-button label, optional composer capability flags, a session-content resolver, and a clearly named `hideSessionSetupControls` creator flag. Work logs retain the shared creator's regular plus and round-arrow actions as well as its existing `SessionInfoLine` repository, branch, and location/worktree selectors. The read surface composes the existing shared Work-item activity-timeline primitives without changing their contracts.
 - Human sessions reuse directory/pagination/navigation infrastructure without entering agent execution infrastructure.
 
 ### Layer 7 — New-developer confusion test
