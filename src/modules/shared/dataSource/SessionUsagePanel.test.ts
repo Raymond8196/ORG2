@@ -29,6 +29,9 @@ describe("SessionUsagePanel", () => {
     );
     expect(markup).toContain("flex flex-col gap-3");
     expect(markup).toContain("flex min-h-9 flex-wrap items-center");
+    expect(markup).toContain('data-testid="usage-source-range-controls"');
+    expect(markup).toContain("h-4 w-px shrink-0 bg-border-2");
+    expect(markup).toContain("select-size-small");
     expect(markup).toContain("bg-fill-1 font-semibold text-primary-6");
     expect(markup).toContain("border-0 bg-transparent text-text-2");
   });

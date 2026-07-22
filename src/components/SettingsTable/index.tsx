@@ -588,7 +588,7 @@ export default function SettingsTable<RowData>({
       {hasHeader && (
         <div
           ref={searchRef}
-          className={`${containedScroll ? "shrink-0" : "sticky top-0 z-[21]"} ${stickyBordered ? "settings-table-sticky-mask bg-bg-2" : ""}`.trim()}
+          className={`${containedScroll ? "shrink-0" : "settings-table-sticky-toolbar"} ${stickyBordered ? "settings-table-sticky-mask bg-bg-2" : ""}`.trim()}
         >
           <div
             className={`${stickyBordered ? "settings-table-sticky-surface -mx-px border-x border-t border-border-1" : ""} border-b border-border-1 px-4 ${surfaceVariant !== "transparent" ? "rounded-t-xl" : ""} ${surfaceClassName} ${searchHeaderClassName}`.trim()}

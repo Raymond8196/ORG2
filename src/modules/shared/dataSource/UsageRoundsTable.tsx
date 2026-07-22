@@ -283,6 +283,7 @@ export default function UsageRoundsTable({
           ) : undefined
         }
         inlineHeaderToolbar
+        searchHeaderClassName="settings-table-toolbar-compact"
         searchBar={{
           searchValue: searchQuery,
           searchPlaceholder: tCommon("common.searchPlaceholder"),

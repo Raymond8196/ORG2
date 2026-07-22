@@ -203,20 +203,27 @@ export default function SessionUsagePanel() {
         data-testid="usage-source-controls"
       >
         <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
-          <TabPill
-            activeTab={bucket ?? SOURCE_ALL}
-            tabs={sourceTabs}
-            onChange={(key) => {
-              setBucket(key === SOURCE_ALL ? null : (key as UsageBucket));
-              setRoundModelFilter(undefined);
-              setRoundPageIndex(0);
-            }}
-            variant="pill"
-            size="mini"
-            colorScheme="ghost"
-            fillWidth={false}
-          />
-          <div className="flex items-center gap-2">
+          <div
+            className="flex min-w-0 items-center gap-2"
+            data-testid="usage-source-range-controls"
+          >
+            <TabPill
+              activeTab={bucket ?? SOURCE_ALL}
+              tabs={sourceTabs}
+              onChange={(key) => {
+                setBucket(key === SOURCE_ALL ? null : (key as UsageBucket));
+                setRoundModelFilter(undefined);
+                setRoundPageIndex(0);
+              }}
+              variant="pill"
+              size="mini"
+              colorScheme="ghost"
+              fillWidth={false}
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none h-4 w-px shrink-0 bg-border-2"
+            />
             <Select
               value={range}
               onChange={(value) => {
@@ -226,19 +233,19 @@ export default function SessionUsagePanel() {
               }}
               options={rangeOptions}
               variant="ghost"
-              size="mini"
-            />
-            <Button
-              variant="tertiary"
-              appearance="ghost"
               size="small"
-              icon={<RefreshCw size={14} className={refreshSpinClass} />}
-              disabled={loading}
-              onClick={handleRefreshClick}
-            >
-              {t("usage.refresh")}
-            </Button>
+            />
           </div>
+          <Button
+            variant="tertiary"
+            appearance="ghost"
+            size="small"
+            icon={<RefreshCw size={14} className={refreshSpinClass} />}
+            disabled={loading}
+            onClick={handleRefreshClick}
+          >
+            {t("usage.refresh")}
+          </Button>
         </div>
       </div>
 
