@@ -61,6 +61,14 @@ describe("fetchWithTransportRetry", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("does not retry an unrelated programming TypeError", async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError("x is not a function"));
+    await expect(
+      fetchWithTransportRetry("https://cloud.test/rpc", { method: "POST" })
+    ).rejects.toThrow("x is not a function");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("does not retry an abort", async () => {
     const controller = new AbortController();
     fetchMock.mockImplementationOnce(() => {

@@ -23,7 +23,7 @@ export async function fetchWithTransportRetry(
   try {
     return await fetch(input, init);
   } catch (error) {
-    if (!(error instanceof TypeError) || init?.signal?.aborted) throw error;
+    if (!isFetchTransportError(error) || init?.signal?.aborted) throw error;
     return fetch(input, init);
   }
 }
