@@ -117,7 +117,10 @@ describe("mapKanbanTaskToSessionTableItem", () => {
 
     expect(isValidElement(item.agentIcon)).toBe(true);
     expect(isValidElement(item.modelIcon)).toBe(true);
-    if (!isValidElement(item.agentIcon) || !isValidElement(item.modelIcon)) {
+    if (
+      !isValidElement<{ className?: string }>(item.agentIcon) ||
+      !isValidElement<{ className?: string }>(item.modelIcon)
+    ) {
       throw new Error("missing agent or model icon");
     }
     expect(item.agentIcon.props.className).toBe("text-text-1");
