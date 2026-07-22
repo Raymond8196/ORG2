@@ -82,7 +82,8 @@ export function buildCloudSessionMetadata(
   userId: string,
   displayName: string,
   scopeKey: string | null,
-  access: CloudPushAccess
+  access: CloudPushAccess,
+  avatarUrl?: string
 ): RemoteTeammateSessionMetadata {
   const org: CollabOrgRecord = { id: orgId, name: "", createdAt: "" };
   const member: CollabMemberRecord = {
@@ -103,7 +104,10 @@ export function buildCloudSessionMetadata(
     ...session,
     forkedFrom: getSessionForkedFrom(session),
   };
-  return toRemoteMetadata(withLineage, org, member, settings, scopeKey);
+  return {
+    ...toRemoteMetadata(withLineage, org, member, settings, scopeKey),
+    ...(avatarUrl ? { ownerAvatarUrl: avatarUrl } : {}),
+  };
 }
 
 /** True for local sessions that may ever be pushed to the cloud. */
@@ -315,7 +319,8 @@ export class Org2CloudSessionSync {
       auth.userId,
       displayName,
       scopeKey,
-      access
+      access,
+      auth.profile?.avatarUrl
     );
     const key = `${orgId}:${session.session_id}`;
     const hash = await sha256Hex(stableStringify(metadata));

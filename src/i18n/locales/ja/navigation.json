@@ -475,7 +475,8 @@
       "retentionUpgrade": "このセッションはプランのリプレイ期間外です — 表示するにはアップグレードしてください",
       "importError": "セッションをインポートできませんでした",
       "manageBilling": "Manage billing",
-      "manageBillingNote": "Cancel or change your plan in the billing portal"
+      "manageBillingNote": "Cancel or change your plan in the billing portal",
+      "aboutMeTitle": "自分について"
     },
     "sidebar": {
       "teamSessions": "チームセッション",

@@ -30,6 +30,7 @@ export interface TaskKanbanContentProps {
   onTaskMove: (taskId: string, newStatus: TaskStatus) => void;
   onTaskClick: (task: KanbanTask) => void;
   onAddTask: () => void;
+  renderListRowAction?: (task: KanbanTask) => React.ReactNode;
   hasFileSearchQuery: boolean;
 }
 
@@ -44,6 +45,7 @@ const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
   onTaskMove,
   onTaskClick,
   onAddTask,
+  renderListRowAction,
   hasFileSearchQuery,
 }) => {
   const { t } = useTranslation("sessions");
@@ -90,6 +92,7 @@ const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
             selectedTaskId={selectedTaskId}
             detailPanelVisible={detailPanelVisible}
             onTaskClick={onTaskClick}
+            renderRowAction={renderListRowAction}
           />
         </Suspense>
       );

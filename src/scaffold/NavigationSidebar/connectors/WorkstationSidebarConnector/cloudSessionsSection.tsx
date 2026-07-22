@@ -5,7 +5,7 @@
  * active scope is a cloud org, teammates' shared sessions render as
  * collapsible fork-threaded groups under a separator-headed section.
  * Threads come from the pure `buildCloudSessionThreads` helper; replay/fork
- * ride `useCloudSessionActions` (the exact panel semantics, extracted).
+ * ride the same canonical `useCloudSessionActions` used by Kanban List.
  *
  * Row identity:
  * - rows that are MINE (bare id matches a local session) use the LOCAL
@@ -47,7 +47,6 @@ import {
   DROPDOWN_PANEL,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
-import Message from "@src/components/Message";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
   buildCloudRemoteItemId,
@@ -81,7 +80,6 @@ import {
 } from "@src/features/Org2Cloud/org2CloudPresenceAtom";
 import { useCloudOrgRemoteSessions } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
 import { useCloudSessionActions } from "@src/features/Org2Cloud/useCloudSessionActions";
-import { useOpenCloudBilling } from "@src/features/Org2Cloud/useOpenCloudBilling";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session";
@@ -171,7 +169,6 @@ export function useCloudSessionsSection({
   const { rows, state, refresh } = useCloudOrgRemoteSessions(orgId);
   const { replaySession, forkSession, busySessionRowId } =
     useCloudSessionActions(orgId);
-  const openBilling = useOpenCloudBilling();
   const presenceMap = useAtomValue(org2CloudPresenceAtom);
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const selfUserId = auth?.userId ?? null;
@@ -365,34 +362,16 @@ export function useCloudSessionsSection({
 
   const runReplay = useCallback(
     (row: RemoteTeammateSessionMetadata) => {
-      void replaySession(row).then((outcome) => {
-        if (outcome === "retention-expired") {
-          Message.error(t("cloud.orgPanel.retentionUpgrade"), {
-            cancel: {
-              label: t("cloud.orgPanel.upgrade"),
-              onClick: openBilling,
-            },
-          });
-        }
-      });
+      void replaySession(row);
     },
-    [replaySession, t, openBilling]
+    [replaySession]
   );
 
   const runFork = useCallback(
     (row: RemoteTeammateSessionMetadata) => {
-      void forkSession(row).then((outcome) => {
-        if (outcome === "retention-expired") {
-          Message.error(t("cloud.orgPanel.retentionUpgrade"), {
-            cancel: {
-              label: t("cloud.orgPanel.upgrade"),
-              onClick: openBilling,
-            },
-          });
-        }
-      });
+      void forkSession(row);
     },
-    [forkSession, t, openBilling]
+    [forkSession]
   );
 
   const handleCloudSessionItemClick = useCallback(

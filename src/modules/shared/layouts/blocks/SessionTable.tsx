@@ -13,7 +13,6 @@ export interface SessionTableItem {
   description?: React.ReactNode;
   statusLabel: React.ReactNode;
   statusColor?: string;
-  ownerIcon?: React.ReactNode;
   ownerLabel?: React.ReactNode;
   agentIcon?: React.ReactNode;
   agentLabel?: React.ReactNode;
@@ -92,9 +91,22 @@ export interface SessionTableProps {
   pageSizeOptions?: number[];
   /** Per-column overrides merged over the shared visibility defaults. */
   columnVisibility?: Partial<Record<SessionTableColumnKey, boolean>>;
+  /** Override the shared Member label when owner means a more precise role. */
+  ownerColumnLabel?: React.ReactNode;
 }
 
 const EMPTY_CELL = "—";
+const OWNER_NAME_MAX_CHARACTERS = 12;
+
+export function truncateSessionOwnerLabel(
+  value: React.ReactNode | undefined
+): React.ReactNode | undefined {
+  if (typeof value !== "string") return value;
+  const characters = Array.from(value);
+  return characters.length > OWNER_NAME_MAX_CHARACTERS
+    ? `${characters.slice(0, OWNER_NAME_MAX_CHARACTERS).join("")}…`
+    : value;
+}
 
 function toSearchText(value: React.ReactNode | undefined): string {
   if (value == null) return "";
@@ -155,6 +167,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
   pageSize,
   pageSizeOptions,
   columnVisibility,
+  ownerColumnLabel,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -196,16 +209,18 @@ export const SessionTable: React.FC<SessionTableProps> = ({
       },
       {
         key: "owner",
-        label: t("common:filters.member"),
+        label: ownerColumnLabel ?? t("common:filters.member"),
         width: "140px",
         sorter: (left, right) =>
           compareSessionText(left.ownerLabel, right.ownerLabel),
         renderCell: (item) => (
-          <div className="flex min-w-0 items-center gap-2 text-text-2">
-            {item.ownerIcon}
-            <span className="min-w-0 truncate">
-              {item.ownerLabel ?? EMPTY_CELL}
-            </span>
+          <div
+            className="min-w-0 truncate text-text-2"
+            title={
+              typeof item.ownerLabel === "string" ? item.ownerLabel : undefined
+            }
+          >
+            {truncateSessionOwnerLabel(item.ownerLabel) ?? EMPTY_CELL}
           </div>
         ),
       },
@@ -336,7 +351,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
             {
               key: "actions" as const,
               label: "",
-              width: "60px",
+              width: "140px",
               renderCell: (item: SessionTableItem) =>
                 item.rowAction != null ? (
                   // Stop propagation so the action does not double as a row
@@ -357,7 +372,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
       (column) =>
         columnVisibility?.[column.key] ?? DEFAULT_COLUMN_VISIBILITY[column.key]
     );
-  }, [t, hasRowActions, columnVisibility]);
+  }, [t, hasRowActions, columnVisibility, ownerColumnLabel]);
 
   const filteredItems = useMemo(() => {
     if (!shouldShowSearch) return items;

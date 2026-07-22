@@ -477,7 +477,8 @@
       "retentionUpgrade": "Diese Session liegt außerhalb des Replay-Fensters deines Plans — upgrade, um sie zu sehen",
       "importError": "Session konnte nicht importiert werden",
       "manageBilling": "Manage billing",
-      "manageBillingNote": "Cancel or change your plan in the billing portal"
+      "manageBillingNote": "Cancel or change your plan in the billing portal",
+      "aboutMeTitle": "Über mich"
     },
     "sidebar": {
       "teamSessions": "Team-Sessions",

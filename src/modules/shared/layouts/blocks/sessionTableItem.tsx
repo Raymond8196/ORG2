@@ -22,6 +22,7 @@ interface MapKanbanTaskToSessionTableItemInput {
   dateTimeLabelOptions?: SessionTableDateTimeLabelOptions;
   active?: boolean;
   testId?: string;
+  rowAction?: React.ReactNode;
 }
 
 const WORKSPACE_LABEL_MAX_LENGTH = 15;
@@ -80,6 +81,7 @@ export function mapKanbanTaskToSessionTableItem({
   dateTimeLabelOptions,
   active,
   testId,
+  rowAction,
 }: MapKanbanTaskToSessionTableItemInput): SessionTableItem {
   const impact = task.impact;
   const committedRateValue = impact?.committedRatePercent;
@@ -93,6 +95,7 @@ export function mapKanbanTaskToSessionTableItem({
     description: task.description,
     statusLabel,
     statusColor: getStatusColor(task),
+    ownerLabel: task.createdBy?.name,
     agentIcon: renderAgentIcon(task),
     agentLabel: task.agentLabel ?? task.assignee,
     modelIcon: task.modelName ? (
@@ -141,7 +144,9 @@ export function mapKanbanTaskToSessionTableItem({
       task.updated_at ?? task.completed_at,
       dateTimeLabelOptions
     ),
+    disabled: task.canOpen === false,
     active,
     testId,
+    rowAction,
   };
 }
