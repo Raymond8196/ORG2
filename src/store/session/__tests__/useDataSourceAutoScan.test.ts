@@ -82,6 +82,10 @@ describe("runDataSourceAutoScan", () => {
     vi.unstubAllGlobals();
   });
 
+  it("defaults global provider discovery to a five-minute cadence", () => {
+    expect(mocks.store?.get(dataSourceGlobalFrequencyAtom)).toBe("5m");
+  });
+
   it("scans enabled non-manual sources immediately at startup", async () => {
     mocks.store?.set(dataSourceGlobalFrequencyAtom, "60s");
     mocks.store?.set(dataSourceConfigAtom, {
