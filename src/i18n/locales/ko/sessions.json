@@ -1317,6 +1317,8 @@
     "terminalSummary": {
       "command_one": "명령 {{count}}개",
       "command_other": "명령 {{count}}개",
+      "mcp_one": "MCP 호출 {{count}}회",
+      "mcp_other": "MCP 호출 {{count}}회",
       "wait_one": "대기 {{count}}회",
       "wait_other": "대기 {{count}}회",
       "check_one": "확인 {{count}}회",

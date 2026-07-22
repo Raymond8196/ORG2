@@ -1383,6 +1383,8 @@
     "terminalSummary": {
       "command_one": "{{count}} command",
       "command_other": "{{count}} commands",
+      "mcp_one": "{{count}} MCP call",
+      "mcp_other": "{{count}} MCP calls",
       "wait_one": "{{count}} wait",
       "wait_other": "{{count}} waits",
       "check_one": "{{count}} check",

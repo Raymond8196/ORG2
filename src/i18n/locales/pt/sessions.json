@@ -1333,6 +1333,8 @@
     "terminalSummary": {
       "command_one": "{{count}} comando",
       "command_other": "{{count}} comandos",
+      "mcp_one": "{{count}} chamada MCP",
+      "mcp_other": "{{count}} chamadas MCP",
       "wait_one": "{{count}} espera",
       "wait_other": "{{count}} esperas",
       "check_one": "{{count}} verificação",

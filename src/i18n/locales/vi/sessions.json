@@ -1315,6 +1315,8 @@
     "terminalSummary": {
       "command_one": "{{count}} lệnh",
       "command_other": "{{count}} lệnh",
+      "mcp_one": "{{count}} lệnh gọi MCP",
+      "mcp_other": "{{count}} lệnh gọi MCP",
       "wait_one": "{{count}} lần chờ",
       "wait_other": "{{count}} lần chờ",
       "check_one": "{{count}} lần kiểm tra",
