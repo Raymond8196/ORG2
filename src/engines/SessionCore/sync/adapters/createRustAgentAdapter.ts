@@ -30,6 +30,7 @@ import { createLogger } from "@src/hooks/logger";
 import type { ContextUsageSnapshot } from "@src/store/session/cliSessionStatusAtom";
 import { invokeTauri } from "@src/util/platform/tauri/init";
 import { retryInvokeTauri } from "@src/util/platform/tauri/retryInvoke";
+import { isSessionEngineActiveStatus } from "@src/util/session/sessionRuntimeExecuting";
 
 import { noteSessionChannelActivity } from "../sessionChannelActivity";
 import type {
@@ -220,10 +221,7 @@ export function createRustAgentAdapter(
         const record = await getSession(sessionId);
         if (signal.aborted) return result;
         if (record?.status && record.status !== "idle") {
-          const isInFlight =
-            record.status === "running" ||
-            record.status === "waiting_for_user" ||
-            record.status === "waiting_for_funds";
+          const isInFlight = isSessionEngineActiveStatus(record.status);
 
           if (isInFlight) {
             // DB says in-flight — verify against the Rust runtime HashMap.
