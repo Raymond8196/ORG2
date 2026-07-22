@@ -299,6 +299,8 @@ export function mapSessionStatusToKanbanColumn(
 export type KanbanTimeFilter = "12h" | "24h" | "3d" | "7d";
 export type KanbanAutoArchiveTtl = "never" | "12h" | "24h" | "3d" | "7d";
 
+export const DEFAULT_KANBAN_TIME_FILTER: KanbanTimeFilter = "3d";
+
 export const KANBAN_TIME_FILTERS: {
   key: KanbanTimeFilter;
   labelKey: string;
