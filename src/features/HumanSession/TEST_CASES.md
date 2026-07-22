@@ -2,7 +2,7 @@
 
 ## Creation
 
-- Select **Work log** from **Built-ins** in the regular session creator; the same composer remains visible with model, repo, attachment, and agent-only controls removed.
+- Select **Work log** from **Built-ins** in the regular session creator; the same composer and `SessionInfoLine` remain visible with the regular repository, branch, and location/worktree selectors, while model, attachment, and agent-only controls remain removed.
 - Enter an optional title in the upper Create Work item-style header row, outside the note composer; the title is trimmed, limited to 80 characters, and becomes the canonical sidebar/session name.
 - The creator retains the regular `+` menu and compact round-arrow submit button; the submit button's accessible name remains **Create work log**.
 - Leave the optional title blank; the canonical title is derived from the first note as before.
