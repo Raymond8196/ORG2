@@ -643,7 +643,8 @@
         "inviteInvalid": "This invite code isn't valid.",
         "inviteRevoked": "This invite has been revoked.",
         "inviteExpired": "This invite has expired.",
-        "inviteExhausted": "This invite has no uses left."
+        "inviteExhausted": "This invite has no uses left.",
+        "network": "Couldn't connect to the cloud service. Check your network and try again."
       }
     },
     "syncLevel": {

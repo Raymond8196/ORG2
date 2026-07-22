@@ -613,7 +613,8 @@
         "inviteInvalid": "Ten kod zaproszenia jest nieprawidłowy.",
         "inviteRevoked": "To zaproszenie zostało odwołane.",
         "inviteExpired": "To zaproszenie wygasło.",
-        "inviteExhausted": "To zaproszenie nie ma już dostępnych użyć."
+        "inviteExhausted": "To zaproszenie nie ma już dostępnych użyć.",
+        "network": "Nie udało się połączyć z usługą chmurową. Sprawdź sieć i spróbuj ponownie."
       }
     },
     "syncLevel": {

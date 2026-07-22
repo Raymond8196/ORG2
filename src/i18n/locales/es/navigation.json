@@ -615,7 +615,8 @@
         "inviteInvalid": "Este código de invitación no es válido.",
         "inviteRevoked": "Esta invitación fue revocada.",
         "inviteExpired": "Esta invitación caducó.",
-        "inviteExhausted": "Esta invitación no tiene usos restantes."
+        "inviteExhausted": "Esta invitación no tiene usos restantes.",
+        "network": "No se pudo conectar al servicio en la nube. Comprueba la red e inténtalo de nuevo."
       }
     },
     "syncLevel": {
