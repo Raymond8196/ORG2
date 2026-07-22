@@ -131,6 +131,8 @@ interface DataSourcePanelProps {
   activePanelView?: DataSourcePanelView;
   onPanelViewChange?: (view: DataSourcePanelView) => void;
   hideHeader?: boolean;
+  /** Hide scroll chrome while preserving scrolling in compact host surfaces. */
+  hideScrollbars?: boolean;
 }
 
 interface DataSourcePanelViewTabsProps {
@@ -205,6 +207,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
   activePanelView,
   onPanelViewChange,
   hideHeader = false,
+  hideScrollbars = false,
 }) => {
   const { t } = useTranslation("sessions", {
     keyPrefix: "kanban.dataSource",
@@ -220,6 +223,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
   const [internalPanelView, setInternalPanelView] =
     useState<DataSourcePanelView>("usage");
   const panelView = activePanelView ?? internalPanelView;
+  const isRuntimeSurface = Boolean(quotaContent || assetsContent);
   const handlePanelViewChange = useCallback(
     (nextView: DataSourcePanelView) => {
       if (onPanelViewChange) {
@@ -743,7 +747,9 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
         className={
           panelView === "assets"
             ? "min-h-0 flex-1 overflow-hidden scrollbar-hide"
-            : DETAIL_PANEL_TOKENS.scrollContentNoTop
+            : hideScrollbars
+              ? "min-h-0 flex-1 overflow-y-auto px-4 scrollbar-hide @container"
+              : DETAIL_PANEL_TOKENS.scrollContentNoTop
         }
       >
         {panelView === "assets" ? (
@@ -754,7 +760,14 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
           >
             {panelView === "scanning" ? (
               <>
-                <h3 className={SECTION_SUBHEADING_CLASSES}>{t("title")}</h3>
+                {!isRuntimeSurface ? (
+                  <h3
+                    className={SECTION_SUBHEADING_CLASSES}
+                    data-testid="data-source-section-title"
+                  >
+                    {t("title")}
+                  </h3>
+                ) : null}
                 {importableCount > 0 && (
                   <SectionContainer>
                     <SectionRow
@@ -878,7 +891,7 @@ const DataSourcePanel: React.FC<DataSourcePanelProps> = ({
                 />
               </>
             ) : panelView === "hooks" ? (
-              <SessionProvenanceHooksPanel />
+              <SessionProvenanceHooksPanel showTitle={!isRuntimeSurface} />
             ) : panelView === "quota" ? (
               quotaContent
             ) : (

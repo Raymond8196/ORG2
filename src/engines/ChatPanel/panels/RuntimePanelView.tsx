@@ -12,6 +12,7 @@ export default function RuntimePanelView(): React.ReactElement {
       <DataSourcePanel
         quotaContent={<StartPageQuotaGrid />}
         assetsContent={<WorkspaceDashboardPanelView />}
+        hideScrollbars
       />
     </div>
   );

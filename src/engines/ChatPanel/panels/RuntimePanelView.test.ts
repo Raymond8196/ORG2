@@ -5,10 +5,17 @@ import { describe, expect, it, vi } from "vitest";
 import RuntimePanelView from "./RuntimePanelView";
 
 vi.mock("@src/modules/shared/dataSource", () => ({
-  default: ({ hideHeader }: { hideHeader?: boolean }) =>
+  default: ({
+    hideHeader,
+    hideScrollbars,
+  }: {
+    hideHeader?: boolean;
+    hideScrollbars?: boolean;
+  }) =>
     React.createElement("div", {
       "data-testid": "runtime-sections",
       "data-header-mode": hideHeader ? "hidden" : "pinned-tabs",
+      "data-scrollbars": hideScrollbars ? "hidden" : "visible",
     }),
 }));
 
@@ -29,5 +36,6 @@ describe("RuntimePanelView", () => {
     );
     expect(markup).toContain('data-testid="runtime-sections"');
     expect(markup).toContain('data-header-mode="pinned-tabs"');
+    expect(markup).toContain('data-scrollbars="hidden"');
   });
 });
