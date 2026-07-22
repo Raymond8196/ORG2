@@ -484,6 +484,8 @@ pub(crate) fn cmd_usage(
         0,
         limit,
         TrendBucket::Day,
+        true,
+        false,
     )?;
 
     if let Some(formatter) = formatter_for(opts, formatters) {
