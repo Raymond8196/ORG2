@@ -6,6 +6,7 @@ import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/compone
 import { separator } from "../useSessionMenuItems/menuItemBuilders";
 
 export const CLOUD_MY_SESSIONS_SECTION_ID = "cloud-my-sessions";
+export const CLOUD_TEAM_SESSIONS_SECTION_ID = "cloud-team-sessions";
 export const CLOUD_SESSION_SECTION_PAGE_SIZE = 10;
 export const CLOUD_TEAM_SESSIONS_LOAD_MORE_ID = "cloud-team-sessions-next-page";
 export const CLOUD_MY_SESSIONS_LOAD_MORE_ID = "cloud-my-sessions-next-page";

@@ -263,6 +263,7 @@ export function buildWorkItemRow(
               ? ChevronsDownUp
               : ChevronsUpDown,
             label: t("projects:workItems.sessions.linkedSessions"),
+            active: linkedSessionExpansion.expanded,
             dataTestId: `sidebar-work-item-linked-sessions-toggle-${workItem.id}`,
             onClick: linkedSessionExpansion.onToggle,
           },

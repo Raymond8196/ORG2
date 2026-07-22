@@ -118,7 +118,9 @@ import { SidebarDialogs } from "./SidebarDialogs";
 import { useSidebarBottomRightActions } from "./bottomActions";
 import {
   CLOUD_MY_SESSIONS_LOAD_MORE_ID,
+  CLOUD_MY_SESSIONS_SECTION_ID,
   CLOUD_SESSION_SECTION_PAGE_SIZE,
+  CLOUD_TEAM_SESSIONS_SECTION_ID,
   buildCloudScopedMenuItems,
   isCloudScopedLocalRow,
 } from "./cloudScopedMenuItems";
@@ -129,6 +131,12 @@ import {
   useRenderWorkstationMenuItemWrapper,
 } from "./menuItemWrappers";
 import { resolveSelectedMenuItemIds } from "./menuSelection";
+import {
+  getProjectsSectionVisibleCountKey,
+  getSessionSectionVisibleCountKey,
+  resetNewlyCollapsedSectionVisibleCounts,
+  resetScopedSectionPagination,
+} from "./sectionPagination";
 import { useSessionEntryActions } from "./sessionEntryActions";
 import { useDecorateSessionRowActions } from "./sessionRowActions";
 import { useWorkstationSidebarMemory } from "./sidebarMemory";
@@ -293,6 +301,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
     scopeKey: "",
     visibleCount: CLOUD_SESSION_SECTION_PAGE_SIZE,
   });
+  const resetCloudMyPagination = useCallback(() => {
+    setCloudMyPagination((current) =>
+      resetScopedSectionPagination(current, CLOUD_SESSION_SECTION_PAGE_SIZE)
+    );
+  }, []);
   const cloudMySessionsVisibleCount =
     cloudMyPagination.scopeKey === cloudMyPaginationScopeKey
       ? cloudMyPagination.visibleCount
@@ -374,6 +387,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     cloudThreadedLocalSessionIds,
     selectedCloudMenuItemId,
     handleCloudSessionItemClick,
+    resetCloudTeamPagination,
     handleCloudRemoteItemRemove,
     cloudMemberFilterDropdown,
     cloudRemoteRowMap,
@@ -604,14 +618,62 @@ export const WorkstationSidebarConnector: React.FC = () => {
             projectsView: workManagementProjectsView,
           })
         : baseSelectedMenuItemId;
+  const handleSessionCollapsedSectionIdsChange = useCallback(
+    (nextCollapsedSectionIds: Set<string>) => {
+      setGroupVisibleCounts((currentVisibleCounts) =>
+        resetNewlyCollapsedSectionVisibleCounts({
+          currentVisibleCounts,
+          previousCollapsedSectionIds: collapsedSectionIds,
+          nextCollapsedSectionIds,
+          resolveVisibleCountKey: (sectionId) =>
+            getSessionSectionVisibleCountKey(sectionId, groupByMode),
+        })
+      );
+
+      if (
+        !collapsedSectionIds.has(CLOUD_TEAM_SESSIONS_SECTION_ID) &&
+        nextCollapsedSectionIds.has(CLOUD_TEAM_SESSIONS_SECTION_ID)
+      ) {
+        resetCloudTeamPagination();
+      }
+      if (
+        !collapsedSectionIds.has(CLOUD_MY_SESSIONS_SECTION_ID) &&
+        nextCollapsedSectionIds.has(CLOUD_MY_SESSIONS_SECTION_ID)
+      ) {
+        resetCloudMyPagination();
+      }
+
+      setCollapsedSectionIds(nextCollapsedSectionIds);
+    },
+    [
+      collapsedSectionIds,
+      groupByMode,
+      resetCloudMyPagination,
+      resetCloudTeamPagination,
+    ]
+  );
+  const handleProjectsCollapsedSectionIdsChange = useCallback(
+    (nextCollapsedSectionIds: Set<string>) => {
+      setProjectsGroupVisibleCounts((currentVisibleCounts) =>
+        resetNewlyCollapsedSectionVisibleCounts({
+          currentVisibleCounts,
+          previousCollapsedSectionIds: projectsCollapsedSectionIds,
+          nextCollapsedSectionIds,
+          resolveVisibleCountKey: getProjectsSectionVisibleCountKey,
+        })
+      );
+      setProjectsCollapsedSectionIds(nextCollapsedSectionIds);
+    },
+    [projectsCollapsedSectionIds]
+  );
   const resolvedCollapsedSectionIds =
     activeSidebarKey === "projects" || workItemsContentVisible
       ? projectsCollapsedSectionIds
       : collapsedSectionIds;
-  const resolvedSetCollapsedSectionIds =
+  const resolvedOnCollapsedSectionIdsChange =
     activeSidebarKey === "projects" || workItemsContentVisible
-      ? setProjectsCollapsedSectionIds
-      : setCollapsedSectionIds;
+      ? handleProjectsCollapsedSectionIdsChange
+      : handleSessionCollapsedSectionIdsChange;
 
   const activateMyStationRouteForProjectsContent = useCallback(() => {
     const targetRoute = ROUTES.workStation.code.path;
@@ -1059,8 +1121,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     [sidebarMenuItems]
   );
   const handleCollapseAll = useCallback(() => {
-    setCollapsedSectionIds(new Set(allSectionIds));
-  }, [allSectionIds]);
+    resolvedOnCollapsedSectionIdsChange(new Set(allSectionIds));
+  }, [allSectionIds, resolvedOnCollapsedSectionIdsChange]);
   const handleMarkAllRead = useCallback(() => {
     markAllSessionsVisited(sessions.map((session) => session.session_id));
   }, [sessions]);
@@ -1116,8 +1178,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
         renderMenuItemWrapper={resolvedRenderMenuItemWrapper}
         preListContent={
           <>
-            {sidebarLayerHeader}
             <div className="shrink-0 px-3 pt-1">{sidebarOrgSelector}</div>
+            {sidebarLayerHeader}
           </>
         }
         compactRows
@@ -1158,7 +1220,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
         isLoading={isLoading}
         collapsibleSections
         collapsedSectionIds={resolvedCollapsedSectionIds}
-        onCollapsedSectionsChange={resolvedSetCollapsedSectionIds}
+        onCollapsedSectionsChange={resolvedOnCollapsedSectionIdsChange}
         revealMenuItemRequest={
           activeSessionSidebarRevealRequest
             ? {
