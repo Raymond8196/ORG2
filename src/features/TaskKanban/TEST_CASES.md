@@ -22,6 +22,16 @@ Manual acceptance: import at least one Warp conversation, open Agent Kanban, cho
 
 Manual acceptance: open **Work Management → Kanban**, search for part of a file path shown under a session's Touched Files detail, verify only matching sessions remain, then clear the field and verify all cards return.
 
+## List impact summary
+
+| Case                                  | Expected result                                                               | Coverage                  |
+| ------------------------------------- | ----------------------------------------------------------------------------- | ------------------------- |
+| View a session with file/line changes | One `Files · Lines` column shows the file count before the colored line stats | `ListView/index.test.tsx` |
+| View a session without impact data    | The consolidated impact cell shows the standard empty-value dash              | Shared `SessionTable`     |
+| List contains more than 25 sessions   | Pagination defaults to 25 rows and offers only 25 or 50 rows per page         | `ListView` pagination     |
+
+Manual acceptance: switch Work Management to **List** and confirm impact reads in the order `46 · +927 −606`, with no separate Files column. With more than 25 sessions, confirm the first page contains 25 rows and the page-size selector offers only **25** and **50**.
+
 ## Organization scope and creator attribution
 
 | Case                                        | Expected result                                                                                          | Coverage                                                  |

@@ -104,4 +104,79 @@ describe("TaskKanban ListView", () => {
     expect(takeOver).toHaveBeenCalledTimes(1);
     expect(onTaskClick).not.toHaveBeenCalled();
   });
+
+  it("combines files and line changes into one files-first column", async () => {
+    await act(async () => {
+      root.render(
+        createElement(ListView, {
+          tasks: [
+            {
+              ...task,
+              impact: {
+                filesChanged: 46,
+                linesAdded: 927,
+                linesRemoved: 606,
+                relatedCommits: 0,
+                committedFiles: 0,
+                committedRatePercent: 0,
+              },
+            },
+          ],
+          selectedTaskId: null,
+          detailPanelVisible: false,
+          onTaskClick: vi.fn(),
+        })
+      );
+    });
+
+    const headerLabels = Array.from(container.querySelectorAll("th")).map(
+      (header) => header.textContent?.replace(/\s+/g, " ").trim()
+    );
+    expect(headerLabels).toContain(
+      "common:labels.files · common:aiImpact.lines"
+    );
+    expect(headerLabels).not.toContain("common:labels.files");
+
+    const row = container.querySelector(
+      '[data-testid="kanban-list-session-row"]'
+    );
+    expect(row?.textContent).toContain("46·+927-606");
+  });
+
+  it("defaults to 25 rows and offers only 25 or 50 per page", async () => {
+    await act(async () => {
+      root.render(
+        createElement(ListView, {
+          tasks: Array.from({ length: 51 }, (_, index) => ({
+            ...task,
+            id: `session-${index}`,
+            title: `Session ${index}`,
+          })),
+          selectedTaskId: null,
+          detailPanelVisible: false,
+          onTaskClick: vi.fn(),
+        })
+      );
+    });
+
+    expect(
+      container.querySelectorAll('[data-testid="kanban-list-session-row"]')
+    ).toHaveLength(25);
+
+    const pageSizeSelect =
+      container.querySelector<HTMLElement>(".select-wrapper");
+    expect(pageSizeSelect?.textContent).toContain("25 pagination.perPage");
+    await act(async () => pageSizeSelect?.click());
+
+    const optionsContainer = document.body.querySelector(
+      ".select-options-overlay > div"
+    );
+    const pageSizeOptions = Array.from(optionsContainer?.children ?? [])
+      .map((option) => option.textContent?.trim())
+      .filter(Boolean);
+    expect(pageSizeOptions).toEqual([
+      "25 pagination.perPage",
+      "50 pagination.perPage",
+    ]);
+  });
 });
