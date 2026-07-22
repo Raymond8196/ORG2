@@ -26,7 +26,8 @@ const RootLayout = () => {
   useDeepLinkHandler();
   // Fetch the signed-in user's ORG2 Cloud orgs (clears on sign-out).
   useOrg2CloudOrgs();
-  // Once per app start, after the first successful roster load: prune
+  // Once per signed-in cloud identity, after its first successful roster load:
+  // prune backend-owned state that no longer belongs to an accessible org.
   // persisted org2-cloud-v1 maps keyed by org ids no longer in the roster.
   useOrg2CloudRosterReconcile();
   // Managed-cloud session push (Phase 6): scope-matched local sessions.

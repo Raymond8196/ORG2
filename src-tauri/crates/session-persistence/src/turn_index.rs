@@ -12,6 +12,7 @@ use super::connection::{begin_immediate, get_connection, with_sessions_writer};
 use super::crud::normalize_session_sequences;
 
 const USER_MESSAGE_FUNCTION: &str = "user_message";
+const IMPORTED_USER_MESSAGE_FUNCTION: &str = "user";
 const TURN_STATUS_PENDING: &str = "pending";
 const TURN_STATUS_COMPLETED: &str = "completed";
 const TURN_STATUS_FAILED: &str = "failed";
@@ -26,7 +27,9 @@ const TURN_STATUS_FAILED: &str = "failed";
 /// v9: materialize exact per-round commits and pull requests.
 /// v10: project provider-neutral read/search/write resource interactions via
 /// Orgtrack instead of interpreting ORG2 tool names in this host crate.
-const TURN_INDEX_VERSION: i64 = 10;
+/// v11: treat the normalized imported-history `user` function as the same
+/// turn boundary as the native `user_message` function.
+const TURN_INDEX_VERSION: i64 = 11;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -162,7 +165,10 @@ fn turn_intent_id_for_row(row: &IndexEventRow) -> Option<String> {
 }
 
 fn is_user_message(row: &IndexEventRow) -> bool {
-    row.function_name.as_deref() == Some(USER_MESSAGE_FUNCTION) && !is_synthetic_user_input(row)
+    matches!(
+        row.function_name.as_deref(),
+        Some(USER_MESSAGE_FUNCTION | IMPORTED_USER_MESSAGE_FUNCTION)
+    ) && !is_synthetic_user_input(row)
 }
 
 /// Lookup of intent ids that the indexer must treat as not yielding a
@@ -255,7 +261,7 @@ fn load_existing_user_event_keys(
     let mut stmt = conn.prepare_cached(
         "SELECT id, content, result_json
          FROM events
-         WHERE session_id = ?1 AND function_name = 'user_message'
+         WHERE session_id = ?1 AND function_name IN ('user_message', 'user')
          ORDER BY COALESCE(history_sequence, rowid) ASC, created_at ASC, id ASC",
     )?;
     let mut ids = std::collections::HashSet::new();
@@ -284,6 +290,7 @@ fn load_existing_user_event_keys(
         ids.insert(id);
         let preview = content
             .strip_prefix("user_message ")
+            .or_else(|| content.strip_prefix("user "))
             .unwrap_or(&content)
             .to_string();
         *content_counts
@@ -889,6 +896,25 @@ mod tests {
         assert_eq!(drafts.len(), 1);
         assert_eq!(drafts[0].turn_id, "user-message-authoritative");
         assert_eq!(drafts[0].start_sequence, 3);
+    }
+
+    #[test]
+    fn imported_user_alias_starts_turn() {
+        let rows = vec![
+            row(
+                "imported-user",
+                Some(IMPORTED_USER_MESSAGE_FUNCTION),
+                "{}",
+                1,
+            ),
+            row("assistant-event", Some("assistant"), "{}", 2),
+        ];
+
+        let drafts = build_turn_drafts(&rows, &StaleIntentIds::new());
+
+        assert_eq!(drafts.len(), 1);
+        assert_eq!(drafts[0].turn_id, "imported-user");
+        assert_eq!(drafts[0].body_event_count, 1);
     }
 
     #[test]

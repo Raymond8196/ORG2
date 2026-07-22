@@ -4,11 +4,13 @@ import { getGitRemotes } from "@src/api/http/git/remotes";
 import { resolveGitHubRepoNetworkIdentityLocal } from "@src/api/tauri/github";
 
 import {
+  MAX_RESOLVER_CACHE_ENTRIES,
   clearShareableScopeKeyCache,
   peekMatchingOrgRepoScope,
   peekShareableScopeKey,
   resolveLocalCheckoutForScopeKey,
   resolveMatchingOrgRepoScope,
+  resolveRepoNetworkScopeKey,
   resolveShareableScopeKey,
   resolveShareableScopeKeys,
   subscribeShareableScopeKeys,
@@ -305,5 +307,24 @@ describe("GitHub fork-network org scope matching", () => {
         ["github.com/acme/two"]
       )
     ).resolves.toBeNull();
+  });
+
+  it("bounds the long-lived GitHub network cache with LRU eviction", async () => {
+    networkIdentityMock.mockClear();
+    networkIdentityMock.mockImplementation(async (fullName) => ({
+      full_name: fullName,
+      source_full_name: fullName,
+    }));
+    for (let index = 0; index <= MAX_RESOLVER_CACHE_ENTRIES; index += 1) {
+      await resolveRepoNetworkScopeKey(`github.com/acme/repo-${index}`);
+    }
+    expect(networkIdentityMock).toHaveBeenCalledTimes(
+      MAX_RESOLVER_CACHE_ENTRIES + 1
+    );
+
+    await resolveRepoNetworkScopeKey("github.com/acme/repo-0");
+    expect(networkIdentityMock).toHaveBeenCalledTimes(
+      MAX_RESOLVER_CACHE_ENTRIES + 2
+    );
   });
 });

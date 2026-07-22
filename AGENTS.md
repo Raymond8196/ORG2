@@ -16,6 +16,7 @@ This is **advisory**, not a hard contract. Use judgment based on PR size and ris
 | Frontend UI consistency, design-system component usage, arbitrary Tailwind values, a11y basics, visual-pattern duplication | `frontend-ui-audit`                        | Before delivering a PR that touches `*.tsx` under `src/components/` or `src/modules/**/components/` (component refactors, UI cleanup batches) |
 | Both layers change together (e.g. "refactor module X")                                                                     | Run both, emit **two independent reports** | Don't fold them; each skill has its own decision rules                                                                                        |
 | E2E test surface (Playwright / WebDriver), test stability                                                                  | `e2e-testing`                              | When adding or repairing rendered E2E specs                                                                                                   |
+| Polling, timers, caches, subscriptions, workers, streaming, sync, scans, pagination, multi-instance lifecycle              | `org2-performance-guard`                   | Before delivering any change that can consume CPU/RAM/I/O while active, idle, hidden, or across repeated open/close cycles                    |
 
 Skills live at:
 
@@ -23,6 +24,7 @@ Skills live at:
 - `~/.orgii/skills/frontend-ui-audit/SKILL.md` (user-global)
 - `.orgii/skills/architecture-audit/SKILL.md` (workspace copy, if present)
 - `.orgii/skills/e2e-testing/SKILL.md` (workspace)
+- `.orgii/skills/org2-performance-guard/SKILL.md` (workspace)
 
 If the skill block isn't already prefetched in your context, read its `SKILL.md` before acting on it.
 
@@ -45,6 +47,10 @@ Before finalizing a refactor plan, walk the 10-layer `architecture-audit` checkl
 ### Touching both
 
 Don't merge the reports. Two skills, two reports. Cross-reference in the delivery message if relevant.
+
+### Touching background work or retained state
+
+Run `org2-performance-guard` whenever a change adds or modifies polling, timers, retries, subscriptions, workers, streaming hot paths, caches, scans, sync loops, pagination, or multi-instance state. Apply its lifecycle matrix and rejection rules even when performance is not the feature's headline. State the performance verdict and concrete verification in the delivery message.
 
 ---
 

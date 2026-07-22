@@ -25,7 +25,7 @@
  * hover fork button — no self-duplicate child row is injected.
  */
 import { MenuItem, Menu as TauriMenu } from "@tauri-apps/api/menu";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useStore } from "jotai";
 import {
   Bot,
   GitFork,
@@ -68,13 +68,11 @@ import {
 import {
   commitRefreshedAuth,
   org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { cloudSessionIdFromRowId } from "@src/features/Org2Cloud/org2CloudBackendAdapter";
-import {
-  type CloudOrgMember,
-  ensureFreshSession,
-  listOrgMembers,
-} from "@src/features/Org2Cloud/org2CloudClient";
+import { type CloudOrgMember } from "@src/features/Org2Cloud/org2CloudClient";
+import { loadCloudOrgMembers } from "@src/features/Org2Cloud/org2CloudMembersCoordinator";
 import { org2CloudRosterVersionAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import {
   type Org2CloudPresenceEntry,
@@ -164,6 +162,7 @@ export function useCloudSessionsSection({
 }: UseCloudSessionsSectionParams): UseCloudSessionsSectionResult {
   const { t } = useTranslation("navigation");
   const { t: tCommon } = useTranslation("common");
+  const store = useStore();
   const { rows, state, refresh } = useCloudOrgRemoteSessions(orgId);
   const { replaySession, forkSession, busySessionRowId } =
     useCloudSessionActions(orgId);
@@ -171,15 +170,21 @@ export function useCloudSessionsSection({
   const presenceMap = useAtomValue(org2CloudPresenceAtom);
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const selfUserId = auth?.userId ?? null;
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
   const rosterVersionByOrg = useAtomValue(org2CloudRosterVersionAtom);
   const rosterVersion = orgId ? (rosterVersionByOrg[orgId] ?? 0) : 0;
   const [rosterSnapshot, setRosterSnapshot] = useState<{
+    identityKey: string;
     orgId: string;
     members: CloudOrgMember[];
   } | null>(null);
   const signedIn = Boolean(auth);
   const rosterMembers =
-    signedIn && rosterSnapshot?.orgId === orgId ? rosterSnapshot.members : null;
+    signedIn &&
+    rosterSnapshot?.identityKey === authIdentityKey &&
+    rosterSnapshot.orgId === orgId
+      ? rosterSnapshot.members
+      : null;
   const authRef = React.useRef(auth);
   useEffect(() => {
     authRef.current = auth;
@@ -190,16 +195,29 @@ export function useCloudSessionsSection({
     void (async () => {
       const current = authRef.current;
       if (!current) return;
-      const fresh = await ensureFreshSession(current);
-      if (!fresh || cancelled) return;
-      if (!commitRefreshedAuth(setAuth, current, fresh)) return;
-      const members = await listOrgMembers(fresh.accessToken, orgId);
-      if (!cancelled) setRosterSnapshot({ orgId, members });
+      const requestIdentityKey = org2CloudAuthIdentityKey(current);
+      const loaded = await loadCloudOrgMembers(
+        store,
+        current,
+        orgId,
+        rosterVersion
+      );
+      if (!loaded || cancelled) return;
+      const latest = authRef.current;
+      if (!latest || org2CloudAuthIdentityKey(latest) !== requestIdentityKey) {
+        return;
+      }
+      commitRefreshedAuth(setAuth, current, loaded.auth);
+      setRosterSnapshot({
+        identityKey: requestIdentityKey,
+        orgId,
+        members: loaded.members,
+      });
     })();
     return () => {
       cancelled = true;
     };
-  }, [orgId, rosterVersion, setAuth, signedIn]);
+  }, [authIdentityKey, orgId, rosterVersion, setAuth, signedIn, store]);
   const [memberMenu, setMemberMenu] = useState<MemberFilterMenuState | null>(
     null
   );

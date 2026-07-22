@@ -25,6 +25,7 @@ const {
   org2CloudOrgsAtom,
   org2CloudRepoScopesAtom,
   org2CloudSyncEnabledAtom,
+  sidebarActiveCloudOrgIdAtom,
   Org2CloudProjectsError,
   Org2CloudSyncEngine,
   Org2CloudSyncError,
@@ -217,6 +218,7 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
   });
 
   it("keeps project tombstones draining while session replay is over quota", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, "corg-1");
     client.rewriteSessionEvents.mockRejectedValue(
       new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
     );
@@ -282,6 +284,28 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     expect(projectsClient.listOrgCollabState).not.toHaveBeenCalled();
   });
 
+  it("releases every per-org cache when membership disappears", async () => {
+    const aliasMock = vi.mocked(ensureProjectOrgForCloudOrg);
+    await engine.runSyncPass();
+    aliasMock.mockClear();
+    client.getOrgRepoScopes.mockClear();
+    projectsClient.listOrgCollabState.mockClear();
+
+    const originalOrgs = store.get(org2CloudOrgsAtom);
+    store.set(org2CloudOrgsAtom, []);
+    await engine.runSyncPass();
+    store.set(org2CloudOrgsAtom, originalOrgs);
+    await engine.runSyncPass();
+
+    expect(aliasMock).toHaveBeenCalledTimes(1);
+    expect(client.getOrgRepoScopes).toHaveBeenCalledTimes(1);
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      undefined
+    );
+  });
+
   it("pushes drained outbox rows through the cloud upsert RPCs and acks the version", async () => {
     bridge.drainOutbox
       .mockResolvedValueOnce([
@@ -321,6 +345,7 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
   });
 
   it("backs off + toasts when ORG2_SYNC_DISABLED surfaces through the channel's PUSH path", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, "corg-1");
     // The listing RPC the engine awaits directly is UNGATED (0013: only
     // assert_org_member), so the entitlement gate can only fire inside the
     // channel's per-row pushes — which ack failures instead of throwing.

@@ -48,6 +48,7 @@ import {
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import { TUTORIALS_OPEN_EVENT } from "@src/scaffold/Tutorials/tutorialRegistry";
 import { resolvedBackgroundConfigAtom } from "@src/store";
+import { activeChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { useSyncStatusBridge } from "@src/store/sync";
 import {
   type ChatPanelMode,
@@ -415,9 +416,13 @@ const AppShell = () => {
   }, [chatPanelMaximized, isSettingsRoute, setChatPanelMaximized]);
 
   const isWorkStationViewActive = viewMode === "workStation";
-  // Skip bridging when Settings-in-slot is active — it doesn't run a real chat session.
+  const activeChatPanelTab = useAtomValue(activeChatPanelTabAtom);
+  // Only a visible primary Session tab may restore WorkStation memory into the
+  // live pipeline. Launchpad and management tabs deliberately release it.
   const shouldBridgeWorkStationPipeline =
-    isWorkStationViewActive && !isSettingsRoute;
+    isWorkStationViewActive &&
+    !isSettingsRoute &&
+    activeChatPanelTab?.type === "session";
 
   useNarrowChatFocus({ enabled: isWorkStationViewActive });
   useWorkStationPipelineBridge(shouldBridgeWorkStationPipeline);

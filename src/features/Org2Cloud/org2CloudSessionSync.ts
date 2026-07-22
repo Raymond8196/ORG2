@@ -147,6 +147,42 @@ export class Org2CloudSessionSync {
     this.passPushPrepareCache.clear();
   }
 
+  /**
+   * Keep app-lifetime acceleration state inside the currently reachable data
+   * set. Durable cursors/markers remain in Jotai storage until their own
+   * retraction/reconcile paths run; these in-memory hashes and clean stamps are
+   * only caches, so dropping a dead key can at worst cause one safe recheck.
+   */
+  prune(
+    liveOrgIds: ReadonlySet<string>,
+    liveSessionIds: ReadonlySet<string>
+  ): void {
+    for (const key of this.lastPushedMetadataHashes.keys()) {
+      const separatorIndex = key.indexOf(":");
+      const orgId = separatorIndex === -1 ? key : key.slice(0, separatorIndex);
+      const sessionId =
+        separatorIndex === -1 ? "" : key.slice(separatorIndex + 1);
+      if (!liveOrgIds.has(orgId) || !liveSessionIds.has(sessionId)) {
+        this.lastPushedMetadataHashes.delete(key);
+      }
+    }
+    for (const [sessionId, byOrg] of this.cleanEventPlanes) {
+      if (!liveSessionIds.has(sessionId)) {
+        this.cleanEventPlanes.delete(sessionId);
+        continue;
+      }
+      for (const orgId of byOrg.keys()) {
+        if (!liveOrgIds.has(orgId)) byOrg.delete(orgId);
+      }
+      if (byOrg.size === 0) this.cleanEventPlanes.delete(sessionId);
+    }
+    for (const sessionId of this.eventActivityStamps.keys()) {
+      if (!liveSessionIds.has(sessionId)) {
+        this.eventActivityStamps.delete(sessionId);
+      }
+    }
+  }
+
   /** Drop clean markers and stamp a local event-store write. */
   noteSessionEventActivity(sessionId: string): void {
     this.eventActivityStamps.set(
