@@ -83,13 +83,15 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
         if (item.children && isSubmenuSelected(item)) {
           setOpenSubmenus((prev) => {
             if (prev.includes(item.key)) return prev;
-            onSubmenuOpenChange?.(item.key, true);
+            // Selected-child expansion is internal presentation state, not a
+            // user navigation request. Reporting it as an explicit open can
+            // undo a parent layer's Back action when the child stays selected.
             return [...prev, item.key];
           });
         }
       });
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [itemsKey, onSubmenuOpenChange, selectedKeysKey]);
+    }, [itemsKey, selectedKeysKey]);
 
     const renderIcon = useCallback(
       (
