@@ -706,7 +706,8 @@
         "inviteInvalid": "邀請碼無效。",
         "inviteRevoked": "該邀請已被撤銷。",
         "inviteExpired": "該邀請已過期。",
-        "inviteExhausted": "該邀請的使用次數已用完。"
+        "inviteExhausted": "該邀請的使用次數已用完。",
+        "network": "無法連線雲端服務。請檢查網路後重試。"
       }
     },
     "syncLevel": {

@@ -9,6 +9,7 @@
 import type { AgentRole } from "@src/api/http/project";
 import type { CancelReason } from "@src/api/tauri/agent/session";
 import type { DispatchCategory } from "@src/api/tauri/session";
+import type { TurnIntentSource } from "@src/engines/SessionCore/control/turnIntentSource";
 
 // ============================================
 // Action Params
@@ -102,6 +103,11 @@ export interface SessionSendMessageParams {
    * row all observe the same logical identity.
    */
   turnIntentId?: string;
+  /**
+   * Origin of this logical turn. Force-send must remain distinct from a plain
+   * submit so a still-cancelling backend turn cannot absorb it as steering.
+   */
+  turnIntentSource: TurnIntentSource;
   /**
    * When `true`, this is a user-initiated Resume after a failed turn.
    * Backend runs deletion-based orphan tool-use filter.

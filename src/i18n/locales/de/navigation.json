@@ -616,7 +616,8 @@
         "inviteInvalid": "Dieser Einladungscode ist ungültig.",
         "inviteRevoked": "Diese Einladung wurde widerrufen.",
         "inviteExpired": "Diese Einladung ist abgelaufen.",
-        "inviteExhausted": "Diese Einladung hat keine Verwendungen mehr."
+        "inviteExhausted": "Diese Einladung hat keine Verwendungen mehr.",
+        "network": "Verbindung zum Cloud-Dienst fehlgeschlagen. Prüfe das Netzwerk und versuche es erneut."
       }
     },
     "syncLevel": {

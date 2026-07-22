@@ -429,6 +429,19 @@ pub enum TurnIntentBridgeSource {
 }
 
 impl TurnIntentBridgeSource {
+    pub fn parse(value: &str) -> Option<Self> {
+        Some(match value {
+            "user_submit" => Self::UserSubmit,
+            "queue" => Self::Queue,
+            "force_send" => Self::ForceSend,
+            "resume" => Self::Resume,
+            "agent_org" => Self::AgentOrg,
+            "wingman" => Self::Wingman,
+            "mobile_remote" => Self::MobileRemote,
+            _ => return None,
+        })
+    }
+
     pub fn as_str(self) -> &'static str {
         match self {
             Self::UserSubmit => "user_submit",

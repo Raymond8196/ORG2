@@ -34,6 +34,7 @@ import {
   ORG2_CLOUD_POSTGREST_SCHEMA,
   getCloudEndpoint,
 } from "./config";
+import { fetchWithTransportRetry } from "./org2CloudFetchRetry";
 
 // ---------------------------------------------------------------------------
 // Error model
@@ -106,12 +107,15 @@ async function callSyncRpc(
   endpoint: CloudEndpoint = getCloudEndpoint(),
   signal?: AbortSignal
 ): Promise<unknown> {
-  const response = await fetch(rpcUrl(functionName, endpoint), {
-    method: "POST",
-    headers: rpcHeaders(accessToken, endpoint),
-    body: JSON.stringify(body),
-    signal,
-  });
+  const response = await fetchWithTransportRetry(
+    rpcUrl(functionName, endpoint),
+    {
+      method: "POST",
+      headers: rpcHeaders(accessToken, endpoint),
+      body: JSON.stringify(body),
+      signal,
+    }
+  );
   const text = await response.text();
   let payload: unknown = null;
   try {
