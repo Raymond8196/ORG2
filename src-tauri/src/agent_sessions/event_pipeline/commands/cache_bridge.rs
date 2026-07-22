@@ -197,7 +197,7 @@ pub async fn cache_load_session_events(session_id: String) -> Result<Vec<Session
     Ok(prepare_loaded_events(&session_id, events))
 }
 
-/// Search events via FTS5, returning SessionEvents directly.
+/// Search events via LIKE substring matching, returning SessionEvents directly.
 #[tauri::command]
 pub async fn cache_search_session_events(
     session_id: String,
@@ -623,7 +623,7 @@ mod tests {
         assistant.display_text = FINAL_ASSISTANT_ANSWER.to_string();
         assistant.is_delta = Some(false);
 
-        let cached = vec![user, subagent, assistant]
+        let cached = [user, subagent, assistant]
             .iter()
             .filter(|event| !is_synthetic_persistence_artifact(event))
             .map(session_event_to_cached_event)
@@ -801,6 +801,8 @@ mod tests {
             repo_path: None,
             extracted: None,
             payload_refs: Vec::new(),
+            shell_replay: None,
+            shell_replay_bookmarks: None,
             last_extract_at: None,
         }
     }

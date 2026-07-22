@@ -6,7 +6,10 @@ import {
   getIconProviderFromType,
 } from "@src/components/ModelIcon/config";
 import { resolveAgentIcon } from "@src/config/agentIcons";
-import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
+import {
+  resolveSessionRowIcon,
+  resolveSessionRowIconPresentation,
+} from "@src/util/session/sessionSidebarRow";
 
 describe("resolveSessionRowIcon", () => {
   it("uses the OpenCode CLI brand icon", () => {
@@ -40,10 +43,30 @@ describe("resolveSessionRowIcon", () => {
     ).toBe(resolveAgentIcon("opencode"));
   });
 
+  it("uses the Agent Org icon instead of the coordinator agent icon", () => {
+    expect(
+      resolveSessionRowIcon({
+        session_id: "cliagent-org-coordinator",
+        agentOrgId: "org-2",
+        cliAgentType: "opencode",
+        agentIconId: "code",
+      })
+    ).toBe(resolveAgentIcon("network"));
+  });
+
   it("uses the canonical WorkBuddy brand icon for imported WorkBuddy sessions", () => {
     expect(resolveSessionRowIcon("workbuddyapp-example")).toBe(
       resolveAgentIcon("workbuddy")
     );
+  });
+
+  it.each([
+    ["Claude Code root", "claudecodeapp-root", "claude_code"],
+    ["Claude Code subagent", "claudecodeapp-agent-child", "claude_code"],
+    ["Codex", "codexapp-thread", "codex"],
+    ["Cursor", "cursoride-composer", "cursor"],
+  ])("uses the sidebar brand icon for %s history", (_label, id, iconId) => {
+    expect(resolveSessionRowIcon(id)).toBe(resolveAgentIcon(iconId));
   });
 
   it("uses agentIconId for non-CLI agent sessions", () => {
@@ -53,6 +76,31 @@ describe("resolveSessionRowIcon", () => {
         agentIconId: "network",
       })
     ).toBe(resolveAgentIcon("network"));
+  });
+
+  it("uses imported app metadata when a cloud copy has no branded session id", () => {
+    expect(
+      resolveSessionRowIcon({
+        session_id: "collab-import-1",
+        importedFrom: { externalHistorySource: "codex_app" },
+      })
+    ).toBe(resolveAgentIcon("codex"));
+  });
+
+  it("identifies current-color provider marks as monochrome brand icons", () => {
+    expect(
+      resolveSessionRowIconPresentation("codexapp-thread").isMonochromeBrandIcon
+    ).toBe(true);
+    expect(
+      resolveSessionRowIconPresentation("cursoride-composer")
+        .isMonochromeBrandIcon
+    ).toBe(true);
+    expect(
+      resolveSessionRowIconPresentation({
+        session_id: "sdeagent-custom",
+        agentIconId: "network",
+      }).isMonochromeBrandIcon
+    ).toBe(false);
   });
 
   it("keeps benchmark coordinator sessions on the benchmark icon", () => {

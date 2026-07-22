@@ -96,10 +96,14 @@ export function mapKanbanTaskToSessionTableItem({
     agentIcon: renderAgentIcon(task),
     agentLabel: task.agentLabel ?? task.assignee,
     modelIcon: task.modelName ? (
+      // Force text-1 so monochrome (currentColor) provider marks match the
+      // board card's meta-pill instead of inheriting the table cell's text-2.
+      // Baked brand-color icons ignore the color class and keep their hues.
       <ModelIcon
         modelName={task.modelName}
         agentType={task.cliAgentType}
         size={14}
+        className="text-text-1"
       />
     ) : undefined,
     modelLabel: task.modelName

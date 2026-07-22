@@ -30,6 +30,7 @@ interface NavigationMenuParentRowProps extends Omit<
   isOpen: boolean;
   submenuSelected: boolean;
   collapsed: boolean;
+  t: (key: string) => string;
   renderIcon: NavigationMenuIconRenderer;
   renderMenuItem: NavigationMenuItemRenderer;
   onMenuItemContextMenu?: (
@@ -38,7 +39,10 @@ interface NavigationMenuParentRowProps extends Omit<
     item: NavigationMenuItem
   ) => void;
   onRowMouseEnter: NavigationMenuRowMouseEnterHandler;
+  onRowActionClick: NavigationMenuRowActionClickHandler;
   onToggleSubmenu: (key: string) => void;
+  /** Present when `item.navigableParent`: a body click selects the item. */
+  onMenuItemClick?: NavigationMenuItemClickHandler;
   compactRows: boolean;
 }
 
@@ -52,11 +56,14 @@ export const NavigationMenuParentRow = React.forwardRef<
     isOpen,
     submenuSelected,
     collapsed,
+    t,
     renderIcon,
     renderMenuItem,
     onMenuItemContextMenu,
     onRowMouseEnter,
+    onRowActionClick,
     onToggleSubmenu,
+    onMenuItemClick,
     compactRows,
     onMouseEnter,
     onMouseLeave,
@@ -65,6 +72,9 @@ export const NavigationMenuParentRow = React.forwardRef<
   ref
 ): React.ReactElement {
   const iconColor = "text-text-1";
+  // Navigable parent: the row body opens the item (like a leaf); only the
+  // chevron toggles the submenu. Group headers (no flag) toggle on body.
+  const navigable = Boolean(item.navigableParent && onMenuItemClick);
   const { dragHandlers, dragState } = useNavItemDrag(item);
   const {
     cursorReset,
@@ -99,21 +109,28 @@ export const NavigationMenuParentRow = React.forwardRef<
       {dragState && <ReferenceDragGhost dragState={dragState} />}
       <div
         data-testid={item.dataTestId}
+        data-menu-item-id={item.id}
         role="button"
         tabIndex={item.disabled ? -1 : 0}
         aria-expanded={isOpen}
         aria-disabled={item.disabled || undefined}
-        className={`group flex ${rowHeightClass} items-center justify-between rounded-lg transition-colors duration-150 ${
+        className={`group/parent flex ${rowHeightClass} items-center ${
+          item.disclosureFollowsLabel ? "justify-start" : "justify-between"
+        } rounded-lg transition-colors duration-150 ${
           isChild ? "pl-5 pr-2" : "px-2"
         } ${submenuSelected ? "bg-sidebar-selected text-text-1" : "text-text-1"} ${
           item.disabled
             ? "cursor-default opacity-60"
             : `${cursorReset ? "cursor-default" : "cursor-pointer"} hover:bg-sidebar-selected`
         }`}
-        onClick={() => {
+        onClick={(event: React.MouseEvent) => {
           if (item.disabled) return;
           markClicked();
-          onToggleSubmenu(item.key);
+          if (navigable) {
+            onMenuItemClick?.(item.key, item, event);
+          } else {
+            onToggleSubmenu(item.key);
+          }
         }}
         onKeyDown={(event) => {
           if (item.disabled || (event.key !== "Enter" && event.key !== " ")) {
@@ -121,20 +138,36 @@ export const NavigationMenuParentRow = React.forwardRef<
           }
           event.preventDefault();
           markClicked();
-          onToggleSubmenu(item.key);
+          if (navigable) {
+            onMenuItemClick?.(
+              item.key,
+              item,
+              event as unknown as React.MouseEvent
+            );
+          } else {
+            onToggleSubmenu(item.key);
+          }
         }}
         onMouseEnter={(event: React.MouseEvent) =>
           onRowMouseEnter(event, item.routePath)
         }
       >
-        <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div
+          className={`flex min-w-0 items-center gap-3 ${
+            item.disclosureFollowsLabel ? "" : "flex-1"
+          }`}
+        >
           {renderLeadingIcon({
             item,
             iconColor,
             renderIcon,
           })}
           {!collapsed && (
-            <div className="flex min-w-0 flex-1 flex-col gap-0">
+            <div
+              className={`flex min-w-0 flex-col gap-0 ${
+                item.disclosureFollowsLabel ? "" : "flex-1"
+              }`}
+            >
               <span className="truncate text-[13px] text-text-1">
                 {item.label}
               </span>
@@ -147,23 +180,55 @@ export const NavigationMenuParentRow = React.forwardRef<
           )}
         </div>
         {!collapsed && (
-          <span className="ml-1 inline-flex flex-shrink-0 items-center gap-1.5 leading-none">
-            {item.trailingElement && (
-              <span className="inline-flex flex-shrink-0 items-center leading-none">
-                {item.trailingElement}
-              </span>
-            )}
-            {isOpen ? (
-              <ChevronsDownUp
-                size={12}
-                strokeWidth={2}
-                className="shrink-0 text-text-2"
-              />
+          <span
+            className={`${item.disclosureFollowsLabel ? "ml-2" : "ml-1"} inline-flex flex-shrink-0 items-center gap-1.5 leading-none`}
+          >
+            {/* Cloud thread roots carry hover metadata (owner · time) and
+                Fork/More actions; parentHoverGroup keys the reveal on the
+                named group so nested child rows can't capture it. */}
+            <NavigationMenuRowAccessorySlot
+              parentHoverGroup
+              persistentContent={item.trailingElement}
+              hoverContent={
+                item.shortcut ? (
+                  <span className="max-w-[6rem] truncate text-[11px] text-text-2">
+                    {item.shortcut}
+                  </span>
+                ) : undefined
+              }
+              actionContent={
+                item.showMoreActions
+                  ? renderRowActions({
+                      item,
+                      t,
+                      onMenuItemContextMenu,
+                      onRowActionClick,
+                    })
+                  : undefined
+              }
+            />
+            {item.disclosureFollowsLabel ? (
+              isOpen ? (
+                <ChevronsDownUp
+                  size={12}
+                  strokeWidth={2}
+                  className="shrink-0 text-text-2"
+                />
+              ) : (
+                <ChevronsUpDown
+                  size={12}
+                  strokeWidth={2}
+                  className="shrink-0 text-text-2"
+                />
+              )
             ) : (
-              <ChevronsUpDown
-                size={12}
-                strokeWidth={2}
-                className="shrink-0 text-text-2"
+              <NavigationMenuRowActionButton
+                icon={isOpen ? ChevronsDownUp : ChevronsUpDown}
+                label={t("actions.toggle")}
+                dataTestId={
+                  item.dataTestId ? `${item.dataTestId}-toggle` : undefined
+                }
+                onClick={() => onToggleSubmenu(item.key)}
               />
             )}
           </span>
@@ -272,6 +337,8 @@ export const NavigationMenuLeafRow = React.forwardRef<
       )}
       <div
         data-testid={item.dataTestId}
+        data-menu-item-id={item.id}
+        data-selected={isSelected ? "true" : "false"}
         className={`group flex ${rowHeightClass} items-center justify-between overflow-hidden rounded-lg transition-colors duration-150 ${
           isChild ? "pl-5 pr-2" : "px-2"
         } ${item.subtitle ? "py-1.5" : ""} ${
@@ -498,6 +565,7 @@ function renderRowActions({
         icon={action.icon}
         label={action.label}
         active={action.active}
+        dataTestId={action.dataTestId}
         onClick={action.onClick}
       />
     ));

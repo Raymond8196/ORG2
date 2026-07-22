@@ -1,0 +1,219 @@
+import { describe, expect, it } from "vitest";
+
+import type { Session } from "@src/store/session/sessionAtom/types";
+
+import {
+  applyOrg2CloudPresenceViewChanged,
+  latestPresenceMeta,
+  org2CloudPresencePayloadKey,
+  resolveCloudSessionRefs,
+  viewersForSession,
+} from "./org2CloudPresenceAtom";
+
+describe("applyOrg2CloudPresenceViewChanged", () => {
+  it("clears an existing viewer from a newer private-channel nudge", () => {
+    const current = {
+      "org-1": {
+        "user-b": {
+          userId: "user-b",
+          displayName: "Bee",
+          viewingSessionId: "s-1",
+          updatedAt: 10,
+        },
+      },
+    };
+
+    expect(
+      applyOrg2CloudPresenceViewChanged(current, "org-1", {
+        userId: "user-b",
+        viewingSessionId: null,
+        updatedAt: 11,
+      })
+    ).toEqual({
+      "org-1": {
+        "user-b": {
+          userId: "user-b",
+          displayName: "Bee",
+          viewingSessionId: null,
+          updatedAt: 11,
+        },
+      },
+    });
+  });
+
+  it("cannot invent a roster member or overwrite newer Presence truth", () => {
+    const current = {
+      "org-1": {
+        "user-b": {
+          userId: "user-b",
+          displayName: "Bee",
+          viewingSessionId: "s-2",
+          updatedAt: 20,
+        },
+      },
+    };
+
+    expect(
+      applyOrg2CloudPresenceViewChanged(current, "org-1", {
+        userId: "missing",
+        viewingSessionId: "s-1",
+        updatedAt: 21,
+      })
+    ).toBe(current);
+    expect(
+      applyOrg2CloudPresenceViewChanged(current, "org-1", {
+        userId: "user-b",
+        viewingSessionId: null,
+        updatedAt: 19,
+      })
+    ).toBe(current);
+  });
+});
+
+const PRESENCE = {
+  "org-1": {
+    "user-a": {
+      userId: "user-a",
+      displayName: "Ada",
+      viewingSessionId: "s-1",
+    },
+    "user-b": {
+      userId: "user-b",
+      displayName: "Bea",
+      viewingSessionId: "s-1",
+    },
+    "user-c": {
+      userId: "user-c",
+      displayName: "Cy",
+      viewingSessionId: null,
+    },
+  },
+};
+
+describe("viewersForSession", () => {
+  it("returns other users viewing the session, excluding self", () => {
+    const viewers = viewersForSession(PRESENCE, "org-1", "s-1", "user-a");
+    expect(viewers.map((viewer) => viewer.userId)).toEqual(["user-b"]);
+  });
+
+  it("returns empty for unknown orgs and non-viewed sessions", () => {
+    expect(viewersForSession(PRESENCE, "org-2", "s-1", null)).toEqual([]);
+    expect(viewersForSession(PRESENCE, "org-1", "s-9", null)).toEqual([]);
+  });
+
+  it("keeps everyone when self is not in the org (null self)", () => {
+    const viewers = viewersForSession(PRESENCE, "org-1", "s-1", null);
+    expect(viewers).toHaveLength(2);
+  });
+});
+
+describe("org2CloudPresencePayloadKey", () => {
+  it("deduplicates sender-clock refreshes for the same semantic view", () => {
+    expect(
+      org2CloudPresencePayloadKey({
+        displayName: "Ada",
+        viewingSessionId: "s-1",
+        updatedAt: 1,
+      })
+    ).toBe(
+      org2CloudPresencePayloadKey({
+        displayName: "Ada",
+        viewingSessionId: "s-1",
+        updatedAt: 999,
+      })
+    );
+  });
+
+  it("changes when the user or viewed session changes", () => {
+    const current = org2CloudPresencePayloadKey({
+      displayName: "Ada",
+      viewingSessionId: "s-1",
+      updatedAt: 1,
+    });
+    expect(
+      org2CloudPresencePayloadKey({
+        displayName: "Bea",
+        viewingSessionId: "s-1",
+        updatedAt: 2,
+      })
+    ).not.toBe(current);
+    expect(
+      org2CloudPresencePayloadKey({
+        displayName: "Ada",
+        viewingSessionId: "s-2",
+        updatedAt: 2,
+      })
+    ).not.toBe(current);
+    expect(org2CloudPresencePayloadKey(null)).toBeNull();
+  });
+});
+
+describe("resolveCloudSessionRefs", () => {
+  it("maps an owner-side session into every explicitly tagged cloud org", () => {
+    const session = { session_id: "session-1" } as Session;
+
+    expect(resolveCloudSessionRefs(session, ["org-a", "org-b"])).toEqual([
+      { orgId: "org-a", bareSessionId: "session-1" },
+      { orgId: "org-b", bareSessionId: "session-1" },
+    ]);
+  });
+
+  it("keeps an imported replay scoped to its source even if local tags exist", () => {
+    const session = {
+      session_id: "imported-1",
+      importedFrom: {
+        orgId: "source-org",
+        sourceSessionId: "source-session",
+      },
+    } as Session;
+
+    expect(resolveCloudSessionRefs(session, ["unrelated-org"])).toEqual([
+      { orgId: "source-org", bareSessionId: "source-session" },
+    ]);
+  });
+
+  it("maps an untagged owner session through its server-published cloud row", () => {
+    const session = { session_id: "session-1" } as Session;
+
+    expect(
+      resolveCloudSessionRefs(
+        session,
+        [],
+        [
+          {
+            orgId: "org-a",
+            ownerUserId: "user-owner",
+            sourceSessionId: "session-1",
+          },
+          {
+            orgId: "org-b",
+            ownerUserId: "user-other",
+            sourceSessionId: "session-1",
+          },
+        ],
+        "user-owner"
+      )
+    ).toEqual([{ orgId: "org-a", bareSessionId: "session-1" }]);
+  });
+});
+
+describe("latestPresenceMeta", () => {
+  it("selects the newest re-track meta instead of relying on array order", () => {
+    expect(
+      latestPresenceMeta([
+        { viewingSessionId: null, updatedAt: 10 },
+        { viewingSessionId: "session-1", updatedAt: 30 },
+        { viewingSessionId: "stale", updatedAt: 20 },
+      ])
+    ).toMatchObject({ viewingSessionId: "session-1", updatedAt: 30 });
+  });
+
+  it("uses the last meta as a deterministic legacy fallback", () => {
+    expect(
+      latestPresenceMeta([
+        { viewingSessionId: null },
+        { viewingSessionId: "session-1" },
+      ])
+    ).toMatchObject({ viewingSessionId: "session-1" });
+  });
+});

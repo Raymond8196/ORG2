@@ -16,15 +16,20 @@ export const DEFAULT_COLLAPSED_SECTION_IDS = [
 export function sortSessionsByActivity(
   sessions: readonly Session[]
 ): Session[] {
-  return sessions.slice().sort((sessionA, sessionB) => {
-    const timestampA =
-      sessionA.updated_at || sessionA.updated_time || sessionA.created_at;
-    const timestampB =
-      sessionB.updated_at || sessionB.updated_time || sessionB.created_at;
-    const dateA = timestampA ? new Date(timestampA).getTime() : 0;
-    const dateB = timestampB ? new Date(timestampB).getTime() : 0;
-    return dateB - dateA;
+  // Decorate–sort–undecorate: parse each session's timestamp once (n parses)
+  // rather than twice per comparison (~2·n·log n `new Date` allocations). This
+  // runs on every sidebar re-derivation over the whole loaded history, so the
+  // comparator itself must stay allocation-free.
+  const decorated = sessions.map((session) => {
+    const timestamp =
+      session.updated_at || session.updated_time || session.created_at;
+    return {
+      session,
+      sortTs: timestamp ? new Date(timestamp).getTime() : 0,
+    };
   });
+  decorated.sort((a, b) => b.sortTs - a.sortTs);
+  return decorated.map((entry) => entry.session);
 }
 
 export function buildRepoPathToName(
@@ -80,4 +85,27 @@ export function getAllSectionIds(
     }
   }
   return sectionIds;
+}
+
+function containsMenuItem(item: NavigationMenuItem, targetId: string): boolean {
+  return (
+    item.id === targetId ||
+    item.children?.some((child) => containsMenuItem(child, targetId)) === true
+  );
+}
+
+/** Return the separator-backed section that currently renders a menu row. */
+export function findSidebarSectionIdForMenuItem(
+  sidebarMenuItems: readonly NavigationMenuItem[],
+  targetId: string
+): string | null {
+  let currentSectionId = "default";
+  for (const item of sidebarMenuItems) {
+    if (item.id?.startsWith("separator-")) {
+      currentSectionId = item.id.slice("separator-".length);
+      continue;
+    }
+    if (containsMenuItem(item, targetId)) return currentSectionId;
+  }
+  return null;
 }

@@ -72,6 +72,8 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
     sourceItems,
     previewModel,
     handleBack,
+    accountsLoading,
+    accountsError,
     refreshAllModels,
     refreshingAllModels,
     tCommon: tCommonHook,
@@ -266,9 +268,13 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
   }, [hoveredItem, previewModel]);
 
   useEffect(() => {
+    // Never steal focus while closed — a closed palette focusing its input
+    // yanks the caret from the composer (same class of bug as the
+    // WorkspacePalette focus loop).
+    if (!isOpen) return;
     kernel.focusInput();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeColumn]);
+  }, [activeColumn, isOpen]);
 
   const handleRemovePathSegment = useCallback(() => {
     onClose();
@@ -356,6 +362,11 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
       sourceItems={sourceItems}
       selectedSourceIndex={selectedSourceIndex}
       hasFocusedModel={selectedModelId !== null}
+      accountsLoading={accountsLoading || refreshingAllModels}
+      accountsError={accountsError}
+      onRetryAccounts={() => {
+        void refreshAllModels();
+      }}
       onSourceSelect={(index) => {
         const source = sourceItems[index];
         source?.action?.();

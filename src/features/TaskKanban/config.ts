@@ -7,6 +7,7 @@ import {
   MessageCircleWarning,
 } from "lucide-react";
 
+import type { ImportedHistorySourceId } from "@src/api/tauri/externalHistory";
 import type {
   KanbanColumnConfig,
   TaskStatus,
@@ -74,11 +75,38 @@ export const KANBAN_AGENT_TYPE_FILTER = {
   WORKBUDDY_APP: "workbuddy_app",
   TRAE_APP: "trae_app",
   CLINE_APP: "cline_app",
+  WARP_APP: "warp_app",
+  ZCODE_APP: "zcode_app",
+  QODER_APP: "qoder_app",
+  MIMO_CODE_APP: "mimo_code_app",
+  OMP_APP: "omp_app",
+  QODER_CLI_APP: "qoder_cli_app",
 } as const;
 
 export type KanbanBuiltInAgentTypeFilter =
   (typeof KANBAN_AGENT_TYPE_FILTER)[keyof typeof KANBAN_AGENT_TYPE_FILTER];
 export type KanbanAgentTypeFilter = KanbanBuiltInAgentTypeFilter | string;
+
+export const EXTERNAL_HISTORY_FILTER_BY_SOURCE: Record<
+  ImportedHistorySourceId,
+  KanbanAgentTypeFilter
+> = {
+  cursor_ide: KANBAN_AGENT_TYPE_FILTER.CURSOR_APP,
+  cursor_cli: KANBAN_AGENT_TYPE_FILTER.CURSOR_CLI,
+  codex_app: KANBAN_AGENT_TYPE_FILTER.CODEX_APP,
+  claude_code: KANBAN_AGENT_TYPE_FILTER.CLAUDE_APP,
+  opencode: KANBAN_AGENT_TYPE_FILTER.OPENCODE_HISTORY,
+  windsurf: KANBAN_AGENT_TYPE_FILTER.WINDSURF_APP,
+  workbuddy: KANBAN_AGENT_TYPE_FILTER.WORKBUDDY_APP,
+  trae: KANBAN_AGENT_TYPE_FILTER.TRAE_APP,
+  cline: KANBAN_AGENT_TYPE_FILTER.CLINE_APP,
+  warp: KANBAN_AGENT_TYPE_FILTER.WARP_APP,
+  zcode: KANBAN_AGENT_TYPE_FILTER.ZCODE_APP,
+  qoder: KANBAN_AGENT_TYPE_FILTER.QODER_APP,
+  mimo_code: KANBAN_AGENT_TYPE_FILTER.MIMO_CODE_APP,
+  omp: KANBAN_AGENT_TYPE_FILTER.OMP_APP,
+  qoder_cli: KANBAN_AGENT_TYPE_FILTER.QODER_CLI_APP,
+};
 
 /** Widened column id used inside Agent Kanban only. */
 export type AgentKanbanColumnId = TaskStatus | AgentExtraColumnId;

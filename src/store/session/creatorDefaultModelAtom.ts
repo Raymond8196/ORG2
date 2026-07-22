@@ -49,6 +49,7 @@ import type {
   AdvancedConfig,
   KeySource,
 } from "@src/features/SessionCreator/types";
+import { loadSharedLocalKeys } from "@src/hooks/keyVault/sharedLocalKeyStore";
 import { createLogger } from "@src/hooks/logger";
 import {
   rawSettingsAtom,
@@ -142,6 +143,10 @@ const creatorDefaultModelMapAtom = atom<LastModelPairMap>(cachedMap);
  *
  * **Creator-only.** Do not read from in-session UI.
  */
+export const lastModelPairMapAtom = atom(
+  (get): LastModelPairMap => get(creatorDefaultModelMapAtom)
+);
+
 export const creatorDefaultModelPairAtom = atom(
   (get): RecentModelEntry | null => {
     const map = get(creatorDefaultModelMapAtom);
@@ -192,7 +197,7 @@ async function pruneStaleEntries(map: LastModelPairMap): Promise<{
   changed: boolean;
 }> {
   try {
-    const keys = await rpc.validation.listKeys();
+    const keys = await loadSharedLocalKeys();
     const validIds = new Set(keys.map((key) => key.id));
 
     let changed = false;

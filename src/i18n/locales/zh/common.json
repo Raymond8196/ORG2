@@ -74,6 +74,11 @@
       "other": "敏感信息"
     }
   },
+  "secretScan": {
+    "title": "检测到可能的密钥",
+    "message": "此消息似乎包含敏感凭据：\n\n{{items}}\n\n发送后，密钥将保存在聊天记录中并发送给模型。仍要发送吗？",
+    "sendAnyway": "仍然发送"
+  },
   "actions": {
     "save": "保存",
     "cancel": "取消",
@@ -190,6 +195,7 @@
     "selectRepository": "选择仓库",
     "all": "全部",
     "collapse": "收起",
+    "toggle": "展开/收起",
     "addRepo": "添加仓库",
     "addFolder": "添加文件夹",
     "resume": "继续",
@@ -205,7 +211,8 @@
     "openWorkspace": "打开工作区",
     "skipThisVersion": "跳过此版本",
     "later": "稍后",
-    "link": "链接"
+    "link": "链接",
+    "copyName": "复制名称"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",
@@ -419,6 +426,27 @@
     "renowned": "知名",
     "dragToReorder": "拖拽调整消息顺序",
     "sessionBlame": "Session Blame",
+    "sessionBlameSubagent": "子代理：{{name}}",
+    "sessionBlameMainSession": "主 Session",
+    "sessionBlameAction": {
+      "read": "读取",
+      "write": "写入",
+      "create": "创建",
+      "delete": "删除",
+      "rename": "重命名",
+      "search": "搜索"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "归属未知",
+      "session_only": "仅归属到 Session",
+      "correlated": "关联推断",
+      "exact": "精确归属"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "正在索引历史 Session {{indexed}}/{{total}}",
+      "partial": "历史索引不完整（{{failed}} 个失败）",
+      "failed": "历史 Session 索引失败"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -436,7 +464,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "文件",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -517,6 +545,10 @@
     "failedToRenderEvent": "渲染事件失败",
     "unknown": "未知错误",
     "agentRequestFailed": "Agent 请求失败",
+    "codexLoginExpired": "Codex 登录已失效",
+    "codexLoginExpiredDescription": "重新连接 Codex 即可修复此账号；登录并保存后会返回当前会话。",
+    "reconnectCodex": "重新连接 Codex",
+    "technicalDetails": "技术详情",
     "failedToCopy": "复制失败",
     "api": {
       "titles": {
@@ -1166,9 +1198,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "需要 token",
       "createTokenButton": "创建 Token",
-      "openGitSettingsButton": "打开 Git 设置",
+      "openGitSettingsButton": "打开设置",
       "configureInSettings": "在设置中配置 Git",
-      "configureInSettingsDesc": "在 设置 → 集成 → Git 中添加 GitHub App 访问权限、保存 token 或扫描本地凭据，然后重试此 Git 操作。"
+      "configureInSettingsDesc": "在 设置 → 连接 中添加 GitHub App 访问权限、保存 token 或扫描本地凭据，然后重试此 Git 操作。"
     },
     "actions": {
       "publish": "Publish",
@@ -1232,6 +1264,43 @@
         "closed": "已关闭",
         "completed": "已完成",
         "notPlanned": "未计划"
+      },
+      "activity": {
+        "opened": "打开了此 issue",
+        "commented": "发表了评论",
+        "timelineItemCount_one": "{{count}} 个时间线项目",
+        "timelineItemCount_other": "{{count}} 个时间线项目",
+        "noDescription": "未提供描述。",
+        "assigned": "指派了：",
+        "assignedIssue": "指派了此 issue",
+        "unassigned": "取消指派了：",
+        "removedAssignee": "移除了一名受理人",
+        "added": "添加了：",
+        "removed": "移除了：",
+        "label": "一个标签",
+        "milestoned": "将此 issue 添加到里程碑 {{milestone}}",
+        "demilestoned": "将此 issue 从里程碑 {{milestone}} 中移除",
+        "closedViaCommit": "通过提交 {{commit}} 关闭了此 issue",
+        "closed": "关闭了此 issue",
+        "reopened": "重新打开了此 issue",
+        "renamedTo": "将此 issue 重命名为",
+        "renamed": "重命名了此 issue",
+        "locked": "锁定了此对话",
+        "lockedAs": "因 {{reason}} 锁定了此对话",
+        "unlocked": "解锁了此对话",
+        "crossReferencedFrom": "从以下位置引用了此 issue：",
+        "crossReferenced": "交叉引用了此 issue",
+        "referencedInCommit": "在提交 {{commit}} 中引用了此 issue",
+        "referencedInACommit": "在一次提交中引用了此 issue",
+        "connected": "关联了此 issue",
+        "disconnected": "取消关联了此 issue",
+        "markedAsDuplicate": "将此 issue 标记为重复",
+        "unmarkedAsDuplicate": "移除了重复标记",
+        "pinned": "置顶了此 issue",
+        "unpinned": "取消置顶了此 issue",
+        "transferred": "转移了此 issue",
+        "convertedToDiscussion": "将此 issue 转换为讨论",
+        "mentioned": "提及了此 issue"
       }
     }
   },
@@ -1549,6 +1618,11 @@
           "label": "搜索 Agent 会话",
           "pillLabel": "搜索会话",
           "placeholder": "搜索 Agent 会话..."
+        },
+        "searchAllSessions": {
+          "label": "全局搜索会话内容",
+          "pillLabel": "全局搜索",
+          "placeholder": "全局搜索会话内容..."
         },
         "switchWorkspace": {
           "label": "切换工作区"
@@ -1878,15 +1952,6 @@
     "lastActive": "上次活跃: {{date}}",
     "activeNow": "当前活跃: {{ides}}",
     "active": "活跃",
-    "tabs": {
-      "activity": "活动",
-      "focus": "专注",
-      "languages": "语言",
-      "heatmap": "热力图",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI 会话",
     "cliPrompt": "提示",
     "cliMessages": "消息",
@@ -1977,9 +2042,6 @@
     "pill": {
       "focus": "聚焦",
       "allChanges": "全部更改"
-    },
-    "sessionFilter": {
-      "allSessions": "所有会话"
     },
     "scope": {
       "local": "本地",

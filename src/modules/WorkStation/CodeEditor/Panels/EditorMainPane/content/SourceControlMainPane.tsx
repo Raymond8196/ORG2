@@ -1,23 +1,18 @@
 /**
  * SourceControlMainPane
  *
- * Keep-alive wrapper for the Source Control main-pane view. `EditorMainPane`
- * renders this in a persistent overlay (mounted once the Source Control tab has
- * been visited, then shown/hidden instead of unmounted) so the diff view,
- * scroll position, and lazy chunk survive navigating to a file tab and back
- * (issue #16). It is driven by the persisted Source Control tab payload rather
- * than the transient active tab, so the data stays correct while hidden.
+ * Active-only wrapper for the Source Control main-pane view. `EditorMainPane`
+ * unmounts it when the user leaves Source Control so diff editors, file
+ * content, and subscriptions are released.
  */
 import { useAtomValue } from "jotai";
 import React, { Suspense, memo, useCallback } from "react";
 
-import { IssueDetailPanel } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
 import {
   NoTabsPlaceholder,
   type QuickAction,
 } from "@src/modules/WorkStation/shared";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
-import { sourceControlSessionFilterAtom } from "@src/store/workstation/codeEditor/sourceControlSessionFilterAtom";
 import {
   workstationIssueCallbackAtomFamily,
   workstationSelectedIssueAtomFamily,
@@ -33,6 +28,11 @@ import {
 const SourceControlMainContent = React.lazy(
   () => import("./SourceControlMainContent")
 );
+const IssueDetailPanel = React.lazy(() =>
+  import("@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel").then(
+    (module) => ({ default: module.IssueDetailPanel })
+  )
+);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
@@ -43,13 +43,14 @@ export interface SourceControlMainPaneProps {
   repoPath: string;
   repoId: string | null;
   gitFilesByPath: Map<string, GitFile>;
-  sourceControlAttributedFiles: GitFile[];
+  sourceControlFiles: GitFile[];
   sourceControlFilterMode: string;
   gitDiffLoading: boolean;
   sourceControlCollapseAllSignal?: number;
   sourceControlQuickActions: QuickAction[];
   onForceReload?: () => void;
   onFileSelect?: (path: string) => void;
+  onCloseFocus?: () => void;
   onGitDiffUnsavedChange?: (hasUnsaved: boolean) => void;
 }
 
@@ -58,18 +59,16 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   repoPath,
   repoId,
   gitFilesByPath,
-  sourceControlAttributedFiles,
+  sourceControlFiles,
   sourceControlFilterMode,
   gitDiffLoading,
   sourceControlCollapseAllSignal,
   sourceControlQuickActions,
   onForceReload,
   onFileSelect,
+  onCloseFocus,
   onGitDiffUnsavedChange,
 }) => {
-  const sourceControlSessionFilter = useAtomValue(
-    sourceControlSessionFilterAtom
-  );
   const scopeKey = workstationRepoScopeKey(repoId, repoPath);
   const selectedIssueState = useAtomValue(
     workstationSelectedIssueAtomFamily(scopeKey)
@@ -103,9 +102,8 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
     deriveSourceControlMainProps({
       tabData,
       gitFilesByPath,
-      sourceControlAttributedFiles,
+      sourceControlFiles,
       sourceControlFilterMode,
-      sourceControlSessionFilter,
       repoPath,
     });
 
@@ -120,17 +118,19 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
     }
 
     return (
-      <IssueDetailPanel
-        issue={selectedIssueState.issue}
-        comments={selectedIssueState.comments}
-        commentsLoading={selectedIssueState.commentsLoading}
-        submittingComment={selectedIssueState.submittingComment}
-        showHeader={false}
-        onClose={() => undefined}
-        onCloseIssue={handleCloseIssue}
-        onReopenIssue={handleReopenIssue}
-        onAddComment={handleAddIssueComment}
-      />
+      <Suspense fallback={<LazyFallback />}>
+        <IssueDetailPanel
+          issue={selectedIssueState.issue}
+          timeline={selectedIssueState.timeline}
+          timelineLoading={selectedIssueState.timelineLoading}
+          submittingComment={selectedIssueState.submittingComment}
+          showHeader={false}
+          onClose={() => undefined}
+          onCloseIssue={handleCloseIssue}
+          onReopenIssue={handleReopenIssue}
+          onAddComment={handleAddIssueComment}
+        />
+      </Suspense>
     );
   }
 
@@ -155,6 +155,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
           hasFocus={Boolean(focusPath)}
           onForceReload={onForceReload}
           onFileSelect={onFileSelect}
+          onCloseFocus={onCloseFocus}
           onGitDiffUnsavedChange={onGitDiffUnsavedChange}
           historySelection={historySelection}
           files={allFiles}

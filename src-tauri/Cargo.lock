@@ -58,10 +58,13 @@ dependencies = [
  "app_paths",
  "app_platform",
  "app_utils",
+ "chrono",
+ "json5",
  "rand 0.9.4",
  "rusqlite",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sha2",
  "tauri",
  "tempfile",
@@ -88,7 +91,6 @@ dependencies = [
  "bytes",
  "chrono",
  "chrono-tz",
- "code_map",
  "core-foundation",
  "core-graphics 0.24.0",
  "core_types",
@@ -266,6 +268,7 @@ dependencies = [
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
+ "perf_utils",
  "serde",
  "tauri",
  "tauri-plugin-liquid-glass",
@@ -882,6 +885,7 @@ dependencies = [
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
+ "perf_utils",
  "serde",
  "serde_json",
  "shared_state",
@@ -1234,31 +1238,6 @@ dependencies = [
  "core-foundation",
  "core-graphics-types",
  "objc",
-]
-
-[[package]]
-name = "code_map"
-version = "0.1.0"
-dependencies = [
- "app_paths",
- "chrono",
- "hex",
- "ignore",
- "once_cell",
- "parking_lot 0.12.5",
- "regex",
- "rusqlite",
- "schemars 1.2.1",
- "search",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "tree-sitter",
 ]
 
 [[package]]
@@ -2845,6 +2824,7 @@ dependencies = [
  "log",
  "notify",
  "parking_lot 0.12.5",
+ "regex",
  "reqwest 0.13.4",
  "rusqlite",
  "serde",
@@ -3907,6 +3887,17 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "json5"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96b0db21af676c1ce64250b5f40f3ce2cf27e4e47cb91ed91eb6fe9350b430c1"
+dependencies = [
+ "pest",
+ "pest_derive",
+ "serde",
 ]
 
 [[package]]
@@ -5089,6 +5080,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
+name = "ordered-float"
+version = "2.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68f19d67e5a2795c94e73e0bb1cc1a7edeb2e28efd39e2e1c9b7a40c1108b11c"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "ordered-multimap"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5128,7 +5128,6 @@ dependencies = [
  "calamine",
  "cc",
  "chrono",
- "code_map",
  "container",
  "core-foundation",
  "core-graphics 0.24.0",
@@ -5194,6 +5193,7 @@ dependencies = [
  "terminal",
  "test_helpers",
  "test_runner",
+ "time",
  "tokio",
  "tokio-rustls",
  "tokio-util",
@@ -5215,10 +5215,15 @@ dependencies = [
 name = "orgtrack_core"
 version = "0.1.0"
 dependencies = [
+ "app_paths",
  "chrono",
  "core_types",
  "dirs",
+ "orgtrack_protocol",
  "orgtrack_sync",
+ "prost",
+ "prost-reflect",
+ "regex",
  "rusqlite",
  "serde",
  "serde_json",
@@ -5233,6 +5238,14 @@ dependencies = [
  "chrono",
  "orgtrack_sync",
  "rusqlite",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "orgtrack_protocol"
+version = "0.1.0"
+dependencies = [
  "serde",
  "serde_json",
 ]
@@ -5422,6 +5435,7 @@ dependencies = [
  "hex",
  "image",
  "infer",
+ "libc",
  "log",
  "memchr",
  "rayon",
@@ -5434,6 +5448,8 @@ dependencies = [
  "tauri",
  "tokio",
  "tracing",
+ "webview2-com",
+ "windows 0.61.3",
 ]
 
 [[package]]
@@ -5975,6 +5991,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "serial_test",
  "sha2",
  "subtle",
  "tauri",
@@ -6029,6 +6046,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "prost-reflect"
+version = "0.16.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01b80ea363c31af2de2b92e3c07ed1156628f7838c4afb4df75ee78a37fedbd1"
+dependencies = [
+ "base64 0.22.1",
+ "prost",
+ "prost-types",
+ "serde",
+ "serde-value",
 ]
 
 [[package]]
@@ -6963,6 +6993,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-value"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3a1a3341211875ef120e117ea7fd5228530ae7e7036a779fdc9117be6b3282c"
+dependencies = [
+ "ordered-float",
+ "serde",
+]
+
+[[package]]
 name = "serde_core"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7187,8 +7227,9 @@ dependencies = [
  "agent_core",
  "app_paths",
  "chrono",
+ "core_types",
  "database",
- "git",
+ "orgtrack_core",
  "rusqlite",
  "serde",
  "serde_json",

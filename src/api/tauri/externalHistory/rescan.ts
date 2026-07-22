@@ -25,3 +25,19 @@ export async function externalHistoryRescanSource(
     clear: options?.clear ?? false,
   });
 }
+
+/**
+ * Rescan multiple external-history sources as one user action.
+ *
+ * Keeping the fan-out here gives every "rescan all" entry point the same
+ * backend behavior while the Rust command remains intentionally source-scoped.
+ */
+export async function externalHistoryRescanSources(
+  sources: readonly ImportedHistorySourceId[]
+): Promise<void> {
+  if (sources.length === 0) return;
+  await invoke("external_history_rescan_sources", {
+    sources,
+    clear: false,
+  });
+}

@@ -1,5 +1,9 @@
 use crate::error::GitApiError;
-use crate::extractors::{has_windows_users_prefix, validate_file_path, validate_path};
+#[cfg(windows)]
+use crate::extractors::has_windows_users_prefix;
+use crate::extractors::{
+    is_path_within_roots, validate_file_path, validate_path,
+};
 
 #[test]
 fn test_path_traversal_detection() {
@@ -36,6 +40,7 @@ fn test_unix_disallowed_paths() {
     assert!(validate_path("/root/.ssh/id_rsa").is_err());
 }
 
+#[cfg(windows)]
 #[test]
 fn test_windows_users_prefix_handles_non_ascii_without_panic() {
     assert!(!has_windows_users_prefix(r"C:\绳子\Users\TestUser\project"));
@@ -95,4 +100,35 @@ fn test_file_path_allows_backslash_relative() {
     // Relative paths with backslashes are valid (Windows-style relative)
     assert!(validate_file_path(r"src\main.rs").is_ok());
     assert!(validate_file_path(r"src\components\Button.tsx").is_ok());
+}
+
+#[test]
+fn test_registered_root_allows_only_itself_and_descendants() {
+    let roots = vec![std::path::PathBuf::from("/work/orgii")];
+    assert!(is_path_within_roots(
+        std::path::Path::new("/work/orgii"),
+        &roots
+    ));
+    assert!(is_path_within_roots(
+        std::path::Path::new("/work/orgii/src/main.rs"),
+        &roots
+    ));
+    assert!(!is_path_within_roots(
+        std::path::Path::new("/work/orgii-private"),
+        &roots
+    ));
+}
+
+#[cfg(windows)]
+#[test]
+fn test_registered_windows_root_accepts_verbatim_paths_case_insensitively() {
+    let roots = vec![std::path::PathBuf::from(r"\\?\C:\Repos\ORGII")];
+    assert!(is_path_within_roots(
+        std::path::Path::new(r"c:\projects\orgii\src\main.rs"),
+        &roots
+    ));
+    assert!(!is_path_within_roots(
+        std::path::Path::new(r"C:\Repos\ORGII-other"),
+        &roots
+    ));
 }

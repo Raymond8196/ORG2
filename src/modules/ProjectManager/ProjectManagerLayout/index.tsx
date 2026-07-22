@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -15,11 +15,11 @@ import {
   useWorkStationTabs,
 } from "@src/hooks/workStation";
 import { WorkStationShell } from "@src/modules/WorkStation/shared";
+import { openCreateTargetInChatPanelStartPageAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import {
-  CHAT_PANEL_SURFACE_KIND,
+  CHAT_PANEL_CREATE_TARGET,
   activeStationChatVisibleAtom,
-  chatPanelNavigateAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { projectStatusBarCallbacksAtom } from "@src/store/ui/workStationAtom";
@@ -32,6 +32,10 @@ import {
 
 import type { EmbeddedWorkItemDetailState } from "../WorkItems";
 import { ProjectManagerContentRouter } from "./components/ProjectManagerContentRouter";
+import {
+  type ProjectHostContextValue,
+  ProjectHostProvider,
+} from "./context/projectHostContext";
 import { useProjectManagerSidebarConfig } from "./hooks/useProjectManagerSidebarConfig";
 import { useProjectStatusBar } from "./hooks/useProjectStatusBar";
 import { useProjectTabActions } from "./hooks/useProjectTabActions";
@@ -43,6 +47,9 @@ export const ProjectManagerLayout: React.FC<ProjectManagerLayoutProps> = memo(
   ({ repoPath, repoName }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const openCreateTargetInStartPage = useSetAtom(
+      openCreateTargetInChatPanelStartPageAtom
+    );
 
     const {
       layoutMode,
@@ -133,7 +140,6 @@ export const ProjectManagerLayout: React.FC<ProjectManagerLayoutProps> = memo(
     ]);
 
     const bumpProjectListRefresh = useSetAtom(projectListRefreshAtom);
-    const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
     const setStationMode = useSetAtom(stationModeAtom);
     const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
     const handleProjectListRefreshRequested = useCallback(() => {
@@ -220,18 +226,21 @@ export const ProjectManagerLayout: React.FC<ProjectManagerLayoutProps> = memo(
     }, [navigate]);
 
     const handleCreateOrg = useCallback(() => {
-      navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_COLLAB_ORG });
-      setStationMode("my-station");
-      setStationChatVisible("my-station", true);
-    }, [navigateChatPanel, setStationChatVisible, setStationMode]);
-
-    const handleImportGithubIssuesProject = useCallback(() => {
-      navigateChatPanel({
-        kind: CHAT_PANEL_SURFACE_KIND.NEW_GITHUB_ISSUES_PROJECT,
+      openCreateTargetInStartPage({
+        target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
+        title: t("navigation:routes.launchpad"),
       });
       setStationMode("my-station");
       setStationChatVisible("my-station", true);
-    }, [navigateChatPanel, setStationChatVisible, setStationMode]);
+    }, [openCreateTargetInStartPage, setStationChatVisible, setStationMode, t]);
+
+    const handleImportGithubIssuesProject = useCallback(() => {
+      openCreateTargetInStartPage({
+        target: CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT,
+      });
+      setStationMode("my-station");
+      setStationChatVisible("my-station", true);
+    }, [openCreateTargetInStartPage, setStationChatVisible, setStationMode]);
 
     const { activePrimarySidebarConfig } = useProjectManagerSidebarConfig({
       repoPath,
@@ -257,6 +266,54 @@ export const ProjectManagerLayout: React.FC<ProjectManagerLayoutProps> = memo(
       onOpenRepoSettings: handleOpenRepoSettings,
     });
 
+    // Phase 2.1: publish the Project host's action surface above the tab
+    // dispatcher. The value mirrors the content-router props (minus tabs/
+    // activeTab) so staged project renderers can consume it via
+    // `useProjectHostContext` once `UnifiedTabContent` is mounted for project
+    // tabs. Providing it here is additive — the router below still receives
+    // its props directly and renders unchanged.
+    const projectHostValue = useMemo<ProjectHostContextValue>(
+      () => ({
+        repoPath,
+        repoName,
+        projectQuickActions,
+        onSelectProject: handleSelectProject,
+        onCreateProject: handleCreateProject,
+        onCreateWorkItem: handleCreateWorkItem,
+        onOpenProjects: handleOpenProjects,
+        onOpenLinearProjects: handleOpenLinearProjects,
+        onOpenRepoSettings: handleOpenRepoSettings,
+        onExpandWorkItemToTab: handleExpandWorkItemToTab,
+        onOpenChatSession: handleOpenChatSession,
+        onCloseTab: closeTab,
+        onUpdateTabData: updateTabData,
+        onUpdateTabMeta: updateTabMeta,
+        onSetTabUnsaved: setTabUnsaved,
+        onEmbeddedWorkItemDetailStateChange:
+          handleEmbeddedWorkItemDetailStateChange,
+        onProjectListRefreshRequested: handleProjectListRefreshRequested,
+      }),
+      [
+        repoPath,
+        repoName,
+        projectQuickActions,
+        handleSelectProject,
+        handleCreateProject,
+        handleCreateWorkItem,
+        handleOpenProjects,
+        handleOpenLinearProjects,
+        handleOpenRepoSettings,
+        handleExpandWorkItemToTab,
+        handleOpenChatSession,
+        closeTab,
+        updateTabData,
+        updateTabMeta,
+        setTabUnsaved,
+        handleEmbeddedWorkItemDetailStateChange,
+        handleProjectListRefreshRequested,
+      ]
+    );
+
     const mainContent = (
       <ProjectManagerContentRouter
         repoPath={repoPath}
@@ -264,9 +321,9 @@ export const ProjectManagerLayout: React.FC<ProjectManagerLayoutProps> = memo(
         activeTab={activeTab}
         projectQuickActions={projectQuickActions}
         onSelectProject={handleSelectProject}
+        onOpenProjects={handleOpenProjects}
         onCreateProject={handleCreateProject}
         onCreateWorkItem={handleCreateWorkItem}
-        onOpenProjects={handleOpenProjects}
         onOpenLinearProjects={handleOpenLinearProjects}
         onOpenRepoSettings={handleOpenRepoSettings}
         onExpandWorkItemToTab={handleExpandWorkItemToTab}
@@ -283,13 +340,15 @@ export const ProjectManagerLayout: React.FC<ProjectManagerLayoutProps> = memo(
     );
 
     return (
-      <WorkStationShell
-        primarySidebarConfig={activePrimarySidebarConfig}
-        content={mainContent}
-        statusBar={null}
-        layoutMode={layoutMode}
-        appClassName="project-manager"
-      />
+      <ProjectHostProvider value={projectHostValue}>
+        <WorkStationShell
+          primarySidebarConfig={activePrimarySidebarConfig}
+          content={mainContent}
+          statusBar={null}
+          layoutMode={layoutMode}
+          appClassName="project-manager"
+        />
+      </ProjectHostProvider>
     );
   }
 );

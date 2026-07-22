@@ -1,136 +1,62 @@
 import { useAtom, useSetAtom } from "jotai";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Cloud, Laptop, LogIn, Plus } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { projectApi } from "@src/api/http/project";
 import type { ProjectOrg } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
-import Markdown from "@src/components/MarkDown";
+import Message from "@src/components/Message";
+import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import {
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+} from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { ensureFreshSession } from "@src/features/Org2Cloud/org2CloudClient";
+import {
+  acceptCloudInvite,
+  createCloudOrg,
+} from "@src/features/Org2Cloud/org2CloudManagementClient";
+import {
+  cloudManagementErrorMessage,
+  parseCloudInviteInput,
+} from "@src/features/Org2Cloud/org2CloudOrgManagement";
+import { useRefetchOrg2CloudOrgs } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import { ensureProjectOrgForCloudOrg } from "@src/features/Org2Cloud/org2CloudProjectOrgAlias";
+import { useAppNavigation } from "@src/hooks/navigation";
+import {
+  SECTION_ACTION_GAP_CLASSES,
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
-import {
-  CollapsibleSection,
-  PANEL_FOOTER_TOKENS,
-} from "@src/modules/shared/layouts/blocks";
 import SelectionGrid from "@src/scaffold/WizardSystem/primitives/SelectionGrid";
 import type { SelectionGridOption } from "@src/scaffold/WizardSystem/primitives/SelectionGrid";
-import {
-  collabInvitesAtom,
-  collabMembersAtom,
-  collabOrgsAtom,
-} from "@src/store/collaboration/collabOrgsAtom";
-import { collabPendingInviteAtom } from "@src/store/collaboration/collabPendingInviteAtom";
-import { parseCollabInviteInput } from "@src/store/collaboration/protocol";
-import { COLLAB_IDENTITY_KIND } from "@src/store/collaboration/types";
-import type {
-  CollabIdentityKind,
-  CollabInviteRecord,
-  CollabMemberRecord,
-  CollabOrgRecord,
-} from "@src/store/collaboration/types";
-import { copyText } from "@src/util/data/clipboard";
-
-import { ORGII_SUPABASE_SETUP_SQL } from "../../sync/supabaseSetupSql";
-import { supabaseSyncClient } from "../../sync/supabaseSyncClient";
+import { openOrganizationInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 
 const LOCAL_SOURCE = "local";
-const SUPABASE_SOURCE = "supabase";
+// Managed ORG2 Cloud org (create_org / accept_invite against the managed
+// backend — identity comes from the cloud account).
+const CLOUD_SOURCE = "cloud";
 const CREATE_MODE = "create";
 const JOIN_MODE = "join";
-const DEFAULT_INVITE_USAGE_LIMIT = 10;
-
-const SUPABASE_SETUP_MARKDOWN = `1. Create a Supabase project in the Supabase dashboard.
-
-2. Copy the Project URL and anon public key into ORGII.
-
-3. Click **Copy setup SQL** below.
-
-4. Open the Supabase SQL Editor, paste the SQL, and click **Run**.
-
-5. Return to ORGII and click **Verify setup**.
-
-No terminal commands are required. ORGII stores project, work item, chat, and shared session data in your own Supabase project.`;
-
-const SUPABASE_SQL_EDITOR_URL =
-  "https://supabase.com/dashboard/project/_/sql/new";
 
 const COLLAB_FORM_CONTROL_STYLE = {
   width: "100%",
   maxWidth: "100%",
 } as const;
 
-type CreateOrgSource = typeof LOCAL_SOURCE | typeof SUPABASE_SOURCE;
+type CreateOrgSource = typeof LOCAL_SOURCE | typeof CLOUD_SOURCE;
 type CreateCollabOrgMode = typeof CREATE_MODE | typeof JOIN_MODE;
 
-type SetupVerificationStatus = "idle" | "ok" | "missing";
-
-export type CreatedOrgResult =
-  | {
-      source: typeof LOCAL_SOURCE;
-      org: ProjectOrg;
-    }
-  | {
-      source: typeof SUPABASE_SOURCE;
-      org: CollabOrgRecord;
-      member: CollabMemberRecord;
-    };
+export type CreatedOrgResult = {
+  source: typeof LOCAL_SOURCE;
+  org: ProjectOrg;
+};
 
 export interface CreateCollabOrgViewProps {
   onCancel: () => void;
   onCreated?: (result: CreatedOrgResult) => void;
-}
-
-function upsertOrg(
-  current: CollabOrgRecord[],
-  org: CollabOrgRecord
-): CollabOrgRecord[] {
-  const existingIndex = current.findIndex((item) => item.id === org.id);
-  if (existingIndex < 0) return [org, ...current];
-  const next = [...current];
-  next[existingIndex] = { ...current[existingIndex], ...org };
-  return next;
-}
-
-function upsertMember(
-  current: CollabMemberRecord[],
-  member: CollabMemberRecord
-): CollabMemberRecord[] {
-  const existingIndex = current.findIndex((item) => item.id === member.id);
-  if (existingIndex < 0) return [member, ...current];
-  const next = [...current];
-  next[existingIndex] = { ...current[existingIndex], ...member };
-  return next;
-}
-
-function upsertInvite(
-  current: CollabInviteRecord[],
-  invite: CollabInviteRecord
-): CollabInviteRecord[] {
-  const existingIndex = current.findIndex((item) => item.id === invite.id);
-  if (existingIndex < 0) return [invite, ...current];
-  const next = [...current];
-  next[existingIndex] = invite;
-  return next;
-}
-
-async function ensureProjectOrgForCollabOrg(
-  org: CollabOrgRecord
-): Promise<ProjectOrg> {
-  const projectOrgs = await projectApi.readOrgs();
-  const existingOrg = projectOrgs.find(
-    (projectOrg) => projectOrg.id === org.id
-  );
-  if (existingOrg) return existingOrg;
-
-  const existingByName = projectOrgs.find(
-    (projectOrg) => projectOrg.name === org.name
-  );
-  if (existingByName) return existingByName;
-
-  return projectApi.createOrg({ name: org.name, id: org.id });
 }
 
 const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
@@ -138,69 +64,35 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
   onCreated,
 }) => {
   const { t } = useTranslation(["navigation", "common"]);
-  const setCollabOrgs = useSetAtom(collabOrgsAtom);
-  const setCollabMembers = useSetAtom(collabMembersAtom);
-  const setCollabInvites = useSetAtom(collabInvitesAtom);
-  const [pendingInvite, setPendingInvite] = useAtom(collabPendingInviteAtom);
+  const [cloudAuth, setCloudAuth] = useAtom(org2CloudAuthAtom);
+  const refetchCloudOrgs = useRefetchOrg2CloudOrgs();
 
   const [source, setSource] = useState<CreateOrgSource | null>(null);
   const [mode, setMode] = useState<CreateCollabOrgMode>(CREATE_MODE);
-  const [supabaseUrl, setSupabaseUrl] = useState("");
-  const [anonKey, setAnonKey] = useState("");
   const [orgName, setOrgName] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [inviteInput, setInviteInput] = useState("");
-  const [identityKind, setIdentityKind] = useState<CollabIdentityKind>(
-    COLLAB_IDENTITY_KIND.HUMAN
-  );
-  const [latestInviteLink, setLatestInviteLink] = useState("");
-  const [verificationStatus, setVerificationStatus] =
-    useState<SetupVerificationStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [copiedSql, setCopiedSql] = useState(false);
+  const { goToSettings } = useAppNavigation();
+  const openOrganizationTab = useSetAtom(openOrganizationInChatPanelTabAtom);
 
-  useEffect(() => {
-    if (!pendingInvite) return;
-    setSource(SUPABASE_SOURCE);
-    setMode(JOIN_MODE);
-    setInviteInput(pendingInvite.inviteCode);
-    if (pendingInvite.supabaseUrl) setSupabaseUrl(pendingInvite.supabaseUrl);
-    if (pendingInvite.anonKey) setAnonKey(pendingInvite.anonKey);
-    setError(null);
-    setPendingInvite(null);
-  }, [pendingInvite, setPendingInvite]);
-
-  const parsedInvite = useMemo(() => {
-    const trimmed = inviteInput.trim();
-    if (!trimmed) return undefined;
-    try {
-      return parseCollabInviteInput(trimmed);
-    } catch {
-      return undefined;
-    }
-  }, [inviteInput]);
-
-  useEffect(() => {
-    if (parsedInvite?.supabaseUrl && !supabaseUrl.trim()) {
-      setSupabaseUrl(parsedInvite.supabaseUrl);
-    }
-    if (parsedInvite?.anonKey && !anonKey.trim()) {
-      setAnonKey(parsedInvite.anonKey);
-    }
-  }, [anonKey, parsedInvite, supabaseUrl]);
+  // "Use ORG2 Cloud" opens the Collaboration section where managed sign-in lives.
+  const handleUseOrg2Cloud = useCallback(() => {
+    goToSettings({ section: "collaboration" });
+  }, [goToSettings]);
 
   const sourceOptions = useMemo<SelectionGridOption<CreateOrgSource>[]>(
     () => [
       {
         key: LOCAL_SOURCE,
         label: t("navigation:collaboration.localOrg"),
+        icon: Laptop,
       },
       {
-        key: SUPABASE_SOURCE,
-        label: t("navigation:collaboration.supabaseSyncOrg"),
+        key: CLOUD_SOURCE,
+        label: t("navigation:cloud.orgManagement.create.sourceCloud"),
+        icon: Cloud,
+        dataTestId: "create-collab-org-source-cloud",
       },
     ],
     [t]
@@ -211,108 +103,122 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
       {
         key: CREATE_MODE,
         label: t("navigation:collaboration.createOrg"),
+        icon: Plus,
+        dataTestId: "create-collab-org-mode-create",
       },
       {
         key: JOIN_MODE,
         label: t("navigation:collaboration.joinOrg"),
+        icon: LogIn,
+        dataTestId: "create-collab-org-mode-join",
       },
     ],
     [t]
   );
 
-  const identityOptions = useMemo<SelectionGridOption<CollabIdentityKind>[]>(
-    () => [
-      {
-        key: COLLAB_IDENTITY_KIND.HUMAN,
-        label: t("navigation:collaboration.identityHuman"),
-      },
-      {
-        key: COLLAB_IDENTITY_KIND.AGENT,
-        label: t("navigation:collaboration.identityAgent"),
-      },
-    ],
-    [t]
-  );
-
-  const effectiveSupabaseUrl = parsedInvite?.supabaseUrl ?? supabaseUrl;
-  const effectiveAnonKey = parsedInvite?.anonKey ?? anonKey;
+  // Labels of the required fields still empty — the submit button must never
+  // be SILENTLY disabled (the classic report: "Create org can't be clicked"
+  // with no clue that the field below the fold is empty).
+  const missingRequiredFields = useMemo(() => {
+    if (source === null) return [];
+    const missing: string[] = [];
+    if (source === LOCAL_SOURCE) {
+      if (!orgName.trim()) missing.push(t("navigation:collaboration.orgName"));
+      return missing;
+    }
+    // Cloud identity comes from the ORG2 Cloud account — no display name.
+    if (mode === CREATE_MODE && !orgName.trim()) {
+      missing.push(t("navigation:collaboration.orgName"));
+    }
+    if (mode === JOIN_MODE && !inviteInput.trim()) {
+      missing.push(t("navigation:collaboration.inviteCode"));
+    }
+    return missing;
+  }, [inviteInput, mode, orgName, source, t]);
 
   const canSubmit = useMemo(() => {
     if (loading || source === null) return false;
-    if (source === LOCAL_SOURCE) return Boolean(orgName.trim());
-    if (!displayName.trim()) return false;
-    if (!effectiveSupabaseUrl.trim() || !effectiveAnonKey.trim()) return false;
-    if (mode === CREATE_MODE) return Boolean(orgName.trim());
-    return Boolean(inviteInput.trim());
-  }, [
-    displayName,
-    effectiveAnonKey,
-    effectiveSupabaseUrl,
-    inviteInput,
-    loading,
-    mode,
-    orgName,
-    source,
-  ]);
+    // Managed cloud calls carry the account JWT — signed-out users see the
+    // sign-in hint instead of a silently disabled button.
+    if (source === CLOUD_SOURCE && !cloudAuth) return false;
+    return missingRequiredFields.length === 0;
+  }, [cloudAuth, loading, missingRequiredFields, source]);
 
-  const handleVerifySetup = useCallback(async () => {
-    if (!supabaseUrl.trim() || !anonKey.trim() || verifying) return;
-    setVerifying(true);
-    setError(null);
-    try {
-      const result = await supabaseSyncClient.verifySetup({
-        supabaseUrl,
-        anonKey,
-      });
-      setVerificationStatus(result.ok ? "ok" : "missing");
-      if (!result.ok) {
-        setError(t("navigation:collaboration.supabaseSetupMissing"));
+  // Managed ORG2 Cloud create/join: create_org / accept_invite via the
+  // management client (JWT from the cloud account), then refresh
+  // org2CloudOrgsAtom so the sidebar selector picks the org up immediately.
+  const handleCloudSubmit = useCallback(async () => {
+    const current = cloudAuth;
+    if (!current) return;
+    const fresh = await ensureFreshSession(current);
+    if (!fresh) throw new Error(t("navigation:cloud.orgPanel.loadError"));
+    commitRefreshedAuth(setCloudAuth, current, fresh);
+
+    if (mode === CREATE_MODE) {
+      const { orgId } = await createCloudOrg(fresh.accessToken, orgName.trim());
+      // Project-org alias (cloud-parity Phase B): local project/work-item
+      // mutations under this org route into the collab outbox from the very
+      // first edit. Best-effort — the sync engine re-ensures it per start.
+      try {
+        await ensureProjectOrgForCloudOrg({ orgId, name: orgName.trim() });
+      } catch {
+        // Non-fatal: the engine's per-org pass self-heals the alias.
       }
-    } catch (err) {
-      setVerificationStatus("missing");
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setVerifying(false);
-    }
-  }, [anonKey, supabaseUrl, t, verifying]);
-
-  const handleCopySetupSql = useCallback(async () => {
-    await copyText(ORGII_SUPABASE_SETUP_SQL);
-    setCopiedSql(true);
-    window.setTimeout(() => setCopiedSql(false), 1500);
-  }, []);
-
-  const handleCreated = useCallback(
-    async (org: CollabOrgRecord, member: CollabMemberRecord) => {
-      const projectOrg = await ensureProjectOrgForCollabOrg(org);
-      const canonicalOrg = { ...org, projectOrgId: projectOrg.id };
-      setCollabOrgs((current) => upsertOrg(current, canonicalOrg));
-      setCollabMembers((current) => upsertMember(current, member));
-      onCreated?.({ source: SUPABASE_SOURCE, org: canonicalOrg, member });
-      const invite = await supabaseSyncClient.createInvite({
-        supabaseUrl: org.supabaseUrl ?? supabaseUrl,
-        anonKey: org.supabaseAnonKey ?? anonKey,
-        orgSecret: org.orgSecret,
-        orgId: org.id,
-        usageLimit: DEFAULT_INVITE_USAGE_LIMIT,
+      await refetchCloudOrgs({
+        until: (orgs) => orgs.some((org) => org.orgId === orgId),
       });
-      setCollabInvites((current) => upsertInvite(current, invite));
-      setLatestInviteLink(invite.inviteLink);
-    },
-    [
-      anonKey,
-      onCreated,
-      setCollabInvites,
-      setCollabMembers,
-      setCollabOrgs,
-      supabaseUrl,
-    ]
-  );
+      Message.success(t("navigation:cloud.orgManagement.create.createdToast"));
+      // Land straight in the org management panel (invites, members, repo
+      // scopes) instead of a dead-end success screen.
+      openOrganizationTab({
+        organization: { kind: "cloud", cloudOrg: { orgId } },
+        title: t("navigation:collaboration.manageOrg"),
+      });
+      return;
+    }
+
+    const inviteCode = parseCloudInviteInput(inviteInput);
+    if (!inviteCode) {
+      throw new Error(t("navigation:cloud.orgManagement.errors.inviteInvalid"));
+    }
+    const result = await acceptCloudInvite(fresh.accessToken, inviteCode);
+    const orgs = await refetchCloudOrgs({
+      until: (items) => items.some((org) => org.orgId === result.orgId),
+    });
+    const joined = orgs.find((org) => org.orgId === result.orgId);
+    if (!joined) {
+      // Do not close the form or show a success toast unless the refreshed
+      // roster confirms that the invite produced an active membership.
+      throw new Error(t("navigation:cloud.orgPanel.loadError"));
+    }
+    // Project-org alias on join (cloud-parity Phase B); best-effort, the
+    // engine re-ensures it per start.
+    try {
+      await ensureProjectOrgForCloudOrg(joined);
+    } catch {
+      // Non-fatal: the engine's per-org pass self-heals the alias.
+    }
+    Message.success(
+      t("navigation:cloud.orgManagement.join.joinedToast", {
+        org: joined.name,
+      })
+    );
+    onCancel();
+  }, [
+    cloudAuth,
+    inviteInput,
+    mode,
+    onCancel,
+    openOrganizationTab,
+    orgName,
+    refetchCloudOrgs,
+    setCloudAuth,
+    t,
+  ]);
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
     setError(null);
-    setCopied(false);
     setLoading(true);
     try {
       if (source === LOCAL_SOURCE) {
@@ -321,75 +227,34 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
         return;
       }
 
-      if (mode === CREATE_MODE) {
-        const result = await supabaseSyncClient.createOrg({
-          supabaseUrl: effectiveSupabaseUrl,
-          anonKey: effectiveAnonKey,
-          name: orgName,
-          displayName,
-          identityKind: COLLAB_IDENTITY_KIND.HUMAN,
-        });
-        await handleCreated(result.org, result.member);
-        return;
-      }
-
-      const parsed = parseCollabInviteInput(inviteInput);
-      const result = await supabaseSyncClient.acceptInvite({
-        supabaseUrl: parsed.supabaseUrl ?? effectiveSupabaseUrl,
-        anonKey: parsed.anonKey ?? effectiveAnonKey,
-        inviteCode: parsed.inviteCode,
-        displayName,
-        identityKind,
-      });
-      const projectOrg = await ensureProjectOrgForCollabOrg(result.org);
-      const canonicalOrg = { ...result.org, projectOrgId: projectOrg.id };
-      setCollabOrgs((current) => upsertOrg(current, canonicalOrg));
-      setCollabMembers((current) => upsertMember(current, result.member));
-      onCreated?.({
-        source: SUPABASE_SOURCE,
-        org: canonicalOrg,
-        member: result.member,
-      });
-      setLatestInviteLink("");
+      await handleCloudSubmit();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      // Cloud failures carry §22 ORG2_* codes (ORG2_INVITE_EXPIRED,
+      // ORG2_QUOTA_EXCEEDED, …) — surface the specific translated message.
+      setError(
+        source === CLOUD_SOURCE
+          ? cloudManagementErrorMessage(err, t)
+          : err instanceof Error
+            ? err.message
+            : String(err)
+      );
     } finally {
       setLoading(false);
     }
-  }, [
-    canSubmit,
-    displayName,
-    effectiveAnonKey,
-    effectiveSupabaseUrl,
-    handleCreated,
-    identityKind,
-    inviteInput,
-    mode,
-    onCreated,
-    orgName,
-    setCollabMembers,
-    setCollabOrgs,
-    source,
-  ]);
-
-  const handleCopyInvite = useCallback(async () => {
-    if (!latestInviteLink) return;
-    await copyText(latestInviteLink);
-    setCopied(true);
-  }, [latestInviteLink]);
+  }, [canSubmit, handleCloudSubmit, onCreated, orgName, source, t]);
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-hidden">
         <div
-          className="mx-auto flex h-full w-full max-w-[932px] flex-col gap-4 overflow-y-auto px-4"
+          className={`${DETAIL_PANEL_TOKENS.headerWidth} flex h-full flex-col gap-4 overflow-y-auto px-4`}
           data-testid="create-collab-org-body"
         >
-          <SectionContainer bare>
+          <SectionContainer>
             <SectionRow
               label={t("navigation:collaboration.orgSource")}
-              layout="vertical"
               required
+              equalColumns
             >
               <SelectionGrid
                 options={sourceOptions}
@@ -400,13 +265,11 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
                 onSelect={setSource}
               />
             </SectionRow>
-          </SectionContainer>
 
-          {source === SUPABASE_SOURCE && (
-            <SectionContainer bare>
+            {source === CLOUD_SOURCE && (
               <SectionRow
                 label={t("navigation:collaboration.setupMode")}
-                layout="vertical"
+                equalColumns
               >
                 <SelectionGrid
                   options={modeOptions}
@@ -417,18 +280,33 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
                   onSelect={setMode}
                 />
               </SectionRow>
-            </SectionContainer>
-          )}
+            )}
 
-          {source !== null && (
-            <SectionContainer bare>
-              {mode === CREATE_MODE || source === LOCAL_SOURCE ? (
+            {source === CLOUD_SOURCE && !cloudAuth && (
+              <SectionRow showHeader={false}>
+                <div
+                  className="flex flex-wrap items-center gap-2 rounded-md border border-border-1 bg-fill-2 px-3 py-2"
+                  data-testid="create-cloud-org-sign-in-hint"
+                >
+                  <span className="min-w-0 flex-1 text-[12px] leading-[18px] text-text-2">
+                    {t("navigation:cloud.orgManagement.create.signInFirst")}
+                  </span>
+                  <Button size="small" onClick={handleUseOrg2Cloud}>
+                    {t("navigation:cloud.orgManagement.create.openSettings")}
+                  </Button>
+                </div>
+              </SectionRow>
+            )}
+
+            {source !== null &&
+              (mode === CREATE_MODE || source === LOCAL_SOURCE ? (
                 <SectionRow
                   label={t("navigation:collaboration.orgName")}
                   layout="vertical"
                   required
                 >
                   <Input
+                    data-testid="create-collab-org-name"
                     value={orgName}
                     onChange={setOrgName}
                     placeholder={t(
@@ -444,6 +322,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
                   required
                 >
                   <Input
+                    data-testid="create-collab-org-invite"
                     value={inviteInput}
                     onChange={setInviteInput}
                     placeholder={t(
@@ -452,177 +331,36 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
                     style={COLLAB_FORM_CONTROL_STYLE}
                   />
                 </SectionRow>
-              )}
+              ))}
 
-              {source === SUPABASE_SOURCE && (
-                <SectionRow
-                  label={t("navigation:collaboration.joinAs")}
-                  layout="vertical"
-                  required
-                >
-                  <Input
-                    value={displayName}
-                    onChange={setDisplayName}
-                    placeholder={t(
-                      "navigation:collaboration.joinAsPlaceholder"
-                    )}
-                    style={COLLAB_FORM_CONTROL_STYLE}
-                  />
-                </SectionRow>
-              )}
-            </SectionContainer>
-          )}
-
-          {source === SUPABASE_SOURCE && (
-            <>
-              <SectionContainer bare>
-                <SectionRow
-                  label={t("navigation:collaboration.supabaseUrl")}
-                  layout="vertical"
-                  required
-                >
-                  <Input
-                    value={supabaseUrl}
-                    onChange={setSupabaseUrl}
-                    placeholder="https://your-project.supabase.co"
-                    type="url"
-                    style={COLLAB_FORM_CONTROL_STYLE}
-                  />
-                </SectionRow>
-                <SectionRow
-                  label={t("navigation:collaboration.supabaseAnonKey")}
-                  layout="vertical"
-                  required
-                >
-                  <Input
-                    value={anonKey}
-                    onChange={setAnonKey}
-                    placeholder="eyJhbGciOi..."
-                    style={COLLAB_FORM_CONTROL_STYLE}
-                  />
-                </SectionRow>
-                {mode === CREATE_MODE ? (
-                  <div className="flex flex-wrap items-center gap-2 pt-2">
-                    <Button
-                      htmlType="button"
-                      size="small"
-                      disabled={
-                        !supabaseUrl.trim() || !anonKey.trim() || verifying
-                      }
-                      loading={verifying}
-                      onClick={() => void handleVerifySetup()}
-                    >
-                      {t("navigation:collaboration.verifySupabaseSetup")}
-                    </Button>
-                    <Button
-                      htmlType="button"
-                      size="small"
-                      onClick={() => void handleCopySetupSql()}
-                    >
-                      {copiedSql
-                        ? t("navigation:collaboration.copiedSetupSql")
-                        : t("navigation:collaboration.copySetupSql")}
-                    </Button>
-                    <Button
-                      htmlType="button"
-                      size="small"
-                      onClick={() =>
-                        window.open(SUPABASE_SQL_EDITOR_URL, "_blank")
-                      }
-                    >
-                      {t("navigation:collaboration.openSupabaseSqlEditor")}
-                    </Button>
-                    {verificationStatus === "ok" ? (
-                      <span className="text-[12px] text-success-6">
-                        {t("navigation:collaboration.supabaseSetupVerified")}
-                      </span>
-                    ) : null}
-                  </div>
-                ) : null}
-              </SectionContainer>
-
-              {mode === CREATE_MODE ? (
-                <CollapsibleSection
-                  title={t("navigation:collaboration.supabaseSetupTitle")}
-                  defaultOpen={false}
-                  compact
-                  headerRowClassName="h-5 px-1"
-                  titleButtonClassName="text-[12px] font-medium text-text-2 hover:text-text-1"
-                  chevronSize={12}
-                >
-                  <div className="cursor-text select-text px-1 text-[12px] leading-[18px] text-text-2">
-                    <Markdown
-                      textContent={SUPABASE_SETUP_MARKDOWN}
-                      useChatCodeBlock
-                      skipPreprocess
-                    />
-                  </div>
-                </CollapsibleSection>
-              ) : null}
-            </>
-          )}
-
-          {source === SUPABASE_SOURCE && mode === JOIN_MODE && (
-            <SectionContainer bare>
-              <SectionRow
-                label={t("navigation:collaboration.identityKind")}
-                layout="vertical"
-                required
-              >
-                <SelectionGrid
-                  options={identityOptions}
-                  selected={identityKind}
-                  columns={2}
-                  cardVariant="subtle"
-                  compactCards
-                  onSelect={setIdentityKind}
-                />
+            {error && (
+              <SectionRow showHeader={false}>
+                <p className="text-sm text-danger-6">{error}</p>
               </SectionRow>
-            </SectionContainer>
-          )}
+            )}
 
-          {latestInviteLink && (
-            <SectionContainer bare>
-              <SectionRow
-                label={t("navigation:collaboration.inviteReady")}
-                layout="vertical"
+            <SectionRow
+              showHeader={false}
+              className={`${SECTION_ACTION_GAP_CLASSES} justify-end`}
+            >
+              <Button variant="secondary" size="small" onClick={onCancel}>
+                {t("common:actions.cancel")}
+              </Button>
+              <Button
+                variant="primary"
+                size="small"
+                onClick={() => void handleSubmit()}
+                disabled={!canSubmit}
+                loading={loading}
+                data-testid="create-collab-org-submit"
               >
-                <div className="space-y-3">
-                  <Input
-                    readOnly
-                    value={latestInviteLink}
-                    style={COLLAB_FORM_CONTROL_STYLE}
-                  />
-                  <Button size="small" onClick={() => void handleCopyInvite()}>
-                    {copied
-                      ? t("navigation:collaboration.copiedInvite")
-                      : t("navigation:collaboration.copyInvite")}
-                  </Button>
-                </div>
-              </SectionRow>
-            </SectionContainer>
-          )}
-
-          {error && <p className="text-sm text-danger-6">{error}</p>}
+                {source === LOCAL_SOURCE || mode === CREATE_MODE
+                  ? t("navigation:collaboration.createOrg")
+                  : t("navigation:collaboration.joinOrg")}
+              </Button>
+            </SectionRow>
+          </SectionContainer>
         </div>
-      </div>
-
-      <div className={`${PANEL_FOOTER_TOKENS.container} justify-end`}>
-        <Button variant="secondary" size="small" onClick={onCancel}>
-          {t("common:actions.cancel")}
-        </Button>
-        <Button
-          variant="primary"
-          size="small"
-          onClick={() => void handleSubmit()}
-          disabled={!canSubmit}
-          loading={loading}
-          data-testid="create-collab-org-submit"
-        >
-          {source === LOCAL_SOURCE || mode === CREATE_MODE
-            ? t("navigation:collaboration.createOrg")
-            : t("navigation:collaboration.joinOrg")}
-        </Button>
       </div>
     </div>
   );

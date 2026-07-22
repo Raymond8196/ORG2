@@ -1,11 +1,16 @@
 import {
   ArrowDown,
+  ArrowDownToLine,
   ArrowUp,
+  ArrowUpFromLine,
   ChevronDown,
+  CloudDownload,
   CloudUpload,
   Ellipsis,
+  GitCompareArrows,
   RefreshCw,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -43,6 +48,7 @@ interface GitSyncStatusMenuProps {
 interface GitSyncMenuAction {
   key: string;
   label: string;
+  icon: LucideIcon;
   disabled?: boolean;
   onSelect: () => Promise<void> | void;
 }
@@ -100,29 +106,34 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
         {
           key: "fetch",
           label: "Fetch origin",
+          icon: CloudDownload,
           onSelect: onFetch,
         },
         {
           key: "sync",
           label: "Pull then push",
+          icon: RefreshCw,
           disabled: needsPublish,
           onSelect: onSync,
         },
         {
           key: "pull",
           label: "Pull",
+          icon: ArrowDownToLine,
           disabled: needsPublish,
           onSelect: onPull,
         },
         {
           key: "rebase",
           label: "Pull with rebase",
+          icon: GitCompareArrows,
           disabled: needsPublish,
           onSelect: onRebase,
         },
         {
           key: "push",
           label: needsPublish ? "Publish" : "Push",
+          icon: needsPublish ? CloudUpload : ArrowUpFromLine,
           onSelect: onPush,
         },
       ],
@@ -142,6 +153,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
     }, [actions, aheadCount, behindCount, needsPublish]);
 
     const gitActionsLabel = t("workstation.gitActionsTooltip", "Git actions");
+    const SuggestedActionIcon = suggestedAction?.icon;
 
     return (
       <div ref={triggerRef} className="flex h-full">
@@ -211,12 +223,10 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
               role="menu"
             >
               <div className={DROPDOWN_CLASSES.itemsColumn}>
-                <div className={DROPDOWN_CLASSES.sectionLabel}>
-                  {showAllActions ? "Git actions" : "Suggested Git action"}
-                </div>
                 {showAllActions ? (
                   <>
                     {actions.map((action) => {
+                      const ActionIcon = action.icon;
                       const disabled =
                         isSyncBusy || !canSyncDisplayedRepo || action.disabled;
                       return (
@@ -231,6 +241,10 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                           onClick={() => handleAction(action.onSelect)}
                           role="menuitem"
                         >
+                          <ActionIcon
+                            size={MENU_ICON_SIZE}
+                            className="shrink-0 text-text-1"
+                          />
                           <span className="font-medium text-text-1">
                             {action.label}
                           </span>
@@ -240,7 +254,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                   </>
                 ) : (
                   <>
-                    {suggestedAction && (
+                    {suggestedAction && SuggestedActionIcon && (
                       <button
                         type="button"
                         className={classNames(
@@ -258,6 +272,10 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                         onClick={() => handleAction(suggestedAction.onSelect)}
                         role="menuitem"
                       >
+                        <SuggestedActionIcon
+                          size={MENU_ICON_SIZE}
+                          className="shrink-0 text-text-1"
+                        />
                         <span className="font-medium text-text-1">
                           {suggestedAction.label}
                         </span>
@@ -272,7 +290,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                     >
                       <Ellipsis size={MENU_ICON_SIZE} className="text-text-1" />
                       <span className="font-medium text-text-1">
-                        More options
+                        {t("common.more")}
                       </span>
                     </button>
                   </>

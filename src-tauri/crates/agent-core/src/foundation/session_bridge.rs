@@ -384,10 +384,12 @@ pub enum TurnIntentBridgeStatus {
     Failed,
     Cancelled,
     Stale,
+    Coalesced,
+    Rejected,
 }
 
 impl TurnIntentBridgeStatus {
-    pub fn as_str(self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Self::Optimistic => "optimistic",
             Self::Queued => "queued",
@@ -396,9 +398,24 @@ impl TurnIntentBridgeStatus {
             Self::Failed => "failed",
             Self::Cancelled => "cancelled",
             Self::Stale => "stale",
+            Self::Coalesced => "coalesced",
+            Self::Rejected => "rejected",
         }
     }
+
+    pub fn is_in_flight(self) -> bool {
+        matches!(self, Self::Optimistic | Self::Queued | Self::Running)
+    }
 }
+
+/// Canonical persisted wire values for turn intents that may still execute.
+/// Agent Org finality queries bind these values instead of independently
+/// hard-coding a second lifecycle definition.
+pub const IN_FLIGHT_TURN_INTENT_STATUSES: [&str; 3] = [
+    TurnIntentBridgeStatus::Optimistic.as_str(),
+    TurnIntentBridgeStatus::Queued.as_str(),
+    TurnIntentBridgeStatus::Running.as_str(),
+];
 
 #[derive(Debug, Clone, Copy)]
 pub enum TurnIntentBridgeSource {

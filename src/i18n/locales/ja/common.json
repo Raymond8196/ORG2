@@ -74,6 +74,11 @@
       "other": "シークレット"
     }
   },
+  "secretScan": {
+    "title": "シークレットの可能性を検出しました",
+    "message": "このメッセージには機密性の高い認証情報が含まれているようです：\n\n{{items}}\n\n送信すると、シークレットがチャット履歴に保存され、モデルに送信されます。それでも送信しますか？",
+    "sendAnyway": "それでも送信"
+  },
   "actions": {
     "save": "保存",
     "cancel": "キャンセル",
@@ -188,6 +193,7 @@
     "selectRepository": "リポジトリを選択",
     "all": "すべて",
     "collapse": "折りたたむ",
+    "toggle": "スレッドを開閉",
     "addRepo": "リポジトリを追加",
     "addFolder": "フォルダを追加",
     "resume": "再開",
@@ -203,7 +209,8 @@
     "openWorkspace": "Workspace を開く",
     "skipThisVersion": "このバージョンをスキップ",
     "later": "後で",
-    "link": "リンク"
+    "link": "リンク",
+    "copyName": "名前をコピー"
   },
   "refreshToast": {
     "successName": "{{name}} を更新しました",
@@ -405,7 +412,28 @@
     "nearby": "近く",
     "renowned": "著名",
     "dragToReorder": "ドラッグしてメッセージの順序を変更",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "セッションの帰属",
+    "sessionBlameSubagent": "サブエージェント: {{name}}",
+    "sessionBlameMainSession": "メインセッション",
+    "sessionBlameAction": {
+      "read": "読み取り",
+      "write": "書き込み",
+      "create": "作成",
+      "delete": "削除",
+      "rename": "名前変更",
+      "search": "検索"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "信頼度不明",
+      "session_only": "セッションのみ",
+      "correlated": "関連付け済み",
+      "exact": "正確な帰属"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "過去のセッションをインデックス中 {{indexed}}/{{total}}",
+      "partial": "履歴インデックスが不完全です（{{failed}} 件失敗）",
+      "failed": "過去のセッションのインデックス作成に失敗しました"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -423,7 +451,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "ファイル",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -503,6 +531,10 @@
     "failedToRenderEvent": "イベントのレンダリングに失敗しました",
     "unknown": "不明なエラー",
     "agentRequestFailed": "Agent リクエスト失敗",
+    "codexLoginExpired": "Codex のサインイン期限が切れました",
+    "codexLoginExpiredDescription": "このアカウントを修復するには Codex に再接続してください。新しいサインインを保存すると、このセッションに戻ります。",
+    "reconnectCodex": "Codex に再接続",
+    "technicalDetails": "技術的な詳細",
     "failedToCopy": "コピーに失敗しました",
     "api": {
       "titles": {
@@ -1149,9 +1181,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token は必須です",
       "createTokenButton": "Token を作成",
-      "openGitSettingsButton": "Git 設定を開く",
+      "openGitSettingsButton": "設定を開く",
       "configureInSettings": "設定で Git を構成",
-      "configureInSettingsDesc": "設定 → 連携 → Git で GitHub App アクセスの追加、token の保存、またはローカル認証情報のスキャンを行い、その後この Git 操作を再試行してください。"
+      "configureInSettingsDesc": "設定 → 接続 で GitHub App アクセスの追加、token の保存、またはローカル認証情報のスキャンを行い、その後この Git 操作を再試行してください。"
     },
     "actions": {
       "publish": "Publish",
@@ -1214,6 +1246,43 @@
         "closed": "クローズ",
         "completed": "完了",
         "notPlanned": "未計画"
+      },
+      "activity": {
+        "opened": "がこの issue をオープンしました",
+        "commented": "がコメントしました",
+        "timelineItemCount_one": "タイムライン項目 {{count}} 件",
+        "timelineItemCount_other": "タイムライン項目 {{count}} 件",
+        "noDescription": "説明はありません。",
+        "assigned": "が次のユーザーを割り当てました：",
+        "assignedIssue": "がこの issue を割り当てました",
+        "unassigned": "が次のユーザーの割り当てを解除しました：",
+        "removedAssignee": "が担当者を削除しました",
+        "added": "が追加しました：",
+        "removed": "が削除しました：",
+        "label": "ラベル",
+        "milestoned": "がこの issue をマイルストーン {{milestone}} に追加しました",
+        "demilestoned": "がこの issue をマイルストーン {{milestone}} から削除しました",
+        "closedViaCommit": "がコミット {{commit}} でこの issue をクローズしました",
+        "closed": "がこの issue をクローズしました",
+        "reopened": "がこの issue を再オープンしました",
+        "renamedTo": "がこの issue の名前を次に変更しました：",
+        "renamed": "がこの issue の名前を変更しました",
+        "locked": "がこの会話をロックしました",
+        "lockedAs": "が理由「{{reason}}」でこの会話をロックしました",
+        "unlocked": "がこの会話のロックを解除しました",
+        "crossReferencedFrom": "が次の場所からこの issue を参照しました：",
+        "crossReferenced": "がこの issue への相互参照を作成しました",
+        "referencedInCommit": "がコミット {{commit}} でこの issue を参照しました",
+        "referencedInACommit": "がコミットでこの issue を参照しました",
+        "connected": "がこの issue をリンクしました",
+        "disconnected": "がこの issue のリンクを解除しました",
+        "markedAsDuplicate": "がこの issue を重複としてマークしました",
+        "unmarkedAsDuplicate": "が重複マークを解除しました",
+        "pinned": "がこの issue を固定しました",
+        "unpinned": "がこの issue の固定を解除しました",
+        "transferred": "がこの issue を移管しました",
+        "convertedToDiscussion": "がこの issue をディスカッションに変換しました",
+        "mentioned": "がこの issue に言及しました"
       }
     }
   },
@@ -1530,6 +1599,11 @@
           "label": "Agent セッションを検索",
           "pillLabel": "セッションを検索",
           "placeholder": "Agent セッションを検索..."
+        },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
         },
         "switchWorkspace": {
           "label": "Workspace を切り替え"
@@ -1859,15 +1933,6 @@
     "lastActive": "最終アクティブ: {{date}}",
     "activeNow": "アクティブ中: {{ides}}",
     "active": "アクティブ",
-    "tabs": {
-      "activity": "アクティビティ",
-      "focus": "集中",
-      "languages": "言語",
-      "heatmap": "ヒートマップ",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI セッション",
     "cliPrompt": "プロンプト",
     "cliMessages": "メッセージ",
@@ -1958,9 +2023,6 @@
     "pill": {
       "focus": "フォーカス",
       "allChanges": "すべての変更"
-    },
-    "sessionFilter": {
-      "allSessions": "すべてのセッション"
     }
   },
   "contextInfo": {

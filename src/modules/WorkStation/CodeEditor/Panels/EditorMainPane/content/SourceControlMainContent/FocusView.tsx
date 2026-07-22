@@ -31,6 +31,8 @@ export interface FocusViewProps {
   onReload?: () => void;
   /** Open the file as a regular file tab */
   onFileSelect?: (path: string) => void;
+  /** Clear the focused file and return to the empty Focus state. */
+  onClose?: () => void;
   /** Sync local edit state to tab bar dot */
   onUnsavedChange?: (hasUnsaved: boolean) => void;
   /** Render the file breadcrumb inside the main pane instead of the workstation header. */
@@ -46,6 +48,7 @@ const FocusView: React.FC<FocusViewProps> = ({
   hasFocus,
   onReload,
   onFileSelect,
+  onClose,
   onUnsavedChange,
   inlineFileHeader = true,
   emptyActions,
@@ -67,6 +70,7 @@ const FocusView: React.FC<FocusViewProps> = ({
           repoPath={repoPath}
           onReload={onReload}
           onFileSelect={onFileSelect}
+          onClose={onClose}
           onUnsavedChange={onUnsavedChange}
           publishHeaderToWorkstation={!inlineFileHeader}
           emptyState={emptyPlaceholder}

@@ -419,6 +419,8 @@ const js = {
       chatHistoryCardRevisionIds: chatHistoryCards.map((card) => card.getAttribute('data-plan-revision-id') || ''),
       chatHistoryCardStatuses: chatHistoryCards.map((card) => card.getAttribute('data-plan-approval-status') || ''),
       readyCardCount: cards.filter((card) => card.getAttribute('data-plan-ready') === 'true').length,
+      visibleCardCount: cards.filter(isVisible).length,
+      visibleReadyCardCount: cards.filter((card) => isVisible(card) && card.getAttribute('data-plan-ready') === 'true').length,
       draftingCardCount: cards.filter((card) => card.getAttribute('data-plan-ready') !== 'true').length,
       readyCurrentCardCount: currentCards.filter((card) => card.getAttribute('data-plan-ready') === 'true').length,
       currentDraftCardCount: currentDraftCards.length,
@@ -438,15 +440,18 @@ const js = {
       visibleNavigateButtonCount: visibleNavigateButtons.length,
       buildButtonCount: buildButtons.length,
       enabledBuildButtonCount: buildButtons.filter((button) => !button.disabled).length,
+      visibleEnabledBuildButtonCount: buildButtons.filter((button) => isVisible(button) && !button.disabled).length,
       enabledBuildRevisionIds: buildButtons
         .filter((button) => !button.disabled)
         .map((button) => button.closest('[data-plan-revision-id]')?.getAttribute('data-plan-revision-id') || '')
         .filter(Boolean),
       editButtonCount: editButtons.length,
       planDocBuild: !!planDocBuild,
+      planDocBuildVisible: !!planDocBuild && isVisible(planDocBuild),
       planDocBuildEnabled: !!planDocBuild && !planDocBuild.disabled,
       planDocEdit: !!planDocEdit,
       planDocPanel: !!planDocPanel,
+      planDocPanelVisible: !!planDocPanel && isVisible(planDocPanel),
       planDocRevisionId: planDocPanel ? (planDocPanel.getAttribute('data-plan-revision-id') || '') : '',
       planDocText: planDocPanel ? (planDocPanel.textContent || '') : '',
       communicationPlanSurfaceCount: communicationPlanSurfaces.length,
@@ -986,9 +991,7 @@ async function assertControlFlowHealthyAfterStop(
 function isRotatingOAuthCliAccount(account) {
   return (
     account?.auth_method === "oauth" &&
-    [CLAUDE_CODE_AGENT_TYPE, CODEX_AGENT_TYPE].includes(
-      account?.agent_type
-    )
+    [CLAUDE_CODE_AGENT_TYPE, CODEX_AGENT_TYPE].includes(account?.agent_type)
   );
 }
 
@@ -1702,6 +1705,13 @@ async function configureScenario(config, overrides = {}) {
     `configureWithExistingKey(${config.label})`
   );
   expect(configured.modelId).toBe(config.model);
+  // Pinning the repository can remount the chat panel and reactivate its
+  // persisted Launchpad tab. Clear that post-configuration state so the
+  // rendered Session Creator is the stable surface we exercise below.
+  unwrap(
+    await invokeE2E("resetToNewSession"),
+    `resetToNewSession(${config.label}-configured)`
+  );
   await waitForSessionCreatorReady(
     `${config.label}-configured`,
     overrides.repoPath ?? config.defaultRepoPath ?? requireDefaultRepoPath()

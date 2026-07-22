@@ -53,6 +53,89 @@ fn sessions_dir_candidate_points_at_cline_store() {
 }
 
 #[test]
+fn db_candidate_points_at_cline_session_index() {
+    let home = std::path::Path::new("/home/u");
+    assert_eq!(
+        cline_db_path_candidates(home),
+        vec![home
+            .join(".cline")
+            .join("data")
+            .join("db")
+            .join("sessions.db")]
+    );
+}
+
+#[test]
+fn imports_db_indexed_subagent_with_its_own_impact() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("clock")
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!("orgii-cline-{unique}"));
+    std::fs::create_dir_all(&dir).expect("create temp dir");
+    let messages_path = dir.join("agent_child.messages.json");
+    std::fs::write(
+        &messages_path,
+        r#"{"messages":[{"role":"assistant","ts":1770000001000,"content":[{"type":"tool_use","id":"edit-1","name":"editor","input":{"path":"src/child.rs","old_text":"old","new_text":"new\nextra"}}]}]}"#,
+    )
+    .expect("write child transcript");
+    let db_path = dir.join("sessions.db");
+    let conn = Connection::open(&db_path).expect("open session db");
+    conn.execute_batch(
+        "CREATE TABLE sessions (
+            session_id TEXT PRIMARY KEY,
+            started_at TEXT,
+            updated_at TEXT,
+            provider TEXT,
+            model TEXT,
+            cwd TEXT,
+            workspace_root TEXT,
+            parent_session_id TEXT,
+            is_subagent INTEGER,
+            prompt TEXT,
+            metadata_json TEXT,
+            messages_path TEXT
+        );",
+    )
+    .expect("create sessions table");
+    conn.execute(
+        "INSERT INTO sessions VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 1, ?9, ?10, ?11)",
+        (
+            "root__agent_child",
+            "2026-02-01T00:00:00Z",
+            "2026-02-01T00:00:01Z",
+            "deepseek",
+            "deepseek-v4",
+            "/tmp/repo",
+            "/tmp/repo",
+            "root",
+            "edit child file",
+            r#"{"title":"Child task"}"#,
+            messages_path.to_string_lossy().as_ref(),
+        ),
+    )
+    .expect("insert child row");
+    drop(conn);
+
+    let discovered = discover_cline_db_records(&db_path).expect("discover db records");
+    assert_eq!(discovered.len(), 1);
+    let input = session_meta_to_cache_input(
+        parse_cline_session_meta(&discovered[0])
+            .expect("parse child")
+            .expect("child metadata"),
+    );
+
+    assert_eq!(input.source_session_id, "root__agent_child");
+    assert_eq!(input.parent_session_id.as_deref(), Some("clineapp-root"));
+    assert_eq!(input.name, "Child task");
+    assert_eq!(input.impact.touched_files, vec!["src/child.rs"]);
+    assert_eq!(input.impact.lines_added, 2);
+    assert_eq!(input.impact.lines_removed, 1);
+
+    std::fs::remove_dir_all(dir).expect("remove temp dir");
+}
+
+#[test]
 fn transcript_to_chunks_pairs_tools_and_orders_turns() {
     let transcript: ClineTranscript = serde_json::from_str(
         r#"{
@@ -147,7 +230,10 @@ fn expands_batched_cline_tools_into_single_op_chunks() {
     assert_eq!(tools[1].result["output"], "fn b() {}");
 
     // run_commands → one run_command_line card per command.
-    assert_eq!(tools[2].function, imported_history::FUNCTION_RUN_COMMAND_LINE);
+    assert_eq!(
+        tools[2].function,
+        imported_history::FUNCTION_RUN_COMMAND_LINE
+    );
     assert_eq!(tools[2].args["command"], "echo hi");
     assert_eq!(tools[2].result["output"], "hi");
     assert_eq!(tools[3].args["command"], "ls");
@@ -186,6 +272,29 @@ fn editor_insert_and_create_map_to_empty_old_string() {
     assert_eq!(edit.args["file_path"], "/new.rs");
     assert_eq!(edit.args["old_string"], "");
     assert_eq!(edit.args["new_string"], "fn main() {}");
+}
+
+#[test]
+fn failed_editor_result_is_excluded_from_impact() {
+    let transcript: ClineTranscript = serde_json::from_str(
+        r#"{
+          "messages": [
+            {"role":"assistant","ts":1000,"content":[
+              {"type":"tool_use","id":"e1","name":"editor","input":{"path":"failed.rs","old_text":"old","new_text":"new"}}
+            ]},
+            {"role":"user","ts":2000,"content":[
+              {"type":"tool_result","tool_use_id":"e1","content":[{"success":false,"result":"rejected"}]}
+            ]}
+          ]
+        }"#,
+    )
+    .expect("parses");
+
+    let chunks = transcript_to_chunks("clineapp-abc", &transcript);
+    assert_eq!(
+        imported_history::impact_from_edit_chunks(&chunks).files_changed,
+        0
+    );
 }
 
 #[test]

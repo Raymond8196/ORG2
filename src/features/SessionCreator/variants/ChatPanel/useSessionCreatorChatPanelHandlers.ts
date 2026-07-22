@@ -211,6 +211,8 @@ export function useSessionCreatorChatPanelHandlers({
         cliAgentType: selection.cliAgentType ?? null,
       }));
 
+      if (selection.category === "human_session") return;
+
       const newCliType = selection.cliAgentType;
       const hasModel = Boolean(
         advancedConfig.model || advancedConfig.listingModel

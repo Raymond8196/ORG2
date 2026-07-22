@@ -14,6 +14,9 @@ These are the specs to run after UI changes that can affect chat/session behavio
 - `specs/core/session-account-switch.spec.mjs` — provider account switch matrix across CLI and Rust-native paths.
 - `specs/core/session-memory-ui.spec.mjs` — rendered/session-visible smoke for session memory, agent memory, extract memory, and auto dream flags.
 - `specs/core/chat-rendering-ui.spec.mjs` — deterministic rendered ChatHistory coverage for tool-card compatibility and duplicate thought/answer deduping.
+- `specs/core/session-provenance-live.spec.mjs` — real Claude Code, Codex, and Cursor hooks through Session Blame, transcript navigation, and sidebar reveal.
+- `specs/core/diff-tab-content-live.spec.mjs` — real ORG2 agent edit/read through canonical final-diff rendering.
+- `specs/core/cloud-org-ui.spec.mjs` — managed ORG2 Cloud org surfaces (create/join, scope, panel, sync-level, share) plus session comments with `@agent` in-place pickup, tri-state thread status, and the slash Address-comments flyout. Offline-safe by default; the backend-dependent scenarios run only with `E2E_CLOUD_*` set in `tests/e2e/.env`.
 
 ## Provider capacity policy
 

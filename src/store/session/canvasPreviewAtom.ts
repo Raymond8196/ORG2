@@ -5,8 +5,8 @@
  * - In WorkStation Build panel (SimulatorMessages), the payload is forwarded
  *   to MessageViewer as `canvasPayload` and rendered inline at the end of
  *   the message stream.
- * - In the main Chat panel (ChatView), it is rendered via
- *   `useCanvasPreviewForSession` directly above the InputArea.
+ * - UI consumers derive session-scoped state and actions through
+ *   `useCanvasForTurn`.
  *
  * Cleared when the user closes the card or the session resets.
  */
@@ -19,6 +19,63 @@ export interface CanvasPreviewEntry {
   payload: CanvasInlinePayload;
   cardDismissed?: boolean;
   openedInSimulator?: boolean;
+}
+
+export interface CanvasForSessionSnapshot {
+  /** Latest stored payload for this session, including a dismissed canvas. */
+  latestPayload: CanvasInlinePayload | null;
+  /** Payload that should still render as an inline card. */
+  payload: CanvasInlinePayload | null;
+  /** True when the inline card was dismissed into PinnedActionsBar. */
+  isDismissed: boolean;
+  /** True when the canvas was already opened in the Simulator canvas app. */
+  openedInSimulator: boolean;
+}
+
+export function deriveCanvasForSessionSnapshot(
+  entry: CanvasPreviewEntry | null,
+  sessionId: string | null | undefined
+): CanvasForSessionSnapshot {
+  const matchingEntry =
+    sessionId && entry?.sessionId === sessionId ? entry : null;
+  const latestPayload = matchingEntry?.payload ?? null;
+  const isDismissed = Boolean(matchingEntry?.cardDismissed);
+  const openedInSimulator = Boolean(matchingEntry?.openedInSimulator);
+
+  return {
+    latestPayload,
+    payload: isDismissed ? null : latestPayload,
+    isDismissed,
+    openedInSimulator,
+  };
+}
+
+export function dismissCanvasForSession(
+  entry: CanvasPreviewEntry | null,
+  sessionId: string | null | undefined
+): CanvasPreviewEntry | null {
+  if (!sessionId || entry?.sessionId !== sessionId || entry.cardDismissed) {
+    return entry;
+  }
+  return { ...entry, cardDismissed: true };
+}
+
+export function clearCanvasForSession(
+  entry: CanvasPreviewEntry | null,
+  sessionId: string | null | undefined
+): CanvasPreviewEntry | null {
+  return sessionId && entry?.sessionId === sessionId ? null : entry;
+}
+
+export function clearCanvasOnSessionSwitch(
+  entry: CanvasPreviewEntry | null,
+  leavingSessionId: string | null,
+  enteringSessionId: string
+): CanvasPreviewEntry | null {
+  if (!entry || !leavingSessionId || leavingSessionId === enteringSessionId) {
+    return entry;
+  }
+  return null;
 }
 
 export const canvasPreviewAtom = atom<CanvasPreviewEntry | null>(null);

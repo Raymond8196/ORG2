@@ -8,6 +8,7 @@
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { ChatLoadingBlock } from "@src/engines/ChatPanel/blocks/primitives";
 import type { SessionLoadStatus } from "@src/engines/SessionCore";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
@@ -25,9 +26,17 @@ interface ChatHistoryEmptyStateProps {
   shouldShowEmpty: boolean;
   /** True if the session view was rolled back (cancel-before-output). */
   isRolledBack: boolean;
+  /** True while a large history is being projected in the Web Worker. */
+  projectionPending?: boolean;
   /** Called when the user clicks the "Reload" action. */
   onReload: () => void;
 }
+
+const ChatHistoryLoadingState: React.FC = () => (
+  <div className="p-2">
+    <ChatLoadingBlock />
+  </div>
+);
 
 const ChatHistoryEmptyState: React.FC<ChatHistoryEmptyStateProps> = memo(
   ({
@@ -36,9 +45,14 @@ const ChatHistoryEmptyState: React.FC<ChatHistoryEmptyStateProps> = memo(
     emptyConfirmed,
     shouldShowEmpty,
     isRolledBack,
+    projectionPending = false,
     onReload,
   }) => {
     const { t } = useTranslation();
+
+    if (projectionPending) {
+      return <ChatHistoryLoadingState />;
+    }
 
     if (sessionLoadStatus === "error") {
       return (
@@ -56,7 +70,7 @@ const ChatHistoryEmptyState: React.FC<ChatHistoryEmptyStateProps> = memo(
     }
 
     if (sessionLoadStatus !== "loaded") {
-      return <Placeholder variant="loading" placement="sidebar" />;
+      return <ChatHistoryLoadingState />;
     }
 
     if (shouldShowEmpty && emptyConfirmed && !isRolledBack) {
@@ -75,7 +89,7 @@ const ChatHistoryEmptyState: React.FC<ChatHistoryEmptyStateProps> = memo(
     }
 
     if (shouldShowEmpty) {
-      return <Placeholder variant="loading" placement="sidebar" />;
+      return <ChatHistoryLoadingState />;
     }
 
     return (

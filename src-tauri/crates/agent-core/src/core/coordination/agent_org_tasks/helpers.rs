@@ -1,6 +1,8 @@
 use rusqlite::{params, Connection, Result as SqliteResult, Transaction};
 
-use super::{Task, TaskHistoryEvent, TaskStatus};
+#[cfg(test)]
+use super::TaskHistoryEvent;
+use super::{Task, TaskStatus};
 
 pub(super) fn now_rfc3339() -> String {
     chrono::Utc::now().to_rfc3339()
@@ -17,9 +19,19 @@ pub(super) fn decode_json_array(raw: &str) -> Result<Vec<String>, String> {
 pub(super) fn encode_metadata(
     metadata: Option<&serde_json::Value>,
 ) -> Result<Option<String>, String> {
-    metadata
+    let encoded = metadata
         .map(|value| serde_json::to_string(value).map_err(|err| format!("encode metadata: {err}")))
-        .transpose()
+        .transpose()?;
+    if let Some(encoded) = encoded.as_deref() {
+        let max_bytes = crate::coordination::agent_org_payload_limits::TASK_METADATA_MAX_BYTES;
+        if encoded.len() > max_bytes {
+            return Err(format!(
+                "task metadata must be <= {max_bytes} serialized bytes (got {} bytes)",
+                encoded.len()
+            ));
+        }
+    }
+    Ok(encoded)
 }
 
 pub(super) fn decode_metadata(raw: Option<String>) -> Result<Option<serde_json::Value>, String> {
@@ -27,6 +39,7 @@ pub(super) fn decode_metadata(raw: Option<String>) -> Result<Option<serde_json::
         .transpose()
 }
 
+#[cfg(test)]
 pub(super) fn status_from_optional_wire(
     value: Option<String>,
     column_index: usize,
@@ -88,6 +101,7 @@ pub(super) fn row_to_task(row: &rusqlite::Row<'_>) -> SqliteResult<Task> {
     Ok(task)
 }
 
+#[cfg(test)]
 pub(super) fn row_to_task_history_event(row: &rusqlite::Row<'_>) -> SqliteResult<TaskHistoryEvent> {
     let previous_status_raw: Option<String> = row.get(6)?;
     let next_status_raw: Option<String> = row.get(7)?;
@@ -153,5 +167,7 @@ pub(super) fn list_tasks_with_conn(
     for row in rows {
         out.push(row.map_err(|err| err.to_string())?);
     }
+    let graph = super::TaskGraphIndex::new(&out);
+    graph.apply_projection(&mut out);
     Ok(out)
 }

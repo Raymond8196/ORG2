@@ -23,7 +23,7 @@ import {
   editorPanelPositionPersistAtom,
   workStationEditorSecondaryCollapsedPersistAtom,
 } from "@src/store/ui/workStationAtom";
-import { activeHostAtom, dockFilterAtom } from "@src/store/workstation";
+import { activeHostAtom } from "@src/store/workstation";
 import type { AgentConfigTabVariant } from "@src/store/workstation/tabs";
 import {
   PROJECT_DETAIL_SURFACE_VIEW,
@@ -31,10 +31,10 @@ import {
   createAgentConfigTab,
   createProjectWorkItemsIndexTab,
   createProjectWorkItemsTab,
-  openTab,
+  openWorkstationTabAtom,
+  presentedWorkstationWorkspaceKeyAtom,
   workstationLayoutAtom,
 } from "@src/store/workstation/tabs";
-import { LAYOUT_STORAGE_KEY } from "@src/store/workstation/tabs/storage";
 import { getRustAgentType } from "@src/util/session/sessionDispatch";
 
 import { asError } from "../result";
@@ -63,16 +63,10 @@ export function createNavigationHelpers(store: E2EStore) {
   > => {
     try {
       store.set(stationModeAtom, "my-station");
-      store.set(dockFilterAtom, "project");
       store.set(chatPanelMaximizedAtom, false);
       const tab = createProjectWorkItemsIndexTab();
-      const current = store.get(workstationLayoutAtom);
-      const nextLayout = {
-        ...current,
-        mainPane: openTab({ tabs: [], activeTabId: null }, tab),
-      };
-      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(nextLayout));
-      store.set(workstationLayoutAtom, nextLayout);
+      const workspace = store.get(presentedWorkstationWorkspaceKeyAtom);
+      store.set(openWorkstationTabAtom, { workspace, tab });
       void router.navigate("/orgii/workstation/project").catch(() => undefined);
       const layout = store.get(workstationLayoutAtom);
       return {
@@ -101,7 +95,6 @@ export function createNavigationHelpers(store: E2EStore) {
   > => {
     try {
       store.set(stationModeAtom, "my-station");
-      store.set(dockFilterAtom, "project");
       store.set(chatPanelMaximizedAtom, false);
       const tab = createProjectWorkItemsTab(
         projectId,
@@ -109,13 +102,8 @@ export function createNavigationHelpers(store: E2EStore) {
         projectSlug,
         PROJECT_DETAIL_SURFACE_VIEW.WORK_ITEMS
       );
-      const current = store.get(workstationLayoutAtom);
-      const nextLayout = {
-        ...current,
-        mainPane: openTab({ tabs: [], activeTabId: null }, tab),
-      };
-      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(nextLayout));
-      store.set(workstationLayoutAtom, nextLayout);
+      const workspace = store.get(presentedWorkstationWorkspaceKeyAtom);
+      store.set(openWorkstationTabAtom, { workspace, tab });
       void router.navigate("/orgii/workstation/project").catch(() => undefined);
       const layout = store.get(workstationLayoutAtom);
       return {
@@ -145,7 +133,6 @@ export function createNavigationHelpers(store: E2EStore) {
     try {
       await router.navigate(buildAgentOrgsPath({ tab: "agents" }));
       store.set(stationModeAtom, "my-station");
-      store.set(dockFilterAtom, "code");
       store.set(chatPanelMaximizedAtom, false);
       store.set(activeStationChatVisibleAtom, "my-station", false);
       store.set(workStationEditorSecondaryCollapsedPersistAtom, false);
@@ -168,30 +155,11 @@ export function createNavigationHelpers(store: E2EStore) {
         displayName: agentSnapshot?.name ?? agentId,
         entitySnapshot: agentSnapshot,
       });
-      const current = store.get(workstationLayoutAtom);
-      const nextLayout = {
-        ...current,
-        mainPane: openTab(
-          current?.mainPane ?? { tabs: [], activeTabId: null },
-          agentConfigTab
-        ),
-      };
-      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(nextLayout));
-      store.set(workstationLayoutAtom, nextLayout);
+      const workspace = store.get(presentedWorkstationWorkspaceKeyAtom);
+      store.set(openWorkstationTabAtom, { workspace, tab: agentConfigTab });
       store.set(agentOrgsActiveTabAtom, tab);
       await router.navigate("/orgii/workstation/code");
-      const mountedLayout = {
-        ...store.get(workstationLayoutAtom),
-        mainPane: openTab(
-          store.get(workstationLayoutAtom)?.mainPane ?? {
-            tabs: [],
-            activeTabId: null,
-          },
-          agentConfigTab
-        ),
-      };
-      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(mountedLayout));
-      store.set(workstationLayoutAtom, mountedLayout);
+      store.set(openWorkstationTabAtom, { workspace, tab: agentConfigTab });
       for (let attempt = 0; attempt < 10; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 50));
         store.set(chatPanelMaximizedAtom, false);
@@ -220,7 +188,6 @@ export function createNavigationHelpers(store: E2EStore) {
     try {
       await router.navigate(buildAgentOrgsPath({ tab: "orgs" }));
       store.set(stationModeAtom, "my-station");
-      store.set(dockFilterAtom, "code");
       store.set(chatPanelMaximizedAtom, false);
       store.set(activeStationChatVisibleAtom, "my-station", false);
       store.set(workStationEditorSecondaryCollapsedPersistAtom, false);
@@ -233,16 +200,8 @@ export function createNavigationHelpers(store: E2EStore) {
         displayName: displayName ?? orgSnapshot?.name ?? orgId,
         entitySnapshot: orgSnapshot,
       });
-      const current = store.get(workstationLayoutAtom);
-      const nextLayout = {
-        ...current,
-        mainPane: openTab(
-          current?.mainPane ?? { tabs: [], activeTabId: null },
-          tab
-        ),
-      };
-      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(nextLayout));
-      store.set(workstationLayoutAtom, nextLayout);
+      const workspace = store.get(presentedWorkstationWorkspaceKeyAtom);
+      store.set(openWorkstationTabAtom, { workspace, tab });
       store.set(agentOrgsActiveTabAtom, "orgs");
       await router.navigate("/orgii/workstation/code");
       for (let attempt = 0; attempt < 10; attempt += 1) {
@@ -277,7 +236,6 @@ export function createNavigationHelpers(store: E2EStore) {
         };
       }
       store.set(stationModeAtom, "my-station");
-      store.set(dockFilterAtom, "project");
       store.set(chatPanelMaximizedAtom, true);
       store.set(chatWidthAtom, 560);
       store.set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.NON_SESSION);
@@ -300,7 +258,6 @@ export function createNavigationHelpers(store: E2EStore) {
         ok: true;
         pathname: string;
         stationMode: string;
-        dockFilter: string;
         activeHost: string;
         activeTabId: string | null;
         activeTabType: string | null;
@@ -322,7 +279,6 @@ export function createNavigationHelpers(store: E2EStore) {
         ok: true,
         pathname: window.location.pathname,
         stationMode: store.get(stationModeAtom),
-        dockFilter: store.get(dockFilterAtom),
         activeHost: store.get(activeHostAtom),
         activeTabId: activeTab?.id ?? null,
         activeTabType: activeTab?.type ?? null,

@@ -703,6 +703,14 @@ pub fn create_routes() -> Router {
             post(test::agent_org::test_agent_org_tasks_seed),
         )
         .route(
+            "/test/agent-org/run/seed",
+            post(test::agent_org::test_agent_org_run_seed),
+        )
+        .route(
+            "/test/agent-org/run/cleanup",
+            post(test::agent_org::test_agent_org_run_cleanup),
+        )
+        .route(
             "/test/agent-org/tasks/list",
             post(test::agent_org::test_agent_org_tasks_list),
         )
@@ -713,10 +721,6 @@ pub fn create_routes() -> Router {
         .route(
             "/test/agent-org/stale-workers/seed-cli-member",
             post(test::agent_org::test_agent_org_seed_cli_member_run),
-        )
-        .route(
-            "/test/agent-org/stale-workers/release-tasks",
-            post(test::agent_org::test_agent_org_release_stale_worker_tasks),
         )
         .route(
             "/test/agent-org/find-worker-session",

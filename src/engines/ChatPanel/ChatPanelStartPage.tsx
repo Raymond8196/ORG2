@@ -1,51 +1,31 @@
 import type { TFunction } from "i18next";
-import { useAtom } from "jotai";
 import {
-  BriefcaseBusiness,
+  ArrowLeftRight,
   ChevronLeft,
   ChevronRight,
   Download,
+  Import,
   KeyRound,
 } from "lucide-react";
-import React, {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useState } from "react";
 
-import { sessionHeatmap } from "@src/api/tauri/session";
-import type { SessionHeatmapResponse } from "@src/api/tauri/session";
+import Button from "@src/components/Button";
+import Select, { type SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
-import { createLogger } from "@src/hooks/logger";
-import HeatmapGrid, {
-  type HeatmapGridCell,
-} from "@src/modules/shared/devStats/HeatmapGrid";
+import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
-  CHAT_PANEL_START_PAGE_TAB,
-  chatPanelStartPageTabAtom,
+  CHAT_PANEL_CREATE_TARGET,
+  type ChatPanelCreateTarget,
 } from "@src/store/ui/chatPanelAtom";
 
-import {
-  START_PAGE_HEATMAP_CONTAINER_CLASS,
-  START_PAGE_TREND_SURFACE_CLASS,
-  StartPageQuotaGrid,
-} from "./StartPageQuotaGrid";
-
-const logger = createLogger("ChatPanelStartPage");
-
-const WorkspaceDashboardPanelView = React.lazy(
-  () => import("./panels/WorkspaceDashboardPanelView")
-);
-
-type StartPageActionTone = "primary" | "purple" | "success" | "warning";
+type StartPageActionTone = "primary" | "neutral" | "success" | "warning";
+type StartPageView = "session" | "work-item" | "more";
 
 interface ChatPanelStartPageAction {
   id: string;
-  title: string;
+  title: React.ReactNode;
   icon: React.ReactNode;
   onClick: () => void;
   tone: StartPageActionTone;
@@ -54,8 +34,7 @@ interface ChatPanelStartPageAction {
 const START_PAGE_ACTION_TONE_CLASS: Record<StartPageActionTone, string> = {
   primary:
     "border-primary-6/20 bg-primary-6/5 hover:border-primary-6/30 hover:bg-primary-6/10",
-  purple:
-    "border-purple-6/20 bg-purple-6/5 hover:border-purple-6/30 hover:bg-purple-6/10",
+  neutral: "border-border-2 hover:border-border-3",
   success:
     "border-success-6/20 bg-success-6/5 hover:border-success-6/30 hover:bg-success-6/10",
   warning:
@@ -71,15 +50,19 @@ interface StartPageHint {
 
 interface ChatPanelStartPageProps {
   className?: string;
+  createTarget: ChatPanelCreateTarget;
+  createTargetOptions: SelectOption[];
+  moreLauncher?: React.ReactNode;
   onAddApiKey: () => void;
+  onCreateTarget: (target: ChatPanelCreateTarget) => void;
   onInstallLatestUpdate: () => void;
-  onNewWorkItem: () => void;
+  onWorkItemAgentModeChange: (enabled: boolean) => void;
   sessionLauncher?: React.ReactNode;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
+  workItemAgentMode: boolean;
+  workItemLauncher?: React.ReactNode;
 }
 
-const HEATMAP_DAY_COUNT = 7;
-const HEATMAP_HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const START_PAGE_HINTS: StartPageHint[] = [
   {
     id: "skill",
@@ -106,144 +89,6 @@ const START_PAGE_HINTS: StartPageHint[] = [
     textAfter: "chat.startPage.hints.switch.after",
   },
 ];
-const HEATMAP_X_LABELS = HEATMAP_HOURS.filter((hour) => hour % 4 === 0).map(
-  (hour) => ({ index: hour, label: `${hour}:00` })
-);
-function formatDateForHeatmap(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
-function getRollingHeatmapRange(): { startDate: string; endDate: string } {
-  const end = new Date();
-  const start = new Date(end);
-  start.setDate(end.getDate() - (HEATMAP_DAY_COUNT - 1));
-  return {
-    startDate: formatDateForHeatmap(start),
-    endDate: formatDateForHeatmap(end),
-  };
-}
-
-function formatCompactNumber(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
-  return value.toLocaleString();
-}
-
-function StartPageHeatmap({
-  t,
-}: {
-  t: TFunction<["sessions", "common", "projects", "navigation"]>;
-}): React.ReactNode {
-  const [data, setData] = useState<SessionHeatmapResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    sessionHeatmap({
-      ...getRollingHeatmapRange(),
-      metric: "sessions",
-      timezoneOffsetMinutes: new Date().getTimezoneOffset(),
-    })
-      .then((response) => {
-        if (!cancelled) setData(response);
-      })
-      .catch((err: unknown) => {
-        logger.warn("failed to load session heatmap", err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const yLabels = useMemo(() => {
-    if (!data) return [];
-    const labels = new Map<number, string>();
-    for (const cell of data.cells) {
-      if (!labels.has(cell.day)) labels.set(cell.day, cell.label);
-    }
-    return Array.from(labels.entries()).map(([index, label]) => ({
-      index,
-      label,
-    }));
-  }, [data]);
-
-  const cells = useMemo<HeatmapGridCell[]>(() => {
-    if (!data) return [];
-    return data.cells.map((cell) => ({
-      xIndex: cell.hour,
-      yIndex: cell.day,
-      count: cell.count,
-      label: `${cell.label} ${cell.hour}:00`,
-      sessions: cell.sessions,
-    }));
-  }, [data]);
-
-  if (loading) {
-    return (
-      <div className={`${START_PAGE_TREND_SURFACE_CLASS} p-3`}>
-        <p className="text-[13px] text-text-2">
-          {t("chat.startPage.heatmap.loading")}
-        </p>
-      </div>
-    );
-  }
-
-  if (!data || data.totalSessions === 0) {
-    return (
-      <div className={`${START_PAGE_TREND_SURFACE_CLASS} p-3`}>
-        <p className="text-[13px] text-text-2">
-          {t("chat.startPage.heatmap.empty")}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={START_PAGE_HEATMAP_CONTAINER_CLASS}>
-      <div className="mb-2 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg bg-fill-2 px-2 py-2">
-          <div className="text-[11px] text-text-2">
-            {t("chat.startPage.heatmap.sessions")}
-          </div>
-          <div className="text-sm font-semibold tabular-nums text-text-1">
-            {formatCompactNumber(data.totalSessions)}
-          </div>
-        </div>
-        <div className="rounded-lg bg-fill-2 px-2 py-2">
-          <div className="text-[11px] text-text-2">
-            {t("chat.startPage.heatmap.tokens")}
-          </div>
-          <div className="text-sm font-semibold tabular-nums text-text-1">
-            {formatCompactNumber(data.totalTokens)}
-          </div>
-        </div>
-        <div className="rounded-lg bg-fill-2 px-2 py-2">
-          <div className="text-[11px] text-text-2">
-            {t("chat.startPage.heatmap.cost")}
-          </div>
-          <div className="text-sm font-semibold tabular-nums text-text-1">
-            ${data.totalCost.toFixed(2)}
-          </div>
-        </div>
-      </div>
-      <HeatmapGrid
-        cells={cells}
-        xCount={24}
-        yCount={HEATMAP_DAY_COUNT}
-        xLabels={HEATMAP_X_LABELS}
-        yLabels={yLabels}
-        maxCount={Math.max(1, data.maxCount)}
-        unit="session"
-        yLabelWidth={28}
-        showLegend={false}
-      />
-    </div>
-  );
-}
-
 function StartPageActionCard({
   action,
 }: {
@@ -252,11 +97,15 @@ function StartPageActionCard({
   return (
     <button
       type="button"
-      className={`group flex w-full items-center gap-2 rounded-full border px-2 py-1.5 text-left shadow-sm transition-colors focus-visible:border-primary-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/20 ${START_PAGE_ACTION_TONE_CLASS[action.tone]}`}
+      className={`group flex w-full items-center gap-2 rounded-full border px-2 py-1.5 text-left transition-colors focus-visible:border-primary-6 focus-visible:outline-none ${START_PAGE_ACTION_TONE_CLASS[action.tone]}`}
       onClick={action.onClick}
       data-testid={`chat-panel-start-page-${action.id}`}
     >
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-2 transition-colors group-hover:bg-fill-3">
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-2 transition-colors ${
+          action.tone === "warning" ? "group-hover:bg-fill-3" : ""
+        }`}
+      >
         {action.icon}
       </span>
       <span className="block min-w-0 flex-1 truncate text-[13px] font-semibold text-text-1">
@@ -346,70 +195,81 @@ function StartPageHintLine({
 
 export function ChatPanelStartPage({
   className,
+  createTarget,
+  createTargetOptions,
+  moreLauncher,
   onAddApiKey,
+  onCreateTarget,
   onInstallLatestUpdate,
-  onNewWorkItem,
+  onWorkItemAgentModeChange,
   sessionLauncher,
   t,
+  workItemAgentMode,
+  workItemLauncher,
 }: ChatPanelStartPageProps): React.ReactNode {
-  const [activeTab, setActiveTab] = useAtom(chatPanelStartPageTabAtom);
+  const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
+    useState(false);
   const availableUpdate = useAvailableAppUpdate();
-  const tabs = useMemo(
-    () => [
-      {
-        key: CHAT_PANEL_START_PAGE_TAB.WORK,
-        label: t("chat.startPage.tabs.work"),
-      },
-      {
-        key: CHAT_PANEL_START_PAGE_TAB.MANAGE,
-        label: t("chat.startPage.tabs.manage"),
-      },
-      {
-        key: CHAT_PANEL_START_PAGE_TAB.HEATMAP,
-        label: t("chat.startPage.tabs.heatmap"),
-      },
-    ],
-    [t]
-  );
-
-  const handleTabChange = useCallback(
+  const importSessionAction: ChatPanelStartPageAction = {
+    id: "import-session",
+    title: t("navigation:cloud.share.importEntry"),
+    icon: <Import size={16} strokeWidth={1.8} />,
+    onClick: () => setIsImportSessionDialogOpen(true),
+    tone: "neutral",
+  };
+  const addApiKeyAction: ChatPanelStartPageAction = {
+    id: "add-api-key",
+    title: t("chat.startPage.addApiKey.title"),
+    icon: <KeyRound size={16} strokeWidth={1.8} />,
+    onClick: onAddApiKey,
+    tone: "neutral",
+  };
+  const utilityActions: ChatPanelStartPageAction[] = availableUpdate?.available
+    ? [
+        {
+          id: "install-latest-update",
+          title: t("chat.startPage.installLatestUpdate.title"),
+          icon: <Download size={16} strokeWidth={1.8} />,
+          onClick: onInstallLatestUpdate,
+          tone: "warning",
+        },
+        importSessionAction,
+        addApiKeyAction,
+      ]
+    : [importSessionAction, addApiKeyAction];
+  const selectedMoreTarget = createTargetOptions.some(
+    (option) => option.value === createTarget
+  )
+    ? createTarget
+    : createTargetOptions[0]?.value;
+  const activeView: StartPageView =
+    createTarget === CHAT_PANEL_CREATE_TARGET.AGENT_SESSION
+      ? "session"
+      : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
+        ? "work-item"
+        : "more";
+  const handleViewChange = useCallback(
     (key: string) => {
-      setActiveTab(key as typeof activeTab);
+      if (key === "session") {
+        onCreateTarget(CHAT_PANEL_CREATE_TARGET.AGENT_SESSION);
+        return;
+      }
+      if (key === "work-item") {
+        onCreateTarget(CHAT_PANEL_CREATE_TARGET.WORK_ITEM);
+        return;
+      }
+      if (
+        key === "more" &&
+        !createTargetOptions.some((option) => option.value === createTarget)
+      ) {
+        const fallbackTarget = createTargetOptions[0]?.value;
+        if (typeof fallbackTarget === "string") {
+          onCreateTarget(fallbackTarget as ChatPanelCreateTarget);
+        }
+      }
     },
-    [setActiveTab]
+    [createTarget, createTargetOptions, onCreateTarget]
   );
-
-  const workActions: ChatPanelStartPageAction[] = [
-    {
-      id: "new-work-item",
-      title: t("chat.startPage.newWorkItem.title"),
-      icon: <BriefcaseBusiness size={16} strokeWidth={1.8} />,
-      onClick: onNewWorkItem,
-      tone: "primary",
-    },
-    {
-      id: "add-api-key",
-      title: t("chat.startPage.addApiKey.title"),
-      icon: <KeyRound size={16} strokeWidth={1.8} />,
-      onClick: onAddApiKey,
-      tone: "success",
-    },
-    ...(availableUpdate?.available
-      ? [
-          {
-            id: "install-latest-update",
-            title: t("chat.startPage.installLatestUpdate.title"),
-            icon: <Download size={16} strokeWidth={1.8} />,
-            onClick: onInstallLatestUpdate,
-            tone: "warning" as const,
-          },
-        ]
-      : []),
-  ];
-  const manageTabActive = activeTab === CHAT_PANEL_START_PAGE_TAB.MANAGE;
-  const bodyOverflowClass = manageTabActive
-    ? "overflow-hidden"
-    : "overflow-y-auto";
 
   return (
     <div
@@ -417,34 +277,115 @@ export function ChatPanelStartPage({
       data-testid="chat-panel-start-page"
     >
       <div
-        className={`flex shrink-0 justify-center px-4 pb-2 pt-4 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+        className="shrink-0 bg-chat-pane"
         data-testid="chat-panel-start-page-tabs"
       >
-        <TabPill
-          variant="simple"
-          size="large"
-          fillWidth={false}
-          tabs={tabs}
-          activeTab={activeTab}
-          onChange={handleTabChange}
-        />
+        <div
+          className={`${DETAIL_PANEL_TOKENS.headerWidth} flex h-14 items-center justify-center gap-3 px-4 pt-1`}
+        >
+          <TabPill
+            activeTab={activeView}
+            tabs={[
+              {
+                key: "session",
+                label: t("chat.startPage.tabs.session"),
+                dataTestId: "chat-panel-start-page-tab-session",
+              },
+              {
+                key: "work-item",
+                label: t("chat.startPage.tabs.workItem"),
+                dataTestId: "chat-panel-start-page-tab-work-item",
+              },
+              {
+                key: "more",
+                label: t("chat.startPage.tabs.more"),
+                dataTestId: "chat-panel-start-page-tab-more",
+              },
+            ]}
+            onChange={handleViewChange}
+            variant="simple"
+            size="large"
+            fillWidth={false}
+            className="h-10"
+          />
+          {activeView === "more" || activeView === "work-item" ? (
+            <div
+              className="flex -translate-y-1 items-center gap-2"
+              data-testid="chat-panel-start-page-trailing-control"
+            >
+              <span
+                className="h-5 w-px shrink-0 bg-border-2"
+                role="separator"
+                aria-hidden
+                data-testid="chat-panel-start-page-trailing-separator"
+              />
+              {activeView === "more" ? (
+                <Select
+                  value={selectedMoreTarget}
+                  options={createTargetOptions}
+                  onChange={(value) => {
+                    if (!Array.isArray(value)) {
+                      onCreateTarget(value as ChatPanelCreateTarget);
+                    }
+                  }}
+                  size="large"
+                  variant="ghost"
+                  radius="pill"
+                  dropdownMinWidth={168}
+                  dropdownWidthMode="auto"
+                  className="w-auto"
+                  selectorClassName="max-w-[240px] !gap-2 !px-1 !text-[16px] !leading-6 [&_.select-suffix]:!ml-0"
+                  dataTestId="chat-panel-start-page-create-target-select"
+                />
+              ) : (
+                <Button
+                  htmlType="button"
+                  variant="tertiary"
+                  appearance="ghost"
+                  size="large"
+                  shape="round"
+                  iconPosition="right"
+                  icon={
+                    <ArrowLeftRight size={12} strokeWidth={1.8} aria-hidden />
+                  }
+                  onClick={() => onWorkItemAgentModeChange(!workItemAgentMode)}
+                  className="!h-9 !px-1 !text-[16px] !font-normal text-text-2"
+                  aria-pressed={workItemAgentMode}
+                  data-testid="chat-panel-start-page-work-item-mode-toggle"
+                >
+                  {workItemAgentMode
+                    ? t("common:terminology.agent")
+                    : t("common:tooltips.manual")}
+                </Button>
+              )}
+            </div>
+          ) : null}
+        </div>
       </div>
-      <div className={`min-h-0 flex-1 ${bodyOverflowClass}`}>
-        {manageTabActive ? (
-          <Suspense fallback={null}>
-            <WorkspaceDashboardPanelView />
-          </Suspense>
+      <div
+        className={`min-h-0 flex-1 ${
+          activeView === "work-item" || activeView === "more"
+            ? "overflow-hidden"
+            : "overflow-y-auto"
+        }`}
+      >
+        {activeView === "work-item" ? (
+          <div
+            className="flex h-full min-h-0 w-full"
+            data-testid="chat-panel-start-page-work-item-launcher"
+          >
+            {workItemLauncher}
+          </div>
+        ) : activeView === "more" ? (
+          <div
+            className="flex h-full min-h-0 w-full flex-col overflow-hidden"
+            data-testid="chat-panel-start-page-more-launcher"
+          >
+            <div className="min-h-0 flex-1 overflow-hidden">{moreLauncher}</div>
+          </div>
         ) : (
           <div className="flex min-h-full items-center justify-center">
-            {activeTab === CHAT_PANEL_START_PAGE_TAB.HEATMAP ? (
-              <div
-                className={`flex flex-col gap-3 px-4 py-5 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-              >
-                <StartPageHeatmap t={t} />
-                <StartPageQuotaGrid />
-              </div>
-            ) : activeTab === CHAT_PANEL_START_PAGE_TAB.WORK &&
-              sessionLauncher ? (
+            {sessionLauncher ? (
               <div
                 className="w-full"
                 data-testid="chat-panel-start-page-session-launcher"
@@ -455,23 +396,34 @@ export function ChatPanelStartPage({
           </div>
         )}
       </div>
-      {activeTab === CHAT_PANEL_START_PAGE_TAB.WORK ? (
-        <div
-          className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-          data-testid="chat-panel-start-page-actions"
-        >
-          <div className="flex w-full flex-col gap-3">
-            <StartPageHintLine t={t} />
-            <div className="@container/startactions">
-              <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-4">
-                {workActions.map((action) => (
-                  <StartPageActionCard key={action.id} action={action} />
-                ))}
-              </div>
+      <div
+        className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+        data-testid="chat-panel-start-page-utility-actions"
+      >
+        <div className="flex w-full flex-col gap-3">
+          {activeView === "session" ? (
+            <div data-testid="chat-panel-start-page-hints">
+              <StartPageHintLine t={t} />
+            </div>
+          ) : null}
+          <div
+            className="@container/startactions"
+            data-testid="chat-panel-start-page-actions"
+          >
+            <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3">
+              {utilityActions.map((action) => (
+                <StartPageActionCard key={action.id} action={action} />
+              ))}
             </div>
           </div>
         </div>
-      ) : null}
+      </div>
+      {isImportSessionDialogOpen && (
+        <ImportSharedSessionDialog
+          visible
+          onClose={() => setIsImportSessionDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }

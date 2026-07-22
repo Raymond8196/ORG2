@@ -27,6 +27,10 @@ pub mod session_type {
     /// inbound channel messages to OS/SDE downstream agents. Never exposed
     /// in the frontend session list (filtered out by `list_sessions`).
     pub const GATEWAY: &str = "gateway";
+    /// User-authored proof-of-work log. Human sessions share the canonical
+    /// session directory row, while their document and evidence live in
+    /// dedicated tables.
+    pub const HUMAN: &str = "human";
 }
 
 /// Database record for a unified session.
@@ -201,7 +205,7 @@ impl Default for UnifiedSessionRecord {
 pub(super) const UNIFIED_SESSION_SELECT: &str = r#"
     SELECT
         s.session_id, s.name, s.status, s.model, s.account_id, s.user_input,
-        COALESCE((SELECT SUM(total_tokens) FROM session_token_usage WHERE session_id = s.session_id), 0),
+        COALESCE((SELECT total_tokens FROM orgtrack_core_session_usage WHERE session_id = s.session_id), 0),
         s.created_at, s.updated_at, s.session_type, s.channel, s.chat_id,
         s.workspace_path, s.org_id, s.project_id, s.project_name,
         s.work_item_id, s.agent_role, s.worktree_path,

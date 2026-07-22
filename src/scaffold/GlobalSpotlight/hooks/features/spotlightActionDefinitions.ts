@@ -57,6 +57,7 @@ export type SpotlightStaticActionId =
   | "create-project"
   | "create-work-item"
   | "search-agent-sessions"
+  | "search-all-sessions"
   | "open-agent-control"
   | "switch-workspace"
   | "switch-branch"
@@ -99,6 +100,7 @@ export type SpotlightStaticActionFallback =
   | "create-project"
   | "create-work-item"
   | "search-agent-sessions"
+  | "search-all-sessions"
   | "agent-control"
   | "workspace-switch"
   | "workspace-add"
@@ -233,6 +235,23 @@ export const AGENT_SESSION_ACTIONS = [
     actionId: ACTION_ID.SPOTLIGHT_OPEN_AGENT_SESSION_SEARCH,
     payload: {},
     fallback: "search-agent-sessions",
+    opensSecondLevel: true,
+    closeOnSuccess: false,
+  },
+  {
+    id: "search-all-sessions",
+    labelKey: "selectors.spotlight.actions.searchAllSessions.label",
+    icon: Search,
+    keywords: [
+      "full text search",
+      "search content",
+      "search transcripts",
+      "search all sessions",
+      "grep sessions",
+    ],
+    actionId: ACTION_ID.SPOTLIGHT_OPEN_ALL_SESSIONS_SEARCH,
+    payload: {},
+    fallback: "search-all-sessions",
     opensSecondLevel: true,
     closeOnSuccess: false,
   },
@@ -414,14 +433,12 @@ export function buildChatPanelSettingsActions({
   chatTurnPaginationEnabled,
   modelPickerStyle,
   workstationSidebarPosition,
-  dockAutoHide,
 }: {
   myStationChatPosition: "left" | "right";
   agentStationChatPosition: "left" | "right";
   chatTurnPaginationEnabled: boolean;
   modelPickerStyle: "spotlight" | "dropdown";
   workstationSidebarPosition: "left" | "right";
-  dockAutoHide: boolean;
 }): SpotlightStaticActionDefinition[] {
   const actions: SpotlightStaticActionDefinition[] = [];
 
@@ -527,20 +544,6 @@ export function buildChatPanelSettingsActions({
       workstationSidebarPosition === "left"
         ? ACTION_ID.WORKSTATION_SET_SIDEBAR_RIGHT
         : ACTION_ID.WORKSTATION_SET_SIDEBAR_LEFT,
-    payload: {},
-    closeOnSuccess: false,
-  });
-
-  actions.push({
-    id: dockAutoHide ? "disable-dock-auto-hide" : "enable-dock-auto-hide",
-    labelKey: dockAutoHide
-      ? "common:spotlightActions.disableDockAutoHide"
-      : "common:spotlightActions.enableDockAutoHide",
-    icon: Dock,
-    keywords: ["dock auto hide", "dock", "auto hide dock", "keep dock visible"],
-    actionId: dockAutoHide
-      ? ACTION_ID.WORKSTATION_DISABLE_DOCK_AUTO_HIDE
-      : ACTION_ID.WORKSTATION_ENABLE_DOCK_AUTO_HIDE,
     payload: {},
     closeOnSuccess: false,
   });

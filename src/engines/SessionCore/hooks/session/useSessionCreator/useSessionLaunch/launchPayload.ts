@@ -178,7 +178,7 @@ function getRustAgentIdentityFields(options: {
  * `sourceRef` / `kind` / PR number stay synthetic identifiers with no backend
  * field, so they cannot influence worktree creation and are not forwarded.
  */
-function getWorktreeFields(options: {
+export function getWorktreeFields(options: {
   runningLocation: RunningLocation;
   repoId?: string;
   repoPath?: string;

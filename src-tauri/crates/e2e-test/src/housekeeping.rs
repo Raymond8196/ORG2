@@ -115,6 +115,40 @@ async fn run_housekeeping(cfg: &Config) -> Result<serde_json::Value, String> {
     Ok(json)
 }
 
+/// Seed a flat TTL file under a supported `~/.orgii/` root through the
+/// debug-only housekeeping endpoint and return its absolute path.
+async fn seed_aged_file(
+    cfg: &Config,
+    root: &str,
+    name: &str,
+    age_days: u64,
+) -> Result<String, String> {
+    let url = format!("{}/agent/test/housekeeping/seed-aged-file", cfg.base_url);
+    let body = serde_json::json!({
+        "root": root,
+        "name": name,
+        "age_days": age_days,
+    });
+    let resp = reqwest::Client::new()
+        .post(&url)
+        .json(&body)
+        .timeout(std::time::Duration::from_secs(10))
+        .send()
+        .await
+        .map_err(|err| format!("HTTP error: {}", err))?;
+    let json: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|err| format!("JSON parse error: {}", err))?;
+    if let Some(err) = json.get("error").and_then(|v| v.as_str()) {
+        return Err(err.to_string());
+    }
+    json.get("path")
+        .and_then(|v| v.as_str())
+        .map(str::to_owned)
+        .ok_or_else(|| "response missing 'path'".to_string())
+}
+
 // ============================================
 // Scenarios
 // ============================================

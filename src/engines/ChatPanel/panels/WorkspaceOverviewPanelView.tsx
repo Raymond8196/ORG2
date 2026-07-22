@@ -6,7 +6,6 @@ import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
 import WorkItemContentStack from "@src/modules/ProjectManager/WorkItems/components/WorkItemContentStack";
 import { RepoDetailPage } from "@src/modules/shared/launchpad/components";
-import { CodeMapWorkspaceStatusPanel } from "@src/modules/shared/launchpad/components/CodeMapWorkspaceStatus";
 import RepoActionButtons from "@src/modules/shared/launchpad/components/RepoActionButtons";
 import { WorkspaceToolsReadiness } from "@src/modules/shared/launchpad/components/WorkspaceToolsReadiness";
 import { useRepoDetection } from "@src/modules/shared/launchpad/hooks";
@@ -24,9 +23,6 @@ import {
   chatPanelWorkspaceOverviewTabAtom,
 } from "@src/store/ui/chatPanelAtom";
 
-import AgentBlamePanelView from "./AgentBlamePanelView";
-import RecentSessionsPanelView from "./RecentSessionsPanelView";
-
 interface WorkspaceOverviewPanelViewProps {
   selectedWorkspace: ChatPanelSelectedWorkspace;
 }
@@ -41,16 +37,13 @@ const WorkspaceOverviewBody = memo(
       useRepoDetection(repoPath);
 
     return (
-      <>
-        <CodeMapWorkspaceStatusPanel workspacePath={repoPath} />
-        <WorkspaceToolsReadiness
-          workspacePath={repoPath}
-          repoType={repoType}
-          configFiles={configFiles}
-          hasDocker={hasDocker}
-          hasMakefile={hasMakefile}
-        />
-      </>
+      <WorkspaceToolsReadiness
+        workspacePath={repoPath}
+        repoType={repoType}
+        configFiles={configFiles}
+        hasDocker={hasDocker}
+        hasMakefile={hasMakefile}
+      />
     );
   }
 );
@@ -98,11 +91,8 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
     const isRepo = selectedWorkspace.kind === "repo";
     const detailsTabAvailable = isRepo && Boolean(selectedRepo);
 
-    // The Overview body (code map + tools readiness) works on any workspace
-    // path — the Rust code-map engine indexes plain folders, not just git
-    // repos. Resolve the path from the selected repo when present, otherwise
-    // fall back to the folder workspace's own path so non-git folders also get
-    // the code map panel instead of an empty Overview.
+    // Tools readiness works for repositories and plain folder workspaces.
+    // Prefer the hydrated repo path and fall back to the selected folder path.
     const overviewPath = selectedRepo?.path ?? selectedWorkspace.path ?? null;
 
     // Force back to Overview when the selected workspace cannot show details
@@ -111,9 +101,7 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
     useEffect(() => {
       if (
         !detailsTabAvailable &&
-        (activeTab === WORKSPACE_OVERVIEW_TAB.DETAILS ||
-          activeTab === WORKSPACE_OVERVIEW_TAB.RECENT_SESSION ||
-          activeTab === WORKSPACE_OVERVIEW_TAB.AGENT_BLAME)
+        activeTab === WORKSPACE_OVERVIEW_TAB.DETAILS
       ) {
         setActiveTab(WORKSPACE_OVERVIEW_TAB.OVERVIEW);
       }
@@ -127,20 +115,10 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
         },
       ];
       if (detailsTabAvailable) {
-        items.push(
-          {
-            key: WORKSPACE_OVERVIEW_TAB.DETAILS,
-            label: t("common:labels.details"),
-          },
-          {
-            key: WORKSPACE_OVERVIEW_TAB.RECENT_SESSION,
-            label: t("navigation:routes.sessions"),
-          },
-          {
-            key: WORKSPACE_OVERVIEW_TAB.AGENT_BLAME,
-            label: t("common:labels.agentBlame"),
-          }
-        );
+        items.push({
+          key: WORKSPACE_OVERVIEW_TAB.DETAILS,
+          label: t("common:labels.details"),
+        });
       }
       return items;
     }, [detailsTabAvailable, t]);
@@ -163,21 +141,6 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
     const detailsBody =
       resolvedActiveTab === WORKSPACE_OVERVIEW_TAB.DETAILS && selectedRepo ? (
         <RepoDetailPage repo={selectedRepo} />
-      ) : null;
-
-    const recentSessionBody =
-      resolvedActiveTab === WORKSPACE_OVERVIEW_TAB.RECENT_SESSION &&
-      selectedRepo?.path ? (
-        <RecentSessionsPanelView
-          repoPath={selectedRepo.path}
-          repoName={selectedRepo.name}
-        />
-      ) : null;
-
-    const agentBlameBody =
-      resolvedActiveTab === WORKSPACE_OVERVIEW_TAB.AGENT_BLAME &&
-      selectedRepo?.path ? (
-        <AgentBlamePanelView repoPath={selectedRepo.path} />
       ) : null;
 
     const overviewBody =
@@ -211,8 +174,6 @@ const WorkspaceOverviewPanelView: React.FC<WorkspaceOverviewPanelViewProps> =
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
           {overviewBody}
           {detailsBody}
-          {recentSessionBody}
-          {agentBlameBody}
         </div>
       </section>
     );

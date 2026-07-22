@@ -28,6 +28,7 @@
     "agentSessions": "Sessões de Agent",
     "apiKeys": "Chaves de API",
     "appUpdate": "Atualização do App",
+    "security": "Segurança",
     "monitor": "Dispositivo & rede",
     "osAgentConfig": "Configuração do OS Agent",
     "sdeAgentConfig": "Configuração do SDE Agent",
@@ -39,7 +40,8 @@
     "storage": "Armazenamento",
     "projectUsage": "Project e Uso",
     "agentMemory": "Memória do Agent",
-    "agentOrg": "Equipe Agent"
+    "agentOrg": "Equipe Agent",
+    "collaboration": "Colaboração"
   },
   "coreSidebar": {
     "groups": {
@@ -54,6 +56,7 @@
       "models": "Modelos & Keys",
       "myRoles": "Minhas funções",
       "rulesMemoryEvolution": "Regras, Memória & Evolução",
+      "security": "Segurança",
       "routines": "Rotinas",
       "tools": "Ferramentas integradas",
       "computerUse": "Computer Use",
@@ -66,6 +69,16 @@
       "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
+  },
+  "security": {
+    "scan": "Avisar antes de enviar segredos",
+    "scanDesc": "Verifica o que você digita no editor em busca de chaves de API, tokens e senhas, e pede confirmação antes de enviá-los ao modelo",
+    "entropy": "Detectar cadeias de alta entropia",
+    "entropyDesc": "Também sinaliza cadeias longas de aparência aleatória que não correspondem a um formato de chave conhecido. Detecta mais segredos, mas às vezes pode sinalizar hashes ou identificadores",
+    "customPatterns": "Padrões personalizados",
+    "customPatternsDesc": "Uma expressão regular por linha. Qualquer correspondência é tratada como um segredo. Expressões inválidas são ignoradas",
+    "customPatternsPlaceholder": "ex.: MYCORP_[A-Z0-9]{20}",
+    "invalidPatterns": "{{count}} padrão(ões) são inválidos e serão ignorados: {{patterns}}"
   },
   "myRoles": {
     "currentStatus": "Meu status atual",
@@ -790,6 +803,23 @@
     "currentVersion": "Versão atual"
   },
   "monitor": {
+    "appMemory": "App memory",
+    "appBackend": "ORG2 backend",
+    "appWebviewHelpers": "Owned WebView helpers",
+    "rssMappedDiagnostic": "RSS / mapped memory (diagnostic)",
+    "measurement": "Measurement",
+    "measurementKinds": {
+      "native": "Native effective memory",
+      "compatibility": "Compatibility metric",
+      "mixed": "Mixed native / fallback metrics",
+      "rss_fallback": "RSS fallback",
+      "unavailable": "Unavailable"
+    },
+    "toolProcessDiagnostics": "Terminal, CLI & tool processes (RSS diagnostic)",
+    "excludedFromAppMemory": "excluded from App memory",
+    "noToolProcesses": "No terminal, CLI, MCP, or tool processes detected",
+    "categoryAgentCli": "CLI agent",
+    "categoryMcpOrTool": "MCP / tool process",
     "categoryTerminal": "Processo de terminal/ferramenta",
     "categoryWebview": "Renderizador de WebView",
     "categoryGpu": "GPU do WebKit",
@@ -1290,5 +1320,11 @@
     "searchActions": "Pesquisar ações...",
     "noActionsFound": "Nenhuma ação encontrada",
     "noConfigurableProperties": "Sem propriedades configuráveis"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "Nuvem",
+      "selfHosted": "Auto-hospedado"
+    }
   }
 }

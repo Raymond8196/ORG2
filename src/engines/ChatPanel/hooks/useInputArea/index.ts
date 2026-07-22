@@ -40,6 +40,7 @@ import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { isPlanDisplayEvent } from "@src/engines/SessionCore/derived/planDisplayEvents";
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
 import { createLogger } from "@src/hooks/logger";
+import { usePendingPlanApproval } from "@src/hooks/session/usePendingPlanApproval";
 import {
   useSessionDraftField,
   useSessionReplyField,
@@ -50,7 +51,6 @@ import {
   isSessionActiveAtom,
   sessionRuntimeStatusAtom,
 } from "@src/store/session/cliSessionStatusAtom";
-import { pendingPlanApprovalsAtom } from "@src/store/session/planApprovalAtom";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom/atoms";
 import { wpReadOnlyAtom } from "@src/store/ui/chatPanelAtom";
 import { workspaceFoldersAtom } from "@src/store/ui/workspaceFoldersAtom";
@@ -175,6 +175,7 @@ export function useInputArea(
     sessionId: propSessionId,
     sessionScope = "active",
     submitDisabled = false,
+    enableAgentInterceptors = true,
   } = options;
 
   // ============================================
@@ -213,7 +214,6 @@ export function useInputArea(
   const rawIsSessionActive = useAtomValue(isSessionActiveAtom);
   const rawIsPendingCancel = useAtomValue(isPendingCancelAtom);
   const runtimeStatus = useAtomValue(sessionRuntimeStatusAtom);
-  const pendingPlanApprovals = useAtomValue(pendingPlanApprovalsAtom);
   const isSessionless = sessionScope === "none";
   const isSessionActive = isSessionless ? false : rawIsSessionActive;
   const isPendingCancel = isSessionless ? false : rawIsPendingCancel;
@@ -302,9 +302,7 @@ export function useInputArea(
   const currentRepoPath = activeSessionId
     ? (activeSession?.repoPath ?? workspaceRepoPath)
     : workspaceRepoPath;
-  const pendingPlan = activeSessionId
-    ? pendingPlanApprovals.get(activeSessionId)?.current
-    : null;
+  const pendingPlan = usePendingPlanApproval(activeSessionId);
   const sessionFileMentionOptions = useMemo<ReadonlyArray<CustomMentionOption>>(
     () =>
       sessionFiles.slice(0, 12).map((file) => {
@@ -387,6 +385,7 @@ export function useInputArea(
     setShowSlashMenu: state.setShowSlashMenu,
     setSlashQuery: state.setSlashQuery,
     workspacePaths: skillWorkspacePaths,
+    sessionId: activeSessionId,
   });
 
   const imageAttachment = useImageAttachment(dropTargetId);
@@ -606,6 +605,7 @@ export function useInputArea(
     handleSessChatSubmit,
     onSubmitOverride,
     submitDisabled,
+    enableAgentInterceptors,
   });
 
   // ============================================
@@ -696,6 +696,7 @@ export function useInputArea(
     filteredSlashItems: slashCommand.filteredItems,
     slashLoading: slashCommand.slashLoading,
     prefetchSlashItems: slashCommand.prefetchItems,
+    addressCommentsFlyout: slashCommand.addressCommentsFlyout,
 
     // File selection
     handleSelectFile: fileSelection.handleSelectFile,

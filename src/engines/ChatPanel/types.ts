@@ -19,6 +19,13 @@ export interface ChatPanelCliTerminalLaunchOptions {
   title: string;
   cwd?: string;
   expectedProcess?: string;
+  /**
+   * Managed `code_sessions` row backing this TUI launch (`runner = 'tui'`).
+   * Injected into the PTY as `ORGII_SESSION_ID` so lifecycle hooks attribute
+   * status and transcripts to it; absent when session creation failed and
+   * the terminal runs unbound.
+   */
+  agentSessionId?: string;
 }
 
 /**
@@ -54,10 +61,12 @@ export interface ChatPanelProps {
     className?: string;
     variant?: "default" | "fullScreen";
     centerFullScreenContent?: boolean;
+    composerHeaderContent?: ReactNode;
     footerSlot?: ReactNode;
     innerClassName?: string;
     leadingActionSlot?: ReactNode;
     hideRepoLine?: boolean;
+    includeHumanSession?: boolean;
     onRegionNoticeChange?: (notice: ChatPanelRegionNotice | null) => void;
     hidePresenceButton?: boolean;
     initialContent?: string;

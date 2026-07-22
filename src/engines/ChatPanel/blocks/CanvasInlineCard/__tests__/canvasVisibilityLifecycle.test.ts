@@ -9,7 +9,12 @@
  */
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasPreviewEntry } from "@src/store/session/canvasPreviewAtom";
+import {
+  type CanvasPreviewEntry,
+  clearCanvasOnSessionSwitch,
+  deriveCanvasForSessionSnapshot,
+  dismissCanvasForSession,
+} from "@src/store/session/canvasPreviewAtom";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -27,37 +32,17 @@ function makeEntry(
   };
 }
 
-/**
- * Pure implementation of useCanvasPreviewForSession's payload derivation.
- * Mirrors the hook's logic without React dependencies.
- */
 function deriveCanvasPayload(
   entry: CanvasPreviewEntry | null,
   sessionId: string | null | undefined
 ) {
-  if (!entry) return null;
-  if (!sessionId) return null;
-  if (entry.sessionId !== sessionId) return null;
-  if (entry.cardDismissed) return null;
-  return entry.payload;
-}
-
-/**
- * Pure implementation of the dismissCanvasAtNewTurn updater.
- * Mirrors the useSetAtom updater in useSessionSync.
- */
-function dismissCanvasForSession(
-  prev: CanvasPreviewEntry | null,
-  sessionId: string
-): CanvasPreviewEntry | null {
-  if (!prev || prev.sessionId !== sessionId || prev.cardDismissed) return prev;
-  return { ...prev, cardDismissed: true };
+  return deriveCanvasForSessionSnapshot(entry, sessionId).payload;
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe("canvas visibility lifecycle", () => {
-  describe("deriveCanvasPayload (mirrors useCanvasPreviewForSession logic)", () => {
+  describe("deriveCanvasPayload", () => {
     it("returns payload for matching session with no dismissal", () => {
       const entry = makeEntry();
       expect(deriveCanvasPayload(entry, "session-1")).toEqual(entry.payload);
@@ -93,7 +78,7 @@ describe("canvas visibility lifecycle", () => {
     });
   });
 
-  describe("dismissCanvasForSession (mirrors dismissCanvasAtNewTurn updater)", () => {
+  describe("dismissCanvasForSession", () => {
     it("sets cardDismissed: true for the matching session", () => {
       const entry = makeEntry({ sessionId: "session-1" });
       const result = dismissCanvasForSession(entry, "session-1");
@@ -122,6 +107,22 @@ describe("canvas visibility lifecycle", () => {
     it("returns null when called with null entry", () => {
       const result = dismissCanvasForSession(null, "session-1");
       expect(result).toBeNull();
+    });
+  });
+
+  describe("clearCanvasOnSessionSwitch", () => {
+    it("clears the single stored entry when switching sessions", () => {
+      expect(
+        clearCanvasOnSessionSwitch(makeEntry(), "session-1", "session-2")
+      ).toBeNull();
+    });
+
+    it("preserves the entry for same-session reloads and first load", () => {
+      const entry = makeEntry();
+      expect(clearCanvasOnSessionSwitch(entry, "session-1", "session-1")).toBe(
+        entry
+      );
+      expect(clearCanvasOnSessionSwitch(entry, null, "session-1")).toBe(entry);
     });
   });
 

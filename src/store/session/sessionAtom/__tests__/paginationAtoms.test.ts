@@ -16,6 +16,7 @@ describe("session pagination categories", () => {
     expect(SESSION_LIST_CATEGORIES).toEqual([
       "cli_agent",
       "rust_agent",
+      "human_session",
       ...importedCategories,
     ]);
   });
@@ -39,6 +40,11 @@ describe("session pagination categories", () => {
       loading: false,
     });
     expect(state["external_history:windsurf"]).toEqual({
+      loaded: 0,
+      hasMore: false,
+      loading: false,
+    });
+    expect(state["external_history:warp"]).toEqual({
       loaded: 0,
       hasMore: false,
       loading: false,

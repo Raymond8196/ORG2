@@ -46,6 +46,8 @@ export interface TerminalSession {
   cliAgentType?: CliAgentType;
   /** Command injected to start the CLI agent. */
   agentCommand?: string;
+  /** Environment variables supplied when the PTY is created. */
+  envOverride?: Record<string, string>;
   /** Foreground process name expected while the CLI agent is active. */
   expectedProcess?: string;
   /** Derived lifecycle state for chat-panel TUI agent tracking. */
@@ -63,6 +65,10 @@ export function getTerminalDisplayTitle(session: TerminalSession): string {
 }
 
 export interface AddSessionOptions {
+  /** Internal setup flows may require a dedicated session immediately after
+   * the Terminal tab mounts its default session. User-initiated creation must
+   * leave this false so rapid clicks remain throttled. */
+  bypassCreationCooldown?: boolean;
   /** Shell profile ID to use (if omitted, uses default profile) */
   profileId?: string;
   /** Shell executable path override */

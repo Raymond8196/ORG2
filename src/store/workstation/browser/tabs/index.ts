@@ -5,21 +5,26 @@
  * - Browser sessions (webview tabs)
  * - Token categories (design tokens)
  *
- * All workstation tabs live in the single `workstationLayoutAtom.mainPane`
- * pool. The atoms exported from this module are **derived views / writers**
- * that slice that single source of truth down to the browser-family tabs,
- * keeping their public names and signatures stable so existing consumers
- * do not need to change.
+ * Browser-session and token-category tabs are shared WorkStation resources.
+ * `workstationLayoutAtom` is the compatibility projection for the currently
+ * presented agent workspace; its split writer routes browser-family changes
+ * back to the canonical shared partition. Consequently, changing the
+ * presented agent workspace changes only that workspace's active selection —
+ * it never removes browser resources or makes a workspace switch look like a
+ * browser-tab close.
  */
 import { atom } from "jotai";
 
 import { getSiteNameFromUrl } from "@src/store/ui/navigationSidebarTabsAtom";
 import type { PanelState } from "@src/store/workstation/tabs";
-import { workstationLayoutAtom } from "@src/store/workstation/tabs/atoms";
+import {
+  removeSharedWorkstationTabAtom,
+  workstationLayoutAtom,
+  workstationTabsStateAtom,
+} from "@src/store/workstation/tabs/atoms";
 import {
   closeOtherTabs as closeOtherTabsMutation,
   closeSavedTabs as closeSavedTabsMutation,
-  closeTab as closeTabMutation,
   openTab as openTabMutation,
   reorderTabs as reorderTabsMutation,
   switchTab as switchTabMutation,
@@ -40,10 +45,6 @@ export interface BrowserSessionData {
   isLoading?: boolean;
 }
 
-export interface TokenCategoryData {
-  category: string;
-}
-
 // ============================================
 // Tab ID Helpers
 // ============================================
@@ -52,24 +53,12 @@ export function createBrowserSessionTabId(sessionId: string): string {
   return `browser:${sessionId}`;
 }
 
-export function createTokenCategoryTabId(category: string): string {
-  return `token:${category}`;
-}
-
 export function isBrowserSessionTab(tabId: string): boolean {
   return tabId.startsWith("browser:");
 }
 
-export function isTokenCategoryTab(tabId: string): boolean {
-  return tabId.startsWith("token:");
-}
-
 export function extractSessionId(tabId: string): string {
   return tabId.replace("browser:", "");
-}
-
-export function extractTokenCategory(tabId: string): string {
-  return tabId.replace("token:", "");
 }
 
 // ============================================
@@ -172,43 +161,12 @@ export function createBrowserSessionTab(
   };
 }
 
-export function createTokenCategoryTab(category: string): WorkStationTab {
-  return {
-    id: createTokenCategoryTabId(category),
-    type: "token-category",
-    title: `Tokens: ${category}`,
-    icon: "Palette",
-    data: {
-      category,
-    },
-    hasUnsavedChanges: false,
-  };
-}
-
-/**
- * Create a consolidated color tokens tab
- * Shows all color tokens with category filtering
- */
-export function createColorTokensTab(): WorkStationTab {
-  return {
-    id: "token:color-tokens",
-    type: "token-category",
-    title: "Color Tokens",
-    icon: "Palette",
-    data: {
-      category: "color-tokens",
-    },
-    hasUnsavedChanges: false,
-  };
-}
-
 // ============================================
 // Browser-family tab classification
 // ============================================
 
 const BROWSER_TAB_TYPES: ReadonlySet<WorkStationTabType> = new Set([
   "browser-session",
-  "token-category",
 ]);
 
 function isBrowserFamilyTab(tab: WorkStationTab): boolean {
@@ -320,6 +278,12 @@ export const browserTabsAtom = atom(
 );
 browserTabsAtom.debugLabel = "browserTabsAtom";
 
+/** Global browser resources, independent of which workspace currently shows them. */
+export const sharedBrowserTabsAtom = atom((get): WorkStationTab[] =>
+  get(workstationTabsStateAtom).shared.tabs.filter(isBrowserFamilyTab)
+);
+sharedBrowserTabsAtom.debugLabel = "sharedBrowserTabsAtom";
+
 // ============================================
 // Derived Atoms
 // ============================================
@@ -342,27 +306,11 @@ export const isShowingBrowserSessionAtom = atom((get) => {
 });
 
 /**
- * Check if showing a token category
- */
-export const isShowingTokenCategoryAtom = atom((get) => {
-  const activeTab = get(activeBrowserTabAtom);
-  return activeTab?.type === "token-category";
-});
-
-/**
  * Get all browser session tabs
  */
 export const browserSessionTabsAtom = atom((get) => {
   const state = get(browserTabsAtom);
   return state.tabs.filter((tab) => tab.type === "browser-session");
-});
-
-/**
- * Get all token category tabs
- */
-export const tokenCategoryTabsAtom = atom((get) => {
-  const state = get(browserTabsAtom);
-  return state.tabs.filter((tab) => tab.type === "token-category");
 });
 
 // ============================================
@@ -380,12 +328,19 @@ export const openBrowserTabAtom = atom(
   }
 );
 
+export const removeBrowserResourceTabAtom = atom(
+  null,
+  (_get, set, tabId: string) => {
+    set(removeSharedWorkstationTabAtom, tabId);
+  }
+);
+
 /**
- * Close a tab
+ * Close a browser tab in the current workspace. The live BrowserContext owner
+ * observes the disappearance and then removes the global resource explicitly.
  */
-export const closeBrowserTabAtom = atom(null, (get, set, tabId: string) => {
-  const state = get(browserTabsAtom);
-  set(browserTabsAtom, closeTabMutation(state, tabId));
+export const closeBrowserTabAtom = atom(null, (_get, set, tabId: string) => {
+  set(removeBrowserResourceTabAtom, tabId);
 });
 
 /**

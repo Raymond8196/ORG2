@@ -30,6 +30,7 @@ import {
 import { ROUTES } from "@src/config/routes";
 import { SIDEBAR_MEMORY_KIND, useSidebarMemoryEntry } from "@src/hooks/perf";
 import { APP_SECTIONS } from "@src/modules/MainApp/Settings/config";
+import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 import { spotlightOpenAtom } from "@src/store/ui/uiAtom";
 import { settingsReturnRouteAtom } from "@src/store/ui/viewModeAtom";
 
@@ -55,9 +56,15 @@ interface SettingsRootSectionConfig {
 
 type SettingsRootItemSegment =
   | IntegrationsCategorySegment
-  | typeof AGENT_ORG_ROW_KEY;
+  | typeof AGENT_ORG_ROW_KEY
+  | typeof SECURITY_ITEM_KEY;
 
 const AGENT_ORG_ROW_KEY = "agent-orgs";
+/**
+ * Security is a core-settings section (renders like General/Appearance) but
+ * lives in the Core sidebar group rather than the top app-sections list.
+ */
+const SECURITY_ITEM_KEY = "security";
 const AGENT_ORG_PATH = buildAgentOrgsPath({ tab: "agents" });
 
 interface SettingsFooterBackButtonProps {
@@ -115,6 +122,7 @@ const SETTINGS_ROOT_LIST_SECTIONS: SettingsRootSectionConfig[] = [
       "models",
       "myRoles",
       "rulesMemoryEvolution",
+      SECURITY_ITEM_KEY,
       "routines",
     ],
   },
@@ -134,6 +142,7 @@ const SettingsSidebar: React.FC = () => {
   const { t } = useTranslation("navigation");
   const navigate = useNavigate();
   const settingsReturnRoute = useAtomValue(settingsReturnRouteAtom);
+  const devModeEnabled = useAtomValue(devModeEnabledAtom);
   const setSpotlightOpen = useSetAtom(spotlightOpenAtom);
 
   const handleBack = useCallback(() => {
@@ -171,7 +180,7 @@ const SettingsSidebar: React.FC = () => {
       <SidebarBottomBar
         rightActions={
           <>
-            <SidebarRamMonitorButton />
+            {devModeEnabled && <SidebarRamMonitorButton />}
             <SettingsFooterBackButton
               label={t("sidebar.bottomBar.settings")}
               onClick={handleBack}
@@ -205,13 +214,16 @@ const SettingsRootBody: React.FC = () => {
 
   const appSectionItems = useMemo<NavigationMenuItem[]>(
     () =>
-      APP_SECTIONS.map((section) => ({
-        id: section.id,
-        key: section.id,
-        label: t(`settings:sections.${section.labelKey}`),
-        icon: section.icon,
-        dataTestId: `settings-core-item-${section.id}`,
-      })),
+      APP_SECTIONS
+        // Security renders in the Core group below, not the top app list.
+        .filter((section) => section.id !== SECURITY_ITEM_KEY)
+        .map((section) => ({
+          id: section.id,
+          key: section.id,
+          label: t(`settings:sections.${section.labelKey}`),
+          icon: section.icon,
+          dataTestId: `settings-core-item-${section.id}`,
+        })),
     [t]
   );
 

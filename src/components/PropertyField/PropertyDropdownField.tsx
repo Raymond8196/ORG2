@@ -45,6 +45,8 @@ interface PropertyDropdownFieldProps<T extends string> {
   onClear?: () => void | Promise<void>;
   borderless?: boolean;
   renderOptions?: (searchQuery: string, close: () => void) => React.ReactNode;
+  /** Stable selector; options derive `${dataTestId}-option-${value}`. */
+  dataTestId?: string;
 }
 
 export function PropertyDropdownField<T extends string>({
@@ -68,6 +70,7 @@ export function PropertyDropdownField<T extends string>({
   onClear,
   borderless = false,
   renderOptions,
+  dataTestId,
 }: PropertyDropdownFieldProps<T>) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -137,6 +140,7 @@ export function PropertyDropdownField<T extends string>({
       <button
         type="button"
         title={label}
+        aria-label={label}
         className={`flex h-6 w-6 items-center justify-center rounded-full border border-solid bg-transparent transition-[border-color,background-color,color] ${
           isOpen
             ? "border-primary-6 bg-fill-2 text-primary-6"
@@ -179,6 +183,9 @@ export function PropertyDropdownField<T extends string>({
           label={option.label}
           isSelected={option.value === value}
           onClick={() => handleSelect(option.value)}
+          dataTestId={
+            dataTestId ? `${dataTestId}-option-${option.value}` : undefined
+          }
         />
       ))}
     </>
@@ -202,6 +209,8 @@ export function PropertyDropdownField<T extends string>({
     <div
       className={containerClass}
       onClick={(event) => event.stopPropagation()}
+      data-testid={dataTestId}
+      data-value={value}
     >
       <div
         ref={triggerRef}

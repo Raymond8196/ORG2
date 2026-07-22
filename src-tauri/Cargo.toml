@@ -14,7 +14,6 @@ members = [
     "crates/bin-telegram-smoke",
     "crates/browser",
     "crates/container",
-    "crates/code-map",
     "crates/ui-indexer",
     "crates/database",
     "crates/db-browser",
@@ -28,6 +27,7 @@ members = [
     "crates/key-vault",
     "crates/lsp",
     "crates/orgtrack-core",
+    "crates/orgtrack-protocol",
     "crates/orgtrack-graph",
     "crates/orgtrack-sync",
     "crates/perf-utils",
@@ -239,7 +239,6 @@ browser = { path = "crates/browser" }
 # Local Docker container inspection and lifecycle commands for Launchpad.
 # Pure leaf — `app` re-registers its Tauri commands in `commands/handler_list.inc`.
 container = { path = "crates/container" }
-code_map = { path = "crates/code-map" }
 
 # Tauri commands for reading / writing the on-disk config files of
 # external CLI agents (Cursor, Claude Code, Codex). The `app` crate just
@@ -413,7 +412,7 @@ git_api = { path = "crates/git-api" }
 # Pure leaf — depends only on the underlying `search` engine crate.
 api_search = { path = "crates/api-search" }
 
-# Session-specific SQLite persistence: event cache (FTS5), branching,
+# Session-specific SQLite persistence: event cache, branching,
 # file-change aggregation, token usage. Owns ~23 `#[tauri::command]`s
 # that the `app` crate re-registers from `commands/handler_list.inc`
 # via the bare `session_persistence::…` path. Wires concrete impls
@@ -491,6 +490,9 @@ reqwest = { workspace = true }
 # of pulling both.
 tokio-rustls = { version = "0.26", default-features = false, features = ["logging", "tls12", "ring"] }
 url = "2"                 # URL parsing for proxy routing
+# RFC3339 date formatting for updater metadata. Already in the graph via
+# tauri-plugin-updater, which exposes `Update.date` as a time::OffsetDateTime.
+time = { version = "0.3", features = ["formatting"] }
 
 # ===========================================
 # Performance Optimizations

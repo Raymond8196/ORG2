@@ -74,6 +74,7 @@ export function useSpotlight(
     onOpenBranchPicker?: () => void;
     onOpenEditorPalette?: (prefix: string, mode?: EditorPaletteMode) => void;
     onOpenAgentSessionSearch?: () => void;
+    onOpenAllSessionsSearch?: () => void;
     isEditorRoute?: boolean;
     isWorkStationRoute?: boolean;
     currentRepoId?: string;
@@ -86,6 +87,7 @@ export function useSpotlight(
     onOpenBranchPicker,
     onOpenEditorPalette,
     onOpenAgentSessionSearch,
+    onOpenAllSessionsSearch,
     isEditorRoute = false,
     isWorkStationRoute = false,
     currentRepoId,
@@ -165,26 +167,37 @@ export function useSpotlight(
         "create-project": () => {
           void WorkStationViewService.openStationMode("my-station").then(
             async () => {
-              const { chatPanelNavigateAtom, CHAT_PANEL_SURFACE_KIND } =
+              const { openCreateTargetInChatPanelStartPageAtom } =
+                await import("@src/store/chatPanel/chatPanelTabsAtom");
+              const { CHAT_PANEL_CREATE_TARGET } =
                 await import("@src/store/ui/chatPanelAtom");
-              getInstrumentedStore().set(chatPanelNavigateAtom, {
-                kind: CHAT_PANEL_SURFACE_KIND.NEW_PROJECT,
-              });
+              getInstrumentedStore().set(
+                openCreateTargetInChatPanelStartPageAtom,
+                {
+                  target: CHAT_PANEL_CREATE_TARGET.PROJECT,
+                }
+              );
             }
           );
         },
         "create-work-item": () => {
           void WorkStationViewService.openStationMode("my-station").then(
             async () => {
-              const { chatPanelNavigateAtom, CHAT_PANEL_SURFACE_KIND } =
+              const { openCreateTargetInChatPanelStartPageAtom } =
+                await import("@src/store/chatPanel/chatPanelTabsAtom");
+              const { CHAT_PANEL_CREATE_TARGET } =
                 await import("@src/store/ui/chatPanelAtom");
-              getInstrumentedStore().set(chatPanelNavigateAtom, {
-                kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM,
-              });
+              getInstrumentedStore().set(
+                openCreateTargetInChatPanelStartPageAtom,
+                {
+                  target: CHAT_PANEL_CREATE_TARGET.WORK_ITEM,
+                }
+              );
             }
           );
         },
         "search-agent-sessions": () => onOpenAgentSessionSearch?.(),
+        "search-all-sessions": () => onOpenAllSessionsSearch?.(),
         "agent-control": openAgentControlSpotlight,
         "workspace-switch": () => onOpenWorkspacePicker?.("switch"),
         "workspace-add": () => onOpenWorkspacePicker?.("add"),
@@ -251,7 +264,12 @@ export function useSpotlight(
 
       fallbackHandlers[fallback]();
     },
-    [onOpenAgentSessionSearch, onOpenBranchPicker, onOpenWorkspacePicker]
+    [
+      onOpenAgentSessionSearch,
+      onOpenAllSessionsSearch,
+      onOpenBranchPicker,
+      onOpenWorkspacePicker,
+    ]
   );
 
   const handleSelectStaticAction = useCallback(

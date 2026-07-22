@@ -126,7 +126,7 @@ const AgentConfigInner: React.FC<AgentConfigInnerProps> = ({ data }) => {
     }
 
     return (
-      <div className="flex min-w-0 items-center px-1">
+      <div className="flex min-w-0 items-center">
         <span className="truncate text-[13px] font-medium text-text-1">
           {headerDisplayName}
         </span>
@@ -333,7 +333,6 @@ const AgentConfigInner: React.FC<AgentConfigInnerProps> = ({ data }) => {
       <OrgDetailView
         selectedOrg={org}
         customAgents={customAgents}
-        cliAgents={cliAgents}
         onOrgSave={handleOrgSave}
         onOrgDelete={handleOrgDelete}
       />

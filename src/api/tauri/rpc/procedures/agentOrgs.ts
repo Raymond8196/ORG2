@@ -119,6 +119,41 @@ const managedConfig = {
     .build(),
 } as const;
 
+const sessionProvenance = {
+  status: defineProcedure("session_provenance_hooks_status")
+    .output(z.array(schemas.agentOrgs.SessionProvenanceHookStatusSchema))
+    .build(),
+  setEnabled: defineProcedure("session_provenance_hooks_set_enabled")
+    .input(schemas.agentOrgs.SessionProvenanceHookSetEnabledInput)
+    .output(schemas.agentOrgs.SessionProvenanceHookStatusSchema)
+    .build(),
+  masterEnabled: defineProcedure("session_provenance_hooks_master_enabled")
+    .output(z.boolean())
+    .build(),
+  setMasterEnabled: defineProcedure(
+    "session_provenance_hooks_set_master_enabled"
+  )
+    .input(z.object({ enabled: z.boolean() }))
+    .output(z.array(schemas.agentOrgs.SessionProvenanceHookStatusSchema))
+    .build(),
+  recentSignals: defineProcedure("session_provenance_recent_signals")
+    .input(schemas.agentOrgs.SessionProvenanceRecentSignalsInput)
+    .output(z.array(schemas.agentOrgs.SessionProvenanceRecentSignalSchema))
+    .build(),
+  liveStatusEnabled: defineProcedure("session_provenance_live_status_enabled")
+    .output(z.boolean())
+    .build(),
+  setLiveStatusEnabled: defineProcedure(
+    "session_provenance_set_live_status_enabled"
+  )
+    .input(z.object({ enabled: z.boolean() }))
+    .output(z.array(schemas.agentOrgs.SessionProvenanceHookStatusSchema))
+    .build(),
+  liveStatusList: defineProcedure("agent_live_status_list")
+    .output(z.array(schemas.agentOrgs.AgentLiveStatusSchema))
+    .build(),
+} as const;
+
 const skills = {
   list: defineProcedure("skills_list")
     .input(schemas.agentOrgs.SkillsListInput)
@@ -164,6 +199,7 @@ export const agentOrgs = {
   cliConfigFiles,
   launchProfiles,
   managedConfig,
+  sessionProvenance,
   memory,
   orgs,
   skills,

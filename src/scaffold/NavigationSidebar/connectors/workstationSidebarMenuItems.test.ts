@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   KANBAN_MENU_ITEM_ID,
+  RUNTIME_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
 } from "./sidebarConnectorUtils";
-import { buildPinnedMenuItems } from "./workstationSidebarMenuItems";
+import {
+  buildPinnedMenuItems,
+  buildProjectsPinnedMenuItems,
+} from "./workstationSidebarMenuItems";
 
 describe("buildPinnedMenuItems", () => {
   it("renders Kanban separately from the expandable Work Items group", () => {
@@ -22,17 +26,40 @@ describe("buildPinnedMenuItems", () => {
       ],
       kanbanLabel: "Kanban",
       kanbanShortcut: "⌘O",
+      runtimeLabel: "Runtime",
     });
 
     expect(items.map((item) => item.id)).toEqual([
       "new-session",
       KANBAN_MENU_ITEM_ID,
+      RUNTIME_MENU_ITEM_ID,
       WORK_ITEMS_MENU_ITEM_ID,
     ]);
-    expect(items[2]?.children?.map((item) => item.id)).toEqual([
+    expect(items[3]?.children?.map((item) => item.id)).toEqual([
       WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
     ]);
-    expect(items[2]?.routePath).toBeUndefined();
+    expect(items[3]?.routePath).toBeUndefined();
+    expect(items[2]).toMatchObject({
+      label: "Runtime",
+      dataTestId: "sidebar-runtime",
+    });
     expect(items[0]?.openContextMenuOnSelectedClick).toBeUndefined();
+  });
+
+  it("keeps destination navigation available inside the Work Items layer", () => {
+    const items = buildProjectsPinnedMenuItems({
+      createProjectLabel: "Create Project",
+      createWorkItemLabel: "Create Work Item",
+      importGithubIssuesLabel: "Import GitHub Issues",
+      workItemDestinations: [
+        {
+          id: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+          key: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+          label: "Projects",
+        },
+      ],
+    });
+
+    expect(items.at(-1)?.id).toBe(WORK_ITEMS_PROJECTS_MENU_ITEM_ID);
   });
 });

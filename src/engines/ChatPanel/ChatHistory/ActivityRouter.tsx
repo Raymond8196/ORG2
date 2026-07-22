@@ -10,6 +10,7 @@ import React, { Suspense, memo, useMemo } from "react";
 import { AgentMessageBlock } from "@src/engines/ChatPanel/blocks";
 import MessageReferenceCards from "@src/engines/ChatPanel/blocks/MessageReferenceCards";
 import LlmUsageBadge from "@src/engines/ChatPanel/blocks/ToolCallBlock/LlmUsageBadge";
+import { ChatLoadingBlock } from "@src/engines/ChatPanel/blocks/primitives";
 import {
   LLM_USAGE_ARGS_KEY,
   type LlmUsageMetadata,
@@ -142,10 +143,6 @@ function arePropsEqual(
 // ============================================
 // Loading Fallback
 // ============================================
-
-const ActivityLoadingFallback: React.FC = () => (
-  <div className="h-8 animate-pulse rounded bg-fill-2" />
-);
 
 /**
  * uiCanonical values that carry their own dedicated chat renderer AND are
@@ -284,6 +281,10 @@ const ActivityChatItem: React.FC<ActivityChatItemProps> = memo(
           const llmUsage = readLlmUsage(event);
           return (
             <AgentMessageBlock
+              itemIndex={itemIndex}
+              isStreaming={isStreaming}
+              messageContent={assistantContent}
+              messageTimestamp={event.createdAt}
               rightContent={
                 llmUsage ? <LlmUsageBadge usage={llmUsage} /> : undefined
               }
@@ -293,6 +294,8 @@ const ActivityChatItem: React.FC<ActivityChatItemProps> = memo(
                 expand={true}
                 finish={!isStreaming}
                 streamHtml={isStreaming}
+                messageTimestamp={event.createdAt}
+                showCopyButton={false}
                 appendedContent={
                   <MessageReferenceCards
                     content={assistantContent}
@@ -334,7 +337,7 @@ const ActivityChatItem: React.FC<ActivityChatItemProps> = memo(
         }
         return (
           <ActivityErrorBoundary eventType={eventType}>
-            <Suspense fallback={<ActivityLoadingFallback />}>
+            <Suspense fallback={<ChatLoadingBlock />}>
               <EventComponent event={event} variant="chat" {...extras} />
             </Suspense>
           </ActivityErrorBoundary>

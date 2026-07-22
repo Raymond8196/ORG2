@@ -63,6 +63,16 @@ fn scoped_system_message(text: String, scope: RenderedSystemBlockScope) -> Value
     })
 }
 
+fn reconcile_inbox_transcript_replay(
+    messages: &mut Vec<Value>,
+    message_count_before_inbox: usize,
+    transcript_inserted: bool,
+) {
+    if !transcript_inserted {
+        messages.truncate(message_count_before_inbox);
+    }
+}
+
 // ============================================
 // Per-Turn Input
 // ============================================
@@ -536,7 +546,7 @@ impl UnifiedMessageProcessor {
             .map_err(|err| format!("Failed to save user message: {}", err))?;
 
             if let Some(handle) = self.app_handle.as_ref() {
-                tokio::task::block_in_place(|| {
+                if let Err(err) = tokio::task::block_in_place(|| {
                     crate::bus::event_pipeline_bridge::persist_user_message_event(
                         handle,
                         session_id,
@@ -546,8 +556,14 @@ impl UnifiedMessageProcessor {
                         context.images.as_deref(),
                         crate::bus::event_pipeline_bridge::PersistedUserMessageSource::User,
                         context.turn_intent_id.as_str(),
+                    )
+                }) {
+                    tracing::warn!(
+                        session_id,
+                        error = %err,
+                        "[unified_processor] failed to persist user-message UI event"
                     );
-                });
+                }
             }
         }
 
@@ -577,14 +593,6 @@ impl UnifiedMessageProcessor {
         // 3. Build system prompt, split into the stable cacheable prefix and
         // the volatile per-turn body (environment/IDE/presence/mode suffix).
         let (system_prompt, volatile_prompt) = self.build_system_prompt(session_id).await;
-
-        // 3b. Build dynamic context (changes per-turn). Joined with the
-        // volatile prompt body and appended AFTER the history (step 6c) so
-        // the provider prompt-cache prefix — stable system + history — stays
-        // byte-identical across turns.
-        let dynamic_sections = self
-            .build_dynamic_sections(session_id, None, Some(content))
-            .await;
 
         // 4. Build provider messages from the already-loaded history.
         let mut messages: Vec<Value> = Vec::with_capacity(history.len() + 3);
@@ -680,6 +688,30 @@ impl UnifiedMessageProcessor {
         // Once that durable write succeeds, the inbox rows can be marked read;
         // if the LLM call fails, the next turn still sees the message through
         // normal history rather than silently losing it.
+        if context.is_resume && content.trim().is_empty() {
+            if let Some(org_context) = self.runtime.agent_org_context.as_ref() {
+                let running = matches!(
+                    crate::coordination::agent_org_runs::AgentOrgRunStore::get_run_status(
+                        &org_context.run_id
+                    ),
+                    Ok(Some(
+                        crate::coordination::agent_org_runs::AgentOrgRunStatus::Running
+                    ))
+                );
+                if !running {
+                    // Fail closed before inbox drain/provider invocation. The
+                    // unread rows stay durable for a later explicit resume.
+                    info!(run_id = %org_context.run_id, session_id = %session_id, "[unified_processor] queued Agent Org wake cancelled because run is no longer running");
+                    return Ok(ProcessingResult {
+                        turn_id,
+                        ..ProcessingResult::default()
+                    });
+                }
+            }
+        }
+
+        let message_count_before_inbox = messages.len();
+        let mut inbox_had_real_input = false;
         let mut inbox_guard = self.runtime.agent_org_context.as_ref().map(|org_context| {
             inbox_drain::drain_and_render_deferred(
                 org_context,
@@ -689,41 +721,83 @@ impl UnifiedMessageProcessor {
                 Some(self.session.as_ref()),
             )
         });
-        if let Some(guard) = inbox_guard.as_ref() {
+        if let Some(guard) = inbox_guard.as_mut() {
+            inbox_had_real_input = guard.has_pending_input();
             if let Some(transcript_content) = guard.transcript_content() {
                 if !transcript_content.trim().is_empty() {
-                    let message_id = tokio::task::block_in_place(|| {
-                        unified_persistence::save_user_msg(session_id, transcript_content, None)
+                    let (stable_message_id, stable_intent_id) = guard
+                        .transcript_identity(session_id)
+                        .expect("a non-empty drained transcript has stable source row ids");
+                    let (materialization, inserted) = tokio::task::block_in_place(|| {
+                        unified_persistence::materialize_agent_org_inbox_transcript(
+                            session_id,
+                            guard.new_materialization_ids(),
+                            &stable_message_id,
+                            &stable_intent_id,
+                            transcript_content,
+                        )
                     })
-                    .map_err(|err| format!("Failed to save inbox transcript message: {}", err))?;
+                    .map_err(|err| {
+                        format!("Failed to materialize Agent Org inbox transcript: {err}")
+                    })?;
 
-                    if let Some(handle) = self.app_handle.as_ref() {
-                        // Inbox transcript is its own logical user intent
-                        // (an agent-org subagent delivered an answer to a
-                        // parent waiting on inbox_drain). Mint a dedicated
-                        // turn_intent_id with source `agent_org` so the
-                        // turn indexer can collapse this row with any
-                        // matching synthetic event without confusing it
-                        // with the parent user's submit.
-                        let transcript_intent_id = uuid::Uuid::new_v4().to_string();
-                        tokio::task::block_in_place(|| {
-                            crate::bus::event_pipeline_bridge::persist_user_message_event(
-                                handle,
-                                session_id,
-                                &message_id,
-                                transcript_content,
-                                None,
-                                None,
-                                crate::bus::event_pipeline_bridge::PersistedUserMessageSource::AgentOrgInboxTranscript,
-                                &transcript_intent_id,
-                            );
-                        });
+                    if !inserted {
+                        // The stable transcript row is already part of the
+                        // history loaded at the beginning of this turn. Drain
+                        // appended the same attachment once more in memory;
+                        // remove only that newly-rendered tail so the provider
+                        // sees one copy, while leaving the source inbox rows
+                        // unread until this replayed turn succeeds.
+                        reconcile_inbox_transcript_replay(
+                            &mut messages,
+                            message_count_before_inbox,
+                            inserted,
+                        );
                     }
+                    guard.remember_materialization(materialization);
+                }
+            }
+
+            if let Some(handle) = self.app_handle.as_ref() {
+                // Ensure every durable transcript has its matching stable UI
+                // event on both first delivery and replay. Persistence happens
+                // before the in-memory merge; failure leaves source rows unread
+                // and aborts the provider call so the next Wake can repair it.
+                for materialization in guard.materializations() {
+                    tokio::task::block_in_place(|| {
+                        crate::bus::event_pipeline_bridge::persist_user_message_event(
+                            handle,
+                            session_id,
+                            &materialization.message_id,
+                            &materialization.content,
+                            None,
+                            None,
+                            crate::bus::event_pipeline_bridge::PersistedUserMessageSource::AgentOrgInboxTranscript,
+                            &materialization.intent_id,
+                        )
+                    })
+                    .map_err(|err| {
+                        format!("Failed to persist Agent Org inbox transcript event: {err}")
+                    })?;
                 }
             }
         }
-        if let Some(guard) = inbox_guard.take() {
-            guard.commit();
+
+        // An Agent Org wake is only a doorbell. If another worker consumed the
+        // work before this turn started, do not manufacture an empty user
+        // nudge and spend a provider call. A later unread inbox row or
+        // explicit TaskAssigned delivery will trigger a fresh wake.
+        if context.is_resume
+            && content.trim().is_empty()
+            && self.runtime.agent_org_context.is_some()
+            && !inbox_had_real_input
+            && messages.len() == message_count_before_inbox
+        {
+            info!(session_id = %session_id, "[unified_processor] Agent Org wake had no durable work; returning WakeNoop");
+            return Ok(ProcessingResult {
+                turn_id,
+                ..ProcessingResult::default()
+            });
         }
 
         // 4d. Subagent-wake prefill safety net.
@@ -778,6 +852,15 @@ impl UnifiedMessageProcessor {
                 session_id, err
             ),
         }
+
+        // Build dynamic context only after every no-provider early return
+        // (terminal/paused wake, WakeNoop, compact-fork redirect). For a
+        // coordinator this stages the exact work revision rendered into the
+        // live task-board snapshot. A later successful provider turn may
+        // observe that revision; an empty wake must never consume it.
+        let (dynamic_sections, coordinator_presented_work_revision) = self
+            .build_dynamic_sections(session_id, None, Some(content))
+            .await;
 
         if super::super::recovery::ensure_tool_result_pairing(&mut messages) {
             info!(
@@ -874,6 +957,51 @@ impl UnifiedMessageProcessor {
             DialogTurnState::Completed
         };
 
+        // A successful provider response is not enough when the user pressed
+        // Stop concurrently. Only a genuinely Completed turn acknowledges
+        // Inbox input. On Cancelled, dropping the guard preserves unread rows;
+        // the durable transcript receipt makes the later retry idempotent.
+        if matches!(final_turn_state, DialogTurnState::Completed) {
+            if let Some(guard) = inbox_guard.take() {
+                guard.commit();
+            }
+        }
+
+        if matches!(final_turn_state, DialogTurnState::Completed) {
+            if let (Some(org_context), Some(presented_work_revision)) = (
+                self.runtime.agent_org_context.as_ref(),
+                coordinator_presented_work_revision,
+            ) {
+                if self.runtime.agent_org_current_member_id.as_deref()
+                    == Some(crate::coordination::agent_org_runs::COORDINATOR_MEMBER_ID)
+                {
+                    let run_id = org_context.run_id.clone();
+                    match tokio::task::spawn_blocking(move || {
+                        crate::coordination::agent_org_runs::AgentOrgRunStore::mark_coordinator_observed_work_revision(
+                            &run_id,
+                            presented_work_revision,
+                        )
+                    })
+                    .await
+                    {
+                        Ok(Ok(_)) => {}
+                        Ok(Err(error)) => warn!(
+                            run_id = %org_context.run_id,
+                            presented_work_revision,
+                            error = %error,
+                            "[unified_processor] failed to record Agent Org work revision observed by coordinator provider turn"
+                        ),
+                        Err(error) => warn!(
+                            run_id = %org_context.run_id,
+                            presented_work_revision,
+                            error = %error,
+                            "[unified_processor] coordinator work-revision observation task failed"
+                        ),
+                    }
+                }
+            }
+        }
+
         info!(
             "[unified_processor] Turn {}: session={}, state={:?}, tokens={}, tool_calls={}",
             turn_id, session_id, final_turn_state, result.total_tokens, tool_calls_count
@@ -911,12 +1039,39 @@ impl UnifiedMessageProcessor {
             }
             _ => crate::coordination::agent_inbox::MemberIdleReason::Available,
         };
-        member_idle::maybe_emit_member_idle(
+        let unfinished_task_ids = match self
+            .runtime
+            .agent_org_context
+            .as_ref()
+            .zip(self.runtime.agent_org_current_member_id.as_deref())
+        {
+            Some((org_context, member_id)) => {
+                match member_idle::unfinished_build_task_ids_for_member(
+                    &org_context.run_id,
+                    member_id,
+                ) {
+                    Ok(task_ids) => task_ids,
+                    Err(error) => {
+                        warn!(
+                            run_id = %org_context.run_id,
+                            member_id = %member_id,
+                            error = %error,
+                            "failed to inspect unfinished Agent Org tasks before MemberIdle"
+                        );
+                        Vec::new()
+                    }
+                }
+            }
+            None => Vec::new(),
+        };
+        member_idle::maybe_emit_member_idle_with_details(
             self.runtime.agent_org_context.as_ref(),
-            &self.agent_id,
             self.runtime.agent_org_current_member_id.as_deref(),
             idle_reason,
             self.agent_mode,
+            None,
+            None,
+            unfinished_task_ids,
         );
 
         Ok(ProcessingResult {
@@ -1014,5 +1169,23 @@ mod post_turn_work_tests {
             false,
             DialogTurnState::Cancelled
         ));
+    }
+
+    #[test]
+    fn persisted_unread_inbox_replay_keeps_one_prompt_copy() {
+        let durable_transcript = serde_json::json!({
+            "role": "user",
+            "content": "<agent-org-inbox>durable transcript</agent-org-inbox>",
+        });
+        let mut messages = vec![durable_transcript.clone()];
+        let before_inbox = messages.len();
+
+        // `drain_and_render_deferred` re-renders the still-unread source row,
+        // but the stable transcript insert reports that this exact delivery
+        // was already persisted during the crashed attempt.
+        messages.push(durable_transcript.clone());
+        reconcile_inbox_transcript_replay(&mut messages, before_inbox, false);
+
+        assert_eq!(messages, vec![durable_transcript]);
     }
 }

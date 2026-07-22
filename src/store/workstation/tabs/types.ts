@@ -33,16 +33,11 @@ export type WorkStationTabType =
   | "search" // Repository-wide search tab
   | "lint-scan" // Workspace lint scan configuration
   | "ai-impact" // AI session impact dashboard
+  | "search-sessions" // Session search + table (reuses SessionTable; launchpad tab)
   | "benchmark" // Benchmark task browser and runner setup
   | "url-preview" // URL preview (agent-triggered webview in editor)
-  // Database Explorer tabs
-  | "table"
-  | "query"
-  | "schema"
-  | "add-connection"
   // Browser tabs
   | "browser-session"
-  | "token-category"
   /** DevTools right panel (Elements / Console / Network) */
   | "devtools"
   // Project Manager tabs
@@ -68,7 +63,9 @@ export type WorkStationTabType =
   // GitHub Issues detail tab — opened from the sidebar Issues panel
   | "github-issue-detail"
   // GitHub Pull Request detail tab — opened from Kanban PR rows
-  | "github-pr-detail";
+  | "github-pr-detail"
+  // Start page — the launcher shown when nothing else is open
+  | "start";
 
 // ============================================
 // Tab Types
@@ -99,6 +96,7 @@ export type WorkStationTabCategory =
   | "settings"
   | "lint"
   | "ai-impact"
+  | "search-sessions"
   | "benchmark"
   | "preview"
   | "subagent"
@@ -163,6 +161,106 @@ export interface PanelState {
 }
 
 /**
+ * WorkStation task-workspace identity.
+ *
+ * This is deliberately distinct from browser/terminal resource session IDs
+ * and from SessionCore's transient pipeline session. Only the WorkStation's
+ * remembered agent-session selection may produce a `session` key.
+ */
+export type WorkstationWorkspaceKey =
+  | { kind: "global" }
+  | { kind: "session"; sessionId: string };
+
+export type WorkstationWorkspaceId = "global" | `session:${string}`;
+
+export type WorkstationTabPartition = "shared" | "workspace";
+
+export interface WorkstationTabRef {
+  partition: WorkstationTabPartition;
+  tabId: string;
+}
+
+/** Session/global-owned task context. Shared resource tabs live separately. */
+export interface WorkstationWorkspaceState {
+  tabs: WorkStationTab[];
+  activeTabRef: WorkstationTabRef | null;
+  /** Per-workspace presentation order, including references to shared tabs. */
+  tabOrder: WorkstationTabRef[];
+}
+
+export interface WorkstationSharedState {
+  tabs: WorkStationTab[];
+}
+
+/** Persisted v3 state. Runtime storage splits this document into per-scope keys. */
+export interface WorkstationTabsStateV3 {
+  version: 3;
+  shared: WorkstationSharedState;
+  globalWorkspace: WorkstationWorkspaceState;
+  sessionWorkspaces: Record<string, WorkstationWorkspaceState>;
+  /**
+   * Workspace-local v2 tabs waiting for the first explicitly opened session.
+   * Cold-start Global Workspace must not consume this seed.
+   */
+  legacySeed: WorkstationWorkspaceState | null;
+}
+
+export type WorkstationTabOwnership = "workspace-local" | "shared-resource";
+
+/**
+ * Exhaustive ownership policy. There is intentionally no default: adding a
+ * tab type must include an explicit product decision about its owner.
+ */
+export function getWorkstationTabOwnership(
+  type: WorkStationTabType
+): WorkstationTabOwnership {
+  switch (type) {
+    case "file":
+    case "directory":
+    case "explorer":
+    case "git-diff":
+    case "source-control":
+    case "timeline-diff":
+    case "git-log":
+    case "git-commit-detail":
+    case "git-stash-detail":
+    case "terminal-content":
+    case "dom-component-preview":
+    case "output":
+    case "search":
+    case "lint-scan":
+    case "ai-impact":
+    case "search-sessions":
+    case "url-preview":
+    case "subagent-detail":
+    case "canvas-preview":
+    case "github-issue-detail":
+    case "github-pr-detail":
+      return "workspace-local";
+
+    case "terminal":
+    case "settings":
+    case "benchmark":
+    case "browser-session":
+    case "devtools":
+    case "project-dashboard":
+    case "project-work-items":
+    case "project-linear-projects":
+    case "project-linear-work-items":
+    case "project-settings":
+    case "project-org":
+    case "project-org-settings":
+    case "project-git-sync-review":
+    case "project-workitems":
+    case "workItem-detail":
+    case "chat-session":
+    case "agent-config":
+    case "start":
+      return "shared-resource";
+  }
+}
+
+/**
  * Root workstation layout state — a single tab pool. There is no longer
  * any notion of split panes, a pane tree, host-specific pane buckets, or
  * a focused-pane id; the active tab in `mainPane` is the only piece of
@@ -185,28 +283,6 @@ export interface TimelineDiffCommitInfo {
   message: string;
   author: string;
   timestamp: string;
-}
-
-// ============================================
-// Database Tab Data Types
-// ============================================
-
-/**
- * Data stored in table tabs
- */
-export interface TableTabData {
-  connectionId: string;
-  tableName: string;
-  connectionName?: string;
-}
-
-/**
- * Data stored in query tabs
- */
-export interface QueryTabData {
-  connectionId: string;
-  connectionName?: string;
-  queryText?: string;
 }
 
 // ============================================
@@ -254,6 +330,7 @@ export interface WorkItemDetailTabData {
   dataPath?: string;
   workItemId: string;
   workItemName: string;
+  workItemStatus?: string;
   /** Unsaved changes transferred from the inline detail panel */
   pendingUpdates?: Record<string, unknown>;
 }
@@ -418,15 +495,10 @@ export const TOOL_TAB_TYPES = [
   "search",
   "lint-scan",
   "ai-impact",
+  "search-sessions",
   "url-preview",
-  // Database tabs
-  "table",
-  "query",
-  "schema",
-  "add-connection",
   // Browser tabs
   "browser-session",
-  "token-category",
   // Project Manager tabs
   "project-dashboard",
   "project-work-items",
@@ -444,6 +516,8 @@ export const TOOL_TAB_TYPES = [
   "github-issue-detail",
   // GitHub Pull Request detail
   "github-pr-detail",
+  // Start page launcher
+  "start",
 ] as const;
 
 export type FileTabType = (typeof FILE_TAB_TYPES)[number];

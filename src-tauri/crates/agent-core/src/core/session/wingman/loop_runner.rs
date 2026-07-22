@@ -236,6 +236,7 @@ impl WingmanLoop {
             // Same id used for the TurnInput above — keeps the wire
             // boundary and the turn execution observing a single intent.
             turn_intent_id,
+            org_run_id: None,
             content: "[wingman:observe]".to_string(),
             execute,
         };

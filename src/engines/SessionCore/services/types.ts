@@ -17,6 +17,8 @@ import type { DispatchCategory } from "@src/api/tauri/session";
 export interface SessionCreateParams {
   /** User's task description */
   task: string;
+  /** Base64 image data URLs attached to the initial user task. */
+  imageDataUrls?: string[];
   /** Repository or working-directory path where the agent executes. */
   repoPath?: string;
   /** Project repo path used only as a fallback when no execution path is supplied. */

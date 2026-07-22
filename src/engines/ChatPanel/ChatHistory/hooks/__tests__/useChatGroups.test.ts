@@ -17,6 +17,7 @@ import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 
 import type { OptimizedChatItem } from "../../chatItemPipeline/types";
 import { useChatGroups } from "../useChatGroups";
+import { projectChatGroups } from "../useChatGroupsProjection";
 
 vi.mock("react", () => ({
   useMemo: <Value>(factory: () => Value) => factory(),
@@ -158,6 +159,37 @@ function flatTexts(items: OptimizedChatItem[]): string[] {
   return items.map((entry) => entry.event?.displayText ?? "");
 }
 
+describe("projectChatGroups", () => {
+  it("matches the React hook adapter without requiring React state", () => {
+    const history = [
+      userItem("first turn"),
+      toolItem(),
+      assistantItem("first reply"),
+      userItem("current turn"),
+      assistantItem("current reply"),
+    ];
+    const options = { allTurnsCollapsed: true };
+
+    const projected = projectChatGroups(history, options);
+    const hooked = useChatGroups(history, options);
+
+    expect(projected).toEqual(hooked);
+  });
+
+  it("accepts custom turn callbacks as plain function inputs", () => {
+    const boundary = boundaryItem("new logical turn");
+    const history = [toolItem(), boundary, assistantItem("reply")];
+
+    const result = projectChatGroups(history, {
+      disableTurnCollapse: true,
+      isTurnBoundaryItem: (entry) => entry === boundary,
+    });
+
+    expect(result.groupHeaders).toEqual([null, boundary]);
+    expect(result.groupCounts).toEqual([1, 1]);
+  });
+});
+
 describe("useChatGroups collapse — terminal error survival", () => {
   it("collapses completed historical turns by default", () => {
     const history = [
@@ -256,7 +288,7 @@ describe("useChatGroups collapse — terminal error survival", () => {
     expect(result.groupCounts[0]).toBe(2);
   });
 
-  it("does not resurrect errors that precede the final reply", () => {
+  it("keeps errors that precede the final reply", () => {
     const history = [
       userItem("first turn"),
       errorItem("transient blip"),
@@ -268,10 +300,9 @@ describe("useChatGroups collapse — terminal error survival", () => {
     const result = useChatGroups(history, { allTurnsCollapsed: true });
 
     const texts = flatTexts(result.flatItems);
-    // The turn recovered: the pre-reply error stays collapsed away.
-    expect(texts).not.toContain("Error: transient blip");
+    expect(texts).toContain("Error: transient blip");
     expect(texts).toContain("recovered and finished");
-    expect(result.groupCounts[0]).toBe(1);
+    expect(result.groupCounts[0]).toBe(2);
   });
 
   it("collapses to the last reply only when the turn has no errors", () => {

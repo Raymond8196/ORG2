@@ -74,6 +74,11 @@
       "other": "Sekret"
     }
   },
+  "secretScan": {
+    "title": "Wykryto możliwy sekret",
+    "message": "Ta wiadomość wygląda na zawierającą poufne dane uwierzytelniające:\n\n{{items}}\n\nWysłanie zapisze sekret w historii czatu i prześle go do modelu. Wysłać mimo to?",
+    "sendAnyway": "Wyślij mimo to"
+  },
   "actions": {
     "all": "Wszystkie",
     "save": "Zapisz",
@@ -188,6 +193,7 @@
     "viewOnGitHub": "Zobacz na GitHubie",
     "selectRepository": "Wybierz Repo",
     "collapse": "Zwiń",
+    "toggle": "Przełącz wątek",
     "addRepo": "Dodaj Repo",
     "addFolder": "Dodaj folder",
     "resume": "Wznów",
@@ -203,7 +209,8 @@
     "openWorkspace": "Otwórz Workspace",
     "skipThisVersion": "Pomiń tę wersję",
     "later": "Później",
-    "link": "Połącz"
+    "link": "Połącz",
+    "copyName": "Kopiuj nazwę"
   },
   "refreshToast": {
     "successName": "Odświeżono: {{name}}",
@@ -405,7 +412,28 @@
     "nearby": "W pobliżu",
     "renowned": "Znani",
     "dragToReorder": "Przeciągnij, aby zmienić kolejność wiadomości",
-    "sessionBlame": "Session Blame",
+    "sessionBlame": "Atrybucja sesji",
+    "sessionBlameSubagent": "Podagent: {{name}}",
+    "sessionBlameMainSession": "Sesja główna",
+    "sessionBlameAction": {
+      "read": "Odczyt",
+      "write": "Zapis",
+      "create": "Tworzenie",
+      "delete": "Usuwanie",
+      "rename": "Zmiana nazwy",
+      "search": "Wyszukiwanie"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Nieznana pewność",
+      "session_only": "Tylko sesja",
+      "correlated": "Skorelowana",
+      "exact": "Dokładna atrybucja"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Indeksowanie historycznych sesji {{indexed}}/{{total}}",
+      "partial": "Indeks historii jest niepełny (błędy: {{failed}})",
+      "failed": "Nie udało się zindeksować historycznych sesji"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -423,7 +451,7 @@
     "orgtrackRebuildIndex": "Rebuild derived index",
     "orgtrackScanPhase": "Phase",
     "sessions": "Sessions",
-    "files": "Files",
+    "files": "Pliki",
     "commits": "Commits",
     "entries": "Entries",
     "records": "Records",
@@ -504,6 +532,10 @@
     "failedToRenderEvent": "Nie udało się wyrenderować zdarzenia",
     "unknown": "Nieznany błąd",
     "agentRequestFailed": "Żądanie Agenta nie powiodło się",
+    "codexLoginExpired": "Logowanie do Codex wygasło",
+    "codexLoginExpiredDescription": "Połącz ponownie Codex, aby naprawić to konto. Po zapisaniu nowego logowania wrócisz do tej sesji.",
+    "reconnectCodex": "Połącz ponownie Codex",
+    "technicalDetails": "Szczegóły techniczne",
     "failedToCopy": "Nie udało się skopiować",
     "api": {
       "titles": {
@@ -1148,9 +1180,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token jest wymagany",
       "createTokenButton": "Utwórz token",
-      "openGitSettingsButton": "Otwórz ustawienia Git",
+      "openGitSettingsButton": "Otwórz ustawienia",
       "configureInSettings": "Skonfiguruj Git w ustawieniach",
-      "configureInSettingsDesc": "Dodaj dostęp GitHub App, zapisz token lub przeskanuj lokalne dane uwierzytelniające w Ustawienia → Integracje → Git, a następnie spróbuj ponownie wykonać tę operację Git."
+      "configureInSettingsDesc": "Dodaj dostęp GitHub App, zapisz token lub przeskanuj lokalne dane uwierzytelniające w Ustawienia → Połączenia, a następnie spróbuj ponownie wykonać tę operację Git."
     },
     "actions": {
       "publish": "Opublikuj",
@@ -1213,6 +1245,45 @@
         "closed": "Zamknięte",
         "completed": "Ukończone",
         "notPlanned": "Nieplanowane"
+      },
+      "activity": {
+        "opened": "otworzył(a) to issue",
+        "commented": "dodał(a) komentarz",
+        "timelineItemCount_one": "{{count}} element osi czasu",
+        "timelineItemCount_few": "{{count}} elementy osi czasu",
+        "timelineItemCount_many": "{{count}} elementów osi czasu",
+        "timelineItemCount_other": "{{count}} elementów osi czasu",
+        "noDescription": "Nie podano opisu.",
+        "assigned": "przypisał(a)",
+        "assignedIssue": "przypisał(a) to issue",
+        "unassigned": "cofnął/cofnęła przypisanie użytkownika",
+        "removedAssignee": "usunął/usunęła osobę przypisaną",
+        "added": "dodał(a)",
+        "removed": "usunął/usunęła",
+        "label": "etykietę",
+        "milestoned": "dodał(a) to issue do kamienia milowego {{milestone}}",
+        "demilestoned": "usunął/usunęła to issue z kamienia milowego {{milestone}}",
+        "closedViaCommit": "zamknął/zamknęła to issue commitem {{commit}}",
+        "closed": "zamknął/zamknęła to issue",
+        "reopened": "ponownie otworzył(a) to issue",
+        "renamedTo": "zmienił(a) nazwę tego issue na",
+        "renamed": "zmienił(a) nazwę tego issue",
+        "locked": "zablokował(a) tę rozmowę",
+        "lockedAs": "zablokował(a) tę rozmowę z powodu: {{reason}}",
+        "unlocked": "odblokował(a) tę rozmowę",
+        "crossReferencedFrom": "odwołał(a) się do tego issue z",
+        "crossReferenced": "utworzył(a) odwołanie krzyżowe do tego issue",
+        "referencedInCommit": "odwołał(a) się do tego issue w commicie {{commit}}",
+        "referencedInACommit": "odwołał(a) się do tego issue w commicie",
+        "connected": "powiązał(a) to issue",
+        "disconnected": "usunął/usunęła powiązanie tego issue",
+        "markedAsDuplicate": "oznaczył(a) to issue jako duplikat",
+        "unmarkedAsDuplicate": "usunął/usunęła oznaczenie duplikatu",
+        "pinned": "przypiął/przypięła to issue",
+        "unpinned": "odpiął/odpięła to issue",
+        "transferred": "przeniósł/przeniosła to issue",
+        "convertedToDiscussion": "przekształcił(a) to issue w dyskusję",
+        "mentioned": "wspomniał(a) o tym issue"
       }
     }
   },
@@ -1529,6 +1600,11 @@
           "label": "Szukaj sesji Agent",
           "pillLabel": "Szukaj sesji",
           "placeholder": "Szukaj sesji Agent..."
+        },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
         },
         "switchWorkspace": {
           "label": "Przełącz workspace"
@@ -1853,15 +1929,6 @@
     "lastActive": "Ostatnio aktywny: {{date}}",
     "activeNow": "Aktywne teraz: {{ides}}",
     "active": "Aktywne",
-    "tabs": {
-      "activity": "Aktywność",
-      "focus": "Skupienie",
-      "languages": "Języki",
-      "heatmap": "Heatmapa",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "Sesje CLI AI",
     "cliPrompt": "Prompt",
     "cliMessages": "Wiadomości",
@@ -1952,9 +2019,6 @@
     "pill": {
       "focus": "Skupienie",
       "allChanges": "Wszystkie zmiany"
-    },
-    "sessionFilter": {
-      "allSessions": "Wszystkie sesje"
     }
   },
   "contextInfo": {

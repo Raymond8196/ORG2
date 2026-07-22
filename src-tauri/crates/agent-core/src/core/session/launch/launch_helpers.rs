@@ -83,14 +83,16 @@ pub(super) fn validate_launch_agent_definitions(
 
     if let Some(org) = org_definition {
         let mut missing: Vec<String> = Vec::new();
+        let mut unsupported_cli: Vec<String> = Vec::new();
         let mut member_ids = HashSet::new();
         let mut invalid_member_ids: Vec<String> = Vec::new();
         let mut duplicate_member_ids: Vec<String> = Vec::new();
-        if !org.agent_id.trim().is_empty()
-            && !is_cli_agent_org_reference(&org.agent_id)
-            && store.get(&org.agent_id).is_none()
-        {
-            missing.push(format!("coordinator '{}'", org.agent_id));
+        if !org.agent_id.trim().is_empty() {
+            if is_cli_agent_org_reference(&org.agent_id) {
+                unsupported_cli.push(format!("coordinator '{}'", org.agent_id));
+            } else if store.get(&org.agent_id).is_none() {
+                missing.push(format!("coordinator '{}'", org.agent_id));
+            }
         }
         for member in flatten_org_members(&org.children) {
             let member_id = member.id.trim();
@@ -105,11 +107,17 @@ pub(super) fn validate_launch_agent_definitions(
                 duplicate_member_ids.push(member_id.to_string());
             }
 
-            if !is_cli_agent_org_reference(&member.agent_id)
-                && store.get(&member.agent_id).is_none()
-            {
+            if is_cli_agent_org_reference(&member.agent_id) {
+                unsupported_cli.push(format!("member '{}' ({})", member.id, member.agent_id));
+            } else if store.get(&member.agent_id).is_none() {
                 missing.push(format!("member '{}' ({})", member.name, member.agent_id));
             }
+        }
+        if !unsupported_cli.is_empty() {
+            return Err(format!(
+                "CLI Agent Org participants are not supported yet because they cannot drain the Agent Org inbox or use task tools: {}",
+                unsupported_cli.join(", ")
+            ));
         }
         duplicate_member_ids.sort();
         duplicate_member_ids.dedup();
@@ -178,7 +186,7 @@ pub(super) fn member_runtime_key_source(
 ) -> Result<KeySource, String> {
     match config.and_then(|cfg| clean_runtime_value(cfg.key_source.as_ref())) {
         Some(raw) => KeySource::parse(&raw).ok_or_else(|| format!("Unknown key_source: {raw:?}")),
-        None => Ok(fallback.clone()),
+        None => Ok(*fallback),
     }
 }
 
@@ -211,7 +219,7 @@ pub(super) fn provenance_fields(
             agent_role,
             ..
         } => (
-            Some(project_slug.clone()),
+            project_slug.clone(),
             Some(work_item_id.clone()),
             agent_role.clone(),
             None,
@@ -278,4 +286,28 @@ pub(super) fn flatten_org_members(members: &[OrgMember]) -> Vec<OrgMember> {
         flattened.extend(flatten_org_members(&member.children));
     }
     flattened
+}
+
+#[cfg(test)]
+mod provenance_tests {
+    use super::provenance_fields;
+    use crate::core::session::launch::LaunchProvenance;
+    use project_management::projects::types::WorkItemExecutionLockReason;
+
+    #[test]
+    fn standalone_work_item_keeps_session_linkage_without_project_scope() {
+        let provenance = LaunchProvenance::WorkItem {
+            project_slug: None,
+            work_item_id: "WI-0042".to_string(),
+            agent_role: Some("custom".to_string()),
+            lock_reason: WorkItemExecutionLockReason::ManualStart,
+        };
+
+        let (project_slug, work_item_id, agent_role, routine_fire_id) =
+            provenance_fields(&provenance);
+        assert_eq!(project_slug, None);
+        assert_eq!(work_item_id.as_deref(), Some("WI-0042"));
+        assert_eq!(agent_role.as_deref(), Some("custom"));
+        assert_eq!(routine_fire_id, None);
+    }
 }

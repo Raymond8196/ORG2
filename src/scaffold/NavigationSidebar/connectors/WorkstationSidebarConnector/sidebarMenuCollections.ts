@@ -26,6 +26,7 @@ interface UsePinnedMenuItemsParams {
   importGithubIssuesLabel: string;
   kanbanLabel: string;
   newSessionLabel: string;
+  runtimeLabel: string;
   workItemDestinations: NavigationMenuItem[];
   t: TFunction<"navigation">;
 }
@@ -42,6 +43,7 @@ export function usePinnedMenuItems({
   importGithubIssuesLabel,
   kanbanLabel,
   newSessionLabel,
+  runtimeLabel,
   workItemDestinations,
   t,
 }: UsePinnedMenuItemsParams): UsePinnedMenuItemsResult {
@@ -54,8 +56,9 @@ export function usePinnedMenuItems({
         workItemDestinations,
         kanbanLabel,
         kanbanShortcut: getShortcutKeys("open_kanban"),
+        runtimeLabel,
       }),
-    [kanbanLabel, newSessionLabel, workItemDestinations, t]
+    [kanbanLabel, newSessionLabel, runtimeLabel, workItemDestinations, t]
   );
   const projectsPinnedMenuItems = useMemo<NavigationMenuItem[]>(
     () =>
@@ -63,8 +66,14 @@ export function usePinnedMenuItems({
         createProjectLabel,
         createWorkItemLabel,
         importGithubIssuesLabel,
+        workItemDestinations,
       }),
-    [createProjectLabel, createWorkItemLabel, importGithubIssuesLabel]
+    [
+      createProjectLabel,
+      createWorkItemLabel,
+      importGithubIssuesLabel,
+      workItemDestinations,
+    ]
   );
   const pinnedMenuItems =
     activeSidebarKey === "projects"
@@ -151,6 +160,9 @@ export function useChatPanelTuiSidebarSessions(): Session[] {
       if (tab.type !== "terminal" || !tab.terminalSessionId) return [];
       const terminal = terminalById.get(tab.terminalSessionId);
       if (!terminal?.agentCommand || !terminal.cliAgentType) return [];
+      // TUI terminals backed by a managed code_sessions row are already in
+      // the real session list; a synthetic row would be a duplicate.
+      if (terminal.agentSessionId) return [];
       const fallbackTimestamp = new Date().toISOString();
       const status =
         terminal.agentStatus === "done"

@@ -4,6 +4,7 @@ import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import DiffFileSection from "../DiffFileSection";
 import type { DiffFileSectionData } from "../DiffFileSection";
+import { getDefaultDiffSectionExpanded } from "./expansion";
 
 export interface DiffSectionListItem<TFile extends DiffFileSectionData> {
   key: string;
@@ -17,14 +18,19 @@ export interface DiffSectionListProps<TFile extends DiffFileSectionData> {
   emptySubtitle?: string;
   repoPath?: string;
   collapseThreshold?: number;
+  /** Start collapsible sections closed regardless of list size. */
+  defaultCollapsed?: boolean;
   collapseSignal?: number;
   getSectionRef?: (path: string) => React.RefObject<HTMLDivElement | null>;
   focusedPath?: string | null;
   focusedNonce?: number;
   onFileSelect?: (path: string) => void;
   onRequestContent?: (file: TFile) => void;
+  onExpansionChange?: (file: TFile, expanded: boolean) => void;
   sectionKeySuffix?: (section: DiffSectionListItem<TFile>) => string | number;
   showBottomBorder?: boolean;
+  /** Show the original path after renamed files in each section header. */
+  showRenamePath?: boolean;
   /** When true, each section renders a flat FileHeader instead of the collapsible chevron button. */
   flat?: boolean;
   /** When true, removes the bottom scroll padding (for contexts that have no bottom panel). */
@@ -40,14 +46,17 @@ function DiffSectionListInner<TFile extends DiffFileSectionData>({
   emptySubtitle,
   repoPath,
   collapseThreshold = DEFAULT_COLLAPSE_THRESHOLD,
+  defaultCollapsed = false,
   collapseSignal = 0,
   getSectionRef,
   focusedPath,
   focusedNonce = 0,
   onFileSelect,
   onRequestContent,
+  onExpansionChange,
   sectionKeySuffix,
   showBottomBorder,
+  showRenamePath = false,
   flat = false,
   hideBottomPadding = false,
 }: DiffSectionListProps<TFile>) {
@@ -96,8 +105,6 @@ function DiffSectionListInner<TFile extends DiffFileSectionData>({
     );
   }
 
-  const shouldAutoCollapse = sections.length > collapseThreshold;
-
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div
@@ -111,11 +118,14 @@ function DiffSectionListInner<TFile extends DiffFileSectionData>({
             <DiffFileSection
               key={`${section.key}-${suffix}`}
               file={section.file}
-              defaultExpanded={
-                flat ||
-                isFocused ||
-                (collapseSignal > 0 ? false : !shouldAutoCollapse)
-              }
+              defaultExpanded={getDefaultDiffSectionExpanded({
+                flat,
+                isFocused,
+                collapseSignal,
+                defaultCollapsed,
+                sectionCount: sections.length,
+                collapseThreshold,
+              })}
               expansionSignal={collapseSignal + (isFocused ? focusedNonce : 0)}
               repoPath={repoPath}
               sectionRef={getSectionRef?.(section.file.path)}
@@ -126,7 +136,13 @@ function DiffSectionListInner<TFile extends DiffFileSectionData>({
                   ? () => onRequestContent(section.file)
                   : undefined
               }
+              onExpansionChange={
+                onExpansionChange
+                  ? (expanded) => onExpansionChange(section.file, expanded)
+                  : undefined
+              }
               showBottomBorder={showBottomBorder}
+              showRenamePath={showRenamePath}
               flat={flat}
               noBottomPadding={hideBottomPadding}
             />

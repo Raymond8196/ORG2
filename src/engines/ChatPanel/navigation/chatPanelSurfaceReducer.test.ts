@@ -85,28 +85,43 @@ describe("reduceChatPanelSurfaceCommand", () => {
     expect(snapshot.exploreOpen).toBe(false);
   });
 
-  it("preserves workspace overview tab when command omits tab", () => {
-    const currentSnapshot = reduceChatPanelSurfaceCommand({
-      kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_OVERVIEW,
-      workspace: sampleWorkspace,
-      tab: WORKSPACE_OVERVIEW_TAB.RECENT_SESSION,
+  it("keeps the org create context when an org panel opens New Work Item", () => {
+    // Org-panel flow: an org surface navigates to NEW_WORK_ITEM carrying the
+    // aliased project org. Tearing down the org surface must not drop the
+    // context — it is what scopes the standalone write to the org.
+    const cloudOrgSnapshot = reduceChatPanelSurfaceCommand({
+      kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
+      cloudOrg: { orgId: "cloud-org-1" },
     });
 
-    const nextSnapshot = reduceChatPanelSurfaceCommand(
+    const createContext = {
+      orgId: "project-org-1",
+      scopeBreadcrumbLabel: "Acme Team",
+    };
+    const snapshot = reduceChatPanelSurfaceCommand(
       {
-        kind: CHAT_PANEL_SURFACE_KIND.WORKSPACE_OVERVIEW,
-        workspace: {
-          ...sampleWorkspace,
-          id: "repo-2",
-          name: "Repo 2",
-          path: "/tmp/repo-2",
-        },
+        kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM,
+        createProjectContext: createContext,
       },
-      currentSnapshot
+      cloudOrgSnapshot
     );
 
-    expect(nextSnapshot.workspaceOverviewTab).toBe(
-      WORKSPACE_OVERVIEW_TAB.RECENT_SESSION
+    expect(snapshot.createTarget).toBe(CHAT_PANEL_CREATE_TARGET.WORK_ITEM);
+    expect(snapshot.createProjectContext).toEqual(createContext);
+    expect(snapshot.selectedCloudOrg).toBeNull();
+  });
+
+  it("drops a stale create context when New Work Item navigates without one", () => {
+    const scopedSnapshot = reduceChatPanelSurfaceCommand({
+      kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM,
+      createProjectContext: { orgId: "project-org-1" },
+    });
+
+    const snapshot = reduceChatPanelSurfaceCommand(
+      { kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM },
+      scopedSnapshot
     );
+
+    expect(snapshot.createProjectContext).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import { createLogger } from "@src/hooks/logger";
 import { useSettingValue } from "@src/hooks/settings";
 import { sessionsAtom } from "@src/store/session/sessionAtom";
 import type { Session } from "@src/store/session/sessionAtom";
@@ -21,6 +22,11 @@ import type { DiagnosticsLevel, DiagnosticsServiceConfig } from "./types";
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const LAST_FLUSH_STORAGE_KEY = "orgii:diagnostics:lastFlushAt";
+const logger = createLogger("DiagnosticsBootstrap");
+
+function reportDiagnosticsFailure(operation: string, error: unknown): void {
+  logger.warn(`${operation} failed`, error);
+}
 
 function normalizeDiagnosticsLevel(value: unknown): DiagnosticsLevel {
   if (
@@ -96,7 +102,9 @@ export function useDiagnosticsBootstrap(): void {
       await diagnosticsConfigure(serviceConfig);
     };
 
-    void configureService();
+    void configureService().catch((error: unknown) => {
+      reportDiagnosticsFailure("Service configuration", error);
+    });
 
     return () => {
       cancelled = true;
@@ -137,10 +145,14 @@ export function useDiagnosticsBootstrap(): void {
   useEffect(() => {
     if (!settingsLoaded) return;
 
-    void collectAndSendSnapshot();
+    void collectAndSendSnapshot().catch((error: unknown) => {
+      reportDiagnosticsFailure("Initial snapshot flush", error);
+    });
 
     const interval = window.setInterval(() => {
-      void collectAndSendSnapshot(true);
+      void collectAndSendSnapshot(true).catch((error: unknown) => {
+        reportDiagnosticsFailure("Scheduled snapshot flush", error);
+      });
     }, intervalMs);
 
     return () => window.clearInterval(interval);

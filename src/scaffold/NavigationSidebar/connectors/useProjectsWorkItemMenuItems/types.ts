@@ -16,6 +16,7 @@ import type {
 
 export interface SidebarProject {
   projectData: ProjectData;
+  projectSyncAdapterId: string | null;
   orgId: string;
   orgName: string;
   labelMap: Map<string, LabelEntry>;
@@ -28,6 +29,7 @@ export interface SidebarWorkItem extends EnrichedWorkItem {
   projectSlug: string;
   orgId: string;
   orgName: string;
+  projectSyncAdapterId: string | null;
   source: "local";
 }
 
@@ -75,20 +77,15 @@ export interface SidebarLocalOrgRecord {
   sync_provider?: string | null;
 }
 
-export interface SidebarCloudOrgRecord {
-  id: string;
-  name: string;
-}
-
 export interface UseProjectsWorkItemMenuItemsResult {
   menuItems: NavigationMenuItem[];
   projectMap: Map<string, SidebarProject>;
   workItemMap: Map<string, SidebarWorkItem>;
   linearWorkItemMap: Map<string, SidebarLinearWorkItem>;
   localOrgMap: Map<string, SidebarLocalOrgRecord>;
-  cloudOrgMap: Map<string, SidebarCloudOrgRecord>;
   linearOrgMap: Map<string, LinearOrgRecord>;
   loading: boolean;
+  linkedSessionIds: ReadonlySet<string>;
   getLoadMoreGroupId: (id: string) => string | null;
   loadLinearOrgWorkItems: (orgId: string) => void;
   toChatPanelProject: (project: SidebarProject) => ChatPanelSelectedProject;

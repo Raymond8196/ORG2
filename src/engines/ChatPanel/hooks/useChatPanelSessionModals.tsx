@@ -1,80 +1,58 @@
-import { emit } from "@tauri-apps/api/event";
 import type { TFunction } from "i18next";
-import { type ComponentProps, useCallback, useState } from "react";
+import { useSetAtom } from "jotai";
+import { type ComponentProps, useCallback } from "react";
 
-import Message from "@src/components/Message";
 import { SessionImportExportModal } from "@src/scaffold/NavigationSidebar/connectors/SessionImportExportModal";
+import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
+import type { Session } from "@src/store/session/sessionAtom/types";
+import { moveSessionTabAtom } from "@src/store/session/sessionTabPlacementAtom";
 
-import LinkSessionToWorkItemModal from "../panels/LinkSessionToWorkItemModal";
+import { useSessionActionModals } from "./useSessionActionModals";
 
 type ExportActiveSession = ComponentProps<
   typeof SessionImportExportModal
 >["activeSession"];
 
 interface UseChatPanelSessionModalsOptions {
+  activeChatTab: ChatPanelTab | null;
   activeSession: ExportActiveSession;
   closeHeaderActionsMenu: () => void;
+  /** Full session row for the share dialog (design §6.3 header mount). */
+  currentSession: Session | null;
   currentSessionId: string | null;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
 }
 
 export function useChatPanelSessionModals({
+  activeChatTab,
   activeSession,
   closeHeaderActionsMenu,
+  currentSession,
   currentSessionId,
   t,
 }: UseChatPanelSessionModalsOptions) {
-  const [isExportModalOpen, setExportModalOpen] = useState(false);
-  const [isLinkWorkItemModalOpen, setLinkWorkItemModalOpen] = useState(false);
+  const moveSessionTab = useSetAtom(moveSessionTabAtom);
+  const sharedModals = useSessionActionModals({
+    activeSession,
+    closeHeaderActionsMenu,
+    currentSession,
+    currentSessionId,
+    t,
+  });
 
-  const handleOpenExportSessionJson = useCallback(() => {
-    setExportModalOpen(true);
+  const handleMoveToWorkstation = useCallback(() => {
+    if (activeChatTab?.type !== "session" || !activeChatTab.sessionId) return;
+    moveSessionTab({
+      source: "chat-panel",
+      sourceTabId: activeChatTab.id,
+      sessionId: activeChatTab.sessionId,
+      title: activeChatTab.title,
+    });
     closeHeaderActionsMenu();
-  }, [closeHeaderActionsMenu]);
-
-  const handleCloseExportSessionJson = useCallback(() => {
-    setExportModalOpen(false);
-  }, []);
-
-  const handleOpenLinkWorkItem = useCallback(() => {
-    if (!currentSessionId) {
-      Message.warning(t("common:toasts.openSessionBeforeLinking"));
-      return;
-    }
-    setLinkWorkItemModalOpen(true);
-    closeHeaderActionsMenu();
-  }, [closeHeaderActionsMenu, currentSessionId, t]);
-
-  const handleCloseLinkWorkItem = useCallback(() => {
-    setLinkWorkItemModalOpen(false);
-  }, []);
-
-  const handleSessionLinkedToWorkItem = useCallback(() => {
-    void emit("orgii-data-changed", new Date().toISOString());
-  }, []);
-
-  const sessionModals = (
-    <>
-      <LinkSessionToWorkItemModal
-        open={isLinkWorkItemModalOpen}
-        sessionId={currentSessionId ?? null}
-        onClose={handleCloseLinkWorkItem}
-        onLinked={handleSessionLinkedToWorkItem}
-      />
-      <SessionImportExportModal
-        visible={isExportModalOpen}
-        mode="export"
-        activeSession={activeSession}
-        sessionFallbackName={t("chat.defaultTitle")}
-        onClose={handleCloseExportSessionJson}
-        onImported={() => undefined}
-      />
-    </>
-  );
+  }, [activeChatTab, closeHeaderActionsMenu, moveSessionTab]);
 
   return {
-    handleOpenExportSessionJson,
-    handleOpenLinkWorkItem,
-    sessionModals,
+    ...sharedModals,
+    handleMoveToWorkstation,
   };
 }

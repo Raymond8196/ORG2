@@ -58,6 +58,13 @@ pub(crate) fn prepare_loaded_events(
     event_conversion::backfill_tool_inputs_from_messages(session_id, &mut events);
     event_conversion::backfill_subagent_links(session_id, &mut events);
     backfill_provider_subagent_prompts(&mut events);
+    // Old terminal `.txt` files have no Snapshot watermarks. Import the body
+    // once into the append-only replay artifact and attach only the mutable
+    // final shell state; the migration deliberately never seeds historical
+    // event bookmarks, so an early playback cursor cannot see future output.
+    agent_core::tools::impls::coding::exec::legacy_replay::hydrate_legacy_shell_replays(
+        &mut events,
+    );
     // Compaction boundaries live only in `agent_messages` (never in the
     // event cache) — merge them in so the chat shows the compacted marker.
     event_conversion::merge_compact_boundary_events(session_id, &mut events);
@@ -168,6 +175,25 @@ const NOTIFY_EVENT_NAME: &str = "es:changed";
 const STREAMING_BATCH_MS: u64 = 33;
 const ACTION_TYPE_TOOL_CALL: &str = "tool_call";
 const ACTION_TYPE_TOOL_RESULT: &str = "tool_result";
+
+fn collect_post_merge_persistable_events(
+    events: &[SessionEvent],
+    incoming_event_ids: &HashSet<String>,
+    result_call_ids: &HashSet<String>,
+) -> Vec<SessionEvent> {
+    events
+        .iter()
+        .filter(|event| {
+            incoming_event_ids.contains(&event.id)
+                || event.call_id.as_ref().is_some_and(|call_id| {
+                    event.action_type == ACTION_TYPE_TOOL_CALL && result_call_ids.contains(call_id)
+                })
+        })
+        // Preserve EventStore timeline order. SQLite assigns missing
+        // history_sequence values in this exact iteration order.
+        .cloned()
+        .collect()
+}
 
 /// Tauri `es:changed` payload wrapper. The `sessionId` is always present so
 /// frontend listeners can route to the correct per-session subscriber.
@@ -688,21 +714,33 @@ mod bulk_writer {
     }
 }
 
-fn persist_runtime_edit_artifacts_async(session_id: String, events: Vec<(usize, SessionEvent)>) {
+fn persist_runtime_orgtrack_records_async(
+    app: tauri::AppHandle,
+    session_id: String,
+    events: Vec<(usize, Option<String>, SessionEvent)>,
+) {
     tokio::task::spawn_blocking(move || {
-        if let Err(err) = persist_runtime_edit_artifacts(&session_id, events) {
-            tracing::warn!(
-                session_id = %session_id,
-                error = %err,
-                "[orgtrack_runtime_artifacts] failed to persist runtime edit artifacts"
-            );
+        match persist_runtime_orgtrack_records(&session_id, events) {
+            Ok(()) => {
+                let _ = app.emit(
+                    crate::orgtrack::session_provenance::RESOURCE_INTERACTIONS_CHANGED_EVENT,
+                    (),
+                );
+            }
+            Err(err) => {
+                tracing::warn!(
+                    session_id = %session_id,
+                    error = %err,
+                    "[orgtrack_runtime_artifacts] failed to persist runtime provenance records"
+                );
+            }
         }
     });
 }
 
-fn persist_runtime_edit_artifacts(
+fn persist_runtime_orgtrack_records(
     session_id: &str,
-    events: Vec<(usize, SessionEvent)>,
+    events: Vec<(usize, Option<String>, SessionEvent)>,
 ) -> Result<(), String> {
     if events.is_empty() {
         return Ok(());
@@ -714,7 +752,20 @@ fn persist_runtime_edit_artifacts(
     store.upsert_session(&session)?;
 
     let mut chunks_by_file: HashMap<String, Vec<SessionDiffChunkRecord>> = HashMap::new();
-    for (sequence_index, event) in events {
+    for (sequence_index, turn_id, event) in events {
+        if let Err(err) = crate::orgtrack::session_provenance::persist_native_event_interactions(
+            &store,
+            &session,
+            &event,
+            turn_id.as_deref(),
+        ) {
+            tracing::warn!(
+                session_id = %session.session_id,
+                event_id = %event.id,
+                error = %err,
+                "[SessionProvenance] Native interaction persistence failed"
+            );
+        }
         let Some(ExtractedData::Edit(edit)) = event.extracted.as_ref() else {
             continue;
         };
@@ -723,7 +774,7 @@ fn persist_runtime_edit_artifacts(
             source_session_id: Some(session.source_session_id.clone()),
             session_id: session.session_id.clone(),
             source_event_id: Some(event.id.clone()),
-            turn_id: event.thread_id.clone(),
+            turn_id,
             sequence_index: sequence_index as i64,
             timestamp: Some(event.created_at.clone()),
             workspace_path: event
@@ -759,7 +810,7 @@ fn persist_runtime_edit_artifacts(
     Ok(())
 }
 
-fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, String> {
+pub(crate) fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, String> {
     let Some(record) =
         agent_core::session::persistence::get_session(session_id).map_err(|err| err.to_string())?
     else {
@@ -777,6 +828,7 @@ fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, St
             branch: None,
             parent_session_id: None,
             org_member_id: None,
+            collaboration_origin: None,
             metadata: AgentMetadata {
                 dispatch_category: Some("rust_agent".to_string()),
                 origin: Some(SOURCE_ORGII_RUST_AGENTS.to_string()),
@@ -786,13 +838,19 @@ fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, St
     };
 
     let rust_agent_type = match record.session_type.as_str() {
+        agent_core::session::persistence::session_type::HUMAN => None,
         agent_core::session::persistence::session_type::DESKTOP => Some("os".to_string()),
         agent_core::session::persistence::session_type::CODING
         | agent_core::session::persistence::session_type::ORG_MEMBER => Some("sde".to_string()),
         agent_core::session::persistence::session_type::GATEWAY => Some("gateway".to_string()),
         _ => Some("custom".to_string()),
     };
-
+    let dispatch_category =
+        if record.session_type == agent_core::session::persistence::session_type::HUMAN {
+            "human_session"
+        } else {
+            "rust_agent"
+        };
     Ok(SessionRecord {
         schema_version: ORGTRACK_SCHEMA_VERSION,
         source: SOURCE_ORGII_RUST_AGENTS.to_string(),
@@ -810,8 +868,9 @@ fn runtime_artifact_session_record(session_id: &str) -> Result<SessionRecord, St
         branch: record.worktree_branch.or(record.base_branch),
         parent_session_id: record.parent_session_id,
         org_member_id: record.org_member_id,
+        collaboration_origin: None,
         metadata: AgentMetadata {
-            dispatch_category: Some("rust_agent".to_string()),
+            dispatch_category: Some(dispatch_category.to_string()),
             rust_agent_type,
             agent_exec_mode: record.agent_exec_mode,
             model: record.model,
@@ -847,54 +906,77 @@ pub fn push_events_to_session(
         .filter(|event| event.action_type == ACTION_TYPE_TOOL_RESULT)
         .filter_map(|event| event.call_id.clone())
         .collect();
-
-    let mut persistable: Vec<_> = events
+    let incoming_event_ids: HashSet<String> = events
         .iter()
-        .filter(|e| !event_conversion::is_ts_placeholder_id(&e.id))
-        .map(event_conversion::session_event_to_cached_event)
+        .filter(|event| !event_conversion::is_ts_placeholder_id(&event.id))
+        .map(|event| event.id.clone())
         .collect();
 
-    let merged_tool_calls = state.with_store_mut(session_id, |store| {
+    let (persistable_events, merged_tool_calls) = state.with_store_mut(session_id, |store| {
         store.merge_events(events);
-        if result_call_ids.is_empty() {
-            return Vec::new();
+        let mut current_turn_id: Option<String> = None;
+        let mut matched = Vec::new();
+        for (sequence_index, event) in store.events().iter().enumerate() {
+            if event.function_name == "user_message"
+                && event
+                    .result
+                    .get("syntheticUserInput")
+                    .and_then(|value| value.as_bool())
+                    != Some(true)
+            {
+                current_turn_id = Some(event.id.clone());
+            }
+            if event.action_type == ACTION_TYPE_TOOL_CALL
+                && event
+                    .call_id
+                    .as_ref()
+                    .is_some_and(|call_id| result_call_ids.contains(call_id))
+            {
+                matched.push((sequence_index, current_turn_id.clone(), event.clone()));
+            }
         }
-        store
-            .events()
-            .iter()
-            .enumerate()
-            .filter(|(_, event)| {
-                event.action_type == ACTION_TYPE_TOOL_CALL
-                    && event
-                        .call_id
-                        .as_ref()
-                        .is_some_and(|call_id| result_call_ids.contains(call_id))
-            })
-            .map(|(sequence_index, event)| (sequence_index, event.clone()))
-            .collect::<Vec<_>>()
+
+        // Persist the canonical post-merge rows, not the raw incoming values.
+        // This is what makes first-insert replay bookmarks survive same-ID
+        // updates and avoids writing a second shell-output copy on the raw
+        // tool_result row.
+        let persistable = collect_post_merge_persistable_events(
+            store.events(),
+            &incoming_event_ids,
+            &result_call_ids,
+        );
+        (persistable, matched)
     });
 
-    let mut impact_events = Vec::new();
+    let persistable = persistable_events
+        .iter()
+        .map(event_conversion::session_event_to_cached_event)
+        .collect::<Vec<_>>();
+
     let mut runtime_artifact_events = Vec::new();
-    for (sequence_index, event) in merged_tool_calls {
+    for (sequence_index, turn_id, event) in merged_tool_calls {
         if event_conversion::is_ts_placeholder_id(&event.id) {
             continue;
         }
-        impact_events.push(event.clone());
-        if matches!(event.extracted, Some(ExtractedData::Edit(_))) {
-            runtime_artifact_events.push((sequence_index, event.clone()));
+        if matches!(
+            event.extracted,
+            Some(
+                ExtractedData::File(_)
+                    | ExtractedData::Edit(_)
+                    | ExtractedData::Search(_)
+                    | ExtractedData::DeleteFile(_)
+            )
+        ) {
+            runtime_artifact_events.push((sequence_index, turn_id, event.clone()));
         }
-        persistable.push(event_conversion::session_event_to_cached_event(&event));
     }
 
-    if !impact_events.is_empty() {
-        crate::orgtrack::impact_indexer::record_session_events_async(
-            session_id.to_string(),
-            impact_events,
-        );
-    }
     if !runtime_artifact_events.is_empty() {
-        persist_runtime_edit_artifacts_async(session_id.to_string(), runtime_artifact_events);
+        persist_runtime_orgtrack_records_async(
+            app.clone(),
+            session_id.to_string(),
+            runtime_artifact_events,
+        );
     }
 
     schedule_notify(app, state, session_id);
@@ -992,6 +1074,49 @@ mod runtime_artifact_tests {
     use core_types::extracted::ExtractedEditData;
     use orgtrack_core::edit_extraction::artifacts_from_extracted_edit;
     use orgtrack_core::repo_sync::paths::record_id;
+
+    fn test_event(id: &str, call_id: Option<&str>) -> SessionEvent {
+        serde_json::from_value(serde_json::json!({
+            "id": id,
+            "chunk_id": null,
+            "sessionId": "test-session",
+            "createdAt": "2026-07-19T00:00:00Z",
+            "functionName": "run_shell",
+            "uiCanonical": "run_shell",
+            "actionType": "tool_call",
+            "args": {},
+            "result": {},
+            "source": "assistant",
+            "displayText": id,
+            "displayStatus": "running",
+            "displayVariant": "tool_call",
+            "activityStatus": "agent",
+            "callId": call_id
+        }))
+        .unwrap()
+    }
+
+    #[test]
+    fn post_merge_persistence_preserves_timeline_order() {
+        let events = vec![
+            test_event("event-c", Some("call-c")),
+            test_event("event-a", Some("call-a")),
+            test_event("event-b", Some("call-b")),
+        ];
+        let incoming_ids = HashSet::from(["event-b".to_string(), "event-c".to_string()]);
+        let result_call_ids = HashSet::from(["call-a".to_string()]);
+
+        let selected =
+            collect_post_merge_persistable_events(&events, &incoming_ids, &result_call_ids);
+
+        assert_eq!(
+            selected
+                .into_iter()
+                .map(|event| event.id)
+                .collect::<Vec<_>>(),
+            vec!["event-c", "event-a", "event-b"]
+        );
+    }
 
     #[test]
     fn runtime_projection_uses_backfill_record_id_shape() {

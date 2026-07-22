@@ -1,3 +1,4 @@
+import { useAtomValue } from "jotai";
 import { BookOpen, Building2, ChevronRight } from "lucide-react";
 import React, {
   useCallback,
@@ -10,8 +11,10 @@ import { useTranslation } from "react-i18next";
 
 import { type ProjectOrg, projectApi } from "@src/api/http/project";
 import Input from "@src/components/Input";
+import { GHOST_INPUT_PLACEHOLDER_CLASS } from "@src/components/Input/tokens";
 import { PropertyDropdownField } from "@src/components/PropertyField/PropertyDropdownField";
 import type { PropertyDropdownOption } from "@src/components/PropertyField/PropertyDropdownField";
+import { org2CloudOrgsAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { createLogger } from "@src/hooks/logger";
 import {
   mapWorkItemUpdatesToDraftPatch,
@@ -30,7 +33,6 @@ import {
   ProjectContentEditor,
   type ProjectContentEditorRef,
 } from "@src/modules/ProjectManager/shared";
-import { PROJECT_MANAGER_TEXT_PLACEHOLDER_CLASS } from "@src/modules/ProjectManager/shared/placeholderTokens";
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 import type { Person } from "@src/types/core/shared";
 import type {
@@ -40,6 +42,7 @@ import type {
   WorkItemProject,
 } from "@src/types/core/workItem";
 
+import { filterSelectableProjectOrgs } from "../../../projectOrgVisibility";
 import WorkItemContentStack from "../WorkItemContentStack";
 import WorkItemProperties from "../WorkItemProperties";
 import type { WorkItemPropertyFieldKey } from "../WorkItemProperties/types";
@@ -102,6 +105,7 @@ export interface UseInlineCreateWorkItemFieldsOptions {
   defaultProjectId?: string;
   onDraftChange?: (draft: WorkItemDraft) => void;
   onSetUnsaved: (hasUnsaved: boolean) => void;
+  orgId?: string | null;
   propertiesOpen?: boolean;
   projectId?: string;
   projectName?: string;
@@ -120,6 +124,7 @@ export function useInlineCreateWorkItemFields({
   defaultProjectId,
   onDraftChange,
   onSetUnsaved,
+  orgId: surfaceOrgId,
   propertiesOpen = false,
   projectId,
   projectName,
@@ -128,9 +133,11 @@ export function useInlineCreateWorkItemFields({
   scopeBreadcrumbLabel,
 }: UseInlineCreateWorkItemFieldsOptions): InlineCreateWorkItemFieldsState {
   const { t } = useTranslation("projects");
+  const { t: tSessions } = useTranslation("sessions");
   const [editorResetKey, setEditorResetKey] = useState(0);
   const { agents: customAgents } = useAgentDefinitions();
   const { orgs: availableOrgs } = useAgentOrgs();
+  const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const [loadedMembers, setLoadedMembers] = useState<Person[]>([]);
   const [loadedProjects, setLoadedProjects] = useState<
     CreateWorkItemProjectOption[]
@@ -167,15 +174,30 @@ export function useInlineCreateWorkItemFields({
   });
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadOrgs = async () => {
+      try {
+        const orgsData = await projectApi.readOrgs();
+        if (!cancelled) setProjectOrgs(orgsData);
+      } catch (err) {
+        logger.warn("Failed to load orgs for work item picker", err);
+      }
+    };
+
+    void loadOrgs();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (availableProjects.length > 0) return;
     let cancelled = false;
 
     const loadProjects = async () => {
       try {
-        const [projectsData, orgsData] = await Promise.all([
-          projectApi.readProjects(),
-          projectApi.readOrgs(),
-        ]);
+        const projectsData = await projectApi.readProjects();
         if (cancelled) return;
         setLoadedProjects(
           projectsData.map((project) => ({
@@ -185,7 +207,6 @@ export function useInlineCreateWorkItemFields({
             orgId: project.meta.org_id,
           }))
         );
-        setProjectOrgs(orgsData);
         setLoadedProjectSlugById(
           Object.fromEntries(
             projectsData.map((project) => [project.meta.id, project.slug])
@@ -241,10 +262,24 @@ export function useInlineCreateWorkItemFields({
     };
   }, [selectedProjectSlug, availableMembers.length]);
 
+  const selectableProjectOrgs = useMemo(
+    () => filterSelectableProjectOrgs(projectOrgs, cloudOrgs),
+    [cloudOrgs, projectOrgs]
+  );
+  const selectableProjectOrgIds = useMemo(
+    () => new Set(selectableProjectOrgs.map((org) => org.id)),
+    [selectableProjectOrgs]
+  );
+
   const resolvedMembers =
     availableMembers.length > 0 ? availableMembers : loadedMembers;
-  const resolvedProjects: CreateWorkItemProjectOption[] =
-    availableProjects.length > 0 ? availableProjects : loadedProjects;
+  const resolvedProjects = useMemo<CreateWorkItemProjectOption[]>(() => {
+    const projects: CreateWorkItemProjectOption[] =
+      availableProjects.length > 0 ? availableProjects : loadedProjects;
+    return projects.filter(
+      (project) => !project.orgId || selectableProjectOrgIds.has(project.orgId)
+    );
+  }, [availableProjects, loadedProjects, selectableProjectOrgIds]);
   const resolvedLabels =
     availableLabels.length > 0 ? availableLabels : loadedLabels;
 
@@ -278,8 +313,13 @@ export function useInlineCreateWorkItemFields({
   );
   const selectedProjectName = selectedProject?.name ?? projectName ?? "";
   const selectedProjectOrgId = selectedProject?.orgId;
+  const requestedOrgId =
+    selectedProjectOrgId ?? draft.orgId ?? surfaceOrgId ?? "personal-org";
+  const effectiveOrgId = selectableProjectOrgIds.has(requestedOrgId)
+    ? requestedOrgId
+    : "personal-org";
   const selectedProjectOrgLabel =
-    projectOrgs.find((org) => org.id === selectedProjectOrgId)?.name ??
+    selectableProjectOrgs.find((org) => org.id === effectiveOrgId)?.name ??
     scopeBreadcrumbLabel ??
     t("orgs.personalOrg");
   const projectBreadcrumbLabel =
@@ -296,20 +336,15 @@ export function useInlineCreateWorkItemFields({
     [resolvedProjects]
   );
 
-  const orgOptions = useMemo<PropertyDropdownOption<string>[]>(() => {
-    const orgIdsWithProjects = new Set(
-      resolvedProjects
-        .map((project) => project.orgId)
-        .filter((orgId): orgId is string => Boolean(orgId))
-    );
-    return projectOrgs
-      .filter((org) => orgIdsWithProjects.has(org.id))
-      .map((org) => ({
+  const orgOptions = useMemo<PropertyDropdownOption<string>[]>(
+    () =>
+      selectableProjectOrgs.map((org) => ({
         value: org.id,
         label: org.name,
         icon: <Building2 size={CREATE_WORK_ITEM_BREADCRUMB_ICON_SIZE} />,
-      }));
-  }, [projectOrgs, resolvedProjects]);
+      })),
+    [selectableProjectOrgs]
+  );
 
   const handleProjectBreadcrumbChange = useCallback(
     (value: string) => updateDraftWithUndo({ projectId: value }),
@@ -318,20 +353,25 @@ export function useInlineCreateWorkItemFields({
 
   const handleOrgBreadcrumbChange = useCallback(
     (nextOrgId: string) => {
-      const nextProject = resolvedProjects.find(
-        (project) => project.orgId === nextOrgId
+      const patch: Partial<WorkItemDraft> = { orgId: nextOrgId };
+      const currentProject = resolvedProjects.find(
+        (project) => project.id === draft.projectId
       );
-      if (nextProject) {
-        updateDraftWithUndo({ projectId: nextProject.id });
+      if (currentProject && currentProject.orgId !== nextOrgId) {
+        const nextProject = resolvedProjects.find(
+          (project) => project.orgId === nextOrgId
+        );
+        patch.projectId = nextProject?.id;
       }
+      updateDraftWithUndo(patch);
     },
-    [resolvedProjects, updateDraftWithUndo]
+    [draft.projectId, resolvedProjects, updateDraftWithUndo]
   );
 
   const orgBreadcrumbSegment =
     orgOptions.length > 0 ? (
       <PropertyDropdownField
-        value={selectedProjectOrgId ?? orgOptions[0]?.value ?? ""}
+        value={effectiveOrgId}
         label={selectedProjectOrgLabel}
         icon={null}
         options={orgOptions}
@@ -341,8 +381,9 @@ export function useInlineCreateWorkItemFields({
         triggerVariant="pill"
         searchable
         searchPlaceholder={t("workItems.properties.searchProjects")}
-        selected={Boolean(selectedProjectOrgId)}
+        selected={Boolean(selectedProjectOrgId ?? draft.orgId)}
         maxWidthClassName="max-w-[220px] shrink-0"
+        dataTestId="create-work-item-org-select"
       />
     ) : (
       <PropertyDropdownField
@@ -356,6 +397,7 @@ export function useInlineCreateWorkItemFields({
         searchable={false}
         selected
         maxWidthClassName="max-w-[220px] shrink-0"
+        dataTestId="create-work-item-org-select"
       />
     );
 
@@ -378,6 +420,7 @@ export function useInlineCreateWorkItemFields({
         searchPlaceholder={t("workItems.properties.searchProjects")}
         selected={Boolean(draft.projectId)}
         maxWidthClassName="max-w-[220px] shrink-0"
+        dataTestId="create-work-item-project-select"
       />
     ) : (
       <PropertyDropdownField
@@ -391,6 +434,7 @@ export function useInlineCreateWorkItemFields({
         searchable={false}
         selected
         maxWidthClassName="max-w-[220px] shrink-0"
+        dataTestId="create-work-item-project-select"
       />
     );
 
@@ -453,7 +497,7 @@ export function useInlineCreateWorkItemFields({
       fieldVariant="ghost"
       size="small"
       className="flex-1"
-      inputClassName={PROJECT_MANAGER_TEXT_PLACEHOLDER_CLASS}
+      inputClassName={GHOST_INPUT_PLACEHOLDER_CLASS}
       data-testid="create-work-item-title-input"
     />
   );
@@ -470,7 +514,7 @@ export function useInlineCreateWorkItemFields({
       onDescriptionChange={handleDescriptionChange}
       titleVisible={false}
       separatorVisible={false}
-      descriptionPlaceholder={t("workItems.descriptionPlaceholder")}
+      descriptionPlaceholder={tSessions("creator.placeholderDefault")}
       onImageInsert={handleImageInsert}
       descriptionClassName="no-bottom-border"
       descriptionMaxHeight="100%"
@@ -512,6 +556,7 @@ export function useInlineCreateWorkItemFields({
 export interface InlineCreateWorkItemFieldsProps {
   className?: string;
   descriptionClassName?: string;
+  showDividers?: boolean;
   showDescription?: boolean;
   state: InlineCreateWorkItemFieldsState;
 }
@@ -521,6 +566,7 @@ export const InlineCreateWorkItemFields: React.FC<
 > = ({
   className = "h-full w-full",
   descriptionClassName = "min-h-0 overflow-hidden",
+  showDividers = true,
   showDescription,
   state,
 }) => {
@@ -540,6 +586,7 @@ export const InlineCreateWorkItemFields: React.FC<
       titleClassName="flex h-10 items-center py-0"
       descriptionClassName={descriptionClassName}
       separatorClassName=""
+      showDividers={showDividers}
     />
   );
 };

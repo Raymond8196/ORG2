@@ -12,11 +12,10 @@
  */
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
-import { dockFilterAtom } from "@src/store/workstation";
 import {
   createAgentConfigTab,
-  openTab,
-  workstationLayoutAtom,
+  openWorkstationTabAtom,
+  presentedWorkstationWorkspaceKeyAtom,
 } from "@src/store/workstation/tabs";
 import type { AgentConfigTabData } from "@src/store/workstation/tabs";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
@@ -26,14 +25,11 @@ export function openAgentConfigInWorkStation(data: AgentConfigTabData): void {
 
   const store = getInstrumentedStore();
   store.set(stationModeAtom, "my-station");
-  store.set(dockFilterAtom, "code");
   if (store.get(chatPanelMaximizedAtom)) {
     store.set(chatPanelMaximizedAtom, false);
   }
 
   const tab = createAgentConfigTab(data);
-  store.set(workstationLayoutAtom, (prev) => ({
-    ...prev,
-    mainPane: openTab(prev?.mainPane ?? { tabs: [], activeTabId: null }, tab),
-  }));
+  const workspace = store.get(presentedWorkstationWorkspaceKeyAtom);
+  store.set(openWorkstationTabAtom, { workspace, tab });
 }

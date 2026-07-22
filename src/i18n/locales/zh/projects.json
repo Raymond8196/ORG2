@@ -143,23 +143,31 @@
     "gitFolderPathHint": "将此组织绑定到已有 Git 工作区，用于文件夹同步。",
     "gitFolderBadge": "Git",
     "gitFolderSynced": "已与 Git 文件夹同步",
+    "pendingSync": "等待同步",
     "management": {
       "breadcrumb": "组织设置",
       "overview": "概览",
       "profile": "概览",
       "syncMethods": "同步方式",
-      "orgNameDescription": "此项目组织的显示名称。",
+      "orgNameDescription": "此项目组织的显示名称",
       "orgKey": "组织标识",
-      "orgKeyDescription": "用于组织范围项目 ID 的稳定短标识。",
-      "projectCountDescription": "当前归属此组织的原生项目数。",
+      "orgKeyDescription": "用于组织范围项目 ID 的稳定短标识",
+      "projectCountDescription": "当前归属此组织的原生项目数",
       "gitFolderSync": "Git 文件夹同步",
-      "gitFolderSyncDescription": "通过 Git 工作区镜像此组织的项目和工作项。",
+      "gitFolderSyncDescription": "通过 Git 工作区镜像此组织的项目和工作项",
       "notConfigured": "未配置",
-      "syncNowDescription": "导入远端文件变更并导出本地数据库变更。",
+      "syncNowDescription": "导入远端文件变更并导出本地数据库变更",
       "syncSummary": "{{projects}} 个项目，{{workItems}} 个工作项，{{conflicts}} 个冲突",
-      "syncHowItWorks": "Git 文件夹同步会将此组织连接到现有 Git 仓库。ORGII 会把该组织导出的项目和工作项存放在仓库内的 `.orgii/projects/...` 下，从那里导入文件变更，将本地数据库变更导出回文件，并在遇到冲突时暂停，等待你检查后再覆盖任何内容。",
+      "syncHowItWorks": "Git 文件夹同步会将此组织连接到现有 Git 仓库。ORGII 会把该组织导出的项目和工作项存放在仓库内的 `.orgii/projects/...` 下，从那里导入文件变更，将本地数据库变更导出回文件，并在遇到冲突时暂停，等待你检查后再覆盖任何内容",
       "noProjectsForCatalog": "此组织还没有项目。",
-      "noProjectsForCatalogHint": "先在此组织中创建项目，然后再管理共享成员或标签。"
+      "noProjectsForCatalogHint": "先在此组织中创建项目，然后再管理共享标签",
+      "dangerZone": "危险区域",
+      "deleteOrg": "删除此组织",
+      "deleteOrgDescription": "永久删除 {{org}} 及其所有本地项目和工作项。此操作无法撤销",
+      "personalOrgDeleteDisabled": "默认个人组织是永久的，无法删除",
+      "deleteTypeToConfirm": "输入 {{org}} 以确认",
+      "deleteOrgAction": "删除组织",
+      "deletedToast": "已删除 {{org}}"
     }
   },
   "properties": {
@@ -538,7 +546,11 @@
       "tokens": "Token",
       "subAgentDefault": "Sub-Agent",
       "toolResult": "{{tool}} 结果",
-      "reviewRequestedChanges": "Review 请求修改"
+      "reviewRequestedChanges": "Review 请求修改",
+      "collabLockRunning": "{{name}} 正在处理",
+      "collabLockHeld": "{{name}} 的 agent 正在处理该工作项",
+      "collabLockConflict": "另一位成员刚刚在该工作项上启动了 agent",
+      "collabLockUnresolved": "无法确认该工作项的协作同步状态，请检查网络后重试"
     },
     "changedFiles": {
       "title": "变更文件",

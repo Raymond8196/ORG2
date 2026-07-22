@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::agent_sessions::unified_stats::status::is_active_status;
+use crate::agent_sessions::session_directory::status::is_active_status;
 
 // ============================================================================
 // Types
@@ -239,7 +239,7 @@ pub fn group_sessions(sessions: &[SessionRecord], group_by: &str) -> Vec<Session
         })
         .collect();
 
-    result.sort_by(|a, b| b.count.cmp(&a.count));
+    result.sort_by_key(|entry| std::cmp::Reverse(entry.count));
     result
 }
 

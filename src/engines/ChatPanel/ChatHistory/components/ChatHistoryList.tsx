@@ -73,6 +73,15 @@ function sameNullableNumberArray(
   return left.every((value, index) => value === right[index]);
 }
 
+function sameNullableStringArray(
+  left: readonly (string | null)[],
+  right: readonly (string | null)[]
+): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  return left.every((value, index) => value === right[index]);
+}
+
 type EventSummary = NonNullable<OptimizedChatItem["event"]>;
 
 const RESULT_RENDER_KEYS = [
@@ -218,7 +227,6 @@ function sameFlatItems(
       leftItem.chunk_id === rightItem.chunk_id &&
       leftItem.type === rightItem.type &&
       leftItem.consolidatedParts === rightItem.consolidatedParts &&
-      leftItem.repeatedErrorCount === rightItem.repeatedErrorCount &&
       leftItem.structuralOnly === rightItem.structuralOnly &&
       sameEventSummary(leftItem.event, rightItem.event) &&
       sameEventList(leftItem.readFileEvents, rightItem.readFileEvents) &&
@@ -244,6 +252,7 @@ function sameChatHistoryListProps(
   const checks: Array<[string, boolean]> = [
     ["flatItems", sameFlatItems(previous.flatItems, next.flatItems)],
     ["groupCounts", sameNumberArray(previous.groupCounts, next.groupCounts)],
+    ["turnIds", sameNullableStringArray(previous.turnIds, next.turnIds)],
     ["totalFlatItems", previous.totalFlatItems === next.totalFlatItems],
     [
       "lastAssistantFlatIndexPerItem",
@@ -336,6 +345,7 @@ export interface ChatHistoryListHandle {
 interface ChatHistoryListProps {
   flatItems: OptimizedChatItem[];
   groupCounts: number[];
+  turnIds: (string | null)[];
   totalFlatItems: number;
   lastAssistantFlatIndexPerItem: (number | null)[];
   codeBlockContainerWidth: number;
@@ -449,6 +459,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
   ({
     flatItems,
     groupCounts,
+    turnIds,
     totalFlatItems,
     lastAssistantFlatIndexPerItem,
     codeBlockContainerWidth,
@@ -645,6 +656,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
     );
     const rowGroupMetaRef = useRef<RowGroupMeta[]>(rowGroupMeta);
     rowGroupMetaRef.current = rowGroupMeta;
+    const turnIdsRef = useRef(turnIds);
+    turnIdsRef.current = turnIds;
 
     // For each flat index, the nearest preceding qualifying item — non-structural,
     // non-unloaded, with an event. Pre-computed once per flatItems change so
@@ -676,15 +689,27 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
 
     const staticGroups = useMemo(() => {
       if (!useStaticRendering) return [];
+      const seenGroupKeys = new Set<string>();
+      let nextGroupStartFlatIndex = 0;
       return effectiveGroupCounts.map((groupItemCount, groupIndex) => {
-        const groupStartFlatIndex = effectiveGroupCounts
-          .slice(0, groupIndex)
-          .reduce((sum, count) => sum + count, 0);
-        const firstItem = flatItems[groupStartFlatIndex];
-        const groupKey =
+        const groupStartFlatIndex = nextGroupStartFlatIndex;
+        nextGroupStartFlatIndex += groupItemCount;
+        // Only a group that owns at least one item may borrow its identity from
+        // one. A zero-count group's start index points at the *next* group's
+        // first item, so reading it unconditionally makes both groups emit the
+        // same key ("Encountered two children with the same key"). Empty groups
+        // are produced by useChatGroupsProjection when a collapsed turn has no
+        // structural source.
+        const firstItem =
+          groupItemCount > 0 ? flatItems[groupStartFlatIndex] : undefined;
+        let groupKey =
           firstItem?.event?.id ??
           firstItem?.chunk_id ??
           `static-group-${groupIndex}`;
+        if (seenGroupKeys.has(groupKey)) {
+          groupKey = `${groupKey}#${groupIndex}`;
+        }
+        seenGroupKeys.add(groupKey);
         return {
           groupIndex,
           groupKey,
@@ -715,6 +740,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
           <GroupItemRenderer
             flatIndex={flatIndex}
             groupIndex={groupIndex}
+            turnId={turnIdsRef.current[groupIndex] ?? null}
             chatItem={currentFlatItems[flatIndex]}
             previousChatItem={previousChatItemsRef.current[flatIndex]}
             lastAssistantFlatIndex={rowMeta.lastAssistantFlatIndex}
@@ -823,6 +849,33 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
       [hideActiveGroupHeader, onActiveGroupIndexChange]
     );
 
+    // Coalesce scroll-driven active-group recomputes to one per animation
+    // frame. `reportActiveGroupIndex` runs a querySelectorAll, a
+    // getBoundingClientRect per group, and header style writes; calling it
+    // synchronously on every scroll event (60–120Hz during momentum) forced a
+    // read→write→read layout thrash on the scroll tick. Batching into a rAF
+    // keeps those reads/writes off the scroll handler.
+    const activeGroupFrameRef = useRef<number | null>(null);
+    const scheduleReportActiveGroupIndex = useCallback(
+      (scrollRoot: HTMLDivElement) => {
+        if (activeGroupFrameRef.current !== null) return;
+        activeGroupFrameRef.current = window.requestAnimationFrame(() => {
+          activeGroupFrameRef.current = null;
+          reportActiveGroupIndex(scrollRoot);
+        });
+      },
+      [reportActiveGroupIndex]
+    );
+    useEffect(
+      () => () => {
+        if (activeGroupFrameRef.current !== null) {
+          window.cancelAnimationFrame(activeGroupFrameRef.current);
+          activeGroupFrameRef.current = null;
+        }
+      },
+      []
+    );
+
     useEffect(() => {
       lastReportedGroupStateRef.current = null;
       const frameId = window.requestAnimationFrame(() => {
@@ -844,7 +897,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
       return (
         <div
           ref={staticScrollerRef}
-          className="h-full overflow-y-auto overscroll-contain scrollbar-hide"
+          className="h-full overflow-y-auto overscroll-contain pt-2 scrollbar-hide"
           onScroll={(event) => {
             const element = event.currentTarget;
             onAtBottomStateChange(
@@ -854,7 +907,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                 bottomInset,
               })
             );
-            reportActiveGroupIndex(element);
+            scheduleReportActiveGroupIndex(element);
           }}
         >
           <div
@@ -893,6 +946,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                       key={itemKey}
                       flatIndex={itemFlatIndex}
                       groupIndex={groupIndex}
+                      turnId={turnIds[groupIndex] ?? null}
                       chatItem={flatItems[itemFlatIndex]}
                       previousChatItem={previousChatItems[itemFlatIndex]}
                       lastAssistantFlatIndex={rowMeta.lastAssistantFlatIndex}
@@ -922,7 +976,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
         ref={(node) => {
           virtualScrollerRef.current = node;
         }}
-        className="h-full w-full overflow-y-auto overscroll-contain scrollbar-hide"
+        className="h-full w-full overflow-y-auto overscroll-contain pt-2 scrollbar-hide"
         onScroll={(event) => {
           const element = event.currentTarget;
           const isAtBottom = isScrolledToContentBottom({
@@ -931,7 +985,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
             bottomInset,
           });
           onAtBottomStateChange(isAtBottom);
-          reportActiveGroupIndex(element);
+          scheduleReportActiveGroupIndex(element);
           if (isAtBottom) onEndReached();
         }}
       >

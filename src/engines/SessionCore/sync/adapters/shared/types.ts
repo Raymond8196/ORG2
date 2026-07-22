@@ -129,6 +129,10 @@ export interface AgentWSEvent {
   success?: boolean;
   chunk?: string;
   stream?: string;
+  /** Monotonic per-shell replay sequence assigned by the Rust writer. */
+  sequence?: number;
+  /** Durable replay byte watermark after this chunk was persisted. */
+  persistedBytes?: number;
   files?: string[];
   workspacePath?: string;
   todos?: unknown[];
@@ -137,6 +141,8 @@ export interface AgentWSEvent {
   operation?: "list" | "inspect" | "dispatch";
   action?: string;
   params?: Record<string, unknown>;
+  /** Trusted local session identity for actions bound to the invoking turn. */
+  invokingSessionId?: string;
   agentType?: RustAgentType;
 
   // ============================================
@@ -216,8 +222,6 @@ export interface AgentWSEvent {
   exitCode?: number;
   /** Whether the process was killed (vs normal exit) */
   killed?: boolean;
-  /** Path to the terminal log file */
-  logPath?: string;
   /** Shell command (explicit for shell process events) */
   command?: string;
   /**
@@ -309,6 +313,15 @@ export interface PermissionRequestEvent {
   toolCallId?: string;
   args: Record<string, unknown>;
   agentType?: RustAgentType;
+  /**
+   * Where the pending approval is parked on the backend. Default
+   * (undefined) is the Rust-agent `AgentPermissionManager`
+   * (`agent_permission_response`). `"cli_hook"` marks a managed CLI
+   * session's PermissionRequest hook long-poll, `"acp"` an ACP agent's
+   * (OpenCode/Copilot/Kiro) parked `session/request_permission` — both
+   * answered via `cli_agent_approval_response` instead.
+   */
+  origin?: "cli_hook" | "acp";
 }
 
 export interface QuestionRequestEvent {

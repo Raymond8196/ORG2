@@ -1,4 +1,12 @@
-import { Box, Columns3, Github, ListTodo, Plus, SquarePen } from "lucide-react";
+import {
+  Box,
+  Columns3,
+  Gauge,
+  Github,
+  ListTodo,
+  Plus,
+  SquarePen,
+} from "lucide-react";
 import React from "react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
@@ -12,6 +20,7 @@ import {
   PROJECTS_IMPORT_GITHUB_ISSUES_MENU_ITEM_ID,
   PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
   PROJECTS_NEW_WORK_ITEM_MENU_ITEM_ID,
+  RUNTIME_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
   getDraftMenuItemId,
   getDraftPreviewText,
@@ -24,12 +33,14 @@ interface BuildPinnedMenuItemsParams {
   workItemDestinations: NavigationMenuItem[];
   kanbanLabel: string;
   kanbanShortcut: string;
+  runtimeLabel: string;
 }
 
 interface BuildProjectsPinnedMenuItemsParams {
   createProjectLabel: string;
   createWorkItemLabel: string;
   importGithubIssuesLabel: string;
+  workItemDestinations: readonly NavigationMenuItem[];
 }
 
 export function buildPinnedMenuItems({
@@ -39,6 +50,7 @@ export function buildPinnedMenuItems({
   workItemDestinations,
   kanbanLabel,
   kanbanShortcut,
+  runtimeLabel,
 }: BuildPinnedMenuItemsParams): NavigationMenuItem[] {
   return [
     {
@@ -48,6 +60,7 @@ export function buildPinnedMenuItems({
       icon: Plus,
       iconName: "plus",
       shortcut: newSessionShortcut,
+      dataTestId: "sidebar-new-session",
     },
     {
       id: KANBAN_MENU_ITEM_ID,
@@ -58,12 +71,21 @@ export function buildPinnedMenuItems({
       shortcut: kanbanShortcut,
     },
     {
+      id: RUNTIME_MENU_ITEM_ID,
+      key: RUNTIME_MENU_ITEM_ID,
+      label: runtimeLabel,
+      icon: Gauge,
+      iconName: "gauge",
+      dataTestId: "sidebar-runtime",
+    },
+    {
       id: WORK_ITEMS_MENU_ITEM_ID,
       key: WORK_ITEMS_MENU_ITEM_ID,
       label: workItemsLabel,
       icon: ListTodo,
       iconName: "list-todo",
       children: workItemDestinations,
+      disclosureFollowsLabel: true,
       dataTestId: "sidebar-toggle-work-items",
     },
   ];
@@ -73,6 +95,7 @@ export function buildProjectsPinnedMenuItems({
   createProjectLabel,
   createWorkItemLabel,
   importGithubIssuesLabel,
+  workItemDestinations,
 }: BuildProjectsPinnedMenuItemsParams): NavigationMenuItem[] {
   return [
     {
@@ -81,6 +104,7 @@ export function buildProjectsPinnedMenuItems({
       label: createWorkItemLabel,
       icon: SquarePen,
       iconName: "square-pen",
+      dataTestId: "sidebar-create-work-item",
     },
     {
       id: PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
@@ -88,6 +112,7 @@ export function buildProjectsPinnedMenuItems({
       label: createProjectLabel,
       icon: Box,
       iconName: "box",
+      dataTestId: "sidebar-create-project",
     },
     {
       id: PROJECTS_IMPORT_GITHUB_ISSUES_MENU_ITEM_ID,
@@ -95,7 +120,9 @@ export function buildProjectsPinnedMenuItems({
       label: importGithubIssuesLabel,
       icon: Github,
       iconName: "github",
+      dataTestId: "sidebar-import-github-issues",
     },
+    ...workItemDestinations,
   ];
 }
 

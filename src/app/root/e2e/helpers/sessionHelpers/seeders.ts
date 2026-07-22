@@ -8,6 +8,10 @@ import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreP
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
 import {
+  openOrFocusSessionInChatPanelTabAtom,
+  openWorkManagementChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
   isPendingCancelAtom,
   lastUserMessageAtom,
   sessionRuntimeStatusAtom,
@@ -78,9 +82,21 @@ export function createSessionSeederHelpers(store: E2EStore) {
       await new Promise((resolve) => window.setTimeout(resolve, 100));
       await eventStoreProxy.set(sessionEvents, sessionId);
       store.set(loadSessionAtom, { sessionId, events: sessionEvents });
+      // Persist like production writes do: the cloud push engine reads the
+      // SQLite cache (getPersistedEvents), and a memory-only seed made it
+      // observe an EMPTY session, mark the event plane clean, and never
+      // ship segments (metadata-only rows with events_epoch=0 server-side).
+      await eventStoreProxy.saveToCache(sessionId);
 
       const snapshot = await eventStoreProxy.getSnapshot(sessionId);
       store.set(derivedSnapshotAtom, snapshot);
+      // Session hydration may restore its persisted layout while the seed is
+      // being applied. Re-apply the requested deterministic layout after the
+      // final load so rendered E2E assertions never inspect a zero-width
+      // Agent Station hidden behind a maximized chat panel.
+      store.set(stationModeAtom, options?.stationMode ?? "my-station");
+      store.set(chatPanelMaximizedAtom, options?.chatPanelMaximized ?? true);
+      store.set(chatWidthAtom, options?.chatWidth ?? 560);
       if (options?.runtimeStatus) {
         store.set(sessionRuntimeStatusAtom, options.runtimeStatus);
       }
@@ -104,6 +120,21 @@ export function createSessionSeederHelpers(store: E2EStore) {
       if (options?.currentEventId) {
         store.set(navigateToEventAtom, options.currentEventId);
       }
+      // resetToNewSession leaves the Launchpad/Work Management pill active.
+      // Seeded transcript scenarios need the canonical session pill active;
+      // otherwise that fullscreen tab immediately re-maximizes ChatPanel and
+      // makes Agent Station zero-width after this helper returns.
+      store.set(openOrFocusSessionInChatPanelTabAtom, {
+        sessionId,
+        sessionName: sessionId,
+      });
+      // `loadSessionAtom` fans out through React effects that can finish one
+      // or two frames after the synchronous atom write. Let those settle,
+      // then make the requested E2E layout authoritative one final time.
+      await new Promise((resolve) => window.setTimeout(resolve, 100));
+      store.set(stationModeAtom, options?.stationMode ?? "my-station");
+      store.set(chatPanelMaximizedAtom, options?.chatPanelMaximized ?? true);
+      store.set(chatWidthAtom, options?.chatWidth ?? 560);
       return {
         ok: true,
         eventCount: snapshot.eventCount,
@@ -126,6 +157,8 @@ export function createSessionSeederHelpers(store: E2EStore) {
     name?: string;
     repoPath?: string;
     status?: string;
+    orgId?: string;
+    touchedFiles?: string[];
   }): Promise<Result<{ sessionId: string }>> => {
     try {
       if (!input.sessionId) {
@@ -147,11 +180,26 @@ export function createSessionSeederHelpers(store: E2EStore) {
         name: input.name ?? existing?.name ?? input.sessionId,
         user_input: input.name ?? existing?.user_input ?? input.sessionId,
         repoPath: input.repoPath ?? existing?.repoPath,
+        orgId: input.orgId ?? existing?.orgId,
+        touchedFiles: input.touchedFiles ?? existing?.touchedFiles,
+        filesChanged:
+          input.touchedFiles?.length ?? existing?.filesChanged ?? undefined,
         category: existing?.category ?? "rust_agent",
         is_active: true,
       };
       upsertSession(session);
       return { ok: true, sessionId: input.sessionId };
+    } catch (err) {
+      return asError(err);
+    }
+  };
+
+  const openWorkManagementTab = async (): Promise<
+    Result<{ tabId: string }>
+  > => {
+    try {
+      const tabId = store.set(openWorkManagementChatPanelTabAtom, {});
+      return { ok: true, tabId };
     } catch (err) {
       return asError(err);
     }
@@ -321,8 +369,8 @@ export function createSessionSeederHelpers(store: E2EStore) {
   const seedShellProcess = async (input: {
     sessionId: string;
     pid: number;
+    callId?: string;
     command: string;
-    logPath?: string;
     status?: "running" | "background";
   }): Promise<Result<{ sessionId: string; pid: number }>> => {
     try {
@@ -342,14 +390,15 @@ export function createSessionSeederHelpers(store: E2EStore) {
         type: "start",
         sessionId: input.sessionId,
         pid: input.pid,
+        callId: input.callId ?? `e2e-shell-${input.pid}`,
         command: input.command,
-        logPath: input.logPath,
       });
       if (input.status === "background") {
         store.set(updateShellProcessAtom, {
           type: "background",
           sessionId: input.sessionId,
           pid: input.pid,
+          callId: input.callId ?? `e2e-shell-${input.pid}`,
         });
       }
       return { ok: true, sessionId: input.sessionId, pid: input.pid };
@@ -632,6 +681,7 @@ export function createSessionSeederHelpers(store: E2EStore) {
   return {
     seedChatEvents,
     seedSidebarSession,
+    openWorkManagementTab,
     seedModeSwitchSession,
     seedPlanCard,
     seedShellProcess,

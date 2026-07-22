@@ -10,24 +10,25 @@ use key_vault::key_store::KEY_SERVICE;
 use serde::Serialize;
 use serde_json::Value;
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    OnceLock,
+    atomic::{AtomicBool, AtomicU32, Ordering},
+    Mutex, OnceLock,
 };
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const MANAGED_CODEX_AGENT: &str = "codex";
 const MANAGED_CLAUDE_CODE_AGENT: &str = "claude_code";
-const DEFAULT_PROXY_PORT: u16 = 17888;
-const DEFAULT_PROXY_URL: &str = "http://127.0.0.1:17888";
 const DEFAULT_CODEX_OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 const DEFAULT_ANTHROPIC_BASE_URL: &str = "https://api.anthropic.com/v1";
 const ORGII_CURRENT_MODEL: &str = "orgii-current-model";
 const MAX_PROXY_BODY_BYTES: usize = 64 * 1024 * 1024;
 const OPENAI_API_PROVIDER: &str = "openai_api";
 const ANTHROPIC_API_PROVIDER: &str = "anthropic_api";
+const MAX_PROXY_RETRY_DELAY_SECS: u64 = 30;
 
 static PROXY_START_REQUESTED: AtomicBool = AtomicBool::new(false);
 static PROXY_RUNNING: AtomicBool = AtomicBool::new(false);
+static PROXY_RETRY_ATTEMPT: AtomicU32 = AtomicU32::new(0);
+static PROXY_LAST_ERROR: OnceLock<Mutex<Option<String>>> = OnceLock::new();
 static PROXY_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 
 #[derive(Debug, Clone, Serialize)]
@@ -63,42 +64,123 @@ struct ProxyContext {
     protocol: ProxyProtocol,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct ProxyAgentDescriptor {
+    protocol: ProxyProtocol,
+    protocol_name: &'static str,
+    display_name: &'static str,
+    requires_openai_responses: bool,
+}
+
 pub fn start_cli_managed_proxy_thread() {
     if PROXY_START_REQUESTED.swap(true, Ordering::SeqCst) {
         return;
     }
 
-    std::thread::spawn(|| match tokio::runtime::Runtime::new() {
-        Ok(rt) => {
-            rt.block_on(async {
-                if let Err(err) = run_proxy_server().await {
-                    tracing::warn!(error = %err, "[CLI Managed Proxy] stopped");
-                }
-            });
-            PROXY_RUNNING.store(false, Ordering::SeqCst);
-            PROXY_START_REQUESTED.store(false, Ordering::SeqCst);
-        }
-        Err(err) => {
-            PROXY_RUNNING.store(false, Ordering::SeqCst);
-            PROXY_START_REQUESTED.store(false, Ordering::SeqCst);
-            tracing::error!(error = %err, "[CLI Managed Proxy] failed to create tokio runtime");
+    // Async-IO proxy: two workers cover many concurrent CLI streams without
+    // paying for a core-count worker pool.
+    std::thread::spawn(|| {
+        match tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(2)
+            .enable_all()
+            .build()
+        {
+            Ok(rt) => {
+                rt.block_on(supervise_proxy_server());
+                PROXY_RUNNING.store(false, Ordering::SeqCst);
+                PROXY_START_REQUESTED.store(false, Ordering::SeqCst);
+            }
+            Err(err) => {
+                PROXY_RUNNING.store(false, Ordering::SeqCst);
+                PROXY_START_REQUESTED.store(false, Ordering::SeqCst);
+                set_proxy_last_error(Some(format!("Failed to create proxy runtime: {err}")));
+                tracing::error!(error = %err, "[CLI Managed Proxy] failed to create tokio runtime");
+            }
         }
     });
 }
 
+async fn supervise_proxy_server() {
+    loop {
+        let error = match run_proxy_server().await {
+            Ok(()) => "Proxy server stopped unexpectedly".to_string(),
+            Err(err) => err,
+        };
+        PROXY_RUNNING.store(false, Ordering::SeqCst);
+        set_proxy_last_error(Some(error.clone()));
+
+        let attempt = PROXY_RETRY_ATTEMPT.fetch_add(1, Ordering::SeqCst) + 1;
+        let retry_delay_secs = proxy_retry_delay_secs(attempt);
+        tracing::warn!(
+            error = %error,
+            attempt,
+            retry_delay_secs,
+            "[CLI Managed Proxy] unavailable; retrying"
+        );
+        tokio::time::sleep(Duration::from_secs(retry_delay_secs)).await;
+    }
+}
+
+fn proxy_retry_delay_secs(attempt: u32) -> u64 {
+    let exponent = attempt.saturating_sub(1).min(5);
+    (1_u64 << exponent).min(MAX_PROXY_RETRY_DELAY_SECS)
+}
+
+fn set_proxy_last_error(error: Option<String>) {
+    let state = PROXY_LAST_ERROR.get_or_init(|| Mutex::new(None));
+    match state.lock() {
+        Ok(mut value) => *value = error,
+        Err(poisoned) => *poisoned.into_inner() = error,
+    }
+}
+
+fn proxy_last_error() -> Option<String> {
+    let state = PROXY_LAST_ERROR.get_or_init(|| Mutex::new(None));
+    match state.lock() {
+        Ok(value) => value.clone(),
+        Err(poisoned) => poisoned.into_inner().clone(),
+    }
+}
+
+fn proxy_unavailable_message() -> String {
+    if let Some(error) = proxy_last_error() {
+        let attempt = PROXY_RETRY_ATTEMPT.load(Ordering::SeqCst).max(1);
+        return format!(
+            "Local proxy is unavailable and will retry automatically (attempt {attempt}): {error}"
+        );
+    }
+    if PROXY_START_REQUESTED.load(Ordering::SeqCst) {
+        "Local proxy is starting".to_string()
+    } else {
+        "Local proxy has not started".to_string()
+    }
+}
+
 async fn run_proxy_server() -> Result<(), String> {
-    let addr = std::net::SocketAddr::from(([127, 0, 0, 1], DEFAULT_PROXY_PORT));
+    let addr = std::net::SocketAddr::from((
+        [127, 0, 0, 1],
+        agent_cli::managed_config::managed_proxy_port(),
+    ));
     let app = Router::new()
         .route("/health", get(health_handler))
         .route("/proxy/{token}/v1", any(proxy_v1_root_handler))
         .route("/proxy/{token}/v1/{*path}", any(proxy_v1_handler))
         .route("/proxy/{token}/claude", any(proxy_claude_root_handler))
-        .route("/proxy/{token}/claude/{*path}", any(proxy_claude_handler));
+        .route("/proxy/{token}/claude/{*path}", any(proxy_claude_handler))
+        .route("/cli/{agent}/{token}/v1", any(cli_v1_root_handler))
+        .route("/cli/{agent}/{token}/v1/{*path}", any(cli_v1_handler))
+        .route("/cli/{agent}/{token}/claude", any(cli_claude_root_handler))
+        .route(
+            "/cli/{agent}/{token}/claude/{*path}",
+            any(cli_claude_handler),
+        );
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await
         .map_err(|err| format!("Failed to bind {addr}: {err}"))?;
 
+    PROXY_RETRY_ATTEMPT.store(0, Ordering::SeqCst);
+    set_proxy_last_error(None);
     PROXY_RUNNING.store(true, Ordering::SeqCst);
     tracing::info!("[CLI Managed Proxy] listening on http://{}", addr);
     let result = axum::serve(listener, app)
@@ -109,14 +191,16 @@ async fn run_proxy_server() -> Result<(), String> {
 }
 
 async fn health_handler() -> impl IntoResponse {
-    match cli_managed_proxy_status(MANAGED_CODEX_AGENT.to_string()).await {
-        Ok(status) => (StatusCode::OK, Json(status)).into_response(),
-        Err(err) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "ready": false, "message": err })),
-        )
-            .into_response(),
-    }
+    (
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "service": "orgii-cli-managed-proxy",
+            "protocolVersion": 1,
+            "running": true,
+            "url": agent_cli::managed_config::managed_proxy_url(),
+        })),
+    )
+        .into_response()
 }
 
 async fn proxy_v1_root_handler(
@@ -153,6 +237,40 @@ async fn proxy_claude_handler(
     }
 
     proxy_agent_handler(MANAGED_CLAUDE_CODE_AGENT, token, path, request).await
+}
+
+async fn cli_v1_root_handler(
+    Path((agent, token)): Path<(String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    proxy_agent_handler(&agent, token, String::new(), request).await
+}
+
+async fn cli_v1_handler(
+    Path((agent, token, path)): Path<(String, String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    proxy_agent_handler(&agent, token, path, request).await
+}
+
+async fn cli_claude_root_handler(
+    Path((agent, token)): Path<(String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    if request.method() == Method::HEAD {
+        return authenticated_empty_ok_response(&agent, &token);
+    }
+    proxy_agent_handler(&agent, token, String::new(), request).await
+}
+
+async fn cli_claude_handler(
+    Path((agent, token, path)): Path<(String, String, String)>,
+    request: Request<Body>,
+) -> Response<Body> {
+    if request.method() == Method::HEAD && path == "v1" {
+        return authenticated_empty_ok_response(&agent, &token);
+    }
+    proxy_agent_handler(&agent, token, path, request).await
 }
 
 async fn proxy_agent_handler(
@@ -456,14 +574,30 @@ fn apply_auth_header(
     }
 }
 
-fn protocol_for_agent(
-    agent_name: &str,
-) -> Result<(ProxyProtocol, &'static str, &'static str), String> {
-    match agent_name {
-        MANAGED_CODEX_AGENT => Ok((ProxyProtocol::OpenAi, "openai", "Codex")),
-        MANAGED_CLAUDE_CODE_AGENT => Ok((ProxyProtocol::Anthropic, "anthropic", "Claude Code")),
-        _ => Err("CLI managed proxy only supports Codex and Claude Code in this build".to_string()),
-    }
+fn protocol_for_agent(agent_name: &str) -> Result<ProxyAgentDescriptor, String> {
+    use agent_cli::managed_config::CliManagedProxyProtocol;
+
+    let proxy_protocol = agent_cli::managed_config::managed_proxy_protocol_for_agent(agent_name)
+        .ok_or_else(|| {
+            agent_cli::managed_config::managed_config_unavailable_reason_for_agent(agent_name)
+                .map(str::to_string)
+                .unwrap_or_else(|| format!("CLI managed proxy is not registered for {agent_name}"))
+        })?;
+    let display_name = key_vault::cli_agent_display_name(agent_name)
+        .ok_or_else(|| format!("Missing CLI registry entry for {agent_name}"))?;
+    let (protocol, protocol_name, requires_openai_responses) = match proxy_protocol {
+        CliManagedProxyProtocol::OpenAiResponses => (ProxyProtocol::OpenAi, "openai", true),
+        CliManagedProxyProtocol::OpenAiChatCompletions => (ProxyProtocol::OpenAi, "openai", false),
+        CliManagedProxyProtocol::AnthropicMessages => {
+            (ProxyProtocol::Anthropic, "anthropic", false)
+        }
+    };
+    Ok(ProxyAgentDescriptor {
+        protocol,
+        protocol_name,
+        display_name,
+        requires_openai_responses,
+    })
 }
 
 fn resolve_proxy_context_for_selection(
@@ -472,7 +606,10 @@ fn resolve_proxy_context_for_selection(
     selected_model: Option<&str>,
     proxy_token: String,
 ) -> Result<ProxyContext, String> {
-    let (protocol, protocol_name, agent_display) = protocol_for_agent(agent_name)?;
+    let descriptor = protocol_for_agent(agent_name)?;
+    let protocol = descriptor.protocol;
+    let protocol_name = descriptor.protocol_name;
+    let agent_display = descriptor.display_name;
     let key_id = key_id
         .map(str::trim)
         .filter(|value| !value.is_empty())
@@ -494,9 +631,9 @@ fn resolve_proxy_context_for_selection(
         ));
     }
 
-    if matches!(protocol, ProxyProtocol::OpenAi) && provider != OPENAI_API_PROVIDER {
+    if descriptor.requires_openai_responses && provider != OPENAI_API_PROVIDER {
         return Err(format!(
-            "Provider {provider} is OpenAI-compatible but is not verified for the Responses API required by Codex managed config"
+            "Provider {provider} is OpenAI-compatible but is not verified for the Responses API required by {agent_display} managed config"
         ));
     }
 
@@ -593,7 +730,7 @@ fn resolve_proxy_context_for_selection(
 }
 
 fn resolve_proxy_context(agent_name: &str) -> Result<ProxyContext, String> {
-    let (_, _, agent_display) = protocol_for_agent(agent_name)?;
+    let agent_display = protocol_for_agent(agent_name)?.display_name;
     let selection = agent_cli::managed_config::managed_selection_for_agent(agent_name)?
         .ok_or_else(|| format!("{agent_display} is not in ORGII Managed config mode"))?;
     let proxy_token = selection
@@ -630,12 +767,10 @@ pub async fn cli_config_enable_orgii_managed(
     model: Option<String>,
     force: bool,
 ) -> Result<agent_cli::managed_config::CliConfigManagedStatus, String> {
+    start_cli_managed_proxy_thread();
     tokio::task::spawn_blocking(move || {
         if !PROXY_RUNNING.load(Ordering::SeqCst) {
-            return Err(
-                "ORGII local CLI proxy is unavailable. Resolve the port conflict and restart ORGII."
-                    .to_string(),
-            );
+            return Err(proxy_unavailable_message());
         }
         let context = resolve_proxy_context_for_selection(
             &agent_name,
@@ -657,10 +792,11 @@ pub async fn cli_config_enable_orgii_managed(
 
 #[tauri::command(rename_all = "camelCase")]
 pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedProxyStatus, String> {
+    start_cli_managed_proxy_thread();
     let running = PROXY_RUNNING.load(Ordering::SeqCst);
-    let url = DEFAULT_PROXY_URL.to_string();
+    let url = agent_cli::managed_config::managed_proxy_url();
 
-    if agent_name != MANAGED_CODEX_AGENT && agent_name != MANAGED_CLAUDE_CODE_AGENT {
+    if let Err(reason) = protocol_for_agent(&agent_name) {
         return Ok(CliManagedProxyStatus {
             agent_name,
             supported: false,
@@ -672,9 +808,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
             selected_model: None,
             upstream_base_url: None,
             compatible_key_ids: Vec::new(),
-            message: Some(
-                "CLI managed proxy only supports Codex and Claude Code in this build".to_string(),
-            ),
+            message: Some(reason),
         });
     }
 
@@ -685,7 +819,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
             let message = if running {
                 None
             } else {
-                Some("Local proxy has not started yet".to_string())
+                Some(proxy_unavailable_message())
             };
             Ok(CliManagedProxyStatus {
                 agent_name,
@@ -703,6 +837,11 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
         }
         Err(err) => {
             let selection = agent_cli::managed_config::managed_selection_for_agent(&agent_name)?;
+            let message = if running {
+                err
+            } else {
+                format!("{}; {err}", proxy_unavailable_message())
+            };
             Ok(CliManagedProxyStatus {
                 agent_name,
                 supported: true,
@@ -720,7 +859,7 @@ pub async fn cli_managed_proxy_status(agent_name: String) -> Result<CliManagedPr
                     .and_then(|selection| selection.selected_model.clone()),
                 upstream_base_url: None,
                 compatible_key_ids,
-                message: Some(err),
+                message: Some(message),
             })
         }
     }
@@ -776,6 +915,31 @@ mod tests {
         rewrite_model_field(&mut value, "gpt-5.1");
 
         assert_eq!(value["model"], "gpt-5.1");
+    }
+
+    #[test]
+    fn managed_adapter_protocols_drive_proxy_capabilities() {
+        let codex = protocol_for_agent("codex").unwrap();
+        assert!(matches!(codex.protocol, ProxyProtocol::OpenAi));
+        assert!(codex.requires_openai_responses);
+
+        let opencode = protocol_for_agent("opencode").unwrap();
+        assert!(matches!(opencode.protocol, ProxyProtocol::OpenAi));
+        assert!(!opencode.requires_openai_responses);
+
+        let aider = protocol_for_agent("aider").unwrap();
+        assert!(matches!(aider.protocol, ProxyProtocol::OpenAi));
+        assert!(!aider.requires_openai_responses);
+    }
+
+    #[test]
+    fn proxy_retry_delay_is_exponential_and_capped() {
+        assert_eq!(proxy_retry_delay_secs(1), 1);
+        assert_eq!(proxy_retry_delay_secs(2), 2);
+        assert_eq!(proxy_retry_delay_secs(3), 4);
+        assert_eq!(proxy_retry_delay_secs(5), 16);
+        assert_eq!(proxy_retry_delay_secs(6), 30);
+        assert_eq!(proxy_retry_delay_secs(20), 30);
     }
 
     #[test]

@@ -227,7 +227,7 @@ fn summarize_worktree_diff(
     }
 
     let path = PathBuf::from(worktree_path);
-    let uncommitted = crate::commands::diff::get_diff_numstat_combined(&path, "HEAD").ok();
+    let uncommitted = crate::commands::diff::get_diff_numstat_combined(&path, "HEAD", false).ok();
 
     let summary = uncommitted.and_then(|uncommitted| {
         let uncommitted_files = uncommitted.files_changed;

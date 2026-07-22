@@ -6,17 +6,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum CliPermissionMode {
     Plan,
+    #[default]
     FullPermission,
     AutoEdit,
     Manual,
-}
-
-impl Default for CliPermissionMode {
-    fn default() -> Self {
-        Self::FullPermission
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -48,6 +44,11 @@ pub struct CliLaunchProfileOverride {
     pub command_override: Option<String>,
     pub args_override: Option<Vec<String>>,
     pub env_override: Option<HashMap<String, String>>,
+    /// Experimental transport selector. Absent (default) = per-turn shell-out.
+    /// `"app-server"` on the codex profile switches managed sessions to the
+    /// long-lived `codex app-server` JSON-RPC transport.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transport: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -70,6 +71,9 @@ pub struct CliLaunchProfileView {
     pub env_overridden: bool,
     pub effective_command: Vec<String>,
     pub required_args: Vec<String>,
+    /// Experimental transport selector (see [`CliLaunchProfileOverride::transport`]).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transport: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -78,6 +82,20 @@ pub struct ResolvedCliLaunchProfile {
     pub command: String,
     pub args: Vec<String>,
     pub env: HashMap<String, String>,
+    /// Experimental transport selector (see [`CliLaunchProfileOverride::transport`]).
+    pub transport: Option<String>,
+}
+
+/// Launch-profile `transport` value selecting the `codex app-server`
+/// JSON-RPC transport instead of the per-turn `codex exec --json` shell-out.
+pub const CLI_TRANSPORT_APP_SERVER: &str = "app-server";
+
+/// Gate predicate for the experimental codex app-server transport: only the
+/// codex agent honors the flag, and only when the launch profile explicitly
+/// opts in. Absent flag (the default) keeps the shell-out path.
+pub fn uses_codex_app_server(agent: &ModelType, profile: &ResolvedCliLaunchProfile) -> bool {
+    matches!(agent, ModelType::Codex)
+        && profile.transport.as_deref() == Some(CLI_TRANSPORT_APP_SERVER)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -88,6 +106,11 @@ pub struct CliLaunchProfileUpdate {
     pub command_override: Option<String>,
     pub args_override: Option<Vec<String>>,
     pub env_override: Option<HashMap<String, String>>,
+    /// Experimental transport selector. `None` (the UI never sends it)
+    /// preserves any stored value so flipping args/mode via the settings UI
+    /// doesn't silently clear the app-server opt-in.
+    #[serde(default)]
+    pub transport: Option<String>,
 }
 pub fn cli_binary_id_for_agent(agent: &ModelType) -> Option<CliBinaryId> {
     match agent {
@@ -119,6 +142,8 @@ pub fn cli_binary_id_for_agent(agent: &ModelType) -> Option<CliBinaryId> {
         ModelType::Autohand => Some(CliBinaryId::Autohand),
         ModelType::Omp => Some(CliBinaryId::Omp),
         ModelType::Pi => Some(CliBinaryId::Pi),
+        ModelType::QoderCli => Some(CliBinaryId::QoderCli),
+        ModelType::TraeCli => Some(CliBinaryId::TraeCli),
         _ => None,
     }
 }
@@ -345,6 +370,21 @@ pub const CLI_LAUNCH_PROFILE_DEFAULTS: &[CliLaunchProfileDefaults] = &[
         command_args: &[],
         mode_defaults: mode_defaults![Manual => (&[], &[])],
     },
+    CliLaunchProfileDefaults {
+        agent_type: ModelType::QoderCli,
+        command_args: &[],
+        mode_defaults: mode_defaults![
+            Plan => (&["--permission-mode", "plan"], &[]),
+            Manual => (&["--permission-mode", "default"], &[]),
+            AutoEdit => (&["--permission-mode", "accept_edits"], &[]),
+            FullPermission => (&["--permission-mode", "bypass_permissions"], &[]),
+        ],
+    },
+    CliLaunchProfileDefaults {
+        agent_type: ModelType::TraeCli,
+        command_args: &["interactive"],
+        mode_defaults: mode_defaults![Manual => (&[], &[])],
+    },
 ];
 
 pub fn defaults_for_agent(agent_type: &ModelType) -> Option<&'static CliLaunchProfileDefaults> {
@@ -435,4 +475,32 @@ pub fn static_env_to_map(
 
 pub fn static_args_to_vec(values: &'static [&'static str]) -> Vec<String> {
     values.iter().map(|value| (*value).to_string()).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn qoder_cli_exposes_documented_permission_modes() {
+        let defaults = defaults_for_agent(&ModelType::QoderCli).expect("Qoder CLI defaults");
+        assert_eq!(
+            default_args_for_mode(defaults, CliPermissionMode::Plan),
+            vec!["--permission-mode", "plan"]
+        );
+        assert_eq!(
+            default_args_for_mode(defaults, CliPermissionMode::FullPermission),
+            vec!["--permission-mode", "bypass_permissions"]
+        );
+    }
+
+    #[test]
+    fn trae_cli_starts_in_interactive_mode() {
+        let defaults = defaults_for_agent(&ModelType::TraeCli).expect("Trae CLI defaults");
+        assert_eq!(defaults.command_args, &["interactive"]);
+        assert_eq!(
+            supported_permission_modes(defaults),
+            vec![CliPermissionMode::Manual]
+        );
+    }
 }

@@ -7,7 +7,6 @@
 // Layout shell
 export { WorkStationShell } from "./WorkStationShell";
 export type { WorkStationShellProps } from "./WorkStationShell";
-export { WorkstationTabHeaderSlotsView } from "./WorkstationTabHeaderSlotsView";
 export { WorkstationHeaderSectionSeparator } from "./WorkstationHeaderSectionSeparator";
 export { WorkstationToolbarTooltip } from "./WorkstationToolbarTooltip";
 export type { WorkstationToolbarTooltipProps } from "./WorkstationToolbarTooltip";
@@ -88,15 +87,12 @@ export type {
 
 // Reusable sidebar modules (tab-specific sidebar substrate)
 export {
-  useSourceControlSidebarModule,
   SourceControlTabSidebar,
   registerTabSidebar,
   getTabSidebarDescriptor,
   hasTabSidebar,
   SidebarSlot,
   useTabSidebar,
-  type UseSourceControlSidebarModuleOptions,
-  type UseSourceControlSidebarModuleResult,
   type TabSidebarComponent,
   type TabSidebarDescriptor,
   type TabSidebarProps,
@@ -133,7 +129,6 @@ export {
 export type { WorkStationTab, TabBarProps } from "./TabBar";
 export { TabBarTrailingIconButton } from "./TabBar/components/TabBarTrailingIconButton";
 export type { TabBarTrailingIconButtonProps } from "./TabBar/components/TabBarTrailingIconButton";
-export { NoDragRegion } from "./NoDragRegion";
 export { StationTabBarLeading } from "./StationTabBarLeading";
 export { TabBarLeadingLayout } from "./TabBarLeadingLayout";
 
@@ -218,24 +213,18 @@ export {
   type UseReplayShellResult,
 } from "./SessionReplay";
 
-// App-switcher chip (shared chip view + product-bound wrappers)
-export { AppSwitcherChip } from "./AppSwitcherChip";
-export type { AppSwitcherChipProps } from "./AppSwitcherChip";
-export type { AppSwitcherMenuItem } from "./AppSwitcherDropdownPanel";
+// Station-mode chip + product-bound app-switcher wrappers.
+// The shared chip view (AppSwitcherChip), its dropdown panel, the
+// AppSwitcherMenuItem/AppSwitcherChipData types, and the
+// useSimulatorAppSwitcher data hook are internal to AppSwitcherWrappers and
+// are no longer re-exported here — nothing outside imports them from the
+// barrel. SimulatorTabBarLeading is imported directly from
+// ./AppSwitcherWrappers by SessionReplay, so it is not re-exported either.
 export { StationModeChip } from "./StationModeChip";
 export {
   SimulatorAgentChip,
-  SimulatorAppSwitcherChip,
-  SimulatorTabBarLeading,
-  TabBarWorkStationAppSwitcherChip,
-  WorkStationAppSwitcherChip,
   WorkStationTabBarLeading,
 } from "./AppSwitcherWrappers";
-export {
-  useSimulatorAppSwitcher,
-  useWorkStationAppSwitcher,
-} from "./useAppSwitcherData";
-export type { AppSwitcherChipData } from "./useAppSwitcherData";
 
 // Sidebar collapse toggle (lives in tab bar trailing slots)
 export {

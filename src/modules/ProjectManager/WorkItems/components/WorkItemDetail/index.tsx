@@ -11,16 +11,21 @@ import { HEADER_CLASSES } from "@src/config/workstation/tokens";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import { useAgentDefinitions } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentDefinitions";
 import { useAgentOrgs } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentOrgs";
-import type {
-  WorkItemPriority,
-  WorkItemStatus,
+import {
+  WORK_ITEM_STATUS,
+  type WorkItemPriority,
+  type WorkItemStatus,
 } from "@src/types/core/workItem";
 
 import { getContextMenuItems } from "../../config";
 import { useWorkItemOrchestrator } from "../../hooks/useWorkItemOrchestrator";
+import { formatWorkItemShortId } from "../../workItemIdentity";
 import WorkItemContextMenu from "../WorkItemContextMenu";
 import { WorkItemDetailBody } from "./WorkItemDetailBody";
-import { WorkItemDetailHeader } from "./WorkItemDetailHeader";
+import {
+  WorkItemDetailHeaderActions,
+  WorkItemDetailHeaderBreadcrumb,
+} from "./WorkItemDetailHeader";
 import { usePendingWorkItemUpdates } from "./hooks/usePendingWorkItemUpdates";
 import { usePrCreation } from "./hooks/usePrCreation";
 import { useWorkItemFileActions } from "./hooks/useWorkItemFileActions";
@@ -67,6 +72,8 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
   initialPendingUpdates,
   surface = WORK_ITEM_DETAIL_SURFACE.main,
   breadcrumbProjectName,
+  breadcrumbIcon,
+  titleEditable,
   propertiesOpen: controlledPropertiesOpen,
   onToggleProperties,
   publishHeaderToWorkstation = false,
@@ -106,6 +113,14 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
     onPendingChangesChange,
     onRegisterActions,
   });
+  const displayStatus =
+    displayWorkItem.workItemStatus ?? displayWorkItem.status;
+  const isGitHubWorkItem =
+    displayStatus === WORK_ITEM_STATUS.GITHUB_OPEN ||
+    displayStatus === WORK_ITEM_STATUS.GITHUB_CLOSED;
+  const canEditTitle =
+    Boolean(onUpdateWorkItem) && titleEditable !== false && !isGitHubWorkItem;
+  const displayShortId = formatWorkItemShortId(shortId, displayStatus);
 
   const {
     isStartingAgent,
@@ -118,6 +133,8 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
     handleCreateFollowUp,
     worktreePath,
     projectRepoPath,
+    isLockedByOther,
+    lockHolderName,
   } = useWorkItemOrchestrator({
     workItem,
     displayWorkItem,
@@ -280,15 +297,40 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
 
   const headerContent = useMemo(
     () => (
-      <WorkItemDetailHeader
+      <WorkItemDetailHeaderBreadcrumb
+        workItem={displayWorkItem}
+        breadcrumbProjectName={breadcrumbProjectName}
+        breadcrumbIcon={breadcrumbIcon}
+        shortId={displayShortId}
+        onClose={_onClose}
+        onTitleChange={
+          canEditTitle
+            ? (title) => handleLocalUpdate({ name: title })
+            : undefined
+        }
+        t={t}
+      />
+    ),
+    [
+      displayWorkItem,
+      breadcrumbProjectName,
+      breadcrumbIcon,
+      displayShortId,
+      _onClose,
+      canEditTitle,
+      handleLocalUpdate,
+      t,
+    ]
+  );
+
+  const headerTrailing = useMemo(
+    () => (
+      <WorkItemDetailHeaderActions
         workItem={workItem}
         pendingUpdates={pendingUpdates}
-        breadcrumbProjectName={breadcrumbProjectName}
-        shortId={shortId}
         propertiesOpen={propertiesOpen}
         hasPrev={hasPrev}
         hasNext={hasNext}
-        onClose={_onClose}
         onNavigate={onNavigate}
         onDeleteWorkItem={onDeleteWorkItem}
         onExpandToTab={onExpandToTab}
@@ -299,12 +341,9 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
     [
       workItem,
       pendingUpdates,
-      breadcrumbProjectName,
-      shortId,
       propertiesOpen,
       hasPrev,
       hasNext,
-      _onClose,
       onNavigate,
       onDeleteWorkItem,
       onExpandToTab,
@@ -317,6 +356,7 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
     host: workstationHeaderHost,
     content: {
       content: headerContent,
+      trailing: headerTrailing,
     },
     enabled: publishHeaderToWorkstation,
   });
@@ -326,10 +366,16 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
       className={`relative flex h-full flex-col overflow-hidden${
         surface === WORK_ITEM_DETAIL_SURFACE.nested ? "bg-bg-2" : ""
       }`}
+      data-testid="work-item-detail"
+      data-work-item-id={workItem.session_id}
+      data-work-item-short-id={shortId ?? ""}
       onContextMenu={handleContextMenu}
     >
       {!publishHeaderToWorkstation && (
-        <div className={HEADER_CLASSES.pageHeader}>{headerContent}</div>
+        <div className={HEADER_CLASSES.pageHeader}>
+          {headerContent}
+          {headerTrailing}
+        </div>
       )}
 
       <WorkItemDetailBody
@@ -351,6 +397,8 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
         isStartingAgent={isStartingAgent}
         activeAgentSessionId={activeAgentSessionId}
         activeAgentRole={activeAgentRole}
+        isLockedByOther={isLockedByOther}
+        lockHolderName={lockHolderName}
         onUpdateWorkItem={handleLocalUpdate}
         onUpdateWorkItemImmediate={handleImmediateUpdate}
         onStartAgent={handleStartAgent}

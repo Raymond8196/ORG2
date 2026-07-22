@@ -31,6 +31,16 @@ export const getGitRemotes = async (params: {
     );
     return response.data;
   } catch (error) {
+    // Only a confirmed plain folder is a definitive "no remotes" answer.
+    // "Invalid path" / "repo not found" can be a startup-order race while the
+    // Rust Git API is still loading the user's registered repo roots. Treat
+    // those as retryable transport failures; otherwise repoScopeResolver
+    // permanently caches null and a later Team Session replay keeps the
+    // owner's foreign workspace path even after the local checkout is ready.
+    const message = error instanceof Error ? error.message : String(error);
+    if (/not a git repositor/i.test(message)) {
+      return { remotes: [] };
+    }
     log.error("[GitAPI] Failed to fetch remotes from Rust server:", error);
     return undefined;
   }
