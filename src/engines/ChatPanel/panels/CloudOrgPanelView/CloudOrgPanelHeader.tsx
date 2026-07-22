@@ -32,16 +32,6 @@ export function CloudOrgPanelHeader({
         dataTestId: "cloud-org-tab-general",
       },
       {
-        key: CLOUD_ORG_MANAGEMENT_TAB.SESSIONS,
-        label: t("routes.sessions"),
-        dataTestId: "cloud-org-tab-sessions",
-      },
-      {
-        key: CLOUD_ORG_MANAGEMENT_TAB.REPO_SCOPE,
-        label: t("cloud.orgPanel.repoScopesTitle"),
-        dataTestId: "cloud-org-tab-repo-scope",
-      },
-      {
         key: CLOUD_ORG_MANAGEMENT_TAB.MEMBERS,
         label: t("cloud.orgPanel.membersTitle"),
         dataTestId: "cloud-org-tab-members",

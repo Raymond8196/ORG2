@@ -23,11 +23,14 @@ import React, {
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
+import Button from "@src/components/Button";
 import {
   WORK_MANAGEMENT_SESSION_PREVIEW_OVERLAY_CLASS,
   WORK_MANAGEMENT_SESSION_PREVIEW_SURFACE_CLASS,
 } from "@src/config/workManagementCardTokens";
 import type { KanbanTask, TaskStatus } from "@src/features/KanbanBoard";
+import { useCloudSessionActions } from "@src/features/Org2Cloud/useCloudSessionActions";
+import { sidebarSelectedOrgIdAtom } from "@src/features/Organizations/sidebarOrgScopeAtom";
 import { loadSidebarSessions } from "@src/store/session";
 import { kanbanReplayModeAtom } from "@src/store/ui/kanbanReplayAtom";
 import {
@@ -85,6 +88,8 @@ export interface TaskKanbanProps {
    */
   timeFilter?: KanbanTimeFilter;
   onTimeFilterChange?: (filter: KanbanTimeFilter) => void;
+  /** Follow the organization selected in the Workstation sidebar. */
+  followSidebarOrgScope?: boolean;
 }
 
 const Kanban: React.FC<TaskKanbanProps> = ({
@@ -93,8 +98,10 @@ const Kanban: React.FC<TaskKanbanProps> = ({
   hideHeader = false,
   timeFilter: controlledTimeFilter,
   onTimeFilterChange,
+  followSidebarOrgScope = true,
 }) => {
   const { t } = useTranslation("sessions");
+  const { t: tCommon } = useTranslation("common");
   const location = useLocation();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -115,6 +122,8 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     workManagementCreatorVisibleAtom
   );
   const kanbanReplayMode = useAtomValue(kanbanReplayModeAtom);
+  const selectedOrgId = useAtomValue(sidebarSelectedOrgIdAtom);
+  const previousSelectedOrgIdRef = useRef(selectedOrgId);
 
   const isControlled = onTimeFilterChange !== undefined;
   const timeFilter = isControlled
@@ -142,11 +151,38 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     void loadSidebarSessions({ forceRefresh: true });
   }, []);
 
-  const { tasks, allTasks } = useKanbanTasks({
-    timeFilter,
-    autoArchiveTtl,
-    sessionIdFilter,
-  });
+  const { tasks, allTasks, cloudOrgId, remoteSessionsByTaskId } =
+    useKanbanTasks({
+      timeFilter,
+      autoArchiveTtl,
+      sessionIdFilter,
+      followSidebarOrgScope,
+    });
+  const { replaySession, forkSession, busySessionRowId } =
+    useCloudSessionActions(cloudOrgId);
+
+  const renderListRowAction = useCallback(
+    (task: KanbanTask): React.ReactNode => {
+      const remoteSession = remoteSessionsByTaskId.get(task.id);
+      if (!remoteSession || remoteSession.eventsEpoch === undefined) {
+        return undefined;
+      }
+      return (
+        <Button
+          htmlType="button"
+          size="small"
+          variant="secondary"
+          disabled={Boolean(busySessionRowId)}
+          loading={busySessionRowId === remoteSession.id}
+          data-testid={`kanban-list-session-take-over-${remoteSession.sourceSessionId}`}
+          onClick={() => void forkSession(remoteSession)}
+        >
+          {tCommon("workstation.takeOver")}
+        </Button>
+      );
+    },
+    [busySessionRowId, forkSession, remoteSessionsByTaskId, tCommon]
+  );
 
   const { visibleTasks, visibleDiaryTasks, visibleColumns, selectedTask } =
     useTaskKanbanFilters({
@@ -171,12 +207,23 @@ const Kanban: React.FC<TaskKanbanProps> = ({
 
   const handleTaskClick = useCallback(
     (task: KanbanTask) => {
+      const remoteSession = remoteSessionsByTaskId.get(task.id);
+      if (remoteSession) {
+        if (task.canOpen !== false) void replaySession(remoteSession);
+        return;
+      }
       setSelectedTaskId(task.id);
       setDetailPanelVisible(true);
       setCreatorVisible(false);
       beginKanbanHorizontalScrollGuard();
     },
-    [setCreatorVisible, setDetailPanelVisible, setSelectedTaskId]
+    [
+      remoteSessionsByTaskId,
+      replaySession,
+      setCreatorVisible,
+      setDetailPanelVisible,
+      setSelectedTaskId,
+    ]
   );
 
   const handleCloseDetailPanel = useCallback(() => {
@@ -184,6 +231,13 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     setSelectedTaskId(null);
     resetKanbanHorizontalScroll();
   }, [setDetailPanelVisible, setSelectedTaskId]);
+
+  useEffect(() => {
+    const previousOrgId = previousSelectedOrgIdRef.current;
+    previousSelectedOrgIdRef.current = selectedOrgId;
+    if (!followSidebarOrgScope || previousOrgId === selectedOrgId) return;
+    handleCloseDetailPanel();
+  }, [followSidebarOrgScope, handleCloseDetailPanel, selectedOrgId]);
 
   const handleNavigateTask = useCallback(
     (direction: "prev" | "next") => {
@@ -224,6 +278,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
 
   const handleTaskMove = useCallback(
     (taskId: string, newStatus: TaskStatus) => {
+      if (remoteSessionsByTaskId.has(taskId)) return;
       const targetStatus = newStatus as AgentKanbanColumnId;
       setManualArchivedSessionIds((previousIds) => {
         const nextIds = previousIds.filter(
@@ -241,6 +296,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     },
     [
       selectedTaskId,
+      remoteSessionsByTaskId,
       setDetailPanelVisible,
       setManualArchivedSessionIds,
       setSelectedTaskId,
@@ -276,6 +332,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
           onTaskMove={handleTaskMove}
           onTaskClick={handleTaskClick}
           onAddTask={handleAddTask}
+          renderListRowAction={renderListRowAction}
           hasFileSearchQuery={effectiveFileSearchQuery.trim().length > 0}
         />
 

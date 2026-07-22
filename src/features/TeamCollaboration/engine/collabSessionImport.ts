@@ -238,6 +238,7 @@ async function importRemoteSessionInner(
     sourceEndpointUrl,
     ownerMemberId: remoteSession.ownerMemberId,
     ownerDisplayName: remoteSession.ownerDisplayName,
+    ownerAvatarUrl: remoteSession.ownerAvatarUrl,
     externalHistorySource:
       remoteSession.origin?.kind === "external_history"
         ? remoteSession.origin.source

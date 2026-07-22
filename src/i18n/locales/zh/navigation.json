@@ -567,7 +567,8 @@
       "retentionUpgrade": "该会话已超出当前套餐的回放窗口 — 升级后可查看",
       "importError": "会话导入失败",
       "manageBilling": "管理订阅",
-      "manageBillingNote": "在账单门户中取消或更改套餐"
+      "manageBillingNote": "在账单门户中取消或更改套餐",
+      "aboutMeTitle": "关于我"
     },
     "sidebar": {
       "teamSessions": "团队会话",

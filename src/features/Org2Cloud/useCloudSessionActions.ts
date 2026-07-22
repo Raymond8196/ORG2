@@ -29,6 +29,7 @@ import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import { buildCloudSessionFetchClient } from "./org2CloudBackendAdapter";
 import { ensureFreshSession } from "./org2CloudClient";
 import { isOrg2SyncErrorCode } from "./org2CloudSyncClient";
+import { useOpenCloudBilling } from "./useOpenCloudBilling";
 
 const log = createLogger("useCloudSessionActions");
 
@@ -49,8 +50,6 @@ export interface UseCloudSessionActionsResult {
   ) => Promise<CloudSessionActionOutcome>;
   /** Row id (`remoteSession.id`) with a replay/fork in flight, else null. */
   busySessionRowId: string | null;
-  /** Last row id that hit ORG2_RETENTION_EXPIRED, else null. */
-  retentionExpiredRowId: string | null;
 }
 
 /** Per-org replay/fork actions for cloud remote-session rows. */
@@ -63,10 +62,8 @@ export function useCloudSessionActions(
   const openOrReplaceSessionTab = useSetAtom(
     openOrReplaceSessionInChatPanelTabAtom
   );
+  const openCloudBillingPage = useOpenCloudBilling();
   const [busySessionRowId, setBusySessionRowId] = useState<string | null>(null);
-  const [retentionExpiredRowId, setRetentionExpiredRowId] = useState<
-    string | null
-  >(null);
   // Latest auth via ref so token-refresh writes don't recreate callbacks
   // (same idiom as the panel fetch effects).
   const authRef = useRef(auth);
@@ -93,6 +90,15 @@ export function useCloudSessionActions(
     commitRefreshedAuth(setAuth, current, fresh);
     return fresh.accessToken;
   }, [setAuth]);
+
+  const notifyRetentionExpired = useCallback(() => {
+    Message.error(t("cloud.orgPanel.retentionUpgrade"), {
+      cancel: {
+        label: t("cloud.orgPanel.upgrade"),
+        onClick: openCloudBillingPage,
+      },
+    });
+  }, [openCloudBillingPage, t]);
 
   // Read-only replay: same shared importer the self-hosted panel row uses,
   // only the segments-fetch client differs. Rows are server-filtered to the
@@ -144,7 +150,7 @@ export function useCloudSessionActions(
         return "failed";
       } catch (error) {
         if (isOrg2SyncErrorCode(error, "ORG2_RETENTION_EXPIRED")) {
-          setRetentionExpiredRowId(remoteSession.id);
+          notifyRetentionExpired();
           return "retention-expired";
         }
         // Listing said replayable but the read raced a sharing-level /
@@ -165,6 +171,7 @@ export function useCloudSessionActions(
       freshAccessToken,
       openOrReplaceSessionTab,
       openSession,
+      notifyRetentionExpired,
       orgId,
       t,
     ]
@@ -216,7 +223,7 @@ export function useCloudSessionActions(
           return "noop";
         }
         if (isOrg2SyncErrorCode(error, "ORG2_RETENTION_EXPIRED")) {
-          setRetentionExpiredRowId(remoteSession.id);
+          notifyRetentionExpired();
           return "retention-expired";
         }
         if (isOrg2SyncErrorCode(error, "ORG2_REPLAY_NOT_AVAILABLE")) {
@@ -253,6 +260,7 @@ export function useCloudSessionActions(
       freshAccessToken,
       openOrReplaceSessionTab,
       openSession,
+      notifyRetentionExpired,
       orgId,
       t,
     ]
@@ -262,6 +270,5 @@ export function useCloudSessionActions(
     replaySession,
     forkSession,
     busySessionRowId,
-    retentionExpiredRowId,
   };
 }

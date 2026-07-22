@@ -2,6 +2,7 @@ import { isValidElement } from "react";
 
 import type { KanbanTask } from "@src/features/KanbanBoard";
 
+import { truncateSessionOwnerLabel } from "./SessionTable";
 import { mapKanbanTaskToSessionTableItem } from "./sessionTableItem";
 
 function makeTask(): KanbanTask {
@@ -68,5 +69,46 @@ describe("mapKanbanTaskToSessionTableItem", () => {
     });
 
     expect(item.impactLabel).toBeUndefined();
+  });
+
+  it("maps the organization creator name into the owner column", () => {
+    const item = mapKanbanTaskToSessionTableItem({
+      task: {
+        id: "session-org",
+        title: "Review release",
+        status: "in_progress",
+        createdBy: { id: "user-1", name: "Ada Lovelace" },
+      },
+      statusLabel: "In progress",
+    });
+
+    expect(item.ownerLabel).toBe("Ada Lovelace");
+  });
+
+  it("disables rows whose projected task has no open action", () => {
+    const item = mapKanbanTaskToSessionTableItem({
+      task: { ...makeTask(), canOpen: false },
+      statusLabel: "In progress",
+    });
+
+    expect(item.disabled).toBe(true);
+  });
+
+  it("passes a List-owned row action through to the shared table item", () => {
+    const rowAction = "Take over";
+    const item = mapKanbanTaskToSessionTableItem({
+      task: makeTask(),
+      statusLabel: "In progress",
+      rowAction,
+    });
+
+    expect(item.rowAction).toBe(rowAction);
+  });
+});
+
+describe("truncateSessionOwnerLabel", () => {
+  it("limits string owner names to 12 Unicode characters", () => {
+    expect(truncateSessionOwnerLabel("abcdefghijklmnop")).toBe("abcdefghijkl…");
+    expect(truncateSessionOwnerLabel("你好世界")).toBe("你好世界");
   });
 });

@@ -339,10 +339,10 @@ const ColumnTaskList: React.FC<ColumnTaskListProps> = ({
       <SortableTaskCard
         key={task.id}
         task={task}
-        onTaskClick={onTaskClick}
+        onTaskClick={task.canOpen === false ? undefined : onTaskClick}
         showIndicatorBefore={dropIndicator?.beforeTaskId === task.id}
         indicatorColor={columnColor}
-        allowDrag={allowTaskDrag}
+        allowDrag={allowTaskDrag && task.canMove !== false}
         scaleDragTransform={scaleDragTransform}
         useDragOverlay={useDragOverlay}
         isSelected={selectedTaskId != null && task.id === selectedTaskId}

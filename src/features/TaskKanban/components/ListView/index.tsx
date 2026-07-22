@@ -35,6 +35,7 @@ export interface ListViewProps {
   selectedTaskId: string | null;
   detailPanelVisible: boolean;
   onTaskClick: (task: KanbanTask) => void;
+  renderRowAction?: (task: KanbanTask) => React.ReactNode;
 }
 
 const ListView: React.FC<ListViewProps> = ({
@@ -42,8 +43,9 @@ const ListView: React.FC<ListViewProps> = ({
   selectedTaskId,
   detailPanelVisible,
   onTaskClick,
+  renderRowAction,
 }) => {
-  const { t, i18n } = useTranslation(["sessions", "common"]);
+  const { t, i18n } = useTranslation(["sessions", "common", "projects"]);
   const sortedTasks = useMemo(
     () => [...tasks].sort((a, b) => getTaskTimestamp(b) - getTaskTimestamp(a)),
     [tasks]
@@ -64,9 +66,25 @@ const ListView: React.FC<ListViewProps> = ({
           active: task.id === selectedTaskId && detailPanelVisible,
           statusLabel: t(`sessions:${getColumnTitleKey(task.status)}`),
           dateTimeLabelOptions,
+          testId: "kanban-list-session-row",
+          rowAction: renderRowAction?.(task),
         })
       ),
-    [dateTimeLabelOptions, detailPanelVisible, selectedTaskId, sortedTasks, t]
+    [
+      dateTimeLabelOptions,
+      detailPanelVisible,
+      renderRowAction,
+      selectedTaskId,
+      sortedTasks,
+      t,
+    ]
+  );
+  const columnVisibility = useMemo(
+    () => ({
+      ...LIST_COLUMN_VISIBILITY,
+      owner: sortedTasks.some((task) => Boolean(task.createdBy)),
+    }),
+    [sortedTasks]
   );
 
   return (
@@ -82,7 +100,8 @@ const ListView: React.FC<ListViewProps> = ({
         <SessionTable
           items={sessionTableItems}
           className="[&_.table-fixed-header]:scrollbar-hide [&_.table-scroll]:scrollbar-hide"
-          columnVisibility={LIST_COLUMN_VISIBILITY}
+          columnVisibility={columnVisibility}
+          ownerColumnLabel={t("projects:projects.groupBy.createdBy")}
           onSelect={(item) => {
             const task = sortedTasks.find(
               (candidate) => candidate.id === item.id
